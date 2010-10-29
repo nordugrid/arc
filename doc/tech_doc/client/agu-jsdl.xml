@@ -172,7 +172,7 @@
       <!-- stage in example with data upload from client -->
       <Name>foo/bar/grandchallenge</Name>
       <Source>
-        <URL>file:///home/user/genom/grand</URL>
+        <URI>file:///home/user/genom/grand</URI>
         <Threads>1</Threads>
       </Source>
       <KeepData>false</KeepData>
@@ -184,11 +184,11 @@
            storage with indexing -->
       <Name>data/input/genom.dat</Name>
       <Source>
-        <URL>http://bank.genom.de/genom.data</URL>
+        <URI>http://bank.genom.de/genom.data</URI>
         <Threads>3</Threads>
       </Source>
       <Source>
-        <URL>arc:///grid/storage/genom/data</URL>
+        <URI>arc:///grid/storage/genom/data</URI>
         <Threads>2</Threads>
         <DataIndexingService>https://bartender.niif.hu/</DataIndexingService>
         <DataIndexingService>https://bartender-backup.niif.hu/</DataIndexingService>
@@ -201,7 +201,7 @@
       <!-- directory stage in example -->
       <Name>data/params/</Name>
       <Source>
-        <URL>file:///home/user/genom/params</URL>
+        <URI>file:///home/user/genom/params</URI>
         <Threads>1</Threads>
       </Source>
       <KeepData>false</KeepData>
@@ -212,14 +212,14 @@
       <!-- stage out example with upload to external storage -->
       <Name>data/output/meaningoflife</Name>
       <Target>
-        <URL>lfc://bio/production/results/user/run12.dat</URL>
+        <URI>lfc://bio/production/results/user/run12.dat</URI>
         <Threads>3</Threads>
         <Mandatory>true</Mandatory>
         <NeededReplica>1</NeededReplica>
         <DataIndexingService>https://lfc.cern.ch/</DataIndexingService>
       </Target>
       <Target>
-        <URL>arc:///grid/storage/genom/results/run12.dat</URL>
+        <URI>arc:///grid/storage/genom/results/run12.dat</URI>
         <Threads>1</Threads>
         <Mandatory>false</Mandatory>
         <NeededReplica>3</NeededReplica>
@@ -233,13 +233,13 @@
       <Name>log/error.log</Name>
       <Target>
         <!-- XXX open questions -->
-        <URL>file:///home/user/runs/run12/error.log</URL>
+        <URI>file:///home/user/runs/run12/error.log</URI>
       </Target>
     </File>
     <Directory>
       <Name>log</Name>
       <Target>
-        <URL>ftp://cloudstorage.com/bio/logs</URL>
+        <URI>ftp://cloudstorage.com/bio/logs</URI>
       </Target>    
     </Directory>
   </DataStaging>
