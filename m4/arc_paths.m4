@@ -22,7 +22,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   libsubdir=`get_relative_path "$instprefix" "$arc_libdir"`
   pkglibsubdir=`get_relative_path "$instprefix" "$arc_pkglibdir"`
   pkglibexecsubdir=`get_relative_path "$instprefix" "$arc_pkglibexecdir"`
-  pkgdatalibsubdir=`get_relative_path "$instprefix" "$arc_datadir"`
+  pkgdatasubdir=`get_relative_path "$instprefix" "$arc_datadir"`
   pkglibdir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_pkglibdir"`
   sbindir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_sbindir"`
   bindir_rel_to_pkglibexecdir=`get_relative_path "$arc_pkglibexecdir" "$arc_bindir"`
@@ -39,7 +39,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_SUBST([sbindir_rel_to_pkglibexecdir])
   AC_SUBST([bindir_rel_to_pkglibexecdir])
   AC_SUBST([pkgdatadir_rel_to_pkglibexecdir])
-  AC_SUBST([pkgdatalibsubdir])
+  AC_SUBST([pkgdatasubdir])
 
   AC_DEFINE_UNQUOTED([INSTPREFIX], ["${instprefix}"], [installation prefix])
   AC_DEFINE_UNQUOTED([LIBSUBDIR], ["${libsubdir}"], [library installation subdirectory])

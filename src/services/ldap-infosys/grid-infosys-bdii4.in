@@ -620,7 +620,7 @@ create_arc_slapd_conf () {
 
     for i in "/etc/bdii4/BDII.schema" \
              "${bdii_location}/etc/BDII.schema" \
-             "$ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/BDII.schema"; do
+             "$ARC_LOCATION/@pkgdatasubdir@/ldap-schema/BDII.schema"; do
 
         if [ -r $i ]; then
             bdii_schema=$i
@@ -637,11 +637,11 @@ create_arc_slapd_conf () {
 	include $bdii_schema
 
 	#nordugrid specific schemas
-	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/nordugrid.schema
+	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/nordugrid.schema
 	#glue schemas
-	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/glue-1.2/Glue-CORE.schema
-	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/glue-1.2/Glue-CE.schema
-	include $ARC_LOCATION/@pkgdatalibsubdir@/ldap-schema/glue-1.2/Glue-CESEBind.schema
+	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/glue-1.2/Glue-CORE.schema
+	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/glue-1.2/Glue-CE.schema
+	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/glue-1.2/Glue-CESEBind.schema
 
 	$slapd_modulepath
 	$slapd_moduleload
@@ -967,7 +967,7 @@ create_glue_ldif_generator () {
          s,\$GLUESITEWEB,$gluesiteweb,g;
          s,\$BDIIPORT,$bdii_port_read,g;
          s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
-        " $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+        " $ARC_LOCATION/@pkglibsubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
 }
