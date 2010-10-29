@@ -37,34 +37,34 @@ namespace Arc {
         if (target->ComputingShareName.empty())
           logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->url.str());
 
-        bool dropTarget = true;
-
         if (!target->url.Host().empty() || !target->ComputingShareName.empty()) {
+
+          bool dropTarget = true;
           for (std::list<ResourceTargetType>::const_iterator it = job->Resources.CandidateTarget.begin();
                it != job->Resources.CandidateTarget.end(); it++) {
 
-            if (!it->EndPointURL.Host().empty() &&
-                target->url.Host().empty()) { // Drop target since URL is not defined.
-              logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined: %s.", target->url.str());
-              break;
+            if (!it->EndPointURL.Host().empty()) {
+              if (target->url.Host().empty()) { // Drop target since URL is not defined.
+                logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined: %s.", target->url.str());
+                break;
+              }
+
+              if (target->url.Host() != it->EndPointURL.Host()) { // Example: example.org
+                break;
+              }
             }
 
-            if (!it->QueueName.empty() &&
-                target->ComputingShareName.empty()) { // Drop target since ComputingShareName is not published.
-              logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
-              break;
-            }
+            if (!it->QueueName.empty()) {
+              if (target->ComputingShareName.empty()) { // Drop target since ComputingShareName is not published.
+                logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
+                break;
+              }
 
-            if (!it->EndPointURL.Host().empty() &&
-                target->url.Host() == it->EndPointURL.Host()) { // Example: example.org
-              dropTarget = false;
-              break;
-            }
-
-            if (!it->QueueName.empty() &&
-                target->ComputingShareName == it->QueueName) {
-              dropTarget = false;
-              break;
+              if ( it->UseQueue && target->ComputingShareName == it->QueueName ||
+                  !it->UseQueue && target->ComputingShareName != it->QueueName) {
+                dropTarget = false;
+                break;
+              }
             }
           }
 

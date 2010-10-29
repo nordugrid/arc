@@ -496,9 +496,16 @@ namespace Arc {
     if (bool(resource["CandidateTarget"])) {
       for (int i = 0; (bool)(resource["CandidateTarget"][i]); i++)
         if (bool(resource["CandidateTarget"][i]["HostName"]) || bool(resource["CandidateTarget"][i]["QueueName"])) {
+          std::string useQueue = (std::string)resource["CandidateTarget"][i]["QueueName"].Attribute("require");
+          if (!useQueue.empty() && useQueue != "eq" && useQueue != "=" && useQueue != "==" && useQueue != "ne" && useQueue != "!=") {
+            logger.msg(ERROR, "Parsing the \"require\" attribute of the \"QueueName\" JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed.");
+            return JobDescription();
+          }
+
           ResourceTargetType candidateTarget;
           candidateTarget.EndPointURL = URL((std::string)resource["CandidateTarget"][i]["HostName"]);
           candidateTarget.QueueName = (std::string)resource["CandidateTarget"][i]["QueueName"];
+          candidateTarget.UseQueue = !(useQueue == "ne" || useQueue == "!=");
           job.Resources.CandidateTarget.push_back(candidateTarget);
       }
     }
@@ -945,8 +952,12 @@ namespace Arc {
       XMLNode xmlCandidateTarget = xmlResources.NewChild("CandidateTarget");
       if (it->EndPointURL)
         xmlCandidateTarget.NewChild("HostName") = it->EndPointURL.str();
-      if (!it->QueueName.empty())
-        xmlCandidateTarget.NewChild("QueueName") = it->QueueName;
+      if (!it->QueueName.empty()) {
+        XMLNode queue = xmlCandidateTarget.NewChild("QueueName") = it->QueueName;
+        if (!it->UseQueue) {
+          queue.NewAttribute("require") = "ne";
+        }
+      }
       if (xmlCandidateTarget.Size() > 0)
         xmlResources.NewChild(xmlCandidateTarget);
     }

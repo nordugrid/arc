@@ -149,6 +149,7 @@ namespace Arc {
   public:
     URL EndPointURL;
     std::string QueueName;
+    bool UseQueue;
   };
 
   enum SessionDirectoryAccessMode {

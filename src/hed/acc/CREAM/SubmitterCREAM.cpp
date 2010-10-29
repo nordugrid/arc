@@ -95,6 +95,7 @@ namespace Arc {
       ResourceTargetType candidateTarget;
       candidateTarget.EndPointURL = URL();
       candidateTarget.QueueName = et.ComputingShareName;
+      candidateTarget.UseQueue = true;
       jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
     }
 

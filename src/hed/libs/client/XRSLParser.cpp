@@ -372,14 +372,22 @@ namespace Arc {
         std::string queueName;
         if (!SingleValue(c, queueName))
           return false;
+        if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
+          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
+          return false;
+        }
+
         if (j.Resources.CandidateTarget.empty()) {
           ResourceTargetType candidateTarget;
           candidateTarget.EndPointURL = URL();
           candidateTarget.QueueName = queueName;
+          candidateTarget.UseQueue = (c->Op() == RSLEqual);
           j.Resources.CandidateTarget.push_back(candidateTarget);
         }
-        else
+        else {
           j.Resources.CandidateTarget.front().QueueName = queueName;
+          j.Resources.CandidateTarget.front().UseQueue = (c->Op() == RSLEqual);
+        }
         return true;
       }
 
@@ -550,6 +558,7 @@ namespace Arc {
           ResourceTargetType candidateTarget;
           candidateTarget.EndPointURL = cluster;
           candidateTarget.QueueName = "";
+          candidateTarget.UseQueue = true;
           j.Resources.CandidateTarget.push_back(candidateTarget);
         }
         else
@@ -958,7 +967,7 @@ namespace Arc {
     if (!j.Resources.CandidateTarget.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Resources.CandidateTarget.front().QueueName));
-      r.Add(new RSLCondition("queue", RSLEqual, l));
+      r.Add(new RSLCondition("queue", (j.Resources.CandidateTarget.front().UseQueue ? RSLEqual : RSLNotEqual), l));
     }
 
     if (j.Application.Rerun != -1) {

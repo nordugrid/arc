@@ -177,8 +177,14 @@ namespace Arc {
            it != Resources.CandidateTarget.end(); it++) {
         if (it->EndPointURL)
           out << IString(" EndPointURL: %s", it->EndPointURL.str()) << std::endl;
-        if (!it->QueueName.empty())
-          out << IString(" QueueName: %s", it->QueueName) << std::endl;
+        if (!it->QueueName.empty()) {
+          if (it->UseQueue) {
+            out << IString(" QueueName: %s", it->QueueName) << std::endl;
+          }
+          else {
+            out << IString(" QueueName (ignored): %s", it->QueueName) << std::endl;
+          }
+        }
       }
 
       if (!Resources.CEType.empty()) {
