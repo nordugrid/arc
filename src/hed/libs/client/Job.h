@@ -29,7 +29,7 @@ namespace Arc {
     ~Job();
 
     // Information stored in the job list file
-    // Obligatory inforamtion
+    // Obligatory information
     std::string Flavour;
     URL JobID;
     URL Cluster;
@@ -104,17 +104,44 @@ namespace Arc {
      *
      * @param longlist is boolean for long listing (more details).
      * @see SaveToStream
-     */
+     **/
     void Print(bool longlist) const;
 
-    /// Print the Job information to a std::ostream object
+    /// Write job information to a std::ostream object
     /**
-     * This method is used to print Job attributes to a std::ostream object.
+     * This method will write job information to the passed std::ostream object.
+     * The longlist boolean specifies whether more (true) or less (false)
+     * information should be printed.
      *
      * @param out is the std::ostream object to print the attributes to.
-     * @param longlist is boolean for long listing (more details).
-     */
+     * @param longlist is a boolean for switching on long listing (more
+     *        details).
+     **/
     void SaveToStream(std::ostream& out, bool longlist) const;
+
+    /// Set Job attributes from a XMLNode
+    /**
+     * The attributes of the Job object is set to the values specified in the
+     * XMLNode. The XMLNode should be a ComputingActivity type using the GLUE2
+     * XML hierarchical rendering, see
+     * http://forge.gridforum.org/sf/wiki/do/viewPage/projects.glue-wg/wiki/GLUE2XMLSchema
+     * for more information. Note that associations are not parsed.
+     *
+     * @param job is a XMLNode of GLUE2 ComputingActivity type.
+     * @see ToXML
+     **/
+    Job& operator=(XMLNode job);
+
+    /// Add job information to a XMLNode
+    /**
+     * Child nodes of GLUE ComputingActivity type containing job information of
+     * this object will be added to the passed XMLNode.
+     *
+     * @param job is the XMLNode to add job information to in form of
+     *        GLUE2 ComputingActivity type child nodes.
+     * @see operator=
+     **/
+    void ToXML(XMLNode job) const;
 
     static bool CompareJobID(const Job* a, const Job* b);
     static bool CompareSubmissionTime(const Job* a, const Job* b);

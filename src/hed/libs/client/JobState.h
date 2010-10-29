@@ -65,6 +65,8 @@ namespace Arc {
 
     static StateType GetStateType(const std::string& state);
 
+    friend class Job;
+
   protected:
     JobState(const std::string& state, JobState::StateType (*map)(const std::string&))
       : state(state), type((*map)(state)) {};

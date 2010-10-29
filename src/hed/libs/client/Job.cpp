@@ -7,7 +7,61 @@
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/client/Job.h>
+
+#define JXMLTOSTRING(NAME) \
+    if (job[ #NAME ]) {\
+      NAME = (std::string)job[ #NAME ];\
+    }
+
+#define JXMLSTRINGTO(TYPE, NAME) \
+    if (job[ #NAME ]) {\
+      TYPE temp##TYPE##NAME;\
+      if (stringto((std::string)job[ #NAME ], temp##TYPE##NAME)) {\
+        NAME = temp##TYPE##NAME;\
+      }\
+    }
+
+#define JXMLTOTIME(NAME) \
+    if (job[ #NAME ]) {\
+      Time temp##NAME((std::string)job[ #NAME ]);\
+      if (temp##NAME.GetTime() != -1) {\
+        NAME = temp##NAME;\
+      }\
+    }
+
+#define JXMLTOSTRINGLIST(NAME) \
+    NAME.clear();\
+    for (XMLNode n = job[ #NAME ]; n; ++n) {\
+      NAME.push_back((std::string)n);\
+    }
+
+#define STRINGTOXML(NAME) \
+    if (!(NAME).empty()) {\
+      node.NewChild( #NAME ) = NAME;\
+    }
+
+#define URLTOXML(NAME) \
+    if (NAME) {\
+      node.NewChild( #NAME ) = NAME.fullstr();\
+    }
+
+#define INTTOXML(NAME) \
+    if (NAME != -1) {\
+      node.NewChild( #NAME ) = tostring(NAME);\
+    }
+
+#define DATETIMETOSTRING(NAME) \
+    if (NAME != -1) {\
+      node.NewChild( #NAME ) = (std::string)NAME;\
+    }
+
+#define STRINGLISTTOXML(NAME) \
+    for (std::list<std::string>::const_iterator it = NAME.begin();\
+         it != NAME.end(); it++) {\
+      node.NewChild( #NAME ) = *it;\
+    }
 
 namespace Arc {
 
@@ -42,8 +96,116 @@ namespace Arc {
     SaveToStream(std::cout, longlist);
   }
 
-  void Job::SaveToStream(std::ostream& out, bool longlist) const {
+  Job& Job::operator=(XMLNode job) {
+    JXMLTOSTRING(Name)
+    JXMLTOSTRING(Type)
+    JXMLTOSTRING(IDFromEndpoint)
+    JXMLTOSTRING(LocalIDFromManager)
+    JXMLTOSTRING(JobDescription)
 
+    // Parse libarcclient special state format.
+    if (job["State"]["General"] && job["State"]["Specific"]) {
+      State.state = (std::string)job["State"]["Specific"];
+      State.type = JobState::GetStateType((std::string)job["State"]["General"]);
+    }
+    // Only use the first state. ACC modules should set the state them selves.
+    else if (job["State"] && job["State"].Size() == 0) {
+      State.state = (std::string)job["State"];
+      State.type = JobState::OTHER;
+    }
+    if (job["RestartState"]["General"] && job["RestartState"]["Specific"]) {
+      RestartState.state = (std::string)job["RestartState"]["Specific"];
+      RestartState.type = JobState::GetStateType((std::string)job["RestartState"]["General"]);
+    }
+    // Only use the first state. ACC modules should set the state them selves.
+    else if (job["RestartState"] && job["RestartState"].Size() == 0) {
+      RestartState.state = (std::string)job["RestartState"];
+      RestartState.type = JobState::OTHER;
+    }
+
+    JXMLSTRINGTO(int, ExitCode)
+    JXMLTOSTRING(ComputingManagerExitCode)
+    JXMLTOSTRINGLIST(Error)
+    JXMLSTRINGTO(int, WaitingPosition)
+    JXMLTOSTRING(UserDomain)
+    JXMLTOSTRING(Owner)
+    JXMLTOSTRING(LocalOwner)
+    JXMLSTRINGTO(long, RequestedTotalWallTime)
+    JXMLSTRINGTO(long, RequestedTotalCPUTime)
+    JXMLSTRINGTO(int, RequestedSlots)
+    JXMLTOSTRINGLIST(RequestedApplicationEnvironment)
+    JXMLTOSTRING(StdIn)
+    JXMLTOSTRING(StdOut)
+    JXMLTOSTRING(StdErr)
+    JXMLTOSTRING(LogDir)
+    JXMLTOSTRINGLIST(ExecutionNode)
+    JXMLTOSTRING(Queue)
+    JXMLSTRINGTO(long, UsedTotalWallTime)
+    JXMLSTRINGTO(long, UsedTotalCPUTime)
+    JXMLSTRINGTO(int, UsedMainMemory)
+    JXMLTOTIME(SubmissionTime)
+    JXMLTOTIME(ComputingManagerSubmissionTime)
+    JXMLTOTIME(StartTime)
+    JXMLTOTIME(ComputingManagerEndTime)
+    JXMLTOTIME(EndTime)
+    JXMLTOTIME(WorkingAreaEraseTime)
+    JXMLTOTIME(ProxyExpirationTime)
+    JXMLTOSTRING(SubmissionHost)
+    JXMLTOSTRING(SubmissionClientName)
+    JXMLTOSTRINGLIST(OtherMessages)
+
+    return *this;
+  }
+
+  void Job::ToXML(XMLNode node) const {
+    STRINGTOXML(Name)
+    STRINGTOXML(Type)
+    URLTOXML(IDFromEndpoint)
+    STRINGTOXML(LocalIDFromManager)
+    STRINGTOXML(JobDescription)
+    if (State) {
+      node.NewChild("State");
+      node["State"].NewChild("Specific") = State();
+      node["State"].NewChild("General") = State.GetGeneralState();
+    }
+    if (RestartState) {
+      node.NewChild("RestartState");
+      node["RestartState"].NewChild("Specific") = RestartState();
+      node["RestartState"].NewChild("General") = RestartState.GetGeneralState();
+    }
+    INTTOXML(ExitCode)
+    STRINGTOXML(ComputingManagerExitCode)
+    STRINGLISTTOXML(Error)
+    INTTOXML(WaitingPosition)
+    STRINGTOXML(UserDomain)
+    STRINGTOXML(Owner)
+    STRINGTOXML(LocalOwner)
+    DATETIMETOSTRING(RequestedTotalWallTime)
+    DATETIMETOSTRING(RequestedTotalCPUTime)
+    INTTOXML(RequestedSlots)
+    STRINGLISTTOXML(RequestedApplicationEnvironment)
+    STRINGTOXML(StdIn)
+    STRINGTOXML(StdOut)
+    STRINGTOXML(StdErr)
+    STRINGTOXML(LogDir)
+    STRINGLISTTOXML(ExecutionNode)
+    STRINGTOXML(Queue)
+    DATETIMETOSTRING(UsedTotalWallTime)
+    DATETIMETOSTRING(UsedTotalCPUTime)
+    INTTOXML(UsedMainMemory)
+    DATETIMETOSTRING(SubmissionTime)
+    DATETIMETOSTRING(ComputingManagerSubmissionTime)
+    DATETIMETOSTRING(StartTime)
+    DATETIMETOSTRING(ComputingManagerEndTime)
+    DATETIMETOSTRING(EndTime)
+    DATETIMETOSTRING(WorkingAreaEraseTime)
+    DATETIMETOSTRING(ProxyExpirationTime)
+    STRINGTOXML(SubmissionHost)
+    STRINGTOXML(SubmissionClientName)
+    STRINGLISTTOXML(OtherMessages)
+  }
+
+  void Job::SaveToStream(std::ostream& out, bool longlist) const {
     out << IString("Job: %s", JobID.str()) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
@@ -53,17 +215,18 @@ namespace Arc {
     if (ExitCode != -1)
       out << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
-      std::list<std::string>::const_iterator iter;
-      for (iter = Error.begin(); iter != Error.end(); iter++)
-        out << IString(" Error: %s", *iter) << std::endl;
+      for (std::list<std::string>::const_iterator it = Error.begin();
+           it != Error.end(); it++)
+        out << IString(" Error: %s", *it) << std::endl;
     }
+
     if (longlist) {
       if (!Owner.empty())
         out << IString(" Owner: %s", Owner) << std::endl;
       if (!OtherMessages.empty())
-        for (std::list<std::string>::const_iterator iter = OtherMessages.begin();
-             iter != OtherMessages.end(); iter++)
-          out << IString(" Other Messages: %s", *iter)
+        for (std::list<std::string>::const_iterator it = OtherMessages.begin();
+             it != OtherMessages.end(); it++)
+          out << IString(" Other Messages: %s", *it)
                     << std::endl;
       if (!ExecutionCE.empty())
         out << IString(" ExecutionCE: %s", ExecutionCE)
@@ -128,7 +291,6 @@ namespace Arc {
     }
 
     out << std::endl;
-
   } // end Print
 
   bool Job::CompareJobID(const Job* a, const Job* b) {

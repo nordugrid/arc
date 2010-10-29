@@ -212,18 +212,7 @@ namespace Arc {
     if (!process(req, false, response))
       return false;
 
-    if(arex_enabled) {
-      // Fetch the proper state.
-      for (XMLNode n = response["ComputingActivity"]["State"]; n; ++n) {
-        std::list<std::string> gluestate;
-        tokenize((std::string)n, gluestate, ":");
-
-        if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
-          job.State = JobStateARC1(gluestate.back());
-          break;
-        }
-      }
-    } else {
+    if (!arex_enabled) {
       XMLNode activity = response["Response"]["ActivityStatus"];
       if(activity) {
         NS ns("a-rex","http://www.nordugrid.org/schemas/a-rex");
@@ -245,39 +234,39 @@ namespace Arc {
           }
         }
       }
+      if (!job.State) {
+        logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.str());
+        return false;
+      }
+      return true;
+    }
+
+    // A-REX publishes GLUE2 information which is parsed by the Job& operator=(XMLNode).
+    // See the ARC1ClusterInfo.pm script for details on what is actually published.
+    job = response["ComputingActivity"];
+
+    // Fetch the proper state.
+    job.State = JobState();
+    for (XMLNode n = response["ComputingActivity"]["State"]; n; ++n) {
+      std::list<std::string> gluestate;
+      tokenize((std::string)n, gluestate, ":");
+
+      if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
+        job.State = JobStateARC1(gluestate.back());
+        break;
+      }
     }
 
     if (!job.State) {
-      if(arex_enabled) {
-        // If failed to fetch through Glue2 try through BES
-        arex_enabled = false;
-        bool r = stat(jobid,job);
-        arex_enabled = true;
-        return r;
-      } else {
-        logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.str());
-      }
-      return false;
+      // If failed to fetch through Glue2 try through BES
+      arex_enabled = false;
+      stat(jobid,job);
+      arex_enabled = true;
     }
-    if(!arex_enabled) return true;
 
-    // The following elements (except the 'State' element) seem to be published by A-REX, for more info see the ARC1ClusterInfo.pm script.
-    XMLNode jobNode = response["ComputingActivity"];
-    if (jobNode["CreationTime"])
-      job.CreationTime = Time((std::string)jobNode["CreationTime"]);
-    if (jobNode["Type"])
-      job.Type = (std::string)jobNode["Type"];
-    if (jobNode["IDFromEndpoint"])
-      job.IDFromEndpoint = URL((std::string)jobNode["IDFromEndpoint"]);
-    if (jobNode["LocalIDFromManager"])
-      job.LocalIDFromManager = (std::string)jobNode["LocalIDFromManager"];
-    if (jobNode["Name"])
-      job.Name = (std::string)jobNode["Name"];
-    if (jobNode["JobDescription"])
-      job.JobDescription = (std::string)jobNode["JobDescription"];
-    if (jobNode["RestartState"]) {
-      // Fetch the proper state.
-      for (XMLNode n = jobNode["RestartState"]; n; ++n) {
+    // Fetch the proper state.
+    if (response["ComputingActivity"]["RestartState"]) {
+      for (XMLNode n = response["ComputingActivity"]["RestartState"]; n; ++n) {
         std::list<std::string> gluestate;
         tokenize((std::string)n, gluestate, ":");
 
@@ -287,68 +276,8 @@ namespace Arc {
         }
       }
     }
-    if (jobNode["ExitCode"])
-      job.ExitCode = stringtoi(jobNode["ExitCode"]);
-    if (jobNode["ComputingManagerExitCode"])
-      job.ComputingManagerExitCode = (std::string)jobNode["ComputingManagerExitCode"];
-    for (XMLNode errorXML = jobNode["Error"]; errorXML; ++errorXML)
-      job.Error.push_back((std::string)errorXML);
-    if (jobNode["WaitingPosition"])
-      job.WaitingPosition = stringtoi((std::string)jobNode["WaitingPosition"]);
-    if (jobNode["Owner"])
-      job.Owner = (std::string)jobNode["Owner"];
-    if (jobNode["LocalOwner"])
-      job.LocalOwner = (std::string)jobNode["LocalOwner"];
-    if (jobNode["RequestedTotalWallTime"])
-      job.RequestedTotalWallTime = Period((std::string)jobNode["RequestedTotalWallTime"]);
-    if (jobNode["RequestedTotalCPUTime"])
-      job.RequestedTotalCPUTime = Period((std::string)jobNode["RequestedTotalCPUTime"]);
-    for (XMLNode appEnvXML = jobNode["RequestedApplicationEnvironment"]; appEnvXML; ++appEnvXML)
-      job.RequestedApplicationEnvironment.push_back((std::string)appEnvXML);
-    if (jobNode["RequestedSlots"])
-      job.RequestedSlots = stringtoi((std::string)jobNode["RequestedSlots"]);
-    if (jobNode["LogDir"])
-      job.LogDir = (std::string)jobNode["LogDir"];
-    if (jobNode["StdIn"])
-      job.StdIn = (std::string)jobNode["StdIn"];
-    if (jobNode["StdOut"])
-      job.StdOut = (std::string)jobNode["StdOut"];
-    if (jobNode["StdErr"])
-      job.StdErr = (std::string)jobNode["StdErr"];
-    for (XMLNode exeNodeXML = jobNode["ExecutionNode"]; exeNodeXML; ++exeNodeXML)
-      job.ExecutionNode.push_back((std::string)exeNodeXML);
-    if (jobNode["Queue"])
-      job.Queue = (std::string)jobNode["Queue"];
-    if (jobNode["UsedTotalWallTime"])
-      job.UsedTotalWallTime = Period((std::string)jobNode["UsedTotalWallTime"]);
-    if (jobNode["UsedTotalCPUTime"])
-      job.UsedTotalCPUTime = Period((std::string)jobNode["UsedTotalCPUTime"]);
-    if (jobNode["UsedMainMemory"])
-      job.UsedMainMemory = stringtoi((std::string)jobNode["UsedMainMemory"]);
-    if (jobNode["SubmissionTime"])
-      job.SubmissionTime = Time((std::string)jobNode["SubmissionTime"]);
-    if (jobNode["EndTime"])
-      job.EndTime = (std::string)jobNode["EndTime"];
-    if (jobNode["WorkingAreaEraseTime"])
-      job.WorkingAreaEraseTime = Time((std::string)jobNode["WorkingAreaEraseTime"]);
-    if (jobNode["ProxyExpirationTime"])
-      job.ProxyExpirationTime = Time((std::string)jobNode["ProxyExpirationTime"]);
-    if (jobNode["SubmissionHost"])
-      job.SubmissionHost = (std::string)jobNode["SubmissionHost"];
-    if (jobNode["SubmissionClientName"])
-      job.SubmissionClientName = (std::string)jobNode["SubmissionClientName"];
 
-    // The following elements do not seem to be published by A-REX (they are not in ARC1ClusterInfo.om). They are kept here for consistency.
-    if (jobNode["ComputingManagerEndTime"])
-      job.ComputingManagerEndTime = Time((std::string)jobNode["ComputingManagerEndTime"]);
-    if (jobNode["ComputingManagerSubmissionTime"])
-      job.ComputingManagerSubmissionTime = Time((std::string)jobNode["ComputingManagerSubmissionTime"]);
-    if (jobNode["LocalSubmissionTime"])
-      job.LocalSubmissionTime = Time((std::string)jobNode["LocalSubmissionTime"]);
-    if (jobNode["StartTime"])
-      job.StartTime = Time((std::string)jobNode["StartTime"]);
-
-    return true;
+    return (bool)job.State;
   }
 
   bool AREXClient::sstat(XMLNode& response) {
