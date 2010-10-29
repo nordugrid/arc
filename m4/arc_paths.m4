@@ -45,7 +45,7 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
   AC_DEFINE_UNQUOTED([LIBSUBDIR], ["${libsubdir}"], [library installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBSUBDIR], ["${pkglibsubdir}"], [plugin installation subdirectory])
   AC_DEFINE_UNQUOTED([PKGLIBEXECSUBDIR], ["${pkglibexecsubdir}"], [helper programs installation subdirectory])
-  AC_DEFINE_UNQUOTED([PKGDATASUBDIR], ["${pkgdatalibsubdir}"], [package data subdirectory])
+  AC_DEFINE_UNQUOTED([PKGDATASUBDIR], ["${pkgdatasubdir}"], [package data subdirectory])
 
 ])
 
