@@ -4,6 +4,7 @@
 
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
+#include "grid-manager/jobs/states.h"
 #include "job.h"
 
 #include "arex.h"
@@ -40,6 +41,26 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
     InvalidRequestMessageFault(fault,"jsdl:JobDefinition","Element is missing");
     out.Destroy();
     return Arc::MCC_Status();
+  };
+
+  // Apply limit on total number of jobs. Using collected glue states
+  // to evaluate number of jobs.
+  {
+    glue_states_lock_.lock();
+    int jobs_total = glue_states_.size();
+    glue_states_lock_.unlock();
+    int max_active;
+    int max_running;
+    int max_per_dn;
+    int max_total;
+    jobs_cfg_->GetMaxJobs(max_active,max_running,max_per_dn,max_total);
+    if(jobs_total >= max_total) {
+      logger_.msg(Arc::ERROR, "CreateActivity: max jobs total limit reached");
+      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Reached limit of total allowed jobs");
+      GenericFault(fault);
+      out.Destroy();
+      return Arc::MCC_Status();
+    };
   };
 
   // HPC Basic Profile 1.0 comply (these fault handlings are defined in the KnowARC standards 

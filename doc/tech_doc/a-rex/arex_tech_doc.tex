@@ -1289,8 +1289,8 @@ requires installation of A-REX and all related software to be accessible
 from computing nodes and environment variable ARC\_LOCATION to be
 set accordingly. Default is \emph{no}.
 \item \textbf{\textit{maxjobs}}\textit{={[}max\_processed\_jobs
-{[}max\_running\_jobs {[}max\_jobs\_per\_dn]]]} -- specifies maximum number of
-jobs being processed by the A-REX at different stages:\\
+{[}max\_running\_jobs {[}max\_jobs\_per\_dn {[}max\_jobs\_total]]]]} -- specifies 
+maximum number of jobs being processed by the A-REX at different stages:\\
 \textit{max\_processed\_jobs} -- maximum number of concurrent jobs
 processed by A-REX. This does not limit the amount of jobs which can
 be submitted to the cluster.\\
@@ -1298,7 +1298,10 @@ be submitted to the cluster.\\
 Resource Management System\\
 \textit{max\_jobs\_per\_dn} -- maximum number of concurrent jobs processed by
 A-REX per user DN. If this option is used the total maximum number of jobs
-processed is still \textit{max\_processed\_jobs}.
+processed is still \textit{max\_processed\_jobs}.\\
+\textit{max\_jobs\_total} -- total maximum number of jobs associated with 
+service. It is advised to use this limit only inexceptional case because
+it also accounts for finished jobs.\\
 \\ Missing value or -1 means no limit.
 \item \textbf{\textit{maxload}}\textit{={[}max\_frontend\_jobs {[}emergency\_frontend\_jobs
 {[}max\_transferred\_files]]]} -- specifies maximum load caused by
