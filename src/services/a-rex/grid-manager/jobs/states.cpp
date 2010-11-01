@@ -321,7 +321,7 @@ bool JobsList::ActJobs(bool hard_job) {
   };
 
   // debug info on jobs per DN
-  logger.msg(Arc::VERBOSE, "Current DN map (%i entries)", jcfg.jobs_dn.size());
+  logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jcfg.jobs_dn.size());
   for (std::map<std::string, ZeroUInt>::iterator it = jcfg.jobs_dn.begin(); it != jcfg.jobs_dn.end(); ++it)
     logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
 
@@ -1075,6 +1075,8 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
             logger.msg(Arc::ERROR,"%s: Download failed. %d retries left. Will wait for %ds before retrying",i->job_id,i->retries,wait_time);
             /* set back to ACCEPTED */
             i->job_state = JOB_STATE_ACCEPTED;
+            if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
+              jcfg.jobs_dn.erase(i->local->DN);
             state_changed = true;
           }; 
         } 
