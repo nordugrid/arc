@@ -52,7 +52,12 @@
       node.NewChild( #NAME ) = tostring(NAME);\
     }
 
-#define DATETIMETOSTRING(NAME) \
+#define TIMETOSTRING(NAME) \
+    if (NAME != -1) {\
+      node.NewChild( #NAME ) = (NAME).str(UTCTime);\
+    }
+
+#define PERIODTOSTRING(NAME) \
     if (NAME != -1) {\
       node.NewChild( #NAME ) = (std::string)NAME;\
     }
@@ -180,8 +185,8 @@ namespace Arc {
     STRINGTOXML(UserDomain)
     STRINGTOXML(Owner)
     STRINGTOXML(LocalOwner)
-    DATETIMETOSTRING(RequestedTotalWallTime)
-    DATETIMETOSTRING(RequestedTotalCPUTime)
+    PERIODTOSTRING(RequestedTotalWallTime)
+    PERIODTOSTRING(RequestedTotalCPUTime)
     INTTOXML(RequestedSlots)
     STRINGLISTTOXML(RequestedApplicationEnvironment)
     STRINGTOXML(StdIn)
@@ -190,16 +195,16 @@ namespace Arc {
     STRINGTOXML(LogDir)
     STRINGLISTTOXML(ExecutionNode)
     STRINGTOXML(Queue)
-    DATETIMETOSTRING(UsedTotalWallTime)
-    DATETIMETOSTRING(UsedTotalCPUTime)
+    PERIODTOSTRING(UsedTotalWallTime)
+    PERIODTOSTRING(UsedTotalCPUTime)
     INTTOXML(UsedMainMemory)
-    DATETIMETOSTRING(SubmissionTime)
-    DATETIMETOSTRING(ComputingManagerSubmissionTime)
-    DATETIMETOSTRING(StartTime)
-    DATETIMETOSTRING(ComputingManagerEndTime)
-    DATETIMETOSTRING(EndTime)
-    DATETIMETOSTRING(WorkingAreaEraseTime)
-    DATETIMETOSTRING(ProxyExpirationTime)
+    TIMETOSTRING(SubmissionTime)
+    TIMETOSTRING(ComputingManagerSubmissionTime)
+    TIMETOSTRING(StartTime)
+    TIMETOSTRING(ComputingManagerEndTime)
+    TIMETOSTRING(EndTime)
+    TIMETOSTRING(WorkingAreaEraseTime)
+    TIMETOSTRING(ProxyExpirationTime)
     STRINGTOXML(SubmissionHost)
     STRINGTOXML(SubmissionClientName)
     STRINGLISTTOXML(OtherMessages)
