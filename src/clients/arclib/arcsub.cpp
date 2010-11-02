@@ -296,7 +296,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
         std::cout << Arc::IString("Job description to be sent to %s:", target->Cluster.str()) << std::endl;
         std::cout << jobdesc << std::endl;
-        return 0;
+        break;
       }
 
 
@@ -315,7 +315,7 @@ int RUNSUB(main)(int argc, char **argv) {
     } //end loop over all possible targets
   } //end loop over all job descriptions
 
-  if (jobdescriptionlist.size() > 1) {
+  if (!dumpdescription && jobdescriptionlist.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")
               << std::endl;
     std::cout << "-----------------------" << std::endl;
