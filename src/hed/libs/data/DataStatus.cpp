@@ -32,8 +32,8 @@ namespace Arc {
     istring("DataPoint is already writing"), // 23
     istring("Read access check failed"), // 24
     istring("Directory listing failed"), // 25
-    istring("Object is not suitable for listing"), // 25
-    istring("File stating failed"), // 25
+    istring("Object is not suitable for listing"), // 26
+    istring("File stating failed"), // 27
     istring("Object not initialized (internal error)"), // 28
     istring("System error"), // 29
     istring("Failed to stage file(s)"), // 30
