@@ -120,6 +120,8 @@
       <arex:loadLimits>
         <arex:maxJobsTracked inisections="arex" initag="maxjobstracked"/>
         <arex:maxJobsRun inisections="arex" initag="maxjobsrun"/>
+        <arex:maxJobsTotal inisections="arex" initag="maxjobstotal"/>
+        <arex:maxJobsPerDN inisections="arex" initag="maxjobsperdn"/>
         <arex:maxJobsTransferred inisections="arex" initag="maxjobstransferred"/>
         <arex:maxJobsTransferredAdditional inisections="arex" initag="maxjobstransferredadditional"/>
         <arex:maxFilesTransferred inisections="arex" initag="maxfilestransferred"/>
