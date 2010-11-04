@@ -799,8 +799,21 @@ namespace Arc {
 
     // make the hard link
     if (link(cache_file.c_str(), hard_link_file.c_str()) != 0) {
-      logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, strerror(errno));
-      return false;
+      // if the link we want to make already exists, delete and make new one
+      if (errno == EEXIST) {
+        if (remove(hard_link_file.c_str()) != 0) {
+          logger.msg(ERROR, "Failed to remove existing hard link at %s: %s", hard_link_file, strerror(errno));
+          return false;
+        }
+        if (link(cache_file.c_str(), hard_link_file.c_str()) != 0) {
+          logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, strerror(errno));
+          return false;
+        }
+      }
+      else {
+        logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, strerror(errno));
+        return false;
+      }
     }
     // ensure the hard link is readable by all and owned by root (or GM user)
     // (to make cache file immutable but readable by all)
@@ -830,8 +843,21 @@ namespace Arc {
     if (!cache_params.cache_link_path.empty())
       hard_link_file = cache_params.cache_link_path + "/" + CACHE_JOB_DIR + "/" + _id + "/" + filename;
     if (symlink(hard_link_file.c_str(), link_path.c_str()) != 0) {
-      logger.msg(ERROR, "Failed to create soft link: %s", strerror(errno));
-      return false;
+      // if the link we want to make already exists, delete and make new one
+      if (errno == EEXIST) {
+        if (remove(link_path.c_str()) != 0) {
+          logger.msg(ERROR, "Failed to remove existing symbolic link at %s: %s", link_path, strerror(errno));
+          return false;
+        }
+        if (symlink(hard_link_file.c_str(), link_path.c_str()) != 0) {
+          logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", link_path, hard_link_file, strerror(errno));
+          return false;
+        }
+      }
+      else {
+        logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", link_path, hard_link_file, strerror(errno));
+        return false;
+      }
     }
 
     // change the owner of the soft link to the job user
@@ -875,7 +901,7 @@ namespace Arc {
     mode_t perm = S_IRUSR | S_IWUSR;
     if (executable)
       perm |= S_IXUSR;
-    int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT | O_EXCL, perm);
+    int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT, perm);
     if (fdest == -1) {
       logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
       return false;
