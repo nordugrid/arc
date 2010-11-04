@@ -782,9 +782,29 @@ namespace Arc {
       return;
     }
     if (node_->type == XML_ELEMENT_NODE) {
+      xmlNodePtr p = node_->prev;
+      if(p && (p->type == XML_TEXT_NODE)) {
+        xmlChar *buf = xmlNodeGetContent(p);
+        if (buf) {
+          while(*buf) {
+            if(!isspace(*buf)) {
+              p = NULL;
+              break;
+            }
+            ++buf;
+          }
+        }
+      } else {
+        p = NULL;
+      }
       xmlUnlinkNode(node_);
       xmlFreeNode(node_);
       node_ = NULL;
+      // Remove beautyfication text too.
+      if(p) {
+        xmlUnlinkNode(p);
+        xmlFreeNode(p);
+      }
       return;
     }
     if (node_->type == XML_ATTRIBUTE_NODE) {
