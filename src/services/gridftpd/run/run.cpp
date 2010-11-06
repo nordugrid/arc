@@ -409,11 +409,11 @@ namespace gridftpd {
       if(dup2(derr,2) != 2) { perror("dup2"); exit(1); };
     };
     struct rlimit lim;
-    unsigned long int max_files = 4096;
+    rlim_t max_files = 4096;
     if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
     /* close all handles inherited from parent */
     if(max_files == RLIM_INFINITY) max_files=4096;
-    for(unsigned int i=3;i<max_files;i++) { close(i); };
+    for(rlim_t i=3;i<max_files;i++) { close(i); };
     /* reset all signal handlers to default */
   #ifdef SIGRTMIN
     for(int i=SIGHUP;i<SIGRTMIN;i++) { signal(i,SIG_DFL); };
@@ -556,7 +556,7 @@ namespace gridftpd {
     if(dup2(dout_,1) != 1) { perror("dup2"); exit(1); };
     if(dup2(derr_,2) != 2) { perror("dup2"); exit(1); };
     struct rlimit lim;
-    unsigned long int max_files = 4096;
+    rlim_t max_files = 4096;
     if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
     /* close all handles inherited from parent */
     if(max_files == RLIM_INFINITY) max_files=4096;

@@ -19,7 +19,7 @@ namespace gridftpd {
    friend class RunParallel;
    friend class RunCommands;
    private:
-    int pid;
+    pid_t pid;
     int exit_code;
     bool released;
     RunElement* next;
