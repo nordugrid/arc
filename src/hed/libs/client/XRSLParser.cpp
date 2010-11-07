@@ -372,9 +372,16 @@ namespace Arc {
         std::string queueName;
         if (!SingleValue(c, queueName))
           return false;
-        if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
-          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
-          return false;
+        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+          if (c->Op() != RSLEqual) {
+            logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"=\" is allowed.");
+            return false;
+          }
+        } else {
+          if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
+            logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
+            return false;
+          }
         }
 
         if (j.Resources.CandidateTarget.empty()) {
@@ -385,8 +392,12 @@ namespace Arc {
           j.Resources.CandidateTarget.push_back(candidateTarget);
         }
         else {
-          j.Resources.CandidateTarget.front().QueueName = queueName;
-          j.Resources.CandidateTarget.front().UseQueue = (c->Op() == RSLEqual);
+          // It is not correct to allow next queue to overwrite previous one
+          // Fix it globally. BLOCKER !!!!
+          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. Multiple queue attributes found, only one is allowed.");
+          return false;
+          //j.Resources.CandidateTarget.front().QueueName = queueName;
+          //j.Resources.CandidateTarget.front().UseQueue = (c->Op() == RSLEqual);
         }
         return true;
       }
