@@ -12,6 +12,12 @@
 
 namespace Arc {
 
+
+#ifdef TEST
+#define ClientSOAP Test_ClientSOAP
+#endif
+
+
   class ClientSOAP;
   class Config;
   class Logger;
