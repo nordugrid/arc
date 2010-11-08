@@ -33,6 +33,15 @@
     </xsd:annotation>
 </xsd:element>
 
+<!-- StoreCacheTTL -->
+<xsd:element name="StoreCacheTTL" default="20">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          How many changes can be done in cache without actually writing it back into the database
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 <!-- StoreCfg -->
 <xsd:element name="StoreCfg">
     <xsd:complexType>
