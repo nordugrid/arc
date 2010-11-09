@@ -1,33 +1,30 @@
-#ifndef AREXCLIENTTEST_H
-#define AREXCLIENTTEST_H
+#ifndef __ARC_AREXCLIENTTEST_H__
+#define __ARC_AREXCLIENTTEST_H__
 
-#include <cppunit/extensions/HelperMacros.h>
-
-#include <arc/client/ClientInterface.h>
-#include <arc/UserConfig.h>
-#include <arc/message/MCC.h>
-
-#include "TestClasses.h"
-
-#define TEST
-#ifndef AREXCLIENT_CPP
-#define AREXCLIENT_CPP
-#include "../AREXClient.cpp"
+#ifdef ClientSOAP
+#undef ClientSOAP
 #endif
-#undef TEST
 
-class ClientsTest : public CppUnit::TestFixture
-{
-  CPPUNIT_TEST_SUITE( ClientsTest );
-  CPPUNIT_TEST( testArexClientsstat );
-  CPPUNIT_TEST_SUITE_END();
+namespace Arc {
+class ClientSOAPTest :
+  public ClientSOAP {
+  public:
+    /** Constructor creates MCC chain and connects to server. */
+    ClientSOAPTest()
+      : ClientSOAP() {}
+    ClientSOAPTest(const BaseConfig& cfg, const URL& url, int timeout = -1)
+      : ClientSOAP(cfg, url, timeout) {}
 
-public:
-  void setUp();
-  void tearDown();
-
-  void testArexClientsstat();
+    /** Send SOAP request and receive response. */
+    MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
+    /** Send SOAP request with specified SOAP action and receive response. */
+    MCC_Status process(const std::string& action, PayloadSOAP *request,
+                            PayloadSOAP **response);
 };
+}
 
-#endif  // AREXCLIENTTEST_H
+#ifndef ClientSOAP
+#define ClientSOAP ClientSOAPTest
+#endif
 
+#endif // __ARC_AREXCLIENTTEST_H__

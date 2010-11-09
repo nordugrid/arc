@@ -7,14 +7,15 @@
 #include <utility>
 
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Job.h>
 
 namespace Arc {
 
 
-#ifdef TEST
-#define ClientSOAP Test_ClientSOAP
+#ifdef CPPUNITTEST
+#define ClientSOAP ClientSOAPTest
 #endif
 
 
@@ -23,7 +24,6 @@ namespace Arc {
   class Logger;
   class MCCConfig;
   class PayloadSOAP;
-  enum ServiceType;
 
   //! A client class for the A-REX service.
   /*! This class is a client for the A-REX service (Arc

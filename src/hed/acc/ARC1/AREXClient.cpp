@@ -15,6 +15,10 @@
 #include "JobStateBES.h"
 #include "AREXClient.h"
 
+#ifdef CPPUNITTEST
+#include "test/AREXClientTest.h"
+#endif
+
 #define BES_FACTORY_ACTIONS_BASE_URL "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/"
 
 namespace Arc {
