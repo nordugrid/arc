@@ -227,8 +227,8 @@ void JobTest::JobToXMLTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid-arc-0.94", (std::string)xmlOut["SubmissionClientName"]); xmlOut["SubmissionClientName"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"Cached input file is outdated; downloading again", (std::string)xmlOut["OtherMessages"]); xmlOut["OtherMessages"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"User proxy has expired", (std::string)xmlOut["OtherMessages"]); xmlOut["OtherMessages"].Destroy();
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/765234", (std::string)xmlOut["Associations"]["ActivityOldId"]); xmlOut["Associations"]["ActivityOldId"].Destroy();
-  CPPUNIT_ASSERT_EQUAL((std::string)"https://helloworld-ce.com:12345/arex/543678", (std::string)xmlOut["Associations"]["ActivityOldId"]); xmlOut["Associations"]["ActivityOldId"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/765234", (std::string)xmlOut["Associations"]["ActivityOldID"]); xmlOut["Associations"]["ActivityOldID"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://helloworld-ce.com:12345/arex/543678", (std::string)xmlOut["Associations"]["ActivityOldID"]); xmlOut["Associations"]["ActivityOldID"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"helloworld.sh", (std::string)xmlOut["Associations"]["LocalInputFile"]["Source"]); xmlOut["Associations"]["LocalInputFile"]["Source"].Destroy();
   CPPUNIT_ASSERT_EQUAL((std::string)"c0489bec6f7f4454d6cfe1b0a07ad5b8", (std::string)xmlOut["Associations"]["LocalInputFile"]["CheckSum"]); xmlOut["Associations"]["LocalInputFile"]["CheckSum"].Destroy();
   CPPUNIT_ASSERT_EQUAL(0, xmlOut["Associations"]["LocalInputFile"].Size()); xmlOut["Associations"]["LocalInputFile"].Destroy();
@@ -267,6 +267,8 @@ void JobTest::FromOldFormatTest() {
     "<InfoEndpoint>https://example-ce.com:443/arex/3456789101112</InfoEndpoint>"
     "<LocalSubmissionTime>2010-09-24 16:17:46</LocalSubmissionTime>"
     "<JobDescription>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescription>"
+    "<OldJobID>https://example-ce.com:443/arex/765234</OldJobID>"
+    "<OldJobID>https://helloworld-ce.com:12345/arex/543678</OldJobID>"
     "<LocalInputFiles>"
       "<File>"
         "<Source>helloworld.sh</Source>"
@@ -289,6 +291,10 @@ void JobTest::FromOldFormatTest() {
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.InfoEndpoint);
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2010-09-24 16:17:46"), job.LocalSubmissionTime);
   CPPUNIT_ASSERT_EQUAL((std::string)"&(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")", job.JobDescriptionDocument);
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)job.ActivityOldID.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/765234", job.ActivityOldID.front());
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://helloworld-ce.com:12345/arex/543678", job.ActivityOldID.back());
 
   CPPUNIT_ASSERT_EQUAL(2, (int)job.LocalInputFiles.size());
   std::map<std::string, std::string>::const_iterator itFiles = job.LocalInputFiles.begin();

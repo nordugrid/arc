@@ -318,6 +318,11 @@ namespace Arc {
         ActivityOldID.push_back((std::string)n);
       }
     }
+    else if (job["OldJobID"]) { // Included for backwards compatibility.
+      for (XMLNode n = job["OldJobID"]; n; ++n) {
+        ActivityOldID.push_back((std::string)n);
+      }
+    }
 
     LocalInputFiles.clear();
     if (job["Associations"]["LocalInputFile"]) {
@@ -400,7 +405,7 @@ namespace Arc {
 
     for (std::list<std::string>::const_iterator it = ActivityOldID.begin();
          it != ActivityOldID.end(); it++) {
-      node["Associations"].NewChild("ActivityOldId") = *it;
+      node["Associations"].NewChild("ActivityOldID") = *it;
     }
 
     for (std::map<std::string, std::string>::const_iterator it = LocalInputFiles.begin();
