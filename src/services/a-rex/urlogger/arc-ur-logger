@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 # Plugin for the ARC middleware to generate usage records on job completion.
-# TODO: configuration parsing
+# Currently only supports arc.conf style config (no XML config support)
 #
 # Author: Henrik Thostrup Jensen <htj@ndgf.org>
 
@@ -26,6 +26,7 @@ except ImportError:
 
 # constant / defaults
 DEFAULT_LOG_DIR    = "/var/spool/nordugrid/usagerecords"
+DEFAULT_LOGLEVEL   = logging.INFO
 UR_DIRECTORY       = "urs"
 GM_DEFAULT_PORT    = 2811
 GM_DEFAULT_MOUNT   = "/jobs"
@@ -34,6 +35,10 @@ NORDUGRID_CONFIG   = "NORDUGRID_CONFIG"
 ISO_TIME_FORMAT    = "%Y-%m-%dT%H:%M:%S"
 ARC_TIME_FORMAT    = "%Y%m%d%H%M%SZ"
 XML_HEADER         = '''<?xml version="1.0" encoding="UTF-8" ?>''' + "\n"
+LOG_FORMAT         = "%(asctime)s [%(levelname)s] %(message)s"
+
+LOGGER_NAME_VALUE    = 'ARC1-URLogger'
+LOGGER_VERSION_VALUE = '1.2.0'
 
 # arc.conf configuration constants
 CONFIG_COMMON_SECTION  = 'common'
@@ -41,12 +46,20 @@ CONFIG_CLUSTER_SECTION = 'cluster'
 CONFIG_LOGGER_SECTION  = 'logger'
 CONFIG_HOSTNAME        = 'hostname'
 CONFIG_LOG_DIR         = 'log_dir'
+CONFIG_LOGFILE         = 'urlogger_logfile'
+CONFIG_LOGLEVEL        = 'urlogger_loglevel' # valid options: debug, info, warning
+
+LOGLEVELS = {
+    'debug'   : logging.DEBUG,
+    'info'    : logging.INFO,
+    'warning' : logging.WARNING
+}
 
 # static file paths
 ARC_DEFAULT_CONFIG_FILE       = "/etc/arc.conf"
 NORDUGRID_DEFAULT_CONFIG_FILE = "/etc/nordugrid.conf"
 GRID_VO_MAPFILE               = "/etc/grid-security/grid-vo-mapfile"
-LOG_FILENAME                  = "/var/log/arc/arc-ur-logger.log"
+DEFAULT_LOGFILE               = "/var/log/arc-ur-logger.log"
 
 # executables
 VOMS_PROXY_INFO = 'voms-proxy-info'
@@ -57,6 +70,7 @@ OGF_UR_NAMESPACE  = "http://schema.ogf.org/urf/2003/09/urf"
 DEISA_NAMESPACE   = "http://rmis.deisa.org/acct"
 SGAS_VO_NAMESPACE = "http://www.sgas.se/namespaces/2009/05/ur/vo"
 SGAS_AT_NAMESPACE = "http://www.sgas.se/namespaces/2009/07/ur"
+LOGGER_NAMESPACE  = "http://www.sgas.se/namespaces/2010/08/logger"
 
 # job usage element/attribute names
 JOB_USAGE_RECORD     = ET.QName("{%s}JobUsageRecord" % OGF_UR_NAMESPACE)
@@ -76,6 +90,7 @@ CHARGE               = ET.QName("{%s}Charge"         % OGF_UR_NAMESPACE)
 WALL_DURATION        = ET.QName("{%s}WallDuration"   % OGF_UR_NAMESPACE)
 CPU_DURATION         = ET.QName("{%s}CpuDuration"    % OGF_UR_NAMESPACE)
 NODE_COUNT           = ET.QName("{%s}NodeCount"      % OGF_UR_NAMESPACE)
+PROCESSORS           = ET.QName("{%s}Processors"     % OGF_UR_NAMESPACE)
 START_TIME           = ET.QName("{%s}StartTime"      % OGF_UR_NAMESPACE)
 END_TIME             = ET.QName("{%s}EndTime"        % OGF_UR_NAMESPACE)
 PROJECT_NAME         = ET.QName("{%s}ProjectName"    % OGF_UR_NAMESPACE)
@@ -101,6 +116,9 @@ SGAS_EXIT_CODE           = ET.QName("{%s}ExitCode"           % SGAS_AT_NAMESPACE
 SGAS_MAJOR_PAGE_FAULTS   = ET.QName("{%s}MajorPageFaults"    % SGAS_AT_NAMESPACE)
 SGAS_RUNTIME_ENVIRONMENT = ET.QName("{%s}RuntimeEnvironment" % SGAS_AT_NAMESPACE)
 
+# logger elements and attributes
+LOGGER_NAME         = ET.QName("{%s}LoggerName"         % LOGGER_NAMESPACE)
+LOGGER_VERSION      = ET.QName("{%s}version"            % LOGGER_NAMESPACE)
 
 # register namespaces in element tree so we get more readable xml files
 # the semantics of the xml files does not change due to this
@@ -114,6 +132,7 @@ register_namespace('ur', OGF_UR_NAMESPACE)
 register_namespace('deisa', DEISA_NAMESPACE)
 register_namespace('vo', SGAS_VO_NAMESPACE)
 register_namespace('sgas', SGAS_AT_NAMESPACE)
+register_namespace('logger', LOGGER_NAMESPACE)
 
 
 
@@ -146,6 +165,7 @@ class UsageRecord:
         self.queue              = None
         self.host               = None
         self.node_count         = None
+        self.processors         = None
         self.submit_time        = None
         self.end_time           = None
         self.start_time         = None
@@ -161,6 +181,9 @@ class UsageRecord:
         self.exit_code          = None
         self.major_page_faults  = None
         self.runtime_environments = []
+        # logger attributes
+        self.logger_name        = LOGGER_NAME
+        self.logger_version     = LOGGER_VERSION
 
 
     def generateTree(self):
@@ -222,6 +245,7 @@ class UsageRecord:
         if self.queue          is not None :  setElement(ur, QUEUE, self.queue)
         if self.host           is not None :  setElement(ur, HOST, self.host)
         if self.node_count     is not None :  setElement(ur, NODE_COUNT, self.node_count)
+        if self.processors     is not None :  setElement(ur, PROCESSORS, self.processors)
         if self.submit_host    is not None :  setElement(ur, SUBMIT_HOST, self.submit_host)
         if self.project_name   is not None :  setElement(ur, PROJECT_NAME, self.project_name)
         if self.submit_time    is not None :  setElement(ur, SUBMIT_TIME, self.submit_time)
@@ -238,6 +262,11 @@ class UsageRecord:
         for renv in self.runtime_environments:
             setElement(ur, SGAS_RUNTIME_ENVIRONMENT, renv)
 
+        # set logger name and version
+        logger_name = ET.SubElement(ur, LOGGER_NAME)
+        logger_name.text = LOGGER_NAME_VALUE
+        logger_name.set(LOGGER_VERSION, LOGGER_VERSION_VALUE)
+
         return ET.ElementTree(ur)
 
 
@@ -249,6 +278,34 @@ class UsageRecord:
 
 
 # end usage record
+
+
+class ARCConfigFileReader:
+    # Wrapper around the stock file object with slightly altered readline
+    # functionality (the Python ConfigParser only uses readline).
+    # The wrapper "fixes" odd config entries allowed by ARC, but which
+    # falls outside the allowed language defined in RFC 822.
+
+    def __init__(self, fp):
+        self._fp = fp
+
+    def readline(self):
+
+        line = self._fp.readline()
+
+        # return empty lines and comments as-is
+        if not line.strip() or line.strip().startswith('#'):
+            return line
+
+        # if the line is not a config block and does not have a '=' in it the
+        # config parser will break, however ARC allows this. We just adds
+        # '=true' to the line, so the config value can even be read in Python.
+        if not line.startswith('[') and '=' not in line:
+            return line + '=true'
+
+        # regular line, just return it
+        return line
+
 
 
 def cleanString(value):
@@ -277,7 +334,7 @@ def getARCConfig(filepath=None):
     if filepath is None:
         filepath = getARCConfigurationFilePath()
 
-    arc_cfg_file = file(filepath)
+    arc_cfg_file = ARCConfigFileReader(file(filepath))
 
     arc_cfg = ConfigParser.SafeConfigParser()
     arc_cfg.readfp(arc_cfg_file)
@@ -384,10 +441,7 @@ def parseDuration(times):
 
 
 
-def assembleGlobalJobID(job_id, arc_cfg=None):
-
-    if arc_cfg is None:
-        arc_cfg = getARCConfig()
+def assembleGlobalJobID(job_id, arc_cfg):
 
     gm_port = None
     gm_hostname = None
@@ -438,6 +492,13 @@ def executeVOMSProxyInfo(voms_proxy_file):
 
 
 def parseVOMSProxyInfoOutput(voms_info_output):
+    # VOMS parsing notes:
+    # The '/Capability=' attribute is deprecated,
+    # so we do not report it anymore.
+
+    # It is assumed that lines starting with # '/' (slash)
+    # in the 'attributes : ' line is reserved # for VOMS groups.
+    # (i.e. it shall not be allowed for generic VOMS attributes.
 
     vo_info = []
     voi = None
@@ -462,24 +523,23 @@ def parseVOMSProxyInfoOutput(voms_info_output):
             voi.issuer = vo_issuer
 
         elif line.startswith("attribute"):
-            grc = line.split(':', 1)[-1]
-            try:
-                group, role, cap = grc.rsplit('/', 2)
-            except ValueError, e:
-                if line.startswith('attribute : nickname'):
-                    pass
-                else:
-                    logging.error("Error parsing VOMS attribute line: Message %s. Line: %s" % (str(e), line))
+            grc = line.split(':', 1)[-1].strip()
+            # skip if attribute entry does not start with /
+            if not grc.startswith('/'):
                 continue
 
-            group = group.strip()[1:]
-            role = role.split('=', 1)[-1].strip()
-            cap = cap.split('=', 1)[-1].strip()
+            if '/Capability=' in grc:
+                grc = grc.rsplit('/Capability=',1)[0]
+
+            role = None
+            if '/Role=' in grc:
+                grc, role = grc.rsplit('/Role=',1)
             if role == 'NULL':
                 role = None
-            if cap == 'NULL':
-                cap = None
-            voi.attributes.append((group, role, cap))
+
+            group = grc[1:] # remove initial /
+
+            voi.attributes.append((group, role, None))
 
     if voi is not None:
         vo_info.append(voi)
@@ -502,29 +562,37 @@ def parseGridVOMapUrl(vo_url):
     voi.type = 'grid-vo-map/' + vo_url[:vo_url.index(':')]
     voi.issuer = vo_url
 
-    # silly heuristic for creating proper vo names from voms urls
+    # heuristic for creating vo names from voms urls
     if vo_url.startswith('voms://') or vo_url.startswith('vomss://'):
+        # url parse does not understand voms url (which are really just http urls anyway)
         vo_url2 = vo_url.replace('voms://','http://').replace('vomss://', 'https://')
         url = urlparse.urlparse(vo_url2)
 
-        vo_base_name = url[2].split('/')[-1]
-        if '.' in vo_base_name:
-            voi.name = vo_base_name
+        # url[2] -> path
+        path_tokens = [ part for part in url[2].split('/') if part ]
+        if len(path_tokens) == 2 and path_tokens[0] == 'voms':
+            # path structure: vomss://voms.cern.ch:8443/voms/atlas
+            voi.name = path_tokens[1]
+            if url[4]:
+                # url has a query argument, typically means a group is specified
+                group_tokens = [ g for g in url[4].split('/') if g ]
+                # 1 token -> top group (same as vo) - not useful
+                # 2 tokens -> group specified
+                # 3+ tokens -> unknown
+                if len(group_tokens) == 2:
+                    group = group_tokens[1]
+                    voi.attributes.append((group, None, None))
+                elif len(group_tokens) > 2:
+                    logging.warning('Could not understand voms url query param. Url: %s' % vo_url)
+
         else:
-            voms_host = url[1] # url.netloc
-            if ':' in voms_host:
-                voms_host = voms_host.split(':')[0]
-            voms_names = voms_host.split('.')
-            if len(voms_names) <= 2: # less than 2 should never occur...
-                voi.name = '.'.join([vo_base_name] + voms_names)
-            elif voms_names[0] == 'voms':
-                voi.name = '.'.join([vo_base_name] + voms_names[1:])
-            else:
-                voi.name = '.'.join([vo_base_name] + voms_names)
+            # unknown path structure, set vo name to url path
+            voi.name = url[2]
 
     else:
-        url = urlparse.urlparse(vo_url)
-        voi.name = url[1] + url[2] # url.netloc + url.path
+        # the reverse map is a file or http/https url, and does not provide
+        # any valuable information, so no information is returned
+        return []
 
     return [voi]
 
@@ -554,9 +622,7 @@ def getVOMapfileInformation(usersn):
     return []
 
 
-def generateUsageRecord(control_dir, job_id, job_status, local_user=None):
-
-    arc_cfg = getARCConfig()
+def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=None):
 
     diag_filepath = os.path.join(control_dir, 'job.%s.diag' % job_id)
     local_filepath = os.path.join(control_dir, 'job.%s.local' % job_id)
@@ -572,11 +638,17 @@ def generateUsageRecord(control_dir, job_id, job_status, local_user=None):
 
     global_job_id = assembleGlobalJobID(job_id, arc_cfg)
 
+    host_name = getLoggerHostName(arc_cfg)
+
     # start constructing the usage record
 
     ur = UsageRecord()
 
-    ur.record_id = global_job_id
+    if host_name and '.' in host_name and 'localid' in local_data:
+        ur.record_id = host_name + ':' + local_data['localid'][0]
+    else:
+        ur.record_id = global_job_id
+
     ur.global_job_id = global_job_id
 
     ur.global_user_name = local_data['subject'][0]
@@ -588,7 +660,7 @@ def generateUsageRecord(control_dir, job_id, job_status, local_user=None):
     if local_user is not None:
         ur.local_user_id = local_user
 
-    ur.machine_name = getLoggerHostName(arc_cfg)
+    ur.machine_name = host_name
 
     # exit state
     status = 'completed'
@@ -605,16 +677,29 @@ def generateUsageRecord(control_dir, job_id, job_status, local_user=None):
     if 'localid' in local_data:
         ur.local_job_id = local_data['localid'][0]
 
-    if 'nodename' in diag_data:
-        ur.host = ",".join(diag_data['nodename'])
-
-    cpu_count = 1 # this must be defined as we use it later
+    cpu_count = None
     if 'ExecutionUnits' in diag_data:
         try:
             cpu_count = int(diag_data['ExecutionUnits'][0])
-            ur.node_count = cpu_count
+            ur.processors = cpu_count
+#            if cpu_count == 1 and ur.node_count is None:
+#                ur.node_count = 1
         except ValueError:
             logging.error('Error reading ExecutionUnits. Value: "%s".' % diag_data['ExecutionUnits'][0])
+
+    if 'nodename' in diag_data:
+        # some backends like to repeat the starting node as the last nodename entry, so
+        # if there are more nodename entries can execution units we only take the the number
+        # corresponding to executionunits
+        if cpu_count is not None:
+            hosts = diag_data['nodename'][:cpu_count]
+        else:
+            hosts = diag_data['nodename']
+        # remove double entries, but a job can use several processors so having several entries
+        # actually somewhat correct
+        #hosts = set(hosts)
+        ur.host = ",".join(hosts)
+        ur.node_count = len(set(hosts))
 
     if 'starttime' in local_data:
         # starttime in .local specifies time job was submitted
@@ -628,10 +713,6 @@ def generateUsageRecord(control_dir, job_id, job_status, local_user=None):
         user_time = parseDuration(diag_data['UserTime'])
         kernel_time = parseDuration(diag_data['KernelTime'])
         ur.cpu_duration = user_time + kernel_time
-
-    if 'WallTime' in diag_data:
-        # charge is aggregated wall time
-        ur.charge = cpu_count * wall_time
 
     if 'UserTime' in diag_data:
         ur.user_time = parseDuration(diag_data['UserTime'])
@@ -701,7 +782,22 @@ def generateUsageRecord(control_dir, job_id, job_status, local_user=None):
 
 def main():
 
-    logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG,)
+    arc_cfg = getARCConfig()
+
+    try:
+        logfile = arc_cfg.get(CONFIG_LOGGER_SECTION, CONFIG_LOGFILE)
+        logfile = cleanString(logfile)
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        logfile = DEFAULT_LOGFILE
+
+    try:
+        loglevel_cfg = arc_cfg.get(CONFIG_LOGGER_SECTION, CONFIG_LOGLEVEL)
+        loglevel_cfg = cleanString(loglevel_cfg)
+        loglevel = LOGLEVELS[loglevel_cfg]
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError, KeyError):
+        loglevel = DEFAULT_LOGLEVEL
+
+    logging.basicConfig(filename=logfile, format=LOG_FORMAT, level=loglevel)
     logging.debug("--------------------------------")
     logging.debug("ARC UR Logger invoked. Time %s" % str(datetime.datetime.now()))
     logging.debug("Arguments: %s" % str(sys.argv[1:]))
@@ -715,8 +811,11 @@ def main():
         local_user   = None
         if len(sys.argv) == 5:
             local_user = sys.argv[4]
+        # arc will provide the string value 'undefined' if no value is present
+        if local_user == 'undefined':
+            local_user = None
 
-        generateUsageRecord(control_dir, job_id, job_status, local_user)
+        generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user)
     except Exception, e:
         logging.error("Error generating usage record: %s" % str(e))
         logging.exception(e)
