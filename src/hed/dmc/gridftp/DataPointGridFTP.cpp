@@ -49,7 +49,7 @@ namespace Arc {
                                             globus_ftp_client_handle_t*,
                                             globus_object_t *error,
                                             globus_byte_t*,
-                                            globus_size_t,
+                                            globus_size_t length,
                                             globus_off_t,
                                             globus_bool_t eof) {
     logger.msg(VERBOSE, "ftp_check_callback");
@@ -58,8 +58,18 @@ namespace Arc {
       logger.msg(VERBOSE, "Globus error: %s", globus_object_to_string(error));
       return;
     }
-    if (eof)
+    if (eof) {
+      it->ftp_eof_flag = true;
       return;
+    }
+    if (it->check_received_length > 0) {
+      logger.msg(INFO,
+                 "Excessive data received while checking file access");
+      it->ftp_eof_flag = true;
+      globus_ftp_client_abort(&(it->ftp_handle));
+      return;
+    }
+    it->check_received_length += length;
     GlobusResult res =
       globus_ftp_client_register_read(&(it->ftp_handle),
                                       (globus_byte_t*)(it->ftp_buf),
@@ -138,6 +148,7 @@ namespace Arc {
       }
       // use eof_flag to pass result from callback
       ftp_eof_flag = false;
+      check_received_length = 0;
       logger.msg(VERBOSE, "check_ftp: globus_ftp_client_register_read");
       res = globus_ftp_client_register_read(&ftp_handle,
                                             (globus_byte_t*)ftp_buf,
@@ -154,6 +165,7 @@ namespace Arc {
         cond.wait();
         return DataStatus::CheckError;
       }
+      if (ftp_eof_flag) return DataStatus::Success;
       return condstatus;
     }
     else {

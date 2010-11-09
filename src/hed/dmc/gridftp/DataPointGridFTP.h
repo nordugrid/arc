@@ -36,6 +36,7 @@ namespace Arc {
     bool writing;
 
     bool ftp_eof_flag;
+    int check_received_length;
 
     static void ftp_complete_callback(void *arg,
                                       globus_ftp_client_handle_t *handle,
