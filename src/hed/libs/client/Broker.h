@@ -41,7 +41,7 @@ namespace Arc {
                addition to the Broker.
         \param jd JobDescription object of the actual job.
      */
-    void PreFilterTargets(std::list<ExecutionTarget>& targets,
+    void PreFilterTargets(const std::list<ExecutionTarget>& targets,
                           const JobDescription& job);
 
     /// Register a job submission to the current target
@@ -65,7 +65,7 @@ namespace Arc {
     /** If an Execution Tartget has enought memory, CPU, diskspace, etc. for the
         actual job requirement than it will be added to the PossibleTargets list
      */
-    std::list<ExecutionTarget*> PossibleTargets;
+    std::list<const ExecutionTarget*> PossibleTargets;
     /// It is true if "custom" sorting is done
     bool TargetSortingDone;
     const JobDescription *job;
@@ -75,7 +75,10 @@ namespace Arc {
   private:
     /// This is a pointer for the actual ExecutionTarget in the
     /// PossibleTargets list
-    std::list<ExecutionTarget*>::iterator current;
+    std::list<const ExecutionTarget*>::iterator current;
+
+    // Pointers to ExecutionTarget objects which need to be deleted upon destruction.
+    std::list<ExecutionTarget*> modifiedTargets;
   };
 
   //! Class responsible for loading Broker plugins

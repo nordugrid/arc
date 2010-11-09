@@ -84,6 +84,7 @@ namespace Arc {
   }
 
   std::list<ExecutionTarget>& TargetGenerator::ModifyFoundTargets() {
+    logger.msg(WARNING, "The TargetGenerator::ModifyFoundTargets method is DEPRECATED, use the FoundTargets method instead.");
     return foundTargets;
   }
 

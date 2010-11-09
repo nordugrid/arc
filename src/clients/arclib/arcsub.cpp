@@ -264,7 +264,7 @@ int RUNSUB(main)(int argc, char **argv) {
       submittedJobs.push_back(Arc::Job());
     }
 
-    ChosenBroker->PreFilterTargets(targen.ModifyFoundTargets(), *it);
+    ChosenBroker->PreFilterTargets(targen.FoundTargets(), *it);
 
     while (true) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();

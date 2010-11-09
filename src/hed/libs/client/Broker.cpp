@@ -21,13 +21,18 @@ namespace Arc {
       TargetSortingDone(false),
       job() {}
 
-  Broker::~Broker() {}
+  Broker::~Broker() {
+    for (std::list<ExecutionTarget*>::iterator it = modifiedTargets.begin();
+         it != modifiedTargets.end(); it++) {
+      delete *it;
+    }
+  }
 
-  void Broker::PreFilterTargets(std::list<ExecutionTarget>& targets,
+  void Broker::PreFilterTargets(const std::list<ExecutionTarget>& targets,
                                 const JobDescription& jobdesc) {
     job = &jobdesc;
 
-    for (std::list<ExecutionTarget>::iterator target = targets.begin();
+    for (std::list<ExecutionTarget>::const_iterator target = targets.begin();
          target != targets.end(); target++) {
       logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
 
@@ -126,11 +131,6 @@ namespace Arc {
         JobTimePair jobTime[] = {JobTimePair("TotalWallTime", &job->Resources.TotalWallTime),
                                  JobTimePair("TotalCPUTime", &job->Resources.TotalCPUTime)};
 
-        // Check if ARC-clockrate is defined, if not add it. Included to support the XRSL attribute gridtime.
-        if (job->Resources.TotalCPUTime.benchmark.first == "ARC-clockrate") {
-          target->Benchmarks["ARC-clockrate"] = (target->CPUClockSpeed > 0 ? (double)target->CPUClockSpeed : 1000.);
-        }
-
         int i = 0;
         for (; i < 4; i++) {
           JobTimePair *jTime = &jobTime[i/2];
@@ -152,15 +152,29 @@ namespace Arc {
                 }
               }
               else { // Benchmark defined => scale using benchmark.
-                if (target->Benchmarks.find(jTime->second->benchmark.first) != target->Benchmarks.end()) {
-                  if (((i%2 == 0) && (jTime->second->scaleMax(target->Benchmarks.find(jTime->second->benchmark.first)->second) > etTime[i].second)) ||
-                      ((i%2 == 1) && (jTime->second->scaleMin(target->Benchmarks.find(jTime->second->benchmark.first)->second) < etTime[i].second))) {
+                double targetBenchmark = -1.;
+                for (std::map<std::string, double>::const_iterator itTBench = target->Benchmarks.begin();
+                     itTBench != target->Benchmarks.end(); itTBench++) {
+                  if (lower(jTime->second->benchmark.first) == lower(itTBench->first)) {
+                    targetBenchmark = itTBench->second;
+                    break;
+                  }
+                }
+
+                // Make it possible to scale according to clock rate.
+                if (targetBenchmark <= 0. && lower(jTime->second->benchmark.first) == "clock rate") {
+                  targetBenchmark = (target->CPUClockSpeed > 0. ? (double)target->CPUClockSpeed : 1000.);
+                }
+
+                if (targetBenchmark > 0.) {
+                  if (((i%2 == 0) && (jTime->second->scaleMax(targetBenchmark) > etTime[i].second)) ||
+                      ((i%2 == 1) && (jTime->second->scaleMin(targetBenchmark) < etTime[i].second))) {
                     logger.msg(VERBOSE,
                                "Matchmaking, The %s scaled %s (%d) is %s than the %s (%d) published by the ExecutionTarget.",
                                jTime->second->benchmark.first,
                                jTime->first,
-                               (i%2 == 0 ? jTime->second->scaleMax(target->Benchmarks.find(jTime->second->benchmark.first)->second)
-                                         : jTime->second->scaleMin(target->Benchmarks.find(jTime->second->benchmark.first)->second)),
+                               (i%2 == 0 ? jTime->second->scaleMax(targetBenchmark)
+                                         : jTime->second->scaleMin(targetBenchmark)),
                                (i%2 == 0 ? "greater" : "less"),
                                etTime[i].first,
                                etTime[i].second);
@@ -389,7 +403,7 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Possible targets after prefiltering: %d", PossibleTargets.size());
 
-    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
+    std::list<const ExecutionTarget*>::const_iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
       logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
@@ -415,16 +429,27 @@ namespace Arc {
   }
 
   void Broker::RegisterJobsubmission() {
-    if (!job || current == PossibleTargets.end())
+    if (!job || PossibleTargets.empty() || current == PossibleTargets.end() || !TargetSortingDone) {
       return;
-    if ((*current)->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {   //The job will start directly
-      (*current)->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
-      if ((*current)->UsedSlots != -1)
-        (*current)->UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
     }
-    else                                           //The job will be queued
-      if ((*current)->WaitingJobs != -1)
-        (*current)->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
+
+    // Avoid modifying the list of ExecutionTarget objects. Instead modify a copy.
+    modifiedTargets.push_back(new ExecutionTarget(**current));
+    if (modifiedTargets.back()->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {
+      modifiedTargets.back()->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
+      if (modifiedTargets.back()->UsedSlots != -1) {
+        modifiedTargets.back()->UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
+      }
+    }
+    else if (modifiedTargets.back()->WaitingJobs != -1) {
+      modifiedTargets.back()->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
+    }
+
+    PossibleTargets.insert(current, modifiedTargets.back()); // Insert modifiedTarget before current.
+    current = PossibleTargets.erase(current); // Remove current. Next target is returned.
+    current--; // Set current to modifiedTarget.
+
+    logger.msg(DEBUG, "FreeSlots = %d; UsedSlots = %d; WaitingJobs = %d", (*current)->FreeSlots, (*current)->UsedSlots, (*current)->WaitingJobs);
   }
 
   BrokerLoader::BrokerLoader()

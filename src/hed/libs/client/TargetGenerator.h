@@ -71,8 +71,9 @@ namespace Arc {
      **/
     const std::list<ExecutionTarget>& FoundTargets() const;
 
-    /// Return targets found by GetTargets
+    /// DEPRECATED: Return targets found by GetTargets
     /**
+     * This method is DEPRECATED, use the FoundTargets() instead.
      * Method to return the list of ExecutionTarget objects (currently
      * only supported Target type) found by the GetTarget method.
      **/

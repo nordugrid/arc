@@ -19,6 +19,7 @@ class BrokerTest
   CPPUNIT_TEST_SUITE(BrokerTest);
   CPPUNIT_TEST(CPUWallTimeTest);
   CPPUNIT_TEST(BenckmarkCPUWallTimeTest);
+  CPPUNIT_TEST(RegisterJobsubmissionTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -27,14 +28,15 @@ public:
   void tearDown();
   void CPUWallTimeTest();
   void BenckmarkCPUWallTimeTest();
+  void RegisterJobsubmissionTest();
 
   class TestBroker
     : public Arc::Broker {
   public:
     TestBroker(const Arc::UserConfig& usercfg) : Arc::Broker(usercfg) {}
-    void SortTargets() {}
+    void SortTargets() { TargetSortingDone = true; }
     void clear() { PossibleTargets.clear(); }
-    const std::list<Arc::ExecutionTarget*>& GetTargets() { return PossibleTargets; }
+    const std::list<const Arc::ExecutionTarget*>& GetTargets() { return PossibleTargets; }
   };
 
 private:
@@ -61,21 +63,29 @@ void BrokerTest::CPUWallTimeTest() {
   job.Resources.TotalCPUTime.range.max = 110; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 100; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 90;  CPPASSERT(1)
+  etl.front().MaxCPUTime = -1;
+  job.Resources.TotalCPUTime.range.max = -1;
 
   etl.front().MinCPUTime = 10;
   job.Resources.TotalCPUTime.range.min = 5; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.min = 10; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.min = 15; CPPASSERT(1)
+  etl.front().MinCPUTime = -1;
+  job.Resources.TotalCPUTime.range.min = -1;
 
   etl.front().MaxWallTime = 100;
   job.Resources.TotalWallTime.range.max = 110; CPPASSERT(0)
   job.Resources.TotalWallTime.range.max = 100; CPPASSERT(1)
   job.Resources.TotalWallTime.range.max = 90;  CPPASSERT(1)
+  etl.front().MaxWallTime = -1;
+  job.Resources.TotalWallTime.range.max = -1;
 
   etl.front().MinWallTime = 10;
   job.Resources.TotalWallTime.range.min = 5;  CPPASSERT(0)
   job.Resources.TotalWallTime.range.min = 10; CPPASSERT(1)
   job.Resources.TotalWallTime.range.min = 15; CPPASSERT(1)
+  etl.front().MinWallTime = -1;
+  job.Resources.TotalWallTime.range.min = -1;
 }
 
 void BrokerTest::BenckmarkCPUWallTimeTest() {
@@ -86,41 +96,80 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
   job.Resources.TotalCPUTime.range.max = 210; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 200; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 190;  CPPASSERT(1)
+  etl.front().MaxCPUTime = -1;
+  job.Resources.TotalCPUTime.range.max = -1;
 
   etl.front().MinCPUTime = 10;
   job.Resources.TotalCPUTime.range.min = 10; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.min = 20; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.min = 30; CPPASSERT(1)
+  etl.front().MinCPUTime = -1;
+  job.Resources.TotalCPUTime.range.min = -1;
+  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 
   job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
   etl.front().MaxWallTime = 100;
   job.Resources.TotalWallTime.range.max = 210; CPPASSERT(0)
   job.Resources.TotalWallTime.range.max = 200; CPPASSERT(1)
   job.Resources.TotalWallTime.range.max = 190;  CPPASSERT(1)
+  etl.front().MaxWallTime = -1;
+  job.Resources.TotalWallTime.range.max = -1;
 
   etl.front().MinWallTime = 10;
   job.Resources.TotalWallTime.range.min = 10;  CPPASSERT(0)
   job.Resources.TotalWallTime.range.min = 20; CPPASSERT(1)
   job.Resources.TotalWallTime.range.min = 30; CPPASSERT(1)
+  etl.front().MinWallTime = -1;
+  job.Resources.TotalWallTime.range.min = -1;
+  job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("", -1.);
 
   etl.front().CPUClockSpeed = 2500;
-  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("ARC-clockrate", 1000.);
+  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 1000.);
   etl.front().MaxCPUTime = 100;
   job.Resources.TotalCPUTime.range.max = 300; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 250; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 200;  CPPASSERT(1)
+  etl.front().CPUClockSpeed = -1;
+  etl.front().MaxCPUTime = -1;
+  job.Resources.TotalCPUTime.range.max = -1;
+  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 
-  etl.front().Benchmarks.erase("ARC-clockrate");
   etl.front().CPUClockSpeed = 5600;
   etl.front().MaxCPUTime = 200;
-  job.Resources.TotalCPUTime.range.max = -1;
-  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1);
   std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
   CPPUNIT_ASSERT(job.Parse(xrsl)); CPPASSERT(0)
   xrsl = "&(executable=/bin/echo)(gridtime=400s)";
   CPPUNIT_ASSERT(job.Parse(xrsl)); CPPASSERT(1)
   xrsl = "&(executable=/bin/echo)(gridtime=200s)";
   CPPUNIT_ASSERT(job.Parse(xrsl)); CPPASSERT(1)
+  etl.front().CPUClockSpeed = -1;
+  etl.front().MaxCPUTime = -1;
+  job.Resources.TotalCPUTime.range.max = -1;
+  job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 }
 
+void BrokerTest::RegisterJobsubmissionTest() {
+  job.Resources.SlotRequirement.NumberOfSlots = 4;
+  etl.front().TotalSlots = 100;
+  etl.front().MaxSlotsPerJob = 5;
+  etl.front().FreeSlots = 7;
+  etl.front().UsedSlots = 10;
+  etl.front().WaitingJobs = 0;
+
+  tb.PreFilterTargets(etl, job);
+  tb.GetBestTarget();
+  tb.RegisterJobsubmission();
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)tb.GetTargets().size());
+  CPPUNIT_ASSERT_EQUAL(3, tb.GetTargets().front()->FreeSlots);
+  CPPUNIT_ASSERT_EQUAL(14, tb.GetTargets().front()->UsedSlots);
+  CPPUNIT_ASSERT_EQUAL(0, tb.GetTargets().front()->WaitingJobs);
+
+  tb.RegisterJobsubmission();
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)tb.GetTargets().size());
+  CPPUNIT_ASSERT_EQUAL(3, tb.GetTargets().front()->FreeSlots);
+  CPPUNIT_ASSERT_EQUAL(14, tb.GetTargets().front()->UsedSlots);
+  CPPUNIT_ASSERT_EQUAL(4, tb.GetTargets().front()->WaitingJobs);
+}
 CPPUNIT_TEST_SUITE_REGISTRATION(BrokerTest);

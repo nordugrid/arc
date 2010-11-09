@@ -252,7 +252,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     jobdesc.Parse(it->JobDescription);
     jobdesc.Identification.ActivityOldId = it->ActivityOldID;
     jobdesc.Identification.ActivityOldId.push_back(it->JobID.str());
-    ChosenBroker->PreFilterTargets(targen.ModifyFoundTargets(), jobdesc);
+    ChosenBroker->PreFilterTargets(targen.FoundTargets(), jobdesc);
     while (true) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
       if (!target) {
