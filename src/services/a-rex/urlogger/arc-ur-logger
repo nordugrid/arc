@@ -682,8 +682,6 @@ def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=Non
         try:
             cpu_count = int(diag_data['ExecutionUnits'][0])
             ur.processors = cpu_count
-#            if cpu_count == 1 and ur.node_count is None:
-#                ur.node_count = 1
         except ValueError:
             logging.error('Error reading ExecutionUnits. Value: "%s".' % diag_data['ExecutionUnits'][0])
 
@@ -697,7 +695,6 @@ def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=Non
             hosts = diag_data['nodename']
         # remove double entries, but a job can use several processors so having several entries
         # actually somewhat correct
-        #hosts = set(hosts)
         ur.host = ",".join(hosts)
         ur.node_count = len(set(hosts))
 
