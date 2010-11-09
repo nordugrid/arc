@@ -39,7 +39,7 @@ namespace Arc {
                PossibleTargets.size());
 
     //Remove clusters with incomplete information for target sorting
-    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
+    std::list<const ExecutionTarget*>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
       if ((*iter)->WaitingJobs == -1 || (*iter)->TotalSlots == -1 || (*iter)->FreeSlots == -1) {
         if ((*iter)->WaitingJobs == -1)
@@ -73,11 +73,11 @@ namespace Arc {
 
     //If several clusters(queues) have free slots (CPUs) do basic load balancing
     if (ZeroQueueCluster > 1)
-      for (std::list<ExecutionTarget*>::iterator itN = PossibleTargets.begin();
+      for (std::list<const ExecutionTarget*>::iterator itN = PossibleTargets.begin();
            itN != PossibleTargets.end() && (*itN)->WaitingJobs == 0;
            itN++) {
         double RandomCPU = rand() * TotalFreeCPUs;
-        for (std::list<ExecutionTarget*>::iterator itJ = itN;
+        for (std::list<const ExecutionTarget*>::iterator itJ = itN;
              itJ != PossibleTargets.end() && (*itJ)->WaitingJobs == 0;
              itJ++) {
           if (((*itJ)->FreeSlots / abs(job->Resources.SlotRequirement.NumberOfSlots)) > RandomCPU) {

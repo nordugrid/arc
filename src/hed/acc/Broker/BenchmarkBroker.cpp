@@ -65,7 +65,7 @@ namespace Arc {
   void BenchmarkBroker::SortTargets() {
 
     //Remove clusters with incomplete information for target sorting
-    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
+    std::list<const ExecutionTarget*>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
       if (((*iter)->Benchmarks).empty()) {
         iter = PossibleTargets.erase(iter);

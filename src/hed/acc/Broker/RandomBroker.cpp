@@ -27,7 +27,7 @@ namespace Arc {
 
   void RandomBroker::SortTargets() {
 
-    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
+    std::list<const ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     logger.msg(VERBOSE, "Matching against job description, following targets possible for RandomBroker: %d", PossibleTargets.size());
 
@@ -37,8 +37,8 @@ namespace Arc {
     std::srand(time(NULL));
 
     for (unsigned int k = 1; k < 2 * (std::rand() % PossibleTargets.size()) + 1; k++) {
-      std::list<ExecutionTarget*>::iterator itI = PossibleTargets.begin();
-      std::list<ExecutionTarget*>::iterator itJ = PossibleTargets.begin();
+      std::list<const ExecutionTarget*>::iterator itI = PossibleTargets.begin();
+      std::list<const ExecutionTarget*>::iterator itJ = PossibleTargets.begin();
       for (int i = rand() % PossibleTargets.size(); i > 0; i--)
         itI++;
       for (int i = rand() % PossibleTargets.size(); i > 0; i--)

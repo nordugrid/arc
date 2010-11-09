@@ -36,7 +36,7 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
 
-    for (std::list<ExecutionTarget*>::const_iterator target = PossibleTargets.begin();
+    for (std::list<const ExecutionTarget*>::iterator target = PossibleTargets.begin();
          target != PossibleTargets.end(); target++) {
       ClientSOAP client(cfg, (*target)->url, usercfg.Timeout());
 
@@ -89,7 +89,7 @@ namespace Arc {
 
     // Remove targets which are not A-REX (>= ARC-1).
 
-    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
+    std::list<const ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     while (iter != PossibleTargets.end()) {
       if (!((*iter)->Implementation >= Software("ARC", "1"))) {
