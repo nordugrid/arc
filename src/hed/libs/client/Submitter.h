@@ -98,7 +98,7 @@ namespace Arc {
                 const std::map<std::string, std::string>& additionalInfo) const;
 
     void AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
-                       const URL& cluster, const URL infoendpoint,
+                       const URL& cluster, const URL& infoendpoint,
                        Job& job) const;
 
     const std::string flavour;
