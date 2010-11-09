@@ -102,7 +102,7 @@ namespace Arc {
     return true;
   }
 
-  URL SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+  bool SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC GM-powered resource is not supported.", et.url.str());
