@@ -103,6 +103,7 @@ my $gmcommon_options = {
     shared_filesystem => '*',
     shared_scratch => '*',
     scratchdir => '*',
+    use_janitor => '*',
 };
 
 # # # # # # # # # # # # # #
@@ -111,7 +112,6 @@ my $config_schema = {
     debugLevel => '*',
     PublishNordugrid => '*',
     AdminDomain => '*',
-    JanitorEnabled => '*',
     ttl => '*',
     %$gmcommon_options,
     %$lrms_options,
@@ -173,7 +173,8 @@ my $config_schema = {
 
 my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
-                 ConnectivityIn ConnectivityOut Preemption) ];
+                 ConnectivityIn ConnectivityOut Preemption
+                 use_janitor) ];
 
 ############################ Generic functions ###########################
 
@@ -416,7 +417,7 @@ sub build_config_from_xmlfile {
     move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
     rename_keys $lrms, $config, {runtimeDir => 'runtimedir', scratchDir => 'scratchdir',
              sharedScratch => 'shared_scratch', sharedFilesystem => 'shared_filesystem',
-             GNUTimeUtility => 'gnu_time'};
+             GNUTimeUtility => 'gnu_time', useJanitor => 'use_janitor'};
 
     my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
 
@@ -451,9 +452,6 @@ sub build_config_from_xmlfile {
     }
 
     hash_tree_apply $config, sub { fixbools shift, $allbools };
-
-    my $janitor = hash_get_hashref($arex,  'janitor');
-    $config->{JanitorEnabled} = (defined $janitor->{enabled} and $janitor->{enabled} eq 1) ? 1 : 0;
 
     #print(Dumper $config);
     return $config;
@@ -611,9 +609,6 @@ sub build_config_from_inifile {
                              };
 
     hash_tree_apply $config, sub { fixbools shift, $allbools };
-
-    my $janitor = { $iniparser->get_section('janitor') };
-    $config->{JanitorEnabled} = (defined $janitor->{enabled} and $janitor->{enabled} eq 1) ? 1 : 0;
 
     #print STDERR (Dumper $config);
     return $config;

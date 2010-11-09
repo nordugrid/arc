@@ -510,6 +510,8 @@
          </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:element name="useJanitor" type="xsd:boolean"/>
+
     <xsd:complexType name="janitor_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">

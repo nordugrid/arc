@@ -187,7 +187,7 @@ sub get_rte_info($) {
     my $rte_opts;
     $rte_opts->{configfile} = $configfile;
     $rte_opts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
-    $rte_opts->{JanitorEnabled} = $config->{JanitorEnabled} if $config->{JanitorEnabled};
+    $rte_opts->{use_janitor} = $config->{use_janitor} if $config->{use_janitor};
     $rte_opts->{pkgdatadir} = dirname($0).'/@pkgdatadir_rel_to_pkglibexecdir@';
 
     return timed 'RTEInfo', \&RTEInfo::collect, $rte_opts;

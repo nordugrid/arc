@@ -121,7 +121,7 @@ use Janitor::Execute;
 use Janitor::Filefetcher;
 use Janitor::ArcConfig;
 use Janitor::Logger;
-use Janitor::Common qw(get_catalog);
+use Janitor::Common qw(get_catalog janitor_enabled);
 use Janitor::Util qw(remove_directory all_runscripts sane_rte_name sane_job_id);
 use Janitor::Job;
 use Janitor::RTE;
@@ -154,7 +154,7 @@ $conffile = "/etc/arc.conf" unless defined $conffile;
 $logger->debug("using configuration file \"$conffile\"");
 if(! -e $conffile){
 	$logger->fatal("Could not find configuration file \"$conffile\", change location with -c <filename>");
-	return 4;
+	return 1;
 }
 
 my $config = Janitor::ArcConfig->parse($conffile);
@@ -165,6 +165,15 @@ if ( !defined $config->{'janitor'} ) {
 }
 
 ######################################################################
+# check whether janitor is enabled in the config. If not, exit immediately.
+######################################################################
+if (! janitor_enabled()) {
+    $logger->info("No action taken. Janitor is not enabled in the config");
+    $INITSTATE = 0;
+    return 1;
+}
+
+######################################################################
 # set the effective gid
 ######################################################################
 if (defined $config->{'janitor'}{'gid'}) {
@@ -172,12 +181,12 @@ if (defined $config->{'janitor'}{'gid'}) {
 	my $gi = Janitor::Util::asGID($gn);
 	unless (defined $gi) {
 		$logger->fatal("No such group: \"$gn\"");
-		return 4;
+		return 1;
 	}
 	$) = $gi; # set the effective group id
 	if ( $) != $gi ) {
 		$logger->fatal("Can not set effective group id to $gi: $!");
-		return 4;
+		return 1;
 	}
 	$logger->debug("Setting effective group id to $gn");
 }
@@ -190,12 +199,12 @@ if (defined $config->{'janitor'}{'uid'}) {
 	my $ui = Janitor::Util::asUID($un);
 	unless (defined $ui) {
 		$logger->fatal("No such user: \"$un\"");
-		return 4;
+		return 1;
 	}
 	$> = $ui; # set the effective user id
 	if ( $> != $ui ) {
 		$logger->fatal("Can not set effective user id to $ui: $!");
-		return 4;
+		return 1;
 	}
 	$logger->debug("Setting effective user id to $un");
 }
@@ -239,7 +248,7 @@ if (not defined $registrationDir) {
 }
 if (defined $msg) {
 	$logger->fatal($msg);
-	return 4;
+	return 1;
 }
 
 ######################################################################
@@ -267,7 +276,7 @@ foreach my $dir ( ($regDirJob, $regDirRTE, $regDirPackages) ) {
 	
 	if (defined $msg) {
 		$logger->fatal($msg);
-		return 4;
+		return 1;
 	}
 }
 
@@ -287,7 +296,7 @@ if (not defined $instdir) {
 }
 if (defined $msg) {
     $logger->fatal($msg);
-    return 4
+    return 1
 }
 
 ######################################################################
@@ -306,7 +315,7 @@ if (not defined $downloaddir) {
 }
 if (defined $msg) {
     $logger->fatal($msg);
-    return 4
+    return 1
 }
 
 ######################################################################
@@ -325,7 +334,7 @@ if (not defined $manualRuntimeDir) {
 }
 if (defined $msg) {
     $logger->fatal($msg);
-    return 4
+    return 1
 }
 
 #If a job is older than this, it is considered dead and will be removed by
@@ -337,7 +346,7 @@ $jobExpiryTime = 7*24*60*60 unless defined $jobExpiryTime;	# default is 7d
 my $rteExpiryTime = $config->{'janitor'}{'rteexpirytime'};
 $rteExpiryTime = 3*24*60*60 unless defined $rteExpiryTime;	# default is 3d
 
-$INITSTATE = 0;
+$INITSTATE = undef;
 
 return 1;
 

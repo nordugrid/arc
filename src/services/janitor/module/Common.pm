@@ -3,7 +3,7 @@ package Janitor::Common;
 
 use Exporter;
 @ISA = qw(Exporter);     # Inherit from Exporter
-@EXPORT_OK = qw(get_catalog);
+@EXPORT_OK = qw(get_catalog janitor_enabled);
 
 
 =head1 NAME
@@ -56,7 +56,7 @@ is enabled.
 
 sub janitor_enabled
 {
-	my $enabled = $config->{"janitor"}{"enabled"};
+	my $enabled = $config->{"grid-manager"}{"use_janitor"};
 	if (!defined $enabled){
 		return 0;
 	} 

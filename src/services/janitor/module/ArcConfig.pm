@@ -53,8 +53,8 @@ use Janitor::Logger;
 # configured yet. Thus, log messages go just to stderr.
 ######################################################################
 
-# uncomment this to force debugging
-#Janitor::Logger::destination(*STDERR, $Janitor::Logger::DEBUG);
+# TODO: make log level configurable
+Janitor::Logger::destination(*STDERR, $Janitor::Logger::INFO);
 
 my $logger = Janitor::Logger->get_logger("Janitor::ArcConfig");
 
@@ -286,6 +286,13 @@ sub _parse_xml {
         my ($h, $key) = @_;
         return '' unless ref $h->{$key} eq 'ARRAY';
         return join '[separator]', grep {not ref $_} @{$h->{$key}};
+    }
+
+    if ($arex->{'useJanitor'}) {
+        my $val = get_scalar($arex, 'useJanitor');
+        my $enabled = 0;
+        $enabled = 1 if $val eq '1' or lc $val eq 'true' or lc $val eq 'yes';
+        $self->{'grid-manager'}{'use_janitor'} = $enabled;
     }
 
     my $lrms = $arex->{'LRMS'};

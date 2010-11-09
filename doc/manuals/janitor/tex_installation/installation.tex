@@ -80,8 +80,13 @@ common file \textit{arc.conf}. It is expected in the configuration
 directory \textit{etc}. The Janitor is using the environment
 variable \textit{NORDUGRID\_CONFIG} to determine the location of the
 corresponding file. If that variable is not set, the default location
-\textit{/etc/arc.conf} will be used.  The configuration is assigned
-by the section \lbrack janitor\rbrack. Table~\ref{tab:arcConfTags}
+\textit{/etc/arc.conf} will be used.  The parameter \texttt{use_janitor} in the
+\lbrack grid-manager\rbrack section has to be set in order to tell A-REX
+whether to use Janitor or not. By default, Janitor is not used. Use the value
+\texttt{"1"} to enable Janitor.
+
+Janitor is configured through parameters
+in the section \lbrack janitor\rbrack. Table~\ref{tab:arcConfTags}
 describes the available tags for the Janitor's configuration.
 
 \begin{landscape}
@@ -93,7 +98,6 @@ describes the available tags for the Janitor's configuration.
 	\hline
 	   \textbf{tag}    & \textbf{example}                      & \textbf{description}\\
         \hline
-           enabled         & "1"                                   & Boolean flag which enables or disables janitor in A-REX.\\
 	   uid             & "root"                                & The effective uid. \\
 	   gid             & "0"                                   & The effective gid. \\
 	   registrationdir & "/var/spool/nordugrid/janitor"        & Directory where we the current states of jobs are kept. \\
@@ -113,10 +117,7 @@ describes the available tags for the Janitor's configuration.
 \end{table}
 \end{landscape}
 
-The parameter \texttt{enabled} specifies whether the Janitor shall be used
-within A-REX or not. This needs to be distinguished from the previously mentioned
-compilation flags of a similar name. Use the value \texttt{"0"} to disable Janitor. The
-\texttt{uid} and the \texttt{gid} are defining which effective user id
+The \texttt{uid} and the \texttt{gid} are defining which effective user id
 (uid) and group id (gid) shall be used for the Janitor.
 
 The \texttt{registrationdir} describes the directory in which the

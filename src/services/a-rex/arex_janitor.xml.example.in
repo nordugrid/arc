@@ -93,9 +93,9 @@
       <arex:OperatingSystem>LINUX</arex:OperatingSystem>
       <arex:debugLevel>VERBOSE</arex:debugLevel>
       <arex:serviceMail>support@cluster.org</arex:serviceMail>
+      <arex:useJanitor>yes</arex:useJanitor>
 
       <arex:janitor>
-          <janitor:enabled>1</janitor:enabled>
           <janitor:logconf>/etc/janitor/log.conf</janitor:logconf>
           <janitor:registrationdir>/var/spool/nordugrid/janitor</janitor:registrationdir>
           <janitor:installationdir>/var/spool/nordugrid/janitor/runtime</janitor:installationdir>

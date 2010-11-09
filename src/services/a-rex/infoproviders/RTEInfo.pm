@@ -9,7 +9,7 @@ our $rte_options_schema = {
         pgkdatadir     => '',
         configfile     => '',
         runtimedir     => '*',
-        JanitorEnabled => '*',
+        use_janitor    => '*',
 };
 
 our $rte_info_schema = {
@@ -56,7 +56,7 @@ sub add_static_rtes {
 
 sub add_janitor_res {
     my ($options, $rtes) = @_;
-    return unless $options->{JanitorEnabled};
+    return unless $options->{use_janitor};
 
     my $jmodpath = $options->{pkgdatadir}.'/perl';
     if (! -e "$jmodpath/Janitor/ArcUtils.pm") {
@@ -97,7 +97,7 @@ sub test {
     my $options = { pkgdatadir => '/scratch/adrianta/arc1/share/arc',
                     runtimedir => '/data/export/SOFTWARE/runtime',
                     configfile => '/etc/arc.conf',
-                    JanitorEnabled => 1,
+                    use_janitor => 1,
     };
     require Data::Dumper; import Data::Dumper qw(Dumper);
     LogUtils::level('VERBOSE');
