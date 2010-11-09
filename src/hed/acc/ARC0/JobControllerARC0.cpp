@@ -111,9 +111,6 @@ namespace Arc {
           (*it)->State = JobStateARC0((std::string)jobinfo["nordugrid-job-status"]);
         if (jobinfo["nordugrid-job-globalowner"])
           (*it)->Owner = (std::string)jobinfo["nordugrid-job-globalowner"];
-        if (jobinfo["nordugrid-job-execcluster"])
-          (*it)->ExecutionCE =
-            (std::string)jobinfo["nordugrid-job-execcluster"];
         if (jobinfo["nordugrid-job-execqueue"])
           (*it)->Queue = (std::string)jobinfo["nordugrid-job-execqueue"];
         if (jobinfo["nordugrid-job-submissionui"])
