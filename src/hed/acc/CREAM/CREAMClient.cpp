@@ -187,12 +187,8 @@ namespace Arc {
       return false;
     }
 
-    if (ISVALID(jobInfoNode["jobId"]["id"]) && ISVALID(jobInfoNode["jobId"]["creamURL"]))
-      job.JobID = URL((std::string)jobInfoNode["jobId"]["creamURL"] + "/" + (std::string)jobInfoNode["jobId"]["id"]);
-    if (ISVALID(jobInfoNode["jobId"]["creamURL"])) {
-      job.IDFromEndpoint = URL((std::string)jobInfoNode["jobId"]["creamURL"]);
-      job.ExecutionCE = job.IDFromEndpoint.fullstr();
-      job.JobManagementEndpoint = job.IDFromEndpoint.fullstr();
+    if (ISVALID(jobInfoNode["jobId"]["id"]) && ISVALID(jobInfoNode["jobId"]["creamURL"])) {
+      job.IDFromEndpoint = URL((std::string)jobInfoNode["jobId"]["creamURL"] + "/" + (std::string)jobInfoNode["jobId"]["id"]);
     }
     if (ISVALID(jobInfoNode["jobId"]["id"]))
       job.LocalIDFromManager = (std::string)jobInfoNode["jobId"]["id"];

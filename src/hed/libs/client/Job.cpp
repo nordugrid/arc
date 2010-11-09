@@ -73,16 +73,17 @@ namespace Arc {
   Logger Job::logger(Logger::getRootLogger(), "Job");
 
   Job::Job()
-    : ExitCode(-1),
+    : JobID(IDFromEndpoint),
+      ExitCode(-1),
       WaitingPosition(-1),
       RequestedTotalWallTime(-1),
       RequestedTotalCPUTime(-1),
-      RequestedMainMemory(-1),
       RequestedSlots(-1),
       UsedTotalWallTime(-1),
       UsedTotalCPUTime(-1),
       UsedMainMemory(-1),
       UsedSlots(-1),
+      LocalSubmissionTime(-1),
       SubmissionTime(-1),
       ComputingManagerSubmissionTime(-1),
       StartTime(-1),
@@ -96,6 +97,122 @@ namespace Arc {
 
   Job::~Job() {}
 
+  Job::Job(const Job& j)
+    : JobID(IDFromEndpoint),
+      ExitCode(-1),
+      WaitingPosition(-1),
+      RequestedTotalWallTime(-1),
+      RequestedTotalCPUTime(-1),
+      RequestedSlots(-1),
+      UsedTotalWallTime(-1),
+      UsedTotalCPUTime(-1),
+      UsedMainMemory(-1),
+      UsedSlots(-1),
+      LocalSubmissionTime(-1),
+      SubmissionTime(-1),
+      ComputingManagerSubmissionTime(-1),
+      StartTime(-1),
+      ComputingManagerEndTime(-1),
+      EndTime(-1),
+      WorkingAreaEraseTime(-1),
+      ProxyExpirationTime(-1),
+      CreationTime(-1),
+      Validity(-1),
+      VirtualMachine(false) {
+    *this = j;
+  }
+
+  Job::Job(XMLNode j)
+    : JobID(IDFromEndpoint),
+      ExitCode(-1),
+      WaitingPosition(-1),
+      RequestedTotalWallTime(-1),
+      RequestedTotalCPUTime(-1),
+      RequestedSlots(-1),
+      UsedTotalWallTime(-1),
+      UsedTotalCPUTime(-1),
+      UsedMainMemory(-1),
+      UsedSlots(-1),
+      LocalSubmissionTime(-1),
+      SubmissionTime(-1),
+      ComputingManagerSubmissionTime(-1),
+      StartTime(-1),
+      ComputingManagerEndTime(-1),
+      EndTime(-1),
+      WorkingAreaEraseTime(-1),
+      ProxyExpirationTime(-1),
+      CreationTime(-1),
+      Validity(-1),
+      VirtualMachine(false) {
+    *this = j;
+  }
+
+  Job& Job::operator=(const Job& j) {
+    Flavour = j.Flavour;
+    Cluster = j.Cluster;
+
+    SubmissionEndpoint = j.SubmissionEndpoint;
+    InfoEndpoint = j.InfoEndpoint;
+    ISB = j.ISB;
+    OSB = j.OSB;
+
+    AuxInfo = j.AuxInfo;
+
+    Name = j.Name;
+    Type = j.Type;
+    IDFromEndpoint = j.IDFromEndpoint;
+    LocalIDFromManager = j.LocalIDFromManager;
+    JobDescription = j.JobDescription;
+    JobDescriptionDocument = j.JobDescriptionDocument;
+    State = j.State;
+    RestartState = j.RestartState;
+    ExitCode = j.ExitCode;
+    ComputingManagerExitCode = j.ComputingManagerExitCode;
+    Error = j.Error;
+    WaitingPosition = j.WaitingPosition;
+    UserDomain = j.UserDomain;
+    Owner = j.Owner;
+    LocalOwner = j.LocalOwner;
+    RequestedTotalWallTime = j.RequestedTotalWallTime;
+    RequestedTotalCPUTime = j.RequestedTotalCPUTime;
+    RequestedSlots = j.RequestedSlots;
+    RequestedApplicationEnvironment = j.RequestedApplicationEnvironment;
+    StdIn = j.StdIn;
+    StdOut = j.StdOut;
+    StdErr = j.StdErr;
+    LogDir = j.LogDir;
+    ExecutionNode = j.ExecutionNode;
+    Queue = j.Queue;
+    UsedTotalWallTime = j.UsedTotalWallTime;
+    UsedTotalCPUTime = j.UsedTotalCPUTime;
+    UsedMainMemory = j.UsedMainMemory;
+    UsedApplicationEnvironment = j.UsedApplicationEnvironment;
+    UsedSlots = j.UsedSlots;
+    LocalSubmissionTime = j.LocalSubmissionTime;
+    SubmissionTime = j.SubmissionTime;
+    ComputingManagerSubmissionTime = j.ComputingManagerSubmissionTime;
+    StartTime = j.StartTime;
+    ComputingManagerEndTime = j.ComputingManagerEndTime;
+    EndTime = j.EndTime;
+    WorkingAreaEraseTime = j.WorkingAreaEraseTime;
+    ProxyExpirationTime = j.ProxyExpirationTime;
+    SubmissionHost = j.SubmissionHost;
+    SubmissionClientName = j.SubmissionClientName;
+    CreationTime = j.CreationTime;
+    Validity = j.Validity;
+    OtherMessages = j.OtherMessages;
+
+    ActivityOldID = j.ActivityOldID;
+    LocalInputFiles = j.LocalInputFiles;
+
+    VirtualMachine = j.VirtualMachine;
+    UsedCPUType = j.UsedCPUType;
+    UsedOSFamily = j.UsedOSFamily;
+    UsedPlatform = j.UsedPlatform;
+
+    return *this;
+  }
+
   void Job::Print(bool longlist) const {
     logger.msg(WARNING, "The Job::Print method is DEPRECATED, use the Job::SaveToStream method instead.");
     SaveToStream(std::cout, longlist);
@@ -103,10 +220,45 @@ namespace Arc {
 
   Job& Job::operator=(XMLNode job) {
     JXMLTOSTRING(Name)
+    JXMLTOSTRING(Flavour)
+    JXMLTOSTRING(Cluster)
+    JXMLTOSTRING(InfoEndpoint)
+    JXMLTOSTRING(ISB)
+    JXMLTOSTRING(OSB)
+    JXMLTOSTRING(AuxInfo)
     JXMLTOSTRING(Type)
-    JXMLTOSTRING(IDFromEndpoint)
+
+    if (job["IDFromEndpoint"]) {
+      IDFromEndpoint = URL((std::string)job["IDFromEndpoint"]);
+    }
+    /* Element 'JobID' included for backwards compatibility. */
+    else if (job["JobID"]) {
+      IDFromEndpoint = URL((std::string)job["JobID"]);
+    }
+
     JXMLTOSTRING(LocalIDFromManager)
-    JXMLTOSTRING(JobDescription)
+
+    /* Earlier the 'JobDescription' element in a XMLNode representing a Job
+     * object contained the actual job description, but in GLUE2 the name
+     * 'JobDescription' specifies the job description language which was used to
+     * describe the job. Due to the name clash we must guess what is meant when
+     * parsing the 'JobDescription' element.
+     */
+    if (job["JobDescription"]) {
+      const std::string sjobdesc = job["JobDescription"];
+      if (job["JobDescriptionDocument"] || job["State"] ||
+          !job["LocalSubmissionTime"]) {
+        // If the 'JobDescriptionDocument' or 'State' element is set assume that the 'JobDescription' element is the GLUE2 one.
+        // Default is to assume it is the GLUE2 one.
+        JobDescription = sjobdesc;
+      }
+      else {
+        // If the 'LocalSubmissionTime' element is set assume that the 'JobDescription' element contains the actual job description.
+        JobDescriptionDocument = sjobdesc;
+      }
+    }
+
+    JXMLTOSTRING(JobDescriptionDocument)
 
     // Parse libarcclient special state format.
     if (job["State"]["General"] && job["State"]["Specific"]) {
@@ -148,6 +300,7 @@ namespace Arc {
     JXMLSTRINGTO(long, UsedTotalWallTime)
     JXMLSTRINGTO(long, UsedTotalCPUTime)
     JXMLSTRINGTO(int, UsedMainMemory)
+    JXMLTOTIME(LocalSubmissionTime)
     JXMLTOTIME(SubmissionTime)
     JXMLTOTIME(ComputingManagerSubmissionTime)
     JXMLTOTIME(StartTime)
@@ -159,15 +312,46 @@ namespace Arc {
     JXMLTOSTRING(SubmissionClientName)
     JXMLTOSTRINGLIST(OtherMessages)
 
+    ActivityOldID.clear();
+    if (job["Associations"]["ActivityOldID"]) {
+      for (XMLNode n = job["Associations"]["ActivityOldID"]; n; ++n) {
+        ActivityOldID.push_back((std::string)n);
+      }
+    }
+
+    LocalInputFiles.clear();
+    if (job["Associations"]["LocalInputFile"]) {
+      for (XMLNode n = job["Associations"]["LocalInputFile"]; n; ++n) {
+        if (n["Source"] && n["CheckSum"]) {
+          LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
+        }
+      }
+    }
+    else if (job["LocalInputFiles"]["File"]) { // Included for backwards compatibility.
+      for (XMLNode n = job["LocalInputFiles"]["File"]; n; ++n) {
+        if (n["Source"] && n["CheckSum"]) {
+          LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
+        }
+      }
+    }
+
+
     return *this;
   }
 
   void Job::ToXML(XMLNode node) const {
     STRINGTOXML(Name)
+    STRINGTOXML(Flavour)
+    URLTOXML(Cluster)
+    URLTOXML(InfoEndpoint)
+    URLTOXML(ISB)
+    URLTOXML(OSB)
+    STRINGTOXML(AuxInfo)
     STRINGTOXML(Type)
     URLTOXML(IDFromEndpoint)
     STRINGTOXML(LocalIDFromManager)
     STRINGTOXML(JobDescription)
+    STRINGTOXML(JobDescriptionDocument)
     if (State) {
       node.NewChild("State");
       node["State"].NewChild("Specific") = State();
@@ -198,6 +382,7 @@ namespace Arc {
     PERIODTOSTRING(UsedTotalWallTime)
     PERIODTOSTRING(UsedTotalCPUTime)
     INTTOXML(UsedMainMemory)
+    TIMETOSTRING(LocalSubmissionTime)
     TIMETOSTRING(SubmissionTime)
     TIMETOSTRING(ComputingManagerSubmissionTime)
     TIMETOSTRING(StartTime)
@@ -208,10 +393,26 @@ namespace Arc {
     STRINGTOXML(SubmissionHost)
     STRINGTOXML(SubmissionClientName)
     STRINGLISTTOXML(OtherMessages)
+
+    if ((ActivityOldID.size() > 0 || LocalInputFiles.size() > 0) && !node["Associations"]) {
+      node.NewChild("Associations");
+    }
+
+    for (std::list<std::string>::const_iterator it = ActivityOldID.begin();
+         it != ActivityOldID.end(); it++) {
+      node["Associations"].NewChild("ActivityOldId") = *it;
+    }
+
+    for (std::map<std::string, std::string>::const_iterator it = LocalInputFiles.begin();
+         it != LocalInputFiles.end(); it++) {
+      XMLNode lif = node["Associations"].NewChild("LocalInputFile");
+      lif.NewChild("Source") = it->first;
+      lif.NewChild("CheckSum") = it->second;
+    }
   }
 
   void Job::SaveToStream(std::ostream& out, bool longlist) const {
-    out << IString("Job: %s", JobID.str()) << std::endl;
+    out << IString("Job: %s", IDFromEndpoint.str()) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
@@ -233,9 +434,6 @@ namespace Arc {
              it != OtherMessages.end(); it++)
           out << IString(" Other Messages: %s", *it)
                     << std::endl;
-      if (!ExecutionCE.empty())
-        out << IString(" ExecutionCE: %s", ExecutionCE)
-                  << std::endl;
       if (!Queue.empty())
         out << IString(" Queue: %s", Queue) << std::endl;
       if (UsedSlots != -1)
@@ -299,7 +497,7 @@ namespace Arc {
   } // end Print
 
   bool Job::CompareJobID(const Job* a, const Job* b) {
-    return a->JobID.fullstr().compare(b->JobID.fullstr()) < 0;
+    return a->IDFromEndpoint.fullstr().compare(b->IDFromEndpoint.fullstr()) < 0;
   }
 
   bool Job::CompareSubmissionTime(const Job* a, const Job* b) {

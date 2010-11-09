@@ -28,10 +28,13 @@ namespace Arc {
     Job();
     ~Job();
 
+    Job(const Job& job);
+    Job(XMLNode job);
+
     // Information stored in the job list file
     // Obligatory information
     std::string Flavour;
-    URL JobID;
+    URL& JobID;
     URL Cluster;
     // Optional information (ACCs fills if they need it)
     URL SubmissionEndpoint;
@@ -39,7 +42,6 @@ namespace Arc {
     URL ISB;
     URL OSB;
     // ACC implementation dependent information
-    URL AuxURL;
     std::string AuxInfo;
 
     // Information retrieved from the information system
@@ -48,6 +50,7 @@ namespace Arc {
     URL IDFromEndpoint;
     std::string LocalIDFromManager;
     std::string JobDescription;
+    std::string JobDescriptionDocument;
     JobState State;
     JobState RestartState;
     int ExitCode;
@@ -59,7 +62,6 @@ namespace Arc {
     std::string LocalOwner;
     Period RequestedTotalWallTime;
     Period RequestedTotalCPUTime;
-    int RequestedMainMemory; // Deprecated??
     int RequestedSlots;
     std::list<std::string> RequestedApplicationEnvironment;
     std::string StdIn;
@@ -67,7 +69,6 @@ namespace Arc {
     std::string StdErr;
     std::string LogDir;
     std::list<std::string> ExecutionNode;
-    std::string ExecutionCE; // Deprecated??
     std::string Queue;
     Period UsedTotalWallTime;
     Period UsedTotalCPUTime;
@@ -88,9 +89,8 @@ namespace Arc {
     Period Validity;
     std::list<std::string> OtherMessages;
     //Associations
-    URL JobManagementEndpoint;
-    URL DataStagingEndpoint;
-    std::list<std::string> ActivityOldId;
+    std::list<std::string>  ActivityOldID;
+    std::map<std::string, std::string> LocalInputFiles;
     //ExecutionEnvironment (condensed)
     bool VirtualMachine;
     std::string UsedCPUType;
@@ -131,6 +131,8 @@ namespace Arc {
      * @see ToXML
      **/
     Job& operator=(XMLNode job);
+
+    Job& operator=(const Job& job);
 
     /// Add job information to a XMLNode
     /**

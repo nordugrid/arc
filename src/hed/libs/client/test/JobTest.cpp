@@ -13,6 +13,8 @@ class JobTest
   CPPUNIT_TEST_SUITE(JobTest);
   CPPUNIT_TEST(XMLToJobTest);
   CPPUNIT_TEST(JobToXMLTest);
+  CPPUNIT_TEST(XMLToJobStateTest);
+  CPPUNIT_TEST(FromOldFormatTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -21,6 +23,8 @@ public:
   void tearDown() {}
   void XMLToJobTest();
   void JobToXMLTest();
+  void XMLToJobStateTest();
+  void FromOldFormatTest();
 
 private:
   Arc::XMLNode xmlJob;
@@ -28,10 +32,17 @@ private:
 
 JobTest::JobTest() : xmlJob(Arc::XMLNode("<ComputingActivity>"
     "<Name>mc08.1050.J7</Name>"
+    "<Flavour>ARC1</Flavour>"
+    "<Cluster>https://ce01.niif.hu:60000/arex/</Cluster>"
+    "<InfoEndpoint>https://ce01.niif.hu:60000/arex/</InfoEndpoint>"
+    "<ISB>https://isb.niif.hu:60000/arex/</ISB>"
+    "<OSB>https://osb.niif.hu:60000/arex/</OSB>"
+    "<AuxInfo>UNICORE magic</AuxInfo>"
     "<Type>single</Type>"
     "<IDFromEndpoint>https://ce01.niif.hu:60000/arex/123456</IDFromEndpoint>"
     "<LocalIDFromManager>345.ce01</LocalIDFromManager>"
     "<JobDescription>nordugrid:xrsl</JobDescription>"
+    "<JobDescriptionDocument>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescriptionDocument>"
     "<State>bes:failed</State>"
     "<State>nordugrid:FAILED</State>"
     "<RestartState>bes:running</RestartState>"
@@ -59,6 +70,7 @@ JobTest::JobTest() : xmlJob(Arc::XMLNode("<ComputingActivity>"
     "<UsedTotalWallTime>2893</UsedTotalWallTime>"
     "<UsedTotalCPUTime>12340</UsedTotalCPUTime>"
     "<UsedMainMemory>4453</UsedMainMemory>"
+    "<LocalSubmissionTime>2008-04-21T10:04:36Z</LocalSubmissionTime>"
     "<SubmissionTime>2008-04-21T10:05:12Z</SubmissionTime>"
     "<ComputingManagerSubmissionTime>2008-04-20T06:05:12Z</ComputingManagerSubmissionTime>"
     "<StartTime>2008-04-20T06:45:12Z</StartTime>"
@@ -70,6 +82,18 @@ JobTest::JobTest() : xmlJob(Arc::XMLNode("<ComputingActivity>"
     "<SubmissionClientName>nordugrid-arc-0.94</SubmissionClientName>"
     "<OtherMessages>Cached input file is outdated; downloading again</OtherMessages>"
     "<OtherMessages>User proxy has expired</OtherMessages>"
+    "<Associations>"
+      "<ActivityOldID>https://example-ce.com:443/arex/765234</ActivityOldID>"
+      "<ActivityOldID>https://helloworld-ce.com:12345/arex/543678</ActivityOldID>"
+      "<LocalInputFile>"
+        "<Source>helloworld.sh</Source>"
+        "<CheckSum>c0489bec6f7f4454d6cfe1b0a07ad5b8</CheckSum>"
+      "</LocalInputFile>"
+      "<LocalInputFile>"
+        "<Source>random.dat</Source>"
+        "<CheckSum>e52b14b10b967d9135c198fd11b9b8bc</CheckSum>"
+      "</LocalInputFile>"
+    "</Associations>"
   "</ComputingActivity>")) {}
 
 void JobTest::XMLToJobTest() {
@@ -77,9 +101,17 @@ void JobTest::XMLToJobTest() {
   job = xmlJob;
 
   CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", job.Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", job.Flavour);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/"), job.Cluster);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/"), job.InfoEndpoint);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://isb.niif.hu:60000/arex/"), job.ISB);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://osb.niif.hu:60000/arex/"), job.OSB);
+  CPPUNIT_ASSERT_EQUAL((std::string)"UNICORE magic", job.AuxInfo);
   CPPUNIT_ASSERT_EQUAL((std::string)"single", job.Type);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce01.niif.hu:60000/arex/123456"), job.IDFromEndpoint);
   CPPUNIT_ASSERT_EQUAL((std::string)"345.ce01", job.LocalIDFromManager);
   CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid:xrsl", job.JobDescription);
+  CPPUNIT_ASSERT_EQUAL((std::string)"&(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")", job.JobDescriptionDocument);
   CPPUNIT_ASSERT(job.State == Arc::JobState::OTHER);
   CPPUNIT_ASSERT_EQUAL((std::string)"bes:failed", job.State());
   CPPUNIT_ASSERT(job.RestartState == Arc::JobState::OTHER);
@@ -110,6 +142,7 @@ void JobTest::XMLToJobTest() {
   CPPUNIT_ASSERT_EQUAL(Arc::Period(2893), job.UsedTotalWallTime);
   CPPUNIT_ASSERT_EQUAL(Arc::Period(12340), job.UsedTotalCPUTime);
   CPPUNIT_ASSERT_EQUAL(4453, job.UsedMainMemory);
+  CPPUNIT_ASSERT_EQUAL(Arc::Time("2008-04-21T10:04:36Z"), job.LocalSubmissionTime);
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2008-04-21T10:05:12Z"), job.SubmissionTime);
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2008-04-20T06:05:12Z"), job.ComputingManagerSubmissionTime);
   CPPUNIT_ASSERT_EQUAL(Arc::Time("2008-04-20T06:45:12Z"), job.StartTime);
@@ -122,6 +155,16 @@ void JobTest::XMLToJobTest() {
   CPPUNIT_ASSERT_EQUAL(2, (int)job.OtherMessages.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"Cached input file is outdated; downloading again", job.OtherMessages.front());
   CPPUNIT_ASSERT_EQUAL((std::string)"User proxy has expired", job.OtherMessages.back());
+  CPPUNIT_ASSERT_EQUAL(2, (int)job.ActivityOldID.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/765234", job.ActivityOldID.front());
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://helloworld-ce.com:12345/arex/543678", job.ActivityOldID.back());
+  CPPUNIT_ASSERT_EQUAL(2, (int)job.LocalInputFiles.size());
+  std::map<std::string, std::string>::const_iterator itFiles = job.LocalInputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL((std::string)"helloworld.sh", itFiles->first);
+  CPPUNIT_ASSERT_EQUAL((std::string)"c0489bec6f7f4454d6cfe1b0a07ad5b8", itFiles->second);
+  itFiles++;
+  CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", itFiles->first);
+  CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
 }
 
 void JobTest::JobToXMLTest() {
@@ -131,52 +174,129 @@ void JobTest::JobToXMLTest() {
 
   job.ToXML(xmlOut);
 
-  CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", (std::string)xmlOut["Name"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"single", (std::string)xmlOut["Type"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"345.ce01", (std::string)xmlOut["LocalIDFromManager"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid:xrsl", (std::string)xmlOut["JobDescription"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"Other", (std::string)xmlOut["State"]["General"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"bes:failed", (std::string)xmlOut["State"]["Specific"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"Other", (std::string)xmlOut["RestartState"]["General"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"bes:running", (std::string)xmlOut["RestartState"]["Specific"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"0", (std::string)xmlOut["ExitCode"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"0", (std::string)xmlOut["ComputingManagerExitCode"]);
-  CPPUNIT_ASSERT(xmlOut["Error"][0] && xmlOut["Error"][1] && !xmlOut["Error"][2]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"Uploading timed out", (std::string)xmlOut["Error"][0]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"Failed stage-out", (std::string)xmlOut["Error"][1]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"0", (std::string)xmlOut["WaitingPosition"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"vo:atlas", (std::string)xmlOut["UserDomain"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"CONFIDENTIAL", (std::string)xmlOut["Owner"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"grid02", (std::string)xmlOut["LocalOwner"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"PT1H23M20S", (std::string)xmlOut["RequestedTotalWallTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"PT5H33M20S", (std::string)xmlOut["RequestedTotalCPUTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"4", (std::string)xmlOut["RequestedSlots"]);
-  CPPUNIT_ASSERT(xmlOut["RequestedApplicationEnvironment"][0] && xmlOut["RequestedApplicationEnvironment"][1] && !xmlOut["RequestedApplicationEnvironment"][2]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"ENV/JAVA/JRE-1.6.0", (std::string)xmlOut["RequestedApplicationEnvironment"][0]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"APPS/HEP/ATLAS-14.2.23.4", (std::string)xmlOut["RequestedApplicationEnvironment"][1]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"input.dat", (std::string)xmlOut["StdIn"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"job.out", (std::string)xmlOut["StdOut"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"err.out", (std::string)xmlOut["StdErr"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"celog", (std::string)xmlOut["LogDir"]);
-  CPPUNIT_ASSERT(xmlOut["ExecutionNode"][0] && xmlOut["ExecutionNode"][1] && !xmlOut["ExecutionNode"][2]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"wn043", (std::string)xmlOut["ExecutionNode"][0]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"wn056", (std::string)xmlOut["ExecutionNode"][1]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"pbs-short", (std::string)xmlOut["Queue"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"PT48M13S", (std::string)xmlOut["UsedTotalWallTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"PT3H25M40S", (std::string)xmlOut["UsedTotalCPUTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"4453", (std::string)xmlOut["UsedMainMemory"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-21T10:05:12Z", (std::string)xmlOut["SubmissionTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T06:05:12Z", (std::string)xmlOut["ComputingManagerSubmissionTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T06:45:12Z", (std::string)xmlOut["StartTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T10:05:12Z", (std::string)xmlOut["ComputingManagerEndTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T10:15:12Z", (std::string)xmlOut["EndTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-24T10:05:12Z", (std::string)xmlOut["WorkingAreaEraseTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-30T10:05:12Z", (std::string)xmlOut["ProxyExpirationTime"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"pc4.niif.hu:3432", (std::string)xmlOut["SubmissionHost"]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid-arc-0.94", (std::string)xmlOut["SubmissionClientName"]);
-  CPPUNIT_ASSERT(xmlOut["OtherMessages"][0] && xmlOut["OtherMessages"][1] && !xmlOut["OtherMessages"][2]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"Cached input file is outdated; downloading again", (std::string)xmlOut["OtherMessages"][0]);
-  CPPUNIT_ASSERT_EQUAL((std::string)"User proxy has expired", (std::string)xmlOut["OtherMessages"][1]);
+  CPPUNIT_ASSERT_EQUAL((std::string)"mc08.1050.J7", (std::string)xmlOut["Name"]); xmlOut["Name"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", (std::string)xmlOut["Flavour"]); xmlOut["Flavour"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/", (std::string)xmlOut["Cluster"]); xmlOut["Cluster"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/", (std::string)xmlOut["InfoEndpoint"]); xmlOut["InfoEndpoint"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://isb.niif.hu:60000/arex/", (std::string)xmlOut["ISB"]); xmlOut["ISB"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://osb.niif.hu:60000/arex/", (std::string)xmlOut["OSB"]); xmlOut["OSB"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"UNICORE magic", (std::string)xmlOut["AuxInfo"]); xmlOut["AuxInfo"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"single", (std::string)xmlOut["Type"]); xmlOut["Type"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/123456", (std::string)xmlOut["IDFromEndpoint"]); xmlOut["IDFromEndpoint"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"345.ce01", (std::string)xmlOut["LocalIDFromManager"]); xmlOut["LocalIDFromManager"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid:xrsl", (std::string)xmlOut["JobDescription"]); xmlOut["JobDescription"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"&(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")", (std::string)xmlOut["JobDescriptionDocument"]); xmlOut["JobDescriptionDocument"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"Other", (std::string)xmlOut["State"]["General"]); xmlOut["State"]["General"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"bes:failed", (std::string)xmlOut["State"]["Specific"]); xmlOut["State"]["Specific"].Destroy();
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut["State"].Size()); xmlOut["State"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"Other", (std::string)xmlOut["RestartState"]["General"]); xmlOut["RestartState"]["General"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"bes:running", (std::string)xmlOut["RestartState"]["Specific"]); xmlOut["RestartState"]["Specific"].Destroy();
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut["RestartState"].Size()); xmlOut["RestartState"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"0", (std::string)xmlOut["ExitCode"]); xmlOut["ExitCode"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"0", (std::string)xmlOut["ComputingManagerExitCode"]); xmlOut["ComputingManagerExitCode"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"Uploading timed out", (std::string)xmlOut["Error"]); xmlOut["Error"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"Failed stage-out", (std::string)xmlOut["Error"]); xmlOut["Error"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"0", (std::string)xmlOut["WaitingPosition"]); xmlOut["WaitingPosition"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"vo:atlas", (std::string)xmlOut["UserDomain"]); xmlOut["UserDomain"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"CONFIDENTIAL", (std::string)xmlOut["Owner"]); xmlOut["Owner"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"grid02", (std::string)xmlOut["LocalOwner"]); xmlOut["LocalOwner"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"PT1H23M20S", (std::string)xmlOut["RequestedTotalWallTime"]); xmlOut["RequestedTotalWallTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"PT5H33M20S", (std::string)xmlOut["RequestedTotalCPUTime"]); xmlOut["RequestedTotalCPUTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"4", (std::string)xmlOut["RequestedSlots"]); xmlOut["RequestedSlots"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"ENV/JAVA/JRE-1.6.0", (std::string)xmlOut["RequestedApplicationEnvironment"]); xmlOut["RequestedApplicationEnvironment"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"APPS/HEP/ATLAS-14.2.23.4", (std::string)xmlOut["RequestedApplicationEnvironment"]); xmlOut["RequestedApplicationEnvironment"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"input.dat", (std::string)xmlOut["StdIn"]); xmlOut["StdIn"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"job.out", (std::string)xmlOut["StdOut"]); xmlOut["StdOut"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"err.out", (std::string)xmlOut["StdErr"]); xmlOut["StdErr"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"celog", (std::string)xmlOut["LogDir"]); xmlOut["LogDir"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"wn043", (std::string)xmlOut["ExecutionNode"]); xmlOut["ExecutionNode"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"wn056", (std::string)xmlOut["ExecutionNode"]); xmlOut["ExecutionNode"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"pbs-short", (std::string)xmlOut["Queue"]); xmlOut["Queue"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"PT48M13S", (std::string)xmlOut["UsedTotalWallTime"]); xmlOut["UsedTotalWallTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"PT3H25M40S", (std::string)xmlOut["UsedTotalCPUTime"]); xmlOut["UsedTotalCPUTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"4453", (std::string)xmlOut["UsedMainMemory"]); xmlOut["UsedMainMemory"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-21T10:04:36Z", (std::string)xmlOut["LocalSubmissionTime"]); xmlOut["LocalSubmissionTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-21T10:05:12Z", (std::string)xmlOut["SubmissionTime"]); xmlOut["SubmissionTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T06:05:12Z", (std::string)xmlOut["ComputingManagerSubmissionTime"]); xmlOut["ComputingManagerSubmissionTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T06:45:12Z", (std::string)xmlOut["StartTime"]); xmlOut["StartTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T10:05:12Z", (std::string)xmlOut["ComputingManagerEndTime"]); xmlOut["ComputingManagerEndTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-20T10:15:12Z", (std::string)xmlOut["EndTime"]); xmlOut["EndTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-24T10:05:12Z", (std::string)xmlOut["WorkingAreaEraseTime"]); xmlOut["WorkingAreaEraseTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"2008-04-30T10:05:12Z", (std::string)xmlOut["ProxyExpirationTime"]); xmlOut["ProxyExpirationTime"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"pc4.niif.hu:3432", (std::string)xmlOut["SubmissionHost"]); xmlOut["SubmissionHost"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"nordugrid-arc-0.94", (std::string)xmlOut["SubmissionClientName"]); xmlOut["SubmissionClientName"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"Cached input file is outdated; downloading again", (std::string)xmlOut["OtherMessages"]); xmlOut["OtherMessages"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"User proxy has expired", (std::string)xmlOut["OtherMessages"]); xmlOut["OtherMessages"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://example-ce.com:443/arex/765234", (std::string)xmlOut["Associations"]["ActivityOldId"]); xmlOut["Associations"]["ActivityOldId"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"https://helloworld-ce.com:12345/arex/543678", (std::string)xmlOut["Associations"]["ActivityOldId"]); xmlOut["Associations"]["ActivityOldId"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"helloworld.sh", (std::string)xmlOut["Associations"]["LocalInputFile"]["Source"]); xmlOut["Associations"]["LocalInputFile"]["Source"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"c0489bec6f7f4454d6cfe1b0a07ad5b8", (std::string)xmlOut["Associations"]["LocalInputFile"]["CheckSum"]); xmlOut["Associations"]["LocalInputFile"]["CheckSum"].Destroy();
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut["Associations"]["LocalInputFile"].Size()); xmlOut["Associations"]["LocalInputFile"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", (std::string)xmlOut["Associations"]["LocalInputFile"]["Source"]); xmlOut["Associations"]["LocalInputFile"]["Source"].Destroy();
+  CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", (std::string)xmlOut["Associations"]["LocalInputFile"]["CheckSum"]); xmlOut["Associations"]["LocalInputFile"]["CheckSum"].Destroy();
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut["Associations"]["LocalInputFile"].Size()); xmlOut["Associations"]["LocalInputFile"].Destroy();
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut["Associations"].Size()); xmlOut["Associations"].Destroy();
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut.Size());
+
+  Arc::Job emptyJob;
+  emptyJob.ToXML(xmlOut);
+  CPPUNIT_ASSERT_EQUAL(0, xmlOut.Size());
+}
+
+void JobTest::XMLToJobStateTest() {
+  Arc::XMLNode xml(
+  "<ComputingActivity>"
+    "<State>"
+      "<General>Preparing</General>"
+      "<Specific>PREPARING</Specific>"
+    "</State>"
+  "</ComputingActivity>"
+  );
+  Arc::Job job;
+  job = xml;
+  CPPUNIT_ASSERT_EQUAL((std::string)"PREPARING", job.State());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Preparing", job.State.GetGeneralState());
+}
+
+void JobTest::FromOldFormatTest() {
+  Arc::XMLNode xml(
+  "<ComputingActivity>"
+    "<JobID>https://example-ce.com:443/arex/3456789101112</JobID>"
+    "<Flavour>ARC1</Flavour>"
+    "<Cluster>https://example-ce.com:443/arex</Cluster>"
+    "<InfoEndpoint>https://example-ce.com:443/arex/3456789101112</InfoEndpoint>"
+    "<LocalSubmissionTime>2010-09-24 16:17:46</LocalSubmissionTime>"
+    "<JobDescription>&amp;(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")</JobDescription>"
+    "<LocalInputFiles>"
+      "<File>"
+        "<Source>helloworld.sh</Source>"
+        "<CheckSum>c0489bec6f7f4454d6cfe1b0a07ad5b8</CheckSum>"
+      "</File>"
+      "<File>"
+        "<Source>random.dat</Source>"
+        "<CheckSum>e52b14b10b967d9135c198fd11b9b8bc</CheckSum>"
+      "</File>"
+    "</LocalInputFiles>"
+  "</ComputingActivity>"
+  );
+  Arc::Job job;
+  job = xml;
+
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.JobID);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL((std::string)"ARC1", job.Flavour);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex"), job.Cluster);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://example-ce.com:443/arex/3456789101112"), job.InfoEndpoint);
+  CPPUNIT_ASSERT_EQUAL(Arc::Time("2010-09-24 16:17:46"), job.LocalSubmissionTime);
+  CPPUNIT_ASSERT_EQUAL((std::string)"&(executable=\"helloworld.sh\")(arguments=\"random.dat\")(inputfiles=(\"helloworld.sh\")(\"random.dat\"))(stdout=\"helloworld.out\")(join=\"yes\")", job.JobDescriptionDocument);
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)job.LocalInputFiles.size());
+  std::map<std::string, std::string>::const_iterator itFiles = job.LocalInputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL((std::string)"helloworld.sh", itFiles->first);
+  CPPUNIT_ASSERT_EQUAL((std::string)"c0489bec6f7f4454d6cfe1b0a07ad5b8", itFiles->second);
+  itFiles++;
+  CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", itFiles->first);
+  CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(JobTest);

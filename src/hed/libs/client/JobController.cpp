@@ -59,35 +59,19 @@ namespace Arc {
       for (std::list<URL>::const_iterator it = jobids.begin();
            it != jobids.end(); it++) {
 
-        XMLNodeList xmljobs =
-          jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+        XMLNodeList xmljobs;
+        xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->str() + "']", NS());
+        if (xmljobs.empty()) { // Included for backwards compatibility.
+          xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+        }
 
         if (xmljobs.empty()) {
           logger.msg(VERBOSE, "Job not found in the job list: %s", it->str());
           continue;
         }
 
-        XMLNode& xmljob = *xmljobs.begin();
-
-        if (flavour == (std::string)xmljob["Flavour"]) {
-          Job job;
-          job.JobID = (std::string)xmljob["JobID"];
-          job.Flavour = (std::string)xmljob["Flavour"];
-          job.Cluster = (std::string)xmljob["Cluster"];
-          job.SubmissionEndpoint = (std::string)xmljob["SubmissionEndpoint"];
-          job.InfoEndpoint = (std::string)xmljob["InfoEndpoint"];
-          job.ISB = (std::string)xmljob["ISB"];
-          job.OSB = (std::string)xmljob["OSB"];
-          job.StdOut = (std::string)xmljob["StdOut"];
-          job.StdErr = (std::string)xmljob["StdErr"];
-          job.AuxInfo = (std::string)xmljob["AuxInfo"];
-          if (!((std::string)xmljob["LocalSubmissionTime"]).empty())
-            job.LocalSubmissionTime = (std::string)xmljob["LocalSubmissionTime"];
-          else
-            job.LocalSubmissionTime = Time(-1);
-          for (int i = 0; (bool)xmljob["ActivityOldId"][i]; i++)
-            job.ActivityOldId.push_back((std::string)xmljob["ActivityOldId"][i]);
-          jobstore.push_back(job);
+        if (flavour == (std::string)xmljobs.front()["Flavour"]) {
+          jobstore.push_back(xmljobs.front());
         }
       }
     }
@@ -106,27 +90,9 @@ namespace Arc {
            it != xmljobs.end(); it++) {
 
         URL cluster = (std::string)(*it)["Cluster"];
-
         if (std::find(selectedClusters.begin(), selectedClusters.end(),
                       cluster) != selectedClusters.end()) {
-          Job job;
-          job.JobID = (std::string)(*it)["JobID"];
-          job.Flavour = (std::string)(*it)["Flavour"];
-          job.Cluster = (std::string)(*it)["Cluster"];
-          job.SubmissionEndpoint = (std::string)(*it)["SubmissionEndpoint"];
-          job.InfoEndpoint = (std::string)(*it)["InfoEndpoint"];
-          job.ISB = (std::string)(*it)["ISB"];
-          job.OSB = (std::string)(*it)["OSB"];
-          job.StdOut = (std::string)(*it)["StdOut"];
-          job.StdErr = (std::string)(*it)["StdErr"];
-          job.AuxInfo = (std::string)(*it)["AuxInfo"];
-          if (!((std::string)(*it)["LocalSubmissionTime"]).empty())
-            job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
-          else
-            job.LocalSubmissionTime = Time(-1);
-          for (int i = 0; (bool)(*it)["ActivityOldId"][i]; i++)
-            job.ActivityOldId.push_back((std::string)(*it)["ActivityOldId"][i]);
-          jobstore.push_back(job);
+          jobstore.push_back(*it);
         }
       }
     }
@@ -168,24 +134,7 @@ namespace Arc {
 
         if (!rejectedClusters ||
             std::find(rejectedClusters->begin(), rejectedClusters->end(), cluster) == rejectedClusters->end()) {
-          Job job;
-          job.JobID = (std::string)(*it)["JobID"];
-          job.Flavour = (std::string)(*it)["Flavour"];
-          job.Cluster = (std::string)(*it)["Cluster"];
-          job.SubmissionEndpoint = (std::string)(*it)["SubmissionEndpoint"];
-          job.InfoEndpoint = (std::string)(*it)["InfoEndpoint"];
-          job.ISB = (std::string)(*it)["ISB"];
-          job.OSB = (std::string)(*it)["OSB"];
-          job.StdOut = (std::string)(*it)["StdOut"];
-          job.StdErr = (std::string)(*it)["StdErr"];
-          job.AuxInfo = (std::string)(*it)["AuxInfo"];
-          if (!((std::string)(*it)["LocalSubmissionTime"]).empty())
-            job.LocalSubmissionTime = (std::string)(*it)["LocalSubmissionTime"];
-          else
-            job.LocalSubmissionTime = Time(-1);
-          for (int i = 0; (bool)(*it)["ActivityOldId"][i]; i++)
-            job.ActivityOldId.push_back((std::string)(*it)["ActivityOldId"][i]);
-          jobstore.push_back(job);
+          jobstore.push_back(*it);
         }
       }
     }
