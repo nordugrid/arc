@@ -12,6 +12,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
@@ -35,44 +36,44 @@ namespace Arc {
     return new SubmitterARC1(*subarg);
   }
 
-  URL SubmitterARC1::Submit(const JobDescription& jobdesc,
-                            const ExecutionTarget& et) const {
+  bool SubmitterARC1::Submit(const JobDescription& jobdesc,
+                             const ExecutionTarget& et, Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout());
 
-    JobDescription job(jobdesc);
+    JobDescription modjobdesc(jobdesc);
 
-    if (!ModifyJobDescription(job, et)) {
+    if (!ModifyJobDescription(modjobdesc, et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
-      return URL();
+      return false;
     }
 
-    std::string jobid;
-    if (!ac.submit(job.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https"))
-      return URL();
+    std::string sJobid;
+    if (!ac.submit(modjobdesc.UnParse("ARCJSDL"), sJobid, et.url.Protocol() == "https"))
+      return false;
 
-    if (jobid.empty()) {
+    if (sJobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
-      return URL();
+      return false;
     }
 
-    XMLNode jobidx(jobid);
-    URL session_url((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
+    XMLNode jobidx(sJobid);
+    URL jobid((std::string)(jobidx["ReferenceParameters"]["JobSessionDir"]));
 
-    if (!PutFiles(job, session_url)) {
+    if (!PutFiles(modjobdesc, jobid)) {
       logger.msg(INFO, "Failed uploading local input files");
-      return URL();
+      return false;
     }
 
-    AddJob(job, session_url, et.Cluster, session_url);
+    AddJobDetails(modjobdesc, jobid, et.Cluster, jobid, job);
 
-    return session_url;
+    return true;
   }
 
-  URL SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
+  bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
-                             bool forcemigration) const {
+                             bool forcemigration, Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout());
@@ -80,14 +81,14 @@ namespace Arc {
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
 
-    JobDescription job(jobdesc);
+    JobDescription modjobdesc(jobdesc);
 
     // Modify the location of local files and files residing in a old session directory.
-    for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
-         it != job.DataStaging.File.end(); it++) {
+    for (std::list<FileType>::iterator it = modjobdesc.DataStaging.File.begin();
+         it != modjobdesc.DataStaging.File.end(); it++) {
       // Do not modify Output and Error files.
-      if (it->Name == job.Application.Output ||
-          it->Name == job.Application.Error ||
+      if (it->Name == modjobdesc.Application.Output ||
+          it->Name == modjobdesc.Application.Error ||
           it->Source.empty())
         continue;
 
@@ -104,8 +105,8 @@ namespace Arc {
 
         const std::string uriPath = it->Source.front().URI.str().substr(0, foundRSlash);
         // Check if the input file URI is pointing to a old job session directory.
-        for (std::list<std::string>::const_iterator itAOID = job.Identification.ActivityOldId.begin();
-             itAOID != job.Identification.ActivityOldId.end(); itAOID++)
+        for (std::list<std::string>::const_iterator itAOID = modjobdesc.Identification.ActivityOldId.begin();
+             itAOID != modjobdesc.Identification.ActivityOldId.end(); itAOID++)
           if (uriPath == *itAOID) {
             it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
             it->DownloadToCache = false;
@@ -114,35 +115,35 @@ namespace Arc {
       }
     }
 
-    if (!ModifyJobDescription(job, et)) {
+    if (!ModifyJobDescription(modjobdesc, et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
-      return URL();
+      return false;
     }
 
     // Add ActivityOldId.
-    job.Identification.ActivityOldId.push_back(jobid.str());
+    modjobdesc.Identification.ActivityOldId.push_back(jobid.str());
 
-    std::string newjobid;
-    if (!ac.migrate(idstr, job.UnParse("ARCJSDL"), forcemigration, newjobid,
+    std::string sNewjobid;
+    if (!ac.migrate(idstr, modjobdesc.UnParse("ARCJSDL"), forcemigration, sNewjobid,
                     et.url.Protocol() == "https"))
-      return URL();
+      return false;
 
-    if (newjobid.empty()) {
+    if (sNewjobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
-      return URL();
+      return false;
     }
 
-    XMLNode newjobidx(newjobid);
-    URL session_url((std::string)(newjobidx["ReferenceParameters"]["JobSessionDir"]));
+    XMLNode xNewjobid(sNewjobid);
+    URL newjobid((std::string)(xNewjobid["ReferenceParameters"]["JobSessionDir"]));
 
-    if (!PutFiles(job, session_url)) {
+    if (!PutFiles(modjobdesc, newjobid)) {
       logger.msg(INFO, "Failed uploading local input files");
-      return URL();
+      return false;
     }
 
-    AddJob(job, session_url, et.Cluster, session_url);
+    AddJobDetails(modjobdesc, newjobid, et.Cluster, newjobid, job);
 
-    return session_url;
+    return true;
   }
 
   bool SubmitterARC1::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {

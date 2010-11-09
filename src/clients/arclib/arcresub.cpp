@@ -238,11 +238,15 @@ int RUNRESUB(main)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg2.Broker().first);
     return 1;
   }
+
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg2.Broker().first);
+
+  std::list<Arc::Job> resubmittedJobs;
 
   // Loop over jobs
   for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
        it != toberesubmitted.end(); it++) {
+    resubmittedJobs.push_back(Arc::Job());
 
     Arc::JobDescription jobdesc;
     jobdesc.Parse(it->JobDescription);
@@ -253,26 +257,38 @@ int RUNRESUB(main)(int argc, char **argv) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
       if (!target) {
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
+        resubmittedJobs.pop_back();
         break;
       }
 
       Arc::Submitter *submitter = target->GetSubmitter(usercfg2);
 
       //submit the job
-      Arc::URL jobid = submitter->Submit(jobdesc, *target);
-      if (!jobid) {
+      if (!submitter->Submit(jobdesc, resubmittedJobs.back())) {
         std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
         continue;
       }
 
       ChosenBroker->RegisterJobsubmission();
       std::cout << Arc::IString("Job resubmitted with new jobid: %s",
-                                jobid.str()) << std::endl;
+                                resubmittedJobs.back().JobID.str()) << std::endl;
 
       jobs.push_back(it->JobID.str());
       break;
     } //end loop over all possible targets
   } //end loop over all job descriptions
+
+  {
+    Arc::FileLock lock(usercfg.JobListFile());
+    Arc::Config jobstorage;
+    jobstorage.ReadFromFile(usercfg.JobListFile());
+    for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
+         it != resubmittedJobs.end(); it++) {
+      Arc::XMLNode xJob = jobstorage.NewChild("Job");
+      it->ToXML(xJob);
+    }
+    jobstorage.SaveToFile(usercfg.JobListFile());
+  }
 
   if (jobs.empty())
     return 0;
@@ -292,11 +308,12 @@ int RUNRESUB(main)(int argc, char **argv) {
   }
 
   for (std::list<Arc::JobController*>::iterator it = killcont.begin();
-       it != killcont.end(); it++)
-    if (!(*it)->Kill(status, keep))
-      if (!keep)
-        if (!(*it)->Clean(status, true))
-          logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
+       it != killcont.end(); it++) {
+    // Order matters.
+    if (!(*it)->Kill(status, keep) && !keep && !(*it)->Clean(status, true)) {
+      logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
+    }
+  }
 
   /*
      if (toberesubmitted.size() > 1) {

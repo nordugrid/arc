@@ -15,6 +15,7 @@ namespace Arc {
 
   class Config;
   class ExecutionTarget;
+  class Job;
   class JobDescription;
   class Logger;
   class UserConfig;
@@ -42,8 +43,15 @@ namespace Arc {
      * This method should return the URL of the submitted job. In case
      * submission fails an empty URL should be returned.
      */
-    virtual URL Submit(const JobDescription& jobdesc,
-                       const ExecutionTarget& et) const = 0;
+    URL Submit(const JobDescription& jobdesc,
+               const ExecutionTarget& et) const;
+
+    virtual bool Submit(const JobDescription& jobdesc,
+                        const ExecutionTarget& et, Job& job) const = 0;
+
+    bool Submit(const JobDescription& jobdesc, Job& job) const{
+      return target != NULL && Submit(jobdesc, *target, job);
+    }
 
     /**
      * This virtual method should be overridden by plugins which should
@@ -56,14 +64,24 @@ namespace Arc {
      * This method should return the URL of the migrated job. In case
      * migration fails an empty URL should be returned.
      */
-    virtual URL Migrate(const URL& jobid, const JobDescription& jobdesc,
-                        const ExecutionTarget& et,
-                        bool forcemigration) const = 0;
+    URL Migrate(const URL& jobid, const JobDescription& jobdesc,
+                const ExecutionTarget& et,
+                bool forcemigration) const;
+
+    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
+                         const ExecutionTarget& et,
+                         bool forcemigration, Job& job) const = 0;
+
+    bool Migrate(const URL& jobid, const JobDescription& jobdesc,
+                 bool forcemigration, Job& job) const {
+      return target != NULL && Migrate(jobid, jobdesc, *target, forcemigration, job);
+    }
 
     virtual bool ModifyJobDescription(JobDescription& jobdesc,
                                       const ExecutionTarget& et) const = 0;
     std::string GetCksum(const std::string& file) const { return GetCksum(file, usercfg); }
     static std::string GetCksum(const std::string& file, const UserConfig& usercfg);
+    void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
     void AddJob(const JobDescription& job,
@@ -79,8 +97,16 @@ namespace Arc {
                 const URL& infoendpoint,
                 const std::map<std::string, std::string>& additionalInfo) const;
 
+    void AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
+                       const URL& cluster, const URL infoendpoint,
+                       Job& job) const;
+
     const std::string flavour;
     const UserConfig& usercfg;
+
+    /// Target to submit to.
+    const ExecutionTarget* target;
+
     static Logger logger;
   };
 

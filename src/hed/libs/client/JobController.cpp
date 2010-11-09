@@ -520,6 +520,8 @@ namespace Arc {
     std::list<URL> toberemoved;
 
     GetJobInformation();
+
+    std::list<Job> migratedJobs;
     for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
       if (itJob->State != JobState::QUEUING) {
         logger.msg(WARNING, "Cannot migrate job %s, it is not queuing.", itJob->JobID.str());
@@ -532,28 +534,44 @@ namespace Arc {
 
       jobDesc.Parse(itJob->JobDescription);
 
+      migratedJobs.push_back(Job());
+
       broker->PreFilterTargets(targetGen.ModifyFoundTargets(), jobDesc);
       while (true) {
         const ExecutionTarget *currentTarget = broker->GetBestTarget();
         if (!currentTarget) {
           logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
           retVal = false;
+          migratedJobs.pop_back();
           break;
         }
 
-        URL jobid = currentTarget->GetSubmitter(usercfg)->Migrate(itJob->JobID, jobDesc, *currentTarget, forcemigration);
-        if (!jobid)
+        if (!currentTarget->Migrate(usercfg, itJob->JobID, jobDesc, forcemigration, migratedJobs.back())) {
           continue;
+        }
 
         broker->RegisterJobsubmission();
-        migratedJobIDs.push_back(jobid);
+        migratedJobIDs.push_back(migratedJobs.back().JobID);
         toberemoved.push_back(URL(itJob->JobID.str()));
         break;
       }
     }
 
-    if (toberemoved.size() > 0)
+    if (toberemoved.size() > 0) {
       RemoveJobs(toberemoved);
+    }
+
+    {
+      FileLock lock(usercfg.JobListFile());
+      Config jobstorage;
+      jobstorage.ReadFromFile(usercfg.JobListFile());
+      for (std::list<Job>::const_iterator it = migratedJobs.begin();
+           it != migratedJobs.end(); it++) {
+        XMLNode xJob = jobstorage.NewChild("Job");
+        it->ToXML(xJob);
+      }
+      jobstorage.SaveToFile(usercfg.JobListFile());
+    }
 
     return retVal;
   }

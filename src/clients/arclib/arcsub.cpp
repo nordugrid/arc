@@ -243,11 +243,6 @@ int RUNSUB(main)(int argc, char **argv) {
     return 1;
   }
 
-  std::map<int, std::string> notsubmitted;
-
-  int jobnr = 1;
-  std::list<std::string> jobids;
-
   Arc::BrokerLoader loader;
   Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg);
   if (!ChosenBroker) {
@@ -256,9 +251,18 @@ int RUNSUB(main)(int argc, char **argv) {
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
+  std::map<int, std::string> notsubmitted;
+
+  int jobnr = 1;
+  std::list<std::string> jobids;
+
+  std::list<Arc::Job> submittedJobs;
   for (std::list<Arc::JobDescription>::iterator it =
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
+    if (!dumpdescription) {
+      submittedJobs.push_back(Arc::Job());
+    }
 
     ChosenBroker->PreFilterTargets(targen.ModifyFoundTargets(), *it);
 
@@ -271,6 +275,7 @@ int RUNSUB(main)(int argc, char **argv) {
           return 1;
         }
         std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
+        submittedJobs.pop_back();
         break;
       }
 
@@ -301,28 +306,39 @@ int RUNSUB(main)(int argc, char **argv) {
 
 
       //submit the job
-      Arc::URL jobid = submitter->Submit(*it, *target);
-      if (!jobid) {
+      if (!submitter->Submit(*it, submittedJobs.back())) {
         std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
         continue;
       }
 
       ChosenBroker->RegisterJobsubmission();
-      std::cout << Arc::IString("Job submitted with jobid: %s", jobid.str())
+      std::cout << Arc::IString("Job submitted with jobid: %s", submittedJobs.back().JobID.str())
                 << std::endl;
 
       break;
     } //end loop over all possible targets
   } //end loop over all job descriptions
 
+  {
+    Arc::FileLock lock(usercfg.JobListFile());
+    Arc::Config jobstorage;
+    jobstorage.ReadFromFile(usercfg.JobListFile());
+    for (std::list<Arc::Job>::const_iterator it = submittedJobs.begin();
+         it != submittedJobs.end(); it++) {
+      Arc::XMLNode xJob = jobstorage.NewChild("Job");
+      it->ToXML(xJob);
+    }
+    jobstorage.SaveToFile(usercfg.JobListFile());
+  }
+
   if (!dumpdescription && jobdescriptionlist.size() > 1) {
     std::cout << std::endl << Arc::IString("Job submission summary:")
               << std::endl;
     std::cout << "-----------------------" << std::endl;
     std::cout << Arc::IString("%d of %d jobs were submitted",
-                              jobdescriptionlist.size() - notsubmitted.size(),
+                              submittedJobs.size(),
                               jobdescriptionlist.size()) << std::endl;
-    if (notsubmitted.size())
+    if (!notsubmitted.empty())
       std::cout << Arc::IString("The following %d were not submitted",
                                 notsubmitted.size()) << std::endl;
     /*

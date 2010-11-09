@@ -15,6 +15,7 @@
 
 namespace Arc {
 
+  class Job;
   class Logger;
   class Submitter;
   class UserConfig;
@@ -111,6 +112,16 @@ namespace Arc {
      * etc.
      **/
     Submitter* GetSubmitter(const UserConfig& ucfg) const;
+
+    bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
+      return GetSubmitter(ucfg)->Submit(jobdesc, job);
+    }
+
+    bool Migrate(const UserConfig& ucfg, const URL& jobid,
+                 const JobDescription& jobdesc, bool forcemigration,
+                 Job& job) const {
+      return GetSubmitter(ucfg)->Migrate(jobid, jobdesc, forcemigration, job);
+    }
 
 
     /// Update ExecutionTarget after succesful job submission

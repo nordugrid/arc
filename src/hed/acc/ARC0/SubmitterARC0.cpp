@@ -10,6 +10,7 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 
 #include "SubmitterARC0.h"
@@ -32,8 +33,7 @@ namespace Arc {
     return new SubmitterARC0(*subarg);
   }
 
-  URL SubmitterARC0::Submit(const JobDescription& jobdesc,
-                            const ExecutionTarget& et) const {
+  bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const {
 
     FTPControl ctrl;
 
@@ -41,13 +41,13 @@ namespace Arc {
                       usercfg.ProxyPath(), usercfg.CertificatePath(),
                       usercfg.KeyPath(), usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed to connect");
-      return URL();
+      return false;
     }
 
     if (!ctrl.SendCommand("CWD " + et.url.Path(), usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed sending CWD command");
       ctrl.Disconnect(usercfg.Timeout());
-      return URL();
+      return false;
     }
 
     std::string response;
@@ -55,58 +55,58 @@ namespace Arc {
     if (!ctrl.SendCommand("CWD new", response, usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed sending CWD new command");
       ctrl.Disconnect(usercfg.Timeout());
-      return URL();
+      return false;
     }
 
     std::string::size_type pos2 = response.rfind('"');
     std::string::size_type pos1 = response.rfind('/', pos2 - 1);
     std::string jobnumber = response.substr(pos1 + 1, pos2 - pos1 - 1);
 
-    JobDescription job(jobdesc);
+    JobDescription modjobdesc(jobdesc);
 
-    if (!ModifyJobDescription(job, et)) {
+    if (!ModifyJobDescription(modjobdesc, et)) {
       logger.msg(INFO, "Submit: Failed to modify job description "
                         "to be sent to target.");
       ctrl.Disconnect(usercfg.Timeout());
-      return URL();
+      return false;
     }
 
-    std::string jobdescstring = job.UnParse("XRSL");
+    std::string jobdescstring = modjobdesc.UnParse("XRSL");
 
     if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed sending job description");
       ctrl.Disconnect(usercfg.Timeout());
-      return URL();
+      return false;
     }
 
     if (!ctrl.Disconnect(usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed to disconnect after submission");
-      return URL();
+      return false;
     }
 
     URL jobid(et.url);
     jobid.ChangePath(jobid.Path() + '/' + jobnumber);
 
-    if (!PutFiles(job, jobid)) {
+    if (!PutFiles(modjobdesc, jobid)) {
       logger.msg(INFO, "Submit: Failed uploading local input files");
-      return URL();
+      return false;
     }
 
     // Prepare contact url for information about this job
-    URL infoEndpoint(et.Cluster);
-    infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
-                                  jobid.str() + ")");
-    infoEndpoint.ChangeLDAPScope(URL::subtree);
+    URL infoendpoint(et.Cluster);
+    infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + jobid.str() + ")");
+    infoendpoint.ChangeLDAPScope(URL::subtree);
 
-    AddJob(job, jobid, et.Cluster, infoEndpoint);
+    AddJobDetails(modjobdesc, jobid, et.Cluster, infoendpoint, job);
 
-    return jobid;
+    return true;
   }
 
   URL SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
-                             const ExecutionTarget& et, bool /* forcemigration */) const {
+                             const ExecutionTarget& et, bool /* forcemigration */,
+                             Job& /* job */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC GM-powered resource is not supported.", et.url.str());
-    return URL();
+    return false;
   }
 
   bool SubmitterARC0::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {

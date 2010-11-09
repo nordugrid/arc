@@ -9,6 +9,7 @@
 #include <arc/StringConv.h>
 #include <arc/Thread.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Submitter.h>
 #include <arc/UserConfig.h>
@@ -90,7 +91,7 @@ namespace Arc {
     for (std::list<std::string>::const_iterator
            it = job.Identification.ActivityOldId.begin();
          it != job.Identification.ActivityOldId.end(); it++)
-      info.NewChild("OldJobID") = *it;
+      info.NewChild("ActivityOldID") = *it;
 
     std::string rep = job.UnParse("arcjsdl");
     info.NewChild("JobDescription") = (std::string)rep;
@@ -111,6 +112,73 @@ namespace Arc {
     jobstorage.ReadFromFile(usercfg.JobListFile());
     jobstorage.NewChild(info);
     jobstorage.SaveToFile(usercfg.JobListFile());
+  }
+
+  void Submitter::AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
+                                const URL& cluster, const URL infoendpoint,
+                                Job& job) const {
+    job.JobID = jobid;
+    if (!jobdesc.Identification.JobName.empty()) {
+      job.Name = jobdesc.Identification.JobName;
+    }
+    job.Flavour = flavour;
+    job.Cluster = cluster;
+    job.InfoEndpoint = infoendpoint;
+    job.LocalSubmissionTime = Arc::Time().str(UTCTime);
+
+    job.ActivityOldID = jobdesc.Identification.ActivityOldId;
+
+    job.JobDescriptionDocument = jobdesc.UnParse("arcjsdl");
+
+    job.LocalInputFiles.clear();
+    for (std::list<FileType>::const_iterator it = jobdesc.DataStaging.File.begin();
+         it != jobdesc.DataStaging.File.end(); it++) {
+      if (!it->Source.empty() && it->Source.begin()->URI.Protocol() == "file") {
+        job.LocalInputFiles[it->Name] = GetCksum(it->Source.begin()->URI.Path());
+      }
+    }
+  }
+
+  // This method is not scaling well in case of many submitted jobs.
+  URL Submitter::Submit(const JobDescription& jobdesc,
+                        const ExecutionTarget& starget) const {
+    logger.msg(WARNING, "The Submitter::Submit(const Jobdescription&, const ExecutionTarget&) method is DEPRECATED, use one of the Submit methods.");
+
+    Job j;
+    if (!Submit(jobdesc, starget, j)) {
+      return URL();
+    }
+
+    // Add job.
+    FileLock lock(usercfg.JobListFile());
+    Config jobstorage;
+    jobstorage.ReadFromFile(usercfg.JobListFile());
+    XMLNode xmljob = jobstorage.NewChild("Job");
+    j.ToXML(xmljob);
+    jobstorage.SaveToFile(usercfg.JobListFile());
+
+    return j.JobID;
+  }
+
+  // This method is not scaling well in case of many submitted jobs.
+  URL Submitter::Migrate(const URL& jobid, const JobDescription& jobdesc,
+                         const ExecutionTarget& starget, bool forcemigration) const {
+    logger.msg(WARNING, "The Submitter::Migrate(const URL&, const Jobdescription&, const ExecutionTarget&, bool) method is DEPRECATED, use one of the Migrate methods.");
+
+    Job j;
+    if (!Migrate(jobid, jobdesc, starget, forcemigration, j)) {
+      return URL();
+    }
+
+    // Add job.
+    FileLock lock(usercfg.JobListFile());
+    Config jobstorage;
+    jobstorage.ReadFromFile(usercfg.JobListFile());
+    XMLNode xmljob = jobstorage.NewChild("Job");
+    j.ToXML(xmljob);
+    jobstorage.SaveToFile(usercfg.JobListFile());
+
+    return j.JobID;
   }
 
   std::string Submitter::GetCksum(const std::string& file, const UserConfig& usercfg) {

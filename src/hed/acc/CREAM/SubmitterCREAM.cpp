@@ -8,6 +8,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
@@ -29,8 +30,7 @@ namespace Arc {
     return new SubmitterCREAM(*subarg);
   }
 
-  URL SubmitterCREAM::Submit(const JobDescription& jobdesc,
-                             const ExecutionTarget& et) const {
+  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
@@ -39,51 +39,50 @@ namespace Arc {
     CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
     if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
       logger.msg(INFO, "Failed creating singed delegation certificate");
-      return URL();
+      return false;
     }
     URL submissionurl(et.url);
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
     CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
     gLiteClientSubmission.setDelegationId(delegationid);
 
-    JobDescription job(jobdesc);
-    if (!ModifyJobDescription(job, et)) {
+    JobDescription modjobdesc(jobdesc);
+    if (!ModifyJobDescription(modjobdesc, et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
-      return URL();
+      return false;
     }
 
-    std::string jobdescstring = job.UnParse("JDL");
+    std::string jobdescstring = modjobdesc.UnParse("JDL");
     creamJobInfo jobInfo;
     if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
       logger.msg(INFO, "Failed registering job");
-      return URL();
+      return false;
     }
 
-    if (!PutFiles(job, jobInfo.ISB_URI)) {
+    if (!PutFiles(modjobdesc, jobInfo.ISB_URI)) {
       logger.msg(INFO, "Failed uploading local input files");
-      return URL();
+      return false;
     }
 
     if (!gLiteClientSubmission.startJob(jobInfo.jobId)) {
       logger.msg(INFO, "Failed starting job");
-      return URL();
+      return false;
     }
 
-    std::map<std::string, std::string> additionalInfo;
-    additionalInfo["ISB"] = jobInfo.ISB_URI;
-    additionalInfo["OSB"] = jobInfo.OSB_URI;
+    AddJobDetails(modjobdesc, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
+                  delegationurl.str() + '/' + delegationid, job);
 
-    AddJob(job, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
-           delegationurl.str() + '/' + delegationid, additionalInfo);
+    job.ISB = URL(jobInfo.ISB_URI);
+    job.OSB = URL(jobInfo.OSB_URI);
 
-    return submissionurl.str() + '/' + jobInfo.jobId;
+    return true;
   }
 
-  URL SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
-                              const ExecutionTarget& et,
-                              bool /* forcemigration */) const {
+  bool SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+                               const ExecutionTarget& et, bool /* forcemigration */,
+                               Job& /* job */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.url.str());
-    return URL();
+    return false;
   }
 
   bool SubmitterCREAM::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {

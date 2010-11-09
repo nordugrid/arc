@@ -24,11 +24,10 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument *arg);
-    virtual URL Submit(const JobDescription& jobdesc,
-               const ExecutionTarget& et) const;
-    virtual URL Migrate(const URL& jobid, const JobDescription& jobdesc,
-                const ExecutionTarget& et,
-                bool forcemigration) const;
+    virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const;
+    virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
+                        const ExecutionTarget& et, bool forcemigration,
+                        Job& job) const;
     virtual bool ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const;
   };
 

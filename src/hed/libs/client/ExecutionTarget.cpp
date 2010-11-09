@@ -219,7 +219,9 @@ namespace Arc {
   }
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
-    return (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour, ucfg);
+    Submitter* s = (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour, ucfg);
+    s->SetSubmissionTarget(*this);
+    return s;
   }
 
   void ExecutionTarget::Update(const JobDescription& jobdesc) {

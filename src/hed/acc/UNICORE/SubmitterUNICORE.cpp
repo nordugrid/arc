@@ -9,6 +9,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 #include <arc/ws-addressing/WSA.h>
@@ -33,8 +34,7 @@ namespace Arc {
     return new SubmitterUNICORE(*subarg);
   }
 
-  URL SubmitterUNICORE::Submit(const JobDescription& jobdesc,
-                               const ExecutionTarget& et) const {
+  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -43,10 +43,8 @@ namespace Arc {
 
     XMLNode id;
 
-    if (uc.submit(jobdesc, id)){
-    }
-    else {
-      return URL();
+    if (!uc.submit(jobdesc, id)){
+      return false;
     }
     //end new code
 
@@ -118,19 +116,17 @@ namespace Arc {
     std::string jobid;
     id.GetDoc(jobid);
 
-    std::map<std::string, std::string> additional_info;
-    additional_info["AuxInfo"] = jobid;
-    AddJob(jobdesc, (std::string)id["Address"], et.Cluster, et.url, additional_info);
+    AddJobDetails(jobdesc, (std::string)id["Address"], et.Cluster, et.url, job);
+    job.AuxInfo = jobid;
 
-    return (std::string)id["Address"];
+    return true;
   }
 
-  URL SubmitterUNICORE::Migrate(const URL& /* jobid */,
-                                const JobDescription& /* jobdesc */,
-                                const ExecutionTarget& et,
-                                bool /* forcemigration */) const {
+  bool SubmitterUNICORE::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+                                 const ExecutionTarget& et, bool /* forcemigration */,
+                                 Job& /* job */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.url.str());
-    return URL();
+    return false;
   }
 
   bool SubmitterUNICORE::ModifyJobDescription(JobDescription& /* jobdesc */, const ExecutionTarget& /* et */) const {

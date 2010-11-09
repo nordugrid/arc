@@ -10,6 +10,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
 #include <arc/message/MCC.h>
 
@@ -52,8 +53,8 @@ namespace Arc {
     return new SubmitterBES(*subarg);
   }
 
-  URL SubmitterBES::Submit(const JobDescription& jobdesc,
-                            const ExecutionTarget& et) const {
+  bool SubmitterBES::Submit(const JobDescription& jobdesc,
+                            const ExecutionTarget& et, Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout(), false);
@@ -61,30 +62,28 @@ namespace Arc {
     std::string jobid;
     // !! TODO: ordinary JSDL is needed - keeping ARCJSDL so far
     if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https"))
-      return URL();
+      return false;
 
     if (jobid.empty()) {
       logger.msg(INFO, "No job identifier returned by BES service");
-      return URL();
+      return false;
     }
 
-    XMLNode jobidx(jobid);
-
-    JobDescription job(jobdesc);
+    XMLNode xJobid(jobid);
 
     // Unfortunately Job handling framework somewhy want to have job
     // URL instead of identifier we have to invent one. So we disguise
     // XML blob inside URL path.
-    URL jobid_url(disguise_id_into_url(et.url,jobid));
-    AddJob(job, jobid_url, et.Cluster, et.url);
-    return et.url;
+    AddJobDetails(jobdesc, URL(disguise_id_into_url(et.url,xJobid)), et.Cluster, et.url, job);
+
+    return true;
   }
 
-  URL SubmitterBES::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
-                             const ExecutionTarget& et,
-                            bool /* forcemigration */) const {
+  bool SubmitterBES::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
+                             const ExecutionTarget& et, bool /* forcemigration */,
+                             Job& /* job */) const {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.url.str());
-    return URL();
+    return false;
   }
 
   bool SubmitterBES::ModifyJobDescription(JobDescription& /* jobdesc */, const ExecutionTarget& /* et */) const {

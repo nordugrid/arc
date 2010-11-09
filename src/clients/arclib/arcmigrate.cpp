@@ -198,16 +198,11 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   std::list<Arc::URL> migratedJobIDs;
 
   int retval = 0;
-  // Loop over job controllers - arcmigrate should only support ARC-1 thus no loop...?
+  // Loop over job controllers
   for (std::list<Arc::JobController*>::iterator itJobCont = jobcont.begin(); itJobCont != jobcont.end(); itJobCont++) {
-    // if ((*itJobCont)->Flavour() != "ARC1") {
-    //  std::cout << Arc::IString("Cannot migrate from %s clusters.", (*itJobCont)->Flavour()) << std::endl;
-    //  std::cout << Arc::IString("Note: Migration is currently only supported between ARC1 clusters.") << std::endl;
-    //  continue;
-    //}
-
-    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, usercfg, forcemigration, migratedJobIDs))
+    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, usercfg, forcemigration, migratedJobIDs)) {
       retval = 1;
+    }
     for (std::list<Arc::URL>::iterator it = migratedJobIDs.begin();
          it != migratedJobIDs.end(); it++) {
       std::cout << Arc::IString("Job migrated with jobid: %s", it->str()) << std::endl;
