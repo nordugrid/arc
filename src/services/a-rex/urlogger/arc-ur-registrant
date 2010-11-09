@@ -8,14 +8,17 @@ This file is a bit messy, as it contains many things that would normally be
 in seperate modules, but is contained in this single file in order to make
 deployment easy (no imports, problems setting up PYTHONPATH, etc).
 
+Doesn't do the parsing of XML configuration.
+Only classic arc.conf supported.
+
 Author: Henrik Thostrup Jensen <htj@ndgf.org>
 Copyright: Nordic Data Grid Facility (2009)
-TODO: configuration parsing
 """
 
 import sys
 import os
 import time
+import urlparse
 import ConfigParser
 
 try:
@@ -27,7 +30,7 @@ except ImportError:
 from OpenSSL import SSL
 
 from twisted.internet import reactor, defer
-from twisted.python import log, usage
+from twisted.python import log, usage, failure
 from twisted.web import client
 
 
@@ -36,7 +39,7 @@ ERROR = False
 
 
 # static file locations
-LOG_FILENAME         = '/var/log/arc/arc-ur-registration.log'
+DEFAULT_LOGFILE        = '/var/log/arc-ur-registration.log'
 
 # config sections
 CONFIG_SECTION_COMMON  = 'common'
@@ -48,6 +51,7 @@ CONFIG_LOG_DIR         = 'log_dir'
 CONFIG_LOG_ALL         = 'log_all'
 CONFIG_LOG_VO          = 'log_vo'
 CONFIG_UR_LIFETIME     = 'ur_lifetime'
+CONFIG_LOGFILE         = 'registrant_logfile'
 
 ENV_ARC_CONFIG         = "ARC_CONFIG"
 ENV_NORDUGRID_CONFIG   = "NORDUGRID_CONFIG"
@@ -187,6 +191,34 @@ class ContextFactory:
 
 
 
+class ARCConfigFileReader:
+    # Wrapper around the stock file object with slightly altered readline
+    # functionality (the Python ConfigParser only uses readline).
+    # The wrapper "fixes" odd config entries allowed by ARC, but which
+    # falls outside the allowed language defined in RFC 822.
+
+    def __init__(self, fp):
+        self._fp = fp
+
+    def readline(self):
+
+        line = self._fp.readline()
+
+        # return empty lines and comments as-is
+        if not line.strip() or line.strip().startswith('#'):
+            return line
+
+        # if the line is not a config block and does not have a '=' in it the
+        # config parser will break, however ARC allows this. We just adds
+        # '=true' to the line, so the config value can even be read in Python.
+        if not line.startswith('[') and '=' not in line:
+            return line + '=true'
+
+        # regular line, just return it
+        return line
+
+
+
 def getARCConfigurationFilePath():
 
     # first try to get the file path from the environment
@@ -208,7 +240,7 @@ def getARCConfig(filepath=None):
     if filepath is None:
         filepath = getARCConfigurationFilePath()
 
-    arc_cfg_file = file(filepath)
+    arc_cfg_file = ARCConfigFileReader(file(filepath))
 
     arc_cfg = ConfigParser.SafeConfigParser()
     arc_cfg.readfp(arc_cfg_file)
@@ -243,7 +275,7 @@ def parseLogVO(value):
 
     pairs = value.split(',')
     for pair in pairs:
-        vo_name, url = pair.split(' ',2)
+        vo_name, url = pair.strip().split(' ',2)
         vo_regs[vo_name] = url
     return vo_regs
 
@@ -347,7 +379,20 @@ def httpRequest(url, method='GET', payload=None, ctxFactory=None):
 
 def createEPRegistrationMapping(endpoints, ctxFactory):
 
-    def gotReply(result, factory):
+    def createRegistrationURL(location, endpoint):
+        if location.startswith('http'):
+            # location is a complete url, so we just return it
+            return location
+        elif location.startswith('/'):
+            # location is a path, and must be merged with base endpoint to form a suitable url
+            url = urlparse.urlparse(endpoint)
+            reg_url = url[0] + '://' + url[1] + location
+            return reg_url
+        else:
+            raise ValueError('Invalid registration point returned by %s (got: %s)' % (endpoint, location))
+
+
+    def gotReply(result, factory, endpoint):
 
         tree = ET.fromstring(result)
         for service in tree:
@@ -357,7 +402,8 @@ def createEPRegistrationMapping(endpoints, ctxFactory):
                     if ele.tag == 'name' and ele.text == 'Registration':
                         found_service = True
                     elif ele.tag == 'href' and found_service == True:
-                        return ele.text
+                        location = ele.text
+                        return createRegistrationURL(location, endpoint)
         return None # no registration service found
 
     def mergeResults(results, endpoints):
@@ -366,7 +412,7 @@ def createEPRegistrationMapping(endpoints, ctxFactory):
             if success and result is not None:
                 regmap[ep] = result
             elif success:
-                log.msg('Endpoint %s does not appear to have a registration service.')
+                log.msg('Endpoint %s does not appear to have a registration service.' % ep)
             else:
                 log.msg('Error contacting service %s (%s)' % (ep, result.getErrorMessage()))
         return regmap
@@ -374,7 +420,7 @@ def createEPRegistrationMapping(endpoints, ctxFactory):
     defs = []
     for ep in endpoints:
         d, f = httpRequest(ep, ctxFactory=ctxFactory)
-        d.addCallback(gotReply, f)
+        d.addCallback(gotReply, f, ep)
         defs.append(d)
 
     dl = defer.DeferredList(defs, consumeErrors=1) # otherwise we'll get complaints
@@ -414,12 +460,13 @@ def joinUsageRecordFiles(logdir, filenames):
 def registerBatch(ep, url, logdir, filenames, ctxFactory):
 
     def insertDone(result):
-        log.msg("%i records registered" % len(filenames))
+        log.msg("%i records registered to %s" % (len(filenames), ep))
         for fn in filenames:
             StateFile(logdir, fn).add(ep).write()
 
     def insertError(error):
         log.msg("Error during batch insertion: %s" % error.getErrorMessage())
+        return error
 
     ur_data = joinUsageRecordFiles(logdir, filenames)
 
@@ -463,28 +510,55 @@ def _performURRegistration(regmap, urmap, logdir, ctxFactory, batch_size):
 
     log.msg("Starting registration")
 
+    skipped_registrations = {}
+
     # new registration logic (batching)
     for filename, endpoints in urmap.items():
 
         state = StateFile(logdir, filename)
         for ep in endpoints:
             if ep in state:
-                log.msg("Already registered UR to endpoint, skipping")
+                skipped_registrations[ep] = skipped_registrations.get(ep, 0) + 1
                 continue
             try:
                 batch_sets[ep].append(filename)
             except KeyError, e:
                 pass # deferring registration as service is not available
 
+    for ep, ur_registered in skipped_registrations.items():
+        log.msg("Skipping %i registrations to %s, records already registered" % (ur_registered, ep))
+
     # build up registraion batches (list of (ep, filenames) tuples)
     registrations = []
     for ep, filenames in batch_sets.items():
         registrations += [ (ep, filenames[i:i+batch_size]) for i in range(0, len(filenames), batch_size) ]
 
-    sem = defer.DeferredSemaphore(1)
-    defs = [sem.run(registerBatch, ep, regmap[ep], logdir, fns, ctxFactory) for ep,fns in registrations ]
-    return defer.DeferredList(defs)
+    registration_deferred = defer.Deferred()
 
+    error_endpoints = {}
+
+    def doBatch(result, used_service_endpoint):
+        if isinstance(result, failure.Failure):
+            # something went wrong in the registration - stop future registrations
+            # split into to 2 lines (far easier to read in the log)
+            log.msg("Error registration records to %s" % used_service_endpoint)
+            log.msg("Skipping all registrations to this endpoint for now")
+            error_endpoints[used_service_endpoint] = True
+
+        try:
+            service_endpoint, filenames = registrations.pop(0)
+            while service_endpoint in error_endpoints:
+                service_endpoint, filenames = registrations.pop(0)
+
+            d = registerBatch(service_endpoint, regmap[service_endpoint], logdir, filenames, ctxFactory)
+            d.addBoth(doBatch, service_endpoint)
+        except IndexError:
+            # no more registrations
+            registration_deferred.callback(None)
+
+    doBatch(None, None)
+
+    return registration_deferred
 
 
 def archiveUsageRecords(logdir, urmap):
@@ -552,11 +626,6 @@ def doMain():
         print '%s: Try --help for usage details.' % (sys.argv[0])
         return
 
-    if cmd_cfg['stdout']:
-        log.startLogging(sys.stdout)
-    else:
-        log.startLogging(open(LOG_FILENAME, 'a'))
-
     cfg_file = cmd_cfg['config-file']
     if cfg_file is not None:
         if (not os.path.exists(cfg_file)) or (not os.path.isfile(cfg_file)):
@@ -566,7 +635,15 @@ def doMain():
     else:
         cfg_file = getARCConfigurationFilePath()
 
-    log.msg('Using %s as config file' % cfg_file)
+    arc_cfg = getARCConfig(cfg_file)
+
+    if cmd_cfg['stdout']:
+        log.startLogging(sys.stdout)
+    else:
+        logfile = getConfigOption(arc_cfg, CONFIG_SECTION_LOGGER, CONFIG_LOGFILE, DEFAULT_LOGFILE)
+        log.startLogging(open(logfile, 'a'))
+
+    #log.msg('Using %s as config file' % cfg_file)
 
     # read config
     arc_cfg = getARCConfig(cfg_file)
@@ -588,9 +665,9 @@ def doMain():
     log.msg(' Log dir: %s' % log_dir)
     log.msg(' Log all: %s' % log_all)
     log.msg(' Log vo : %s' % log_vo)
-    log.msg(' Host key  : %s' % host_key)
-    log.msg(' Host cert : %s' % host_cert)
-    log.msg(' Cert dir  : %s' % cert_dir)
+    #log.msg(' Host key  : %s' % host_key)
+    #log.msg(' Host cert : %s' % host_cert)
+    #log.msg(' Cert dir  : %s' % cert_dir)
 
     if not (log_all or log_vo):
         log.msg('No log points given. Cowardly refusing to do anything')
