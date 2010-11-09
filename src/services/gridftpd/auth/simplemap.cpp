@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <dirent.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
