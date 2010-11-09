@@ -148,7 +148,7 @@ namespace Arc {
     if (response["LeaseIdMismatchFault"])
       fault = response["LeaseIdMismatchFault"];
     if (response["GenericFault"])
-      response["GenericFault"];
+      fault = response["GenericFault"];
 
     if (fault) {
       logger.msg(VERBOSE, "Request failed: %s", (std::string)(fault["Description"]));
