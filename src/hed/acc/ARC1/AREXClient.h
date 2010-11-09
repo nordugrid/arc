@@ -149,6 +149,8 @@ namespace Arc {
 
     URL rurl;
 
+    const MCCConfig& cfg;
+
     std::string action;
 
     bool arex_enabled;

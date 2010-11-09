@@ -58,6 +58,7 @@ namespace Arc {
                          int timeout,
                          bool arex_extensions)
     : client(NULL),
+      cfg(cfg),
       rurl(url),
       arex_enabled(arex_extensions) {
 
@@ -86,31 +87,22 @@ namespace Arc {
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
 
     if (delegate) {
-      // Try to figure out which credentials are used
-      // TODO: Method used is unstable beacuse it assumes some predefined
-      // structure of configuration file. Maybe there should be some
-      // special methods of ClientTCP class introduced.
-      std::string deleg_cert;
-      std::string deleg_key;
+      const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
+      const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
-      client->Load(); // Make sure chain is ready
-      XMLNode tls_cfg = find_xml_node((client->GetConfig())["Chain"],
-                                      "Component", "name", "tls.client");
-      if (tls_cfg) {
-        deleg_cert = (std::string)(tls_cfg["ProxyPath"]);
-        if (deleg_cert.empty()) {
-          deleg_cert = (std::string)(tls_cfg["CertificatePath"]);
-          deleg_key = (std::string)(tls_cfg["KeyPath"]);
-        }
-        else
-          deleg_key = deleg_cert;
-      }
-      if (deleg_cert.empty() || deleg_key.empty()) {
-        logger.msg(VERBOSE, "Failed locating delegation credentials in chain configuration");
+      if (key.empty() || cert.empty()) {
+        logger.msg(VERBOSE, "Failed locating credentials.");
         return false;
       }
 
-      DelegationProviderSOAP deleg(deleg_cert, deleg_key);
+      client->Load();
+
+      /* TODO: Enable password typing in case of cert and key. Currently when
+       * using cert and key, one have to type password multiple times, which is
+       * impracticable and should coordinated across execution.
+       *DelegationProviderSOAP deleg(cert, key, (!cfg.proxy.empty() ? NULL : &std::cin));
+       */
+      DelegationProviderSOAP deleg(cert, key);
       logger.msg(VERBOSE, "Initiating delegation procedure");
       if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
                                          &(client->GetContext()))) {
