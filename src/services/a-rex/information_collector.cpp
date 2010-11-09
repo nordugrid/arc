@@ -19,6 +19,7 @@
 
 #include "ldif/LDIFtoXML.h"
 #include "grid-manager/conf/environment.h"
+#include "grid-manager/files/info_files.h"
 #include "job.h"
 #include "arex.h"
 
@@ -71,8 +72,44 @@ void ARexService::InformationCollector(void) {
         logger_.msg(Arc::ERROR,"Failed to create informational document");
       };
       */
+      // Following code is suboptimal. Most of it should go away
+      // and functionality to be moved to information providers.
       if(!xml_str.empty()) {
+        Arc::XMLNode xml_doc(xml_str);
+        glue_states_lock_.lock();
+        GetGlueStates(xml_doc,glue_states_);
+        glue_states_lock_.unlock();
+        Arc::XMLNode xml_ng = xml_doc["nordugrid"];
+        xml_ng.Destroy();
+        Arc::XMLNode xml_share = xml_doc["Domains"]["AdminDomain"]["Services"]["ComputingService"]["ComputingShares"]["ComputingShare"];
+        for(;(bool)xml_share;++xml_share) {
+          Arc::XMLNode xml_associations = xml_share["Associations"];
+          xml_associations.Destroy();
+        };
+        Arc::XMLNode xml_activity = xml_doc["Domains"]["AdminDomain"]["Services"]["ComputingService"]["ComputingEndpoint"]["ComputingActivities"]["ComputingActivity"];
+        for(;(bool)xml_activity;) {
+          Arc::XMLNode xml_activity_ = xml_activity;
+          ++xml_activity_;
+          std::string activity;
+          xml_activity.GetXML(activity);
+          std::string id = (std::string)xml_activity["ID"];
+          std::string::size_type p = id.rfind(':');
+          if(p != std::string::npos) {
+            id = id.substr(p+1);
+            const JobUsers& users = *(gm_->Users());
+            for(JobUsers::const_iterator user = users.begin();user!=users.end();++user) {
+              if(job_state_time(id,*user) != 0) {
+                job_xml_write_file(id,*user,activity);
+                break;
+              };
+            };
+          };
+          xml_activity.Destroy();
+          xml_activity = xml_activity_;
+        };
+        xml_doc.GetXML(xml_str);
         infodoc_.Assign(xml_str);
+        /*
         Arc::XMLNode root = infodoc_.Acquire();
         if(root) {
           logger_.msg(Arc::DEBUG,"Assigned new informational document");
@@ -84,6 +121,7 @@ void ARexService::InformationCollector(void) {
           logger_.msg(Arc::ERROR,"Failed to create informational document");
         };
         infodoc_.Release();
+        */
       } else {
         logger_.msg(Arc::ERROR,"Informational document is empty");
       };

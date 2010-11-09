@@ -47,7 +47,16 @@
       </xsd:simpleType>
       <xsd:element name="State" type="a-rex:ActivitySubStateType"/>
       <xsd:element name="LRMSState" type="xsd:string"/>
-		
+
+      <xsd:simpleType name="ActivityStatusVerbosityType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="BES"/>
+          <xsd:enumeration value="Basic"/>
+          <xsd:enumeration value="Full"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:element name="ActivityStatusVerbosity" type="a-rex:ActivityStatusVerbosityType"/>
+
       <xsd:complexType name="Glue2ResourceType">
         <xsd:sequence>
           <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>

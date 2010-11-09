@@ -189,9 +189,18 @@ namespace Arc {
     if(arex_enabled) {
       // TODO: use wsrf classes
       // AREX service
-      action = "QueryResourceProperties";
-      std::string xpathquery = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]) + "')]/..";
-      req = *InformationRequest(XMLNode("<XPathQuery>" + xpathquery + "</XPathQuery>")).SOAP();
+      //action = "QueryResourceProperties";
+      //std::string xpathquery = "//glue:Services/glue:ComputingService/glue:ComputingEndpoint/glue:ComputingActivities/glue:ComputingActivity/glue:ID[contains(.,'" + (std::string)(XMLNode(jobid)["ReferenceParameters"]["JobID"]) + "')]/..";
+      //req = *InformationRequest(XMLNode("<XPathQuery>" + xpathquery + "</XPathQuery>")).SOAP();
+      // GetActivityStatuses
+      //  ActivityIdentifier
+      //  ActivityStatusVerbosity
+      action = "GetActivityStatuses";
+      XMLNode op = req.NewChild("bes-factory:" + action);
+      op.NewChild(XMLNode(jobid));
+      op.NewChild("a-rex:ActivityStatusVerbosity") = "Full";
+      op.Namespaces(arex_ns); // Unify namespaces
+      WSAHeader(req).Action(BES_FACTORY_ACTIONS_BASE_URL + action);
     } else {
       // Simple BES service
       // GetActivityStatuses
@@ -239,38 +248,64 @@ namespace Arc {
 
     // A-REX publishes GLUE2 information which is parsed by the Job& operator=(XMLNode).
     // See the ARC1ClusterInfo.pm script for details on what is actually published.
-    job = response["ComputingActivity"];
+    //job = response["ComputingActivity"];
+    XMLNode activity = response["Response"]["ActivityStatus"];
+    if(activity) {
+      XMLNode gactivity = activity["ComputingActivity"];
+      if(gactivity) {
+        job = gactivity;
 
-    // Fetch the proper state.
-    job.State = JobState();
-    for (XMLNode n = response["ComputingActivity"]["State"]; n; ++n) {
-      std::list<std::string> gluestate;
-      tokenize((std::string)n, gluestate, ":");
+        // Fetch the proper state.
+        job.State = JobState();
+        for (XMLNode n = gactivity["State"]; n; ++n) {
+          std::list<std::string> gluestate;
+          tokenize((std::string)n, gluestate, ":");
 
-      if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
-        job.State = JobStateARC1(gluestate.back());
-        break;
-      }
-    }
-
-    if (!job.State) {
-      // If failed to fetch through Glue2 try through BES
-      arex_enabled = false;
-      stat(jobid,job);
-      arex_enabled = true;
-    }
-
-    // Fetch the proper state.
-    if (response["ComputingActivity"]["RestartState"]) {
-      for (XMLNode n = response["ComputingActivity"]["RestartState"]; n; ++n) {
-        std::list<std::string> gluestate;
-        tokenize((std::string)n, gluestate, ":");
-
-        if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
-          job.RestartState = JobStateARC1(gluestate.back());
-          break;
+           if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
+            job.State = JobStateARC1(gluestate.back());
+            break;
+          }
         }
       }
+      if (!job.State) {
+        // If failed to fetch through Glue2 try through BES
+        NS ns("a-rex","http://www.nordugrid.org/schemas/a-rex");
+        activity.Namespaces(ns);
+        std::string state = activity.Attribute("state");
+        if(!state.empty()) {
+          job.State = JobStateBES(state);
+          XMLNode nstate = activity["a-rex:State"];
+          std::string nstates;
+          for(;nstate;++nstate) {
+            if(nstates.empty()) {
+              nstates = (std::string)nstate;
+            } else {
+              nstates = (std::string)nstate + ":" + nstates;
+            }
+          }
+          if(!nstates.empty()) {
+            job.State = JobStateARC1(nstates);
+          }
+        }
+      }
+
+      if(gactivity) {
+        // Fetch the proper state.
+        if (gactivity["RestartState"]) {
+          for (XMLNode n = response["ComputingActivity"]["RestartState"]; n; ++n) {
+            std::list<std::string> gluestate;
+            tokenize((std::string)n, gluestate, ":");
+
+            if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
+              job.RestartState = JobStateARC1(gluestate.back());
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (!job.State) {
+      logger.msg(VERBOSE, "Unable to retrieve status of job (%s)", job.JobID.str());
     }
 
     return (bool)job.State;

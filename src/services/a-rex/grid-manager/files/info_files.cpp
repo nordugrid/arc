@@ -63,6 +63,7 @@ const char * const sfx_lrmsoutput  = ".comment";
 const char * const sfx_diskusage   = ".disk";
 const char * const sfx_acl         = ".acl";
 const char * const sfx_proxy       = ".proxy";
+const char * const sfx_xml         = ".xml";
 const char * const subdir_new      = "accepting";
 const char * const subdir_cur      = "processing";
 const char * const subdir_old      = "finished";
@@ -570,7 +571,7 @@ bool job_diskusage_remove_file(const JobDescription &desc,JobUser& /*user*/) {
   return job_mark_remove(fname);
 }
 
-time_t job_state_time(const JobId &id,JobUser &user) {
+time_t job_state_time(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_status;
   time_t t = job_mark_time(fname);
   if(t != 0) return t;
@@ -718,6 +719,16 @@ bool job_acl_read_file(JobId &id,JobUser &user,std::string &acl) {
 bool job_acl_write_file(JobId &id,JobUser &user,std::string &acl) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_acl;
   return job_description_write_file(fname,acl.c_str());
+}
+
+bool job_xml_read_file(const JobId &id,const JobUser &user,std::string &xml) {
+  std::string fname = user.ControlDir() + "/job." + id + sfx_xml;
+  return job_description_read_file(fname,xml);
+}
+
+bool job_xml_write_file(const JobId &id,const JobUser &user,const std::string &xml) {
+  std::string fname = user.ControlDir() + "/job." + id + sfx_xml;
+  return job_description_write_file(fname,xml.c_str());
 }
 
 bool job_local_write_file(const JobDescription &desc,const JobUser &user,const JobLocalDescription &job_desc) {
@@ -1178,7 +1189,8 @@ bool job_clean_final(const JobDescription &desc,JobUser &user) {
   fname = user.ControlDir()+"/"+subdir_cur+"/job."+id+sfx_status; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_old+"/job."+id+sfx_status; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_rew+"/job."+id+sfx_status; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+sfx_rsl;    remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+sfx_rsl; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+sfx_xml; remove(fname.c_str());
   return true;
 }
 

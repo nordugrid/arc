@@ -404,6 +404,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     inmsg.Auth()->set("AREX",new ARexSecAttr(op));
   } else if(method == "GET") {
     inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ)));
+  } else if(method == "HEAD") {
+    inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_READ)));
   } else if(method == "PUT") {
     inmsg.Auth()->set("AREX",new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY)));
   }
@@ -543,6 +545,16 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     CountedResourceLock cl_lock(datalimit_);
     // TODO: in case of error generate some content
     Arc::MCC_Status ret = Get(inmsg,outmsg,*config,id,subpath);
+    if(ret) {
+      if(!ProcessSecHandlers(outmsg,"outgoing")) {
+        logger_.msg(Arc::ERROR, "Security Handlers processing failed");
+        delete outmsg.Payload(NULL);
+        return Arc::MCC_Status();
+      };
+    };
+    return ret;
+  } else if(method == "HEAD") {
+    Arc::MCC_Status ret = Head(inmsg,outmsg,*config,id,subpath);
     if(ret) {
       if(!ProcessSecHandlers(outmsg,"outgoing")) {
         logger_.msg(Arc::ERROR, "Security Handlers processing failed");

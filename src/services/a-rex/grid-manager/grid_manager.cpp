@@ -143,7 +143,8 @@ typedef struct {
 
 static void grid_manager(void* arg) {
   //const char* config_filename = (const char*)arg;
-  GMEnvironment* env = (GMEnvironment*)arg;
+  GridManager* gm = (GridManager*)arg;
+  GMEnvironment& env = *(gm->Environment());
   if(!arg) return;
   unsigned int clean_first_level=0;
   // int n;
@@ -184,7 +185,8 @@ static void grid_manager(void* arg) {
   };
   */
 
-  JobUsers users(*env);
+  //JobUsers users(*env);
+  JobUsers& users = *(gm->Users());
   std::string my_username("");
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
@@ -203,9 +205,9 @@ static void grid_manager(void* arg) {
   if(my_username.length() == 0) {
     logger.msg(Arc::FATAL,"Can't recognize own username - EXITING"); return;
   };
-  my_user = new JobUser(*env,my_username);
+  my_user = new JobUser(env,my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user/*,&daemon*/)) {
-    logger.msg(Arc::INFO,"Used configuration file %s",env->nordugrid_config_loc());
+    logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
     logger.msg(Arc::FATAL,"Error processing configuration - EXITING"); return;
   };
   if(users.size() == 0) {
@@ -218,7 +220,7 @@ static void grid_manager(void* arg) {
   //  perror("Error - daemonization failed");
   //  exit(1);
   //}; 
-  logger.msg(Arc::INFO,"Used configuration file %s",env->nordugrid_config_loc());
+  logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
   print_serviced_users(users);
 
   //unsigned int wakeup_period = JobsList::WakeupPeriod();
@@ -235,7 +237,7 @@ static void grid_manager(void* arg) {
   for(JobUsers::iterator i = users.begin();i!=users.end();++i) {
     wakeup_interface.add(*i);
   };
-  wakeup_interface.timeout(env->jobs_cfg().WakeupPeriod());
+  wakeup_interface.timeout(env.jobs_cfg().WakeupPeriod());
 
   // Prepare signal handler(s). Must be done after fork/daemon and preferably
   // before any new thread is started. 
@@ -321,7 +323,7 @@ static void grid_manager(void* arg) {
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   for(;;) { 
     users.run_helpers();
-    env->job_log().RunReporter(users);
+    env.job_log().RunReporter(users);
     my_user->run_helpers();
     bool hard_job = time(NULL) > hard_job_time;
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
@@ -368,7 +370,9 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
 */
 
 GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false) {
-  void* arg = (void*)&env; // config_filename?strdup(config_filename):NULL;
+  env_ = &env;
+  users_ = new JobUsers(env);
+  void* arg = (void*)this; // config_filename?strdup(config_filename):NULL;
   active_=Arc::CreateThreadFunction(&grid_manager,arg);
   //if(!active_) if(arg) free(arg);
 }

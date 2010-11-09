@@ -1752,3 +1752,26 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   return true;
 }
 
+// For simply collcring all jobs. 
+bool JobsList::ScanAllJobs(bool /*hard_job*/) {
+  std::list<std::string> subdirs;
+  subdirs.push_back("/restarting"); // For picking up jobs after service restart
+  subdirs.push_back("/accepting");  // For new jobs
+  subdirs.push_back("/processing"); // For active jobs
+  subdirs.push_back("/finished");   // For done jobs
+  for(std::list<std::string>::iterator subdir = subdirs.begin();
+                               subdir != subdirs.end();++subdir) {
+    std::string cdir=user->ControlDir();
+    std::list<JobFDesc> ids;
+    std::string odir=cdir+(*subdir);
+    if(!ScanJobs(odir,ids)) return false;
+    // sorting by date
+    ids.sort();
+    for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+      iterator i;
+      AddJobNoCheck(id->id,i,id->uid,id->gid);
+    }
+  }
+  return true;
+}
+

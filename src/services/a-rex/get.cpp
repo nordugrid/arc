@@ -60,8 +60,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     // Service description access
     html+="<A HREF=\""+config.Endpoint()+"/?info>SERVICE DESCRIPTION</A>";
     html+="</BODY>\r\n</HTML>";
-    Arc::PayloadRaw* buf = NULL;
-    buf=new Arc::PayloadRaw;
+    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
     if(buf) buf->Insert(html.c_str(),0,html.length());
     outmsg.Payload(buf);
     outmsg.Attributes()->set("HTTP:content-type","text/html");
@@ -94,6 +93,17 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 } 
+
+Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+  if(id.empty()) {
+    Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+    if(buf) buf->Truncate(0);
+    outmsg.Payload(buf);
+    outmsg.Attributes()->set("HTTP:content-type","text/html");
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+  return Arc::MCC_Status();
+}
 
 // burl - base URL
 // bpath - base path

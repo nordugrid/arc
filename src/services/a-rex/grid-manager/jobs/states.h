@@ -91,6 +91,7 @@ class JobsList {
   /* Look for new (or old FINISHED) jobs. Jobs are added to list
      with state undefined */
   bool ScanNewJobs(bool hard_job = false);
+  bool ScanAllJobs(bool hard_job = false);
   /* Rearange status files on service restart */
   bool RestartJobs(void);
   /*

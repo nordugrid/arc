@@ -156,7 +156,7 @@ bool job_errors_mark_put(const JobDescription &desc,JobUser &user);
 /*
   Get modification time of file used to store state of the job.
 */
-time_t job_state_time(const JobId &id,JobUser &user);
+time_t job_state_time(const JobId &id,const JobUser &user);
 
 /*
   Read and write file storing state of the job.
@@ -230,6 +230,9 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
 bool job_local_read_notify(const JobId &id,const JobUser &user,std::string &notify);
 bool job_local_read_lifetime(const JobId &id,const JobUser &user,time_t &lifetime);
 bool job_local_read_cleanuptime(const JobId &id,const JobUser &user,time_t &cleanuptime);
+
+bool job_xml_read_file(const JobId &id,const JobUser &user,std::string &xml);
+bool job_xml_write_file(const JobId &id,const JobUser &user,const std::string &xml);
 
 /*
   Not used

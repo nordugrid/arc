@@ -27,7 +27,7 @@ namespace ARex {
     };
   }
 
-  void addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,const std::string& glue_state,bool failed,bool pending) {
+  Arc::XMLNode addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,const std::string& glue_state,bool failed,bool pending) {
     std::string bes_state("");
     std::string arex_state("");
     convertActivityStatus(gm_state,bes_state,arex_state,failed,pending);
@@ -45,6 +45,7 @@ namespace ARex {
       };
       state.NewChild("glue:State")=glue_state;
     };
+    return state;
   }
 
 }

@@ -6,6 +6,7 @@
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
 #include "tools.h"
+#include "grid-manager/files/info_files.h"
 
 #include "arex.h"
 
@@ -16,6 +17,7 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
   /*
   GetActivityStatuses
     ActivityIdentifier (wsa:EndpointReferenceType, unbounded)
+    ActivityStatusVerbosity
 
   GetActivityStatusesResponse
     Response (unbounded)
@@ -30,6 +32,22 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     std::string s;
     in.GetXML(s);
     logger.msg(Arc::VERBOSE, "GetActivityStatuses: request = \n%s", s);
+  };
+  typedef enum {
+    VerbBES,
+    VerbBasic,
+    VerbFull
+  } StatusVerbosity;
+  StatusVerbosity status_verbosity = VerbBasic;
+  Arc::XMLNode verb = in["ActivityStatusVerbosity"];
+  if((bool)verb) {
+    std::string verb_s = (std::string)verb;
+    if(verb_s == "BES") status_verbosity = VerbBES;
+    else if(verb_s == "Basic") status_verbosity = VerbBasic;
+    else if(verb_s == "Full") status_verbosity = VerbFull;
+    else {
+      logger.msg(Arc::WARNING, "GetActivityStatuses: unknown verbosity level requested: %s", verb_s);
+    };
   };
   for(int n = 0;;++n) {
     Arc::XMLNode id = in["ActivityIdentifier"][n];
@@ -60,8 +78,17 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     bool job_pending = false;
     std::string gm_state = job.State(job_pending);
     glue_states_lock_.lock();
-    addActivityStatus(resp,gm_state,glue_states_[job.ID()],job.Failed(),job_pending);
+    Arc::XMLNode st = addActivityStatus(resp,gm_state,glue_states_[job.ID()],job.Failed(),job_pending);
     glue_states_lock_.unlock();
+    if(status_verbosity == VerbFull) {
+      std::string glue_s;
+      if(job_xml_read_file(jobid,*config.User(),glue_s)) {
+        Arc::XMLNode glue_xml(glue_s);
+        if((bool)glue_xml) {
+          st.NewChild(glue_xml);
+        };
+      };
+    };
   };
   {
     std::string s;

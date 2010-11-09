@@ -626,7 +626,7 @@ bool ARexJob::delete_job_id(void) {
 int ARexJob::TotalJobs(ARexGMConfig& config,Arc::Logger& /* logger */) {
   ContinuationPlugins plugins;
   JobsList jobs(*config.User(),plugins);
-  jobs.ScanNewJobs();
+  jobs.ScanAllJobs();
   return jobs.size();
 }
 
@@ -634,7 +634,7 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
   std::list<std::string> jlist;
   ContinuationPlugins plugins;
   JobsList jobs(*config.User(),plugins);
-  jobs.ScanNewJobs();
+  jobs.ScanAllJobs();
   JobsList::iterator i = jobs.begin();
   for(;i!=jobs.end();++i) {
     ARexJob job(i->get_id(),config,logger,true);
