@@ -97,10 +97,11 @@
       <next id="echo" inisections="echo" initag="endpointpattern" initokenenables="echo" inidefaultvalue="^/echo$"/>
       <next id="pyecho" inisections="pyecho" initag="endpointpattern" initokenenables="pyecho" inidefaultvalue="^/pyecho$"/>
       <next id="javaecho" inisections="javaecho" initag="endpointpattern" initokenenables="javaecho" inidefaultvalue="^/javaecho$"/>
-      <next id="bartender" inisections="bartender" initag="endpointpattern" initokenenables="ahash" inidefaultvalue="^/bartender$"/>
+      <next id="bartender" inisections="bartender" initag="endpointpattern" initokenenables="bartender" inidefaultvalue="^/bartender$"/>
       <next id="ahash" inisections="ahash" initag="endpointpattern" initokenenables="ahash" inidefaultvalue="^/ahash$"/>
       <next id="librarian" inisections="librarian" initag="endpointpattern" initokenenables="librarian" inidefaultvalue="^/librarian$"/>
       <next id="shepherd" inisections="shepherd" initag="endpointpattern" initokenenables="shepherd" inidefaultvalue="^/shepherd$"/>
+      <next id="hopi-chelonia" inisections="shepherd" initag="hopi-endpointpattern" initokenenables="shepherd" inidefaultvalue="^/shepherd/"/>
       <next id="hopi" inisections="hopi" initag="endpointpattern" initokenenables="hopi" inidefaultvalue="^/hopi"/>
     </Plexer>
 
@@ -453,7 +454,7 @@
           <!-- Endpoint: defines URL of the service as seen from outside. Optional, custom for this Registrar.-->
           <infosys:Endpoint inisections="arex" initag="endpoint"/>
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
-          <infosys:ServiceID inisections="arex" initag="endpoint"/>
+          <infosys:ServiceID inisections="arex" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
@@ -532,7 +533,7 @@
           <!-- Endpoint: defines URL of the service as seen from outside. Optional, custom for this Registrar.-->
           <infosys:Endpoint inisections="isis" initag="endpoint"/>
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
-          <infosys:ServiceID inisections="isis" initag="endpoint"/>
+          <infosys:ServiceID inisections="isis" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
@@ -659,7 +660,7 @@
           <!-- Endpoint: defines URL of the service as seen from outside. Optional, custom for this Registrar.-->
           <infosys:Endpoint inisections="pyecho" initag="endpoint"/>
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
-          <infosys:ServiceID inisections="pyecho" initag="endpoint"/>
+          <infosys:ServiceID inisections="pyecho" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
@@ -774,9 +775,9 @@
       <!-- LibrarianURL: Zero or more Librarian URLs -->
       <bar:LibrarianURL initype="multi" inisections="bartender" initag="librarianurl"/>
       <!-- ISISURL: Zero or more ISIS URLs (only used if there are no LibrarianURLs) -->
-      <bar:ISISURL initype="multi" inisections="bartender" initag="isisurl"/>
+      <bar:ISISURL initype="multi" inisections="bartender chelonia" initag="isisurl"/>
       <!-- ISISCheckingPeriod: How frequently (in seconds) the Bartender checks the ISIS for Librarians -->
-      <bar:ISISCheckingPeriod inisections="bartender" initag="isischeckingperiod" inidefaultvalue="120"/>
+      <bar:ISISCheckingPeriod inisections="bartender" initag="isischeckingperiod"/>
       <!-- ProxyStore: Local directory where the Bartender stores the delegated proxies -->
       <bar:ProxyStore initokenenables="bartender/gateway" inisections="bartender/gateway" initag="proxystore" inidefaultvalue="/var/spool/arc/proxy_store"/>
       <!-- GatewayClass: The python class providing gateway functionality. Optional -->
@@ -818,7 +819,7 @@
           <!-- Endpoint: defines URL of the service as seen from outside. Optional, custom for this Registrar.-->
           <infosys:Endpoint inisections="register" initag="endpoint"/>
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
-          <infosys:ServiceID inisections="register" initag="endpoint"/>
+          <infosys:ServiceID inisections="register" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
@@ -863,16 +864,9 @@
 
     <Service name="pythonservice" id="ahash" initokenenables="ahash">
       <ahash:ClassName>storage.ahash.ahash.AHashService</ahash:ClassName>
+      <ahash:AHashClass initokenenables="ahash#type=centralized">storage.ahash.ahash.CentralAHash</ahash:AHashClass>
+      <ahash:StoreClass initokenenables="ahash#type=centralized">arcom.store.cachedpicklestore.CachedPickleStore</ahash:StoreClass>
       <ahash:AHashClass initokenenables="ahash#type=replicated">storage.ahash.replicatedahash.ReplicatedAHash</ahash:AHashClass>
-      <!-- StoreCacheTTL: How many changes can be done in cache without actually writing it back into the database. -->
-      <ahash:StoreCacheTTL initokenenables="ahash#type=replicated" inisections="ahash" initag="storecachettl" inidefaultvalue="20"/>
-      <!-- StoreCfg: The configuration of the store, which is only the path of the directory to store the data. -->
-      <ahash:StoreCfg initokenenables="ahash#type=replicated">
-        <!-- DataDir: path of the directory to store the database (for all types of stores) -->
-        <ahash:DataDir inisections="ahash" initag="datadir" inidefaultvalue="/var/spool/arc/ahash_data"/>
-        <!-- CacheSize: Size of DB cached in memory -->
-        <ahash:CacheSize inisections="ahash" initag="cachesize" inidefaultvalue="10MB"/>
-      </ahash:StoreCfg>
       <!-- Endpoint: The URL of this service. -->
       <ahash:Endpoint initokenenables="ahash#type=replicated" inisections="ahash" initag="endpoint"/>
       <!-- PeerURL: The URL of other A-Hash services. Can be one ore more. -->
@@ -881,6 +875,15 @@
       <ahash:Priority initokenenables="ahash#type=replicated" inisections="ahash" initag="priority" inidefaultvalue="50"/>
       <!-- CheckPeriod: How often the A-Hash should check for connected nodes. -->
       <ahash:CheckPeriod initokenenables="ahash#type=replicated" inisections="ahash" initag="checkperiod" inidefaultvalue="30"/>
+      <!-- StoreCacheTTL: How many changes can be done in cache without actually writing it back into the database. -->
+      <ahash:StoreCacheTTL initokenenables="ahash" inisections="ahash" initag="storecachettl" inidefaultvalue="20"/>
+      <!-- StoreCfg: The configuration of the store, which is only the path of the directory to store the data. Only the TransDBStore has additional parameters. -->
+      <ahash:StoreCfg>
+        <!-- DataDir: path of the directory to store the database (for all types of stores) -->
+        <ahash:DataDir inisections="ahash" initag="datadir" inidefaultvalue="/var/spool/arc/ahash_data"/>
+        <!-- CacheSize: Size of DB cached in memory (only for TransDBStore)-->
+        <ahash:CacheSize initokenenables="ahash#type=replicated" inisections="ahash" initag="cachesize" inidefaultvalue="10MB"/>
+      </ahash:StoreCfg>
 
       <ClientSSLConfig initokenenables="ahash#type=replicated">
         <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
@@ -888,13 +891,6 @@
         <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </ClientSSLConfig>
 
-      <ahash:AHashClass initokenenables="ahash#type=centralized">storage.ahash.ahash.CentralAHash</ahash:AHashClass>
-      <ahash:StoreClass initokenenables="ahash#type=centralized">arcom.store.cachedpicklestore.CachedPickleStore</ahash:StoreClass>
-      <!-- StoreCfg: The configuration of the store, which is only the path of the directory to store the data. Only the TransDBStore has additional parameters. -->
-      <ahash:StoreCfg initokenenables="ahash#type=centralized">
-        <!-- DataDir: path of the directory to store the database (for all types of stores) -->
-        <ahash:DataDir inisections="ahash" initag="localdir" inidefaultvalue="/var/spool/arc/ahash_data"/>
-      </ahash:StoreCfg>
       <infosys:InfoRegister initokenenables="register">
         <!-- Endpoint: defines URL of the service as seen from outside. -->
         <infosys:Endpoint inisections="ahash" initag="endpoint"/>
@@ -913,7 +909,7 @@
           <!-- Endpoint: defines URL of the service as seen from outside. Optional, custom for this Registrar.-->
           <infosys:Endpoint inisections="ahash" initag="endpoint"/>
           <!-- ServiceID: defines the unique id of the service propagated outside. Optional, custom for this Registrar.-->
-          <infosys:ServiceID inisections="ahash" initag="endpoint"/>
+          <infosys:ServiceID inisections="ahash" initag="serviceid"/>
           <!-- Expiration: defines the expiration time of the information provided by the service. Optional, custom for this Registrar.-->
           <infosys:Expiration inisections="register" initag="expiration" inidefaultvalue="PT10M"/>
           <!-- Period: specifies how often registration has to be done. Optional, custom for this Registrar.-->
@@ -961,7 +957,7 @@
       <!-- AHashURL: Zero or more A-Hash URLs -->
       <lib:AHashURL initype="multi" inisections="librarian" initag="ahashurl"/>
       <!-- ISISURL: Zero or more ISIS URLs (only used if there are no AHashURLs) -->
-      <lib:ISISURL initype="multi" inisections="librarian" initag="isisurl"/>
+      <lib:ISISURL initype="multi" inisections="librarian chelonia" initag="isisurl"/>
       <!-- HeartbeatTimeout: how frequently (in seconds) the Shepherds should send heartbeats to the Librarian. -->
       <lib:HeartbeatTimeout inisections="librarian" initag="heartbeattimeout" inidefaultvalue="120"/>
       <!-- CheckPeriod: how frequently (in seconds) the Librarian should check for Shepherds who hasn't sent a heartbeat in time. -->
@@ -1046,15 +1042,15 @@
       <!-- MinCheckInterval: how long time (in seconds) the Shepherd should sleep between two subsequent file checks. -->
       <shep:MinCheckInterval inisections="shepherd" initag="mincheckinterval" inidefaultvalue="0.1"/>
       <!-- CreatingTimeout: how long time (in seconds) the Shepherd should wait before it decides that a started file upload is failed. -->
-      <shep:CreatingTimeout inisections="shepherd" initag="creatingtimeout" inidefaultvalue="600"/>
+      <shep:CreatingTimeout inisections="shepherd" initag="creatingtimeout"/>
       <!-- ChecksumLifetime: how frequently (in seconds) the checksum of the files should be recalculated. -->
-      <shep:ChecksumLifetime inisections="shepherd" initag="checksumlifetime" inidefaultvalue="3600"/>
+      <shep:ChecksumLifetime inisections="shepherd" initag="checksumlifetime"/>
 
       <shep:StoreClass>arcom.store.cachedpicklestore.CachedPickleStore</shep:StoreClass>
       <!-- StoreCfg: The configuration of the store, which is only the path of the directory to store the data. -->
       <shep:StoreCfg>
         <!-- DataDir: path of the directory to store the database (for all types of stores) -->
-        <shep:DataDir inisections="shepherd" initag="datadir"/>
+        <shep:DataDir inisections="shepherd" initag="datadir" inidefaultvalue="/var/spool/arc/shepherd_data"/>
       </shep:StoreCfg>
 
       <shep:BackendClass>storage.shepherd.hardlinkingbackend.HopiBackend</shep:BackendClass>
@@ -1065,7 +1061,7 @@
         <!-- TransferDir: path of the local directory from where the storage element service serves the files to the world -->
         <shep:TransferDir inisections="shepherd" initag="transferdir" inidefaultvalue="/var/spool/arc/shepherd_transfer"/>
         <!-- TURLPrefix: the URL of the storage element service, the Shepherd will put the ID of the file to the end of this URL to make a TURL -->
-        <shep:TURLPrefix inisections="shepherd" initag="turlperfix"/>
+        <shep:TURLPrefix inisections="shepherd" initag="turlprefix"/>
       </shep:BackendCfg>
 
       <!-- LibrarianURL: Zero or more Librarian URLs -->
@@ -1073,9 +1069,9 @@
       <!-- BartenderURL: Zero or more Bartender URLs -->
       <shep:BartenderURL initype="multi" inisections="shepherd" initag="bartenderurl"/>
       <!-- ISISURL: Zero or more ISIS URLs (only used if there are no LibrarianURLs or no BartenderURLs) -->
-      <shep:ISISURL initype="multi" inisections="shepherd" initag="isisurl"/>
+      <shep:ISISURL initype="multi" inisections="shepherd chelonia" initag="isisurl"/>
       <!-- ISISCheckingPeriod: How frequently (in seconds) the Shepherd should check the ISIS for Librarians or Bartenders -->
-      <shep:ISISCheckingPeriod inisections="shepherd" initag="isischeckingperiod" inidefaultvalue="120"/>
+      <shep:ISISCheckingPeriod inisections="shepherd" initag="isischeckingperiod"/>
 
       <ClientSSLConfig>
         <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
@@ -1147,8 +1143,15 @@
       </SecHandler>
     </Service>
 
-    <Service name="hopi" id="hopi" initokenenables="hopi">
+    <Service name="hopi" id="hopi-chelonia" initokenenables="shepherd">
       <!-- DocumentRoot: the path of the directory where the files are stored which should be served to the world (should be same as the Shepherd's TransferDir) -->
+      <DocumentRoot inisections="shepherd" initag="transferdir" inidefaultvalue="/var/spool/arc/shepherd_transfer"/>
+      <!-- SlaveMode: if "1" then Hopi runs in a special "Slave mode" which is needed for Chelonia. -->
+      <SlaveMode>1</SlaveMode>
+    </Service>
+
+    <Service name="hopi" id="hopi" initokenenables="hopi">
+      <!-- DocumentRoot: the path of the directory where the files are stored which should be served to the world -->
       <DocumentRoot inisections="hopi" initag="documentroot"/>
       <!-- SlaveMode: if "1" then Hopi runs in a special "Slave mode" which is needed for Chelonia. -->
       <SlaveMode inisections="hopi" initag="slavemode"/>
