@@ -16,6 +16,9 @@ class BaseStore:
         """
         # get the datadir from the storecfg XMLNode
         self.datadir = str(storecfg.Get('DataDir'))
+        if not self.datadir:
+            log.msg(arc.ERROR, "DataDir is missing from store config")
+            raise Exception, "DataDir is missing from store config"
         # set the value which we should return if there an object does not exist
         self.non_existent_object = non_existent_object
         # if the given data directory does not exist, try to create it
