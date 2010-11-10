@@ -104,10 +104,11 @@ namespace Arc {
       if (node.Attribute("inidefaultvalue")) {
         // Set the default value.
         if (type == "attribute") {
-          node.Parent().NewAttribute(tag) = (std::string)node.Attribute("inidefaultvalue");
+          node.Parent().NewAttribute(node.FullName()) = (std::string)node.Attribute("inidefaultvalue");
         }
         else {
-          XMLNode newNode = node.Parent().NewChild(node.FullName(), nodePosition, true) = (std::string)node.Attribute("inidefaultvalue");
+          XMLNode newNode = node.Parent().NewChild(node.FullName(), nodePosition, true);
+          newNode = (std::string)node.Attribute("inidefaultvalue");
           for (int i = 0; i < node.AttributesSize(); i++) {
             const std::string attName = node.Attribute(i).Name();
             if (!(attName == "inisections" || attName == "initag" || attName == "inidefaultvalue" || attName == "initype")) {
@@ -122,13 +123,14 @@ namespace Arc {
 
 
     if (type == "attribute") {
-      node.Parent().NewAttribute(tag) = (std::string)iniNode[sectionName][tag];
+      node.Parent().NewAttribute(node.FullName()) = (std::string)iniNode[sectionName][tag];
       return 0;
     }
 
     int i = 0;
     for (XMLNode in = iniNode[sectionName][tag]; (type == "multi" || i == 0) && in; ++in, i++) {
-      XMLNode newNode = node.Parent().NewChild(node.FullName(), nodePosition + i, true) = (std::string)in;
+      XMLNode newNode = node.Parent().NewChild(node.FullName(), nodePosition + i, true);
+      newNode = (std::string)in;
       for (int j = 0; j < node.AttributesSize(); j++) {
         const std::string attName = node.Attribute(j).Name();
         if (!(attName == "inisections" || attName == "initag" || attName == "inidefaultvalue" || attName == "initype")) {
