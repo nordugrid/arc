@@ -77,10 +77,22 @@ class TransDBStore(BaseStore):
             log.msg(arc.WARNING, "couldn't find DeadlockRetries, using 5 as default")
             self.deadlock_retries = 5
         try:
-            self.cachesize = int(str(storecfg.Get('CacheSize')))
+            # amount of db cached in memory
+            # Must be integer. Optionally in order of kB, MB, GB, TB or PB,
+            # otherwise bytes is used
+            cachesize = str(storecfg.Get('CacheSize')).lower()
+            cachemultiplier = 'kmgtp'
+            if cachesize.endswith('b'):
+                cachesize = cachesize[:-1]
+            try:
+                power = cachemultiplier.index(cachesize[-1])+1
+                cachesize = cachesize[:-1]
+            except:
+                power = 0
+            self.cachesize = int(cachesize)*1024**power
         except:
-            self.cachesize = 10 * 1024 * 1024
-            log.msg(arc.WARNING, "couldn't find CacheSize, using %d as default"%self.cachesize)
+            log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
+            self.cachesize = 10*(1024**2)            
         try:
             self.sleeptime = int(str(storecfg.Get('SleepTime')))
         except:

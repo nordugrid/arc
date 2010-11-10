@@ -173,6 +173,8 @@ class ReplicationStore(TransDBStore):
         storecfg = cfg.Get('StoreCfg')
         if storecfg.Name() != 'StoreCfg': # StoreCfg missing, maybe old config, trying to create one from LocalDir
             storecfg = arc.XMLNode('<StoreCfg><DataDir>%s</DataDir></StoreCfg>' % cfg.Get('LocalDir'))
+            if str(cfg.Get('CacheSize')):
+                storecfg.NewChild('CacheSize').Set(str(cfg.Get('CacheSize')))
         if not str(storecfg.Get('DBEnvFlags')):
             storecfg.NewChild('DBEnvFlags').Set(str(dbenv_flags))
 
@@ -235,27 +237,6 @@ class ReplicationStore(TransDBStore):
         except:
             log.msg(arc.WARNING, "Could not find checking period, using default 30s")
             self.check_period = 30.0
-        try:
-            # amount of db cached in memory
-            # Must be integer. Optionally in order of kB, MB, GB, TB or PB,
-            # otherwise bytes is used
-            cachesize = str(cfg.Get('CacheSize'))
-            cachemultiplier = {}
-            cachemultiplier['kB']=1024            
-            cachemultiplier['MB']=1024**2      
-            cachemultiplier['GB']=1024**3         
-            cachemultiplier['TB']=1024**4         
-            cachemultiplier['PB']=1024**5
-            tmp_cachesize = 0
-            for m in cachemultiplier:
-                if cachesize.endswith(m):
-                    tmp_cachesize = int(cachesize.split(m)[0])*cachemultiplier[m]
-            if tmp_cachesize == 0:
-                tmp_cachesize = int(cachesize)
-            self.cachesize = tmp_cachesize
-        except:
-            log.msg(arc.WARNING, "Bad cache size or no cache size configured, using 10MB")
-            self.cachesize = 10*(1024**2)
         self.dbenv.rep_set_priority(self.priority)
         self.dbenv.rep_set_config(db.DB_REP_CONF_BULK, True)
 
