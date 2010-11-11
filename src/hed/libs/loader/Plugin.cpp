@@ -545,9 +545,9 @@ namespace Arc {
 
   bool PluginsFactory::scan(const std::list<std::string>& names, std::list<ModuleDesc>& descs) {
     bool r = false;
-    ModuleDesc desc;
     for(std::list<std::string>::const_iterator name = names.begin();
                                 name != names.end();++name) {
+      ModuleDesc desc;
       if(scan(*name,desc)) {
         r=true;
         descs.push_back(desc);
