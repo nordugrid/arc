@@ -397,24 +397,24 @@
           <ip:Benchmark initype="multi" inisections="arex/info/executionenvironment" initag="benchmark"/>
         </ip:ExecutionEnvironment>
 
-        <ip:ComputingShare initype="multisection">
-          <name initype="attribute" inisections="arex/info/share" initag="name"/>
-          <ip:Description inisections="arex/info/share" initag="description"/>
-          <ip:OtherInfo inisections="arex/info/share" initag="otherinfo"/>
-          <ip:MappingQueue inisections="arex/info/share" initag="mappingqueue"/>
-          <ip:ExecEnvName initype="multi" inisections="arex/info/share" initag="execenvname"/>
-          <ip:AuthorizedVO initype="multi" inisections="arex/info/share" initag="authorizedvo"/>
-          <ip:MaxVirtualMemory inisections="arex/info/share" initag="maxvirtualmemory"/>
-          <ip:MaxSlotsPerJob inisections="arex/info/share" initag="maxslotsperjob"/>
-          <ip:SchedulingPolicy inisections="arex/info/share" initag="schedulingpolicy"/>
-          <ip:Preemption inisections="arex/info/share" initag="preemption"/>
+        <ip:ComputingShare initype="multisection" inisections="arex/info/share">
+          <name initype="attribute" inisections="#this" initag="name"/>
+          <ip:Description inisections="#this" initag="description"/>
+          <ip:OtherInfo inisections="#this" initag="otherinfo"/>
+          <ip:MappingQueue inisections="#this" initag="mappingqueue"/>
+          <ip:ExecEnvName initype="multi" inisections="#this" initag="execenvname"/>
+          <ip:AuthorizedVO initype="multi" inisections="#this" initag="authorizedvo"/>
+          <ip:MaxVirtualMemory inisections="#this" initag="maxvirtualmemory"/>
+          <ip:MaxSlotsPerJob inisections="#this" initag="maxslotsperjob"/>
+          <ip:SchedulingPolicy inisections="#this" initag="schedulingpolicy"/>
+          <ip:Preemption inisections="#this" initag="preemption"/>
 
-          <lrms:slurm_project inisections="arex/info/share" initag="slurm_project"/>
-          <lrms:fork_job_limit inisections="arex/info/share" initag="fork_job_limit"/>
-          <lrms:queue_node_string inisections="arex/info/share" initag="queue_node_string"/>
-          <lrms:sge_jobopts inisections="arex/info/share" initag="sge_jobopts"/>
-          <lrms:condor_requirements inisections="arex/info/share" initag="condor_requirements"/>
-          <lrms:lsf_architecture inisections="arex/info/share" initag="lsf_architecture"/>
+          <lrms:slurm_project initokenenables="lrms/slurm" inisections="#this" initag="slurm_project"/>
+          <lrms:fork_job_limit initokenenables="lrms/fork" inisections="#this" initag="fork_job_limit"/>
+          <lrms:queue_node_string inisections="#this" initag="queue_node_string"/>
+          <lrms:sge_jobopts initokenenables="lrms/sge" inisections="#this" initag="sge_jobopts"/>
+          <lrms:condor_requirements initokenenables="lrms/condor" inisections="#this" initag="condor_requirements"/>
+          <lrms:lsf_architecture  initokenenables="lrms/lsf"inisections="#this" initag="lsf_architecture"/>
         </ip:ComputingShare>
       </arex:InfoProvider>
 
