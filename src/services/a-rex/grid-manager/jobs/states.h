@@ -113,7 +113,12 @@ class JobsList {
 
 };
 
-
+/**
+ * ZeroUInt is a wrapper around unsigned int. It provides a consistent
+ * default value, as int type variables have no predefined value
+ * assigned upon creation. It also protects from potential counter
+ * underflow, to stop counter jumping to MAX_INT.
+*/
 class ZeroUInt {
  private:
   unsigned int value_;
@@ -121,8 +126,8 @@ class ZeroUInt {
   ZeroUInt(void):value_(0) { };
   ZeroUInt(unsigned int v):value_(v) { };
   ZeroUInt(const ZeroUInt& v):value_(v.value_) { };
-  ZeroUInt& operator=(unsigned int v) { value_=v; };
-  ZeroUInt& operator=(const ZeroUInt& v) { value_=v.value_; };
+  ZeroUInt& operator=(unsigned int v) { value_=v; return *this; };
+  ZeroUInt& operator=(const ZeroUInt& v) { value_=v.value_; return *this; };
   ZeroUInt& operator++(void) { ++value_; return *this; };
   ZeroUInt operator++(int) { ZeroUInt temp(value_); ++value_; return temp; };
   ZeroUInt& operator--(void) { if(value_) --value_; return *this; };
