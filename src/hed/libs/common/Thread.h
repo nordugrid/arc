@@ -193,6 +193,47 @@ namespace Arc {
     }
   };
 
+  class TimedMutex {
+  private:
+    Glib::Cond cond_;
+    Glib::Mutex lock_;
+    bool locked_;
+  public:
+    TimedMutex(void):locked_(false) { };
+    ~TimedMutex(void) { };
+    bool lock(int t = -1) {
+      lock_.lock();
+      if(t < 0) { // infinite
+        while(locked_) {
+          cond_.wait(lock_);
+        };
+      } else if(t > 0) { // timed
+        Glib::TimeVal etime;
+        etime.assign_current_time();
+        etime.add_milliseconds(t);
+        while(locked_) {
+          if(!cond_.timed_wait(lock_, etime)) break;
+        };
+      };
+      bool res = !locked_;
+      locked_=true;
+      lock_.unlock();
+      return res;
+    };
+    bool trylock(void) {
+      return lock(0);
+    };
+    bool unlock(void) {
+      lock_.lock();
+      bool res = locked_;
+      if(res) {
+        locked_ = false;
+        cond_.signal();
+      };
+      lock_.unlock();
+    };
+  };
+
   /// This class is a set of conditions, mutexes, etc. conveniently
   /// exposed to monitor running child threads and to wait till
   /// they exit. There are no protections against race conditions.

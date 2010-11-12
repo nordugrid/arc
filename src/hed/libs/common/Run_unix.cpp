@@ -51,9 +51,11 @@ namespace Arc {
     //std::list<Run*> runs_;
     Glib::Mutex abandoned_lock_;
     Glib::Mutex list_lock_;
-    Glib::Mutex pump_lock_;
+    //Glib::Mutex pump_lock_;
+    TimedMutex pump_lock_;
     Glib::RefPtr<Glib::MainContext> context_;
     Glib::Thread *thread_;
+    int storm_count;
     RunPump(void);
     ~RunPump(void);
     static RunPump& Instance(void);
@@ -120,7 +122,8 @@ namespace Arc {
 
   RunPump::RunPump(void)
     : context_(NULL),
-      thread_(NULL) {
+      thread_(NULL),
+      storm_count(0) {
     try {
       thread_ = Glib::Thread::create(sigc::mem_fun(*this, &RunPump::Pump), false);
     } catch (Glib::Exception& e) {} catch (std::exception& e) {}
@@ -155,7 +158,6 @@ namespace Arc {
       //context_->acquire();
       for (;;) {
         list_lock_.lock();
-        //      sleep(1);
         list_lock_.unlock();
         pump_lock_.lock();
         bool dispatched = context_->iteration(true);
@@ -170,11 +172,21 @@ namespace Arc {
         }
         pump_lock_.unlock();
         thread_->yield();
-        if (!dispatched)
-          sleep(1);
-      }
-    } catch (Glib::Exception& e) {} catch (std::exception& e) {}
-    ;
+        if (!dispatched) {
+          // Under some unclear circumstance storm of iteration()
+          // returning false non-stop was observed. So here we 
+          // are trying to prevent that.
+          if((++storm_count) >= 10) {
+std::cout<<"--- "<<"!dispatched sleep"<<std::endl;
+            sleep(1);
+            storm_count = 0;
+std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
+          };
+        } else {
+          storm_count = 0;
+        };
+      };
+    } catch (Glib::Exception& e) {} catch (std::exception& e) {};
   }
 
   void RunPump::Add(Run *r) {
@@ -188,9 +200,9 @@ namespace Arc {
     list_lock_.lock();
     while (true) {
       context_->wakeup();
-      if (pump_lock_.trylock())
-        break;
-      sleep(1);
+      // doing it like that because experience says
+      // wakeup does not always wakes it up
+      if(pump_lock_.lock(100)) break;
     }
     try {
       // Add sources to context
@@ -221,9 +233,9 @@ namespace Arc {
     list_lock_.lock();
     while (true) {
       context_->wakeup();
-      if (pump_lock_.trylock())
-        break;
-      sleep(1);
+      // doing it like that because experience says
+      // wakeup does not always wakes it up
+      if(pump_lock_.lock(100)) break;
     }
     // Disconnect sources from context
     SAFE_DISCONNECT(r->stdout_conn_);
