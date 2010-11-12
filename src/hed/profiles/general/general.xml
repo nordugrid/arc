@@ -414,7 +414,7 @@
           <lrms:queue_node_string inisections="#this" initag="queue_node_string"/>
           <lrms:sge_jobopts initokenenables="lrms/sge" inisections="#this" initag="sge_jobopts"/>
           <lrms:condor_requirements initokenenables="lrms/condor" inisections="#this" initag="condor_requirements"/>
-          <lrms:lsf_architecture  initokenenables="lrms/lsf"inisections="#this" initag="lsf_architecture"/>
+          <lrms:lsf_architecture  initokenenables="lrms/lsf" inisections="#this" initag="lsf_architecture"/>
         </ip:ComputingShare>
       </arex:InfoProvider>
 
