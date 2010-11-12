@@ -364,37 +364,37 @@
           <ip:Type inisections="arex/info/contact" initag="type"/>
         </ip:Contact>
 
-        <ip:ExecutionEnvironment initype="multisection" initokenenables="arex/info/executionenvironment">
-          <name initype="attribute" inisections="arex/info/executionenvironment" initag="name"/>
+        <ip:ExecutionEnvironment initype="multisection" inisections="arex/info/executionenvironment" initokenenables="arex/info/executionenvironment">
+          <name initype="attribute" inisections="#this" initag="name"/>
 
           <!-- options for selecting the nodes that belong into this nodeGroup needs backend suppot. Only inplemented for Fork and PBS -->
           <ip:NodeSelection>
-            <ip:Regex initype="multi" inisections="arex/info/executionenvironment" initag="nodeselectionregex"/>
-            <ip:Tag inisections="arex/info/executionenvironment" initag="nodeselectiontag"/>
-            <ip:Command inisections="arex/info/executionenvironment" initag="nodeselectioncommand"/>
+            <ip:Regex initype="multi" inisections="#this" initag="nodeselectionregex"/>
+            <ip:Tag inisections="#this" initag="nodeselectiontag"/>
+            <ip:Command inisections="#this" initag="nodeselectioncommand"/>
           </ip:NodeSelection>
 
-          <ip:Homogeneous inisections="arex/info/executionenvironment" initag="homogeneous"/>
-          <ip:OtherInfo inisections="arex/info/executionenvironment" initag="otherinfo"/>
-          <ip:PhysicalCPUs inisections="arex/info/executionenvironment" initag="physicalcpus"/>
-          <ip:LogicalCPUs inisections="arex/info/executionenvironment" initag="logicalcpus"/>
-          <ip:VirtualMachine inisections="arex/info/executionenvironment" initag="virtualmachine"/>
-          <ip:Platform inisections="arex/info/executionenvironment" initag="platform"/>
-          <ip:OSFamily inisections="arex/info/executionenvironment" initag="osfamily"/>
-          <ip:OSName inisections="arex/info/executionenvironment" initag="osname"/>
-          <ip:OSVersion inisections="arex/info/executionenvironment" initag="osversion"/>
-          <ip:CPUVendor inisections="arex/info/executionenvironment" initag="cpuvendor"/>
-          <ip:CPUModel inisections="arex/info/executionenvironment" initag="cpumodel"/>
-          <ip:CPUVersion inisections="arex/info/executionenvironment" initag="cpuversion"/>
-          <ip:CPUClockSpeed inisections="arex/info/executionenvironment" initag="cpuclockspeed"/>
-          <ip:CPUTimeScalingFactor inisections="arex/info/executionenvironment" initag="cputimescalingfactor"/>
-          <ip:WallTimeScalingFactor inisections="arex/info/executionenvironment" initag="walltimescalingfactor"/>
-          <ip:MainMemorySize inisections="arex/info/executionenvironment" initag="mainmemorysize"/>
-          <ip:VirtualMemorySize inisections="arex/info/executionenvironment" initag="virtualmemorysize"/>
-          <ip:NetworkInfo inisections="arex/info/executionenvironment" initag="networkinfo"/>
-          <ip:ConnectivityIn inisections="arex/info/executionenvironment" initag="connectivityin"/>
-          <ip:ConnectivityOut inisections="arex/info/executionenvironment" initag="connectivityout"/>
-          <ip:Benchmark initype="multi" inisections="arex/info/executionenvironment" initag="benchmark"/>
+          <ip:Homogeneous inisections="#this" initag="homogeneous"/>
+          <ip:OtherInfo inisections="#this" initag="otherinfo"/>
+          <ip:PhysicalCPUs inisections="#this" initag="physicalcpus"/>
+          <ip:LogicalCPUs inisections="#this" initag="logicalcpus"/>
+          <ip:VirtualMachine inisections="#this" initag="virtualmachine"/>
+          <ip:Platform inisections="#this" initag="platform"/>
+          <ip:OSFamily inisections="#this" initag="osfamily"/>
+          <ip:OSName inisections="#this" initag="osname"/>
+          <ip:OSVersion inisections="#this" initag="osversion"/>
+          <ip:CPUVendor inisections="#this" initag="cpuvendor"/>
+          <ip:CPUModel inisections="#this" initag="cpumodel"/>
+          <ip:CPUVersion inisections="#this" initag="cpuversion"/>
+          <ip:CPUClockSpeed inisections="#this" initag="cpuclockspeed"/>
+          <ip:CPUTimeScalingFactor inisections="#this" initag="cputimescalingfactor"/>
+          <ip:WallTimeScalingFactor inisections="#this" initag="walltimescalingfactor"/>
+          <ip:MainMemorySize inisections="#this" initag="mainmemorysize"/>
+          <ip:VirtualMemorySize inisections="#this" initag="virtualmemorysize"/>
+          <ip:NetworkInfo inisections="#this" initag="networkinfo"/>
+          <ip:ConnectivityIn inisections="#this" initag="connectivityin"/>
+          <ip:ConnectivityOut inisections="#this" initag="connectivityout"/>
+          <ip:Benchmark initype="multi" inisections="#this" initag="benchmark"/>
         </ip:ExecutionEnvironment>
 
         <ip:ComputingShare initype="multisection" inisections="arex/info/share">
