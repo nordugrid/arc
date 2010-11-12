@@ -300,15 +300,19 @@ sub count_array_spec($) {
                 # Was this node not listed with qconf -sep ?
                 if (not exists $node_stats{$currentnode} or
                     not exists $node_stats{$currentnode}{totalcpus}) {
-                    # Node name may have been truncated
-                    if (length $qname >= 28) {
-                        # Try to match it with a node already listed.
+                    # Node name may have been truncated by qstat -f
+                    if (length $qname >= 30) {
+                        # Try to match it with a node already listed by qconf -sep
                         my @fullnames = grep { length($_) >= length($currentnode)
                                                    and $_ =~ m/^\Q$currentnode\E/
-                                        } grep { exists $node_stats{$_} and
-                                                 exists $node_stats{$_}{totalcpus}
+                                        } grep { exists $node_stats{$_}{totalcpus}
                                         } keys %node_stats;
                         $currentnode = $fullnames[0] if @fullnames == 1;
+                    }
+                    # Node name may have been truncated by qconf -sep
+                    for (my $name = $currentnode; length $name >= 24; chop $name) {
+                        $currentnode = $name if exists $node_stats{$name}
+                                            and exists $node_stats{$name}{totalcpus}
                     }
                 }
                 if (not exists $node_stats{$currentnode} or
