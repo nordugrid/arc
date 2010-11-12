@@ -165,7 +165,7 @@ namespace Arc {
         continue;
       }
 
-      const std::string childFullName = node.Child(i).FullName();
+      const std::string childFullName = (node.Child(i).Prefix().empty() ? node.Child(i).Name() : node.Child(i).FullName());
 
       const std::string sections = node.Child(i).Attribute("inisections");
       if (node.Child(i).Attribute("inisections") && sections.empty()) {
@@ -239,7 +239,7 @@ namespace Arc {
       if (!isenabled(node.Child(i), iniNode)) {
         continue;
       }
-      const std::string childFullName = node.Child(i).FullName();
+      const std::string childFullName = (node.Child(i).Prefix().empty() ? node.Child(i).Name() : node.Child(i).FullName());
 
       const std::string sections = node.Child(i).Attribute("inisections");
       if (node.Child(i).Attribute("inisections") && sections.empty()) {
