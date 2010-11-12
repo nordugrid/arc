@@ -448,8 +448,8 @@ namespace Arc {
       for (;;)
         if (!stderr_handler(Glib::IO_IN))
           break;
-    CloseStdout();
-    CloseStderr();
+    //CloseStdout();
+    //CloseStderr();
     CloseStdin();
     lock_.lock();
     cond_.signal();
