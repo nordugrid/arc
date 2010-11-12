@@ -436,7 +436,7 @@ sub build_config_from_xmlfile {
     for my $xe (@$xenvs) {
         $log->fatal("badly formed 'ExecutionEnvironment' element in XML config") unless ref $xe eq 'HASH';
         my $name = $xe->{name};
-        $log->fatal("ExecutionEnvironment witout name attribute") unless $name;
+        $log->fatal("ExecutionEnvironment without name attribute") unless $name;
         my $xeconf = $config->{xenvs}{$name} = {};
         $xeconf->{NodeSelection} = hash_get_hashref($xe, 'NodeSelection');
         move_keys $xe, $xeconf, [keys %{$config_schema->{xenvs}{'*'}}];
