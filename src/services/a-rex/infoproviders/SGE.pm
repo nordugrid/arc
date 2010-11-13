@@ -152,11 +152,12 @@ sub slots () {
             my ($id,$state,$slots,$tasks) = ($1,$5,$8,$9); 
             # for interpreting state codes:
             # http://gridengine.sunsource.net/nonav/source/browse/~checkout~/gridengine/source/libs/japi/jobstates.html
-            if ($state =~ /[rtsST]/) {
+            if ($state =~ /[rtsSTR]/) {
                 # This should match the jobs that would be listed by qstat -s rs
                 # Job is either running, transfering or suspended for some reason.
                 # It may also be waiting to be deleted while in the above states.
                 # OBS: hr (hold running) state are also counted here.
+                #      R is state for restarted job.
                 $runningjobs++;
             } elsif ($state =~ /[hw]/) {
                 # This should match the jobs that would be listed by qstat -s p
