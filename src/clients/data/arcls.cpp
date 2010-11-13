@@ -26,6 +26,7 @@ static bool arcls(const Arc::URL& dir_url,
            bool show_urls,    // locations
            bool show_meta,    // metadata
            bool no_list,      // nolist
+           bool force_list,      // nolist
            bool check_access, // checkaccess
            int recursion,     // recursion 
            int timeout) {     // timeout
@@ -42,9 +43,10 @@ static bool arcls(const Arc::URL& dir_url,
     }
     bool r = true;
     for (std::list<Arc::URL>::iterator dir = dirs.begin();
-         dir != dirs.end(); dir++)
-      if(!arcls(*dir, usercfg, show_details, show_urls, show_meta, no_list,
-               check_access, recursion, timeout)) r = false;
+         dir != dirs.end(); dir++) {
+      if(!arcls(*dir, usercfg, show_details, show_urls, show_meta,
+               no_list, force_list, check_access, recursion, timeout)) r = false;
+    }
     return r;
   }
 
@@ -90,18 +92,34 @@ static bool arcls(const Arc::URL& dir_url,
   Arc::FileInfo file;
   std::list<Arc::FileInfo> files;
   url->SetSecure(false);
-  if(no_list) {
+
+
+
+  if(no_list) { // only requested object is queried
     res = url->Stat(file, verb);
-    if(res) {
-      files.push_back(file);
-    }
-  } else {
+    if(res) files.push_back(file);
+  } else if(force_list) { // assume it is directory, fail otherwise
+    res = url->List(files, verb);
+  } else { // try to guess what to do
     res = url->Stat(file, (Arc::DataPoint::DataPointInfoType)(verb | Arc::DataPoint::INFO_TYPE_TYPE));
-    if(file.GetType() == Arc::FileInfo::file_type_dir) {
-      res = url->List(files, verb);
+    if(res && (file.GetType() == Arc::FileInfo::file_type_file)) {
+      // If it is file and we are sure, then just report it.
+      files.push_back(file);
+    } else {
+      // If it is dir then we must list it. But if stat failed or
+      // if type is undefined there is still chance it is directory.
+      Arc::DataStatus res_ = url->List(files, verb);
+      if(!res_) {
+        // If listing failed maybe simply report previous result if any.
+        if(res) {
+          files.push_back(file);
+        } else {
+          res = res_;
+        }
+      }
     }
   }
-  if (!res.Passed()) {
+  if (!res) {
     if (files.size() == 0) {
       logger.msg(Arc::ERROR, "Failed listing files");
       if (res.Retryable())
@@ -113,7 +131,6 @@ static bool arcls(const Arc::URL& dir_url,
   }
   for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
-    //if(!show_meta || show_details || show_urls) std::cout << i->GetName();
     std::cout << i->GetName();
     if (show_details) {
       switch (i->GetType()) {
@@ -160,8 +177,8 @@ static bool arcls(const Arc::URL& dir_url,
       for (std::map<std::string, std::string>::iterator mi = md.begin(); mi != md.end(); ++mi)
         std::cout<<mi->first<<":"<<mi->second<<std::endl;
     }
-    // Do recursion
-    if (recursion > 0) {
+    // Do recursion. Recursion has no sense if listing is forbidden.
+    if ((recursion > 0) && (!no_list)) {
       if (i->GetType() == Arc::FileInfo::file_type_dir) {
         Arc::URL suburl = dir_url;
         if(suburl.Protocol() != "file") {
@@ -177,7 +194,8 @@ static bool arcls(const Arc::URL& dir_url,
         }
         std::cout << std::endl;
         std::cout << suburl.str() << ":" << std::endl;
-        arcls(suburl, usercfg, show_details, show_urls, show_meta, no_list, check_access, recursion - 1, timeout);
+        arcls(suburl, usercfg, show_details, show_urls, show_meta,
+              no_list, force_list, check_access, recursion - 1, timeout);
         std::cout << std::endl;
       }
     }
@@ -222,6 +240,10 @@ int main(int argc, char **argv) {
   options.AddOption('n', "nolist", istring("show only description of requested object, do not list content of directories"),
         nolist);
 
+  bool forcelist = false;
+  options.AddOption('f', "forcelist", istring("treat requested object as directory and always try to list content"),
+        forcelist);
+
   bool checkaccess = false;
   options.AddOption('c', "checkaccess", istring("check readability of object, does not show any information about object"),
         checkaccess);
@@ -265,15 +287,27 @@ int main(int argc, char **argv) {
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
+  // Analyze options
+
   if (params.size() != 1) {
     logger.msg(Arc::ERROR, "Wrong number of parameters specified");
     return 1;
   }
 
+  if(forcelist && nolist) {
+    logger.msg(Arc::ERROR, "Incompatible options --nolist and --forcelist requested");
+    return 1;
+  }
+
+  if(recursion && nolist) {
+    logger.msg(Arc::ERROR, "Requesting recursion and --nolist has no sense");
+    return 1;
+  }
+
   std::list<std::string>::iterator it = params.begin();
 
-  if(!arcls(*it, usercfg, longlist, locations, metadata, nolist, checkaccess, recursion, timeout))
-    return 1;
+  if(!arcls(*it, usercfg, longlist, locations, metadata,
+            nolist, forcelist, checkaccess, recursion, timeout)) return 1;
 
   return 0;
 }
