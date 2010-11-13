@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
   unsigned int jobs_total = 0;
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
     if((!notshow_jobs) || (!notshow_states) || (show_share)) {
-    user->get_jobs()->ScanNewJobs(false);
+    user->get_jobs()->ScanAllJobs(false);
     for (JobsList::iterator i=user->get_jobs()->begin(); i!=user->get_jobs()->end(); ++i) {
       if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
       jobs_total++;
