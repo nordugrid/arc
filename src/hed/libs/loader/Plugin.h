@@ -21,7 +21,7 @@ namespace Arc {
   class PluginsFactory;
 
   /// Base class for loadable ARC components.
-  /** All classes representing loadable ARC components must be either 
+  /** All classes representing loadable ARC components must be either
      descendants of this class or be wrapped by its offspring. */
   class Plugin {
     protected:
@@ -54,15 +54,15 @@ namespace Arc {
       /** Corresponding factory keeps list of modules till itself is destroyed.
          So it should be safe to keep that pointer. But care must be taken
          if module contains persistent plugins. Such modules stay in memory
-         after factory is detroyed. So it is advisable to use obtained 
+         after factory is detroyed. So it is advisable to use obtained
          pointer only in constructor function of plugin. */
       Glib::Module* get_module(void);
   };
 
   /// Name of symbol refering to table of plugins.
-  /** This C null terminated string specifies name of symbol which 
-     shared library should export to give an access to an array 
-     of PluginDescriptor elements. The array is terminated by 
+  /** This C null terminated string specifies name of symbol which
+     shared library should export to give an access to an array
+     of PluginDescriptor elements. The array is terminated by
      element with all components set to NULL. */
   extern const char* plugins_table_name;
 
@@ -70,7 +70,7 @@ namespace Arc {
   #define PLUGINS_TABLE_SYMB "__arc_plugins_table__"
 
   /// Constructor function of ARC lodable component
-  /** This function is called with plugin-specific argument and 
+  /** This function is called with plugin-specific argument and
      should produce and return valid instance of plugin.
      If plugin can't be produced by any reason (for example
      because passed argument is not applicable) then NULL
@@ -105,10 +105,10 @@ namespace Arc {
 
   /// Generic ARC plugins loader
   /** The instance of this class provides functionality
-     of loading pluggable ARC components stored in shared 
-     libraries. For more information please check HED 
+     of loading pluggable ARC components stored in shared
+     libraries. For more information please check HED
      documentation.
-     This class is thread-safe - its methods are proceted from 
+     This class is thread-safe - its methods are proceted from
      simultatneous use form multiple threads. Current thread
      protection implementation is suboptimal and will be revised
      in future. */
@@ -127,10 +127,10 @@ namespace Arc {
         tune loading of modules. */
       PluginsFactory(XMLNode cfg);
       /** These methods load module named lib'name', locate plugin
-         constructor functions of specified 'kind' and 'name' (if specified) 
+         constructor functions of specified 'kind' and 'name' (if specified)
          and call it. Supplied argument affects way plugin instance is created
          in plugin-specific way.
-         If name of plugin is not specified then all plugins of specified kind 
+         If name of plugin is not specified then all plugins of specified kind
          are tried with supplied argument till valid instance is created.
          All loaded plugins are also registered in internal list of this
          instance of PluginsFactory class.
@@ -152,11 +152,11 @@ namespace Arc {
       Plugin* get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search = true);
       /** These methods load module named lib'name' and check if it
         contains ARC plugin(s) of specified 'kind' and 'name'. If there are no
-        specified plugins or module does not contain any ARC plugins it is 
+        specified plugins or module does not contain any ARC plugins it is
         unloaded.
         All loaded plugins are also registered in internal list of this
         instance of PluginsFactory class.
-        Returns true if any plugin was loaded. */ 
+        Returns true if any plugin was loaded. */
       bool load(const std::string& name);
       bool load(const std::string& name,const std::string& kind);
       bool load(const std::string& name,const std::string& kind,const std::string& pname);
@@ -172,6 +172,9 @@ namespace Arc {
       bool scan(const std::list<std::string>& names, std::list<ModuleDesc>& descs);
       /** Provides information about currently loaded modules and plugins. */
       void report(std::list<ModuleDesc>& descs);
+      /** Filter list of modules by kind. */
+      static void FilterByKind(const std::string& kind, std::list<ModuleDesc>& descs);
+
       template<class P>
       P* GetInstance(const std::string& kind,PluginArgument* arg,bool search = true) {
         Plugin* plugin = get_instance(kind,arg,search);
