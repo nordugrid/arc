@@ -949,7 +949,7 @@ namespace Arc {
     // std::list<ResourceTargetType> CandidateTarget;
     for (std::list<ResourceTargetType>::const_iterator it = job.Resources.CandidateTarget.begin();
          it != job.Resources.CandidateTarget.end(); it++) {
-      XMLNode xmlCandidateTarget = xmlResources.NewChild("CandidateTarget");
+      XMLNode xmlCandidateTarget("<CandidateTarget/>");
       if (it->EndPointURL)
         xmlCandidateTarget.NewChild("HostName") = it->EndPointURL.str();
       if (!it->QueueName.empty()) {

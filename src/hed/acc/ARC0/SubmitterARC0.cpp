@@ -209,17 +209,13 @@ namespace Arc {
       return false;
     }
 
-    if (jobdesc.Resources.CandidateTarget.empty()) {
-      ResourceTargetType candidateTarget;
-      candidateTarget.EndPointURL = URL();
-      candidateTarget.QueueName = et.ComputingShareName;
-      candidateTarget.UseQueue = true;
-      jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
-    }
-    else if (jobdesc.Resources.CandidateTarget.front().QueueName.empty()) {
-      jobdesc.Resources.CandidateTarget.front().QueueName = et.ComputingShareName;
-      jobdesc.Resources.CandidateTarget.front().UseQueue = true;
-    }
+    // Set endpoint and queue name to the selected ExecutionTarget
+    jobdesc.Resources.CandidateTarget.clear();
+    ResourceTargetType candidateTarget;
+    candidateTarget.EndPointURL = et.Cluster;
+    candidateTarget.QueueName = et.ComputingShareName;
+    candidateTarget.UseQueue = true;
+    jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
 
     jobdesc.XRSL_elements["action"] = "request";
     jobdesc.XRSL_elements["savestate"] = "yes";

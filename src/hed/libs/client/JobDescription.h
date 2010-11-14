@@ -147,6 +147,8 @@ namespace Arc {
 
   class ResourceTargetType {
   public:
+    ResourceTargetType() :
+    UseQueue(true) {}
     URL EndPointURL;
     std::string QueueName;
     bool UseQueue;
