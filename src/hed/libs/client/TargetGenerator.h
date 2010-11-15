@@ -24,13 +24,11 @@ namespace Arc {
    * The TargetGenerator class is the umbrella class for resource
    * discovery and information retrieval (index servers and computing
    * clusters). It can also be used to locate user Grid jobs but does
-   * not collect the job details (see the arcsync CLI)). The
+   * not collect the job details. The
    * TargetGenerator loads TargetRetriever plugins (which implements
    * the actual information retrieval) from URL objects found in the
-   * UserConfig object passed to its constructor using the custem
-   * TargetRetrieverLoader. E.g. if an URL pointing to an ARC1
-   * computing resource is found in the UserConfig object the
-   * TargetRetrieverARC1 is loaded.
+   * UserConfig object passed to its constructor using the custom
+   * TargetRetrieverLoader.
    **/
 
   class TargetGenerator {
@@ -42,27 +40,61 @@ namespace Arc {
      * passed UserConfig object using the
      * UserConfig:GetSelectedServices method. From each URL a matching
      * specialized TargetRetriever plugin is loaded using the
-     * TargetRetrieverLoader.
+     * TargetRetrieverLoader. If the second parameter, startDiscovery, is
+     * specified, and matches bitwise either a value of 1, 2 or both, discovery
+     * of CEs, jobs or both will be initiated.
      *
-     * @param usercfg Reference to UserConfig object with URL objects
-     * to computing and/or index services and paths to user
-     * credentials.
+     * @param usercfg is a reference to a UserConfig object from which endpoints
+     *        to computing and/or index services will be used. The object also
+     *        hold information about user credentials.
+     * @param startDiscovery specifies whether discovery should be started
+     *        directly. It will be parsed bitwise. A value of 1 will start
+     *        CE discovery, 2 jobs, and 3 both, while 0 will not start discovery
+     *        at all. If this parameter is not specified, it defaults to 0.
      **/
-    TargetGenerator(const UserConfig& usercfg); ~TargetGenerator();
+    TargetGenerator(const UserConfig& usercfg, unsigned int startDiscovery = 0); ~TargetGenerator();
 
-    /// Find available targets
+    /// DEPRECATED: Find available targets
     /**
+     * This method is DEPRECATED, use the GetExecutionTargets() or GetJobs()
+     * method instead.
      * Method to prepare a list of chosen Targets with a specified
      * detail level. Current implementation supports finding computing
-     * clusters (ExecutionTarget) with full detail level and Grid jobs
+     * elements (ExecutionTarget) with full detail level and jobs
      * with limited detail level.
      *
      * @param targetType 0 = ExecutionTarget, 1 = Grid jobs
-     *
-     * @param detailLevel 1 = All details, 2 = Limited details (not implemented)
-     *
+     * @param detailLevel
+     * @see GetExecutionsTargets()
+     * @see GetJobs()
      **/
     void GetTargets(int targetType, int detailLevel);
+
+    /// Find available Execution Services
+    /**
+     * The endpoints specified in the UserConfig object passed to this object
+     * will be used to discover Computing Elements (ExecutionTarget) and
+     * information about the discovered CEs will be fetched. The discovery and
+     * information retrieval of targets is carried out in parallel threads to
+     * speed up the process. If a endpoint is a index service each CE
+     * registered at that service will be queried.
+     *
+     * @see GetJobs
+     **/
+    void GetExecutionTargets();
+
+    /// Find jobs at Execution Services
+    /**
+     * The endpoints specified in the UserConfig object passed to this object
+     * will be used to discover jobs at these endpoints owned by the user
+     * which is identified by the credentials specified in the passed UserConfig
+     * object. When discovering a job, the available information about this
+     * job is fetched as well. If a endpoint is a index service, each CE
+     * registered at that service will be queried.
+     *
+     * @see GetExecutionTargets
+     **/
+    void GetJobs();
 
     /// Return targets found by GetTargets
     /**
@@ -79,12 +111,22 @@ namespace Arc {
      **/
     std::list<ExecutionTarget>& ModifyFoundTargets();
 
-    /// Return Grid jobs found by GetTargets
+    /// DEPRECATED: Return jobs found by GetTargets
     /**
-     * Method to return the list of Grid jobs found by a call to the
-     * GetTargets method.
+     * This method is DEPRECATED, use the GetFoundJobs method instead.
+     * Method to return the list of jobs found by a call to the GetJobs method.
+     *
+     * @return A list of jobs in XML format is returned.
      **/
     const std::list<XMLNode*>& FoundJobs() const;
+
+    /// Return jobs found by GetJobs
+    /**
+     * Method to return the list of jobs found by a call to the GetJobs method.
+     *
+     * @return A list of the discovered jobs as Job objects is returned
+     **/
+    const std::list<Job>& GetFoundJobs() const;
 
     /// Add a new computing service to the foundServices list
     /**
@@ -121,16 +163,26 @@ namespace Arc {
      **/
     void AddTarget(const ExecutionTarget& target);
 
-    /// Add a new Job to the foundJobs list
+    /// DEPRECATED: Add a new Job to this object
     /**
-     * Method to add a new Job (usually discovered by a TargetRetriever) to the list of
-     * foundJobs in a thread secure way.
+     * This method is DEPRECATED, use the AddJob(const Job&) method instead.
+     * Method to add a new Job (usually discovered by a TargetRetriever) to the
+     * internal list of jobs in a thread secure way.
      *
      * @param job XMLNode describing the job.
-     *
      **/
     // XMLNode is reference by itself - passing it as const& has no sense
     void AddJob(const XMLNode& job);
+
+    /// Add a new Job to this object
+    /**
+     * Method to add a new Job (usually discovered by a TargetRetriever) to the
+     * internal list of jobs in a thread secure way.
+     *
+     * @param job Job describing the job.
+     * @see AddJob(const Job&)
+     **/
+    void AddJob(const Job& job);
 
     /// DEPRECATED: Prints target information
     /**
@@ -170,7 +222,8 @@ namespace Arc {
     std::list<URL> foundServices;
     std::list<URL> foundIndexServers;
     std::list<ExecutionTarget> foundTargets;
-    std::list<XMLNode*> foundJobs;
+    std::list<Job> foundJobs;
+    std::list<XMLNode*> xmlFoundJobs;
 
     Glib::Mutex serviceMutex;
     Glib::Mutex indexServerMutex;

@@ -125,7 +125,7 @@ int RUNINFO(main)(int argc, char **argv) {
 
 
   Arc::TargetGenerator targen(usercfg);
-  targen.GetTargets(0, 1);
+  targen.GetExecutionTargets();
   targen.SaveTargetInfoToStream(std::cout, longlist);
   return 0;
 }

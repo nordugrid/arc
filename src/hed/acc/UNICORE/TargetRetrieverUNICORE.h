@@ -18,15 +18,16 @@ namespace Arc {
                            const URL& url, ServiceType st);
   public:
     ~TargetRetrieverUNICORE();
-    void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
+    void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}
+    void GetExecutionTargets(TargetGenerator& mom);
+    void GetJobs(TargetGenerator& mom);
     static Plugin* Instance(PluginArgument *arg);
 
   private:
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
 
-    ThreadArg* CreateThreadArg(TargetGenerator& mom,
-                               int targetType, int detailLevel);
+    ThreadArg* CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget);
 
     static Logger logger;
   };

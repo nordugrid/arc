@@ -225,7 +225,7 @@ int RUNRESUB(main)(int argc, char **argv) {
 
   // Resubmitting jobs
   Arc::TargetGenerator targen(usercfg2);
-  targen.GetTargets(0, 1);
+  targen.GetExecutionTargets();
 
   if (targen.FoundTargets().empty()) {
     std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;

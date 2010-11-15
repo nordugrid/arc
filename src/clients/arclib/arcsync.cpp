@@ -153,12 +153,12 @@ int RUNSYNC(main)(int argc, char **argv) {
 
   //Find all jobs
   Arc::TargetGenerator targen(usercfg);
-  targen.GetTargets(1, 1);
+  targen.GetJobs();
 
   //Some dummy output
-  std::cout << "Found number of jobs: " << targen.FoundJobs().size() << std::endl;
+  std::cout << "Found number of jobs: " << targen.GetFoundJobs().size() << std::endl;
 
-  //Write extracted job info to joblist (overwrite the file)
+  //Write extracted job info to joblist
   { //start of file lock
     Arc::FileLock lock(usercfg.JobListFile());
     Arc::NS ns;
@@ -166,16 +166,18 @@ int RUNSYNC(main)(int argc, char **argv) {
 
     if (!truncate)
       jobs.ReadFromFile(usercfg.JobListFile());
-    for (std::list<Arc::XMLNode*>::const_iterator itSyncedJob = targen.FoundJobs().begin();
-         itSyncedJob != targen.FoundJobs().end(); itSyncedJob++) {
-      if (!truncate)
-        for (Arc::XMLNode j = jobs["Job"]; j; ++j)
-          if ((std::string)j["JobID"] == (std::string)(**itSyncedJob)["JobID"]) {
+    for (std::list<Arc::Job>::const_iterator itSyncedJob = targen.GetFoundJobs().begin();
+         itSyncedJob != targen.GetFoundJobs().end(); itSyncedJob++) {
+      if (!truncate) {
+        for (Arc::XMLNode j = jobs["Job"]; j; ++j) {
+          if ((std::string)j["JobID"]          == itSyncedJob->JobID.fullstr() ||
+              (std::string)j["IDFromEndpoint"] == itSyncedJob->JobID.fullstr()) {
             j.Destroy();
             break;
           }
-
-      jobs.NewChild(**itSyncedJob);
+        }
+      }
+      itSyncedJob->ToXML(jobs.NewChild("Job"));
     }
     jobs.SaveToFile(usercfg.JobListFile());
   } //end of file lock

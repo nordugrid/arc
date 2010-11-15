@@ -23,19 +23,15 @@ namespace Arc {
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
-    int targetType;
-    int detailLevel;
+    bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
-                                                  int targetType,
-                                                  int detailLevel) {
+  ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
-    arg->targetType = targetType;
-    arg->detailLevel = detailLevel;
+    arg->isExecutionTarget = isExecutionTarget;
     return arg;
   }
 
@@ -55,50 +51,55 @@ namespace Arc {
     return new TargetRetrieverARC1(*trarg, *trarg, *trarg);
   }
 
-  void TargetRetrieverARC1::GetTargets(TargetGenerator& mom, int targetType,
-                                       int detailLevel) {
+  void TargetRetrieverARC1::GetExecutionTargets(TargetGenerator& mom) {
 
     logger.msg(VERBOSE, "TargetRetriverARC1 initialized with %s service url: %s",
                tostring(serviceType), url.str());
 
-    switch (serviceType) {
-    case COMPUTING:
-      if (mom.AddService(url)) {
-        ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&InterrogateTarget, arg, &(mom.ServiceCounter()))) {
-          delete arg;
-        }
+    if (serviceType == COMPUTING && mom.AddService(url) ||
+        serviceType == INDEX     && mom.AddIndexServer(url)) {
+      ThreadArg *arg = CreateThreadArg(mom, true);
+      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+        delete arg;
       }
-      break;
-    case INDEX:
-      if (mom.AddIndexServer(url)) {
-        ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&QueryIndex, arg, &(mom.ServiceCounter()))) {
-          delete arg;
-        }
+    }
+  }
+
+  void TargetRetrieverARC1::GetJobs(TargetGenerator& mom) {
+
+    logger.msg(VERBOSE, "TargetRetriverARC1 initialized with %s service url: %s",
+               tostring(serviceType), url.str());
+
+    if (serviceType == COMPUTING && mom.AddService(url) ||
+        serviceType == INDEX     && mom.AddIndexServer(url)) {
+      ThreadArg *arg = CreateThreadArg(mom, false);
+      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+        delete arg;
       }
-      break;
     }
   }
 
   void TargetRetrieverARC1::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
-    TargetGenerator& mom = *thrarg->mom;
-    const UserConfig& usercfg = *thrarg->usercfg;
-    URL& url = thrarg->url;
+
     MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    AREXClient ac(url, cfg, usercfg.Timeout());
+    thrarg->usercfg->ApplyToConfig(cfg);
+    AREXClient ac(thrarg->url, cfg, thrarg->usercfg->Timeout());
     std::list< std::pair<URL, ServiceType> > services;
     if (!ac.listServicesFromISIS(services)) {
       delete thrarg;
       return;
     }
-    logger.msg(VERBOSE, "Found %u execution services from the index service at %s", services.size(), url.str());
+    logger.msg(VERBOSE, "Found %u execution services from the index service at %s", services.size(), thrarg->url.str());
 
     for (std::list< std::pair<URL, ServiceType> >::iterator it = services.begin(); it != services.end(); it++) {
-      TargetRetrieverARC1 r(usercfg, it->first, it->second);
-      r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
+      TargetRetrieverARC1 r(*(thrarg->usercfg), it->first, it->second);
+      if (thrarg->isExecutionTarget) {
+        r.GetExecutionTargets(*(thrarg->mom));
+      }
+      else {
+        r.GetJobs(*(thrarg->mom));
+      }
     }
 
     delete thrarg;
@@ -106,15 +107,12 @@ namespace Arc {
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
-    TargetGenerator& mom = *thrarg->mom;
-    const UserConfig& usercfg = *thrarg->usercfg;
-    int targetType = thrarg->targetType;
-    URL& url = thrarg->url;
 
-    if (targetType == 0) {
+    if (thrarg->isExecutionTarget) {
+      logger.msg(DEBUG, "Collecting ExecutionTarget (A-REX) information.");
       MCCConfig cfg;
-      usercfg.ApplyToConfig(cfg);
-      AREXClient ac(url, cfg, usercfg.Timeout());
+      thrarg->usercfg->ApplyToConfig(cfg);
+      AREXClient ac(thrarg->url, cfg, thrarg->usercfg->Timeout());
       XMLNode servicesQueryResponse;
       if (!ac.sstat(servicesQueryResponse)) {
         delete thrarg;
@@ -122,20 +120,24 @@ namespace Arc {
       }
 
       std::list<ExecutionTarget> targets;
-      ExtractTargets(url, servicesQueryResponse, targets);
+      ExtractTargets(thrarg->url, servicesQueryResponse, targets);
       for (std::list<ExecutionTarget>::const_iterator it = targets.begin(); it != targets.end(); it++) {
-        mom.AddTarget(*it);
+        thrarg->mom->AddTarget(*it);
       }
+      delete thrarg;
+      return;
     }
-    else if (targetType == 1) {
+    else {
+      logger.msg(DEBUG, "Collecting Job (A-REX jobs) information.");
+
       /*
        * If errors are encountered here there cannot be returned in usual manner
        * since this function should run in a separate thread. There might be a
        * need for reporting errors, maybe a bit flag of some kind.
        */
-      DataHandle dir_url(url, usercfg);
+      DataHandle dir_url(thrarg->url, *(thrarg->usercfg));
       if (!dir_url) {
-        logger.msg(INFO, "Failed retrieving job IDs: Unsupported url (%s) given", url.str());
+        logger.msg(INFO, "Failed retrieving job IDs: Unsupported url (%s) given", thrarg->url.str());
         delete thrarg;
         return;
       }
@@ -153,16 +155,16 @@ namespace Arc {
 
       for (std::list<FileInfo>::iterator file = files.begin();
            file != files.end(); file++) {
-        NS ns;
-        XMLNode info(ns, "Job");
-        info.NewChild("JobID") = (std::string)url.str() + "/" + file->GetName();
-        info.NewChild("Flavour") = "ARC1";
-        info.NewChild("Cluster") = url.str();
-        mom.AddJob(info);
+        Job j;
+        j.JobID = thrarg->url;
+        j.JobID.ChangePath(j.JobID.Path() + "/" + file->GetName());
+        j.Flavour = "ARC1";
+        j.Cluster = thrarg->url;
+        thrarg->mom->AddJob(j);
       }
+      delete thrarg;
+      return;
     }
-
-    delete thrarg;
   }
 
   void TargetRetrieverARC1::ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets) {

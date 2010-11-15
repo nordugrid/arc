@@ -250,7 +250,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   int retval = 0;
 
   Arc::TargetGenerator targen(usercfg);
-  targen.GetTargets(0, 1);
+  targen.GetExecutionTargets();
 
   if (targen.FoundTargets().empty()) {
     std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;

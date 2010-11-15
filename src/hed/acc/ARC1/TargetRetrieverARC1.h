@@ -19,7 +19,9 @@ namespace Arc {
                         const URL& url, ServiceType st);
   public:
     ~TargetRetrieverARC1();
-    virtual void GetTargets(TargetGenerator& mom, int targetType, int detailLevel);
+    virtual void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}
+    virtual void GetExecutionTargets(TargetGenerator& mom);
+    virtual void GetJobs(TargetGenerator& mom);
     static Plugin* Instance(PluginArgument *arg);
 
   protected:
@@ -29,8 +31,7 @@ namespace Arc {
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
 
-    ThreadArg* CreateThreadArg(TargetGenerator& mom,
-                               int targetType, int detailLevel);
+    ThreadArg* CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget);
 
     static Logger logger;
   };

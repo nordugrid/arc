@@ -25,19 +25,15 @@ namespace Arc {
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
-    int targetType;
-    int detailLevel;
+    bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverUNICORE::CreateThreadArg(TargetGenerator& mom,
-                                                     int targetType,
-                                                     int detailLevel) {
+  ThreadArg* TargetRetrieverUNICORE::CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
-    arg->targetType = targetType;
-    arg->detailLevel = detailLevel;
+    arg->isExecutionTarget = isExecutionTarget;
     return arg;
   }
 
@@ -57,34 +53,40 @@ namespace Arc {
     return new TargetRetrieverUNICORE(*trarg, *trarg, *trarg);
   }
 
-  void TargetRetrieverUNICORE::GetTargets(TargetGenerator& mom, int targetType,
-                                          int detailLevel) {
-
+  void TargetRetrieverUNICORE::GetExecutionTargets(TargetGenerator& mom) {
     logger.msg(INFO, "TargetRetriverUNICORE initialized with %s service url: %s",
                tostring(serviceType), url.str());
 
-    switch (serviceType) {
-    case COMPUTING:
-      if (mom.AddService(url)) {
-        ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&InterrogateTarget, arg, &(mom.ServiceCounter()))) {
-          delete arg;
-        }
+    if (serviceType == COMPUTING && mom.AddService(url) ||
+        serviceType == INDEX     && mom.AddIndexServer(url)) {
+      ThreadArg *arg = CreateThreadArg(mom, true);
+      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+        delete arg;
       }
-      break;
-    case INDEX:
-      if (mom.AddIndexServer(url)) {
-        ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&QueryIndex, arg, &(mom.ServiceCounter()))) {
-          delete arg;
-        }
+    }
+  }
+
+  void TargetRetrieverUNICORE::GetJobs(TargetGenerator& mom) {
+    logger.msg(INFO, "TargetRetriverUNICORE initialized with %s service url: %s",
+               tostring(serviceType), url.str());
+
+    if (serviceType == COMPUTING && mom.AddService(url) ||
+        serviceType == INDEX     && mom.AddIndexServer(url)) {
+      ThreadArg *arg = CreateThreadArg(mom, false);
+      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+        delete arg;
       }
-      break;
     }
   }
 
   void TargetRetrieverUNICORE::QueryIndex(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
+
+    if (!thrarg->isExecutionTarget) {
+      delete thrarg;
+      return;
+    }
+
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 
@@ -96,7 +98,12 @@ namespace Arc {
     uc.listTargetSystemFactories(beses);
     for (std::list< std::pair<URL, ServiceType> >::iterator it = beses.begin(); it != beses.end(); it++) {
       TargetRetrieverUNICORE r(usercfg, it->first, it->second);
-      r.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
+      if (thrarg->isExecutionTarget) {
+        r.GetExecutionTargets(mom);
+      }
+      else {
+        r.GetJobs(mom);
+      }
     }
 
     delete thrarg;
@@ -104,6 +111,12 @@ namespace Arc {
 
   void TargetRetrieverUNICORE::InterrogateTarget(void *arg) {
     ThreadArg *thrarg = (ThreadArg*)arg;
+
+    if (!thrarg->isExecutionTarget) {
+      delete thrarg;
+      return;
+    }
+
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 
@@ -129,8 +142,8 @@ namespace Arc {
     target.DomainName = url.Host();
 
 
-    delete thrarg;
     mom.AddTarget(target);
+    delete thrarg;
   }
 
 } // namespace Arc

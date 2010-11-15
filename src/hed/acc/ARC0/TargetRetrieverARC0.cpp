@@ -23,19 +23,15 @@ namespace Arc {
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
-    int targetType;
-    int detailLevel;
+    bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverARC0::CreateThreadArg(TargetGenerator& mom,
-                                                  int targetType,
-                                                  int detailLevel) {
+  ThreadArg* TargetRetrieverARC0::CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
-    arg->targetType = targetType;
-    arg->detailLevel = detailLevel;
+    arg->isExecutionTarget = isExecutionTarget;
     return arg;
   }
 
@@ -55,29 +51,29 @@ namespace Arc {
     return new TargetRetrieverARC0(*trarg, *trarg, *trarg);
   }
 
-  void TargetRetrieverARC0::GetTargets(TargetGenerator& mom, int targetType,
-                                       int detailLevel) {
-
+  void TargetRetrieverARC0::GetExecutionTargets(TargetGenerator& mom) {
     logger.msg(VERBOSE, "TargetRetriverARC0 initialized with %s service url: %s",
                tostring(serviceType), url.str());
 
-    switch (serviceType) {
-    case COMPUTING:
-      if (mom.AddService(url)) {
-        ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&InterrogateTarget, arg, &(mom.ServiceCounter()))) {
-          delete arg;
-        }
+    if (serviceType == COMPUTING && mom.AddService(url) ||
+        serviceType == INDEX     && mom.AddIndexServer(url)) {
+      ThreadArg *arg = CreateThreadArg(mom, true);
+      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+        delete arg;
       }
-      break;
-    case INDEX:
-      if (mom.AddIndexServer(url)) {
-        ThreadArg *arg = CreateThreadArg(mom, targetType, detailLevel);
-        if (!CreateThreadFunction(&QueryIndex, arg, &(mom.ServiceCounter()))) {
-          delete arg;
-        }
+    }
+  }
+
+  void TargetRetrieverARC0::GetJobs(TargetGenerator& mom) {
+    logger.msg(VERBOSE, "TargetRetriverARC0 initialized with %s service url: %s",
+               tostring(serviceType), url.str());
+
+    if (serviceType == COMPUTING && mom.AddService(url) ||
+        serviceType == INDEX     && mom.AddIndexServer(url)) {
+      ThreadArg *arg = CreateThreadArg(mom, false);
+      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+        delete arg;
       }
-      break;
     }
   }
 
@@ -137,7 +133,12 @@ namespace Arc {
                                         (std::string)(*it)["Mds-Service-port"] + "/" +
                                         (std::string)(*it)["Mds-Service-Ldap-suffix"]),
                                     INDEX);
-      retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
+      if (thrarg->isExecutionTarget) {
+        retriever.GetExecutionTargets(mom);
+      }
+      else {
+        retriever.GetJobs(mom);
+      }
     }
 
     // GRISes
@@ -156,7 +157,12 @@ namespace Arc {
                                         (std::string)(*it)["Mds-Service-port"] + "/" +
                                         (std::string)(*it)["Mds-Service-Ldap-suffix"]),
                                     COMPUTING);
-      retriever.GetTargets(mom, thrarg->targetType, thrarg->detailLevel);
+      if (thrarg->isExecutionTarget) {
+        retriever.GetExecutionTargets(mom);
+      }
+      else {
+        retriever.GetJobs(mom);
+      }
     }
 
     delete thrarg;
@@ -166,7 +172,6 @@ namespace Arc {
     ThreadArg *thrarg = (ThreadArg*)arg;
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
-    int targetType = thrarg->targetType;
 
     //Create credential object in order to get the user DN
     Credential credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
@@ -179,12 +184,12 @@ namespace Arc {
     URL url = thrarg->url;
     url.ChangeLDAPScope(URL::subtree);
 
-    if (targetType == 0)
+    if (thrarg->isExecutionTarget)
       url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
                            "(objectclass=nordugrid-queue)"
                            "(nordugrid-authuser-sn=" +
                            credential.GetIdentityName() + "))");
-    else if (targetType == 1)
+    else
       url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" +
                            credential.GetIdentityName() + "))");
 
@@ -221,7 +226,7 @@ namespace Arc {
 
     XMLNode xmlresult(result);
 
-    if (targetType == 0) {
+    if (thrarg->isExecutionTarget) {
 
       XMLNodeList queues =
         xmlresult.XPathLookup("//nordugrid-queue-name"
@@ -517,38 +522,31 @@ namespace Arc {
         mom.AddTarget(target);
       }
     }
-    else if (targetType == 1) {
+    else {
 
       XMLNodeList jobs =
         xmlresult.XPathLookup("//nordugrid-job-globalid"
                               "[objectClass='nordugrid-job']", NS());
 
       for (XMLNodeList::iterator it = jobs.begin(); it != jobs.end(); it++) {
-
-        NS ns;
-        XMLNode info(ns, "Job");
-
+        Job j;
         if ((*it)["nordugrid-job-globalid"])
-          info.NewChild("JobID") =
-            (std::string)(*it)["nordugrid-job-globalid"];
+          j.JobID = (std::string)(*it)["nordugrid-job-globalid"];
         if ((*it)["nordugrid-job-jobname"])
-          info.NewChild("Name") = (std::string)(*it)["nordugrid-job-jobname"];
+          j.Name = (std::string)(*it)["nordugrid-job-jobname"];
         if ((*it)["nordugrid-job-submissiontime"])
-          info.NewChild("LocalSubmissionTime") =
-            (std::string)(*it)["nordugrid-job-submissiontime"];
+          j.LocalSubmissionTime = (std::string)(*it)["nordugrid-job-submissiontime"];
 
-        info.NewChild("Flavour") = "ARC0";
-        info.NewChild("Cluster") = url.str();
+        j.Flavour = "ARC0";
+        j.Cluster = url;
 
         URL infoEndpoint(url);
         infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
-                                      (std::string)
-                                      (*it)["nordugrid-job-globalid"] + ")");
+                                      (std::string)(*it)["nordugrid-job-globalid"] + ")");
         infoEndpoint.ChangeLDAPScope(URL::subtree);
+        j.InfoEndpoint = infoEndpoint;
 
-        info.NewChild("InfoEndpoint") = infoEndpoint.str();
-
-        mom.AddJob(info);
+        mom.AddJob(j);
       }
     }
 

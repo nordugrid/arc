@@ -4,27 +4,11 @@
 #include <config.h>
 #endif
 
-/*
-#include <arc/ArcConfig.h>
-#include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/Thread.h>
-#include <arc/URL.h>
-#include <arc/XMLNode.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/message/MCC.h>
-#include <arc/data/DataHandle.h>
-#include <glibmm/stringutils.h>
-
-#include "AREXClient.h"
-*/
 #include <arc/client/TargetGenerator.h>
 
 #include "TargetRetrieverBES.h"
 
 namespace Arc {
-
-  const std::string alphanum("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
   Logger TargetRetrieverBES::logger(TargetRetriever::logger, "BES");
 
@@ -42,28 +26,24 @@ namespace Arc {
     return new TargetRetrieverBES(*trarg, *trarg, *trarg);
   }
 
-  void TargetRetrieverBES::GetTargets(TargetGenerator& mom, int /* targetType */,
-                                      int /* detailLevel */) {
+  void TargetRetrieverBES::GetExecutionTargets(TargetGenerator& mom) {
+    if (serviceType == INDEX) {
+      return;
+    }
 
     logger.msg(VERBOSE, "TargetRetriverBES initialized with %s service url: %s",
                serviceType, url.str());
 
-    switch (serviceType) {
-    case COMPUTING:
-      if (mom.AddService(url)) {
-        ExecutionTarget target;
-        target.GridFlavour = flavour;
-        target.Cluster = url;
-        target.url = url;
-        target.InterfaceName = flavour;
-        target.Implementor = "NorduGrid";
-        target.DomainName = url.Host();
-        target.HealthState = "ok";
-        mom.AddTarget(target);
-      }
-      break;
-    case INDEX:
-      break;
+    if (mom.AddService(url)) {
+      ExecutionTarget target;
+      target.GridFlavour = flavour;
+      target.Cluster = url;
+      target.url = url;
+      target.InterfaceName = flavour;
+      target.Implementor = "NorduGrid";
+      target.DomainName = url.Host();
+      target.HealthState = "ok";
+      mom.AddTarget(target);
     }
   }
 
