@@ -257,8 +257,8 @@ Requires: %{name}-ldap-infosys = %{version}
 %description giis
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC). 
- 
+ Connector (ARC).
+
  The GIIS is the Information Index Service used by ARC, This service is
  used to set up a ldap-based server that local information systems register
  to.
@@ -418,7 +418,7 @@ Resource Connector (ARC).
 The ARC middleware's core functionality, the Hosting Environment
 Daemon (HED) can be extended for novel services. Considerable parts
 of a regular installation of a regular installation of the NorduGrid
-represent such modules. 
+represent such modules.
 
 %package python
 Summary: ARC Python wrapper
@@ -858,6 +858,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccARC1.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
+%{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %{_libdir}/%{pkgdir}/libaccUNICORE.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libdmcarc.so
@@ -873,6 +874,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccARC1.apd
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
+%{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %{_libdir}/%{pkgdir}/libaccUNICORE.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libdmcarc.apd

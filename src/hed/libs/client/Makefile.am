@@ -4,7 +4,7 @@ noinst_PROGRAMS = test_jobdescription
 if XMLSEC_ENABLED
 LIBS_WITH_XMLSEC = $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
-CFLAGS_WITH_XMLSEC = $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)  
+CFLAGS_WITH_XMLSEC = $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 HEADER_WITH_XMLSEC = ClientSAML2SSO.h
 SOURCE_WITH_XMLSEC = ClientSAML2SSO.cpp
 else
@@ -19,14 +19,12 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
-	ARCJSDLParser.h JDLParser.h XRSLParser.h RSLParser.h \
 	ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	JobState.cpp Job.cpp JobController.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
-	ARCJSDLParser.cpp JDLParser.cpp XRSLParser.cpp RSLParser.cpp \
 	ClientInterface.cpp \
 	ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \

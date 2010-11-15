@@ -10,6 +10,7 @@
 #include <arc/XMLNode.h>
 #include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/client/JobDescription.h>
 
 #include "JDLParser.h"
 
@@ -19,9 +20,13 @@
 namespace Arc {
 
   JDLParser::JDLParser()
-    : JobDescriptionParser() {}
+    : JobDescriptionParser("JDL") {}
 
   JDLParser::~JDLParser() {}
+
+  Plugin* JDLParser::Instance(PluginArgument *arg) {
+    return new JDLParser();
+  }
 
   bool JDLParser::splitJDL(const std::string& original_string,
                            std::list<std::string>& lines) const {

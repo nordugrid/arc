@@ -5,12 +5,9 @@
 #endif
 
 #include <arc/StringConv.h>
+#include <arc/client/JobDescriptionParser.h>
 
 #include "JobDescription.h"
-
-#include "XRSLParser.h"
-#include "JDLParser.h"
-#include "ARCJSDLParser.h"
 
 
 #define INTPRINT(OUT, X, Y) if ((X) > -1) \
@@ -22,6 +19,8 @@
 namespace Arc {
 
   Logger JobDescription::logger(Logger::getRootLogger(), "JobDescription");
+
+  JobDescriptionParserLoader JobDescription::jdpl;
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
 
@@ -325,35 +324,13 @@ namespace Arc {
       return false;
     }
 
-    {
-      logger.msg(VERBOSE, "Try to parse as XRSL");
-      XRSLParser parser;
-      parser.SetHints(hints);
-      *this = parser.Parse(source);
+    for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
+      assert(it.operator->() != NULL);
+      logger.msg(VERBOSE, "Try to parse as %s", it->GetSourceFormat());
+      it->SetHints(hints);
+      *this = it->Parse(source);
       if (*this) {
-        sourceFormat = "xrsl";
-        return true;
-      }
-    }
-
-    {
-      logger.msg(VERBOSE, "Try to parse as JDL");
-      JDLParser parser;
-      parser.SetHints(hints);
-      *this = parser.Parse(source);
-      if (*this) {
-        sourceFormat = "jdl";
-        return true;
-      }
-    }
-
-    {
-      logger.msg(VERBOSE, "Try to parse as ARCJSDL");
-      ARCJSDLParser parser;
-      parser.SetHints(hints);
-      *this = parser.Parse(source);
-      if (*this) {
-        sourceFormat = "arcjsdl";
+        sourceFormat = it->GetSourceFormat();
         return true;
       }
     }
@@ -363,42 +340,26 @@ namespace Arc {
 
   // Generate the output in the requested format
   std::string JobDescription::UnParse(const std::string& format) const {
-    std::string product;
-
     // Generate the output text with the right parser class
     if (!*this) {
       logger.msg(VERBOSE, "There is no successfully parsed source");
-      return product;
+      return "";
     }
 
-    if (lower(format) == "jdl") {
-      logger.msg(VERBOSE, "Generate JDL output");
-      JDLParser parser;
-      parser.SetHints(hints);
-      product = parser.UnParse(*this);
-      if (product.empty())
-        logger.msg(ERROR, "Generating %s output was unsuccessful", format);
+    for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
+      if (lower(format) == lower(it->GetSourceFormat())) {
+      logger.msg(VERBOSE, "Generate %s output", format);
+        it->SetHints(hints);
+        std::string product = it->UnParse(*this);
+        if (product.empty()) {
+          logger.msg(ERROR, "Generating %s output was unsuccessful", format);
+        }
+        return product;
+      }
     }
-    else if (lower(format) == "xrsl") {
-      logger.msg(VERBOSE, "Generate XRSL output");
-      XRSLParser parser;
-      parser.SetHints(hints);
-      product = parser.UnParse(*this);
-      if (product.empty())
-        logger.msg(ERROR, "Generating %s output was unsuccessful", format);
-    }
-    else if (lower(format) == "arcjsdl") {
-      logger.msg(VERBOSE, "Generate ARCJSDL output");
-      ARCJSDLParser parser;
-      parser.SetHints(hints);
-      product = parser.UnParse(*this);
-      if (product.empty())
-        logger.msg(ERROR, "Generating %s output was unsuccessful", format);
-    }
-    else
-      logger.msg(ERROR, "Unknown output format: %s", format);
 
-    return product;
+    logger.msg(ERROR, "Unknown output format: %s", format);
+    return "";
   }
 
   bool JobDescription::getSourceFormat(std::string& _sourceFormat) const {

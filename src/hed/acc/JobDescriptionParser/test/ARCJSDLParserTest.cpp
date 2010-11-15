@@ -4,6 +4,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/client/JobDescription.h>
 
 #include "../ARCJSDLParser.h"
 

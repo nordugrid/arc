@@ -6,7 +6,7 @@
 #include <list>
 #include <string>
 
-#include "JobDescriptionParser.h"
+#include <arc/client/JobDescriptionParser.h>
 
 /** JDLParser
  * The JDLParser class, derived from the JobDescriptionParser class, is a job
@@ -25,6 +25,9 @@ namespace Arc {
     ~JDLParser();
     JobDescription Parse(const std::string& source) const;
     std::string UnParse(const JobDescription& job) const;
+
+    static Plugin* Instance(PluginArgument *arg);
+
   private:
     bool splitJDL(const std::string& original_string,
                   std::list<std::string>& lines) const;

@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "JobDescriptionParser.h"
+#include <arc/client/JobDescriptionParser.h>
 
 /** ARCJSDLParser
  * The ARCJSDLParser class, derived from the JobDescriptionParser class, is
@@ -24,6 +24,10 @@
 
 namespace Arc {
 
+  template<typename T> class Range;
+  class Software;
+  class SoftwareRequirement;
+
   class ARCJSDLParser
     : public JobDescriptionParser {
   public:
@@ -31,6 +35,10 @@ namespace Arc {
     ~ARCJSDLParser();
     JobDescription Parse(const std::string& source) const;
     std::string UnParse(const JobDescription& job) const;
+    const std::string& GetSourceFormat();
+
+    static Plugin* Instance(PluginArgument *arg);
+
   private:
     bool parseSoftware(XMLNode xmlSoftware, SoftwareRequirement& sr) const;
     void outputSoftware(const SoftwareRequirement& sr, XMLNode& xmlSoftware) const;

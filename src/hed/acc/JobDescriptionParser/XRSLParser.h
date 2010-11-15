@@ -6,7 +6,7 @@
 #include <list>
 #include <string>
 
-#include "JobDescriptionParser.h"
+#include <arc/client/JobDescriptionParser.h>
 
 /** XRSLParser
  * The XRSLParser class, derived from the JobDescriptionParser class, is a
@@ -26,6 +26,9 @@ namespace Arc {
     ~XRSLParser();
     JobDescription Parse(const std::string& source) const;
     std::string UnParse(const JobDescription& job) const;
+
+    static Plugin* Instance(PluginArgument *arg);
+
   private:
     bool Parse(const RSL *r, JobDescription& job) const;
     static bool SingleValue(const RSLCondition *c,

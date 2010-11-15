@@ -4,6 +4,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/StringConv.h>
+#include <arc/client/JobDescription.h>
 
 #include "../JDLParser.h"
 

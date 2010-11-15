@@ -1842,6 +1842,8 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/PythonBroker/Makefile
+                 src/hed/acc/JobDescriptionParser/Makefile
+                 src/hed/acc/JobDescriptionParser/test/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile
                  src/hed/dmc/gridftp/Makefile

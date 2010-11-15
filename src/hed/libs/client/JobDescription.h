@@ -28,6 +28,8 @@
 
 namespace Arc {
 
+  class JobDescriptionParserLoader;
+
   template<class T>
   class Range {
   public:
@@ -324,6 +326,8 @@ namespace Arc {
     static Logger logger;
 
     std::map<std::string,std::string> hints;
+
+    static JobDescriptionParserLoader jdpl;
   };
 
 } // namespace Arc

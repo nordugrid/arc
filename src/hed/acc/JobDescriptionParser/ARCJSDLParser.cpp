@@ -19,9 +19,13 @@
 namespace Arc {
 
   ARCJSDLParser::ARCJSDLParser()
-    : JobDescriptionParser() {}
+    : JobDescriptionParser("ARCJSDL") {}
 
   ARCJSDLParser::~ARCJSDLParser() {}
+
+  Plugin* ARCJSDLParser::Instance(PluginArgument *arg) {
+    return new ARCJSDLParser();
+  }
 
   static void XmlErrorHandler(void* /* ctx */, const char* /* msg */) {
     return;
@@ -947,12 +951,14 @@ namespace Arc {
     }
 
     // std::list<ResourceTargetType> CandidateTarget;
+    logger.msg(INFO, "job.Resources.CandidateTarget.size() = %d", job.Resources.CandidateTarget.size());
     for (std::list<ResourceTargetType>::const_iterator it = job.Resources.CandidateTarget.begin();
          it != job.Resources.CandidateTarget.end(); it++) {
       XMLNode xmlCandidateTarget("<CandidateTarget/>");
       if (it->EndPointURL)
         xmlCandidateTarget.NewChild("HostName") = it->EndPointURL.str();
       if (!it->QueueName.empty()) {
+        logger.msg(INFO, "job.Resources.CandidateTarget.QueueName = %s", it->QueueName);
         XMLNode queue = xmlCandidateTarget.NewChild("QueueName") = it->QueueName;
         if (!it->UseQueue) {
           queue.NewAttribute("require") = "ne";
