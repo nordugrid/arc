@@ -252,30 +252,16 @@ int RUNRESUB(main)(int argc, char **argv) {
     jobdesc.Parse(it->JobDescription);
     jobdesc.Identification.ActivityOldId = it->ActivityOldID;
     jobdesc.Identification.ActivityOldId.push_back(it->JobID.str());
-    ChosenBroker->PreFilterTargets(targen.FoundTargets(), jobdesc);
-    while (true) {
-      const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
-      if (!target) {
-        std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
-        resubmittedJobs.pop_back();
-        break;
-      }
 
-      Arc::Submitter *submitter = target->GetSubmitter(usercfg2);
-
-      //submit the job
-      if (!submitter->Submit(jobdesc, resubmittedJobs.back())) {
-        std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
-        continue;
-      }
-
-      ChosenBroker->RegisterJobsubmission();
+    if (ChosenBroker->Submit(targen.FoundTargets(), jobdesc, resubmittedJobs.back())) {
       std::cout << Arc::IString("Job resubmitted with new jobid: %s",
                                 resubmittedJobs.back().JobID.str()) << std::endl;
-
       jobs.push_back(it->JobID.str());
-      break;
-    } //end loop over all possible targets
+    }
+    else {
+      std::cout << Arc::IString("Job resubmission failed, no more possible targets") << std::endl;
+      resubmittedJobs.pop_back();
+    }
   } //end loop over all job descriptions
 
   {

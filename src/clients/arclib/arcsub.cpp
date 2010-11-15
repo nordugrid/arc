@@ -274,32 +274,14 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
     submittedJobs.push_back(Arc::Job());
-
-    ChosenBroker->PreFilterTargets(targen.FoundTargets(), *it);
-
-    while (true) {
-      const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
-
-      if (!target) {
-        std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
-        submittedJobs.pop_back();
-        break;
-      }
-
-      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
-
-      //submit the job
-      if (!submitter->Submit(*it, submittedJobs.back())) {
-        std::cout << Arc::IString("Submission to %s failed, trying next target", target->url.str()) << std::endl;
-        continue;
-      }
-
-      ChosenBroker->RegisterJobsubmission();
-      std::cout << Arc::IString("Job submitted with jobid: %s", submittedJobs.back().JobID.str())
-                << std::endl;
-
-      break;
-    } //end loop over all possible targets
+    if (ChosenBroker->Submit(targen.FoundTargets(), *it, submittedJobs.back())) {
+      std::cout << Arc::IString("Job submitted with jobid: %s",
+                                submittedJobs.back().JobID.str()) << std::endl;
+    }
+    else {
+      std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
+      submittedJobs.pop_back();
+    }
   } //end loop over all job descriptions
 
   {

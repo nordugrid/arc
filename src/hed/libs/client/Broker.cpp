@@ -10,6 +10,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/Job.h>
 #include <arc/loader/FinderLoader.h>
 
 namespace Arc {
@@ -414,18 +415,41 @@ namespace Arc {
   }
 
   const ExecutionTarget* Broker::GetBestTarget() {
-    if (PossibleTargets.size() <= 0 || current == PossibleTargets.end())
+    if (PossibleTargets.empty() || current == PossibleTargets.end()) {
       return NULL;
+    }
 
     if (!TargetSortingDone) {
       logger.msg(DEBUG, "Target sorting not done, sorting them now");
       SortTargets();
       current = PossibleTargets.begin();
     }
-    else
+    else {
       current++;
+    }
 
     return (current != PossibleTargets.end() ? *current : NULL);
+  }
+
+  bool Broker::Submit(const std::list<ExecutionTarget>& targets,
+                      const JobDescription& jobdescription, Job& job) {
+    PreFilterTargets(targets, jobdescription);
+    if (PossibleTargets.empty()) {
+      return false;
+    }
+
+    SortTargets();
+
+    for (std::list<const ExecutionTarget*>::iterator it = PossibleTargets.begin();
+         it != PossibleTargets.end(); it++) {
+      if ((*it)->Submit(usercfg, jobdescription, job)) {
+        current = it;
+        RegisterJobsubmission();
+        return true;
+      }
+    }
+
+    return false;
   }
 
   void Broker::RegisterJobsubmission() {

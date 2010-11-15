@@ -12,6 +12,7 @@
 namespace Arc {
 
   class ExecutionTarget;
+  class Job;
   class JobDescription;
   class Logger;
   class UserConfig;
@@ -43,6 +44,9 @@ namespace Arc {
      */
     void PreFilterTargets(const std::list<ExecutionTarget>& targets,
                           const JobDescription& job);
+
+    bool Submit(const std::list<ExecutionTarget>& targets,
+                const JobDescription& jobdescription, Job& job);
 
     /// Register a job submission to the current target
     void RegisterJobsubmission();
