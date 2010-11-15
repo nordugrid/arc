@@ -54,7 +54,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
     int max_per_dn;
     int max_total;
     jobs_cfg_->GetMaxJobs(max_active,max_running,max_per_dn,max_total);
-    if(jobs_total >= max_total) {
+    if(max_total > 0 && jobs_total >= max_total) {
       logger_.msg(Arc::ERROR, "CreateActivity: max jobs total limit reached");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Reached limit of total allowed jobs");
       GenericFault(fault);
