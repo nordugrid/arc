@@ -364,7 +364,10 @@ namespace Arc {
     MCC_Status r = client.process("HEAD", path, &request, &info, &inbuf);
     if (inbuf) delete inbuf;
     // TODO: handle redirects
-    if ((!r) || (info.code != 200)) return DataStatus::StatError;
+    if ((!r) || (info.code != 200)) {
+      if(info.code == 404) return DataStatus::StatNotPresentError;
+      return DataStatus::StatError;
+    }
     // Fetch known metadata
     file.SetMetaData("path", path);
     std::string type = info.type;
@@ -431,10 +434,11 @@ namespace Arc {
 
     FileInfo file;
     DataStatus r = do_stat(curl.FullPath(), *client, file);
-    if(!r) return DataStatus::ListError;
-    if(file.CheckSize()) size = file.GetSize();
-    if(file.CheckCreated()) created = file.GetCreated();
-    if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+    if(r) {
+      if(file.CheckSize()) size = file.GetSize();
+      if(file.CheckCreated()) created = file.GetCreated();
+      if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+    }
 
     DataBuffer buffer;
 
