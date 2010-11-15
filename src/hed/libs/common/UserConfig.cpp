@@ -178,7 +178,7 @@ namespace Arc {
       logger.msg(WARNING, "User configuration file (%s) does not exist or cannot be loaded.", conffile);
       return;
     }
-    else if (!LoadConfigurationFile(conffile)) {
+    else if (!LoadConfigurationFile(conffile, !jfile.empty())) {
       logger.msg(WARNING, "User configuration file (%s) contains errors.", conffile);
       return;
     }
