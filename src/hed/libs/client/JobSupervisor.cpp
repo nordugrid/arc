@@ -24,7 +24,11 @@ namespace Arc {
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobs)
     : jobsFound(false) {
-    URLListMap jobids;
+    /* Order selected jobs by flavour and then ID. A map is used so a job is only added once.
+     jobmap[Flavour][IDFromEndpoint] = Job;
+     */
+    std::map<std::string, std::map<std::string, Job> > jobmap;
+    XMLNodeList xmljobs;
 
     Config jobstorage;
     if (!usercfg.JobListFile().empty()) {
@@ -32,100 +36,80 @@ namespace Arc {
       jobstorage.ReadFromFile(usercfg.JobListFile());
     }
 
-    std::list<std::string> controllers;
-
     if (!jobs.empty()) {
-
-      logger.msg(VERBOSE, "Identifying needed job controllers according to "
-                 "specified jobs");
-
       for (std::list<std::string>::const_iterator it = jobs.begin();
            it != jobs.end(); it++) {
         std::string strJobID = *it;
-        // Remove trailing slashes '/'.
+        // Remove trailing slashes '/' from input (jobs).
         const std::string::size_type pos = strJobID.find_last_not_of("/");
-        if (pos != std::string::npos)
+        if (pos != std::string::npos) {
           strJobID = strJobID.substr(0, pos + 1);
+        }
 
-        XMLNodeList xmljobs =
-          jobstorage.XPathLookup("//Job[JobID='" + strJobID + "' or "
-                                 "Name='" + *it + "']", NS());
+        xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + strJobID + "']", NS());
+        if (xmljobs.empty()) { // Included for backwards compatibility.
+          xmljobs = jobstorage.XPathLookup("//Job[JobID='" + strJobID + "']", NS());
+        }
+
+        // Sanity check. A Job ID should be unique, thus the following warning should never be shown.
+        if (xmljobs.size() > 1) {
+          logger.msg(WARNING, "Job list (%s) contains %d jobs with identical IDs, however only one will be processed.", usercfg.JobListFile(), xmljobs.size());
+        }
+
+        // No jobs in job list matched the string as job id, try job name. Note: Multiple jobs can have identical names.
+        if (xmljobs.empty()) {
+          xmljobs = jobstorage.XPathLookup("//Job[Name='" + *it + "']", NS());
+        }
 
         if (xmljobs.empty()) {
           logger.msg(WARNING, "Job not found in job list: %s", *it);
           continue;
         }
-        else
-          jobsFound = true;
 
         for (XMLNodeList::iterator xit = xmljobs.begin();
              xit != xmljobs.end(); xit++) {
-          const std::string flavour = (std::string)(*xit)["Flavour"];
-          jobids[flavour].push_back((std::string)(*xit)["JobID"]);
+          std::string jobid = ((*xit)["IDFromEndpoint"] ? (std::string)(*xit)["IDFromEndpoint"] : (std::string)(*xit)["JobID"]);
+          jobmap[(std::string)(*xit)["Flavour"]][jobid] = *xit;
+        }
+      }
+    }
 
-          if (std::find(controllers.begin(), controllers.end(),
-                        flavour) == controllers.end()) {
-            logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
-                       flavour);
-            controllers.push_back(flavour);
+    xmljobs.clear();
+    if (!usercfg.GetSelectedServices(COMPUTING).empty()) {
+      for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
+           it != usercfg.GetSelectedServices(COMPUTING).end(); it++) {
+        for (std::list<URL>::const_iterator itCluster = it->second.begin(); itCluster != it->second.end(); itCluster++) {
+          xmljobs = jobstorage.XPathLookup("//Job[Cluster='" + itCluster->str() + "']", NS());
+          for (XMLNodeList::iterator xit = xmljobs.begin();
+               xit != xmljobs.end(); xit++) {
+            std::string jobid = ((*xit)["IDFromEndpoint"] ? (std::string)(*xit)["IDFromEndpoint"] : (std::string)(*xit)["JobID"]);
+            jobmap[it->first][jobid] = *xit;
           }
         }
       }
     }
 
-    if (!usercfg.GetSelectedServices(COMPUTING).empty()) {
-
-      logger.msg(VERBOSE, "Identifying needed job controllers according to "
-                 "specified resources");
-
-      for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
-           it != usercfg.GetSelectedServices(COMPUTING).end(); it++) {
-        if (std::find(controllers.begin(), controllers.end(),
-                      it->first) == controllers.end()) {
-          std::list<URL>::const_iterator itCluster = it->second.begin();
-          for (; itCluster != it->second.end(); itCluster++)
-            if (jobstorage.XPathLookup("//Job[Cluster='" + itCluster->str() + "']", NS()).size() > 0)
-              break;
-
-          if (itCluster == it->second.end()) // No jobs found at the specified cluster.
-            continue;
-
-          jobsFound = true;
-          logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
-                     it->first);
-          controllers.push_back(it->first);
-        }
+    xmljobs.clear();
+    if (jobs.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
+      xmljobs = jobstorage.Path("Job");
+      for (XMLNodeList::iterator xit = xmljobs.begin();
+           xit != xmljobs.end(); xit++) {
+        std::string jobid = ((*xit)["IDFromEndpoint"] ? (std::string)(*xit)["IDFromEndpoint"] : (std::string)(*xit)["JobID"]);
+        jobmap[(std::string)(*xit)["Flavour"]][jobid] = *xit;
       }
     }
 
-    if (jobs.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
+    jobsFound = (jobmap.size() > 0);
 
-      logger.msg(VERBOSE, "Identifying needed job controllers according to "
-                 "all jobs present in job list");
-
-      XMLNodeList xmljobs = jobstorage.Path("Job");
-
-      if (xmljobs.empty())
-        return;
-
-      jobsFound = true;
-
-      for (XMLNodeList::iterator it = xmljobs.begin();
-           it != xmljobs.end(); it++)
-        if (std::find(controllers.begin(), controllers.end(),
-                      (std::string)(*it)["Flavour"]) == controllers.end()) {
-          std::string flavour = (*it)["Flavour"];
-          logger.msg(VERBOSE, "Need job controller for Grid flavour %s",
-                     flavour);
-          controllers.push_back(flavour);
+    for (std::map<std::string, std::map<std::string, Job> >::iterator it = jobmap.begin();
+         it != jobmap.end(); it++) {
+      JobController *JC = loader.load(it->first, usercfg);
+      if (JC) {
+        for (std::map<std::string, Job>::iterator itJobs = it->second.begin();
+             itJobs != it->second.end(); itJobs++) {
+          JC->FillJobStore(itJobs->second);
         }
-    }
-
-    for (std::list<std::string>::iterator it = controllers.begin();
-         it != controllers.end(); it++) {
-      JobController *JC = loader.load(*it, usercfg);
-      if (JC)
-        JC->FillJobStore(jobids[*it]);
+      }
     }
   }
 
