@@ -231,6 +231,7 @@ namespace Arc {
         cond_.signal();
       };
       lock_.unlock();
+      return true;
     };
   };
 
