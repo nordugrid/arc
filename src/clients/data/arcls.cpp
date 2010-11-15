@@ -25,8 +25,8 @@ static bool arcls(const Arc::URL& dir_url,
            bool show_details, // longlist
            bool show_urls,    // locations
            bool show_meta,    // metadata
-           bool no_list,      // nolist
-           bool force_list,      // nolist
+           bool no_list,      // don't list dirs
+           bool force_list,   // force dir list
            bool check_access, // checkaccess
            int recursion,     // recursion 
            int timeout) {     // timeout
@@ -78,7 +78,7 @@ static bool arcls(const Arc::URL& dir_url,
   if(show_urls) verb = (Arc::DataPoint::DataPointInfoType)
                        (verb | Arc::DataPoint::INFO_TYPE_STRUCT);
   if(show_meta) verb = (Arc::DataPoint::DataPointInfoType)
-                       (verb | Arc::DataPoint::INFO_TYPE_REST);
+                       (verb | Arc::DataPoint::INFO_TYPE_ALL);
   if(show_details) verb = (Arc::DataPoint::DataPointInfoType)
                           (verb |
                            Arc::DataPoint::INFO_TYPE_TYPE |

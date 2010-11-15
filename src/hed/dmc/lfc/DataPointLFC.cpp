@@ -528,7 +528,7 @@ namespace Arc {
 
   DataStatus DataPointLFC::Stat(FileInfo& file, DataPoint::DataPointInfoType verb) {
     std::list<FileInfo> files;
-    DataStatus r = ListFiles(files,verb,true);
+    DataStatus r = ListFiles(files,verb,false);
     if(!r) {
       if(r == DataStatus::ListErrorRetryable) r = DataStatus::StatErrorRetryable;
       if(r == DataStatus::ListError) r = DataStatus::StatError;
