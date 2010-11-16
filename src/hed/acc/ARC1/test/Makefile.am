@@ -14,7 +14,7 @@ TargetRetrieverARC1Test_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
                                 $(top_srcdir)/src/hed/libs/ws/libarcws.la \
                                 ../.libs/libaccARC1_la-TargetRetrieverARC1.o ../.libs/libaccARC1_la-AREXClient.o ../.libs/libaccARC1_la-JobStateARC1.o ../.libs/libaccARC1_la-JobStateBES.o
 
-AREXClientTest_SOURCES  = $(top_srcdir)/src/Test.cpp AREXClientTest.cpp AREXClientTest.h ../AREXClient.cpp ../JobStateARC1.cpp ../JobStateBES.cpp
+AREXClientTest_SOURCES  = $(top_srcdir)/src/Test.cpp ../../../libs/client/test/SimulatorClasses.h ../../../libs/client/test/SimulatorClasses.cpp AREXClientTest.cpp ../AREXClient.cpp ../JobStateARC1.cpp ../JobStateBES.cpp
 AREXClientTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include -DCPPUNITTEST
 AREXClientTest_LDADD    = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
                           $(top_srcdir)/src/hed/libs/common/libarccommon.la \
