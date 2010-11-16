@@ -325,7 +325,6 @@ namespace Arc {
     }
 
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
-      assert(it.operator->() != NULL);
       logger.msg(VERBOSE, "Try to parse as %s", it->GetSourceFormat());
       it->SetHints(hints);
       *this = it->Parse(source);
