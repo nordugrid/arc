@@ -53,9 +53,6 @@ namespace Arc {
     SetEnv("LFC_CONRETRY", "1", false);
     // interval between retries
     SetEnv("LFC_CONRETRYINT", "10", false);
-
-    // set host name env var
-    SetEnv("LFC_HOST", url.Host());
   }
 
   DataPointLFC::~DataPointLFC() {}
