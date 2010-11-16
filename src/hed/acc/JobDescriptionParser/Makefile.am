@@ -13,3 +13,6 @@ libaccJobDescriptionParser_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
                                          $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                                          $(top_srcdir)/src/hed/libs/message/libarcmessage.la
 libaccJobDescriptionParser_la_LDFLAGS  = -no-undefined -avoid-version -module
+
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)
