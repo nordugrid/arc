@@ -430,14 +430,16 @@ namespace Arc {
     URL curl = url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    ClientHTTP* client = new ClientHTTP(cfg, curl, usercfg.Timeout());
 
-    FileInfo file;
-    DataStatus r = do_stat(curl.FullPath(), *client, file);
-    if(r) {
-      if(file.CheckSize()) size = file.GetSize();
-      if(file.CheckCreated()) created = file.GetCreated();
-      if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+    {
+      ClientHTTP client(cfg, curl, usercfg.Timeout());
+      FileInfo file;
+      DataStatus r = do_stat(curl.FullPath(), client, file);
+      if(r) {
+        if(file.CheckSize()) size = file.GetSize();
+        if(file.CheckCreated()) created = file.GetCreated();
+        if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+      }
     }
 
     DataBuffer buffer;
@@ -498,8 +500,8 @@ namespace Arc {
             client = new ClientHTTP(cfg, curl, usercfg.Timeout());
           }
           */
-          FileInfo file;
-          do_stat(furl.FullPath(), *client, *f);
+          ClientHTTP client(cfg, curl, usercfg.Timeout());
+          do_stat(furl.FullPath(), client, *f);
         }
       }
     }
