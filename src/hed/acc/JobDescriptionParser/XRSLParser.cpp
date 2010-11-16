@@ -459,7 +459,7 @@ namespace Arc {
         } else {
           j.Resources.TotalCPUTime.range = Period(time, PeriodMinutes).GetPeriod();
         }
-        j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("ARC-clockrate", 2800);
+        j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
         return true;
       }
 
