@@ -60,6 +60,7 @@ class MCC_TCP_Service: public MCC_TCP
                 mcc_tcp_handle_t(int h, int t, bool nd = false):handle(h),no_delay(nd),timeout(t) { };
                 operator int(void) { return handle; };
         };
+        bool valid_;
         std::list<mcc_tcp_handle_t> handles_; /** listening sockets */
         std::list<mcc_tcp_exec_t> executers_; /** active connections and associated threads */
         int max_executers_;
@@ -73,6 +74,8 @@ class MCC_TCP_Service: public MCC_TCP
         MCC_TCP_Service(Config *cfg);
         virtual ~MCC_TCP_Service(void);
         virtual MCC_Status process(Message&,Message&);
+        operator bool(void) { return valid_; };
+        bool operator!(void) { return !valid_; };
 };
 
 /** This class is MCC implementing TCP client.
@@ -91,6 +94,8 @@ class MCC_TCP_Client: public MCC_TCP
         MCC_TCP_Client(Config *cfg);
         virtual ~MCC_TCP_Client(void);
         virtual MCC_Status process(Message&,Message&);
+        operator bool(void) { return (s_ != NULL); };
+        bool operator!(void) { return (s_ == NULL); };
 };
 
 } // namespace Arc

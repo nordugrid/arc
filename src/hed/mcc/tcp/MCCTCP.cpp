@@ -66,14 +66,24 @@ static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_TCP_Service((Arc::Config*)(*mccarg));
+    Arc::MCC_TCP_Service* plugin = new Arc::MCC_TCP_Service((Arc::Config*)(*mccarg));
+    if(!(*plugin)) {
+        delete plugin;
+        return NULL;
+    };
+    return plugin;
 }
 
 static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_TCP_Client((Arc::Config*)(*mccarg));
+    Arc::MCC_TCP_Client* plugin =  new Arc::MCC_TCP_Client((Arc::Config*)(*mccarg));
+    if(!(*plugin)) {
+        delete plugin;
+        return NULL;
+    };
+    return plugin;
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -86,7 +96,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 namespace Arc {
 
 
-MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),max_executers_drop_(false) {
+MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),valid_(false),max_executers_(-1),max_executers_drop_(false) {
 #ifdef WIN32
     WSADATA wsadata;
     if (WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
@@ -106,7 +116,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
         std::string port_s = l["Port"];
         if(port_s.empty()) {
             logger.msg(ERROR, "Missing Port in Listen element");
-            continue;
+            return;
         };
         std::string interface_s = l["Interface"];
         std::string version_s = l["Version"];
@@ -115,7 +125,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             else if(version_s == "6") { hint.ai_family = AF_INET6; }
             else {
                 logger.msg(ERROR, "Version in Listen element can't be recognized");
-                continue;
+                return;
             };
         };
         int ret = getaddrinfo(interface_s.empty()?NULL:interface_s.c_str(),
@@ -127,8 +137,9 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             } else {
               logger.msg(ERROR, "Failed to obtain local address for %s:%s - %s", interface_s, port_s, err_str);
             };
-            continue;
+            return;
         };
+        bool bound = false;
         for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
             if(interface_s.empty()) {
               logger.msg(VERBOSE, "Trying to listen on TCP port %s(%s)", port_s, PROTO_NAME(info_));
@@ -196,8 +207,17 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
             } else {
               logger.msg(INFO, "Listening on %s:%s(%s)", interface_s, port_s, PROTO_NAME(info_));
             };
+            bound = true;
         };
         freeaddrinfo(info);
+        if(!bound) {
+            if(version_s.empty()) {
+                logger.msg(ERROR, "Failed to start listening on any address for %s:%s", interface_s, port_s);
+            } else {
+                logger.msg(ERROR, "Failed to start listening on any address for %s:%s(IPv%s)", interface_s, port_s, version_s);
+            };
+            return;
+        };
     };
     if(handles_.size() == 0) {
         logger.msg(ERROR, "No listening ports initiated");
@@ -218,6 +238,7 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),max_executers_(-1),ma
         logger.msg(ERROR, "Failed to start thread for listening");
         for(std::list<mcc_tcp_handle_t>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) ::close(i->handle);
     };
+    valid_ = true;
 }
 
 MCC_TCP_Service::~MCC_TCP_Service(void) {
@@ -228,6 +249,9 @@ MCC_TCP_Service::~MCC_TCP_Service(void) {
     };
     for(std::list<mcc_tcp_exec_t>::iterator e = executers_.begin();e != executers_.end();++e) {
         ::close(e->handle); e->handle=-1;
+    };
+    if(!valid_) {
+        for(std::list<mcc_tcp_handle_t>::iterator i = handles_.begin();i!=handles_.end();i=handles_.erase(i)) { };
     };
     // Wait for threads to exit
     while(executers_.size() > 0) {
