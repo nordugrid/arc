@@ -339,7 +339,7 @@ namespace Arc {
       //logger.msg(WARNING, "Unknown element \"%s\" - ignoring", cn.Name());
     }
 
-    if(level != 0) return true;
+    if(level != 0) return success;
 
     // 2nd stage - making links between elements.
 
