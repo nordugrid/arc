@@ -42,6 +42,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestDataStagingUploadUpload);
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
+  CPPUNIT_TEST(TestGridTime);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -61,7 +62,7 @@ public:
   void TestDataStagingUploadUpload();
   void TestNotify();
   void TestJoin();
-
+  void TestGridTime();
 private:
   Arc::JobDescription INJOB, OUTJOB;
   Arc::XRSLParser PARSER;
@@ -684,6 +685,17 @@ void XRSLParserTest::TestJoin() {
   PARSE_ASSERT(OUTJOB.Application.Error.empty());
   PARSE_ASSERT(!INJOB.Application.Join);
   PARSE_ASSERT(!OUTJOB.Application.Join);
+}
+
+void XRSLParserTest::TestGridTime() {
+  std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
+  OUTJOB = PARSER.Parse(xrsl);
+  CPPUNIT_ASSERT(OUTJOB);
+
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOB.Resources.TotalCPUTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(600, OUTJOB.Resources.TotalCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOB.Resources.TotalCPUTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOB.Resources.TotalCPUTime.benchmark.second);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);
