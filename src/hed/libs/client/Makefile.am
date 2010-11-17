@@ -42,7 +42,8 @@ test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 test_jobdescription_LDFLAGS = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 test_jobdescription_LDADD = libarcclient.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la
 
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
