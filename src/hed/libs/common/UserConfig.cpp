@@ -1080,7 +1080,7 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
   if(old_file.empty()) return old_file;
   if(::stat(old_file.c_str(),&st) != 0) return old_file;
   if(::getuid() == st.st_uid) return old_file;
-  std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
+  std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccred.XXXXXX");
   int tmph = Glib::mkstemp(tmpname);
   if(tmph == -1) return old_file;
   int oldh = ::open(old_file.c_str(),O_RDONLY);
