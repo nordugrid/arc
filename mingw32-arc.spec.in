@@ -280,6 +280,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libaccCREAM.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccBroker.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccUNICORE.dll*
+%{_mingw32_libdir}/%{pkgdir}/libaccJobDescriptionParser.dll*
 
 %files plugins-globus
 %defattr(-,root,root,-)
