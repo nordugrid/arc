@@ -4,6 +4,11 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <fstream>
 #include <glibmm.h>
 #include <arc/FileUtils.h>
@@ -1068,6 +1073,84 @@ TODO: Make FileUtils function to this
     else
       utilsdir = dir;
     return true;
+  }
+
+static std::string cert_file_fix(const std::string& old_file,std::string& new_file) {
+  struct stat st;
+  if(old_file.empty()) return old_file;
+  if(::stat(old_file.c_str(),&st) != 0) return old_file;
+  if(::getuid() == st.st_uid) return old_file;
+  std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
+  int tmph = Glib::mkstemp(tmpname);
+  if(tmph == -1) return old_file;
+  int oldh = ::open(old_file.c_str(),O_RDONLY);
+  if(oldh == -1) {
+    ::close(tmph); ::unlink(tmpname.c_str());
+    return old_file;
+  };
+  if(!FileCopy(oldh,tmph)) {
+    ::close(tmph); ::unlink(tmpname.c_str());
+    ::close(oldh);
+    return old_file;
+  };
+  ::close(tmph);
+  ::close(oldh);
+  new_file = tmpname;
+  return new_file;
+}
+
+#define GET_OLD_VAR(name,var,set) { \
+  var = GetEnv(name,set); \
+}
+
+#define SET_OLD_VAR(name,var,set) { \
+  if(set) { \
+    SetEnvNonLock(name,var,true); \
+  } else { \
+    UnsetEnvNonLock(name); \
+  }; \
+}
+
+#define SET_NEW_VAR(name,val) { \
+  std::string v = val; \
+  if(v.empty()) { \
+    UnsetEnvNonLock(name); \
+  } else { \
+    SetEnvNonLock(name,v,true); \
+  }; \
+}
+
+#define SET_NEW_VAR_FILE(name,val,fname) { \
+  std::string v = val; \
+  if(v.empty()) { \
+    UnsetEnvNonLock(name); \
+  } else { \
+    v = cert_file_fix(v,fname); \
+    SetEnvNonLock(name,v,true); \
+  }; \
+}
+
+  CertEnvLocker::CertEnvLocker(const UserConfig& cfg) {
+    EnvLockAcquire();
+    GET_OLD_VAR("X509_USER_KEY",x509_user_key_old,x509_user_key_set);
+    GET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
+    GET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
+    GET_OLD_VAR("CA_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
+    SET_NEW_VAR_FILE("X509_USER_KEY",cfg.KeyPath(),x509_user_key_new);
+    SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
+    SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
+    SET_NEW_VAR("CA_CERT_DIR",cfg.CACertificatesDirectory());
+  }
+
+  CertEnvLocker::~CertEnvLocker(void) {
+    SET_OLD_VAR("CA_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
+    SET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
+    SET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
+    SET_OLD_VAR("X509_USER_KEY",x509_user_key_old,x509_user_key_set);
+    if(!x509_user_key_new.empty()) ::unlink(x509_user_key_new.c_str());
+    if(!x509_user_cert_new.empty()) ::unlink(x509_user_cert_new.c_str());
+    if(!x509_user_proxy_new.empty()) ::unlink(x509_user_proxy_new.c_str());
+    EnvLockRelease();
   }
 
 } // namespace Arc

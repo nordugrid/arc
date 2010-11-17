@@ -82,7 +82,33 @@ namespace Arc {
 #endif
   }
 
+  // The purpose of this mutex is to 'solve' problem with
+  // some third party libraries which use environment variables
+  // as input arguments :(
+  static Glib::Mutex env_lock;
+
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite) {
+    env_lock.lock();
+    bool r = SetEnvNonLock(var, value, overwrite);
+    env_lock.unlock();
+    return r;
+  }
+
+  void UnsetEnv(const std::string& var) {
+    env_lock.lock();
+    UnsetEnvNonLock(var);
+    env_lock.unlock();
+  }
+
+  void EnvLockAcquire(void) {
+    env_lock.lock();
+  }
+
+  void EnvLockRelease(void) {
+    env_lock.unlock();
+  }
+
+  bool SetEnvNonLock(const std::string& var, const std::string& value, bool overwrite) {
 #ifdef HAVE_GLIBMM_SETENV
     return Glib::setenv(var, value, overwrite);
 #else
@@ -94,7 +120,7 @@ namespace Arc {
 #endif
   }
 
-  void UnsetEnv(const std::string& var) {
+  void UnsetEnvNonLock(const std::string& var) {
 #ifdef HAVE_GLIBMM_UNSETENV
     Glib::unsetenv(var);
 #else

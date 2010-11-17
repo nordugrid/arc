@@ -22,6 +22,14 @@ namespace Arc {
   /// Portable function for unsetting environment variables
   void UnsetEnv(const std::string& var);
 
+  // These are functions to be used used exclusively for solving
+  // problem with specific libraries which depend too much on
+  // environment variables.
+  void EnvLockAcquire(void);
+  void EnvLockRelease(void);
+  bool SetEnvNonLock(const std::string& var, const std::string& value, bool overwrite = true);
+  void UnsetEnvNonLock(const std::string& var);
+
   /// Portable function for obtaining description of last system error
   std::string StrError(int errnum = errno);
 

@@ -1200,6 +1200,26 @@ namespace Arc {
     static Logger logger;
   };
 
+
+  class CertEnvLocker {
+  public:
+    CertEnvLocker(const UserConfig& cfg);
+    ~CertEnvLocker(void);
+
+  private:
+    std::string x509_user_key_old;
+    std::string x509_user_key_new;
+    bool x509_user_key_set;
+    std::string x509_user_cert_old;
+    std::string x509_user_cert_new;
+    bool x509_user_cert_set;
+    std::string x509_user_proxy_old;
+    std::string x509_user_proxy_new;
+    bool x509_user_proxy_set;
+    std::string ca_cert_dir_old;
+    bool ca_cert_dir_set;
+  };
+
 } // namespace Arc
 
 #endif // __ARC_USERCONFIG_H__
