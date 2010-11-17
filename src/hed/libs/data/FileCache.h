@@ -398,11 +398,11 @@ namespace Arc {
               std::string id,
               int job_uid,
               int job_gid,
-              int cache_max,
-              int cache_min) {}
+              int cache_max=100,
+              int cache_min=100) {}
     FileCache(const FileCache& cache) {}
     FileCache() {}
-    bool Start(std::string url, bool& available, bool& is_locked, bool& use_remote) { return false; }
+    bool Start(std::string url, bool& available, bool& is_locked, bool& use_remote=true) { return false; }
     bool Stop(std::string url) { return false; }
     bool StopAndDelete(std::string url) {return false; }
     std::string File(std::string url) { return url; }
