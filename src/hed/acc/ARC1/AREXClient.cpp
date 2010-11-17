@@ -17,6 +17,7 @@
 
 #ifdef CPPUNITTEST
 #include "../../libs/client/test/SimulatorClasses.h"
+#define DelegationProviderSOAP DelegationProviderSOAPTest
 #endif
 
 #define BES_FACTORY_ACTIONS_BASE_URL "http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/"

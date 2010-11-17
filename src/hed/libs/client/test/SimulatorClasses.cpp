@@ -2,6 +2,7 @@
 
 #include <arc/client/ClientInterface.h>
 #include <arc/message/MCC.h>
+#include <arc/delegation/DelegationInterface.h>
 
 #include "SimulatorClasses.h"
 
@@ -23,4 +24,24 @@ Arc::MCC_Status Arc::ClientSOAPTest::process(const std::string& action, Arc::Pay
   return ClientSOAPTest::status;
 }
 
+/* DelegationProviderSOAPTest class body specification */
 
+std::string       Arc::DelegationProviderSOAPTest::action = "";
+Arc::PayloadSOAP  Arc::DelegationProviderSOAPTest::request  = Arc::PayloadSOAP(Arc::NS());
+Arc::PayloadSOAP* Arc::DelegationProviderSOAPTest::response = NULL;
+Arc::MCC_Status   Arc::DelegationProviderSOAPTest::status(Arc::GENERIC_ERROR);
+
+
+bool Arc::DelegationProviderSOAPTest::DelegateCredentialsInit(Arc::MCCInterface& mcc_interface,Arc::MessageContext* context) {
+   id_ = "id";
+   request_ = "request";
+   return true;
+}
+
+bool Arc::DelegationProviderSOAPTest::DelegatedToken(XMLNode parent)
+{
+  XMLNode token = parent.NewChild("deleg:DelegatedToken");
+  token.NewAttribute("deleg:Format")="x509";
+  token.NewChild("deleg:Id")=id_;
+  token.NewChild("deleg:Value")= "delegation";
+}
