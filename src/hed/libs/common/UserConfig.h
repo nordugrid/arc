@@ -1092,7 +1092,6 @@ namespace Arc {
      * @see User::Home()
      **/
     static const std::string ARCUSERDIRECTORY;
-#ifndef WIN32
     /// Path to system configuration
     /**
      * The \a SYSCONFIG variable is the path to the system configuration
@@ -1100,7 +1099,6 @@ namespace Arc {
      * in the root (highly unlikely).
      **/
     static const std::string SYSCONFIG;
-#endif
     /// Path to system configuration at ARC location.
     /**
      * The \a SYSCONFIGARCLOC variable is the path to the system configuration
