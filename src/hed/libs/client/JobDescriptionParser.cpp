@@ -45,15 +45,20 @@ namespace Arc {
       delete *it;
   }
 
+  void JobDescriptionParserLoader::scan() {
+    factory_->scan(FinderLoader::GetLibrariesList(), jdpDescs);
+
+    PluginsFactory::FilterByKind("HED:JobDescriptionParser", jdpDescs);
+    scaningDone = true;
+  }
+
   JobDescriptionParser* JobDescriptionParserLoader::load(const std::string& name) {
-    if (name.empty())
+    if (name.empty()) {
       return NULL;
+    }
 
     if (!scaningDone) {
-      factory_->scan(FinderLoader::GetLibrariesList(), jdpDescs);
-
-      PluginsFactory::FilterByKind("HED:JobDescriptionParser", jdpDescs);
-      scaningDone = true;
+      scan();
     }
 
     if(!factory_->load(FinderLoader::GetLibrariesList(),
@@ -76,7 +81,7 @@ namespace Arc {
 
   JobDescriptionParserLoader::iterator::iterator(JobDescriptionParserLoader& jdpl) : jdpl(jdpl) {
     LoadNext();
-   current = jdpl.jdps.begin();
+    current = jdpl.jdps.begin();
   }
 
   JobDescriptionParserLoader::iterator& JobDescriptionParserLoader::iterator::operator++() {
@@ -86,6 +91,10 @@ namespace Arc {
   }
 
   void JobDescriptionParserLoader::iterator::LoadNext() {
+    if (!jdpl.scaningDone) {
+      jdpl.scan();
+    }
+
     while (!jdpl.jdpDescs.empty()) {
       JobDescriptionParser* loadedJDPL = NULL;
 

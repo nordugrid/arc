@@ -95,6 +95,7 @@ namespace Arc {
     std::list<JobDescriptionParser*> jdps;
     std::list<ModuleDesc> jdpDescs;
 
+    void scan();
     bool scaningDone;
   };
 } // namespace Arc
