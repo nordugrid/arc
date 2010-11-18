@@ -596,7 +596,18 @@ int main(int argc, char *argv[]) {
               if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
                 vomses_path = G_DIR_SEPARATOR_S;
                 vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
-                if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
+                //search /etc/vomses recursively
+                //search /etc/vomses/vomses
+                if (Glib::file_test(vomses_path, Glib::FILE_TEST_IS_DIR)) {
+                  std::string tmp = vomses_path;
+                  tmp.append(G_DIR_SEPARATOR_S).append("vomses");             
+                  //search /etc/vomses/vomses/vomses
+                  if (Glib::file_test(vomses_path, Glib::FILE_TEST_IS_DIR)) {
+                    std::string tmp = vomses_path;
+                    tmp.append(G_DIR_SEPARATOR_S).append("vomses");
+                  }
+                }
+                else if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
                   std::string tmp1 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
                   std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses";
                   std::string tmp3 = G_DIR_SEPARATOR_S;
