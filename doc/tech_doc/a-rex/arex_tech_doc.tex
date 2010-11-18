@@ -1882,10 +1882,30 @@ For compilation from source code please read included README files.
 \label{sec:wssetup}
 
 The A-REX service is a pluggable module of the HED, so it is first
-required to set up HED configuration, and add the A-REX elements. To
-add A-REX to an existing HED configuration, add a new \verb|<Name>|
-element inside \verb|<Plugins>| containing the string
-\emph{arex}. This will make HED load the libarex plugin library.
+required to set up HED configuration, and add the A-REX elements. HED
+configuration is in an XML format, however a special comand \emph{a-rex} has
+been written which automatically creates a HED configuration for running the
+A-REX from an existing arc.conf file used by the Grid Manager, and so no manual
+XML configuration editing needs to be done. To enable the WS interface the
+following line must be added to the arc.conf configuration file:
+
+\begin{itemize}
+  \item \textbf{\textit{arex\_mount\_point}}\textit{=path}
+\end{itemize}
+
+where \emph{path} is the A-REX service endpoint, for example
+\verb|https://your.host:60000/arex|. Then the A-REX can be started
+
+\begin{shaded}
+\begin{verbatim}
+$ARC_LOCATION/etc/init.d/a-rex start
+\end{verbatim}
+\end{shaded}
+
+It is also possible to write configuration directly in XML. To add A-REX to an
+existing HED configuration, add a new \verb|<Name>| element inside
+\verb|<Plugins>| containing the string \emph{arex}. This will make HED load the
+libarex plugin library.
 
 Then add a new \verb|<Service>| element with attribute
 \verb|name="a-rex"|. That will instantiate the A-REX service. Now to
@@ -2008,30 +2028,21 @@ For more information please read the \emph{User Guide}~\cite{userguide1}.
 
 \subsection{Setup of the A-REX with GridFTP Interface}
 
-The A-REX can process jobs submitted through a traditional GridFTP
-server instead of, or as well as, the WS interface. The GridFTP/Grid
-Manager server packages can be installed alongside A-REX packages, so
-it is easy to switch between the two. The configuration of the GridFTP
-server is in the same legacy \emph{arc.conf} configuration file as is
-used by the A-REX, and configuration instructions are given
-in~\cite{gm}. In general no configuration changes are necessary to use
-a Grid Manager-configured GridFTP server with the A-REX.
+The A-REX can process jobs submitted through a traditional GridFTP interface
+instead of, or as well as, the WS interface. The A-REX version of the ARC GridFTP
+server (\verb|a-rex-gridftpd|) must be used instead of the Grid Manager server.
+However, the GridFTP/Grid Manager server packages can be installed alongside
+A-REX packages, so it is easy to switch between the two. The configuration of the
+GridFTP server is in the same legacy \emph{arc.conf} configuration file as is
+used by the A-REX, and configuration instructions are given in~\cite{gridftpd}.
+In general no configuration changes are necessary to use a Grid
+Manager-configured GridFTP server with the A-REX.
 
-If it is desired to run both WS and GridFTP interfaces at the same
-time, simply setup and start the A-REX as described in the previous
-section, then start the GridFTP server. If only the GridFTP interface
-is to be used, then the special \emph{a-rex} command should be used
-(rather than \emph{arched}).
-
-\begin{shaded}
-\begin{verbatim}
-$ARC_LOCATION/etc/init.d/a-rex start
-\end{verbatim}
-\end{shaded}
-
-This command automatically creates a HED configuration for running the
-A-REX without the WS interface, and so no manual HED configuration
-needs to be done. The GridFTP server should then be started.
+If it is desired to run both WS and GridFTP interfaces at the same time, simply
+setup and start the A-REX as described in the previous section, then start the
+GridFTP server. If only the GridFTP interface is to be used, then the special
+\emph{a-rex} command should be used (rather than \emph{arched}) to start A-REX.
+The GridFTP server should then be started.
 
 \begin{framed}
 IMPORTANT: Do not run the A-REX and Grid Manager services at the same
