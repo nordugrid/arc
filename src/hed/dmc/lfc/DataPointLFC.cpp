@@ -46,9 +46,10 @@ namespace Arc {
 
   class LFCEnvLocker: public CertEnvLocker {
   public:
+    static Logger logger;
     LFCEnvLocker(const UserConfig& usercfg, const URL& url):CertEnvLocker(usercfg) {
       // if root, set X509_USER_CERT and X509_USER_KEY to X509_USER_PROXY
-      if (getuid() == 0 && x509_user_proxy_set) {
+      if (getuid() == 0 && !x509_user_proxy_new.empty()) {
         SetEnvNonLock("X509_USER_KEY", x509_user_proxy_new, true);
         SetEnvNonLock("X509_USER_CERT", x509_user_proxy_new, true);
       }
@@ -62,11 +63,16 @@ namespace Arc {
 
       // set host name env var
       SetEnvNonLock("LFC_HOST", url.Host());
+
+      logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_PROXY"));
+      logger.msg(DEBUG, "Using key %s", GetEnv("X509_USER_KEY"));
+      logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_CERT"));
     };
     ~LFCEnvLocker(void) {
     };
   };
 
+  Logger LFCEnvLocker::logger(Logger::getRootLogger(), "LFCEnvLocker");
 
   #define LFCLOCKINT(result,func,url) { \
     LFCEnvLocker lfc_lock(usercfg,url); \
