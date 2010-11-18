@@ -37,11 +37,7 @@ namespace Arc {
 
 
   JobDescriptionParserLoader::JobDescriptionParserLoader()
-    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {
-    factory_->scan(FinderLoader::GetLibrariesList(), jdpDescs);
-
-    PluginsFactory::FilterByKind("HED:JobDescriptionParser", jdpDescs);
-  }
+    : Loader(BaseConfig().MakeConfig(Config()).Parent()), scaningDone(false) {}
 
   JobDescriptionParserLoader::~JobDescriptionParserLoader() {
     for (std::list<JobDescriptionParser*>::iterator it = jdps.begin();
@@ -52,6 +48,13 @@ namespace Arc {
   JobDescriptionParser* JobDescriptionParserLoader::load(const std::string& name) {
     if (name.empty())
       return NULL;
+
+    if (!scaningDone) {
+      factory_->scan(FinderLoader::GetLibrariesList(), jdpDescs);
+
+      PluginsFactory::FilterByKind("HED:JobDescriptionParser", jdpDescs);
+      scaningDone = true;
+    }
 
     if(!factory_->load(FinderLoader::GetLibrariesList(),
                        "HED:JobDescriptionParser", name)) {
