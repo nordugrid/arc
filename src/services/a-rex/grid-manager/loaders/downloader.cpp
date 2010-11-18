@@ -253,7 +253,7 @@ class PointPair {
     } else {
       logger.msg(Arc::INFO, "Downloaded file %s", it->lfn);
       delete it->pair; it->pair=NULL;
-      it->endtime=Arc::Time().str(Arc::UserTime);
+      it->endtime=Arc::Time().str(Arc::UTCTime);
       if (res == Arc::DataStatus::SuccessCached) 
         it->fromcache="yes";
       else
@@ -646,7 +646,7 @@ int main(int argc,char** argv) {
         FileDataEx::iterator* it = new FileDataEx::iterator(i);
         std::string prefix = i->pfn;
         if (prefix.find('/') != std::string::npos) prefix.erase(0, prefix.find('/')+1);
-        i->starttime=Arc::Time().str(Arc::UserTime);
+        i->starttime=Arc::Time().str(Arc::UTCTime);
         Arc::DataStatus dres = mover.Transfer(*(i->pair->source), *(i->pair->destination), *cache,
                                               url_map, min_speed, min_speed_time,
                                               min_average_speed, max_inactivity_time,
