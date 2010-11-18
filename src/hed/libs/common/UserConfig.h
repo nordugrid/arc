@@ -1206,7 +1206,7 @@ namespace Arc {
     CertEnvLocker(const UserConfig& cfg);
     ~CertEnvLocker(void);
 
-  private:
+  protected:
     std::string x509_user_key_old;
     std::string x509_user_key_new;
     bool x509_user_key_set;

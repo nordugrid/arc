@@ -46,7 +46,12 @@ namespace Arc {
 
   class LFCEnvLocker: public CertEnvLocker {
   public:
-    LFCEnvLocker(const UserConfig& usercfg):CertEnvLocker(usercfg) {
+    LFCEnvLocker(const UserConfig& usercfg, const URL& url):CertEnvLocker(usercfg) {
+      // if root, set X509_USER_CERT and X509_USER_KEY to X509_USER_PROXY
+      if (getuid() == 0 && x509_user_proxy_set) {
+        SetEnvNonLock("X509_USER_KEY", x509_user_proxy_new, true);
+        SetEnvNonLock("X509_USER_CERT", x509_user_proxy_new, true);
+      }
       // set retry env variables (don't overwrite if set already)
       // connection timeout
       SetEnvNonLock("LFC_CONNTIMEOUT", "30", false);
@@ -54,19 +59,22 @@ namespace Arc {
       SetEnvNonLock("LFC_CONRETRY", "1", false);
       // interval between retries
       SetEnvNonLock("LFC_CONRETRYINT", "10", false);
+
+      // set host name env var
+      SetEnvNonLock("LFC_HOST", url.Host());
     };
     ~LFCEnvLocker(void) {
     };
   };
 
 
-  #define LFCLOCKINT(result,func) { \
-    LFCEnvLocker lfc_lock(usercfg); \
+  #define LFCLOCKINT(result,func,url) { \
+    LFCEnvLocker lfc_lock(usercfg,url); \
     result = func; \
   }
 
-  #define LFCLOCKVOID(func) { \
-    LFCEnvLocker lfc_lock(usercfg); \
+  #define LFCLOCKVOID(func,url) { \
+    LFCEnvLocker lfc_lock(usercfg,url); \
     func; \
   }
 
@@ -127,7 +135,7 @@ namespace Arc {
 #endif
 
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")));
+                      const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       lfc_endsess();
@@ -155,7 +163,7 @@ namespace Arc {
     registered = false;
     int nbentries = 0;
     struct lfc_filereplica *entries = NULL;
-    LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries));
+    LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url);
     if(lfc_r != 0) {
       if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
         logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
@@ -230,7 +238,7 @@ namespace Arc {
       free(entries);
 
     struct lfc_filestatg st;
-    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st));
+    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url);
     if(lfc_r == 0) {
       if (st.filemode & S_IFDIR) { // directory
         lfc_endsess();
@@ -290,7 +298,7 @@ namespace Arc {
       return DataStatus::Success;
     }
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")));
+                      const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
@@ -305,7 +313,7 @@ namespace Arc {
       guid = UUID();
 
     LFCLOCKINT(lfc_r,lfc_creatg(url.Path().c_str(), guid.c_str(),
-                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP));
+                   S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url);
     if(lfc_r != 0) {
 
       // check error - if it is no such file or directory, try to create the
@@ -316,14 +324,14 @@ namespace Arc {
           std::string dirname = url.Path().substr(0, slashpos);
           // list dir to see if it exists
           struct lfc_filestat statbuf;
-          LFCLOCKINT(lfc_r,lfc_stat(dirname.c_str(), &statbuf));
+          LFCLOCKINT(lfc_r,lfc_stat(dirname.c_str(), &statbuf), url);
           if(lfc_r == 0) {
             slashpos = url.Path().find("/", slashpos + 1);
             continue;
           }
 
           logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
-          LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775));
+          LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url);
           if(lfc_r != 0)
             if (serrno != EEXIST) {
               logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
@@ -333,7 +341,7 @@ namespace Arc {
           slashpos = url.Path().find("/", slashpos + 1);
         }
         LFCLOCKINT(lfc_r,lfc_creatg(url.Path().c_str(), guid.c_str(),
-                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP));
+                       S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url);
         if(lfc_r != 0 && serrno != EEXIST) {
           logger.msg(ERROR, "Error creating LFC entry: %s", sstrerror(serrno));
           lfc_endsess();
@@ -344,7 +352,7 @@ namespace Arc {
       // ignore the error if force is true and get the previously registered guid 
       else if (serrno == EEXIST && force) {
         struct lfc_filestatg st;
-        LFCLOCKINT(lfc_r,lfc_statg(url.Path().c_str(), NULL, &st));
+        LFCLOCKINT(lfc_r,lfc_statg(url.Path().c_str(), NULL, &st), url);
         if(lfc_r == 0) {
           registered = true;
           guid = st.guid;
@@ -376,12 +384,12 @@ namespace Arc {
         if (ckstype == "MD" || ckstype == "AD") {
           std::string cksumvalue = cksum.substr(p+1);
           if (CheckSize()) {
-            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())));
+            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
             if(lfc_r != 0)
               logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
           }
           else {
-            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())));
+            LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
             if(lfc_r != 0)
               logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
           }
@@ -391,7 +399,7 @@ namespace Arc {
       }
     }
     else if (CheckSize()) {
-      LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL));
+      LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url);
       if(lfc_r != 0)
         logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
     }
@@ -415,14 +423,14 @@ namespace Arc {
       logger.msg(ERROR, "No GUID defined for LFN - probably not preregistered");
       return DataStatus::PostRegisterError;
     }
-    LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")));
+    LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
         return DataStatus::PostRegisterErrorRetryable;
       return DataStatus::PostRegisterError;
     }
-    LFCLOCKINT(lfc_r,lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(), CurrentLocation().plainstr().c_str(), '-', 'P', NULL, NULL));
+    LFCLOCKINT(lfc_r,lfc_addreplica(guid.c_str(), NULL, CurrentLocation().Host().c_str(), CurrentLocation().plainstr().c_str(), '-', 'P', NULL, NULL), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error adding replica: %s", sstrerror(serrno));
       lfc_endsess();
@@ -443,12 +451,12 @@ namespace Arc {
             std::string cksumvalue = cksum.substr(p+1);
             if (CheckSize()) {
               logger.msg(VERBOSE, "Entering checksum type %s, value %s, file size %llu", ckstype, cksumvalue, GetSize());
-              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())));
+              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
               if(lfc_r != 0)
                 logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
             }
             else {
-              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())));
+              LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), 0, ckstype.c_str(), const_cast<char*>(cksumvalue.c_str())), url);
               if(lfc_r != 0)
                 logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
             }
@@ -458,7 +466,7 @@ namespace Arc {
         }
       }
       else if (CheckSize()) {
-        LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL));
+        LFCLOCKINT(lfc_r,lfc_setfsizeg(guid.c_str(), GetSize(), NULL, NULL), url);
         if(lfc_r != 0)
           logger.msg(ERROR, "Error entering metadata: %s", sstrerror(serrno));
       }
@@ -481,7 +489,7 @@ namespace Arc {
     if (replication || registered)
       return DataStatus::Success;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")));
+                      const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
@@ -493,7 +501,7 @@ namespace Arc {
       lfc_endsess();
       return DataStatus::UnregisterError;
     }
-    LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()));
+    LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url);
     if(lfc_r != 0)
       if ((serrno != ENOENT) && (serrno != ENOTDIR)) {
         logger.msg(ERROR, "Failed to remove LFN in LFC - You may need to do it by hand");
@@ -520,7 +528,7 @@ namespace Arc {
       return DataStatus::UnregisterError;
     }
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")));
+                      const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
@@ -535,7 +543,7 @@ namespace Arc {
     if (all) {
       int nbentries = 0;
       struct lfc_filereplica *entries = NULL;
-      LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries));
+      LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url);
       if(lfc_r != 0) {
         lfc_endsess();
         if (serrno == ENOTDIR) {
@@ -547,7 +555,7 @@ namespace Arc {
         return DataStatus::UnregisterError;
       }
       for (int n = 0; n < nbentries; n++) {
-        LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, entries[n].sfn));
+        LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, entries[n].sfn), url);
         if(lfc_r != 0) {
           if (serrno == ENOENT)
             continue;
@@ -556,10 +564,10 @@ namespace Arc {
           return DataStatus::UnregisterError;
         }
       }
-      LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()));
+      LFCLOCKINT(lfc_r,lfc_unlink(path.c_str()), url);
       if(lfc_r != 0) {
         if (serrno == EPERM) { // we have a directory
-          LFCLOCKINT(lfc_r,lfc_rmdir(path.c_str()));
+          LFCLOCKINT(lfc_r,lfc_rmdir(path.c_str()), url);
           if(lfc_r != 0) {
             if (serrno == EEXIST) { // still files in the directory
               logger.msg(ERROR, "Failed to remove LFC directory: directory is not empty");
@@ -580,7 +588,7 @@ namespace Arc {
       registered = false;
     }
     else {
-      LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, CurrentLocation().plainstr().c_str()));
+      LFCLOCKINT(lfc_r,lfc_delreplica(guid.c_str(), NULL, CurrentLocation().plainstr().c_str()), url);
       if(lfc_r != 0) {
         lfc_endsess();
         logger.msg(ERROR, "Failed to remove location from LFC: %s", sstrerror(serrno));
@@ -621,7 +629,7 @@ namespace Arc {
 #endif
 
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")));
+                      const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
@@ -636,7 +644,7 @@ namespace Arc {
     // first stat the url and see if it is a file or directory
     struct lfc_filestatg st;
 
-    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st));
+    LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error listing file or directory: %s", sstrerror(serrno));
       lfc_endsess();
@@ -651,7 +659,7 @@ namespace Arc {
       }
       lfc_DIR *dir = NULL;
       {
-        LFCEnvLocker lfc_lock(usercfg);
+        LFCEnvLocker lfc_lock(usercfg, url);
         dir = lfc_opendirxg(const_cast<char*>(url.Host().c_str()), path.c_str(), NULL);
       }
       if (dir == NULL) {
@@ -671,7 +679,7 @@ namespace Arc {
       {
         struct lfc_direnstatg *direntry;
         {
-          LFCEnvLocker lfc_lock(usercfg);
+          LFCEnvLocker lfc_lock(usercfg, url);
           direntry = lfc_readdirg(dir);
         }
         while (direntry) {
@@ -687,25 +695,25 @@ namespace Arc {
           f->SetCreated(direntry->ctime);
           f->SetType((direntry->filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
           {
-            LFCEnvLocker lfc_lock(usercfg);
+            LFCEnvLocker lfc_lock(usercfg, url);
             direntry = lfc_readdirg(dir);
           }
         }
       }
       if (serrno) {
         logger.msg(ERROR, "Error listing directory: %s", sstrerror(serrno));
-        LFCLOCKINT(lfc_r,lfc_closedir(dir));
+        LFCLOCKINT(lfc_r,lfc_closedir(dir), url);
         lfc_endsess();
         return DataStatus::ListError;
       }
 
       // if we want to resolve replicas call readdirxr
       if (verb & INFO_TYPE_STRUCT) {
-        LFCLOCKVOID(lfc_rewinddir(dir));
+        LFCLOCKVOID(lfc_rewinddir(dir), url);
         struct lfc_direnrep *direntry;
 
         {
-          LFCEnvLocker lfc_lock(usercfg);
+          LFCEnvLocker lfc_lock(usercfg, url);
           direntry = lfc_readdirxr(dir, NULL);
         }
         while (direntry) {
@@ -721,18 +729,18 @@ namespace Arc {
           }
           // break if found ?
           {
-            LFCEnvLocker lfc_lock(usercfg);
+            LFCEnvLocker lfc_lock(usercfg, url);
             direntry = lfc_readdirxr(dir, NULL);
           }
         }
         if (serrno) {
           logger.msg(ERROR, "Error listing directory: %s", sstrerror(serrno));
-          LFCLOCKINT(lfc_r,lfc_closedir(dir));
+          LFCLOCKINT(lfc_r,lfc_closedir(dir), url);
           lfc_endsess();
           return DataStatus::ListError;
         }
       }
-      LFCLOCKINT(lfc_r,lfc_closedir(dir));
+      LFCLOCKINT(lfc_r,lfc_closedir(dir), url);
     } // if (listdir)
     else {
       std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(path.c_str()));
@@ -754,7 +762,7 @@ namespace Arc {
         int nbentries = 0;
         struct lfc_filereplica *entries = NULL;
 
-        LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries));
+        LFCLOCKINT(lfc_r,lfc_getreplica(path.c_str(), NULL, NULL, &nbentries, &entries), url);
         if(lfc_r != 0) {
           logger.msg(ERROR, "Error listing replicas: %s", sstrerror(serrno));
           lfc_endsess();
@@ -767,10 +775,10 @@ namespace Arc {
       if (st.guid[0] != '\0') f->SetMetaData("guid", std::string(st.guid));
       if (verb & INFO_TYPE_ACCESS) {
         char username[256];
-        LFCLOCKINT(lfc_r,lfc_getusrbyuid(st.uid, username));
+        LFCLOCKINT(lfc_r,lfc_getusrbyuid(st.uid, username), url);
         if(lfc_r == 0) f->SetMetaData("owner", username);
         char groupname[256];
-        LFCLOCKINT(lfc_r,lfc_getgrpbygid(st.gid, groupname));
+        LFCLOCKINT(lfc_r,lfc_getgrpbygid(st.gid, groupname), url);
         if(lfc_r == 0) f->SetMetaData("group", groupname);
       };
       mode_t mode = st.filemode;
@@ -807,7 +815,7 @@ namespace Arc {
     lfc_list listp;
     struct lfc_linkinfo *info = NULL;
     {
-      LFCEnvLocker lfc_lock(usercfg);
+      LFCEnvLocker lfc_lock(usercfg, url);
       info = lfc_listlinks(NULL, (char*)guid.c_str(),
                            CNS_LIST_BEGIN, &listp);
     }
@@ -820,7 +828,7 @@ namespace Arc {
     logger.msg(VERBOSE, "guid %s resolved to LFN %s", guid, info[0].path);
     std::string path = info[0].path;
     {
-      LFCEnvLocker lfc_lock(usercfg);
+      LFCEnvLocker lfc_lock(usercfg, url);
       lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
     }
     return path;
