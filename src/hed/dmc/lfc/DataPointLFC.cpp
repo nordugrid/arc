@@ -49,9 +49,9 @@ namespace Arc {
     static Logger logger;
     LFCEnvLocker(const UserConfig& usercfg, const URL& url):CertEnvLocker(usercfg) {
       // if root, set X509_USER_CERT and X509_USER_KEY to X509_USER_PROXY
-      if (getuid() == 0 && !x509_user_proxy_new.empty()) {
-        SetEnvNonLock("X509_USER_KEY", x509_user_proxy_new, true);
-        SetEnvNonLock("X509_USER_CERT", x509_user_proxy_new, true);
+      if (getuid() == 0 && !GetEnv("X509_USER_PROXY").empty()) {
+        SetEnvNonLock("X509_USER_KEY", GetEnv("X509_USER_PROXY"), true);
+        SetEnvNonLock("X509_USER_CERT", GetEnv("X509_USER_PROXY"), true);
       }
       // set retry env variables (don't overwrite if set already)
       // connection timeout
