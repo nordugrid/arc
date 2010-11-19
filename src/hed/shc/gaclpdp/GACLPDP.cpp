@@ -21,7 +21,7 @@
 
 #include "GACLPDP.h"
 
-Arc::Logger ArcSec::GACLPDP::logger(ArcSec::PDP::logger,"GACLPDP");
+Arc::Logger ArcSec::GACLPDP::logger(Arc::Logger::getRootLogger(), "ArcSec.GACLPDP");
 
 Arc::SecAttrFormat ArcSec::GACLPDP::GACL("gacl");
 

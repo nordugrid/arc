@@ -28,7 +28,7 @@
 
 namespace Arc {
 
-  Logger DataPointSRM::logger(DataPoint::logger, "SRM");
+  Logger DataPointSRM::logger(Logger::getRootLogger(), "DataPoint.SRM");
 
   static bool proxy_initialized = false;
 

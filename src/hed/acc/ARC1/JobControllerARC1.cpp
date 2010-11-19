@@ -20,7 +20,7 @@
 
 namespace Arc {
 
-  Logger JobControllerARC1::logger(JobController::logger, "ARC1");
+  Logger JobControllerARC1::logger(Logger::getRootLogger(), "JobController.ARC1");
 
   JobControllerARC1::JobControllerARC1(const UserConfig& usercfg)
     : JobController(usercfg, "ARC1") {}

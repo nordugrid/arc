@@ -35,7 +35,7 @@ namespace Arc {
     return arg;
   }
 
-  Logger TargetRetrieverARC1::logger(TargetRetriever::logger, "ARC1");
+  Logger TargetRetrieverARC1::logger(Logger::getRootLogger(), "TargetRetriever.ARC1");
 
   TargetRetrieverARC1::TargetRetrieverARC1(const UserConfig& usercfg,
                                            const URL& url, ServiceType st)

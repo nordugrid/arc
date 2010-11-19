@@ -23,7 +23,7 @@
 //  per request. Later it should become clever and distinguish
 //  if delegated policy comes per request or per session.
 
-Arc::Logger ArcSec::DelegationPDP::logger(ArcSec::PDP::logger,"DelegationPDP");
+Arc::Logger ArcSec::DelegationPDP::logger(Arc::Logger::getRootLogger(), "ArcSec.DelegationPDP");
 
 using namespace Arc;
 

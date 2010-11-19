@@ -84,7 +84,7 @@ class TLSSecAttr: public SecAttr {
 }
 
 //Glib::Mutex Arc::MCC_TLS::lock_;
-Arc::Logger Arc::MCC_TLS::logger(Arc::MCC::logger,"TLS");
+Arc::Logger Arc::MCC_TLS::logger(Arc::Logger::getRootLogger(), "MCC.TLS");
 
 Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : Arc::MCC(&cfg), config_(cfg,logger,client) {
 }

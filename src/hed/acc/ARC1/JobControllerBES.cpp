@@ -20,7 +20,7 @@
 
 namespace Arc {
 
-  Logger JobControllerBES::logger(JobController::logger, "BES");
+  Logger JobControllerBES::logger(Logger::getRootLogger(), "JobController.BES");
 
   static char hex_to_char(const char* v) {
     char r = 0;

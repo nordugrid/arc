@@ -26,7 +26,7 @@
 
 namespace Arc {
 
-  Logger DataPointHTTP::logger(DataPoint::logger, "HTTP");
+  Logger DataPointHTTP::logger(Logger::getRootLogger(), "DataPoint.HTTP");
 
   typedef struct {
     DataPointHTTP *point;

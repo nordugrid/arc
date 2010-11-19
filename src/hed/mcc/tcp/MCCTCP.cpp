@@ -57,7 +57,7 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #include "MCCTCP.h"
 
 #define PROTO_NAME(ADDR) ((ADDR->ai_family==AF_INET6)?"IPv6":"IPv4")
-Arc::Logger Arc::MCC_TCP::logger(Arc::MCC::logger,"TCP");
+Arc::Logger Arc::MCC_TCP::logger(Arc::Logger::getRootLogger(), "MCC.TCP");
 
 Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }

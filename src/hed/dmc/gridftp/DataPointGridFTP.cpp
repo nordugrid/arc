@@ -26,7 +26,7 @@ namespace Arc {
 
   static bool proxy_initialized = false;
 
-  Logger DataPointGridFTP::logger(DataPoint::logger, "GridFTP");
+  Logger DataPointGridFTP::logger(Logger::getRootLogger(), "DataPoint.GridFTP");
 
   void DataPointGridFTP::ftp_complete_callback(void *arg,
                                                globus_ftp_client_handle_t*,

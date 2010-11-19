@@ -17,7 +17,7 @@
 #include <libxml/xmlschemas.h>
 //#include <libxml/xmlstring.h>
 
-Arc::Logger Arc::MCC_MsgValidator::logger(Arc::MCC::logger,"MsgValidator");
+Arc::Logger Arc::MCC_MsgValidator::logger(Arc::Logger::getRootLogger(), "MCC.MsgValidator");
 
 
 Arc::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : Arc::MCC(cfg) {

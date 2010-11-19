@@ -10,7 +10,7 @@
 
 namespace Arc {
 
-  Logger TargetRetrieverBES::logger(TargetRetriever::logger, "BES");
+  Logger TargetRetrieverBES::logger(Logger::getRootLogger(), "TargetRetriever.BES");
 
   TargetRetrieverBES::TargetRetrieverBES(const UserConfig& usercfg,
                                          const URL& url, ServiceType st)

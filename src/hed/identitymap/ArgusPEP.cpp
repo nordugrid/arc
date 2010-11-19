@@ -29,7 +29,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace ArcSec {
 
-Arc::Logger ArgusPEP::logger(SecHandler::logger,"Argus");
+Arc::Logger ArgusPEP::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
 
 ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {  
     pepdlocation = (std::string)(*cfg)["PEPD"];  

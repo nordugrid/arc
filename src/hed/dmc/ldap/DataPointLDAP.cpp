@@ -13,7 +13,7 @@
 
 namespace Arc {
 
-  Logger DataPointLDAP::logger(DataPoint::logger, "LDAP");
+  Logger DataPointLDAP::logger(Logger::getRootLogger(), "DataPoint.LDAP");
 
   DataPointLDAP::DataPointLDAP(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg) {}

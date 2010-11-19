@@ -27,7 +27,7 @@ namespace Arc {
   static bool globus_initialized = false;
   static bool persistent_initialized = false;
 
-  Logger DataPointRLS::logger(DataPoint::logger, "RLS");
+  Logger DataPointRLS::logger(Logger::getRootLogger(), "DataPoint.RLS");
 
   DataPointRLS::DataPointRLS(const URL& url, const UserConfig& usercfg)
     : DataPointIndex(url, usercfg),

@@ -17,7 +17,7 @@
 
 namespace Arc {
 
-  Logger JobControllerUNICORE::logger(JobController::logger, "UNICORE");
+  Logger JobControllerUNICORE::logger(Logger::getRootLogger(), "JobController.UNICORE");
 
   JobControllerUNICORE::JobControllerUNICORE(const UserConfig& usercfg)
     : JobController(usercfg, "UNICORE") {}

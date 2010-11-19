@@ -32,9 +32,9 @@
 
 namespace Arc {
 
-  Logger MCC_GSI_Service::logger(MCC::logger, "GSI Service");
+  Logger MCC_GSI_Service::logger(Logger::getRootLogger(), "MCC.GSI Service");
 
-  Logger MCC_GSI_Client::logger(MCC::logger, "GSI Client");
+  Logger MCC_GSI_Client::logger(Logger::getRootLogger(), "MCC.GSI Client");
 
   static bool proxy_initialized = false;
 

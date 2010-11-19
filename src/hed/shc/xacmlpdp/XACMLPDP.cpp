@@ -16,7 +16,7 @@
 
 #include "XACMLPDP.h"
 
-Arc::Logger ArcSec::XACMLPDP::logger(ArcSec::PDP::logger,"XACMLPDP");
+Arc::Logger ArcSec::XACMLPDP::logger(Arc::Logger::getRootLogger(), "ArcSec.XACMLPDP");
 
 using namespace Arc;
 

@@ -4,7 +4,7 @@
 
 //namespace Arc {
   
-  //Logger SRM22Client::logger(SRMClient::logger, "SRM22Client");
+  //Logger SRM22Client::logger(Logger::getRootLogger(), "SRMClient.SRM22Client");
 
   SRM22Client::SRM22Client(const Arc::UserConfig& usercfg, SRMURL url) {
     version = "v2.2";

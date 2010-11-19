@@ -35,7 +35,7 @@ namespace Arc {
     return arg;
   }
 
-  Logger TargetRetrieverCREAM::logger(TargetRetriever::logger, "CREAM");
+  Logger TargetRetrieverCREAM::logger(Logger::getRootLogger(), "TargetRetriever.CREAM");
 
   TargetRetrieverCREAM::TargetRetrieverCREAM(const UserConfig& usercfg,
                                              const URL& url, ServiceType st)

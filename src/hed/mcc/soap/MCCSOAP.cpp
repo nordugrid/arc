@@ -13,7 +13,7 @@
 #include "MCCSOAP.h"
 
 
-Arc::Logger Arc::MCC_SOAP::logger(Arc::MCC::logger,"SOAP");
+Arc::Logger Arc::MCC_SOAP::logger(Arc::Logger::getRootLogger(), "MCC.SOAP");
 
 
 Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : Arc::MCC(cfg) {

@@ -34,7 +34,7 @@
 
 namespace Arc {
 
-  Logger DataPointFile::logger(DataPoint::logger, "File");
+  Logger DataPointFile::logger(Logger::getRootLogger(), "DataPoint.File");
 
   DataPointFile::DataPointFile(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg),

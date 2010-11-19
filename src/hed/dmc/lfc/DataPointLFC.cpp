@@ -42,7 +42,7 @@ extern int Cthread_init(); /* from <Cthread_api.h> */
 
 namespace Arc {
 
-  Logger DataPointLFC::logger(DataPoint::logger, "LFC");
+  Logger DataPointLFC::logger(Logger::getRootLogger(), "DataPoint.LFC");
 
   class LFCEnvLocker: public CertEnvLocker {
   public:

@@ -16,7 +16,7 @@ typedef struct {
 
 namespace Arc {
 
-  Logger PythonBroker::logger(Broker::logger, "PythonBroker");
+  Logger PythonBroker::logger(Logger::getRootLogger(), "Broker.PythonBroker");
   PyThreadState*PythonBroker::tstate = NULL;
   int PythonBroker::refcount = 0;
   Glib::Mutex PythonBroker::lock;

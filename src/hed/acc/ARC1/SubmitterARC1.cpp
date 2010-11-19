@@ -21,7 +21,7 @@
 
 namespace Arc {
 
-  Logger SubmitterARC1::logger(Submitter::logger, "ARC1");
+  Logger SubmitterARC1::logger(Logger::getRootLogger(), "Submitter.ARC1");
 
   SubmitterARC1::SubmitterARC1(const UserConfig& usercfg)
     : Submitter(usercfg, "ARC1") {}

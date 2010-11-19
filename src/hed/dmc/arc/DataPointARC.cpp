@@ -30,7 +30,7 @@
 
 namespace Arc {
 
-  Logger DataPointARC::logger(DataPoint::logger, "ARC");
+  Logger DataPointARC::logger(Logger::getRootLogger(), "DataPoint.ARC");
 
   typedef struct {
     DataPointARC *point;

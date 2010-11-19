@@ -13,7 +13,7 @@
 
 
 
-Arc::Logger Arc::MCC_HTTP::logger(Arc::MCC::logger,"HTTP");
+Arc::Logger Arc::MCC_HTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
 
 Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }

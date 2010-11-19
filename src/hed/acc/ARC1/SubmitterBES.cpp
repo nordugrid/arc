@@ -19,7 +19,7 @@
 
 namespace Arc {
 
-  Logger SubmitterBES::logger(Submitter::logger, "BES");
+  Logger SubmitterBES::logger(Logger::getRootLogger(), "Submitter.BES");
 
   static std::string char_to_hex(char v) {
     std::string s;

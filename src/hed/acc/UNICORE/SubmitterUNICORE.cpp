@@ -19,7 +19,7 @@
 
 namespace Arc {
 
-  Logger SubmitterUNICORE::logger(Submitter::logger, "UNICORE");
+  Logger SubmitterUNICORE::logger(Logger::getRootLogger(), "Submitter.UNICORE");
 
   SubmitterUNICORE::SubmitterUNICORE(const UserConfig& usercfg)
     : Submitter(usercfg, "UNICORE") {}

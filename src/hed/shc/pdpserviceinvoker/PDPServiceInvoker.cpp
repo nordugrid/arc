@@ -18,7 +18,7 @@
 
 #include "PDPServiceInvoker.h"
 
-Arc::Logger ArcSec::PDPServiceInvoker::logger(ArcSec::PDP::logger,"PDPServiceInvoker");
+Arc::Logger ArcSec::PDPServiceInvoker::logger(Arc::Logger::getRootLogger(), "ArcSec.PDPServiceInvoker");
 
 #define SAML_NAMESPACE "urn:oasis:names:tc:SAML:2.0:assertion"
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"

@@ -17,7 +17,7 @@
 
 namespace Arc {
 
-  Logger JobControllerCREAM::logger(JobController::logger, "CREAM");
+  Logger JobControllerCREAM::logger(Logger::getRootLogger(), "JobController.CREAM");
 
   JobControllerCREAM::JobControllerCREAM(const UserConfig& usercfg)
     : JobController(usercfg, "CREAM") {}

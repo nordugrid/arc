@@ -37,7 +37,7 @@ namespace Arc {
     return arg;
   }
 
-  Logger TargetRetrieverUNICORE::logger(TargetRetriever::logger, "UNICORE");
+  Logger TargetRetrieverUNICORE::logger(Logger::getRootLogger(), "TargetRetriever.UNICORE");
 
   TargetRetrieverUNICORE::TargetRetrieverUNICORE(const UserConfig& usercfg,
                                                  const URL& url, ServiceType st)
