@@ -79,7 +79,7 @@ namespace Arc {
       JobDescriptionParser* operator->() { return *current; }
       const JobDescriptionParser* operator->() const { return *current; }
       iterator& operator++();
-      operator bool() { return !jdpl.jdpDescs.empty() || current != jdpl.jdps.end() || *current != NULL; }
+      operator bool() { return !jdpl.jdpDescs.empty() || current != jdpl.jdps.end(); }
 
       friend class JobDescriptionParserLoader;
     private:
