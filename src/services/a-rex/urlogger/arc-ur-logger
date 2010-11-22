@@ -33,6 +33,7 @@ GM_DEFAULT_MOUNT   = "/jobs"
 ARC_CONFIG         = "ARC_CONFIG"
 NORDUGRID_CONFIG   = "NORDUGRID_CONFIG"
 ISO_TIME_FORMAT    = "%Y-%m-%dT%H:%M:%S"
+ISOZ_TIME_FORMAT   = "%Y-%m-%dT%H:%M:%SZ"
 ARC_TIME_FORMAT    = "%Y%m%d%H%M%SZ"
 XML_HEADER         = '''<?xml version="1.0" encoding="UTF-8" ?>''' + "\n"
 LOG_FORMAT         = "%(asctime)s [%(levelname)s] %(message)s"
@@ -66,11 +67,12 @@ VOMS_PROXY_INFO = 'voms-proxy-info'
 VOMS_PROXY_INFO_PATH = '/opt/voms/bin'
 
 # xml namespaces
-OGF_UR_NAMESPACE  = "http://schema.ogf.org/urf/2003/09/urf"
-DEISA_NAMESPACE   = "http://rmis.deisa.org/acct"
-SGAS_VO_NAMESPACE = "http://www.sgas.se/namespaces/2009/05/ur/vo"
-SGAS_AT_NAMESPACE = "http://www.sgas.se/namespaces/2009/07/ur"
-LOGGER_NAMESPACE  = "http://www.sgas.se/namespaces/2010/08/logger"
+OGF_UR_NAMESPACE   = "http://schema.ogf.org/urf/2003/09/urf"
+DEISA_NAMESPACE    = "http://rmis.deisa.org/acct"
+SGAS_VO_NAMESPACE  = "http://www.sgas.se/namespaces/2009/05/ur/vo"
+SGAS_AT_NAMESPACE  = "http://www.sgas.se/namespaces/2009/07/ur"
+LOGGER_NAMESPACE   = "http://www.sgas.se/namespaces/2010/08/logger"
+TRANSFER_NAMESPACE = "http://www.sgas.se/namespaces/2010/10/filetransfer"
 
 # job usage element/attribute names
 JOB_USAGE_RECORD     = ET.QName("{%s}JobUsageRecord" % OGF_UR_NAMESPACE)
@@ -120,6 +122,18 @@ SGAS_RUNTIME_ENVIRONMENT = ET.QName("{%s}RuntimeEnvironment" % SGAS_AT_NAMESPACE
 LOGGER_NAME         = ET.QName("{%s}LoggerName"         % LOGGER_NAMESPACE)
 LOGGER_VERSION      = ET.QName("{%s}version"            % LOGGER_NAMESPACE)
 
+# elements for transfer stats
+FILE_TRANSFERS                  = ET.QName("{%s}FileTransfers"      % TRANSFER_NAMESPACE)
+FILE_DOWNLOAD                   = ET.QName("{%s}FileDownload"       % TRANSFER_NAMESPACE)
+FILE_UPLOAD                     = ET.QName("{%s}FileUpload"         % TRANSFER_NAMESPACE)
+TRANSFER_URL                    = ET.QName("{%s}URL"                % TRANSFER_NAMESPACE)
+TRANSFER_SIZE                   = ET.QName("{%s}Size"               % TRANSFER_NAMESPACE)
+TRANSFER_START_TIME             = ET.QName("{%s}StartTime"          % TRANSFER_NAMESPACE)
+TRANSFER_END_TIME               = ET.QName("{%s}EndTime"            % TRANSFER_NAMESPACE)
+TRANSFER_BYPASS_CACHE           = ET.QName("{%s}BypassCache"        % TRANSFER_NAMESPACE)
+TRANSFER_RETRIEVED_FROM_CACHE   = ET.QName("{%s}RetrievedFromCache" % TRANSFER_NAMESPACE)
+
+
 # register namespaces in element tree so we get more readable xml files
 # the semantics of the xml files does not change due to this
 try:
@@ -133,11 +147,18 @@ register_namespace('deisa', DEISA_NAMESPACE)
 register_namespace('vo', SGAS_VO_NAMESPACE)
 register_namespace('sgas', SGAS_AT_NAMESPACE)
 register_namespace('logger', LOGGER_NAMESPACE)
+register_namespace('transfer', TRANSFER_NAMESPACE)
 
 
 
 class ConfigurationError(Exception):
     pass
+
+
+# utility function, very handy
+def setElement(parent, name, text):
+    element = ET.SubElement(parent, name)
+    element.text = str(text)
 
 
 
@@ -148,6 +169,82 @@ class VOInformation:
         self.name = None
         self.issuer = None
         self.attributes = [] # [group, role, capability]
+
+
+    def generateTree(self):
+
+        vo = ET.Element(VO)
+        if self.type is not None:
+            vo.attrib[VO_TYPE] = self.type
+        setElement(vo, VO_NAME, self.name)
+        if self.issuer is not None:
+            setElement(vo, VO_ISSUER, self.issuer)
+
+        for attrs in self.attributes:
+            group, role, capability = attrs
+            attr = ET.SubElement(vo, VO_ATTRIBUTE)
+            setElement(attr, VO_GROUP, group)
+            if role is not None:
+                setElement(attr, VO_ROLE, role)
+            if capability is not None:
+                setElement(attr, VO_CAPABILITY, capability)
+
+        return vo
+
+
+
+class Download:
+
+    def __init__(self, url, size=None, start_time=None, end_time=None,
+                 bypass_cache=None, retrieved_from_cache=None):
+        self.url = url
+        self.size = size
+        self.start_time = start_time
+        self.end_time = end_time
+        self.bypass_cache = bypass_cache
+        self.retrieved_from_cache = retrieved_from_cache
+
+
+    def generateTree(self):
+
+        download = ET.Element(FILE_DOWNLOAD)
+        setElement(download, TRANSFER_URL, self.url)
+        if self.size is not None:
+            setElement(download, TRANSFER_SIZE, self.size)
+        if self.start_time is not None:
+            setElement(download, TRANSFER_START_TIME, self.start_time)
+        if self.end_time is not None:
+            setElement(download, TRANSFER_END_TIME, self.end_time)
+        if self.bypass_cache is not None:
+            setElement(download, TRANSFER_BYPASS_CACHE, self.bypass_cache)
+        if self.retrieved_from_cache is not None:
+            setElement(download, TRANSFER_RETRIEVED_FROM_CACHE, self.retrieved_from_cache)
+
+        return download
+
+
+
+class Upload:
+
+    def __init__(self, url, size=None, start_time=None, end_time=None):
+        self.url = url
+        self.size = size
+        self.start_time = start_time
+        self.end_time = end_time
+
+
+    def generateTree(self):
+
+        upload = ET.Element(FILE_UPLOAD)
+        setElement(upload, TRANSFER_URL, self.url)
+        if self.size is not None:
+            setElement(upload, TRANSFER_SIZE, self.size)
+        if self.start_time is not None:
+            setElement(upload, TRANSFER_START_TIME, self.start_time)
+        if self.end_time is not None:
+            setElement(upload, TRANSFER_END_TIME, self.end_time)
+
+        return upload
 
 
 
@@ -184,17 +281,15 @@ class UsageRecord:
         # logger attributes
         self.logger_name        = LOGGER_NAME
         self.logger_version     = LOGGER_VERSION
+        # transfers
+        self.downloads = []
+        self.uploads = []
 
 
     def generateTree(self):
         """
         Generates the XML tree for usage record.
         """
-
-        # utility function, very handy
-        def setElement(parent, name, text):
-            element = ET.SubElement(parent, name)
-            element.text = str(text)
 
         # begin method
 
@@ -221,22 +316,7 @@ class UsageRecord:
 
             # vo stuff belongs under user identity
             for voi in self.vo_info:
-
-                vo = ET.SubElement(user_identity, VO)
-                if voi.type is not None:
-                    vo.attrib[VO_TYPE] = voi.type
-                setElement(vo, VO_NAME, voi.name)
-                if voi.issuer is not None:
-                    setElement(vo, VO_ISSUER, voi.issuer)
-
-                for attrs in voi.attributes:
-                    group, role, capability = attrs
-                    attr = ET.SubElement(vo, VO_ATTRIBUTE)
-                    setElement(attr, VO_GROUP, group)
-                    if role is not None:
-                        setElement(attr, VO_ROLE, role)
-                    if capability is not None:
-                        setElement(attr, VO_CAPABILITY, capability)
+                user_identity.append(voi.generateTree())
 
         if self.job_name       is not None :  setElement(ur, JOB_NAME, self.job_name)
         if self.charge         is not None :  setElement(ur, CHARGE, self.charge)
@@ -266,6 +346,13 @@ class UsageRecord:
         logger_name = ET.SubElement(ur, LOGGER_NAME)
         logger_name.text = LOGGER_NAME_VALUE
         logger_name.set(LOGGER_VERSION, LOGGER_VERSION_VALUE)
+
+        if self.downloads or self.uploads:
+            tri = ET.SubElement(ur, FILE_TRANSFERS)
+            for dl in self.downloads:
+                tri.append(dl.generateTree())
+            for ul in self.uploads:
+                tri.append(ul.generateTree())
 
         return ET.ElementTree(ur)
 
@@ -622,11 +709,118 @@ def getVOMapfileInformation(usersn):
     return []
 
 
+
+def parseARCURL(url):
+    # arc likes to add information to its url (groan)
+    # so we have to extract this information and reconstruct the original url
+    # srm://srm.ndgf.org;cache=yes;spacetoken=ATLASNOLOCALGROUPDISK/atlas/disk/atlaslocalgroupdisk/file1
+    # lfc://lfc1.ndgf.org:5010;cache=yes//grid/atlas/dq2/user/user.andrejfilipcic.production/pilot3-SULU44i.tgz
+
+    base_url     = ''
+    bypass_cache = None
+    spacetoken   = None
+
+    # split metadata out of the url
+    url_prefix, url_reminder = url.split('://', 1)
+    host_metadata, url_path = url_reminder.split('/',1)
+    if ';' in host_metadata:
+        host, metadata = host_metadata.split(';',1)
+    else:
+        host, metadata = host_metadata, None
+    base_url = url_prefix + '://' + host + '/' + url_path
+
+    # extract metadata
+    if metadata is not None:
+        md_tokens = metadata.split(';')
+        for t in md_tokens:
+            if t.startswith('cache='):
+                if t == 'cache=yes':
+                    bypass_cache = 'false'
+                elif t == 'cache=no':
+                    bypass_cache = 'true'
+                else:
+                    logging.warning('Invalid value for cache bypass: %s' % t)
+            elif t.startswith('spacetoken'):
+                _, spacetoken = t.split('=')
+            else:
+                logging.warning('Unrecognized URL option: %s' % url)
+
+    return base_url, bypass_cache, spacetoken
+
+
+
+def isoZTime2ISOTime(isoz_time):
+
+    gmt = time.strptime(isoz_time, ISOZ_TIME_FORMAT)
+    return time.strftime(ISO_TIME_FORMAT, gmt) + "Z"
+
+
+
+def getTransferStats(statistics_file):
+
+    # structure
+    # inputfile=url=srm://srm.ndgf.org;cache=yes;spacetoken=ATLASNOLOCALGROUPDISK/atlas/disk/atlaslocalgroupdisk/no/user10/DmytroKarpenko/testfile,size=5,starttime=2010-10-18 11:46:43,endtime=2010-10-18 11:46:45,fromcache=no
+    # outputfile=url=srm://srm.ndgf.org;spacetoken=ATLASNOLOCALGROUPDISK/atlas/disk/atlaslocalgroupdisk/no/user10/DmytroKarpenko/testfile26,size=10,starttime=2010-10-18 11:47:10,endtime=2010-10-18 11:47:11
+
+    downloads = []
+    uploads   = []
+
+    if os.path.exists(statistics_file):
+        for line in file(statistics_file):
+            if line.startswith('inputfile:') or line.startswith('outputfile:'):
+
+                url                  = None
+                size                 = None
+                start_time           = None
+                end_time             = None
+                bypass_cache         = None
+                retrieved_from_cache = None
+
+                transfer_type, info_block = line.split(':',1)
+                tokens = info_block.split(',')
+                for i_key, i_value in [ token.split('=',1) for token in tokens if '=' in token ]:
+                    i_value = i_value.strip()
+
+                    if i_key == 'url':
+                        url, bypass_cache, _ = parseARCURL(i_value)
+
+                    if i_key == 'size':
+                        size = i_value
+
+                    if i_key == 'starttime':
+                        start_time = isoZTime2ISOTime(i_value)
+
+                    if i_key == 'endtime':
+                        end_time = isoZTime2ISOTime(i_value)
+
+                    if i_key == 'fromcache':
+                        if i_value == 'yes':
+                            retrieved_from_cache = 'true'
+                        elif i_value == 'no':
+                            retrieved_from_cache = 'false'
+                        else:
+                            logging.warning('Invalid fromcache value in statistics file: %s' % i_value)
+
+                if transfer_type == 'inputfile':
+                    dl = Download(url, size, start_time, end_time, bypass_cache, retrieved_from_cache)
+                    downloads.append(dl)
+
+                elif transfer_type == 'outputfile':
+                    ul = Upload(url, size, start_time, end_time)
+                    uploads.append(ul)
+
+                # already check for else clause
+
+    return downloads, uploads
+
+
+
 def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=None):
 
     diag_filepath = os.path.join(control_dir, 'job.%s.diag' % job_id)
     local_filepath = os.path.join(control_dir, 'job.%s.local' % job_id)
     proxy_filepath = os.path.join(control_dir, 'job.%s.proxy' % job_id)
+    statistics_filepath = os.path.join(control_dir, 'job.%s.statistics' % job_id)
 
     if not os.path.exists(diag_filepath):
         raise ConfigurationError("No diag file, skipping record generation")
@@ -686,16 +880,15 @@ def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=Non
             logging.error('Error reading ExecutionUnits. Value: "%s".' % diag_data['ExecutionUnits'][0])
 
     if 'nodename' in diag_data:
-        # some backends like to repeat the starting node as the last nodename entry, so
-        # if there are more nodename entries can execution units we only take the the number
-        # corresponding to executionunits
+        # some backends repeat the starting node as the last nodename entry
+        # if there are more nodename entries can execution units, only take
+        # the the number corresponding to executionunits
         if cpu_count is not None:
             hosts = diag_data['nodename'][:cpu_count]
         else:
             hosts = diag_data['nodename']
-        # remove double entries, but a job can use several processors so having several entries
-        # actually somewhat correct
         ur.host = ",".join(hosts)
+        # nodes are typically repeated, only count unique for number of nodes
         ur.node_count = len(set(hosts))
 
     if 'starttime' in local_data:
@@ -760,6 +953,12 @@ def generateUsageRecord(arc_cfg, control_dir, job_id, job_status, local_user=Non
         logging.info("Failed to create any VO information (voms proxy or reverse map) for job %s." % job_id)
 
     ur.vo_info = vo_info
+
+    # gather transfer status
+
+    downloads, uploads = getTransferStats(statistics_filepath)
+    ur.downloads += downloads
+    ur.uploads   += uploads
 
     # finished constructing usage record
 
