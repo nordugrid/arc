@@ -1,5 +1,13 @@
 pkglib_LTLIBRARIES = libcacheservice.la
 
+initddir=@initddir@
+if SYSV_SCRIPTS_ENABLED
+CACHE_SCRIPT = cache-service
+else
+CACHE_SCRIPT =
+endif
+initd_SCRIPTS = $(CACHE_SCRIPT)
+
 libcacheservice_la_SOURCES = CacheService.h CacheService.cpp
 libcacheservice_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 libcacheservice_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la \

@@ -1950,6 +1950,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/urlogger/Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/cache_service/Makefile
+                 src/services/cache_service/cache-service
                  src/services/charon/Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
