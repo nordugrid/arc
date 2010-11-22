@@ -60,7 +60,7 @@ namespace Arc {
         }
       }
       else {
-        std::cerr << profilename << " does not exits" << std::endl;
+        std::cerr << profilename << " does not exist" << std::endl;
         return false;
       }
     }
