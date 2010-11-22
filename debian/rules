@@ -78,6 +78,7 @@ clean:
 
 	rm -f debian/nordugrid-arc-nox-arex.a-rex.init
 	rm -f debian/nordugrid-arc-nox-hed.arched.init
+	rm -f debian/nordugrid-arc-nox-cache-service.cache-service.init
 
 	dh_clean configure-stamp build-arch-stamp build-indep-stamp 
 
@@ -102,6 +103,7 @@ install-arch: build-arch-stamp
 
 	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-nox-arex.a-rex.init
 	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-nox-hed.arched.init
+	mv debian/tmp/etc/init.d/cache-service debian/nordugrid-arc-nox-cache-service.cache-service.init
 
 binary-indep: install-indep
 	dh_testdir
@@ -130,6 +132,7 @@ binary-arch: install-arch
 	dh_installchangelogs -a
 	dh_installinit --name arched
 	dh_installinit --name a-rex
+	dh_installinit --name cache-service
 	dh_perl -a
 	dh_pysupport -a
 	dh_link -a

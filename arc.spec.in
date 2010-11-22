@@ -775,6 +775,7 @@ exit 0
 
 %files cache-service
 %defattr(-,root,root,-)
+%{_initrddir}/cache-service
 %{_libdir}/%{pkgdir}/libcacheservice.so
 %{_libdir}/%{pkgdir}/libcacheservice.apd
 
