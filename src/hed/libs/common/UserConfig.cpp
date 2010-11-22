@@ -42,6 +42,8 @@ namespace Arc {
     case INDEX:
       return istring("index");
     }
+
+    return "";
   }
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
