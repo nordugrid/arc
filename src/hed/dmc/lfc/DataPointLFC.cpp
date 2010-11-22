@@ -48,7 +48,9 @@ namespace Arc {
   public:
     static Logger logger;
     LFCEnvLocker(const UserConfig& usercfg, const URL& url):CertEnvLocker(usercfg) {
-      // if root, set X509_USER_CERT and X509_USER_KEY to X509_USER_PROXY
+      // if root, we have to set X509_USER_CERT and X509_USER_KEY to
+      // X509_USER_PROXY to force LFC to use the proxy. If they are undefined
+      // the LFC lib uses the host cert and key.
       if (getuid() == 0 && !GetEnv("X509_USER_PROXY").empty()) {
         SetEnvNonLock("X509_USER_KEY", GetEnv("X509_USER_PROXY"), true);
         SetEnvNonLock("X509_USER_CERT", GetEnv("X509_USER_PROXY"), true);
@@ -66,7 +68,7 @@ namespace Arc {
 
       logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_PROXY"));
       logger.msg(DEBUG, "Using key %s", GetEnv("X509_USER_KEY"));
-      logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_CERT"));
+      logger.msg(DEBUG, "Using cert %s", GetEnv("X509_USER_CERT"));
     };
     ~LFCEnvLocker(void) {
     };
