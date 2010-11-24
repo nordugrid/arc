@@ -2,7 +2,7 @@
 
 %global with_lfc %{?_without_lfc:0}%{!?_without_lfc:1}
 %global with_java %{!?_without_java:1}%{?_without_java:0}
-%global with_gcj %{!?_without_gcj:1}%{?_without_gcj:0}
+%global with_gcj %{!?_with_gcj:0}%{?_with_gcj:1}
 
 %global pkgdir @PACKAGE@
 
