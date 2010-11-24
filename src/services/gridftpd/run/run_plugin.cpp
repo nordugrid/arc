@@ -222,35 +222,5 @@ namespace gridftpd {
     return true;
   }
 
-  void RunPlugins::add(const std::string& cmd) {
-    RunPlugin* r = new RunPlugin(cmd);
-    if(!r) return;
-    if(!(*r)) return;
-    plugins_.push_back(r);
-  }
-
-  bool RunPlugins::run(void) {
-    for(std::list<RunPlugin*>::iterator r = plugins_.begin();
-                                    r != plugins_.end();++r) {
-      if(!(*r)->run()) return false;
-      if((*r)->result() != 0) {
-        result_=result(); return true;
-      };
-    };
-    result_=0;
-    return true;
-  }
-
-  bool RunPlugins::run(RunPlugin::substitute_t subst,void* arg) {
-    for(std::list<RunPlugin*>::iterator r = plugins_.begin();
-                                    r != plugins_.end();++r) {
-      if(!(*r)->run(subst,arg)) return false;
-      if((*r)->result() != 0) {
-        result_=result(); return true;
-      };
-    };
-    result_=0;
-    return true;
-  }
 
 } // namespace gridftpd

@@ -1,3 +1,5 @@
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 
 #include <globus_common.h>
@@ -6,8 +8,8 @@
 #include <globus_openssl.h>
 
 #include <arc/Logger.h>
+#include <arc/Run.h>
 
-#include "run/run.h"
 #include "fileroot.h"
 #include "commands.h"
 #include "conf.h"
@@ -31,8 +33,6 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "gridftpd");
 /* new connection */
 #ifndef __DONT_USE_FORK__
 void new_conn_callback(int sock) {
-  /* set signal handlers to run child processes */
-  gridftpd::Run run; // run.reinit();
   /* initiate random number generator */
   srand(getpid() + getppid() + time(NULL));
   if((globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) ||
@@ -45,7 +45,6 @@ void new_conn_callback(int sock) {
     close(sock);
     exit(1);
   };
-  run.reinit(false);
 
   client = new GridFTP_Commands(getpid(),firewall_interface);    
   client->new_connection_callback((void*)client,sock);
@@ -300,6 +299,7 @@ int main(int argc,char** argv) {
         case 0: {
           /* child */
           close(handle);
+          Arc::Run::AfterFork();
           new_conn_callback(sock);
         }; break;
         default: {
@@ -319,7 +319,6 @@ int main(int argc,char** argv) {
     perror("daemonization failed");
      return 1;
   };
-  Run run;
   if((globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) ||
      (globus_module_activate(GLOBUS_FTP_CONTROL_MODULE) != GLOBUS_SUCCESS) ||
      (globus_module_activate(GLOBUS_GSI_CREDENTIAL_MODULE) != GLOBUS_SUCCESS) ||

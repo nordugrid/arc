@@ -43,17 +43,6 @@ namespace gridftpd {
     operator bool(void) const { return (args_.size() > 0); };
   };
 
-  class RunPlugins {
-   private:
-    std::list<RunPlugin*> plugins_;
-    int result_;
-   public:
-    RunPlugins(void):result_(0) { };
-    void add(const std::string& cmd);
-    bool run(void);
-    bool run(RunPlugin::substitute_t subst,void* arg);
-    int result(void) { return result_; };
-  };
 
   void free_args(char** args);
   char** string_to_args(const std::string& command);
