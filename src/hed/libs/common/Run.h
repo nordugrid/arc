@@ -150,6 +150,10 @@ namespace Arc {
       After calling this method instance is not associated with external
       process anymore. As result destructor will not kill process. */
     void Abandon(void);
+    /** Call this method after fork() in child cporocess.
+      It will reinitialize internal structures for new environment. Do 
+      not call it in any other case than defined. */
+    static void AfterFork(void);
   };
 
 }

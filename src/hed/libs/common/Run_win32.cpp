@@ -282,4 +282,7 @@ namespace Arc {
     }
   }
 
+  void Run::AfterFork(void) {
+  }
+
 }

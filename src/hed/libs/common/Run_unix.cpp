@@ -69,6 +69,7 @@ namespace Arc {
     void Add(Run *r);
     void Remove(Run *r);
     void child_handler(Glib::Pid pid, int result);
+    static void fork_handler(void);
   };
 
   Glib::Mutex RunPump::instance_lock_;
@@ -139,9 +140,15 @@ namespace Arc {
     }
   }
 
+  void RunPump::fork_handler(void) {
+    instance_ = NULL;
+    mark_ = RunPumpMagic;
+  }
+
   RunPump& RunPump::Instance(void) {
     instance_lock_.lock();
     if ((instance_ == NULL) || (mark_ != RunPumpMagic)) {
+      //pthread_atfork(NULL,NULL,&fork_handler);
       instance_ = new RunPump();
       mark_ = RunPumpMagic;
     }
@@ -665,6 +672,10 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       kicker_arg_ = kicker_arg;
       kicker_func_ = kicker_func;
     }
+  }
+
+  void Run::AfterFork(void) {
+    RunPump::fork_handler();
   }
 
 }
