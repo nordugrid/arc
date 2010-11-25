@@ -1,5 +1,9 @@
 // -*- indent-tabs-mode: nil -*-
 
+#ifdef WIN32 
+#include <arc/win32.h>
+#endif
+
 #include "SRM22Client.h"
 
 #include <arc/StringConv.h>
