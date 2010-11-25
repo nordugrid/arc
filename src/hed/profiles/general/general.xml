@@ -183,8 +183,9 @@
             <arex:path inisections="#this" initag="path"/>
             <arex:link inisections="#this" initag="link"/>
           </arex:location>
-          <arex:remotelocation initype="multielement" inisections="arex/cache" initag="remotelocation">
-            <arex:path initype="#this"/>
+          <arex:remotelocation initype="multisection" inisections="arex/cache/remotelocation">
+            <arex:path inisections="#this" initag="path"/>
+            <arex:link inisections="#this" initag="link"/>
           </arex:remotelocation>
           <arex:highWatermark inisections="arex/cache" initag="highwatermark"/>
           <arex:lowWatermark inisections="arex/cache" initag="lowwatermark"/>
