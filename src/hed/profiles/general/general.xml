@@ -181,9 +181,9 @@
         <arex:cache>
           <arex:location initype="multisection" inisections="arex/cache/location">
             <arex:path inisections="#this" initag="path"/>
-            <arex:link inisections="#this" initag="path"/>
+            <arex:link inisections="#this" initag="link"/>
           </arex:location>
-          <arex:remotelocation initype="multielement" inisections="arex" initag="remotelocation">
+          <arex:remotelocation initype="multielement" inisections="arex/cache" initag="remotelocation">
             <arex:path initype="#this"/>
           </arex:remotelocation>
           <arex:highWatermark inisections="arex/cache" initag="highwatermark"/>
@@ -358,17 +358,16 @@
           <ip:Longitude inisections="arex/info/location" initag="longitude"/>
         </ip:Location>
 
-        <ip:Contact initokenenables="arex/info/contact" initype="multisection">
-          <ip:Name inisections="arex/info/contact" initag="name"/>
-          <ip:OtherInfo inisections="arex/info/contact" initag="otherinfo"/>
-          <ip:Detail inisections="arex/info/contact" initag="detail"/>
-          <ip:Type inisections="arex/info/contact" initag="type"/>
+        <ip:Contact initype="multisection" initokenenables="arex/info/contact" inisections="arex/info/contact">
+          <ip:Name inisections="#this" initag="name"/>
+          <ip:OtherInfo inisections="#this" initag="otherinfo"/>
+          <ip:Detail inisections="#this" initag="detail"/>
+          <ip:Type inisections="#this" initag="type"/>
         </ip:Contact>
 
-        <ip:ExecutionEnvironment initype="multisection" inisections="arex/info/executionenvironment" initokenenables="arex/info/executionenvironment">
+        <ip:ExecutionEnvironment initype="multisection" initokenenables="arex/info/executionenvironment" inisections="arex/info/executionenvironment">
           <name initype="attribute" inisections="#this" initag="name"/>
 
-          <!-- options for selecting the nodes that belong into this nodeGroup needs backend suppot. Only inplemented for Fork and PBS -->
           <ip:NodeSelection>
             <ip:Regex initype="multi" inisections="#this" initag="nodeselectionregex"/>
             <ip:Tag inisections="#this" initag="nodeselectiontag"/>
@@ -412,7 +411,7 @@
 
           <lrms:slurm_project initokenenables="lrms/slurm" inisections="#this" initag="slurm_project"/>
           <lrms:fork_job_limit initokenenables="lrms/fork" inisections="#this" initag="fork_job_limit"/>
-          <lrms:queue_node_string inisections="#this" initag="queue_node_string"/>
+          <lrms:queue_node_string initokenenables="lrms/pbs" inisections="#this" initag="queue_node_string"/>
           <lrms:sge_jobopts initokenenables="lrms/sge" inisections="#this" initag="sge_jobopts"/>
           <lrms:condor_requirements initokenenables="lrms/condor" inisections="#this" initag="condor_requirements"/>
           <lrms:lsf_architecture  initokenenables="lrms/lsf" inisections="#this" initag="lsf_architecture"/>
