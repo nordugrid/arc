@@ -9,7 +9,11 @@ man_MANS = chelonia.1
 EXTRA_DIST = $(python_DATA) $(example_DATA) $(bin_SCRIPTS)
 
 if PYTHON_ENABLED
+if WIN32
+FUSE_CLIENT =
+else
 FUSE_CLIENT = fuse
+endif
 else
 FUSE_CLIENT =
 endif

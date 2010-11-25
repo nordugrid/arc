@@ -25,7 +25,7 @@ BuildRequires: mingw32-gcc
 BuildRequires: mingw32-gcc-c++
 BuildRequires: mingw32-binutils
 BuildRequires: mingw32-gettext
-#BuildRequires: mingw32-python-devel
+BuildRequires: mingw32-python-devel
 BuildRequires: mingw32-glibmm24
 BuildRequires: mingw32-glib2
 BuildRequires: mingw32-libxml2
@@ -34,15 +34,11 @@ BuildRequires: mingw32-w32api
 BuildRequires: mingw32-libgnurx
 BuildRequires: mingw32-xmlsec1
 BuildRequires: pkgconfig
-#BuildRequires: gsoap-devel >= 2.7.2
 BuildRequires: mingw32-db4
 BuildRequires: mingw32-globus-common
 BuildRequires: mingw32-globus-ftp-client
 BuildRequires: mingw32-globus-ftp-control
 BuildRequires: mingw32-globus-rls-client
-
-#%define pyver 2.6
-#%define ifpy %{nil}
 
 %description
 ARC
@@ -103,14 +99,14 @@ Requires: mingw32-openssl
 %description devel
 Development files for ARC
 
-#%package python
-#Summary: ARC Python wrapper
-#Group: Development/Libraries
-#Requires: %{name} = %{version}
-#Requires: python
+%package python
+Summary: ARC Python wrapper
+Group: Development/Libraries
+Requires: %{name} = %{version}
+Requires: python
 
-#%description python
-#Python wrapper for ARC
+%description python
+Python wrapper for ARC
 
 %{?_mingw32_debug_package}
 
@@ -119,7 +115,6 @@ Development files for ARC
 
 %build
 %{_mingw32_configure} \
-  --disable-python \
   --disable-java \
   --disable-doc \
   --disable-static LDFLAGS="-Wl,--enable-auto-import"
@@ -184,6 +179,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/arcrenew.exe
 %{_mingw32_bindir}/arcresume.exe
 %{_mingw32_bindir}/arcwsrf.exe
+%{_mingw32_bindir}/chelonia
 %{_mingw32_bindir}/perftest.exe
 %{_mingw32_bindir}/saml_assertion_init.exe
 #
@@ -217,6 +213,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcrenew.1*
 %doc %{_mingw32_mandir}/man1/arcresume.1*
 %doc %{_mingw32_mandir}/man1/arcwsrf.1*
+%doc %{_mingw32_mandir}/man1/chelonia.1*
 %doc %{_mingw32_mandir}/man1/isistest.1*
 %doc %{_mingw32_mandir}/man1/perftest.1*
 %doc %{_mingw32_mandir}/man1/saml_assertion_init.1*
@@ -291,12 +288,12 @@ rm -rf $RPM_BUILD_ROOT
 #%{_mingw32_libdir}/%{pkgdir}/libdmcsrm.so
 %{_mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 
-#%files python
-#%defattr(-,root,root,-)
-#%{_mingw32_libdir}/python?.?/site-packages/
-#%{ifpy}%{_mingw32_libdir}/%{pkgdir}/libpythonservice.so
-#%{ifpy}%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.so
-#%{ifpy}%doc src/hed/acc/PythonBroker/SampleBroker.py
+%files python
+%defattr(-,root,root,-)
+%{_mingw32_libdir}/python?.?/site-packages/
+%{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
+%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 
 %changelog
 
