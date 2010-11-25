@@ -10,7 +10,6 @@
 
 #include <cstdlib>
 
-#include <globus_io.h>
 #include <glibmm/fileutils.h>
 
 #include <arc/Thread.h>
@@ -21,16 +20,12 @@
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
 #include <arc/data/CheckSum.h>
-#include <arc/globusutils/GlobusWorkarounds.h>
-
 
 #include "DataPointSRM.h"
 
 namespace Arc {
 
   Logger DataPointSRM::logger(Logger::getRootLogger(), "DataPoint.SRM");
-
-  static bool proxy_initialized = false;
 
   DataPointSRM::DataPointSRM(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg),
@@ -41,18 +36,11 @@ namespace Arc {
       timeout(false) {
     valid_url_options.push_back("protocol");
     valid_url_options.push_back("spacetoken");
-    if (!proxy_initialized) {
-      globus_module_activate(GLOBUS_GSI_GSSAPI_MODULE);
-      globus_module_activate(GLOBUS_IO_MODULE);
-      proxy_initialized = GlobusRecoverProxyOpenSSL();
-    }
   }
 
   DataPointSRM::~DataPointSRM() {
     if(r_handle) delete r_handle;
     if(srm_request) delete srm_request;
-    //globus_module_deactivate(GLOBUS_IO_MODULE);
-    //globus_module_deactivate(GLOBUS_GSI_GSSAPI_MODULE);
   }
 
   Plugin* DataPointSRM::Instance(PluginArgument *arg) {
@@ -61,11 +49,6 @@ namespace Arc {
       return NULL;
     if (((const URL&)(*dmcarg)).Protocol() != "srm")
       return NULL;
-    // Make this code non-unloadable because Globus
-    // may have problems with unloading
-    Glib::Module* module = dmcarg->get_module();
-    PluginsFactory* factory = dmcarg->get_factory();
-    if(factory && module) factory->makePersistent(module);
     return new DataPointSRM(*dmcarg, *dmcarg);
   }
 
@@ -207,7 +190,6 @@ namespace Arc {
     }
     std::list<std::string> turls;
     SRMReturnCode res = client->getTURLs(*srm_request, turls);
-    client->disconnect();
     delete client;
     client = NULL;
     
@@ -375,7 +357,6 @@ namespace Arc {
 
     std::list<std::string> turls;
     SRMReturnCode res = client->putTURLs(*srm_request, turls);
-    client->disconnect();
     delete client;
     client = NULL;
     
@@ -650,7 +631,16 @@ namespace Arc {
         f->SetLatency("NEARLINE");
         f->SetMetaData("latency", "NEARLINE");
       }
-      if(!i->arrayOfSpaceTokens.empty()) f->SetMetaData("spacetokens", i->arrayOfSpaceTokens);
+      if (!i->spaceTokens.empty()) {
+        std::string spaceTokens;
+        for (std::list<std::string>::iterator it = i->spaceTokens.begin();
+             it != i->spaceTokens.end(); it++) {
+          if (!spaceTokens.empty()) 
+            spaceTokens += ',';
+          spaceTokens += *it;
+        }
+        f->SetMetaData("spacetokens", spaceTokens);
+      }
       if(!i->owner.empty()) f->SetMetaData("owner", i->owner);
       if(!i->group.empty()) f->SetMetaData("group", i->group);
       if(!i->permission.empty()) f->SetMetaData("accessperm", i->permission);

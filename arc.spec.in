@@ -14,7 +14,7 @@ Group: System Environment/Daemons
 License: ASL 2.0
 URL: http://www.nordugrid.org/
 Source: %{name}-%{version}.tar.gz
-BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Provides: nordugrid-arc1 = %{version}
 Obsoletes: nordugrid-arc1 < 1.0.0
@@ -33,7 +33,6 @@ BuildRequires: libxml2-devel
 BuildRequires: openssl-devel
 BuildRequires: xmlsec1-devel >= 1.2.4
 BuildRequires: xmlsec1-openssl-devel >= 1.2.4
-BuildRequires: gsoap-devel >= 2.7.2
 %if %{_vendor} == "suse"
 BuildRequires: openldap2-devel
 BuildRequires: gettext-devel

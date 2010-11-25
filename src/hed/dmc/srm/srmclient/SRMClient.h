@@ -1,20 +1,22 @@
+// -*- indent-tabs-mode: nil -*-
+
 #ifndef __HTTPSD_SRM_CLIENT_H__
 #define __HTTPSD_SRM_CLIENT_H__
 
 #include <string>
-#include <sstream>
 #include <list>
 #include <exception>
 
+#include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
-
-#include "../https/HTTPSClient.h"
+#include <arc/message/MCC.h>
+#include <arc/client/ClientInterface.h>
 
 #include "SRMURL.h"
 
-//namespace Arc {
-  
+namespace Arc {
+
   /**
    * The version of the SRM protocol
    */
@@ -23,7 +25,7 @@
     SRM_V2_2,
     SRM_VNULL
   };
-  
+
   /**
    * Return code specifying types of errors that can occur in client methods
    */
@@ -31,13 +33,13 @@
     SRM_OK,
     SRM_ERROR_CONNECTION,
     SRM_ERROR_SOAP,
-    // the next two only apply to valid repsonses from the service 
+    // the next two only apply to valid repsonses from the service
     SRM_ERROR_TEMPORARY, // eg SRM_INTERNAL_ERROR, SRM_FILE_BUSY
     SRM_ERROR_PERMANENT, // eg no such file, permission denied
     SRM_ERROR_NOT_SUPPORTED, // not supported by this version of the protocol
     SRM_ERROR_OTHER // eg bad input parameters, unexpected result format
   };
-  
+
   /**
    * Specifies whether file is on disk or only on tape
    */
@@ -47,7 +49,7 @@
     SRM_UNKNOWN,
     SRM_STAGE_ERROR
   };
-   
+
   /**
    * Quality of retention
    */
@@ -57,7 +59,7 @@
     SRM_CUSTODIAL,
     SRM_RETENTION_UNKNOWN
   };
-  
+
   /**
    * The lifetime of the file
    */
@@ -67,7 +69,7 @@
     SRM_PERMANENT,
     SRM_FILE_STORAGE_UNKNOWN
   };
-  
+
   /**
    * File, directory or link
    */
@@ -77,7 +79,7 @@
     SRM_LINK,
     SRM_FILE_TYPE_UNKNOWN
   };
-  
+
   /**
    * Implementation of service. Found from srmPing (v2.2 only)
    */
@@ -88,31 +90,32 @@
     SRM_IMPLEMENTATION_STORM,
     SRM_IMPLEMENTATION_UNKNOWN
   };
-  
+
   /**
    * File metadata
    */
   struct SRMFileMetaData {
     std::string path;   // absolute dir and file path
     long long int size;
-    time_t createdAtTime;
-    time_t lastModificationTime;
+    Time createdAtTime;
+    Time lastModificationTime;
     std::string checkSumType;
     std::string checkSumValue;
     SRMFileLocality fileLocality;
     SRMRetentionPolicy retentionPolicy;
     SRMFileStorageType fileStorageType;
     SRMFileType fileType;
-    std::string arrayOfSpaceTokens;
+    std::list<std::string> spaceTokens;
     std::string owner;
     std::string group;
     std::string permission;
-    int lifetimeLeft; // on the SURL    
-    int lifetimeAssigned;
+    Period lifetimeLeft; // on the SURL
+    Period lifetimeAssigned;
   };
-  
-  class SRMInvalidRequestException: public std::exception {};
-  
+
+  class SRMInvalidRequestException
+    : public std::exception {};
+
   /**
    * The status of a request
    */
@@ -124,170 +127,215 @@
     SRM_REQUEST_SHOULD_ABORT,
     SRM_REQUEST_CANCELLED
   };
-  
+
   /**
    * Class to represent a request which may be used for multiple operations,
    * for example calling getTURLs() sets the request token in the request
    * object (for a v2.2 client) and then same object is passed to releaseGet().
    */
   class SRMClientRequest {
-  
-   private:
-  
+
+  private:
+
     /**
      * The SURLs of the files involved in the request, mapped to their locality.
      */
     std::map<std::string, SRMFileLocality> _surls;
-  
+
     /**
      * int ids are used in SRM1
      */
     int _request_id;
-  
+
     /**
      * string request tokens (eg "-21249586") are used in SRM2.2
      */
     std::string _request_token;
-  
+
     /**
      * A list of file ids is kept in SRM1
      */
     std::list<int> _file_ids;
-  
+
     /**
      * The space token associated with a request
      */
     std::string _space_token;
-  
+
     /**
      * A map of SURLs for which requests failed to failure reason.
      * Used for bring online requests.
      */
     std::map<std::string, std::string> _surl_failures;
-  
+
     /**
      * Estimated waiting time as returned by the server to wait
      * until the next poll of an asychronous request.
      */
     int _waiting_time;
-  
+
     /**
      * status of request. Only useful for asynchronous requests.
      */
     SRMRequestStatus _status;
-    
+
     /**
      * Whether a detailed listing is requested
      */
     bool _long_list;
-    
-   public:
-    
+
+  public:
     /**
-     * Creates a request object with multiple SURLs. The URLs here are in the form
-     * srm://srm.ndgf.org/pnfs/ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/dummyfile3
+     * Creates a request object with multiple SURLs.
+     * The URLs here are in the form
+     * srm://srm.ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/file3
      */
-    SRMClientRequest(std::list<std::string> urls) 
-      throw (SRMInvalidRequestException):
-      _request_id(0),
-      _space_token(""), 
-      _waiting_time(1), 
-      _status(SRM_REQUEST_ONGOING),
-      _long_list(false) {
-  
-      if(urls.empty()) throw SRMInvalidRequestException();
-      for (std::list<std::string>::iterator i = urls.begin();
-         i != urls.end();
-         ++i) _surls[*i] = SRM_UNKNOWN;
-    };
-    
+    SRMClientRequest(const std::list<std::string>& urls)
+    throw (SRMInvalidRequestException)
+      : _request_id(0),
+        _waiting_time(1),
+        _status(SRM_REQUEST_ONGOING),
+        _long_list(false) {
+      if (urls.empty())
+        throw SRMInvalidRequestException();
+      for (std::list<std::string>::const_iterator it = urls.begin();
+           it != urls.end(); ++it)
+        _surls[*it] = SRM_UNKNOWN;
+    }
+
     /**
-     * Creates a request object with a single SURL. The URL here are in the form
-     * srm://srm.ndgf.org/pnfs/ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/dummyfile3
+     * Creates a request object with a single SURL.
+     * The URL here are in the form
+     * srm://srm.ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/file3
      */
-    SRMClientRequest(std::string url="", std::string id="")
-      throw (SRMInvalidRequestException):
-      _request_id(0),
-      _space_token(""),
-      _waiting_time(1),
-      _status(SRM_REQUEST_ONGOING),
-      _long_list(false) {
-        
-      if(url.compare("") == 0 && id.compare("") == 0) throw SRMInvalidRequestException();
-      if(url.compare("") != 0) _surls[url] = SRM_UNKNOWN;
-      else _request_token = (char*)id.c_str();
-    };
-  
+    SRMClientRequest(const std::string& url = "", const std::string& id = "")
+    throw (SRMInvalidRequestException)
+      : _request_id(0),
+        _waiting_time(1),
+        _status(SRM_REQUEST_ONGOING),
+        _long_list(false) {
+      if (url.empty() && id.empty())
+        throw SRMInvalidRequestException();
+      if (!url.empty() != 0)
+        _surls[url] = SRM_UNKNOWN;
+      else
+        _request_token = id;
+    }
+
     /**
      * set and get request id
      */
-    void request_id(int id) {_request_id = id;};
-    int request_id() const {return _request_id;};
-    
+    void request_id(int id) {
+      _request_id = id;
+    }
+    int request_id() const {
+      return _request_id;
+    }
+
     /**
      * set and get request token
      */
-    void request_token(char* token) {_request_token = token;};
-    std::string request_token() const {return _request_token;};
-    
+    void request_token(const std::string& token) {
+      _request_token = token;
+    }
+    std::string request_token() const {
+      return _request_token;
+    }
+
     /**
      * set and get file id list
      */
-    void file_ids(const std::list<int>& ids) {_file_ids = ids;};
-    std::list<int> file_ids() const {return _file_ids;};
-  
+    void file_ids(const std::list<int>& ids) {
+      _file_ids = ids;
+    }
+    std::list<int> file_ids() const {
+      return _file_ids;
+    }
+
     /**
      * set and get space token
      */
-    void space_token(const std::string& token) {_space_token = token;};
-    std::string space_token() const {return _space_token;};
-  
+    void space_token(const std::string& token) {
+      _space_token = token;
+    }
+    std::string space_token() const {
+      return _space_token;
+    }
+
     /**
      * get SURLs
      */
     std::list<std::string> surls() const {
       std::list<std::string> surl_list;
-      for (std::map<std::string,SRMFileLocality>::const_iterator it=_surls.begin() ; it != _surls.end(); ++it ) {
-        surl_list.push_back((*it).first);
-      };
+      for (std::map<std::string, SRMFileLocality>::const_iterator it =
+             _surls.begin(); it != _surls.end(); ++it)
+        surl_list.push_back(it->first);
       return surl_list;
-    };
-  
+    }
+
     /**
      * set and get surl statuses
      */
-    void surl_statuses(const std::string& surl, SRMFileLocality locality) {_surls[surl] = locality;};
-    std::map<std::string, SRMFileLocality> surl_statuses() const {return _surls;};
-  
+    void surl_statuses(const std::string& surl, SRMFileLocality locality) {
+      _surls[surl] = locality;
+    }
+    std::map<std::string, SRMFileLocality> surl_statuses() const {
+      return _surls;
+    }
+
     /**
      * set and get surl failures
      */
-    void surl_failures(const std::string& surl, const std::string& reason) {_surl_failures[surl] = reason;};
-    std::map<std::string, std::string> surl_failures() const {return _surl_failures;};
-  
+    void surl_failures(const std::string& surl, const std::string& reason) {
+      _surl_failures[surl] = reason;
+    }
+    std::map<std::string, std::string> surl_failures() const {
+      return _surl_failures;
+    }
+
     /**
      * set and get waiting time
      */
-    void waiting_time(int wait_time) {_waiting_time = wait_time;};
-    int waiting_time() const {return _waiting_time;};
-  
+    void waiting_time(int wait_time) {
+      _waiting_time = wait_time;
+    }
+    int waiting_time() const {
+      return _waiting_time;
+    }
+
     /**
      * set and get status of request
      */
-    void finished_success() {_status = SRM_REQUEST_FINISHED_SUCCESS;};
-    void finished_partial_success() {_status = SRM_REQUEST_FINISHED_PARTIAL_SUCCESS;};
-    void finished_error() {_status = SRM_REQUEST_FINISHED_ERROR;};
-    void finished_abort() {_status = SRM_REQUEST_SHOULD_ABORT;};
-    void cancelled() {_status = SRM_REQUEST_CANCELLED;};
-    SRMRequestStatus status() const {return _status;};
-    
+    void finished_success() {
+      _status = SRM_REQUEST_FINISHED_SUCCESS;
+    }
+    void finished_partial_success() {
+      _status = SRM_REQUEST_FINISHED_PARTIAL_SUCCESS;
+    }
+    void finished_error() {
+      _status = SRM_REQUEST_FINISHED_ERROR;
+    }
+    void finished_abort() {
+      _status = SRM_REQUEST_SHOULD_ABORT;
+    }
+    void cancelled() {
+      _status = SRM_REQUEST_CANCELLED;
+    }
+    SRMRequestStatus status() const {
+      return _status;
+    }
+
     /**
      * set and get long list flag
      */
-    void long_list(bool list) { _long_list = list; };
-    bool long_list() const { return _long_list; };
+    void long_list(bool list) {
+      _long_list = list;
+    }
+    bool long_list() const {
+      return _long_list;
+    }
   };
-  
+
   /**
    * A client interface to the SRM protocol. Instances of SRM clients
    * are created by calling the getInstance() factory method. One client
@@ -295,53 +343,52 @@
    * the same protocol version), but not multiple servers.
    */
   class SRMClient {
-  
-   protected:
-  
+
+  protected:
+
     /**
-     * The URL of the service endpoint, eg httpg://srm.ndgf.org:8443/srm/managerv2
+     * The URL of the service endpoint, eg
+     * httpg://srm.ndgf.org:8443/srm/managerv2
      * All SURLs passed to methods must correspond to this endpoint.
      */
     std::string service_endpoint;
-  
+
+    /**
+     * SOAP configuraton object
+     */
+    MCCConfig cfg;
+
     /**
      * SOAP client object
      */
-    Arc::HTTPSClientSOAP * csoap;
-  
+    ClientSOAP *client;
+
+    /**
+     * SOAP namespace
+     */
+    NS ns;
+
     /**
      * The implementation of the server
      */
     SRMImplementation implementation;
-  
+
     /**
      * Timeout for requests to the SRM service
      */
     static time_t request_timeout;
-  
+
     /**
      * The version of the SRM protocol used
      */
     std::string version;
-    
+
     /**
      * Logger
      */
-    static Arc::Logger logger;
-  
-   public:
-  
-    /**
-     * Establish a connection to the service
-     * @returns SRMReturnCode specifying outcome of operation
-     */
-    SRMReturnCode connect(void);
-  
-    /**
-     * Disconnect from the service and destroy the connection
-     */
-    bool disconnect(void) { if(!csoap) return true; return (csoap->disconnect() == 0);};
-  
+    static Logger logger;
+
+  public:
     /**
      * Returns an SRMClient instance with the required protocol version.
      * This must be used to create SRMClient instances. Specifying a
@@ -354,25 +401,29 @@
      * @param timeout Connection timeout.
      * is returned.
      */
-    static SRMClient* getInstance(const Arc::UserConfig& usercfg,
-                                  std::string url,
+    static SRMClient* getInstance(const UserConfig& usercfg,
+                                  const std::string& url,
                                   bool& timedout,
-                                  time_t timeout=300);
+                                  time_t timeout = 300);
     /**
      * empty destructor
      */
-    virtual ~SRMClient() {};
-  
+    virtual ~SRMClient() {}
+
     /**
      * set the request timeout
      */
-    void Timeout(int t) { request_timeout=t; };
-  
+    static void Timeout(const time_t t) {
+      request_timeout = t;
+    }
+
     /**
      * Returns the version of the SRM protocol used by this instance
      */
-    std::string getVersion() const {return version;};
-  
+    std::string getVersion() const {
+      return version;
+    }
+
     /**
      * Find out the version supported by the server this client
      * is connected to. Since this method is used to determine
@@ -385,9 +436,9 @@
      */
     virtual SRMReturnCode ping(std::string& version,
                                bool report_error = true) = 0;
-  
+
     /**
-     * Find the space tokens available to write to which correspond to 
+     * Find the space tokens available to write to which correspond to
      * the space token description, if given. The list of tokens is
      * a list of numbers referring to the SRM internal definition of the
      * spaces, not user-readable strings.
@@ -396,8 +447,8 @@
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode getSpaceTokens(std::list<std::string>& tokens,
-                                         std::string description = "") = 0;
-  
+                                         const std::string& description = "") = 0;
+
     /**
      * Returns a list of request tokens for the user calling the method
      * which are still active requests, or the tokens corresponding to the
@@ -408,9 +459,9 @@
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode getRequestTokens(std::list<std::string>& tokens,
-                                           std::string description = "") = 0;
-  
-  
+                                           const std::string& description = "") = 0;
+
+
     /**
      * If the user wishes to copy a file from somewhere, getTURLs() is called
      * to retrieve the transport URL to copy the file from.
@@ -420,7 +471,7 @@
      */
     virtual SRMReturnCode getTURLs(SRMClientRequest& req,
                                    std::list<std::string>& urls) = 0;
-  
+
     /**
      * Submit a request to bring online files. This operation is asynchronous
      * and the status of the request can be checked by calling
@@ -430,7 +481,7 @@
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode requestBringOnline(SRMClientRequest& req) = 0;
-  
+
     /**
      * Query the status of a request to bring files online. The SURLs map
      * is updated if the status of any files in the request has changed.
@@ -438,7 +489,7 @@
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode requestBringOnlineStatus(SRMClientRequest& req) = 0;
-  
+
     /**
      * If the user wishes to copy a file to somewhere, putTURLs() is called
      * to retrieve the transport URL to copy the file to.
@@ -449,29 +500,29 @@
      */
     virtual SRMReturnCode putTURLs(SRMClientRequest& req,
                                    std::list<std::string>& urls,
-                                   unsigned long long size = 0) = 0;
-  
+                                   const unsigned long long size = 0) = 0;
+
     /**
      * Should be called after a successful copy from SRM storage.
      * @param req The request object
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode releaseGet(SRMClientRequest& req) = 0;
-  
+
     /**
      * Should be called after a successful copy to SRM storage.
      * @param req The request object
      * @returns SRMReturnCode specifying outcome of operation
-     */   
+     */
     virtual SRMReturnCode releasePut(SRMClientRequest& req) = 0;
-  
+
     /**
      * Used in SRM v1 only. Called to release files after successful transfer.
      * @param req The request object
      * @returns SRMReturnCode specifying outcome of operation
-     */   
+     */
     virtual SRMReturnCode release(SRMClientRequest& req) = 0;
-  
+
     /**
      * Called in the case of failure during transfer or releasePut. Releases
      * all TURLs involved in the transfer.
@@ -479,7 +530,7 @@
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode abort(SRMClientRequest& req) = 0;
-  
+
     /**
      * Returns information on a file or files (v2.2 and higher)
      * stored in an SRM, such as file size, checksum and
@@ -495,14 +546,14 @@
                                std::list<struct SRMFileMetaData>& metadata,
                                const int recursive = 0,
                                bool report_error = true) = 0;
-  
+
     /**
      * Delete a file physically from storage and the SRM namespace.
      * @param req The request object
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode remove(SRMClientRequest& req) = 0;
-  
+
     /**
      * Copy a file between two SRM storages.
      * @param req The request object
@@ -511,7 +562,7 @@
      */
     virtual SRMReturnCode copy(SRMClientRequest& req,
                                const std::string& source) = 0;
-  
+
     /**
      * Make required directories for the SURL in the request
      * @param req The request object
@@ -519,10 +570,14 @@
      */
     virtual SRMReturnCode mkDir(SRMClientRequest& req) = 0;
 
-    operator bool(void) const { return csoap; };
-    bool operator!(void) const { return !csoap; };
+    operator bool() const {
+      return client;
+    }
+    bool operator!() const {
+      return !client;
+    }
   };
 
-//} // namespace Arc
-  
+} // namespace Arc
+
 #endif // __HTTPSD_SRM_CLIENT_H__
