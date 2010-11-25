@@ -748,7 +748,11 @@ namespace Arc {
     for (std::list<URL>::const_iterator it = jobids.begin();
          it != jobids.end(); it++) {
 
-      XMLNodeList xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+      XMLNodeList xmljobs;
+      xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->str() + "']", NS());
+      if (xmljobs.empty()) { // Included for backwards compatibility.
+        xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+      }
 
       if (xmljobs.empty())
         logger.msg(ERROR, "Job %s not found in job list.", it->str());
@@ -830,8 +834,11 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobs.begin();
          it != jobs.end();) {
       // Search for jobids
-      XMLNodeList xmljobs =
-        jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
+      XMLNodeList xmljobs;
+      xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->JobID.str() + "']", NS());
+      if (xmljobs.empty()) { // Included for backwards compatibility.
+        xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
+      }
 
       if (xmljobs.empty()) {
         logger.msg(INFO, "Job not found in job list: %s", it->JobID.str());
