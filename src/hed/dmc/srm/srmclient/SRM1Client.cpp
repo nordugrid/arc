@@ -317,7 +317,7 @@ namespace Arc {
       sleep(retryDeltaTime);
 
       PayloadSOAP request2(ns);
-      request.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
+      request2.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
         tostring(creq.request_id());
 
       PayloadSOAP *response2 = NULL;

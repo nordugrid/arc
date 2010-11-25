@@ -210,7 +210,7 @@ namespace Arc {
                   ["srmGetSpaceTokensResponse"];
 
     std::string explanation;
-    SRMStatusCode statuscode = GetStatus(res["ReturnStatus"], explanation);
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
       logger.msg(ERROR, "%s", explanation);
@@ -254,7 +254,7 @@ namespace Arc {
                   ["srmGetRequestTokensResponse"];
 
     std::string explanation;
-    SRMStatusCode statuscode = GetStatus(res["ReturnStatus"], explanation);
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode == SRM_INVALID_REQUEST) {
       logger.msg(INFO, "No request tokens found");
@@ -362,7 +362,7 @@ namespace Arc {
         XMLNode res = (*response2)["srmStatusOfGetRequestResponse"]
                       ["srmStatusOfGetRequestResponse"];
 
-        statuscode = GetStatus(res["ReturnStatus"], explanation);
+        statuscode = GetStatus(res["returnStatus"], explanation);
 
         if (statuscode == SRM_REQUEST_QUEUED ||
             statuscode == SRM_REQUEST_INPROGRESS) {
@@ -454,7 +454,7 @@ namespace Arc {
                   ["srmPrepareToGetResponse"];
 
     std::string explanation;
-    SRMStatusCode statuscode = GetStatus(res["ReturnStatus"], explanation);
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     // store the request token in the request object
     if (res["requestToken"])
@@ -528,7 +528,7 @@ namespace Arc {
                   ["srmStatusOfBringOnlineRequestResponse"];
 
     std::string explanation;
-    SRMStatusCode statuscode = GetStatus(res["ReturnStatus"], explanation);
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode == SRM_SUCCESS) {
       // this means files are all online
