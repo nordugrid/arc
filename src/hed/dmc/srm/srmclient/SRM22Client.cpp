@@ -1058,8 +1058,13 @@ namespace Arc {
     else
       metadata.checkSumValue = "";
 
-    if (details["createdAtTime"])
-      metadata.createdAtTime = (std::string)details["createdAtTime"];
+    if (details["createdAtTime"]) {
+      std::string created = (std::string)details["createdAtTime"];
+      if (!created.empty())
+        metadata.createdAtTime = created;
+      else
+        metadata.createdAtTime = (time_t)0;
+    }
     else
       metadata.createdAtTime = (time_t)0;
 
@@ -1086,110 +1091,113 @@ namespace Arc {
     else
       metadata.fileLocality = SRM_UNKNOWN;
 
-    if (details["arrayOfSpaceTokens"]) {
+    if (details["arrayOfSpaceTokens"])
       for (XMLNode n = details["arrayOfSpaceTokens"]; n; ++n)
         metadata.spaceTokens.push_back((std::string)n);
 
-      if (details["ownerPermission"] &&
-          details["groupPermission"] &&
+    if (details["ownerPermission"] &&
+        details["groupPermission"] &&
+        details["otherPermission"]) {
+      std::string perm;
+      if (details["ownerPermission"]["userID"])
+        metadata.owner = (std::string)details["ownerPermission"]["userID"];
+      if (details["groupPermission"]["groupID"])
+        metadata.group = (std::string)details["groupPermission"]["groupID"];
+      if (details["ownerPermission"]["mode"] &&
+          details["groupPermission"]["mode"] &&
           details["otherPermission"]) {
-        std::string perm;
-        if (details["ownerPermission"]["userID"])
-          metadata.owner = (std::string)details["ownerPermission"]["userID"];
-        if (details["groupPermission"]["groupID"])
-          metadata.group = (std::string)details["groupPermission"]["groupID"];
-        if (details["ownerPermission"]["mode"] &&
-            details["groupPermission"]["mode"] &&
-            details["otherPermission"]) {
-          std::string perms;
-          std::string uperm = (std::string)details["ownerPermission"]["mode"];
-          std::string gperm = (std::string)details["groupPermission"]["mode"];
-          std::string operm = (std::string)details["otherPermission"];
-          if (uperm.find('R') != std::string::npos)
-            perms += 'r';
-          else
-            perms += '-';
-          if (uperm.find('W') != std::string::npos)
-            perms += 'w';
-          else
-            perms += '-';
-          if (uperm.find('X') != std::string::npos)
-            perms += 'x';
-          else
-            perms += '-';
-          if (gperm.find('R') != std::string::npos)
-            perms += 'r';
-          else
-            perms += '-';
-          if (gperm.find('W') != std::string::npos)
-            perms += 'w';
-          else
-            perms += '-';
-          if (gperm.find('X') != std::string::npos)
-            perms += 'x';
-          else
-            perms += '-';
-          if (operm.find('R') != std::string::npos)
-            perms += 'r';
-          else
-            perms += '-';
-          if (operm.find('W') != std::string::npos)
-            perms += 'w';
-          else
-            perms += '-';
-          if (operm.find('X') != std::string::npos)
-            perms += 'x';
-          else
-            perms += '-';
-          metadata.permission = perms;
-        }
+        std::string perms;
+        std::string uperm = (std::string)details["ownerPermission"]["mode"];
+        std::string gperm = (std::string)details["groupPermission"]["mode"];
+        std::string operm = (std::string)details["otherPermission"];
+        if (uperm.find('R') != std::string::npos)
+          perms += 'r';
+        else
+          perms += '-';
+        if (uperm.find('W') != std::string::npos)
+          perms += 'w';
+        else
+          perms += '-';
+        if (uperm.find('X') != std::string::npos)
+          perms += 'x';
+        else
+          perms += '-';
+        if (gperm.find('R') != std::string::npos)
+          perms += 'r';
+        else
+          perms += '-';
+        if (gperm.find('W') != std::string::npos)
+          perms += 'w';
+        else
+          perms += '-';
+        if (gperm.find('X') != std::string::npos)
+          perms += 'x';
+        else
+          perms += '-';
+        if (operm.find('R') != std::string::npos)
+          perms += 'r';
+        else
+          perms += '-';
+        if (operm.find('W') != std::string::npos)
+          perms += 'w';
+        else
+          perms += '-';
+        if (operm.find('X') != std::string::npos)
+          perms += 'x';
+        else
+          perms += '-';
+        metadata.permission = perms;
       }
+    }
 
-      if (details["lastModificationTime"])
-        metadata.lastModificationTime =
-          (std::string)details["lastModificationTime"];
+    if (details["lastModificationTime"]) {
+      std::string modified = (std::string)details["lastModificationTime"];
+      if (!modified.empty())
+        metadata.lastModificationTime = modified;
       else
         metadata.lastModificationTime = (time_t)0;
+    }
+    else
+      metadata.lastModificationTime = (time_t)0;
 
-      if (details["lifetimeAssigned"])
-        metadata.lifetimeAssigned = (std::string)details["lifetimeAssigned"];
-      else
-        metadata.lifetimeAssigned = 0;
+    if (details["lifetimeAssigned"])
+      metadata.lifetimeAssigned = (std::string)details["lifetimeAssigned"];
+    else
+      metadata.lifetimeAssigned = 0;
 
-      if (details["lifetimeLeft"])
-        metadata.lifetimeLeft = (std::string)details["lifetimeLeft"];
-      else
-        metadata.lifetimeLeft = 0;
+    if (details["lifetimeLeft"])
+      metadata.lifetimeLeft = (std::string)details["lifetimeLeft"];
+    else
+      metadata.lifetimeLeft = 0;
 
-      if (details["retentionPolicyInfo"]) {
-        std::string policy = (std::string)details["retentionPolicyInfo"];
-        if (policy == "REPLICA")
-          metadata.retentionPolicy = SRM_REPLICA;
-        else if (policy == "OUTPUT")
-          metadata.retentionPolicy = SRM_OUTPUT;
-        else if (policy == "CUSTODIAL")
-          metadata.retentionPolicy = SRM_CUSTODIAL;
-        else
-          metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
-      }
+    if (details["retentionPolicyInfo"]) {
+      std::string policy = (std::string)details["retentionPolicyInfo"];
+      if (policy == "REPLICA")
+        metadata.retentionPolicy = SRM_REPLICA;
+      else if (policy == "OUTPUT")
+        metadata.retentionPolicy = SRM_OUTPUT;
+      else if (policy == "CUSTODIAL")
+        metadata.retentionPolicy = SRM_CUSTODIAL;
       else
         metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
+    }
+    else
+      metadata.retentionPolicy = SRM_RETENTION_UNKNOWN;
 
-      if (details["fileStorageType"]) {
-        std::string type = (std::string)details["fileStorageType"];
-        if (type == "VOLATILE")
-          metadata.fileStorageType = SRM_VOLATILE;
-        else if (type == "DURABLE")
-          metadata.fileStorageType = SRM_DURABLE;
-        else if (type == "PERMANENT")
-          metadata.fileStorageType = SRM_PERMANENT;
-        else
-          metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
-      }
+    if (details["fileStorageType"]) {
+      std::string type = (std::string)details["fileStorageType"];
+      if (type == "VOLATILE")
+        metadata.fileStorageType = SRM_VOLATILE;
+      else if (type == "DURABLE")
+        metadata.fileStorageType = SRM_DURABLE;
+      else if (type == "PERMANENT")
+        metadata.fileStorageType = SRM_PERMANENT;
       else
-        // if any other value, leave undefined
         metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
     }
+    else
+      // if any other value, leave undefined
+      metadata.fileStorageType = SRM_FILE_STORAGE_UNKNOWN;
 
     return metadata;
   }
