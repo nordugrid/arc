@@ -93,7 +93,7 @@
       <next id="plexer"/>
     </Component>
     <Plexer name="plexer.service" id="plexer">
-      <next id="a-rex" inisections="arex" initag="endpointpattern" initokenenables="arex" inidefaultvalue="^/arex$"/>
+      <next id="a-rex" inisections="arex" initag="endpointpattern" initokenenables="arex" inidefaultvalue="^/arex\(/\|$\)"/>
       <next id="isis" inisections="isis" initag="endpointpattern" initokenenables="isis" inidefaultvalue="^/isis$"/>
       <next id="echo" inisections="echo" initag="endpointpattern" initokenenables="echo" inidefaultvalue="^/echo$"/>
       <next id="pyecho" inisections="pyecho" initag="endpointpattern" initokenenables="pyecho" inidefaultvalue="^/pyecho$"/>
