@@ -204,10 +204,11 @@
           <arex:command inisections="#this" initag="command"/>
       </arex:helperUtility>
 
+      <arex:defaultShare inisections="arex" initag="defaultshare"/>
+
       <arex:LRMSName initokenenables="lrms/fork">fork</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/fork">
         <arex:type>fork</arex:type>
-        <arex:defaultShare inisections="lrms/fork" initag="defaultqueue"/>
 
         <!-- Doesnt make sense for fork -->
         <arex:sharedFilesystem inisections="lrms/fork" initag="sharedfilesystem"/>
@@ -220,7 +221,6 @@
       <arex:LRMSName initokenenables="lrms/pbs">pbs</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/pbs">
         <arex:type>pbs</arex:type>
-        <arex:defaultShare inisections="lrms/pbs" initag="defaultqueue"/>
 
         <arex:sharedFilesystem inisections="lrms/pbs" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/pbs" initag="sharedscratch"/>
@@ -237,7 +237,6 @@
       <arex:LRMSName initokenenables="lrms/sge">sge</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/sge">
         <arex:type>sge</arex:type>
-        <arex:defaultShare inisections="lrms/sge" initag="queue_name"/>
 
         <arex:sharedFilesystem inisections="lrms/sge" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/sge" initag="sharedscratch"/>
@@ -255,7 +254,6 @@
       <arex:LRMSName initokenenables="lrms/condor">condor</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/condor">
         <arex:type>condor</arex:type>
-        <arex:defaultShare inisections="lrms/condor" initag="queue_name"/>
 
         <arex:sharedFilesystem inisections="lrms/condor" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/condor" initag="sharedscratch"/>
@@ -271,7 +269,6 @@
       <arex:LRMSName initokenenables="lrms/lsf">lsf</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/lsf">
         <arex:type>lsf</arex:type>
-        <arex:defaultShare inisections="lrms/lsf" initag="queue_name"/>
 
         <arex:sharedFilesystem inisections="lrms/lsf" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/lsf" initag="sharedscratch"/>
@@ -287,7 +284,6 @@
       <arex:LRMSName initokenenables="lrms/ll">ll</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/ll">
         <arex:type>ll</arex:type>
-        <arex:defaultShare inisections="lrms/ll" initag="queue_name"/>
 
         <arex:sharedFilesystem inisections="lrms/ll" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/ll" initag="sharedscratch"/>
@@ -302,7 +298,6 @@
       <arex:LRMSName initokenenables="lrms/slurm">slurm</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/slurm">
         <arex:type>slurm</arex:type>
-        <arex:defaultShare inisections="lrms/slurm" initag="queue_name"/>
 
         <arex:sharedFilesystem inisections="lrms/slurm" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/slurm" initag="sharedscratch"/>
@@ -317,7 +312,6 @@
       <arex:LRMSName initokenenables="lrms/gridfactory">gridfactory</arex:LRMSName>
       <arex:LRMS initokenenables="lrms/gridfactory">
         <arex:type>gridfactory</arex:type>
-        <arex:defaultShare inisections="lrms/gridfactory" initag="queue_name"/>
 
         <arex:sharedFilesystem inisections="lrms/gridfactory" initag="sharedfilesystem"/>
         <arex:sharedScratch inisections="lrms/gridfactory" initag="sharedscratch"/>
