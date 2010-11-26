@@ -196,7 +196,7 @@
         <arex:defaultTTL inisections="arex" initag="defaultttl"/>
         <arex:defaultTTR inisections="arex" initag="defaultttr"/>
         <arex:maxReruns inisections="arex" initag="maxreruns"/>
-        <arex:noRootPower inisections="arex" initag="norootpower"/>
+        <arex:noRootPower inisections="arex" initag="norootpower" inidefaultvalue="false"/>
       </arex:control>
 
       <arex:helperUtility initype="multisection" inisections="arex/helperutil">
@@ -226,12 +226,12 @@
         <arex:sharedScratch inisections="lrms/pbs" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/pbs" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/pbs" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/pbs" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/pbs" initag="gnutime"/>
 
-        <lrms:pbs_bin_path inisections="lrms/pbs" initag="bin_path" inidefaultvalue="/opt/torque/bin"/>
-        <lrms:pbs_log_path inisections="lrms/pbs" initag="log_path" inidefaultvalue="/usr/spool/torque/server_logs"/>
-        <lrms:dedicated_node_string inisections="lrms/pbs" initag="dedicated_node_string" inidefaultvalue="gridnode"/>
-        <lrms:maui_bin_path inisections="lrms/pbs" initag="maui_bin_path" inidefaultvalue="/usr/local/bin"/>
+        <lrms:pbs_bin_path inisections="lrms/pbs" initag="bin_path"/>
+        <lrms:pbs_log_path inisections="lrms/pbs" initag="log_path"/>
+        <lrms:dedicated_node_string inisections="lrms/pbs" initag="dedicated_node_string"/>
+        <lrms:maui_bin_path inisections="lrms/pbs" initag="maui_bin_path"/>
       </arex:LRMS>
 
       <arex:LRMSName initokenenables="lrms/sge">sge</arex:LRMSName>
@@ -243,13 +243,13 @@
         <arex:sharedScratch inisections="lrms/sge" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/sge" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/sge" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/sge" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/sge" initag="gnutime"/>
 
-        <lrms:sge_bin_path inisections="lrms/sge" initag="bin_path" inidefaultvalue="/usr/bin"/>
-        <lrms:sge_root inisections="lrms/sge" initag="root" inidefaultvalue="/var/lib/gridengine"/>
-        <lrms:sge_cell inisections="lrms/sge" initag="cell" inidefaultvalue="default"/>
-        <lrms:sge_qmaster_port inisections="lrms/sge" initag="qmaster_port" inidefaultvalue="6444"/>
-        <lrms:sge_execd_port inisections="lrms/sge" initag="execd_port" inidefaultvalue="6445"/>
+        <lrms:sge_bin_path inisections="lrms/sge" initag="bin_path"/>
+        <lrms:sge_root inisections="lrms/sge" initag="root"/>
+        <lrms:sge_cell inisections="lrms/sge" initag="cell"/>
+        <lrms:sge_qmaster_port inisections="lrms/sge" initag="qmaster_port"/>
+        <lrms:sge_execd_port inisections="lrms/sge" initag="execd_port"/>
       </arex:LRMS>
 
       <arex:LRMSName initokenenables="lrms/condor">condor</arex:LRMSName>
@@ -261,10 +261,10 @@
         <arex:sharedScratch inisections="lrms/condor" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/condor" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/condor" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/condor" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/condor" initag="gnutime"/>
 
-        <lrms:condor_location inisections="lrms/condor" initag="location" inidefaultvalue="/opt/condor"/>
-        <lrms:condor_config inisections="lrms/condor" initag="config" inidefaultvalue="/opt/condor/etc/condor_config"/>
+        <lrms:condor_location inisections="lrms/condor" initag="location"/>
+        <lrms:condor_config inisections="lrms/condor" initag="config"/>
         <lrms:condor_rank inisections="lrms/condor" initag="rank"/>
       </arex:LRMS>
 
@@ -277,10 +277,10 @@
         <arex:sharedScratch inisections="lrms/lsf" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/lsf" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/lsf" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/lsf" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/lsf" initag="gnutime"/>
 
-        <lrms:lsf_bin_path inisections="lrms/lsf" initag="bin_path" inidefaultvalue="/usr/local/lsf/bin"/>
-        <lrms:lsf_profile_path inisections="lrms/lsf" initag="profile_path" inidefaultvalue="/usr/share/lsf/conf"/>
+        <lrms:lsf_bin_path inisections="lrms/lsf" initag="bin_path"/>
+        <lrms:lsf_profile_path inisections="lrms/lsf" initag="profile_path"/>
         <lrms:lsf_architecture inisections="lrms/lsf" initag="architecture"/>
       </arex:LRMS>
 
@@ -293,9 +293,9 @@
         <arex:sharedScratch inisections="lrms/ll" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/ll" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/ll" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/ll" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/ll" initag="gnutime"/>
 
-        <lrms:ll_bin_path inisections="lrms/ll" initag="bin_path" inidefaultvalue="/opt/ibmll/LoadL/full/bin"/>
+        <lrms:ll_bin_path inisections="lrms/ll" initag="bin_path"/>
         <lrms:ll_consumable_resources inisections="lrms/ll" initag="consumable_resources"/>
       </arex:LRMS>
 
@@ -308,9 +308,9 @@
         <arex:sharedScratch inisections="lrms/slurm" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/slurm" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/slurm" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/slurm" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/slurm" initag="gnutime"/>
 
-        <lrms:slurm_bin_path inisections="lrms/slurm" initag="bin_path" inidefaultvalue="/usr/bin"/>
+        <lrms:slurm_bin_path inisections="lrms/slurm" initag="bin_path"/>
         <lrms:slurm_wakeupperiod inisections="lrms/slurm" initag="wakeupperiod"/>
       </arex:LRMS>
 
@@ -323,9 +323,9 @@
         <arex:sharedScratch inisections="lrms/gridfactory" initag="sharedscratch"/>
         <arex:scratchDir inisections="lrms/gridfactory" initag="scratchdirectory"/>
         <arex:runtimeDir inisections="lrms/gridfactory" initag="runtimedirectory"/>
-        <arex:GNUTimeUtility inisections="lrms/gridfactory" initag="gnutime" inidefaultvalue="/usr/bin/time"/>
+        <arex:GNUTimeUtility inisections="lrms/gridfactory" initag="gnutime"/>
 
-        <lrms:gridfactory_bin_path inisections="lrms/gridfactory" initag="bin_path" inidefaultvalue="/usr/bin"/>
+        <lrms:gridfactory_bin_path inisections="lrms/gridfactory" initag="bin_path"/>
         <lrms:gridfactory_job_limit inisections="lrms/gridfactory" initag="job_limit"/>
       </arex:LRMS>
 
