@@ -173,11 +173,11 @@ fi
 
 # Creating configuration file of arched
 # Reading following information from config file:
-#  Log file
 #  Debug level
 #  User name
+#  Log file is currently hard-coded
 
-LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
+#LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
 LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
 LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
 USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
@@ -274,7 +274,7 @@ if [ "$USERNAME" = "root" ] ; then
   USERNAME=""
 fi
 
-LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
+LOGFILE=${LOGFILE:-/var/log/arc/cache-service.log}
 if [ ! -d `dirname $LOGFILE` ]; then
  mkdir -p `dirname $LOGFILE` ]
 fi
@@ -358,8 +358,6 @@ echo "$CACHECFG" > "$CACHE_CONFIG"
 if [ ! -z "$USERNAME" ] ; then
   test -f $CACHE_CONFIG && chown $USERNAME $CACHE_CONFIG
 fi
-
-cat "$CACHE_CONFIG"
 
 }
 
