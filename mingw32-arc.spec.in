@@ -285,7 +285,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libdmclfc.so
 %{_mingw32_libdir}/%{pkgdir}/libdmcrls.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libdmcsrm.so
+%{_mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 
 %files python
@@ -294,6 +294,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/storage_service.xml.example
 
 %changelog
 
