@@ -16,6 +16,7 @@
     xmlns:shep="http://www.nordugrid.org/schemas/shepherd/2009/08"
     xmlns:tcp="http://www.nordugrid.org/schemas/tcp/2009/08"
     xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
+    xmlns:janitor="http://www.nordugrid.org/schemas/Janitor/2009/08"
   >
   <base:Server>
     <base:PidFile inisections="common" initag="pidfile" inidefaultvalue="/var/log/arched.pid"/>
@@ -419,22 +420,22 @@
         </ip:ComputingShare>
       </arex:InfoProvider>
 
-      <arex:useJanitor inisections="arex/janitor" initag="usejanitor"/>
+      <arex:useJanitor inisections="arex" initag="usejanitor"/>
       <arex:janitor initokenenables="arex/janitor">
-        <logconf inisections="arex/janitor" initag="logconf"/>
-        <registrationdir inisections="arex/janitor" initag="registrationdir"/>
-        <installationdir inisections="arex/janitor" initag="installationdir"/>
-        <downloaddir inisections="arex/janitor" initag="downloaddir"/>
-        <jobexpirytime inisections="arex/janitor" initag="jobexpirytime"/>
-        <rteexpirytime inisections="arex/janitor" initag="rteexpirytime"/>
-        <uid inisections="arex/janitor" initag="uid"/>
-        <gid inisections="arex/janitor" initag="gid"/>
-        <allow_base inisections="arex/janitor" initag="allow_base"/>
-        <allow_rte inisections="arex/janitor" initag="allow_rte"/>
-        <catalog name="nordugrid">
-          <name initype="attribute" inisections="arex/janitor" initag="catalogname"/>
-          <location inisections="arex/janitor" initag="cataloglocation"/>
-        </catalog>
+        <janitor:logconf inisections="arex/janitor" initag="logconf"/>
+        <janitor:registrationdir inisections="arex/janitor" initag="registrationdir"/>
+        <janitor:installationdir inisections="arex/janitor" initag="installationdir"/>
+        <janitor:downloaddir inisections="arex/janitor" initag="downloaddir"/>
+        <janitor:jobexpirytime inisections="arex/janitor" initag="jobexpirytime"/>
+        <janitor:rteexpirytime inisections="arex/janitor" initag="rteexpirytime"/>
+        <janitor:uid inisections="arex/janitor" initag="uid"/>
+        <janitor:gid inisections="arex/janitor" initag="gid"/>
+        <janitor:allow_base inisections="arex/janitor" initag="allow_base"/>
+        <janitor:allow_rte inisections="arex/janitor" initag="allow_rte"/>
+        <janitor:catalog initype="multisection" initokenenables="arex/janitor/catalog" inisections="arex/janitor/catalog">
+          <name initype="attribute" inisections="#this" initag="name"/>
+          <janitor:location inisections="#this" initag="location"/>
+        </janitor:catalog>
       </arex:janitor>
 
       <infosys:InfoRegister initokenenables="register">
