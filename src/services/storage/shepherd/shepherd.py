@@ -42,12 +42,10 @@ class Shepherd:
             log.msg(arc.ERROR, 'Cannot import store class', storeclass)
             raise
             
-        try:
-            self.serviceID = str(cfg.Get('ServiceID'))
-        except:
-            log.msg(arc.ERROR, 'Cannot get serviceID')
-            raise
-            
+        self.serviceID = str(cfg.Get('ServiceID'))
+        if not self.serviceID:
+            log.msg(arc.ERROR, 'Cannot get serviceID from config')
+            raise Exception, 'Cannot get serviceID from config'
         try:
             self.period = float(str(cfg.Get('CheckPeriod')))
             self.min_interval = float(str(cfg.Get('MinCheckInterval')))
