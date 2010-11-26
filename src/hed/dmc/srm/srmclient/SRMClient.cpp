@@ -11,6 +11,19 @@ namespace Arc {
 
   time_t SRMClient::request_timeout = 300;
 
+  SRMClient::SRMClient(const UserConfig& usercfg, const SRMURL& url)
+    : implementation(SRM_IMPLEMENTATION_UNKNOWN),
+      service_endpoint(url.ContactURL()),
+      user_timeout(usercfg.Timeout()) {
+    usercfg.ApplyToConfig(cfg);
+    client = new ClientSOAP(cfg, service_endpoint, usercfg.Timeout());
+  }
+
+  SRMClient::~SRMClient() {
+    if (client)
+      delete client;
+  }
+
   SRMClient* SRMClient::getInstance(const UserConfig& usercfg,
                                     const std::string& url,
                                     bool& timedout,
@@ -132,6 +145,39 @@ namespace Arc {
         timedout = true;
       return NULL;
     }
+  }
+
+  SRMReturnCode SRMClient::process(PayloadSOAP *request,
+                                   PayloadSOAP **response) {
+
+    MCC_Status status = client->process(request, response);
+
+    // Try to reconnect in case of failure
+    if (*response && (*response)->IsFault()) {
+      logger.msg(DEBUG, "SOAP fault: %s", (*response)->Fault()->Reason());
+      logger.msg(DEBUG, "Reconnecting");
+      delete client;
+      client = new ClientSOAP(cfg, service_endpoint, user_timeout);
+      status = client->process(request, response);
+    }
+
+    if (!status) {
+      logger.msg(VERBOSE, "SRM Client status: %s", (std::string)status);
+      if (*response)
+        delete *response;
+      return SRM_ERROR_SOAP;
+    }
+    if (!(*response)) {
+      logger.msg(VERBOSE, "No SOAP response");
+      return SRM_ERROR_SOAP;
+    }
+    if ((*response)->IsFault()) {
+      logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
+      delete *response;
+      return SRM_ERROR_SOAP;
+    }
+
+    return SRM_OK;
   }
 
 } // namespace Arc

@@ -10,22 +10,16 @@
 
 namespace Arc {
 
-  SRM1Client::SRM1Client(const UserConfig& usercfg, const SRMURL& url) {
+  SRM1Client::SRM1Client(const UserConfig& usercfg, const SRMURL& url)
+    : SRMClient(usercfg, url) {
     version = "v1";
-    implementation = SRM_IMPLEMENTATION_UNKNOWN;
-    service_endpoint = url.ContactURL();
     ns["SRMv1Type"] =
       "http://www.themindelectric.com/package/diskCacheV111.srm/";
     ns["SRMv1Meth"] =
       "http://tempuri.org/diskCacheV111.srm.server.SRMServerV1";
-    usercfg.ApplyToConfig(cfg);
-    client = new ClientSOAP(cfg, service_endpoint, usercfg.Timeout());
   }
 
-  SRM1Client::~SRM1Client() {
-    if (client)
-      delete client;
-  }
+  SRM1Client::~SRM1Client() {}
 
   SRMReturnCode SRM1Client::getTURLs(SRMClientRequest& creq,
                                      std::list<std::string>& urls) {
@@ -48,18 +42,9 @@ namespace Arc {
     arg1node.NewChild("item") = "ftp";
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(ERROR, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(ERROR, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode result = (*response)["getResponse"]["Result"];
     if (!result) {
@@ -95,36 +80,24 @@ namespace Arc {
         retryDeltaTime = 10;
       sleep(retryDeltaTime);
 
-      PayloadSOAP request2(ns);
-      request2.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
+      PayloadSOAP request(ns);
+      request.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
         tostring(creq.request_id());
 
-      PayloadSOAP *response2 = NULL;
-      MCC_Status status = client->process(&request2, &response2);
-
-      if (!status) {
-        logger.msg(ERROR, (std::string)status);
-        if (response2)
-          delete response2;
-        delete response;
-        return SRM_ERROR_SOAP;
-      }
-      if (!response2) {
-        logger.msg(ERROR, "No SOAP response");
-        delete response;
-        return SRM_ERROR_SOAP;
-      }
+      delete response;
+      response = NULL;
+      status = process(&request, &response);
+      if (status != SRM_OK)
+        return status;
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
-        delete response2;
         delete response;
         return SRM_ERROR_OTHER;
       }
 
       request_state = (std::string)result["state"];
-      delete response2;
     }
 
     creq.file_ids(file_ids);
@@ -168,18 +141,9 @@ namespace Arc {
     arg4node.NewChild("item") = "ftp";
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(ERROR, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(ERROR, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode result = (*response)["putResponse"]["Result"];
     if (!result) {
@@ -215,36 +179,24 @@ namespace Arc {
         retryDeltaTime = 10;
       sleep(retryDeltaTime);
 
-      PayloadSOAP request2(ns);
-      request2.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
+      PayloadSOAP request(ns);
+      request.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
         tostring(creq.request_id());
 
-      PayloadSOAP *response2 = NULL;
-      MCC_Status status = client->process(&request2, &response2);
-
-      if (!status) {
-        logger.msg(ERROR, (std::string)status);
-        if (response2)
-          delete response2;
-        delete response;
-        return SRM_ERROR_SOAP;
-      }
-      if (!response2) {
-        logger.msg(ERROR, "No SOAP response");
-        delete response;
-        return SRM_ERROR_SOAP;
-      }
+      delete response;
+      response = NULL;
+      status = process(&request, &response);
+      if (status != SRM_OK)
+        return status;
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
-        delete response2;
         delete response;
         return SRM_ERROR_OTHER;
       }
 
       request_state = (std::string)result["state"];
-      delete response2;
     }
 
     creq.file_ids(file_ids);
@@ -275,18 +227,9 @@ namespace Arc {
     arg2node.NewChild("item") = "false";
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(ERROR, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(ERROR, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode result = (*response)["copyResponse"]["Result"];
     if (!result) {
@@ -320,36 +263,24 @@ namespace Arc {
         retryDeltaTime = 10;
       sleep(retryDeltaTime);
 
-      PayloadSOAP request2(ns);
-      request2.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
+      PayloadSOAP request(ns);
+      request.NewChild("SRMv1Meth:getRequestStatus").NewChild("arg0") =
         tostring(creq.request_id());
 
-      PayloadSOAP *response2 = NULL;
-      MCC_Status status = client->process(&request2, &response2);
-
-      if (!status) {
-        logger.msg(ERROR, (std::string)status);
-        if (response2)
-          delete response2;
-        delete response;
-        return SRM_ERROR_SOAP;
-      }
-      if (!response2) {
-        logger.msg(ERROR, "No SOAP response");
-        delete response;
-        return SRM_ERROR_SOAP;
-      }
+      delete response;
+      response = NULL;
+      status = process(&request, &response);
+      if (status != SRM_OK)
+        return status;
 
       result = (*response)["getRequestStatusResponse"]["Result"];
       if (!result) {
         logger.msg(INFO, "SRM did not return any information");
-        delete response2;
         delete response;
         return SRM_ERROR_OTHER;
       }
 
       request_state = (std::string)result["state"];
-      delete response2;
     }
 
     delete response;
@@ -383,18 +314,9 @@ namespace Arc {
       arg2node.NewChild("item") = "Running";
 
       PayloadSOAP *response = NULL;
-      MCC_Status status = client->process(&request, &response);
-
-      if (!status) {
-        logger.msg(ERROR, (std::string)status);
-        if (response)
-          delete response;
-        return SRM_ERROR_SOAP;
-      }
-      if (!response) {
-        logger.msg(ERROR, "No SOAP response");
-        return SRM_ERROR_SOAP;
-      }
+      SRMReturnCode status = process(&request, &response);
+      if (status != SRM_OK)
+        return status;
 
       XMLNode result = (*response)["setFileStatusResponse"]["Result"];
       if (!result) {
@@ -438,19 +360,9 @@ namespace Arc {
     arg0node.NewChild("item") = srmurl.FullURL();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(ERROR, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(ERROR, "No SOAP response");
-      delete response;
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     delete response;
     return SRM_OK;
@@ -470,18 +382,9 @@ namespace Arc {
     arg0node.NewChild("item") = srmurl.FullURL();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(ERROR, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(ERROR, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode result = (*response)["getFileMetaDataResponse"]["Result"];
     if (!result) {
@@ -546,18 +449,9 @@ namespace Arc {
       arg2node.NewChild("item") = "Done";
 
       PayloadSOAP *response = NULL;
-      MCC_Status status = client->process(&request, &response);
-
-      if (!status) {
-        logger.msg(ERROR, (std::string)status);
-        if (response)
-          delete response;
-        return SRM_ERROR_SOAP;
-      }
-      if (!response) {
-        logger.msg(ERROR, "No SOAP response");
-        return SRM_ERROR_SOAP;
-      }
+      SRMReturnCode status = process(&request, &response);
+      if (status != SRM_OK)
+        return status;
 
       XMLNode result = (*response)["setFileStatusResponse"]["Result"];
       if (!result) {

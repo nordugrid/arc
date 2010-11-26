@@ -379,6 +379,11 @@ namespace Arc {
     static time_t request_timeout;
 
     /**
+     * Timeout for requests to the SRM service
+     */
+    time_t user_timeout;
+
+    /**
      * The version of the SRM protocol used
      */
     std::string version;
@@ -387,6 +392,16 @@ namespace Arc {
      * Logger
      */
     static Logger logger;
+
+    /**
+     * Constructor
+     */
+    SRMClient(const UserConfig& usercfg, const SRMURL& url);
+
+    /**
+     * Process SOAP request
+     */
+    SRMReturnCode process(PayloadSOAP *request, PayloadSOAP **response);
 
   public:
     /**
@@ -405,10 +420,11 @@ namespace Arc {
                                   const std::string& url,
                                   bool& timedout,
                                   time_t timeout = 300);
+
     /**
-     * empty destructor
+     * Destructor
      */
-    virtual ~SRMClient() {}
+    virtual ~SRMClient();
 
     /**
      * set the request timeout

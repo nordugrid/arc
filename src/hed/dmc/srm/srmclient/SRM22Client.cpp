@@ -126,19 +126,13 @@ namespace Arc {
     return SRM_FAILURE;
   }
 
-  SRM22Client::SRM22Client(const UserConfig& usercfg, const SRMURL& url) {
+  SRM22Client::SRM22Client(const UserConfig& usercfg, const SRMURL& url) 
+    : SRMClient(usercfg, url) {
     version = "v2.2";
-    implementation = SRM_IMPLEMENTATION_UNKNOWN;
-    service_endpoint = url.ContactURL();
     ns["SRMv2"] = "http://srm.lbl.gov/StorageResourceManager";
-    usercfg.ApplyToConfig(cfg);
-    client = new ClientSOAP(cfg, service_endpoint, usercfg.Timeout());
   }
 
-  SRM22Client::~SRM22Client() {
-    if (client)
-      delete client;
-  }
+  SRM22Client::~SRM22Client() {}
 
   SRMReturnCode SRM22Client::ping(std::string& version,
                                   bool report_error) {
@@ -146,18 +140,9 @@ namespace Arc {
     request.NewChild("SRMv2:srmPing").NewChild("srmPingRequest");
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmPingResponse"]["srmPingResponse"];
 
@@ -197,18 +182,9 @@ namespace Arc {
       req.NewChild("userSpaceTokenDescription") = description;
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmGetSpaceTokensResponse"]
                   ["srmGetSpaceTokensResponse"];
@@ -241,18 +217,9 @@ namespace Arc {
       req.NewChild("userRequestDescription") = description;
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmGetRequestTokensResponse"]
                   ["srmGetRequestTokensResponse"];
@@ -299,18 +266,9 @@ namespace Arc {
     protocols.NewChild("stringArray") = "ftp";
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmPrepareToGetResponse"]
                   ["srmPrepareToGetResponse"];
@@ -342,29 +300,19 @@ namespace Arc {
         sleep(sleeptime);
         request_time += sleeptime;
 
-        PayloadSOAP request2(ns);
-        XMLNode req = request2.NewChild("SRMv2:srmStatusOfGetRequest")
+        PayloadSOAP request(ns);
+        XMLNode req = request.NewChild("SRMv2:srmStatusOfGetRequest")
                       .NewChild("srmStatusOfGetRequestRequest");
         req.NewChild("requestToken") = creq.request_token();
 
-        PayloadSOAP *response2 = NULL;
-        MCC_Status status = client->process(&request2, &response2);
+        delete response;
+        response = NULL;
+        status = process(&request, &response);
+        if (status != SRM_OK)
+          return status;
 
-        if (!status) {
-          logger.msg(VERBOSE, (std::string)status);
-          if (response2)
-            delete response2;
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-        if (!response2) {
-          logger.msg(VERBOSE, "No SOAP response");
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-
-        XMLNode res = (*response2)["srmStatusOfGetRequestResponse"]
-                      ["srmStatusOfGetRequestResponse"];
+        res = (*response)["srmStatusOfGetRequestResponse"]
+              ["srmStatusOfGetRequestResponse"];
 
         statuscode = GetStatus(res["returnStatus"], explanation);
 
@@ -376,7 +324,6 @@ namespace Arc {
                        "PrepareToGet request timed out after %i seconds",
                        request_timeout);
             creq.finished_abort();
-            delete response2;
             delete response;
             return SRM_ERROR_TEMPORARY;
           }
@@ -386,14 +333,11 @@ namespace Arc {
         }
         else if (statuscode != SRM_SUCCESS) {
           logger.msg(ERROR, "%s", explanation);
-          delete response2;
           delete response;
           if (statuscode == SRM_INTERNAL_ERROR)
             return SRM_ERROR_TEMPORARY;
           return SRM_ERROR_PERMANENT;
         }
-
-        delete response2;
       }
     }
     else if (statuscode != SRM_SUCCESS) {
@@ -408,8 +352,8 @@ namespace Arc {
     std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
                        ["transferURL"];
     logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
-    urls.push_back(turl);
 
+    urls.push_back(turl);
     creq.finished_success();
     delete response;
     return SRM_OK;
@@ -441,18 +385,9 @@ namespace Arc {
     }
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmPrepareToGetResponse"]
                   ["srmPrepareToGetResponse"];
@@ -515,18 +450,9 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmStatusOfBringOnlineRequestResponse"]
                   ["srmStatusOfBringOnlineRequestResponse"];
@@ -638,9 +564,10 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmPrepareToPut")
                   .NewChild("srmPrepareToPutRequest");
-    XMLNode req2 = req.NewChild("arrayOfFileRequests").NewChild("requestArray");
-    req2.NewChild("targetSURL") = creq.surls().front();
-    req2.NewChild("expectedFileSize") = tostring(size);
+    XMLNode reqarray = req.NewChild("arrayOfFileRequests")
+                       .NewChild("requestArray");
+    reqarray.NewChild("targetSURL") = creq.surls().front();
+    reqarray.NewChild("expectedFileSize") = tostring(size);
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
     protocols.NewChild("stringArray") = "gsiftp";
@@ -654,18 +581,9 @@ namespace Arc {
       req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmPrepareToPutResponse"]
                   ["srmPrepareToPutResponse"];
@@ -697,29 +615,19 @@ namespace Arc {
         sleep(sleeptime);
         request_time += sleeptime;
 
-        PayloadSOAP request2(ns);
-        XMLNode req = request2.NewChild("SRMv2:srmStatusOfPutRequest")
+        PayloadSOAP request(ns);
+        XMLNode req = request.NewChild("SRMv2:srmStatusOfPutRequest")
                       .NewChild("srmStatusOfPutRequestRequest");
         req.NewChild("requestToken") = creq.request_token();
 
-        PayloadSOAP *response2 = NULL;
-        MCC_Status status = client->process(&request2, &response2);
+        delete response;
+        response = NULL;
+        status = process(&request, &response);
+        if (status != SRM_OK)
+          return status;
 
-        if (!status) {
-          logger.msg(VERBOSE, (std::string)status);
-          if (response2)
-            delete response2;
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-        if (!response2) {
-          logger.msg(VERBOSE, "No SOAP response");
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-
-        XMLNode res = (*response2)["srmStatusOfPutRequestResponse"]
-                      ["srmStatusOfPutRequestResponse"];
+        res = (*response)["srmStatusOfPutRequestResponse"]
+              ["srmStatusOfPutRequestResponse"];
 
         statuscode = GetStatus(res["returnStatus"], explanation);
 
@@ -732,7 +640,6 @@ namespace Arc {
                        "PrepareToPut request timed out after %i seconds",
                        request_timeout);
             creq.finished_abort();
-            delete response2;
             delete response;
             return SRM_ERROR_TEMPORARY;
           }
@@ -751,7 +658,6 @@ namespace Arc {
                        "Path %s is invalid, creating required directories",
                        creq.surls().front());
             SRMReturnCode mkdirres = mkDir(creq);
-            delete response2;
             delete response;
             if (mkdirres == SRM_OK)
               return putTURLs(creq, urls, size);
@@ -762,14 +668,11 @@ namespace Arc {
           if (res["arrayOfFileStatuses"]["statusArray"]["status"])
             logger.msg(ERROR, "%s", statusexplanation);
           logger.msg(ERROR, "%s", explanation);
-          delete response2;
           delete response;
           if (statuscode == SRM_INTERNAL_ERROR)
             return SRM_ERROR_TEMPORARY;
           return SRM_ERROR_PERMANENT;
         }
-
-        delete response2;
       }
     }
     else if (statuscode != SRM_SUCCESS) {
@@ -803,11 +706,11 @@ namespace Arc {
     // the file is ready and pinned - we can get the TURL
     std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
                        ["transferURL"];
-
     logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
-    urls.push_back(turl);
 
+    urls.push_back(turl);
     creq.finished_success();
+    delete response;
     return SRM_OK;
   }
 
@@ -841,18 +744,9 @@ namespace Arc {
       req.NewChild("fullDetailedList") = "true";
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmLsResponse"]["srmLsResponse"];
 
@@ -881,29 +775,19 @@ namespace Arc {
         sleep(sleeptime);
         request_time += sleeptime;
 
-        PayloadSOAP request2(ns);
-        XMLNode req = request2.NewChild("SRMv2:srmStatusOfLsRequest")
+        PayloadSOAP request(ns);
+        XMLNode req = request.NewChild("SRMv2:srmStatusOfLsRequest")
                       .NewChild("srmStatusOfLsRequestRequest");
         req.NewChild("requestToken") = creq.request_token();
 
-        PayloadSOAP *response2 = NULL;
-        MCC_Status status = client->process(&request2, &response2);
+        delete response;
+        response = NULL;
+        status = process(&request, &response);
+        if (status != SRM_OK)
+          return status;
 
-        if (!status) {
-          logger.msg(VERBOSE, (std::string)status);
-          if (response2)
-            delete response2;
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-        if (!response2) {
-          logger.msg(VERBOSE, "No SOAP response");
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-
-        XMLNode res = (*response)["srmStatusOfLsRequestResponse"]
-                      ["srmStatusOfLsRequestResponse"];
+        res = (*response)["srmStatusOfLsRequestResponse"]
+              ["srmStatusOfLsRequestResponse"];
 
         statuscode = GetStatus(res["returnStatus"], explanation);
 
@@ -918,13 +802,10 @@ namespace Arc {
                        (std::string)res["details"]["pathDetailArray"]
                        ["status"]["explanation"]);
           delete response;
-          delete response2;
           if (statuscode == SRM_INTERNAL_ERROR)
             return SRM_ERROR_TEMPORARY;
           return SRM_ERROR_PERMANENT;
         }
-
-        delete response2;
       }
 
       // check for timeout
@@ -1219,18 +1100,9 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmReleaseFilesResponse"]
                   ["srmReleaseFilesResponse"];
@@ -1268,18 +1140,9 @@ namespace Arc {
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmPutDoneResponse"]["srmPutDoneResponse"];
 
@@ -1314,18 +1177,9 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmAbortResponse"]["srmAbortResponse"];
 
@@ -1385,18 +1239,9 @@ namespace Arc {
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmRmResponse"]["srmRmResponse"];
 
@@ -1424,18 +1269,9 @@ namespace Arc {
     req.NewChild("SURL") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmRmdirResponse"]["srmRmdirResponse"];
 
@@ -1468,18 +1304,9 @@ namespace Arc {
       req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
-    MCC_Status status = client->process(&request, &response);
-
-    if (!status) {
-      logger.msg(VERBOSE, (std::string)status);
-      if (response)
-        delete response;
-      return SRM_ERROR_SOAP;
-    }
-    if (!response) {
-      logger.msg(VERBOSE, "No SOAP response");
-      return SRM_ERROR_SOAP;
-    }
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
 
     XMLNode res = (*response)["srmCopyResponse"]["srmCopyResponse"];
 
@@ -1513,29 +1340,19 @@ namespace Arc {
         sleep(sleeptime);
         request_time += sleeptime;
 
-        PayloadSOAP request2(ns);
-        XMLNode req = request2.NewChild("SRMv2:srmStatusOfCopyRequest")
+        PayloadSOAP request(ns);
+        XMLNode req = request.NewChild("SRMv2:srmStatusOfCopyRequest")
                       .NewChild("srmStatusOfCopyRequestRequest");
         req.NewChild("requestToken") = creq.request_token();
 
-        PayloadSOAP *response2 = NULL;
-        MCC_Status status = client->process(&request2, &response2);
+        delete response;
+        response = NULL;
+        status = process(&request, &response);
+        if (status != SRM_OK)
+          return status;
 
-        if (!status) {
-          logger.msg(VERBOSE, (std::string)status);
-          if (response2)
-            delete response2;
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-        if (!response2) {
-          logger.msg(VERBOSE, "No SOAP response");
-          delete response;
-          return SRM_ERROR_SOAP;
-        }
-
-        XMLNode res = (*response2)["srmStatusOfCopyRequestResponse"]
-                      ["srmStatusOfCopyRequestResponse"];
+        res = (*response)["srmStatusOfCopyRequestResponse"]
+              ["srmStatusOfCopyRequestResponse"];
 
         statuscode = GetStatus(res["returnStatus"], explanation);
 
@@ -1549,14 +1366,11 @@ namespace Arc {
         }
         else if (statuscode != SRM_SUCCESS) {
           logger.msg(ERROR, "%s", explanation);
-          delete response2;
           delete response;
           if (statuscode == SRM_INTERNAL_ERROR)
             return SRM_ERROR_TEMPORARY;
           return SRM_ERROR_PERMANENT;
         }
-
-        delete response2;
       }
 
       // check for timeout
@@ -1612,18 +1426,9 @@ namespace Arc {
       req.NewChild("SURL") = creq.surls().front();
 
       PayloadSOAP *response = NULL;
-      MCC_Status status = client->process(&request, &response);
-
-      if (!status) {
-        logger.msg(VERBOSE, (std::string)status);
-        if (response)
-          delete response;
-        return SRM_ERROR_SOAP;
-      }
-      if (!response) {
-        logger.msg(VERBOSE, "No SOAP response");
-        return SRM_ERROR_SOAP;
-      }
+      SRMReturnCode status = process(&request, &response);
+      if (status != SRM_OK)
+        return status;
 
       XMLNode res = (*response)["srmMkdirResponse"]["srmMkdirResponse"];
 
