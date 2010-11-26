@@ -393,6 +393,7 @@ AREXCFGWSS="\
       <next id=\"soap\">POST</next>\
       <next id=\"plexer\">GET</next>\
       <next id=\"plexer\">PUT</next>\
+      <next id=\"plexer\">HEAD</next>\
     </Component>\
     <Component name=\"soap.service\" id=\"soap\">\
       <next id=\"plexer\"/>\
