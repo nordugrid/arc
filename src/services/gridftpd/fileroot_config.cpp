@@ -85,9 +85,15 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
         struct hostent* host;
         struct hostent  hostbuf;
 #ifndef _AIX
+#ifndef sun
         char   buf[BUFSIZ];
         if(gethostbyname_r(value.c_str(),
                 &hostbuf,buf,sizeof(buf),&host,&errcode)) {
+#else
+        char   buf[BUFSIZ];
+        if((host=gethostbyname_r(value.c_str(),
+                &hostbuf,buf,sizeof(buf),&errcode))) {
+#endif
 #else
         struct hostent_data buf[BUFSIZ];
         if((errcode=gethostbyname_r(value.c_str(),

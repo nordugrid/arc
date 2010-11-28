@@ -5,7 +5,7 @@
 #endif
 
 #include <grp.h>
-#include <sys/vfs.h>
+#include <sys/statfs.h>
 
 #include "fileplugin.h"
 #include "../conf/conf.h"
@@ -200,7 +200,12 @@ int makedirs(std::string &name) {
     char* errmsg;
     char errmgsbuf[256];
 #ifndef _AIX
+#ifndef sun
     errmsg=strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#else
+    errmgsbuf[0]=0; errmsg=errmgsbuf;
+    strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#endif
 #else
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
@@ -264,7 +269,12 @@ int DirectFilePlugin::makedir(std::string &dname) {
     char* errmsg;
     char errmgsbuf[256];
 #ifndef _AIX
+#ifndef sun
     errmsg=strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#else
+    errmgsbuf[0]=0; errmsg=errmgsbuf;
+    strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#endif
 #else
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
@@ -340,7 +350,11 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
         if(ur & S_IWUSR) {  /* really can ? */
           if(size > 0) {
             struct statfs dst;
+#ifndef sun
             if(statfs((char*)(fname.c_str()),&dst) == 0) {
+#else
+            if(statfs((char*)(fname.c_str()),&dst,0,0) == 0) {
+#endif
               uid_t uid_;
               gid_t gid_;
               unsigned long long size_ = 0;
@@ -378,7 +392,11 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
         if((ur & S_IWUSR) && (ur & S_IFDIR)) {
           if(size > 0) {
             struct statfs dst;
+#ifndef sun
             if(statfs((char*)(fname.c_str()),&dst) == 0) {
+#else
+            if(statfs((char*)(fname.c_str()),&dst,0,0) == 0) {
+#endif
               if(size > (dst.f_bfree*dst.f_bsize)) {
                 logger.msg(Arc::ERROR, "Not enough space to store file");
                 return 1;
