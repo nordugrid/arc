@@ -67,7 +67,7 @@ namespace Arc {
 #ifdef HAVE_GLIBMM_GETENV
     return Glib::getenv(var);
 #else
-    char val* = getenv(var.c_str());
+    char* val = getenv(var.c_str());
     return val ? val : "";
 #endif
   }
@@ -76,8 +76,8 @@ namespace Arc {
 #ifdef HAVE_GLIBMM_GETENV
     return Glib::getenv(var, found);
 #else
-    char val* = getenv(var.c_str());
-    found = (val != NULL)
+    char* val = getenv(var.c_str());
+    found = (val != NULL);
     return val ? val : "";
 #endif
   }

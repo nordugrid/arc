@@ -122,7 +122,7 @@ bool FileCopy(int source_handle,const std::string& destination_path) {
 #define FileCopyBufSize (4*1024)
 
 bool FileCopy(int source_handle,int destination_handle) {
-  size_t source_size = lseek(source_handle,0,SEEK_END);
+  off_t source_size = lseek(source_handle,0,SEEK_END);
   if(source_size == (off_t)(-1)) return false;
   if(source_size == 0) return true;
 #ifndef WIN32
