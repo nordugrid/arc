@@ -1,4 +1,4 @@
-#include <sys/file.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -102,7 +102,7 @@ int main(int argv, char** argc) {
     unlink(replyfile);
     return Error(53, "Could not open server FIFO");
   }
-  if(flock(sfd, LOCK_EX) != 0) {
+  if(lockf(sfd, F_LOCK, 0) != 0) {
     fclose(stdinf);
     unlink(stdinfile);
     close(sfd);
@@ -113,7 +113,7 @@ int main(int argv, char** argc) {
   if (!sf) {
     fclose(stdinf);
     unlink(stdinfile);
-    flock(sfd, LOCK_UN);
+    lockf(sfd, F_ULOCK, 0);
     close(sfd);
     unlink(replyfile);
     return Error(53, "Could not open server FIFO");
@@ -123,7 +123,7 @@ int main(int argv, char** argc) {
   if (rfd == -1) {
     fclose(stdinf);
     unlink(stdinfile);
-    flock(sfd, LOCK_UN);
+    lockf(sfd, F_ULOCK, 0);
     fclose(sf);
     unlink(replyfile);
     return Error(53, "Could not open reply FIFO");
@@ -132,7 +132,7 @@ int main(int argv, char** argc) {
   if (!rf) {
     fclose(stdinf);
     unlink(stdinfile);
-    flock(sfd, LOCK_UN);
+    lockf(sfd, F_ULOCK, 0);
     fclose(sf);
     close(rfd);
     unlink(replyfile);
@@ -155,7 +155,7 @@ int main(int argv, char** argc) {
 
   fflush(sf);
 
-  flock(sfd, LOCK_UN);
+  lockf(sfd, F_ULOCK, 0);
   fclose(sf);
 
   FD_ZERO(&fs);
