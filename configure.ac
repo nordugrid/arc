@@ -403,7 +403,7 @@ fi
 AC_MSG_NOTICE([Python enabled: $enables_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
-AM_CONDITIONAL([PYTHON_SERVICE],[test ! "x$PYTHON_VERSION" '<' "x2.4"])
+AM_CONDITIONAL([PYTHON_SERVICE],[test ! "$PYTHON_VERSION" '-lt' "2.4"])
 
 
 
