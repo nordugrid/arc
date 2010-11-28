@@ -179,7 +179,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, 
             if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
             ::close(file);
           };
-          outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");
+          outmsg.Attributes()->set("HTTP:content-type","text/plain");
           return Arc::MCC_Status(Arc::STATUS_OK);
         };
         return Arc::MCC_Status();
