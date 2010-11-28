@@ -272,7 +272,7 @@ namespace Arc {
                             int has_arg,
                             int *flag,
                             int val) {
-    opt.name = name;
+    opt.name = (char*)name; // for buggy getopt header - Solaris
     opt.has_arg = has_arg;
     opt.flag = flag;
     opt.val = val;
