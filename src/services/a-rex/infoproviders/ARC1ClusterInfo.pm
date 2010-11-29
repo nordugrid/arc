@@ -280,6 +280,30 @@ sub xeinfos {
     return $infos;
 }
 
+# For each duration, find the largest available numer of slots of any user
+# Input: the users hash returned by thr LRMS module.
+sub max_userfreeslots {
+    my ($users) = @_;
+    my %timeslots;
+
+    for my $uid (keys %$users) {
+        my $uinfo = $users->{$uid};
+        next unless defined $uinfo->{freecpus};
+
+        for my $nfree ( keys %{$uinfo->{freecpus}} ) {
+            my $seconds = 60 * $uinfo->{freecpus}{$nfree};
+
+            if ($timeslots{$seconds}) {
+                $timeslots{$seconds} = $nfree > $timeslots{$seconds}
+                                     ? $nfree : $timeslots{$seconds};
+            } else {
+                $timeslots{$seconds} = $nfree;
+            }
+        }
+    }
+    return %timeslots;
+}
+
 
 ############################################################################
 # Combine info from all sources to prepare the final representation
@@ -335,10 +359,11 @@ sub get_cluster_info($) {
         unless (exists $xeinfo->{ntotal} and $xeinfo->{lcpus}) { $totallcpus = 0; last }
         $totallcpus += $xeinfo->{ntotal}  *  $xeinfo->{lcpus};
     }
-    # Next, use value returned by LRMS in case the the first try failed.
-    # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
     #$log->debug("Cannot determine total number of physical CPUs in all ExecutionEnvironments") unless $totalpcpus;
     $log->debug("Cannot determine total number of logical CPUs in all ExecutionEnvironments") unless $totallcpus;
+
+    # Next, use value returned by LRMS in case the the first try failed.
+    # OBS: most LRMSes don't differentiate between Physical and Logical CPUs.
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
@@ -855,50 +880,33 @@ sub get_cluster_info($) {
         # of any local user mapped in this share
         # TODO: is this the correct way to do it?
 
-        my %timeslots;
+        my @durations;
 
-        for my $uid (keys %{$qinfo->{users}}) {
-            my $uinfo = $qinfo->{users}{$uid};
-            next unless defined $uinfo->{freecpus};
+        if (%{$qinfo->{users}}) {
+            my %timeslots = max_userfreeslots($qinfo->{users});
 
-            for my $nfree ( keys %{$uinfo->{freecpus}} ) {
-                my $seconds = 60 * $uinfo->{freecpus}{$nfree};
+            # find maximum free slots regardless of duration
+            my $maxuserslots = 0;
+            for my $seconds ( keys %timeslots ) {
+                my $nfree = $timeslots{$seconds};
+                $maxuserslots = $nfree if $nfree > $maxuserslots;
+            }
+            $freeslots = $maxuserslots < $freeslots
+                       ? $maxuserslots : $freeslots;
 
-                if ($timeslots{$seconds}) {
-                    $timeslots{$seconds} = $nfree > $timeslots{$seconds}
-                                         ? $nfree : $timeslots{$seconds};
-                } else {
-                    $timeslots{$seconds} = $nfree;
-                }
+            # sort descending by duration, keping 0 first (0 for unlimited)
+            for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
+                my $nfree = $timeslots{$seconds} < $freeslots
+                          ? $timeslots{$seconds} : $freeslots;
+                unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
             }
         }
-
-        # find maximum free slots regardless of duration
-        my $maxuserslots = 0;
-        for my $seconds ( keys %timeslots ) {
-            my $nfree = $timeslots{$seconds};
-            $maxuserslots = $nfree if $nfree > $maxuserslots;
-        }
-        $freeslots = $maxuserslots < $freeslots
-                   ? $maxuserslots : $freeslots;
 
         $freeslots = 0 if $freeslots < 0;
 
         $csha->{FreeSlots} = [ $freeslots ];
-
-        my @durations;
-
-        # sort descending by duration, keping 0 first (0 for unlimited)
-        for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
-            my $nfree = $timeslots{$seconds} < $freeslots
-                      ? $timeslots{$seconds} : $freeslots;
-            unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
-        }
-
         $csha->{FreeSlotsWithDuration} = [ join(" ", @durations) || 0 ];
-
         $csha->{UsedSlots} = [ $qinfo->{running} ];
-
         $csha->{RequestedSlots} = [ $requestedslots{$share} || 0 ];
 
         # TODO: detect reservationpolicy in the lrms
