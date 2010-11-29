@@ -118,8 +118,8 @@ sub run_callback {
     &$callback(*QQ, @extraargs);
 
     close QQ;
-    my $status = $? >> 8;
-    $log->warning("Failed running command (exit status $status returned): $command")
+    my $exitcode = $? >> 8;
+    $log->info("Failed running command (exit code $exitcode): $command")
         if $?;
     return ! $?;
 }
@@ -458,13 +458,13 @@ sub run_qconf {
 
     # cpu distribution
     $cpudistribution = '';
-    die unless loop_callback("$path/qconf -sep", sub {
+    loop_callback("$path/qconf -sep", sub {
         my $l = shift;
         return if $l =~ /^HOST/ or $l =~ /^SUM/ or $l =~ /^=======/;
         my ($name, $cpus, $arch ) = split " ", $l;
         $node_stats{$name}{totalcpus} = $cpus;
         $node_stats{$name}{arch} = $arch;
-    });
+    }) or $log->error("Failed listing licensed processors");
     my %cpuhash;
     $cpuhash{$_->{totalcpus}}++ for values %node_stats;
     while ( my ($cpus,$count)  = each %cpuhash ) {
@@ -473,14 +473,16 @@ sub run_qconf {
     chop $cpudistribution;
 
     # global limits
-    die unless loop_callback("$path/qconf -sconf global", sub {
+    loop_callback("$path/qconf -sconf global", sub {
         my $l = shift;
         $max_jobs = $1 if $l =~ /^max_jobs\s+(\d+)/;
         $max_u_jobs = $1 if $l =~ /^max_u_jobs\s+(\d+)/;
-    });
+    }) or $log->error("Failed listing global configurations");
 
     # list all queues
-    die unless loop_callback("$path/qconf -sql", sub {push @queue_names, shift});
+    loop_callback("$path/qconf -sql", sub {
+        push @queue_names, shift
+    }) or $log->error("Failed listing all queues");
     chomp @queue_names;
 }
 
@@ -663,7 +665,7 @@ sub queue_info ($) {
     # h_rt                  48:00:00,[cpt.uio.no=24:00:00]
 
     my $command = "$path/qconf -sq @qnames";
-    $log->error("Failed listing queues") unless loop_callback($command, sub {
+    loop_callback($command, sub {
         my $l = shift;
         if ($l =~ /^[sh]_rt\s+(\S+)/) {
             return if $1 eq 'INFINITY';
@@ -695,7 +697,7 @@ sub queue_info ($) {
                 $lrms_queue->{maxcputime} = $timelimit;
             }
         }
-    });
+    }) or $log->error("Failed listing named queues");
 
     # Grid Engine puts queueing jobs in single "PENDING" state pool,
     # so here we report the total number queueing jobs in the cluster.
@@ -807,7 +809,7 @@ sub jobs_info ($) {
 
     $jid = undef;
     my ($jidstr) = join ',', @running;
-    die unless loop_callback("$path/qstat -j $jidstr", sub {
+    loop_callback("$path/qstat -j $jidstr", sub {
         my $l = shift;
         if ($l =~ /^job_number:\s+(\d+)/) {
             $jid=$1;
@@ -836,13 +838,13 @@ sub jobs_info ($) {
             $lrms_jobs->{$jid}{reqcputime} = $reqcputime if $reqcputime;
             $lrms_jobs->{$jid}{reqwalltime} = $reqwalltime if $reqwalltime;
         }
-    });
+    }) or $log->warning("Failed listing named jobs");
 
     # Waiting jobs
 
     $jidstr = join ',', @queueing;
     $jid = undef;
-    die unless loop_callback("$path/qstat -j $jidstr", sub {
+    loop_callback("$path/qstat -j $jidstr", sub {
         my $l = shift;
         if ($l =~ /^job_number:\s+(\d+)/) {
             $jid=$1;
@@ -874,7 +876,7 @@ sub jobs_info ($) {
             # failed   1  : assumedly before job
             # failed   28 : changing into working directory
         }
-    });
+    }) or $log->warning("Failed listing named jobs");
 }
 
 
@@ -917,13 +919,14 @@ sub users_info($$) {
 }
 
 
+#TODO
 sub nodes_info {
     my $arch; # as reported by qstat
     my $nodes;
     my $node;
-    my %system = qw(lx24 Linux sol SunOS darwin Darwin);
+    my %system = qw(lx Linux sol SunOS darwin Darwin);
     my %machine = qw(amd64 x86_64 x86 i686 ia64 ia64 ppc ppc sparc sparc sparc64 sparc64);
-    if ($arch =~ /^(lx24|sol|darwin)-(amd64|x86|ia64|ppc|sparc|sparc64)$/) {
+    if ($arch =~ /^(lx|sol|darwin)-(amd64|x86|ia64|ppc|sparc|sparc64)$/) {
         $nodes->{$node}{system} = $system{$1};
         $nodes->{$node}{machine} = $machine{$2};
     }
