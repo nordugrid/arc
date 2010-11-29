@@ -329,11 +329,12 @@ if test "$enables_python" = "yes"; then
   if test "X$PYTHON" != "X"; then
     changequote(<<, >>)dnl
     PYTHON_VERSION=`$PYTHON -c 'import sys; print(sys.version[:3])'`
+    PYTHON_VERSION_NODOT=`echo $PYTHON_VERSION | sed 's/\.//g'`
 
     case $host in
        *-*-mingw*)
           SAVE_PYTHON_VERSION=$PYTHON_VERSION
-          PYTHON_VERSION=`echo $PYTHON_VERSION | sed 's/\.//g'`
+          PYTHON_VERSION=$PYTHON_VERSION_NODOT
        ;;
     esac
 
@@ -403,9 +404,7 @@ fi
 AC_MSG_NOTICE([Python enabled: $enables_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
-AM_CONDITIONAL([PYTHON_SERVICE],[test ! "$PYTHON_VERSION" '-lt' "2.4"])
-
-
+AM_CONDITIONAL([PYTHON_SERVICE],[test "$PYTHON_VERSION_NODOT" '-ge' "24"])
 
 
 # using pkgconfig
