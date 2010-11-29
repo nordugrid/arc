@@ -127,6 +127,12 @@ sub collect($) {
     my $usermap = read_grid_mapfile($config->{gridmap});
     my @localusers = grep !$saw{$_}++, values %$usermap;
 
+    unless (@localusers) {
+        my $defaultuser = $config->{defaultLocalName};
+        @localusers = ($defaultuser) if $defaultuser;
+    }
+
+    $log->warning("Cannot determine local users") unless @localusers;
 
     my $gmjobs_info = get_gmjobs_info($config);
 

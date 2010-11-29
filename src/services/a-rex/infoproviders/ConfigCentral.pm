@@ -109,6 +109,7 @@ my $gmcommon_options = {
 # # # # # # # # # # # # # #
 
 my $config_schema = {
+    defaultLocalName => '*',
     debugLevel => '*',
     PublishNordugrid => '*',
     AdminDomain => '*',
@@ -347,6 +348,10 @@ sub build_config_from_xmlfile {
     move_keys $arex, $config, ['endpoint', 'debugLevel'];
     $config->{ttl} = 2 * $arex->{InfoproviderWakeupPeriod} if $arex->{InfoproviderWakeupPeriod};
 
+    my $usermap = hash_get_hashref($arex, 'usermap');
+    my $username = $usermap->{'defaultLocalName'};
+    $config->{defaultLocalName} = $username if $username;
+
     my $gmconfig = $arex->{gmconfig};
     if ($gmconfig) {
         if (not ref $gmconfig) {
@@ -415,9 +420,12 @@ sub build_config_from_xmlfile {
     $config->{lrms} .= " ".$lrms->{defaultShare} if $lrms->{defaultShare};
 
     move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
-    rename_keys $lrms, $config, {runtimeDir => 'runtimedir', scratchDir => 'scratchdir',
-             sharedScratch => 'shared_scratch', sharedFilesystem => 'shared_filesystem',
-             GNUTimeUtility => 'gnu_time', useJanitor => 'use_janitor'};
+    rename_keys $lrms, $config, {runtimeDir => 'runtimedir',
+                                 scratchDir => 'scratchdir',
+                                 sharedScratch => 'shared_scratch',
+                                 sharedFilesystem => 'shared_filesystem',
+                                 GNUTimeUtility => 'gnu_time',
+                                 useJanitor => 'use_janitor'};
 
     my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
 
