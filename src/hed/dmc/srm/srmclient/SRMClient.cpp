@@ -150,6 +150,12 @@ namespace Arc {
   SRMReturnCode SRMClient::process(PayloadSOAP *request,
                                    PayloadSOAP **response) {
 
+    if (logger.getThreshold() <= DEBUG) {
+      std::string xml;
+      request->GetXML(xml, true);
+      logger.msg(DEBUG, "SOAP request: %s", xml);
+    }
+
     MCC_Status status = client->process(request, response);
 
     // Try to reconnect in case of failure
@@ -158,6 +164,8 @@ namespace Arc {
       logger.msg(DEBUG, "Reconnecting");
       delete client;
       client = new ClientSOAP(cfg, service_endpoint, user_timeout);
+      if (!client)
+        return SRM_ERROR_CONNECTION;
       status = client->process(request, response);
     }
 
@@ -175,6 +183,12 @@ namespace Arc {
       logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
       delete *response;
       return SRM_ERROR_SOAP;
+    }
+
+    if (logger.getThreshold() <= DEBUG) {
+      std::string xml;
+      (*response)->GetXML(xml, true);
+      logger.msg(DEBUG, "SOAP response: %s", xml);
     }
 
     return SRM_OK;
