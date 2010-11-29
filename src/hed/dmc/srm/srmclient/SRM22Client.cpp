@@ -1423,7 +1423,7 @@ namespace Arc {
       PayloadSOAP request(ns);
       XMLNode req = request.NewChild("SRMv2:srmMkdir")
                     .NewChild("srmMkdirRequest");
-      req.NewChild("SURL") = creq.surls().front();
+      req.NewChild("SURL") = dirname;
 
       PayloadSOAP *response = NULL;
       SRMReturnCode status = process(&request, &response);
