@@ -881,9 +881,9 @@ sub get_cluster_info($) {
         # TODO: is this the correct way to do it?
 
         my @durations;
+        my %timeslots = max_userfreeslots($qinfo->{users});
 
-        if (%{$qinfo->{users}}) {
-            my %timeslots = max_userfreeslots($qinfo->{users});
+        if (%timeslots) {
 
             # find maximum free slots regardless of duration
             my $maxuserslots = 0;
