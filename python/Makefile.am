@@ -29,6 +29,7 @@ MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
 arc_wrap.cpp arc.py: $(SWIG_INPUTS)
+	mkdir -p $(DEPDIR)
 	grep -h '^#' $(SWIG_INPUTS) | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT arc.py -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python -threads -module arc -o arc_wrap.cpp \

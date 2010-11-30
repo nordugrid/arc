@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
 arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
+	mkdir -p $(DEPDIR)
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
 	$(CXXCOMPILE) $(libjarc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT $(JAVA_PATH)/arc.java -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	rm -rf $(JAVA_PATH)
