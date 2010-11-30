@@ -144,20 +144,32 @@ static bool is_dir(std::string path) {
   return false;
 }
 
-std::string search_vomses(std::string path) {
-  std::string vomses_path;
-  if(is_file(path)) vomses_path = path;
+std::vector<std::string> search_vomses(std::string path) {
+  std::vector<std::string> vomses_files;
+  if(is_file(path)) vomses_files.push_back(path);
   else if(is_dir(path)) {
-    //if the path is a directory, search the ./vomses file under this directory 
-    path.append(G_DIR_SEPARATOR_S).append("vomses");
-    if(is_file(path)) vomses_path = path;
-    else if(is_dir(path)) {         
-      //if the path is a directory, search the ./vomses file under this directory
-      path.append(G_DIR_SEPARATOR_S).append("vomses");
-      if(is_file(path)) vomses_path = path;
+    //if the path 'vomses' is a directory, search all of the files under this directory,
+    //i.e.,  'vomses/voA'  'vomses/voB'
+    std::string path_header = path;
+    std::string fullpath;
+    Glib::Dir dir(path);
+    for(Glib::Dir::iterator i = dir.begin(); i != dir.end(); i++ ) {
+      fullpath = path_header + G_DIR_SEPARATOR_S + *i;
+      if(is_file(fullpath)) vomses_files.push_back(fullpath);
+      else if(is_dir(fullpath)) {         
+        std::string sub_path = fullpath;
+        //if the path is a directory, search the all of the files under this directory,
+        //i.e., 'vomses/extra/myprivatevo'
+        Glib::Dir subdir(sub_path);
+        for(Glib::Dir::iterator j = subdir.begin(); j != subdir.end(); j++ ) {
+          fullpath = sub_path + G_DIR_SEPARATOR_S + *j;
+          if(is_file(fullpath)) vomses_files.push_back(fullpath);
+          //else if(is_dir(fullpath)) { //if it is again a directory, the files under it will be ignored }
+        }
+      }
     }
   }
-  return vomses_path;
+  return vomses_files;
 }
 
 
@@ -614,28 +626,62 @@ int main(int argc, char *argv[]) {
         vomses_path = usercfg.VOMSServerPath();
 
 
-      if (vomses_path.empty() || !is_file(vomses_path)) {
-        std::string path1, path2, path3, path4, path5, path6;
-        path1 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-        path2 = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses"; 
-        path3 = G_DIR_SEPARATOR_S; path3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
-        path4 = Arc::ArcLocation::Get() + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
-        path5 = G_DIR_SEPARATOR_S; path5.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
- 
-        vomses_path = search_vomses(path1);
-        if(vomses_path.empty()) vomses_path = search_vomses(path2);
-        if(vomses_path.empty()) vomses_path = search_vomses(path3);
-        if(vomses_path.empty()) vomses_path = search_vomses(path4);
-        if(vomses_path.empty()) vomses_path = search_vomses(path5);
-        if(vomses_path.empty()) {
-          std::string tmp1, tmp2;
-          tmp1 = path1;
-          tmp1.append(G_DIR_SEPARATOR_S).append("vomses");
-          tmp2 = tmp1;
-          tmp2.append(G_DIR_SEPARATOR_S).append("vomses");       
-          logger.msg(Arc::ERROR, "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\nthere is also not vomses location information in user's configuration file;\nCannot find vomses at %s, %s, %s, %s, %s, and the location at the corresponding sub-directory, such as %s, %s", path1, path2, path3, path4, path5, tmp1, tmp2);
-          return EXIT_FAILURE;
-        }      
+      //the 'vomses' location could be one single files; 
+      //or it could be a directory which includes multiple files, such as 'vomses/voA', 'vomses/voB', etc.
+      //or it could be a directory which includes multiple directories that includes multiple files,
+      //such as 'vomses/atlas/voA', 'vomses/atlas/voB', 'vomses/alice/voa', 'vomses/alice/vob', 
+      //'vomses/extra/myprivatevo', 'vomses/mypublicvo'
+      std::vector<std::string> vomses_files;
+      //If the location is a file
+      if(is_file(vomses_path)) vomses_files.push_back(vomses_path);
+      //If the locaton is a directory, all the files and directories will be scanned
+      //to find the vomses information. The scanning will not stop until all of the
+      //files and directories are all scanned.
+      else if (vomses_path.empty() || !is_file(vomses_path)) {
+        std::vector<std::string> files;
+        if(!vomses_path.empty()) {
+          files = search_vomses(vomses_path);
+          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+          files.clear();
+        }
+        else {
+          std::string path1, path2, path3, path4, path5, path6;
+          path1 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
+          path2 = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses"; 
+          path3 = G_DIR_SEPARATOR_S; path3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
+          path4 = Arc::ArcLocation::Get() + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
+          path5 = G_DIR_SEPARATOR_S; path5.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
+
+          files = search_vomses(path1);
+          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+          files.clear();
+
+          files = search_vomses(path2);
+          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+          files.clear();
+
+          files = search_vomses(path3);
+          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+          files.clear();
+
+          files = search_vomses(path4);
+          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+          files.clear();
+
+          files = search_vomses(path5);
+          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+          files.clear();
+       
+          if(vomses_files.empty()) {
+            std::string tmp1, tmp2;
+            tmp1 = path1;
+            tmp1.append(G_DIR_SEPARATOR_S).append("voA");
+            tmp2 = path1;
+            tmp2.append(G_DIR_SEPARATOR_S).append("extra").append(G_DIR_SEPARATOR_S).append("myprivatevo");
+            logger.msg(Arc::ERROR, "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\nUser has not specify the location for vomses information;\nThere is also not vomses location information in user's configuration file;\nCannot find vomses at %s, %s, %s, %s, %s, and the location at the corresponding sub-directory, such as %s, %s", path1, path2, path3, path4, path5, tmp1, tmp2);
+            return EXIT_FAILURE;
+          }      
+        }
       }  
 
 /*
@@ -681,51 +727,59 @@ int main(int argc, char *argv[]) {
       }
 */
 
-      std::ifstream in_f(vomses_path.c_str());
       std::map<std::string, std::vector<std::string> > matched_voms_line;
-      std::string voms_line;
-      while (true) {
-        voms_line.clear();
-        std::getline<char>(in_f, voms_line, '\n');
-        if (voms_line.empty())
-          break;
-        if((voms_line.size() >= 1) && (voms_line[0] == '#')) continue;
+      for(std::vector<std::string>::iterator file_i = vomses_files.begin(); file_i != vomses_files.end(); file_i++) {
+        std::string vomses_file = *file_i;
+        std::ifstream in_f(vomses_file.c_str());
+        std::string voms_line;
+        while (true) {
+          voms_line.clear();
+          std::getline<char>(in_f, voms_line, '\n');
+          if (voms_line.empty())
+            break;
+          if((voms_line.size() >= 1) && (voms_line[0] == '#')) continue;
 
-        size_t pos = voms_line.rfind("\"");
-        if (pos != std::string::npos) {
-          voms_line.erase(pos);
-          pos = voms_line.rfind("\"");
+          bool has_find = false; 
+          //boolean value to record if the vomses server information has been found in this vomses line
+          size_t pos = voms_line.rfind("\"");
           if (pos != std::string::npos) {
-            std::string str = voms_line.substr(pos + 1);
-            for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-                 it != server_command_map.end(); it++) {
-              std::string voms_server = (*it).first;
-              if (str == voms_server) {
-                matched_voms_line[voms_server].push_back(voms_line);
-                break;
+            voms_line.erase(pos);
+            pos = voms_line.rfind("\"");
+            if (pos != std::string::npos) {
+              std::string str = voms_line.substr(pos + 1);
+              for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+                   it != server_command_map.end(); it++) {
+                std::string voms_server = (*it).first;
+                if (str == voms_server) {
+                  matched_voms_line[voms_server].push_back(voms_line);
+                  has_find = true;
+                  break;
+                };
+              };
+            };
+          };
+
+          if(!has_find) {
+            //you can also use the nick name of the voms server
+            size_t pos1 = voms_line.find("\"");
+            if (pos1 != std::string::npos) {
+              size_t pos2 = voms_line.find("\"", pos1+1);
+              if (pos2 != std::string::npos) {
+                std::string str1 = voms_line.substr(pos1+1, pos2-pos1-1);
+                for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+                     it != server_command_map.end(); it++) {
+                  std::string voms_server = (*it).first;
+                  if (str1 == voms_server) {
+                    matched_voms_line[voms_server].push_back(voms_line);
+                    break;
+                  };
+                };
               };
             };
           };
         };
+      };//end of scanning all of the vomses files
 
-        //you can also use the nick name of the voms server
-        size_t pos1 = voms_line.find("\"");
-        if (pos1 != std::string::npos) {
-          size_t pos2 = voms_line.find("\"", pos1+1);
-          if (pos2 != std::string::npos) {
-            std::string str1 = voms_line.substr(pos1+1, pos2-pos1-1);
-            for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-                 it != server_command_map.end(); it++) {
-              std::string voms_server = (*it).first;
-              if (str1 == voms_server) {
-                matched_voms_line[voms_server].push_back(voms_line);
-                break;
-              };
-            };
-          };
-        };
-
-      }
       //Judge if we can not find any of the voms server in the command line from 'vomses' file
       //if(matched_voms_line.empty()) {
       //  logger.msg(Arc::ERROR, "Cannot get voms server information from file: %s", vomses_path);
@@ -735,8 +789,8 @@ int main(int argc, char *argv[]) {
       for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
            it != server_command_map.end(); it++)
         if (matched_voms_line.find((*it).first) == matched_voms_line.end())
-          logger.msg(Arc::ERROR, "Cannot get VOMS server %s information from file: %s",
-                     (*it).first, vomses_path);
+          logger.msg(Arc::ERROR, "Cannot get VOMS server %s information from the vomses files",
+                     (*it).first);
 
       //Contact the voms server to retrieve attribute certificate
       std::string voms_server;
@@ -751,6 +805,7 @@ int main(int argc, char *argv[]) {
            it != matched_voms_line.end(); it++) {
         voms_server = (*it).first;
         std::vector<std::string> voms_lines = (*it).second;
+
         for (std::vector<std::string>::iterator line_it = voms_lines.begin(); line_it != voms_lines.end(); line_it++) {
           std::string voms_line = *line_it;
           int count = server_command_map.count(voms_server);
