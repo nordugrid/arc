@@ -32,6 +32,15 @@
   local           job_manager   gm            +           no
 */
 
+extern const char * const sfx_cancel;
+extern const char * const sfx_restart;
+extern const char * const sfx_clean;
+
+extern const char * const subdir_new;
+extern const char * const subdir_cur;
+extern const char * const subdir_old;
+extern const char * const subdir_rew;
+
 /*
 extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 */

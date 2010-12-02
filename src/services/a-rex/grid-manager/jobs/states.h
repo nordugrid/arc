@@ -68,7 +68,9 @@ class JobsList {
   bool JobFailStateRemember(const iterator &i,job_state_t state);
   bool RecreateTransferLists(const JobsList::iterator &i);
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
+  bool ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids);
   bool RestartJobs(const std::string& cdir,const std::string& odir);
+  bool RestartJob(const std::string& cdir,const std::string& odir,const std::string& id);
  public:
   /* Constructor. 'user' contains associated user */ 
   JobsList(JobUser &user,ContinuationPlugins &plugins);
@@ -92,6 +94,7 @@ class JobsList {
      with state undefined */
   bool ScanNewJobs(bool hard_job = false);
   bool ScanAllJobs(bool hard_job = false);
+  bool ScanNewMarks(bool hard_job = false);
   /* Rearange status files on service restart */
   bool RestartJobs(void);
   /*

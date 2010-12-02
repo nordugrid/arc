@@ -327,6 +327,8 @@ static void grid_manager(void* arg) {
     my_user->run_helpers();
     bool hard_job = time(NULL) > hard_job_time;
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+      /* check for new marks and activate related jobs */
+      user->get_jobs()->ScanNewMarks(false);
       /* look for new jobs */
       user->get_jobs()->ScanNewJobs(hard_job);
       /* process know jobs */

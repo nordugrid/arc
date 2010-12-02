@@ -25,7 +25,8 @@ bool get_arc_job_description(const std::string& fname, Arc::JobDescription& desc
   }
 
   desc.AddHint("SOURCEDIALECT","GRIDMANAGER");
-  return desc.Parse(job_desc_str);
+  bool r = desc.Parse(job_desc_str);
+  return r;
 }
 
 bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const JobUser& user, const char* opt_add) {

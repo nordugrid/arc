@@ -1682,6 +1682,22 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
   return res;
 }
 
+bool JobsList::RestartJob(const std::string& cdir,const std::string& odir,const std::string& id) {
+  std::string file = "job." + id + ".status";
+  std::string fname=cdir+'/'+file.c_str();
+  std::string oname=odir+'/'+file.c_str();
+  uid_t uid;
+  gid_t gid;
+  time_t t;
+  if(check_file_owner(fname,*user,uid,gid,t)) {
+    if(::rename(fname.c_str(),oname.c_str()) != 0) {
+      logger.msg(Arc::ERROR,"Failed to move file %s to %s",fname,oname);
+      return false;
+    };
+  };
+  return true;
+}
+
 // This code is run at service restart
 bool JobsList::RestartJobs(void) {
   std::string cdir=user->ControlDir();
@@ -1725,6 +1741,46 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
   return true;
 }
 
+bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids) {
+  try {
+    Glib::Dir dir(cdir);
+    for(;;) {
+      std::string file=dir.read_name();
+      if(file.empty()) break;
+      int l=file.length();
+      if(l>(4)) {  /* job id contains at least 1 character */
+        if(!strncmp(file.c_str(),"job.",4)) {
+          for(std::list<std::string>::const_iterator sfx = suffices.begin();
+                       sfx != suffices.end();++sfx) {
+            int ll = sfx->length();
+            if(l > (ll+4)) {
+              if(!strncmp(file.c_str()+(l-ll),sfx->c_str(),ll)) {
+                JobFDesc id((file.c_str())+4,l-ll-4);
+                if(FindJob(id.id) == jobs.end()) {
+                  std::string fname=cdir+'/'+file.c_str();
+                  uid_t uid;
+                  gid_t gid;
+                  time_t t;
+                  if(check_file_owner(fname,*user,uid,gid,t)) {
+                    /* add it to the list */
+                    id.uid=uid; id.gid=gid; id.t=t;
+                    ids.push_back(id);
+                  };
+                };
+                break;
+              };
+            };
+          };
+        };
+      };
+    };
+  } catch(Glib::FileError& e) {
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
+    return false;
+  };
+  return true;
+}
+
 /* find new jobs - sort by date to implement FIFO */
 bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   std::string cdir=user->ControlDir();
@@ -1752,7 +1808,42 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   return true;
 }
 
-// For simply collcring all jobs. 
+bool JobsList::ScanNewMarks(bool /*hard_job*/) {
+  std::string cdir=user->ControlDir();
+  std::string ndir=cdir+"/"+subdir_new;
+  std::list<JobFDesc> ids;
+  std::list<std::string> sfx;
+  sfx.push_back(sfx_clean);
+  sfx.push_back(sfx_restart);
+  sfx.push_back(sfx_cancel);
+  if(!ScanMarks(ndir,sfx,ids)) return false;
+  ids.sort();
+  std::string last_id;
+  for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
+    if(id->id == last_id) continue; // already processed
+    last_id = id->id;
+    job_state_t st = job_state_read_file(id->id,*user);
+    if((st == JOB_STATE_UNDEFINED) || (st == JOB_STATE_DELETED)) {
+      // Job probably does not exist anymore
+      job_clean_mark_remove(id->id,*user);
+      job_restart_mark_remove(id->id,*user);
+      job_cancel_mark_remove(id->id,*user);
+    };
+    // Check if such job finished and add it to list.
+    if(st == JOB_STATE_FINISHED) {
+      iterator i;
+      AddJobNoCheck(id->id,i,id->uid,id->gid);
+      // That will activate its processing at least for one step.
+      i->job_state = st;
+      //std::string fdir=cdir+"/"+subdir_old;
+      //std::string odir=cdir+"/"+subdir_rew;
+      //RestartJob(fdir,odir,*id);
+    };
+  };
+  return true;
+}
+
+// For simply collecting all jobs. 
 bool JobsList::ScanAllJobs(bool /*hard_job*/) {
   std::list<std::string> subdirs;
   subdirs.push_back("/restarting"); // For picking up jobs after service restart
