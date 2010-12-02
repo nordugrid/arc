@@ -121,6 +121,8 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   action = "request";
   std::map<std::string, std::string>::const_iterator act_i = arc_job_desc.XRSL_elements.find("action");
   if(act_i != arc_job_desc.XRSL_elements.end()) action = act_i->second;
+  std::map<std::string, std::string>::const_iterator jid_i = arc_job_desc.XRSL_elements.find("jobid");
+  if(jid_i != arc_job_desc.XRSL_elements.end()) jobid = jid_i->second;
 
   projectnames.clear();
   projectnames.push_back(arc_job_desc.Identification.JobVOName);
