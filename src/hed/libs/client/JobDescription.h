@@ -276,6 +276,8 @@ namespace Arc {
     // If there is some error during this method, then return empty string.
     std::string UnParse(const std::string& format = "ARCJSDL") const;
 
+    bool UnParse(std::string& product, std::string format) const;
+
     // Returns with the original job descriptions format as a string. Right now, this value is one of the following:
     // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.
     bool getSourceFormat(std::string& _sourceFormat) const;

@@ -249,7 +249,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     resubmittedJobs.push_back(Arc::Job());
 
     Arc::JobDescription jobdesc;
-    jobdesc.Parse(it->JobDescription);
+    jobdesc.Parse(it->JobDescription); // Do not check for validity. We are only interested in that the outgoing job description is valid.
     jobdesc.Identification.ActivityOldId = it->ActivityOldID;
     jobdesc.Identification.ActivityOldId.push_back(it->JobID.str());
 

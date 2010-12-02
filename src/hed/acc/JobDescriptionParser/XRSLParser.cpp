@@ -63,12 +63,14 @@ namespace Arc {
 
   bool XRSLParser::cached = true;
 
-  JobDescription XRSLParser::Parse(const std::string& source) const {
+  bool XRSLParser::Parse(const std::string& source, JobDescription& jobdesc) const {
+    jobdesc = JobDescription();
+
     RSLParser parser(source);
     const RSL *r = parser.Parse();
     if (!r) {
       logger.msg(VERBOSE, "RSL parsing error");
-      return JobDescription();
+      return false;
     }
 
     std::list<const RSL*> l = SplitRSL(r);
@@ -78,7 +80,7 @@ namespace Arc {
       JobDescription j;
       if (!Parse(*it, j)) {
         logger.msg(ERROR, "XRSL parsing error");
-        return JobDescription();
+        return false;
       }
 
       j.XRSL_elements["clientxrsl"] = source;
@@ -88,10 +90,15 @@ namespace Arc {
 
     if (J.size() > 1) {
       logger.msg(WARNING, "Multiple RSL in one file not yet supported");
-      return JobDescription();
+      return false;
     }
 
-    return *J.begin();
+    if (J.size() == 1 && !J.front().Application.Executable.Name.empty()) {
+      jobdesc = J.front();
+      return true;
+    }
+
+    return false;
   }
 
   bool XRSLParser::SingleValue(const RSLCondition *c,
@@ -809,7 +816,12 @@ namespace Arc {
     return true;
   }
 
-  std::string XRSLParser::UnParse(const JobDescription& j) const {
+  bool XRSLParser::UnParse(const JobDescription& j, std::string& product) const {
+    // First check if the job description is valid.
+    if (j.Application.Executable.Name.empty()) {
+      return false;
+    }
+
     RSLBoolean r(RSLAnd);
 
     if (!j.Application.Executable.Name.empty()) {
@@ -1114,7 +1126,8 @@ namespace Arc {
 
     std::stringstream ss;
     ss << r;
-    return ss.str();
+    product = ss.str();
+    return true;
   }
 
 } // namespace Arc

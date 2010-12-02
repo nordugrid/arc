@@ -478,12 +478,14 @@ namespace Arc {
     return output.str();
   }
 
-  JobDescription JDLParser::Parse(const std::string& source) const {
+  bool JDLParser::Parse(const std::string& source, JobDescription& jobdesc) const {
+    jobdesc = JobDescription();
+
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
     if (first == std::string::npos || last == std::string::npos) {
       logger.msg(VERBOSE, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
-      return JobDescription();
+      return false;
     }
     std::string input_text = source.substr(first + 1, last - first - 1);
 
@@ -515,30 +517,31 @@ namespace Arc {
 
     if (!splitJDL(wcpy, lines)) {
       logger.msg(VERBOSE, "[JDLParser] Syntax error found during the split function.");
-      return JobDescription();
+      return false;
     }
     if (lines.size() <= 0) {
       logger.msg(VERBOSE, "[JDLParser] Lines count is zero or other funny error has occurred.");
-      return JobDescription();
+      return false;
     }
-
-    JobDescription job;
 
     for (std::list<std::string>::iterator it = lines.begin();
          it != lines.end(); it++) {
       const size_t equal_pos = it->find_first_of("=");
       if (equal_pos == std::string::npos) {
         logger.msg(VERBOSE, "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected.");
-        return JobDescription();
+        return false;
       }
-      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), job))
-        return JobDescription();
+      if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), jobdesc))
+        return false;
     }
-    return job;
+    return true;
   }
 
-  std::string JDLParser::UnParse(const JobDescription& job) const {
-    std::string product;
+  bool JDLParser::UnParse(const JobDescription& job, std::string& product) const {
+    if (job.Application.Executable.Name.empty()) {
+      return false;
+    }
+
     product = "[\n  Type = \"job\";\n";
 
     product += ADDJDLSTRING(job.Application.Executable.Name, "Executable");
@@ -691,7 +694,7 @@ namespace Arc {
     }
     product += "]";
 
-    return product;
+    return true;
   }
 
 } // namespace Arc

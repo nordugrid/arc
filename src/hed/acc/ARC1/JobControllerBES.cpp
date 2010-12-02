@@ -110,9 +110,9 @@ namespace Arc {
     std::string idstr = extract_job_id(job.JobID);
     if (ac.getdesc(idstr, desc_str)) {
       JobDescription desc;
-      desc.Parse(desc_str);
-      if (desc)
-      return true;
+      if (desc.Parse(desc_str)) {
+        return true;
+      }
     }
 
     logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());

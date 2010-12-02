@@ -33,8 +33,8 @@ namespace Arc {
   public:
     ARCJSDLParser();
     ~ARCJSDLParser();
-    JobDescription Parse(const std::string& source) const;
-    std::string UnParse(const JobDescription& job) const;
+    bool Parse(const std::string& source, JobDescription& jobdesc) const;
+    bool UnParse(const JobDescription& job, std::string& product) const;
     const std::string& GetSourceFormat();
 
     static Plugin* Instance(PluginArgument *arg);

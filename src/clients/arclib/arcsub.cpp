@@ -209,9 +209,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
     buffer[length] = '\0';
     Arc::JobDescription jobdesc;
-    jobdesc.Parse((std::string)buffer);
-
-    if (jobdesc)
+    if (jobdesc.Parse((std::string)buffer))
       jobdescriptionlist.push_back(jobdesc);
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
@@ -227,10 +225,7 @@ int RUNSUB(main)(int argc, char **argv) {
        it != jobdescriptionstrings.end(); it++) {
 
     Arc::JobDescription jobdesc;
-
-    jobdesc.Parse(*it);
-
-    if (jobdesc)
+    if (jobdesc.Parse(*it))
       jobdescriptionlist.push_back(jobdesc);
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
@@ -365,8 +360,8 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
       else if (target->GridFlavour == "CREAM") {
         jobdesclang = "JDL";
       }
-      const std::string jobdesc = jobdescdump.UnParse(jobdesclang);
-      if (jobdesc.empty()) {
+      std::string jobdesc;
+      if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
         std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
         retval = 1;
         break;

@@ -152,8 +152,8 @@ namespace Arc {
     }
   }
 
-  JobDescription ARCJSDLParser::Parse(const std::string& source) const {
-    JobDescription job;
+  bool ARCJSDLParser::Parse(const std::string& source, JobDescription& job) const {
+    job = JobDescription();
 
     xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
 
@@ -175,7 +175,7 @@ namespace Arc {
 
     if (node.Size() == 0) {
       logger.msg(VERBOSE, "[ARCJSDLParser] Wrong XML structure! ");
-      return JobDescription();
+      return false;
     }
 
     // The source parsing start now.
@@ -225,7 +225,7 @@ namespace Arc {
       xmlXApplication = xmlApplication["HPCProfileApplication"];
     if (!xmlXApplication) {
       logger.msg(ERROR, "[ARCJSDLParser] An extended application element (POSIXApplication or HPCProfileApplication) was not found in the job description.");
-      return JobDescription();
+      return false;
     }
 
 
@@ -276,7 +276,7 @@ namespace Arc {
         XMLNode name = env.Attribute("name");
         if (!name || ((std::string)name).empty()) {
           logger.msg(VERBOSE, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
-          return JobDescription();
+          return false;
         }
         job.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
       }
@@ -303,7 +303,7 @@ namespace Arc {
       URL url((std::string)xmlApplication["RemoteLogging"][i]);
       if (!url) {
         logger.msg(VERBOSE, "[ARCJSDLParser] RemoteLogging URL is wrongly formatted.");
-        return JobDescription();
+        return false;
       }
       job.Application.RemoteLogging.push_back(url);
     }
@@ -349,7 +349,7 @@ namespace Arc {
     // SoftwareRequirement OperatingSystem;
     if (bool(resource["OperatingSystem"])) {
       if (!parseSoftware(resource["OperatingSystem"], job.Resources.OperatingSystem))
-        return JobDescription();
+        return false;
       if (!resource["OperatingSystem"]["Software"] &&
           resource["OperatingSystem"]["OperatingSystemType"]["OperatingSystemName"] &&
           resource["OperatingSystem"]["OperatingSystemVersion"])
@@ -463,7 +463,7 @@ namespace Arc {
     // SoftwareRequirement CEType;
     if (bool(resource["CEType"]))
       if (!parseSoftware(resource["CEType"], job.Resources.CEType))
-        return JobDescription();
+        return false;
 
     // NodeAccessType NodeAccess;
     if (lower((std::string)resource["NodeAccess"]) == "inbound")
@@ -503,7 +503,7 @@ namespace Arc {
           std::string useQueue = (std::string)resource["CandidateTarget"][i]["QueueName"].Attribute("require");
           if (!useQueue.empty() && useQueue != "eq" && useQueue != "=" && useQueue != "==" && useQueue != "ne" && useQueue != "!=") {
             logger.msg(ERROR, "Parsing the \"require\" attribute of the \"QueueName\" JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed.");
-            return JobDescription();
+            return false;
           }
 
           ResourceTargetType candidateTarget;
@@ -525,7 +525,7 @@ namespace Arc {
       if (bool(resource["RunTimeEnvironment"].Attribute("require")))
         job.Resources.RunTimeEnvironment.setRequirement(lower((std::string)resource["RunTimeEnvironment"].Attribute("require")) == "all");
       if (!parseSoftware(resource["RunTimeEnvironment"], job.Resources.RunTimeEnvironment))
-        return JobDescription();
+        return false;
     }
     // end of Resources
 
@@ -571,10 +571,14 @@ namespace Arc {
     }
     // end of Datastaging
 
-    return job;
+    return true;
   }
 
-  std::string ARCJSDLParser::UnParse(const JobDescription& job) const {
+  bool ARCJSDLParser::UnParse(const JobDescription& job, std::string& product) const {
+    if (job.Application.Executable.Name.empty()) {
+      return false;
+    }
+
     XMLNode jobdefinition(NS("", "http://schemas.ggf.org/jsdl/2005/11/jsdl"), "JobDefinition");
 
     XMLNode jobdescription = jobdefinition.NewChild("JobDescription");
@@ -1005,10 +1009,9 @@ namespace Arc {
     }
     // End of DataStaging
 
-    std::string product;
     jobdefinition.GetDoc(product, true);
 
-    return product;
+    return true;
   }
 
 } // namespace Arc

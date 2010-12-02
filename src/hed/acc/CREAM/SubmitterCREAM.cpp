@@ -52,7 +52,12 @@ namespace Arc {
       return false;
     }
 
-    std::string jobdescstring = modjobdesc.UnParse("JDL");
+    std::string jobdescstring;
+    if (!modjobdesc.UnParse(jobdescstring, "JDL")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "JDL");
+      return false;
+    }
+
     creamJobInfo jobInfo;
     if (!gLiteClientSubmission.registerJob(jobdescstring, jobInfo)) {
       logger.msg(INFO, "Failed registering job");

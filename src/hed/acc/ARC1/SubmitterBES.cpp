@@ -59,9 +59,15 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout(), false);
 
-    std::string jobid;
     // !! TODO: ordinary JSDL is needed - keeping ARCJSDL so far
-    if (!ac.submit(jobdesc.UnParse("ARCJSDL"), jobid, et.url.Protocol() == "https"))
+    std::string jobdescstring;
+    if (!jobdesc.UnParse(jobdescstring, "ARCJSDL")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "ARCJSDL");
+      return false;
+    }
+
+    std::string jobid;
+    if (!ac.submit(jobdescstring, jobid, et.url.Protocol() == "https"))
       return false;
 
     if (jobid.empty()) {

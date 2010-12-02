@@ -71,7 +71,11 @@ namespace Arc {
       return false;
     }
 
-    std::string jobdescstring = modjobdesc.UnParse("XRSL");
+    std::string jobdescstring;
+    if (!modjobdesc.UnParse(jobdescstring, "XRSL")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "XRSL");
+      return false;
+    }
 
     if (!ctrl.SendData(jobdescstring, "job", usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed sending job description");
@@ -111,7 +115,7 @@ namespace Arc {
 
   bool SubmitterARC0::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     if (jobdesc.XRSL_elements["clientxrsl"].empty())
-      jobdesc.XRSL_elements["clientxrsl"] = jobdesc.UnParse("XRSL");
+      jobdesc.UnParse(jobdesc.XRSL_elements["clientxrsl"], "XRSL");
 
     // Check for identical file names.
     // Check if executable and input is contained in the file list.

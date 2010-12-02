@@ -23,8 +23,8 @@ namespace Arc {
   public:
     JDLParser();
     ~JDLParser();
-    JobDescription Parse(const std::string& source) const;
-    std::string UnParse(const JobDescription& job) const;
+    bool Parse(const std::string& source, JobDescription& jobdesc) const;
+    bool UnParse(const JobDescription& job, std::string& product) const;
 
     static Plugin* Instance(PluginArgument *arg);
 

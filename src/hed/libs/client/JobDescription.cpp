@@ -32,9 +32,12 @@ namespace Arc {
   bool JobDescription::SaveToStream(std::ostream& out, const std::string& format) const {
 
     if (format != "user" && format != "userlong") {
-      const std::string outjobdesc = UnParse((!format.empty() ? format : sourceFormat));
+      std::string outjobdesc;
+      if (!UnParse(outjobdesc, format)) {
+        return false;
+      }
       out << outjobdesc;
-      return !outjobdesc.empty();
+      return true;
     }
 
     STRPRINT(out, Application.Executable.Name, Executable);
@@ -327,8 +330,7 @@ namespace Arc {
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
       logger.msg(VERBOSE, "Try to parse as %s", it->GetSourceFormat());
       it->SetHints(hints);
-      *this = it->Parse(source);
-      if (*this) {
+      if (it->Parse(source, *this)) {
         sourceFormat = it->GetSourceFormat();
         return true;
       }
@@ -339,37 +341,34 @@ namespace Arc {
 
   // Generate the output in the requested format
   std::string JobDescription::UnParse(const std::string& format) const {
-    // Generate the output text with the right parser class
-    if (!*this) {
-      logger.msg(VERBOSE, "There is no successfully parsed source");
-      return "";
+    std::string product;
+    if (UnParse(product, format)) {
+      return product;
+    }
+
+    return "";
+  }
+
+  bool JobDescription::UnParse(std::string& product, std::string format) const {
+    if (format.empty()) {
+      format = sourceFormat;
     }
 
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
       if (lower(format) == lower(it->GetSourceFormat())) {
-      logger.msg(VERBOSE, "Generate %s output", format);
+        logger.msg(VERBOSE, "Generating %s job description output", format);
         it->SetHints(hints);
-        std::string product = it->UnParse(*this);
-        if (product.empty()) {
-          logger.msg(ERROR, "Generating %s output was unsuccessful", format);
-        }
-        return product;
+        return it->UnParse(*this, product);
       }
     }
 
-    logger.msg(ERROR, "Unknown output format: %s", format);
-    return "";
+    logger.msg(ERROR, "Format (%s) not recognized by any job description parsers.", format);
+    return false;
   }
 
   bool JobDescription::getSourceFormat(std::string& _sourceFormat) const {
-    if (!*this) {
-      logger.msg(VERBOSE, "There is no input defined yet or it's format can be determinized.");
-      return false;
-    }
-    else {
-      _sourceFormat = sourceFormat;
-      return true;
-    }
+    _sourceFormat = sourceFormat;
+    return true;
   }
 
   void JobDescription::AddHint(const std::string& key,const std::string& value) {

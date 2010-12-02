@@ -14,8 +14,6 @@
 #define OUTJOB outJob
 #define MESSAGE message
 
-#define UNPARSE_PARSE OUTJOB = PARSER.Parse(PARSER.UnParse(INJOB));
-
 #define PARSE_ASSERT(X) \
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, X);
 
@@ -98,7 +96,9 @@ void XRSLParserTest::tearDown() {
 }
 
 void XRSLParserTest::TestExecutable() {
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Executable.Name);
   PARSE_ASSERT_EQUAL(Application.Executable.Argument);
@@ -114,7 +114,10 @@ void XRSLParserTest::TestInputOutputError() {
   INJOB.Application.Output = "output-file";
   INJOB.Application.Error = "error-file";
 
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL(Application.Input);
   PARSE_ASSERT_EQUAL(Application.Output);
   PARSE_ASSERT_EQUAL(Application.Error);
@@ -164,8 +167,10 @@ void XRSLParserTest::TestDataStagingDownloadDelete() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -206,8 +211,10 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
   f << file.Name;
   f.close();
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -241,8 +248,10 @@ void XRSLParserTest::TestDataStagingCreateDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -277,8 +286,10 @@ void XRSLParserTest::TestDataStagingDownloadDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -325,8 +336,10 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
   f << file.Name;
   f.close();
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -370,8 +383,10 @@ void XRSLParserTest::TestDataStagingCreateUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -412,8 +427,10 @@ void XRSLParserTest::TestDataStagingDownloadUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -465,9 +482,10 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   f << file.Name;
   f.close();
 
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
-  PARSE_ASSERT(OUTJOB);
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -516,11 +534,10 @@ void XRSLParserTest::TestNotify() {
   // Test default option.
   std::string xrsl = "&(executable = \"executable\")(notify = \"someone@example.com\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
+  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
   PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.Application.Notification.size());
   PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
@@ -535,11 +552,10 @@ void XRSLParserTest::TestNotify() {
   // Test all flags.
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
+  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
   PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.Application.Notification.size());
   PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
@@ -568,11 +584,10 @@ void XRSLParserTest::TestNotify() {
   // Test multiple entries and overlapping states.
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\" \"bqf someone@example.com anotherone@example.com\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
+  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
   PARSE_ASSERT_EQUAL2(2, (int)INJOB.Application.Notification.size());
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.Application.Notification.size());
   PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
@@ -617,20 +632,17 @@ void XRSLParserTest::TestNotify() {
   // Test invalid email address.
   xrsl = "&(executable = \"executable\")(notify = \"someoneAexample.com\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  PARSE_ASSERT(!INJOB);
+  PARSE_ASSERT(!PARSER.Parse(xrsl, INJOB));
 
   // Test invalid email address with state flags.
   xrsl = "&(executable = \"executable\")(notify = \"bqfecd someoneAexample.com\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  PARSE_ASSERT(!INJOB);
+  PARSE_ASSERT(!PARSER.Parse(xrsl, INJOB));
 
   // Test unknown state flags.
   xrsl = "&(executable = \"executable\")(notify = \"xyz someone@example.com\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  PARSE_ASSERT(!INJOB);
+  PARSE_ASSERT(!PARSER.Parse(xrsl, INJOB));
 }
 
 void XRSLParserTest::TestJoin() {
@@ -638,11 +650,10 @@ void XRSLParserTest::TestJoin() {
 
   std::string xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
+  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
   // When first parsed the JobDescription attribute Application.Join will be
   // set, while the Application.Error attribute will be left empty.
   PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);
@@ -656,11 +667,10 @@ void XRSLParserTest::TestJoin() {
 
   xrsl = "&(executable = \"executable\")(stderr = \"error-file\")(join = \"yes\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
+  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
   // When first parsed the JobDescription attribute Application.Join will be
   // set, while the Application.Error attribute will be left empty.
   PARSE_ASSERT(INJOB.Application.Output.empty());
@@ -674,11 +684,10 @@ void XRSLParserTest::TestJoin() {
 
   xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"no\")";
 
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
+  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
   PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);
   PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Output);
   PARSE_ASSERT(INJOB.Application.Error.empty());
@@ -689,8 +698,8 @@ void XRSLParserTest::TestJoin() {
 
 void XRSLParserTest::TestGridTime() {
   std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
-  OUTJOB = PARSER.Parse(xrsl);
-  CPPUNIT_ASSERT(OUTJOB);
+
+  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   CPPUNIT_ASSERT_EQUAL(-1, OUTJOB.Resources.TotalCPUTime.range.min);
   CPPUNIT_ASSERT_EQUAL(600, OUTJOB.Resources.TotalCPUTime.range.max);

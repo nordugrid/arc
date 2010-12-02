@@ -849,10 +849,9 @@ namespace Arc {
 
       if (xmljob["JobDescription"]) {
         JobDescription jobdesc;
-        jobdesc.Parse((std::string)xmljob["JobDescription"]);
 
         // Check for valid job description
-        if (jobdesc)
+        if (jobdesc.Parse((std::string)xmljob["JobDescription"]))
           logger.msg(VERBOSE, "Valid job description found for: %s", it->JobID.str());
         else {
           logger.msg(INFO, "Invalid job description found for: %s", it->JobID.str());

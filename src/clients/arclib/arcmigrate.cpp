@@ -21,7 +21,6 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Job.h>
-#include <arc/client/JobDescription.h>
 #include <arc/DateTime.h>
 #include <arc/FileLock.h>
 #include <arc/Utils.h>

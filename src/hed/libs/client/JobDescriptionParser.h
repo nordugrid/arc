@@ -26,8 +26,11 @@ namespace Arc {
     : public Plugin {
   public:
     virtual ~JobDescriptionParser();
-    virtual JobDescription Parse(const std::string& source) const = 0;
-    virtual std::string UnParse(const JobDescription& job) const = 0;
+
+    JobDescription Parse(const std::string& source) const;
+    std::string UnParse(const JobDescription& job) const;
+    virtual bool Parse(const std::string& source, JobDescription& jobdesc) const = 0;
+    virtual bool UnParse(const JobDescription& job, std::string& output) const = 0;
     void AddHint(const std::string& key,const std::string& value);
     void SetHints(const std::map<std::string,std::string>& hints);
     const std::string& GetSourceFormat() const { return format; }

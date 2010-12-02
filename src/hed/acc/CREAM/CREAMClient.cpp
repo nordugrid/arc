@@ -198,7 +198,7 @@ namespace Arc {
       job.JobDescription = (std::string)jobInfoNode["JDL"];
 
       JobDescription jd;
-      if (jd.Parse(job.JobDescription) && jd) {
+      if (jd.Parse(job.JobDescription)) {
         if (!jd.Application.Input.empty())
           job.StdIn = jd.Application.Input;
 

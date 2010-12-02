@@ -49,8 +49,14 @@ namespace Arc {
       return false;
     }
 
+    std::string product;
+    if (!modjobdesc.UnParse(product, "ARCJSDL")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "ARCJSDL");
+      return false;
+    }
+
     std::string sJobid;
-    if (!ac.submit(modjobdesc.UnParse("ARCJSDL"), sJobid, et.url.Protocol() == "https"))
+    if (!ac.submit(product, sJobid, et.url.Protocol() == "https"))
       return false;
 
     if (sJobid.empty()) {
@@ -123,8 +129,14 @@ namespace Arc {
     // Add ActivityOldId.
     modjobdesc.Identification.ActivityOldId.push_back(jobid.str());
 
+    std::string product;
+    if (!modjobdesc.UnParse(product, "ARCJSDL")) {
+      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "ARCJSDL");
+      return false;
+    }
+
     std::string sNewjobid;
-    if (!ac.migrate(idstr, modjobdesc.UnParse("ARCJSDL"), forcemigration, sNewjobid,
+    if (!ac.migrate(idstr, product, forcemigration, sNewjobid,
                     et.url.Protocol() == "https"))
       return false;
 

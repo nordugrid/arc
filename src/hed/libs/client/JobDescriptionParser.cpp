@@ -20,6 +20,24 @@ namespace Arc {
 
   JobDescriptionParser::~JobDescriptionParser() {}
 
+  JobDescription JobDescriptionParser::Parse(const std::string& source) const {
+    JobDescription jobdesc;
+    if (Parse(source, jobdesc)) {
+      return jobdesc;
+    }
+
+    return JobDescription();
+  }
+
+  std::string JobDescriptionParser::UnParse(const JobDescription& job) const {
+    std::string output;
+    if (UnParse(job, output)) {
+      return output;
+    }
+
+    return "";
+  }
+
   void JobDescriptionParser::AddHint(const std::string& key,const std::string& value) {
     if(key.empty()) return;
     hints[key] = value;

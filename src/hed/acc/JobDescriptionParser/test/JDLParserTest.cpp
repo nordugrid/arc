@@ -14,8 +14,6 @@
 #define OUTJOB outJob
 #define MESSAGE message
 
-#define UNPARSE_PARSE OUTJOB = PARSER.Parse(PARSER.UnParse(INJOB));
-
 #define PARSE_ASSERT(X) \
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, X);
 
@@ -88,7 +86,10 @@ void JDLParserTest::tearDown() {
 }
 
 void JDLParserTest::TestExecutable() {
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL(Application.Executable.Name);
   PARSE_ASSERT_EQUAL(Application.Executable.Argument);
 }
@@ -98,7 +99,10 @@ void JDLParserTest::TestInputOutputError() {
   INJOB.Application.Output = "output-file";
   INJOB.Application.Error = "error-file";
 
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL(Application.Input);
   PARSE_ASSERT_EQUAL(Application.Output);
   PARSE_ASSERT_EQUAL(Application.Error);
@@ -150,8 +154,10 @@ void JDLParserTest::TestDataStagingDownloadDelete() {
   file.DownloadToCache = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -185,8 +191,10 @@ void JDLParserTest::TestDataStagingUploadDelete() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -214,8 +222,10 @@ void JDLParserTest::TestDataStagingCreateDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -247,8 +257,10 @@ void JDLParserTest::TestDataStagingDownloadDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -287,8 +299,10 @@ void JDLParserTest::TestDataStagingUploadDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -327,8 +341,10 @@ void JDLParserTest::TestDataStagingCreateUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -364,8 +380,10 @@ void JDLParserTest::TestDataStagingDownloadUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
@@ -408,8 +426,10 @@ void JDLParserTest::TestDataStagingUploadUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
 
   std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();

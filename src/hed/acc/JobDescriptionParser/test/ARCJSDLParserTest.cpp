@@ -14,8 +14,6 @@
 #define OUTJOB outJob
 #define MESSAGE message
 
-#define UNPARSE_PARSE OUTJOB = PARSER.Parse(PARSER.UnParse(INJOB));
-
 #define PARSE_ASSERT(X) \
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, X);
 
@@ -92,7 +90,10 @@ void ARCJSDLParserTest::tearDown() {
 void ARCJSDLParserTest::TestExecutable() {
   MESSAGE = "Error parsing executable related attributes.";
 
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL(Application.Executable.Name);
   PARSE_ASSERT_EQUAL(Application.Executable.Argument);
 }
@@ -103,7 +104,10 @@ void ARCJSDLParserTest::TestInputOutputError() {
   INJOB.Application.Output = "output-file";
   INJOB.Application.Error = "error-file";
 
-  UNPARSE_PARSE;
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT_EQUAL(Application.Input);
   PARSE_ASSERT_EQUAL(Application.Output);
   PARSE_ASSERT_EQUAL(Application.Error);
@@ -145,16 +149,24 @@ void ARCJSDLParserTest::TestDataStagingCreateDelete() {
   file.DownloadToCache = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1 && OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().IsExecutable);
 
-  INJOB.DataStaging.File.back().IsExecutable = true;
+  INJOB.DataStaging.File.front().IsExecutable = true;
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().IsExecutable);
+  std::string tempjobdesc2;
+
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc2));
+  std::cout << tempjobdesc2 << std::endl;
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc2, OUTJOB));
+
+  CPPUNIT_ASSERT_EQUAL(true, INJOB.DataStaging.File.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(true, OUTJOB.DataStaging.File.front().IsExecutable);
 }
 
 /** 2-Download-Delete */
@@ -177,8 +189,10 @@ void ARCJSDLParserTest::TestDataStagingDownloadDelete() {
   CPPUNIT_ASSERT(INJOB.DataStaging.File.size() == 1);
   CPPUNIT_ASSERT(INJOB.DataStaging.File.front().Source.size() == 1 && INJOB.DataStaging.File.front().Source.front().URI);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
@@ -199,8 +213,10 @@ void ARCJSDLParserTest::TestDataStagingUploadDelete() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
@@ -217,8 +233,10 @@ void ARCJSDLParserTest::TestDataStagingCreateDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().KeepData);
@@ -238,8 +256,10 @@ void ARCJSDLParserTest::TestDataStagingDownloadDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
@@ -261,8 +281,10 @@ void ARCJSDLParserTest::TestDataStagingUploadDownload() {
   file.KeepData = true;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
@@ -284,8 +306,10 @@ void ARCJSDLParserTest::TestDataStagingCreateUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Target.size() == 1 && OUTJOB.DataStaging.File.front().Target.front().URI);
@@ -311,8 +335,10 @@ void ARCJSDLParserTest::TestDataStagingDownloadUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
@@ -340,8 +366,10 @@ void ARCJSDLParserTest::TestDataStagingUploadUpload() {
   file.KeepData = false;
   INJOB.DataStaging.File.push_back(file);
 
-  UNPARSE_PARSE;
-  PARSE_ASSERT(OUTJOB);
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
   PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
   PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
@@ -397,7 +425,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   INJOB.Resources.IndividualVirtualMemory = 500;
   INJOB.Resources.SlotRequirement.ThreadsPerProcesses = 7;
 
-  OUTJOB = PARSER.Parse(posixJSDLStr);
+  PARSE_ASSERT(PARSER.Parse(posixJSDLStr, OUTJOB));
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Executable.Name, OUTJOB.Application.Executable.Name);
   CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", INJOB.Application.Executable.Argument == OUTJOB.Application.Executable.Argument);
@@ -413,7 +441,10 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualVirtualMemory.max, OUTJOB.Resources.IndividualVirtualMemory.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.ThreadsPerProcesses.max, OUTJOB.Resources.SlotRequirement.ThreadsPerProcesses.max);
 
-  Arc::XMLNode xmlArcJSDL(PARSER.UnParse(OUTJOB));
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc));
+
+  Arc::XMLNode xmlArcJSDL(tempjobdesc);
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["POSIXApplication"];
 
   CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", pApp);
@@ -479,7 +510,7 @@ void ARCJSDLParserTest::TestHPCCompliance() {
   INJOB.Application.Environment.push_back(std::make_pair("var2", "value2"));
   INJOB.Application.Environment.push_back(std::make_pair("var3", "value3"));
 
-  OUTJOB = PARSER.Parse(hpcJSDLStr);
+  PARSE_ASSERT(PARSER.Parse(hpcJSDLStr, OUTJOB));
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Executable.Name, OUTJOB.Application.Executable.Name);
   CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Executable.Argument == OUTJOB.Application.Executable.Argument);
@@ -488,7 +519,10 @@ void ARCJSDLParserTest::TestHPCCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Error, OUTJOB.Application.Error);
   CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Environment == OUTJOB.Application.Environment);
 
-  Arc::XMLNode xmlArcJSDL(PARSER.UnParse(OUTJOB));
+  std::string tempjobdesc;
+  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc));
+
+  Arc::XMLNode xmlArcJSDL(tempjobdesc);
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["HPCProfileApplication"];
 
   CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", pApp);
