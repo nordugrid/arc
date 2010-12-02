@@ -89,16 +89,35 @@ namespace Arc {
     }
 
     if (J.size() > 1) {
-      logger.msg(WARNING, "Multiple RSL in one file not yet supported");
+      logger.msg(WARNING, "Multiple RSL in one job description not yet supported");
       return false;
     }
 
-    if (J.size() == 1 && !J.front().Application.Executable.Name.empty()) {
-      jobdesc = J.front();
-      return true;
+    if(J.size() != 1) {
+      // Probably never happens so check is just in case of future changes
+      logger.msg(WARNING, "No RSL content in job desription found");
+      return false;
     }
 
-    return false;
+    if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+      std::string action = "request";
+      if (J.front().XRSL_elements.find("action") != J.front().XRSL_elements.end()) {
+        action = J.front().XRSL_elements["action"];
+      }
+      // action = request means real job description.
+      // Any other action may (and currently should) have almost 
+      // empty job description.
+      if (action == "request") {
+        if(J.front().Application.Executable.Name.empty()) return false;
+      }
+    } else {
+      // action is not expected in client side job request
+      if (J.front().XRSL_elements.find("action") != J.front().XRSL_elements.end()) return false;
+      if (J.front().Application.Executable.Name.empty()) return false;
+    }
+    jobdesc = J.front();
+
+    return true;
   }
 
   bool XRSLParser::SingleValue(const RSLCondition *c,
