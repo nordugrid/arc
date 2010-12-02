@@ -327,14 +327,18 @@ namespace Arc {
       return false;
     }
 
+    // Saving hints because they may be/are destoryed by JobDescriptionParser::Parse
+    std::map<std::string,std::string> hints_ = hints;
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
       logger.msg(VERBOSE, "Try to parse as %s", it->GetSourceFormat());
-      it->SetHints(hints);
+      it->SetHints(hints_);
       if (it->Parse(source, *this)) {
         sourceFormat = it->GetSourceFormat();
         return true;
       }
     }
+    // Recovering hints also keeping those created by JobDescriptionParser::Parse
+    hints.insert(hints_.begin(),hints_.end());
 
     return false;
   }
