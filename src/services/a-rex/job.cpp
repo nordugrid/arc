@@ -296,9 +296,15 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   std::string acl("");
   if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl))) != ARexJobNoError) {
     if(failure_.empty()) {
-      failure_="Failed to parse job/action description";
+      failure_="Failed to parse job description";
       failure_type_=ARexJobInternalError;
     };
+    delete_job_id();
+    return;
+  };
+  if((!job_.action.empty()) && (job_.action != "request")) {
+    failure_="Wrong action in job request: "+job_.action;
+    failure_type_=ARexJobInternalError;
     delete_job_id();
     return;
   };
