@@ -51,7 +51,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
       f<<"joboption_arg_"<<i<<"="<<value_for_shell(it->c_str(),true)<<std::endl;
     }
   }
-  
+
   f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Application.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Application.Input,true)<<std::endl;
 
   if (!arc_job_desc.Application.Output.empty()) {
@@ -81,14 +81,14 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
     f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<globalid<<std::endl;
   }
 
-  
+
   f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalCPUTime.range.max):"")<<std::endl;
   f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
   f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
   f<<"joboption_count="<<(arc_job_desc.Resources.SlotRequirement.ProcessPerHost.max != -1 ? Arc::tostring(arc_job_desc.Resources.SlotRequirement.ProcessPerHost.max):"1")<<std::endl;
 
   {
-    int i = 0; 
+    int i = 0;
     for (std::list<Arc::Software>::const_iterator itSW = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().begin();
          itSW != arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++) {
       if (itSW->empty()) continue;
@@ -108,7 +108,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 
   // Here we need another 'local' description because some info is not
   // stored in job.#.local and still we do not want to mix both.
-  // TODO: clean this. 
+  // TODO: clean this.
   {
     JobLocalDescription stageinfo;
     stageinfo = arc_job_desc;
@@ -122,12 +122,12 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
                            s!=stageinfo.outputdata.end(); ++s) {
       f<<"joboption_outputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<std::endl;
     }
-  } 
+  }
   if(opt_add) f<<opt_add<<std::endl;
 
   return true;
 }
-     
+
 JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) {
   if( !arc_job_desc.Application.AccessControl ) return JobReqSuccess;
   Arc::XMLNode typeNode = arc_job_desc.Application.AccessControl["Type"];
@@ -154,8 +154,6 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) 
 }
 
 bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) {
-  if (!desc) return false;
-
   if (desc.Application.Executable.Name[0] != '/' && desc.Application.Executable.Name[0] != '$') {
     std::string executable = desc.Application.Executable.Name;
     if(canonical_dir(executable) != 0) {
@@ -171,7 +169,7 @@ bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) 
       std::string executable = it->Name;
       if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;
       if(canonical_dir(executable) != 0) {
-        logger.msg(Arc::ERROR, "Bad name for executable: %s", executable); 
+        logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
         return false;
       }
       fix_file_permissions(session_dir+"/"+executable,true);
@@ -197,4 +195,4 @@ std::ostream& operator<<(std::ostream &o,const numvalue_for_shell &s) {
   o<<s.n;
   return o;
 }
-  
+
