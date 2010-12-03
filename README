@@ -79,7 +79,6 @@ Runtime dependencies:
   o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
   o GNU time (A-rex)
   o VOMS (LFC DMC)
-  o Log4perl (Janitor)
   o wget (Janitor)
   o librdf-perl (Janitor)
   o fuse-python (Chelonia)
