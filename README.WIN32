@@ -147,23 +147,6 @@ Performing configuration:
    GLOBUS_LOCATION=/c/Globus
    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/c/Globus/lib/pkgconfig 
 
-gSOAP (SRM DMC need this):
-
-gSOAP compilation need flex:
-
-   http://cobcurses.wiki.sourceforge.net/Installing-MinGW-flex
-
-Source code (2.7.10):
-
-   https://olex.openlogic.com/packages/gsoap
-
-Performing configuration and installation:
-
-   ./makemake
-   ./configure --disable-samples LIBS="-lws2_32"
-   make
-   make install
-
 Configure setup: 
    
    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig 

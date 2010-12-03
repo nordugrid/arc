@@ -34,7 +34,6 @@ sources highlighted:
   GNU time 1.7: http://prep.ai.mit.edu/pub/gnu/time/time-1.7.tar.gz; built from source
   XML-Simple: http://search.cpan.org/dist/XML-Simple/; built from source
   Storable-1.0.14: http://www.cpan.org/modules/by-module/Storable/; built from source
-  gsoap-2.7.10: http://www.sunfreeware.com/; installed from package
 
 2. Installing Berkeley DB:
 

@@ -60,7 +60,6 @@ Build:
 
 Build & runtime:
   o open-ldap (LDAP Infosys, LDAP DMC)
-  o gsoap 2.7.2 (HED)
   o python 2.4 or higher (Chelonia, bindings)
   o java sdk 1.4 or later (bindings)
   o globus-common 4 (arclib)
