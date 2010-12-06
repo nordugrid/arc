@@ -39,6 +39,8 @@
     <Name>mcctls</Name>
     <Name>mcchttp</Name>
     <Name>mccsoap</Name>
+    <Name>arcshc</Name>
+    <Name initokenenables="common#enable_security_handler=identitymap">identitymap</Name>
     <Name initokenenables="arex">arex</Name>
     <Name initokenenables="isis">isis</Name>
     <Name initokenenables="echo">echo</Name>
