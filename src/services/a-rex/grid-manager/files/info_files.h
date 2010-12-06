@@ -74,66 +74,66 @@ bool check_file_owner(const std::string &fname,const JobUser &user,uid_t &uid,gi
   job finish in LRMS. This file is created by external script/executable
   after it detects job exited and contains exit code of that job.
 */
-bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,int code);
-bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,LRMSResult r);
-bool job_lrms_mark_check(JobId &id,JobUser &user);
-bool job_lrms_mark_remove(JobId &id,JobUser &user);
-LRMSResult job_lrms_mark_read(JobId &id,JobUser &user);
+bool job_lrms_mark_put(const JobDescription &desc,const JobUser &user,int code);
+bool job_lrms_mark_put(const JobDescription &desc,const JobUser &user,const LRMSResult &r);
+bool job_lrms_mark_check(const JobId &id,const JobUser &user);
+bool job_lrms_mark_remove(const JobId &id,const JobUser &user);
+LRMSResult job_lrms_mark_read(const JobId &id,const JobUser &user);
 
 /*
   Create, check existance and remove file used to mark cancelation
   request for specified job. The content of file is not important.
 */
-bool job_cancel_mark_put(const JobDescription &desc,JobUser &user);
-bool job_cancel_mark_check(JobId &id,JobUser &user);
-bool job_cancel_mark_remove(JobId &id,JobUser &user);
+bool job_cancel_mark_put(const JobDescription &desc,const JobUser &user);
+bool job_cancel_mark_check(const JobId &id,const JobUser &user);
+bool job_cancel_mark_remove(const JobId &id,const JobUser &user);
 
 /*
   Create, check existance and remove file used to mark request to
   restart job. The content of file is not important.
 */
-bool job_restart_mark_put(const JobDescription &desc,JobUser &user);
-bool job_restart_mark_check(JobId &id,JobUser &user);
-bool job_restart_mark_remove(JobId &id,JobUser &user);
+bool job_restart_mark_put(const JobDescription &desc,const JobUser &user);
+bool job_restart_mark_check(const JobId &id,const JobUser &user);
+bool job_restart_mark_remove(const JobId &id,const JobUser &user);
 /*
   Same for file, which marks job cleaning/removal request
 */
-bool job_clean_mark_put(const JobDescription &desc,JobUser &user);
-bool job_clean_mark_check(JobId &id,JobUser &user);
-bool job_clean_mark_remove(JobId &id,JobUser &user);
+bool job_clean_mark_put(const JobDescription &desc,const JobUser &user);
+bool job_clean_mark_check(const JobId &id,const JobUser &user);
+bool job_clean_mark_remove(const JobId &id,const JobUser &user);
 
 /*
   Create (with given content), add to content, check for existance, delete
   and read content of file used to mark failure of the job. 
   Content describes reason of failure (usually 1-2 strings).
 */
-bool job_failed_mark_put(const JobDescription &desc,JobUser &user,const std::string &content = "");
-bool job_failed_mark_add(const JobDescription &desc,JobUser &user,const std::string &content);
-bool job_failed_mark_check(const JobId &id,JobUser &user);
-bool job_failed_mark_remove(const JobId &id,JobUser &user);
-std::string job_failed_mark_read(const JobId &id,JobUser &user);
+bool job_failed_mark_put(const JobDescription &desc,const JobUser &user,const std::string &content = "");
+bool job_failed_mark_add(const JobDescription &desc,const JobUser &user,const std::string &content);
+bool job_failed_mark_check(const JobId &id,const JobUser &user);
+bool job_failed_mark_remove(const JobId &id,const JobUser &user);
+std::string job_failed_mark_read(const JobId &id,const JobUser &user);
 
 /*
   Create, add content, delete and move from session to control directory
   file holding information about resources used by job while running.
   Content is normally produced by "time" utility.
 */
-bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char const * const args[]);
-bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user);
-bool job_diagnostics_mark_add(const JobDescription &desc,JobUser &user,const std::string &content);
-bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user);
-bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user);
+bool job_controldiag_mark_put(const JobDescription &desc,const JobUser &user,char const * const args[]);
+bool job_diagnostics_mark_put(const JobDescription &desc,const JobUser &user);
+bool job_diagnostics_mark_add(const JobDescription &desc,const JobUser &user,const std::string &content);
+bool job_diagnostics_mark_remove(const JobDescription &desc,const JobUser &user);
+bool job_diagnostics_mark_move(const JobDescription &desc,const JobUser &user);
 
 /*
   Create session directory for job
 */
-bool job_session_create(const JobDescription &desc,JobUser &user);
+bool job_session_create(const JobDescription &desc,const JobUser &user);
 
 /*
   Same (except add) for file containing messages from LRMS, which
   could give additional information about reason of job failure.
 */
-bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user);
+bool job_lrmsoutput_mark_put(const JobDescription &desc,const JobUser &user);
 /*
   This functionality should now go into LRMS backend
 bool job_lrmsoutput_mark_remove(const JobDescription &desc,JobUser &user);
@@ -160,7 +160,7 @@ bool job_dir_create(const std::string &dname);
   Create file to store stderr of external utilities used to stage-in/out
   data, submit/cancel job in LRMS.
 */
-bool job_errors_mark_put(const JobDescription &desc,JobUser &user);
+bool job_errors_mark_put(const JobDescription &desc,const JobUser &user);
 
 /*
   Get modification time of file used to store state of the job.
@@ -172,12 +172,12 @@ time_t job_state_time(const JobId &id,const JobUser &user);
 */
 job_state_t job_state_read_file(const JobId &id,const JobUser &user);
 job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool &pending);
-bool job_state_write_file(const JobDescription &desc,JobUser &user,job_state_t state,bool pending = false);
+bool job_state_write_file(const JobDescription &desc,const JobUser &user,job_state_t state,bool pending = false);
 
 /*
   Read and write file used to store RSL description of job.
 */
-bool job_description_read_file(JobId &id,JobUser &user,std::string &rsl);
+bool job_description_read_file(const JobId &id,const JobUser &user,std::string &rsl);
 bool job_description_read_file(const std::string &fname,std::string &rsl);
 bool job_description_write_file(const std::string &fname,std::string &rsl);
 bool job_description_write_file(const std::string &fname,const char* rsl);
@@ -185,38 +185,38 @@ bool job_description_write_file(const std::string &fname,const char* rsl);
 /*
   Read and write file used to store ACL of job.
 */
-bool job_acl_read_file(JobId &id,JobUser &user,std::string &acl);
-bool job_acl_write_file(JobId &id,JobUser &user,std::string &acl);
+bool job_acl_read_file(const JobId &id,const JobUser &user,std::string &acl);
+bool job_acl_write_file(const JobId &id,const JobUser &user,std::string &acl);
 
 /*
   Not used
 */
-bool job_cache_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files);
-bool job_cache_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);
+bool job_cache_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files);
+bool job_cache_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files);
 
 /*
   Write and read file containing list of output files. Each line of file
   contains name of output file relative to session directory and optionally
   destination, to which it should be transferred.
 */
-bool job_output_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files);
-bool job_output_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);
+bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files);
+bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files);
 
 /*
   Same for input files and their sources.
 */
 bool job_input_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files);
-bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &files);
+bool job_input_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files);
 
-bool job_input_status_add_file(const JobDescription &desc,JobUser &user,const std::string& file = "");
-bool job_input_status_read_file(const JobId &id,JobUser &user,std::list<std::string>& files);
+bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,const std::string& file = "");
+bool job_input_status_read_file(const JobId &id,const JobUser &user,std::list<std::string>& files);
 
 std::string job_proxy_filename(const JobId &id, const JobUser &user);
 /*
   Same for RTEs.
 */
-bool job_rte_write_file(const JobDescription &desc,JobUser &user,std::list<std::string> &rtes);
-bool job_rte_read_file(const JobId &id,JobUser &user,std::list<std::string> &rtes);
+bool job_rte_write_file(const JobDescription &desc,const JobUser &user,std::list<std::string> &rtes);
+bool job_rte_read_file(const JobId &id,const JobUser &user,std::list<std::string> &rtes);
 
 /*
   Functions used by previous functions.
@@ -246,31 +246,31 @@ bool job_xml_write_file(const JobId &id,const JobUser &user,const std::string &x
 /*
   Not used
 */
-bool job_diskusage_create_file(const JobDescription &desc,JobUser &user,unsigned long long int &requested);
-bool job_diskusage_read_file(const JobDescription &desc,JobUser &user,unsigned long long int &requested,unsigned long long int &used);
-bool job_diskusage_change_file(const JobDescription &desc,JobUser &user,signed long long int used,bool &result);
-bool job_diskusage_remove_file(const JobDescription &desc,JobUser &user);
+bool job_diskusage_create_file(const JobDescription &desc,const JobUser &user,unsigned long long int &requested);
+bool job_diskusage_read_file(const JobDescription &desc,const JobUser &user,unsigned long long int &requested,unsigned long long int &used);
+bool job_diskusage_change_file(const JobDescription &desc,const JobUser &user,signed long long int used,bool &result);
+bool job_diskusage_remove_file(const JobDescription &desc,const JobUser &user);
 
 /*
   Concatenate files containing diagnostics and stderr of external utilities
   and write to separate file in jobs directories (as requested by user).  
 */
-bool job_stdlog_move(const JobDescription &desc,JobUser &user,const std::string &logname);
+bool job_stdlog_move(const JobDescription &desc,const JobUser &user,const std::string &logname);
 
 /*
   Remove all files, which should be removed after job's state becomes FINISHED
 */
-bool job_clean_finished(const JobId &id,JobUser &user);
+bool job_clean_finished(const JobId &id,const JobUser &user);
 
 /*
   Remove all files, which should be removed after job's state becomes DELETED
 */
-bool job_clean_deleted(const JobDescription &desc,JobUser &user, std::list<std::string> cache_per_job_dirs=std::list<std::string>());
+bool job_clean_deleted(const JobDescription &desc,const JobUser &user, std::list<std::string> cache_per_job_dirs=std::list<std::string>());
 
 /*
   Remove all job's files.
 */
-bool job_clean_final(const JobDescription &desc,JobUser &user);
+bool job_clean_final(const JobDescription &desc,const JobUser &user);
 
 #endif
 

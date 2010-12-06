@@ -152,12 +152,12 @@ bool check_file_owner(const std::string &fname,const JobUser &user,uid_t &uid,gi
   return true;
 }
 
-bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,int code) {
+bool job_lrms_mark_put(const JobDescription &desc,const JobUser &user,int code) {
   LRMSResult r(code);
   return job_lrms_mark_put(desc,user,r);
 }
 
-bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,LRMSResult r) {
+bool job_lrms_mark_put(const JobDescription &desc,const JobUser &user,const LRMSResult &r) {
   std::string fname = user.ControlDir()+"/job."+desc.get_id()+".lrms_done";
   std::string content = Arc::tostring(r.code());
   content+=" ";
@@ -165,17 +165,17 @@ bool job_lrms_mark_put(const JobDescription &desc,JobUser &user,LRMSResult r) {
   return job_mark_write_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_lrms_mark_check(JobId &id,JobUser &user) {
+bool job_lrms_mark_check(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + ".lrms_done";
   return job_mark_check(fname);
 }
 
-bool job_lrms_mark_remove(JobId &id,JobUser &user) {
+bool job_lrms_mark_remove(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + ".lrms_done";
   return job_mark_remove(fname);
 }
 
-LRMSResult job_lrms_mark_read(JobId &id,JobUser &user) {
+LRMSResult job_lrms_mark_read(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + ".lrms_done";
   LRMSResult r("-1 Internal error");
   std::ifstream f(fname.c_str()); if(! f.is_open() ) return r;
@@ -183,78 +183,78 @@ LRMSResult job_lrms_mark_read(JobId &id,JobUser &user) {
   return r;
 }
 
-bool job_cancel_mark_put(const JobDescription &desc,JobUser &user) {
+bool job_cancel_mark_put(const JobDescription &desc,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_cancel;
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_cancel_mark_check(JobId &id,JobUser &user) {
+bool job_cancel_mark_check(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_cancel;
   return job_mark_check(fname);
 }
 
-bool job_cancel_mark_remove(JobId &id,JobUser &user) {
+bool job_cancel_mark_remove(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_cancel;
   return job_mark_remove(fname);
 }
 
-bool job_restart_mark_put(const JobDescription &desc,JobUser &user) {
+bool job_restart_mark_put(const JobDescription &desc,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_restart;
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_restart_mark_check(JobId &id,JobUser &user) {
+bool job_restart_mark_check(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_restart;
   return job_mark_check(fname);
 }
 
-bool job_restart_mark_remove(JobId &id,JobUser &user) {
+bool job_restart_mark_remove(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_restart;
   return job_mark_remove(fname);
 }
 
-bool job_clean_mark_put(const JobDescription &desc,JobUser &user) {
+bool job_clean_mark_put(const JobDescription &desc,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + desc.get_id() + sfx_clean;
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_clean_mark_check(JobId &id,JobUser &user) {
+bool job_clean_mark_check(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_clean;
   return job_mark_check(fname);
 }
 
-bool job_clean_mark_remove(JobId &id,JobUser &user) {
+bool job_clean_mark_remove(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/" + subdir_new + "/job." + id + sfx_clean;
   return job_mark_remove(fname);
 }
 
-bool job_errors_mark_put(const JobDescription &desc,JobUser &user) {
+bool job_errors_mark_put(const JobDescription &desc,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_errors;
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_failed_mark_put(const JobDescription &desc,JobUser &user,const std::string &content) {
+bool job_failed_mark_put(const JobDescription &desc,const JobUser &user,const std::string &content) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
   if(job_mark_size(fname) > 0) return true;
   return job_mark_write_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
-bool job_failed_mark_add(const JobDescription &desc,JobUser &user,const std::string &content) {
+bool job_failed_mark_add(const JobDescription &desc,const JobUser &user,const std::string &content) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
   return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
-bool job_failed_mark_check(const JobId &id,JobUser &user) {
+bool job_failed_mark_check(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_failed;
   return job_mark_check(fname);
 }
 
-bool job_failed_mark_remove(const JobId &id,JobUser &user) {
+bool job_failed_mark_remove(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_failed;
   return job_mark_remove(fname);
 }
 
-std::string job_failed_mark_read(const JobId &id,JobUser &user) {
+std::string job_failed_mark_read(const JobId &id,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_failed;
   return job_mark_read_s(fname);
 }
@@ -302,7 +302,7 @@ static int job_dir_remove_callback(void* arg) {
   return 0;
 }
 
-bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
+bool job_diagnostics_mark_put(const JobDescription &desc,const JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_diag;
   if(user.StrictSession()) {
     JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
@@ -311,7 +311,7 @@ bool job_diagnostics_mark_put(const JobDescription &desc,JobUser &user) {
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_session_create(const JobDescription &desc,JobUser &user) {
+bool job_session_create(const JobDescription &desc,const JobUser &user) {
   std::string dname = desc.SessionDir();
   if(user.StrictSession()) {
     JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
@@ -320,7 +320,7 @@ bool job_session_create(const JobDescription &desc,JobUser &user) {
   return job_dir_create(dname) & fix_file_owner(dname,desc,user) & fix_file_permissions(dname,true);
 }
 
-bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char const * const args[]) {
+bool job_controldiag_mark_put(const JobDescription &desc,const JobUser &user,char const * const args[]) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
   if(!job_mark_put(fname)) return false;
   if(!fix_file_owner(fname,desc,user)) return false;
@@ -337,7 +337,7 @@ bool job_controldiag_mark_put(const JobDescription &desc,JobUser &user,char cons
   return true;
 }
 
-bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user) {
+bool job_lrmsoutput_mark_put(const JobDescription &desc,const JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
   if(user.StrictSession()) {
     JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
@@ -346,7 +346,7 @@ bool job_lrmsoutput_mark_put(const JobDescription &desc,JobUser &user) {
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_diagnostics_mark_add(const JobDescription &desc,JobUser &user,const std::string &content) {
+bool job_diagnostics_mark_add(const JobDescription &desc,const JobUser &user,const std::string &content) {
   std::string fname = desc.SessionDir() + sfx_diag;
   if(user.StrictSession()) {
     JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
@@ -356,7 +356,7 @@ bool job_diagnostics_mark_add(const JobDescription &desc,JobUser &user,const std
   return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user) {
+bool job_diagnostics_mark_remove(const JobDescription &desc,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
   bool res1 = job_mark_remove(fname);
   fname = desc.SessionDir() + sfx_diag;
@@ -367,7 +367,7 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,JobUser &user) {
   return (res1 | job_mark_remove(fname));
 }
 
-bool job_lrmsoutput_mark_remove(const JobDescription &desc,JobUser &user) {
+bool job_lrmsoutput_mark_remove(const JobDescription &desc,const JobUser &user) {
   std::string fname = desc.SessionDir() + sfx_lrmsoutput;
   if(user.StrictSession()) {
     JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
@@ -398,7 +398,7 @@ static int job_file_read_callback(void* arg) {
   return 0;
 }
 
-bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
+bool job_diagnostics_mark_move(const JobDescription &desc,const JobUser &user) {
   std::string fname2 = user.ControlDir() + "/job." + desc.get_id() + sfx_diag;
   int h2=open(fname2.c_str(),O_WRONLY | O_APPEND,S_IRUSR | S_IWUSR);
   if(h2==-1) return false;
@@ -426,7 +426,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,JobUser &user) {
   return true;
 }
 
-bool job_stdlog_move(const JobDescription& /*desc*/,JobUser& /*user*/,const std::string& /*logname*/) {
+bool job_stdlog_move(const JobDescription& /*desc*/,const JobUser& /*user*/,const std::string& /*logname*/) {
 /*
 
  Status data is now available during runtime.
@@ -499,7 +499,7 @@ long int job_mark_size(const std::string &fname) {
   return st.st_size;
 }
 
-bool job_diskusage_create_file(const JobDescription &desc,JobUser& /*user*/,unsigned long long int &requested) {
+bool job_diskusage_create_file(const JobDescription &desc,const JobUser& /*user*/,unsigned long long int &requested) {
   std::string fname = desc.SessionDir() + sfx_diskusage;
   int h=open(fname.c_str(),O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
   if(h==-1) return false;
@@ -509,7 +509,7 @@ bool job_diskusage_create_file(const JobDescription &desc,JobUser& /*user*/,unsi
   close(h); return true;
 }
 
-bool job_diskusage_read_file(const JobDescription &desc,JobUser& /*user*/,unsigned long long int &requested,unsigned long long int &used) {
+bool job_diskusage_read_file(const JobDescription &desc,const JobUser& /*user*/,unsigned long long int &requested,unsigned long long int &used) {
   std::string fname = desc.SessionDir() + sfx_diskusage;
   int h=open(fname.c_str(),O_RDONLY);
   if(h==-1) return false;
@@ -523,7 +523,7 @@ bool job_diskusage_read_file(const JobDescription &desc,JobUser& /*user*/,unsign
   close(h); return true;
 }
 
-bool job_diskusage_change_file(const JobDescription &desc,JobUser& /*user*/,signed long long int used,bool &result) {
+bool job_diskusage_change_file(const JobDescription &desc,const JobUser& /*user*/,signed long long int used,bool &result) {
   // lock file, read, write, unlock
   std::string fname = desc.SessionDir() + sfx_diskusage;
   int h=open(fname.c_str(),O_RDWR);
@@ -567,7 +567,7 @@ bool job_diskusage_change_file(const JobDescription &desc,JobUser& /*user*/,sign
   close(h); return true;
 }
 
-bool job_diskusage_remove_file(const JobDescription &desc,JobUser& /*user*/) {
+bool job_diskusage_remove_file(const JobDescription &desc,const JobUser& /*user*/) {
   std::string fname = desc.SessionDir() + sfx_diskusage;
   return job_mark_remove(fname);
 }
@@ -624,7 +624,7 @@ job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool& pendin
   return job_state_read_file(fname,pending);
 }
 
-bool job_state_write_file(const JobDescription &desc,JobUser &user,job_state_t state,bool pending) {
+bool job_state_write_file(const JobDescription &desc,const JobUser &user,job_state_t state,bool pending) {
   std::string fname;
   if(state == JOB_STATE_ACCEPTED) { 
     fname = user.ControlDir() + "/" + subdir_old + "/job." + desc.get_id() + sfx_status; remove(fname.c_str());
@@ -679,7 +679,7 @@ static bool job_state_write_file(const std::string &fname,job_state_t state,bool
   return true;
 }
 
-bool job_description_read_file(JobId &id,JobUser &user,std::string &rsl) {
+bool job_description_read_file(const JobId &id,const JobUser &user,std::string &rsl) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_rsl;
   return job_description_read_file(fname,rsl);
 }
@@ -712,12 +712,12 @@ bool job_description_write_file(const std::string &fname,const char* rsl) {
   return true;
 }
 
-bool job_acl_read_file(JobId &id,JobUser &user,std::string &acl) {
+bool job_acl_read_file(const JobId &id,const JobUser &user,std::string &acl) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_acl;
   return job_description_read_file(fname,acl);
 }
 
-bool job_acl_write_file(JobId &id,JobUser &user,std::string &acl) {
+bool job_acl_write_file(const JobId &id,const JobUser &user,std::string &acl) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_acl;
   return job_description_write_file(fname,acl.c_str());
 }
@@ -963,12 +963,12 @@ bool job_input_write_file(const JobDescription &desc,const JobUser &user,std::li
   return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_input_read_file(const JobId &id,JobUser &user,std::list<FileData> &files) {
+bool job_input_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
   std::string fname = user.ControlDir() + "/job." + id + ".input";
   return job_Xput_read_file(fname,files);
 }
 
-bool job_input_status_read_file(const JobId &id,JobUser &user,std::list<std::string>& files) {
+bool job_input_status_read_file(const JobId &id,const JobUser &user,std::list<std::string>& files) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_inputstatus;
   std::ifstream f(fname.c_str());
   if(! f.is_open() ) return false; /* can't open file */
@@ -982,7 +982,7 @@ bool job_input_status_read_file(const JobId &id,JobUser &user,std::list<std::str
   return true;
 }
 
-bool job_input_status_add_file(const JobDescription &desc,JobUser &user,const std::string& file) {
+bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,const std::string& file) {
   // 1. lock
   // 2. add
   // 3. unlock
@@ -1028,37 +1028,37 @@ std::string job_proxy_filename(const JobId &id, const JobUser &user){
 }
 /* job.ID.rte functions */
 
-bool job_rte_write_file(const JobDescription &desc,JobUser &user,std::list<std::string> &rtes) {
+bool job_rte_write_file(const JobDescription &desc,const JobUser &user,std::list<std::string> &rtes) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".rte";
   return job_strings_write_file(fname,rtes) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
-bool job_rte_read_file(const JobId &id,JobUser &user,std::list<std::string> &rtes) {
+bool job_rte_read_file(const JobId &id,const JobUser &user,std::list<std::string> &rtes) {
   std::string fname = user.ControlDir() + "/job." + id + ".rte";
   return job_strings_read_file(fname,rtes);
 }
 
 /* job.ID.output functions */
 /*
-bool job_cache_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files) {
+bool job_cache_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".cache";
   return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 */
 
-bool job_output_write_file(const JobDescription &desc,JobUser &user,std::list<FileData> &files) {
+bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".output";
   return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
 /*
-bool job_cache_read_file(const JobId &id,JobUser &user,std::list<FileData> &files) {
+bool job_cache_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
   std::string fname = user.ControlDir() + "/job." + id + ".cache";
   return job_Xput_read_file(fname,files);
 }
 */
 
-bool job_output_read_file(const JobId &id,JobUser &user,std::list<FileData> &files) {
+bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
   std::string fname = user.ControlDir() + "/job." + id + ".output";
   return job_Xput_read_file(fname,files);
 }
@@ -1121,14 +1121,14 @@ bool job_strings_read_file(const std::string &fname,std::list<std::string> &strs
   return true;
 }
 
-bool job_clean_finished(const JobId &id,JobUser &user) {
+bool job_clean_finished(const JobId &id,const JobUser &user) {
   std::string fname;
   fname = user.ControlDir()+"/job."+id+".proxy.tmp"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".lrms_done"; remove(fname.c_str());
   return true;
 }
 
-bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::string> cache_per_job_dirs) {
+bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<std::string> cache_per_job_dirs) {
   std::string id = desc.get_id();
   job_clean_finished(id,user);
   std::string fname;
@@ -1174,7 +1174,7 @@ bool job_clean_deleted(const JobDescription &desc,JobUser &user,std::list<std::s
   return true;
 }
 
-bool job_clean_final(const JobDescription &desc,JobUser &user) {
+bool job_clean_final(const JobDescription &desc,const JobUser &user) {
   std::string id = desc.get_id();
   job_clean_finished(id,user);
   job_clean_deleted(desc,user);
