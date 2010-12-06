@@ -1123,11 +1123,11 @@ sub get_cluster_info($) {
         push @{$cmgr->{ApplicationEnvironments}{ApplicationEnvironment}}, $appenv;
 
         # name and version is separated at the first dash (-) which is followed by a digit
-        my ($name,$version) = ($rte, '');
-        ($name,$version) = ($1, $2) if $rte =~ m{^(.*)-([0-9].*)$};
+        my ($name,$version) = ($rte, undef)
+        ($name,$version) = ($1, $2) if $rte =~ m{^(.*?)(?:-([0-9].*))?$};
 
         $appenv->{AppName} = [ $name ];
-        $appenv->{AppVersion} = [ $version ];
+        $appenv->{AppVersion} = [ $version ] if defined $version;
         $appenv->{ID} = [ $aenvIDs{$rte} ];
         $appenv->{State} = [ $rte_info->{$rte}{state} ] if $rte_info->{$rte}{state};
         $appenv->{Description} = [ $rte_info->{$rte}{description} ] if $rte_info->{$rte}{description};
