@@ -50,12 +50,14 @@ void ARexService::InformationCollector(void) {
                     infoprovider_wakeup_period_*10);
       } else {
         r = run.Result();
-        if (r!=0) logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i",r);
+        if (r!=0)
+          logger_.msg(Arc::WARNING,"Resource information provider failed with exit status: %i\n%s",r,stderr_str);
+        else
+          logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
       };
-      logger_.msg(Arc::DEBUG,"Resource information provider log:\n%s",stderr_str);
     };
     if (r!=0) {
-      logger_.msg(Arc::DEBUG,"No new informational document assigned");
+      logger_.msg(Arc::WARNING,"No new informational document assigned");
     } else {
       logger_.msg(Arc::VERBOSE,"Obtained XML: %s",xml_str.substr(0,100));
       /*
