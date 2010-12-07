@@ -57,6 +57,7 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
 }
 
 ArgusPEP::~ArgusPEP(void) {
+     //pep_destroy(pep_handle);
 }
 
 class pep_ex {
@@ -76,16 +77,25 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     std::list<xacml_request_t*> requests;
     bool client_initialized = false;
 
-    try {
-  
-    pep_rc= pep_initialize();
-    if (pep_rc != PEP_OK) {
-        throw pep_ex(std::string("Failed to initialize PEP client: ")+pep_strerror(pep_rc));
-    }
 
-    pep_rc= pep_setoption(PEP_OPTION_ENDPOINT_URL,pepdlocation.c_str());
-    if (pep_rc != PEP_OK) {
-        throw pep_ex("Failed to set PEPd URL: '"+pepdlocation+"'");
+	PEP * pep_handle= NULL;
+
+	try{
+ 	pep_handle=pep_initialize();
+	if (pep_handle == NULL) {
+	    /* error handling */
+	}
+
+	if (pep_rc != PEP_OK) {
+	    /* error handling with pep_strerror(pep_rc); */
+
+        throw pep_ex(std::string("Failed to initialize PEP client: ") + pep_strerror(pep_rc));
+    }
+      /* set endpoint URL */
+        pep_rc= pep_setoption(pep_handle,PEP_OPTION_ENDPOINT_URL,pepdlocation);
+
+      if (pep_rc != PEP_OK) {
+        throw pep_ex("Failed to set PEPd URL: '" + pepdlocation + "'");
     }
 
     std::string subject , resource , action;
@@ -98,26 +108,27 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     } else {
         //resource= (std::string) secattr["RequestItem"][0]["Resource"][0];
         //action=  (std::string) secattr["RequestItem"][0]["Action"][0];
-
+ 
         /* Extract the user subject according to RFC2256 format */	
         std::string dn = msg->Attributes()->get("TLS:IDENTITYDN"); 
         do {
             std::string s = dn.substr(dn.rfind("/")+1,dn.length()) ;
-            subject = subject+s + "," ;
+            subject = subject + s + ",";
             dn = dn.substr(0, dn.rfind("/")) ;
-        } while (dn.rfind("/")!= std::string::npos) ; 
+        } while (dn.rfind("/") != std::string::npos) ; 
         subject = subject.substr(0, subject.length()-1);
 
-        if(resource.empty()) resource = "ANY";
-        if(action.empty()) action = "ANY";
+          if(resource.empty()) resource = "ANY";
+          if(action.empty()) action = "ANY";
 
         rc= create_xacml_request(&request,subject.c_str(),resource.c_str(),action.c_str());
-        if(request != NULL) requests.push_back(request);
-        request = NULL;
+          if(request != NULL) requests.push_back(request);
+             request = NULL;
     }
     if (rc != 0) {
-        throw pep_ex("Failed to create XACML request(s): "+Arc::tostring(rc));
+        throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
     }
+
 
     bool authorized = false;
     std::string local_id; 
@@ -125,41 +136,46 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     // Simple combining algorithm. At least one deny means deny. If none, then at 
     // least one permit means permit. Otherwise deny. TODO: configurable.
 
-    logger.msg(Arc::DEBUG, "Have %i requests to process",requests.size());
+    // enable debugging
+    //pep_setoption(PEP_OPTION_LOG_LEVEL,PEP_LOGLEVEL_DEBUG);
+    // write debugging to stderr (or FILE *)
+    //pep_setoption(PEP_OPTION_LOG_STDERR,stderr);
+   
+    logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
     while(requests.size() > 0) {
         request = requests.front();
         requests.pop_front();
-        pep_rc= pep_authorize(&request,&response);
+        pep_rc = pep_authorize(pep_handle,&request,&response);
         if (pep_rc != PEP_OK) {
            throw pep_ex(std::string("Failed to process XACML request: ")+pep_strerror(pep_rc));
-            pep_destroy();
+            //pep_destroy();
         }   
-        if (response== NULL) {
+        if (response == NULL) {
             throw pep_ex("XACML response is empty");
         }
         /* Extract the local user name from the response to be mapped to the GID */
-        size_t results_l= xacml_response_results_length(response);
-        int i= 0;
-        for(i= 0; i<results_l; i++) {
-            xacml_result_t * result= xacml_response_getresult(response,i);        
+        size_t results_l = xacml_response_results_length(response);
+        int i = 0;
+        for(i = 0; i<results_l; i++) {
+            xacml_result_t * result = xacml_response_getresult(response,i);        
             if(result == NULL) break;
             switch(xacml_result_getdecision(result)) {
               case XACML_DECISION_DENY: decision = XACML_DECISION_DENY; break;
               case XACML_DECISION_PERMIT: decision = XACML_DECISION_PERMIT; break;
             };
             if(decision == XACML_DECISION_DENY) break;
- 	    std::size_t obligations_l= xacml_result_obligations_length(result);
-            int j=0;
-            for(j= 0; j<obligations_l; j++) {
-                xacml_obligation_t * obligation= xacml_result_getobligation(result,j);
+ 	    std::size_t obligations_l = xacml_result_obligations_length(result);
+            int j =0;
+            for(j = 0; j<obligations_l; j++) {
+                xacml_obligation_t * obligation = xacml_result_getobligation(result,j);
                 if(obligation == NULL) break;
-                std::size_t attrs_l= xacml_obligation_attributeassignments_length(obligation);
-                int k= 0;
-                for (k= 0; k<attrs_l; k++) {
-                    xacml_attributeassignment_t * attr= xacml_obligation_getattributeassignment(obligation,k);
-                    if(attr == NULL) break;
-                    const char * id = xacml_attributeassignment_getvalue(attr); 
- 	            local_id =  id?id:"";
+                  std::size_t attrs_l = xacml_obligation_attributeassignments_length(obligation);
+                  int k= 0;
+                  for (k= 0; k<attrs_l; k++) {
+                    xacml_attributeassignment_t * attr = xacml_obligation_getattributeassignment(obligation,k);
+                      if(attr == NULL) break;
+                        const char * id = xacml_attributeassignment_getvalue(attr); 
+ 	                local_id =  id?id:"";
                 }
             }
         }
@@ -182,22 +198,13 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     }
         
     if(!local_id.empty()) {
-        logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'",local_id);
-        msg->Attributes()->set("SEC:LOCALID",local_id);
+        logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
+        msg->Attributes()->set("SEC:LOCALID", local_id);
     }
 
     } catch (pep_ex& e) {
         logger.msg(Arc::ERROR,e.desc);
         res = false;
-    }
-
-   /*  clean up */
-   if(client_initialized) {
-      // Release the PEP client 
-      pep_rc= pep_destroy();
-      if (pep_rc != PEP_OK) {
-          logger.msg(Arc::DEBUG,"Failed to release PEP client request: %s\n",pep_strerror(pep_rc));
-      }
     }
 
     // Delete resquest and response
@@ -207,8 +214,6 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
       xacml_request_delete(requests.front());
       requests.pop_front();
     }
-
-
     return res;
  }
 
@@ -221,22 +226,22 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     }
     xacml_attribute_t * subject_attr_id= xacml_attribute_create(XACML_SUBJECT_ID);
     if (subject_attr_id == NULL) {
-	logger.msg(Arc::DEBUG,"Can not create XACML SubjectAttribute: %s\n",XACML_SUBJECT_ID);
+	logger.msg(Arc::DEBUG,"Can not create XACML SubjectAttribute: %s\n", XACML_SUBJECT_ID);
         xacml_subject_delete(subject);
         return 1;
     }
     xacml_attribute_addvalue(subject_attr_id,subjectid);
     xacml_attribute_setdatatype(subject_attr_id,XACML_DATATYPE_X500NAME);
     xacml_subject_addattribute(subject,subject_attr_id); 
-    xacml_resource_t * resource= xacml_resource_create();
+    xacml_resource_t * resource = xacml_resource_create();
     if (resource == NULL) {
-        logger.msg(Arc::DEBUG,"Can not create XACML Resource \n");
+        logger.msg(Arc::DEBUG, "Can not create XACML Resource \n");
         xacml_subject_delete(subject);
         return 2;
     }
-    xacml_attribute_t * resource_attr_id= xacml_attribute_create(XACML_RESOURCE_ID);
+    xacml_attribute_t * resource_attr_id = xacml_attribute_create(XACML_RESOURCE_ID);
     if (resource_attr_id == NULL) {
-        logger.msg(Arc::DEBUG,"Can not create XACML ResourceAttribute: %s\n",XACML_RESOURCE_ID);
+        logger.msg(Arc::DEBUG,"Can not create XACML ResourceAttribute: %s\n", XACML_RESOURCE_ID);
 	xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         return 2;
@@ -252,7 +257,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     }
     xacml_attribute_t * action_attr_id= xacml_attribute_create(XACML_ACTION_ID);
     if (action_attr_id == NULL) {
-        logger.msg(Arc::DEBUG,"Can not create XACML ActionAttribute: %s\n",XACML_ACTION_ID);
+        logger.msg(Arc::DEBUG,"Can not create XACML ActionAttribute: %s\n", XACML_ACTION_ID);
         xacml_subject_delete(subject);
         xacml_resource_delete(resource);
         xacml_action_delete(action);
@@ -274,7 +279,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     return 0;  
 }
 
-int ArgusPEP::create_xacml_request(std::list<xacml_request_t*>& requests,Arc::XMLNode arcreq) const {
+int ArgusPEP::create_xacml_request(std::list<xacml_request_t*>& requests, Arc::XMLNode arcreq) const {
   //  -- XACML --
   // Request
   //  Subject *
@@ -323,7 +328,8 @@ int ArgusPEP::create_xacml_request(std::list<xacml_request_t*>& requests,Arc::XM
       }
     }
            
-    Arc::XMLNode arcresource = arcreqitem["Resource"];
+   
+Arc::XMLNode arcresource = arcreqitem["Resource"];
     if((bool)arcresource) {
       xacml_resource_t * resource = xacml_resource_create();
       if(resource) {
@@ -363,9 +369,9 @@ int ArgusPEP::create_xacml_request(std::list<xacml_request_t*>& requests,Arc::XM
             std::string id = arcattr.Attribute("AttributeId");
             xacml_attribute_t * attr = xacml_attribute_create(id.c_str());
             if(!attr) { r=1; break; }
-            xacml_attribute_addvalue(attr,((std::string)arcattr).c_str());
-            xacml_attribute_setdatatype(attr,XACML_DATATYPE_STRING);
-            xacml_environment_addattribute(environment,attr);
+              xacml_attribute_addvalue(attr, ((std::string)arcattr).c_str());
+              xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+              xacml_environment_addattribute(environment,attr);
           }
           xacml_request_setenvironment(request,environment);
         } else { r=1; }
