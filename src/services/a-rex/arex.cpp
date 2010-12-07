@@ -618,7 +618,13 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
-
+  //////////Static Information ////////////
+  if ((*cfg)["staticInfo"])
+      staticInfo_=(std::string)((*cfg)["staticInfo"]);
+  else
+      staticInfo_="Off";
+  ////////////////////////////////////////
+  
   job_log_ = new JobLog;
   jobs_cfg_ = new JobsListConfig;
   gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_);

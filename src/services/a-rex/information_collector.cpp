@@ -134,18 +134,73 @@ void ARexService::InformationCollector(void) {
 }
 
 bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
-  //Arc::XMLNode root = infodoc_.Acquire();
+
+  Arc::XMLNode root = infodoc_.Acquire();
+  infodoc_.Release();
   logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
   Arc::XMLNode empty(ns_, "RegEntry");
   empty.New(doc);
 
-  doc.NewChild("SrcAdv");
-  doc.NewChild("MetaSrcAdv");
+          doc.NewChild("SrcAdv");
+          doc.NewChild("MetaSrcAdv");
+          logger.msg(Arc::INFO, "staticInfo: (%s)",staticInfo_);
+          doc["SrcAdv"].NewChild("Type") = "org.nordugrid.execution.arex";
+          doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
 
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.execution.arex";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  //doc["SrcAdv"].NewChild("SSPair");
+          if(staticInfo_ == "On"){
 
+              /** 
+                  This section uses SSPair to send Static
+                  Information of Arex to the ISIS.  
+               **/
+              Arc::XMLNode staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "HealthState";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingEndpoint"]["HealthState"];
+              staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "Capability";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingEndpoint"]["Capability"];
+              staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "OSFamily";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingManager"]
+                                         ["ExecutionEnvironments"]["ExecutionEnvironment"]["OSFamily"];
+              staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "Platform";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingManager"]
+                                         ["ExecutionEnvironments"]["ExecutionEnvironment"]["Platform"];
+              staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "PhysicalCPUs";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingManager"]
+                                         ["ExecutionEnvironments"]["ExecutionEnvironment"]["PhysicalCPUs"];
+              staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "CPUMultiplicity";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingManager"]
+                                         ["ExecutionEnvironments"]["ExecutionEnvironment"]["CPUMultiplicity"];
+              staticInfo = doc["SrcAdv"].NewChild("SSPair");
+              staticInfo.NewChild("Name") = "CPUModel";
+              staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
+                                         ["ComputingService"]["ComputingManager"]
+                                         ["ExecutionEnvironments"]["ExecutionEnvironment"]["CPUModel"];
+
+              std::string path = "Domains/AdminDomain/Services/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment";
+              Arc::XMLNodeList AEs = root.Path(path);
+              for(Arc::XMLNodeList::iterator AE = AEs.begin(); AE!=AEs.end(); AE++){
+
+                  staticInfo = doc["SrcAdv"].NewChild("SSPair");
+                  staticInfo.NewChild("Name") = (std::string)((*AE)["AppName"])+"-"+(std::string)((*AE)["AppVersion"]);
+                  staticInfo.NewChild("Value") = (std::string)((*AE)["ID"]);
+              }
+              logger.msg(Arc::VERBOSE, "Registered static information: \n doc: %s",(std::string)doc);
+
+              }
+             else{
+                 logger.msg(Arc::VERBOSE, "Information Registered without static attributes: \n doc: %s",(std::string)doc);
+             }
   return true;
   //
   // TODO: filter information here.
@@ -153,6 +208,7 @@ bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
   //regdoc.New(doc);
   //doc.NewChild(root);
   //infodoc_.Release();
+
 }
 
 std::string ARexService::getID() {
