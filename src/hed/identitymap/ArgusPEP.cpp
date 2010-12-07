@@ -56,9 +56,29 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
     valid_ = true;
 }
 
-ArgusPEP::~ArgusPEP(void) {
-     //pep_destroy(pep_handle);
+ArgusPEP::ArgusPEP(void) {
+
+  try{
+    pep_handle = pep_initialize();
+      if (pep_handle == NULL) {
+         /* error handling */
+        throw pep_ex(std::string("Failed to initialize PEP client: ") + pep_strerror(pep_handle));
+      }
+      pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation);
+
+      if (pep_rc != PEP_OK) {
+        throw pep_ex("Failed to set PEPd URL: '" + pepdlocation + "'"+ pep_strerror(pep_rc));
+      } catch (pep_ex& e) {
+        logger.msg(Arc::ERROR,e.desc);
+        res = false;
+   }
 }
+
+
+ArgusPEP::~ArgusPEP(void) {
+     pep_destroy(pep_handle);
+}
+
 
 class pep_ex {
   public:
@@ -67,37 +87,12 @@ class pep_ex {
 };
 
 bool ArgusPEP::Handle(Arc::Message* msg) const {
-  
-    bool res = true;
-    pep_error_t pep_rc; 
     int rc;             
 
     xacml_response_t * response = NULL;
     xacml_request_t * request = NULL;
     std::list<xacml_request_t*> requests;
     bool client_initialized = false;
-
-
-	PEP * pep_handle= NULL;
-
-	try{
- 	pep_handle=pep_initialize();
-	if (pep_handle == NULL) {
-	    /* error handling */
-	}
-
-	if (pep_rc != PEP_OK) {
-	    /* error handling with pep_strerror(pep_rc); */
-
-        throw pep_ex(std::string("Failed to initialize PEP client: ") + pep_strerror(pep_rc));
-    }
-      /* set endpoint URL */
-        pep_rc= pep_setoption(pep_handle,PEP_OPTION_ENDPOINT_URL,pepdlocation);
-
-      if (pep_rc != PEP_OK) {
-        throw pep_ex("Failed to set PEPd URL: '" + pepdlocation + "'");
-    }
-
     std::string subject , resource , action;
     Arc::XMLNode secattr;   
 
@@ -137,9 +132,9 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     // least one permit means permit. Otherwise deny. TODO: configurable.
 
     // enable debugging
-    //pep_setoption(PEP_OPTION_LOG_LEVEL,PEP_LOGLEVEL_DEBUG);
+    pep_setoption(PEP_OPTION_LOG_LEVEL,PEP_LOGLEVEL_DEBUG);
     // write debugging to stderr (or FILE *)
-    //pep_setoption(PEP_OPTION_LOG_STDERR,stderr);
+    pep_setoption(PEP_OPTION_LOG_STDERR,stderr);
    
     logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
     while(requests.size() > 0) {
