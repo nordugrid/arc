@@ -13,38 +13,40 @@ security, encryption, etc. developed by The Globus Alliance \cite{globus}\\
    \texttt{https} & HTTP with SSL v3\\
    \texttt{httpg} & HTTP with \globus\  GSI\\
    \texttt{ldap} & ordinary \textit{Lightweight Data Access Protocol (LDAP)}~\cite{ldap}\\
-   \texttt{rls} & \globus\  \textit{Replica Location Service (RLS)}~\cite{rls}\\
-   \texttt{lfc} & LFC catalog and indexing service of EGEE gLite~\cite{glite}\\
    \texttt{srm} & Storage Resource Manager (SRM) service~\cite{srm}\\
+   \texttt{se} & ARC Smart Storage Element service~\cite{se}\\
+   \texttt{lfc} & LFC catalog and indexing service of EGEE gLite~\cite{glite}\\
+   \texttt{rc} & \globus\  \textit{Replica Catalog (RC)}~\cite{rc}\\
+   \texttt{rls} & \globus\  \textit{Replica Location Service (RLS)}~\cite{rls}\\
    \texttt{file} & local to the host file name with a full path\\
-   \texttt{arc} & for the Chelonia storage service, communicates with Bartenders, the path should be a Logical Name (LN)\\
 \end{tabular}
 
 An URL can be used in a standard form, i.e.
 \begin{shaded}
-   \verb#protocol://[host[:port]]/file#
+   \verb#<protocol>://host[:port]/<file>#
 \end{shaded}
 
 Or, to enhance the performance, it can have additional options:
 \begin{shaded}
-   \verb#protocol://[host[:port]][;option[;option[...]]]/file#
+   \verb#<protocol>://host[:port][;option[;option[...]]]/<file>#
 \end{shaded}
 
 For a metadata service URL, construction is the following:
 \begin{shaded}
-   \verb#protocol://[url[|url[...]]@]host[:port][;option[;option[...]]/#\\
-   \verb#     lfn[:metadataoption[:metadataoption[...]]#
+   \verb#lfc://[url[|url[...]]@]<host>[:port]/<lfn>#\\
+   \verb#rls://[url[|url[...]]@]<host>[:port]/<lfn>#\\
+   \verb#rc://rc://[location[|location[...]]@]<host>[:port]/<DN>/<lfn>#\\
+   \verb#fireman://[url[|url[...]]@]<host>[:port]/<service_path>?<lfn>#
 \end{shaded}
 
-For Chelonia, the syntax is
+For the Smart Storage Element service, the syntax is
 \begin{shaded}
-    \verb#arc://<LogicalName>[?BartenderURL=<URL>]#
+   \verb#se://host[:port][;options]/path[?file_id]#
 \end{shaded}
-where the BartenderURL could come from the `bartender' parameter of the client configuration file.
 
 For the SRM service, the syntax is
 \begin{shaded}
-   \verb#srm://host[:port][;options]/[service_path?SFN=]file#
+   \verb#srm://<host>[:port][;options]/[service_path?SFN=]<file_id>#
 \end{shaded}
 
 Versions 1.1 and 2.2 of the SRM protocol are supported. The
@@ -54,13 +56,13 @@ v2.2, srm/managerv1 otherwise.
 The URL components are:
 
 \begin{tabular}{lp{10cm}}
-   \verb#host[:port]# & Hostname or IP address [and port] of a server\\
-   \verb#lfn# & Logical File Name\\
-   \verb#url# & URL of the file as registered in indexing service\\
-   \verb#service_path# & End-point path of the web service\\
-   \verb#file# & File name with full path\\
-   \verb#option# & URL option\\
-   \verb#metadataoption# & Metadata option for indexing service\\
+   \verb#location#&\verb#<location_name_in_RC>[;option[;option[...]]]#\\
+   \verb#host[:port]#&IP address of a server\\
+   \verb#DN#&Distinguished Name (as in LDAP) of an RC collection\\
+   \verb#lfn#&Logical File Name (LFN)\\
+   \verb#url#&URL of the file as registered in LFC/RLS/Fireman\\
+   \verb#service_path#&End-point path of the Web service\\
+   \verb#file#&local to the host file name with a full path\\
 \end{tabular}
 
 The following options are supported for location URLs:\index{URL:options}
@@ -73,9 +75,9 @@ The following options are supported for location URLs:\index{URL:options}
    cache the file; default for input files is \verb#yes#. \verb#renew#
    forces a download of the file, even if the cached copy is still valid.
    \verb#copy# forces the cached file to be copied (rather than linked) to
-   the session dir, this is useful if for example the file is to be modified.\\
+   the session dir, this is useful if for example the file is to be modified (\verb#copy# option is available in ARC 0.8.1 and above).\\
    \verb#readonly=yes|no# & for transfers to \verb#file://# destinations,
-   specifies whether the file should be
+    specifies whether the file should be
    read-only (unmodifiable) or not; default is \verb#yes# \\
    \verb#secure=yes|no# & indicates whether the GridFTP data
    channel should be encrypted; default is \verb#no#\\
@@ -86,30 +88,28 @@ The following options are supported for location URLs:\index{URL:options}
    computed (for transfer verification or provided to the indexing server). This is overridden
    by any metadata options specified (see below). If this option is
    not provided, the default for the protocol is used. \verb#checksum=no#
-   disables checksum calculation.\\
+   disables checksum calculation (\verb#adler32# and \verb#no# options are available in ARC 0.8.1 and above).\\
    \verb#exec=yes|no# & means the file should be treated as executable\\
    \verb#preserve=yes|no# & specify if file must be uploaded to this
    destination even if job processing failed (default is \verb#no#)\\
+   \verb#pattern=<pattern># & defines file matching pattern; currently
+   works for file listing requests sent to an \verb#se://# endpoint\\
    \verb#guid=yes|no# & make software use GUIDs instead of LFNs while
    communicating to indexing services; meaningful for \verb#rls://#
    only\\
    \verb#overwrite=yes|no# & make software try to overwrite existing
    file(s), i.e. before writing to destination, tools will try to remove
    any information/content associated with specified URL\\
-   \verb#protocol=gsi|gssapi# & to distinguish between two kinds of 
-   \verb#httpg#. \verb#gssapi# stands for implemention using only GSSAPI 
-   functions to wrap data and \verb#gsi# uses additional headers as 
-   implmented in Globus IO. The default is \verb#gssapi#. In case
-   this fails, \verb#gsi# is then tried.\\
+   \verb#protocol=gsi|gssapi# & to distinguish between two kinds of
+   \verb#httpg#. \verb#gssapi# stands for implemention using only GSSAPI
+   functions to wrap data and \verb#gsi# uses additional headers as
+   implmented in Globus IO\\
    \verb#spacetoken=<pattern># & specify the space token to be used for
    uploads to SRM storage elements supporting SRM version 2.2 or higher\\
    \verb#autodir=yes|no# & specify if before writing to specified location
    software should try to create all directories mentioned in specified
    URL. Currently this applies to FTP and GridFTP only. Default for those
    protocols is \verb#yes#\\
-   \verb#tcpnodelay=yes|no# & controls the use of the TCP\_NODELAY
-   socket option (which disables the Nagle algorithm). Applies to
-   http(s) only. Default is \verb#no#\\ 
 \end{longtable}
 
 Local files are referred to by specifying either a location relative
@@ -138,11 +138,13 @@ uploaded to remote storage.
    \verb#http://grid.domain.org/dir/script.sh#\\
    \verb#gsiftp://grid.domain.org:2811;threads=10;secure=yes/dir/input_12378.dat#\\
    \verb#ldap://grid.domain.org:389/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org#\\
+   \verb#rc://grid.domain.org/lc=collection1,rc=Nordugrid,dc=nordugrid,dc=org/zebra/f1.zebra#\\
    \verb#rls://gsiftp://se.domain.org/datapath/file25.dat@grid.domain.org:61238/myfile02.dat#$^1$\\
+   \verb#fireman://fireman_host:8443/glite-data-catalog-interface/FiremanCatalog?data.root#\\
    \verb#file:///home/auser/griddir/steer.cra#\\
-   \verb#lfc://srm://srm.domain.org/griddir@lfc.domain.org/user/file1:guid=\# \\
-   \verb#    bc68cdd0-bf94-41ce-ab5a-06a1512764dc:checksumtype=adler32:checksumvalue=12345678#$^2$\\
-   \verb#lfc://lfc.domain.org;cache=no/:guid=bc68cdd0-bf94-41ce-ab5a-06a1512764d#$^3$\\
+   \verb#lfc://srm://srm.domain.org/griddir@lfc.domain.org//user/file1:guid=\# \\
+   \verb#   bc68cdd0-bf94-41ce-ab5a-06a1512764dc:checksumtype=adler32:checksumvalue=12345678#$^2$\\
+   \verb#lfc://lfc.domain.org;cache=no/:guid=bc68cdd0-bf94-41ce-ab5a-06a1512764d#$^3$
 \end{framed}
 
 $^1$This is a destination URL. The file will be copied to the GridFTP
