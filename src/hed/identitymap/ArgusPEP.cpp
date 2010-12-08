@@ -29,6 +29,13 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 
 namespace ArcSec {
 
+class pep_ex {
+  public:
+    std::string desc;
+    pep_ex(const std::string& desc_):desc(desc_) {};
+};
+
+
 Arc::Logger ArgusPEP::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
 
 ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {  
@@ -54,40 +61,74 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
     };
 
     valid_ = true;
-}
 
-ArgusPEP::ArgusPEP(void) {
 
+   pep_handle= NULL;
+   res = true;
   try{
-    pep_handle = pep_initialize();
-      if (pep_handle == NULL) {
+     pep_handle = pep_initialize();
+       if (pep_handle == NULL) {
          /* error handling */
-        throw pep_ex(std::string("Failed to initialize PEP client: ") + pep_strerror(pep_handle));
+         throw pep_ex(std::string("Failed to initialize PEP client:"));
       }
       pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation);
 
       if (pep_rc != PEP_OK) {
         throw pep_ex("Failed to set PEPd URL: '" + pepdlocation + "'"+ pep_strerror(pep_rc));
-      } catch (pep_ex& e) {
+      }
+
+     }catch (pep_ex& e) {
         logger.msg(Arc::ERROR,e.desc);
         res = false;
    }
+
 }
 
-
-ArgusPEP::~ArgusPEP(void) {
-     pep_destroy(pep_handle);
-}
-
-
+/*
 class pep_ex {
   public:
     std::string desc;
     pep_ex(const std::string& desc_):desc(desc_) {};
 };
 
+
+ArgusPEP::ArgusPEP(void) {
+   pep_handle= NULL;
+   res = true;
+  try{
+     pep_handle = pep_initialize();
+       if (pep_handle == NULL) {
+         
+         throw pep_ex(std::string("Failed to initialize PEP client:"));
+      }
+      pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation);
+
+      if (pep_rc != PEP_OK) {
+        throw pep_ex("Failed to set PEPd URL: '" + pepdlocation + "'"+ pep_strerror(pep_rc));
+      } 
+
+     }catch (pep_ex& e) {
+        logger.msg(Arc::ERROR,e.desc);
+        res = false;
+   }
+}
+*/
+ArgusPEP::~ArgusPEP(void) {
+  pep_destroy(pep_handle);
+}
+
+/*
+class pep_ex {
+  public:
+    std::string desc;
+    pep_ex(const std::string& desc_):desc(desc_) {};
+};
+*/
+
 bool ArgusPEP::Handle(Arc::Message* msg) const {
     int rc;             
+    bool res = true;
+    pep_error_t pep_rc;
 
     xacml_response_t * response = NULL;
     xacml_request_t * request = NULL;
@@ -95,7 +136,8 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     bool client_initialized = false;
     std::string subject , resource , action;
     Arc::XMLNode secattr;   
-
+ 
+   try{
     if(conversion == conversion_direct) {
         msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
         msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
@@ -132,10 +174,12 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     // least one permit means permit. Otherwise deny. TODO: configurable.
 
     // enable debugging
-    pep_setoption(PEP_OPTION_LOG_LEVEL,PEP_LOGLEVEL_DEBUG);
+   //pep_setoption(PEP_OPTION_LOG_LEVEL,PEP_LOGLEVEL_DEBUG);
     // write debugging to stderr (or FILE *)
-    pep_setoption(PEP_OPTION_LOG_STDERR,stderr);
-   
+    //pep_setoption(PEP_OPTION_LOG_STDERR,stderr);
+  //  bool res = true;
+//    pep_error_t pep_rc;
+ 
     logger.msg(Arc::DEBUG, "Have %i requests to process", requests.size());
     while(requests.size() > 0) {
         request = requests.front();
@@ -153,7 +197,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
         int i = 0;
         for(i = 0; i<results_l; i++) {
             xacml_result_t * result = xacml_response_getresult(response,i);        
-            if(result == NULL) break;
+            if(result = NULL) break;
             switch(xacml_result_getdecision(result)) {
               case XACML_DECISION_DENY: decision = XACML_DECISION_DENY; break;
               case XACML_DECISION_PERMIT: decision = XACML_DECISION_PERMIT; break;
