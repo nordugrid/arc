@@ -24,8 +24,8 @@ class ArgusPEP : public SecHandler {
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;
   conversion_type conversion;
-  PEP * pep_handle = NULL;
-  bool res = true;
+  PEP * pep_handle ;
+  bool res;
   pep_error_t pep_rc;
   bool valid_; 
   static Arc::Logger logger;
@@ -35,6 +35,7 @@ class ArgusPEP : public SecHandler {
 
   public:
     ArgusPEP(Arc::Config *cfg);
+    ArgusPEP(void);
     virtual ~ArgusPEP(void);
     virtual bool Handle(Arc::Message* msg) const ;
     operator bool(void) { return valid_; };
