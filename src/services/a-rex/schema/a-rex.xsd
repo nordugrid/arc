@@ -373,6 +373,25 @@
     <xsd:element name="gmrun" type="gmrun_Type"/>
 
     <xsd:element name="usermap" type="usermap_Type"/>
+ 
+    <xsd:element name="publishStaticInfo" default="no">
+      <xsd:simpleType>
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            This optional parameter can be used to enable publishing
+            of additional information to ISIS. The default is not to
+            publish ("no"). The information, which is considered in
+            some degree to be static, includes HealthState, OSFamily,
+            Platform, PhysicalCPUs, CPUMultiplicity, CPUModel and
+            ApplicationEnvironment.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="no">
+          <xsd:enumeration value="yes">
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:element>
 
     <!-- BES informational elements. -->
 

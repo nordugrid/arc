@@ -20,7 +20,6 @@
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
-
 #include "job.h"
 #include "grid-manager/conf/conf_pre.h"
 #include "grid-manager/log/job_log.h"
@@ -618,12 +617,10 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
-  //////////Static Information ////////////
-  if ((*cfg)["staticInfo"])
-      staticInfo_=(std::string)((*cfg)["staticInfo"]);
+  if ((*cfg)["publishStaticInfo"] && Arc::lower((std::string)((*cfg)["publishStaticInfo"])) == "yes")
+    publishstaticinfo_=true;
   else
-      staticInfo_="Off";
-  ////////////////////////////////////////
+    publishstaticinfo_=false;
   
   job_log_ = new JobLog;
   jobs_cfg_ = new JobsListConfig;

@@ -1999,6 +1999,13 @@ A-REX service definition:
       <!-- grid-manager part of a-rex requires legacy configuration file.
       Use arc.conf example or write own. -->
       <arex:gmconfig>/etc/arc.conf</arex:gmconfig>
+      <!-- This optional parameter can be used to enable publishing of additional
+      information to ISIS. The default is not to publish ("no"). The information,
+      which is considered in some degree to be static, includes HealthState, 
+      OSFamily, Platform, PhysicalCPUs, CPUMultiplicity, CPUModel and
+      ApplicationEnvironment.--> 
+      <arex:publishStaticInfo>yes<arex:publishStaticInfo>
+
     </loader:Service>
   </loader:Chain>
 </ArcConfig>
@@ -2157,6 +2164,32 @@ elementFormDefault="qualified">
   http://www.dmtf.org/standards/cim/cim_schema_v29
   -->
   <xsd:element name="OperatingSystem" type="xsd:string"/>
+  <!--
+  Optional parameter which is enable to publish additional
+  information to ISIS. 
+  {*} yes - Allow publishing additional information.
+  {*} no  - Disallow additional information to publish. 
+            Registered with Only contact information.  
+  -->  
+    <xsd:element name="publishStaticInfo" default="no">
+      <xsd:simpleType>
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            This optional parameter can be used to enable publishing
+            of additional information to ISIS. The default is not to
+            publish ("no"). The information, which is considered in
+            some degree to be static, includes HealthState, OSFamily,
+            Platform, PhysicalCPUs, CPUMultiplicity, CPUModel and
+            ApplicationEnvironment.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="no">
+          <xsd:enumeration value="yes">
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:element>
+ 
 </xsd:schema>
 \end{verbatim}
 \end{footnotesize}
