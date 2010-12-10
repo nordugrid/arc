@@ -89,6 +89,10 @@ namespace Arc {
 
     static Logger logger;
 
+    /*
+     * Note that the last pointer is holding allocating memory
+     * that must be freed
+     */
     friend int my_sasl_interact(ldap*, unsigned int, void*, void*);
   };
 
