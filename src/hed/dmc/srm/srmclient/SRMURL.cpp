@@ -70,19 +70,4 @@
     return (protocol+"://"+host+":"+Arc::tostring(port)+"/"+filename);
   }
   
-  void SRMURL::GSSAPI(bool gssapi) {
-    if (gssapi)
-      AddOption("protocol", "gssapi", true);
-    else
-      AddOption("protocol", "gsi", true);
-  }
-
-  bool SRMURL::GSSAPI(void) const {
-    try {
-      const std::string proto_val = Option("protocol");
-      if(proto_val == "gsi") return false;
-    } catch (std::exception e) { };
-    return true;
-  }
-
 //} // namespace Arc

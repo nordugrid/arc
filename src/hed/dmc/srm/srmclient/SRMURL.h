@@ -57,8 +57,6 @@
   
     enum SRM_URL_VERSION SRMVersion() { return srm_version; };
     bool Short(void) const { return isshort; };
-    void GSSAPI(bool gssapi);
-    bool GSSAPI(void) const;
     void SetPort(int portno) { port = portno; };
     /** Was the port number given in the constructor? */
     bool PortDefined() { return portdefined; };

@@ -216,7 +216,7 @@ namespace Arc {
         _long_list(false) {
       if (url.empty() && id.empty())
         throw SRMInvalidRequestException();
-      if (!url.empty() != 0)
+      if (!url.empty())
         _surls[url] = SRM_UNKNOWN;
       else
         _request_token = id;

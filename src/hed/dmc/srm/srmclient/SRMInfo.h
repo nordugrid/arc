@@ -12,7 +12,6 @@ class SRMFileInfo {
  public:
   std::string host;
   int port;
-  std::string protocol;
   enum SRMURL::SRM_URL_VERSION version;
   bool operator==(SRMURL srm_url);
   std::string versionString() const;
