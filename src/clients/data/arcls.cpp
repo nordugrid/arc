@@ -30,6 +30,7 @@ static bool arcls(const Arc::URL& dir_url,
            bool check_access, // checkaccess
            int recursion,     // recursion 
            int timeout) {     // timeout
+  bool show_header = show_details;
   if (!dir_url) {
     logger.msg(Arc::ERROR, "Invalid URL: %s", dir_url.fullstr());
     return false;
@@ -129,6 +130,18 @@ static bool arcls(const Arc::URL& dir_url,
     logger.msg(Arc::INFO, "Warning: "
                "Failed listing files but some information is obtained");
   }
+  if (show_header && files.size()) {
+    std::cout << "<Name>";
+    if (show_details) {
+      std::cout << " <Type>";
+      std::cout << " <Size>";
+      std::cout << " <Creation>";
+      std::cout << " <Validity>";
+      std::cout << " <CheckSum>";
+      std::cout << " <Latency>";
+    }
+    std::cout << std::endl;
+  }
   for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
     std::cout << i->GetName();
@@ -149,21 +162,23 @@ static bool arcls(const Arc::URL& dir_url,
       if (i->CheckSize())
         std::cout << " " << i->GetSize();
       else
-        std::cout << " *";
+        std::cout << " (n/a)";
       if (i->CheckCreated())
         std::cout << " " << i->GetCreated();
       else
-        std::cout << " *";
+        std::cout << " (n/a)";
       if (i->CheckValid())
         std::cout << " " << i->GetValid();
       else
-        std::cout << " *";
+        std::cout << " (n/a)";
       if (i->CheckCheckSum())
         std::cout << " " << i->GetCheckSum();
       else
-        std::cout << " *";
+        std::cout << " (n/a)";
       if (i->CheckLatency())
         std::cout << " " << i->GetLatency();
+      else
+        std::cout << " (n/a)";
     }
     //if(!show_meta || show_details || show_urls) std::cout << std::endl;
     std::cout << std::endl;
