@@ -632,21 +632,22 @@ sub get_cluster_info($) {
 
     $cep->{QualityLevel} = [ "development" ];
 
-    # TODO: a way to detect if LRMS is up
-    if (     $host_info->{hostcert_expired}
-          or $host_info->{issuerca_expired}) {
-        $cep->{HealthState} = [ "critical" ];
-        $cep->{HealthStateInfo} = [ "Host credentials expired" ];
-    } elsif (not $host_info->{hostcert_enddate}
-          or not $host_info->{issuerca_enddate}) {
-        $cep->{HealthState} = [ "critical" ];
-        $cep->{HealthStateInfo} = [ "Host credentials missing" ];
-    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-          or $host_info->{issuerca_enddate} - time < 48*3600) {
-        $cep->{HealthState} = [ "warning" ];
-        $cep->{HealthStateInfo} = [ "Host credentials will expire soon" ];
-    } else {
-        $cep->{HealthState} = [ "ok" ];
+    $cep->{HealthState} = [ "ok" ];
+
+    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+        if (     $host_info->{hostcert_expired}
+              or $host_info->{issuerca_expired}) {
+            $cep->{HealthState} = [ "critical" ];
+            $cep->{HealthStateInfo} = [ "Host credentials expired" ];
+        } elsif (not $host_info->{hostcert_enddate}
+              or not $host_info->{issuerca_enddate}) {
+            $cep->{HealthState} = [ "critical" ];
+            $cep->{HealthStateInfo} = [ "Host credentials missing" ];
+        } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+              or $host_info->{issuerca_enddate} - time < 48*3600) {
+            $cep->{HealthState} = [ "warning" ];
+            $cep->{HealthStateInfo} = [ "Host credentials will expire soon" ];
+        }
     }
 
     # OBS: when is it 'queueing' and 'closed'?

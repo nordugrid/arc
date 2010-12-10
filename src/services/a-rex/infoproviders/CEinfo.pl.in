@@ -70,9 +70,6 @@ sub main {
                    gm_port        => 2811,
                    ttl            =>  60,
                    defaultttl     => "604800",
-                   x509_user_cert => "/etc/grid-security/hostcert.pem",
-                   x509_cert_dir  => "/etc/grid-security/certificates/",
-                   gridmap        => "/etc/grid-security/grid-mapfile",
                    processes      => [qw(arched)]
     
     );
@@ -123,11 +120,14 @@ sub collect($) {
     my ($config) = @_;
 
     # get all local users from grid-map. Sort unique
-    my %saw = ();
-    my $usermap = read_grid_mapfile($config->{gridmap});
-    my @localusers = grep !$saw{$_}++, values %$usermap;
-
-    unless (@localusers) {
+    my @localusers;
+    my $usermap = {};
+    if ($config->{gridmap}) {
+        my %saw = ();
+        $usermap = read_grid_mapfile($config->{gridmap});
+        @localusers = grep !$saw{$_}++, values %$usermap;
+    } else {
+        $log->info("gridmap not configured");
         my $defaultuser = $config->{defaultLocalName};
         @localusers = ($defaultuser) if $defaultuser;
     }

@@ -15,8 +15,8 @@ use LogUtils;
 use InfoChecker;
 
 our $host_options_schema = {
-        x509_user_cert => '',
-        x509_cert_dir  => '',
+        x509_user_cert => '*',
+        x509_cert_dir  => '*',
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
         processes      => [ '' ],
@@ -107,7 +107,7 @@ sub grid_diskspace ($$) {
 
         if ($sessiondir =~ /^\s*\*\s*$/) {
             $users->{$u}{gridarea} = $home."/.jobs";
-            my $gridspace = Sysinfo::diskinfo($users->{$u}{gridarea}); 
+            my $gridspace = Sysinfo::diskinfo($users->{$u}{gridarea});
             $log->warning("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
                 unless $gridspace;
             $users->{$u}{diskfree} = $gridspace->{megsfree} || 0;
@@ -137,35 +137,18 @@ sub enddate {
 }
 
 
-sub get_host_info($) {
-    my $options = shift;
+# Hostcert, issuer CA, trustedca, issuercahash, enddate ...
+sub get_cert_info {
+    my ($options, $globusloc) = @_;
 
     my $host_info = {};
 
-    $host_info->{hostname} = hostname();
-
-    my $osinfo = Sysinfo::osinfo() || {};
-    my $cpuinfo = Sysinfo::cpuinfo() || {};
-    my $meminfo = Sysinfo::meminfo() || {};
-    $log->error("Failed querying CPU info") unless %$cpuinfo;
-    $log->error("Failed querying OS info") unless %$osinfo;
-
-    $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo};
-
-    # Globus location
-    my $globusloc = $ENV{GLOBUS_LOCATION} || "/usr";
-    if ($ENV{GLOBUS_LOCATION}) {
-        if ($ENV{LD_LIBRARY_PATH}) {
-            $ENV{LD_LIBRARY_PATH} .= ":$ENV{GLOBUS_LOCATION}/lib";
-        } else {
-            $ENV{LD_LIBRARY_PATH} = "$ENV{GLOBUS_LOCATION}/lib";
-        }
+    if (not $options->{x509_user_cert}) {
+        $log->info("x509_user_cert not configured");
+        return $host_info;
     }
 
-    # Hostcert issuer CA, trustedca, issuercahash
-    timer_start("collecting certificates info");
-
-    # find an openssl							          
+    # find an openssl
     my $openssl = '';
     for my $path (split ':', "$ENV{PATH}:$globusloc/bin") {
         $openssl = "$path/openssl" and last if -x "$path/openssl";
@@ -184,6 +167,11 @@ sub get_host_info($) {
         system("$openssl x509 -noout -checkend 3600 -in '$hostcert'");
         $host_info->{hostcert_expired} = $? ? 1 : 0;
         $log->warning("Host certificate is expired in file: $hostcert") if $?;
+    }
+
+    if (not $options->{x509_cert_dir}) {
+        $log->info("x509_cert_dir not configured");
+        return $host_info;
     }
 
     # List certs and elliminate duplication in case 2 soft links point to the same file.
@@ -220,8 +208,39 @@ sub get_host_info($) {
     $host_info->{trustedcas} = [ sort keys %trustedca ];
     $log->warning("Issuer CA certificate file not found") unless exists $host_info->{issuerca_hash};
 
+    return $host_info;
+}
+
+
+sub get_host_info {
+    my $options = shift;
+
+    my $host_info = {};
+
+    $host_info->{hostname} = hostname();
+
+    my $osinfo = Sysinfo::osinfo() || {};
+    my $cpuinfo = Sysinfo::cpuinfo() || {};
+    my $meminfo = Sysinfo::meminfo() || {};
+    $log->error("Failed querying CPU info") unless %$cpuinfo;
+    $log->error("Failed querying OS info") unless %$osinfo;
+
+    # Globus location
+    my $globusloc = $ENV{GLOBUS_LOCATION} || "/usr";
+    if ($ENV{GLOBUS_LOCATION}) {
+        if ($ENV{LD_LIBRARY_PATH}) {
+            $ENV{LD_LIBRARY_PATH} .= ":$ENV{GLOBUS_LOCATION}/lib";
+        } else {
+            $ENV{LD_LIBRARY_PATH} = "$ENV{GLOBUS_LOCATION}/lib";
+        }
+    }
+
+    timer_start("collecting certificates info");
+    my $certinfo = get_cert_info($options, $globusloc);
     timer_stop();
-    
+
+    $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo, %$certinfo};
+
     #TODO: multiple session dirs
     my @sessiondirs = @{$options->{sessiondir}};
     if (@sessiondirs) {
@@ -235,7 +254,7 @@ sub get_host_info($) {
         $host_info->{localusers} = grid_diskspace($sessiondirs[0], $options->{localusers});
     }
 
-    #OBS: only accurate if cache is on a filesystem of it's own 
+    #OBS: only accurate if cache is on a filesystem of it's own
     my @paths = ();
     @paths = @{$options->{cachedir}} if $options->{cachedir};
     @paths = map { my @pair = split " ", $_; $pair[0] } @paths;
@@ -250,7 +269,7 @@ sub get_host_info($) {
     my $globusversion;
     if (-r "$globusloc/share/doc/VERSION" ) {
        chomp ( $globusversion =  `cat $globusloc/share/doc/VERSION 2>/dev/null`);
-       if ($?) { $log->warning("Failed reading the globus version file")}   
+       if ($?) { $log->warning("Failed reading the globus version file")}
     }
     #globuslocation/bin/globus-version
     elsif (-x "$globusloc/bin/globus-version" ) {
@@ -281,7 +300,7 @@ sub test {
     $log->debug("Options:\n" . Dumper($options));
     my $results = HostInfo::collect($options);
     $log->debug("Results:\n" . Dumper($results));
-} 
+}
 
 #test;
 
