@@ -28,6 +28,30 @@ namespace Arc {
 
   static Logger threadLogger(Logger::getRootLogger(), "Thread");
 
+  class ThreadDataPool;
+
+  class ThreadData {
+  friend class ThreadDataPool;
+  private:
+    std::map<std::string,ThreadDataItem*> items_;
+    typedef std::map<std::string,ThreadDataItem*>::iterator items_iterator;
+    typedef std::pair<std::string,ThreadDataItem*> items_pair;
+    Glib::Mutex lock_;
+    ThreadData(void);
+    ~ThreadData(void);
+  public:
+    // Get ThreadData instance of current thread
+    static ThreadData* Get(void);
+    // Destroy ThreadData instance of current thread
+    static void Remove(void);
+    // Copy items from another instance (uses Dup method)
+    void Inherit(ThreadData* old);
+    // Attach item to this instance
+    void AddItem(const std::string& key,ThreadDataItem* item);
+    // Fetch item from this instance
+    ThreadDataItem* GetItem(const std::string& key);
+  };
+
 #ifdef USE_THREAD_POOL
   class ThreadInc {
    public:
@@ -42,6 +66,7 @@ namespace Arc {
     void *arg;
     func_t func;
     SimpleCounter* count;
+    ThreadData* data;
 #ifdef USE_THREAD_POOL
     ThreadInc* resource;
     ThreadArgument& acquire(void) {
@@ -53,10 +78,11 @@ namespace Arc {
       resource = NULL;
     }
 #endif
-    ThreadArgument(func_t f, void *a, SimpleCounter *c)
+    ThreadArgument(func_t f, void *a, SimpleCounter *c, ThreadData *d)
       : arg(a),
         func(f),
-        count(c)
+        count(c),
+        data(d)
 #ifdef USE_THREAD_POOL
         ,resource(NULL)
 #endif
@@ -170,6 +196,8 @@ namespace Arc {
 #endif
 
   void ThreadArgument::thread(void) {
+    ThreadData* tdata = ThreadData::Get();
+    if(tdata) tdata->Inherit(data);
 #ifdef USE_THREAD_POOL
     ThreadInc resource_;
     release();
@@ -180,17 +208,18 @@ namespace Arc {
     delete this;
     (*f_temp)(a_temp);
     if(c_temp) c_temp->dec();
+    ThreadData::Remove();
   }
 
   bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count
 ) {
 #ifdef USE_THREAD_POOL
     if(!pool) return false;
-    ThreadArgument *argument = new ThreadArgument(func, arg, count);
+    ThreadArgument *argument = new ThreadArgument(func, arg, count, ThreadData::Get());
     if(count) count->inc();
     pool->PushQueue(argument);
 #else
-    ThreadArgument *argument = new ThreadArgument(func, arg, count);
+    ThreadArgument *argument = new ThreadArgument(func, arg, count, ThreadData::Get());
     if(count) count->inc();
     try {
       UserSwitch usw(0,0);
@@ -244,15 +273,8 @@ namespace Arc {
      }
    */
 
-  void GlibThreadInitialize(void) {
-    Glib::init();
-    if (!Glib::thread_supported())
-      Glib::thread_init();
-#ifdef USE_THREAD_POOL
-    if (!pool)
-      pool = new ThreadPool;
-#endif
-  }
+
+  // ----------------------------------------
 
   ThreadRegistry::ThreadRegistry(void):counter_(0),cancel_(false) {
   }
@@ -314,4 +336,145 @@ namespace Arc {
     lock_.unlock();
   }
 
+  // ----------------------------------------
+
+  class ThreadDataPool {
+  private:
+    std::map<Glib::Thread*,ThreadData*> datas_;
+    typedef std::map<Glib::Thread*,ThreadData*>::iterator datas_iterator;
+    typedef std::pair<Glib::Thread*,ThreadData*> datas_pair;
+    Glib::Mutex lock_;
+    ~ThreadDataPool(void);
+  public:
+    ThreadDataPool(void);
+    ThreadData* GetData(void);
+    void RemoveData(void);
+  };
+
+  static ThreadDataPool* data_pool = NULL;
+
+  ThreadDataPool::ThreadDataPool(void) {
+  }
+
+  ThreadData* ThreadDataPool::GetData(void) {
+    ThreadData* data = NULL;
+    Glib::Thread* self = Glib::Thread::self();
+    lock_.lock();
+    datas_iterator d = datas_.find(self);
+    if(d == datas_.end()) {
+      data = new ThreadData;
+      d = datas_.insert(datas_.end(),datas_pair(self,data));
+    } else {
+      data = d->second;
+    };
+    lock_.unlock();
+    return data;
+  }
+
+  void ThreadDataPool::RemoveData(void) {
+    Glib::Thread* self = Glib::Thread::self();
+    lock_.lock();
+    datas_iterator d = datas_.find(self);
+    if(d != datas_.end()) {
+      ThreadData* data = d->second;
+      datas_.erase(d);
+      delete data;
+    }
+    lock_.unlock();
+  }
+
+  void ThreadData::Inherit(ThreadData* parent) {
+    if(!parent) return;
+    parent->lock_.lock();
+    for(items_iterator d = parent->items_.begin();d != parent->items_.end();++d) {
+      d->second->Dup();
+    };
+    parent->lock_.unlock();
+  }
+
+  ThreadData* ThreadData::Get(void) {
+    if(!data_pool) return NULL;
+    return data_pool->GetData();
+  }
+
+  void ThreadData::Remove(void) {
+    if(!data_pool) return;
+    data_pool->RemoveData();
+  }
+
+  ThreadData::ThreadData(void) {
+  }
+
+  ThreadData::~ThreadData(void) {
+    lock_.lock();
+    for(items_iterator i = items_.begin(); i != items_.end(); ++i) {
+      delete i->second;
+    };
+    lock_.unlock();
+  }
+ 
+  void ThreadData::AddItem(const std::string& key,ThreadDataItem* item) {
+    lock_.lock();
+    items_iterator i = items_.find(key);
+    if(i != items_.end()) {
+      if(i->second != item) {
+        delete i->second;
+        i->second = item;
+      };
+    } else {
+      i = items_.insert(items_.end(),items_pair(key,item));
+    };
+    lock_.unlock();
+  }
+
+  ThreadDataItem* ThreadData::GetItem(const std::string& key) {
+    ThreadDataItem* item = NULL;
+    lock_.lock();
+    items_iterator i = items_.find(key);
+    if(i != items_.end()) item = i->second;
+    lock_.unlock();
+    return item;
+  }
+
+  ThreadDataItem::ThreadDataItem(void) {
+    // Never happens
+  }
+
+  ThreadDataItem::ThreadDataItem(const ThreadDataItem& it) {
+    // Never happens
+  }
+
+  ThreadDataItem::~ThreadDataItem(void) {
+    // Called by pool
+  }
+
+  ThreadDataItem::ThreadDataItem(const std::string& key) {
+    ThreadData* data = ThreadData::Get();
+    if(data) data->AddItem(key,this);
+  }
+
+  ThreadDataItem* ThreadDataItem::Get(const std::string& key) {
+    ThreadData* data = ThreadData::Get();
+    if(!data) return NULL;
+    return data->GetItem(key);
+  }
+
+  void ThreadDataItem::Dup(void) {
+    // new ThreadDataItem;
+  }
+
+  // ----------------------------------------
+
+  void GlibThreadInitialize(void) {
+    Glib::init();
+    if (!Glib::thread_supported())
+      Glib::thread_init();
+#ifdef USE_THREAD_POOL
+    if (!pool)
+      data_pool = new ThreadDataPool;
+      pool = new ThreadPool;
+#endif
+  }
+
 } // namespace Arc
+

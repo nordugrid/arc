@@ -24,10 +24,34 @@ private:
   static Glib::Mutex* lock;
 };
 
+static int titem_created = 0;
+static int titem_deleted = 0;
+
+class TItem: public Arc::ThreadDataItem {
+private:
+  int id;
+  ~TItem(void);
+public:
+  TItem(void);
+  virtual void Dup(void);
+};
+
+TItem::TItem(void):Arc::ThreadDataItem("titem") {
+  id=(++titem_created);
+}
+
+TItem::~TItem(void) {
+  ++titem_deleted;
+}
+
+void TItem::Dup(void) {
+  new TItem;
+}
 
 void ThreadTest::setUp() {
   counter = 0;
   lock = new Glib::Mutex;
+  new TItem;
 }
 
 
@@ -42,6 +66,8 @@ void ThreadTest::TestThread() {
   }
   sleep(30);
   CPPUNIT_ASSERT_EQUAL(500,counter);
+  CPPUNIT_ASSERT_EQUAL(501,titem_created);
+  CPPUNIT_ASSERT_EQUAL(500,titem_deleted);
 }
 
 void ThreadTest::func(void*) {

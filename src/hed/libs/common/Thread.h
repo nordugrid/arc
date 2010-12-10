@@ -62,6 +62,33 @@ namespace Arc {
      joinability is a needed feature */
   //bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr);
 
+  class ThreadData;
+
+  /// Base class for per-thread object.
+  /** Classes inherited from this one are attached to current thread under
+     specified key and destroyed only when thread ends or object is replaced by
+     another one with same key. */
+  class ThreadDataItem {
+  friend class ThreadData;
+  private:
+    ThreadDataItem(void);
+    ThreadDataItem(const ThreadDataItem& it);
+  protected:
+    virtual ~ThreadDataItem(void);
+  public:
+    /** Creates instance and attaches it to current thread uner key */
+    ThreadDataItem(const std::string& key);
+    /** Retrieves object attached to thread under key.
+       Returns if no such obejct. */
+    static ThreadDataItem* Get(const std::string& key);
+    /** Creates copy of object. 
+      This method is called when new thread is created from current thread.
+      It is called in new thread, so new object - if created - gets attached
+      to new thread. If object is not meant to be inherited by new threads
+      then this method should do nothing. */
+    virtual void Dup(void);
+  };
+
   /// Simple triggered condition.
   /** Provides condition and semaphor objects in one element. */
   class SimpleCondition {
