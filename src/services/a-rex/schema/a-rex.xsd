@@ -411,7 +411,7 @@
       </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="LRMSName" type="xsd:string">
+    <xsd:element name="LRMSName" type="xsd:anyURI">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Name of Local Resource Management System.

@@ -717,6 +717,11 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   common_name_ = (std::string)((*cfg)["commonName"]);
   long_description_ = (std::string)((*cfg)["longDescription"]);
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
+  // Must be URI. URL may be too restrictive, but is safe.
+  if(!Arc::URL(lrms_name_)) {
+    logger_.msg(Arc::ERROR, "Provided LRMSName is not a valid URL: %s",lrms_name_);
+  };
+  // TODO: check for enumeration values
   os_name_ = (std::string)((*cfg)["OperatingSystem"]);
   std::string debugLevel = (std::string)((*cfg)["debugLevel"]);
   if(!debugLevel.empty()) {
