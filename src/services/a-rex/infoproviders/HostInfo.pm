@@ -2,6 +2,7 @@ package HostInfo;
 
 use POSIX;
 use Sys::Hostname;
+use Time::Local;
 
 use strict;
 
@@ -118,7 +119,7 @@ sub grid_diskspace ($$) {
     return $users;
 }
 
-# Obtain the end date of a certificate
+# Obtain the end date of a certificate (in seconds since the epoch)
 sub enddate {
     my ($openssl, $certfile) = @_;
 
@@ -126,9 +127,9 @@ sub enddate {
     chomp (my $stdout=`$openssl x509 -noout -enddate -in '$certfile'`);
     return undef if $?;
 
-    my %mon = (Jan=>1,Feb=>2,Mar=>3,Apr=>4,May=>5,Jun=>6,Jul=>7,Aug=>8,Sep=>9,Oct=>10,Nov=>11,Dec=>12);
-    if ($stdout =~ m/notAfter=(\w{3})  ?(\d\d?) (\d\d):(\d\d):(\d\d) (\d{4}) GMT/ and $mon{$1}) {
-        return sprintf "%4d%02d%02d%02d%02d%02dZ",$6,$mon{$1},$2,$3,$4,$5;
+    my %mon = (Jan=>0,Feb=>1,Mar=>2,Apr=>3,May=>4,Jun=>5,Jul=>6,Aug=>7,Sep=>8,Oct=>9,Nov=>10,Dec=>11);
+    if ($stdout =~ m/notAfter=(\w{3})  ?(\d\d?) (\d\d):(\d\d):(\d\d) (\d{4}) GMT/ and exists $mon{$1}) {
+        return timegm($5,$4,$3,$2,$mon{$1},$6);
     } else {
         $log->warning("Unexpected -enddate from openssl for $certfile");
         return undef;

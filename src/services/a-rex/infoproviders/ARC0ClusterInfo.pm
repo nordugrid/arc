@@ -17,16 +17,10 @@ my $arc0_info_schema = ARC0ClusterSchema::arc0_info_schema();
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
-
-sub mds_valid($){
-    my $ttl = shift;
-    my $seconds = time;
-    my ($from, $to);
+sub mds_date {
+    my $seconds = shift;
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime($seconds);
-    $from = sprintf "%4d%02d%02d%02d%02d%02d%1s", $year+1900, $mon+1, $mday,$hour,$min,$sec,"Z";
-    ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime ($seconds+$ttl);
-    $to = sprintf "%4d%02d%02d%02d%02d%02d%1s", $year+1900,$mon+1,$mday,$hour,$min,$sec,"Z";
-    return $from, $to;
+    return sprintf "%4d%02d%02d%02d%02d%02d%1s", $year+1900, $mon+1, $mday,$hour,$min,$sec,"Z";
 }
 
 ############################################################################
@@ -55,8 +49,12 @@ sub get_cluster_info($) {
     my $gmjobs_info = $options->{gmjobs_info};
     my $lrms_info = $options->{lrms_info};
 
-    my $ttl = $config->{ttl};
-    my ($valid_from, $valid_to) = $ttl ? mds_valid($ttl) : ();
+    my ($valid_from, $valid_to) = ();
+    if ($config->{ttl}) {
+        my $t1 = time;
+        my $t2 = $t1 + $config->{ttl};
+        ($valid_from, $valid_to) = (mds_date($t1), mds_date($t2));
+    }
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};

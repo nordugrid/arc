@@ -20,7 +20,8 @@ my $arc1_info_schema = ARC1ClusterSchema::arc1_info_schema();
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 
-sub timenow(){
+# the time now in ISO 8061 format
+sub timenow {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime(time);
     return sprintf "%4d-%02d-%02dT%02d:%02d:%02d%1s", $year+1900, $mon+1, $mday,$hour,$min,$sec,"Z";
 }
@@ -632,8 +633,21 @@ sub get_cluster_info($) {
     $cep->{QualityLevel} = [ "development" ];
 
     # TODO: a way to detect if LRMS is up
-    $cep->{HealthState} = [ "ok" ];
-    #$cep->{HealthStateInfo} = [ "" ];
+    if (     $host_info->{hostcert_expired}
+          or $host_info->{issuerca_expired}) {
+        $cep->{HealthState} = [ "critical" ];
+        $cep->{HealthStateInfo} = [ "Host credentials expired" ];
+    } elsif (not $host_info->{hostcert_enddate}
+          or not $host_info->{issuerca_enddate}) {
+        $cep->{HealthState} = [ "critical" ];
+        $cep->{HealthStateInfo} = [ "Host credentials missing" ];
+    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+          or $host_info->{issuerca_enddate} - time < 48*3600) {
+        $cep->{HealthState} = [ "warning" ];
+        $cep->{HealthStateInfo} = [ "Host credentials will expire soon" ];
+    } else {
+        $cep->{HealthState} = [ "ok" ];
+    }
 
     # OBS: when is it 'queueing' and 'closed'?
     # OBS: allownew no longer supported by arex?
