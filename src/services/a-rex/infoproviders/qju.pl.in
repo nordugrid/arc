@@ -1107,7 +1107,7 @@ start_logging( $config{loglevel} );
 
 select_lrms( \%config );
 
-my (@checklist) = ('grid-manager', , 'gridftpd', 'arexgridftpd', 'arched' );
+my (@checklist) = ('grid-manager', 'gridftpd', 'arexgridftpd', 'arched' );
 %frontend_status = process_status ( @checklist );
 
 # --- Queue info from lrms ----------------------------------------

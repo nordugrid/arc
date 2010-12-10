@@ -18,7 +18,6 @@ our $host_options_schema = {
         x509_cert_dir  => '',
         sessiondir     => [ '' ],
         cachedir       => [ '*' ],
-        configfile     => '',
         processes      => [ '' ],
         localusers     => [ '' ],
         gmconfig       => '*',
@@ -42,6 +41,10 @@ our $host_info_schema = {
         cpusocketcount=> '*',
         issuerca      => '',
         issuerca_hash => '',
+        issuerca_enddate => '*',
+        issuerca_expired => '*',
+        hostcert_enddate => '*',
+        hostcert_expired => '*',
         trustedcas    => [ '' ],
         session_free  => '', # unit: MB
         session_total => '', # unit: MB
@@ -115,6 +118,23 @@ sub grid_diskspace ($$) {
     return $users;
 }
 
+# Obtain the end date of a certificate
+sub enddate {
+    my ($openssl, $certfile) = @_;
+
+    # assuming here that the file exists and is a well-formed certificate.
+    chomp (my $stdout=`$openssl x509 -noout -enddate -in '$certfile'`);
+    return undef if $?;
+
+    my %mon = (Jan=>1,Feb=>2,Mar=>3,Apr=>4,May=>5,Jun=>6,Jul=>7,Aug=>8,Sep=>9,Oct=>10,Nov=>11,Dec=>12);
+    if ($stdout =~ m/notAfter=(\w{3})  ?(\d\d?) (\d\d):(\d\d):(\d\d) (\d{4}) GMT/ and $mon{$1}) {
+        return sprintf "%4d%02d%02d%02d%02d%02dZ",$6,$mon{$1},$2,$3,$4,$5;
+    } else {
+        $log->warning("Unexpected -enddate from openssl for $certfile");
+        return undef;
+    }
+}
+
 
 sub get_host_info($) {
     my $options = shift;
@@ -132,49 +152,72 @@ sub get_host_info($) {
     $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo};
 
     # Globus location
-    my $globus_location ||= $ENV{GLOBUS_LOCATION} ||= "/usr";
-    $ENV{"LD_LIBRARY_PATH"} = $ENV{"LD_LIBRARY_PATH"} ?
-                              $ENV{"LD_LIBRARY_PATH"}.":$globus_location/lib" : "$globus_location/lib";
-    
+    my $globusloc = $ENV{GLOBUS_LOCATION} || "/usr";
+    if ($ENV{GLOBUS_LOCATION}) {
+        if ($ENV{LD_LIBRARY_PATH}) {
+            $ENV{LD_LIBRARY_PATH} .= ":$ENV{GLOBUS_LOCATION}/lib";
+        } else {
+            $ENV{LD_LIBRARY_PATH} = "$ENV{GLOBUS_LOCATION}/lib";
+        }
+    }
+
     # Hostcert issuer CA, trustedca, issuercahash
     timer_start("collecting certificates info");
 
     # find an openssl							          
-    my $openssl_command = '';
-    for my $path (split ':', "$ENV{PATH}:$globus_location/bin") {
-        $openssl_command = "$path/openssl" and last if -x "$path/openssl";
+    my $openssl = '';
+    for my $path (split ':', "$ENV{PATH}:$globusloc/bin") {
+        $openssl = "$path/openssl" and last if -x "$path/openssl";
     }
-    $log->error("Could not find openssl command") unless $openssl_command;
+    $log->error("Could not find openssl command") unless $openssl;
 
-    my $issuerca=`$openssl_command x509 -noout -issuer -in $options->{x509_user_cert} 2>/dev/null`;    
-    if ( $? ) {
-        $log->error("error in executing $openssl_command x509 -noout -issuer -in $options->{x509_user_cert}");
+    # Inspect host certificate
+    my $hostcert = $options->{x509_user_cert};
+    chomp (my $issuerca = `$openssl x509 -noout -issuer -in '$hostcert'`);
+    if ($?) {
+        $log->warning("Failed processing host certificate file: $hostcert") if $?;
+    } else {
+        $issuerca =~ s/issuer= //;
+        $host_info->{issuerca} = $issuerca;
+        $host_info->{hostcert_enddate} = enddate($openssl, $hostcert);
+        system("$openssl x509 -noout -checkend 3600 -in '$hostcert'");
+        $host_info->{hostcert_expired} = $? ? 1 : 0;
+        $log->warning("Host certificate is expired in file: $hostcert") if $?;
     }
-    if ( $issuerca =~ s/issuer= // ) {
-        chomp($issuerca);
-    }
-    $host_info->{issuerca} = $issuerca;
 
-    my @certfiles = `ls $options->{x509_cert_dir}/*.0`;
-    $log->error("No cerificates found in ".$options->{x509_cert_dir}) unless @certfiles;
-    my $issuerca_hash;
-    my @trustedca;
-    foreach my $cert ( @certfiles ) {
-       my $ca_sn = `$openssl_command x509 -checkend 60 -noout -subject -in $cert`;
+    # List certs and elliminate duplication in case 2 soft links point to the same file.
+    my %certfiles;
+    my $certdir = $options->{x509_cert_dir};
+    opendir(CERTDIR, $certdir) or $log->error("Failed listing certificates directory $certdir: $!");
+    for (readdir CERTDIR) {
+        next unless m/\.\d$/;
+        my $file = $certdir."/".$_;
+        my $link = -l $file ? readlink $file : $_;
+        $certfiles{$link} = $file;
+    }
+    closedir CERTDIR;
+
+    my %trustedca;
+    foreach my $cert ( sort values %certfiles ) {
+       chomp (my $ca_sn = `$openssl x509 -checkend 3600 -noout -subject -in '$cert'`);
+       my $is_expired = $?;
        $ca_sn =~ s/subject= //;
-       chomp($ca_sn);
-       if ( $ca_sn eq $issuerca) {
-          $issuerca_hash = `$openssl_command x509 -checkend 60 -noout -hash -in $cert`;
-          $host_info->{issuerca_hash} = $issuerca_hash;
-          chomp $host_info->{issuerca_hash};
+       if ($ca_sn eq $issuerca) {
+           chomp (my $issuerca_hash = `$openssl x509 -noout -hash -in '$cert'`);
+           if ($?) {
+               $log->warning("Failed processing issuer CA certificate file: $cert");
+           } else {
+               $host_info->{issuerca_hash} = $issuerca_hash || undef;
+               $host_info->{issuerca_enddate} = enddate($openssl, $cert);
+               $host_info->{issuerca_expired} = $is_expired ? 1 : 0;
+               $log->warning("Issuer CA certificate is expired in file: $cert") if $is_expired;
+           }
        }
-       if ($?) {
-         $log->warning("CA $ca_sn is expired");
-         next;
-       }
-       push @trustedca, $ca_sn;
+       $log->warning("Certificate is expired for CA: $ca_sn") if $is_expired;
+       $trustedca{$ca_sn} = 1 unless $is_expired;
     }
-    $host_info->{trustedcas} = \@trustedca;
+    $host_info->{trustedcas} = [ sort keys %trustedca ];
+    $log->warning("Issuer CA certificate file not found") unless exists $host_info->{issuerca_hash};
 
     timer_stop();
     
@@ -204,14 +247,14 @@ sub get_host_info($) {
     #Globus Toolkit version
     #globuslocation/share/doc/VERSION
     my $globusversion;
-    if (-r "$globus_location/share/doc/VERSION" ) {
-       chomp ( $globusversion =  `cat $globus_location/share/doc/VERSION 2>/dev/null`);
+    if (-r "$globusloc/share/doc/VERSION" ) {
+       chomp ( $globusversion =  `cat $globusloc/share/doc/VERSION 2>/dev/null`);
        if ($?) { $log->warning("Failed reading the globus version file")}   
     }
     #globuslocation/bin/globus-version
-    elsif (-x "$globus_location/bin/globus-version" ) {
-       chomp ( $globusversion =  `$globus_location/bin/globus-version 2>/dev/null`);
-       if ($?) { $log->warning("Failed running $globus_location/bin/globus-version command")}
+    elsif (-x "$globusloc/bin/globus-version" ) {
+       chomp ( $globusversion =  `$globusloc/bin/globus-version 2>/dev/null`);
+       if ($?) { $log->warning("Failed running $globusloc/bin/globus-version command")}
     }
     $host_info->{globusversion} = $globusversion if $globusversion;
 
@@ -233,7 +276,7 @@ sub test {
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root adrianta) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
-    LogUtils::level('VERBOSE');
+    LogUtils::level('DEBUG');
     $log->debug("Options:\n" . Dumper($options));
     my $results = HostInfo::collect($options);
     $log->debug("Results:\n" . Dumper($results));

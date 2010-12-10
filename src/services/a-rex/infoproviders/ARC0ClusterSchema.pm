@@ -120,6 +120,7 @@ sub arc0_info_schema {
             'nc0:location' => [ '*' ],
             'nc0:issuerca' => [ '' ],
             'nc0:issuerca-hash' => [ '' ],
+            'nc0:credentialexpirationtime' => [ '' ],
             'nc0:trustedca' => [ '' ],
             'nc0:contactstring' => [ '' ],
             'nc0:interactive-contactstring' => [ '*' ],

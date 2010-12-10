@@ -286,7 +286,7 @@ sub diskinfo ($) {
             }
         }
     } else {
-        $log->warning("Not such directory: $path");
+        $log->warning("No such directory: $path");
     }
 
     return undef if not defined $disktotal;

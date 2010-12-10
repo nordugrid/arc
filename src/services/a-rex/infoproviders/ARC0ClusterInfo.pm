@@ -205,6 +205,13 @@ sub get_cluster_info($) {
     $inbound = 1 if ($config->{service}{connectivityIn} || 'false') eq 'true';
     $outbound = 1 if ($config->{service}{connectivityOut} || 'false') eq 'true';
 
+    # the earliest of hostcert and cacert enddates.
+    my $credenddate;
+    if ($host_info->{issuerca_enddate} and $host_info->{hostcert_enddate}) {
+        $credenddate = ( $host_info->{hostcert_enddate} lt $host_info->{issuerca_enddate} )
+                       ? $host_info->{hostcert_enddate}  : $host_info->{issuerca_enddate};
+    }
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -223,6 +230,7 @@ sub get_cluster_info($) {
     $c->{'nc0:location'} = [ $config->{location}{PostCode} ] if $config->{location}{PostCode};
     $c->{'nc0:issuerca'} = [ $host_info->{issuerca} ] if $host_info->{issuerca};
     $c->{'nc0:issuerca-hash'} = [ $host_info->{issuerca_hash} ] if $host_info->{issuerca_hash};
+    $c->{'nc0:credentialexpirationtime'} = [ $credenddate ] if $credenddate;
     $c->{'nc0:trustedca'} = $host_info->{trustedcas} if $host_info->{trustedcas};
     $c->{'nc0:contactstring'} = [ "gsiftp://$host_info->{hostname}:$config->{gm_port}$config->{gm_mount_point}" ]
         if $config->{gm_port} and $config->{gm_mount_point};
@@ -298,6 +306,10 @@ sub get_cluster_info($) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager does not accept new jobs' ];
         } elsif (not $host_info->{processes}{'grid-manager'}) {
             $q->{'nq0:status'} = [ 'inactive, grid-manager is down' ];   
+        } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
+            $q->{'nq0:status'} = [ 'inactive, host credentials missing' ];
+        } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {
+            $q->{'nq0:status'} = [ 'inactive, host credentials expired' ];
         } elsif ( $qinfo->{status} < 0 ) {
             $q->{'nq0:status'} = [ 'inactive, LRMS interface returns negative status' ];
         } else {
