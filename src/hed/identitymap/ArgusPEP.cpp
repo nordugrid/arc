@@ -143,7 +143,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
          int i = 0;
          for(i = 0; i<results_l; i++) {
              xacml_result_t * result = xacml_response_getresult(response,i);        
-             if(result = NULL) break;
+             if(result == NULL) break;
                  switch(xacml_result_getdecision(result)) {
                      case XACML_DECISION_DENY: decision = XACML_DECISION_DENY; break;
                      case XACML_DECISION_PERMIT: decision = XACML_DECISION_PERMIT; break;
