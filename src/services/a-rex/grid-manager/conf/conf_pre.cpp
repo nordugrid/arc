@@ -28,8 +28,12 @@ bool configure_user_dirs(const std::string &my_username,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin &cred_plugin,
                 std::string& allow_submit,bool& strict_session,
+                std::string& endpoint,
                 const GMEnvironment& env) {
   std::ifstream cfile;
+  int gm_port = 0;
+  std::string gm_mount_point;
+  std::string gm_hostname;
   //read_env_vars(true);
   bool configured = false;
   std::string central_control_dir("");
@@ -189,6 +193,7 @@ bool configure_user_dirs(const std::string &my_username,
       cf->AddSection("common");
       cf->AddSection("grid-manager");
       cf->AddSection("queue");
+      cf->AddSection("cluster");
       for(;;) {
         std::string rest;
         std::string command;
@@ -210,6 +215,20 @@ bool configure_user_dirs(const std::string &my_username,
           if(command == "name") {
             if(last_queue != queues.end()) *last_queue=config_next_arg(rest);
           };
+        }
+        else if(cf->SectionNum() == 3) { // cluster
+          if(command == "gm_port") {
+            char *ep;
+            gm_port = strtoul(config_next_arg(rest).c_str(),&ep,10);
+            if((*ep != 0) || (gm_port<0)) { config_close(cfile); if(cf) delete cf; return false; };
+          } else if(command == "gm_mount_point") {
+            gm_mount_point = config_next_arg(rest);
+          } else if(command == "hostname") {
+            gm_hostname = config_next_arg(rest);
+          };
+        }
+        else if(command == "hostname") {
+          gm_hostname = config_next_arg(rest);
         }
         else if(command == "lrms") {
           if(configured) continue;
@@ -310,6 +329,15 @@ bool configure_user_dirs(const std::string &my_username,
   };
   config_close(cfile);
   if(cf) delete cf;
+  if(gm_hostname.empty()) {
+    char buf[256];
+    buf[0]=0; buf[255]=0;
+    ::gethostname(buf,255);
+    gm_hostname=buf;
+  };
+  if(gm_port <= 0) gm_port=2811;
+  if(gm_mount_point[0] != '/') gm_mount_point = "/"+gm_mount_point;;
+  endpoint = "gsiftp://"+gm_hostname+":"+Arc::tostring(gm_port)+gm_mount_point;
   return configured;
 }
 

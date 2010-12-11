@@ -212,7 +212,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
           control_dir,session_roots,
           session_dirs_non_draining,
           default_lrms,default_queue,avail_queues,*cont_plugins,*cred_plugin,
-          allowsubmit,strict_session, env)) {
+          allowsubmit,strict_session,endpoint,env)) {
           logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
           initialized=false;
         } else if (gm_dirs_info.size() > 0 && session_roots.size() > 1) {
@@ -817,6 +817,12 @@ int JobPlugin::close(bool eof) {
        Arc::tostring(host[0])+"."+Arc::tostring(host[1])+"."+
        Arc::tostring(host[2])+"."+Arc::tostring(host[3])+":"+
        Arc::tostring(port);
+  };
+  std::string globalid = endpoint;
+  if(!globalid.empty()) {
+    if(globalid[globalid.length()-1] != '/') globalid+="/";
+    globalid+=job_id;
+    job_desc.globalid=globalid;
   };
   /* ***********************************************
    * Try to create proxy                           *

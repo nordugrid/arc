@@ -46,6 +46,7 @@ class JobPlugin: public FilePlugin {
   std::string subject;
   unsigned short int port;
   int host[4];
+  std::string endpoint;
   std::string proxy_fname; /* name of proxy file passed by client */
   std::string job_id;
   unsigned int job_rsl_max_size;
