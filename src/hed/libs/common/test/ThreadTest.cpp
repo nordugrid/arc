@@ -29,14 +29,21 @@ static int titem_deleted = 0;
 
 class TItem: public Arc::ThreadDataItem {
 private:
+  std::string tid;
   int id;
   ~TItem(void);
 public:
   TItem(void);
+  TItem(const TItem& parent);
   virtual void Dup(void);
 };
 
-TItem::TItem(void):Arc::ThreadDataItem("titem") {
+TItem::TItem(void) {
+  Attach(tid);
+  id=(++titem_created);
+}
+
+TItem::TItem(const TItem& parent):Arc::ThreadDataItem(parent.tid) {
   id=(++titem_created);
 }
 
@@ -45,7 +52,7 @@ TItem::~TItem(void) {
 }
 
 void TItem::Dup(void) {
-  new TItem;
+  new TItem(*this);
 }
 
 void ThreadTest::setUp() {

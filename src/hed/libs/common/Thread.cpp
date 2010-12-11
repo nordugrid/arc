@@ -20,6 +20,7 @@
 
 #include <arc/Logger.h>
 #include <arc/User.h>
+#include <arc/GUID.h>
 
 #include "Thread.h"
 
@@ -437,7 +438,6 @@ namespace Arc {
   }
 
   ThreadDataItem::ThreadDataItem(void) {
-    // Never happens
   }
 
   ThreadDataItem::ThreadDataItem(const ThreadDataItem& it) {
@@ -449,8 +449,29 @@ namespace Arc {
   }
 
   ThreadDataItem::ThreadDataItem(const std::string& key) {
+    Attach(key);
+  }
+
+  void ThreadDataItem::Attach(const std::string& key) {
+    if(key.empty()) return;
     ThreadData* data = ThreadData::Get();
     if(data) data->AddItem(key,this);
+  }
+
+  ThreadDataItem::ThreadDataItem(std::string& key) {
+    Attach(key);
+  }
+
+  void ThreadDataItem::Attach(std::string& key) {
+    ThreadData* data = ThreadData::Get();
+    if(!data) return;
+    if(key.empty()) {
+      for(;;) {
+        key = UUID();
+        if(!(data->GetItem(key))) break;
+      };
+    };
+    data->AddItem(key,this);
   }
 
   ThreadDataItem* ThreadDataItem::Get(const std::string& key) {

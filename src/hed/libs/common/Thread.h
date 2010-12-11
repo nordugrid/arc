@@ -71,13 +71,28 @@ namespace Arc {
   class ThreadDataItem {
   friend class ThreadData;
   private:
-    ThreadDataItem(void);
     ThreadDataItem(const ThreadDataItem& it);
   protected:
     virtual ~ThreadDataItem(void);
   public:
-    /** Creates instance and attaches it to current thread uner key */
+    /** Dummy constructor which does nothing.
+      To make object usable one of Attach(...) methods must be used. */
+    ThreadDataItem(void);
+    /** Creates instance and attaches it to current thread under key.
+       If supplied key is empty random one is generated and stored in 
+       key variable. */
+    ThreadDataItem(std::string& key);
+    /** Creates instance and attaches it to current thread under key. */
     ThreadDataItem(const std::string& key);
+    /** Attaches object to  current thread under key.
+       If supplied key is empty random one is generated and stored in 
+       key variable. This method must be used only if object was
+       created using dummy constructor. */
+    void Attach(std::string& key);
+    /** Attaches object to  current thread under key.
+       This method must be used only if object was created using 
+       dummy constructor. */
+    void Attach(const std::string& key);
     /** Retrieves object attached to thread under key.
        Returns if no such obejct. */
     static ThreadDataItem* Get(const std::string& key);

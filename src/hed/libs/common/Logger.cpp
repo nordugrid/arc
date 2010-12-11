@@ -376,6 +376,23 @@ namespace Arc {
     }
   }
 
+  class LoggerThreadRef: public ThreadDataItem {
+  private:
+    Logger* logger_;
+  public:
+    LoggerThreadRef(Logger* logger);
+    virtual void Dup(void);
+    operator Logger*(void) { return logger_; };
+  };
+
+  LoggerThreadRef::LoggerThreadRef(Logger* logger):
+              ThreadDataItem("ARC:LOGGER"),logger_(logger) {
+  }
+
+  void LoggerThreadRef::Dup(void) {
+    new LoggerThreadRef(logger_);
+  }
+
   Logger* Logger::rootLogger = NULL;
   std::map<std::string,LogLevel>* Logger::defaultThresholds = NULL;
   unsigned int Logger::rootLoggerMark = ~rootLoggerMagic;
@@ -385,6 +402,7 @@ namespace Arc {
       rootLogger = new Logger();
       defaultThresholds = new std::map<std::string,LogLevel>;
       rootLoggerMark = rootLoggerMagic;
+      new LoggerThreadRef(rootLogger);
     }
     return *rootLogger;
   }
