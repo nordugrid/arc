@@ -405,8 +405,8 @@ job expire in Generalized Time format
 \item \textit{queue} -- name of the queue to run the job at
 \item \textit{localid} -- job id in LRMS (appears only after the job has
 reached state \textbf{InLRMS})
-\item \textit{globalid} -- BES ActivityIdentifier XML tree, the global
-identifier of the job
+\item \textit{globalid} -- BES ActivityIdentifier XML tree or GridFTP URL,
+ the global identifier of the job for accessing it from outside
 \item \textit{args} -- executable name followed by a list of command-line
 arguments
 \item \textit{downloads} -- number of files to download into the SD before
@@ -1864,6 +1864,24 @@ stage also happens on computing node and is not reliable. If the job
 is killed by LRMS they most probably won't be executed.
 
 For publicly available runtime environments please see the RTE repository at \url{http://gridrer.csc.fi/}.
+
+\section{Job environment\label{sec:job}}
+
+Because setup of resources represented by A-REX may vary a lot it is important to 
+understand which features of execution environment to expect. A-REX ensures 
+following:
+
+\begin{list}{--}{\setlength{\labelwidth}{0.5cm}\setlength{\rightmargin}{\leftmargin}}
+\item Specified executable is started with current directory set to session directory.
+\item Executable is started under account which owns session directory.
+\item Due to caching input files are not always writable by job's local account unless
+\emph{readonly=no} URL option is specified for those files.
+\item Environment variable GRID\_GLOBAL\_JOBID contains job's identifier usable for 
+accessing job from outside through A-REX. Currently that is either XML of Activity
+Identifier ot GridFTP URL depending on used interface.
+\item Subject to requested Runtime Environments corresponding environment variables
+are set and executable and data packages are made available.
+\end{list}
 
 \section{Installation\label{sec:installation}}
 
