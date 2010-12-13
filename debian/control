@@ -251,8 +251,7 @@ Provides: nordugrid-arc1-arex
 Replaces: nordugrid-arc1-arex (<< 1.0.0~)
 Conflicts: nordugrid-arc1-arex (<< 1.0.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}
-, nordugrid-arc-nox-hed, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-nox-plugins-base, libxml-simple-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, nordugrid-arc-nox-hed, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-nox-plugins-base, libxml-simple-perl
 Description: ARC Remote EXecution service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
