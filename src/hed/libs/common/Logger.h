@@ -377,6 +377,19 @@ namespace Arc {
     Glib::Mutex mutex;
   };
 
+  class LoggerContext {
+    friend class Logger;
+    private:
+      //! A list of pointers to LogDestinations.
+      std::list<LogDestination*> destinations;
+
+      //! The threshold of Logger.
+      LogLevel threshold;
+
+      LoggerContext(LogLevel thr):threshold(thr) { };
+  };
+ 
+
   //! A logger class
   /*! This class defines a Logger to which LogMessages can be sent.
 
@@ -449,9 +462,25 @@ namespace Arc {
      */
     void setThreshold(LogLevel threshold);
 
+    //! Sets the threshold for domain
+    /*! This method sets the default threshold of the domain. All new loggers 
+       created with specified domain will have specified threshold set by default.
+       The subdomains of all loggers in chain are matched against list of provided
+       subdomains.
+       @param threshold The threshold
+       @param subdomains The subdomains of all loggers in chain
+     */
     static void setThresholdForDomain(LogLevel threshold,
                                       const std::list<std::string>& subdomains);
 
+    //! Sets the threshold for domain
+    /*! This method sets the default threshold of the domain. All new loggers 
+       created with specified domain will have specified threshold set by default.
+       The domain is composed of all subdomains of all loggers in chain by merging
+       them with '.' as separator.
+       @param threshold The threshold
+       @param domain The domain of logger
+     */
     static void setThresholdForDomain(LogLevel threshold,
                                       const std::string& domain);
 
@@ -460,6 +489,14 @@ namespace Arc {
        @return The threshold of this Logger.
      */
     LogLevel getThreshold() const;
+
+    //! Creates per-thread context.
+    /*! Creates new context for this logger which becomes effective
+       for operations initiated by this thread. All new threads 
+       started by this one will inherit new context. Context
+       stores current threshold and pointers to destinations.
+     */
+    void setThreadContext(void);
 
     //! Sends a LogMessage.
     /*! Sends a LogMessage.
@@ -577,11 +614,12 @@ namespace Arc {
     //! The domain of this logger.
     std::string domain;
 
-    //! A list of pointers to LogDestinations.
-    std::list<LogDestination*> destinations;
+    //! Per-trhread storage id for context;
+    std::string context_id;
 
-    //! The threshold of this Logger.
-    LogLevel threshold;
+    LoggerContext context;
+
+    LoggerContext& getContext(void);
 
 #define rootLoggerMagic (0xF6569201)
     static Logger *rootLogger;

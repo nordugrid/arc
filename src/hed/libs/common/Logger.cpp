@@ -376,12 +376,30 @@ namespace Arc {
     }
   }
 
-  class LoggerThreadRef: public ThreadDataItem {
+  class LoggerContextRef: public ThreadDataItem {
+    friend class Logger;
+    private:
+      std::string id;
+      LoggerContext& context;
+      LoggerContextRef(LoggerContext& ctx, std::string& i);
+    public:
+      virtual void Dup(void);
+  };
+
+  LoggerContextRef::LoggerContextRef(LoggerContext& ctx, std::string& i):
+                                               ThreadDataItem(i),context(ctx) {
+    id = i;
+  }
+
+  void LoggerContextRef::Dup(void) {
+    new LoggerContextRef(context,id);
+  }
+
+/*
   private:
     Logger* logger_;
   public:
     LoggerThreadRef(Logger* logger);
-    virtual void Dup(void);
     operator Logger*(void) { return logger_; };
   };
 
@@ -392,6 +410,7 @@ namespace Arc {
   void LoggerThreadRef::Dup(void) {
     new LoggerThreadRef(logger_);
   }
+*/
 
   Logger* Logger::rootLogger = NULL;
   std::map<std::string,LogLevel>* Logger::defaultThresholds = NULL;
@@ -402,7 +421,6 @@ namespace Arc {
       rootLogger = new Logger();
       defaultThresholds = new std::map<std::string,LogLevel>;
       rootLoggerMark = rootLoggerMagic;
-      new LoggerThreadRef(rootLogger);
     }
     return *rootLogger;
   }
@@ -411,11 +429,11 @@ namespace Arc {
                  const std::string& subdomain)
     : parent(&parent),
       domain(parent.getDomain() + "." + subdomain),
-      threshold((LogLevel)0) {
+      context((LogLevel)0) {
     std::map<std::string,LogLevel>::const_iterator thr =
                                    defaultThresholds->find(domain);
     if(thr != defaultThresholds->end()) {
-      threshold = thr->second;
+      context.threshold = thr->second;
     }
   }
 
@@ -424,22 +442,22 @@ namespace Arc {
                  LogLevel threshold)
     : parent(&parent),
       domain(parent.getDomain() + "." + subdomain),
-      threshold(threshold) {
+      context(threshold) {
   }
 
   Logger::~Logger() {
   }
 
   void Logger::addDestination(LogDestination& destination) {
-    destinations.push_back(&destination);
+    getContext().destinations.push_back(&destination);
   }
 
   void Logger::removeDestinations(void) {
-    destinations.clear();
+    getContext().destinations.clear();
   }
 
   void Logger::setThreshold(LogLevel threshold) {
-    this->threshold = threshold;
+    this->getContext().threshold = threshold;
   }
 
   void Logger::setThresholdForDomain(LogLevel threshold,
@@ -458,9 +476,32 @@ namespace Arc {
   }
 
   LogLevel Logger::getThreshold() const {
-    if(threshold != (LogLevel)0) return threshold;
+    const LoggerContext& ctx = ((Logger*)this)->getContext();
+    if(ctx.threshold != (LogLevel)0) return ctx.threshold;
     if(parent) return parent->getThreshold();
     return (LogLevel)0;
+  }
+
+  void Logger::setThreadContext(void) {
+
+
+
+
+
+  }
+
+  LoggerContext& Logger::getContext(void) {
+    if(context_id.empty()) return context;
+    try {
+      ThreadDataItem* item = ThreadDataItem::Get(context_id);
+      if(!item) return context;
+      LoggerContextRef* citem = dynamic_cast<LoggerContextRef*>(item);
+      if(!citem) return context;
+      return citem->context;
+    } catch(std::exception&) {
+    };
+    return context;
+    
   }
 
   void Logger::msg(LogMessage message) {
@@ -473,11 +514,11 @@ namespace Arc {
   Logger::Logger()
     : parent(0),
       domain("Arc"),
-      threshold(DEBUG) {
+      context(DEBUG) {
     // addDestination(cerr);
   }
 
-  Logger::Logger(const Logger&) {
+  Logger::Logger(const Logger& logger):context(logger.context) {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
@@ -492,9 +533,10 @@ namespace Arc {
   }
 
   void Logger::log(const LogMessage& message) {
+    LoggerContext& ctx = getContext();
     std::list<LogDestination*>::iterator dest;
-    std::list<LogDestination*>::iterator begin = destinations.begin();
-    std::list<LogDestination*>::iterator end = destinations.end();
+    std::list<LogDestination*>::iterator begin = ctx.destinations.begin();
+    std::list<LogDestination*>::iterator end = ctx.destinations.end();
     for (dest = begin; dest != end; ++dest)
       (*dest)->log(message);
     if (parent)

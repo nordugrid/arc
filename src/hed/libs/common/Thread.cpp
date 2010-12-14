@@ -38,8 +38,14 @@ namespace Arc {
     typedef std::map<std::string,ThreadDataItem*>::iterator items_iterator;
     typedef std::pair<std::string,ThreadDataItem*> items_pair;
     Glib::Mutex lock_;
+    // This counter is needed because due to delayed thread creation
+    // parent instance may be already destroyed while child is not yet
+    // created. Another solution would be to do Inherit() in parent thread.
+    // but then interface of ThreadDataItem would become too complicated.
+    int usage_count;
     ThreadData(void);
-    ~ThreadData(void);
+    ~ThreadData(void); // Do not call this
+    void Acquire(void);
   public:
     // Get ThreadData instance of current thread
     static ThreadData* Get(void);
@@ -51,6 +57,8 @@ namespace Arc {
     void AddItem(const std::string& key,ThreadDataItem* item);
     // Fetch item from this instance
     ThreadDataItem* GetItem(const std::string& key);
+    // Decrease counter and destroy object if 0.
+    void Release(void);
   };
 
 #ifdef USE_THREAD_POOL
@@ -198,7 +206,10 @@ namespace Arc {
 
   void ThreadArgument::thread(void) {
     ThreadData* tdata = ThreadData::Get();
-    if(tdata) tdata->Inherit(data);
+    if(tdata) {
+      tdata->Inherit(data);
+      tdata->Release();
+    }
 #ifdef USE_THREAD_POOL
     ThreadInc resource_;
     release();
@@ -379,7 +390,8 @@ namespace Arc {
     if(d != datas_.end()) {
       ThreadData* data = d->second;
       datas_.erase(d);
-      delete data;
+      data->Release();
+      //delete data;
     }
     lock_.unlock();
   }
@@ -391,11 +403,14 @@ namespace Arc {
       d->second->Dup();
     };
     parent->lock_.unlock();
+    parent->Release();
   }
 
   ThreadData* ThreadData::Get(void) {
     if(!data_pool) return NULL;
-    return data_pool->GetData();
+    ThreadData* data = data_pool->GetData();
+    if(data) data->Acquire();
+    return data;
   }
 
   void ThreadData::Remove(void) {
@@ -403,11 +418,27 @@ namespace Arc {
     data_pool->RemoveData();
   }
 
-  ThreadData::ThreadData(void) {
+  ThreadData::ThreadData(void):usage_count(1) {
+  }
+
+  void ThreadData::Acquire(void) {
+    lock_.lock();
+    ++usage_count;
+    lock_.unlock();
+  }
+
+  void ThreadData::Release(void) {
+    lock_.lock();
+    if(usage_count) --usage_count;
+    if(!usage_count) {
+      delete this;
+    } else {
+      lock_.unlock();
+    }
   }
 
   ThreadData::~ThreadData(void) {
-    lock_.lock();
+    //lock_.lock();
     for(items_iterator i = items_.begin(); i != items_.end(); ++i) {
       delete i->second;
     };
@@ -455,7 +486,10 @@ namespace Arc {
   void ThreadDataItem::Attach(const std::string& key) {
     if(key.empty()) return;
     ThreadData* data = ThreadData::Get();
-    if(data) data->AddItem(key,this);
+    if(data) {
+      data->AddItem(key,this);
+      data->Release();
+    }
   }
 
   ThreadDataItem::ThreadDataItem(std::string& key) {
@@ -472,12 +506,15 @@ namespace Arc {
       };
     };
     data->AddItem(key,this);
+    data->Release();
   }
 
   ThreadDataItem* ThreadDataItem::Get(const std::string& key) {
     ThreadData* data = ThreadData::Get();
     if(!data) return NULL;
-    return data->GetItem(key);
+    ThreadDataItem* item = data->GetItem(key);
+    data->Release();
+    return item;
   }
 
   void ThreadDataItem::Dup(void) {
