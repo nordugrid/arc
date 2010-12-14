@@ -449,14 +449,17 @@ namespace Arc {
   }
 
   void Logger::addDestination(LogDestination& destination) {
+    Glib::Mutex::Lock lock(mutex);
     getContext().destinations.push_back(&destination);
   }
 
   void Logger::removeDestinations(void) {
+    Glib::Mutex::Lock lock(mutex);
     getContext().destinations.clear();
   }
 
   void Logger::setThreshold(LogLevel threshold) {
+    Glib::Mutex::Lock lock(mutex);
     this->getContext().threshold = threshold;
   }
 
@@ -476,6 +479,7 @@ namespace Arc {
   }
 
   LogLevel Logger::getThreshold() const {
+    Glib::Mutex::Lock lock((Glib::Mutex&)mutex);
     const LoggerContext& ctx = ((Logger*)this)->getContext();
     if(ctx.threshold != (LogLevel)0) return ctx.threshold;
     if(parent) return parent->getThreshold();
@@ -483,11 +487,9 @@ namespace Arc {
   }
 
   void Logger::setThreadContext(void) {
-
-
-
-
-
+    Glib::Mutex::Lock lock(mutex);
+    LoggerContext* nctx = new LoggerContext(getContext());
+    new LoggerContextRef(*nctx,context_id);
   }
 
   LoggerContext& Logger::getContext(void) {
@@ -533,6 +535,7 @@ namespace Arc {
   }
 
   void Logger::log(const LogMessage& message) {
+    Glib::Mutex::Lock lock(mutex);
     LoggerContext& ctx = getContext();
     std::list<LogDestination*>::iterator dest;
     std::list<LogDestination*>::iterator begin = ctx.destinations.begin();

@@ -287,7 +287,7 @@ namespace Arc {
     /*! This mutex is locked before a LogMessage is written and it is
        not unlocked until the entire message has been written and the
        stream flushed. This is done in order to prevent LogMessages to
-       appear mioxed in the stream.
+       appear mixed in the stream.
      */
     Glib::Mutex mutex;
 
@@ -377,16 +377,23 @@ namespace Arc {
     Glib::Mutex mutex;
   };
 
+  //! Container for logger configuration
   class LoggerContext {
     friend class Logger;
     private:
+      //! This counts how many threads are using this object.
+      int usage_count;
+
       //! A list of pointers to LogDestinations.
       std::list<LogDestination*> destinations;
 
       //! The threshold of Logger.
       LogLevel threshold;
 
-      LoggerContext(LogLevel thr):threshold(thr) { };
+      LoggerContext(LogLevel thr):usage_count(0),threshold(thr) { };
+
+      LoggerContext(const LoggerContext& ctx):
+             usage_count(0),destinations(ctx.destinations),threshold(ctx.threshold) { };
   };
  
 
@@ -495,6 +502,10 @@ namespace Arc {
        for operations initiated by this thread. All new threads 
        started by this one will inherit new context. Context
        stores current threshold and pointers to destinations.
+       Hence new context is identical to current one. One can 
+       modify new context using setThreshold(), removeDestinations()
+       and addDestination(). All such operations will not affect
+       old context.
      */
     void setThreadContext(void);
 
@@ -620,6 +631,8 @@ namespace Arc {
     LoggerContext context;
 
     LoggerContext& getContext(void);
+
+    Glib::Mutex mutex;
 
 #define rootLoggerMagic (0xF6569201)
     static Logger *rootLogger;
