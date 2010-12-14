@@ -158,16 +158,17 @@ namespace Arc {
       logger.msg(VERBOSE, "No SOAP response");
       return SRM_ERROR_SOAP;
     }
-    if ((*response)->IsFault()) {
-      logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
-      delete *response;
-      return SRM_ERROR_SOAP;
-    }
 
     if (logger.getThreshold() <= DEBUG) {
       std::string xml;
       (*response)->GetXML(xml, true);
       logger.msg(DEBUG, "SOAP response: %s", xml);
+    }
+
+    if ((*response)->IsFault()) {
+      logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
+      delete *response;
+      return SRM_ERROR_SOAP;
     }
 
     return SRM_OK;

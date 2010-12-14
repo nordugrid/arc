@@ -1172,8 +1172,8 @@ namespace Arc {
     }
 
     PayloadSOAP request(ns);
-    XMLNode req = request.NewChild("SRMv2:srmAbort")
-                  .NewChild("srmAbortRequest");
+    XMLNode req = request.NewChild("SRMv2:srmAbortRequest")
+                  .NewChild("srmAbortRequestRequest");
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
@@ -1181,7 +1181,7 @@ namespace Arc {
     if (status != SRM_OK)
       return status;
 
-    XMLNode res = (*response)["srmAbortResponse"]["srmAbortResponse"];
+    XMLNode res = (*response)["srmAbortRequestResponse"]["srmAbortRequestResponse"];
 
     std::string explanation;
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
