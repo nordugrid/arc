@@ -755,14 +755,17 @@ namespace Arc {
       f->SetMetaData("path", path);
       f->SetSize(st.filesize);
       f->SetMetaData("size", tostring(st.filesize));
+      SetSize(st.filesize);
       if (st.csumvalue[0]) {
         std::string csum = st.csumtype;
         csum += ":";
         csum += st.csumvalue;
         f->SetCheckSum(csum);
         f->SetMetaData("checksum", csum);
+        SetCheckSum(csum);
       }
       f->SetCreated(st.mtime);
+      SetCreated(Arc::Time(st.mtime));
       f->SetMetaData("mtime", f->GetCreated().str());
       f->SetType((st.filemode & S_IFDIR) ? FileInfo::file_type_dir : FileInfo::file_type_file);
       f->SetMetaData("type", (st.filemode & S_IFDIR) ? "dir" : "file");
