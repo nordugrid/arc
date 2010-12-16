@@ -473,7 +473,7 @@ namespace Arc {
     //! Adds LogDestinations.
     /*! See addDestination(LogDestination& destination).
      */
-    void addDestinations(std::list<LogDestination*>& destinations);
+    void addDestinations(const std::list<LogDestination*>& destinations);
 
     //! Obtains current LogDestinations.
     /*! Returns list of pointers to LogDestination objects. Returned result

@@ -463,9 +463,9 @@ namespace Arc {
     getContext().destinations.push_back(&destination);
   }
 
-  void Logger::addDestinations(std::list<LogDestination*>& destinations) {
+  void Logger::addDestinations(const std::list<LogDestination*>& destinations) {
     Glib::Mutex::Lock lock(mutex);
-    for(std::list<LogDestination*>::iterator dest = destinations.begin();
+    for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
       getContext().destinations.push_back(*dest);
     }
