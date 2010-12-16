@@ -377,12 +377,18 @@ namespace Arc {
     Glib::Mutex mutex;
   };
 
+  class LoggerContextRef;
+
   //! Container for logger configuration
   class LoggerContext {
     friend class Logger;
+    friend class LoggerContextRef;
     private:
       //! This counts how many threads are using this object.
       int usage_count;
+
+      //! Protection for usage_count.
+      Glib::Mutex mutex;
 
       //! A list of pointers to LogDestinations.
       std::list<LogDestination*> destinations;
@@ -394,6 +400,12 @@ namespace Arc {
 
       LoggerContext(const LoggerContext& ctx):
              usage_count(0),destinations(ctx.destinations),threshold(ctx.threshold) { };
+
+      ~LoggerContext(void);
+
+      void Acquire(void);
+
+      void Release(void);
   };
  
 

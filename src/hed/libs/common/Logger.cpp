@@ -382,6 +382,7 @@ namespace Arc {
       std::string id;
       LoggerContext& context;
       LoggerContextRef(LoggerContext& ctx, std::string& i);
+      virtual ~LoggerContextRef(void);
     public:
       virtual void Dup(void);
   };
@@ -389,12 +390,37 @@ namespace Arc {
   LoggerContextRef::LoggerContextRef(LoggerContext& ctx, std::string& i):
                                                ThreadDataItem(i),context(ctx) {
     id = i;
+    context.Acquire();
+  }
+
+  LoggerContextRef::~LoggerContextRef(void) {
+    context.Release();
   }
 
   void LoggerContextRef::Dup(void) {
     new LoggerContextRef(context,id);
   }
 
+  void LoggerContext::Acquire(void) {
+    mutex.lock();
+    ++usage_count;
+    mutex.unlock();
+  }
+
+  void LoggerContext::Release(void) {
+    mutex.lock();
+    --usage_count;
+    if(!usage_count) {
+      delete this;
+    } else {
+      mutex.unlock();
+    }
+  }
+
+  LoggerContext::~LoggerContext(void) {
+    mutex.trylock();
+    mutex.unlock();
+  }
 
   Logger* Logger::rootLogger = NULL;
   std::map<std::string,LogLevel>* Logger::defaultThresholds = NULL;
