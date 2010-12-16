@@ -30,7 +30,7 @@
 \geometry{verbose,a4paper,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2cm}
 \hypersetup{
   pdfauthor = {T.Frågåt},
-  pdftitle ={Arc batch system back-end interface guide with support for GLUE 2},
+  pdftitle ={Arc batch system back-end interface guide with support for GLUE2},
   pdfsubject = {Description and developer's guide for ARC1},
   pdfkeywords = {ARC,ARC1,NorduGrid,manual,Back-end,LRMS,Infosystem,GLUE2},
   pdfcreator = {PDFLaTeX with hyperref package},
@@ -820,23 +820,8 @@ queues.
 
 \section{The ARC GLUE2 implementation}
 ARC1 provides support for both the classic NorduGrid information
-schema~\cite{is} as well as an early minimal GLUE 2 implementation.
+schema~\cite{is} as well as GLUE2.
 The output is rendered in XML format.
-
-Currently, the the following GLUE2 entities are included in ARC1:
-\begin{itemize}
-\item ComputingService
-\item ComputingEndpoint
-\item ComputingShare
-\end{itemize}
-
-While the following entities are still missing:
-\begin{itemize}
-\item ApplicationEnvironment
-\item ExecutionEnvironment
-\item ComputingActivity
-\item Policy including MappingPolicy / AccessPolicy
-\end{itemize}
 
 The different entities with their attributes are described in their respective sections below.
 
@@ -1042,16 +1027,12 @@ FreeSlotsWithDuration & freecpus \\
 
 
 \subsection{ExecutionEnvironment}
-Not yet implemented.
 
 \subsection{ApplicationEnvironment}
-Not yet implemented.
 
 \subsection{ComputingActivity}
-Not yet implemented.
 
 \subsection{MappingPolicy and AccessPolicy}
-Not yet implemented.
 
 
 \bibliography{grid}
