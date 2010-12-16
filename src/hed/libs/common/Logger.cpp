@@ -395,22 +395,6 @@ namespace Arc {
     new LoggerContextRef(context,id);
   }
 
-/*
-  private:
-    Logger* logger_;
-  public:
-    LoggerThreadRef(Logger* logger);
-    operator Logger*(void) { return logger_; };
-  };
-
-  LoggerThreadRef::LoggerThreadRef(Logger* logger):
-              ThreadDataItem("ARC:LOGGER"),logger_(logger) {
-  }
-
-  void LoggerThreadRef::Dup(void) {
-    new LoggerThreadRef(logger_);
-  }
-*/
 
   Logger* Logger::rootLogger = NULL;
   std::map<std::string,LogLevel>* Logger::defaultThresholds = NULL;
@@ -451,6 +435,19 @@ namespace Arc {
   void Logger::addDestination(LogDestination& destination) {
     Glib::Mutex::Lock lock(mutex);
     getContext().destinations.push_back(&destination);
+  }
+
+  void Logger::addDestinations(std::list<LogDestination*>& destinations) {
+    Glib::Mutex::Lock lock(mutex);
+    for(std::list<LogDestination*>::iterator dest = destinations.begin();
+                            dest != destinations.end();++dest) {
+      getContext().destinations.push_back(*dest);
+    }
+  }
+
+  const std::list<LogDestination*>& Logger::getDestinations(std::list<LogDestination*>& destinations) const {
+    Glib::Mutex::Lock lock((Glib::Mutex&)mutex);
+    return ((Logger*)this)->getContext().destinations;
   }
 
   void Logger::removeDestinations(void) {

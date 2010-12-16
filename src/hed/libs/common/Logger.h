@@ -458,6 +458,18 @@ namespace Arc {
      */
     void addDestination(LogDestination& destination);
 
+    //! Adds LogDestinations.
+    /*! See addDestination(LogDestination& destination).
+     */
+    void addDestinations(std::list<LogDestination*>& destinations);
+
+    //! Obtains current LogDestinations.
+    /*! Returns list of pointers to LogDestination objects. Returned result
+       refers directly to internal member of Logger intance. Hence it 
+       should not be used after this Logger is destroyed.
+     */
+    const std::list<LogDestination*>& getDestinations(std::list<LogDestination*>& destinations) const;
+
     //! Removes all LogDestinations.
     void removeDestinations(void);
 
