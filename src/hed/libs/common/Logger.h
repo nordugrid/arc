@@ -480,7 +480,7 @@ namespace Arc {
        refers directly to internal member of Logger intance. Hence it 
        should not be used after this Logger is destroyed.
      */
-    const std::list<LogDestination*>& getDestinations(std::list<LogDestination*>& destinations) const;
+    const std::list<LogDestination*>& getDestinations(void) const;
 
     //! Removes all LogDestinations.
     void removeDestinations(void);
