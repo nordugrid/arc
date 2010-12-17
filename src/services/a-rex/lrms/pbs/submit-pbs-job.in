@@ -331,37 +331,35 @@ else
 # Delete all files except listed in job.#.output
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
+
   if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
     cat "$joboption_controldir/job.$joboption_gridid.output" | \
-    # Ignore space at the beginning of lines; Extract the first quoted string
-    # if the line starts with a quote, otherwise extract the string from the
-    # beginning of the line up to the first unescaped space character; Remove
-    # unescaped backslashes before printing the extracted string
-    sed -e 's/^ *"\([^"]*\)".*/\1/g;t suc' -e 's/^ *//;s/\([^\\]\) .*/\1/;:suc' -e 's/\\\(.\)/\1/g' | \
-    { while true ; do
-      read name
-      if [ $? -ne '0' ] ; then break ; fi
-      echo "  chmod -R u-w \"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$name\" 2>/dev/null" >> $LRMS_JOB_SCRIPT
-    done; }
-  fi
+    # remove leading backslashes, if any
+    sed 's/^\/*//' | \
+    # backslashes and spaces are escaped with a backslash in job.*.output. The
+    # shell built-in read undoes this escaping.
+    while read name rest; do
 
-# Protect from deleting files in the dynamic output file list
-  for fname in $joboption_rsl_outputfiles; do
-    if [ "${fname:0:1}" = "@" ]; then
-      dynlist=${fname:1}
-      echo "dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
-      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
+      # make it safe for shell by replacing single quotes with '\''
+      name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`;
+
+      # protect from deleting output files including those in the dynamic list
+      if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
+
+        dynlist=${name#@}
+        echo "  dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
+        cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
   chmod -R u-w "./$dynlist" 2>/dev/null
-  cat "./$dynlist" \
-  | sed 's/^ *"\([^"]*\)".*/\1/g;t suc;s/^ *//;s/\([^\\]\) .*/\1/;:suc;s/\\\(.\)/\1/g' \
-  | while true; do
-      read name
-      if [ $? -ne '0' ]; then break; fi
-        chmod -R u-w "./$name" 2>/dev/null
-    done
-EOSCR
-    fi
+  cat "./$dynlist" | while read name rest; do
+    chmod -R u-w "./$name" 2>/dev/null
   done
+EOSCR
+      else
+
+        echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
+      fi
+    done
+  fi
 
   echo '  find ./ -type f -perm +200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT

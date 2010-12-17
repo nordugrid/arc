@@ -62,6 +62,9 @@ die "Usage: $0 [--config CONFIG_FILE] [-d] GRAMI_FILE\n" unless @ARGV;
 
 parse_grami(my $gramifile = $ARGV[0]);
 
+$grami{joboption_controldir} ||= dirname($gramifile) || getwd();
+$grami{joboption_gridid} ||= $1 if basename($gramifile) =~ /job\.(.*)\.grami$/;
+
 my $configfile = $ENV{ARC_CONFIG} ? $ENV{ARC_CONFIG} : '/etc/arc.conf';
 my $fullconfig = ConfigCentral::parseConfig($configfile);
 my $share = $grami{joboption_queue};
@@ -172,6 +175,37 @@ sub run_rte0 {
     }
 }
 
+# This function extracts the first string from each line of the file given as
+# argument. Handles files like job.*.output which contain two strings
+# separated by a space on each line. The second string can be emty. Spaces
+# and backslashes within the strings are escaped with a backslash. See the
+# FileData class in src/services/a-rex/grid-manager/files/info_types.cpp for
+# the c++ implementation.
+
+# OBS: The same can be achieved simpler with the shell built-in 'read'
+sub get_outputfiles {
+    my $file = shift;
+    my @names = ();
+    open(F, "<$file") or die "$file: $!\n";
+    while (<F>) {
+        chomp;
+        my @chars = split "";
+        my $esc = 0;
+        my $str = "";
+        for (my $curr = shift @chars; defined $curr; $curr = shift @chars) {
+            if ($esc) {
+                $esc = 0;
+                $str .= $curr;
+                next;
+            }
+            last if $curr eq " ";
+            $str .= $curr unless $esc = ($curr eq "\\");
+        }
+        push @names, $str;
+    }
+    return @names;
+}
+
 #
 # Creates a shell script that:
 #
@@ -271,50 +305,38 @@ sub create_shell_wrapper {
     # Run runtime environment files with argument 2.
     $output .= "\n_exitcode=\$?\n$setrte2";
 
-    # Delete all remaining files that are not listed in outputFiles.
-    if (notnull($grami{joboption_rsl_outputfiles})) {
-        # The format of this variable is:
-        # <filename1><SP>[<checksum1>]<SP>...<SP><filenameN><SP>[<checksumN>]
-        # so split by / / and ignore the odd indexes (the checksums).
-        # Also ignores zero length filenames and the gmlog.
-        my $i = 0;
-        if (!defined $grami{joboption_rsl_gmlog}) {
-            # Avoid 'uninitialized' warning when gmlog is unset.
-            $grami{joboption_rsl_gmlog} = '';
-        }
-        my @fileslst = grep { $i++ % 2 == 0 &&
-                              $_ ne '' && $_ ne $grami{joboption_rsl_gmlog} }
-                       split / /, $grami{joboption_rsl_outputfiles};
-        # Add condor_log (with path stripped) to the list of files to keep.
-        push @fileslst, (my $basename) = $condor_log =~ m#([^/]+)$#;
-        # Quote special chars in filenames and put a ' ' between each name.
-        my $files = join ' ', map { quotemeta } @fileslst;
-        # Now generate code that removes everything but the requested output.
-        # Note that, bashims have been avoided so that there are less strict
-        # requirements on /bin/sh on the execute nodes.  (Note that the file
-        # utilities used (mkdir, dirname, find, etc.) may still be
-        # GNU-centric.  TODO: fix this if we're to support non-x86-Linux.)
-        $output .= <<EOF;
+    # Now generate code that removes everything but the requested output.
+    # Note that, bashims have been avoided so that there are less strict
+    # requirements on /bin/sh on the execute nodes.  (Note that the file
+    # utilities used (mkdir, dirname, find, etc.) may still be
+    # GNU-centric.  TODO: fix this if we're to support non-x86-Linux.)
+    $output .= <<EOF;
 find ./ -type l -exec rm -f "{}" ";"
 find ./ -type f -exec chmod u+w "{}" ";"
-for i in $files; do
-    chmod u-w "./\$i" 2>/dev/null
+EOF
+    my $outputlist = "$grami{joboption_controldir}/job.$grami{joboption_gridid}.output";
+    if (-e $outputlist) {
+        my @fileslst = grep {$_ ne ""} get_outputfiles($outputlist);
+        # Add condor_log (with path stripped) to the list of files to keep.
+        push @fileslst, (my $basename) = $condor_log =~ m{([^/]+)$};
+        # Remove leading backslashes, if any
+        s/^\/*// for @fileslst;
+        # Make it safe for shell by replacing single quotes with '\''
+        s/'/'\\''/g for @fileslst;
+
+        # Protect from deleting output files including those in the dynamic list
+        for my $file ( @fileslst ) {
+            if ($file =~ s/^@//) {
+                $output .= "dynlist='$file'\n";
+                $output .= <<'EOF'
+chmod -R u-w "./$dynlist" 2>/dev/null
+cat "./$dynlist" | while read name rest; do
+  chmod -R u-w "./$name" 2>/dev/null
 done
 EOF
-        # Protect from deleting files in the dynamic output file list
-        for my $dynlist (grep /^@/, @fileslst) {
-          $dynlist =~ s/^@//;
-          $output .= "dynlist='$dynlist'\n";
-          $output .= <<'EOF';
-chmod -R u-w "./$dynlist" 2>/dev/null
-cat "./$dynlist" \
-| sed 's/^ *"\([^"]*\)".*/\1/g;t suc;s/^ *//;s/\([^\\]\) .*/\1/;:suc;s/\\\(.\)/\1/g' \
-| while true; do
-    read name
-    if [ $? -ne '0' ]; then break; fi
-      chmod -R u-w "./$name" 2>/dev/null
-  done
-EOF
+            } else {
+                $output .= "chmod u-w './$file' 2>/dev/null\n";
+            }
         }
         $output .= <<EOF;
 find ./ -type f -perm +200 -exec rm -f "{}" ";"
