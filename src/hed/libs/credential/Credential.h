@@ -104,23 +104,46 @@ class Credential {
     * credential files. only acts as a container for parsing the certificate and key
     * files, is meaningless for any other use. this constructor will parse the credential
     * information, and put them into "this" object
-    * @param is_file, specify if the cert/key are from file, otherwise they
+    * @param passphrase4key, specifies the password for descrypting private key (if needed).
+    *    If value is empty then password will be asked interrctively. To avoid askig for 
+    *    password use value provided by NoPassword() method.
+    * @param is_file, specifies if the cert/key are from file, otherwise they
     *    are supposed to be from string. default is from file
     */
     Credential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, const std::string& passphrase4key = "", const bool is_file = true);
+               const std::string& cafile, const std::string& passphrase4key = "",
+               const bool is_file = true);
+
+    /**Constructor, specific constructor for usual certificate, constructing from
+    * information in UserConfig object. Only acts as a container for parsing the 
+    * certificate and key files, is meaningless for any other use. this constructor 
+    * will parse the credential * information, and put them into "this" object
+    * @param is_file, specify if the cert/key are from file, otherwise they
+    *    are supposed to be from string. default is from file
+    */
+    Credential(const UserConfig& usercfg, const std::string& passphrase4key = "");
 
     /**Initiate nid for proxy certificate extension*/
     static void InitProxyCertInfo(void);
 
+    /** Returns true if credentials are valid.
+      Credentials are read from locations specified in UserConfig object.
+      This method is deprecated. User per-instance method IsValid() instead.
+    */
     static bool IsCredentialsValid(const UserConfig& usercfg);
 
     /**General method for adding a new nid into openssl's global const*/
     void AddCertExtObj(std::string& sn, std::string& oid);
+
+    static std::string NoPassword(void) { return std::string("\0",1); };
+
   private:
 
     /** Credential object so far is not supposed to be copied */
     Credential(const Credential& /* cred */) { };
+
+    void InitCredential(const std::string& cert, const std::string& key, const std::string& cadir,
+               const std::string& cafile, const std::string& passphrase4key, const bool is_file);
 
     /**load key from argument keybio, and put key information into argument pkey */
     void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
@@ -255,6 +278,9 @@ class Credential {
 
     /**Set start time of certificate or proxy*/
     void SetStartTime(const Time& start_time);
+
+    /**Returns true if credentials are valid*/
+    bool IsValid(void);
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,

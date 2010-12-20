@@ -84,7 +84,7 @@ namespace Arc {
     if (bufsiz < 1) return res;
     if (cb_data) {
       if (cb_data->password)
-      password = (const char*)(cb_data->password);
+        password = (const char*)(cb_data->password);
       if (cb_data->prompt_info)
         prompt_info = cb_data->prompt_info;
     }
@@ -391,11 +391,14 @@ namespace Arc {
   }
 
   bool Credential::IsCredentialsValid(const UserConfig& usercfg) {
-    Credential cred(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
-                    !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                    usercfg.CACertificatesDirectory(), usercfg.CACertificatePath());
+    Credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
+               !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
+               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath()).IsValid();
+  }
+
+  bool Credential::IsValid(void) {
     Time t;
-    return cred.verification_valid && cred.GetStartTime() < t && t < cred.GetEndTime();
+    return verification_valid && (GetStartTime() <= t) && (t < GetEndTime());
   }
 
   void Credential::loadCertificateString(const std::string& cert, X509* &x509, STACK_OF(X509) **certchain) {
@@ -905,12 +908,35 @@ namespace Arc {
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
         const std::string& cadir, const std::string& cafile,
-        const std::string& passphrase4key, const bool is_file) :
-        cacertfile_(cafile), cacertdir_(cadir), certfile_(certfile), keyfile_(keyfile),
-        verification_valid(false),
-        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()),
-        keybits_(1024), extensions_(NULL) {
+        const std::string& passphrase4key, const bool is_file) {
+    InitCredential(certfile,keyfile,cadir,cafile,passphrase4key,is_file);
+  }
+
+  Credential::Credential(const UserConfig& usercfg, const std::string& passphrase4key) {
+    InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
+                   !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
+                   usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                   passphrase4key, true);
+  }
+
+  void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
+        const std::string& cadir, const std::string& cafile,
+        const std::string& passphrase4key, const bool is_file) {
+
+    cacertfile_ = cafile;
+    cacertdir_ = cadir;
+    certfile_ = certfile;
+    keyfile_ = keyfile;
+    verification_valid = false;
+    cert_ = NULL;
+    pkey_ = NULL;
+    cert_chain_ = NULL;
+    proxy_cert_info_ = NULL;
+    req_ = NULL;
+    rsa_key_ = NULL;
+    signing_alg_ = (EVP_MD*)EVP_sha1();
+    keybits_ = 1024;
+    extensions_ = NULL;
 
     OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
