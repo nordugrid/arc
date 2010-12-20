@@ -22,7 +22,8 @@ namespace Arc {
     static Plugin* Instance(PluginArgument *arg);
 
   private:
-    virtual bool GetJob(const Job& job, const std::string& downloaddir);
+    virtual bool GetJob(const Job& job, const std::string& downloaddir,
+                        const bool usejobname);
     virtual bool CleanJob(const Job& job, bool force);
     virtual bool CancelJob(const Job& job);
     virtual bool RenewJob(const Job& job);

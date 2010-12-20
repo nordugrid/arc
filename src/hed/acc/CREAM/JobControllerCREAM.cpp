@@ -48,13 +48,19 @@ namespace Arc {
   }
 
   bool JobControllerCREAM::GetJob(const Job& job,
-                                  const std::string& downloaddir) {
+                                  const std::string& downloaddir,
+                                  const bool usejobname) {
 
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
-    std::string path = job.JobID.Path();
-    std::string::size_type pos = path.rfind('/');
-    std::string jobidnum = path.substr(pos + 1);
+    std::string jobidnum;
+    if (usejobname && !job.Name.empty())
+      jobidnum = job.Name;
+    else {
+      std::string path = job.JobID.Path();
+      std::string::size_type pos = path.rfind('/');
+      jobidnum = path.substr(pos + 1);
+    }
 
     std::list<std::string> files = GetDownloadFiles(job.OSB);
 

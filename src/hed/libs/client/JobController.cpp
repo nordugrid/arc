@@ -166,7 +166,8 @@ namespace Arc {
 
   bool JobController::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
-                          const bool keep) {
+                          const bool keep,
+                          const bool usejobname) {
     std::list<URL> toberemoved;
 
     GetJobInformation();
@@ -202,7 +203,7 @@ namespace Arc {
     for (std::list<Job*>::iterator it = downloadable.begin();
          it != downloadable.end(); it++) {
 
-      bool downloaded = GetJob(**it, downloaddir);
+      bool downloaded = GetJob(**it, downloaddir, usejobname);
       if (!downloaded) {
         logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.str());
         ok = false;

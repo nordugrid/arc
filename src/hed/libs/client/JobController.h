@@ -58,7 +58,8 @@ namespace Arc {
 
     bool Get(const std::list<std::string>& status,
              const std::string& downloaddir,
-             const bool keep);
+             const bool keep,
+             const bool usejobname);
 
     bool Kill(const std::list<std::string>& status,
               const bool keep);
@@ -204,7 +205,8 @@ namespace Arc {
 
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
-    virtual bool GetJob(const Job& job, const std::string& downloaddir) = 0;
+    virtual bool GetJob(const Job& job, const std::string& downloaddir,
+                        const bool usejobname) = 0;
     virtual bool CleanJob(const Job& job, bool force) = 0;
     virtual bool CancelJob(const Job& job) = 0;
     virtual bool RenewJob(const Job& job) = 0;

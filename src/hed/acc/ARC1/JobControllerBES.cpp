@@ -75,7 +75,8 @@ namespace Arc {
   }
 
   bool JobControllerBES::GetJob(const Job& /* job */,
-                                const std::string& /* downloaddir */) {
+                                const std::string& /* downloaddir */,
+                                const bool /* usejobname */) {
     logger.msg(INFO, "Getting BES jobs is not supported");
     return false;
   }

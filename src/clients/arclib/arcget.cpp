@@ -73,6 +73,12 @@ int RUNGET(main)(int argc, char **argv) {
                     istring("dirname"),
                     downloaddir);
 
+  bool usejobname = false;
+  options.AddOption('J', "usejobname",
+                    istring("use the jobname instead of the short ID as"
+                            " the job directory name"),
+                    usejobname);
+
   bool keep = false;
   options.AddOption('k', "keep",
                     istring("keep the files on the server (do not clean)"),
@@ -153,7 +159,7 @@ int RUNGET(main)(int argc, char **argv) {
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++)
-    if (!(*it)->Get(status, downloaddir, keep))
+    if (!(*it)->Get(status, downloaddir, keep, usejobname))
       retval = 1;
 
   return retval;
