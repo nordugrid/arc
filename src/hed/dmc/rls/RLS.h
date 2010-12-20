@@ -6,6 +6,8 @@
 #include <list>
 #include <string>
 
+#include <arc/UserConfig.h>
+
 extern "C" {
 #include <globus_rls_client.h>
 }
@@ -17,12 +19,13 @@ namespace Arc {
   typedef bool (*rls_lrc_callback_t)(globus_rls_handle_t *h,
                                      const URL& url, void *arg);
 
-  bool rls_find_lrcs(const URL& url, rls_lrc_callback_t callback, void *arg);
-  bool rls_find_lrcs(const URL& url, std::list<URL> lrcs);
-  bool rls_find_lrcs(std::list<URL> rlis, std::list<URL> lrcs,
+  bool rls_find_lrcs(const URL& url, const UserConfig& usercfg, rls_lrc_callback_t callback, void *arg);
+  bool rls_find_lrcs(const URL& url, std::list<URL> lrcs, const UserConfig& usercfg);
+  bool rls_find_lrcs(std::list<URL> rlis, std::list<URL> lrcs, const UserConfig& usercfg,
                      rls_lrc_callback_t callback, void *arg);
   bool rls_find_lrcs(std::list<URL> rlis, std::list<URL> lrcs, bool down,
-                     bool up, rls_lrc_callback_t callback, void *arg);
+                     bool up, const UserConfig& usercfg,
+                     rls_lrc_callback_t callback, void *arg);
 
 } // namespace Arc
 

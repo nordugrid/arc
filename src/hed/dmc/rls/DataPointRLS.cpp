@@ -13,6 +13,7 @@
 #include <arc/GUID.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/UserConfig.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "DataPointRLS.h"
@@ -370,7 +371,7 @@ namespace Arc {
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
       meta_resolve_rls_t arg(*this, source);
-      rls_find_lrcs(rlis, lrcs, true, false,
+      rls_find_lrcs(rlis, lrcs, true, false, usercfg,
                     &meta_resolve_callback, (void*)&arg);
       if (!arg.success)
         return arg.success;
@@ -388,7 +389,7 @@ namespace Arc {
         logger.msg(INFO, "Locations are missing in destination RLS url - "
                    "will use those registered with special name");
       meta_resolve_rls_t arg(*this, source);
-      rls_find_lrcs(rlis, lrcs, true, false,
+      rls_find_lrcs(rlis, lrcs, true, false, usercfg,
                     &meta_resolve_callback, (void*)&arg);
       if (!arg.success)
         return arg.success;
@@ -466,8 +467,11 @@ namespace Arc {
       logger.msg(INFO, "RLS URL must contain host");
       return DataStatus::PostRegisterError;
     }
-    err = globus_rls_client_connect
-            (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+    {
+      CertEnvLocker cert_lock(usercfg);
+      err = globus_rls_client_connect
+              (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+    }
     if (err != GLOBUS_SUCCESS) {
       globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG + 32,
                                    GLOBUS_FALSE);
@@ -831,8 +835,11 @@ namespace Arc {
       int errcode;
       globus_list_t *pfns_list;
 
-      err = globus_rls_client_connect
-              (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+      {
+        CertEnvLocker cert_lock(usercfg);
+        err = globus_rls_client_connect
+                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+      }
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, NULL, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -876,7 +883,10 @@ namespace Arc {
         char *lrc = str2->s2;
         globus_rls_handle_t *h_;
         if (lrc) {
-          err = globus_rls_client_connect(lrc, &h_);
+          {
+            CertEnvLocker cert_lock(usercfg);
+            err = globus_rls_client_connect(lrc, &h_);
+          }
           if (err != GLOBUS_SUCCESS) {
             globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                          GLOBUS_FALSE);
@@ -978,7 +988,7 @@ namespace Arc {
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
       meta_unregister_rls_t arg(*this, all);
-      rls_find_lrcs(rlis, lrcs, true, false,
+      rls_find_lrcs(rlis, lrcs, true, false, usercfg,
                     &meta_unregister_callback, (void*)&arg);
       if (!arg.success) {
         registered = false;
@@ -1204,7 +1214,7 @@ namespace Arc {
     lrcs.push_back(url.ConnectionURL());
 
     list_files_rls_t arg(*this, files, (verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
-    rls_find_lrcs(rlis, lrcs, true, false,
+    rls_find_lrcs(rlis, lrcs, true, false, usercfg,
                   &list_files_callback, (void*)&arg);
     if ((files.size() > 0) && (arg.success.Passed())) {
       file = files.front();

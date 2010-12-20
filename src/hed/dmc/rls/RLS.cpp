@@ -20,29 +20,30 @@ namespace Arc {
 
   static Logger logger(Logger::rootLogger, "RLS");
 
-  bool rls_find_lrcs(const URL& url, rls_lrc_callback_t callback, void *arg) {
+  bool rls_find_lrcs(const URL& url, const UserConfig& usercfg, rls_lrc_callback_t callback, void *arg) {
     std::list<URL> rlis;
     std::list<URL> lrcs;
     rlis.push_back(url);
     lrcs.push_back(url);
-    return rls_find_lrcs(rlis, lrcs, true, true, callback, arg);
+    return rls_find_lrcs(rlis, lrcs, true, true, usercfg, callback, arg);
   }
 
-  bool rls_find_lrcs(const URL& url, std::list<URL> lrcs) {
+  bool rls_find_lrcs(const URL& url, std::list<URL> lrcs, const UserConfig& usercfg) {
     std::list<URL> rlis;
     rlis.push_back(url);
     lrcs.clear();
     lrcs.push_back(url);
-    return rls_find_lrcs(rlis, lrcs, true, true, NULL, NULL);
+    return rls_find_lrcs(rlis, lrcs, true, true, usercfg, NULL, NULL);
   }
 
-  bool rls_find_lrcs(std::list<URL> rlis, std::list<URL> lrcs,
+  bool rls_find_lrcs(std::list<URL> rlis, std::list<URL> lrcs, const UserConfig& usercfg,
                      rls_lrc_callback_t callback, void *arg) {
-    return rls_find_lrcs(rlis, lrcs, true, true, callback, arg);
+    return rls_find_lrcs(rlis, lrcs, true, true, usercfg, callback, arg);
   }
 
   bool rls_find_lrcs(std::list<URL> rlis, std::list<URL> lrcs, bool down,
-                     bool up, rls_lrc_callback_t callback, void *arg) {
+                     bool up, const UserConfig& usercfg,
+                     rls_lrc_callback_t callback, void *arg) {
     globus_result_t err;
     int errcode;
     char errmsg[MAXERRMSG + 32];
@@ -59,8 +60,11 @@ namespace Arc {
       const URL& url = *lrc_p;
       globus_rls_handle_t *h = NULL;
       logger.msg(INFO, "Contacting %s", url.str());
-      err = globus_rls_client_connect
-              (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+      {
+        CertEnvLocker env_lock(usercfg);
+        err = globus_rls_client_connect
+                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+      }
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
@@ -122,8 +126,11 @@ namespace Arc {
         globus_rls_handle_t *h = NULL;
         const URL& url = *rli_p;
         logger.msg(INFO, "Contacting %s", url.str());
-        err = globus_rls_client_connect
-                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+        {
+          CertEnvLocker env_lock(usercfg);
+          err = globus_rls_client_connect
+                  (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+        }
         if (err != GLOBUS_SUCCESS) {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
@@ -204,8 +211,11 @@ namespace Arc {
         globus_rls_handle_t *h = NULL;
         const URL& url = *rli_p;
         logger.msg(INFO, "Contacting %s", url.str());
-        err = globus_rls_client_connect
-                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+        {
+          CertEnvLocker env_lock(usercfg);
+          err = globus_rls_client_connect
+                  (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+        }
         if (err != GLOBUS_SUCCESS) {
           globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                        GLOBUS_FALSE);
@@ -258,8 +268,11 @@ namespace Arc {
       const URL& url = *lrc_p;
       globus_rls_handle_t *h = NULL;
       logger.msg(INFO, "Contacting %s", url.str());
-      err = globus_rls_client_connect
-              (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+      {
+        CertEnvLocker env_lock(usercfg);
+        err = globus_rls_client_connect
+                (const_cast<char*>(url.ConnectionURL().c_str()), &h);
+      }
       if (err != GLOBUS_SUCCESS) {
         globus_rls_client_error_info(err, &errcode, errmsg, MAXERRMSG + 32,
                                      GLOBUS_FALSE);
