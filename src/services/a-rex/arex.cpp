@@ -149,7 +149,7 @@ bool ARexSecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
       Arc::XMLNode action = item.NewChild("ra:Action");
       action=action_;
       action.NewAttribute("Type")="string";
-      action.NewAttribute("AttributeId")=JOB_POLICY_OPERATION_URN;
+      action.NewAttribute("AttributeId")=id_;
     };
     return true;
   } else {

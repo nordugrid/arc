@@ -2953,8 +2953,7 @@ elementFormDefault="qualified">
          <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute">/VO=knowarc.eu</Subject>
       </Subjects>
       <Actions>
-         <!-- AttributeId should be .../operation. But because of bug in A-REX this one is used. -->
-         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation">Info</Action>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation">Info</Action>
       </Actions>
    </Rule>
    <Rule RuleId="knowarc.eu:admin" Effect="Permit">
@@ -2966,8 +2965,7 @@ elementFormDefault="qualified">
          <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute">/VO=knowarc.eu/Group=coredev</Subject>
       </Subjects>
       <Actions>
-         <!-- AttributeId should be .../operation. But because of bug in A-REX this one is used. -->
-         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/a-rex/joboperation">Admin</Action>
+         <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation">Admin</Action>
       </Actions>
    </Rule>
    <Rule RuleId="knowarc.eu:job" Effect="Permit">
