@@ -100,7 +100,16 @@ namespace Arc {
         return false;
       }
 
-      client->Load();
+      if(!client->Load()) {
+        logger.msg(VERBOSE, "Failed initiate client connection.");
+        return false;
+      }
+
+      MCC* entry = client->GetEntry();
+      if(!entry) {
+        logger.msg(VERBOSE, "Client connection has no entry point.");
+        return false;
+      }
 
       /* TODO: Enable password typing in case of cert and key. Currently when
        * using cert and key, one have to type password multiple times, which is
@@ -109,8 +118,7 @@ namespace Arc {
        */
       DelegationProviderSOAP deleg(cert, key);
       logger.msg(VERBOSE, "Initiating delegation procedure");
-      if (!deleg.DelegateCredentialsInit(*(client->GetEntry()),
-                                         &(client->GetContext()))) {
+      if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()))) {
         logger.msg(VERBOSE, "Failed to initiate delegation credentials");
         return false;
       }
