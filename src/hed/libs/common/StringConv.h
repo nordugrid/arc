@@ -77,9 +77,11 @@ namespace Arc {
 
   /// This method tokenizes string
   void tokenize(const std::string& str, std::vector<std::string>& tokens,
-                const std::string& delimiters = " ");
+                const std::string& delimiters = " ",
+                const std::string& start_quotes = "", const std::string& end_quotes = "");
   void tokenize(const std::string& str, std::list<std::string>& tokens,
-                const std::string& delimiters = " ");
+                const std::string& delimiters = " ",
+                const std::string& start_quotes = "", const std::string& end_quotes = "");
 
   /// This method removes given separators from the beginning and the end of the string
   std::string trim(const std::string& str, const char *sep = NULL);

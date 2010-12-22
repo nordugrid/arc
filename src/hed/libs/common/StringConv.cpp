@@ -26,37 +26,61 @@ namespace Arc {
     return ret;
   }
 
-  void tokenize(const std::string& str, std::vector<std::string>& tokens,
-                const std::string& delimiters) {
-    // Skip delimiters at beginning.
-    std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-    // Find first "non-delimiter".
-    std::string::size_type pos = str.find_first_of(delimiters, lastPos);
+  static std::string::size_type get_token(std::string& token,
+                const std::string& str, std::string::size_type pos,
+                const std::string& delimiters,
+                const std::string& start_quotes, const std::string& end_quotes) {
+    std::string::size_type qp = start_quotes.find(str[pos]);
+    if(qp != std::string::npos) {
+      std::string::size_type te = std::string::npos;
+      if(qp >= end_quotes.length()) {
+        te = str.find(start_quotes[qp],pos+1);
+      } else {
+        te = str.find(end_quotes[qp],pos+1);
+      }
+      if(te != std::string::npos) {
+        token = str.substr(pos+1, te-pos-1);
+        return te+1;
+      }
+    }
+    std::string::size_type te = str.find_first_of(delimiters,pos+1);
+    if(te != std::string::npos) {
+      token = str.substr(pos, te - pos);
+    } else {
+      token = str.substr(pos);
+    }
+    return te;
+  }
 
-    while (std::string::npos != pos || std::string::npos != lastPos) {
-      // Found a token, add it to the vector.
-      tokens.push_back(str.substr(lastPos, pos - lastPos));
-      // Skip delimiters.  Note the "not_of"
+  void tokenize(const std::string& str, std::vector<std::string>& tokens,
+                const std::string& delimiters,
+                const std::string& start_quotes, const std::string& end_quotes) {
+    // Skip delimiters at beginning. Find first "non-delimiter".
+    std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    while (std::string::npos != lastPos) {
+      std::string token;
+      // Found a token, find end of it
+      std::string::size_type pos = get_token(token, str, lastPos,
+                                             delimiters, start_quotes, end_quotes);
+      tokens.push_back(token);
+      if(std::string::npos == pos) break; // Last token
       lastPos = str.find_first_not_of(delimiters, pos);
-      // Find next "non-delimiter"
-      pos = str.find_first_of(delimiters, lastPos);
     }
   }
 
   void tokenize(const std::string& str, std::list<std::string>& tokens,
-                const std::string& delimiters) {
-    // Skip delimiters at beginning.
+                const std::string& delimiters,
+                const std::string& start_quotes, const std::string& end_quotes) {
+    // Skip delimiters at beginning. Find first "non-delimiter".
     std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-    // Find first "non-delimiter".
-    std::string::size_type pos = str.find_first_of(delimiters, lastPos);
-
-    while (std::string::npos != pos || std::string::npos != lastPos) {
-      // Found a token, add it to the vector.
-      tokens.push_back(str.substr(lastPos, pos - lastPos));
-      // Skip delimiters.  Note the "not_of"
+    while (std::string::npos != lastPos) {
+      std::string token;
+      // Found a token, find end of it
+      std::string::size_type pos = get_token(token, str, lastPos,
+                                             delimiters, start_quotes, end_quotes);
+      tokens.push_back(token);
+      if(std::string::npos == pos) break; // Last token
       lastPos = str.find_first_not_of(delimiters, pos);
-      // Find next "non-delimiter"
-      pos = str.find_first_of(delimiters, lastPos);
     }
   }
 
