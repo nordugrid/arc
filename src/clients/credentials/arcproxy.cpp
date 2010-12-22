@@ -144,7 +144,7 @@ static bool is_dir(std::string path) {
   return false;
 }
 
-std::vector<std::string> search_vomses(std::string path) {
+static std::vector<std::string> search_vomses(std::string path) {
   std::vector<std::string> vomses_files;
   if(is_file(path)) vomses_files.push_back(path);
   else if(is_dir(path)) {
@@ -172,6 +172,13 @@ std::vector<std::string> search_vomses(std::string path) {
   return vomses_files;
 }
 
+static std::string tokens_to_string(std::vector<std::string> tokens) {
+  std::string s;
+  for(int n = 0; n<tokens.size(); ++n) {
+    s += "\""+tokens[n]+"\" ";
+  };
+  return s;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -727,7 +734,7 @@ int main(int argc, char *argv[]) {
       }
 */
 
-      std::map<std::string, std::vector<std::string> > matched_voms_line;
+      std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
       for(std::vector<std::string>::iterator file_i = vomses_files.begin(); file_i != vomses_files.end(); file_i++) {
         std::string vomses_file = *file_i;
         std::ifstream in_f(vomses_file.c_str());
@@ -741,38 +748,41 @@ int main(int argc, char *argv[]) {
 
           bool has_find = false; 
           //boolean value to record if the vomses server information has been found in this vomses line
-          size_t pos = voms_line.rfind("\"");
-          if (pos != std::string::npos) {
-            voms_line.erase(pos);
-            pos = voms_line.rfind("\"");
-            if (pos != std::string::npos) {
-              std::string str = voms_line.substr(pos + 1);
-              for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-                   it != server_command_map.end(); it++) {
-                std::string voms_server = (*it).first;
-                if (str == voms_server) {
-                  matched_voms_line[voms_server].push_back(voms_line);
-                  has_find = true;
-                  break;
-                };
+          std::vector<std::string> voms_tokens;
+          Arc::tokenize(voms_line,voms_tokens," \t","\"");
+#define VOMS_LINE_NICKNAME (0)
+#define VOMS_LINE_HOST (1)
+#define VOMS_LINE_PORT (2)
+#define VOMS_LINE_SN (3)
+#define VOMS_LINE_NAME (4)
+#define VOMS_LINE_NUM (5)
+          if(voms_tokens.size() != VOMS_LINE_NUM) {
+            // Warning: malformed voms line
+            logger.msg(Arc::WARNING, "VOMS line contains wrong number of tokens (%u expected): \"%s\"", (unsigned int)VOMS_LINE_NUM, voms_line);
+          }
+          if(voms_tokens.size() > VOMS_LINE_NAME) {
+            std::string str = voms_tokens[VOMS_LINE_NAME];
+            for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+                 it != server_command_map.end(); it++) {
+              std::string voms_server = (*it).first;
+              if (str == voms_server) {
+                matched_voms_line[voms_server].push_back(voms_tokens);
+                has_find = true;
+                break;
               };
             };
           };
 
           if(!has_find) {
             //you can also use the nick name of the voms server
-            size_t pos1 = voms_line.find("\"");
-            if (pos1 != std::string::npos) {
-              size_t pos2 = voms_line.find("\"", pos1+1);
-              if (pos2 != std::string::npos) {
-                std::string str1 = voms_line.substr(pos1+1, pos2-pos1-1);
-                for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
-                     it != server_command_map.end(); it++) {
-                  std::string voms_server = (*it).first;
-                  if (str1 == voms_server) {
-                    matched_voms_line[voms_server].push_back(voms_line);
-                    break;
-                  };
+            if(voms_tokens.size() > VOMS_LINE_NICKNAME) {
+              std::string str1 = voms_tokens[VOMS_LINE_NAME];
+              for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
+                   it != server_command_map.end(); it++) {
+                std::string voms_server = (*it).first;
+                if (str1 == voms_server) {
+                  matched_voms_line[voms_server].push_back(voms_tokens);
+                  break;
                 };
               };
             };
@@ -801,13 +811,13 @@ int main(int argc, char *argv[]) {
       cfg.AddProxy(proxy_path);
       cfg.AddCADir(ca_dir);
 
-      for (std::map<std::string, std::vector<std::string> >::iterator it = matched_voms_line.begin();
+      for (std::map<std::string, std::vector<std::vector<std::string> > >::iterator it = matched_voms_line.begin();
            it != matched_voms_line.end(); it++) {
         voms_server = (*it).first;
-        std::vector<std::string> voms_lines = (*it).second;
+        std::vector<std::vector<std::string> > voms_lines = (*it).second;
 
-        for (std::vector<std::string>::iterator line_it = voms_lines.begin(); line_it != voms_lines.end(); line_it++) {
-          std::string voms_line = *line_it;
+        for (std::vector<std::vector<std::string> >::iterator line_it = voms_lines.begin(); line_it != voms_lines.end(); line_it++) {
+          std::vector<std::string> voms_line = *line_it;
           int count = server_command_map.count(voms_server);
           logger.msg(Arc::DEBUG, "There are %d commands to the same VOMS server %s", count, voms_server);
 
@@ -816,27 +826,18 @@ int main(int argc, char *argv[]) {
             command_list.push_back((*command_it).second);
           }
 
-          size_t p = 0;
-          for (int i = 0; i < 3; i++) {
-            p = voms_line.find("\"", p);
-            if (p == std::string::npos) {
-              logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", voms_line);
-              throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + voms_line + "\"");
-            }
-            p = p + 1;
+          std::string address;
+          if(voms_line.size() > VOMS_LINE_HOST) address = voms_line[VOMS_LINE_HOST];
+          if(address.empty()) {
+              logger.msg(Arc::ERROR, "Cannot get VOMS server address information from vomses line: \"%s\"", tokens_to_string(voms_line));
+              throw std::runtime_error("Cannot get VOMS server address information from vomses line: \"" + tokens_to_string(voms_line) + "\"");
           }
 
-          size_t p1 = voms_line.find("\"", p + 1);
-          std::string address = voms_line.substr(p, p1 - p);
-          p = voms_line.find("\"", p1 + 1);
-          p1 = voms_line.find("\"", p + 1);
-          std::string port = voms_line.substr(p + 1, p1 - p - 1);
+          std::string port;
+          if(voms_line.size() > VOMS_LINE_PORT) port = voms_line[VOMS_LINE_PORT];
 
-          size_t pos2 = voms_line.rfind("\"");
           std::string voms_name;
-          pos2 = voms_line.rfind("\"");
-          if (pos2 != std::string::npos)
-            voms_name = voms_line.substr(pos2 + 1);
+          if(voms_line.size() > VOMS_LINE_NAME) voms_name = voms_line[VOMS_LINE_NAME];
   
           logger.msg(Arc::INFO, "Contacting VOMS server (named %s): %s on port: %s",
                      voms_name, address, port);
@@ -884,7 +885,7 @@ int main(int argc, char *argv[]) {
             logger.msg(Arc::ERROR, (std::string)status);
             if (response)
               delete response;
-              std::cout << Arc::IString("The VOMS server with the information:\n%s\"\ncan not be reached, please make sure it is available", voms_line) << std::endl;
+              std::cout << Arc::IString("The VOMS server with the information:\n%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
               break;
               //return EXIT_FAILURE;
           }
@@ -905,8 +906,7 @@ int main(int argc, char *argv[]) {
           } while (len == 1024);
           logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
           Arc::XMLNode node(ret_str);
-
-          if (ret_str.find("error") != std::string::npos) {
+          if((!node) || (ret_str.find("error") != std::string::npos)) {
             std::string str = node["error"]["item"]["message"];
             throw std::runtime_error("Cannot get any AC or attributes info from VOMS server: " + voms_server + ";\n       Returned message from VOMS server: " + str);
           }
