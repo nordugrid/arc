@@ -6,13 +6,15 @@ docsource = $(doctitle).tex
 
 doc_DATA = $(doctitle).pdf
 
+ui_PARTS = ui-brokers.tex ui-conf.tex ui-data.tex ui-job.tex ui-proxy.tex
+
 xrsl_PARTS = xrsl-urls.tex
 
 chelonia_PARTS = chelonia-cli.tex
 
 STYLES = grid.bib nordugrid.bib ng-logo.png
 
-$(doc_DATA): $(docsource) $(STYLES) $(xrsl_PARTS) $(chelonia_PARTS)
+$(doc_DATA): $(docsource) $(STYLES) $(ui_PARTS) $(xrsl_PARTS) $(chelonia_PARTS)
 	pdflatex $(docsource) ; bibtex $(doctitle) ; makeindex -s gind.ist $(doctitle) ; pdflatex $(docsource) ; \
 	pdflatex $(docsource)
 

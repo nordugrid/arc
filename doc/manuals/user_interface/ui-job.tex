@@ -110,11 +110,24 @@ killing it (\verb#arckill#), re-submitting (\verb#arcresub#), or
 retrieving the result (\verb#arcget#).
 
 \begin{framed}
-%% This depends on the middleware flavour. Some flavours do not accept listing
-%% the job session directory (CREAM).
-   Every job ID is a valid URL for the job session directory. You can
+   Usually job ID is a valid URL for the job session directory. You can
    always use it to access the files related to the job, by using data
    management tools (see Chapter~\ref{sec:dm}).
+
+   There may be exception for some computational services like CREAM 
+   which do not support listing job session directory.
+\end{framed}
+
+\begin{framed}
+   For advanced computational jobs which may need to communicate their 
+   presence to some service outside there may be need for knowing own
+   job ID. For jobs accepted by ARC computationsl services this information
+   may be found in local (for job executable) environment variable 
+   GRID\_GLOBAL\_JOBID. One need to take into account that this ID may be 
+   different from one provided by arcsub. Example is ID provided by
+   A-REX computational service. That service provides OGSA BES 
+   compatible interface for job management and ID contains XML document
+   according to OGSA BES specifications.
 \end{framed}
 
 The job description in one of the supported languages can be given, either as an
