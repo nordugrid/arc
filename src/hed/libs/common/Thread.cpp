@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 #define USE_THREAD_POOL
+#define USE_THREAD_DATA
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -29,6 +30,7 @@ namespace Arc {
 
   static Logger threadLogger(Logger::getRootLogger(), "Thread");
 
+#ifdef USE_THREAD_DATA
   class ThreadDataPool;
 
   class ThreadData {
@@ -60,6 +62,7 @@ namespace Arc {
     // Decrease counter and destroy object if 0.
     void Release(void);
   };
+#endif
 
 #ifdef USE_THREAD_POOL
   class ThreadInc {
@@ -75,7 +78,9 @@ namespace Arc {
     void *arg;
     func_t func;
     SimpleCounter* count;
+#ifdef USE_THREAD_DATA
     ThreadData* data;
+#endif
 #ifdef USE_THREAD_POOL
     ThreadInc* resource;
     ThreadArgument& acquire(void) {
@@ -87,11 +92,18 @@ namespace Arc {
       resource = NULL;
     }
 #endif
+#ifdef USE_THREAD_DATA
     ThreadArgument(func_t f, void *a, SimpleCounter *c, ThreadData *d)
       : arg(a),
         func(f),
         count(c),
         data(d)
+#else
+    ThreadArgument(func_t f, void *a, SimpleCounter *c)
+      : arg(a),
+        func(f),
+        count(c)
+#endif
 #ifdef USE_THREAD_POOL
         ,resource(NULL)
 #endif
@@ -205,11 +217,13 @@ namespace Arc {
 #endif
 
   void ThreadArgument::thread(void) {
+#ifdef USE_THREAD_DATA
     ThreadData* tdata = ThreadData::Get();
     if(tdata) {
       tdata->Inherit(data);
       tdata->Release();
     }
+#endif
 #ifdef USE_THREAD_POOL
     ThreadInc resource_;
     release();
@@ -220,18 +234,28 @@ namespace Arc {
     delete this;
     (*f_temp)(a_temp);
     if(c_temp) c_temp->dec();
+#ifdef USE_THREAD_DATA
     ThreadData::Remove();
+#endif
   }
 
   bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count
 ) {
 #ifdef USE_THREAD_POOL
     if(!pool) return false;
+#ifdef USE_THREAD_DATA
     ThreadArgument *argument = new ThreadArgument(func, arg, count, ThreadData::Get());
+#else
+    ThreadArgument *argument = new ThreadArgument(func, arg, count);
+#endif
     if(count) count->inc();
     pool->PushQueue(argument);
 #else
+#ifdef USE_THREAD_DATA
     ThreadArgument *argument = new ThreadArgument(func, arg, count, ThreadData::Get());
+#else
+    ThreadArgument *argument = new ThreadArgument(func, arg, count);
+#endif
     if(count) count->inc();
     try {
       UserSwitch usw(0,0);
@@ -350,6 +374,7 @@ namespace Arc {
 
   // ----------------------------------------
 
+#ifdef USE_THREAD_DATA
   class ThreadDataPool {
   private:
     std::map<Glib::Thread*,ThreadData*> datas_;
@@ -467,6 +492,7 @@ namespace Arc {
     lock_.unlock();
     return item;
   }
+#endif
 
   ThreadDataItem::ThreadDataItem(void) {
   }
@@ -484,19 +510,24 @@ namespace Arc {
   }
 
   void ThreadDataItem::Attach(const std::string& key) {
+#ifdef USE_THREAD_DATA
     if(key.empty()) return;
     ThreadData* data = ThreadData::Get();
     if(data) {
       data->AddItem(key,this);
       data->Release();
     }
+#endif
   }
 
   ThreadDataItem::ThreadDataItem(std::string& key) {
+#ifdef USE_THREAD_DATA
     Attach(key);
+#endif
   }
 
   void ThreadDataItem::Attach(std::string& key) {
+#ifdef USE_THREAD_DATA
     ThreadData* data = ThreadData::Get();
     if(!data) return;
     if(key.empty()) {
@@ -507,14 +538,19 @@ namespace Arc {
     };
     data->AddItem(key,this);
     data->Release();
+#endif
   }
 
   ThreadDataItem* ThreadDataItem::Get(const std::string& key) {
+#ifdef USE_THREAD_DATA
     ThreadData* data = ThreadData::Get();
     if(!data) return NULL;
     ThreadDataItem* item = data->GetItem(key);
     data->Release();
     return item;
+#else
+    return NULL;
+#endif
   }
 
   void ThreadDataItem::Dup(void) {
@@ -528,9 +564,12 @@ namespace Arc {
     if (!Glib::thread_supported())
       Glib::thread_init();
 #ifdef USE_THREAD_POOL
-    if (!pool)
+    if (!pool) {
+#ifdef USE_THREAD_DATA
       data_pool = new ThreadDataPool;
+#endif
       pool = new ThreadPool;
+    }
 #endif
   }
 
