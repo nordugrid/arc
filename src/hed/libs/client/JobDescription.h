@@ -329,6 +329,7 @@ namespace Arc {
 
     std::map<std::string,std::string> hints;
 
+    static Glib::Mutex jdpl_lock;
     static JobDescriptionParserLoader jdpl;
   };
 

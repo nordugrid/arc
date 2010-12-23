@@ -20,6 +20,10 @@ namespace Arc {
 
   Logger JobDescription::logger(Logger::getRootLogger(), "JobDescription");
 
+  // Maybe this mutex could go to JobDescriptionParserLoader. That would make
+  // it transparent. On another hand JobDescriptionParserLoader must not know
+  // how it is used.
+  Glib::Mutex JobDescription::jdpl_lock;
   JobDescriptionParserLoader JobDescription::jdpl;
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
@@ -329,17 +333,27 @@ namespace Arc {
 
     // Saving hints because they may be/are destoryed by JobDescriptionParser::Parse
     std::map<std::string,std::string> hints_ = hints;
+    jdpl_lock.lock();
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
+      // Releasing lock because we can't know how long parsing will take
+      // But for current implementations of parsers it is not specified
+      // if their Parse/Unparse methods can be called concurently.
+      // And definitely SetHints can't overlap.
+      //jdpl_lock.unlock(); 
       logger.msg(VERBOSE, "Try to parse as %s", it->GetSourceFormat());
       it->SetHints(hints_);
       if (it->Parse(source, *this)) {
+        jdpl_lock.unlock(); 
+        // Recovering hints also keeping those created by JobDescriptionParser::Parse
+        hints.insert(hints_.begin(),hints_.end());
         sourceFormat = it->GetSourceFormat();
         return true;
       }
+      //jdpl_lock.lock();
     }
+    jdpl_lock.unlock();
     // Recovering hints also keeping those created by JobDescriptionParser::Parse
     hints.insert(hints_.begin(),hints_.end());
-
     return false;
   }
 
@@ -358,13 +372,18 @@ namespace Arc {
       format = sourceFormat;
     }
 
+    jdpl_lock.lock();
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
       if (lower(format) == lower(it->GetSourceFormat())) {
+        //jdpl_lock.unlock();
         logger.msg(VERBOSE, "Generating %s job description output", format);
         it->SetHints(hints);
-        return it->UnParse(*this, product);
+        bool r = it->UnParse(*this, product);
+        jdpl_lock.unlock();
+        return r;
       }
     }
+    jdpl_lock.unlock();
 
     logger.msg(ERROR, "Format (%s) not recognized by any job description parsers.", format);
     return false;
