@@ -19,9 +19,12 @@ class ClientSOAPTest :
   public:
     /** Constructor creates MCC chain and connects to server. */
     ClientSOAPTest()
-      : ClientSOAP() {}
+      : ClientSOAP(),soap_entry(NULL) {}
     ClientSOAPTest(const BaseConfig& cfg, const URL& url, int timeout = -1)
-      : ClientSOAP(cfg, url, timeout) {}
+      : ClientSOAP(cfg, url, timeout) {
+      Config config;
+      soap_entry = new MCC(&config);;
+    }
 
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
