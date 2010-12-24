@@ -27,6 +27,29 @@
 
 namespace Arc {
 
+static int spoll(int h, int timeout, unsigned int& events) {
+  int r;
+  // Second resolution is enough
+  time_t c_time = time(NULL);
+  time_t f_time = c_time + timeout;
+  struct pollfd fd;
+  for(;;) {
+    fd.fd=h; fd.events=events; fd.revents=0;
+    r = ::poll(&fd,1,(f_time-c_time)*1000);
+    if(r != -1) break; // success or timeout
+    // Checking for operation interrupted by signal
+    if(errno != EINTR) break;
+    time_t n_time = time(NULL);
+    // Protection against time jumping backward
+    if(((int)(n_time - c_time)) < 0) f_time -= (c_time - n_time);
+    c_time = n_time;
+    // If over time, make one more try with 0 timeout
+    if(((int)(f_time - c_time)) < 0) c_time = f_time;
+  }
+  events = fd.revents;
+  return r;
+}
+
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
 {
   struct addrinfo hint;
@@ -73,22 +96,8 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
         close(s); s = -1;
         continue;
       }
-      int pres;
-      // Second resolution is enough
-      time_t c_time = time(NULL);
-      time_t f_time = c_time + timeout_;
-      struct pollfd fd;
-      for(;;) {
-        fd.fd=s; fd.events=POLLOUT | POLLPRI; fd.revents=0;
-        pres = ::poll(&fd,1,(f_time-c_time)*1000);
-        // Checking for operation interrupted by signal
-        if((pres == -1) && (errno == EINTR)) {
-          c_time = time(NULL);
-          // TODO: protection against time jumping backward.
-          if(((int)(f_time - c_time)) < 0) c_time = f_time; 
-        }
-        break;
-      }
+      unsigned int events = POLLOUT | POLLPRI;
+      int pres = spoll(s,timeout_,events);
       if(pres == 0) {
         logger.msg(VERBOSE, "Timeout connecting to %s(%s):%i - %i s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
@@ -105,7 +114,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       }
       // man connect says one has to check SO_ERROR, but poll() returns
       // POLLERR and POLLHUP so we can use them directly. 
-      if(fd.revents & (POLLERR | POLLHUP)) {
+      if(events & (POLLERR | POLLHUP)) {
         logger.msg(VERBOSE, "Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
         close(s); s = -1;
@@ -163,16 +172,15 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   ssize_t l = size;
   size=0;
 #ifndef WIN32
-  struct pollfd fd;
-  fd.fd=handle_; fd.events=POLLIN | POLLPRI | POLLERR; fd.revents=0;
-  if(::poll(&fd,1,timeout_*1000) != 1) return false;
-  if(!(fd.revents & (POLLIN | POLLPRI))) return false;
+  unsigned int events = POLLIN | POLLPRI | POLLERR;
+  if(spoll(handle_,timeout_,events) != 1) return false;
+  if(!(events & (POLLIN | POLLPRI))) return false; // Probably never happens
 #endif
   l=::recv(handle_,buf,l,0);
   if(l == -1) return false;
   size=l;
 #ifndef WIN32
-  if((l == 0) && (fd.revents && POLLERR)) return false;
+  if((l == 0) && (events && POLLERR)) return false;
 #else
   if(l == 0) return false;
 #endif
@@ -193,12 +201,11 @@ bool PayloadTCPSocket::Put(const char* buf,Size_t size) {
   time_t start = time(NULL);
   for(;size;) {
 #ifndef WIN32
-    struct pollfd fd;
-    fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;
+    unsigned int events = POLLOUT | POLLERR;
     int to = timeout_-(unsigned int)(time(NULL)-start);
-    if(to < 0) to=0;
-    if(::poll(&fd,1,to*1000) != 1) return false;
-    if(!(fd.revents & POLLOUT)) return false;
+    if(to < 0) to = 0;
+    if(spoll(handle_,to,events) != 1) return false;
+    if(!(events & POLLOUT)) return false;
 #endif
     l=::send(handle_, buf, size, 0);
     if(l == -1) return false;
