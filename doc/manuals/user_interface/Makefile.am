@@ -27,7 +27,7 @@ $(xrsl_PARTS):
 $(chelonia_PARTS):
 	$(LN_S) ../chelonia/$@ $@
 
-EXTRA_DIST = $(doc_DATA) $(STYLES) $(xrsl_PARTS) $(chelonia_PARTS) $(docsource)
+EXTRA_DIST = $(doc_DATA) $(STYLES) $(ui_PARTS) $(xrsl_PARTS) $(chelonia_PARTS) $(docsource)
 
 CLEANFILES = *.blg *.bbl *.ind *.ilg *.out *.log *.idx *.aux *.toc
 
