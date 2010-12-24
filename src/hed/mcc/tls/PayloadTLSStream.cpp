@@ -31,7 +31,8 @@ void PayloadTLSStream::HandleError(Logger& logger,int code) {
   while(e != SSL_ERROR_NONE) {
     if(e == SSL_ERROR_SYSCALL) {
       // Hiding system errors
-      //logger.msg(DEBUG, "SSL error: %d - system call failed",e);
+      // int err = errno;
+      // logger.msg(DEBUG, "SSL error: system call failed: %d, %s",err,StrError(err));
     } else {
       const char* lib = ERR_lib_error_string(e);
       const char* func = ERR_func_error_string(e);

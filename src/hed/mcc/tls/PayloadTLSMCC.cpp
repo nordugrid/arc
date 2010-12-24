@@ -270,6 +270,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
+      err = SSL_get_error(ssl_,err);
       logger.msg(ERROR, "Failed to establish SSL connection");
       goto error;
    };
@@ -341,6 +342,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_accept_state(ssl_);
    if((err=SSL_accept(ssl_)) != 1) {
+      err = SSL_get_error(ssl_,err);
       logger.msg(ERROR, "Failed to accept SSL connection");
       goto error;
    };
