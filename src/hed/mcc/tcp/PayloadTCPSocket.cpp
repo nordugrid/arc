@@ -27,6 +27,7 @@
 
 namespace Arc {
 
+#ifndef WIN32
 static int spoll(int h, int timeout, unsigned int& events) {
   int r;
   // Second resolution is enough
@@ -49,6 +50,7 @@ static int spoll(int h, int timeout, unsigned int& events) {
   events = fd.revents;
   return r;
 }
+#endif
 
 int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
 {
