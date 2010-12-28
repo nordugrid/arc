@@ -4,6 +4,10 @@ use File::Basename;
 use Cwd;
 
 BEGIN {
+    # Ensure that output is utf8
+    eval {binmode(STDOUT, ":utf8")};
+    # Used for reading UTF8 encoded grid-mapfile
+    eval {require Encode; import Encode "decode"};
     my $oldcwd = getcwd();
 
     my $basedir = dirname($0);
@@ -297,7 +301,11 @@ sub read_grid_mapfile () {
     while(my $line = <MAPFILE>) {
 	chomp($line);
 	if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
-	    $users{$1}{localid} = $2; 	
+            my $subject = $1;
+            eval {
+                $subject = decode("utf8", $subject, 1);
+            };
+            $users{$subject}{localid} = $2;
 	}
     }
     close MAPFILE;

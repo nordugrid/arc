@@ -5,6 +5,10 @@ use File::Basename;
 use Cwd;
 
 BEGIN {
+    # Make sure we write utf8
+    eval {binmode(STDOUT, ":utf8")};
+    # Used for reading UTF8 encoded grid-mapfile
+    eval {require Encode; import Encode "decode"};
     my $oldcwd = getcwd();
 
     my $basedir = dirname($0);
@@ -152,9 +156,14 @@ unless (open mapfile, "<$config{gridmap}") {
 
 while($line = <mapfile>) {
     chomp($line);  
-    if ( ($sn,$unix_user)= $line =~ m/\"([^"]+)\"\s+(\S+)/) {
-        $users{$1}=$unix_user; 	
-    }  	
+
+    if ( $line =~ m/\"([^"]+)\"\s+(\S+)/) {
+	my $subject = $1;
+	eval {
+	    $subject = decode("utf8", $subject, 1);
+	};
+	$users{$subject} = $2;
+    }
 }				    
 close mapfile;	
 
