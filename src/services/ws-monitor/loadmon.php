@@ -1,0 +1,480 @@
+<?php
+
+// Author: oxana.smirnova@hep.lu.se
+
+/** THIS IS THE TOP MONITOR WINDOW
+ * Retrieves the Grid load information from the NorduGrid domain
+ * Uses LDAP functions of PHP
+ *
+ * Author: O.Smirnova (May 2002)
+ *         inspired by the LDAPExplorer by T.Miao
+ *         and curses-based monitor by A.Waananen
+ *
+ * input:
+ * debug level (default 0)
+ * display range (default all)
+ *
+ * output:
+ * an HTML table, containing:
+ * - list of available clusters
+ *   per each cluster:
+ *   - total running jobs
+ *   - relative load of the cluster (ratio "running jobs"/"CPUs")
+ *   - queued jobs
+ */
+include_once 'db.php';
+set_include_path(get_include_path().":".getcwd()."/includes".":".getcwd()."/lang");
+
+require_once('headfoot.inc');
+require_once('lmtable.inc');
+require_once('comfun.inc');
+require_once('toreload.inc');
+require_once('postcode.inc');
+require_once('cache.inc');
+
+// getting parameters
+
+$order   = @$_GET["order"];
+$display = @$_GET["display"];
+$debug   = @$_GET["debug"];
+$for_brussel_demo = false;
+if ( !$order )   $order   = "country";
+if ( !$display ) $display = "all";
+if ( !$debug )   $debug   = 0;
+
+// Setting up the page itself
+
+$toppage  = new LmDoc("loadmon");
+$module   = &$toppage->module;
+$strings  = &$toppage->strings;
+$errors   = &$toppage->errors;
+$isislist = &$toppage->isislist;
+$cert     = &$toppage->cert;
+$yazyk    = &$toppage->language;
+
+// Header table
+
+$toptit = date("Y-m-d T H:i:s");
+$toppage->tabletop("<font face=\"Verdana,Geneva,Arial,Helvetica,sans-serif\">".EXTRA_TITLE." ".$toppage->title."<br><br></font>","<i>$toptit</i>");
+
+//********************** Legend - only needed for this module *********************
+echo "<table width=\"100%\" border=\"0\"><tr><td>\n";
+echo "<font size=\"-1\" face=\"Verdana,Geneva,Arial,Helvetica,Sans-serif,lucida\">".$errors["401"].":\n";
+echo "<img src=\"./mon-icons/icon_led.php?c1=97&c2=144&c3=0\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["305"]."\" alt=\"".$errors["305"]."\" width=\"14\" height=\"6\">".$errors["402"]."&nbsp;<img src=\"./mon-icons/icon_led.php?c1=176&c2=176&c3=176\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["306"]."\" alt=\"".$errors["306"]."\">".$errors["403"]."</font>\n";
+echo "</td><td>";
+$sewin    = popup("sestat.php",650,200,8);
+$discwin  = popup("discover.php",700,400,9);
+$vostring = popup("volist.php",440,330,11);
+$usstring = popup("allusers.php",650,700,12);
+$acstring = popup("allusers.php?limit=1",500,600,12);
+echo "<div align=\"right\"><nobr>\n";
+//******** Authorised users
+echo "<a href=\"$usstring\"><img src=\"./mon-icons/icon-folks.png\" width=\"24\" height=\"24\" border=\"0\" title=\"".$errors["307"]."\" alt=\"".$errors["307"]."\"></a>&nbsp;\n";
+//******** Active users
+echo "<a href=\"$acstring\"><img src=\"./mon-icons/icon-run.png\" width=\"24\" height=\"24\" border=\"0\" title=\"".$errors["308"]."\" alt=\"".$errors["308"]."\"></a>&nbsp;\n";
+//******** Search
+if ($for_brussel_demo)
+echo "<a href=\"$discwin\"><img src=\"./mon-icons/icon-look.png\" width=\"24\" height=\"24\" border=\"0\" title=\"".$errors["309"]."\" alt=\"".$errors["309"]."\"></a>&nbsp;\n";
+//******** Storage
+echo "<a href=\"$sewin\"><img src=\"./mon-icons/icon-disk.png\" width=\"24\" height=\"24\" border=\"0\" title=\"".$errors["310"]."\" alt=\"".$errors["310"]."\"></a>&nbsp;\n";
+//******** Virtual Organisations
+if ($for_brussel_demo)
+echo "<a href=\"$vostring\"><img src=\"./mon-icons/icon-vo.png\" width=\"24\" height=\"24\" border=\"0\" title=\"".$errors["311"]."\" alt=\"".$errors["311"]."\"></a>\n";
+echo "</nobr></div>\n";
+echo "</td></tr></table>\n";
+//****************************** End of legend ****************************************
+
+// Some debug output
+
+if ( $debug ) {
+  ob_end_flush();
+  ob_implicit_flush();
+  dbgmsg("<div align=\"left\"><b>ARC ".$toppage->getVersion()."</b></div>");
+}
+
+$tcont     = array(); // array with rows, to be sorted
+$cachefile = CACHE_LOCATION."/loadmon-".$yazyk;
+$tcont     = get_from_cache($cachefile,120);
+
+// If cache exists, skip ldapsearch
+
+if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
+
+  $tcont = array();
+
+  // Setting time limits for ldapsearch
+
+  $tlim = 20;
+  $tout = 21;
+  if($debug) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</i></div>");
+
+  // Array defining the attributes to be returned
+  $lim  = array( "dn",
+                 CLU_ANAM, CLU_ZIPC, CLU_TCPU, CLU_UCPU, CLU_TJOB, CLU_QJOB, CLU_PQUE,
+                 QUE_STAT, QUE_GQUE, QUE_QUED, QUE_LQUE, QUE_PQUE, QUE_RUNG, QUE_GRUN );
+
+  // Adjusting cluster display filter
+
+  $showvo = "";
+  if ( substr($display,0,2) == "vo" ) {
+    $showvo = substr(strrchr($display,"="),1);
+    if ($debug) dbgmsg("<b> ::: ".$errors["105"]."$showvo</b>");
+  }
+
+  // Top ISIS server: get all from the pre-defined list
+  $nisis    = count($isislist);
+  //========================= GET CLUSTER LIST ============================
+  $type = 'DB';
+  $isis = new $type($cert,$isislist);
+
+  $ts1      = time();
+  $isis->connect($debug);
+  $gentries = $isis->get_infos();
+  //=======================================================================
+  $ts2      = time(); if($debug) dbgmsg("<br><b>".$errors["106"].$nisis." (".($ts2-$ts1).$errors["104"].")</b><br>");
+
+  $nc = count($gentries);
+
+  if ( !$nc ) {
+    // NO SITES FOUND!
+    $errno = "1";
+    echo "<br><font color=\"red\"><b>".$errors[$errno]."</b></font>\n";
+    $toppage->close();
+    return $errno;
+  }
+
+  $dsarray = array ();
+  $hnarray = array ();
+  $avhnarray = array ();
+  $pnarray = array ();
+  $sitetag = array (); /* a tag to skip duplicated entries */
+
+  // Purging cluster entries
+  $ncc=0;
+  foreach ( $gentries as $vo) {
+      $sitec = count($vo)/2;
+      $ncc += $sitec;
+      for ( $i = 0; $i < $sitec; $i++ ) {
+           if (!in_array((string)$vo[(string)$vo[$i]]["EPR"],$hnarray)){
+              array_push($hnarray,(string)$vo[(string)$vo[$i]]["EPR"]);
+	   }
+      }
+  }
+  for ( $k = 0; $k < count($hnarray); $k++ ) {
+    $clport = $gentries[$k]["port"];
+    $clhost = $hnarray[$k];
+    $clconn = $isis->cluster_info($clhost,$debug);
+    if ( $clconn && !@$sitetag[$clhost] ) {
+      array_push($dsarray,$clconn);
+      array_push($avhnarray,$clhost);
+      array_push($pnarray,$clport);
+      $sitetag[$clhost] = 1; /* filtering tag */
+      if ($debug==2) dbgmsg("$k - <i>$clhost:$clport </i>");
+    }
+  }
+
+  $nhosts = count($dsarray);    //count of avaliables Arex's
+
+  if( $debug == 2 ) dbgmsg("<BR>".$nhosts.$errors["108"]."<br>");
+  if ( !$nhosts ) {
+    // NO SITES REPLY...
+    $errno = "2";
+    echo "<BR><font color=\"red\"><B>".$errors[$errno]."</B></font>\n";
+    $toppage->close();
+    return $errno;
+  }
+
+  // Search all clusters and queues
+
+  $ts1 = time();
+  $srarray = $isis->cluster_search($dsarray,DN_LOCAL,$filter,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
+  $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["109"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
+  /*
+   *  $ts1 = time();
+   *  $qsarray = @ldap_search($dsarray,DN_LOCAL,$qfilstr,$qlim,0,0,$tlim,LDAP_DEREF_NEVER);
+   *  // Fall back to a conventional LDAP
+   *  //  if ( !count($qsrarray)) $qsarray = @ldap_search($dsarray,DN_LOCAL,$qfilstr,$qlim,0,0,$tlim,LDAP_DEREF_NEVER);
+   *  $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["110"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
+   */
+
+  // Loop on clusters
+
+  for ( $ids = 0; $ids < $nhosts; $ids++ ) {
+    $entries  = array();
+    $jentries = array();
+    $gentries = array();
+    $rowcont  = array();
+    $sr = $srarray[$ids];
+    $hn = $avhnarray[$ids];
+    $pn = $pnarray[$ids];
+    $ds = $dsarray[$ids];
+    $nr = $isis->count_entries($sr);
+
+    if ( !$sr || !$ds || !$nr ) {
+      if ( $error == "Success" ) $error = $errors["3"];
+      if ( $debug ) dbgmsg("<b><font color=\"red\">".$errors["111"]."$hn ($error)</font></b><br>");
+      $sr = FALSE;
+    }
+    if ($ds && $sr) {
+
+      $entries   = $isis->get_entries($ds,$sr);
+
+      $cluster = $entries->Domains->AdminDomain->Services->ComputingService;
+      $queues = $entries->Domains->AdminDomain->Services->ComputingService->ComputingShares->ComputingShare;
+
+      $nclusters = count($queues);      /* Actually,  queue blocks, 2+ */
+
+      if ( !$nclusters ) {
+        if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"]."<br>");
+        continue;
+      }
+
+      $nclu = 0;
+      $nqueues = 0;
+      $allqrun    = 0;
+      $gridjobs   = 0;
+      $allqueued  = 0;
+      $gridqueued = 0;
+      $lrmsqueued = 0;
+      $prequeued  = 0;
+      $totgridq   = 0;
+
+      $toflag2 = FALSE;
+
+      $stopflag = FALSE;
+
+      $curdn   = $entries["Owner"];
+        // check if it is a site or a job; count
+        $preflength = strpos($curdn,"-");
+        //$object  = substr($curdn,$preflength+1,strpos($curdn,"-",$preflength+1)-$preflength-1);
+        $object  = "cluster";
+        if ($object=="cluster") {
+
+          $curname   = $hn;
+          $curport = $pn;
+
+          // Country name massaging
+
+          $vo = (string)$cluster->{CLU_ZIPC}->Country;
+
+          if ($debug==2) dbgmsg("<i>$ids: <b>$curname</b>".$errors["112"]."$vo</i><br>");
+          $vostring = $_SERVER['PHP_SELF']."?display=vo=$vo";
+          $country  = $vo;
+          if ( $yazyk !== "en" ) $country = $strings["tlconvert"][$vo];
+
+          $rowcont[] = "<a href=\"$vostring\"><img src=\"./mon-icons/$vo.png\" title=\"".$errors["312"]."$country \" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">&nbsp;<i><b>".$country."</b></i></a>&nbsp;";
+
+          $computingmanager = $cluster->ComputingManager;
+          $curtotcpu = @($computingmanager->{CLU_TCPU}) ? $computingmanager->{CLU_TCPU} : $computingmanager->TotalSlots;
+          if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
+
+          //for only test
+          $curalias   = $entries->Domains->AdminDomain->Services->ComputingService->Name;
+
+          // Manipulate alias: replace the string if necessary and cut off at 22 characters
+          if (file_exists("cnvalias.inc")) include('cnvalias.inc');
+          if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
+
+          $curtotjobs = @($cluster->{CLU_TJOB}) ? $cluster->{CLU_TJOB} : 0;
+          $curusedcpu = @($computingmanager->SlotsUsedByGridJobs && $computingmanager->SlotsUsedByLocalJobs) ? $computingmanager->SlotsUsedByLocalJobs + $computingmanager->SlotsUsedByGridJobs : -1;
+          $totqueued  = @($cluster->{CLU_QJOB}) ? $cluster->{CLU_QJOB} : 0; /* deprecated since 0.5.38 */
+          $gmqueued   = @($cluster->{CLU_PQUE}) ? $cluster->{CLU_PQUE} : 0; /* new since 0.5.38 */
+          $clstring   = popup("clusdes.php?host=$curname&port=$curport",700,620,1);
+
+          $nclu++;
+      }
+      for ($i=0; $i<$nclusters; $i++) {
+          $qstatus     = $queues[$i]->{QUE_STAT};
+          if ( $qstatus != "production" )  $stopflag = TRUE;
+          $allqrun    += @($queues[$i]->{QUE_RUNG}) ? ($queues[$i]->{QUE_RUNG}) : 0;
+          $gridjobs   += @($queues[$i]->RunningJobs && $queues[$i]->LocalRunningJobs) ? ($queues[$i]->RunningJobs - $queues[$i]->LocalRunningJobs) : 0;
+          $gridqueued += @($queues[$i]->WaitingJobs && $queues[$i]->LocalWaitingJobs) ? ($queues[$i]->WaitingJobs - $queues[$i]->LocalWaitingJobs) : 0;
+          $allqueued  += @($queues[$i]->{QUE_QUED}) ? ($queues[$i]->{QUE_QUED}) : 0; /* deprecated since 0.5.38 */
+          $lrmsqueued += @($queues[$i]->{QUE_LQUE}) ? ($queues[$i]->{QUE_LQUE}) : 0; /* new since 0.5.38 */
+          $prequeued  += @($queues[$i]->{QUE_PQUE}) ? ($queues[$i]->{QUE_PQUE}) : 0; /* new since 0.5.38 */
+
+          $nqueues++;
+      }
+
+      if ( !$nclu && $nqueues ) {
+        if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"].": ".$errors["111"].$errors["410"]."<br>");
+        continue;
+      }
+
+      if ( $nclu > 1 && $debug ) dbgmsg("<b><font color=\"blue\">$hn</font></b>:".$errors["3"].": $nclu ".$errors["406"]."<br>");
+
+      if (!$nqueues) $toflag2 = TRUE;
+
+      if ($debug==2 && $prequeued != $gmqueued) dbgmsg("<i><font color=\"blue\">$curname:</font></i> cluster-prelrmsqueued != sum(queue-prelrmsqueued)");
+
+      $allrun    = ($curusedcpu < 0) ? $allqrun             : $curusedcpu;
+      if ($gridjobs > $allrun) $gridjobs = $allrun;
+
+      /*    For versions < 0.5.38:
+       *   Some Grid jobs are counted towards $totqueued and not towards $allqueued
+       *   (those in GM), so $totqueued - $allqueued = $gmqueued,
+       *   and $truegridq = $gmqueued + $gridqueued
+       *   and $nongridq  = $totqueued - $truegridq == $allqueued - $gridqueued
+       *   hence $truegridq = $totqueued - $nongridq
+       */
+      $nongridq  = ($totqueued) ? $allqueued - $gridqueued : $lrmsqueued;
+      $truegridq = ($totqueued) ? $totqueued - $nongridq : $gridqueued + $prequeued;
+      // temporary hack:
+      //      $truegridq = $gridqueued;
+      //
+      $formtgq    = sprintf(" s",$truegridq);
+      $formngq    = sprintf("\&nbsp\;s",$nongridq);
+      $localrun  = $allrun - $gridjobs;
+      $gridload  = ($curtotcpu > 0)  ? $gridjobs/$curtotcpu : 0;
+      $clusload  = ($curtotcpu > 0)  ? $allrun/$curtotcpu   : 0;
+      $tstring   = urlencode("$gridjobs+$localrun");
+      $jrstring  = popup("jobstat.php?host=$curname&port=$curport&status=Running&jobdn=all",600,500,2);
+      $jqstring  = popup("jobstat.php?host=$curname&port=$curport&status=Queueing&jobdn=all",600,500,2);
+
+      if ( $toflag2 ) {
+        $tstring .= " (no queue info)"; // not sure if this is localizeable at all
+      } elseif ( $stopflag ) {
+        $tstring .= " (queue $qstatus)"; // not sure if this is localizeable at all
+      }
+
+      // Add a cluster row
+
+      $rowcont[] = "<a href=\"$clstring\">&nbsp;<b>$curalias</b></a>";
+      $rowcont[] = "$curtotcpu";
+      if ( $curtotcpu ) {
+        $rowcont[] = "<a href=\"$jrstring\"><img src=\"./mon-icons/icon_bar.php?x=".$clusload."&xg=".$gridload."&y=13&text=".$tstring."\" vspace=\"2\" hspace=\"3\" border=\"0\" title=\"$gridjobs".$errors["313"]."$localrun".$errors["314"]."\" alt=\"$gridjobs+$localrun\" width=\"200\" height=\"13\"></a>";
+      } else {
+        $rowcont[] = "<a href=\"$jrstring\"><img src=\"./mon-icons/spacer.gif\" vspace=\"2\" hspace=\"3\" border=\"0\" title=\"$gridjobs".$errors["313"]."$localrun".$errors["314"]."\"  alt=\"$gridjobs+$localrun\" width=\"200\" height=\"13\"></a>";
+      }
+      //      $rowcont[] = "<a href=\"$jqstring\">$totqueued</a>";
+
+      $rowcont[] = "<a href=\"$jqstring\"><b>$truegridq</b></a>+$nongridq";
+      // Not adding anymore, cache instead
+      //    $ctable->addrow($rowcont);
+      $tcont[] = $rowcont;
+      $rowcont = array ();
+
+    }
+
+  }
+
+  // Dump the collected table
+  cache_table($cachefile,$tcont);
+}
+
+// HTML table initialization
+
+$ctable = new LmTableSp($module,$toppage->$module);
+
+// Sort
+/** possible ordering keywords:
+ *    country - sort by country, default
+ *    cpu     - sort by advertised CPU number
+ *    grun    - sort by number of running Grid jobs
+ */
+$ostring = "comp_by_".$order;
+
+usort($tcont,$ostring);
+
+$nrows = count($tcont);
+
+$votolink    = array();
+$affiliation = array();
+
+foreach ( $tcont as $trow ) {
+  $vo = $trow[0];
+  $vo = substr(stristr($vo,"./mon-icons/"),12);
+  $vo = substr($vo,0,strpos($vo,"."));
+  if ( !in_array($vo,$votolink) ) $votolink[]=$vo;
+  array_push($affiliation,$vo);
+}
+//var_dump($affiliation);
+$affcnt = array_count_values($affiliation);
+//var_dump($affcnt);
+$prevvo = "boo";
+
+$sumcpu        = 0;
+$sumgridjobs   = 0;
+$sumlocljobs   = 0;
+$sumclusters   = 0;
+$sumgridqueued = 0;
+$sumloclqueued = 0;
+//$sumqueued     = 0;
+
+// actual loop
+
+foreach ( $tcont as $trow ) {
+
+  $gridjobs = $trow[3];
+  $gridjobs = substr(stristr($gridjobs,"alt=\""),5);
+  $gridjobs = substr($gridjobs,0,strpos($gridjobs,"+"));
+
+  $localrun = $trow[3];
+  $localrun = substr(stristr($localrun,"+"),1);
+  $localrun = substr($localrun,0,strpos($localrun,"\" w"));
+
+  $truegridq = $trow[4];
+  $truegridq = substr(stristr($truegridq,"<b>"),3);
+  $truegridq = substr($truegridq,0,strpos($truegridq,"</b>"));
+
+  $nongridq = $trow[4];
+  $nongridq = substr(stristr($nongridq,"+"),1);
+
+  $vo = $trow[0];
+  $vo = substr(stristr($vo,"./mon-icons/"),12);
+  $vo = substr($vo,0,strpos($vo,"."));
+  if ( @$showvo && $showvo != $vo ) continue;
+
+  $sumcpu        += $trow[2];
+  $sumgridjobs   += $gridjobs;
+  $sumlocljobs   += $localrun;
+  $sumgridqueued += $truegridq;
+  $sumloclqueued += $nongridq;
+  //  $sumqueued     += $totqueued;
+  $sumclusters ++;
+
+  if ( $vo != $prevvo && $order == "country" ) { // start new country rowspan
+    $prevvo   = $vo;
+    $vostring = $trow[0];
+    $ctable->addspacer("#000099");
+    $ctable->rowspan( $affcnt[$vo], $vostring, "#FFF2DF" );
+    $tcrow = array_shift($trow);
+    $ctable->addrow($trow);
+  } else {
+    if ( $order == "country" ) $tcrow = array_shift($trow);
+    $ctable->addrow($trow);
+  }
+
+}
+
+$tcont = array();
+
+$ctable->addspacer("#990000");
+$rowcont[] = "<b><i>".$errors["405"]."</i></b>";
+$rowcont[] = "<b><i>$sumclusters".$errors["406"]."</i></b>";
+$rowcont[] = "<b><i>$sumcpu</i></b>";
+$rowcont[] = "<b><i>$sumgridjobs + $sumlocljobs</i></b>";
+$rowcont[] = "<b><i>$sumgridqueued + $sumloclqueued</i></b>";
+//  $rowcont[] = "<b><i>$sumqueued</i></b>";
+$ctable->addrow($rowcont, "#ffffff");
+$ctable->close();
+
+if ( @$showvo ) {
+  echo "<br><nobr>\n";
+  foreach ( $votolink as $volink ) {
+    $vostring  = $_SERVER['PHP_SELF']."?debug=$debug&display=vo=$volink";
+    $voimage   = "<img src=\"./mon-icons/$volink.png\" title=\"".$errors["312"]."$volink\" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">";
+    echo "<a href=\"$vostring\">$voimage</a>&nbsp;&nbsp;";
+  }
+  echo "<a href=\"".$_SERVER['PHP_SELF']."\"><b>".$errors["409"]."</b></a><BR>\n";
+  echo "</nobr>\n";
+}
+
+$toppage->close();
+return 0;
+
+// Done
+
+$toppage->close();
+
+?>

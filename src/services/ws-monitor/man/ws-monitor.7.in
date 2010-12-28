@@ -1,0 +1,104 @@
+.TH ws-monitor 1 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
+.SH NAME
+
+ws-monitor \- Real-time NorduGrid monitoring tool
+
+.SH DESCRIPTION
+
+.B "WS Grid Monitor"
+is a set of 
+.B PHP 
+and
+.B Java 
+scripts, providing a Web interface to the
+.B NorduGrid 
+Information System. Should be working for any similar
+.B WS 
+based service.
+
+.SH REQUIREMENTS
+
+.IP "GD library"
+http://www.boutell.com/gd
+
+.IP "PHP4 library"
+http://www.php.net, must be compiled with LDAP and GD extensions
+
+.IP "HTTP server"
+must be compiled with PHP4
+
+.IP "Virtual Organisation"
+Is optional
+
+.SH INSTALLATION
+
+Copy all the files in a folder, accessible by the HTTP server.
+
+Modify 
+.I settings.inc
+according to your MDS structure and liking.
+
+Run the whole stuff by loading 
+.I loadmon.php
+into your favorite browser.
+
+.SH FILES
+
+.I loadmon.php
+.RS
+To monitor several servers at once, add hosts and DNs to the 
+.IR $arrhost
+and, correspondingly, 
+.IR $arrbdn 
+arrays in
+.I loadmon.php
+.RE
+
+.I isattr.inc 
+.I cnvname.inc
+.I cnvalias.inc
+.RS
+Making output more human-readable: modify 
+.IR isattr.inc,
+.IR cnvname.inc,
+.IR cnvalias.inc.
+Otherwise, these files are not needed.
+.RE
+
+.I blacklist.inc
+.RS
+To prevent sites from being polled, modify array entries in
+.IR blacklist.inc.
+Otherwise, the file is not needed.
+.RE
+
+.I vo-users.php
+.RS
+Not needed when working without a Virtual Organisation. In such a
+case, remove the corresponding link from 
+.I loadmon.php .
+.RE
+
+.I jobstat.php
+.RS
+When working without the 
+.B NorduGrid
+Information System: to make sure that the job status is defined properly, edit
+.I jobstat.php
+(look for 
+.B adjustment 
+instructions in the code).
+
+.SH AUTHOR
+
+Oxana Smirnova <oxana dot smirnova at quark dot lu dot se>
+
+.SH "SEE ALSO"
+
+.BR ngsub (1),
+.BR ngstat (1),
+.BR ngdel (1),
+.BR ngget (1),
+.BR ngsync (1),
+.BR ngcopy (1),
+.BR ngremove (1)

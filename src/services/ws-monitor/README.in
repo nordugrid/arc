@@ -1,0 +1,80 @@
+NorduGrid ARC version @VERSION@
+
+Grid Monitor
+============
+
+
+Description
+-----------
+
+Set of PHP scripts, providing a Web interface to the NorduGrid
+Information System. Should be working for any similar LDAP-based
+service, if the schema configuration is done carefuly.
+
+The directory contains:
+
+cache          - directory for front page cache
+includes       - directory with common methods and configuration file (settings.inc)
+lang           - directory with localizations
+man            - directory for the man page
+mon-icons      - directory with icons
+
+allusers.php   - list grid users
+attlist.php    - show values of selected attributes on the grid
+clusdes.php    - show cluster or storage information
+discover.php   - list attributes specific for an object for consecutive search
+ws-monitor.in  - lynx call for the monitor (template)
+help.php       - print help
+jobstat.php    - show running/other jobs in a queue
+loadmon.php    - main grid monitor script
+Makefile.am    - Makefile template
+monitor.js     - Java script for pop-up screens
+mylo.js        - Java script for mail addresses
+quelist.php    - show queue details and jobs
+README.in      - README file (template)
+sestat.php     - list storage elements
+userlist.php   - show allowed sites and list of jobs of a user
+volist.php     - static list of some VOs
+vo-users.php   - lists users in a VO
+
+
+Requirements
+------------
+
+- GD library (http://www.boutell.com/gd/)
+- LDAP library (e.g., http://www.openldap.org)
+- PHP4 or PHP5 (http://www.php.net) compiled with LDAP and GD extensions
+- HTTP server compiled with PHP4 or PHP5
+- Working ARC information system instance or a similar LDAP-based service
+- Optional: running Virtual Organisation LDAP-based service
+
+
+Installation
+------------
+
+1. Copy all the files in a folder, accessible by the HTTP server
+
+2. Verify that this folder contains a directory called "cache" and
+   that it is writeable by the HTTP server. If your server is configured
+   to have write access only to a specific location, such as "../htdata",
+   modify CACHE_LOCATION value in "includes/settings.inc" accordingly
+
+3. Modify "includes/settings.inc" according to your infosystem
+   structure and liking: most likely, you want to modify the $giislist
+   array by removing some GIISes/GRISes and adding other(s)
+
+4. Run the whole stuff by loading "loadmon.php" into your browser
+
+Fine tuning
+-----------
+
+- Making output more human-readable: modify "/lang/*.inc", 
+  "includes/cnvname.inc", "includes/cnvalias.inc". 
+
+- Preventing sites from being polled: modify
+  "includes/blacklist.inc". Otherwise, the file is not needed.
+
+Contact
+-------
+
+Oxana Smirnova, oxana.smirnova@hep.lu.se

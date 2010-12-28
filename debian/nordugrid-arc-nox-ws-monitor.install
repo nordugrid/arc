@@ -1,0 +1,3 @@
+debian/tmp/usr/share/arc/ws-monitor/*
+
+debian/tmp/usr/share/man/man7/ws-monitor.7

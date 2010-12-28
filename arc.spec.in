@@ -276,6 +276,20 @@ This package contains the LDAP monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
 which pulls information from a GIIS and shows it graphically.
 
+%package ws-monitor
+Summary: ARC WS monitor service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+
+%description ws-monitor
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the WS monitor system for ARC.
+This package is self-contained. It is used to set up a web-based monitor
+which pulls information from ISIS and shows it graphically.
+
 %package compiler
 Summary: ARC compiler service
 Group: System Environment/Libraries
@@ -761,6 +775,11 @@ exit 0
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/gridmonitor/*
 %doc %{_mandir}/man7/gridmonitor.7
+
+%files ws-monitor
+%defattr(-,root,root,-)
+%{_datadir}/%{pkgdir}/ws-monitor/*
+%doc %{_mandir}/man7/ws-monitor.7
 
 %files compiler
 %defattr(-,root,root,-)
