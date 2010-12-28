@@ -185,6 +185,18 @@ Description: ARC GIIS service
  used to set up a ldap-based server that local information systems register
  to.
 
+Package: nordugrid-arc-nox-ldap-monitor
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ARC LDAP monitor service
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the LDAP monitor system for ARC.
+ This package is self-contained. It is used to set up a web-based monitor
+ which pulls information from a GIIS and shows it graphically.
+
 Package: nordugrid-arc-nox-compiler
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-nox-hed

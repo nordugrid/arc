@@ -108,6 +108,7 @@ enables_sched_service=yes
 enables_charon_service=yes
 enables_storage_service=yes
 enables_cache_service=yes
+enables_ldap_monitor=yes
 #  Clients
 enables_arclib_client=yes
 enables_charon_client=yes
@@ -133,6 +134,7 @@ enables_hopi_service=$enableval
 enables_isis_service=$enableval
 enables_ldap_service=$enableval
 enables_giis_service=$enableval
+enables_ldap_monitor=$enableval
 enables_janitor_service=$enableval
 enables_paul_service=$enableval
 enables_sched_service=$enableval
@@ -191,6 +193,7 @@ enables_hopi_service=$enableval
 enables_isis_service=$enableval
 enables_ldap_service=$enableval
 enables_giis_service=$enableval
+enables_ldap_monitor=$enableval
 enables_janitor_service=$enableval
 enables_paul_service=$enableval
 enables_sched_service=$enableval
@@ -705,6 +708,19 @@ AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
 fi
 AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
+# Check ldap-monitor
+AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--enable-ldap-monitor], [enable use of the ldap monitor]),[enables_ldap_monitor="$enableval"],[])
+# Ask user for path to libmysqlclient
+if test "x$enables_ldap_monitor" = "xyes"; then
+  AC_ARG_WITH(ldap_monitor, [  --with-ldap-monitor=(PATH) where to install the monitor, eg /var/www/ldap-monitor or /usr/share/arc/ldap-monitor])
+  AC_MSG_CHECKING(for ldap-monitor)
+  if test "x$with_ldap_monitor" != "x" ; then
+      monitor_prefix=$with_ldap_monitor
+  else
+      monitor_prefix=${datadir}/${PACKAGE}/ldap-monitor
+  fi
+  AC_SUBST(monitor_prefix)
+fi
 # check zlib
 ZLIB_CFLAGS=
 ZLIB_LDFLAGS=
@@ -1403,6 +1419,13 @@ fi
 AC_MSG_NOTICE([GIIS service enabled: $enables_giis_service])
 AM_CONDITIONAL([GIIS_SERVICE_ENABLED],[test "x$enables_giis_service" = "xyes"])
 
+# LDAP monitor
+AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--disable-ldap-monitor], [disable building LDAP Monitor]),
+  [enables_ldap_monitor=$enableval],[])
+
+AC_MSG_NOTICE([LDAP Monitor enabled: $enables_ldap_monitor])
+AM_CONDITIONAL([LDAP_MONITOR_ENABLED],[test "x$enables_ldap_monitor" = "xyes"])
+
 # Charon service
 AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),
   [enables_charon_service=$enableval],[])
@@ -1854,6 +1877,15 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/grid-infosys-bdii4
                  src/services/ldap-infosys/grid-infosys-bdii5
                  src/services/ldap-infosys/giis/Makefile
+                 src/services/ldap-monitor/Makefile
+                 src/services/ldap-monitor/ldap-monitor
+                 src/services/ldap-monitor/README
+                 src/services/ldap-monitor/man/Makefile
+                 src/services/ldap-monitor/man/ldap-monitor.7
+                 src/services/ldap-monitor/includes/Makefile
+                 src/services/ldap-monitor/cache/Makefile
+                 src/services/ldap-monitor/mon-icons/Makefile
+                 src/services/ldap-monitor/lang/Makefile
                  src/services/saml/Makefile
                  src/services/saml/schema/Makefile
                  src/services/slcs/Makefile
@@ -2019,6 +2051,9 @@ SRM client (DMC):   ${enables_srm_dmc}
 GSI channel (MCC):  ${enables_gsi_mcc}
 
 Documentation:      ${enables_doc}
+
+Monitoring:
+LDAP Monitor        ${enables_ldap_monitor}
 ])
 
 if test "$enables_hed" = "yes"; then

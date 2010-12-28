@@ -262,6 +262,20 @@ Requires: %{name}-ldap-infosys = %{version}
  used to set up a ldap-based server that local information systems register
  to.
 
+%package ldap-monitor
+Summary: ARC LDAP monitor service
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+
+%description ldap-monitor
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the LDAP monitor system for ARC.
+This package is self-contained. It is used to set up a web-based monitor
+which pulls information from a GIIS and shows it graphically.
+
 %package compiler
 Summary: ARC compiler service
 Group: System Environment/Libraries
@@ -742,6 +756,11 @@ exit 0
 %{_sbindir}/arc-infoindex-server
 %{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.so
 %{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.apd
+
+%files ldap-monitor
+%defattr(-,root,root,-)
+%{_datadir}/%{pkgdir}/gridmonitor/*
+%doc %{_mandir}/man7/gridmonitor.7
 
 %files compiler
 %defattr(-,root,root,-)

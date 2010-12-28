@@ -1,0 +1,174 @@
+<?php
+
+// Author: oxana.smirnova@hep.lu.se
+/**
+ * Retrieves the queue job list information from a given NorduGrid domain
+ * Uses LDAP functions of PHP
+ * 
+ * Author: O.Smirnova (June 2002)
+ * inspired by the LDAPExplorer by T.Miao
+ * 
+ * input:
+ * host (default: grid.quark.lu.se)
+ * port (default: 2135)
+ * qname (default: "default")
+ * 
+ * output:
+ * an HTML table, containing the list of the jobs in the queue
+ */
+
+set_include_path(get_include_path().":".getcwd()."/includes".":".getcwd()."/lang");
+
+require_once('headfoot.inc');
+require_once('lmtable.inc');
+require_once('comfun.inc');
+require_once('cnvtime.inc');
+require_once('cnvname.inc');
+require_once('toreload.inc');
+require_once('ldap_nice_dump.inc');
+
+// getting parameters
+
+$host   = ( $_GET["host"] )  ? $_GET["host"]  : "quark.hep.lu.se";
+$port   = ( $_GET["port"] )  ? $_GET["port"]  : 2135;
+$qname  = $_GET["qname"];
+$debug  = ( $_GET["debug"] ) ? $_GET["debug"] : 0;
+
+// Setting up the page itself
+
+$toppage  = new LmDoc("quelist",$qname." (".$host.")");
+$toptitle = $toppage->title;
+$module   = &$toppage->module;
+$strings  = &$toppage->strings;
+$errors   = &$toppage->errors;
+
+$clstring = popup("clusdes.php?host=$host&port=$port",700,620,1);
+
+// Header table
+
+$toppage->tabletop("","<b><i>".$toptitle." ".$qname." (<a href=\"$clstring\">".$host."</a>)</i></b>");
+
+$lim = array( "dn", JOB_NAME, JOB_GOWN, JOB_SUBM, JOB_STAT, JOB_COMP, JOB_USET, JOB_USEM, JOB_ERRS, JOB_CPUS, JOB_EQUE );
+  
+if ( $debug ) {
+  ob_end_flush();
+  ob_implicit_flush();
+}
+
+$tlim = 15;
+$tout = 20;
+if( $debug ) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</div><br>");
+
+// ldapsearch filter strings for cluster and queues
+  
+$filstr = "(objectclass=".OBJ_AJOB.")";
+$dn     = DN_LOCAL;
+$topdn  = DN_GLOBL;
+  
+// Establish connection to the requested LDAP server
+  
+$ds = ldap_connect($host,$port);
+if ($ds) {
+    
+  // If contact OK, search for NorduGrid clusters
+    
+  $basedn = QUE_NAME."=".$qname.",".CLU_NAME."=".$host.",";
+  $locdn  = $basedn.$dn;
+  $aaa = ldap_nice_dump($strings,$ds,$locdn);
+  echo "<br>";    
+    
+  $ts1 = time();
+  $sr  = ldap_search($ds,$dn,$filstr,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
+  $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["110"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
+  // Fall back to conventional LDAP
+  //    if (!$sr) $sr = ldap_search($ds,$dn,$filstr,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
+
+  if ($sr) {
+    $nmatch = ldap_count_entries($ds,$sr);
+    if ($nmatch > 0) {
+      $entries = ldap_get_entries($ds,$sr);
+      $njobs   = $entries["count"];
+        
+      define("CMPKEY",JOB_SUBM);
+      usort($entries,"ldap_entry_comp");
+        
+      // HTML table initialisation
+        
+      $ltable = new LmTable($module,$toppage->$module);
+        
+      // loop on jobs
+        
+      $nj = 0;
+      for ($i=1; $i<$njobs+1; $i++) {
+	$equeue  = $entries[$i][JOB_EQUE][0];
+	if ( $equeue !== $qname ) {
+	  if ( $debug == 2 ) dbgmsg($equeue." != ".$qname);
+	  continue;
+	}
+	$jobdn   = rawurlencode($entries[$i]["dn"]);
+	$curstat = $entries[$i][JOB_STAT][0];
+	$stahead = substr($curstat,0,12);
+	$ftime = "";
+	if ($stahead=="FINISHED at:") {
+	  $ftime = substr(strrchr($curstat, " "), 1);
+        } elseif ($curstat=="FINISHED") {
+	  $ftime = $entries[$i][JOB_COMP][0];
+	}
+	if ( $ftime ) {
+	  $ftime   = cnvtime($ftime);
+	  $curstat = "FINISHED at: ".$ftime;
+	}
+	$uname    = $entries[$i][JOB_GOWN][0];
+	$encuname = rawurlencode($uname);
+	$family   = cnvname($uname, 2);
+          
+	$jname   = htmlentities($entries[$i][JOB_NAME][0]);
+	$jobname = ($entries[$i][JOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
+	$time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
+	$memory  = ($entries[$i][JOB_USEM][0]) ? $entries[$i][JOB_USEM][0] : "";
+	$ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
+	$error   = ($entries[$i][JOB_ERRS][0]);
+	if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
+	$status  = "All";
+	$newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn",750,430,4);
+	$usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5);
+          
+	// filling the table
+          
+	$nj++;
+	$lrowcont[] = "$nj&nbsp;<b><font color=\"red\">$error</font></b>";
+	$lrowcont[] = "<a href=\"$newwin\">$jobname</a>";
+	$lrowcont[] = "<a href=\"$usrwin\">$family</a>";
+	$lrowcont[] = "$curstat";
+	$lrowcont[] = "$time";
+	$lrowcont[] = "$memory";
+	$lrowcont[] = "$ncpus";
+	$ltable->addrow($lrowcont);
+	$lrowcont = array ();
+      }
+      $ltable->close();
+    } else {
+      $errno = "4";
+      echo "<br><font color=\"red\"><b>".$errors[$errno]."</b></font>\n";
+      return $errno;
+    }
+  } else {
+    $errno = "5";
+    echo "<br><font color=\"red\"><b>".$errors[$errno]."</b></font>\n";
+    return $errno;
+  }
+  ldap_free_result($sr);
+  ldap_close($ds);
+  return 0;
+}
+else {
+  $errno = "6";
+  echo "<br><font color=\"red\"><b>".$errors[$errno]."</b></font>\n";
+  return $errno;
+}
+
+// Done
+
+$toppage->close();
+
+?>
