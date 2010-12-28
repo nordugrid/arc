@@ -824,7 +824,6 @@ exit 0
 %{_libdir}/%{pkgdir}/LRMSInfo.pm
 %{_libdir}/%{pkgdir}/Sysinfo.pm
 %{_libdir}/%{pkgdir}/cancel_common.sh
-%{_libdir}/%{pkgdir}/change-lsf-mode.sh
 %{_libdir}/%{pkgdir}/condor_env.pm
 %{_libdir}/%{pkgdir}/config_parser.sh
 %{_libdir}/%{pkgdir}/config_parser_compat.sh

@@ -145,14 +145,6 @@ if [ -n "$joboption_starttime" ] ; then
   echo "#BSUB -b ${joboption_starttime}" >> $LRMS_JOB_SCRIPT
 fi
 
-
-##############################################################
-# Test pre-execution
-##############################################################
-
-echo "#BSUB -E  ${joboption_directory}/change-lsf-mode.sh" >>  $LRMS_JOB_SCRIPT
-
-
 ##############################################################
 # Override umask
 ##############################################################
@@ -332,8 +324,6 @@ cd "$joboption_directory"
 #chmod 0755 $LRMS_JOB_SCRIPT
 
 # We make the assumption that $joboption_directory is locally available according to the requirements of any arc installation
-echo "copying  ${pkglibdir}/change-lsf-mode.sh to ${joboption_directory}/change-lsf-mode.sh"  1>&2
-cp -pR $pkglibdir/change-lsf-mode.sh $joboption_directory/change-lsf-mode.sh
 
 echo "----------------- BEGIN job script -----" 1>&2
 cat $LRMS_JOB_SCRIPT 1>&2
