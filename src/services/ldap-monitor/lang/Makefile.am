@@ -1,4 +1,4 @@
-monitorlangdir   = @monitor_prefix@/lang
+monitorlangdir   = @ldap_monitor_prefix@/lang
 monitorlang_DATA = *.inc
 
 EXTRA_DIST = $(monitorlang_DATA)

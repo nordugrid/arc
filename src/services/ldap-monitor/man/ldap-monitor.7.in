@@ -1,11 +1,11 @@
-.TH gridmonitor 1 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
+.TH ldap-monitor 1 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
 .SH NAME
 
-gridmonitor \- Real-time NorduGrid monitoring tool
+ldap monitor \- Real-time NorduGrid monitoring tool
 
 .SH DESCRIPTION
 
-.B "Grid Monitor"
+.B "LDAP Grid Monitor"
 is a set of 
 .B PHP 
 and

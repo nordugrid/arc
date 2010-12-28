@@ -712,16 +712,15 @@ AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
 # Check ldap-monitor
 AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--enable-ldap-monitor], [enable use of the ldap monitor]),[enables_ldap_monitor="$enableval"],[])
-# Ask user for path to libmysqlclient
 if test "x$enables_ldap_monitor" = "xyes"; then
   AC_ARG_WITH(ldap_monitor, [  --with-ldap-monitor=(PATH) where to install the monitor, eg /var/www/ldap-monitor or /usr/share/arc/ldap-monitor])
   AC_MSG_CHECKING(for ldap-monitor)
   if test "x$with_ldap_monitor" != "x" ; then
-      monitor_prefix=$with_ldap_monitor
+      ldap_monitor_prefix=$with_ldap_monitor
   else
-      monitor_prefix=${datadir}/${PACKAGE}/ldap-monitor
+      ldap_monitor_prefix=${datadir}/${PACKAGE}/ldap-monitor
   fi
-  AC_SUBST(monitor_prefix)
+  AC_SUBST(ldap_monitor_prefix)
 fi
 
 # Check ws-monitor
