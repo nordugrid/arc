@@ -47,6 +47,9 @@ use InfoChecker;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
+our $nojobs;
+our $splitjobs;
+our $nonordugrid;
 
 sub timed {
     my ($fname, $func, @args) = @_;
@@ -79,6 +82,9 @@ sub main {
     
     my $print_help;
     GetOptions("config:s" => \$configfile,
+               "nojobs|n" => \$nojobs,
+               "splitjobs|s" => \$splitjobs,
+               "nonordugrid|g" => \$nonordugrid,
                "help|h"   => \$print_help ); 
         
     if ($print_help) { 
@@ -150,6 +156,8 @@ sub collect($) {
     $data->{rte_info} = get_rte_info($config);
     $data->{gmjobs_info} = $gmjobs_info;
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
+    $data->{nojobs} = $nojobs;
+    $data->{splitjobs} = $splitjobs;
 
     fix_adotf($config, $data->{host_info});
     fix_adotf($_, $data->{host_info}) for values %{$config->{xenvs}};
@@ -163,10 +171,43 @@ sub collect($) {
     $ceinfo->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     $ceinfo->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data;
 
+    for my $jobid ( keys %$gmjobs_info ) {
+        my $job = $gmjobs_info->{$jobid};
+        if($job->{xml}) {
+            my $xml_file = $config->{controldir} . "/job." . $jobid . ".xml";
+            my $xml_time = (stat($xml_file))[9];
+            my $status = $job->{status};
+            my $status_time = $job->{statustime};
+            # Here goes simple optimisation - do not write new
+            # XML if status has not changed while in "slow" states
+            my $rewrite_xml = 1;
+            if(($status =~ /ACCEPTED/ ) ||
+               ($status =~ /FINISHED/ ) ||
+               ($status =~ /FAILED/ ) ||
+               ($status =~ /KILLED/ ) ||
+               ($status =~ /DELETED/ )) {
+                if((defined $xml_time) && (defined $status_time)) {
+                    if($status_time < $xml_time) {
+                        $rewrite_xml = 0;
+                    }
+                }
+            }
+            if($rewrite_xml) {
+                my $xml_h = FileHandle->new($xml_file, "w");
+                if(defined $xml_h) {
+                    my $jxml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'ComputingActivity', KeyAttr => ['name']);
+                    print $xml_h timed('printing job XML', \&XML::Simple::XMLout, $jxml, $job->{xml});
+                }
+            }
+        }
+    }
+
     my $png = $config->{PublishNordugrid};
     unless (defined $png and $png eq 'false') {
-        $ceinfo->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
-        $ceinfo->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
+        if(!$nonordugrid) {
+            $ceinfo->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
+            $ceinfo->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
+        }
     }
 
     return $ceinfo;

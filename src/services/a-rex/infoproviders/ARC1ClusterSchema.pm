@@ -43,6 +43,7 @@ sub arc1_info_schema {
     };
 
     my $comp_activity_t = {
+            'xmlns'        => '*',
             'BaseType'     => '',
             'CreationTime' => '*',
             'Validity'     => '*',
@@ -310,6 +311,7 @@ sub arc1_info_schema {
             'StatusInfo'         => [ '*' ],
             'Complexity'         => [ '' ],
             'Otherinfo'          => [ '*' ],
+            'AllJobs'            => [ '' ],
             'TotalJobs'          => [ '' ],
             'RunningJobs'        => [ '' ],
             'WaitingJobs'        => [ '' ],

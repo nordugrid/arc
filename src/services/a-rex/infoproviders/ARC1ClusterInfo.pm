@@ -313,7 +313,7 @@ sub max_userfreeslots {
 sub collect($) {
     my ($options) = @_;
     my ($checker, @messages);
-    
+
     my $result = get_cluster_info($options);
 
     $checker = InfoChecker->new($arc1_info_schema);
@@ -331,6 +331,8 @@ sub get_cluster_info($) {
     my $rte_info = $options->{rte_info};
     my $gmjobs_info = $options->{gmjobs_info};
     my $lrms_info = $options->{lrms_info};
+    my $nojobs = $options->{nojobs};
+    my $splitjobs = $options->{splitjobs};
 
     my $creation_time = timenow();
     my $validity_ttl = $config->{ttl};
@@ -537,9 +539,11 @@ sub get_cluster_info($) {
     $xenvIDs{$_} = "$xenvIDp:$_" for @allxenvs;
 
     # generate ComputingActivity IDs
-    for my $jobid (keys %$gmjobs_info) {
-        my $share = $gmjobs_info->{$jobid}{share};
-        $cactIDs{$share}{$jobid} = "$cactIDp:$jobid";
+    if(!$nojobs || $splitjobs) {
+        for my $jobid (keys %$gmjobs_info) {
+            my $share = $gmjobs_info->{$jobid}{share};
+            $cactIDs{$share}{$jobid} = "$cactIDp:$jobid";
+        }
     }
 
 
@@ -567,6 +571,7 @@ sub get_cluster_info($) {
     my $nshares = keys %{$config->{shares}};
     $csv->{Complexity} = [ "endpoint=1,share=$nshares,resource=1" ];
 
+    $csv->{AllJobs} = [ $gmtotalcount{totaljobs} || 0 ];
     # OBS: Finished/failed/deleted jobs are not counted
     $csv->{TotalJobs} = [ $gmtotalcount{notfinished} || 0 ];
 
@@ -682,7 +687,9 @@ sub get_cluster_info($) {
 
     $cep->{Associations}{ComputingShareID} = [ values %cshaIDs ];
 
-    $cep->{ComputingActivities}{ComputingActivity} ||= [];
+    if(!$nojobs) {
+        $cep->{ComputingActivities}{ComputingActivity} ||= [];
+    }
 
 
     # AccessPolicy: all unique VOs mapped to shares.
@@ -1151,6 +1158,8 @@ sub get_cluster_info($) {
 
     # Computing Activities
 
+    my $jobs_split;
+    if(!$nojobs || $splitjobs) {
     for my $jobid (keys %$gmjobs_info) {
 
         my $gmjob = $gmjobs_info->{$jobid};
@@ -1158,8 +1167,11 @@ sub get_cluster_info($) {
         my $exited= undef; # whether the job has already run; 
 
         my $cact = {};
-        push @{$cep->{ComputingActivities}{ComputingActivity}}, $cact;
+        if (!$nojobs) {
+            push @{$cep->{ComputingActivities}{ComputingActivity}}, $cact;
+        }
 
+        $cact->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
         $cact->{CreationTime} = $creation_time;
         $cact->{Validity} = $validity_ttl;
         $cact->{BaseType} = 'Activity';
@@ -1244,7 +1256,9 @@ sub get_cluster_info($) {
         } else {
             $cact->{State} = glueState($gmjob->{status});
         }
+        $gmjob->{xml} = $cact;
 
+    }
     }
 
     return $csv;

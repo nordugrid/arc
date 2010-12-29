@@ -155,6 +155,7 @@ sub collect($) {
                     $log->warning("Job $ID: Cannot determine user name for owner (uid $uid)");
                 }
 
+                $job->{"statustime"} = $file_stat[9];
                 # completiontime
                 if ($job->{"status"} eq "FINISHED") {
                     my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);
