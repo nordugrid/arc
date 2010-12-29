@@ -35,7 +35,7 @@ void ARexService::InformationCollector(void) {
     int r = -1;
     {
       std::string cmd;
-      cmd=gm_env_->nordugrid_libexec_loc()+"/CEinfo.pl --config "+gm_env_->nordugrid_config_loc();
+      cmd=gm_env_->nordugrid_libexec_loc()+"/CEinfo.pl --nonordugrid --nojobs --splitjobs --config "+gm_env_->nordugrid_config_loc();
       std::string stdin_str;
       std::string stderr_str;
       Arc::Run run(cmd);
@@ -77,6 +77,8 @@ void ARexService::InformationCollector(void) {
       // Following code is suboptimal. Most of it should go away
       // and functionality to be moved to information providers.
       if(!xml_str.empty()) {
+        // Currently glue states are lost. Counter of all jobs is lost too.
+        /*
         Arc::XMLNode xml_doc(xml_str);
         glue_states_lock_.lock();
         GetGlueStates(xml_doc,glue_states_);
@@ -110,7 +112,15 @@ void ARexService::InformationCollector(void) {
           xml_activity = xml_activity_;
         };
         xml_doc.GetXML(xml_str);
+        */
         infodoc_.Assign(xml_str);
+        Arc::XMLNode root = infodoc_.Acquire();
+        Arc::XMLNode all_jobs_count = root["Domains"]["AdminDomain"]["Services"]["ComputingService"]["AllJobs"];
+        if((bool)all_jobs_count) {
+          Arc::stringto((std::string)all_jobs_count,all_jobs_count_);
+          all_jobs_count.Destroy(); // is not glue2 info
+        };
+        infodoc_.Release();
         /*
         Arc::XMLNode root = infodoc_.Acquire();
         if(root) {

@@ -46,9 +46,10 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   // Apply limit on total number of jobs. Using collected glue states
   // to evaluate number of jobs.
   {
-    glue_states_lock_.lock();
-    int jobs_total = glue_states_.size();
-    glue_states_lock_.unlock();
+//!!    glue_states_lock_.lock();
+//!!    int jobs_total = glue_states_.size();
+//!!    glue_states_lock_.unlock();
+    int jobs_total = all_jobs_count_;
     int max_active;
     int max_running;
     int max_per_dn;

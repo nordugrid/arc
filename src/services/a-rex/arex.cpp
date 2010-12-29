@@ -599,6 +599,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               jobs_cfg_(NULL),
               gm_env_(NULL),
               gm_(NULL),
+              infoprovider_wakeup_period_(0),
+              all_jobs_count_(0),
               valid_(false) {
   // logger_.addDestination(logcerr);
   // Define supported namespaces

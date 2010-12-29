@@ -73,8 +73,9 @@ class ARexService: public Arc::RegisteredService {
   std::string lrms_name_;
   std::string os_name_;
   unsigned int infoprovider_wakeup_period_;
-  Glib::Mutex glue_states_lock_;
-  std::map<std::string,std::string> glue_states_;
+  unsigned int all_jobs_count_;
+  //Glib::Mutex glue_states_lock_;
+  //std::map<std::string,std::string> glue_states_;
   FileChunksList files_chunks_;
   JobLog* job_log_;
   JobsListConfig* jobs_cfg_;

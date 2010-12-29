@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "tools.h"
 
 namespace ARex {
@@ -27,14 +29,28 @@ namespace ARex {
     };
   }
 
-  Arc::XMLNode addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,const std::string& glue_state,bool failed,bool pending) {
+  Arc::XMLNode addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending) {
     std::string bes_state("");
     std::string arex_state("");
+    std::string glue_state("");
     convertActivityStatus(gm_state,bes_state,arex_state,failed,pending);
     Arc::XMLNode state = pnode.NewChild("bes-factory:ActivityStatus");
     state.NewAttribute("state")=bes_state;
     state.NewChild("a-rex:State")=arex_state;
     if(pending) state.NewChild("a-rex:State")="Pending";
+    if((bool)glue_xml) {
+      Arc::XMLNode state_node = glue_xml["State"];
+      for(;(bool)state_node;++state_node) {
+        std::string state  = (std::string)state_node;
+        if(state.empty()) continue;
+        // Look for nordugrid prefix
+        if(::strncmp("nordugrid:",state.c_str(),10) == 0) {
+          // Remove prefix
+          state.erase(0,10);
+          glue_state = state;
+        };
+      };
+    };
     if(!glue_state.empty()) {
       std::string::size_type p = glue_state.find(':');
       if(p != std::string::npos) {

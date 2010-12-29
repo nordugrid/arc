@@ -77,9 +77,17 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
     */
     bool job_pending = false;
     std::string gm_state = job.State(job_pending);
-    glue_states_lock_.lock();
-    Arc::XMLNode st = addActivityStatus(resp,gm_state,glue_states_[job.ID()],job.Failed(),job_pending);
-    glue_states_lock_.unlock();
+    Arc::XMLNode glue_xml;
+    if(status_verbosity != VerbBES) {
+      std::string glue_s;
+      if(job_xml_read_file(jobid,*config.User(),glue_s)) {
+        Arc::XMLNode glue_xml_tmp(glue_s);
+        glue_xml.Exchange(glue_xml_tmp);
+      };
+    };
+//    glue_states_lock_.lock();
+    Arc::XMLNode st = addActivityStatus(resp,gm_state,glue_xml,job.Failed(),job_pending);
+//    glue_states_lock_.unlock();
     if(status_verbosity == VerbFull) {
       std::string glue_s;
       if(job_xml_read_file(jobid,*config.User(),glue_s)) {
