@@ -16,6 +16,7 @@ namespace Arc {
 
 #ifdef CPPUNITTEST
 #define ClientSOAP ClientSOAPTest
+#define private public
 #endif
 
 
