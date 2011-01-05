@@ -632,8 +632,6 @@ class Bartender:
             response[rID] = success
         return response
 
-    ### Created by Salman Toor ###
-    
     def unmakeMountpoint(self, auth, requests):        
         """docstring for unmakeMountpoint"""  
         auth_request = auth.get_request('delete')      
@@ -702,8 +700,9 @@ class Bartender:
 
     ###   ###
 
-    def _listLN(self, auth_request, LN, metadata, neededMetadata, dirname = ''):
+    def _listLN(self, auth, LN, metadata, neededMetadata, dirname = ''):
         """ list one LN """
+        auth_request = auth.get_request('read')
         decision = make_decision_metadata(metadata, auth_request)
         if decision != arc.DECISION_PERMIT:
             entries = {}
@@ -736,8 +735,9 @@ class Bartender:
                 entries = {}
         return entries, status
 
-    def _listRecursive(self, auth_request, LN, metadata, neededMetadata):
+    def _listRecursive(self, auth, LN, metadata, neededMetadata):
         """ recursive listing of collection """
+        auth_request = auth.get_request('read')
         entries, status = self._listLN(auth_request, LN, metadata, neededMetadata)
         dirname = LN and LN or '/'
         subentries = entries
@@ -778,7 +778,7 @@ class Bartender:
         neededMetadata is a list of (section, property) where property could be empty which means all properties of that section
             if neededMetadata is empty it means we need everything
         """
-        auth_request = auth.get_request('read')
+        #auth_request = auth.get_request('read')
         #print 'ID: '+auth.get_identity()
         # do traverse the requested Logical Names
         requests, traverse_response = self._traverse(requests)
@@ -791,8 +791,8 @@ class Bartender:
                 #print metadata
                 if wasComplete:
                     # this means that the LN was found
-                    entries, status = recursive and self._listRecursive(auth_request, LN, metadata, neededMetadata) \
-                                      or self._listLN(auth_request, LN, metadata, neededMetadata)
+                    entries, status = recursive and self._listRecursive(auth, LN, metadata, neededMetadata) \
+                                      or self._listLN(auth, LN, metadata, neededMetadata)
                 elif metadata.get(('entry', 'type'), '') == 'mountpoint':
                     # todo: recursive listing of mountpoint
                     url = metadata[('mountpoint', 'externalURL')] + '/' + restLN
@@ -1501,7 +1501,7 @@ class BartenderService(Service):
                 proxyfile = open(filePath, 'w') 
                 proxyfile.write(credAndid[1])
                 proxyfile.close()
-                log.msg(arc.VERBOSE,'created successfully, ID: %s',credAndid[2]) 
+                log.msg(arc.VERBOSE,'created successfully, ID: %s',base64.b64encode(inpayload.auth.get_identity())) 
                 os.system('chmod 600 '+filePath)
             else:
                 log.msg(arc.VERBOSE,'cannot access proxy_store, Check the configuration file (service.xml)\n Need to have a <ProxyStore>')
