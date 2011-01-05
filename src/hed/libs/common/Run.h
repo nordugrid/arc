@@ -59,6 +59,8 @@ namespace Arc {
     int result_;
     Glib::Mutex lock_;
     Glib::Cond cond_;
+    int user_id_;
+    int group_id_;
   public:
     /** Constructor preapres object to run cmdline */
     Run(const std::string& cmdline);
@@ -140,6 +142,12 @@ namespace Arc {
     /** Assign working direcotry of the running process */
     void AssignWorkingDirectory(std::string& wd) {
       working_directory = wd;
+    }
+    void AssignUserId(int uid) {
+      user_id_ = uid;
+    }
+    void AssignGroupId(int gid) {
+      group_id_ = gid;
     }
     /** Kill running executable.
        First soft kill signal (SIGTERM) is sent to executable. If

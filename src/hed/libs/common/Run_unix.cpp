@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <poll.h>
+#include <unistd.h>
 
 #include <iostream>
 
@@ -82,6 +83,7 @@ namespace Arc {
   public:
     Pid(void):p_(0) { }; 
     Pid(Glib::Pid p):p_(p) { }; 
+    ~Pid(void) { if(p_) Glib::spawn_close_pid(p_); };
     operator Glib::Pid(void) { return p_; };
     Glib::Pid pid(void) { return p_; };
     Glib::Pid operator=(Glib::Pid p) { return (p_=p); };
@@ -92,11 +94,15 @@ namespace Arc {
     void *arg_;
     void (*func_)(void*);
     UserSwitch* usw_;
+    int user_id_;
+    int group_id_;
   public:
-    RunInitializerArgument(void(*func)(void*), void *arg, UserSwitch* usw)
+    RunInitializerArgument(void(*func)(void*), void *arg, UserSwitch* usw, int user_id, int group_id)
       : arg_(arg),
         func_(func),
-        usw_(usw) {}
+        usw_(usw),
+        user_id_(user_id),
+        group_id_(group_id) {}
     void Run(void);
   };
 
@@ -104,19 +110,21 @@ namespace Arc {
     void *arg = arg_;
     void (*func)(void*) = func_;
     if(usw_) delete usw_;
+    if(group_id_ > 0) setgid(group_id_);
+    if(user_id_ > 0) setuid(user_id_);
     delete this;
     // To leave clean environment reset all signals.
     // Otherwise we may get some signals non-intentionally ignored.
     // Glib takes care of open handles.
 #ifdef SIGRTMIN
-    for(int n = SIGHUP; n < SIGRTMIN; ++n)
+    for(int n = SIGHUP; n < SIGRTMIN; ++n) {
 #else
     // At least reset all signals whose numbers are well defined
-    for(int n = SIGHUP; n < SIGTERM; ++n)
+    for(int n = SIGHUP; n < SIGTERM; ++n) {
 #endif
       signal(n,SIG_DFL);
-    if (!func)
-      return;
+    }
+    if (!func) return;
     (*func)(arg);
     return;
   }
@@ -290,7 +298,9 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       started_(false),
       running_(false),
       abandoned_(false),
-      result_(-1) {
+      result_(-1),
+      user_id_(0),
+      group_id_(0) {
     pid_ = new Pid;
   }
 
@@ -310,7 +320,9 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       started_(false),
       running_(false),
       abandoned_(false),
-      result_(-1) {
+      result_(-1),
+      user_id_(0),
+      group_id_(0) {
     pid_ = new Pid;
   }
 
@@ -338,7 +350,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       // Locking user switching to make sure fork is 
       // is done with proper uid
       usw = new UserSwitch(0,0);
-      arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw);
+      arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
       spawn_async_with_pipes(working_directory, argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
