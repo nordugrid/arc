@@ -528,9 +528,7 @@ int main(int argc, char **argv) {
 
   std::string cache_path;
   options.AddOption('y', "cache",
-                    istring("path to local cache (use to put file into cache). "
-                            "The X509_USER_PROXY and X509_CERT_DIR environment "
-                            "variables must be set correctly."),
+                    istring("path to local cache (use to put file into cache)"),
                     istring("path"), cache_path);
 
   int recursion = 0;

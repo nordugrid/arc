@@ -255,7 +255,7 @@ namespace Arc {
       try {
         // TODO (important) load credential in unified way or 
         // use already loaded one
-        Credential ci(GetEnv("X509_USER_PROXY"), GetEnv("X509_USER_PROXY"), GetEnv("X509_CERT_DIR"), "");
+        Credential ci(source.GetUserConfig().ProxyPath(), source.GetUserConfig().ProxyPath(), source.GetUserConfig().CACertificatesDirectory(), "");
         dn = ci.GetIdentityName();
         exp_time = ci.GetEndTime();
       } catch (CredentialError e) {
