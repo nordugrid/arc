@@ -391,6 +391,7 @@ namespace Arc {
   }
 
   bool Credential::IsCredentialsValid(const UserConfig& usercfg) {
+    return
     Credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
                usercfg.CACertificatesDirectory(), usercfg.CACertificatePath()).IsValid();
