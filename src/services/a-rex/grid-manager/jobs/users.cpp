@@ -13,6 +13,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <cstdlib>
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/Utils.h>
@@ -102,8 +103,8 @@ void JobUser::SetCacheParams(CacheConfig params) {
 bool JobUser::CreateDirectories(void) {
   bool res = true;
   if(control_dir.length() != 0) {
-    if(mkdir(control_dir.c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
+    if(!Arc::DirCreate(control_dir,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
+      res=false;
     } else {
       (chown(control_dir.c_str(),uid,gid) != 0);
       if(uid == 0) {
@@ -112,36 +113,36 @@ bool JobUser::CreateDirectories(void) {
         chmod(control_dir.c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
       };
     };
-    if(mkdir((control_dir+"/logs").c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
+    if(!Arc::DirCreate(control_dir+"/logs",uid,gid,S_IRWXU)) {
+      res=false;
     } else {
       (chown((control_dir+"/logs").c_str(),uid,gid) != 0);
     };
-    if(mkdir((control_dir+"/accepting").c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
+    if(!Arc::DirCreate(control_dir+"/accepting",uid,gid,S_IRWXU)) {
+      res=false;
     } else {
       (chown((control_dir+"/accepting").c_str(),uid,gid) != 0);
     };
-    if(mkdir((control_dir+"/restarting").c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
+    if(!Arc::DirCreate(control_dir+"/restarting",uid,gid,S_IRWXU)) {
+      res=false;
     } else {
       (chown((control_dir+"/restarting").c_str(),uid,gid) != 0);
     };
-    if(mkdir((control_dir+"/processing").c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
+    if(!Arc::DirCreate(control_dir+"/processing",uid,gid,S_IRWXU)) {
+      res=false;
     } else {
       (chown((control_dir+"/processing").c_str(),uid,gid) != 0);
     };
-    if(mkdir((control_dir+"/finished").c_str(),S_IRWXU) != 0) {
-      if(errno != EEXIST) res=false;
+    if(!Arc::DirCreate(control_dir+"/finished",uid,gid,S_IRWXU)) {
+      res=false;
     } else {
       (chown((control_dir+"/finished").c_str(),uid,gid) != 0);
     };
   };
   if(session_roots.size() != 0) {
     for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-      if(mkdir(i->c_str(),S_IRWXU) != 0) {
-        if(errno != EEXIST) res=false;
+      if(!Arc::DirCreate(*i,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
+        res=false;
       } else {
         (chown(i->c_str(),uid,gid) != 0);
         if(uid == 0) {
