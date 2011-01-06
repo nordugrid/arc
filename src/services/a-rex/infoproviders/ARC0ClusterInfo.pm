@@ -2,7 +2,7 @@ package ARC0ClusterInfo;
 
 # This information collector combines the output of the other information collectors
 # and prepares info modelled on the classic Nordugrid information schema
-# (arc0).  Returned structure is meant to be converted to XML with XML::Simple.
+# (arc0).
 
 use Storable;
 

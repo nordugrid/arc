@@ -40,7 +40,8 @@ our $j = { 'jobID' => {
             runtimeenvironments=> [ '*' ],
             # from .status
             status             => '',
-            completiontime     => '*',
+            statustime         => '',  # seconds since epoch
+            completiontime     => '*', # MDS time format
             localowner         => '',
             # from .failed
             errors             => [ '*' ],
@@ -68,8 +69,8 @@ sub get_range_minimum($$) {
 }
 
 
-sub collect($) {
-    my $controldir = shift;
+sub collect {
+    my ($controldir, $nojobs) = @_;
 
     my %gmjobs;
 
@@ -193,6 +194,10 @@ sub collect($) {
                 }
             }
         }
+
+        # if jobs are not printed, it's sufficient to have jobid, status,
+        # subject, queue and share. Can skip the rest.
+        next if $nojobs;
 
         # read the job.ID.grami file
 

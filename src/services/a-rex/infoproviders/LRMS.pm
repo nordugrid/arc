@@ -140,7 +140,7 @@ sub cluster_info ($) {
     foreach my $k (keys %lrms_cluster ) {
 	if ( ! grep /$k/, (@scalar_checklist, @array_checklist) ) {
 	    debug("\%lrms_cluster contains a key $k which is not defined".
-		  "in the LRMS interface in Shared.pm")
+		  "in the LRMS interface in LRMS.pm")
 	}
     }
 
@@ -197,7 +197,7 @@ sub queue_info ($$) {
     foreach my $k (keys %lrms_queue ) {
 	if ( ! grep /$k/, @scalar_checklist ) {
 	    debug("\%lrms_queue contains a key $k which is not defined".
-		  "in the LRMS interface in Shared.pm")
+		  "in the LRMS interface in LRMS.pm")
 	}
     }
 
@@ -267,7 +267,7 @@ sub jobs_info ($$@) {
 	foreach my $k (keys %{$lrms_jobs{$jid}} ) {
 	    if ( ! grep /$k/, ( @scalar_checklist, @array_checklist) ) {
 		debug("\%lrms_jobs{$jid} contains a key $k which is not".
-		      "defined in the LRMS interface in Shared.pm");
+		      "defined in the LRMS interface in LRMS.pm");
 	    }
 	}
     }
@@ -312,7 +312,7 @@ sub users_info ($$@) {
 	foreach my $k (keys %{$lrms_users{$u}} ) {
 	    if ( ! grep /$k/, @scalar_checklist ) {
 		debug("\%lrms_users{$u} contains a key $k which is not".
-		      "defined in the LRMS interface in Shared.pm");
+		      "defined in the LRMS interface in LRMS.pm");
 	    }
 	}
     }

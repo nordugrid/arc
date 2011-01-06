@@ -21,7 +21,6 @@ our $host_options_schema = {
         cachedir       => [ '*' ],
         processes      => [ '' ],
         localusers     => [ '' ],
-        gmconfig       => '*',
 };
 
 our $host_info_schema = {

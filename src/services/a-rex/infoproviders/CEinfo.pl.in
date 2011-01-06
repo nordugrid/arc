@@ -2,9 +2,12 @@
 
 package CEInfo;
 
+########################################################
+# Driver for information collection
+########################################################
+
 use File::Basename;
 use Getopt::Long;
-use XML::Simple;
 use Sys::Hostname;
 use Data::Dumper;
 use Cwd;
@@ -27,11 +30,6 @@ BEGIN {
     unshift @INC, $pkglibdir;
 }
 
-########################################################
-# Driver for information collection
-# Reads old style arc.config and prints out XML
-########################################################
-
 use ConfigCentral;
 use LogUtils; 
 
@@ -43,13 +41,10 @@ use LRMSInfo;
 use ARC0ClusterInfo;
 use ARC1ClusterInfo;
 
-use InfoChecker;
+use GLUE2xmlPrinter;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
-our $nojobs;
-our $splitjobs;
-our $nonordugrid;
 
 sub timed {
     my ($fname, $func, @args) = @_;
@@ -65,43 +60,31 @@ sub main {
 
     LogUtils::level('INFO');
 
-    # Config defaults
-    
-    my %config_defaults = (
-                   arcversion     => '@VERSION@',
-                   gm_mount_point => "/jobs",
-                   gm_port        => 2811,
-                   ttl            =>  60,
-                   defaultttl     => "604800",
-                   processes      => [qw(arched)]
-    
-    );
-
-
     # Parse command line options
-    
+    my $nojobs;
+    my $splitjobs;
+    my $nonordugrid;
     my $print_help;
+
     GetOptions("config:s" => \$configfile,
                "nojobs|n" => \$nojobs,
                "splitjobs|s" => \$splitjobs,
                "nonordugrid|g" => \$nonordugrid,
                "help|h"   => \$print_help ); 
-        
+
     if ($print_help) { 
         print "Usage: $0 <options>
         --config   - location of arc.conf
         --help     - this help\n";
         exit 1;
     }
-    
+
     unless ( $configfile ) {
         $log->error("a command line argument is missing, see --help ");
     }
-    
-    # Read ARC configuration
 
+    # Read ARC configuration
     my $config = timed 'ConfigCentral', \&ConfigCentral::parseConfig, $configfile;
-    $config = { %config_defaults, %$config};
 
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
@@ -111,15 +94,33 @@ sub main {
 
     # Collect information & print XML
 
-    my $ceinfo = timed 'all info collectors', \&CEInfo::collect, $config;
+    my $data = timed 'all info collectors', \&CEInfo::collect, $config;
 
-    my $xml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'InfoRoot', KeyAttr => ['name']);
-    print timed('printing XML', \&XML::Simple::XMLout, $xml, $ceinfo);
+    $data->{nojobs} = $nojobs;
+
+    my $csv = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data;
+    my $glue2data = { AdminDomain => { Services => { ComputingService => $csv } } };
+
+    my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
+    timed 'GLUE2xml', sub { $xmlPrinter->Document(@_) }, $glue2data;
+    #my $ldifPrinter = GLUE2ldifPrinter->new(STDOUT);
+    #timed 'GLUE2ldif', $ldifPrinter->Document, $glue2data;
+
+    my $png = $config->{PublishNordugrid};
+    unless (defined $png and $png eq 'false') {
+        unless ($nonordugrid) {
+            my $ngdata = {};
+            $ngdata->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
+            $ngdata->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
+            #NGldif::renderDocument($ngdata);
+            #GLUE13ldif::renderDocument($ngdata);
+        }
+    }
 }
-    
+
 
 ##################################################
-# Unified information collector for NG and GLUE2
+# information collector
 ##################################################
 
 sub collect($) {
@@ -137,11 +138,11 @@ sub collect($) {
         my $defaultuser = $config->{defaultLocalName};
         @localusers = ($defaultuser) if $defaultuser;
     }
-
     $log->warning("Cannot determine local users") unless @localusers;
 
     my $gmjobs_info = get_gmjobs_info($config);
 
+    # build the list of all jobs in state INLRMS
     my @jobids;
     for my $job (values %$gmjobs_info) {
         next unless $job->{status} and $job->{status} eq 'INLRMS';
@@ -149,6 +150,7 @@ sub collect($) {
         push @jobids, $job->{localid};
     }
 
+    # build hash with all the input necessary for the renderers
     my $data = {};
     $data->{config} = $config;
     $data->{usermap} = $usermap;
@@ -156,61 +158,11 @@ sub collect($) {
     $data->{rte_info} = get_rte_info($config);
     $data->{gmjobs_info} = $gmjobs_info;
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
-    $data->{nojobs} = $nojobs;
-    $data->{splitjobs} = $splitjobs;
 
     fix_adotf($config, $data->{host_info});
     fix_adotf($_, $data->{host_info}) for values %{$config->{xenvs}};
 
-    my $ceinfo;
-
-    $ceinfo->{'Domains'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $ceinfo->{'Domains'}->{'xmlns:xsi'} = "http://www.w3.org/2001/XMLSchema-instance";
-    $ceinfo->{'Domains'}->{'xsi:schemaLocation'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01 pathto/GLUE2.xsd";
-    $ceinfo->{'Domains'}->{'AdminDomain'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $ceinfo->{'Domains'}->{'AdminDomain'}->{'Services'}->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-    $ceinfo->{'Domains'}->{'AdminDomain'}->{'Services'}->{'ComputingService'} = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data;
-
-    for my $jobid ( keys %$gmjobs_info ) {
-        my $job = $gmjobs_info->{$jobid};
-        if($job->{xml}) {
-            my $xml_file = $config->{controldir} . "/job." . $jobid . ".xml";
-            my $xml_time = (stat($xml_file))[9];
-            my $status = $job->{status};
-            my $status_time = $job->{statustime};
-            # Here goes simple optimisation - do not write new
-            # XML if status has not changed while in "slow" states
-            my $rewrite_xml = 1;
-            if(($status =~ /ACCEPTED/ ) ||
-               ($status =~ /FINISHED/ ) ||
-               ($status =~ /FAILED/ ) ||
-               ($status =~ /KILLED/ ) ||
-               ($status =~ /DELETED/ )) {
-                if((defined $xml_time) && (defined $status_time)) {
-                    if($status_time < $xml_time) {
-                        $rewrite_xml = 0;
-                    }
-                }
-            }
-            if($rewrite_xml) {
-                my $xml_h = FileHandle->new($xml_file, "w");
-                if(defined $xml_h) {
-                    my $jxml = new XML::Simple(NoAttr => 0, ForceArray => 1, RootName => 'ComputingActivity', KeyAttr => ['name']);
-                    print $xml_h timed('printing job XML', \&XML::Simple::XMLout, $jxml, $job->{xml});
-                }
-            }
-        }
-    }
-
-    my $png = $config->{PublishNordugrid};
-    unless (defined $png and $png eq 'false') {
-        if(!$nonordugrid) {
-            $ceinfo->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
-            $ceinfo->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
-        }
-    }
-
-    return $ceinfo;
+    return $data;
 }
 
 
@@ -221,9 +173,13 @@ sub collect($) {
 sub get_host_info($$) {
     my ($config,$localusers) = @_;
 
-    my $host_opts = Storable::dclone($config);
+    my $host_opts = {};
     $host_opts->{localusers} = $localusers;
-    $host_opts->{configfile} = $configfile;
+    $host_opts->{processes} = $config->{processes};
+    $host_opts->{x509_user_cert} = $config->{x509_user_cert};
+    $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
+    $host_opts->{sessiondir} = $config->{sessiondir};
+    $host_opts->{cachedir} = $config->{cachedir};
 
     return timed 'HostInfo', \&HostInfo::collect, $host_opts;
 }
@@ -257,8 +213,21 @@ sub get_lrms_info($$$) {
 
 sub get_gmjobs_info($) {
     my $config = shift;
-    $log->error("controldir option missing") unless $config->{controldir};
+
     my $gmjobs_info = timed 'GMJobsInfo', \&GMJobsInfo::collect, $config->{controldir};
+
+    return fix_jobs($config, $gmjobs_info);
+}
+
+
+##################################################
+# 
+##################################################
+
+# Check validity and fill in missing 'share' and 'queue' attributes of jobs.
+
+sub fix_jobs {
+    my ($config, $gmjobs_info) = @_;
 
     my ($lrms, $defaultshare) = split /\s+/, $config->{lrms} || '';
     for my $jobid (keys %$gmjobs_info) {
@@ -293,13 +262,14 @@ sub get_gmjobs_info($) {
             }
         }
 
-		# Group jobs not belonging to any known share into a catch-all share named ''
+        # Group jobs not belonging to any known share into a catch-all share named ''
         $job->{share} = $share || '';
     }
     return $gmjobs_info;
 }
 
-#### reading grid-mapfile #####
+
+# reads grid-mapfile. Returns a ref to a DN => uid hash
 
 sub read_grid_mapfile($) {
     my $gridmapfile = shift;
@@ -325,8 +295,23 @@ sub read_grid_mapfile($) {
 }
 
 
+# Alters the parsed configuration options by:
+#  * adding some defaults
+#  * flattening per-user options
+
 sub fix_config {
     my ($config) = @_;
+
+    my %config_defaults = (
+                   arcversion     => '@VERSION@',
+                   gm_mount_point => "/jobs",
+                   gm_port        => 2811,
+                   ttl            =>  60,
+                   defaultttl     => "604800",
+                   processes      => [qw(arched)]
+
+    );
+    $config->{$_} ||= $config_defaults{$_} for keys %config_defaults;
 
     $config->{control} ||= {};
     $config->{service} ||= {};
@@ -367,9 +352,12 @@ sub fix_config {
                || $config->{control}{$gmusers[0]};
     $log->fatal("No control directory configured") unless $control->{controldir};
     $log->fatal("No session directory configured") unless $control->{sessiondir};
-    %$config = (%$config, %$control);
+    $config->{$_} ||= $control->{$_} for keys %$control;
+    delete $config->{control};
 }
 
+
+# Does some consistency checks on the parsed configuration options
 
 sub check_config {
     my ($config) = @_;
@@ -397,6 +385,8 @@ sub check_config {
     }
 }
 
+
+# Replaces 'adotf' in config options with autodetected values
 
 sub fix_adotf {
     my ($h, $hostinfo) = @_;

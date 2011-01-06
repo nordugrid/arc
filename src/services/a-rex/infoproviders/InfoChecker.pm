@@ -67,7 +67,7 @@ sub _verify_part($$$$) {
         my @templkeys = grep { $_ ne "*" } keys %$schema;
         for my $key ( sort @templkeys ) {
             my $subj = $subject."{$key}";
-            if ( exists $data->{$key} ) {
+            if ( defined $data->{$key} ) {
                 # check that existing key value is valid
                 my $can_delete = $self->_verify_part($subj, $data->{$key},
                                                      $schema->{$key});
