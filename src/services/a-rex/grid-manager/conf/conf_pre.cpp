@@ -172,15 +172,21 @@ bool configure_user_dirs(const std::string &my_username,
           user.SetLRMS(default_lrms,default_queue);
           user.substitute(control_dir_);
           user.SetControlDir(control_dir_);
+          std::vector<std::string> session_roots_non_draining_;
           for(std::vector<std::string>::iterator i = session_roots_non_draining.begin(); i != session_roots_non_draining.end(); i++) {
-            user.substitute(*i);
+            std::string session(*i);
+            user.substitute(session);
+            session_roots_non_draining_.push_back(session);
           }
-          user.SetSessionRoot(session_roots_non_draining);
+          user.SetSessionRoot(session_roots_non_draining_);
           session_roots_non_draining = user.SessionRoots();
+          std::vector<std::string> session_roots_;
           for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-            user.substitute(*i);
+            std::string session(*i);
+            user.substitute(session);
+            session_roots_.push_back(session);
           }
-          user.SetSessionRoot(session_roots);
+          user.SetSessionRoot(session_roots_);
           session_roots=user.SessionRoots();
           control_dir=user.ControlDir();
           configured=true;
@@ -303,22 +309,30 @@ bool configure_user_dirs(const std::string &my_username,
               user.SetLRMS(default_lrms,default_queue);
               user.substitute(control_dir);
               user.SetControlDir(control_dir);
+              std::vector<std::string> session_roots_non_draining_;
               for(std::vector<std::string>::iterator i = session_roots_non_draining.begin(); i != session_roots_non_draining.end(); i++) {
-                user.substitute(*i);
+                std::string session(*i);
+                user.substitute(session);
+                session_roots_non_draining_.push_back(session);
               }
-              user.SetSessionRoot(session_roots_non_draining);
+              user.SetSessionRoot(session_roots_non_draining_);
               session_roots_non_draining=user.SessionRoots();
+              std::vector<std::string> session_roots_;
               for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-                user.substitute(*i);
+                std::string session(*i);
+                user.substitute(session);
+                session_roots_.push_back(session);
               }
-              user.SetSessionRoot(session_roots);
+              user.SetSessionRoot(session_roots_);
               session_roots=user.SessionRoots();
               control_dir=user.ControlDir();
               configured=true;
-            } else {
-              session_roots.clear();
-              session_roots_non_draining.clear();
+              break;
             };
+          };
+          if (!configured) {
+            session_roots.clear();
+            session_roots_non_draining.clear();
           };
         };
       };

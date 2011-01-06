@@ -522,8 +522,11 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
           }
           else {
             std::string control_dir_ = control_dir;
+            std::vector<std::string> session_roots_;
             for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-              user->substitute(*i);
+              std::string session(*i);
+              user->substitute(session);
+              session_roots_.push_back(session);
             }
             user->SetLRMS(default_lrms,default_queue);
             user->SetKeepFinished(default_ttl);
@@ -532,7 +535,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
             user->SetDiskSpace(default_diskspace);
             user->substitute(control_dir_);
             user->SetControlDir(control_dir_);
-            user->SetSessionRoot(session_roots);
+            user->SetSessionRoot(session_roots_);
             user->SetStrictSession(strict_session);
             // get cache parameters for this user
             try {
@@ -994,11 +997,14 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
           user->SetReruns(default_reruns);
           user->SetDiskSpace(default_diskspace);
           user->substitute(control_dir_);
+          std::vector<std::string> session_roots_;
           for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-            user->substitute(*i);
+            std::string session(*i);
+            user->substitute(session);
+            session_roots_.push_back(session);
           }
           user->SetControlDir(control_dir_);
-          user->SetSessionRoot(session_roots);
+          user->SetSessionRoot(session_roots_);
           user->SetStrictSession(strict_session);
           // get cache parameters for this user
           try {
