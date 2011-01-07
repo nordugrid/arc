@@ -367,18 +367,19 @@ sub ComputingService {
 sub Document {
     my ($self, $data) = @_;
     $collector = $data->{AdminDomain}{Services}{ComputingService};
-    my $attrs = { 'xmlns' => "http://schemas.ogf.org/glue/2009/03/spec/2/0",
+    my $attrs = { 'xmlns:glue' => "http://schemas.ogf.org/glue/2009/03/spec/2/0",
                   'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance",
                   'xsi:schemaLocation' => "http://schemas.ogf.org/glue/2009/03/spec/2/0 pathto/GLUE2.xsd" };
-    $attrs->{xmlns} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    $attrs->{'xmlns:glue'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     #$self->header();
-    $self->start('Domains', $attrs, qw( xmlns xmlns:xsi xsi:schemaLocation ));
-    $self->start('AdminDomain');
+    $self->start('glue:Domains', $attrs, qw( xmlns xmlns:glue xmlns:xsi xsi:schemaLocation ));
+    $self->start('AdminDomain', $data->{AdminDomain}, qw( BaseType ));
+    $self->properties($data->{AdminDomain}, qw( ID Name ));
     $self->start('Services');
     $self->ComputingService($collector);
     $self->end('Services');
     $self->end('AdminDomain');
-    $self->end('Domains');
+    $self->end('glue:Domains');
 }
 
 1;

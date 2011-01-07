@@ -232,9 +232,9 @@ sub fixbools {
         next unless exists $h->{$key};
         my $val = $h->{$key};
         if ($val eq '0' or lc $val eq 'false' or lc $val eq 'no') {
-            $h->{$key} = 'false';
+            $h->{$key} = '0';
         } elsif ($val eq '1' or lc $val eq 'true' or lc $val eq 'yes') {
-            $h->{$key} = 'true';
+            $h->{$key} = '1';
         } else {
             $log->error("Invalid value for $key");
         }
@@ -533,9 +533,13 @@ sub build_config_from_inifile {
             $contact->{Detail} = "mailto:".$cluster->{clustersupport};
             $contact->{Type} = 'usersupport';
         }
-        for (split '\[separator\]', $cluster->{nodeaccess} || '') {
-            $config->{service}{ConnectivityIn} = 'true' if $_ eq 'inbound';
-            $config->{service}{ConnectivityOut} = 'true' if $_ eq 'outbound';
+        if (defined $cluster->{nodeaccess}) {
+            $config->{service}{ConnectivityIn} = 0;
+            $config->{service}{ConnectivityOut} = 0;
+            for (split '\[separator\]', $cluster->{nodeaccess}) {
+                $config->{service}{ConnectivityIn} = 1 if lc $_ eq 'inbound';
+                $config->{service}{ConnectivityOut} = 1 if lc $_ eq 'outbound';
+            }
         }
         move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
         move_keys $cluster, $config, [keys %$lrms_options, keys %$lrms_share_options];

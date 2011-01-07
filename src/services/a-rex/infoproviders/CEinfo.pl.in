@@ -100,6 +100,9 @@ sub main {
 
     my $csv = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data;
     my $glue2data = { AdminDomain => { Services => { ComputingService => $csv } } };
+    $glue2data->{AdminDomain}{BaseType} = 'Domain';
+    $glue2data->{AdminDomain}{ID} = "urn:ogf:AdminDomain:".$config->{AdminDomain};
+    $glue2data->{AdminDomain}{Name} = $config->{AdminDomain};
 
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
     timed 'GLUE2xml', sub { $xmlPrinter->Document(@_) }, $glue2data;
@@ -107,7 +110,7 @@ sub main {
     #timed 'GLUE2ldif', $ldifPrinter->Document, $glue2data;
 
     my $png = $config->{PublishNordugrid};
-    unless (defined $png and $png eq 'false') {
+    unless (defined $png and not $png) {
         unless ($nonordugrid) {
             my $ngdata = {};
             $ngdata->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;

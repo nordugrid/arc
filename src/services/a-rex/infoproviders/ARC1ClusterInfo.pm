@@ -28,6 +28,12 @@ sub mdstoiso {
     return undef;
 }
 
+sub glue2bool {
+    my $bool = shift;
+    return undef unless defined $bool;
+    return $bool ? "true" : "false";
+}
+
 # TODO: Stage-in and Stage-out are substates of what?
 sub bes_state {
     my ($gm_state,$lrms_state) = @_;
@@ -634,7 +640,9 @@ sub collect($) {
             #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
             $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
             # Wrong type, should be URI
-            $cep->{SupportedProfile} = [ "WS-I 1.0", "HPC-BP" ];
+            $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+                                         "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+                                       ];
             $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
             $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "ARC";
@@ -697,6 +705,7 @@ sub collect($) {
                 $cep->{AccessPolicy} = sub {
                     return undef if $count-- == 0;
                     my $apol = {};
+                    $apol->{BaseType} = "Policy";
                     $apol->{ID} = $apolID;
                     $apol->{Scheme} = "basic";
                     $apol->{Rule} = [ map {"vo:$_"} keys %allvos ];
@@ -975,7 +984,7 @@ sub collect($) {
             # DefaultStorageService:
 
             # OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
-            $csha->{Preemption} = $qinfo->{Preemption} if $qinfo->{Preemption};
+            $csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
 
             # ServingState: closed and queuing are not yet supported
             if (defined $config->{allownew} and lc($config->{allownew}) eq 'no') {
@@ -1077,11 +1086,12 @@ sub collect($) {
             # MappingPolicy: VOs mapped to this share.
 
             my $vos = $sconfig->{AuthorizedVO};
-            if ($vos) {
+            if ($vos and @$vos) {
                 my $count = 1;
                 $csha->{MappingPolicy} = sub {
                     return undef if $count-- == 0;
                     my $mpol = {};
+                    $mpol->{BaseType} = "Policy";
                     $mpol->{ID} = "$mpolIDp:$share";
                     $mpol->{Scheme} = "basic";
                     $mpol->{Rule} = [ map {"vo:$_"} @$vos ];
@@ -1226,7 +1236,7 @@ sub collect($) {
                 $execenv->{TotalInstances} = $xeinfo->{ntotal} if defined $xeinfo->{ntotal};
                 $execenv->{UsedInstances} = $xeinfo->{nbusy} if defined $xeinfo->{nbusy};
                 $execenv->{UnavailableInstances} = $xeinfo->{nunavailable} if defined $xeinfo->{nunavailable};
-                $execenv->{VirtualMachine} = $xeconfig->{VirtualMachine} if defined $xeconfig->{VirtualMachine};
+                $execenv->{VirtualMachine} = glue2bool($xeconfig->{VirtualMachine}) if defined $xeconfig->{VirtualMachine};
 
                 $execenv->{PhysicalCPUs} = $xeinfo->{pcpus} if $xeinfo->{pcpus};
                 $execenv->{LogicalCPUs} = $xeinfo->{lcpus} if $xeinfo->{lcpus};
@@ -1241,16 +1251,23 @@ sub collect($) {
                 $execenv->{CPUClockSpeed} = $xeconfig->{CPUClockSpeed} if $xeconfig->{CPUClockSpeed};
                 $execenv->{CPUTimeScalingFactor} = $xeconfig->{CPUTimeScalingFactor} if $xeconfig->{CPUTimeScalingFactor};
                 $execenv->{WallTimeScalingFactor} = $xeconfig->{WallTimeScalingFactor} if $xeconfig->{WallTimeScalingFactor};
-                $execenv->{MainMemorySize} = $xeinfo->{pmem} if $xeinfo->{pmem};
+                $execenv->{MainMemorySize} = $xeinfo->{pmem} || "999999999999999999";  # placeholder value
                 $execenv->{VirtualMemorySize} = $xeinfo->{vmem} if $xeinfo->{vmem};
-                $execenv->{OSFamily} = $sysname if $sysname;
+                $execenv->{OSFamily} = $sysname || 'UNDEFINEDVALUE'; # placeholder value
                 $execenv->{OSName} = $xeconfig->{OSName} if $xeconfig->{OSName};
                 $execenv->{OSVersion} = $xeconfig->{OSVersion} if $xeconfig->{OSVersion};
-                $execenv->{ConnectivityIn} = $xeconfig->{ConnectivityIn} ? 'true' : 'false' if $xeconfig->{ConnectivityIn};
-                $execenv->{ConnectivityOut} = $xeconfig->{ConnectivityOut} ? 'true' : 'false' if $xeconfig->{ConnectivityOut};
+                $execenv->{ConnectivityIn} = glue2bool($xeconfig->{ConnectivityIn}) || 'undefined';
+                $execenv->{ConnectivityOut} = glue2bool($xeconfig->{ConnectivityOut}) || 'undefined';
                 $execenv->{NetworkInfo} = [ $xeconfig->{NetworkInfo} ] if $xeconfig->{NetworkInfo};
 
                 if ($callcount == 1) {
+                    $log->warning("MainMemorySize not set for ExecutionEnvironment $xenv") unless $xeinfo->{pmem};
+                    $log->warning("OSFamily not set for ExecutionEnvironment $xenv") unless $xeinfo->{pmem};
+                    $log->warning("ConnectivityIn not se for ExecutionEnvironment $xenv")
+                        unless defined $xeconfig->{ConnectivityIn};
+                    $log->warning("ConnectivityOut not se for ExecutionEnvironment $xenv")
+                        unless defined $xeconfig->{ConnectivityOut};
+
                     my @missing;
                     for (qw(Platform CPUVendor CPUModel CPUClockSpeed OSFamily OSName OSVersion)) {
                         push @missing, $_ unless defined $execenv->{$_};
