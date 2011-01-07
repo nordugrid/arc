@@ -98,7 +98,7 @@ sub main {
 
     $data->{nojobs} = $nojobs;
 
-    my $csv = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data;
+    my $csv = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data, $nojobs;
     my $glue2data = { AdminDomain => { Services => { ComputingService => $csv } } };
     $glue2data->{AdminDomain}{BaseType} = 'Domain';
     $glue2data->{AdminDomain}{ID} = "urn:ogf:AdminDomain:".$config->{AdminDomain};

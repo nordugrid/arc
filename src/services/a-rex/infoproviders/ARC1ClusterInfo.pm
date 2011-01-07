@@ -834,10 +834,10 @@ sub collect($) {
                 return $cact;
             };
 
-            if (not $nojobs) {
-                $cep->{ComputingActivity} = $getComputingActivities;
-            } else {
+            if ($nojobs) {
                 $cep->{ComputingActivity} = undef;
+            } else {
+                $cep->{ComputingActivity} = $getComputingActivities;
             }
 
             return $cep;
