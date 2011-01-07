@@ -34,7 +34,7 @@ namespace Arc {
     logger.msg(VERBOSE, "TargetRetriverBES initialized with %s service url: %s",
                serviceType, url.str());
 
-    if (mom.AddService(url)) {
+    if (mom.AddService(flavour, url)) {
       ExecutionTarget target;
       target.GridFlavour = flavour;
       target.Cluster = url;

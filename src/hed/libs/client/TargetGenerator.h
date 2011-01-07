@@ -135,10 +135,11 @@ namespace Arc {
      * services returned by UserConfig::GetRejectedServices and only
      * allows to add the service if not specifically rejected.
      *
+     * @param flavour The flavour if the the computing service.
      * @param url URL pointing to the information system of the computing service.
      *
      **/
-    bool AddService(const URL& url);
+    bool AddService(const std::string Flavour, const URL& url);
 
     /// Add a new index server to the foundIndexServers list
     /**
@@ -148,10 +149,11 @@ namespace Arc {
      * UserConfig::GetRejectedServices and only allows to add the
      * service if not specifically rejected.
      *
+     * @param flavour The flavour if the the index server.
      * @param url URL pointing to the index server.
      *
      **/
-    bool AddIndexServer(const URL& url);
+    bool AddIndexServer(const std::string Flavour, const URL& url);
 
     /// Add a new ExecutionTarget to the foundTargets list
     /**
@@ -219,8 +221,8 @@ namespace Arc {
 
     const UserConfig& usercfg;
 
-    std::list<URL> foundServices;
-    std::list<URL> foundIndexServers;
+    std::map<std::string, std::list<URL> > foundServices;
+    std::map<std::string, std::list<URL> > foundIndexServers;
     std::list<ExecutionTarget> foundTargets;
     std::list<Job> foundJobs;
     std::list<XMLNode*> xmlFoundJobs;

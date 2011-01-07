@@ -15,6 +15,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/Job.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/loader/FinderLoader.h>
 #include <arc/UserConfig.h>
 
 namespace Arc {
@@ -23,6 +24,14 @@ namespace Arc {
 
   TargetGenerator::TargetGenerator(const UserConfig& usercfg, unsigned int startDiscovery)
     : usercfg(usercfg) {
+
+    std::list<std::string> libraries = FinderLoader::GetLibrariesList();
+    std::list<ModuleDesc> modules;
+    Config cfg;
+    BaseConfig().MakeConfig(cfg);
+    PluginsFactory factory(cfg);
+    factory.scan(libraries, modules);
+    PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
 
     /* When loading a specific middleware plugin fails, subsequent loads
      * should fail aswell. Therefore it should be unecessary to load the
@@ -33,27 +42,50 @@ namespace Arc {
          it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        if (!(pluginLoaded[it->first] = (loader.load(it->first, usercfg, *it2, COMPUTING)) != NULL))
-          break;
+        if (it->first == "*") {
+          for (std::list<ModuleDesc>::iterator it3 = modules.begin();
+               it3 != modules.end(); it3++)
+            for (std::list<PluginDesc>::iterator it4 = it3->plugins.begin();
+                 it4 != it3->plugins.end(); it4++)
+              if (pluginLoaded.find(it4->name) == pluginLoaded.end() ||
+                  pluginLoaded[it4->name])
+                pluginLoaded[it4->name] = loader.load(it4->name, usercfg,
+                                                      *it2, COMPUTING);
+        }
+        else
+          if (pluginLoaded.find(it->first) == pluginLoaded.end() ||
+              pluginLoaded[it->first])
+            pluginLoaded[it->first] = loader.load(it->first, usercfg,
+                                                  *it2, COMPUTING);
       }
 
-    for (URLListMap::const_iterator it = usercfg.GetSelectedServices(INDEX).begin();
+    for (URLListMap::const_iterator it =
+           usercfg.GetSelectedServices(INDEX).begin();
          it != usercfg.GetSelectedServices(INDEX).end(); it++) {
-      if (pluginLoaded.find(it->first) != pluginLoaded.end() && !pluginLoaded[it->first]) // Do not try to load if it failed above.
-        continue;
       for (std::list<URL>::const_iterator it2 = it->second.begin();
            it2 != it->second.end(); it2++) {
-        if (loader.load(it->first, usercfg, *it2, INDEX) == NULL)
-          break;
+        if (it->first == "*") {
+          for (std::list<ModuleDesc>::iterator it3 = modules.begin();
+               it3 != modules.end(); it3++)
+            for (std::list<PluginDesc>::iterator it4 = it3->plugins.begin();
+                 it4 != it3->plugins.end(); it4++)
+              if (pluginLoaded.find(it4->name) == pluginLoaded.end() ||
+                  pluginLoaded[it4->name])
+                pluginLoaded[it4->name] = loader.load(it4->name, usercfg,
+                                                      *it2, INDEX);
+        }
+        else
+          if (pluginLoaded.find(it->first) == pluginLoaded.end() ||
+              pluginLoaded[it->first])
+            pluginLoaded[it->first] = loader.load(it->first, usercfg,
+                                                  *it2, INDEX);
       }
     }
 
-    if ((startDiscovery & 1) == 1) {
+    if ((startDiscovery & 1) == 1)
       GetExecutionTargets();
-    }
-    if ((startDiscovery & 2) == 2) {
+    if ((startDiscovery & 2) == 2)
       GetJobs();
-    }
   }
 
   TargetGenerator::~TargetGenerator() {
@@ -147,7 +179,7 @@ namespace Arc {
     return foundJobs;
   }
 
-  bool TargetGenerator::AddService(const URL& url) {
+  bool TargetGenerator::AddService(const std::string flavour, const URL& url) {
 
     for (URLListMap::const_iterator it = usercfg.GetRejectedServices(COMPUTING).begin();
          it != usercfg.GetRejectedServices(COMPUTING).end(); it++)
@@ -159,15 +191,15 @@ namespace Arc {
 
     bool added = false;
     Glib::Mutex::Lock serviceLock(serviceMutex);
-    if (std::find(foundServices.begin(), foundServices.end(), url) ==
-        foundServices.end()) {
-      foundServices.push_back(url);
+    if (std::find(foundServices[flavour].begin(), foundServices[flavour].end(),
+                  url) == foundServices[flavour].end()) {
+      foundServices[flavour].push_back(url);
       added = true;
     }
     return added;
   }
 
-  bool TargetGenerator::AddIndexServer(const URL& url) {
+  bool TargetGenerator::AddIndexServer(const std::string flavour, const URL& url) {
 
     for (URLListMap::const_iterator it = usercfg.GetRejectedServices(INDEX).begin();
          it != usercfg.GetRejectedServices(INDEX).end(); it++)
@@ -179,9 +211,10 @@ namespace Arc {
 
     bool added = false;
     Glib::Mutex::Lock indexServerLock(indexServerMutex);
-    if (std::find(foundIndexServers.begin(), foundIndexServers.end(), url) ==
-        foundIndexServers.end()) {
-      foundIndexServers.push_back(url);
+    if (std::find(foundIndexServers[flavour].begin(),
+                  foundIndexServers[flavour].end(), url) ==
+        foundIndexServers[flavour].end()) {
+      foundIndexServers[flavour].push_back(url);
       added = true;
     }
     return added;

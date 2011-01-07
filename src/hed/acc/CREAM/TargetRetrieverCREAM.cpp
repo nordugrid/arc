@@ -56,8 +56,8 @@ namespace Arc {
     logger.msg(VERBOSE, "TargetRetriverCREAM initialized with %s service url: %s",
                tostring(serviceType), url.str());
 
-    if (serviceType == COMPUTING && mom.AddService(url) ||
-        serviceType == INDEX     && mom.AddIndexServer(url)) {
+    if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
+        serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
         delete arg;
@@ -68,8 +68,8 @@ namespace Arc {
   void TargetRetrieverCREAM::GetJobs(TargetGenerator& mom) {
     logger.msg(VERBOSE, "TargetRetriverCREAM initialized with %s service url: %s",
                tostring(serviceType), url.str());
-    if (serviceType == COMPUTING && mom.AddService(url) ||
-        serviceType == INDEX     && mom.AddIndexServer(url)) {
+    if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
+        serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
         delete arg;
