@@ -142,7 +142,7 @@ namespace Arc {
 
   // This method is not scaling well in case of many submitted jobs.
   URL Submitter::Submit(const JobDescription& jobdesc,
-                        const ExecutionTarget& starget) const {
+                        const ExecutionTarget& starget) {
     logger.msg(WARNING, "The Submitter::Submit(const Jobdescription&, const ExecutionTarget&) method is DEPRECATED, use one of the Submit methods.");
 
     Job j;
@@ -163,7 +163,7 @@ namespace Arc {
 
   // This method is not scaling well in case of many submitted jobs.
   URL Submitter::Migrate(const URL& jobid, const JobDescription& jobdesc,
-                         const ExecutionTarget& starget, bool forcemigration) const {
+                         const ExecutionTarget& starget, bool forcemigration) {
     logger.msg(WARNING, "The Submitter::Migrate(const URL&, const Jobdescription&, const ExecutionTarget&, bool) method is DEPRECATED, use one of the Migrate methods.");
 
     Job j;

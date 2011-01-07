@@ -30,7 +30,7 @@ namespace Arc {
     return new SubmitterCREAM(*subarg);
   }
 
-  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const {
+  bool SubmitterCREAM::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
@@ -85,7 +85,7 @@ namespace Arc {
 
   bool SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                const ExecutionTarget& et, bool /* forcemigration */,
-                               Job& /* job */) const {
+                               Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.url.str());
     return false;
   }

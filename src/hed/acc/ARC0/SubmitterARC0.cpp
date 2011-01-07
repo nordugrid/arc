@@ -33,7 +33,7 @@ namespace Arc {
     return new SubmitterARC0(*subarg);
   }
 
-  bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const {
+  bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
 
     FTPControl ctrl;
 
@@ -108,7 +108,7 @@ namespace Arc {
 
   bool SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
-                             Job& /* job */) const {
+                             Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC GM-powered resource is not supported.", et.url.str());
     return false;
   }

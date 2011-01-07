@@ -54,7 +54,7 @@ namespace Arc {
   }
 
   bool SubmitterBES::Submit(const JobDescription& jobdesc,
-                            const ExecutionTarget& et, Job& job) const {
+                            const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout(), false);
@@ -87,7 +87,7 @@ namespace Arc {
 
   bool SubmitterBES::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
-                             Job& /* job */) const {
+                             Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.url.str());
     return false;
   }

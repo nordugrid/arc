@@ -37,7 +37,7 @@ namespace Arc {
   }
 
   bool SubmitterARC1::Submit(const JobDescription& jobdesc,
-                             const ExecutionTarget& et, Job& job) const {
+                             const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout());
@@ -79,7 +79,7 @@ namespace Arc {
 
   bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
-                             bool forcemigration, Job& job) const {
+                             bool forcemigration, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout());

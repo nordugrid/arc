@@ -44,12 +44,12 @@ namespace Arc {
      * submission fails an empty URL should be returned.
      */
     URL Submit(const JobDescription& jobdesc,
-               const ExecutionTarget& et) const;
+               const ExecutionTarget& et);
 
     virtual bool Submit(const JobDescription& jobdesc,
-                        const ExecutionTarget& et, Job& job) const = 0;
+                        const ExecutionTarget& et, Job& job) = 0;
 
-    bool Submit(const JobDescription& jobdesc, Job& job) const{
+    bool Submit(const JobDescription& jobdesc, Job& job) {
       return target != NULL && Submit(jobdesc, *target, job);
     }
 
@@ -66,14 +66,14 @@ namespace Arc {
      */
     URL Migrate(const URL& jobid, const JobDescription& jobdesc,
                 const ExecutionTarget& et,
-                bool forcemigration) const;
+                bool forcemigration);
 
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et,
-                         bool forcemigration, Job& job) const = 0;
+                         bool forcemigration, Job& job) = 0;
 
     bool Migrate(const URL& jobid, const JobDescription& jobdesc,
-                 bool forcemigration, Job& job) const {
+                 bool forcemigration, Job& job) {
       return target != NULL && Migrate(jobid, jobdesc, *target, forcemigration, job);
     }
 

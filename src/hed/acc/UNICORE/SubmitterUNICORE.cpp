@@ -34,7 +34,7 @@ namespace Arc {
     return new SubmitterUNICORE(*subarg);
   }
 
-  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) const {
+  bool SubmitterUNICORE::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -125,7 +125,7 @@ namespace Arc {
 
   bool SubmitterUNICORE::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                  const ExecutionTarget& et, bool /* forcemigration */,
-                                 Job& /* job */) const {
+                                 Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.url.str());
     return false;
   }
