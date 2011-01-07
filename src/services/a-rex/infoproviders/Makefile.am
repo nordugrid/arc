@@ -5,8 +5,7 @@ pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 		  IniParser.pm LogUtils.pm Sysinfo.pm \
 		  LRMSInfo.pm GMJobsInfo.pm HostInfo.pm RTEInfo.pm \
 		  InfoChecker.pm ConfigCentral.pm \
-		  ARC0ClusterSchema.pm ARC0ClusterInfo.pm \
-		  ARC1ClusterSchema.pm ARC1ClusterInfo.pm \
+		  ARC0ClusterInfo.pm ARC1ClusterInfo.pm \
 		  SGE.pm Fork.pm LRMS.pm Shared.pm glue-generator.pl \
 		  XmlPrinter.pm GLUE2xmlPrinter.pm
 

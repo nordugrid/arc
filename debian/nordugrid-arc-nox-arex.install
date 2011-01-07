@@ -32,10 +32,10 @@ debian/tmp/usr/lib/arc/Condor.pm
 debian/tmp/usr/lib/arc/SLURM.pm
 debian/tmp/usr/lib/arc/GridFactory.pm
 
+debian/tmp/usr/lib/arc/XmlPrinter.pm
+debian/tmp/usr/lib/arc/GLUE2xmlPrinter.pm
 debian/tmp/usr/lib/arc/ARC0ClusterInfo.pm
-debian/tmp/usr/lib/arc/ARC0ClusterSchema.pm
 debian/tmp/usr/lib/arc/ARC1ClusterInfo.pm
-debian/tmp/usr/lib/arc/ARC1ClusterSchema.pm
 debian/tmp/usr/lib/arc/ConfigCentral.pm
 debian/tmp/usr/lib/arc/GMJobsInfo.pm
 debian/tmp/usr/lib/arc/HostInfo.pm

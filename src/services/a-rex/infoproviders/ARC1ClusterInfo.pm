@@ -13,10 +13,6 @@ use Sysinfo qw(cpuinfo processid diskinfo diskspaces);
 use LogUtils;
 use InfoChecker;
 
-use ARC1ClusterSchema;
-
-my $arc1_info_schema = ARC1ClusterSchema::arc1_info_schema();
-
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 

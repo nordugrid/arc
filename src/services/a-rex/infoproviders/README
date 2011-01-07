@@ -2,11 +2,7 @@ Information providers for A-REX.
 
 Currenly all infomration collection for A-REX is done by these scripts.
 Collected data is presented in 2 formats (classic NG schema and GLUE2 schema)
-rendered in XML. A configuration is done with an ARC 0.6-style arc.conf file.
-
-GLUE 2 support is incomplete.
-
-
+rendered in XML.
 
 CEinfo.pl      - driver for information collection. It calls all other infomation
                  collectors and prints results in XML.
@@ -32,6 +28,4 @@ ARC0ClusterInfo.pm - combines all information about A-REX and produces
 ARC1ClusterInfo.pm - combines all information about A-REX and produces
                      information structured according to the GLUE2 schema.
 
-ARC0ClusterSchema.pm - description of the info produced by ARC0ClusterInfo
-ARC1ClusterSchema.pm - description of the info produced by ARC1ClusterInfo
 

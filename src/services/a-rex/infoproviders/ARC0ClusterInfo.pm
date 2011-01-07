@@ -11,10 +11,6 @@ use strict;
 use LogUtils;
 use InfoChecker;
 
-use ARC0ClusterSchema;
-
-my $arc0_info_schema = ARC0ClusterSchema::arc0_info_schema();
-
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 sub mds_date {
@@ -29,19 +25,7 @@ sub mds_date {
 
 sub collect($) {
     my ($options) = @_;
-    my ($checker, @messages);
 
-    my $result = get_cluster_info($options);
-
-    $checker = InfoChecker->new($arc0_info_schema);
-    @messages = $checker->verify($result,1);
-    $log->debug("SelfCheck: return value nordugrid->$_") foreach @messages;
-
-    return $result;
-}
-
-sub get_cluster_info($) {
-    my ($options) = @_; 
     my $config = $options->{config};
     my $usermap = $options->{usermap};
     my $host_info = $options->{host_info};

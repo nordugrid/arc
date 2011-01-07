@@ -849,10 +849,10 @@ exit 0
 %{_libdir}/%{pkgdir}/Condor.pm
 %{_libdir}/%{pkgdir}/SLURM.pm
 %{_libdir}/%{pkgdir}/GridFactory.pm
+%{_libdir}/%{pkgdir}/XmlPrinter.pm
+%{_libdir}/%{pkgdir}/GLUE2xmlPrinter.pm
 %{_libdir}/%{pkgdir}/ARC0ClusterInfo.pm
-%{_libdir}/%{pkgdir}/ARC0ClusterSchema.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterInfo.pm
-%{_libdir}/%{pkgdir}/ARC1ClusterSchema.pm
 %{_libdir}/%{pkgdir}/ConfigCentral.pm
 %{_libdir}/%{pkgdir}/GMJobsInfo.pm
 %{_libdir}/%{pkgdir}/HostInfo.pm
