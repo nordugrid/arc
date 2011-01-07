@@ -26,7 +26,9 @@ namespace Arc {
   SubmitterARC1::SubmitterARC1(const UserConfig& usercfg)
     : Submitter(usercfg, "ARC1") {}
 
-  SubmitterARC1::~SubmitterARC1() {}
+  SubmitterARC1::~SubmitterARC1() {
+    deleteAllClients();
+  }
 
   Plugin* SubmitterARC1::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
@@ -36,31 +38,59 @@ namespace Arc {
     return new SubmitterARC1(*subarg);
   }
 
+  AREXClient* SubmitterARC1::acquireClient(const URL& url) {
+    std::map<URL, AREXClient*>::const_iterator url_it = clients.find(url);
+    if ( url_it != clients.end() ) {
+      // If AREXClient is already existing for the
+      // given URL then return with that
+      return url_it->second;
+    } else {
+      // Else create a new one and return with that
+      MCCConfig cfg;
+      usercfg.ApplyToConfig(cfg);
+      AREXClient* ac = new AREXClient(url, cfg, usercfg.Timeout());
+      return clients[url] = ac;
+    }
+  }
+
+  bool SubmitterARC1::releaseClient(const URL& url) {
+  }
+
+  bool SubmitterARC1::deleteAllClients() {
+    std::map<URL, AREXClient*>::iterator it;
+    for (it = clients.begin(); it != clients.end(); it++) {
+        if ((*it).second != NULL) delete (*it).second;
+    }
+  }
+
   bool SubmitterARC1::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    AREXClient ac(et.url, cfg, usercfg.Timeout());
+
+    AREXClient* ac = acquireClient(et.url);
 
     JobDescription modjobdesc(jobdesc);
 
     if (!ModifyJobDescription(modjobdesc, et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
+      releaseClient(et.url);
       return false;
     }
 
     std::string product;
     if (!modjobdesc.UnParse(product, "ARCJSDL")) {
       logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "ARCJSDL");
+      releaseClient(et.url);
       return false;
     }
 
     std::string sJobid;
-    if (!ac.submit(product, sJobid, et.url.Protocol() == "https"))
+    if (!ac->submit(product, sJobid, et.url.Protocol() == "https"))
+      releaseClient(et.url);
       return false;
 
     if (sJobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
+      releaseClient(et.url);
       return false;
     }
 
@@ -69,20 +99,20 @@ namespace Arc {
 
     if (!PutFiles(modjobdesc, jobid)) {
       logger.msg(INFO, "Failed uploading local input files");
+      releaseClient(et.url);
       return false;
     }
 
     AddJobDetails(modjobdesc, jobid, et.Cluster, jobid, job);
 
+    releaseClient(et.url);
     return true;
   }
 
   bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration, Job& job) {
-    MCCConfig cfg;
-    usercfg.ApplyToConfig(cfg);
-    AREXClient ac(et.url, cfg, usercfg.Timeout());
+    AREXClient* ac = acquireClient(et.url);
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
@@ -123,6 +153,7 @@ namespace Arc {
 
     if (!ModifyJobDescription(modjobdesc, et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
+      releaseClient(et.url);
       return false;
     }
 
@@ -132,16 +163,19 @@ namespace Arc {
     std::string product;
     if (!modjobdesc.UnParse(product, "ARCJSDL")) {
       logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "ARCJSDL");
+      releaseClient(et.url);
       return false;
     }
 
     std::string sNewjobid;
-    if (!ac.migrate(idstr, product, forcemigration, sNewjobid,
+    if (!ac->migrate(idstr, product, forcemigration, sNewjobid,
                     et.url.Protocol() == "https"))
+      releaseClient(et.url);
       return false;
 
     if (sNewjobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
+      releaseClient(et.url);
       return false;
     }
 
@@ -150,11 +184,13 @@ namespace Arc {
 
     if (!PutFiles(modjobdesc, newjobid)) {
       logger.msg(INFO, "Failed uploading local input files");
+      releaseClient(et.url);
       return false;
     }
 
     AddJobDetails(modjobdesc, newjobid, et.Cluster, newjobid, job);
 
+    releaseClient(et.url);
     return true;
   }
 

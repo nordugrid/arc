@@ -9,6 +9,9 @@
 #include <arc/loader/Loader.h>
 #include <arc/client/ClientInterface.h>
 
+#include "AREXClient.h"
+
+
 namespace Arc {
 
   class Config;
@@ -24,6 +27,16 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument *arg);
+
+  private:
+    // Centralized AREXClient handling
+    std::map<URL, AREXClient*> clients;
+
+    AREXClient* acquireClient(const URL& url);
+    bool releaseClient(const URL& url);
+    bool deleteAllClients();
+
+  public:
     virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,
