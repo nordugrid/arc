@@ -800,18 +800,25 @@ namespace Arc {
           return false;
       }
       else { // URL
+        std::string flavour;
+        URL url;
         const std::size_t pos = service.find(":");
-        if (pos == std::string::npos) {
-          logger.msg(WARNING, "Cannot parse the specified %s service (%s)", serviceType, service);
-          continue;
+        const std::size_t pos2 = service.find("://");
+        if (pos == std::string::npos || pos == pos2) {
+          flavour = "*";
+          url = service;
         }
-
-        const URL url(service.substr(pos+1));
+        else {
+          if (pos)
+            flavour = service.substr(0, pos);
+          else
+            flavour = "*";
+          url = service.substr(pos+1);
+        }
         if (!url || url.Protocol() == "file") {
           logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
           continue;
         }
-        const std::string flavour = service.substr(0, pos);
         logger.msg(VERBOSE, "Adding %s service %s:%s ", (*it)[0] != '-' ? "selected" : "rejected", flavour, url.str());
         servicesRef[flavour].push_back(url);
       }
@@ -850,18 +857,25 @@ namespace Arc {
           return false;
       }
       else { // URL
+        std::string flavour;
+        URL url;
         const std::size_t pos = service.find(":");
-        if (pos == std::string::npos) {
-          logger.msg(WARNING, "Cannot parse the specified %s service (%s)", serviceType, service);
-          continue;
+        const std::size_t pos2 = service.find("://");
+        if (pos == std::string::npos || pos == pos2) {
+          flavour = "*";
+          url = service;
         }
-
-        const URL url(service.substr(pos+1));
+        else {
+          if (pos)
+            flavour = service.substr(0, pos);
+          else
+            flavour = "*";
+          url = service.substr(pos+1);
+        }
         if (!url || url.Protocol() == "file") {
           logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
           continue;
         }
-        const std::string flavour = service.substr(0, pos);
         logger.msg(VERBOSE, "Adding %s service %s:%s ", isSelectedNotRejected ? "selected" : "rejected", flavour, url.str());
         servicesRef[flavour].push_back(url);
       }
