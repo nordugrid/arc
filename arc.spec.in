@@ -774,12 +774,12 @@ exit 0
 %files ldap-monitor
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/ldap-monitor/*
-%doc %{_mandir}/man7/ldap-monitor.7
+%doc %{_mandir}/man7/ldap-monitor.7*
 
 %files ws-monitor
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/ws-monitor/*
-%doc %{_mandir}/man7/ws-monitor.7
+%doc %{_mandir}/man7/ws-monitor.7*
 
 %files compiler
 %defattr(-,root,root,-)
