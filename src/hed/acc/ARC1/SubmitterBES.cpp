@@ -48,8 +48,7 @@ namespace Arc {
   Plugin* SubmitterBES::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg)
-      return NULL;
+    if (!subarg) return NULL;
     return new SubmitterBES(*subarg);
   }
 
@@ -67,8 +66,7 @@ namespace Arc {
     }
 
     std::string jobid;
-    if (!ac.submit(jobdescstring, jobid, et.url.Protocol() == "https"))
-      return false;
+    if (!ac.submit(jobdescstring, jobid, et.url.Protocol() == "https")) return false;
 
     if (jobid.empty()) {
       logger.msg(INFO, "No job identifier returned by BES service");

@@ -21,8 +21,7 @@ namespace Arc {
   Plugin* TargetRetrieverBES::Instance(PluginArgument *arg) {
     TargetRetrieverPluginArgument *trarg =
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
-    if (!trarg)
-      return NULL;
+    if (!trarg) return NULL;
     return new TargetRetrieverBES(*trarg, *trarg, *trarg);
   }
 

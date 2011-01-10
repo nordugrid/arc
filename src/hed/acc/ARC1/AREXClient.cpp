@@ -83,6 +83,41 @@ namespace Arc {
       delete client;
   }
 
+  bool AREXClient::delegation(XMLNode& op) {
+    const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
+    const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
+
+    if (key.empty() || cert.empty()) {
+      logger.msg(VERBOSE, "Failed locating credentials.");
+      return false;
+    }
+
+    if(!client->Load()) {
+      logger.msg(VERBOSE, "Failed initiate client connection.");
+      return false;
+    }
+
+    MCC* entry = client->GetEntry();
+    if(!entry) {
+      logger.msg(VERBOSE, "Client connection has no entry point.");
+      return false;
+    }
+
+    /* TODO: Enable password typing in case of cert and key. Currently when
+     * using cert and key, one have to type password multiple times, which is
+     * impracticable and should coordinated across execution.
+     *DelegationProviderSOAP deleg(cert, key, (!cfg.proxy.empty() ? NULL : &std::cin));
+     */
+    DelegationProviderSOAP deleg(cert, key);
+    logger.msg(VERBOSE, "Initiating delegation procedure");
+    if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()))) {
+      logger.msg(VERBOSE, "Failed to initiate delegation credentials");
+      return false;
+    }
+    deleg.DelegatedToken(op);
+    return true;
+  }
+
   bool AREXClient::process(PayloadSOAP& req, bool delegate, XMLNode& response) {
     if (!client) {
       logger.msg(VERBOSE, "AREXClient was not created properly."); // Should not happen. Happens if client = null (out of memory?)
@@ -92,38 +127,8 @@ namespace Arc {
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
 
     if (delegate) {
-      const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-      const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
-
-      if (key.empty() || cert.empty()) {
-        logger.msg(VERBOSE, "Failed locating credentials.");
-        return false;
-      }
-
-      if(!client->Load()) {
-        logger.msg(VERBOSE, "Failed initiate client connection.");
-        return false;
-      }
-
-      MCC* entry = client->GetEntry();
-      if(!entry) {
-        logger.msg(VERBOSE, "Client connection has no entry point.");
-        return false;
-      }
-
-      /* TODO: Enable password typing in case of cert and key. Currently when
-       * using cert and key, one have to type password multiple times, which is
-       * impracticable and should coordinated across execution.
-       *DelegationProviderSOAP deleg(cert, key, (!cfg.proxy.empty() ? NULL : &std::cin));
-       */
-      DelegationProviderSOAP deleg(cert, key);
-      logger.msg(VERBOSE, "Initiating delegation procedure");
-      if (!deleg.DelegateCredentialsInit(*entry,&(client->GetContext()))) {
-        logger.msg(VERBOSE, "Failed to initiate delegation credentials");
-        return false;
-      }
       XMLNode op = req.Child(0);
-      deleg.DelegatedToken(op);
+      if(!delegation(op)) return false;
     }
 
     WSAHeader header(req);

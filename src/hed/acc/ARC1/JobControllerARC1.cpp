@@ -30,8 +30,7 @@ namespace Arc {
   Plugin* JobControllerARC1::Instance(PluginArgument *arg) {
     JobControllerPluginArgument *jcarg =
       dynamic_cast<JobControllerPluginArgument*>(arg);
-    if (!jcarg)
-      return NULL;
+    if (!jcarg) return NULL;
     return new JobControllerARC1(*jcarg);
   }
 
@@ -44,8 +43,9 @@ namespace Arc {
       AREXClient ac(iter->Cluster, cfg, usercfg.Timeout());
       std::string idstr;
       AREXClient::createActivityIdentifier(iter->JobID, idstr);
-      if (!ac.stat(idstr, *iter))
+      if (!ac.stat(idstr, *iter)) {
         logger.msg(INFO, "Failed retrieving information for job: %s", iter->JobID.str());
+      }
     }
   }
 
@@ -56,9 +56,9 @@ namespace Arc {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     std::string jobidnum;
-    if (usejobname && !job.Name.empty())
+    if (usejobname && !job.Name.empty()) {
       jobidnum = job.Name;
-    else {
+    } else {
       std::string path = job.JobID.Path();
       std::string::size_type pos = path.rfind('/');
       jobidnum = path.substr(pos + 1);
@@ -72,10 +72,12 @@ namespace Arc {
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
 
-    if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/'))
+    if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/')) {
       srcpath += '/';
-    if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR))
+    }
+    if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR)) {
       dstpath += G_DIR_SEPARATOR_S;
+    }
 
     bool ok = true;
 
@@ -130,8 +132,7 @@ namespace Arc {
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     bool ok = ac.resume(idstr);
-    if (ok)
-      logger.msg(VERBOSE, "Job resuming successful");
+    if (ok) logger.msg(VERBOSE, "Job resuming successful");
     return ok;
   }
 
@@ -139,12 +140,13 @@ namespace Arc {
                                           const std::string& whichfile) {
     URL url(job.JobID);
 
-    if (whichfile == "stdout")
+    if (whichfile == "stdout") {
       url.ChangePath(url.Path() + '/' + job.StdOut);
-    else if (whichfile == "stderr")
+    } else if (whichfile == "stderr") {
       url.ChangePath(url.Path() + '/' + job.StdErr);
-    else if (whichfile == "joblog")
+    } else if (whichfile == "joblog") {
       url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
+    }
 
     return url;
   }
@@ -157,8 +159,7 @@ namespace Arc {
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     if (ac.getdesc(idstr, desc_str)) {
       JobDescription desc;
-      if (desc.Parse(desc_str))
-        return true;
+      if (desc.Parse(desc_str)) return true;
     }
 
     logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());

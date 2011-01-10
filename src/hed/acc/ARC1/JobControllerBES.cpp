@@ -56,8 +56,7 @@ namespace Arc {
   Plugin* JobControllerBES::Instance(PluginArgument *arg) {
     JobControllerPluginArgument *jcarg =
       dynamic_cast<JobControllerPluginArgument*>(arg);
-    if (!jcarg)
-      return NULL;
+    if (!jcarg) return NULL;
     return new JobControllerBES(*jcarg);
   }
 
@@ -69,8 +68,9 @@ namespace Arc {
          iter != jobstore.end(); iter++) {
       AREXClient ac(iter->Cluster, cfg, usercfg.Timeout(),false);
       std::string idstr = extract_job_id(iter->JobID);
-      if (!ac.stat(idstr, *iter))
+      if (!ac.stat(idstr, *iter)) {
         logger.msg(INFO, "Failed retrieving job status information");
+      }
     }
   }
 

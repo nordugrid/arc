@@ -10,6 +10,7 @@
 #include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Job.h>
+#include <arc/message/MCC.h>
 
 namespace Arc {
 
@@ -138,6 +139,7 @@ namespace Arc {
 
     static const std::string mainStateModel;
 
+    bool delegation(XMLNode& operation);
   private:
     bool process(PayloadSOAP& req, bool delegate, XMLNode& response);
 
@@ -150,7 +152,7 @@ namespace Arc {
 
     URL rurl;
 
-    const MCCConfig& cfg;
+    const MCCConfig cfg;
 
     std::string action;
 

@@ -33,8 +33,7 @@ namespace Arc {
   Plugin* SubmitterARC1::Instance(PluginArgument *arg) {
     SubmitterPluginArgument *subarg =
       dynamic_cast<SubmitterPluginArgument*>(arg);
-    if (!subarg)
-      return NULL;
+    if (!subarg) return NULL;
     return new SubmitterARC1(*subarg);
   }
 
@@ -84,9 +83,10 @@ namespace Arc {
     }
 
     std::string sJobid;
-    if (!ac->submit(product, sJobid, et.url.Protocol() == "https"))
+    if (!ac->submit(product, sJobid, et.url.Protocol() == "https")) {
       releaseClient(et.url);
       return false;
+    }
 
     if (sJobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
@@ -125,8 +125,7 @@ namespace Arc {
       // Do not modify Output and Error files.
       if (it->Name == modjobdesc.Application.Output ||
           it->Name == modjobdesc.Application.Error ||
-          it->Source.empty())
-        continue;
+          it->Source.empty()) continue;
 
       if (!it->Source.front().URI || it->Source.front().URI.Protocol() == "file") {
         it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
@@ -136,18 +135,18 @@ namespace Arc {
         // URL is valid, and not a local file. Check if the source reside at a
         // old job session directory.
         const size_t foundRSlash = it->Source.front().URI.str().rfind('/');
-        if (foundRSlash == std::string::npos)
-          continue;
+        if (foundRSlash == std::string::npos) continue;
 
         const std::string uriPath = it->Source.front().URI.str().substr(0, foundRSlash);
         // Check if the input file URI is pointing to a old job session directory.
         for (std::list<std::string>::const_iterator itAOID = modjobdesc.Identification.ActivityOldId.begin();
-             itAOID != modjobdesc.Identification.ActivityOldId.end(); itAOID++)
+             itAOID != modjobdesc.Identification.ActivityOldId.end(); itAOID++) {
           if (uriPath == *itAOID) {
             it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
             it->DownloadToCache = false;
             break;
           }
+        }
       }
     }
 
@@ -169,9 +168,10 @@ namespace Arc {
 
     std::string sNewjobid;
     if (!ac->migrate(idstr, product, forcemigration, sNewjobid,
-                    et.url.Protocol() == "https"))
+                    et.url.Protocol() == "https")) {
       releaseClient(et.url);
       return false;
+    }
 
     if (sNewjobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
