@@ -28,10 +28,10 @@ NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 MAKEFLAGS += -j$(NUMJOBS)
 endif
 
-debian/nordugrid-arc-nox-plugins-globus.install: debian/nordugrid-arc-nox-plugins-globus.install-stamp
+debian/nordugrid-arc-plugins-globus.install: debian/nordugrid-arc-plugins-globus.install-stamp
 	:
 
-debian/nordugrid-arc-nox-plugins-globus.install-stamp:
+debian/nordugrid-arc-plugins-globus.install-stamp:
 	touch $@
 	grep -q libdmclfc.so  $(subst -stamp,,$@) || echo debian/tmp/usr/lib/arc/libdmclfc.so  >> $(subst -stamp,,$@)
 	grep -q libdmclfc.apd $(subst -stamp,,$@) || echo debian/tmp/usr/lib/arc/libdmclfc.apd >> $(subst -stamp,,$@)
@@ -58,7 +58,7 @@ build: build-arch build-indep
 build-arch: build-arch-stamp
 	:
 
-build-arch-stamp: configure-stamp debian/nordugrid-arc-nox-plugins-globus.install-stamp
+build-arch-stamp: configure-stamp debian/nordugrid-arc-plugins-globus.install-stamp
 	$(MAKE)
 	$(MAKE) check
 	touch $@
@@ -76,9 +76,9 @@ clean:
 
 	if [ -r Makefile ] ; then $(MAKE) distclean ; fi
 
-	rm -f debian/nordugrid-arc-nox-arex.a-rex.init
-	rm -f debian/nordugrid-arc-nox-hed.arched.init
-	rm -f debian/nordugrid-arc-nox-cache-service.cache-service.init
+	rm -f debian/nordugrid-arc-arex.a-rex.init
+	rm -f debian/nordugrid-arc-hed.arched.init
+	rm -f debian/nordugrid-arc-cache-service.cache-service.init
 
 	dh_clean configure-stamp build-arch-stamp build-indep-stamp 
 
@@ -101,9 +101,9 @@ install-arch: build-arch-stamp
 	rm -rf $(CURDIR)/debian/tmp/usr/share/doc/arc
 	rm -f $(CURDIR)/debian/tmp/usr/share/arc/examples/storage_service.xml.example
 
-	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-nox-arex.a-rex.init
-	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-nox-hed.arched.init
-	mv debian/tmp/etc/init.d/cache-service debian/nordugrid-arc-nox-cache-service.cache-service.init
+	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-arex.a-rex.init
+	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-hed.arched.init
+	mv debian/tmp/etc/init.d/cache-service debian/nordugrid-arc-cache-service.cache-service.init
 
 binary-indep: install-indep
 	dh_testdir
@@ -136,7 +136,7 @@ binary-arch: install-arch
 	dh_perl -a
 	dh_pysupport -a
 	dh_link -a
-	dh_strip -a --dbg-package=nordugrid-arc-nox-dbg
+	dh_strip -a --dbg-package=nordugrid-arc-dbg
 	dh_compress -a -X .pdf
 	dh_fixperms -a
 	dh_makeshlibs -a
