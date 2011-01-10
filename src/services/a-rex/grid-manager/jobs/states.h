@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <list>
+#include <glibmm.h>
 #include "../jobs/job.h"
 #include "../conf/environment.h"
 
@@ -45,6 +46,7 @@ class JobsList {
   std::map<std::string, int> finishing_max_share;
   JobUser *user;
   ContinuationPlugins *plugins;
+  Glib::Dir* old_dir;
   /* Add job into list without checking if it is already there
      'i' will be set to iterator pointing at new job */
   bool AddJobNoCheck(const JobId &id,iterator &i,uid_t uid,gid_t gid);
@@ -86,15 +88,18 @@ class JobsList {
   /* Analyze current state of job, perform necessary actions and
      advance state or remove job if needed. Iterator 'i' is 
      advanced inside this function */
-  bool ActJob(const JobId &id,bool hard_job = false); /* analyze job */
-  bool ActJob(iterator &i,bool hard_job = false); /* analyze job */
+  bool ActJob(const JobId &id); /* analyze job */
+  bool ActJob(iterator &i); /* analyze job */
   void CalculateShares();
-  bool ActJobs(bool hard_job = false); /* analyze all jobs */
+  bool ActJobs(void); /* analyze all jobs */
   /* Look for new (or old FINISHED) jobs. Jobs are added to list
      with state undefined */
-  bool ScanNewJobs(bool hard_job = false);
-  bool ScanAllJobs(bool hard_job = false);
-  bool ScanNewMarks(bool hard_job = false);
+  bool ScanNewJobs(void);
+  bool ScanAllJobs(void);
+  /* Picks jobs which have attention marks. */
+  bool ScanNewMarks(void);
+  /* Picks jobs from finished. Returns false if failed or scanning finished. */
+  bool ScanOldJobs(int max_scan_time,int max_scan_jobs);
   /* Rearange status files on service restart */
   bool RestartJobs(void);
   /*
@@ -104,15 +109,15 @@ class JobsList {
   bool DestroyJobs(bool finished=true,bool active=true);
   /* (See GetLocalDescription of JobDescription object) */
   bool GetLocalDescription(const JobsList::iterator &i);
-  void ActJobUndefined(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobAccepted(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobPreparing(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobSubmitting(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobCanceling(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobInlrms(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobFinishing(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobFinished(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
-  void ActJobDeleted(iterator &i,bool hard_job,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobUndefined(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobAccepted(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobPreparing(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobSubmitting(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobCanceling(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobInlrms(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobFinishing(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobFinished(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
+  void ActJobDeleted(iterator &i,bool& once_more,bool& delete_job,bool& job_error,bool& state_changed);
 
 };
 

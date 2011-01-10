@@ -274,7 +274,7 @@ static void grid_manager(void* arg) {
       bool cleaned_all=true;
       for(JobUsers::iterator user = users.begin();user != users.end();++user) {
         size_t njobs = user->get_jobs()->size();
-        user->get_jobs()->ScanNewJobs(false);
+        user->get_jobs()->ScanNewJobs();
         if(user->get_jobs()->size() == njobs) break;
         cleaned_all=false;
         if(!(user->get_jobs()->DestroyJobs(clean_finished,clean_active)))  {
@@ -321,18 +321,25 @@ static void grid_manager(void* arg) {
   /* main loop - forewer */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
+  bool scan_old = false;
   for(;;) { 
     users.run_helpers();
     env.job_log().RunReporter(users);
     my_user->run_helpers();
-    bool hard_job = time(NULL) > hard_job_time;
+    bool hard_job = ((int)(time(NULL) - hard_job_time)) > 0;
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
       /* check for new marks and activate related jobs */
-      user->get_jobs()->ScanNewMarks(false);
+      user->get_jobs()->ScanNewMarks();
       /* look for new jobs */
-      user->get_jobs()->ScanNewJobs(hard_job);
-      /* process know jobs */
-      user->get_jobs()->ActJobs(hard_job);
+      user->get_jobs()->ScanNewJobs();
+      /* slowly scan throug old jobs for deleting them in time */
+      if(hard_job || scan_old) {
+        int max,max_running,max_per_dn,max_total;
+        env.jobs_cfg().GetMaxJobs(max,max_running,max_per_dn,max_total);
+        scan_old = user->get_jobs()->ScanOldJobs(env.jobs_cfg().WakeupPeriod()/2,max);
+      };
+      /* process known jobs */
+      user->get_jobs()->ActJobs();
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;
     pthread_mutex_lock(&sleep_mutex);

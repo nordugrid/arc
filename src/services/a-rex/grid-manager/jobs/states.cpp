@@ -80,6 +80,7 @@ void RunPlugin::set(char const * const * args) { };
 JobsList::JobsList(JobUser &user,ContinuationPlugins &plugins) {
   this->user=&user;
   this->plugins=&plugins;
+  this->old_dir=NULL;
   jobs.clear();
 }
  
@@ -133,10 +134,10 @@ bool JobsList::AddJob(JobUser &user,const JobId &id,uid_t uid,gid_t gid){
 
 #ifndef NO_GLOBUS_CODE
 
-bool JobsList::ActJob(const JobId &id,bool hard_job)  {
+bool JobsList::ActJob(const JobId &id)  {
   iterator i=FindJob(id);
   if(i == jobs.end()) return false;
-  return ActJob(i,hard_job);
+  return ActJob(i);
 }
 
 void JobsList::CalculateShares(){
@@ -271,7 +272,7 @@ void JobsList::CalculateShares(){
   }
 }
 
-bool JobsList::ActJobs(bool hard_job) {
+bool JobsList::ActJobs(void) {
   JobsListConfig& jcfg = user->Env().jobs_cfg();
 /*
    * Need to calculate the shares here here because in the ActJob*
@@ -304,7 +305,7 @@ bool JobsList::ActJobs(bool hard_job) {
       once_more=true;
       i++; continue;
     };
-    res &= ActJob(i,hard_job);
+    res &= ActJob(i);
   };
 
   /* Recalculation of the shares before the second pass
@@ -317,7 +318,7 @@ bool JobsList::ActJobs(bool hard_job) {
 
   // second pass - process skipped states and new jobs
   if(once_more) for(iterator i=jobs.begin();i!=jobs.end();) {
-    res &= ActJob(i,hard_job);
+    res &= ActJob(i);
   };
 
   // debug info on jobs per DN
@@ -877,7 +878,7 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
   return true;
 }
 
-void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
+void JobsList::ActJobUndefined(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& /*state_changed*/) {
         JobsListConfig& jcfg = user->Env().jobs_cfg();
@@ -974,7 +975,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
+void JobsList::ActJobAccepted(JobsList::iterator &i,
                               bool& once_more,bool& /*delete_job*/,
                               bool& job_error,bool& state_changed) {
         JobsListConfig& jcfg = user->Env().jobs_cfg();
@@ -1035,7 +1036,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
+void JobsList::ActJobPreparing(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
         JobsListConfig& jcfg = user->Env().jobs_cfg();
@@ -1121,7 +1122,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
+void JobsList::ActJobSubmitting(JobsList::iterator &i,
                                 bool& once_more,bool& /*delete_job*/,
                                 bool& job_error,bool& state_changed) {
         /* state submitting - everything is ready for submission - 
@@ -1139,7 +1140,7 @@ void JobsList::ActJobSubmitting(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
+void JobsList::ActJobCanceling(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
         /* This state is like submitting, only -rm instead of -submit */
@@ -1155,7 +1156,7 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
+void JobsList::ActJobInlrms(JobsList::iterator &i,
                             bool& once_more,bool& /*delete_job*/,
                             bool& job_error,bool& state_changed) {
         JobsListConfig& jcfg = user->Env().jobs_cfg();
@@ -1236,7 +1237,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,bool /*hard_job*/,
         return;
 }
 
-void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
+void JobsList::ActJobFinishing(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
                                bool& job_error,bool& state_changed) {
         JobsListConfig& jcfg = user->Env().jobs_cfg();
@@ -1271,12 +1272,12 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,bool hard_job,
               if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
                 jcfg.jobs_dn.erase(i->local->DN);
             }
-            once_more=true; hard_job=true;
+            once_more=true;
           };
         } else {
           // i->job_state = JOB_STATE_FINISHED;
           state_changed=true; /* to send mail */
-          once_more=true; hard_job=true;
+          once_more=true;
           if(i->GetFailure().length() == 0)
             i->AddFailure("uploader failed (post-processing)");
           job_error=true;
@@ -1299,7 +1300,7 @@ static time_t prepare_cleanuptime(JobId &job_id,time_t &keep_finished,JobsList::
   return t;
 }
 
-void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
+void JobsList::ActJobFinished(JobsList::iterator &i,
                               bool& /*once_more*/,bool& /*delete_job*/,
                               bool& /*job_error*/,bool& state_changed) {
         if(job_clean_mark_check(i->job_id,*user)) {
@@ -1348,14 +1349,14 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
               logger.msg(Arc::ERROR,"%s: Can't rerun on request - not a suitable state",i->job_id);
             };
           };
-          if(hard_job) { /* try to minimize load */
+          /*if(hard_job)*/ { /* try to minimize load */
             time_t t = -1;
             if(!job_local_read_cleanuptime(i->job_id,*user,t)) {
               /* must be first time - create cleanuptime */
               t=prepare_cleanuptime(i->job_id,i->keep_finished,i,*user);
             };
             /* check if it is not time to remove that job completely */
-            if((time(NULL)-t) >= 0) {
+            if(((int)(time(NULL)-t)) >= 0) {
               logger.msg(Arc::INFO,"%s: Job is too old - deleting",i->job_id);
               if(i->keep_deleted) {
                 // here we have to get the cache per-job dirs to be deleted
@@ -1399,10 +1400,10 @@ void JobsList::ActJobFinished(JobsList::iterator &i,bool hard_job,
         return;
 }
 
-void JobsList::ActJobDeleted(JobsList::iterator &i,bool hard_job,
+void JobsList::ActJobDeleted(JobsList::iterator &i,
                              bool& /*once_more*/,bool& /*delete_job*/,
                              bool& /*job_error*/,bool& /*state_changed*/) {
-        if(hard_job) { /* try to minimize load */
+        /*if(hard_job)*/ { /* try to minimize load */
           time_t t = -1;
           if(!job_local_read_cleanuptime(i->job_id,*user,t)) {
             /* should not happen - delete job */
@@ -1424,7 +1425,7 @@ void JobsList::ActJobDeleted(JobsList::iterator &i,bool hard_job,
 /* Do job's processing: check&change state, run necessary external
    programs, do necessary things. Also advance pointer and/or delete
    slot if necessary */
-bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
+bool JobsList::ActJob(JobsList::iterator &i) {
   JobsListConfig& jcfg = user->Env().jobs_cfg();
   bool once_more     = true;
   bool delete_job    = false;
@@ -1486,31 +1487,31 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
     /* undefined state - not actual state - job was just added but
        not analyzed yet */
       case JOB_STATE_UNDEFINED: {
-       ActJobUndefined(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobUndefined(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_ACCEPTED: {
-       ActJobAccepted(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobAccepted(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_PREPARING: {
-       ActJobPreparing(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobPreparing(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_SUBMITTING: {
-       ActJobSubmitting(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobSubmitting(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_CANCELING: {
-       ActJobCanceling(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobCanceling(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_INLRMS: {
-       ActJobInlrms(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobInlrms(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_FINISHING: {
-       ActJobFinishing(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobFinishing(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_FINISHED: {
-       ActJobFinished(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobFinished(i,once_more,delete_job,job_error,state_changed);
       }; break;
       case JOB_STATE_DELETED: {
-       ActJobDeleted(i,hard_job,once_more,delete_job,job_error,state_changed);
+       ActJobDeleted(i,once_more,delete_job,job_error,state_changed);
       }; break;
       default: { // should destroy job with unknown state ?!
       };
@@ -1631,7 +1632,7 @@ bool JobsList::ActJob(JobsList::iterator &i,bool hard_job) {
         job_stdlog_move(*i,*user,i->local->stdlog);
       };
       job_clean_finished(i->job_id,*user);  /* clean status files */
-      once_more=true; hard_job=true; /* to process some things in local */
+      once_more=true; /* to process some things in local */
     };
   };
   /* FINISHED+DELETED jobs are not kept in list - only in files */
@@ -1813,7 +1814,7 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
 }
 
 /* find new jobs - sort by date to implement FIFO */
-bool JobsList::ScanNewJobs(bool /*hard_job*/) {
+bool JobsList::ScanNewJobs(void) {
   std::string cdir=user->ControlDir();
   std::list<JobFDesc> ids;
   // For picking up jobs after service restart
@@ -1839,7 +1840,66 @@ bool JobsList::ScanNewJobs(bool /*hard_job*/) {
   return true;
 }
 
-bool JobsList::ScanNewMarks(bool /*hard_job*/) {
+bool JobsList::ScanOldJobs(int max_scan_time,int max_scan_jobs) {
+  // We are going to scan a dir with a lot of
+  // files here. So we scan it in parts and limit
+  // scanning time.
+  time_t start = time(NULL);
+  if(max_scan_time < 10) max_scan_time=10; // some sane number - 10s
+  std::string cdir=user->ControlDir()+"/finished";
+  try {
+    if(!old_dir) {
+      old_dir = new Glib::Dir(cdir);
+    };
+    for(;;) {
+      std::string file=old_dir->read_name();
+      if(file.empty()) {
+        old_dir->close();
+        delete old_dir;
+        old_dir=NULL;
+        return false;
+      };
+      int l=file.length();
+      if(l>(4+7)) {  /* job id contains at least 1 character */
+        if(!strncmp(file.c_str(),"job.",4)) {
+          if(!strncmp((file.c_str())+(l-7),".status",7)) {
+            JobFDesc id((file.c_str())+4,l-7-4);
+            if(FindJob(id.id) == jobs.end()) {
+              std::string fname=cdir+'/'+file.c_str();
+              uid_t uid;
+              gid_t gid;
+              time_t t;
+              if(check_file_owner(fname,*user,uid,gid,t)) {
+                /* add it to the list */
+                id.uid=uid; id.gid=gid; id.t=t;
+                job_state_t st = job_state_read_file(id.id,*user);
+                if((st == JOB_STATE_FINISHED) || (st == JOB_STATE_DELETED)) {
+                  iterator i;
+                  AddJobNoCheck(id.id,i,id.uid,id.gid);
+                  i->job_state = st;
+                  --max_scan_jobs;
+                };
+              };
+            };
+          };
+        };
+      };
+      if(((int)(time(NULL)-start)) >= max_scan_time) break;
+      if(max_scan_jobs <= 0) break;
+    };
+  } catch(Glib::FileError& e) {
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s",cdir);
+    if(old_dir) {
+      old_dir->close();
+      delete old_dir;
+      old_dir=NULL;
+    };
+    return false;
+  };
+  return true;
+}
+
+bool JobsList::ScanNewMarks(void) {
   std::string cdir=user->ControlDir();
   std::string ndir=cdir+"/"+subdir_new;
   std::list<JobFDesc> ids;
@@ -1875,7 +1935,7 @@ bool JobsList::ScanNewMarks(bool /*hard_job*/) {
 }
 
 // For simply collecting all jobs. 
-bool JobsList::ScanAllJobs(bool /*hard_job*/) {
+bool JobsList::ScanAllJobs(void) {
   std::list<std::string> subdirs;
   subdirs.push_back("/restarting"); // For picking up jobs after service restart
   subdirs.push_back("/accepting");  // For new jobs
