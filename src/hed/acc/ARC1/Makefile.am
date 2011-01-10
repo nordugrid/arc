@@ -1,6 +1,5 @@
 pkglib_LTLIBRARIES = libaccARC1.la
 noinst_LTLIBRARIES = libarexclient.la
-bin_PROGRAMS = arcdeleg
 
 libaccARC1_la_SOURCES  = TargetRetrieverARC1.cpp TargetRetrieverARC1.h \
 			 SubmitterARC1.cpp SubmitterARC1.h \
@@ -35,12 +34,6 @@ libarexclient_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) \
 			 $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
 			 $(top_srcdir)/src/hed/libs/ws/libarcws.la
 libarexclient_la_LDFLAGS  =
-
-arcdeleg_SOURCES  = arcdeleg.cpp JobStateBES.cpp JobStateBES.h JobStateARC1.h JobStateARC1.cpp
-arcdeleg_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-arcdeleg_LDADD    = libarexclient.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
-arcdeleg_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
-
 
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
