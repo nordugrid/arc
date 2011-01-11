@@ -84,6 +84,10 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
         int    errcode;
         struct hostent* host;
         struct hostent  hostbuf;
+#ifdef _MACOSX
+        char   buf[BUFSIZ];
+        if((host=gethostbyname2(value.c_str(),AF_INET)) == NULL) { //TODO: Deal with IPv6
+#else
 #ifndef _AIX
 #ifndef sun
         char   buf[BUFSIZ];
@@ -92,12 +96,13 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
 #else
         char   buf[BUFSIZ];
         if((host=gethostbyname_r(value.c_str(),
-                &hostbuf,buf,sizeof(buf),&errcode))) {
+                &hostbuf,buf,sizeof(buf),&errcode)) == NULL) {
 #endif
 #else
         struct hostent_data buf[BUFSIZ];
         if((errcode=gethostbyname_r(value.c_str(),
                 (host=&hostbuf),buf))) {
+#endif
 #endif
           logger.msg(Arc::ERROR, "Can't resolve host %s", value);
           gridftpd::config_close(cfile);
