@@ -1,0 +1,526 @@
+\documentclass{book}
+\usepackage{geometry}
+\geometry{verbose,a4paper,tmargin=2cm,bmargin=3cm,lmargin=2cm,rmargin=3cm}
+\usepackage{makeidx}
+\makeindex
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color,framed}
+\usepackage{longtable}                             %for breaking tables
+
+%%%%---- Use EPS figures and graphics with LaTeX ----
+%\usepackage{graphics}
+%%%%---- USE PNG or JPG figures and graphicx with PDFLaTeX ----
+\usepackage{graphicx}
+\usepackage[linkbordercolor={0 0.8 0.8}]{hyperref}
+\hypersetup{
+  pdfauthor = {Oxana Smirnova},
+  pdftitle = {Extended Resource Specification Language},
+  pdfsubject = {Reference manual},
+  pdfkeywords = {Grid,NorduGrid,ARC,Globus,RSL},
+  pdfcreator = {PDFLaTeX with hyperref package},
+  pdfproducer = {PDFLaTeX}
+}
+
+\bibliographystyle{IEEEtran}
+
+\def\efill{\hfill\nopagebreak}%
+\hyphenation{Nordu-Grid}
+\setlength{\parindent}{0cm}
+\setlength{\FrameRule}{1pt}
+\setlength{\FrameSep}{8pt}
+\addtolength{\parskip}{5pt}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\renewcommand{\arraystretch}{1.3}
+\newcommand{\dothis}{\colorbox{shadecolor}}
+\newcommand{\xrsl}[1]{\textbf{\sffamily #1}}
+\newcommand{\versions}[1]{\vspace{-0.3cm}(#1)\par}
+\newcommand{\GT}{Globus Toolkit$\mathrm{^{TM}}$}
+\newcommand{\globus}{Globus\textsuperscript{\textregistered}}
+\definecolor{shadecolor}{rgb}{1,1,0.6}
+\definecolor{salmon}{rgb}{1,0.9,1}
+\definecolor{cyan}{rgb}{0,1,1}
+
+\begin{document}
+  \def\today{\number\day/\number\month/\number\year}
+
+  \begin{titlepage}
+
+    \begin{tabular}{rl}
+      \resizebox*{3cm}{!}{\includegraphics{ng-logo.png}}
+      &\parbox[b]{2cm}{\textbf \it {\hspace*{-1.5cm}NORDUGRID\vspace*{0.5cm}}}
+    \end{tabular}
+
+    \hrulefill
+
+    {\raggedleft NORDUGRID-MANUAL-4\par}
+
+    {\raggedleft \today\par}
+
+    \vspace*{2cm}
+
+%%%%---- The title ----
+
+    \begin{center}
+
+    \textsc{\Large Extended Resource Specification Language}
+     \Large \par \textit{Reference Manual}
+
+    \vspace*{2cm}
+
+%    {\centering \large Refers to ARC release series 0.8 and up \large \par}
+
+    \end{center}
+
+    \vspace*{2cm}
+
+%    \abstract{
+%      The paper represents an overview and a reference manual for the
+%      NorduGrid Extended RSL, developed on the basis of the \globus\
+%      RSL.
+%    }
+
+  \end{titlepage}
+  %\thispagestyle{empty} $ $
+  %\newpage
+  %$\ $
+  \tableofcontents
+  \newpage
+
+  \chapter{Introduction}
+  \label{sec:intro}
+
+  Computational tasks, such as data mining, data transformation, simulation of various conditions, execution of Monte Carlo algorihms and so on, are normally formalized as series of \textit{jobs} submitted to computing resources. Such computing resources can be mainframe supercomputers, high-performance computing clusters, or even pools of regular desktop PCs. In a conventional approach, applicaton experts obtain user acconts at computing centers and learn peculiarities of their \textit{batch systems} in order to formulate and submit computational jobs to the assigned resource.
+  In the Grid infrastructure~\cite{grid}, experts get simultaneous access to a large number of very different computing resources, which are often widely distributed geographically. In order to abstract from the heterogeneous nature of Grid resources, a high-level job description language is necessary. The diversity of Grid resources implies special requirements for a
+  proper description of a job, introducing many new options as opposed to a conventional high-performance computing center use case.
+
+  Globus\ \index{Globus}
+  Alliance~\cite{globus} developed a Grid middleware toolkit, early versions of which
+  made use of the \textit{Resource Specification Language
+  (RSL)}~\cite{rsl}\index{RSL} to parse job options and definitions to
+  resource management systems. The NorduGrid project~\cite{nordugrid}
+  \index{NorduGrid} decided to re-use RSL when they developed the Advanced Resource Connector (ARC),
+  -- a
+  solution~\cite{arc} for a Grid facility, suitable for
+  complex tasks, like, for example, High Energy Physics
+  data processing. To match the complexity of such tasks, this solution
+  requires certain extensions to the RSL.
+
+  To describe a task to be submitted to ARC-enabled resources, an
+  extended version of the \globus\  RSL is used\footnote{One can also use a Grid-standard JSDL language; however, it is less versatile}. Extensions concern
+  not only introduction of new attributes, but also differentiation
+  between the two levels of job option specifications:
+
+  \begin{itemize}
+  \item[] \textbf{User-side RSL}, i.e., the set of attributes
+    specified by a user in a job-specific file. This file is
+    interpreted by a \textit{Client}~\cite{ui},
+    \index{Client} and after the necessary modifications is
+    passed to the ARC computing service: the \textit{Grid Manager (GM)}~\cite{gm}\index{Grid
+    Manager}
+  \item[] \textbf{GM-side RSL}, i.e., the set of attributes
+    pre-processed by a client, and ready to be interpreted by the GM. Effectively, this is an \textit{internal} job representation of ARC.
+  \end{itemize}
+
+  A user only has to know the user-side part, and utilize it to
+  describe the Grid tasks. The Grid Manager, however, uses slightly
+  different notations, supplied by the client tools; therefore developers of such tools must take care of converting user-submitted RSL to the internal job description (GM-side RSL).
+
+  In what follows, description of the NorduGrid-extended RSL,
+  further denoted as \textbf{xRSL}\index{xRSL}, is given, using the
+  following notations:
+
+  \begin{tabular}{ll}
+    \verb#<xxxx>#&parameter to be substituted with a corresponding string or a number\\
+    \verb#[xxxx]# & optional parameter\\
+    \verb#xxx|yyy|zzz# &list of possible values of a parameter\\
+    \verb#-"-# &"same as above"\\
+  \end{tabular}
+
+Usage examples are given for the standard ARC command-line client (also known as \textit{User Interface})~\cite{ui}; other clients may introduce additional features, please refer to their respective documentation for details.
+
+  \chapter{xRSL syntax and rules}
+  \label{sec:remarks}
+
+  For a complete description of \globus\  RSL, see
+  reference~\cite{rsl}. xRSL uses the same syntax conventions,
+  although changes the meaning and interpretation of some attributes.
+
+  \section{Syntax}
+  \label{sec:syntax}
+
+  A Grid task is described by means of xRSL attributes, which can
+  be either passed via a command-line, or, more conveniently, be
+  collected in a so-called xRSL-file (suggested extension
+  \textit{.xrsl}). Such a file contains a plain list of attribute-value pairs
+  and boolean operators "\&" (for AND) and "\verb#|#" (for
+  OR). Attribute names are case-insensitive.
+
+  If the attributes are specified from the command line, the entire
+  description must be enclosed either in single or in double quotes.
+  Single quotes enclosure is completely analogous to xRSL-file usage,
+  while double quotes imply standard shell expansion of the enclosed
+  string. This has implications when strings contain local shell
+  variables: they \textbf{will not be expanded} unless the task description is
+  entered from the command line and is enclosed in double quotes.
+
+  An attribute-value pair is a key element of specification. It
+  consists of an expression that assigns one or more values to an
+  attribute, and is enclosed in round brackets:
+
+  \begin{shaded}
+    \verb#(attribute="value")#\\
+    \verb#(attribute="value1" "value2")# (for multi-valued attributes)
+  \end{shaded}
+
+  Certain attributes do not have assigned value; instead, they contain
+  a list of values that should be put in proper correspondence with
+  each other:
+
+  \begin{shaded}
+    \verb#(attribute=("value1" "value2")("value3" "value4"))#
+  \end{shaded}
+
+  In the example above, \verb#value1# and \verb#value3# are put in correspondence to
+  \verb#value2# and \verb#value4# respectively, according to the
+  context of the attribute.
+
+  Values should be enclosed in quotes if they contain blank
+  spaces or special characters. The \textbf{special characters} are:
+  \begin{shaded}
+    \verb. +   &   |   (   )   =   <   >   !   "   '   ^   #   $.%$
+  \end{shaded}
+
+  To quote a string containing special characters, you can use
+  either single or double quotes. If your string, however, contains
+  both such quotes, you can define any character as an own
+  delimiter, by preceding it with the "carat" (\verb#^#) character:
+  \verb#attribute=^*My "good" value^*# makes use of a carat-escaped
+  asterisk as a delimiter.
+
+  An xRSL job description starts with an ampersand
+  ("\&") , to indicate implicit \textbf{conjunction} of all the
+  attributes:
+  \begin{shaded}
+    \verb#&(attribute1=value1)(attribute2="value 2")...#
+  \end{shaded}
+
+  Whenever a \textbf{disjunct}-request of two or more attributes is
+  needed, the following construction can be used:
+  \begin{shaded}
+    \verb#(|(attribute="value1")(attribute="value2")...)#
+  \end{shaded}
+
+  \begin{framed}
+   Only few selected attributes (indicated further in the document) can be requested by the user multiple times, like in the disjunct request example above. Most attributes \textbf{must be unique}, i.e., appear only once in the job description document.
+  \end{framed}
+
+
+  In expressions, the following relational operators are allowed, in general:
+  \begin{shaded}
+    \verb#=   !=   >   <   >=   <=#
+  \end{shaded}
+  However, most attrbutes can \textbf{only be used with equality operator "="}. For few attributes (as indicated in the document), some other operators can be used as well.
+
+  \textbf{Commented} lines should start with "(*" and be
+  closed with "*)":
+  \begin{shaded}
+    \verb#(*attribute="value1"*)#
+  \end{shaded}
+  Comments can not be nested.
+
+  \textbf{Multiple job} description in one file is realized via a standard
+  \globus\  RSL multi-request operator "+", which should precede
+  multiple job description:
+  \begin{shaded}
+    \verb#+(&(...))(&(...))(&(...))#
+  \end{shaded}
+
+  The xRSL attributes can be written in a single string, or split in
+  lines arbitrary; blank spaces between and inside
+  \verb#(attribute="value")# relations are ignored.
+
+  \section{URLs}
+  \label{sec:url}
+
+  \input{xrsl-urls}
+
+  \chapter{Attributes}
+  \label{sec:attributes}
+
+  Most of the job description attributes \index{attributes} introduced originally by \globus\ RSL~1.0 are
+  supported, some with modifications as indicated in this
+  document. Many new attributes are introduced by ARC, of which some are
+  to be specified in the user's script, and others are internal for
+  the GM (are added or modified by client tools).
+
+  Attribute names are case-insensitive, although assigned values may
+  well be case-sensitive, if they represent file names, environment
+  variables etc..
+
+  It is possible to use unsupported attributes in job description. Standard ARC client submission commands (\texttt{ngsub} and \texttt{ngresub}) must be used with a command line option ``-U'' in order to accept unknown attributes. Without this command line option, the client tool will concider job description invalid if it contains unsupported attributes.
+
+  \section{User-side attributes}
+  \label{sec:user}
+
+  The following attributes \index{attributes:user-side} can be
+  specified in a user's xRSL script. Some have to be modified by the client tool
+  before being passed to the GM. If this is the case, the corresponding modified GM input is described in this document as well.
+
+  \input{xrsl-user}
+
+  \section{GM-side attributes}
+  \label{sec:gm}
+
+  The following attributes are a part of the internal ARC job representation, and must be provided by ARC client tools and passed to
+  the GM. Users may even specify them manually (\textbf{not
+  advised!}), while developers of new ARC client tools and utilities must make sure these attributes are added to the user job description before it is submitted to a GM.
+
+  \input{xrsl-gm}
+
+  \section{Unsupported Globus RSL attributes}
+  \label{sec:globus}
+
+  The following \globus\ attributes are not supported by the ARC
+  middleware. Whenever they are specified, eiher an error or a warning should be issued by the
+  client tool, and the corresponding attribute should be ignored\footnote{Standard ARC client will throw an error, unless option ''-U'' is specified}.
+
+  \subsection{Unsupported RSL 1.0 attributes}
+
+  \begin{itemize}
+    \item \verb#(resourceManagerContact=<string>)#
+    \item \verb#(directory=<string>)#
+    \item \verb#(maxCpuTime=<time>)#
+    \item \verb#(maxWallTime=<time>)#
+    \item \verb#(maxTime=<time>)#
+    \item \verb#(maxMemory=<memory>)#
+    \item \verb#(minMemory=<memory>)#
+    \item \verb#(gramMyJob=independent|collective)#
+    \item \verb#(project=<string>)#
+    \item \verb#(hostCount=<number>)#
+    \item \verb#(label=<string>)#
+    \item \verb#(subjobCommsType=blocking-join|independent)#
+    \item \verb#(subjobStartType=strict-barrier|loose-barrier|no-barrier)#
+  \end{itemize}
+
+  \subsection{Unsupported GRAM RSL attributes}
+
+  \begin{itemize}
+    \item \verb#(directory=<string>)#
+    \item \verb#(fileCleanUp=<array>)#
+    \item \verb#(fileStageIn=<array>)#
+    \item \verb#(fileStageInShared=<array>)#
+    \item \verb#(fileStageOut=<array>)#
+    \item \verb#(gassCache=<path>)#
+    \item \verb#(gramMyJob=independent|collective)#
+    \item \verb#(hostCount=<number>)#
+    \item \verb#(jobType=<string>)#
+    \item \verb#(libraryPath=<path>)#
+    \item \verb#(maxCpuTime=<time>)#
+    \item \verb#(maxWallTime=<time>)#
+    \item \verb#(maxTime=<time>)#
+    \item \verb#(maxMemory=<memory>)#
+    \item \verb#(minMemory=<memory>)#
+    \item \verb#(project=<string>)#
+    \item \verb#(remoteIoUrl=<string>)#
+    \item \verb#(scratchDir=<string>)#
+  \end{itemize}
+
+  \chapter{XRSL and JSDL}
+  \label{sec:jsdl}
+
+  \input{xrsl-jsdl}
+
+  \appendix
+
+  \chapter{Examples}
+  \label{sec:examples}
+
+  \section{User-side xRSL script}
+
+  \begin{verbatim}
+&
+(* test run: if "yes", only submits RSL without actual job start *)
+     (dryRun="no")
+(* some local variables defined for further convenience *)
+     (rsl_substitution=("TOPDIR" "/home/johndoe"))
+     (rsl_substitution=("NGTEST" $(TOPDIR)/ngtest))
+     (rsl_substitution=("BIGFILE" "/scratch/johndoe/100mb.tmp"))
+(* some environment variables, to be used by the job *)
+     (environment=("ATLAS" "/opt/atlas") ("CERN" "/cern"))
+(* the main executable file to be staged in and submitted to the PBS *)
+     (executable="checkall.sh")
+(* the arguments for the executable above *)
+     (arguments="pal")
+(* files to be staged in before the execution *)
+     (inputFiles = ("be_kaons" "")
+     ("file1" gsiftp://grid.uio.no$(TOPDIR)/remfile.txt)
+      ("bigfile.dat" $(BIGFILE) )    )
+(* files to be given executable permissions after staging in *)
+     (executables="be_kaons")
+(* files to be staged out after the execution *)
+     (outputFiles=
+        ("file1" "gsiftp://grid.tsl.uu.se/tmp/file1.tmp")
+        ("100mb.tmp" "rls://rls.nordugrid.org:39281/test/bigfile")
+        ("be_kaons.hbook"  gsiftp://ce1.grid.org$(NGTEST)/kaons.hbook)   )
+(* user-specified job name *)
+     (jobName="NGtest")
+(* standard input file *)
+     (stdin="myinput.dat")
+(* standard output file *)
+     (stdout="myoutput.dat")
+(* standard error file *)
+     (stderr="myerror.dat")
+(* GM logs directory name *)
+     (gmlog="gmlog")
+(* flag whether to merge stdout and stderr *)
+     (join="no")
+(* request e-mail notification on status change *)
+     (notify="bqfe john.doe@gmail.com jane.doe@mail.org")
+(* maximal CPU time required for the job, minutes for PBS*)
+     (CpuTime="60")
+(* maximal time for the session directory to exist on the remote node, days *)
+     (lifeTime="7")
+ (* memory required for the job, per rank, Mbytes *)
+     (Memory="200")
+(* wall time to start job processing *)
+     (startTime="2002-04-28 17:15:00")
+(* disk space required for the job, Mbytes *)
+     (Disk="500")
+(* required architecture of the execution node *)
+     (architecture="i686")
+(* required run-time environment *)
+     (runTimeEnvironment="APPS/HEP/Atlas-1.1")
+(* number of re-runs, in case of a system failure *)
+     (rerun="2")
+  \end{verbatim}
+
+  \section{GM-side xRSL script}
+
+Note that the client tool must expand all the \texttt{rsl\_substitution}
+values and add double quotes to \textbf{all} strings. Client tool is also expected to insert \texttt{queue} attribute in case such is missing and to add checksum values for input files to be uploaded by the client. Standard ARC client also
+streamlines blank spaces. 
+
+Comment lines are removed from the GM-side xRSL; below they are shown
+to explain details.
+
+  \begin{verbatim}
+&
+(* saves RSL in a temporary file if "yes" *)
+     ("savestate" = "yes" )
+(* job submission to be performed if action is "request" *)
+     ("action" = "request" )
+(* submission host name *)
+     ("hostname" = "ce1.grid.org" )
+(* client software version *)
+     ("clientsoftware" = "nordugrid-arc-0.6.0.3" )
+(* walltime value added by the client, in seconds *)
+     ("walltime" = "3600" )
+(* test run: if "yes", only submits RSL without actual job start *)
+     ("dryRun" = "no" )
+(* some local variables defined for further convenience *)
+     ("rsl_substitution" = ("TOPDIR" "/home/johndoe" ) )
+     ("rsl_substitution" = ("NGTEST" "/home/johndoe/ngtest" ) )
+     ("rsl_substitution" = ("BIGFILE" "/scratch/johndoe/100mb.tmp" ) )
+(* some environment variables, to be used by the job *)
+     ("environment" = ("ATLAS" "/opt/atlas" ) ("CERN" "/cern" ) )
+(* executable *)
+     ("executable" = "checkall.sh" )
+(* arguments *)
+     ("arguments" = "pal" )
+(* files to be staged in before the execution *)
+     ("inputfiles" = ("checkall.sh" "279320" )
+        ("myinput.dat" "39806" )
+        ("be_kaons" "8807" )
+        ("file1" "gsiftp://grid.uio.no/home/johndoe/remfile.txt" )
+        ("bigfile.dat" "104857600" )
+     )
+(* files to be given executable permissions after staging in *)
+     ("executables" = "checkall.sh" "be_kaons" )
+(* files to be staged out after the execution *)
+     ("outputfiles" = ("file1" "gsiftp://grid.tsl.uu.se/tmp/file1.tmp" )
+        ("100mb.tmp" "rls://rls.nordugrid.org:39281/test/bigfile" )
+        ("be_kaons.hbook" "gsiftp://ce1.grid.org/home/johndoe/ngtest/kaons.hbook" )
+        ("myoutput.dat" "" )
+        ("myerror.dat" "" )
+    )
+(* user-specified job name *)
+     ("jobName" = "NGtest" )
+(* standard input file *)
+     ("stdin" = "myinput.dat" )
+(* standard output file *)
+     ("stdout"="myoutput.dat" )
+(* standard error file *)
+     ("stderr" = "myerror.dat" )
+(* flag whether to merge stdout and stderr *)
+     ("join" = "no" )
+(* request e-mail notification on status change *)
+     ("notify" = "bqfe john.doe@gmail.com jane.doe@mail.org" )
+(* specific queue to submit the job *)
+     ("queue" = "atlas" )
+(* CPU time required for the job, converted into seconds *)
+     ("cputime" = "3600" )
+(* maximal time for the session directory to exist on the remote node, seconds *)
+     ("lifetime" = "604800" )
+(* memory required for the job, per rank, Mbytes *)
+     ("memory" = "200" )
+(* wall time to start job processing *)
+     ("startTime" = "20020128171500" )
+(* disk space required for the job, Mbytes *)
+     ("disk" = "500" )
+(* required architecture of the execution node *)
+     ("architecture" = "i686" )
+(* required run-time environment *)
+     ("runtimeenvironment" = "APPS/HEP/Atlas-1.1" )
+(* number of re-runs, in case of a system failure *)
+     ("rerun" = "2" )
+(* original client xRSL with expanded string substitutions; shortened here *)
+     ("clientxrsl" = "&(""dryrun"" = ""no"" )(... )(""rerun"" = ""2"" )" )
+  \end{verbatim}
+
+  \section{JSDL script}
+
+  \begin{verbatim}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<jsdl:JobDefinition
+  xmlns="http://schemas.ggf.org/jsdl/2005/11/jsdl"
+  xmlns:posix="http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
+  xmlns:arc="http://www.nordugrid.org/ws/schemas/jsdl-arc">
+  <JobDescription>
+    <!-- Generic job description (jobname in XRSL) -->
+    <JobIdentification>
+        <JobName>JSDL Hello World job</JobName>
+        <Description>
+          This is a simple Hello World job test
+        </Description>
+    </JobIdentification>
+    <!-- Standard application (same as executable, arguments in XRSL) -->
+    <Application>
+        <ApplicationName>Echo</ApplicationName>
+        <posix:POSIXApplication>
+          <posix:Executable>/bin/echo</posix:Executable>
+          <posix:Argument>Hello world</posix:Argument>
+        </posix:POSIXApplication>
+    </Application>
+    <!-- Get the GM diagnostics (same as gmlog in XRSL) -->
+    <arc:LocalLogging>
+	      <arc:Directory>gmlog</arc:Directory>
+    </arc:LocalLogging>
+ </JobDescription>
+</JobDefinition>
+
+
+  \end{verbatim}
+
+
+  \chapter{JSDL-ARC schema}
+  \label{sec:jsdl-arc-schema}
+
+  \input{jsdl-arc-schema}
+
+
+  \bibliography{grid}
+  \printindex
+
+\end{document}
