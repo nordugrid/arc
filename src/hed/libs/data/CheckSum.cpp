@@ -129,7 +129,7 @@ namespace Arc {
         buf[0] = 0;
       return 0;
     }
-    return snprintf(buf, len, "cksum: %08x", r);
+    return snprintf(buf, len, "cksum:%08x", r);
   }
 
   void CRC32Sum::scan(const char *buf) {
@@ -370,7 +370,7 @@ namespace Arc {
       return 0;
     }
     return snprintf(buf, len,
-                    "md5: %02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                    "md5:%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
                     ((u_char*)&A)[0], ((u_char*)&A)[1], ((u_char*)&A)[2], ((u_char*)&A)[3],
                     ((u_char*)&B)[0], ((u_char*)&B)[1], ((u_char*)&B)[2], ((u_char*)&B)[3],
                     ((u_char*)&C)[0], ((u_char*)&C)[1], ((u_char*)&C)[2], ((u_char*)&C)[3],
