@@ -5,7 +5,15 @@
 #endif
 
 #include <grp.h>
+#if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
+#endif
+#if HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#if HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
 
 #include "fileplugin.h"
 #include "../conf/conf.h"
@@ -199,6 +207,9 @@ int makedirs(std::string &name) {
     if(mkdir(dname.c_str(),S_IRWXU | S_IRWXG | S_IRWXO) == 0) continue;
     char* errmsg;
     char errmgsbuf[256];
+#ifdef _MACOSX
+    int ret = strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#else
 #ifndef _AIX
 #ifndef sun
     errmsg=strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
@@ -209,6 +220,7 @@ int makedirs(std::string &name) {
 #else
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#endif
 #endif
     logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
     return 1; /* directory creation failed */
@@ -268,6 +280,9 @@ int DirectFilePlugin::makedir(std::string &dname) {
     };
     char* errmsg;
     char errmgsbuf[256];
+#ifdef _MACOSX
+    int ret = strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#else
 #ifndef _AIX
 #ifndef sun
     errmsg=strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
@@ -278,6 +293,7 @@ int DirectFilePlugin::makedir(std::string &dname) {
 #else
     errmgsbuf[0]=0; errmsg=errmgsbuf;
     strerror_r(errno,errmgsbuf,sizeof(errmgsbuf));
+#endif
 #endif
     logger.msg(Arc::ERROR, "mkdir failed: %s", errmsg);
     return 1; /* directory creation failed */

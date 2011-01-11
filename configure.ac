@@ -1379,6 +1379,21 @@ if test "$enables_gridftpd_service" = "yes"; then
     AC_MSG_NOTICE([Gridftpd can't be built without Globus - disabling])
     enables_gridftpd_service="no"
   fi
+
+  #check for struct statfs
+  AC_CHECK_FUNCS_ONCE([fstatfs])
+  AC_CHECK_HEADERS_ONCE([sys/param.h sys/statfs.h sys/mount.h sys/vfs.h])dnl
+  AC_CHECK_MEMBERS([struct statfs.f_type],,,
+    [$ac_includes_default
+     #if HAVE_SYS_STATFS_H
+     #include <sys/statfs.h>
+     #endif
+     #if HAVE_SYS_MOUNT_H
+     #include <sys/mount.h>
+     #endif
+     #if HAVE_SYS_VFS_H
+     #include <sys/vfs.h>
+     #endif])
 fi
 AC_MSG_NOTICE([Gridftpd service enabled: $enables_gridftpd_service])
 AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "xyes"])
