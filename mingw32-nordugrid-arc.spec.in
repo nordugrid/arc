@@ -7,14 +7,14 @@
 
 %define pkgdir @PACKAGE@
 
-Name: mingw32-nordugrid-arc-nox
+Name: mingw32-nordugrid-arc
 Version: @VERSION@
 Release: 1%{?dist}
 Summary: ARC
 Group: System Environment/Daemons
 License: ASL 2.0
 URL: http://www.nordugrid.org/
-Source: nordugrid-arc-nox-%{version}.tar.gz
+Source: nordugrid-arc-%{version}.tar.gz
 BuildRoot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
@@ -111,7 +111,7 @@ Python wrapper for ARC
 %{?_mingw32_debug_package}
 
 %prep
-%setup -q -n nordugrid-arc-nox-%{version}
+%setup -q -n nordugrid-arc-%{version}
 
 %build
 %{_mingw32_configure} \

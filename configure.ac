@@ -2019,8 +2019,8 @@ AC_CONFIG_FILES([Makefile
                  include/Makefile
                  debian/Makefile
                  debian/changelog.deb
-                 arc.spec
-                 mingw32-arc.spec
+                 nordugrid-arc.spec
+                 mingw32-nordugrid-arc.spec
                  src/hed/daemon/arched.8
                  src/hed/daemon/scripts/arched
                  src/services/janitor/interfaces/commandline/janitor.8
