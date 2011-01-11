@@ -6,7 +6,6 @@
   \end{shaded}
   \versions{ARC 0.3, ARC 0.4, ARC $\leq$ 0.5.25}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(sstdin=<filename>)#\\
     Example:&\verb#(sstdin="myinput.dat")#\\
   \end{tabular}
@@ -24,15 +23,16 @@
   \begin{shaded}
     \xrsl{action}
   \end{shaded}
-  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6, ARC 0.8}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
-    GM input:&\verb#(action="request"|"cancel"|"clean")#\\
+    GM input:&\verb#(action="request"|"cancel"|"clean"|"renew"|"restart")#\\
     Example:&\verb#(action="request")#\\
   \end{tabular}
 
   Action to be taken by the gatekeeper: submit the job, cancel job
-  execution, or clear the results of the job (also cancels the job).
+  execution, clear the results of the job (also cancels the job),
+  renew the proxy of the job, or restart the job from a previous
+  failed state.
 
   \phantomsection
   \index{XRSL:attribute:savestate}\addcontentsline{toc}{subsection}{savestate}
@@ -42,7 +42,6 @@
   \end{shaded}
   \versions{ARC 0.3, ARC 0.4, ARC $\leq$ 0.5.25}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(savestate="yes"|"no")#\\
     Example:&\verb#(savestate="yes")#\\
   \end{tabular}
@@ -59,7 +58,6 @@
   \end{shaded}
   \versions{ARC $\leq$ 0.3.15}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(lrmstype=<string>)#\\
     Example:&\verb#(lrmstype="pbs")#\\
   \end{tabular}
@@ -76,9 +74,8 @@
   \begin{shaded}
     \xrsl{hostName}
   \end{shaded}
-  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6, ARC 0.8}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(hostname=<string>)#\\
     Example:&\verb#(hostName="grid.quark.lu.se")#\\
   \end{tabular}
@@ -95,9 +92,8 @@
   \begin{shaded}
     \xrsl{jobid}
   \end{shaded}
-  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6}
+  \versions{ARC 0.3, ARC 0.4, ARC 0.5, ARC 0.6, ARC 0.8}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(jobid=<string>)#\\
     Example:&\verb#(jobid="grid.quark.lu.se:2119/jobmanager-ng/157111017133827")#\\
   \end{tabular}
@@ -117,9 +113,8 @@
   \begin{shaded}
     \xrsl{clientxrsl}
   \end{shaded}
-  \versions{ARC $\geq$ 0.3.28, ARC 0.4, ARC 0.5, ARC 0.6}
+  \versions{ARC $\geq$ 0.3.28, ARC 0.4, ARC 0.5, ARC 0.6, ARC 0.8}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(clientxrsl=<string>)#\\
     Example:&\verb#(clientxrsl="&(executable=/bin/echo)(arguments=boo)")#\\
   \end{tabular}
@@ -138,9 +133,8 @@
   \begin{shaded}
     \xrsl{clientsoftware}
   \end{shaded}
-  \versions{ARC $\geq$ 0.3.35, ARC 0.4, ARC 0.5, ARC 0.6}
+  \versions{ARC $\geq$ 0.3.35, ARC 0.4, ARC 0.5, ARC 0.6, ARC 0.8}
   \begin{tabular}{lp{13cm}}
-    User input:&\verb##\\
     GM input:&\verb#(clientsoftware=<string>)#\\
     Example:&\verb#(clientsoftware="nordugrid-arc-0.5.39")#\\
   \end{tabular}

@@ -1,0 +1,8 @@
+Document: arc-ldap-infosys
+Title: The NorduGrid/ARC Information System
+Author: B. Konya
+Abstract: Technical description of information system used by the pre-WS versions of ARC middleware. The system is based on an hierarchial tree of LDAP databases, with the lower level residing close to Grid services in order to collect and store service status information through specialised back-ends. Higher level databases are used only for indexing and discovery of lower level end-points.
+Section: Network/Communication
+
+Format: PDF
+Files: /usr/share/doc/nordugrid-arc-doc/arc_infosys.pdf

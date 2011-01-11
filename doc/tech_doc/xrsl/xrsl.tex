@@ -1,5 +1,6 @@
 \documentclass{book}
 \usepackage{geometry}
+\usepackage{doc}
 \geometry{verbose,a4paper,tmargin=2cm,bmargin=3cm,lmargin=2cm,rmargin=3cm}
 \usepackage{makeidx}
 \makeindex
@@ -22,7 +23,8 @@
   pdfproducer = {PDFLaTeX}
 }
 
-\bibliographystyle{IEEEtran}
+\usepackage[numbers]{natbib}
+\bibliographystyle{plainnat}
 
 \def\efill{\hfill\nopagebreak}%
 \hyphenation{Nordu-Grid}

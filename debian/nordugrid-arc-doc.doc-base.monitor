@@ -1,0 +1,8 @@
+Document: arc-monitor
+Title: The Grid Monitor: Usage manual
+Author: O. Smirnova
+Abstract: Usage manual for the live monitoring tool used with ARC Grid Middleware. The tool is a Web aplication developed in PHP, and making use of ARC information system as the underlying distribted database.
+Section: Network/Communication
+
+Format: PDF
+Files: /usr/share/doc/nordugrid-arc-doc/monitor.pdf

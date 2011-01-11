@@ -42,6 +42,9 @@ AC_CONFIG_FILES([Makefile
                  tech_doc/jura/Makefile
                  tech_doc/chelonia/Makefile
                  tech_doc/sec/Makefile
+                 tech_doc/ldap-arc-infosys/Makefile
+                 tech_doc/urlogger/Makefile
+                 tech_doc/xrsl/Makefile
                  tutorials/Makefile
                  tutorials/ws-programming-tutorial/Makefile
                  tutorials/ws-programming-tutorial/doc/Makefile
@@ -54,6 +57,7 @@ AC_CONFIG_FILES([Makefile
                  manuals/hopi/Makefile
                  manuals/echo/Makefile
                  manuals/python/Makefile
+                 manuals/monitor/Makefile
                  release_notes/Makefile])
 
 AC_OUTPUT

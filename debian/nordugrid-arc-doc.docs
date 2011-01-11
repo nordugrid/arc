@@ -8,10 +8,14 @@ doc/tech_doc/backend_interface/Backends-arc1.pdf
 doc/tech_doc/client/client_technical.pdf
 doc/tech_doc/infosys/infosys_technical.pdf
 doc/tech_doc/infosys/TechnicalHandbook/ISIS-TechnicalHandbook.pdf
-doc/manuals/janitor/Janitor.pdf
 doc/tech_doc/jura/jura-tech-doc.pdf
 doc/tech_doc/sec/arc-security-documentation.pdf
+doc/tech_doc/gridftpd/gridftpd.pdf
+doc/tech_doc/xrsl/xrsl.pdf
+doc/tech_doc/urlogger/urlogger.pdf
+doc/tech_doc/ldap-arc-infosys/arc_infosys.pdf
 doc/manuals/user_interface/ui.pdf
 doc/manuals/ws-quick-guide/ws-quick-guide.pdf
+doc/manuals/janitor/Janitor.pdf
+doc/manuals/monitor/monitor.pdf
 doc/tutorials/ws-programming-tutorial/doc/WS-tutorial.pdf
-doc/tech_doc/gridftpd/gridftpd.pdf
