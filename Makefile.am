@@ -23,7 +23,7 @@ DOCDIRS = $(DOC_SD)
 
 DIST_SUBDIRS = src swig java python po doc include debian nsis
 
-EXTRA_DIST = arc.spec mingw32-arc.spec autogen.sh LICENSE
+EXTRA_DIST = nordugrid-arc.spec mingw32-nordugrid-arc.spec autogen.sh LICENSE
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = arcbase.pc
