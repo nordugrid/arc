@@ -645,8 +645,6 @@ namespace Arc {
     if (inbuf)
       delete inbuf;
     if ((!r) || ((info.code != 200) && (info.code != 206))) return DataStatus::CheckError;
-    size = info.size;
-    logger.msg(VERBOSE, "Check: obtained size %llu", size);
     created = info.lastModified;
     logger.msg(VERBOSE, "Check: obtained modification time %s", created.str());
     return DataStatus::Success;
