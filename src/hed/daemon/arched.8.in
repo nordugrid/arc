@@ -14,16 +14,36 @@ arched is the ARC Hosting Environment Daemon and is responsible for...
 \fB\-f\fR, \fB\-\-foreground\fR
 run daemon in foreground
 .TP
-\fB\-c\fR, \fB\-\-config\fR
-full path of config file
+\fB\-c\fR, \fB\-\-xml-config\fR
+full path of XML config file
+.TP
+\fB\-i\fR, \fB\-\-ini-config\fR
+full path of INI config file
+.TP
+\fB\-d\fR, \fB\-\-config-dump\fR
+dump XML config generated from INI one
 .TP
 \fB\-p\fR, \fB\-\-pid-file\fR
 full path of pid file
 .TP
+\fB\-u\fR, \fB\-\-user\fR
+user name to switch after starting
+.TP
+\fB\-g\fR, \fB\-\-group\fR
+group name to switch after starting
+.TP
+\fB\-s\fR, \fB\-\-schema\fR
+full path of XML schema file to be used for validating configuration
+.TP
 \fB\-v\fR, \fB\-\-version\fR
 output version information and exit
+.TP
+\fB\-a\fR, \fB\-\-install\fR
+install windows service (only works on windows)
+.TP
+\fB\-r\fR, \fB\-\-uninstall\fR
+uninstall windows service (only works on windows)
 .PP
-
 .SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org/
 
