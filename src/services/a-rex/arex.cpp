@@ -469,14 +469,14 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         CacheCheck(*config,*inpayload,*outpayload);
       } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
         CountedResourceLock cl_lock(beslimit_);
-        if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload)) {
+        if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload,config->GridName())) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
       } else if(MatchXMLName(op,"UpdateCredentials")) {
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
-        if(!delegations_.UpdateCredentials(credentials,*inpayload,*outpayload)) {
+        if(!delegations_.UpdateCredentials(credentials,*inpayload,*outpayload,config->GridName())) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };

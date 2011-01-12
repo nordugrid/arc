@@ -84,7 +84,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   std::string delegation;
   Arc::XMLNode delegated_token = new_state["deleg:DelegatedToken"];
   if(delegated_token) {
-    if(!delegations_.DelegatedToken(delegation,delegated_token)) {
+    if(!delegations_.DelegatedToken(delegation,delegated_token,config.GridName())) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to accept delegation");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
