@@ -1,0 +1,43 @@
+#!/bin/sh
+
+PACKAGE="nordugrid-arc"
+VERSION=${VERSION:=1.0.0}
+ARCH=${ARCH:=i486}
+BUILD=${BUILD:=1}
+
+TMP=${TMP:=/tmp}
+SRCDIR=`pwd`
+BASEDIR=`mktemp -d "$TMP/arc.XXXXXX"`
+BUILDDIR="$BASEDIR/build"
+INSTALLDIR="$BASEDIR/install"
+mkdir "$BUILDDIR"
+mkdir "$INSTALLDIR"
+cd "$BUILDDIR"
+#"$SRCDIR/configure" --prefix=/usr
+cp -r $SRCDIR/* "$BUILDDIR"
+./configure --prefix=/usr
+make
+make install "DESTDIR=$INSTALLDIR"
+mkdir "$INSTALLDIR/install"
+
+cat <<EOM >"$INSTALLDIR/install/slack-desc"
+             |-----handy-ruler------------------------------------------------------|
+nordugrid-arc: The Advanced Resource Connector (ARC) middleware, introduced by the
+nordugrid-arc: NorduGrid Collaboration (www.nordugrid.org), is an open source software
+nordugrid-arc: solution enabling production quality computational and data grids.
+nordugrid-arc: 
+nordugrid-arc: 
+nordugrid-arc: 
+nordugrid-arc: 
+nordugrid-arc: 
+nordugrid-arc: 
+nordugrid-arc: 
+nordugrid-arc: 
+EOM
+
+makepkg -l y -c n "${BASEDIR}/${PACKAGE}-${VERSION}-${ARCH}-${BUILD}.txz"
+cd "${SRCDIR}"
+mv "${BASEDIR}/${PACKAGE}-${VERSION}-${ARCH}-${BUILD}.txz" "${SRCDIR}/"
+rm -rf "${BASEDIR}"
+
+
