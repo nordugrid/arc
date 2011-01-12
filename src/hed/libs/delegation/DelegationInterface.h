@@ -165,7 +165,7 @@ class DelegationContainerSOAP {
   ConsumerMap consumers_;
   ConsumerIterator consumers_first_;
   ConsumerIterator consumers_last_;
-  void AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer);
+  void AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client);
   void TouchConsumer(ConsumerIterator i);
   ConsumerIterator RemoveConsumer(ConsumerIterator i);
   void CheckConsumers(void);
@@ -179,19 +179,19 @@ class DelegationContainerSOAP {
   int max_usage_;
   /** If true delegation consumer is deleted when connection context is destroyed */
   bool context_lock_;
-  /** If true all delegation phases must be performed by same identity */
-  bool restricted_;
  public:
   DelegationContainerSOAP(void);
   ~DelegationContainerSOAP(void);
-  /** See DelegationConsumerSOAP::DelegateCredentialsInit */
-  bool DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out);
+  /** See DelegationConsumerSOAP::DelegateCredentialsInit
+     If 'client' is not empty then all subsequent calls involving access to generated
+     credentials must contain same value in their 'client' arguments. */
+  bool DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
   /** See DelegationConsumerSOAP::UpdateCredentials */
-  bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
-  bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out);
+  bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
+  bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
   /** See DelegationConsumerSOAP::DelegatedToken */
-  bool DelegatedToken(std::string& credentials,XMLNode token);
-  bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token);
+  bool DelegatedToken(std::string& credentials,XMLNode token,const std::string& client = "");
+  bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client = "");
 };
 
 } // namespace Arc

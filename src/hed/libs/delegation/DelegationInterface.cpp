@@ -947,7 +947,7 @@ class DelegationContainerSOAP::Consumer {
   DelegationConsumerSOAP* deleg;
   int usage_count;
   time_t last_used;
-  std::string dn;
+  std::string client_id;
   DelegationContainerSOAP::ConsumerIterator previous;
   DelegationContainerSOAP::ConsumerIterator next;
   Consumer(void):deleg(NULL),usage_count(0),last_used(time(NULL)) {
@@ -964,7 +964,6 @@ DelegationContainerSOAP::DelegationContainerSOAP(void) {
   max_duration_=30;    // 30 seconds for delegation
   max_usage_=2;        // allow 1 failure
   context_lock_=false;
-  restricted_=true;
   consumers_first_=consumers_.end();
   consumers_last_=consumers_.end();
 }
@@ -978,9 +977,10 @@ DelegationContainerSOAP::~DelegationContainerSOAP(void) {
   lock_.unlock();
 }
 
-void DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer) {
+void DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client) {
   Consumer c;
   c.deleg=consumer; 
+  c.client_id=client;
   c.previous=consumers_.end();
   c.next=consumers_first_;
   ConsumerIterator i = consumers_.insert(consumers_.begin(),make_pair(id,c)); 
@@ -1032,7 +1032,7 @@ void DelegationContainerSOAP::CheckConsumers(void) {
   };
 }
 
-bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out) {
+bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
   lock_.lock();
   std::string id;
   for(int tries = 0;tries<1000;++tries) {
@@ -1044,27 +1044,24 @@ bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOA
   if(id.empty()) { lock_.unlock(); return false; };
   DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
   if(!(consumer->DelegateCredentialsInit(id,in,out))) { lock_.unlock(); delete consumer; return false; };
-  AddConsumer(id,consumer);
+  AddConsumer(id,consumer,client);
   CheckConsumers();
   lock_.unlock();
   return true;
 }
 
-bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out) {
+bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
   std::string identity;
-  return UpdateCredentials(credentials,identity,in,out);
+  return UpdateCredentials(credentials,identity,in,out,client);
 }
 
-bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out) {
+bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
   lock_.lock();
   std::string id = (std::string)(const_cast<SOAPEnvelope&>(in)["UpdateCredentials"]["DelegatedToken"]["Id"]);
   ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(!(i->second.deleg)) { lock_.unlock(); return false; };
-  if(restricted_) {
-
-
-  };
+  if((!(i->second.client_id.empty())) && (i->second.client_id != client)) { lock_.unlock(); return false; };
   bool r = i->second.deleg->UpdateCredentials(credentials,identity,in,out);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     RemoveConsumer(i);
@@ -1075,17 +1072,18 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::st
   return r;
 }
 
-bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,XMLNode token) {
+bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,XMLNode token,const std::string& client) {
   std::string identity;
-  return DelegatedToken(credentials,identity,token);
+  return DelegatedToken(credentials,identity,token,client);
 }
 
-bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,XMLNode token) {
+bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client) {
   lock_.lock();
   std::string id = (std::string)(token["Id"]);
   ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(!(i->second.deleg)) { lock_.unlock(); return false; };
+  if((!(i->second.client_id.empty())) && (i->second.client_id != client)) { lock_.unlock(); return false; };
   bool r = i->second.deleg->DelegatedToken(credentials,identity,token);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     RemoveConsumer(i);
