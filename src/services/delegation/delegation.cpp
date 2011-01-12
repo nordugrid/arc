@@ -94,7 +94,7 @@ Arc::MCC_Status Service_Delegation::process(Arc::Message& inmsg,Arc::Message& ou
     } else if((*inpayload)["UpdateCredentials"]) {
       std::string cred;
       std::string identity;
-      if(!deleg_service_->UpdateCredentials(cred,identity,*inpayload,*outpayload)) {
+      if(!deleg_service_->UpdateCredentials(cred,identity,*inpayload,*outpayload,"")) {
         logger_.msg(Arc::ERROR, "Can not store proxy certificate");
         delete outpayload;
         return make_soap_fault(outmsg);
