@@ -642,7 +642,7 @@ namespace Arc {
     HTTPClientInfo info;
     MCC_Status r = client.process("GET", url.FullPath(), 0, 15,
                                   &request, &info, &inbuf);
-    PayloadRawInterface::Size_t logsize = inbuf.Size();
+    PayloadRawInterface::Size_t logsize = inbuf->Size();
     if (inbuf) delete inbuf;
     if ((!r) || ((info.code != 200) && (info.code != 206))) return DataStatus::CheckError;
     size = logsize;
