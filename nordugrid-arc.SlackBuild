@@ -1,9 +1,14 @@
 #!/bin/sh
 
 PACKAGE="nordugrid-arc"
-VERSION=${VERSION:=1.0.0}
+if [ -z "$VERSION" ] ; then
+  VERSION=`grep AC_INIT configure.ac | head -n 1 | sed 's/^[^(]*(\([^)]*\)).*/\1/;t exit;s/.*//;:exit' | sed 's/^[^,]*,\([^,]*\).*/\1/;t exit;s/.*//;:exit' | sed 's/^\[\([^]]*\).*/\1/'`
+fi
+VERSION=${VERSION:=trunk}
 ARCH=${ARCH:=i486}
 BUILD=${BUILD:=1}
+
+CONFIGOPT=${CONFIGOPT:=}
 
 TMP=${TMP:=/tmp}
 SRCDIR=`pwd`
@@ -13,9 +18,11 @@ INSTALLDIR="$BASEDIR/install"
 mkdir "$BUILDDIR"
 mkdir "$INSTALLDIR"
 cd "$BUILDDIR"
-#"$SRCDIR/configure" --prefix=/usr
+# We can't build ARC outside source yet. So just 
+# copy it to have clean environment and continue.
+#"$SRCDIR/configure" --prefix=/usr $CONFIGOPT
 cp -r $SRCDIR/* "$BUILDDIR"
-./configure --prefix=/usr
+./configure --prefix=/usr $CONFIGOPT
 make
 make install "DESTDIR=$INSTALLDIR"
 mkdir "$INSTALLDIR/install"
@@ -35,9 +42,11 @@ nordugrid-arc:
 nordugrid-arc: 
 EOM
 
-makepkg -l y -c n "${BASEDIR}/${PACKAGE}-${VERSION}-${ARCH}-${BUILD}.txz"
-cd "${SRCDIR}"
-mv "${BASEDIR}/${PACKAGE}-${VERSION}-${ARCH}-${BUILD}.txz" "${SRCDIR}/"
-rm -rf "${BASEDIR}"
+cd $INSTALLDIR
+PKGFILE="$BASEDIR/$PACKAGE-$VERSION-$ARCH-$BUILD.txz"
+makepkg -l y -c n "$PKGFILE"
+cd "$SRCDIR"
+mv "$PKGFILE" "$SRCDIR/"
+rm -rf "$BASEDIR"
 
 
