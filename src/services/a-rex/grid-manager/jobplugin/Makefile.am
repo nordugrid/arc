@@ -1,12 +1,10 @@
-GLOBUS_JOBPLUGIN_LIBS = $(GLOBUS_RSL_LIBS) $(GLOBUS_IO_LIBS)
-
 if GACL_ENABLED
 GACL_CFLAGS = -I../../../gridftpd/external/gacl
-GACLMAP_LIB = ../../../gridftpd/auth/libgaclmap.la
 else
-GACLMAP_LIB =
 GACL_CFLAGS =
 endif
+
+GLOBUS_JOBPLUGIN_LIBS = $(GLOBUS_RSL_LIBS) $(GLOBUS_IO_LIBS)
 
 pkglib_LTLIBRARIES = jobplugin.la
 
@@ -19,8 +17,7 @@ jobplugin_la_LIBADD = \
 	../../../gridftpd/libgridftpd_la-userspec.lo \
 	../../../gridftpd/libgridftpd_la-names.lo \
 	../../../gridftpd/libgridftpd_la-misc.lo \
-	$(GACLMAP_LIB) \
-	../../../gridftpd/auth/libauth.la \
+	../../../gridftpd/auth/libmap.la \
 	../misc/libmisc.la \
 	../jobs/libjobs.la ../mail/libmail.la ../conf/libconf.la \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \

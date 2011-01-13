@@ -7,5 +7,5 @@ gaclplugin_la_CXXFLAGS = $(GLOBUS_IO_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) 
 gaclplugin_la_LDFLAGS = -module -avoid-version
 
 gaclplugin_la_LIBADD = ../libgridftpd_la-misc.lo ../libgridftpd_la-userspec.lo ../libgridftpd_la-names.lo \
-	../auth/libgaclmap.la ../auth/libauth.la $(GLOBUS_IO_LIBS) \
+	../auth/libmap.la $(GLOBUS_IO_LIBS) \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la
