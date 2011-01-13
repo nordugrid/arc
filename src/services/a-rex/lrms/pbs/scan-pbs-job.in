@@ -273,6 +273,8 @@ process_log_file () {
 }
 
 readable_logs=no
+# Check $pbs_log_dir for readable files
+# if any are found, process them and update relevant information
 if [ ! -z "${pbs_log_dir}" ] ; then
 for cname in `ls -1 ${pbs_log_dir}/ 2>/dev/null | grep '^[0-9]*$'` ; do
   lname="${pbs_log_dir}/$cname"
@@ -289,6 +291,8 @@ for cname in `ls -1 ${pbs_log_dir}/ 2>/dev/null | grep '^[0-9]*$'` ; do
 done
 fi
 
+# main loop, stay here up to 60 seconds if log is still updated while
+# we are reading it.
 if [ "$readable_logs" = 'yes' ] ; then
   time_count=0
   while true ; do
