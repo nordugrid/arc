@@ -559,7 +559,6 @@ sub collect($) {
 
         $csv->{CreationTime} = $creation_time;
         $csv->{Validity} = $validity_ttl;
-        $csv->{BaseType} = 'Service';
 
         $csv->{ID} = $csvID;
 
@@ -602,7 +601,7 @@ sub collect($) {
         }
         if (my $cconfs = $config->{contacts}) {
             my $i = 0;
-            $csv->{Contact} = sub {
+            $csv->{Contacts} = sub {
                 return undef unless $i < length @$cconfs;
                 my $cconfig = $cconfs->[$i++];
                 my $detail = $cconfig->{Detail};
@@ -624,7 +623,6 @@ sub collect($) {
 
             $cep->{CreationTime} = $creation_time;
             $cep->{Validity} = $validity_ttl;
-            $cep->{BaseType} = 'Endpoint';
 
             $cep->{ID} = $cepID;
 
@@ -698,14 +696,11 @@ sub collect($) {
 
             $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-            $cep->{Associations}{ComputingShareID} = [ values %cshaIDs ];
-
             if (%allvos) {
                 my $count = 1;
-                $cep->{AccessPolicy} = sub {
+                $cep->{AccessPolicies} = sub {
                     return undef if $count-- == 0;
                     my $apol = {};
-                    $apol->{BaseType} = "Policy";
                     $apol->{ID} = $apolID;
                     $apol->{Scheme} = "basic";
                     $apol->{Rule} = [ map {"vo:$_"} keys %allvos ];
@@ -726,7 +721,6 @@ sub collect($) {
 
                 $cact->{CreationTime} = $creation_time;
                 $cact->{Validity} = $validity_ttl;
-                $cact->{BaseType} = 'Activity';
 
                 my $share = $gmjob->{share};
                 my $gridid = $config->{endpoint}."/$jobid";
@@ -786,9 +780,9 @@ sub collect($) {
                 # Computing Activity Associations
 
                 # TODO: add link
-                $cact->{Associations}{ExecutionEnvironmentID} = [];
-                $cact->{Associations}{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-                $cact->{Associations}{ComputingShareID} = [ $cshaIDs{$share} || 'UNDEFINEDVALUE' ];
+                $cact->{ExecutionEnvironmentID} = [];
+                $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
+                $cact->{ComputingShareID} = [ $cshaIDs{$share} || 'UNDEFINEDVALUE' ];
 
                 if ( $gmjob->{status} eq "INLRMS" ) {
                     my $lrmsid = $gmjob->{localid};
@@ -835,10 +829,15 @@ sub collect($) {
             };
 
             if ($nojobs) {
-                $cep->{ComputingActivity} = undef;
+                $cep->{ComputingActivities} = undef;
             } else {
-                $cep->{ComputingActivity} = $getComputingActivities;
+                $cep->{ComputingActivities} = $getComputingActivities;
             }
+
+            # Associations
+
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
 
             return $cep;
         };
@@ -878,7 +877,6 @@ sub collect($) {
 
             $csha->{CreationTime} = $creation_time;
             $csha->{Validity} = $validity_ttl;
-            $csha->{BaseType} = 'Share';
 
             $csha->{ID} = $cshaIDs{$share};
 
@@ -1075,23 +1073,14 @@ sub collect($) {
             # TODO: detect reservationpolicy in the lrms
             $csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
 
-            # Tag: skip it for now
-
-            my $xenvs = $sconfig->{ExecEnvName} || [];
-            push @{$csha->{Associations}{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
-
-            $csha->{Associations}{ComputingEndpointID} = [ $cepID ];
-            $csha->{Associations}{ComputingActivityID} = [ values %{$cactIDs{$share}} ] unless $nojobs;
-
             # MappingPolicy: VOs mapped to this share.
 
             my $vos = $sconfig->{AuthorizedVO};
             if ($vos and @$vos) {
                 my $count = 1;
-                $csha->{MappingPolicy} = sub {
+                $csha->{MappingPolicies} = sub {
                     return undef if $count-- == 0;
                     my $mpol = {};
-                    $mpol->{BaseType} = "Policy";
                     $mpol->{ID} = "$mpolIDp:$share";
                     $mpol->{Scheme} = "basic";
                     $mpol->{Rule} = [ map {"vo:$_"} @$vos ];
@@ -1099,10 +1088,21 @@ sub collect($) {
                 };
             }
 
+            # Tag: skip it for now
+
+            # Associations
+
+            my $xenvs = $sconfig->{ExecEnvName} || [];
+            push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
+
+            $csha->{ComputingEndpointID} = $cepID;
+            $csha->{ComputingActivityID} = [ values %{$cactIDs{$share}} ] unless $nojobs;
+            $csha->{ComputingServiceID} = $csvID;
+
             return $csha;
         };
 
-        $csv->{ComputingShare} = $getComputingShares;
+        $csv->{ComputingShares} = $getComputingShares;
 
 
         # ComputingManager
@@ -1113,7 +1113,6 @@ sub collect($) {
 
             $cmgr->{CreationTime} = $creation_time;
             $cmgr->{Validity} = $validity_ttl;
-            $cmgr->{BaseType} = 'Manager';
 
             $cmgr->{ID} = $cmgrID;
             my $cluster_info = $lrms_info->{cluster}; # array
@@ -1181,7 +1180,7 @@ sub collect($) {
 
             if (my $bconfs = $config->{service}{Benchmark}) {
                 my $i = 0;
-                $cmgr->{Benchmark} = sub {
+                $cmgr->{Benchmarks} = sub {
                     return undef unless $i < length @$bconfs;
                     my ($type, $value) = split " ", $bconfs->[$i++];
                     my $bench = {};
@@ -1213,7 +1212,6 @@ sub collect($) {
                 $execenv->{Name} = $xenv;
                 $execenv->{CreationTime} = $creation_time;
                 $execenv->{Validity} = $validity_ttl;
-                $execenv->{BaseType} = 'Resource';
 
                 $execenv->{ID} = $xenvIDs{$xenv};
 
@@ -1277,7 +1275,7 @@ sub collect($) {
 
                 if (my $bconfs = $xeconfig->{Benchmark}) {
                     my $i = 0;
-                    $execenv->{Benchmark} = sub {
+                    $execenv->{Benchmarks} = sub {
                         return undef unless $i < length @$bconfs;
                         my ($type, $value) = split " ", $bconfs->[$i++];
                         my $bench = {};
@@ -1288,18 +1286,21 @@ sub collect($) {
                     };
                 }
 
-                $execenv->{Associations} = {};
+                # Associations
+
                 for my $share (keys %{$config->{shares}}) {
                     my $sconfig = $config->{shares}{$share};
                     next unless $sconfig->{ExecEnvName};
                     next unless grep { $xenv eq $_ } @{$sconfig->{ExecEnvName}};
-                    push @{$execenv->{Associations}{ComputingShareID}}, $cshaIDs{$share};
+                    push @{$execenv->{ComputingShareID}}, $cshaIDs{$share};
                 }
+
+                $execenv->{ComputingManagerID} = $cmgrID;
 
                 return $execenv;
             };
 
-            $cmgr->{ExecutionEnvironment} = $getExecutionEnvironments;
+            $cmgr->{ExecutionEnvironments} = $getExecutionEnvironments;
 
             # ApplicationEnvironments
 
@@ -1323,17 +1324,32 @@ sub collect($) {
                 return $appenv;
             };
 
-            $cmgr->{ApplicationEnvironment} = $getApplicationEnvironments;
+            $cmgr->{ApplicationEnvironments} = $getApplicationEnvironments;
+
+            # Associations
+
+            $cmgr->{ComputingServiceID} = $csvID;
 
             return $cmgr;
         };
 
         $csv->{ComputingManager} = $getComputingManager;
 
+        # Associations
+
+        $csv->{AdminDomainID} = $adID;
+
         return $csv;
     };
 
-    return $getComputingService;
+    my $getAdminDomain = sub {
+        my $dom = { ID => $adID,
+                    Name => $config->{AdminDomain},
+                    ComputingService => $getComputingService };
+        return $dom;
+    };
+
+    return $getAdminDomain;
 
 }
 

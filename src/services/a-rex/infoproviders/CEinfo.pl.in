@@ -42,6 +42,7 @@ use ARC0ClusterInfo;
 use ARC1ClusterInfo;
 
 use GLUE2xmlPrinter;
+#use GLUE2ldifPrinter;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
@@ -98,16 +99,12 @@ sub main {
 
     $data->{nojobs} = $nojobs;
 
-    my $csv = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data, $nojobs;
-    my $glue2data = { AdminDomain => { Services => { ComputingService => $csv } } };
-    $glue2data->{AdminDomain}{BaseType} = 'Domain';
-    $glue2data->{AdminDomain}{ID} = "urn:ogf:AdminDomain:".$config->{AdminDomain};
-    $glue2data->{AdminDomain}{Name} = $config->{AdminDomain};
+    my $adminDomain = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data, $nojobs;
 
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
-    timed 'GLUE2xml', sub { $xmlPrinter->Document(@_) }, $glue2data;
-    #my $ldifPrinter = GLUE2ldifPrinter->new(STDOUT);
-    #timed 'GLUE2ldif', $ldifPrinter->Document, $glue2data;
+    timed 'GLUE2xml', sub { $xmlPrinter->Domains(@_) }, $adminDomain;
+    #my $ldifPrinter = GLUE2ldifPrinter->new(*STDOUT);
+    #timed 'GLUE2ldif', sub { $ldifPrinter->Top(@_) }, $adminDomain;
 
     my $png = $config->{PublishNordugrid};
     unless (defined $png and not $png) {
