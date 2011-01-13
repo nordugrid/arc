@@ -185,7 +185,6 @@ bool ArcPDP::isPermitted(Message *msg) const {
     std::string s;
     requestxml.GetXML(s);
     logger.msg(DEBUG,"ARC Auth. request: %s",s);
-    std::cout<<"ARC Auth. request "<<s<<std::endl;
   };
   if(requestxml.Size() <= 0) {
     logger.msg(ERROR,"No requested security information was collected");
