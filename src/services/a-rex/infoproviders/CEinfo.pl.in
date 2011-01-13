@@ -42,7 +42,7 @@ use ARC0ClusterInfo;
 use ARC1ClusterInfo;
 
 use GLUE2xmlPrinter;
-#use GLUE2ldifPrinter;
+use GLUE2ldifPrinter;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;

@@ -7,7 +7,8 @@ pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 		  InfoChecker.pm ConfigCentral.pm \
 		  ARC0ClusterInfo.pm ARC1ClusterInfo.pm \
 		  SGE.pm Fork.pm LRMS.pm Shared.pm glue-generator.pl \
-		  XmlPrinter.pm GLUE2xmlPrinter.pm
+		  XmlPrinter.pm GLUE2xmlPrinter.pm \
+          LdifPrinter.pm GLUE2ldifPrinter.pm
 
 arcldapschemadir = $(pkgdatadir)/ldap-schema
 arcldapschema_DATA = schema/nordugrid.schema
