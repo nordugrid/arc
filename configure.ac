@@ -714,12 +714,13 @@ AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 AC_ARG_ENABLE(ldap_monitor, AC_HELP_STRING([--enable-ldap-monitor], [enable use of the ldap monitor]),[enables_ldap_monitor="$enableval"],[])
 if test "x$enables_ldap_monitor" = "xyes"; then
   AC_ARG_WITH(ldap_monitor, [  --with-ldap-monitor=(PATH) where to install the monitor, eg /var/www/ldap-monitor or /usr/share/arc/ldap-monitor])
-  AC_MSG_CHECKING(for ldap-monitor)
+  AC_MSG_CHECKING(for ldap-monitor installation path)
   if test "x$with_ldap_monitor" != "x" ; then
       ldap_monitor_prefix=$with_ldap_monitor
   else
       ldap_monitor_prefix=${datadir}/${PACKAGE}/ldap-monitor
   fi
+  AC_MSG_RESULT([$ldap_monitor_prefix])
   AC_SUBST(ldap_monitor_prefix)
 fi
 
@@ -727,12 +728,13 @@ fi
 AC_ARG_ENABLE(ws_monitor, AC_HELP_STRING([--enable-ws-monitor], [enable use of the ws monitor]),[enables_ws_monitor="$enableval"],[])
 if test "x$enables_ws_monitor" = "xyes"; then
   AC_ARG_WITH(ws_monitor, [  --with-ws-monitor=(PATH) where to install the monitor, eg /var/www/ws-monitor or /usr/share/arc/ws-monitor])
-  AC_MSG_CHECKING(for ws-monitor)
+  AC_MSG_CHECKING(for ws-monitor installation path)
   if test "x$with_ws_monitor" != "x" ; then
       ws_monitor_prefix=$with_ws_monitor
   else
       ws_monitor_prefix=${datadir}/${PACKAGE}/ws-monitor
   fi
+  AC_MSG_RESULT([$ws_monitor_prefix])
   AC_SUBST(ws_monitor_prefix)
 fi
 
