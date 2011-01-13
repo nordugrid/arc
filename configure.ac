@@ -1383,8 +1383,8 @@ if test "$enables_gridftpd_service" = "yes"; then
   fi
 
   #check for struct statfs
-  AC_CHECK_FUNCS_ONCE([fstatfs])
-  AC_CHECK_HEADERS_ONCE([sys/param.h sys/statfs.h sys/mount.h sys/vfs.h])dnl
+  AC_CHECK_FUNCS([fstatfs])
+  AC_CHECK_HEADERS([sys/param.h sys/statfs.h sys/mount.h sys/vfs.h])dnl
   AC_CHECK_MEMBERS([struct statfs.f_type],,,
     [$ac_includes_default
      #if HAVE_SYS_STATFS_H
