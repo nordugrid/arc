@@ -17,6 +17,7 @@
 #define HTTP_PARTIAL      (206)
 #define HTTP_RANGE_NOT_SATISFIABLE (416)
 #define HTTP_INTERNAL_ERR (500)
+#define HTTP_NOT_IMPLEMENTED (501)
 
 namespace Arc {
 

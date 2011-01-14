@@ -140,6 +140,7 @@ static MCC_Status make_http_fault(Logger& logger,PayloadStreamInterface& stream,
       case HTTP_BAD_REQUEST:  desc="Bad Request"; break;
       case HTTP_NOT_FOUND:    desc="Not Found"; break;
       case HTTP_INTERNAL_ERR: desc="Internal error"; break;
+      case HTTP_NOT_IMPLEMENTED: desc="Not Implemented"; break;
       default: desc="Something went wrong";
     };
   };
@@ -241,7 +242,8 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   MCCInterface* next = Next(nextpayload.Method());
   if(!next) {
     logger.msg(WARNING, "No next element in the chain");
-    return make_http_fault(logger,*inpayload,outmsg,HTTP_NOT_FOUND);
+    // Here selection is on method name. So failure result is "not supported"
+    return make_http_fault(logger,*inpayload,outmsg,HTTP_NOT_IMPLEMENTED);
   }
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg);
@@ -278,7 +280,12 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Create HTTP response from raw body content
   // Use stream payload of inmsg to send HTTP response
   int http_code = HTTP_OK;
-  const char* http_resp = "OK";
+  std::string http_code_s = nextoutmsg.Attributes()->get("HTTP:CODE");
+  std::string http_resp = nextoutmsg.Attributes()->get("HTTP:RESPONSE");
+  if(http_resp.empty()) http_resp = "OK";
+  if(!http_code_s.empty()) stringto(http_code_s,http_code);
+  nextoutmsg.Attributes()->removeAll("HTTP:CODE");
+  nextoutmsg.Attributes()->removeAll("HTTP:RESPONSE");
 /*
   int l = 0;
   if(retpayload) {
