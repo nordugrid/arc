@@ -28,7 +28,8 @@ namespace Arc {
     bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverUNICORE::CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget) {
+  ThreadArg* TargetRetrieverUNICORE::CreateThreadArg(TargetGenerator& mom,
+                                                     bool isExecutionTarget) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
@@ -37,11 +38,22 @@ namespace Arc {
     return arg;
   }
 
-  Logger TargetRetrieverUNICORE::logger(Logger::getRootLogger(), "TargetRetriever.UNICORE");
+  Logger TargetRetrieverUNICORE::logger(Logger::getRootLogger(),
+                                        "TargetRetriever.UNICORE");
+
+  static URL CreateURL(std::string service, ServiceType /* st */) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos)
+      service = "https://" + service;
+    // Default port other than 443?
+    // Default path?
+    return service;
+  }
 
   TargetRetrieverUNICORE::TargetRetrieverUNICORE(const UserConfig& usercfg,
-                                                 const URL& url, ServiceType st)
-    : TargetRetriever(usercfg, url, st, "UNICORE") {}
+                                                 const std::string& service,
+                                                 ServiceType st)
+    : TargetRetriever(usercfg, CreateURL(service, st), st, "UNICORE") {}
 
   TargetRetrieverUNICORE::~TargetRetrieverUNICORE() {}
 
@@ -54,26 +66,58 @@ namespace Arc {
   }
 
   void TargetRetrieverUNICORE::GetExecutionTargets(TargetGenerator& mom) {
-    logger.msg(INFO, "TargetRetriverUNICORE initialized with %s service url: %s",
-               tostring(serviceType), url.str());
+    logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
+               flavour, tostring(serviceType), url.str());
+
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetRejectedServices(serviceType).begin();
+         it != usercfg.GetRejectedServices(serviceType).end(); it++) {
+      std::string::size_type pos = it->find(":");
+      if (pos != std::string::npos) {
+        std::string flav = it->substr(0, pos);
+        if (flav == flavour || flav == "*" || flav.empty())
+          if (url == CreateURL(it->substr(pos + 1), serviceType)) {
+            logger.msg(INFO, "Rejecting service: %s", url.str());
+            return;
+          }
+      }
+    }
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, true);
-      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+      if (!CreateThreadFunction((serviceType == COMPUTING ?
+                                 &InterrogateTarget : &QueryIndex),
+                                arg, &(mom.ServiceCounter()))) {
         delete arg;
       }
     }
   }
 
   void TargetRetrieverUNICORE::GetJobs(TargetGenerator& mom) {
-    logger.msg(INFO, "TargetRetriverUNICORE initialized with %s service url: %s",
-               tostring(serviceType), url.str());
+    logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
+               flavour, tostring(serviceType), url.str());
+
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetRejectedServices(serviceType).begin();
+         it != usercfg.GetRejectedServices(serviceType).end(); it++) {
+      std::string::size_type pos = it->find(":");
+      if (pos != std::string::npos) {
+        std::string flav = it->substr(0, pos);
+        if (flav == flavour || flav == "*" || flav.empty())
+          if (url == CreateURL(it->substr(pos + 1), serviceType)) {
+            logger.msg(INFO, "Rejecting service: %s", url.str());
+            return;
+          }
+      }
+    }
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, false);
-      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+      if (!CreateThreadFunction((serviceType == COMPUTING ?
+                                 &InterrogateTarget : &QueryIndex),
+                                arg, &(mom.ServiceCounter()))) {
         delete arg;
       }
     }
@@ -90,20 +134,19 @@ namespace Arc {
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 
-    URL& url = thrarg->url;
+    const URL& url = thrarg->url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     UNICOREClient uc(url, cfg, usercfg.Timeout());
-    std::list< std::pair<URL, ServiceType> > beses;
+    std::list<std::pair<URL, ServiceType> > beses;
     uc.listTargetSystemFactories(beses);
-    for (std::list< std::pair<URL, ServiceType> >::iterator it = beses.begin(); it != beses.end(); it++) {
-      TargetRetrieverUNICORE r(usercfg, it->first, it->second);
-      if (thrarg->isExecutionTarget) {
+    for (std::list<std::pair<URL, ServiceType> >::iterator it = beses.begin();
+         it != beses.end(); it++) {
+      TargetRetrieverUNICORE r(usercfg, it->first.str(), it->second);
+      if (thrarg->isExecutionTarget)
         r.GetExecutionTargets(mom);
-      }
-      else {
+      else
         r.GetJobs(mom);
-      }
     }
 
     delete thrarg;
@@ -120,7 +163,7 @@ namespace Arc {
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 
-    URL& url = thrarg->url;
+    const URL& url = thrarg->url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     UNICOREClient uc(url, cfg, usercfg.Timeout());
@@ -129,7 +172,6 @@ namespace Arc {
       delete thrarg;
       return;
     }
-
 
     ExecutionTarget target;
     target.GridFlavour = "UNICORE";
@@ -140,7 +182,6 @@ namespace Arc {
     target.Implementation = Software("UNICORE");
     target.HealthState = "ok";
     target.DomainName = url.Host();
-
 
     mom.AddTarget(target);
     delete thrarg;

@@ -344,17 +344,6 @@ int main(int argc, char** argv) {
     Arc::UserConfig usercfg(conffile);
 
     std::cout << " [ ISIS tester ] " << std::endl;
-    // Read the first ISIS from the client configuration
-    if (isis_url.empty()) {
-        Arc::URLListMap ulm = usercfg.GetSelectedServices(Arc::INDEX);
-        if (ulm.find("ARC1") != ulm.end()) {
-            std::list<Arc::URL> isisFromConfig = ulm.find("ARC1")->second;
-            if (!isisFromConfig.empty()){
-                isis_url = (*isisFromConfig.begin()).fullstr();
-                std::cout << " The following URL from client confifuration will be used: " << isis_url << std::endl;
-            }
-        }
-    }
 
     if (isis_url.empty() && infosys_url.empty()) {
         std::cout << "ISIS or Bootstrap ISIS have to be defined. Please use -i or -b options. For further options see --help" << std::endl;

@@ -15,7 +15,7 @@ namespace Arc {
     : public TargetRetriever {
   private:
     TargetRetrieverUNICORE(const UserConfig& usercfg,
-                           const URL& url, ServiceType st);
+                           const std::string& service, ServiceType st);
   public:
     ~TargetRetrieverUNICORE();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}

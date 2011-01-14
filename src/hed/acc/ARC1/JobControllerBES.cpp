@@ -124,4 +124,13 @@ namespace Arc {
     return URL();
   }
 
+  URL JobControllerBES::CreateURL(std::string service, ServiceType /* st */) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos)
+      service = "https://" + service;
+    // Default port other than 443?
+    // Default path?
+    return service;
+  }
+
 } // namespace Arc

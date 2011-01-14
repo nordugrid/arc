@@ -30,6 +30,7 @@ namespace Arc {
     bool ResumeJob(const Job& job);
     URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
     bool GetJobDescription(const Job& job, std::string& desc_str);
+    URL CreateURL(std::string service, ServiceType st);
 
     static Logger logger;
   };

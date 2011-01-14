@@ -5,7 +5,6 @@
 
 #include <list>
 #include <vector>
-#include <map>
 #include <string>
 
 #include <arc/ArcConfig.h>
@@ -14,8 +13,6 @@
 
 namespace Arc {
 
-  typedef std::map<std::string, std::list<URL> > URLListMap;
-
   class Logger;
   class XMLNode;
 
@@ -23,6 +20,9 @@ namespace Arc {
     COMPUTING,
     INDEX
   };
+
+  typedef std::list<std::string> ServiceList[2];
+  // Length should be number of service types
 
   std::string tostring(const ServiceType st);
 
@@ -492,7 +492,8 @@ namespace Arc {
      * @see GetRejectedServices(ServiceType) const
      * @see ClearSelectedServices()
      **/
-    const URLListMap& GetSelectedServices(ServiceType st) const;
+    const std::list<std::string>& GetSelectedServices(ServiceType st) const;
+
     /// Get rejected services
     /**
      * Get the rejected services with the ServiceType specified by
@@ -506,7 +507,7 @@ namespace Arc {
      * @see GetSelectedServices(ServiceType)
      * @see ClearRejectedServices()
      **/
-    const URLListMap& GetRejectedServices(ServiceType st) const;
+    const std::list<std::string>& GetRejectedServices(ServiceType st) const;
 
     /// Clear selected services
     /**
@@ -1144,10 +1145,11 @@ namespace Arc {
   private:
     void setDefaults();
     static bool makeDir(const std::string& path);
-    static bool copyFile(const std::string& source, const std::string& destination);
-    bool ResolveAlias(URLListMap& services, ServiceType st,
+    static bool copyFile(const std::string& source,
+                         const std::string& destination);
+    bool ResolveAlias(std::list<std::string>& services, ServiceType st,
                       std::list<std::string>& resolvedAlias);
-    bool ResolveAlias(std::pair<URLListMap, URLListMap>& services,
+    bool ResolveAlias(ServiceList& services,
                       std::list<std::string>& resolvedAlias);
     bool CreateDefaultConfigurationFile() const;
 
@@ -1160,8 +1162,8 @@ namespace Arc {
     // Broker name and arguments.
     std::pair<std::string, std::string> broker;
 
-    std::pair<URLListMap, URLListMap> selectedServices;
-    std::pair<URLListMap, URLListMap> rejectedServices;
+    ServiceList selectedServices;
+    ServiceList rejectedServices;
 
     // Vector needed for random access.
     std::vector<URL> bartenders;

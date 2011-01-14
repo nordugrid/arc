@@ -26,7 +26,8 @@ namespace Arc {
     bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget) {
+  ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
+                                                  bool isExecutionTarget) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
@@ -35,44 +36,86 @@ namespace Arc {
     return arg;
   }
 
-  Logger TargetRetrieverARC1::logger(Logger::getRootLogger(), "TargetRetriever.ARC1");
+  Logger TargetRetrieverARC1::logger(Logger::getRootLogger(),
+                                     "TargetRetriever.ARC1");
+
+  static URL CreateURL(std::string service, ServiceType /* st */) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos)
+      service = "https://" + service;
+    // Default port other than 443?
+    // Default path?
+    return service;
+  }
 
   TargetRetrieverARC1::TargetRetrieverARC1(const UserConfig& usercfg,
-                                           const URL& url, ServiceType st)
-    : TargetRetriever(usercfg, url, st, "ARC1") {}
+                                           const std::string& service,
+                                           ServiceType st)
+    : TargetRetriever(usercfg, CreateURL(service, st), st, "ARC1") {}
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
   Plugin* TargetRetrieverARC1::Instance(PluginArgument *arg) {
     TargetRetrieverPluginArgument *trarg =
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
-    if (!trarg) return NULL;
+    if (!trarg)
+      return NULL;
     return new TargetRetrieverARC1(*trarg, *trarg, *trarg);
   }
 
   void TargetRetrieverARC1::GetExecutionTargets(TargetGenerator& mom) {
+    logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
+               flavour, tostring(serviceType), url.str());
 
-    logger.msg(VERBOSE, "TargetRetriverARC1 initialized with %s service url: %s",
-               tostring(serviceType), url.str());
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetRejectedServices(serviceType).begin();
+         it != usercfg.GetRejectedServices(serviceType).end(); it++) {
+      std::string::size_type pos = it->find(":");
+      if (pos != std::string::npos) {
+        std::string flav = it->substr(0, pos);
+        if (flav == flavour || flav == "*" || flav.empty())
+          if (url == CreateURL(it->substr(pos + 1), serviceType)) {
+            logger.msg(INFO, "Rejecting service: %s", url.str());
+            return;
+          }
+      }
+    }
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, true);
-      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+      if (!CreateThreadFunction((serviceType == COMPUTING ?
+                                 &InterrogateTarget : &QueryIndex),
+                                arg, &(mom.ServiceCounter()))) {
         delete arg;
       }
     }
   }
 
   void TargetRetrieverARC1::GetJobs(TargetGenerator& mom) {
+    logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
+               flavour, tostring(serviceType), url.str());
 
-    logger.msg(VERBOSE, "TargetRetriverARC1 initialized with %s service url: %s",
-               tostring(serviceType), url.str());
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetRejectedServices(serviceType).begin();
+         it != usercfg.GetRejectedServices(serviceType).end(); it++) {
+      std::string::size_type pos = it->find(":");
+      if (pos != std::string::npos) {
+        std::string flav = it->substr(0, pos);
+        if (flav == flavour || flav == "*" || flav.empty())
+          if (url == CreateURL(it->substr(pos + 1), serviceType)) {
+            logger.msg(INFO, "Rejecting service: %s", url.str());
+            return;
+          }
+      }
+    }
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, false);
-      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+      if (!CreateThreadFunction((serviceType == COMPUTING ?
+                                 &InterrogateTarget : &QueryIndex),
+                                arg, &(mom.ServiceCounter()))) {
         delete arg;
       }
     }
@@ -89,16 +132,17 @@ namespace Arc {
       delete thrarg;
       return;
     }
-    logger.msg(VERBOSE, "Found %u execution services from the index service at %s", services.size(), thrarg->url.str());
+    logger.msg(VERBOSE,
+               "Found %u execution services from the index service at %s",
+               services.size(), thrarg->url.str());
 
-    for (std::list< std::pair<URL, ServiceType> >::iterator it = services.begin(); it != services.end(); it++) {
-      TargetRetrieverARC1 r(*(thrarg->usercfg), it->first, it->second);
-      if (thrarg->isExecutionTarget) {
+    for (std::list<std::pair<URL, ServiceType> >::iterator it =
+           services.begin(); it != services.end(); it++) {
+      TargetRetrieverARC1 r(*(thrarg->usercfg), it->first.str(), it->second);
+      if (thrarg->isExecutionTarget)
         r.GetExecutionTargets(*(thrarg->mom));
-      }
-      else {
+      else
         r.GetJobs(*(thrarg->mom));
-      }
     }
 
     delete thrarg;

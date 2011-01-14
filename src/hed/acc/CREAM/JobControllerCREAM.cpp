@@ -147,4 +147,24 @@ namespace Arc {
     return false;
   }
 
+  URL JobControllerCREAM::CreateURL(std::string service, ServiceType /* st */) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos) {
+      service = "ldap://" + service;
+      pos1 = 4;
+    }
+    std::string::size_type pos2 = service.find(":", pos1 + 3);
+    std::string::size_type pos3 = service.find("/", pos1 + 3);
+    if (pos3 == std::string::npos) {
+      if (pos2 == std::string::npos)
+        service += ":2170";
+      // Is this a good default path?
+      // Different for computing and index?
+      service += "/o=Grid";
+    }
+    else if (pos2 == std::string::npos || pos2 > pos3)
+      service.insert(pos3, ":2170");
+    return service;
+  }
+
 } // namespace Arc

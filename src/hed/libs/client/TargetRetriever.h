@@ -53,7 +53,7 @@ namespace Arc {
      * the specialized class.
      *
      * @param mom is the reference to the TargetGenerator which has loaded the TargetRetriever
-     * @param targetType is the identificaion of targets to find (0=ExecutionTargets, 1=Grid Jobs)
+     * @param targetType is the identificaion of targets to find (0 = ExecutionTargets, 1 = Grid Jobs)
      * @param detailLevel is the required level of details (1 = All details, 2 = Limited details)
      **/
     virtual void GetTargets(TargetGenerator& mom, int targetType,
@@ -109,10 +109,13 @@ namespace Arc {
     //! Load a new TargetRetriever
     /// \param name    The name of the TargetRetriever to load.
     /// \param usercfg The UserConfig object for the new TargetRetriever.
-    /// \param url     The URL used to contact the target.
+    /// \param service The URL used to contact the target.
     /// \param st      specifies service type of the target.
     /// \returns       A pointer to the new TargetRetriever (NULL on error).
-    TargetRetriever* load(const std::string& name, const UserConfig& usercfg, const URL& url, const ServiceType& st);
+    TargetRetriever* load(const std::string& name,
+                          const UserConfig& usercfg,
+                          const std::string& service,
+                          const ServiceType& st);
 
     //! Retrieve the list of loaded TargetRetrievers.
     /// \returns A reference to the list of TargetRetrievers.
@@ -127,21 +130,23 @@ namespace Arc {
   class TargetRetrieverPluginArgument
     : public PluginArgument {
   public:
-    TargetRetrieverPluginArgument(const UserConfig& usercfg, const URL& url, const ServiceType& st)
-      : usercfg(usercfg), url(url), st(st) {}
+    TargetRetrieverPluginArgument(const UserConfig& usercfg,
+				  const std::string& server,
+				  const ServiceType& st)
+      : usercfg(usercfg), server(server), st(st) {}
     ~TargetRetrieverPluginArgument() {}
     operator const UserConfig&() {
       return usercfg;
     }
-    operator const URL&() {
-      return url;
+    operator const std::string&() {
+      return server;
     }
     operator const ServiceType&() {
       return st;
     }
   private:
     const UserConfig& usercfg;
-    const URL& url;
+    const std::string& server;
     const ServiceType& st;
   };
 

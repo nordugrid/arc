@@ -26,7 +26,8 @@ namespace Arc {
     bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverCREAM::CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget) {
+  ThreadArg* TargetRetrieverCREAM::CreateThreadArg(TargetGenerator& mom,
+                                                   bool isExecutionTarget) {
     ThreadArg *arg = new ThreadArg;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
@@ -35,11 +36,33 @@ namespace Arc {
     return arg;
   }
 
-  Logger TargetRetrieverCREAM::logger(Logger::getRootLogger(), "TargetRetriever.CREAM");
+  Logger TargetRetrieverCREAM::logger(Logger::getRootLogger(),
+                                      "TargetRetriever.CREAM");
+
+  static URL CreateURL(std::string service, ServiceType /* st */) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos) {
+      service = "ldap://" + service;
+      pos1 = 4;
+    }
+    std::string::size_type pos2 = service.find(":", pos1 + 3);
+    std::string::size_type pos3 = service.find("/", pos1 + 3);
+    if (pos3 == std::string::npos) {
+      if (pos2 == std::string::npos)
+        service += ":2170";
+      // Is this a good default path?
+      // Different for computing and index?
+      service += "/o=Grid";
+    }
+    else if (pos2 == std::string::npos || pos2 > pos3)
+      service.insert(pos3, ":2170");
+    return service;
+  }
 
   TargetRetrieverCREAM::TargetRetrieverCREAM(const UserConfig& usercfg,
-                                             const URL& url, ServiceType st)
-    : TargetRetriever(usercfg, url, st, "CREAM") {}
+                                             const std::string& service,
+                                             ServiceType st)
+    : TargetRetriever(usercfg, CreateURL(service, st), st, "CREAM") {}
 
   TargetRetrieverCREAM::~TargetRetrieverCREAM() {}
 
@@ -52,26 +75,58 @@ namespace Arc {
   }
 
   void TargetRetrieverCREAM::GetExecutionTargets(TargetGenerator& mom) {
+    logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
+               flavour, tostring(serviceType), url.str());
 
-    logger.msg(VERBOSE, "TargetRetriverCREAM initialized with %s service url: %s",
-               tostring(serviceType), url.str());
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetRejectedServices(serviceType).begin();
+         it != usercfg.GetRejectedServices(serviceType).end(); it++) {
+      std::string::size_type pos = it->find(":");
+      if (pos != std::string::npos) {
+        std::string flav = it->substr(0, pos);
+        if (flav == flavour || flav == "*" || flav.empty())
+          if (url == CreateURL(it->substr(pos + 1), serviceType)) {
+            logger.msg(INFO, "Rejecting service: %s", url.str());
+            return;
+          }
+      }
+    }
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, true);
-      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+      if (!CreateThreadFunction((serviceType == COMPUTING ?
+                                 &InterrogateTarget : &QueryIndex),
+                                arg, &(mom.ServiceCounter()))) {
         delete arg;
       }
     }
   }
 
   void TargetRetrieverCREAM::GetJobs(TargetGenerator& mom) {
-    logger.msg(VERBOSE, "TargetRetriverCREAM initialized with %s service url: %s",
-               tostring(serviceType), url.str());
+    logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
+               flavour, tostring(serviceType), url.str());
+
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetRejectedServices(serviceType).begin();
+         it != usercfg.GetRejectedServices(serviceType).end(); it++) {
+      std::string::size_type pos = it->find(":");
+      if (pos != std::string::npos) {
+        std::string flav = it->substr(0, pos);
+        if (flav == flavour || flav == "*" || flav.empty())
+          if (url == CreateURL(it->substr(pos + 1), serviceType)) {
+            logger.msg(INFO, "Rejecting service: %s", url.str());
+            return;
+          }
+      }
+    }
+
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
       ThreadArg *arg = CreateThreadArg(mom, false);
-      if (!CreateThreadFunction((serviceType == COMPUTING ? &InterrogateTarget : &QueryIndex), arg, &(mom.ServiceCounter()))) {
+      if (!CreateThreadFunction((serviceType == COMPUTING ?
+                                 &InterrogateTarget : &QueryIndex),
+                                arg, &(mom.ServiceCounter()))) {
         delete arg;
       }
     }
@@ -134,7 +189,7 @@ namespace Arc {
       if ((std::string)(*iter)["GlueServiceStatus"] != "OK")
         continue;
 
-      TargetRetrieverCREAM retriever(usercfg, URL((std::string)(*iter)["GlueServiceEndpoint"]), INDEX);
+      TargetRetrieverCREAM retriever(usercfg, (std::string)(*iter)["GlueServiceEndpoint"], INDEX);
       if (thrarg->isExecutionTarget) {
         retriever.GetExecutionTargets(mom);
       }
@@ -154,7 +209,7 @@ namespace Arc {
 
       //Should filter here on allowed VOs, not yet implemented
 
-      TargetRetrieverCREAM retriever(usercfg, URL((std::string)(*iter)["GlueServiceEndpoint"]), COMPUTING);
+      TargetRetrieverCREAM retriever(usercfg, (std::string)(*iter)["GlueServiceEndpoint"], COMPUTING);
       if (thrarg->isExecutionTarget) {
         retriever.GetExecutionTargets(mom);
       }

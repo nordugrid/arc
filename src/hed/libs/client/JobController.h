@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 
+#include <arc/client/TargetGenerator.h>
 #include <arc/ArcConfig.h>
 #include <arc/URL.h>
 #include <arc/client/Job.h>
@@ -17,7 +18,6 @@ namespace Arc {
 
   class Broker;
   class Logger;
-  class TargetGenerator;
   class UserConfig;
 
   //! Base class for the JobControllers
@@ -214,6 +214,7 @@ namespace Arc {
     virtual URL GetFileUrlForJob(const Job& job,
                                  const std::string& whichfile) = 0;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;
+    virtual URL CreateURL(std::string service, ServiceType st) = 0;
 
   protected:
     const std::string flavour;

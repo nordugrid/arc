@@ -13,7 +13,7 @@ namespace Arc {
     : public TargetRetriever {
   private:
     TargetRetrieverBES(const UserConfig& usercfg,
-                       const URL& url, ServiceType st);
+                       const std::string& service, ServiceType st);
   public:
     ~TargetRetrieverBES();
     void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}
@@ -22,7 +22,6 @@ namespace Arc {
     static Plugin* Instance(PluginArgument *arg);
 
   private:
-
     static Logger logger;
   };
 

@@ -165,4 +165,14 @@ namespace Arc {
     logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());
     return false;
   }
+
+  URL JobControllerARC1::CreateURL(std::string service, ServiceType /* st */) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos)
+      service = "https://" + service;
+    // Default port other than 443?
+    // Default path?
+    return service;
+  }
+
 } // namespace Arc

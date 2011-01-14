@@ -512,14 +512,15 @@ namespace Arc {
           HANDLESTRATT("storedirectory", StoreDirectory)
           HANDLESTRATT("idpname", IdPName)
           if (common["defaultservices"]) {
-            if (!selectedServices.first.empty() || !selectedServices.second.empty())
+            if (!selectedServices[COMPUTING].empty() ||
+                !selectedServices[INDEX].empty())
               ClearSelectedServices();
             std::list<std::string> defaultServicesStr;
             tokenize(common["defaultservices"], defaultServicesStr, " \t");
-            for (std::list<std::string>::const_iterator it = defaultServicesStr.begin();
+            for (std::list<std::string>::const_iterator it =
+                   defaultServicesStr.begin();
                  it != defaultServicesStr.end(); it++) {
-              // Aliases cannot contain '.' or ':'.
-
+              // Aliases cannot contain '.' or ':'
               if (it->find_first_of(":.") == std::string::npos) { // Alias
                 if (!aliasMap[*it]) {
                   logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
@@ -532,39 +533,44 @@ namespace Arc {
               }
               else {
                 const std::size_t pos1 = it->find(":");
-                const std::size_t pos2 = it->find(":", pos1+1);
-                if (pos2 == std::string::npos) {
-                  logger.msg(WARNING, "The defaultservices attribute value contains a wrongly formated element (%s) in configuration file (%s)", *it, conffile);
+                if (pos1 == std::string::npos) {
+                  logger.msg(WARNING,
+                             "The defaultservices attribute value contains a "
+                             "wrongly formated element (%s) in configuration "
+                             "file (%s)", *it, conffile);
                   continue;
                 }
                 const std::string serviceType = it->substr(0, pos1);
                 if (serviceType != "computing" && serviceType != "index") {
-                  logger.msg(WARNING, "The defaultservices attribute value contains a unknown servicetype %s at %s in configuration file (%s)", serviceType, *it, conffile);
+                  logger.msg(WARNING,
+                             "The defaultservices attribute value contains an "
+                             "unknown servicetype %s at %s in configuration "
+                             "file (%s)", serviceType, *it, conffile);
                   continue;
                 }
-                const URL url(it->substr(pos2+1));
-                if (!url) {
-                  logger.msg(WARNING, "The defaultservices attribute value contains a wrongly formated URL (%s) in configuration file (%s)", it->substr(pos2+1), conffile);
-                  continue;
-                }
-                const std::string flavour = it->substr(pos1+1,pos2-pos1-1);
-                logger.msg(VERBOSE, "Adding selected service %s:%s:%s", serviceType, flavour, url.str());
+                const std::string service = it->substr(pos1 + 1);
+                logger.msg(VERBOSE, "Adding selected service %s:%s",
+                           serviceType, service);
                 if (serviceType == "computing")
-                  selectedServices.first[flavour].push_back(url);
+                  selectedServices[COMPUTING].push_back(service);
                 else
-                  selectedServices.second[flavour].push_back(url);
+                  selectedServices[INDEX].push_back(service);
               }
             }
             common["defaultservices"].Destroy();
             if (common["defaultservices"]) {
-              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "defaultservices", conffile);
-              while (common["defaultservices"]) common["defaultservices"].Destroy();
+              logger.msg(WARNING,
+                         "Multiple %s attributes in configuration file (%s)",
+                         "defaultservices", conffile);
+              while (common["defaultservices"])
+                common["defaultservices"].Destroy();
             }
           }
           if (common["rejectservices"]) {
             std::list<std::string> rejectServicesStr;
             tokenize(common["rejectservices"], rejectServicesStr, " \t");
-            for (std::list<std::string>::const_iterator it = rejectServicesStr.begin();
+            for (std::list<std::string>::const_iterator it =
+                   rejectServicesStr.begin();
                  it != rejectServicesStr.end(); it++) {
               // Aliases cannot contain '.' or ':'.
               if (it->find_first_of(":.") == std::string::npos) { // Alias
@@ -579,41 +585,49 @@ namespace Arc {
               }
               else {
                 const std::size_t pos1 = it->find(":");
-                const std::size_t pos2 = it->find(":", pos1+1);
-                if (pos2 == std::string::npos) {
-                  logger.msg(WARNING, "The rejectservices attribute value contains a wrongly formated element (%s) in configuration file (%s)", *it, conffile);
+                if (pos1 == std::string::npos) {
+                  logger.msg(WARNING,
+                             "The rejectservices attribute value contains a "
+                             "wrongly formated element (%s) in configuration "
+                             "file (%s)", *it, conffile);
                   continue;
                 }
                 const std::string serviceType = it->substr(0, pos1);
                 if (serviceType != "computing" && serviceType != "index") {
-                  logger.msg(WARNING, "The rejectservices attribute value contains a unknown servicetype %s at %s in configuration file (%s)", serviceType, *it, conffile);
+                  logger.msg(WARNING,
+                             "The rejectservices attribute value contains an "
+                             "unknown servicetype %s at %s in configuration "
+                             "file (%s)", serviceType, *it, conffile);
                   continue;
                 }
-                const URL url(it->substr(pos2+1));
-                if (!url) {
-                  logger.msg(WARNING, "The rejectservices attribute value contains a wrongly formated URL (%s) in configuration file (%s)", it->substr(pos2+1), conffile);
-                  continue;
-                }
-                const std::string flavour = it->substr(pos1+1,pos2-pos1-1);
-                logger.msg(VERBOSE, "Adding rejected service %s:%s:%s", serviceType, flavour, url.str());
+                const std::string service = it->substr(pos1 + 1);
+                logger.msg(VERBOSE, "Adding rejected service %s:%s",
+                           serviceType, service);
                 if (serviceType == "computing")
-                  rejectedServices.first[flavour].push_back(url);
+                  rejectedServices[COMPUTING].push_back(service);
                 else
-                  rejectedServices.second[flavour].push_back(url);
+                  rejectedServices[INDEX].push_back(service);
               }
             }
             common["rejectservices"].Destroy();
             if (common["rejectservices"]) {
-              logger.msg(WARNING, "Multiple %s attributes in configuration file (%s)", "rejectservices", conffile);
-              while (common["rejectservices"]) common["rejectservices"].Destroy();
+              logger.msg(WARNING,
+                         "Multiple %s attributes in configuration file (%s)",
+                         "rejectservices", conffile);
+              while (common["rejectservices"])
+                common["rejectservices"].Destroy();
             }
           }
           HANDLESTRATT("overlayfile", OverlayFile)
           if(!overlayfile.empty())
             if (!Glib::file_test(overlayfile, Glib::FILE_TEST_IS_REGULAR))
-              logger.msg(WARNING, "Specified overlay file (%s) does not exist.", overlayfile);
+              logger.msg(WARNING,
+                         "Specified overlay file (%s) does not exist.",
+                         overlayfile);
           while (common.Child()) {
-            logger.msg(WARNING, "Unknown attribute %s in common section, ignoring it", common.Child().Name());
+            logger.msg(WARNING,
+                       "Unknown attribute %s in common section, ignoring it",
+                       common.Child().Name());
             common.Child().Destroy();
           }
 
@@ -621,7 +635,8 @@ namespace Arc {
         }
 
         while (ini.Child()) {
-          logger.msg(INFO, "Unknown section %s, ignoring it", ini.Child().Name());
+          logger.msg(INFO, "Unknown section %s, ignoring it",
+                     ini.Child().Name());
           ini.Child().Destroy();
         }
 
@@ -687,40 +702,30 @@ namespace Arc {
       file << "storedirectory = " << storeDirectory << std::endl;
     if (!idPName.empty())
       file << "idpname = " << idPName << std::endl;
-    if (!selectedServices.first.empty() || !selectedServices.second.empty()) {
+    if (!selectedServices[COMPUTING].empty() ||
+        !selectedServices[INDEX].empty()) {
       file << "defaultservices =";
-      for (URLListMap::const_iterator it = selectedServices.first.begin();
-           it != selectedServices.first.end(); it++) {
-        for (std::list<URL>::const_iterator iitt = it->second.begin();
-             iitt != it->second.end(); iitt++) {
-          file << " computing:" << it->first << ":" << iitt->fullstr();
-        }
-      }
-      for (URLListMap::const_iterator it = selectedServices.second.begin();
-           it != selectedServices.second.end(); it++) {
-        for (std::list<URL>::const_iterator iitt = it->second.begin();
-             iitt != it->second.end(); iitt++) {
-          file << " index:" << it->first << ":" << iitt->fullstr();
-        }
-      }
+      for (std::list<std::string>::const_iterator it =
+             selectedServices[COMPUTING].begin();
+           it != selectedServices[COMPUTING].end(); it++)
+        file << " computing:" << *it;
+      for (std::list<std::string>::const_iterator it =
+             selectedServices[INDEX].begin();
+           it != selectedServices[INDEX].end(); it++)
+        file << " index:" << *it;
       file << std::endl;
     }
-    if (!rejectedServices.first.empty() || !rejectedServices.second.empty()) {
+    if (!rejectedServices[COMPUTING].empty() ||
+        !rejectedServices[INDEX].empty()) {
       file << "rejectedservices =";
-      for (URLListMap::const_iterator it = rejectedServices.first.begin();
-           it != rejectedServices.first.end(); it++) {
-        for (std::list<URL>::const_iterator iitt = it->second.begin();
-             iitt != it->second.end(); iitt++) {
-          file << " computing:" << it->first << ":" << iitt->fullstr();
-        }
-      }
-      for (URLListMap::const_iterator it = rejectedServices.second.begin();
-           it != rejectedServices.second.end(); it++) {
-        for (std::list<URL>::const_iterator iitt = it->second.begin();
-             iitt != it->second.end(); iitt++) {
-          file << " index:" << it->first << ":" << iitt->fullstr();
-        }
-      }
+      for (std::list<std::string>::const_iterator it =
+             rejectedServices[COMPUTING].begin();
+           it != rejectedServices[COMPUTING].end(); it++)
+        file << " computing:" << *it;
+      for (std::list<std::string>::const_iterator it =
+             rejectedServices[INDEX].begin();
+           it != rejectedServices[INDEX].end(); it++)
+        file << " index:" << *it;
       file << std::endl;
     }
     if (!overlayfile.empty())
@@ -779,14 +784,16 @@ namespace Arc {
     return true;
   }
 
-  bool UserConfig::AddServices(const std::list<std::string>& services, ServiceType st) {
+  bool UserConfig::AddServices(const std::list<std::string>& services,
+                               ServiceType st) {
     const std::string serviceType = tostring(st);
     for (std::list<std::string>::const_iterator it = services.begin();
          it != services.end(); it++) {
-      URLListMap& servicesRef = ((*it)[0] != '-' ? (st == COMPUTING ? selectedServices.first : selectedServices.second)
-                                                 : (st == COMPUTING ? rejectedServices.first : rejectedServices.second));
+      std::list<std::string>& servicesRef = ((*it)[0] != '-' ?
+                                             selectedServices[st] :
+                                             rejectedServices[st]);
 
-      const std::string service = ((*it)[0] != '-' ? *it : it->substr(1));
+      std::string service = ((*it)[0] != '-' ? *it : it->substr(1));
 
       // Alias cannot contain '.', ':', ' ' or '\t' and a URL must contain atleast one of ':' or '.'.
       if (service.find_first_of(":. \t") == std::string::npos) { // Alias.
@@ -800,27 +807,15 @@ namespace Arc {
           return false;
       }
       else { // URL
-        std::string flavour;
-        URL url;
         const std::size_t pos = service.find(":");
         const std::size_t pos2 = service.find("://");
-        if (pos == std::string::npos || pos == pos2) {
-          flavour = "*";
-          url = service;
-        }
-        else {
-          if (pos)
-            flavour = service.substr(0, pos);
-          else
-            flavour = "*";
-          url = service.substr(pos+1);
-        }
-        if (!url || url.Protocol() == "file") {
-          logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
-          continue;
-        }
-        logger.msg(VERBOSE, "Adding %s service %s:%s ", (*it)[0] != '-' ? "selected" : "rejected", flavour, url.str());
-        servicesRef[flavour].push_back(url);
+        if (pos == std::string::npos || pos == pos2)
+          service = "*:" + service;
+        else if (pos == 0)
+          service = "*" + service;
+        logger.msg(VERBOSE, "Adding %s service %s", (*it)[0] != '-' ?
+                   istring("selected") : istring("rejected"), service);
+        servicesRef.push_back(service);
       }
     }
 
@@ -841,9 +836,10 @@ namespace Arc {
         isSelectedNotRejected = false;
       }
 
-      URLListMap& servicesRef = (isSelectedNotRejected ? (st == COMPUTING ? selectedServices.first : selectedServices.second)
-                                                       : (st == COMPUTING ? rejectedServices.first : rejectedServices.second));
-      const std::string& service = *it;
+      std::list<std::string>& servicesRef = (isSelectedNotRejected ?
+                                             selectedServices[st] :
+                                             rejectedServices[st]);
+      std::string service = *it;
 
       // Alias cannot contain '.', ':', ' ' or '\t' and a URL must contain atleast one of ':' or '.'.
       if (service.find_first_of(":. \t") == std::string::npos) { // Alias.
@@ -857,66 +853,49 @@ namespace Arc {
           return false;
       }
       else { // URL
-        std::string flavour;
-        URL url;
         const std::size_t pos = service.find(":");
         const std::size_t pos2 = service.find("://");
-        if (pos == std::string::npos || pos == pos2) {
-          flavour = "*";
-          url = service;
-        }
-        else {
-          if (pos)
-            flavour = service.substr(0, pos);
-          else
-            flavour = "*";
-          url = service.substr(pos+1);
-        }
-        if (!url || url.Protocol() == "file") {
-          logger.msg(WARNING, "The specified %s service (%s) is not a valid URL", serviceType, service.substr(pos+1));
-          continue;
-        }
-        logger.msg(VERBOSE, "Adding %s service %s:%s ", isSelectedNotRejected ? "selected" : "rejected", flavour, url.str());
-        servicesRef[flavour].push_back(url);
+        if (pos == std::string::npos || pos == pos2)
+          service = "*:" + service;
+        else if (pos == 0)
+          service = "*" + service;
+        logger.msg(VERBOSE, "Adding %s service %s ", isSelectedNotRejected ?
+                   istring("selected") : istring("rejected"), service);
+        servicesRef.push_back(service);
       }
     }
 
     return true;
   }
 
-  const URLListMap& UserConfig::GetSelectedServices(ServiceType st) const {
-    return st == COMPUTING ? selectedServices.first : selectedServices.second;
+  const std::list<std::string>& UserConfig::GetSelectedServices(ServiceType st) const {
+    return selectedServices[st];
   }
 
-  const URLListMap& UserConfig::GetRejectedServices(ServiceType st) const {
-    return st == COMPUTING ? rejectedServices.first : rejectedServices.second;
+  const std::list<std::string>& UserConfig::GetRejectedServices(ServiceType st) const {
+    return rejectedServices[st];
   }
 
   void UserConfig::ClearSelectedServices(ServiceType st) {
-    if (st == COMPUTING)
-      selectedServices.first.clear();
-    else
-      selectedServices.second.clear();
+    selectedServices[st].clear();
   }
 
   void UserConfig::ClearSelectedServices() {
-    selectedServices.first.clear();
-    selectedServices.second.clear();
+    selectedServices[COMPUTING].clear();
+    selectedServices[INDEX].clear();
   }
 
   void UserConfig::ClearRejectedServices(ServiceType st) {
-    if (st == COMPUTING)
-      rejectedServices.first.clear();
-    else
-      rejectedServices.second.clear();
+    rejectedServices[st].clear();
   }
 
   void UserConfig::ClearRejectedServices() {
-    rejectedServices.first.clear();
-    rejectedServices.second.clear();
+    rejectedServices[COMPUTING].clear();
+    rejectedServices[INDEX].clear();
   }
 
-  bool UserConfig::ResolveAlias(URLListMap& services, ServiceType st,
+  bool UserConfig::ResolveAlias(std::list<std::string>& services,
+                                ServiceType st,
                                 std::list<std::string>& resolvedAliases) {
     std::list<std::string> valueList;
     tokenize(aliasMap[resolvedAliases.back()], valueList, " \t");
@@ -924,22 +903,27 @@ namespace Arc {
     for (std::list<std::string>::const_iterator it = valueList.begin();
          it != valueList.end(); it++) {
       const std::size_t pos1 = it->find(":");
-      const std::size_t pos2 = it->find(":", pos1+1);
+      const std::size_t pos2 = it->find(":", pos1 + 1);
 
       if (pos1 == std::string::npos) { // Alias.
         const std::string& referedAlias = *it;
-        if (std::find(resolvedAliases.begin(), resolvedAliases.end(), referedAlias) != resolvedAliases.end()) { // Loop detected.
+        if (std::find(resolvedAliases.begin(), resolvedAliases.end(),
+                      referedAlias) != resolvedAliases.end()) {
+          // Loop detected.
           std::string loopstr = "";
-          for (std::list<std::string>::const_iterator itloop = resolvedAliases.begin();
+          for (std::list<std::string>::const_iterator itloop =
+                 resolvedAliases.begin();
                itloop != resolvedAliases.end(); itloop++)
             loopstr += *itloop + " -> ";
           loopstr += referedAlias;
-          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", resolvedAliases.front(), loopstr);
+          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s",
+                     resolvedAliases.front(), loopstr);
           return false;
         }
 
         if (!aliasMap[referedAlias]) {
-          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined", referedAlias);
+          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined",
+                     referedAlias);
           return false;
         }
 
@@ -952,31 +936,31 @@ namespace Arc {
       else if (pos2 != std::string::npos) { // serviceType:flavour:URL
         const std::string serviceType = it->substr(0, pos1);
         if (serviceType != "computing" && serviceType != "index") {
-          logger.msg(WARNING, "Alias name (%s) contains a unknown servicetype %s at %s", resolvedAliases.front(), serviceType, *it);
+          logger.msg(WARNING,
+                     "Alias name (%s) contains a unknown servicetype %s at %s",
+                     resolvedAliases.front(), serviceType, *it);
           continue;
         }
         else if ((st == COMPUTING && serviceType != "computing") ||
                  (st == INDEX && serviceType != "index"))
           continue;
 
-        const URL url(it->substr(pos2+1));
-        if (!url) {
-          logger.msg(WARNING, "Alias name (%s) contains a wrongly formated URL (%s)", resolvedAliases.front(), it->substr(pos2+1));
-          continue;
-        }
-        const std::string flavour = it->substr(pos1+1, pos2-pos1-1);
-        logger.msg(VERBOSE, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
-        services[flavour].push_back(url);
+        std::string service = it->substr(pos1 + 1);
+        logger.msg(VERBOSE, "Adding service %s:%s from resolved alias %s",
+                   serviceType, service, resolvedAliases.back());
+        services.push_back(service);
       }
       else {
-        logger.msg(WARNING, "Alias (%s) contains a wrongly formated element (%s)", resolvedAliases.front(), *it);
+        logger.msg(WARNING,
+                   "Alias (%s) contains a wrongly formatted element (%s)",
+                   resolvedAliases.front(), *it);
       }
     }
 
     return true;
   }
 
-  bool UserConfig::ResolveAlias(std::pair<URLListMap, URLListMap>& services,
+  bool UserConfig::ResolveAlias(ServiceList& services,
                                 std::list<std::string>& resolvedAliases) {
     std::list<std::string> valueList;
     tokenize(aliasMap[resolvedAliases.back()], valueList, " \t");
@@ -988,18 +972,23 @@ namespace Arc {
 
       if (pos1 == std::string::npos) { // Alias.
         const std::string& referedAlias = *it;
-        if (std::find(resolvedAliases.begin(), resolvedAliases.end(), referedAlias) != resolvedAliases.end()) { // Loop detected.
+        if (std::find(resolvedAliases.begin(), resolvedAliases.end(),
+                      referedAlias) != resolvedAliases.end()) {
+          // Loop detected.
           std::string loopstr = "";
-          for (std::list<std::string>::const_iterator itloop = resolvedAliases.begin();
+          for (std::list<std::string>::const_iterator itloop =
+                 resolvedAliases.begin();
                itloop != resolvedAliases.end(); itloop++)
             loopstr += *itloop + " -> ";
           loopstr += referedAlias;
-          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s", resolvedAliases.front(), loopstr);
+          logger.msg(ERROR, "Cannot resolve alias \"%s\". Loop detected: %s",
+                     resolvedAliases.front(), loopstr);
           return false;
         }
 
         if (!aliasMap[referedAlias]) {
-          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined", referedAlias);
+          logger.msg(ERROR, "Cannot resolve alias %s, it is not defined",
+                     referedAlias);
           return false;
         }
 
@@ -1012,23 +1001,23 @@ namespace Arc {
       else if (pos2 != std::string::npos) { // serviceType:flavour:URL
         const std::string serviceType = it->substr(0, pos1);
         if (serviceType != "computing" && serviceType != "index") {
-          logger.msg(WARNING, "Alias name (%s) contains a unknown servicetype %s at %s", resolvedAliases.front(), serviceType, *it);
+          logger.msg(WARNING,
+                     "Alias name (%s) contains a unknown servicetype %s at %s",
+                     resolvedAliases.front(), serviceType, *it);
           continue;
         }
-        const URL url(it->substr(pos2+1));
-        if (!url) {
-          logger.msg(WARNING, "Alias name (%s) contains a wrongly formated URL (%s)", resolvedAliases.front(), it->substr(pos2+1));
-          continue;
-        }
-        const std::string flavour = it->substr(pos1+1, pos2-pos1-1);
-        logger.msg(VERBOSE, "Adding service %s:%s:%s from resolved alias %s", serviceType, flavour, url.str(), resolvedAliases.back());
+        const std::string service = it->substr(pos1 + 1);
+        logger.msg(VERBOSE, "Adding service %s:%s from resolved alias %s",
+                   serviceType, service, resolvedAliases.back());
         if (serviceType == "computing")
-          services.first[flavour].push_back(url);
+          services[COMPUTING].push_back(service);
         else
-          services.second[flavour].push_back(url);
+          services[INDEX].push_back(service);
       }
       else {
-        logger.msg(WARNING, "Alias (%s) contains a wrongly formated element (%s)", resolvedAliases.front(), *it);
+        logger.msg(WARNING,
+                   "Alias (%s) contains a wrongly formated element (%s)",
+                   resolvedAliases.front(), *it);
       }
     }
 

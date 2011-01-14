@@ -38,48 +38,50 @@ namespace Arc {
      * same plugin multiple times, if it failed the first time.
      */
     std::map<std::string, bool> pluginLoaded;
-    for (URLListMap::const_iterator it = usercfg.GetSelectedServices(COMPUTING).begin();
-         it != usercfg.GetSelectedServices(COMPUTING).end(); it++)
-      for (std::list<URL>::const_iterator it2 = it->second.begin();
-           it2 != it->second.end(); it2++) {
-        if (it->first == "*") {
-          for (std::list<ModuleDesc>::iterator it3 = modules.begin();
-               it3 != modules.end(); it3++)
-            for (std::list<PluginDesc>::iterator it4 = it3->plugins.begin();
-                 it4 != it3->plugins.end(); it4++)
-              if (pluginLoaded.find(it4->name) == pluginLoaded.end() ||
-                  pluginLoaded[it4->name])
-                pluginLoaded[it4->name] = loader.load(it4->name, usercfg,
-                                                      *it2, COMPUTING);
-        }
-        else
-          if (pluginLoaded.find(it->first) == pluginLoaded.end() ||
-              pluginLoaded[it->first])
-            pluginLoaded[it->first] = loader.load(it->first, usercfg,
-                                                  *it2, COMPUTING);
+    for (std::list<std::string>::const_iterator it =
+           usercfg.GetSelectedServices(COMPUTING).begin();
+         it != usercfg.GetSelectedServices(COMPUTING).end(); it++) {
+      std::string::size_type pos = it->find(':');
+      std::string flavour = it->substr(0, pos);
+      std::string service = it->substr(pos + 1);
+      if (flavour == "*") {
+        for (std::list<ModuleDesc>::iterator it3 = modules.begin();
+             it3 != modules.end(); it3++)
+          for (std::list<PluginDesc>::iterator it4 = it3->plugins.begin();
+               it4 != it3->plugins.end(); it4++)
+            if (pluginLoaded.find(it4->name) == pluginLoaded.end() ||
+                pluginLoaded[it4->name])
+              pluginLoaded[it4->name] = loader.load(it4->name, usercfg,
+                                                    service, COMPUTING);
       }
+      else
+        if (pluginLoaded.find(flavour) == pluginLoaded.end() ||
+            pluginLoaded[flavour])
+          pluginLoaded[flavour] = loader.load(flavour, usercfg,
+                                              service, COMPUTING);
+    }
 
-    for (URLListMap::const_iterator it =
+    for (std::list<std::string>::const_iterator it =
            usercfg.GetSelectedServices(INDEX).begin();
          it != usercfg.GetSelectedServices(INDEX).end(); it++) {
-      for (std::list<URL>::const_iterator it2 = it->second.begin();
-           it2 != it->second.end(); it2++) {
-        if (it->first == "*") {
-          for (std::list<ModuleDesc>::iterator it3 = modules.begin();
-               it3 != modules.end(); it3++)
-            for (std::list<PluginDesc>::iterator it4 = it3->plugins.begin();
-                 it4 != it3->plugins.end(); it4++)
-              if (pluginLoaded.find(it4->name) == pluginLoaded.end() ||
-                  pluginLoaded[it4->name])
-                pluginLoaded[it4->name] = loader.load(it4->name, usercfg,
-                                                      *it2, INDEX);
-        }
-        else
-          if (pluginLoaded.find(it->first) == pluginLoaded.end() ||
-              pluginLoaded[it->first])
-            pluginLoaded[it->first] = loader.load(it->first, usercfg,
-                                                  *it2, INDEX);
+      std::string::size_type pos = it->find(':');
+      std::string flavour = it->substr(0, pos);
+      std::string service = it->substr(pos + 1);
+      if (flavour == "*") {
+        for (std::list<ModuleDesc>::iterator it3 = modules.begin();
+             it3 != modules.end(); it3++)
+          for (std::list<PluginDesc>::iterator it4 = it3->plugins.begin();
+               it4 != it3->plugins.end(); it4++)
+            if (pluginLoaded.find(it4->name) == pluginLoaded.end() ||
+                pluginLoaded[it4->name])
+              pluginLoaded[it4->name] = loader.load(it4->name, usercfg,
+                                                    service, INDEX);
       }
+      else
+        if (pluginLoaded.find(flavour) == pluginLoaded.end() ||
+            pluginLoaded[flavour])
+          pluginLoaded[flavour] = loader.load(flavour, usercfg,
+                                              service, INDEX);
     }
 
     if ((startDiscovery & 1) == 1)
@@ -179,16 +181,8 @@ namespace Arc {
     return foundJobs;
   }
 
-  bool TargetGenerator::AddService(const std::string flavour, const URL& url) {
-
-    for (URLListMap::const_iterator it = usercfg.GetRejectedServices(COMPUTING).begin();
-         it != usercfg.GetRejectedServices(COMPUTING).end(); it++)
-      if (std::find(it->second.begin(), it->second.end(), url) !=
-          it->second.end()) {
-        logger.msg(INFO, "Rejecting service: %s", url.str());
-        return false;
-      }
-
+  bool TargetGenerator::AddService(const std::string flavour,
+                                   const URL& url) {
     bool added = false;
     Glib::Mutex::Lock serviceLock(serviceMutex);
     if (std::find(foundServices[flavour].begin(), foundServices[flavour].end(),
@@ -199,16 +193,8 @@ namespace Arc {
     return added;
   }
 
-  bool TargetGenerator::AddIndexServer(const std::string flavour, const URL& url) {
-
-    for (URLListMap::const_iterator it = usercfg.GetRejectedServices(INDEX).begin();
-         it != usercfg.GetRejectedServices(INDEX).end(); it++)
-      if (std::find(it->second.begin(), it->second.end(), url) !=
-          it->second.end()) {
-        logger.msg(INFO, "Rejecting service: %s", url.str());
-        return false;
-      }
-
+  bool TargetGenerator::AddIndexServer(const std::string flavour,
+                                       const URL& url) {
     bool added = false;
     Glib::Mutex::Lock indexServerLock(indexServerMutex);
     if (std::find(foundIndexServers[flavour].begin(),

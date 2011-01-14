@@ -29,6 +29,7 @@ namespace Arc {
     virtual bool ResumeJob(const Job& job);
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
     virtual bool GetJobDescription(const Job& job, std::string& desc_str);
+    URL CreateURL(std::string service, ServiceType st);
 
   private:
     static Logger logger;

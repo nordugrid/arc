@@ -53,93 +53,109 @@ namespace Arc {
     }
 
     if (!jobids.empty()) {
-      logger.msg(VERBOSE, "Filling job store with jobs according to "
-                 "specified jobIDs");
+      logger.msg(VERBOSE, "Filling job store for %s with jobs according to "
+                 "specified jobIDs", flavour);
 
       for (std::list<URL>::const_iterator it = jobids.begin();
            it != jobids.end(); it++) {
-
         XMLNodeList xmljobs;
-        xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->str() + "']", NS());
-        if (xmljobs.empty()) { // Included for backwards compatibility.
-          xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
-        }
-
+        xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" +
+                                         it->str() + "']", NS());
+        if (xmljobs.empty())
+          // Included for backwards compatibility.
+          xmljobs = jobstorage.XPathLookup("//Job[JobID='" +
+                                           it->str() + "']", NS());
         if (xmljobs.empty()) {
           logger.msg(VERBOSE, "Job not found in the job list: %s", it->str());
           continue;
         }
-
-        if (flavour == (std::string)xmljobs.front()["Flavour"]) {
+        if (flavour == (std::string)xmljobs.front()["Flavour"])
           jobstore.push_back(xmljobs.front());
-        }
       }
     }
 
-    URLListMap::const_iterator itSelectedClusters = usercfg.GetSelectedServices(COMPUTING).find(flavour);
-    if (itSelectedClusters != usercfg.GetSelectedServices(COMPUTING).end() &&
-        !itSelectedClusters->second.empty()) {
-      const std::list<URL>& selectedClusters = itSelectedClusters->second;
-      logger.msg(VERBOSE, "Filling job store with jobs according to the list of "
-                 "selected resources");
+    if (!usercfg.GetSelectedServices(COMPUTING).empty()) {
+      logger.msg(VERBOSE, "Filling job store for %s with jobs according to "
+                 "the list of selected resources", flavour);
 
       XMLNodeList xmljobs =
         jobstorage.XPathLookup("//Job[Flavour='" + flavour + "']", NS());
 
-      for (XMLNodeList::iterator it = xmljobs.begin();
-           it != xmljobs.end(); it++) {
-
-        URL cluster = (std::string)(*it)["Cluster"];
-        if (std::find(selectedClusters.begin(), selectedClusters.end(),
-                      cluster) != selectedClusters.end()) {
-          jobstore.push_back(*it);
+      for (std::list<std::string>::const_iterator it =
+             usercfg.GetSelectedServices(COMPUTING).begin();
+           it != usercfg.GetSelectedServices(COMPUTING).end(); it++) {
+        std::string::size_type pos = it->find(":");
+        if (pos != std::string::npos) {
+          std::string flav = it->substr(0, pos);
+          if (flav == flavour || flav == "*" || flav.empty()) {
+            URL url = CreateURL(it->substr(pos + 1), COMPUTING);
+            for (XMLNodeList::iterator xit = xmljobs.begin();
+                 xit != xmljobs.end(); xit++) {
+              URL cluster = (std::string)(*xit)["Cluster"];
+              if (cluster == url)
+                jobstore.push_back(*xit);
+            }
+          }
         }
       }
     }
 
-    URLListMap::const_iterator itRejectedClusters = usercfg.GetRejectedServices(COMPUTING).find(flavour);
-    if (itRejectedClusters != usercfg.GetRejectedServices(COMPUTING).end() &&
-        !itRejectedClusters->second.empty())
-      if (!jobstore.empty()) {
-        const std::list<URL>& rejectedClusters = itRejectedClusters->second;
+    if (!jobstore.empty() && !usercfg.GetRejectedServices(COMPUTING).empty()) {
+      logger.msg(VERBOSE, "Removing jobs from job store for %s according to "
+                 "list of rejected resources", flavour);
 
-        logger.msg(VERBOSE, "Removing jobs from job store according to list of "
-                   "rejected resources");
-
-        std::list<Job>::iterator it = jobstore.begin();
-        while (it != jobstore.end())
-          if (std::find(rejectedClusters.begin(), rejectedClusters.end(),
-                        it->Cluster) != rejectedClusters.end()) {
-            logger.msg(VERBOSE, "Removing job %s from job store since it runs "
-                       "on a rejected resource", it->JobID.str());
-            it = jobstore.erase(it);
+      for (std::list<std::string>::const_iterator it =
+             usercfg.GetRejectedServices(COMPUTING).begin();
+           it != usercfg.GetRejectedServices(COMPUTING).end(); it++) {
+        std::string::size_type pos = it->find(":");
+        if (pos != std::string::npos) {
+          std::string flav = it->substr(0, pos);
+          if (flav == flavour || flav == "*" || flav.empty()) {
+            URL url = CreateURL(it->substr(pos + 1), COMPUTING);
+            std::list<Job>::iterator jit = jobstore.begin();
+            while (jit != jobstore.end()) {
+              if (jit->Cluster == url) {
+                logger.msg(VERBOSE, "Removing job %s from job store since it "
+                           "runs on a rejected resource", jit->JobID.str());
+                jit = jobstore.erase(jit);
+              }
+              else
+                jit++;
+            }
           }
-          else
-            it++;
+        }
       }
+    }
 
     if (jobids.empty() && usercfg.GetSelectedServices(COMPUTING).empty()) {
-      logger.msg(VERBOSE, "Filling job store with all jobs, except those "
-                 "running on rejected resources");
-
-      const std::list<URL>* rejectedClusters = (itRejectedClusters == usercfg.GetRejectedServices(COMPUTING).end() ? NULL : &itRejectedClusters->second);
+      logger.msg(VERBOSE, "Filling job store for %s with all jobs, except "
+                 "those running on rejected resources", flavour);
 
       XMLNodeList xmljobs =
         jobstorage.XPathLookup("//Job[Flavour='" + flavour + "']", NS());
 
-      for (XMLNodeList::iterator it = xmljobs.begin();
-           it != xmljobs.end(); it++) {
-
-        URL cluster = (std::string)(*it)["Cluster"];
-
-        if (!rejectedClusters ||
-            std::find(rejectedClusters->begin(), rejectedClusters->end(), cluster) == rejectedClusters->end()) {
-          jobstore.push_back(*it);
+      for (XMLNodeList::iterator xit = xmljobs.begin();
+           xit != xmljobs.end(); xit++) {
+        bool reject = false;
+        URL cluster = (std::string)(*xit)["Cluster"];
+        for (std::list<std::string>::const_iterator it =
+               usercfg.GetRejectedServices(COMPUTING).begin();
+             it != usercfg.GetRejectedServices(COMPUTING).end(); it++) {
+          std::string::size_type pos = it->find(":");
+          if (pos != std::string::npos) {
+            std::string flav = it->substr(0, pos);
+            if (flav == flavour || flav == "*" || flav.empty())
+              if (cluster == CreateURL(it->substr(pos + 1), COMPUTING)) {
+                reject = true;
+                break;
+              }
+          }
         }
+        if (!reject)
+          jobstore.push_back(*xit);
       }
     }
 
-    logger.msg(VERBOSE, "FillJobStore has finished successfully");
     logger.msg(VERBOSE, "Job store for %s contains %ld jobs",
                flavour, jobstore.size());
   }

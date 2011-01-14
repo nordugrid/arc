@@ -23,14 +23,14 @@
 #include <fcntl.h>
 #endif
 
-
 #include "JobStateARC0.h"
 #include "JobControllerARC0.h"
 #include "FTPControl.h"
 
 namespace Arc {
 
-  Logger JobControllerARC0::logger(Logger::getRootLogger(), "JobController.ARC0");
+  Logger JobControllerARC0::logger(Logger::getRootLogger(),
+                                   "JobController.ARC0");
 
   JobControllerARC0::JobControllerARC0(const UserConfig& usercfg)
     : JobController(usercfg, "ARC0") {}
@@ -423,10 +423,11 @@ namespace Arc {
     return url;
   }
 
-  bool JobControllerARC0::GetJobDescription(const Job& job, std::string& desc_str) {
-
+  bool JobControllerARC0::GetJobDescription(const Job& job,
+                                            std::string& desc_str) {
     std::string jobid = job.JobID.str();
-    logger.msg(VERBOSE, "Trying to retrieve job description of %s from computing resource", jobid);
+    logger.msg(VERBOSE, "Trying to retrieve job description of %s from "
+               "computing resource", jobid);
 
     std::string::size_type pos = jobid.rfind("/");
     if (pos == std::string::npos) {
@@ -456,7 +457,8 @@ namespace Arc {
                                     0, 0, 0, usercfg.Timeout());
     if (!res.Passed()) {
       if (!res.GetDesc().empty())
-        logger.msg(INFO, "Current transfer FAILED: %s - %s", std::string(res), res.GetDesc());
+        logger.msg(INFO, "Current transfer FAILED: %s - %s",
+                   std::string(res), res.GetDesc());
       else
         logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
       mover.Delete(*destination);
@@ -525,6 +527,27 @@ namespace Arc {
     }
     logger.msg(VERBOSE, "Valid JobDescription found");
     return true;
+  }
+
+  URL JobControllerARC0::CreateURL(std::string service, ServiceType st) {
+    std::string::size_type pos1 = service.find("://");
+    if (pos1 == std::string::npos) {
+      service = "ldap://" + service;
+      pos1 = 4;
+    }
+    std::string::size_type pos2 = service.find(":", pos1 + 3);
+    std::string::size_type pos3 = service.find("/", pos1 + 3);
+    if (pos3 == std::string::npos) {
+      if (pos2 == std::string::npos)
+        service += ":2135";
+      if (st == COMPUTING)
+        service += "/Mds-Vo-name=local, o=Grid";
+      else
+        service += "/Mds-Vo-name=NorduGrid, o=Grid";
+    }
+    else if (pos2 == std::string::npos || pos2 > pos3)
+      service.insert(pos3, ":2135");
+    return service;
   }
 
 } // namespace Arc

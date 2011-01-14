@@ -34,7 +34,7 @@ namespace Arc {
 
   TargetRetriever* TargetRetrieverLoader::load(const std::string& name,
                                                const UserConfig& usercfg,
-                                               const URL& url,
+                                               const std::string& service,
                                                const ServiceType& st) {
     if (name.empty())
       return NULL;
@@ -45,7 +45,7 @@ namespace Arc {
       return NULL;
     }
 
-    TargetRetrieverPluginArgument arg(usercfg, url, st);
+    TargetRetrieverPluginArgument arg(usercfg, service, st);
     TargetRetriever *targetretriever =
       factory_->GetInstance<TargetRetriever>("HED:TargetRetriever", name, &arg, false);
 
