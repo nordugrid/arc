@@ -18,6 +18,9 @@
 
 #include "arex.h"
 
+
+#define HTTP_ERR_NOT_SUPPORTED (501)
+
 #define MAX_CHUNK_SIZE (10*1024*1024)
 
 namespace ARex {
@@ -79,14 +82,13 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
   if(!job) {
     // There is no such job
     logger_.msg(Arc::ERROR, "Get: there is no job %s - %s", id, job.Failure());
-    // TODO: make proper html message
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
   };
-  if(!http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,range_start,range_end,false)) {
+  Arc::MCC_Status r;
+  if(!(r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,range_start,range_end,false))) {
     // Can't get file
     logger.msg(Arc::ERROR, "Get: can't process file %s", subpath);
-    // TODO: make proper html message
-    return Arc::MCC_Status();
+    return r;
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 } 
@@ -114,14 +116,13 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
   if(!job) {
     // There is no such job
     logger_.msg(Arc::ERROR, "Head: there is no job %s - %s", id, job.Failure());
-    // TODO: make proper html message
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
   };
-  if(!http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(size_t)(-1),true)) {
+  Arc::MCC_Status r;
+  if(!(r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(size_t)(-1),true))) {
     // Can't stat file
     logger.msg(Arc::ERROR, "Head: can't process file %s", subpath);
-    // TODO: make proper html message
-    return Arc::MCC_Status();
+    return r;
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
@@ -171,7 +172,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, 
         if(file != -1) {
           if(!no_content) {
             Arc::MessagePayload* h = newFileRead(file,start,end);
-            if(!h) { ::close(file); return Arc::MCC_Status(); };
+            if(!h) { ::close(file); return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
             outmsg.Payload(h);
           } else {
             struct stat st;
@@ -182,7 +183,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, 
           outmsg.Attributes()->set("HTTP:content-type","text/plain");
           return Arc::MCC_Status(Arc::STATUS_OK);
         };
-        return Arc::MCC_Status();
+        return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
       };
     };
   };
@@ -255,7 +256,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, 
     // File 
     if(!no_content) {
       Arc::MessagePayload* h = newFileRead(file,start,end);
-      if(!h) { ::close(file); return Arc::MCC_Status(); };
+      if(!h) { ::close(file); return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
       outmsg.Payload(h);
     } else {
       struct stat st;
@@ -269,7 +270,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, 
   };
   // Can't process this path
   // offset=0; size=0;
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 
 } // namespace ARex

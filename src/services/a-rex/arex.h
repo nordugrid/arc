@@ -94,8 +94,9 @@ class ARexService: public Arc::RegisteredService {
   Arc::MCC_Status MigrateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   Arc::MCC_Status CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
   Arc::MCC_Status UpdateCredentials(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& credentials);
-  Arc::MCC_Status make_response(Arc::Message& outmsg);
+  Arc::MCC_Status make_empty_response(Arc::Message& outmsg);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
+  Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
   Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);
   Arc::MCC_Status Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);

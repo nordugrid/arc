@@ -263,11 +263,20 @@ Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+Arc::MCC_Status ARexService::make_http_fault(Arc::Message& outmsg,int code,const char* resp) {
+  Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
+  outmsg.Payload(outpayload);
+  outmsg.Attributes()->set("HTTP:CODE",Arc::tostring(code));
+  if(resp) outmsg.Attributes()->set("HTTP:RESPONSE",resp);
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
 Arc::MCC_Status ARexService::make_fault(Arc::Message& /*outmsg*/) {
+  // That will cause 500 Internal Error in HTTP
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::make_response(Arc::Message& outmsg) {
+Arc::MCC_Status ARexService::make_empty_response(Arc::Message& outmsg) {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -568,7 +577,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     Arc::MCC_Status ret = Put(inmsg,outmsg,*config,id,subpath);
     if(!ret) return make_fault(outmsg);
     // Put() does not generate response yet
-    ret=make_response(outmsg);
+    ret=make_empty_response(outmsg);
     if(ret) {
       if(!ProcessSecHandlers(outmsg,"outgoing")) {
         logger_.msg(Arc::ERROR, "Security Handlers processing failed");
@@ -577,9 +586,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       };
     };
     return ret;
-  } else {
+  } else if(!method.empty()) {
     logger_.msg(Arc::VERBOSE, "process: method %s is not supported",method);
-    // TODO: make useful response
+    return make_http_fault(outmsg,501,"Not Implemented");
+  } else {
+    logger_.msg(Arc::VERBOSE, "process: method is not defined");
     return Arc::MCC_Status();
   };
   return Arc::MCC_Status();
