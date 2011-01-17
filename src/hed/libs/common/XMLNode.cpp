@@ -16,51 +16,56 @@ namespace Arc {
   static xmlNsPtr GetNamespace(xmlNodePtr node) {
     if (node == NULL) return NULL;
     xmlNsPtr ns_ = NULL;
-    if (node->type == XML_ELEMENT_NODE)
+    if (node->type == XML_ELEMENT_NODE) {
       ns_ = node->ns;
-    else if (node->type == XML_ATTRIBUTE_NODE)
+    } else if (node->type == XML_ATTRIBUTE_NODE) {
       ns_ = ((xmlAttrPtr)node)->ns;
-    ;
-    if (ns_)
-      return ns_;
-    if (node->parent)
-      return GetNamespace(node->parent);
+    };
+    if (ns_) return ns_;
+    if (node->parent) return GetNamespace(node->parent);
     return NULL;
   }
 
   static bool MatchXMLName(xmlNodePtr node1, xmlNodePtr node2) {
     if (node1 == NULL) return false;
     if (node2 == NULL) return false;
-    if (strcmp((char*)(node1->name), (char*)(node2->name)) != 0)
-      return false;
-    if (node1->type != node2->type)
-      return false;
-    if ((node1->type != XML_ELEMENT_NODE) && (node1->type != XML_ATTRIBUTE_NODE))
-      return true;
+    if (strcmp((char*)(node1->name), (char*)(node2->name)) != 0) return false;
+    if (node1->type != node2->type) return false;
+    if ((node1->type != XML_ELEMENT_NODE) && (node1->type != XML_ATTRIBUTE_NODE)) return true;
     xmlNsPtr ns1 = GetNamespace(node1);
     xmlNsPtr ns2 = GetNamespace(node2);
-    if (ns1 != ns2)
-      return false;
-    return true;
+    if (ns1 == ns2) return true;
+    if (ns1 && ns2) {
+      if(ns1->href && ns2->href) {
+        return (strcmp((const char*)(ns1->href),(const char*)(ns2->href)) == 0);
+      };
+    };
+    return false;
   }
 
   static bool MatchXMLName(xmlNodePtr node, const char *name) {
     if (node == NULL) return false;
     if (name == NULL) return false;
-    const char *name_ = strchr(name, ':');
-    if (name_ == NULL)
+    const char *name_ = strrchr(name, ':');
+    if (name_ == NULL) {
       name_ = name;
-    else
+    } else {
       ++name_;
-    if (strcmp(name_, (char*)(node->name)) != 0)
-      return false;
-    if (name_ == name)
-      return true;
+    };
+    if (strcmp(name_, (char*)(node->name)) != 0) return false;
+    if (name_ == name) return true;
     xmlNsPtr ns_ = GetNamespace(node);
     std::string ns(name, name_ - name - 1);
-    if ((ns_ == NULL) || (ns_->prefix == NULL))
-      return ns.empty();
-    return (ns == (const char*)(ns_->prefix));
+    if (ns_ == NULL) return ns.empty();
+    if (ns.find(':') != std::string::npos) {
+      // URI
+      if (ns_->href == NULL) return false;
+      return (ns == (const char*)(ns_->href));
+    } else {
+      // prefix
+      if (ns_->prefix == NULL) return ns.empty();
+      return (ns == (const char*)(ns_->prefix));
+    }
   }
 
   static bool MatchXMLNamespace(xmlNodePtr node1, xmlNodePtr node2) {
@@ -71,15 +76,20 @@ namespace Arc {
       return false;
     xmlNsPtr ns1 = GetNamespace(node1);
     xmlNsPtr ns2 = GetNamespace(node2);
-    return (ns1 == ns2);
+    if (ns1 == ns2) return true;
+    if (ns1 && ns2) {
+      if(ns1->href && ns2->href) {
+        return (strcmp((const char*)(ns1->href),(const char*)(ns2->href)) == 0);
+      };
+    };
+    return false;
   }
 
   static bool MatchXMLNamespace(xmlNodePtr node, const char *uri) {
     if (node == NULL) return false;
     if (uri == NULL) return false;
     xmlNsPtr ns_ = GetNamespace(node);
-    if ((ns_ == NULL) || (ns_->href == NULL))
-      return false;
+    if ((ns_ == NULL) || (ns_->href == NULL)) return (uri[0] == 0);
     return (strcmp(uri, (const char*)(ns_->href)) == 0);
   }
 

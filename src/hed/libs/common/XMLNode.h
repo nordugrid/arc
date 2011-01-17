@@ -188,9 +188,9 @@ namespace Arc {
     XMLNode Child(int n = 0);
     /** Returns XMLNode instance representing first child element with 
        specified name.
-       Name may be "namespace_prefix:name" or simply "name". In last 
-       case namespace is ignored. If such node does not exist invalid 
-       XMLNode instance is returned.
+       Name may be "namespace_prefix:name", "namespace_uri:name" or 
+       simply "name". In last case namespace is ignored. If such node 
+       does not exist invalid XMLNode instance is returned.
        This method should not be marked const because obtaining 
        unrestricted XMLNode of child element allows modification
        of underlying XML tree. But in order to keep const in other
