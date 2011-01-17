@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+#include <globus_openssl.h>
+
 extern "C" {
 /* See http://goc.grid.sinica.edu.tw/gocwiki/UsingLiblfcWithThreads
  * for LFC threading info */
@@ -37,10 +39,15 @@ extern int Cthread_init(); /* from <Cthread_api.h> */
 #include <arc/URL.h>
 #include <arc/Utils.h>
 #include <arc/UserConfig.h>
+#include <arc/crypto/OpenSSL.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "DataPointLFC.h"
 
 namespace Arc {
+
+  static bool proxy_initialized = false;
+  static bool persistent_initialized = false;
 
   Logger DataPointLFC::logger(Logger::getRootLogger(), "DataPoint.LFC");
 
@@ -113,7 +120,28 @@ namespace Arc {
     // may have problems with unloading
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
-    if(factory && module) factory->makePersistent(module);
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - LFC code is disabled. Report to developers.");
+      return NULL;
+    }
+    if(!persistent_initialized) {
+      factory->makePersistent(module);
+      persistent_initialized = true;
+    };
+    OpenSSLInit();
+    if (!proxy_initialized) {
+#ifndef WITH_CTHREAD
+      /* Initialize Cthread library - should be called before any LFC-API function */
+      if (0 != Cthread_init()) {
+        logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
+        return NULL;
+      }
+#endif
+      // LFC uses GSI plugin which uses Globus GSI which 
+      // causes a lot of mess in OpenSSL. Trying to intercept.
+      globus_module_activate(GLOBUS_OPENSSL_MODULE);
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
+    }
     return new DataPointLFC(*dmcarg, *dmcarg);
   }
 
@@ -133,14 +161,6 @@ namespace Arc {
   /* perform resolve operation, which can take long time */
   DataStatus DataPointLFC::Resolve(bool source) {
     int lfc_r;
-
-#ifndef WITH_CTHREAD
-    /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 != Cthread_init()) {
-      logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::SystemError;
-    }
-#endif
 
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")), url);
@@ -283,14 +303,6 @@ namespace Arc {
   DataStatus DataPointLFC::PreRegister(bool replication, bool force) {
     int lfc_r;
 
-#ifndef WITH_CTHREAD
-    /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 != Cthread_init()) {
-      logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::SystemError;
-    }
-#endif
-
     if (replication) { /* replicating inside same lfn */
       if (!registered) {
         logger.msg(ERROR, "LFN is missing in LFC (needed for replication)");
@@ -419,14 +431,6 @@ namespace Arc {
   DataStatus DataPointLFC::PostRegister(bool replication) {
     int lfc_r;
 
-#ifndef WITH_CTHREAD
-    /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 != Cthread_init()) {
-      logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::SystemError;
-    }
-#endif
-
     if (guid.empty()) {
       logger.msg(ERROR, "No GUID defined for LFN - probably not preregistered");
       return DataStatus::PostRegisterError;
@@ -486,14 +490,6 @@ namespace Arc {
   DataStatus DataPointLFC::PreUnregister(bool replication) {
     int lfc_r;
 
-#ifndef WITH_CTHREAD
-    /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 != Cthread_init()) {
-      logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::SystemError;
-    }
-#endif
-
     if (replication || registered)
       return DataStatus::Success;
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
@@ -522,14 +518,6 @@ namespace Arc {
 
   DataStatus DataPointLFC::Unregister(bool all) {
     int lfc_r;
-
-#ifndef WITH_CTHREAD
-    /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 != Cthread_init()) {
-      logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::SystemError;
-    }
-#endif
 
     if (!all && (!LocationValid())) {
       logger.msg(ERROR, "Location is missing");
@@ -627,14 +615,6 @@ namespace Arc {
  
   DataStatus DataPointLFC::ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, bool listdir) {
     int lfc_r;
-
-#ifndef WITH_CTHREAD
-    /* Initialize Cthread library - should be called before any LFC-API function */
-    if (0 != Cthread_init()) {
-      logger.msg(ERROR, "Cthread_init() error: %s", sstrerror(serrno));
-      return DataStatus::SystemError;
-    }
-#endif
 
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
                       const_cast<char*>("ARC")), url);

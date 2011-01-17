@@ -15,6 +15,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include "DataPointRLS.h"
 #include "RLS.h"
@@ -25,7 +26,6 @@
 namespace Arc {
 
   static bool proxy_initialized = false;
-  static bool globus_initialized = false;
   static bool persistent_initialized = false;
 
   Logger DataPointRLS::logger(Logger::getRootLogger(), "DataPoint.RLS");
@@ -34,12 +34,11 @@ namespace Arc {
     : DataPointIndex(url, usercfg),
       guid_enabled(false) {
     valid_url_options.push_back("guid");
-    if(!globus_initialized) {
+    if(!proxy_initialized) {
       globus_module_activate(GLOBUS_COMMON_MODULE);
       globus_module_activate(GLOBUS_IO_MODULE);
       globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
-      if (!proxy_initialized)
-        proxy_initialized = GlobusRecoverProxyOpenSSL();
+      proxy_initialized = GlobusRecoverProxyOpenSSL();
     }
     std::string guidopt = url.Option("guid", "no");
     if ((guidopt == "yes") || (guidopt == ""))
@@ -47,12 +46,6 @@ namespace Arc {
   }
 
   DataPointRLS::~DataPointRLS() {
-    if(!persistent_initialized) {
-      globus_module_deactivate(GLOBUS_RLS_CLIENT_MODULE);
-      globus_module_deactivate(GLOBUS_IO_MODULE);
-      globus_module_deactivate(GLOBUS_COMMON_MODULE);
-      globus_initialized = false;
-    }
   }
 
   Plugin* DataPointRLS::Instance(PluginArgument *arg) {
@@ -66,10 +59,13 @@ namespace Arc {
     // may have problems with unloading
     Glib::Module* module = dmcarg->get_module();
     PluginsFactory* factory = dmcarg->get_factory();
-    if(factory && module) {
-      factory->makePersistent(module);
-      persistent_initialized = true;
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - RLS code is disabled. Report to developers.");
+      return NULL;
     }
+    factory->makePersistent(module);
+    OpenSSLInit();
+    persistent_initialized = true;
     return new DataPointRLS(*dmcarg, *dmcarg);
   }
 
