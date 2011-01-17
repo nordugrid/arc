@@ -780,9 +780,9 @@ sub collect($) {
                 # Computing Activity Associations
 
                 # TODO: add link
-                $cact->{ExecutionEnvironmentID} = [];
+                #$cact->{ExecutionEnvironmentID} = ;
                 $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-                $cact->{ComputingShareID} = [ $cshaIDs{$share} || 'UNDEFINEDVALUE' ];
+                $cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
 
                 if ( $gmjob->{status} eq "INLRMS" ) {
                     my $lrmsid = $gmjob->{localid};
@@ -903,7 +903,7 @@ sub collect($) {
             # MaxWaitingJobs: use the maxjobs config option
             # OBS: An upper limit is not really enforced by A-REX.
             # OBS: Currently A-REX only cares about totals, not per share limits!
-            $csha->{MaxTotalJobs} = [ $maxtotal ] if defined $maxtotal;
+            $csha->{MaxTotalJobs} = $maxtotal if defined $maxtotal;
 
             # MaxWaitingJobs, MaxRunningJobs:
             my ($maxrunning, $maxwaiting);
