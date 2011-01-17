@@ -145,9 +145,11 @@ static void message_send_thread(void *arg) {
            not_availables_neighbors->remove(url);
            thread_logger.msg(Arc::VERBOSE, "Status (%s): OK",url );
            if(response) delete response;
+           response = NULL;
            break;
         };
         if(response) delete response;
+        response = NULL;
     }
     return;
 }
@@ -1179,6 +1181,10 @@ static void soft_state_thread(void *data) {
 
                 if ( (!status.isOk()) || (!response) || (response->IsFault()) ) {
                    logger_.msg(Arc::INFO, "Query failed at %s, choosing new InfoProvider.", rndProvider.url);
+                   if (response) {
+                      delete response;
+                      response = NULL;
+                   }
                    retry_[rndProvider.url]--;
                    if ( retry_[rndProvider.url] < 1 ) {
                       retry_.erase(rndProvider.url);
@@ -1203,25 +1209,26 @@ static void soft_state_thread(void *data) {
 
             // 4. step: Hash table and neighbors filling
             std::vector<Service_data> find_servicedatas;
-            for (unsigned int i=0; bool( (*response)["QueryResponse"]["RegEntry"][i]); i++ ) {
-                std::string serviceid = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["MetaSrcAdv"]["ServiceID"];
-                if ( serviceid.empty() )
-                    continue;
-                std::string serviceurl = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["SrcAdv"]["EPR"]["Address"];
-                if ( serviceurl.empty() )
-                    serviceurl = serviceid;
-                Service_data sdata;
-                sdata.serviceID = serviceid;
-                sdata.service.url = serviceurl;
-                Arc::XMLNode regentry = (*response)["QueryResponse"]["RegEntry"][i];
-                /*sdata.service.cert = Cert(regentry);
-                sdata.service.key = Key(regentry);
-                sdata.service.proxy = Proxy(regentry);
-                sdata.service.cadir = CaDir(regentry);*/
-                sdata.peerID = PeerID(regentry);
-                find_servicedatas.push_back( sdata );
+            if(response) {
+                for (unsigned int i=0; bool( (*response)["QueryResponse"]["RegEntry"][i]); i++ ) {
+                    std::string serviceid = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["MetaSrcAdv"]["ServiceID"];
+                    if ( serviceid.empty() ) continue;
+                    std::string serviceurl = (std::string)(*response)["QueryResponse"]["RegEntry"][i]["SrcAdv"]["EPR"]["Address"];
+                    if ( serviceurl.empty() ) serviceurl = serviceid;
+                    Service_data sdata;
+                    sdata.serviceID = serviceid;
+                    sdata.service.url = serviceurl;
+                    Arc::XMLNode regentry = (*response)["QueryResponse"]["RegEntry"][i];
+                    /*sdata.service.cert = Cert(regentry);
+                    sdata.service.key = Key(regentry);
+                    sdata.service.proxy = Proxy(regentry);
+                    sdata.service.cadir = CaDir(regentry);*/
+                    sdata.peerID = PeerID(regentry);
+                    find_servicedatas.push_back( sdata );
+                }
+                delete response;
+                response = NULL;
             }
-            if(response) delete response;
 
             if ( available_provider )
                 hash_table.clear();
@@ -1270,27 +1277,29 @@ static void soft_state_thread(void *data) {
                            retry_connect = 0;
                            continue;
                        }
+                       if(response_c) delete response_c;
+                       response_c = NULL;
                        Arc::ClientSOAP connectclient_entry(mcc_cfg, neighbors_[current].url, 60);
                        logger_.msg(Arc::VERBOSE, "Sending Connect request to the ISIS(%s) and waiting for the response.", neighbors_[current].url );
 
                        status= connectclient_entry.process(&connect_req,&response_c);
                        if ( (!status.isOk()) || (!response_c) || (response_c->IsFault()) ) {
                           logger_.msg(Arc::INFO, "Connect status (%s): Failed", neighbors_[current].url );
-                          retry_connect--;
+                           retry_connect--;
                        } else {
-                          logger_.msg(Arc::VERBOSE, "Connect status (%s): OK", neighbors_[current].url );
-                          isavailable_connect = true;
+                           logger_.msg(Arc::VERBOSE, "Connect status (%s): OK", neighbors_[current].url );
+                           isavailable_connect = true;
                        };
                    }
 
                    if ( current+1 == neighbors_.size() ) {
-                      no_more_isis = true;
-                      not_availables_neighbors_.push(neighbors_[current].url);
-                      logger_.msg(Arc::VERBOSE, "No more available ISIS in the neighbors list." );
+                       no_more_isis = true;
+                       not_availables_neighbors_.push(neighbors_[current].url);
+                       logger_.msg(Arc::VERBOSE, "No more available ISIS in the neighbors list." );
                    } else if (!isavailable_connect) {
                       if ( !not_availables_neighbors_.contains(neighbors_[current].url) )
-                        not_availables_neighbors_.push(neighbors_[current].url);
-                      current++;
+                       not_availables_neighbors_.push(neighbors_[current].url);
+                       current++;
                    }
                }
 
@@ -1366,6 +1375,7 @@ static void soft_state_thread(void *data) {
                   logger_.msg(Arc::VERBOSE, "Database mass updated." );
                }
                if (response_c) delete response_c;
+               response_c = NULL;
             }
         } else {
             Neighbors_Update();
