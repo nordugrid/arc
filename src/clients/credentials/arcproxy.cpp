@@ -894,19 +894,19 @@ int main(int argc, char *argv[]) {
             break;
             //return EXIT_FAILURE;
           }
-          std::string ret_str;
-          char ret_buf[1024];
-          memset(ret_buf, 0, 1024);
-          int len;
-          do {
-            len = 1024;
-            response->Get(&ret_buf[0], len);
-            ret_str.append(ret_buf, len);
-            memset(ret_buf, 0, 1024);
-          } while (len == 1024);
-          logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
-          Arc::XMLNode node(ret_str);
-          if((!node) || (ret_str.find("error") != std::string::npos)) {
+          Arc::XMLNode node;
+          {
+            std::string ret_str;
+            char ret_buf[1024];
+            int len = sizeof(ret_buf);
+            while(response->Get(ret_buf, len)) {
+              ret_str.append(ret_buf, len);
+              len = sizeof(ret_buf);
+            };
+            logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+            Arc::XMLNode(ret_str).Exchange(node);
+          };
+          if((!node) || ((bool)(node["error"]))) {
             std::string str = node["error"]["item"]["message"];
             throw std::runtime_error("Cannot get any AC or attributes info from VOMS server: " + voms_server + ";\n       Returned message from VOMS server: " + str);
           }
@@ -921,8 +921,8 @@ int main(int argc, char *argv[]) {
           int size;
           char *dec = NULL;
           dec = Arc::VOMSDecode((char*)(codedac.c_str()), codedac.length(), &size);
-          decodedac.append(dec, size);
           if (dec != NULL) {
+            decodedac.append(dec, size);
             free(dec);
             dec = NULL;
           }

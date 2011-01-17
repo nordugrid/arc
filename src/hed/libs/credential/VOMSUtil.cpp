@@ -571,6 +571,7 @@ err:
 
     InitVOMSAttribute();
 
+    if(codedac.empty()) return true;
     int l = codedac.size();
 
     pp = (char *)malloc(codedac.size());
@@ -579,7 +580,7 @@ err:
       return false; 
     }
 
-    pp = (char *)memcpy(pp, codedac.data(), codedac.size());
+    memcpy(pp, codedac.data(), l);
     p = pp;
 
     dataorder = BN_new();
@@ -600,7 +601,7 @@ err:
         char *buffer = BN_bn2hex(dataorder);
         acorder = std::string(buffer);
         OPENSSL_free(buffer);
-        free(pp); BN_free(dataorder); return true;
+        free(pp); BN_free(dataorder);
       }
       else {
         listfree((char **)aclist, (freefn)AC_free);  free(pp); BN_free(dataorder); return false;
@@ -610,6 +611,7 @@ err:
       CredentialLogger.msg(ERROR,"VOMS: Can not parse AC");
       free(pp); BN_free(dataorder); return false;
     }
+    return true;
   }
 
   static int cb(int ok, X509_STORE_CTX *ctx) {
