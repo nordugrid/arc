@@ -550,24 +550,6 @@ The Janitor is a recent development and the community to prepare
 catalogues of dynamically installable packages still needs to
 evolve.
 
-%package	doc
-Summary:	ARC API documentation
-Group:		Documentation
-Provides:	nordugrid-arc1-doc = 1.3.0
-Obsoletes:	nordugrid-arc1-doc < 1.0.0
-Provides:	nordugrid-arc-nox-doc = 1.3.0
-Obsoletes:	nordugrid-arc-nox-doc < 1.3.0
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-
-%description doc
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced
-Resource Connector (ARC).
-
-Reference to the ARC programming API. It is prepared with doxygen.
-
 %prep
 %setup -q
 
@@ -581,7 +563,7 @@ Reference to the ARC programming API. It is prepared with doxygen.
 %endif
      --enable-docs
 
-make all doc %{?_smp_mflags}
+make %{?_smp_mflags}
 
 %check
 make check
@@ -1015,30 +997,6 @@ exit 0
 %{_datadir}/%{pkgdir}/janitor
 %{_datadir}/%{pkgdir}/perl/Janitor
 %doc %{_mandir}/man8/janitor.8*
-
-%files doc
-%defattr(-,root,root,-)
-%doc doc/tech_doc/hed/ARCHED_article.pdf
-%doc doc/tech_doc/chelonia/arc-storage-documentation.pdf
-%doc doc/tech_doc/a-rex/arex_tech_doc.pdf
-%doc doc/tech_doc/backend_interface/Backends-arc1.pdf
-%doc doc/tech_doc/client/client_technical.pdf
-%doc doc/tech_doc/infosys/infosys_technical.pdf
-%doc doc/tech_doc/infosys/TechnicalHandbook/ISIS-TechnicalHandbook.pdf
-%doc doc/tech_doc/jura/jura-tech-doc.pdf
-%doc doc/tech_doc/sec/arc-security-documentation.pdf
-%doc doc/tech_doc/gridftpd/gridftpd.pdf
-%doc doc/tech_doc/xrsl/xrsl.pdf
-%doc doc/tech_doc/urlogger/urlogger.pdf
-%doc doc/tech_doc/ldap-arc-infosys/arc_infosys.pdf
-%doc doc/manuals/user_interface/ui.pdf
-%doc doc/manuals/ws-quick-guide/ws-quick-guide.pdf
-%doc doc/manuals/janitor/Janitor.pdf
-%doc doc/manuals/monitor/monitor.pdf
-%doc doc/tutorials/ws-programming-tutorial/doc/WS-tutorial.pdf
-%doc src/doxygen/ARC1-API.pdf
-%doc src/doxygen/ARC1-ChainComponents.pdf
-%doc src/doxygen/ARC1-Services.pdf
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1

@@ -13,29 +13,12 @@ endif
 if SWIG_ENABLED
 SWIG_SD = swig
 endif
-if DOC_ENABLED 
-DOC_SD = doc
-endif
 
 SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian nsis
 
-DOCDIRS = $(DOC_SD)
-
-DIST_SUBDIRS = src swig java python po doc include debian nsis
+DIST_SUBDIRS = src swig java python po include debian nsis
 
 EXTRA_DIST = nordugrid-arc.spec mingw32-nordugrid-arc.spec nordugrid-arc.SlackBuild autogen.sh LICENSE
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = arcbase.pc
-
-doc:
-	for d in $(DOCDIRS); do \
-		$(MAKE) -C $$d ; \
-	done
-
-install-doc:
-	for d in $(DOCDIRS); do \
-		$(MAKE) -C $$d install; \
-	done
-
-.PHONY: doc
