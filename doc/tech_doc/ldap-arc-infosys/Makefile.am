@@ -4,7 +4,7 @@ docsource = arc_infosys.tex *.png
 
 doc_DATA = arc_infosys.pdf
 
-STYLES = ng-logo.png IEEEtran.bst
+STYLES = ng-logo.png
 
 EXTRA_DIST = $(doc_DATA) $(STYLES) $(docsource)
 
