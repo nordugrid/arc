@@ -83,7 +83,7 @@ sub safe_dn {
 sub safe_attrval {
     my ($attr, $val) = @_;
     return "${attr}:: ".encode_base64($val,'') if $val =~ /^[\s,:<]/;
-    return "${attr}:: ".encode_base64($val,'') if $val =~ /[\x0D\x0A\x00\x80-\x{FFFFFFFF}]/;
+    return "${attr}:: ".encode_base64($val,'') if $val =~ /[\x0D\x0A\x00\N{U+80}-\N{U+FFFFFFFF}/]/;
     return "${attr}: $val";
 }
 
