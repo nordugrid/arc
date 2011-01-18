@@ -31,6 +31,7 @@ namespace Arc {
   protected:
     static Logger logger;
     std::string guid;
+    std::string path_for_guid;
   private:
     std::string ResolveGUIDToLFN();
     DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, bool listdir);

@@ -95,7 +95,8 @@ namespace Arc {
 
   DataPointLFC::DataPointLFC(const URL& url, const UserConfig& usercfg)
     : DataPointIndex(url, usercfg),
-      guid("") {
+      guid(""),
+      path_for_guid(url.Path()){
     /*
     // set retry env variables (don't overwrite if set already)
     // connection timeout
@@ -736,8 +737,12 @@ namespace Arc {
       f->SetSize(st.filesize);
       f->SetMetaData("size", tostring(st.filesize));
       SetSize(st.filesize);
-      if (st.csumvalue[0]) {
+      if (st.csumtype[0] && st.csumvalue[0]) {
         std::string csum = st.csumtype;
+        if (csum == "MD")
+          csum = "md5";
+        else if (csum == "AD")
+          csum = "adler32";
         csum += ":";
         csum += st.csumvalue;
         f->SetCheckSum(csum);
@@ -795,7 +800,7 @@ namespace Arc {
 
     // check if guid is already defined
     if (!guid.empty())
-      return url.Path();
+      return path_for_guid;
 
     // check for guid in the attributes
     if (url.MetaDataOption("guid").empty())
@@ -817,12 +822,13 @@ namespace Arc {
     }
 
     logger.msg(VERBOSE, "guid %s resolved to LFN %s", guid, info[0].path);
-    std::string path = info[0].path;
+    path_for_guid = info[0].path;
     {
       LFCEnvLocker lfc_lock(usercfg, url);
       lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
     }
-    return path;
+
+    return path_for_guid;
   }
 
   const std::string DataPointLFC::DefaultCheckSum() const {
