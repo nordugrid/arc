@@ -463,11 +463,6 @@ namespace Arc {
       CheckSumAny crc_dest;
       std::string crc_type("");
 
-      /***********************************************************************
-       * Disabling on the fly checksum by default until bug 1598 is resolved *
-       * It can still be enabled using URL options                           *
-       ***********************************************************************/
-
       // check if checksumming is turned off
       if ((source.GetURL().Option("checksum") == "no") ||
           (destination.GetURL().Option("checksum") == "no")) {
@@ -475,7 +470,7 @@ namespace Arc {
       }
       // check if checksum is specified as a metadata attribute
       else if (!destination.GetURL().MetaDataOption("checksumtype").empty() && !destination.GetURL().MetaDataOption("checksumvalue").empty()) {
-        //crc_type = destination.GetURL().MetaDataOption("checksumtype");
+        crc_type = destination.GetURL().MetaDataOption("checksumtype");
         logger.msg(VERBOSE, "DataMove::Transfer: using supplied checksum %s:%s",
             destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"));
         std::string csum = destination.GetURL().MetaDataOption("checksumtype") + ':' + destination.GetURL().MetaDataOption("checksumvalue");
@@ -483,21 +478,18 @@ namespace Arc {
       }
       else if (destination.AcceptsMeta() || destination.ProvidesMeta()) {
         if (destination.GetURL().Option("checksum").empty()) {
-          //crc_type = destination.DefaultCheckSum();
+          crc_type = destination.DefaultCheckSum();
         } else {
           crc_type = destination.GetURL().Option("checksum");
         }
       }
-      else if (source.CheckCheckSum() || source.ProvidesMeta()) {
-        crc_type = source.GetURL().Option("checksum");
-      }
-      /*
       else if (source.CheckCheckSum()) {
         crc_type = source.GetCheckSum();
         crc_type = crc_type.substr(0, crc_type.find(':'));
       }
-      else if (source.ProvidesMeta()) crc_type = source.DefaultCheckSum();
-      */
+      else if (source.ProvidesMeta()) {
+        crc_type = source.DefaultCheckSum();
+      }
 
       if (!crc_type.empty()) {
         crc = crc_type.c_str();
@@ -722,9 +714,22 @@ namespace Arc {
       // Disable checks meant to provide meta-information if not needed
       source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
       
-      // check location meta
       if (source_url.GetAdditionalChecks()) {
-        DataStatus r = source_url.CompareLocationMetadata();
+        DataStatus r = source_url.Check();
+        if (!r.Passed()) {
+          logger.msg(ERROR, "Failed to check source %s", source_url.str());
+          if (source.NextLocation())
+            logger.msg(VERBOSE, "(Re)Trying next source");
+          res = DataStatus::ReadError;
+#ifndef WIN32
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+#endif
+          continue;
+        }
+
+        // check location meta
+        r = source_url.CompareLocationMetadata();
         if (!r.Passed()) {
           if (r == DataStatus::InconsistentMetadataError)
             logger.msg(ERROR, "Meta info of source and location do not match for %s", source_url.str());
@@ -953,51 +958,51 @@ namespace Arc {
         calc_csum = buf;
       }
       if (!calc_csum.empty()) {
-          // compare calculated to any checksum given as a meta option
-          if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
-             !destination.GetURL().MetaDataOption("checksumvalue").empty() &&
-             calc_csum.substr(0, calc_csum.find(":")) == destination.GetURL().MetaDataOption("checksumtype") &&
-             calc_csum.substr(calc_csum.find(":")+1) != destination.GetURL().MetaDataOption("checksumvalue")) {
-            // error here? yes since we'll have an inconsistent catalog otherwise
-            logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
-                destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
+        // compare calculated to any checksum given as a meta option
+        if (!destination.GetURL().MetaDataOption("checksumtype").empty() &&
+           !destination.GetURL().MetaDataOption("checksumvalue").empty() &&
+           calc_csum.substr(0, calc_csum.find(":")) == destination.GetURL().MetaDataOption("checksumtype") &&
+           calc_csum.substr(calc_csum.find(":")+1) != destination.GetURL().MetaDataOption("checksumvalue")) {
+          // error here? yes since we'll have an inconsistent catalog otherwise
+          logger.msg(ERROR, "Checksum mismatch between checksum given as meta option (%s:%s) and calculated checksum (%s)",
+              destination.GetURL().MetaDataOption("checksumtype"), destination.GetURL().MetaDataOption("checksumvalue"), calc_csum);
 #ifndef WIN32
-            if (cacheable)
+          if (cacheable)
+            cache.StopAndDelete(canonic_url);
+#endif
+          if (!destination.Unregister(replication || destination_meta_initially_stored))
+            logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
+          res = DataStatus(DataStatus::TransferError, "Checksum mismatch");
+          if (!Delete(destination, true))
+            logger.msg(WARNING, "Failed to delete destination, retry may fail");
+          if (destination.NextLocation())
+            logger.msg(VERBOSE, "(Re)Trying next destination");
+          continue;
+        }
+        if (source.CheckCheckSum()) {
+          std::string src_csum_s(source.GetCheckSum());
+          if (src_csum_s.find(':') == src_csum_s.length() -1)
+            logger.msg(VERBOSE, "Cannot compare empty checksum");
+          else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")))
+            logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
+          else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
+            logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
+#ifndef WIN32
+            if(cacheable)
               cache.StopAndDelete(canonic_url);
 #endif
-            if (!destination.Unregister(replication || destination_meta_initially_stored))
-              logger.msg(WARNING, "Failed to unregister preregistered lfn, You may need to unregister it manually");
-            res = DataStatus(DataStatus::TransferError, "Checksum mismatch");
-            if (!Delete(destination, true))
-              logger.msg(WARNING, "Failed to delete destination, retry may fail");
-            if (destination.NextLocation())
-              logger.msg(VERBOSE, "(Re)Trying next destination");
+            res = DataStatus::TransferError;
+            if (source.NextLocation())
+              logger.msg(VERBOSE, "(Re)Trying next source");
             continue;
           }
-          if (source.CheckCheckSum()) {
-            std::string src_csum_s(source.GetCheckSum());
-            if (src_csum_s.find(':') == src_csum_s.length() -1)
-              logger.msg(VERBOSE, "Cannot compare empty checksum");
-            else if (calc_csum.substr(0, calc_csum.find(":")) != src_csum_s.substr(0, src_csum_s.find(":")))
-              logger.msg(VERBOSE, "Checksum type of source and calculated checksum differ, cannot compare");
-            else if (calc_csum.substr(calc_csum.find(":")) != src_csum_s.substr(src_csum_s.find(":"))) {
-              logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source.GetCheckSum());
-#ifndef WIN32
-              if(cacheable)
-                cache.StopAndDelete(canonic_url);
-#endif
-              res = DataStatus::TransferError;
-              if (source.NextLocation())
-                logger.msg(VERBOSE, "(Re)Trying next source");
-              continue;
-            }
-            else
-              logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
-          }
-          // set the destination checksum to be what we calculated
-          destination.SetCheckSum(calc_csum.c_str());
+          else
+            logger.msg(VERBOSE, "Calculated transfer checksum %s matches source checksum", calc_csum);
+        }
+        // set the destination checksum to be what we calculated
+        destination.SetCheckSum(calc_csum.c_str());
       } else {
-          logger.msg(VERBOSE, "Checksum not computed");
+        logger.msg(VERBOSE, "Checksum not computed");
       }
 
       destination.SetMeta(source); // pass more metadata (checksum)
