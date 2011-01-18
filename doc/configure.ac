@@ -31,6 +31,7 @@ AC_SUBST(DOXYGEN)
 #AC_CONFIG_SUBDIR([ws-programming-tutorial])
 
 AC_CONFIG_FILES([Makefile
+                 nordugrid-arc-doc.spec
                  tech_doc/Makefile
                  tech_doc/client/Makefile
                  tech_doc/a-rex/Makefile
