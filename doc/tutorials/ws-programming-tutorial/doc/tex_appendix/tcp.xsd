@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/tcp/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/tcp/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<!-- Listen --> 
+<xsd:element name="Listen">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            This element defines listening TCP socket. If interface is missing socket is bound to all local interfaces (not supported). There may be multiple Listen elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Interface" type="xsd:string" minOccurs="0" maxOccurs="1" default="0.0.0.0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Listen network interface.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Port" type="xsd:int">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Listen network port.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Version" minOccurs="0" maxOccurs="1">
+                <xsd:simpleType>
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                        This element defines TCP/IP protocol version.
+                        If not specified both versions will be used whenether possible.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:enumeration value="4"/>
+                        <xsd:enumeration value="6"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="NoDelay" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Apply no delay socket option. If set to true TCP packets will
+                    be proceesd as soon as possible without waiting for more data
+                    to become available.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Timeout" type="xsd:int" minOccurs="0" maxOccurs="1" default="60">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    Timeout for socket level operations
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<!-- Connect -->
+<xsd:element name="Connect">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            This element defines TCP connection to be established to specified Host at specified Port. If LocalPort is defined TCP socket will be bound to this port number (not supported).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Host" type="xsd:string"/>
+            <xsd:element name="Port" type="xsd:int"/>
+            <xsd:element name="Timeout" type="xsd:int"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="Limit">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            This element defines upper limit for number of simultaneous 
+            active TCP connections. Only positive numbers are meaningful.
+            If attribute "drop" is specified and is set to true then
+            connections over specified limit will be dropped. Otherwise
+            they will be put on hold.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:int">
+                <xsd:attribute name="drop" type="xsd:boolean" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:element>
+
+</xsd:schema>

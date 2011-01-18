@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.nordugrid.org/schemas/tls/2009/08"
+    xmlns="http://www.nordugrid.org/schemas/tls/2009/08"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+<xsd:element name="KeyPath" type="xsd:string" default="/etc/grid-security/hostkey.pem">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of private key.
+        Default is /etc/grid-security/hostkey.pem for service
+        and $HOME/.globus/userkey.pem for client.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CertificatePath" type="xsd:string" default="/etc/grid-security/hostcert.pem">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of public certificate.
+        Default is /etc/grid-security/hostcert.pem for service and
+        $HOME/.globus/usercert.pem for client.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="ProxyPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of proxy credentials - includes certificates,
+        key and chain of involved certificates. Overwrites
+        elements KeyPath and CertificatePath. Default is /tmp/hash{userid}.0 for client,
+        and none for service.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CACertificatePath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of certificate of CA. Default is none.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="CACertificatesDir" default="/etc/grid-security/certificates">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            Directory containing certificates of accepted CAs.
+            Default is /etc/grid-security/certificates
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="PolicyGlobus" type="xsd:boolean" use="optional" default="false"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="ClientAuthn" type="xsd:boolean" default="true">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+         Whether checking client certificate. Only needed for service side.
+        Default is "true"
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="VOMSCertTrustDNChain">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            The DN list of the trusted voms server credential;
+            in the AC part of voms proxy certificate, voms proxy
+            certificate comes with the server certificate which is
+            used to sign the AC. So when verifying the AC on the
+            AC-consuming side (in ARC1, it is the MCCTLS which will
+            consumes the AC), the server certificate will be checked
+            against a trusted DN list. Only if the DN and issuer's
+            DN of server certificate exactly matches the DN list
+            in the configuration under TLS component, the AC can be trusted
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+          <xsd:element name="VOMSCertTrustDN" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="VOMSCertTrustRegex" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="VOMSCertTrustDNChainsLocation" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        DN list in an external file, which is in the same format as VOMSCertTrustDNChain
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="Handshake" default="TLS">
+    <xsd:simpleType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            Type of handshake applied. Default is TLS.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="TLS"/>
+            <xsd:enumeration value="SSLv3"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:element>
+
+<xsd:element name="GSI" default="">
+    <xsd:simpleType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            GSI features to instest. Currently only supports Globus 
+            without delegation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value=""/>
+            <xsd:enumeration value="globus"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:element>
+
+</xsd:schema>
