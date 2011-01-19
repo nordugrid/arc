@@ -95,6 +95,7 @@ namespace Arc {
 
   class NotificationType {
   public:
+    NotificationType() {}
     std::string Email;
     std::list<std::string> States;
   };
@@ -235,11 +236,18 @@ namespace Arc {
     std::list<DataTargetType> Target;
   };
 
-  class FileType : public DataType {};
-  class DirectoryType : public DataType {};
+  class FileType : public DataType {
+  public:
+    FileType() {}
+  };
+  class DirectoryType : public DataType {
+  public:
+    DirectoryType() {}
+  };
 
   class DataStagingType {
   public:
+    DataStagingType() : File(), Directory() {}
     std::list<FileType> File;
     std::list<DirectoryType> Directory;
   };
