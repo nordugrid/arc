@@ -1,8 +1,0 @@
-Document: arc1-clienttech
-Title: libarcclient - a client library for ARC
-Author: KnowARC developers
-Abstract: Technical description of a plugin-based client library for the new Web Service (WS) based Advanced Resource Connector (ARC) middleware. The library consists of a set of C++ classes for handling proxy, user and host certificates, performing computing resource discovery and information retrieval, filtering and brokering of found computing resources, job submission and management and data handling.
-Section: Network/Communication
-
-Format: PDF
-Files: /usr/share/doc/nordugrid-arc-doc/client_technical.pdf

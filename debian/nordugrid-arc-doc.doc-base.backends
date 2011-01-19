@@ -1,9 +1,0 @@
-Document: arc1-backends
-Title: ARC batch system back-end interface guide with support for GLUE 2
-Author: Adrian Taga, Thomas Fragat
-Abstract: Reference manual of the API for accessing the local batch systems at a grid site with sufficient information to help with the addition of one's own favorite backend that may not be supported, yet. ARC is the grid middleware with the largest number of supported backend systems.
-Section: Network/Communication
-
-Format: PDF
-Files: /usr/share/doc/nordugrid-arc-doc/Backends-arc1.pdf
-
