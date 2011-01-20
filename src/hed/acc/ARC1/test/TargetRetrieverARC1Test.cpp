@@ -26,13 +26,6 @@ public:
 #ifdef TESTEXTRACTTARGETS
   void TestExtractTargets();
 #endif
-
-private:
-  class TestTargetRetrieverARC1 :
-    public Arc::TargetRetrieverARC1 {
-    public:
-    static void ExtractTargets(const Arc::URL& url, Arc::XMLNode response, std::list<Arc::ExecutionTarget>& targets) { Arc::TargetRetrieverARC1::ExtractTargets(url, response, targets); }
-  };
 };
 
 
@@ -381,7 +374,7 @@ void TargetRetrieverARC1Test::TestExtractTargets()
   "</Response>");
 
   std::list<Arc::ExecutionTarget> targets;
-  TestTargetRetrieverARC1::ExtractTargets(Arc::URL(), response, targets);
+  Arc::TargetRetrieverARC1::ExtractTargets(Arc::URL(), response, targets);
 
   testLogger.msg(Arc::DEBUG, "targets.size() = %d", targets.size());
 
