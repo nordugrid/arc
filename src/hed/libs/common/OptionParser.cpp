@@ -285,12 +285,14 @@ namespace Arc {
     std::string optstring;
     for (std::list<OptionBase*>::iterator it = options.begin();
          it != options.end(); it++) {
-      setopt(longoptions[i++], (*it)->longOpt.c_str(),
+      setopt(longoptions[i], (*it)->longOpt.c_str(),
              (*it)->argDesc.empty() ? no_argument : required_argument,
-             NULL, (*it)->shortOpt);
-      optstring += (*it)->shortOpt;
-      if (!(*it)->argDesc.empty())
-        optstring += ':';
+             NULL, (*it)->shortOpt?(*it)->shortOpt:(i+0x100));
+      if((*it)->shortOpt) {
+        optstring += (*it)->shortOpt;
+        if (!(*it)->argDesc.empty()) optstring += ':';
+      }
+      ++i;
     }
     setopt(longoptions[i++], "help", no_argument, NULL, 'h');
     optstring += 'h';
@@ -346,15 +348,20 @@ namespace Arc {
         delete longoptions;
         exit(0);
       }
+      i = 0;
       for (std::list<OptionBase*>::iterator it = options.begin();
-           it != options.end(); it++)
-        if (opt == (*it)->shortOpt) {
+           it != options.end(); it++) {
+        int o = (*it)->shortOpt;
+        if(!o) o = longoptions[i].val;
+        if (opt == o) {
           if (!(*it)->Set(optarg ? optarg : "")) {
             delete longoptions;
             exit(1);
           }
           break;
         }
+        ++i;
+      }
     }
 
     delete[] longoptions;
