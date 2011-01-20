@@ -160,9 +160,7 @@ void ARCJSDLParserTest::TestDataStagingCreateDelete() {
   INJOB.DataStaging.File.front().IsExecutable = true;
 
   std::string tempjobdesc2;
-
   PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc2));
-  std::cout << tempjobdesc2 << std::endl;
   PARSE_ASSERT(PARSER.Parse(tempjobdesc2, OUTJOB));
 
   CPPUNIT_ASSERT_EQUAL(true, INJOB.DataStaging.File.front().IsExecutable);
