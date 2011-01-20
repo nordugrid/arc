@@ -117,6 +117,8 @@ Python wrapper for ARC
 %{_mingw32_configure} \
   --disable-java \
   --disable-doc \
+  --disable-ws-monitor \
+  --disable-ldap-monitor \
   --disable-static LDFLAGS="-Wl,--enable-auto-import"
 
 make %{?_smp_mflags}
