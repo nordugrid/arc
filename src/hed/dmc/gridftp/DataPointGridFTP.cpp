@@ -354,6 +354,12 @@ namespace Arc {
                                         l, &(it->ftp_read_callback), it);
       if (!res) {
         logger.msg(DEBUG, "ftp_read_thread: Globus error: %s", res.str());
+        // This can happen if handle can't either yet or already 
+        // provide data. In last case there is no reason to retry.
+        if(it->ftp_eof_flag) {
+          it->buffer->is_read(h, 0, 0);
+          break;
+        }
         registration_failed++;
         if (registration_failed >= 10) {
           it->buffer->is_read(h, 0, 0);
@@ -369,6 +375,8 @@ namespace Arc {
                      "failed to register globus buffer - will try later: %s",
                      it->url.str());
           it->buffer->is_read(h, 0, 0);
+          // First retry quickly for race condition.
+          // Then slowly for pecularities.
           if(registration_failed > 2) sleep(1);
         }
       }
