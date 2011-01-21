@@ -1,8 +1,0 @@
-Document: arc-urlogger
-Title: ARC Usage Record Logger
-Author: H. Thostrup Jensen
-Abstract: Qick description and manual for the Usage Record Logger utility, which us used to report usage accounting records of ARC Grid computing services to SGAS database.
-Section: Network/Communication
-
-Format: PDF
-Files: /usr/share/doc/nordugrid-arc-doc/urlogger.pdf

@@ -1,8 +1,0 @@
-Document: arc-xrsl
-Title: XRSL (Extended Resource Specification Language)
-Author: KnowARC developers
-Abstract: Description and usage manual for the extended Resource Specification Language (xRSL) used to describe computational tasks in ARC Grid middleware. ARC xRSL is an extension of Globus RSL 1.0 and in pre-WS versions of ARC is used on both user and server sides.
-Section: Network/Communication
-
-Format: PDF
-Files: /usr/share/doc/nordugrid-arc-doc/xrsl.pdf
