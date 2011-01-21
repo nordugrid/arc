@@ -403,21 +403,6 @@ Description: ARC Java wrapper
  services in ARC are associated with computation or storage, there is
  no constraint on these applications.
 
-Package: nordugrid-arc-doc
-Provides: nordugrid-arc1-doc, nordugrid-arc-nox-doc
-Replaces: nordugrid-arc1-doc (<< 1.0.0~), nordugrid-arc-nox-doc (<< 1.3.0~)
-Conflicts: nordugrid-arc1-doc (<< 1.0.0~), nordugrid-arc-nox-doc (<< 1.3.0~)
-Architecture: all
-Depends: ${misc:Depends}
-Suggests: xpdf | pdf-viewer
-Section: doc
-Description: ARC API documentation
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced
- Resource Connector (ARC).
- .
- Reference to the ARC programming API. It is prepared with doxygen.
-
 Package: nordugrid-arc-janitor
 Provides: nordugrid-arc1-janitor, nordugrid-arc-nox-janitor
 Replaces: nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox-janitor (<< 1.3.0~)

@@ -67,7 +67,7 @@ build-indep: build-indep-stamp
 	:
 
 build-indep-stamp: configure-stamp
-	$(MAKE) doc
+	$(MAKE)
 	touch $@
 
 clean:
