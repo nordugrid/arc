@@ -90,6 +90,12 @@ sub main {
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
 
+    my $providerlog = $config->{ProviderLog} || "/var/log/arc/infoprovider.log";
+    $log->info("Redirecting further messages to $providerlog");
+    open STDERR, ">>", $providerlog or $log->error("Failed to open to $providerlog");
+    LogUtils::timestamps(1);
+    $log->info("############## Infoprovider started  ##############");
+
     fix_config($config);
     check_config($config);
 
@@ -116,6 +122,7 @@ sub main {
             #GLUE13ldif::renderDocument($ngdata);
         }
     }
+    $log->info("############## Infoprovider finished ##############");
 }
 
 

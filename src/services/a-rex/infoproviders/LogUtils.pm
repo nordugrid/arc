@@ -113,10 +113,10 @@ sub _log {
     my ($self,$severity,$msg) = @_;
     my $name = $self->{name};
     $name = $name ? "$name: " : "";
-    print STDERR ($ts_enabled ? format_ts()." " : "")."$name$severity: $msg\n";
+    print STDERR ($ts_enabled ? "[".timestamp()."] " : "")."$name$severity: $msg\n";
 }
 
-sub format_ts {
+sub timestamp {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
     return POSIX::strftime("%Y-%m-%d %H:%M:%S", $sec,$min,$hour,$mday,
                            $mon,$year,$wday,$yday,$isdst);

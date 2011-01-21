@@ -87,6 +87,7 @@
   <xsd:union memberTypes="xsd:string adotf_Type"/>
 </xsd:simpleType>
 
+<xsd:element name="ProviderLog" type="xsd:string"/>
 <xsd:element name="PublishNordugrid" type="xsd:boolean"/>
 <xsd:element name="AdminDomain" type="xsd:string"/>
 <xsd:element name="Location" type="location_Type"/>

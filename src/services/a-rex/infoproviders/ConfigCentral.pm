@@ -115,6 +115,7 @@ my $ldap_infosys_options = {
 my $config_schema = {
     defaultLocalName => '*',
     debugLevel => '*',
+    ProviderLog => '*',
     PublishNordugrid => '*',
     AdminDomain => '*',
     ttl => '*',
@@ -442,7 +443,7 @@ sub build_config_from_xmlfile {
     rename_keys $ipcfg, $ipcfg, {Name => 'ClusterName'};
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
-    move_keys $ipcfg, $config, ['debugLevel', 'PublishNordugrid', 'AdminDomain'];
+    move_keys $ipcfg, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
     move_keys $ipcfg, $config, ['gm_mount_point', 'gm_port'];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
@@ -499,6 +500,7 @@ sub build_config_from_inifile {
 
     my $common = { $iniparser->get_section("common") };
     my $gm = { $iniparser->get_section("grid-manager") };
+    rename_keys $common, $config, {providerlog => 'ProviderLog'};
     move_keys $common, $config, [keys %$gmcommon_options];
     move_keys $common, $config->{control}{'.'}, [keys %$gmuser_options];
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
@@ -523,6 +525,7 @@ sub build_config_from_inifile {
     move_keys $common, $config->{service}, [keys %{$config_schema->{service}}];
 
     my $infosys = { $iniparser->get_section("infosys") };
+    rename_keys $infosys, $config, {providerlog => 'ProviderLog'};
     move_keys $infosys, $config, [keys %$ldap_infosys_options];
 
     my $cluster = { $iniparser->get_section('cluster') };
@@ -585,7 +588,7 @@ sub build_config_from_inifile {
     ################################# new ini config file structure ##############################
 
     my $provider = { $iniparser->get_section("InfoProvider") };
-    move_keys $provider, $config, ['debugLevel', 'PublishNordugrid', 'AdminDomain'];
+    move_keys $provider, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
     move_keys $provider, $config->{service}, [keys %{$config_schema->{service}}];
 
     my @gnames = $iniparser->list_subsections('ExecutionEnvironment');
