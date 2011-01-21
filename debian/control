@@ -182,7 +182,7 @@ Package: nordugrid-arc-ldap-infosys
 Provides: nordugrid-arc-nox-ldap-infosys
 Replaces: nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}
 Description: ARC LDAP infosys service
  The NorduGrid is a collaboration aiming at development, maintenance
@@ -210,7 +210,7 @@ Description: ARC GIIS service
  to.
 
 Package: nordugrid-arc-ldap-monitor
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC LDAP monitor service
  The NorduGrid is a collaboration aiming at development, maintenance
@@ -222,7 +222,7 @@ Description: ARC LDAP monitor service
  which pulls information from a GIIS and shows it graphically.
 
 Package: nordugrid-arc-ws-monitor
-Architecture: any
+Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC WS monitor service
  The NorduGrid is a collaboration aiming at development, maintenance
