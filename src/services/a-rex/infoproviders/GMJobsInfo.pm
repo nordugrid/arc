@@ -207,27 +207,41 @@ sub collect {
             # has finished.
             $log->debug("Job $ID: Can't open $gmjob_grami");
         } else {
-            my $sessiondir = $job->{sessiondir};
+            my $sessiondir = $job->{sessiondir} || '';
+
             while (my $line = <GMJOB_GRAMI>) {
-                if ($line =~ m/^joboption_count=(\d+)$/) {
-                    $job->{count} = $1;
-                } elsif ($line =~ m/^joboption_walltime=(\d+)$/) {
-                    $job->{reqwalltime} = $1;
-                } elsif ($line =~ m/^joboption_cputime=(\d+)$/) {
-                    $job->{reqcputime} = $1;
-                } elsif ($line =~ m/^joboption_stdin='(.+)'$/) {
-                    $job->{stdin} = $1;
-                    $job->{stdin} =~ s/^\Q$sessiondir\E\/*// if $sessiondir;
-                } elsif ($line =~ m/^joboption_stdout='(.+)'$/) {
-                    $job->{stdout} = $1;
-                    $job->{stdout} =~ s/^\Q$sessiondir\E\/*// if $sessiondir;
-                } elsif ($line =~ m/^joboption_stderr='(.+)'$/) {
-                    $job->{stderr} = $1;
-                    $job->{stderr} =~ s/^\Q$sessiondir\E\/*// if $sessiondir;
-                } elsif ($line =~ m/^joboption_runtime_\d+='(.+)'$/) {
-                    my $rte = $1;
-                    $rte =~ s/'\\''/'/g; # unescacpe escaped single quotes
-                    push @{$job->{runtimeenvironments}}, $rte;
+
+                if ($line =~ m/^joboption_(\w+)='(.*)'$/) {
+                    my ($param, $value) = ($1, $2);
+                    $param =~ s/'\\''/'/g; # unescape quotes
+
+                    # These parameters are quoted by A-REX
+                    if ($param eq "stdin") {
+                        $job->{stdin} = $value;
+                        $job->{stdin} =~ s/^\Q$sessiondir\E\/*//;
+                    } elsif ($param eq "stdout") {
+                        $job->{stdout} = $value;
+                        $job->{stdout} =~ s/^\Q$sessiondir\E\/*//;
+                    } elsif ($param eq "stderr") {
+                        $job->{stderr} = $value;
+                        $job->{stderr} =~ s/^\Q$sessiondir\E\/*//;
+                    } elsif ($param =~ m/^runtime_/) {
+                        push @{$job->{runtimeenvironments}}, $value;
+                    }
+
+                } elsif ($line =~ m/^joboption_(\w+)=(\w+)$/) {
+                    my ($param, $value) = ($1, $2);
+
+                    # These parameters are not quoted by A-REX
+                    if ($param eq "count") {
+                        $job->{count} = int($value);
+                    } elsif ($param eq "walltime") {
+                        $job->{reqwalltime} = int($value);
+                    } elsif ($param eq "cputime") {
+                        $job->{reqcputime} = int($value);
+                    } elsif ($param eq "starttime") {
+                        $job->{starttime} = $value;
+                    }
                 }
             }
             close GMJOB_GRAMI;
