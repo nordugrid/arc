@@ -97,6 +97,8 @@
 <xsd:element name="Downtime" type="xsd:string"/>
 
 <!-- Options used only for generating legacy Nordugrid info schema -->
+<xsd:element name="gm_port" type="xsd:string"/>
+<xsd:element name="gm_mount_point" type="xsd:string"/>
 <xsd:element name="ClusterOwner" type="xsd:string"/>
 <xsd:element name="Middleware" type="xsd:string"/>
 <xsd:element name="LocalSE" type="xsd:string"/>

@@ -96,8 +96,6 @@ my (%config, %gm_info, @runtimeenvironment );
 
 $config{ttl}                =  600;
 $config{loglevel}           =  1;
-$config{gm_mount_point}     = "/jobs";
-$config{gm_port}            = 2811;
 $config{homogeneity}        = "TRUE";
 $config{defaultttl}         = "604800";
 $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
@@ -149,9 +147,9 @@ my $parser = ConfigParser->new($config{conf_file}) or die "Cannot parse config f
 %config = ( %config, $parser->get_section('grid-manager') );
 my %gconf = $parser->get_section('gridftpd');
 %config = ( %config, %gconf );
-$config{gm_port} = $gconf{port} if $gconf{port};
+$config{gm_port} = $gconf{port} || 2811;
 my %gjconf = $parser->get_section('gridftpd/jobs');
-$config{gm_mount_point} = $gjconf{path} if $gjconf{path};
+$config{gm_mount_point} = $gjconf{path} || "/jobs";
 $config{remotegmdirs} = $gjconf{remotegmdirs} if $gjconf{remotegmdirs};
 %config = ( %config, $parser->get_section('cluster') );
 

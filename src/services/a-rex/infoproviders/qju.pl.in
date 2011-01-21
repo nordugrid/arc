@@ -167,8 +167,6 @@ sub qju_parse_command_line_options() {
 
     $config{ttl}                =  600;
     $config{loglevel}           =  1;
-    $config{gm_mount_point}     = "/jobs";
-    $config{gm_port}            = 2811;
     $config{homogeneity}        = "True";
     $config{defaultttl}         = "604800";
     $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
@@ -275,9 +273,16 @@ sub qju_read_conf_file () {
     # Copy blocks that are relevant to qju.pl
     %config = ( %config, $parser->get_section('common') );
     %config = ( %config, $parser->get_section('grid-manager') );
-    %config = ( %config, $parser->get_section('gridftpd/jobs') );
     %config = ( %config, $parser->get_section('cluster') );
     %config = ( %config, $parser->get_section("queue/$config{queue}") );
+
+    # Cherry-pick some gridftp options
+    my %gconf = $parser->get_section('gridftpd');
+    $config{gm_port} = $gconf{port} || 2811;
+    my %gjconf = $parser->get_section('gridftpd/jobs');
+    $config{gm_mount_point} = $gjconf{path} || "/jobs";
+    $config{allownew} = $gjconf{allownew} if $gjconf{allownew};
+    $config{remotegmdirs} = $gjconf{remotegmdirs} if $gjconf{remotegmdirs};
 
     $ENV{LD_LIBRARY_PATH}.=":" if $ENV{LD_LIBRARY_PATH};
     $ENV{LD_LIBRARY_PATH}.="$config{ng_location}/lib";

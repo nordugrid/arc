@@ -105,6 +105,10 @@ my $gmcommon_options = {
     scratchdir => '*',
     use_janitor => '*',
 };
+my $ldap_infosys_options = {
+    gm_mount_point => '*',
+    gm_port => '*'
+};
 
 # # # # # # # # # # # # # #
 
@@ -115,6 +119,7 @@ my $config_schema = {
     AdminDomain => '*',
     ttl => '*',
     %$gmcommon_options,
+    %$ldap_infosys_options,
     %$lrms_options,
     %$lrms_share_options,
     control => {
@@ -438,6 +443,7 @@ sub build_config_from_xmlfile {
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
     move_keys $ipcfg, $config, ['debugLevel', 'PublishNordugrid', 'AdminDomain'];
+    move_keys $ipcfg, $config, ['gm_mount_point', 'gm_port'];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
     my $xenvs = hash_get_arrayref($ipcfg, 'ExecutionEnvironment');
@@ -500,6 +506,8 @@ sub build_config_from_inifile {
     move_keys $gm, $config->{control}{'.'}, [keys %$gmuser_options];
     rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
 
+    move_keys $common, $config, [keys %$ldap_infosys_options];
+
     $config->{debugLevel} = $common->{debug} if $common->{debug};
 
     my @cnames = $iniparser->list_subsections('grid-manager');
@@ -509,14 +517,18 @@ sub build_config_from_inifile {
         move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
     }
 
-    ################################ legacy config file structure #############################
+    ############################ legacy ini config file structure #############################
 
     move_keys $common, $config, ['AdminDomain'];
     move_keys $common, $config->{service}, [keys %{$config_schema->{service}}];
 
+    my $infosys = { $iniparser->get_section("infosys") };
+    move_keys $infosys, $config, [keys %$ldap_infosys_options];
+
     my $cluster = { $iniparser->get_section('cluster') };
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
+        move_keys $cluster, $config, ["gm_mount_point", "gm_port"];
         rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
@@ -570,7 +582,7 @@ sub build_config_from_inifile {
         $xeconf->{NodeSelection} = {};
     }
 
-    ################################# new config file structure ##################################
+    ################################# new ini config file structure ##############################
 
     my $provider = { $iniparser->get_section("InfoProvider") };
     move_keys $provider, $config, ['debugLevel', 'PublishNordugrid', 'AdminDomain'];
