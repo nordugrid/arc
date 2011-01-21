@@ -2,6 +2,19 @@ package GLUE2ldifPrinter;
 
 use base LdifPrinter;
 
+# bools come in lowecase, must be uppercased for LDAP
+# In the XML schema allowed values are: true, false, undefined
+# In the LDAP schema allowed values are: TRUE, FALSE
+sub uc_bools {
+    my ($data, @keys) = @_;
+    for (@keys) {
+        my $val = $data->{$_};
+        next unless defined $val;
+        next unless $val eq 'false' or $val eq 'true';
+        $data->{$_} = uc $val;
+    }
+}
+
 sub beginGroup {
     my ($self, $name) = @_;
     $self->begin(GLUE2GroupID =>, $name);
@@ -62,6 +75,7 @@ sub DomainAttributes {
 
 sub AdminDomainAttributes {
     my ($self, $data) = @_;
+    uc_bools($data, qw( Distributed ));
     $self->DomainAttributes($data);
     $self->attribute(objectClass => "GLUE2AdminDomain");
     $self->attributes($data, "GLUE2AdminDomain", qw( Distributed Owner ));
@@ -212,6 +226,7 @@ sub ComputingEndpointAttributes {
 
 sub ComputingShareAttributes {
     my ($self, $data) = @_;
+    uc_bools($data, qw( Preemption ));
     $self->ShareAttributes($data);
     $self->attribute(objectClass => "GLUE2ComputingShare");
     $self->attributes($data, "GLUE2ComputingShare", qw( MappingQueue
@@ -262,6 +277,7 @@ sub ComputingShareAttributes {
 
 sub ComputingManagerAttributes {
     my ($self, $data) = @_;
+    uc_bools($data, qw( Reservation BulkSubmission Homogeneous WorkingAreaShared WorkingAreaGuaranteed ));
     $self->ManagerAttributes($data);
     $self->attribute(objectClass => "GLUE2ComputingManager");
     $self->attributes($data, "GLUE2ComputingManager", qw( Reservation
@@ -301,6 +317,7 @@ sub BenchmarkAttributes {
 
 sub ExecutionEnvironmentAttributes {
     my ($self, $data) = @_;
+    uc_bools($data, qw( VirtualMachine ConnectivityIn ConnectivityOut ));
     $self->ResourceAttributes($data);
     $self->attribute(objectClass => "GLUE2ExecutionEnvironment");
     $self->attributes($data, "GLUE2ExecutionEnvironment", qw( Platform
@@ -456,7 +473,9 @@ sub ComputingEndpoint {
     Entry(@_, 'GLUE2EndpointID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
         $self->AccessPolicies($data->{AccessPolicies});
+        $self->beginGroup("ComputingActivities");
         $self->ComputingActivities($data->{ComputingActivities});
+        $self->end();
     });
 }
 
@@ -481,38 +500,38 @@ sub ComputingManager {
 }
 
 sub Benchmarks {
-    Entries(@_, 'BenchmarkID', \&BenchmarkAttributes);
+    Entries(@_, 'GLUE2BenchmarkID', \&BenchmarkAttributes);
 }
 
 sub ExecutionEnvironments {
-    Entries(@_, 'ExecutionEnvironmentID', \&ExecutionEnvironmentAttributes);
+    Entries(@_, 'GLUE2ResourceID', \&ExecutionEnvironmentAttributes);
 }
 
 sub ApplicationEnvironments {
-    Entries(@_, 'ApplicationEnvironmentID', \&ApplicationEnvironmentAttributes, sub {
+    Entries(@_, 'GLUE2ApplicationEnvironmentID', \&ApplicationEnvironmentAttributes, sub {
         my ($self, $data) = @_;
         $self->ApplicationHandles($data->{ApplicationHandles});
     });
 }
 
 sub ApplicationHandles {
-    Entries(@_, 'ApplicationHandleID', \&ApplicationHandleAttributes);
+    Entries(@_, 'GLUE2ApplicationHandleID', \&ApplicationHandleAttributes);
 }
 
 sub ComputingActivities {
-    Entries(@_, 'ComputingActivityID', \&ComputingActivityAttributes);
+    Entries(@_, 'GLUE2ActivityID', \&ComputingActivityAttributes);
 }
 
 sub ToStorageServices {
-    Entries(@_, 'ToStorageServiceID', \&ToStorageServiceAttributes);
+    Entries(@_, 'GLUE2ToStorageServiceID', \&ToStorageServiceAttributes);
 }
 
 sub Top {
     my ($self, $data) = @_;
     $self->begin(o => "glue");
-    $self->attribute(objectClass => "top");
-    $self->attribute(objectClass => "organization");
-    $self->attribute(o => "glue");
+    #$self->attribute(objectClass => "top");
+    #$self->attribute(objectClass => "organization");
+    #$self->attribute(o => "glue");
     $self->AdminDomain($data);
 }
 

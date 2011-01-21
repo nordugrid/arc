@@ -41,9 +41,9 @@ sub _flush {
     my ($self) = @_;
     my $fh = $self->{fh};
     my $attrs = $self->{attrs};
+    return unless defined $attrs;
     my $dn = join ",", @{$self->{dn}};
     my $nick = join ", ", @{$self->{nick}};
-    return unless defined $attrs;
     print $fh "\n";
     print $fh fold78("# $nick");
     print $fh fold78(safe_attrval("dn", $dn));
