@@ -369,7 +369,7 @@ namespace Arc {
                      "failed to register globus buffer - will try later: %s",
                      it->url.str());
           it->buffer->is_read(h, 0, 0);
-          sleep(1);
+          if(registration_failed > 2) sleep(1);
         }
       }
       else
