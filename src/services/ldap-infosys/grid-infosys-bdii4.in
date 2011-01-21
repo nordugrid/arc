@@ -408,7 +408,6 @@ fi
 
 
 # If gris modules are not compiled into slapd, we will need to add variables to the config-file.
-# We use od instead of strings since that is part of core system utilities
 if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
     # Guess a likely directory for ldap modules
@@ -424,9 +423,8 @@ if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd
 fi
 
 # If giis modules are not compiled into slapd, we will need to add variables to the config-file.
-# We use od instead of strings since that is part of core system utilities
 if [ "`config_subsections infosys/index`" ]; then
-    if [ $(od -S 10 $slapd_cmd | grep -Ec "shell_db_init|shell_back_db_init") -eq 0 ]; then
+    if [ $(grep -Ec "shell_db_init|shell_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
         # Guess a likely directory for ldap modules
         ldaplib=${ldaplib:-$(find /usr/lib/ -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
