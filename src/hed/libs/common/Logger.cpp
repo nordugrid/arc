@@ -200,6 +200,17 @@ namespace Arc {
     case ShortFormat:
       os << message.level << ": " << message.message;
       break;
+    case DebugFormat:
+      Time ct;
+      static Time lt(0);
+      os << "[" << ct.GetTime() << "." << ct.GetTimeNanosec()/1000;
+      if(lt.GetTime()) {
+        Period d = ct - lt;
+        os << "(" << d.GetPeriod()*1000000+d.GetPeriodNanoseconds()/1000<<")";
+      };
+      lt = ct;
+      os << "] " << message.message;
+      break;
     }
     return os;
   }

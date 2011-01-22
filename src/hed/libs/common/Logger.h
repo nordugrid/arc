@@ -37,9 +37,18 @@ namespace Arc {
     FATAL = 32
   };
 
+  //! Output formats.
+  /*! Defines prefix for every message.
+        LongFormat - all informatino about message is printed
+        ShortFormat - only message level is printed
+        DebugFormat - message time (microsecond precision) and 
+         time difference from previous message are printed. This
+         format is mostly meant for profiling.
+   */
   enum LogFormat {
     LongFormat,
-    ShortFormat
+    ShortFormat,
+    DebugFormat
   };
 
   struct LoggerFormat {
