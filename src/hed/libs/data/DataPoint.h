@@ -62,9 +62,10 @@ namespace Arc {
     };
 
     /// Constructor requires URL to be provided.
-    /** References to url and usercfg arguments are stored 
+    /** Reference to usercfg argument is stored 
        internally and hence corresponding objects must stay
-       available during whole lifetime of this instance. */
+       available during whole lifetime of this instance.
+       TODO: do we really need it? */
     DataPoint(const URL& url, const UserConfig& usercfg);
 
     /// Destructor.
@@ -75,6 +76,14 @@ namespace Arc {
 
     /// Returns the UserConfig that was passed to the constructor.
     virtual const UserConfig& GetUserConfig() const;
+
+    /// Assigns new URL.
+    /// Main purpose of this method is to reuse existing 
+    /// connection for accessing different object at same server.
+    /// Implementation does not have to implement this method.
+    /// If supplied URL is not suitable or method is not implemented
+    /// false is returned.
+    virtual bool SetURL(const URL& url);
 
     /// Returns a string representation of the DataPoint.
     virtual std::string str() const;
@@ -149,20 +158,6 @@ namespace Arc {
        retireve. It is not a failure if some attributes could not
        be retrieved due to limitation of protocol or access control. */
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
-
-    /// List file(s).
-    /** If the DataPoint represents a directory its contents will be
-       listed.
-       \param files will contain list of file names and optionally
-       their attributes.
-       \param long_list if true, list additional properties of each file.
-       \param resolve if true, resolve physical locations (relevant
-         for indexing services only).
-       \param metadata if true, find all available metadata. */
-//    virtual DataStatus ListFiles(std::list<FileInfo>& files,
-//                                 bool long_list = false,
-//                                 bool resolve = false,
-//                                 bool metadata = false) = 0;
 
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.
@@ -389,7 +384,7 @@ namespace Arc {
 
 
   protected:
-    const URL& url;
+    URL url;
     const UserConfig& usercfg;
 
     // attributes
