@@ -223,7 +223,7 @@ namespace Arc {
 
     jobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
     jobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";
-    jobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "arclibclient-" VERSION;
+    jobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "libarcclient-" VERSION;
 #ifdef HAVE_GETHOSTNAME
     char hostname[1024];
     gethostname(hostname, 1024);
