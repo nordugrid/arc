@@ -75,6 +75,7 @@ namespace Arc {
     DataPointGridFTP(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointGridFTP();
     static Plugin* Instance(PluginArgument *arg);
+    virtual bool SetURL(const URL& url);
     virtual DataStatus StartReading(DataBuffer& buf);
     virtual DataStatus StartWriting(DataBuffer& buf,
                                     DataCallback *space_cb = NULL);

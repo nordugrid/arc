@@ -325,7 +325,7 @@ namespace Arc {
     logger.msg(VERBOSE, "stop_reading_ftp: waiting for transfer to finish");
     cond.wait();
     logger.msg(VERBOSE, "stop_reading_ftp: exiting: %s", url.str());
-    globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+    //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
     return condstatus;
   }
 
@@ -497,7 +497,7 @@ namespace Arc {
       globus_ftp_client_abort(&ftp_handle);
     }
     cond.wait();
-    globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
+    //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
     return condstatus;
   }
 
@@ -919,6 +919,14 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointGridFTP::SetURL(const URL& url) {
+    if ((url.Protocol() != "gsiftp") && (url.Protocol() != "ftp")) {
+      return false;
+    }
+    // Globus FTP handle allows changing url completely
+    this->url = url;
+    return true;
+  }
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
