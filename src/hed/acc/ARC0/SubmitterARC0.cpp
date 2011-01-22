@@ -72,7 +72,7 @@ namespace Arc {
     }
 
     std::string jobdescstring;
-    if (!modjobdesc.UnParse(jobdescstring, "XRSL")) {
+    if (!modjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER")) {
       logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "XRSL");
       return false;
     }
@@ -229,8 +229,6 @@ namespace Arc {
     gethostname(hostname, 1024);
     jobdesc.XRSL_elements["hostname"] = hostname;
 #endif
-
-    jobdesc.AddHint("TARGETDIALECT","GRIDMANAGER");
 
     return true;
   }

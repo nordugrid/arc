@@ -24,13 +24,13 @@ namespace Arc {
   public:
     XRSLParser();
     ~XRSLParser();
-    bool Parse(const std::string& source, JobDescription& jobdesc) const;
-    bool UnParse(const JobDescription& job, std::string& product) const;
+    bool Parse(const std::string& source, JobDescription& jobdesc, const std::string& language = "", const std::string& dialect = "") const;
+    bool UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect = "") const;
 
     static Plugin* Instance(PluginArgument *arg);
 
   private:
-    bool Parse(const RSL *r, JobDescription& job) const;
+    bool Parse(const RSL *r, JobDescription& job, const std::string& dialect) const;
     static bool SingleValue(const RSLCondition *c,
                             std::string& value);
     static bool ListValue(const RSLCondition *c,

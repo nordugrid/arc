@@ -29,19 +29,19 @@ namespace Arc {
 
     JobDescription Parse(const std::string& source) const;
     std::string UnParse(const JobDescription& job) const;
-    virtual bool Parse(const std::string& source, JobDescription& jobdesc) const = 0;
-    virtual bool UnParse(const JobDescription& job, std::string& output) const = 0;
-    void AddHint(const std::string& key,const std::string& value);
-    void SetHints(const std::map<std::string,std::string>& hints);
-    const std::string& GetSourceFormat() const { return format; }
+    virtual bool Parse(const std::string& source, JobDescription& jobdesc, const std::string& language = "", const std::string& dialect = "") const = 0;
+    virtual bool UnParse(const JobDescription& job, std::string& output, const std::string& language, const std::string& dialect = "") const = 0;
+    const std::list<std::string>& GetSupportedLanguages() const { return supportedLanguages; }
+    bool IsLanguageSupported(const std::string& language) const { return std::find(supportedLanguages.begin(), supportedLanguages.end(), language) != supportedLanguages.end(); }
 
   protected:
-    JobDescriptionParser(const std::string& format);
+    JobDescriptionParser();
 
-    std::string format;
+    std::string& SourceLanguage(JobDescription& j) const;
+
+    std::list<std::string> supportedLanguages;
+
     static Logger logger;
-    std::map<std::string,std::string> hints;
-    std::string GetHint(const std::string& key) const;
   };
 
   //! Class responsible for loading JobDescriptionParser plugins

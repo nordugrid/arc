@@ -325,14 +325,12 @@ namespace Arc {
     return Parse(source);
   }
 
-  bool JobDescription::Parse(const std::string& source) {
+  bool JobDescription::Parse(const std::string& source, const std::string& language, const std::string& dialect) {
     if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");
       return false;
     }
 
-    // Saving hints because they may be/are destoryed by JobDescriptionParser::Parse
-    std::map<std::string,std::string> hints_ = hints;
     jdpl_lock.lock();
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
       // Releasing lock because we can't know how long parsing will take
@@ -340,63 +338,45 @@ namespace Arc {
       // if their Parse/Unparse methods can be called concurently.
       // And definitely SetHints can't overlap.
       //jdpl_lock.unlock(); 
-      logger.msg(VERBOSE, "Try to parse as %s", it->GetSourceFormat());
-      it->SetHints(hints_);
-      if (it->Parse(source, *this)) {
+      if (it->Parse(source, *this, language, dialect)) {
         jdpl_lock.unlock(); 
-        // Recovering hints also keeping those created by JobDescriptionParser::Parse
-        hints.insert(hints_.begin(),hints_.end());
-        sourceFormat = it->GetSourceFormat();
         return true;
       }
-      //jdpl_lock.lock();
     }
     jdpl_lock.unlock();
-    // Recovering hints also keeping those created by JobDescriptionParser::Parse
-    hints.insert(hints_.begin(),hints_.end());
     return false;
   }
 
-  // Generate the output in the requested format
-  std::string JobDescription::UnParse(const std::string& format) const {
+  std::string JobDescription::UnParse(const std::string& language) const {
     std::string product;
-    if (UnParse(product, format)) {
+    if (UnParse(product, language)) {
       return product;
     }
 
     return "";
   }
-
-  bool JobDescription::UnParse(std::string& product, std::string format) const {
-    if (format.empty()) {
-      format = sourceFormat;
+  
+  bool JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect) const {
+    if (language.empty()) {
+      language = sourceLanguage;
+      if (language.empty()) {
+        logger.msg(ERROR, "Job description langauage not specified, unable to output description.");
+        return false;
+      }
     }
 
     jdpl_lock.lock();
     for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
-      if (lower(format) == lower(it->GetSourceFormat())) {
-        //jdpl_lock.unlock();
-        logger.msg(VERBOSE, "Generating %s job description output", format);
-        it->SetHints(hints);
-        bool r = it->UnParse(*this, product);
+      if (it->IsLanguageSupported(language)) {
+        logger.msg(VERBOSE, "Generating %s job description output", language);
+        bool r = it->UnParse(*this, product, language, dialect);
         jdpl_lock.unlock();
         return r;
       }
     }
     jdpl_lock.unlock();
 
-    logger.msg(ERROR, "Format (%s) not recognized by any job description parsers.", format);
+    logger.msg(ERROR, "Format (%s) not recognized by any job description parsers.", language);
     return false;
   }
-
-  bool JobDescription::getSourceFormat(std::string& _sourceFormat) const {
-    _sourceFormat = sourceFormat;
-    return true;
-  }
-
-  void JobDescription::AddHint(const std::string& key,const std::string& value) {
-    if(key.empty()) return;
-    hints[key]=value;
-  }
-
 } // namespace Arc

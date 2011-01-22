@@ -265,6 +265,7 @@ namespace Arc {
 
   class JobDescription {
   public:
+    friend class JobDescriptionParser;
     JobDescription() {};
 
     // Language wrapper constructor
@@ -275,20 +276,24 @@ namespace Arc {
     }
 
     // Try to parse the source string and store it.
-    bool Parse(const std::string& source);
+    bool Parse(const std::string& source, const std::string& language = "", const std::string& dialect = "");
     // XMLNode is reference by itself - passing it as const& has no sense
     bool Parse(const XMLNode& xmlSource);
 
-    // Transform the job description representation into a given format,
-    // if it's known as a parser (JSDL as default)
-    // If there is some error during this method, then return empty string.
-    std::string UnParse(const std::string& format = "ARCJSDL") const;
+    std::string UnParse(const std::string& language = "nordugrid:jsdl") const;
 
-    bool UnParse(std::string& product, std::string format) const;
+    bool UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
 
-    // Returns with the original job descriptions format as a string. Right now, this value is one of the following:
-    // "jsdl", "jdl", "xrsl". If there is an other parser written for another language, then this set can be extended.
-    bool getSourceFormat(std::string& _sourceFormat) const;
+    /// Get input source language
+    /**
+     * If this object was created by a JobDescriptionParser, then this method
+     * returns a string which indicates the job description language of the
+     * parsed source. If not created by a JobDescripionParser the string
+     * returned is empty.
+     *
+     * @return const std::string& source langauge of parsed input source.
+     **/
+    const std::string& GetSourceLanguage() const { return sourceLanguage; }
 
     /// DEPRECATED: Print all values to standard output.
     /**
@@ -318,8 +323,6 @@ namespace Arc {
      */
     bool SaveToStream(std::ostream& out, const std::string& format) const;
 
-    void AddHint(const std::string& key,const std::string& value);
-
     JobIdentificationType Identification;
     ApplicationType Application;
     ResourcesType Resources;
@@ -331,11 +334,9 @@ namespace Arc {
     std::map<std::string, std::string> JDL_elements;
 
   private:
-    std::string sourceFormat;
+    std::string sourceLanguage;
 
     static Logger logger;
-
-    std::map<std::string,std::string> hints;
 
     static Glib::Mutex jdpl_lock;
     static JobDescriptionParserLoader jdpl;

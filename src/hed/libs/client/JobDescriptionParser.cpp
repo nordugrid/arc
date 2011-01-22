@@ -16,9 +16,11 @@ namespace Arc {
   Logger JobDescriptionParser::logger(Logger::getRootLogger(),
                                       "JobDescriptionParser");
 
-  JobDescriptionParser::JobDescriptionParser(const std::string& format) : format(format) {}
+  JobDescriptionParser::JobDescriptionParser() {}
 
   JobDescriptionParser::~JobDescriptionParser() {}
+
+  std::string& JobDescriptionParser::SourceLanguage(JobDescription& j) const { return j.sourceLanguage; }
 
   JobDescription JobDescriptionParser::Parse(const std::string& source) const {
     JobDescription jobdesc;
@@ -31,28 +33,12 @@ namespace Arc {
 
   std::string JobDescriptionParser::UnParse(const JobDescription& job) const {
     std::string output;
-    if (UnParse(job, output)) {
+    if (UnParse(job, output, "")) {
       return output;
     }
 
     return "";
   }
-
-  void JobDescriptionParser::AddHint(const std::string& key,const std::string& value) {
-    if(key.empty()) return;
-    hints[key] = value;
-  }
-
-  std::string JobDescriptionParser::GetHint(const std::string& key) const {
-    std::map<std::string,std::string>::const_iterator h = hints.find(key);
-    if(h == hints.end()) return "";
-    return h->second;
-  }
-
-  void JobDescriptionParser::SetHints(const std::map<std::string,std::string>& hints) {
-    this->hints = hints;
-  }
-
 
   JobDescriptionParserLoader::JobDescriptionParserLoader()
     : Loader(BaseConfig().MakeConfig(Config()).Parent()), scaningDone(false) {}

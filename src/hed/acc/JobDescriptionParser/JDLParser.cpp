@@ -20,7 +20,9 @@
 namespace Arc {
 
   JDLParser::JDLParser()
-    : JobDescriptionParser("JDL") {}
+    : JobDescriptionParser() {
+    supportedLanguages.push_back("egee:jdl");
+  }
 
   JDLParser::~JDLParser() {}
 
@@ -478,7 +480,13 @@ namespace Arc {
     return output.str();
   }
 
-  bool JDLParser::Parse(const std::string& source, JobDescription& jobdesc) const {
+  bool JDLParser::Parse(const std::string& source, JobDescription& jobdesc, const std::string& language, const std::string& dialect) const {
+    if (language != "" && !IsLanguageSupported(language)) {
+      return false;
+    }
+    
+    logger.msg(VERBOSE, "Parsing string using JDLParser");
+
     jobdesc = JobDescription();
 
     unsigned long first = source.find_first_of("[");
@@ -534,10 +542,17 @@ namespace Arc {
       if (!handleJDLattribute(trim(it->substr(0, equal_pos)), trim(it->substr(equal_pos + 1)), jobdesc))
         return false;
     }
+
+    SourceLanguage(jobdesc) = (!language.empty() ? language : supportedLanguages.front());
     return true;
   }
 
-  bool JDLParser::UnParse(const JobDescription& job, std::string& product) const {
+  bool JDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+    if (!IsLanguageSupported(language)) {
+      return false;
+    }
+
+
     if (job.Application.Executable.Name.empty()) {
       return false;
     }

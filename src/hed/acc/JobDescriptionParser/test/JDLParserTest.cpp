@@ -87,7 +87,7 @@ void JDLParserTest::tearDown() {
 
 void JDLParserTest::TestExecutable() {
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Executable.Name);
@@ -100,7 +100,7 @@ void JDLParserTest::TestInputOutputError() {
   INJOB.Application.Error = "error-file";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Input);
@@ -155,7 +155,7 @@ void JDLParserTest::TestDataStagingDownloadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -192,7 +192,7 @@ void JDLParserTest::TestDataStagingUploadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -223,7 +223,7 @@ void JDLParserTest::TestDataStagingCreateDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -258,7 +258,7 @@ void JDLParserTest::TestDataStagingDownloadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
@@ -300,7 +300,7 @@ void JDLParserTest::TestDataStagingUploadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
@@ -342,7 +342,7 @@ void JDLParserTest::TestDataStagingCreateUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -381,7 +381,7 @@ void JDLParserTest::TestDataStagingDownloadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
@@ -427,7 +427,7 @@ void JDLParserTest::TestDataStagingUploadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());

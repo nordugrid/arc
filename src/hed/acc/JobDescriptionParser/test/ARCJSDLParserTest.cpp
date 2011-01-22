@@ -91,7 +91,7 @@ void ARCJSDLParserTest::TestExecutable() {
   MESSAGE = "Error parsing executable related attributes.";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Executable.Name);
@@ -105,7 +105,7 @@ void ARCJSDLParserTest::TestInputOutputError() {
   INJOB.Application.Error = "error-file";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Input);
@@ -150,7 +150,7 @@ void ARCJSDLParserTest::TestDataStagingCreateDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1 && OUTJOB.DataStaging.File.size() == 1);
@@ -160,7 +160,7 @@ void ARCJSDLParserTest::TestDataStagingCreateDelete() {
   INJOB.DataStaging.File.front().IsExecutable = true;
 
   std::string tempjobdesc2;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc2));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc2, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc2, OUTJOB));
 
   CPPUNIT_ASSERT_EQUAL(true, INJOB.DataStaging.File.front().IsExecutable);
@@ -188,7 +188,7 @@ void ARCJSDLParserTest::TestDataStagingDownloadDelete() {
   CPPUNIT_ASSERT(INJOB.DataStaging.File.front().Source.size() == 1 && INJOB.DataStaging.File.front().Source.front().URI);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -212,7 +212,7 @@ void ARCJSDLParserTest::TestDataStagingUploadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -232,7 +232,7 @@ void ARCJSDLParserTest::TestDataStagingCreateDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -255,7 +255,7 @@ void ARCJSDLParserTest::TestDataStagingDownloadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -280,7 +280,7 @@ void ARCJSDLParserTest::TestDataStagingUploadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -305,7 +305,7 @@ void ARCJSDLParserTest::TestDataStagingCreateUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -334,7 +334,7 @@ void ARCJSDLParserTest::TestDataStagingDownloadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -365,7 +365,7 @@ void ARCJSDLParserTest::TestDataStagingUploadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
@@ -440,7 +440,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.ThreadsPerProcesses.max, OUTJOB.Resources.SlotRequirement.ThreadsPerProcesses.max);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc, "nordugrid:jsdl"));
 
   Arc::XMLNode xmlArcJSDL(tempjobdesc);
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["POSIXApplication"];
@@ -518,7 +518,7 @@ void ARCJSDLParserTest::TestHPCCompliance() {
   CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Environment == OUTJOB.Application.Environment);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc, "nordugrid:jsdl"));
 
   Arc::XMLNode xmlArcJSDL(tempjobdesc);
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["HPCProfileApplication"];

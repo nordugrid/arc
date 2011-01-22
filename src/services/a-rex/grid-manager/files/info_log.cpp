@@ -184,8 +184,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     Arc::JobDescription arc_job_desc;
     std::string job_desc_str;
     if (!job_description_read_file(fname_src, job_desc_str)) goto error;
-    arc_job_desc.AddHint("SOURCEDIALECT","GRIDMANAGER");
-    if (!arc_job_desc.Parse(job_desc_str)) goto error;
+    if (!arc_job_desc.Parse(job_desc_str, "", "GRIDMANAGER")) goto error;
 //    if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
     if(arc_job_desc.Resources.IndividualPhysicalMemory.max>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory.max<<std::endl;
     if(arc_job_desc.Resources.TotalCPUTime.range.max>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime.range.max<<std::endl;

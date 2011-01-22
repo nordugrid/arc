@@ -97,7 +97,7 @@ void XRSLParserTest::tearDown() {
 
 void XRSLParserTest::TestExecutable() {
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Executable.Name);
@@ -115,7 +115,7 @@ void XRSLParserTest::TestInputOutputError() {
   INJOB.Application.Error = "error-file";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL(Application.Input);
@@ -168,7 +168,7 @@ void XRSLParserTest::TestDataStagingDownloadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
@@ -212,7 +212,7 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
   f.close();
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
@@ -249,7 +249,7 @@ void XRSLParserTest::TestDataStagingCreateDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
@@ -287,7 +287,7 @@ void XRSLParserTest::TestDataStagingDownloadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -337,7 +337,7 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
   f.close();
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -384,7 +384,7 @@ void XRSLParserTest::TestDataStagingCreateUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
@@ -428,7 +428,7 @@ void XRSLParserTest::TestDataStagingDownloadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -483,7 +483,7 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   f.close();
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
@@ -535,7 +535,7 @@ void XRSLParserTest::TestNotify() {
   std::string xrsl = "&(executable = \"executable\")(notify = \"someone@example.com\")";
 
   PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
@@ -553,7 +553,7 @@ void XRSLParserTest::TestNotify() {
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\")";
 
   PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
@@ -585,7 +585,7 @@ void XRSLParserTest::TestNotify() {
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\" \"bqf someone@example.com anotherone@example.com\")";
 
   PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   PARSE_ASSERT_EQUAL2(2, (int)INJOB.Application.Notification.size());
@@ -651,7 +651,7 @@ void XRSLParserTest::TestJoin() {
   std::string xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
 
   PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   // When first parsed the JobDescription attribute Application.Join will be
@@ -668,7 +668,7 @@ void XRSLParserTest::TestJoin() {
   xrsl = "&(executable = \"executable\")(stderr = \"error-file\")(join = \"yes\")";
 
   PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   // When first parsed the JobDescription attribute Application.Join will be
@@ -685,7 +685,7 @@ void XRSLParserTest::TestJoin() {
   xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"no\")";
 
   PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl));
+  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
   PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
 
   PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);

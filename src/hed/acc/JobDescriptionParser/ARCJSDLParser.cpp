@@ -19,7 +19,9 @@
 namespace Arc {
 
   ARCJSDLParser::ARCJSDLParser()
-    : JobDescriptionParser("ARCJSDL") {}
+    : JobDescriptionParser() {
+    supportedLanguages.push_back("nordugrid:jsdl");
+  }
 
   ARCJSDLParser::~ARCJSDLParser() {}
 
@@ -152,7 +154,13 @@ namespace Arc {
     }
   }
 
-  bool ARCJSDLParser::Parse(const std::string& source, JobDescription& job) const {
+  bool ARCJSDLParser::Parse(const std::string& source, JobDescription& job, const std::string& language, const std::string& dialect) const {
+    if (language != "" && !IsLanguageSupported(language)) {
+      return false;
+    }
+
+    logger.msg(VERBOSE, "Parsing string using ARCJSDLParser");
+
     job = JobDescription();
 
     xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
@@ -571,10 +579,15 @@ namespace Arc {
     }
     // end of Datastaging
 
+    SourceLanguage(job) = (!language.empty() ? language : supportedLanguages.front());
     return true;
   }
 
-  bool ARCJSDLParser::UnParse(const JobDescription& job, std::string& product) const {
+  bool ARCJSDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+    if (!IsLanguageSupported(language)) {
+      return false;
+    }
+    
     if (job.Application.Executable.Name.empty()) {
       return false;
     }

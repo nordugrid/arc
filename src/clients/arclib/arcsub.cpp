@@ -353,12 +353,12 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
         break;
       }
 
-      std::string jobdesclang = "ARCJSDL";
+      std::string jobdesclang = "nordugrid:jsdl";
       if (target->GridFlavour == "ARC0") {
-        jobdesclang = "XRSL";
+        jobdesclang = "nordugrid:xrsl";
       }
       else if (target->GridFlavour == "CREAM") {
-        jobdesclang = "JDL";
+        jobdesclang = "egee:jdl";
       }
       std::string jobdesc;
       if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {

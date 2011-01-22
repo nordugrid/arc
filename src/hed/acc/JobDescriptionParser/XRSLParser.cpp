@@ -21,7 +21,9 @@
 namespace Arc {
 
   XRSLParser::XRSLParser()
-    : JobDescriptionParser("XRSL") {}
+    : JobDescriptionParser() {
+    supportedLanguages.push_back("nordugrid:xrsl");
+  }
 
   XRSLParser::~XRSLParser() {}
 
@@ -63,7 +65,13 @@ namespace Arc {
 
   bool XRSLParser::cached = true;
 
-  bool XRSLParser::Parse(const std::string& source, JobDescription& jobdesc) const {
+  bool XRSLParser::Parse(const std::string& source, JobDescription& jobdesc, const std::string& language, const std::string& dialect) const {
+    if (language != "" && !IsLanguageSupported(language)) {
+      return false;
+    }
+
+    logger.msg(VERBOSE, "Parsing string using XRSLParser");
+    
     jobdesc = JobDescription();
 
     RSLParser parser(source);
@@ -78,7 +86,7 @@ namespace Arc {
     std::list<JobDescription> J;
     for (std::list<const RSL*>::iterator it = l.begin(); it != l.end(); it++) {
       JobDescription j;
-      if (!Parse(*it, j)) {
+      if (!Parse(*it, j, dialect)) {
         logger.msg(ERROR, "XRSL parsing error");
         return false;
       }
@@ -99,7 +107,7 @@ namespace Arc {
       return false;
     }
 
-    if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+    if(dialect == "GRIDMANAGER") {
       std::string action = "request";
       if (J.front().XRSL_elements.find("action") != J.front().XRSL_elements.end()) {
         action = J.front().XRSL_elements["action"];
@@ -116,6 +124,8 @@ namespace Arc {
       if (J.front().Application.Executable.Name.empty()) return false;
     }
     jobdesc = J.front();
+
+    SourceLanguage(jobdesc) = (!language.empty() ? language : supportedLanguages.front());
 
     return true;
   }
@@ -277,14 +287,14 @@ namespace Arc {
     return true;
   }
 
-  bool XRSLParser::Parse(const RSL *r, JobDescription& j) const {
+  bool XRSLParser::Parse(const RSL *r, JobDescription& j, const std::string& dialect) const {
     const RSLBoolean *b;
     const RSLCondition *c;
     if ((b = dynamic_cast<const RSLBoolean*>(r))) {
       if (b->Op() == RSLAnd) {
         for (std::list<RSL*>::const_iterator it = b->begin();
              it != b->end(); it++)
-          if (!Parse(*it, j)) {
+          if (!Parse(*it, j, dialect)) {
             return false;
           }
       }
@@ -293,7 +303,7 @@ namespace Arc {
           logger.msg(ERROR, "RSL conditionals currently not yet supported");
           return false;
         }
-        if (!Parse(*b->begin(), j)) {
+        if (!Parse(*b->begin(), j, dialect)) {
           return false;
         }
       }
@@ -402,12 +412,13 @@ namespace Arc {
         std::string queueName;
         if (!SingleValue(c, queueName))
           return false;
-        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+        if (dialect == "GRIDMANAGER") {
           if (c->Op() != RSLEqual) {
             logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"=\" is allowed.");
             return false;
           }
-        } else {
+        }
+        else {
           if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
             logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
             return false;
@@ -444,7 +455,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+        if(dialect == "GRIDMANAGER") {
           j.Resources.SessionLifeTime = Period(time, PeriodSeconds);
         } else {
           j.Resources.SessionLifeTime = Period(time, PeriodDays);
@@ -456,7 +467,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+        if(dialect == "GRIDMANAGER") {
           j.Resources.TotalCPUTime = Period(time, PeriodSeconds).GetPeriod();
         } else {
           j.Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
@@ -468,7 +479,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+        if(dialect == "GRIDMANAGER") {
           j.Resources.TotalWallTime = Period(time, PeriodSeconds).GetPeriod();
         } else {
           j.Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
@@ -480,7 +491,7 @@ namespace Arc {
         std::string time;
         if (!SingleValue(c, time))
           return false;
-        if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+        if(dialect == "GRIDMANAGER") {
           j.Resources.TotalCPUTime.range = Period(time, PeriodSeconds).GetPeriod();
         } else {
           j.Resources.TotalCPUTime.range = Period(time, PeriodMinutes).GetPeriod();
@@ -500,7 +511,7 @@ namespace Arc {
           std::list<std::string>::const_iterator itB = it->begin();
           if (!stringto(*++itB, bValue))
             continue;
-          if(GetHint("SOURCEDIALECT") == "GRIDMANAGER") {
+          if(dialect == "GRIDMANAGER") {
             j.Resources.TotalCPUTime.range = Period(*++itB, PeriodSeconds).GetPeriod();
           } else {
             j.Resources.TotalCPUTime.range = Period(*++itB, PeriodMinutes).GetPeriod();
@@ -835,7 +846,11 @@ namespace Arc {
     return true;
   }
 
-  bool XRSLParser::UnParse(const JobDescription& j, std::string& product) const {
+  bool XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
+    if (!IsLanguageSupported(language)) {
+      return false;
+    }
+    
     // First check if the job description is valid.
     if (j.Application.Executable.Name.empty()) {
       return false;
@@ -894,7 +909,7 @@ namespace Arc {
 
     if (j.Resources.TotalCPUTime.range > -1) {
       RSLList *l = new RSLList;
-      if(GetHint("TARGETDIALECT") == "GRIDMANAGER") {
+      if(dialect == "GRIDMANAGER") {
         // Seconds
         l->Add(new RSLLiteral(tostring(j.Resources.TotalCPUTime.range)));
       } else {
@@ -906,7 +921,7 @@ namespace Arc {
 
     if (j.Resources.TotalWallTime.range > -1) {
       RSLList *l = new RSLList;
-      if(GetHint("TARGETDIALECT") == "GRIDMANAGER") {
+      if(dialect == "GRIDMANAGER") {
         // Seconds
         l->Add(new RSLLiteral(tostring(j.Resources.TotalWallTime.range)));
       } else {
@@ -1024,7 +1039,7 @@ namespace Arc {
 
     if (j.Resources.SessionLifeTime != -1) {
       RSLList *l = new RSLList;
-      if(GetHint("TARGETDIALECT") == "GRIDMANAGER") {
+      if(dialect == "GRIDMANAGER") {
         // Seconds
         l->Add(new RSLLiteral(tostring(j.Resources.SessionLifeTime.GetPeriod())));
       } else {
