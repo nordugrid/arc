@@ -115,7 +115,7 @@ namespace Arc {
 
   bool SubmitterARC0::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     if (jobdesc.XRSL_elements["clientxrsl"].empty())
-      jobdesc.UnParse(jobdesc.XRSL_elements["clientxrsl"], "XRSL");
+      jobdesc.UnParse(jobdesc.XRSL_elements["clientxrsl"], "nordugrid:xrsl");
 
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
