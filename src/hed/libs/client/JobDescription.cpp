@@ -301,16 +301,10 @@ namespace Arc {
       }
     }
 
-    if (!XRSL_elements.empty()) {
+    if (!OtherAttributes.empty()) {
       std::map<std::string, std::string>::const_iterator it;
-      for (it = XRSL_elements.begin(); it != XRSL_elements.end(); it++)
-        out << IString(" XRSL_elements: [%s], %s", it->first, it->second) << std::endl;
-    }
-
-    if (!JDL_elements.empty()) {
-      std::map<std::string, std::string>::const_iterator it;
-      for (it = JDL_elements.begin(); it != JDL_elements.end(); it++)
-        out << IString(" JDL_elements: [%s], %s", it->first, it->second) << std::endl;
+      for (it = OtherAttributes.begin(); it != OtherAttributes.end(); it++)
+        out << IString(" Other attributes: [%s], %s", it->first, it->second) << std::endl;
     }
 
     out << std::endl;

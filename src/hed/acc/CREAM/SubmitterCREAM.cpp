@@ -91,9 +91,10 @@ namespace Arc {
   }
 
   bool SubmitterCREAM::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
-    if (jobdesc.JDL_elements.find("BatchSystem") == jobdesc.JDL_elements.end() &&
-        !et.ManagerProductName.empty())
-      jobdesc.JDL_elements["BatchSystem"] = et.ManagerProductName;
+    if (jobdesc.OtherAttributes.find("egee:jdl;BatchSystem") == jobdesc.OtherAttributes.end() &&
+        !et.ManagerProductName.empty()) {
+      jobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ManagerProductName;
+    }
 
     if (jobdesc.Resources.CandidateTarget.empty()) {
       ResourceTargetType candidateTarget;

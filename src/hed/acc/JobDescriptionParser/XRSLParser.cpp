@@ -91,7 +91,7 @@ namespace Arc {
         return false;
       }
 
-      j.XRSL_elements["clientxrsl"] = source;
+      j.OtherAttributes["nordugrid:xrsl;clientxrsl"] = source;
 
       J.push_back(j);
     }
@@ -109,8 +109,8 @@ namespace Arc {
 
     if(dialect == "GRIDMANAGER") {
       std::string action = "request";
-      if (J.front().XRSL_elements.find("action") != J.front().XRSL_elements.end()) {
-        action = J.front().XRSL_elements["action"];
+      if (J.front().OtherAttributes.find("nordugrid:xrsl;action") != J.front().OtherAttributes.end()) {
+        action = J.front().OtherAttributes["nordugrid:xrsl;action"];
       }
       // action = request means real job description.
       // Any other action may (and currently should) have almost 
@@ -120,7 +120,7 @@ namespace Arc {
       }
     } else {
       // action is not expected in client side job request
-      if (J.front().XRSL_elements.find("action") != J.front().XRSL_elements.end()) return false;
+      if (J.front().OtherAttributes.find("nordugrid:xrsl;action") != J.front().OtherAttributes.end()) return false;
       if (J.front().Application.Executable.Name.empty()) return false;
     }
     jobdesc = J.front();
@@ -696,7 +696,7 @@ namespace Arc {
         if (!SingleValue(c, dryrun))
           return false;
         if (lower(dryrun) == "yes" || lower(dryrun) == "dryrun")
-         j.XRSL_elements["dryrun"] = "yes";
+         j.OtherAttributes["nordugrid:xrsl;dryrun"] = "yes";
         return true;
       }
 
@@ -753,7 +753,7 @@ namespace Arc {
           logger.msg(VERBOSE, "Invalid action value %s", action);
           return false;
         }
-        j.XRSL_elements["action"] = action;
+        j.OtherAttributes["nordugrid:xrsl;action"] = action;
         return true;
       }
 
@@ -761,7 +761,7 @@ namespace Arc {
         std::string hostname;
         if (!SingleValue(c, hostname))
           return false;
-        j.XRSL_elements["hostname"] = hostname;
+        j.OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
         return true;
       }
 
@@ -769,7 +769,7 @@ namespace Arc {
         std::string jobid;
         if (!SingleValue(c, jobid))
           return false;
-        j.XRSL_elements["jobid"] = jobid;
+        j.OtherAttributes["nordugrid:xrsl;jobid"] = jobid;
         return true;
       }
 
@@ -777,7 +777,7 @@ namespace Arc {
         std::string clientxrsl;
         if (!SingleValue(c, clientxrsl))
           return false;
-        j.XRSL_elements["clientxrsl"] = clientxrsl;
+        j.OtherAttributes["nordugrid:xrsl;clientxrsl"] = clientxrsl;
         return true;
       }
 
@@ -785,7 +785,7 @@ namespace Arc {
         std::string clientsoftware;
         if (!SingleValue(c, clientsoftware))
           return false;
-        j.XRSL_elements["clientsoftware"] = clientsoftware;
+        j.OtherAttributes["nordugrid:xrsl;clientsoftware"] = clientsoftware;
         return true;
       }
 
@@ -793,7 +793,7 @@ namespace Arc {
         std::string savestate;
         if (!SingleValue(c, savestate))
           return false;
-        j.XRSL_elements["savestate"] = savestate;
+        j.OtherAttributes["nordugrid:xrsl;savestate"] = savestate;
         return true;
       }
 
@@ -1151,11 +1151,16 @@ namespace Arc {
       r.Add(new RSLCondition("credentialserver", RSLEqual, l));
     }
 
-    for (std::map<std::string, std::string>::const_iterator it = j.XRSL_elements.begin();
-         it != j.XRSL_elements.end(); it++) {
+    for (std::map<std::string, std::string>::const_iterator it = j.OtherAttributes.begin();
+         it != j.OtherAttributes.end(); it++) {
+      std::list<std::string> keys;
+      tokenize(it->first, keys, ";");
+      if (keys.size() != 2 || keys.front() != "nordugrid:xrsl") {
+        continue;
+      }
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(it->second));
-      r.Add(new RSLCondition(it->first, RSLEqual, l));
+      r.Add(new RSLCondition(keys.back(), RSLEqual, l));
     }
 
     std::stringstream ss;

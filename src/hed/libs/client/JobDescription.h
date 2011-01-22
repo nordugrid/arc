@@ -329,9 +329,15 @@ namespace Arc {
     DataStagingType DataStaging;
     JobMetaType JobMeta;
 
-    // Other elements which is needed for submission using the respective languages.
-    std::map<std::string, std::string> XRSL_elements;
-    std::map<std::string, std::string> JDL_elements;
+    /// Holds attributes not fitting into this class
+    /**
+     * This member is used by JobDescriptionParser classes to store
+     * attribute/value pairs not fitting into attributes stored in this class.
+     * The form of the attribute (the key in the map) should be as follows:
+     * <language>;<attribute-name>
+     * E.g.: "nordugrid:xrsl;hostname".
+     **/
+    std::map<std::string, std::string> OtherAttributes;
 
   private:
     std::string sourceLanguage;

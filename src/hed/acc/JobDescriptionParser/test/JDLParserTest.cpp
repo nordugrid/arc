@@ -38,6 +38,7 @@ class JDLParserTest
   CPPUNIT_TEST(TestDataStagingCreateUpload);
   CPPUNIT_TEST(TestDataStagingDownloadUpload);
   CPPUNIT_TEST(TestDataStagingUploadUpload);
+  CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -55,6 +56,7 @@ public:
   void TestDataStagingCreateUpload();
   void TestDataStagingDownloadUpload();
   void TestDataStagingUploadUpload();
+  void TestAdditionalAttributes();
 
 private:
   Arc::JobDescription INJOB, OUTJOB;
@@ -454,4 +456,22 @@ void JDLParserTest::TestDataStagingUploadUpload() {
   PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
 }
 
+void JDLParserTest::TestAdditionalAttributes() {
+  std::string tmpjobdesc;
+
+  INJOB.OtherAttributes["egee:jdl;batchsystem"] = "test";
+  INJOB.OtherAttributes["egee:jdl;unknownattribute"] = "none";
+  INJOB.OtherAttributes["bogus:nonexisting;foo"] = "bar";
+  CPPUNIT_ASSERT(PARSER.UnParse(INJOB, tmpjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT(PARSER.Parse(tmpjobdesc, OUTJOB));
+
+  std::map<std::string, std::string>::const_iterator itAttribute;
+  itAttribute = OUTJOB.OtherAttributes.find("egee:jdl;batchsystem");
+  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() != itAttribute);
+  CPPUNIT_ASSERT_EQUAL((std::string)"test", itAttribute->second);
+  itAttribute = OUTJOB.OtherAttributes.find("egee:jdl;unknownattribute");
+  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
+  itAttribute = OUTJOB.OtherAttributes.find("bogus:nonexisting;foo");
+  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
+}
 CPPUNIT_TEST_SUITE_REGISTRATION(JDLParserTest);

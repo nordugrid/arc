@@ -280,12 +280,12 @@ namespace Arc {
     }
     else if (attributeName == "allowzippedisb") {
       // Not supported yet, only store it
-      job.JDL_elements["AllowZippedISB"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;AllowZippedISB"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "zippedisb") {
       // Not supported yet, only store it
-      job.JDL_elements["ZippedISB"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;ZippedISB"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "expirytime") {
@@ -312,17 +312,17 @@ namespace Arc {
     }
     else if (attributeName == "perusalfileenable") {
       // Not supported yet, only store it
-      job.JDL_elements["PerusalFileEnable"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;PerusalFileEnable"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "perusaltimeinterval") {
       // Not supported yet, only store it
-      job.JDL_elements["PerusalTimeInterval"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;PerusalTimeInterval"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "perusalfilesdesturi") {
       // Not supported yet, only store it
-      job.JDL_elements["PerusalFilesDestURI"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;PerusalFilesDestURI"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "inputdata")
@@ -343,12 +343,12 @@ namespace Arc {
       return true;
     else if (attributeName == "datarequirements") {
       // Not supported yet, only store it
-      job.JDL_elements["DataRequirements"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;DataRequirements"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "dataaccessprotocol") {
       // Not supported yet, only store it
-      job.JDL_elements["DataAccessProtocol"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;DataAccessProtocol"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "virtualorganisation") {
@@ -367,7 +367,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "batchsystem") {
-      job.JDL_elements["batchsystem"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;batchsystem"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "retrycount") {
@@ -384,7 +384,7 @@ namespace Arc {
     }
     else if (attributeName == "lbaddress") {
       // Not supported yet, only store it
-      job.JDL_elements["LBAddress"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;LBAddress"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "myproxyserver") {
@@ -396,17 +396,17 @@ namespace Arc {
     }
     else if (attributeName == "hlrlocation") {
       // Not supported yet, only store it
-      job.JDL_elements["HLRLocation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;HLRLocation"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "jobprovenance") {
       // Not supported yet, only store it
-      job.JDL_elements["JobProvenance"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;JobProvenance"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "nodenumber") {
       // Not supported yet, only store it
-      job.JDL_elements["NodeNumber"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;NodeNumber"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "jobsteps")
@@ -423,24 +423,24 @@ namespace Arc {
       return true;
     else if (attributeName == "listenerport") {
       // Not supported yet, only store it
-      job.JDL_elements["ListenerPort"] = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;ListenerPort"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "listenerhost") {
       // Not supported yet, only store it
-      job.JDL_elements["ListenerHost"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;ListenerHost"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "listenerpipename") {
       // Not supported yet, only store it
-      job.JDL_elements["ListenerPipeName"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;ListenerPipeName"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "requirements") {
       // It's too complicated to determinize the right conditions, because the definition language is
       // LRMS specific.
       // Only store it.
-      job.JDL_elements["Requirements"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;Requirements"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
     else if (attributeName == "rank") {
@@ -457,7 +457,7 @@ namespace Arc {
     }
     else if (attributeName == "outputse") {
       // Not supported yet, only store it
-      job.JDL_elements["OutputSE"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
+      job.OtherAttributes["egee:jdl;OutputSE"] = "\"" + simpleJDLvalue(attributeValue) + "\"";
       return true;
     }
 
@@ -697,11 +697,16 @@ namespace Arc {
     if (!job.Identification.UserTag.empty())
       product += generateOutputList("UserTags", job.Identification.UserTag, std::pair<char, char>('[', ']'), ';');
 
-    if (!job.JDL_elements.empty()) {
+    if (!job.OtherAttributes.empty()) {
       std::map<std::string, std::string>::const_iterator it;
-      for (it = job.JDL_elements.begin(); it != job.JDL_elements.end(); it++) {
+      for (it = job.OtherAttributes.begin(); it != job.OtherAttributes.end(); it++) {
+        std::list<std::string> keys;
+        tokenize(it->first, keys, ";");
+        if (keys.size() != 2 || keys.front() != "egee:jdl") {
+          continue;
+        }
         product += "  ";
-        product += it->first;
+        product += keys.back();
         product += " = \"";
         product += it->second;
         product += "\";\n";

@@ -41,6 +41,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST(TestGridTime);
+  CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -61,6 +62,7 @@ public:
   void TestNotify();
   void TestJoin();
   void TestGridTime();
+  void TestAdditionalAttributes();
 private:
   Arc::JobDescription INJOB, OUTJOB;
   Arc::XRSLParser PARSER;
@@ -705,6 +707,25 @@ void XRSLParserTest::TestGridTime() {
   CPPUNIT_ASSERT_EQUAL(600, OUTJOB.Resources.TotalCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOB.Resources.TotalCPUTime.benchmark.first);
   CPPUNIT_ASSERT_EQUAL(2800., OUTJOB.Resources.TotalCPUTime.benchmark.second);
+}
+
+void XRSLParserTest::TestAdditionalAttributes() {
+  std::string tmpjobdesc;
+
+  INJOB.OtherAttributes["nordugrid:xrsl;hostname"] = "localhost";
+  INJOB.OtherAttributes["nordugrid:xrsl;unknownattribute"] = "none";
+  INJOB.OtherAttributes["bogus:nonexisting;foo"] = "bar";
+  CPPUNIT_ASSERT(PARSER.UnParse(INJOB, tmpjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT(PARSER.Parse(tmpjobdesc, OUTJOB));
+
+  std::map<std::string, std::string>::const_iterator itAttribute;
+  itAttribute = OUTJOB.OtherAttributes.find("nordugrid:xrsl;hostname");
+  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() != itAttribute);
+  CPPUNIT_ASSERT_EQUAL((std::string)"localhost", itAttribute->second);
+  itAttribute = OUTJOB.OtherAttributes.find("nordugrid:xrsl;unknownattribute");
+  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
+  itAttribute = OUTJOB.OtherAttributes.find("bogus:nonexisting;foo");
+  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);

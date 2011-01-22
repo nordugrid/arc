@@ -114,8 +114,8 @@ namespace Arc {
   }
 
   bool SubmitterARC0::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
-    if (jobdesc.XRSL_elements["clientxrsl"].empty())
-      jobdesc.UnParse(jobdesc.XRSL_elements["clientxrsl"], "nordugrid:xrsl");
+    if (jobdesc.OtherAttributes["nordugrid:xrsl;clientxrsl"].empty())
+      jobdesc.UnParse(jobdesc.OtherAttributes["nordugrid:xrsl;clientxrsl"], "nordugrid:xrsl");
 
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
@@ -221,13 +221,13 @@ namespace Arc {
     candidateTarget.UseQueue = true;
     jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
 
-    jobdesc.XRSL_elements["action"] = "request";
-    jobdesc.XRSL_elements["savestate"] = "yes";
-    jobdesc.XRSL_elements["clientsoftware"] = "arclibclient-" VERSION;
+    jobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
+    jobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";
+    jobdesc.OtherAttributes["nordugrid:xrsl;clientsoftware"] = "arclibclient-" VERSION;
 #ifdef HAVE_GETHOSTNAME
     char hostname[1024];
     gethostname(hostname, 1024);
-    jobdesc.XRSL_elements["hostname"] = hostname;
+    jobdesc.OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
 #endif
 
     return true;

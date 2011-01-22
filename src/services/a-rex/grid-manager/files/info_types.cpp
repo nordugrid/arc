@@ -119,12 +119,12 @@ static char StateToShortcut(const std::string& state) {
 JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
 {
   action = "request";
-  std::map<std::string, std::string>::const_iterator act_i = arc_job_desc.XRSL_elements.find("action");
-  if(act_i != arc_job_desc.XRSL_elements.end()) action = act_i->second;
-  std::map<std::string, std::string>::const_iterator jid_i = arc_job_desc.XRSL_elements.find("jobid");
-  if(jid_i != arc_job_desc.XRSL_elements.end()) jobid = jid_i->second;
-  std::map<std::string, std::string>::const_iterator dr_i = arc_job_desc.XRSL_elements.find("dryrun");
-  if(dr_i != arc_job_desc.XRSL_elements.end()) dryrun = (dr_i->second == "yes");
+  std::map<std::string, std::string>::const_iterator act_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;action");
+  if(act_i != arc_job_desc.OtherAttributes.end()) action = act_i->second;
+  std::map<std::string, std::string>::const_iterator jid_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;jobid");
+  if(jid_i != arc_job_desc.OtherAttributes.end()) jobid = jid_i->second;
+  std::map<std::string, std::string>::const_iterator dr_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;dryrun");
+  if(dr_i != arc_job_desc.OtherAttributes.end()) dryrun = (dr_i->second == "yes");
 
   projectnames.clear();
   projectnames.push_back(arc_job_desc.Identification.JobVOName);
