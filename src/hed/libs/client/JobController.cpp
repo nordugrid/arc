@@ -36,9 +36,14 @@ namespace Arc {
   JobController::JobController(const UserConfig& usercfg,
                                const std::string& flavour)
     : flavour(flavour),
+      data_source(NULL),
+      data_destination(NULL),
       usercfg(usercfg) {}
 
-  JobController::~JobController() {}
+  JobController::~JobController() {
+    if(data_source) delete data_source;
+    if(data_destination) delete data_destination;
+  }
 
   void JobController::FillJobStore(const std::list<URL>& jobids) {
 
@@ -726,18 +731,32 @@ namespace Arc {
     logger.msg(VERBOSE, "Now copying (from -> to)");
     logger.msg(VERBOSE, " %s -> %s", src.str(), dst.str());
 
-    DataHandle source(src, usercfg);
+    if ((!data_source) || (!*data_source) ||
+        (!(*data_source)->SetURL(src))) {
+      if(data_source) delete data_source;
+      data_source = new DataHandle(src, usercfg);
+    }
+    DataHandle& source = *data_source;
     if (!source) {
       logger.msg(ERROR, "Unable to initialise connection to source: %s", src.str());
       return false;
     }
 
-    DataHandle destination(dst, usercfg);
+    if ((!data_destination) || (!*data_destination) ||
+        (!(*data_destination)->SetURL(dst))) {
+      if(data_destination) delete data_destination;
+      data_destination = new DataHandle(dst, usercfg);
+    }
+    DataHandle& destination = *data_destination;
     if (!destination) {
       logger.msg(ERROR, "Unable to initialise connection to destination: %s",
                  dst.str());
       return false;
     }
+
+    // Turn off all features we do not need
+    source->SetAdditionalChecks(false);
+    destination->SetAdditionalChecks(false);
 
     FileCache cache;
     DataStatus res =

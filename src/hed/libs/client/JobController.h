@@ -13,6 +13,7 @@
 #include <arc/client/Job.h>
 #include <arc/loader/Plugin.h>
 #include <arc/loader/Loader.h>
+#include <arc/data/DataHandle.h>
 
 namespace Arc {
 
@@ -220,6 +221,8 @@ namespace Arc {
     const std::string flavour;
     const UserConfig& usercfg;
     std::list<Job> jobstore;
+    DataHandle* data_source;
+    DataHandle* data_destination;
     Config jobstorage;
     static Logger logger;
   };
