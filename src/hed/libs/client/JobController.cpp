@@ -731,10 +731,15 @@ namespace Arc {
     logger.msg(VERBOSE, "Now copying (from -> to)");
     logger.msg(VERBOSE, " %s -> %s", src.str(), dst.str());
 
+    URL src_(src);
+    URL dst_(dst);
+    src_.AddOption("checksum","no");
+    dst_.AddOption("checksum","no");
+
     if ((!data_source) || (!*data_source) ||
-        (!(*data_source)->SetURL(src))) {
+        (!(*data_source)->SetURL(src_))) {
       if(data_source) delete data_source;
-      data_source = new DataHandle(src, usercfg);
+      data_source = new DataHandle(src_, usercfg);
     }
     DataHandle& source = *data_source;
     if (!source) {
@@ -743,9 +748,9 @@ namespace Arc {
     }
 
     if ((!data_destination) || (!*data_destination) ||
-        (!(*data_destination)->SetURL(dst))) {
+        (!(*data_destination)->SetURL(dst_))) {
       if(data_destination) delete data_destination;
-      data_destination = new DataHandle(dst, usercfg);
+      data_destination = new DataHandle(dst_, usercfg);
     }
     DataHandle& destination = *data_destination;
     if (!destination) {
