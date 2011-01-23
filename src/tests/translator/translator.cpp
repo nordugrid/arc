@@ -5,7 +5,6 @@ int main() {
   std::cout << " [ JobDescription tester ] " << std::endl;
   std::cout << std::endl << " [ Parsing ] " << std::endl << std::endl;
 
-  Arc::JobDescription jd;
   std::string xrsl_string = "&(executable=\"test.sh\") \
   (arguments=\"pal\") \
   (stdout=\"stdout.txt\") \
@@ -15,10 +14,16 @@ int main() {
   (CPUtime=10) \
   (environment=(\"ATLAS\" \"/opt/atlas\") (\"CERN\" \"/cern\")) \
   (jobName=\"MyTestJob\")";
-  jd.Parse( xrsl_string );
 
-  jd.Print();
+  std::list<Arc::JobDescription> jds;
+  if (!Arc::JobDescription::Parse( xrsl_string , jds ) || jds.empty()) {
+    return 1;
+  }
 
-  std::string jobdescstring = jd.UnParse("JDL");
+  jds.front().Print();
+
+  std::string jobdescstring = jds.front().UnParse("JDL");
   std::cout << std::endl << " [ jd.UnParse(\"JDL\") ] " << std::endl << std::endl << jobdescstring << std::endl;
+
+  return 0;
 }

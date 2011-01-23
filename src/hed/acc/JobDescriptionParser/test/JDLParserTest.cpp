@@ -9,21 +9,6 @@
 #include "../JDLParser.h"
 
 
-#define PARSER parser
-#define INJOB inJob
-#define OUTJOB outJob
-#define MESSAGE message
-
-#define PARSE_ASSERT(X) \
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, X);
-
-#define PARSE_ASSERT_EQUAL(X) \
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.X, OUTJOB.X);
-
-#define PARSE_ASSERT_EQUAL2(X, Y) \
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, X, Y);
-
-
 class JDLParserTest
   : public CppUnit::TestFixture {
 
@@ -59,7 +44,8 @@ public:
   void TestAdditionalAttributes();
 
 private:
-  Arc::JobDescription INJOB, OUTJOB;
+  Arc::JobDescription INJOB;
+  std::list<Arc::JobDescription> OUTJOBS;
   Arc::JDLParser PARSER;
 
   std::string MESSAGE;
@@ -89,11 +75,12 @@ void JDLParserTest::tearDown() {
 
 void JDLParserTest::TestExecutable() {
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL(Application.Executable.Name);
-  PARSE_ASSERT_EQUAL(Application.Executable.Argument);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Name, OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Argument, OUTJOBS.front().Application.Executable.Argument);
 }
 
 void JDLParserTest::TestInputOutputError() {
@@ -102,12 +89,14 @@ void JDLParserTest::TestInputOutputError() {
   INJOB.Application.Error = "error-file";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL(Application.Input);
-  PARSE_ASSERT_EQUAL(Application.Output);
-  PARSE_ASSERT_EQUAL(Application.Error);
+
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Input, OUTJOBS.front().Application.Input);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Output, OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Error, OUTJOBS.front().Application.Error);
 }
 
 /**
@@ -157,26 +146,27 @@ void JDLParserTest::TestDataStagingDownloadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name,            it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData,        it->KeepData);
-  PARSE_ASSERT_EQUAL2(file.IsExecutable,    it->IsExecutable);
-  PARSE_ASSERT_EQUAL2(file.DownloadToCache, it->DownloadToCache);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,            it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,        it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.IsExecutable,    it->IsExecutable);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.DownloadToCache, it->DownloadToCache);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 3-Upload-Delete */
@@ -194,24 +184,25 @@ void JDLParserTest::TestDataStagingUploadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
+  
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 4-Create-Download */
@@ -225,24 +216,25 @@ void JDLParserTest::TestDataStagingCreateDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("/" + file.Name), it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front().URI);
 }
 
 /** 5-Download-Download */
@@ -260,31 +252,32 @@ void JDLParserTest::TestDataStagingDownloadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
-  it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("/" + file.Name), it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
+
+  it++;
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front().URI);
 }
 
 /** 6-Upload-Download */
@@ -302,31 +295,32 @@ void JDLParserTest::TestDataStagingUploadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
-  it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("/" + file.Name), it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
+
+  it++;
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front().URI);
 }
 
 /** 7-Create-Upload */
@@ -344,24 +338,25 @@ void JDLParserTest::TestDataStagingCreateUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI, it->Target.front().URI);
 }
 
 /** 8-Download-Upload */
@@ -383,31 +378,32 @@ void JDLParserTest::TestDataStagingDownloadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
-  it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
+
+  it++;
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI, it->Target.front().URI);
 }
 
 /** 9-Upload-Upload */
@@ -429,31 +425,32 @@ void JDLParserTest::TestDataStagingUploadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
-
-  it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
+
+  it++;
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI, it->Target.front().URI);
 }
 
 void JDLParserTest::TestAdditionalAttributes() {
@@ -463,15 +460,16 @@ void JDLParserTest::TestAdditionalAttributes() {
   INJOB.OtherAttributes["egee:jdl;unknownattribute"] = "none";
   INJOB.OtherAttributes["bogus:nonexisting;foo"] = "bar";
   CPPUNIT_ASSERT(PARSER.UnParse(INJOB, tmpjobdesc, "egee:jdl"));
-  CPPUNIT_ASSERT(PARSER.Parse(tmpjobdesc, OUTJOB));
+  CPPUNIT_ASSERT(PARSER.Parse(tmpjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
   std::map<std::string, std::string>::const_iterator itAttribute;
-  itAttribute = OUTJOB.OtherAttributes.find("egee:jdl;batchsystem");
-  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() != itAttribute);
+  itAttribute = OUTJOBS.front().OtherAttributes.find("egee:jdl;batchsystem");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() != itAttribute);
   CPPUNIT_ASSERT_EQUAL((std::string)"test", itAttribute->second);
-  itAttribute = OUTJOB.OtherAttributes.find("egee:jdl;unknownattribute");
-  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
-  itAttribute = OUTJOB.OtherAttributes.find("bogus:nonexisting;foo");
-  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
+  itAttribute = OUTJOBS.front().OtherAttributes.find("egee:jdl;unknownattribute");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() == itAttribute);
+  itAttribute = OUTJOBS.front().OtherAttributes.find("bogus:nonexisting;foo");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() == itAttribute);
 }
 CPPUNIT_TEST_SUITE_REGISTRATION(JDLParserTest);

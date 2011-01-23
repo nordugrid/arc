@@ -27,9 +27,7 @@ namespace Arc {
   public:
     virtual ~JobDescriptionParser();
 
-    JobDescription Parse(const std::string& source) const;
-    std::string UnParse(const JobDescription& job) const;
-    virtual bool Parse(const std::string& source, JobDescription& jobdesc, const std::string& language = "", const std::string& dialect = "") const = 0;
+    virtual bool Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const = 0;
     virtual bool UnParse(const JobDescription& job, std::string& output, const std::string& language, const std::string& dialect = "") const = 0;
     const std::list<std::string>& GetSupportedLanguages() const { return supportedLanguages; }
     bool IsLanguageSupported(const std::string& language) const { return std::find(supportedLanguages.begin(), supportedLanguages.end(), language) != supportedLanguages.end(); }

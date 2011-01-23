@@ -70,31 +70,33 @@ int main(int argc, char **argv) {
       original_description = (*it);
 
     if (requested_format == "JDL" || requested_format == "ARCJSDL" || requested_format == "XRSL" || requested_format == "") {
-      Arc::JobDescription jd;
-
       if (show_original_description) {
         std::cout << std::endl << " [ Parsing the orignal text ] " << std::endl << std::endl;
         std::cout << original_description << std::endl;
       }
 
-      jd.Parse(original_description);
+      std::list<Arc::JobDescription> jds;
+      if (!Arc::JobDescription::Parse(original_description, jds) || jds.empty()) {
+        std::cout << "Unable to parse." << std::endl;
+        return 1;
+      }
 
       std::string test;
       if (requested_format == "")
-        jd.Print(true);
+        jds.front().Print(true);
 
       if (requested_format == "JDL" || requested_format == "") {
-        test = jd.UnParse("JDL");
+        test = jds.front().UnParse("JDL");
         std::cout << std::endl << " [ JDL ] " << std::endl << test << std::endl;
       }
 
       if (requested_format == "XRSL" || requested_format == "") {
-        test = jd.UnParse("XRSL");
+        test = jds.front().UnParse("XRSL");
         std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
       }
 
       if (requested_format == "ARCJSDL" || requested_format == "") {
-        test = jd.UnParse("ARCJSDL");
+        test = jds.front().UnParse("ARCJSDL");
         std::cout << std::endl << " [ ARCJSDL ] " << std::endl << test << std::endl;
       }
     }

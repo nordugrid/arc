@@ -208,9 +208,10 @@ int RUNSUB(main)(int argc, char **argv) {
     descriptionfile.close();
 
     buffer[length] = '\0';
-    Arc::JobDescription jobdesc;
-    if (jobdesc.Parse((std::string)buffer))
-      jobdescriptionlist.push_back(jobdesc);
+    std::list<Arc::JobDescription> jobdescs;
+    if (Arc::JobDescription::Parse((std::string)buffer, jobdescs)) {
+      jobdescriptionlist.insert(jobdescriptionlist.end(), jobdescs.begin(), jobdescs.end());
+    }
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
       std::cout << buffer << std::endl;
@@ -224,9 +225,10 @@ int RUNSUB(main)(int argc, char **argv) {
   for (std::list<std::string>::iterator it = jobdescriptionstrings.begin();
        it != jobdescriptionstrings.end(); it++) {
 
-    Arc::JobDescription jobdesc;
-    if (jobdesc.Parse(*it))
-      jobdescriptionlist.push_back(jobdesc);
+    std::list<Arc::JobDescription> jobdescs;
+    if (Arc::JobDescription::Parse(*it, jobdescs)) {
+      jobdescriptionlist.insert(jobdescriptionlist.end(), jobdescs.begin(), jobdescs.end());
+    }
     else {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
       std::cout << *it << std::endl;

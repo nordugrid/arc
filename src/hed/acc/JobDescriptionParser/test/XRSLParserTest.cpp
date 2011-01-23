@@ -9,21 +9,6 @@
 #include "../XRSLParser.h"
 
 
-#define PARSER parser
-#define INJOB inJob
-#define OUTJOB outJob
-#define MESSAGE message
-
-#define PARSE_ASSERT(X) \
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, X);
-
-#define PARSE_ASSERT_EQUAL(X) \
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.X, OUTJOB.X);
-
-#define PARSE_ASSERT_EQUAL2(X, Y) \
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, X, Y);
-
-
 class XRSLParserTest
   : public CppUnit::TestFixture {
 
@@ -42,6 +27,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST(TestGridTime);
   CPPUNIT_TEST(TestAdditionalAttributes);
+  CPPUNIT_TEST(TestMultiRSL);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -63,8 +49,10 @@ public:
   void TestJoin();
   void TestGridTime();
   void TestAdditionalAttributes();
+  void TestMultiRSL();
 private:
-  Arc::JobDescription INJOB, OUTJOB;
+  Arc::JobDescription INJOB;
+  std::list<Arc::JobDescription> OUTJOBS;
   Arc::XRSLParser PARSER;
 
   std::string MESSAGE;
@@ -99,11 +87,13 @@ void XRSLParserTest::tearDown() {
 
 void XRSLParserTest::TestExecutable() {
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL(Application.Executable.Name);
-  PARSE_ASSERT_EQUAL(Application.Executable.Argument);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Name, OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Argument, OUTJOBS.front().Application.Executable.Argument);
 }
 
 void XRSLParserTest::TestInputOutputError() {
@@ -117,12 +107,14 @@ void XRSLParserTest::TestInputOutputError() {
   INJOB.Application.Error = "error-file";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL(Application.Input);
-  PARSE_ASSERT_EQUAL(Application.Output);
-  PARSE_ASSERT_EQUAL(Application.Error);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Input, OUTJOBS.front().Application.Input);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Output, OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Error, OUTJOBS.front().Application.Error);
 
   remove(INJOB.Application.Input.c_str());
 }
@@ -170,27 +162,29 @@ void XRSLParserTest::TestDataStagingDownloadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI,  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   */
 }
 
@@ -214,27 +208,29 @@ void XRSLParserTest::TestDataStagingUploadDelete() {
   f.close();
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI,  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   */
 
   remove(file.Name.c_str());
@@ -251,27 +247,29 @@ void XRSLParserTest::TestDataStagingCreateDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   it++;
   */
 
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 }
 
 /** 5-Download-Download */
@@ -289,34 +287,36 @@ void XRSLParserTest::TestDataStagingDownloadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI,  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   */
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 }
 
 /** 6-Upload-Download */
@@ -339,34 +339,36 @@ void XRSLParserTest::TestDataStagingUploadDownload() {
   f.close();
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI,  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   */
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   remove(file.Name.c_str());
 }
@@ -386,29 +388,31 @@ void XRSLParserTest::TestDataStagingCreateUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   it++;
   */
 
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI,  it->Target.front().URI);
 }
 
 /** 8-Download-Upload */
@@ -430,35 +434,37 @@ void XRSLParserTest::TestDataStagingDownloadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI,  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   */
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI,  it->Target.front().URI);
 }
 
 /** 9-Upload-Upload */
@@ -485,35 +491,37 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   f.close();
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
 
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOB.DataStaging.File.begin();
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(source.URI, it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().DataStaging.File.size());
+
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI,  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
   it++;
-  PARSE_ASSERT_EQUAL2((std::string)"executable", it->Name);
-  PARSE_ASSERT_EQUAL2(false, it->KeepData);
-  PARSE_ASSERT_EQUAL2(1, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(Arc::URL("executable"), it->Source.front().URI);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
   */
 
   it++;
-  PARSE_ASSERT_EQUAL2(file.Name, it->Name);
-  PARSE_ASSERT_EQUAL2(file.KeepData, it->KeepData);
-  PARSE_ASSERT_EQUAL2(0, (int)it->Source.size());
-  PARSE_ASSERT_EQUAL2(1, (int)it->Target.size());
-  PARSE_ASSERT_EQUAL2(target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI,  it->Target.front().URI);
 
   remove(file.Name.c_str());
 }
@@ -536,115 +544,125 @@ void XRSLParserTest::TestNotify() {
   // Test default option.
   std::string xrsl = "&(executable = \"executable\")(notify = \"someone@example.com\")";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  std::list<Arc::JobDescription> tempJobDescs;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
-  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.Application.Notification.size());
-  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
-  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", OUTJOB.Application.Notification.front().Email);
-  PARSE_ASSERT_EQUAL2(2, (int)INJOB.Application.Notification.front().States.size());
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.Application.Notification.front().States.size());
-  PARSE_ASSERT_EQUAL2((std::string)"PREPARING", INJOB.Application.Notification.front().States.front());
-  PARSE_ASSERT_EQUAL2((std::string)"FINISHED", INJOB.Application.Notification.front().States.back());
-  PARSE_ASSERT_EQUAL2((std::string)"PREPARING", OUTJOB.Application.Notification.front().States.front());
-  PARSE_ASSERT_EQUAL2((std::string)"FINISHED", OUTJOB.Application.Notification.front().States.back());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)tempJobDescs.front().Application.Notification.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().Application.Notification.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"someone@example.com",  tempJobDescs.front().Application.Notification.front().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"someone@example.com",  OUTJOBS.front().Application.Notification.front().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)tempJobDescs.front().Application.Notification.front().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().Application.Notification.front().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  tempJobDescs.front().Application.Notification.front().States.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHED",  tempJobDescs.front().Application.Notification.front().States.back());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  OUTJOBS.front().Application.Notification.front().States.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHED",  OUTJOBS.front().Application.Notification.front().States.back());
 
   // Test all flags.
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\")";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(1, (int)INJOB.Application.Notification.size());
-  PARSE_ASSERT_EQUAL2(1, (int)OUTJOB.Application.Notification.size());
-  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
-  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", OUTJOB.Application.Notification.front().Email);
-  PARSE_ASSERT_EQUAL2(6, (int)INJOB.Application.Notification.front().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)tempJobDescs.front().Application.Notification.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().Application.Notification.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"someone@example.com",  tempJobDescs.front().Application.Notification.front().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"someone@example.com",  OUTJOBS.front().Application.Notification.front().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 6,  (int)tempJobDescs.front().Application.Notification.front().States.size());
   {
-    std::list<std::string>::const_iterator it = INJOB.Application.Notification.front().States.begin();
-    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+    std::list<std::string>::const_iterator it = tempJobDescs.front().Application.Notification.front().States.begin();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"INLRMS",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"DELETED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"CANCELING",  *it);
   }
-  PARSE_ASSERT_EQUAL2(6, (int)OUTJOB.Application.Notification.front().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 6,  (int)OUTJOBS.front().Application.Notification.front().States.size());
   {
-    std::list<std::string>::const_iterator it = OUTJOB.Application.Notification.front().States.begin();
-    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+    std::list<std::string>::const_iterator it = OUTJOBS.front().Application.Notification.front().States.begin();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"INLRMS",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"DELETED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"CANCELING",  *it);
   }
 
   // Test multiple entries and overlapping states.
   xrsl = "&(executable = \"executable\")(notify = \"bqfedc someone@example.com\" \"bqf someone@example.com anotherone@example.com\")";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2(2, (int)INJOB.Application.Notification.size());
-  PARSE_ASSERT_EQUAL2(2, (int)OUTJOB.Application.Notification.size());
-  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", INJOB.Application.Notification.front().Email);
-  PARSE_ASSERT_EQUAL2((std::string)"someone@example.com", OUTJOB.Application.Notification.front().Email);
-  PARSE_ASSERT_EQUAL2((std::string)"anotherone@example.com", INJOB.Application.Notification.back().Email);
-  PARSE_ASSERT_EQUAL2((std::string)"anotherone@example.com", OUTJOB.Application.Notification.back().Email);
-  PARSE_ASSERT_EQUAL2(6, (int)INJOB.Application.Notification.front().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)tempJobDescs.front().Application.Notification.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().Application.Notification.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"someone@example.com",  tempJobDescs.front().Application.Notification.front().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"someone@example.com",  OUTJOBS.front().Application.Notification.front().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"anotherone@example.com",  tempJobDescs.front().Application.Notification.back().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"anotherone@example.com",  OUTJOBS.front().Application.Notification.back().Email);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 6,  (int)tempJobDescs.front().Application.Notification.front().States.size());
   {
-    std::list<std::string>::const_iterator it = INJOB.Application.Notification.front().States.begin();
-    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+    std::list<std::string>::const_iterator it = tempJobDescs.front().Application.Notification.front().States.begin();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"INLRMS",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"DELETED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"CANCELING",  *it);
   }
-  PARSE_ASSERT_EQUAL2(6, (int)OUTJOB.Application.Notification.front().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 6,  (int)OUTJOBS.front().Application.Notification.front().States.size());
   {
-    std::list<std::string>::const_iterator it = OUTJOB.Application.Notification.front().States.begin();
-    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"DELETED", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"CANCELING", *it);
+    std::list<std::string>::const_iterator it = OUTJOBS.front().Application.Notification.front().States.begin();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"INLRMS",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"DELETED",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"CANCELING",  *it);
   }
-  PARSE_ASSERT_EQUAL2(3, (int)INJOB.Application.Notification.back().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3,  (int)tempJobDescs.front().Application.Notification.back().States.size());
   {
-    std::list<std::string>::const_iterator it = INJOB.Application.Notification.front().States.begin();
-    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it);
+    std::list<std::string>::const_iterator it = tempJobDescs.front().Application.Notification.front().States.begin();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"INLRMS",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHING",  *it);
   }
-  PARSE_ASSERT_EQUAL2(3, (int)OUTJOB.Application.Notification.back().States.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3,  (int)OUTJOBS.front().Application.Notification.back().States.size());
   {
-    std::list<std::string>::const_iterator it = OUTJOB.Application.Notification.front().States.begin();
-    PARSE_ASSERT_EQUAL2((std::string)"PREPARING", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"INLRMS", *it++);
-    PARSE_ASSERT_EQUAL2((std::string)"FINISHING", *it);
+    std::list<std::string>::const_iterator it = OUTJOBS.front().Application.Notification.front().States.begin();
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"PREPARING",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"INLRMS",  *it++);
+    CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"FINISHING",  *it);
   }
 
   // Test invalid email address.
   xrsl = "&(executable = \"executable\")(notify = \"someoneAexample.com\")";
 
-  PARSE_ASSERT(!PARSER.Parse(xrsl, INJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT(tempJobDescs.empty());
 
   // Test invalid email address with state flags.
   xrsl = "&(executable = \"executable\")(notify = \"bqfecd someoneAexample.com\")";
 
-  PARSE_ASSERT(!PARSER.Parse(xrsl, INJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT(tempJobDescs.empty());
 
   // Test unknown state flags.
   xrsl = "&(executable = \"executable\")(notify = \"xyz someone@example.com\")";
 
-  PARSE_ASSERT(!PARSER.Parse(xrsl, INJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT(tempJobDescs.empty());
 }
 
 void XRSLParserTest::TestJoin() {
@@ -652,61 +670,69 @@ void XRSLParserTest::TestJoin() {
 
   std::string xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  std::list<Arc::JobDescription> tempJobDescs;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
   // When first parsed the JobDescription attribute Application.Join will be
   // set, while the Application.Error attribute will be left empty.
-  PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);
-  PARSE_ASSERT(INJOB.Application.Error.empty());
-  PARSE_ASSERT(INJOB.Application.Join);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  tempJobDescs.front().Application.Output);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Error.empty());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Join);
   // When the description have been unparsed by the parser the join attribute
   // will no longer be set, instead stdout and stderr will be identical.
-  PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Output);
-  PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Error);
-  PARSE_ASSERT(!OUTJOB.Application.Join);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  OUTJOBS.front().Application.Error);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.Join);
 
   xrsl = "&(executable = \"executable\")(stderr = \"error-file\")(join = \"yes\")";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
   // When first parsed the JobDescription attribute Application.Join will be
   // set, while the Application.Error attribute will be left empty.
-  PARSE_ASSERT(INJOB.Application.Output.empty());
-  PARSE_ASSERT_EQUAL2((std::string)"error-file", INJOB.Application.Error);
-  PARSE_ASSERT(INJOB.Application.Join);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Output.empty());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"error-file",  tempJobDescs.front().Application.Error);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Join);
   // When the description have been unparsed by the parser the join attribute
   // will no longer be set, instead stdout and stderr will be identical.
-  PARSE_ASSERT_EQUAL2((std::string)"error-file", OUTJOB.Application.Output);
-  PARSE_ASSERT_EQUAL2((std::string)"error-file", OUTJOB.Application.Error);
-  PARSE_ASSERT(!OUTJOB.Application.Join);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"error-file",  OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"error-file",  OUTJOBS.front().Application.Error);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.Join);
 
   xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"no\")";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, INJOB));
-  PARSE_ASSERT(PARSER.UnParse(INJOB, xrsl, "nordugrid:xrsl"));
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL2((std::string)"output-file", INJOB.Application.Output);
-  PARSE_ASSERT_EQUAL2((std::string)"output-file", OUTJOB.Application.Output);
-  PARSE_ASSERT(INJOB.Application.Error.empty());
-  PARSE_ASSERT(OUTJOB.Application.Error.empty());
-  PARSE_ASSERT(!INJOB.Application.Join);
-  PARSE_ASSERT(!OUTJOB.Application.Join);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  tempJobDescs.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Error.empty());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Application.Error.empty());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !tempJobDescs.front().Application.Join);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.Join);
 }
 
 void XRSLParserTest::TestGridTime() {
   std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
 
-  PARSE_ASSERT(PARSER.Parse(xrsl, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(-1, OUTJOB.Resources.TotalCPUTime.range.min);
-  CPPUNIT_ASSERT_EQUAL(600, OUTJOB.Resources.TotalCPUTime.range.max);
-  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOB.Resources.TotalCPUTime.benchmark.first);
-  CPPUNIT_ASSERT_EQUAL(2800., OUTJOB.Resources.TotalCPUTime.benchmark.second);
+  CPPUNIT_ASSERT_EQUAL(-1, OUTJOBS.front().Resources.TotalCPUTime.range.min);
+  CPPUNIT_ASSERT_EQUAL(600, OUTJOBS.front().Resources.TotalCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL((std::string)"clock rate", OUTJOBS.front().Resources.TotalCPUTime.benchmark.first);
+  CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalCPUTime.benchmark.second);
 }
 
 void XRSLParserTest::TestAdditionalAttributes() {
@@ -716,16 +742,26 @@ void XRSLParserTest::TestAdditionalAttributes() {
   INJOB.OtherAttributes["nordugrid:xrsl;unknownattribute"] = "none";
   INJOB.OtherAttributes["bogus:nonexisting;foo"] = "bar";
   CPPUNIT_ASSERT(PARSER.UnParse(INJOB, tmpjobdesc, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT(PARSER.Parse(tmpjobdesc, OUTJOB));
+  CPPUNIT_ASSERT(PARSER.Parse(tmpjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
   std::map<std::string, std::string>::const_iterator itAttribute;
-  itAttribute = OUTJOB.OtherAttributes.find("nordugrid:xrsl;hostname");
-  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() != itAttribute);
+  itAttribute = OUTJOBS.front().OtherAttributes.find("nordugrid:xrsl;hostname");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() != itAttribute);
   CPPUNIT_ASSERT_EQUAL((std::string)"localhost", itAttribute->second);
-  itAttribute = OUTJOB.OtherAttributes.find("nordugrid:xrsl;unknownattribute");
-  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
-  itAttribute = OUTJOB.OtherAttributes.find("bogus:nonexisting;foo");
-  CPPUNIT_ASSERT(OUTJOB.OtherAttributes.end() == itAttribute);
+  itAttribute = OUTJOBS.front().OtherAttributes.find("nordugrid:xrsl;unknownattribute");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() == itAttribute);
+  itAttribute = OUTJOBS.front().OtherAttributes.find("bogus:nonexisting;foo");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() == itAttribute);
+}
+
+void XRSLParserTest::TestMultiRSL() {
+  std::string xrsl = "+(&(executable= \"/bin/exe1\"))(&(executable= \"/bin/exe2\"))";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe1", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe2", OUTJOBS.back().Application.Executable.Name);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);

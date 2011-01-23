@@ -22,24 +22,6 @@ namespace Arc {
 
   std::string& JobDescriptionParser::SourceLanguage(JobDescription& j) const { return j.sourceLanguage; }
 
-  JobDescription JobDescriptionParser::Parse(const std::string& source) const {
-    JobDescription jobdesc;
-    if (Parse(source, jobdesc)) {
-      return jobdesc;
-    }
-
-    return JobDescription();
-  }
-
-  std::string JobDescriptionParser::UnParse(const JobDescription& job) const {
-    std::string output;
-    if (UnParse(job, output, "")) {
-      return output;
-    }
-
-    return "";
-  }
-
   JobDescriptionParserLoader::JobDescriptionParserLoader()
     : Loader(BaseConfig().MakeConfig(Config()).Parent()), scaningDone(false) {}
 

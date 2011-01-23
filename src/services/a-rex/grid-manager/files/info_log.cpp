@@ -84,7 +84,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   // Configuration options for usage reporter tool
   for (std::list<std::string>::iterator sp = report_config.begin();
        sp != report_config.end();
-       ++sp) 
+       ++sp)
     {
       o_dst<<*sp<<std::endl;
     }
@@ -92,7 +92,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   {
   fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
   int h_src=open(fname_src.c_str(),O_RDONLY);
-  if(h_src==-1) goto error; 
+  if(h_src==-1) goto error;
   o_dst<<"description=";
   for(;;) {
     l=read(h_src,buf,sizeof(buf));
@@ -153,7 +153,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
       if(proxy_src.eof()) break;
       std::string line;
       std::getline(proxy_src,line);
-      if(in_private)  
+      if(in_private)
   { // Skip private key
     if (line.find("-----END") != std::string::npos &&
         line.find("PRIVATE KEY-----") != std::string::npos
@@ -181,10 +181,14 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
   // Extract requested resources
   {
     fname_src = user.ControlDir() + "/job." + desc.get_id() + sfx_rsl;
-    Arc::JobDescription arc_job_desc;
     std::string job_desc_str;
     if (!job_description_read_file(fname_src, job_desc_str)) goto error;
-    if (!arc_job_desc.Parse(job_desc_str, "", "GRIDMANAGER")) goto error;
+    Arc::JobDescription arc_job_desc;
+    {
+      std::list<Arc::JobDescription> arc_job_desc_list;
+      if (!Arc::JobDescription::Parse(job_desc_str, arc_job_desc_list, "", "GRIDMANAGER") || arc_job_desc_list.size() != 1) goto error;
+      arc_job_desc = arc_job_desc_list.front();
+    }
 //    if(!get_arc_job_description(fname_src, arc_job_desc)) goto error;
     if(arc_job_desc.Resources.IndividualPhysicalMemory.max>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory.max<<std::endl;
     if(arc_job_desc.Resources.TotalCPUTime.range.max>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime.range.max<<std::endl;

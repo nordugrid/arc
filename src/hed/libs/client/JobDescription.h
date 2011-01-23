@@ -271,18 +271,68 @@ namespace Arc {
     // Language wrapper constructor
     JobDescription(const long int& ptraddr);
 
-    operator bool() const {
-      return (!Application.Executable.Name.empty());
-    }
+    /// DEPRECATED: Check whether JobDescription is valid.
+    /**
+     * The JobDescription class itself is not able to tell whether its objects
+     * are valid or not. Instead when parsing/outputting, JobDescriptionParser
+     * classes checks the validity. Thus the Parse and UnParse methods should be
+     * used for this purpose.
+     **/
+    operator bool() const;
 
-    // Try to parse the source string and store it.
+    /// Parse string into JobDescription objects
+    /**
+     * The passed string will be tried parsed into the list of JobDescription
+     * objects. The available specialized JobDesciptionParser classes will be
+     * tried one by one, parsing the string, and if one succeeds the list of
+     * JobDescription objects is filled with the parsed contents and true is
+     * returned, otherwise false is returned. If no language specified, each
+     * JobDescriptionParser will try all its supported languages. On the other
+     * hand if a language is specified, only the JobDescriptionParser supporting
+     * that language will be tried. A dialect can also be specified, which only
+     * has an effect on the parsing if the JobDescriptionParser supports that
+     * dialect.
+     *
+     * @param source
+     * @param jobdescs
+     * @param language
+     * @param dialect
+     * @return true if the passed string can be parsed successfully by any of
+     *   the available parsers.
+     **/
+    static bool Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "");
+
+    /// DEPRECATED: Parse source string
+    /**
+     * This method is deprecated, use the Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&)
+     * method instead.
+     **/
     bool Parse(const std::string& source, const std::string& language = "", const std::string& dialect = "");
-    // XMLNode is reference by itself - passing it as const& has no sense
+
+    /// DEPRECATED: Parse source string
+    /**
+     * This method is deprecated, use the Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&)
+     * method instead.
+     **/
     bool Parse(const XMLNode& xmlSource);
 
+    /// DEPRECATED: Output contents in the specified language
+    /**
+     * This method is deprecated, use the UnParse(std::string&, std::string, const std::string&)
+     * method instead.
+     **/
     std::string UnParse(const std::string& language = "nordugrid:jsdl") const;
 
+    /// Output contents in the specified language
+    /**
+     *
+     * @param product
+     * @param language
+     * @param dialect
+     * @return
+     **/
     bool UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
+
 
     /// Get input source language
     /**

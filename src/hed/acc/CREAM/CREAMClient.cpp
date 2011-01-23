@@ -197,19 +197,19 @@ namespace Arc {
     if (ISVALID(jobInfoNode["JDL"])) {
       job.JobDescription = (std::string)jobInfoNode["JDL"];
 
-      JobDescription jd;
-      if (jd.Parse(job.JobDescription)) {
-        if (!jd.Application.Input.empty())
-          job.StdIn = jd.Application.Input;
+      std::list<JobDescription> jds;
+      if (JobDescription::Parse(job.JobDescription, jds) && !jds.empty()) {
+        if (!jds.front().Application.Input.empty())
+          job.StdIn = jds.front().Application.Input;
 
-        if (!jd.Application.Output.empty())
-          job.StdOut = jd.Application.Output;
+        if (!jds.front().Application.Output.empty())
+          job.StdOut = jds.front().Application.Output;
 
-        if (!jd.Application.Error.empty())
-          job.StdErr = jd.Application.Error;
+        if (!jds.front().Application.Error.empty())
+          job.StdErr = jds.front().Application.Error;
 
-        if (!jd.Resources.CandidateTarget.empty())
-          job.Queue = jd.Resources.CandidateTarget.front().QueueName;
+        if (!jds.front().Resources.CandidateTarget.empty())
+          job.Queue = jds.front().Resources.CandidateTarget.front().QueueName;
       }
     }
     if (ISVALID(lastStatusNode["exitCode"]))

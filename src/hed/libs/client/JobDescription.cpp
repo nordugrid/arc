@@ -28,6 +28,11 @@ namespace Arc {
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
 
+  JobDescription::operator bool() const {
+    logger.msg(WARNING, "The JobDescription::operator bool() method is DEPRECATED, use validity checks when parsing sting or outputing contents of JobDescription object.");
+    return (!Application.Executable.Name.empty());
+  }
+
   void JobDescription::Print(bool longlist) const {
     logger.msg(WARNING, "The JobDescription::Print method is DEPRECATED, use the JobDescription::SaveToStream method instead.");
     SaveToStream(std::cout, (!longlist ? "user" : "userlong")); // ??? Prepend "user*" with a character to avoid clashes?
@@ -314,12 +319,23 @@ namespace Arc {
 
   bool JobDescription::Parse(const XMLNode& xmlSource)
   {
+    logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&) method instead.");
     std::string source;
     xmlSource.GetXML(source);
     return Parse(source);
   }
 
   bool JobDescription::Parse(const std::string& source, const std::string& language, const std::string& dialect) {
+    logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&) method instead.");
+    std::list<JobDescription> jobdescs;
+    bool r = (Parse(source, jobdescs, language, dialect) && !jobdescs.empty());
+    if (r) {
+      *this = jobdescs.front();
+    }
+    return r;
+  }
+
+  bool JobDescription::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) {
     if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");
       return false;
@@ -330,18 +346,18 @@ namespace Arc {
       // Releasing lock because we can't know how long parsing will take
       // But for current implementations of parsers it is not specified
       // if their Parse/Unparse methods can be called concurently.
-      // And definitely SetHints can't overlap.
-      //jdpl_lock.unlock(); 
-      if (it->Parse(source, *this, language, dialect)) {
-        jdpl_lock.unlock(); 
+      if ((language.empty() || it->IsLanguageSupported(language)) && it->Parse(source, jobdescs)) {
+        jdpl_lock.unlock();
         return true;
-      }
+     }
     }
     jdpl_lock.unlock();
+
     return false;
   }
 
   std::string JobDescription::UnParse(const std::string& language) const {
+    logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::UnParse(std::string&, std::string, const std::string&) method instead.");
     std::string product;
     if (UnParse(product, language)) {
       return product;
@@ -349,7 +365,7 @@ namespace Arc {
 
     return "";
   }
-  
+
   bool JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect) const {
     if (language.empty()) {
       language = sourceLanguage;

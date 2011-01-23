@@ -29,7 +29,7 @@
 #include "grid-manager/jobs/commfifo.h"
 #include "grid-manager/run/run_plugin.h"
 #include "grid-manager/files/info_files.h"
- 
+
 #include "job.h"
 
 using namespace ARex;
@@ -157,7 +157,7 @@ bool ARexJob::is_allowed(bool fast) {
     return true;
   };
   std::string policyname = policy->getName();
-  if((policyname.length() > 7) && 
+  if((policyname.length() > 7) &&
      (policyname.substr(policyname.length()-7) == ".policy")) {
     policyname.resize(policyname.length()-7);
   };
@@ -343,7 +343,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       if(*q == job_.queue) break;
     };
   };
-  // Start local file 
+  // Start local file
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
   job_.jobid=id_;
   job_.starttime=Arc::Time();
@@ -391,9 +391,19 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
+  // Parse job description
+   Arc::JobDescription desc;
+  {
+    std::list<Arc::JobDescription> descs;
+    if (!Arc::JobDescription::Parse(job_desc_str, descs, "", "GRIDMANAGER") || descs.size() != 1) {
+      delete_job_id();
+      failure_="Unable to parse job description";
+      failure_type_=ARexJobInternalError;
+      return;
+    }
+    desc = descs.front();
+  };
   // Write grami file
-  Arc::JobDescription desc;
-  desc.Parse(job_desc_str, "", "GRIDMANAGER");
   if(!write_grami(desc,job,*config_.User(),NULL)) {
     delete_job_id();
     failure_="Failed to create grami file";
@@ -754,7 +764,7 @@ std::list<std::string> ARexJob::LogFiles(void) {
     std::string name = dir->read_name();
     if(name.empty()) break;
     if(strncmp(prefix.c_str(),name.c_str(),prefix.length()) != 0) continue;
-    logs.push_back(name.substr(prefix.length())); 
+    logs.push_back(name.substr(prefix.length()));
   };
   return logs;
 }

@@ -110,8 +110,8 @@ namespace Arc {
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
     std::string idstr = extract_job_id(job.JobID);
     if (ac.getdesc(idstr, desc_str)) {
-      JobDescription desc;
-      if (desc.Parse(desc_str)) {
+      std::list<JobDescription> descs;
+      if (JobDescription::Parse(desc_str, descs) && !descs.empty()) {
         return true;
       }
     }

@@ -154,14 +154,17 @@ namespace Arc {
     }
   }
 
-  bool ARCJSDLParser::Parse(const std::string& source, JobDescription& job, const std::string& language, const std::string& dialect) const {
+  bool ARCJSDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
 
     logger.msg(VERBOSE, "Parsing string using ARCJSDLParser");
 
-    job = JobDescription();
+    jobdescs.clear();
+
+    jobdescs.push_back(JobDescription());
+    JobDescription& job = jobdescs.back();
 
     xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
 
@@ -183,6 +186,7 @@ namespace Arc {
 
     if (node.Size() == 0) {
       logger.msg(VERBOSE, "[ARCJSDLParser] Wrong XML structure! ");
+      jobdescs.clear();
       return false;
     }
 
@@ -233,6 +237,7 @@ namespace Arc {
       xmlXApplication = xmlApplication["HPCProfileApplication"];
     if (!xmlXApplication) {
       logger.msg(ERROR, "[ARCJSDLParser] An extended application element (POSIXApplication or HPCProfileApplication) was not found in the job description.");
+      jobdescs.clear();
       return false;
     }
 
@@ -284,6 +289,7 @@ namespace Arc {
         XMLNode name = env.Attribute("name");
         if (!name || ((std::string)name).empty()) {
           logger.msg(VERBOSE, "[ARCJSDLParser] Error during the parsing: missed the name attributes of the \"%s\" Environment", (std::string)env);
+          jobdescs.clear();
           return false;
         }
         job.Application.Environment.push_back(std::pair<std::string, std::string>(name, env));
@@ -311,6 +317,7 @@ namespace Arc {
       URL url((std::string)xmlApplication["RemoteLogging"][i]);
       if (!url) {
         logger.msg(VERBOSE, "[ARCJSDLParser] RemoteLogging URL is wrongly formatted.");
+        jobdescs.clear();
         return false;
       }
       job.Application.RemoteLogging.push_back(url);
@@ -469,9 +476,12 @@ namespace Arc {
       job.Resources.SessionLifeTime = Period((std::string)resource["SessionLifeTime"]);
 
     // SoftwareRequirement CEType;
-    if (bool(resource["CEType"]))
-      if (!parseSoftware(resource["CEType"], job.Resources.CEType))
+    if (bool(resource["CEType"])) {
+      if (!parseSoftware(resource["CEType"], job.Resources.CEType)) {
+        jobdescs.clear();
         return false;
+      }
+    }
 
     // NodeAccessType NodeAccess;
     if (lower((std::string)resource["NodeAccess"]) == "inbound")
@@ -506,11 +516,12 @@ namespace Arc {
 
     // std::list<ResourceTargetType> CandidateTarget;
     if (bool(resource["CandidateTarget"])) {
-      for (int i = 0; (bool)(resource["CandidateTarget"][i]); i++)
+      for (int i = 0; (bool)(resource["CandidateTarget"][i]); i++) {
         if (bool(resource["CandidateTarget"][i]["HostName"]) || bool(resource["CandidateTarget"][i]["QueueName"])) {
           std::string useQueue = (std::string)resource["CandidateTarget"][i]["QueueName"].Attribute("require");
           if (!useQueue.empty() && useQueue != "eq" && useQueue != "=" && useQueue != "==" && useQueue != "ne" && useQueue != "!=") {
             logger.msg(ERROR, "Parsing the \"require\" attribute of the \"QueueName\" JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed.");
+            jobdescs.clear();
             return false;
           }
 
@@ -519,6 +530,7 @@ namespace Arc {
           candidateTarget.QueueName = (std::string)resource["CandidateTarget"][i]["QueueName"];
           candidateTarget.UseQueue = !(useQueue == "ne" || useQueue == "!=");
           job.Resources.CandidateTarget.push_back(candidateTarget);
+        }
       }
     }
     else if (bool(resource["CandidateHosts"]))
@@ -532,8 +544,10 @@ namespace Arc {
     if (bool(resource["RunTimeEnvironment"])) {
       if (bool(resource["RunTimeEnvironment"].Attribute("require")))
         job.Resources.RunTimeEnvironment.setRequirement(lower((std::string)resource["RunTimeEnvironment"].Attribute("require")) == "all");
-      if (!parseSoftware(resource["RunTimeEnvironment"], job.Resources.RunTimeEnvironment))
+      if (!parseSoftware(resource["RunTimeEnvironment"], job.Resources.RunTimeEnvironment)) {
+        jobdescs.clear();
         return false;
+      }
     }
     // end of Resources
 
@@ -587,7 +601,7 @@ namespace Arc {
     if (!IsLanguageSupported(language)) {
       return false;
     }
-    
+
     if (job.Application.Executable.Name.empty()) {
       return false;
     }

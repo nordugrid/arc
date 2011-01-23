@@ -65,14 +65,14 @@ namespace Arc {
 
   bool XRSLParser::cached = true;
 
-  bool XRSLParser::Parse(const std::string& source, JobDescription& jobdesc, const std::string& language, const std::string& dialect) const {
+  bool XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
 
+    jobdescs.clear();
+
     logger.msg(VERBOSE, "Parsing string using XRSLParser");
-    
-    jobdesc = JobDescription();
 
     RSLParser parser(source);
     const RSL *r = parser.Parse();
@@ -83,49 +83,61 @@ namespace Arc {
 
     std::list<const RSL*> l = SplitRSL(r);
 
-    std::list<JobDescription> J;
     for (std::list<const RSL*>::iterator it = l.begin(); it != l.end(); it++) {
-      JobDescription j;
-      if (!Parse(*it, j, dialect)) {
-        logger.msg(ERROR, "XRSL parsing error");
-        return false;
-      }
+      jobdescs.push_back(JobDescription());
 
-      j.OtherAttributes["nordugrid:xrsl;clientxrsl"] = source;
+      if (!Parse(*it, jobdescs.back(), dialect)) {
+         logger.msg(ERROR, "XRSL parsing error");
+         jobdescs.clear();
+         return false;
+       }
 
-      J.push_back(j);
-    }
+       jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = source;
+     }
 
-    if (J.size() > 1) {
-      logger.msg(WARNING, "Multiple RSL in one job description not yet supported");
-      return false;
-    }
-
-    if(J.size() != 1) {
+    if(jobdescs.empty()) {
       // Probably never happens so check is just in case of future changes
       logger.msg(WARNING, "No RSL content in job desription found");
       return false;
     }
 
     if(dialect == "GRIDMANAGER") {
+      if (jobdescs.size() > 1) {
+        jobdescs.clear();
+        return false;
+      }
+
       std::string action = "request";
-      if (J.front().OtherAttributes.find("nordugrid:xrsl;action") != J.front().OtherAttributes.end()) {
-        action = J.front().OtherAttributes["nordugrid:xrsl;action"];
+      if (jobdescs.front().OtherAttributes.find("nordugrid:xrsl;action") != jobdescs.front().OtherAttributes.end()) {
+        action = jobdescs.front().OtherAttributes["nordugrid:xrsl;action"];
       }
       // action = request means real job description.
-      // Any other action may (and currently should) have almost 
+      // Any other action may (and currently should) have almost
       // empty job description.
       if (action == "request") {
-        if(J.front().Application.Executable.Name.empty()) return false;
+        if(jobdescs.front().Application.Executable.Name.empty()) {
+          jobdescs.clear();
+          return false;
+        }
       }
-    } else {
-      // action is not expected in client side job request
-      if (J.front().OtherAttributes.find("nordugrid:xrsl;action") != J.front().OtherAttributes.end()) return false;
-      if (J.front().Application.Executable.Name.empty()) return false;
-    }
-    jobdesc = J.front();
 
-    SourceLanguage(jobdesc) = (!language.empty() ? language : supportedLanguages.front());
+      SourceLanguage(jobdescs.front()) = (!language.empty() ? language : supportedLanguages.front());
+    }
+    else {
+      // action is not expected in client side job request
+      for (std::list<JobDescription>::iterator it = jobdescs.begin(); it != jobdescs.end(); it++) {
+        if (it->OtherAttributes.find("nordugrid:xrsl;action") != it->OtherAttributes.end()) {
+          jobdescs.clear();
+          return false;
+        }
+        if (it->Application.Executable.Name.empty()) {
+          jobdescs.clear();
+          return false;
+        }
+        SourceLanguage(*it) = (!language.empty() ? language : supportedLanguages.front());
+      }
+    }
+
 
     return true;
   }
@@ -850,7 +862,7 @@ namespace Arc {
     if (!IsLanguageSupported(language)) {
       return false;
     }
-    
+
     // First check if the job description is valid.
     if (j.Application.Executable.Name.empty()) {
       return false;

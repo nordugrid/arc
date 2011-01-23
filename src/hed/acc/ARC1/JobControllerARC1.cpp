@@ -158,8 +158,10 @@ namespace Arc {
     std::string idstr;
     AREXClient::createActivityIdentifier(job.JobID, idstr);
     if (ac.getdesc(idstr, desc_str)) {
-      JobDescription desc;
-      if (desc.Parse(desc_str)) return true;
+      std::list<JobDescription> descs;
+      if (JobDescription::Parse(desc_str, descs) && !descs.empty()) {
+        return true;
+      }
     }
 
     logger.msg(ERROR, "Failed retrieving job description for job: %s", job.JobID.str());

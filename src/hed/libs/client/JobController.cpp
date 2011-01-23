@@ -550,15 +550,19 @@ namespace Arc {
         continue;
       }
 
-      JobDescription jobDesc;
       if (!GetJobDescription(*itJob, itJob->JobDescription))
         continue;
 
-      jobDesc.Parse(itJob->JobDescription);
+      std::list<JobDescription> jobdescs;
+      if (!JobDescription::Parse(itJob->JobDescription, jobdescs) || jobdescs.empty()) {
+        logger.msg(ERROR, "Job migration failed for job %s, unable to parse remote job description", itJob->JobID.str());
+        retVal = false;
+        continue;
+      }
 
       migratedJobs.push_back(Job());
 
-      broker->PreFilterTargets(targetGen.FoundTargets(), jobDesc);
+      broker->PreFilterTargets(targetGen.FoundTargets(), jobdescs.front());
       while (true) {
         const ExecutionTarget *currentTarget = broker->GetBestTarget();
         if (!currentTarget) {
@@ -568,7 +572,7 @@ namespace Arc {
           break;
         }
 
-        if (!currentTarget->Migrate(usercfg, itJob->JobID, jobDesc, forcemigration, migratedJobs.back())) {
+        if (!currentTarget->Migrate(usercfg, itJob->JobID, jobdescs.front(), forcemigration, migratedJobs.back())) {
           continue;
         }
 
@@ -889,10 +893,8 @@ namespace Arc {
       XMLNode& xmljob = *xmljobs.begin();
 
       if (xmljob["JobDescription"]) {
-        JobDescription jobdesc;
-
-        // Check for valid job description
-        if (jobdesc.Parse((std::string)xmljob["JobDescription"]))
+        std::list<JobDescription> jobdescs;
+        if (JobDescription::Parse((std::string)xmljob["JobDescription"], jobdescs))
           logger.msg(VERBOSE, "Valid job description found for: %s", it->JobID.str());
         else {
           logger.msg(INFO, "Invalid job description found for: %s", it->JobID.str());

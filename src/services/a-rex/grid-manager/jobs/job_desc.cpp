@@ -24,7 +24,11 @@ bool get_arc_job_description(const std::string& fname, Arc::JobDescription& desc
     return false;
   }
 
-  bool r = desc.Parse(job_desc_str, "", "GRIDMANAGER");
+  std::list<Arc::JobDescription> descs;
+  bool r = (Arc::JobDescription::Parse(job_desc_str, descs, "", "GRIDMANAGER") && (descs.size() == 1));
+  if (r) {
+    desc = descs.front();
+  }
   return r;
 }
 

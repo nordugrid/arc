@@ -518,9 +518,8 @@ namespace Arc {
       return false;
     }
 
-    JobDescription desc;
-    desc.Parse(desc_str);
-    if (!desc) {
+    std::list<JobDescription> descs;
+    if (!JobDescription::Parse(desc_str, descs) || descs.empty()) {
       logger.msg(INFO, "Invalid JobDescription:");
       std::cout << desc_str << std::endl;
       return false;

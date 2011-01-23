@@ -9,18 +9,6 @@
 #include "../ARCJSDLParser.h"
 
 
-#define PARSER parser
-#define INJOB inJob
-#define OUTJOB outJob
-#define MESSAGE message
-
-#define PARSE_ASSERT(X) \
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, X);
-
-#define PARSE_ASSERT_EQUAL(X) \
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.X, OUTJOB.X);
-
-
 class ARCJSDLParserTest
   : public CppUnit::TestFixture {
 
@@ -60,7 +48,8 @@ public:
   void TestHPCCompliance();
 
 private:
-  Arc::JobDescription INJOB, OUTJOB;
+  Arc::JobDescription INJOB;
+  std::list<Arc::JobDescription> OUTJOBS;
   Arc::ARCJSDLParser PARSER;
 
   std::string MESSAGE;
@@ -91,11 +80,12 @@ void ARCJSDLParserTest::TestExecutable() {
   MESSAGE = "Error parsing executable related attributes.";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL(Application.Executable.Name);
-  PARSE_ASSERT_EQUAL(Application.Executable.Argument);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Name, OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Argument, OUTJOBS.front().Application.Executable.Argument);
 }
 
 void ARCJSDLParserTest::TestInputOutputError() {
@@ -105,12 +95,13 @@ void ARCJSDLParserTest::TestInputOutputError() {
   INJOB.Application.Error = "error-file";
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT_EQUAL(Application.Input);
-  PARSE_ASSERT_EQUAL(Application.Output);
-  PARSE_ASSERT_EQUAL(Application.Error);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Input, OUTJOBS.front().Application.Input);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Output, OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Error, OUTJOBS.front().Application.Error);
 }
 
 /**
@@ -150,21 +141,23 @@ void ARCJSDLParserTest::TestDataStagingCreateDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1 && OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().IsExecutable);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1 && OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().IsExecutable, OUTJOBS.front().DataStaging.File.front().IsExecutable);
 
   INJOB.DataStaging.File.front().IsExecutable = true;
 
   std::string tempjobdesc2;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc2, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc2, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc2, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc2, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
   CPPUNIT_ASSERT_EQUAL(true, INJOB.DataStaging.File.front().IsExecutable);
-  CPPUNIT_ASSERT_EQUAL(true, OUTJOB.DataStaging.File.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(true, OUTJOBS.front().DataStaging.File.front().IsExecutable);
 }
 
 /** 2-Download-Delete */
@@ -188,13 +181,14 @@ void ARCJSDLParserTest::TestDataStagingDownloadDelete() {
   CPPUNIT_ASSERT(INJOB.DataStaging.File.front().Source.size() == 1 && INJOB.DataStaging.File.front().Source.front().URI);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Source.size() == 1 && OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Source.front().URI, OUTJOBS.front().DataStaging.File.front().Source.front().URI);
 }
 
 /** 3-Upload-Delete */
@@ -212,13 +206,14 @@ void ARCJSDLParserTest::TestDataStagingUploadDelete() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Source.size() == 1 && OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Source.front().URI, OUTJOBS.front().DataStaging.File.front().Source.front().URI);
 }
 
 /** 4-Create-Download */
@@ -232,12 +227,13 @@ void ARCJSDLParserTest::TestDataStagingCreateDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().KeepData);
 }
 
 /** 5-Download-Download */
@@ -255,14 +251,15 @@ void ARCJSDLParserTest::TestDataStagingDownloadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Source.size() == 1 && OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Source.front().URI, OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().KeepData, OUTJOBS.front().DataStaging.File.front().KeepData);
 }
 
 /** 6-Upload-Download */
@@ -280,14 +277,15 @@ void ARCJSDLParserTest::TestDataStagingUploadDownload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Source.size() == 1 && OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Source.front().URI, OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().KeepData, OUTJOBS.front().DataStaging.File.front().KeepData);
 }
 
 /** 7-Create-Upload */
@@ -305,14 +303,15 @@ void ARCJSDLParserTest::TestDataStagingCreateUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Target.size() == 1 && OUTJOB.DataStaging.File.front().Target.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Target.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Target.size() == 1 && OUTJOBS.front().DataStaging.File.front().Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Target.front().URI, OUTJOBS.front().DataStaging.File.front().Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().KeepData, OUTJOBS.front().DataStaging.File.front().KeepData);
 }
 
 /** 8-Download-Upload */
@@ -334,16 +333,17 @@ void ARCJSDLParserTest::TestDataStagingDownloadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Target.size() == 1 && OUTJOB.DataStaging.File.front().Target.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Target.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Source.size() == 1 && OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Source.front().URI, OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Target.size() == 1 && OUTJOBS.front().DataStaging.File.front().Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Target.front().URI, OUTJOBS.front().DataStaging.File.front().Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().KeepData, OUTJOBS.front().DataStaging.File.front().KeepData);
 }
 
 /** 9-Upload-Upload */
@@ -365,16 +365,17 @@ void ARCJSDLParserTest::TestDataStagingUploadUpload() {
   INJOB.DataStaging.File.push_back(file);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  PARSE_ASSERT(PARSER.Parse(tempjobdesc, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  PARSE_ASSERT(OUTJOB.DataStaging.File.size() == 1);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Name);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Source.size() == 1 && OUTJOB.DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Source.front().URI);
-  PARSE_ASSERT(OUTJOB.DataStaging.File.front().Target.size() == 1 && OUTJOB.DataStaging.File.front().Target.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().Target.front().URI);
-  PARSE_ASSERT_EQUAL(DataStaging.File.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Name, OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Source.size() == 1 && OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Source.front().URI, OUTJOBS.front().DataStaging.File.front().Source.front().URI);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.File.front().Target.size() == 1 && OUTJOBS.front().DataStaging.File.front().Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().Target.front().URI, OUTJOBS.front().DataStaging.File.front().Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.File.front().KeepData, OUTJOBS.front().DataStaging.File.front().KeepData);
 }
 
 void ARCJSDLParserTest::TestPOSIXCompliance() {
@@ -423,24 +424,25 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   INJOB.Resources.IndividualVirtualMemory = 500;
   INJOB.Resources.SlotRequirement.ThreadsPerProcesses = 7;
 
-  PARSE_ASSERT(PARSER.Parse(posixJSDLStr, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(posixJSDLStr, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Executable.Name, OUTJOB.Application.Executable.Name);
-  CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", INJOB.Application.Executable.Argument == OUTJOB.Application.Executable.Argument);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Input, OUTJOB.Application.Input);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Output, OUTJOB.Application.Output);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Error, OUTJOB.Application.Error);
-  CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", INJOB.Application.Environment == OUTJOB.Application.Environment);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Executable.Name, OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", INJOB.Application.Executable.Argument == OUTJOBS.front().Application.Executable.Argument);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Input, OUTJOBS.front().Application.Input);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Output, OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Application.Error, OUTJOBS.front().Application.Error);
+  CPPUNIT_ASSERT_MESSAGE("POSIX compliance failure", INJOB.Application.Environment == OUTJOBS.front().Application.Environment);
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalWallTime.range.max, OUTJOB.Resources.TotalWallTime.range.max);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualPhysicalMemory.max, OUTJOB.Resources.IndividualPhysicalMemory.max);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalCPUTime.range.max, OUTJOB.Resources.TotalCPUTime.range.max);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.NumberOfSlots.max, OUTJOB.Resources.SlotRequirement.NumberOfSlots.max);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualVirtualMemory.max, OUTJOB.Resources.IndividualVirtualMemory.max);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.ThreadsPerProcesses.max, OUTJOB.Resources.SlotRequirement.ThreadsPerProcesses.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalWallTime.range.max, OUTJOBS.front().Resources.TotalWallTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualPhysicalMemory.max, OUTJOBS.front().Resources.IndividualPhysicalMemory.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalCPUTime.range.max, OUTJOBS.front().Resources.TotalCPUTime.range.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.NumberOfSlots.max, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualVirtualMemory.max, OUTJOBS.front().Resources.IndividualVirtualMemory.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.ThreadsPerProcesses.max, OUTJOBS.front().Resources.SlotRequirement.ThreadsPerProcesses.max);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
 
   Arc::XMLNode xmlArcJSDL(tempjobdesc);
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["POSIXApplication"];
@@ -508,17 +510,18 @@ void ARCJSDLParserTest::TestHPCCompliance() {
   INJOB.Application.Environment.push_back(std::make_pair("var2", "value2"));
   INJOB.Application.Environment.push_back(std::make_pair("var3", "value3"));
 
-  PARSE_ASSERT(PARSER.Parse(hpcJSDLStr, OUTJOB));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(hpcJSDLStr, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Executable.Name, OUTJOB.Application.Executable.Name);
-  CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Executable.Argument == OUTJOB.Application.Executable.Argument);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Input, OUTJOB.Application.Input);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Output, OUTJOB.Application.Output);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Error, OUTJOB.Application.Error);
-  CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Environment == OUTJOB.Application.Environment);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Executable.Name, OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Executable.Argument == OUTJOBS.front().Application.Executable.Argument);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Input, OUTJOBS.front().Application.Input);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Output, OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("HPC compliance failure", INJOB.Application.Error, OUTJOBS.front().Application.Error);
+  CPPUNIT_ASSERT_MESSAGE("HPC compliance failure", INJOB.Application.Environment == OUTJOBS.front().Application.Environment);
 
   std::string tempjobdesc;
-  PARSE_ASSERT(PARSER.UnParse(OUTJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
 
   Arc::XMLNode xmlArcJSDL(tempjobdesc);
   Arc::XMLNode pApp = xmlArcJSDL["JobDescription"]["Application"]["HPCProfileApplication"];
