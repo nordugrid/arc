@@ -76,8 +76,8 @@ namespace Arc {
     }
 
     std::string product;
-    if (!modjobdesc.UnParse(product, "ARCJSDL")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "ARCJSDL");
+    if (!modjobdesc.UnParse(product, "nordugrid:jsdl")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
       releaseClient(et.url);
       return false;
     }
@@ -160,8 +160,8 @@ namespace Arc {
     modjobdesc.Identification.ActivityOldId.push_back(jobid.str());
 
     std::string product;
-    if (!modjobdesc.UnParse(product, "ARCJSDL")) {
-      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "ARCJSDL");
+    if (!modjobdesc.UnParse(product, "nordugrid:jsdl")) {
+      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "nordugrid:jsdl");
       releaseClient(et.url);
       return false;
     }
