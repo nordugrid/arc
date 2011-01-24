@@ -40,7 +40,7 @@ int send_mail(char* mail_server ,char* mail_from,char* mail_to) {
 
   memset(my_hostname,0,256);  
   gethostname(my_hostname,255);
-  if(getaddrinfo(my_hostname,NULL,NULL,&res) != 0) return 2;
+  if(getaddrinfo(mail_server,NULL,NULL,&res) != 0) return 2;
   if(res == NULL) return 2;
   for(r=res;r;r=r->ai_next) {
     if(r->ai_addr == NULL) continue;

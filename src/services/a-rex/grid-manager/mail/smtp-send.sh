@@ -4,11 +4,6 @@
 basedir=`dirname $0`
 basedir=`cd $basedir; pwd`
 
-if [ -z "$ARC_LOCATION" ] ; then
-  echo "ARC_LOCATION is not defined" 1>&2
-  exit 1
-fi
-
 if [ $# -lt 7 ] ; then
   echo "Not enough arguments" 1>&2
   exit 1
