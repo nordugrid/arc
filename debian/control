@@ -182,7 +182,7 @@ Package: nordugrid-arc-aris
 Provides: nordugrid-arc-ldap-infosys, nordugrid-arc-nox-ldap-infosys
 Replaces: nordugrid-arc-ldap-infosys (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
 Conflicts: nordugrid-arc-ldap-infosys (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
-Architecture: all
+Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}
 Description: ARC LDAP infosys service
  The NorduGrid is a collaboration aiming at development, maintenance
