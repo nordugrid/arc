@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Python client for the HED cache service.
 """
