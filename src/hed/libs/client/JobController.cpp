@@ -562,7 +562,7 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
-      broker->PreFilterTargets(targetGen.FoundTargets(), jobdescs.front());
+      broker->PreFilterTargets(targetGen.GetExecutionTargets(), jobdescs.front());
       while (true) {
         const ExecutionTarget *currentTarget = broker->GetBestTarget();
         if (!currentTarget) {

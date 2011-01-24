@@ -22,7 +22,7 @@ namespace Arc {
 
   Logger TargetGenerator::logger(Logger::getRootLogger(), "TargetGenerator");
 
-  TargetGenerator::TargetGenerator(const UserConfig& usercfg, unsigned int startDiscovery)
+  TargetGenerator::TargetGenerator(const UserConfig& usercfg, unsigned int startRetrieval)
     : usercfg(usercfg) {
 
     std::list<std::string> libraries = FinderLoader::GetLibrariesList();
@@ -84,10 +84,12 @@ namespace Arc {
                                               service, INDEX);
     }
 
-    if ((startDiscovery & 1) == 1)
-      GetExecutionTargets();
-    if ((startDiscovery & 2) == 2)
-      GetJobs();
+    if ((startRetrieval & 1) == 1) {
+      RetrieveExecutionTargets();
+    }
+    if ((startRetrieval & 2) == 2) {
+      RetrieveJobs();
+    }
   }
 
   TargetGenerator::~TargetGenerator() {
@@ -105,14 +107,14 @@ namespace Arc {
     logger.msg(VERBOSE, "Running resource (target) discovery");
 
     if (targetType == 0) {
-      GetExecutionTargets();
+      RetrieveExecutionTargets();
     }
     else if (targetType == 1) {
-      GetJobs();
+      RetrieveJobs();
     }
   }
 
-  void TargetGenerator::GetExecutionTargets() {
+  void TargetGenerator::RetrieveExecutionTargets() {
     for (std::list<TargetRetriever*>::const_iterator it = loader.GetTargetRetrievers().begin();
          it != loader.GetTargetRetrievers().end(); it++) {
       (*it)->GetExecutionTargets(*this);
@@ -133,7 +135,7 @@ namespace Arc {
     }
   }
 
-  void TargetGenerator::GetJobs() {
+  void TargetGenerator::RetrieveJobs() {
     for (std::list<TargetRetriever*>::const_iterator it =
            loader.GetTargetRetrievers().begin();
          it != loader.GetTargetRetrievers().end(); it++) {
@@ -145,10 +147,6 @@ namespace Arc {
     }
 
     logger.msg(INFO, "Found %ld jobs", foundJobs.size());
-  }
-
-  const std::list<ExecutionTarget>& TargetGenerator::FoundTargets() const {
-    return foundTargets;
   }
 
   std::list<ExecutionTarget>& TargetGenerator::ModifyFoundTargets() {
@@ -175,10 +173,6 @@ namespace Arc {
     }
 
     return xmlFoundJobs;
-  }
-
-  const std::list<Job>& TargetGenerator::GetFoundJobs() const {
-    return foundJobs;
   }
 
   bool TargetGenerator::AddService(const std::string flavour,

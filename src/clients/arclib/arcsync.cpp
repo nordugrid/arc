@@ -153,10 +153,10 @@ int RUNSYNC(main)(int argc, char **argv) {
 
   //Find all jobs
   Arc::TargetGenerator targen(usercfg);
-  targen.GetJobs();
+  targen.RetrieveJobs();
 
   //Some dummy output
-  std::cout << "Found number of jobs: " << targen.GetFoundJobs().size() << std::endl;
+  std::cout << "Found number of jobs: " << targen.GetJobs().size() << std::endl;
 
   //Write extracted job info to joblist
   { //start of file lock
@@ -166,8 +166,8 @@ int RUNSYNC(main)(int argc, char **argv) {
 
     if (!truncate)
       jobs.ReadFromFile(usercfg.JobListFile());
-    for (std::list<Arc::Job>::const_iterator itSyncedJob = targen.GetFoundJobs().begin();
-         itSyncedJob != targen.GetFoundJobs().end(); itSyncedJob++) {
+    for (std::list<Arc::Job>::const_iterator itSyncedJob = targen.GetJobs().begin();
+         itSyncedJob != targen.GetJobs().end(); itSyncedJob++) {
       if (!truncate) {
         for (Arc::XMLNode j = jobs["Job"]; j; ++j) {
           if ((std::string)j["JobID"]          == itSyncedJob->JobID.fullstr() ||

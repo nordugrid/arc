@@ -21,14 +21,12 @@ namespace Arc {
 
   /// %Target generation class
   /**
-   * The TargetGenerator class is the umbrella class for resource
-   * discovery and information retrieval (index servers and computing
-   * clusters). It can also be used to locate user Grid jobs but does
-   * not collect the job details. The
-   * TargetGenerator loads TargetRetriever plugins (which implements
-   * the actual information retrieval) from URL objects found in the
-   * UserConfig object passed to its constructor using the custom
-   * TargetRetrieverLoader.
+   * The TargetGenerator class is the umbrella class for resource discovery and
+   * information retrieval (index servers and execution services). It can also
+   * be used to discover user Grid jobs and detailed information. The
+   * TargetGenerator loads TargetRetriever plugins (which implements the actual
+   * information retrieval) from URL objects found in the UserConfig object
+   * passed to its constructor using the custom TargetRetrieverLoader.
    **/
 
   class TargetGenerator {
@@ -40,24 +38,26 @@ namespace Arc {
      * passed UserConfig object using the
      * UserConfig:GetSelectedServices method. From each URL a matching
      * specialized TargetRetriever plugin is loaded using the
-     * TargetRetrieverLoader. If the second parameter, startDiscovery, is
-     * specified, and matches bitwise either a value of 1, 2 or both, discovery
-     * of CEs, jobs or both will be initiated.
+     * TargetRetrieverLoader. If the second parameter, startRetrieval, is
+     * specified, and matches bitwise either a value of 1, 2 or both, retrieval
+     * of execution services, jobs or both will be initiated.
      *
      * @param usercfg is a reference to a UserConfig object from which endpoints
-     *        to computing and/or index services will be used. The object also
+     *        to execution and/or index services will be used. The object also
      *        hold information about user credentials.
-     * @param startDiscovery specifies whether discovery should be started
+     * @param startRetrival specifies whether retrival should be started
      *        directly. It will be parsed bitwise. A value of 1 will start
-     *        CE discovery, 2 jobs, and 3 both, while 0 will not start discovery
-     *        at all. If this parameter is not specified, it defaults to 0.
+     *        execution service retrieval (RetrieveExecutionTargets), 2 jobs
+     *        (RetrieveJobs), and 3 both, while 0 will not start retrieval at
+     *        all. If not specified, default is 0.
      **/
-    TargetGenerator(const UserConfig& usercfg, unsigned int startDiscovery = 0); ~TargetGenerator();
+    TargetGenerator(const UserConfig& usercfg, unsigned int startRetrieval = 0);
+    ~TargetGenerator();
 
     /// DEPRECATED: Find available targets
     /**
-     * This method is DEPRECATED, use the GetExecutionTargets() or GetJobs()
-     * method instead.
+     * This method is DEPRECATED, use the RetrieveExecutionTargets() or
+     * RetrieveJobs() method instead.
      * Method to prepare a list of chosen Targets with a specified
      * detail level. Current implementation supports finding computing
      * elements (ExecutionTarget) with full detail level and jobs
@@ -65,43 +65,49 @@ namespace Arc {
      *
      * @param targetType 0 = ExecutionTarget, 1 = Grid jobs
      * @param detailLevel
-     * @see GetExecutionsTargets()
-     * @see GetJobs()
+     * @see RetrieveExecutionsTargets()
+     * @see RetrieveJobs()
      **/
     void GetTargets(int targetType, int detailLevel);
 
-    /// Find available Execution Services
+    /// Retrieve available execution services
     /**
      * The endpoints specified in the UserConfig object passed to this object
-     * will be used to discover Computing Elements (ExecutionTarget) and
-     * information about the discovered CEs will be fetched. The discovery and
-     * information retrieval of targets is carried out in parallel threads to
-     * speed up the process. If a endpoint is a index service each CE
-     * registered at that service will be queried.
+     * will be used to retrieve information about execution services
+     * (ExecutionTarget objects). The discovery and information retrieval of
+     * targets is carried out in parallel threads to speed up the process. If a
+     * endpoint is a index service each execution service registered will be
+     * queried.
      *
-     * @see GetJobs
-     **/
-    void GetExecutionTargets();
-
-    /// Find jobs at Execution Services
-    /**
-     * The endpoints specified in the UserConfig object passed to this object
-     * will be used to discover jobs at these endpoints owned by the user
-     * which is identified by the credentials specified in the passed UserConfig
-     * object. When discovering a job, the available information about this
-     * job is fetched as well. If a endpoint is a index service, each CE
-     * registered at that service will be queried.
-     *
+     * @see RetrieveJobs
      * @see GetExecutionTargets
      **/
-    void GetJobs();
+    void RetrieveExecutionTargets();
 
-    /// Return targets found by GetTargets
+    /// Retrieve job information from execution services
     /**
-     * Method to return a const list of ExecutionTarget objects (currently
-     * only supported Target type) found by the GetTarget method.
+     * The endpoints specified in the UserConfig object passed to this object
+     * will be used to retrieve job information from these endpoints. Only jobs
+     * owned by the user which is identified by the credentials specified in the
+     * passed UserConfig object will be considered (exception being services
+     * which has no user authentification). If a endpoint is a index service,
+     * each execution service registered will be queried, and searched for job
+     * information.
+     *
+     * @see RetrieveExecutionTargets
      **/
-    const std::list<ExecutionTarget>& FoundTargets() const;
+    void RetrieveJobs();
+
+    /// Return targets fetched by RetrieveExecutionTargets method
+    /**
+     * Method to return a const list of ExecutionTarget objects retrieved by the
+     * RetrieveExecutionTargets method.
+     *
+     * @see RetrieveExecutionTargets
+     * @see GetExecutionTargets
+     **/
+    const std::list<ExecutionTarget>& GetExecutionTargets() const { return foundTargets; }
+    std::list<ExecutionTarget>& GetExecutionTargets() { return foundTargets; }
 
     /// DEPRECATED: Return targets found by GetTargets
     /**
@@ -110,6 +116,14 @@ namespace Arc {
      * only supported Target type) found by the GetTarget method.
      **/
     std::list<ExecutionTarget>& ModifyFoundTargets();
+
+    /// DEPRECATED: Return targets found by GetTargets
+    /**
+     * This method is DEPRECATED, use the FoundTargets() instead.
+     * Method to return the list of ExecutionTarget objects (currently
+     * only supported Target type) found by the GetTarget method.
+     **/
+    const std::list<ExecutionTarget>& FoundTargets() const { return foundTargets; }
 
     /// DEPRECATED: Return jobs found by GetTargets
     /**
@@ -120,13 +134,14 @@ namespace Arc {
      **/
     const std::list<XMLNode*>& FoundJobs() const;
 
-    /// Return jobs found by GetJobs
+    /// Return jobs retrieved by RetrieveJobs method
     /**
      * Method to return the list of jobs found by a call to the GetJobs method.
      *
      * @return A list of the discovered jobs as Job objects is returned
+     * @see RetrieveJobs
      **/
-    const std::list<Job>& GetFoundJobs() const;
+    const std::list<Job>& GetJobs() const { return foundJobs; }
 
     /// Add a new computing service to the foundServices list
     /**

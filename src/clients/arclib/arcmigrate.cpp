@@ -179,9 +179,9 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   }
 
   Arc::TargetGenerator targetGen(usercfg2);
-  targetGen.GetExecutionTargets();
+  targetGen.RetrieveExecutionTargets();
 
-  if (targetGen.FoundTargets().empty()) {
+  if (targetGen.GetExecutionTargets().empty()) {
     std::cout << Arc::IString("Job migration aborted because no resource returned any information") << std::endl;
     return 1;
   }

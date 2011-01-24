@@ -247,9 +247,9 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   int retval = 0;
 
   Arc::TargetGenerator targen(usercfg);
-  targen.GetExecutionTargets();
+  targen.RetrieveExecutionTargets();
 
-  if (targen.FoundTargets().empty()) {
+  if (targen.GetExecutionTargets().empty()) {
     std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -271,7 +271,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
     submittedJobs.push_back(Arc::Job());
-    if (ChosenBroker->Submit(targen.FoundTargets(), *it, submittedJobs.back())) {
+    if (ChosenBroker->Submit(targen.GetExecutionTargets(), *it, submittedJobs.back())) {
       std::cout << Arc::IString("Job submitted with jobid: %s",
                                 submittedJobs.back().JobID.str()) << std::endl;
     }
@@ -319,9 +319,9 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
   int retval = 0;
 
   Arc::TargetGenerator targen(usercfg);
-  targen.GetTargets(0, 1);
+  targen.RetrieveExecutionTargets();
 
-  if (targen.FoundTargets().empty()) {
+  if (targen.GetExecutionTargets().empty()) {
     std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -336,7 +336,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
 
   for (std::list<Arc::JobDescription>::const_iterator it = jobdescriptionlist.begin();
        it != jobdescriptionlist.end(); it++) {
-    ChosenBroker->PreFilterTargets(targen.FoundTargets(), *it);
+    ChosenBroker->PreFilterTargets(targen.GetExecutionTargets(), *it);
 
     while (true) {
       const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();

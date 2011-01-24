@@ -225,9 +225,9 @@ int RUNRESUB(main)(int argc, char **argv) {
 
   // Resubmitting jobs
   Arc::TargetGenerator targen(usercfg2);
-  targen.GetExecutionTargets();
+  targen.RetrieveExecutionTargets();
 
-  if (targen.FoundTargets().empty()) {
+  if (targen.GetExecutionTargets().empty()) {
     std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -258,7 +258,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     jobdescs.front().Identification.ActivityOldId = it->ActivityOldID;
     jobdescs.front().Identification.ActivityOldId.push_back(it->JobID.str());
 
-    if (ChosenBroker->Submit(targen.FoundTargets(), jobdescs.front(), resubmittedJobs.back())) {
+    if (ChosenBroker->Submit(targen.GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back())) {
       std::cout << Arc::IString("Job resubmitted with new jobid: %s",
                                 resubmittedJobs.back().JobID.str()) << std::endl;
       jobs.push_back(it->JobID.str());
