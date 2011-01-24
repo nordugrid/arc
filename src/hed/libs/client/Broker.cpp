@@ -31,6 +31,7 @@ namespace Arc {
 
   void Broker::PreFilterTargets(const std::list<ExecutionTarget>& targets,
                                 const JobDescription& jobdesc) {
+    PossibleTargets.clear();
     job = &jobdesc;
 
     for (std::list<ExecutionTarget>::const_iterator target = targets.begin();

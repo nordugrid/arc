@@ -20,6 +20,7 @@ class BrokerTest
   CPPUNIT_TEST(CPUWallTimeTest);
   CPPUNIT_TEST(BenckmarkCPUWallTimeTest);
   CPPUNIT_TEST(RegisterJobsubmissionTest);
+  CPPUNIT_TEST(RegresssionTestMultipleDifferentJobDescriptions);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -29,6 +30,7 @@ public:
   void CPUWallTimeTest();
   void BenckmarkCPUWallTimeTest();
   void RegisterJobsubmissionTest();
+  void RegresssionTestMultipleDifferentJobDescriptions();
 
   class TestBroker
     : public Arc::Broker {
@@ -159,4 +161,33 @@ void BrokerTest::RegisterJobsubmissionTest() {
   CPPUNIT_ASSERT_EQUAL(14, tb.GetTargets().front()->UsedSlots);
   CPPUNIT_ASSERT_EQUAL(4, tb.GetTargets().front()->WaitingJobs);
 }
+
+void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
+  Arc::JobDescription frontJD, backJD; // Each JobDescription object "correspond" to a ExecutionTarget object.
+  Arc::ResourceTargetType frontCT, backCT;
+  frontCT.QueueName = "front";
+  frontJD.Resources.CandidateTarget.push_back(frontCT);
+
+  backCT.QueueName = "back";
+  backJD.Resources.CandidateTarget.push_back(backCT);
+
+  std::list<Arc::ExecutionTarget> targets;
+  targets.push_back(Arc::ExecutionTarget());
+  targets.push_back(Arc::ExecutionTarget());
+  targets.front().url = Arc::URL("http://localhost/test");
+  targets.front().HealthState = "ok";
+  targets.back().url = Arc::URL("http://localhost/test");
+  targets.back().HealthState = "ok";
+
+  targets.front().ComputingShareName = "front";
+  targets.back().ComputingShareName = "back";
+
+  tb.PreFilterTargets(targets, frontJD);
+  CPPUNIT_ASSERT_EQUAL(1, (int)tb.GetTargets().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"front", tb.GetTargets().front()->ComputingShareName);
+  tb.PreFilterTargets(targets, backJD);
+  CPPUNIT_ASSERT_EQUAL(1, (int)tb.GetTargets().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"back", tb.GetTargets().front()->ComputingShareName);
+}
+
 CPPUNIT_TEST_SUITE_REGISTRATION(BrokerTest);
