@@ -28,6 +28,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestGridTime);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST(TestMultiRSL);
+  CPPUNIT_TEST(TestDisjunctRSL);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -50,6 +51,8 @@ public:
   void TestGridTime();
   void TestAdditionalAttributes();
   void TestMultiRSL();
+  void TestDisjunctRSL();
+
 private:
   Arc::JobDescription INJOB;
   std::list<Arc::JobDescription> OUTJOBS;
@@ -762,6 +765,61 @@ void XRSLParserTest::TestMultiRSL() {
   CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe1", OUTJOBS.front().Application.Executable.Name);
   CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe2", OUTJOBS.back().Application.Executable.Name);
+}
+
+void XRSLParserTest::TestDisjunctRSL() {
+  std::string xrsl = "&(executable=\"/bin/exe\")(|(|(queue=\"q1.1\")(|(queue=\"q1.2.1\")(queue=\"q1.2.2\")))(queue=\"q2\")(queue=\"q3\"))(arguments=\"Hello world!\")";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(4, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.CandidateTarget.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1.1", OUTJOBS.front().Resources.CandidateTarget.front().QueueName);
+
+  CPPUNIT_ASSERT(OUTJOBS.front().UseAlternative());
+  CPPUNIT_ASSERT_EQUAL(4, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.CandidateTarget.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1.2.1", OUTJOBS.front().Resources.CandidateTarget.front().QueueName);
+
+  CPPUNIT_ASSERT(OUTJOBS.front().UseAlternative());
+  CPPUNIT_ASSERT_EQUAL(4, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.CandidateTarget.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1.2.2", OUTJOBS.front().Resources.CandidateTarget.front().QueueName);
+
+  CPPUNIT_ASSERT(OUTJOBS.front().UseAlternative());
+  CPPUNIT_ASSERT_EQUAL(4, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.CandidateTarget.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"q2", OUTJOBS.front().Resources.CandidateTarget.front().QueueName);
+
+  CPPUNIT_ASSERT(OUTJOBS.front().UseAlternative());
+  CPPUNIT_ASSERT_EQUAL(4, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.CandidateTarget.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"q3", OUTJOBS.front().Resources.CandidateTarget.front().QueueName);
+
+  CPPUNIT_ASSERT(!OUTJOBS.front().UseAlternative());
+  OUTJOBS.front().UseOriginal();
+  CPPUNIT_ASSERT_EQUAL(4, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"/bin/exe", OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Application.Executable.Argument.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"Hello world!", OUTJOBS.front().Application.Executable.Argument.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Resources.CandidateTarget.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1.1", OUTJOBS.front().Resources.CandidateTarget.front().QueueName);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(XRSLParserTest);

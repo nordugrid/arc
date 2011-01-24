@@ -266,10 +266,27 @@ namespace Arc {
   class JobDescription {
   public:
     friend class JobDescriptionParser;
-    JobDescription() {};
+    JobDescription() : alternatives(), current(alternatives.begin()) {};
+
+    JobDescription(const JobDescription& j, bool withAlternatives = true);
+
+    JobDescription& operator=(const JobDescription& j);
 
     // Language wrapper constructor
     JobDescription(const long int& ptraddr);
+
+    ~JobDescription() {}
+
+    void AddAlternative(const JobDescription& j);
+
+    bool HasAlternatives() const { return !alternatives.empty(); }
+    const std::list<JobDescription>& GetAlternatives() const { return alternatives; }
+    std::list<JobDescription>& GetAlternatives() { return alternatives; }
+    std::list<JobDescription>  GetAlternativesCopy() const { return alternatives; }
+    bool UseAlternative();
+    void UseOriginal();
+
+    void RemoveAlternatives();
 
     /// DEPRECATED: Check whether JobDescription is valid.
     /**
@@ -390,12 +407,17 @@ namespace Arc {
     std::map<std::string, std::string> OtherAttributes;
 
   private:
+    void Set(const JobDescription& j);
+
     std::string sourceLanguage;
 
-    static Logger logger;
+    std::list<JobDescription> alternatives;
+    std::list<JobDescription>::iterator current;
 
     static Glib::Mutex jdpl_lock;
     static JobDescriptionParserLoader jdpl;
+
+    static Logger logger;
   };
 
 } // namespace Arc

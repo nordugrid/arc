@@ -311,34 +311,82 @@ namespace Arc {
           }
       }
       else if (b->Op() == RSLOr) {
-        if (b->size() != 1) {
-          logger.msg(ERROR, "RSL conditionals currently not yet supported");
-          return false;
+        if (b->size() == 0) {
+          return true;
         }
+
+        JobDescription jcopy(j, false);
+
         if (!Parse(*b->begin(), j, dialect)) {
           return false;
         }
-      }
+
+        std::list<RSL*>::const_iterator it = b->begin();
+        for (it++; it != b->end(); it++) {
+          JobDescription aj(jcopy);
+          if (!Parse(*it, aj, dialect)) {
+            return false;
+          }
+          j.AddAlternative(aj);
+        }
+
+        return true;
+     }
       else {
         logger.msg(ERROR, "Unexpected RSL type");
         return false;
       }
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
-      if (c->Attr() == "executable")
-        return SingleValue(c, j.Application.Executable.Name);
+      if (c->Attr() == "executable") {
+        bool r = SingleValue(c, j.Application.Executable.Name);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Application.Executable.Name);
+        }
 
-      if (c->Attr() == "arguments")
-        return ListValue(c, j.Application.Executable.Argument);
+        return r;
+      }
 
-      if (c->Attr() == "stdin")
-        return SingleValue(c, j.Application.Input);
+      if (c->Attr() == "arguments") {
+        bool r = ListValue(c, j.Application.Executable.Argument);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= ListValue(c, it->Application.Executable.Argument);
+        }
 
-      if (c->Attr() == "stdout")
-        return SingleValue(c, j.Application.Output);
+        return r;
+      }
 
-      if (c->Attr() == "stderr")
-        return SingleValue(c, j.Application.Error);
+      if (c->Attr() == "stdin") {
+        bool r = SingleValue(c, j.Application.Input);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Application.Input);
+        }
+
+        return r;
+      }
+
+      if (c->Attr() == "stdout") {
+        bool r = SingleValue(c, j.Application.Output);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Application.Output);
+        }
+
+        return r;
+      }
+
+      if (c->Attr() == "stderr") {
+        bool r = SingleValue(c, j.Application.Error);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Application.Error);
+        }
+
+        return r;
+      }
 
       if (c->Attr() == "inputfiles") {
         std::list<std::list<std::string> > ll;
@@ -365,11 +413,21 @@ namespace Arc {
           file.KeepData = false;
           file.IsExecutable = false;
           file.DownloadToCache = true;
+
           j.DataStaging.File.push_back(file);
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->DataStaging.File.push_back(file);
+          }
         }
         return true;
       }
 
+      /* BROKEN!
+       * Parsing of this attribute is broken, since it must be ensured
+       * that it is processed after the inputfiles attribute have been
+       * processed
+       */
       if (c->Attr() == "executables") {
         std::list<std::string> execs;
         if (!ListValue(c, execs))
@@ -415,7 +473,12 @@ namespace Arc {
             file.KeepData = true;
           file.IsExecutable = false;
           file.DownloadToCache = false;
+
           j.DataStaging.File.push_back(file);
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->DataStaging.File.push_back(file);
+          }
         }
         return true;
       }
@@ -442,7 +505,12 @@ namespace Arc {
           candidateTarget.EndPointURL = URL();
           candidateTarget.QueueName = queueName;
           candidateTarget.UseQueue = (c->Op() == RSLEqual);
+
           j.Resources.CandidateTarget.push_back(candidateTarget);
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.CandidateTarget.push_back(candidateTarget);
+          }
         }
         else {
           // It is not correct to allow next queue to overwrite previous one
@@ -460,6 +528,10 @@ namespace Arc {
         if (!SingleValue(c, time))
           return false;
         j.Application.ProcessingStartTime = time;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.ProcessingStartTime = time;
+        }
         return true;
       }
 
@@ -468,9 +540,14 @@ namespace Arc {
         if (!SingleValue(c, time))
           return false;
         if(dialect == "GRIDMANAGER") {
+          // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.SessionLifeTime = Period(time, PeriodSeconds);
         } else {
           j.Resources.SessionLifeTime = Period(time, PeriodDays);
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.SessionLifeTime = Period(time, PeriodDays);
+          }
         }
         return true;
       }
@@ -480,9 +557,14 @@ namespace Arc {
         if (!SingleValue(c, time))
           return false;
         if(dialect == "GRIDMANAGER") {
+          // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.TotalCPUTime = Period(time, PeriodSeconds).GetPeriod();
         } else {
           j.Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.TotalCPUTime = Period(time, PeriodMinutes).GetPeriod();
+          }
         }
         return true;
       }
@@ -492,9 +574,14 @@ namespace Arc {
         if (!SingleValue(c, time))
           return false;
         if(dialect == "GRIDMANAGER") {
+          // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.TotalWallTime = Period(time, PeriodSeconds).GetPeriod();
         } else {
           j.Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.TotalWallTime = Period(time, PeriodMinutes).GetPeriod();
+          }
         }
         return true;
       }
@@ -507,7 +594,13 @@ namespace Arc {
           j.Resources.TotalCPUTime.range = Period(time, PeriodSeconds).GetPeriod();
         } else {
           j.Resources.TotalCPUTime.range = Period(time, PeriodMinutes).GetPeriod();
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.TotalCPUTime.range = j.Resources.TotalCPUTime.range;
+            it->Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
+          }
         }
+
         j.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 2800);
         return true;
       }
@@ -538,7 +631,13 @@ namespace Arc {
         std::string mem;
         if (!SingleValue(c, mem))
           return false;
+
         j.Resources.IndividualPhysicalMemory = stringto<int64_t>(mem);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Resources.IndividualPhysicalMemory = j.Resources.IndividualPhysicalMemory;
+        }
+
         return true;
       }
 
@@ -546,7 +645,12 @@ namespace Arc {
         std::string disk;
         if (!SingleValue(c, disk))
           return false;
-          j.Resources.DiskSpaceRequirement.DiskSpace = stringto<int64_t>(disk);
+        j.Resources.DiskSpaceRequirement.DiskSpace = stringto<int64_t>(disk);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Resources.DiskSpaceRequirement.DiskSpace = j.Resources.DiskSpaceRequirement.DiskSpace;
+        }
+
         return true;
       }
 
@@ -554,15 +658,32 @@ namespace Arc {
         std::string runtime;
         if (!SingleValue(c, runtime))
           return false;
+
+        /* Since OR expressions in XRSL is spilt into several alternative
+         * JobDescriptions the requirement for RTE must be all (AND).
+         */
+        j.Resources.RunTimeEnvironment.setRequirement(true);
         j.Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Resources.RunTimeEnvironment.setRequirement(true);
+          it->Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
+        }
+
         return true;
        }
 
+      // This attribute should be passed to the broker and should not be stored.
       if (c->Attr() == "middleware") {
         std::string cetype;
         if (!SingleValue(c, cetype))
           return false;
         j.Resources.CEType.add(Software(cetype), convertOperator(c->Op()));
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Resources.CEType.add(Software(cetype), convertOperator(c->Op()));
+        }
+
         return true;
       }
 
@@ -571,6 +692,11 @@ namespace Arc {
         if (!SingleValue(c, opsys))
           return false;
         j.Resources.OperatingSystem.add(Software(opsys), convertOperator(c->Op()));
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Resources.OperatingSystem.add(Software(opsys), convertOperator(c->Op()));
+        }
+
         return true;
       }
 
@@ -579,15 +705,40 @@ namespace Arc {
         if (!SingleValue(c, join))
           return false;
         j.Application.Join = (lower(join) == "yes");
+
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.Join = (lower(join) == "yes");
+        }
+
         return true;
       }
 
-      if (c->Attr() == "gmlog")
-        return SingleValue(c, j.Application.LogDir);
+      if (c->Attr() == "gmlog") {
+        bool r = SingleValue(c, j.Application.LogDir);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Application.LogDir);
+        }
 
-      if (c->Attr() == "jobname")
-        return SingleValue(c, j.Identification.JobName);
+        return r;
+      }
 
+      if (c->Attr() == "jobname") {
+        bool r = SingleValue(c, j.Identification.JobName);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Identification.JobName);
+        }
+
+        return r;
+      }
+
+      /* BROKEN!
+       * Parsing of this attribute is broken, since it must be ensured
+       * that it is processed after the inputfiles attribute have been
+       * processed
+       */
       if (c->Attr() == "ftpthreads") {
         std::string sthreads;
         if (!SingleValue(c, sthreads))
@@ -608,10 +759,16 @@ namespace Arc {
         if (!SingleValue(c, acl))
           return false;
         XMLNode node(acl);
+
         node.New(j.Application.AccessControl);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          node.New(it->Application.AccessControl);
+        }
         return true;
       }
 
+      // This attribute should be passed to the broker and should not be stored.
       if (c->Attr() == "cluster") {
         std::string cluster;
         if (!SingleValue(c, cluster))
@@ -659,9 +816,16 @@ namespace Arc {
             }
           }
         }
+
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.Notification = j.Application.Notification;
+        }
+
         return true;
       }
 
+      // Is this attribute supported?
       if (c->Attr() == "replicacollection") {
         std::string collection;
         if (!SingleValue(c, collection))
@@ -680,11 +844,21 @@ namespace Arc {
         if (!SingleValue(c, rerun))
           return false;
         j.Application.Rerun = stringtoi(rerun);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.Rerun = j.Application.Rerun;
+        }
         return true;
       }
 
-      if (c->Attr() == "architecture")
-        return SingleValue(c, j.Resources.Platform);
+      if (c->Attr() == "architecture") {
+        bool r = SingleValue(c, j.Resources.Platform);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          r &= SingleValue(c, it->Resources.Platform);
+        }
+        return r;
+      }
 
       if (c->Attr() == "nodeaccess") {
         std::list<std::string> l;
@@ -692,10 +866,12 @@ namespace Arc {
           return false;
         for (std::list<std::string>::iterator it = l.begin();
              it != l.end(); it++)
-          if (*it == "inbound")
-            j.Resources.NodeAccess = (j.Resources.NodeAccess == NAT_OUTBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND ? NAT_INOUTBOUND : NAT_INBOUND);
-          else if (*it == "outbound")
-            j.Resources.NodeAccess = (j.Resources.NodeAccess == NAT_INBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND ? NAT_INOUTBOUND : NAT_OUTBOUND);
+          if (*it == "inbound") {
+            j.Resources.NodeAccess = ((j.Resources.NodeAccess == NAT_OUTBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND) ? NAT_INOUTBOUND : NAT_INBOUND);
+          }
+          else if (*it == "outbound") {
+            j.Resources.NodeAccess = ((j.Resources.NodeAccess == NAT_INBOUND || j.Resources.NodeAccess == NAT_INOUTBOUND) ? NAT_INOUTBOUND : NAT_OUTBOUND);
+          }
           else {
             logger.msg(VERBOSE, "Invalid nodeaccess value: %s", *it);
             return false;
@@ -713,9 +889,10 @@ namespace Arc {
       }
 
       // Underscore, in 'rsl_substitution', is removed by normalization.
-      if (c->Attr() == "rslsubstitution")
+      if (c->Attr() == "rslsubstitution") {
         // Handled internally by the RSL parser
         return true;
+      }
 
       if (c->Attr() == "environment") {
         std::list<std::list<std::string> > ll;
@@ -733,6 +910,10 @@ namespace Arc {
         if (!SingleValue(c, count))
           return false;
         j.Resources.SlotRequirement.ProcessPerHost = stringtoi(count);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Resources.SlotRequirement.ProcessPerHost = j.Resources.SlotRequirement.ProcessPerHost;
+        }
         return true;
       }
 
@@ -743,6 +924,10 @@ namespace Arc {
         if (!URL(jobreport))
           return false;
         j.Application.RemoteLogging.push_back(URL(jobreport));
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.RemoteLogging.push_back(j.Application.RemoteLogging.back());
+        }
         return true;
       }
 
@@ -753,6 +938,10 @@ namespace Arc {
         if (!URL(credentialserver))
           return false;
         j.Application.CredentialService.push_back(credentialserver);
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.CredentialService.push_back(j.Application.CredentialService.back());
+        }
         return true;
       }
 
@@ -766,6 +955,11 @@ namespace Arc {
           return false;
         }
         j.OtherAttributes["nordugrid:xrsl;action"] = action;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;action"] = action;
+        }
+
         return true;
       }
 
@@ -774,6 +968,10 @@ namespace Arc {
         if (!SingleValue(c, hostname))
           return false;
         j.OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;hostname"] = hostname;
+        }
         return true;
       }
 
@@ -782,6 +980,10 @@ namespace Arc {
         if (!SingleValue(c, jobid))
           return false;
         j.OtherAttributes["nordugrid:xrsl;jobid"] = jobid;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;jobid"] = jobid;
+        }
         return true;
       }
 
@@ -790,6 +992,10 @@ namespace Arc {
         if (!SingleValue(c, clientxrsl))
           return false;
         j.OtherAttributes["nordugrid:xrsl;clientxrsl"] = clientxrsl;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;clientxrsl"] = clientxrsl;
+        }
         return true;
       }
 
@@ -798,6 +1004,10 @@ namespace Arc {
         if (!SingleValue(c, clientsoftware))
           return false;
         j.OtherAttributes["nordugrid:xrsl;clientsoftware"] = clientsoftware;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;clientsoftware"] = clientsoftware;
+        }
         return true;
       }
 
@@ -806,6 +1016,10 @@ namespace Arc {
         if (!SingleValue(c, savestate))
           return false;
         j.OtherAttributes["nordugrid:xrsl;savestate"] = savestate;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;savestate"] = savestate;
+        }
         return true;
       }
 
@@ -851,9 +1065,6 @@ namespace Arc {
          it != j.DataStaging.File.end(); it++)
       if (!it->Source.empty())
         it->DownloadToCache = cached;
-
-    // Since OR expressions in XRSL is spilt into serveral JobDescriptions the requirement for RTE must be all (AND).
-    j.Resources.RunTimeEnvironment.setRequirement(true);
 
     return true;
   }

@@ -33,6 +33,49 @@ namespace Arc {
     return (!Application.Executable.Name.empty());
   }
 
+  JobDescription::JobDescription(const JobDescription& j, bool withAlternatives) {
+    if (withAlternatives) {
+      *this = j;
+    }
+    else {
+      RemoveAlternatives();
+      Set(j);
+    }
+  }
+
+  void JobDescription::Set(const JobDescription& j) {
+    Identification = j.Identification;
+    Application = j.Application;
+    Resources = j.Resources;
+    DataStaging = j.DataStaging;
+    JobMeta = j.JobMeta;
+
+    OtherAttributes = j.OtherAttributes;
+
+    sourceLanguage = j.sourceLanguage;
+  }
+
+  void JobDescription::RemoveAlternatives() {
+    alternatives.clear();
+    current = alternatives.begin();
+  }
+
+  JobDescription& JobDescription::operator=(const JobDescription& j) {
+    RemoveAlternatives();
+    Set(j);
+
+    if (!j.alternatives.empty()) {
+      alternatives = j.alternatives;
+      current = alternatives.begin();
+      for (std::list<JobDescription>::const_iterator it = j.alternatives.begin();
+           it != j.current && it != j.alternatives.end(); it++) {
+        current++; // Increase iterator so it points to same object as in j.
+      }
+    }
+
+    return *this;
+  }
+
   void JobDescription::Print(bool longlist) const {
     logger.msg(WARNING, "The JobDescription::Print method is DEPRECATED, use the JobDescription::SaveToStream method instead.");
     SaveToStream(std::cout, (!longlist ? "user" : "userlong")); // ??? Prepend "user*" with a character to avoid clashes?
@@ -317,8 +360,43 @@ namespace Arc {
     return true;
   } // end of Print
 
-  bool JobDescription::Parse(const XMLNode& xmlSource)
-  {
+  void JobDescription::UseOriginal() {
+    if (!alternatives.empty()) {
+      std::list<JobDescription>::iterator it = alternatives.insert(current, *this); // Insert this before current position.
+      it->RemoveAlternatives(); // No nested alternatives.
+      Set(alternatives.front()); // Set this to first element.
+      alternatives.pop_front(); // Remove this from list.
+      current = alternatives.begin(); // Set current to first element.
+    }
+  }
+
+  bool JobDescription::UseAlternative() {
+    if (!alternatives.empty() && current != alternatives.end()) {
+      std::list<JobDescription>::iterator it = alternatives.insert(current, *this); // Insert this before current position.
+      it->RemoveAlternatives(); // No nested alternatives.
+      Set(*current); // Set this to current.
+      current = alternatives.erase(current); // Remove this from list.
+      return true;
+    }
+
+    // There is no alternative JobDescription objects or end of list.
+    return false;
+  }
+
+  void JobDescription::AddAlternative(const JobDescription& j) {
+    alternatives.push_back(j);
+
+    if (current == alternatives.end()) {
+      current--; // If at end of list, set current to newly added jobdescription.
+    }
+
+    if (!j.alternatives.empty()) {
+      alternatives.back().RemoveAlternatives(); // No nested alternatives.
+      alternatives.insert(alternatives.end(), j.alternatives.begin(), j.alternatives.end());
+    }
+  }
+
+  bool JobDescription::Parse(const XMLNode& xmlSource) {
     logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&) method instead.");
     std::string source;
     xmlSource.GetXML(source);

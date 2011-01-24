@@ -270,12 +270,27 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   for (std::list<Arc::JobDescription>::const_iterator it =
          jobdescriptionlist.begin(); it != jobdescriptionlist.end();
        it++, jobnr++) {
+    bool descriptionSubmitted = false;
     submittedJobs.push_back(Arc::Job());
     if (ChosenBroker->Submit(targen.GetExecutionTargets(), *it, submittedJobs.back())) {
       std::cout << Arc::IString("Job submitted with jobid: %s",
                                 submittedJobs.back().JobID.str()) << std::endl;
+      descriptionSubmitted = true;
     }
-    else {
+    else if (it->HasAlternatives()) {
+      // TODO: Deal with alternative job descriptions more effective.
+      for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
+           itAlt != it->GetAlternatives().end(); itAlt++) {
+        if (ChosenBroker->Submit(targen.GetExecutionTargets(), *itAlt, submittedJobs.back())) {
+          std::cout << Arc::IString("Job submitted with jobid: %s",
+                                    submittedJobs.back().JobID.str()) << std::endl;
+          descriptionSubmitted = true;
+          break;
+        }
+      }
+    }
+
+    if (!descriptionSubmitted) {
       std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
       submittedJobs.pop_back();
     }
