@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Init file for the NorduGrid/ARC Information System
 #
 # chkconfig: - 55 25
