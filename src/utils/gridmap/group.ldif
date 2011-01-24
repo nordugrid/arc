@@ -1,0 +1,8 @@
+dn: ou=examplegroup,ou=people,dc=nordugrid,dc=org
+objectClass: organizationalUnit
+objectClass: groupofNames
+ou: examplegroup
+cn: examplegroup
+member: cn=First Member, ou=People, dc=nordugrid, dc=org
+member: cn=Second Member, ou=People, dc=nordugrid, dc=org
+member: cn=Third Member, ou=People, dc=nordugrid, dc=org

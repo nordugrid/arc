@@ -1,0 +1,13 @@
+dn: cn=gdmp/machine.name:port, ou=services, dc=nordugrid, dc=org
+objectclass: inetOrgPerson
+objectclass: MdsService
+cn: gdmp/machine.name:port
+sn: gdmp
+description: /O=Grid/O=NorduGrid/OU=machine.name/CN=gdmp
+mail: contact@machine.name
+Mds-Service-type: gdmp
+Mds-Service-protocol: gdmp
+Mds-Service-port: portnumber
+Mds-Service-hn: machine.name
+Mds-validfrom: 111111111111Z
+Mds-validto: 111111111111Z

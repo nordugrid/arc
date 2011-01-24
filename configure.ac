@@ -59,6 +59,13 @@ AM_CONDITIONAL([SYSV_SCRIPTS_ENABLED],[test "x$initddir" != "x"])
 AC_MSG_RESULT($initddir)
 AC_SUBST(initddir)
 
+AC_ARG_WITH(cron-scripts-prefix,
+  AC_HELP_STRING([--with-cron-scripts-prefix=<PATH>], [Specify the location of the cron directory. [[SYSCONFDIR/cron.d]]]),
+  [ cronddir="$withval" ],
+  [ cronddir="$sysconfdir/cron.d" ]
+)
+AC_SUBST(cronddir)
+
 # gettext
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.12])
@@ -2024,6 +2031,8 @@ AC_CONFIG_FILES([Makefile
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile
+                 src/utils/gridmap/nordugridmap.cron
+                 src/utils/gridmap/Makefile
                  src/utils/testing/ngconfigtest.1
                  src/utils/testing/Makefile
                  src/utils/Makefile

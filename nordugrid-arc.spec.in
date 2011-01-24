@@ -558,6 +558,42 @@ The Janitor is a recent development and the community to prepare
 catalogues of dynamically installable packages still needs to
 evolve.
 
+%package gridmap-utils
+Summary:	NorduGrid authorization tools
+Group:		Applications/Internet
+Requires:	perl(Crypt-SSLeay)
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+%description gridmap-utils
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+
+This package contains the ARC authorization machinery.
+A prominent tool distributed in this package is the nordugridmap
+script to collect user information from the virtual organisations.
+
+%package ca-utils
+Summary:	NorduGrid authentication tools
+Group:		Applications/Internet
+Requires:	fetct-crl
+Requires(post):	fetch-crl
+Requires(post):	chkconfig
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+%description ca-utils
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+
+The nordugrid-arc-ca-utils packages has been obsoleted.
+The functionality of the grid-update-crls tool is provided by the
+fetch-crl tool in the fetch-crl package.
+
 %prep
 %setup -q
 
@@ -657,6 +693,10 @@ exit 0
 %if %{with_gcj}
 [ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
 %endif
+
+%post ca-utils
+# Enable CRL updates via cron for backward compatibility
+/sbin/chkconfig fetch-crl-cron on
 
 %files -f arc.lang
 %defattr(-,root,root,-)
@@ -1005,6 +1045,15 @@ exit 0
 %{_datadir}/%{pkgdir}/janitor
 %{_datadir}/%{pkgdir}/perl/Janitor
 %doc %{_mandir}/man8/janitor.8*
+
+%files gridmap-utils
+%defattr(-,root,root,-)
+%{_sbindir}/nordugridmap
+%config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
+%doc src/utils/gridmap/nordugridmap.conf
+
+%files ca-utils
+%defattr(-,root,root,-)
 
 %changelog
 * @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1

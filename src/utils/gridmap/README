@@ -1,0 +1,82 @@
+This CVS directory contains the utilities and templates in connection with the
+NorduGrid Virtual Organization, an LDAP-based central authorization system.
+Please read the information on the
+NorduGrid VO page: http://www.nordugrid.org/NorduGridVO/ .
+The authorization software (this directory) can be installed manually after checking out
+from the CVS or by installing nordugrid-gridmap-utils-rpm from the 
+nordugrid download area.
+
+
+Files in the CVS directory:
+------
+
+README			this file
+nordugridmap		util which generates grid-mapfile(s) for NorduGrid sites
+nordugridmap.conf	example config [vo] blocks for the nordugridmap util
+nordugridmap.cron.in	crontab example should be added to the /etc/crontab 
+local-grid-mapfile      example for a local-grid-mapfile 
+sn_from_url.txt         example text file with list of Subject Names available
+			through http
+user.ldif  		template user entry for the NorduGrid VO ldap
+group.ldif          	template group entry for the NorduGrid VO ldap  
+service.ldif		template service entry for the NorduGrid VO ldap  
+
+
+External packages:
+------------------
+perl-perl-ldap-latest-version.rpm	       required perl moduls, can be found under the
+perl-Convert-ASN1-latest-version.rpm           NorduGrid external download area
+perl-libwww-perl-latest-version.rpm
+
+Installation from the CVS directory:
+-------------
+
+1, install the perl moduls if needed
+2, copy the nordugridmap script to /opt/nordugrid/sbin (or anywhere you want,
+   but then please take care using the correct crontab entry)
+3, edit the [vo] blocks in the nordugridmap.conf and copy them into /etc/arc.conf
+4, optionally create your local-grid-mapfile with extra static user mappings
+5, test the util with "nordugridmap -test -c your.configfile"   
+6, check that all the local user accounts you chose during the config really
+   exists! 
+7, add the lines from the "nordugridmap.cron.in" to /etc/crontab
+
+
+For VO & Group Managers:
+------------------------
+
+Please use the .ldif templates to add new entries to the NorduGrid VO ldap
+
+$ldapadd -h grid-vo.nordugrid.org -Y GSI-GSSAPI <enter>
+$<cut and paste the modified .ldif>
+$<ctrl+D>
+
+or
+
+$ldapmodify -h grid-vo.nordugrid.org -Y GSI-GSSAPI <enter>
+$<cut and paste the modified .ldif>
+$<ctrl+D>
+
+
+Documentation & Questions:
+--------------------------
+
+$nordugridmap -help
+The NorduGrid Authorization document on the web:
+http://www.nordugrid.org/NorduGridVO/vo-description.html
+email: balazs.konya@quark.lu.se
+
+
+Credits:
+--------
+
+The NorduGrid VO has been implemented by using Open Source Software components.
+The database is managed by an Openldap server (www.openldap.org) 
+which makes use of the Grid Security Infrastructure layer developed by the
+Globus Project TM (www.globus.org).
+The web interface for browsing the VO is powered by the LDAPExplorer 
+(igloo.its.unimelb.edu.au/LDAPExplorer)
+The nordugridmap utility which generates 
+the grid-mapfile is a modified version of the mkgridmap (v 1.6) 
+Perl (www.perl.com) script written by the 
+DataGrid (www.eu-datagrid.org) - authorization team <sec-grid@infn.it>.

@@ -1,0 +1,11 @@
+"/O=Grid/O=NorduGrid/OU=Tutorial/CN=Harry Tutor"  "/O=Grid/O=NorduGrid/CN=NorduGrid Tutorial CA"  
+"/C=CA/O=Grid/OU=phys.ualberta.ca/CN=Bryan L Caron" 
+"/O=doesciencegrid.org/OU=People/CN=Jerry Gieraltowski" 
+"/O=Grid/O=NorduGrid/OU=Tutorial/CN=Inga Tutor" mdstest
+"/O=Grid/O=NorduGrid/OU=nordita.dk/CN=Lars Melwyn Jensen" 
+"/O=Grid/O=NorduGrid/OU=Tutorial/CN=Finn Tutor"
+"/O=Grid/O=NorduGrid/OU=Tutorial/CN=Antonia Tutor" 
+"/O=Grid/O=NorduGrid/OU=hip.fi/CN=Michael Gindonis" 
+"/O=Grid/O=NorduGrid/OU=uio.no/CN=Sigve Haug" 
+"/O=Grid/O=CERN/OU=cern.ch/CN=Elzbieta Richter-Was"  "/C=CH/O=CERN/CN=CERN CA"   
+"/O=Grid/O=NorduGrid/OU=Tutorial/CN=Nils Tutor" 

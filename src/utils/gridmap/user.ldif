@@ -1,0 +1,11 @@
+dn: cn=Test Persson, ou=People, dc=nordugrid, dc=org
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: nordugrid-vo
+cn: Test Persson
+sn: Persson
+description: subject= /O=Grid/O=NorduGrid/OU=machine.name/CN=Test Persson
+nordugrid-issuerDN: /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
+mail: test.persson@machine.name
+organizationName: Department, Institute, Country
+userCertificate;binary:< file:///home/userdir/.globus/usercert.pem

@@ -1,0 +1,853 @@
+#!/usr/bin/perl
+
+#
+#       nordugridmap
+#
+
+binmode STDIN;
+binmode STDOUT;
+
+use lib '/usr/lib/perl5/site_perl/5.005';
+use lib '/usr/lib/perl5/site_perl/5.6.0';
+
+use Getopt::Long;
+use Net::LDAP;
+use URI;
+use XML::DOM;
+use LWP::UserAgent;
+use File::Temp;
+use File::Path;
+
+# please use this when developing
+use warnings;
+use strict;
+
+my $capath          = $ENV{X509_CERT_DIR}||="/etc/grid-security/certificates/";
+my $x509cert        = $ENV{X509_USER_CERT}||="/etc/grid-security/hostcert.pem";
+my $x509key         = $ENV{X509_USER_KEY}||="/etc/grid-security/hostkey.pem";
+my $gridmapfile     = "/etc/grid-security/grid-mapfile";
+my $gridvomapfile   = "/etc/grid-security/grid-vo-mapfile";
+my $cachedir        = "/var/spool/nordugrid/gridmapcache/";
+my $cache_maxlife   = 3 * 24 * 60 * 60; # only allow url cache to be three days old
+
+my $opt_help;
+my $opt_test;
+my $fileopt         = $ENV{ARC_CONFIG}||="/etc/arc.conf";
+
+
+GetOptions("help" => \$opt_help,
+           "test" => \$opt_test,
+           "config=s" => \$fileopt);
+
+
+if ($opt_help) {
+    &printHelp;
+    exit(1);
+}
+
+# find an openssl
+my $openssl_command = ''; 
+for my $path (split ':', "$ENV{PATH}") { 
+    $openssl_command = "$path/openssl" and last if -x "$path/openssl"; 
+} 
+die "Can't find openssl\n" unless $openssl_command; 
+
+
+# Configuration file processing parse the arc.conf directly into a
+# hash $parsedconfig{blockname_blockindex}{variable_name}
+unless (open (CONFIGFILE, "<$fileopt")) {
+    die "Can't open $fileopt configuration file\n";
+}
+
+my %parsedconfig = ();
+my $blockname;
+my $blockindex=0;
+
+while (my $line =<CONFIGFILE>) {
+    next if $line =~/^#/;
+    next if $line =~/^$/;
+    next if $line =~/^\s+$/;
+
+    if ($line =~/\[([^\/]+).*\]/ ) {
+        $blockindex++;
+        $blockname = sprintf("%s_%03i",$1,$blockindex);
+        next;
+    }
+
+    unless ($line =~ /=\s*".*"\s*$/) {
+        next;
+    }
+
+    # skip every non [vo] block
+    next unless $blockname =~ /^vo_/;
+
+    $line =~m/^(\w+)\s*=\s*"(.*)"\s*$/;
+    my $variable_name=$1;
+    my $variable_value=$2;
+
+    # special parsing for the local grid-mapfile
+    if ($variable_name eq "localmapfile") {
+        $variable_name = "source";
+        $variable_value = "file://" . $variable_value;
+    }
+
+    # special parsing for the nordugrid VO: source="nordugrid"
+    if (($variable_name eq "source") && ($variable_value eq "nordugrid")) {
+        $variable_value = "vomss://voms.ndgf.org:8443/voms/nordugrid.org";
+    }
+
+    unless ($parsedconfig{$blockname}{$variable_name}) {
+        $parsedconfig{$blockname}{$variable_name} = $variable_value;
+    }
+    else {
+        $parsedconfig{$blockname}{$variable_name} .= "[separator]".$variable_value;
+    }
+}
+
+close CONFIGFILE;
+
+my @blocknames_tmp = (keys %parsedconfig);
+unless ( grep /^vo_/, @blocknames_tmp) {
+    print "NO [vo] blocks were found in the $fileopt configuration file\n";
+    exit;
+}
+
+# list of the grid mappings obtained from each vo block
+my %GridMappings = ();
+
+# LOOP over the config [vo] blocks, generate one mapfile per [vo] block
+foreach my $block (sort(keys %parsedconfig)) {
+    next unless $block =~ /^vo_/;
+    my %ca_list = ();
+    my @VOgroups = ();
+    my @Rules = ();
+    my $gmf = "/etc/grid-security/grid-mapfile";
+    my $require_issuerdn = "no";
+    my $default_lcluser = "";
+
+    #read values from the parsedconfig hash
+    if ( $parsedconfig{$block}{"file"} ) {
+        $gmf = $parsedconfig{$block}{"file"};
+    }
+    if ( $parsedconfig{$block}{"require_issuerdn"} ) {
+        $require_issuerdn = $parsedconfig{$block}{"require_issuerdn"};
+    }
+    if ( $parsedconfig{$block}{"mapped_unixid"} ) {
+        $default_lcluser = $parsedconfig{$block}{"mapped_unixid"};
+    }
+
+    my @urls = split /\[separator\]/, $parsedconfig{$block}{"source"};
+    foreach my $listentry (@urls) {
+        push @VOgroups, [$listentry, $default_lcluser];
+    }
+
+    # apply filter, if any
+    if ($parsedconfig{$block}{"filter"}) {
+
+        my @filters = split /\[separator\]/, $parsedconfig{$block}{"filter"};
+        foreach my $listentry (@filters) {
+            @Rules = (@Rules, $listentry);
+        }
+        # if we only allow certain people, deny becomes last option
+        if ( ($parsedconfig{$block}{"filter"} =~ /allow/) ) {
+            @Rules = (@Rules, "deny *");
+        }
+    }
+    # no filter rules -> allow all
+    else {
+        @Rules = (@Rules, "allow *");
+    }
+
+    # do some printout for test mode
+    if ( $opt_test ) {
+        print     "\nCONFIGURATION FILE: $fileopt\n";
+        print       "VO BLOCK NAME     : $parsedconfig{$block}{vo}\n";
+        foreach my $VOgroup (@VOgroups) {
+            print   "SOURCE (URL)      : @{ $VOgroup }[0]\n";
+        }
+        foreach my $rule (@Rules) {
+            print   "ACL               : $rule\n";
+        }
+        print       "MAPPED UNIXID: $default_lcluser\n";
+        print       "GENERATED GRID-MAPFILE: $gmf\n";
+        print       "REQUIRE_ISSUERDN: $require_issuerdn\n";
+    }
+
+    #collect the Authentication information, get the list of supported Certificate Authorities
+
+    my @certfiles= `ls $capath/*.0 2>/dev/null`;
+
+    # fill the %ca_list hash
+    foreach my $cert (@certfiles) {
+        my $ca_sn=`$openssl_command x509 -noout -subject -in $cert`;
+        $ca_sn=~s/subject= //;
+        chomp($ca_sn);
+        $ca_list{$ca_sn} = $ca_sn;
+    }
+
+    print "SUPPORTED Certificate Authorities:\n" if ($opt_test and $require_issuerdn eq "yes");
+    foreach my $supported_ca (keys %ca_list) {
+        print " $supported_ca\n" if ($opt_test and $require_issuerdn eq "yes");
+    }
+
+    # process the VO URLs specified in the [vo] block
+    my $ref_Subjects = &vo_block(\@VOgroups, \@Rules, $require_issuerdn, \%ca_list);
+    if (exists($GridMappings{$gmf})) {
+        push (@{$GridMappings{$gmf}}, $ref_Subjects);
+    }
+    else {
+        $GridMappings{$gmf} = [ ($ref_Subjects) ];
+    }
+
+    # end of the [VO] block loop
+}
+
+# merge retrieved mappings
+print "\n############ Merging the mappings of the [vo] blocks #######\n" if $opt_test;
+
+my %GridMaps = ();
+
+foreach my $mapfile (keys %GridMappings) {
+
+    my @SubRefs = @{$GridMappings{$mapfile}};
+
+    foreach my $ref_Map (@ { $GridMappings{$mapfile}}) {
+        my %Subjects = %$ref_Map;
+        foreach my $subject (keys %Subjects) {
+
+            if (exists($GridMaps{$mapfile}{$subject})) {
+                print "\"$subject\" is not added to $mapfile (already exists)\n" if $opt_test;
+                next;
+            }
+            my $local_user = @{ $Subjects{$subject} }[0];
+            my $authz_url  = @{ $Subjects{$subject} }[1];
+            $GridMaps{$mapfile}{$subject} = [$local_user, $authz_url];
+        }
+
+    }
+
+}
+
+
+# generate line to write out (to stdout or file)
+my %GM_lines = (); # mapfile -> [ map file lines ]
+my %GMVO = ();
+
+foreach my $mapfile (keys %GridMaps) {
+
+    foreach my $subject (keys %{$GridMaps{$mapfile}}) {
+
+        my $local_user = @{ $GridMaps{$mapfile}{$subject} }[0];
+        my $authz_url  = @{ $GridMaps{$mapfile}{$subject} }[1];
+
+        push (@ {$GM_lines{$mapfile}}, "\"$subject\" $local_user\n");
+
+        if (exists $GMVO{$subject}) {
+            print "\"$subject\" is not added to vo mapfile (already exists)\n" if $opt_test;
+            next;
+        }
+        $GMVO{$subject} = $authz_url;
+    }
+}
+
+# merge vo map into map files
+foreach my $subject (keys %GMVO) {
+    push (@ {$GM_lines{$gridvomapfile}}, "\"$subject\" \"$GMVO{$subject}\"\n");
+}
+
+
+# print / write map files
+if ($opt_test) {
+    # print generated map
+    foreach my $mapfile (keys %GM_lines) {
+        print "\n############ THE GENERATED GRID-MAPFILE: $mapfile #####\n" if $opt_test;
+        foreach my $line (@{$GM_lines{$mapfile}}) {
+            print $line;
+        }
+    }
+
+}
+
+else {
+    foreach my $mapfile (keys %GM_lines) {
+
+        my $tmp_mapfile = $mapfile."_tmp";
+        open (GMF,"> $tmp_mapfile" ) || die "unable to write to $tmp_mapfile\n";
+
+        foreach my $line (@{$GM_lines{$mapfile}}) {
+            print GMF $line;
+        }
+        close(GMF);
+        rename $tmp_mapfile, $mapfile;
+    }
+
+}
+
+
+#
+# end of "main" runtine, function from hereon
+#
+
+
+## Process [vo] block from the arc.conf
+sub vo_block {
+
+    my ($ref_VOgroups, $ref_Rules, $require_issuerdn, $ref_ca_list) = @_;
+    my @VO_groups = @$ref_VOgroups;
+    my @Rules = @$ref_Rules;
+
+    my %SubjectMap = ();
+    my %VOMap = ();
+
+    foreach my $VOgroup (@VO_groups) {
+
+        my $url = @{ $VOgroup }[0];
+        my $local_user = @{ $VOgroup }[1];
+
+        # fetch subjects
+        my ($code, $is_map, $ref_Subjects) = &fetch_subjects($url, $require_issuerdn, $ref_ca_list);
+        if ($code) {
+            warn "Error getting subject list for $url\n";
+            if ($code == 400 || $code == 500) {
+                $ref_Subjects = &read_cached_subjects($url);
+                print "Using cached entry for $url\n";
+            }
+            else {
+                warn "There was an error processing the VO entry : \"$url\"";
+                next;
+            }
+        }
+
+        # write subject list to cache - except if we got map (file source)
+        unless ($code || $is_map) {
+            if (!$opt_test) {
+                &write_cached_subjects($url, $ref_Subjects);
+            }
+        }
+
+        # convert list to hashes if necessary (gridmap-files are mappings, other sources are just lists)
+        my %Subjects = ();
+        if ($is_map) {
+            %Subjects = %$ref_Subjects;
+        }
+        else {
+            my @Subjects = @$ref_Subjects;
+            foreach my $subject (@Subjects) {
+                $Subjects{$subject} = $local_user;
+            }
+        }
+
+        # fill out subject -> [local user, url] mapping
+        foreach my $subject (keys %Subjects) {
+            my $local_user = $Subjects{$subject};
+            if (exists $SubjectMap{$subject}) {
+                print "User $subject skipped, already mapped into VO\n" if $opt_test;
+            }
+            else {
+                $SubjectMap{$subject} = [$local_user, $url];
+            }
+        }
+
+    }
+
+    return \%SubjectMap;
+
+}
+
+
+
+sub urlhash {
+    my $url = shift;
+    # split the url into substrings of length 8 and run crypt on each substring
+    my @chunks = ( $url =~ /.{1,8}/gs );
+    my $result;
+    foreach my $c (@chunks) {
+        $result .= crypt $c, "arc";
+    }
+    $result =~ s/[\/|\.]//g;
+    return $result;
+}
+
+sub get_subject_cache_location {
+    my $url = shift;
+    my $hash = &urlhash($url);
+    my $file_location = $cachedir . "/" . $hash; 
+    return $file_location;
+}
+
+sub write_cached_subjects {
+    my ($url, $ref_Subjects) = @_;
+    my @Subjects = @$ref_Subjects;
+
+    my $cache_file = &get_subject_cache_location($url);
+    print "Writing cached subjects for $url to $cache_file\n" if $opt_test;
+    # need to create dir if it does not exist
+    unless (-d $cachedir) {
+        eval { mkpath($cachedir) };
+        if ($@) {
+            print "Failed to create subject cache dir $cachedir\n";
+        }
+    }
+    # write subjects to cache file
+    open CACHEFILE, ">$cache_file" or print "Failed to create cache file $cache_file\n";
+    foreach my $subject (@Subjects) {
+        print CACHEFILE $subject . "\n";
+    }
+    close CACHEFILE;
+
+}
+
+sub read_cached_subjects {
+    my $url = shift;
+
+    my @Subjects = ();
+
+    my $cache_file = &get_subject_cache_location($url);
+
+    my $mtime = (stat($cache_file))[9];
+    if ($mtime + $cache_maxlife < time()) {
+        print "Rejecting to use cache, max lifetime exceeded\n";
+        return \@Subjects;
+    }
+
+    open (CACHEFILE, $cache_file);
+    while (<CACHEFILE>) {
+        chomp;
+        push @Subjects, $_;
+    }
+    close (CACHEFILE); 
+
+    return \@Subjects;
+}
+
+
+
+# will parse the url and fetch the subjects
+sub fetch_subjects {
+    my ($url, $require_issuerdn, $ref_ca_list) = @_;
+
+    my ($conn, $void, $host, $base) = split /\//, $url;
+    $conn = lc $conn;
+
+    my $code;
+    my $is_map = 0;
+    my $ref_Subjects;
+
+    if ($conn eq "vomss:" or $conn eq "voms:"){
+        my $uri = URI->new($url);
+        ($code, $ref_Subjects) = &voms_subjects($uri);
+    }
+    elsif ($conn eq "ldap:"){
+        ($code, $ref_Subjects) = &ldap_subjects($host, $require_issuerdn, $ref_ca_list);
+    }
+    elsif ($conn eq "http:" or $conn eq "https:") {
+        ($code, $ref_Subjects) = &http_subjects($url, $require_issuerdn, $ref_ca_list);
+    }
+    elsif ($conn eq "file:") {
+        my $file = $url;
+        $file =~ s!^.*://[^/]*!!;
+        ($code, $ref_Subjects) = &read_gridmap($file);
+        $is_map = 1;
+    }
+    else {
+        print "\n############$conn URL type is not supported, the source entry \"$url\" is discarded\n" if $opt_test;
+        $code = -1;
+    }
+
+    return ($code, $is_map, $ref_Subjects);
+}
+
+
+
+sub http_subjects {
+    my ($url, $require_issuerdn, $ref_ca_list) = @_;
+
+    my @Subjects = ();
+    my ($conn, $void, $host, $base) = split /\//, $url;
+
+    # Detect if curl(1) is available and is new enough (>=7.9.8)
+    my $curl = 1;
+    if (open(TMPFILE, " curl -V|head -1|")) {
+        my ($cmd, $version, $major, $minor, $patch);
+        while (<TMPFILE>) {
+            chomp;
+            ($cmd,$version) = split (/ /);
+            ($major, $minor, $patch ) = split /\./,$version;
+        }
+        close(TMPFILE);
+        # curl 7.9.8 was the first version to support capath
+        if ( $major < 7) { $curl = 0 };
+        if ( $major == 7 && $minor < 9 ) { $curl = 0};
+        if ( $major == 7 && $minor == 9 && $patch < 8 ) { $curl = 0 };
+    }
+    else {
+        $curl=0;
+    }
+
+    # Use curl if available - otherwise use s_client/wget/cat based on protocol https/http/file
+    if ($curl == 1) {
+        if (!open(TMPFILE, "curl -s --fail --capath $capath $url |")) {
+            warn "Couldn't access $url\n";
+            return (1, \@Subjects);
+        }
+    }
+    else {
+        if (lc($conn) eq "http:") {
+            if (!open(TMPFILE, "wget --quiet -O - $url |")) {
+                warn "Couldn't access $url using wget\n";
+                return (1, \@Subjects);
+            }
+        }
+        elsif (lc($conn) eq "https:") {
+            # https default port is 443
+            my ($host, $port) = split /:/, $host;
+            if ($port == "") { $port=443 }
+            $port = ":$port";
+            if (!open (TMPFILE, "printf \"GET $url HTTP/1.0\n\n\" | $openssl_command s_client -crlf -CApath $capath -connect $host$port -cert $x509cert -key $x509key -quiet 2>/dev/null |")) {
+                warn "Couldn't access $url using s_client\n";
+                return (1, \@Subjects);
+            }
+            # Skipping HTTP header
+            while (<TMPFILE>) {
+                last if ( $_ =~ /^\r$/ );
+                next;
+            }
+        }
+    }
+
+    binmode TMPFILE;
+    my $count = 0;
+    while (<TMPFILE>) {
+        next if /^(\s)*$/; # skip blank lines
+
+        chomp;
+        my ($subj, $issuer) = split (/\s+"(.*)"/);
+        $subj =~ s/"(.*)"/$1/g;
+        $subj =~ /CN=(.*)/i;
+        my $cn = $1;
+
+        $issuer =~ s/"(.*)"/$1/g if $issuer;
+
+        if ( $require_issuerdn eq "yes") {
+            if ( !$issuer ) {
+                print "$cn has no issuer information, discarded\n" if $opt_test;
+                next;
+            }
+            if ($issuer and not &authenticated($cn, $issuer,$ref_ca_list)) {
+                next;
+            }
+        }
+        push (@Subjects, $subj);
+        $count++;
+    }
+    close (TMPFILE);
+    if ($count == 0) {
+        print "### WARNING: no information retrieved from $url\n";
+    }
+
+    return (0, \@Subjects);
+
+}
+
+
+
+############ MEMBER SEARCH ############
+sub ldap_subjects {
+    my ($hostport, $require_issuerdn, $ref_ca_list) = @_;
+    my @Subjects = ();
+
+    my ($host, $port) = split /:/, $hostport;
+    if ($port == "") { $port=389 }
+    my $ldap = Net::LDAP ->new($host, port => $port, timeout => "15");
+    if ( $@ ) {
+        print "VO Group ldap://$host is unreachable:\n $@ \n";
+        return (1, \@Subjects);
+    }
+
+    my $base;
+    my $mesg = $ldap->search(base => $base,
+                          timelimit => 120,
+                          filter => "member=*");
+    warn ($mesg->error, " with $base") if $mesg->code;
+
+    foreach my $groupServer ($mesg->all_entries) {
+        my $dn = $groupServer->dn();
+        my @allMembers = $groupServer->get_value('member');
+        print "\n############ Entries from the GroupDN: $dn ############\n" if $opt_test;
+
+        foreach my $member (@allMembers){
+            my $mesg2 = $ldap->search(base => $member,
+                                      timelimit => 120,
+                                      filter => "cn=*");
+            die ($mesg->error, " with $base") if $mesg->code;
+            my $entry = $mesg2->entry(0);
+
+            if (!$entry){
+                print   "Warning: \"$member\" not found\n" if $opt_test;
+                next;
+            }
+
+            my $subj = "";
+            my @Subj = $entry->get_value('description');
+            my $cn = $entry->get_value('cn');
+            my $issuer = $entry->get_value('nordugrid-issuerDN');
+
+            if ( $require_issuerdn eq "yes" ) {
+                if ( !$issuer ) {
+                    print "$cn has no issuer information, discarded\n" if $opt_test;
+                    next;
+                }
+                next if ($issuer and not &authenticated($cn, $issuer, $ref_ca_list));
+            }
+
+            foreach $_ (@Subj) {
+                if($_ =~ /^subject=\s*(.*)/){
+                    $subj = $1;
+                    last;
+                }
+            }
+            if ($subj eq ""){
+                print   "Warning: \"subject=\" not found in description of $cn\n" if $opt_test;
+                next;
+            }
+
+            push (@Subjects, $subj);
+        }
+    }
+
+    return (0, \@Subjects);
+
+}
+
+
+############ Match against our rules ############
+sub rule_match {
+    my ($subj, $cn, $lcluser, $ref_Rules) = @_;
+    my @Rules = @$ref_Rules;
+
+    my $subjReg = $subj;
+    $subjReg =~ s/\@/\\\@/g;
+    $subjReg = lc($subjReg);
+    foreach my $rule (@Rules) {
+        my ($action, $acl) = split / /, $rule, 2;
+        $acl =~ s/\@/\\\@/g;
+        $acl =~ s/\*/.\*/g;
+        $acl = lc($acl);
+        if ($subjReg =~ /$acl/) {
+            if ($action eq "deny") {
+                print "$cn denied by rule $acl\n" if $opt_test;
+            }
+            else {
+                print "$cn allowed by rule $acl\n" if $opt_test;
+                return 1;
+            }
+            last;
+        }
+    }
+    return 0;
+}
+
+
+############ Check the Authentication ############
+sub authenticated {
+    my ($cn, $issuer, $ref_ca_list) = @_;
+    $issuer=~s/\s+$//;
+    my %ca_list  = %$ref_ca_list;
+    if($ca_list{$issuer}) {
+        print "The certificate of $cn issued by $issuer is Authenticated\n" if $opt_test;
+        return "yes";
+    }
+    else {
+        print "$cn is denied (certificates issued by $issuer are NOT Authenticated) \n" if $opt_test;
+        return 0;
+    }
+
+}
+
+## Obtain subject names from a VOMS database through http+soap ###########
+sub voms_subjects($) {
+    my $uri = shift;
+    my $io_socket_ssl_version;
+    my $parser;
+    my $doc;
+    my $retval;
+    my $user;
+    my $ua;
+    my $res;
+    my $subject;
+    my $error_mesg;
+    my @Subject = ();
+
+    my $scheme = $uri->scheme;
+    $scheme =~ s/^voms/http/;
+    $uri->scheme($scheme);
+
+    if ($uri->scheme eq 'https') {
+
+        # setup x509 environment
+        $ENV{HTTPS_CERT_FILE} = $ENV{X509_USER_CERT} || '/etc/grid-security/hostcert.pem';
+        $ENV{HTTPS_KEY_FILE}  = $ENV{X509_USER_KEY} || '/etc/grid-security/hostkey.pem';
+        $ENV{HTTPS_CA_DIR} = $ENV{X509_CERT_DIR} || '/etc/grid-security/certificates';
+        $ENV{HTTPS_VERSION} = 3;
+
+        if ($IO::Socket::SSL::VERSION) {
+            $io_socket_ssl_version = $IO::Socket::SSL::VERSION;
+            $IO::Socket::SSL::VERSION = undef;
+        }
+    }
+
+    $uri->path($uri->path.'/services/VOMSCompatibility');
+    if ( $uri->query() ) {
+        $uri->query_form(method    => 'getGridmapUsers',
+                         container => $uri->query() );
+    }
+    else {
+        $uri->query_form(method => 'getGridmapUsers');
+    }
+
+
+    $ua = LWP::UserAgent->new(timeout => "15");
+
+    $res = $ua->get($uri,
+                    'Cache-Control' => 'no-cache',
+                    'Pragma'        => 'no-cache');
+
+    unless ($res->is_success) {
+        # error codes: 500 -> bad hostname, connection timeout
+        #              400 -> bad request (service running, specific vo down)
+        $error_mesg = "voms search($uri) FAILED: ".$res->message;
+        print "$error_mesg\n";
+        return ($res->code, \@Subject);
+    }
+
+    $parser = new XML::DOM::Parser;
+    eval { $doc = $parser->parse($res->content) };
+
+    unless ($doc) {
+        $error_mesg = "Parsing voms ($uri) XML response FAILED";
+        print "$error_mesg\n";
+        return ("333", \@Subject);
+    }
+
+    $retval = $doc->getElementsByTagName('soapenv:Body');
+
+    if ($retval->getLength == 1) {
+        my $returnNode = $doc->getElementsByTagName('getGridmapUsersReturn')->item(0);
+        for my $user ($returnNode->getChildNodes) {
+            if ($user->getNodeType == ELEMENT_NODE) {
+                $subject = $user->getFirstChild->getData;
+                push (@Subject, $subject);
+            }
+        }
+    }
+    else {
+        $error_mesg = "voms search($uri): No such object";
+        print"$error_mesg\n";
+        return ("444", \@Subject);
+    }
+
+    $doc->dispose;
+
+    return ("0", \@Subject);
+}
+
+
+## Read local gridmap-file
+sub read_gridmap {
+    my $gridmap_file = shift;
+
+    my %Subjects = ();
+
+    if (! -e $gridmap_file) {
+        warn "File $gridmap_file not found\n\n";
+        return (1, \%Subjects);
+    }
+    if (! -T $gridmap_file) {
+        warn "File $gridmap_file not in text format\n\n";
+        return (2, \%Subjects);
+    }
+
+    if (!open(IN, "< $gridmap_file")) {
+        warn "Unable to open $gridmap_file\n\n";
+        return (3, \%Subjects);
+    }
+    binmode IN;
+
+    print "\n############ Entries from the $gridmap_file ############\n" if $opt_test;
+
+    while (my $f = <IN>) {
+        chop($f);
+
+        if ($f =~ /^\s*\"(.+)\"\s+(.+)/) {
+            my $subject    = $1;
+            my $local_user = $2;
+
+            print "\"$subject\" $local_user\n" if $opt_test;
+
+            if (! exists $Subjects{$subject}) {
+                $Subjects{$subject} = $local_user;
+            }
+        }
+    }
+
+    close(IN);
+    return (0, \%Subjects);
+
+}
+
+
+############ READ HELP ###########
+sub printHelp {
+    system("pod2text $0");
+}
+
+#################################
+
+=pod
+
+=head1 NAME
+
+nordugridmap - generates grid-mapfile(s)
+
+=head1 SYNOPSIS
+
+B<nordugridmap> [B<-t>, B<--test>] [B<-h>, B<--help>]
+
+=head1 DESCRIPTION
+
+
+B<nordugridmap> is usually run as a crontab entry
+in order to automatically generate mapfile(s).
+For configuration information consult the arc.conf.template
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-t>, B<--test>
+
+Print the filter generated from the configuration file and
+other debug informations including used configuration settings.
+In this case the grid-mapfile(s) is not created.
+
+=item B<-h>, B<--help>
+
+Print a help screen.
+
+=item B<-c>, B<--config>
+
+Specifies the configuration file, by the default the /etc/arc.conf is used. B<nordugridmap>
+processes all the [vo] blocks from the arc.conf.
+
+=back
+
+=head1 CREDITS
+The early scripts were based on a modified version of the mkgridmap (v 1.6) script
+written by the DataGrid - authorization team <sec-grid@infn.it>. Since then the script
+has been considerably rewritten.
+
+=head1 COMMENTS
+
+balazs.konya@hep.lu.se
+
+=cut

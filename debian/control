@@ -426,6 +426,31 @@ Description: ARC dynamic runtime environment installation
  The Janitor is a recent development and the community to prepare
  catalogues of dynamically installable packages still needs to evolve.
 
+Package: nordugrid-arc-gridmap-utils
+Architecture: all
+Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, ${perl:Depends}, ${misc:Depends}
+Recommends: cron
+Description: NorduGrid authorization tools
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ This package contains the ARC authorization machinery.
+ A prominent tool distributed in this package is the nordugridmap
+ script to collect user information from the virtual organisations.
+
+Package: nordugrid-arc-ca-utils
+Architecture: all
+Depends: fetch-crl, ${misc:Depends}
+Description: NorduGrid authentication tools
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ The nordugrid-arc-ca-utils packages has been obsoleted.
+ The functionality of the grid-update-crls tool is provided by the
+ fetch-crl tool in the fetch-crl package.
+
 Package: nordugrid-arc-dbg
 Provides: nordugrid-arc-nox-dbg
 Replaces: nordugrid-arc-nox-dbg (<< 1.3.0~)
