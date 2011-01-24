@@ -83,7 +83,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     pos_s=pos+1;
   };
   if(mail_n == 0) return true; /* not sending to anyone */
-  for(;mail_n>0;mail_n--) {
+  for(mail_n--;mail_n>=0;mail_n--) {
     args[7+mail_n]=(char*)(mails[mail_n].c_str());
   };
   if(!RunParallel::run(user,desc,args,&child)) {
