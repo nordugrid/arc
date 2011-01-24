@@ -218,6 +218,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     jobreport.push_back(it->str());
   }
 
+  notify.clear();
   {
     int n = 0;
     for (std::list<Arc::NotificationType>::const_iterator it = arc_job_desc.Application.Notification.begin();
@@ -232,9 +233,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       }
       if(states.empty()) continue;
       if(it->Email.empty()) continue;
-      if (n != 0) notify += " ";
+      if (!notify.empty()) notify += " ";
       notify += states + " " + it->Email;
-      n++;
+      ++n;
     }
   }
 
