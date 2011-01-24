@@ -13,9 +13,9 @@ Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
 
 Package: libarccommon0
-Provides: nordugrid-arc1, nordugrid-arc-nox
-Replaces: nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~)
-Conflicts: nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~)
+Provides: nordugrid-arc-libs, nordugrid-arc1, nordugrid-arc-nox
+Replaces: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~)
+Conflicts: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}
 Description: ARC grid middleware
@@ -48,7 +48,7 @@ Provides: nordugrid-arc1-client, nordugrid-arc-nox-client
 Replaces: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0~)
 Conflicts: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, nordugrid-arc-plugins-base
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, nordugrid-arc-plugins-base (= ${binary:Version})
 Description: ARC prototype clients
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -86,7 +86,7 @@ Provides: nordugrid-arc-nox-charon
 Replaces: nordugrid-arc-nox-charon (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-charon (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC Charon service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -103,7 +103,7 @@ Provides: nordugrid-arc-nox-chelonia
 Replaces: nordugrid-arc-nox-chelonia (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-chelonia (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, nordugrid-arc-python, python-fuse
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, nordugrid-arc-python (= ${binary:Version}), python-fuse
 Description: ARC Chelonia service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -118,7 +118,7 @@ Provides: nordugrid-arc-nox-hopi
 Replaces: nordugrid-arc-nox-hopi (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-hopi (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC Hopi service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -134,7 +134,7 @@ Provides: nordugrid-arc-nox-isis
 Replaces: nordugrid-arc-nox-isis (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-isis (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC Isis service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -178,10 +178,10 @@ Description: ARC cache service
  some operations on the A-REX cache remotely. It can be especially helpful
  for data management within a pilot job framework.
 
-Package: nordugrid-arc-ldap-infosys
-Provides: nordugrid-arc-nox-ldap-infosys
-Replaces: nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
+Package: nordugrid-arc-aris
+Provides: nordugrid-arc-ldap-infosys, nordugrid-arc-nox-ldap-infosys
+Replaces: nordugrid-arc-ldap-infosys (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
+Conflicts: nordugrid-arc-ldap-infosys (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~)
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}
 Description: ARC LDAP infosys service
@@ -192,24 +192,27 @@ Description: ARC LDAP infosys service
  This package contains the LDAP based information system for ARC.
  This package is not self-contained. it should be pulled in by either
  nordugrid-arc-arex to be a part of a local information system or
- by nordugrid-arc-giis to be a part of a GIIS service.
+ by nordugrid-arc-egiis to be a part of a EGIIS service.
 
-Package: nordugrid-arc-giis
+Package: nordugrid-arc-egiis
 Provides: nordugrid-arc-nox-giis
 Replaces: nordugrid-arc-nox-giis (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-giis (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-ldap-infosys
-Description: ARC GIIS service
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-aris (= ${binary:Version})
+Description: ARC EGIIS service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC). 
  .
- The GIIS is the Information Index Service used by ARC, This service is
+ The EGIIS is the Information Index Service used by ARC, This service is
  used to set up a ldap-based server that local information systems register
  to.
 
 Package: nordugrid-arc-ldap-monitor
+Provides: nordugrid-arc-monitor
+Replaces: nordugrid-arc-monitor (<< 1.0.0~)
+Conflicts: nordugrid-arc-monitor (<< 1.0.0~)
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC LDAP monitor service
@@ -219,7 +222,7 @@ Description: ARC LDAP monitor service
  .
  This package contains the LDAP monitor system for ARC.
  This package is self-contained. It is used to set up a web-based monitor
- which pulls information from a GIIS and shows it graphically.
+ which pulls information from a EGIIS and shows it graphically.
 
 Package: nordugrid-arc-ws-monitor
 Architecture: all
@@ -238,7 +241,7 @@ Provides: nordugrid-arc-nox-compiler
 Replaces: nordugrid-arc-nox-compiler (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-compiler (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC compiler service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -254,7 +257,7 @@ Provides: nordugrid-arc-nox-delegation
 Replaces: nordugrid-arc-nox-delegation (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-delegation (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC delegation service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -267,7 +270,7 @@ Provides: nordugrid-arc-nox-paul
 Replaces: nordugrid-arc-nox-paul (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-paul (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC paul service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -285,7 +288,7 @@ Provides: nordugrid-arc-nox-saml2sp
 Replaces: nordugrid-arc-nox-saml2sp (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-saml2sp (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC saml2sp service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -301,7 +304,7 @@ Provides: nordugrid-arc-nox-slcs
 Replaces: nordugrid-arc-nox-slcs (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-slcs (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed
+Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC slcs service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -310,11 +313,11 @@ Description: ARC slcs service
  ARC Short-lived credential service.
 
 Package: nordugrid-arc-arex
-Provides: nordugrid-arc1-arex, nordugrid-arc-nox-arex
-Replaces: nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
-Conflicts: nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
+Provides: nordugrid-arc-grid-manager, nordugrid-arc-server, nordugrid-arc1-arex, nordugrid-arc-nox-arex
+Replaces: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
+Conflicts: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, nordugrid-arc-hed, nordugrid-arc-ldap-infosys, nordugrid-arc-plugins-base, libxml-simple-perl
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-aris (= ${binary:Version}), nordugrid-arc-plugins-base (= ${binary:Version}), libxml-simple-perl
 Description: ARC Remote EXecution service
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
@@ -353,9 +356,9 @@ Description: ARC Globus plugins
  Components (DMCs).
 
 Package: nordugrid-arc-dev
-Provides: nordugrid-arc1-dev, nordugrid-arc-nox-dev
-Replaces: nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
-Conflicts: nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
+Provides: nordugrid-arc-libs-devel, nordugrid-arc1-dev, nordugrid-arc-nox-dev
+Replaces: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
+Conflicts: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~), nordugrid-arc-nox-dev (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
 Description: ARC development files

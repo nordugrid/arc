@@ -16,6 +16,8 @@ URL:		http://www.nordugrid.org/
 Source:		%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+Provides:	%{name}-libs = %{version}
+Obsoletes:	%{name}-libs < 1.0.0
 Provides:	nordugrid-arc1 = 1.3.0
 Obsoletes:	nordugrid-arc1 < 1.0.0
 Provides:	nordugrid-arc-nox = 1.3.0
@@ -57,10 +59,8 @@ BuildRequires:	java-1.4.2-gcj-compat-devel
 %endif
 %endif
 # Needed for LRMS testing during make check
-%if %{?fedora}%{!?fedora:0} >= 7
-BuildRequires:	perl-Test-Harness
-BuildRequires:	perl-Test-Simple
-%endif
+BuildRequires:	perl(Test::Harness)
+BuildRequires:	perl(Test::Simple)
 BuildRequires:	mktemp
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
@@ -233,14 +233,16 @@ This package contains the ARC cache service. It provides a way to perform
 some operations on the A-REX cache remotely. It can be especially helpful
 for data management within a pilot job framework.
 
-%package ldap-infosys
+%package aris
 Summary:	ARC LDAP information service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}
+Provides:	%{name}-ldap-infosys = %{version}
+Obsoletes:	%{name}-ldap-infosys < 1.0.0
 Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
 Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
 
-%description ldap-infosys
+%description aris
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -248,22 +250,22 @@ Connector (ARC).
 This package contains the LDAP based information system for ARC.
 This package is not self-contained. it should be pulled in by either
 nordugrid-arc-arex to be a part of a local information system or by
-nordugrid-arc-giis to be a part of a GIIS service.
+nordugrid-arc-egiis to be a part of a EGIIS service.
 
-%package giis
-Summary:	ARC GIIS service
+%package egiis
+Summary:	ARC EGIIS service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}
-Requires:	%{name}-ldap-infosys = %{version}
+Requires:	%{name}-aris = %{version}
 Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 
-%description giis
+%description egiis
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
 
- The GIIS is the Information Index Service used by ARC, This service is
+ The EGIIS is the Information Index Service used by ARC, This service is
  used to set up a ldap-based server that local information systems register
  to.
 
@@ -271,6 +273,8 @@ Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 Summary:	ARC LDAP monitor service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}
+Provides:	%{name}-monitor = %{version}
+Obsoletes:	%{name}-monitor < 1.0.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
@@ -282,7 +286,7 @@ Connector (ARC).
 
 This package contains the LDAP monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
-which pulls information from a GIIS and shows it graphically.
+which pulls information from a EGIIS and shows it graphically.
 
 %package ws-monitor
 Summary:	ARC WS monitor service
@@ -394,11 +398,13 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}
 Requires:	%{name}-hed = %{version}
 Requires:	mktemp
-Requires:	perl-XML-Simple
-Requires:	perl-Digest-SHA1
 Requires:	python-twisted-core
 Requires:	python-twisted-web
-Requires:	%{name}-ldap-infosys = %{version}
+Requires:	%{name}-aris = %{version}
+Provides:	%{name}-grid-manager = %{version}
+Obsoletes:	%{name}-grid-manager < 1.0.0
+Provides:	%{name}-server = %{version}
+Obsoletes:	%{name}-server < 1.0.0
 Provides:	nordugrid-arc1-arex = 1.3.0
 Obsoletes:	nordugrid-arc1-arex < 1.0.0
 Provides:	nordugrid-arc-nox-arex = 1.3.0
@@ -461,6 +467,8 @@ Requires:	glibmm24-devel
 Requires:	glib2-devel
 Requires:	libxml2-devel
 Requires:	openssl-devel
+Provides:	%{name}-libs-devel = %{version}
+Obsoletes:	%{name}-libs-devel < 1.0.0
 Provides:	nordugrid-arc1-devel = 1.3.0
 Obsoletes:	nordugrid-arc1-devel < 1.0.0
 Provides:	nordugrid-arc-nox-devel = 1.3.0
@@ -579,8 +587,8 @@ install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
 install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
-install -p -m 644 debian/%{name}-ldap-infosys.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-ldap-infosys
+install -p -m 644 debian/%{name}-aris.logrotate \
+    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-aris
 
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
@@ -769,7 +777,7 @@ exit 0
 %{_libdir}/%{pkgdir}/fileplugin.*
 %config %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 
-%files ldap-infosys
+%files aris
 %defattr(-,root,root,-)
 %{_initrddir}/a-rex-grid-infosys
 %{_libdir}/%{pkgdir}/grid-infosys-bdii4
@@ -784,9 +792,9 @@ exit 0
 %{_libdir}/%{pkgdir}/Shared.pm
 %{_libdir}/%{pkgdir}/ConfigParser.pm
 %{_libdir}/%{pkgdir}/LogUtils.pm
-%config %{_sysconfdir}/logrotate.d/%{name}-ldap-infosys
+%config %{_sysconfdir}/logrotate.d/%{name}-aris
 
-%files giis
+%files egiis
 %defattr(-,root,root,-)
 %{_sbindir}/arc-infoindex-relay
 %{_sbindir}/arc-infoindex-server
