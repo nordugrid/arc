@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # This file contains functions that are used througout the scan-*-job scripts.
 
 progname=$(basename "$0")
