@@ -38,7 +38,7 @@ public:
     TestBroker(const Arc::UserConfig& usercfg) : Arc::Broker(usercfg) {}
     void SortTargets() { TargetSortingDone = true; }
     void clear() { PossibleTargets.clear(); }
-    const std::list<const Arc::ExecutionTarget*>& GetTargets() { return PossibleTargets; }
+    const std::list<Arc::ExecutionTarget*>& GetTargets() { return PossibleTargets; }
   };
 
 private:

@@ -20,21 +20,16 @@ namespace Arc {
   Broker::Broker(const UserConfig& usercfg)
     : usercfg(usercfg),
       TargetSortingDone(false),
-      job() {}
+      job(NULL) {}
 
-  Broker::~Broker() {
-    for (std::list<ExecutionTarget*>::iterator it = modifiedTargets.begin();
-         it != modifiedTargets.end(); it++) {
-      delete *it;
-    }
-  }
+  Broker::~Broker() {}
 
-  void Broker::PreFilterTargets(const std::list<ExecutionTarget>& targets,
+  void Broker::PreFilterTargets(std::list<ExecutionTarget>& targets,
                                 const JobDescription& jobdesc) {
     PossibleTargets.clear();
     job = &jobdesc;
 
-    for (std::list<ExecutionTarget>::const_iterator target = targets.begin();
+    for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
       logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
 
@@ -67,8 +62,8 @@ namespace Arc {
                 break;
               }
 
-              if ( it->UseQueue && target->ComputingShareName == it->QueueName ||
-                  !it->UseQueue && target->ComputingShareName != it->QueueName) {
+              if (( it->UseQueue && target->ComputingShareName == it->QueueName) ||
+                  (!it->UseQueue && target->ComputingShareName != it->QueueName)   ) {
                 dropTarget = false;
                 break;
               }
@@ -405,7 +400,7 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Possible targets after prefiltering: %d", PossibleTargets.size());
 
-    std::list<const ExecutionTarget*>::const_iterator iter = PossibleTargets.begin();
+    std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
       logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
@@ -432,8 +427,7 @@ namespace Arc {
     return (current != PossibleTargets.end() ? *current : NULL);
   }
 
-  bool Broker::Submit(const std::list<ExecutionTarget>& targets,
-                      const JobDescription& jobdescription, Job& job) {
+  bool Broker::Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdescription, Job& job) {
     PreFilterTargets(targets, jobdescription);
     if (PossibleTargets.empty()) {
       return false;
@@ -441,7 +435,7 @@ namespace Arc {
 
     SortTargets();
 
-    for (std::list<const ExecutionTarget*>::iterator it = PossibleTargets.begin();
+    for (std::list<ExecutionTarget*>::iterator it = PossibleTargets.begin();
          it != PossibleTargets.end(); it++) {
       if ((*it)->Submit(usercfg, jobdescription, job)) {
         current = it;
@@ -458,21 +452,15 @@ namespace Arc {
       return;
     }
 
-    // Avoid modifying the list of ExecutionTarget objects. Instead modify a copy.
-    modifiedTargets.push_back(new ExecutionTarget(**current));
-    if (modifiedTargets.back()->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {
-      modifiedTargets.back()->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
-      if (modifiedTargets.back()->UsedSlots != -1) {
-        modifiedTargets.back()->UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
+    if ((*current)->FreeSlots >= job->Resources.SlotRequirement.NumberOfSlots) {
+      (*current)->FreeSlots -= job->Resources.SlotRequirement.NumberOfSlots;
+      if ((*current)->UsedSlots != -1) {
+        (*current)->UsedSlots += job->Resources.SlotRequirement.NumberOfSlots;
       }
     }
-    else if (modifiedTargets.back()->WaitingJobs != -1) {
-      modifiedTargets.back()->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
+    else if ((*current)->WaitingJobs != -1) {
+      (*current)->WaitingJobs += job->Resources.SlotRequirement.NumberOfSlots;
     }
-
-    PossibleTargets.insert(current, modifiedTargets.back()); // Insert modifiedTarget before current.
-    current = PossibleTargets.erase(current); // Remove current. Next target is returned.
-    current--; // Set current to modifiedTarget.
 
     logger.msg(DEBUG, "FreeSlots = %d; UsedSlots = %d; WaitingJobs = %d", (*current)->FreeSlots, (*current)->UsedSlots, (*current)->WaitingJobs);
   }

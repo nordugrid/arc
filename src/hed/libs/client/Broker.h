@@ -35,18 +35,25 @@ namespace Arc {
         \return The pointer to the next ExecutionTarget in the list is returned.
      */
     const ExecutionTarget* GetBestTarget();
-    /// ExecutionTarget filtering, view-point: enought memory, diskspace, CPUs, etc.
-    /** The "bad" targets will be ignored and only the good targets will be added to
-        to the list of ExecutionTarget objects which be used for brokering.
-        \param targets A list of ExecutionTarget objects to be considered for
-               addition to the Broker.
-        \param jd JobDescription object of the actual job.
-     */
-    void PreFilterTargets(const std::list<ExecutionTarget>& targets,
-                          const JobDescription& job);
 
-    bool Submit(const std::list<ExecutionTarget>& targets,
-                const JobDescription& jobdescription, Job& job);
+    /// Filter ExecutionTarget objects according to attributes in JobDescription object
+    /**
+     * Each of the ExecutionTarget objects in the passed list will be matched
+     * against attributes in the passed JobDescription object. For a list of
+     * which attributes are considered for matchmaking see appendix B of the
+     * libarcclient technical manual (NORDUGRID-TECH-20).
+     * If a ExecutionTarget object matches the job description, it is added to
+     * the internal list of ExecutionTarget objects.
+     * NOTE: The list of ExecutionTarget objects must be available through out
+     * the scope of this Broker object.
+     *
+     * @param targets A list of ExecutionTarget objects to be considered for
+     *        addition to the Broker.
+     * @param jobdesc JobDescription object holding requirements.
+     **/
+    void PreFilterTargets(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc);
+
+    bool Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, Job& job);
 
     /// Register a job submission to the current target
     void RegisterJobsubmission();
@@ -69,7 +76,7 @@ namespace Arc {
     /** If an Execution Tartget has enought memory, CPU, diskspace, etc. for the
         actual job requirement than it will be added to the PossibleTargets list
      */
-    std::list<const ExecutionTarget*> PossibleTargets;
+    std::list<ExecutionTarget*> PossibleTargets;
     /// It is true if "custom" sorting is done
     bool TargetSortingDone;
     const JobDescription *job;
@@ -79,10 +86,7 @@ namespace Arc {
   private:
     /// This is a pointer for the actual ExecutionTarget in the
     /// PossibleTargets list
-    std::list<const ExecutionTarget*>::iterator current;
-
-    // Pointers to ExecutionTarget objects which need to be deleted upon destruction.
-    std::list<ExecutionTarget*> modifiedTargets;
+    std::list<ExecutionTarget*>::iterator current;
   };
 
   //! Class responsible for loading Broker plugins
