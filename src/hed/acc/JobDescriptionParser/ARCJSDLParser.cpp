@@ -336,8 +336,7 @@ namespace Arc {
       job.Application.ProcessingStartTime = Time((std::string)xmlApplication["ProcessingStartTime"]);
 
     // XMLNode Notification;
-    for (int i = 0; bool(jobdescription["Notification"][i]); i++) {
-      XMLNode n = jobdescription["Notification"][i];
+    for (XMLNode n = xmlApplication["Notification"]; (bool)n; ++n) {
       // Accepting only supported notification types
       if(((bool)n["Type"]) && (n["Type"] != "Email")) continue;
       NotificationType notification;
