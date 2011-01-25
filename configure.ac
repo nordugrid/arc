@@ -26,9 +26,27 @@ AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
-docdir='${datadir}/doc/${PACKAGE}'
-pkglibexecdir='${libexecdir}/${PACKAGE}'
+dnl --with-docdir since older autoconf (<2.60) does not support --docdir
+AC_ARG_WITH([docdir],
+AC_HELP_STRING([--with-docdir=DIR],
+  [Install documentation in DIR [[default: ${datadir}/doc]]]),
+  [case $withval in 
+    yes|no)
+      AC_MSG_ERROR([Invalid DIR])
+      ;;
+    *)
+      docdir="$withval"
+      ;;
+  esac
+],
+[
+  if test -z "$docdir"; then
+    docdir='${datadir}/doc/${PACKAGE}'
+  fi
+])
 AC_SUBST(docdir)
+
+pkglibexecdir='${libexecdir}/${PACKAGE}'
 AC_SUBST(pkglibexecdir)
 
 ARC_API
@@ -104,15 +122,12 @@ enables_hed=yes
 #  Services
 enables_a_rex_service=yes
 enables_gridftpd_service=yes
-enables_compiler_service=yes
 enables_hopi_service=yes
 enables_isis_service=yes
 enables_ldap_service=yes
 enables_giis_service=yes
 enables_janitor_service=yes
-enables_paul_service=yes
-enables_sched_service=yes
-enables_charon_service=yes
+#enables_charon_service=yes
 enables_storage_service=yes
 enables_cache_service=yes
 enables_ldap_monitor=yes
@@ -137,7 +152,6 @@ AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable compo
 [
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
-enables_compiler_service=$enableval
 enables_hopi_service=$enableval
 enables_isis_service=$enableval
 enables_ldap_service=$enableval
@@ -145,9 +159,7 @@ enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_ws_monitor=$enableval
 enables_janitor_service=$enableval
-enables_paul_service=$enableval
-enables_sched_service=$enableval
-enables_charon_service=$enableval
+#enables_charon_service=$enableval
 enables_storage_service=$enableval
 enables_cache_service=$enableval
 enables_arclib_client=$enableval
@@ -197,16 +209,13 @@ AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables a
 [
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
-enables_compiler_service=$enableval
 enables_hopi_service=$enableval
 enables_isis_service=$enableval
 enables_ldap_service=$enableval
 enables_giis_service=$enableval
 enables_ldap_monitor=$enableval
 enables_janitor_service=$enableval
-enables_paul_service=$enableval
-enables_sched_service=$enableval
-enables_charon_service=$enableval
+#enables_charon_service=$enableval
 enables_storage_service=$enableval
 enables_cache_service=$enableval
 ],
@@ -1142,8 +1151,6 @@ enables_rls=no
 if test -n "$GLOBUS_RLS_CLIENT_VERSION" ; then enables_rls=yes; fi
 enables_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
-enables_saml=no
-if test x$XMLSEC_INSTALLED = xyes ; then enables_saml=yes; fi
 
 # Check for LDAP
 
@@ -1472,29 +1479,17 @@ AC_ARG_ENABLE(ws_monitor, AC_HELP_STRING([--disable-ws-monitor], [disable buildi
 AC_MSG_NOTICE([WS Monitor enabled: $enables_ws_monitor])
 AM_CONDITIONAL([WS_MONITOR_ENABLED],[test "x$enables_ws_monitor" = "xyes"])
 
-# Charon service
-AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),
-  [enables_charon_service=$enableval],[])
-if test "$enables_charon_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_charon_service="no"
-    AC_MSG_NOTICE([Charon can't be built for WIN32 environment - disabling])
-  fi
-fi
-AC_MSG_NOTICE([Charon Service enabled: $enables_charon_service])
-AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enables_charon_service" = "xyes"])
-
-# Compiler service
-AC_ARG_ENABLE(compiler_service, AC_HELP_STRING([--disable-compiler-service], [disable building Compiler Service]),
-  [enables_compiler_service=$enableval],[])
-if test "$enables_compiler_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_compiler_service="no"
-    AC_MSG_NOTICE([Compiler can't be built for WIN32 environment - disabling])
-  fi
-fi
-AC_MSG_NOTICE([Compiler Service enabled: $enables_compiler_service])
-AM_CONDITIONAL([COMPILER_SERVICE_ENABLED],[test "x$enables_compiler_service" = "xyes"])
+## Charon service
+#AC_ARG_ENABLE(charon_service, AC_HELP_STRING([--disable-charon-service], [disable building Charon Service]),
+#  [enables_charon_service=$enableval],[])
+#if test "$enables_charon_service" = "yes"; then
+#  if test "x$WIN32" = "xyes" ; then
+#    enables_charon_service="no"
+#    AC_MSG_NOTICE([Charon can't be built for WIN32 environment - disabling])
+#  fi
+#fi
+#AC_MSG_NOTICE([Charon Service enabled: $enables_charon_service])
+#AM_CONDITIONAL([CHARON_SERVICE_ENABLED],[test "x$enables_charon_service" = "xyes"])
 
 # Hopi service
 AC_ARG_ENABLE(hopi_service, AC_HELP_STRING([--disable-hopi-service], [disable building Hopi Service]),
@@ -1507,36 +1502,6 @@ if test "$enables_hopi_service" = "yes"; then
 fi
 AC_MSG_NOTICE([Hopi Service enabled: $enables_hopi_service])
 AM_CONDITIONAL([HOPI_SERVICE_ENABLED],[test "x$enables_hopi_service" = "xyes"])
-
-# Paul service
-AC_ARG_ENABLE(paul_service, AC_HELP_STRING([--disable-paul-service], [disable building PAUL Service]),
-  [enables_paul_service=$enableval],[])
-if test "$enables_paul_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_paul_service="no"
-    AC_MSG_NOTICE([PAUL can't be built for WIN32 environment - disabling])
-  fi
-fi
-AC_MSG_NOTICE([PAUL Service enabled: $enables_paul_service])
-AM_CONDITIONAL([PAUL_SERVICE_ENABLED],[test "x$enables_paul_service" = "xyes"])
-
-# Sched service
-AC_ARG_ENABLE(sched_service, AC_HELP_STRING([--disable-sched-service], [disable building SCHED Service]),
-  [enables_sched_service=$enableval],[])
-if test "$enables_sched_service" = "yes"; then
-  if test "x$WIN32" = "xyes" ; then
-    enables_sched_service="no"
-    AC_MSG_NOTICE([SCHED can't be built for WIN32 environment - disabling])
-  fi
-fi
-if test "$enables_sched_service" = "yes"; then
-  if test "$DBCXX_LIBS" = ""; then
-    enables_sched_service="no"
-    AC_MSG_NOTICE([WARNING: Missing db_cxx - disabling SCHED Service])
-  fi
-fi
-AC_MSG_NOTICE([SCHED Service enabled: $enables_sched_service])
-AM_CONDITIONAL([SCHED_SERVICE_ENABLED],[test "x$enables_sched_service" = "xyes"])
 
 # Storage service
 AC_ARG_ENABLE(storage_service, AC_HELP_STRING([--disable-storage-service], [disable building Storage service]),
@@ -1649,12 +1614,9 @@ AM_CONDITIONAL([CACHE_CLIENT_ENABLED],[test "x$enables_cache_client" = "xyes"])
 # Check for consistency among disabled components
 if test "$enables_hed" = "no"; then
   if test "$enables_a_rex_service" = "yes" -o \
-          "$enables_compiler_service" = "yes" -o \
           "$enables_hopi_service" = "yes" -o \
           "$enables_isis_service" = "yes" -o \
           "$enables_janitor_service" = "yes" -o \
-          "$enables_paul_service" = "yes" -o \
-          "$enables_sched_service" = "yes" -o \
           "$enables_charon_service" = "yes" -o \
           "$enables_storage_service" = "yes" -o \
           "$enables_cache_service" = "yes" -o \
@@ -1899,8 +1861,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/charon/Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
-                 src/services/compiler/Makefile
-                 src/services/compiler/schema/Makefile
                  src/services/gridftpd/Makefile
                  src/services/gridftpd/a-rex-gridftpd
                  src/services/gridftpd/auth/Makefile
@@ -1939,16 +1899,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/ws-monitor/cache/Makefile
                  src/services/ws-monitor/mon-icons/Makefile
                  src/services/ws-monitor/lang/Makefile
-                 src/services/saml/Makefile
-                 src/services/saml/schema/Makefile
                  src/services/slcs/Makefile
                  src/services/slcs/schema/Makefile
-                 src/services/delegation/Makefile
-                 src/services/sched/Makefile
-                 src/services/sched/schema/Makefile
-                 src/services/sched/manage_jobq.8
-                 src/services/paul/Makefile
-                 src/services/paul/schema/Makefile
                  src/services/storage/Makefile
                  src/services/storage/storage_service.xml.example
                  src/services/storage/chelonia.1
@@ -2066,7 +2018,6 @@ Available third-party features:
 RLS:                ${enables_rls}
 GridFTP:            ${enables_gridftp}
 LFC:                ${enables_lfc}
-SAML:               ${enables_saml}
 MYSQL CLIENT LIB:   ${enables_mysql}
 LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
@@ -2083,11 +2034,8 @@ LDAP Info service:  ${enables_ldap_service}
 GIIS service:       ${enables_giis_service}
 CHARON service:     ${enables_charon_service}
 HOPI service:       ${enables_hopi_service}
-SCHED service:      ${enables_sched_service}
 STORAGE service:    ${enables_storage_service}
 JANITOR service:    ${enables_janitor_service}
-PAUL service:       ${enables_paul_service}
-COMPILER service:   ${enables_compiler_service}
 CACHE service:      ${enables_cache_service}
 
 ARCLIB clients:     ${enables_arclib_client}

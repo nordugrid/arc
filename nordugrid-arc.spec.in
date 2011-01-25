@@ -123,24 +123,24 @@ just one possible service between a user and a remote machine.
 Many others are thinkable, and HED takes considerable effort
 away from the respective implementors.
 
-%package charon
-Summary:	ARC charon service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Provides:	nordugrid-arc-nox-charon = 1.3.0
-Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
-
-%description charon
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced
-Resource Connector (ARC).
-
-CHARON is a remote policy decision point service.  It accepts formatted
-policy decision request and return positive or negative response. When
-running a CHARON (within the HED), the TLS layer can be used for
-securing the communication, when the request or response  information
-are critical.
+#%package charon
+#Summary:	ARC charon service
+#Group:		System Environment/Libraries
+#Requires:	%{name} = %{version}
+#Requires:	%{name}-hed = %{version}
+#Provides:	nordugrid-arc-nox-charon = 1.3.0
+#Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
+#
+#%description charon
+#The NorduGrid is a collaboration aiming at development, maintenance
+#and support of the free Grid middleware, known as the Advanced
+#Resource Connector (ARC).
+#
+#CHARON is a remote policy decision point service.  It accepts formatted
+#policy decision request and return positive or negative response. When
+#running a CHARON (within the HED), the TLS layer can be used for
+#securing the communication, when the request or response  information
+#are critical.
 
 %package chelonia
 Summary:	ARC chelonia service
@@ -305,92 +305,20 @@ This package contains the WS monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
 which pulls information from ISIS and shows it graphically.
 
-%package compiler
-Summary:	ARC compiler service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Provides:	nordugrid-arc-nox-compiler = 1.3.0
-Obsoletes:	nordugrid-arc-nox-compiler < 1.3.0
-
-%description compiler
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-The purpose of this service is to provide compilation capability on the
-remote site utilizing its full CPU capacity for parallel compilation
-tasks. The service presumes that the compilation task is described
-in a usual make file. The current implementation supports GNU compilers
-only.
-
-%package delegation
-Summary:	ARC delegation service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Provides:	nordugrid-arc-nox-delegation = 1.3.0
-Obsoletes:	nordugrid-arc-nox-delegation < 1.3.0
-
-%description delegation
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-The description of the delegation services is still pending.
-
-%package paul
-Summary:	ARC paul service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Provides:	nordugrid-arc-nox-paul = 1.3.0
-Obsoletes:	nordugrid-arc-nox-paul < 1.3.0
-
-%description paul
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-The Paul is a pull-based execution service for computing resources. In
-these case the computing resource can be single SMP computer. The Paul
-uses the iBES protocol to communicate with Scheduler services or any
-other service which implements iBES. The Paul can interact with multiple
-Scheduler and can controll multiple job in one time. Paul can be used
-to run on desktops (MS Windows as well) to form a 'desktop' grid.
-
-%package saml2sp
-Summary:	ARC saml2sp service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Provides:	nordugrid-arc-nox-saml2sp = 1.3.0
-Obsoletes:	nordugrid-arc-nox-saml2sp < 1.3.0
-
-%description saml2sp
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-Service Provider is a utility service which is supposed to work together
-with external Identity Provider and user agent (client) to accomplish
-the "SAML2.0 Web SSO Profile" which requires client to provider
-"username/password" instead of X.509 certificate for authentication.
-
-%package slcs
-Summary:	ARC slcs service
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Provides:	nordugrid-arc-nox-slcs = 1.3.0
-Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
-
-%description slcs
-The NorduGrid is a collaboration aiming at development, maintenance
-and support of the free Grid middleware, known as the Advanced Resource
-Connector (ARC).
-
-ARC Short-lived credential service.
+#%package slcs
+#Summary:	ARC slcs service
+#Group:		System Environment/Libraries
+#Requires:	%{name} = %{version}
+#Requires:	%{name}-hed = %{version}
+#Provides:	nordugrid-arc-nox-slcs = 1.3.0
+#Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
+#
+#%description slcs
+#The NorduGrid is a collaboration aiming at development, maintenance
+#and support of the free Grid middleware, known as the Advanced Resource
+#Connector (ARC).
+#
+#ARC Short-lived credential service.
 
 %package arex
 Summary:	ARC Remote EXecution service
@@ -558,6 +486,20 @@ The Janitor is a recent development and the community to prepare
 catalogues of dynamically installable packages still needs to
 evolve.
 
+%package doxygen
+Summary:	ARC API documentation
+Group:		Documentation
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+%description doxygen
+The NorduGrid is a collaboration aiming at development, maintenance
+and support of the free Grid middleware, known as the Advanced
+Resource Connector (ARC).
+
+Reference to the ARC programming API. It is prepared with doxygen.
+
 %package gridmap-utils
 Summary:	NorduGrid authorization tools
 Group:		Applications/Internet
@@ -605,7 +547,9 @@ fetch-crl tool in the fetch-crl package.
 %if %{with_lfc}
      --enable-lfc \
 %endif
-     --enable-docs
+     --enable-docs \
+     --with-docdir=%{_docdir}/%{name}-%{version} \
+     --disable-charon-service --disable-charon-client
 
 make %{?_smp_mflags}
 
@@ -634,9 +578,6 @@ sed -e 's/\(chkconfig: \)\w*/\1-/' \
     -e '/Default-Start/d' \
     -e 's/\(Default-Stop:\s*\).*/\10 1 2 3 4 5 6/' \
     -i $RPM_BUILD_ROOT%{_initrddir}/*
-
-# RPM does it's own doc handling
-rm -fr $RPM_BUILD_ROOT%{_datadir}/doc/%{pkgdir}
 
 # Create log directory
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
@@ -719,7 +660,7 @@ exit 0
 %{_bindir}/arccat
 %{_bindir}/arcclean
 %{_bindir}/arccp
-%{_bindir}/arcdecision
+#%{_bindir}/arcdecision
 %{_bindir}/arcecho
 %{_bindir}/arcget
 %{_bindir}/arcinfo
@@ -746,7 +687,7 @@ exit 0
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
-%doc %{_mandir}/man1/arcdecision.1*
+#%doc %{_mandir}/man1/arcdecision.1*
 %doc %{_mandir}/man1/arcecho.1*
 %doc %{_mandir}/man1/arcget.1*
 %doc %{_mandir}/man1/arcinfo.1*
@@ -768,8 +709,8 @@ exit 0
 %doc %{_mandir}/man1/isistest.1*
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
-%doc %{_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
+#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
+#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
@@ -783,13 +724,13 @@ exit 0
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
 
-%files charon
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libcharon.so
-%{_libdir}/%{pkgdir}/libcharon.apd
-%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_arc.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_xacml.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/charon/charon_service.xml.example
+#%files charon
+#%defattr(-,root,root,-)
+#%{_libdir}/%{pkgdir}/libcharon.so
+#%{_libdir}/%{pkgdir}/libcharon.apd
+#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_arc.xml.example
+#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_xacml.xml.example
+#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_service.xml.example
 
 %files chelonia
 %defattr(-,root,root,-)
@@ -822,7 +763,7 @@ exit 0
 %{_initrddir}/a-rex-grid-infosys
 %{_libdir}/%{pkgdir}/grid-infosys-bdii4
 %{_libdir}/%{pkgdir}/grid-infosys-bdii5
-%{_libdir}/%{pkgdir}/glue-generator.pl
+%{_libexecdir}/%{pkgdir}/glue-generator.pl
 %{_datadir}/%{pkgdir}/ldap-schema
 %{_libexecdir}/%{pkgdir}/grid-info-soft-register
 %{_libexecdir}/%{pkgdir}/qju.pl
@@ -851,34 +792,10 @@ exit 0
 %{_datadir}/%{pkgdir}/ws-monitor/*
 %doc %{_mandir}/man7/ws-monitor.7*
 
-%files compiler
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libcompiler.so
-%{_libdir}/%{pkgdir}/libcompiler.apd
-
-%files delegation
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libdelegation.so
-%{_libdir}/%{pkgdir}/libdelegation.apd
-
-%files paul
-%defattr(-,root,root,-)
-%{_sbindir}/manage_jobq
-%{_libdir}/%{pkgdir}/libgrid_sched.so
-%{_libdir}/%{pkgdir}/libgrid_sched.apd
-%{_libdir}/%{pkgdir}/libpaul.so
-%{_libdir}/%{pkgdir}/libpaul.apd
-%doc %{_mandir}/man8/manage_jobq.8*
-
-%files saml2sp
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libsaml2sp.so
-%{_libdir}/%{pkgdir}/libsaml2sp.apd
-
-%files slcs
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libslcs.so
-%{_libdir}/%{pkgdir}/libslcs.apd
+#%files slcs
+#%defattr(-,root,root,-)
+#%{_libdir}/%{pkgdir}/libslcs.so
+#%{_libdir}/%{pkgdir}/libslcs.apd
 
 %files cache-service
 %defattr(-,root,root,-)
@@ -961,6 +878,7 @@ exit 0
 %{_bindir}/arcplugin
 %doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
+%doc %{_docdir}/%{name}-%{version}/*.xsd
 
 %files plugins-base
 %defattr(-,root,root,-)
@@ -1045,6 +963,12 @@ exit 0
 %{_datadir}/%{pkgdir}/janitor
 %{_datadir}/%{pkgdir}/perl/Janitor
 %doc %{_mandir}/man8/janitor.8*
+
+%files doxygen
+%defattr(-,root,root,-)
+%doc %{_docdir}/%{name}-%{version}/ARC1-API.pdf
+%doc %{_docdir}/%{name}-%{version}/ARC1-ChainComponents.pdf
+%doc %{_docdir}/%{name}-%{version}/ARC1-Services.pdf
 
 %files gridmap-utils
 %defattr(-,root,root,-)

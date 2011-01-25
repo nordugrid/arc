@@ -49,7 +49,9 @@ configure-stamp:
 		    --sysconfdir=/etc \
 		    --localstatedir=/var \
 		    --mandir='$${datadir}/man' \
-		    --infodir='$${datadir}/info' $(LFC_CONFIGURE_OPTION)
+		    --infodir='$${datadir}/info' \
+                    --with-docdir='$${datadir}/doc/nordugrid-arc-$$(VERSION)' \
+                    $(LFC_CONFIGURE_OPTION)
 	touch $@
 
 build: build-arch build-indep

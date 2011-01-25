@@ -81,22 +81,22 @@ Description: ARC Hosting Environment Daemon
  remote machine. Many others are thinkable, and HED takes considerable
  effort away from the respective implementors.
 
-Package: nordugrid-arc-charon
-Provides: nordugrid-arc-nox-charon
-Replaces: nordugrid-arc-nox-charon (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-charon (<< 1.3.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
-Description: ARC Charon service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- Charon is a remote policy decision point service. It accepts formatted
- policy decision request and return positive or negative response. When
- running a Charon (within the HED), the TLS layer can be used for
- securing the communication, when the request or response  information
- are critical.
+#Package: nordugrid-arc-charon
+#Provides: nordugrid-arc-nox-charon
+#Replaces: nordugrid-arc-nox-charon (<< 1.3.0~)
+#Conflicts: nordugrid-arc-nox-charon (<< 1.3.0~)
+#Architecture: any
+#Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
+#Description: ARC Charon service
+# The NorduGrid is a collaboration aiming at development, maintenance
+# and support of the free Grid middleware, known as the Advanced Resource
+# Connector (ARC).
+# .
+# Charon is a remote policy decision point service. It accepts formatted
+# policy decision request and return positive or negative response. When
+# running a Charon (within the HED), the TLS layer can be used for
+# securing the communication, when the request or response  information
+# are critical.
 
 Package: nordugrid-arc-chelonia
 Provides: nordugrid-arc-nox-chelonia
@@ -236,81 +236,18 @@ Description: ARC WS monitor service
  This package is self-contained. It is used to set up a web-based monitor
  which pulls information from ISIS and shows it graphically.
 
-Package: nordugrid-arc-compiler
-Provides: nordugrid-arc-nox-compiler
-Replaces: nordugrid-arc-nox-compiler (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-compiler (<< 1.3.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
-Description: ARC compiler service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- The purpose of this service is to provide compilation capability on the
- remote site utilizing its full CPU capacity for parallel compilation
- tasks. The service presumes that the compilation task is described in a
- usual make file. The current implementation supports GNU compilers only.
-
-Package: nordugrid-arc-delegation
-Provides: nordugrid-arc-nox-delegation
-Replaces: nordugrid-arc-nox-delegation (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-delegation (<< 1.3.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
-Description: ARC delegation service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- The description of the delegation services is still pending.
-
-Package: nordugrid-arc-paul
-Provides: nordugrid-arc-nox-paul
-Replaces: nordugrid-arc-nox-paul (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-paul (<< 1.3.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
-Description: ARC paul service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- The Paul is a pull-based execution service for computing resources. In
- these case the computing resource can be single SMP computer. The Paul
- uses the iBES protocol to communicate with Scheduler services or any
- other service which implements iBES. The Paul can interact with multiple
- Scheduler and can controll multiple job in one time. Paul can be used
- to run on desktops (MS Windows as well) to form a 'desktop' grid.
-
-Package: nordugrid-arc-saml2sp
-Provides: nordugrid-arc-nox-saml2sp
-Replaces: nordugrid-arc-nox-saml2sp (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-saml2sp (<< 1.3.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
-Description: ARC saml2sp service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- Service Provider is a utility service which is supposed to work together
- with external Identity Provider and user agent (client) to accomplish
- the "SAML2.0 Web SSO Profile" which requires client to provider
- "username/password" instead of X.509 certificate for authentication.
-
-Package: nordugrid-arc-slcs
-Provides: nordugrid-arc-nox-slcs
-Replaces: nordugrid-arc-nox-slcs (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-slcs (<< 1.3.0~)
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
-Description: ARC slcs service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
- Connector (ARC).
- .
- ARC Short-lived credential service.
+#Package: nordugrid-arc-slcs
+#Provides: nordugrid-arc-nox-slcs
+#Replaces: nordugrid-arc-nox-slcs (<< 1.3.0~)
+#Conflicts: nordugrid-arc-nox-slcs (<< 1.3.0~)
+#Architecture: any
+#Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
+#Description: ARC slcs service
+# The NorduGrid is a collaboration aiming at development, maintenance
+# and support of the free Grid middleware, known as the Advanced Resource
+# Connector (ARC).
+# .
+# ARC Short-lived credential service.
 
 Package: nordugrid-arc-arex
 Provides: nordugrid-arc-grid-manager, nordugrid-arc-server, nordugrid-arc1-arex, nordugrid-arc-nox-arex
@@ -458,7 +395,7 @@ Conflicts: nordugrid-arc-nox-dbg (<< 1.3.0~)
 Architecture: any
 Section: debug
 Priority: extra
-Depends: ${misc:Depends}, libarccommon0 (= ${binary:Version}) | nordugrid-arc-client (= ${binary:Version}) | nordugrid-arc-hed (= ${binary:Version}) | nordugrid-arc-charon (= ${binary:Version}) | nordugrid-arc-hopi (= ${binary:Version}) | nordugrid-arc-isis (= ${binary:Version}) | nordugrid-arc-compiler (= ${binary:Version}) | nordugrid-arc-delegation (= ${binary:Version}) | nordugrid-arc-paul (= ${binary:Version}) | nordugrid-arc-saml2sp (= ${binary:Version}) | nordugrid-arc-slcs (= ${binary:Version}) | nordugrid-arc-arex (= ${binary:Version}) | nordugrid-arc-plugins-base (= ${binary:Version}) | nordugrid-arc-plugins-globus (= ${binary:Version}) | nordugrid-arc-dev (= ${binary:Version}) | nordugrid-arc-python (= ${binary:Version}) | nordugrid-arc-java (= ${binary:Version}) | nordugrid-arc-janitor (= ${binary:Version}) | nordugrid-arc-cache-service (= ${binary:Version}) | nordugrid-arc-gridftpd (= ${binary:Version})
+Depends: ${misc:Depends}, libarccommon0 (= ${binary:Version}) | nordugrid-arc-client (= ${binary:Version}) | nordugrid-arc-hed (= ${binary:Version}) | nordugrid-arc-hopi (= ${binary:Version}) | nordugrid-arc-isis (= ${binary:Version}) | nordugrid-arc-arex (= ${binary:Version}) | nordugrid-arc-plugins-base (= ${binary:Version}) | nordugrid-arc-plugins-globus (= ${binary:Version}) | nordugrid-arc-dev (= ${binary:Version}) | nordugrid-arc-python (= ${binary:Version}) | nordugrid-arc-java (= ${binary:Version}) | nordugrid-arc-janitor (= ${binary:Version}) | nordugrid-arc-cache-service (= ${binary:Version}) | nordugrid-arc-gridftpd (= ${binary:Version})
 Description: ARC grid middleware - Debug Symbols
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced Resource

@@ -34,40 +34,16 @@ else
 WS_MONITOR=
 endif
 
-if CHARON_SERVICE_ENABLED
-CHARON_SERVICE = charon
-else
+#if CHARON_SERVICE_ENABLED
+#CHARON_SERVICE = charon
+#else
 CHARON_SERVICE =
-endif
-
-if COMPILER_SERVICE_ENABLED
-COMPILER_SERVICE = compiler
-else
-COMPILER_SERVICE =
-endif
+#endif
 
 if HOPI_SERVICE_ENABLED
 HOPI_SERVICE = hopi
 else
 HOPI_SERVICE =
-endif
-
-if XMLSEC_ENABLED
-SAML = saml
-else
-SAML =
-endif
-
-if PAUL_SERVICE_ENABLED 
-PAUL_SERVICE = paul
-else
-PAUL_SERVICE =
-endif
-
-if SCHED_SERVICE_ENABLED
-SCHED_SERVICE = sched
-else
-SCHED_SERVICE =
 endif
 
 if STORAGE_SERVICE_ENABLED
@@ -94,5 +70,5 @@ else
 CACHE_SERVICE =
 endif
 
-SUBDIRS=$(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(LDAP_SERVICE) $(LDAP_MONITOR) $(WS_MONITOR) $(CHARON_SERVICE) $(COMPILER_SERVICE) $(HOPI_SERVICE) $(PAUL_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) arex2 wrappers $(SAML) $(PYTHON_SERVICE) $(CACHE_SERVICE) slcs delegation
-DIST_SUBDIRS = echo_java echo_python gridftpd a-rex isis ldap-infosys ldap-monitor ws-monitor charon compiler hopi paul sched storage janitor arex2 wrappers saml slcs delegation cache_service
+SUBDIRS=$(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(LDAP_SERVICE) $(LDAP_MONITOR) $(WS_MONITOR) $(CHARON_SERVICE) $(HOPI_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) arex2 wrappers $(PYTHON_SERVICE) $(CACHE_SERVICE)
+DIST_SUBDIRS = echo_java echo_python gridftpd a-rex isis ldap-infosys ldap-monitor ws-monitor charon hopi storage janitor arex2 wrappers slcs cache_service

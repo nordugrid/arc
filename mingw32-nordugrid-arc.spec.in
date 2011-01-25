@@ -188,7 +188,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_sysconfdir}/arc/client.conf
 %{_mingw32_libexecdir}/%{pkgdir}/jura.exe
 %{_mingw32_bindir}/isistest.exe
-%{_mingw32_bindir}/paul_gui.exe
 #%{_mingw32_bindir}/voms_assertion_init
 #%{_mingw32_bindir}/arc_storage_cli
 #
@@ -222,8 +221,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/jura.1*
 #%doc %{_mingw32_mandir}/man1/voms_assertion_init.1*
 #%doc %{_mingw32_mandir}/man1/arc_storage_cli.1*
-%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
-%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
+#%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
+#%doc %{_mingw32_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
@@ -245,12 +244,7 @@ rm -rf $RPM_BUILD_ROOT
 #%{_mingw32_libdir}/%{pkgdir}/libcharon.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libhopi.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libisis.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libgrid_sched.so
-#%{_mingw32_libdir}/%{pkgdir}/libpaul.dll*
-%{_mingw32_libdir}/%{pkgdir}/libslcs.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libcompiler.dll*
-%{_mingw32_libdir}/%{pkgdir}/libsaml2sp.dll*
-%{_mingw32_libdir}/%{pkgdir}/libdelegation.dll*
+#%{_mingw32_libdir}/%{pkgdir}/libslcs.dll*
 
 %files devel
 %defattr(-,root,root,-)

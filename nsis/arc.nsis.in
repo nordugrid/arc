@@ -181,8 +181,6 @@ SectionEnd
 ;  SetOutPath "$INSTDIR\lib\arc"
 ;  File "${ARC_LOCATION}/lib/arc/libslcs.dll"
 ;  File "${ARC_LOCATION}/lib/arc/libecho.dll"
-;  File "${ARC_LOCATION}/lib/arc/libdelegation.dll"
-;  File "${ARC_LOCATION}/lib/arc/libsaml2sp.dll"
 ;
 ;SectionEnd
 
@@ -223,10 +221,8 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\lib\arc\libmccgsi.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcrls.dll"
 
-  Delete /rebootok "$INSTDIR\lib\arc\libsaml2sp.dll"
-  Delete /rebootok "$INSTDIR\lib\arc\libdelegation.dll"
-  Delete /rebootok "$INSTDIR\lib\arc\libslcs.dll"
-  Delete /rebootok "$INSTDIR\lib\arc\libecho.dll"
+;  Delete /rebootok "$INSTDIR\lib\arc\libslcs.dll"
+;  Delete /rebootok "$INSTDIR\lib\arc\libecho.dll"
 
   RMDir "$INSTDIR\lib\arc"
 
