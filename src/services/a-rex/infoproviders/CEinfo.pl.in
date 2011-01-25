@@ -92,6 +92,15 @@ sub main {
 
     my $providerlog = $config->{ProviderLog} || "/var/log/arc/infoprovider.log";
     $log->info("Redirecting further messages to $providerlog");
+
+    # Attempt to recursively create directory
+    my @paths;
+    for (my $path = dirname $providerlog; length $path > 1; $path = dirname $path) {
+        push @paths, $path;
+    }
+    mkdir $_ for reverse @paths;
+    $log->error("Failed to create log directory $paths[0]") if @paths and not -d $paths[0];
+
     open STDERR, ">>", $providerlog or $log->error("Failed to open to $providerlog");
     LogUtils::timestamps(1);
     $log->info("############## Infoprovider started  ##############");
