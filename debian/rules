@@ -50,7 +50,7 @@ configure-stamp:
 		    --localstatedir=/var \
 		    --mandir='$${datadir}/man' \
 		    --infodir='$${datadir}/info' \
-                    --with-docdir='$${datadir}/doc/nordugrid-arc-$$(VERSION)' \
+                    --with-docdir='$${datadir}/doc/nordugrid-arc' \
                     $(LFC_CONFIGURE_OPTION)
 	touch $@
 
