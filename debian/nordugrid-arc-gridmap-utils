@@ -1,0 +1,2 @@
+debian/tmp/usr/sbin/nordugridmap
+debian/tmp/etc/cron.d/nordugridmap

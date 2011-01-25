@@ -119,6 +119,7 @@ Python wrapper for ARC
   --disable-doc \
   --disable-ws-monitor \
   --disable-ldap-monitor \
+  --disable-charon-service --disable-charon-client \
   --disable-static LDFLAGS="-Wl,--enable-auto-import"
 
 make %{?_smp_mflags}

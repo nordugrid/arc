@@ -1,7 +1,13 @@
-if HED_ENABLED
-BUILD_SOURCES = hed gridmap testing
+if WIN32
+GRIDMAP =
 else
-BUILD_SOURCES = gridmap testing
+GRIDMAP = gridmap
+endif
+
+if HED_ENABLED
+BUILD_SOURCES = hed $(GRIDMAP) testing
+else
+BUILD_SOURCES = $(GRIDMAP) testing
 endif
 
 SUBDIRS = $(BUILD_SOURCES)

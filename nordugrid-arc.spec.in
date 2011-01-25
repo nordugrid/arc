@@ -878,7 +878,7 @@ exit 0
 %{_bindir}/arcplugin
 %doc %{_mandir}/man1/arcplugin.1*
 %{_libdir}/pkgconfig/arcbase.pc
-%doc %{_docdir}/%{name}-%{version}/*.xsd
+%doc  src/hed/shc/arcpdp/*.xsd
 
 %files plugins-base
 %defattr(-,root,root,-)
