@@ -966,9 +966,9 @@ exit 0
 
 %files doxygen
 %defattr(-,root,root,-)
-%doc %{_docdir}/%{name}-%{version}/ARC1-API.pdf
-%doc %{_docdir}/%{name}-%{version}/ARC1-ChainComponents.pdf
-%doc %{_docdir}/%{name}-%{version}/ARC1-Services.pdf
+%doc src/doxygen/ARC1-API.pdf
+%doc src/doxygen/ARC1-ChainComponents.pdf
+%doc src/doxygen/ARC1-Services.pdf
 
 %files gridmap-utils
 %defattr(-,root,root,-)
