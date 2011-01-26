@@ -51,7 +51,7 @@ BuildRequires:	db4-devel
 BuildRequires:	java-devel
 BuildRequires:	jpackage-utils
 %if %{with_gcj}
-%if %{?fedora}%{!?fedora:0} >= 4
+%if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
 BuildRequires:	java-gcj-compat-devel
 %else
 BuildRequires:	java-1.4.2-gcj-compat-devel
@@ -938,7 +938,7 @@ exit 0
 %{python_sitearch}/arc.py*
 %{python_sitearch}/arcom
 %{python_sitearch}/cache
-%{python_sitearch}/echo_python
+%{ifpy}%{python_sitearch}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
