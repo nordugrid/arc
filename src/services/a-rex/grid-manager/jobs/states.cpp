@@ -880,7 +880,7 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
 
 void JobsList::ActJobUndefined(JobsList::iterator &i,
                                bool& once_more,bool& /*delete_job*/,
-                               bool& job_error,bool& /*state_changed*/) {
+                               bool& job_error,bool& state_changed) {
         JobsListConfig& jcfg = user->Env().jobs_cfg();
         /* read state from file */
         /* undefined means job just detected - read it's status */
@@ -900,6 +900,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
           i->job_state = new_state; /* this can be any state, if we are
                                          recovering after failure */
           if(new_state == JOB_STATE_ACCEPTED) {
+            state_changed = true; // at least that makes email notification
             // parse request (do it here because any other processing can 
             // read 'local' and then we never know if it was new job)
             JobLocalDescription *job_desc;

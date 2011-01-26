@@ -90,6 +90,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
     logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
   };
+  child->Abandon();
   delete child;
   return true;
 }
