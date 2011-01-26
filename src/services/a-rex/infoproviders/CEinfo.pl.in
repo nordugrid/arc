@@ -117,7 +117,9 @@ sub main {
     my $adminDomain = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data, $nojobs;
 
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
+    $xmlPrinter->begin('InfoRoot');
     timed 'GLUE2xml', sub { $xmlPrinter->Domains(@_) }, $adminDomain;
+    $xmlPrinter->end('InfoRoot');
     #my $ldifPrinter = GLUE2ldifPrinter->new(*STDOUT);
     #timed 'GLUE2ldif', sub { $ldifPrinter->Top(@_) }, $adminDomain;
 
