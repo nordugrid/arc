@@ -124,7 +124,7 @@ int RUNINFO(main)(int argc, char **argv) {
     usercfg.AddServices(indexurls, Arc::INDEX);
 
 
-  Arc::TargetGenerator targen(usercfg);
+  Arc::TargetGenerator targen(usercfg, 1);
   targen.GetExecutionTargets();
   targen.SaveTargetInfoToStream(std::cout, longlist);
   return 0;
