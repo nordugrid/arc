@@ -424,7 +424,7 @@ namespace Arc {
       // Releasing lock because we can't know how long parsing will take
       // But for current implementations of parsers it is not specified
       // if their Parse/Unparse methods can be called concurently.
-      if ((language.empty() || it->IsLanguageSupported(language)) && it->Parse(source, jobdescs)) {
+      if ((language.empty() || it->IsLanguageSupported(language)) && it->Parse(source, jobdescs, language, dialect)) {
         jdpl_lock.unlock();
         return true;
      }
