@@ -428,7 +428,7 @@ fi
 start()
 {
     if [ -r /etc/default/a-rex ]; then
-      if egrep -q '[ \t]*disable' /etc/default/a-rex 2>/dev/null ; then
+      if egrep -q '^[ \t]*disable' /etc/default/a-rex 2>/dev/null ; then
          echo "Start of $prog disabled"
          return 0
       fi
