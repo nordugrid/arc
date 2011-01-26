@@ -111,8 +111,8 @@ namespace Arc {
     //std::string jsdl_str;
     //std::getline<char>(jsdl_file, jsdl_str, 0);
     std::string jsdl_str;
-    if (!jobdesc.UnParse(jsdl_str, "ARCJSDL")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "ARCJSDL");
+    if (!jobdesc.UnParse(jsdl_str, "nordugrid:jsdl")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
       return false;
     }
     XMLNode jsdl_doc = act_doc.NewChild(XMLNode(jsdl_str));

@@ -58,10 +58,10 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(et.url, cfg, usercfg.Timeout(), false);
 
-    // !! TODO: ordinary JSDL is needed - keeping ARCJSDL so far
+    // !! TODO: ordinary JSDL is needed - keeping nordugrid:jsdl so far
     std::string jobdescstring;
-    if (!jobdesc.UnParse(jobdescstring, "ARCJSDL")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "ARCJSDL");
+    if (!jobdesc.UnParse(jobdescstring, "nordugrid:jsdl")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
       return false;
     }
 

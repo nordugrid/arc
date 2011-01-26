@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
 
   std::string requested_format = "";
   options.AddOption('f', "format",
-                    istring("define the requested format (ARCJSDL, JDL, XRSL)"),
+                    istring("define the requested format (nordugrid:jsdl, egee:jdl, nordugrid:xrsl)"),
                     istring("format"),
                     requested_format);
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     else
       original_description = (*it);
 
-    if (requested_format == "JDL" || requested_format == "ARCJSDL" || requested_format == "XRSL" || requested_format == "") {
+    if (requested_format == "egee:jdl" || requested_format == "nordugrid:jsdl" || requested_format == "nordugrid:xrsl" || requested_format == "") {
       if (show_original_description) {
         std::cout << std::endl << " [ Parsing the orignal text ] " << std::endl << std::endl;
         std::cout << original_description << std::endl;
@@ -82,22 +82,14 @@ int main(int argc, char **argv) {
       }
 
       std::string test;
-      if (requested_format == "")
+      if (requested_format == "") {
         jds.front().Print(true);
-
-      if (requested_format == "JDL" || requested_format == "") {
-        test = jds.front().UnParse("JDL");
-        std::cout << std::endl << " [ JDL ] " << std::endl << test << std::endl;
+        std::cout << std::endl << " [ egee:jdl ] "       << std::endl << jds.front().UnParse("egee:jdl")       << std::endl;
+        std::cout << std::endl << " [ nordugrid:jsdl ] " << std::endl << jds.front().UnParse("nordugrid:jsdl") << std::endl;
+        std::cout << std::endl << " [ nordugrid:xrsl ] " << std::endl << jds.front().UnParse("nordugrid:xrsl") << std::endl;
       }
-
-      if (requested_format == "XRSL" || requested_format == "") {
-        test = jds.front().UnParse("XRSL");
-        std::cout << std::endl << " [ XRSL ] " << std::endl << test << std::endl;
-      }
-
-      if (requested_format == "ARCJSDL" || requested_format == "") {
-        test = jds.front().UnParse("ARCJSDL");
-        std::cout << std::endl << " [ ARCJSDL ] " << std::endl << test << std::endl;
+      else {
+        std::cout << std::endl << " [ " << requested_format << " ] " << std::endl << jds.front().UnParse(requested_format) << std::endl;
       }
     }
   }

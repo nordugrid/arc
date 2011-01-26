@@ -22,8 +22,9 @@ int main() {
 
   jds.front().Print();
 
-  std::string jobdescstring = jds.front().UnParse("JDL");
-  std::cout << std::endl << " [ jd.UnParse(\"JDL\") ] " << std::endl << std::endl << jobdescstring << std::endl;
+  std::string jobdescstring;
+  jds.front().UnParse(jobdescstring, "egee:jdl");
+  std::cout << std::endl << " [ egee:jdl ] " << std::endl << std::endl << jobdescstring << std::endl;
 
   return 0;
 }

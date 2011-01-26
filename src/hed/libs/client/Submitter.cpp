@@ -94,7 +94,7 @@ namespace Arc {
       info.NewChild("ActivityOldID") = *it;
 
     std::string rep;
-    job.UnParse(rep, "arcjsdl"); // Assuming job description is valid.
+    job.UnParse(rep, "nordugrid:jsdl"); // Assuming job description is valid.
     info.NewChild("JobDescription") = (std::string)rep;
 
     for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
@@ -129,7 +129,7 @@ namespace Arc {
 
     job.ActivityOldID = jobdesc.Identification.ActivityOldId;
 
-    jobdesc.UnParse(job.JobDescriptionDocument, "arcjsdl"); // Assuming job description is valid.
+    jobdesc.UnParse(job.JobDescriptionDocument, "nordugrid:jsdl"); // Assuming job description is valid.
 
     job.LocalInputFiles.clear();
     for (std::list<FileType>::const_iterator it = jobdesc.DataStaging.File.begin();

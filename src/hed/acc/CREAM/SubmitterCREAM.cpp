@@ -53,8 +53,8 @@ namespace Arc {
     }
 
     std::string jobdescstring;
-    if (!modjobdesc.UnParse(jobdescstring, "JDL")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "JDL");
+    if (!modjobdesc.UnParse(jobdescstring, "egee:jdl")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "egee:jdl");
       return false;
     }
 

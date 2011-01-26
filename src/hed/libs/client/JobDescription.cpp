@@ -464,7 +464,7 @@ namespace Arc {
     }
     jdpl_lock.unlock();
 
-    logger.msg(ERROR, "Format (%s) not recognized by any job description parsers.", language);
+    logger.msg(ERROR, "Language (%s) not recognized by any job description parsers.", language);
     return false;
   }
 } // namespace Arc

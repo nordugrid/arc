@@ -73,7 +73,7 @@ namespace Arc {
 
     std::string jobdescstring;
     if (!modjobdesc.UnParse(jobdescstring, "nordugrid:xrsl", "GRIDMANAGER")) {
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "XRSL");
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:xrsl");
       return false;
     }
 
