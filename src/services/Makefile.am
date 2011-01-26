@@ -70,5 +70,5 @@ else
 CACHE_SERVICE =
 endif
 
-SUBDIRS=$(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(LDAP_SERVICE) $(LDAP_MONITOR) $(WS_MONITOR) $(CHARON_SERVICE) $(HOPI_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) arex2 wrappers $(PYTHON_SERVICE) $(CACHE_SERVICE)
-DIST_SUBDIRS = echo_java echo_python gridftpd a-rex isis ldap-infosys ldap-monitor ws-monitor charon hopi storage janitor arex2 wrappers slcs cache_service
+SUBDIRS=$(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(LDAP_SERVICE) $(LDAP_MONITOR) $(WS_MONITOR) $(CHARON_SERVICE) $(HOPI_SERVICE) $(SCHED_SERVICE) $(STORAGE_SERVICE) $(JANITOR_SERVICE) wrappers $(PYTHON_SERVICE) $(CACHE_SERVICE)
+DIST_SUBDIRS = echo_java echo_python gridftpd a-rex isis ldap-infosys ldap-monitor ws-monitor charon hopi storage janitor wrappers slcs cache_service
