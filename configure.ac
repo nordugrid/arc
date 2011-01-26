@@ -255,7 +255,7 @@ if test "$enables_java" = "yes"; then
     JPATH=$with_jdk
   else
     # Look for system JDK.
-    for i in /usr/lib/jvm/java-*-openjdk* /usr/lib/jvm/java-*-icedtea* /usr/lib/jvm/java-*-gcj* /usr/lib/jvm/java-*-sun*; do
+    for i in /usr/lib/jvm/java-*-openjdk* /usr/lib/jvm/java-*-icedtea* /usr/lib/jvm/java-*-gcj* /usr/lib/jvm/java-*-sun* /usr/lib/gcc/*-redhat-linux/*; do
       if test -f $i/include/jni.h; then
         JPATH=$i
         break
@@ -288,9 +288,9 @@ if test "$enables_java" = "yes"; then
     AC_CHECK_HEADERS(jni.h,[jni_h="yes"],[jni_h="no"])
     CPPFLAGS=$SAVE_CPPFLAGS
 
-    AC_PATH_PROGS(JAVA, java gij, , $JPATH/bin)
-    AC_PATH_PROGS(JAVAC, javac gcj ecj, , $JPATH/bin)
-    AC_PATH_PROGS(JAR, fastjar jar, , $JPATH/bin)
+    AC_PATH_PROGS(JAVA, java gij, , $JPATH/bin:/usr/bin)
+    AC_PATH_PROGS(JAVAC, javac gcj ecj, , $JPATH/bin:/usr/bin)
+    AC_PATH_PROGS(JAR, fastjar jar, , $JPATH/bin:/usr/bin)
     break
   fi
 
@@ -298,13 +298,13 @@ if test "$enables_java" = "yes"; then
     # If JDK was not found in any of the above locations try system locations.
     AC_CHECK_HEADERS(jni.h JavaVM/jni.h,[jni_h="yes"; break],[jni_h="no"])
     AC_CHECK_PROGS(JAVA, java gij)
-    AC_CHECK_PROGS(JAVAC, gcj javac ecj)
+    AC_CHECK_PROGS(JAVAC, javac gcj ecj)
     AC_CHECK_PROGS(JAR, fastjar jar)
   fi
 
   if test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xgcj"; then
     JAVAC_FLAGS="-C --classpath=."
-  elif test "x`basename $JAVAC`" = "xjavac"; then
+  elif test "x$JAVAC" != "x" && test "x`basename $JAVAC`" = "xjavac"; then
     JAVAC_FLAGS="-cp ."
   fi
 
