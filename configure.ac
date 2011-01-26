@@ -1873,7 +1873,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/gaclplugin/Makefile
                  src/services/hopi/Makefile
                  src/services/hopi/hopi_service.xml.example
-                 src/services/arex2/Makefile
                  src/services/isis/Makefile
                  src/services/isis/schema/Makefile
                  src/services/ldap-infosys/Makefile
