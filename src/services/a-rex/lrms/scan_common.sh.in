@@ -81,7 +81,10 @@ do_as_uid () {
     script='use English;
             my ($uid, @args) = @ARGV;
             if ( $UID == 0 ) {
-                eval { $UID = $uid };
+                my ($name, $pass, $uid, $gid, $quota, $comment, $gcos, $dir, $shell, $expire) = getpwuid($uid);
+                eval { 
+                    $GID = $gid;
+                    $UID = $uid };
                 print STDERR "Cannot switch to uid($UID): $@\n" if $@;
             }
             system("@posix_shell@","-c",@args);
