@@ -76,7 +76,7 @@ class TLSSecAttr: public SecAttr {
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
-  std::vector<std::string> voms_attributes_; // VOMS attributes from the VOMS extension of proxy
+  std::vector<VOMSACInfo> voms_attributes_; // VOMS attributes from the VOMS extension of proxy
   std::string target_; // Subject of host certificate
   std::string x509str_; // The last certificate (in string format)
   virtual bool equal(const SecAttr &b) const;
@@ -244,7 +244,9 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     };
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
-        add_arc_subject_attribute(subj, voms_attributes_[k],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+        for(int n=0; n < voms_attributes_[k].attributes.size(); n++) {
+          add_arc_subject_attribute(subj, voms_attributes_[k].attributes[n],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+        };
       };
     };
     if(!target_.empty()) {
@@ -279,7 +281,9 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     };
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
-        add_xacml_subject_attribute(subj, voms_attributes_[k],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+        for(int n=0; n < voms_attributes_[k].attributes.size(); n++) {
+          add_xacml_subject_attribute(subj, voms_attributes_[k].attributes[n],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+        };
       };
     };
     if(!target_.empty()) {
