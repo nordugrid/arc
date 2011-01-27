@@ -1342,6 +1342,16 @@ namespace Arc {
         return i; 
       }  
     }
+    // check to see if a lock file already exists, since cache could be
+    // started but no file download was done
+    for (int i = 0; i < caches_size ; i++) {
+      struct stat fileStat;
+      std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash + CACHE_LOCK_SUFFIX;
+      if (stat(c_file.c_str(), &fileStat) == 0) {
+        return i;
+      }
+    }
+
   
     // find a cache with the most unsed space and also the cache_size parameter defined in "arc.conf"
     std::map<int ,std::pair<unsigned long long, float> > cache_map;
