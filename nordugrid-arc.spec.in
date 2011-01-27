@@ -50,6 +50,9 @@ BuildRequires:	db4-devel
 %if %{with_java}
 BuildRequires:	java-devel
 BuildRequires:	jpackage-utils
+%if %{?fedora}%{!?fedora:0} == 3
+BuildRequires:	libgcj-devel
+%endif
 %if %{with_gcj}
 %if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
 BuildRequires:	java-gcj-compat-devel
