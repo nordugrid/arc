@@ -95,7 +95,7 @@ bool configure_user_dirs(const std::string &my_username,
         cred_plugin = command;
         cred_plugin.timeout(to);
       };
-      tmp_node = cfg["ComputingService"];
+      tmp_node = cfg["InfoProvider"];
       if(tmp_node) {
         Arc::XMLNode shnode = tmp_node["ComputingShare"];
         for(;shnode;++shnode) {
