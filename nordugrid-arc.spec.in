@@ -686,7 +686,7 @@ exit 0
 %{_bindir}/perftest
 %{_bindir}/saml_assertion_init
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
-%{_datadir}/%{pkgdir}/examples/client.conf.example
+%{_datadir}/%{pkgdir}/examples/client.conf
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*

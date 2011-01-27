@@ -43,7 +43,7 @@ Section "NorduGrid ARC clients"
   File "${MISC_PATH}/README.txt"
 
   SetOutPath "$INSTDIR\share\arc\examples"
-  File "${ARC_LOCATION}/share/arc/examples/client.conf.example"
+  File "${ARC_LOCATION}/share/arc/examples/client.conf"
 
   SetOutPath "$INSTDIR\bin"
   File "${ARC_LOCATION}/bin/arccat.exe"
@@ -317,7 +317,7 @@ Section "Uninstall"
 
   RMDir "$INSTDIR\lib"
 
-  Delete /rebootok "$INSTDIR\share\arc\examples\client.conf.example"
+  Delete /rebootok "$INSTDIR\share\arc\examples\client.conf"
   RMDir "$INSTDIR\share\arc\examples"
   RMDir "$INSTDIR\share\arc"
   RMDir "$INSTDIR\share"

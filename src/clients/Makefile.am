@@ -70,7 +70,7 @@ DIST_SUBDIRS = data echo isis credentials arclib charon saml srm jura wsrf cache
 arcsysconfdir = $(sysconfdir)/@PACKAGE@
 arcsysconf_DATA = client.conf
 exampledir = $(pkgdatadir)/examples
-example_DATA = client.conf.example
+example_DATA = client.conf
 EXTRA_DIST = $(example_DATA) $(arcsysconf_DATA)
 
 
