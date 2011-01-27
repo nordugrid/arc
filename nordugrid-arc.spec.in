@@ -550,7 +550,7 @@ fetch-crl tool in the fetch-crl package.
 %if %{with_lfc}
      --enable-lfc \
 %endif
-     --enable-docs \
+     --disable-doc \
      --with-docdir=%{_docdir}/%{name}-%{version} \
      --disable-charon-service --disable-charon-client
 

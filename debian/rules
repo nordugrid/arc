@@ -38,8 +38,9 @@ configure-stamp:
 		    --localstatedir=/var \
 		    --mandir='$${datadir}/man' \
 		    --infodir='$${datadir}/info' \
-                    --with-docdir='$${datadir}/doc/nordugrid-arc' \
-                    $(LFC_CONFIGURE_OPTION)
+		    --disable-doc \
+		    --with-docdir='$${datadir}/doc/nordugrid-arc' \
+		    $(LFC_CONFIGURE_OPTION)
 	touch $@
 
 build: build-stamp
@@ -76,8 +77,6 @@ install: build-stamp
 	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
 	rm -rf $(CURDIR)/debian/tmp/usr/share/doc/arc
 	rm -f $(CURDIR)/debian/tmp/usr/share/arc/examples/storage_service.xml.example
-
-	rm -f $(CURDIR)/debian/tmp/usr/share/doc/nordugrid-arc/*.pdf
 
 	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-arex.a-rex.init
 	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-hed.arched.init

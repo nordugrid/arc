@@ -1346,27 +1346,30 @@ case " $LDFLAGS " in
         ;;
 esac
 
+AC_CHECK_PROGS(PDFLATEX, pdflatex)
+AC_CHECK_PROGS(DOXYGEN, doxygen)
+AC_CHECK_PROGS(DOT, dot)
+
 # Check if user asks to skip documentation build
 AC_ARG_ENABLE(doc, AC_HELP_STRING([--disable-doc], [disable building documentation (requires doxygen and pdflatex)]),[enables_doc=$enableval],[])
-if test "x$enables_doc" = "xyes"; then
-  AC_CHECK_PROGS(PDFLATEX, pdflatex)
-  AC_CHECK_PROGS(DOXYGEN, doxygen)
-#  AC_CHECK_PROGS(DOT, dot)
-  if test "x$PDFLATEX" = "x"; then
-    enables_doc="no"
-    AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
-  elif test "x$DOXYGEN" = "x"; then
-    enables_doc="no"
-    AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
+#if test "x$enables_doc" = "xyes"; then
+#  There is no point disabling docs due to missing tools since the pdf
+#  files are both in svn and in the dist tarball
+#  if test "x$PDFLATEX" = "x"; then
+#    enables_doc="no"
+#    AC_MSG_NOTICE([WARNING: Missing pdflatex - documentation won't be built])
+#  elif test "x$DOXYGEN" = "x"; then
+#    enables_doc="no"
+#    AC_MSG_NOTICE([WARNING: Missing doxygen - documentation won't be built])
 #  elif test "x$DOT" = "x"; then
 #    enables_doc="no"
 #    AC_MSG_NOTICE([WARNING: Missing dot - documentation won't be built])
-  fi
-fi
+#  fi
+#fi
 AC_MSG_NOTICE([Documentation enabled: $enables_doc])
 AM_CONDITIONAL([DOC_ENABLED],[test "x$enables_doc" = "xyes"])
 
-AM_CONDITIONAL([PYDOXYGEN],[test "x$enables_doc" = "xyes" -a "x$enables_swig" = "xyes" -a "x$enables_python" = "xyes"])
+AM_CONDITIONAL([PYDOXYGEN],[test -f python/pydoxygen.i -o "x$DOXYGEN" != "x"])
 
 # Check for explicitely and implicitely disabled services
 if test "x$WIN32" = "xyes" ; then

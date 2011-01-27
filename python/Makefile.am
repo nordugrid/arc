@@ -1,4 +1,4 @@
-pythondir= $(PYTHON_SITE_PACKAGES)
+pythondir = $(PYTHON_SITE_PACKAGES)
 
 python_DATA = arc.py
 python_LTLIBRARIES = _arc.la
@@ -11,7 +11,7 @@ SWIG_INPUTS = $(top_srcdir)/swig/*.i
 
 if PYDOXYGEN
 PYDOXFLAGS = -DPYDOXYGEN
-SWIG_INPUTS += ../src/doxygen/pydoxygen.i
+SWIG_INPUTS += pydoxygen.i
 endif
 
 _arc_la_SOURCES = arc_init.cpp arc_wrap.cpp
@@ -21,10 +21,11 @@ _arc_la_LDFLAGS = -no-undefined -module -avoid-version
 
 SWIG_OUTPUTS = arc_wrap.cpp arc.py
 
-EXTRA_DIST = $(SWIG_OUTPUTS)
+EXTRA_DIST = $(SWIG_OUTPUTS) Doxyfile.api doxy2swig.py pydoxygen.i
 
-CLEANFILES = arc.pyc
-MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
+CLEANFILES = arc.pyc api
+
+MAINTAINERCLEANFILES = $(SWIG_OUTPUTS) pydoxygen.i
 
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
@@ -36,5 +37,7 @@ arc_wrap.cpp arc.py: $(SWIG_INPUTS)
 		-I/usr/include -I$(top_srcdir)/include \
 		$(PYDOXFLAGS) $(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i
 
-../src/doxygen/pydoxygen.i:
-	$(MAKE) -C ../src/doxygen pydoxygen.i
+pydoxygen.i: Doxyfile.api
+	doxygen Doxyfile.api
+	python doxy2swig.py api/xml/index.xml $@
+	rm -rf api
