@@ -144,12 +144,31 @@ is_number () {
 #
 set_req_mem () {
     if ! is_number "$joboption_memory"; then
-        if is_number "$CONFIG_nodememory"; then
+        if is_number "$CONFIG_defaultmemory"; then
+            joboption_memory=$CONFIG_defaultmemory
+
+            echo "---------------------------------------------------------------------" 1>&2
+            echo "WARNING: The job description contains no explicit memory requirement." 1>&2
+            echo "         A default memory limit taken from 'defaultmemory' in        " 1>&2
+            echo "         arc.conf will apply.                                        " 1>&2
+            echo "         Limit is: $CONFIG_nodememory mb.                            " 1>&2
+            echo "                                                                     " 1>&2
+
+            if [ "$joboption_localtransfer" = 'yes' ] && [ "$CONFIG_nodememory" -lt 1000 ]; then
+                echo "WARNING: localtransfers are enabled and nodes have less than 1GB of  " 1>&2
+                echo "         ram. up- and downloaders take up a lot of ram, this can give" 1>&2
+                echo "         you problems.                                               " 1>&2
+            fi
+            echo "---------------------------------------------------------------------" 1>&2
+	else is_number "$CONFIG_nodememory"; then
             joboption_memory=$CONFIG_nodememory
 
             echo "---------------------------------------------------------------------" 1>&2
             echo "WARNING: The job description contains no explicit memory requirement." 1>&2
-            echo "         A default memory limit taken from arc.conf will apply.      " 1>&2
+            echo "         A default memory limit taken from 'nodememory' in arc.conf  " 1>&2
+            echo "         will apply. You may want to set 'defaultmemory' to something" 1>&2
+            echo "         else in arc.conf to better handle jobs with no memory       " 1>&2
+            echo "         specified.                                                  " 1>&2
             echo "         Limit is: $CONFIG_nodememory mb.                            " 1>&2
             echo "                                                                     " 1>&2
 
