@@ -113,7 +113,8 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /
   BIO *bio = NULL;
   FILE *f = NULL;
   Arc::Credential c(filename, filename, cert_dir, "");
-  std::vector<std::string> output;
+  std::vector<Arc::VOMSACInfo> output;
+  std::vector<std::string> output_merged;
   std::string emptystring = "";
   Arc::VOMSTrustList emptylist;
 
@@ -153,8 +154,13 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /
   if (!parseVOMSAC(c, emptystring, emptystring, emptylist, output, false)) {
     logger.msg(Arc::ERROR, "Error: no VOMS extension found");
     goto error_exit;
-  }
-  data = AuthUser::arc_to_voms(output);
+  };
+  for(int n=0;n<output.size();++n) {
+    for(int i=0;i<output[n].attributes.size();++i) {
+      output_merged.push_back(output[n].attributes[i]);
+    };
+  };
+  data = AuthUser::arc_to_voms(output_merged);
   X509_free(cert);
   EVP_PKEY_free(key);
   sk_X509_pop_free(cert_chain, X509_free);

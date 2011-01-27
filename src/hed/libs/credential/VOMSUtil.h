@@ -14,6 +14,13 @@ namespace Arc {
 
   typedef std::string VOMSTrustRegex;
 
+  class VOMSACInfo {
+   public:
+    std::string voname;
+    std::vector<std::string> attributes;
+    Period validity;
+  };
+
   /** Stores definitions for making decision if VOMS server is trusted */
   class VOMSTrustList {
     private:
@@ -197,14 +204,15 @@ namespace Arc {
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,
-                   std::vector<std::string>& output, bool verify = true);
+                   std::vector<VOMSACInfo>& output, bool verify = true);
 
-  /**Parse the certificate. The same as the above one */
+  /**Parse the certificate. Similar to above one, but collects information
+    From all certificates in a chain. */
   bool parseVOMSAC(const Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
                    const VOMSTrustList& vomscert_trust_dn,
-                   std::vector<std::string>& output, bool verify = true);
+                   std::vector<VOMSACInfo>& output, bool verify = true);
   
   /**Decode the data which is encoded by voms server. Since voms code uses some specific
   * coding method (not base64 encoding), we simply copy the method from voms code to here*/

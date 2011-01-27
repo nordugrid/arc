@@ -150,12 +150,13 @@ int main(void) {
   vomscert_trust_dn.push_back("/O=Grid/O=Test/CN=CA");
 
   Arc::Credential proxy2(in_file_ac, "", ca_cert_dir, ca_cert_file);
-  std::vector<std::string> attributes;
+  std::vector<Arc::VOMSACInfo> attributes;
   Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 
-  int i;
-  for(i=0; i<attributes.size(); i++) {
-    std::cout<<"Line "<<i<<" of the attributes returned: "<<attributes[i]<<std::endl;
+  for(int n=0; n<attributes.size(); n++) {
+    for(int i=0; i<attributes[n].attributes.size(); i++) {
+      std::cout<<"Line "<<n<<"."<<i<<" of the attributes returned: "<<attributes[n].attributes[i]<<std::endl;
+    }
   }
   return 0;
 }

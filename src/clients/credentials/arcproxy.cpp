@@ -416,7 +416,7 @@ int main(int argc, char *argv[]) {
   const Arc::Time now;
 
   if (info) {
-    std::vector<std::string> voms_attributes;
+    std::vector<Arc::VOMSACInfo> voms_attributes;
     bool res = false;
 
     if (proxy_path.empty()) {
@@ -445,9 +445,19 @@ int main(int argc, char *argv[]) {
 
     std::vector<std::string> voms_trust_dn;
     res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
-    if (!res)
-      logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
-
+    if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
+    for(int n = 0; n<voms_attributes.size(); ++n) {
+      if(voms_attributes[n].attributes.size() > 0) {
+        std::cout<<"====== "<<Arc::IString("AC extension information for VO ")<<
+                   voms_attributes[n].voname<<" ======"<<std::endl;
+        for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
+          std::cout<<"Attribute: "<<voms_attributes[n].attributes[i]<<std::endl;
+          //do not display those attributes that have already been displayed 
+          //(this can happen when there are multiple voms server )
+        }
+      }
+      std::cout << Arc::IString("Timeleft for AC: %s", voms_attributes[n].validity.istr())<<std::endl;
+    }
     return EXIT_SUCCESS;
   }
 
@@ -775,7 +785,7 @@ int main(int argc, char *argv[]) {
 
           if(!has_find) {
             //you can also use the nick name of the voms server
-            if(voms_tokens.size() > VOMS_LINE_NICKNAME) {
+            if(voms_tokens.size() > VOMS_LINE_NAME) {
               std::string str1 = voms_tokens[VOMS_LINE_NAME];
               for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
                    it != server_command_map.end(); it++) {

@@ -846,7 +846,6 @@ err:
     std::string& /* hostname */, 
     const std::string& ca_cert_dir, const std::string& ca_cert_file, 
     const VOMSTrustList& vomscert_trust_dn, 
-    //const std::vector<std::string>& vomscert_trust_dn, 
     X509** issuer_cert, bool verify) {
     X509* issuer = NULL;
 
@@ -1446,7 +1445,6 @@ err:
   static bool verifyVOMSAC(AC* ac,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const VOMSTrustList& vomscert_trust_dn,
-        //const std::vector<std::string>& vomscert_trust_dn,
         X509* holder, std::vector<std::string>& attr_output, 
         std::string& vo_name, Period& period_left, bool verify) {
     //Extract name 
@@ -1511,7 +1509,7 @@ err:
   bool parseVOMSAC(X509* holder,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         const VOMSTrustList& vomscert_trust_dn,
-        std::vector<std::string>& output, bool verify) {
+        std::vector<VOMSACInfo>& output, bool verify) {
 
     InitVOMSAttribute();
 
@@ -1540,24 +1538,15 @@ err:
     int count = 0;
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
-      std::string vo_name;
-      Period period_left;
+      VOMSACInfo ac_info;
       if (verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, 
-          holder, output, vo_name, period_left, verify)) {
+          holder, ac_info.attributes, ac_info.voname, ac_info.validity, verify)) {
         verified = true;
-        std::cout<<"======AC extension information for VO "<<vo_name<<"======"<<std::endl;
-        for(int i = count; i < output.size(); i++) {
-          std::cout<<"Attribute: "<<output[i]<<std::endl;
-          count = output.size(); 
-          //does not display those attributes that have already been displayed 
-          //(this happen when there are multiple voms server )
-        }
-        std::cout << IString("Timeleft for AC: %s", period_left.istr())<<std::endl;
+        output.push_back(ac_info);
       }
       if (!verified) break;
     } 
     ERR_clear_error();
-    //while(ERR_get_error() != 0);
 
     return verified;
   }
@@ -1565,7 +1554,7 @@ err:
   bool parseVOMSAC(const Credential& holder_cred,
          const std::string& ca_cert_dir, const std::string& ca_cert_file,
          const VOMSTrustList& vomscert_trust_dn,
-         std::vector<std::string>& output, bool verify) {
+         std::vector<VOMSACInfo>& output, bool verify) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;
     bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomscert_trust_dn, output, verify);
@@ -1687,73 +1676,71 @@ err:
         return u.GetIdentityName();
     }
 // If it was not DN, then we have to deal with VOMS
-    std::vector<std::string> output;
+    std::vector<VOMSACInfo> output;
     std::string emptystring = "";
     VOMSTrustList emptylist;
     parseVOMSAC(u,emptystring,emptystring,emptylist,output,false);
     if (property == "voms:vo"){
-        if (output.empty())return ""; // if it's not possible to determine the VO -- such jobs will go into generic share
-        else { // the  name of the VO is in the first string. Strip hostname from it, leave only voname parameter;
-                size_t pos1, pos2;
-                pos1 = output[0].find("=",1);
-                pos2 = output[0].find("/",1);
-                return output[0].substr(pos1+1,pos2-pos1-1);
+        if (output.empty()) {
+                // if it's not possible to determine the VO -- such jobs will go into generic share
+                return "";
+        } else {
+                // Using first vo in list
+                return output[0].voname;
         }
     }
     else if (property == "voms:role"){
-	if (output.empty()) return "";
-        else{
-                size_t pos1, pos2;
-                unsigned int i;
-                std::string role = "null";
-                std::string vo_name;
-                pos1 = output[0].find("=",1);
-                pos2 = output[0].find("/",1);
-                vo_name = output[0].substr(pos1+1,pos2-pos1-1);
-                for (i=1;i<output.size();i++){
-                        pos1 = output[i].find("/Role=");
+        size_t pos1, pos2;
+        unsigned int i;
+        unsigned int n;
+        std::string vo_name;
+        for (n=0;n<output.size();++n) {
+                if(output[n].voname.empty()) continue;
+                if(vo_name.empty()) vo_name = output[n].voname;
+                for (i=0;i<output[n].attributes.size();++i){
+                        std::string attribute = output[n].attributes[i];
+                        pos1 = attribute.find("/Role=");
                         if(pos1 != std::string::npos){
-                                pos2 = output[i].find("/",pos1+1);
+                                pos2 = attribute.find("/",pos1+1);
+                                std::string role;
                                 if(pos2 == std::string::npos)
-                                        role = output[i].substr(pos1+6,output[i].length()-pos1-6);
+                                        role = attribute.substr(pos1+6,attribute.length()-pos1-6);
                                 else
-                                        role = output[i].substr(pos1+6,pos2-pos1-6);
-                                break;
+                                        role = attribute.substr(pos1+6,pos2-pos1-6);
+                                return output[n].voname+":"+role;
                         }
                 }
-		vo_name.insert(vo_name.end(),':');
-                vo_name.insert(vo_name.length(),role);
-                return vo_name;
         }
+        if(vo_name.empty()) return "";
+        return vo_name+":null"; // Primary VO with no role
     }
     else if (property == "voms:group"){
-        if (output.empty()) return "";
-        else{
-                size_t pos1, pos2;
-                unsigned int i;
-                std::string group = "";
-                std::string vo_name;
-                pos1 = output[0].find("=",1);
-                pos2 = output[0].find("/",1);
-                vo_name = output[0].substr(pos1+1,pos2-pos1-1);
-                vo_name.insert(vo_name.begin(),'/');
-                for (i=1;i<output.size();i++){
-                        pos1 = output[i].find("/Group=");
+        size_t pos1, pos2;
+        unsigned int i;
+        unsigned int n;
+        std::string vo_name;
+        for (n=0;n<output.size();++n) {
+                if(output[n].voname.empty()) continue;
+                if(vo_name.empty()) vo_name = output[n].voname;
+                for (i=0;i<output[n].attributes.size();++i){
+                        std::string attribute = output[n].attributes[i];
+                        pos1 = attribute.find("/Group=");
                         if(pos1 != std::string::npos){
-                                pos2 = output[i].find("/",pos1+1);
+                                pos2 = attribute.find("/",pos1+1);
+                                std::string group;
                                 if(pos2 == std::string::npos)
-					group = output[i].substr(pos1+7,output[i].length()-pos1-7);
+                                        group = attribute.substr(pos1+7,attribute.length()-pos1-7);
                                 else
-                                        group = output[i].substr(pos1+7,pos2-pos1-7);
-                                break;
+                                        group = attribute.substr(pos1+7,pos2-pos1-7);
+                                return "/"+output[n].voname+"/"+group;
+                                vo_name.insert(vo_name.end(),'/');
+                                vo_name.insert(vo_name.length(),group);
+                                return vo_name;
                         }
                 }
-                if(group != ""){
-                        vo_name.insert(vo_name.end(),'/');
-                        vo_name.insert(vo_name.length(),group);
-                }
-                return vo_name;
         }
+        if(vo_name.empty()) return "";
+        return "/"+vo_name; // Primary VO with no group
     }
     else return "";
   }

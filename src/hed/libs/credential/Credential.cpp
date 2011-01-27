@@ -325,7 +325,6 @@ namespace Arc {
 
 #if 0
     int proxy_depth = verify_ctx_.proxy_depth;
-    //std::cout<<"proxy depth: +++"<<verify_ctx_.proxy_depth<<std::endl;
     for(int i=0; i<proxy_depth; i++) {
       ne = X509_NAME_delete_entry(subject, X509_NAME_entry_count(subject)-1);
       if(ne)
@@ -958,7 +957,6 @@ namespace Arc {
       try {
         loadCertificateFile(certfile, cert_, &cert_chain_);
         if(cert_) check_cert_type(cert_,cert_type_);
-        //std::cout<<"Your identity: "<<GetDN() << std::endl;
         if(keyfile.empty()) {
           //Detect if the certificate file/string contains private key.
           //If the key file is absent, and the private key is not contained inside
@@ -1593,9 +1591,8 @@ namespace Arc {
     if(!out) return false;
     X509 *cert;
     CredentialLogger.msg(DEBUG, "Certiticate chain number %d",sk_X509_num(cert_chain_));
-    //std::cout<<"+++++ cert chain number: "<<sk_X509_num(cert_chain_)<<std::endl;
 
-    //Out put the cert chain. After the verification the cert_chain_
+    //Output the cert chain. After the verification the cert_chain_
     //will include the CA certificate and the certificate (which
     //need to be verified here) itself.
     //Those two certificates are excluded when outputing
