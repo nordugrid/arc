@@ -160,7 +160,7 @@ set_req_mem () {
                 echo "         you problems.                                               " 1>&2
             fi
             echo "---------------------------------------------------------------------" 1>&2
-	else is_number "$CONFIG_nodememory"; then
+	elif is_number "$CONFIG_nodememory"; then
             joboption_memory=$CONFIG_nodememory
 
             echo "---------------------------------------------------------------------" 1>&2
