@@ -1,0 +1,135 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for version Nox-1.2
+----------------------------------------
+
+                                                     October 22, 2010
+
+Advanced Resource Connector (ARC) version Nox-1.2 is a a new release in
+the ARC Nox series. It comes with a number of bugfixes and new features.
+Please consult release notes of ARC Nox-1.0 and Nox-1.1 for detailed
+product description. Changes with respect to the Nox-1.1 release are
+listed below.
+
+-Changes since Nox-1.1-
+
+New features:
+
+* ARC0 infoprovider, LDAP infosys and GIIS
+* arc-ur-* tools to A-REX
+* Java bindings
+* Hungarian translation
+
+Extensions/Enhancements:
+
+* Added possibility to define default value in profiles and enable/disable an XML element from INI with a tag/value pair
+* Doxygen moved into src tree
+* Use of Logrotate instead of built-in log rotation
+* Moving to system GACL instead of a custom bundled version
+* Support newer gsoap versions (Fedora 14/RHEL 6)
+* Only validate file size on successful transfer
+* Better handling of checksums in LFC. Ported from arc0
+* SYSV init scripts are not supported on Mac and Windows, do not install them.
+* Use the official ws-addr.xsd's url.
+* Port checksum validation from arc0 - on the fly calculation is turned off by default but can be enabled with url options
+* Inputcheck ported to A-REX
+* Create utils dir if it doesnt exist and only do checksum validation for successful requests
+* Adding description of new Logger features - Domain and Reopen
+* Make undefined timeoout in A-REX plugins handled properly. Adding new substitution option for configuration file - one more step to multiple A-REX in same container
+* gm-jobs now accepts both initial configuration and temporary one
+* Extending DirCreate to create parent directories
+* Added file copy functions for generic use
+* Minimal support for HTTP redirection in HTTP DMC
+* Replacing the hardcoded ISIS checking period with one from the config.
+* janitor: eliminate Log4perl dependency
+* Change FileUtil methods to use strings and add comments
+* Release user lock righ after fork to allow initializer switch users. Added corresponding test to cppunit Run class test.
+* Split off Chelonia in it's own sub-package (addressed request in bug #1952)
+* Fixed missing includes in order to support Fedora 13
+* Keep URL object for lifetime of DataHandle to avoid seg faults
+* Adding LFC DMC to the Debian plugin-base package
+* Jobfile variable is initialized properly before being used
+* Move jura to arex package and put it in pkglibexec
+* Do not give a default port to SRM URLs - there is no standard default and client tools will figure out which port to use
+* Check replica URL validity before using it
+* URL objects supplied to DataHandle must persist for the lifetime of DataHandle
+* Added utility function for converting an arc0-style int log level to arc1 LogLevel
+* Set up logging properly to enable rotation
+* Added support for recursive listing
+* Validate mapped URLs and add bool operators to URLMap
+* Synchronized backends between ARC0 and ARC1
+* Making it possible to cancel password request with ctrl-c and enhancing error messages of Credential class
+* Remove dependency on Perl List::MoreUtils
+* Adding empty checksum handlers for DataPointIndex
+* BDII4 now installs executables under /var/tmp and config-files under /var/run
+* Start BDII4-based infosys even if user is in a directory that is not owned by the infosys-user
+* Better handling of files when changing infosys-user, so now log-files has owners set properly
+* Fix for bug #1980 and BDII5, logfile is now configurable for infosys too. Add small security barrier for ambigious config-options
+* Adding store cache to avoid unneeded writes to ahash store
+* Better adaptable solution for case of infosystem running with different user id than grid manager
+* Changed the communications type from SOAP to HTTP POST (required by the SGAS3)
+* Sharig control files with infosys user which takes into account additional groups of user
+* Cleanup of common lrms code
+* Chelonia: added recursive listing, getting, putting, deletion, modify and policy
+* Improving arcsub man pages (bug 1280: arcsub examples in man pages).
+* Removing use of giomm from UserConfig because used features are supported only in quite recent version
+* Improving the Profile class to be able to handle attributes, and multiple elements from a ini-file (enhancement 1801: Extending usability of INI configuration)
+* Added python support for mingw32
+* Updated logging, now create log directory on service start if it is missing
+* Extended Russian translation
+* Number of improvements in man pages and other documentation
+* Removed dependency on dot from graphviz package for documentation build
+* Improved GridFactory backend
+
+Fixed bugs:
+
+* Fixed bug 2096 (arcinfo only prints info about one queue): Create multiple ExecutionTargets when multiple ComputingShares exist
+* Fixed bug 2097 (arcsub finds only 1 target even if there are two queues): Create multiple ExecutionTargets when multiple ComputingShares exist
+* Fix problem with arched init script not working on Ubuntu (bug 2099 arched init script doesn't work)
+* Fixed LSF backend's generated time-format within job.<number>.diag file had a wrong format (bug 2088)
+* Fixed missed sizeof of dynamic array in SRM client
+* Fixed listing of large SRM directories (bug 1929: Can't list long SRM directories)
+* Memory leak fixes, bugreports: 1711, 1712, 1713, 1714, 1717
+* Correction of the parsing of vomses location, (bug 1931: arcproxy does not respect ~/.voms/vomses file)
+* Implementing ability to sort jobs according to jobid, submissiontime and jobname (bug 1541: arcstat output should be sortable)
+* Fix for HTTP protosol's Host attribute not filled if URL has no path
+* Properly deal with nick name of voms server (bug 1943: in arcproxy -S VO name is used rather than alias)
+* Canonical_dir() deadloops on some specific filenames (bug 1962: downloader loops on specific jobs)
+* Bugfix for A-REX not using some of configuration options if presented in non-XML format
+* Make sure member variables are initialised (bug 1973: A-REX doesn't accept any jobs (failure on any job submission and files handling errors))
+* Fixing race-condition which caused ISIS to use 100% CPU
+* Fixing mutex lock/unlock pair in UserSwitch class (bug 1972: down/uploader and unit tests in libs/common fail with GThread errors)
+* scan-pbs-job leaking file descriptors (bug 1960: scan-pbs-job errors)
+* Setting the username and the password for FTP protocol (bug 1630: FTP DMC, username/password authentication is not working) 
+* Fixing detection of broken checksum calculation
+* Fixed publishing ExecutionNodes
+* Fixed bug 1993 (jobs get stuck in INLRMS state if /etc/arc.conf is missing)
+* Fixed reporting of exit code (bug 1999: wrong error code reported if the job fails in SGE)
+* Fixing file names improperly written into job.*.input_status file. Multiple user uploadable files should work now.
+* Fixed bug 2002 (LSF.pm needs to convert float to integer for RUNLIMIT values)
+* Fixed bug 2021 (LL.pm needs to convert float to integer for reqwalltime (at least))
+* Create a new srm request object to do listing (bug 2022: SRM checksum validation can cause putDone request to fail)
+* Add missing python arc-url-logger dependencies to arex package (bug 2025: Missing dependencies for urlogger)
+* port NextLocation() and access latency methods from data staging branch, and preferentially choose low latency replicas (bug 1957: Order replicas based on access latency)
+* Updated gridftpd to use old config_parser.sh (bug #1990: config_parser.sh in arc1 not working)
+* Add preferredpattern option to allow ordering of replicas according to preference (bug 1933: add close SE option to arc.conf)
+* Implement str() in DataPointLFC to handle guids better (related to bug 2024: lfc downloads by guid store incomplete information in cache metadata)
+* Allow specifying an email address only in the XRSL notify attribute (bug 2033: arcsub does not specify what the problem is with broken xrsl)
+* Fix parsing the XRSL join attribute (bug 1804: arcsub does not interpret correctly "join" option of XRSL)
+* Partial fix for 2043 (inconsistent PBS.pm report)
+* Fixing accidental error in credentials error output
+* Fixed bug 1974 (BDII4 index server stores temporary slapd script in place which may be noexec)
+* Fixed bug 1980 (Logfile location for grid-infosys)
+* Allow the gmlog to be shown in all valid states (bug 1882: arccat -l refuses to cat the g-m log even though it exists).
+* Fixed reporting of queued jobs in PBS
+* Increasing default BDII_SEARCH_TIMEOUT in BDII4 to 300 as it is in BDII_READ_TIMEOUT in BDII5 (bug 2055: bdii search timeout too small by default)
+* Fixing job.*.grami permissions irrespective of umask
+* allownew=no in gridftpd's configuration affects only new job submission requests now
+* Fixed bug 2074 (arcproxy contacts the first voms server multiple times instead of once for each server)
+* Updated glue-generator to generate proper output for a resource bdii
+
+Known issues:
+
+* Some of RPM binary packages (e.g. arex and ldap-infosys) are circulary interdependent via Perl modules. Installation in one transaction (or use of --nodeps rpm option) circumvents the problem.
+

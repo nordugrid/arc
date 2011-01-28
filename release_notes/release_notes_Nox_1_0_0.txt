@@ -1,0 +1,335 @@
+
+The Nox 1.0.0 release of the Advanced Resource Connector
+========================================================
+
+                                                November 30, 2009
+
+
+The Advanced Resource Connector (ARC) middleware, introduced by
+NorduGrid (www.nordugrid.org), is an open source software solution
+enabling production quality computational and data Grids since May
+2002. The latest production ARC release, the version 0.8.1 was
+released on November 6, 2009.
+
+The Nox release of the ARC software collects and integrates several
+innovative next generation services and client tools into a consistent
+software release. Nox components have been developed by the KnowARC
+project over the last three years and represent software services of
+different levels of maturity. Some of them are already deployable in
+production environments, while others should be considered only as
+technology preview prototypes.
+
+Nox is not meant to be a replacement of the current line of ARC
+production releases. The purpose of the release is to offer an early
+possibility to try out the new Web Service (WS) based
+standard-compliant components before they can appear in one of the
+coming production ARC releases. Some of the Nox components are
+actually already a part of the latest production ARC release. The Nox
+release can be deployed simultaneously with a production release ARC
+installation.
+
+The Nox release makes the ARC middleware available on additional
+long-awaited popular platforms. ARC has long been known for its very
+good portability and support for wide range of Linux versions. This
+release of ARC moves one step further by initiating the inclusion of
+Nox packages into the Linux distributions themselves. The design of
+ARC and the careful choice of underlying dependencies takes the
+portability of the code to a new level. Nox is now available on
+Microsoft Windows, Mac OS X and Solaris.
+
+The release code name Nox originates from the date of the end of
+KnowARC project: November 2009. N - for November and Ox for the
+corresponding Lunar year.
+
+Like the rest of ARC, Nox is released under Apache 2.0 license.
+
+
+1. Release Content
+==================
+
+1.1 Hosting Environment Daemon
+
+The central part of the WS-based ARC is the Hosting Environment Daemon
+(HED).  HED is a container for all other functional components of the
+WS-based ARC, both on the server and client side. HED is also a
+development framework which provides powerful tools for Grid security
+and communication tasks. The HED C++ libraries are available via
+Python language bindings.
+
+1.2 ECHO Service
+
+ECHO service is a simple testing service developed in the HED
+framework. It accepts SOAP messages and returns them either the same
+or slightly modified.  The ECHO service comes with two clients,
+arcecho and perftest, usable for testing the setup and performance of
+HED.
+
+1.3 A-REX Service
+
+A-REX is the job execution service providing computing element
+functionality via a standard-based WS interface. It is implemented as
+a service within HED framework.  A-REX is a service accepting requests
+containing description of generic computational jobs and executing it
+in underlying Local Resource Management System (LRMS).
+
+The A-REX uses a WS interface which provides a way to submit and
+control jobs to be executed by the A-REX and the underlying batch
+systems (LRMS). A-REX comes with highly configurable security
+management implemented via policy decision points and policy handlers
+based on X.509 certification schema.
+
+A-REX supports following LRMS:
+
+  o Torque (or PBS/OpenPBS)
+  o SGE
+  o LoadLeveler
+  o LSF
+  o Condor
+  o SLURM
+
+There are two notable A-REX plugins included in the release:
+  o Janitor - dynamic runtime environment management plugin
+  o Jura - accounting plugin
+
+
+1.4 Chelonia - distributed storage system
+
+The ARC storage system is a distributed system for storing replicated
+files on several file storage nodes and manage them in a global
+namespace.
+
+The services of the Storage system are the following:
+
+      o the A-Hash service is a replicated database built upon
+        the Berkeley DB
+
+      o the Shepherd service, which provides a simple interface
+        for storing files on storage nodes
+
+      o the Librarian service, which stores the metadata and
+        hierarchy of collections and files, the location of
+        replicas, and health data of the Shepherd services,
+        using the A-Hash as database
+
+      o the Bartender service, which provides a high-level
+        interface for the users and for other services
+
+All these services of the Storage system are implemented within the
+HED using the Python bindings.
+
+1.5 Hopi Service
+
+Hopi service provides simple implementation of http(s) server. It
+supports GET and PUT operations. It can be used as a simple file
+transfer service and it is usable via common Web browsers and other
+http(s) clients (e.g. wget).  Currently Chelonia relies on Hopi for
+transfer of data files.
+
+1.6 ISIS the information system
+
+ISIS is the new Information Indexing Service of ARC. ISIS comes with
+P2P capabilities and exhibits a WS interface for service registration
+and query.
+
+1.7 Charon Service
+
+Charon is a remote policy decision point service, implemented in
+HED. It accepts formatted policy decision request and return positive
+or negative response. When running a Charon (within the HED), the TLS
+layer can be used for securing the communication.
+
+The client arcdecision sends a policy decision request to Charon
+service and returns the policy decision result.
+
+1.8 ARC client development libraries
+
+There are two general purpose libraries on which the client tools of
+WS ARC are built upon:
+
+  o libarcclient
+  o libarcdata
+
+Job submission and control binaries (arc* commands) are based on
+libarcclient library. The new library supports multiple Grid
+flavours: ARC (both WS based and pre-WS ARC) and gLite (through CREAM
+interface) and the client library comes with Python language bindings.
+
+Data manipulation commands include the Chelonia CLI and a set of basic
+generic data management tools based on libarcdata library.
+
+Other command line tools include such handy utilities as arcproxy -
+ARC's own Grid credentials management tool, arcinfo for querying
+status of grid services, perftest for testing performance of services
+residing in HED and others.
+
+1.9 Documentation
+
+The Nox release comes with man pages, user and sysadmin manuals and technical
+documentation describing the internals and usage of the new components.
+Documents distributed within the release:
+
+  o The Hosting Environment of the Advanced Resource Connector middleware
+    (ARCHED_article.pdf)
+
+  o Security Framework of ARC Nox (arc-security-documentation.pdf)
+
+  o The Echo Service Manual (echo-manual.pdf)
+
+  o The SWIG Wrapped ARC Python API and the Arcom Utility Package
+    (SWIG-wrapped-ARC-Python-API.pdf)
+
+  o ARC Computational Job Management Component -- A-REX (arex_tech_doc.pdf)
+
+  o Dynamic Runtime Environment Installation with Janitor
+    (janitor_tech_doc.pdf)
+
+  o Dynamic Runtime Environments with Janitor (janitor_manual.pdf)
+
+  o Job Usage Reporter of ARC - JURA (jura-tech-doc.pdf)
+
+  o ARC peer-to-peer information system (infosys_technical.pdf)
+
+  o Chelonia - Self-healing distributed storage system
+    (arc-storage-documentation.pdf)
+
+  o Chelonia Administrator's manual (arc-storage-manual.pdf)
+
+  o The Hopi manual (hopi-manual.pdf)
+
+  o ARC Clients - User's Manual (ui.pdf)
+
+  o The ARC Job Description Internal Representation (job_description.pdf)
+
+  o libarcclient - A Client Library for ARC (client_technical.pdf)
+
+  o ARC configuration manual (configuration_manual.pdf)
+
+In addition to the abovementioned documents and manpages there is a dedicated
+release Wiki page containing installation and setup instructions:
+
+  o https://wiki.nordugrid.org/index.php/NOX
+
+
+2. Supported platforms
+======================
+
+ARC is known for its portability through wide variety of Linux operating
+systems. New development was even more ambitious, and now makes ARC available
+also on Windows, MAC OS X and Solaris.
+
+The code was tested and binary packages are provided for the following
+platforms:
+
+  o Linux:
+     o Fedora 4, 5, 6, 7, 8, 9, 10, 11 (32/64 bit)
+     o Red Hat Enterprise Linux 4, 5 (32/64 bit)
+     o OpenSuSE 11.1, 11.2, 11.3 (32/64 bit)
+     o Ubuntu 8.04, 9.04, 9.10 (32/64 bit)
+     o Debian 4.0, 5.0 (32/64 bit)
+     o Gentoo (32/64 bit)
+  o MAC OS X 10.4.x (Tiger), 10.5.x (Leopard), 10.6.x (Snow Leopard)
+  o Sparc Solaris 9,10
+    - no binary packages yet
+  o Microsoft Windows (XP,Vista,7)
+    - client-side components
+
+
+3. Hardware requirements
+========================
+
+For a A-REX (computing service), one will need a cluster running a
+LRMS or a standalone box configured with "fork" LRMS. Administrator
+privileges are required.
+
+For a Chelonia (storage system), one will need a conventional disk
+array with front end running one of supported OS, or simply a box with
+some storage capacity. Administrator privileges are required.
+
+For all other services, a not-too powerful shared computer is
+sufficient.  Administrator privileges are required.
+
+Multiple services can be deployed on the same box.
+
+For a client, any machine with OS from supported pool will do, no
+administrator privileges are necessary.
+
+
+4. Get the Nox release
+======================
+
+Source tarball is available from
+
+  o http://download.nordugrid.org/software/nordugrid-arc-nox/releases
+
+Binary packages, including external dependencies, for client and
+server installation for the supported platforms are available through
+
+  o http://www.knowarc.eu/nox
+
+Repository information is available at:
+
+  o http://wiki.nordugrid.org/index.php/NOX/SysAdminManual
+
+Furthermore, dedicated repositories containing ARC packages and all
+the necessary external dependencies were set up for convenient
+installation for the most popular Linux distributions. It should be
+noted that all the Nox packages are on the way to be included, thus to
+be available in the main repositories of Fedora and Debian/Ubuntu
+popular linux distributions while the external dependencies are
+already part of the Linux distributions.
+
+For release information please consult the official Nox Release page:
+
+  o http://wiki.nordugrid.org/index.php/NOX
+
+
+5. Limitations
+================
+
+  o Server-side components are not available on Windows.
+  o Python bindings, thus the entire Chelonia storage solution is not
+    available on Windows.
+  o JAVA bindings of HED and libarcclient/libarcdata are not part of the
+    release.
+  o The development of the sysadmin-friendly server-side configuration
+    layer has not been completed, including the final configuration
+    documentation. 
+  o No binary packages for Solaris platform.
+  o The libarcclient Unicore flavour support has not been completed.
+  o No native GUI. Alternative is the Lunarc Application Portal and
+    GUI which work nicely with the release.
+  o No monitoring tool included in  the release.
+  o Some important documentation is missing: most notably, the JSDL
+    user manual. 
+  o The current binary packages on MAC OS do not support
+    out-of-the-box job submission to production ARC clusters due to
+    packaging problems of some Globus components.
+  o The Nox services implemented in the HED are not backward
+    compatible with the old LDAP-based information Indexing Services
+    (GIIS), therefore CEs running on Nox release will not be visible in
+    the production Grid Monitor.
+
+
+6. Support and contact
+======================
+
+User support and site installation assistance is provided via the
+request tracking system available by e-mail to
+nordugrid-support@nordugrid.org. In addition, NorduGrid runs a couple
+of mailing lists, among which the nordugrid-discuss mailing list is a
+general forum for all kind of issues related to the ARC middleware.
+
+Feature and enhancement requests, as well as discovered problems,
+should be reported in the Bugzilla:
+
+  o http://bugzilla.nordugrid.org
+
+The NorduGrid Web site www.nordugrid.org is the central place related
+to ARC middleware, including its Nox release.
+
+Release coordinators:
+
+  o Bjarte Mohn <bjarte.mohn@fysast.uu.se>
+  o Martin Savko <martin.savko@gmail.com>
+
+

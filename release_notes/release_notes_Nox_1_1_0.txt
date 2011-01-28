@@ -1,0 +1,99 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Announcement for version Nox-1.1
+----------------------------------------
+
+                                                     May 5, 2010
+
+Advanced Resource Connector (ARC) version Nox-1.1 is a bug fix release
+for the ARC Nox series. Please consult release notes of ARC Nox-1.0 
+for detailed product description.
+
+
+-Changes since Nox-1.0-
+
+Extensions/enhancements:
+
+* Cache feature ported from production ARC (v. 0.8.1): remote cache support, draining cache suport, data is spread according to cache size. 
+* Support for transfer shares configuration through XML 
+* Added GridFactory support
+* Added issitest binary
+* Porting file chunk control from HOPI to A-REX to make user uploadable files detection more reliable
+* Make A-REX report failure if creation of session and control directories failed and create them earlier to make a place for temporary configuration file
+* Make A-REX provide information about service through pure HTTP - for web browsers
+* Make it possible to check if A-REX is running through gm-jobs
+* Added support for multiple session directories
+* Extending MCC Loader functionality to support component reload
+* Adding ServiceState and HealthState information to the LIDI document of the echo service
+* Support for more complete set of ARC0 job states
+* arccp -f option can be used to skip validation checks
+* Better shutdown mechanism of ISIS 
+* gm-jobs -s switch ported from ARC0 to ARC1 with proper documentation update
+* Porting to openssl 1.0 for Fedora 12
+* Standalone version of the Chelonia CLI manual
+* Extended russian translation 
+* Added german translation
+* Many error messages improved
+* Added debug package
+
+Bug fixes:
+
+* Fixed #1885 (arched looping/crashing when ISIS-es down. infinite calling loop) and compilation warning correction
+* Removing direct references to Globus from A-REX (#1904: GLOBUS_LOCATION variable not set)
+* SLURM can report starttime/endtime in different formats (#1858: SLURM reports timestamps in different formats)
+* Use credential information from UserConfig in httpg connection (#1694: arccp uses different proxies for different DMCs, then segfaults)
+* Added ability to look for specific cache files. Part of fix for #1851 (feature requests to improve cache performance)
+* Add perl dependency (#1898: add perl Digest::SHA1 module to dependencies)
+* Added missing blanks to separate %s from the remaining test. (Addresses one of many concerns in #1855: PDPservice - ungrammatical error message)
+* Make the non-existance of a SYSV init script directory non-fatal
+* Set pointer to NULL and return NULL (#1863: arcsub segfault)
+* Print error message in case certificate verification failed (#1897arcproxy gives INFO messages if CA certificate not installed)
+* Add cache lifetime feature, part of fix for #1851 (feature requests to improve cache performance)
+* ComputingShare.MappingQueue should not be identified as a available "queue" (computing share), instead it should be ComputingShare.Name. Fix #1869 (brokered queue is not passed by arcsub to A-REX)
+* Fixed #1894 (CEInfo.pl complains that Endpoint is not an URL if it does not contain a port number)
+* Fixed listing manual runtimes (#1890: janitor can uninstall dynamic RTEs which are still in use)
+* Fixed #1881 (janitor setstate can create undeleteable phantom runtimes)
+* Fixed problem submitting jobs that contain spaces in job name
+* Set cluster and queue in for JSDL job description, if not specified by user. Fix for #1869 (brokered queue is not passed by arcsub to A-REX)
+* Fixed bug preventing infoproviders from listing dynamic RTEs
+* Fixed #1816 (Calculating queue-gridrunning CPUs in PBS)
+* Fixed #1834 (Information system counters failed on bad controldir content)) 
+* Cleaning proxy validity assignment code a bit (#1866 CREAM error on Windows)
+* New option for arched: version information
+* Several LFC fixes: allow deletion of directories, deal with race condition where two LFNs can be created at the same time, and fix problems with deleting files with more than one replica. 
+* Fixed #1865 (chmod on fork backends has issues on ARC1 - and probably also on ARC0). 
+* Improved ISIS configuration handling. See Bug #1854 (isis error leading to exit with 0 return value)!. 
+* Assigning namespace to echo service, fixing various outdated configuration namespaces
+* Better neighbors update mechanism for ISIS 
+* Separate checks out of StartReading, and compare index and location metadata before starting transfer (bug 1822  - compare checksums of indexing service and physical files). 
+* Unicore 6.3.0 specific bugfix (without this will not start the job on the Unicore's worker node because it cannot parse the JSDL's application element). 
+* Report threads existing in ARC1 client in case of error - fix for hanging arcsync
+* Check credentials validity in data tools. Fixed #1538 (arccp/ls/rm should check proxy validity) 
+* Add ARC fuse client (bug #1850: arcfs missing "from storage.client import BartenderClient")
+* Do not send JSDL-Source element for local input files. Fixed #1741 (can make arched crash from ../ in executable path)
+* Adding description of the ARC_LOCATION and ARC_PLUING_PATH environment variables to the client man pages. Fixed #1846 (ARC_PLUGIN_PATH should be mentioned in client man-pages)
+* Adding error message, in case no target found and --dumpdescription was specified. Fixed #1847 (--dumpdescription option is silent when no target is found)
+* Set xRSL attribute clientxrsl correctly. Fixed #1845 (clientxrsl attribute contains modified xrsl)
+* Fix for RTEs without version not passed to LRMS by A-REX. Fixed #1842 (Runtime Environment doesn't work with A-REX)
+* Fixed #1834 (Information system counters failed on bad controldir content)
+* Fixed #1830 (A-REX failed to parse informational XML which contains non-ASCII characters and did not remove the erroneous file)
+* Allow replication within one site and multiple uploads to same LFN (#1031: replication should be allowed within one site)
+* Remove temp file if informational XML parsing failed - partial fix for #1830 (A-REX failed to parse informational XML which contains non-ASCII characters and did not remove the erroneous file)
+* Fixed problem upon installation and auto-start of Debian package (#1800 nordugrid-arc-nox-arex, AREX's init.d script bug)
+* Retry connection timeouts (# 1805: http(g) connection timeouts are not retried)
+* Make IP v4 and v6 work on same port simultaneously - fix for 1826 (TCP MCC error message)
+* Make notify(xRSL) and Notify(JSDL) work as defined in documentation and schema. Fixed #1815 (XRSL parsing error using "notify")
+* Ported latest srm changes from arc0, including fix for #1431 (ngcp should be able to handle different SRM port numbers automatically)
+* Fixed #1732 (Infosystem does not handle local queuing SGE arrayjobs correctly)
+* Do not spread documents in the various subpackages, (#1155 Documents from RPMs are installed in different directories), Added missing files for Debian with respect to this bug
+* Also try to get vomses file from /etc/vomses, bug 1731 (Several problems with arcproxy and voms proxy in 0.9.4rc4) partly
+* Fixing improper usage of list::iterator, changing confusing names of variables (#1803 hed src tree checked by cppcheck)
+* Implemented connection timeout in TCP MCC (#1787: Resource discovery freezes, timeout -t has no effect)
+* Reducing number of lines from configuration file to be processed (#1785: On Debian /etc/init.d/A-REX takes about 30s to start)
+* Don't push_back to the policy list, if the policy object can not be created. Fixed #1544 (arc.pdp does not recognize /VO=knowarc.eu attribute, instead it needs /VO=knowarc.eu/Group=NULL/Role=NULL/Capability=NULL)
+* Using portable env functions (#1659) 
+* Check if the signer is valid after verfication, if not valid then do not create proxy.  Fixed #1750 (arcproxy reports success even though certificate has expired)
+* Use more portable format options to date(1) to get RFC behavior (#1796 - MacOSX, Solaris: date -R problem)
+* Protecting applications against write() to pipe without receiving end causing application termination. Especialy important for OpenLDAP but may happen at other places too. Fixed #1789 (Random broken pipe in arcsub)
+* Fixed various memory leaks as determined by Valgrind
