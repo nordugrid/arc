@@ -4,8 +4,7 @@ Priority: optional
 Maintainer: Anders Waananen <waananen@nbi.dk>
 Uploaders: Steffen Moeller <moeller@debian.org>, Mattias Ellert <mattias.ellert@fysast.uu.se>
 DM-Upload-Allowed: yes
-Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.8++-dev | libdb4.7++-dev | libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk-builddep | java-gcj-compat-dev, liblfc-dev, libgridsite-dev
-Build-Depends-Indep: doxygen
+Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb4.8++-dev | libdb4.7++-dev | libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk-builddep | java-gcj-compat-dev, liblfc-dev, libgridsite-dev
 XS-Python-Version: current
 Standards-Version: 3.9.1
 Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
@@ -362,6 +361,16 @@ Description: ARC dynamic runtime environment installation
  .
  The Janitor is a recent development and the community to prepare
  catalogues of dynamically installable packages still needs to evolve.
+
+Package: nordugrid-arc-doxygen
+Architecture: all
+Depends: ${misc:Depends}
+Description: ARC API documentation
+ The NorduGrid is a collaboration aiming at development, maintenance
+ and support of the free Grid middleware, known as the Advanced
+ Resource Connector (ARC).
+ .
+ Reference to the ARC programming API. It is prepared with doxygen.
 
 Package: nordugrid-arc-gridmap-utils
 Architecture: all
