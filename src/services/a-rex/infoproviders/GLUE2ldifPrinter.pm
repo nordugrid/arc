@@ -10,8 +10,8 @@ sub uc_bools {
     for (@keys) {
         my $val = $data->{$_};
         next unless defined $val;
-        next unless $val eq 'false' or $val eq 'true';
-        $data->{$_} = uc $val;
+        $data->{$_} = $val = uc $val;
+        delete $data->{$_} unless $val eq 'FALSE' or $val eq 'TRUE';
     }
 }
 

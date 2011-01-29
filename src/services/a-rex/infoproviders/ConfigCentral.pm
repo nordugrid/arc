@@ -129,14 +129,16 @@ my $config_schema = {
         }
     },
     service => {
-        ClusterName => '*',
         OtherInfo => [ '*' ],
         StatusInfo => [ '*' ],
         Downtime => '*',
+        ClusterName => '*',
+        ClusterAlias => '*',
+        ClusterComment => '*',
         ClusterOwner => [ '*' ],
         Middleware => [ '*' ],
         LocalSE => [ '*' ],
-        InteractiveContactstring => '*',
+        InteractiveContactstring => [ '*' ],
         %$xenv_options,
         %$share_options,
     },
@@ -341,7 +343,8 @@ sub build_config_from_xmlfile {
     my @multival = qw(cache location remotelocation control sessionRootDir
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo Regex Command Tag ExecEnvName AuthorizedVO
-                      Contact ExecutionEnvironment ComputingShare);
+                      Contact ExecutionEnvironment ComputingShare
+                      InteractiveContactstring);
     hash_tree_apply $arex, sub { my $h = shift;
                                  while (my ($k,$v) = each %$h) {
                                      next unless ref($v) eq 'ARRAY';
@@ -538,9 +541,8 @@ sub build_config_from_inifile {
                                  cluster_owner => 'ClusterOwner', localse => 'LocalSE',
                                  authorizedvo => 'AuthorizedVO', homogeneity => 'Homogeneous',
                                  architecture => 'Platform', opsys => 'OpSys', benchmark => 'Benchmark',
-                                 nodememory => 'MaxVirtualMemory', middleware => 'Middleware'};
-        push @{$config->{service}{OtherInfo}}, $cluster->{cluster_alias} if $cluster->{cluster_alias};
-        push @{$config->{service}{OtherInfo}}, $cluster->{comment} if $cluster->{comment};
+                                 nodememory => 'MaxVirtualMemory', middleware => 'Middleware',
+                                 cluster_alias => 'ClusterAlias', comment => 'ClusterComment'};
         if ($cluster->{clustersupport} and $cluster->{clustersupport} =~ /(.*)@/) {
             my $contact = {};
             push @{$config->{contacts}}, $contact;

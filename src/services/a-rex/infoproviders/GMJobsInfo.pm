@@ -14,11 +14,11 @@ our $j = { 'jobID' => {
             queue              => '',
             localid            => '*',
             subject            => '',
-            starttime          => '*',
+            starttime          => '*', # MDS time format
             jobname            => '*',
             gmlog              => '*',
-            cleanuptime        => '*',
-            delegexpiretime    => '*',
+            cleanuptime        => '*', # MDS time format
+            delegexpiretime    => '*', # MDS time format
             clientname         => '',
             clientsoftware     => '*',
             activityid         => [ '*' ],
@@ -26,7 +26,7 @@ our $j = { 'jobID' => {
             diskspace          => '',
             failedstate        => '*',
             fullaccess         => '*',
-            lifetime           => '*',
+            lifetime           => '*', # seconds
             jobreport          => '*',
             # from .description
             description        => '', # rsl or xml

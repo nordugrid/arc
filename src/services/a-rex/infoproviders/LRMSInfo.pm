@@ -163,6 +163,10 @@ sub collect($) {
     @messages = $checker->verify($result);
     $log->warning("return value lrmsinfo->$_") foreach @messages;
 
+    # some backends leave extra spaces -- trim them
+    $result->{cluster}{cpudistribution} =~ s/^\s+//;
+    $result->{cluster}{cpudistribution} =~ s/\s+$//;
+
     return $result;
 }
 
