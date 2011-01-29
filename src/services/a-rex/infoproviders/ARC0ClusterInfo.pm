@@ -273,7 +273,7 @@ sub collect($) {
 
             $q->{'name'} = $share;
             
-            if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
+            if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
                 $q->{status} = 'inactive, grid-manager does not accept new jobs';
             } elsif (not $host_info->{processes}{'grid-manager'}) {
                 $q->{status} = 'inactive, grid-manager is down';   

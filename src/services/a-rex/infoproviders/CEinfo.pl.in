@@ -322,6 +322,7 @@ sub fix_config {
                    GridftpdEnabled     => 0,
                    GridftpdMountPoint  => '/jobs',
                    GridftpdPort        => 2811,
+                   GridftpdAllowNew    => 1,
                    ttl            =>  60,
                    defaultttl     => 604800
 

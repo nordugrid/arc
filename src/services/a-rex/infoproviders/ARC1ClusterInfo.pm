@@ -666,14 +666,14 @@ sub collect($) {
                 }
             }
 
-            # OBS: when is it 'queueing' and 'closed'?
-            # OBS: allownew no longer supported by arex?
-            # OBS: This option is not even parsed by ConfigCentral
-            if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
-                $cep->{ServingState} = 'draining';
-            } else {
-                $cep->{ServingState} = 'production';
-            }
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = 'production';
 
             # StartTime: get it from hed
 
@@ -985,11 +985,13 @@ sub collect($) {
             $csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
 
             # ServingState: closed and queuing are not yet supported
-            if (defined $config->{allownew} and lc($config->{allownew}) eq 'no') {
-                $csha->{ServingState} = 'draining';
-            } else {
-                $csha->{ServingState} = 'production';
-            }
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $csha->{ServingState} = 'draining';
+            #} else {
+            #    $csha->{ServingState} = 'production';
+            #}
+            $csha->{ServingState} = 'production';
 
             # Count local jobs
             my $localrunning = $qinfo->{running};

@@ -111,6 +111,7 @@ my $gridftpd_options = {
     GridftpdEnabled => '*',
     GridftpdPort => '*',
     GridftpdMountPoint => '*',
+    GridftpdAllowNew => '*',
 };
 
 # # # # # # # # # # # # # #
@@ -187,7 +188,7 @@ my $config_schema = {
 my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
-                 GridftpdEnabled use_janitor) ];
+                 GridftpdEnabled GridftpdAllowNew use_janitor) ];
 
 ############################ Generic functions ###########################
 
@@ -537,6 +538,7 @@ sub build_config_from_inifile {
         $config->{GridftpdEnabled} = 'yes';
         $config->{GridftpdPort} = $gconf{port} if $gconf{port};
         $config->{GridftpdMountPoint} = $gjconf{path} if $gjconf{path};
+        $config->{GridftpdAllowNew} = $gjconf{allownew} if defined $gjconf{allownew};
     } else {
         $config->{GridftpdEnabled} = 'no';
     }
