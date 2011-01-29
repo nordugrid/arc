@@ -15,37 +15,16 @@ sub uc_bools {
     }
 }
 
+#
+# Print attributes
+#
+
 sub beginGroup {
     my ($self, $name) = @_;
     $self->begin(GLUE2GroupID =>, $name);
     my $data = { objectClass => "GLUE2Group", GLUE2GroupID => $name};
     $self->attributes($data, "", qw(objectClass GLUE2GroupID));
 }
-
-sub endGroup {
-    my ($self) = @_;
-    $self->end();
-}
-
-sub Entry {
-    my ($self, $collector, $dnkey, $attributes, $subtree) = @_;
-    return unless $collector and my $data = &$collector();
-    $self->begin($dnkey, $data->{ID});
-    &$attributes($self,$data);
-    &$subtree($self, $data) if $subtree;
-    $self->end();
-}
-
-sub Entries {
-    my ($self, $collector, $dnkey, $attributes, $subtree) = @_;
-    while ($collector and my $data = &$collector()) {
-        $self->begin($dnkey, $data->{ID});
-        &$attributes($self,$data);
-        &$subtree($self, $data) if $subtree;
-        $self->end();
-    }
-}
-
 
 sub EntityAttributes {
     my ($self, $data) = @_;
@@ -434,31 +413,36 @@ sub ToStorageServiceAttributes {
     $self->attribute(GLUE2ToStorageServiceStorageServiceForeignKey => $data->{StorageServiceID});
 }
 
+
+#
+# Follow hierarchy
+#
+
 sub Location {
-    Entry(@_, 'GLUE2LocationID', \&LocationAttributes);
+    LdifPrinter::Entry(@_, 'GLUE2Location', 'ID', \&LocationAttributes);
 }
 
 sub Contacts {
-    Entries(@_, 'GLUE2ContactID', \&ContactAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Contact', 'ID', \&ContactAttributes);
 }
 
 sub AdminDomain {
-    Entry(@_, 'GLUE2DomainID', \&AdminDomainAttributes, sub {
+    LdifPrinter::Entry(@_, 'GLUE2Domain', 'ID', \&AdminDomainAttributes, sub {
         my ($self, $data) = @_;
         $self->ComputingService($data->{ComputingService});
     });
 }
 
 sub AccessPolicies {
-    Entries(@_, 'GLUE2PolicyID', \&AccessPolicyAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Policy', 'ID', \&AccessPolicyAttributes);
 }
 
 sub MappingPolicies {
-    Entries(@_, 'GLUE2PolicyID', \&MappingPolicyAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Policy', 'ID', \&MappingPolicyAttributes);
 }
 
 sub ComputingService {
-    Entry(@_, "GLUE2ServiceID", \&ComputingServiceAttributes, sub {
+    LdifPrinter::Entry(@_, 'GLUE2Service', 'ID', \&ComputingServiceAttributes, sub {
         my ($self, $data) = @_;
         $self->Location($data->{Location});
         $self->Contacts($data->{Contacts});
@@ -470,7 +454,7 @@ sub ComputingService {
 }
 
 sub ComputingEndpoint {
-    Entry(@_, 'GLUE2EndpointID', \&ComputingEndpointAttributes, sub {
+    LdifPrinter::Entry(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
         $self->AccessPolicies($data->{AccessPolicies});
         $self->beginGroup("ComputingActivities");
@@ -480,14 +464,14 @@ sub ComputingEndpoint {
 }
 
 sub ComputingShares {
-    Entries(@_, 'GLUE2ShareID', \&ComputingShareAttributes, sub {
+    LdifPrinter::Entries(@_, 'GLUE2Share', 'ID', \&ComputingShareAttributes, sub {
         my ($self, $data) = @_;
         $self->MappingPolicies($data->{MappingPolicies});
     });
 }
 
 sub ComputingManager {
-    Entry(@_, 'GLUE2ManagerID', \&ComputingManagerAttributes, sub {
+    LdifPrinter::Entry(@_, 'GLUE2Manager', 'ID', \&ComputingManagerAttributes, sub {
         my ($self, $data) = @_;
         $self->Benchmarks($data->{Benchmarks});
         $self->beginGroup("ExecutionEnvironments");
@@ -500,30 +484,30 @@ sub ComputingManager {
 }
 
 sub Benchmarks {
-    Entries(@_, 'GLUE2BenchmarkID', \&BenchmarkAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Benchmark', 'ID', \&BenchmarkAttributes);
 }
 
 sub ExecutionEnvironments {
-    Entries(@_, 'GLUE2ResourceID', \&ExecutionEnvironmentAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Resource', 'ID', \&ExecutionEnvironmentAttributes);
 }
 
 sub ApplicationEnvironments {
-    Entries(@_, 'GLUE2ApplicationEnvironmentID', \&ApplicationEnvironmentAttributes, sub {
+    LdifPrinter::Entries(@_, 'GLUE2ApplicationEnvironment', 'ID', \&ApplicationEnvironmentAttributes, sub {
         my ($self, $data) = @_;
         $self->ApplicationHandles($data->{ApplicationHandles});
     });
 }
 
 sub ApplicationHandles {
-    Entries(@_, 'GLUE2ApplicationHandleID', \&ApplicationHandleAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2ApplicationHandle', 'ID', \&ApplicationHandleAttributes);
 }
 
 sub ComputingActivities {
-    Entries(@_, 'GLUE2ActivityID', \&ComputingActivityAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Activity', 'ID', \&ComputingActivityAttributes);
 }
 
 sub ToStorageServices {
-    Entries(@_, 'GLUE2ToStorageServiceID', \&ToStorageServiceAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2ToStorageService', 'ID', \&ToStorageServiceAttributes);
 }
 
 sub Top {

@@ -115,6 +115,42 @@ sub fold78 {
 }
 
 
+#
+# Higher level functions for recursive printing
+#
+#   $collector  - a func ref that upon evaluation returns a hash ref ($data)
+#   $idkey      - a key in %$data to be used to construct the relative DN component
+#   $prefix     - to be prepended to the relative DN
+#   $attributes - a func ref that is meant to print attributes. Called with $data as input.
+#   $subtree    - yet another func ref that is meant to descend into the hierachy. Called
+#                 with $data as input. Optional.
+#
+
+# Prints a single entry
+
+sub Entry {
+    my ($self, $collector, $prefix, $idkey, $attributes, $subtree) = @_;
+    return unless $collector and my $data = &$collector();
+    $self->begin("$prefix$idkey", $data->{$idkey});
+    &$attributes($self,$data);
+    &$subtree($self, $data) if $subtree;
+    $self->end();
+}
+
+# Prints entries for as long as $collector continues to evaluate to non-null
+
+sub Entries {
+    my ($self, $collector, $prefix, $idkey, $attributes, $subtree) = @_;
+    while ($collector and my $data = &$collector()) {
+        $self->begin("$prefix$idkey", $data->{$idkey});
+        &$attributes($self,$data);
+        &$subtree($self, $data) if $subtree;
+        $self->end();
+    }
+}
+
+
+
 #### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 sub test {

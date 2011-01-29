@@ -13,25 +13,17 @@ sub new {
     return $self;
 }
 
-sub Entry {
-    my ($self, $collector, $prefix, $key, $attributes, $subtree) = @_;
-    return unless $collector and my $data = &$collector();
-    $self->begin("$prefix$key", $data->{$key});
-    &$attributes($self,$data);
-    &$subtree($self, $data) if $subtree;
-    $self->end();
-}
+#
+# Print attributes
+#
 
-sub Entries {
-    my ($self, $collector, $prefix, $key, $attributes, $subtree) = @_;
-    while ($collector and my $data = &$collector()) {
-        $self->begin("$prefix$key", $data->{$key});
-        &$attributes($self,$data);
-        &$subtree($self, $data) if $subtree;
-        $self->end();
-    }
+sub beginGroup {
+    my ($self, $name) = @_;
+    $self->begin('nordugrid-info-group-name' => $name);
+    $self->MdsAttributes();
+    $self->attribute(objectClass => 'nordugrid-info-group');
+    $self->attribute('nordugrid-info-group-name' => $name);
 }
-
 
 sub MdsAttributes {
     my ($self) = @_;
@@ -42,7 +34,7 @@ sub MdsAttributes {
 
 sub clusterAttributes {
     my ($self, $data) = @_;
-    $self->MdsAttributes($data);
+    $self->MdsAttributes();
     $self->attribute(objectClass => 'nordugrid-cluster');
     $self->attributes($data, 'nordugrid-cluster-', qw( name
                                                        aliasname
@@ -85,7 +77,7 @@ sub clusterAttributes {
 
 sub queueAttributes {
     my ($self, $data) = @_;
-    $self->MdsAttributes($data);
+    $self->MdsAttributes();
     $self->attribute(objectClass => 'nordugrid-queue');
     $self->attributes($data, 'nordugrid-queue-', qw( name
                                                      status
@@ -118,7 +110,7 @@ sub queueAttributes {
 
 sub jobAttributes {
     my ($self, $data) = @_;
-    $self->MdsAttributes($data);
+    $self->MdsAttributes();
     $self->attribute(objectClass => 'nordugrid-job');
     $self->attributes($data, 'nordugrid-job-', qw( globalid
                                                    globalowner
@@ -153,47 +145,38 @@ sub jobAttributes {
 
 sub userAttributes {
     my ($self, $data) = @_;
-    $self->MdsAttributes($data);
+    $self->MdsAttributes();
     $self->attribute(objectClass => 'nordugrid-authuser');
     $self->attributes($data, 'nordugrid-authuser-', qw( name sn freecpus diskspace queuelength ));
 }
 
-sub beginGroup {
-    my ($self, $name) = @_;
-    $self->begin('nordugrid-info-group-name' => $name);
-    $self->MdsAttributes();
-    $self->attribute(objectClass => 'nordugrid-info-group');
-    $self->attribute('nordugrid-info-group-name' => $name);
-}
 
-sub endGroup {
-    my ($self) = @_;
-    $self->end();
-}
+#
+# Follow hierarchy
+#
 
 sub jobs {
-    Entries(@_, 'nordugrid-job-', 'globalid', \&jobAttributes);
+    LdifPrinter::Entries(@_, 'nordugrid-job-', 'globalid', \&jobAttributes);
 }
 
 sub users {
-    Entries(@_, 'nordugrid-authuser-', 'name', \&userAttributes);
+    LdifPrinter::Entries(@_, 'nordugrid-authuser-', 'name', \&userAttributes);
 }
 
 sub queues {
-    Entries(@_, 'nordugrid-queue-', 'name', \&queueAttributes, sub {
+    LdifPrinter::Entries(@_, 'nordugrid-queue-', 'name', \&queueAttributes, sub {
         my ($self, $data) = @_;
         $self->beginGroup('jobs');
         $self->jobs($data->{jobs});
-        $self->endGroup();
+        $self->end();
         $self->beginGroup('users');
         $self->users($data->{users});
-        $self->endGroup();
+        $self->end();
     });
-
 }
 
 sub cluster {
-    Entry(@_, 'nordugrid-cluster-', 'name', \&clusterAttributes, sub {
+    LdifPrinter::Entry(@_, 'nordugrid-cluster-', 'name', \&clusterAttributes, sub {
         my ($self, $data) = @_;
         $self->queues($data->{queues});
     });
