@@ -36,6 +36,7 @@ debian/tmp/usr/lib/arc/XmlPrinter.pm
 debian/tmp/usr/lib/arc/LdifPrinter.pm
 debian/tmp/usr/lib/arc/GLUE2xmlPrinter.pm
 debian/tmp/usr/lib/arc/GLUE2ldifPrinter.pm
+debian/tmp/usr/lib/arc/NGldifPrinter.pm
 debian/tmp/usr/lib/arc/ARC0ClusterInfo.pm
 debian/tmp/usr/lib/arc/ARC1ClusterInfo.pm
 debian/tmp/usr/lib/arc/ConfigCentral.pm

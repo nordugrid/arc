@@ -4,19 +4,18 @@ package ARC0ClusterInfo;
 # and prepares info modelled on the classic Nordugrid information schema
 # (arc0).
 
+use POSIX;
 use Storable;
 
 use strict;
 
 use LogUtils;
-use InfoChecker;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
 sub mds_date {
     my $seconds = shift;
-    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime($seconds);
-    return sprintf "%4d%02d%02d%02d%02d%02d%1s", $year+1900, $mon+1, $mday,$hour,$min,$sec,"Z";
+    return strftime("%Y%m%d%H%M%SZ", gmtime($seconds));
 }
 
 ############################################################################
@@ -24,21 +23,15 @@ sub mds_date {
 ############################################################################
 
 sub collect($) {
-    my ($options) = @_;
+    my ($data) = @_;
 
-    my $config = $options->{config};
-    my $usermap = $options->{usermap};
-    my $host_info = $options->{host_info};
-    my $rte_info = $options->{rte_info};
-    my $gmjobs_info = $options->{gmjobs_info};
-    my $lrms_info = $options->{lrms_info};
-
-    my ($valid_from, $valid_to) = ();
-    if ($config->{ttl}) {
-        my $t1 = time;
-        my $t2 = $t1 + $config->{ttl};
-        ($valid_from, $valid_to) = (mds_date($t1), mds_date($t2));
-    }
+    my $config = $data->{config};
+    my $usermap = $data->{usermap};
+    my $host_info = $data->{host_info};
+    my $rte_info = $data->{rte_info};
+    my $gmjobs_info = $data->{gmjobs_info};
+    my $lrms_info = $data->{lrms_info};
+    my $nojobs = $data->{nojobs};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
@@ -52,7 +45,7 @@ sub collect($) {
     }
 
     # config overrides
-    $host_info->{hostname} = $config->{hostname} if $config->{hostname};
+    my $hostname = $config->{hostname} || $host_info->{hostname};
 
     # count grid-manager jobs
 
@@ -194,302 +187,281 @@ sub collect($) {
                        ? $host_info->{hostcert_enddate}  : $host_info->{issuerca_enddate};
     }
 
+    my $callcount = 0;
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # build information tree  # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    my $c = {};
+    my $getCluster = sub {
 
-    $c->{'xmlns:n'} = "urn:nordugrid";
-    $c->{'xmlns:M0'} = "urn:Mds";
-    $c->{'xmlns:nc0'} = "urn:nordugrid-cluster";
+        $callcount++;
 
-    $c->{'nc0:name'} = [ $host_info->{hostname} ];
-    $c->{'nc0:aliasname'} = [ $config->{service}{Name} ] if $config->{service}{Name};
-    $c->{'nc0:comment'} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo};
-    $c->{'nc0:owner'} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
-    $c->{'nc0:acl'} = [ keys %authorizedvos ] if %authorizedvos;
-    $c->{'nc0:location'} = [ $config->{location}{PostCode} ] if $config->{location}{PostCode};
-    $c->{'nc0:issuerca'} = [ $host_info->{issuerca} ] if $host_info->{issuerca};
-    $c->{'nc0:issuerca-hash'} = [ $host_info->{issuerca_hash} ] if $host_info->{issuerca_hash};
-    $c->{'nc0:credentialexpirationtime'} = [ $credenddate ] if $credenddate;
-    $c->{'nc0:trustedca'} = $host_info->{trustedcas} if $host_info->{trustedcas};
-    $c->{'nc0:contactstring'} = [ "gsiftp://$host_info->{hostname}:$config->{gm_port}$config->{gm_mount_point}" ]
-        if $config->{gm_port} and $config->{gm_mount_point};
-    $c->{'nc0:interactive-contactstring'} = [ $config->{service}{InteractiveContactstring} ]
-        if $config->{service}{InteractiveContactstring};
-    $c->{'nc0:support'} = [ $supportmails[0] ] if @supportmails;
-    $c->{'nc0:lrms-type'} = [ $lrms_info->{cluster}{lrms_type} ];
-    $c->{'nc0:lrms-version'} = [ $lrms_info->{cluster}{lrms_version} ] if $lrms_info->{cluster}{lrms_version};
-    $c->{'nc0:lrms-config'} = [ $config->{service}{lrmsconfig} ] if $config->{service}{lrmsconfig}; # orphan
-    $c->{'nc0:architecture'} = [ $config->{service}{Platform} ] if $homogeneous and $config->{service}{Platform};
-    push @{$c->{'nc0:opsys'}}, $config->{service}{OSName}.'-'.$config->{service}{OSVersion}
-        if $config->{service}{OSName} and $config->{service}{OSVersion};
-    push @{$c->{'nc0:opsys'}}, @{$config->{service}{OpSys}} if $config->{service}{OpSys};
-    $c->{'nc0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } @{$config->{service}{Benchmark}} ]
-        if $config->{service}{Benchmark};
-    $c->{'nc0:nodecpu'} = [ $config->{service}{CPUModel}." @ ".$config->{service}{CPUClockSpeed}." MHz" ]
-        if $config->{service}{CPUModel} and $config->{service}{CPUClockSpeed};
-    $c->{'nc0:homogeneity'} = [ $homogeneous ? 'False' : 'True' ];
-    $c->{'nc0:nodeaccess'} = [ 'inbound' ] if $inbound;
-    $c->{'nc0:nodeaccess'} = [ 'outbound' ] if $outbound;
-    $c->{'nc0:totalcpus'} = [ $lrms_info->{cluster}{totalcpus} ];
-    $c->{'nc0:usedcpus'} = [ $lrms_info->{cluster}{usedcpus} ];
-    $c->{'nc0:cpudistribution'} = [ $lrms_info->{cluster}{cpudistribution} ];
-    $c->{'nc0:prelrmsqueued'} = [ ($gmjobcount{accepted} + $gmjobcount{preparing} + $gmjobcount{submit}) ];
-    $c->{'nc0:totaljobs'} =
-        [ ($gmjobcount{totaljobs} - $gmjobcount{finishing} - $gmjobcount{finished} - $gmjobcount{deleted}
-        + $lrms_info->{cluster}{queuedcpus} + $lrms_info->{cluster}{usedcpus} - $gmjobcount{inlrms}) ];
-    $c->{'nc0:localse'} = $config->{service}{LocalSE} if $config->{service}{LocalSE};
-    $c->{'nc0:sessiondir-free'} = [ $host_info->{session_free} ];
-    $c->{'nc0:sessiondir-total'} = [ $host_info->{session_total} ];
-    if ($config->{defaultttl}) {
-        my ($sessionlifetime) = split ' ', $config->{defaultttl};
-        $c->{'nc0:sessiondir-lifetime'} = [ int $sessionlifetime/60 ] if $sessionlifetime;
-    }
-    $c->{'nc0:cache-free'} = [ $host_info->{cache_free} ];
-    $c->{'nc0:cache-total'} = [ $host_info->{cache_total} ];
-    $c->{'nc0:runtimeenvironment'} = [ sort keys %$rte_info ];
-    push @{$c->{'nc0:middleware'}}, "ARC-".$config->{arcversion};
-    push @{$c->{'nc0:middleware'}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
-    push @{$c->{'nc0:middleware'}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
-    $c->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
-    $c->{'M0:validto'} = [ $valid_to ] if $valid_to;
+        my $c = {};
 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-    $c->{'nq0:name'} = [];
-
-    for my $share ( keys %{$config->{shares}} ) {
-
-        my $q = {};
-        push @{$c->{'nq0:name'}}, $q;
-
-        my $qinfo = $lrms_info->{queues}{$share};
-
-        # merge cluster wide and queue-specific options
-        my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
-
-        $sconfig->{ExecEnvName} ||= [];
-        my @nxenvs = @{$sconfig->{ExecEnvName}};
-
-        if (@nxenvs) {
-            my $xeconfig = $config->{xenvs}{$nxenvs[0]};
-            $log->info("The Nordugrid InfoSchema is not compatible with multiple ExecutionEnvironments per share") if @nxenvs > 1;
-
-            $sconfig = { %$sconfig, %$xeconfig };
+        $c->{name} = $hostname;
+        $c->{aliasname} = $config->{service}{ClusterAlias} if $config->{service}{ClusterAlias};
+        $c->{comment} = $config->{service}{ClusterComment} if $config->{service}{ClusterComment};
+        $c->{owner} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
+        $c->{acl} = [ keys %authorizedvos ] if %authorizedvos;
+        $c->{location} = $config->{location}{PostCode} if $config->{location}{PostCode};
+        $c->{issuerca} = $host_info->{issuerca} if $host_info->{issuerca};
+        $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};
+        $c->{credentialexpirationtime} = mds_date($credenddate) if $credenddate;
+        $c->{trustedca} = $host_info->{trustedcas} if $host_info->{trustedcas};
+        $c->{contactstring} = "gsiftp://$hostname:$config->{gm_port}$config->{gm_mount_point}"
+            if $config->{gm_port} and $config->{gm_mount_point};
+        $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
+            if $config->{service}{InteractiveContactstring};
+        $c->{support} = [ @supportmails ] if @supportmails;
+        $c->{'lrms-type'} = $lrms_info->{cluster}{lrms_type};
+        $c->{'lrms-version'} = $lrms_info->{cluster}{lrms_version} if $lrms_info->{cluster}{lrms_version};
+        $c->{'lrms-config'} = $config->{service}{lrmsconfig} if $config->{service}{lrmsconfig}; # orphan
+        $c->{architecture} = $config->{service}{Platform} if $homogeneous and $config->{service}{Platform};
+        push @{$c->{opsys}}, $config->{service}{OSName}.'-'.$config->{service}{OSVersion}
+            if $config->{service}{OSName} and $config->{service}{OSVersion};
+        push @{$c->{opsys}}, @{$config->{service}{OpSys}} if $config->{service}{OpSys};
+        $c->{benchmark} = [ map {join ' @ ', split /\s+/,$_,2 } @{$config->{service}{Benchmark}} ]
+            if $config->{service}{Benchmark};
+        $c->{nodecpu} = $config->{service}{CPUModel}." @ ".$config->{service}{CPUClockSpeed}." MHz"
+            if $config->{service}{CPUModel} and $config->{service}{CPUClockSpeed};
+        $c->{homogeneity} = $homogeneous ? 'FALSE' : 'TRUE';
+        $c->{nodeaccess} = 'inbound' if $inbound;
+        $c->{nodeaccess} = 'outbound' if $outbound;
+        $c->{totalcpus} = $lrms_info->{cluster}{totalcpus};
+        $c->{usedcpus} = $lrms_info->{cluster}{usedcpus};
+        $c->{cpudistribution} = $lrms_info->{cluster}{cpudistribution};
+        $c->{prelrmsqueued} = ($gmjobcount{accepted} + $gmjobcount{preparing} + $gmjobcount{submit});
+        $c->{totaljobs} =
+            ($gmjobcount{totaljobs} - $gmjobcount{finishing} - $gmjobcount{finished} - $gmjobcount{deleted}
+            + $lrms_info->{cluster}{queuedcpus} + $lrms_info->{cluster}{usedcpus} - $gmjobcount{inlrms});
+        $c->{localse} = $config->{service}{LocalSE} if $config->{service}{LocalSE};
+        $c->{'sessiondir-free'} = $host_info->{session_free};
+        $c->{'sessiondir-total'} = $host_info->{session_total};
+        if ($config->{defaultttl}) {
+            my ($sessionlifetime) = split ' ', $config->{defaultttl};
+            $c->{'sessiondir-lifetime'} = int $sessionlifetime/60 if $sessionlifetime;
         }
+        $c->{'cache-free'} = $host_info->{cache_free};
+        $c->{'cache-total'} = $host_info->{cache_total};
+        $c->{runtimeenvironment} = [ sort keys %$rte_info ];
+        push @{$c->{middleware}}, "ARC-".$config->{arcversion};
+        push @{$c->{middleware}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
+        push @{$c->{middleware}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
 
-        $q->{'xmlns:nq0'} = "urn:nordugrid-queue";
-        $q->{'name'} = $share;
-        $q->{'nq0:name'} = [ $share ];
-        
-        if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
-            $q->{'nq0:status'} = [ 'inactive, grid-manager does not accept new jobs' ];
-        } elsif (not $host_info->{processes}{'grid-manager'}) {
-            $q->{'nq0:status'} = [ 'inactive, grid-manager is down' ];   
-        } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
-            $q->{'nq0:status'} = [ 'inactive, host credentials missing' ];
-        } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {
-            $q->{'nq0:status'} = [ 'inactive, host credentials expired' ];
-        } elsif ( $qinfo->{status} < 0 ) {
-            $q->{'nq0:status'} = [ 'inactive, LRMS interface returns negative status' ];
-        } else {
-            $q->{'nq0:status'} = [ 'active' ];
-        }
-        $q->{'nq0:comment'} = [ $sconfig->{Description} ] if $sconfig->{Description};
-        $q->{'nq0:comment'} = $sconfig->{OtherInfo} if $sconfig->{OtherInfo};
-        $q->{'nq0:schedulingpolicy'} = [ $sconfig->{SchedulingPolicy} ] if $sconfig->{SchedulingPolicy};
-        $q->{'nq0:homogeneity'} = [ @nxenvs > 1 ? 'False' : 'True' ];
-        $q->{'nq0:nodecpu'} = [ $sconfig->{CPUModel}." @ ".$sconfig->{CPUClockSpeed}." MHz" ]
-            if $sconfig->{CPUModel} and $sconfig->{CPUClockSpeed};
-        $q->{'nq0:nodememory'} = [ $sconfig->{MaxVirtualMemory} ] if $sconfig->{MaxVirtualMemory};
-        $q->{'nq0:architecture'} = [ $sconfig->{Platform} ]
-            if $sconfig->{Platform};
-        push @{$q->{'nq0:opsys'}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
-            if $sconfig->{OSName} and $sconfig->{OSVersion};
-        push @{$q->{'nq0:opsys'}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
-        $q->{'nq0:benchmark'} = [ map {join ' @ ', split /\s+/,$_,2 } @{$sconfig->{Benchmark}} ]
-            if $sconfig->{Benchmark};
-        $q->{'nq0:maxrunning'} = [ $qinfo->{maxrunning} ] if defined $qinfo->{maxrunning};
-        $q->{'nq0:maxqueuable'}= [ $qinfo->{maxqueuable}] if defined $qinfo->{maxqueuable};
-        $q->{'nq0:maxuserrun'} = [ $qinfo->{maxuserrun} ] if defined $qinfo->{maxuserrun};
-        $q->{'nq0:maxcputime'} = [ int $qinfo->{maxcputime}/60 ] if defined $qinfo->{maxcputime};
-        $q->{'nq0:mincputime'} = [ int $qinfo->{mincputime}/60 ] if defined $qinfo->{mincputime};
-        $q->{'nq0:defaultcputime'} = [ int $qinfo->{defaultcput}/60 ] if defined $qinfo->{defaultcput};
-        $q->{'nq0:maxwalltime'} =  [ int $qinfo->{maxwalltime}/60 ] if defined $qinfo->{maxwalltime};
-        $q->{'nq0:minwalltime'} =  [ int $qinfo->{minwalltime}/60 ] if defined $qinfo->{minwalltime};
-        $q->{'nq0:defaultwalltime'} = [ int $qinfo->{defaultwallt}/60 ] if defined $qinfo->{defaultwallt};
-        $q->{'nq0:running'} = [ $qinfo->{running} ] if defined $qinfo->{running};
-        $q->{'nq0:gridrunning'} = [ $gridrunning{$share} || 0 ];   
-        $q->{'nq0:gridqueued'} = [ $gridqueued{$share} || 0 ];    
-        $q->{'nq0:localqueued'} = [ ($qinfo->{queued} - ( $gridqueued{$share} || 0 )) ];   
-        $q->{'nq0:prelrmsqueued'} = [ $prelrmsqueued{$share} || 0 ];
-        if ( $sconfig->{totalcpus} ) {
-            $q->{'nq0:totalcpus'} = [ $sconfig->{totalcpus} ]; # orphan
-        } elsif ( $qinfo->{totalcpus} ) {
-            $q->{'nq0:totalcpus'} = [ $qinfo->{totalcpus} ];      
-        }	
-        $q->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
-        $q->{'M0:validto'} = [ $valid_to ] if $valid_to;
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        my $getQueues = sub {
 
-        my $jg = {};
-        $q->{'nig0:jobs'} = $jg;
+            return undef unless my ($share, $dummy) = each %{$config->{shares}};
 
-        $jg->{'name'} = "jobs";
-        $jg->{'xmlns:nig0'} = "urn:nordugrid-info-group";
-        $jg->{'nig0:name'} = [ 'jobs' ];
-        $jg->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
-        $jg->{'M0:validto'} = [ $valid_to ] if $valid_to;
+            my $q = {};
 
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+            my $qinfo = $lrms_info->{queues}{$share};
 
-        $jg->{'nuj0:name'} = [];
+            # merge cluster wide and queue-specific options
+            my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
 
-        for my $jobid ( keys %$gmjobs_info ) {
+            $sconfig->{ExecEnvName} ||= [];
+            my @nxenvs = @{$sconfig->{ExecEnvName}};
 
-            my $gmjob = $gmjobs_info->{$jobid};
+            if (@nxenvs) {
+                my $xeconfig = $config->{xenvs}{$nxenvs[0]};
+                $log->info("The Nordugrid InfoSchema is not compatible with multiple ExecutionEnvironments per share") if @nxenvs > 1;
 
-            # only handle jobs in this queue
-            next unless $gmjob->{share} eq $share;
+                $sconfig = { %$sconfig, %$xeconfig };
+            }
 
-            my $j = {};
-            push @{$jg->{'nuj0:name'}}, $j;
-
-            $j->{'name'} = $jobid;
-            $j->{'xmlns:nuj0'} = "urn:nordugrid-job";
-            $j->{'nuj0:name'} = [ $jobid ];
-            $j->{'nuj0:globalid'} = [ $c->{'nc0:contactstring'}[0]."/$jobid" ];
-            $j->{'nuj0:globalowner'} = [ $gmjob->{subject} ] if $gmjob->{subject};
-            $j->{'nuj0:jobname'} = [ $gmjob->{jobname} ] if $gmjob->{jobname};
-            $j->{'nuj0:submissiontime'} = [ $gmjob->{starttime} ] if $gmjob->{starttime};
-            $j->{'nuj0:execcluster'} = [ $host_info->{hostname} ] if $host_info->{hostname};
-            $j->{'nuj0:execqueue'} = [ $share ] if $share;
-            $j->{'nuj0:cpucount'} = [ $gmjob->{count} || 1 ];
-            $j->{'nuj0:sessiondirerasetime'} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
-            $j->{'nuj0:stdin'}  = [ $gmjob->{stdin} ]  if $gmjob->{stdin};
-            $j->{'nuj0:stdout'} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
-            $j->{'nuj0:stderr'} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
-            $j->{'nuj0:gmlog'}  = [ $gmjob->{gmlog} ]  if $gmjob->{gmlog};
-            $j->{'nuj0:runtimeenvironment'} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-            $j->{'nuj0:submissionui'} = [ $gmjob->{clientname} ] if $gmjob->{clientname};
-            $j->{'nuj0:clientsoftware'} = [ $gmjob->{clientsoftware} ] if $gmjob->{clientsoftware};
-            $j->{'nuj0:proxyexpirationtime'} = [ $gmjob->{delegexpiretime} ] if $gmjob->{delegexpiretime};
-            $j->{'nuj0:rerunable'} = [ $gmjob->{failedstate} ? $gmjob->{failedstate} : 'none' ]
-                if $gmjob->{"status"} eq "FAILED";
-            $j->{'nuj0:comment'} = [ $gmjob->{comment} ] if $gmjob->{comment};
-
-            $j->{'nuj0:reqcputime'} = [ int $gmjob->{reqcputime}/60 ] if $gmjob->{reqcputime};
-            $j->{'nuj0:reqwalltime'} = [ int $gmjob->{reqwalltime}/60 ] if $gmjob->{reqwalltime};
-
-            if ($gmjob->{status} eq "INLRMS") {
-
-                my $localid = $gmjob->{localid}
-                    or $log->warning("No local id for job $jobid") and next;
-                my $lrmsjob = $lrms_info->{jobs}{$localid}
-                    or $log->warning("No local job for $jobid") and next;
-
-                $j->{'nuj0:usedmem'}     = [ $lrmsjob->{mem} ]        if defined $lrmsjob->{mem};
-                $j->{'nuj0:usedwalltime'}= [ int $lrmsjob->{walltime}/60 ]   if defined $lrmsjob->{walltime};
-                $j->{'nuj0:usedcputime'} = [ int $lrmsjob->{cputime}/60 ]    if defined $lrmsjob->{cputime};
-                $j->{'nuj0:reqwalltime'} = [ int $lrmsjob->{reqwalltime}/60] if defined $lrmsjob->{reqwalltime};
-                $j->{'nuj0:reqcputime'}  = [ int $lrmsjob->{reqcputime}/60 ] if defined $lrmsjob->{reqcputime};
-                $j->{'nuj0:executionnodes'} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
-
-                # LRMS-dependent attributes taken from LRMS when the job
-                # is in state 'INLRMS'
-
-                #nuj0:status
-                # take care of the GM latency, check if the job is in LRMS
-                # according to both GM and LRMS, GM might think the job 
-                # is still in LRMS while the job have already left LRMS              
-
-                if ($lrmsjob->{status} and $lrmsjob->{status} ne 'EXECUTED') {
-                    $j->{'nuj0:status'} = [ "INLRMS:$lrmsjob->{status}" ];
-                } else {
-                    $j->{'nuj0:status'} = [ 'EXECUTED' ];
-                }
-                push  @{$j->{'nuj0:comment'}}, @{$lrmsjob->{comment}} if $lrmsjob->{comment};
-                $j->{'nuj0:queuerank'} = [ $lrmsjob->{rank} ] if $lrmsjob->{rank};
-
+            $q->{'name'} = $share;
+            
+            if ( defined($config->{allownew}) and $config->{allownew} eq "no" ) {
+                $q->{status} = 'inactive, grid-manager does not accept new jobs';
+            } elsif (not $host_info->{processes}{'grid-manager'}) {
+                $q->{status} = 'inactive, grid-manager is down';   
+            } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
+                $q->{status} = 'inactive, host credentials missing';
+            } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {
+                $q->{status} = 'inactive, host credentials expired';
+            } elsif ( $qinfo->{status} < 0 ) {
+                $q->{status} = 'inactive, LRMS interface returns negative status';
             } else {
-
-                # LRMS-dependent attributes taken from GM when
-                # the job has passed the 'INLRMS' state
-
-                $j->{'nuj0:status'} = [ $gmjob->{status} ];
-                $j->{'nuj0:usedwalltime'} = [ int $gmjob->{WallTime}/60 ] if defined $gmjob->{WallTime};
-                $j->{'nuj0:usedcputime'} = [ int $gmjob->{CpuTime}/60 ] if defined $gmjob->{CpuTime};
-                $j->{'nuj0:executionnodes'} = $gmjob->{nodenames} if $gmjob->{nodenames};
-                $j->{'nuj0:usedmem'} = [ $gmjob->{UsedMem} ] if $gmjob->{UsedMem};
-                $j->{'nuj0:completiontime'} = [ $gmjob->{completiontime} ] if $gmjob->{completiontime};
-                $j->{'nuj0:errors'} = [ map { substr($_,0,87) } @{$gmjob->{errors}} ] if $gmjob->{errors};
-                $j->{'nuj0:exitcode'} = [ $gmjob->{exitcode} ] if defined $gmjob->{exitcode};
+                $q->{status} = 'active';
             }
+            push @{$q->{comment}}, $sconfig->{Description} if $sconfig->{Description};
+            push @{$q->{comment}}, $sconfig->{OtherInfo} if $sconfig->{OtherInfo};
+            $q->{schedulingpolicy} = $sconfig->{SchedulingPolicy} if $sconfig->{SchedulingPolicy};
+            $q->{homogeneity} = @nxenvs > 1 ? 'FALSE' : 'TRUE';
+            $q->{nodecpu} = $sconfig->{CPUModel}." @ ".$sconfig->{CPUClockSpeed}." MHz"
+                if $sconfig->{CPUModel} and $sconfig->{CPUClockSpeed};
+            $q->{nodememory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
+            $q->{architecture} = $sconfig->{Platform}
+                if $sconfig->{Platform};
+            push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
+                if $sconfig->{OSName} and $sconfig->{OSVersion};
+            push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            $q->{benchmark} = [ map {join ' @ ', split /\s+/,$_,2 } @{$sconfig->{Benchmark}} ]
+                if $sconfig->{Benchmark};
+            $q->{maxrunning} = $qinfo->{maxrunning} if defined $qinfo->{maxrunning};
+            $q->{maxqueuable}= $qinfo->{maxqueuable}if defined $qinfo->{maxqueuable};
+            $q->{maxuserrun} = $qinfo->{maxuserrun} if defined $qinfo->{maxuserrun};
+            $q->{maxcputime} = int $qinfo->{maxcputime}/60 if defined $qinfo->{maxcputime};
+            $q->{mincputime} = int $qinfo->{mincputime}/60 if defined $qinfo->{mincputime};
+            $q->{defaultcputime} = int $qinfo->{defaultcput}/60 if defined $qinfo->{defaultcput};
+            $q->{maxwalltime} =  int $qinfo->{maxwalltime}/60 if defined $qinfo->{maxwalltime};
+            $q->{minwalltime} =  int $qinfo->{minwalltime}/60 if defined $qinfo->{minwalltime};
+            $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
+            $q->{running} = $qinfo->{running} if defined $qinfo->{running};
+            $q->{gridrunning} = $gridrunning{$share} || 0;   
+            $q->{gridqueued} = $gridqueued{$share} || 0;    
+            $q->{localqueued} = ($qinfo->{queued} - ( $gridqueued{$share} || 0 ));   
+            $q->{prelrmsqueued} = $prelrmsqueued{$share} || 0;
+            if ( $sconfig->{totalcpus} ) {
+                $q->{totalcpus} = $sconfig->{totalcpus}; # orphan
+            } elsif ( $qinfo->{totalcpus} ) {
+                $q->{totalcpus} = $qinfo->{totalcpus};
+            }	
 
-            $j->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
-            $j->{'M0:validto'} = [ $valid_to ] if $valid_to;
-        }
+            keys %$gmjobs_info; # reset iterator of each()
 
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+            # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-        my $ug = {};
-        $q->{'nig0:users'} = $ug;
+            my $getJobs = sub {
 
-        $ug->{'name'} = "users";
-        $ug->{'xmlns:nig0'} = "urn:nordugrid-info-group";
-        $ug->{'nig0:name'} = [ 'users' ];
-        $ug->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
-        $ug->{'M0:validto'} = [ $valid_to ] if $valid_to;
+                # find the next job that belongs to the current share
+                my ($jobid, $gmjob);
+                while (1) {
+                    return undef unless ($jobid, $gmjob) = each %$gmjobs_info;
+                    last if $gmjob->{share} eq $share;
+                }
 
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+                my $j = {};
 
-        $ug->{'na0:name'} = [];
+                $j->{name} = $jobid;
+                $j->{globalid} = $c->{contactstring}."/$jobid";
+                $j->{globalowner} = $gmjob->{subject} if $gmjob->{subject};
+                $j->{jobname} = $gmjob->{jobname} if $gmjob->{jobname};
+                $j->{submissiontime} = $gmjob->{starttime} if $gmjob->{starttime};
+                $j->{execcluster} = $hostname if $hostname;
+                $j->{execqueue} = [ $share ] if $share;
+                $j->{cpucount} = [ $gmjob->{count} || 1 ];
+                $j->{sessiondirerasetime} = [ $gmjob->{cleanuptime} ] if $gmjob->{cleanuptime};
+                $j->{stdin}  = [ $gmjob->{stdin} ]  if $gmjob->{stdin};
+                $j->{stdout} = [ $gmjob->{stdout} ] if $gmjob->{stdout};
+                $j->{stderr} = [ $gmjob->{stderr} ] if $gmjob->{stderr};
+                $j->{gmlog}  = [ $gmjob->{gmlog} ]  if $gmjob->{gmlog};
+                $j->{runtimeenvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
+                $j->{submissionui} = $gmjob->{clientname} if $gmjob->{clientname};
+                $j->{clientsoftware} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
+                $j->{proxyexpirationtime} = $gmjob->{delegexpiretime} if $gmjob->{delegexpiretime};
+                $j->{rerunable} = $gmjob->{failedstate} ? $gmjob->{failedstate} : 'none'
+                    if $gmjob->{status} eq "FAILED";
+                $j->{comment} = [ $gmjob->{comment} ] if $gmjob->{comment};
+                $j->{reqcputime} = int $gmjob->{reqcputime}/60 if $gmjob->{reqcputime};
+                $j->{reqwalltime} = int $gmjob->{reqwalltime}/60 if $gmjob->{reqwalltime};
 
-        my $usernumber = 0;
+                if ($gmjob->{status} eq "INLRMS") {
 
-        for my $sn ( keys %$usermap ) {
+                    my $localid = $gmjob->{localid}
+                        or $log->warning("No local id for job $jobid") and next;
+                    my $lrmsjob = $lrms_info->{jobs}{$localid}
+                        or $log->warning("No local job for $jobid") and next;
 
-            my $localid = $usermap->{$sn};
-            my $lrms_user = $qinfo->{users}{$localid};
+                    $j->{usedmem}     =     $lrmsjob->{mem}            if defined $lrmsjob->{mem};
+                    $j->{usedwalltime}= int $lrmsjob->{walltime}/60    if defined $lrmsjob->{walltime};
+                    $j->{usedcputime} = int $lrmsjob->{cputime}/60     if defined $lrmsjob->{cputime};
+                    $j->{reqwalltime} = int $lrmsjob->{reqwalltime}/60 if defined $lrmsjob->{reqwalltime};
+                    $j->{reqcputime}  = int $lrmsjob->{reqcputime}/60  if defined $lrmsjob->{reqcputime};
+                    $j->{executionnodes}  = $lrmsjob->{nodes} if $lrmsjob->{nodes};
 
-            # skip users that are not authorized in this queue
-            next if exists $qinfo->{acl_users}
-                 and not grep { $_ eq $localid } @{$qinfo->{acl_users}};
+                    # LRMS-dependent attributes taken from LRMS when the job
+                    # is in state 'INLRMS'
 
-            my $u = {};
-            push @{$ug->{'na0:name'}}, $u;
+                    #nuj0:status
+                    # take care of the GM latency, check if the job is in LRMS
+                    # according to both GM and LRMS, GM might think the job 
+                    # is still in LRMS while the job have already left LRMS              
 
-            ++$usernumber;
-            my $space = $host_info->{localusers}{$localid};
+                    if ($lrmsjob->{status} and $lrmsjob->{status} ne 'EXECUTED') {
+                        $j->{status} = "INLRMS:$lrmsjob->{status}";
+                    } else {
+                        $j->{status} = 'EXECUTED';
+                    }
+                    push  @{$j->{comment}}, @{$lrmsjob->{comment}} if $lrmsjob->{comment};
+                    $j->{queuerank} = $lrmsjob->{rank} if $lrmsjob->{rank};
 
-            #na0:name= CN from the SN  + unique number 
-            my $cn = ($sn =~ m#/CN=([^/]+)(/Email)?#) ? $1 : $sn;
+                } else {
 
-            $u->{'name'} = "${cn}...$usernumber";
-            $u->{'xmlns:na0'} = "urn:nordugrid-authuser";
-            $u->{'na0:name'} = [ "${cn}...$usernumber" ];
-            $u->{'na0:sn'} = [ $sn ];
-            $u->{'na0:diskspace'} = [ $space->{diskfree} ] if defined $space->{diskfree};
+                    # LRMS-dependent attributes taken from GM when
+                    # the job has passed the 'INLRMS' state
 
-            my @freecpus;
-            # sort by decreasing number of cpus
-            for my $ncpu ( sort { $b <=> $a } keys %{$lrms_user->{freecpus}} ) {
-                my $minutes = $lrms_user->{freecpus}{$ncpu};
-                push @freecpus, $minutes ? "$ncpu:$minutes" : $ncpu;
-            }
-            $u->{'na0:freecpus'} = [ join(" ", @freecpus) || 0 ];
+                    $j->{status} = $gmjob->{status};
+                    $j->{usedwalltime} = int $gmjob->{WallTime}/60 if defined $gmjob->{WallTime};
+                    $j->{usedcputime} = int $gmjob->{CpuTime}/60 if defined $gmjob->{CpuTime};
+                    $j->{executionnodes} = $gmjob->{nodenames} if $gmjob->{nodenames};
+                    $j->{usedmem} = $gmjob->{UsedMem} if $gmjob->{UsedMem};
+                    $j->{completiontime} = $gmjob->{completiontime} if $gmjob->{completiontime};
+                    $j->{errors} = join "; ", map { substr($_,0,255) } @{$gmjob->{errors}} if $gmjob->{errors};
+                    $j->{exitcode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
+                }
 
-            $u->{'na0:queuelength'} = [ $gm_queued{$sn} + $lrms_user->{queuelength} ];
-            $u->{'M0:validfrom'} = [ $valid_from ] if $valid_from;
-            $u->{'M0:validto'} = [ $valid_to ] if $valid_to;
-        }
+                return $j;
+            };
 
-    }
+            $q->{jobs} = $getJobs;
 
-    return $c;
+            # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+            my $usernumber = 0;
+
+            keys %$usermap; # reset iterator of each()
+
+            my $getUsers = sub {
+
+                # find the next user that is authorized in this queue
+                my ($sn, $localid, $lrms_user);
+                while (1) {
+                    return undef unless ($sn, $localid) = each %$usermap;
+                    $lrms_user = $qinfo->{users}{$localid};
+                    last if not exists $qinfo->{acl_users};
+                    last if grep { $_ eq $localid } @{$qinfo->{acl_users}};
+                }
+
+                my $u = {};
+
+                ++$usernumber;
+                my $space = $host_info->{localusers}{$localid};
+
+                #name= CN from the SN  + unique number 
+                my $cn = ($sn =~ m#/CN=([^/]+)(/Email)?#) ? $1 : $sn;
+
+                $u->{name} = "${cn}...$usernumber";
+                $u->{sn} = $sn;
+                $u->{diskspace} = $space->{diskfree} if defined $space->{diskfree};
+
+                my @freecpus;
+                # sort by decreasing number of cpus
+                for my $ncpu ( sort { $b <=> $a } keys %{$lrms_user->{freecpus}} ) {
+                    my $minutes = $lrms_user->{freecpus}{$ncpu};
+                    push @freecpus, $minutes ? "$ncpu:$minutes" : $ncpu;
+                }
+                $u->{freecpus} = join(" ", @freecpus) || 0;
+                $u->{queuelength} = $gm_queued{$sn} + $lrms_user->{queuelength};
+
+                return $u;
+            };
+
+            $q->{users} = $getUsers;
+
+            return $q;
+        };
+
+        $c->{queues} = $getQueues;
+
+        return $c;
+    };
+
+    return $getCluster;
+
 }
 
 

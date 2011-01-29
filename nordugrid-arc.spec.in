@@ -843,6 +843,7 @@ exit 0
 %{_libdir}/%{pkgdir}/LdifPrinter.pm
 %{_libdir}/%{pkgdir}/GLUE2xmlPrinter.pm
 %{_libdir}/%{pkgdir}/GLUE2ldifPrinter.pm
+%{_libdir}/%{pkgdir}/NGldifPrinter.pm
 %{_libdir}/%{pkgdir}/ARC0ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ARC1ClusterInfo.pm
 %{_libdir}/%{pkgdir}/ConfigCentral.pm

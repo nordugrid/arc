@@ -43,6 +43,7 @@ use ARC1ClusterInfo;
 
 use GLUE2xmlPrinter;
 use GLUE2ldifPrinter;
+use NGldifPrinter;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
@@ -123,15 +124,11 @@ sub main {
     #my $ldifPrinter = GLUE2ldifPrinter->new(*STDOUT);
     #timed 'GLUE2ldif', sub { $ldifPrinter->Top(@_) }, $adminDomain;
 
-    my $png = $config->{PublishNordugrid};
-    unless (defined $png and not $png) {
-        unless ($nonordugrid) {
-            my $ngdata = {};
-            $ngdata->{'n:nordugrid'} = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
-            $ngdata->{'n:nordugrid'}{'xmlns:n'} = "urn:nordugrid-cluster";
-            #NGldif::renderDocument($ngdata);
-            #GLUE13ldif::renderDocument($ngdata);
-        }
+    if ($config->{PublishNordugrid}) {
+        my $ngdata = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
+
+        #my $printer = NGldifPrinter->new(*STDOUT, $config->{ttl});
+        #$printer->Top($ngdata);
     }
     $log->info("############## Infoprovider finished ##############");
 }
