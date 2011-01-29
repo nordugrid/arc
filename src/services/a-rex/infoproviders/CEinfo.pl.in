@@ -190,7 +190,7 @@ sub get_host_info($$) {
 
     my $host_opts = {};
     $host_opts->{localusers} = $localusers;
-    $host_opts->{processes} = $config->{processes};
+    $host_opts->{processes} = ['arched'];
     $host_opts->{x509_user_cert} = $config->{x509_user_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{sessiondir} = $config->{sessiondir};
@@ -319,11 +319,11 @@ sub fix_config {
 
     my %config_defaults = (
                    arcversion     => '@VERSION@',
-                   gm_mount_point => "/jobs",
-                   gm_port        => 2811,
+                   GridftpdEnabled     => 0,
+                   GridftpdMountPoint  => '/jobs',
+                   GridftpdPort        => 2811,
                    ttl            =>  60,
-                   defaultttl     => "604800",
-                   processes      => [qw(arched)]
+                   defaultttl     => 604800
 
     );
     $config->{$_} ||= $config_defaults{$_} for keys %config_defaults;

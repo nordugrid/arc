@@ -98,8 +98,9 @@
 <xsd:element name="Downtime" type="xsd:string"/>
 
 <!-- Options used only for generating legacy Nordugrid info schema -->
-<xsd:element name="gm_port" type="xsd:string"/>
-<xsd:element name="gm_mount_point" type="xsd:string"/>
+<xsd:element name="GridftpdEnabled" type="xsd:boolean"/>
+<xsd:element name="GridftpdPort" type="xsd:string"/>
+<xsd:element name="GridftpdMountPoint" type="xsd:string"/>
 <xsd:element name="ClusterOwner" type="xsd:string"/>
 <xsd:element name="ClusterAlias" type="xsd:string"/>
 <xsd:element name="ClusterComment" type="xsd:string"/>

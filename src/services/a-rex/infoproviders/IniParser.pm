@@ -100,6 +100,11 @@ sub list_sections($) {
     return keys %{$self->{config}};
 }
 
+sub has_section($$) {
+    my ($self,$sname) = @_;
+    return defined $self->{config}{$sname};
+}
+
 # list all subsections of a section, but not the section section itself
 
 sub list_subsections($$) {

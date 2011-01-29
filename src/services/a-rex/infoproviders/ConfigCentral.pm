@@ -106,8 +106,11 @@ my $gmcommon_options = {
     use_janitor => '*',
 };
 my $ldap_infosys_options = {
-    gm_mount_point => '*',
-    gm_port => '*'
+};
+my $gridftpd_options = {
+    GridftpdEnabled => '*',
+    GridftpdPort => '*',
+    GridftpdMountPoint => '*',
 };
 
 # # # # # # # # # # # # # #
@@ -120,6 +123,7 @@ my $config_schema = {
     AdminDomain => '*',
     ttl => '*',
     %$gmcommon_options,
+    %$gridftpd_options,
     %$ldap_infosys_options,
     %$lrms_options,
     %$lrms_share_options,
@@ -183,7 +187,7 @@ my $config_schema = {
 my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
-                 use_janitor) ];
+                 GridftpdEnabled use_janitor) ];
 
 ############################ Generic functions ###########################
 
@@ -447,7 +451,7 @@ sub build_config_from_xmlfile {
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
     move_keys $ipcfg, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
-    move_keys $ipcfg, $config, ['gm_mount_point', 'gm_port'];
+    move_keys $ipcfg, $config, [keys %$gridftpd_options];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
     my $xenvs = hash_get_arrayref($ipcfg, 'ExecutionEnvironment');
@@ -511,9 +515,13 @@ sub build_config_from_inifile {
     move_keys $gm, $config->{control}{'.'}, [keys %$gmuser_options];
     rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
 
+    $config->{debugLevel} = $common->{debug} if $common->{debug};
+
     move_keys $common, $config, [keys %$ldap_infosys_options];
 
-    $config->{debugLevel} = $common->{debug} if $common->{debug};
+    my $infosys = { $iniparser->get_section("infosys") };
+    rename_keys $infosys, $config, {providerlog => 'ProviderLog'};
+    move_keys $infosys, $config, [keys %$ldap_infosys_options];
 
     my @cnames = $iniparser->list_subsections('grid-manager');
     for my $name (@cnames) {
@@ -522,19 +530,25 @@ sub build_config_from_inifile {
         move_keys $section, $config->{control}{$name}, [keys %$gmuser_options];
     }
 
+    # Cherry-pick some gridftp options
+    if ($iniparser->has_section('gridftpd/jobs')) {
+        my %gconf = $iniparser->get_section('gridftpd');
+        my %gjconf = $iniparser->get_section('gridftpd/jobs');
+        $config->{GridftpdEnabled} = 'yes';
+        $config->{GridftpdPort} = $gconf{port} if $gconf{port};
+        $config->{GridftpdMountPoint} = $gjconf{path} if $gjconf{path};
+    } else {
+        $config->{GridftpdEnabled} = 'no';
+    }
+
     ############################ legacy ini config file structure #############################
 
     move_keys $common, $config, ['AdminDomain'];
     move_keys $common, $config->{service}, [keys %{$config_schema->{service}}];
 
-    my $infosys = { $iniparser->get_section("infosys") };
-    rename_keys $infosys, $config, {providerlog => 'ProviderLog'};
-    move_keys $infosys, $config, [keys %$ldap_infosys_options];
-
     my $cluster = { $iniparser->get_section('cluster') };
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
-        move_keys $cluster, $config, ["gm_mount_point", "gm_port"];
         rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
