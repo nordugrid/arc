@@ -63,6 +63,50 @@ namespace Arc {
     return l;
   }
 
+  bool XRSLParser::ParseExecutablesAttribute(JobDescription& j) {
+    std::map<std::string, std::string>::iterator itExecsAtt = j.OtherAttributes.find("nordugrid:xrsl;executables");
+    if (itExecsAtt == j.OtherAttributes.end()) {
+      return true;
+    }
+
+    RSLParser rp("&(executables = " + itExecsAtt->second + ")");
+    const RSL* rexecs = rp.Parse(false);
+    const RSLBoolean* bexecs;
+    const RSLCondition* cexecs;
+    std::list<std::string> execs;
+
+    if (rexecs == NULL ||
+        (bexecs = dynamic_cast<const RSLBoolean*>(rexecs)) == NULL ||
+        (cexecs = dynamic_cast<const RSLCondition*>(*bexecs->begin())) == NULL ||
+        !ListValue(cexecs, execs)) {
+      // Should not happen.
+      logger.msg(DEBUG, "Error parsing the internally set executables attribute.");
+      return false;
+    }
+
+    for (std::list<std::string>::const_iterator itExecs = execs.begin();
+         itExecs != execs.end(); itExecs++) {
+      bool fileExists = false;
+      std::list<FileType>::iterator itFile = j.DataStaging.File.begin();
+      for (; itFile != j.DataStaging.File.end(); itFile++) {
+        if (itFile->Name == (*itExecs)) {
+          itFile->IsExecutable = true;
+          fileExists = true;
+        }
+      }
+
+      if (!fileExists) {
+        logger.msg(INFO, "File \"%s\" in the executables attribute is not present in the inputfiles attribute", itFile->Name);
+        return false;
+      }
+    }
+
+    // executables attribute only stored for later parsing, removing it now.
+    j.OtherAttributes.erase(itExecsAtt);
+
+    return true;
+  }
+
   bool XRSLParser::cached = true;
 
   bool XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
@@ -87,13 +131,24 @@ namespace Arc {
       jobdescs.push_back(JobDescription());
 
       if (!Parse(*it, jobdescs.back(), dialect)) {
-         logger.msg(ERROR, "XRSL parsing error");
-         jobdescs.clear();
-         return false;
-       }
+        logger.msg(ERROR, "XRSL parsing error");
+        jobdescs.clear();
+        return false;
+      }
 
-       jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = source;
-     }
+      // Parse remaining attributes if any.
+      if (!ParseExecutablesAttribute(jobdescs.back())) {
+        return false;
+      }
+      for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
+           itJob != jobdescs.back().GetAlternatives().end(); itJob++) {
+        if (!ParseExecutablesAttribute(*itJob)) {
+          return false;
+        }
+      }
+
+      jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = source;
+    }
 
     if(jobdescs.empty()) {
       // Probably never happens so check is just in case of future changes
@@ -423,21 +478,21 @@ namespace Arc {
         return true;
       }
 
-      /* BROKEN!
-       * Parsing of this attribute is broken, since it must be ensured
-       * that it is processed after the inputfiles attribute have been
-       * processed
-       */
       if (c->Attr() == "executables") {
         std::list<std::string> execs;
         if (!ListValue(c, execs))
           return false;
-        for (std::list<std::string>::iterator it = execs.begin();
-             it != execs.end(); it++)
-          for (std::list<FileType>::iterator it2 = j.DataStaging.File.begin();
-               it2 != j.DataStaging.File.end(); it2++)
-            if (it2->Name == (*it))
-              it2->IsExecutable = true;
+        /* Store value in the OtherAttributes member and set it later when all
+         * the attributes it depends on has been parsed.
+         */
+        std::ostringstream os;
+        c->List().Print(os);
+        j.OtherAttributes["nordugrid:xrsl;executables"] = os.str();
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;executables"] = os.str();
+        }
+
         return true;
       }
 

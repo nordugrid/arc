@@ -23,6 +23,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestDataStagingCreateUpload);
   CPPUNIT_TEST(TestDataStagingDownloadUpload);
   CPPUNIT_TEST(TestDataStagingUploadUpload);
+  CPPUNIT_TEST(TestExecutables);
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST(TestGridTime);
@@ -46,6 +47,7 @@ public:
   void TestDataStagingCreateUpload();
   void TestDataStagingDownloadUpload();
   void TestDataStagingUploadUpload();
+  void TestExecutables();
   void TestNotify();
   void TestJoin();
   void TestGridTime();
@@ -527,6 +529,53 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI,  it->Target.front().URI);
 
   remove(file.Name.c_str());
+}
+
+void XRSLParserTest::TestExecutables() {
+  std::string xrsl = "&(executable=/bin/true)(|(executables=\"in1\")(executables=\"in2\"))(inputfiles=(\"in1\" \"\") (\"in2\" \"\"))";
+
+  std::ofstream f("in1", std::ifstream::trunc);
+  f << "in1";
+  f.close();
+  f.open("in2", std::ifstream::trunc);
+  f << "in2";
+  f.close();
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT(OUTJOBS.front().DataStaging.File.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().DataStaging.File.back().Name);
+  CPPUNIT_ASSERT(!OUTJOBS.front().DataStaging.File.back().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().GetAlternatives().front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT(!OUTJOBS.front().GetAlternatives().front().DataStaging.File.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().GetAlternatives().front().DataStaging.File.back().Name);
+  CPPUNIT_ASSERT(OUTJOBS.front().GetAlternatives().front().DataStaging.File.back().IsExecutable);
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT(OUTJOBS.front().DataStaging.File.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().DataStaging.File.back().Name);
+  CPPUNIT_ASSERT(!OUTJOBS.front().DataStaging.File.back().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  xrsl = "&(executable=/bin/true)(|(executables=\"non-existing\"))(inputfiles=(\"in1\" \"\"))";
+  CPPUNIT_ASSERT(!PARSER.Parse(xrsl, OUTJOBS));
+
+  remove("in1");
+  remove("in2");
 }
 
 void XRSLParserTest::TestNotify() {
