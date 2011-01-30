@@ -186,6 +186,9 @@ namespace Arc {
     RSLRelOp Op() const {
       return op;
     }
+    const RSLList& List() const {
+      return *values;
+    }
     std::list<RSLValue*>::iterator begin() {
       return values->begin();
     }
