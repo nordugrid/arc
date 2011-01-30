@@ -208,16 +208,6 @@ namespace Arc {
     if (bool(jobidentification["JobVOName"]))
       job.Identification.JobVOName = (std::string)jobidentification["JobVOName"];
 
-    // ComputingActivityType JobType;
-    if (!bool(jobidentification["JobType"]) || lower((std::string)jobidentification["JobType"]) == "single")
-      job.Identification.JobType = SINGLE;
-    else if (lower((std::string)jobidentification["JobType"]) == "collectionelement")
-      job.Identification.JobType = COLLECTIONELEMENT;
-    else if (lower((std::string)jobidentification["JobType"]) == "parallelelement")
-      job.Identification.JobType = PARALLELELEMENT;
-    else if (lower((std::string)jobidentification["JobType"]) == "workflownode")
-      job.Identification.JobType = WORKFLOWNODE;
-
     // std::list<std::string> UserTag;
     for (int i = 0; (bool)(jobidentification["UserTag"][i]); i++)
       job.Identification.UserTag.push_back((std::string)jobidentification["UserTag"][i]);
@@ -623,22 +613,6 @@ namespace Arc {
     // std::string JobVOName;
     if (!job.Identification.JobVOName.empty())
       xmlIdentification.NewChild("JobVOName") = job.Identification.JobVOName;
-
-    // ComputingActivityType JobType;
-    switch (job.Identification.JobType) {
-    case COLLECTIONELEMENT:
-      xmlIdentification.NewChild("JobType") = "collectionelement";
-      break;
-    case PARALLELELEMENT:
-      xmlIdentification.NewChild("JobType") = "parallelelement";
-      break;
-    case WORKFLOWNODE:
-      xmlIdentification.NewChild("JobType") = "workflownode";
-      break;
-    default:
-      xmlIdentification.NewChild("JobType") = "single";
-      break;
-    }
 
     // std::list<std::string> UserTag;
     for (std::list<std::string>::const_iterator it = job.Identification.UserTag.begin();

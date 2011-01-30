@@ -98,21 +98,6 @@ namespace Arc {
     STRPRINT(out, Identification.Description, Description)
     STRPRINT(out, Identification.JobVOName, Virtual Organization)
 
-    switch (Identification.JobType) {
-    case SINGLE:
-      out << IString("Job type: single") << std::endl;
-      break;
-    case COLLECTIONELEMENT:
-      out << IString("Job type: collection") << std::endl;
-      break;
-    case PARALLELELEMENT:
-      out << IString("Job type: parallel") << std::endl;
-      break;
-    case WORKFLOWNODE:
-      out << IString("Job type: workflownode") << std::endl;
-      break;
-    }
-
     if (format == "userlong") {
       if (!Identification.UserTag.empty()) {
         std::list<std::string>::const_iterator iter = Identification.UserTag.begin();

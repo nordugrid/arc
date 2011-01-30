@@ -67,21 +67,12 @@ namespace Arc {
     int scaleMax(double s) const { return (int)(range.max*benchmark.second/s); }
   };
 
-  enum ComputingActivityType {
-    SINGLE = 0,
-    COLLECTIONELEMENT = 1,
-    PARALLELELEMENT = 2,
-    WORKFLOWNODE = 3
-  };
-
   class JobIdentificationType {
   public:
-    JobIdentificationType() :
-      JobType(SINGLE) {}
+    JobIdentificationType() {}
     std::string JobName;
     std::string Description;
     std::string JobVOName;
-    ComputingActivityType JobType;
     std::list<std::string> UserTag;
     std::list<std::string> ActivityOldId;
   };
