@@ -256,7 +256,8 @@ sub cluster_info ($) {
     else {
 	$qmgr_string =~ /pbs_version = \b(\d\S+)\b/;
 	$lrms_cluster{lrms_type}="torque";
-	if (lc($$config{scheduling_policy}) eq "maui") {
+	if (exists $$config{scheduling_policy} and
+	    lc($$config{scheduling_policy}) eq "maui") {
 	    $lrms_cluster{lrms_glue_type}="torquemaui"
 	} else {
 	    $lrms_cluster{lrms_glue_type}="torque";
@@ -564,7 +565,8 @@ sub jobs_info ($$@) {
 
     # better rank for maui
     my %showqrank;
-    if (lc($$config{scheduling_policy}) eq "maui") {
+    if (exists $$config{scheduling_policy} and
+	lc($$config{scheduling_policy}) eq "maui") {
 	my $showq = (defined $$config{maui_bin_path}) ? $$config{maui_bin_path}."/showq" : "showq";
 	unless (open SHOWQOUTPUT, " $showq |"){
 	    error("error in executing $showq ");
@@ -785,7 +787,8 @@ sub users_info($$@) {
     }
 
     foreach my $u ( @{$accts} ) {
-	if (lc($$config{scheduling_policy}) eq "maui") {
+	if (exists $$config{scheduling_policy} and
+	    lc($$config{scheduling_policy}) eq "maui") {
 	    my $maui_freecpus;
 	    my $showbf = (defined $$config{maui_bin_path}) ? $$config{maui_bin_path}."/showbf" : "showbf";
 	    if (exists $$config{dedicated_node_string}) {
