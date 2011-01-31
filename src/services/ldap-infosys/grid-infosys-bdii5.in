@@ -1027,20 +1027,43 @@ notify_about_bdii () {
     debug_echo "That can also be worth checking up on if something is broken."
 }
 
+# Checks status, if unclean shutdown occured, clean up
+check_clean_status () {
+    if [ -f "${slapd_lock_file}" ]; then
+        if [ -f "${slapd_pid_file}" ]; then
+            slapd_pid=`cat "${slapd_pid_file}"`
+            if ps -p "$slapd_pid" > /dev/null; then
+                # running
+                echo -n "Starting $prog: "
+                failure
+                eval log_failure_msg "$prog already started"
+                do_exit_start 0
+            else
+                rm -f "${slapd_pid_file}"
+            fi
+        fi
+        rm -f "${slapd_lock_file}"
+    fi
+    if [ -f "${update_lock_file}" ]; then
+        if [  -f "${update_pid_file}" ]; then
+            update_pid=`cat "${update_pid_file}"`
+            if ps -p "$update_pid" > /dev/null; then
+                # running
+                echo -n "Starting $prog: "
+                failure
+                eval log_failure_msg "$prog already started"
+                do_exit_start 0
+            else
+                rm -f "${update_pid_file}"
+            fi
+        fi
+        rm -f "${update_lock_file}"         
+    fi
+}
+
 start () {
     # Check status
-    if [ -f "${slapd_lock_file}" ] || [ -f "${update_lock_file}" ] ; then
-        echo -n "Starting $prog: "
-        result=$($0 status)
-        if [ $? -gt 0 ]; then
-                echo ${result} 1>&2
-                do_exit_start 1
-        else
-            failure
-            eval log_failure_msg "$prog already started"
-            do_exit_start 0
-        fi
-    fi
+    check_clean_status
 
     # Print help-message about new logs
     notify_about_bdii
