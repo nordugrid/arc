@@ -171,7 +171,12 @@ fi
 export ARC_LOCATION
 
 # source the config parsing routines
-. $ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh || exit $?
+if [ -r "$ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh" ]; then
+    . $ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh || exit $?
+else
+    eval log_failure_msg "Error: could not find $ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh"
+    exit 1
+fi
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 
