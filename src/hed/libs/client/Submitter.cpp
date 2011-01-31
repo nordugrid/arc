@@ -42,10 +42,10 @@ namespace Arc {
     mover.passive(true);
     mover.verbose(false);
 
-    for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
-         it != job.DataStaging.File.end(); it++)
+    for (std::list<FileType>::const_iterator it = job.Files.begin();
+         it != job.Files.end(); it++)
       if (!it->Source.empty()) {
-        const URL& src = it->Source.begin()->URI;
+        const URL& src = it->Source.front();
         if (src.Protocol() == "file") {
           URL dst(std::string(url.str() + '/' + it->Name));
           DataHandle source(src, usercfg);
@@ -97,15 +97,16 @@ namespace Arc {
     job.UnParse(rep, "nordugrid:jsdl"); // Assuming job description is valid.
     info.NewChild("JobDescription") = (std::string)rep;
 
-    for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
-         it != job.DataStaging.File.end(); it++)
+    for (std::list<FileType>::const_iterator it = job.Files.begin();
+         it != job.Files.end(); it++)
       if (!it->Source.empty())
-        if (it->Source.begin()->URI.Protocol() == "file") {
-          if (!info["LocalInputFiles"])
+        if (it->Source.front().Protocol() == "file") {
+          if (!info["LocalInputFiles"]) {
             info.NewChild("LocalInputFiles");
+          }
           XMLNode File = info["LocalInputFiles"].NewChild("File");
           File.NewChild("Source") = it->Name;
-          File.NewChild("CheckSum") = GetCksum(it->Source.begin()->URI.Path());
+          File.NewChild("CheckSum") = GetCksum(it->Source.front().Path());
         }
 
     FileLock lock(usercfg.JobListFile());
@@ -132,10 +133,10 @@ namespace Arc {
     jobdesc.UnParse(job.JobDescriptionDocument, "nordugrid:jsdl"); // Assuming job description is valid.
 
     job.LocalInputFiles.clear();
-    for (std::list<FileType>::const_iterator it = jobdesc.DataStaging.File.begin();
-         it != jobdesc.DataStaging.File.end(); it++) {
-      if (!it->Source.empty() && it->Source.begin()->URI.Protocol() == "file") {
-        job.LocalInputFiles[it->Name] = GetCksum(it->Source.begin()->URI.Path());
+    for (std::list<FileType>::const_iterator it = jobdesc.Files.begin();
+         it != jobdesc.Files.end(); it++) {
+      if (!it->Source.empty() && it->Source.front().Protocol() == "file") {
+        job.LocalInputFiles[it->Name] = GetCksum(it->Source.front().Path());
       }
     }
   }

@@ -163,32 +163,28 @@ namespace Arc {
         FileType file;
         const std::size_t pos = it->find_last_of('/');
         file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
-        DataSourceType source;
-        source.URI = *it;
-        if (!source.URI)
+        file.Source.push_back(URL(*it));
+        if (!file.Source.back()) {
           return false;
-        source.Threads = -1;
-        file.Source.push_back(source);
+        }
         // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
-        job.DataStaging.File.push_back(file);
+        job.Files.push_back(file);
       }
       return true;
     }
     else if (attributeName == "inputsandboxbaseuri") {
-      for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
-           it != job.DataStaging.File.end(); it++)
+      for (std::list<FileType>::iterator it = job.Files.begin();
+           it != job.Files.end(); it++) {
         /* Since JDL does not have support for multiple locations the size of
          * the Source member is exactly 1.
          */
-        if (!it->Source.empty() && !it->Source.front().URI)
-          it->Source.front().URI = simpleJDLvalue(attributeValue);
-      for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
-           it != job.DataStaging.Directory.end(); it++)
-        if (!it->Source.empty() && !it->Source.front().URI)
-          it->Source.front().URI = simpleJDLvalue(attributeValue);
+        if (!it->Source.empty() && !it->Source.front()) {
+          it->Source.front() = simpleJDLvalue(attributeValue);
+        }
+      }
       return true;
     }
     else if (attributeName == "outputsandbox") {
@@ -197,29 +193,26 @@ namespace Arc {
            it != outputfiles.end(); it++) {
         FileType file;
         file.Name = *it;
-        DataTargetType target;
-        target.URI = *it;
-        if (!target.URI)
+        file.Target.push_back(URL(*it));
+        if (!file.Target.back()) {
           return false;
-        target.Threads = -1;
-        target.Mandatory = false;
-        target.NeededReplica = -1;
-        file.Target.push_back(target);
+        }
         // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
         file.DownloadToCache = false;
-        job.DataStaging.File.push_back(file);
+        job.Files.push_back(file);
       }
       return true;
     }
     else if (attributeName == "outputsandboxdesturi") {
       std::list<std::string> value = listJDLvalue(attributeValue);
       std::list<std::string>::iterator i = value.begin();
-      for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
-           it != job.DataStaging.File.end(); it++) {
-        if (it->Target.empty())
+      for (std::list<FileType>::iterator it = job.Files.begin();
+           it != job.Files.end(); it++) {
+        if (it->Target.empty()) {
           continue;
+        }
         if (i != value.end()) {
           URL url = *i;
           if (url.Protocol() == "gsiftp" && url.Host() == "localhost") {
@@ -235,8 +228,8 @@ namespace Arc {
             url.ChangeHost("");
             url.ChangePort(-1);
           }
-          it->Target.front().URI = url;
-          it->KeepData = (it->Target.front().URI.Protocol() == "file");
+          it->Target.front() = url;
+          it->KeepData = (it->Target.front().Protocol() == "file");
           i++;
         }
         else {
@@ -251,14 +244,10 @@ namespace Arc {
  * Either it should be unsupported (which it is now) or else it should
  * be implemented correctly.
     else if (attributeName == "outputsandboxbasedesturi") {
-      for (std::list<FileType>::iterator it = job.DataStaging.File.begin();
-           it != job.DataStaging.File.end(); it++)
-        if (!it->Target.empty() && !it->Target.front().URI) {
-          it->Target.front().URI = simpleJDLvalue(attributeValue);
-      for (std::list<DirectoryType>::iterator it = job.DataStaging.Directory.begin();
-           it != job.DataStaging.Directory.end(); it++)
-        if (!it->Target.empty() && !it->Target.front().URI)
-          it->Target.front().URI = simpleJDLvalue(attributeValue);
+      for (std::list<FileType>::iterator it = job.Files.begin();
+           it != job.Files.end(); it++)
+        if (!it->Target.empty() && !it->Target.front()) {
+          it->Target.front() = simpleJDLvalue(attributeValue);
       return true;
     }
 */
@@ -621,7 +610,7 @@ namespace Arc {
     }
 
     if (!job.Application.Executable.Name.empty() ||
-        !job.DataStaging.File.empty() ||
+        !job.Files.empty() ||
         !job.Application.Input.empty() ||
         !job.Application.Output.empty() ||
         !job.Application.Error.empty()) {
@@ -634,22 +623,22 @@ namespace Arc {
       std::list<std::string> inputSandboxList;
       std::list<std::string> outputSandboxList;
       std::list<std::string> outputSandboxDestURIList;
-      for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
-           it != job.DataStaging.File.end(); it++) {
+      for (std::list<FileType>::const_iterator it = job.Files.begin();
+           it != job.Files.end(); it++) {
         /* Since JDL does not have support for multiple locations only the first
          * location will be added.
          */
         if (!it->Source.empty())
-          inputSandboxList.push_back(it->Source.front().URI ? it->Source.front().URI.fullstr() : it->Name);
-        if ((!it->Target.empty() && it->Target.front().URI) || it->KeepData) {
+          inputSandboxList.push_back(it->Source.front() ? it->Source.front().fullstr() : it->Name);
+        if ((!it->Target.empty() && it->Target.front()) || it->KeepData) {
           outputSandboxList.push_back(it->Name);
           /* User downloadable files should go to the local grid ftp
            * server (local to CREAM). See comments on the parsing of the
            * outputsandboxdesturi attribute above.
            */
-          const std::string uri_tmp = (it->Target.empty() || it->Target.front().URI.Protocol() == "file" ?
+          const std::string uri_tmp = (it->Target.empty() || it->Target.front().Protocol() == "file" ?
                                        "gsiftp://localhost/" + it->Name :
-                                       it->Target.front().URI.fullstr());
+                                       it->Target.front().fullstr());
           outputSandboxDestURIList.push_back(uri_tmp);
         }
 

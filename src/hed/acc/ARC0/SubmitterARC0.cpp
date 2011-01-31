@@ -120,11 +120,13 @@ namespace Arc {
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
     bool executableIsAdded(false), inputIsAdded(false), outputIsAdded(false), errorIsAdded(false), logDirIsAdded(false);
-    for (std::list<FileType>::const_iterator it1 = jobdesc.DataStaging.File.begin();
-         it1 != jobdesc.DataStaging.File.end(); it1++) {
+    for (std::list<FileType>::const_iterator it1 = jobdesc.Files.begin();
+         it1 != jobdesc.Files.end(); it1++) {
       for (std::list<FileType>::const_iterator it2 = it1;
-           it2 != jobdesc.DataStaging.File.end(); it2++) {
-        if (it1 == it2) continue;
+           it2 != jobdesc.Files.end(); it2++) {
+        if (it1 == it2) {
+          continue;
+        }
 
         if (it1->Name == it2->Name && ((!it1->Source.empty() && !it2->Source.empty()) ||
                                        (!it1->Target.empty() && !it2->Target.empty()))) {
@@ -144,25 +146,21 @@ namespace Arc {
         !Glib::path_is_absolute(jobdesc.Application.Executable.Name)) {
       FileType file;
       file.Name = jobdesc.Application.Executable.Name;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
+      file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = true;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.Input.empty() && !inputIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.Input;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
+      file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.Output.empty() && !outputIsAdded) {
@@ -171,7 +169,7 @@ namespace Arc {
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.Error.empty() && !errorIsAdded) {
@@ -180,7 +178,7 @@ namespace Arc {
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.LogDir.empty() && !logDirIsAdded) {
@@ -189,7 +187,7 @@ namespace Arc {
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&

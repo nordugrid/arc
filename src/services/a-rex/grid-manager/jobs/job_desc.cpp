@@ -166,8 +166,8 @@ bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) 
     fix_file_permissions(session_dir+"/"+executable,true);
   }
 
-  for(std::list<Arc::FileType>::const_iterator it = desc.DataStaging.File.begin();
-      it!=desc.DataStaging.File.end();it++) {
+  for(std::list<Arc::FileType>::const_iterator it = desc.Files.begin();
+      it!=desc.Files.end();it++) {
     if(it->IsExecutable) {
       std::string executable = it->Name;
       if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;

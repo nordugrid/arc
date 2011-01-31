@@ -29,10 +29,12 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("CacheCheck").NewChild("TheseFilesNeedToCheck");
 
-    for (std::list<FileType>::const_iterator it = job->DataStaging.File.begin();
-         it != job->DataStaging.File.end(); it++)
-      if (!it->Source.empty())
-        req.NewChild("FileURL") = it->Source.front().URI.fullstr();
+    for (std::list<FileType>::const_iterator it = job->Files.begin();
+         it != job->Files.end(); it++) {
+      if (!it->Source.empty()) {
+        req.NewChild("FileURL") = it->Source.front().fullstr();
+      }
+    }
 
     PayloadSOAP *response = NULL;
 

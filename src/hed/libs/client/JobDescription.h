@@ -192,29 +192,9 @@ namespace Arc {
     SoftwareRequirement RunTimeEnvironment;
   };
 
-  class DataSourceType {
+  class FileType {
   public:
-    DataSourceType() :
-      Threads(-1) {}
-    URL URI;
-    int Threads;
-  };
-
-  class DataTargetType {
-  public:
-    DataTargetType() :
-      Threads(-1),
-      Mandatory(false),
-      NeededReplica(-1) {}
-    URL URI;
-    int Threads;
-    bool Mandatory;
-    int NeededReplica;
-  };
-
-  class DataType {
-  public:
-    DataType() :
+    FileType() :
       KeepData(false),
       IsExecutable(false),
       DownloadToCache(false) {}
@@ -222,25 +202,8 @@ namespace Arc {
     bool KeepData;
     bool IsExecutable;
     bool DownloadToCache;
-    std::list<URL> DataIndexingService;
-    std::list<DataSourceType> Source;
-    std::list<DataTargetType> Target;
-  };
-
-  class FileType : public DataType {
-  public:
-    FileType() {}
-  };
-  class DirectoryType : public DataType {
-  public:
-    DirectoryType() {}
-  };
-
-  class DataStagingType {
-  public:
-    DataStagingType() : File(), Directory() {}
-    std::list<FileType> File;
-    std::list<DirectoryType> Directory;
+    std::list<URL> Source;
+    std::list<URL> Target;
   };
 
   class JobMetaType {
@@ -384,7 +347,7 @@ namespace Arc {
     JobIdentificationType Identification;
     ApplicationType Application;
     ResourcesType Resources;
-    DataStagingType DataStaging;
+    std::list<FileType> Files;
     JobMetaType JobMeta;
 
     /// Holds attributes not fitting into this class

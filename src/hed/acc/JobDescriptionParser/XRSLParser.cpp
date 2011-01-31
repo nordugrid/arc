@@ -87,8 +87,8 @@ namespace Arc {
     for (std::list<std::string>::const_iterator itExecs = execs.begin();
          itExecs != execs.end(); itExecs++) {
       bool fileExists = false;
-      std::list<FileType>::iterator itFile = j.DataStaging.File.begin();
-      for (; itFile != j.DataStaging.File.end(); itFile++) {
+      std::list<FileType>::iterator itFile = j.Files.begin();
+      for (; itFile != j.Files.end(); itFile++) {
         if (itFile->Name == (*itExecs)) {
           itFile->IsExecutable = true;
           fileExists = true;
@@ -120,15 +120,15 @@ namespace Arc {
       return false;
     }
 
-    for (std::list<FileType>::iterator itF = j.DataStaging.File.begin();
-         itF != j.DataStaging.File.end(); itF++) {
-      for (std::list<DataSourceType>::iterator itS = itF->Source.begin();
+    for (std::list<FileType>::iterator itF = j.Files.begin();
+         itF != j.Files.end(); itF++) {
+      for (std::list<URL>::iterator itS = itF->Source.begin();
            itS != itF->Source.end(); itS++) {
-        itS->URI.AddOption("threads", itAtt->second);
+        itS->AddOption("threads", itAtt->second);
       }
-      for (std::list<DataTargetType>::iterator itT = itF->Target.begin();
+      for (std::list<URL>::iterator itT = itF->Target.begin();
            itT != itF->Target.end(); itT++) {
-        itT->URI.AddOption("threads", itAtt->second);
+        itT->AddOption("threads", itAtt->second);
       }
     }
 
@@ -488,27 +488,25 @@ namespace Arc {
           std::list<std::string>::iterator it2 = it->begin();
           FileType file;
           file.Name = *it2++;
-          DataSourceType source;
           long fileSize;
           // The second string in the list (it2) might either be a URL or file size.
           if (!it2->empty() && !stringto(*it2, fileSize)) {
-            source.URI = *it2;
-            if (!source.URI)
+            file.Source.push_back(URL(*it2));
+            if (!file.Source.back()) {
               return false;
+            }
           }
           else {
-            source.URI = file.Name;
+            file.Source.push_back(URL(file.Name));
           }
-          source.Threads = -1;
-          file.Source.push_back(source);
           file.KeepData = false;
           file.IsExecutable = false;
           file.DownloadToCache = true;
 
-          j.DataStaging.File.push_back(file);
+          j.Files.push_back(file);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
-            it->DataStaging.File.push_back(file);
+            it->Files.push_back(file);
           }
         }
         return true;
@@ -554,21 +552,21 @@ namespace Arc {
           URL turl(*it2);
           // The second string in the list (it2) might be a URL or file size.
           if (!it2->empty() && !stringto(*it2, fileSize) && turl.Protocol() != "file") {
-            if (!turl)
+            if (!turl) {
               return false;
-            DataTargetType target;
-            target.URI = turl;
-            target.Threads = -1;
-            file.Target.push_back(target);
-          } else
+            }
+            file.Target.push_back(turl);
+          }
+          else {
             file.KeepData = true;
+          }
           file.IsExecutable = false;
           file.DownloadToCache = false;
 
-          j.DataStaging.File.push_back(file);
+          j.Files.push_back(file);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
-            it->DataStaging.File.push_back(file);
+            it->Files.push_back(file);
           }
         }
         return true;
@@ -917,13 +915,13 @@ namespace Arc {
         std::string collection;
         if (!SingleValue(c, collection))
           return false;
-        URL url(collection);
-        if (!url)
+        if (!URL(collection))
           return false;
-        for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
-             it != j.DataStaging.File.end(); it++)
-          it->DataIndexingService.push_back(url);
-        return true;
+        j.OtherAttributes["nordugrid:xrsl;replicacollection"] = collection;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;replicacollection"] = collection;
+        }
       }
 
       if (c->Attr() == "rerun") {
@@ -1148,10 +1146,12 @@ namespace Arc {
     // This part will run only when the parsing is at the end of the xrsl file
 
     // Value defined in "cache" element is applicable to all input files
-    for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
-         it != j.DataStaging.File.end(); it++)
-      if (!it->Source.empty())
+    for (std::list<FileType>::iterator it = j.Files.begin();
+         it != j.Files.end(); it++) {
+      if (!it->Source.empty()) {
         it->DownloadToCache = cached;
+      }
+    }
 
     return true;
   }
@@ -1259,20 +1259,21 @@ namespace Arc {
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
-    if (!j.DataStaging.File.empty() || !j.Application.Executable.Name.empty() || !j.Application.Input.empty()) {
+    if (!j.Files.empty() || !j.Application.Executable.Name.empty() || !j.Application.Input.empty()) {
       struct stat fileStat;
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
-           it != j.DataStaging.File.end(); it++) {
-        if (it->Source.empty())
+      for (std::list<FileType>::const_iterator it = j.Files.begin();
+           it != j.Files.end(); it++) {
+        if (it->Source.empty()) {
           continue;
+        }
         RSLList *s = new RSLList;
         s->Add(new RSLLiteral(it->Name));
-        if (it->Source.front().URI.Protocol() == "file") {
-          if (stat(it->Source.front().URI.Path().c_str(), &fileStat) == 0)
+        if (it->Source.front().Protocol() == "file") {
+          if (stat(it->Source.front().Path().c_str(), &fileStat) == 0)
             s->Add(new RSLLiteral(tostring(fileStat.st_size)));
           else {
-            logger.msg(ERROR, "Cannot stat local input file %s", it->Source.front().URI.Path());
+            logger.msg(ERROR, "Cannot stat local input file %s", it->Source.front().Path());
             delete s;
             if (l)
               delete l;
@@ -1280,7 +1281,7 @@ namespace Arc {
           }
         }
         else
-          s->Add(new RSLLiteral(it->Source.front().URI.fullstr()));
+          s->Add(new RSLLiteral(it->Source.front().fullstr()));
         if (!l)
           l = new RSLList;
         l->Add(new RSLSequence(s));
@@ -1291,8 +1292,8 @@ namespace Arc {
 
       // Executables
       l = NULL;
-      for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
-           it != j.DataStaging.File.end(); it++)
+      for (std::list<FileType>::const_iterator it = j.Files.begin();
+           it != j.Files.end(); it++)
         if (it->IsExecutable) {
           if (!l)
             l = new RSLList;
@@ -1302,17 +1303,17 @@ namespace Arc {
         r.Add(new RSLCondition("executables", RSLEqual, l));
     }
 
-    if (!j.DataStaging.File.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
+    if (!j.Files.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.DataStaging.File.begin();
-           it != j.DataStaging.File.end(); it++) {
+      for (std::list<FileType>::const_iterator it = j.Files.begin();
+           it != j.Files.end(); it++) {
         if (!it->Target.empty()) {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
-          if (!it->Target.front().URI || it->Target.front().URI.Protocol() == "file")
+          if (!it->Target.front() || it->Target.front().Protocol() == "file")
             s->Add(new RSLLiteral(""));
           else {
-            URL url(it->Target.front().URI);
+            URL url(it->Target.front());
             if (it->DownloadToCache)
               url.AddOption("cache", "yes");
             s->Add(new RSLLiteral(url.fullstr()));

@@ -47,7 +47,7 @@ namespace Arc {
     Identification = j.Identification;
     Application = j.Application;
     Resources = j.Resources;
-    DataStaging = j.DataStaging;
+    Files = j.Files;
     JobMeta = j.JobMeta;
 
     OtherAttributes = j.OtherAttributes;
@@ -265,71 +265,30 @@ namespace Arc {
         }
       }
 
-      if (!DataStaging.File.empty()) {
-        std::list<FileType>::const_iterator iter = DataStaging.File.begin();
-        for (; iter != DataStaging.File.end(); iter++) {
+      if (!Files.empty()) {
+        std::list<FileType>::const_iterator iter = Files.begin();
+        for (; iter != Files.end(); iter++) {
           out << IString(" File element:") << std::endl;
           out << IString("     Name: %s", iter->Name) << std::endl;
 
-          std::list<DataSourceType>::const_iterator itSource = iter->Source.begin();
+          std::list<URL>::const_iterator itSource = iter->Source.begin();
           for (; itSource != iter->Source.end(); itSource++) {
-            out << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
-            INTPRINT(out, itSource->Threads, Source.Threads)
+            out << IString("     Source.URI: %s", itSource->fullstr()) << std::endl;
           }
 
-          std::list<DataTargetType>::const_iterator itTarget = iter->Target.begin();
+          std::list<URL>::const_iterator itTarget = iter->Target.begin();
           for (; itTarget != iter->Target.end(); itTarget++) {
-            out << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
-            INTPRINT(out, itTarget->Threads, Target.Threads)
-            if (itTarget->Mandatory)
-              out << IString("     Target.Mandatory: true") << std::endl;
-            INTPRINT(out, itTarget->NeededReplica, NeededReplica)
+            out << IString("     Target.URI: %s", itTarget->fullstr()) << std::endl;
           }
-          if (iter->KeepData)
+          if (iter->KeepData) {
             out << IString("     KeepData: true") << std::endl;
-          if (iter->IsExecutable)
+          }
+          if (iter->IsExecutable) {
             out << IString("     IsExecutable: true") << std::endl;
-          if (!iter->DataIndexingService.empty()) {
-            std::list<URL>::const_iterator itDIS = iter->DataIndexingService.begin();
-            for (; itDIS != iter->DataIndexingService.end(); itDIS++)
-              out << IString("     DataIndexingService: %s", itDIS->fullstr()) << std::endl;
           }
-          if (iter->DownloadToCache)
+          if (iter->DownloadToCache) {
             out << IString("     DownloadToCache: true") << std::endl;
-        }
-      }
-
-      if (!DataStaging.Directory.empty()) {
-        std::list<DirectoryType>::const_iterator iter = DataStaging.Directory.begin();
-        for (; iter != DataStaging.Directory.end(); iter++) {
-          out << IString(" Directory element:") << std::endl;
-          out << IString("     Name: %s", iter->Name) << std::endl;
-
-          std::list<DataSourceType>::const_iterator itSource = iter->Source.begin();
-          for (; itSource != iter->Source.end(); itSource++) {
-            out << IString("     Source.URI: %s", itSource->URI.fullstr()) << std::endl;
-            INTPRINT(out, itSource->Threads, Source.Threads)
           }
-
-          std::list<DataTargetType>::const_iterator itTarget = iter->Target.begin();
-          for (; itTarget != iter->Target.end(); itTarget++) {
-            out << IString("     Target.URI: %s", itTarget->URI.fullstr()) << std::endl;
-            INTPRINT(out, itTarget->Threads, Target.Threads)
-            if (itTarget->Mandatory)
-              out << IString("     Target.Mandatory: true") << std::endl;
-            INTPRINT(out, itTarget->NeededReplica, NeededReplica)
-          }
-          if (iter->KeepData)
-            out << IString("     KeepData: true") << std::endl;
-          if (iter->IsExecutable)
-            out << IString("     IsExecutable: true") << std::endl;
-          if (!iter->DataIndexingService.empty()) {
-            std::list<URL>::const_iterator itDIS = iter->DataIndexingService.begin();
-            for (; itDIS != iter->DataIndexingService.end(); itDIS++)
-              out << IString("     DataIndexingService: %s", itDIS->fullstr()) << std::endl;
-          }
-          if (iter->DownloadToCache)
-            out << IString("     DownloadToCache: true") << std::endl;
         }
       }
     }

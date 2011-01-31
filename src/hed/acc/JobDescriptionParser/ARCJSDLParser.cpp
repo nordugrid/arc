@@ -555,21 +555,15 @@ namespace Arc {
         FileType file;
         file.Name = (std::string)filenameNode;
         if (bool(source)) {
-          DataSourceType source;
-          if (bool(source_uri))
-            source.URI = (std::string)source_uri;
-          else
-            source.URI = file.Name;
-          source.Threads = -1;
-          file.Source.push_back(source);
-        }
-        if (bool(target)) {
-          DataTargetType target;
-          if (bool(target_uri)) {
-            target.URI = (std::string)target_uri;
+          if (bool(source_uri)) {
+            file.Source.push_back(URL((std::string)source_uri));
           }
-          target.Threads = -1;
-          file.Target.push_back(target);
+          else {
+            file.Source.push_back(URL(file.Name));
+          }
+        }
+        if (bool(target) && bool(target_uri)) {
+          file.Target.push_back(URL((std::string)target_uri));
         }
 
         // If DeteleOnTermination is not set do not keep data. Only keep data if explicitly specified.
@@ -577,7 +571,7 @@ namespace Arc {
         file.IsExecutable = ds["IsExecutable"] && lower(((std::string)ds["IsExecutable"])) == "true";
         // Default is to put file in cache. DownloadToCache does not make sense for output files.
         file.DownloadToCache = !file.Source.empty() && (!ds["DownloadToCache"] || lower(((std::string)ds["DownloadToCache"])) != "false");
-        job.DataStaging.File.push_back(file);
+        job.Files.push_back(file);
       }
     }
     // end of Datastaging
@@ -984,28 +978,32 @@ namespace Arc {
     // end of Resources
 
     // DataStaging
-    for (std::list<FileType>::const_iterator it = job.DataStaging.File.begin();
-         it != job.DataStaging.File.end(); it++) {
+    for (std::list<FileType>::const_iterator it = job.Files.begin();
+         it != job.Files.end(); it++) {
       XMLNode datastaging = jobdescription.NewChild("DataStaging");
-      if (!it->Name.empty())
+      if (!it->Name.empty()) {
         datastaging.NewChild("FileName") = it->Name;
-      if (it->Source.size() != 0 &&
-          it->Source.begin()->URI &&
-          trim(it->Source.begin()->URI.fullstr()) != "") {
-        if (it->Source.begin()->URI.Protocol() == "file")
-          datastaging.NewChild("Source");
-        else
-          datastaging.NewChild("Source").NewChild("URI") = it->Source.begin()->URI.fullstr();
       }
-      if (it->Target.size() != 0 &&
-          it->Target.begin()->URI &&
-          trim(it->Target.begin()->URI.fullstr()) != "")
-        datastaging.NewChild("Target").NewChild("URI") = it->Target.begin()->URI.fullstr();
-      if (it->IsExecutable || it->Name == job.Application.Executable.Name)
+      if (!it->Source.empty() && it->Source.front() &&
+          !trim(it->Source.front().fullstr()).empty()) {
+        if (it->Source.front().Protocol() == "file") {
+          datastaging.NewChild("Source");
+        }
+        else {
+          datastaging.NewChild("Source").NewChild("URI") = it->Source.front().fullstr();
+        }
+      }
+      if (!it->Target.empty() && it->Target.front() &&
+          !trim(it->Target.front().fullstr()).empty()) {
+        datastaging.NewChild("Target").NewChild("URI") = it->Target.front().fullstr();
+      }
+      if (it->IsExecutable || it->Name == job.Application.Executable.Name) {
         datastaging.NewChild("IsExecutable") = "true";
+      }
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
-      if (!it->DownloadToCache)
+      if (!it->DownloadToCache) {
         datastaging.NewChild("DownloadToCache") = "false";
+      }
     }
     // End of DataStaging
 

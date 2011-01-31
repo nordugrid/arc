@@ -15,14 +15,14 @@ class JDLParserTest
   CPPUNIT_TEST_SUITE(JDLParserTest);
   CPPUNIT_TEST(TestExecutable);
   CPPUNIT_TEST(TestInputOutputError);
-  CPPUNIT_TEST(TestDataStagingDownloadDelete);
-  CPPUNIT_TEST(TestDataStagingUploadDelete);
-  CPPUNIT_TEST(TestDataStagingCreateDownload);
-  CPPUNIT_TEST(TestDataStagingDownloadDownload);
-  CPPUNIT_TEST(TestDataStagingUploadDownload);
-  CPPUNIT_TEST(TestDataStagingCreateUpload);
-  CPPUNIT_TEST(TestDataStagingDownloadUpload);
-  CPPUNIT_TEST(TestDataStagingUploadUpload);
+  CPPUNIT_TEST(TestFilesDownloadDelete);
+  CPPUNIT_TEST(TestFilesUploadDelete);
+  CPPUNIT_TEST(TestFilesCreateDownload);
+  CPPUNIT_TEST(TestFilesDownloadDownload);
+  CPPUNIT_TEST(TestFilesUploadDownload);
+  CPPUNIT_TEST(TestFilesCreateUpload);
+  CPPUNIT_TEST(TestFilesDownloadUpload);
+  CPPUNIT_TEST(TestFilesUploadUpload);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST_SUITE_END();
 
@@ -33,14 +33,14 @@ public:
   void tearDown();
   void TestExecutable();
   void TestInputOutputError();
-  void TestDataStagingDownloadDelete();
-  void TestDataStagingUploadDelete();
-  void TestDataStagingCreateDownload();
-  void TestDataStagingDownloadDownload();
-  void TestDataStagingUploadDownload();
-  void TestDataStagingCreateUpload();
-  void TestDataStagingDownloadUpload();
-  void TestDataStagingUploadUpload();
+  void TestFilesDownloadDelete();
+  void TestFilesUploadDelete();
+  void TestFilesCreateDownload();
+  void TestFilesDownloadDownload();
+  void TestFilesUploadDownload();
+  void TestFilesCreateUpload();
+  void TestFilesDownloadUpload();
+  void TestFilesUploadUpload();
   void TestAdditionalAttributes();
 
 private:
@@ -129,104 +129,97 @@ void JDLParserTest::TestInputOutputError() {
  */
 
 /** 2-Download-Delete */
-void JDLParserTest::TestDataStagingDownloadDelete() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesDownloadDelete() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing download-delete data staging type.";
 
   Arc::FileType file;
   file.Name = "2-Download-Delete";
-  Arc::DataSourceType source;
-  source.URI = "http://example.com/" + file.Name;
-  CPPUNIT_ASSERT(source.URI);
-  source.Threads = -1;
-  file.Source.push_back(source);
+  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
   file.IsExecutable = false;
   file.DownloadToCache = false;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,            it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,        it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.IsExecutable,    it->IsExecutable);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.DownloadToCache, it->DownloadToCache);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 3-Upload-Delete */
-void JDLParserTest::TestDataStagingUploadDelete() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesUploadDelete() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing upload-delete data staging type.";
 
   Arc::FileType file;
   file.Name = "3-Upload-Delete";
-  Arc::DataSourceType source;
-  source.URI = file.Name;
-  source.Threads = -1;
-  file.Source.push_back(source);
+  file.Source.push_back(Arc::URL(file.Name));
   file.KeepData = false;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
-  
+
   it++;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 4-Create-Download */
-void JDLParserTest::TestDataStagingCreateDownload() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesCreateDownload() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing create-download data staging type.";
 
   Arc::FileType file;
   file.Name = "4-Create-Download";
   file.KeepData = true;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -234,42 +227,39 @@ void JDLParserTest::TestDataStagingCreateDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front());
 }
 
 /** 5-Download-Download */
-void JDLParserTest::TestDataStagingDownloadDownload() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesDownloadDownload() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing download-download data staging type.";
 
   Arc::FileType file;
   file.Name = "5-Download-Download";
-  Arc::DataSourceType source;
-  source.URI = "http://example.com/" + file.Name;
-  source.Threads = -1;
-  file.Source.push_back(source);
+  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = true;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -277,42 +267,39 @@ void JDLParserTest::TestDataStagingDownloadDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front());
 }
 
 /** 6-Upload-Download */
-void JDLParserTest::TestDataStagingUploadDownload() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesUploadDownload() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing upload-download data staging type.";
 
   Arc::FileType file;
   file.Name = "6-Upload-Download";
-  Arc::DataSourceType source;
-  source.URI = file.Name;
-  source.Threads = -1;
-  file.Source.push_back(source);
+  file.Source.push_back(Arc::URL(file.Name));
   file.KeepData = true;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -320,35 +307,32 @@ void JDLParserTest::TestDataStagingUploadDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front());
 }
 
 /** 7-Create-Upload */
-void JDLParserTest::TestDataStagingCreateUpload() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesCreateUpload() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing create-download data staging type.";
 
   Arc::FileType file;
   file.Name = "7-Create-Upload";
-  Arc::DataTargetType target;
-  target.URI = "http://example.com/" + file.Name;
-  target.Threads = -1;
-  file.Target.push_back(target);
+  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -356,46 +340,40 @@ void JDLParserTest::TestDataStagingCreateUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.back(), it->Target.front());
 }
 
 /** 8-Download-Upload */
-void JDLParserTest::TestDataStagingDownloadUpload() {
+void JDLParserTest::TestFilesDownloadUpload() {
   MESSAGE = "Error parsing download-upload data staging type.";
-  INJOB.DataStaging.File.clear();
+  INJOB.Files.clear();
 
   Arc::FileType file;
   file.Name = "8-Download-Upload";
-  Arc::DataSourceType source;
-  source.URI = "http://example.com/" + file.Name;
-  source.Threads = -1;
-  file.Source.push_back(source);
-  Arc::DataTargetType target;
-  target.URI = "http://example.com/" + file.Name;
-  target.Threads = -1;
-  file.Target.push_back(target);
+  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
+  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -403,46 +381,40 @@ void JDLParserTest::TestDataStagingDownloadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.back(), it->Target.front());
 }
 
 /** 9-Upload-Upload */
-void JDLParserTest::TestDataStagingUploadUpload() {
-  INJOB.DataStaging.File.clear();
+void JDLParserTest::TestFilesUploadUpload() {
+  INJOB.Files.clear();
   MESSAGE = "Error parsing upload-upload data staging type.";
 
   Arc::FileType file;
   file.Name = "9-Upload-Upload";
-  Arc::DataSourceType source;
-  source.URI = file.Name;
-  source.Threads = -1;
-  file.Source.push_back(source);
-  Arc::DataTargetType target;
-  target.URI = "http://example.com/" + file.Name;
-  target.Threads = -1;
-  file.Target.push_back(target);
+  file.Source.push_back(Arc::URL(file.Name));
+  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
-  INJOB.DataStaging.File.push_back(file);
+  INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "egee:jdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 3, (int)OUTJOBS.front().Files.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().DataStaging.File.begin();
+  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, source.URI, it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -450,7 +422,7 @@ void JDLParserTest::TestDataStagingUploadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, target.URI, it->Target.front().URI);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.back(), it->Target.front());
 }
 
 void JDLParserTest::TestAdditionalAttributes() {

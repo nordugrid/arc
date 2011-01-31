@@ -142,8 +142,8 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   for (std::list<Arc::Software>::const_iterator itSW = sw.begin(); itSW != sw.end(); ++itSW, ++rtes)
     rte.push_back(std::string(*itSW));
 
-  for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.DataStaging.File.begin();
-       file != arc_job_desc.DataStaging.File.end(); ++file) {
+  for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.Files.begin();
+       file != arc_job_desc.Files.end(); ++file) {
     std::string fname = file->Name;
     if(fname.empty()) continue; // Can handle only named files
     if(fname[0] != '/') fname = "/"+fname; // Just for safety
@@ -152,9 +152,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     if(!file->Source.empty()) { // input file
       // Only one source per file supported
       inputdata.push_back(FileData(fname.c_str(), ""));
-      if (file->Source.front().URI &&
-          file->Source.front().URI.Protocol() != "file") {
-        inputdata.back().lfn = file->Source.front().URI.fullstr();
+      if (file->Source.front() &&
+          file->Source.front().Protocol() != "file") {
+        inputdata.back().lfn = file->Source.front().fullstr();
         ++downloads;
       }
 
@@ -167,20 +167,16 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         }
         if (u.Option("cache").empty())
           u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
-        if (u.Option("threads").empty() && file->Source.front().Threads > 1)
-          u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
         inputdata.back().lfn = u.fullstr();
       }
     }
     if (!file->Target.empty()) { // output file
-      FileData fdata(fname.c_str(), file->Target.front().URI.fullstr().c_str());
+      FileData fdata(fname.c_str(), file->Target.front().fullstr().c_str());
       outputdata.push_back(fdata);
       ++uploads;
 
       if (outputdata.back().has_lfn()) {
         Arc::URL u(outputdata.back().lfn);
-        if (u.Option("threads").empty() && file->Target.front().Threads > 1)
-          u.AddOption("threads", Arc::tostring(file->Source.front().Threads));
         outputdata.back().lfn = u.fullstr();
       }
     }

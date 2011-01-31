@@ -120,29 +120,31 @@ namespace Arc {
     JobDescription modjobdesc(jobdesc);
 
     // Modify the location of local files and files residing in a old session directory.
-    for (std::list<FileType>::iterator it = modjobdesc.DataStaging.File.begin();
-         it != modjobdesc.DataStaging.File.end(); it++) {
+    for (std::list<FileType>::iterator it = modjobdesc.Files.begin();
+         it != modjobdesc.Files.end(); it++) {
       // Do not modify Output and Error files.
       if (it->Name == modjobdesc.Application.Output ||
           it->Name == modjobdesc.Application.Error ||
-          it->Source.empty()) continue;
+          it->Source.empty()) {
+        continue;
+      }
 
-      if (!it->Source.front().URI || it->Source.front().URI.Protocol() == "file") {
-        it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
+      if (!it->Source.front() || it->Source.front().Protocol() == "file") {
+        it->Source.front() = URL(jobid.str() + "/" + it->Name);
         it->DownloadToCache = false;
       }
       else {
         // URL is valid, and not a local file. Check if the source reside at a
         // old job session directory.
-        const size_t foundRSlash = it->Source.front().URI.str().rfind('/');
+        const size_t foundRSlash = it->Source.front().str().rfind('/');
         if (foundRSlash == std::string::npos) continue;
 
-        const std::string uriPath = it->Source.front().URI.str().substr(0, foundRSlash);
+        const std::string uriPath = it->Source.front().str().substr(0, foundRSlash);
         // Check if the input file URI is pointing to a old job session directory.
         for (std::list<std::string>::const_iterator itAOID = modjobdesc.Identification.ActivityOldId.begin();
              itAOID != modjobdesc.Identification.ActivityOldId.end(); itAOID++) {
           if (uriPath == *itAOID) {
-            it->Source.front().URI = URL(jobid.str() + "/" + it->Name);
+            it->Source.front() = URL(jobid.str() + "/" + it->Name);
             it->DownloadToCache = false;
             break;
           }
@@ -197,11 +199,13 @@ namespace Arc {
   bool SubmitterARC1::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
     // Check for identical file names.
     bool executableIsAdded(false), inputIsAdded(false), outputIsAdded(false), errorIsAdded(false), logDirIsAdded(false);
-    for (std::list<FileType>::const_iterator it1 = jobdesc.DataStaging.File.begin();
-         it1 != jobdesc.DataStaging.File.end(); it1++) {
+    for (std::list<FileType>::const_iterator it1 = jobdesc.Files.begin();
+         it1 != jobdesc.Files.end(); it1++) {
       for (std::list<FileType>::const_iterator it2 = it1;
-           it2 != jobdesc.DataStaging.File.end(); it2++) {
-        if (it1 == it2) continue;
+           it2 != jobdesc.Files.end(); it2++) {
+        if (it1 == it2) {
+          continue;
+        }
 
         if (it1->Name == it2->Name && ((!it1->Source.empty() && !it2->Source.empty()) ||
                                        (!it1->Target.empty() && !it2->Target.empty()))) {
@@ -222,25 +226,21 @@ namespace Arc {
         !Glib::path_is_absolute(jobdesc.Application.Executable.Name)) {
       FileType file;
       file.Name = jobdesc.Application.Executable.Name;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
+      file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = true;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.Input.empty() && !inputIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.Input;
-      DataSourceType s;
-      s.URI = file.Name;
-      file.Source.push_back(s);
+      file.Source.push_back(file.Name);
       file.KeepData = false;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.Output.empty() && !outputIsAdded) {
@@ -249,7 +249,7 @@ namespace Arc {
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.Error.empty() && !errorIsAdded) {
@@ -258,7 +258,7 @@ namespace Arc {
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Application.LogDir.empty() && !logDirIsAdded) {
@@ -267,7 +267,7 @@ namespace Arc {
       file.KeepData = true;
       file.IsExecutable = false;
       file.DownloadToCache = false;
-      jobdesc.DataStaging.File.push_back(file);
+      jobdesc.Files.push_back(file);
     }
 
     if (!jobdesc.Resources.RunTimeEnvironment.empty() &&
