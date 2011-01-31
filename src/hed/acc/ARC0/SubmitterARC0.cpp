@@ -149,7 +149,6 @@ namespace Arc {
       file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = true;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -159,7 +158,6 @@ namespace Arc {
       file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -168,7 +166,6 @@ namespace Arc {
       file.Name = jobdesc.Application.Output;
       file.KeepData = true;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -177,7 +174,6 @@ namespace Arc {
       file.Name = jobdesc.Application.Error;
       file.KeepData = true;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -186,7 +182,6 @@ namespace Arc {
       file.Name = jobdesc.Application.LogDir;
       file.KeepData = true;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 

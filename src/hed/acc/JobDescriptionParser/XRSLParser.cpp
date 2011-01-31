@@ -137,7 +137,27 @@ namespace Arc {
     return true;
   }
 
-  bool XRSLParser::cached = true;
+  bool XRSLParser::ParseCacheAttribute(JobDescription& j) {
+    std::map<std::string, std::string>::iterator itAtt;
+    itAtt = j.OtherAttributes.find("nordugrid:xrsl;cache");
+    if (itAtt == j.OtherAttributes.end()) {
+      return true;
+    }
+
+    for (std::list<FileType>::iterator itF = j.Files.begin();
+         itF != j.Files.end(); itF++) {
+      if (!itF->IsExecutable) {
+        for (std::list<URL>::iterator itS = itF->Source.begin();
+             itS != itF->Source.end(); itS++) {
+          itS->AddOption("cache", itAtt->second);
+        }
+      }
+    }
+
+    j.OtherAttributes.erase(itAtt);
+
+    return true;
+  }
 
   bool XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
@@ -173,12 +193,18 @@ namespace Arc {
       if (!ParseFTPThreadsAttribute(jobdescs.back())) {
         return false;
       }
+      if (!ParseCacheAttribute(jobdescs.back())) {
+        return false;
+      }
       for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
            itJob != jobdescs.back().GetAlternatives().end(); itJob++) {
         if (!ParseExecutablesAttribute(*itJob)) {
           return false;
         }
         if (!ParseFTPThreadsAttribute(*itJob)) {
+          return false;
+        }
+        if (!ParseCacheAttribute(*itJob)) {
           return false;
         }
       }
@@ -501,7 +527,6 @@ namespace Arc {
           }
           file.KeepData = false;
           file.IsExecutable = false;
-          file.DownloadToCache = true;
 
           j.Files.push_back(file);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -534,8 +559,15 @@ namespace Arc {
         std::string cache;
         if (!SingleValue(c, cache))
           return false;
-        if (lower(cache) != "yes")
-          cached = false;
+        /* Store value in the OtherAttributes member and set it later when all
+         * the attributes it depends on has been parsed.
+         */
+        j.OtherAttributes["nordugrid:xrsl;cache"] = cache;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;cache"] = cache;
+        }
+
         return true;
       }
 
@@ -561,7 +593,6 @@ namespace Arc {
             file.KeepData = true;
           }
           file.IsExecutable = false;
-          file.DownloadToCache = false;
 
           j.Files.push_back(file);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1144,15 +1175,6 @@ namespace Arc {
     }
 
     // This part will run only when the parsing is at the end of the xrsl file
-
-    // Value defined in "cache" element is applicable to all input files
-    for (std::list<FileType>::iterator it = j.Files.begin();
-         it != j.Files.end(); it++) {
-      if (!it->Source.empty()) {
-        it->DownloadToCache = cached;
-      }
-    }
-
     return true;
   }
 
@@ -1314,8 +1336,6 @@ namespace Arc {
             s->Add(new RSLLiteral(""));
           else {
             URL url(it->Target.front());
-            if (it->DownloadToCache)
-              url.AddOption("cache", "yes");
             s->Add(new RSLLiteral(url.fullstr()));
           }
           if (!l)

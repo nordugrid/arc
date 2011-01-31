@@ -170,7 +170,6 @@ namespace Arc {
         // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
-        file.DownloadToCache = false;
         job.Files.push_back(file);
       }
       return true;
@@ -200,7 +199,6 @@ namespace Arc {
         // Initializing these variables
         file.KeepData = false;
         file.IsExecutable = false;
-        file.DownloadToCache = false;
         job.Files.push_back(file);
       }
       return true;

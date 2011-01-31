@@ -286,9 +286,6 @@ namespace Arc {
           if (iter->IsExecutable) {
             out << IString("     IsExecutable: true") << std::endl;
           }
-          if (iter->DownloadToCache) {
-            out << IString("     DownloadToCache: true") << std::endl;
-          }
         }
       }
     }

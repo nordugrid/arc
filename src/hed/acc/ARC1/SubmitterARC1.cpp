@@ -131,7 +131,6 @@ namespace Arc {
 
       if (!it->Source.front() || it->Source.front().Protocol() == "file") {
         it->Source.front() = URL(jobid.str() + "/" + it->Name);
-        it->DownloadToCache = false;
       }
       else {
         // URL is valid, and not a local file. Check if the source reside at a
@@ -145,7 +144,6 @@ namespace Arc {
              itAOID != modjobdesc.Identification.ActivityOldId.end(); itAOID++) {
           if (uriPath == *itAOID) {
             it->Source.front() = URL(jobid.str() + "/" + it->Name);
-            it->DownloadToCache = false;
             break;
           }
         }
@@ -229,7 +227,6 @@ namespace Arc {
       file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = true;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -239,7 +236,6 @@ namespace Arc {
       file.Source.push_back(file.Name);
       file.KeepData = false;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -248,7 +244,6 @@ namespace Arc {
       file.Name = jobdesc.Application.Output;
       file.KeepData = true;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -257,7 +252,6 @@ namespace Arc {
       file.Name = jobdesc.Application.Error;
       file.KeepData = true;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 
@@ -266,7 +260,6 @@ namespace Arc {
       file.Name = jobdesc.Application.LogDir;
       file.KeepData = true;
       file.IsExecutable = false;
-      file.DownloadToCache = false;
       jobdesc.Files.push_back(file);
     }
 

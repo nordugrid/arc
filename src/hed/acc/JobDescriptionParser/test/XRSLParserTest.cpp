@@ -25,6 +25,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestFilesUploadUpload);
   CPPUNIT_TEST(TestExecutables);
   CPPUNIT_TEST(TestFTPThreads);
+  CPPUNIT_TEST(TestCache);
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST(TestGridTime);
@@ -50,6 +51,7 @@ public:
   void TestFilesUploadUpload();
   void TestExecutables();
   void TestFTPThreads();
+  void TestCache();
   void TestNotify();
   void TestJoin();
   void TestGridTime();
@@ -135,8 +137,8 @@ void XRSLParserTest::TestInputOutputError() {
  * create/delete the file, in total giving 9 options. Not all of these are
  * supported by GM/can be expressed in XRSL. In the table below the supported
  * cases for XRSL is shown. These are tested in the methods below the table.
- * In addition in the JobDescription the "IsExecutable" and "DownloadToCache"
- * can be specified for a file, these are not fully tested yet.
+ * In addition in the JobDescription the "IsExecutable" can be specified for a
+ * file, these are not fully tested yet.
  *
  *                     T    A    R    G    E    T
  *                ------------------------------------
@@ -552,6 +554,46 @@ void XRSLParserTest::TestExecutables() {
 
   remove("in1");
   remove("in2");
+}
+
+void XRSLParserTest::TestCache() {
+  xrsl = "&(executable=\"executable\")"
+          "(inputfiles=(\"in1\" \"gsiftp://example.com/in1\") (\"in2\" \"gsiftp://example.com/in2\"))"
+          "(|(cache=yes)(cache=copy))";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().Files.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.front().Source.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().Files.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.back().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.back().Source.front().Option("cache"));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().Files.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().GetAlternatives().front().Files.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().Files.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().Files.front().Source.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().GetAlternatives().front().Files.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().Files.back().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().Files.back().Source.front().Option("cache"));
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().Files.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.front().Source.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().Files.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.back().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.back().Source.front().Option("cache"));
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 }
 
 void XRSLParserTest::TestFTPThreads() {

@@ -165,8 +165,6 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
             file->Name == arc_job_desc.Application.Executable.Name) {
           u.AddOption("exec", "yes");
         }
-        if (u.Option("cache").empty())
-          u.AddOption("cache", (file->DownloadToCache ? "yes" : "no"));
         inputdata.back().lfn = u.fullstr();
       }
     }

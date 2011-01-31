@@ -196,12 +196,10 @@ namespace Arc {
   public:
     FileType() :
       KeepData(false),
-      IsExecutable(false),
-      DownloadToCache(false) {}
+      IsExecutable(false) {}
     std::string Name;
     bool KeepData;
     bool IsExecutable;
-    bool DownloadToCache;
     std::list<URL> Source;
     std::list<URL> Target;
   };

@@ -40,7 +40,7 @@ namespace Arc {
                              int seqlength = -1);
     static bool ParseExecutablesAttribute(JobDescription& j);
     static bool ParseFTPThreadsAttribute(JobDescription& j);
-    static bool cached;
+    static bool ParseCacheAttribute(JobDescription& j);
   };
 
 } // namespace Arc

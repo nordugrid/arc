@@ -107,9 +107,8 @@ void JDLParserTest::TestInputOutputError() {
  * create/delete the file, in total giving 9 options. Not all of these are
  * supported by GM/can be expressed in JDL. In the table below the
  * supported cases for JDL is shown. These are tested in the methods below
- * the table. In addition in the JobDescription the "IsExecutable" and
- * "DownloadToCache" can be specified for a file, these are not fully tested
- * yet.
+ * the table. In addition in the JobDescription the "IsExecutable" can be
+ * specified for a file, these are not fully tested yet.
  *
  *                     T    A    R    G    E    T
  *                ------------------------------------
@@ -138,7 +137,6 @@ void JDLParserTest::TestFilesDownloadDelete() {
   file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
   file.IsExecutable = false;
-  file.DownloadToCache = false;
   INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
@@ -152,7 +150,6 @@ void JDLParserTest::TestFilesDownloadDelete() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,            it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,        it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.IsExecutable,    it->IsExecutable);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.DownloadToCache, it->DownloadToCache);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());

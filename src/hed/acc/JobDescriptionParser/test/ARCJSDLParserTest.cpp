@@ -111,9 +111,8 @@ void ARCJSDLParserTest::TestInputOutputError() {
  * uploaded or downloaded, but it can also be specified that the CE should
  * create/delete the file, in total giving 9 options. In the table below the
  * supported cases for ARCJSDL is shown. These are tested in the methods below
- * the table. In addition in the JobDescription the "IsExecutable" and
- * "DownloadToCache" can be specified for a file, these are not fully tested
- * yet.
+ * the table. In addition in the JobDescription the "IsExecutable" can be
+ * specified for a file, these are not fully tested yet.
  *
  *                     T    A    R    G    E    T
  *                ------------------------------------
@@ -137,7 +136,6 @@ void ARCJSDLParserTest::TestFilesCreateDelete() {
   file.Name = "1-Create-Delete";
   file.KeepData = false;
   file.IsExecutable = false;
-  file.DownloadToCache = false;
   INJOB.Files.push_back(file);
 
   std::string tempjobdesc;
@@ -170,7 +168,6 @@ void ARCJSDLParserTest::TestFilesDownloadDelete() {
   file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
   file.IsExecutable = false;
-  file.DownloadToCache = false;
   INJOB.Files.push_back(file);
 
   CPPUNIT_ASSERT(INJOB.Files.size() == 1);
