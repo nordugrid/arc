@@ -24,6 +24,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestDataStagingDownloadUpload);
   CPPUNIT_TEST(TestDataStagingUploadUpload);
   CPPUNIT_TEST(TestExecutables);
+  CPPUNIT_TEST(TestFTPThreads);
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
   CPPUNIT_TEST(TestGridTime);
@@ -48,6 +49,7 @@ public:
   void TestDataStagingDownloadUpload();
   void TestDataStagingUploadUpload();
   void TestExecutables();
+  void TestFTPThreads();
   void TestNotify();
   void TestJoin();
   void TestGridTime();
@@ -61,6 +63,7 @@ private:
   Arc::XRSLParser PARSER;
 
   std::string MESSAGE;
+  std::string xrsl;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings) {
@@ -532,7 +535,7 @@ void XRSLParserTest::TestDataStagingUploadUpload() {
 }
 
 void XRSLParserTest::TestExecutables() {
-  std::string xrsl = "&(executable=/bin/true)(|(executables=\"in1\")(executables=\"in2\"))(inputfiles=(\"in1\" \"\") (\"in2\" \"\"))";
+  xrsl = "&(executable=/bin/true)(|(executables=\"in1\")(executables=\"in2\"))(inputfiles=(\"in1\" \"\") (\"in2\" \"\"))";
 
   std::ofstream f("in1", std::ifstream::trunc);
   f << "in1";
@@ -578,6 +581,53 @@ void XRSLParserTest::TestExecutables() {
   remove("in2");
 }
 
+void XRSLParserTest::TestFTPThreads() {
+  xrsl = "&(executable=\"executable\")"
+          "(inputfiles=(\"in\" \"gsiftp://example.com/in\"))"
+          "(outputfiles=(\"out\" \"gsiftp://example.com/out\"))"
+          "(|(ftpthreads=5)(ftpthreads=3))";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.File.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.File.front().Source.front().URI.Option("threads"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().DataStaging.File.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.File.back().Target.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.File.back().Target.front().URI.Option("threads"));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().GetAlternatives().front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.File.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().DataStaging.File.front().Source.front().URI.Option("threads"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().GetAlternatives().front().DataStaging.File.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.File.back().Target.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().DataStaging.File.back().Target.front().URI.Option("threads"));
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.File.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().DataStaging.File.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.File.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.File.front().Source.front().URI.Option("threads"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().DataStaging.File.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.File.back().Target.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.File.back().Target.front().URI.Option("threads"));
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  xrsl = "&(executable=\"executable\")"
+          "(inputfiles=(\"in\" \"gsiftp://example.com/in\"))"
+          "(outputfiles=(\"out\" \"gsiftp://example.com/out\"))"
+          "(ftpthreads=20)";
+  CPPUNIT_ASSERT(!PARSER.Parse(xrsl, OUTJOBS));
+}
+
 void XRSLParserTest::TestNotify() {
   /**
    * The value of the notify attribute must take the form:
@@ -594,7 +644,7 @@ void XRSLParserTest::TestNotify() {
   MESSAGE = "Error parsing the notify attribute.";
 
   // Test default option.
-  std::string xrsl = "&(executable = \"executable\")(notify = \"someone@example.com\")";
+  xrsl = "&(executable = \"executable\")(notify = \"someone@example.com\")";
 
   std::list<Arc::JobDescription> tempJobDescs;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
@@ -720,7 +770,7 @@ void XRSLParserTest::TestNotify() {
 void XRSLParserTest::TestJoin() {
   MESSAGE = "Error parsing the join attribute.";
 
-  std::string xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
+  xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
 
   std::list<Arc::JobDescription> tempJobDescs;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
@@ -776,7 +826,7 @@ void XRSLParserTest::TestJoin() {
 }
 
 void XRSLParserTest::TestGridTime() {
-  std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
+  xrsl = "&(executable=/bin/echo)(gridtime=600s)";
 
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
@@ -808,7 +858,7 @@ void XRSLParserTest::TestAdditionalAttributes() {
 }
 
 void XRSLParserTest::TestMultiRSL() {
-  std::string xrsl = "+(&(executable= \"/bin/exe1\"))(&(executable= \"/bin/exe2\"))";
+  xrsl = "+(&(executable= \"/bin/exe1\"))(&(executable= \"/bin/exe2\"))";
 
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.size());
@@ -817,7 +867,16 @@ void XRSLParserTest::TestMultiRSL() {
 }
 
 void XRSLParserTest::TestDisjunctRSL() {
-  std::string xrsl = "&(executable=\"/bin/exe\")(|(|(queue=\"q1.1\")(|(queue=\"q1.2.1\")(queue=\"q1.2.2\")))(queue=\"q2\")(queue=\"q3\"))(arguments=\"Hello world!\")";
+  xrsl = "&(executable=\"/bin/exe\")"
+          "(|(|(queue=\"q1.1\")"
+              "(|(queue=\"q1.2.1\")"
+                "(queue=\"q1.2.2\")"
+              ")"
+            ")"
+            "(queue=\"q2\")"
+            "(queue=\"q3\")"
+          ")"
+          "(arguments=\"Hello world!\")";
 
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());

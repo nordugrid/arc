@@ -107,6 +107,36 @@ namespace Arc {
     return true;
   }
 
+  bool XRSLParser::ParseFTPThreadsAttribute(JobDescription& j) {
+    std::map<std::string, std::string>::iterator itAtt;
+    itAtt = j.OtherAttributes.find("nordugrid:xrsl;ftpthreads");
+    if (itAtt == j.OtherAttributes.end()) {
+      return true;
+    }
+
+    int threads;
+    if (!stringto(itAtt->second, threads) || threads < 1 || 10 < threads) {
+      logger.msg(INFO, "The value of the ftpthreads attribute must be a number from 1 to 10.");
+      return false;
+    }
+
+    for (std::list<FileType>::iterator itF = j.DataStaging.File.begin();
+         itF != j.DataStaging.File.end(); itF++) {
+      for (std::list<DataSourceType>::iterator itS = itF->Source.begin();
+           itS != itF->Source.end(); itS++) {
+        itS->URI.AddOption("threads", itAtt->second);
+      }
+      for (std::list<DataTargetType>::iterator itT = itF->Target.begin();
+           itT != itF->Target.end(); itT++) {
+        itT->URI.AddOption("threads", itAtt->second);
+      }
+    }
+
+    j.OtherAttributes.erase(itAtt);
+
+    return true;
+  }
+
   bool XRSLParser::cached = true;
 
   bool XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
@@ -140,9 +170,15 @@ namespace Arc {
       if (!ParseExecutablesAttribute(jobdescs.back())) {
         return false;
       }
+      if (!ParseFTPThreadsAttribute(jobdescs.back())) {
+        return false;
+      }
       for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
            itJob != jobdescs.back().GetAlternatives().end(); itJob++) {
         if (!ParseExecutablesAttribute(*itJob)) {
+          return false;
+        }
+        if (!ParseFTPThreadsAttribute(*itJob)) {
           return false;
         }
       }
@@ -789,23 +825,19 @@ namespace Arc {
         return r;
       }
 
-      /* BROKEN!
-       * Parsing of this attribute is broken, since it must be ensured
-       * that it is processed after the inputfiles attribute have been
-       * processed
-       */
       if (c->Attr() == "ftpthreads") {
         std::string sthreads;
         if (!SingleValue(c, sthreads))
           return false;
-        int threads = stringtoi(sthreads);
-        for (std::list<FileType>::iterator it = j.DataStaging.File.begin();
-             it != j.DataStaging.File.end(); it++) {
-          if (it->Source.front().Threads > threads || it->Source.front().Threads == -1)
-            it->Source.front().Threads = threads;
-          if (it->Target.front().Threads > threads || it->Target.front().Threads == -1)
-            it->Target.front().Threads = threads;
+        /* Store value in the OtherAttributes member and set it later when all
+         * the attributes it depends on has been parsed.
+         */
+        j.OtherAttributes["nordugrid:xrsl;ftpthreads"] = sthreads;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;ftpthreads"] = sthreads;
         }
+
         return true;
       }
 
