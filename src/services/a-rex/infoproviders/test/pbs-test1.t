@@ -24,7 +24,6 @@ is($lrms_info->{cluster}{totalcpus}, 2, 'totalcpus');
 is($lrms_info->{cluster}{queuedcpus}, 0, 'queuedcpus');
 is($lrms_info->{cluster}{queuedjobs}, 0, 'queuedjobs');
 is($lrms_info->{cluster}{usedcpus}, 0, 'usedcpus');
-# NB: unnecessary space in value
 is($lrms_info->{cluster}{cpudistribution}, '2cpu:1', 'cpudistribution');
 
 is(ref $lrms_info->{queues}, 'HASH', 'has queues');
