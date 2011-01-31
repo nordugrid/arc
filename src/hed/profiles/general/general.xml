@@ -49,7 +49,7 @@
     <Component name="tcp.service" id="tcp">
       <next id="tls"/>
       <tcp:Listen>
-        <tcp:Interface inisections="common" initag="interface" inidefaultvalue="0.0.0.0"/>
+        <tcp:Interface inisections="common" initag="interface" inidefaultvalue="localhost"/>
         <tcp:Port inisections="common" initag="port" inidefaultvalue="443"/>
         <tcp:Version inisections="common" initag="ipversion" inidefaultvalue="4"/>
       </tcp:Listen>
@@ -123,29 +123,29 @@
       <arex:debugLevel inisections="arex" initag="loglevel" inidefaultvalue="WARNING"/>
       <arex:serviceMail inisections="arex" initag="servicemail"/>
       <arex:loadLimits>
-        <arex:maxJobsTracked inisections="arex" initag="maxjobstracked"/>
-        <arex:maxJobsRun inisections="arex" initag="maxjobsrun"/>
-        <arex:maxJobsTotal inisections="arex" initag="maxjobstotal"/>
-        <arex:maxJobsPerDN inisections="arex" initag="maxjobsperdn"/>
-        <arex:maxJobsTransferred inisections="arex" initag="maxjobstransferred"/>
-        <arex:maxJobsTransferredAdditional inisections="arex" initag="maxjobstransferredadditional"/>
-        <arex:maxFilesTransferred inisections="arex" initag="maxfilestransferred"/>
-        <arex:wakeupPeriod inisections="arex" initag="wakeupperiod"/>
+        <arex:maxJobsTracked inisections="arex" initag="maxjobstracked" inidefaultvalue="-1"/>
+        <arex:maxJobsRun inisections="arex" initag="maxjobsrun" inidefaultvalue="-1"/>
+        <arex:maxJobsTotal inisections="arex" initag="maxjobstotal" inidefaultvalue="-1"/>
+        <arex:maxJobsPerDN inisections="arex" initag="maxjobsperdn" inidefaultvalue="-1"/>
+        <arex:maxJobsTransferred inisections="arex" initag="maxjobstransferred" inidefaultvalue="100"/>
+        <arex:maxJobsTransferredAdditional inisections="arex" initag="maxjobstransferredadditional" inidefaultvalue="-1"/>
+        <arex:maxFilesTransferred inisections="arex" initag="maxfilestransferred" inidefaultvalue="-1"/>
+        <arex:wakeupPeriod inisections="arex" initag="wakeupperiod" inidefaultvalue="120"/>
         <arex:maxLoadShare inisections="arex" initag="maxloadshare"/>
         <arex:loadShareType inisections="arex" initag="loadsharetype"/>
       </arex:loadLimits>
       <arex:dataTransfer>
-        <arex:secureTransfer inisections="arex" initag="securetransfer"/>
-        <arex:passiveTransfer inisections="arex" initag="passivetransfer"/>
-        <arex:localTransfer inisections="arex" initag="localtransfer"/>
+        <arex:secureTransfer inisections="arex" initag="securetransfer" inidefaultvalue="no"/>
+        <arex:passiveTransfer inisections="arex" initag="passivetransfer" inidefaultvalue="no"/>
+        <arex:localTransfer inisections="arex" initag="localtransfer" inidefaultvalue="no"/>
         <arex:preferredPattern inisections="arex" initag="preferredpattern"/>
         <arex:timeouts>
-          <arex:minSpeed inisections="arex" initag="minspeed"/>
-          <arex:minSpeedTime inisections="arex" initag="minspeedtime"/>
-          <arex:minAverageSpeed inisections="arex" initag="minaveragespeed"/>
-          <arex:maxInactivityTime inisections="arex" initag="maxinactivitytime"/>
+          <arex:minSpeed inisections="arex" initag="minspeed" inidefaultvalue="0"/>
+          <arex:minSpeedTime inisections="arex" initag="minspeedtime" inidefaultvalue="300"/>
+          <arex:minAverageSpeed inisections="arex" initag="minaveragespeed" inidefaultvalue="0"/>
+          <arex:maxInactivityTime inisections="arex" initag="maxinactivitytime" inidefaultvalue="300"/>
         </arex:timeouts>
-        <arex:maxRetries inisections="arex" initag="maxretries"/>
+        <arex:maxRetries inisections="arex" initag="maxretries" inidefaultvalue="10"/>
         <arex:mapURL initype="multisection" inisections="arex/urlmap">
           <link initype="attribute" inisections="#this" initag="link"/>
           <arex:from inisections="#this" initag="from"/>
@@ -190,14 +190,14 @@
             <arex:path inisections="#this" initag="path"/>
             <arex:link inisections="#this" initag="link"/>
           </arex:remotelocation>
-          <arex:highWatermark inisections="arex/cache" initag="highwatermark"/>
-          <arex:lowWatermark inisections="arex/cache" initag="lowwatermark"/>
-          <arex:cacheLogLevel inisections="arex/cache" initag="loglevel"/>
+          <arex:highWatermark inisections="arex/cache" initag="highwatermark" inidefaultvalue="80"/>
+          <arex:lowWatermark inisections="arex/cache" initag="lowwatermark" inidefaultvalue="70"/>
+          <arex:cacheLogLevel inisections="arex/cache" initag="loglevel" inidefaultvalue="2"/>
           <arex:cacheLifetime inisections="arex/cache" initag="lifetime"/>
         </arex:cache>
-        <arex:defaultTTL inisections="arex" initag="defaultttl"/>
-        <arex:defaultTTR inisections="arex" initag="defaultttr"/>
-        <arex:maxReruns inisections="arex" initag="maxreruns"/>
+        <arex:defaultTTL inisections="arex" initag="defaultttl" inidefaultvalue="604800"/>
+        <arex:defaultTTR inisections="arex" initag="defaultttr" inidefaultvalue="2592000"/>
+        <arex:maxReruns inisections="arex" initag="maxreruns" inidefaultvalue="5"/>
         <arex:noRootPower inisections="arex" initag="norootpower" inidefaultvalue="false"/>
       </arex:control>
 
