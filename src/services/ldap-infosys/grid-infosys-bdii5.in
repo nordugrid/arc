@@ -264,12 +264,12 @@ threads=${CONFIG_threads:-32}
 providerlog=${CONFIG_providerlog:-/var/log/arc/infoprovider.log}
 infosyslog=${CONFIG_logfile:-/var/log/arc/grid-infosys.log}
 if [ ! -d `dirname $providerlog` ]; then
-    debug_echo "Could not find directory for arc info-provider log: `dirname $providerlog`, creating it now."
     mkdir -p `dirname $providerlog`
+    debug_echo "Could not find directory for arc info-provider log: `dirname $providerlog`, creating it now."
 fi
 if [ ! -d `dirname $infosyslog` ]; then
-    debug_echo "Could not find directory for arc infosys log: `dirname $infosyslog`, creating it now."
     mkdir -p `dirname $infosyslog`
+    debug_echo "Could not find directory for arc infosys log: `dirname $infosyslog`, creating it now."
 fi
 
 # Get ldap user from passwd
