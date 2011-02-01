@@ -24,20 +24,19 @@ namespace Arc {
    * With the initokenenables attribute elements in a profile can be
    * enabled/disabled from INI either by specifying/not specifying a given
    * section or a INI tag/value pair in a given section.
-   * The format is: <section>[#<tag>=<value>]
-   * So either a section, or a section/tag/value can be specified. If the
-   * section or section/tag/value pair respectively is found in IniConfig then
-   * true is returned, otherwise false. Also section and tag must be non-empty
-   * otherwise false is returned.
+   * The format is: <section>[#<tag>[=<value>]]
+   * So either a section, or a section/tag or a section/tag/value can be specified.
+   * If specified set is found in IniConfig then true is returned, otherwise false.
+   * Also section and tag (if requested) must be non-empty otherwise false is returned.
    */
   static bool isenabled(XMLNode node, IniConfig ini) {
     if (!node.Attribute("initokenenables")) {
       return true;
     }
     const std::string initokenenables = node.Attribute("initokenenables");
-    std::string::size_type pos, lastpos;
+    std::string::size_type pos;
     std::string section = "", tag = "", value = "";
-    pos = initokenenables.find_first_of("#");
+    pos = initokenenables.find('#');
     section = initokenenables.substr(0, pos);
 
     if (section.empty()) {
@@ -45,18 +44,19 @@ namespace Arc {
     }
 
     if (pos != std::string::npos) {
-      lastpos = pos;
-      pos = initokenenables.find_first_of("=", lastpos);
+      tag = initokenenables.substr(pos+1);
+      pos = tag.find('=');
       if (pos != std::string::npos) {
-        tag = initokenenables.substr(lastpos+1, pos-(lastpos+1));
-        value = initokenenables.substr(pos+1);
-        return !tag.empty() && ini[section][tag] && ((std::string)ini[section][tag] == value);
+        value = tag.substr(pos+1);
+        tag.resize(pos);
+        return ((!tag.empty()) &&
+                (bool)ini[section][tag] && 
+                ((std::string)ini[section][tag] == value));
       }
+      return ((!tag.empty()) && 
+              (bool)ini[section][tag]);
     }
-    else {
-      return ini[section];
-    }
-    return false;
+    return (bool)ini[section];
   }
 
   /* From the space separated list of sections 'sections' this function sets the

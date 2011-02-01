@@ -609,6 +609,10 @@ void ProfileTest::TestTokenEnables()
             "<xhufb initokenenables=\"common#non-existent=disabled-xhufb\" initype=\"single\" inisections=\"non-existent common\" initag=\"xhufb\"/>"
             "<xhufc initokenenables=\"common#xhufc=disabled-xhufc\" initype=\"single\" inisections=\"non-existent common\" initag=\"xhufc\"/>"
           "</xbax>"
+          "<bla initype=\"multielement\" inisections=\"first second\" initag=\"xbax\">"
+            "<blax initokenenables=\"common#blax\" initype=\"single\" inisections=\"first common\" initag=\"blax\"/>"
+            "<blay initokenenables=\"common#blay\" initype=\"single\" inisections=\"first common\" initag=\"blay\"/>"
+          "</bla>"
         "</ArcConfig>";
   p.ReadFromStream(ps);
 
@@ -632,6 +636,7 @@ void ProfileTest::TestTokenEnables()
   i[common].NewChild("hufb") = common + "-hufb";
   i[common].NewChild("xhufb") = "enabled-xhufb";
   i[common].NewChild("xhufc") = "enabled-xhufc";
+  i[common].NewChild("blax") = "enabled-blax";
 
   /*
    * Config:
@@ -654,6 +659,9 @@ void ProfileTest::TestTokenEnables()
        <xbax>
          <xhufa>enabled</xhufa>
        </xbax>
+       <bla>
+         <blax>enabled<blax>
+       </bla>
      </ArcConfig>
    */
 
@@ -661,7 +669,7 @@ void ProfileTest::TestTokenEnables()
   p.Evaluate(c, i);
 
   CPPUNIT_ASSERT_EQUAL(0, c.AttributesSize());
-  CPPUNIT_ASSERT_EQUAL(6, c.Size());
+  CPPUNIT_ASSERT_EQUAL(7, c.Size());
   CPPUNIT_ASSERT_EQUAL(1, c.Child(0).Size());
   CPPUNIT_ASSERT_EQUAL(first + "-baza", (std::string)c.Child(0).Child(0));
   CPPUNIT_ASSERT_EQUAL(1, c.Child(1).Size());
@@ -674,6 +682,8 @@ void ProfileTest::TestTokenEnables()
   CPPUNIT_ASSERT_EQUAL((std::string)"enabled-xgeea", (std::string)c.Child(4).Child(0));
   CPPUNIT_ASSERT_EQUAL(1, c.Child(5).Size());
   CPPUNIT_ASSERT_EQUAL((std::string)"enabled-xhufa", (std::string)c.Child(5).Child(0));
+  CPPUNIT_ASSERT_EQUAL(1, c.Child(6).Size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"enabled-blax", (std::string)c.Child(6).Child(0));
 
   ClearNodes();
 }

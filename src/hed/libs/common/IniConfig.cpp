@@ -50,7 +50,8 @@ namespace Arc {
     }
     if (Glib::file_test(profilename, Glib::FILE_TEST_EXISTS) == false) {
       // If profilename does not contain directory separators and do not have xml suffix, then look for the profile in ARC profile directory.
-      if (profilename.find(G_DIR_SEPARATOR_S) == std::string::npos && profilename.substr(profilename.size()-4, 4) != ".xml") {
+      if ((profilename.find(G_DIR_SEPARATOR_S) == std::string::npos) &&
+          (profilename.substr(profilename.size()>=4?profilename.size()-4:0) != ".xml")) {
         const std::string pkgprofilename = ArcLocation::Get() +
                                             G_DIR_SEPARATOR_S PKGDATASUBDIR
                                               G_DIR_SEPARATOR_S "profiles"
