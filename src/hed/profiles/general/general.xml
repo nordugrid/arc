@@ -142,13 +142,13 @@ attributes depending on how the mapping should be done.
       <arex:debugLevel inisections="arex" initag="loglevel" inidefaultvalue="WARNING"/>
       <arex:serviceMail inisections="arex" initag="servicemail"/>
       <arex:loadLimits>
-        <arex:maxJobsTracked inisections="arex" initag="maxjobstracked" inidefaultvalue="-1"/>
-        <arex:maxJobsRun inisections="arex" initag="maxjobsrun" inidefaultvalue="-1"/>
-        <arex:maxJobsTotal inisections="arex" initag="maxjobstotal" inidefaultvalue="-1"/>
-        <arex:maxJobsPerDN inisections="arex" initag="maxjobsperdn" inidefaultvalue="-1"/>
+        <arex:maxJobsTracked inisections="arex" initag="maxjobstracked"/>
+        <arex:maxJobsRun inisections="arex" initag="maxjobsrun"/>
+        <arex:maxJobsTotal inisections="arex" initag="maxjobstotal"/>
+        <arex:maxJobsPerDN inisections="arex" initag="maxjobsperdn"/>
         <arex:maxJobsTransferred inisections="arex" initag="maxjobstransferred" inidefaultvalue="100"/>
-        <arex:maxJobsTransferredAdditional inisections="arex" initag="maxjobstransferredadditional" inidefaultvalue="-1"/>
-        <arex:maxFilesTransferred inisections="arex" initag="maxfilestransferred" inidefaultvalue="-1"/>
+        <arex:maxJobsTransferredAdditional inisections="arex" initag="maxjobstransferredadditional" inidefaultvalue="1"/>
+        <arex:maxFilesTransferred inisections="arex" initag="maxfilestransferred" inidefaultvalue="5"/>
         <arex:wakeupPeriod inisections="arex" initag="wakeupperiod" inidefaultvalue="120"/>
         <arex:maxLoadShare inisections="arex" initag="maxloadshare"/>
         <arex:loadShareType inisections="arex" initag="loadsharetype"/>
