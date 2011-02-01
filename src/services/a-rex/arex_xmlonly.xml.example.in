@@ -103,9 +103,9 @@
       <arex:dataTransfer>
           <arex:Globus>
               <arex:gridmapfile>/etc/grid-security/grid-mapfile</arex:gridmapfile>
-              <arex:cadir>/etc/grid-security/certificates</arex:cadir>
-              <arex:certpath>/etc/grid-security/hostcert.pem</arex:certpath>
-              <arex:keypath>/etc/grid-security/hostkey.pem</arex:keypath>
+              <arex:CACertificatesDir>/etc/grid-security/certificates</arex:CACertificatesDir>
+              <arex:CertificatePath>/etc/grid-security/hostcert.pem</arex:CertificatePath>
+              <arex:KeyPath>/etc/grid-security/hostkey.pem</arex:KeyPath>
           </arex:Globus>
 	  <arex:maxRetries>10</arex:maxRetries>
       </arex:dataTransfer>

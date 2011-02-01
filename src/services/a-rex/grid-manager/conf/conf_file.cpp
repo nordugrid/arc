@@ -658,8 +658,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     expiration
     type
     parameters
-    keyPath
-    certificatePath
+    KeyPath
+    CertificatePath
     CACertificatesDir
   */
   tmp_node = cfg["jobLogPath"];
@@ -677,8 +677,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       if(Arc::stringto(tmp_node["expiration"],i)) users.Env().job_log().SetExpiration(i);
       std::string parameters = tmp_node["parameters"];
       if(!parameters.empty()) users.Env().job_log().set_options(parameters);
-      std::string jobreport_key = tmp_node["keyPath"];
-      std::string jobreport_cert = tmp_node["certificatePath"];
+      std::string jobreport_key = tmp_node["KeyPath"];
+      std::string jobreport_cert = tmp_node["CertificatePath"];
       std::string jobreport_cadir = tmp_node["CACertificatesDir"];
       users.Env().job_log().set_credentials(jobreport_key,jobreport_cert,jobreport_cadir);
     };

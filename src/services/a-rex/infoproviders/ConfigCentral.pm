@@ -412,8 +412,13 @@ sub build_config_from_xmlfile {
     }
 
     my $globus = hash_get_hashref(hash_get_hashref($arex, 'dataTransfer'), 'Globus');
+
+    # these are obsolete now -- kept only for backwards compatibility
     rename_keys $globus, $config, {certpath => 'x509_user_cert', keypath => 'x509_user_key',
-                                   cadir => 'x509_cert_dir', gridmapfile => 'gridmap'};
+                                   cadir => 'x509_cert_dir'};
+
+    rename_keys $globus, $config, {CertificatePath => 'x509_user_cert', KeyPath => 'x509_user_key',
+                                   CACertificatesDir => 'x509_cert_dir', gridmapfile => 'gridmap'};
 
     my $load = hash_get_hashref($arex, 'loadLimits');
     my $mj = $load->{maxJobsTracked} || '-1';

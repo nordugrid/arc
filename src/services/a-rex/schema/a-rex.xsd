@@ -250,11 +250,11 @@
        <xsd:sequence>                    
           <xsd:element name="gridmapfile" type="xsd:string"
                        minOccurs="0"/>
-          <xsd:element name="cadir" type="xsd:string"
+          <xsd:element name="CACertificatesDir" type="xsd:string"
                        minOccurs="0"/>
-          <xsd:element name="certpath" type="xsd:string"
+          <xsd:element name="CertificatePath" type="xsd:string"
                        minOccurs="0"/>
-          <xsd:element name="keypath" type="xsd:string"
+          <xsd:element name="KeyPath" type="xsd:string"
                        minOccurs="0"/>
           <xsd:element name="TCPPortRange" type="xsd:string"
                        minOccurs="0"/>
@@ -506,9 +506,9 @@
                             minOccurs="0"/>
            <xsd:element name="parameters" type="xsd:string"
                              minOccurs="0"/>
-           <xsd:element name="keyPath" type="xsd:string"
+           <xsd:element name="KeyPath" type="xsd:string"
                              minOccurs="0"/>
-           <xsd:element name="certificatePath" type="xsd:string"
+           <xsd:element name="CertificatePath" type="xsd:string"
                              minOccurs="0"/>
            <xsd:element name="CACertificatesDir" type="xsd:string"
                              minOccurs="0"/>
