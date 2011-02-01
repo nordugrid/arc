@@ -1,5 +1,20 @@
 <?xml version="1.0"?>
 <!--
+ Profiles are used to convert INI-style configuration files into XMLs
+which are then consumed by 'arched' and possibly other utilities.
+INI-style files consist of sections marked by 
+  [section name]
+at beginning of section. Each section contains
+  tag=value
+elements. Profiles is a template for XML file with some parts of it
+replaced by information from INI-style confguration during processing.
+That processing is called mapping.
+ Special tag 'profile' in special section [common] defines which template 
+to use. 'value' of 'profile' tag is either absolute path to file containing
+XML profile or name of profile (name of file with path and .xml suffix
+stripped) installed along with ARC, usually at INSTALL_PATH/share/arc.
+ If there is no 'profile' tag in [common] section then profile from 
+INSTALL_PATH/share/arc/general.xml is used.
  Each element/configuration block which should be configurable from a INI
 config, should be present in the profile and appended with the following
 attributes depending on how the mapping should be done.
@@ -24,8 +39,6 @@ attributes depending on how the mapping should be done.
     profile, based on the presence of a specific section or the presence of
     a specific tag with a specific value in a specific section. The format
     of the value of this attribute is: '<section>[#<tag>=<value>]'.
-  Also I have made it default that when no profile tag have been specified
-  in INI then the general profile will be used.
 -->
 <ArcConfig
     xmlns="http://www.nordugrid.org/schemas/loader/2009/08"
