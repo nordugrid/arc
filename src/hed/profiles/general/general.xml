@@ -37,8 +37,8 @@ attributes depending on how the mapping should be done.
     case the corresponding tag was not specified in INI.
  * initokenenables: Used to enable different elements/blocks in the
     profile, based on the presence of a specific section or the presence of
-    a specific tag with a specific value in a specific section. The format
-    of the value of this attribute is: '<section>[#<tag>=<value>]'.
+    a specific tag (optional) with a specific value (optional) in a specific 
+    section. The format of this attribute is: '<section>[#<tag>[=<value>]]'.
 -->
 <ArcConfig
     xmlns="http://www.nordugrid.org/schemas/loader/2009/08"
