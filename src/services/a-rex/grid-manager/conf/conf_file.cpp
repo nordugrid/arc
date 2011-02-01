@@ -765,9 +765,9 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       to
     Globus
       gridmapfile
-      cadir
-      certpath
-      keypath
+      CACertificatesDir
+      CertificatePath
+      Keypath
       TCPPortRange
       UDPPortRange
     httpProxy
