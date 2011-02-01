@@ -1,4 +1,23 @@
 <?xml version="1.0"?>
+<!--
+ Each element/configuration block which should be configurable from a INI
+config, should be present in the profile and appended with the following
+attributes depending on how the mapping should be done.
+ * inisections: Its value defines a space separated ordered list of INI
+    sections in which the element can be configured.
+ * initag: Its value defines the name of the tag to use in INI to set value
+    of the element.
+ * initype: Its value defines type of mapping. Possible values are: single,
+    attribute, multi, multielement, and multisection.
+ * inidefaultvalue: Its value defines the default value of the element in
+    case the corresponding tag was not specified in INI.
+ * initokenenables: Used to enable different elements/blocks in the
+    profile, based on the presence of a specific section or the presence of
+    a specific tag with a specific value in a specific section. The format
+    of the value of this attribute is: '<section>[#<tag>=<value>]'.
+  Also I have made it default that when no profile tag have been specified
+  in INI then the general profile will be used.
+-->
 <ArcConfig
     xmlns="http://www.nordugrid.org/schemas/loader/2009/08"
     xmlns:ahash="http://www.nordugrid.org/schemas/ahash/2009/08"
