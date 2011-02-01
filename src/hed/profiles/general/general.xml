@@ -9,6 +9,15 @@ attributes depending on how the mapping should be done.
     of the element.
  * initype: Its value defines type of mapping. Possible values are: single,
     attribute, multi, multielement, and multisection.
+   * single: It is the default if no initype has been specified. Will map
+      one tag to one element. The first tag from first 'inisection' is used.
+   * attribute: Will map one tag to one attribute.
+   * multi: Will map multiple tags (identical tag names in same section) to 
+      multiple elements. Tags from first 'inisection' are used.
+   * multielement: Is used to multiple tags (identical tag names in same 
+      section) to a XML tree structure.
+   * multisection: Maps multiple ini sections to multiple XML tree structures.
+      First tag from every 'inisection' is used.
  * inidefaultvalue: Its value defines the default value of the element in
     case the corresponding tag was not specified in INI.
  * initokenenables: Used to enable different elements/blocks in the
