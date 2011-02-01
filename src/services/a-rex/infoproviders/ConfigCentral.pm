@@ -457,7 +457,7 @@ sub build_config_from_xmlfile {
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
     move_keys $ipcfg, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
-    move_keys $ipcfg, $config, [keys %$gridftpd_options];
+    #move_keys $ipcfg, $config, [keys %$gridftpd_options];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
     my $xenvs = hash_get_arrayref($ipcfg, 'ExecutionEnvironment');
