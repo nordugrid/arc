@@ -106,6 +106,12 @@ my $gmcommon_options = {
     use_janitor => '*',
 };
 my $ldap_infosys_options = {
+    bdii_var_dir => '*',
+    bdii_tmp_dir => '*',
+    infosys_compat => '*',
+    infosys_nordugrid => '*',
+    infosys_glue12 => '*',
+    infosys_glue2_ldap => '*'
 };
 my $gridftpd_options = {
     GridftpdEnabled => '*',
@@ -188,6 +194,7 @@ my $config_schema = {
 my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
+                 infosys_compat infosys_nordugrid infosys_glue12 infosys_glue2_ldap
                  GridftpdEnabled GridftpdAllowNew use_janitor) ];
 
 ############################ Generic functions ###########################
@@ -244,9 +251,9 @@ sub fixbools {
     for my $key (@$bools) {
         next unless exists $h->{$key};
         my $val = $h->{$key};
-        if ($val eq '0' or lc $val eq 'false' or lc $val eq 'no') {
+        if ($val eq '0' or lc $val eq 'false' or lc $val eq 'no' or lc $val eq 'disable') {
             $h->{$key} = '0';
-        } elsif ($val eq '1' or lc $val eq 'true' or lc $val eq 'yes') {
+        } elsif ($val eq '1' or lc $val eq 'true' or lc $val eq 'yes' or lc $val eq 'enable') {
             $h->{$key} = '1';
         } else {
             $log->error("Invalid value for $key");

@@ -44,16 +44,17 @@ use ARC1ClusterInfo;
 use GLUE2xmlPrinter;
 use GLUE2ldifPrinter;
 use NGldifPrinter;
+use LdifPipe;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
 
 sub timed {
-    my ($fname, $func, @args) = @_;
+    my ($fname, $func) = @_;
     my $t0 = time();
-    my $result = &$func(@args);
+    my $result = &$func();
     my $dt = sprintf('%.3f', time() - $t0);
-    $log->debug("Time spent in $fname: ${dt}s");
+    $log->verbose("Time spent in $fname: ${dt}s");
     return $result;
 }
 
@@ -86,7 +87,7 @@ sub main {
     }
 
     # Read ARC configuration
-    my $config = timed 'ConfigCentral', \&ConfigCentral::parseConfig, $configfile;
+    my $config = timed 'ConfigCentral', sub { ConfigCentral::parseConfig($configfile) };
 
     # Change level for root logger (affects all loggers from now on)
     LogUtils::level($config->{debugLevel}) if defined $config->{debugLevel};
@@ -109,27 +110,37 @@ sub main {
     fix_config($config);
     check_config($config);
 
-    # Collect information & print XML
-
-    my $data = timed 'all info collectors', \&CEInfo::collect, $config;
-
+    my $data = timed 'all info collectors', sub { CEInfo::collect($config) };
     $data->{nojobs} = $nojobs;
 
-    my $adminDomain = timed 'ARC1ClusterInfo', \&ARC1ClusterInfo::collect, $data, $nojobs;
-
+    # Print GLUE2 XML
+    my $glue2data = timed 'ARC1ClusterInfo', sub { ARC1ClusterInfo::collect($data) };
     my $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs);
     $xmlPrinter->begin('InfoRoot');
-    timed 'GLUE2xml', sub { $xmlPrinter->Domains(@_) }, $adminDomain;
+    timed 'GLUE2xml', sub { $xmlPrinter->Domains($glue2data) };
     $xmlPrinter->end('InfoRoot');
-    #my $ldifPrinter = GLUE2ldifPrinter->new(*STDOUT);
-    #timed 'GLUE2ldif', sub { $ldifPrinter->Top(@_) }, $adminDomain;
 
-    if ($config->{PublishNordugrid}) {
-        my $ngdata = timed 'ARC0ClusterInfo', \&ARC0ClusterInfo::collect, $data;
+    # Generate ldif for infosys-ldap -- but only if infosys expects it
+    if (not $config->{infosys_compat} and ($config->{infosys_nordugrid} or
+                                           $config->{infosys_glue2_ldap}) ) {
+        my $ngdata;
+        $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
+            if $config->{infosys_nordugrid};
 
-        #my $printer = NGldifPrinter->new(*STDOUT, $config->{ttl});
-        #$printer->Top($ngdata);
+        my $print_ldif = sub {
+            my ($fh) = @_;
+            if ($config->{infosys_glue2_ldap}) {
+                my $ldifPrinter = GLUE2ldifPrinter->new($fh);
+                timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
+            }
+            if ($config->{infosys_nordugrid}) {
+                my $ldifPrinter = NGldifPrinter->new($fh, $config->{ttl});
+                timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
+            }
+        };
+        LdifPipe::pushLdif($config, $print_ldif);
     }
+
     $log->info("############## Infoprovider finished ##############");
 }
 
@@ -196,7 +207,7 @@ sub get_host_info($$) {
     $host_opts->{sessiondir} = $config->{sessiondir};
     $host_opts->{cachedir} = $config->{cachedir};
 
-    return timed 'HostInfo', \&HostInfo::collect, $host_opts;
+    return timed 'HostInfo', sub { HostInfo::collect($host_opts) };
 }
 
 sub get_rte_info($) {
@@ -208,7 +219,7 @@ sub get_rte_info($) {
     $rte_opts->{use_janitor} = $config->{use_janitor} if $config->{use_janitor};
     $rte_opts->{pkgdatadir} = dirname($0).'/@pkgdatadir_rel_to_pkglibexecdir@';
 
-    return timed 'RTEInfo', \&RTEInfo::collect, $rte_opts;
+    return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }
 
 sub get_lrms_info($$$) {
@@ -223,13 +234,13 @@ sub get_lrms_info($$$) {
         $lrms_opts->{queues}{$share}{users} = $localusers;
     }
 
-    return timed 'LRMSInfo', \&LRMSInfo::collect, $lrms_opts;
+    return timed 'LRMSInfo', sub { LRMSInfo::collect($lrms_opts) };
 }
 
 sub get_gmjobs_info($) {
     my $config = shift;
 
-    my $gmjobs_info = timed 'GMJobsInfo', \&GMJobsInfo::collect, $config->{controldir};
+    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{controldir}) };
 
     return fix_jobs($config, $gmjobs_info);
 }
@@ -319,6 +330,9 @@ sub fix_config {
 
     my %config_defaults = (
                    arcversion     => '@VERSION@',
+                   infosys_compat      => 0,
+                   infosys_nordugrid   => 1,
+                   infosys_glue2_ldap  => 0,
                    GridftpdEnabled     => 0,
                    GridftpdMountPoint  => '/jobs',
                    GridftpdPort        => 2811,

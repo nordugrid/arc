@@ -33,6 +33,7 @@ debian/tmp/usr/lib/arc/SLURM.pm
 debian/tmp/usr/lib/arc/GridFactory.pm
 
 debian/tmp/usr/lib/arc/XmlPrinter.pm
+debian/tmp/usr/lib/arc/LdifPipe.pm
 debian/tmp/usr/lib/arc/LdifPrinter.pm
 debian/tmp/usr/lib/arc/GLUE2xmlPrinter.pm
 debian/tmp/usr/lib/arc/GLUE2ldifPrinter.pm

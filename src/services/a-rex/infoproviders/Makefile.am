@@ -10,7 +10,7 @@ pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
 		  SGE.pm Fork.pm LRMS.pm Shared.pm \
 		  XmlPrinter.pm GLUE2xmlPrinter.pm \
 		  LdifPrinter.pm GLUE2ldifPrinter.pm \
-          NGldifPrinter.pm
+          NGldifPrinter.pm LdifPipe.pm
 
 arcldapschemadir = $(pkgdatadir)/ldap-schema
 arcldapschema_DATA = schema/nordugrid.schema

@@ -19,13 +19,13 @@ use File::Basename;
 
 use Exporter;
 @ISA = ('Exporter');     # Inherit from Exporter
-@EXPORT_OK = qw(start_logging error warning info debug);
+@EXPORT_OK = qw(start_logging error warning info verbose debug);
 
 use strict;
 
 our %names = (FATAL => 0, ERROR => 1, WARNING => 2, INFO => 3, VERBOSE => 4, DEBUG => 5);
 
-our $loglevel = 1; # default level is WARNING
+our $loglevel = 2; # default level is WARNING
 our $ts_enabled = 0; # by default do not print timestamps
 
 our $default_logger = LogUtils->getLogger(basename($0));

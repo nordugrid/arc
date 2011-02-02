@@ -2,12 +2,18 @@ package LdifPrinter;
 
 use MIME::Base64;
 
+use LogUtils;
+our $log = LogUtils->getLogger(__PACKAGE__);
+
+
 sub new {
     my ($this, $handle) = @_; 
     my $class = ref($this) || $this;
     # This would only affect comment lines, the rest is guaranteed to be ASCII
-    binmode $handle, ':encoding(utf8)';
-    print $handle "# extended LDIF\n#\n# LDAPv3\n";
+    binmode $handle, ':encoding(utf8)'
+        or $log->error("binmode failed: $!");
+    #print $handle "# extended LDIF\n#\n# LDAPv3\n"
+    #    or $log->error("print failed: $!");
     my $self = {fh => $handle, dn => undef, nick => undef, attrs => undef};
     return bless $self, $class;
 }
@@ -44,18 +50,22 @@ sub _flush {
     return unless defined $attrs;
     my $dn = join ",", @{$self->{dn}};
     my $nick = join ", ", @{$self->{nick}};
-    print $fh "\n";
-    print $fh fold78("# $nick");
-    print $fh fold78(safe_attrval("dn", $dn));
+    #print $fh "\n# $nick";
+    print $fh "\n".safe_attrval("dn", $dn)."\n"
+        or $log->error("print failed: $!");
     for my $pair (@$attrs) {
         my ($attr, $val) = @$pair;
         next unless defined $val;
         if (not ref $val) {
-            print $fh fold78(safe_attrval($attr, $val));
+            print $fh safe_attrval($attr, $val)."\n"
+                or $log->error("print failed: $!");
         } elsif (ref $val eq 'ARRAY') {
-            print $fh fold78(safe_attrval($attr, $_)) for @$val;
+            for (@$val) {
+            print $fh safe_attrval($attr, $_)."\n"
+                or $log->error("print failed: $!");
+            }
         } else {
-            die "Not an ARRAY reference in: $attr";
+            $log->error("Not an ARRAY reference in: $attr");
         }
     }
     $self->{attrs} = undef;

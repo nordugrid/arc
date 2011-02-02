@@ -840,6 +840,7 @@ exit 0
 %{_libdir}/%{pkgdir}/SLURM.pm
 %{_libdir}/%{pkgdir}/GridFactory.pm
 %{_libdir}/%{pkgdir}/XmlPrinter.pm
+%{_libdir}/%{pkgdir}/LdifPipe.pm
 %{_libdir}/%{pkgdir}/LdifPrinter.pm
 %{_libdir}/%{pkgdir}/GLUE2xmlPrinter.pm
 %{_libdir}/%{pkgdir}/GLUE2ldifPrinter.pm
