@@ -48,6 +48,7 @@ void ARexService::InformationCollector(void) {
       if(!run.Wait(infoprovider_wakeup_period_*10)) {
         logger_.msg(Arc::WARNING,"Resource information provider timeout: %u seconds",
                     infoprovider_wakeup_period_*10);
+        run.Kill(1);
       } else {
         r = run.Result();
         if (r!=0)
