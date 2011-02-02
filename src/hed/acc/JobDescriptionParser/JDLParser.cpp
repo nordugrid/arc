@@ -343,14 +343,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "queuename") {
-        if (job.Resources.CandidateTarget.empty()) {
-          ResourceTargetType candidateTarget;
-          candidateTarget.EndPointURL = URL();
-          candidateTarget.QueueName = simpleJDLvalue(attributeValue);
-          job.Resources.CandidateTarget.push_back(candidateTarget);
-        }
-        else
-          job.Resources.CandidateTarget.front().QueueName = simpleJDLvalue(attributeValue);
+      job.Resources.QueueName = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "batchsystem") {
@@ -667,10 +660,9 @@ namespace Arc {
         product += generateOutputList("OutputSandboxDestURI", outputSandboxDestURIList);
     }
 
-    if (!job.Resources.CandidateTarget.empty() &&
-        !job.Resources.CandidateTarget.front().QueueName.empty()) {
+    if (!job.Resources.QueueName.empty()) {
       product += "  QueueName = \"";
-      product += job.Resources.CandidateTarget.front().QueueName;
+      product += job.Resources.QueueName;
       product += "\";\n";
     }
 

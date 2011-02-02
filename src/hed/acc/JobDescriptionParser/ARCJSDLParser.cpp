@@ -503,31 +503,25 @@ namespace Arc {
       job.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
 
 
-    // std::list<ResourceTargetType> CandidateTarget;
-    if (bool(resource["CandidateTarget"])) {
-      for (int i = 0; (bool)(resource["CandidateTarget"][i]); i++) {
-        if (bool(resource["CandidateTarget"][i]["HostName"]) || bool(resource["CandidateTarget"][i]["QueueName"])) {
-          std::string useQueue = (std::string)resource["CandidateTarget"][i]["QueueName"].Attribute("require");
-          if (!useQueue.empty() && useQueue != "eq" && useQueue != "=" && useQueue != "==" && useQueue != "ne" && useQueue != "!=") {
-            logger.msg(ERROR, "Parsing the \"require\" attribute of the \"QueueName\" JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed.");
-            jobdescs.clear();
-            return false;
-          }
+    // std::string QueueName;
+    if (bool(resource["QueueName"]) ||
+        bool(resource["CandidateTarget"]["QueueName"]) // Be backwards compatible
+        ) {
+      XMLNode xmlQueue = (bool(resource["QueueName"]) ? resource["QueueName"] : resource["CandidateTarget"]["QueueName"]);
+      std::string useQueue = (std::string)xmlQueue.Attribute("require");
+      if (!useQueue.empty() && useQueue != "eq" && useQueue != "=" && useQueue != "==" && useQueue != "ne" && useQueue != "!=") {
+        logger.msg(ERROR, "Parsing the \"require\" attribute of the \"QueueName\" nordugrid-JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed.");
+        jobdescs.clear();
+        return false;
+      }
 
-          ResourceTargetType candidateTarget;
-          candidateTarget.EndPointURL = URL((std::string)resource["CandidateTarget"][i]["HostName"]);
-          candidateTarget.QueueName = (std::string)resource["CandidateTarget"][i]["QueueName"];
-          candidateTarget.UseQueue = !(useQueue == "ne" || useQueue == "!=");
-          job.Resources.CandidateTarget.push_back(candidateTarget);
-        }
+      if (useQueue == "ne" || useQueue == "!=") {
+        job.OtherAttributes["nordugrid:broker;reject_queue"] = (std::string)xmlQueue;
+      }
+      else {
+        job.Resources.QueueName = (std::string)xmlQueue;
       }
     }
-    else if (bool(resource["CandidateHosts"]))
-      for (int i = 0; (bool)(resource["CandidateHosts"]["HostName"][i]); i++) {
-        ResourceTargetType candidateTarget;
-        candidateTarget.EndPointURL = URL((std::string)resource["CandidateHosts"]["HostName"][i]);
-        job.Resources.CandidateTarget.push_back(candidateTarget);
-      }
 
     // SoftwareRequirement RunTimeEnvironment;
     if (bool(resource["RunTimeEnvironment"])) {
@@ -950,22 +944,13 @@ namespace Arc {
         xmlResources.NewChild(xmlSlotRequirement);
     }
 
-    // std::list<ResourceTargetType> CandidateTarget;
-    logger.msg(INFO, "job.Resources.CandidateTarget.size() = %d", job.Resources.CandidateTarget.size());
-    for (std::list<ResourceTargetType>::const_iterator it = job.Resources.CandidateTarget.begin();
-         it != job.Resources.CandidateTarget.end(); it++) {
-      XMLNode xmlCandidateTarget("<CandidateTarget/>");
-      if (it->EndPointURL)
-        xmlCandidateTarget.NewChild("HostName") = it->EndPointURL.str();
-      if (!it->QueueName.empty()) {
-        logger.msg(INFO, "job.Resources.CandidateTarget.QueueName = %s", it->QueueName);
-        XMLNode queue = xmlCandidateTarget.NewChild("QueueName") = it->QueueName;
-        if (!it->UseQueue) {
-          queue.NewAttribute("require") = "ne";
-        }
-      }
-      if (xmlCandidateTarget.Size() > 0)
-        xmlResources.NewChild(xmlCandidateTarget);
+    // std::string QueueName;
+    if (!job.Resources.QueueName.empty()) {;
+      logger.msg(INFO, "job.Resources.QueueName = %s", job.Resources.QueueName);
+      xmlResources.NewChild("QueueName") = job.Resources.QueueName;
+
+      // Be backwards compatible with NOX versions of A-REX.
+      xmlResources.NewChild("CandidateTarget").NewChild("QueueName") = job.Resources.QueueName;
     }
 
     // SoftwareRequirement RunTimeEnvironment;

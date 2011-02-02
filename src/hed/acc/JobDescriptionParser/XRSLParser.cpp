@@ -607,39 +607,30 @@ namespace Arc {
         std::string queueName;
         if (!SingleValue(c, queueName))
           return false;
-        if (dialect == "GRIDMANAGER") {
-          if (c->Op() != RSLEqual) {
-            logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"=\" is allowed.");
-            return false;
-          }
+        if (dialect == "GRIDMANAGER" && c->Op() != RSLEqual) {
+          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"=\" is allowed.");
+          return false;
         }
-        else {
-          if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
-            logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
-            return false;
-          }
+        if (c->Op() != RSLNotEqual && c->Op() != RSLEqual) {
+          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. An invalid comparison operator was used, only \"!=\" or \"=\" are allowed.");
+          return false;
         }
 
-        if (j.Resources.CandidateTarget.empty()) {
-          ResourceTargetType candidateTarget;
-          candidateTarget.EndPointURL = URL();
-          candidateTarget.QueueName = queueName;
-          candidateTarget.UseQueue = (c->Op() == RSLEqual);
-
-          j.Resources.CandidateTarget.push_back(candidateTarget);
+        if (c->Op() == RSLNotEqual) {
+          j.OtherAttributes["nordugrid:broker;reject_queue"] = queueName;
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
-            it->Resources.CandidateTarget.push_back(candidateTarget);
+            it->OtherAttributes["nordugrid:broker;reject_queue"] = queueName;
           }
         }
         else {
-          // It is not correct to allow next queue to overwrite previous one
-          // Fix it globally. BLOCKER !!!!
-          logger.msg(ERROR, "Parsing the queue xrsl attribute failed. Multiple queue attributes found, only one is allowed.");
-          return false;
-          //j.Resources.CandidateTarget.front().QueueName = queueName;
-          //j.Resources.CandidateTarget.front().UseQueue = (c->Op() == RSLEqual);
+          j.Resources.QueueName = queueName;
+          for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+               it != j.GetAlternatives().end(); it++) {
+            it->Resources.QueueName = queueName;
+          }
         }
+
         return true;
       }
 
@@ -884,23 +875,9 @@ namespace Arc {
         return true;
       }
 
-      // This attribute should be passed to the broker and should not be stored.
       if (c->Attr() == "cluster") {
-        std::string cluster;
-        if (!SingleValue(c, cluster))
-          return false;
-        if (!URL(cluster))
-          return false;
-        if (j.Resources.CandidateTarget.empty()) {
-          ResourceTargetType candidateTarget;
-          candidateTarget.EndPointURL = cluster;
-          candidateTarget.QueueName = "";
-          candidateTarget.UseQueue = true;
-          j.Resources.CandidateTarget.push_back(candidateTarget);
-        }
-        else
-          j.Resources.CandidateTarget.front().EndPointURL = cluster;
-        return true;
+        logger.msg(ERROR, "The cluster XRSL attribute is currently unsupported.");
+        return false;
       }
 
       if (c->Attr() == "notify") {
@@ -1356,10 +1333,10 @@ namespace Arc {
         r.Add(new RSLCondition("outputfiles", RSLEqual, l));
     }
 
-    if (!j.Resources.CandidateTarget.empty()) {
+    if (!j.Resources.QueueName.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Resources.CandidateTarget.front().QueueName));
-      r.Add(new RSLCondition("queue", (j.Resources.CandidateTarget.front().UseQueue ? RSLEqual : RSLNotEqual), l));
+      l->Add(new RSLLiteral(j.Resources.QueueName));
+      r.Add(new RSLCondition("queue", RSLEqual, l));
     }
 
     if (j.Application.Rerun != -1) {

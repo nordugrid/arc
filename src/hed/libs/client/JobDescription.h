@@ -139,15 +139,6 @@ namespace Arc {
     int64_t SessionDiskSpace;
   };
 
-  class ResourceTargetType {
-  public:
-    ResourceTargetType() :
-    UseQueue(true) {}
-    URL EndPointURL;
-    std::string QueueName;
-    bool UseQueue;
-  };
-
   enum SessionDirectoryAccessMode {
     SDAM_NONE = 0,
     SDAM_RO = 1,
@@ -188,7 +179,7 @@ namespace Arc {
     NodeAccessType NodeAccess;
     SoftwareRequirement CEType;
     ResourceSlotType SlotRequirement;
-    std::list<ResourceTargetType> CandidateTarget;
+    std::string QueueName;
     SoftwareRequirement RunTimeEnvironment;
   };
 

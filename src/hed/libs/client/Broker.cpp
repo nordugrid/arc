@@ -33,50 +33,27 @@ namespace Arc {
          target != targets.end(); target++) {
       logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
 
-      if (!job->Resources.CandidateTarget.empty()) {
-        if (target->url.Host().empty())
-          logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined");
-        if (target->ComputingShareName.empty())
+      std::map<std::string, std::string>::const_iterator itAtt;
+      if ((itAtt = job->OtherAttributes.find("nordugrid:broker;reject_queue")) != job->OtherAttributes.end()) {
+        if (target->ComputingShareName.empty()) {
           logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->url.str());
-
-        if (!target->url.Host().empty() || !target->ComputingShareName.empty()) {
-
-          bool dropTarget = true;
-          for (std::list<ResourceTargetType>::const_iterator it = job->Resources.CandidateTarget.begin();
-               it != job->Resources.CandidateTarget.end(); it++) {
-
-            if (!it->EndPointURL.Host().empty()) {
-              if (target->url.Host().empty()) { // Drop target since URL is not defined.
-                logger.msg(VERBOSE, "URL of ExecutionTarget is not properly defined: %s.", target->url.str());
-                break;
-              }
-
-              if (target->url.Host() != it->EndPointURL.Host()) { // Example: example.org
-                break;
-              }
-            }
-
-            if (!it->QueueName.empty()) {
-              if (target->ComputingShareName.empty()) { // Drop target since ComputingShareName is not published.
-                logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget is not published, and a queue (%s) have been requested.", it->QueueName);
-                break;
-              }
-
-              if (( it->UseQueue && target->ComputingShareName == it->QueueName) ||
-                  (!it->UseQueue && target->ComputingShareName != it->QueueName)   ) {
-                dropTarget = false;
-                break;
-              }
-            }
-          }
-
-          if (dropTarget) {
-            logger.msg(VERBOSE, "ExecutionTarget does not satisfy any of the CandidateTargets.");
-            continue;
-          }
+          continue;
         }
-        else {
-          logger.msg(VERBOSE, "Neither URL or ComputingShareName is reported by the resource");
+
+        if (target->ComputingShareName == itAtt->second) {
+          logger.msg(VERBOSE, "ComputingShare (%s) explicitly rejected", itAtt->second);
+          continue;
+        }
+      }
+
+      if (!job->Resources.QueueName.empty()) {
+        if (target->ComputingShareName.empty()) {
+          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->url.str());
+          continue;
+        }
+
+        if (target->ComputingShareName != job->Resources.QueueName) {
+          logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", target->ComputingShareName, job->Resources.QueueName);
           continue;
         }
       }

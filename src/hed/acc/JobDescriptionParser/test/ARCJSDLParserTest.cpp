@@ -24,6 +24,7 @@ class ARCJSDLParserTest
   CPPUNIT_TEST(TestFilesCreateUpload);
   CPPUNIT_TEST(TestFilesDownloadUpload);
   CPPUNIT_TEST(TestFilesUploadUpload);
+  CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestPOSIXCompliance);
   CPPUNIT_TEST(TestHPCCompliance);
   CPPUNIT_TEST_SUITE_END();
@@ -44,6 +45,7 @@ public:
   void TestFilesCreateUpload();
   void TestFilesDownloadUpload();
   void TestFilesUploadUpload();
+  void TestQueue();
   void TestPOSIXCompliance();
   void TestHPCCompliance();
 
@@ -345,6 +347,67 @@ void ARCJSDLParserTest::TestFilesUploadUpload() {
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Target.size() == 1 && OUTJOBS.front().Files.front().Target.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Target.front(), OUTJOBS.front().Files.front().Target.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
+}
+
+void ARCJSDLParserTest::TestQueue() {
+  std::string jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition>"
+"<JobDescription>"
+"<Application>"
+"<posix-jsdl:POSIXApplication>"
+"<posix-jsdl:Executable>executable</posix-jsdl:Executable>"
+"</posix-jsdl:POSIXApplication>"
+"</Application>"
+"<Resources>"
+"<QueueName>q1</QueueName>"
+"</Resources>"
+"</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1", OUTJOBS.front().Resources.QueueName);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1", OUTJOBS.front().Resources.QueueName);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition>"
+"<JobDescription>"
+"<Application>"
+"<posix-jsdl:POSIXApplication>"
+"<posix-jsdl:Executable>executable</posix-jsdl:Executable>"
+"</posix-jsdl:POSIXApplication>"
+"</Application>"
+"<Resources>"
+"<QueueName require=\"ne\">q1</QueueName>"
+"</Resources>"
+"</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  std::map<std::string, std::string>::const_iterator itAttribute;
+  itAttribute = OUTJOBS.front().OtherAttributes.find("nordugrid:broker;reject_queue");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() != itAttribute);
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1", itAttribute->second);
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  itAttribute = OUTJOBS.front().OtherAttributes.find("nordugrid:broker;reject_queue");
+  CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() == itAttribute);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 }
 
 void ARCJSDLParserTest::TestPOSIXCompliance() {

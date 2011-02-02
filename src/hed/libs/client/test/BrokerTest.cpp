@@ -17,6 +17,7 @@ class BrokerTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(BrokerTest);
+  CPPUNIT_TEST(QueueTest);
   CPPUNIT_TEST(CPUWallTimeTest);
   CPPUNIT_TEST(BenckmarkCPUWallTimeTest);
   CPPUNIT_TEST(RegisterJobsubmissionTest);
@@ -27,6 +28,7 @@ public:
   BrokerTest();
   void setUp();
   void tearDown();
+  void QueueTest();
   void CPUWallTimeTest();
   void BenckmarkCPUWallTimeTest();
   void RegisterJobsubmissionTest();
@@ -59,6 +61,17 @@ void BrokerTest::setUp() {
 }
 
 void BrokerTest::tearDown() {}
+
+void BrokerTest::QueueTest() {
+  job.Resources.QueueName = "q1"; CPPASSERT(0)
+  etl.front().ComputingShareName = "q1"; CPPASSERT(1)
+  job.Resources.QueueName = "q2"; CPPASSERT(0)
+  job.Resources.QueueName = "";
+  job.OtherAttributes["nordugrid:broker;reject_queue"] = "q1";  CPPASSERT(0)
+  job.OtherAttributes["nordugrid:broker;reject_queue"] = "q2";  CPPASSERT(1)
+  etl.front().ComputingShareName = ""; CPPASSERT(0)
+  job.OtherAttributes.erase("nordugrid:broker;reject_queue");
+}
 
 void BrokerTest::CPUWallTimeTest() {
   etl.front().MaxCPUTime = 100;
@@ -163,13 +176,13 @@ void BrokerTest::RegisterJobsubmissionTest() {
 }
 
 void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
-  Arc::JobDescription frontJD, backJD; // Each JobDescription object "correspond" to a ExecutionTarget object.
-  Arc::ResourceTargetType frontCT, backCT;
-  frontCT.QueueName = "front";
-  frontJD.Resources.CandidateTarget.push_back(frontCT);
+  /* When prefiltered by the broker, each JobDescription object "correspond" to
+   * a (list of) ExecutionTarget object(s).
+   */
 
-  backCT.QueueName = "back";
-  backJD.Resources.CandidateTarget.push_back(backCT);
+  Arc::JobDescription frontJD, backJD;
+  frontJD.Resources.QueueName = "front";
+  backJD.Resources.QueueName = "back";
 
   std::list<Arc::ExecutionTarget> targets;
   targets.push_back(Arc::ExecutionTarget());

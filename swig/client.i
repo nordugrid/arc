@@ -28,7 +28,6 @@
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
 %template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
-%template(ResourceTargetTypeList) std::list<Arc::ResourceTargetType>;
 
 #ifdef SWIGJAVA
 %template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
@@ -39,7 +38,6 @@
 %template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
 %template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
 %template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
-%template(ResourceTargetTypeListIteratorHandler) listiteratorhandler<Arc::ResourceTargetType>;
 #endif
 
 

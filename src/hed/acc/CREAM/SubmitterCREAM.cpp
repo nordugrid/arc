@@ -96,13 +96,7 @@ namespace Arc {
       jobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ManagerProductName;
     }
 
-    if (jobdesc.Resources.CandidateTarget.empty()) {
-      ResourceTargetType candidateTarget;
-      candidateTarget.EndPointURL = URL();
-      candidateTarget.QueueName = et.ComputingShareName;
-      candidateTarget.UseQueue = true;
-      jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
-    }
+    jobdesc.Resources.QueueName = et.ComputingShareName;;
 
     return true;
   }

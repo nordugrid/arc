@@ -208,8 +208,9 @@ namespace Arc {
         if (!jds.front().Application.Error.empty())
           job.StdErr = jds.front().Application.Error;
 
-        if (!jds.front().Resources.CandidateTarget.empty())
-          job.Queue = jds.front().Resources.CandidateTarget.front().QueueName;
+        if (!jds.front().Resources.QueueName.empty()) {
+          job.Queue = jds.front().Resources.QueueName;
+        }
       }
     }
     if (ISVALID(lastStatusNode["exitCode"]))

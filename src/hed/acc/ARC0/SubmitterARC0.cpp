@@ -206,13 +206,8 @@ namespace Arc {
       return false;
     }
 
-    // Set endpoint and queue name to the selected ExecutionTarget
-    jobdesc.Resources.CandidateTarget.clear();
-    ResourceTargetType candidateTarget;
-    candidateTarget.EndPointURL = et.Cluster;
-    candidateTarget.QueueName = et.ComputingShareName;
-    candidateTarget.UseQueue = true;
-    jobdesc.Resources.CandidateTarget.push_back(candidateTarget);
+    // Set queue name to the selected ExecutionTarget
+    jobdesc.Resources.QueueName = et.ComputingShareName;
 
     jobdesc.OtherAttributes["nordugrid:xrsl;action"] = "request";
     jobdesc.OtherAttributes["nordugrid:xrsl;savestate"] = "yes";

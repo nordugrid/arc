@@ -211,20 +211,7 @@ namespace Arc {
       INTPRINT(out, Resources.DiskSpaceRequirement.DiskSpace.max, DiskSpace)
       INTPRINT(out, Resources.DiskSpaceRequirement.CacheDiskSpace, CacheDiskSpace)
       INTPRINT(out, Resources.DiskSpaceRequirement.SessionDiskSpace, SessionDiskSpace)
-
-      for (std::list<ResourceTargetType>::const_iterator it = Resources.CandidateTarget.begin();
-           it != Resources.CandidateTarget.end(); it++) {
-        if (it->EndPointURL)
-          out << IString(" EndPointURL: %s", it->EndPointURL.str()) << std::endl;
-        if (!it->QueueName.empty()) {
-          if (it->UseQueue) {
-            out << IString(" QueueName: %s", it->QueueName) << std::endl;
-          }
-          else {
-            out << IString(" QueueName (ignored): %s", it->QueueName) << std::endl;
-          }
-        }
-      }
+      STRPRINT(out, Resources.QueueName, QueueName)
 
       if (!Resources.CEType.empty()) {
         out << IString(" Computing endpoint requirements:") << std::endl;

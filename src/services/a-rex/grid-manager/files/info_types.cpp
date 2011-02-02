@@ -233,9 +233,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     }
   }
 
-  if (!arc_job_desc.Resources.CandidateTarget.empty() &&
-      !arc_job_desc.Resources.CandidateTarget.front().QueueName.empty())
-    queue = arc_job_desc.Resources.CandidateTarget.front().QueueName;
+  if (!arc_job_desc.Resources.QueueName.empty()) {
+    queue = arc_job_desc.Resources.QueueName;
+  }
 
   if (!arc_job_desc.Application.CredentialService.empty() &&
       arc_job_desc.Application.CredentialService.front())

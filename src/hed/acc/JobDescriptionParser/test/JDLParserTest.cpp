@@ -23,6 +23,7 @@ class JDLParserTest
   CPPUNIT_TEST(TestFilesCreateUpload);
   CPPUNIT_TEST(TestFilesDownloadUpload);
   CPPUNIT_TEST(TestFilesUploadUpload);
+  CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST_SUITE_END();
 
@@ -41,6 +42,7 @@ public:
   void TestFilesCreateUpload();
   void TestFilesDownloadUpload();
   void TestFilesUploadUpload();
+  void TestQueue();
   void TestAdditionalAttributes();
 
 private:
@@ -420,6 +422,26 @@ void JDLParserTest::TestFilesUploadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.back(), it->Target.front());
+}
+
+void JDLParserTest::TestQueue() {
+  std::string jdl = "["
+"Executable = \"executable\";"
+"QueueName = \"q1\";"
+"]";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1", OUTJOBS.front().Resources.QueueName);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jdl, "egee:jdl"));
+  CPPUNIT_ASSERT(PARSER.Parse(jdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL((std::string)"q1", OUTJOBS.front().Resources.QueueName);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 }
 
 void JDLParserTest::TestAdditionalAttributes() {
