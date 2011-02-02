@@ -311,5 +311,9 @@ namespace Arc {
     return true;
   }
 
+  std::string FileLock::getLockSuffix() {
+    return LOCK_SUFFIX;
+  }
+
 } // namespace Arc
 

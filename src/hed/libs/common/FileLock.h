@@ -77,6 +77,9 @@ namespace Arc {
      */
     bool release(bool force=false);
 
+    /// Get the lock suffix used
+    static std::string getLockSuffix();
+
   private:
     /// File to apply lock to
     std::string filename;
