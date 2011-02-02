@@ -159,28 +159,45 @@ int RUNSYNC(main)(int argc, char **argv) {
   std::cout << "Found number of jobs: " << targen.GetJobs().size() << std::endl;
 
   //Write extracted job info to joblist
-  { //start of file lock
-    Arc::FileLock lock(usercfg.JobListFile());
-    Arc::NS ns;
-    Arc::Config jobs(ns);
+  // lock jobs.xml - if already locked try a few times before giving up
+  Arc::FileLock lock(usercfg.JobListFile());
+  bool acquired = false;
+  for (int tries = 10; tries > 0; --tries) {
+    acquired = lock.acquire();
+    if (acquired) {
+      Arc::NS ns;
+      Arc::Config jobs(ns);
 
-    if (!truncate)
-      jobs.ReadFromFile(usercfg.JobListFile());
-    for (std::list<Arc::Job>::const_iterator itSyncedJob = targen.GetJobs().begin();
-         itSyncedJob != targen.GetJobs().end(); itSyncedJob++) {
-      if (!truncate) {
-        for (Arc::XMLNode j = jobs["Job"]; j; ++j) {
-          if ((std::string)j["JobID"]          == itSyncedJob->JobID.fullstr() ||
-              (std::string)j["IDFromEndpoint"] == itSyncedJob->JobID.fullstr()) {
-            j.Destroy();
-            break;
+      if (!truncate)
+        jobs.ReadFromFile(usercfg.JobListFile());
+      for (std::list<Arc::Job>::const_iterator itSyncedJob = targen.GetJobs().begin();
+           itSyncedJob != targen.GetJobs().end(); itSyncedJob++) {
+        if (!truncate) {
+          for (Arc::XMLNode j = jobs["Job"]; j; ++j) {
+            if ((std::string)j["JobID"]          == itSyncedJob->JobID.fullstr() ||
+                (std::string)j["IDFromEndpoint"] == itSyncedJob->JobID.fullstr()) {
+              j.Destroy();
+              break;
+            }
           }
         }
+        itSyncedJob->ToXML(jobs.NewChild("Job"));
       }
-      itSyncedJob->ToXML(jobs.NewChild("Job"));
+      jobs.SaveToFile(usercfg.JobListFile());
+      lock.release();
+      break;
     }
-    jobs.SaveToFile(usercfg.JobListFile());
-  } //end of file lock
+    // give info to the user after a few tries
+    if (tries == 6)
+      std::cout << Arc::IString("Waiting for lock on job list file %s", usercfg.JobListFile()) << std::endl;
+    usleep(500000);
+  }
+  if (!acquired) {
+    std::cout << Arc::IString("ERROR: Failed to lock job list file %s", usercfg.JobListFile())
+              << std::endl;
+    std::cout << Arc::IString("Please try again later, or manually clean up lock file") << std::endl;
+    return 1;
+  }
 
   return 0;
 

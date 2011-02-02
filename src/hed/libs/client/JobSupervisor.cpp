@@ -29,8 +29,23 @@ namespace Arc {
 
     Config jobstorage;
     if (!usercfg.JobListFile().empty()) {
+      // lock job list file
       FileLock lock(usercfg.JobListFile());
-      jobstorage.ReadFromFile(usercfg.JobListFile());
+      bool acquired = false;
+      for (int tries = 10; tries > 0; --tries) {
+        acquired = lock.acquire();
+        if (acquired) {
+          jobstorage.ReadFromFile(usercfg.JobListFile());
+          lock.release();
+          break;
+        }
+        logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+        usleep(500000);
+      }
+      if (!acquired) {
+        logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
+        return;
+      }
     }
 
     if (!jobs.empty()) {

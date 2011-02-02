@@ -36,9 +36,9 @@ namespace Arc {
   JobController::JobController(const UserConfig& usercfg,
                                const std::string& flavour)
     : flavour(flavour),
+      usercfg(usercfg),
       data_source(NULL),
-      data_destination(NULL),
-      usercfg(usercfg) {}
+      data_destination(NULL) {}
 
   JobController::~JobController() {
     if(data_source) delete data_source;
@@ -49,8 +49,23 @@ namespace Arc {
 
     if (!usercfg.JobListFile().empty()) {
       logger.msg(VERBOSE, "Using job list file %s", usercfg.JobListFile());
+      // lock job list file
       FileLock lock(usercfg.JobListFile());
-      jobstorage.ReadFromFile(usercfg.JobListFile());
+      bool acquired = false;
+      for (int tries = 10; tries > 0; --tries) {
+        acquired = lock.acquire();
+        if (acquired) {
+          jobstorage.ReadFromFile(usercfg.JobListFile());
+          lock.release();
+          break;
+        }
+        logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+        usleep(500000);
+      }
+      if (!acquired) {
+        logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
+        return;
+      }
     }
     else {
       logger.msg(ERROR, "Job controller has no job list configuration");
@@ -587,16 +602,28 @@ namespace Arc {
       RemoveJobs(toberemoved);
     }
 
-    {
-      FileLock lock(usercfg.JobListFile());
-      Config jobstorage;
-      jobstorage.ReadFromFile(usercfg.JobListFile());
-      for (std::list<Job>::const_iterator it = migratedJobs.begin();
-           it != migratedJobs.end(); it++) {
-        XMLNode xJob = jobstorage.NewChild("Job");
-        it->ToXML(xJob);
+    // lock job list file
+    FileLock lock(usercfg.JobListFile());
+    bool acquired = false;
+    for (int tries = 10; tries > 0; --tries) {
+      acquired = lock.acquire();
+      if (acquired) {
+        Config jobstorage;
+        jobstorage.ReadFromFile(usercfg.JobListFile());
+        for (std::list<Job>::const_iterator it = migratedJobs.begin();
+             it != migratedJobs.end(); it++) {
+          XMLNode xJob = jobstorage.NewChild("Job");
+          it->ToXML(xJob);
+        }
+        jobstorage.SaveToFile(usercfg.JobListFile());
+        lock.release();
+        break;
       }
-      jobstorage.SaveToFile(usercfg.JobListFile());
+      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+      usleep(500000);
+    }
+    if (!acquired) {
+      logger.msg(WARNING, "Failed to lock job list file %s. Job information will be out of sync", usercfg.JobListFile());
     }
 
     return retVal;
@@ -787,39 +814,55 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Removing jobs from job list and job store");
 
+    // lock job list file
     FileLock lock(usercfg.JobListFile());
-    jobstorage.ReadFromFile(usercfg.JobListFile());
+    bool acquired = false;
+    for (int tries = 10; tries > 0; --tries) {
+      acquired = lock.acquire();
+      if (acquired) {
+        jobstorage.ReadFromFile(usercfg.JobListFile());
 
-    for (std::list<URL>::const_iterator it = jobids.begin();
-         it != jobids.end(); it++) {
+        for (std::list<URL>::const_iterator it = jobids.begin();
+             it != jobids.end(); it++) {
 
-      XMLNodeList xmljobs;
-      xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->str() + "']", NS());
-      if (xmljobs.empty()) { // Included for backwards compatibility.
-        xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
-      }
+          XMLNodeList xmljobs;
+          xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->str() + "']", NS());
+          if (xmljobs.empty()) { // Included for backwards compatibility.
+            xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
+          }
 
-      if (xmljobs.empty())
-        logger.msg(ERROR, "Job %s not found in job list.", it->str());
-      else {
-        XMLNode& xmljob = *xmljobs.begin();
-        if (xmljob) {
-          logger.msg(INFO, "Removing job %s from job list file", it->str());
-          xmljob.Destroy();
+          if (xmljobs.empty())
+            logger.msg(ERROR, "Job %s not found in job list.", it->str());
+          else {
+            XMLNode& xmljob = *xmljobs.begin();
+            if (xmljob) {
+              logger.msg(INFO, "Removing job %s from job list file", it->str());
+              xmljob.Destroy();
+            }
+          }
+
+          std::list<Job>::iterator it2 = jobstore.begin();
+          while (it2 != jobstore.end()) {
+            if (it2->JobID == *it) {
+              it2 = jobstore.erase(it2);
+              break;
+            }
+            it2++;
+          }
         }
-      }
 
-      std::list<Job>::iterator it2 = jobstore.begin();
-      while (it2 != jobstore.end()) {
-        if (it2->JobID == *it) {
-          it2 = jobstore.erase(it2);
-          break;
-        }
-        it2++;
+        jobstorage.SaveToFile(usercfg.JobListFile());
+
+        lock.release();
+        break;
       }
+      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+      usleep(500000);
     }
-
-    jobstorage.SaveToFile(usercfg.JobListFile());
+    if (!acquired) {
+      logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
+      return false;
+    }
 
     logger.msg(VERBOSE, "Job store for %s now contains %d jobs", flavour, jobstore.size());
     logger.msg(VERBOSE, "Finished removing jobs from job list and job store");

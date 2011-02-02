@@ -109,11 +109,24 @@ namespace Arc {
           File.NewChild("CheckSum") = GetCksum(it->Source.front().Path());
         }
 
+    // lock job list file
     FileLock lock(usercfg.JobListFile());
-    Config jobstorage;
-    jobstorage.ReadFromFile(usercfg.JobListFile());
-    jobstorage.NewChild(info);
-    jobstorage.SaveToFile(usercfg.JobListFile());
+    bool acquired = false;
+    for (int tries = 10; tries > 0; --tries) {
+      acquired = lock.acquire();
+      if (acquired) {
+        Config jobstorage;
+        jobstorage.ReadFromFile(usercfg.JobListFile());
+        jobstorage.NewChild(info);
+        jobstorage.SaveToFile(usercfg.JobListFile());
+        lock.release();
+        break;
+      }
+      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+      usleep(500000);
+    }
+    if (!acquired)
+      logger.msg(ERROR, "Failed to lock job list file %s. Job list will be out of sync", usercfg.JobListFile());
   }
 
   void Submitter::AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
@@ -152,12 +165,26 @@ namespace Arc {
     }
 
     // Add job.
+    // lock job list file
     FileLock lock(usercfg.JobListFile());
-    Config jobstorage;
-    jobstorage.ReadFromFile(usercfg.JobListFile());
-    XMLNode xmljob = jobstorage.NewChild("Job");
-    j.ToXML(xmljob);
-    jobstorage.SaveToFile(usercfg.JobListFile());
+    bool acquired = false;
+    for (int tries = 10; tries > 0; --tries) {
+      acquired = lock.acquire();
+      if (acquired) {
+        Config jobstorage;
+        jobstorage.ReadFromFile(usercfg.JobListFile());
+        XMLNode xmljob = jobstorage.NewChild("Job");
+        j.ToXML(xmljob);
+        lock.release();
+        break;
+      }
+      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+      usleep(500000);
+    }
+    if (!acquired) {
+      logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
+      return URL();
+    }
 
     return j.JobID;
   }
@@ -173,12 +200,27 @@ namespace Arc {
     }
 
     // Add job.
+    // lock job list file
     FileLock lock(usercfg.JobListFile());
-    Config jobstorage;
-    jobstorage.ReadFromFile(usercfg.JobListFile());
-    XMLNode xmljob = jobstorage.NewChild("Job");
-    j.ToXML(xmljob);
-    jobstorage.SaveToFile(usercfg.JobListFile());
+    bool acquired = false;
+    for (int tries = 10; tries > 0; --tries) {
+      acquired = lock.acquire();
+      if (acquired) {
+        Config jobstorage;
+        jobstorage.ReadFromFile(usercfg.JobListFile());
+        XMLNode xmljob = jobstorage.NewChild("Job");
+        j.ToXML(xmljob);
+        jobstorage.SaveToFile(usercfg.JobListFile());
+        lock.release();
+        break;
+      }
+      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
+      usleep(500000);
+    }
+    if (!acquired) {
+      logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
+      return URL();
+    }
 
     return j.JobID;
   }
