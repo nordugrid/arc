@@ -81,7 +81,8 @@ attributes depending on how the mapping should be done.
     <Name>mcchttp</Name>
     <Name>mccsoap</Name>
     <Name>arcshc</Name>
-    <Name initokenenables="common#enable_security_handler=identitymap">identitymap</Name>
+    <Name initokenenables="common#identitymap">identitymap</Name>
+    <Name initokenenables="arex#identitymap">identitymap</Name>
     <Name initokenenables="arex">arex</Name>
     <Name initokenenables="isis">isis</Name>
     <Name initokenenables="echo">echo</Name>
@@ -97,36 +98,31 @@ attributes depending on how the mapping should be done.
     </Component>
     <Component name="tls.service" id="tls">
       <next id="http"/>
+      <SecHandler name="identity.map" id="map" event="incoming" initokenenables="common#identitymap">
+        <!-- identitymap=path in [common] enables mapping of user DN to local username -->
+        <PDP name="allow.pdp">
+          <LocalList inisections="common" initag="identitymap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
+        </PDP>
+      </SecHandler>
+      <SecHandler name="arc.authz" id="pdps" event="incoming" initokenenables="common#gridmap">
+        <!-- gridmap=path in [common] filters users by their DN -->
+        <PDP name="simplelist.pdp">
+          <location initype="attribute" inisections="common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
+        </PDP>
+      </SecHandler>
       <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
       <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
     </Component>
     <Component name="http.service" id="http">
-      <SecHandler name="identity.map" id="map" event="incoming" initokenenables="common#enable_security_handler=identitymap">
-        <PDP name="allow.pdp">
-          <LocalList inisections="common" initag="identitymap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
-        </PDP>
-      </SecHandler>
-      <SecHandler name="arc.authz" id="pdps" event="incoming" initokenenables="common#enable_security_handler=gridmap">
-        <PDP name="simplelist.pdp">
-          <location initype="attribute" inisections="common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
-        </PDP>
-      </SecHandler>
-      <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="common#enable_security_handler=policystore">
+      <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="common#policystore">
+        <!-- policystore=path in [common] applies policy file. Attributes up to HTTP level can be used.  -->
         <PDP name="arc.pdp">
           <PolicyStore>
             <Type>file</Type>
             <Location type="file" inisections="common" initag="policystore"/>
           </PolicyStore>
         </PDP>
-      </SecHandler>
-      <SecHandler name="usernametoken.handler" id="usernametoken" event="incoming" initokenenables="common#enable_security_handler=usernametoken">
-        <Process>extract</Process>
-        <PasswordSource inisections="common" initag="usernametokenfile"/>
-      </SecHandler>
-      <SecHandler name="x509token.handler" id="x509token" event="incoming" initokenenables="common#enable_security_handler=x509token">
-        <Process>extract</Process>
-        <CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </SecHandler>
       <next id="soap">POST</next>
       <next id="plexer">GET</next>
@@ -135,6 +131,16 @@ attributes depending on how the mapping should be done.
     </Component>
     <Component name="soap.service" id="soap">
       <next id="plexer"/>
+      <SecHandler name="usernametoken.handler" id="usernametoken" event="incoming" initokenenables="common#usernametokenfile">
+        <!-- usernametokenfile=path in [common] authorizes requests using UsernameToken in SOAP header. -->
+        <Process>extract</Process>
+        <PasswordSource inisections="common" initag="usernametokenfile"/>
+      </SecHandler>
+      <SecHandler name="x509token.handler" id="x509token" event="incoming" initokenenables="common#x509token_cert_dir">
+        <!-- x509token_cert_dir=path in [common] checks X.509 signatures of SOAP requests against known CAs. -->
+        <Process>extract</Process>
+        <CACertificatesDir inisections="common" initag="x509token_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
+      </SecHandler>
     </Component>
     <Plexer name="plexer.service" id="plexer">
       <next id="a-rex" inisections="arex" initag="endpointpattern" initokenenables="arex" inidefaultvalue="^/arex\(/\|$\)"/>
@@ -504,36 +510,45 @@ attributes depending on how the mapping should be done.
         </infosys:Registrar>
       </infosys:InfoRegister>
 
-      <SecHandler name="identity.map" id="map" event="incoming" initokenenables="arex#enable_security_handler=identitymap">
+      <SecHandler name="identity.map" id="map" event="incoming" initokenenables="arex#identitymap">
+        <!-- identitymap=path in [arex] enables mapping of user DN to local username only for A-REX operations -->
         <PDP name="allow.pdp">
-          <LocalList inisections="arex common" initag="identitymap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
+          <LocalList inisections="arex" initag="identitymap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
         </PDP>
       </SecHandler>
 
-      <SecHandler name="arc.authz" id="pdps" event="incoming" initokenenables="arex#enable_security_handler=gridmap">
+      <SecHandler name="arc.authz" id="pdps" event="incoming" initokenenables="arex#gridmap">
+        <!-- gridmap=path in [arex] filters users by their DN for A-REX operations only -->
         <PDP name="simplelist.pdp">
-          <location initype="attribute" inisections="arex common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
+          <location initype="attribute" inisections="arex" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
         </PDP>
       </SecHandler>
 
-      <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="arex#enable_security_handler=policystore">
+      <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="common#policystore">
+        <!-- policystore=path in [arex] applies policy file. -->
         <PDP name="arc.pdp">
           <PolicyStore>
             <Type>file</Type>
-            <Location type="file" inisections="arex common" initag="policystore"/>
+            <Location type="file" inisections="arex" initag="policystore"/>
           </PolicyStore>
         </PDP>
       </SecHandler>
 
-      <SecHandler name="usernametoken.handler" id="usernametoken" event="incoming" initokenenables="arex#enable_security_handler=usernametoken">
+      <!-- Not using these SecHandlers because they _require_ SOAP. At least not yet.
+
+       usernametokenfile=path in [arex] authorizes requests using UsernameToken in SOAP header for A-REX operations. 
+      <SecHandler name="usernametoken.handler" id="usernametoken" event="incoming" initokenenables="arex#usernametokenfile">
         <Process>extract</Process>
-        <PasswordSource inisections="arex common" initag="usernametokenfile"/>
+        <PasswordSource inisections="arex" initag="usernametokenfile"/>
       </SecHandler>
 
-      <SecHandler name="x509token.handler" id="x509token" event="incoming" initokenenables="arex#enable_security_handler=x509token">
+       x509token_cert_dir=path in [arex] checks X.509 signatures of SOAP requests against known CAs. 
+      <SecHandler name="x509token.handler" id="x509token" event="incoming" initokenenables="arex#x509token_cert_dir">
         <Process>extract</Process>
-        <CACertificatesDir inisections="arex common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
+        <CACertificatesDir inisections="arex" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </SecHandler>
+
+      -->
     </Service>
 
     <Service name="isis" id="isis" initokenenables="isis">
