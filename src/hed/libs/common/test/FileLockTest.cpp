@@ -3,6 +3,9 @@
 #include <utime.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
+#ifdef WIN32
+#include <Winsock2.h> // for gethostname()
+#endif
 
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
@@ -61,13 +64,9 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT(lock_pid != "");
 
   // construct hostname
-#ifndef WIN32
-  struct utsname buf;
-  CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
-  std::string host(buf.nodename);
-#else
-  std::string host("");
-#endif
+  char hostname[256];
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Cannot determine hostname from gethostname()", 0, gethostname(hostname, sizeof(hostname)));
+  std::string host(hostname);
   CPPUNIT_ASSERT_EQUAL(Arc::tostring(getpid()) + "@" + host, lock_pid);
 
   // set old modification time
@@ -169,13 +168,9 @@ void FileLockTest::TestFileLockRelease() {
   CPPUNIT_ASSERT(!lock.release());
 
   // construct hostname
-#ifndef WIN32
-  struct utsname buf;
-  CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
-  std::string host(buf.nodename);
-#else
-  std::string host("");
-#endif
+  char hostname[256];
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Cannot determine hostname from gethostname()", 0, gethostname(hostname, sizeof(hostname)));
+  std::string host(hostname);
 
   // create a valid lock file with this pid
   _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@" + host));

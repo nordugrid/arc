@@ -14,6 +14,10 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 
+#ifdef WIN32
+#include <Winsock2.h> // for gethostname()
+#endif
+
 #include <arc/StringConv.h>
 
 #include "FileLock.h"
@@ -35,13 +39,11 @@ namespace Arc {
       hostname("") {
     if (use_pid) {
       // get our hostname and pid
-#ifndef WIN32
-      struct utsname buf;
-      if (uname(&buf) != 0)
-        logger.msg(ERROR, "Cannot determine hostname from uname()");
+      char host[256];
+      if (gethostname(host, sizeof(host)) != 0)
+        logger.msg(ERROR, "Cannot determine hostname from gethostname()");
       else
-        hostname = buf.nodename;
-#endif
+        hostname = host;
       int pid_i = getpid();
       pid = Arc::tostring(pid_i);
     }
