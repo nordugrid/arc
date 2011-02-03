@@ -2,8 +2,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include "../FileCache.h"
-
 #include <cerrno>
 #include <list>
 
@@ -12,6 +10,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+
+#include <arc/FileUtils.h>
+#include <arc/StringConv.h>
+
+#include "../FileCache.h"
 
 class FileCacheTest
   : public CppUnit::TestFixture {
@@ -57,6 +60,7 @@ public:
   void testInternal();
 
 private:
+  std::string _testroot;
   std::string _cache_dir;
   std::string _cache_data_dir;
   std::string _cache_job_dir;
@@ -66,33 +70,22 @@ private:
   uid_t _uid;
   gid_t _gid;
   Arc::FileCache *_fc1;
-  /** A list of files to be removed after each test */
-  std::list<std::string> _files;
   /** Create a file with the given size */
   bool _createFile(std::string filename, std::string text = "a");
   /** Return the contents of the given file */
   std::string _readFile(std::string filename);
-  /** Convert an int to string */
-  std::string _intToString(int i);
 };
-
-
 
 void FileCacheTest::setUp() {
 
-  _cache_dir = "/tmp/" + _intToString(getpid());
+  char tmpdirtemplate[] = "/tmp/ARC-Test-XXXXXX";
+  char * tmpdir = mkdtemp(tmpdirtemplate);
+  _testroot = tmpdir;
+
+  _cache_dir = _testroot + "/cache";
   _cache_data_dir = _cache_dir + "/data";
   _cache_job_dir = _cache_dir + "/joblinks";
-  _session_dir = "/tmp/" + _intToString(getpid()) + "_session";
-
-  // remove directories that may have been created
-  rmdir(std::string(_cache_data_dir + "/69").c_str());
-  rmdir(std::string(_cache_data_dir).c_str());
-  rmdir(std::string(_session_dir + "/" + _jobid).c_str());
-  rmdir(std::string(_session_dir).c_str());
-  rmdir(std::string(_cache_job_dir + "/" + _jobid).c_str());
-  rmdir(std::string(_cache_job_dir).c_str());
-  rmdir(std::string(_cache_dir).c_str());
+  _session_dir = _testroot + "/session";
 
   _url = "rls://rls1.ndgf.org/file1";
   _uid = getuid();
@@ -102,21 +95,9 @@ void FileCacheTest::setUp() {
 }
 
 void FileCacheTest::tearDown() {
-  // delete all possible files that might have been created
-  for (std::list<std::string>::iterator i = _files.begin(); i != _files.end(); ++i)
-    remove((char*)(*i).c_str());
-  _files.clear();
-
-  // remove directories that have been created
-  rmdir(std::string(_cache_data_dir + "/69").c_str());
-  rmdir(std::string(_cache_data_dir).c_str());
-  rmdir(std::string(_session_dir + "/" + _jobid).c_str());
-  rmdir(std::string(_session_dir).c_str());
-  rmdir(std::string(_cache_job_dir + "/" + _jobid).c_str());
-  rmdir(std::string(_cache_job_dir).c_str());
-  rmdir(std::string(_cache_dir).c_str());
 
   delete _fc1;
+  Arc::DirDelete(_testroot);
 }
 
 void FileCacheTest::testStart() {
@@ -125,8 +106,6 @@ void FileCacheTest::testStart() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -166,7 +145,7 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
   std::string host(buf.nodename);
 
-  CPPUNIT_ASSERT_EQUAL(_intToString(getpid()) + "@" + host, lock_pid);
+  CPPUNIT_ASSERT_EQUAL(Arc::tostring(getpid()) + "@" + host, lock_pid);
 
   // set old modification time
   struct utimbuf times;
@@ -247,7 +226,7 @@ void FileCacheTest::testRemoteCache() {
   std::vector<std::string> draining_caches;
   
   caches.push_back(_cache_dir);
-  std::string remote_cache_dir = "/tmp/"+_intToString(getpid())+"_remotecache";
+  std::string remote_cache_dir = _testroot + "/remotecache";
   remote_caches.push_back(remote_cache_dir);
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
@@ -270,10 +249,6 @@ void FileCacheTest::testRemoteCache() {
   // delete file and create in remote cache
   CPPUNIT_ASSERT(_fc1->StopAndDelete(_url));
   CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"));
-  _files.push_back(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
-  _files.push_back(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
-  _files.push_back(remote_cache_dir+"/data/69");
-  _files.push_back(remote_cache_dir+"/data");
   
   // check not available if not using remote caches
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked, false));
@@ -299,12 +274,6 @@ void FileCacheTest::testRemoteCache() {
   std::string soft_link = _session_dir+"/"+_jobid+"/file1";
   std::string local_hard_link = _cache_job_dir+"/"+_jobid+"/file1";
   CPPUNIT_ASSERT(_fc1->Link(soft_link, _url));
-  _files.push_back(soft_link);
-  _files.push_back(local_hard_link);
-  _files.push_back(remote_cache_dir+"/joblinks/1/file1");
-  _files.push_back(remote_cache_dir+"/joblinks/1");
-  _files.push_back(remote_cache_dir+"/joblinks");
-  _files.push_back(remote_cache_dir);
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat remote hard link ", 0, stat((remote_cache_dir+"/joblinks/1/file1").c_str(), &fileStat) );
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Hard link is a soft link", true, (lstat((remote_cache_dir+"/joblinks/1/file1").c_str(), &fileStat) == 0 && !S_ISLNK(fileStat.st_mode)));  
@@ -363,8 +332,6 @@ void FileCacheTest::testStop() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -407,7 +374,7 @@ void FileCacheTest::testStop() {
   CPPUNIT_ASSERT(!_fc1->Stop(_url));
 
   // put different pid in lock file - Stop() should return false
-  _createFile(_fc1->File(_url) + ".lock", _intToString(getpid() + 1));
+  _createFile(_fc1->File(_url) + ".lock", Arc::tostring(getpid() + 1));
   CPPUNIT_ASSERT(!_fc1->Stop(_url));
 
   // check that lock and cache file are still there
@@ -424,8 +391,6 @@ void FileCacheTest::testStopAndDelete() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -477,7 +442,7 @@ void FileCacheTest::testStopAndDelete() {
   CPPUNIT_ASSERT(stat(_fc1->File(_url).c_str(), &fileStat) == 0);
 
   // put different pid in lock file - StopAndDelete() should return false
-  _createFile(_fc1->File(_url) + ".lock", _intToString(getpid() + 1));
+  _createFile(_fc1->File(_url) + ".lock", Arc::tostring(getpid() + 1));
   CPPUNIT_ASSERT(!_fc1->StopAndDelete(_url));
 
   // check that lock and cache files are still there
@@ -497,8 +462,6 @@ void FileCacheTest::testLinkFile() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -514,8 +477,6 @@ void FileCacheTest::testLinkFile() {
 
   // create link
   CPPUNIT_ASSERT(_fc1->Link(soft_link, _url));
-  _files.push_back(hard_link);
-  _files.push_back(soft_link);
 
   // check hard- and soft-links exist
   CPPUNIT_ASSERT(stat((_cache_job_dir + "/1").c_str(), &fileStat) == 0);
@@ -534,11 +495,9 @@ void FileCacheTest::testLinkFile() {
 void FileCacheTest::testLinkFileLinkCache() {
 
   // new cache with link path set
-  std::string cache_link_dir = "/tmp/" + _intToString(getpid()) + "_link";
+  std::string cache_link_dir = _testroot + "/link";
   _fc1 = new Arc::FileCache(_cache_dir + " " + cache_link_dir, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(symlink(_cache_dir.c_str(), cache_link_dir.c_str()) == 0);
-  _files.push_back(cache_link_dir);
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // Start cache
   bool available = false;
@@ -560,8 +519,6 @@ void FileCacheTest::testLinkFileLinkCache() {
   std::string soft_link = _session_dir + "/" + _jobid + "/file1";
   std::string hard_link = _cache_job_dir + "/" + _jobid + "/file1";
   CPPUNIT_ASSERT(_fc1->Link(soft_link, _url));
-  _files.push_back(soft_link);
-  _files.push_back(hard_link);
 
   // check soft link is ok and points to the right place
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat soft link " + soft_link, 0, lstat(soft_link.c_str(), &fileStat));
@@ -585,8 +542,6 @@ void FileCacheTest::testCopyFile() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -602,7 +557,6 @@ void FileCacheTest::testCopyFile() {
 
   // do copy
   CPPUNIT_ASSERT(_fc1->Copy(dest_file, _url));
-  _files.push_back(dest_file);
 
   // check copy exists
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat destination file " + dest_file, 0, stat(dest_file.c_str(), &fileStat));
@@ -626,10 +580,6 @@ void FileCacheTest::testFile() {
   std::string cache_dir2 = _cache_dir + "2";
   caches.push_back(cache_dir2);
 
-  _files.push_back(cache_dir2 + "/joblinks");
-  _files.push_back(cache_dir2 + "/data");
-  _files.push_back(cache_dir2);
-
   Arc::FileCache *fc2 = new Arc::FileCache(caches, "1", _uid, _gid);
   // _url can go to either cache, so check it at least is mapped to one
   bool found = false;
@@ -650,8 +600,6 @@ void FileCacheTest::testRelease() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -663,8 +611,6 @@ void FileCacheTest::testRelease() {
 
   // create link
   CPPUNIT_ASSERT(_fc1->Link(soft_link, _url));
-  _files.push_back(hard_link);
-  _files.push_back(soft_link);
 
   // Stop cache to release lock
   CPPUNIT_ASSERT(_fc1->Stop(_url));
@@ -697,7 +643,6 @@ void FileCacheTest::testCheckDN() {
   // create meta file
   std::string meta_file = _fc1->File(_url) + ".meta";
   CPPUNIT_ASSERT(_createFile(meta_file, _url + '\n'));
-  _files.push_back(meta_file);
 
   std::string dn1 = "/O=Grid/O=NorduGrid/OU=test.org/CN=Mr Tester";
   CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn1));
@@ -759,8 +704,6 @@ void FileCacheTest::testTwoCaches() {
   bool is_locked = false;
   CPPUNIT_ASSERT(fc2->Start(_url, available, is_locked));
   std::string cache_file1 = fc2->File(_url);
-  _files.push_back(fc2->File(_url) + ".meta");
-  _files.push_back(fc2->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*fc2);
@@ -771,8 +714,6 @@ void FileCacheTest::testTwoCaches() {
   bool is_locked2 = false;
   CPPUNIT_ASSERT(fc2->Start(url2, available2, is_locked2));
   std::string cache_file2 = fc2->File(url2);
-  _files.push_back(fc2->File(url2) + ".meta");
-  _files.push_back(fc2->File(url2) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(!available2);
@@ -794,18 +735,6 @@ void FileCacheTest::testTwoCaches() {
 
   CPPUNIT_ASSERT(fc2->Link(soft_link, _url));
   CPPUNIT_ASSERT(fc2->Link(soft_link2, url2));
-  _files.push_back(hard_link_cache1);
-  _files.push_back(hard_link_cache2);
-  _files.push_back(hard_link2_cache1);
-  _files.push_back(hard_link2_cache2);
-  _files.push_back(soft_link);
-  _files.push_back(soft_link2);
-  _files.push_back(cache_dir2 + "/data/11");
-  _files.push_back(cache_dir2 + "/data/69");
-  _files.push_back(cache_dir2 + "/data");
-  _files.push_back(cache_dir2 + "/joblinks/1");
-  _files.push_back(cache_dir2 + "/joblinks");
-  _files.push_back(cache_dir2);
 
   // check hard links are made in one of the caches
   struct stat fileStat;
@@ -850,8 +779,6 @@ void FileCacheTest::testCreationDate() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -891,8 +818,6 @@ void FileCacheTest::testValidityDate() {
   bool available = false;
   bool is_locked = false;
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  _files.push_back(_fc1->File(_url) + ".meta");
-  _files.push_back(_fc1->File(_url) + ".lock");
 
   // test cache is ok
   CPPUNIT_ASSERT(*_fc1);
@@ -965,13 +890,6 @@ void FileCacheTest::testConstructor() {
   std::string cache_dir2 = _cache_dir + "2";
   std::string cache_dir3 = _cache_dir + "3";
 
-  _files.push_back(cache_dir2 + "/joblinks");
-  _files.push_back(cache_dir2 + "/data");
-  _files.push_back(cache_dir2);
-  _files.push_back(cache_dir3 + "/joblinks");
-  _files.push_back(cache_dir3 + "/data");
-  _files.push_back(cache_dir3);
-
   caches.push_back(_cache_dir);
   caches.push_back(cache_dir2);
 
@@ -1023,8 +941,8 @@ void FileCacheTest::testBadConstructor() {
 void FileCacheTest::testInternal() {
 
   // read a non-existent file
-  std::string pid(_intToString(getpid()));
-  std::string testfile("test.file." + pid);
+  std::string pid(Arc::tostring(getpid()));
+  std::string testfile(_testroot + "/test.file." + pid);
   CPPUNIT_ASSERT(_readFile(testfile) == "");
 
   // create a file
@@ -1070,7 +988,6 @@ bool FileCacheTest::_createFile(std::string filename, std::string text) {
   }
   fputs((char*)text.c_str(), pFile);
   fclose(pFile);
-  _files.push_back(filename);
   return true;
 }
 
@@ -1087,12 +1004,6 @@ std::string FileCacheTest::_readFile(std::string filename) {
   fclose(pFile);
 
   return data;
-}
-
-std::string FileCacheTest::_intToString(int i) {
-  std::stringstream out;
-  out << i;
-  return out.str();
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(FileCacheTest);
