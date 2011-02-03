@@ -21,7 +21,7 @@ sub uc_bools {
 
 sub beginGroup {
     my ($self, $name) = @_;
-    $self->begin(GLUE2GroupID =>, $name);
+    $self->begin(GLUE2GroupID => $name);
     my $data = { objectClass => "GLUE2Group", GLUE2GroupID => $name};
     $self->attributes($data, "", qw(objectClass GLUE2GroupID));
 }
