@@ -56,11 +56,13 @@ namespace Arc {
    * file and the expiry time, if it is available. For example
    * lfc://lfc1.ndgf.org//grid/atlas/test/test1 20081007151045Z
    *
-   * While cache files are downloaded, they are locked by creating a
-   * lock file with the '.lock' suffix next to the cache file. Calling
-   * Start() creates this lock and Stop() releases it. All processes
-   * calling Start() must wait until they successfully obtain the lock
-   * before downloading can begin.
+   * While cache files are downloaded, they are locked using the
+   * FileLock class, which creates a lock file with the '.lock' suffix
+   * next to the cache file. Calling Start() creates this lock and Stop()
+   * releases it. All processes calling Start() must wait until they
+   * successfully obtain the lock before downloading can begin. Once
+   * a process obtains a lock it must later release it by calling
+   * Stop() or StopAndDelete().
    */
   class FileCache {
   private:
@@ -123,10 +125,6 @@ namespace Arc {
      */
     static const int CACHE_DIR_LEVELS;
     /**
-     * The suffix to use for lock files
-     */
-    static const std::string CACHE_LOCK_SUFFIX;
-    /**
      * The suffix to use for meta files
      */
     static const std::string CACHE_META_SUFFIX;
@@ -146,18 +144,9 @@ namespace Arc {
                int cache_max = 100,
                int cache_min = 100);
     /**
-     * Return the filename of the lock file associated to the given url
-     */
-    std::string _getLockFileName(std::string url);
-    /**
      * Return the filename of the meta file associated to the given url
      */
     std::string _getMetaFileName(std::string url);
-    /**
-     * Return true if the lock on the cache file corresponding to
-     * this url exists and is owned by this process
-     */
-    bool _checkLock(std::string url);
     /**
      * Generic method to make directories
      * @param dir directory to create

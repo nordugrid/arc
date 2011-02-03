@@ -22,6 +22,7 @@
 
 #include <arc/Logger.h>
 #include <arc/FileUtils.h>
+#include <arc/FileLock.h>
 
 #include "FileCache.h"
 
@@ -31,7 +32,6 @@ namespace Arc {
   const std::string FileCache::CACHE_JOB_DIR = "joblinks";
   const int FileCache::CACHE_DIR_LENGTH = 2;
   const int FileCache::CACHE_DIR_LEVELS = 1;
-  const std::string FileCache::CACHE_LOCK_SUFFIX = ".lock";
   const std::string FileCache::CACHE_META_SUFFIX = ".meta";
   const int FileCache::CACHE_DEFAULT_AUTH_VALIDITY = 86400; // 24 h
 
@@ -207,200 +207,49 @@ namespace Arc {
     available = false;
     is_locked = false;
     std::string filename = File(url);
-    std::string lock_file = _getLockFileName(url);
 
     // create directory structure if required, only readable by GM user
-    if (!_cacheMkDir(lock_file.substr(0, lock_file.rfind("/")), false))
+    if (!_cacheMkDir(filename.substr(0, filename.rfind("/")), false))
       return false;
 
     int lock_timeout = 86400; // one day timeout on lock TODO: make configurable?
 
-    // locking mechanism:
-    // - check if lock is there
-    // - if not, create tmp file and check again
-    // - if lock is still not there copy tmp file to cache lock file
-    // - check pid inside lock file matches ours
-
-    struct stat fileStat;
-    int err = stat(lock_file.c_str(), &fileStat);
-    if (0 != err) {
-      if (errno == EACCES) {
-        logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, strerror(errno));
-        return false;
-      }
-      else if (errno != ENOENT) {
-        // some other error occurred opening the lock file
-        logger.msg(ERROR, "Error opening lock file %s in initial check: %s", lock_file, strerror(errno));
-        return false;
-      }
-      // lock does not exist - create tmp file
-      std::string tmpfile = lock_file + ".XXXXXX";
-      int h = Glib::mkstemp(tmpfile);
-      if (h == -1) {
-        logger.msg(ERROR, "Error creating file %s with mkstemp(): %s", tmpfile, strerror(errno));
-        return false;
-      }
-      // write pid@hostname to the lock file
-      std::string buf = _pid + "@" + _hostname;
-      if (write(h, buf.c_str(), buf.length()) == -1) {
-        logger.msg(ERROR, "Error writing to tmp lock file %s: %s", tmpfile, strerror(errno));
-        // not much we can do if this doesn't work, but it is only a tmp file
-        remove(tmpfile.c_str());
-        close(h);
-        return false;
-      }
-      if (close(h) != 0)
-        // not critical as file will be removed after we are done
-        logger.msg(WARNING, "Warning: closing tmp lock file %s failed", tmpfile);
-      // check again if lock exists, in case creating the tmp file took some time
-      err = stat(lock_file.c_str(), &fileStat);
-      if (0 != err) {
-        if (errno == ENOENT) {
-          // ok, we can create lock
-          if (rename(tmpfile.c_str(), lock_file.c_str()) != 0) {
-            logger.msg(ERROR, "Error renaming tmp file %s to lock file %s: %s", tmpfile, lock_file, strerror(errno));
-            remove(tmpfile.c_str());
-            return false;
-          }
-          // check it's really there
-          err = stat(lock_file.c_str(), &fileStat);
-          if (0 != err) {
-            logger.msg(ERROR, "Error renaming lock file, even though rename() did not return an error");
-            return false;
-          }
-          // check the pid inside the lock file, just in case...
-          if (!_checkLock(url)) {
-            is_locked = true;
-            return false;
-          }
-        }
-        else if (errno == EACCES) {
-          logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, strerror(errno));
-          remove(tmpfile.c_str());
-          return false;
-        }
-        else {
-          // some other error occurred opening the lock file
-          logger.msg(ERROR, "Error opening lock file we just renamed successfully %s: %s", lock_file, strerror(errno));
-          remove(tmpfile.c_str());
-          return false;
-        }
-      }
-      else {
-        logger.msg(VERBOSE, "The file is currently locked with a valid lock");
-        remove(tmpfile.c_str());
-        is_locked = true;
-        return false;
-      }
-    }
-    else {
-      // the lock already exists, check if it has expired
-      // look at modification time
-      time_t mod_time = fileStat.st_mtime;
-      time_t now = time(NULL);
-      logger.msg(VERBOSE, "%li seconds since lock file was created", now - mod_time);
-
-      if ((now - mod_time) > lock_timeout) {
-        logger.msg(VERBOSE, "Timeout has expired, will remove lock file");
-        // TODO: kill the process holding the lock, only if we know it was the original
-        // process which created it
-        if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
-          logger.msg(ERROR, "Failed to unlock file %s: %s", lock_file, strerror(errno));
-          return false;
-        }
-        // lock has expired and has been removed. Try to remove cache file and call Start() again
-        if (remove(filename.c_str()) != 0 && errno != ENOENT) {
-          logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
-          return false;
-        }
-        return Start(url, available, is_locked, use_remote);
-      }
-
-      // lock is still valid, check if we own it
-      FILE *pFile;
-      char lock_info[100]; // should be long enough for a pid + hostname
-      pFile = fopen((char*)lock_file.c_str(), "r");
-      if (pFile == NULL) {
-        // lock could have been released by another process, so call Start again
-        if (errno == ENOENT) {
-          logger.msg(VERBOSE, "Lock that recently existed has been deleted by another process, calling Start() again");
-          return Start(url, available, is_locked, use_remote);
-        }
-        logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, strerror(errno));
-        return false;
-      }
-      if (fgets(lock_info, 100, pFile) == NULL) {
-        logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, strerror(errno));
-        fclose(pFile);
-        return false;
-      }
-      fclose(pFile);
-
-      std::string lock_info_s(lock_info);
-      std::string::size_type index = lock_info_s.find("@", 0);
-      if (index == std::string::npos) {
-        logger.msg(ERROR, "Error with formatting in lock file %s: %s", lock_file, lock_info_s);
-        return false;
-      }
-
-      if (lock_info_s.substr(index + 1) != _hostname) {
-        logger.msg(VERBOSE, "Lock is owned by a different host");
-        // TODO: here do ssh login and check
-        is_locked = true;
-        return false;
-      }
-      std::string lock_pid = lock_info_s.substr(0, index);
-      if (lock_pid == _pid)
-        // safer to wait until lock expires than use cached file or re-download
-        logger.msg(WARNING, "Warning: This process already owns the lock");
-      else {
-        // check if the pid owning the lock is still running - if not we can claim the lock
-        // this check only works on systems with /proc. On other systems locks will always be valid
-        std::string procdir("/proc/");
-        if (stat(procdir.c_str(), &fileStat) == 0) {
-          procdir = procdir.append(lock_pid);
-          if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
-            logger.msg(VERBOSE, "The process owning the lock is no longer running, will remove lock");
-            if (remove(lock_file.c_str()) != 0) {
-              logger.msg(ERROR, "Failed to unlock file %s: %s", lock_file, strerror(errno));
-              return false;
-            }
-            // lock has been removed. try to delete cache file and call Start() again
-            if (remove(filename.c_str()) != 0 && errno != ENOENT) {
-              logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
-              return false;
-            }
-            return Start(url, available, is_locked, use_remote);
-          }
-        }
-        else {
-          logger.msg(INFO, "Cannot check process info - assuming lock is still valid");
-        }
-      }
-
-      logger.msg(VERBOSE, "The file is currently locked with a valid lock");
+    // acquire lock
+    FileLock lock(filename, lock_timeout);
+    bool lock_removed = false;
+    if (!lock.acquire(lock_removed)) {
+      logger.msg(INFO, "Failed to obtain lock on cache file %s", filename);
       is_locked = true;
       return false;
     }
 
-    // if we get to here we have acquired the lock
+    // we have the lock, if there was a stale lock remove cache file to be safe
+    if (lock_removed) {
+      if (remove(filename.c_str()) != 0 && errno != ENOENT) {
+        lock.release();
+        logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
+        return false;
+      }
+    }
 
     // create the meta file to store the URL, if it does not exist
     std::string meta_file = _getMetaFileName(url);
-    err = stat(meta_file.c_str(), &fileStat);
+    struct stat fileStat;
+    int err = stat(meta_file.c_str(), &fileStat);
     if (0 == err) {
       // check URL inside file for possible hash collisions
       FILE *pFile;
       pFile = fopen((char*)meta_file.c_str(), "r");
       if (pFile == NULL) {
         logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
-        remove(lock_file.c_str());
+        lock.release();
         return false;
       }
       std::string meta_str;
       if(!fgets(pFile, fileStat.st_size, meta_str)) {
-        logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, strerror(errno));
+        logger.msg(ERROR, "Error reading valid and existing meta file %s: %s", _getMetaFileName(url), strerror(errno));
         fclose(pFile);
+        lock.release();
         return false;
       }
       fclose(pFile);
@@ -412,7 +261,7 @@ namespace Arc {
       std::string::size_type space_pos = meta_str.find(' ', 0);
       if (meta_str.substr(0, space_pos) != url) {
         logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached", url, filename, meta_str.substr(0, space_pos));
-        remove(lock_file.c_str());
+        lock.release();
         return false;
       }
     }
@@ -422,7 +271,7 @@ namespace Arc {
       pFile = fopen((char*)meta_file.c_str(), "w");
       if (pFile == NULL) {
         logger.msg(ERROR, "Failed to create info file %s: %s", meta_file, strerror(errno));
-        remove(lock_file.c_str());
+        lock.release();
         return false;
       }
       fputs((char*)url.c_str(), pFile);
@@ -433,9 +282,10 @@ namespace Arc {
     }
     else {
       logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, strerror(errno));
-      remove(lock_file.c_str());
+      lock.release();
       return false;
     }
+
     // now check if the cache file is there already
     err = stat(filename.c_str(), &fileStat);
     if (0 == err)
@@ -466,65 +316,23 @@ namespace Arc {
       if (remote_cache_file.empty()) return true;
       
       logger.msg(INFO, "Found file %s in remote cache at %s", url, remote_cache_file);
-      // if found, create lock file in remote cache
-      std::string remote_lock_file = remote_cache_file+".lock";
-      err = stat( remote_lock_file.c_str(), &fileStat );
-      // if lock exists, exit
-      if (0 == err) {
+      // create lock file in remote cache
+      FileLock remote_lock(remote_cache_file, lock_timeout);
+      if (!remote_lock.acquire(lock_removed)) {
+        // if lock exists, exit
         logger.msg(VERBOSE, "File exists in remote cache at %s but is locked. Will download from source", remote_cache_file);
         return true;
       }
-    
-      // lock does not exist - create tmp file
-      std::string remote_tmpfile = remote_lock_file + ".XXXXXX";
-      int h = Glib::mkstemp(remote_tmpfile);
-      if (h == -1) {
-        logger.msg(WARNING, "Error creating tmp file %s for remote lock with mkstemp(): %s", remote_tmpfile, strerror(errno));
+
+      // we have the lock, but to be safe if there was a stale lock removed
+      // we delete the remote cache file and download from source again
+      if (lock_removed) {
+        if (remove(remote_cache_file.c_str()) != 0 && errno != ENOENT)
+          logger.msg(INFO, "Error removing remote cache file %s: %s", remote_cache_file, strerror(errno));
+        remote_lock.release();
         return true;
       }
-      // write pid@hostname to the lock file
-      std::string buf2 = _pid + "@" + _hostname;
-      if (write(h, buf2.c_str(), buf2.length()) == -1) {
-        logger.msg(WARNING, "Error writing to tmp lock file for remote lock %s: %s", remote_tmpfile, strerror(errno));
-        // not much we can do if this doesn't work, but it is only a tmp file
-        remove(remote_tmpfile.c_str());
-        close(h);
-        return true;
-      }
-      if (close(h) != 0) {
-        // not critical as file will be removed after we are done
-        logger.msg(WARNING, "Warning: closing tmp lock file for remote lock %s failed", remote_tmpfile);
-      }
-      // check again if lock exists, in case creating the tmp file took some time
-      err = stat( remote_lock_file.c_str(), &fileStat ); 
-      if (0 != err) {
-        if (errno == ENOENT) {
-          // ok, we can create lock
-          if (rename(remote_tmpfile.c_str(), remote_lock_file.c_str()) != 0) {
-            logger.msg(WARNING, "Error renaming tmp file %s to lock file %s for remote lock: %s", remote_tmpfile, remote_lock_file, strerror(errno));
-            remove(remote_tmpfile.c_str());
-            return true;
-          }
-          // check it's really there
-          err = stat( remote_lock_file.c_str(), &fileStat ); 
-          if (0 != err) {
-            logger.msg(WARNING, "Error renaming lock file for remote lock, even though rename() did not return an error: %s", strerror(errno));
-            return true;
-          }
-        }
-        else {
-          // some error occurred opening the lock file
-          logger.msg(WARNING, "Error opening lock file for remote lock we just renamed successfully %s: %s", remote_lock_file, strerror(errno));
-          remove(remote_tmpfile.c_str());
-          return true;
-        }
-      }
-      else {
-        logger.msg(VERBOSE, "The remote cache file is currently locked with a valid lock, will download from source");
-        remove(remote_tmpfile.c_str());
-        return true;
-      }
-      
+
       // we have locked the remote file - so find out what to do with it
       if (remote_cache_link == "replicate") {
         // copy the file to the local cache, remove remote lock and exit with available=true
@@ -533,35 +341,38 @@ namespace Arc {
         int fdest = FileOpen(filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if(fdest == -1) {
           logger.msg(ERROR, "Failed to create file %s for writing: %s",filename, strerror(errno));
+          remote_lock.release();
+          lock.release();
           return false;
-        };
+        }
         
         int fsource = FileOpen(remote_cache_file, O_RDONLY, 0);
         if(fsource == -1) {
           close(fdest);
           logger.msg(ERROR, "Failed to open file %s for reading: %s", remote_cache_file, strerror(errno));
+          remote_lock.release();
+          lock.release();
           return false;
-        };
+        }
         
         if(!FileCopy(fsource,fdest)) {
           close(fdest); close(fsource);
           logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, strerror(errno));
+          remote_lock.release();
+          lock.release();
           return false;
-        };
-        close(fdest); close(fsource);
-        if (remove(remote_lock_file.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to remove remote lock file %s: %s. Some manual intervention may be required", remote_lock_file, strerror(errno));
-          return true; // ?
         }
+        close(fdest); close(fsource);
+        if (!remote_lock.release())
+          logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
       }
       // create symlink from file in this cache to other cache
       else {
         logger.msg(VERBOSE, "Creating temporary link from %s to remote cache file %s", filename, remote_cache_file);
         if (symlink(remote_cache_file.c_str(), filename.c_str()) != 0) {
           logger.msg(ERROR, "Failed to create soft link to remote cache: %s Will download %s from source", strerror(errno), url);
-          if (remove(remote_lock_file.c_str()) != 0) {
-            logger.msg(ERROR, "Failed to remove remote lock file %s: %s Some manual intervention may be required", remote_lock_file, strerror(errno));
-          }
+          if (!remote_lock.release())
+            logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
           return true;
         }
       }
@@ -589,24 +400,21 @@ namespace Arc {
         logger.msg(ERROR, "Could not read target of link %s: %s. Manual intervention may be required to remove lock in remote cache", filename, strerror(errno));
         return false;
       }
-      std::string remote_lock(buf); remote_lock.resize(link_size); remote_lock += ".lock";
-      if (remove(remote_lock.c_str()) != 0 && errno != ENOENT) {
-        logger.msg(ERROR, "Failed to unlock remote cache lock %s: %s. Manual intervention may be required", remote_lock, strerror(errno));
-        return false;
-      }
+      std::string remote_file(buf); remote_file.resize(link_size);
+      FileLock remote_lock(remote_file);
+      if (!remote_lock.release())
+        logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
+
       if (remove(filename.c_str()) != 0) {
         logger.msg(ERROR, "Error removing file %s: %s. Manual intervention may be required", filename, strerror(errno));
         return false;
       }
     }
     
-     // check the lock is ok to delete
-    if (!_checkLock(url))
-      return false;
-
     // delete the lock
-    if (remove(_getLockFileName(url).c_str()) != 0) {
-      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", _getLockFileName(url), strerror(errno));
+    FileLock lock(filename);
+    if (!lock.release()) {
+      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, strerror(errno));
       return false;
     }
     // get the hash of the url
@@ -638,17 +446,22 @@ namespace Arc {
         logger.msg(ERROR, "Could not read target of link %s: %s. Manual intervention may be required to remove lock in remote cache", filename, strerror(errno));
         return false;
       }
-      std::string remote_lock(buf); remote_lock.resize(link_size); remote_lock += ".lock";
-      if (remove(remote_lock.c_str()) != 0 && errno != ENOENT) {
-        logger.msg(ERROR, "Failed to unlock remote cache lock %s: %s. Manual intervention may be required", remote_lock, strerror(errno));
-        return false;
-      }
+      std::string remote_file(buf); remote_file.resize(link_size);
+      FileLock remote_lock(remote_file);
+      if (!remote_lock.release())
+        logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
     }
 
-    // check the lock is ok to delete, and if so, remove the file and the
-    // associated lock
-    if (!_checkLock(url))
+    // delete the lock
+    FileLock lock(filename);
+    if (!lock.release()) {
+      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, strerror(errno));
       return false;
+    }
+
+    // delete the meta file - not critical so don't fail on error
+    if (remove(_getMetaFileName(url).c_str()) != 0)
+      logger.msg(ERROR, "Failed to remove .meta file %s: %s", _getMetaFileName(url), strerror(errno));
 
     // delete the cache file
     if (remove(filename.c_str()) != 0 && errno != ENOENT) {
@@ -656,16 +469,6 @@ namespace Arc {
       return false;
     }
 
-    // delete the meta file - not critical so don't fail on error
-    if (remove(_getMetaFileName(url).c_str()) != 0)
-      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", _getLockFileName(url), strerror(errno));
-
-    // delete the lock
-    if (remove(_getLockFileName(url).c_str()) != 0) {
-      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", _getLockFileName(url), strerror(errno));
-      return false;
-    }
-    
     // get the hash of the url
     std::string hash = FileCacheHash::getHash(url);
     int index = 0;
@@ -1222,59 +1025,6 @@ namespace Arc {
              a._gid == _gid
              );
   }
-  bool FileCache::_checkLock(std::string url) {
-
-    std::string filename = File(url);
-    std::string lock_file = _getLockFileName(url);
-
-    // check for existence of lock file
-    struct stat fileStat;
-    int err = stat(lock_file.c_str(), &fileStat);
-    if (0 != err) {
-      if (errno == ENOENT)
-        logger.msg(ERROR, "Lock file %s doesn't exist", lock_file);
-      else
-        logger.msg(ERROR, "Error listing lock file %s: %s", lock_file, strerror(errno));
-      return false;
-    }
-
-    // check the lock file's pid and hostname matches ours
-    FILE *pFile;
-    char lock_info[100]; // should be long enough for a pid + hostname
-    pFile = fopen((char*)lock_file.c_str(), "r");
-    if (pFile == NULL) {
-      logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, strerror(errno));
-      return false;
-    }
-    if (fgets(lock_info, 100, pFile) == NULL) {
-      logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, strerror(errno));
-      fclose(pFile);
-      return false;
-    }
-    fclose(pFile);
-
-    std::string lock_info_s(lock_info);
-    std::string::size_type index = lock_info_s.find("@", 0);
-    if (index == std::string::npos) {
-      logger.msg(ERROR, "Error with formatting in lock file %s: %s", lock_file, lock_info_s);
-      return false;
-    }
-
-    if (lock_info_s.substr(index + 1) != _hostname) {
-      logger.msg(VERBOSE, "Lock is owned by a different host");
-      // TODO: here do ssh login and check
-      return false;
-    }
-    if (lock_info_s.substr(0, index) != _pid) {
-      logger.msg(ERROR, "Another process owns the lock on file %s. Must go back to Start()", filename);
-      return false;
-    }
-    return true;
-  }
-
-  std::string FileCache::_getLockFileName(std::string url) {
-    return File(url) + CACHE_LOCK_SUFFIX;
-  }
 
   std::string FileCache::_getMetaFileName(std::string url) {
     return File(url) + CACHE_META_SUFFIX;
@@ -1346,7 +1096,7 @@ namespace Arc {
     // started but no file download was done
     for (int i = 0; i < caches_size ; i++) {
       struct stat fileStat;
-      std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash + CACHE_LOCK_SUFFIX;
+      std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash + FileLock::getLockSuffix();
       if (stat(c_file.c_str(), &fileStat) == 0) {
         return i;
       }

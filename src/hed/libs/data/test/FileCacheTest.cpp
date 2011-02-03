@@ -270,6 +270,7 @@ void FileCacheTest::testRemoteCache() {
   // delete file and create in remote cache
   CPPUNIT_ASSERT(_fc1->StopAndDelete(_url));
   CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"));
+  _files.push_back(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
   _files.push_back(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
   _files.push_back(remote_cache_dir+"/data/69");
   _files.push_back(remote_cache_dir+"/data");
@@ -320,11 +321,32 @@ void FileCacheTest::testRemoteCache() {
   CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/joblinks/1/file1").c_str(), &fileStat) != 0 );
   CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/joblinks/1").c_str(), &fileStat) != 0 );
   
+  // create a stale lock in the remote cache
+  // construct hostname
+  struct utsname buf;
+  CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
+  std::string host(buf.nodename);
+
+  CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock", std::string("99999@" + host)));
+
+  delete _fc1;
+  _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
+  // Start should succeed but delete remote file
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(!is_locked);
+  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock").c_str(), &fileStat) != 0 );
+  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac").c_str(), &fileStat) != 0 );
+
+  // stop cache to release locks
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
+
   // test with a replicate policy
   delete _fc1;
-  remote_cache_dir = "/tmp/"+_intToString(getpid())+"_remotecache replicate";
+  std::string remote_cache_dir_rep(remote_cache_dir + " replicate");
   remote_caches.clear();
-  remote_caches.push_back(remote_cache_dir);
+  remote_caches.push_back(remote_cache_dir_rep);
+  CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"));
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
   CPPUNIT_ASSERT(available);
