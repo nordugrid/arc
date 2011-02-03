@@ -61,10 +61,13 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT(lock_pid != "");
 
   // construct hostname
+#ifndef WIN32
   struct utsname buf;
   CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
   std::string host(buf.nodename);
-
+#else
+  std::string host("");
+#endif
   CPPUNIT_ASSERT_EQUAL(Arc::tostring(getpid()) + "@" + host, lock_pid);
 
   // set old modification time
@@ -145,6 +148,13 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT_EQUAL(t, fileStat.st_mtime);
 
   CPPUNIT_ASSERT(lock.acquire());
+
+  // create lock with empty hostname - acquire should still work
+  lock = Arc::FileLock(filename);
+  _createFile(lock_file, "99999@");
+  lock_removed = false;
+  CPPUNIT_ASSERT(lock.acquire(lock_removed));
+  CPPUNIT_ASSERT(lock_removed);
 }
 
 void FileLockTest::TestFileLockRelease() {
@@ -159,9 +169,13 @@ void FileLockTest::TestFileLockRelease() {
   CPPUNIT_ASSERT(!lock.release());
 
   // construct hostname
+#ifndef WIN32
   struct utsname buf;
   CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
   std::string host(buf.nodename);
+#else
+  std::string host("");
+#endif
 
   // create a valid lock file with this pid
   _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@" + host));
@@ -197,6 +211,12 @@ void FileLockTest::TestFileLockRelease() {
   // set use_pid false, release should succeed now
   lock = Arc::FileLock(filename, 30, false);
   CPPUNIT_ASSERT(lock.release());
+
+  // create lock with empty hostname - release should still work
+  lock = Arc::FileLock(filename);
+  _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@"));
+  CPPUNIT_ASSERT(lock.release());
+
 }
 
 

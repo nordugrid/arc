@@ -35,11 +35,13 @@ namespace Arc {
       hostname("") {
     if (use_pid) {
       // get our hostname and pid
+#ifndef WIN32
       struct utsname buf;
       if (uname(&buf) != 0)
         logger.msg(ERROR, "Cannot determine hostname from uname()");
       else
         hostname = buf.nodename;
+#endif
       int pid_i = getpid();
       pid = Arc::tostring(pid_i);
     }
