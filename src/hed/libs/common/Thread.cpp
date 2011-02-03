@@ -135,32 +135,41 @@ namespace Arc {
 
   ThreadPool::ThreadPool(void):max_count(0),count(0) {
     // Estimating amount of available memory 
-    uint64_t n = 0;
+    uint64_t n_max;
+    {
+      // This is very estimation of size of virtual memory available for process
+      // Using size of pointer (32-bit vs 64-bit architecture)
+      unsigned int bits = 8*sizeof(int*);
+      // Still all 64 bits can't be used for addressing.
+      // Normally max adressable size is 2^48
+      // Source: http://en.wikipedia.org/wiki/X86-64#Virtual_address_space_details
+      if(bits > 48) bits = 48;
+      // It is common to have half taken by OS
+      bits = bits - 1;
+      // Dividing by 2 assuming each thread will equally use 
+      // stack and heap
+      uint64_t n = (((uint64_t)1)<<bits)/thread_stacksize/2;
+      n_max = n;
+    };
 #ifndef WIN32
     struct rlimit rl;
     if(getrlimit(RLIMIT_AS,&rl) == 0) {
       if(rl.rlim_cur != RLIM_INFINITY) {
-        // Dividing by 2 assuming each thread will equally use 
-        // stack and heap
-        n = rl.rlim_cur/thread_stacksize/2;
-        if(n == 0) {
-          // What else can we do. Application will fail on first thread
-          n=1;
-        }
-      } else if(rl.rlim_max != RLIM_INFINITY) {
-        n = rl.rlim_max/thread_stacksize/2;
-        if(n == 0) {
-          n=1;
-        }
-      }
-    }
+        uint64_t n = rl.rlim_cur/thread_stacksize/2;
+        // What else can we do. Application will fail on first thread
+        if(n == 0) n=1;
+        if(n < n_max) n_max = n;
+      };
+      if(rl.rlim_max != RLIM_INFINITY) {
+        uint64_t n = rl.rlim_max/thread_stacksize/2;
+        if(n == 0) n=1;
+        if(n < n_max) n_max = n;
+      };
+    };
 #endif
-    if(n == 0) {
-      // Very rough estimation of number of threads which can be run
-      n = (((uint64_t)1)<<(8*sizeof(int*) - 2))/thread_stacksize;
-    }
-    if(n > INT_MAX) n = INT_MAX;
-    max_count = (int)n;
+    // Just make number to fit
+    if(n_max > INT_MAX) n_max = INT_MAX;
+    max_count = (int)n_max-1;
     // TODO: can't use logger here because it will try to initilize pool
     //threadLogger.msg(DEBUG, "Maximum number of threads is %i",max_count);
   }

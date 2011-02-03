@@ -71,7 +71,13 @@ void ThreadTest::TestThread() {
   for(int n = 0;n<500;++n) {
     CPPUNIT_ASSERT(Arc::CreateThreadFunction(&func,NULL));
   }
-  sleep(30);
+  // Wait for all threads
+  // In worst case it should be no more than one thread simultaneously.
+  for(int n = 0; n<(500+50); ++n) {
+    sleep(1);
+    if(counter >= 500) break;
+  }
+  sleep(1);
   CPPUNIT_ASSERT_EQUAL(500,counter);
   CPPUNIT_ASSERT_EQUAL(501,titem_created);
   CPPUNIT_ASSERT_EQUAL(500,titem_deleted);
