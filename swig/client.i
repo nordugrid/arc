@@ -23,21 +23,31 @@
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobList) std::list<Arc::Job>;
+%template(JobDescriptionList) std::list<Arc::JobDescription>;
 %template(JobStateList) std::list<Arc::JobState>;
 %template(FileTypeList) std::list<Arc::FileType>;
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
 %template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
+%template(TargetRetrieverList) std::list<Arc::TargetRetriever*>;
+%template(BrokerList) std::list<Arc::Broker*>;
+%template(SubmitterList) std::list<Arc::Submitter*>;
 
 #ifdef SWIGJAVA
+%ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
+
 %template(ExecutionTargetListIteratorHandler) listiteratorhandler<Arc::ExecutionTarget>;
 %template(JobControllerListIteratorHandler) listiteratorhandler<Arc::JobController *>;
 %template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
+%template(JobDescriptionListIteratorHandler) listiteratorhandler<Arc::JobDescription>;
 %template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
 %template(FileTypeListIteratorHandler) listiteratorhandler<Arc::FileType>;
 %template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
 %template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
 %template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
+%template(TargetRetrieverListIteratorHandler) listiteratorhandler<Arc::TargetRetriever*>;
+%template(BrokerListIteratorHandler) listiteratorhandler<Arc::Broker*>;
+%template(SubmitterListIteratorHandler) listiteratorhandler<Arc::Submitter*>;
 #endif
 
 
@@ -65,8 +75,14 @@ the first member will be the '*response' and the second member is the original r
 }
 #endif
 
-
 #ifdef SWIGJAVA
+/* The std::cout object will always exist, so do not set any references. See
+ * comments in Arc.i.
+ */
+%typemap(javaout) std::ostream& getStdout {
+  return new $javaclassname($jnicall, $owner);
+}
+
 %inline %{
 std::ostream& getStdout() {
   return std::cout;

@@ -4,6 +4,15 @@
  * "%include" dependencies.
  */
 
+#ifdef SWIGJAVA
+/* The static logger object will always exist, so do not set any references. See
+ * comments in Arc.i.
+ */
+%typemap(javaout) Arc::Logger& Arc::Logger::getRootLogger() {
+  return new $javaclassname($jnicall, $owner);
+}
+#endif
+
 %{
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
@@ -36,6 +45,9 @@
 %template(URLList) std::list<Arc::URL>;
 %template(URLVector) std::vector<Arc::URL>;
 %template(URLListMap) std::map< std::string, std::list<Arc::URL> >;
+%template(URLLocationList) std::list<Arc::URLLocation>;
+%template(XMLNodePList) std::list<Arc::XMLNode*>;
+%template(LogDestinationList) std::list<Arc::LogDestination*>;
 
 
 #ifdef SWIGJAVA
@@ -66,6 +78,10 @@
 
 %rename(toString) operator std::string;
 %rename(toBool) operator bool;
+
+%template(XMLNodePListIteratorHandler) listiteratorhandler<Arc::XMLNode*>;
+%template(LogDestinationListIteratorHandler) listiteratorhandler<Arc::LogDestination*>;
+%template(URLLocationListIteratorHandler) listiteratorhandler<Arc::URLLocation>;
 #endif
 
 #ifdef SWIGPYTHON

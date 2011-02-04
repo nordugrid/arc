@@ -75,8 +75,63 @@ class listiteratorhandler
 };
 
 %}
+
+
+/* For non-static methods in the ARC library which returns a reference to an
+ * internal object, a work around is needed for Java. The reason for this is
+ * the following:
+ * // In C++ let A::get() return a reference to an internal (private) object.
+ * const R& A::get() const; // C++
+ * // In Java the A::get() method is wrapped to call the C++ A::get().
+ * A a = new A(); // Java
+ * R r = a->get(); // Java
+ * // The memory of object r is managed by object a. When a is garbage
+ * // collected, which means in C++ terms that the a object is deleted, the r
+ * // object becomes invalid since a no longer exist.
+ * // In C++ a will exist through out the scope which a is defined in, but in
+ * // Java the object a might garbage collected when it is not in use any more,
+ * // which means that it might be garbage collected before a goes out of scope.
+ * ...
+ * // Do some something not involving the a object.
+ * ...
+ * // Now still in scope a might have been garbage collected and thus the
+ * // following statement might cause a segmentation fault.
+ * System.out.println("r = " + r.toString());
+ *
+ * Therefore when returning a C++ reference, the Java object holding the
+ * C++ reference must have a Java reference to the Java object which returned
+ * the C++ reference. In that way the garbage collector will not garbage collect
+ * the Java object actually managing the memory of the referenced C++ object.
+ *
+ * See <http://swig.org/Doc1.3/Java.html#java_memory_management_member_variables>
+ * for more info.
+ */
+/* Add member to any Java proxy class which is able to hold a reference to
+ * an object managing its memory.
+ * Add method which sets managing object.
+ */
+%typemap(javacode) SWIGTYPE %{
+  private Object objectManagingMyMemory;
+  protected void setMemoryManager(Object r) {
+    objectManagingMyMemory = r;
+  }
+%}
+/* Make sure that when a C++ reference is returned that the corresponding Java
+ * proxy class will call the setMemoryManager method to indicate that the memory
+ * is maintained by this object.
+ */
+%typemap(javaout) SWIGTYPE &  {
+  long cPtr = $jnicall;
+  $javaclassname ret = null;
+  if (cPtr != 0) {
+    ret = new $javaclassname(cPtr, $owner);
+    ret.setMemoryManager(this);
+  }
+  return ret;
+}
 #endif
 
+%template(StringPair) std::pair<std::string, std::string>;
 %template(StringList) std::list<std::string>;
 %template(StringStringMap) std::map<std::string, std::string>;
 
