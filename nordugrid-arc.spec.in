@@ -16,12 +16,22 @@ URL:		http://www.nordugrid.org/
 Source:		%{name}-%{version}.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Provides:	%{name}-libs = %{version}
+Provides:	%{name}-libs = %{version}-%{release}
 Obsoletes:	%{name}-libs < 1.0.0
 Provides:	nordugrid-arc1 = 1.3.0
 Obsoletes:	nordugrid-arc1 < 1.0.0
 Provides:	nordugrid-arc-nox = 1.3.0
 Obsoletes:	nordugrid-arc-nox < 1.3.0
+#		Packages dropped without replacements
+Obsoletes:	%{name}-httpsd < 0.8.2-1
+Obsoletes:	%{name}-logger-server < 0.8.2-1
+Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
+Obsoletes:	nordugrid-arc-nox-compiler < 1.3.0
+Obsoletes:	nordugrid-arc-nox-delegation < 1.3.0
+Obsoletes:	nordugrid-arc-nox-paul < 1.3.0
+Obsoletes:	nordugrid-arc-nox-saml2sp < 1.3.0
+Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
+
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
 %if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6
@@ -79,8 +89,8 @@ ARC
 %package client
 Summary:	ARC prototype clients
 Group:		Applications/Internet
-Requires:	%{name} = %{version}
-Requires:	%{name}-plugins-base = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-plugins-base = %{version}-%{release}
 Provides:	nordugrid-arc1-client = 1.3.0
 Obsoletes:	nordugrid-arc1-client < 1.0.0
 Provides:	nordugrid-arc-nox-client = 1.3.0
@@ -99,7 +109,7 @@ retrieve results.
 %package hed
 Summary:	ARC Hosting Environment Daemon
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Provides:	nordugrid-arc1-server = 1.3.0
 Obsoletes:	nordugrid-arc1-server < 1.0.0
 Provides:	nordugrid-arc-nox-hed = 1.3.0
@@ -129,8 +139,8 @@ away from the respective implementors.
 #%package charon
 #Summary:	ARC charon service
 #Group:		System Environment/Libraries
-#Requires:	%{name} = %{version}
-#Requires:	%{name}-hed = %{version}
+#Requires:	%{name} = %{version}-%{release}
+#Requires:	%{name}-hed = %{version}-%{release}
 #Provides:	nordugrid-arc-nox-charon = 1.3.0
 #Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
 #
@@ -148,9 +158,9 @@ away from the respective implementors.
 %package chelonia
 Summary:	ARC chelonia service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Requires:	%{name}-python = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-hed = %{version}-%{release}
+Requires:	%{name}-python = %{version}-%{release}
 Provides:	nordugrid-arc-nox-chelonia = 1.3.0
 Obsoletes:	nordugrid-arc-nox-chelonia < 1.3.0
 
@@ -166,8 +176,8 @@ reliable, robust, scalable, resilient and consistent data storage system.
 %package hopi
 Summary:	ARC hopi service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-hed = %{version}-%{release}
 Provides:	nordugrid-arc-nox-hopi = 1.3.0
 Obsoletes:	nordugrid-arc-nox-hopi < 1.3.0
 
@@ -184,8 +194,8 @@ other http(s) clients (e.g. wget).
 %package isis
 Summary:	ARC isis service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-hed = %{version}-%{release}
 Provides:	nordugrid-arc-nox-isis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-isis < 1.3.0
 
@@ -202,7 +212,7 @@ also offers easier configuration and self-healing capability.
 %package gridftpd
 Summary:	ARC gridftp server
 Group:		System Environment/Daemons
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Provides:	nordugrid-arc-nox-gridftp-server = 1.3.0
 Obsoletes:	nordugrid-arc-nox-gridftp-server < 1.3.0
 
@@ -226,9 +236,9 @@ Current plugins include:
 %package cache-service
 Summary:	ARC cache service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
-Requires:	%{name}-plugins-base = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-hed = %{version}-%{release}
+Requires:	%{name}-plugins-base = %{version}-%{release}
 Provides:	nordugrid-arc-nox-cache-service = 1.3.0
 Obsoletes:	nordugrid-arc-nox-cache-service < 1.3.0
 
@@ -249,9 +259,11 @@ for data management within a pilot job framework.
 %package aris
 Summary:	ARC LDAP information service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Provides:	%{name}-ldap-infosys = %{version}
-Obsoletes:	%{name}-ldap-infosys < 1.0.0
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-infoindex = %{version}-%{release}
+Obsoletes:	%{name}-infoindex < 0.8.2-1
+Provides:	%{name}-infosys-ldap = %{version}-%{release}
+Obsoletes:	%{name}-infosys-ldap < 1.0.0
 Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
 Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
 
@@ -273,8 +285,8 @@ nordugrid-arc-egiis to be a part of a EGIIS service.
 %package egiis
 Summary:	ARC EGIIS service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-aris = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-aris = %{version}-%{release}
 Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 
@@ -290,8 +302,8 @@ Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 %package ldap-monitor
 Summary:	ARC LDAP monitor service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Provides:	%{name}-monitor = %{version}
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-monitor = %{version}-%{release}
 Obsoletes:	%{name}-monitor < 1.0.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
@@ -309,7 +321,7 @@ which pulls information from a EGIIS and shows it graphically.
 %package ws-monitor
 Summary:	ARC WS monitor service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
@@ -326,8 +338,8 @@ which pulls information from ISIS and shows it graphically.
 #%package slcs
 #Summary:	ARC slcs service
 #Group:		System Environment/Libraries
-#Requires:	%{name} = %{version}
-#Requires:	%{name}-hed = %{version}
+#Requires:	%{name} = %{version}-%{release}
+#Requires:	%{name}-hed = %{version}-%{release}
 #Provides:	nordugrid-arc-nox-slcs = 1.3.0
 #Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
 #
@@ -341,15 +353,15 @@ which pulls information from ISIS and shows it graphically.
 %package arex
 Summary:	ARC Remote EXecution service
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
-Requires:	%{name}-hed = %{version}
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-hed = %{version}-%{release}
 Requires:	mktemp
 Requires:	python-twisted-core
 Requires:	python-twisted-web
-Requires:	%{name}-aris = %{version}
-Provides:	%{name}-grid-manager = %{version}
+Requires:	%{name}-aris = %{version}-%{release}
+Provides:	%{name}-grid-manager = %{version}-%{release}
 Obsoletes:	%{name}-grid-manager < 1.0.0
-Provides:	%{name}-server = %{version}
+Provides:	%{name}-server = %{version}-%{release}
 Obsoletes:	%{name}-server < 1.0.0
 Provides:	nordugrid-arc1-arex = 1.3.0
 Obsoletes:	nordugrid-arc1-arex < 1.0.0
@@ -374,7 +386,7 @@ jobs and the transfer of input or output data.
 %package plugins-base
 Summary:	ARC base plugins
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Provides:	nordugrid-arc1-plugins-base = 1.3.0
 Obsoletes:	nordugrid-arc1-plugins-base < 1.0.0
 Provides:	nordugrid-arc-nox-plugins-base = 1.3.0
@@ -391,7 +403,7 @@ Data Manager Components (DMCs).
 %package plugins-globus
 Summary:	ARC Globus plugins
 Group:		System Environment/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Provides:	nordugrid-arc1-plugins-globus = 1.3.0
 Obsoletes:	nordugrid-arc1-plugins-globus < 1.0.0
 Provides:	nordugrid-arc-nox-plugins-globus = 1.3.0
@@ -408,12 +420,12 @@ Components (DMCs).
 %package devel
 Summary:	ARC development files
 Group:		Development/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Requires:	glibmm24-devel
 Requires:	glib2-devel
 Requires:	libxml2-devel
 Requires:	openssl-devel
-Provides:	%{name}-libs-devel = %{version}
+Provides:	%{name}-libs-devel = %{version}-%{release}
 Obsoletes:	%{name}-libs-devel < 1.0.0
 Provides:	nordugrid-arc1-devel = 1.3.0
 Obsoletes:	nordugrid-arc1-devel < 1.0.0
@@ -433,7 +445,7 @@ represent such modules.
 %package python
 Summary:	ARC Python wrapper
 Group:		Development/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Requires:	python
 Requires:	fuse-python
 Provides:	nordugrid-arc1-python = 1.3.0
@@ -456,7 +468,7 @@ storage, there is no constraint on these applications.
 %package java
 Summary:	ARC Java wrapper
 Group:		Development/Libraries
-Requires:	%{name} = %{version}
+Requires:	%{name} = %{version}-%{release}
 Requires:	java
 Requires:	jpackage-utils
 %if %{with_gcj}
