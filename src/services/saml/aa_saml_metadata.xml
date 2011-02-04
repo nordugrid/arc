@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+   xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+   entityID="https://idp.com/SAML">
+   <AttributeAuthorityDescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+      <KeyDescriptor use="signing">
+         <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+            <ds:KeyName>idp AA key</ds:KeyName>
+         </ds:KeyInfo>
+      </KeyDescriptor>
+      <AttributeService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="https://idp.com/SAML/AA/SOAP"/>
+   </AttributeAuthorityDescriptor>
+   <Organization>
+      <OrganizationName xml:lang="en">KnowARC</OrganizationName>
+      <OrganizationDisplayName xml:lang="en">KnowARC</OrganizationDisplayName>
+      <OrganizationURL xml:lang="en"/>
+   </Organization>
+</EntityDescriptor>
+

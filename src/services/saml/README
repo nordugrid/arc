@@ -1,0 +1,30 @@
+Two services related to SAML are provided here.
+
+1. SAML AA (Attribute Authority) service 
+SAML Attribute Authority Service (SAML AA Service) is implemented for 
+accepting SAML <samlp:AttributeQuery> from the requester, and issuing 
+SAML <samlp:Response> which is supposed to include <saml:Assertion>
+that contains the attribute information about the requester. The 
+implementation is according to the SAML 2.0 "Assertion Query/Request Prfile", 
+see: "Profiles for the OASIS Security Assertion Markup Language (SAML) V2.0":
+http://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
+
+SAML AA service is implemented with the same functionality as VOMS 
+SAML service. More specifically, the interface of SAML AA service is the 
+same as VOMS SAML service.
+
+2. SAML SP (Service Provider) service
+Service Provider is a utility service which is supposed to work together with 
+external Identity Provider and user agent (client) to accomplish the 
+"SAML2.0 Web SSO Profile" which requires client to provider "username/password"
+instead of X.509 certificate for authentication.
+
+Therefore, "mutual authentication" is replaced by "server side authentication" plus
+"username/password".
+
+Beside the utilization of authentication assertion, the attributes 
+assertion can also be utilized for the access control on the service side.
+
+The SP service acts as a utility service, and should be configured together
+with other services (root from the same HTTP MCC).
+

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<EntityDescriptor
+    providerID="https://idp1/metadata"
+    xmlns="urn:liberty:metadata:2003-08">
+ <IDPDescriptor>
+
+  <AttributeServiceSOAP>https://test.uio.no/aa</AttributeServiceSOAP>
+
+  <SingleSignOnServiceURL>https://idp1:1998/singleSignOn</SingleSignOnServiceURL>
+  <SingleSignOnProtocolProfile>http://projectliberty.org/profiles/brws-art</SingleSignOnProtocolProfile>
+  <SingleSignOnProtocolProfile>http://projectliberty.org/profiles/brws-post</SingleSignOnProtocolProfile>
+
+  <SingleLogoutServiceURL>https://idp1:1998/singleLogout</SingleLogoutServiceURL>
+  <SingleLogoutServiceReturnURL>https://idp1:1998/singleLogoutReturn</SingleLogoutServiceReturnURL>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-idp-soap</SingleLogoutProtocolProfile>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-idp-http</SingleLogoutProtocolProfile>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-sp-soap</SingleLogoutProtocolProfile>
+  <SingleLogoutProtocolProfile>http://projectliberty.org/profiles/slo-sp-http</SingleLogoutProtocolProfile>
+
+  <FederationTerminationServiceURL>https://idp1:1998/federationTermination</FederationTerminationServiceURL>
+  <FederationTerminationServiceReturnURL>https://idp1:1998/federationTerminationReturn</FederationTerminationServiceReturnURL>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-idp-soap</FederationTerminationNotificationProtocolProfile>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-idp-http</FederationTerminationNotificationProtocolProfile>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-sp-soap</FederationTerminationNotificationProtocolProfile>
+  <FederationTerminationNotificationProtocolProfile>http://projectliberty.org/profiles/fedterm-sp-http</FederationTerminationNotificationProtocolProfile>
+
+  <RegisterNameIdentifierServiceURL>https://sp1/metadata</RegisterNameIdentifierServiceURL>
+
+
+  <RegisterNameIdentifierServiceURL>https://idp1:1998/registerNameIdentifier</RegisterNameIdentifierServiceURL>
+  <RegisterNameIdentifierServiceReturnURL>https://idp1:1998/registerNameIdentifierReturn</RegisterNameIdentifierServiceReturnURL>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-idp-soap</RegisterNameIdentifierProtocolProfile>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-idp-http</RegisterNameIdentifierProtocolProfile>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-sp-soap</RegisterNameIdentifierProtocolProfile>
+  <RegisterNameIdentifierProtocolProfile>http://projectliberty.org/profiles/rni-sp-http</RegisterNameIdentifierProtocolProfile>
+
+  <NameIdentifierMappingProtocolProfile>http://projectliberty.org/profiles/nim-sp-http</NameIdentifierMappingProtocolProfile>
+
+  <SoapEndpoint>https://idp1:1998/soapEndpoint</SoapEndpoint>
+
+</IDPDescriptor>
+</EntityDescriptor>
