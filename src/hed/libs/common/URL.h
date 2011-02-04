@@ -291,7 +291,7 @@ namespace Arc {
 
   public:
     /** Creates a URLLocation from a string representaion. */
-    URLLocation(const std::string& url);
+    URLLocation(const std::string& url = "");
 
     /** Creates a URLLocation from a string representaion and a name. */
     URLLocation(const std::string& url, const std::string& name);
