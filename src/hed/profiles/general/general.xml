@@ -374,7 +374,8 @@ attributes depending on how the mapping should be done.
 
       <arex:InfoproviderWakeupPeriod inisections="arex/info" initag="wakeupperiod" inidefaultvalue="30"/>
       <arex:InfoProvider>
-        <arex:debugLevel inisections="arex/info" initag="loglevel" inidefaultvalue="WARNING"/>
+        <arex:debugLevel inisections="arex/info" initag="loglevel" inidefaultvalue="INFO"/>
+        <ip:ProviderLog inisections="arex/info" initag="providerlog" inidefaultvalue="/var/log/arc/infoprovider.log"/>
 
         <ip:ClusterName inisections="arex/info" initag="clustername"/>
         <ip:OtherInfo initype="multi" inisections="arex/info" initag="otherinfo"/>
@@ -389,6 +390,7 @@ attributes depending on how the mapping should be done.
         <ip:ClusterOwner initype="multi" inisections="arex/info/nordugrid" initag="clusterowner"/>
         <ip:OpSys initype="multi" inisections="arex/info/nordugrid" initag="operatingsystem"/>
         <ip:Middleware initype="multi" inisections="arex/info/nordugrid" initag="middleware"/>
+        <ip:AuthorizedVO initype="multi" inisections="arex/info/nordugrid" initag="authorizedvo"/>
         <ip:LocalSE initype="multi" inisections="arex/info/nordugrid" initag="localse"/>
         <ip:InteractiveContactstring initype="multi" inisections="arex/info/nordugrid" initag="intcontactstring"/>
         <!-- end legacy options -->
@@ -409,6 +411,17 @@ attributes depending on how the mapping should be done.
           <ip:Detail inisections="#this" initag="detail"/>
           <ip:Type inisections="#this" initag="type"/>
         </ip:Contact>
+
+        <ip:AccessPolicy initype="multisection" initokenenables="arex/info/accesspolicy" inisections="arex/info/accesspolicy">
+          <ip:Rule inisections="#this" initag="rule"/>
+          <ip:UserDomainID inisections="#this" initag="userdomainid"/>
+        </ip:AccessPolicy>
+
+        <ip:MappingPolicy initype="multisection" initokenenables="arex/info/mappingpolicy" inisections="arex/info/mappingpolicy">
+          <ip:ShareName inisections="#this" initag="share"/>
+          <ip:Rule inisections="#this" initag="rule"/>
+          <ip:UserDomainID inisections="#this" initag="userdomainid"/>
+        </ip:MappingPolicy>
 
         <ip:ExecutionEnvironment initype="multisection" initokenenables="arex/info/executionenvironment" inisections="arex/info/executionenvironment">
           <name initype="attribute" inisections="#this" initag="name"/>
@@ -448,7 +461,6 @@ attributes depending on how the mapping should be done.
           <ip:OtherInfo initype="multi" inisections="#this" initag="otherinfo"/>
           <ip:MappingQueue inisections="#this" initag="mappingqueue"/>
           <ip:ExecutionEnvironmentName initype="multi" inisections="#this" initag="executionenvironment"/>
-          <ip:AuthorizedVO initype="multi" inisections="#this" initag="authorizedvo"/>
           <ip:MaxVirtualMemory inisections="#this" initag="maxvirtualmemory"/>
           <ip:MaxSlotsPerJob inisections="#this" initag="maxslotsperjob"/>
           <ip:SchedulingPolicy inisections="#this" initag="schedulingpolicy"/>

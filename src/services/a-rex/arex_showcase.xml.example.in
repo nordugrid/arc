@@ -235,6 +235,8 @@ appropiate.
       <arex:InfoProvider>
           <arex:debugLevel>INFO</arex:debugLevel>
 
+          <ip:ProviderLog>/var/log/arc/infoprovider.log</ip:ProviderLog>
+
           <ip:ClusterName>Titan</ip:ClusterName>
           <ip:OtherInfo>This cluster is specially designed for XYZ applications: www.xyz.org</ip:OtherInfo>
           <ip:AdminDomain>HU/NIIF-TOP</ip:AdminDomain>
@@ -251,6 +253,8 @@ appropiate.
           <ip:OpSys>Linux-2.6.9-34.EL</ip:OpSys>
           <ip:OpSys>glibc-2.3.4</ip:OpSys>
           <ip:Middleware>acme-1.0</ip:Middleware>
+          <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>
+          <ip:AuthorizedVO>ATLAS/no</ip:AuthorizedVO>
           <ip:LocalSE>gsiftp://my.storage/data2/</ip:LocalSE>
           <ip:InteractiveContactstring>gsissh://frontend.cluster:2200</ip:InteractiveContactstring>
           <!-- end legacy options -->
@@ -275,6 +279,24 @@ appropiate.
               <ip:Detail>http://www.niif.hu/contacts</ip:Detail>
               <ip:Type>general</ip:Type>
           </ip:Contact>
+
+          <ip:AccessPolicy>
+              <Rule>vo:atlas</Rule>
+              <Rule>vo:nordugrid.org</Rule>
+              <UserDomainID>voms:lcg-voms.cern.ch:15001/atlas</UserDomainID>
+              <UserDomainID>voms:voms.ndgf.org:15015/nordugrid.org</UserDomainID>
+          </ip:AccessPolicy>
+
+          <ip:MappingPolicy>
+              <ShareName>atlas</ShareName>
+              <Rule>vo:atlas</Rule>
+              <UserDomainID>voms:lcg-voms.cern.ch:15001/atlas</UserDomainID>
+          </ip:MappingPolicy>
+          <ip:MappingPolicy>
+              <ShareName>knowarc</ShareName>
+              <Rule>vo:nordugrid.org</Rule>
+              <UserDomainID>voms:voms.ndgf.org:15015/nordugrid.org</UserDomainID>
+          </ip:MappingPolicy>
 
           <!-- a group of similar nodes -->
           <!-- published as ExecutionEnvironment -->
@@ -334,8 +356,6 @@ appropiate.
               <ip:OtherInfo>High priority queue</ip:OtherInfo>
               <ip:MappingQueue>knowarc</ip:MappingQueue>
               <ip:ExecutionEnvironmentName>dualcore</ip:ExecutionEnvironmentName>
-              <ip:AuthorizedVO>knowarc.org</ip:AuthorizedVO>
-              <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>
               <ip:MaxVirtualMemory>2000</ip:MaxVirtualMemory>
               <ip:MaxSlotsPerJob>8</ip:MaxSlotsPerJob>
               <ip:SchedulingPolicy>fairshare</ip:SchedulingPolicy>
@@ -352,8 +372,6 @@ appropiate.
               <ip:Description>Condor pool - test of Atlas VO</ip:Description>
               <ip:ExecutionEnvironmentName>doublequadcore</ip:ExecutionEnvironmentName>
               <ip:ExecutionEnvironmentName>dualcore</ip:ExecutionEnvironmentName>
-              <ip:AuthorizedVO>ATLAS/no</ip:AuthorizedVO>
-              <ip:AuthorizedVO>ATLAS/Role=production</ip:AuthorizedVO>
               <ip:MaxSlotsPerJob>1</ip:MaxSlotsPerJob>
               <ip:Preemption>true</ip:Preemption>
           </ip:ComputingShare>

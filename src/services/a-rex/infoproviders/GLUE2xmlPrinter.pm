@@ -68,6 +68,11 @@ sub AccessPolicies {
     Elements(@_, 'AccessPolicy', 'Policy', sub {
         my ($self, $data) = @_;
         $self->properties($data, qw( Scheme Rule ));
+        if ($data->{UserDomainID}) {
+            $self->begin('Associations');
+            $self->properties($data, 'UserDomainID');
+            $self->end('Associations');
+        }
     });
 }
 
@@ -75,6 +80,11 @@ sub MappingPolicies {
     Elements(@_, 'MappingPolicy', 'Policy', sub {
         my ($self, $data) = @_;
         $self->properties($data, qw( Scheme Rule ));
+        if ($data->{UserDomainID}) {
+            $self->begin('Associations');
+            $self->properties($data, 'UserDomainID');
+            $self->end('Associations');
+        }
     });
 }
 

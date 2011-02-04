@@ -162,12 +162,8 @@ sub collect($) {
             push @supportmails, $1 if $_->{Detail}  =~ m/^mailto:(.*)/;
         }
     }
-    my %authorizedvos;
-    $authorizedvos{"VO:$_"} = 1 for @{$config->{service}{AuthorizedVO}};
-    for my $sconfig (values %{$config->{shares}}) {
-        next unless $sconfig->{AuthorizedVO};
-        $authorizedvos{"VO:$_"} = 1 for @{$sconfig->{AuthorizedVO}};
-    }
+
+    my @authorizedvos = map {"VO:$_"} @{$config->{service}{AuthorizedVO}};
 
 	# Assume no connectivity unles explicitly configured otherwise on each
 	# ExecutionEnvironment
@@ -202,7 +198,7 @@ sub collect($) {
         $c->{aliasname} = $config->{service}{ClusterAlias} if $config->{service}{ClusterAlias};
         $c->{comment} = $config->{service}{ClusterComment} if $config->{service}{ClusterComment};
         $c->{owner} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
-        $c->{acl} = [ keys %authorizedvos ] if %authorizedvos;
+        $c->{acl} = [ @authorizedvos ] if @authorizedvos;
         $c->{location} = $config->{location}{PostCode} if $config->{location}{PostCode};
         $c->{issuerca} = $host_info->{issuerca} if $host_info->{issuerca};
         $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};

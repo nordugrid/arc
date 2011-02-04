@@ -386,6 +386,22 @@ sub fix_config {
     $log->fatal("No session directory configured") unless $control->{sessiondir};
     $config->{$_} ||= $control->{$_} for keys %$control;
     delete $config->{control};
+
+    # Cross-check MappingPolicy references and move them to the share wehre they belong
+    for my $s (@{$config->{mappingpolicies}}) {
+        $log->error("MappingPolicy must include a ShareName option")
+            unless $s->{ShareName};
+        $log->error("MappingPolicy must include a Rule option")
+            unless $s->{Rule};
+        $log->error("MappingPolicy must include a UserDomainID option")
+            unless $s->{UserDomainID};
+        for my $name (@{$s->{ShareName}}) {
+            $log->error("MappingPolicy associated with non-existent Share: $name")
+                unless $config->{shares}{$name};
+            push @{$config->{shares}{$name}{mappingpolicies}}, $s;
+        }
+    }
+
 }
 
 
@@ -398,7 +414,7 @@ sub check_config {
     for my $s (values %{$config->{shares}}) {
         next unless $s->{ExecutionEnvironmentName};
         for my $group (@{$s->{ExecutionEnvironmentName}}) {
-            $log->error("No such ExecutionEnvironment: $group")
+            $log->error("ComputingShare associated with non-existent ExecutionEnvironment: $group")
                 unless $config->{xenvs}{$group};
         }
     }

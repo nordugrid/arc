@@ -73,7 +73,6 @@ my $xenv_options = {
     nodecpu => '*',
 };
 my $share_options = {
-    AuthorizedVO => [ '*' ],
     MaxVirtualMemory => '*',
     MaxSlotsPerJob => '*',
     SchedulingPolicy => '*',
@@ -148,6 +147,7 @@ my $config_schema = {
         ClusterComment => '*',
         ClusterOwner => [ '*' ],
         Middleware => [ '*' ],
+        AuthorizedVO => [ '*' ],
         LocalSE => [ '*' ],
         InteractiveContactstring => [ '*' ],
         %$xenv_options,
@@ -167,6 +167,15 @@ my $config_schema = {
         OtherInfo => [ '*' ],
         Detail => '',
         Type => '*',
+    } ],
+    accesspolicies => [ {
+        Rule => [ '' ],
+        UserDomainID => [ '' ],
+    } ],
+    mappingpolicies => [ {
+        ShareName => [ '' ],
+        Rule => [ '' ],
+        UserDomainID => [ '' ],
     } ],
     xenvs => {
         '*' => {
@@ -328,6 +337,8 @@ sub build_config_from_xmlfile {
     $config->{service} = {};
     $config->{location} = {};
     $config->{contacts} = [];
+    $config->{accesspolicies} = [];
+    $config->{mappingpolicies} = [];
     $config->{xenvs} = {};
     $config->{shares} = {};
 
@@ -337,7 +348,7 @@ sub build_config_from_xmlfile {
     # empty string. Do not touch keys that normally contain deep structures.
     my @deepstruct = qw(control dataTransfer Globus cache location remotelocation loadLimits
                         LRMS InfoProvider Location Contact ExecutionEnvironment
-                        ComputingShare NodeSelection);
+                        ComputingShare NodeSelection AccessPolicy MappingPolicy);
     hash_tree_apply $arex, sub { my $h = shift;
                                  while (my ($k,$v) = each %$h) {
                                      next unless ref($v) eq 'ARRAY';
@@ -356,7 +367,7 @@ sub build_config_from_xmlfile {
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo Regex Command Tag ExecutionEnvironmentName AuthorizedVO
                       Contact ExecutionEnvironment ComputingShare
-                      InteractiveContactstring);
+                      InteractiveContactstring AccessPolicy MappingPolicy ShareName Rule UserDomainID);
     hash_tree_apply $arex, sub { my $h = shift;
                                  while (my ($k,$v) = each %$h) {
                                      next unless ref($v) eq 'ARRAY';
@@ -467,6 +478,8 @@ sub build_config_from_xmlfile {
     #move_keys $ipcfg, $config, [keys %$gridftpd_options];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
+    rename_keys $ipcfg, $config, {AccessPolicy => 'accesspolicies', MappingPolicy => 'mappingpolicies'};
+
     my $xenvs = hash_get_arrayref($ipcfg, 'ExecutionEnvironment');
     for my $xe (@$xenvs) {
         $log->fatal("badly formed 'ExecutionEnvironment' element in XML config") unless ref $xe eq 'HASH';
@@ -514,9 +527,12 @@ sub build_config_from_inifile {
     $config->{control} ||= {};
     $config->{location} ||= {};
     $config->{contacts} ||= [];
+    $config->{accesspolicies} ||= [];
+    $config->{mappingpolicies} ||= [];
     $config->{xenvs} ||= {};
     $config->{shares} ||= {};
     $config->{control}{'.'} ||= {};
+
 
     my $common = { $iniparser->get_section("common") };
     my $gm = { $iniparser->get_section("grid-manager") };
@@ -558,7 +574,6 @@ sub build_config_from_inifile {
     ############################ legacy ini config file structure #############################
 
     move_keys $common, $config, ['AdminDomain'];
-    move_keys $common, $config->{service}, [keys %{$config_schema->{service}}];
 
     my $cluster = { $iniparser->get_section('cluster') };
     if (%$cluster) {
@@ -667,7 +682,7 @@ sub build_config_from_inifile {
 
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
-    #print STDERR (Dumper $config);
+    #print (Dumper $config);
     return $config;
 }
 

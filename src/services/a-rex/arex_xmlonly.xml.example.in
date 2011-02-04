@@ -129,6 +129,8 @@
       <arex:InfoProvider>
           <arex:debugLevel>INFO</arex:debugLevel>
 
+          <ip:ProviderLog>/var/log/arc/infoprovider.log</ip:ProviderLog>
+
           <ip:AdminDomain>HU/NIIF-TOP</ip:AdminDomain>
           <ip:ClusterName>Titan</ip:ClusterName>
           <ip:OtherInfo>This cluster is specially designed for XYZ applications: www.xyz.org</ip:OtherInfo>
@@ -148,6 +150,13 @@
               <ip:Type>usersupport</ip:Type>
           </ip:Contact>
 
+          <ip:AccessPolicy>
+              <Rule>vo:atlas</Rule>
+              <Rule>vo:nordugrid.org</Rule>
+              <UserDomainID>voms:lcg-voms.cern.ch:15001/atlas</UserDomainID>
+              <UserDomainID>voms:voms.ndgf.org:15015/nordugrid.org</UserDomainID>
+          </ip:AccessPolicy>
+
           <ip:ExecutionEnvironment name="localhost">
               <ip:OSName>adotf</ip:OSName>
               <ip:OSVersion>adotf</ip:OSVersion>
@@ -164,7 +173,6 @@
               <ip:ExecutionEnvironmentName>localhost</ip:ExecutionEnvironmentName>
               <ip:OSName>centos</ip:OSName>
               <ip:OSVersion>5.1</ip:OSVersion>
-              <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>
               <ip:MaxVirtualMemory>2000</ip:MaxVirtualMemory>
               <ip:SchedulingPolicy>fifo</ip:SchedulingPolicy>
               <lrms:fork_job_limit>cpunumber</lrms:fork_job_limit>

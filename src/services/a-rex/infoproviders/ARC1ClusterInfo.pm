@@ -531,15 +531,9 @@ sub collect($) {
         }
     }
 
-    # AccessPolicy: all unique VOs mapped to shares.
-
-    my %allvos = ();
-    $allvos{$_} = 1 for @{$config->{service}{AuthorizedVO}};
-    for my $sconfig (values %{$config->{shares}} ) {
-        next unless $sconfig->{AuthorizedVO};
-        $allvos{$_} = 1 for @{$sconfig->{AuthorizedVO}};
+    unless (@{$config->{accesspolicies}}) {
+        $log->warning("No AccessPolicy configured");
     }
-    $log->info("No AuthorizedVO configured. No access policy will be published") unless %allvos;
 
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -696,14 +690,17 @@ sub collect($) {
 
             $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-            if (%allvos) {
-                my $count = 1;
+            if ($config->{accesspolicies}) {
+                my @apconfs = @{$config->{accesspolicies}};
                 $cep->{AccessPolicies} = sub {
-                    return undef if $count-- == 0;
+                    return undef unless @apconfs;
+                    my $apconf = pop @apconfs;
                     my $apol = {};
-                    $apol->{ID} = $apolID;
+                    $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
                     $apol->{Scheme} = "basic";
-                    $apol->{Rule} = [ map {"vo:$_"} keys %allvos ];
+                    $apol->{Rule} = $apconf->{Rule};
+                    $apol->{UserDomainID} = $apconf->{UserDomainID};
+                    $apol->{EndpointID} = $cepID;
                     return $apol;
                 };
             }
@@ -1077,15 +1074,17 @@ sub collect($) {
 
             # MappingPolicy: VOs mapped to this share.
 
-            my $vos = $sconfig->{AuthorizedVO};
-            if ($vos and @$vos) {
-                my $count = 1;
+            if (@{$config->{mappingpolicies}}) {
+                my @mpconfs = @{$config->{mappingpolicies}};
                 $csha->{MappingPolicies} = sub {
-                    return undef if $count-- == 0;
+                    return undef unless @mpconfs;
+                    my $mpconf = pop @mpconfs;
                     my $mpol = {};
-                    $mpol->{ID} = "$mpolIDp:$share";
+                    $mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
                     $mpol->{Scheme} = "basic";
-                    $mpol->{Rule} = [ map {"vo:$_"} @$vos ];
+                    $mpol->{Rule} = $mpconf->{Rule};
+                    $mpol->{UserDomainID} = $mpconf->{UserDomainID};
+                    $mpol->{ShareID} = $cshaIDs{$share};
                     return $mpol;
                 };
             }
