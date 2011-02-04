@@ -68,9 +68,6 @@ the first member will be the '*response' and the second member is the original r
 
 #ifdef SWIGJAVA
 %inline %{
-void stream(std::ostream& os) {
- os << "hello from stream method" << std::endl;
-}
 std::ostream& getStdout() {
   return std::cout;
 }
