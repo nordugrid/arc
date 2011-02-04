@@ -1,0 +1,64 @@
+#!@posix_shell@
+
+progname=$(basename "$0")
+
+basedir=`dirname $0`
+basedir=`cd $basedir > /dev/null && pwd` || exit $?
+
+pkglibdir="$basedir/@pkglibdir_rel_to_pkglibexecdir@"
+pkglibdir=`cd $pkglibdir > /dev/null && pwd` || exit $?
+
+# This program assumes the role of /bin/mail, so it's called like this:
+# /bin/mail -s '[Condor] Condor Job <job-ID>' <email-address>
+# We extract the job-ID from the second argument.
+#
+# NOTE: The format of the email message is, unlike the job log, not guaranteed
+# to remain unchanged in future versions of Condor, but since we need the job
+# id to locate the log file, there's no way around this. :-(
+lrmsid=${2##*Condor Job }
+condorid=${lrmsid%% *}
+lrmsid=${lrmsid%%.*}.condor
+
+# Initialize environment for Condor commands!
+. $pkglibdir/configure-condor-env.sh || exit $?
+
+# Set variable "controldir" from GM config.
+controldir=$CONFIG_controldir
+
+# Find the proper GRAMI file.
+grami=$(find $controldir -name "job.[0-9][0-9]*.grami" \
+          | xargs grep -l "^joboption_jobid=${lrmsid}$")
+gmlog=$controldir/$(basename "$grami" .grami).errors
+# Then try in the .local file
+if [ "x$grami" = "x" ]; then
+    local=$(find $controldir -name "job.[0-9][0-9]*.local" \
+              | xargs grep -l "^localid=${lrmsid}$")
+    gmlog=$controldir/$(basename "$local" .local).errors
+    # Fallback value. Collects the rest of the mails
+    if [ "x$local" = "x" ]; then
+        gmlog="$controldir/condor.mails"
+    fi
+fi
+
+# Logfile used by Grid Manager.
+
+echo "$progname: ----- you got mail from Condor -----" >>"$gmlog"
+
+echo "$progname: arg 0 $0" >>"$gmlog"
+echo "$progname: arg 1 $1" >>"$gmlog"
+echo "$progname: arg 2 $2" >>"$gmlog"
+echo "$progname: arg 3 $3" >>"$gmlog"
+
+TMPDIR=${TMPDIR:-@tmp_dir@}
+mbody=$TMPDIR/mailbody.$$
+
+# Dump mail body and Condor log into gmlog.
+{
+    cat >$mbody || echo "$progname: failed to write $mbody"
+    echo "$progname: ----- begin condor job completion message -----"
+    sed "s/^/$progname: /" $mbody
+    echo "$progname: ----- end condor job completion message -----"
+} >>"$gmlog" 2>&1
+
+rm -f $mbody
+
