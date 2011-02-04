@@ -120,6 +120,7 @@ namespace Arc {
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
     bool executableIsAdded(false), inputIsAdded(false), outputIsAdded(false), errorIsAdded(false), logDirIsAdded(false);
+    bool targets_exist(false);
     for (std::list<FileType>::const_iterator it1 = jobdesc.Files.begin();
          it1 != jobdesc.Files.end(); it1++) {
       for (std::list<FileType>::const_iterator it2 = it1;
@@ -128,9 +129,14 @@ namespace Arc {
           continue;
         }
 
+        targets_exist = (!it1->Target.empty() && !it2->Target.empty());
         if (it1->Name == it2->Name && ((!it1->Source.empty() && !it2->Source.empty()) ||
-                                       (!it1->Target.empty() && !it2->Target.empty()))) {
-          logger.msg(VERBOSE, "Two files have identical file name '%s'.", it1->Name);
+                                        targets_exist)) {
+          if (targets_exist){
+             // When the output file would be sent more than one targets
+             if ( !(it1->Target.front() == it2->Target.front()) ) continue;
+          }
+          logger.msg(ERROR, "Two files have identical file name '%s'.", it1->Name);
           return false;
         }
       }
