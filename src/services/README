@@ -2,20 +2,18 @@ ARC services
 ------------
 
 a-rex           - ARC REsource-coupled EXecutation Service/Execution Capability
-arex2           - Ferenc's playground
 cache_service   - Service to expose some A-REX cache operations 
+charon          - Remote Policy Decision Point/Security Capability
 echo_java       - Demonstration services: how to write Java service 
 echo_python     - Simple test service to demonstrate how Python based services should work
-eils            - External Information Link Service/Information Capability
+gridftpd        - GridFTP server
 hopi            - Simple HTTP(S) service to support GET and PUT operations.
 isis            - Information Indexing Service/Information Capability
 janitor         - Janitor - RTE/Resource Management Capability
-mars            - Monitoring and Accounting Recording Service/Information Capability
-paul            - Pull based job execution service
-pdp             - Remote Policy Decision Point/Security Capability
-rte-catalog     - Runtime Environment Cataloge/Resource Management Capability
+ldap-infosys    - LDAP based grid information system
+ldap-monitor    - LDAP based grid monitor
 saml            - Prototype implementation about attribute authority service and client
-sched           - Job scheduler service
-storage         - Services for the ARC storage system (see service.example.xml)
-vmms            - Virtual Machine Management Service
+slcs            - Short-Lived Credential Service
+storage         - Services for the ARC storage system
 wrappers        - Collection of language bindings
+ws-monitor      - Webservice based grid monitor
