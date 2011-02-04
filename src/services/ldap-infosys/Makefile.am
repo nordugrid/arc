@@ -8,7 +8,7 @@ endif
 
 
 if SYSV_SCRIPTS_ENABLED
-GRID_INFOSYS_SCRIPT = a-rex-grid-infosys
+GRID_INFOSYS_SCRIPT = grid-infosys
 else
 GRID_INFOSYS_SCRIPT =
 endif

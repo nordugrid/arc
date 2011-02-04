@@ -206,6 +206,11 @@ Requires:	%{name} = %{version}
 Provides:	nordugrid-arc-nox-gridftp-server = 1.3.0
 Obsoletes:	nordugrid-arc-nox-gridftp-server < 1.3.0
 
+Requires(post):		chkconfig
+Requires(preun):	chkconfig
+Requires(preun):	initscripts
+Requires(postun):	initscripts
+
 %description gridftpd
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
@@ -227,6 +232,11 @@ Requires:	%{name}-plugins-base = %{version}
 Provides:	nordugrid-arc-nox-cache-service = 1.3.0
 Obsoletes:	nordugrid-arc-nox-cache-service < 1.3.0
 
+Requires(post):		chkconfig
+Requires(preun):	chkconfig
+Requires(preun):	initscripts
+Requires(postun):	initscripts
+
 %description cache-service
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
@@ -244,6 +254,11 @@ Provides:	%{name}-ldap-infosys = %{version}
 Obsoletes:	%{name}-ldap-infosys < 1.0.0
 Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
 Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
+
+Requires(post):		chkconfig
+Requires(preun):	chkconfig
+Requires(preun):	initscripts
+Requires(postun):	initscripts
 
 %description aris
 The NorduGrid is a collaboration aiming at development, maintenance
@@ -628,6 +643,51 @@ if [ "$1" -ge "1" ]; then
 fi
 exit 0
 
+%post gridftpd
+/sbin/chkconfig --add gridftpd
+
+%preun gridftpd
+if [ $1 = 0 ]; then
+  service gridftpd stop > /dev/null 2>&1
+  /sbin/chkconfig --del gridftpd
+fi
+
+%postun gridftpd
+if [ "$1" -ge "1" ]; then
+  service gridftpd condrestart > /dev/null 2>&1
+fi
+exit 0
+
+%post cache-service
+/sbin/chkconfig --add cache-service
+
+%preun cache-service
+if [ $1 = 0 ]; then
+  service cache-service stop > /dev/null 2>&1
+  /sbin/chkconfig --del cache-service
+fi
+
+%postun cache-service
+if [ "$1" -ge "1" ]; then
+  service cache-service condrestart > /dev/null 2>&1
+fi
+exit 0
+
+%post aris
+/sbin/chkconfig --add grid-infosys
+
+%preun aris
+if [ $1 = 0 ]; then
+  service grid-infosys stop > /dev/null 2>&1
+  /sbin/chkconfig --del grid-infosys
+fi
+
+%postun aris
+if [ "$1" -ge "1" ]; then
+  service grid-infosys condrestart > /dev/null 2>&1
+fi
+exit 0
+
 %post java
 %if %{with_gcj}
 [ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
@@ -754,8 +814,8 @@ exit 0
 
 %files gridftpd
 %defattr(-,root,root,-)
-%{_initrddir}/a-rex-gridftpd
-%{_sbindir}/arexgridftpd
+%{_initrddir}/gridftpd
+%{_sbindir}/gridftpd
 %{_libdir}/%{pkgdir}/jobplugin.*
 %{_libdir}/%{pkgdir}/gaclplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*
@@ -763,7 +823,7 @@ exit 0
 
 %files aris
 %defattr(-,root,root,-)
-%{_initrddir}/a-rex-grid-infosys
+%{_initrddir}/grid-infosys
 %{_libdir}/%{pkgdir}/grid-infosys-bdii4
 %{_libdir}/%{pkgdir}/grid-infosys-bdii5
 %{_libexecdir}/%{pkgdir}/glue-generator.pl

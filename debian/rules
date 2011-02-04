@@ -63,6 +63,8 @@ clean:
 	rm -f debian/nordugrid-arc-arex.a-rex.init
 	rm -f debian/nordugrid-arc-hed.arched.init
 	rm -f debian/nordugrid-arc-cache-service.cache-service.init
+	rm -f debian/nordugrid-arc-gridftpd.gridftpd.init
+	rm -f debian/nordugrid-arc-aris.grid-infosys.init
 
 	dh_clean configure-stamp build-stamp
 
@@ -81,6 +83,8 @@ install: build-stamp
 	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-arex.a-rex.init
 	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-hed.arched.init
 	mv debian/tmp/etc/init.d/cache-service debian/nordugrid-arc-cache-service.cache-service.init
+	mv debian/tmp/etc/init.d/gridftpd debian/nordugrid-arc-gridftpd.gridftpd.init
+	mv debian/tmp/etc/init.d/grid-infosys debian/nordugrid-arc-aris.grid-infosys.init
 
 binary-indep:
 	:
@@ -98,6 +102,8 @@ binary-arch: install
 	dh_installinit --name arched
 	dh_installinit --name a-rex
 	dh_installinit --name cache-service
+	dh_installinit --name gridftpd
+	dh_installinit --name grid-infosys
 	dh_perl
 	dh_pysupport
 	dh_link

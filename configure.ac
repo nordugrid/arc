@@ -1865,7 +1865,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
                  src/services/gridftpd/Makefile
-                 src/services/gridftpd/a-rex-gridftpd
+                 src/services/gridftpd/gridftpd
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
                  src/services/gridftpd/external/Makefile
@@ -1879,7 +1879,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/isis/Makefile
                  src/services/isis/schema/Makefile
                  src/services/ldap-infosys/Makefile
-                 src/services/ldap-infosys/a-rex-grid-infosys
+                 src/services/ldap-infosys/grid-infosys
                  src/services/ldap-infosys/grid-infosys-bdii4
                  src/services/ldap-infosys/grid-infosys-bdii5
                  src/services/ldap-infosys/giis/Makefile
