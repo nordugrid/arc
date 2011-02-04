@@ -59,9 +59,9 @@ Description: ARC prototype clients
  retrieve results.
 
 Package: nordugrid-arc-hed
-Provides: nordugrid-arc1-server, nordugrid-arc-nox-server
-Replaces: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-server (<< 1.3.0~)
-Conflicts: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-server (<< 1.3.0~)
+Provides: nordugrid-arc1-server, nordugrid-arc-nox-hed
+Replaces: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-hed (<< 1.3.0~)
+Conflicts: nordugrid-arc1-server (<< 1.0.0~), nordugrid-arc-nox-hed (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: nordugrid-arc-python

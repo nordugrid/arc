@@ -102,8 +102,8 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}
 Provides:	nordugrid-arc1-server = 1.3.0
 Obsoletes:	nordugrid-arc1-server < 1.0.0
-Provides:	nordugrid-arc-nox-server = 1.3.0
-Obsoletes:	nordugrid-arc-nox-server < 1.3.0
+Provides:	nordugrid-arc-nox-hed = 1.3.0
+Obsoletes:	nordugrid-arc-nox-hed < 1.3.0
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
