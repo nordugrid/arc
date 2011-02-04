@@ -94,6 +94,54 @@ namespace Arc {
     /// Is DataPoint valid?
     virtual bool operator!() const;
 
+    /// Prepare DataPoint for reading.
+    /** This method should be implemented by protocols which require
+       preparation or staging of physical files for reading. It can act
+       synchronously or asynchronously (if protocol supports it). In the
+       first case the method will block until the file is prepared or the
+       specified timeout has passed. In the second case the method can
+       return with a ReadPrepareWait status before the file is prepared.
+       The caller should then wait some time (a hint from the remote service
+       may be given in wait_time) and call PrepareReading() again to poll for
+       the preparation status, until the file is prepared. In this case it is
+       also up to the caller to decide when the request has taken too long
+       and if so cancel it by calling FinishReading().
+       When file preparation has finished, the physical file(s)
+       to read from can be found from TransferLocations().
+       \param timeout If non-zero, this method will block until either the
+       file has been prepared successfully or the timeout has passed. A zero
+       value means that the caller would like to call and poll for status.
+       \param wait_time If timeout is zero (caller would like asynchronous
+       operation) and ReadPrepareWait is returned, a hint for how long to wait
+       before a subsequent call may be given in wait_time.
+     */
+    virtual DataStatus PrepareReading(unsigned int timeout,
+                                      unsigned int& wait_time);
+
+    /// Prepare DataPoint for writing.
+    /** This method should be implemented by protocols which require
+       preparation of physical files for writing. It can act
+       synchronously or asynchronously (if protocol supports it). In the
+       first case the method will block until the file is prepared or the
+       specified timeout has passed. In the second case the method can
+       return with a WritePrepareWait status before the file is prepared.
+       The caller should then wait some time (a hint from the remote service
+       may be given in wait_time) and call PrepareWriting() again to poll for
+       the preparation status, until the file is prepared. In this case it is
+       also up to the caller to decide when the request has taken too long
+       and if so cancel or abort it by calling FinishWriting(true).
+       When file preparation has finished, the physical file(s)
+       to write to can be found from TransferLocations().
+       \param timeout If non-zero, this method will block until either the
+       file has been prepared successfully or the timeout has passed. A zero
+       value means that the caller would like to call and poll for status.
+       \param wait_time If timeout is zero (caller would like asynchronous
+       operation) and WritePrepareWait is returned, a hint for how long to wait
+       before a subsequent call may be given in wait_time.
+     */
+    virtual DataStatus PrepareWriting(unsigned int timeout,
+                                      unsigned int& wait_time);
+
     /// Start reading data from URL.
     /** Separate thread to transfer data will be created. No other
        operation can be performed while reading is in progress.
@@ -127,6 +175,20 @@ namespace Arc {
        Use buffer object to find out when data is transferred.
        Must return failure if any happened during transfer. */
     virtual DataStatus StopWriting() = 0;
+
+    /// Finish reading from the URL.
+    /** Must be called after transfer of physical file has completed and if
+       PrepareReading() was called, to free resources, release requests that
+       were made during preparation etc.
+       \param error If true then action is taken depending on the error. */
+    virtual DataStatus FinishReading(bool error = false);
+
+    /// Finish writing to the URL.
+    /** Must be called after transfer of physical file has completed and if
+       PrepareWriting() was called, to free resources, release requests that
+       were made during preparation etc.
+       \param error If true then action is taken depending on the error. */
+    virtual DataStatus FinishWriting(bool error = false);
 
     /// Query the DataPoint to check if object is accessible.
     /** If possible this method will also try to provide meta
@@ -169,7 +231,7 @@ namespace Arc {
     virtual bool WriteOutOfOrder() = 0;
 
     /// Allow/disallow additional checks
-    /** Check for existance of remote file (and probably other checks
+    /** Check for existence of remote file (and probably other checks
        too) before initiating reading and writing operations.
        \param v true if allowed (default is true). */
     virtual void SetAdditionalChecks(bool v) = 0;
@@ -314,6 +376,9 @@ namespace Arc {
     /// Check if URL is an Indexing Service.
     virtual bool IsIndex() const = 0;
 
+    /// If URL should be staged or queried for Transport URL (TURL)
+    virtual bool IsStageable() const;
+
     /// If endpoint can have any use from meta information.
     virtual bool AcceptsMeta() = 0;
 
@@ -330,6 +395,18 @@ namespace Arc {
     /** Undefined values are not used for comparison.
        \param p object to which to compare. */
     virtual bool CompareMeta(const DataPoint& p) const;
+
+    /// Returns physical file(s) to read/write, if different from CurrentLocation()
+    /** To be used with protocols which re-direct to different URLs such as
+       Transport URLs (TURLs). The list is initially filled by PrepareReading
+       and PrepareWriting. If this list is non-empty then real transfer
+       should use a URL from this list. It is up to the caller to choose the
+       best URL and instantiate new DataPoint for handling it.
+       For consistency protocols which do not require redirections return 
+       original URL.
+       For protocols which need redirection calling StartReading and StartWriting 
+       will use first URL in the list. */
+    virtual std::vector<URL> TransferLocations() const;
 
     /// Returns current (resolved) URL.
     virtual const URL& CurrentLocation() const = 0;
@@ -396,6 +473,7 @@ namespace Arc {
     int triesleft;
     DataStatus failure_code; /* filled by callback methods */
     bool cache;
+    bool stageable;
     /** Subclasses should add their own specific options to this list */
     std::list<std::string> valid_url_options;
 

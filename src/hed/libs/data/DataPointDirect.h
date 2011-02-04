@@ -31,6 +31,7 @@ namespace Arc {
     virtual ~DataPointDirect();
 
     virtual bool IsIndex() const;
+    virtual bool IsStageable() const;
 
     virtual long long int BufSize() const;
     virtual int BufNum() const;

@@ -9,8 +9,8 @@ namespace Arc {
 
   Logger SRMClient::logger(Logger::getRootLogger(), "SRMClient");
 
-  time_t SRMClient::request_timeout = 300;
-
+  time_t SRMClient::connection_timeout=60;
+  
   SRMClient::SRMClient(const UserConfig& usercfg, const SRMURL& url)
     : service_endpoint(url.ContactURL()),
       implementation(SRM_IMPLEMENTATION_UNKNOWN),
@@ -27,8 +27,8 @@ namespace Arc {
   SRMClient* SRMClient::getInstance(const UserConfig& usercfg,
                                     const std::string& url,
                                     bool& timedout,
-                                    time_t timeout) {
-    request_timeout = timeout;
+                                    time_t conn_timeout) {
+    connection_timeout = conn_timeout;
     SRMURL srm_url(url);
     if (!srm_url)
       return NULL;

@@ -33,7 +33,7 @@ namespace Arc {
    * instance. When it is decided a file should be downloaded to the
    * cache, Start() should be called, so that the cache file can be
    * prepared and locked. When a transfer has finished successfully,
-   * Link() or Copy() should be called to create a hard link to
+   * Link() should be called to create a hard link to
    * a per-job directory in the cache and then soft link, or copy
    * the file directly to the session directory so it can be accessed from
    * the user's job. Stop() must then be called to release any
@@ -292,12 +292,30 @@ namespace Arc {
      * If cache_link_path is set to "." then files will be
      * copied directly to the session directory rather than via
      * the hard link.
+     *
+     * The session directory is accessed under the uid passed in
+     * the constructor if switch_user is true. Switching uid involves
+     * holding a global lock, therefore care must be taken in a
+     * multi-threaded environment.
      * @param link_path path to the session dir for soft-link or new file
      * @param url url of file to link to or copy
+     * @param copy If true the file is copied rather than soft-linked
+     * to the session dir
+     * @param executable If true then file is copied and given execute
+     * permissions in the session dir
+     * @param switch_user If true then the session dir is accessed
+     * under the uid passed in the constructor. Should be set to
+     * false in DataMover.
      */
-    bool Link(std::string link_path, std::string url);
+    bool Link(std::string link_path, std::string url, bool copy, bool executable, bool switch_user);
     /**
-     * Copy the cache file corresponding to url to the dest_path
+     * Copy the cache file corresponding to url to the dest_path.
+     * The session directory is accessed under the uid passed in
+     * the constructor, and switching uid involves holding a global
+     * lock. Therefore care must be taken in a multi-threaded environment.
+     *
+     * This method is deprecated - Link() should be used instead with
+     * copy set to true.
      */
     bool Copy(std::string dest_path, std::string url, bool executable = false);
     /**
@@ -395,7 +413,7 @@ namespace Arc {
     bool Stop(std::string url) { return false; }
     bool StopAndDelete(std::string url) {return false; }
     std::string File(std::string url) { return url; }
-    bool Link(std::string link_path, std::string url)  { return false; }
+    bool Link(std::string link_path, std::string url, bool copy, bool executable)  { return false; }
     bool Copy(std::string dest_path, std::string url, bool executable = false) { return false; }
     bool Release() { return false;}
     bool AddDN(std::string url, std::string DN, Time expiry_time) { return false;}

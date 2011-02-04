@@ -161,6 +161,7 @@ bool job_dir_create(const std::string &dname);
   data, submit/cancel job in LRMS.
 */
 bool job_errors_mark_put(const JobDescription &desc,const JobUser &user);
+std::string job_errors_filename(const JobId &id, const JobUser &user);
 
 /*
   Get modification time of file used to store state of the job.

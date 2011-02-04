@@ -99,6 +99,8 @@ class JobDescription {
   time_t next_retry;
   /* used to determine data transfer share (eg DN, VOMS VO) */
   std::string transfer_share;
+  /* start time of job i.e. when it first moves to PREPARING */
+  time_t start_time;
  public:
   /* external utility beeing run to perform tasks like stage-in/our, 
      submit/cancel. (todo - move to private) */
@@ -128,6 +130,7 @@ class JobDescription {
   JobLocalDescription* get_local(void) const { return local; };
   void set_local(JobLocalDescription* desc) { local=desc; };
 //  void set_state(job_state_t state) { job_state=state; };
+  bool operator==(const JobDescription& job) { return (job_id == job.job_id); };
   bool operator==(const JobId &id) { return (job_id == id); };
   bool operator!=(const JobId &id) { return (job_id != id); };
   void set_uid(uid_t uid,gid_t gid) {
@@ -139,5 +142,7 @@ class JobDescription {
   void set_share(std::string share);
   /* force 'local' to be created and read from file if not already available */
   bool GetLocalDescription(const JobUser &user);
+  void Start() { start_time = time(NULL); };
+  time_t GetStartTime() const { return start_time; };
 };
 #endif

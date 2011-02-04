@@ -26,7 +26,8 @@ namespace Arc {
       access_latency(ACCESS_LATENCY_ZERO),
       triesleft(1),
       failure_code(DataStatus::UnknownError),
-      cache(url.Option("cache") != "no") {
+      cache(url.Option("cache") != "no"),
+      stageable(false) {
     // add standard options applicable to all protocols
     valid_url_options.clear();
     valid_url_options.push_back("cache");
@@ -84,6 +85,26 @@ namespace Arc {
     return !((bool)*this);
   }
 
+  DataStatus DataPoint::PrepareReading(unsigned int timeout,
+                                       unsigned int& wait_time) {
+    wait_time = 0;
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPoint::PrepareWriting(unsigned int timeout,
+                                       unsigned int& wait_time) {
+    wait_time = 0;
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPoint::FinishReading(bool error) {
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPoint::FinishWriting(bool error) {
+    return DataStatus::Success;
+  }
+
   DataStatus DataPoint::GetFailureReason() const {
     return failure_code;
   }
@@ -92,6 +113,10 @@ namespace Arc {
     return cache;
   }
   
+  bool DataPoint::IsStageable() const {
+    return stageable;
+  }
+
   bool DataPoint::CheckSize() const {
     return (size != (unsigned long long int)(-1));
   }
@@ -187,6 +212,14 @@ namespace Arc {
       if (GetValid() != p.GetValid())
         return false;
     return true;
+  }
+
+  std::vector<URL> DataPoint::TransferLocations() const {
+    // return empty vector
+    std::vector<URL> urls;
+    urls.push_back(url);
+    return urls;
+    
   }
 
   DataPointLoader::DataPointLoader()

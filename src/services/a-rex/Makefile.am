@@ -29,7 +29,16 @@ libarex_la_SOURCES  = arex.cpp job.cpp \
                       arex.h job.h PayloadFile.h FileChunks.h gacl.h tools.h
 libarex_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 # Needs real cleaning in respect to dependencies
-libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(top_srcdir)/src/hed/libs/ws/libarcws.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/client/libarcclient.la ldif/libldif.la $(GRIDMANAGER_LIBS)
+libarex_la_LIBADD   = $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+                      $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                      $(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
+                      $(top_srcdir)/src/hed/libs/ws/libarcws.la \
+                      $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                      $(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
+                      $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+                      $(top_srcdir)/src/hed/libs/client/libarcclient.la \
+                      ldif/libldif.la \
+                      $(GRIDMANAGER_LIBS)
 libarex_la_LDFLAGS  = -no-undefined -avoid-version -module
 
 test_SOURCES  = test.cpp
@@ -46,7 +55,10 @@ test_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 test_cache_check_SOURCES  = test_cache_check.cpp
 test_cache_check_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 test_cache_check_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
-test_cache_check_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la
+test_cache_check_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
+                            $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+                            $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+                            $(top_srcdir)/src/hed/libs/client/libarcclient.la
 
 
 EXTRA_DIST = $(example_DATA)

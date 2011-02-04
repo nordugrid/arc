@@ -30,8 +30,6 @@ class JobFDesc;
 /*
   List of jobs. This object is cross-linked to JobUser object, which
   represents owner of these jobs.
-  Static members of this class store global parameters. In a future
-  some of them can become user/job list specific.
 */
 class JobsList {
  public:
@@ -172,6 +170,7 @@ class JobsListConfig {
   bool use_secure_transfer;
   bool use_passive_transfer;
   bool use_local_transfer;
+  bool use_new_data_staging;
   unsigned int wakeup_period;
   std::string preferred_pattern;
   /* the list of shares with defined limits */
@@ -230,6 +229,12 @@ class JobsListConfig {
   bool GetLocalTransfer() const {
     return use_local_transfer;
   }
+  void SetNewDataStaging(bool val) {
+    use_new_data_staging = val;
+  }
+  bool GetNewDataStaging() const {
+    return use_new_data_staging;
+  }
   void SetWakeupPeriod(unsigned int t) {
     wakeup_period=t;
   }
@@ -252,6 +257,9 @@ class JobsListConfig {
     max_processing_share = max_share;
     share_type = type;
   };
+  std::string GetShareType() const {
+    return share_type;
+  }
   bool AddLimitedShare(std::string share_name, unsigned int share_limit) {
     if(max_processing_share == 0)
       return false;
@@ -260,6 +268,10 @@ class JobsListConfig {
     limited_share[share_name] = share_limit;
     return true;
   }
+  const std::map<std::string, int>& GetLimitedShares(void) {
+    return limited_share;
+  };
+
 };
 
 #endif

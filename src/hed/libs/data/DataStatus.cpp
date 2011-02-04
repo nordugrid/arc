@@ -5,6 +5,7 @@
 
 namespace Arc {
 
+
   static const char *status_string[] = {
     istring("Operation completed successfully"), // 0
     istring("Source is bad URL or can't be used due to some reason"), // 1
@@ -38,8 +39,14 @@ namespace Arc {
     istring("System error"), // 29
     istring("Failed to stage file(s)"), // 30
     istring("Inconsistent metadata"), // 31
-    istring("Data was already cached"), // 32
-    istring("Unknown error") // 33
+    istring("Failed to prepare source"), // 32
+    istring("Should wait for source to be prepared"), // 33
+    istring("Failed to prepare destination"), // 34
+    istring("Should wait for destination to be prepared"), // 35
+    istring("Failed to finish source"), // 36
+    istring("Failed to finish destination"), // 37
+    istring("Data was already cached"), // 38
+    istring("Unknown error") // 39
   };
 
   DataStatus::operator std::string() const {

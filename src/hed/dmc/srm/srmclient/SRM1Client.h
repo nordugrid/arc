@@ -43,12 +43,21 @@ namespace Arc {
     SRMReturnCode mkDir(SRMClientRequest& /* req */) {
       return SRM_ERROR_NOT_SUPPORTED;
     }
-
+  
+    // v1 only operates in synchronous mode
     SRMReturnCode getTURLs(SRMClientRequest& req,
                            std::list<std::string>& urls);
+    SRMReturnCode getTURLsStatus(SRMClientRequest& req,
+                                 std::list<std::string>& urls) {
+      return SRM_ERROR_NOT_SUPPORTED;
+    }
     SRMReturnCode putTURLs(SRMClientRequest& req,
-                           std::list<std::string>& urls,
-                           const unsigned long long size = 0);
+                           std::list<std::string>& urls);
+    SRMReturnCode putTURLsStatus(SRMClientRequest& req,
+                                 std::list<std::string>& urls) {
+      return SRM_ERROR_NOT_SUPPORTED;
+    }
+
     SRMReturnCode releaseGet(SRMClientRequest& req);
     SRMReturnCode releasePut(SRMClientRequest& req);
     SRMReturnCode release(SRMClientRequest& req);

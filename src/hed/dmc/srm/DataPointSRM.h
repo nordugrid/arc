@@ -19,25 +19,33 @@ namespace Arc {
     DataPointSRM(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointSRM();
     static Plugin* Instance(PluginArgument *arg);
+    virtual DataStatus PrepareReading(unsigned int timeout,
+                                      unsigned int& wait_time);
+    virtual DataStatus PrepareWriting(unsigned int timeout,
+                                      unsigned int& wait_time);
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);
-    virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
+    virtual DataStatus StopReading();
+    virtual DataStatus FinishReading(bool error);
+    virtual DataStatus FinishWriting(bool error);
     virtual DataStatus Check();
     virtual DataStatus Remove();
     DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta();
+    virtual bool IsStageable() const;
+    virtual std::vector<URL> TransferLocations() const;
   private:
-    SRMClientRequest *srm_request; /* holds SRM request ID between Start* and Stop* */
+    SRMClientRequest *srm_request; /* holds SRM request ID between Prepare* and Finish* */
     static Logger logger;
-    URL r_url;
-    DataHandle *r_handle;  /* handle used for redirected operations */
+    std::vector<URL> turls; /* TURLs returned from prepare methods */
+    URL r_url; /* URL used for redirected operations in Start/Stop Reading/Writing */
+    DataHandle *r_handle;  /* handle used for redirected operations in Start/Stop Reading/Writing */
     bool reading;
     bool writing;
-    bool timeout; /* flag to say whether connection timed out */
     DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, int recursion);
   };
 

@@ -1,10 +1,10 @@
 Main source tree
 
-arclib   - Classes used as a convinient libary for clients and services
 clients  - ARC clients
+doxygen  - Documentation genereated from code
 hed      - Libraries and plugins which make up the basic low-level
-           functionality of ARC - the Hosting  Environment Daemon (HED)  
+           functionality of ARC - the Hosting  Environment Daemon (HED)
+libs     - Other ARC libraries
 services - ARC services
 tests    - Testing playground (?)
 utils    - Utilities for HED code development
-

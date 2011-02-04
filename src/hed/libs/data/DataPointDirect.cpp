@@ -50,6 +50,10 @@ namespace Arc {
     return false;
   }
 
+  bool DataPointDirect::IsStageable() const {
+    return false;
+  }
+
   long long int DataPointDirect::BufSize() const {
     return bufsize;
   }

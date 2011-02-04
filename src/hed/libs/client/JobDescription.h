@@ -97,7 +97,9 @@ namespace Arc {
       Join(false),
       Rerun(-1),
       ExpiryTime(-1),
-      ProcessingStartTime(-1) {}
+      ProcessingStartTime(-1),
+      Priority (-1)
+      {}
     ExecutableType Executable;
     std::string Input;
     std::string Output;
@@ -111,6 +113,7 @@ namespace Arc {
     int Rerun;
     Time ExpiryTime;
     Time ProcessingStartTime;
+    int Priority;
     std::list<NotificationType> Notification;
     std::list<URL> CredentialService;
     XMLNode AccessControl;

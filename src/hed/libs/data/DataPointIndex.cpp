@@ -246,6 +246,12 @@ namespace Arc {
     return true;
   }
 
+  bool DataPointIndex::IsStageable() const {
+    if (!h || !*h)
+      return false;
+    return (*h)->IsStageable();
+  }
+
   bool DataPointIndex::AcceptsMeta() {
     return true;
   }
@@ -290,6 +296,20 @@ namespace Arc {
     return (*h)->StartReading(buffer);
   }
 
+  DataStatus DataPointIndex::PrepareReading(unsigned int timeout,
+                                            unsigned int& wait_time) {
+    if (!h || !*h)
+      return DataStatus::NoLocationError;
+    return (*h)->PrepareReading(timeout, wait_time);
+  }
+
+  DataStatus DataPointIndex::PrepareWriting(unsigned int timeout,
+                                            unsigned int& wait_time) {
+    if (!h || !*h)
+      return DataStatus::NoLocationError;
+    return (*h)->PrepareWriting(timeout, wait_time);
+  }
+
   DataStatus DataPointIndex::StartWriting(DataBuffer& buffer,
                                           DataCallback *cb) {
     if (!h || !*h)
@@ -307,6 +327,26 @@ namespace Arc {
     if (!h || !*h)
       return DataStatus::NoLocationError;
     return (*h)->StopWriting();
+  }
+
+  DataStatus DataPointIndex::FinishReading(bool error) {
+    if (!h || !*h)
+      return DataStatus::NoLocationError;
+    return (*h)->FinishReading(error);
+  }
+
+  DataStatus DataPointIndex::FinishWriting(bool error) {
+    if (!h || !*h)
+      return DataStatus::NoLocationError;
+    return (*h)->FinishWriting(error);
+  }
+
+  std::vector<URL> DataPointIndex::TransferLocations() const {
+    if (!h || !*h) {
+      std::vector<URL> empty_vector;
+      return empty_vector;
+    }
+    return (*h)->TransferLocations();
   }
 
   DataStatus DataPointIndex::Check() {

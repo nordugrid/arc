@@ -244,6 +244,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   if (arc_job_desc.Application.Rerun > -1)
     reruns = arc_job_desc.Application.Rerun;
 
+  if ( arc_job_desc.Application.Priority <= 100 && arc_job_desc.Application.Priority > 0 )
+    priority = arc_job_desc.Application.Priority;
+
   return *this;
 }
 

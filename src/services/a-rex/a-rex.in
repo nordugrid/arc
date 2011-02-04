@@ -474,8 +474,14 @@ stop()
       if [ ! -z "$PID" ] ; then
         kill "$PID" && success "$prog shutdown" || failure "$prog shutdown"
         RETVAL=$?
-        sleep 1
-        kill -9 "$PID" 1>/dev/null 2>&1
+        
+        timeout=30
+        while ( ps -p "$PID" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [[ $timeout -ge 1 ]] ; do
+          sleep 1
+          timeout=$[$timeout - 1]
+        done
+
+        [[ $timeout -lt 1 ]] && kill -9 "$PID" 1>/dev/null 2>&1
         rm -f "$PID_FILE" "$LOCKFILE"
       else
         RETVAL=1

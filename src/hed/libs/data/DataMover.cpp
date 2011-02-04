@@ -274,15 +274,12 @@ namespace Arc {
           // check the list of cached DNs
           if (cache.CheckDN(canonic_url, dn)) {
             logger.msg(VERBOSE, "Permission checking passed");
-            bool cache_link_result;
-            if (source.ReadOnly() && !executable && !cache_copy) {
-              logger.msg(VERBOSE, "Linking/copying cached file");
-              cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
-            }
-            else {
-              logger.msg(VERBOSE, "Copying cached file");
-              cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable);
-            }
+            logger.msg(VERBOSE, "Linking/copying cached file");
+            bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
+                                                canonic_url,
+                                                (!source.ReadOnly() || executable || cache_copy),
+                                                executable,
+                                                false);
             cache.Stop(canonic_url);
             source.NextLocation(); /* to decrease retry counter */
             if (!cache_link_result)
@@ -612,23 +609,16 @@ namespace Arc {
               continue;
             }
             logger.msg(VERBOSE, "Cached copy is still valid");
-            if (source.ReadOnly() && !executable && !cache_copy) {
-              logger.msg(VERBOSE, "Linking/copying cached file");
-              if (!cache.Link(destination.CurrentLocation().Path(), canonic_url)) {
-                /* failed cache link is unhandable */
-                cache.Stop(canonic_url);
-                source.NextLocation(); /* to decrease retry counter */
-                return DataStatus::CacheError;
-              }
-            }
-            else {
-              logger.msg(VERBOSE, "Copying cached file");
-              if (!cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable)) {
-                /* failed cache copy is unhandable */
-                cache.Stop(canonic_url);
-                source.NextLocation(); /* to decrease retry counter */
-                return DataStatus::CacheError;
-              }
+            logger.msg(VERBOSE, "Linking/copying cached file");
+            if (!cache.Link(destination.CurrentLocation().Path(),
+                            canonic_url,
+                            (!source.ReadOnly() || executable || cache_copy),
+                            executable,
+                            false)) {
+              /* failed cache link is unhandleable */
+              cache.Stop(canonic_url);
+              source.NextLocation(); /* to decrease retry counter */
+              return DataStatus::CacheError;
             }
             cache.Stop(canonic_url);
             return DataStatus::SuccessCached;
@@ -762,11 +752,29 @@ namespace Arc {
       }
       source_url.AddCheckSumObject(&crc_source);
 
-      DataStatus datares = source_url.StartReading(buffer);
+      unsigned int wait_time;
+      DataStatus datares = source_url.PrepareReading(max_inactivity_time, wait_time);
+      if (!datares.Passed()) {
+        logger.msg(ERROR, "Failed to prepare source: %s",
+                   source_url.str());
+        source_url.StopReading();
+        res = datares;
+        /* try another source */
+        if (source.NextLocation())
+          logger.msg(VERBOSE, "(Re)Trying next source");
+#ifndef WIN32
+        if (cacheable)
+          cache.StopAndDelete(canonic_url);
+#endif
+        continue;
+      }
+
+      datares = source_url.StartReading(buffer);
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to start reading from source: %s",
                    source_url.str());
         source_url.StopReading();
+        source_url.FinishReading(true);
         res = datares;
         if (source.GetFailureReason() != DataStatus::UnknownError)
           res = source.GetFailureReason();
@@ -786,6 +794,7 @@ namespace Arc {
         if (!destination.CompareMeta(source)) {
           logger.msg(ERROR, "Metadata of source and destination are different");
           source_url.StopReading();
+          source_url.FinishReading(true);
           source.NextLocation(); /* not exactly sure if this would help */
           res = DataStatus::PreRegisterError;
 #ifndef WIN32
@@ -807,6 +816,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed to preregister destination: %s",
                    destination.str());
         source_url.StopReading();
+        source_url.FinishReading(true);
         destination.NextLocation(); /* not exactly sure if this would help */
         logger.msg(VERBOSE, "destination.next_location");
         res = datares;
@@ -818,6 +828,21 @@ namespace Arc {
         continue;
       }
       buffer.speed.reset();
+
+      // cache files don't need prepared
+      datares = destination.PrepareWriting(max_inactivity_time, wait_time);
+      if (!datares.Passed()) {
+        logger.msg(ERROR, "Failed to prepare destination: %s",
+                   destination.str());
+        source_url.StopReading();
+        source_url.FinishReading(true);
+        res = datares;
+        /* try another source */
+        if (destination.NextLocation())
+          logger.msg(VERBOSE, "(Re)Trying next destination");
+        continue;
+      }
+
       DataStatus read_failure = DataStatus::Success;
       DataStatus write_failure = DataStatus::Success;
       if (!cacheable) {
@@ -827,7 +852,9 @@ namespace Arc {
           logger.msg(ERROR, "Failed to start writing to destination: %s",
                      destination.str());
           destination.StopWriting();
+          destination.FinishWriting(true);
           source_url.StopReading();
+          source_url.FinishReading(true);
           if (!destination.PreUnregister(replication ||
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
@@ -849,6 +876,7 @@ namespace Arc {
           logger.msg(ERROR, "Failed to start writing to cache");
           chdest.StopWriting();
           source_url.StopReading();
+          source_url.FinishReading(true);
           // hope there will be more space next time
           cache.StopAndDelete(canonic_url);
           if (!destination.PreUnregister(replication ||
@@ -867,13 +895,20 @@ namespace Arc {
       logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
       logger.msg(VERBOSE, "Closing read channel");
       read_failure = source_url.StopReading();
+      source_url.FinishReading((!read_failure.Passed() || buffer.error()));
       if (cacheable && mapped)
         source.SetMeta(mapped_p); // pass more metadata (checksum)
       logger.msg(VERBOSE, "Closing write channel");
       // turn off checks during stop_writing() if force is turned on
       destination_url.SetAdditionalChecks(!force_registration);
-      if (!destination_url.StopWriting().Passed())
+      if (!destination_url.StopWriting().Passed()) {
+        destination_url.FinishWriting(true);
         buffer.error_write(true);
+      }
+      else if (!destination_url.FinishWriting(false)) {
+        logger.msg(ERROR, "Failed to complete writing to destination");
+        buffer.error_write(true);
+      }
 
       if (buffer.error()) {
 #ifndef WIN32
@@ -1028,15 +1063,12 @@ namespace Arc {
         if (source.CheckValid())
           cache.SetValid(canonic_url, source.GetValid());
         cache.AddDN(canonic_url, dn, exp_time);
-        bool cache_link_result;
-        if (executable || cache_copy) {
-          logger.msg(VERBOSE, "Copying cached file");
-          cache_link_result = cache.Copy(destination.CurrentLocation().Path(), canonic_url, executable);
-        }
-        else {
-          logger.msg(VERBOSE, "Linking/copying cached file");
-          cache_link_result = cache.Link(destination.CurrentLocation().Path(), canonic_url);
-        }
+        logger.msg(VERBOSE, "Linking/copying cached file");
+        bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
+                                            canonic_url,
+                                            (!source.ReadOnly() || executable || cache_copy),
+                                            executable,
+                                            false);
         cache.Stop(canonic_url);
         if (!cache_link_result) {
           if (!destination.PreUnregister(replication ||

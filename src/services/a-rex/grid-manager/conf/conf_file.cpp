@@ -218,18 +218,18 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
               max_jobs_processing,max_jobs_processing_emergency,max_downloads);
     }
     else if(command == "maxloadshare") {
-  std::string max_share_s = config_next_arg(rest);
-        unsigned int max_share = 0;
-        if(max_share_s.length() != 0) {
-          if(!Arc::stringto(max_share_s,max_share) || max_share<=0) {
-            logger.msg(Arc::ERROR,"Wrong number in maxloadshare: %s", max_share_s); goto exit;
-          };
+      std::string max_share_s = config_next_arg(rest);
+      unsigned int max_share = 0;
+      if(max_share_s.length() != 0) {
+        if(!Arc::stringto(max_share_s,max_share) || max_share<=0) {
+          logger.msg(Arc::ERROR,"Wrong number in maxloadshare: %s", max_share_s); goto exit;
         };
-        std::string transfer_share = config_next_arg(rest);
-  if (transfer_share.empty()){
-            logger.msg(Arc::ERROR,"The type of share is not set in maxloadshare"); goto exit;
-  }
-        jcfg.SetTransferShare(max_share, transfer_share);
+      };
+      std::string transfer_share = config_next_arg(rest);
+      if (transfer_share.empty()){
+        logger.msg(Arc::ERROR,"The type of share is not set in maxloadshare"); goto exit;
+      }
+      jcfg.SetTransferShare(max_share, transfer_share);
     }
     else if(command == "share_limit") {
       std::string share_name = config_next_arg(rest);
@@ -471,6 +471,20 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         logger.msg(Arc::ERROR, "preferredpattern value is missing");
       };
       jcfg.SetPreferredPattern(preferred_pattern);
+    }
+    else if(command == "newdatastaging") {
+      bool use_new_data_staging = false;
+      std::string s = config_next_arg(rest);
+      if(strcasecmp("yes",s.c_str()) == 0) {
+        use_new_data_staging=true;
+      }
+      else if(strcasecmp("no",s.c_str()) == 0) {
+        use_new_data_staging=false;
+      }
+      else {
+        logger.msg(Arc::ERROR,"Wrong option in newdatastaging"); goto exit;
+      };
+      jcfg.SetNewDataStaging(use_new_data_staging);
     }
     else if(command == "sessiondir") {
       /* set session root directory - applied
@@ -750,6 +764,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
 
   /*
   dataTransfer
+    newDataStaging // not in schema
     secureTransfer
     passiveTransfer
     localTransfer
@@ -782,6 +797,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     bool use_secure_transfer = false;
     bool use_passive_transfer = true;
     bool use_local_transfer = false;
+    bool use_new_data_staging = false;
     Arc::XMLNode to_node = tmp_node["timeouts"];
     if(to_node) {
       elementtoint(tmp_node,"minSpeed",min_speed,&logger);
@@ -797,6 +813,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     jcfg.SetSecureTransfer(use_secure_transfer);
     elementtobool(tmp_node,"localTransfer",use_local_transfer,&logger);
     jcfg.SetLocalTransfer(use_local_transfer);
+    elementtobool(tmp_node,"useDataStaging",use_new_data_staging,&logger);
+    jcfg.SetNewDataStaging(use_new_data_staging);
     if(elementtoint(tmp_node,"maxRetries",max_retries,&logger) && (max_retries > 0)) {
         jcfg.SetMaxRetries(max_retries);
     }

@@ -70,7 +70,7 @@ namespace Arc {
         break;
       if (strcasecmp(request_state.c_str(), "pending") != 0)
         break;
-      if ((time(NULL) - t_start) > request_timeout)
+      if ((time(NULL) - t_start) > creq.request_timeout())
         break;
 
       int retryDeltaTime = stringtoi(result["retryDeltaTime"]);
@@ -108,8 +108,7 @@ namespace Arc {
   }
 
   SRMReturnCode SRM1Client::putTURLs(SRMClientRequest& creq,
-                                     std::list<std::string>& urls,
-                                     const unsigned long long size) {
+                                     std::list<std::string>& urls) {
     SRMURL srmurl(creq.surls().front());
     std::list<int> file_ids;
 
@@ -126,7 +125,7 @@ namespace Arc {
     // Sizes
     XMLNode arg2node = method.NewChild("arg2");
     arg2node.NewAttribute("SOAP-ENC:arrayType") = "xsd:string[1]";
-    arg2node.NewChild("item") = tostring(size);
+    arg2node.NewChild("item") = tostring(creq.total_size());
     // Want Permanent
     XMLNode arg3node = method.NewChild("arg3");
     arg3node.NewAttribute("SOAP-ENC:arrayType") = "xsd:string[1]";
@@ -169,7 +168,7 @@ namespace Arc {
         break;
       if (strcasecmp(request_state.c_str(), "pending") != 0)
         break;
-      if ((time(NULL) - t_start) > request_timeout)
+      if ((time(NULL) - t_start) > creq.request_timeout())
         break;
 
       int retryDeltaTime = stringtoi(result["retryDeltaTime"]);
@@ -253,7 +252,7 @@ namespace Arc {
       if ((strcasecmp(request_state.c_str(), "pending") != 0) &&
           (strcasecmp(request_state.c_str(), "active") != 0))
         break;
-      if ((time(NULL) - t_start) > request_timeout)
+      if ((time(NULL) - t_start) > creq.request_timeout())
         break;
 
       int retryDeltaTime = stringtoi(result["retryDeltaTime"]);

@@ -134,11 +134,33 @@ namespace Arc {
       /// Inconsistent metadata
       InconsistentMetadataError = 32,
  
+      /// Can't prepare source
+      ReadPrepareError = 32,
+      ReadPrepareErrorRetryable = DataStatusRetryableBase+ReadPrepareError,
+
+      /// Wait for source to be prepared
+      ReadPrepareWait = 33,
+
+      /// Can't prepare destination
+      WritePrepareError = 34,
+      WritePrepareErrorRetryable = DataStatusRetryableBase+WritePrepareError,
+
+      /// Wait for destination to be prepared
+      WritePrepareWait = 35,
+
+      /// Can't finish source
+      ReadFinishError = 36,
+      ReadFinishErrorRetryable = DataStatusRetryableBase+ReadFinishError,
+
+      /// Can't finish destination
+      WriteFinishError = 37,
+      WriteFinishErrorRetryable = DataStatusRetryableBase+WriteFinishError,
+
       /// Data was already cached
-      SuccessCached = 33,
+      SuccessCached = 38,
       
       /// Undefined
-      UnknownError = 34
+      UnknownError = 39
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")
@@ -174,8 +196,9 @@ namespace Arc {
     }
 
     bool Passed(void) {
-      return (status == Success) || (status == NotSupportedForDirectDataPointsError) || 
-             (status == SuccessCached);
+      return ((status == Success) || (status == NotSupportedForDirectDataPointsError) ||
+              (status == ReadPrepareWait) || (status == WritePrepareWait) ||
+              (status == SuccessCached));
     }
   
     bool Retryable() {

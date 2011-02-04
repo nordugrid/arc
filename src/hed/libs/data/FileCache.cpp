@@ -23,6 +23,7 @@
 #include <arc/Logger.h>
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
+#include <arc/User.h>
 
 #include "FileCache.h"
 
@@ -512,7 +513,7 @@ namespace Arc {
     return path;
   }
 
-  bool FileCache::Link(std::string link_path, std::string url) {
+  bool FileCache::Link(std::string dest_path, std::string url, bool copy, bool executable, bool switch_user) {
 
     if (!(*this))
       return false;
@@ -578,10 +579,6 @@ namespace Arc {
       }
     }
 
-    // if _cache_link_path is '.' then copy instead, bypassing the hard-link
-    if (cache_params.cache_link_path == ".")
-      return Copy(link_path, url);
-
     // create per-job hard link dir if necessary, making the final dir readable only by the job user
     if (!_cacheMkDir(hard_link_path, true)) {
       logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
@@ -596,9 +593,9 @@ namespace Arc {
       return false;
     }
 
-    std::string filename = link_path.substr(link_path.rfind("/") + 1);
+    std::string filename = dest_path.substr(dest_path.rfind("/") + 1);
     std::string hard_link_file = hard_link_path + "/" + filename;
-    std::string session_dir = link_path.substr(0, link_path.rfind("/"));
+    std::string session_dir = dest_path.substr(0, dest_path.rfind("/"));
 
     // make the hard link
     if (link(cache_file.c_str(), hard_link_file.c_str()) != 0) {
@@ -630,107 +627,95 @@ namespace Arc {
     }
 
     // make necessary dirs for the soft link
-    // this probably should have already been done... somewhere...
-    if (!_cacheMkDir(session_dir, true))
-      return false;
-    if (chown(session_dir.c_str(), _uid, _gid) != 0) {
-      logger.msg(ERROR, "Failed to change owner of session dir to %i: %s", _uid, strerror(errno));
-      return false;
-    }
-    if (chmod(session_dir.c_str(), S_IRWXU) != 0) {
-      logger.msg(ERROR, "Failed to change permissions of session dir to 0700: %s", strerror(errno));
-      return false;
-    }
+    // the session dir should already exist but in the case of arccp with cache it may not
 
-    // make the soft link, changing the target if cache_link_path is defined
-    if (!cache_params.cache_link_path.empty())
-      hard_link_file = cache_params.cache_link_path + "/" + CACHE_JOB_DIR + "/" + _id + "/" + filename;
-    if (symlink(hard_link_file.c_str(), link_path.c_str()) != 0) {
-      // if the link we want to make already exists, delete and make new one
-      if (errno == EEXIST) {
-        if (remove(link_path.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to remove existing symbolic link at %s: %s", link_path, strerror(errno));
-          return false;
-        }
-        if (symlink(hard_link_file.c_str(), link_path.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", link_path, hard_link_file, strerror(errno));
-          return false;
-        }
+    // switch to mapped user to access session dir if switch_user
+    {
+      UserSwitch usw(switch_user ? _uid : getuid(), switch_user ? _gid : getgid());
+
+      if (!_cacheMkDir(session_dir, true))
+        return false;
+      if (!switch_user && chown(session_dir.c_str(), _uid, _gid) != 0) {
+        logger.msg(ERROR, "Failed to change owner of session dir to %i: %s", _uid, strerror(errno));
+        return false;
       }
-      else {
-        logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", link_path, hard_link_file, strerror(errno));
+      if (chmod(session_dir.c_str(), S_IRWXU) != 0) {
+        logger.msg(ERROR, "Failed to change permissions of session dir to 0700: %s", strerror(errno));
         return false;
       }
     }
 
-    // change the owner of the soft link to the job user
-    if (lchown(link_path.c_str(), _uid, _gid) != 0) {
-      logger.msg(ERROR, "Failed to change owner of session dir to %i: %s", _uid, strerror(errno));
-      return false;
+    // if _cache_link_path is '.' or copy or executable is true then copy instead
+    if (copy || executable || cache_params.cache_link_path == ".") {
+      mode_t perm = S_IRUSR | S_IWUSR;
+      if (executable)
+        perm |= S_IXUSR;
+      // UserSwitch is called inside FileOpen if switch_user
+      int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT, switch_user ? _uid : getuid(), switch_user ? _gid : getgid(), perm);
+      if (fdest == -1) {
+        logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
+        return false;
+      }
+      if (!switch_user && fchown(fdest, _uid, _gid) == -1) {
+        logger.msg(ERROR, "Failed change ownership of destination file %s: %s", dest_path, strerror(errno));
+        close(fdest);
+        return false;
+      }
+
+      int fsource = FileOpen(hard_link_file, O_RDONLY, switch_user ? _uid : getuid(), switch_user ? _gid : getgid(), 0);
+      if (fsource == -1) {
+        close(fdest);
+        logger.msg(ERROR, "Failed to open file %s for reading: %s", hard_link_file, strerror(errno));
+        return false;
+      }
+
+      UserSwitch usw(switch_user ? _uid : getuid(), switch_user ? _gid : getgid());
+      if(!FileCopy(fsource, fdest)) {
+        close(fdest);
+        close(fsource);
+        logger.msg(ERROR, "Failed to copy file %s to %s: %s", hard_link_file, dest_path, strerror(errno));
+        return false;
+      }
+      close(fdest);
+      close(fsource);
+    }
+    else {
+      // make the soft link, changing the target if cache_link_path is defined
+      if (!cache_params.cache_link_path.empty())
+        hard_link_file = cache_params.cache_link_path + "/" + CACHE_JOB_DIR + "/" + _id + "/" + filename;
+
+      // access session dir under mapped user if switch_user
+      UserSwitch usw(switch_user ? _uid : getuid(), switch_user ? _gid : getgid());
+
+      if (symlink(hard_link_file.c_str(), dest_path.c_str()) != 0) {
+        // if the link we want to make already exists, delete and make new one
+        if (errno == EEXIST) {
+          if (remove(dest_path.c_str()) != 0) {
+            logger.msg(ERROR, "Failed to remove existing symbolic link at %s: %s", dest_path, strerror(errno));
+            return false;
+          }
+          if (symlink(hard_link_file.c_str(), dest_path.c_str()) != 0) {
+            logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, strerror(errno));
+            return false;
+          }
+        }
+        else {
+          logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, strerror(errno));
+          return false;
+        }
+        // change the owner of the soft link to the job user
+        if (!switch_user && lchown(dest_path.c_str(), _uid, _gid) != 0) {
+          logger.msg(ERROR, "Failed to change owner of symbolic link to %i: %s", _uid, strerror(errno));
+          return false;
+        }
+      }
     }
     return true;
   }
 
   bool FileCache::Copy(std::string dest_path, std::string url, bool executable) {
 
-    if (!(*this))
-      return false;
-
-    // check the original file exists
-    std::string cache_file = File(url);
-    struct stat fileStat;
-    if (stat(cache_file.c_str(), &fileStat) != 0) {
-      if (errno == ENOENT)
-        logger.msg(ERROR, "Cache file %s does not exist", cache_file);
-      else
-        logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, strerror(errno));
-      return false;
-    }
-
-    // make necessary dirs for the copy
-    // this probably should have already been done... somewhere...
-    std::string dest_dir = dest_path.substr(0, dest_path.rfind("/"));
-    if (!_cacheMkDir(dest_dir, true))
-      return false;
-    if (chown(dest_dir.c_str(), _uid, _gid) != 0) {
-      logger.msg(ERROR, "Failed to change owner of destination dir to %i: %s", _uid, strerror(errno));
-      return false;
-    }
-    if (chmod(dest_dir.c_str(), S_IRWXU) != 0) {
-      logger.msg(ERROR, "Failed to change permissions of session dir to 0700: %s", strerror(errno));
-      return false;
-    }
-
-    mode_t perm = S_IRUSR | S_IWUSR;
-    if (executable)
-      perm |= S_IXUSR;
-    int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT, perm);
-    if (fdest == -1) {
-      logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
-      return false;
-    }
-    if (fchown(fdest, _uid, _gid) == -1) {
-      logger.msg(ERROR, "Failed change ownership of destination file %s: %s", dest_path, strerror(errno));
-      close(fdest);
-      return false;
-    }
-
-    int fsource = FileOpen(cache_file, O_RDONLY, 0);
-    if (fsource == -1) {
-      close(fdest);
-      logger.msg(ERROR, "Failed to open file %s for reading: %s", cache_file, strerror(errno));
-      return false;
-    }
-
-    if(!FileCopy(fsource, fdest)) {
-      close(fdest);
-      close(fsource);
-      logger.msg(ERROR, "Failed to copy file %s to %s: %s", cache_file, dest_path, strerror(errno));
-      return false;
-    }
-    close(fdest);
-    close(fsource);
-    return true;
+    return Link(dest_path, url, true, executable, false);
   }
 
   bool FileCache::Release() {
@@ -763,7 +748,7 @@ namespace Arc {
         if (strcmp(dp->d_name, ".") == 0 || strcmp(dp->d_name, "..") == 0)
           continue;
         std::string to_delete = job_dir + "/" + dp->d_name;
-        logger.msg(VERBOSE, "Removing %s", to_delete);
+        logger.msg(DEBUG, "Removing %s", to_delete);
         if (remove(to_delete.c_str()) != 0) {
           logger.msg(ERROR, "Failed to remove hard link %s: %s", to_delete, strerror(errno));
           closedir(dirp);
@@ -778,7 +763,7 @@ namespace Arc {
       }
 
       // remove now-empty dir
-      logger.msg(VERBOSE, "Removing %s", job_dir);
+      logger.msg(DEBUG, "Removing %s", job_dir);
       if (rmdir(job_dir.c_str()) != 0) {
         logger.msg(ERROR, "Failed to remove cache per-job dir %s: %s", job_dir, strerror(errno));
         return false;

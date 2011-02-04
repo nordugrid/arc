@@ -317,6 +317,15 @@ namespace Arc {
     if (bool(xmlApplication["Rerun"]))
       job.Application.Rerun = stringtoi((std::string)xmlApplication["Rerun"]);
 
+    // int Priority
+    if (bool(xmlApplication["Priority"])) {
+      job.Application.Priority = stringtoi((std::string)xmlApplication["Priority"]);
+      if (job.Application.Priority > 100) {
+        logger.msg(VERBOSE, "[ARCJSDLParser] priority is too large - using max value 100");
+        job.Application.Priority = 100;
+      }
+    }
+
     // Time ExpiryTime;
     if (bool(xmlApplication["ExpiryTime"]))
       job.Application.ExpiryTime = Time((std::string)xmlApplication["ExpiryTime"]);
@@ -697,6 +706,10 @@ namespace Arc {
     // int Rerun;
     if (job.Application.Rerun > -1)
       xmlApplication.NewChild("Rerun") = tostring(job.Application.Rerun);
+
+    // int Priority;
+    if (job.Application.Priority > -1)
+      xmlApplication.NewChild("Priority") = tostring(job.Application.Priority);
 
     // Time ExpiryTime;
     if (job.Application.ExpiryTime > -1)

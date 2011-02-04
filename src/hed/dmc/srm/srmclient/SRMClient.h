@@ -120,6 +120,7 @@ namespace Arc {
    * The status of a request
    */
   enum SRMRequestStatus {
+    SRM_REQUEST_CREATED,
     SRM_REQUEST_ONGOING,
     SRM_REQUEST_FINISHED_SUCCESS,
     SRM_REQUEST_FINISHED_PARTIAL_SUCCESS,
@@ -180,6 +181,20 @@ namespace Arc {
     SRMRequestStatus _status;
 
     /**
+     * For operations like getTURLs and putTURLs _request_timeout specifies
+     * the timeout for these operations to complete. If it is zero then
+     * these operations will act asynchronously, i.e. return and expect
+     * the caller to poll for the status. If it is non-zero the operations
+     * will block until completed or this timeout has been reached.
+     */
+    unsigned int _request_timeout;
+
+    /**
+     * Total size of all files in request. Can be used when reserving space.
+     */
+    unsigned long long _total_size;
+
+    /**
      * Whether a detailed listing is requested
      */
     bool _long_list;
@@ -191,29 +206,35 @@ namespace Arc {
      * srm://srm.ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/file3
      */
     SRMClientRequest(const std::list<std::string>& urls)
-    throw (SRMInvalidRequestException)
-      : _request_id(0),
-        _waiting_time(1),
-        _status(SRM_REQUEST_ONGOING),
-        _long_list(false) {
+      throw (SRMInvalidRequestException)
+        : _request_id(0),
+          _space_token(""),
+          _waiting_time(1),
+          _status(SRM_REQUEST_CREATED),
+          _request_timeout(60),
+          _total_size(0),
+          _long_list(false) {
       if (urls.empty())
         throw SRMInvalidRequestException();
       for (std::list<std::string>::const_iterator it = urls.begin();
            it != urls.end(); ++it)
         _surls[*it] = SRM_UNKNOWN;
-    }
-
+    };
+    
     /**
      * Creates a request object with a single SURL.
      * The URL here are in the form
      * srm://srm.ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/file3
      */
-    SRMClientRequest(const std::string& url = "", const std::string& id = "")
-    throw (SRMInvalidRequestException)
-      : _request_id(0),
-        _waiting_time(1),
-        _status(SRM_REQUEST_ONGOING),
-        _long_list(false) {
+    SRMClientRequest(const std::string& url="", const std::string& id="")
+      throw (SRMInvalidRequestException)
+        : _request_id(0),
+          _space_token(""),
+          _waiting_time(1),
+          _status(SRM_REQUEST_CREATED),
+          _request_timeout(60),
+          _total_size(0),
+          _long_list(false) {
       if (url.empty() && id.empty())
         throw SRMInvalidRequestException();
       if (!url.empty())
@@ -294,7 +315,8 @@ namespace Arc {
     }
 
     /**
-     * set and get waiting time
+     * set and get waiting time. A waiting time of zero means no estimate was given
+     * by the remote service.
      */
     void waiting_time(int wait_time) {
       _waiting_time = wait_time;
@@ -318,12 +340,28 @@ namespace Arc {
     void finished_abort() {
       _status = SRM_REQUEST_SHOULD_ABORT;
     }
+    void wait(int t = 0) {
+      _status = SRM_REQUEST_ONGOING;
+      _waiting_time = t;
+    }
     void cancelled() {
       _status = SRM_REQUEST_CANCELLED;
     }
     SRMRequestStatus status() const {
       return _status;
     }
+
+    /**
+     * set and get request timeout
+     */
+    void request_timeout(unsigned int timeout) { _request_timeout = timeout; };
+    unsigned int request_timeout() const { return _request_timeout; };
+
+    /**
+     * set and get total size
+     */
+    void total_size(unsigned long long size) { _total_size = size; };
+    unsigned long long total_size() const { return _total_size; };
 
     /**
      * set and get long list flag
@@ -374,9 +412,9 @@ namespace Arc {
     SRMImplementation implementation;
 
     /**
-     * Timeout for requests to the SRM service
+     * Timeout for connection to service
      */
-    static time_t request_timeout;
+    static time_t connection_timeout;
 
     /**
      * Timeout for requests to the SRM service
@@ -413,25 +451,19 @@ namespace Arc {
      * this SURL. All operations with a client instance must use SURLs with
      * the same host as this one.
      * @param timedout Whether the connection timed out
-     * @param timeout Connection timeout.
-     * is returned.
+     * @param conn_timeout Connection timeout to the SRM service
+     * @returns A pointer to an instance of SRMClient is returned, or NULL if
+     * it was not possible to create one.
      */
     static SRMClient* getInstance(const UserConfig& usercfg,
                                   const std::string& url,
                                   bool& timedout,
-                                  time_t timeout = 300);
+                                  time_t conn_timeout=60);
 
     /**
      * Destructor
      */
     virtual ~SRMClient();
-
-    /**
-     * set the request timeout
-     */
-    static void Timeout(const time_t t) {
-      request_timeout = t;
-    }
 
     /**
      * Returns the version of the SRM protocol used by this instance
@@ -480,7 +512,12 @@ namespace Arc {
 
     /**
      * If the user wishes to copy a file from somewhere, getTURLs() is called
-     * to retrieve the transport URL to copy the file from.
+     * to retrieve the transport URL(s) to copy the file from. It may be used
+     * synchronously or asynchronously, depending on the synchronous property
+     * of the request object. In the former case it will block until
+     * the TURLs are ready, in the latter case it will return after making the
+     * request and getTURLsStatus() must be used to poll the request status if
+     * it was not completed.
      * @param req The request object
      * @param urls A list of TURLs filled by the method
      * @returns SRMReturnCode specifying outcome of operation
@@ -489,10 +526,26 @@ namespace Arc {
                                    std::list<std::string>& urls) = 0;
 
     /**
-     * Submit a request to bring online files. This operation is asynchronous
-     * and the status of the request can be checked by calling
-     * requestBringOnlineStatus() with the request token in req which is
-     * assigned by this method.
+     * In the case where getTURLs was called asynchronously and the request
+     * was not completed, this method should be called to poll the status of
+     * the request. getTURLs must be called before this method and the request
+     * object must have ongoing request status.
+     * @param req The request object. Status must be ongoing.
+     * @param urls A list of TURLs filled by the method if the request
+     * completed successfully
+     * @returns SRMReturnCode specifying outcome of operation
+     */
+    virtual SRMReturnCode getTURLsStatus(SRMClientRequest& req,
+                                         std::list<std::string>& urls) = 0;
+
+    /**
+     * Submit a request to bring online files. If the synchronous property
+     * of the request object is false, this operation is asynchronous and
+     * the status of the request can be checked by calling
+     * requestBringOnlineStatus() with the request token in req
+     * which is assigned by this method. If the request is synchronous, this
+     * operation blocks until the file(s) are online or the timeout specified
+     * in the SRMClient constructor has passed.
      * @param req The request object
      * @returns SRMReturnCode specifying outcome of operation
      */
@@ -500,7 +553,9 @@ namespace Arc {
 
     /**
      * Query the status of a request to bring files online. The SURLs map
-     * is updated if the status of any files in the request has changed.
+     * of the request object is updated if the status of any files in the
+     * request has changed. requestBringOnline() but be called before
+     * this method.
      * @param req The request object to query the status of
      * @returns SRMReturnCode specifying outcome of operation
      */
@@ -508,15 +563,31 @@ namespace Arc {
 
     /**
      * If the user wishes to copy a file to somewhere, putTURLs() is called
-     * to retrieve the transport URL to copy the file to.
+     * to retrieve the transport URL(s) to copy the file to. It may be used
+     * synchronously or asynchronously, depending on the synchronous property
+     * of the request object. In the former case it will block until
+     * the TURLs are ready, in the latter case it will return after making the
+     * request and putTURLsStatus() must be used to poll the request status if
+     * it was not completed.
      * @param req The request object
      * @param urls A list of TURLs filled by the method
-     * @param size The size of the file
      * @returns SRMReturnCode specifying outcome of operation
      */
     virtual SRMReturnCode putTURLs(SRMClientRequest& req,
-                                   std::list<std::string>& urls,
-                                   const unsigned long long size = 0) = 0;
+                                   std::list<std::string>& urls) = 0;
+
+    /**
+     * In the case where putTURLs was called asynchronously and the request
+     * was not completed, this method should be called to poll the status of
+     * the request. putTURLs must be called before this method and the request
+     * object must have ongoing request status.
+     * @param req The request object. Status must be ongoing.
+     * @param urls A list of TURLs filled by the method if the request
+     * completed successfully
+     * @returns SRMReturnCode specifying outcome of operation
+     */
+    virtual SRMReturnCode putTURLsStatus(SRMClientRequest& req,
+                                         std::list<std::string>& urls) = 0;
 
     /**
      * Should be called after a successful copy from SRM storage.

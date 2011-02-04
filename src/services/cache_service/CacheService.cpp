@@ -507,7 +507,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
 
     // link file
     std::string session_file = session_dir + '/' + filename;
-    if (!cache.Link(session_file, url)) {
+    if (!cache.Link(session_file, url, false, false, false)) { // TODO add executable flag to request
       // failed to link - report as if not there
       cache.Stop(url);
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);

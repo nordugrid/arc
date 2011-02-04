@@ -72,6 +72,7 @@ JobDescription::JobDescription(void) {
   child=NULL;
   local=NULL;
   job_uid=0; job_gid=0;
+  start_time=time(NULL);
 }
 
 JobDescription::JobDescription(const JobDescription &job) {
@@ -88,6 +89,7 @@ JobDescription::JobDescription(const JobDescription &job) {
   retries=job.retries;
   next_retry=job.next_retry;
   transfer_share=job.transfer_share;
+  start_time=job.start_time;
 }
 
 JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_t state) {
@@ -103,6 +105,7 @@ JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_
   retries=0;
   next_retry=time(NULL);
   transfer_share=JobLocalDescription::transfersharedefault;
+  start_time=time(NULL);
 }
 
 JobDescription::~JobDescription(void){

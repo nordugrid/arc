@@ -944,6 +944,18 @@ namespace Arc {
         return true;
       }
 
+      if (c->Attr() == "priority") {
+        std::string priority;
+        if (!SingleValue(c, priority))
+          return false;
+        j.Application.Priority = stringtoi(priority);
+        if (j.Application.Priority > 100) {
+          logger.msg(VERBOSE, "priority is too large - using max value 100");
+          j.Application.Priority = 100;
+        }
+        return true;
+      }
+
       if (c->Attr() == "architecture") {
         bool r = SingleValue(c, j.Resources.Platform);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
@@ -1343,6 +1355,12 @@ namespace Arc {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(tostring(j.Application.Rerun)));
       r.Add(new RSLCondition("rerun", RSLEqual, l));
+    }
+
+    if (j.Application.Priority != -1) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(tostring(j.Application.Priority)));
+      r.Add(new RSLCondition("priority", RSLEqual, l));
     }
 
     if (j.Resources.SessionLifeTime != -1) {

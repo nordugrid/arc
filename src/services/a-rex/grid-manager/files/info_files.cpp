@@ -233,6 +233,10 @@ bool job_errors_mark_put(const JobDescription &desc,const JobUser &user) {
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
+std::string job_errors_filename(const JobId &id, const JobUser &user) {
+  return user.ControlDir() + "/job." + id + sfx_errors;
+}
+
 bool job_failed_mark_put(const JobDescription &desc,const JobUser &user,const std::string &content) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_failed;
   if(job_mark_size(fname) > 0) return true;
@@ -806,6 +810,7 @@ bool job_local_write_file(const std::string &fname,const JobLocalDescription &jo
     write_pair(f,"forcemigration",job_desc.forcemigration);
   }
   write_pair(f,"transfershare",job_desc.transfershare);
+  write_pair(f,"priority",Arc::tostring(job_desc.priority));
   f.close();
   return true;
 }
@@ -893,7 +898,12 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
       else if(strcasecmp("true",buf+p) == 0) { job_desc.forcemigration = true; }
       else job_desc.forcemigration = false;
     }
-    else if(name == "transfershare") { job_desc.transfershare = buf+p; };
+    else if(name == "transfershare") { job_desc.transfershare = buf+p; }
+    else if(name == "priority") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { f.close(); return false; };
+      job_desc.priority = n;
+    }
   }
   f.close();
   return true;

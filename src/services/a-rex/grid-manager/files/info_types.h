@@ -45,7 +45,7 @@ class JobLocalDescription {
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),
-                           reruns(0),downloads(-1),uploads(-1),rtes(-1),
+                           reruns(0),priority(50),downloads(-1),uploads(-1),rtes(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
                            failedstate(""),
@@ -73,6 +73,7 @@ class JobLocalDescription {
   std::string clientname;    /* IP+port of user interface + info given by ui */
   std::string clientsoftware; /* Client's version */
   int    reruns;             /* number of allowed reruns left */
+  int    priority;           /* priority the job has */
   int    downloads;          /* number of downloadable files requested */
   int    uploads;            /* number of uploadable files requested */
   int    rtes;               /* number of RTEs requested (absent RTEs later) */

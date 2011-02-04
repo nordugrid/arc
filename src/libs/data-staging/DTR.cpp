@@ -1,0 +1,410 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <arc/GUID.h>
+
+#include "Processor.h"
+#include "DataDelivery.h"
+#include "Scheduler.h"
+
+#include "DTR.h"
+
+namespace DataStaging {
+  
+  DTR::DTR(const std::string& source,
+           const std::string& destination,
+           const Arc::UserConfig& usercfg,
+           const std::string& jobid,
+           const uid_t& uid,
+           Arc::Logger* log)
+    :  DTR_ID(""),
+       source_url(source),
+       destination_url(destination),
+       cfg(usercfg),
+       source_endpoint(source_url, cfg),
+       destination_endpoint(destination_url, cfg),
+       //cache_dir(""),
+       user(uid),
+       parent_job_id(jobid),
+       sub_share(""),
+       replication(false),
+       force_registration(false),
+       status(DTRStatus::NEW,"Created by the generator"),
+       created(time(NULL)),
+       cancel_request(false),
+       current_owner(GENERATOR),
+       logger(log)
+  {
+    if (!logger) {
+      // use root logger if none is supplied
+      logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DTR");
+    }
+
+    // check that endpoints can be handled
+    if (!source_endpoint) {
+      logger->msg(Arc::ERROR, "Could not handle endpoint %s", source);
+      return;
+    }
+    if (!destination_endpoint) {
+      logger->msg(Arc::ERROR, "Could not handle endpoint %s", destination);
+      return;
+    }
+    // Some validation checks
+    if (source_url == destination_url) {
+      // It is possible to replicate inside an index service
+      // The physical replicas will be checked in RESOLVING
+      if (source_endpoint->IsIndex() && destination_endpoint->IsIndex()) {
+        replication = true;
+      } else {
+        logger->msg(Arc::ERROR, "Source is the same as destination");
+        set_error_status(DTRErrorStatus::SELF_REPLICATION_ERROR,
+                         DTRErrorStatus::NO_ERROR_LOCATION,
+                         "Cannot replicate a file to itself");
+        return;
+      }
+    }
+    // set insecure by default. Real value will come from configuration
+    source_endpoint->SetSecure(false);
+    destination_endpoint->SetSecure(false);
+
+    cache_state = (source_endpoint->Cache() && destination_endpoint->Local()) ? CACHEABLE : NON_CACHEABLE;
+    
+    // The scheduler will change these two lines afterwards
+    /* This lines will be uncommented when we are tied
+     * to real A-REX, that knows about instances of JobUser class,
+     * Environment class, so on...
+     * For the time being we will use default value
+     */
+    /*if (parent_job.get_local() == NULL)
+      parent_job.GetLocalDescription(JobUser to_be_added);
+    priority = parent_job.get_local()->priority;*/
+    priority = 50;
+    transfershare = "_default";
+    
+    /* Think how to populate transfer parameters */
+    mark_modification();
+    set_timeout(60);
+    // setting ID last means all the previous steps have to pass for the DTR to be valid
+    DTR_ID = Arc::UUID();
+  }	
+  
+  DTR::DTR(const DTR& dtr)
+    : DTR_ID(dtr.DTR_ID),
+      source_url(dtr.source_url),
+      destination_url(dtr.destination_url),
+      cfg(dtr.cfg),
+      source_endpoint(source_url, cfg),
+      destination_endpoint(destination_url, cfg),
+      cache_file(dtr.cache_file),
+      //cache_dir(dtr.cache_dir),
+      cache_parameters(dtr.cache_parameters),
+      transfer_parameters(dtr.transfer_parameters),
+      cache_state(dtr.cache_state),
+      user(dtr.user),
+      parent_job_id(dtr.parent_job_id),
+      priority(dtr.priority),
+      transfershare(dtr.transfershare),
+      sub_share(dtr.sub_share),
+      replication(dtr.replication),
+      force_registration(dtr.force_registration),
+      mapped_source(dtr.mapped_source),
+      status(dtr.status),
+      error_status(dtr.error_status),
+      timeout(dtr.timeout),
+      created(dtr.created),
+      next_process_time(dtr.next_process_time),
+      cancel_request(dtr.cancel_request),
+      current_owner(dtr.current_owner),
+      logger(dtr.logger),
+      proc_callback(dtr.proc_callback)
+  {
+    // set insecure by default. Real value will come from configuration
+    source_endpoint->SetSecure(false);
+    destination_endpoint->SetSecure(false);
+
+    mark_modification();
+  }
+  
+  DTR::DTR():
+    DTR_ID(""), // empty means invalid DTR
+    source_endpoint(Arc::URL(),Arc::UserConfig()),
+    destination_endpoint(Arc::URL(),Arc::UserConfig())
+  {  
+
+  }
+
+  DTR& DTR::operator=(const DTR& dtr) {
+    DTR_ID = dtr.DTR_ID;
+    source_url = dtr.source_url;
+    destination_url = dtr.destination_url;
+    cfg = dtr.cfg;
+    Arc::DataHandle src(source_url, cfg);
+    source_endpoint = src;
+    Arc::DataHandle dest(destination_url, cfg);
+    destination_endpoint = dest;
+    cache_file = dtr.cache_file;
+    //cache_dir = dtr.cache_dir;
+    cache_parameters = dtr.cache_parameters;
+    transfer_parameters = dtr.transfer_parameters;
+    cache_state = dtr.cache_state;
+    user = dtr.user;
+    parent_job_id = dtr.parent_job_id;
+    priority = dtr.priority;
+    transfershare = dtr.transfershare;
+    sub_share = dtr.sub_share;
+    replication = dtr.replication;
+    force_registration = dtr.force_registration;
+    mapped_source = dtr.mapped_source;
+    status = dtr.status;
+    error_status = dtr.error_status;
+    timeout = dtr.timeout;
+    created = dtr.created;
+    next_process_time = dtr.next_process_time;
+    cancel_request = dtr.cancel_request;
+    current_owner = dtr.current_owner;
+    logger = dtr.logger;
+    proc_callback = dtr.proc_callback;
+    return *this;
+  }
+
+  void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
+    proc_callback[owner] = cb;
+  }
+
+  std::string DTR::get_short_id() const {
+    if(DTR_ID.length() < 8) return DTR_ID;
+    std::string short_id(DTR_ID.substr(0,4)+"..."+DTR_ID.substr(DTR_ID.length()-4));
+    return short_id;
+  };
+
+  void DTR::set_owner(StagingProcesses new_owner) {
+    lock.lock();
+    current_owner = new_owner;
+    lock.unlock();
+  };
+
+  void DTR::set_parameters(const struct TransferParameters& params)
+  {
+    transfer_parameters = params;
+    mark_modification();
+  }
+  
+  void DTR::set_priority(int pri)
+  {
+    lock.lock();
+    // limit priority between 1 and 100
+    if (pri <= 0) pri = 1;
+    if (pri > 100) pri = 100;
+    priority = pri;
+    mark_modification();
+    lock.unlock();
+  }
+  
+  void DTR::set_status(DTRStatus stat)
+  {
+    logger->msg(Arc::VERBOSE, "DTR %s: %s->%s", get_short_id(), status.str(), stat.str());
+    lock.lock();
+    status = stat;
+    lock.unlock();
+    mark_modification();
+  }
+  
+  void DTR::set_error_status(DTRErrorStatus::DTRErrorStatusType error_stat,
+                             DTRErrorStatus::DTRErrorLocation error_loc,
+                             const std::string& desc)
+  {
+    lock.lock();
+    error_status = DTRErrorStatus(error_stat, status.GetStatus(), error_loc, desc);
+    lock.unlock();
+    mark_modification();
+  }
+
+  void DTR::reset_error_status()
+  {
+    lock.lock();
+    error_status = DTRErrorStatus();
+    lock.unlock();
+    mark_modification();
+  }
+
+  void DTR::set_cache_file(const std::string& filename)
+  {
+    cache_file = filename;
+    mark_modification();
+  }
+
+  void DTR::set_cache_state(CacheState state)
+  {
+    cache_state = state;
+    mark_modification();
+  }
+
+  void DTR::set_cancel_request()
+  {
+  	cancel_request = true;
+  	mark_modification();
+  }
+  
+  void DTR::set_process_time(const Arc::Period& process_time) {
+    Arc::Time t;
+    t = t + process_time;
+    next_process_time.SetTime(t.GetTime(), t.GetTimeNanosec());
+  }
+
+  static DTRCallback* get_callback(const std::map<StagingProcesses,DTRCallback*>& proc_callback, StagingProcesses owner) {
+    std::map<StagingProcesses,DTRCallback*>::const_iterator c = proc_callback.find(owner);
+    if(c == proc_callback.end()) return NULL;
+    return c->second;
+  }
+
+  void DTR::push(StagingProcesses new_owner)
+  {
+  	/* This function will contain necessary operations
+  	 * to pass the pointer to this DTR to another
+  	 * process and make sure that the process accepted it
+  	 * The real implementation will depend on the way of
+  	 * communication between processes we will choose
+  	 */
+    // TODO: put a lock around this to avoid race conditions
+
+    set_owner(new_owner);
+    DTRCallback* cb = get_callback(proc_callback,current_owner);
+    switch(current_owner) {
+      case GENERATOR: {
+        // call registered callback
+        if (cb)
+          cb->receive_dtr(*this);
+        else
+          logger->msg(Arc::INFO, "DTR %s: No generator callback defined", get_short_id());
+      } break;
+      case SCHEDULER: {
+        // do nothing here - scheduler will pick up new events itself
+      } break;
+      case PRE_PROCESSOR:
+      case POST_PROCESSOR: {
+        logger->msg(Arc::ERROR,"DTR %s: push(*_PROCESSOR) not implemented yet", get_short_id());
+        exit(1);
+        /*
+        if (cb)
+          cb->receive_dtr(*this);
+        else
+          logger->msg(Arc::INFO, "DTR %s: No post/pre-processor callback defined", get_short_id());
+        */
+      } break;
+      case DELIVERY: {
+        logger->msg(Arc::ERROR,"DTR %s: push(DELIVERY) not implemented yet", get_short_id());
+        exit(1);
+      } break;
+      default: // impossible
+        break;
+    }
+    mark_modification();
+  }
+  
+  bool DTR::suspend()
+  {
+    /* This function will contain necessary operations
+     * to stop the transfer in the DTR
+     */
+    mark_modification();
+    return true;
+  }
+  
+  bool DTR::is_destined_for_pre_processor() const {
+  	return (status == DTRStatus::PRE_CLEAN || status == DTRStatus::CHECK_CACHE ||
+  	   status == DTRStatus::RESOLVE || status == DTRStatus::QUERY_REPLICA ||
+  	   status == DTRStatus::STAGE_PREPARE);
+  }
+  
+  bool DTR::is_destined_for_post_processor() const {
+  	return (status == DTRStatus::RELEASE_REQUEST || status == DTRStatus::REGISTER_REPLICA ||
+  	   status == DTRStatus::PROCESS_CACHE);
+  }
+  
+  bool DTR::is_destined_for_delivery() const {
+  	return (status == DTRStatus::TRANSFER_WAIT);
+  }
+  
+  bool DTR::came_from_pre_processor() const {
+  	return (status == DTRStatus::PRE_CLEANED || status == DTRStatus::CACHE_WAIT ||
+   	   status == DTRStatus::CACHE_CHECKED || status == DTRStatus::RESOLVED ||
+   	   status == DTRStatus::REPLICA_QUERIED || 
+   	   status == DTRStatus::STAGING_PREPARING_WAIT || 
+   	   status == DTRStatus::STAGED_PREPARED);
+  }
+  
+  bool DTR::came_from_post_processor() const {
+  	return (status == DTRStatus::REQUEST_RELEASED || 
+  	   status == DTRStatus::REPLICA_REGISTERED ||
+   	   status == DTRStatus::CACHE_PROCESSED);
+  }
+  
+  bool DTR::came_from_delivery() const {
+  	return (status == DTRStatus::TRANSFERRED);
+  }
+  
+  bool DTR::came_from_generator() const {
+  	return (status == DTRStatus::NEW);
+  }
+  
+  bool DTR::is_in_final_state() const {
+  	return (status == DTRStatus::DONE || 
+  	   status == DTRStatus::CANCELLED ||
+   	   status == DTRStatus::ERROR);
+  }
+  
+  void DTR::set_transfer_share(std::string share_name) {
+  	lock.lock(); 
+  	transfershare = share_name;
+  	if (!sub_share.empty())
+  	  transfershare += "-" + sub_share;
+  	lock.unlock();
+  };
+
+  CacheParameters::CacheParameters(std::vector<std::string> caches,
+                  std::vector<std::string> remote_caches,
+                  std::vector<std::string> drain_caches):
+       cache_dirs(caches),
+       remote_cache_dirs(remote_caches),
+       drain_cache_dirs(drain_caches) {
+}
+
+std::ostream& operator<<(std::ostream& stream, const CacheParameters& obj) {
+  for(std::vector<std::string>::const_iterator d = obj.cache_dirs.begin();
+                      d != obj.cache_dirs.end();++d) {
+    stream<<"cache="<<*d<<std::endl;
+  };
+  for(std::vector<std::string>::const_iterator d = obj.remote_cache_dirs.begin();
+                      d != obj.remote_cache_dirs.end();++d) {
+    stream<<"remotecache="<<*d<<std::endl;
+  };
+  for(std::vector<std::string>::const_iterator d = obj.drain_cache_dirs.begin();
+                      d != obj.drain_cache_dirs.end();++d) {
+    stream<<"draincache="<<*d<<std::endl;
+  };
+  return stream;
+}
+
+std::istream& operator>>(std::istream& stream, CacheParameters& obj) {
+  obj.cache_dirs.clear();
+  obj.remote_cache_dirs.clear();
+  obj.drain_cache_dirs.clear();
+  std::string s;
+  while(std::getline(stream,s)) {
+    std::string::size_type p = s.find('=');
+    if(p == std::string::npos) continue;
+    std::string key = s.substr(0,p);
+    if(key == "cache") {
+      obj.cache_dirs.push_back(s.substr(p+1));
+    } else if(key == "remotecache") {
+      obj.remote_cache_dirs.push_back(s.substr(p+1));
+    } else if(key == "draincache") {
+      obj.drain_cache_dirs.push_back(s.substr(p+1));
+    };
+  };
+  return stream;
+}
+
+
+} // namespace DataStaging

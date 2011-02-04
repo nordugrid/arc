@@ -25,6 +25,7 @@
 #include "files/delete.h"
 #include "log/job_log.h"
 #include "run/run_parallel.h"
+#include "jobs/dtr_generator.h"
 
 #include "grid_manager.h"
 
@@ -318,9 +319,16 @@ static void grid_manager(void* arg) {
     user->CreateDirectories();
     user->get_jobs()->RestartJobs();
   };
-  /* main loop - forewer */
+  /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
+  if (env.jobs_cfg().GetNewDataStaging()) {
+    logger.msg(Arc::INFO, "Starting data staging threads");
+    if (!DTRGenerator::start(users)) {
+      logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
+      return;
+    }
+  }
   bool scan_old = false;
   for(;;) { 
     users.run_helpers();
@@ -387,8 +395,13 @@ GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):acti
 }
 
 GridManager::~GridManager(void) {
+  logger.msg(Arc::INFO, "Shutting down grid-manager thread");
   if(active_) {
-     // Stop GM thread
+    if (env_->jobs_cfg().GetNewDataStaging()) {
+      logger.msg(Arc::INFO, "Shutting down data staging threads");
+      DTRGenerator::stop();
+    }
+    // Stop GM thread
   }
 }
 

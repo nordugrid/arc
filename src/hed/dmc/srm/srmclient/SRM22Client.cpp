@@ -251,12 +251,13 @@ namespace Arc {
 
   SRMReturnCode SRM22Client::getTURLs(SRMClientRequest& creq,
                                       std::list<std::string>& urls) {
+
     // only one file requested at a time
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmPrepareToGet")
                   .NewChild("srmPrepareToGetRequest");
     req.NewChild("arrayOfFileRequests").NewChild("requestArray")
-    .NewChild("sourceSURL") = creq.surls().front();
+      .NewChild("sourceSURL") = creq.surls().front();
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
     protocols.NewChild("stringArray") = "gsiftp";
@@ -267,8 +268,10 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process(&request, &response);
-    if (status != SRM_OK)
+    if (status != SRM_OK) {
+      creq.finished_error();
       return status;
+    }
 
     XMLNode res = (*response)["srmPrepareToGetResponse"]
                   ["srmPrepareToGetResponse"];
@@ -282,66 +285,52 @@ namespace Arc {
 
     if (statuscode == SRM_REQUEST_QUEUED ||
         statuscode == SRM_REQUEST_INPROGRESS) {
-      // file is queued - need to wait and query with returned request token
-      int sleeptime = 1;
+      // file is queued - if asynchronous need to wait and query with returned request token
+      unsigned int sleeptime = 1;
       if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
         sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
                               ["estimatedWaitTime"]);
-      int request_time = 0;
 
-      while (statuscode != SRM_SUCCESS) {
+      if (creq.request_timeout() == 0) {
+        creq.wait(sleeptime);
+        delete response;
+        return SRM_OK;
+      }
+      unsigned int request_time = 0;
+      while (request_time < creq.request_timeout()) {
+  
         // sleep for recommended time (within limits)
         sleeptime = (sleeptime < 1) ? 1 : sleeptime;
-        sleeptime = (sleeptime > request_timeout - request_time) ?
-                    request_timeout - request_time : sleeptime;
+        sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
+                    creq.request_timeout() - request_time : sleeptime;
         logger.msg(VERBOSE, "%s: File request %s in SRM queue. "
                    "Sleeping for %i seconds", creq.surls().front(),
                    creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
-
-        PayloadSOAP request(ns);
-        XMLNode req = request.NewChild("SRMv2:srmStatusOfGetRequest")
-                      .NewChild("srmStatusOfGetRequestRequest");
-        req.NewChild("requestToken") = creq.request_token();
-
-        delete response;
-        response = NULL;
-        status = process(&request, &response);
-        if (status != SRM_OK)
-          return status;
-
-        res = (*response)["srmStatusOfGetRequestResponse"]
-              ["srmStatusOfGetRequestResponse"];
-
-        statuscode = GetStatus(res["returnStatus"], explanation);
-
-        if (statuscode == SRM_REQUEST_QUEUED ||
-            statuscode == SRM_REQUEST_INPROGRESS) {
-          // still queued - keep waiting -check for timeout
-          if (request_time >= request_timeout) {
-            logger.msg(ERROR,
-                       "PrepareToGet request timed out after %i seconds",
-                       request_timeout);
-            creq.finished_abort();
-            delete response;
-            return SRM_ERROR_TEMPORARY;
-          }
-          if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-            sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                                  ["estimatedWaitTime"]);
-        }
-        else if (statuscode != SRM_SUCCESS) {
-          logger.msg(ERROR, "%s", explanation);
+  
+        // get status of request
+        SRMReturnCode status_res = getTURLsStatus(creq, urls);
+        if (creq.status() != SRM_REQUEST_ONGOING) {
           delete response;
-          if (statuscode == SRM_INTERNAL_ERROR)
-            return SRM_ERROR_TEMPORARY;
-          return SRM_ERROR_PERMANENT;
+          return status_res;
         }
+
+        sleeptime = creq.waiting_time();
       }
-    }
+
+      // if we get here it means a timeout occurred
+      logger.msg(ERROR, "PrepareToGet request timed out after %i seconds", creq.request_timeout());
+      creq.finished_abort();
+      delete response;
+      return SRM_ERROR_TEMPORARY;
+  
+    } // if file queued
+  
     else if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      // any other return code is a failure
+      logger.msg(ERROR, explanation);
+      creq.finished_error();
       delete response;
       if (statuscode == SRM_INTERNAL_ERROR)
         return SRM_ERROR_TEMPORARY;
@@ -358,6 +347,58 @@ namespace Arc {
     delete response;
     return SRM_OK;
   }
+  
+  SRMReturnCode SRM22Client::getTURLsStatus(SRMClientRequest& creq,
+                                            std::list<std::string>& urls) {
+
+    PayloadSOAP request(ns);
+    XMLNode req = request.NewChild("SRMv2:srmStatusOfGetRequest")
+                  .NewChild("srmStatusOfGetRequestRequest");
+    req.NewChild("requestToken") = creq.request_token();
+
+    PayloadSOAP *response = NULL;
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK) {
+      creq.finished_abort();
+      return status;
+    }
+
+    XMLNode res = (*response)["srmStatusOfGetRequestResponse"]
+          ["srmStatusOfGetRequestResponse"];
+
+    std::string explanation;
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
+
+    if (statuscode == SRM_REQUEST_QUEUED ||
+        statuscode == SRM_REQUEST_INPROGRESS) {
+      // still queued - keep waiting
+      int sleeptime = 1;
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
+                              ["estimatedWaitTime"]);
+      creq.wait(sleeptime);
+    }
+    else if (statuscode != SRM_SUCCESS) {
+      // error
+      logger.msg(ERROR, explanation);
+      creq.finished_error();
+      delete response;
+      if (statuscode == SRM_INTERNAL_ERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
+    }
+    else {
+      // success, TURL is ready
+      std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
+                         ["transferURL"];
+      logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
+      urls.push_back(std::string(turl));
+
+      creq.finished_success();
+    }
+    delete response;
+    return SRM_OK;
+  }
 
   SRMReturnCode SRM22Client::requestBringOnline(SRMClientRequest& creq) {
     PayloadSOAP request(ns);
@@ -368,6 +409,7 @@ namespace Arc {
          it != surls.end(); ++it)
       req.NewChild("arrayOfFileRequests").NewChild("requestArray")
       .NewChild("sourceSURL") = *it;
+
     // should not be needed but dcache returns NullPointerException if
     // it is not given
     XMLNode protocols = req.NewChild("transferParameters")
@@ -378,6 +420,7 @@ namespace Arc {
     protocols.NewChild("stringArray") = "http";
     protocols.NewChild("stringArray") = "ftp";
     // store the user id as part of the request, so they can find it later
+
     std::string user = User().Name();
     if (!user.empty()) {
       logger.msg(VERBOSE, "Setting userRequestDescription to %s", user);
@@ -386,8 +429,10 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process(&request, &response);
-    if (status != SRM_OK)
+    if (status != SRM_OK) {
+      creq.finished_error();
       return status;
+    }
 
     XMLNode res = (*response)["srmPrepareToGetResponse"]
                   ["srmPrepareToGetResponse"];
@@ -410,14 +455,49 @@ namespace Arc {
     }
 
     if (statuscode == SRM_REQUEST_QUEUED) {
-      // all files have been queued - leave statuses as unknown
+      int sleeptime = 10;
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
+                        ["estimatedWaitTime"]);
+
+      if (creq.request_timeout() == 0) {
+        creq.wait(sleeptime);
+        delete response;
+        return SRM_OK;
+      }
+
+      unsigned int request_time = 0;
+      while (request_time < creq.request_timeout()) {
+        // sleep for recommended time (within limits)
+        sleeptime = (sleeptime < 1) ? 1 : sleeptime;
+        sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
+                    creq.request_timeout() - request_time : sleeptime;
+        logger.msg(VERBOSE, "%s: Bring online request %s in SRM queue. "
+                   "Sleeping for %i seconds", creq.surls().front(),
+                   creq.request_token(), sleeptime);
+        sleep(sleeptime);
+        request_time += sleeptime;
+
+        // get status of request
+        SRMReturnCode status_res = requestBringOnlineStatus(creq);
+        if (creq.status() != SRM_REQUEST_ONGOING) {
+          delete response;
+          return status_res;
+        }
+        sleeptime = creq.waiting_time();
+      }
+
+      // if we get here it means a timeout occurred
+      logger.msg(ERROR, "Bring online request timed out after %i seconds", creq.request_timeout());
+      creq.finished_abort();
       delete response;
-      return SRM_OK;
+      return SRM_ERROR_TEMPORARY;
     }
 
     if (statuscode == SRM_REQUEST_INPROGRESS) {
       // some files have been queued and some are online. check each file
       fileStatus(creq, res["arrayOfFileStatuses"]);
+      creq.wait();
       delete response;
       return SRM_OK;
     }
@@ -425,12 +505,13 @@ namespace Arc {
     if (statuscode == SRM_PARTIAL_SUCCESS) {
       // some files are already online, some failed. check each file
       fileStatus(creq, res["arrayOfFileStatuses"]);
+      creq.finished_partial_success();
       delete response;
       return SRM_OK;
     }
 
     // here means an error code was returned and all files failed
-    logger.msg(ERROR, "%s", explanation);
+    logger.msg(ERROR, explanation);
     creq.finished_error();
     delete response;
     if (statuscode == SRM_INTERNAL_ERROR)
@@ -441,6 +522,7 @@ namespace Arc {
   SRMReturnCode SRM22Client::requestBringOnlineStatus(SRMClientRequest& creq) {
     if (creq.request_token().empty()) {
       logger.msg(ERROR, "No request token specified!");
+      creq.finished_abort();
       return SRM_ERROR_OTHER;
     }
 
@@ -451,8 +533,10 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process(&request, &response);
-    if (status != SRM_OK)
+    if (status != SRM_OK) {
+      creq.finished_abort();
       return status;
+    }
 
     XMLNode res = (*response)["srmStatusOfBringOnlineRequestResponse"]
                   ["srmStatusOfBringOnlineRequestResponse"];
@@ -470,6 +554,11 @@ namespace Arc {
 
     if (statuscode == SRM_REQUEST_QUEUED) {
       // all files are in the queue - leave statuses as they are
+      int sleeptime = 1;
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
+                        ["estimatedWaitTime"]);
+      creq.wait(sleeptime);
       delete response;
       return SRM_OK;
     }
@@ -477,6 +566,11 @@ namespace Arc {
     if (statuscode == SRM_REQUEST_INPROGRESS) {
       // some files have been queued and some are online. check each file
       fileStatus(creq, res["arrayOfFileStatuses"]);
+      int sleeptime = 1;
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
+                        ["estimatedWaitTime"]);
+      creq.wait(sleeptime);
       delete response;
       return SRM_OK;
     }
@@ -517,8 +611,7 @@ namespace Arc {
     }
 
     // here means an error code was returned and all files failed
-    // return error, but may be retryable by client
-    logger.msg(ERROR, "%s", explanation);
+    logger.msg(ERROR, explanation);
     fileStatus(creq, res["arrayOfFileStatuses"]);
     creq.finished_error();
     delete response;
@@ -558,8 +651,7 @@ namespace Arc {
   }
 
   SRMReturnCode SRM22Client::putTURLs(SRMClientRequest& creq,
-                                      std::list<std::string>& urls,
-                                      const unsigned long long size) {
+                                      std::list<std::string>& urls) {
     // only one file requested at a time
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmPrepareToPut")
@@ -567,7 +659,7 @@ namespace Arc {
     XMLNode reqarray = req.NewChild("arrayOfFileRequests")
                        .NewChild("requestArray");
     reqarray.NewChild("targetSURL") = creq.surls().front();
-    reqarray.NewChild("expectedFileSize") = tostring(size);
+    reqarray.NewChild("expectedFileSize") = tostring(creq.total_size());
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
     protocols.NewChild("stringArray") = "gsiftp";
@@ -582,8 +674,10 @@ namespace Arc {
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process(&request, &response);
-    if (status != SRM_OK)
+    if (status != SRM_OK) {
+      creq.finished_error();
       return status;
+    }
 
     XMLNode res = (*response)["srmPrepareToPutResponse"]
                   ["srmPrepareToPutResponse"];
@@ -598,82 +692,77 @@ namespace Arc {
     if (statuscode == SRM_REQUEST_QUEUED ||
         statuscode == SRM_REQUEST_INPROGRESS) {
       // file is queued - need to wait and query with returned request token
-      int sleeptime = 1;
+      unsigned int sleeptime = 1;
       if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
         sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
                               ["estimatedWaitTime"]);
-      int request_time = 0;
+      unsigned int request_time = 0;
 
-      while (statuscode != SRM_SUCCESS) {
+      if (creq.request_timeout() == 0) {
+        creq.wait(sleeptime);
+        delete response;
+        return SRM_OK;
+      };
+
+      while (request_time < creq.request_timeout()) {
+
         // sleep for recommended time (within limits)
         sleeptime = (sleeptime < 1) ? 1 : sleeptime;
-        sleeptime = (sleeptime > request_timeout - request_time) ?
-                    request_timeout - request_time : sleeptime;
+        sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
+                    creq.request_timeout() - request_time : sleeptime;
         logger.msg(VERBOSE, "%s: File request %s in SRM queue. "
                    "Sleeping for %i seconds", creq.surls().front(),
                    creq.request_token(), sleeptime);
+
         sleep(sleeptime);
         request_time += sleeptime;
 
-        PayloadSOAP request(ns);
-        XMLNode req = request.NewChild("SRMv2:srmStatusOfPutRequest")
-                      .NewChild("srmStatusOfPutRequestRequest");
-        req.NewChild("requestToken") = creq.request_token();
-
-        delete response;
-        response = NULL;
-        status = process(&request, &response);
-        if (status != SRM_OK)
-          return status;
-
-        res = (*response)["srmStatusOfPutRequestResponse"]
-              ["srmStatusOfPutRequestResponse"];
-
-        statuscode = GetStatus(res["returnStatus"], explanation);
-
-        // loop will exit on success or return false on error
-        if (statuscode == SRM_REQUEST_QUEUED ||
-            statuscode == SRM_REQUEST_INPROGRESS) {
-          // still queued - keep waiting - check for timeout
-          if (request_time >= request_timeout) {
-            logger.msg(ERROR,
-                       "PrepareToPut request timed out after %i seconds",
-                       request_timeout);
-            creq.finished_abort();
-            delete response;
-            return SRM_ERROR_TEMPORARY;
-          }
-          if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
-            sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
-                                  ["estimatedWaitTime"]);
-        }
-        else if (statuscode != SRM_SUCCESS) {
-          std::string statusexplanation;
-          SRMStatusCode status = GetStatus(res["arrayOfFileStatuses"]
-                                           ["statusArray"]["status"],
-                                           statusexplanation);
-          if (status == SRM_INVALID_PATH) {
-            // make directories
-            logger.msg(VERBOSE,
-                       "Path %s is invalid, creating required directories",
-                       creq.surls().front());
-            SRMReturnCode mkdirres = mkDir(creq);
-            delete response;
-            if (mkdirres == SRM_OK)
-              return putTURLs(creq, urls, size);
-            logger.msg(ERROR, "Error creating required directories for %s",
-                       creq.surls().front());
-            return mkdirres;
-          }
-          if (res["arrayOfFileStatuses"]["statusArray"]["status"])
-            logger.msg(ERROR, "%s", statusexplanation);
-          logger.msg(ERROR, "%s", explanation);
+        // get status of request
+        SRMReturnCode status_res = putTURLsStatus(creq, urls);
+        if (creq.status() != SRM_REQUEST_ONGOING) {
           delete response;
-          if (statuscode == SRM_INTERNAL_ERROR)
-            return SRM_ERROR_TEMPORARY;
-          return SRM_ERROR_PERMANENT;
+          return status_res;
         }
+        sleeptime = creq.waiting_time();
       }
+
+      // if we get here it means a timeout occurred
+      logger.msg(ERROR, "PrepareToPut request timed out after %i seconds", creq.request_timeout());
+      creq.finished_abort();
+      delete response;
+      return SRM_ERROR_TEMPORARY;
+
+    } // if file queued
+  
+    else if (statuscode != SRM_SUCCESS) {
+      std::string statusexplanation;
+      SRMStatusCode status = GetStatus(res["arrayOfFileStatuses"]
+                                       ["statusArray"]["status"],
+                                       statusexplanation);
+      if (status == SRM_INVALID_PATH) {
+        // make directories
+        logger.msg(VERBOSE,
+                   "Path %s is invalid, creating required directories",
+                   creq.surls().front());
+        SRMReturnCode mkdirres = mkDir(creq);
+        delete response;
+        if (mkdirres == SRM_OK)
+          return putTURLs(creq, urls);
+        logger.msg(ERROR, "Error creating required directories for %s",
+                   creq.surls().front());
+        creq.finished_error();
+        return mkdirres;
+      }
+
+      if (res["arrayOfFileStatuses"]["statusArray"]["status"])
+        logger.msg(ERROR, statusexplanation);
+      logger.msg(ERROR, explanation);
+      creq.finished_error();
+      delete response;
+      if (statuscode == SRM_INTERNAL_ERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
+
     }
     else if (statuscode != SRM_SUCCESS) {
       // check individual file statuses
@@ -689,14 +778,16 @@ namespace Arc {
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
         if (mkdirres == SRM_OK)
-          return putTURLs(creq, urls, size);
+          return putTURLs(creq, urls);
         logger.msg(ERROR, "Error creating required directories for %s",
                    creq.surls().front());
+        creq.finished_error();
         return mkdirres;
       }
       if (res["arrayOfFileStatuses"]["statusArray"]["status"])
-        logger.msg(ERROR, "%s", statusexplanation);
-      logger.msg(ERROR, "%s", explanation);
+        logger.msg(ERROR, statusexplanation);
+      logger.msg(ERROR, explanation);
+      creq.finished_error();
       delete response;
       if (statuscode == SRM_INTERNAL_ERROR)
         return SRM_ERROR_TEMPORARY;
@@ -710,6 +801,77 @@ namespace Arc {
 
     urls.push_back(turl);
     creq.finished_success();
+    delete response;
+    return SRM_OK;
+  }
+  
+  SRMReturnCode SRM22Client::putTURLsStatus(SRMClientRequest& creq,
+                                            std::list<std::string>& urls) {
+
+    PayloadSOAP request(ns);
+    XMLNode req = request.NewChild("SRMv2:srmStatusOfPutRequest")
+                  .NewChild("srmStatusOfPutRequestRequest");
+    req.NewChild("requestToken") = creq.request_token();
+
+    PayloadSOAP *response = NULL;
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK) {
+      creq.finished_abort();
+      return status;
+    }
+
+    XMLNode res = (*response)["srmStatusOfPutRequestResponse"]
+          ["srmStatusOfPutRequestResponse"];
+
+    std::string explanation;
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
+
+    if (statuscode == SRM_REQUEST_QUEUED ||
+        statuscode == SRM_REQUEST_INPROGRESS) {
+      // still queued - keep waiting
+      int sleeptime = 1;
+      if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
+        sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
+                              ["estimatedWaitTime"]);
+      creq.wait(sleeptime);
+    }
+    else if (statuscode != SRM_SUCCESS) {
+      // error
+      // check individual file statuses
+      std::string statusexplanation;
+      SRMStatusCode status = GetStatus(res["arrayOfFileStatuses"]
+                                       ["statusArray"]["status"],
+                                       statusexplanation);
+      if (status == SRM_INVALID_PATH) {
+        // make directories
+        logger.msg(VERBOSE,
+                   "Path %s is invalid, creating required directories",
+                   creq.surls().front());
+        SRMReturnCode mkdirres = mkDir(creq);
+        delete response;
+        if (mkdirres == SRM_OK)
+          return putTURLs(creq, urls);
+        logger.msg(ERROR, "Error creating required directories for %s",
+                   creq.surls().front());
+        creq.finished_error();
+        return mkdirres;
+      }
+      logger.msg(ERROR, explanation);
+      creq.finished_error();
+      delete response;
+      if (statuscode == SRM_INTERNAL_ERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
+    }
+    else {
+      // success, TURL is ready
+      std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]
+                         ["transferURL"];
+      logger.msg(VERBOSE, "File is ready! TURL is %s", turl);
+      urls.push_back(std::string(turl));
+
+      creq.finished_success();
+    }
     delete response;
     return SRM_OK;
   }
@@ -765,9 +927,9 @@ namespace Arc {
              statuscode == SRM_REQUEST_INPROGRESS) {
       // file is queued - need to wait and query with returned request token
       int sleeptime = 1;
-      int request_time = 0;
+      unsigned int request_time = 0;
 
-      while (statuscode != SRM_SUCCESS && request_time < request_timeout) {
+      while (statuscode != SRM_SUCCESS && request_time < creq.request_timeout()) {
         // sleep for some time (no estimated time is given by the server)
         logger.msg(VERBOSE,
                    "%s: File request %s in SRM queue. Sleeping for %i seconds",
@@ -809,9 +971,9 @@ namespace Arc {
       }
 
       // check for timeout
-      if (request_time >= request_timeout) {
+      if (request_time >= creq.request_timeout()) {
         logger.msg(ERROR, "Ls request timed out after %i seconds",
-                   request_timeout);
+                   creq.request_timeout());
         abort(creq);
         delete response;
         return SRM_ERROR_TEMPORARY;
@@ -1319,7 +1481,7 @@ namespace Arc {
 
     // set timeout for copying. Since we don't know the progress of the
     // transfer we hard code a value 10 x the request timeout
-    time_t copy_timeout = request_timeout * 10;
+    time_t copy_timeout = creq.request_timeout() * 10;
 
     if (statuscode == SRM_REQUEST_QUEUED ||
         statuscode == SRM_REQUEST_INPROGRESS) {

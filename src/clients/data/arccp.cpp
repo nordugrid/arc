@@ -11,6 +11,7 @@
 #include <sys/types.h>
 
 #include <arc/ArcLocation.h>
+#include <arc/GUID.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
@@ -447,12 +448,16 @@ bool arccp(const Arc::URL& source_url_,
   }
   Arc::FileCache cache;
   Arc::User cache_user;
+  std::string job_id(Arc::UUID());
   // always copy to destination rather than link
-  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", "", cache_user.get_uid(), cache_user.get_gid());
+  if (!cache_dir.empty()) cache = Arc::FileCache(cache_dir+" .", job_id, cache_user.get_uid(), cache_user.get_gid());
   if (verbose)
     mover.set_progress_indicator(&progress);
   Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                        0, 0, 0, timeout);
+  // clean up joblinks created during cache procedure
+  if (cache)
+    cache.Release();
   if (!res.Passed()) {
     if (!res.GetDesc().empty())
       logger.msg(Arc::ERROR, "Transfer FAILED: %s - %s", std::string(res), res.GetDesc());

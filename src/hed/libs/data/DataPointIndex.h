@@ -35,6 +35,7 @@ namespace Arc {
                                const URLMap& url_map);
 
     virtual bool IsIndex() const;
+    virtual bool IsStageable() const;
     virtual bool AcceptsMeta();
     virtual bool ProvidesMeta();
     virtual void SetMeta(const DataPoint& p);
@@ -49,12 +50,18 @@ namespace Arc {
     virtual int BufNum() const;
     virtual bool Local() const;
     virtual bool ReadOnly() const;
-
+    virtual DataStatus PrepareReading(unsigned int timeout,
+                                      unsigned int& wait_time);
+    virtual DataStatus PrepareWriting(unsigned int timeout,
+                                      unsigned int& wait_time);
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
+    virtual DataStatus FinishReading(bool error = false);
+    virtual DataStatus FinishWriting(bool error = false);
+    virtual std::vector<URL> TransferLocations() const;
 
     virtual DataStatus Check();
 

@@ -83,20 +83,33 @@ namespace Arc {
 
     /**
      * Get a list of TURLs for the given SURL. Uses srmPrepareToGet and waits
-     * until file is ready (online and pinned). Although a list is returned,
+     * until file is ready (online and pinned) if the request is synchronous.
+     * If not it returns after making the request. Although a list is returned,
      * SRMv2.2 only returns one TURL per SURL.
      */
     SRMReturnCode getTURLs(SRMClientRequest& req,
                            std::list<std::string>& urls);
 
     /**
+     * Uses srmStatusOfGetRequest to query the status of the given request.
+     */
+    SRMReturnCode getTURLsStatus(SRMClientRequest& req,
+                                 std::list<std::string>& urls);
+
+    /**
      * Retrieve TURLs which a file can be written to. Uses srmPrepareToPut and
-     * waits until a suitable TURL has been assigned. Although a list is
-     * returned, SRMv2.2 only returns one TURL per SURL.
+     * waits until a suitable TURL has been assigned if the request is
+     * synchronous. If not it returns after making the request. Although a
+     * list is returned, SRMv2.2 only returns one TURL per SURL.
      */
     SRMReturnCode putTURLs(SRMClientRequest& req,
-                           std::list<std::string>& urls,
-                           const unsigned long long size = 0);
+                           std::list<std::string>& urls);
+  
+   /**
+     * Uses srmStatusOfPutRequest to query the status of the given request.
+     */
+    SRMReturnCode putTURLsStatus(SRMClientRequest& req,
+                                 std::list<std::string>& urls);
 
     /**
      * Call srmBringOnline with the SURLs specified in req.
