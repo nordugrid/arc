@@ -377,7 +377,7 @@ attributes depending on how the mapping should be done.
         <arex:debugLevel inisections="arex/info" initag="loglevel" inidefaultvalue="WARNING"/>
 
         <ip:ClusterName inisections="arex/info" initag="clustername"/>
-        <ip:OtherInfo inisections="arex/info" initag="otherinfo"/>
+        <ip:OtherInfo initype="multi" inisections="arex/info" initag="otherinfo"/>
         <ip:AdminDomain inisections="arex/info" initag="admindomain"/>
         <ip:StatusInfo initype="multi" inisections="arex/info" initag="statusinfo"/>
         <ip:Benchmark initype="multi" inisections="arex/info" initag="benchmark"/>
@@ -388,9 +388,9 @@ attributes depending on how the mapping should be done.
         <ip:PublishNordugrid initokenenables="arex/info/nordugrid">yes</ip:PublishNordugrid>
         <ip:ClusterOwner initype="multi" inisections="arex/info/nordugrid" initag="clusterowner"/>
         <ip:OpSys initype="multi" inisections="arex/info/nordugrid" initag="operatingsystem"/>
-        <ip:Middleware inisections="arex/info/nordugrid" initag="middleware"/>
-        <ip:LocalSE inisections="arex/info/nordugrid" initag="localse"/>
-        <ip:InteractiveContactstring inisections="arex/info/nordugrid" initag="intcontactstring"/>
+        <ip:Middleware initype="multi" inisections="arex/info/nordugrid" initag="middleware"/>
+        <ip:LocalSE initype="multi" inisections="arex/info/nordugrid" initag="localse"/>
+        <ip:InteractiveContactstring initype="multi" inisections="arex/info/nordugrid" initag="intcontactstring"/>
         <!-- end legacy options -->
 
         <ip:Location initokenenables="arex/info/location">
@@ -405,7 +405,7 @@ attributes depending on how the mapping should be done.
 
         <ip:Contact initype="multisection" initokenenables="arex/info/contact" inisections="arex/info/contact">
           <ip:Name inisections="#this" initag="name"/>
-          <ip:OtherInfo inisections="#this" initag="otherinfo"/>
+          <ip:OtherInfo initype="multi" inisections="#this" initag="otherinfo"/>
           <ip:Detail inisections="#this" initag="detail"/>
           <ip:Type inisections="#this" initag="type"/>
         </ip:Contact>
@@ -415,12 +415,12 @@ attributes depending on how the mapping should be done.
 
           <ip:NodeSelection>
             <ip:Regex initype="multi" inisections="#this" initag="nodeselectionregex"/>
-            <ip:Tag inisections="#this" initag="nodeselectiontag"/>
-            <ip:Command inisections="#this" initag="nodeselectioncommand"/>
+            <ip:Tag initype="multi" inisections="#this" initag="nodeselectiontag"/>
+            <ip:Command initype="multi" inisections="#this" initag="nodeselectioncommand"/>
           </ip:NodeSelection>
 
           <ip:Homogeneous inisections="#this" initag="homogeneous"/>
-          <ip:OtherInfo inisections="#this" initag="otherinfo"/>
+          <ip:OtherInfo initype="multi" inisections="#this" initag="otherinfo"/>
           <ip:PhysicalCPUs inisections="#this" initag="physicalcpus"/>
           <ip:LogicalCPUs inisections="#this" initag="logicalcpus"/>
           <ip:VirtualMachine inisections="#this" initag="virtualmachine"/>
@@ -445,7 +445,7 @@ attributes depending on how the mapping should be done.
         <ip:ComputingShare initype="multisection" inisections="arex/info/share">
           <name initype="attribute" inisections="#this" initag="name"/>
           <ip:Description inisections="#this" initag="description"/>
-          <ip:OtherInfo inisections="#this" initag="otherinfo"/>
+          <ip:OtherInfo initype="multi" inisections="#this" initag="otherinfo"/>
           <ip:MappingQueue inisections="#this" initag="mappingqueue"/>
           <ip:ExecutionEnvironmentName initype="multi" inisections="#this" initag="executionenvironment"/>
           <ip:AuthorizedVO initype="multi" inisections="#this" initag="authorizedvo"/>

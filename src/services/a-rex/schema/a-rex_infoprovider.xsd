@@ -177,7 +177,7 @@
             <xsd:element name="ConnectivityIn" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="ConnectivityOut" type="xsd:boolean" minOccurs="0"/>
             <xsd:element ref="Benchmark" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element ref="OpSys" minOccurs="0"/>
+            <xsd:element ref="OpSys" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     <xsd:attribute name="name" use="required"/>
 </xsd:complexType>
