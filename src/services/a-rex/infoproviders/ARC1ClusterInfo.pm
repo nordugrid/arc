@@ -1180,11 +1180,11 @@ sub collect($) {
                 $cmgr->{CacheFree} = $gigsfree;
             }
 
-            if (my $bconfs = $config->{service}{Benchmark}) {
-                my $i = 0;
+            if ($config->{service}{Benchmark}) {
+                my @bconfs = @{$config->{service}{Benchmark}};
                 $cmgr->{Benchmarks} = sub {
-                    return undef unless $i < length @$bconfs;
-                    my ($type, $value) = split " ", $bconfs->[$i++];
+                    return undef unless @bconfs;
+                    my ($type, $value) = split " ", shift @bconfs;
                     my $bench = {};
                     $bench->{Type} = $type;
                     $bench->{Value} = $value;
@@ -1275,11 +1275,11 @@ sub collect($) {
                     $log->info("Missing attributes for ExecutionEnvironment $xenv: ".join ", ", @missing) if @missing;
                 }
 
-                if (my $bconfs = $xeconfig->{Benchmark}) {
-                    my $i = 0;
+                if ($xeconfig->{Benchmark}) {
+                    my @bconfs = @{$xeconfig->{Benchmark}};
                     $execenv->{Benchmarks} = sub {
-                        return undef unless $i < length @$bconfs;
-                        my ($type, $value) = split " ", $bconfs->[$i++];
+                        return undef unless @bconfs;
+                        my ($type, $value) = split " ", shift @bconfs;
                         my $bench = {};
                         $bench->{Type} = $type;
                         $bench->{Value} = $value;

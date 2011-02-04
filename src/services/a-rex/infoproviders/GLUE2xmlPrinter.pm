@@ -280,6 +280,7 @@ sub ExecutionEnvironments {
                                      ConnectivityIn
                                      ConnectivityOut
                                      NetworkInfo ));
+        $self->Benchmarks($data->{Benchmarks});
         if ($data->{ComputingShareID}
          or $data->{ComputingActivityID}
          or $data->{ApplicationEnvironmentID})
