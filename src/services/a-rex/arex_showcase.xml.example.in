@@ -333,7 +333,7 @@ appropiate.
               <ip:Description>Condor pool for PGS</ip:Description>
               <ip:OtherInfo>High priority queue</ip:OtherInfo>
               <ip:MappingQueue>knowarc</ip:MappingQueue>
-              <ip:ExecEnvName>dualcore</ip:ExecEnvName>
+              <ip:ExecutionEnvironmentName>dualcore</ip:ExecutionEnvironmentName>
               <ip:AuthorizedVO>knowarc.org</ip:AuthorizedVO>
               <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>
               <ip:MaxVirtualMemory>2000</ip:MaxVirtualMemory>
@@ -350,8 +350,8 @@ appropiate.
 
           <ip:ComputingShare name="atlas">
               <ip:Description>Condor pool - test of Atlas VO</ip:Description>
-              <ip:ExecEnvName>doublequadcore</ip:ExecEnvName>
-              <ip:ExecEnvName>dualcore</ip:ExecEnvName>
+              <ip:ExecutionEnvironmentName>doublequadcore</ip:ExecutionEnvironmentName>
+              <ip:ExecutionEnvironmentName>dualcore</ip:ExecutionEnvironmentName>
               <ip:AuthorizedVO>ATLAS/no</ip:AuthorizedVO>
               <ip:AuthorizedVO>ATLAS/Role=production</ip:AuthorizedVO>
               <ip:MaxSlotsPerJob>1</ip:MaxSlotsPerJob>

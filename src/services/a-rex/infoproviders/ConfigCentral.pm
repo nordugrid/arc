@@ -184,7 +184,7 @@ my $config_schema = {
             Description => '*',
             OtherInfo => [ '*' ],
             MappingQueue => '*',
-            ExecEnvName => [ '' ],
+            ExecutionEnvironmentName => [ '' ],
             %$share_options,
             %$lrms_share_options,
         }
@@ -354,7 +354,7 @@ sub build_config_from_xmlfile {
     # corresponding to multivalued options are left untouched.
     my @multival = qw(cache location remotelocation control sessionRootDir
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
-                      StatusInfo Regex Command Tag ExecEnvName AuthorizedVO
+                      StatusInfo Regex Command Tag ExecutionEnvironmentName AuthorizedVO
                       Contact ExecutionEnvironment ComputingShare
                       InteractiveContactstring);
     hash_tree_apply $arex, sub { my $h = shift;
@@ -595,12 +595,12 @@ sub build_config_from_inifile {
 
         my $sconf = $config->{shares}{$name} ||= {};
         my $xeconf = $config->{xenvs}{$name} ||= {};
-        push @{$sconf->{ExecEnvName}}, $name;
+        push @{$sconf->{ExecutionEnvironmentName}}, $name;
 
         $log->error("MappingQuue option only allowed under ComputingShare section") if $queue->{MappingQuue};
         delete $queue->{MappingQueue};
-        $log->error("ExecEnvName option only allowed under ComputingShare section") if $queue->{ExecEnvName};
-        delete $queue->{ExecEnvName};
+        $log->error("ExecutionEnvironmentName option only allowed under ComputingShare section") if $queue->{ExecutionEnvironmentName};
+        delete $queue->{ExecutionEnvironmentName};
         $log->error("NodeSelection option only allowed under ExecutionEnvironment section") if $queue->{NodeSelection};
         delete $queue->{NodeSelection};
 

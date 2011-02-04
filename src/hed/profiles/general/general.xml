@@ -447,7 +447,7 @@ attributes depending on how the mapping should be done.
           <ip:Description inisections="#this" initag="description"/>
           <ip:OtherInfo inisections="#this" initag="otherinfo"/>
           <ip:MappingQueue inisections="#this" initag="mappingqueue"/>
-          <ip:ExecEnvName initype="multi" inisections="#this" initag="execenvname"/>
+          <ip:ExecutionEnvironmentName initype="multi" inisections="#this" initag="executionenvironment"/>
           <ip:AuthorizedVO initype="multi" inisections="#this" initag="authorizedvo"/>
           <ip:MaxVirtualMemory inisections="#this" initag="maxvirtualmemory"/>
           <ip:MaxSlotsPerJob inisections="#this" initag="maxslotsperjob"/>

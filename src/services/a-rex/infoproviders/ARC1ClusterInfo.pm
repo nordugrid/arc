@@ -1094,7 +1094,7 @@ sub collect($) {
 
             # Associations
 
-            my $xenvs = $sconfig->{ExecEnvName} || [];
+            my $xenvs = $sconfig->{ExecutionEnvironmentName} || [];
             push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
 
             $csha->{ComputingEndpointID} = $cepID;
@@ -1292,8 +1292,8 @@ sub collect($) {
 
                 for my $share (keys %{$config->{shares}}) {
                     my $sconfig = $config->{shares}{$share};
-                    next unless $sconfig->{ExecEnvName};
-                    next unless grep { $xenv eq $_ } @{$sconfig->{ExecEnvName}};
+                    next unless $sconfig->{ExecutionEnvironmentName};
+                    next unless grep { $xenv eq $_ } @{$sconfig->{ExecutionEnvironmentName}};
                     push @{$execenv->{ComputingShareID}}, $cshaIDs{$share};
                 }
 

@@ -1,8 +1,7 @@
 package ARC0ClusterInfo;
 
 # This information collector combines the output of the other information collectors
-# and prepares info modelled on the classic Nordugrid information schema
-# (arc0).
+# and prepares info modelled on the classic Nordugrid information schema (arc0).
 
 use POSIX;
 use Storable;
@@ -261,8 +260,8 @@ sub collect($) {
             # merge cluster wide and queue-specific options
             my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
 
-            $sconfig->{ExecEnvName} ||= [];
-            my @nxenvs = @{$sconfig->{ExecEnvName}};
+            $sconfig->{ExecutionEnvironmentName} ||= [];
+            my @nxenvs = @{$sconfig->{ExecutionEnvironmentName}};
 
             if (@nxenvs) {
                 my $xeconfig = $config->{xenvs}{$nxenvs[0]};

@@ -161,7 +161,7 @@
           <ip:ComputingShare name="fork">
               <ip:Description>just a fork queue</ip:Description>
               <ip:MappingQueue>fork</ip:MappingQueue>
-              <ip:ExecEnvName>localhost</ip:ExecEnvName>
+              <ip:ExecutionEnvironmentName>localhost</ip:ExecutionEnvironmentName>
               <ip:OSName>centos</ip:OSName>
               <ip:OSVersion>5.1</ip:OSVersion>
               <ip:AuthorizedVO>nordugrid.org</ip:AuthorizedVO>

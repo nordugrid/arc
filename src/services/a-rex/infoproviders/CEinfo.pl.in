@@ -394,8 +394,8 @@ sub check_config {
 
     # Cross-check ExecutionEnvironment references
     for my $s (values %{$config->{shares}}) {
-        next unless $s->{ExecEnvName};
-        for my $group (@{$s->{ExecEnvName}}) {
+        next unless $s->{ExecutionEnvironmentName};
+        for my $group (@{$s->{ExecutionEnvironmentName}}) {
             $log->error("No such ExecutionEnvironment: $group")
                 unless $config->{xenvs}{$group};
         }

@@ -192,7 +192,7 @@
        <xsd:element name="Description" type="xsd:string" minOccurs="0"/>
        <xsd:element name="OtherInfo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
        <xsd:element name="MappingQueue" type="xsd:string" minOccurs="0"/>
-       <xsd:element name="ExecEnvName" type="xsd:string" maxOccurs="unbounded"/>
+       <xsd:element name="ExecutionEnvironmentName" type="xsd:string" maxOccurs="unbounded"/>
        <xsd:element ref="AuthorizedVO" minOccurs="0" maxOccurs="unbounded"/>
        <xsd:element ref="MaxVirtualMemory" minOccurs="0"/>
        <xsd:element ref="MaxSlotsPerJob" minOccurs="0"/>
