@@ -185,9 +185,6 @@ namespace Arc {
           out << IString(" CredentialService: %s", iter->str()) << std::endl;
       }
 
-      if (Application.Join)
-        out << " Join: true" << std::endl;
-
       INTPRINT(out, Resources.TotalCPUTime.range.max, TotalCPUTime)
       INTPRINT(out, Resources.IndividualCPUTime.range.max, IndividualCPUTime)
       INTPRINT(out, Resources.TotalWallTime.range.max, TotalWallTime)

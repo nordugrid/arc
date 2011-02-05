@@ -41,6 +41,7 @@ namespace Arc {
     static bool ParseExecutablesAttribute(JobDescription& j);
     static bool ParseFTPThreadsAttribute(JobDescription& j);
     static bool ParseCacheAttribute(JobDescription& j);
+    static bool ParseJoinAttribute(JobDescription& j);
   };
 
 } // namespace Arc

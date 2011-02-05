@@ -159,6 +159,28 @@ namespace Arc {
     return true;
   }
 
+  bool XRSLParser::ParseJoinAttribute(JobDescription& j) {
+    std::map<std::string, std::string>::iterator itAtt;
+    itAtt = j.OtherAttributes.find("nordugrid:xrsl;join");
+    if (itAtt == j.OtherAttributes.end() || (itAtt->second != "yes" && itAtt->second != "true")) {
+      return true;
+    }
+
+    if (j.Application.Output.empty()) {
+      logger.msg(ERROR, "Xrsl attribute join is set but attribute stdout is not set");
+      return false;
+    }
+    
+    if (!j.Application.Error.empty()) {
+      logger.msg(ERROR, "Xrsl attribute join is set but attribute stderr is also set");
+      return false;
+    }
+
+    j.Application.Error = j.Application.Output;
+
+    return true;
+  }
+
   bool XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
@@ -196,6 +218,9 @@ namespace Arc {
       if (!ParseCacheAttribute(jobdescs.back())) {
         return false;
       }
+      if (!ParseJoinAttribute(jobdescs.back())) {
+        return false;
+      }
       for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
            itJob != jobdescs.back().GetAlternatives().end(); itJob++) {
         if (!ParseExecutablesAttribute(*itJob)) {
@@ -205,6 +230,9 @@ namespace Arc {
           return false;
         }
         if (!ParseCacheAttribute(*itJob)) {
+          return false;
+        }
+        if (!ParseJoinAttribute(*itJob)) {
           return false;
         }
       }
@@ -813,15 +841,16 @@ namespace Arc {
 
       if (c->Attr() == "join") {
         std::string join;
-        if (!SingleValue(c, join))
+        if (!SingleValue(c, join)) {
           return false;
-        j.Application.Join = (lower(join) == "yes");
-
-        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
-             it != j.GetAlternatives().end(); it++) {
-          it->Application.Join = (lower(join) == "yes");
         }
 
+        j.OtherAttributes["nordugrid:xrsl;join"] = join;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->OtherAttributes["nordugrid:xrsl;join"] = join;
+        }
+  
         return true;
       }
 
@@ -1198,34 +1227,17 @@ namespace Arc {
       l->Add(new RSLLiteral(j.Application.Input));
       r.Add(new RSLCondition("stdin", RSLEqual, l));
     }
-
-    if (j.Application.Join) {
-      if (!j.Application.Output.empty() && !j.Application.Error.empty() && j.Application.Output != j.Application.Error) {
-        logger.msg(ERROR, "Incompatible RSL attributes");
-        return "";
-      }
-      if (!j.Application.Output.empty() || !j.Application.Error.empty()) {
-        const std::string& eo = !j.Application.Output.empty() ? j.Application.Output : j.Application.Error;
-        RSLList *l1 = new RSLList;
-        l1->Add(new RSLLiteral(eo));
-        r.Add(new RSLCondition("stdout", RSLEqual, l1));
-        RSLList *l2 = new RSLList;
-        l2->Add(new RSLLiteral(eo));
-        r.Add(new RSLCondition("stderr", RSLEqual, l2));
-      }
+    
+    if (!j.Application.Output.empty()) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(j.Application.Output));
+      r.Add(new RSLCondition("stdout", RSLEqual, l));
     }
-    else {
-      if (!j.Application.Output.empty()) {
-        RSLList *l = new RSLList;
-        l->Add(new RSLLiteral(j.Application.Output));
-        r.Add(new RSLCondition("stdout", RSLEqual, l));
-      }
 
-      if (!j.Application.Error.empty()) {
-        RSLList *l = new RSLList;
-        l->Add(new RSLLiteral(j.Application.Error));
-        r.Add(new RSLCondition("stderr", RSLEqual, l));
-      }
+    if (!j.Application.Error.empty()) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(j.Application.Error));
+      r.Add(new RSLCondition("stderr", RSLEqual, l));
     }
 
     if (j.Resources.TotalCPUTime.range > -1) {

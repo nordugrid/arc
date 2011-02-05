@@ -262,9 +262,6 @@ namespace Arc {
     else if (bool(xmlXApplication["Error"]))
       job.Application.Error = (std::string)xmlXApplication["Error"];
 
-    // bool Join;
-    job.Application.Join = (lower((std::string)xmlApplication["Join"]) == "true");
-
     // std::list< std::pair<std::string, std::string> > Environment;
     if (bool(xmlApplication["Environment"]["Name"])) {
       for (int i = 0; (bool)(xmlApplication["Environment"][i]); i++) {
@@ -660,10 +657,6 @@ namespace Arc {
       xmlPApplication.NewChild("posix-jsdl:Error") = job.Application.Error;
       xmlHApplication.NewChild("hpcp-jsdl:Error") = job.Application.Error;
     }
-
-    // bool Join;
-    if (job.Application.Join)
-      xmlApplication.NewChild("Join") = "true";
 
     // std::list< std::pair<std::string, std::string> > Environment;
     for (std::list< std::pair<std::string, std::string> >::const_iterator it = job.Application.Environment.begin();

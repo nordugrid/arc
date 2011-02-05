@@ -94,7 +94,6 @@ namespace Arc {
   class ApplicationType {
   public:
     ApplicationType() :
-      Join(false),
       Rerun(-1),
       ExpiryTime(-1),
       ProcessingStartTime(-1),
@@ -104,7 +103,6 @@ namespace Arc {
     std::string Input;
     std::string Output;
     std::string Error;
-    bool Join;
     std::list< std::pair<std::string, std::string> > Environment;
     ExecutableType Prologue;
     ExecutableType Epilogue;

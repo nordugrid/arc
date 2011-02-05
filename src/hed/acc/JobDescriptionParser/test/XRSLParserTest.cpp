@@ -833,59 +833,29 @@ void XRSLParserTest::TestNotify() {
 void XRSLParserTest::TestJoin() {
   MESSAGE = "Error parsing the join attribute.";
 
-  xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"yes\")";
+  xrsl = "&(executable = \"executable\")(join = \"yes\")(|(stdout = \"output-file\")(stdout = \"output-file2\"))";
 
-  std::list<Arc::JobDescription> tempJobDescs;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
-  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  // When first parsed the JobDescription attribute Application.Join will be
-  // set, while the Application.Error attribute will be left empty.
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  tempJobDescs.front().Application.Output);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Error.empty());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Join);
-  // When the description have been unparsed by the parser the join attribute
-  // will no longer be set, instead stdout and stderr will be identical.
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  OUTJOBS.front().Application.Output);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  OUTJOBS.front().Application.Error);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.Join);
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file2",  OUTJOBS.front().GetAlternatives().front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file2",  OUTJOBS.front().GetAlternatives().front().Application.Error);
 
   xrsl = "&(executable = \"executable\")(stderr = \"error-file\")(join = \"yes\")";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
 
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
-  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
+  xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(stderr = \"error-file\")(join = \"yes\")";
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, OUTJOBS));
+
+  xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(stderr = \"error-file\")(join = \"no\")";
+
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  // When first parsed the JobDescription attribute Application.Join will be
-  // set, while the Application.Error attribute will be left empty.
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Output.empty());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"error-file",  tempJobDescs.front().Application.Error);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Join);
-  // When the description have been unparsed by the parser the join attribute
-  // will no longer be set, instead stdout and stderr will be identical.
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"error-file",  OUTJOBS.front().Application.Output);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file", OUTJOBS.front().Application.Output);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"error-file",  OUTJOBS.front().Application.Error);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.Join);
-
-  xrsl = "&(executable = \"executable\")(stdout = \"output-file\")(join = \"no\")";
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, tempJobDescs));
-  CPPUNIT_ASSERT_EQUAL(1, (int)tempJobDescs.size());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(tempJobDescs.front(), xrsl, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  tempJobDescs.front().Application.Output);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"output-file",  OUTJOBS.front().Application.Output);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, tempJobDescs.front().Application.Error.empty());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Application.Error.empty());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !tempJobDescs.front().Application.Join);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.Join);
 }
 
 void XRSLParserTest::TestGridTime() {
