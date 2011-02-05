@@ -946,6 +946,15 @@ namespace Arc {
     point.transfer_lock.unlock();
   }
 
+  bool DataPointHTTP::SetURL(const URL& url) {
+    if(url.Protocol() != this->url.Protocol()) return false;
+    if(url.Host() != this->url.Host()) return false;
+    if(url.Port() != this->url.Port()) return false;
+    this->url = url;
+    return true;
+  }
+
+
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

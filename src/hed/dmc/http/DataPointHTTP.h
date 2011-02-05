@@ -16,14 +16,15 @@ namespace Arc {
     DataPointHTTP(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointHTTP();
     static Plugin* Instance(PluginArgument *arg);
-    DataStatus Check();
-    DataStatus Remove();
-    DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
-    DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
-    DataStatus StartReading(DataBuffer& buffer);
-    DataStatus StartWriting(DataBuffer& buffer, DataCallback *space_cb = NULL);
-    DataStatus StopReading();
-    DataStatus StopWriting();
+    virtual bool SetURL(const URL& url);
+    virtual DataStatus Check();
+    virtual DataStatus Remove();
+    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus StartReading(DataBuffer& buffer);
+    virtual DataStatus StartWriting(DataBuffer& buffer, DataCallback *space_cb = NULL);
+    virtual DataStatus StopReading();
+    virtual DataStatus StopWriting();
   private:
     static void read_thread(void *arg);
     static void write_thread(void *arg);
