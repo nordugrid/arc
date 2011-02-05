@@ -1869,7 +1869,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
                  src/services/gridftpd/Makefile
-                 src/services/gridftpd/gridftpd
+                 src/services/gridftpd/gridftpd.init
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
                  src/services/gridftpd/external/Makefile

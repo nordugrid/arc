@@ -3,11 +3,16 @@ noinst_LTLIBRARIES = libgridftpd.la
 
 initddir=@initddir@
 if SYSV_SCRIPTS_ENABLED
-GRIDFTPD_SCRIPT = gridftpd
+GRIDFTPD_SCRIPT = gridftpd.init
 else
 GRIDFTPD_SCRIPT =
 endif
 initd_SCRIPTS = $(GRIDFTPD_SCRIPT)
+
+if SYSV_SCRIPTS_ENABLED
+install-data-hook:
+	cd $(DESTDIR)$(initddir) && mv -f gridftpd.init gridftpd
+endif
 
 libgridftpd_la_SOURCES = userspec.cpp names.cpp misc.cpp
 libgridftpd_la_CXXFLAGS = $(GLOBUS_FTP_CLIENT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

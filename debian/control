@@ -365,6 +365,7 @@ Description: ARC dynamic runtime environment installation
 Package: nordugrid-arc-doxygen
 Architecture: all
 Depends: ${misc:Depends}
+Conflicts: nordugrid-arc-nox-doc (<< 1.3.0~)
 Description: ARC API documentation
  The NorduGrid is a collaboration aiming at development, maintenance
  and support of the free Grid middleware, known as the Advanced
