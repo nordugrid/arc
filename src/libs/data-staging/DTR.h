@@ -60,7 +60,8 @@ namespace DataStaging {
     CACHEABLE,         /// Source should be cached
     NON_CACHEABLE,     /// Source should not be cached
     CACHE_RENEW,       /// Cache file should be deleted then re-downloaded
-    CACHE_PRESENT,     /// Source is available in cache
+    CACHE_ALREADY_PRESENT,     /// Source is available in cache from before
+    CACHE_DOWNLOADED,  /// Source has just been downloaded and put in cache
     CACHE_LOCKED,      /// Cache file is locked
     CACHE_SKIP,        /// Source is cacheable but due to some problem should not be cached
     CACHE_NOT_USED     /// Cache was started but was not used
@@ -278,6 +279,8 @@ namespace DataStaging {
      void set_process_time(const Arc::Period& process_time);
      Arc::Time get_process_time() const { return next_process_time; };
 
+     // Get the creation time
+     Arc::Time get_creation_time() const { return created; };
      // Manipulate the transfer parameters
      void set_parameters(const struct TransferParameters& params);
      const TransferParameters get_parameters() const { return transfer_parameters; };

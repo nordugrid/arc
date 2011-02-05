@@ -246,7 +246,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
   JobDescription job(jobid, session_dir);
   job.set_uid(dtr.get_local_user().get_uid(), dtr.get_local_user().get_gid());
-
+  std::string dtr_transfer_statistics;
+  
   if (dtr.error() && dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
     // for uploads, report error but let other transfers continue
     // for downloads, cancel all other transfers
@@ -270,6 +271,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
     std::list<FileData> files;
     if (dtr.get_source()->Local()) {
       // output files
+      dtr_transfer_statistics = "outputfile:url=" + dtr.get_destination()->str() + ',';
       if (!job_output_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING, "%s: Failed to read list of output files", jobid);
       } else {
@@ -279,6 +281,9 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           Arc::URL file_lfn(i->lfn);
           Arc::URL dtr_lfn(dtr.get_destination()->str());
           if (file_lfn.str() == dtr_lfn.str()) {
+          	struct stat st;
+            Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
+            dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
             break;
           } else {
@@ -290,9 +295,14 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of output files", jobid);
         }
       }
+      dtr_transfer_statistics += "starttime=" + dtr.get_creation_time().str(Arc::UTCTime) + ',';
+      dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime); 
     }
     else if (dtr.get_destination()->Local()) {
       // input files
+      struct stat st;
+      Arc::FileStat(dtr.get_destination()->str(), &st, true);
+      dtr_transfer_statistics = "inputfile:url=" + dtr.get_source()->str() + ',';
       if (!job_input_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING,"%s: Failed to read list of input files", jobid);
       } else {
@@ -302,6 +312,9 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           Arc::URL file_lfn(i->lfn);
           Arc::URL dtr_lfn(dtr.get_source()->str());
           if (file_lfn.str() == dtr_lfn.str()) {
+            struct stat st;
+            Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
+            dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
             break;
           } else {
@@ -313,6 +326,12 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of input files", jobid);
         }
       }
+      dtr_transfer_statistics += "starttime=" + dtr.get_creation_time().str(Arc::UTCTime) + ',';
+      dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime) + ',';
+      if (dtr.get_cache_state() == DataStaging::CACHE_ALREADY_PRESENT)
+        dtr_transfer_statistics += "fromcache=yes";
+      else
+        dtr_transfer_statistics += "fromcache=no"; 
     }
     else {
       // transfer between two remote endpoints, shouldn't happen...
@@ -330,7 +349,15 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
     logger.msg(Arc::WARNING, "No active job id %s", jobid);
     return true;
   }
-
+  
+  // Print transfer statistics
+  std::string fname = jobuser->ControlDir() + "/job." + job.get_id() + ".statistics";
+  std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
+  if(f.is_open() ) {
+    f << dtr_transfer_statistics << std::endl;  
+  }
+  f.close();
+  
   // remove this DTR from list
   for (std::multimap<std::string, std::string>::iterator i = dtr_iterator.first; i != dtr_iterator.second; ++i) {
     if (i->second == dtr.get_id()) {
@@ -390,6 +417,12 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   }
   const JobUser* jobuser(it->second);
   const GMEnvironment& env = jobuser->Env();
+  
+  // Create a file for the transfer statistics and fix its permissions
+  std::string fname = jobuser->ControlDir() + "/job." + jobid + ".statistics";
+  std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
+  f.close();
+  fix_file_permissions(fname);
 
   // read in input/output files
   std::list<FileData> files;

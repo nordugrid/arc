@@ -162,7 +162,7 @@ namespace DataStaging {
         }
         // cached file is present and valid
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cached copy is still valid", request->get_short_id());
-        request->set_cache_state(CACHE_PRESENT);
+        request->set_cache_state(CACHE_ALREADY_PRESENT);
       }
       else { // file is not there but we are ready to download it
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will download to cache file %s", request->get_short_id(), request->get_cache_file());

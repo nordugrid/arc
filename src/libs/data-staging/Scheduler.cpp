@@ -103,7 +103,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will clean up pre-registered destination", request->get_short_id());
         request->set_status(DTRStatus::REGISTER_REPLICA);
       } else if (!request->get_cache_parameters().cache_dirs.empty() &&
-                 (request->get_cache_state() == CACHE_PRESENT || request->get_cache_state() == CACHEABLE)) {
+                 (request->get_cache_state() == CACHE_ALREADY_PRESENT || request->get_cache_state() == CACHEABLE)) {
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will release cache locks", request->get_short_id());
         request->set_status(DTRStatus::PROCESS_CACHE);
       } else { // nothing to clean up - set to end state
@@ -216,7 +216,7 @@ namespace DataStaging {
     // the pre-processor
     request->reset_error_status();
 
-    if(request->get_cache_state() == CACHE_PRESENT){
+    if(request->get_cache_state() == CACHE_ALREADY_PRESENT){
       // File is on place already. After the post-processor
       // the DTR is DONE.
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Destination file is in cache", request->get_short_id());
@@ -410,10 +410,10 @@ namespace DataStaging {
     // has finished transferring
     // The next state is RELEASE_REQUEST
 
-    // if cacheable and no cancellation or error, mark the DTR as CACHE_PRESENT
+    // if cacheable and no cancellation or error, mark the DTR as CACHE_DOWNLOADED
     // Might be better to do this in delivery instead
     if (!request->cancel_requested() && !request->error() && request->get_cache_state() == CACHEABLE)
-      request->set_cache_state(CACHE_PRESENT);
+      request->set_cache_state(CACHE_DOWNLOADED);
     if (request->get_source()->IsStageable() || request->get_destination()->IsStageable()) {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Releasing request(s) made during staging", request->get_short_id());
       request->set_status(DTRStatus::RELEASE_REQUEST);
@@ -455,7 +455,8 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Error registering replica, moving to end of data staging", request->get_short_id());
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (!request->get_cache_parameters().cache_dirs.empty() &&
-               (request->get_cache_state() == CACHE_PRESENT ||
+               (request->get_cache_state() == CACHE_ALREADY_PRESENT ||
+                request->get_cache_state() == CACHE_DOWNLOADED ||
                 request->get_cache_state() == CACHEABLE ||
                 request->get_cache_state() == CACHE_NOT_USED)) {
       // Normal workflow is PROCESS_CACHE

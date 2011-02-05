@@ -198,7 +198,7 @@ void ProcessorTest::TestCacheCheck() {
       usleep(100);
 
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
-    CPPUNIT_ASSERT_EQUAL(DataStaging::CACHE_PRESENT, dtr->get_cache_state());
+    CPPUNIT_ASSERT_EQUAL(DataStaging::CACHE_ALREADY_PRESENT, dtr->get_cache_state());
     CPPUNIT_ASSERT_EQUAL(0, remove(cache_file.c_str()));
   }
 
