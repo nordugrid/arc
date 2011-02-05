@@ -10,7 +10,7 @@
 
 namespace Arc {
   
-  Logger DataSpeed::logger(Logger::getRootLogger(), "DataSpeed"); 
+  Logger DataSpeed::logger(Logger::getRootLogger(), "DataSpeed", VERBOSE); 
 
   bool DataSpeed::verbose(void) {
     return be_verbose;

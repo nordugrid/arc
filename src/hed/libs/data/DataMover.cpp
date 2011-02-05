@@ -528,9 +528,11 @@ namespace Arc {
         }
       }
       // Do not link if user asks. Replace link:// with file://
-      if ((!source.ReadOnly()) && mapped)
-        if (mapped_url.Protocol() == "link")
+      if ((!source.ReadOnly()) && mapped) {
+        if (mapped_url.Protocol() == "link") {
           mapped_url.ChangeProtocol("file");
+        }
+      }
       DataHandle mapped_h(mapped_url, source.GetUserConfig());
       DataPoint& mapped_p(*mapped_h);
       if (mapped_h) {
