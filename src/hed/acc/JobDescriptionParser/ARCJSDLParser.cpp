@@ -225,11 +225,6 @@ namespace Arc {
     XMLNode xmlXApplication = xmlApplication["POSIXApplication"];
     if (!xmlXApplication)
       xmlXApplication = xmlApplication["HPCProfileApplication"];
-    if (!xmlXApplication) {
-      logger.msg(ERROR, "[ARCJSDLParser] An extended application element (POSIXApplication or HPCProfileApplication) was not found in the job description.");
-      jobdescs.clear();
-      return false;
-    }
 
 
     // ExecutableType Executable;
