@@ -87,8 +87,7 @@ namespace Arc {
     for (std::list<std::string>::const_iterator itExecs = execs.begin();
          itExecs != execs.end(); itExecs++) {
       bool fileExists = false;
-      std::list<FileType>::iterator itFile = j.Files.begin();
-      for (; itFile != j.Files.end(); itFile++) {
+      for (std::list<FileType>::iterator itFile = j.Files.begin(); itFile != j.Files.end(); itFile++) {
         if (itFile->Name == (*itExecs)) {
           itFile->IsExecutable = true;
           fileExists = true;
@@ -96,7 +95,7 @@ namespace Arc {
       }
 
       if (!fileExists) {
-        logger.msg(INFO, "File \"%s\" in the executables attribute is not present in the inputfiles attribute", itFile->Name);
+        logger.msg(INFO, "File \"%s\" in the executables attribute is not present in the inputfiles attribute", *itExecs);
         return false;
       }
     }
