@@ -177,6 +177,8 @@ namespace Arc {
 
     j.Application.Error = j.Application.Output;
 
+    j.OtherAttributes.erase(itAtt);
+
     return true;
   }
 
