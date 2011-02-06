@@ -48,7 +48,6 @@ namespace Arc {
     Application = j.Application;
     Resources = j.Resources;
     Files = j.Files;
-    JobMeta = j.JobMeta;
 
     OtherAttributes = j.OtherAttributes;
 
@@ -110,10 +109,6 @@ namespace Arc {
         for (; iter != Identification.ActivityOldId.end(); iter++)
           out << IString(" Activity Old Id: %s", *iter) << std::endl;
       }
-
-      STRPRINT(out, JobMeta.Author, Author)
-      if (JobMeta.DocumentExpiration.GetTime() > 0)
-        out << IString(" DocumentExpiration: %s", JobMeta.DocumentExpiration.str()) << std::endl;
 
       if (!Application.Executable.Argument.empty()) {
         std::list<std::string>::const_iterator iter = Application.Executable.Argument.begin();

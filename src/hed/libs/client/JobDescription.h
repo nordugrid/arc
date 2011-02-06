@@ -196,17 +196,6 @@ namespace Arc {
     std::list<URL> Target;
   };
 
-  class JobMetaType {
-  public:
-    JobMetaType() :
-      DocumentExpiration(-1),
-      FuzzyRank(false) {}
-    std::string Author;
-    Time DocumentExpiration;
-    std::string Rank;
-    bool FuzzyRank;
-  };
-
   class JobDescription {
   public:
     friend class JobDescriptionParser;
@@ -338,7 +327,6 @@ namespace Arc {
     ApplicationType Application;
     ResourcesType Resources;
     std::list<FileType> Files;
-    JobMetaType JobMeta;
 
     /// Holds attributes not fitting into this class
     /**

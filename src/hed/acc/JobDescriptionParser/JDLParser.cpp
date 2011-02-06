@@ -424,11 +424,11 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "rank") {
-      job.JobMeta.Rank = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;rank"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "fuzzyrank") {
-      job.JobMeta.FuzzyRank = (upper(simpleJDLvalue(attributeValue)) == "TRUE");
+      job.OtherAttributes["egee:jdl;fuzzyrank"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "usertags") {
@@ -676,11 +676,6 @@ namespace Arc {
       product += job.Application.CredentialService.front().fullstr();
       product += "\";\n";
     }
-
-    product += ADDJDLSTRING(job.JobMeta.Rank, "Rank");
-
-    if (job.JobMeta.FuzzyRank)
-      product += "  FuzzyRank = true;\n";
 
     if (!job.Identification.UserTag.empty())
       product += generateOutputList("UserTags", job.Identification.UserTag, std::pair<char, char>('[', ']'), ';');
