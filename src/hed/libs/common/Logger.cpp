@@ -200,6 +200,9 @@ namespace Arc {
     case ShortFormat:
       os << message.level << ": " << message.message;
       break;
+    case EmptyFormat:
+      os << message.message;
+      break;
     case DebugFormat:
       Time ct;
       static Time lt(0);

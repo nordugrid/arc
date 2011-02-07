@@ -44,11 +44,13 @@ namespace Arc {
         DebugFormat - message time (microsecond precision) and 
          time difference from previous message are printed. This
          format is mostly meant for profiling.
+        EmptyFormat - only message is printed
    */
   enum LogFormat {
     LongFormat,
     ShortFormat,
-    DebugFormat
+    DebugFormat,
+    EmptyFormat
   };
 
   struct LoggerFormat {
