@@ -73,12 +73,12 @@ namespace Arc {
       return false;
     }
 
-    XMLNode xJobid(jobid);
+    //XMLNode xJobid(jobid);
 
     // Unfortunately Job handling framework somewhy want to have job
     // URL instead of identifier we have to invent one. So we disguise
     // XML blob inside URL path.
-    AddJobDetails(jobdesc, URL(disguise_id_into_url(et.url,xJobid)), et.Cluster, et.url, job);
+    AddJobDetails(jobdesc, URL(disguise_id_into_url(et.url,jobid)), et.Cluster, et.url, job);
 
     return true;
   }
