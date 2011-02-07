@@ -1,7 +1,7 @@
 pkglibexec_SCRIPTS = CEinfo.pl cluster.pl qju.pl se.pl glue-generator.pl \
 		     grid-info-soft-register
 
-pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm \
+pkglib_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 		  LL.pm LSF.pm Condor.pm condor_env.pm SLURM.pm GridFactory.pm \
 		  IniParser.pm LogUtils.pm Sysinfo.pm \
 		  LRMSInfo.pm GMJobsInfo.pm HostInfo.pm RTEInfo.pm \

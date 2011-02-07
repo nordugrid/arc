@@ -900,6 +900,9 @@ exit 0
 %{_libexecdir}/%{pkgdir}/CEinfo.pl
 %{_libexecdir}/%{pkgdir}/CacheManager
 %{_libexecdir}/%{pkgdir}/DataStagingDelivery
+%{_libexecdir}/%{pkgdir}/DGAuthplug.py*
+%{_libexecdir}/%{pkgdir}/DGBridgeDataPlugin.py*
+%{_libexecdir}/%{pkgdir}/DGLog2XML.py*
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libarex.apd
 %{_libdir}/%{pkgdir}/ARC0mod.pm
@@ -913,6 +916,7 @@ exit 0
 %{_libdir}/%{pkgdir}/Condor.pm
 %{_libdir}/%{pkgdir}/SLURM.pm
 %{_libdir}/%{pkgdir}/GridFactory.pm
+%{_libdir}/%{pkgdir}/DGBridge.pm
 %{_libdir}/%{pkgdir}/XmlPrinter.pm
 %{_libdir}/%{pkgdir}/LdifPipe.pm
 %{_libdir}/%{pkgdir}/LdifPrinter.pm

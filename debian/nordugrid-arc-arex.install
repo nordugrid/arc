@@ -13,6 +13,10 @@ debian/tmp/usr/lib/arc/arc-ur-registrant
 debian/tmp/usr/lib/arc/CacheManager
 debian/tmp/usr/lib/arc/DataStagingDelivery
 
+debian/tmp/usr/lib/arc/DGAuthplug.py*
+debian/tmp/usr/lib/arc/DGBridgeDataPlugin.py*
+debian/tmp/usr/lib/arc/DGLog2XML.py*
+
 debian/tmp/usr/lib/arc/cancel-*-job
 debian/tmp/usr/lib/arc/scan-*-job
 debian/tmp/usr/lib/arc/submit-*-job
@@ -32,6 +36,7 @@ debian/tmp/usr/lib/arc/LSF.pm
 debian/tmp/usr/lib/arc/PBS.pm
 debian/tmp/usr/lib/arc/Condor.pm
 debian/tmp/usr/lib/arc/SLURM.pm
+debian/tmp/usr/lib/arc/DGBridge.pm
 debian/tmp/usr/lib/arc/GridFactory.pm
 
 debian/tmp/usr/lib/arc/XmlPrinter.pm
