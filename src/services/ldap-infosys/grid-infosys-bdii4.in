@@ -476,6 +476,7 @@ cpuscalingreferencesi00=""
 processorotherdescription=""
 gluesiteweb=""
 gluesiteuniqueid=""
+provide_glue_site_info="true"
 
 if [ "x$infosys_glue12" = "xenable" ]; then
 
@@ -492,6 +493,7 @@ if [ "x$infosys_glue12" = "xenable" ]; then
     processorotherdescription=${CONFIG_processor_other_description}
     gluesiteweb=${CONFIG_glue_site_web}
     gluesiteuniqueid=${CONFIG_glue_site_unique_id}
+    provide_glue_site_info=${CONFIG_provide_glue_site_info:-$provide_glue_site_info}
 
     if [ "x$resource_location" = "x" ]; then
         error_echo "If infosys_glue12 is enabled, then resource_location must be set."
@@ -1042,6 +1044,7 @@ create_glue_ldif_generator () {
          s,\$GLUESITEWEB,$gluesiteweb,g;
          s,\$BDIIPORT,$bdii_port_read,g;
          s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
+         s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
         " $ARC_LOCATION/@pkglibsubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
