@@ -5,7 +5,7 @@
 %define __find_provides %{_mingw32_findprovides}
 %define __debug_install_post %{_mingw32_debug_install_post}
 
-%define pkgdir @PACKAGE@
+%define pkgdir arc
 
 Name: mingw32-nordugrid-arc
 Version: @VERSION@
@@ -137,12 +137,12 @@ find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 # RPM does it's own doc handling
 rm -fr $RPM_BUILD_ROOT%{_mingw32_datadir}/doc/%{pkgdir}/
 
-%find_lang arc
+%find_lang @PACKAGE@
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%files -f arc.lang
+%files -f @PACKAGE@.lang
 %defattr(-,root,root,-)
 %doc README AUTHORS LICENSE
 %{_mingw32_bindir}/lib*.dll

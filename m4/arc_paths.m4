@@ -12,10 +12,10 @@ AC_DEFUN([ARC_RELATIVE_PATHS],
       eval arc_libdir="\"${libdir}\""
       eval arc_bindir="\"${bindir}\""
       eval arc_sbindir="\"${sbindir}\""
-      eval arc_pkglibdir="\"${libdir}/${PACKAGE}\""
-      eval arc_pkglibexecdir="\"${libexecdir}/${PACKAGE}\""
+      eval arc_pkglibdir="\"${libdir}/arc\""
+      eval arc_pkglibexecdir="\"${libexecdir}/arc\""
       # It seems arc_datadir should be evaluated twice to be expanded fully.
-      eval arc_datadir="\"${datadir}/${PACKAGE}\""
+      eval arc_datadir="\"${datadir}/arc\""
       eval arc_datadir="\"${arc_datadir}\""
   ])
 

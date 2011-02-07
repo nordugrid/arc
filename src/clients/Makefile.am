@@ -67,7 +67,7 @@ endif
 SUBDIRS = $(DATA_CLIENT) $(ECHO_CLIENT) $(ISIS_CLIENT) $(CREDENTIALS_CLIENT) $(ARCLIB_CLIENT) $(CHARON_CLIENT) $(SAML_CLIENT) $(SRM_CLIENT) $(JURA_CLIENT) $(WSRF_CLIENT) $(CACHE_CLIENT)
 DIST_SUBDIRS = data echo isis credentials arclib charon saml srm jura wsrf cache
 
-arcsysconfdir = $(sysconfdir)/@PACKAGE@
+arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf
 exampledir = $(pkgdatadir)/examples
 example_DATA = client.conf

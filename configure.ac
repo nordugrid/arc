@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.56)
 AC_CANNONICAL_SYSTEM
-AC_INIT([arc],[1.0.0],[http://bugzilla.nordugrid.org/])
+AC_INIT([nordugrid-arc],[1.0.0],[http://bugzilla.nordugrid.org/])
 AM_INIT_AUTOMAKE([foreign tar-pax])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
@@ -46,7 +46,15 @@ AC_HELP_STRING([--with-docdir=DIR],
 ])
 AC_SUBST(docdir)
 
-pkglibexecdir='${libexecdir}/${PACKAGE}'
+# Use arc for "pkgdir" instead of nordugrid-arc (@PACKAGE@)
+pkgdatadir='${datadir}/arc'
+pkgincludedir='${includedir}/arc'
+pkglibdir='${libdir}/arc'
+pkglibexecdir='${libexecdir}/arc'
+
+AC_SUBST(pkgdatadir)
+AC_SUBST(pkgincludedir)
+AC_SUBST(pkglibdir)
 AC_SUBST(pkglibexecdir)
 
 ARC_API
@@ -734,7 +742,7 @@ if test "x$enables_ldap_monitor" = "xyes"; then
   if test "x$with_ldap_monitor" != "x" ; then
       ldap_monitor_prefix=$with_ldap_monitor
   else
-      ldap_monitor_prefix=${datadir}/${PACKAGE}/ldap-monitor
+      ldap_monitor_prefix=${datadir}/arc/ldap-monitor
   fi
   AC_MSG_RESULT([$ldap_monitor_prefix])
   AC_SUBST(ldap_monitor_prefix)
@@ -748,7 +756,7 @@ if test "x$enables_ws_monitor" = "xyes"; then
   if test "x$with_ws_monitor" != "x" ; then
       ws_monitor_prefix=$with_ws_monitor
   else
-      ws_monitor_prefix=${datadir}/${PACKAGE}/ws-monitor
+      ws_monitor_prefix=${datadir}/arc/ws-monitor
   fi
   AC_MSG_RESULT([$ws_monitor_prefix])
   AC_SUBST(ws_monitor_prefix)
