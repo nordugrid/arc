@@ -898,6 +898,8 @@ exit 0
 %{_libexecdir}/%{pkgdir}/submit-*-job
 %{_libexecdir}/%{pkgdir}/finish-condor-job
 %{_libexecdir}/%{pkgdir}/CEinfo.pl
+%{_libexecdir}/%{pkgdir}/CacheManager
+%{_libexecdir}/%{pkgdir}/DataStagingDelivery
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libarex.apd
 %{_libdir}/%{pkgdir}/ARC0mod.pm
