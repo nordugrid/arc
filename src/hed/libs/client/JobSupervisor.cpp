@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <unistd.h>
+
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
 #include <arc/Logger.h>
