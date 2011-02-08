@@ -53,7 +53,14 @@
   
   std::string SRMURL::ContactURL(void) const {
     if(!valid) return empty;
-    return ("httpg://"+host+":"+Arc::tostring(port)+path);
+    std::string contact_protocol("httpg");
+    if((Option("protocol") == "tls") || (Option("protocol") == "ssl")) {
+      contact_protocol = "https";
+    }
+    if(!Option("protocol").empty()) {
+      return (contact_protocol+"://"+host+":"+Arc::tostring(port)+";protocol="+Option("protocol")+path);
+    }
+    return (contact_protocol+"://"+host+":"+Arc::tostring(port)+path);
   }
   
   std::string SRMURL::BaseURL(void) const {
