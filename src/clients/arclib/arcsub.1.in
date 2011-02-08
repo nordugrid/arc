@@ -27,6 +27,8 @@ jobdescription string describing the job to be submitted
 jobdescription file describing the job to be submitted
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 file where the jobs will be stored
+.IP "\fB-D\fR, \fB--dryrun\fR"
+submit jobs as dry run (no submission to batch system)
 .IP "\fB-x\fR, \fB--dumpdescription\fR"
 do not submit - dump job description in the language accepted by the target
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
@@ -137,6 +139,11 @@ be sent to and accepted by the chosen target. Further information from
 the \fB--debug\fR option where the default verbosity level is WARNING. Setting
 the level to DEBUG will show all messages, while setting it to FATAL will
 only show fatal log messages.
+
+To \fBvalidate\fR your job description without actually submitting a job, use
+the \fB--dryrun\fR option: it will capture possible syntax or other errors, but
+will instruct the site not to submit the job for execution. Only the
+grid-manager (ARC0) and A-REX (ARC1) CEs support this feature.
 
 .SH EXAMPLES
 

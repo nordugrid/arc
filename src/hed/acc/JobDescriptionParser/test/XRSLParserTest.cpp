@@ -29,6 +29,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
+  CPPUNIT_TEST(TestDryRun);
   CPPUNIT_TEST(TestGridTime);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST(TestMultiRSL);
@@ -56,6 +57,7 @@ public:
   void TestQueue();
   void TestNotify();
   void TestJoin();
+  void TestDryRun();
   void TestGridTime();
   void TestAdditionalAttributes();
   void TestMultiRSL();
@@ -828,6 +830,42 @@ void XRSLParserTest::TestNotify() {
 
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, !PARSER.Parse(xrsl, tempJobDescs));
   CPPUNIT_ASSERT(tempJobDescs.empty());
+}
+
+void XRSLParserTest::TestDryRun() {
+  MESSAGE = "Error parsing the dryrun attribute.";
+
+  xrsl = "&(|(executable = \"executable\")(executable = \"executable\"))(dryrun = \"yes\")";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Application.DryRun);
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().GetAlternatives().front().Application.DryRun);
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Application.DryRun);
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  xrsl = "&(|(executable = \"executable\")(executable = \"executable\"))(dryrun = \"no\")";
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.DryRun);
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().GetAlternatives().front().Application.DryRun);
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, !OUTJOBS.front().Application.DryRun);
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 }
 
 void XRSLParserTest::TestJoin() {

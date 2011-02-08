@@ -123,8 +123,8 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   if(act_i != arc_job_desc.OtherAttributes.end()) action = act_i->second;
   std::map<std::string, std::string>::const_iterator jid_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;jobid");
   if(jid_i != arc_job_desc.OtherAttributes.end()) jobid = jid_i->second;
-  std::map<std::string, std::string>::const_iterator dr_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;dryrun");
-  if(dr_i != arc_job_desc.OtherAttributes.end()) dryrun = (dr_i->second == "yes");
+  
+  dryrun = arc_job_desc.Application.DryRun;
 
   projectnames.clear();
   projectnames.push_back(arc_job_desc.Identification.JobVOName);

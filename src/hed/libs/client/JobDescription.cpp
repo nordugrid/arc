@@ -92,6 +92,9 @@ namespace Arc {
     }
 
     STRPRINT(out, Application.Executable.Name, Executable);
+    if (Application.DryRun) {
+      out << istring(" --- DRY RUN --- ") << std::endl;
+    }
     STRPRINT(out, Application.LogDir, Log Directory)
     STRPRINT(out, Identification.JobName, JobName)
     STRPRINT(out, Identification.Description, Description)

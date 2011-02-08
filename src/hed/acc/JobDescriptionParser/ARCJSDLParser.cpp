@@ -346,6 +346,10 @@ namespace Arc {
     if (bool(xmlApplication["AccessControl"]))
       xmlApplication["AccessControl"][0].New(job.Application.AccessControl);
 
+    if (bool(xmlApplication["DryRun"]) && lower((std::string)xmlApplication["DryRun"]) == "yes") {
+      job.Application.DryRun = true;
+    }
+
     // End of Application
 
     // Resources
@@ -728,6 +732,10 @@ namespace Arc {
     for (std::list<URL>::const_iterator it = job.Application.CredentialService.begin();
          it != job.Application.CredentialService.end(); it++)
       xmlApplication.NewChild("CredentialService") = it->fullstr();
+
+    if (job.Application.DryRun) {
+      xmlApplication.NewChild("DryRun") = "yes";
+    }
 
     // POSIX compliance...
     if (job.Resources.TotalWallTime.range.max != -1)

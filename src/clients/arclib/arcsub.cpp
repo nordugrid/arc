@@ -99,12 +99,10 @@ int RUNSUB(main)(int argc, char **argv) {
                     istring("filename"),
                     joblist);
 
-  /*
-     bool dryrun = false;
-     options.AddOption('D', "dryrun", istring("add dryrun option"),
+  bool dryrun = false;
+  options.AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
                     dryrun);
 
-   */
   bool dumpdescription = false;
   options.AddOption('x', "dumpdescription",
                     istring("do not submit - dump job description "
@@ -210,6 +208,15 @@ int RUNSUB(main)(int argc, char **argv) {
     buffer[length] = '\0';
     std::list<Arc::JobDescription> jobdescs;
     if (Arc::JobDescription::Parse((std::string)buffer, jobdescs)) {
+      for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
+           itJ != jobdescs.end(); itJ++) {
+        itJ->Application.DryRun = dryrun;
+        for (std::list<Arc::JobDescription>::iterator itJAlt = itJ->GetAlternatives().begin();
+             itJAlt != itJ->GetAlternatives().end(); itJAlt++) {
+          itJAlt->Application.DryRun = dryrun;
+        }
+      }
+      
       jobdescriptionlist.insert(jobdescriptionlist.end(), jobdescs.begin(), jobdescs.end());
     }
     else {
@@ -227,6 +234,15 @@ int RUNSUB(main)(int argc, char **argv) {
 
     std::list<Arc::JobDescription> jobdescs;
     if (Arc::JobDescription::Parse(*it, jobdescs)) {
+      for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
+           itJ != jobdescs.end(); itJ++) {
+        itJ->Application.DryRun = dryrun;
+        for (std::list<Arc::JobDescription>::iterator itJAlt = itJ->GetAlternatives().begin();
+             itJAlt != itJ->GetAlternatives().end(); itJAlt++) {
+          itJAlt->Application.DryRun = dryrun;
+        }
+      }
+
       jobdescriptionlist.insert(jobdescriptionlist.end(), jobdescs.begin(), jobdescs.end());
     }
     else {

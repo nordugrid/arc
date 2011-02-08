@@ -845,7 +845,9 @@ namespace Arc {
         if (!SingleValue(c, join)) {
           return false;
         }
-
+        /* Store value in the OtherAttributes member and set it later when all
+         * the attributes it depends on has been parsed.
+         */
         j.OtherAttributes["nordugrid:xrsl;join"] = join;
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
@@ -1016,10 +1018,16 @@ namespace Arc {
 
       if (c->Attr() == "dryrun") {
         std::string dryrun;
-        if (!SingleValue(c, dryrun))
+        if (!SingleValue(c, dryrun)) {
           return false;
-        if (lower(dryrun) == "yes" || lower(dryrun) == "dryrun")
-         j.OtherAttributes["nordugrid:xrsl;dryrun"] = "yes";
+        }
+
+        j.Application.DryRun = (lower(dryrun) == "yes");
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.DryRun = j.Application.DryRun;
+        }
+        
         return true;
       }
 
@@ -1488,6 +1496,12 @@ namespace Arc {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.CredentialService.front().fullstr()));
       r.Add(new RSLCondition("credentialserver", RSLEqual, l));
+    }
+
+    if (j.Application.DryRun) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral("yes"));
+      r.Add(new RSLCondition("dryrun", RSLEqual, l));
     }
 
     for (std::map<std::string, std::string>::const_iterator it = j.OtherAttributes.begin();

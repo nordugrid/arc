@@ -97,7 +97,8 @@ namespace Arc {
       Rerun(-1),
       ExpiryTime(-1),
       ProcessingStartTime(-1),
-      Priority (-1)
+      Priority (-1),
+      DryRun(false)
       {}
     ExecutableType Executable;
     std::string Input;
@@ -115,6 +116,7 @@ namespace Arc {
     std::list<NotificationType> Notification;
     std::list<URL> CredentialService;
     XMLNode AccessControl;
+    bool DryRun;
   };
 
   class ResourceSlotType {

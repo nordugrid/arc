@@ -25,6 +25,7 @@ class ARCJSDLParserTest
   CPPUNIT_TEST(TestFilesDownloadUpload);
   CPPUNIT_TEST(TestFilesUploadUpload);
   CPPUNIT_TEST(TestQueue);
+  CPPUNIT_TEST(TestDryRun);
   CPPUNIT_TEST(TestPOSIXCompliance);
   CPPUNIT_TEST(TestHPCCompliance);
   CPPUNIT_TEST_SUITE_END();
@@ -46,6 +47,7 @@ public:
   void TestFilesDownloadUpload();
   void TestFilesUploadUpload();
   void TestQueue();
+  void TestDryRun();
   void TestPOSIXCompliance();
   void TestHPCCompliance();
 
@@ -407,6 +409,58 @@ void ARCJSDLParserTest::TestQueue() {
 
   itAttribute = OUTJOBS.front().OtherAttributes.find("nordugrid:broker;reject_queue");
   CPPUNIT_ASSERT(OUTJOBS.front().OtherAttributes.end() == itAttribute);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+}
+
+void ARCJSDLParserTest::TestDryRun() {
+  std::string jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition>"
+"<JobDescription>"
+"<Application>"
+"<Executable>"
+"<Path>executable</Path>"
+"</Executable>"
+"<DryRun>yes</DryRun>"
+"</Application>"
+"</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.DryRun);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.DryRun);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition>"
+"<JobDescription>"
+"<Application>"
+"<Executable>"
+"<Path>executable</Path>"
+"</Executable>"
+"<DryRun>no</DryRun>"
+"</Application>"
+"</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(!OUTJOBS.front().Application.DryRun);
+  CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
+
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), jsdl, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT(!OUTJOBS.front().Application.DryRun);
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 }
 
