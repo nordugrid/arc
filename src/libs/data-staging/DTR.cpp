@@ -21,8 +21,8 @@ namespace DataStaging {
   };
 
   static const char* get_owner_name(StagingProcesses proc) {
-    if(proc < 0) return "";
-    if(proc >= sizeof(owner_name)/sizeof(const char*)) return "";
+    if(((int)proc) < 0) return "";
+    if(((int)proc) >= sizeof(owner_name)/sizeof(const char*)) return "";
     return owner_name[proc];
   }
 
