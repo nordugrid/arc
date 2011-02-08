@@ -2051,7 +2051,7 @@ GRIDFTPD service:   ${enables_gridftpd_service}
 ISIS service:       ${enables_isis_service}
 LDAP Info service:  ${enables_ldap_service}
 GIIS service:       ${enables_giis_service}
-CHARON service:     ${enables_charon_service}
+#CHARON service:     ${enables_charon_service}
 HOPI service:       ${enables_hopi_service}
 STORAGE service:    ${enables_storage_service}
 JANITOR service:    ${enables_janitor_service}
