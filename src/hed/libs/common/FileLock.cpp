@@ -12,10 +12,10 @@
 #include <unistd.h>
 #include <glibmm.h>
 #include <sys/stat.h>
-#include <sys/utsname.h>
 
 #ifdef WIN32
-#include <Winsock2.h> // for gethostname()
+#define NOGDI
+#include <winsock2.h>
 #endif
 
 #include <arc/StringConv.h>
