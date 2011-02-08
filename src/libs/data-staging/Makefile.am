@@ -1,5 +1,5 @@
 DIST_SUBDIRS = test
-#SUBDIRS = . $(TEST_DIR)
+SUBDIRS = . $(TEST_DIR)
 
 noinst_LTLIBRARIES = libdatastaging.la
 
