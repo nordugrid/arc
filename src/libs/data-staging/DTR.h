@@ -76,6 +76,12 @@ namespace DataStaging {
   class DTRCallback {
     public:
       virtual ~DTRCallback() {};
+      /**
+       * Defines the callback method called when a DTR is pushed to
+       * this object. Note that the DTR object is passed by reference
+       * and so there is no guarantee that it will exist after this
+       * callback method is called.
+       */
       virtual void receiveDTR(DTR& dtr) = 0;
       // TODO
       //virtual void suspendDTR(DTR& dtr) = 0;
@@ -86,28 +92,46 @@ namespace DataStaging {
    * DTR stands for Data Transfer Request and a DTR describes a data transfer
    * between two endpoints, a source and a destination. There are several
    * parameters and options relating to the transfer contained in a DTR.
-   * The normal workflow is to create a DTR and send it to the Scheduler for
-   * processing using Scheduler::receive_dtr(). An optional callback can be
-   * defined using DTR::registerCallback(). When the Scheduler has finished
-   * with the DTR this callback is called. The following code sample
+   * The normal workflow is for a Generator to create a DTR and send it to the
+   * Scheduler for processing using Scheduler::receive_dtr(). An optional
+   * callback can be defined with the method signature void receiveDTR(DTR& dtr)
+   * and when the Scheduler has finished with the DTR this callback method is
+   * called. registerCallback(this,DataStaging::GENERATOR) can be used to
+   * activate the callback. The following simple Generator code sample
    * illustrates how to use DTRs:
    *
+   * @code
    * Arc::SimpleCondition cond;
    *
-   * void receive_dtr(DTR dtr) {
+   * void receive_dtr(DTR& dtr) {
+   *   // DTR received back, so notify waiting condition
+   *   std::cout << "Received DTR " << dtr.get_id() << std::endl;
    *   cond.signal();
    * }
    *
    * int main() {
-   *   DTR::registerCallback(receive_dtr);
+   *   // start Scheduler thread
+   *   Scheduler scheduler;
+   *   scheduler.start();
+   *
+   *   // create a DTR
    *   DTR dtr(source, destination,...);
-   *   Scheduler::getInstance()->receive_dtr(dtr);
+   *
+   *   // register this callback
+   *   dtr.registerCallback(this,DataStaging::GENERATOR);
+   *   // this line must be here in order to pass the DTR to the Scheduler
+   *   dtr.registerCallback(&scheduler,DataStaging::SCHEDULER);
+   *
+   *   // push the DTR to the Scheduler
+   *   dtr.push(DataStaging::SCHEDULER);
+   *
    *   // wait until callback is called
    *   cond.wait();
    *   // DTR is finished, so stop Scheduler
-   *   Scheduler::getInstance()->stop();
+   *   scheduler.stop();
    *   return 0;
    * }
+   * @endcode
    */
   class DTR {
   	
