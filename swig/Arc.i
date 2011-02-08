@@ -129,6 +129,13 @@ class listiteratorhandler
   }
   return ret;
 }
+
+/* On CentOS the following is needed in order for java bindings to be compiled
+ * successfully.
+ */
+%typemap(javaout) std::string& get {
+  return new $javaclassname($jnicall, $owner);
+}
 #endif
 
 %template(StringPair) std::pair<std::string, std::string>;
