@@ -1,5 +1,6 @@
 TESTS = DTRTest ProcessorTest DeliveryTest
-check_PROGRAMS = $(TESTS)
+#check_PROGRAMS = $(TESTS)
+check_PROGRAMS =
 
 DTRTest_SOURCES = $(top_srcdir)/src/Test.cpp DTRTest.cpp
 DTRTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
