@@ -578,9 +578,11 @@ namespace DataStaging {
       cache.Stop(canonic_url);
       return;
     }
+#ifndef WIN32
     // Making configuration readable for anyone so CacheManager can read it.
     // But it may be even better to change ownership.
     ::chmod(conf_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+#endif
     std::ofstream conf_stream(conf_file.c_str());
     ::close(h);
     conf_stream<<(request->get_cache_parameters());
