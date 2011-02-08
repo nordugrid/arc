@@ -130,6 +130,7 @@ namespace DataStaging {
       mapped_url.ChangeProtocol("file");
     }
     if (mapped_url.Protocol() == "link") {
+#ifndef WIN32
       // If the map is a link then do the link here and set to TRANSFERRED. Local file
       // copies should still have to wait in the queue. For links we should also
       // turn off caching, remembering that we still need to release any cache
@@ -160,6 +161,9 @@ namespace DataStaging {
           }
         }
       }
+#else
+      request->get_logger()->msg(Arc::ERROR, "DTR %s: Linking mapped file - can't link on Windows", request->get_short_id());
+#endif
     }
     else {
       // Ready to copy mapped file
