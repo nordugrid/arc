@@ -82,7 +82,11 @@ namespace DataStaging {
     source_endpoint->SetSecure(false);
     destination_endpoint->SetSecure(false);
 
+#ifdef WIN32
+    cache_state = NON_CACHEABLE;
+#else
     cache_state = (source_endpoint->Cache() && destination_endpoint->Local()) ? CACHEABLE : NON_CACHEABLE;
+#endif
     
     // The scheduler will change these two lines afterwards
     /* This lines will be uncommented when we are tied
