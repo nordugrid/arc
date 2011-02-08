@@ -18,6 +18,8 @@
 #
 #   config_match_section queue/short || echo No such queue
 #
+#   port=$(config_print_option gridftpd port)
+#
 #   for name in config_subsections queue; do
 #       echo Found section: queue/$name
 #   fi
@@ -65,6 +67,33 @@ config_import_section() {
       eval "CONFIG_$name=\$_CONFIG_BLOCK${i}_OPT${j}_VALUE"
     done
     return 0
+  done
+  return 1
+}
+
+config_print_option() {
+  block=$1
+  opt=$2
+  i=0
+  if [ -z "$_CONFIG_NUM_BLOCKS" ]; then return 1; fi
+  while [ $i -lt $_CONFIG_NUM_BLOCKS ]; do
+    i=$(($i+1))
+    eval name="\$_CONFIG_BLOCK${i}_NAME"
+    if [ "x$block" != "x$name" ]; then continue; fi
+    eval num="\$_CONFIG_BLOCK${i}_NUM"
+    if [ -z "$num" ]; then return 1; fi
+    j=0
+    val=
+    while [ $j -lt $num ]; do
+      j=$(($j+1))
+      eval name="\$_CONFIG_BLOCK${i}_OPT${j}_NAME"
+      if [ -z "$name" ]; then return 1; fi
+      if [ "x$name" = "x$opt" ]; then
+          eval "val=\$_CONFIG_BLOCK${i}_OPT${j}_VALUE"
+      fi
+    done
+    echo -n "$val"
+    [ -n "$val" ] && return 0
   done
   return 1
 }
