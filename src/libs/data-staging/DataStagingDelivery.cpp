@@ -141,6 +141,12 @@ int main(int argc,char* argv[]) {
       };
     };
   };
+
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE); //TODO: configurable
+  Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::EmptyFormat);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+
   DataBuffer buffer;
   buffer.speed.verbose(false);
   unsigned long long int minspeed = 0;

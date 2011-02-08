@@ -79,7 +79,7 @@ void ProcessorTest::TestPreClean() {
   DataStaging::Processor processor;
   processor.start();
   //CPPUNIT_ASSERT(processor);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
   // sleep while thread deletes
   Arc::Time now;
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
@@ -97,7 +97,7 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
   dtr->set_owner(DataStaging::PRE_PROCESSOR);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while thread deletes
   now = Arc::Time();
@@ -147,7 +147,7 @@ void ProcessorTest::TestCacheCheck() {
   DataStaging::Processor processor;
   processor.start();
   //CPPUNIT_ASSERT(processor);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while thread checks cache
   Arc::Time now = Arc::Time();
@@ -168,7 +168,7 @@ void ProcessorTest::TestCacheCheck() {
 
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
   dtr->set_owner(DataStaging::PRE_PROCESSOR);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while thread checks cache
   now = Arc::Time();
@@ -190,7 +190,7 @@ void ProcessorTest::TestCacheCheck() {
 
     dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread checks cache
     now = Arc::Time();
@@ -216,7 +216,7 @@ void ProcessorTest::TestCacheCheck() {
   cache_file = cache_dir + "/data/d0/a78f14e02ecff84cb5e20e5806ca99d536126b";
   remove(cache_file.c_str());
 
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while thread checks cache
   now = Arc::Time();
@@ -250,7 +250,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -273,7 +273,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -308,7 +308,7 @@ void ProcessorTest::TestResolve() {
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
     dtr->set_replication(true); // usually set automatically by scheduler
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -336,7 +336,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -351,7 +351,7 @@ void ProcessorTest::TestResolve() {
     dtr->reset_error_status();
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
     now = Arc::Time();
@@ -376,7 +376,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -405,7 +405,7 @@ void ProcessorTest::TestQueryReplica() {
   //CPPUNIT_ASSERT(processor);
   dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
   dtr->set_owner(DataStaging::PRE_PROCESSOR);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while replica is queried
   Arc::Time now;
@@ -424,7 +424,7 @@ void ProcessorTest::TestQueryReplica() {
 
   dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
   dtr->set_owner(DataStaging::PRE_PROCESSOR);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while replica is queried
   now = Arc::Time();
@@ -447,7 +447,7 @@ void ProcessorTest::TestQueryReplica() {
     // first resolve replicas
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while replicas are resolved
     now = Arc::Time();
@@ -457,7 +457,7 @@ void ProcessorTest::TestQueryReplica() {
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
     dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
     dtr->set_owner(DataStaging::PRE_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while replica is queried
     now = Arc::Time();
@@ -500,7 +500,7 @@ void ProcessorTest::TestReplicaRegister() {
     // post-register
     dtr->set_status(DataStaging::DTRStatus::REGISTER_REPLICA);
     dtr->set_owner(DataStaging::POST_PROCESSOR);
-    processor.processDTR(dtr);
+    processor.receiveDTR(*dtr);
 
     // sleep while thread resgisters
     Arc::Time now;
@@ -566,7 +566,7 @@ void ProcessorTest::TestCacheProcess() {
   //CPPUNIT_ASSERT(processor);
   dtr->set_status(DataStaging::DTRStatus::PROCESS_CACHE);
   dtr->set_owner(DataStaging::POST_PROCESSOR);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while cache is processed
   Arc::Time now;
@@ -587,7 +587,7 @@ void ProcessorTest::TestCacheProcess() {
   dtr->reset_error_status();
   dtr->set_status(DataStaging::DTRStatus::PROCESS_CACHE);
   dtr->set_owner(DataStaging::POST_PROCESSOR);
-  processor.processDTR(dtr);
+  processor.receiveDTR(*dtr);
 
   // sleep while cache is processed
   now = Arc::Time();

@@ -5,6 +5,7 @@
 
 class GMEnvironment;
 class JobUsers;
+class DTRGenerator;
 
 namespace ARex {
 
@@ -13,8 +14,10 @@ class GridManager {
   bool active_;
   GMEnvironment* env_;
   JobUsers* users_;
+  DTRGenerator* dtr_generator_;
   GridManager(void) { };
   GridManager(const GridManager&) { };
+  static void grid_manager(void* arg);
  public:
   //GridManager(Arc::XMLNode argv);
   GridManager(GMEnvironment& env);

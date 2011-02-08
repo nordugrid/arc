@@ -13,21 +13,21 @@
 namespace DataStaging {
 
   Arc::Logger Generator::logger(Arc::Logger::getRootLogger(), "DataStaging.Generator");
-  Generator* Generator::instance = NULL;
-  Arc::SimpleCondition Generator::cond;
+  //Generator* Generator::instance = NULL;
+  //Arc::SimpleCondition Generator::cond;
 
-  Generator* Generator::getInstance() {
-    if (!instance)
-      instance = new Generator();
-    return instance;
-  }
+  //Generator* Generator::getInstance() {
+  //  if (!instance)
+  //    instance = new Generator();
+  //  return instance;
+  //}
 
   void Generator::shutdown(int sig) {
     logger.msg(Arc::INFO, "Cancelling all DTRs");
-    cond.signal();
+//    cond.signal();
   }
 
-  void Generator::receive_dtr(DTR dtr) {
+  void Generator::receiveDTR(DTR& dtr) {
     logger.msg(Arc::INFO, "Received DTR %s back from scheduler", dtr.get_id());
     // DTR logger can be destroyed when DTR has finished
     //dtr.get_logger()->deleteDestinations();
@@ -71,7 +71,8 @@ namespace DataStaging {
       }
       // register callback with DTR
       dtr.registerCallback(this,GENERATOR);
-      scheduler.processDTR(dtr);
+      dtr.registerCallback(&scheduler,SCHEDULER);
+      dtr.push(SCHEDULER);
     }
     //Scheduler::getInstance()->cancel_dtrs(job_desc);
     

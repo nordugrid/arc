@@ -43,18 +43,15 @@ namespace DataStaging {
     // relese the resources	 
 //  }
 
-  bool DataDelivery::processDTR(DTR* request){
-    if(!request) {
-      logger.msg(Arc::ERROR, "Received no DTR");
-      return false;
-    }
-    if(!(*request)) {
+  void DataDelivery::receiveDTR(DTR& dtr) {
+    if(!dtr) {
       logger.msg(Arc::ERROR, "Received invalid DTR");
-      request->set_status(DTRStatus::ERROR);
-      return false;
+      dtr.set_status(DTRStatus::ERROR);
+      dtr.push(SCHEDULER);
+      return;
     }
-    request->get_logger()->msg(Arc::INFO, "Delivery received new DTR %s with source: %s, destination: %s",
-               request->get_id(), request->get_source()->str(), request->get_destination()->str());
+    dtr.get_logger()->msg(Arc::INFO, "Delivery received new DTR %s with source: %s, destination: %s",
+               dtr.get_id(), dtr.get_source()->str(), dtr.get_destination()->str());
     /*
      *  Change the status of the dtr to TRANSFERRING	 
      *  Start reading from the source into a buffer
@@ -62,17 +59,18 @@ namespace DataStaging {
      *  TODO: Do the checksome 
      *  TODO: Change the status to TRANSFERRED
      */
-    request->set_status(DTRStatus::TRANSFERRING);
-    delivery_pair_t* d = new delivery_pair_t(request);
+    dtr.set_status(DTRStatus::TRANSFERRING);
+    delivery_pair_t* d = new delivery_pair_t(&dtr);
     if(d->comm) {
       dtr_list_lock.lock();
       dtr_list.push_back(d);
       dtr_list_lock.unlock();
     } else {
-      request->set_status(DTRStatus::ERROR);
+      dtr.set_status(DTRStatus::ERROR);
+      dtr.push(SCHEDULER);
       // request->set_owner(); ??
     }
-    return true;
+    return;
   }
 
   bool DataDelivery::cancelDTR(DTR* request) {

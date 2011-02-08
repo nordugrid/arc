@@ -53,6 +53,7 @@ namespace DataStaging {
   }
 
   DataDeliveryComm::DataDeliveryComm(const DTR& dtr):child_(NULL),handler_(NULL) {
+    logger_ = dtr.get_logger();
     if(!dtr.get_source()) return;
     if(!dtr.get_destination()) return;
     {
@@ -97,12 +98,18 @@ namespace DataStaging {
       child_->KeepStdout(false);
       child_->KeepStderr(false);
       child_->KeepStdin(false);
-      child_->AssignStderr(errstr_);
+      //child_->AssignStderr(errstr_);
       if(!caching) {
         child_->AssignUserId(dtr.get_local_user().get_uid());
         child_->AssignGroupId(dtr.get_local_user().get_gid());
       }
       // Start child
+      std::string cmd;
+      for(std::list<std::string>::iterator arg = args.begin();arg!=args.end();++arg) {
+        cmd += *arg;
+        cmd += " ";
+      }
+      if(logger_) logger_->msg(Arc::DEBUG, "DTR %s: Running command: %s", dtr.get_short_id(), cmd);
       if(!child_->Start()) {
         delete child_;
         child_=NULL;
@@ -138,7 +145,25 @@ namespace DataStaging {
     if(!child_) return;
     for(;;) {
       if(status_pos_ < sizeof(status_buf_)) {
-        int l = child_->ReadStdout(0,((char*)&status_buf_)+status_pos_,sizeof(status_buf_)-status_pos_);
+        int l;
+        // TODO: direct redirect
+        for(;;) {
+          char buf[1024+1];
+          l = child_->ReadStderr(0,buf,sizeof(buf)-1);
+          if(l <= 0) break;
+          buf[l] = 0;
+          if(logger_) {
+            char* start = buf;
+            for(;*start;) {
+              char* end = strchr(start,'\n');
+              if(end) *end = 0;
+              logger_->msg(Arc::INFO, "DataDelivery: %s", start);
+              if(!end) break;
+              start = end + 1;
+            }
+          }
+        }
+        l = child_->ReadStdout(0,((char*)&status_buf_)+status_pos_,sizeof(status_buf_)-status_pos_);
         if(l == -1) { // child error or closed comm
           if(child_->Running()) {
             status_.commstatus = CommClosed;

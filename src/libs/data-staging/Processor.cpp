@@ -656,64 +656,63 @@ namespace DataStaging {
 
   /* main process method called from DTR::push() */
 
-  void Processor::processDTR(DTR* request) {
+  void Processor::receiveDTR(DTR& request) {
 
-    ThreadArgument* arg = new ThreadArgument(this,request);
+    ThreadArgument* arg = new ThreadArgument(this,&request);
 
     // switch through the expected DTR states
-    switch (request->get_status().GetStatus()) {
+    switch (request.get_status().GetStatus()) {
 
       // pre-processor states
 
       case DTRStatus::CHECK_CACHE: {
-        request->set_status(DTRStatus::CHECKING_CACHE);
+        request.set_status(DTRStatus::CHECKING_CACHE);
         Arc::CreateThreadFunction(&DTRCheckCache, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::RESOLVE: {
-        request->set_status(DTRStatus::RESOLVING);
+        request.set_status(DTRStatus::RESOLVING);
         Arc::CreateThreadFunction(&DTRResolve, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::QUERY_REPLICA: {
-        request->set_status(DTRStatus::QUERYING_REPLICA);
+        request.set_status(DTRStatus::QUERYING_REPLICA);
         Arc::CreateThreadFunction(&DTRQueryReplica, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::PRE_CLEAN: {
-        request->set_status(DTRStatus::PRE_CLEANING);
+        request.set_status(DTRStatus::PRE_CLEANING);
         Arc::CreateThreadFunction(&DTRPreClean, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::STAGE_PREPARE: {
-        request->set_status(DTRStatus::STAGING_PREPARING);
+        request.set_status(DTRStatus::STAGING_PREPARING);
         Arc::CreateThreadFunction(&DTRStagePrepare, (void*)arg, &thread_count);
       }; break;
 
       // post-processor states
 
       case DTRStatus::RELEASE_REQUEST: {
-        request->set_status(DTRStatus::RELEASING_REQUEST);
+        request.set_status(DTRStatus::RELEASING_REQUEST);
         Arc::CreateThreadFunction(&DTRReleaseRequest, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::REGISTER_REPLICA: {
-        request->set_status(DTRStatus::REGISTERING_REPLICA);
+        request.set_status(DTRStatus::REGISTERING_REPLICA);
         Arc::CreateThreadFunction(&DTRRegisterReplica, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::PROCESS_CACHE: {
-        request->set_status(DTRStatus::PROCESSING_CACHE);
+        request.set_status(DTRStatus::PROCESSING_CACHE);
         Arc::CreateThreadFunction(&DTRProcessCache, (void*)arg, &thread_count);
       }; break;
 
       default: {
         // unexpected state - report error
-        request->set_error_status(DTRErrorStatus::INTERNAL_ERROR,
+        request.set_error_status(DTRErrorStatus::INTERNAL_ERROR,
                               DTRErrorStatus::ERROR_UNKNOWN,
-                              "Received a DTR in an unexpected state ("+request->get_status().str()+") in processor");
-        request->set_owner(SCHEDULER);
-//!!!        request->push(SCHEDULER);
+                              "Received a DTR in an unexpected state ("+request.get_status().str()+") in processor");
+        request.push(SCHEDULER);
         delete arg;
       }; break;
     }

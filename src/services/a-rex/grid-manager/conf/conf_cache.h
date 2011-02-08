@@ -68,9 +68,9 @@ class CacheConfig {
    */
   void parseINIConf(std::string username, ConfigSections* cf);
   void parseXMLConf(std::string username, Arc::XMLNode cfg);
-  const std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
-  const std::vector<std::string> getRemoteCacheDirs() const { return _remote_cache_dirs; };
-  const std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
+  std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
+  std::vector<std::string> getRemoteCacheDirs() const { return _remote_cache_dirs; };
+  std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
   /**
    * To allow for substitutions done during configuration
    */

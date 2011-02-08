@@ -11,7 +11,21 @@
 #include "DTR.h"
 
 namespace DataStaging {
-  
+
+  static const char* const owner_name[] = {
+    "GENERATOR",
+    "SCHEDULER",
+    "PRE-PROCESSOR",
+    "DELIVERY",
+    "POST-PROCESSOR"
+  };
+
+  static const char* get_owner_name(StagingProcesses proc) {
+    if(proc < 0) return "";
+    if(proc >= sizeof(owner_name)/sizeof(const char*)) return "";
+    return owner_name[proc];
+  }
+
   DTR::DTR(const std::string& source,
            const std::string& destination,
            const Arc::UserConfig& usercfg,
@@ -135,6 +149,7 @@ namespace DataStaging {
   }
 
   DTR& DTR::operator=(const DTR& dtr) {
+    // TODO: add lock
     DTR_ID = dtr.DTR_ID;
     source_url = dtr.source_url;
     destination_url = dtr.destination_url;
@@ -169,6 +184,7 @@ namespace DataStaging {
   }
 
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
+    // TODO: add lock
     proc_callback[owner] = cb;
   }
 
@@ -253,6 +269,7 @@ namespace DataStaging {
   }
 
   static DTRCallback* get_callback(const std::map<StagingProcesses,DTRCallback*>& proc_callback, StagingProcesses owner) {
+    // TODO: add lock
     std::map<StagingProcesses,DTRCallback*>::const_iterator c = proc_callback.find(owner);
     if(c == proc_callback.end()) return NULL;
     return c->second;
@@ -271,32 +288,20 @@ namespace DataStaging {
     set_owner(new_owner);
     DTRCallback* cb = get_callback(proc_callback,current_owner);
     switch(current_owner) {
-      case GENERATOR: {
+      case GENERATOR:
+      case SCHEDULER:
+      case PRE_PROCESSOR:
+      case DELIVERY:
+      case POST_PROCESSOR:
+      {
         // call registered callback
         if (cb)
-          cb->receive_dtr(*this);
+          cb->receiveDTR(*this);
         else
-          logger->msg(Arc::INFO, "DTR %s: No generator callback defined", get_short_id());
-      } break;
-      case SCHEDULER: {
-        // do nothing here - scheduler will pick up new events itself
-      } break;
-      case PRE_PROCESSOR:
-      case POST_PROCESSOR: {
-        logger->msg(Arc::ERROR,"DTR %s: push(*_PROCESSOR) not implemented yet", get_short_id());
-        exit(1);
-        /*
-        if (cb)
-          cb->receive_dtr(*this);
-        else
-          logger->msg(Arc::INFO, "DTR %s: No post/pre-processor callback defined", get_short_id());
-        */
-      } break;
-      case DELIVERY: {
-        logger->msg(Arc::ERROR,"DTR %s: push(DELIVERY) not implemented yet", get_short_id());
-        exit(1);
+          logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", get_short_id(), get_owner_name(current_owner));
       } break;
       default: // impossible
+        logger->msg(Arc::INFO, "DTR %s: Request to push to unknown owner - %u", get_short_id(), (unsigned int)current_owner);
         break;
     }
     mark_modification();

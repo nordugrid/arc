@@ -60,7 +60,7 @@ void DeliveryTest::TestDeliverySimple() {
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
   delivery.start();
-  delivery.processDTR(&dtr);
+  delivery.receiveDTR(dtr);
   DataStaging::DTRStatus status = dtr.get_status();
 
   // Wait for result. It must be either ERROR or TRANSFERRED at end.
@@ -98,7 +98,7 @@ void DeliveryTest::TestDeliveryFailure() {
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
   delivery.start();
-  delivery.processDTR(&dtr);
+  delivery.receiveDTR(dtr);
   DataStaging::DTRStatus status = dtr.get_status();
 
   // Wait for result. It must be either ERROR or TRANSFERRED at end.
@@ -136,7 +136,7 @@ void DeliveryTest::TestDeliveryUnsupported() {
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
   delivery.start();
-  delivery.processDTR(&dtr);
+  delivery.receiveDTR(dtr);
   DataStaging::DTRStatus status = dtr.get_status();
 
   // Wait for result. It must be either ERROR or TRANSFERRED at end.

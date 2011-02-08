@@ -15,24 +15,13 @@
 
 #include "dtr_generator.h"
 
-std::multimap<std::string, std::string> DTRGenerator::active_dtrs;
-std::map<std::string, std::string> DTRGenerator::finished_jobs;
-Arc::SimpleCondition DTRGenerator::lock;
-
-std::list<DataStaging::DTR> DTRGenerator::dtrs_received;
-std::list<JobDescription> DTRGenerator::jobs_received;
-std::list<std::string> DTRGenerator::jobs_cancelled;
-Arc::SimpleCondition DTRGenerator::event_lock;
-
-Arc::SimpleCondition DTRGenerator::run_condition;
-DataStaging::ProcessState DTRGenerator::generator_state = DataStaging::INITIATED;
-std::map<uid_t, const JobUser*> DTRGenerator::jobusers;
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
-DataStaging::Scheduler DTRGenerator::scheduler;
-DTRGeneratorCallback DTRGenerator::receive_dtr;
-
 void DTRGenerator::main_thread(void* arg) {
+  ((DTRGenerator*)arg)->thread();
+}
+
+void DTRGenerator::thread() {
 
   // set up logging - to avoid logging DTR logs to the main A-REX log
   // we disconnect the root logger
@@ -80,9 +69,9 @@ void DTRGenerator::main_thread(void* arg) {
   run_condition.signal();
 }
 
-bool DTRGenerator::start(const JobUsers& users) {
-  if (generator_state == DataStaging::RUNNING || generator_state == DataStaging::TO_STOP)
-    return false;
+DTRGenerator::DTRGenerator(const JobUsers& users):generator_state(DataStaging::INITIATED) {
+  //if (generator_state == DataStaging::RUNNING || generator_state == DataStaging::TO_STOP)
+  //  return false;
   generator_state = DataStaging::RUNNING;
   for (JobUsers::const_iterator i = users.begin(); i != users.end(); ++i) {
     jobusers[i->get_uid()] = &(*i);
@@ -120,20 +109,20 @@ bool DTRGenerator::start(const JobUsers& users) {
 
   scheduler.start();
 
-  Arc::CreateThreadFunction(&main_thread, NULL);
-  return true;
+  Arc::CreateThreadFunction(&main_thread, this);
+  return; // true;
 }
 
-bool DTRGenerator::stop() {
+DTRGenerator::~DTRGenerator() {
   if (generator_state != DataStaging::RUNNING)
-    return false;
+    return; // false;
   generator_state = DataStaging::TO_STOP;
   run_condition.wait();
   generator_state = DataStaging::STOPPED;
-  return true;
+  return; // true;
 }
 
-void DTRGenerator::receiveDTR(DataStaging::DTR dtr) {
+void DTRGenerator::receiveDTR(DataStaging::DTR& dtr) {
 
   if (generator_state == DataStaging::INITIATED || generator_state == DataStaging::STOPPED) {
     logger.msg(Arc::ERROR, "DTRGenerator is not running!");
@@ -596,11 +585,12 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     cache_parameters.cache_dirs = jobuser->CacheParams().getCacheDirs();
     cache_parameters.remote_cache_dirs = jobuser->CacheParams().getRemoteCacheDirs();
     dtr.set_cache_parameters(cache_parameters);
-    dtr.registerCallback(&receive_dtr,DataStaging::GENERATOR);
+    dtr.registerCallback(this,DataStaging::GENERATOR);
+    dtr.registerCallback(&scheduler,DataStaging::SCHEDULER);
     lock.lock();
     active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr.get_id()));
     lock.unlock();
-    scheduler.processDTR(dtr);
+    dtr.push(DataStaging::SCHEDULER);
   }
   return true;
 }
@@ -801,9 +791,5 @@ int DTRGenerator::user_file_exists(FileData &dt,const std::string& session_dir,s
     };
   };
   return 0; /* all checks passed - file is ok */
-}
-
-void DTRGeneratorCallback::receive_dtr(DataStaging::DTR dtr) {
-  DTRGenerator::receiveDTR(dtr);
 }
 

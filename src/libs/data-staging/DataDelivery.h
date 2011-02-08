@@ -14,10 +14,10 @@ namespace DataStaging {
   /**
    * The DataDelivery takes care of transfering data to/from 
    * specified location. It is a singleton class.
-   * Calling processDTR() starts new proces which performs
+   * Calling receiveDTR() starts new proces which performs
    * data transfer as specified in DTR.
    */
-  class DataDelivery{	
+  class DataDelivery: public DTRCallback {	
 
     private:
 
@@ -62,7 +62,7 @@ namespace DataStaging {
      * The DataDelivery starts a process to do the processing, and then returns.
      * The DataDelivery own thread then monitors started process.
      */
-    bool processDTR(DTR*);
+    virtual void receiveDTR(DTR&);
 
     /**
      * Kills the process corresponding to the given DTR

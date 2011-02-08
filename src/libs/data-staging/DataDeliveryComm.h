@@ -3,6 +3,7 @@
 
 #include <arc/Run.h>
 #include <arc/Thread.h>
+#include <arc/Logger.h>
 
 #include "DTR.h"
 
@@ -50,6 +51,7 @@ class DataDeliveryComm {
   Arc::Run* child_;
   std::string errstr_;
   DataDeliveryCommHandler* handler_;
+  Arc::Logger* logger_;
   void PullStatus(void);
 
  public:

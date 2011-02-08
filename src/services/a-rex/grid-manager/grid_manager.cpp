@@ -142,7 +142,7 @@ typedef struct {
   char** argv;
 } args_st;
 
-static void grid_manager(void* arg) {
+void GridManager::grid_manager(void* arg) {
   //const char* config_filename = (const char*)arg;
   GridManager* gm = (GridManager*)arg;
   GMEnvironment& env = *(gm->Environment());
@@ -319,17 +319,22 @@ static void grid_manager(void* arg) {
     user->CreateDirectories();
     user->get_jobs()->RestartJobs();
   };
-  /* main loop - forever */
-  logger.msg(Arc::INFO,"Starting jobs' monitoring");
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   if (env.jobs_cfg().GetNewDataStaging()) {
     logger.msg(Arc::INFO, "Starting data staging threads");
-    if (!DTRGenerator::start(users)) {
+    DTRGenerator* dtr_generator = new DTRGenerator(users);
+    if (!(*dtr_generator)) {
       logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
       return;
     }
+    gm->dtr_generator_ = dtr_generator;
+    for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+      user->get_jobs()->SetDataGenerator(dtr_generator);
+    }
   }
   bool scan_old = false;
+  /* main loop - forever */
+  logger.msg(Arc::INFO,"Starting jobs' monitoring");
   for(;;) { 
     users.run_helpers();
     env.job_log().RunReporter(users);
@@ -389,6 +394,7 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
 GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false) {
   env_ = &env;
   users_ = new JobUsers(env);
+  dtr_generator_ = NULL;
   void* arg = (void*)this; // config_filename?strdup(config_filename):NULL;
   active_=Arc::CreateThreadFunction(&grid_manager,arg);
   //if(!active_) if(arg) free(arg);
@@ -397,9 +403,9 @@ GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):acti
 GridManager::~GridManager(void) {
   logger.msg(Arc::INFO, "Shutting down grid-manager thread");
   if(active_) {
-    if (env_->jobs_cfg().GetNewDataStaging()) {
+    if (dtr_generator_) {
       logger.msg(Arc::INFO, "Shutting down data staging threads");
-      DTRGenerator::stop();
+      delete dtr_generator_;
     }
     // Stop GM thread
   }

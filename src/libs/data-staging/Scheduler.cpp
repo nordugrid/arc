@@ -693,9 +693,7 @@ namespace DataStaging {
       // Push to the pre-processor, register in the list
       // of processed DTRs and delete from the queue
       tmp = PreProcessorQueue.back();
-      tmp->set_owner(PRE_PROCESSOR);
-//!!!      PreProcessorQueue.back()->push(PRE_PROCESSOR);
-      processor.processDTR(tmp);
+      tmp->push(PRE_PROCESSOR);
       PreProcessorQueue.pop_back();
       PreProcessorRunning++;
     }
@@ -745,9 +743,7 @@ namespace DataStaging {
       // Push to the post-processor, register in the list
       // of processed DTRs and delete from the queue
       tmp = PostProcessorQueue.back();
-      tmp->set_owner(POST_PROCESSOR);
-//!!!      PostProcessorQueue.back()->push(POST_PROCESSOR);
-      processor.processDTR(tmp);
+      tmp->push(POST_PROCESSOR);
       PostProcessorQueue.pop_back();
       PostProcessorRunning++;
     }
@@ -840,9 +836,7 @@ namespace DataStaging {
             transferShares.can_start(tmp->get_transfer_share())) {
           transferShares.decrease_number_of_slots(tmp->get_transfer_share());
           tmp->set_status(DTRStatus::TRANSFER);
-          tmp->set_owner(DELIVERY); // set_owner should be hidden inside push()
-//!!!          tmp->push(DELIVERY);
-          delivery.processDTR(tmp);
+          tmp->push(DELIVERY);
           DeliveryRunning++;
           shares_in_delivery.insert(tmp->get_transfer_share());
         }
@@ -850,9 +844,7 @@ namespace DataStaging {
       else if(transferShares.can_start(tmp->get_transfer_share())){
       	transferShares.decrease_number_of_slots(tmp->get_transfer_share());
         tmp->set_status(DTRStatus::TRANSFER);
-        tmp->set_owner(DELIVERY);
-//!!!        tmp->push(DELIVERY);
-        delivery.processDTR(tmp);
+        tmp->push(DELIVERY);
         DeliveryRunning++;
         shares_in_delivery.insert(tmp->get_transfer_share());
       }
@@ -860,10 +852,17 @@ namespace DataStaging {
     
   }
 
-  bool Scheduler::processDTR(DTR& request){
+  void Scheduler::receiveDTR(DTR& request){
+    if(request.get_status() != DTRStatus::NEW) {
+       // If DTR is not NEW scheduler will pick it up itself.
+       return;
+    }
     request.get_logger()->msg(Arc::INFO, "Scheduler received new DTR %s with source: %s, destination: %s",
                request.get_id(), request.get_source()->str(), request.get_destination()->str());
     
+    request.registerCallback(&processor,PRE_PROCESSOR);
+    request.registerCallback(&processor,POST_PROCESSOR);
+    request.registerCallback(&delivery,DELIVERY);
     /* Shares part*/
     // First, get the transfer share this dtr should belong to
     std::string DtrTransferShare = transferShares.extract_share_info(request);
@@ -898,7 +897,7 @@ namespace DataStaging {
     DtrList.add_dtr(request);
     
     // Accepted successfully
-    return true;
+    return;
   }
 
   bool Scheduler::cancelDTRs(const std::string& jobid) {

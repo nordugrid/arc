@@ -10,10 +10,10 @@ namespace DataStaging {
   /**
    * The Processor takes care of everything that should happen before
    * and after a transfer takes place. It is a singleton class and
-   * calling processDTR() spawns a thread to perform the required
+   * calling receiveDTR() spawns a thread to perform the required
    * operation depending on the DTR state.
    */
-  class Processor {
+  class Processor: public DTRCallback {
 
    private:
 
@@ -68,7 +68,7 @@ namespace DataStaging {
      * and then returns. The thread notifies the scheduler when
      * it is finished.
      */
-    void processDTR(DTR* dtr);
+    virtual void receiveDTR(DTR& dtr);
   };
 
 

@@ -23,8 +23,8 @@ int main(int argc, char** argv) {
     destination = argv[2];
   }
 
-  DataStaging::Generator* generator = DataStaging::Generator::getInstance();
-  generator->run(source, destination);
+  DataStaging::Generator generator;
+  generator.run(source, destination);
 
   return 0;
 }

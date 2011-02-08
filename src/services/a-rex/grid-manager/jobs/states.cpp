@@ -85,6 +85,7 @@ JobsList::JobsList(JobUser &user,ContinuationPlugins &plugins) {
   this->user=&user;
   this->plugins=&plugins;
   this->old_dir=NULL;
+  this->dtr_generator=NULL;
   jobs.clear();
 }
  
@@ -561,9 +562,9 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
 bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,bool up,bool &retry) {
   JobsListConfig& jcfg = user->Env().jobs_cfg();
 
-  if (jcfg.use_new_data_staging) {  /***** new data staging ******/
+  if (jcfg.use_new_data_staging && dtr_generator) {  /***** new data staging ******/
     // Job is in data staging - check progress
-    if (DTRGenerator::queryJobFinished(*i)) {
+    if (dtr_generator->queryJobFinished(*i)) {
       // Finished - check for failure
       if (!i->GetFailure().empty()) {
         JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
@@ -571,7 +572,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
       }
       // check for user-uploadable files
       if (!up) {
-        int result = DTRGenerator::checkUploadedFiles(*i);
+        int result = dtr_generator->checkUploadedFiles(*i);
         if (result == 2)
           return true;
         if (result == 0) {
@@ -1002,8 +1003,11 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
             if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
             i->Start();
-            if (jcfg.use_new_data_staging && (new_state == JOB_STATE_PREPARING || new_state == JOB_STATE_FINISHING))
-              DTRGenerator::receiveJob(*i);
+            if (jcfg.use_new_data_staging && dtr_generator) {
+              if((new_state == JOB_STATE_PREPARING || new_state == JOB_STATE_FINISHING)) {
+                dtr_generator->receiveJob(*i);
+              };
+            };
             // add to DN map
             // here we don't enforce the per-DN limit since the jobs are
             // already in the system
@@ -1011,7 +1015,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               logger.msg(Arc::ERROR, "Failed to get DN information from .local file for job %s", i->job_id);
               job_error=true; i->AddFailure("Could not get DN information for job");
               return; /* go to next job */
-            }
+            };
             jcfg.jobs_dn[job_desc->DN]++;
           };
         }; // Not doing JobPending here because that job kind of does not exist.
@@ -1064,8 +1068,9 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
             if (i->retries ==0) i->retries = jcfg.max_retries;
             preparing_job_share[i->transfer_share]++;
             i->Start();
-            if (jcfg.use_new_data_staging)
-              DTRGenerator::receiveJob(*i);
+            if (jcfg.use_new_data_staging && dtr_generator) {
+              dtr_generator->receiveJob(*i);
+            };
 
             /* gather some frontend specific information for user,
                do it only once */
@@ -1102,12 +1107,16 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
             if(i->local->arguments.size()) {
               // with new data staging, when a job fails or is cancelled we wait until all
               // DTRs complete before continuing, so here we check for failure
-              if(jcfg.use_new_data_staging && job_failed_mark_check(i->job_id, *user)) {
-                state_changed=true; once_more=true;
-                i->job_state = JOB_STATE_FINISHING;
-                DTRGenerator::receiveJob(*i);
-                finishing_job_share[i->transfer_share]++;
-              } else if((JOB_NUM_RUNNING<jcfg.max_jobs_running) || (jcfg.max_jobs_running==-1)) {
+              if(jcfg.use_new_data_staging && dtr_generator) {
+                if(job_failed_mark_check(i->job_id, *user)) {
+                  state_changed=true; once_more=true;
+                  i->job_state = JOB_STATE_FINISHING;
+                  dtr_generator->receiveJob(*i);
+                  finishing_job_share[i->transfer_share]++;
+                  return;
+                };
+              };
+              if((JOB_NUM_RUNNING<jcfg.max_jobs_running) || (jcfg.max_jobs_running==-1)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;
                 i->retries = jcfg.max_retries;
@@ -1115,10 +1124,10 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
                 state_changed=false;
                 JobPending(i);
               };
-            } else if(jcfg.use_new_data_staging) {
+            } else if(jcfg.use_new_data_staging && dtr_generator) {
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_FINISHING;
-              DTRGenerator::receiveJob(*i);
+              dtr_generator->receiveJob(*i);
               finishing_job_share[i->transfer_share]++;
             } else if((jcfg.max_jobs_processing == -1) ||
                       (jcfg.use_local_transfer) ||
@@ -1202,8 +1211,9 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,
         if(state_submitting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
-            if (jcfg.use_new_data_staging)
-              DTRGenerator::receiveJob(*i);
+            if (jcfg.use_new_data_staging && dtr_generator) {
+              dtr_generator->receiveJob(*i);
+            };
             finishing_job_share[i->transfer_share]++;
             once_more=true;
           };
@@ -1261,10 +1271,10 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
               // i->job_state = JOB_STATE_FINISHING;
               };
             };
-            if(jcfg.use_new_data_staging) {
+            if(jcfg.use_new_data_staging && dtr_generator) {
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_FINISHING;
-              DTRGenerator::receiveJob(*i);
+              dtr_generator->receiveJob(*i);
               finishing_job_share[i->transfer_share]++;
             }
             else if ((jcfg.max_jobs_processing == -1) ||
@@ -1527,9 +1537,11 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        (i->job_state != JOB_STATE_SUBMITTING)) {
       if(job_cancel_mark_check(i->job_id,*user)) {
         logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
-        if (jcfg.use_new_data_staging &&
-            (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING))
-          DTRGenerator::cancelJob(*i);
+        if (jcfg.use_new_data_staging && dtr_generator) {
+          if ((i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
+            dtr_generator->cancelJob(*i);
+          };
+        };
         /* kill running child */
         if(i->child) { 
           i->child->Kill(0);
@@ -1626,8 +1638,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
             // If job fails in preparing with new data staging, wait for DTRs to finish
             // Any other failure should cause transfer to go to FINISHING
             i->job_state = JOB_STATE_FINISHING;
-            if (jcfg.use_new_data_staging)
-              DTRGenerator::receiveJob(*i);
+            if (jcfg.use_new_data_staging && dtr_generator) {
+              dtr_generator->receiveJob(*i);
+            };
             finishing_job_share[i->transfer_share]++;
             state_changed=true;
             once_more=true;

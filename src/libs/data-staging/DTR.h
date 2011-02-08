@@ -76,7 +76,10 @@ namespace DataStaging {
   class DTRCallback {
     public:
       virtual ~DTRCallback() {};
-      virtual void receive_dtr(DTR dtr) = 0;
+      virtual void receiveDTR(DTR& dtr) = 0;
+      // TODO
+      //virtual void suspendDTR(DTR& dtr) = 0;
+      //virtual void cancelDTR(DTR& dtr) = 0;
   };
 
   /**

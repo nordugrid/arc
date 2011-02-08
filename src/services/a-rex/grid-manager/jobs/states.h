@@ -26,6 +26,7 @@ class ContinuationPlugins;
 class RunPlugin;
 class JobsListConfig;
 class JobFDesc;
+class DTRGenerator;
 
 /*
   List of jobs. This object is cross-linked to JobUser object, which
@@ -45,6 +46,7 @@ class JobsList {
   JobUser *user;
   ContinuationPlugins *plugins;
   Glib::Dir* old_dir;
+  DTRGenerator* dtr_generator;
   /* Add job into list without checking if it is already there
      'i' will be set to iterator pointing at new job */
   bool AddJobNoCheck(const JobId &id,iterator &i,uid_t uid,gid_t gid);
@@ -75,6 +77,7 @@ class JobsList {
   /* Constructor. 'user' contains associated user */ 
   JobsList(JobUser &user,ContinuationPlugins &plugins);
   ~JobsList(void);
+  void SetDataGenerator(DTRGenerator* generator) { dtr_generator = generator; };
   iterator FindJob(const JobId &id);
   iterator begin(void) { return jobs.begin(); };
   iterator end(void) { return jobs.end(); };

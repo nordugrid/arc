@@ -14,7 +14,7 @@
 
 namespace DataStaging {
 
-class Scheduler {	
+class Scheduler: public DTRCallback {	
 
   private:
   
@@ -179,7 +179,7 @@ class Scheduler {
     /* This method is called by the generator if it wants to
      * pass a DTR to the scheduler.
      */
-    bool processDTR(DTR& request);
+    virtual void receiveDTR(DTR& dtr);
     
     /* Tell the Scheduler to cancel all the DTRs in the given
      * job description.

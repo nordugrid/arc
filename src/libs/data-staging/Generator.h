@@ -24,14 +24,12 @@ namespace DataStaging {
    private:
 
     /** Condition to wait on until DTR has finished */
-    static Arc::SimpleCondition cond;
+    Arc::SimpleCondition cond;
 
     /** Singleton instance */
-    static Generator* instance;
+    //static Generator* instance;
 
     /** Private constructors and assignment operators */
-    Generator() {};
-    ~Generator() {};
     Generator(const Generator&);
     Generator& operator=(const Generator&);
 
@@ -43,8 +41,10 @@ namespace DataStaging {
 
    public:
 
+    Generator() {};
+    ~Generator() {};
     /** Get the singleton instance */
-    static Generator* getInstance();
+    //static Generator* getInstance();
 
     /**
      * Callback method used when DTR processing is complete to
@@ -52,7 +52,7 @@ namespace DataStaging {
      * that the scheduler can delete its copy of the object after
      * calling this method.
      */
-    virtual void receive_dtr(DTR dtr);
+    virtual void receiveDTR(DTR& dtr);
 
     /** Produce and submit some DTRs, with given source and destination */
     void run(const std::string& source, const std::string& destination);
