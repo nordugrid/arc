@@ -23,7 +23,7 @@ use warnings;
 # User-specific options are: sessiondir cachedir remotecachedir helper
 # cachesize maxrerun maxtransferfiles defaultttl mail. <username> reffers to
 # the user that is initiated by a 'control' command. Each pseudo-section has
-# it's own 'controldir' option. No substituions are made and use names '.' and
+# it's own 'controldir' option. No substituions are made and user names '.' and
 # '*' are not handled specially.
 
 sub new($$) {

@@ -26,6 +26,7 @@ BEGIN {
 
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' );
 use Shared;
+use ConfigParser;
 
 #
 # populates the nordugrid-se LDAP entry
@@ -44,8 +45,8 @@ my $USAGE=<<EOUSAGE
 script usage:
        mandatory arguments: --dn         
                             --config    
-			    --se	 
-			    
+                            --se
+
        optional arguments:  --valid-to   
                             --loglevel   
 
@@ -76,64 +77,18 @@ $config{ng_location}	||= $ENV{ARC_LOCATION} ||= "@prefix@";
 my $globus_location	||= $ENV{GLOBUS_LOCATION} ||= "/usr";
 chomp ($config{hostname} = `/bin/hostname -f`);
 
+my $parser = ConfigParser->new($config{conf_file}) or die "Cannot parse config file at '$config{conf_file}'\n";
 
-#parse the arc.conf directly into a hash $parsedconfig{blockname}{variable_name}
-unless (open (CONFIGFILE, "<$config{conf_file}")) {
-    error("can't open $config{conf_file} configuration file");
-    die "Can't open $config{conf_file} configuration file\n";
-}
-my $blockname;
-while (my $line =<CONFIGFILE>) {
-   next if $line =~/^#/;
-   next if $line =~/^$/;
-   next if $line =~/^\s+$/;
-   
-   if ($line =~/\[(.+)\]/ ) {
-      $blockname = $1;
-      next;
-   }
-   
-   unless ($line =~ /=\s*".*"\s*$/) {
-      warning("skipping incorrect arc.conf line: $line");
-      next;
-   }
-    
-   $line =~m/^(\w+)\s*=\s*"(.*)"\s*$/;
-   $variable_name=$1;
-   $variable_value=$2;
-   unless ($parsedconfig{$blockname}{$variable_name}) {
-      $parsedconfig{$blockname}{$variable_name} = $variable_value;
-   }
-   else {
-      $parsedconfig{$blockname}{$variable_name} .= "[separator]".$variable_value;
-   }   
-}
-close CONFIGFILE;
+# copy blocks that are relevant to %config
 
-
-#fill the %config hash from the %parsedconfig taking into account the block hierarchy
-foreach $variable (keys %{ $parsedconfig{"common"} } ) {
-   $config{$variable} = $parsedconfig{"common"}{$variable};
+%config = ( %config, $parser->get_section('common') );
+%config = ( %config, $parser->get_section('infosys') );
+%config = ( %config, $parser->get_section('gridftpd') );
+%config = ( %config, $parser->get_section("se/$config{se}") );
+if ($config{assigned_storage}) {
+    %config = ( %config, $parser->get_section("gridftpd/$config{assigned_storage}") );
+    %config = ( %config, $parser->get_section("httpsd/$config{assigned_storage}") );
 }
-foreach $variable (keys %{ $parsedconfig{"infosys"} } ) {
-   $config{$variable} = $parsedconfig{"infosys"}{$variable};
-}
-foreach $variable (keys %{ $parsedconfig{"gridftpd"} } ) {
-   $config{$variable} = $parsedconfig{"gridftpd"}{$variable};
-}
-foreach $variable (keys %{ $parsedconfig{"se/".$config{se}} } ) {
-   $config{$variable} = $parsedconfig{"se/".$config{se}}{$variable};
-}
-if ( $parsedconfig{"se/".$config{se}}{assigned_storage} ) {
-   my $assigned_storage = $parsedconfig{"se/".$config{se}}{assigned_storage};
-   foreach $variable (keys %{ $parsedconfig{"gridftpd/".$assigned_storage} } ) {
-      $config{$variable} = $parsedconfig{"gridftpd/".$assigned_storage}{$variable};
-   }
-   foreach $variable (keys %{ $parsedconfig{"httpsd/".$assigned_storage} } ) {
-      $config{$variable} = $parsedconfig{"httpsd/".$assigned_storage}{$variable};
-   }   
-}
-
 
 if (! defined ($config{name})) {
    $config{name} = $config{se};
@@ -311,32 +266,43 @@ if ( $issuerca =~ s/issuer= // ) {
    chomp($issuerca);
    print "nordugrid-se-issuerca: $issuerca\n";
 }
-       
-#nordugrid-se-issuerca-hash
-@certfiles = `ls $config{"x509_cert_dir"}/*.0 2>/dev/null`;			       
-foreach $cert ( @certfiles ) {							       
-   my $ca_sn = `$openssl_command x509 -checkend 60 -noout -subject -in $cert`;	       
-   $ca_sn =~ s/subject= //;							       
-   chomp($ca_sn);								       
-   if ( $ca_sn eq $issuerca) {							       
-      $issuerca_hash = `$openssl_command x509 -checkend 60 -noout -hash -in $cert`;    
-   }										       
-   if ($?) {									       
-     warning("CA $ca_sn is expired");	       
+
+# List certs and elliminate duplication in case 2 soft links point to the same file.
+opendir(CERTDIR, $config{x509_cert_dir}) || error("failed listing certificates directory $config{x509_cert_dir}: $!");
+my %certfiles;
+for (readdir CERTDIR) {
+    next unless m/\.\d$/;
+    my $file = $config{x509_cert_dir}."/".$_;
+    my $link = -l $file ? readlink $file : $_;
+    $certfiles{$link} = $file;
+}
+closedir CERTDIR;
+my $issuerca_hash;
+foreach my $cert ( sort values %certfiles ) {
+   my $ca_sn = `$openssl_command x509 -checkend 60 -noout -subject -in $cert`;
+   $ca_sn =~ s/subject= //;
+   chomp($ca_sn);
+   if ( $ca_sn eq $issuerca) {
+      $issuerca_hash = `$openssl_command x509 -noout -hash -in $cert`;
+      chomp ($issuerca_hash);
+   }
+   if ($?) {
+     $config{loglevel} and warning("CA $ca_sn is expired");
      next;
-   }										       
-   push @trustedca, $ca_sn;							       
-}										       
-if ( $issuerca_hash ) { 							       
-   chomp ($issuerca_hash);							       
+   }
+   $trustedca{$ca_sn} = 1;
+}
+
+#nordugrid-se-issuerca-hash
+if ( $issuerca_hash ) {
+   chomp ($issuerca_hash);
    print "nordugrid-se-issuerca-hash: $issuerca_hash\n";
 }
-										       
+
 #nordugrid-se-trustedca	
-foreach my $listentry (@trustedca) {	
+foreach my $listentry (sort keys %trustedca) {	
    print "nordugrid-se-trustedca: $listentry\n";
 }		
-
 
 #nordugrid-se-authuser
 foreach $listentry (keys %users) {

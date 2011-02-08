@@ -19,10 +19,10 @@ BEGIN {
 
 # Synopsis:
 #
-#   use ConfigParser;
+#   use IniParser;
 #   use condor_env;
 #  
-#   my $parser = ConfigParser->new('/etc/arc.conf');
+#   my $parser = IniParser->new('/etc/arc.conf');
 #   my %config = $parser->get_section("common");
 #   configure_condor_env(%config) or die "Condor executables not found";
 

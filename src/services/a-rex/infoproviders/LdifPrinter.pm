@@ -43,6 +43,10 @@ sub end {
     shift @{$self->{nick}};
 }
 
+#
+# Prints an entry with the attributes added so far.
+# Prints nothing if there are no attirubutes.
+#
 sub _flush {
     my ($self) = @_;
     my $fh = $self->{fh};
@@ -50,8 +54,9 @@ sub _flush {
     return unless defined $attrs;
     my $dn = join ",", @{$self->{dn}};
     my $nick = join ", ", @{$self->{nick}};
-    #print $fh "\n# $nick";
-    print $fh "\n".safe_attrval("dn", $dn)."\n"
+    print $fh "\n";
+    #print $fh "# $nick";
+    print $fh safe_attrval("dn", $dn)."\n"
         or $log->error("print failed: $!");
     for my $pair (@$attrs) {
         my ($attr, $val) = @$pair;
