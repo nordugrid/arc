@@ -277,8 +277,6 @@ bdii_ports_write="$(( $bdii_port_read + 1 )) $(( $bdii_port_read + 2 ))"
 
 bdii_bind="o=Grid"
 bdii_search_filter='*'
-bdii_search_timeout=${CONFIG_bdii_search_timeout:-300}
-bdii_breathe_time=${CONFIG_bdii_breathe_time:-30}
 bdii_auto_update=${CONFIG_bdii_auto_update:-no}
 bdii_auto_modify=${CONFIG_bdii_auto_modify:-no}
 bdii_modify_dn=${CONFIG_bdii_modify_dn:-no}
@@ -293,6 +291,25 @@ infosys_compat=${CONFIG_infosys_compat:-"disable"}
 infosys_nordugrid=${CONFIG_infosys_nordugrid:-"enable"}
 infosys_glue12=${CONFIG_infosys_glue12:-"disable"}
 infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
+
+provider_timeout=${CONFIG_provider_timeout:-300}
+gm_wakeupperiod=$(config_print_option grid-manager wakeupperiod)
+gm_wakeupperiod=${gm_wakeupperiod:-120}
+
+if [ "x$infosys_compat" = "enable" ]; then
+    bdii_breathe_time=${CONFIG_bdii_breathe_time:-30}
+    bdii_search_timeout=${CONFIG_bdii_search_timeout:-300}
+else
+    # The infoprovider does the waiting, no need for BDII to do it too.  Use
+    # some small timeout to protect the system in case there is a problem with
+    # the provier
+    bdii_breathe_time=${CONFIG_bdii_breathe_time:-10}
+
+    # $provider_timeout refers to a-rex's infoprovider. BDII must also include
+    # the wait time till the next info collection cycle of a-rex.
+    max_cycle=$(( $provider_timeout + $gm_wakeupperiod ))
+    bdii_search_timeout=${CONFIG_bdii_search_timeout:-$max_cycle}
+fi
 
 # o=infosys should be disabled by default if possible.
 infosys_debug=${CONFIG_infosys_debug:-"disable"}

@@ -310,14 +310,36 @@ bdii_port=${CONFIG_port:-2135}
 
 #Using uppercase characters in bdii_bind will break infosys.
 bdii_bind="o=grid"
-bdii_breathe_time=${CONFIG_bdii_breathe_time:-120}
-bdii_read_timeout=${CONFIG_bdii_read_timeout:-300}
-bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 #TODO add to BDII
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
 bdii_database=${CONFIG_bdii_database:-"bdb"}
 bdii_fix_glue=${CONFIG_fix_glue:-no}
 bdii_archive_size=${CONFIG_bdii_archive_size:-0}
+
+infosys_compat=${CONFIG_infosys_compat:-"disable"}
+infosys_nordugrid=${CONFIG_infosys_nordugrid:-"enable"}
+infosys_glue12=${CONFIG_infosys_glue12:-"disable"}
+infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
+
+provider_timeout=${CONFIG_provider_timeout:-300}
+gm_wakeupperiod=$(config_print_option grid-manager wakeupperiod)
+gm_wakeupperiod=${gm_wakeupperiod:-120}
+
+if [ "x$infosys_compat" = "enable" ]; then
+    bdii_breathe_time=${CONFIG_bdii_breathe_time:-120}
+    bdii_read_timeout=${CONFIG_bdii_read_timeout:-300}
+else
+    # The infoprovider does the waiting, no need for BDII to do it too.  Use
+    # some small timeout to protect the system in case there is a problem with
+    # the provier
+    bdii_breathe_time=${CONFIG_bdii_breathe_time:-10}
+
+    # $provider_timeout refers to a-rex's infoprovider. BDII must also include
+    # the wait time till the next info collection cycle of a-rex.
+    max_cycle=$(( $provider_timeout + $gm_wakeupperiod ))
+    bdii_read_timeout=${CONFIG_bdii_read_timeout:-$max_cycle}
+fi
+bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
 update_pid_file=${PID_FILE:-/var/run/bdii-update.pid}
 slapd_pid_file=${slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
@@ -325,11 +347,6 @@ slapd_pid_file=${slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
 update_lock_file=${update_lock_file:-/var/lock/subsys/bdii-update}
 slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/bdii-slapd}
 lockfile=/var/lock/subsys/$prog
-
-infosys_compat=${CONFIG_infosys_compat:-"disable"}
-infosys_nordugrid=${CONFIG_infosys_nordugrid:-"enable"}
-infosys_glue12=${CONFIG_infosys_glue12:-"disable"}
-infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
 
 # o=infosys should be disabled by default if possible.
 infosys_debug=${CONFIG_infosys_debug:-"disable"}
