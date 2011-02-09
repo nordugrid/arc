@@ -813,7 +813,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     jcfg.SetSecureTransfer(use_secure_transfer);
     elementtobool(tmp_node,"localTransfer",use_local_transfer,&logger);
     jcfg.SetLocalTransfer(use_local_transfer);
-    elementtobool(tmp_node,"useDataStaging",use_new_data_staging,&logger);
+    elementtobool(tmp_node,"newDataStaging",use_new_data_staging,&logger);
     jcfg.SetNewDataStaging(use_new_data_staging);
     if(elementtoint(tmp_node,"maxRetries",max_retries,&logger) && (max_retries > 0)) {
         jcfg.SetMaxRetries(max_retries);
