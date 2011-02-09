@@ -1,4 +1,4 @@
-#!@posix_shell@
+#!/bin/bash
 #
 # Periodically check state of grid jobs in DGBridge, and put mark files
 # for finished jobs.
