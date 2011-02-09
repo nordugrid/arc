@@ -49,6 +49,8 @@ namespace Arc {
   bool DirDelete(const std::string& path,uid_t uid,gid_t gid);
 
   /// Create a temporary directory under the system defined temp location, and return its path
+  /** Uses mkdtemp if available, and a combination of random parameters if not. This
+   * latter method is not as safe as mkdtemp. */
   bool TmpDirCreate(std::string& path);
 
 } // namespace Arc

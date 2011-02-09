@@ -303,11 +303,23 @@ bool DirDelete(const std::string& path) {
 }
 
 bool TmpDirCreate(std::string& path) {
-  // platform independent version of mkdtemp()
   std::string tmpdir(Glib::get_tmp_dir());
+  bool result = false;
+#ifdef HAVE_MKDTEMP
+  char tmpdirtemplate[] = "ARC-XXXXXX";
+  tmpdir = Glib::build_filename(tmpdir, tmpdirtemplate);
+  char* tmpdirchar = mkdtemp(const_cast<char*>(tmpdir.c_str()));
+  if (tmpdirchar) {
+    path = tmpdirchar;
+    result = true;
+  }
+#else
+  // NOTE: not safe!
   std::string tmp("ARC-" + Arc::tostring(getpid()) + "-" + Arc::Time().str(Arc::EpochTime));
   path = Glib::build_filename(tmpdir, tmp);
-  return DirCreate(path, 0700, true);
+  result = DirCreate(path, 0700, true);
+#endif
+  return result;
 }
 
 } // namespace Arc
