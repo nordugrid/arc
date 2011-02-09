@@ -56,7 +56,11 @@ BuildRequires:	globus-rls-client-devel
 BuildRequires:	lfc-devel
 %endif
 BuildRequires:	gridsite-devel
-BuildRequires:	db4-devel
+%if %{?suse_version}%{!?suse_version:0}
+BuildRequires: libdb-4_5-devel
+%else
+BuildRequires: db4-devel
+%endif
 %if %{with_java}
 BuildRequires:	java-devel
 BuildRequires:	jpackage-utils
