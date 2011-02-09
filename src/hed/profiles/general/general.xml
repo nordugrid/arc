@@ -180,6 +180,10 @@ attributes depending on how the mapping should be done.
         <arex:wakeupPeriod inisections="arex" initag="wakeupperiod" inidefaultvalue="120"/>
         <arex:maxLoadShare inisections="arex" initag="maxloadshare"/>
         <arex:loadShareType inisections="arex" initag="loadsharetype"/>
+        <arex:shareLimit initype="multisection" inisections="arex/sharelimit">
+          <arex:name inisections="#this" initag="name"/>
+          <arex:limit inisections="#this" initag="limit"/>
+        </arex:shareLimit>
       </arex:loadLimits>
       <arex:dataTransfer>
         <arex:secureTransfer inisections="arex" initag="securetransfer" inidefaultvalue="false"/>
