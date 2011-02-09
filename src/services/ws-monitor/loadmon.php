@@ -221,6 +221,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 
       $cluster = $entries->Domains->AdminDomain->Services->ComputingService;
       $queues = $entries->Domains->AdminDomain->Services->ComputingService->ComputingShares->ComputingShare;
+      $queues_new = $entries->Domains->AdminDomain->Services->ComputingService->ComputingShare;
+
+      $queues = @($queues) ? $queues : $queues_new ;
 
       $nclusters = count($queues);      /* Actually,  queue blocks, 2+ */
 

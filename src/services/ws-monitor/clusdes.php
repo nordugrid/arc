@@ -89,6 +89,9 @@ if ($isis) {
 
       $qentries = $info;
       $queues = $qentries->Domains->AdminDomain->Services->ComputingService->ComputingShares->ComputingShare;
+      $queues_new = $qentries->Domains->AdminDomain->Services->ComputingService->ComputingShare;
+
+      $queues = @($queues) ? $queues : $queues_new ;
       $nqueues  = count($queues);
 
       // HTML table initialisation

@@ -171,6 +171,10 @@ for ( $ids = 0; $ids < $nhosts; $ids++ ) {
 
       $allres  = $dst->Domains->AdminDomain->Services->ComputingService;
       $queues = $allres->ComputingShares->ComputingShare;
+      $queues_new = $allres->ComputingShare;
+
+      $queues = @($queues) ? $queues : $queues_new ;
+ 
       $nqueues = count($queues);
 
       //   define("CMPKEY",USR_CPUS);

@@ -80,6 +80,10 @@ if ($isis) {
     $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["110"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
     if ($entries) {
       $queues = $entries->Domains->AdminDomain->Services->ComputingService->ComputingShares->ComputingShare;
+      $queues_new = $entries->Domains->AdminDomain->Services->ComputingService->ComputingShare;
+
+      $queues = @($queues) ? $queues : $queues_new ;
+ 
       $actual_queue = NULL;
       foreach ($queues as $queue) {
         if ($queue->ID == $qid) $actual_queue = $queue;
