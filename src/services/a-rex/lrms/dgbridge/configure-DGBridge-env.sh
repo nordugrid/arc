@@ -17,7 +17,6 @@ config_import_section "common"
 config_import_section "infosys"
 config_import_section "grid-manager"
 config_import_section "lrms"
-config_import_section "LRMS"
 
 #set 3G values
 EDGES_3G_TIMEOUT=24

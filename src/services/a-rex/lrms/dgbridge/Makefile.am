@@ -7,7 +7,8 @@ profile_DATA = dgbridge.xml
 
 install-data-hook:
 	cp -p $(DESTDIR)$(profiledir)/dgbridge.xml $(DESTDIR)$(profiledir)/dgbridge.xml.orig && \
-        sed "s,/usr/libexec/arc,${pkglibexecdir},g" < $(DESTDIR)$(profiledir)/dgbridge.xml.orig > $(DESTDIR)$(profiledir)/dgbridge.xml
+        sed "s,/usr/libexec/arc,${pkglibexecdir},g" < $(DESTDIR)$(profiledir)/dgbridge.xml.orig | \
+        sed "s,/usr/lib64/arc,${pkglibdir},g" > $(DESTDIR)$(profiledir)/dgbridge.xml
 
 EXTRA_DIST = README.DGBridge dgbridge_service.ini dgbridge.conf $(profile_DATA)
 
