@@ -20,6 +20,8 @@
 #include <sys/mman.h>
 #endif
 
+#include <arc/StringConv.h>
+#include <arc/DateTime.h>
 #include <arc/User.h>
 #include "FileUtils.h"
 
@@ -298,6 +300,14 @@ bool DirDelete(const std::string& path) {
   if (rmdir(path.c_str()) != 0) return false;
       
   return true;
+}
+
+bool TmpDirCreate(std::string& path) {
+  // platform independent version of mkdtemp()
+  std::string tmpdir(Glib::get_tmp_dir());
+  std::string tmp("ARC-" + Arc::tostring(getpid()) + "-" + Arc::Time().str(Arc::EpochTime));
+  path = Glib::build_filename(tmpdir, tmp);
+  return DirCreate(path, 0700, true);
 }
 
 } // namespace Arc

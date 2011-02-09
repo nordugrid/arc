@@ -48,5 +48,8 @@ namespace Arc {
   /// Delete a directory using the specified uid and gid
   bool DirDelete(const std::string& path,uid_t uid,gid_t gid);
 
+  /// Create a temporary directory under the system defined temp location, and return its path
+  bool TmpDirCreate(std::string& path);
+
 } // namespace Arc
 

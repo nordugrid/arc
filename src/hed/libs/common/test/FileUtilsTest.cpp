@@ -13,6 +13,7 @@ class FileUtilsTest
   CPPUNIT_TEST(TestFileCopy);
   CPPUNIT_TEST(TestDirOpen);
   CPPUNIT_TEST(TestMakeAndDeleteDir);
+  CPPUNIT_TEST(TestTmpDirCreate);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -24,6 +25,7 @@ public:
   void TestFileCopy();
   void TestDirOpen();
   void TestMakeAndDeleteDir();
+  void TestTmpDirCreate();
 
 private:
   bool _createFile(const std::string& filename, const std::string& text = "a");
@@ -32,8 +34,8 @@ private:
 
 
 void FileUtilsTest::setUp() {
-  char tmpdirtemplate[] = "/tmp/ARC-Test-XXXXXX";
-  char * tmpdir = mkdtemp(tmpdirtemplate);
+  std::string tmpdir;
+  Arc::TmpDirCreate(tmpdir);
   testroot = tmpdir;
 }
 
@@ -112,6 +114,16 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(Arc::DirDelete(testroot));
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) != 0);
   
+}
+
+void FileUtilsTest::TestTmpDirCreate() {
+  std::string path;
+  CPPUNIT_ASSERT(Arc::TmpDirCreate(path));
+  struct stat st;
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
+  CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
+  CPPUNIT_ASSERT(Arc::DirDelete(path));
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
 }
 
 bool FileUtilsTest::_createFile(const std::string& filename, const std::string& text) {
