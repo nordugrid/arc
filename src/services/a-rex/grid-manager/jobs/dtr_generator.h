@@ -8,6 +8,26 @@
 
 
 /**
+ * DTRInfo passes state information from data staging to A-REX
+ * via the defined callback, called when the DTR passes to the
+ * certain processes. It could for example write to files in the
+ * control directory, and this information can be picked up and
+ * published by the info system.
+ */
+class DTRInfo: public DataStaging::DTRCallback {
+ private:
+  /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
+  std::map<uid_t, const JobUser*> jobusers;
+  static Arc::Logger logger;
+ public:
+  /** JobUsers is needed to find the correct control dir */
+  DTRInfo(const JobUsers& users);
+  DTRInfo() {};
+  virtual void receiveDTR(DataStaging::DTR& dtr);
+};
+
+
+/**
  * A-REX implementation of DTR Generator. 
  */
 class DTRGenerator: public DataStaging::DTRCallback {
@@ -39,6 +59,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
   static Arc::Logger logger;
   /** Associated scheduler */
   DataStaging::Scheduler scheduler;
+
+  /** Info object for passing DTR info back to A-REX */
+  DTRInfo info;
 
   //static DTRGeneratorCallback receive_dtr;
   

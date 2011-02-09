@@ -15,6 +15,18 @@
 
 #include "dtr_generator.h"
 
+Arc::Logger DTRInfo::logger(Arc::Logger::getRootLogger(), "DTRInfo");
+
+DTRInfo::DTRInfo(const JobUsers& users) {
+  for (JobUsers::const_iterator i = users.begin(); i != users.end(); ++i) {
+    jobusers[i->get_uid()] = &(*i);
+  }
+}
+
+void DTRInfo::receiveDTR(DataStaging::DTR& dtr) {
+  // write state info to job.id.input for example
+}
+
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
 void DTRGenerator::main_thread(void* arg) {
@@ -69,7 +81,9 @@ void DTRGenerator::thread() {
   run_condition.signal();
 }
 
-DTRGenerator::DTRGenerator(const JobUsers& users):generator_state(DataStaging::INITIATED) {
+DTRGenerator::DTRGenerator(const JobUsers& users) :
+    generator_state(DataStaging::INITIATED),
+    info(users) {
   //if (generator_state == DataStaging::RUNNING || generator_state == DataStaging::TO_STOP)
   //  return false;
   generator_state = DataStaging::RUNNING;
@@ -587,6 +601,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     dtr.set_cache_parameters(cache_parameters);
     dtr.registerCallback(this,DataStaging::GENERATOR);
     dtr.registerCallback(&scheduler,DataStaging::SCHEDULER);
+    // callbacks for info
+    dtr.registerCallback(&info, DataStaging::SCHEDULER);
     lock.lock();
     active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr.get_id()));
     lock.unlock();
