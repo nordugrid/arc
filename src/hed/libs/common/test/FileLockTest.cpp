@@ -33,8 +33,8 @@ private:
 };
 
 void FileLockTest::setUp() {
-  char tmpdirtemplate[] = "/tmp/ARC-Test-XXXXXX";
-  char * tmpdir = mkdtemp(tmpdirtemplate);
+  std::string tmpdir;
+  Arc::TmpDirCreate(tmpdir);
   testroot = tmpdir;
 }
 

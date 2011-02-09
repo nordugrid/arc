@@ -112,8 +112,9 @@ void ProcessorTest::TestPreClean() {
 void ProcessorTest::TestCacheCheck() {
 
   // create tmp cache dir for test
-  char tmpdir[] = "/tmp/arc_processor_test_XXXXXX";
-  CPPUNIT_ASSERT(mkdtemp(tmpdir));
+  std::string tmpdir;
+  CPPUNIT_ASSERT(Arc::TmpDirCreate(tmpdir));
+
   std::string cache_dir(tmpdir);
   cache_dir += "/cache";
   DataStaging::CacheParameters cache_param;
@@ -528,8 +529,9 @@ void ProcessorTest::TestReplicaRegister() {
 
 void ProcessorTest::TestCacheProcess() {
 
-  char tmpdir[] = "/tmp/arc_processor_test_XXXXXX";
-  CPPUNIT_ASSERT(mkdtemp(tmpdir));
+  std::string tmpdir;
+  CPPUNIT_ASSERT(Arc::TmpDirCreate(tmpdir));
+
   std::string session(tmpdir);
   session += "/session";
   std::string cache_dir(tmpdir);

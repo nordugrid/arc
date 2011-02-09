@@ -78,8 +78,8 @@ private:
 
 void FileCacheTest::setUp() {
 
-  char tmpdirtemplate[] = "/tmp/ARC-Test-XXXXXX";
-  char * tmpdir = mkdtemp(tmpdirtemplate);
+  std::string tmpdir;
+  Arc::TmpDirCreate(tmpdir);
   _testroot = tmpdir;
 
   _cache_dir = _testroot + "/cache";
