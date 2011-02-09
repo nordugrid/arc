@@ -1,6 +1,12 @@
 lib_LTLIBRARIES = libarcdata2.la
 
-SUBDIRS = . $(TEST_DIR)
+if WIN32
+DIRS =
+else
+DIRS = . $(TEST_DIR)
+endif
+
+SUBDIRS = $(DIRS)
 DIST_SUBDIRS = test
 
 if WIN32
