@@ -33,6 +33,7 @@ BuildRequires: mingw32-openssl
 BuildRequires: mingw32-w32api
 BuildRequires: mingw32-libgnurx
 BuildRequires: mingw32-xmlsec1
+BuildRequires: mingw32-cppunit
 BuildRequires: pkgconfig
 BuildRequires: mingw32-db4
 BuildRequires: mingw32-globus-common
