@@ -58,7 +58,7 @@ void DTRTest::TestDTRConstructor() {
 
   // make a bad DTR
   source = "myprocotol://blabla/file1";
-  DataStaging::DTR dtr4(source, destination, cfg, jobid, getuid(), logger);
+  DataStaging::DTR dtr4(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(!dtr4);
 }
 
@@ -67,14 +67,14 @@ void DTRTest::TestDTREndpoints() {
   std::string source("http://localhost/file1");
   std::string destination("/tmp/file1");
   Arc::UserConfig cfg;
-  DataStaging::DTR dtr(source, destination, cfg, jobid, getuid(), logger);
+  DataStaging::DTR dtr(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT_EQUAL(std::string("http://localhost:80/file1"), dtr.get_source()->str());
   CPPUNIT_ASSERT_EQUAL(std::string("file:/tmp/file1"), dtr.get_destination()->str());
 
   // create a bad url
   source = "http:/file1";
-  DataStaging::DTR dtrbad(source, destination, cfg, jobid, getuid(), logger);
+  DataStaging::DTR dtrbad(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(!dtrbad.get_source()->GetURL());
 
   // TODO DTR validity

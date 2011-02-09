@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -70,7 +74,7 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT(Arc::FileStat(destination, &st, true));
   CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
@@ -92,7 +96,7 @@ void ProcessorTest::TestPreClean() {
   // use a non-existent file
   destination = "http://badhost/file1";
   delete dtr;
-  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
@@ -125,7 +129,7 @@ void ProcessorTest::TestCacheCheck() {
   std::string source("http://www.nordugrid.org;cache=no/data/echo.sh");
   std::string destination("/tmp/file1");
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::NON_CACHEABLE);
@@ -135,7 +139,7 @@ void ProcessorTest::TestCacheCheck() {
   source = "http://www.nordugrid.org/data/echo.sh";
   delete dtr;
 
-  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
@@ -207,7 +211,7 @@ void ProcessorTest::TestCacheCheck() {
   source = "lfc://lfc1.ndgf.org/:guid=4a2b61aa-1e57-4d32-9f23-873a9c9b9aed";
   delete dtr;
 
-  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
@@ -246,7 +250,7 @@ void ProcessorTest::TestResolve() {
   std::string source("rls://rls.nordugrid.org/ABCDE");
   std::string destination("/tmp/file1");
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -269,7 +273,7 @@ void ProcessorTest::TestResolve() {
   source = "/tmp/file1";
   destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/" + filename;
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -303,7 +307,7 @@ void ProcessorTest::TestResolve() {
   source = "rls://rls.nordugrid.org/ABCDE";
   destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/ABCDE";
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -332,7 +336,7 @@ void ProcessorTest::TestResolve() {
   source = "/tmp/1.1";
   destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/ABCDE";
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -372,7 +376,7 @@ void ProcessorTest::TestResolve() {
   source = "rls://rls.nordugrid.org/ABCDE";
   destination = "rls://https://knowarc1.grid.niif.hu:8001/se@rls.nordugrid.org/ABCDE";
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
@@ -397,7 +401,7 @@ void ProcessorTest::TestQueryReplica() {
   std::string source("http://www.nordugrid.org/data/echo.sh");
   std::string destination("/tmp/file1");
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
@@ -419,7 +423,7 @@ void ProcessorTest::TestQueryReplica() {
   // invalid file
   source = "http://www.nordugrid.org/bad/dir/badfile";
   delete dtr;
-  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
@@ -439,7 +443,7 @@ void ProcessorTest::TestQueryReplica() {
   if (valid_proxy) {
     source = "rls://rls.nordugrid.org/processor_test_inconsistent_metadata";
     delete dtr;
-    dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
 
@@ -485,7 +489,7 @@ void ProcessorTest::TestReplicaRegister() {
   std::string source("/tmp/file1");
   std::string destination("rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/" + filename);
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
 
@@ -553,7 +557,7 @@ void ProcessorTest::TestCacheProcess() {
   std::string source("http://www.nordugrid.org/data/echo.sh");
   std::string destination(std::string(session+"/file1"));
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, getuid(), logger);
+  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);

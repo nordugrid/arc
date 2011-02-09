@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
