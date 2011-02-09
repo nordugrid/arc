@@ -198,7 +198,7 @@ int main(int argc,char* argv[]) {
   dest->Passive(true);
 
   // Filling initial report buffer
-  ReportStatus(DataStaging::DTRStatus::NULL_STATE,DataStaging::DTRErrorStatus::NO_ERROR,"",0,0);
+  ReportStatus(DataStaging::DTRStatus::NULL_STATE,DataStaging::DTRErrorStatus::NONE_ERROR,"",0,0);
   // Initiating transfer
   DataStatus source_st = source->StartReading(buffer);
   if(!source_st) {
@@ -221,10 +221,10 @@ int main(int argc,char* argv[]) {
     if(buffer.eof_read() && buffer.eof_write()) {
       eof_reached = true; break;
     };
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,DataStaging::DTRErrorStatus::NO_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,DataStaging::DTRErrorStatus::NONE_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
     buffer.wait_any();
   };
-  ReportStatus(DataStaging::DTRStatus::TRANSFERRING,DataStaging::DTRErrorStatus::NO_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
+  ReportStatus(DataStaging::DTRStatus::TRANSFERRING,DataStaging::DTRErrorStatus::NONE_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
   bool source_failed = buffer.error_read();
   bool dest_failed = buffer.error_write();
   dest_st = dest->StopWriting();
@@ -250,7 +250,7 @@ int main(int argc,char* argv[]) {
     };
   };
   if(!reported) {
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,DataStaging::DTRErrorStatus::NO_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,DataStaging::DTRErrorStatus::NONE_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
   };
   return eof_reached?0:1;
 }

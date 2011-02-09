@@ -35,7 +35,7 @@ void DTRTest::TestDTRConstructor() {
   std::string source("http://localhost/file1");
   std::string destination("/tmp/file1");
   Arc::UserConfig cfg;
-  DataStaging::DTR dtr(source, destination, cfg, jobid, getuid(), logger);
+  DataStaging::DTR dtr(source, destination, cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(!dtr.get_id().empty());
 

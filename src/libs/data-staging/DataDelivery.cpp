@@ -172,8 +172,8 @@ namespace DataStaging {
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
           if((status.commstatus == DataDeliveryComm::CommFailed) ||
-             (status.error != DTRErrorStatus::NO_ERROR)) {
-            if(status.error == DTRErrorStatus::NO_ERROR)
+             (status.error != DTRErrorStatus::NONE_ERROR)) {
+            if(status.error == DTRErrorStatus::NONE_ERROR)
               status.error = DTRErrorStatus::INTERNAL_ERROR;
             dp->dtr->set_error_status(status.error,DTRErrorStatus::ERROR_TRANSFER,
                      status.error_desc[0]?status.error_desc:dp->comm.GetError().c_str());

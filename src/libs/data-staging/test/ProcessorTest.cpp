@@ -84,7 +84,7 @@ void ProcessorTest::TestPreClean() {
   Arc::Time now;
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
     usleep(100);
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
   // check file is deleted
   CPPUNIT_ASSERT(!Arc::FileStat(destination, &st, true));
@@ -256,7 +256,7 @@ void ProcessorTest::TestResolve() {
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
       usleep(100);
-    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
     // check that it found replicas
@@ -279,7 +279,7 @@ void ProcessorTest::TestResolve() {
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
       usleep(100);
-    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
     // check that it added the destination replica
@@ -314,7 +314,7 @@ void ProcessorTest::TestResolve() {
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
       usleep(100);
-    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
     // check that it found replicas
@@ -358,7 +358,7 @@ void ProcessorTest::TestResolve() {
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
       usleep(100);
     // should be successful now
-    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
     // check that it added the destination replica
@@ -412,7 +412,7 @@ void ProcessorTest::TestQueryReplica() {
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
     usleep(100);
 
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
 
   // invalid file
@@ -506,7 +506,7 @@ void ProcessorTest::TestReplicaRegister() {
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_REGISTERED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
       usleep(100);
-    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+    CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_REGISTERED, dtr->get_status().GetStatus());
 
     // check registration is ok
@@ -594,7 +594,7 @@ void ProcessorTest::TestCacheProcess() {
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
     usleep(100);
 
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NO_ERROR, dtr->get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_PROCESSED, dtr->get_status().GetStatus());
 
   // check correct links exist

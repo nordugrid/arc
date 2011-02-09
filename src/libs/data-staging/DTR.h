@@ -336,7 +336,7 @@ namespace DataStaging {
      void set_error_status(DTRErrorStatus::DTRErrorStatusType error_stat,
                            DTRErrorStatus::DTRErrorLocation error_loc,
                            const std::string& desc="");
-     // Set the error status back to NO_ERROR and clear other fields
+     // Set the error status back to NONE_ERROR and clear other fields
      void reset_error_status();
      DTRErrorStatus get_error_status() const { return error_status; };
 
@@ -385,7 +385,7 @@ namespace DataStaging {
      bool suspend();
      
      // Did an error happen?
-     bool error() const { return (error_status != DTRErrorStatus::NO_ERROR); }
+     bool error() const { return (error_status != DTRErrorStatus::NONE_ERROR); }
      
      // Functions to figure out of the status if 
      // this DTR is about to go into a corresponding process

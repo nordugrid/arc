@@ -64,7 +64,7 @@ namespace DataStaging {
       //log->detach();
 
       // Free DTR immediately after passing to scheduler
-      DTR dtr(source, destination, cfg, job_id, getuid(), log);
+      DTR dtr(source, destination, cfg, job_id,  Arc::User().get_uid(), log);
       if (!dtr) {
         logger.msg(Arc::ERROR, "Problem creating dtr (source %s, destination %s)", source, destination);
         return;

@@ -21,7 +21,7 @@ int main() {
   DataStaging::DTR* dtrs[no_dtrs];
   Arc::Logger * log = NULL;
   for(int i = 0; i<no_dtrs; ++i) {
-    dtrs[i] = new DataStaging::DTR(source, destination, cfg, jobid, getuid(), log);
+    dtrs[i] = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), log);
   }
 
   time_t end = time(NULL);

@@ -193,7 +193,7 @@ namespace DataStaging {
     enum DTRErrorStatusType {
 
       /// No error
-      NO_ERROR,
+      NONE_ERROR,
 
       /// Internal error in Data Staging logic
       INTERNAL_ERROR,
@@ -246,7 +246,7 @@ namespace DataStaging {
       desc(desc) {};
 
     DTRErrorStatus() :
-      error_status(NO_ERROR),
+      error_status(NONE_ERROR),
       last_error_state(DTRStatus::NULL_STATE),
       error_location(NO_ERROR_LOCATION),
       desc("") {};
