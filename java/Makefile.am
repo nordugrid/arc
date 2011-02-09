@@ -55,4 +55,5 @@ arc.jar: $(JAVA_PATH)/arc.class
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class
 
-.NOTPARALLEL: %.o %.class
+# Try not to build these objects in parallel in order to save memory
+.NOTPARALLEL: %.o %.class %.so
