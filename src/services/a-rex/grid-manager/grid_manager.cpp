@@ -322,7 +322,7 @@ void GridManager::grid_manager(void* arg) {
   hard_job_time = time(NULL) + HARD_JOB_PERIOD;
   if (env.jobs_cfg().GetNewDataStaging()) {
     logger.msg(Arc::INFO, "Starting data staging threads");
-    DTRGenerator* dtr_generator = new DTRGenerator(users);
+    DTRGenerator* dtr_generator = new DTRGenerator(users, &kick_func, &wakeup_h);
     if (!(*dtr_generator)) {
       logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
       return;

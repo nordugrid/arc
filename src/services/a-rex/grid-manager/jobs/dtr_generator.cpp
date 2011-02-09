@@ -81,9 +81,13 @@ void DTRGenerator::thread() {
   run_condition.signal();
 }
 
-DTRGenerator::DTRGenerator(const JobUsers& users) :
+DTRGenerator::DTRGenerator(const JobUsers& users,
+                           void (*kicker_func)(void*),
+                           void* kicker_arg) :
     generator_state(DataStaging::INITIATED),
-    info(users) {
+    info(users),
+    kicker_func(kicker_func),
+    kicker_arg(kicker_arg) {
   //if (generator_state == DataStaging::RUNNING || generator_state == DataStaging::TO_STOP)
   //  return false;
   generator_state = DataStaging::RUNNING;
@@ -396,6 +400,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   lock.unlock();
 
   logger.msg(Arc::INFO, "%s: Data staging finished", jobid);
+
+  // wake up GM thread
+  if (kicker_func)
+    (*kicker_func)(kicker_arg);
+
   return true;
 }
 

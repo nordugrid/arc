@@ -65,6 +65,10 @@ class DTRGenerator: public DataStaging::DTRCallback {
 
   //static DTRGeneratorCallback receive_dtr;
   
+  /** Function and arguments for callback when all DTRs for a job have finished */
+  void (*kicker_func)(void*);
+  void* kicker_arg;
+
   /** Private constructors */
   DTRGenerator(const DTRGenerator& generator) {};
 
@@ -87,8 +91,12 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /**
    * Start up Generator.
    * @param user JobUsers for this Generator.
+   * @param kicker_func Function to call on completion of all DTRs for a job
+   * @param kicker_arg Argument to kicker function
    */
-  DTRGenerator(const JobUsers& users);
+  DTRGenerator(const JobUsers& users,
+               void (*kicker_func)(void*) = NULL,
+               void* kicker_arg = NULL);
   /**
    * Stop Generator
    */
