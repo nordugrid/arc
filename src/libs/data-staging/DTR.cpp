@@ -189,7 +189,7 @@ namespace DataStaging {
 
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
     // TODO: add lock
-    proc_callback[owner] = cb;
+    proc_callback[owner].push_back(cb);
   }
 
   std::string DTR::get_short_id() const {
@@ -272,10 +272,13 @@ namespace DataStaging {
     next_process_time.SetTime(t.GetTime(), t.GetTimeNanosec());
   }
 
-  static DTRCallback* get_callback(const std::map<StagingProcesses,DTRCallback*>& proc_callback, StagingProcesses owner) {
+  static std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {
     // TODO: add lock
-    std::map<StagingProcesses,DTRCallback*>::const_iterator c = proc_callback.find(owner);
-    if(c == proc_callback.end()) return NULL;
+    std::map<StagingProcesses,std::list<DTRCallback*> >::const_iterator c = proc_callback.find(owner);
+    if(c == proc_callback.end()) {
+      std::list<DTRCallback*> l;
+      return l;
+    }
     return c->second;
   }
 
@@ -290,23 +293,29 @@ namespace DataStaging {
     // TODO: put a lock around this to avoid race conditions
 
     set_owner(new_owner);
-    DTRCallback* cb = get_callback(proc_callback,current_owner);
-    switch(current_owner) {
-      case GENERATOR:
-      case SCHEDULER:
-      case PRE_PROCESSOR:
-      case DELIVERY:
-      case POST_PROCESSOR:
-      {
-        // call registered callback
-        if (cb)
-          cb->receiveDTR(*this);
-        else
-          logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", get_short_id(), get_owner_name(current_owner));
-      } break;
-      default: // impossible
-        logger->msg(Arc::INFO, "DTR %s: Request to push to unknown owner - %u", get_short_id(), (unsigned int)current_owner);
-        break;
+    std::list<DTRCallback*> callbacks = get_callbacks(proc_callback,current_owner);
+    if (callbacks.empty())
+      logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", get_short_id(), get_owner_name(current_owner));
+
+    for (std::list<DTRCallback*>::iterator callback = callbacks.begin();
+        callback != callbacks.end(); ++callback) {
+      switch(current_owner) {
+        case GENERATOR:
+        case SCHEDULER:
+        case PRE_PROCESSOR:
+        case DELIVERY:
+        case POST_PROCESSOR:
+        {
+          // call registered callback
+          if (*callback)
+            (*callback)->receiveDTR(*this);
+          else
+            logger->msg(Arc::WARNING, "DTR %s: NULL callback for %s", get_short_id(), get_owner_name(current_owner));
+        } break;
+        default: // impossible
+          logger->msg(Arc::INFO, "DTR %s: Request to push to unknown owner - %u", get_short_id(), (unsigned int)current_owner);
+          break;
+      }
     }
     mark_modification();
   }

@@ -222,8 +222,9 @@ namespace DataStaging {
        * in the Generator and a pointer passed in the DTR constructor. */
       Arc::Logger * logger;
 
-      /* Object with callback method called when DTR is finished */
-      std::map<StagingProcesses,DTRCallback*> proc_callback;
+      /* Object with callback methods called when DTR moves between
+       * different processes */
+      std::map<StagingProcesses,std::list<DTRCallback*> > proc_callback;
 
       /* Lock to avoid collisions while changing owner/status */
       Arc::SimpleCondition lock;
