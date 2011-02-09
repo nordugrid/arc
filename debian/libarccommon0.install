@@ -6,4 +6,4 @@ debian/tmp/usr/lib/arc/libmodcredential.apd
 debian/tmp/usr/bin/ngconfigtest
 debian/tmp/usr/share/man/man1/ngconfigtest.1
 debian/tmp/usr/share/arc/schema
-debian/tmp/usr/share/locale/*/LC_MESSAGES/arc.mo
+debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo
