@@ -288,6 +288,8 @@
                          minOccurs="0"/>
             <xsd:element name="localTransfer" type="xsd:boolean"
                          minOccurs="0"/>
+            <xsd:element name="newDataStaging" type="xsd:boolean"
+                         minOccurs="0"/>
             <xsd:element name="timeouts" minOccurs="0" type="timeouts_Type"/>
             <xsd:element name="preferredPattern" type="xsd:string"/>
             <xsd:element name="maxRetries" type="xsd:nonNegativeInteger"

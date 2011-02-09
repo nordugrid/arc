@@ -764,7 +764,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
 
   /*
   dataTransfer
-    newDataStaging // not in schema
+    newDataStaging
     secureTransfer
     passiveTransfer
     localTransfer

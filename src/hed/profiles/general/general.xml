@@ -185,6 +185,7 @@ attributes depending on how the mapping should be done.
         <arex:secureTransfer inisections="arex" initag="securetransfer" inidefaultvalue="false"/>
         <arex:passiveTransfer inisections="arex" initag="passivetransfer" inidefaultvalue="false"/>
         <arex:localTransfer inisections="arex" initag="localtransfer" inidefaultvalue="false"/>
+        <arex:newDataStaging inisections="arex" initag="newdatastaging" inidefaultvalue="false"/>
         <arex:preferredPattern inisections="arex" initag="preferredpattern"/>
         <arex:timeouts>
           <arex:minSpeed inisections="arex" initag="minspeed" inidefaultvalue="0"/>
