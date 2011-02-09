@@ -54,3 +54,5 @@ $(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 arc.jar: $(JAVA_PATH)/arc.class
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class
+
+.NOTPARALLEL: %.o %.class
