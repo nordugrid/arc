@@ -413,7 +413,7 @@ namespace Arc {
     bool Stop(std::string url) { return false; }
     bool StopAndDelete(std::string url) {return false; }
     std::string File(std::string url) { return url; }
-    bool Link(std::string link_path, std::string url, bool copy, bool executable)  { return false; }
+    bool Link(std::string link_path, std::string url, bool copy, bool executable, bool switch_user)  { return false; }
     bool Copy(std::string dest_path, std::string url, bool executable = false) { return false; }
     bool Release() { return false;}
     bool AddDN(std::string url, std::string DN, Time expiry_time) { return false;}
