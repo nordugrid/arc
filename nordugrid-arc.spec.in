@@ -847,7 +847,6 @@ exit 0
 %{_libdir}/%{pkgdir}/LRMS.pm
 %{_libdir}/%{pkgdir}/Shared.pm
 %{_libdir}/%{pkgdir}/ConfigParser.pm
-%{_libdir}/%{pkgdir}/LogUtils.pm
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
 
 %files egiis
@@ -933,6 +932,7 @@ exit 0
 %{_libdir}/%{pkgdir}/IniParser.pm
 %{_libdir}/%{pkgdir}/LRMSInfo.pm
 %{_libdir}/%{pkgdir}/Sysinfo.pm
+%{_libdir}/%{pkgdir}/LogUtils.pm
 %{_libdir}/%{pkgdir}/cancel_common.sh
 %{_libdir}/%{pkgdir}/condor_env.pm
 %{_libdir}/%{pkgdir}/config_parser.sh

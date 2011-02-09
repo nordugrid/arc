@@ -15,7 +15,6 @@ debian/tmp/usr/lib/arc/se.pl
 debian/tmp/usr/lib/arc/LRMS.pm
 debian/tmp/usr/lib/arc/Shared.pm
 debian/tmp/usr/lib/arc/ConfigParser.pm
-debian/tmp/usr/lib/arc/LogUtils.pm
 
 debian/tmp/usr/lib/arc/grid-infosys-bdii5
 debian/tmp/usr/lib/arc/grid-infosys-bdii4
