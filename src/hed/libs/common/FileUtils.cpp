@@ -23,6 +23,8 @@
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
 #include <arc/User.h>
+#include <arc/GUID.h>
+
 #include "FileUtils.h"
 
 namespace Arc {
@@ -315,7 +317,7 @@ bool TmpDirCreate(std::string& path) {
   }
 #else
   // NOTE: not safe!
-  std::string tmp("ARC-" + Arc::tostring(getpid()) + "-" + Arc::Time().str(Arc::EpochTime));
+  std::string tmp("ARC-" + UUID());
   path = Glib::build_filename(tmpdir, tmp);
   result = DirCreate(path, 0700, true);
 #endif

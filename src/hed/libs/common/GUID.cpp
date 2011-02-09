@@ -64,7 +64,7 @@ static void guid_add_string(std::string& guid, uint32_t n) {
 
 void Arc::GUID(std::string& guid) {
   if (!initialized) {
-    srandom(time(NULL));
+    srandom(time(NULL)+random());
     initialized = true;
   }
   struct timeval tv;
@@ -137,7 +137,7 @@ std::string Arc::UUID(void) {
 #else
 std::string Arc::UUID(void) {
   if (!initialized) {
-    srandom(time(NULL));
+    srandom(time(NULL)+random());
     initialized = true;
   }
   std::string uuid_str("");
