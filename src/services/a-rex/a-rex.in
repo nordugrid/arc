@@ -254,6 +254,7 @@ if [ -z "$X509_CERT_DIR" ] ; then
 fi
 
 # Web Service configuration
+arex_endpoint=""
 arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager arex_mount_point`
 arex_mount_point=${arex_mount_point:-`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`}
 if [ ! -z "$arex_mount_point" ] ; then
@@ -261,7 +262,14 @@ if [ ! -z "$arex_mount_point" ] ; then
   arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
   arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
   arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
-  if [ -z "$arex_port" ] ; then arex_port="60000" ; fi
+  if [ -z "$arex_port" ] ; then
+    if [ "$arex_proto" = "https" ] ; then
+      arex_port="443"
+    else
+      arex_port="80"
+    fi
+  fi
+  arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
 fi
 #echo "arex_mount_point=$arex_mount_point"
 #echo "arex_proto=$arex_proto"
@@ -402,6 +410,7 @@ AREXCFGWSS="\
       <next id=\"a-rex\">^/$arex_path</next>\
     </Plexer>\
     <Service name=\"a-rex\" id=\"a-rex\">\
+      $arex_endpoint
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>\
     </Service>\
   </Chain>\
