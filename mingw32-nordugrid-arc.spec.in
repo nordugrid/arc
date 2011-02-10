@@ -136,7 +136,7 @@ find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 #chmod +x $RPM_BUILD_ROOT/etc/init.d/arched
 
 # RPM does it's own doc handling
-rm -fr $RPM_BUILD_ROOT%{_mingw32_datadir}/doc/%{pkgdir}/
+rm -fr $RPM_BUILD_ROOT%{_mingw32_datadir}/doc/@PACKAGE@/
 
 %find_lang @PACKAGE@
 
@@ -247,6 +247,8 @@ rm -rf $RPM_BUILD_ROOT
 #%{_mingw32_libdir}/%{pkgdir}/libhopi.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libisis.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libslcs.dll*
+%{__mingw32_libexecdir}/%{pkgdir}/CacheManager
+%{__mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery
 
 %files devel
 %defattr(-,root,root,-)
