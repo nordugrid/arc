@@ -66,7 +66,7 @@ JobsListConfig::JobsListConfig(void) {
   use_passive_transfer=false;
   use_local_transfer=false;
   use_new_data_staging=false;
-  wakeup_period = 120; // default wakeup every 3 min.
+  wakeup_period = 60; // default wakeup every minute
 }
 
 #ifdef NO_GLOBUS_CODE

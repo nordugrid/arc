@@ -9,8 +9,10 @@
 #include <cstdio>
 #include <fstream>
 #include <list>
+#include <fcntl.h>
 #include <signal.h>
 
+#include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/Run.h>
 #include <arc/Thread.h>
@@ -333,14 +335,22 @@ void GridManager::grid_manager(void* arg) {
     }
   }
   bool scan_old = false;
+  std::string heartbeat_file("gm-heartbeat");
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
-  for(;;) { 
+  for(;;) {
     users.run_helpers();
     env.job_log().RunReporter(users);
     my_user->run_helpers();
     bool hard_job = ((int)(time(NULL) - hard_job_time)) > 0;
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+      // touch heartbeat file
+      std::string gm_heartbeat(std::string(user->ControlDir() + "/" + heartbeat_file));
+      int r = Arc::FileOpen(gm_heartbeat, O_WRONLY|O_CREAT|O_TRUNC);
+      if (r < 0)
+        logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
+      else
+        close(r);
       /* check for new marks and activate related jobs */
       user->get_jobs()->ScanNewMarks();
       /* look for new jobs */
