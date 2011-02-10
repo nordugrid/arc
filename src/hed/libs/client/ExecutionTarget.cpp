@@ -284,10 +284,22 @@ namespace Arc {
   }
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
-    out << IString("Resource: %s", DomainName) << std::endl;
-    if (!HealthState.empty())
+    
+    if (ServiceType == "org.nordugrid.arc-classic") {
+       out << IString("Execution Service: %s", ServiceName) << std::endl;
+    }
+    else {  
+       out << IString("Execution Service: %s", DomainName) << std::endl;
+    }
+    if (!ComputingShareName.empty()) {
+       out << IString(" Queue: %s", ComputingShareName) << std::endl;
+    }
+    if (url) {
+        out << IString(" URL: %s:%s" ,GridFlavour ,url.str()) << std::endl;
+    }
+    if (!HealthState.empty()){
       out << IString(" Health State: %s", HealthState) << std::endl;
-
+    }
     if (longlist) {
 
       out << std::endl << IString("Location information:") << std::endl;
