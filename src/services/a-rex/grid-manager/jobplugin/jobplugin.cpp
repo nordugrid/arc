@@ -208,11 +208,12 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
         cred_plugin = new RunPlugin;
         std::string allowsubmit;
         bool strict_session;
+        std::string endpoint2;
         if(!configure_user_dirs(uname,
           control_dir,session_roots,
           session_dirs_non_draining,
           default_lrms,default_queue,avail_queues,*cont_plugins,*cred_plugin,
-          allowsubmit,strict_session,endpoint,env)) {
+          allowsubmit,strict_session,endpoint,endpoint2,env)) {
           logger.msg(Arc::ERROR, "Failed processing grid-manager configuration");
           initialized=false;
         } else if (gm_dirs_info.size() > 0 && session_roots.size() > 1) {

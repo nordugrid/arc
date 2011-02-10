@@ -28,12 +28,14 @@ bool configure_user_dirs(const std::string &my_username,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin &cred_plugin,
                 std::string& allow_submit,bool& strict_session,
-                std::string& endpoint,
+                std::string& gridftp_endpoint,
+                std::string& arex_endpoint,
                 const GMEnvironment& env) {
   std::ifstream cfile;
   int gm_port = 0;
   std::string gm_mount_point;
   std::string gm_hostname;
+  std::string arex_mount_point;
   //read_env_vars(true);
   bool configured = false;
   std::string central_control_dir("");
@@ -227,11 +229,15 @@ bool configure_user_dirs(const std::string &my_username,
             char *ep;
             gm_port = strtoul(config_next_arg(rest).c_str(),&ep,10);
             if((*ep != 0) || (gm_port<0)) { config_close(cfile); if(cf) delete cf; return false; };
-          } else if(command == "gm_mount_point") {
-            gm_mount_point = config_next_arg(rest);
           } else if(command == "hostname") {
             gm_hostname = config_next_arg(rest);
           };
+        }
+        else if(command == "gm_mount_point") {
+          gm_mount_point = config_next_arg(rest);
+        }
+        else if(command == "arex_mount_point") {
+          arex_mount_point = config_next_arg(rest);
         }
         else if(command == "hostname") {
           gm_hostname = config_next_arg(rest);
@@ -351,7 +357,8 @@ bool configure_user_dirs(const std::string &my_username,
   };
   if(gm_port <= 0) gm_port=2811;
   if(gm_mount_point[0] != '/') gm_mount_point = "/"+gm_mount_point;;
-  endpoint = "gsiftp://"+gm_hostname+":"+Arc::tostring(gm_port)+gm_mount_point;
+  gridftp_endpoint = "gsiftp://"+gm_hostname+":"+Arc::tostring(gm_port)+gm_mount_point;
+  arex_endpoint = arex_mount_point;
   return configured;
 }
 

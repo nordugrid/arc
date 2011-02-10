@@ -53,13 +53,14 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
   RunPlugin* cred_plugin = new RunPlugin;
   std::string allowsubmit;
   bool strict_session;
-  std::string fake_endpoint; // for gridftp interface
+  std::string gridftp_endpoint; // for gridftp interface
+  std::string arex_endpoint; // our interface
   if(!configure_user_dirs(uname,control_dir,session_roots,
                           session_roots_non_draining_,
                           default_lrms,default_queue,queues_,
                           cont_plugins_,*cred_plugin,
                           allowsubmit,strict_session,
-                          fake_endpoint,env)) {
+                          gridftp_endpoint,arex_endpoint,env)) {
     // olog<<"Failed processing grid-manager configuration"<<std::endl;
     delete user_; user_=NULL; delete cred_plugin; return;
   };
@@ -67,6 +68,7 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
   if(default_queue.empty() && (queues_.size() == 1)) {
     default_queue=*(queues_.begin());
   };
+  if(!arex_endpoint.empty()) service_endpoint_ = arex_endpoint;
   user_->SetControlDir(control_dir);
   user_->SetSessionRoot(session_roots);
   user_->SetLRMS(default_lrms,default_queue);

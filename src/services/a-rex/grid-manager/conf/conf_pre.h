@@ -30,7 +30,8 @@ bool configure_user_dirs(const std::string &my_username,
                 std::list<std::string>& queues,
                 ContinuationPlugins &plugins,RunPlugin& cred,
                 std::string& allow_submit,bool& strict_session,
-                std::string& endpoint,
+                std::string& gridftp_endpoint,
+                std::string& arex_endpoint,
                 const GMEnvironment& env);
 
 /*
