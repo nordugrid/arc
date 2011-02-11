@@ -6,7 +6,7 @@
 #include <arc/message/Message.h>
 #include <arc/message/SecHandler.h>
 #include <arc/security/PDP.h>
-#include <pep/pep.h>
+#include <argus/pep.h>
 
 namespace ArcSec {
 

@@ -111,16 +111,17 @@ fi
 
 # Default enable/disable switches
 #  Features
+enables_ldap=yes
+enables_mysql=no
+enables_swig=yes
+# Features directly related to components
 enables_cppunit=yes
 enables_java=yes
-enables_ldap=yes
-enables_lfc=no
-enables_mysql=no
 enables_python=yes
-enables_swig=yes
-enables_xmlsec1=yes
-enables_argus=no
+enables_lfc=no
 enables_gacl=yes
+enables_argus=no
+enables_xmlsec1=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
@@ -184,6 +185,10 @@ enables_cache_client=$enableval
 enables_hed=$enableval
 enables_java=$enableval
 enables_python=$enableval
+enables_gacl=$enableval
+enables_lfc=$enableval
+enables_xmlsec1=$enableval
+enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
 ],
@@ -811,41 +816,24 @@ if test "x$enables_gacl" = "xyes"; then
 fi
 
 # check ARGUS
-# TODO: make it more in line with other checks
-ARGUS_LOCATION=
+ARGUS_CFLAGS=
 ARGUS_LIBS=
-ARGUS_INCLUDES=
-AC_ARG_WITH(argus,
-  AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
-  [
-    AC_MSG_CHECKING(for ARGUS PEP C shared library)
-    if test -d "$withval"; then
-      if test -f "$withval/include/pep/pep.h"; then
-        if test -f "$withval/lib/libpep-c.so"; then
-          enables_argus="yes"
-          ARGUS_LOCATION="$withval"
-          ARGUS_LIBS="-L$ARGUS_LOCATION/lib -lpep-c"
-          ARGUS_INCLUDES="-I$ARGUS_LOCATION/include"
-        elif test -f "$withval/lib64/libpep-c.so"; then
-          enables_argus="yes"
-          ARGUS_LOCATION="$withval"
-          ARGUS_LIBS="-L$ARGUS_LOCATION/lib64 -lpep-c"
-          ARGUS_INCLUDES="-I$ARGUS_LOCATION/include"
-        fi
-      fi
-    fi
-    if test ! "x$ARGUS_LOCATION" = "x"; then
-      AC_MSG_RESULT($ARGUS_LOCATION)
-    else
-      AC_MSG_RESULT([not found])
-    fi
-  ]
-)
-AC_SUBST(ARGUS_LOCATION)
+AC_ARG_ENABLE(argus, AC_HELP_STRING([--enable-argus], [enable use of Argus PEP V2 libraries]),[enables_argus="$enableval"],[])
+if test "x$enables_argus" = "xyes"; then
+  AC_ARG_WITH(argus,
+    AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
+    [
+      PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
+    ]
+  )
+  PKG_CHECK_MODULES(ARGUS, [libargus-pep >= 2.0.0], [], [
+    AC_MSG_NOTICE([Failed to find Argus PEP libraries with version >= 2])
+    argus_enables=no
+  ])
+fi
+AC_SUBST(ARGUS_CFLAGS)
 AC_SUBST(ARGUS_LIBS)
-AC_SUBST(ARGUS_INCLUDES)
-AM_CONDITIONAL(ARGUS_ENABLED, test ! "x$ARGUS_LOCATION" = "x")
-
+AM_CONDITIONAL(ARGUS_ENABLED, test "x$enables_argus" = "xyes")
 
 ###############################################
 #
