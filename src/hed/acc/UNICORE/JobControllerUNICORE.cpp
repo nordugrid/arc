@@ -127,7 +127,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::CleanJob(const Job& /* job */, bool /* force */) {
+  bool JobControllerUNICORE::CleanJob(const Job& /* job */) {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);

@@ -81,7 +81,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerBES::CleanJob(const Job& /* job */, bool /* force */) {
+  bool JobControllerBES::CleanJob(const Job& /* job */) {
     logger.msg(INFO, "Cleaning of BES jobs is not supported");
     return false;
   }

@@ -247,7 +247,7 @@ namespace Arc {
       }
 
       if (!keep) {
-        bool cleaned = CleanJob(**it, true);
+        bool cleaned = CleanJob(**it);
         if (!cleaned) {
           logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
           ok = false;
@@ -307,7 +307,7 @@ namespace Arc {
       }
 
       if (!keep) {
-        bool cleaned = CleanJob(**it, true);
+        bool cleaned = CleanJob(**it);
         if (!cleaned) {
           logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
           ok = false;
@@ -365,7 +365,7 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::iterator it = cleanable.begin();
          it != cleanable.end(); it++) {
-      bool cleaned = CleanJob(**it, force);
+      bool cleaned = CleanJob(**it);
       if (!cleaned) {
         if (force)
           toberemoved.push_back((*it)->JobID);

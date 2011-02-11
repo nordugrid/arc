@@ -94,7 +94,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::CleanJob(const Job& job, bool /* force */) {
+  bool JobControllerARC1::CleanJob(const Job& job) {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout());

@@ -90,7 +90,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerCREAM::CleanJob(const Job& job, bool /* force */) {
+  bool JobControllerCREAM::CleanJob(const Job& job) {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
