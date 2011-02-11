@@ -60,7 +60,8 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
                           default_lrms,default_queue,queues_,
                           cont_plugins_,*cred_plugin,
                           allowsubmit,strict_session,
-                          gridftp_endpoint,arex_endpoint,env)) {
+                          gridftp_endpoint,arex_endpoint,env)
+                          || control_dir.empty() ) {
     // olog<<"Failed processing grid-manager configuration"<<std::endl;
     delete user_; user_=NULL; delete cred_plugin; return;
   };

@@ -359,7 +359,7 @@ bool configure_user_dirs(const std::string &my_username,
   if(gm_mount_point[0] != '/') gm_mount_point = "/"+gm_mount_point;;
   gridftp_endpoint = "gsiftp://"+gm_hostname+":"+Arc::tostring(gm_port)+gm_mount_point;
   arex_endpoint = arex_mount_point;
-  return configured;
+  return true;
 }
 
 bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users) {

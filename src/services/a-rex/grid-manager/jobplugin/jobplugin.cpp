@@ -153,14 +153,14 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
     } else if(command == "remotegmdirs") {
       std::string remotedir = config_next_arg(rest);
       if(remotedir.length() == 0) {
-        logger.msg(Arc::ERROR, "empty argument to remotedirs");
+        logger.msg(Arc::ERROR, "empty argument to remotegmdirs");
         initialized=false;
       };
       struct gm_dirs_ dirs;
       dirs.control_dir = remotedir;
       remotedir = config_next_arg(rest);
       if(remotedir.length() == 0) {
-        logger.msg(Arc::ERROR, "bad arguments to remotedirs");
+        logger.msg(Arc::ERROR, "bad arguments to remotegmdirs");
         initialized=false;
       };
       dirs.session_dir = remotedir;
@@ -232,11 +232,17 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
             if(user_a.check_group(group)) { readonly=false; break; };
           };
           if(readonly) logger.msg(Arc::ERROR, "This user is denied to submit new jobs.");
-          struct gm_dirs_ dirs;
-          dirs.control_dir = user->ControlDir();
-          dirs.session_dir = user->SessionRoot();
-          gm_dirs_info.push_back(dirs);
-          gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
+          if (!control_dir.empty()) {
+            struct gm_dirs_ dirs;
+            dirs.control_dir = user->ControlDir();
+            dirs.session_dir = user->SessionRoot();
+            gm_dirs_info.push_back(dirs);
+            gm_dirs_non_draining.push_back(dirs); // can't drain main control dir
+          }
+          if (gm_dirs_info.empty()) {
+            logger.msg(Arc::ERROR, "No control or remote control directories defined in configuration");
+            initialized = false;
+          }
           session_dirs = user->SessionRoots();
           /* link to the class for direct file access - creating one object per set of GM dirs */
           // choose whether to use multiple session dirs or remote GM dirs
@@ -939,7 +945,10 @@ int JobPlugin::close(bool eof) {
   if((getuid()==0) && (user) && (user->StrictSession())) {
     SET_USER_UID;
   };
-  if(mkdir(dir.c_str(),0700) != 0) {
+  // if fail to create, create parents and try again
+  if(!Arc::DirCreate(dir, 0700, false) &&
+     (!Arc::DirCreate(user->SessionRoot(), 0755, true) ||
+      !Arc::DirCreate(dir, 0700, false))) {
     if((getuid()==0) && (user) && (user->StrictSession())) {
       RESET_USER_UID;
     };
@@ -1329,18 +1338,17 @@ bool JobPlugin::make_job_id(const std::string &id) {
   };
   if((id == "new") || (id == "info")) return false;
   // claim id by creating empty description file
-  std::string fname=user->ControlDir()+"/job."+id+".description";
-  struct stat st;
-  if(stat(fname.c_str(),&st) == 0) return false;
-  int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,S_IRWXU);
   // So far assume control directory is on local fs.
   // TODO: add locks or links for NFS
-  if(h == -1) return false;
-  // check the new ID is not used in other control dirs
-  for (std::vector<gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
-    if (i->control_dir == user->ControlDir())
-      continue;
-    std::string desc_fname=i->control_dir+"/job."+job_id+".description";
+  // check the new ID is not used in any control dir
+  std::vector<gm_dirs_>::iterator it = gm_dirs_info.begin();
+  std::string fname=it->control_dir+"/job."+id+".description";
+  int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
+  if(h == -1)
+    return false;
+  it++;
+  for (; it != gm_dirs_info.end(); it++) {
+    std::string desc_fname=it->control_dir+"/job."+id+".description";
     struct stat st;
     if(stat(desc_fname.c_str(),&st) == 0) {
       close(h);
@@ -1356,27 +1364,26 @@ bool JobPlugin::make_job_id(const std::string &id) {
 }
 
 bool JobPlugin::make_job_id(void) {
-  int i;
   bool found = false;
   delete_job_id();
-  for(i=0;i<100;i++) {
-    job_id=Arc::tostring((unsigned int)getpid())+
-           Arc::tostring((unsigned int)time(NULL))+
-           Arc::tostring(rand(),1);
+  for(int i=0;i<100;i++) {
+    std::string id=Arc::tostring((unsigned int)getpid())+
+                   Arc::tostring((unsigned int)time(NULL))+
+                   Arc::tostring(rand(),1);
     // create job.id.description file then loop through all control dirs to find if it already exists
-    std::string fname=user->ControlDir()+"/job."+job_id+".description";
+    std::vector<gm_dirs_>::iterator it = gm_dirs_info.begin();
+    std::string fname=it->control_dir+"/job."+id+".description";
     int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
     if(h == -1) {
       if(errno == EEXIST) continue;
-      logger.msg(Arc::ERROR, "Failed to create file in %s", user->ControlDir());
+      logger.msg(Arc::ERROR, "Failed to create file in %s", it->control_dir);
       return false;
     };
-    for (std::vector<gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
-      if (i->control_dir == user->ControlDir())
-        continue;
-      std::string desc_fname=i->control_dir+"/job."+job_id+".description";
+    it++;
+    for (; it != gm_dirs_info.end(); it++) {
+      std::string desc_fname=it->control_dir+"/job."+id+".description";
       struct stat st;
       if(stat(desc_fname.c_str(),&st) == 0) {
         found = true;
@@ -1390,13 +1397,14 @@ bool JobPlugin::make_job_id(void) {
       continue;
     }
     // safe to use this id
+    job_id = id;
     fix_file_owner(fname,*user);
     close(h);
     break;
   };
-  if(i>=100) {
+  if(job_id.empty()) {
     logger.msg(Arc::ERROR, "Out of tries while allocating new job ID");
-    job_id=""; return false;
+    return false;
   };
   return true;
 }
@@ -1575,7 +1583,7 @@ DirectFilePlugin * JobPlugin::selectFilePlugin(std::string id) {
 
 bool JobPlugin::chooseControlAndSessionDir(std::string /* job_id */, std::string& controldir, std::string& sessiondir) {
 
-  if (gm_dirs_non_draining.size() == 0 || session_dirs_non_draining.size() == 0) {
+  if (gm_dirs_non_draining.size() == 0) {
     // no active control or session dirs available
     logger.msg(Arc::ERROR, "No non-draining control or session directories available");
     return false;
