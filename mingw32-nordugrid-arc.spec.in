@@ -247,8 +247,8 @@ rm -rf $RPM_BUILD_ROOT
 #%{_mingw32_libdir}/%{pkgdir}/libhopi.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libisis.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libslcs.dll*
-%{__mingw32_libexecdir}/%{pkgdir}/CacheManager
-%{__mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery
+%{_mingw32_libexecdir}/%{pkgdir}/CacheManager
+%{_mingw32_libexecdir}/%{pkgdir}/DataStagingDelivery
 
 %files devel
 %defattr(-,root,root,-)
