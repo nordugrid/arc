@@ -616,7 +616,7 @@ sed -e 's/\(chkconfig: \)\w*/\1-/' \
 # Create log directory
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 
-%find_lang arc
+%find_lang %{name}
 
 %if %{with_gcj}
 %{_bindir}/aot-compile-rpm
@@ -718,7 +718,7 @@ exit 0
 # Enable CRL updates via cron for backward compatibility
 /sbin/chkconfig fetch-crl-cron on
 
-%files -f arc.lang
+%files -f %{name}.lang
 %defattr(-,root,root,-)
 %{_libdir}/lib*.so.*
 # We need to have libmodcrypto.so close to libarccrypto
