@@ -5,6 +5,7 @@ Python client for the HED cache service.
 import sys
 import httplib
 import re
+import os
 
 try:
     # Available in python >= 2.5
@@ -89,9 +90,10 @@ def cacheCheck(service, proxy, urls):
     except Exception, e:
         raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     
-    if resp.status != 200:
+    # On SOAP fault 500 is returned - this is caught in checkSOAPFault
+    if resp.status != 200 and resp.status != 500:
         conn.close()
-        raise CacheException('Error code '+resp.status+' returned: '+resp.reason)
+        raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
 
     xmldata = resp.read()
     
@@ -170,9 +172,10 @@ def cacheLink(service, proxy, user, jobid, urls, dostage):
     except Exception, e:
         raise CacheException('Error connecting to service at ' + host + ': ' + str(e))
     
-    if resp.status != 200:
+    # On SOAP fault 500 is returned - this is caught in checkSOAPFault
+    if resp.status != 200 and resp.status != 500:
         conn.close()
-        raise CacheException('Error code '+resp.status+' returned: '+resp.reason)
+        raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
 
     xmldata = resp.read()
     
@@ -224,9 +227,11 @@ def echo(service, proxy, say):
     resp = conn.getresponse()
    
     print(resp.status, resp.reason)
-    if resp.status != 200:
+
+    # On SOAP fault 500 is returned - this is caught in checkSOAPFault
+    if resp.status != 200 and resp.status != 500:
         conn.close()
-        raise CacheException('Error code '+resp.status+' returned: '+resp.reason)
+        raise CacheException('Error code '+str(resp.status)+' returned: '+resp.reason)
     
     xmldata = resp.read()
     
@@ -243,8 +248,7 @@ def echo(service, proxy, say):
 
 if __name__ == '__main__':
     
-    proxy = '/tmp/x509up_u1000'
-    #proxy = '/home/cameron/dev/userCerts/userproxy-demo5'
+    proxy = '/tmp/x509up_u' + str(os.getuid())
     endpoint = 'https://localhost:60001/cacheservice'
     
     urls_to_check = ['srm://srm.ndgf.org/ops/jens1', 'lfc://lfc1.ndgf.org/:guid=8471134f-494e-41cb-b81e-b341f6a18caf']
@@ -259,8 +263,9 @@ if __name__ == '__main__':
     
     urls_to_link = {'srm://srm.ndgf.org/ops/jens1': 'file1',
                     'lfc://lfc1.ndgf.org/:guid=8471134f-494e-41cb-b81e-b341f6a18caf': 'file3'}
+    jobid = '1'
     try:
-        cacheurls = cacheLink(endpoint, proxy, 'cameron', '1', urls_to_link, False)
+        cacheurls = cacheLink(endpoint, proxy, os.getlogin(), jobid, urls_to_link, False)
     except CacheException, e:
         print('Error calling cacheLink: ' + str(e))
         sys.exit(1)
