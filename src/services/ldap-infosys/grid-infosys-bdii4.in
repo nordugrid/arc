@@ -294,9 +294,9 @@ infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
 
 provider_timeout=${CONFIG_provider_timeout:-300}
 gm_wakeupperiod=$(config_print_option grid-manager wakeupperiod)
-gm_wakeupperiod=${gm_wakeupperiod:-120}
+gm_wakeupperiod=${gm_wakeupperiod:-60}
 
-if [ "x$infosys_compat" = "enable" ]; then
+if [ "x$infosys_compat" = "xenable" ]; then
     bdii_breathe_time=${CONFIG_bdii_breathe_time:-30}
     bdii_search_timeout=${CONFIG_bdii_search_timeout:-300}
 else
@@ -380,7 +380,7 @@ fi
 
 # If the new code path is selected...
 if [ "x$infosys_compat" != "xenable" ]; then
-    if [ ! -f "$pkglibdir/LdifPipe.pm" ]; then
+    if [ ! -f "$pkglibdir/InfosysHelper.pm" ]; then
         error_echo "A-REX has to be installed, otherwise you need to set infosys_compat=enable"
         do_exit_start 1
     fi
@@ -869,7 +869,7 @@ create_arc_ldif_generator () {
     ldif_generator_file=$2
     ldif_glue12_generator=$3
 
-    ldif_script="$arc_runtime_config/arc-ldif.sh"
+    ldif_script="$arc_runtime_config/ldif-provider.sh"
 
     rm -f ${ldif_generator_file}
     touch ${ldif_generator_file}
@@ -892,7 +892,7 @@ create_arc_ldif_generator () {
             fi
             chown ${bdii_user}:${bdii_user} ${providerlog}
             config_import_section se/$se
-            cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+            cachetime=${CONFIG_cachetime:-$max_cycle}
 
             cat <<-EOF >> ${ldif_generator_file}
 			BEGIN {
@@ -903,11 +903,13 @@ create_arc_ldif_generator () {
         )
     done
 
+    # NG and GLUE2 come directly from a-rex infoprovider
     cat <<-EOF >> ${ldif_generator_file}
 
 	BEGIN { unshift @INC, '$pkglibdir'; }
-	use LdifPipe;
-	LdifPipe::pullLdif('$arc_runtime_config',1);
+	use InfosysHelper;
+	exit 1 unless InfosysHelper::ldifIsReady('$arc_runtime_config', '$max_cycle', 1);
+	system('$ldif_script');
 	EOF
 
     if [ "x$infosys_nordugrid" = "xenable" ]; then
@@ -917,11 +919,8 @@ create_arc_ldif_generator () {
     if [ "x$infosys_glue12" = "xenable" ]; then
         # Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
         create_glue_ldif_generator $bdii_tmp_dir $ldif_script $ldif_glue12_generator
-
         echo "system('$ldif_glue12_generator');" >> ${ldif_generator_file}
     fi
-
-    echo "unlink('$ldif_script');" >> ${ldif_generator_file}
 
     chmod +x ${ldif_generator_file}
 }

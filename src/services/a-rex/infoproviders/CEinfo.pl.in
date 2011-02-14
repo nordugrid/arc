@@ -44,7 +44,7 @@ use ARC1ClusterInfo;
 use GLUE2xmlPrinter;
 use GLUE2ldifPrinter;
 use NGldifPrinter;
-use LdifPipe;
+use InfosysHelper;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
@@ -137,7 +137,16 @@ sub main {
                 timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
             }
         };
-        LdifPipe::pushLdif($config, $print_ldif);
+
+        if (InfosysHelper::createLdifScript($config, $print_ldif)) {
+            if (InfosysHelper::notifyInfosys($config)) {
+                $log->verbose("Ldap-infosys notified");
+            } else {
+                $log->warning("Failed to notify ldap-infosys");
+            }
+        } else {
+           $log->warning("Failed to create ldif generator script for infosys");
+        }
     }
 
     $log->info("############## Infoprovider finished ##############");

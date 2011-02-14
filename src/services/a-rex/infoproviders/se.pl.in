@@ -219,17 +219,10 @@ print "nordugrid-se-freespace: $diskfree\n";
 #nordugrid-se-middleware
 
 #NorduGrid toolkit
-#nordugridlocation/sbin/grid-manager -v
 $ENV{LD_LIBRARY_PATH}.=":" if $ENV{LD_LIBRARY_PATH};
 $ENV{LD_LIBRARY_PATH}.="$config{ng_location}/@libsubdir@:$globus_location/lib";
-my $ngversionstring = `$config{ng_location}/sbin/grid-manager -v 2>/dev/null`;
-if ($?) {								          
-   warning("error in executing $config{ng_location}/sbin/grid-manager command")
-}
-$ngversionstring =~ /grid-manager: version\s*(.+)$/ and $ngversion="-".$1;
-if ($ngversionstring) {
-    print "nordugrid-se-middleware: nordugrid$ngversion\n";
-}
+
+print "nordugrid-se-middleware: nordugrid-@VERSION@\n";
 
 #Globus Toolkit version 									          
 #globuslocation/share/doc/VERSION								          
