@@ -102,9 +102,17 @@ sub slots () {
     my ($foo, $line, @slotarray);
     my $queuetotalslots = {};
 
+    # Get version of SGE since API has changed
+    # it is on the first line of output and is of the format
+    # GE 6.2u2_1
+    # or
+    # GE 6.0u8
+    my ($command) = "$path/qstat -help| sed -n '1,2 s/GE \\([0-9]\\.[0-9]\\).*/\\1/p'";
+    my ($version) = `$command`;
+
     # Number of slots in execution hosts
 
-    my ($command) = "$path/qconf -sep";
+    $command = "$path/qconf -sep";
 
     unless ( open QQ, "$command 2>/dev/null |" ) {
 	error("$command failed.");
@@ -127,12 +135,23 @@ sub slots () {
     unless ( open QSTAT, "$command 2>/dev/null |" ) {
 	error("$command failed.");}
     $usedslots = 0;
-    while ( $line = <QSTAT> ) {
-	if ( $line =~ /^CLUSTER QUEUE/ || $line =~ /^-+/) { next; }
-	my ($name, $cqload, $used, $avail, $total, $aoACDS, $cdsuE )
-	    = split " ", $line;
-	$usedslots += $used;
-        $$queuetotalslots{$name} = $total;
+    if ($version < 6.2){
+	while ( $line = <QSTAT> ) {
+	    if ( $line =~ /^CLUSTER QUEUE/ || $line =~ /^-+/) { next; }
+	    my ($name, $cqload, $used, $avail, $total, $aoACDS, $cdsuE )
+		= split " ", $line;
+	    $usedslots += $used;
+	    $$queuetotalslots{$name} = $total;
+	}
+    } else {
+	# Format changed in 6.2
+	while ( $line = <QSTAT> ) {
+	    if ( $line =~ /^CLUSTER QUEUE/ || $line =~ /^-+/) { next; }
+	    my ($name, $cqload, $used, $res, $avail, $total, $aoACDS, $cdsuE )
+		= split " ", $line;
+	    $usedslots += $used;
+	    $$queuetotalslots{$name} = $total;
+	}
     }
     close QSTAT;
 
