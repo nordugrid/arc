@@ -675,13 +675,21 @@ namespace Arc {
       result = DataStatus::StatError;
     } else {
       file.SetName(i->GetLastName());
+      file.SetMetaData("path", i->GetLastName());
       if (more_info) {
         DataStatus r = do_more_stat(*i);
         if(!r) result = r;
       }
       file.SetType(i->GetType());
-      if (i->CheckSize()) file.SetSize(i->GetSize());
-      if (i->CheckCreated()) file.SetCreated(i->GetCreated());
+      file.SetMetaData("type", (i->GetType() == FileInfo::file_type_dir) ? "dir" : "file");
+      if (i->CheckSize()) {
+        file.SetSize(i->GetSize());
+        file.SetMetaData("size", tostring(i->GetSize()));
+      }
+      if (i->CheckCreated()) {
+        file.SetCreated(i->GetCreated());
+        file.SetMetaData("mtime", i->GetCreated());
+      }
     }
     return result;
   }
@@ -706,6 +714,7 @@ namespace Arc {
          i != lister.end(); ++i) {
       std::list<FileInfo>::iterator f =
         files.insert(files.end(), FileInfo(i->GetLastName()));
+      f->SetMetaData("path", i->GetLastName());
       if (more_info) {
         DataStatus r = do_more_stat(*i);
         if(!r) {
@@ -713,9 +722,16 @@ namespace Arc {
           result = r;
         }
         f->SetType(i->GetType());
+        f->SetMetaData("type", (i->GetType() == FileInfo::file_type_dir) ? "dir" : "file");
       }
-      if (i->CheckSize()) f->SetSize(i->GetSize());
-      if (i->CheckCreated()) f->SetCreated(i->GetCreated());
+      if (i->CheckSize()) {
+        f->SetSize(i->GetSize());
+        f->SetMetaData("size", tostring(i->GetSize()));
+      }
+      if (i->CheckCreated()) {
+        f->SetCreated(i->GetCreated());
+        f->SetMetaData("mtime", i->GetCreated());
+      }
     }
     return result;
   }
