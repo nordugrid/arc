@@ -135,6 +135,14 @@ namespace Arc {
       SetCreated(modify_time);
       logger.msg(VERBOSE, "check_ftp: obtained creation date: %s", GetCreated().str());
     }
+    // check if file or directory - can't do a get on a directory
+    FileInfo fileinfo;
+    if (!Stat(fileinfo, INFO_TYPE_TYPE))
+      return DataStatus::CheckError;
+    if (fileinfo.GetType() != FileInfo::file_type_file)
+      // successful stat is enough to report successful access to a directory
+      return DataStatus::Success;
+
     // Do not use partial_get for ordinary ftp. Stupid globus tries to
     // use non-standard commands anyway.
     if (is_secure) {
