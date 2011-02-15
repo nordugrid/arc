@@ -61,6 +61,7 @@ static bool arcls(const Arc::URL& dir_url,
     logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
+  url->SetSecure(false);
 
   if(check_access) {
     std::cout << dir_url << " - ";
@@ -92,9 +93,6 @@ static bool arcls(const Arc::URL& dir_url,
   Arc::DataStatus res;
   Arc::FileInfo file;
   std::list<Arc::FileInfo> files;
-  url->SetSecure(false);
-
-
 
   if(no_list) { // only requested object is queried
     res = url->Stat(file, verb);
