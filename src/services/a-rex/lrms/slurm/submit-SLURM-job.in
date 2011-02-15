@@ -365,6 +365,14 @@ while [ "$SLURM_TRIES" -lt '10' ] ; do
     sleep 60
     SLURM_TRIES=0
     continue
+  fi
+  # A rare SLURM error, but may cause chaos in the information/accounting system
+  grep 'unable to accept job' "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  if [ $? -eq '0' ] ; then 
+    echo "Waiting for queue to decrease" 1>&2
+    sleep 60
+    SLURM_TRIES=0
+    continue
   fi 
   SLURM_TRIES=$(( $SLURM_TRIES + 1 ))
   sleep 2
@@ -372,8 +380,14 @@ done
 if [ $SLURM_RESULT -eq '0' ] ; then
 
 #TODO test what happens when the jobqueue is full or when the slurm ctld is not responding
-
-   job_id=`cat $LRMS_JOB_ERR | sed 's/sbatch: Submitted batch job \([0-9]*\)$/\1/'`
+   slurm_version=`${sbatch} --version`
+   if [ "$slurm_version" = "slurm 2.2.1" ] || [ "$1" \> "slurm 2.2.1" ]; then
+     # newer versions, sbatch would output to stdout 
+     job_id=`cat $LRMS_JOB_OUT | sed 's/Submitted batch job \([0-9]*\)$/\1/'`
+   else
+     # older versions, sbatch would output to stderr and the output is slightly different 
+     job_id=`cat $LRMS_JOB_ERR | sed 's/sbatch: Submitted batch job \([0-9]*\)$/\1/'`
+   fi
    if [ "${job_id}" = "" ] ; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the slurm jobid for the job!" 1>&2
