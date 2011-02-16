@@ -15,7 +15,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/DateTime.h>
-#include <arc/FileLock.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
@@ -269,29 +268,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     }
   } //end loop over all job descriptions
 
-  // lock jobs.xml - if already locked try a few times before giving up
-  Arc::FileLock lock(usercfg.JobListFile());
-  bool acquired = false;
-  for (int tries = 10; tries > 0; --tries) {
-    acquired = lock.acquire();
-    if (acquired) {
-      Arc::Config jobstorage;
-      jobstorage.ReadFromFile(usercfg.JobListFile());
-      for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
-           it != resubmittedJobs.end(); it++) {
-        Arc::XMLNode xJob = jobstorage.NewChild("Job");
-        it->ToXML(xJob);
-      }
-      jobstorage.SaveToFile(usercfg.JobListFile());
-      lock.release();
-      break;
-    }
-    // give info to the user after a few tries
-    if (tries == 6)
-      std::cout << Arc::IString("Waiting for lock on job list file %s", usercfg.JobListFile()) << std::endl;
-    usleep(500000);
-  }
-  if (!acquired) {
+  if (!Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile())
               << std::endl;
     std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;

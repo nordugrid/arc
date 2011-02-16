@@ -204,11 +204,9 @@ namespace Arc {
                           const std::string& downloaddir,
                           const bool keep,
                           const bool usejobname) {
-    std::list<URL> toberemoved;
-
     GetJobInformation();
 
-    std::list<Job*> downloadable;
+    std::list< std::list<Job>::iterator > downloadable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
@@ -232,11 +230,12 @@ namespace Arc {
         continue;
       }
 
-      downloadable.push_back(&(*it));
+      downloadable.push_back(it);
     }
 
     bool ok = true;
-    for (std::list<Job*>::iterator it = downloadable.begin();
+    std::list<URL> toberemoved;
+    for (std::list< std::list<Job>::iterator >::iterator it = downloadable.begin();
          it != downloadable.end(); it++) {
 
       bool downloaded = GetJob(**it, downloaddir, usejobname);
@@ -253,23 +252,21 @@ namespace Arc {
           ok = false;
           continue;
         }
-        toberemoved.push_back((*it)->JobID);
+
+        toberemoved.push_back((*it)->IDFromEndpoint);
+        jobstore.erase(*it);
       }
     }
 
-    if (toberemoved.size() > 0)
-      RemoveJobs(toberemoved);
-
+    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
     return ok;
   }
 
   bool JobController::Kill(const std::list<std::string>& status,
                            const bool keep) {
-    std::list<URL> toberemoved;
-
     GetJobInformation();
 
-    std::list<Job*> killable;
+    std::list< std::list<Job>::iterator > killable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
 
@@ -292,11 +289,12 @@ namespace Arc {
         continue;
       }
 
-      killable.push_back(&(*it));
+      killable.push_back(it);
     }
 
     bool ok = true;
-    for (std::list<Job*>::iterator it = killable.begin();
+    std::list<URL> toberemoved;
+    for (std::list< std::list<Job>::iterator >::iterator it = killable.begin();
          it != killable.end(); it++) {
 
       bool cancelled = CancelJob(**it);
@@ -313,57 +311,64 @@ namespace Arc {
           ok = false;
           continue;
         }
-        toberemoved.push_back((*it)->JobID.str());
+
+        toberemoved.push_back((*it)->IDFromEndpoint.str());
+        jobstore.erase(*it);
       }
     }
 
-    if (toberemoved.size() > 0)
-      RemoveJobs(toberemoved);
-
+    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
     return ok;
   }
 
   bool JobController::Clean(const std::list<std::string>& status,
                             const bool force) {
-    std::list<URL> toberemoved;
-
     GetJobInformation();
 
-    std::list<Job*> cleanable;
+    std::list<URL> toberemoved;
+    std::list< std::list<Job>::iterator > cleanable;
     for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-
+         it != jobstore.end();) {
       if (!it->State && force && status.empty()) {
         logger.msg(WARNING, "Job information not found, job %s will only be deleted from local joblist",
                    it->JobID.str());
         toberemoved.push_back(it->JobID);
+        it = jobstore.erase(it);
         continue;
       }
 
       if (!it->State) {
         logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        ++it;
         continue;
       }
 
       // Job state is not among the specified states.
       if (!status.empty() &&
           std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      if (!it->State.IsFinished()) {
-        if (force)
-          toberemoved.push_back(it->JobID);
-        else
-          logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+        ++it;
         continue;
       }
 
-      cleanable.push_back(&(*it));
+      if (!it->State.IsFinished()) {
+        if (force) {
+          toberemoved.push_back(it->JobID);
+          it = jobstore.erase(it);
+        }
+        else {
+          logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+          ++it;
+        }
+        continue;
+      }
+
+      cleanable.push_back(it);
+      ++it;
     }
 
     bool ok = true;
-    for (std::list<Job*>::iterator it = cleanable.begin();
+    for (std::list< std::list<Job>::iterator >::iterator it = cleanable.begin();
          it != cleanable.end(); it++) {
       bool cleaned = CleanJob(**it);
       if (!cleaned) {
@@ -373,12 +378,12 @@ namespace Arc {
         ok = false;
         continue;
       }
-      toberemoved.push_back((*it)->JobID);
+
+      toberemoved.push_back((*it)-IDFromEndpoint);
+      jobstore.erase(*it);
     }
 
-    if (toberemoved.size() > 0)
-      RemoveJobs(toberemoved);
-
+    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
     return ok;
   }
 
@@ -553,20 +558,20 @@ namespace Arc {
                               const UserConfig& usercfg,
                               const bool forcemigration,
                               std::list<URL>& migratedJobIDs) {
-    bool retVal = true;
-    std::list<URL> toberemoved;
-
     GetJobInformation();
 
+    bool retVal = true;
+    std::list<URL> toberemoved;
     std::list<Job> migratedJobs;
-    for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); itJob++) {
+    for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); ++itJob) {
       if (itJob->State != JobState::QUEUING) {
         logger.msg(WARNING, "Cannot migrate job %s, it is not queuing.", itJob->JobID.str());
         continue;
       }
 
-      if (!GetJobDescription(*itJob, itJob->JobDescription))
+      if (!GetJobDescription(*itJob, itJob->JobDescription)) {
         continue;
+      }
 
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse(itJob->JobDescription, jobdescs) || jobdescs.empty()) {
@@ -592,37 +597,16 @@ namespace Arc {
         }
 
         broker->RegisterJobsubmission();
-        migratedJobIDs.push_back(migratedJobs.back().JobID);
-        toberemoved.push_back(URL(itJob->JobID.str()));
+        migratedJobIDs.push_back(migratedJobs.back().IDFromEndpoint);
+        toberemoved.push_back(itJob->IDFromEndpoint);
+        itJob = jobstore.erase(itJob);
+        --itJob;
         break;
       }
     }
 
-    if (toberemoved.size() > 0) {
-      RemoveJobs(toberemoved);
-    }
-
-    // lock job list file
-    FileLock lock(usercfg.JobListFile());
-    bool acquired = false;
-    for (int tries = 10; tries > 0; --tries) {
-      acquired = lock.acquire();
-      if (acquired) {
-        Config jobstorage;
-        jobstorage.ReadFromFile(usercfg.JobListFile());
-        for (std::list<Job>::const_iterator it = migratedJobs.begin();
-             it != migratedJobs.end(); it++) {
-          XMLNode xJob = jobstorage.NewChild("Job");
-          it->ToXML(xJob);
-        }
-        jobstorage.SaveToFile(usercfg.JobListFile());
-        lock.release();
-        break;
-      }
-      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
-      usleep(500000);
-    }
-    if (!acquired) {
+    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
+    if (!Job::WriteJobsToFile(usercfg.JobListFile(), migratedJobs)) {
       logger.msg(WARNING, "Failed to lock job list file %s. Job information will be out of sync", usercfg.JobListFile());
     }
 
@@ -808,66 +792,6 @@ namespace Arc {
 
     return true;
 
-  }
-
-  bool JobController::RemoveJobs(const std::list<URL>& jobids) {
-
-    logger.msg(VERBOSE, "Removing jobs from job list and job store");
-
-    // lock job list file
-    FileLock lock(usercfg.JobListFile());
-    bool acquired = false;
-    for (int tries = 10; tries > 0; --tries) {
-      acquired = lock.acquire();
-      if (acquired) {
-        jobstorage.ReadFromFile(usercfg.JobListFile());
-
-        for (std::list<URL>::const_iterator it = jobids.begin();
-             it != jobids.end(); it++) {
-
-          XMLNodeList xmljobs;
-          xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->str() + "']", NS());
-          if (xmljobs.empty()) { // Included for backwards compatibility.
-            xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->str() + "']", NS());
-          }
-
-          if (xmljobs.empty())
-            logger.msg(ERROR, "Job %s not found in job list.", it->str());
-          else {
-            XMLNode& xmljob = *xmljobs.begin();
-            if (xmljob) {
-              logger.msg(INFO, "Removing job %s from job list file", it->str());
-              xmljob.Destroy();
-            }
-          }
-
-          std::list<Job>::iterator it2 = jobstore.begin();
-          while (it2 != jobstore.end()) {
-            if (it2->JobID == *it) {
-              it2 = jobstore.erase(it2);
-              break;
-            }
-            it2++;
-          }
-        }
-
-        jobstorage.SaveToFile(usercfg.JobListFile());
-
-        lock.release();
-        break;
-      }
-      logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
-      usleep(500000);
-    }
-    if (!acquired) {
-      logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
-      return false;
-    }
-
-    logger.msg(VERBOSE, "Job store for %s now contains %d jobs", flavour, jobstore.size());
-    logger.msg(VERBOSE, "Finished removing jobs from job list and job store");
-
-    return true;
   }
 
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
