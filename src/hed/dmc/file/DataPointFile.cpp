@@ -350,6 +350,9 @@ namespace Arc {
 
   DataStatus DataPointFile::Stat(FileInfo& file, DataPointInfoType verb) {
     std::string name = url.Path();
+    // to make exact same behaviour for arcls and ngls all
+    // lines down to file.SetName(name) should be removed
+    // (ngls <local filename> gives full path)
     std::string::size_type p = name.rfind(G_DIR_SEPARATOR);
     while(p != std::string::npos) {
       if(p != (name.length()-1)) {
@@ -358,6 +361,10 @@ namespace Arc {
       }
       name.resize(p);
       p = name.rfind(G_DIR_SEPARATOR);
+    }
+    // remove first slash
+    if(name.find_first_of("/") == 0){
+      name = name.substr(name.find_first_not_of("/"), p);
     }
     file.SetName(name);
     if(!do_stat(url.Path(), file, verb)) {
