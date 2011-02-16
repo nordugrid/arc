@@ -149,6 +149,144 @@ namespace Arc {
     static bool CompareSubmissionTime(const Job* a, const Job* b);
     static bool CompareJobName(const Job* a, const Job* b);
 
+    /// Read all jobs from file
+    /**
+     * This static method will read jobs (in XML format) from the specified
+     * file, and they will be stored in the referenced list of jobs. The XML
+     * element in the file representing a job should be named "Job", and have
+     * the same format as accepted by the operator=(XMLNode) method. To avoid
+     * simultaneous use (writing and reading) of the file, reading will not be
+     * initiated before a lock on the file has been acquired. For this purpose
+     * the FileLock class is used. nTries specifies the maximal number of times
+     * the method will try to acquire a lock on the file, with an interval of
+     * tryInterval micro seconds between each attempt. If a lock is not acquired
+     * this method returns false. The method will also return false if the
+     * content of file is not in XML format. Otherwise it returns true.
+     *
+     * @param filename is the filename of the job list to read jobs from.
+     * @param jobs is a reference to a list of Job objects, which will be filled
+     *  with the jobs read from file (cleared before use).
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
+     * @return true in case of success, otherwise false.
+     * @see operator=(XMLNode)
+     * @see WriteJobsToTruncatedFile
+     * @see WriteJobsToFile
+     * @see RemoveJobsFromFile
+     * @see FileLock
+     * @see XMLNode::ReadFromFile
+     **/
+    static bool ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Truncate file and write jobs to it
+    /**
+     * This static method will write the passed list of jobs to the specified
+     * file, but before writing the file will be truncated. Jobs will be written
+     * in XML format as returned by the ToXML method, and each job will be
+     * contained in a element named "Job". The passed list of jobs must not
+     * contain two identical jobs (i.e. IDFromEndpoint identical), if that is
+     * the case false will be returned. To avoid simultaneous use (writing and
+     * reading) of the file, writing will not be initiated before a lock on the
+     * file has been acquired. For this purpose the FileLock class is used.
+     * nTries specifies the maximal number of times the method will try to
+     * acquire a lock on the file, with an interval of tryInterval micro seconds
+     * between each attempt. If a lock is not acquired this method returns
+     * false. The method will also return false if writing jobs to the file
+     * fails. Otherwise it returns true.
+     *
+     * @param filename is the filename of the job list to write jobs to.
+     * @param jobs is the list of Job objects which should be written to file.
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
+     * @return true in case of success, otherwise false.
+     * @see ToXML
+     * @see ReadAllJobsFromFile
+     * @see WriteJobsToFile
+     * @see RemoveJobsFromFile
+     * @see FileLock
+     * @see XMLNode::SaveToFile
+     **/
+    static bool WriteJobsToTruncatedFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Write jobs to file
+    /**
+     * This method is in all respects identical to the WriteJobsToFile(const std::string&, const std::list<Job>&, std::list<const Job*>&, unsigned, unsigned)
+     * method, except for the information about new jobs which is disregarded.
+     *
+     * @see WriteJobsToFile(const std::string&, const std::list<Job>&, std::list<const Job*>&, unsigned, unsigned)
+     */
+    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Write jobs to file
+    /**
+     * This static method will write (appending) the passed list of jobs to the
+     * specified file. Jobs will be written in XML format as returned by the
+     * ToXML method, and each job will be contained in a element named "Job".
+     * The passed list of jobs must not contain two identical jobs (i.e.
+     * IDFromEndpoint identical), if that is the case false will be returned. If
+     * on the other hand a job in the list is identical to one in file, the one
+     * in file will be overwritten. A pointer (no new) to those jobs from the
+     * list which are not in the file will be added to newJobs list, thus these
+     * pointers goes out of scope when jobs list goes out of scope. To avoid
+     * simultaneous use (writing and reading) of the file, writing will not be
+     * initiated before a lock on the file has been acquired. For this purpose
+     * the FileLock class is used. nTries specifies the maximal number of times
+     * the method will try to acquire a lock on the file, with an interval of
+     * tryInterval micro seconds between each attempt. If a lock is not acquired
+     * this method returns false. The method will also return false if writing
+     * jobs to the file fails. Otherwise it returns true.
+     *
+     * @param filename is the filename of the job list to write jobs to.
+     * @param jobs is the list of Job objects which should be written to file.
+     * @param newJobs is a reference to a list of pointers to Job objects which
+     *  are not duplicates (cleared before use).
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
+     * @return true in case of success, otherwise false.
+     * @see ToXML
+     * @see ReadAllJobsFromFile
+     * @see WriteJobsToTruncatedFile
+     * @see RemoveJobsFromFile
+     * @see FileLock
+     * @see XMLNode::SaveToFile
+     **/
+    static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Truncate file and write jobs to it
+    /**
+     * This static method will remove the jobs having IDFromEndpoint identical
+     * to any of those in the passed list jobids. To avoid simultaneous use
+     * (writing and reading) of the file, writing will not be initiated before a
+     * lock on the file has been acquired. For this purpose the FileLock class
+     * is used. nTries specifies the maximal number of times the method will try
+     * to acquire a lock on the file, with an interval of tryInterval micro
+     * seconds between each attempt. If a lock is not acquired this method
+     * returns false. The method will also return false if reading from or
+     * writing jobs to the file fails. Otherwise it returns true.
+     *
+     * @param filename is the filename of the job list to write jobs to.
+     * @param jobids is a list of URL objects which specifies which jobs from
+     *  the file to remove.
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
+     * @return true in case of success, otherwise false.
+     * @see ReadAllJobsFromFile
+     * @see WriteJobsToTruncatedFile
+     * @see WriteJobsToFile
+     * @see FileLock
+     * @see XMLNode::ReadFromFile
+     * @see XMLNode::SaveToFile
+     **/
+    static bool RemoveJobsFromFile(const std::string& filename, const std::list<URL>& jobids, unsigned nTries = 10, unsigned tryInterval = 500000);
+
   private:
     static Logger logger;
   };

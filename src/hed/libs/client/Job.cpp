@@ -5,6 +5,7 @@
 #endif
 
 #include <arc/ArcConfig.h>
+#include <arc/FileLock.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -512,4 +513,174 @@ namespace Arc {
   bool Job::CompareJobName(const Job* a, const Job* b) {
     return a->Name.compare(b->Name) < 0;
   }
+
+  bool Job::ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
+    jobs.clear();
+    Config jobstorage;
+
+    FileLock lock(filename);
+    bool acquired = false;
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      acquired = lock.acquire();
+      if (acquired) {
+        if (!jobstorage.ReadFromFile(filename)) {
+          lock.release();
+          return false;
+        }
+        lock.release();
+        break;
+      }
+
+      if (tries == 6) {
+        logger.msg(VERBOSE, "Waiting for lock on job list file %s", filename);
+      }
+
+      usleep(tryInterval);
+    }
+
+    if (!acquired) {
+      return false;
+    }
+
+    XMLNodeList xmljobs = jobstorage.Path("Job");
+    for (XMLNodeList::iterator xit = xmljobs.begin(); xit != xmljobs.end(); ++xit) {
+      jobs.push_back(*xit);
+    }
+
+    return true;
+  }
+
+  bool Job::WriteJobsToTruncatedFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
+    Config jobfile;
+    for (std::list<Job>::const_iterator it = jobs.begin();
+         it != jobs.end(); it++) {
+      std::list<Job>::const_iterator it2 = it;
+      for (++it2; it2 != jobs.end(); ++it2) {
+        if (it->IDFromEndpoint == it2->IDFromEndpoint) {
+          return false; // Identical jobs found in list.
+        }
+      }
+      XMLNode xJob = jobfile.NewChild("Job");
+      it->ToXML(xJob);
+    }
+
+    FileLock lock(filename);
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        if (!jobfile.SaveToFile(filename)) {
+          lock.release();
+          return false;
+        }
+        lock.release();
+        return true;
+      }
+
+      if (tries == 6) {
+        logger.msg(WARNING, "Waiting for lock on job list file %s", filename);
+      }
+
+      usleep(tryInterval);
+    }
+
+    return false;
+  }
+
+  bool Job::WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
+    std::list<const Job*> newJobs;
+    return WriteJobsToFile(filename, jobs, newJobs, nTries, tryInterval);
+  }
+
+  bool Job::WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries, unsigned tryInterval) {
+    newJobs.clear();
+
+    FileLock lock(filename);
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        Config jobfile;
+        jobfile.ReadFromFile(filename);
+
+        for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+          std::list<Job>::const_iterator it2 = it;
+          for (++it2; it2 != jobs.end(); ++it2) {
+            if (it->IDFromEndpoint == it2->IDFromEndpoint) {
+              newJobs.clear();
+              lock.release();
+              return false; // Identical jobs found in list.
+            }
+          }
+          bool jobExists = false;
+          for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
+            if (((std::string)j["JobID"])          == it->IDFromEndpoint.fullstr() ||
+                ((std::string)j["IDFromEndpoint"]) == it->IDFromEndpoint.fullstr()) {
+              j.Destroy(); // Overwrite existing job with the current.
+              jobExists = true;
+              break;
+            }
+          }
+
+          it->ToXML(jobfile.NewChild("Job"));
+          if (!jobExists) {
+            newJobs.push_back(&*it);
+          }
+        }
+        if (!jobfile.SaveToFile(filename)) {
+          lock.release();
+          return false;
+        }
+        lock.release();
+        return true;
+      }
+
+      if (tries == 6) {
+        logger.msg(WARNING, "Waiting for lock on job list file %s", filename);
+      }
+
+      usleep(tryInterval);
+    }
+
+    return false;
+  }
+
+  bool Job::RemoveJobsFromFile(const std::string& filename, const std::list<URL>& jobids, unsigned nTries, unsigned tryInterval) {
+    if (jobids.empty()) {
+      return true;
+    }
+
+    FileLock lock(filename);
+    for (int tries = nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        Config jobstorage;
+        if (!jobstorage.ReadFromFile(filename)) {
+          lock.release();
+          return false;
+        }
+
+        XMLNodeList xmlJobs = jobstorage.Path("Job");
+        for (std::list<URL>::const_iterator it = jobids.begin(); it != jobids.end(); ++it) {
+          for (XMLNodeList::iterator xJIt = xmlJobs.begin(); xJIt != xmlJobs.end(); ++xJIt) {
+            if ((*xJIt)["IDFromEndpoint"] == it->str() ||
+                (*xJIt)["JobID"] == it->str() // Included for backwards compatibility.
+                ) {
+              xJIt->Destroy(); // Do not break, since for some reason there might be multiple identical jobs in the file.
+            }
+          }
+        }
+
+        if (!jobstorage.SaveToFile(filename)) {
+          lock.release();
+          return false;
+        }
+        lock.release();
+        return true;
+      }
+
+      if (tries == 6) {
+        logger.msg(VERBOSE, "Waiting for lock on job list file %s", filename);
+      }
+      usleep(tryInterval);
+    }
+
+    return false;
+  }
+
 } // namespace Arc

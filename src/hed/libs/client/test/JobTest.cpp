@@ -3,6 +3,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/DateTime.h>
+#include <arc/FileLock.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/Job.h>
@@ -15,6 +16,7 @@ class JobTest
   CPPUNIT_TEST(JobToXMLTest);
   CPPUNIT_TEST(XMLToJobStateTest);
   CPPUNIT_TEST(FromOldFormatTest);
+  CPPUNIT_TEST(FileTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -25,6 +27,7 @@ public:
   void JobToXMLTest();
   void XMLToJobStateTest();
   void FromOldFormatTest();
+  void FileTest();
 
 private:
   Arc::XMLNode xmlJob;
@@ -303,6 +306,103 @@ void JobTest::FromOldFormatTest() {
   itFiles++;
   CPPUNIT_ASSERT_EQUAL((std::string)"random.dat", itFiles->first);
   CPPUNIT_ASSERT_EQUAL((std::string)"e52b14b10b967d9135c198fd11b9b8bc", itFiles->second);
+}
+
+void JobTest::FileTest() {
+  const std::string jobfile = "jobs.xml";
+  std::list<Arc::Job> inJobs, outJobs;
+
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job1";
+  inJobs.back().IDFromEndpoint.ChangePath("/arex/job1");
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job2";
+  inJobs.back().IDFromEndpoint.ChangePath("/arex/job2");
+
+  // Write and read jobs.
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(inJobs.size(), outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
+
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job3";
+  inJobs.back().IDFromEndpoint.ChangePath("/arex/job3");
+
+  // Check that pointers to new jobs are added to the list
+  std::list<const Arc::Job*> newJobs;
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToFile(jobfile, inJobs, newJobs));
+  CPPUNIT_ASSERT_EQUAL(1, (int)newJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, newJobs.front()->Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, newJobs.front()->IDFromEndpoint);
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(inJobs.size(), outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
+
+  // Check whether file is truncated.
+  inJobs.pop_front();
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(inJobs.size(), outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
+
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job4";
+  inJobs.back().IDFromEndpoint.ChangePath("/arex/job4");
+
+  inJobs.push_back(xmlJob);
+  inJobs.back().Name = "Job5";
+  inJobs.back().IDFromEndpoint.ChangePath("/arex/job5");
+
+  inJobs.push_back(inJobs.back());
+
+  // Identical jobs in job list is not allowed.
+  CPPUNIT_ASSERT(!Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
+  CPPUNIT_ASSERT(!Arc::Job::WriteJobsToFile(jobfile, inJobs, newJobs));
+  inJobs.pop_back();
+
+  // Adding more jobs to file.
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(inJobs.size(), outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
+
+  std::list<Arc::URL> toberemoved;
+  toberemoved.push_back(inJobs.back().IDFromEndpoint);
+  toberemoved.back().ChangePath("/arex/job3");
+  toberemoved.push_back(inJobs.back().IDFromEndpoint);
+  toberemoved.back().ChangePath("/arex/job4");
+
+  // Check whether jobs are removed correctly.
+  CPPUNIT_ASSERT(Arc::Job::RemoveJobsFromFile(jobfile, toberemoved));
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().Name, outJobs.front().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  CPPUNIT_ASSERT_EQUAL(inJobs.front().IDFromEndpoint, outJobs.front().IDFromEndpoint);
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().IDFromEndpoint, outJobs.back().IDFromEndpoint);
+
+  // Check whether lock is respected.
+  Arc::FileLock lock(jobfile);
+  CPPUNIT_ASSERT(lock.acquire());
+  CPPUNIT_ASSERT(!Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
+  CPPUNIT_ASSERT(!Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT(!Arc::Job::RemoveJobsFromFile(jobfile, toberemoved));
+  CPPUNIT_ASSERT(lock.release());
+
+  remove(jobfile.c_str());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(JobTest);
