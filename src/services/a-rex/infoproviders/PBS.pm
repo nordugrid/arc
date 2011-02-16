@@ -195,31 +195,37 @@ sub read_qstat_f ($) {
     
     my $jobid="";
     my %qstat_jobs;
+
+    my $rs=$/;
+    $/="";
     while (<QSTAT_F>) {
-        my $string = $_;
-        if ($string =~ /Job Id/) {
-            $jobid= get_variable("Job Id", $string);
-        }
-        if (!$jobid) {
-            next;
-        }
-        if ($string =~ /Resource_List.nodes/){
-            $qstat_jobs{$jobid}{"Resource_List.nodes"}= get_variable("Resource_List.nodes",$string);
-        }
-        if ($string =~ /exec_host/){
-            $qstat_jobs{$jobid}{"exec_host"}= get_variable("exec_host",$string);
-        }
-        if ($string =~ /job_state/){
-            $qstat_jobs{$jobid}{"job_state"}= get_variable("job_state",$string);
-        }
-        if ($string =~ /Resource_List.select/){
-            $qstat_jobs{$jobid}{"Resource_List.select"}= get_variable("Resource_List.select",$string);
-        }
-        if ($string =~ /Resource_List.ncpus/){
-            $qstat_jobs{$jobid}{"Resource_List.ncpus"}= get_variable("Resource_List.ncpus",$string);
-        }
+	s/\n\t//g;
+	foreach(split(/\n/)) {
+	    my $string = $_;
+	    if ($string =~ /Job Id/) {
+		$jobid= get_variable("Job Id", $string);
+	    }
+	    if (!$jobid) {
+		next;
+	    }
+	    if ($string =~ /Resource_List.nodes/){
+		$qstat_jobs{$jobid}{"Resource_List.nodes"}= get_variable("Resource_List.nodes",$string);
+	    }
+	    if ($string =~ /exec_host/){
+		$qstat_jobs{$jobid}{"exec_host"}= get_variable("exec_host",$string);
+	    }
+	    if ($string =~ /job_state/){
+		$qstat_jobs{$jobid}{"job_state"}= get_variable("job_state",$string);
+	    }
+	    if ($string =~ /Resource_List.select/){
+		$qstat_jobs{$jobid}{"Resource_List.select"}= get_variable("Resource_List.select",$string);
+	    }
+	    if ($string =~ /Resource_List.ncpus/){
+		$qstat_jobs{$jobid}{"Resource_List.ncpus"}= get_variable("Resource_List.ncpus",$string);
+	    }
+	}
     };
-    
+    $/=$rs;
     close QSTAT_F;
 
     return %qstat_jobs;
