@@ -85,8 +85,8 @@ namespace DataStaging {
     dtr_list_lock.unlock();
     request->get_logger()->msg(Arc::WARNING, "DTR %s requested cancel but no active transfer",
                    request->get_id());
-    request->set_owner(SCHEDULER);
     request->set_status(DTRStatus::TRANSFERRED);
+    request->push(SCHEDULER);
     return true;
   }
 

@@ -140,6 +140,9 @@ namespace DataStaging {
    *   return 0;
    * }
    * @endcode
+   *
+   * A lock protects member variables that are likely to be accessed and
+   * modified by multiple threads.
    */
   class DTR {
   	
@@ -161,9 +164,7 @@ namespace DataStaging {
        * is set and if so use it as destination. */
       std::string cache_file;
 
-      /* Top level cache directory. This will be replaced by values taken
-       * from configuration */
-      //std::string cache_dir;
+      /* Cache configuration */
       CacheParameters cache_parameters;
 
       /* Transfer parameters */
@@ -290,8 +291,12 @@ namespace DataStaging {
      }
 
      // Register callback to be used when DTR processing needs to
-     // be passed to another module.
+     // be passed to another module. Protected by lock.
      void registerCallback(DTRCallback* cb, StagingProcesses owner);
+
+     // Get the list of callbacks for this owner. Protected by lock.
+     std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses, std::list<DTRCallback*> >& proc_callback,
+                                           StagingProcesses owner);
 
      // Get the ID of this DTR
      std::string get_id() const { return DTR_ID; };
@@ -336,18 +341,18 @@ namespace DataStaging {
      void set_sub_share(const std::string& share) { sub_share = share; };
      std::string get_sub_share() const { return sub_share; };
 
-     // Manipulate the status
+     // Manipulate the status. Protected by lock.
      void set_status(DTRStatus stat);
-     DTRStatus get_status() const { return status; };
+     DTRStatus get_status();
      
      // Manipulate the error status. The DTRErrorStatus last error state field
-     // is set to the current status of the DTR.
+     // is set to the current status of the DTR. Protected by lock.
      void set_error_status(DTRErrorStatus::DTRErrorStatusType error_stat,
                            DTRErrorStatus::DTRErrorLocation error_loc,
                            const std::string& desc="");
      // Set the error status back to NONE_ERROR and clear other fields
      void reset_error_status();
-     DTRErrorStatus get_error_status() const { return error_status; };
+     DTRErrorStatus get_error_status();
 
      // Manipulate the cancel request
      void set_cancel_request();
@@ -357,9 +362,7 @@ namespace DataStaging {
      void set_cache_file(const std::string& filename);
      std::string get_cache_file() const { return cache_file; };
 
-     // Manipulate cache directory. Will become obsolete when conf file is used.
-     //void set_cache_dir(const std::string& dir) { cache_dir = dir; };
-     //std::string get_cache_dir() const { return cache_dir; };
+     // Manipulate cache parameters
      void set_cache_parameters(const CacheParameters& param) { cache_parameters = param; };
      const CacheParameters& get_cache_parameters() const { return cache_parameters; };
 
@@ -371,9 +374,8 @@ namespace DataStaging {
      void set_mapped_source(const std::string& file = "") { mapped_source = file; };
      std::string get_mapped_source() const { return mapped_source; };
 
-     // Manipulate the owner
+     // Find the owner
      StagingProcesses get_owner() const { return current_owner; };
-     void set_owner(StagingProcesses new_owner);
      
      // Get the local user information
      Arc::User get_local_user() const { return user; };
@@ -387,7 +389,7 @@ namespace DataStaging {
      // Get Logger object, so that processes can log to this DTR's log
      Arc::Logger * get_logger() const { return logger; };
 
-     // Pass the DTR from one process to another
+     // Pass the DTR from one process to another. Protected by lock.
      void push(StagingProcesses new_owner);
      
      // Suspend the DTR which is in doing transfer in the delivery process

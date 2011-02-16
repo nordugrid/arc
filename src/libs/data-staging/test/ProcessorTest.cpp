@@ -78,7 +78,7 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
 
   DataStaging::Processor processor;
   processor.start();
@@ -100,7 +100,7 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
   processor.receiveDTR(*dtr);
 
   // sleep while thread deletes
@@ -145,7 +145,7 @@ void ProcessorTest::TestCacheCheck() {
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
   dtr->set_cache_parameters(cache_param);
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
   std::string cache_file(cache_dir + "/data/0c/4e5842a7c304ce2cd684631ca86bb366b43a7e");
   remove(cache_file.c_str());
 
@@ -172,7 +172,7 @@ void ProcessorTest::TestCacheCheck() {
   CPPUNIT_ASSERT_EQUAL(0, close(fd));
 
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
   processor.receiveDTR(*dtr);
 
   // sleep while thread checks cache
@@ -194,7 +194,7 @@ void ProcessorTest::TestCacheCheck() {
     CPPUNIT_ASSERT_EQUAL(0, close(fd));
 
     dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread checks cache
@@ -217,7 +217,7 @@ void ProcessorTest::TestCacheCheck() {
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
   dtr->set_cache_parameters(cache_param);
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
   cache_file = cache_dir + "/data/d0/a78f14e02ecff84cb5e20e5806ca99d536126b";
   remove(cache_file.c_str());
 
@@ -254,7 +254,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
@@ -277,7 +277,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
@@ -311,7 +311,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     dtr->set_replication(true); // usually set automatically by scheduler
     processor.receiveDTR(*dtr);
 
@@ -340,7 +340,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
@@ -355,7 +355,7 @@ void ProcessorTest::TestResolve() {
     dtr->set_force_registration(true);
     dtr->reset_error_status();
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
@@ -380,7 +380,7 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread resolves
@@ -409,7 +409,7 @@ void ProcessorTest::TestQueryReplica() {
   processor.start();
   //CPPUNIT_ASSERT(processor);
   dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
   processor.receiveDTR(*dtr);
 
   // sleep while replica is queried
@@ -428,7 +428,7 @@ void ProcessorTest::TestQueryReplica() {
   CPPUNIT_ASSERT(*dtr);
 
   dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-  dtr->set_owner(DataStaging::PRE_PROCESSOR);
+  dtr->push(DataStaging::PRE_PROCESSOR);
   processor.receiveDTR(*dtr);
 
   // sleep while replica is queried
@@ -451,7 +451,7 @@ void ProcessorTest::TestQueryReplica() {
 
     // first resolve replicas
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while replicas are resolved
@@ -461,7 +461,7 @@ void ProcessorTest::TestQueryReplica() {
 
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
     dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-    dtr->set_owner(DataStaging::PRE_PROCESSOR);
+    dtr->push(DataStaging::PRE_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while replica is queried
@@ -504,7 +504,7 @@ void ProcessorTest::TestReplicaRegister() {
 
     // post-register
     dtr->set_status(DataStaging::DTRStatus::REGISTER_REPLICA);
-    dtr->set_owner(DataStaging::POST_PROCESSOR);
+    dtr->push(DataStaging::POST_PROCESSOR);
     processor.receiveDTR(*dtr);
 
     // sleep while thread resgisters
@@ -571,7 +571,7 @@ void ProcessorTest::TestCacheProcess() {
   processor.start();
   //CPPUNIT_ASSERT(processor);
   dtr->set_status(DataStaging::DTRStatus::PROCESS_CACHE);
-  dtr->set_owner(DataStaging::POST_PROCESSOR);
+  dtr->push(DataStaging::POST_PROCESSOR);
   processor.receiveDTR(*dtr);
 
   // sleep while cache is processed
@@ -592,7 +592,7 @@ void ProcessorTest::TestCacheProcess() {
 
   dtr->reset_error_status();
   dtr->set_status(DataStaging::DTRStatus::PROCESS_CACHE);
-  dtr->set_owner(DataStaging::POST_PROCESSOR);
+  dtr->push(DataStaging::POST_PROCESSOR);
   processor.receiveDTR(*dtr);
 
   // sleep while cache is processed

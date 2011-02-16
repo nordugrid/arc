@@ -38,9 +38,10 @@ namespace DataStaging {
        cfg(usercfg),
        source_endpoint(source_url, cfg),
        destination_endpoint(destination_url, cfg),
-       //cache_dir(""),
        user(uid),
        parent_job_id(jobid),
+       priority(50),
+       transfershare("_default"),
        sub_share(""),
        replication(false),
        force_registration(false),
@@ -88,18 +89,6 @@ namespace DataStaging {
     cache_state = (source_endpoint->Cache() && destination_endpoint->Local()) ? CACHEABLE : NON_CACHEABLE;
 #endif
     
-    // The scheduler will change these two lines afterwards
-    /* This lines will be uncommented when we are tied
-     * to real A-REX, that knows about instances of JobUser class,
-     * Environment class, so on...
-     * For the time being we will use default value
-     */
-    /*if (parent_job.get_local() == NULL)
-      parent_job.GetLocalDescription(JobUser to_be_added);
-    priority = parent_job.get_local()->priority;*/
-    priority = 50;
-    transfershare = "_default";
-    
     /* Think how to populate transfer parameters */
     mark_modification();
     set_timeout(60);
@@ -115,7 +104,6 @@ namespace DataStaging {
       source_endpoint(source_url, cfg),
       destination_endpoint(destination_url, cfg),
       cache_file(dtr.cache_file),
-      //cache_dir(dtr.cache_dir),
       cache_parameters(dtr.cache_parameters),
       transfer_parameters(dtr.transfer_parameters),
       cache_state(dtr.cache_state),
@@ -153,7 +141,6 @@ namespace DataStaging {
   }
 
   DTR& DTR::operator=(const DTR& dtr) {
-    // TODO: add lock
     DTR_ID = dtr.DTR_ID;
     source_url = dtr.source_url;
     destination_url = dtr.destination_url;
@@ -163,7 +150,6 @@ namespace DataStaging {
     Arc::DataHandle dest(destination_url, cfg);
     destination_endpoint = dest;
     cache_file = dtr.cache_file;
-    //cache_dir = dtr.cache_dir;
     cache_parameters = dtr.cache_parameters;
     transfer_parameters = dtr.transfer_parameters;
     cache_state = dtr.cache_state;
@@ -188,21 +174,16 @@ namespace DataStaging {
   }
 
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
-    // TODO: add lock
+    lock.lock();
     proc_callback[owner].push_back(cb);
+    lock.unlock();
   }
 
   std::string DTR::get_short_id() const {
     if(DTR_ID.length() < 8) return DTR_ID;
     std::string short_id(DTR_ID.substr(0,4)+"..."+DTR_ID.substr(DTR_ID.length()-4));
     return short_id;
-  };
-
-  void DTR::set_owner(StagingProcesses new_owner) {
-    lock.lock();
-    current_owner = new_owner;
-    lock.unlock();
-  };
+  }
 
   void DTR::set_parameters(const struct TransferParameters& params)
   {
@@ -212,13 +193,11 @@ namespace DataStaging {
   
   void DTR::set_priority(int pri)
   {
-    lock.lock();
     // limit priority between 1 and 100
     if (pri <= 0) pri = 1;
     if (pri > 100) pri = 100;
     priority = pri;
     mark_modification();
-    lock.unlock();
   }
   
   void DTR::set_status(DTRStatus stat)
@@ -230,6 +209,13 @@ namespace DataStaging {
     mark_modification();
   }
   
+  DTRStatus DTR::get_status() {
+    lock.lock();
+    DTRStatus s = status;
+    lock.unlock();
+    return s;
+  }
+
   void DTR::set_error_status(DTRErrorStatus::DTRErrorStatusType error_stat,
                              DTRErrorStatus::DTRErrorLocation error_loc,
                              const std::string& desc)
@@ -248,6 +234,13 @@ namespace DataStaging {
     mark_modification();
   }
 
+  DTRErrorStatus DTR::get_error_status() {
+    lock.lock();
+    DTRErrorStatus s = error_status;
+    lock.unlock();
+    return s;
+  }
+
   void DTR::set_cache_file(const std::string& filename)
   {
     cache_file = filename;
@@ -263,6 +256,8 @@ namespace DataStaging {
   void DTR::set_cancel_request()
   {
   	cancel_request = true;
+  	// set process time to now so it is picked up straight away
+  	set_process_time(0);
   	mark_modification();
   }
   
@@ -272,14 +267,17 @@ namespace DataStaging {
     next_process_time.SetTime(t.GetTime(), t.GetTimeNanosec());
   }
 
-  static std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {
-    // TODO: add lock
+  std::list<DTRCallback*> DTR::get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {
+    std::list<DTRCallback*> l;
+    lock.lock();
     std::map<StagingProcesses,std::list<DTRCallback*> >::const_iterator c = proc_callback.find(owner);
     if(c == proc_callback.end()) {
-      std::list<DTRCallback*> l;
+      lock.unlock();
       return l;
     }
-    return c->second;
+    l = c->second;
+    lock.unlock();
+    return l;
   }
 
   void DTR::push(StagingProcesses new_owner)
@@ -288,9 +286,10 @@ namespace DataStaging {
   	 * to pass the pointer to this DTR to another
   	 * process and make sure that the process accepted it
   	 */
-    // TODO: put a lock around this to avoid race conditions
+    lock.lock();
+    current_owner = new_owner;
+    lock.unlock();
 
-    set_owner(new_owner);
     std::list<DTRCallback*> callbacks = get_callbacks(proc_callback,current_owner);
     if (callbacks.empty())
       logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", get_short_id(), get_owner_name(current_owner));
