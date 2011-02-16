@@ -436,7 +436,7 @@ namespace Arc {
       };
       if(!try_load_) {
         logger.msg(ERROR, "Could not find loadable module descriptor by name %s",name);
-        return NULL;
+        return false;
       };
       // Descriptor not found or indicates presence of requested kinds.
       // Descriptor not found or indicates presence of requested kinds.
