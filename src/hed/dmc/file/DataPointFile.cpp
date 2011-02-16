@@ -270,12 +270,12 @@ namespace Arc {
     }
 #ifndef WIN32
     // This is for broken filesystems. Specifically for Lustre.
-    if (fsync(fd) != 0 && errno != EINVAL) { // this error is caused by special files like stdout
+    if (fd != -1 && fsync(fd) != 0 && errno != EINVAL) { // this error is caused by special files like stdout
       logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), strerror(errno));
       buffer->error_write(true);
     }
 #endif
-    if (close(fd) != 0) {
+    if (fd != -1 && close(fd) != 0) {
       logger.msg(ERROR, "closing file %s failed: %s", url.Path(), strerror(errno));
       buffer->error_write(true);
     }    
