@@ -363,8 +363,8 @@ namespace Arc {
       p = name.rfind(G_DIR_SEPARATOR);
     }
     // remove first slash
-    if(name.find_first_of("/") == 0){
-      name = name.substr(name.find_first_not_of("/"), p);
+    if(name.find_first_of(G_DIR_SEPARATOR) == 0){
+      name = name.substr(name.find_first_not_of(G_DIR_SEPARATOR), p);
     }
     file.SetName(name);
     if(!do_stat(url.Path(), file, verb)) {
