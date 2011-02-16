@@ -152,7 +152,7 @@ class SOAPEnvelope: public XMLNode {
   XMLNode body;     /** Body element of SOAP */
  private:
   bool ver12;       /** Is true if SOAP version 1.2 is used */
-  SOAPFault* fault; //**Fault element of SOAP, NULL if message is not a fault. */
+  SOAPFault* fault; /**Fault element of SOAP, NULL if message is not a fault. */
   /** Fill instance variables parent XMLNode class. 
     This method is called from constructors. */
   void set(void);
