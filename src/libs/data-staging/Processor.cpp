@@ -724,7 +724,7 @@ namespace DataStaging {
   }
 
   void Processor::stop(void) {
-    // TODO: send signal to spawned threads
+    // threads are short lived so wait for them to complete rather than interrupting
     thread_count.wait();
   }
 

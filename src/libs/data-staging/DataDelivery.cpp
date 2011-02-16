@@ -57,7 +57,6 @@ namespace DataStaging {
      *  Start reading from the source into a buffer
      *  TODO: Complete reading the file   
      *  TODO: Do the checksome 
-     *  TODO: Change the status to TRANSFERRED
      */
     dtr.set_status(DTRStatus::TRANSFERRING);
     delivery_pair_t* d = new delivery_pair_t(&dtr);
@@ -115,7 +114,6 @@ namespace DataStaging {
     delivery_state = TO_STOP;
     run_signal.wait();
     delivery_state = STOPPED;
-    // TODO: stop processes
     return true;
   }
 
