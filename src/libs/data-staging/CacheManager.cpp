@@ -80,30 +80,6 @@ int main(int argc, char** argv) {
   ++it;
   std::string destination = *it;
 
-//  // TODO get rid of this dependency on GMEnv, since we already know the conf file
-//  JobLog job_log;
-//  JobsListConfig jcfg;
-//  GMEnvironment gm_env(job_log, jcfg);
-//  gm_env.nordugrid_config_loc(conf_file);
-//
-//  Arc::User user(uid);
-//
-//  // parse conf file
-//  CacheConfig* cache_conf;
-//  try {
-//    cache_conf = new CacheConfig(gm_env, user.Name());
-//  } catch (CacheConfigException& e) {
-//    logger.msg(Arc::ERROR, "Error in cache configuration: %s", e.what());
-//    return 1;
-//  }
-//
-//  Arc::FileCache cache(cache_conf->getCacheDirs(),
-//                       cache_conf->getRemoteCacheDirs(),
-//                       cache_conf->getDrainingCacheDirs(),
-//                       job_id,
-//                       user.get_uid(),
-//                       user.get_gid());
-
   std::ifstream cache_conf(conf_file.c_str());
   if(!cache_conf) {
     logger.msg(Arc::ERROR, "Failed to open configuration file: %s", conf_file);

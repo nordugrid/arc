@@ -142,6 +142,7 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::INFO, "DTR %s: Linking mapped file", request->get_short_id());
         // Switch to local user to access session dir
         // TODO: this will block other UserSwitch calls - maybe better to do in separate process
+        // One idea is to have persistent executable which gets fed link requests
         Arc::UserSwitch us(request->get_local_user().get_uid(), request->get_local_user().get_gid());
         if (!us) {
           request->get_logger()->msg(Arc::ERROR, "DTR %s: Could not switch to user %i:%i. Will not use mapped URL",
@@ -277,7 +278,8 @@ namespace DataStaging {
     if (request->get_mapped_source().empty() &&
         request->get_source()->GetAccessLatency() == Arc::DataPoint::ACCESS_LATENCY_LARGE) {
       // If the current source location is long latency, try the next replica
-      // TODO if there are problems with other replicas, how to come back to this one
+      // TODO add this replica to the end of location list, so that if there
+      // are problems with other replicas, we eventually come back to this one
       request->get_logger()->msg(Arc::INFO, "DTR %s: Replica %s has long latency, trying next replica", request->get_short_id(), request->get_source()->CurrentLocation().str());
       if (request->get_source()->LastLocation()) {
         request->get_logger()->msg(Arc::INFO, "DTR %s: No more replicas, will use %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
@@ -311,7 +313,7 @@ namespace DataStaging {
 
       // Apply primitive limit to staging - in future may be better to limit per remote host
       // TODO: non-stageable transfers can block staging ones, so only count
-      // stageable transfers in the delivery queue
+      // stageable transfers in the delivery queue. Also one share may block others.
       std::list<DTR*> DeliveryQueue;
       DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
       if (DeliveryQueue.size() >= DeliverySlots*2) {
@@ -925,7 +927,6 @@ namespace DataStaging {
     scheduler_state = TO_STOP;
     run_signal.wait();
     scheduler_state = STOPPED;
-    // TODO signal to processor to stop threads and wait for completion
     return true;
   }
 
