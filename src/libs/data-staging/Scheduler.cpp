@@ -19,11 +19,7 @@ namespace DataStaging {
     DeliverySlots = 10;
     DeliveryEmergencySlots = 2;
     PostProcessorSlots = 20;
-
-    //Arc::CreateThreadFunction(&main_thread, this);
-
-    //url_map.add(Arc::URL("http://localhost/data"), Arc::URL("/var/www/data"));
-  };
+  }
 
   void Scheduler::SetSlots(int pre_processor, int post_processor, int delivery, int delivery_emergency) {
     if(pre_processor > 0) PreProcessorSlots = pre_processor;

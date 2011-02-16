@@ -18,8 +18,6 @@ namespace DataStaging {
     delivery_pair_t(DTR* request);
   };
 
-//  DataDelivery* DataDelivery::instance = NULL;
-
   DataDelivery::delivery_pair_t::delivery_pair_t(DTR* request):dtr(request),comm(*request),cancelled(false) {
   }
 
@@ -32,16 +30,6 @@ namespace DataStaging {
     Arc::CreateThreadFunction(&main_thread,this);
     return true;
   }
-
-//  DTRStatus DataDelivery::reportTransferStatus(DTR dtr) {
-//    return dtr.get_status();
-//  }
-
-//  void DataDelivery::finalizeTransfer(DTR dtr) {
-
-    // close the transferring channels
-    // relese the resources	 
-//  }
 
   void DataDelivery::receiveDTR(DTR& dtr) {
     if(!dtr) {
@@ -67,7 +55,6 @@ namespace DataStaging {
     } else {
       dtr.set_status(DTRStatus::ERROR);
       dtr.push(SCHEDULER);
-      // request->set_owner(); ??
     }
     return;
   }
@@ -102,12 +89,6 @@ namespace DataStaging {
     request->set_status(DTRStatus::TRANSFERRED);
     return true;
   }
-    
-//  DataDelivery* DataDelivery::getInstance() {
-//    if (!instance)
-//      instance = new DataDelivery();
-//    return instance;
-//  }
 
   bool DataDelivery::stop() {
     if(delivery_state != RUNNING) return false;
@@ -154,9 +135,8 @@ namespace DataStaging {
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
 
-          dp->dtr->set_owner(SCHEDULER);
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
-//!!!          dp->dtr->push(SCHEDULER);
+          dp->dtr->push(SCHEDULER);
           // deleting delivery_pair_t kills the spawned process
           delete dp;
           continue;
@@ -164,7 +144,7 @@ namespace DataStaging {
         if((status.commstatus == DataDeliveryComm::CommExited) ||
            (status.commstatus == DataDeliveryComm::CommClosed) ||
            (status.commstatus == DataDeliveryComm::CommFailed)) {
-          // Transfer finished - either successfuly or with error
+          // Transfer finished - either successfully or with error
           // comm.GetError()
           dtr_list_lock.lock();
           d = dtr_list.erase(d);
@@ -176,9 +156,8 @@ namespace DataStaging {
             dp->dtr->set_error_status(status.error,DTRErrorStatus::ERROR_TRANSFER,
                      status.error_desc[0]?status.error_desc:dp->comm.GetError().c_str());
           }
-          dp->dtr->set_owner(SCHEDULER); // should be hidden inside push()
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
-//!!!          dp->dtr->push(SCHEDULER);
+          dp->dtr->push(SCHEDULER);
           delete dp;
           continue;
         }
@@ -190,9 +169,8 @@ namespace DataStaging {
           dtr_list_lock.unlock();
           dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_ERROR,DTRErrorStatus::ERROR_TRANSFER,
                    dp->comm.GetError().empty()?"Connection with delivery process lost":dp->comm.GetError());
-          dp->dtr->set_owner(SCHEDULER);
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
-//!!!          dp->dtr->push(SCHEDULER);
+          dp->dtr->push(SCHEDULER);
           delete dp;
           continue;
         }

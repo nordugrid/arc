@@ -284,11 +284,9 @@ namespace DataStaging {
 
   void DTR::push(StagingProcesses new_owner)
   {
-  	/* This function will contain necessary operations
+  	/* This function contains necessary operations
   	 * to pass the pointer to this DTR to another
   	 * process and make sure that the process accepted it
-  	 * The real implementation will depend on the way of
-  	 * communication between processes we will choose
   	 */
     // TODO: put a lock around this to avoid race conditions
 
