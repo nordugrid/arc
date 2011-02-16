@@ -72,7 +72,7 @@ class Scheduler: public DTRCallback {
     Scheduler& operator=(const Scheduler&); // should not happen
 
     /* Functions to process every state of 
-     * the DTR during normal worklow 
+     * the DTR during normal workflow
      */
     void ProcessDTRNEW(DTR* request);
     void ProcessDTRCACHE_WAIT(DTR* request);
@@ -143,6 +143,8 @@ class Scheduler: public DTRCallback {
     Scheduler();
 
     ~Scheduler() { stop(); };
+
+    /* The following Set/Add methods are only effective when called before start() */
 
     /* Set number of slots for processor and delivery stages */
     void SetSlots(int pre_processor = 0, int post_processor = 0,

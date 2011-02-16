@@ -22,42 +22,48 @@ namespace DataStaging {
   }
 
   void Scheduler::SetSlots(int pre_processor, int post_processor, int delivery, int delivery_emergency) {
-    if(pre_processor > 0) PreProcessorSlots = pre_processor;
-    if(post_processor > 0) PostProcessorSlots = post_processor;
-    if(delivery > 0) DeliverySlots = delivery;
-    if(delivery_emergency > 0) DeliveryEmergencySlots = delivery_emergency;
+    if (scheduler_state == INITIATED) {
+      if(pre_processor > 0) PreProcessorSlots = pre_processor;
+      if(post_processor > 0) PostProcessorSlots = post_processor;
+      if(delivery > 0) DeliverySlots = delivery;
+      if(delivery_emergency > 0) DeliveryEmergencySlots = delivery_emergency;
+    }
   }
 
   void Scheduler::AddURLMapping(const Arc::URL& template_url, const Arc::URL& replacement_url, const Arc::URL& access_url) {
-    // TODO: lock access if thread is running
-    url_map.add(template_url,replacement_url,access_url);
+    if (scheduler_state == INITIATED)
+      url_map.add(template_url,replacement_url,access_url);
+    // else should log warning, but logger is disconnected
   }
 
   void Scheduler::SetURLMapping(const Arc::URLMap& mapping) {
-    // TODO: lock access if thread is running
-    url_map = mapping;
+    if (scheduler_state == INITIATED)
+      url_map = mapping;
   }
 
   void Scheduler::SetPreferredPattern(const std::string& pattern) {
-    preferred_pattern = pattern;
+    if (scheduler_state == INITIATED)
+      preferred_pattern = pattern;
   }
 
   void Scheduler::SetTransferShares(const TransferShares& shares) {
-    transferShares = shares;
+    if (scheduler_state == INITIATED)
+      transferShares = shares;
   }
 
   void Scheduler::AddSharePriority(const std::string& name, int priority) {
-    // TODO: lock access if thread is running
-    transferShares.set_reference_share(name, priority);
+    if (scheduler_state == INITIATED)
+      transferShares.set_reference_share(name, priority);
   }
 
   void Scheduler::SetSharePriorities(const std::map<std::string, int>& shares) {
-    // TODO: lock access if thread is running
-    transferShares.set_reference_shares(shares);
+    if (scheduler_state == INITIATED)
+      transferShares.set_reference_shares(shares);
   }
 
   void Scheduler::SetShareType(TransferShares::ShareType share_type) {
-    transferShares.set_share_type(share_type);
+    if (scheduler_state == INITIATED)
+      transferShares.set_share_type(share_type);
   }
 
   bool Scheduler::start(void) {
