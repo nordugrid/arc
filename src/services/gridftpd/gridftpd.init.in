@@ -2,7 +2,7 @@
 #
 # Init file for the NorduGrid gridftpd
 #
-# chkconfig: - 55 25
+# chkconfig: 2345 55 25
 # description: NorduGrid gridftpd
 #
 # config: /etc/sysconfig/globus

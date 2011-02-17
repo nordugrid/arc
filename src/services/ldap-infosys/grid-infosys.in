@@ -2,7 +2,7 @@
 #
 # Init file for the NorduGrid/ARC Information System
 #
-# chkconfig: - 55 25
+# chkconfig: 2345 55 25
 # description: NorduGrid Information system
 #
 # Originally based on globus-mds v0.27.
