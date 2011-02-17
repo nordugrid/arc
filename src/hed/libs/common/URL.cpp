@@ -193,12 +193,12 @@ namespace Arc {
         // For same reason let's assume path must be always
         // absolute.
         if(url[pos] != '/') {
-          URLLogger.msg(ERROR, "Illegal URL - path must be absolute");
+          URLLogger.msg(ERROR, "Illegal URL - path must be absolute: %s", url);
           valid = false;
           return;
         }
       } else {
-        URLLogger.msg(ERROR, "Illegal URL - no hostname given");
+        URLLogger.msg(ERROR, "Illegal URL - no hostname given: %s", url);
         valid = false;
         return;
       }
@@ -283,7 +283,7 @@ namespace Arc {
 
     // At this point path must be absolutely absolute (starts with /) or empty
     if ((!path.empty()) && (path[0] != '/')) {
-      URLLogger.msg(ERROR, "Illegal URL - path must be absolute or empty");
+      URLLogger.msg(ERROR, "Illegal URL - path must be absolute or empty: %s", url);
       valid = false;
       return;
     }
@@ -299,7 +299,7 @@ namespace Arc {
         ip6addr = true;
         pos2 = host.find(']');
         if(pos2 == std::string::npos) {
-          URLLogger.msg(ERROR, "Illegal URL - no closing ] for IPv6 address found");
+          URLLogger.msg(ERROR, "Illegal URL - no closing ] for IPv6 address found: %s", url);
           valid = false;
           return;
         }
@@ -307,7 +307,7 @@ namespace Arc {
         ++pos2;
         if(pos2 < host.length()) {
           if((host[pos2] != ':') && (host[pos2] != ';')) {
-            URLLogger.msg(ERROR, "Illegal URL - closing ] for IPv6 address is at followed by illegal token");
+            URLLogger.msg(ERROR, "Illegal URL - closing ] for IPv6 address is at followed by illegal token: %s", url);
             valid = false;
             return;
           }
