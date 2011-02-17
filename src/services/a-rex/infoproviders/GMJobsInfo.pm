@@ -100,6 +100,7 @@ sub collect {
 
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
             $log->warning( "Job $ID: Can't read jobfile $gmjob_local, skipping..." );
+            delete $gmjobs{$ID};
             next;
         }
         my @local_allines = <GMJOB_LOCAL>;
