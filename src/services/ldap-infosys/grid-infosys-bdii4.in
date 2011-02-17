@@ -911,7 +911,7 @@ create_arc_ldif_generator () {
 	exit 1 unless InfosysHelper::ldifIsReady('$arc_runtime_config', '$max_cycle', 1);
 	EOF
 
-    if [ "x$infosys_nordugrid" = "xenable" ]; then
+    if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_glue2_ldap" = "xenable" ]; then
         echo "system('$ldif_script');" >> ${ldif_generator_file}
     fi
 

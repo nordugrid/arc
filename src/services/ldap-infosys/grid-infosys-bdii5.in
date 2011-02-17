@@ -875,8 +875,11 @@ create_arc_ldif_generator () {
 	BEGIN { unshift @INC, '$pkglibdir'; }
 	use InfosysHelper;
 	exit 1 unless InfosysHelper::ldifIsReady('$arc_runtime_config', '$max_cycle');
-	system('$ldif_script');
 	EOF
+
+    if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_glue2_ldap" = "xenable" ]; then
+        echo "system('$ldif_script');" >> ${ldif_generator_file}
+    fi
 
     if [ "x$infosys_glue12" = "xenable" ]; then
         # Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
