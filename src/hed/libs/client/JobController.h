@@ -61,7 +61,7 @@ namespace Arc {
              const std::string& downloaddir,
              const bool keep,
              const bool usejobname,
-             bool force = true);
+             const bool force = true);
 
     bool Kill(const std::list<std::string>& status,
               const bool keep);
@@ -204,7 +204,7 @@ namespace Arc {
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
     virtual bool GetJob(const Job& job, const std::string& downloaddir,
-                        const bool usejobname) = 0;
+                        const bool usejobname, const bool force) = 0;
     virtual bool CleanJob(const Job& job) = 0;
     virtual bool CancelJob(const Job& job) = 0;
     virtual bool RenewJob(const Job& job) = 0;
@@ -222,7 +222,6 @@ namespace Arc {
     DataHandle* data_destination;
     Config jobstorage;
     static Logger logger;
-    bool force;
   };
 
   //! Class responsible for loading JobController plugins

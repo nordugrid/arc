@@ -23,7 +23,7 @@ namespace Arc {
 
   private:
     virtual bool GetJob(const Job& job, const std::string& downloaddir,
-                        const bool usejobname);
+                        const bool usejobname, const bool force);
     virtual bool CleanJob(const Job& job);
     virtual bool CancelJob(const Job& job);
     virtual bool RenewJob(const Job& job);

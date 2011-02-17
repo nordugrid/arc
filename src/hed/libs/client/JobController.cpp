@@ -38,8 +38,7 @@ namespace Arc {
     : flavour(flavour),
       usercfg(usercfg),
       data_source(NULL),
-      data_destination(NULL),
-      force(false) {}
+      data_destination(NULL) {}
 
   JobController::~JobController() {
     if(data_source) delete data_source;
@@ -205,8 +204,7 @@ namespace Arc {
                           const std::string& downloaddir,
                           const bool keep,
                           const bool usejobname,
-                          bool force_download) {
-    force = force_download;
+                          const bool force) {
     GetJobInformation();
 
     std::list< std::list<Job>::iterator > downloadable;
@@ -241,7 +239,7 @@ namespace Arc {
     for (std::list< std::list<Job>::iterator >::iterator it = downloadable.begin();
          it != downloadable.end(); it++) {
 
-      bool downloaded = GetJob(**it, downloaddir, usejobname);
+      bool downloaded = GetJob(**it, downloaddir, usejobname, force);
       if (!downloaded) {
         logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.str());
         ok = false;

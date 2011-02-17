@@ -49,7 +49,8 @@ namespace Arc {
 
   bool JobControllerCREAM::GetJob(const Job& job,
                                   const std::string& downloaddir,
-                                  const bool usejobname) {
+                                  const bool usejobname,
+                                  const bool force) {
 
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 

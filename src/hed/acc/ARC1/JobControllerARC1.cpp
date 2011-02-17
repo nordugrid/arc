@@ -5,7 +5,6 @@
 #endif
 
 #include <glib.h>
-#include <dirent.h>
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
@@ -52,7 +51,8 @@ namespace Arc {
 
   bool JobControllerARC1::GetJob(const Job& job,
                                  const std::string& downloaddir,
-                                 const bool usejobname) {
+                                 const bool usejobname,
+                                 const bool force) {
 
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
@@ -73,9 +73,7 @@ namespace Arc {
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
 
-    DIR *pDir;
-    pDir = opendir (dstpath.c_str());
-    if (!force && pDir != NULL)
+    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS))
     {
       logger.msg(INFO, "%s directory exist! This job downloaded previously.", dstpath);
       return true;
