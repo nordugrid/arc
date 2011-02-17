@@ -52,7 +52,7 @@ namespace DataStaging {
     return (comm_handler = new DataDeliveryCommHandler);
   }
 
-  DataDeliveryComm::DataDeliveryComm(const DTR& dtr):child_(NULL),handler_(NULL) {
+  DataDeliveryComm::DataDeliveryComm(const DTR& dtr):child_(NULL),handler_(NULL),dtr_id(dtr.get_short_id()) {
     logger_ = dtr.get_logger();
     if(!dtr.get_source()) return;
     if(!dtr.get_destination()) return;
@@ -109,7 +109,7 @@ namespace DataStaging {
         cmd += *arg;
         cmd += " ";
       }
-      if(logger_) logger_->msg(Arc::DEBUG, "DTR %s: Running command: %s", dtr.get_short_id(), cmd);
+      if(logger_) logger_->msg(Arc::DEBUG, "DTR %s: Running command: %s", dtr_id, cmd);
       if(!child_->Start()) {
         delete child_;
         child_=NULL;
@@ -157,7 +157,7 @@ namespace DataStaging {
             for(;*start;) {
               char* end = strchr(start,'\n');
               if(end) *end = 0;
-              logger_->msg(Arc::INFO, "DataDelivery: %s", start);
+              logger_->msg(Arc::INFO, "DTR %s: DataDelivery: %s", dtr_id, start);
               if(!end) break;
               start = end + 1;
             }
@@ -169,7 +169,10 @@ namespace DataStaging {
             status_.commstatus = CommClosed;
           } else {
             status_.commstatus = CommExited;
-            if(child_->Result() != 0) status_.commstatus = CommFailed;
+            if(child_->Result() != 0) {
+              logger_->msg(Arc::ERROR, "DTR %s: DataStagingDelivery exited with code %i", dtr_id, child_->Result());
+              status_.commstatus = CommFailed;
+            }
           }
           delete child_; child_=NULL; break;
         }

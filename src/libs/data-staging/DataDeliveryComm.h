@@ -51,6 +51,7 @@ class DataDeliveryComm {
   Arc::Run* child_;
   std::string errstr_;
   DataDeliveryCommHandler* handler_;
+  std::string dtr_id;
   Arc::Logger* logger_;
   void PullStatus(void);
 
