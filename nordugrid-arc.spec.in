@@ -763,6 +763,7 @@ exit 0
 %{_bindir}/saml_assertion_init
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %{_datadir}/%{pkgdir}/examples/client.conf
+%{_datadir}/%{pkgdir}/examples/arc.conf.template
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
@@ -802,6 +803,7 @@ exit 0
 %{_datadir}/%{pkgdir}/examples/config
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
+%doc %{_mandir}/man5/arc.conf.5*
 
 #%files charon
 #%defattr(-,root,root,-)

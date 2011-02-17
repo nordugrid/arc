@@ -1995,6 +1995,8 @@ AC_CONFIG_FILES([Makefile
                  src/utils/testing/ngconfigtest.1
                  src/utils/testing/Makefile
                  src/utils/Makefile
+                 src/doc/Makefile
+                 src/doc/arc.conf.5
                  swig/Makefile
                  java/Makefile
                  python/Makefile

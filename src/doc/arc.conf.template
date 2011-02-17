@@ -1,0 +1,1711 @@
+####################################################################
+#
+# Configuration blocks and variables for the ARC services via the arc.conf
+# (applies to the latest code on the 0.8.2 branch)
+#
+# THIS FILE WILL NOT WORK AS A CONFIGURATION FILE!
+# There are out-of-the-box minimal configuration configuration templates
+# provided for different services.
+#
+# The arc.conf configuration file consists of blocks like
+# [common], [grid-manager], [gridftpd], [gridftpd/name], [group], [vo],
+# [cluster], [queue/name], [se], [infosys], [infosys/index/name],
+# [infosys/index/name/registration/name].
+#
+# A block is identified by its blockname. A blockname consists of
+# keywords and optionally block identifiers: [gridftpd/jobs] here 'gridftpd' is
+# a keyword while 'jobs' is an identifier. Block names must be UNIQUE. A block
+# starts with a unique [blockname] and ends with the next [blockname] directive.
+# Currently the folowing keywords are  used in the block names: common,
+# grid-manager, gridftpd, httpsd, group, vo, infosys, registration, cluster, 
+# queue, se, rc
+#
+# Some part of the configuration file is order-dependent, blocks may require
+# other blocks be defined earlier (especially the authotrization blocks]
+#
+# The arc.conf configures all the ARC services, enabling an ARC service on 
+# a resource requires the presence of the appropriate configuration blocks. 
+# The ARC services are the following: gridftpd, grid-manager, httpsd, infosys,
+# infosys registration. Besides, the nordugridmap utility is configured by the
+# [vo] block(s) of this file, too.
+#
+# For example in case of a computing cluster being connected to the grid and
+# accepting grid jobs you should have at least the [common], [grid-manager],
+# [gridftpd], [gridftpd/jobs], [infosys], [cluster], [queue/name]
+# [infosys/cluster/registration/name] block configured.
+#
+# Another common example is a Storage Element. A grid-connected  SE requires the
+# following blocks: [common], [gridftpd], [gridftpd/myse] (or [httpsd] for the
+# SSE), [infosys], [se/name], [infosys/se/name/registration/name]
+#
+# As a last example we give the necessary blocks for an Index Service:
+# [infosys], [infosys/index/name], [infosys/index/name/registration/name]
+#
+# Configuration blocks contain (variable, variable value) pairs following the
+# syntax: variable="the variable value comes in quotes".
+# The quotes around the variable value are MUST!
+# Note that the variable names are CASE-SENSITIVE!
+# Unset configuration options (variables) takes the default values.
+#
+#
+# Below we give a detailed description of all the configuration options of the
+# different configuration blocks. 
+# WARNING: this file will not work as a configuration template!
+#
+#####################################################################
+
+
+# The [common] block
+# The parameter set within this block is available for all the other blocks,
+# these are the config parameters shared by the different components of the
+# nordugrid middleware (e.g. grid-manager, infosys)  
+
+
+[common]
+
+# the path to the qstat,pbsnodes,qmgr etc PBS binaries, 
+# no need to set if PBS is not used
+pbs_bin_path="/usr/bin"
+
+# the path of the PBS server logfiles which are used by the GM to determine 
+# whether a PBS job is completed. If not specified, GM will use qstat for that.
+pbs_log_path="/var/spool/pbs/server_logs"
+
+# condor_location - path to directory containing Condor's bin, sbin, etc.
+# need not to set if Condor is not used
+condor_location="/opt/condor"
+
+# condor_config - path to Condor's configuration file
+# no need to set if Condor is not used
+condor_config="/opt/condor/etc/condor_config"
+
+# condor_rank - If you are not happy with the way Condor picks nodes when
+# running jobs, you can define your own ranking algorithm by optionally
+# setting the condor_rank attribute. condor_rank should be set to a 
+# ClassAd float expression that you could use in the Rank attribute 
+# in a Condor job description.
+# Obviously no need to set if Condor is not used. An example:
+condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
+
+# sge_bin_path - Path to Sun Grid Engine (SGE) binaries, 
+# MUST be set if SGE is the LRMS used
+sge_bin_path="/opt/n1ge6/bin/lx24-x86"
+
+# sge_root - Path to SGE installation directory. MUST be set if SGE is used.
+sge_root="/opt/n1ge6"
+
+# sge_cell - The name of the SGE cell to use. This option is only necessary
+# in case SGE is set up with a cell name different from 'default'
+sge_cell="default"
+
+# sge_qmaster_port, sge_execd_port - these options should be used in case SGE
+# command line clients requre SGE_QMASTER_PORT and SGE_EXECD_PORT environment
+# variables to be set. Usually they are not necessary.
+sge_qmaster_port="536"
+sge_execd_port="537"
+
+# SLURM_bin_path - Path to SLURM binaries, must be set if installed
+# outside of normal $PATH
+SLURM_bin_path="/usr/bin"
+
+# Where to find the SLURM logs.
+SLURM_log_path="/var/spool/slurm/"
+
+# How long should infosys wait between querying SLURM for new data.
+SLURM_wakeupperiod="15"
+
+# the PATH to LSF bin folder
+# no need to set if LSF is not used
+lsf_bin_path="/usr/local/lsf/bin/"
+
+# the PATH to profile.lsf
+# no need to set if LSF is not used
+lsf_profile_path="/usr/share/lsf/conf"
+
+# the PATH to the LoadLeveler bin folder
+# no need to set if LoadLeveler is not used
+ll_bin_path="/opt/ibmll/LoadL/full/bin"
+
+# support for a LoadLeveler setup using Consumable Resources
+# no need to set if LoadLeveler is not used
+ll_consumable_resources="yes"
+
+# hostname - the FQDN of the frontend node, optional in the common block but
+# MUST be set in the cluster block
+hostname="myhost.org"
+
+# lrms [queue] - sets the type of the Local Resource Management System
+# (queue system). Chose one from the following options: fork, sge,
+# condor, pbs, lsf, ll, SLURM.  PBS has many flavours, we support
+# OpenPBS, PBSPro, ScalablePBS and Torque (the official name for
+# ScalablePBS). No need to specify the flavour or the version number
+# of the PBS, simply write 'pbs'.  <lrms> MUST be set here!  The
+# optional "queue" parameter specifies the default grid queue of the
+# LRMS.  The GM submits jobs to this queue if there is no queue set in
+# the job's XRSL.
+#lrms="pbs grid"
+lrms="pbs"
+
+# globus_tcp_port_range, globus_udp_port_range - Firewall configuration
+# In a firewalled environment the software which uses GSI needs to know what
+# ports are available. The full documentation can be found at:
+# http://dev.globus.org/wiki/FirewallHowTo
+# These variable are similar to the Globus enviroment variables:
+# GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
+# These variables are not limited to [common], but can be set individually
+# for each service: [grid-manager], [gridftpd], [httpsd]
+# Example:
+globus_tcp_port_range="9000,12000"
+globus_udp_port_range="9000,12000"
+
+# x509_user_cert, x509_user_key - Server credentials location.
+# These variables are similar to the GSI enviroment variables:
+# X509_USER_KEY and X509_USER_CERT
+# These variables are not limited to [common], but can be set individually
+# for each service: [grid-manager], [gridftpd], [httpsd]
+x509_user_key="/etc/grid-security/hostkey.pem"
+x509_user_cert="/etc/grid-security/hostcert.pem"
+
+# x509_cert_dir - Location of trusted CA certificates
+# This variable is similar to the GSI enviroment variable: X509_CERT_DIR
+# This variable is not limited to [common], but can be set individually
+# for each service: [grid-manager], [gridftpd], [httpsd]
+x509_cert_dir="/etc/grid-security/certificates"
+
+# gridmap - The gridmap file location
+# This variable is similar to the GSI enviroment variable: GRIDMAP
+# This variable is not limited to [common], but can be set individually
+# for each service: [grid-manager], [gridftpd], [httpsd]
+# The default is /etc/grid-security/grid-mapfile
+gridmap="/etc/grid-security/grid-mapfile"
+
+
+####################################################################
+#
+# [vo] block is used to define VOs and generate mapfiles from user 
+# list maintained by VO databases. VO block is a configuration block
+# for the nordugridmap utility.
+# [vo] block by itself does not affect authorization of client/user. For
+# that label defined by vo="" atribute may be used in [group] block with
+# 'vo' rule. Also mapfiles generated by nordugridmap utility can be used
+# with 'file' rule.
+
+[vo]
+
+# id  blockid - specifies the unique configuration block id
+id="vo_1"
+
+# vo vo_name - specifies the VO name, this name can be used in other blocks
+# and in gacl expressions. MUST be given.
+vo="nordugrid"
+
+# file path - the file which contains the user lists associated with this
+# VO. The file can be automatically GENERATED using the nordugridmap utility,
+# see the 'source' attribute below.
+file="/etc/grid-security/VOs/atlas-users"
+
+# source url - the URL of the VO database which is assigned to this VO. The
+# nordugridmap will use this URL to automaticaly generate and keep up-to-date 
+# the userlist (mapfile) specified by the 'file' attribute. url is a 
+# multivalued attribute, several sources can be specified for a [vo] block
+# and all the users from those sources will be merged into the same file.
+# The source URLs are processed in the given order.
+# Currently supported URL types are: http(s)://, ldap://, file:// 
+# vomss://, voms://. 
+# "file://" can be used to specify a local manually edited grid-mapfile.
+source="vomss://voms.ndgf.org:8443/voms/nordugrid.org"
+source="vomss://lcg-voms.cern.ch:8443/voms/atlas?/atlas/Role=VO-Admin"
+source="vomss://kuiken.nikhef.nl:8443/voms/gin.ggf.org"
+source="ldap://grid-vo.nikhef.nl/ou=lcg1,o=atlas,dc=eu-datagrid,dc=org"
+source="file:///etc/grid-security/priviliged_users.dn"
+source="http://www.nordugrid.org/developers.dn"
+
+# mapped_unixid unixid - The local UNIXID which is used in the generated 
+# grid-mapfile by the nordugridmap utility. 
+# Don't specify it (or leave it empty) in case you only need 
+# a generated  user list without mapping information. A vo block can only have
+# one unixID, all the users from all the sources are mapped to the same UID.
+mapped_unixid="gridtest"
+
+# require_issuerdn yes/no - another nordugridmap option. YES would map only
+# those DNs obtained from the urls which have the corresponding public CA 
+# packages installed. Default is 'no'.
+require_issuerdn="no"
+
+# x509_cert_dir path - The directory containing the CA certificates. This
+# information is needed by the 'require_issuerdn' option. 
+x509_cert_dir="/etc/grid-security/certificates"
+
+# filter  ACL string - An ACL filter for the nordugridmap utility. Multiple
+# allow/deny statements are possible. The fetched DNs are filtered against
+# the specified rules before they are added to the generated mapfile. 
+# * can be used as a wildcard. You may run the nordugridmap with the --test
+# command line option to see how the filters you specified work.
+filter="deny  *infn*"
+filter="allow *NorduGrid*"
+
+
+
+######################################################################
+#
+# [group] Authorisation block
+#
+# These configuration blocks define rules used to define to which
+# authorization group a user belongs. The group should not be mistaken
+# for a virtual organisation (VO). A group may match a single vo if
+# only a single check (rule) on vo membership is perfomed. It is
+# however more common to allow multiple VOs in a single group. ARC
+# also allows many other ways to assign users to groups. Technically,
+# permissions are only granted to groups, not directly to VOs.
+#
+# The block specifies single authorization group. Ther may be multiple
+# [group] blocks in configuration defining multiple authorization
+# groups.
+#
+# The block can be specified in two ways - either using [group/group1]
+# like subblock decalration per group or just [group]. The two formats
+# are equivalent. Every block (till the beginning of next block or the 
+# end of the file) defines one authorization group.
+#
+# IMPORTANT: Rules in a group are processed in their order of appearance.
+# The first matching rule decides the membership of a  the user to a group
+# and the processing STOPS. There are positively and negatively matching
+# rules. If a rule is matched positively then the user tested is accepted
+# into the respective group and further processing is stopped. Upon a 
+# negative match the user would be rejected for that group - processing 
+# stops too. The sign of rule is determined by prepending the rule with 
+# '+' (for positive) or '-' (for negative) signs. '+' is default and can 
+# be omitted. A rule may also be prepended with '!' to invert result of rule,
+# which will let the rule match the complement of users. That complement 
+# operator ('!') may be combined with the operator for positive or negative 
+# matching.
+#
+# A group MUST be defined before it may be used. In this respect the
+# arc.conf is ORDER SENSITIVE.
+#
+# The authorization groups can be used in [gridftpd], [httpsd] 
+# and in their sub-blocks. The syntax of their specification varies with
+# the service they are used for.
+
+[group]
+
+# name group_name - Specify name of group. If there is no such command
+#  in block, name of subblock is used instead (that is why subblocks 
+#  are used for). For example [group/users]
+name="users"
+
+# subject certificate_subject - Rule to match specific subject of user's 
+# X.509 certificate. No masks, patterns and regular expressions are allowed.
+# For more information about X.509 refer to http://www.wikipedia.org/wiki/X509
+subject="/O=Grid/O=Big VO/CN=Main Boss"
+
+# file path - Start reading rules from another file. That file has a bit 
+#  different format. It can't contain blocks and commands are separated
+#  from arguments by space. Also word "subject" in subject command may be
+#  skipped. That makes it convinient to directly add gridmap-like lists to
+#  authorization group.
+file="/etc/grid-security/local_users"
+
+# voms vo group role capabilities - Match VOMS attribute in user's credential.
+#  Use '*' to match any value. More information about VOMS can be found at 
+#  http://grid-auth.infn.it
+voms="nordugrid Guests * *"
+
+# group group_name [group_name ...] - Match user already belonging to one
+#  of specified groups. Groups refered here must be defined earlier in
+#  configuration file. Multiple group names may be specified for this rule.
+#  That allows creating hierarchical structure of authorization groups like
+#   'clients' are those which are 'users' and 'admins'.
+#group="local_admins"
+
+# plugin timeout path [argument ...] - Run external executable or 
+#  function from shared library. Rule is matched if plugin returns 0.
+#  In arguments following substitutions are supported:
+#   %D - subject of certicate
+#   %P - path to proxy
+#  For more about plugins read documentation.
+plugin="10 /opt/external/bin/permis %P"
+
+# remote URL ... - Check user's credentials against remote service. Only
+#  DN groups stored at LDAP directories are supported. Multiple URLs are
+#  allowed in this rule.
+remote="ldap://grid-vo.nordugrid.org/ou=People,dc=nordugrid,dc=org"
+
+# vo vo_name ... - Match user belonging to VO specified by "vo=vo_name" as 
+#  configured in one of PREVIOUSLY defined [vo] blocks. Multiple VO names
+#  are allowed for this rule.
+vo="nordugrid"
+
+# all - Matches any user identity. This command requires no arguments but 
+#  still can be written as all="" or all= for consistency.
+all
+
+
+
+######################################################################
+#
+# The [grid-manager] block configures the grid-manager process taking care of
+# the grid tasks on the frontend (stagein/stageout, LRMS job submission,
+# caching, etc..)
+
+
+[grid-manager]
+
+# controldir path - The directory of the grid-manager's internal job log files, 
+# not needed on the nodes. <must be set>
+controldir="/var/spool/nordugrid/jobstatus"
+
+# sessiondir path - the directory which holds the sessiondirs of the gridjobs.
+# Multiple session directories may be specified by specifying multiple sessiondir
+# commands. In this case jobs are spread evenly over the session directories.
+# If sessiondir="*" is set, the session directory will be spread over the
+# ${HOME}/.jobs directories of every locally mapped unix user. It is preferred
+# to use common session directories. <sessiondir must be set>
+sessiondir="/scratch/grid"
+
+# runtimedir path - The directory which holds the runtimeenvironment scripts, 
+# should be available on the nodes as well! the runtimeenvironments are 
+# automatically detected and advertised in the information system.
+runtimedir="/SOFTWARE/runtime"
+
+# cachedir cache_path [link_path] - specifies a directory to store cached
+# data. Multiple cache directories may be specified by specifying multiple
+# cachedir commands. Cached data will be distributed evenly over the caches.
+# Specifying no cachedir command or commands with an empty path disables caching.
+# Optional link_path specifies the path at which the cache_path is accessible on
+# computing nodes, if it is different from the path on the GM host.
+# Example: cache="/shared/cache /frontend/jobcache"
+# If "link-path" is set to '.' files are not soft-linked, but copied to session
+# directory.
+cachedir="/scratch/cache"
+cachedir="/fs1/cache"
+
+# remotecachedir cache_path [link_path] - specifies caches which are under
+# the control of other GMs, but which this GM can have read-only access to.
+# Multiple remote cache directories may be specified by specifying multiple 
+# remotecachedir commands. If a file is not available in paths specified by
+# cachedir, the GM looks in remote caches. link_path has the same meaning as in
+# cachedir, but the special path ``replicate'' means files will
+# be replicated from remote caches to local caches when they are requested.
+remotecachedir="/mnt/fs1/cache replicate"
+
+# cachesize max min - specifies high and low watermarks for space used
+# by cache, as a percentage of the space on the file system on which 
+# the cache directory is located. When the max is exceeded, files will
+# be deleted to bring the used space down to the min level. It is a 
+# good idea to have the cache on its own separate file system. To turn
+# off this feature "cachesize" without parameters can be specified. 
+cachesize="80 70"
+
+# If cache cleaning is enabled, files accessed less recently than the given
+# time period will be deleted. Example values of this option are 1800, 90s, 24h,
+# 30d. When no suffix is given the unit is seconds.
+cachelifetime="30d"
+
+# user user[:group] - Switch to a non root user/group after startup
+user="grid"
+
+# debug debuglevel - Set debug level of the grid-manager daemon. 
+# 0 stands for no-debug. Increasing number gives more information.
+# So far useful debug numbers for gm, gridftpd and httpsd are 0-3.
+debug="2"
+
+# logfile path - Specify log file location. This file is opened/created
+#  before daemon swithces to specified user. Hence it can be owned 
+#  by 'root'. Default log file is "/dev/null".
+logfile="/var/log/grid-manager.log"
+
+# logsize size [number] - 'Size' specifies in bytes how big log file is 
+#  allowed to grow (approximately). If log file exceeds specified size
+#  it is renamed into logfile.0. And logfile.0 is renamed into 
+#  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
+#  want to enable the ARC logrotation because another logrotation tool is used.
+logsize="100000 2"
+
+# pidfile path - Specify location of file containig PID of daemon process.
+#  This is usefull for automatic star/stop scripts. 
+pidfile="/var/run/grid-manager.pid"
+
+# the gnu time command, default /usr/bin/time
+gnu_time="/usr/bin/time"
+
+# if computing node can access sesion directory at frontend, defaults to 'yes' 
+shared_filesystem="yes"
+
+# specifies the email address from where the notification mails are sent, <must
+# be specified>
+mail="grid.support@somewhere.org"
+
+# joblog path - specifies where to store specialized log about started
+#  and finished jobs. If path is empty or no such command - log is not written.
+#  This log is not used by any other part of ARC, so keep it disabled unless
+#  needed.
+joblog="/var/log/gm-jobs.log"
+
+# jobreport [url ...] [timeout] - tells to report all started and finished jobs 
+# to logger service at 'url'. Multiple urls and multiple jobreport commands 
+# are allowed. In that case the job info will be sent to all of them.
+# Timeout specifies how long (in days) to try to pass information before
+# give up. Suggested value is 30 days.
+jobreport="https://grid.uio.no:8001/logger"
+
+# maxjobs number1 number2 - specifies maximum allowed number of jobs.
+# number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
+# number2 - jobs being run (SUBMITTING, INLRMS states)
+# Missing number or -1 means no limit.
+maxjobs="10000 10"
+
+# maxload number1 number2 number3 - specifies maximum allowed number of jobs.
+# number1 - jobs being processed on frontend (PREPARING, FINISHING states)
+# number2 - additional reserved number of jobs being processed on frontend
+# number3 - number of files being transfered simultaneously by jobs in
+# PREPARING and FINISHING states. Missing number or -1 means no limit.
+maxload="10 2 5"
+
+# maxloadshare maxshare sharetype - specifies a sharing mechanism for data
+# transfer. maxshare is the maximum number of processes
+# that can run per transfer share and sharetype is the scheme
+# used to assign jobs to transfer shares. Possible values of sharetype
+# are "dn", "voms:vo", "voms:role", and "voms:group".
+maxloadshare="4 voms:role"
+
+# wakeupperiod time - specifies how often grid-manager cheks for new
+# jobs arrived, job state change requests, etc. That is resposivity of
+# grid-manager. 'time' is time period in seconds. Default is 3 minutes.
+# Usually this command is not needed.
+# NOTE: This parameter does not affect responsivity of backend scripts -
+# especially scan-*-job. That means that time for detecting job finished
+# executing is sum of responsivity of backend script + wakeupperiod.
+wakeupperiod="180"
+
+# securetransfer yes|no - if data connection allows to choose use 
+# secure|non-secure data transfer. Currently only works for gridftp.
+# default is no
+securetransfer="no"
+
+# passivetransfer yes|no - If yes, gridftp transfers are passive. Setting
+# this option to yes can solve transfer problems caused by firewalls.
+# default is no
+passivetransfer="no"
+
+# localtransfer yes|no - If yes, then the data download from to Grid to the
+# session directory (stagein) will be part of the batch job (prior to the
+# execution of the binary). Default is no.
+localtransfer="no"
+
+# speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
+#  how slow data transfer must be to trigger error. Tranfer is canceled if 
+#  speed is below min_speed bytes per second for at least min_time seconds,
+#  or if average rate is below min_average_speed bytes per second, or no data
+#  was transfered for longer than max_inactivity seconds. Value of zero turns
+#  feature off. Default is
+speedcontrol="0 300 0 300"
+
+# defaultttl [ttl [ttr]] - ttl is the time in seconds for how long a session
+# directory will survive after job execution has finished. If not specified
+# the default is 1 week. ttr is how long information about a job will be kept.
+# If not specified, the ttr default is one month.
+defaultttl="259200"  
+
+# authplugin state options plugin_path - Every time job goes to 'state'
+# run 'plugin_path' executable. Options consist of key=value pairs separated
+# by ','. Possible keys are
+# timeout - wait for result no longer that 'value' seconds (timeout= can be
+#  omitted).
+# onsuccess,onfailure,ontimeout - what to do if plugin exited with exit
+#  code 0, not 0, timeout achieved. Possible actions are:
+# pass - continue executing job,
+# fail - cancel job,
+# log - write to log fail about problem and continue executing job.
+authplugin="ACCEPTED timeout=10 /opt/nordugrid/libexec/bank %C/job.%I.local %S"
+
+# ARC is distributed with the plugin "inputcheck". It's purpose is
+# to check if input files requested in job's RSL are accessible 
+# from this machine. It is better to run it before job enters cluster.
+# It accepts 2 arguments: names of files containing RSL and credentials'
+# proxy.
+authplugin="ACCEPTED 60 /opt/nordugrid/libexec/inputcheck %C/job.%I.description %C/job.%I.proxy"
+
+# The second plugin in ARC is a UR generator. Its purpose is to create
+# records on job completion. See [logger] section and urlogger.pdf for
+# more details.
+authplugin="FINISHED timeout=10,onfailure=pass /opt/nordugrid/libexec/arc-ur-logger %C %I %S %U"
+
+# localcred timeout plugin_path - Every time an external executable
+# is run this plugin will be called. Its purpose is to set non-unix 
+# permissions/credentials on running tasks. Note: the process itself 
+# can still be run under the root account. If plugin_path looks like
+# somename@somepath, then function 'somename' from the shared library
+# located at 'somepath' will be called (timeout is not effective in
+# that case).
+# The grid manager must be run as root to use this option.
+# Comment it out unless you really know what you are doing.
+#localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
+
+# norootpower yes|no - if set to yes, all job management proccesses
+# will switch to mapped user's identity while accessing session
+# directory. This is usefull if session directory is on NFS
+# root squashing turned on. Default is no.
+norootpower="yes"
+
+# allowsubmit [group ...]  - list of authorization groups of users allowed
+# to submit new jobs while "allownew=no" is active in jobplugin 
+# configuration. Multiple commands are allowed.
+allowsubmit="mygroup"
+allowsubmit="yourgroup"
+
+# preferredpattern pattern - specifies a preferred pattern on which
+# to sort multiple replicas of an input file. It consists of one or
+# more patterns separated by a pipe  character (|) listed in order of
+# preference. Replicas will be ordered by the earliest match. If the
+# dollar character ($) is used at the end of a pattern, the pattern
+# will be matched to the end of the hostname of the replica.
+preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
+
+# helper user executable arguments - allows to run additional
+# executables on behalf of users. Every time this executable finishes it
+# will be started again. This helper plugin mechanism can be used as the
+# grid-manager's alternative for the /etc/init.d or cron to (re)start 
+# external processes.
+# If user is '*' - it's applied to all specified users.
+# if user is '.' - it is run unrelated to any specified user.
+# an example:
+helper=" . /usr/local/bin/myutility"
+
+# copyurl url_head local_path - specifies that URLs, starting from 'url_head'
+# should be accessed in a different way (most probaly unix open). The
+# 'url_head' part of the URL will be replaced with 'local_path' and
+# file from obtained path will be copied to the session directory.
+# NOTE: 'local_path' can also be of URL type.
+# you can have several copyurl lines
+copyurl="gsiftp://example.org:2811/data/ gsiftp://example.org/data/"
+copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
+
+# linkurl url_head local_path [node_path] - identical to 'copyurl', only
+# file won't be copied, but soft-link will be created. The 'local_path'
+# specifies the way to access the file from the gatekeeper, and is used
+# to check permissions. The 'node_path' specifies how the file can be
+# accessed from computing nodes, and will be used for soft-link creation.
+# If 'node_path' is missing - 'local_path' will be used.
+# you can have multiple linkurl settings
+linkurl="gsiftp://somewhere.org/data /data"
+linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
+
+# tmpdir - used by the grid-manager, default is /tmp
+tmpdir="/tmp"
+
+# maxrerun -  specifies how many times job can be rerun if it failed in LRMS.
+# Default value is 5. This is only an upper limit, the actual rerun value is set
+# by the user in his xrsl. 
+maxrerun="5" 
+
+# maxtransfertries - the maximum number of times download and upload will
+# be attempted per job (retries are only performed if an error is judged
+# to be temporary)
+maxtransfertries="10"
+
+# globus_tcp_port_range, globus_udp_port_range - Firewall configuration.
+globus_tcp_port_range="9000,12000"
+globus_udp_port_range="9000,12000"
+
+# x509_user_cert, x509_user_key - Location of credentials for service.
+#  These may be used by any module or external utility which need to
+#  contact another service not on behalf of user who submited job.
+x509_user_key="/etc/grid-security/hostkey.pem"
+x509_user_cert="/etc/grid-security/hostcert.pem"
+
+# x509_cert_dir - Location of trusted CA certificates
+x509_cert_dir="/etc/grid-security/certificates"
+
+# http_proxy - http proxy server location
+http_proxy="proxy.mydomain.org:3128"
+
+####################################################################
+#
+# [gridftpd] block configures the gridftpd server
+#
+
+[gridftpd]
+
+# user user[:group] - Switch to a non root user/group after startup
+# WARNING: Make sure that the certificate files are owned by the user/group 
+# specified by this option. Default value is root.
+#user="grid"
+
+# debug debuglevel - Set debug level of the gridftpd daemon. 
+# 0 stands for no-debug. Increasing number gives more information.
+# So far useful debug numbers for gm, gridftpd and httpsd are 0-3.
+debug="2"
+
+# logfile path - Set logfile location
+logfile="/var/log/gridftpd.log"
+
+# logsize size [number] - 'Size' specifies in bytes how big log file is 
+#  allowed to grow (approximately). If log file exceeds specified size
+#  it is renamed into logfile.0. And logfile.0 is renamed into 
+#  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
+#  want to enable the ARC logrotation because another logrotation tool is used.
+logsize="100000 2"
+
+# pidfile path - Specify location of file containig PID of daemon process.
+#  This is usefull for automatic star/stop scripts. 
+pidfile="/var/run/gridftpd.pid"
+
+# port bindport - Port to listen on (default 2811)
+port="2811"
+
+# pluginpath - directory where the plugin libraries are installed, default is
+# $NORDUGRID_LOCATION/lib
+pluginpath="/opt/nordugrid/lib"
+
+#encryption yes|no - should data encryption be allowed, default is no,
+# encryption is very heavy 
+encryption="no"
+
+# allowunknown yes|no - if no, check user subject against grid-mapfile and
+# reject if missing. By default unknown (not in the grid-mapfile) grid users 
+# are rejected
+allowunknown="no"
+
+# maxconnections - maximum number of connections accepted by a gridftpd server
+# only supported in the 0.5.x tags. Default is 100.
+maxconnections="200"
+
+# globus_tcp_port_range, globus_udp_port_range - Firewall configuration
+globus_tcp_port_range="9000,12000"
+globus_udp_port_range="9000,12000"
+
+
+# firewall - hostname or IP addres to use in response to PASV command 
+# instead of IP address of a network interface of computer.
+firewall="hostname"
+
+
+# x509_user_cert, x509_user_key - Server credentials location
+x509_user_key="/etc/grid-security/hostkey.pem"
+x509_user_cert="/etc/grid-security/hostcert.pem"
+
+# x509_cert_dir - Location of trusted CA certificates
+x509_cert_dir="/etc/grid-security/certificates"
+
+# gridmap - The gridmap file location
+# The default is /etc/grid-security/grid-mapfile
+gridmap="/etc/grid-security/grid-mapfile"
+
+# unixmap [unixname][:unixgroup] rule - more sophisticated way to map 
+#  Grid identity of client to local account. If client matches 'rule'
+#  it's assigned specified unix identity or one generated by rule.
+#  Mapping commands are processed sequentially and processing stops
+#  at first successful one (like in [group] section). For possible rules
+#  read "The NorduGrid Grid Manager and GridFTP Server" manual. The [group]
+#  section above defines some of those rules. There are also additional
+#  rules which produce not only yes/no result but also give back user and 
+#  group names to which mapping should happen. The way it works is quite
+#  complex so it is better to read full documentation.
+#  For safety reasons it is better to finish mapping sequence with
+#  default mapping like
+unixmap="nobody:nogroup all"
+
+# unixgroup group rule - do mapping only for users belonging to
+#  specified authorization 'group'. It is similar to an additional filter 
+#  for unixmap command which filters out all users not belonging to specified 
+#  authorization group. Only rules which generate unix user and group names
+#  may be used in this command. Please read "The NorduGrid Grid Manager 
+#  and GridFTP Server" for more information.
+unixgroup="users simplepool /etc/grid-security/pool/users"
+
+# unixvo vo rule - do mapping only for users belonging to specified VO. 
+# Only rules which generate unix identity name may be used in this command.
+# Please read "The NorduGrid Grid Manager and GridFTP Server" for more 
+# information. This command is similar to 'unixgroup' described above and 
+# exists for convenience for setups which base mapping on VOs users belong to.
+unixvo="ATLAS unixuser atlas:atlas"
+
+
+####################
+# [gridftpd/filedir] "fileplugin" storage block
+# subblock for "exporting" a directory using the gridftpd's fileplugin plugin.
+# gridftp plugins are shared libraries.
+# "filedir" is a unique label. The acess control is set by using the 
+# "dir" config option
+
+[gridftpd/filedir]
+
+# plugin name - specifies name of shared library to be loaded relative to 
+# "pluginpath". 
+# The next line is MUST for a gridftp file server with "fileplugin", don't
+# change anything
+plugin="fileplugin.so"
+
+# groupcfg group_name [group_name ...] - specifies authorization groups
+# for which this plugin is activated. In case groupcfg is not used the
+# plugin is loaded for every mapped grid user. Multiple names were 
+# may be specified delimited by blank space. Group names are as specified
+# in [group] sections.
+groupcfg="users"
+
+# the name of the virtual directory served by the gridftp server, REQUIRED 
+# the exported storage area is accessable as gsiftp://my_server/topdir. 
+# "topdir" is just an example, call the virtual path anything you like, 
+# even "/" is a valid choice.
+path="/topdir"
+
+# the physical directory corresponding to the virtual one:
+# gsiftp://my_server/topdir will give access to the
+# /scratch/grid directory on my_server, REQUIRED 
+mount="/scratch/grid"
+
+# dir - this is the access control parameter, you can have several "dir" lines
+# controlling different directories within then same block
+# 
+#  dir path options  - specifies access rules for accessing files in 'path'
+#           (relative to virtual and real path) and all the files and directories below.
+#  'options' are:
+#       nouser  - do not use local file system rights, only use those
+#                 specifies in this line
+#       owner   - check only file owner access rights
+#       group   - check only group access rights
+#       other   - check only "others" access rights
+#   if none of the above specified usual unix access rights are applied.
+#       read    - allow reading files
+#       delete  - allow deleting files
+#       append  - allow appending files (does not allow creation)
+#       overwrite - allow overwriting already existing files (does not 
+#                 allow creation, file attributes are not changed)
+#       dirlist - allow obtaining list of the files
+#       cd      - allow to make this directory current
+#       create owner:group permissions_or:permissions_and  - allow creating
+#                 new files. File will be owned by 'owner' ang owning group
+#                 will be 'group'. If '*' is used, the user/group to which
+#                 connected user is mapped will be used. The permissions 
+#                 will be set to permissions_or & permissions_and. (second
+#                 number is reserved for the future usage). 
+#                 
+#       mkdir owner:group permissions_or:permissions_and  - allow creating new directories.
+#some examples:
+# Set permissions on mounted directory
+dir="/ nouser read cd dirlist delete create *:* 664:664 mkdir *:* 775:775"
+# Adjust permissions on some subdirectories
+dir="/section1 nouser read mkdir *:* 700:700 cd dirlist"
+dir="/section2 nouser read mkdir *:* 700:700 cd dirlist"
+
+
+
+####################
+#[gridftpd/gacldir] "gaclplugin" GACL-controlled storage block
+# Subblock for "exporting" a directory through  gaclplugin,
+# gridftp plugins are shared libraries. "gacldir" is a
+# unique label. The acess control is set through "gacl" files placed in the
+# physical directories assigned to every file/directory. 
+# Newly created directories and uploaded files automatically obtain their
+# default "gacl" files: only the creator of the file/directory has the
+# "read,write,list,admin" capabilities, this default is not configureable yet.
+# Additionally the 'mount' directory MUST contain a .gacl file with 
+# initial ACL otherwise rule will be "deny all for everyone"
+
+[gridftpd/gacldir]
+
+# plugin name - specifies name of shared library to be loaded relative to 
+# "pluginpath". 
+# The next line is MUST for a gridftp file server with "gaclplugin", don't
+# change anything
+plugin="gaclplugin.so"
+
+# groupcfg group_name [group_name ...] - specifies authorization groups
+# for which this plugin is activated. In case groupcfg is not used the
+# plugin is loaded for every mapped grid user.
+groupcfg="users"
+
+# the name of the virtual directory served by the gridftp server, REQUIRED
+# the exported storage area is accessable as gsiftp://server/gacltop. 
+# "gacltop" is just an example, call the virtual path anything you like, 
+# even "/" is a valid choice.
+path="/gacltop"
+
+# the physical directory corresponding to the virtual one:
+# gsiftp://server/gacltop will give access to the
+# /scratch/GACL directory on server. 
+# The directory MUST contain a .gacl file with the some default gacl settings.
+# This parameter is REQUIRED. 
+mount="/scratch/GACL"
+
+# gacl - specifies the default GACL rule for new objects. The GACL expression 
+# must be given in one line and in GACL XML format.
+gacl="<gacl>very long single line</gacl>"
+
+
+####################
+# [gridftpd/jobs] subblock which creates the jobsubmission interface,
+# using the jobplugin of the gridftpd service. 
+# gridftp plugins are shared libraries. 'jobs' is a unique label.
+# 
+
+[gridftpd/jobs]
+
+# the path to the virtual gridftpd directory which is used during the 
+# job submission. MUST be set.
+path="/jobs"
+
+# plugin name - specifies name of shared library to be loaded relative to 
+# "pluginpath".  
+# The next line is MUST for a job submission service via gridftpd
+# "jobplugin", don't change anything!
+plugin="jobplugin.so"
+
+
+# groupcfg group_name [group_name ...] - specifies authorization groups
+# for which this plugin is activated. In case groupcfg is not used the
+# plugin is loaded for every mapped grid user.
+groupcfg="users"
+
+# The 'allownew' config parameter sets if the grid resource accepts
+# submission of new jobs. This parameter can be used to close down a grid.
+# The default is yes
+allownew="yes"
+
+# remotegmdirs controldir sessiondir - Specifies control
+# and session directories to which jobs can be submitted but which are
+# under the control of another GM. The corresponding controldir and
+# sessiondir parameters must be defined in another grid-manager's
+# configuration. Multiple remotegmdirs can be specified.
+remotegmdirs="/mnt/host1/control /mnt/host1/session"
+
+# maxjobdesc size - specifies maximal allowed size of job description
+# in bytes. Default value is 5MB. If value is missing or 0 size is not
+# limited.
+maxjobdesc="5242880"
+
+####################################################################
+#
+# [httpsd] block controls parameters of httpsd server and services 
+# it hosts (e.g. the logger or the SSE)
+
+[httpsd]
+
+# user=user[:group] - Switch to a non root user/group after startup.
+# WARNING: Make sure that the certificate files are owned by the user/group 
+# specified by this option. Default value is root.
+user="grid"
+
+# debug=debuglevel - Set debug level of the daemon. 
+debug="2"
+
+# logfile=path - Set logfile location. Suggested logfile="/var/log/httpsd.log"
+logfile="/var/log/httpsd.log"
+
+# logsize=size [number] - Set log rotation parameters.
+logsize="100000 2"
+
+# pidfile=path - Set file location which contains PID of process
+pidfile="/var/run/httpsd.pid"
+
+# gsiport=port - TCP/IP port to listen on for HTTPg connections with GSI
+# channel implemented through GLOBUS IO module (default is 8000)
+gsiport="8000"
+
+# gssapiport=port - TCP/IP port to listen on for HTTPg connections with GSI
+# channel implemented directly through GSSAPI (CERN way, default is none)
+gssapiport="8000"
+
+# sslport=port - TCP/IP port to listen on for HTTPS connections (default 
+# is 8001)
+sslport="8001"
+
+# plainport=port - TCP/IP port to listen on for HTTP connections (default 
+# is none)
+plainport="80"
+
+# plugin=path - path to shared library which contains plugin(s) for httpsd.
+# Multiple commands are allowed. Plugins are not activated by this command.
+plugin="/opt/nordugrid/lib/logger.so"
+
+# globus_tcp_port_range, globus_udp_port_range - Firewall configuration
+globus_tcp_port_range="9000,12000"
+globus_udp_port_range="9000,12000"
+
+# x509_user_cert, x509_user_key - Server credentials location
+x509_user_key="/etc/grid-security/hostkey.pem"
+x509_user_cert="/etc/grid-security/hostcert.pem"
+
+# x509_cert_dir - Location of trusted CA certificates
+x509_cert_dir="/etc/grid-security/certificates"
+
+
+####################
+# [httpsd/logger] "logger" service
+# Block for enabling and configuring the logger service. 
+
+[httpsd/logger]
+
+# name=service_name - name of loaded service. If not specified, name of
+# subblock is used. If service is not loaded, daemon tries to load 
+# libraries service_name.so and libservice_name.so . This command is
+# supported by every plugin.
+# This is MUST for a logger service
+name="logger"
+
+# path=url_path - specifies path (or complete URL) used to form URL at 
+# which service is accessible. This command is supported by evry plugin.
+path="/nglog"
+
+# acl_read=group [group ...] - specifies user groups allowed to read
+# records in a logger database. User still will see only records about
+# jobs belonging to him.
+acl_read="users"
+
+# acl_query=group [group ...] - specifies user groups allowed to read ALL
+# records in a logger database.
+acl_query="admins"
+
+# acl_write=group [group ...] - specifies user groups allowed to add new
+# records into a logger database. Usually only host certificates should be
+# there.
+acl_write="servers"
+
+# sqlcontact=user [password] - MySQL user and access password. This command
+# is unsafe and should be used only if configuration file is well protected.
+sqlcontact="test test"
+
+# sqlcontactsource=path - path to file containing name of MySQL user and 
+# access password. This is a prefered and safer way to keep MySQL password.
+sqlcontactsource="/very/secret/file"
+
+
+####################
+# [httpsd/se] SSE service
+# Block for enabling and configuring the SSE service. 
+
+[httpsd/se]
+
+# path=url_path - path at which service is accessible
+path="/se"
+
+# acl_create=group [group ...] - specifies user groups allowed to store
+# files at SSE.
+acl_create="users"
+
+# acl_read=group [group ...] - specifies user groups allowed to retrieve
+# all files stored at SSE.
+acl_read="admins"
+
+# acl_read=group [group ...] - specifies user groups allowed to initiate
+# replication of files to SSE.
+acl_replicate="services"
+
+# storage=path - directory on local filesystem to store files and information
+# about them.
+storage="/tmp/se"
+
+# ns=configuration - Indexing Service at which SSE registers it's content.
+# Value of "configuration" may be specific for every supported service.
+# Currently supported are lrc and rc URLs or word none.
+ns="none"
+
+# registration=option,... - options to define how registration is performed.
+# Avaialble options are:
+#  immediate - try to register before file is put into SSE.
+#  delayed - do not register immediately, register new files periodically.
+#  retry - if registration failed, retry periodically.
+#  noretry - do not retry registration, fail after first attempt.
+#  hideincomplete - do not report/show files which are not fully uploaded 
+#   and registered.
+#  showincomplete - show all files.
+registration="delayed,retry"
+
+
+####################################################################
+#
+# [infosys] block configures the hosting environment of the
+# Information services (Local Info Tree, Index Service, Registrations,
+# see the Information System manual) provided by the OpenLDAP slapd server.
+#
+
+[infosys]
+
+# overwrite_config - determines if the grid-infosys startup script 
+# should generate new low-level slapd configuration files.
+# By default the low-level configuration files are regenerated with every
+# server startup making use of the values specified in the arc.conf
+overwrite_config="yes"
+
+# oldconfsuffix - sets the suffix of the backup files of the low-level 
+# slapd config files in case the they are regenerated. Default is
+# ".oldconfig"
+oldconfsuffix=".oldconfig"
+
+# hostname - the hostname of the machine running the slapd service
+hostname="my.testbox" 
+
+# port - the port where the slapd service runs. Default infosys port is 2135.
+port="2135"
+
+# debug - sets the debug level/verbosity of the startup script {0 or 1}. 
+# Default is 0. 
+debug="1"
+
+# slapd_loglevel - sets the native slapd loglevel (see man slapd). 
+# Slapd logs via syslog. The default is set to no-logging (0) and it is 
+# RECOMMENDED not to be changed in a production environment.
+# Non-zero slap_loglevel value causes serious performance decrease.
+slapd_loglevel="0"
+
+# slapd_hostnamebind - may be used to set the hostname part of the
+# network interface to which the slapd process will bind. Most of
+# the cases no need to set since the hostname config parameter is already
+# sufficient. The default is empty. The example below will bind the slapd
+# process to all the network interfaces available on the server.
+slapd_hostnamebind="*"
+
+# threads - the native slapd threads parameter, default is 32. If you run an
+# Index service too you should modify this value.
+threads="128"
+
+# timelimit - the native slapd timelimit parameter. Maximum number of seconds
+# the slapd server will spend answering a search request. Default is 3600. 
+# You probably want a much lower value.
+timelimit="1800"
+
+# idletimeout - the native slapd idletimeout parameter. Maximum number of
+# seconds the slapd server will wait before forcibly closing idle client
+# connections. It's value must be larger than the value of "timelimit" option.
+# If not set, it defaults to timelimit + 1.
+#idletimeout="1800"
+
+# registrationlog path - specifies the logfile for the registration processes
+# initiated by your machine. Default is "/var/log/inforegistration.log"
+registrationlog="/var/log/inforegistration.log"
+
+# providerlog path - Specifies log file location for the information 
+# provider scripts. The feature is only available with >= 0.5.26 tag.
+# Default is "/var/log/infoprovider.log"
+providerlog="/var/log/infoprovider.log"
+
+# provider_loglevel - loglevel for the infoprovider scripts (0, 1, 2).
+# The default is 1 (critical errors are logged)
+provider_loglevel="2"
+
+# limit_core limit_nofile - shell limits for the slapd process set via
+# 'ulimit -c' and 'ulimit -n'
+limit_core="0"
+limit_nofile=""
+
+# user unix_user - the unix user running the infosys processes such as 
+# the slapd, the registrations and infoprovider scripts. 
+# By default the user executing the startup script is set. 
+# In case of non-root value you must make sure that the grid-manager 
+# directories and their content are readable by the 'user' and the 'user' 
+# has access to the full LRMS information including jobs submitted by
+# other users. The grid-manager directories (controldir, sessiondir
+# runtimedir, cachedir) are specified in the [grid-manager] block
+user="root"
+
+# If giis_location is not set, NORDUGRID_LOCATION will be used instead.
+giis_location="/opt/nordugrid"
+
+# Nordugrid ARC works together with both BDII4 and BDII5.
+# BDII related variables, when using the nordugrid-packaged bdii, these
+# variables have sensible defaults and can be omitted. The only
+# variables that system administrators may want to change is
+# infosys_nordugrid and infosys_glue12. These two variables specify
+# what format the output should be in, default is
+# infosys_nordugrid=enable, infosys_glue12=disable. If infosys_glue12
+# is enabled, then resource_location, resource_latitude and
+# resource_longitude need to be set in the [infosys/glue12] block. These
+# variables do not have default values. The rest of the variables
+# defaults are showcased here.
+
+# The installation directory for the BDII. The gLite supplied BDII4 installs
+# into /opt/bdii. nordugrid supplied BDII4 installs into /usr. BDII5 installs
+# into /usr. If installed in /usr you do not need this variable.
+#bdii_location="/usr"
+
+# These two variables decides which schema should be used for
+# publishing data. Both can be enabled at the same time. Default is to
+# enable nordugrid mds and disable glue.  
+#infosys_nordugrid="enable"
+#infosys_glue12="disable"
+
+# This variable disables/enables an ldap-database containing
+# information about the ldap database itself on "o=infosys"
+#infosys_debug="disable"
+
+# BDII4 will use these directories internally
+#bdii_tmp_dir="/var/tmp/bdii4"
+#bdii_var_dir="/var/run/bdii4"
+#bdii_log_dir="/var/log/bdii4"
+
+# BDII5 uses these variables
+#bdii_var_dir="/var/run/bdii"
+#bdii_log_dir="/var/log/bdii"
+#bdii_tmp_dir="/var/tmp/bdii"
+
+# If installed in gLite default location or somewhere else, set these variables
+# these are unnecessary if installed from nordugrid packages or if bdii5 is used.
+#bdii_cmd="/etc/init.d/bdii4"
+#bdii_update_cmd="/usr/sbin/bdii4-update"
+
+# BDII4 specific variables 
+#bdii_search_timeout=30
+#bdii_breathe_time=30
+#bdii_auto_update=no
+#bdii_auto_modify=no
+#bdii_modify_dn=no
+#bdii_is_cache=yes
+#bdii_update_url="http://"
+#bdii_update_ldif="http://"
+#bdii_update_conf="/var/run/nordugrid/bdii-update.conf"
+#bdii_conf="/var/run/nordugrid/bdii.conf"
+
+# Configure what ldap database backend should be used, default is:
+# bdb
+#bdii_database="bdb"
+
+# Configure where the slapd command is located, default is:
+# /usr/sbin/slapd
+#slapd="/usr/sbin/slapd"
+
+# Configure where the slapadd command is located, default is:
+# /usr/sbin/slapadd
+#slapadd="/usr/sbin/slapadd"
+
+####################################################################
+#
+# This block holds information that is needed by the glue 1.2
+# generation. This is only necessary if infosys_glue12 is enabled.
+
+[infosys/glue12]
+
+# These three variables need to be set if infosys_glue12 is enabled.
+
+# Example: "Kastrup, Denmark"
+resource_location=""
+
+# Example: "55.75000"
+resource_latitude=""
+
+# Example: "12.41670"
+resource_longitude=""
+
+####################################################################
+#
+# [infosys/index/indexname] Index Service block configures and enables 
+# an Information Index Service. A separate Index block is required for 
+# every Index Service you may run on the given machine.
+# The 'indexname' constitutes to the 
+# 'mds-vo-name=indexname,o=grid' LDAP suffix characterizing the Index Service.
+
+[infosys/index/indexname]
+
+# name - The unique (within the hosting machine) name of the 
+# Index Service. Its value becomes part of the LDAP suffix 
+# of the Index Service:
+# (mds-vo-name=value of the name attribute, o=grid)
+name="indexname"
+
+# allowregistration - Implements registration filtering within an Index Sevice
+# Sets the Local Information Trees or lower level Index Services
+# allowed to register to the Index Service. List each allowed registrants 
+# with the allowreg atribute.
+# WARNING: specifying allowreg implies setting up a strict filtering, 
+# only the matching registrants will be able to register to the Index. 
+# The wildcard * can be used in allowreg. Several allowreg lines can be used. 
+# Some examples:
+# -All the Swedish machines can register regardless they are resources or Indices
+# allowreg="*.se:2135"
+# -Cluster resources from Denmark can register
+# allowreg="*.dk:2135/nordugrid-cluster-name=*, Mds-Vo-name=local, o=grid"
+# -Storage resources from HIP, Finland can register
+# allowreg="*hip.fi:2135/nordugrid-se-name=*, Mds-Vo-name=local, o=grid"
+# -The index1.sweden.se can register as a Sweden Index  (and only as a Sweden Index)
+# allowreg="index1.sweden.se:2135/Mds-vo-Name=Sweden,o=Grid"
+# -Any Index Service can register
+# allowreg="*:2135/Mds-vo-Name=*,o=Grid"
+allowreg="trusted.host.org.se:2135/Mds-vo-Name=Trusted-Index,o=Grid"
+
+
+
+####################################################################
+#
+# [infosys/index/indexname/registration/registrationname]
+# Index service registration block
+# This block enables a registration process initiated by the 
+# 'indexname' Index Service (configured previuosly)
+# to a target Index Service.
+# NorduGrid maintains a webpage with information on major
+# Index Services:
+# http://www.nordugrid.org/NorduGridMDS/index_service.html
+
+[infosys/index/indexname/registration/registrationname]
+
+# targethostname - the hostname of the machine running the registration target
+# Index Service
+targethostname="index.myinstitute.org"
+
+# targetport - the port on which the target Index Service is running.
+# The default is the 2135 Infosys port.
+targetport="2135"
+
+# targetsuffix - the LDAP suffix of the target Index Service
+targetsuffix="mds-vo-name=BigIndex,o=grid"
+
+# regperiod - The registration period in seconds, the registration messages are 
+# continously sent according to the regperiod. Default is 120 sec.
+regperiod="300"
+
+# registranthostname - the hostname of the machine sending the registrations.
+# This attribute inherits its value from the [common] and [infosys] blocks,
+# most cases no need to set.
+registranthostname="myhost.org"
+
+# registrantport - the port of the slapd service hosting the 
+# registrant Index Service. The attribute inherits its value from the 
+# [infosys] block (and therefore defaults to 2135)
+registrantport="2135"
+
+# registrantsuffix - the LDAP suffix of the registrant Index Service.
+# It is automatically determined from the registration block name,
+# therefore most of the cases no need to specify.
+registrantsuffix="mds-vo-name=indexname,o=grid"
+
+
+
+####################################################################
+#
+# [cluster] block
+# This block configures how your cluster is seen on the grid monitor (infosys
+# point of view). Please consult the Infosys manual for detailed information
+# on cluster attributes.
+# If you want your cluster (configured below) to appear in the infosys 
+# (on the monitor) you also need to create a cluster registration block 
+# (see the next block).
+
+
+[cluster]
+# hostname - the FQDN of the frontend node, if the hostname is not set already
+# in the common block then it  MUST be set here
+hostname="myhost.org"
+
+# interactive_contactstring - the contact string for interactive logins, set this 
+# if the cluster supports some sort of grid-enabled interactive login (gsi-ssh),
+# multivalued
+interactive_contactstring="gsissh://frontend.cluster:2200"
+
+# alias - an arbitrary alias name of the cluster, optional
+cluster_alias="Big Blue Cluster in Nowhere"
+
+# comment - a free text field for additional comments on the cluster in a single
+# line, no newline character is allowed!
+comment="This cluster is specially designed for XYZ applications: www.xyz.org"
+
+# cluster_location - The geographycal location of the cluster, preferably
+# specified as a postal code with a two letter country prefix
+cluster_location="DK-2100"
+
+# cluster_owner - it can be used to indicate the owner of a resource, multiple
+# entries can be used
+#cluster_owner="World Grid Project"
+cluster_owner="University of NeverLand"
+
+# authorizedvo - this attribute is used to advertise which VOs are authorized 
+# on the cluster. Multiple entries are allowed.
+#authorizedvo="developer.nordugrid.org"
+authorizedvo="community.nordugrid.org"
+
+# clustersupport - this is the support email address of the resource, multiple
+# entries can be used
+#clustersupport="grid.support@mysite.org"
+clustersupport="grid.support@myproject.org"
+
+# lrmsconfig - an optional free text field to describe the configuration of your
+# Local Resource Management System (batch system).
+lrmsconfig="single job per processor"
+
+# homogeneity - determines whether the cluster consists of identical NODES with
+# respect to  cputype, memory, installed software (opsys). The frontend is NOT
+# needed to be homogeneous with the nodes. In case of inhomogeneous nodes, try
+# to arrange the nodes into homogeneous groups assigned to a queue and use
+# queue-level attributes. Possible values: True,False, the default is True.
+homogeneity="True"
+
+# architecture - sets the hardware architecture of the NODES. The "architecture"
+# is defined as the output of the "uname -m" (e.g. i686). Use this cluster
+# attribute if only the NODES are homogeneous with respect to the architecture.
+# Otherwise the queue-level attribute may be used for inhomogeneous nodes. If
+# the frontend's architecture agrees to the nodes, the "adotf" (Automatically
+# Determine On The Frontend) can be used to request automatic determination.
+architecture="adotf"
+
+# opsys - this multivalued attribute is meant to describe the operating system
+# of the computing NODES. Set it to the opsys distribution of the NODES and not
+# the frontend! opsys can also be used to  describe the kernel or libc version
+# in case those differ from the originally shipped ones. The distribution name
+# should be given as distroname-version.number, where spaces are not allowed.
+# Kernel version should come in the form kernelname-version.number. 
+# If the NODES are inhomogeneous with respect to this attribute do NOT set it on
+# cluster level, arrange your nodes into homogeneous groups assigned to a queue
+# and use queue-level attributes. 
+opsys="Linux-2.4.21-mypatch"
+opsys="glibc-2.3.1"
+opsys="Redhat-7.2"
+
+# nodecpu - this is the cputype of the homogeneous nodes. The string is
+# constructed from the /proc/cpuinfo  as  the value of "model name"  and "@" and
+# value of "cpu MHz". Do NOT set this attribute on cluster level if the NODES
+# are inhomogeneous with respect to cputype, instead arrange the nodes into
+# homogeneous groups assigned to a queue and use queue-level attributes. Setting
+# the nodecpu="adotf" will result in Automatic Determination On The Frontend, 
+# which should only be used if the frontend has the same cputype as the
+# homogeneous nodes.
+nodecpu="AMD Duron(tm) Processor @ 700 MHz"
+
+# nodememory - this is the amount of memory (specified in MB) on the node 
+# which can be guaranteed to be available for the application. Please note 
+# in most cases it is less than the physical memory installed in the nodes.
+# Do NOT set this attribute on cluster level if the NODES are inhomogeneous
+# with respect to their memories, instead arrange the nodes into homogeneous
+# groups assigned to a queue and use queue-level attributes. 
+nodememory="512"
+
+# benchmark name value - this optional multivalued attribute can be used to 
+# specify benchmark results on the cluster level. Use this cluster attribute 
+# if only the NODES are homogeneous with respect to the benchmark performance. 
+# Otherwise the similar queue-level attribute should be used. Please try to 
+# use one of standard benchmark names given below if possible.
+#benchmark="SPECINT2000  222"
+benchmark="SPECFP2000 333" 
+
+# middleware - the multivalued attribute shows the installed grid software on
+# the cluster, nordugrid and globus-ng  is automatically set, no need to specify
+# middleware=nordugrid or middleware=globus
+middleware="my grid software"
+
+# nodeaccess - determines how the nodes can connect to the internet. Not setting
+# anything means the nodes are sitting on a private isolated network. "outbound"
+# access means the nodes can connect to the outside world while "inbound" access
+# means the nodes can be connected from outside. inbound & outbound access
+# together means the nodes are sitting on a fully open network.
+nodeaccess="inbound"
+nodeaccess="outbound"
+
+# dedicated_node_string - the string which is used in the PBS node config to
+# distinguish the grid nodes from the rest. Suppose only a subset of nodes are
+# available for grid jobs, and these nodes have a common "node property" string,
+# this case the dedicated_node_string should be set to this value and only the
+# nodes with the corresponding  "pbs node property" are counted as grid enabled
+# nodes. Setting the dedicated_node_string  to the value of the "pbs node
+# property" of the grid-enabled  nodes will influence how the totalcpus, user
+# freecpus is calculated. You don't need to set this attribute if your cluster
+# is fully available for the grid and your cluster's PBS config does not use 
+# the "node property" method to assign certain nodes to grid queues. You
+# shouldn't use this config option unless you make sure  your PBS config makes
+# use of the above described setup.
+dedicated_node_string="gridnode"
+
+# localse - this multivalued parameter tells the BROKER that certain URLs (and
+# locations below that) should be considered "locally" available to the cluster.
+#localse="gsiftp://my.storage/data1/"
+localse="gsiftp://my.storage/data2/"
+
+# gm_mount_point - this is the same as the "path" from the [gridftpd/jobs]
+# block. The default is "/jobs". Will be cleaned up later, do NOT touch it.
+gm_mount_point="/jobs"
+
+# gm_port - this is the same as the "port" from the [gridftpd] block. The
+# default is "2811". Will be cleaned up later.
+gm_port="2811"
+
+# LDAP parameters of the cluster.pl infoprovider, use the defaults, 
+# do NOT change them unless you know what you are doing
+cachetime="30"
+timelimit="30"
+sizelimit="10"
+
+  
+####################################################################
+#
+# [infosys/cluster/registration/registrationname]
+# Computing resource (cluster) registration block
+# configures and enables the registration process of a
+# computing resource to an Index Service.
+# A cluster can register to several Index Services this case
+# each registration process should have its own block.
+# NorduGrid maintains a webpage with information on major
+# Index Services:
+# http://www.nordugrid.org/NorduGridMDS/index_service.html
+
+
+[infosys/cluster/registration/registrationname]
+
+# targethostname - see description earlier
+targethostname="index.myinstitute.org"
+
+# targetport - see description earlier
+targetport="2135"
+
+# targetsuffix - see description earlier
+targetsuffix="mds-vo-name=BigIndex,o=grid"
+
+# regperiod - see description earlier
+regperiod="300"
+
+# registranthostname - see description earlier
+registranthostname="myhost.org"
+
+# registrantport - see description earlier
+registrantport="2135"
+
+# registrantsuffix - the LDAP suffix of the registrant cluster resource
+# It is automatically determined from the [infosys] block and the 
+# registration blockname. Don't set it unless you want to 
+# overwrite the default. 
+registrantsuffix="nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid"
+
+  
+   	   
+####################################################################
+#
+# [queue/queuename] block
+#
+# Each grid-enabled queue should have a separate queue block.
+# The queuename should be used as a label in the block name.
+# A queue can represent a PBS queue, a SGE pool, a Condor pool or a machine
+# with a 'fork' LRMS.
+# Queues don't need to be registerd (there is no queue registration block),
+# once you configured your cluster to register to a Index Service
+# the queue entries (configured with this block) automatically will be there.
+# Please consult the Infosys manual for detailed information
+# on queue attributes.
+
+# use the queue_name for labeling the block. The special name 'fork' should be
+# used for labeling the queue block of the fork LRMS.
+[queue/gridlong]
+
+# The name of the grid-enabled queue,  it is also used as a queue block label 
+# [queue/queuename].
+# Use "fork" for the fork LRMS. <MUST be specified>
+name="queuename"
+
+
+# fork_job_limit, the allowed number of concurrent jobs in a fork system,
+# relevant only for a fork queue. Default is 1. The special value 'cpunumber'
+# can be used which will set the limit of running jobs to the number of cpus 
+# available in the machine. This parameter is used in the calculation of 
+# freecpus in a fork system.
+fork_job_limit="cpunumber"
+
+# homogeneity - determines whether the queue consists of identical NODES with
+# respect to  cputype, memory, installed software (opsys). 
+# In case of inhomogeneous nodes, try to arrange the nodes into homogeneous 
+# groups and assigned them to a queue.
+# Possible values: True,False, the default is True.
+homogeneity="True"
+
+# scheduling_policy - this optional parameter tells the schedulling policy of
+# the queue, PBS by default offers the FIFO scheduller, many sites run the MAUI.
+# At the moment FIFO & MAUI is supported. If you have a MAUI scheduller you 
+# should specify the "MAUI" value since it modifies the way the queue resources
+# are calculated.  BY default the "FIFO" sceduller is assumed.
+scheduling_policy="FIFO"
+
+# comment - a free text field for additional comments on the queue in a single
+# line, no newline character is allowed!
+comment="This queue is nothing more than a condor pool"
+
+# maui_bin_path - set this parameter for the path of the maui commands like
+# showbf in case you specified the "MAUI"  scheduling_policy above. This
+# parameter can be set in the [common] block as well.
+maui_bin_path="/usr/local/bin"
+
+# queue_node_string - In PBS you can assign nodes to a queue (or a queue to
+# nodes) by using the "node property" PBS node config method and asssigning the
+# marked nodes to the queue (setting the resources_default.neednodes =
+# queue_node_string for that queue). This parameter should contain the "node
+# property" string of the queue-assigned nodes. Setting the queue_node_string
+# changes how the queue-totalcpus, user freecpus are determined for this queue.
+# Read the pbs_config.txt for more info. You shouldn't use this option unless
+# you make sure that your PBS config makes use of the above configuration.
+queue_node_string="gridlong_nodes"
+
+# sge_jobopts - additional SGE options to be used when submitting jobs to SGE
+# from this queue.  If in doubt, leave it commented out
+#sge_jobopts="-P atlas -r yes"
+
+# condor_requirements - only needed if using Condor. It needs to be defined for
+# each queue. Use this option to determine which nodes belong to the current
+# queue.  The value of 'condor_requirements' must be a valid constraints string
+# which is recognized by a condor_status -constraint '....' command. It can
+# reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
+# etc) but also custom ClassAd attributes.  To define a custom attribute on a
+# condor node, just add two lines like the ones below in the `hostname`.local
+# config file on the node:
+#   NORDUGRID_RESOURCE=TRUE
+#   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
+# A job submitted to this queue is allowed to run on any node which satisfies
+# the 'condor_requirements' constraint.  If 'condor_requirements' is not set,
+# jobs will be allowed to run on any of the nodes in the pool. When configuring
+# multiple queues, you can differentiate them based on memory size or disk
+# space, for example:
+#
+condor_requirements="(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)"
+
+# CPU architecture to request when submitting jobs to LSF. Use only if you know
+# what you are doing.
+#lsf_architecture="PowerPC"
+
+# totalcpus - manually sets the number of cpus assigned to the queue. No need to
+# specify the parameter in case the queue_node_string method was used to assign
+# nodes to the queue (this case it is dynamically calculated and the static
+# value is overwritten) or when the queue have access to the entire cluster
+# (this case the cluster level totalcpus is the relevant parameter). Use this
+# static parameter only if some special method is applied to assign a subset of
+# totalcpus to the queue.
+totalcpus="32"
+
+# queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
+# and benchmark should be set if they are homogeneous over the nodes assigned 
+# to the queue AND they are different from the cluster-level value. 
+# Their meanings are described in the cluster block. Usage: this queue collects
+# nodes with "nodememory=512" while another queue has nodes with 
+# "nodememory=256" -> don't set the cluster attributes but use the queue-level 
+# attributes. When the frontend's architecture or cputype agrees with the queue 
+# nodes, the "adotf" (Automatically Determine On The Frontend) can be used to 
+# request automatic determination of architecture or nodecpu.
+nodecpu="adotf"
+nodememory="512"
+architecture="adotf"
+opsys="Mandrake 8.0"
+opsys="Linux-2.4.19"
+benchmark="SPECINT2000  222"
+benchmark="SPECFP2000 333" 
+
+# gridmap - can be used to specify an alternative file holding the list of
+# grid SNs for this queue. The information system parses the list of
+# users from this file and advertises them as authorized users for this queue.
+# Beware that this list is not actually used by gridftpd for authorization.
+gridmap="/etc/grid-security/queuename-gridmap"
+
+# LDAP parameters of the queue+jobs+users.pl infoprovider, use the defaults,
+# do NOT change them unless you know what you are doing
+cachetime="30"
+timelimit="30"
+sizelimit="5000"
+
+
+####################################################################
+#
+# The [se/sename] block 
+# The block is needed if you want your previously configured
+# [gridftpd/filedir] storage appear in the information system. 
+# Each [se/sename]block is coupled to a physical storage block with the
+# "assigned_storage" parameter. 
+# If you want your SE (configured below with a [se/sename] block) to appear
+# in the infosys  (on the monitor) you should also create an se 
+# registration block (see next block).
+# Please consult the Infosys manual for detailed information
+# on SE attributes.
+
+
+# SE blocks, just as every other block, must have unique labels.
+# Use the value of the "name" attribute to label the SE block.
+[se/sename]
+
+# assigned_storage - connects the se info block to a physical [httpsd/sse]
+# (smart storage) or [gridftpd/filedir] (gridftpd-based SE) physical block.
+# Essential configuration parameters are used from that block. 
+# The config parameter value is the block label of the assigned physical SE.
+# This is a REQUIRED parameter
+assigned_storage="filedir"
+
+# name -  unique identifier of the Storage Element within the given machine.
+# This is a REQUIRED parameter. "name" is used to create the unique LDAP DN of
+# the SE in the form of 
+# nordugrid-se-name=name:hostname,Mds-Vo-name=local,o=Grid. 
+# Notice that the "name" is used to distinguish among several SEs on the same
+# machine. Whitespace, underscore and "@" is NOT allowed in the "name"
+name="sename" 
+
+# authorizedvo - this attribute is used to advertise which VOs are authorized 
+# on the SE. Multiple entries are allowed.
+#authorizedvo="developer.nordugrid.org"
+authorizedvo="community.nordugrid.org"
+
+# alias - free form string for naming your SE, by default the alias gets the
+# value of the se_label.
+alias="TEST SE for Atlas users"
+
+# comment - a free text field for additional comments on the SE in a single
+# line, no newline character is allowed!
+comment="This SE has a very special hardware setup read more: www.myse.org"
+
+# hostname - can be used to specify the FQDN of the machine on which the SE is
+# running. If it is not set then first the hostname from the [common] block,
+# then from the [gridftpd] block, then finally the output of some "hostname" 
+# command is used. This parameter overwrites the hostname from the 
+#[common], [gridftpd] blocks. hostname is used to create the contact string and the
+# DN of the SE.
+hostname="myhost.org"
+
+# gridmap - can be used to specify an alternative file holding the list of
+# authorized grid SNs. The information system parses the list of users from
+# this file and advertises them as authorized SE users. However, there is no
+# checking if those users are actually authorized by the [gridftpd/filedir]
+# block.
+gridmap="/etc/grid-security/SE-gridmap" 
+
+# type - the type of the SE. Currently supported/recognized SE types:
+# "gridftp, SSE, other". 
+type="gridftp"
+
+
+# LDAP parameters of the se.pl infoprovider, use the defaults, 
+# do NOT change them unless you know what you are doing
+cachetime="1800"
+timelimit="30"
+sizelimit="10"
+
+
+####################################################################
+#
+# [infosys/se/sename/registration/registrationname]
+# Storage resource (SE) registration block
+# Configures and enables the registration process of a
+# Storage Element resource to an Index Service.
+# An SE can register to several Index Services this case
+# each registration process should have its own block.
+# NorduGrid maintains a webpage with information on major
+# Index Services:
+# http://www.nordugrid.org/NorduGridMDS/index_service.html
+
+[infosys/se/sename/registration/registrationname]
+
+# targethostname - see description earlier
+targethostname="index.myinstitute.org"
+
+# targetport - see description earlier
+targetport="2135"
+
+# targetsuffix - see description earlier
+targetsuffix="mds-vo-name=BigIndex,o=grid"
+
+# regperiod - see description earlier
+regperiod="300"
+
+# registranthostname - see description earlier
+registranthostname="myhost.org"
+
+# registrantport - see description earlier
+registrantport="2135"
+
+# registrantsuffix - the LDAP suffix of the registrant SE resource
+# It is automatically determined from the [infosys] block and the 
+# registration blockname. Don't set it unless you want to 
+# overwrite the default. 
+registrantsuffix="nordugrid-se-name=sename:myhost.org,Mds-Vo-name=local,o=grid"
+
+# Logging module settings
+# See urlogger.pdf for more details.
+[logger]
+log_dir=/var/spool/nordugrid/usagerecords/
+log_all="https://sgas.example.org:6143/sgas" 
+log_vo="bio.ndgf.org https://bio.example.org:7243/sgas"
+
