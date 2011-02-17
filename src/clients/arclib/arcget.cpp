@@ -86,7 +86,7 @@ int RUNGET(main)(int argc, char **argv) {
 
   bool force = false;
   options.AddOption('f', "force",
-                    istring("force download (download again)"),
+                    istring("force download (overwrite existing job directory)"),
                     force);
 
   int timeout = -1;
