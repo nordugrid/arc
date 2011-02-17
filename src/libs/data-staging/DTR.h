@@ -109,15 +109,21 @@ namespace DataStaging {
    * illustrates how to use DTRs:
    *
    * @code
-   * Arc::SimpleCondition cond;
+   * class Generator : public DTRCallback {
+   *  public:
+   *   void receiveDTR(DTR& dtr);
+   *   void run();
+   *  private:
+   *   Arc::SimpleCondition cond;
+   * };
    *
-   * void receive_dtr(DTR& dtr) {
+   * void Generator::receiveDTR(DTR& dtr) {
    *   // DTR received back, so notify waiting condition
    *   std::cout << "Received DTR " << dtr.get_id() << std::endl;
    *   cond.signal();
    * }
    *
-   * int main() {
+   * void Generator::run() {
    *   // start Scheduler thread
    *   Scheduler scheduler;
    *   scheduler.start();
