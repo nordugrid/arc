@@ -38,7 +38,8 @@ namespace Arc {
     : flavour(flavour),
       usercfg(usercfg),
       data_source(NULL),
-      data_destination(NULL) {}
+      data_destination(NULL),
+      force(false) {}
 
   JobController::~JobController() {
     if(data_source) delete data_source;
@@ -203,7 +204,9 @@ namespace Arc {
   bool JobController::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
                           const bool keep,
-                          const bool usejobname) {
+                          const bool usejobname,
+                          bool force_download) {
+    force = force_download;
     GetJobInformation();
 
     std::list< std::list<Job>::iterator > downloadable;

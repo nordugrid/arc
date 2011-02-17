@@ -7,6 +7,7 @@
 #include <fstream>
 #include <map>
 #include <glibmm.h>
+#include <dirent.h>
 
 #include <arc/client/JobDescription.h>
 #include <arc/data/DataBuffer.h>
@@ -210,6 +211,14 @@ namespace Arc {
 
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
+
+    DIR *pDir;
+    pDir = opendir (dstpath.c_str());
+    if (!force && pDir != NULL)
+    {
+      logger.msg(INFO, "%s directory exist! This job downloaded previously.", dstpath);
+      return true;
+    }
 
     if (srcpath[srcpath.size() - 1] != '/')
       srcpath += '/';

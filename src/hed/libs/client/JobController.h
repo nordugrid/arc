@@ -60,7 +60,8 @@ namespace Arc {
     bool Get(const std::list<std::string>& status,
              const std::string& downloaddir,
              const bool keep,
-             const bool usejobname);
+             const bool usejobname,
+             bool force = true);
 
     bool Kill(const std::list<std::string>& status,
               const bool keep);
@@ -221,6 +222,7 @@ namespace Arc {
     DataHandle* data_destination;
     Config jobstorage;
     static Logger logger;
+    bool force;
   };
 
   //! Class responsible for loading JobController plugins

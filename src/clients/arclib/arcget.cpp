@@ -84,6 +84,11 @@ int RUNGET(main)(int argc, char **argv) {
                     istring("keep the files on the server (do not clean)"),
                     keep);
 
+  bool force = false;
+  options.AddOption('f', "force",
+                    istring("force download (download again)"),
+                    force);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -159,7 +164,7 @@ int RUNGET(main)(int argc, char **argv) {
   int retval = 0;
   for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
        it != jobcont.end(); it++)
-    if (!(*it)->Get(status, downloaddir, keep, usejobname))
+    if (!(*it)->Get(status, downloaddir, keep, usejobname, force))
       retval = 1;
 
   return retval;

@@ -5,6 +5,7 @@
 #endif
 
 #include <glib.h>
+#include <dirent.h>
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
@@ -71,6 +72,14 @@ namespace Arc {
 
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
+
+    DIR *pDir;
+    pDir = opendir (dstpath.c_str());
+    if (!force && pDir != NULL)
+    {
+      logger.msg(INFO, "%s directory exist! This job downloaded previously.", dstpath);
+      return true;
+    }
 
     if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/')) {
       srcpath += '/';
