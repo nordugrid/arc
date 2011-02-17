@@ -381,13 +381,13 @@ fi
 # If the new code path is selected...
 if [ "x$infosys_compat" != "xenable" ]; then
     if [ ! -f "$pkglibdir/InfosysHelper.pm" ]; then
-        error_echo "A-REX has to be installed, otherwise you need to set infosys_compat=enable"
+        error_echo "A-REX is not installed. For operation without A-REX, set infosys_compat=enable"
         do_exit_start 1
     fi
-    if [ "x$infosys_glue2_ldap" = "xenable" ]; then
-        error_echo "BDII4 is not yet compatible with GLUE2. Unset infosys_glue2_ldap option."
-        do_exit_start 1
-    fi
+fi
+if [ "x$infosys_glue2_ldap" = "xenable" ]; then
+    error_echo "BDII4 is not compatible with GLUE2. BDII >= 5.1.19 is required"
+    do_exit_start 1
 fi
 
 # Check for existance of core ldap schema

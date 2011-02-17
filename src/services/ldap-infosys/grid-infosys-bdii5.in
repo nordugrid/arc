@@ -405,9 +405,12 @@ fi
 # If the new code path is selected...
 if [ "x$infosys_compat" != "xenable" ]; then
     if [ ! -f "$pkglibdir/InfosysHelper.pm" ]; then
-        eval log_failure_msg "A-REX has to be installed, otherwise you need to set infosys_compat=enable"
+        eval log_failure_msg "A-REX is not installed. For operation without A-REX, set infosys_compat=enable"
         exit 1
     fi
+elif [ "x$infosys_glue2_ldap" = "xenable" ]; then
+    eval log_failure_msg "GLUE2 cannot be published when infosys_compat=enable"
+    exit 1
 fi
 
 # Check for existance of core ldap schema
