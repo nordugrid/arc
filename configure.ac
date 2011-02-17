@@ -30,7 +30,7 @@ dnl --with-docdir since older autoconf (<2.60) does not support --docdir
 AC_ARG_WITH([docdir],
 AC_HELP_STRING([--with-docdir=DIR],
   [Install documentation in DIR [[default: ${datadir}/doc]]]),
-  [case $withval in 
+  [case $withval in
     yes|no)
       AC_MSG_ERROR([Invalid DIR])
       ;;
@@ -1103,6 +1103,7 @@ AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
+AM_CONDITIONAL([CPPUNIT_ENABLED], test x$enables_cppunit = xyes)
 
 enables_srm_dmc=no
 if test "$enables_hed" = "yes"; then
@@ -2039,7 +2040,6 @@ GRIDFTPD service:   ${enables_gridftpd_service}
 ISIS service:       ${enables_isis_service}
 LDAP Info service:  ${enables_ldap_service}
 GIIS service:       ${enables_giis_service}
-#CHARON service:     ${enables_charon_service}
 HOPI service:       ${enables_hopi_service}
 STORAGE service:    ${enables_storage_service}
 JANITOR service:    ${enables_janitor_service}

@@ -1,6 +1,9 @@
+# These tests are currently disabled since they require binaries to be installed outside build tree. A new make target might be needed.
 #TESTS = DTRTest ProcessorTest DeliveryTest
 #check_PROGRAMS = $(TESTS)
 
+# Since the above lines are commented, the tests below will be tried compiled even if CPPUnit is not installed. Thus put them in a if block.
+if CPPUNIT_ENABLED
 DTRTest_SOURCES = $(top_srcdir)/src/Test.cpp DTRTest.cpp
 DTRTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 DTRTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) ../libdatastaging.la
@@ -18,3 +21,4 @@ noinst_PROGRAMS = DTRMemTest DTRTest ProcessorTest DeliveryTest
 DTRMemTest_SOURCES = DTRMemTest.cpp
 DTRMemTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 DTRMemTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) ../libdatastaging.la
+endif
