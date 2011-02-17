@@ -537,7 +537,7 @@ Reference to the ARC programming API. It is prepared with doxygen.
 %package gridmap-utils
 Summary:	NorduGrid authorization tools
 Group:		Applications/Internet
-Requires:	perl(Crypt-SSLeay)
+Requires:	perl(Crypt::SSLeay)
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
