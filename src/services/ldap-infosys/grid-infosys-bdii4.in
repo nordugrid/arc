@@ -1265,7 +1265,7 @@ start () {
 
     echo -n "Starting grid-infosys"
 
-    su -m $bdii_user -c "(
+    su -s "/bin/sh" -m $bdii_user -c "(
         export LANG=C
 
         #This is to make infoindex relocateable.
@@ -1304,12 +1304,12 @@ stop () {
     fi
 
     #Try to term all slapd processes.
-    su -m $bdii_user -c 'killall -15 bdii4-fwd bdii4-update' 2>/dev/null
+    su -s "/bin/sh" -m $bdii_user -c 'killall -15 bdii4-fwd bdii4-update' 2>/dev/null
     # ... and waiting provider scripts
-    su -m $bdii_user -c 'killall -15 arc-nordugrid-bdii-ldif' 2>/dev/null
+    su -s "/bin/sh" -m $bdii_user -c 'killall -15 arc-nordugrid-bdii-ldif' 2>/dev/null
     for port in $bdii_ports_write; do
         if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            su -m $bdii_user -c "kill -15 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
+            su -s "/bin/sh" -m $bdii_user -c "kill -15 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
         fi
     done
 
@@ -1318,12 +1318,12 @@ stop () {
     sleep 5
 
     #Send kill -9 to any remaining slapd processes.
-    su -m $bdii_user -c 'killall -9 bdii4-fwd bdii4-update' 2>/dev/null
+    su -s "/bin/sh" -m $bdii_user -c 'killall -9 bdii4-fwd bdii4-update' 2>/dev/null
     # ... and waiting provider scripts
-    su -m $bdii_user -c 'killall -9 arc-nordugrid-bdii-ldif' 2>/dev/null
+    su -s "/bin/sh" -m $bdii_user -c 'killall -9 arc-nordugrid-bdii-ldif' 2>/dev/null
     for port in $bdii_ports_write; do
         if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            su -m $bdii_user -c "kill -9 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
+            su -s "/bin/sh" -m $bdii_user -c "kill -9 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
         fi
     done
 

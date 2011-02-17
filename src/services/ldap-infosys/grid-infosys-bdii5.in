@@ -277,6 +277,20 @@ if [ ! -d `dirname $infosyslog` ]; then
     debug_echo "Could not find directory for arc infosys log: `dirname $infosyslog`, creating it now."
 fi
 
+# Use this command to change user, needs to be paired with -s "/bin/sh" to handle users without a shell
+if [ -x /sbin/runuser ] ; then
+    RUNUSER=runuser
+else
+    RUNUSER=su
+fi
+
+# If missing, we have a problem
+USERSHELL=${USERSHELL:-"/bin/sh"}
+if [ ! -x ${USERSHELL} ]; then
+    error_echo "Could not find /bin/sh"
+    exit 1
+fi
+
 # Get ldap user from passwd
 get_ldap_user
 bdii_user=${CONFIG_user:-$ldap_user}
@@ -1218,9 +1232,9 @@ start () {
         touch $bdii_log_file
     fi
     chown $bdii_user:$bdii_user $bdii_log_file
-    sudo -u $bdii_user cp ${bdii_db_config} $bdii_var_dir/db/
-    sudo -u $bdii_user cp ${bdii_db_config} $bdii_var_dir/db/arc
-    sudo -u $bdii_user cp ${bdii_db_config} $bdii_var_dir/db/glue2
+    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/" $bdii_user
+    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/arc" $bdii_user
+    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/glue2" $bdii_user
     #Need to remove / from mkpasswd, otherwise sed will break.
     pass=`/usr/bin/mkpasswd -s 0 2> /dev/null` || pass=$RANDOM$RANDOM
     pass=${pass//\//x}
@@ -1280,7 +1294,7 @@ start () {
         do_exit_start 1
     fi
 
-    sudo -u ${bdii_user} ${bdii_update_cmd} -c ${BDII_CONF} -d
+    $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
     touch ${update_lock_file}
 
     if [ ! -f ${bdii_var_dir}/bdii-update.pid ]; then
@@ -1347,14 +1361,14 @@ stop () {
     fi
 
     if [ -n "${update_pid}" ]; then
-        sudo -u ${bdii_user} kill -15 ${update_pid} 2>/dev/null
+        $RUNUSER -s "$USERSHELL" -c "kill -15 ${update_pid} 2>/dev/null" ${bdii_user}
 
         ps ${update_pid} >/dev/null 2>&1
         if [ $? = 0 ]; then
             sleep 2
             ps ${update_pid} >/dev/null 2>&1
             if [ $? = 0 ]; then
-                sudo -u ${bdii_user} kill -9 ${update_pid} 2>/dev/null
+                $RUNUSER -s "$USERSHELL" -c "kill -9 ${update_pid} 2>/dev/null" ${bdii_user}
                 sleep 2
                 ps ${update_pid} >/dev/null 2>&1
                 if [ $? = 0 ]; then
@@ -1382,13 +1396,13 @@ stop () {
     fi
 
     if [ -n "${slapd_pid}" ]; then
-        sudo -u ${bdii_user} kill -15 ${slapd_pid} 2>/dev/null
+        $RUNUSER -s "$USERSHELL" -c "kill -15 ${slapd_pid} 2>/dev/null" ${bdii_user}
         ps ${slapd_pid} >/dev/null 2>&1
         if [ $? = 0 ]; then
             sleep 2
             ps ${slapd_pid} >/dev/null 2>&1
             if [ $? = 0 ]; then
-                sudo -u ${bdii_user} -c kill -9 ${slapd_pid} 2>/dev/null
+                $RUNUSER -s "$USERSHELL" -c "kill -9 ${slapd_pid} 2>/dev/null" ${bdii_user}
                 sleep 2
                 ps ${slapd_pid} >/dev/null 2>&1
                 if [ $? = 0 ]; then
