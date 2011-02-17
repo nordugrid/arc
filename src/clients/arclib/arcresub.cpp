@@ -248,7 +248,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     resubmittedJobs.push_back(Arc::Job());
 
     std::list<Arc::JobDescription> jobdescs;
-    Arc::JobDescription::Parse(it->JobDescription, jobdescs); // Do not check for validity. We are only interested in that the outgoing job description is valid.
+    Arc::JobDescription::Parse(it->JobDescriptionDocument, jobdescs); // Do not check for validity. We are only interested in that the outgoing job description is valid.
     if (jobdescs.empty()) {
       std::cout << Arc::IString("Job resubmission failed, unable to parse obtained job description") << std::endl;
       resubmittedJobs.pop_back();

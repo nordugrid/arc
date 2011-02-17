@@ -796,7 +796,6 @@ namespace Arc {
 
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
                                                    const bool getlocal) {
-
     GetJobInformation();
 
     // Only selected jobs with specified status
@@ -804,102 +803,35 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!status.empty() && !it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
         continue;
       }
 
       if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State()) == status.end())
+                                       it->State()) == status.end()) {
         continue;
+      }
+
       gettable.push_back(*it);
     }
 
-    //First try to get descriptions from local job file
-    if (getlocal) {
-      logger.msg(VERBOSE, "Getting job descriptions from local job file");
-      CheckLocalDescription(gettable);
-    }
-    else
-      logger.msg(VERBOSE, "Disregarding job descriptions from local job file");
-
-    // Try to get description from cluster
+    // Get job description for those jobs without one.
     for (std::list<Job>::iterator it = gettable.begin();
          it != gettable.end();) {
-      if (!it->JobDescription.empty()) {
+      if (!it->JobDescriptionDocument.empty()) {
         it++;
         continue;
       }
-      if (GetJobDescription(*it, it->JobDescription)) {
-        logger.msg(VERBOSE, "Got job description for %s", it->JobID.str());
+      if (GetJobDescription(*it, it->JobDescriptionDocument)) {
+        logger.msg(VERBOSE, "Job description retrieved from execution service for job (%s)", it->IDFromEndpoint.str());
         it++;
       }
       else {
-        logger.msg(INFO, "Failed getting job description for %s", it->JobID.str());
+        logger.msg(INFO, "Failed retrieving job description for job (%s)", it->IDFromEndpoint.str());
         it = gettable.erase(it);
       }
     }
+
     return gettable;
-
-  }
-
-  void JobController::CheckLocalDescription(std::list<Job>& jobs) {
-    for (std::list<Job>::iterator it = jobs.begin();
-         it != jobs.end();) {
-      // Search for jobids
-      XMLNodeList xmljobs;
-      xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" + it->JobID.str() + "']", NS());
-      if (xmljobs.empty()) { // Included for backwards compatibility.
-        xmljobs = jobstorage.XPathLookup("//Job[JobID='" + it->JobID.str() + "']", NS());
-      }
-
-      if (xmljobs.empty()) {
-        logger.msg(INFO, "Job not found in job list: %s", it->JobID.str());
-        it++;
-        continue;
-      }
-      XMLNode& xmljob = *xmljobs.begin();
-
-      if (xmljob["JobDescription"]) {
-        std::list<JobDescription> jobdescs;
-        if (JobDescription::Parse((std::string)xmljob["JobDescription"], jobdescs))
-          logger.msg(VERBOSE, "Valid job description found for: %s", it->JobID.str());
-        else {
-          logger.msg(INFO, "Invalid job description found for: %s", it->JobID.str());
-          it++;
-          continue;
-        }
-
-        // Check checksums of local input files
-        bool CKSUM = true;
-        int size = xmljob["LocalInputFiles"].Size();
-        for (int i = 0; i < size; i++) {
-          const std::string file = (std::string)xmljob["LocalInputFiles"]["File"][i]["Source"];
-          const std::string cksum_old = (std::string)xmljob["LocalInputFiles"]["File"][i]["CheckSum"];
-          const std::string cksum_new = Submitter::GetCksum(file, usercfg);
-          if (cksum_old != cksum_new) {
-            logger.msg(WARNING, "Checksum of input file %s has changed.", file);
-            CKSUM = false;
-          }
-          else
-            logger.msg(VERBOSE, "Stored and new checksum of input file %s are identical.", file);
-        }
-        // Push_back job and job descriptions
-        if (CKSUM) {
-          logger.msg(INFO, "Job description for %s retrieved locally", it->JobID.str());
-          it->JobDescription = (std::string)xmljob["JobDescription"];
-          it++;
-        }
-        else {
-          logger.msg(WARNING, "Job %s can not be resubmitted", it->JobID.str());
-          it = jobs.erase(it);
-        }
-      }
-      else {
-        logger.msg(INFO, "Job description for %s could not be retrieved locally", it->JobID.str());
-        it++;
-      }
-    } //end loop over jobs
-    return;
   }
 
   JobControllerLoader::JobControllerLoader()

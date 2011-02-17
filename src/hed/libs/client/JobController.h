@@ -194,8 +194,6 @@ namespace Arc {
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
                                       const bool getlocal);
 
-    void CheckLocalDescription(std::list<Job>& jobs);
-
     void FetchJobs(const std::list<std::string>& status, std::vector<const Job*>& jobs);
 
     const std::list<Job>& GetJobs() const {
