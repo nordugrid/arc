@@ -909,7 +909,6 @@ create_arc_ldif_generator () {
 	BEGIN { unshift @INC, '$pkglibdir'; }
 	use InfosysHelper;
 	exit 1 unless InfosysHelper::ldifIsReady('$arc_runtime_config', '$max_cycle', 1);
-	system('$ldif_script');
 	EOF
 
     if [ "x$infosys_nordugrid" = "xenable" ]; then
