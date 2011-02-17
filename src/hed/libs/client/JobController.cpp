@@ -379,7 +379,7 @@ namespace Arc {
         continue;
       }
 
-      toberemoved.push_back((*it)-IDFromEndpoint);
+      toberemoved.push_back((*it)->IDFromEndpoint);
       jobstore.erase(*it);
     }
 
