@@ -169,7 +169,7 @@ namespace Arc {
       logger.msg(ERROR, "Xrsl attribute join is set but attribute stdout is not set");
       return false;
     }
-    
+
     if (!j.Application.Error.empty()) {
       logger.msg(ERROR, "Xrsl attribute join is set but attribute stderr is also set");
       return false;
@@ -219,7 +219,7 @@ namespace Arc {
       if (!ParseCacheAttribute(jobdescs.back())) {
         return false;
       }
-      if (!ParseJoinAttribute(jobdescs.back())) {
+      if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(jobdescs.back())) { // join is a client side attribute
         return false;
       }
       for (std::list<JobDescription>::iterator itJob = jobdescs.back().GetAlternatives().begin();
@@ -233,7 +233,7 @@ namespace Arc {
         if (!ParseCacheAttribute(*itJob)) {
           return false;
         }
-        if (!ParseJoinAttribute(*itJob)) {
+        if (dialect != "GRIDMANAGER" && !ParseJoinAttribute(*itJob)) { // join is a client side attribute
           return false;
         }
       }
@@ -841,6 +841,11 @@ namespace Arc {
       }
 
       if (c->Attr() == "join") {
+        if (dialect == "GRIDMANAGER") {
+          // Ignore the join attribute for GM (it is a client side attribute).
+          return true;
+        }
+
         std::string join;
         if (!SingleValue(c, join)) {
           return false;
@@ -853,7 +858,7 @@ namespace Arc {
              it != j.GetAlternatives().end(); it++) {
           it->OtherAttributes["nordugrid:xrsl;join"] = join;
         }
-  
+
         return true;
       }
 
@@ -1027,7 +1032,7 @@ namespace Arc {
              it != j.GetAlternatives().end(); it++) {
           it->Application.DryRun = j.Application.DryRun;
         }
-        
+
         return true;
       }
 
@@ -1236,7 +1241,7 @@ namespace Arc {
       l->Add(new RSLLiteral(j.Application.Input));
       r.Add(new RSLCondition("stdin", RSLEqual, l));
     }
-    
+
     if (!j.Application.Output.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.Application.Output));
