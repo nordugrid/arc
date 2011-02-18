@@ -1018,19 +1018,19 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
   std::string rsl_fname=user->ControlDir()+"/job."+job_id+".description";
   int h=Arc::FileOpen(rsl_fname.c_str(),O_WRONLY|O_CREAT,0600);
   if(h == -1) {
-    error_description="Failed to open job description file.";
+    error_description="Failed to open job description file " + rsl_fname;
     return 1;
   };
   if(::lseek(h,offset,SEEK_SET) != offset) {
     ::close(h);
-    error_description="Failed to seek in job description file.";
+    error_description="Failed to seek in job description file " + rsl_fname;
     return 1;
   };
   for(;size;) {
     ssize_t l = ::write(h,buf,size);
     if(l <= 0) {
       ::close(h);
-      error_description="Failed to write job description file.";
+      error_description="Failed to write job description file " + rsl_fname;
       return 1;
     };
     size-=l; buf+=l;
@@ -1038,8 +1038,8 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
   fix_file_owner(rsl_fname,*user);
   ::close(h);
   // remove desc file used to claim job id, if different from this one
-  if (user->ControlDir() != gm_dirs_info.at(gm_dirs_info.size()-1).control_dir) {
-    rsl_fname=gm_dirs_info.at(gm_dirs_info.size()-1).control_dir+"/job."+job_id+".description";
+  if (user->ControlDir() != gm_dirs_info.at(0).control_dir) {
+    rsl_fname=gm_dirs_info.at(0).control_dir+"/job."+job_id+".description";
     remove(rsl_fname.c_str());
   }
   return 0;
