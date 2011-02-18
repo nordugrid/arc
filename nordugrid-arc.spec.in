@@ -359,6 +359,7 @@ Summary:	ARC Remote EXecution service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
+Requires:	%{name}-plugins-base = %{version}-%{release}
 Requires:	mktemp
 Requires:	python-twisted-core
 Requires:	python-twisted-web
