@@ -15,6 +15,7 @@ namespace Arc {
   class Job;
   class JobDescription;
   class Logger;
+  class URL;
   class UserConfig;
 
   class Broker
@@ -51,7 +52,7 @@ namespace Arc {
      *        addition to the Broker.
      * @param jobdesc JobDescription object holding requirements.
      **/
-    void PreFilterTargets(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc);
+    void PreFilterTargets(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, const std::list<URL>& rejectTargets = std::list<URL>());
 
     bool Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, Job& job);
 

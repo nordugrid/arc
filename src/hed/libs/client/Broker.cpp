@@ -25,13 +25,30 @@ namespace Arc {
   Broker::~Broker() {}
 
   void Broker::PreFilterTargets(std::list<ExecutionTarget>& targets,
-                                const JobDescription& jobdesc) {
+                                const JobDescription& jobdesc,
+                                const std::list<URL>& rejectTargets) {
     PossibleTargets.clear();
     job = &jobdesc;
 
     for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
       logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
+
+      if (!rejectTargets.empty()) {
+        std::list<URL>::const_iterator it = rejectTargets.begin();
+        for (; it != rejectTargets.end(); ++it) {
+          if ((*it) == target->url) {
+            // Target should be dropped.
+            break;
+          }
+        }
+
+        // If loop did not reach the end, target should be dropped.
+        if (it != rejectTargets.end()) {
+          logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->url.str());
+          continue;
+        }
+      }
 
       std::map<std::string, std::string>::const_iterator itAtt;
       if ((itAtt = job->OtherAttributes.find("nordugrid:broker;reject_queue")) != job->OtherAttributes.end()) {

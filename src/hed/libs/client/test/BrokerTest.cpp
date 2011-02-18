@@ -22,6 +22,7 @@ class BrokerTest
   CPPUNIT_TEST(BenckmarkCPUWallTimeTest);
   CPPUNIT_TEST(RegisterJobsubmissionTest);
   CPPUNIT_TEST(RegresssionTestMultipleDifferentJobDescriptions);
+  CPPUNIT_TEST(RejectTargetsTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -33,6 +34,7 @@ public:
   void BenckmarkCPUWallTimeTest();
   void RegisterJobsubmissionTest();
   void RegresssionTestMultipleDifferentJobDescriptions();
+  void RejectTargetsTest();
 
   class TestBroker
     : public Arc::Broker {
@@ -201,6 +203,35 @@ void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
   tb.PreFilterTargets(targets, backJD);
   CPPUNIT_ASSERT_EQUAL(1, (int)tb.GetTargets().size());
   CPPUNIT_ASSERT_EQUAL((std::string)"back", tb.GetTargets().front()->ComputingShareName);
+}
+
+void BrokerTest::RejectTargetsTest() {
+  Arc::JobDescription j;
+  j.Application.Executable.Name = "executable";
+
+  std::list<Arc::ExecutionTarget> targets;
+  targets.push_back(Arc::ExecutionTarget());
+  targets.push_back(Arc::ExecutionTarget());
+  targets.front().url = Arc::URL("http://localhost/test1");
+  targets.front().HealthState = "ok";
+  targets.back().url = Arc::URL("http://localhost/test2");
+  targets.back().HealthState = "ok";
+
+  // Rejecting no targets.
+  tb.PreFilterTargets(targets, j);
+  CPPUNIT_ASSERT_EQUAL(2, (int)tb.GetTargets().size());
+
+  // Reject test1 target.
+  std::list<Arc::URL> rejectTargets;
+  rejectTargets.push_back(targets.front().url);
+  tb.PreFilterTargets(targets, j, rejectTargets);
+  CPPUNIT_ASSERT_EQUAL(1, (int)tb.GetTargets().size());
+  CPPUNIT_ASSERT_EQUAL(targets.back().url, tb.GetTargets().front()->url);
+
+  // Reject both targets.
+  rejectTargets.push_back(targets.back().url);
+  tb.PreFilterTargets(targets, j, rejectTargets);
+  CPPUNIT_ASSERT_EQUAL(0, (int)tb.GetTargets().size());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(BrokerTest);
