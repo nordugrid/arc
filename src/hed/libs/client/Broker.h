@@ -6,6 +6,7 @@
 #include <list>
 #include <string>
 
+#include <arc/URL.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 

@@ -8,7 +8,6 @@
 
 #include <arc/StringConv.h>
 #include <arc/ArcConfig.h>
-#include <arc/URL.h>
 #include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
