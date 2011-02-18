@@ -114,13 +114,21 @@ namespace Arc {
     Submitter* GetSubmitter(const UserConfig& ucfg) const;
 
     bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
-      return GetSubmitter(ucfg)->Submit(jobdesc, job);
+      Submitter* s = GetSubmitter(ucfg);
+      if (s == NULL) {
+        return false;
+      }
+      return s->Submit(jobdesc, job);
     }
 
     bool Migrate(const UserConfig& ucfg, const URL& jobid,
                  const JobDescription& jobdesc, bool forcemigration,
                  Job& job) const {
-      return GetSubmitter(ucfg)->Migrate(jobid, jobdesc, forcemigration, job);
+      Submitter* s = GetSubmitter(ucfg);
+      if (s == NULL) {
+        return false;
+      }
+      return s->Migrate(jobid, jobdesc, forcemigration, job);
     }
 
 

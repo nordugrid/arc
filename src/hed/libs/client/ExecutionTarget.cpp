@@ -220,6 +220,9 @@ namespace Arc {
 
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
     Submitter* s = (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour, ucfg);
+    if (s == NULL) {
+      return s;
+    }
     s->SetSubmissionTarget(*this);
     return s;
   }
@@ -645,7 +648,5 @@ namespace Arc {
     out << std::endl;
 
   } // end print
-
-
 
 } // namespace Arc
