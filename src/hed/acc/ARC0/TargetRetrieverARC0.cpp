@@ -19,16 +19,17 @@
 
 namespace Arc {
 
-  struct ThreadArg {
+  class ThreadArgARC0 {
+  public:
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
     bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverARC0::CreateThreadArg(TargetGenerator& mom,
+  ThreadArgARC0* TargetRetrieverARC0::CreateThreadArg(TargetGenerator& mom,
                                                   bool isExecutionTarget) {
-    ThreadArg *arg = new ThreadArg;
+    ThreadArgARC0 *arg = new ThreadArgARC0;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
@@ -95,7 +96,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, true);
+      ThreadArgARC0 *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter())))
@@ -123,7 +124,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, false);
+      ThreadArgARC0 *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter())))
@@ -132,7 +133,7 @@ namespace Arc {
   }
 
   void TargetRetrieverARC0::QueryIndex(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgARC0 *thrarg = (ThreadArgARC0*)arg;
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 
@@ -219,7 +220,7 @@ namespace Arc {
   }
 
   void TargetRetrieverARC0::InterrogateTarget(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgARC0 *thrarg = (ThreadArgARC0*)arg;
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 

@@ -21,16 +21,17 @@
 
 namespace Arc {
 
-  struct ThreadArg {
+  class ThreadArgUNICORE {
+  public:
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
     bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverUNICORE::CreateThreadArg(TargetGenerator& mom,
+  ThreadArgUNICORE* TargetRetrieverUNICORE::CreateThreadArg(TargetGenerator& mom,
                                                      bool isExecutionTarget) {
-    ThreadArg *arg = new ThreadArg;
+    ThreadArgUNICORE *arg = new ThreadArgUNICORE;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
@@ -85,7 +86,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, true);
+      ThreadArgUNICORE *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter()))) {
@@ -114,7 +115,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, false);
+      ThreadArgUNICORE *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter()))) {
@@ -124,7 +125,7 @@ namespace Arc {
   }
 
   void TargetRetrieverUNICORE::QueryIndex(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgUNICORE *thrarg = (ThreadArgUNICORE*)arg;
 
     if (!thrarg->isExecutionTarget) {
       delete thrarg;
@@ -153,7 +154,7 @@ namespace Arc {
   }
 
   void TargetRetrieverUNICORE::InterrogateTarget(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgUNICORE *thrarg = (ThreadArgUNICORE*)arg;
 
     if (!thrarg->isExecutionTarget) {
       delete thrarg;

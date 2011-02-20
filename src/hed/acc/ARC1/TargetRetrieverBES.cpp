@@ -7,6 +7,7 @@
 #include <arc/client/TargetGenerator.h>
 
 #include "TargetRetrieverBES.h"
+#include "TargetRetrieverARC1.h"
 
 namespace Arc {
 
@@ -32,9 +33,9 @@ namespace Arc {
   Plugin* TargetRetrieverBES::Instance(PluginArgument *arg) {
     TargetRetrieverPluginArgument *trarg =
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
-    if (!trarg)
-      return NULL;
-    return new TargetRetrieverBES(*trarg, *trarg, *trarg);
+    if (!trarg) return NULL;
+    //return new TargetRetrieverBES(*trarg, *trarg, *trarg);
+    return new TargetRetrieverARC1(*trarg, *trarg, *trarg, "BES");
   }
 
   void TargetRetrieverBES::GetExecutionTargets(TargetGenerator& mom) {

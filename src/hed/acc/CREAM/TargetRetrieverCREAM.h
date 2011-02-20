@@ -9,7 +9,7 @@ namespace Arc {
 
   class Logger;
 
-  struct ThreadArg;
+  class ThreadArgCREAM;
 
   class TargetRetrieverCREAM
     : public TargetRetriever {
@@ -27,7 +27,7 @@ namespace Arc {
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
 
-    ThreadArg* CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget);
+    ThreadArgCREAM* CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget);
 
     static Logger logger;
   };

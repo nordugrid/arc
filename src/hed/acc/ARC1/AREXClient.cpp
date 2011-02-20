@@ -326,16 +326,21 @@ namespace Arc {
   }
 
   bool AREXClient::sstat(XMLNode& response) {
-    if(!arex_enabled) return false;
 
-    action = "QueryResourceProperties";
-    logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
+    if(arex_enabled) {
+      action = "QueryResourceProperties";
+      logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
 
-    PayloadSOAP req(*InformationRequest(XMLNode("<XPathQuery>//glue:Services/glue:ComputingService</XPathQuery>")).SOAP());
-
-    if (!process(req, false, response))
-      return false;
-
+      PayloadSOAP req(*InformationRequest(XMLNode("<XPathQuery>//glue:Services/glue:ComputingService</XPathQuery>")).SOAP());
+      if (!process(req, false, response)) return false;
+    } else {
+      // GetFactoryAttributesDocument
+      PayloadSOAP req(arex_ns);
+      action = "GetFactoryAttributesDocument";
+      req.NewChild("bes-factory:" + action);
+      WSAHeader(req).Action(BES_FACTORY_ACTIONS_BASE_URL + action);
+      if (!process(req, false, response)) return false;
+    }
     return true;
   }
 

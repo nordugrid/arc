@@ -19,20 +19,23 @@
 
 namespace Arc {
 
-  struct ThreadArg {
+  class ThreadArgARC1 {
+  public:
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
     bool isExecutionTarget;
+    std::string flavour;
   };
 
-  ThreadArg* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
+  ThreadArgARC1* TargetRetrieverARC1::CreateThreadArg(TargetGenerator& mom,
                                                   bool isExecutionTarget) {
-    ThreadArg *arg = new ThreadArg;
+    ThreadArgARC1 *arg = new ThreadArgARC1;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
     arg->isExecutionTarget = isExecutionTarget;
+    arg->flavour = flavour;
     return arg;
   }
 
@@ -50,8 +53,9 @@ namespace Arc {
 
   TargetRetrieverARC1::TargetRetrieverARC1(const UserConfig& usercfg,
                                            const std::string& service,
-                                           ServiceType st)
-    : TargetRetriever(usercfg, CreateURL(service, st), st, "ARC1") {}
+                                           ServiceType st,
+                                           const std::string& flav)
+    : TargetRetriever(usercfg, CreateURL(service, st), st, flav) {}
 
   TargetRetrieverARC1::~TargetRetrieverARC1() {}
 
@@ -81,9 +85,10 @@ namespace Arc {
       }
     }
 
+    if (serviceType == INDEX && flavour != "ARC1") return;
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, true);
+      ThreadArgARC1 *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter()))) {
@@ -96,6 +101,7 @@ namespace Arc {
     logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
                flavour, tostring(serviceType), url.str());
 
+    if(flavour != "ARC1") return;
     for (std::list<std::string>::const_iterator it =
            usercfg.GetRejectedServices(serviceType).begin();
          it != usercfg.GetRejectedServices(serviceType).end(); it++) {
@@ -112,7 +118,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, false);
+      ThreadArgARC1 *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter()))) {
@@ -122,7 +128,7 @@ namespace Arc {
   }
 
   void TargetRetrieverARC1::QueryIndex(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgARC1 *thrarg = (ThreadArgARC1*)arg;
 
     MCCConfig cfg;
     thrarg->usercfg->ApplyToConfig(cfg);
@@ -149,19 +155,42 @@ namespace Arc {
   }
 
   void TargetRetrieverARC1::InterrogateTarget(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgARC1 *thrarg = (ThreadArgARC1*)arg;
 
     if (thrarg->isExecutionTarget) {
-      logger.msg(DEBUG, "Collecting ExecutionTarget (A-REX) information.");
+      logger.msg(DEBUG, "Collecting ExecutionTarget (A-REX/BES) information.");
       MCCConfig cfg;
       thrarg->usercfg->ApplyToConfig(cfg);
-      AREXClient ac(thrarg->url, cfg, thrarg->usercfg->Timeout());
+      AREXClient ac(thrarg->url, cfg, thrarg->usercfg->Timeout(), thrarg->flavour == "ARC1");
       XMLNode servicesQueryResponse;
       if (!ac.sstat(servicesQueryResponse)) {
         delete thrarg;
         return;
       }
 
+      if(thrarg->flavour != "ARC1") {
+        // Doing plain BES request first
+        for(XMLNode ext = servicesQueryResponse["FactoryResourceAttributesDocument"]["BESExtension"];(bool)ext;++ext) {
+          if((std::string)ext == "http://www.nordugrid.org/schemas/a-rex") {
+            // Because we are doing all that only for finding proper plugin 
+            // code quietly exits. Otherwise it could switch to ARC1.
+            delete thrarg;
+            return;
+          };
+        };
+        ExecutionTarget target;
+        target.GridFlavour = thrarg->flavour;
+        target.Cluster = thrarg->url;
+        target.url = thrarg->url;
+        target.InterfaceName = "BES";
+        target.Implementor = "unknown";
+        target.DomainName = thrarg->url.Host();
+        target.HealthState = "ok";
+        logger.msg(VERBOSE, "Generating BES target: %s", target.Cluster.str());
+        thrarg->mom->AddTarget(target);
+        delete thrarg;
+        return;
+      }
       std::list<ExecutionTarget> targets;
       ExtractTargets(thrarg->url, servicesQueryResponse, targets);
       for (std::list<ExecutionTarget>::const_iterator it = targets.begin(); it != targets.end(); it++) {

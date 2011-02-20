@@ -19,16 +19,17 @@
 
 namespace Arc {
 
-  struct ThreadArg {
+  class ThreadArgCREAM {
+  public:
     TargetGenerator *mom;
     const UserConfig *usercfg;
     URL url;
     bool isExecutionTarget;
   };
 
-  ThreadArg* TargetRetrieverCREAM::CreateThreadArg(TargetGenerator& mom,
+  ThreadArgCREAM* TargetRetrieverCREAM::CreateThreadArg(TargetGenerator& mom,
                                                    bool isExecutionTarget) {
-    ThreadArg *arg = new ThreadArg;
+    ThreadArgCREAM *arg = new ThreadArgCREAM;
     arg->mom = &mom;
     arg->usercfg = &usercfg;
     arg->url = url;
@@ -94,7 +95,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, true);
+      ThreadArgCREAM *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter()))) {
@@ -123,7 +124,7 @@ namespace Arc {
 
     if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
         serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
-      ThreadArg *arg = CreateThreadArg(mom, false);
+      ThreadArgCREAM *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
                                 arg, &(mom.ServiceCounter()))) {
@@ -133,7 +134,7 @@ namespace Arc {
   }
 
   void TargetRetrieverCREAM::QueryIndex(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgCREAM *thrarg = (ThreadArgCREAM*)arg;
 
     if (!thrarg->isExecutionTarget) {
       delete thrarg;
@@ -222,7 +223,7 @@ namespace Arc {
   }
 
   void TargetRetrieverCREAM::InterrogateTarget(void *arg) {
-    ThreadArg *thrarg = (ThreadArg*)arg;
+    ThreadArgCREAM *thrarg = (ThreadArgCREAM*)arg;
 
     if (!thrarg->isExecutionTarget) {
       delete thrarg;

@@ -140,6 +140,9 @@ namespace Arc {
     static const std::string mainStateModel;
 
     bool delegation(XMLNode& operation);
+
+    void arexFeatures(bool val) { arex_enabled = val; };
+
   private:
     bool process(PayloadSOAP& req, bool delegate, XMLNode& response);
 

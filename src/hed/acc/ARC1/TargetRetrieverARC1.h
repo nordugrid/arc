@@ -10,26 +10,30 @@ namespace Arc {
 
   class Logger;
 
-  struct ThreadArg;
+  class ThreadArgARC1;
+
+  class TargetRetrieverBES;
 
   class TargetRetrieverARC1
     : public TargetRetriever {
+  friend class TargetRetrieverBES;
   private:
     TargetRetrieverARC1(const UserConfig& usercfg,
-                        const std::string& service, ServiceType st);
+                        const std::string& service, ServiceType st,
+                        const std::string& flavor = "ARC1");
   public:
     ~TargetRetrieverARC1();
     virtual void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}
     virtual void GetExecutionTargets(TargetGenerator& mom);
     virtual void GetJobs(TargetGenerator& mom);
     static Plugin* Instance(PluginArgument *arg);
-    static void ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets);
 
   private:
+    static void ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets);
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
 
-    ThreadArg* CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget);
+    ThreadArgARC1* CreateThreadArg(TargetGenerator& mom, bool isExecutionTarget);
 
     static Logger logger;
   };
