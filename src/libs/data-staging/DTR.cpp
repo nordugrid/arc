@@ -49,7 +49,8 @@ namespace DataStaging {
        created(time(NULL)),
        cancel_request(false),
        current_owner(GENERATOR),
-       logger(log)
+       logger(log),
+       log_destinations(logger->getDestinations())
   {
     if (!logger) {
       // use root logger if none is supplied
@@ -123,6 +124,7 @@ namespace DataStaging {
       cancel_request(dtr.cancel_request),
       current_owner(dtr.current_owner),
       logger(dtr.logger),
+      log_destinations(dtr.log_destinations),
       proc_callback(dtr.proc_callback)
   {
     // set insecure by default. Real value will come from configuration
@@ -169,6 +171,7 @@ namespace DataStaging {
     cancel_request = dtr.cancel_request;
     current_owner = dtr.current_owner;
     logger = dtr.logger;
+    log_destinations = dtr.log_destinations;
     proc_callback = dtr.proc_callback;
     return *this;
   }

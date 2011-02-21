@@ -237,6 +237,11 @@ namespace DataStaging {
        * in the Generator and a pointer passed in the DTR constructor. */
       Arc::Logger * logger;
 
+      /* Log Destinations. This list is kept here so that the Logger can be
+       * connected and disconnected in threads which have their own root logger
+       * to avoid duplicate messages */
+      std::list<Arc::LogDestination*> log_destinations;
+
       /* Object with callback methods called when DTR moves between
        * different processes */
       std::map<StagingProcesses,std::list<DTRCallback*> > proc_callback;
@@ -394,6 +399,11 @@ namespace DataStaging {
 
      // Get Logger object, so that processes can log to this DTR's log
      Arc::Logger * get_logger() const { return logger; };
+
+     // Connect log destinations to logger. Only needs to be done after disconnect()
+     void connect_logger() { logger->addDestinations(log_destinations); };
+     // Disconnect log destinations from logger.
+     void disconnect_logger() { logger->removeDestinations(); };
 
      // Pass the DTR from one process to another. Protected by lock.
      void push(StagingProcesses new_owner);

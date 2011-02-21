@@ -24,6 +24,11 @@ namespace DataStaging {
     // disconnect this thread's root logger
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
+    Arc::Logger::getRootLogger().addDestinations(request->get_logger()->getDestinations());
+    // now disconnect the DTR logger - the root logger is enabled and we
+    // don't want duplicate messages. IMPORTANT: the DTR logger must be
+    // re-enabled at the end of the thread
+    request->disconnect_logger();
   }
 
 
@@ -51,6 +56,7 @@ namespace DataStaging {
                             DTRErrorStatus::ERROR_DESTINATION,
                             "Failed to create cache");
       request->set_status(DTRStatus::CACHE_CHECKED);
+      request->connect_logger();
       request->push(SCHEDULER);
       return;
     }
@@ -87,6 +93,7 @@ namespace DataStaging {
           request->get_logger()->msg(Arc::INFO, "DTR %s: Will wait around %is", request->get_short_id(), cache_wait_time);
           request->set_process_time(cache_wait_period);
 
+          request->connect_logger();
           request->push(SCHEDULER);
           return;
         }
@@ -162,6 +169,7 @@ namespace DataStaging {
       break;
     }
     request->set_status(DTRStatus::CACHE_CHECKED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -184,6 +192,7 @@ namespace DataStaging {
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str());
         request->set_status(DTRStatus::RESOLVED);
+        request->connect_logger();
         request->push(SCHEDULER);
         return;
       }
@@ -198,6 +207,7 @@ namespace DataStaging {
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Could not resolve any destination replicas for " + request->get_destination()->str());
         request->set_status(DTRStatus::RESOLVED);
+        request->connect_logger();
         request->push(SCHEDULER);
         return;
       }
@@ -212,6 +222,7 @@ namespace DataStaging {
                                   DTRErrorStatus::NO_ERROR_LOCATION,
                                   "No locations for destination different from source found for " + request->get_destination()->str());
         request->set_status(DTRStatus::RESOLVED);
+        request->connect_logger();
         request->push(SCHEDULER);
         return;
       }
@@ -229,6 +240,7 @@ namespace DataStaging {
     }
     // finished with resolving - send back to scheduler
     request->set_status(DTRStatus::RESOLVED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -268,6 +280,7 @@ namespace DataStaging {
     }
     // finished querying - send back to scheduler
     request->set_status(DTRStatus::REPLICA_QUERIED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -339,6 +352,7 @@ namespace DataStaging {
                                 "Failed to pre-clean destination " + request->get_destination()->str());
     }
     request->set_status(DTRStatus::PRE_CLEANED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -384,6 +398,7 @@ namespace DataStaging {
     }
     if (request->error()) {
       request->set_status(DTRStatus::STAGED_PREPARED);
+      request->connect_logger();
       request->push(SCHEDULER);
       return;
     }
@@ -421,6 +436,7 @@ namespace DataStaging {
     // set to staged prepared if we don't have to wait for source or destination
     if (request->get_status() != DTRStatus::STAGING_PREPARING_WAIT)
       request->set_status(DTRStatus::STAGED_PREPARED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -459,6 +475,7 @@ namespace DataStaging {
       }
     }
     request->set_status(DTRStatus::REQUEST_RELEASED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -494,6 +511,7 @@ namespace DataStaging {
     }
     // finished with registration - send back to scheduler
     request->set_status(DTRStatus::REPLICA_REGISTERED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
@@ -528,6 +546,7 @@ namespace DataStaging {
     if (request->error() || request->cancel_requested() || request->get_cache_state() == CACHE_NOT_USED) {
       (request->error() || request->cancel_requested()) ? cache.StopAndDelete(canonic_url) : cache.Stop(canonic_url);
       request->set_status(DTRStatus::CACHE_PROCESSED);
+      request->connect_logger();
       request->push(SCHEDULER);
       return;
     }
@@ -551,6 +570,7 @@ namespace DataStaging {
                                 DTRErrorStatus::ERROR_DESTINATION,
                                 "Failed to create temporary file for cache configuration at " + conf_file+" - "+Arc::StrError(errno));
       request->set_status(DTRStatus::CACHE_PROCESSED);
+      request->connect_logger();
       request->push(SCHEDULER);
       cache.Stop(canonic_url);
       return;
@@ -629,6 +649,7 @@ namespace DataStaging {
     ::unlink(conf_file.c_str());
     cache.Stop(canonic_url);
     request->set_status(DTRStatus::CACHE_PROCESSED);
+    request->connect_logger();
     request->push(SCHEDULER);
   }
 
