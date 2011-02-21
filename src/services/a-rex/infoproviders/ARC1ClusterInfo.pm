@@ -568,7 +568,7 @@ sub collect($) {
         $csv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
 
         my $nshares = keys %{$config->{shares}};
-        $csv->{Complexity} = "endpoint=1,share=$nshares,resource=1";
+        $csv->{Complexity} = "endpoint=1,share=$nshares,resource=".(scalar @allxenvs);
 
         $csv->{AllJobs} = $gmtotalcount{totaljobs} || 0;
         # OBS: Finished/failed/deleted jobs are not counted
