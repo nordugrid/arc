@@ -312,7 +312,10 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       stdout_str_(NULL),
       stderr_str_(NULL),
       stdin_str_(NULL),
-      pid_(0),
+      stdout_keep_(false),
+      stderr_keep_(false),
+      stdin_keep_(false),
+      pid_(NULL),
       argv_(argv),
       initializer_func_(NULL),
       initializer_arg_(NULL),
@@ -643,23 +646,19 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
   }
 
   void Run::AssignStdout(std::string& str) {
-    if (!running_)
-      stdout_str_ = &str;
+    if (!running_) stdout_str_ = &str;
   }
 
   void Run::AssignStderr(std::string& str) {
-    if (!running_)
-      stderr_str_ = &str;
+    if (!running_) stderr_str_ = &str;
   }
 
   void Run::AssignStdin(std::string& str) {
-    if (!running_)
-      stdin_str_ = &str;
+    if (!running_) stdin_str_ = &str;
   }
 
   void Run::KeepStdout(bool keep) {
-    if (!running_)
-      stdout_keep_ = keep;
+    if (!running_) stdout_keep_ = keep;
   }
 
   void Run::KeepStderr(bool keep) {
