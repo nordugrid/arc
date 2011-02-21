@@ -1,5 +1,5 @@
-#ifndef GRID_MANAGER_RUN_PLUGIN_H
-#define GRID_MANAGER_RUN_PLUGIN_H
+#ifndef ARC_GRIDFTPD_RUN_PLUGIN_H
+#define ARC_GRIDFTPD_RUN_PLUGIN_H
 
 #include <sys/resource.h>
 #include <sys/wait.h>
@@ -49,4 +49,4 @@ namespace gridftpd {
 
 } // namespace gridftpd
 
-#endif // GRID_MANAGER_RUN_PLUGIN_H
+#endif // ARC_GRIDFTPD_RUN_PLUGIN_H

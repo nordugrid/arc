@@ -165,7 +165,7 @@ bool RunPlugin::run(substitute_t subst,void* arg) {
   args[n]=NULL;
   if(lib.length() == 0) {
     bool r = false;
-    Arc::Run re(args_);
+    Arc::Run re(args__);
     re.AssignStdin(stdin_);
     re.AssignStdout(stdout_);
     re.AssignStderr(stderr_);
