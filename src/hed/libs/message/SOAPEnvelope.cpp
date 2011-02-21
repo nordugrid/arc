@@ -10,10 +10,12 @@ namespace Arc {
 
 SOAPEnvelope::SOAPEnvelope(const std::string& s):XMLNode(s) {
   set();
+  decode();
 }
 
 SOAPEnvelope::SOAPEnvelope(const char* s,int l):XMLNode(s,l) {
   set();
+  decode();
 }
 
 SOAPEnvelope::SOAPEnvelope(const SOAPEnvelope& soap):XMLNode(),fault(NULL) {
@@ -68,6 +70,7 @@ SOAPEnvelope::SOAPEnvelope(XMLNode root):XMLNode(root),fault(NULL) {
   if(!node_) return;
   if(node_->type != XML_ELEMENT_NODE) { node_=NULL; return; };
   set();
+  // decode(); ??
 }
 
 SOAPEnvelope::~SOAPEnvelope(void) {
@@ -125,6 +128,58 @@ void SOAPEnvelope::set(void) {
   } else {
     // Apply namespaces to Fault element
     body.Namespaces(ns);
+  }
+}
+
+XMLNode SOAPEnvelope::findid(XMLNode parent, const std::string& id) {
+  XMLNode node;
+  if(!parent) return node;
+  for(int n = 0; (bool)(node = parent.Child(n)); ++n) {
+    if(node.Attribute("id") == id) return node;
+  }
+  if(parent == body) return node;
+  return findid(parent.Parent(),id);
+}
+
+void SOAPEnvelope::decode(XMLNode node) {
+  if(!node) return;
+  // A lot of TODOs
+  if((node.Size() == 0) && ((std::string)node).empty()) {
+    XMLNode href = node.Attribute("href");
+    if((bool)href) {
+      std::string id = href;
+      if(id[0] == '#') {
+        id = id.substr(1); 
+        if(!id.empty()) {
+          // Looking for corresponding id
+          XMLNode id_node = findid(node.Parent(),id);
+          if((bool)id_node) {
+            href.Destroy();
+            // Replacing content
+            node = (std::string)id_node;
+            XMLNode cnode;
+            for(int n = 0; (bool)(cnode = id_node.Child(n)); ++n) {
+              node.NewChild(cnode);
+            }
+          }
+        }
+      }
+    }
+  }
+  // Repeat for all children nodes
+  XMLNode cnode;
+  for(int n = 0; (bool)(cnode = node.Child(n)); ++n) {
+    decode(cnode);
+  }
+}
+
+void SOAPEnvelope::decode(void) {
+  // Do links in first elelment
+  decode(body.Child(0));
+  // Remove rest
+  XMLNode cnode;
+  while((bool)(cnode = body.Child(1))) {
+    cnode.Destroy();
   }
 }
 

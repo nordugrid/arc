@@ -156,6 +156,11 @@ class SOAPEnvelope: public XMLNode {
   /** Fill instance variables parent XMLNode class. 
     This method is called from constructors. */
   void set(void);
+  /** Decodes SOAP message encoded according to SOAP Encoding rules.
+     Currently only internal href/id links are supported. */
+  void decode(void);
+  void decode(XMLNode node);
+  XMLNode findid(XMLNode parent,const std::string& id);
 };
 
 } // namespace Arc 
