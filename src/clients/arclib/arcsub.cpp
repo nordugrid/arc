@@ -360,19 +360,26 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
 
   for (std::list<Arc::JobDescription>::const_iterator it = jobdescriptionlist.begin();
        it != jobdescriptionlist.end(); it++) {
+    Arc::JobDescription jobdescdump(*it);
     ChosenBroker->PreFilterTargets(targen.GetExecutionTargets(), *it);
+    ChosenBroker->Sort();
 
-    while (true) {
-      const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();
-
-      if (!target) {
-        std::cout << Arc::IString("Unable to print job description: No target found.") << std::endl;
-        break;
+    if (ChosenBroker->EndOfList() && it->HasAlternatives()) {
+      for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
+           itAlt != it->GetAlternatives().end(); itAlt++) {
+        ChosenBroker->PreFilterTargets(targen.GetExecutionTargets(), *itAlt);
+        ChosenBroker->Sort();
+        if (!ChosenBroker->EndOfList()) {
+          jobdescdump = *itAlt;
+          break;
+        }
       }
+    }
 
+    for (const Arc::ExecutionTarget*& target = ChosenBroker->GetReference();
+         !ChosenBroker->EndOfList(); ChosenBroker->Advance()) {
       Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
-      Arc::JobDescription jobdescdump(*it);
       if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
         std::cout << "Unable to modify job description according to needs of the target resource." << std::endl;
         retval = 1;
@@ -397,6 +404,11 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
       std::cout << jobdesc << std::endl;
       break;
     } //end loop over all possible targets
+
+    if (ChosenBroker->EndOfList()) {
+      std::cout << Arc::IString("Unable to print job description: No matching target found.") << std::endl;
+      break;
+    }
   } //end loop over all job descriptions
 
   return retval;
