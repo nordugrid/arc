@@ -760,6 +760,9 @@ namespace Arc {
     // problems (except for valgrind) because this plugin
     // is registered as persistent.
     if (!proxy_initialized) {
+#ifdef HAVE_GLOBUS_THREAD_SET_MODEL
+      globus_thread_set_model("pthread");
+#endif
       globus_module_activate(GLOBUS_COMMON_MODULE);
       globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();

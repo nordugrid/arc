@@ -140,6 +140,9 @@ namespace Arc {
 #endif
       // LFC uses GSI plugin which uses Globus GSI which 
       // causes a lot of mess in OpenSSL. Trying to intercept.
+#ifdef HAVE_GLOBUS_THREAD_SET_MODEL
+      globus_thread_set_model("pthread");
+#endif
       globus_module_activate(GLOBUS_OPENSSL_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();
     }

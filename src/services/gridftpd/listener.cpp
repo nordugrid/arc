@@ -35,6 +35,9 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "gridftpd");
 void new_conn_callback(int sock) {
   /* initiate random number generator */
   srand(getpid() + getppid() + time(NULL));
+#ifdef HAVE_GLOBUS_THREAD_SET_MODEL
+  globus_thread_set_model("pthread");
+#endif
   if((globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) ||
      (globus_module_activate(GLOBUS_FTP_CONTROL_MODULE) != GLOBUS_SUCCESS) ||
      (globus_module_activate(GLOBUS_GSI_CREDENTIAL_MODULE) != GLOBUS_SUCCESS) ||
@@ -319,6 +322,9 @@ int main(int argc,char** argv) {
     perror("daemonization failed");
      return 1;
   };
+#ifdef HAVE_GLOBUS_THREAD_SET_MODEL
+  globus_thread_set_model("pthread");
+#endif
   if((globus_module_activate(GLOBUS_COMMON_MODULE) != GLOBUS_SUCCESS) ||
      (globus_module_activate(GLOBUS_FTP_CONTROL_MODULE) != GLOBUS_SUCCESS) ||
      (globus_module_activate(GLOBUS_GSI_CREDENTIAL_MODULE) != GLOBUS_SUCCESS) ||

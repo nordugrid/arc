@@ -35,6 +35,9 @@ namespace Arc {
       guid_enabled(false) {
     valid_url_options.push_back("guid");
     if(!proxy_initialized) {
+#ifdef HAVE_GLOBUS_THREAD_SET_MODEL
+      globus_thread_set_model("pthread");
+#endif
       globus_module_activate(GLOBUS_COMMON_MODULE);
       globus_module_activate(GLOBUS_IO_MODULE);
       globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);

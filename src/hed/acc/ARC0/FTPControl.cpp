@@ -121,6 +121,9 @@ namespace Arc {
   FTPControl::FTPControl() {
     connected = false;
     cb = new CBArg;
+#ifdef HAVE_GLOBUS_THREAD_SET_MODEL
+    globus_thread_set_model("pthread");
+#endif
     globus_module_activate(GLOBUS_FTP_CONTROL_MODULE);
   }
 
