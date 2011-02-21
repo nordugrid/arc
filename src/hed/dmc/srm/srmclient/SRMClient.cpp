@@ -51,20 +51,20 @@ namespace Arc {
     // lists of ports in the order to try them
     std::list<int> ports;
 
+    // if port is specified then only try that one
+    if (srm_url.PortDefined())
+      ports.push_back(srm_url.Port());
+
     // take hints from certain keywords in the url
-    if (srm_url.Path().find("/dpm/") != std::string::npos) {
+    else if (srm_url.Path().find("/dpm/") != std::string::npos) {
       ports.push_back(8446);
       ports.push_back(8443);
       ports.push_back(8444);
     }
     else {
-      ports.push_back(srm_url.Port());
-      if (srm_url.Port() != 8443)
-        ports.push_back(8443);
-      if (srm_url.Port() != 8446)
-        ports.push_back(8446);
-      if (srm_url.Port() != 8444)
-        ports.push_back(8444);
+      ports.push_back(8443);
+      ports.push_back(8446);
+      ports.push_back(8444);
     }
 
     srm_file_info.host = srm_url.Host();
