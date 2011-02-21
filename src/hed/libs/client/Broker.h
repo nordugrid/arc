@@ -52,10 +52,11 @@ namespace Arc {
      * @param targets A list of ExecutionTarget objects to be considered for
      *        addition to the Broker.
      * @param jobdesc JobDescription object holding requirements.
+     * @param rejectTargets
      **/
     void PreFilterTargets(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, const std::list<URL>& rejectTargets = std::list<URL>());
 
-    bool Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, Job& job);
+    bool Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, Job& job, const std::list<URL>& rejectTargets = std::list<URL>());
 
     /// Register a job submission to the current target
     void RegisterJobsubmission();

@@ -37,7 +37,7 @@ namespace Arc {
       if (!rejectTargets.empty()) {
         std::list<URL>::const_iterator it = rejectTargets.begin();
         for (; it != rejectTargets.end(); ++it) {
-          if ((*it) == target->url) {
+          if ((*it) == target->url || (*it) == target->Cluster) {
             // Target should be dropped.
             break;
           }
@@ -421,8 +421,8 @@ namespace Arc {
     return (current != PossibleTargets.end() ? *current : NULL);
   }
 
-  bool Broker::Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdescription, Job& job) {
-    PreFilterTargets(targets, jobdescription);
+  bool Broker::Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdescription, Job& job, const std::list<URL>& rejectTargets) {
+    PreFilterTargets(targets, jobdescription, rejectTargets);
     if (PossibleTargets.empty()) {
       return false;
     }
