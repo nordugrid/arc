@@ -148,7 +148,7 @@ int main(int argc,char* argv[]) {
   Arc::Logger::getRootLogger().addDestination(logcerr);
 
   DataBuffer buffer;
-  buffer.speed.verbose(false);
+  buffer.speed.verbose(true);
   unsigned long long int minspeed = 0;
   time_t minspeedtime = 0;
   for(std::list<std::string>::iterator o = transfer_opts.begin();
