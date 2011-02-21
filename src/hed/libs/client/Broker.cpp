@@ -20,13 +20,15 @@ namespace Arc {
   Broker::Broker(const UserConfig& usercfg)
     : usercfg(usercfg),
       TargetSortingDone(false),
-      job(NULL) {}
+      job(NULL),
+      pCurrent(NULL) {}
 
   Broker::~Broker() {}
 
   void Broker::PreFilterTargets(std::list<ExecutionTarget>& targets,
                                 const JobDescription& jobdesc,
                                 const std::list<URL>& rejectTargets) {
+    pCurrent = NULL;
     PossibleTargets.clear();
     job = &jobdesc;
 
@@ -418,7 +420,22 @@ namespace Arc {
       current++;
     }
 
+    pCurrent = *current;
+
     return (current != PossibleTargets.end() ? *current : NULL);
+  }
+
+  void Broker::Sort() {
+    if (TargetSortingDone) {
+      return;
+    }
+
+    if (!PossibleTargets.empty()) {
+      SortTargets();
+    }
+    current = PossibleTargets.begin();
+    pCurrent = *current;
+    TargetSortingDone = true;
   }
 
   bool Broker::Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdescription, Job& job, const std::list<URL>& rejectTargets) {

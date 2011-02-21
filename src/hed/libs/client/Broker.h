@@ -38,6 +38,11 @@ namespace Arc {
      */
     const ExecutionTarget* GetBestTarget();
 
+    void Sort();
+    bool EndOfList() const { return PossibleTargets.empty() || current == PossibleTargets.end(); }
+    void Advance() { pCurrent = *(++current); }
+    const ExecutionTarget*& GetReference() { return pCurrent; }
+
     /// Filter ExecutionTarget objects according to attributes in JobDescription object
     /**
      * Each of the ExecutionTarget objects in the passed list will be matched
@@ -90,6 +95,8 @@ namespace Arc {
     /// This is a pointer for the actual ExecutionTarget in the
     /// PossibleTargets list
     std::list<ExecutionTarget*>::iterator current;
+
+    const ExecutionTarget* pCurrent;
   };
 
   //! Class responsible for loading Broker plugins
