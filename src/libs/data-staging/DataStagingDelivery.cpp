@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <unistd.h>
 
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
@@ -182,7 +183,9 @@ int main(int argc,char* argv[]) {
   //source_cfg.UtilsDirPath(...); - probably not needed
   DataHandle source(source_url,source_cfg);
   if(!source) {
-    std::cerr<<"Source URL not supported: "<<source_url<<std::endl; return -1;
+    std::cerr<<"Source URL not supported: "<<source_url<<std::endl;
+    _exit(-1);
+    //return -1;
   };
   source->SetSecure(false);
   source->Passive(true);
@@ -192,7 +195,9 @@ int main(int argc,char* argv[]) {
   //dest_cfg.UtilsDirPath(...); - probably not needed
   DataHandle dest(dest_url,dest_cfg);
   if(!dest) {
-    std::cerr<<"Destination URL not supported: "<<dest_url<<std::endl; return -1;
+    std::cerr<<"Destination URL not supported: "<<dest_url<<std::endl;
+    _exit(-1);
+    //return -1;
   };
   dest->SetSecure(false);
   dest->Passive(true);
@@ -205,14 +210,16 @@ int main(int argc,char* argv[]) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  (source_url.Protocol()!="file")?DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR:DataStaging::DTRErrorStatus::INTERNAL_ERROR,
                  std::string("Failed reading from source: ")+source->CurrentLocation().str()+" : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),0,0);
-    return -1;
+    _exit(-1);
+    //return -1;
   };
   DataStatus dest_st = dest->StartWriting(buffer);
   if(!dest_st) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  (dest_url.Protocol() != "file")?DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR:DataStaging::DTRErrorStatus::INTERNAL_ERROR,
                  std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+(" : ")+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),0,0);
-    return -1;
+    _exit(-1);
+    //return -1;
   };
   // While transfer is running in another threads
   // here we periodically report status to parent
@@ -252,6 +259,7 @@ int main(int argc,char* argv[]) {
   if(!reported) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,DataStaging::DTRErrorStatus::NONE_ERROR,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
   };
-  return eof_reached?0:1;
+  _exit(eof_reached?0:1);
+  //return eof_reached?0:1;
 }
 
