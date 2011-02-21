@@ -990,6 +990,10 @@ namespace Arc {
           logger.msg(VERBOSE, "priority is too large - using max value 100");
           j.Application.Priority = 100;
         }
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->Application.Priority = j.Application.Priority;
+        }
         return true;
       }
 
