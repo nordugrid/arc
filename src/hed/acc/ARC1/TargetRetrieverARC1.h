@@ -27,9 +27,9 @@ namespace Arc {
     virtual void GetExecutionTargets(TargetGenerator& mom);
     virtual void GetJobs(TargetGenerator& mom);
     static Plugin* Instance(PluginArgument *arg);
+    static void ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets);
 
   private:
-    static void ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets);
     static void QueryIndex(void *arg);
     static void InterrogateTarget(void *arg);
 
