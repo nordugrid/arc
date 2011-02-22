@@ -350,6 +350,32 @@ sub process_status (@) {
     return %ids;
 }
 
+{   my $gm_status = undef;
+    my $gm_timeout = $config{wakeupperiod}
+                   ? $config{wakeupperiod} * 2
+                   : 120 * 2;
+
+    # Returns 'active'   if all grid-managers are up
+    #         'degraded' if one or more grid-managers are down
+    #         'inactive' if all grid-managers are down
+    sub gm_status {
+        return $gm_status if defined $gm_status;
+
+        my $up = 0;
+        my $down = 0;
+        for my $dir (@controldirs) {
+            my @stat = stat("$dir/gm-heartbeat");
+            if (@stat and time() - $stat[9] < $gm_timeout) {
+                $up++;
+            } else {
+                $down++;
+            }
+        }
+        return 'inactive' if not $up;
+        return $down ? 'degraded' : 'active';
+    }
+}
+
 
 sub gmjobs_info () {
     
@@ -500,12 +526,10 @@ sub gmjobs_info () {
 	if ( grep ( /^$gmjobs{$ID}{status}$/, keys %map_always ) ) {
 	    $gmjobs{$ID}{status} = $map_always{$gmjobs{$ID}{status}};
 	}
-	if ( grep ( /^$gmjobs{$ID}{status}$/, keys %map_if_gm_up ) and
-	     ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
+	if ( grep ( /^$gmjobs{$ID}{status}$/, keys %map_if_gm_up ) and gm_status() eq 'active' ) {
 	    $gmjobs{$ID}{status} = $map_if_gm_up{$gmjobs{$ID}{status}};
 	}
-	if ( grep( /^$gmjobs{$ID}{status}$/, keys %map_if_gm_down ) and
-	     not ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
+	if ( grep( /^$gmjobs{$ID}{status}$/, keys %map_if_gm_down ) and gm_status() ne 'active' ) {
 	    $gmjobs{$ID}{status} = $map_if_gm_down{$gmjobs{$ID}{status}};
 	}
 	
@@ -558,9 +582,14 @@ sub gmjobs_info () {
 	
 	# Make a job comment if the GM is dead
 
-	unless ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) {
+	if (gm_status() eq 'active' ) {
+        # great!
+	} elsif (gm_status() eq 'degraded') {
+	    $gmjobs{$ID}{comment} = "GM: one or more grid-managers are down";
+    } else {
+        # inactive
 	    $gmjobs{$ID}{comment} = "GM: The grid-manager is down";
-	}         
+    }
 	
 	# do something with the job.ID.description file
 	# read the stdin,stdout,stderr
@@ -830,8 +859,12 @@ sub ldif_queue (%) {
     if ($config{allownew} eq "no") {
 	$c{'nordugrid-queue-status'} =
 	    [ 'inactive, grid-manager does not accept new jobs' ];
-    } elsif ( not ($frontend_status{'grid-manager'} or $frontend_status{'arched'}) ) {
-	$c{'nordugrid-queue-status'} = [ 'inactive, grid-manager is down' ];   
+    } elsif ( gm_status() ne 'active' ) {
+        if (gm_status() eq 'degraded') {
+            $c{'nordugrid-queue-status'} = [ 'degraded, one or more grid-managers are down' ];
+        } else {
+            $c{'nordugrid-queue-status'} = [ 'inactive, grid-manager is down' ];
+        }
     } elsif ( not ($frontend_status{'gridftpd'} or $frontend_status{'arexgridftpd'}) )  {
 	$c{'nordugrid-queue-status'} = [ 'inactive, gridftpd is down' ];  
     } elsif ( not certs_valid(\%config) ) {
@@ -840,7 +873,8 @@ sub ldif_queue (%) {
 	$c{'nordugrid-queue-status'} =
 	    [ 'inactive, LRMS interface returns negative status' ];
     } else {
-	$c{'nordugrid-queue-status'} = [ 'active' ];}
+	$c{'nordugrid-queue-status'} = [ 'active' ];
+    }
 
     if ( defined $config{comment} ) {
 	$c{'nordugrid-queue-comment'} = [ "$config{comment}" ];

@@ -17,6 +17,7 @@ use InfoChecker;
 our $host_options_schema = {
         x509_user_cert => '*',
         x509_cert_dir  => '*',
+        wakeupperiod   => '*',
         processes      => [ '' ],
         localusers     => [ '' ],
         control => {
@@ -59,6 +60,7 @@ our $host_info_schema = {
         cache_total   => '', # unit: MB
         globusversion => '*',
         processes  => { '*' => '' },
+        gm_alive      => '',
         localusers => {
             '*' => {
                 gridareas => [ '' ],
@@ -191,6 +193,27 @@ sub get_cert_info {
 }
 
 
+# Returns 'all'  if all grid-managers are up
+#         'some' if one or more grid-managers are down
+#         'none' if all grid-managers are down
+sub gm_alive {
+    my ($timeout, @controldirs) = @_;
+
+    my $up = 0;
+    my $down = 0;
+    for my $dir (@controldirs) {
+        my @stat = stat("$dir/gm-heartbeat");
+        if (@stat and time() - $stat[9] < $timeout) {
+            $up++;
+        } else {
+            $down++;
+        }
+    }
+    return 'none' if not $up;
+    return $down ? 'some' : 'all';
+}
+
+
 sub get_host_info {
     my $options = shift;
 
@@ -291,6 +314,10 @@ sub get_host_info {
         }
     }
 
+    my $gm_timeout = $options->{wakeupperiod}
+                   ? $options->{wakeupperiod} * 2
+                   : 120;
+    $host_info->{gm_alive} = gm_alive($gm_timeout, @controldirs);
 
     #Globus Toolkit version
     #globuslocation/share/doc/VERSION

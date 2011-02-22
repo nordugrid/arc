@@ -337,7 +337,7 @@ infosys_glue2_ldap=${CONFIG_infosys_glue2_ldap:-"disable"}
 
 provider_timeout=${CONFIG_provider_timeout:-300}
 gm_wakeupperiod=$(config_print_option grid-manager wakeupperiod)
-gm_wakeupperiod=${gm_wakeupperiod:-60}
+gm_wakeupperiod=${gm_wakeupperiod:-120}
 
 if [ "x$infosys_compat" = "xenable" ]; then
     bdii_breathe_time=${CONFIG_bdii_breathe_time:-120}

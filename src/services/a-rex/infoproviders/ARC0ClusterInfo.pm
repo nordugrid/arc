@@ -270,8 +270,15 @@ sub collect($) {
             
             if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
                 $q->{status} = 'inactive, grid-manager does not accept new jobs';
-            } elsif (not $host_info->{processes}{'grid-manager'}) {
-                $q->{status} = 'inactive, grid-manager is down';   
+            } elsif ( $host_info->{gm_alive} ne 'all' ) {
+                if ($host_info->{gm_alive} eq 'some') {
+                    $q->{status} = 'degraded, one or more grid-managers are down';
+                } else {
+                    $q->{status} = $config->{remotegmdirs} ? 'inactive, all grid managers are down'
+                                                           : 'inactive, grid-manager is down';
+                }
+            } elsif (not $host_info->{processes}{'gridftpd'}) {
+                $q->{status} = 'inactive, gridftpd is down';   
             } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
                 $q->{status} = 'inactive, host credentials missing';
             } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {

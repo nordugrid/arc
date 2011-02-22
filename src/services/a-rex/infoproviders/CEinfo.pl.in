@@ -209,9 +209,10 @@ sub get_host_info($$) {
 
     my $host_opts = {};
     $host_opts->{localusers} = $localusers;
-    $host_opts->{processes} = ['arched'];
+    $host_opts->{processes} = ['arched', 'gridftpd'];
     $host_opts->{x509_user_cert} = $config->{x509_user_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
+    $host_opts->{wakeupperiod} = $config->{wakeupperiod};
     $host_opts->{sessiondir} = $config->{sessiondir};
     $host_opts->{control} = $config->{control};
     $host_opts->{remotegmdirs} = $config->{remotegmdirs};

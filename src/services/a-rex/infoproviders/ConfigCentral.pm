@@ -94,6 +94,7 @@ my $gmcommon_options = {
     maxjobs => '*',
     maxload => '*',
     maxloadshare => '*',
+    wakeupperiod => '*',
     gridmap => '*',
     x509_user_key => '*',
     x509_user_cert => '*',
@@ -456,6 +457,8 @@ sub build_config_from_xmlfile {
     if ($load->{maxLoadShare} and $load->{loadShareType}) {
         $config->{maxloadshare} = $load->{maxLoadShare}." ".$load->{loadShareType};
     }
+
+    $config->{wakeupperiod} = $load->{wakeupPeriod} if defined $load->{wakeupPeriod};
 
     my $lrms = hash_get_hashref($arex, 'LRMS');
     $config->{lrms} = $lrms->{type} if $lrms->{type};

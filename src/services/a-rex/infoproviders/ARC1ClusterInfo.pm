@@ -642,22 +642,41 @@ sub collect($) {
 
             $cep->{QualityLevel} = "development";
 
-            $cep->{HealthState} = "ok";
+            my %healthissues;
 
             if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
                 if (     $host_info->{hostcert_expired}
                       or $host_info->{issuerca_expired}) {
-                    $cep->{HealthState} = "critical";
-                    $cep->{HealthStateInfo} = "Host credentials expired";
+                    push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif (not $host_info->{hostcert_enddate}
                       or not $host_info->{issuerca_enddate}) {
-                    $cep->{HealthState} = "critical";
-                    $cep->{HealthStateInfo} = "Host credentials missing";
+                    push @{$healthissues{critical}}, "Host credentials missing";
                 } elsif ($host_info->{hostcert_enddate} - time < 48*3600
                       or $host_info->{issuerca_enddate} - time < 48*3600) {
-                    $cep->{HealthState} = "warning";
-                    $cep->{HealthStateInfo} = "Host credentials will expire soon";
+                    push @{$healthissues{warning}}, "Host credentials will expire soon";
                 }
+            }
+
+            if ( $host_info->{gm_alive} ne 'all' ) {
+                if ($host_info->{gm_alive} eq 'some') {
+                    push @{$healthissues{warning}}, 'One or more grid managers are down';
+                } else {
+                    push @{$healthissues{critical}},
+                           $config->{remotegmdirs} ? 'All grid managers are down'
+                                                   : 'Grid manager is down';
+                }
+            }
+
+            if (%healthissues) {
+                my @infos;
+                for my $level (qw(critical warning other)) {
+                    next unless $healthissues{$level};
+                    $cep->{HealthState} ||= $level;
+                    push @infos, @{$healthissues{$level}};
+                }
+                $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+                $cep->{HealthState} = 'ok';
             }
 
             # OBS: Do 'queueing' and 'closed' states apply for a-rex?
