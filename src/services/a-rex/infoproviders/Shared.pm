@@ -8,7 +8,6 @@ use Exporter;
 @EXPORT_OK = ( 'mds_valid',
 	       'post_process_config',
 	       'print_ldif_data',
-	       'get_gm_users',
                'diskspace',
                'diskspaces');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
@@ -50,32 +49,6 @@ sub post_process_config (%) {
 	    $$config{nodecpu} = "$modelname @ $mhz MHz";
 	}
     }
-}
-
-
-sub get_gm_users($$) {
-    my ($gmjobs_exe, $conf_file) = @_;
-    unless (open GMJOBSOUTPUT, "$gmjobs_exe -J -S -u 0 -c $conf_file 2>&1 |") {
-        error("Error in executing gm-jobs, executed as "
-        ."'$gmjobs_exe -J -S -u 0 -c $conf_file 2>&1'.")
-    }
-    my $username;
-    my %users = ();
-    while (<GMJOBSOUTPUT>) {
-        $username = $1 and next if /Added user : (.*)$/;
-        $users{$username}{control} = $1  and next if /\tControl dir      : (.*)$/;
-        $users{$username}{session} = $1  and next if /\tSession root dir : (.*)$/;
-        $users{$username}{deflrms} = $1  and next if /\tdefault LRMS     : (.*)$/;
-        $users{$username}{defqueue} = $1 and next if /\tdefault queue    : (.*)$/;
-        $users{$username}{defttl} = $1   and next if /\tdefault ttl      : (.*)$/;
- push @{$users{$username}{cachedata}},$1 and next if /\tCache            : (.*)$/;
-    }
-    close GMJOBSOUTPUT;
-    my $status = $? >> 8;
-    error("$gmjobs_exe returned with non-zero exit status $status, executed as "
-         ."'$gmjobs_exe -q -u 0 -c $conf_file 2>&1'.") if $status;
-
-    return %users;
 }
 
 

@@ -31,7 +31,7 @@ use LRMS ( 'select_lrms',
 	   'queue_info',
 	   'jobs_info',
 	   'users_info');
-use Shared ( 'print_ldif_data','post_process_config', 'get_gm_users', 'diskspace');
+use Shared ( 'print_ldif_data','post_process_config', 'diskspaces');
 use ConfigParser;
 use strict;
 
@@ -149,6 +149,8 @@ my ($totaltime) = time;
 our ( %config, %gmusers, %gmjobs, %gm_queued, %users, %frontend_status,
       $gridrunning, $gridqueued, $queue_pendingprelrms, $queue_prelrmsqueued );
 
+our @controldirs;
+
 ########################################################
 # qju.pl's subroutines
 ########################################################
@@ -171,7 +173,7 @@ sub qju_parse_command_line_options() {
     $config{defaultttl}         = "604800";
     $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
     $config{"x509_cert_dir"}    = "/etc/grid-security/certificates";
-    $config{ng_location}        = $ENV{ARC_LOCATION} ||= "@prefix@";
+    $config{arc_location}       = $ENV{ARC_LOCATION} ||= "@prefix@";
     $config{gridmap} 	 = "/etc/grid-security/grid-mapfile";
 
     my ($print_help);
@@ -267,8 +269,8 @@ sub qju_read_conf_file () {
     my ($cf) = $config{conf_file};
 
     # Whole content of the config file
-    my $parser = ConfigParser->new($config{conf_file})
-        or die 'Cannot parse config file';
+    my $parser = SubstitutingConfigParser->new($config{conf_file}, $config{arc_location})
+        or die 'Failed parsing config file';
 
     # Copy blocks that are relevant to qju.pl
     %config = ( %config, $parser->get_section('common') );
@@ -284,12 +286,21 @@ sub qju_read_conf_file () {
     $config{allownew} = $gjconf{allownew} if $gjconf{allownew};
     $config{remotegmdirs} = $gjconf{remotegmdirs} if $gjconf{remotegmdirs};
 
-    $ENV{LD_LIBRARY_PATH}.=":" if $ENV{LD_LIBRARY_PATH};
-    $ENV{LD_LIBRARY_PATH}.="$config{ng_location}/lib";
+    my @users = $parser->list_subsections('grid-manager');
+    $gmusers{$_} = { $parser->get_section("grid-manager/$_") } for @users;
 
-    my $gmjobs_exe = "$config{ng_location}/@pkglibexecsubdir@/gm-jobs";
-    my $conf_file = $config{conf_file};
-    %gmusers = get_gm_users($gmjobs_exe, $conf_file);
+    my %controldirs; $controldirs{$_->{controldir}} = 1 for values %gmusers;
+    @controldirs = keys %controldirs;
+
+    if ($config{remotegmdirs}) {
+        my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
+        for my $dir (@remotedirs) {
+            my ($ctrl, $sess) = split ' ', $dir;
+            push @controldirs, $ctrl;
+        }
+    }
+    error("No control directories configured") unless @controldirs;
+
 }
 
 sub qju_get_host_name () {
@@ -385,24 +396,18 @@ sub gmjobs_info () {
     # the @gridmanager_jobs contains the IDs from the job.ID.status
     #
 
-    my %controldirs; $controldirs{$_->{control}} = 1 for values %gmusers;
-    my @controldirs = keys %controldirs;
-
-    if ($config{remotegmdirs}) {
-        my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
-        for (@remotedirs) {
-            my ($ctrl, $sess) = split;
-            push @controldirs, $ctrl;
-        }
-    }
-    error("No control directories configured") unless @controldirs;
-
     for my $controldir (@controldirs) {
+
+    unless (opendir JOBDIR,  $controldir ) {
+        error("can't read controldir: $controldir: $!");
+        next;
+    }
 
     for my $controlsubdir ("$controldir/accepting", "$controldir/processing", "$controldir/finished") {
 
     unless (opendir JOBDIR,  $controlsubdir ) {
-	error("can't read controldir: $controlsubdir: $!");
+        warning("can't read controldir subdirectory: $controlsubdir: $!");
+        next;
     }
 
     my (@allfiles) = readdir JOBDIR;
@@ -763,22 +768,46 @@ sub grid_diskspace (@) {
 
     my (%gridarea, %capacity);
 
+    my (%commongridareas, $commonfree);
+    if ($gmusers{'.'}) {
+        $commongridareas{$_} = 1 for split /\[separator\]/, $gmusers{'.'}{sessiondir};
+    }
+    if ($config{remotegmdirs}) {
+        my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
+        for my $dir (@remotedirs) {
+            my ($ctrl, @sessions) = split ' ', $dir;
+            $commongridareas{$_} = 1 for @sessions;
+        }
+    }
+    if (%commongridareas) {
+        my %res = diskspaces(keys %commongridareas);
+        if ($res{errors}) {
+            warning("Failed checking disk space available in session directories");
+        } else {
+            $commonfree = $res{freesum};
+        }
+    }
+
     foreach my $u (@localids) {
 
         if (exists $gmusers{$u}) {
             # user is configured as a separate GM user
-            $gridarea{$u} = $gmusers{$u}{session};
-        } elsif (exists $gmusers{''}) {
+            my $sessiondirs = [ split /\[separator\]/, $gmusers{$u}{sessiondir} ];
+            my %res = diskspaces(@$sessiondirs);
+            if ($res{errors}) {
+                warning("Failed checking disk space available in session directories of user $u")
+            } else {
+                $gridarea{$u} = $sessiondirs;
+                $capacity{$u} = $res{freesum};
+            }
+        } elsif (defined $commonfree) {
             # common config, corresponds to GM user ''
-            $gridarea{$u} = $gmusers{''}{session};
-        } elsif (exists $gmusers{'(empty)'}) {
-            # common config, corresponds to GM user ''
-            $gridarea{$u} = $gmusers{'(empty)'}{session};
+            $gridarea{$u} = [ keys %commongridareas ];
+            $capacity{$u} = $commonfree;
         } else {
             # no common config
             error("Local user $u has no session directory");
         }
-	$capacity{$u} = @{[ diskspace $gridarea{$u} ]}[1];
     }
 
     foreach my $sn (keys %users) {

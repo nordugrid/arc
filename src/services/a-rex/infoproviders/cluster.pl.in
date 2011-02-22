@@ -22,7 +22,7 @@ BEGIN {
 use Getopt::Long;
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use LRMS ('select_lrms', 'cluster_info');
-use Shared ( 'print_ldif_data', 'post_process_config', 'get_gm_users', 'diskspaces');
+use Shared ( 'print_ldif_data', 'post_process_config', 'diskspaces');
 use ConfigParser;
 
 use strict;
@@ -100,7 +100,7 @@ $config{homogeneity}        = "TRUE";
 $config{defaultttl}         = "604800";
 $config{"x509_user_cert"}   = "/etc/grid-security/hostcert.pem";
 $config{"x509_cert_dir"}    = "/etc/grid-security/certificates/";
-$config{ng_location}        = $ENV{ARC_LOCATION} ||= "@prefix@";
+$config{arc_location}        = $ENV{ARC_LOCATION} ||= "@prefix@";
 $config{gridmap} 	    = "/etc/grid-security/grid-mapfile";
 
 ########################################################
@@ -139,7 +139,7 @@ if (! ( $config{dn} and $config{conf_file} ) ) {
 
 # Whole content of the config file
 
-my $parser = ConfigParser->new($config{conf_file}) or die "Cannot parse config file at '$config{conf_file}'\n";
+my $parser = SubstitutingConfigParser->new($config{conf_file}) or die "Cannot parse config file at '$config{conf_file}'\n";
 
 # copy blocks that are relevant to %config
 
@@ -157,6 +157,10 @@ if (! exists $config{hostname}){
    chomp ($config{hostname} = `/bin/hostname -f`);
 }
 
+my %gmusers;
+my @users = $parser->list_subsections('grid-manager');
+$gmusers{$_} = { $parser->get_section("grid-manager/$_") } for @users;
+
 post_process_config(\%config);
 
 ############################################################
@@ -173,7 +177,7 @@ start_logging($config{loglevel});
 # Globus location
 my ($globus_location) ||= $ENV{GLOBUS_LOCATION} ||= "/usr";
 $ENV{LD_LIBRARY_PATH}.=":" if $ENV{LD_LIBRARY_PATH};
-$ENV{LD_LIBRARY_PATH}.="$config{ng_location}/@libsubdir@:$globus_location/lib";
+$ENV{LD_LIBRARY_PATH}.="$config{arc_location}/@libsubdir@:$globus_location/lib";
 
 # Hostname
 #my ($hostname) = `/bin/hostname -f`;
@@ -250,42 +254,45 @@ if ($cacertenddate and $hostcertenddate) {
 
 #read the gm-jobs information about the number of jobs in different gm states
 
-my $gmjobs_exe = "$config{ng_location}/@pkglibexecsubdir@/gm-jobs";
-my $conf_file = $config{conf_file};
-my %gmusers = get_gm_users($gmjobs_exe, $conf_file);
+my (%controldirs, %sessiondirs);
+$controldirs{$_} = 1 for map {$_->{controldir}} values %gmusers;
 
-my %controldirs; $controldirs{$_->{control}} = 1 for values %gmusers;
-my @controldirs = keys %controldirs;
-my %sessiondirs; $sessiondirs{$_->{session}} = 1 for values %gmusers;
-my @sessiondirs = keys %sessiondirs;
+# only interested in shared session disks
+if ($gmusers{'.'}) {
+    $sessiondirs{$_} = 1 for split /\[separator\]/, $gmusers{'.'}{sessiondir};
+}
 
 if ($config{remotegmdirs}) {
     my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
-    for (@remotedirs) {
-        my ($ctrl, $sess) = split;
-        push @controldirs, $ctrl;
-        push @sessiondirs, $sess;
+    for my $dir (@remotedirs) {
+        my ($ctrl, @sessions) = split ' ', $dir;
+        $controldirs{$ctrl} = 1;
+        $sessiondirs{$_} = 1 for @sessions;
     }
 }
+error("No control directories configured") unless %controldirs;
 
 #nordugrid-cluster-sessiondirusage
-my %session_stats = diskspaces(@sessiondirs);
+my %session_stats = diskspaces(keys %sessiondirs);
 my $session_disktotal = $session_stats{totalsum};
-my $session_diskfree = $session_stats{freemax};
+my $session_diskfree = $session_stats{freesum};
 warning("Cannot determine sessiondir disk space") if $session_disktotal == 0;
     
 #nordugrid-cluster-cacheusage
 my %cachedirs;
-my $no_cache = 0;
+my $no_cache = 1;
 
 # only report central cache and not private caches
-my $centralcfg = $gmusers{''} || $gmusers{'(empty)'};
-if ($centralcfg) {
-    my $dirs = $centralcfg->{cachedata};
-    if (defined $dirs) {
-        $cachedirs{$_} = 1 for @$dirs;
-    } else {
-        $no_cache = 1;
+if (my $centralcfg = $gmusers{'.'}) {
+    if (my $dirs = $centralcfg->{cachedir}) {
+        my @pairs = split /\[separator\]/, $dirs;
+        $cachedirs{$_} = 1 for map { my @p = split ' ',$_; $p[0]; } @pairs;
+        $no_cache = 0;
+    }
+    if (my $dirs = $centralcfg->{remotecachedir}) {
+        my @pairs = split /\[separator\]/, $dirs;
+        $cachedirs{$_} = 1 for map { my @p = split ' ',$_; $p[0]; } @pairs;
+        $no_cache = 0;
     }
 }
 my %cache_stats = diskspaces(keys %cachedirs);
@@ -339,10 +346,11 @@ if ($config{runtimedir}){
    }
 }
 
-for my $controldir (@controldirs) {
+for my $controldir (keys %controldirs) {
 
+    my $conf_file = $config{conf_file};
     unless (open GMJOBSOUTPUT, 
-        "$config{ng_location}/@pkglibexecsubdir@/gm-jobs -u 0 -c $conf_file -d $controldir 2>/dev/null |") {
+        "$config{arc_location}/@pkglibexecsubdir@/gm-jobs -u 0 -c $conf_file -d $controldir 2>/dev/null |") {
         error("Error in executing gm-jobs")
     }
 
@@ -361,7 +369,7 @@ for my $controldir (@controldirs) {
 
     close GMJOBSOUTPUT;
     my $status = $? >> 8;
-    error("$config{ng_location}/bin/gm-jobs returned with non-zero exit status $status")
+    error("$config{arc_location}/bin/gm-jobs returned with non-zero exit status $status")
         if $status;
 }
 

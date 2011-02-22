@@ -207,7 +207,7 @@ sub notifyInfosys {
     return undef unless $ret;
     close $handle;
 
-    $log->verbose("Ldap-infosys is listening on fifo: $fifopath");
+    $log->info("Ldap-infosys notified on fifo: $fifopath");
     return $handle;
 }
 

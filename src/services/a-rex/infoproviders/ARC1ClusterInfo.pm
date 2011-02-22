@@ -809,7 +809,16 @@ sub collect($) {
 
                 # Give some help to the XML renderer to handle splitjobs
                 my $getXmlFileHandle = sub {
-                    my $xml_file = $config->{controldir} . "/job." . $jobid . ".xml";
+                    # If this is defined, then it's a job managed by local A-REX.
+                    my $gmuser = $gmjob->{gmuser};
+                    # Skip for now jobs managed by remote A-REX.
+                    # These are still published in ldap-infosys. As long as
+                    # distributing jobs to remote grid-managers is only
+                    # implemented by gridftd, remote jobs are not of interest
+                    # for the WS interface.
+                    return undef unless defined $gmuser;
+                    my $controldir = $config->{control}{$gmuser}{controldir};
+                    my $xml_file = $controldir . "/job." . $jobid . ".xml";
                     # Here goes simple optimisation - do not write new
                     # XML if status has not changed while in "slow" states
                     my $xml_time = (stat($xml_file))[9];
@@ -1150,7 +1159,7 @@ sub collect($) {
             $cpuistribution =~ s/cpu:/:/g;
             $cmgr->{LogicalCPUDistribution} = $cpuistribution if $cpuistribution;
 
-            {
+            if (defined $host_info->{session_total}) {
                 my $sharedsession = "true";
                 $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no"
                                          or lc($config->{shared_filesystem}) eq "false";
@@ -1172,7 +1181,7 @@ sub collect($) {
                 #$cmgr->{WorkingAreaMPIFree} = $gigsfree;
                 #$cmgr->{WorkingAreaMPILifeTime} = $sessionlifetime;
             }
-            {
+            if (defined $host_info->{cache_total}) {
                 my $gigstotal = ceil($host_info->{cache_total} / 1024);
                 my $gigsfree = ceil($host_info->{cache_free} / 1024);
                 $cmgr->{CacheTotal} = $gigstotal;

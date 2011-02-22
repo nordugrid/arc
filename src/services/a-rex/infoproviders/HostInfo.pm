@@ -17,10 +17,17 @@ use InfoChecker;
 our $host_options_schema = {
         x509_user_cert => '*',
         x509_cert_dir  => '*',
-        sessiondir     => [ '' ],
-        cachedir       => [ '*' ],
         processes      => [ '' ],
         localusers     => [ '' ],
+        control => {
+            '*' => {
+                sessiondir => [ '' ],
+                cachedir => [ '*' ],
+                remotecachedir => [ '*' ],
+                cachesize => '*'
+            }
+        },
+        remotegmdirs   => [ '*' ]
 };
 
 our $host_info_schema = {
@@ -54,7 +61,7 @@ our $host_info_schema = {
         processes  => { '*' => '' },
         localusers => {
             '*' => {
-                gridarea => '',
+                gridareas => [ '' ],
                 diskfree => '' # unit: MB
             }
         }
@@ -90,33 +97,6 @@ sub collect($) {
 
 
 # private subroutines
-
-sub grid_diskspace ($$) {
-    my ($sessiondir, $localids) = @_;
-    my $commonspace = Sysinfo::diskinfo($sessiondir);
-    $log->warning("Failed checking disk space in sessiondir $sessiondir")
-         unless $commonspace;
-
-    my $users = {};
-    foreach my $u (@$localids) {
-        $users->{$u} = {};
-
-        my ($name,$passwd,$uid,$gid,$quota,$comment,$gcos,$home,$shell,$expire) = getpwnam($u);
-        $log->warning("User $u is not listed in the passwd file") unless $name;
-
-        if ($sessiondir =~ /^\s*\*\s*$/) {
-            $users->{$u}{gridarea} = $home."/.jobs";
-            my $gridspace = Sysinfo::diskinfo($users->{$u}{gridarea});
-            $log->warning("Failed checking disk space in personal gridarea $users->{$u}{gridarea}")
-                unless $gridspace;
-            $users->{$u}{diskfree} = $gridspace->{megsfree} || 0;
-        } else {
-            $users->{$u}{gridarea} = $sessiondir;
-            $users->{$u}{diskfree} = $commonspace->{megsfree} || 0;
-        }
-    }
-    return $users;
-}
 
 # Obtain the end date of a certificate (in seconds since the epoch)
 sub enddate {
@@ -240,28 +220,77 @@ sub get_host_info {
 
     $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo, %$certinfo};
 
-    #TODO: multiple session dirs
-    my @sessiondirs = @{$options->{sessiondir}};
-    if (@sessiondirs) {
-        my $sessionspace = Sysinfo::diskinfo($sessiondirs[0]);
-        $log->warning("Failed checking disk space in sessiondir ".$sessiondirs[0])
-            unless $sessionspace;
-        $host_info->{session_free} = $sessionspace->{megsfree} || 0;
-        $host_info->{session_total} = $sessionspace->{megstotal} || 0;
+    my @controldirs;
+    my $control = $options->{control};
+    push @controldirs, $_->{controldir} for values %$control;
 
-        # users and diskspace
-        $host_info->{localusers} = grid_diskspace($sessiondirs[0], $options->{localusers});
+    # Considering only common session disk space (not including per-user session directoires)
+    my (%commongridareas, $commonfree);
+    if ($control->{'.'}) {
+        $commongridareas{$_} = 1 for @{$control->{'.'}{sessiondir}};
+    }
+    # Also include remote session directoires.
+    if (my $remotes = $options->{remotegmdirs}) {
+        for my $remote (@$remotes) {
+            my ($ctrldir, @sessions) = split ' ', $remote;
+            $commongridareas{$_} = 1 for @sessions;
+            push @controldirs, $ctrldir;
+        }
+    }
+    if (%commongridareas) {
+        my %res = Sysinfo::diskspaces(keys %commongridareas);
+        if ($res{errors}) {
+            $log->warning("Failed checking disk space available in session directories");
+        } else {
+            $host_info->{session_free} = $commonfree = $res{freesum};
+            $host_info->{session_total} = $res{totalsum};
+        }
     }
 
-    #OBS: only accurate if cache is on a filesystem of it's own
-    my @paths = ();
-    @paths = @{$options->{cachedir}} if $options->{cachedir};
-    @paths = map { my @pair = split " ", $_; $pair[0] } @paths;
-    my %cacheinfo = Sysinfo::diskspaces(@paths);
-    $log->warning("Failed checking disk space in cache directories: @paths")
-        unless %cacheinfo;
-    $host_info->{cache_total} = $cacheinfo{totalsum} || 0;
-    $host_info->{cache_free} = ($cacheinfo{freemin} || 0) * $cacheinfo{ndisks};
+    # calculate free space on the sessionsirs of each local user.
+    my $user = $host_info->{localusers} = {};
+
+    foreach my $u (@{$options->{localusers}}) {
+
+        # Are there grid-manager settings applying for this local user?
+        if ($control->{$u}) {
+            my $sessiondirs = $control->{$u}{sessiondir};
+            my %res = Sysinfo::diskspaces(@$sessiondirs);
+            if ($res{errors}) {
+                $log->warning("Failed checking disk space available in session directories of user $u")
+            } else {
+                $user->{$u}{gridareas} = $sessiondirs;
+                $user->{$u}{diskfree} = $res{freesum};
+            }
+        } elsif (defined $commonfree) {
+            # default for other users
+            $user->{$u}{gridareas} = [ keys %commongridareas ];
+            $user->{$u}{diskfree} = $commonfree;
+        }
+    }
+
+    # Considering only common cache disk space (not including per-user caches)
+    if ($control->{'.'}) {
+        my $cachedirs = $control->{'.'}{cachedir} || [];
+        my $remotecachedirs = $control->{'.'}{remotecachedir} || [];
+        my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs, @$remotecachedirs;
+        if (@paths) {
+            my %res = Sysinfo::diskspaces(@paths);
+            if ($res{errors}) {
+                $log->warning("Failed checking disk space available in common cache directories")
+            } else {
+                # What to publish as CacheFree if there are multiple cache disks?
+                # Should be highWatermark factored in?
+                # Opting to publish the least free space on any of the cache
+                # disks -- at least this has a simple meaning and is useful to
+                # diagnose if a disk gets full.
+				$host_info->{cache_free} = $res{freemin};
+                # Only accurate if caches are on filesystems of their own
+                $host_info->{cache_total} = $res{totalsum};
+            }
+        }
+    }
+
 
     #Globus Toolkit version
     #globuslocation/share/doc/VERSION
@@ -288,12 +317,23 @@ sub get_host_info {
 sub test {
     my $options = { x509_user_cert => '/etc/grid-security/hostcert.pem',
                     x509_cert_dir => '/etc/grid-security/certificates',
-                    sessiondir => [ '/home/grid/session/' ],
-                    cachedir => [ '/home/grid/cache' ],
+                    control => {
+                        '.' => {
+                            sessiondir => [ '/home', '/boot' ],
+                            cachedir => [ '/home' ],
+                            remotecachedir => [ '/boot' ],
+                            cachesize => '60 80',
+                        },
+                        'daemon' => {
+                            sessiondir => [ '/home', '/tmp' ],
+                        }
+                    },
+                    remotegmdirs => [ '/dummy/control /home',
+                                      '/dummy/control /boot' ],
                     libexecdir => '/opt/nordugrid/libexec/arc',
                     runtimedir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
-                    localusers => [ qw(root adrianta) ] };
+                    localusers => [ qw(root bin daemon) ] };
     require Data::Dumper; import Data::Dumper qw(Dumper);
     LogUtils::level('DEBUG');
     $log->debug("Options:\n" . Dumper($options));
@@ -302,6 +342,5 @@ sub test {
 }
 
 #test;
-
 
 1;

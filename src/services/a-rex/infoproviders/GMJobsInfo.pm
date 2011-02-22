@@ -1,6 +1,7 @@
 package GMJobsInfo;
 
 use POSIX qw(ceil);
+use English;
 
 use LogUtils;
 
@@ -9,6 +10,7 @@ use strict;
 # The returned hash looks something like this:
 
 our $j = { 'jobID' => {
+            gmuser             => '*',
             # from .local
             lrms               => '*',
             queue              => '',
@@ -57,6 +59,24 @@ our $j = { 'jobID' => {
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
+#
+# switch effective user if possible. This is reversible.
+#
+sub switchEffectiveUser {
+    my ($user) = @_;
+    return unless $UID == 0;
+    my ($name, $pass, $uid, $gid);
+    if ($user eq '.') {
+       ($uid, $gid) = (0, 0);
+    } else {
+        ($name, $pass, $uid, $gid) = getpwnam($user);
+        return unless defined $gid;
+    }
+    eval { $EGID = $gid;
+           $EUID = $uid;
+    };
+}
+
 # extract the lower limit of a RangeValue_Type expression
 sub get_range_minimum($$) {
     my ($range_str, $jsdl_ns_re) = @_;
@@ -70,6 +90,37 @@ sub get_range_minimum($$) {
 
 
 sub collect {
+    my ($controls, $remotegmdirs, $nojobs) = @_;
+
+    my $gmjobs = {};
+    while (my ($user, $control) = each %$controls) {
+        switchEffectiveUser($user);
+        my $controldir = $control->{controldir};
+        my $newjobs = get_gmjobs($controldir, $nojobs);
+        $newjobs->{$_}{gmuser} = $user for keys %$newjobs;
+        $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
+    }
+
+    # switch to root or to gridftpd user?
+    switchEffectiveUser('.');
+
+    if ($remotegmdirs) {
+        for my $pair (@$remotegmdirs) {
+            my ($controldir, $sessiondir) = split ' ', $pair;
+            my $newjobs = get_gmjobs($controldir, $nojobs);
+            $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
+        }
+    }
+    
+    # switch back to root
+    switchEffectiveUser('.');
+
+    return $gmjobs;
+}
+
+
+sub get_gmjobs {
+
     my ($controldir, $nojobs) = @_;
 
     my %gmjobs;
@@ -99,7 +150,7 @@ sub collect {
         my $gmjob_diag        = $controldir."/job.".$ID.".diag";
 
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
-            $log->warning( "Job $ID: Can't read jobfile $gmjob_local, skipping..." );
+            $log->warning( "Job $ID: Can't read jobfile $gmjob_local, skipping job" );
             delete $gmjobs{$ID};
             next;
         }
@@ -136,14 +187,19 @@ sub collect {
 
         # read the job.ID.status into "status"
         unless (open (GMJOB_STATUS, "<$gmjob_status")) {
-            $log->warning("Job $ID: Can't open $gmjob_status");
-            $job->{status} = undef;
+            $log->warning("Job $ID: Can't open status file $gmjob_status, skipping job");
+            delete $gmjobs{$ID};
+            next;
         } else {
             my @file_stat = stat GMJOB_STATUS;
             chomp (my ($first_line) = <GMJOB_STATUS>);
             close GMJOB_STATUS;
 
-            $log->warning("Job $ID: Failed to read status") unless $first_line;
+            unless ($first_line) {
+                $log->warning("Job $ID: Failed to read status from file, skipping job");
+                delete $gmjobs{$ID};
+                next;
+            }
             $job->{status} = $first_line;
 
             if (@file_stat) {
@@ -292,8 +348,11 @@ sub collect {
                     if defined $kerneltime and defined $usertime;
             }
         }
-    }
-    }
+
+    } # job ID loop
+
+    } # controlsubdir loop
+
     return \%gmjobs;
 }
 

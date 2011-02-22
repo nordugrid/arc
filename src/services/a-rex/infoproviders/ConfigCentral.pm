@@ -82,6 +82,7 @@ my $gmuser_options = {
     controldir => '',
     sessiondir => [ '' ],
     cachedir => [ '*' ],
+    cachesize => '*',
     remotecachedir => [ '*' ],
     defaultttl => '*',
 };
@@ -117,6 +118,7 @@ my $gridftpd_options = {
     GridftpdPort => '*',
     GridftpdMountPoint => '*',
     GridftpdAllowNew => '*',
+    remotegmdirs => [ '*' ],
 };
 
 # # # # # # # # # # # # # #
@@ -326,7 +328,7 @@ sub read_arex_config {
 # hash conforming to $config_schema.
 #
 sub build_config_from_xmlfile {
-    my ($file) = @_;
+    my ($file, $arc_location) = @_;
 
     my $arex = read_arex_config($file);
     $log->fatal("A-REX config not found in $file") unless ref $arex eq 'HASH';
@@ -363,7 +365,7 @@ sub build_config_from_xmlfile {
     # to options which are not multivalued, the arrays should contain only one
     # element. Replace these arrays with the value of the last element. Keys
     # corresponding to multivalued options are left untouched.
-    my @multival = qw(cache location remotelocation control sessionRootDir
+    my @multival = qw(cache location remotelocation control sessionRootDir remotegmdirs
                       OpSys Middleware LocalSE ClusterOwner Benchmark OtherInfo
                       StatusInfo Regex Command Tag ExecutionEnvironmentName AuthorizedVO
                       Contact ExecutionEnvironment ComputingShare
@@ -425,6 +427,9 @@ sub build_config_from_xmlfile {
                 next unless $location->{path};
                 push @{$cconf->{remotecachedir}}, $location->{path};
             }
+            my $low = $cache->{lowWatermark} || '';
+            my $high = $cache->{highWatermark} || '';
+            $cconf->{cachesize} = "$low $high" if $low;
         }
         $config->{control}{$user} = $cconf;
     }
@@ -475,7 +480,7 @@ sub build_config_from_xmlfile {
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
     move_keys $ipcfg, $config, ['debugLevel', 'ProviderLog', 'PublishNordugrid', 'AdminDomain'];
-    #move_keys $ipcfg, $config, [keys %$gridftpd_options];
+    move_keys $ipcfg, $config, [keys %$gridftpd_options];
     rename_keys $ipcfg, $config, {Location => 'location', Contact => 'contacts'};
 
     rename_keys $ipcfg, $config, {AccessPolicy => 'accesspolicies', MappingPolicy => 'mappingpolicies'};
@@ -501,9 +506,114 @@ sub build_config_from_xmlfile {
 
     hash_tree_apply $config, sub { fixbools shift, $allbools };
 
+    _substitute($config, $arc_location);
+
     #print(Dumper $config);
     return $config;
 }
+
+sub _substitute {
+    my ($config, $arc_location) = @_;
+    my $control = $config->{control};
+
+    my ($lrms, $defqueue) = split " ", $config->{lrms} || '';
+
+    die 'Gridmap user list feature is not supported anymore. Please use @filename to specify user list.'
+        if exists $control->{'*'};
+
+    # expand user sections whose user name is like @filename
+    my @users = keys %$control;
+    for my $user (@users) {
+        next unless $user =~ m/^\@(.*)$/;
+        my $path = $1;
+        my $fh;
+        # read in user names from file
+        if (open ($fh, "< $path")) {
+            while (my $line = <$fh>) {
+                chomp (my $newuser = $line);
+                next if exists $control->{$newuser};         # Duplicate user!!!!
+                $control->{$newuser} = { %{$control->{$user}} }; # shallow copy
+            }
+            close $fh;
+            delete $control->{$user};
+        } else {
+            die "Failed opening file to read user list from: $path: $!";
+        }
+    }
+
+    # substitute per-user options
+    @users = keys %$control;
+    for my $user (@users) {
+        my @pw;
+        my $home;
+        if ($user ne '.') {
+            @pw = getpwnam($user);
+            $log->warning("getpwnam failed for user: $user: $!") unless @pw;
+            $home = $pw[7] if @pw;
+        } else {
+            $home = "/tmp";
+        }
+
+        my $opts = $control->{$user};
+
+        # Default for controldir, sessiondir
+        if ($opts->{controldir} eq '*') {
+            $opts->{controldir} = $pw[7]."/.jobstatus" if @pw;
+        }
+        $opts->{sessiondir} ||= ['*'];
+        $opts->{sessiondir} = [ map { $_ ne '*' ? $_ : "$home/.jobs" } @{$opts->{sessiondir}} ];
+
+        my $controldir = $opts->{controldir};
+        my @sessiondirs = @{$opts->{sessiondir}};
+
+        my $subst_opt = sub {
+            my ($val) = @_;
+
+            #  %R - session root
+            $val =~ s/%R/$sessiondirs[0]/g if $val =~ m/%R/;
+            #  %C - control dir
+            $val =~ s/%C/$controldir/g if $val =~ m/%C/;
+            if (@pw) {
+                #  %U - username
+                $val =~ s/%U/$user/g       if $val =~ m/%U/;
+                #  %u - userid
+                #  %g - groupid
+                #  %H - home dir
+                $val =~ s/%u/$pw[2]/g      if $val =~ m/%u/;
+                $val =~ s/%g/$pw[3]/g      if $val =~ m/%g/;
+                $val =~ s/%H/$home/g       if $val =~ m/%H/;
+            }
+            #  %L - default lrms
+            #  %Q - default queue
+            $val =~ s/%L/$lrms/g           if $val =~ m/%L/;
+            $val =~ s/%Q/$defqueue/g       if $val =~ m/%Q/;
+            #  %W - installation path
+            $val =~ s/%W/$arc_location/g   if $val =~ m/%W/;
+            #  %G - globus path
+            my $G = $ENV{GLOBUS_LOCATION} || '/usr';
+            $val =~ s/%G/$G/g              if $val =~ m/%G/;
+
+            return $val;
+        };
+        if ($opts->{controldir}) {
+            $opts->{controldir} = &$subst_opt($opts->{controldir});
+        }
+        if ($opts->{sessiondir}) {
+            $opts->{sessiondir} = [ map {&$subst_opt($_)} @{$opts->{sessiondir}} ];
+        }
+        if ($opts->{cachedir}) {
+            $opts->{cachedir} = [ map {&$subst_opt($_)} @{$opts->{cachedir}} ];
+        }
+        if ($opts->{remotecachedir}) {
+            $opts->{remotecachedir} = [ map {&$subst_opt($_)} @{$opts->{remotecachedir}} ];
+        }
+    }
+
+    # authplugin, localcred, helper: not substituted
+
+    return $config;
+}
+
 
 #
 # Reads the INI config file passed as the first argument and produces a config
@@ -514,9 +624,9 @@ sub build_config_from_xmlfile {
 sub build_config_from_inifile {
     my ($inifile, $config) = @_;
 
-    my $iniparser = IniParser->new($inifile);
+    my $iniparser = SubstitutingIniParser->new($inifile);
     if (not $iniparser) {
-        $log->error("Cannot open $inifile\n");
+        $log->error("Failed parsing config file: $inifile\n");
         return $config;
     }
     $log->error("Not a valid INI configuration file: $inifile") unless $iniparser->list_sections();
@@ -531,17 +641,14 @@ sub build_config_from_inifile {
     $config->{mappingpolicies} ||= [];
     $config->{xenvs} ||= {};
     $config->{shares} ||= {};
-    $config->{control}{'.'} ||= {};
 
 
     my $common = { $iniparser->get_section("common") };
     my $gm = { $iniparser->get_section("grid-manager") };
     rename_keys $common, $config, {providerlog => 'ProviderLog'};
     move_keys $common, $config, [keys %$gmcommon_options];
-    move_keys $common, $config->{control}{'.'}, [keys %$gmuser_options];
     move_keys $common, $config, [keys %$lrms_options, keys %$lrms_share_options];
     move_keys $gm, $config, [keys %$gmcommon_options];
-    move_keys $gm, $config->{control}{'.'}, [keys %$gmuser_options];
     rename_keys $gm, $config, {arex_mount_point => 'endpoint'};
 
     $config->{debugLevel} = $common->{debug} if $common->{debug};
@@ -567,6 +674,7 @@ sub build_config_from_inifile {
         $config->{GridftpdPort} = $gconf{port} if $gconf{port};
         $config->{GridftpdMountPoint} = $gjconf{path} if $gjconf{path};
         $config->{GridftpdAllowNew} = $gjconf{allownew} if defined $gjconf{allownew};
+        $config->{remotegmdirs} = $gjconf{remotegmdirs} if defined $gjconf{remotegmdirs};
     } else {
         $config->{GridftpdEnabled} = 'no';
     }
@@ -711,10 +819,10 @@ sub isXML {
 # file override the ones from the XML file.
 #
 sub parseConfig {
-    my $file = shift;
+    my ($file, $arc_location) = @_;
     my $config;
     if (isXML($file)) {
-        $config = build_config_from_xmlfile($file);
+        $config = build_config_from_xmlfile($file, $arc_location);
         my $inifile = $config->{gmconfig};
         $config = build_config_from_inifile($inifile, $config) if $inifile;
     } else {
@@ -722,9 +830,6 @@ sub parseConfig {
     }
 
     LogUtils::level($config->{debugLevel}) if $config->{debugLevel};
-
-    $log->error("No queue or ComputingShare configured") unless %{$config->{shares}};
-    $log->error("No ExecutionEnvironment configured") unless %{$config->{xenvs}};
 
     my $checker = InfoChecker->new($config_schema);
     my @messages = $checker->verify($config,1);

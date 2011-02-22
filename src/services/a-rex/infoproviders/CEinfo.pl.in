@@ -48,6 +48,7 @@ use InfosysHelper;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 our $configfile;
+our $nojobs;
 
 sub timed {
     my ($fname, $func) = @_;
@@ -64,7 +65,6 @@ sub main {
     LogUtils::level('INFO');
 
     # Parse command line options
-    my $nojobs;
     my $splitjobs;
     my $nonordugrid;
     my $print_help;
@@ -105,7 +105,7 @@ sub main {
 
     open STDERR, ">>", $providerlog or $log->error("Failed to open to $providerlog");
     LogUtils::timestamps(1);
-    $log->info("############## Infoprovider started  ##############");
+    $log->info("############## A-REX infoprovider started  ##############");
 
     fix_config($config);
     check_config($config);
@@ -149,7 +149,7 @@ sub main {
         }
     }
 
-    $log->info("############## Infoprovider finished ##############");
+    $log->info("############## A-REX infoprovider finished ##############");
 }
 
 
@@ -213,7 +213,8 @@ sub get_host_info($$) {
     $host_opts->{x509_user_cert} = $config->{x509_user_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{sessiondir} = $config->{sessiondir};
-    $host_opts->{cachedir} = $config->{cachedir};
+    $host_opts->{control} = $config->{control};
+    $host_opts->{remotegmdirs} = $config->{remotegmdirs};
 
     return timed 'HostInfo', sub { HostInfo::collect($host_opts) };
 }
@@ -248,8 +249,9 @@ sub get_lrms_info($$$) {
 sub get_gmjobs_info($) {
     my $config = shift;
 
-    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{controldir}) };
-
+    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{control},
+                                                                    $config->{remotegmdirs},
+                                                                    $nojobs) };
     return fix_jobs($config, $gmjobs_info);
 }
 
@@ -386,16 +388,6 @@ sub fix_config {
         $log->warning("Config option endpoint (or arex_mount_point) is missing or not a valid URL. Assuming: ".$config->{endpoint});
     }
 
-    # deal with GM per-user options: select one user, ignore others
-    my @gmusers = keys %{$config->{control}};
-    $log->fatal("No control directory configured") unless @gmusers;
-    my $control = $config->{control}{'.'}
-               || $config->{control}{$gmusers[0]};
-    $log->fatal("No control directory configured") unless $control->{controldir};
-    $log->fatal("No session directory configured") unless $control->{sessiondir};
-    $config->{$_} ||= $control->{$_} for keys %$control;
-    delete $config->{control};
-
     # Cross-check MappingPolicy references and move them to the share wehre they belong
     for my $s (@{$config->{mappingpolicies}}) {
         $log->error("MappingPolicy must include a ShareName option")
@@ -418,6 +410,16 @@ sub fix_config {
 
 sub check_config {
     my ($config) = @_;
+
+    $log->error("No queue or ComputingShare configured") unless %{$config->{shares}};
+    $log->error("No ExecutionEnvironment configured") unless %{$config->{xenvs}};
+
+    $log->error("No control directory configured")
+        unless %{$config->{control}} or $config->{remotegmdirs};
+    while (my ($user, $control) = each %{$config->{control}}) {
+        $log->error("No control directory configured for user $user") unless $control->{controldir};
+        $log->error("No session directory configured for user $user") unless $control->{sessiondir};
+    }
 
     # Cross-check ExecutionEnvironment references
     for my $s (values %{$config->{shares}}) {
