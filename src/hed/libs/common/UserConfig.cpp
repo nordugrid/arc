@@ -509,6 +509,7 @@ namespace Arc {
               while (common["slcs"]) common["slcs"].Destroy();
             }
           }
+          HANDLESTRATT("jobdownloaddirectory", JobDownloadDirectory)
           HANDLESTRATT("storedirectory", StoreDirectory)
           HANDLESTRATT("idpname", IdPName)
           if (common["defaultservices"]) {

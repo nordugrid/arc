@@ -73,6 +73,7 @@ namespace Arc {
    * - certificatelifetime / CertificateLifeTime(const Period&)
    * - slcs / SLCS(const URL&)
    * - storedirectory / StoreDirectory(const std::string&)
+   * - jobdownloaddirectory / JobDownloadDirectory(const std::string&) 
    * - idpname / IdPName(const std::string&)
    *
    * where the first term is the name of the attribute used in the
@@ -303,6 +304,7 @@ namespace Arc {
      * - certificatelifetime (CertificateLifeTime(const Period&))
      * - slcs (SLCS(const URL&))
      * - storedirectory (StoreDirectory(const std::string&))
+     * - jobdownloaddirectory (JobDownloadDirectory(const std::string&)) 
      * - idpname (IdPName(const std::string&))
      *
      * where the method in parentheses is the associated setter method.
@@ -1023,7 +1025,33 @@ namespace Arc {
      * @see StoreDirectory(const std::string&)
      **/
     const std::string& StoreDirectory() const { return storeDirectory; }
-
+    
+    /// Set download directory
+    /**
+     * Sets directory which will be used to download the job 
+     * directory using arcget command.
+     *
+     * The attribute associated with this setter method is
+     * 'jobdownloaddirectory'.
+     * @param newDownloadDirectory is the path to the store directory.
+     * @return This method always returns \c true.
+     * @see
+     **/
+    bool JobDownloadDirectory(const std::string& newDownloadDirectory) { downloadDirectory = newDownloadDirectory; return true; }
+    
+    /// Get download directory
+    /**
+     * returns directory which will be used to download the job 
+     * directory using arcget command.
+     *
+     * The attribute associated with this setter method is
+     * 'jobdownloaddirectory'.
+     * @param newDownloadDirectory is the path to the store directory.
+     * @return This method always returns \c true.
+     * @see
+     **/
+    const std::string& JobDownloadDirectory() const { return downloadDirectory; } 
+    
     /// Set IdP name
     /**
      * Sets Identity Provider name (Shibboleth) to which user belongs.
@@ -1182,7 +1210,7 @@ namespace Arc {
     std::string vomsServerPath;
 
     std::string storeDirectory;
-
+    std::string downloadDirectory;
     std::string idPName;
 
     std::string username;

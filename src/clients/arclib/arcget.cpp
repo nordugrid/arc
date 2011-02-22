@@ -124,7 +124,19 @@ int RUNGET(main)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-
+  
+  if (downloaddir.empty()) {
+    if (!usercfg.JobDownloadDirectory().empty()) {
+      downloaddir = usercfg.JobDownloadDirectory();
+      logger.msg(Arc::INFO, "Job download directory from user configuration file: %s ", downloaddir);   
+    }
+    else {
+      logger.msg(Arc::INFO, "Job download directory will be created in present working directory. ");
+    }
+  }  
+  else {
+    logger.msg(Arc::INFO, "Job download directory: %s ", downloaddir); 
+  }
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
