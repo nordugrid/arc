@@ -1,2 +1,2 @@
 #NorduGrid VO automatic grid-mapfile creation 
-11 3,9,12,15,21 * * * root @sbindir@/nordugridmap
+11 3,9,12,15,21 * * * root @prefix@/sbin/nordugridmap
