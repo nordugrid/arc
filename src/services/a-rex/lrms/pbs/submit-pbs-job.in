@@ -409,9 +409,14 @@ while [ "$PBS_TRIES" -lt '10' ] ; do
 done
 if [ $PBS_RESULT -eq '0' ] ; then
    job_id=`cat $LRMS_JOB_OUT`
-   if [ "${job_id}" = "" ] ; then
+   # This should be on the format 1414162.$hostname
+   if [ "${job_id}" = "" ]; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the pbs jobid for the job!" 1>&2
+      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+   elif [ `echo "${job_id}" | grep -Ec "^[0-9]+"` != "1" ]; then
+      echo "job *NOT* submitted successfully!" 1>&2
+      echo "badly formatted pbs jobid for the job: $job_id !" 1>&2
       echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
    else
       echo "joboption_jobid=$job_id" >> $arg_file
