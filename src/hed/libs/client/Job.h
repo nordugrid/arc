@@ -287,6 +287,19 @@ namespace Arc {
      **/
     static bool RemoveJobsFromFile(const std::string& filename, const std::list<URL>& jobids, unsigned nTries = 10, unsigned tryInterval = 500000);
 
+    /// Read a list of Job IDs from a file, and append them to a list
+    /**
+     * This static method will read job IDs from the given file, and append the strings
+     * to the string list given as parameter. It returns false if the file was not readable,
+     * true otherwise, even if there were no IDs in the file. The lines of the file will be
+     * trimmed, and lines starting with # will be ignored.
+     *
+     * @param filename is the filename of the jobidfile
+     * @param jobids is a list of strings, to which the IDs read from the file will be appended
+     * @return true in case of success, otherwise false.
+     **/
+    static bool ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids);
+
   private:
     static Logger logger;
   };

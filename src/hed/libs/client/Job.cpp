@@ -684,5 +684,21 @@ namespace Arc {
 
     return false;
   }
+  
+  bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids) {
+    if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) {
+      return false;
+    } else {
+      std::ifstream is(filename.c_str());
+      std::string line;
+      while (std::getline(is, line)) {
+        line = Arc::trim(line, " \t");
+        if (!line.empty() && line[0] != '#') {
+          jobids.push_back(line);
+        }
+      }
+      return true;
+    }
+  }
 
 } // namespace Arc
