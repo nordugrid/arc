@@ -8,6 +8,7 @@ debian/tmp/usr/share/arc/ldap-schema/glue-1.2/Glue-CESEBind.schema
 debian/tmp/usr/lib/arc/grid-info-soft-register
 
 debian/tmp/usr/lib/arc/glue-generator.pl
+debian/tmp/usr/lib/arc/glite-info-provider-ldap
 debian/tmp/usr/lib/arc/qju.pl
 debian/tmp/usr/lib/arc/cluster.pl
 debian/tmp/usr/lib/arc/se.pl

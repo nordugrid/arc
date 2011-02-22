@@ -1,0 +1,427 @@
+#!/usr/bin/perl -w
+#Copyright (c) Members of the EGEE Collaboration. 2004. 
+#See http://www.eu-egee.org/partners/ for details on the copyright holders.
+#
+#Licensed under the Apache License, Version 2.0 (the "License"); 
+#you may not use this file except in compliance with the License. 
+#You may obtain a copy of the License at 
+#
+#  http://www.apache.org/licenses/LICENSE-2.0 
+#
+#Unless required by applicable law or agreed to in writing, software 
+#distributed under the License is distributed on an "AS IS" BASIS, 
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+#See the License for the specific language governing permissions and 
+#limitations under the License
+
+use strict;
+use LWP::Simple;
+use POSIX;
+use IO::Handle;
+use Getopt::Std;
+use File::Basename;
+use File::Path;
+use File::stat;
+use File::Copy;
+
+use vars qw( $debug );
+
+# Print the usage message
+sub usage(){
+    print STDERR "Usage: $0 -c <config file> [-m <mds-vo-name>] [-v validity]"
+               . " -[d dynamic] [-t timeout] [-s size] [-g site/region]\n";
+    print STDERR '
+This information provider takes a list of LDAP urls from the configuration
+file and queries the LDAP sources. It then merges the results and modifies
+the dn to append the mds-vo-name as specified on the command line.
+The configuration file has lines typically with the following format:
+
+entity  ldap://host.domain:2170/mds-vo-name=something,o=grid
+
+Comments start with "#" and are ignored.
+
+Options:
+
+    -c  The configuration file listing all the LDAP URLs.
+
+    -m  The mds-vo-name which should be used.
+
+    -h  Displays this helpful message.
+
+    -d  This option will change the search filter to only
+        retrieve the dynamic information. (currently not supported)
+
+    -g  This option will modify the search endpoint to obtain glue 2.0 
+        information and dynamically modify the dn if value is not "none".
+
+    -t  The timeout of the ldapsearch in seconds.
+
+    -v  The validity of the cache files in seconds.
+
+    -s  Maximum file size in megabytes for a single source.
+
+';
+    exit 1;
+}
+
+# Parse the command line options
+my %options=();
+getopts("v:dg:hm:c:t:s:",\%options) or usage();
+
+# Set configuration file
+my $config;
+if ($options{c}){
+    $config=$options{c};
+}else{
+    usage();
+    exit 1;
+}
+
+# Set value for mds-vo-name
+my $name;
+if ($options{m}){
+    $name=$options{m};
+}elsif ($options{g}){
+    $name=$options{g};
+}
+
+if ($options{h}){
+    usage();
+    exit 1;
+}
+
+# Select Filter, all Glue entries or only dynamic CE entries
+my $filter;
+if ($options{d}) {
+    $filter = "'(|(objectClass=GlueVOView)(objectClass=GlueCE))'"
+            . " GlueCEStateRunningJobs GlueCEStateWaitingJobs"
+	    . " GlueCEStateTotalJobs GlueCEStateFreeJobSlots"
+	    . " GlueCEStateEstimatedResponseTime GlueCEStateWorstResponseTime";
+}else{
+    $filter = "'(|(objectClass=GlueTop)(objectClass=MDS)"
+	. "(objectClass=GlueClusterTop)(objectClass=GlueCETop)"
+	. "(objectClass=GlueGeneralTop)(objectClass=GlueSETop)"
+	. "(objectClass=GlueSATop))'";
+}
+
+# Set ttl for cache or set ttl to 0 if using dynamic option
+my $ttl;
+if ($options{v}){
+    if ( ! int($options{v})){
+	usage();
+    };
+    $ttl=int($options{v});
+    if ($options{d}){
+	print STDERR "Error: Can not use ttl option with dynamic option\n";
+	exit 1;
+    }
+}else{
+    $ttl=600;
+}
+
+# Set timeout for the ldapsearch
+my $timeout=30;
+if ($options{t}){
+    if ( ! int($options{t})){
+	usage();
+    };
+    $timeout=int($options{t});
+}
+
+
+# Set the maximum file size.
+my $max_file_size=10;
+
+if ($options{s}){
+    if ( ! int($options{s})){
+	usage();
+    };
+    $max_file_size=int($options{s});
+}
+
+# Figure out the location of the glite var directory
+my $var_dir;
+if (exists($ENV{GLITE_LOCATION_VAR})) {
+    $var_dir = "$ENV{GLITE_LOCATION_VAR}";
+} elsif (exists($ENV{GLITE_LOCATION})) {
+    $var_dir = "$ENV{GLITE_LOCATION}/var";
+} else {
+    $var_dir = "/opt/glite/var";
+}
+
+# Figure out the location of the glite etc directory
+my $etc_dir;
+if (exists($ENV{GLITE_LOCATION})) {
+    $etc_dir = "$ENV{GLITE_LOCATION}/etc";
+} else {
+    $etc_dir = "/opt/glite/etc";
+}
+
+my @ldif;
+
+# Get the ldap urls from the configuration file.
+my @urls;
+open (CONFIG, "$config" ) ||
+    die "Couldn't open config file $config $!\n";
+while (<CONFIG>) {
+    s/\#.*//;
+    if (m/\s+ldap:\/\//){
+	push @urls, $_;
+    }
+}
+close (CONFIG);
+
+# Prepare the temporary directory
+my $file_name=fileparse($config);
+if ($options{g}){
+    $file_name=$file_name . '-glue2'
+}
+my $tmp_dir = "$var_dir/tmp/gip/$file_name";
+my $cache_dir = "$var_dir/cache/gip/$file_name";
+
+if( -d $tmp_dir ){
+    my @files=glob("$tmp_dir/*.ldif");
+    foreach my $file (@files) {
+	unlink($file);
+    }
+}else{
+    mkpath($tmp_dir);
+}
+
+if( ! -d $cache_dir ){
+    mkpath($cache_dir);
+}
+
+my $date = `date +\%Y-\%m-\%d`;  chomp $date;
+my $log_dir  = "$var_dir/tmp/gip/log/$file_name";
+my $log_file = "$log_dir/$file_name-$date.log";
+
+if( ! -d $log_dir ){
+    mkpath($log_dir);
+}
+
+
+# Remove old log files
+my $log_file_retention=60; # in number of days
+my @log_files=glob("$log_dir/$file_name*.log");
+my $current_time=time;
+my $file_info;
+my $file_time;
+foreach(@log_files){
+    $file_info =  stat($_);
+    if($file_info){
+	$file_time=$file_info->mtime;
+	if ( $current_time > ($file_time + 
+			      ($log_file_retention * 24 * 3600)) ){   
+	    
+	    unlink($_);
+	}
+    }
+}
+
+
+open(LOGFILE, ">> $log_file") or die "$0: cannot open '$log_file': $!\n";
+my $fh = select(LOGFILE); $| = 1; select($fh);
+
+my $start_time = `date '+\%Y-\%m-\%d \%T'`; chomp $start_time;
+my $t0 = time;
+print LOGFILE "=== $start_time START\n";
+
+my @pid;      # The pids of the forked processes.
+my $pid;      # A pid for one process.
+my $region;   # A region name for the ldif source.
+my $bind;     # The bind point for the search.
+my $command;  # A command that will return ldif.
+my $bunch=10;
+my $delay=5;
+my $n=0;
+
+#Loop through for each ldif source
+foreach(@urls){
+
+    if ($n++ >= $bunch) {
+	my $child = 0;
+	eval {
+	    local $SIG{ALRM} = sub { die "timeout" };
+	    alarm($delay);
+	    $child = wait();
+	    alarm(0);
+	};
+	if (!$child) {
+	    # The active commands may all be hanging,
+	    # so launch another bunch...
+	    $n = 0;
+	} else {
+	    $n--;
+	}
+    }
+
+    # Split the information from the url.
+    if (m|^([-.\w]+)\s+ldap://(.+):([0-9]+)/(.+)|) {
+	$region  = $1;
+
+	if ($options{g}){
+	    my $site = $4;
+	    $site =~s/,o=grid$//;
+	    $site =~s/^.*=//;
+	    if ( $site eq 'resource'){
+		$bind = 'GLUE2GroupID=resource,o=glue';
+	    }else{
+		$bind = "GLUE2DomainId=$site,o=glue";
+	    }
+	    $filter = ''
+	}else{
+	    $bind = $4;
+	}
+	
+	$command = "ldapsearch -x -LLL -h $2 -p $3 -b $bind "
+	    . $filter
+	    . "> $tmp_dir/$region.ldif 2>$tmp_dir/$region.err";
+    } else {
+	chomp;
+	print LOGFILE "ignoring badly formatted line: '$_'\n";
+	next;
+    }
+
+    # Fork the search.
+    if (!defined($pid=fork)) {
+	print LOGFILE "cannot fork: $!\n";
+	next;
+    }
+
+    unless ($pid) {
+	# Set our process group to a distinct value.
+	setpgrp();
+	my $msg = "GOT TIRED OF WAITING";
+
+	# Eval will kill the process if it times out.
+	eval {
+	    local $SIG{ALRM} = sub { die "$msg" };
+	    alarm ($timeout);  #Will call alarm after the timeout.
+
+	    if (system("$command") != 0) {
+		unlink("$tmp_dir/$region.ldif");
+	    }else{
+		unlink("$tmp_dir/$region.err");
+	    }
+	    alarm(0); # Cancel the pending alarm if responds.
+	};
+
+	# This section is executed if the process times out.
+	if ($@ =~ /$msg/) {
+	    unlink("$tmp_dir/$region.ldif");
+	    system("echo Search timed out >> $tmp_dir/$region.err");
+	    my $PGRP=getpgrp();
+	    kill (-SIGKILL(), $PGRP);
+	    exit 1;
+	}
+	exit 0;
+    }
+    push @pid, $pid;
+}
+
+foreach(@pid){
+    waitpid($_, 0);
+}
+
+my $end_time = `date '+\%Y-\%m-\%d \%T'`; chomp $end_time;
+my $dt = sprintf "%4d", time - $t0;
+print LOGFILE "=== $end_time END - elapsed: $dt\n";
+
+for (<$tmp_dir/*.err>){
+    $region=$_;
+    $region=~s/.*\///;
+    $region=~s/\.err$//;
+    print LOGFILE "--> $region:\n";
+    system("cat $_ >> $log_file");
+    print LOGFILE "\n";
+    unlink($_);
+}
+
+my $file_size;
+for (<$tmp_dir/*.ldif>){
+    $file_info =  stat($_);
+    if($file_info){
+	$region=$_;
+	$region=~s/.*\///;
+	$region=~s/\.ldif$//;
+	$file_size = $file_info->size;
+	# Protection for too much data coming from a site.
+	if ( $file_size > ($max_file_size * 1000000) ){
+	    print LOGFILE "ERROR: $region is producing too much data!\n";
+	    unlink($_);
+	}else{
+	    move($_, "$cache_dir/$region.ldif");
+	}
+    }
+}
+
+# Delete old files from the cache
+for (<$cache_dir/*.ldif>){
+    $file_info =  stat($_);
+    $file_time=$file_info->mtime;
+    if ( $current_time > ($file_time + $ttl) ){
+	$region=$_;
+	$region=~s/.*\///;
+	$region=~s/\.ldif$//;
+	print LOGFILE "NOTICE: deleting stale cache file for $region.\n";
+	unlink($_);
+    }
+}
+
+my $rs = $/;
+$/ = "";
+
+for (<$cache_dir/*.ldif>) {
+    open(LDIF, $_) || warn "Cannot open '$_': $!\n";
+    while (<LDIF>) {
+	s/\n //g; # Remove line wrapping
+
+	next if /^\s*$/;
+
+	unless (/^dn:/) {
+	    chomp;
+	    s/(.{900}).*/$1\[...]/s;
+	    print LOGFILE "ERROR: Skipping junk:\n"
+		. ('-' x 70) . "\n$_\n" . ('-' x 70) . "\n";
+	    next;
+	}
+
+	my $dn = $_;
+	$dn =~ s/\n.*//s;
+	$dn =~ s/,\s+/,/g;
+
+	if ($options{m}){
+	    if ($dn =~ m/mds-vo-name=$name,/i) {
+		print LOGFILE "ERROR: Skipping recursive entry '$dn'\n";
+		next;
+	    }
+
+	    $dn =~ s/mds-vo-name=(local|resource),o=grid\s*$/o=grid/i;
+	    $dn =~ s/o=grid\s*$/mds-vo-name=$name,o=grid/i;
+
+	}
+	if ($options{g}){
+	    if ($dn =~ m/GLUE2DomainId=$name,/i) {
+		print LOGFILE "ERROR: Skipping recursive entry '$dn'\n";
+		next;
+	    }
+
+	    if ( $name ne "none"){
+		$dn =~ s/o=glue/GLUE2DomainId=$name,o=glue/i;
+	    }
+	}
+
+	s/[^\n]*/$dn/;
+
+	if ($name ne "local" ){
+	    s/mds-vo-name:[^\n]*\n/mds-vo-name: $name\n/i;
+	}
+
+	print;
+    }
+    close LDIF;
+}
+
+$/ = $rs;
+

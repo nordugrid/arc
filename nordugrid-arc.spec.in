@@ -846,6 +846,7 @@ exit 0
 %{_libdir}/%{pkgdir}/grid-infosys-bdii4
 %{_libdir}/%{pkgdir}/grid-infosys-bdii5
 %{_libexecdir}/%{pkgdir}/glue-generator.pl
+%{_libexecdir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
 %{_libexecdir}/%{pkgdir}/grid-info-soft-register
 %{_libexecdir}/%{pkgdir}/qju.pl

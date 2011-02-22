@@ -1146,6 +1146,23 @@ create_bdii_config_files () {
 
     fi
 
+    # Site BDII
+    for site_bdii in `config_subsections infosys/site`; do
+
+      config_import_section infosys/site/$site_bdii
+      unique_id=${CONFIG_unique_id:-$site_bdii}
+      site_config="${bdii_tmp_dir}/${site_bdii}.conf"
+      site_provider="$bdii_provider_dir/site_${site_bdii}.sh"
+      # We should have a loop over urls here
+      # LOOP START
+        url=${CONFIG_url}
+        echo "$unique_id $url" > "$site_config"
+      # LOOP END 
+      # Create script
+      printf "#!/bin/sh\n/$ARC_LOCATION/@pkglibsubdir@/glite-info-provider-ldap -m \"$site_bdii\" -c $site_config\n" > $site_provider
+      chmod +x $site_provider
+    done
+
     # Resource (cluster or SE) registrations
     # grid-info-resource-register.conf
     create_registration_config_file
