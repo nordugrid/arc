@@ -158,6 +158,7 @@ rm -rf $RPM_BUILD_ROOT
 %files client
 %defattr(-,root,root,-)
 %{_mingw32_datadir}/%{pkgdir}/examples/client.conf
+%{_mingw32_datadir}/%{pkgdir}/examples/arc.conf.template
 #
 # Executables
 #
@@ -232,6 +233,7 @@ rm -rf $RPM_BUILD_ROOT
 #/etc/init.d/arched
 %{_mingw32_sbindir}/arched.exe
 %doc %{_mingw32_mandir}/man8/arched.8*
+%doc %{_mingw32_mandir}/man5/arc.conf.5*
 %{_mingw32_datadir}/%{pkgdir}/profiles
 %{_mingw32_datadir}/%{pkgdir}/examples/config
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
