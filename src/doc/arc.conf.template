@@ -1,7 +1,7 @@
 ####################################################################
 #
 # Configuration blocks and variables for the ARC services via the arc.conf
-# (applies to the latest code on the 0.8.2 branch)
+# (applies to the latest 1.0 release)
 #
 # THIS FILE WILL NOT WORK AS A CONFIGURATION FILE!
 # There are out-of-the-box minimal configuration configuration templates
@@ -9,44 +9,38 @@
 #
 # The arc.conf configuration file consists of blocks like
 # [common], [grid-manager], [gridftpd], [gridftpd/name], [group], [vo],
-# [cluster], [queue/name], [se], [infosys], [infosys/index/name],
+# [cluster], [queue/name], [infosys], [infosys/index/name],
 # [infosys/index/name/registration/name].
 #
 # A block is identified by its blockname. A blockname consists of
 # keywords and optionally block identifiers: [gridftpd/jobs] here 'gridftpd' is
 # a keyword while 'jobs' is an identifier. Block names must be UNIQUE. A block
 # starts with a unique [blockname] and ends with the next [blockname] directive.
-# Currently the folowing keywords are  used in the block names: common,
-# grid-manager, gridftpd, httpsd, group, vo, infosys, registration, cluster, 
-# queue, se, rc
+# Currently the following keywords are used in the block names: common,
+# grid-manager, gridftpd, group, vo, infosys, registration, cluster, queue.
 #
-# Some part of the configuration file is order-dependent, blocks may require
-# other blocks be defined earlier (especially the authotrization blocks]
+# Some parts of the configuration file are order-dependent, blocks may require
+# other blocks be defined earlier (especially the authorization blocks]
 #
-# The arc.conf configures all the ARC services, enabling an ARC service on 
+# The arc.conf configures all the ARC services, and enabling an ARC service on 
 # a resource requires the presence of the appropriate configuration blocks. 
-# The ARC services are the following: gridftpd, grid-manager, httpsd, infosys,
-# infosys registration. Besides, the nordugridmap utility is configured by the
-# [vo] block(s) of this file, too.
+# The ARC services are the following: gridftpd, grid-manager, infosys,
+# infosys registration. The nordugridmap utility is also configured by the
+# [vo] block(s) of this file.
 #
-# For example in case of a computing cluster being connected to the grid and
-# accepting grid jobs you should have at least the [common], [grid-manager],
+# For example, to connect a computing cluster to the grid and for it to
+# accept grid jobs you should have at least the [common], [grid-manager],
 # [gridftpd], [gridftpd/jobs], [infosys], [cluster], [queue/name]
-# [infosys/cluster/registration/name] block configured.
+# [infosys/cluster/registration/name] blocks configured.
 #
-# Another common example is a Storage Element. A grid-connected  SE requires the
-# following blocks: [common], [gridftpd], [gridftpd/myse] (or [httpsd] for the
-# SSE), [infosys], [se/name], [infosys/se/name/registration/name]
-#
-# As a last example we give the necessary blocks for an Index Service:
+# As another example we give the necessary blocks for an Index Service:
 # [infosys], [infosys/index/name], [infosys/index/name/registration/name]
 #
 # Configuration blocks contain (variable, variable value) pairs following the
 # syntax: variable="the variable value comes in quotes".
-# The quotes around the variable value are MUST!
+# The quotes around the variable value are a MUST!
 # Note that the variable names are CASE-SENSITIVE!
-# Unset configuration options (variables) takes the default values.
-#
+# Unset configuration options (variables) take the default values.
 #
 # Below we give a detailed description of all the configuration options of the
 # different configuration blocks. 
@@ -56,9 +50,9 @@
 
 
 # The [common] block
-# The parameter set within this block is available for all the other blocks,
-# these are the config parameters shared by the different components of the
-# nordugrid middleware (e.g. grid-manager, infosys)  
+# The parameters set within this block are available for all the other blocks.
+# These are the config parameters shared by the different components of ARC
+# (e.g. grid-manager, infosys)  
 
 
 [common]
@@ -402,17 +396,20 @@ cachesize="80 70"
 # 30d. When no suffix is given the unit is seconds.
 cachelifetime="30d"
 
+# cacheloglevel level - specifies the level of logging by the cache-clean
+# tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
+cacheloglevel="4"
+
 # user user[:group] - Switch to a non root user/group after startup
 user="grid"
 
-# debug debuglevel - Set debug level of the grid-manager daemon. 
-# 0 stands for no-debug. Increasing number gives more information.
-# So far useful debug numbers for gm, gridftpd and httpsd are 0-3.
+# debug debuglevel - Set debug level of the grid-manager daemon, between
+# 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 debug="2"
 
 # logfile path - Specify log file location. This file is opened/created
 #  before daemon swithces to specified user. Hence it can be owned 
-#  by 'root'. Default log file is "/dev/null".
+#  by 'root'. Default log file is "/var/log/arc/grid-manage.log"
 logfile="/var/log/grid-manager.log"
 
 # logsize size [number] - 'Size' specifies in bytes how big log file is 
@@ -452,8 +449,10 @@ jobreport="https://grid.uio.no:8001/logger"
 # maxjobs number1 number2 - specifies maximum allowed number of jobs.
 # number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
 # number2 - jobs being run (SUBMITTING, INLRMS states)
+# number3 - jobs processed per DN
+# number4 - jobs in whole system
 # Missing number or -1 means no limit.
-maxjobs="10000 10"
+maxjobs="10000 10 2000"
 
 # maxload number1 number2 number3 - specifies maximum allowed number of jobs.
 # number1 - jobs being processed on frontend (PREPARING, FINISHING states)
@@ -468,6 +467,18 @@ maxload="10 2 5"
 # used to assign jobs to transfer shares. Possible values of sharetype
 # are "dn", "voms:vo", "voms:role", and "voms:group".
 maxloadshare="4 voms:role"
+
+# share_limit name limit – specifies a transfer share that has a number
+# of processes diﬀerent from the default value in maxloadshare. name is
+# the name of the share and limit is the number of processes for this
+# share. In the configuration should appear after maxloadshare. Can be
+# repeated several times for different shares.
+share_limit="atlas:production 10"
+
+# newdatastaging yes|no - turns on and off the new data staging framework
+# which replaces the downloader and uploader for managing input and output
+# files. It is off by default.
+newdatastaging="yes"
 
 # wakeupperiod time - specifies how often grid-manager cheks for new
 # jobs arrived, job state change requests, etc. That is resposivity of
@@ -632,9 +643,8 @@ http_proxy="proxy.mydomain.org:3128"
 # specified by this option. Default value is root.
 #user="grid"
 
-# debug debuglevel - Set debug level of the gridftpd daemon. 
-# 0 stands for no-debug. Increasing number gives more information.
-# So far useful debug numbers for gm, gridftpd and httpsd are 0-3.
+# debug debuglevel - Set debug level of the gridftpd daemon, between 
+# 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
 debug="2"
 
 # logfile path - Set logfile location
@@ -874,143 +884,6 @@ remotegmdirs="/mnt/host1/control /mnt/host1/session"
 # in bytes. Default value is 5MB. If value is missing or 0 size is not
 # limited.
 maxjobdesc="5242880"
-
-####################################################################
-#
-# [httpsd] block controls parameters of httpsd server and services 
-# it hosts (e.g. the logger or the SSE)
-
-[httpsd]
-
-# user=user[:group] - Switch to a non root user/group after startup.
-# WARNING: Make sure that the certificate files are owned by the user/group 
-# specified by this option. Default value is root.
-user="grid"
-
-# debug=debuglevel - Set debug level of the daemon. 
-debug="2"
-
-# logfile=path - Set logfile location. Suggested logfile="/var/log/httpsd.log"
-logfile="/var/log/httpsd.log"
-
-# logsize=size [number] - Set log rotation parameters.
-logsize="100000 2"
-
-# pidfile=path - Set file location which contains PID of process
-pidfile="/var/run/httpsd.pid"
-
-# gsiport=port - TCP/IP port to listen on for HTTPg connections with GSI
-# channel implemented through GLOBUS IO module (default is 8000)
-gsiport="8000"
-
-# gssapiport=port - TCP/IP port to listen on for HTTPg connections with GSI
-# channel implemented directly through GSSAPI (CERN way, default is none)
-gssapiport="8000"
-
-# sslport=port - TCP/IP port to listen on for HTTPS connections (default 
-# is 8001)
-sslport="8001"
-
-# plainport=port - TCP/IP port to listen on for HTTP connections (default 
-# is none)
-plainport="80"
-
-# plugin=path - path to shared library which contains plugin(s) for httpsd.
-# Multiple commands are allowed. Plugins are not activated by this command.
-plugin="/opt/nordugrid/lib/logger.so"
-
-# globus_tcp_port_range, globus_udp_port_range - Firewall configuration
-globus_tcp_port_range="9000,12000"
-globus_udp_port_range="9000,12000"
-
-# x509_user_cert, x509_user_key - Server credentials location
-x509_user_key="/etc/grid-security/hostkey.pem"
-x509_user_cert="/etc/grid-security/hostcert.pem"
-
-# x509_cert_dir - Location of trusted CA certificates
-x509_cert_dir="/etc/grid-security/certificates"
-
-
-####################
-# [httpsd/logger] "logger" service
-# Block for enabling and configuring the logger service. 
-
-[httpsd/logger]
-
-# name=service_name - name of loaded service. If not specified, name of
-# subblock is used. If service is not loaded, daemon tries to load 
-# libraries service_name.so and libservice_name.so . This command is
-# supported by every plugin.
-# This is MUST for a logger service
-name="logger"
-
-# path=url_path - specifies path (or complete URL) used to form URL at 
-# which service is accessible. This command is supported by evry plugin.
-path="/nglog"
-
-# acl_read=group [group ...] - specifies user groups allowed to read
-# records in a logger database. User still will see only records about
-# jobs belonging to him.
-acl_read="users"
-
-# acl_query=group [group ...] - specifies user groups allowed to read ALL
-# records in a logger database.
-acl_query="admins"
-
-# acl_write=group [group ...] - specifies user groups allowed to add new
-# records into a logger database. Usually only host certificates should be
-# there.
-acl_write="servers"
-
-# sqlcontact=user [password] - MySQL user and access password. This command
-# is unsafe and should be used only if configuration file is well protected.
-sqlcontact="test test"
-
-# sqlcontactsource=path - path to file containing name of MySQL user and 
-# access password. This is a prefered and safer way to keep MySQL password.
-sqlcontactsource="/very/secret/file"
-
-
-####################
-# [httpsd/se] SSE service
-# Block for enabling and configuring the SSE service. 
-
-[httpsd/se]
-
-# path=url_path - path at which service is accessible
-path="/se"
-
-# acl_create=group [group ...] - specifies user groups allowed to store
-# files at SSE.
-acl_create="users"
-
-# acl_read=group [group ...] - specifies user groups allowed to retrieve
-# all files stored at SSE.
-acl_read="admins"
-
-# acl_read=group [group ...] - specifies user groups allowed to initiate
-# replication of files to SSE.
-acl_replicate="services"
-
-# storage=path - directory on local filesystem to store files and information
-# about them.
-storage="/tmp/se"
-
-# ns=configuration - Indexing Service at which SSE registers it's content.
-# Value of "configuration" may be specific for every supported service.
-# Currently supported are lrc and rc URLs or word none.
-ns="none"
-
-# registration=option,... - options to define how registration is performed.
-# Avaialble options are:
-#  immediate - try to register before file is put into SSE.
-#  delayed - do not register immediately, register new files periodically.
-#  retry - if registration failed, retry periodically.
-#  noretry - do not retry registration, fail after first attempt.
-#  hideincomplete - do not report/show files which are not fully uploaded 
-#   and registered.
-#  showincomplete - show all files.
-registration="delayed,retry"
 
 
 ####################################################################
@@ -1589,123 +1462,3 @@ gridmap="/etc/grid-security/queuename-gridmap"
 cachetime="30"
 timelimit="30"
 sizelimit="5000"
-
-
-####################################################################
-#
-# The [se/sename] block 
-# The block is needed if you want your previously configured
-# [gridftpd/filedir] storage appear in the information system. 
-# Each [se/sename]block is coupled to a physical storage block with the
-# "assigned_storage" parameter. 
-# If you want your SE (configured below with a [se/sename] block) to appear
-# in the infosys  (on the monitor) you should also create an se 
-# registration block (see next block).
-# Please consult the Infosys manual for detailed information
-# on SE attributes.
-
-
-# SE blocks, just as every other block, must have unique labels.
-# Use the value of the "name" attribute to label the SE block.
-[se/sename]
-
-# assigned_storage - connects the se info block to a physical [httpsd/sse]
-# (smart storage) or [gridftpd/filedir] (gridftpd-based SE) physical block.
-# Essential configuration parameters are used from that block. 
-# The config parameter value is the block label of the assigned physical SE.
-# This is a REQUIRED parameter
-assigned_storage="filedir"
-
-# name -  unique identifier of the Storage Element within the given machine.
-# This is a REQUIRED parameter. "name" is used to create the unique LDAP DN of
-# the SE in the form of 
-# nordugrid-se-name=name:hostname,Mds-Vo-name=local,o=Grid. 
-# Notice that the "name" is used to distinguish among several SEs on the same
-# machine. Whitespace, underscore and "@" is NOT allowed in the "name"
-name="sename" 
-
-# authorizedvo - this attribute is used to advertise which VOs are authorized 
-# on the SE. Multiple entries are allowed.
-#authorizedvo="developer.nordugrid.org"
-authorizedvo="community.nordugrid.org"
-
-# alias - free form string for naming your SE, by default the alias gets the
-# value of the se_label.
-alias="TEST SE for Atlas users"
-
-# comment - a free text field for additional comments on the SE in a single
-# line, no newline character is allowed!
-comment="This SE has a very special hardware setup read more: www.myse.org"
-
-# hostname - can be used to specify the FQDN of the machine on which the SE is
-# running. If it is not set then first the hostname from the [common] block,
-# then from the [gridftpd] block, then finally the output of some "hostname" 
-# command is used. This parameter overwrites the hostname from the 
-#[common], [gridftpd] blocks. hostname is used to create the contact string and the
-# DN of the SE.
-hostname="myhost.org"
-
-# gridmap - can be used to specify an alternative file holding the list of
-# authorized grid SNs. The information system parses the list of users from
-# this file and advertises them as authorized SE users. However, there is no
-# checking if those users are actually authorized by the [gridftpd/filedir]
-# block.
-gridmap="/etc/grid-security/SE-gridmap" 
-
-# type - the type of the SE. Currently supported/recognized SE types:
-# "gridftp, SSE, other". 
-type="gridftp"
-
-
-# LDAP parameters of the se.pl infoprovider, use the defaults, 
-# do NOT change them unless you know what you are doing
-cachetime="1800"
-timelimit="30"
-sizelimit="10"
-
-
-####################################################################
-#
-# [infosys/se/sename/registration/registrationname]
-# Storage resource (SE) registration block
-# Configures and enables the registration process of a
-# Storage Element resource to an Index Service.
-# An SE can register to several Index Services this case
-# each registration process should have its own block.
-# NorduGrid maintains a webpage with information on major
-# Index Services:
-# http://www.nordugrid.org/NorduGridMDS/index_service.html
-
-[infosys/se/sename/registration/registrationname]
-
-# targethostname - see description earlier
-targethostname="index.myinstitute.org"
-
-# targetport - see description earlier
-targetport="2135"
-
-# targetsuffix - see description earlier
-targetsuffix="mds-vo-name=BigIndex,o=grid"
-
-# regperiod - see description earlier
-regperiod="300"
-
-# registranthostname - see description earlier
-registranthostname="myhost.org"
-
-# registrantport - see description earlier
-registrantport="2135"
-
-# registrantsuffix - the LDAP suffix of the registrant SE resource
-# It is automatically determined from the [infosys] block and the 
-# registration blockname. Don't set it unless you want to 
-# overwrite the default. 
-registrantsuffix="nordugrid-se-name=sename:myhost.org,Mds-Vo-name=local,o=grid"
-
-# Logging module settings
-# See urlogger.pdf for more details.
-[logger]
-log_dir=/var/spool/nordugrid/usagerecords/
-log_all="https://sgas.example.org:6143/sgas" 
-log_vo="bio.ndgf.org https://bio.example.org:7243/sgas"
-
