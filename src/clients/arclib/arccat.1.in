@@ -21,7 +21,7 @@ can also be used to show the grid manager's error log of a job.
 .IP "\fB-a\fR, \fB--all\fR"
 all jobs
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-file containing a list of jobs
+the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"

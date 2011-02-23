@@ -51,7 +51,7 @@ int RUNCAT(main)(int argc, char **argv) {
 
   std::string joblist;
   options.AddOption('j', "joblist",
-                    istring("file containing a list of jobs"),
+                    istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
 

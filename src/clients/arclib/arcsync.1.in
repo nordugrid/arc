@@ -21,7 +21,7 @@ explicitly select or reject a specific cluster
 .IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-file containing a list of jobs
+the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-f\fR, \fB--force\fR"
 don't ask for verification
 .IP "\fB-T\fR, \fB--truncate\fR"
