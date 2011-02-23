@@ -45,7 +45,7 @@ sub end {
 
 #
 # Prints an entry with the attributes added so far.
-# Prints nothing if there are no attirubutes.
+# Prints nothing if there are no attributes.
 #
 sub _flush {
     my ($self) = @_;
@@ -55,7 +55,7 @@ sub _flush {
     my $dn = join ",", @{$self->{dn}};
     my $nick = join ", ", @{$self->{nick}};
     print $fh "\n";
-    #print $fh "# $nick";
+    #print $fh "# $nick\n";
     print $fh safe_attrval("dn", $dn)."\n"
         or $log->error("print failed: $!");
     for my $pair (@$attrs) {

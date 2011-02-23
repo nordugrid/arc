@@ -659,7 +659,8 @@ sub build_config_from_inifile {
     move_keys $common, $config, [keys %$ldap_infosys_options];
 
     my $infosys = { $iniparser->get_section("infosys") };
-    rename_keys $infosys, $config, {providerlog => 'ProviderLog'};
+    rename_keys $infosys, $config, {providerlog => 'ProviderLog',
+                                    provider_loglevel => 'debugLevel'};
     move_keys $infosys, $config, [keys %$ldap_infosys_options];
 
     my @cnames = $iniparser->list_subsections('grid-manager');
