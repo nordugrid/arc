@@ -18,7 +18,7 @@ information at a given cluster or index server.
 
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 file containing a list of jobs

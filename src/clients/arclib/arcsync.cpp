@@ -45,7 +45,7 @@ int RUNSYNC(main)(int argc, char **argv) {
                             istring("The arcsync command synchronizes your "
                                     "local job list with the information at\n"
                                     "the given resources or index servers."),
-                            istring("Argument to -i has the format "
+                            istring("Argument to -g has the format "
                                     "Flavour:URL e.g.\n"
                                     "ARC0:ldap://grid.tsl.uu.se:2135/"
                                     "mds-vo-name=sweden,O=grid\n"
@@ -65,7 +65,7 @@ int RUNSYNC(main)(int argc, char **argv) {
                     clusters);
 
   std::list<std::string> indexurls;
-  options.AddOption('i', "index",
+  options.AddOption('g', "index",
                     istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);

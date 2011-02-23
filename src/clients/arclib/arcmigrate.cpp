@@ -79,7 +79,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
                     qlusters);
 
   std::list<std::string> indexurls;
-  options.AddOption('i', "index",
+  options.AddOption('g', "index",
                     istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);

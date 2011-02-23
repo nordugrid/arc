@@ -20,7 +20,7 @@ grid.
 
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-l\fR, \fB--long\fR"
 long format (more information)

@@ -25,7 +25,7 @@ file containing a list of jobs
 explicitly select or reject jobs from a specific cluster
 .IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster for the new cluster
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject jobs from an index server
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)

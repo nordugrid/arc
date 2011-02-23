@@ -22,7 +22,7 @@ cluster. Currently migration only works between clusters running A-REX.
 explicitly select or reject a specific cluster holding queued jobs
 .IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster which queued jobs should/shouldn't be migrated to
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 file where the jobs will be stored
@@ -113,9 +113,9 @@ the format
 .B Flavor:protocol://hostname[:port]/path
 
 .IR Example :
-.IP "\fBarcmigrate -i ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid ..."
+.IP "\fBarcmigrate -g ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid ..."
 use the NorduGrid index at index1.nordugrid.org
-.IP "\fBarcmigrate -i -ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid ..."
+.IP "\fBarcmigrate -g -ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid ..."
 do not use the Sweden index at grid.tsl.uu.se
 
 .SH FILES
