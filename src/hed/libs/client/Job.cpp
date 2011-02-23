@@ -500,6 +500,14 @@ namespace Arc {
       if (Validity != -1)
         out << IString(" Entry valid for: %s",
                              Validity.istr()) << std::endl;
+
+      if (!ActivityOldID.empty()) {
+        out << IString(" Old job IDs:") << std::endl;
+        for (std::list<std::string>::const_iterator it = ActivityOldID.begin();
+             it != ActivityOldID.end(); ++it) {
+          out << "  " << *it << std::endl;
+        }
+      }
     }
 
     out << std::endl;
@@ -685,7 +693,7 @@ namespace Arc {
 
     return false;
   }
-  
+
   bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids) {
     if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) {
       return false;
