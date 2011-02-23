@@ -299,6 +299,17 @@ namespace Arc {
      * @return true in case of success, otherwise false.
      **/
     static bool ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids);
+    
+    /// Append a jobID to a file
+    /**
+     * This static method will put the ID given as a string, and append it to the given file.
+     * It returns false if the file was not writable, true otherwise.
+     *
+     * @param jobid is a jobID in a string
+     * @param filename is the filename of the jobidfile, where the jobID will be appended
+     * @return true in case of success, otherwise false.
+     **/
+    static bool WriteJobIDToFile(const std::string& jobid, const std::string& filename);
 
   private:
     static Logger logger;

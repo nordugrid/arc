@@ -695,19 +695,27 @@ namespace Arc {
   }
 
   bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids) {
-    if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) {
-      return false;
-    } else {
-      std::ifstream is(filename.c_str());
-      std::string line;
-      while (std::getline(is, line)) {
-        line = Arc::trim(line, " \t");
-        if (!line.empty() && line[0] != '#') {
-          jobids.push_back(line);
-        }
+    if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) return false;
+    std::ifstream is(filename.c_str());
+    if (!is.good()) return false;
+    std::string line;
+    while (std::getline(is, line)) {
+      line = Arc::trim(line, " \t");
+      if (!line.empty() && line[0] != '#') {
+        jobids.push_back(line);
       }
-      return true;
     }
+    return true;
   }
+  
+  bool Job::WriteJobIDToFile(const std::string& jobid, const std::string& filename) {
+    if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
+    std::ofstream os(filename.c_str(), std::ios::app);
+    if (!os.good()) return false;
+    os << jobid << std::endl;
+    if (!os.good()) return false;
+    return true;
+  }
+  
 
 } // namespace Arc
