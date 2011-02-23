@@ -72,18 +72,18 @@ namespace Arc {
      * IDFromEndpoint member, for which that URL is equal to any in the jobids
      * list. Only jobs corresponding to a Job object managed by this
      * JobSupervisor will be considered for cancellation. Job objects not in a
-     * valid State (see JobState) will not be considered, and the IDFromEndpoint
-     * URLs of those objects will be appended to the notkilled URL list. For
+     * valid state (see JobState) will not be considered, and the IDFromEndpoint
+     * URLs of those objects will be appended to the notcancelled URL list. For
      * jobs not in a finished state (see JobState::IsFinished), the
      * JobController::Cancel method will be called, passing the corresponding
-     * Job object, in order to cancel the job. If the the JobController::Cancel
-     * call succeeds or if the job is in a finished state the IDFromEndpoint URL
-     * will be appended to the list to be returned. If the JobController::Cancel
-     * call fails the IDFromEndpoint URL is appended to the notkilled URL list.
+     * Job object, in order to cancel the job. If the JobController::Cancel call
+     * succeeds or if the job is in a finished state the IDFromEndpoint URL will
+     * be appended to the list to be returned. If the JobController::Cancel call
+     * fails the IDFromEndpoint URL is appended to the notkilled URL list.
      *
      * Note: If there is any URL in the jobids list for which there is no
      * corresponding Job object, then the size of the returned list plus the
-     * size of the notkilled list will not equal that of the jobids list.
+     * size of the notcancelled list will not equal that of the jobids list.
      *
      * @param jobids List of Job::IDFromEndpoint URL objects for which a
      *  corresponding job, managed by this JobSupervisor should be cancelled.
@@ -93,6 +93,33 @@ namespace Arc {
      *  cancelled or finished jobs is returned.
      **/
     std::list<URL> Cancel(const std::list<URL>& jobids, std::list<URL>& notcancelled);
+
+    /// Clean jobs
+    /**
+     * This method will request cleaning of jobs, identified by their
+     * IDFromEndpoint member, for which that URL is equal to any in the jobids
+     * list. Onkly jobs corresponding to a Job object managed by this
+     * JobSupervisor will be considered for cleaning. Job objects not in a valid
+     * state (see JobState) will not be considered, and the IDFromEndpoint URLs
+     * of those objects will be appended to the notcleaned URL list, otherwise
+     * the JobController::Clean method will be called, passing the corresponding
+     * Job object, in order to clean the job. If that method fails the
+     * IDFromEndpoint URL of the Job object will be appended to the notcleaned
+     * URL list, and if it succeeds the IDFromEndpoint URL will be appended
+     * to the list of URL objects to be returned.
+     *
+     * Note: If there is any URL in the jobids list for which there is no
+     * corresponding Job object, then the size of the returned list plus the
+     * size of the notcleaned list will not equal that of the jobids list.
+     *
+     * @param jobids List of Job::IDFromEndpoint URL objects for which a
+     *  corresponding job, managed by this JobSupervisor should be cleaned.
+     * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
+     *  corresponding job were not cleaned.
+     * @return The list of Job::IDFromEndpoint URL objects of successfully
+     *  cleaned jobs is returned.
+     **/
+    std::list<URL> Clean(const std::list<URL>& jobids, std::list<URL>& notcleaned);
 
     /// Get list of JobControllers
     /**

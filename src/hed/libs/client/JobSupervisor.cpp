@@ -166,6 +166,36 @@ namespace Arc {
     return cancelled;
   }
 
+  std::list<URL> JobSupervisor::Clean(const std::list<URL>& jobids,
+                                      std::list<URL>& notcleaned) {
+    std::list<URL> cleaned;
+
+    std::list<JobController*> jobCs = loader.GetJobControllers();
+    for (std::list<URL>::const_iterator itID = jobids.begin();
+         itID != jobids.end(); ++itID) {
+      for (std::list<JobController*>::iterator itJobC = jobCs.begin();
+           itJobC != jobCs.end(); ++itJobC) {
+        std::list<Job>::iterator itJ = (*itJobC)->jobstore.begin();
+        for (; itJ != (*itJobC)->jobstore.end(); ++itJ) {
+          if ((*itID) == itJ->IDFromEndpoint) {
+            if (itJ->State && (*itJobC)->CleanJob(*itJ)) {
+              cleaned.push_back(*itID);
+            }
+            else {
+              notcleaned.push_back(*itID);
+            }
+            break;
+          }
+        }
+        if (itJ != (*itJobC)->jobstore.end()) {
+          break;
+        }
+      }
+    }
+
+    return cleaned;
+  }
+
   bool JobSupervisor::JobsFound() const {
     for (std::list<JobController*>::const_iterator it = loader.GetJobControllers().begin();
          it != loader.GetJobControllers().end(); ++it) {
