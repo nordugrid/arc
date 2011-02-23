@@ -315,20 +315,21 @@ namespace Arc {
     JXMLTOSTRING(SubmissionClientName)
     JXMLTOSTRINGLIST(OtherMessages)
 
-    ActivityOldID.clear();
     if (job["Associations"]["ActivityOldID"]) {
+      ActivityOldID.clear();
       for (XMLNode n = job["Associations"]["ActivityOldID"]; n; ++n) {
         ActivityOldID.push_back((std::string)n);
       }
     }
     else if (job["OldJobID"]) { // Included for backwards compatibility.
+      ActivityOldID.clear();
       for (XMLNode n = job["OldJobID"]; n; ++n) {
         ActivityOldID.push_back((std::string)n);
       }
     }
 
-    LocalInputFiles.clear();
     if (job["Associations"]["LocalInputFile"]) {
+      LocalInputFiles.clear();
       for (XMLNode n = job["Associations"]["LocalInputFile"]; n; ++n) {
         if (n["Source"] && n["CheckSum"]) {
           LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
@@ -336,13 +337,13 @@ namespace Arc {
       }
     }
     else if (job["LocalInputFiles"]["File"]) { // Included for backwards compatibility.
+      LocalInputFiles.clear();
       for (XMLNode n = job["LocalInputFiles"]["File"]; n; ++n) {
         if (n["Source"] && n["CheckSum"]) {
           LocalInputFiles[(std::string)n["Source"]] = (std::string)n["CheckSum"];
         }
       }
     }
-
 
     return *this;
   }
