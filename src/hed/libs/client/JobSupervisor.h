@@ -66,6 +66,68 @@ namespace Arc {
 
     ~JobSupervisor();
 
+    /// Resubmit jobs
+    /**
+     * Jobs managed by this JobSupervisor will be resubmitted when invoking this
+     * method, that is the job description of a job will be tried obtained, and
+     * if successful a new job will be submitted.
+     *
+     * Before identifying jobs to be resubmitted, the
+     * JobController::GetJobInformation method is called for each loaded
+     * JobController in order to retrieve the most up to date job information.
+     * If an empty status-filter is specified, all jobs managed by this
+     * JobSupervisor will be considered for resubmission, except jobs in the
+     * undefined state (see JobState). If the status-filter is not empty, then
+     * only jobs with a general or specific state (see JobState) identical to
+     * any of the entries in the status-filter will be considered, except jobs
+     * in the undefined state. Jobs for which a job description cannot be
+     * obtained and successfully parsed will not be considered and an ERROR log
+     * message is reported, and the IDFromEndpoint URL is appended to the
+     * notresubmitted list. Job descriptions will be tried obtained either
+     * from Job object itself, or fetching them remotely. Furthermore if a Job
+     * object has the LocalInputFiles object set, then the checksum of each of
+     * the local input files specified in that object (key) will be calculated
+     * and verified to match the checksum LocalInputFiles object (value). If
+     * checksums are not matching the job will be filtered, and an ERROR log
+     * message is reported and the IDFromEndpoint URL is appended to the
+     * notresubmitted list. If no job have been identified for resubmission,
+     * false will be returned if ERRORs were reported, otherwise true is
+     * returned.
+     *
+     * The destination for jobs is partly determined by the destination
+     * parameter. If a value of 1 is specified a job will only be targeted to
+     * the execution service (ES) on which it reside. A value of 2 indicates
+     * that a job should not be targeted to the ES it currently reside.
+     * Specifying any other value will target any ES. The ESs which can be
+     * targeted are those specified in the UserConfig object of this class, as
+     * selected services. Before initiating any job submission, resource
+     * discovery and broker loading is carried out using the TargetGenerator and
+     * Broker classes, initialised by the UserConfig object of this class. If
+     * Broker loading fails, or no ExecutionTargets are found, an ERROR log
+     * message is reported and all IDFromEndpoint URLs for job considered for
+     * resubmission will be appended to the notresubmitted list and then false
+     * will be returned.
+     *
+     * When the above checks have been carried out successfully, then the
+     * Broker::Submit method will be invoked for each considered for
+     * resubmission. If it fails the IDFromEndpoint URL for the job is appended
+     * to the notresubmitted list, and an ERROR is reported. If submission
+     * succeeds the new job represented by a Job object will be appended to the
+     * resubmittedJobs list - it will not be added to this JobSupervisor. The
+     * method returns false if ERRORs were reported otherwise true is returned.
+     *
+     * @param statusfilter list of job status used for filtering jobs.
+     * @param destination specifies how target destination should be determined
+     *  (1 = same target, 2 = not same, any other = any target).
+     * @param resubmittedJobs list of Job objects which resubmitted jobs will be
+     *  appended to.
+     * @param notresubmitted list of URL object which the IDFromEndpoint URL
+     *  will be appended to.
+     * @return false if any error is encountered, otherwise true.
+     **/
+    bool Resubmit(const std::list<std::string>& statusfilter, int destination,
+                  std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted);
+
     /// Cancel jobs
     /**
      * This method will request cancellation of jobs, identified by their

@@ -14,6 +14,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
+#include <arc/client/Broker.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/ClientInterface.h>
@@ -135,6 +136,145 @@ namespace Arc {
   }
 
   JobSupervisor::~JobSupervisor() {}
+
+  bool JobSupervisor::Resubmit(const std::list<std::string>& status, int destination,
+                               std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted) {
+    bool ok = true;
+
+    std::list< std::list<Job>::iterator > resubmittableJobs;
+    std::list<JobController*> jobCs = loader.GetJobControllers();
+    for (std::list<JobController*>::iterator itJobC = jobCs.begin();
+         itJobC != jobCs.end(); ++itJobC) {
+      (*itJobC)->GetJobInformation();
+
+      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
+           it != (*itJobC)->jobstore.end(); ++it) {
+        if (!it->State) {
+          continue;
+        }
+
+        if (!status.empty() &&
+            std::find(status.begin(), status.end(), it->State()) == status.end() &&
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+          continue;
+        }
+
+        // If job description is not set, then try to fetch it from execution service.
+        if (it->JobDescriptionDocument.empty() && !(*itJobC)->GetJobDescription(*it, it->JobDescriptionDocument)) {
+          logger.msg(ERROR, "Unable to resubmit job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.str());
+          notresubmitted.push_back(it->IDFromEndpoint);
+          ok = false;
+          continue;
+        }
+
+        // Verify checksums of local input files
+        if (!it->LocalInputFiles.empty()) {
+          std::map<std::string, std::string>::iterator itF = it->LocalInputFiles.begin();
+          for (; itF != it->LocalInputFiles.end(); ++itF) {
+            if (itF->second != Submitter::GetCksum(itF->first, usercfg)) {
+              break;
+            }
+          }
+
+          if (itF != it->LocalInputFiles.end()) {
+            logger.msg(ERROR, "Unable to resubmit job (%s), local input file (%s) has changed", it->IDFromEndpoint.str(), itF->first);
+            notresubmitted.push_back(it->IDFromEndpoint);
+            ok = false;
+            continue;
+          }
+        }
+
+        resubmittableJobs.push_back(it);
+      }
+    }
+
+    if (resubmittableJobs.empty()) {
+      return ok;
+    }
+
+    UserConfig resubmitUsercfg = usercfg; // UserConfig object might need to be modified.
+    BrokerLoader brokerLoader;
+    Broker *chosenBroker = brokerLoader.load(resubmitUsercfg.Broker().first, resubmitUsercfg);
+    if (!chosenBroker) {
+      logger.msg(ERROR, "Job resubmission failed: Unable to load broker (%s)", resubmitUsercfg.Broker().first);
+      for (std::list< std::list<Job>::iterator >::iterator it = resubmittableJobs.begin();
+           it != resubmittableJobs.end(); it++) {
+        notresubmitted.push_back((*it)->IDFromEndpoint);
+      }
+      return false;
+    }
+
+    TargetGenerator* tg = NULL;
+    if (destination != 1) { // Jobs should not go to same target, making a general information gathering.
+      tg = new TargetGenerator(resubmitUsercfg);
+      tg->RetrieveExecutionTargets();
+      if (tg->GetExecutionTargets().empty()) {
+        logger.msg(ERROR, "Job resubmission aborted because no resource returned any information");
+        delete tg;
+        for (std::list< std::list<Job>::iterator >::iterator it = resubmittableJobs.begin();
+             it != resubmittableJobs.end(); it++) {
+          notresubmitted.push_back((*it)->IDFromEndpoint);
+        }
+        return false;
+      }
+
+    }
+
+    for (std::list< std::list<Job>::iterator >::iterator it = resubmittableJobs.begin();
+         it != resubmittableJobs.end(); ++it) {
+      resubmittedJobs.push_back(Job());
+
+      std::list<JobDescription> jobdescs;
+      if (!JobDescription::Parse((*it)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
+        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse retrieved job description", (*it)->IDFromEndpoint.str());
+        resubmittedJobs.pop_back();
+        notresubmitted.push_back((*it)->IDFromEndpoint);
+        ok = false;
+        continue;
+      }
+      jobdescs.front().Identification.ActivityOldId = (*it)->ActivityOldID;
+      jobdescs.front().Identification.ActivityOldId.push_back((*it)->JobID.str());
+
+      std::list<URL> rejectTargets;
+      if (destination == 1) { // Jobs should be resubmitted to same target.
+        std::list<std::string> sametarget;
+        sametarget.push_back((*it)->Flavour + ":" + (*it)->Cluster.fullstr());
+
+        resubmitUsercfg.ClearSelectedServices();
+        resubmitUsercfg.AddServices(sametarget, COMPUTING);
+
+        tg = new TargetGenerator(resubmitUsercfg);
+        tg->RetrieveExecutionTargets();
+        if (tg->GetExecutionTargets().empty()) {
+          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (*it)->IDFromEndpoint.str(), (*it)->Cluster.str());
+          delete tg;
+          resubmittedJobs.pop_back();
+          notresubmitted.push_back((*it)->IDFromEndpoint);
+          continue;
+        }
+      }
+      else if (destination == 2) { // Jobs should NOT be resubmitted to same target.
+        rejectTargets.push_back((*it)->Cluster);
+      }
+
+      if (!chosenBroker->Submit(tg->GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
+        resubmittedJobs.pop_back();
+        notresubmitted.push_back((*it)->IDFromEndpoint);
+        ok = false;
+        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (*it)->IDFromEndpoint.str());
+      }
+
+      if (destination == 1) {
+        delete tg;
+      }
+    }
+
+    if (destination != 1) {
+      delete tg;
+    }
+
+    return ok;
+  }
 
   std::list<URL> JobSupervisor::Cancel(const std::list<URL>& jobids,
                                        std::list<URL>& notcancelled) {
