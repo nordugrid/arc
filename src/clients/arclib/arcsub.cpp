@@ -30,7 +30,7 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist);
+int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::string& jobidfile);
 int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist);
 
 #ifdef TEST
@@ -73,7 +73,7 @@ int RUNSUB(main)(int argc, char **argv) {
                     clusters);
 
   std::list<std::string> indexurls;
-  options.AddOption('i', "index",
+  options.AddOption('g', "index",
                     istring("explicitly select or reject an index server"),
                     istring("[-]name"),
                     indexurls);
@@ -94,9 +94,16 @@ int RUNSUB(main)(int argc, char **argv) {
 
   std::string joblist;
   options.AddOption('j', "joblist",
-                    istring("file where the jobs will be stored"),
+                    istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
+                    
+  std::string jobidfile;
+  options.AddOption('o', "jobidfile",
+                    istring("the IDs of the submitted jobs will be appended to this file"),
+                    istring("filename"),
+                    jobidfile);
+                    
 
   bool dryrun = false;
   options.AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
@@ -140,7 +147,7 @@ int RUNSUB(main)(int argc, char **argv) {
                     version);
 
   std::list<std::string> params = options.Parse(argc, argv);
-
+  
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcsub", VERSION)
               << std::endl;
@@ -255,10 +262,17 @@ int RUNSUB(main)(int argc, char **argv) {
     return dumpjobdescription(usercfg, jobdescriptionlist);
   }
 
-  return submit(usercfg, jobdescriptionlist);
+  return submit(usercfg, jobdescriptionlist, jobidfile);
 }
 
-int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist) {
+void printjobid(const std::string& jobid, const std::string& jobidfile) {
+  if (!jobidfile.empty())
+    if (!Arc::Job::WriteJobIDToFile(jobid, jobidfile))
+      logger.msg(Arc::WARNING, "Cannot write jobid (%s) to file (%s)", jobid, jobidfile);
+  std::cout << Arc::IString("Job submitted with jobid: %s", jobid) << std::endl;
+}
+
+int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::string& jobidfile) {
   int retval = 0;
 
   Arc::TargetGenerator targen(usercfg);
@@ -288,8 +302,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     bool descriptionSubmitted = false;
     submittedJobs.push_back(Arc::Job());
     if (ChosenBroker->Submit(targen.GetExecutionTargets(), *it, submittedJobs.back())) {
-      std::cout << Arc::IString("Job submitted with jobid: %s",
-                                submittedJobs.back().JobID.str()) << std::endl;
+      printjobid(submittedJobs.back().JobID.str(), jobidfile);
       descriptionSubmitted = true;
     }
     else if (it->HasAlternatives()) {
@@ -297,8 +310,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
       for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
            itAlt != it->GetAlternatives().end(); itAlt++) {
         if (ChosenBroker->Submit(targen.GetExecutionTargets(), *itAlt, submittedJobs.back())) {
-          std::cout << Arc::IString("Job submitted with jobid: %s",
-                                    submittedJobs.back().JobID.str()) << std::endl;
+          printjobid(submittedJobs.back().JobID.str(), jobidfile);
           descriptionSubmitted = true;
           break;
         }

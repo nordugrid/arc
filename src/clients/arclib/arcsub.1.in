@@ -19,14 +19,16 @@ command is used for submitting jobs to grid enabled computing resources.
 
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
+.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-e\fR, \fB--jobdescrstring=\fIstring"
 jobdescription string describing the job to be submitted
 .IP "\fB-f\fR, \fB--jobdescrfile=\fIfilename"
 jobdescription file describing the job to be submitted
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-file where the jobs will be stored
+the file storing information about active jobs (default ~/.arc/jobs.xml)
+.IP "\fB-o\fR, \fB--jobidfile\fR=\fIfilename\fR"
+the IDs of the submitted jobs will be appended to this file
 .IP "\fB-D\fR, \fB--dryrun\fR"
 submit jobs as dry run (no submission to batch system)
 .IP "\fB-x\fR, \fB--dumpdescription\fR"
