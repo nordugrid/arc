@@ -97,13 +97,12 @@ int RUNSUB(main)(int argc, char **argv) {
                     istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
-                    
+
   std::string jobidfile;
   options.AddOption('o', "jobidfile",
                     istring("the IDs of the submitted jobs will be appended to this file"),
                     istring("filename"),
                     jobidfile);
-                    
 
   bool dryrun = false;
   options.AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
