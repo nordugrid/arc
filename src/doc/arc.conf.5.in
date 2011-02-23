@@ -504,7 +504,7 @@ Specifies caches which are under the control of
 other GMs, but which this GM can have read-only access to.  Multiple
 remote cache directories may be specified by specifying multiple
 remotecachedir commands. If a file is not available in paths specified
-by cachedir, the GM looks in remote caches. The second arguemnt has the same
+by cachedir, the GM looks in remote caches. The second argument has the same
 meaning as in cachedir, but the special path ``replicate'' means files
 will be replicated from remote caches to local caches when they are
 requested.
@@ -531,6 +531,14 @@ time period will be deleted. Example values of this option are 1800, 90s, 24h,
 cachelifetime="30d"
 
 .TP
+.B cacheloglevel
+Specifies the level of logging by the cache-clean tool, between 0 (FATAL)
+and 5 (DEBUG). Defaults to 3 (INFO).
+
+.IR Example :
+cacheloglevel="2"
+
+.TP
 .B user
 Switch to a non-root user/group after startup. The format of the
 argument is user[:group]. 
@@ -544,8 +552,7 @@ user="griduser:gridgroup"
 .TP
 .B debug
 Set the debug level of the grid-manager daemon. Level 0 stands for
-no debug. Increasing number gives more information. So far useful
-debug numbers are 0\-3.
+no debug. Increasing number gives more information, up to a maximum of 5.
 
 .IR Example :
 debug="2"
@@ -554,7 +561,7 @@ debug="2"
 .B logfile
 Specify the log file location. This file is opened/created before the
 daemon switches to specified user. Hence it can be owned by
-root. Default log file is "/dev/null".
+root. Default log file is "/var/log/arc/grid-manager.log".
 
 .IR Example :
 logfile="/var/log/grid-manager.log"
@@ -564,9 +571,9 @@ logfile="/var/log/grid-manager.log"
 Specifies the (approximate) maximum size in bytes of the log file. A
 second argument indicates how many log files are kept. When the logfile
 exceeds the specified size it is renamed to logfile.0 and logfile.0 is
-renamed to logfile.1 and so on. Don't set the logsize attribute if you
-don't want to enable ARC's log rotation because some other log rotation
-tool is used.
+renamed to logfile.1 and so on. When installing from packages, logrotate
+is used to manage log files, so only use this option if logrotate is
+disabled. 
 
 .IR Example :
 logsize="100000 2"
@@ -621,14 +628,20 @@ jobreport="https://grid.uio.no:8001/logger"
 
 .TP
 .B maxjobs
-Specifies the maximum allowed number of jobs. The value should be two
-integers separated by a space. The first number limits the number of
-jobs which are not in FINISHED state (jobs tracked in RAM). The second
-number limits the number of jobs being run (SUBMITTING, INLRMS
-states). Missing number or -1 means no limit.
+Specifies the maximum allowed number of jobs being processed at 
+different stages: 1. max processed jobs – maximum number of concurrent 
+jobs processed. This does not limit the amount of jobs which can be 
+submitted to the cluster. 2. max running jobs – maximum number of 
+jobs passed to Local Resource Management System. 3. max jobs per dn –
+maximum number of concurrent jobs processed by A-REX per user DN. If this
+option is used the total maximum number of jobs processed is still 
+max processed jobs. 4. max jobs total – total maximum number of jobs
+associated with service. It is advised to use this limit only in
+exceptional case because it also accounts for ﬁnished jobs. Missing 
+number or -1 means no limit.
 
 .IR Example :
-maxjobs="10000 10"
+maxjobs="10000 10 1000"
 
 .TP
 .B maxload
@@ -653,6 +666,25 @@ are "dn", "voms:vo", "voms:role", and "voms:group".
 
 .IR Example:
 maxloadshare="4 voms:role"
+
+.TP
+.B share_limit
+Specifies a transfer share that has a number of processes different from the
+default value in maxloadshare. name is the name of the share and limit is
+the number of processes for this share. In the conﬁguration should appear
+after maxloadshare. Can be repeated several times for different shares.
+
+.IR Example:
+share_limit="atlas:production 10"
+
+.TP
+.B newdatastaging
+Turns on and off the new data staging framework which replaces the 
+downloader and uploader for managing input and output files. It is off
+by default
+
+.IR Example:
+newdatastaging="yes"
 
 .TP
 .B wakeupperiod
@@ -1183,8 +1215,7 @@ user="grid"
 .TP
 .B debug
 Set the debug level of the gridftpd daemon. Level 0 stands for
-no debug. Increasing number gives more information. So far useful
-debug numbers are 0\-3.
+no debug. Increasing number gives more information up to a maximum of 5.
 
 .IR Example :
 debug="2"
@@ -1201,9 +1232,9 @@ logfile="/var/log/gridftpd.log"
 Specifies the (approximate) maximum size in bytes of the log file. A
 second argument indicates how many log files are kept. When the logfile
 exceeds the specified size it is renamed to logfile.0 and logfile.0 is
-renamed to logfile.1 and so on. Don't set the logsize attribute if you
-don't want to enable ARC's log rotation because some other log rotation
-tool is used.
+renamed to logfile.1 and so on. When installing from packages, logrotate
+is used to manage log files, so only use this option if logrotate is
+disabled. 
 
 .IR Example :
 logsize="100000 2"
@@ -1226,7 +1257,7 @@ port="2811"
 .TP
 .B pluginpath
 Directory where the plugin libraries are installed, default is
-${ARC_LOCATION}/lib.
+${ARC_LOCATION}/lib/arc.
 
 .IR Example :
 pluginpath="/opt/nordugrid/lib"
@@ -1564,7 +1595,8 @@ parameter can be used to close down a grid. The default is "yes".
 allownew="yes"
 
 .TP 
-.B remotegmdirs Specifies control and session directories to which
+.B remotegmdirs
+Specifies control and session directories to which
 jobs can be submitted but which are under the control of another
 GM. The corresponding controldir and sessiondir parameters must be
 defined in another grid-manager's configuration.  Multiple
@@ -1581,270 +1613,6 @@ value is 5MB. If value is missing or 0 size is not limited.
 .IR Example :
 maxjobdesc="5242880"
 
-
-.SH HTTPSD OPTIONS
-
-The httpsd block controls parameters of httpsd server and services 
-it hosts (e.g. the logger or the SSE).
-
-.TP
-.B user
-Switch to a non-root user/group after startup. The format of the
-argument is user[:group]. WARNING: Make sure that the certificate files 
-are owned by the user[:group] specified by this option. Default value is root.
-
-.IR Example :
-user="grid"
-
-.TP
-.B debug
-Set debug level of the daemon. 
-
-.IR Example :
-debug="2"
-
-.TP
-.B logfile
-Set log file location.
-
-.IR Example :
-logfile="/var/log/httpsd.log"
-
-.TP
-.B logsize
-Set log rotation parameters.
-
-.IR Example :
-logsize="100000 2"
-
-.TP
-.B pidfile
-Specifies the location of the file containing the process id (PID) of
-the daemon process. This is useful for automatic start/stop scripts.
-
-.IR Example :
-pidfile="/var/run/httpsd.pid"
-
-.TP
-.B gsiport
-TCP/IP port to listen on for HTTPg connections (default is 8000).
-
-.IR Example :
-gsiport="8000"
-
-.TP
-.B sslport
-TCP/IP port to listen on for HTTPS connections (default is 8001).
-
-.IR Example :
-sslport="8001"
-
-.TP
-.B plugin
-Path to shared library which contains plugin(s) for httpsd. Multiple
-commands are allowed. Plugins are not activated by this command.
-
-.IR Example :
-plugin="/opt/nordugrid/lib/logger.so"
-
-.TP
-.B globus_tcp_port_range, globus_udp_port_range
-Firewall configuration.
-
-.IR Example :
-
-globus_tcp_port_range="9000,12000"
-.br
-globus_udp_port_range="9000,12000"
-
-.TP
-.B x509_user_cert, x509_user_key
-Server credentials location.
-
-.IR Example :
-
-x509_user_cert="/etc/grid-security/hostcert.pem"
-.br
-x509_user_key="/etc/grid-security/hostkey.pem"
-
-.TP
-.B x509_cert_dir
-Location of trusted CA certificates.
-
-.IR Example :
-x509_cert_dir="/etc/grid-security/certificates"
-
-.SH HTTPSD LOGGER OPTIONS
-
-Block for enabling and configuring the logger service. Each httpsd
-service is configured in its own configuration block and is given its
-own id. If the plain text format is used, a configuration block
-identified as "logger" is defined by:
-
-.nf
-.B [httpsd]
-.BR id ="logger"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <httpsd\ id ="logger" > ... </httpsd>
-
-.TP
-.B name
-Name of loaded service. If not specified, the id of the configuration
-group is used. If service is not loaded, the daemon tries to load
-libraries service_name.so and libservice_name.so.
-
-.IR Example :
-name="logger"
-
-.TP
-.B path
-Specifies path (or complete URL) used to form URL at which service is
-accessible. This command is supported by every plugin.
-
-.IR Example :
-path="/nglog"
-
-.TP
-.B acl_read
-Specifies user groups allowed to read records in a logger database.
-User will see only records about jobs belonging to him.
-
-.IR Example :
-acl_read="users"
-
-.TP
-.B acl_query
-Specifies user groups allowed to read ALL records in a logger
-database.
-
-.IR Example :
-acl_query="admins"
-
-.TP
-.B acl_write
-Specifies user groups allowed to add new records into a logger
-database. Usually only host certificates should be there.
-
-.IR Example :
-acl_write="servers"
-
-.TP
-.B sqlcontact
-MySQL user and access password. This command is unsafe and should be
-used only if configuration file is well protected.
-
-.IR Example :
-sqlcontact="test test"
-
-.TP
-.B sqlcontactsource
-Path to file containing name of MySQL user and access password. This
-is a prefered and safer way to keep MySQL password.
-
-.IR Example :
-sqlcontactsource="/very/secret/file"
-
-.SH HTTPSD STORAGE ELEMENT OPTIONS
-
-Block for enabling and configuring the SSE service. Each httpsd
-service is configured in its own configuration block and is given its
-own id. If the plain text format is used, a configuration block
-identified as "sse" is defined by:
-
-.nf
-.B [httpsd]
-.BR id ="sse"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <httpsd\ id ="sse" > ... </httpsd>
-
-.TP
-.B name
-Name of loaded service. If not specified, the id of the configuration
-group is used. If service is not loaded, the daemon tries to load
-libraries service_name.so and libservice_name.so.
-
-.IR Example :
-name="se"
-
-.TP
-.B path
-Path at which service is accessible.
-
-.IR Example :
-path="/se"
-
-.TP
-.B acl_create
-Specifies user groups allowed to store files at SSE.
-
-.IR Example :
-acl_create="users"
-
-.TP
-.B acl_read
-Specifies user groups allowed to retrieve all files stored at SSE.
-
-.IR Example :
-acl_read="admins"
-
-.TP
-.B acl_replicate
-Specifies user groups allowed to initiate replication of files to SSE.
-
-.IR Example :
-acl_replicate="services"
-
-.TP
-.B storage
-Directory on local file system to store files and information about
-them.
-
-.IR Example :
-storage="/tmp/se"
-
-.TP
-.B ns
-Indexing Service at which SSE registers it's content. The value of may
-be specific for every supported service. Currently supported are lrc
-and rc URLs or word none.
-
-.IR Example :
-ns="none"
-
-.TP
-.B registration
-Options to define how registration is performed. Available options are:
-.RS
-.TP
-.B immediate
-try to register before file is put into SSE.
-.TP
-.B delayed
-do not register immediately, register new files periodically.
-.TP
-.B retry
-if registration failed, retry periodically.
-.TP
-.B noretry
-do not retry registration, fail after first attempt.
-.TP
-.B hideincomplete
-do not report/show files which are not fully uploaded and registered.
-.TP
-.B showincomplete
-show all files.
-.RE
-
-.IR Example :
-registration="delayed,retry"
 
 .SH INFORMATION SYSTEM OPTIONS
 
@@ -2753,249 +2521,6 @@ timelimit="30"
 .IR
 sizelimit="5000"
 
-.SE STORAGE ELEMENT INFORMATION OPTIONS
-
-The storage element information block is needed if you want a
-previously defined storage element to appear in the information
-system. Each storage element information block is coupled to a
-physical storage block using the "assigned_storage" option. If you
-want the storage element to appear in the information system (and in
-the Grid monitor) you must also create an storage element registration
-block. Each storage element information block should be given its own
-identifier. The id is also used to create the unique LDAP
-distinguished name of the storage element in the form of
-"nordugrid-se-name=id:hostname, Mds-Vo-name=local, O=Grid". If the plain
-text format is used, the storage element information configuration
-block "files" is defined by:
-
-.nf
-.B [se]
-.BR id ="files"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <se\ id ="files" > ... </se>
-
-.TP 
-.B assigned_storage
-Connects the storage element information block to a physical smart
-storage element (httpd/sse) or gridftpd based storage element
-(gridftpd) physical block. The parameter value is the block label of
-the assigned physical storage element.
-
-.IR Example :
-assigned_storage="filedir"
-
-
-.TP
-.B authorizedvo
-This attribute is used to advertise which VOs are authorized 
-on the SE. Multiple entries are allowed.
-
-.IR Example :
-authorizedvo="developer.nordugrid.org"
-
-
-.TP
-.B alias
-Free form string for naming your SE.
-
-.IR Example :
-alias="TEST SE for Atlas users"
-
-.TP
-.B comment
-A free text field for additional comments about the storage element.
-
-Example: comment="This SE has a very special hardware setup read more: www.myse.org"
-
-.TP
-.B hostname
-Can be used to specify the FQDN of the machine on which the storage
-element is running. It is used to create the contact string and the
-distinguished name of the storage element.
-
-.IR Example :
-hostname="myhost.org"
-
-.TP
-.B gridmap
-Can be used to specify an alternative file holding the list of
-authorized grid SNs. The information system parses the list of users from
-this file and advertises them as authorized SE users. However, there is no
-checking if those users are actually authorized by the [gridftpd/filedir]
-block.
-
-.IR Example :
-gridmap="/etc/grid-security/SE-gridmap" 
-
-.TP
-.B type
-The type of the SE. Currently supported types are: "gridftp", "SSE"
-and "other".
-
-.IR Example :
-type="gridftp"
-
-.TP
-.B cachetime, timelimit, sizelimit
-LDAP parameters of the storage element information provider. Do not
-change the defaults unless you know what you are doing.
-
-.IR Examples :
-
-cachetime="1800"
-.br
-timelimit="30"
-.br
-sizelimit="10"
-
-.SH STORAGE ELEMENT REGISTRATION OPTIONS
-
-Options for registering a Storage Element (SE) in the Information
-System. Each Storage Element can be registered to more than one
-information index server. Each registration is configured in its own
-configuration block.
-
-If the plain text format is used, the registration of the storage
-element identified as "files" is defined by:
-
-.nf
-.B [infosys/se/registration]
-.BR id ="files"
-.fi
-
-If the xml format is used the same block is defined using a
-registration tag inside the attributed xml tag inside the infosys
-block:
-
-.nf
-.B <infosys>
-.RB \  <se\ id ="files" >
-.RB \ \  <registration> ... </registration>
-.RB \  </se>
-.B </infosys>
-.fi
-
-.TP
-.B targethostname
-See description earlier.
-
-.IR Example :
-targethostname="index.myinstitute.org"
-
-.TP
-.B targetport
-See description earlier.
-
-.IR Example :
-targetport="2135"
-
-.TP
-.B targetsuffix
-See description earlier.
-
-.IR Example :
-targetsuffix="Mds-Vo-name=BigIndex, O=Grid"
-
-.TP
-.B regperiod
-See description earlier.
-
-.IR Example :
-regperiod="300"
-
-.TP
-.B registranthostname
-See description earlier.
-
-.IR Example :
-registranthostname="myhost.org"
-
-.TP
-.B registrantport
-See description earlier.
-
-.IR Example :
-registrantport="2135"
-
-.TP
-.B registrantsuffix
-The LDAP suffix of the registrant SE resource. It is automatically
-determined from the infosys block and the storage element
-configuration block id. Don't set it unless you want to overwrite the
-default.
-
-.IR Example :
-registrantsuffix="nordugrid-se-name=sename:myhost.org, Mds-Vo-name=local, O=Grid"
-
-.SH REPLICA CATALOGUE OPTIONS
-
-Configuration for a globus replica catalogue (RC) server. Each RC server
-is configured in its own configuration block and is given its own
-identifier. If the plain text format is used, the replica catalogue
-information configuration block "myrc" is defined by:
-
-.nf
-.B [rc]
-.BR id ="myrc"
-.fi
-
-If the xml format is used the same block is defined using the
-attributed xml tag:
-
-.BR <rc\ id ="myrc" > ... </rc>
-
-.TP
-.B gridmap
-Can be used to specify an alternative file holding the list of
-authorised DNs. The script parses the list of users from that file and
-advertises them as authorised RC users. However, there is no checking
-if those users are actually authorised by the LDAP server. The
-default grid-mapfile is /etc/grid-security/grid-mapfile.
-
-.IR Example :
-gridmap="/etc/grid-security/rc-gridmap" 
-
-.TP
-.B alias
-Free form string for naming your RC server. By default the alias gets
-the value from the configuration block identifier.
-
-.IR Example :
-alias="RC for Atlas users"
-
-.TP
-.B port
-The port on which the LDAP server serving this RC server is running.
-The port information is used to construct the contact string of the RC
-server. The default is "389".
-
-.IR Example :
-port="389"
-
-.TP
-.B basedn
-The LDAP base distinguished name of the RC server. It is used when
-constructing the contact string of the RC server.
-
-.IR Example :
-basedn="rc=NorduGrid,dc=nordugrid,dc=org"
-
-.TP
-.B cachetime, timelimit, sizelimit
-LDAP parameters of the RC information provider. Do not change the
-defaults unless you know what you are doing.
-
-.IR Examples :
-
-cachetime="1800"
-.br
-timelimit="30"
-.br
-sizelimit="10"
 
 .SH SEE ALSO
 
