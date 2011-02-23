@@ -55,7 +55,7 @@ int RUNGET(main)(int argc, char **argv) {
                     joblist);
 
   std::list<std::string> jobidfiles;
-  options.AddOption('i', "jobidfile",
+  options.AddOption('i', "jobids-from-file",
                     istring("a file containing a list of jobIDs"),
                     istring("filename"),
                     jobidfiles);
@@ -117,7 +117,7 @@ int RUNGET(main)(int argc, char **argv) {
   
   for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
     if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobidfile: %s", *it);
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
   }
 

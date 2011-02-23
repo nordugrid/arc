@@ -27,7 +27,7 @@ jobdescription string describing the job to be submitted
 jobdescription file describing the job to be submitted
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 the file storing information about active jobs (default ~/.arc/jobs.xml)
-.IP "\fB-o\fR, \fB--jobidfile\fR=\fIfilename\fR"
+.IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
 the IDs of the submitted jobs will be appended to this file
 .IP "\fB-D\fR, \fB--dryrun\fR"
 submit jobs as dry run (no submission to batch system)

@@ -99,7 +99,7 @@ int RUNSUB(main)(int argc, char **argv) {
                     joblist);
 
   std::string jobidfile;
-  options.AddOption('o', "jobidfile",
+  options.AddOption('o', "jobids-to-file",
                     istring("the IDs of the submitted jobs will be appended to this file"),
                     istring("filename"),
                     jobidfile);
