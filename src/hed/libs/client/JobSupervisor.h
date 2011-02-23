@@ -75,13 +75,12 @@ namespace Arc {
       return loader.GetJobControllers();
     }
 
-    bool JobsFound() const { return jobsFound; }
+    bool JobsFound() const;
 
   private:
     static Logger logger;
     JobControllerLoader loader;
     const UserConfig& usercfg;
-    bool jobsFound;
   };
 
 } //namespace ARC

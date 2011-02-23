@@ -25,7 +25,7 @@ namespace Arc {
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobs)
-    : jobsFound(false), usercfg(usercfg) {
+    : usercfg(usercfg) {
     std::map<std::string, std::list<URL> > jobmap;
     XMLNodeList xmljobs;
 
@@ -100,8 +100,6 @@ namespace Arc {
       JobController *JC = loader.load(it->first, usercfg);
       if (JC) {
         JC->FillJobStore(it->second);
-        if (!JC->GetJobs().empty())
-          jobsFound = true;
       }
     }
   }
@@ -137,5 +135,16 @@ namespace Arc {
   }
 
   JobSupervisor::~JobSupervisor() {}
+
+  bool JobSupervisor::JobsFound() const {
+    for (std::list<JobController*>::const_iterator it = loader.GetJobControllers().begin();
+         it != loader.GetJobControllers().end(); ++it) {
+      if (!(*it)->jobstore.empty()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
 } // namespace Arc
