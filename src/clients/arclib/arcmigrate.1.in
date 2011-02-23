@@ -25,7 +25,7 @@ explicitly select or reject a specific cluster which queued jobs should/shouldn'
 .IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-file where the jobs will be stored
+the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-a\fR, \fB--all\fR"
 all jobs specified in the jobfile will be tried migrated
 .IP "\fB-f\fR, \fB--force\fR"

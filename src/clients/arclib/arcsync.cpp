@@ -72,7 +72,7 @@ int RUNSYNC(main)(int argc, char **argv) {
 
   std::string joblist;
   options.AddOption('j', "joblist",
-                    istring("file where the jobs will be stored"),
+                    istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
 
