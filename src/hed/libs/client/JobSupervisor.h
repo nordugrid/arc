@@ -66,6 +66,34 @@ namespace Arc {
 
     ~JobSupervisor();
 
+    /// Cancel jobs
+    /**
+     * This method will request cancellation of jobs, identified by their
+     * IDFromEndpoint member, for which that URL is equal to any in the jobids
+     * list. Only jobs corresponding to a Job object managed by this
+     * JobSupervisor will be considered for cancellation. Job objects not in a
+     * valid State (see JobState) will not be considered, and the IDFromEndpoint
+     * URLs of those objects will be appended to the notkilled URL list. For
+     * jobs not in a finished state (see JobState::IsFinished), the
+     * JobController::Cancel method will be called, passing the corresponding
+     * Job object, in order to cancel the job. If the the JobController::Cancel
+     * call succeeds or if the job is in a finished state the IDFromEndpoint URL
+     * will be appended to the list to be returned. If the JobController::Cancel
+     * call fails the IDFromEndpoint URL is appended to the notkilled URL list.
+     *
+     * Note: If there is any URL in the jobids list for which there is no
+     * corresponding Job object, then the size of the returned list plus the
+     * size of the notkilled list will not equal that of the jobids list.
+     *
+     * @param jobids List of Job::IDFromEndpoint URL objects for which a
+     *  corresponding job, managed by this JobSupervisor should be cancelled.
+     * @param notcancelled List of Job::IDFromEndpoint URL objects for which the
+     *  corresponding job were not cancelled.
+     * @return The list of Job::IDFromEndpoint URL objects of successfully
+     *  cancelled or finished jobs is returned.
+     **/
+    std::list<URL> Cancel(const std::list<URL>& jobids, std::list<URL>& notcancelled);
+
     /// Get list of JobControllers
     /**
      * Method to get the list of JobControllers loaded by constructor.

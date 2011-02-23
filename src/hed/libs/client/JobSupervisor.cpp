@@ -136,6 +136,36 @@ namespace Arc {
 
   JobSupervisor::~JobSupervisor() {}
 
+  std::list<URL> JobSupervisor::Cancel(const std::list<URL>& jobids,
+                                       std::list<URL>& notcancelled) {
+    std::list<URL> cancelled;
+
+    std::list<JobController*> jobCs = loader.GetJobControllers();
+    for (std::list<URL>::const_iterator itID = jobids.begin();
+         itID != jobids.end(); ++itID) {
+      for (std::list<JobController*>::iterator itJobC = jobCs.begin();
+           itJobC != jobCs.end(); ++itJobC) {
+        std::list<Job>::iterator itJ = (*itJobC)->jobstore.begin();
+        for (; itJ != (*itJobC)->jobstore.end(); ++itJ) {
+          if ((*itID) == itJ->IDFromEndpoint) {
+            if (itJ->State && (itJ->State.IsFinished() || (*itJobC)->CancelJob(*itJ))) {
+              cancelled.push_back(*itID);
+            }
+            else {
+              notcancelled.push_back(*itID);
+            }
+            break;
+          }
+        }
+        if (itJ != (*itJobC)->jobstore.end()) {
+          break;
+        }
+      }
+    }
+
+    return cancelled;
+  }
+
   bool JobSupervisor::JobsFound() const {
     for (std::list<JobController*>::const_iterator it = loader.GetJobControllers().begin();
          it != loader.GetJobControllers().end(); ++it) {
