@@ -132,10 +132,12 @@ namespace Arc {
           (*it)->UsedSlots = stringtoi(jobinfo["nordugrid-job-cpucount"]);
         if (jobinfo["nordugrid-job-usedcputime"])
           (*it)->UsedTotalCPUTime =
-            (std::string)jobinfo["nordugrid-job-usedcputime"];
+            Period((std::string)jobinfo["nordugrid-job-usedcputime"],
+                   PeriodMinutes);
         if (jobinfo["nordugrid-job-usedwalltime"])
           (*it)->UsedTotalWallTime =
-            (std::string)jobinfo["nordugrid-job-usedwalltime"];
+            Period((std::string)jobinfo["nordugrid-job-usedwalltime"],
+                   PeriodMinutes);
         if (jobinfo["nordugrid-job-exitcode"])
           (*it)->ExitCode = stringtoi(jobinfo["nordugrid-job-exitcode"]);
         if (jobinfo["Mds-validfrom"]) {
@@ -153,12 +155,15 @@ namespace Arc {
           (*it)->StdIn = (std::string)(jobinfo["nordugrid-job-stdin"]);
         if (jobinfo["nordugrid-job-reqcputime"])
           (*it)->RequestedTotalCPUTime =
-            (std::string)(jobinfo["nordugrid-job-reqcputime"]);
+            Period((std::string)(jobinfo["nordugrid-job-reqcputime"]),
+                   PeriodMinutes);
         if (jobinfo["nordugrid-job-reqwalltime"])
           (*it)->RequestedTotalWallTime =
-            (std::string)(jobinfo["nordugrid-job-reqwalltime"]);
+            Period((std::string)(jobinfo["nordugrid-job-reqwalltime"]),
+                   PeriodMinutes);
         if (jobinfo["nordugrid-job-rerunable"])
-          (*it)->RestartState = JobStateARC0((std::string)(jobinfo["nordugrid-job-rerunable"]));
+          (*it)->RestartState =
+            JobStateARC0((std::string)(jobinfo["nordugrid-job-rerunable"]));
         if (jobinfo["nordugrid-job-queuerank"])
           (*it)->WaitingPosition =
             stringtoi(jobinfo["nordugrid-job-queuerank"]);

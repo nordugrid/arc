@@ -353,22 +353,28 @@ namespace Arc {
           target.ComputingShareName = (std::string)queue["nordugrid-queue-name"];
         if (queue["nordugrid-queue-maxwalltime"])
           target.MaxWallTime =
-            (std::string)queue["nordugrid-queue-maxwalltime"];
+            Period((std::string)queue["nordugrid-queue-maxwalltime"],
+                   PeriodMinutes);
         if (queue["nordugrid-queue-minwalltime"])
           target.MinWallTime =
-            (std::string)queue["nordugrid-queue-minwalltime"];
+            Period((std::string)queue["nordugrid-queue-minwalltime"],
+                   PeriodMinutes);
         if (queue["nordugrid-queue-defaultwalltime"])
           target.DefaultWallTime =
-            (std::string)queue["nordugrid-queue-defaultwalltime"];
+            Period((std::string)queue["nordugrid-queue-defaultwalltime"],
+                   PeriodMinutes);
         if (queue["nordugrid-queue-maxcputime"])
           target.MaxCPUTime =
-            (std::string)queue["nordugrid-queue-maxcputime"];
+            Period((std::string)queue["nordugrid-queue-maxcputime"],
+                   PeriodMinutes);
         if (queue["nordugrid-queue-mincputime"])
           target.MinCPUTime =
-            (std::string)queue["nordugrid-queue-mincputime"];
+            Period((std::string)queue["nordugrid-queue-mincputime"],
+                   PeriodMinutes);
         if (queue["nordugrid-queue-defaultcputime"])
           target.DefaultCPUTime =
-            (std::string)queue["nordugrid-queue-defaultcputime"];
+            Period((std::string)queue["nordugrid-queue-defaultcputime"],
+                   PeriodMinutes);
         if (queue["nordugrid-queue-maxrunning"])
           target.MaxRunningJobs =
             stringtoi((std::string)queue["nordugrid-queue-maxrunning"]);
@@ -486,7 +492,8 @@ namespace Arc {
                       cluster["nordugrid-cluster-sessiondir-free"]) / 1000;
         if (cluster["nordugrid-cluster-sessiondir-lifetime"])
           target.WorkingAreaLifeTime =
-            (std::string)cluster["nordugrid-cluster-sessiondir-lifetime"];
+            Period((std::string)cluster["nordugrid-cluster-sessiondir-lifetime"],
+                   PeriodMinutes);
         if (cluster["nordugrid-cluster-cache-total"])
           target.CacheTotal =
             stringtoi((std::string)cluster["nordugrid-cluster-cache-total"]) / 1000;
