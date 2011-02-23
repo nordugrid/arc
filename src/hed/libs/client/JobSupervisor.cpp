@@ -25,7 +25,7 @@ namespace Arc {
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobs)
-    : jobsFound(false) {
+    : jobsFound(false), usercfg(usercfg) {
     std::map<std::string, std::list<URL> > jobmap;
     XMLNodeList xmljobs;
 
@@ -103,6 +103,36 @@ namespace Arc {
         if (!JC->GetJobs().empty())
           jobsFound = true;
       }
+    }
+  }
+
+  JobSupervisor::JobSupervisor(const UserConfig& usercfg, const std::list<Job>& jobs)
+    : usercfg(usercfg) {
+    std::map<std::string, JobController*> loadedJCs;
+    std::map<std::string, JobController*>::iterator currentJC;
+
+    for (std::list<Job>::const_iterator it = jobs.begin();
+         it != jobs.end(); ++it) {
+      if (it->Flavour.empty()) {
+        logger.msg(VERBOSE, "Ignoring job (%s), the Job::Flavour attribute must be specified", it->IDFromEndpoint.str());
+        continue;
+      }
+
+      currentJC = loadedJCs.find(it->Flavour);
+      if (currentJC == loadedJCs.end()) {
+        JobController *jc = loader.load(it->Flavour, usercfg);
+        currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(it->Flavour, jc)).first;
+        if (!jc) {
+          logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s module installed?", it->Flavour, it->Flavour);
+          continue;
+        }
+      }
+      else if (!currentJC->second) {
+        // Already tried to load JobController, and it failed.
+        continue;
+      }
+
+      currentJC->second->FillJobStore(*it);
     }
   }
 
