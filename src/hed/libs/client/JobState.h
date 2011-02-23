@@ -57,6 +57,11 @@ namespace Arc {
     bool operator==(const StateType& st) const { return type == st; }
     bool operator!=(const StateType& st) const { return type != st; }
 
+    /// Check if state is finished
+    /**
+     * @return true is returned if the StateType is equal to FINISHED, KILLED,
+     *  FAILED or DELETED, otherwise false is returned.
+     **/
     bool IsFinished() const { return type == FINISHED || type == KILLED || type == FAILED || type == DELETED; }
 
     std::string operator()() const { return state; }
