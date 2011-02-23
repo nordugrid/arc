@@ -29,8 +29,6 @@ a file containing a list of jobIDs
 explicitly select or reject a specific cluster
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
-.IP "\fB-i\fR, \fB--index\fR=[-]\fIname\fR"
-explicitly select or reject an index server
 .IP "\fB-l\fR, \fB--long\fR"
 long format (more information)
 .IP "\fB-S\fR, \fB--sort\fR"
