@@ -98,7 +98,7 @@ namespace Arc {
     /**
      * This method will request cleaning of jobs, identified by their
      * IDFromEndpoint member, for which that URL is equal to any in the jobids
-     * list. Onkly jobs corresponding to a Job object managed by this
+     * list. Only jobs corresponding to a Job object managed by this
      * JobSupervisor will be considered for cleaning. Job objects not in a valid
      * state (see JobState) will not be considered, and the IDFromEndpoint URLs
      * of those objects will be appended to the notcleaned URL list, otherwise
