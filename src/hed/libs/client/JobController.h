@@ -39,6 +39,7 @@ namespace Arc {
   /// Must be specialiced for each supported middleware flavour.
   class JobController
     : public Plugin {
+    friend class JobSupervisor;
   protected:
     JobController(const UserConfig& usercfg,
                   const std::string& flavour);
