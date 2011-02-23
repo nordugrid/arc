@@ -21,6 +21,8 @@ command is used to kill running jobs.
 all jobs
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 the file storing information about active jobs (default ~/.arc/jobs.xml)
+.IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
+a file containing a list of jobIDs
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
