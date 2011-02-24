@@ -169,7 +169,7 @@ my $config_schema = {
         Name => '*',
         OtherInfo => [ '*' ],
         Detail => '',
-        Type => '*',
+        Type => '',
     } ],
     accesspolicies => [ {
         Rule => [ '' ],
@@ -880,7 +880,7 @@ sub parseConfig {
 #
 # Reads A-REX config and prints out configuration options for LRMS control
 # scripts. Only the LRMS-related options are handled. The output is executable
-# shell script meant to be consumed by 'config_parser.sh'.
+# shell script meant to be sourced by 'config_parser.sh'.
 #
 sub printLRMSConfigScript {
     my $file = shift;

@@ -440,7 +440,10 @@ sub check_config {
 
     if ($config->{contacts}) {
         for (@{$config->{contacts}}) {
-            $log->warning("URI expected in Contact Detal: ".$_->{Detail}) unless $_->{Detail} =~ m/^\w+:/;
+            $log->warning("Contact is missing Type") and next unless $_->{Type};
+            $log->warning("Contact is missing Detail") and next unless $_->{Detail};
+            $log->warning("Contact Detail is not an URI: ".$_->{Detail}) and next
+                unless $_->{Detail} =~ m/^\w+:/;
         }
     }
 }
