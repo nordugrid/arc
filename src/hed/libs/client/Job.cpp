@@ -427,6 +427,10 @@ namespace Arc {
     if (!State().empty())
       out << IString(" State: %s (%s)", State.GetGeneralState(), State())
                 << std::endl;
+    if (State == JobState::QUEUING && WaitingPosition != -1) {
+      out << IString(" Waiting Position: %d", WaitingPosition) << std::endl;
+    }
+
     if (ExitCode != -1)
       out << IString(" Exit Code: %d", ExitCode) << std::endl;
     if (!Error.empty()) {
@@ -707,7 +711,7 @@ namespace Arc {
     }
     return true;
   }
-  
+
   bool Job::WriteJobIDToFile(const std::string& jobid, const std::string& filename) {
     if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
     std::ofstream os(filename.c_str(), std::ios::app);
@@ -716,6 +720,6 @@ namespace Arc {
     if (!os.good()) return false;
     return true;
   }
-  
+
 
 } // namespace Arc
