@@ -5,8 +5,12 @@
  */
 
 %{
+#include <arc/crypto/OpenSSL.h>
 #include <arc/credential/Credential.h>
+#include <arc/credentialstore/CredentialStore.h>
 %}
 
 #define STACK_OF(A) void
+%include "../src/hed/libs/crypto/OpenSSL.h"
 %include "../src/hed/libs/credential/Credential.h"
+%include "../src/hed/libs/credentialstore/CredentialStore.h"
