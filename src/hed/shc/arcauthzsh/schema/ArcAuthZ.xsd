@@ -39,7 +39,7 @@
   <xsd:attribute name="id" type="xsd:string" use="optional"/>
   <!-- Attribute 'action' defines behavior after obtaining results from
        each PDP. Possible values and their meanings are:
-         breakOnFailure - stop processing in case of negative result.
+         breakOnDeny - stop processing in case of negative result.
        Result of SecHandler is negative too. In case of positive
        result continue to next PDP.
          breakOnAllow - stop processing in case of positive result. 
