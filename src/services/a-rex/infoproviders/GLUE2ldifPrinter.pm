@@ -488,7 +488,10 @@ sub Benchmarks {
 }
 
 sub ExecutionEnvironments {
-    LdifPrinter::Entries(@_, 'GLUE2Resource', 'ID', \&ExecutionEnvironmentAttributes);
+    LdifPrinter::Entries(@_, 'GLUE2Resource', 'ID', \&ExecutionEnvironmentAttributes, sub {
+        my ($self, $data) = @_;
+        $self->Benchmarks($data->{Benchmarks});
+    });
 }
 
 sub ApplicationEnvironments {
