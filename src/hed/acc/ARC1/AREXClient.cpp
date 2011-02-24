@@ -257,52 +257,30 @@ namespace Arc {
       if(gactivity) {
         job = gactivity;
 
-        // Fetch the proper state.
-        job.State = JobState();
-        for (XMLNode n = gactivity["State"]; n; ++n) {
-          std::list<std::string> gluestate;
-          tokenize((std::string)n, gluestate, ":");
-
-           if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
-            job.State = JobStateARC1(gluestate.back());
-            break;
-          }
-        }
-      }
-      if (!job.State) {
-        // If failed to fetch through Glue2 try through BES
-        NS ns("a-rex","http://www.nordugrid.org/schemas/a-rex");
-        activity.Namespaces(ns);
-        std::string state = activity.Attribute("state");
-        if(!state.empty()) {
-          job.State = JobStateBES(state);
-          XMLNode nstate = activity["a-rex:State"];
-          std::string nstates;
-          for(;nstate;++nstate) {
-            if(nstates.empty()) {
-              nstates = (std::string)nstate;
-            } else {
-              nstates = (std::string)nstate + ":" + nstates;
-            }
-          }
-          if(!nstates.empty()) {
-            job.State = JobStateARC1(nstates);
-          }
-        }
-      }
-
-      if(gactivity) {
-        // Fetch the proper state.
+        // Fetch the proper restart state.
         if (gactivity["RestartState"]) {
           for (XMLNode n = response["ComputingActivity"]["RestartState"]; n; ++n) {
             std::list<std::string> gluestate;
             tokenize((std::string)n, gluestate, ":");
 
-            if (gluestate.size() == 2 && gluestate.front() == "nordugrid") {
-              job.RestartState = JobStateARC1(gluestate.back());
+            if (!gluestate.empty() && gluestate.front() == "nordugrid") {
+              job.RestartState = JobStateARC1(((std::string)n).substr(10));
               break;
             }
           }
+        }
+      }
+
+      // Fetch the proper state.
+      if (activity["glue:State"]) {
+        job.State = JobStateARC1((std::string)activity["glue:State"]);
+      }
+      else if (activity["a-rex:State"]) {
+        if (activity["LRMSState"]) {
+          job.State = JobStateARC1("INLRMS:" + (std::string)activity["LRMSState"]);
+        }
+        else {
+          job.State = JobStateARC1((std::string)activity["a-rex:State"]);
         }
       }
     }
