@@ -200,24 +200,25 @@ namespace Arc {
     virtual DataStatus Remove() = 0;
 
     /// Retrieve information about this object
-    /** If the DataPoint represents a directory or something similar its 
-       contents will be listed.
+    /** If the DataPoint represents a directory or something similar,
+       information about the object itself and not its contents will
+       be obtained.
        \param file will contain object name and requested attributes.
        There may be more attributes than requested. There may be less 
        if object can't provide particular information.
        \param verb defines attribute types which method must try to
-       retireve. It is not a failure if some attributes could not
+       retrieve. It is not a failure if some attributes could not
        be retrieved due to limitation of protocol or access control. */
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
 
     /// List hierarchical content of this object.
-    /** If the DataPoint represents a directory or something similar its 
+    /** If the DataPoint represents a directory or something similar its
        contents will be listed.
        \param files will contain list of file names and requested
        attributes. There may be more attributes than requested. There
        may be less if object can't provide particular information.
        \param verb defines attribute types which method must try to
-       retireve. It is not a failure if some attributes could not
+       retrieve. It is not a failure if some attributes could not
        be retrieved due to limitation of protocol or access control. */
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
 
