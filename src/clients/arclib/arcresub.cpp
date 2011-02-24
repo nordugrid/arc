@@ -59,6 +59,18 @@ int RUNRESUB(main)(int argc, char **argv) {
                     istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
+                    
+  std::string jobidfileout;
+  options.AddOption('o', "jobids-to-file",
+                    istring("the IDs of the submitted jobs will be appended to this file"),
+                    istring("filename"),
+                    jobidfileout);
+
+  std::list<std::string> jobidfilesin;
+  options.AddOption('i', "jobids-from-file",
+                    istring("a file containing a list of jobIDs"),
+                    istring("filename"),
+                    jobidfilesin);                    
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
@@ -120,6 +132,12 @@ int RUNRESUB(main)(int argc, char **argv) {
 
 
   std::list<std::string> jobs = options.Parse(argc, argv);
+
+  for (std::list<std::string>::const_iterator it = jobidfilesin.begin(); it != jobidfilesin.end(); it++) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+    }
+  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcresub", VERSION)
@@ -258,8 +276,11 @@ int RUNRESUB(main)(int argc, char **argv) {
     jobdescs.front().Identification.ActivityOldId.push_back(it->JobID.str());
 
     if (ChosenBroker->Submit(targen.GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back())) {
-      std::cout << Arc::IString("Job resubmitted with new jobid: %s",
-                                resubmittedJobs.back().JobID.str()) << std::endl;
+      std::string jobid = resubmittedJobs.back().JobID.str();
+      if (!jobidfileout.empty())
+        if (!Arc::Job::WriteJobIDToFile(jobid, jobidfileout))
+          logger.msg(Arc::WARNING, "Cannot write jobid (%s) to file (%s)", jobid, jobidfileout);
+      std::cout << Arc::IString("Job resubmitted with new jobid: %s", jobid) << std::endl;
       jobs.push_back(it->JobID.str());
     }
     else {

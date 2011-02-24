@@ -21,6 +21,10 @@ command is used for resubmitting jobs to grid enabled computing resources.
 all jobs
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 the file storing information about active jobs (default ~/.arc/jobs.xml)
+.IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
+a file containing a list of jobIDs
+.IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
+the IDs of the submitted jobs will be appended to this file
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject jobs from a specific cluster
 .IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
