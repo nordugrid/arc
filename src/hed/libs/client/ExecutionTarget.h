@@ -113,6 +113,10 @@ namespace Arc {
      **/
     Submitter* GetSubmitter(const UserConfig& ucfg) const;
 
+    bool GetTestJob(const UserConfig& ucfg, const int& testid, JobDescription& jobdescription) const {
+      return GetSubmitter(ucfg)->GetTestJob(testid, jobdescription);
+    }
+
     bool Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const {
       Submitter* s = GetSubmitter(ucfg);
       if (s == NULL) {

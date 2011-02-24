@@ -1,5 +1,5 @@
 bin_PROGRAMS = arcsub arcget arcstat arcinfo arckill arcclean arccat arcsync arcresub \
-	arcmigrate arcresume arcrenew
+	arcmigrate arcresume arcrenew arctest
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
 	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1
@@ -13,6 +13,10 @@ CLILIBS = ../../hed/libs/data/libarcdata2.la \
 arcsub_SOURCES  = arcsub.cpp
 arcsub_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 arcsub_LDADD    = $(CLILIBS)
+
+arctest_SOURCES  = arctest.cpp
+arctest_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arctest_LDADD    = $(CLILIBS)
 
 arcget_SOURCES  = arcget.cpp
 arcget_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

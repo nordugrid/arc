@@ -33,6 +33,34 @@ namespace Arc {
     return new SubmitterARC0(*subarg);
   }
 
+  bool SubmitterARC0::GetTestJob(const int& testid, JobDescription& jobdescription) {
+    std::string teststring;
+    switch (testid) {
+        case 1:
+          teststring = "&(\"executable\" = \"run.sh\" )(\"arguments\" = \"6\" )(\"inputfiles\" = (\"run.sh\" \"http://www.noryugrid.org;cache=no/data/run.sh\" ) (\"Makefile\" \"rls://rls.nordugrid.org/Makefile\" ) (\"prime.cpp\" \"ftp://ftp.nordugrid.org;cache=no/applications/test/prime.cpp\" ) )(\"stderr\" = \"primenumbers\" )(\"outputfiles\" = (\"primenumbers\" \"\" ) )(\"jobname\" = \"ARC testjob 1\" )(\"stdout\" = \"stdout\" )(\"gmlog\" = \"gmlog\" )(\"CPUTime\" = \"8\" )";
+          break;
+        case 2:
+          teststring = "&(\"executable\" = \"/bin/echo\" )(\"arguments\" = \"hello, grid\" )(\"jobname\" = \"ARC testjob 2\" )(\"stdout\" = \"stdout\" )(\"cputime\" = \"5\" )";
+          break;
+        case 3:
+          teststring = "&(\"executable\" = \"md5sum.sh\" )(\"arguments\" = \"downloaded[0-7]\" )(\"inputfiles\" = (\"downloaded0\" \"http://www.nordugrid.org;cache=yes/data/echo.sh\" ) (\"downloaded1\" \"http://www.nordugrid.org;cache=yes/data/somefile\" ) (\"downloaded2\" \"gsiftp://grid.tsl.uu.se;cache=yes/storage/test/echo.sh\" ) (\"downloaded3\" \"gsiftp://grid.tsl.uu.se;cache=yes/storage/test/somefile\" ) (\"downloaded4\" \"ftp://ftp.nordugrid.org;cache=yes/applications/test/echo.sh\" ) (\"downloaded5\" \"ftp://ftp.nordugrid.org;cache=yes/applications/test/somefile\" ) (\"downloaded6\" \"rls://rls.nordugrid.org/echo.sh\" ) (\"downloaded7\" \"rls://rls.nordugrid.org/somefile\" ) (\"md5sum.sh\" \"ftp://ftp.nordugrid.org;cache=yes/applications/test/md5sum.sh\" ) )(\"jobname\" = \"ARC testjob 3\" )(\"stdout\" = \"stdout\" )(\"stderr\" = \"stderr\" )(\"gmlog\" = \"gmlog\" )(\"CPUTime\" = \"5\" )";
+          break;
+        default:
+          return false;
+    }
+    std::list<JobDescription> jobdescs;
+    if (!JobDescription::Parse(teststring, jobdescs, "nordugrid:xrsl")) {
+      logger.msg(ERROR, "Test was defined with id %d, but some error occured during parsing it.", testid);
+      return false;
+    }
+    if (jobdescs.size() < 1) {
+      logger.msg(ERROR, "No jobdescription resulted at %d. test", testid);
+      return false;
+    }
+    jobdescription = (*(jobdescs.begin()));
+    return true;
+  }
+
   bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
 
     FTPControl ctrl;

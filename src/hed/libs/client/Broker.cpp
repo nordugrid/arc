@@ -425,6 +425,46 @@ namespace Arc {
     return (current != PossibleTargets.end() ? *current : NULL);
   }
 
+  void Broker::UseAllTargets(std::list<ExecutionTarget>& targets) {
+
+    PossibleTargets.clear();
+
+    for (std::list<ExecutionTarget>::iterator target = targets.begin();
+         target != targets.end(); target++) {
+      PossibleTargets.push_back(&*target);
+    }
+
+    TargetSortingDone = false;
+  }
+
+  bool Broker::Test(std::list<ExecutionTarget>& targets, const int& testid, Job& job) {
+    // Skipping PreFiltering using every targets
+    UseAllTargets(targets);
+
+    if (PossibleTargets.empty()) {
+      return false;
+    }
+
+    SortTargets();
+
+    for (std::list<ExecutionTarget*>::iterator it = PossibleTargets.begin();
+         it != PossibleTargets.end(); it++) {
+      JobDescription jobdescription;
+      // Return if test jobdescription is not defined
+      if (!((*it)->GetTestJob(usercfg, testid, jobdescription))) {
+        logger.msg(ERROR, "Illegal testjob-id given");
+        return false;
+      }
+      if ((*it)->Submit(usercfg, jobdescription, job)) {
+        current = it;
+        RegisterJobsubmission();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   void Broker::Sort() {
     if (TargetSortingDone) {
       return;

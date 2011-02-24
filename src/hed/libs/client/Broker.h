@@ -61,6 +61,9 @@ namespace Arc {
      **/
     void PreFilterTargets(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, const std::list<URL>& rejectTargets = std::list<URL>());
 
+    void UseAllTargets(std::list<ExecutionTarget>& targets);
+
+    bool Test(std::list<ExecutionTarget>& targets, const int& testid, Job& job);
     bool Submit(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, Job& job, const std::list<URL>& rejectTargets = std::list<URL>());
 
     /// Register a job submission to the current target

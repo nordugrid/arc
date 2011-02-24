@@ -10,6 +10,7 @@
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
+#include <arc/client/JobDescription.h>
 
 namespace Arc {
 
@@ -34,6 +35,14 @@ namespace Arc {
               const std::string& flavour);
   public:
     virtual ~Submitter();
+
+    /**
+    * This virtual method can be ovverriden by plugins which should
+    * be capable of getting test job descriptions for the specified flavour.
+    * This method should return with the JobDescription or NULL if ther is no
+    * test description defined with the requested id.
+    */
+    virtual bool GetTestJob(const int& testid, JobDescription& jobdescription) { return false; };
 
     /**
      * This virtual method should be overridden by plugins which should

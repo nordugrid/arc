@@ -25,6 +25,7 @@ namespace Arc {
 
   public:
     static Plugin* Instance(PluginArgument *arg);
+    virtual bool GetTestJob(const int& testid, JobDescription& jobdescription);
     virtual bool Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job);
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,
