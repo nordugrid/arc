@@ -6,6 +6,20 @@
 # its input and generates ARC1 arched configuration file
 # which contains commands to start A-REX cache service.
 
+# chkconfig: 2345 87 13
+# description: ARC cache service
+# processname: arched
+
+### BEGIN INIT INFO
+# Provides:          cache-service
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ARC cache service
+# Description:       ARC cache service
+### END INIT INFO
+
 #  
 #
 # source function library
