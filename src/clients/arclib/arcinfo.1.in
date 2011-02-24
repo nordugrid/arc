@@ -14,7 +14,7 @@ grid.
 
 .SH SYNOPSIS
 
-.B arcinfo [options]
+.B arcinfo [options] [cluster ...]
 
 .SH OPTIONS
 
@@ -41,12 +41,13 @@ print help
 The
 .B arcinfo
 command is used to get the status and information of clusters and queues
-available on the grid. Either the
+available on the grid. You can specify the URLs of cluster with the
 .B --cluster
-or
+option, or by just listing them as arguments.
+The
 .B --index
-flag should be used to specify the target(s) which should be queried for
-information. Both of these flags take a service endpoint as argument.
+flag can be used to specify an index server which should be queried for
+clusters. Both of these flags take a service endpoint as argument.
 See
 .BR arcsub (1)
 for a discussion of this format.
