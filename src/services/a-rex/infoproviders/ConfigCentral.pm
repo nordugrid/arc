@@ -474,11 +474,6 @@ sub build_config_from_xmlfile {
 
     my $ipcfg = hash_get_hashref($arex, 'InfoProvider');
 
-    # OBS: temporary hack, accept config that worked with 0.8rc1
-    if ($arex->{ComputingService}) {
-        $log->warning("Config element <ip:ComputingService> is deprecated. Rename it to <arex:InfoProvider>");
-        $ipcfg = hash_get_hashref($arex, 'ComputingService');
-    }
     rename_keys $ipcfg, $ipcfg, {Name => 'ClusterName'};
 
     move_keys $ipcfg, $config->{service}, [keys %{$config_schema->{service}}];
