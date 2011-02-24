@@ -1033,7 +1033,7 @@ namespace Arc {
      *
      * The attribute associated with this setter method is
      * 'jobdownloaddirectory'.
-     * @param newDownloadDirectory is the path to the store directory.
+     * @param newDownloadDirectory is the path to the download directory.
      * @return This method always returns \c true.
      * @see
      **/
@@ -1044,10 +1044,9 @@ namespace Arc {
      * returns directory which will be used to download the job 
      * directory using arcget command.
      *
-     * The attribute associated with this setter method is
+     * The attribute associated with the method is
      * 'jobdownloaddirectory'.
-     * @param newDownloadDirectory is the path to the store directory.
-     * @return This method always returns \c true.
+     * @return This method returns the job download directory.
      * @see
      **/
     const std::string& JobDownloadDirectory() const { return downloadDirectory; } 
