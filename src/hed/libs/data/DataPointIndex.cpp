@@ -40,7 +40,11 @@ namespace Arc {
 
   DataStatus DataPointIndex::CompareLocationMetadata() const {
     if (h && *h) {
-      DataStatus res = (*h)->Check();
+      FileInfo fileinfo;
+      DataPoint::DataPointInfoType verb = (DataPoint::DataPointInfoType)
+                                          (DataPoint::INFO_TYPE_TIMES |
+                                           DataPoint::INFO_TYPE_CONTENT);
+      DataStatus res = (*h)->Stat(fileinfo, verb);
       if (!res.Passed())
         return res;
       if (!CompareMeta(*(*h)))

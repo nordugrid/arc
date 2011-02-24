@@ -707,7 +707,11 @@ namespace Arc {
       source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
       
       if (source_url.GetAdditionalChecks()) {
-        DataStatus r = source_url.Check();
+        FileInfo fileinfo;
+        DataPoint::DataPointInfoType verb = (DataPoint::DataPointInfoType)
+                                            (DataPoint::INFO_TYPE_TIMES |
+                                             DataPoint::INFO_TYPE_CONTENT);
+        DataStatus r = source_url.Stat(fileinfo, verb);
         if (!r.Passed()) {
           logger.msg(ERROR, "Failed to check source %s", source_url.str());
           if (source.NextLocation())
