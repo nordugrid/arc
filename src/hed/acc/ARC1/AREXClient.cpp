@@ -239,18 +239,6 @@ namespace Arc {
         std::string state = activity.Attribute("state");
         if(!state.empty()) {
           job.State = JobStateBES(state);
-          XMLNode nstate = activity["a-rex:State"];
-          std::string nstates;
-          for(;nstate;++nstate) {
-            if(nstates.empty()) {
-              nstates = (std::string)nstate;
-            } else {
-              nstates = (std::string)nstate + ":" + nstates;
-            }
-          }
-          if(!nstates.empty()) {
-            job.State = JobStateARC1(nstates);
-          }
         }
       }
       if (!job.State) {
