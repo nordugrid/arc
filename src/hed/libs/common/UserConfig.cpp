@@ -808,12 +808,23 @@ namespace Arc {
           return false;
       }
       else { // URL
-        const std::size_t pos = service.find(":");
-        const std::size_t pos2 = service.find("://");
+        const std::string::size_type pos = service.find(":");
+        const std::string::size_type pos2 = service.find("://");
         if (pos == std::string::npos || pos == pos2)
           service = "*:" + service;
         else if (pos == 0)
           service = "*" + service;
+        else {
+          std::string::size_type pos3 = service.find("/", pos);
+          if (pos3 == std::string::npos)
+            pos3 = service.size();
+          bool port = true;
+          for (std::string::size_type p = pos + 1; p < pos3; p++)
+            if (!isdigit(service[p]))
+              port = false;
+          if (port)
+            service = "*:" + service;
+        }
         logger.msg(VERBOSE, "Adding %s service %s", (*it)[0] != '-' ?
                    istring("selected") : istring("rejected"), service);
         servicesRef.push_back(service);
@@ -854,12 +865,23 @@ namespace Arc {
           return false;
       }
       else { // URL
-        const std::size_t pos = service.find(":");
-        const std::size_t pos2 = service.find("://");
+        const std::string::size_type pos = service.find(":");
+        const std::string::size_type pos2 = service.find("://");
         if (pos == std::string::npos || pos == pos2)
           service = "*:" + service;
         else if (pos == 0)
           service = "*" + service;
+        else {
+          std::string::size_type pos3 = service.find("/", pos);
+          if (pos3 == std::string::npos)
+            pos3 = service.size();
+          bool port = true;
+          for (std::string::size_type p = pos + 1; p < pos3; p++)
+            if (!isdigit(service[p]))
+              port = false;
+          if (port)
+            service = "*:" + service;
+        }
         logger.msg(VERBOSE, "Adding %s service %s ", isSelectedNotRejected ?
                    istring("selected") : istring("rejected"), service);
         servicesRef.push_back(service);
