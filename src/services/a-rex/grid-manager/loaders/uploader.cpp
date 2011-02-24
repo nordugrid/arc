@@ -363,13 +363,13 @@ int main(int argc,char** argv) {
     try {
       CacheConfig cache_config(env,std::string(file_owner_username));
       user.SetCacheParams(cache_config);
-      cache = new Arc::FileCache(cache_config.getCacheDirs(),
-                                 cache_config.getRemoteCacheDirs(),
-                                 cache_config.getDrainingCacheDirs(),
+      cache = new Arc::FileCache(user.CacheParams().getCacheDirs(),
+                                 user.CacheParams().getRemoteCacheDirs(),
+                                 user.CacheParams().getDrainingCacheDirs(),
                                  std::string(id), uid, gid,
-                                 cache_config.getCacheMax(),
-                                 cache_config.getCacheMin());
-      if (!(cache_config.getCacheDirs().size() == 0) && !(*cache)) {
+                                 user.CacheParams().getCacheMax(),
+                                 user.CacheParams().getCacheMin());
+      if (!(user.CacheParams().getCacheDirs().size() == 0) && !(*cache)) {
         logger.msg(Arc::ERROR, "Error creating cache");
         delete cache;
         exit(1);
