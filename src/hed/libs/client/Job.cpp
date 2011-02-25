@@ -698,28 +698,97 @@ namespace Arc {
     return false;
   }
 
-  bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids) {
+  bool Job::ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids, unsigned nTries, unsigned tryInterval) {
     if (!Glib::file_test(filename, Glib::FILE_TEST_IS_REGULAR)) return false;
-    std::ifstream is(filename.c_str());
-    if (!is.good()) return false;
-    std::string line;
-    while (std::getline(is, line)) {
-      line = Arc::trim(line, " \t");
-      if (!line.empty() && line[0] != '#') {
-        jobids.push_back(line);
+
+    FileLock lock(filename);
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        std::ifstream is(filename.c_str());
+        if (!is.good()) {
+          is.close();
+          lock.release();
+          return false;
+        }
+        std::string line;
+        while (std::getline(is, line)) {
+          line = Arc::trim(line, " \t");
+          if (!line.empty() && line[0] != '#') {
+            jobids.push_back(line);
+          }
+        }
+        is.close();
+        lock.release();
+        return true;
       }
+
+      if (tries == 6) {
+        logger.msg(WARNING, "Waiting for lock on file %s", filename);
+      }
+
+      usleep(tryInterval);
     }
-    return true;
+
+    return false;
   }
 
-  bool Job::WriteJobIDToFile(const std::string& jobid, const std::string& filename) {
+  bool Job::WriteJobIDToFile(const URL& jobid, const std::string& filename, unsigned nTries, unsigned tryInterval) {
     if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
-    std::ofstream os(filename.c_str(), std::ios::app);
-    if (!os.good()) return false;
-    os << jobid << std::endl;
-    if (!os.good()) return false;
-    return true;
+
+    FileLock lock(filename);
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        std::ofstream os(filename.c_str(), std::ios::app);
+        if (!os.good()) {
+          os.close();
+          lock.release();
+          return false;
+        }
+        os << jobid.str() << std::endl;
+        bool good = os.good();
+        os.close();
+        lock.release();
+        return good;
+      }
+
+      if (tries == 6) {
+        logger.msg(WARNING, "Waiting for lock on file %s", filename);
+      }
+
+      usleep(tryInterval);
+    }
   }
 
+  bool Job::WriteJobIDsToFile(const std::list<URL>& jobids, const std::string& filename, unsigned nTries, unsigned tryInterval) {
+    if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
+    FileLock lock(filename);
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        std::ofstream os(filename.c_str(), std::ios::app);
+        if (!os.good()) {
+          os.close();
+          lock.release();
+          return false;
+        }
+        for (std::list<URL>::const_iterator it = jobids.begin();
+             it != jobids.end(); ++it) {
+          os << it->str() << std::endl;
+        }
+
+        bool good = os.good();
+        os.close();
+        lock.release();
+        return good;
+      }
+
+      if (tries == 6) {
+        logger.msg(WARNING, "Waiting for lock on file %s", filename);
+      }
+
+      usleep(tryInterval);
+    }
+
+    return false;
+  }
 
 } // namespace Arc

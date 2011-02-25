@@ -154,14 +154,18 @@ namespace Arc {
      * This static method will read jobs (in XML format) from the specified
      * file, and they will be stored in the referenced list of jobs. The XML
      * element in the file representing a job should be named "Job", and have
-     * the same format as accepted by the operator=(XMLNode) method. To avoid
-     * simultaneous use (writing and reading) of the file, reading will not be
-     * initiated before a lock on the file has been acquired. For this purpose
-     * the FileLock class is used. nTries specifies the maximal number of times
-     * the method will try to acquire a lock on the file, with an interval of
-     * tryInterval micro seconds between each attempt. If a lock is not acquired
-     * this method returns false. The method will also return false if the
-     * content of file is not in XML format. Otherwise it returns true.
+     * the same format as accepted by the operator=(XMLNode) method.
+     *
+     * File locking:
+     * To avoid simultaneous use (writing and reading) of the file, reading will
+     * not be initiated before a lock on the file has been acquired. For this
+     * purpose the FileLock class is used. nTries specifies the maximal number
+     * of times the method will try to acquire a lock on the file, with an
+     * interval of tryInterval micro seconds between each attempt. If a lock is
+     * not acquired* this method returns false.
+     *
+     * The method will also return false if the content of file is not in XML
+     * format. Otherwise it returns true.
      *
      * @param filename is the filename of the job list to read jobs from.
      * @param jobs is a reference to a list of Job objects, which will be filled
@@ -187,14 +191,9 @@ namespace Arc {
      * in XML format as returned by the ToXML method, and each job will be
      * contained in a element named "Job". The passed list of jobs must not
      * contain two identical jobs (i.e. IDFromEndpoint identical), if that is
-     * the case false will be returned. To avoid simultaneous use (writing and
-     * reading) of the file, writing will not be initiated before a lock on the
-     * file has been acquired. For this purpose the FileLock class is used.
-     * nTries specifies the maximal number of times the method will try to
-     * acquire a lock on the file, with an interval of tryInterval micro seconds
-     * between each attempt. If a lock is not acquired this method returns
-     * false. The method will also return false if writing jobs to the file
-     * fails. Otherwise it returns true.
+     * the case false will be returned. File locking will be done as described
+     * for the ReadAllJobsFromFile method. The method will return false if
+     * writing jobs to the file fails. Otherwise it returns true.
      *
      * @param filename is the filename of the job list to write jobs to.
      * @param jobs is the list of Job objects which should be written to file.
@@ -231,14 +230,10 @@ namespace Arc {
      * on the other hand a job in the list is identical to one in file, the one
      * in file will be overwritten. A pointer (no new) to those jobs from the
      * list which are not in the file will be added to newJobs list, thus these
-     * pointers goes out of scope when jobs list goes out of scope. To avoid
-     * simultaneous use (writing and reading) of the file, writing will not be
-     * initiated before a lock on the file has been acquired. For this purpose
-     * the FileLock class is used. nTries specifies the maximal number of times
-     * the method will try to acquire a lock on the file, with an interval of
-     * tryInterval micro seconds between each attempt. If a lock is not acquired
-     * this method returns false. The method will also return false if writing
-     * jobs to the file fails. Otherwise it returns true.
+     * pointers goes out of scope when jobs list goes out of scope. File locking
+     * will be done as described for the ReadAllJobsFromFile method. The method
+     * will return false if writing jobs to the file fails. Otherwise it returns
+     * true.
      *
      * @param filename is the filename of the job list to write jobs to.
      * @param jobs is the list of Job objects which should be written to file.
@@ -261,14 +256,10 @@ namespace Arc {
     /// Truncate file and write jobs to it
     /**
      * This static method will remove the jobs having IDFromEndpoint identical
-     * to any of those in the passed list jobids. To avoid simultaneous use
-     * (writing and reading) of the file, writing will not be initiated before a
-     * lock on the file has been acquired. For this purpose the FileLock class
-     * is used. nTries specifies the maximal number of times the method will try
-     * to acquire a lock on the file, with an interval of tryInterval micro
-     * seconds between each attempt. If a lock is not acquired this method
-     * returns false. The method will also return false if reading from or
-     * writing jobs to the file fails. Otherwise it returns true.
+     * to any of those in the passed list jobids. File locking will be done as
+     * described for the ReadAllJobsFromFile method. The method will return
+     * false if reading from or writing jobs to the file fails. Otherwise it
+     * returns true.
      *
      * @param filename is the filename of the job list to write jobs to.
      * @param jobids is a list of URL objects which specifies which jobs from
@@ -289,27 +280,59 @@ namespace Arc {
 
     /// Read a list of Job IDs from a file, and append them to a list
     /**
-     * This static method will read job IDs from the given file, and append the strings
-     * to the string list given as parameter. It returns false if the file was not readable,
-     * true otherwise, even if there were no IDs in the file. The lines of the file will be
-     * trimmed, and lines starting with # will be ignored.
+     * This static method will read job IDs from the given file, and append the
+     * strings to the string list given as parameter. File locking will be done
+     * as described for the ReadAllJobsFromFile method. It returns false if the
+     * file was not readable, true otherwise, even if there were no IDs in the
+     * file. The lines of the file will be trimmed, and lines starting with #
+     * will be ignored.
      *
      * @param filename is the filename of the jobidfile
-     * @param jobids is a list of strings, to which the IDs read from the file will be appended
+     * @param jobids is a list of strings, to which the IDs read from the file
+     *  will be appended
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
      * @return true in case of success, otherwise false.
      **/
-    static bool ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids);
-    
+    static bool ReadJobIDsFromFile(const std::string& filename, std::list<std::string>& jobids, unsigned nTries = 10, unsigned tryInterval = 500000);
+
     /// Append a jobID to a file
     /**
-     * This static method will put the ID given as a string, and append it to the given file.
-     * It returns false if the file was not writable, true otherwise.
+     * This static method will put the ID represented by a URL object, and
+     * append it to the given file. File locking will be done as described for
+     * the ReadAllJobsFromFile method. It returns false if the file is not
+     * writable, true otherwise.
      *
-     * @param jobid is a jobID in a string
-     * @param filename is the filename of the jobidfile, where the jobID will be appended
+     * @param jobid is a jobID as a URL object
+     * @param filename is the filename of the jobidfile, where the jobID will be
+     *  appended
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
      * @return true in case of success, otherwise false.
      **/
-    static bool WriteJobIDToFile(const std::string& jobid, const std::string& filename);
+    static bool WriteJobIDToFile(const URL& jobid, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Append list of URLs to a file
+    /**
+     * This static method will put the ID given as a string, and append it to
+     * the given file. File locking will be done as described for the
+     * ReadAllJobsFromFile method. It returns false if the file was not
+     * writable, true otherwise.
+     *
+     * @param jobid is a list of URL objects to be written to file
+     * @param filename is the filename of file, where the URL objects will be
+     *  appended to.
+     * @param nTries specifies the maximal number of times the method will try
+     *  to acquire a lock on file to read.
+     * @param tryInterval specifies the interval (in micro seconds) between each
+     *  attempt to acquire a lock.
+     * @return true in case of success, otherwise false.
+     **/
+    static bool WriteJobIDsToFile(const std::list<URL>& jobids, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
   private:
     static Logger logger;
