@@ -33,7 +33,7 @@ get_giis_from_file() { # args: file_name; output: array of URLs
 }
 
 echo ''
-echo '=== ARC configuration conversion ==='
+echo '=== ARC client configuration conversion ==='
 echo ''
 
 # 1. giis options in client section in $HOME/.arc/client.conf

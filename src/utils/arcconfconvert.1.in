@@ -3,7 +3,7 @@
 
 .SH NAME
 
-arcconfconvert - Helper for converting old ARC configuration to the new format 
+arcconfconvert - Helper for converting old ARC client configuration to the new format 
 
 .SH SYNOPSIS
 
@@ -13,10 +13,11 @@ arcconfconvert - Helper for converting old ARC configuration to the new format
 
 The
 .B arcconfconvert
-command scans the possible configuration files from ARC versions before 0.9,
-and prints them in the new configuration format. Then the user can put these
-into the config if needed.
+command scans the possible client configuration files from ARC versions before 0.9,
+and prints them in the new client configuration format. Then the user can put these
+into the client config if needed.
 .B This command does not modify any files.
+This command works only for client configuration.
 
 .SH REPORTING BUGS
 Report bugs to http://bugzilla.nordugrid.org
