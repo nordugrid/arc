@@ -111,7 +111,7 @@ void AREXClientTest::SubmitTestwithDelegation()
 {
   const std::string jobdesc = "";
   std::string jobid = "";
-  
+
   const std::string value = "Test value";
   const std::string query = "CreateActivityResponse";
 
@@ -148,20 +148,41 @@ void AREXClientTest::StatTest()
   const std::string node = "GetActivityStatusesResponse";
 
   Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
-  Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response").NewChild("ActivityStatus").NewAttribute("state") = "state_value";
-  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("a-rex:State") = "nstate_value";
-  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("a-rex:State") = "2nd_value";
- 
+  Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response").NewChild("ActivityStatus").NewAttribute("state") = "Executing";
+  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("a-rex:State") = "Accepted";
+
   Arc::ClientSOAPTest::status = Arc::STATUS_OK;
 
   //Running Check
   std::string jobid = "<jobID>my_test_jobID_12345</jobID>";
   Arc::Job job;
 
-  CPPUNIT_ASSERT(ac.stat(jobid, job));
-
   //Response Check
-  CPPUNIT_ASSERT_EQUAL((std::string)"2nd_value:nstate_value", job.State());
+  CPPUNIT_ASSERT(ac.stat(jobid, job));
+  CPPUNIT_ASSERT_EQUAL((std::string)"Accepted", job.State());
+  CPPUNIT_ASSERT(job.State == Arc::JobState::ACCEPTED);
+
+  // If LRMSState element is defined it takes precedence.
+  Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
+  Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response").NewChild("ActivityStatus").NewAttribute("state") = "Executing";
+  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("a-rex:State") = "Executing";
+  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("LRMSState") = "R";
+  CPPUNIT_ASSERT(ac.stat(jobid, job));
+  CPPUNIT_ASSERT_EQUAL((std::string)"INLRMS:R", job.State());
+  CPPUNIT_ASSERT(Arc::JobState::RUNNING == job.State);
+
+  // If glue:State element is defined, it takes precedence.
+  std::map<std::string, std::string> ns;
+  ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
+  ns["glue"]  = "http://www.nordugrid.org/schemas/glue";
+  Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(ns);
+  Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response").NewChild("ActivityStatus").NewAttribute("state") = "Executing";
+  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("a-rex:State") = "Executing";
+  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("LRMSState") = "R";
+  (*Arc::ClientSOAPTest::response)[node]["Response"]["ActivityStatus"].NewChild("glue:State") = "INLRMS:Q";
+  CPPUNIT_ASSERT(ac.stat(jobid, job));
+  CPPUNIT_ASSERT_EQUAL((std::string)"INLRMS:Q", job.State());
+  CPPUNIT_ASSERT(job.State == Arc::JobState::QUEUING);
 }
 
 
@@ -227,7 +248,7 @@ void AREXClientTest::KillTest()
 
    Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
    Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response").NewChild("Terminated") = "true";
- 
+
    Arc::ClientSOAPTest::status = Arc::STATUS_OK;
 
    //Running Check
@@ -239,12 +260,12 @@ void AREXClientTest::CleanTest()
 {
     const std::string value = "Test value";
     const std::string node = "ChangeActivityStatusResponse";
- 
+
     Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
     Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response") = value;
- 
+
     Arc::ClientSOAPTest::status = Arc::STATUS_OK;
- 
+
     //Running Check
     std::string jobid;
     CPPUNIT_ASSERT(ac.clean(jobid));
@@ -255,12 +276,12 @@ void AREXClientTest::GetdescTest()
      const std::string value = "Test value";
      const std::string testnode = "TestNode";
      const std::string node = "GetActivityDocumentsResponse";
- 
+
      Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
      Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response").NewChild("JobDefinition").NewChild(testnode) = value;
- 
+
      Arc::ClientSOAPTest::status = Arc::STATUS_OK;
- 
+
      //Running Check
      std::string jobid;
      std::string jobdesc;
@@ -278,12 +299,12 @@ void AREXClientTest::MigrateTest()
       const std::string value = "Test value";
       const std::string testnode = "TestNode";
       const std::string node = "MigrateActivityResponse";
- 
+
       Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
       Arc::ClientSOAPTest::response->NewChild(node).NewChild("ActivityIdentifier").NewChild(testnode) = value;
- 
+
       Arc::ClientSOAPTest::status = Arc::STATUS_OK;
- 
+
       //Running Check
       std::string jobid;
       std::string jobdesc;
@@ -303,12 +324,12 @@ void AREXClientTest::ResumeTest()
 {
       const std::string value = "Test value";
       const std::string node = "ChangeActivityStatusResponse";
- 
+
       Arc::ClientSOAPTest::response = new Arc::PayloadSOAP(Arc::NS("a-rex", "http://www.nordugrid.org/schemas/a-rex"));
       Arc::ClientSOAPTest::response->NewChild(node).NewChild("Response") = value;
-         
+
        Arc::ClientSOAPTest::status = Arc::STATUS_OK;
-        
+
        //Running Check
        std::string jobid;
        CPPUNIT_ASSERT(ac.resume(jobid));
