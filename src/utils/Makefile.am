@@ -1,10 +1,14 @@
-bin_SCRIPTS = arcconfconvert
-
 if WIN32
 GRIDMAP =
+ARCCONFCONVERT =
 else
 GRIDMAP = gridmap
+ARCCONFCONVERT = arcconfconvert
 endif
+
+bin_SCRIPTS = ARCCONFCONVERT
+
+man_MANS = arcconfconvert.1
 
 if HED_ENABLED
 BUILD_SOURCES = hed $(GRIDMAP) testing

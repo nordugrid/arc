@@ -1,0 +1,28 @@
+.\" -*- nroff -*- 
+.TH ARCCONFCONVERT 1 "2011-02-25" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arcconfconvert - Helper for converting old ARC configuration to the new format 
+
+.SH SYNOPSIS
+
+.B arcconfconvert
+
+.SH DESCRIPTION
+
+The
+.B arcconfconvert
+command scans the possible configuration files from ARC versions before 0.9,
+and prints them in the new configuration format. Then the user can put these
+into the config if needed.
+.B This command does not modify any files.
+
+.SH REPORTING BUGS
+Report bugs to http://bugzilla.nordugrid.org
+
+.SH COPYRIGHT
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+Zsombor Nagy <zsombor@niif.hu>
