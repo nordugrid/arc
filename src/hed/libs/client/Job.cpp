@@ -757,6 +757,8 @@ namespace Arc {
 
       usleep(tryInterval);
     }
+
+    return false;
   }
 
   bool Job::WriteJobIDsToFile(const std::list<URL>& jobids, const std::string& filename, unsigned nTries, unsigned tryInterval) {
