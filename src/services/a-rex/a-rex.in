@@ -326,7 +326,7 @@ LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
 LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
 
 if [ ! -z "$USERNAME" ] ; then
-  CMD="su '$USERNAME' -c \"$CMD\""
+  CMD="$CMD -u '$USERNAME'"
 fi
 
 # A-Rex without WS interface
