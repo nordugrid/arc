@@ -108,12 +108,6 @@ int RUNCAT(main)(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
-  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
-    }
-  }
-
   if (version) {
     std::cout << Arc::IString("%s version %s", "arccat", VERSION)
               << std::endl;
@@ -132,6 +126,12 @@ int RUNCAT(main)(int argc, char **argv) {
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
+  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+    }
+  }
 
   if (timeout > 0)
     usercfg.Timeout(timeout);

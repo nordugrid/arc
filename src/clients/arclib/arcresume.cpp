@@ -46,13 +46,13 @@ int RUNRESUME(main)(int argc, char **argv) {
                     istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
-                    
+
   std::list<std::string> jobidfiles;
   options.AddOption('i', "jobids-from-file",
                     istring("a file containing a list of jobIDs"),
                     istring("filename"),
                     jobidfiles);
-                    
+
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
                     istring("explicitly select or reject a specific resource"),
@@ -85,12 +85,6 @@ int RUNRESUME(main)(int argc, char **argv) {
 
   std::list<std::string> jobs = options.Parse(argc, argv);
 
-  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
-    }
-  }
-
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcresume", VERSION)
               << std::endl;
@@ -109,6 +103,12 @@ int RUNRESUME(main)(int argc, char **argv) {
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
+  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+    }
+  }
 
   if (timeout > 0)
     usercfg.Timeout(timeout);

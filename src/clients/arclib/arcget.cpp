@@ -114,12 +114,6 @@ int RUNGET(main)(int argc, char **argv) {
                     version);
 
   std::list<std::string> jobs = options.Parse(argc, argv);
-  
-  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
-    }
-  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcget", VERSION)
@@ -136,21 +130,28 @@ int RUNGET(main)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  
+
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
   if (downloaddir.empty()) {
     if (!usercfg.JobDownloadDirectory().empty()) {
       downloaddir = usercfg.JobDownloadDirectory();
-      logger.msg(Arc::INFO, "Job download directory from user configuration file: %s ", downloaddir);   
+      logger.msg(Arc::INFO, "Job download directory from user configuration file: %s ", downloaddir);
     }
     else {
       logger.msg(Arc::INFO, "Job download directory will be created in present working directory. ");
     }
-  }  
-  else {
-    logger.msg(Arc::INFO, "Job download directory: %s ", downloaddir); 
   }
-  if (debug.empty() && !usercfg.Verbosity().empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+  else {
+    logger.msg(Arc::INFO, "Job download directory: %s ", downloaddir);
+  }
+
+  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+    }
+  }
 
   if (timeout > 0)
     usercfg.Timeout(timeout);
