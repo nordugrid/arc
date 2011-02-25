@@ -493,10 +493,12 @@ static void soft_state_thread(void *data) {
         int i=0;
         while ((bool)(*cfg)["InfoProvider"][i]) {
             std::string _url("");
-            if ( not ((std::string)(*cfg)["InfoProvider"][i]).empty() ) _url = (std::string)(*cfg)["InfoProvider"][i];
-            else {
-                if ( not ((std::string)(*cfg)["InfoProvider"][i]["URL"]).empty() )
-                    _url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+            if ( (bool) (*cfg)["InfoProvider"][i]["URL"] && !((std::string)(*cfg)["InfoProvider"][i]["URL"]).empty() ) {
+                _url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+            } else {
+                if ( !((std::string)(*cfg)["InfoProvider"][i]).empty() ) {
+                    _url = (std::string)(*cfg)["InfoProvider"][i];
+                }
             }
             if ( endpoint_ != _url ) {
                if (_url== "") {
