@@ -50,7 +50,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring(""),
+  Arc::OptionParser options(istring(" "),
                             istring("The arctest command is used for "
                                     "testing clusters as resources."),
                             istring("Argument to -g has the format "
