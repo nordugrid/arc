@@ -26,10 +26,21 @@ namespace Arc {
   Plugin* DataPointLDAP::Instance(PluginArgument *arg) {
     DataPointPluginArgument *dmcarg =
       dynamic_cast<DataPointPluginArgument*>(arg);
-    if (!dmcarg)
+    if (!dmcarg) return NULL;
+    if (((const URL&)(*dmcarg)).Protocol() != "ldap") return NULL;
+    Glib::Module* module = dmcarg->get_module();
+    PluginsFactory* factory = dmcarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. Curently safe unloading of LDAP DMC is not supported. Report to developers.");
       return NULL;
-    if (((const URL&)(*dmcarg)).Protocol() != "ldap")
-      return NULL;
+    }
+    // It looks like this DMC can't ensure all started threads are stopped
+    // by its destructor. So current hackish solution is to keep code in
+    // memory.
+    // TODO: handle threads properly
+    // TODO: provide generic solution for holding plugin in memory as long
+    //   as plugins/related obbjects are still active.
+    factory->makePersistent(module);
     return new DataPointLDAP(*dmcarg, *dmcarg);
   }
 
