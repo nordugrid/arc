@@ -757,6 +757,7 @@ exit 0
 %{_bindir}/arcstat
 %{_bindir}/arcsub
 %{_bindir}/arcsync
+%{_bindir}/arctest
 %{_bindir}/arcwsrf
 %{_bindir}/chelonia
 %{_bindir}/isistest

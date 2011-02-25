@@ -183,6 +183,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/arcmigrate.exe
 %{_mingw32_bindir}/arcrenew.exe
 %{_mingw32_bindir}/arcresume.exe
+%{_mingw32_bindir}/arctest.exe
 %{_mingw32_bindir}/arcwsrf.exe
 %{_mingw32_bindir}/chelonia
 %{_mingw32_bindir}/perftest.exe

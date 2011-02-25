@@ -18,6 +18,7 @@ debian/tmp/usr/bin/arcsrmping
 debian/tmp/usr/bin/arcstat
 debian/tmp/usr/bin/arcsub
 debian/tmp/usr/bin/arcsync
+debian/tmp/usr/bin/arctest
 debian/tmp/usr/bin/arcwsrf
 debian/tmp/usr/bin/chelonia
 debian/tmp/usr/bin/isistest
