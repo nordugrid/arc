@@ -48,7 +48,7 @@ ARC
 Summary: ARC prototype clients
 Group: Applications/Internet
 Requires: %{name} = %{version}
-Requires: %{name}-plugins-base = %{version}
+Requires: %{name}-plugins-needed = %{version}
 
 %description client
 ARC prototype clients.
@@ -61,12 +61,12 @@ Requires: %{name} = %{version}
 %description hed
 ARC Hosting Environment Daemon (HED).
 
-%package plugins-base
+%package plugins-needed
 Summary: ARC base plugins
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
 
-%description plugins-base
+%description plugins-needed
 ARC base plugins. This includes the Message Chain Components (MCCs) and
 Data Manager Components (DMCs).
 
@@ -263,7 +263,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arcplugin.1*
 %{_mingw32_libdir}/pkgconfig/arcbase.pc
 
-%files plugins-base
+%files plugins-needed
 %defattr(-,root,root,-)
 %{_mingw32_libdir}/%{pkgdir}/libmcchttp.dll*
 %{_mingw32_libdir}/%{pkgdir}/libmccmsgvalidator.dll*
