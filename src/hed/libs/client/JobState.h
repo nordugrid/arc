@@ -53,6 +53,7 @@ namespace Arc {
     JobState& operator=(const JobState& newState) { type = newState.type; state = newState.state; return *this; }
 
     operator bool() const { return type != UNDEFINED; }
+    operator JobState::StateType() const { return type; }
     bool operator!() const { return type == UNDEFINED; }
     bool operator==(const StateType& st) const { return type == st; }
     bool operator!=(const StateType& st) const { return type != st; }
@@ -64,9 +65,9 @@ namespace Arc {
      **/
     bool IsFinished() const { return type == FINISHED || type == KILLED || type == FAILED || type == DELETED; }
 
-    std::string operator()() const { return state; }
+    const std::string& operator()() const { return state; }
 
-    std::string GetGeneralState() const { return StateTypeString[type]; }
+    const std::string& GetGeneralState() const { return StateTypeString[type]; }
 
     static StateType GetStateType(const std::string& state);
 
