@@ -20,3 +20,5 @@ endif
 SUBDIRS = $(BUILD_SOURCES)
 DIST_SUBDIRS = hed gridmap testing
 
+EXTRA_DIST = $(bin_SCRIPTS)
+
