@@ -492,7 +492,7 @@ static void soft_state_thread(void *data) {
         // 1. step: Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
         while ((bool)(*cfg)["InfoProvider"][i]) {
-            std::string _url;
+            std::string _url("");
             if ( not ((std::string)(*cfg)["InfoProvider"][i]).empty() ) _url = (std::string)(*cfg)["InfoProvider"][i];
             else {
                 if ( not ((std::string)(*cfg)["InfoProvider"][i]["URL"]).empty() )
