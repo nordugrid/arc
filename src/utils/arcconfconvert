@@ -1,0 +1,215 @@
+#!/bin/bash
+
+get_giis_from_section() { # args: file_name, section_name; output: array of URLs
+  # sed script to find all the sections in file_name with the given section_name and parse out the URLs
+  if [[ -f $1 ]]; then
+    sed -n '{
+      # if a section start is found, jump to ":section" to process it
+      /^\s*\[/ b section
+      # if this line is not a section start, append it to the hold buffer
+      H
+      # if this is the last line, jump to ":section" to process it
+      $ b section
+      # otherwise skip the ":section" part
+      b
+      # process a section
+      :section
+        # put the lines from the hold buffer (containing the whole
+        # previous section) the patter space and also put the line
+        # from the pattern space (containing the header of the next
+        # section) to the hold buffer
+        x
+        # if it starts with the section name we want, print it
+        /^\s*\[\s*'$2'\s*\]/ p
+        # otherwise dont do anything: skip this section
+    }' $1 | sed -n 's/^\s*giis\s*=\s*\(.*\)\s*$/\1/p' # get the URLs from the lines starting with giis=
+  fi
+}
+
+get_giis_from_file() { # args: file_name; output: array of URLs
+  if [[ -f $1 ]]; then
+    cat $1
+  fi
+}
+
+echo ''
+echo '=== ARC configuration conversion ==='
+echo ''
+
+# 1. giis options in client section in $HOME/.arc/client.conf
+giislist=`get_giis_from_section $HOME/.arc/client.conf client`
+if [[ ! $giislist ]]; then
+  # 2. giis options in common section in $HOME/.arc/client.conf
+  giislist=`get_giis_from_section $HOME/.arc/client.conf common`
+  if [[ ! $giislist ]]; then
+    # 3. $HOME/.nggiislist (one GIIS per line, ARC <= 0.5.48)
+    giislist=`get_giis_from_file $HOME/.nggiislist`
+    if [[ ! $giislist ]]; then
+      # 4. giis options in client section in $ARC_LOCATION/etc/arc.conf
+      giislist=`get_giis_from_section $ARC_LOCATION/etc/arc.conf client`
+      if [[ ! $giislist ]]; then
+        # 5. giis options in common section in $ARC_LOCATION/etc/arc.conf
+        giislist=`get_giis_from_section $ARC_LOCATION/etc/arc.conf common`
+        if [[ ! $giislist ]]; then
+          # 6. $ARC_LOCATION/etc/giislist (one GIIS per line)
+          giislist=`get_giis_from_file $ARC_LOCATION/etc/giislist`
+          if [[ ! $giislist ]]; then
+            # 7. giis options in client section in /etc/arc.conf
+            giislist=`get_giis_from_section /etc/arc.conf client`
+            if [[ ! $giislist ]]; then
+              # 8. giis options in common section in /etc/arc.conf
+              giislist=`get_giis_from_section /etc/arc.conf common`
+              if [[ ! $giislist ]]; then
+                # 9. /etc/giislist (one GIIS per line)
+                giislist=`get_giis_from_file /etc/giislist`
+              fi
+            fi
+          fi
+        fi
+      fi
+    fi
+  fi
+fi
+
+conffile=$HOME/.arc/client.conf
+
+echo '--- GIIS URLs ---'
+echo ''
+
+if [[ $giislist ]]; then
+
+  if [[ -f $conffile ]]; then
+    conffile_exists=true
+    common_section_exists=`grep '^\s*\[\s*common\s*\]' $conffile`
+    defaultservices_exists=`grep '^\s*defaultservices\s*=' $conffile`
+    current_defaultservices=`sed -n 's/^\s*defaultservices\s*=\(.*\)$/\1/p' $conffile`
+  fi
+
+  if [[ ! $conffile_exists ]]; then
+    echo "Please create the file $HOME/.arc/client.conf. Edit the following as needed and put it into that file!"
+  else
+    if [[ $common_section_exists ]]; then
+      if [[ $defaultservices_exists ]]; then
+        echo "Please edit the following if needed and replace the current 'defaultservices=' line in the [common] section of your $HOME/.arc/client.conf!"
+      else
+        echo "Please edit the following if needed and put it into the [common] section of your $HOME/.arc/client.conf!"
+      fi
+    else
+      if [[ $defaultservices_exists ]]; then
+        echo "Please edit the following if needed and replace the current 'defaultservices=' line in your $HOME/.arc/client.conf!"
+      else
+        echo "Please edit the following if needed and put it into your $HOME/.arc/client.conf!"
+      fi
+    fi
+  fi
+
+  echo 'NOTE: the defaultservices= command has to be in one single line.'
+  echo ''
+
+  if [[ ! $common_section_exists ]]; then
+    echo '[common]'
+  fi
+
+  echo -n 'defaultservices='
+
+  for giis in ${giislist[@]}; do
+    echo -n "index:ARC0:$giis "
+  done
+  echo $current_defaultservices
+
+else
+  
+  echo 'No GIIS URLs found in the old configs.'
+
+fi
+
+echo ''
+echo '--- ALIASes ---'
+echo ''
+
+tempfile=`mktemp /tmp/arcconfconvert.XXXXXXXXXX`
+
+if [[ $? = 0 ]]; then
+  if [[ -f $HOME/.arc/client.conf ]]; then
+    sed -n 's/^\s*alias\s*=\s*\"\s*\(.*\)\s*\"\s*$/\1/p' $HOME/.arc/client.conf > $tempfile
+  fi
+  if [[ -f $HOME/.ngalias ]]; then
+    cat $HOME/.ngalias >> $tempfile
+  fi
+
+  if [[ -s $tempfile ]]; then
+
+    if [[ -f $conffile ]]; then
+      conffile_exists=true
+      alias_section_exists=`grep '^\s*\[\s*alias\s*\]' $conffile`
+    else
+      conffile_exists=
+    fi
+
+    if [[ ! $conffile_exists ]]; then
+      echo "Please create the file $HOME/.arc/client.conf. Edit the following as needed and put it into that file!"
+    else
+      if [[ $alias_section_exists ]]; then
+        echo "Please edit the following if needed and put it into the [alias] section of your $HOME/.arc/client.conf!"
+      else
+        echo "Please edit the following if needed and put it into your $HOME/.arc/client.conf!"
+      fi
+    fi
+
+    echo ''
+
+    if [[ ! $alias_section_exists ]]; then
+      echo '[alias]'
+    fi
+
+    # channel the file into stdin
+    exec 9<&0
+    exec < $tempfile
+
+    # for each alias line
+    while read line; do
+      # get the alias name (before the '=')
+      newalias=`echo $line | sed -n 's/^\s*\([^=]*\)\s*=.*$/\1/p'`
+      echo -n "$newalias="
+      # get the URLs (after the '=')
+      urls=`echo $line | sed -n 's/^[^=]*=\(.*\)$/\1/p'`
+      # for each URL
+      for url in $urls; do
+        # if the URL can be found among the aliases (before an '=')
+        if [[ `sed -n '/^\s*'$url'\s*=.*$/ p' $tempfile` ]]; then
+          # then this is an alias and not a URL, we should not prefix it with "computing:ARC0:"
+          echo -n "$url "
+        else
+          # else this is a real URL, we should prefix it with "computing:ARC0:"
+          echo -n "computing:ARC0:$url "
+        fi
+      done
+      echo ''
+    done
+
+    # restore stdin
+    exec 0<&9 9<&-
+
+  else
+    
+    echo 'No aliases found in the old config files.'
+
+  fi
+
+  rm $tempfile
+  
+  echo ''
+
+else
+  
+  echo '  Error creating tempfile: alias conversion failed.'
+  echo ''
+
+fi
+
+echo '--- Active jobs ---'
+echo ''
+echo 'In order to use arc* commands to manipulate the jobs you submitted with ngsub,'
+echo 'you have to run the arcsync command with specifying clusters and/or GIISes:'
+echo '  arcsync [-c cluster1 -c cluster2 ...] [-g giis1 -g giis2 ...]'
+echo ''

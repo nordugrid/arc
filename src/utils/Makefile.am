@@ -1,3 +1,5 @@
+bin_SCRIPTS = arcconfconvert
+
 if WIN32
 GRIDMAP =
 else

@@ -23,6 +23,7 @@ debian/tmp/usr/bin/chelonia
 debian/tmp/usr/bin/isistest
 debian/tmp/usr/bin/perftest
 debian/tmp/usr/bin/saml_assertion_init
+debian/tmp/usr/bin/arcconfconvert
 debian/tmp/etc/arc/client.conf
 debian/tmp/usr/share/arc/examples/client.conf
 debian/tmp/usr/share/man/man1/arccat.1
