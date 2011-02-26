@@ -182,7 +182,7 @@ namespace Arc {
                   chunk != chunks.end();++chunk) {
         if(end < chunk->start) {
           chunks.insert(chunk,c);
-          break;
+          return;
         };
         if(((start >= chunk->start) && (start <= chunk->end)) ||
            ((end >= chunk->start) && (end <= chunk->end))) {
@@ -190,9 +190,10 @@ namespace Arc {
           if(chunk->end > end) end = chunk->end;
           chunks.erase(chunk);
           add(start,end);
-          break;
+          return;
         };
       };
+      chunks.push_back(c);
     };
   };
 
@@ -226,26 +227,24 @@ namespace Arc {
             if(*cksum) (*cksum)->add((*(buffer))[h], l);
           }
           cksum_p = p+l;
-        } else {
-          if(cksum_chunks.extends() > cksum_p) {
-            // from file
-            if(lseek(fd, cksum_p, SEEK_SET) == cksum_p) {
-              const unsigned int tbuf_size = 4096;
-              char* tbuf = new char[tbuf_size];
-              for(;cksum_chunks.extends() > cksum_p;) {
-                unsigned int l = tbuf_size;
-                if(l > (cksum_chunks.extends()-cksum_p))
-                  l=cksum_chunks.extends()-cksum_p;
-                int ll = read(fd,tbuf,l);
-                if(ll < 0) { do_cksum=false; break; };
-                for(std::list<CheckSum*>::iterator cksum = checksums.begin();
-                          cksum != checksums.end(); ++cksum) {
-                  if(*cksum) (*cksum)->add(tbuf, ll);
-                }
-                cksum_p += ll;
+        }
+        if(cksum_chunks.extends() > cksum_p) {
+          // from file
+          if(lseek(fd, cksum_p, SEEK_SET) == cksum_p) {
+            const unsigned int tbuf_size = 4096;
+            char* tbuf = new char[tbuf_size];
+            for(;cksum_chunks.extends() > cksum_p;) {
+              unsigned int l = tbuf_size;
+              if(l > (cksum_chunks.extends()-cksum_p)) l=cksum_chunks.extends()-cksum_p;
+              int ll = read(fd,tbuf,l);
+              if(ll < 0) { do_cksum=false; break; };
+              for(std::list<CheckSum*>::iterator cksum = checksums.begin();
+                        cksum != checksums.end(); ++cksum) {
+                if(*cksum) (*cksum)->add(tbuf, ll);
               }
-              delete tbuf;
+              cksum_p += ll;
             }
+            delete tbuf;
           }
         }
       }
@@ -279,7 +278,7 @@ namespace Arc {
       logger.msg(ERROR, "closing file %s failed: %s", url.Path(), strerror(errno));
       buffer->error_write(true);
     }    
-    if(do_cksum) {
+    if((do_cksum) && (cksum_chunks.eof() == cksum_p)) {
       for(std::list<CheckSum*>::iterator cksum = checksums.begin();
                 cksum != checksums.end(); ++cksum) {
         if(*cksum) (*cksum)->end();
@@ -526,7 +525,7 @@ namespace Arc {
       }
 
       /* try to create file, if failed - try to open it */
-      int flags = O_WRONLY;
+      int flags = (checksums.size() > 0)?O_RDWR:O_WRONLY;
       fd = FileOpen(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
       if (fd == -1)
         fd = FileOpen(url.Path(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
