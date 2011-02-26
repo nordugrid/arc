@@ -378,7 +378,7 @@ namespace DataStaging {
   	if (!sub_share.empty())
   	  transfershare += "-" + sub_share;
   	lock.unlock();
-  };
+  }
 
   CacheParameters::CacheParameters(std::vector<std::string> caches,
                   std::vector<std::string> remote_caches,

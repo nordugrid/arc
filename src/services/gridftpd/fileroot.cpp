@@ -15,7 +15,7 @@ int FilePlugin::release(void) {
     count=0;
   };
   return count;
-};
+}
 
 FileNode::FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &user) {
   plug=NULL;
@@ -41,14 +41,14 @@ FileNode::FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &us
     logger.msg(Arc::ERROR, "Plugin %s for access point %s acquire failed (should never happen).", plugin, dirname);
     delete plug; dlclose(handle); handle=NULL; init=NULL; plug=NULL; return;
   };
-};
+}
 
 FileNode::~FileNode(void) {
   if(plug) if(plug->release() == 0) {
     logger.msg(Arc::VERBOSE, "Destructor with dlclose (%s)", point);
     delete plug; dlclose(handle); handle=NULL; init=NULL; plug=NULL;
   };
-};
+}
 
 std::string FileNode::last_name(void) {
   int pl=point.rfind('/');
@@ -367,7 +367,7 @@ FileRoot::FileRoot(void):error(FileNode::no_error) {
   opened_node=nodes.end();
   heavy_encryption=true;
   //unix_mapped=false;
-};
+}
 
 int FileNode::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::object_info_level mode) {
   if(plug) {

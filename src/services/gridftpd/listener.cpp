@@ -160,7 +160,7 @@ void sig_term_fork(int /* signum */) {
   server_done=1;
   passed=1;
   kill(0,SIGTERM);
-};
+}
 
 int main(int argc,char** argv) {
 #ifndef __DONT_USE_FORK__

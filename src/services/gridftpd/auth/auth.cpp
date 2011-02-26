@@ -309,11 +309,11 @@ const std::vector<struct voms>& AuthUser::voms(void) {
     match_voms(line);
   };
   return voms_data;
-};
+}
 
 const std::list<std::string>& AuthUser::VOs(void) {
   return vos;
-};
+}
 
 bool AuthUser::add_vo(const char* vo,const char* filename) {
   if(match_file(filename) == AAA_POSITIVE_MATCH) {

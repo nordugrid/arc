@@ -24,7 +24,7 @@ int AuthUser::process_voms(void) {
     };
   };
   return AAA_POSITIVE_MATCH;
-};
+}
 
 int AuthUser::match_voms(const char* line) {
   // parse line

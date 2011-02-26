@@ -77,7 +77,7 @@ int make_list_string(const DirEntry &entr,GridFTP_Commands::list_mode_t mode,
   strcpy((char*)buf,str.c_str()); 
   buf[len]='\r'; len++; buf[len]='\n'; len++; buf[len]=0;
   return len; 
-};
+}
 
 /* *** list transfer callbacks *** */
 void GridFTP_Commands::list_retrieve_callback(void* arg,globus_ftp_control_handle_t*,globus_object_t *error,globus_byte_t* /* buffer */,globus_size_t /* length */,globus_off_t /* offset */,globus_bool_t /* eof */) {
