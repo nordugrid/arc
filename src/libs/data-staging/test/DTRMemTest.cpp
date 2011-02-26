@@ -13,7 +13,7 @@ int main() {
   std::string destination("/tmp/file1");
   Arc::UserConfig cfg;
 
-  int no_dtrs = 10000;
+  const int no_dtrs = 10000;
 
   std::cout<<"Creating "<<no_dtrs<<" DTRs"<<std::endl;
   time_t start = time(NULL);

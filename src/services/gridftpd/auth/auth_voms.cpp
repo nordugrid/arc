@@ -155,8 +155,8 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /
     logger.msg(Arc::ERROR, "Error: no VOMS extension found");
     goto error_exit;
   };
-  for(int n=0;n<output.size();++n) {
-    for(int i=0;i<output[n].attributes.size();++i) {
+  for(size_t n=0;n<output.size();++n) {
+    for(size_t i=0;i<output[n].attributes.size();++i) {
       output_merged.push_back(output[n].attributes[i]);
     };
   };

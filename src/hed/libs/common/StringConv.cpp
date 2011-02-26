@@ -145,7 +145,7 @@ namespace Arc {
     if (str.empty())
       return str;
     int j = 0;
-    for (int i = 0; i < str.size(); i++) {
+    for (size_t i = 0; i < str.size(); i++) {
       character = str[i];
       if (str[i] == '%') {
         i++;
