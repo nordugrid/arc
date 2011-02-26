@@ -492,16 +492,14 @@ static void soft_state_thread(void *data) {
         // 1. step: Put it's own EndpoingURL(s) from configuration in the set of neighbors for testing purpose.
         int i=0;
         while ((bool)(*cfg)["InfoProvider"][i]) {
-            std::string _url("");
-            if ( (bool) (*cfg)["InfoProvider"][i]["URL"] && !((std::string)(*cfg)["InfoProvider"][i]["URL"]).empty() ) {
-                _url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
+            std::string _url;
+            if((bool)(*cfg)["InfoProvider"][i]["URL"]) {
+              _url = (std::string)(*cfg)["InfoProvider"][i]["URL"];
             } else {
-                if ( !((std::string)(*cfg)["InfoProvider"][i]).empty() ) {
-                    _url = (std::string)(*cfg)["InfoProvider"][i];
-                }
+              _url = (std::string)(*cfg)["InfoProvider"][i];
             }
             if ( endpoint_ != _url ) {
-               if (_url== "") {
+               if (_url.empty()) {
                   available_provider = true;
                   logger_.msg(Arc::WARNING, "The InfoProvider element in ISIS configuration is empty.");
                } else {
