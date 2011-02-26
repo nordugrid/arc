@@ -208,7 +208,7 @@ attributes depending on how the mapping should be done.
           <arex:gridmapfile inisections="arex common" initag="gridmap" inidefaultvalue="/etc/grid-security/grid-mapfile"/>
           <arex:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
           <arex:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
-          <arex:CertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
+          <arex:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
           <arex:TCPPortRange inisections="arex" initag="tcpportrange"/>
           <arex:UDPPortRange inisections="arex" initag="udpportrange"/>
         </arex:Globus>
