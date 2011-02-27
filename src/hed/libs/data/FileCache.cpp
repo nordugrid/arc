@@ -1106,10 +1106,10 @@ namespace Arc {
       // check if the usage percent is passed
       if ((100 - (100 * cache_it->second.second)/ cache_it->second.first) < _max_used) {                       
         // caches which are under the defined percentage 
-        under_limit.insert(std::make_pair(cache_it->first, roundf((float) cache_it->second.first/total_size*10)));
+        under_limit.insert(std::make_pair(cache_it->first, (int)roundf((float) cache_it->second.first/total_size*10)));
       } else {
         // caches which are passed the defined percentage
-        over_limit.insert(std::make_pair(cache_it->second.second, cache_it->first));
+        over_limit.insert(std::make_pair((unsigned long long)(cache_it->second.second), cache_it->first));
       }
     }
     int cache_no = 0;
