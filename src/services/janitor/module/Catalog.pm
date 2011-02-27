@@ -1,12 +1,5 @@
 package Janitor::Catalog;
 
-BEGIN {
-	eval 'require Time::HiRes';
-	unless ($@) {
-		import Time::HiRes qw(time);
-	}
-}
-
 use Exporter;
 @ISA = qw(Exporter);
 @EXPORT_OK = qw();
@@ -34,11 +27,11 @@ implemented.
 
 
 
+use POSIX;
+use XML::Simple;
 
 use strict;
 use warnings;
-
-use RDF::Redland;
 
 use Janitor::Catalog::BaseSystem;
 use Janitor::Catalog::MetaPackage;
@@ -66,57 +59,59 @@ and the name of the catalog. It uses RDF::Redland to open the calaog and returns
 =cut
 
 sub new {
-	my ($class, undef, $name) = @_;
+	my ($this, undef, $name) = @_;
 
-	my $verbose = 0;
-
-	# create storage
-	my $storage = new RDF::Redland::Storage("hashes", "",
-				"new='yes',hash-type='memory'");
-	unless (defined  $storage) {
-		$logger->error("Can not create RDF::Redland::Storage");
-		return undef;
-	}
-
-	# create model
-	my $model = new RDF::Redland::Model($storage, "");
-	unless (defined $model) {
-		$logger->error("Can not create RDF::Redland::Model for storage");
-		return undef;
-	}
-
+	my $class = ref($this) || $this;
 	my $self = {
-		_model => $model,
-		_query_counter => 0,
-		_query_time => 0,
-		_verbose => $verbose,
 		_name => $name,
 		_mask => {},
 	};
-	
-	
+
+	# our catalog storage
+	$self->{BaseSystem} = {};
+	$self->{MetaPackage} = {};
+	$self->{TarPackage} = {};
+	$self->{DebianPackage} = {};
+	$self->{VirtualBaseSystem} = {};
+	$self->{Tag} = {};
+
 	return bless $self, $class;
 }
 
 ###########################################################################
-# Destructor
+# utility functions for working with the hash tree returned by XML::Simple
 ###########################################################################
 
-=item DESTROY - The destructor
-
-It just prints some statistics.
-
-=cut 
-
-sub DESTROY {
-	my ($self) = @_;
-	if ($self->{_verbose} > 1) {
-		printf STDERR "querycount: %d\n", $self->{_query_counter};
-		printf STDERR "querytime: %.2fs\n", $self->{_query_time};
-		printf STDERR "time per query: %.2fms\n";
-					 (1000*$self->{_query_time})/$self->{_query_counter};
+# walks a tree of hashes and arrays while applying a function to each hash.
+sub _hash_tree_apply {
+	my ($ref, $func) = @_;
+	if (not ref($ref)) {
+		return;
+	} elsif (ref($ref) eq 'ARRAY') {
+		map {_hash_tree_apply($_,$func)} @$ref;
+		return;
+	} elsif (ref($ref) eq 'HASH') {
+		&$func($ref);
+		map {_hash_tree_apply($_,$func)} values %$ref;
+		return;
+	} else {
+		return;
 	}
 }
+
+# Strips namespace prefixes from the keys of the hash passed by reference
+sub _hash_strip_prefixes {
+	my ($h) = @_;
+	my %t;
+	while (my ($k,$v) = each %$h) {
+		next if $k =~ m/^xmlns/;
+		$k =~ s/^\w+://;
+		$t{$k} = $v;
+	}
+	%$h=%t;
+	return;
+}
+
 
 =item $obj->add ($file)
 
@@ -130,24 +125,225 @@ sub add {
 	my ($self, $file) = @_;
 
 	unless ( -e $file) {
- 		$logger->error("Can not add file to catalog: $file does not exist");
+		$logger->error("Can not add file to catalog: $file does not exist");
 		return;
 	}
 
-	my $uri = new RDF::Redland::URI("file:$file");	
-	my $parser = new RDF::Redland::Parser("rdfxml", "application/rdf+xml");
-	unless (defined $parser) {
-		$logger->error("Can not create RDF::Redland::Parser");
-		return undef;
+	if (not -e '/usr/bin/xmllint') {
+		$logger->error("/usr/bin/xmllint not found");
+		die;
+	}
+	my $cmd = "/usr/bin/xmllint --c14n '$file'";
+	my $bytes = `$cmd`;
+	if ((my $status = $?) != 0) {
+		if (WIFEXITED($status)) {
+			$logger->error("$cmd: Command failed with exit code ".WEXITSTATUS($status));
+		} elsif (WIFSIGNALED($status)) {
+			$logger->error("$cmd: Command killed by signal ".WTERMSIG($status));
+		}
+		die;
+	}
+	my $ref;
+	eval {
+		$ref = XMLin($bytes, ForceArray => 1, KeepRoot => 1);
+	};
+	if ($@) {
+		$logger->error("XML::Simple returned with an error");
+		die;
 	}
 
-	my $model = $self->{_model};
+	# strip namespaces
+	_hash_tree_apply($ref, \&_hash_strip_prefixes);
 
-	# add everything to the model
-	for ( my $stream = $parser->parse_as_stream($uri,$uri);
-			!$stream->end; $stream->next) {
-		$model->add_statement($stream->current);
+	my $xml = $ref->{RDF}[0];
+	if (not ref $xml eq "HASH") {
+		$logger->error("RDF root element not found") and die;
 	}
+
+	# temporary catalog storage
+	my $tcat = {};
+	$tcat->{BaseSystem} = {};
+	$tcat->{MetaPackage} = {};
+	$tcat->{TarPackage} = {};
+	$tcat->{DebianPackage} = {};
+	$tcat->{VirtualBaseSystem} = {};
+	$tcat->{Tag} = {};
+
+	my @classes = (qw( BaseSystem MetaPackage TarPackage DebianPackage VirtualBaseSystem Tag ));
+
+	for my $class (@classes) {
+		for my $obj (@{$xml->{$class}}) {
+
+			my $id = $obj->{about};
+			unless (defined $id and not ref $id) {
+				$logger->warning("Found $class without ID");
+				next;
+			}
+
+			##########################################################################
+			# check well-formedness and simplify structure
+			##########################################################################
+
+			my @badattrs;
+
+			# convert eventual arrays of scalars to scalars (pick first value from array)
+			for my $attr (qw( label name url distribution description short_description distribution lastupdated homepage )) {
+				if (ref $obj->{$attr} eq 'ARRAY' and @{$obj->{$attr}}) {
+					my $val = $obj->{$attr}[0];
+					$obj->{$attr} = $val;
+					push @badattrs, $attr if ref $val; # must be scalar
+				} elsif (ref $obj->{$attr}) {
+					push @badattrs, $attr;
+				}
+			}
+			# check that these are array of scalars. Convert scalar to array.
+			for my $attr (qw( package debconf )) {
+				next unless defined $obj->{$attr};
+				if (not ref $obj->{$attr}) {
+					$obj->{$attr} = [ $obj->{$attr} ];
+				} elsif (ref $obj->{$attr} ne 'ARRAY') {
+					push @badattrs, $attr;
+				} else {
+					for my $val (@{$obj->{$attr}}) {
+						if (ref $val) {
+							push @badattrs, $attr;
+							last;
+						}
+					}
+				}
+			}
+			# check references and simplify them
+			for my $attr (qw( basesystem instance tag depends )) {
+				next unless defined $obj->{$attr};
+				if (ref $obj->{$attr} ne 'ARRAY') {
+					push @badattrs, $attr;
+				} else {
+					my @list;
+					for my $val (@{$obj->{$attr}}) {
+						if (ref $val ne 'HASH' or not defined $val->{resource}
+											   or ref $val->{resource}) {
+							push @badattrs, $attr;
+							last;
+						}
+						push @list, $val->{resource};
+					}
+					$obj->{$attr} = \@list;
+				}
+			}
+
+			if (@badattrs) {
+				$logger->warning("$class '$id' attribute \"$_\" has wrong syntax") for @badattrs;
+				next;
+			}
+
+			if ($class eq 'TarPackage' or $class eq 'DebianPackage') {
+				unless (@{$obj->{basesystem}} == 1) {
+					$logger->warning("$class '$id' does not have exactly one basesystem");
+					next;
+				}
+				$obj->{basesystem} = $obj->{basesystem}[0];
+			} elsif ($class eq 'MetaPackage') {
+				unless ($obj->{instance} and @{$obj->{instance}}) {
+					$logger->verbose("$class '$id' has no instance, ignoring");
+					next;
+				}
+			}
+
+			# set the name
+			my $name = $obj->{name} || $obj->{label};
+			unless (defined $name) {
+				$logger->warning("$class '$id' has no name and no label. Skipping it");
+				next;
+			}
+			delete $obj->{about};
+			delete $obj->{label};
+			$obj->{name} = $name;
+
+			$tcat->{$class}{$id} = $obj;
+		}
+			
+	}
+
+	# save contents of temporary store
+	for my $class (@classes) {
+		while (my ($key, $val) = each %{$tcat->{$class}}) {
+			$self->{$class}{$key} = $val;
+		}
+	}
+
+	return;
+}
+
+
+##########################################################################
+# Check cross-references. To be called after all catalogs have been added.
+##########################################################################
+
+sub check_references {
+	my ($self) = @_;
+
+	unless (%{$self->{BaseSystem}}) {
+		$logger->error("No BaseSystems found") and die;
+	}
+	unless (%{$self->{MetaPackage}}) {
+		$logger->error("No MetaPackages found") and die;
+	}
+	unless (%{$self->{TarPackage}}) {
+		$logger->error("No TarPackages found") and die;
+	}
+
+	my $once_more = 1;
+
+	# loop until there are no more invalid cross-references
+	while ($once_more) {
+
+		$once_more = 0;
+
+		my %allpackages = ( %{$self->{TarPackage}}, %{$self->{DebianPackage}} );
+		while (my ($id, $pkg) = each %allpackages) {
+
+			my $bsid = $pkg->{basesystem};
+			my $bs = $self->{BaseSystem}{$bsid} || $self->{VirtualBaseSystem}{$bsid};
+			unless ($bs) {
+				$logger->warning("Package '$id' references invalid basesystem '$bsid'");
+				delete $self->{TarPackage}{$id};
+				delete $self->{DebianPackage}{$id};
+				$once_more = 1;
+			}
+
+			for my $depid (@{$pkg->{depends}}) {
+				my $dep = $self->{TarPackage}{$depid} || $self->{DebianPackage}{$depid} || $self->{MetaPackage}{$depid};
+				unless ($dep) {
+					$logger->warning("Package '$id' references invalid dependency '$depid'");
+					delete $self->{TarPackage}{$id};
+					delete $self->{DebianPackage}{$id};
+					$once_more = 1;
+				}
+			}
+		}
+
+		while (my ($id, $mp) = each %{$self->{MetaPackage}}) {
+
+			for my $pkgid (@{$mp->{instance}}) {
+				my $pkg = $self->{TarPackage}{$pkgid} || $self->{DebianPackage}{$pkgid};
+				unless ($pkg) {
+					$logger->warning("MetaPackage '$id' references invalid instance '$pkgid'");
+					delete $self->{MetaPackage}{$id};
+					$once_more = 1;
+				}
+			}
+			for my $tagid (@{$mp->{tag}}) {
+				my $tag = $self->{Tag}{$tagid};
+				unless ($tag) {
+					$logger->warning("MetaPackage '$id' references invalid tag '$tagid'");
+					delete $self->{MetaPackage}{$id};
+					$once_more = 1;
+				}
+			}
+		}
+	}
+
+	return;
 }
 
 =item name()
@@ -183,22 +379,19 @@ sub basesystems_supporting_metapackages {
 	my $query = undef;
 	my %basesystems;
 	my @ids;
-	my $results;
-
 
 	#####
 	# At first check if all requested packages are allowed
 	#####
 	foreach my $package (@pakete) {
-		$query = sprintf "
-			PREFIX kb: <http://knowarc.eu/kb#>
-			SELECT ?id
-			WHERE {
-				?id a kb:MetaPackage .
-				?id kb:name ?name .
-				FILTER ( ?name = \"%s\" ) .
-			}", $package;
-		my $id = prepare_uri($self->query_with_one_answer($query));
+
+		my $id;
+		while (my ($tmpid, $tmph) = each %{$self->{MetaPackage}}) {
+			next unless $tmph->{name} eq $package;
+			$id = $tmpid;
+			last;
+		}
+		keys %{$self->{MetaPackage}}; # reset iterator
 		push @ids, $id;
 		return () unless (defined $id and $self->{_mask}->{$id});
 	}
@@ -207,23 +400,16 @@ sub basesystems_supporting_metapackages {
 	# query for each package, which basesystems support it
 	#####
 	foreach my $p_id (@ids) {
-		$query = sprintf "
-			PREFIX kb: <http://knowarc.eu/kb#>
-			SELECT ?baseid
-			WHERE {
-				%s kb:instance ?b .
-				?b kb:basesystem ?baseid .
-			}", $p_id;
 
-		for (my $res = $self->query($query);!$res->finished;$res->next_result) {
-			for (my $i = 0; $i < $res->bindings_count; $i++) {
-				my $id = &prepare_uri($res->binding_value($i)->as_string);
-				next unless $self->{_mask}->{$id};
-				if (! defined $basesystems{$id}) {
-					$basesystems{$id}{$_} = 1 for @ids;
-				}
-				delete $basesystems{$id}{$p_id};
+		my $mp = $self->{MetaPackage}{$p_id};
+		for my $pkgid (@{$mp->{instance}}) {
+			my $pkg = $self->{TarPackage}{$pkgid} || $self->{DebianPackage}{$pkgid};
+			my $id = $pkg->{basesystem};
+			next unless $self->{_mask}->{$id};
+			if (! defined $basesystems{$id}) {
+				$basesystems{$id}{$_} = 1 for @ids;
 			}
+			delete $basesystems{$id}{$p_id};
 		}
 	}
 
@@ -232,7 +418,7 @@ sub basesystems_supporting_metapackages {
 	#####
 	foreach my $b_key ( keys %basesystems ) {
 		next if keys %{$basesystems{$b_key}};
-	 
+
 		foreach my $p_key (@ids) {
 			my ($r, @x) = $self->_check_dependencies($b_key, $p_key);
 			unless ($r) {
@@ -241,7 +427,7 @@ sub basesystems_supporting_metapackages {
 			}
 		}
 	}
- 
+
 	#####
 	# and now check wich basesystems supports all packages
 	#####
@@ -258,7 +444,7 @@ sub basesystems_supporting_metapackages {
 ###########################################################################
 
 =item _check_dependencies($baseid, $packageid) - internal
- 
+	
 Checks if the dependencies of MetaPackage $package (by id) are satisfied on
 basesystem $baseid (by id). The method returns a tupel: The first element is true iff the
 dependencies are satisfyable, the second element is a list of packages (by id)
@@ -269,88 +455,60 @@ the dependecies are found then the first element of the list is false.
 
 sub _check_dependencies {
 	my ($self, $baseid, $packageid) = @_;
+
 	my @todo;
 	my %seen;
 	my @ret;
-	my $query = sprintf "
-		PREFIX kb: <http://knowarc.eu/kb#>
-		SELECT ?instance
-		WHERE {
-			%s kb:instance ?instance .
-			?instance kb:basesystem %s .
-		}", $packageid, $baseid;
 
-	# there should be exactly one answer
-	for (my $res = $self->query($query);!$res->finished;$res->next_result) {
-		for (my $i = 0; $i < $res->bindings_count; $i++) {
-			push @todo, &prepare_uri($res->binding_value($i)->as_string);
-		}
+	my $mp = $self->{MetaPackage}{$packageid};
+	return (0,undef) unless $mp;
+
+	for my $pkgid (@{$mp->{instance}}) {
+		my $pkg = $self->{TarPackage}{$pkgid} || $self->{DebianPackage}{$pkgid};
+		my $bsid = $pkg->{basesystem};
+		push @todo, $pkgid if $bsid eq $baseid;
 	}
+	return (0,undef) unless @todo;
 
 	# XXX here we need some more logic: For example DebianPackage is only
 	# installable on Debian, etc.
 
 	# and now check the dependencies
-	while (my $instance = pop @todo) {
+	while (my $pkgid = pop @todo) {
 
 		# check if it is a new dependency
-		next if defined $seen{$instance};
-		$seen{$instance} = 1;
+		next if defined $seen{$pkgid};
+		$seen{$pkgid} = 1;
 
-		push @ret, $instance;
-
-		# check if there is such an instance
-		my $b = $self->get_object($instance, "kb:basesystem");
-		if (! defined $b) {
-			$logger->warning("Can not find package with id \"$instance\" "
-				. "while checking dependencies of \"$packageid\"");
-			return (0,undef);
-		}
+		push @ret, $pkgid;
+		my $pkg = $self->{TarPackage}{$pkgid} || $self->{DebianPackage}{$pkgid};
 
 		# check if the basesystem is right
-		$b = prepare_uri($b);
-		if ($baseid ne $b) {
-			$logger->warning("found unexpected basesystem entry \"$b\" "
-				. "while checking meta package \"$packageid\". Expected \"$baseid\"");
+		my $bsid = $pkg->{basesystem};
+		unless ($bsid eq $baseid) {
+			$logger->warning("found unexpected basesystem entry \"$bsid\" while checking "
+				. "dependencies of meta package \"$packageid\". Expected \"$baseid\"");
 			return (0,undef);
 		}
- 
+
 		# and now get the dependencies
-		$query = sprintf "
-			PREFIX kb: <http://knowarc.eu/kb#>
-			SELECT ?instance
-			WHERE { %s kb:depends ?instance }", $instance;
-	
-		my @temp = (); 
-		for (my $res = $self->query($query); !$res->finished; $res->next_result) {
-			for (my $i = 0; $i < $res->bindings_count; $i++) {
-				my $val = $res->binding_value($i);
-				next unless defined $val; # optionals
-				push @temp, &prepare_uri($val->as_string);
-			}
-		}
-
-		foreach my $i ( @temp )  {
-			my $type = &prepare_uri($self->get_object($i, "a"));
-			if ($type eq "<http://knowarc.eu/kb#MetaPackage>") {
-				$query = sprintf "
-					PREFIX kb: <http://knowarc.eu/kb#>
-					SELECT ?instance
-					WHERE {
-						%s kb:instance ?instance .
-						?instance kb:basesystem %s .
-					}", $i, $baseid;
-				$instance = $self->query_with_one_answer($query);
-
-				# can't deploy this MetaPackage 
-				return (0,undef)	unless defined $instance;
-
-				push @todo, &prepare_uri($instance);
+		for my $depid (@{$pkg->{depends}}) {
+			if (my $tmp = $self->{MetaPackage}{$depid}) {
+				# resolve instances that have the right basesystem
+				my $installable = 0;
+				for my $tpkgid (@{$tmp->{instance}}) {
+					my $tpkg = $self->{TarPackage}{$tpkgid} || $self->{DebianPackage}{$tpkgid};
+					my $tbsid = $tpkg->{basesystem};
+					push @todo, $tpkgid if $tbsid eq $baseid;
+					$installable = 1;
+				}
+				# this dependency is not installable
+				return (0,undef) unless $installable;
 			} else {
-				push @todo, $i;
+				push @todo, $depid;
 			}
-
 		}
+
 	}
 
 	return (1, reverse @ret);
@@ -386,19 +544,20 @@ sub PackagesToBeInstalled {
 	my @ret = ();
 	my %seen;
 
-	foreach my $mp ( @mp ) {
-		my $query = sprintf "
-			PREFIX kb: <http://knowarc.eu/kb#>
-			SELECT ?id
-			WHERE {
-				?id a kb:MetaPackage .
-				?id kb:name ?name .
-				FILTER ( ?name = \"%s\" ) .
-			}", $mp;
-		my $id = prepare_uri($self->query_with_one_answer($query));
+	foreach my $mpname ( @mp ) {
 
-		my ($retval, @r) = $self->_check_dependencies($bs->id, $id);
-		
+		my ($mpid, $mph);
+		while (my ($tmpid, $tmph) = each %{$self->{MetaPackage}}) {
+			next unless $tmph->{name} eq $mpname;
+			$mph = $tmph;
+			$mpid = $tmpid;
+			last;
+		}
+		keys %{$self->{MetaPackage}}; # reset iterator
+		return (0, undef) unless $mph;
+
+		my ($retval, @r) = $self->_check_dependencies($bs->id, $mpid);
+
 		return (0, undef) unless $retval;
 
 		while (my $id = shift @r) {
@@ -410,6 +569,7 @@ sub PackagesToBeInstalled {
 
 	return (1, @ret);
 }
+
 
 ######################################################################
 ######################################################################
@@ -423,54 +583,19 @@ The triplets in the RDF are transformed to a Perl object.
 sub _BaseSystemByKey {
 	my ($self, $key) = @_;
 
-	my $bs = Janitor::Catalog::NoteCollection->get($key);
+	my $bsh = $self->{BaseSystem}{$key};
+	return undef unless $bsh;
 
-	return $bs if defined $bs;
-
-	# there is no such thing in the collection, so search for
-	# it in the RDF
-	my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT *
-                WHERE { %s ?a ?b }", $key;
-
-	my %values;
-	$values{"id"} = $key;
-	for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		next unless defined $res->binding_value(0);
-		next unless defined $res->binding_value(1);
-
-		my $pred = prepare_uri($res->binding_value(0)->as_string);
-
-		if ($pred =~ m%^<http://knowarc.eu/kb#(.*)>$%) {
-			$values{$1} = $res->binding_value(1)->as_string;
-		}
-	}
-
-	$bs = new Janitor::Catalog::BaseSystem();
-	$bs->fill(%values);
+	my $bs = new Janitor::Catalog::BaseSystem();
+	$bs->fill(%$bsh, id => $key);
 	$bs->immutable(1);
-
-	unless (defined $bs->name) {
-		$logger->warning("There is no valid basesystem with id \"$key\" " .
-			"in the catalog.");
-		return undef;
-	}
-
-	Janitor::Catalog::NoteCollection->add($key, $bs);
-
-	return $bs
+	return $bs;
 }
 
-
-
-
-
-
 ######################################################################
 ######################################################################
 
-=item MetapackagesByBasepackageKey($URI)
+=item MetapackagesByPackageKey($URI)
 
 Returns a list of MetaPackages as determined by the URI of the basepackage
 it refers to. No check on the class of the URI is performed in this step.
@@ -480,70 +605,17 @@ it refers to. No check on the class of the URI is performed in this step.
 sub MetapackagesByPackageKey {
 	my ($self, $pid) = @_;
 
-
-	my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT ?metaid
-		WHERE { 
-			?metaid    a           kb:MetaPackage .
-			?metaid    kb:instance %s .
-		}", $pid;
-# 			?metaid    kb:name     ?name .
-
-
-
-	my $mp = undef;
-
 	my @ret = ();
-	for (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		if($res->bindings_count > 0){
-			my $metaid = $res->binding_value(0);
-			$metaid = prepare_uri($metaid->as_string);
-			push(@ret, $self->_MetaPackageByKey($metaid));
-
+	while (my ($mpid, $mp) = each %{$self->{MetaPackage}}) {
+		for my $pkgid (@{$mp->{instance}}) {
+			next unless $pkgid eq $pid;
+			push @ret, $self->_MetaPackageByKey($mpid);
 		}
 	}
 
 	return @ret;
-
 }
 
-
-
-
-
-######################################################################
-######################################################################
-
-=item BaseSystems()
-
-Returns a list of all basesystems as objects of the type Catalog::BaseSystem.
-
-=cut
-
-sub BaseSystems {
-	my ($self, $all) = @_;
-
-	$all = 0 unless defined $all;
-
-	my $query =  "
-		PREFIX kb: <http://knowarc.eu/kb#>
-		SELECT ?baseid
-		WHERE { ?baseid a kb:BaseSystem . }";
-
-	my @ret = ();
-	for (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		for (my $i = 0; $i < $res->bindings_count; $i++) {
-			my $val = $res->binding_value($i);
-			next unless defined $val; # optionals
-			my $id = prepare_uri($val->as_string);
-			next unless $all or $self->{_mask}->{$id};
-			push @ret, $self->_BaseSystemByKey(prepare_uri($val->as_string));
-		}
-	}
-
-	return @ret;
-}	
 
 ######################################################################
 ######################################################################
@@ -559,97 +631,20 @@ is performed in this step.
 sub _MetaPackageByKey {
 	my ($self, $key) = @_;
 
-	my $mp = Janitor::Catalog::MetaPackageCollection->get($key);
+	my $mph = $self->{MetaPackage}{$key};
+	return undef unless $mph;
 
-	return $mp if defined $mp;
-
-	# no such MetaPackage yet, have a look at the RDF
-	
-	$mp = new Janitor::Catalog::MetaPackage();
+	my $mp = new Janitor::Catalog::MetaPackage();
 	$mp->id($key);
-
-	my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT *
-                WHERE { %s ?a ?b }", $key;
-
-	for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		next unless defined $res->binding_value(0);
-		next unless defined $res->binding_value(1);
-
-		my $pred = prepare_uri($res->binding_value(0)->as_string);
-		my $val = $res->binding_value(1)->as_string;
-
-		if ($pred eq "<http://knowarc.eu/kb#name>") {
-			$mp->name($val);
-		} elsif ($pred eq "<http://knowarc.eu/kb#description>") {
-			$mp->description($val);
-		} elsif ($pred eq "<http://knowarc.eu/kb#homepage>") {
-			$mp->homepage($val);
-		} elsif ($pred eq "<http://knowarc.eu/kb#lastupdated>") {
-			$mp->lastupdate($val);
-		} elsif ($pred eq "<http://knowarc.eu/kb#tag>") {
-			$mp->tag($self->_TagByKey(prepare_uri($val)));
-		}
-	}
-
+	$mp->name($mph->{name});
+	$mp->description($mph->{description});
+	$mp->homepage($mph->{homepage});
+	$mp->lastupdate($mph->{lastupdated});
+	$mp->tag($self->{Tag}{$_}{name}) for @{$mph->{tag}};
 	$mp->immutable(1);
-
-	unless (defined $mp->name) {
-		$logger->warning("There is no valid MetaPackage with id \"$key\" " .
-			"in the catalog.");
-		return undef;
-	}
-
-	Janitor::Catalog::MetaPackageCollection->add($key, $mp);
-
-
 	return $mp;
 }
 
-######################################################################
-######################################################################
-
-sub _TagByKey {
-	my ($self, $key) = @_;
-
-	my $tag = Janitor::Catalog::NoteCollection->get($key);
-
-	return $tag if defined $tag;
-
-	# there is no such thing in the collection, so search for
-	# it in the RDF
-	my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT *
-                WHERE { %s ?a ?b }", $key;
-
-	my %values;
-	$values{"id"} = $key;
-	for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		next unless defined $res->binding_value(0);
-		next unless defined $res->binding_value(1);
-
-		my $pred = prepare_uri($res->binding_value(0)->as_string);
-
-		if ($pred =~ m%^<http://knowarc.eu/kb#(.*)>$%) {
-			$values{$1} = $res->binding_value(1)->as_string;
-		}
-	}
-
-	$tag = new Janitor::Catalog::Tag();
-	$tag->fill(%values);
-	$tag->immutable(1);
-
-	unless (defined $tag->name) {
-		$logger->warning("There is no valid Tag with id \"$key\" " .
-			"in the catalog.");
-		return undef; }
-
-	Janitor::Catalog::NoteCollection->add($key, $tag);
-
-	return $tag;
-}
 
 ######################################################################
 # returns a list of all MetaPackages by object.
@@ -663,24 +658,13 @@ Returns a list of all metapackages as Catalog::MetaPackage.
 
 sub MetaPackages {
 	my ($self, $all) = @_;
-
-	$all = 0 unless defined $all;
-
-	my $query = "
-		PREFIX kb: <http://knowarc.eu/kb#>
-		SELECT ?metaid
-		WHERE { ?metaid a kb:MetaPackage. }";
 	
 	my @ret = ();
-	for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-                for (my $i = 0; $i < $res->bindings_count; $i++) {
-                        my $val = $res->binding_value($i);
-                        next unless defined $val; # optionals
-			my $id = prepare_uri($val->as_string);
-			next unless $all or $self->{_mask}->{$id};
-                        push @ret, $self->_MetaPackageByKey($id);
-                }
-        }
+	keys %{$self->{MetaPackage}}; # reset iterator
+	while (my ($mpid, $mp) = each %{$self->{MetaPackage}}) {
+		next unless $all or $self->{_mask}->{$mpid};
+		push @ret, $self->_MetaPackageByKey($mpid);
+	}
 
 	return @ret;
 }
@@ -700,85 +684,23 @@ unknown to this version of the script.
 sub _PackageByKey {
 	my ($self,$key) = @_;
 
-	my $p;
+	my ($p, $h);
 
-	my $TAR = 0;
-	my $DEB = 1;
-	my $OTHER = 2;
-
-	my $typ = prepare_uri($self->get_one_of_three($key, "a", "?type"));
-	$typ =~ s%^<http://knowarc.eu/kb#(.*)>$%kb:$1%;
-	if ($typ eq "kb:TarPackage") {
-		$typ = $TAR;
+	if ($h = $self->{TarPackage}{$key}) {
 		$p = new Janitor::Catalog::TarPackage();
-	} elsif ($typ eq "kb:DebianPackage") {
-		$typ = $DEB;
+		$p->id($key);
+		$p->url($h->{url});
+		$p->basesystem($h->{basesystem});
+	} elsif ($h = $self->{DebianPackage}{$key}) {
 		$p = new Janitor::Catalog::DebianPackage();
-	} else {
-		$typ = $OTHER;
+		$p->id($key);
+		$p->basesystem($h->{basesystem});
+	} elsif ($h = $self->{Package}{$key}) {
 		$p = new Janitor::Catalog::Package();
+		$p->id($key);
 	}
 
-	$p->id($key);
-
-	my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT *
-                WHERE { %s ?a ?b }", $key;
-
-	for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		next unless defined $res->binding_value(0);
-		next unless defined $res->binding_value(1);
-
-		my $pred = prepare_uri($res->binding_value(0)->as_string);
-		my $val = $res->binding_value(1)->as_string;
-
-		if ($pred eq "<http://knowarc.eu/kb#url>") {
-			$p->url($val) if ($typ == $TAR);
-		} elsif ($pred eq "<http://knowarc.eu/kb#basesystem>") {
-			$p->basesystem(prepare_uri($val));
-		}
-	}
-
-	# XXX $p->depends is missing
-	
-	return $p;
-}
-
-######################################################################
-# Returns a list of all packages as object.
-######################################################################
-
-=item Packages()
-
-Returns a list of all packages as Catalog::Package or a subclass of it.
-
-=cut
-
-sub Packages {
-	my ($self) = @_;
-
-	my @query;
-	
-	foreach my $kind ( ("kb:TarPackage", "kb:DebianPackage") ) {
-		push @query, sprintf "
-			PREFIX kb: <http://knowarc.eu/kb#>
-			SELECT ?id
-			WHERE { ?id a %s. }", $kind;
-	}
-	
-	my @ret = ();
-	foreach my $query( @query ) {
-		for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-			for (my $i = 0; $i < $res->bindings_count; $i++) {
-				my $val = $res->binding_value($i);
-				next unless defined $val; # optionals
-				push @ret, $self->_PackageByKey(prepare_uri($val->as_string));
-			}
-		}
-	}
-
-	return @ret;
+	return $p
 }
 
 
@@ -794,37 +716,19 @@ Wildcards are supported.
 =cut
 
 # just add the 1 or 0
-sub AllowMetaPackage { $_[0]->_AllowDenyMetaPackage(1, @_); } 
+sub AllowMetaPackage { $_[0]->_AllowDenyMetaPackage(1, @_); }
 sub DenyMetaPackage{ $_[0]->_AllowDenyMetaPackage(0, @_); } 
 
 sub _AllowDenyMetaPackage {
 	# undef because $self is added to the list of arguments twice
-	my ($self, $which, undef, @list) = @_;	
+	my ($self, $which, undef, @list) = @_;
 
-	foreach my $item (@list){
-		if ($item =~ m/^([^:]*)::(.*)$/) {
-			$self->_Allow_DenyHelper("
-				PREFIX kb: <http://knowarc.eu/kb#>
-				SELECT ?id
-				WHERE {
-					?id a kb:MetaPackage .
-					?id kb:tag ?tag .
-					?tag a kb:Tag .
-					?tag kb:name ?name .
-					FILTER regex(?name, \"%s\") .
-				}", $which, $item);
-		} else {
-			$self->_Allow_DenyHelper("
-				PREFIX kb: <http://knowarc.eu/kb#>
-				SELECT ?id
-				WHERE {
-					?id a kb:MetaPackage .
-					?id kb:name ?name .
-					FILTER regex(?name, \"%s\") .
-				 }", $which, $item);
+	for my $regex (@list) {
+		while (my ($pkgid, $pkg) = each %{$self->{MetaPackage}}) {
+			$self->{_mask}{$pkgid} = $which if $pkg->{name} =~ m|$regex|;
 		}
 	}
-} 
+}
 
 
 ######################################################################
@@ -837,247 +741,35 @@ Allows or denies all listed basesystems (by name) to be used. Wildcards are supp
 =cut
 
 # just add the 1 or 0
-sub AllowBaseSystem { $_[0]->_AllowDenyBaseSystem(1, @_); } 
-sub DenyBaseSystem { $_[0]->_AllowDenyBaseSystem(0, @_); } 
+sub AllowBaseSystem { $_[0]->_AllowDenyBaseSystem(1, @_); }
+sub DenyBaseSystem { $_[0]->_AllowDenyBaseSystem(0, @_); }
 
 sub _AllowDenyBaseSystem {
 	# undef because $self is added to the list of arguments twice
-	my ($self, $which, undef, @list) = @_;	
+	my ($self, $which, undef, @list) = @_;
 
-	foreach my $item (@list){
-		if ($item =~ m/^[^:]*::.*$/) {
-			$self->_Allow_DenyHelper("
-				PREFIX kb: <http://knowarc.eu/kb#>
-				SELECT ?id
-				WHERE {
-					?id a kb:BaseSystem .
-					?id kb:name ?name .
-					FILTER regex(?name, \"%s\") .
-				 }", $which, $item);
+	for my $regex (@list) {
+		if ($regex =~ m/^[^:]*::.*$/) {
+			while (my ($bsid, $bs) = each %{$self->{BaseSystem}}) {
+				$self->{_mask}{$bsid} = $which if $bs->{name} =~ m|$regex|;
+			}
 		} else {
-			$self->_Allow_DenyHelper("
-				PREFIX kb: <http://knowarc.eu/kb#>
-				SELECT ?id
-				WHERE {
-					?id a kb:BaseSystem .
-					?id kb:short_description ?name .
-					FILTER regex(?name, \"%s\") .
-				 }", $which, $item);
-		}
-	}
-} 
-
-######################################################################
-# Allows or denies all metapackages and all basesystems. Altough not
-# private these methods are not meant for general use but only for
-# temporary use during hacking on other parts of the Janitor.
-######################################################################
-
-sub AllowAll {
-	my $self = shift;
-	$self->_Allow_DenyHelper("
-		PREFIX kb: <http://knowarc.eu/kb#>
-		SELECT ?id
-		# %s
-		WHERE { ?id a kb:BaseSystem }", 1, ("dummy"));
-	$self->_Allow_DenyHelper("
-		PREFIX kb: <http://knowarc.eu/kb#>
-		SELECT ?id
-		# %s
-		WHERE { ?id a kb:MetaPackage }", 1, ("dummy"));
-}
-
-sub DenyAll {
-	my $self = shift;
-	$self->{_mask} = {};
-}
-
-######################################################################
-# This method is performing the actual work for AllowBaseSystem and 
-# AllowMetaPackage and DisallowMetaPackage
-######################################################################
-
-sub _Allow_DenyHelper {
-	my ($self, $q, $flag, @mp) = @_;	
-
-	foreach my $mp ( @mp ) {
-		my $query = sprintf $q, $mp;
-
-		for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-			for (my $i = 0; $i < $res->bindings_count; $i++) {
-				my $val = $res->binding_value($i);
-				next unless defined $val; # optionals
-				$logger->debug(($flag ? 'allow' : 'deny') . prepare_uri($val->as_string));
-				$self->{_mask}->{prepare_uri($val->as_string)} = $flag;
+			while (my ($bsid, $bs) = each %{$self->{BaseSystem}}) {
+				$self->{_mask}{$bsid} = $which if $bs->{short_description} =~ m/$regex/;
 			}
 		}
 	}
 }
 
 
-
-######################################################################
-######################################################################
-######################################################################
-######################################################################
-
-=head2 RDF-interfacing the catalog
-
-From here on this module only contains code for easing the query
-of the catalog.
-
-=cut
-
-######################################################################
-######################################################################
-
-=item query($query)
-
-Executes a SPARQL query and returns the answer as itself it is
-returned by the Redland RDF function.
-
-=cut
-
-sub query {
-	my ($self, $q) = @_;
-	my $ret;
-	my $s;
-	my $e;
-
-	print STDERR "SPARQL Query: $q\n" if $self->{_verbose} > 2;
-
-	$s = time;
-        $ret = $self->{_model}->query_execute(
-                new RDF::Redland::Query($q, undef, undef, "sparql"));
-	$e = time;
-
-	$self->{_query_time} += $e - $s;
-	$self->{_query_counter}++;
-
-	printf STDERR "needed time: %fms\n", ($e - $s) * 1000 if $self->{_verbose} > 3;
-
-	return $ret;
+sub test {
+	require Data::Dumper;
+	my $cat = Janitor::Catalog->new();
+	$cat->add('/tmp/a.rdf');
+	$cat->check_references();
+	print(Data::Dumper::Dumper $cat);
 }
 
-###########################################################################
-###########################################################################
-
-=item query_with_one_answer($query)
-
-This method is for the special case of queries which have only one or
-none answer. A complete RDF query is passed as an argument
-
-=cut
-
-sub query_with_one_answer {
-	my ($self, $query) =  @_;
-	my $ret = undef;
-
-	for (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		for (my $i = 0; $i < $res->bindings_count; $i++) {
-			my $val = $res->binding_value($i);
-			next unless defined $val; # optionals
-			if (defined $ret) {
-				$logger->fatal("more than one answer in query_with_one_answer()");
-				$logger->info("query was: $query");
-				exit 1;
-			}
-			$ret = $val->as_string;
-		}
-	}
-	return $ret;
-}
-
-######################################################################
-######################################################################
-
-=item get_one_of_three($subject, $predicate, $object)
-
-Calls
-I<query_with_one_answer>
-to retrieve a matching triplet.
-
-=cut
-
-sub get_one_of_three {
-        my ($self, $subject, $predicate, $object) = @_;
-        my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT *
-                WHERE { %s %s %s }", $subject, $predicate, $object;
-
-        return $self->query_with_one_answer($query);
-}
-
-######################################################################
-######################################################################
-
-=item get_object($subject,$predicate)
-
-Performs a query to retrieve the triplet with that
-I<subject>
-and
-I<predicate>
-fixed. Only the filled parameter, the
-I<object>, is returned.
-
-=cut
-
-sub get_object {
-	my ($self, $subject, $predicate) = @_;
-	return $self->get_one_of_three($subject, $predicate, "?a");
-}
-
-=item get_object($subject,$predicate)
-
-As before, but now multiple objects are expected and returned as an array.
-
-=cut
-
-sub get_objects {
-	my ($self, $subject, $predicate) = @_;
-	my @ret;
-
-	my $query = sprintf "
-                PREFIX kb: <http://knowarc.eu/kb#>
-                SELECT *
-                WHERE { %s %s ?a }", $subject, $predicate;
-
-	for  (my $res = $self->query($query); !$res->finished; $res->next_result) {
-		for (my $i = 0; $i < $res->bindings_count; $i++) {
-			my $val = $res->binding_value($i);
-			next unless defined $val; # optionals
-			push @ret, $val->as_string
-		}
-	}
-	return @ret;
-}
-
-######################################################################
-# A bit ugly, but in the answers <> are convertet to []. To use it,
-# we have to convert it back...
-######################################################################
-
-sub prepare_uri {
-	my ($a) = @_;
-	return undef unless defined $a;
-	$a =~ s/^\[([^]]*)\]$/<$1>/;
-	return $a;
-}
-
-
+#test();
 
 1;
-
-=back
-
-=head1 SEE ALSO
-
-Janitor::Catalog::BaseSystem,
-Janitor::Catalog::MetaPackage,
-Janitor::Catalog::Package,
-Janitor::Catalog::TarPackage,
-Janitor::Catalog::DebianPackage
-
-=cut
-

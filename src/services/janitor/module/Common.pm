@@ -166,6 +166,9 @@ sub get_catalog
 		}
 	}
 
+	# all catalogs read in, now verify consistency
+	$catalog->check_references();
+
 	# get the allow and deny rules for basesystems 
 	my $allow_base = $config->{"janitor"}{"allow_base"};
 	my $deny_base = $config->{"janitor"}{"deny_base"};
