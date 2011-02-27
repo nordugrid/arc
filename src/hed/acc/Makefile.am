@@ -10,5 +10,11 @@ else
 PYTHONBROKER =
 endif
 
-SUBDIRS = $(ARC0) ARC1 CREAM Broker $(PYTHONBROKER) UNICORE JobDescriptionParser
+if UNICORE_ENABLED
+UNICORE = UNICORE
+else
+UNICORE =
+endif
+
+SUBDIRS = $(ARC0) ARC1 CREAM Broker $(PYTHONBROKER) $(UNICORE) JobDescriptionParser
 DIST_SUBDIRS = ARC0 ARC1 CREAM Broker PythonBroker UNICORE JobDescriptionParser

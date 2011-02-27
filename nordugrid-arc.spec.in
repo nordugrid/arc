@@ -982,7 +982,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
-%{_libdir}/%{pkgdir}/libaccUNICORE.so
+#%{_libdir}/%{pkgdir}/libaccUNICORE.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libdmcarc.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
@@ -998,7 +998,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
-%{_libdir}/%{pkgdir}/libaccUNICORE.apd
+#%{_libdir}/%{pkgdir}/libaccUNICORE.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libdmcarc.apd
 %{_libdir}/%{pkgdir}/libdmcfile.apd

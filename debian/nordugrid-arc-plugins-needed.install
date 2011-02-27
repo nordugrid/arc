@@ -2,7 +2,6 @@ debian/tmp/usr/lib/arc/libaccARC1.so
 debian/tmp/usr/lib/arc/libaccCREAM.so
 debian/tmp/usr/lib/arc/libaccBroker.so
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.so
-debian/tmp/usr/lib/arc/libaccUNICORE.so
 debian/tmp/usr/lib/arc/libarcshc.so
 debian/tmp/usr/lib/arc/libdmcarc.so
 debian/tmp/usr/lib/arc/libdmcfile.so
@@ -18,7 +17,6 @@ debian/tmp/usr/lib/arc/libaccARC1.apd
 debian/tmp/usr/lib/arc/libaccCREAM.apd
 debian/tmp/usr/lib/arc/libaccBroker.apd
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.apd
-debian/tmp/usr/lib/arc/libaccUNICORE.apd
 debian/tmp/usr/lib/arc/libarcshc.apd
 debian/tmp/usr/lib/arc/libdmcarc.apd
 debian/tmp/usr/lib/arc/libdmcfile.apd
