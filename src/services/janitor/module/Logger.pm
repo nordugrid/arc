@@ -43,6 +43,7 @@ I<loglevel> or higher will be written. I<filename> is opened for appending.
 The possible log levels are:
 
     $Janitor::Logger::DEBUG
+    $Janitor::Logger::VERBOSE
     $Janitor::Logger::INFO
     $Janitor::Logger::WARNING
     $Janitor::Logger::ERROR
@@ -60,6 +61,8 @@ Constructor - creates a named logger object. I<name> is an arbitrary string
 that will prefix log messages emitted by this logger object.
 
 =item B<debug>(I<msg>)
+
+=item B<verbose>(I<msg>)
 
 =item B<info>(I<msg>)
 
@@ -79,8 +82,8 @@ Emit a log message of appropiate severity.
 
 =cut
 
-our ($FATAL, $ERROR, $WARNING, $INFO, $DEBUG) = (0, 1, 2, 3, 4);
-our @lnames = qw(FATAL ERROR WARNING INFO DEBUG);
+our ($FATAL, $ERROR, $WARNING, $INFO, $VERBOSE, $DEBUG) = (0, 1, 2, 3, 4, 5);
+our @lnames = qw(FATAL ERROR WARNING INFO VERBOSE DEBUG);
 
 # common settings to all logger instances
 our %logfiles = (
@@ -133,6 +136,11 @@ sub warning {
 sub info {
     my ($self, $msg) = @_;
     $self->_log($INFO,$msg);
+}
+
+sub verbose {
+    my ($self, $msg) = @_;
+    $self->_log($VERBOSE,$msg);
 }
 
 sub debug {
