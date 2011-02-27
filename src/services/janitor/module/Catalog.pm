@@ -761,15 +761,16 @@ sub _AllowDenyBaseSystem {
 	}
 }
 
-
-sub test {
-	require Data::Dumper;
-	my $cat = Janitor::Catalog->new();
-	$cat->add('/tmp/a.rdf');
-	$cat->check_references();
-	print(Data::Dumper::Dumper $cat);
-}
-
-#test();
-
 1;
+
+=back
+
+=head1 SEE ALSO
+
+Janitor::Catalog::BaseSystem,
+Janitor::Catalog::MetaPackage,
+Janitor::Catalog::Package,
+Janitor::Catalog::TarPackage,
+Janitor::Catalog::DebianPackage
+
+=cut
