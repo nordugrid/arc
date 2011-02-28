@@ -621,7 +621,7 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 
 %find_lang %{name}
 
-%if %{with_gcj}
+%if %{with_java} && %{with_gcj}
 %{_bindir}/aot-compile-rpm
 %endif
 
@@ -707,13 +707,13 @@ if [ "$1" -ge "1" ]; then
 fi
 exit 0
 
+%if %{with_java} && %{with_gcj}
 %post java
-%if %{with_gcj}
 [ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
 %endif
 
+%if %{with_java} && %{with_gcj}
 %postun java
-%if %{with_gcj}
 [ -x %{_bindir}/rebuild-gcj-db ] && %{_bindir}/rebuild-gcj-db
 %endif
 
