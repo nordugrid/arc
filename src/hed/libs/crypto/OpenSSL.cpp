@@ -23,6 +23,7 @@ namespace Arc {
   static bool initialized = false;
   static Glib::Mutex* ssl_locks = NULL;
   static int ssl_locks_num = 0;
+  static std::map<std::string,int> app_data_indices;
 
   static Logger& logger(void) {
     static Logger* logger_ = new Logger(Logger::getRootLogger(), "OpenSSL");
@@ -126,6 +127,18 @@ namespace Arc {
     }
     initialized=true;
     return true;
+  }
+
+
+  int OpenSSLAppDataIndex(const std::string& id) {
+    Glib::Mutex::Lock flock(lock);
+    std::map<std::string,int>::iterator i = app_data_indices.find(id);
+    if(i == app_data_indices.end()) {
+      int n = SSL_CTX_get_ex_new_index(0,NULL,NULL,NULL,NULL);
+      app_data_indices[id] = n;
+      return n;
+    }
+    return i->second;
   }
 
 } // namespace Arc

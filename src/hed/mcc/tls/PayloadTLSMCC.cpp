@@ -15,10 +15,11 @@
 #include <openssl/err.h>
 #include <glibmm/miscutils.h>
 #include <arc/DateTime.h>
+#include <arc/crypto/OpenSSL.h>
 
 namespace Arc {
 
-static void* ex_data_id = (void*)"ARC_MCC_Payload_TLS";
+static const char * ex_data_id = "ARC_MCC_Payload_TLS";
 int PayloadTLSMCC::ex_data_index_ = -1;
 
 #ifndef HAVE_OPENSSL_X509_VERIFY_PARAM
@@ -185,7 +186,7 @@ static int no_passphrase_callback(char*, int, int, void*) {
 bool PayloadTLSMCC::StoreInstance(void) {
    if(ex_data_index_ == -1) {
       // In case of race condition we will have 2 indices assigned - harmless
-      ex_data_index_=SSL_CTX_get_ex_new_index(0,ex_data_id,NULL,NULL,NULL);
+      ex_data_index_=OpenSSLAppDataIndex(ex_data_id);
    };
    if(ex_data_index_ == -1) {
       Logger::getRootLogger().msg(ERROR,"Failed to store application data");
@@ -216,7 +217,6 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    // Client mode
    int err = SSL_ERROR_NONE;
    char gsi_cmd[1] = { '0' };
-   BIO* gsi_bio = NULL;
    master_=true;
    // Creating BIO for communication through stream which it will
    // extract from provided MCC
@@ -266,7 +266,6 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       logger.msg(ERROR, "Can not create the SSL object");
       goto error;
    };
-   gsi_bio = bio;
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {

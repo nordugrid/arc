@@ -21,6 +21,8 @@ namespace Arc {
   /// Prints chain of accumulaed OpenSSL errors if any available
   void HandleOpenSSLError(int code);
 
+  int OpenSSLAppDataIndex(const std::string& id);
+
 } // namespace Arc
 
 #endif /* __ARC_OPENSSL_H__ */
