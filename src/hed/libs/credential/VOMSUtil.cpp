@@ -1354,7 +1354,7 @@ err:
     period_left = Time(ASN1_GENERALIZEDTIME_get(end)) - Time();
 
     STACK_OF(GENERAL_NAME) *names;
-    GENERAL_NAME  *name;
+    GENERAL_NAME  *name = NULL;
 
     if (ac->acinfo->holder->baseid) {
       if(!(ac->acinfo->holder->baseid->serial) ||
@@ -1535,7 +1535,6 @@ err:
 
     bool verified = false;
     int num = sk_AC_num(aclist->acs);
-    int count = 0;
     for (int i = 0; i < num; i++) {
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
       VOMSACInfo ac_info;
