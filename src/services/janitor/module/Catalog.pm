@@ -54,7 +54,7 @@ my $logger = Janitor::Logger->get_logger("Janitor::Catalog");
 =item new($class, $file, $name)
 
 The constructor for this class has two arguments, the name of the catalog file
-and the name of the catalog. It uses RDF::Redland to open the calaog and returns an object for accessing it.
+and the name of the catalog.
 
 =cut
 

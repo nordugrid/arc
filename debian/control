@@ -347,7 +347,7 @@ Provides: nordugrid-arc1-janitor, nordugrid-arc-nox-janitor
 Replaces: nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox-janitor (<< 1.3.0~)
 Conflicts: nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox-janitor (<< 1.3.0~)
 Architecture: any
-Depends: ${misc:Depends}, ${perl:Depends}, librdf-perl
+Depends: ${misc:Depends}, ${perl:Depends}
 Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
 Description: ARC dynamic runtime environment installation
  The NorduGrid is a collaboration aiming at development, maintenance

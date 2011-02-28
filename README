@@ -79,7 +79,6 @@ Runtime dependencies:
   o GNU time (A-rex)
   o VOMS (LFC DMC)
   o wget (Janitor)
-  o librdf-perl (Janitor)
   o fuse-python (Chelonia)
   o Berkley DB Python interface - python-bsddb3 (replicated A-Hash)
 
