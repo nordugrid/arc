@@ -765,7 +765,7 @@ exit 0
 %{_bindir}/isistest
 %{_bindir}/perftest
 %{_bindir}/saml_assertion_init
-%{_bindir}/arcconfconvert
+%{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %{_datadir}/%{pkgdir}/examples/client.conf
 %{_datadir}/%{pkgdir}/examples/arc.conf.template
@@ -794,7 +794,7 @@ exit 0
 %doc %{_mandir}/man1/isistest.1*
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
-%doc %{_mandir}/man1/arcconfconvert.1*
+%doc %{_mandir}/man1/ngclient2arc.1*
 #%doc %{_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
 #%doc %{_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo.wsdl

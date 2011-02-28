@@ -127,7 +127,7 @@ echo ''
 echo '--- ALIASes ---'
 echo ''
 
-tempfile=`mktemp /tmp/arcconfconvert.XXXXXXXXXX`
+tempfile=`mktemp /tmp/ngclient2arc.XXXXXXXXXX`
 
 if [[ $? = 0 ]]; then
   if [[ -f $HOME/.arc/client.conf ]]; then

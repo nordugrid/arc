@@ -1,18 +1,18 @@
 .\" -*- nroff -*- 
-.TH ARCCONFCONVERT 1 "2011-02-25" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH NGCLIENT2ARC 1 "2011-02-25" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
-arcconfconvert - Helper for converting old ARC client configuration to the new format 
+ngclient2arc - Helper for converting old ARC client configuration to the new format 
 
 .SH SYNOPSIS
 
-.B arcconfconvert
+.B ngclient2arc
 
 .SH DESCRIPTION
 
 The
-.B arcconfconvert
+.B ngclient2arc
 command scans the possible client configuration files from ARC versions before 0.9,
 and prints them in the new client configuration format. Then the user can put these
 into the client config if needed.
