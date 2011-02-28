@@ -32,6 +32,7 @@ libarcdata2_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) $(OPENSSL_LIBS) $(ZLIB_LIBS)
+libarcdata2_la_LDFLAGS  = -version-info 1:0:0
 
 if WIN32
 man_MANS = 

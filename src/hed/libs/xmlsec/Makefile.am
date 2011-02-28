@@ -7,6 +7,7 @@ libarcxmlsec_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) 
 libarcxmlsec_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                            $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS) $(ZLIB_LIBS)
+libarcxmlsec_la_LDFLAGS  = -version-info 1:0:0
 
 noinst_PROGRAMS = test_xmlsecnode
 

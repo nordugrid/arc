@@ -10,6 +10,7 @@ libarccredentialstore_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccomm
                                     $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                                     $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                                     $(GLIBMM_LIBS)
+libarccredentialstore_la_LDFLAGS  = -version-info 1:0:0
 
 #test_SOURCES  = test.cpp
 #test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include

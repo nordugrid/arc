@@ -7,9 +7,9 @@ libarcdbxml_ladir = $(pkgincludedir)/dbxml
 libarcdbxml_la_HEADERS  = XmlDatabase.h XmlContainer.h
 libarcdbxml_la_SOURCES  = XmlDatabase.cpp XmlContainer.cpp
 libarcdbxml_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libarcdbxml_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libarcdbxml_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 
-libarcdbxml_la_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
+libarcdbxml_la_LDFLAGS  = -version-info 1:0:0
 
 test_SOURCES  = test.cpp
 test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include

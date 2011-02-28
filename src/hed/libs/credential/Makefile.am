@@ -20,6 +20,7 @@ libarccredential_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
                                $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
                                $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                                $(GLIBMM_LIBS) $(OPENSSL_LIBS)
+libarccredential_la_LDFLAGS  = -version-info 1:0:0
 
 testproxy_SOURCES  = testproxy.cpp
 testproxy_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include

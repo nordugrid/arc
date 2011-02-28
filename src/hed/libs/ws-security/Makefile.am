@@ -24,7 +24,7 @@ libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
                                $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
                             $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 endif
-#libarcwssecurity_la_LDFLAGS  = $(LIBXML2_LIBS)
+libarcwssecurity_la_LDFLAGS  = -version-info 1:0:0
 
 test_SOURCES  = test.cpp 
 test_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
