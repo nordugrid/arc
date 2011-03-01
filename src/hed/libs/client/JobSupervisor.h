@@ -121,12 +121,68 @@ namespace Arc {
      *  (1 = same target, 2 = not same, any other = any target).
      * @param resubmittedJobs list of Job objects which resubmitted jobs will be
      *  appended to.
-     * @param notresubmitted list of URL object which the IDFromEndpoint URL
+     * @param notresubmitted list of URL objects which the IDFromEndpoint URL
      *  will be appended to.
      * @return false if any error is encountered, otherwise true.
      **/
     bool Resubmit(const std::list<std::string>& statusfilter, int destination,
                   std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted);
+
+    /// Migrate jobs
+    /**
+     * Jobs managed by this JobSupervisor will be migrated when invoking this
+     * method, that is the job description of a job will be tried obtained, and
+     * if successful a job migration request will be sent, based on that job
+     * description.
+     *
+     * Before identifying jobs to be migrated, the
+     * JobController::GetJobInformation method is called for each loaded
+     * JobController in order to retrieve the most up to date job information.
+     * Only jobs for which the State member of the Job object has the value
+     * JobState::QUEUEING, will be considered for migration. Furthermore the job
+     * description must be obtained (either locally or remote) and successfully
+     * parsed in order for a job to be migrated. If the job description cannot
+     * be obtained or parsed an ERROR log message is reported, and the
+     * IDFromEndpoint URL of the Job object is appended to the notmigrated list.
+     * If no jobs have been identified for migration, false will be returned in
+     * case ERRORs were reported, otherwise true is returned.
+     *
+     * The execution services which can be targeted for migration are those
+     * specified in the UserConfig object of this class, as selected services.
+     * Before initiating any job migration request, resource discovery and
+     * broker* loading is carried out using the TargetGenerator and Broker
+     * classes, initialised by the UserConfig object of this class. If Broker
+     * loading fails, or no ExecutionTargets are found, an ERROR log message is
+     * reported and all IDFromEndpoint URLs for job considered for migration
+     * will be appended to the notmigrated list and then false will be returned.
+     *
+     * When the above checks have been carried out successfully, the following
+     * is done for each job considered for migration. The ActivityOldId member
+     * of the Identification member in the job description will be set to that
+     * of the Job object, and the IDFromEndpoint URL will be appended to
+     * ActivityOldId member of the job description. After that the Broker object
+     * will be used to find a suitable ExecutionTarget object, and if found a
+     * migrate request will tried sent using the ExecutionTarget::Migrate
+     * method, passing the UserConfig object of this class. The passed
+     * forcemigration boolean indicates whether the migration request at the
+     * service side should ignore failures in cancelling the existing queuing
+     * job. If the request succeeds, the corresponding new Job object is
+     * appended to the migratedJobs list. If no suitable ExecutionTarget objects
+     * are found an ERROR log message is reported and the IDFromEndpoint URL of
+     * the Job object is appended to the notmigrated list. When all jobs have
+     * been processed, false is returned if any ERRORs were reported, otherwise
+     * true.
+     *
+     * @param forcemigration indicates whether migration should succeed if
+     *  service fails to cancel the existing queuing job.
+     * @param migratedJobs list of Job objects which migrated jobs will be
+     *  appended to.
+     * @param notmigrated list of URL objects which the IDFromEndpoint URL
+     *  will be appended to.
+     * @return false if any error is encountered, otherwise true.
+     **/
+    bool Migrate(bool forcemigration,
+                 std::list<Job>& migratedJobs, std::list<URL>& notmigrated);
 
     /// Cancel jobs
     /**

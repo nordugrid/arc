@@ -226,7 +226,7 @@ namespace Arc {
 
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((*it)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse retrieved job description", (*it)->IDFromEndpoint.str());
+        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (*it)->IDFromEndpoint.str());
         resubmittedJobs.pop_back();
         notresubmitted.push_back((*it)->IDFromEndpoint);
         ok = false;
@@ -271,6 +271,92 @@ namespace Arc {
 
     if (destination != 1) {
       delete tg;
+    }
+
+    return ok;
+  }
+
+  bool JobSupervisor::Migrate(bool forcemigration,
+                              std::list<Job>& migratedJobs, std::list<URL>& notmigrated) {
+    bool ok = true;
+
+    std::list< std::list<Job>::iterator > migratableJobs;
+    std::list<JobController*> jobConts = loader.GetJobControllers();
+    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
+         itJobC != jobConts.end(); itJobC++) {
+      (*itJobC)->GetJobInformation();
+
+      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin(); it != (*itJobC)->jobstore.end(); ++it) {
+        if (it->State != JobState::QUEUING) {
+          continue;
+        }
+
+        // If job description is not set, then try to fetch it from execution service.
+        if (it->JobDescriptionDocument.empty() && !(*itJobC)->GetJobDescription(*it, it->JobDescriptionDocument)) {
+          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.str());
+          notmigrated.push_back(it->IDFromEndpoint);
+          ok = false;
+          continue;
+        }
+
+        migratableJobs.push_back(it);
+      }
+    }
+
+    if (migratableJobs.empty()) {
+      return ok;
+    }
+
+    TargetGenerator targetGen(usercfg);
+    targetGen.RetrieveExecutionTargets();
+    if (targetGen.GetExecutionTargets().empty()) {
+      logger.msg(ERROR, "Job migration aborted, no resource returned any information");
+      for (std::list< std::list<Job>::iterator >::const_iterator it = migratableJobs.begin();
+           it != migratableJobs.end(); ++it) {
+        notmigrated.push_back((*it)->IDFromEndpoint);
+      }
+      return false;
+    }
+
+    BrokerLoader brokerLoader;
+    Broker *chosenBroker = brokerLoader.load(usercfg.Broker().first, usercfg);
+    if (!chosenBroker) {
+      logger.msg(ERROR, "Job migration aborted, unable to load broker (%s)", usercfg.Broker().first);
+      for (std::list< std::list<Job>::iterator >::const_iterator it = migratableJobs.begin();
+           it != migratableJobs.end(); ++it) {
+        notmigrated.push_back((*it)->IDFromEndpoint);
+      }
+      return false;
+    }
+
+    for (std::list< std::list<Job>::iterator >::iterator itJ = migratableJobs.begin();
+         itJ != migratableJobs.end(); ++itJ) {
+      std::list<JobDescription> jobdescs;
+      if (!JobDescription::Parse((*itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
+        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (*itJ)->IDFromEndpoint.str());
+        continue;
+      }
+      jobdescs.front().Identification.ActivityOldId = (*itJ)->ActivityOldID;
+      jobdescs.front().Identification.ActivityOldId.push_back((*itJ)->JobID.str());
+
+      migratedJobs.push_back(Job());
+
+      chosenBroker->PreFilterTargets(targetGen.GetExecutionTargets(), jobdescs.front());
+      chosenBroker->Sort();
+
+      for (const ExecutionTarget*& t = chosenBroker->GetReference(); !chosenBroker->EndOfList(); chosenBroker->Advance()) {
+        if (t->Migrate(usercfg, (*itJ)->IDFromEndpoint, jobdescs.front(), forcemigration, migratedJobs.back())) {
+          chosenBroker->RegisterJobsubmission();
+          break;
+        }
+      }
+
+      if (chosenBroker->EndOfList()) {
+        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (*itJ)->IDFromEndpoint.str());
+        ok = false;
+        migratedJobs.pop_back();
+        notmigrated.push_back((*itJ)->IDFromEndpoint);
+      }
     }
 
     return ok;
