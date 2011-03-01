@@ -233,7 +233,7 @@ namespace Arc {
         handlercfg);
     else if ((sec == GSISec) || (sec == GSIIOSec))
       ClientInterface::AddSecHandler(
-        ConfigFindComponent(xmlcfg["Chain"], "gsi.client", "gsi"),
+        ConfigFindComponent(xmlcfg["Chain"], "tls.client", "gsi"),
         handlercfg);
     else
       ClientInterface::AddSecHandler(
