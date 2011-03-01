@@ -64,17 +64,17 @@ enables submission to other targets, e.g. the classic ARC CE Grid-Manager.
 
 Job submission can be accomplished by invoking the \fBarcsub\fR command
 with the \fB--cluster\fR option set to the target CE, and the job description
-file given as argument. The \fB--cluster\fR option should follow the
-format below:
+file given as argument. The \fB--cluster\fR option has the following format:
 .br
-.ce
-\fB<middleware_flavor>:<URL>\fR
+\fB[<middleware_flavour>:]<URL>\fR
 .br
-where \fBmiddleware_flavor\fR specifies the CE type, e.g. for A-REX 'ARC1'
+where \fBmiddleware_flavour\fR can specify the CE type, e.g. for A-REX 'ARC1'
 should be used, 'CREAM' for CREAM and 'ARC0' for Grid-Manager, and <URL>
-specifies the information endpoint of the CE, including protocol (e.g. http,
-ldap, etc.). Multiple CEs can be targeted for submission by specifying the
-\fB--cluster\fB option multiple times, in which case the CEs will be ranked by
+specifies the information endpoint of the CE, which may include the protocol (e.g. http,
+ldap, etc.). If the \fBmiddleware_flavour\fR is not specified, then the client will
+try all supported flavours to find the correct one.
+Multiple CEs can be targeted for submission by specifying the
+\fB--cluster\fR option multiple times, in which case the CEs will be ranked by
 the resource broker. If no \fB--cluster\fR or \fB--index\fR (see below) options
 have been specified, then the defaults, which is read from the configuration
 file (see the files section), will be used. That also makes it possible to
@@ -82,6 +82,23 @@ define own defaults, so it makes it superfluous to specify the CE usually used
 for submission. In the same manner aliases, defined in the configuration file,
 can be utilized, and should be used as argument to the \fB--cluster\fR or
 \fB--index\fR options.
+
+The format of 'ARC0' cluster URLs:
+.br
+\fB[ARC0:][ldap://]<hostname>[:2135/nordugrid-cluster-name=<hostname>,Mds-Vo-name=local,o=grid]\fR
+.br
+Only the \fBhostname\fR part has to be specified, the rest of the URL is automatically generated.
+
+The format of 'ARC1' cluster URLs:
+.br
+\fB[ARC1:][https://]<hostname>:<port>/<path>\fR
+.br
+
+The format of 'CREAM' cluster URLs:
+.br
+\fB[CREAM:][ldap://]<hostname>[:2170/o=Grid??base?(objectClass=*)]\fR
+.br
+Only the \fBhostname\fR part has to be specified, the rest of the URL is automatically generated.
 
 Job descriptions can also be specified using the \fB--jobdescrfile\fR option
 which expect the file name of the description as argument, or the
@@ -112,7 +129,7 @@ matched against the job description and those matching will be ranked by the
 chosen broker (see below) and submission will be tried in order until
 successful or reaching the end. The format of the argument to the \fB--index\fR
 option follows the one for the \fB--cluster\fR option described above, however
-here \fBmiddleware_flavor\fR designates the type of information index
+here \fBmiddleware_flavour\fR designates the type of information index
 server, e.g. for ISIS 'ARC1' should be used, 'CREAM' for BDII and 'ARC0' for
 GIIS. From the returned list of CEs it might happen that a troublesome or
 undesirable CE is selected for submission, in that case it possible to specify
@@ -132,7 +149,8 @@ then CEs will be ranked according to the 'specint2000' benchmark. For examples
 see the respective section.
 
 Before submission, \fBarcsub\fR performs an intelligent modification of the job
-description (adding or modifying attributes) ensuring that it is valid. The
+description (adding or modifying attributes, even converting the description
+language to fit the needs of the CE) ensuring that it is valid. The
 modified job description can be printed by specifying the
 \fB--dumpdescription\fR option. The format, i.e. job description language, of
 the printed job description cannot be specified, and will be that which will
@@ -152,49 +170,48 @@ grid-manager (ARC0) and A-REX (ARC1) CEs support this feature.
 Submission of a job description file "helloworld.jsdl" to the A-REX CE located
 at "example.com":
 .br
-\fBarcsub --cluster ARC1:https://example.com:60000/arex helloworld.jsdl\fR
+\fBarcsub --cluster ARC1:example.com:60000/arex helloworld.jsdl\fR
 
 Similar submission to a CREAM CE:
 .br
-\fBarcsub --cluster CREAM:ldap://example.com:2170/o=grid helloworld.jsdl\fR
+\fBarcsub --cluster CREAM:example.com helloworld.jsdl\fR
 
-And if the "ARC0" module is installed submission to a Grid-Manager CE can be
+And if the 'ARC0' module is installed submission to a Grid-Manager CE can be
 done as:
 .br
-\fBarcsub --cluster ARC0:ldap://example.com:2135/\\
+\fBarcsub --cluster ARC0:example.com helloworld.jsdl\fR
+
+Specifying the flavour is not mandatory, so this command will submit the job to "example.com" regardless of the type of the CE (by trying all possibilites):
 .br
-nordugrid-cluster-name=example.com,Mds-Vo-name=local,o=grid \\
-.br
-helloworld.jsdl\fR
+\fBarcsub --cluster example.com helloworld.jsdl\fR
 
 A ISIS information index server can also be queried for CEs to submit to:
 .br
-\fBarcsub --index ARC1:https://example.com/isis helloworld.jsdl\fR
+\fBarcsub --index example.com/isis helloworld.jsdl\fR
 
 The job description can also be specified directly on the command line as shown
 in the example, using the XRSL job description language:
 .br
-\fBarcsub --cluster ARC1:https://example.com/arex --jobdescrstring \\
+\fBarcsub --cluster example.com/arex --jobdescrstring \\
 .br
 \'&(executable="/bin/echo")(arguments="Hello World!")\'\fR
 
 When submitting against CEs retrieved from information index servers it might
 be useful to do resource brokering:
 .br
-\fBarcsub --index ARC1:https://example.com/isis --broker FastestQueue \\
+\fBarcsub --index example.com/isis --broker FastestQueue \\
 .br
 helloworld.jsdl\fR
 
 Disregarding a specific CE for submission submitting against an information
 index server:
 .br
-\fBarcsub --index ARC1:https://example.com/isis \\
-.br --cluster
-ARC1:https://badcomputingelement.com/arex helloworld.jsdl\fR
+\fBarcsub --index example.com/isis \\
+.br --cluster -badcomputingelement.com/arex helloworld.jsdl\fR
 
 Dumping the job description is done as follows:
 .br
-\fBarcsub --cluster ARC1:https://example.com/arex --dumpdescription \\
+\fBarcsub --cluster example.com/arex --dumpdescription \\
 .br
 helloworld.jsdl\fR
 

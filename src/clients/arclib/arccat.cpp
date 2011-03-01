@@ -37,12 +37,7 @@ int RUNCAT(main)(int argc, char **argv) {
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arccat command performs the cat "
                                     "command on the stdout, stderr or grid\n"
-                                    "manager's error log of the job."),
-                            istring("Argument to -c has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
-                                    "Mds-Vo-name=local,o=grid"));
+                                    "manager's error log of the job."));
 
   bool all = false;
   options.AddOption('a', "all",

@@ -52,19 +52,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
   Arc::OptionParser options(istring(" "),
                             istring("The arctest command is used for "
-                                    "testing clusters as resources."),
-                            istring("Argument to -g has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "mds-vo-name=sweden,O=grid\n"
-                                    "CREAM:ldap://cream.grid.upjs.sk:2170/"
-                                    "o=grid\n"
-                                    "\n"
-                                    "Argument to -c has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
-                                    "Mds-Vo-name=local,o=grid"));
+                                    "testing clusters as resources."));
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",

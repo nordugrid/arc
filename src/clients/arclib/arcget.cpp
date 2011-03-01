@@ -36,12 +36,7 @@ int RUNGET(main)(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arcget command is used for "
-                                    "retrieving the results from a job."),
-                            istring("Argument to -c has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
-                                    "Mds-Vo-name=local,o=grid"));
+                                    "retrieving the results from a job."));
 
   bool all = false;
   options.AddOption('a', "all",

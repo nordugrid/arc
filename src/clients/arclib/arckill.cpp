@@ -36,12 +36,7 @@ int RUNKILL(main)(int argc, char **argv) {
 
   Arc::OptionParser options(istring("[job ...]"),
                             istring("The arckill command is used to kill "
-                                    "running jobs."),
-                            istring("Argument to -c has the format "
-                                    "Flavour:URL e.g.\n"
-                                    "ARC0:ldap://grid.tsl.uu.se:2135/"
-                                    "nordugrid-cluster-name=grid.tsl.uu.se,"
-                                    "Mds-Vo-name=local,o=grid"));
+                                    "running jobs."));
 
   bool all = false;
   options.AddOption('a', "all",

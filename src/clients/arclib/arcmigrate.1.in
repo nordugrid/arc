@@ -69,12 +69,12 @@ cluster, or to reject migration to a particular cluster. The
 option can be repeated several times. The name of the cluster should
 be given in the format
 
-.B ARC1:protocol://hostname[:port]/path
+.B [ARC1:][protocol://]hostname[:port]/path
 
 .IR Examples :
-.IP "\fBarcmigrate -q ARC1:https://example.org:60000/arex ..."
+.IP "\fBarcmigrate -q example.org:60000/arex ..."
 will migrate the job  to example.org.
-.IP "\fBarcmigrate -q -ARC1:https://example.org:60000/arex ..."
+.IP "\fBarcmigrate -q -example.org:60000/arex ..."
 will migrate the job to some other cluster than interop.grid.niif.hu.
 .LP
 
@@ -115,9 +115,9 @@ the format
 .B Flavor:protocol://hostname[:port]/path
 
 .IR Example :
-.IP "\fBarcmigrate -g ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid ..."
+.IP "\fBarcmigrate -g index1.nordugrid.org ..."
 use the NorduGrid index at index1.nordugrid.org
-.IP "\fBarcmigrate -g -ARC0:ldap://grid.tsl.uu.se:2135/Mds-Vo-name=Sweden,o=grid ..."
+.IP "\fBarcmigrate -g -grid.tsl.uu.se ..."
 do not use the Sweden index at grid.tsl.uu.se
 
 .SH FILES
