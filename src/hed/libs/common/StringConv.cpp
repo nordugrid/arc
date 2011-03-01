@@ -116,6 +116,21 @@ namespace Arc {
 
     return retstr;
   }
+  
+  std::string removeCharacter(std::string& str, const char *sep){
+    std::string::size_type pos = 0;
+    bool stringLeft = true;
+    while( stringLeft ){
+      pos = str.find(sep);
+      if( pos != std::string::npos ){
+        str.erase( pos, 1 );
+      }
+      else{ 
+        stringLeft = false;
+      }
+    } 
+    return str;
+  }   
 
 #if HAVE_URI_UNESCAPE_STRING
   std::string uri_unescape(const std::string& str) {
