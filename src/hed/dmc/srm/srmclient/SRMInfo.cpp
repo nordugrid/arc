@@ -5,6 +5,7 @@
 
 #include <glibmm.h>
 
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 
@@ -43,66 +44,45 @@ SRMInfo::SRMInfo(std::string dir) {
 
 bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
   
+  filelock->lock();
   struct stat fileStat;
   int err = stat( srm_info_filename.c_str(), &fileStat ); 
   if (0 != err || fileStat.st_size == 0) {
     if (0 != err && errno != ENOENT)
       logger.msg(Arc::WARNING, "Error reading srm info file %s:%s", srm_info_filename, strerror(errno));
-    return false;
-  }
-
-  filelock->lock();
-  FILE * pFile;
-  char* mystring = new char[fileStat.st_size+1];
-  if (!mystring) {
-    logger.msg(Arc::WARNING, "Error allocating memory for info file %s:%s", srm_info_filename, strerror(errno));
-    filelock->unlock();
-    return false;
-  }
-  pFile = fopen (srm_info_filename.c_str(), "r");
-  if (pFile == NULL) {
-    delete[] mystring;
-    logger.msg(Arc::WARNING, "Error reading srm info file %s:%s", srm_info_filename, strerror(errno));
     filelock->unlock();
     return false;
   }
 
-  // read in file
-  char * res = fgets (mystring, fileStat.st_size+1, pFile);
-  while (res) {
-    std::string line(mystring);
-    line = Arc::trim(line);
-    if (line.length() > 0 && line[0] == '#') {
-      res = fgets (mystring, fileStat.st_size+1, pFile);
+  std::list<std::string> filedata;
+  if (!Arc::FileRead(srm_info_filename, filedata)) {
+    logger.msg(Arc::WARNING, "Error reading info from file %s", srm_info_filename);
+    filelock->unlock();
+    return false;
+  }
+
+  for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
+    if (line->length() > 0 && (*line)[0] == '#')
       continue;
-    }
     // split line
     std::vector<std::string> fields;
-    Arc::tokenize(line, fields);
+    Arc::tokenize(*line, fields);
     if (fields.size() != 3) {
-      if (line.length() > 0) 
-        logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, line);
-      res = fgets (mystring, fileStat.st_size+1, pFile);
+      logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, *line);
       continue;
     }
     // look for our combination of host and version
     if (fields.at(0) == srm_file_info.host && fields.at(2) == srm_file_info.versionString()) {
       int port_i = Arc::stringtoi(fields.at(1));
       if (port_i == 0) {
-        logger.msg(Arc::WARNING, "Can't convert string %s to int in file %s, line %s", fields.at(1), srm_info_filename, line);
-        res = fgets (mystring, fileStat.st_size+1, pFile);
+        logger.msg(Arc::WARNING, "Can't convert string %s to int in file %s, line %s", fields.at(1), srm_info_filename, *line);
         continue;
       }        
       srm_file_info.port = port_i;
-      delete[] mystring;
-      fclose(pFile);
       filelock->unlock();
       return true;
     }
-    res = fgets (mystring, fileStat.st_size+1, pFile);
   }
-  delete[] mystring;
-  fclose(pFile);
   filelock->unlock();
   return false;
 }
@@ -116,98 +96,61 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   header += "# are on-going transfers. Comments begin with #\n#\n";
 
   struct stat fileStat;
+  filelock->lock();
   int err = stat( srm_info_filename.c_str(), &fileStat ); 
   if (0 != err || fileStat.st_size == 0) {
     if (0 != err && errno != ENOENT) {
       logger.msg(Arc::WARNING, "Error reading srm info file %s:%s", srm_info_filename, strerror(errno));
-      return;
-    }
-    
-    // write new file
-    filelock->lock();
-    
-    FILE * pFile;
-    pFile = fopen (srm_info_filename.c_str(), "w");
-    if (pFile == NULL) {
-      logger.msg(Arc::ERROR, "Error opening srm info file for writing %s:%s", srm_info_filename, strerror(errno));
       filelock->unlock();
       return;
     }
+    // write new file
     header += srm_file_info.host + ' ' + Arc::tostring(srm_file_info.port) + ' ' + srm_file_info.versionString() + '\n';
-    fputs ((char*)header.c_str(), pFile);
-    fclose (pFile);
+    
+    if (!Arc::FileCreate(srm_info_filename, header))
+      logger.msg(Arc::WARNING, "Error creating srm info file %s", srm_info_filename);
     filelock->unlock();
     return;
   }
 
   // file already exists, so add this entry/replace existing entry
-  filelock->lock();
-  FILE * pFile;
-  char* mystring = new char[fileStat.st_size+1];
-  if(!mystring) {
-    logger.msg(Arc::WARNING, "Error allocating memory for srm info file %s:%s", srm_info_filename, strerror(errno));
-    filelock->unlock();
-    return;
-  }
-  pFile = fopen (srm_info_filename.c_str(), "r");
-  if (pFile == NULL) {
-    delete[] mystring;
-    logger.msg(Arc::WARNING, "Error opening srm info file %s:%s", srm_info_filename, strerror(errno));
+  std::list<std::string> filedata;
+  if (!Arc::FileRead(srm_info_filename, filedata)) {
+    logger.msg(Arc::WARNING, "Error reading info from file %s", srm_info_filename);
     filelock->unlock();
     return;
   }
 
-  // read in file
-  std::vector<std::string> lines;
-  
-  char * res = fgets (mystring, fileStat.st_size+1, pFile);
-  while (res) {
-    std::string line(mystring);
-    line = Arc::trim(line);
-    if (line.length() > 0 && line[0] == '#') {
+  std::string lines;
+  for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
+    if (line->length() > 0 && (*line)[0] == '#') {
       // check for old-style file - if so re-write whole file
-      if (line.find("# Its format is lines with 4 entries separated by spaces:") == 0) {
-        lines.clear();
-        lines.push_back(header);
+      if (line->find("# Its format is lines with 4 entries separated by spaces:") == 0) {
+        lines = header;
         break;
       }
-      lines.push_back(line+'\n');
-      res = fgets (mystring, fileStat.st_size+1, pFile);
+      lines += *line+'\n';
       continue;
     }
     // split line
     std::vector<std::string> fields;
-    Arc::tokenize(line, fields);
+    Arc::tokenize(*line, fields);
     if (fields.size() != 3) {
-      if (line.length() > 0) 
-        logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, line);
-      res = fgets (mystring, fileStat.st_size+1, pFile);
+      if (line->length() > 0)
+        logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, *line);
       continue;
     }
     // if any line contains our combination of host and version, ignore it
-    if (fields.at(0) == srm_file_info.host && fields.at(2) == srm_file_info.versionString()) {
-      res = fgets (mystring, fileStat.st_size+1, pFile);
+    if (fields.at(0) == srm_file_info.host && fields.at(2) == srm_file_info.versionString())
       continue;
-    }
-    lines.push_back(line+'\n');
-    res = fgets (mystring, fileStat.st_size+1, pFile);
+    lines += *line+'\n';
   }
-  delete[] mystring;
-  fclose(pFile);
+  // add new info
+  lines += srm_file_info.host + ' ' + Arc::tostring(srm_file_info.port) + ' ' + srm_file_info.versionString() + '\n';
 
   // write everything back to the file
-  pFile = fopen (srm_info_filename.c_str(), "w");
-  if (pFile == NULL) {
-    logger.msg(Arc::WARNING, "Error opening srm info file for writing %s:%s", srm_info_filename, strerror(errno));
-    filelock->unlock();
-    return;
-  }
-  
-  for (std::vector<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
-    fputs ((char*)i->c_str(), pFile);
-  }
-  std::string this_info = srm_file_info.host + ' ' + Arc::tostring(srm_file_info.port) + ' ' + srm_file_info.versionString() + '\n';
-  fputs ((char*)this_info.c_str(), pFile);
-  fclose (pFile);
+  if (!Arc::FileCreate(srm_info_filename, lines))
+    logger.msg(Arc::WARNING, "Error writing srm info file %s", srm_info_filename);
+
   filelock->unlock();
 }

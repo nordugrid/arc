@@ -27,9 +27,9 @@ class SRMInfo {
   bool getSRMFileInfo(SRMFileInfo& srm_file_info);
   void putSRMFileInfo(const SRMFileInfo& srm_file_info);
  private:
-  std::string srm_info_filename;
   static Arc::SimpleCondition * filelock;
   static Arc::Logger logger;
+  std::string srm_info_filename;
 };
 
 #endif /*SRM_INFO_H_*/
