@@ -29,6 +29,7 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
+#include <arc/credential/Credential.h>
 
 #ifdef TEST
 #define RUNRESUB(X) test_arcresub_##X
@@ -152,6 +153,33 @@ int RUNRESUB(main)(int argc, char **argv) {
   Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
+    return 1;
+  }
+
+  if (!usercfg.ProxyPath().empty() ) {
+    if (!usercfg.CACertificatesDirectory().empty() ){
+      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "");
+      if(holder.IsValid() ){
+        if (holder.GetEndTime() < Arc::Time()){
+          std::cout << Arc::IString("Proxy expired. Job submission aborted.") << std::endl;
+          return 1;
+        }
+        else if (holder.GetVerification()) {
+          logger.msg(Arc::INFO, "Proxy successfully verified.");
+        }
+      }
+      else {
+          std::cout << Arc::IString("Proxy not valid. Job submission aborted.") << std::endl;
+          return 1;
+        }
+      }
+      else {
+      std::cout << Arc::IString("Cannot find CA certificates directory. Please specify the location to the directory in the client configuration file.") << std::endl;
+      return 1;
+    }
+  }
+  else {
+    std::cout << Arc::IString("Cannot find any proxy. Please specify the path to the proxy file in the client configuration file.") << std::endl;
     return 1;
   }
 

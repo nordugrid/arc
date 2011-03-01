@@ -27,7 +27,7 @@
 #include <arc/client/JobDescription.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
-
+#include <arc/credential/Credential.h>
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
 int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::string& jobidfile);
@@ -163,6 +163,33 @@ int RUNSUB(main)(int argc, char **argv) {
     return 1;
   }
 
+  if (!usercfg.ProxyPath().empty() ) {
+    if (!usercfg.CACertificatesDirectory().empty() ){
+      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "");
+      if(holder.IsValid() ){  
+        if (holder.GetEndTime() < Arc::Time()){
+          std::cout << Arc::IString("Proxy expired. Job submission aborted.") << std::endl;
+          return 1;
+        }
+        else if (holder.GetVerification()) {
+          logger.msg(Arc::INFO, "Proxy successfully verified.");
+        }
+      }
+      else {
+          std::cout << Arc::IString("Proxy not valid. Job submission aborted.") << std::endl;
+          return 1;
+        }
+      }
+      else {
+      std::cout << Arc::IString("Cannot find CA certificates directory. Please specify the location to the directory in the client configuration file.") << std::endl;
+      return 1;
+    }
+  }
+  else {
+    std::cout << Arc::IString("Cannot find any proxy. Please specify the path to the proxy file in the client configuration file.") << std::endl;
+    return 1;
+  }
+
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
@@ -273,7 +300,7 @@ void printjobid(const std::string& jobid, const std::string& jobidfile) {
 
 int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::string& jobidfile) {
   int retval = 0;
-
+  
   Arc::TargetGenerator targen(usercfg);
   targen.RetrieveExecutionTargets();
 
