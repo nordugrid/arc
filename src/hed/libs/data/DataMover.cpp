@@ -713,7 +713,7 @@ namespace Arc {
                                              DataPoint::INFO_TYPE_CONTENT);
         DataStatus r = source_url.Stat(fileinfo, verb);
         if (!r.Passed()) {
-          logger.msg(ERROR, "Failed to check source %s", source_url.str());
+          logger.msg(ERROR, "Failed to stat source %s", source_url.str());
           if (source.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next source");
           res = DataStatus::ReadError;
