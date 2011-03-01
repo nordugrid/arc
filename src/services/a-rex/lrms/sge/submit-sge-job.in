@@ -273,7 +273,7 @@ RTE_stage1
 echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
 if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
-  echo "Nodes detached from gridarea are not supported yet" 1>&2
+  echo "Nodes detached from gridarea are not supported when SGE is used. Aborting job submit" 1>&2
   rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
   exit 1
 fi
