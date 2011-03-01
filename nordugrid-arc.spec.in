@@ -503,7 +503,6 @@ storage, there is no constraint on these applications.
 Summary:	ARC dynamic installation of runtime environments
 Group:		Applications/Internet
 Requires:	wget
-Requires:	perl(Log::Log4perl)
 Provides:	nordugrid-arc1-janitor = 1.3.0
 Obsoletes:	nordugrid-arc1-janitor < 1.0.0
 Provides:	nordugrid-arc-nox-janitor = 1.3.0
