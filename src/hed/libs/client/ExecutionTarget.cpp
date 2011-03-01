@@ -11,6 +11,7 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Submitter.h>
 #include <arc/UserConfig.h>
+#include <arc/StringConv.h>
 
 namespace Arc {
 
@@ -287,18 +288,24 @@ namespace Arc {
   }
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
-    
+   
+    out << IString("Execution Service: %s", ServiceName) << std::endl; 
     if (ServiceType == "org.nordugrid.arc-classic") {
-       out << IString("Execution Service: %s", ServiceName) << std::endl;
+       if (Cluster) {
+        std::string classicURL = Cluster.str();
+        classicURL = removeCharacter(classicURL);
+        std::string::size_type pos = classicURL.find("?");
+        classicURL = classicURL.substr(0,pos);   
+        out << IString(" URL: %s:%s" ,GridFlavour ,classicURL) << std::endl;
+       }
     }
     else {  
-       out << IString("Execution Service: %s", DomainName) << std::endl;
+       if (url) {
+        out << IString(" URL: %s:%s" ,GridFlavour ,url.str()) << std::endl;
+    }
     }
     if (!ComputingShareName.empty()) {
        out << IString(" Queue: %s", ComputingShareName) << std::endl;
-    }
-    if (url) {
-        out << IString(" URL: %s:%s" ,GridFlavour ,url.str()) << std::endl;
     }
     if (!HealthState.empty()){
       out << IString(" Health State: %s", HealthState) << std::endl;
