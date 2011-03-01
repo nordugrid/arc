@@ -24,6 +24,20 @@ namespace Arc {
   /// Copy from file handle source_handle to file handle destination_handle
   bool FileCopy(int source_handle,int destination_handle);
 
+  /// Simple method to read file content from filename.
+  /** The content is split into lines with the new line character removed,
+   * and the lines are returned in the data list. For more complex file
+   * handling or large files, FileOpen() should be used. No locking is
+   * performed by this method. */
+  bool FileRead(const std::string& filename, std::list<std::string>& data);
+
+  /// Simple method to create a new file containing given data.
+  /** An existing file is overwritten with the new data. Permissions of the
+   * created file are determined using the current umask. For more complex
+   * file handling or large files, FileOpen() should be used. No locking is
+   * performed by this method. */
+  bool FileCreate(const std::string& filename, const std::string& data);
+
   /// Open a directory and return a pointer to a Dir object which can be iterated over
   Glib::Dir* DirOpen(const std::string& path);
 

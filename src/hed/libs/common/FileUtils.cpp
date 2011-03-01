@@ -160,6 +160,35 @@ bool FileCopy(int source_handle,int destination_handle) {
   return r;
 }
 
+bool FileRead(const std::string& filename, std::list<std::string>& data) {
+  data.clear();
+  std::ifstream is(filename.c_str());
+  if (!is.good()) {
+    is.close();
+    return false;
+  }
+  std::string line;
+  while (std::getline(is, line)) {
+    data.push_back(line);
+  }
+  is.close();
+  return true;
+}
+
+bool FileCreate(const std::string& filename, const std::string& data) {
+  if (remove(filename.c_str()) != 0 && errno != ENOENT)
+    return false;
+  std::ofstream os(filename.c_str());
+  if (!os.good()) {
+    os.close();
+    return false;
+  }
+  os << data;
+  os.close();
+  return true;
+}
+
+
 Glib::Dir* DirOpen(const std::string& path) {
   return DirOpen(path,0,0);
 }

@@ -11,6 +11,7 @@ class FileUtilsTest
   CPPUNIT_TEST(TestFileOpen);
   CPPUNIT_TEST(TestFileStat);
   CPPUNIT_TEST(TestFileCopy);
+  CPPUNIT_TEST(TestFileCreateAndRead);
   CPPUNIT_TEST(TestDirOpen);
   CPPUNIT_TEST(TestMakeAndDeleteDir);
   CPPUNIT_TEST(TestTmpDirCreate);
@@ -23,6 +24,7 @@ public:
   void TestFileOpen();
   void TestFileStat();
   void TestFileCopy();
+  void TestFileCreateAndRead();
   void TestDirOpen();
   void TestMakeAndDeleteDir();
   void TestTmpDirCreate();
@@ -78,6 +80,34 @@ void FileUtilsTest::TestFileCopy() {
   CPPUNIT_ASSERT_EQUAL(0, close(h));
   CPPUNIT_ASSERT_EQUAL(0, close(h2));
 }
+
+void FileUtilsTest::TestFileCreateAndRead() {
+  // create empty file
+  std::string filename(testroot + "/file1");
+  CPPUNIT_ASSERT(Arc::FileCreate(filename, ""));
+
+  struct stat st;
+  CPPUNIT_ASSERT(Arc::FileStat(filename, &st, true));
+  CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
+
+  std::list<std::string> data;
+  CPPUNIT_ASSERT(Arc::FileRead(filename, data));
+  CPPUNIT_ASSERT(data.empty());
+
+  // create again with some data
+  CPPUNIT_ASSERT(Arc::FileCreate(filename, "12\nabc\n\nxyz\n"));
+
+  CPPUNIT_ASSERT(Arc::FileRead(filename, data));
+  CPPUNIT_ASSERT_EQUAL(4, (int)data.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("12"), data.front());
+  CPPUNIT_ASSERT_EQUAL(std::string("xyz"), data.back());
+
+  // remove file and check failure
+  CPPUNIT_ASSERT_EQUAL(0, remove(filename.c_str()));
+  CPPUNIT_ASSERT(!Arc::FileRead(filename, data));
+}
+
+
 
 void FileUtilsTest::TestDirOpen() {
   CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
