@@ -185,15 +185,24 @@ static int no_passphrase_callback(char*, int, int, void*) {
 
 bool PayloadTLSMCC::StoreInstance(void) {
    if(ex_data_index_ == -1) {
-      // In case of race condition we will have 2 indices assigned - harmless
+      // In case of race condition we will have 2 indices assigned - harmless?
       ex_data_index_=OpenSSLAppDataIndex(ex_data_id);
    };
    if(ex_data_index_ == -1) {
       Logger::getRootLogger().msg(ERROR,"Failed to store application data");
       return false;
    };
+   if(!sslctx_) return false;
    SSL_CTX_set_ex_data(sslctx_,ex_data_index_,this);
    return true;
+}
+
+bool PayloadTLSMCC::ClearInstance(void) {
+  if((ex_data_index_ != -1) && sslctx_) {
+    SSL_CTX_set_ex_data(sslctx_,ex_data_index_,NULL);
+    return true;
+  };
+  return false;
 }
 
 PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
@@ -369,13 +378,30 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
 PayloadTLSMCC::~PayloadTLSMCC(void) {
   if (!master_)
     return;
+  // There are indirect evidences that verify callback
+  // was called after this object was destroyed. Although
+  // that may be misinterpretation it is probably safer
+  // to detach code of this object from OpenSSL now by
+  // calling SSL_set_verify/SSL_CTX_set_verify and by
+  // removing associated ex_data.
+  ClearInstance();
   if (ssl_) {
-    if (SSL_shutdown(ssl_) < 0)
+    SSL_set_verify(ssl_,SSL_VERIFY_NONE,NULL);
+    int err = SSL_shutdown(ssl_);
+    if(err == 0) err = SSL_shutdown(ssl_);
+    if(err < 0) { // -1 expected
       logger_.msg(INFO, "Failed to shut down SSL");
+      HandleError(SSL_ERROR_NONE);
+      // Trying to get out of error
+      SSL_set_quiet_shutdown(ssl_,1);
+      SSL_shutdown(ssl_);
+    };
+    // SSL_clear(ssl_); ???
     SSL_free(ssl_);
     ssl_ = NULL;
   }
   if(sslctx_) {
+    SSL_CTX_set_verify(sslctx_,SSL_VERIFY_NONE,NULL);
     SSL_CTX_free(sslctx_);
     sslctx_ = NULL;
   }

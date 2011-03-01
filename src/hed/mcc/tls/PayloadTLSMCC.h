@@ -27,6 +27,7 @@ class PayloadTLSMCC: public PayloadTLSStream {
   //PayloadTLSMCC(PayloadTLSMCC& stream);
   ConfigTLSMCC config_;
   bool StoreInstance(void);
+  bool ClearInstance(void);
   // Generic purpose bit flags
   unsigned long flags_;
  public:
