@@ -1707,6 +1707,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/common/Makefile
                  src/hed/libs/common/test/Makefile
                  src/hed/libs/credential/Makefile
+                 src/hed/libs/credential/test/Makefile
                  src/hed/libs/credentialmod/Makefile
                  src/hed/libs/crypto/Makefile
                  src/hed/libs/cryptomod/Makefile

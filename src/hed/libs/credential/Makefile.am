@@ -46,3 +46,6 @@ testeec_SOURCES  = testeec.cpp
 testeec_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) -I$(top_srcdir)/include
 testeec_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(EXTRA_LIBS)
 testeec_LDADD    = ./libarccredential.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
+
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)
