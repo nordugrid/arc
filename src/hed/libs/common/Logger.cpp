@@ -63,6 +63,7 @@ namespace Arc {
     else if (str == "FATAL")
       return FATAL;
     else  // should not happen...
+      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using FATAL.");
       return FATAL;
   }
 
@@ -138,6 +139,7 @@ namespace Arc {
     else if (old_level == 0)
       return FATAL;
     else  // cannot happen...
+      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using FATAL.");
       return FATAL;
   }
 
