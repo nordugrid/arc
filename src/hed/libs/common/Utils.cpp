@@ -63,7 +63,18 @@ namespace Arc {
   static SIGPIPEIngore sigpipe_ignore;
 #endif
 
+  // The purpose of this mutex is to 'solve' problem with
+  // some third party libraries which use environment variables
+  // as input arguments :(
+  static Glib::Mutex env_write_lock;
+
+  // And this mutex is needed because it seems like none if
+  // underlying functions provide proper thread protection  
+  // of environment variables
+  static Glib::Mutex env_read_lock;
+
   std::string GetEnv(const std::string& var) {
+    Glib::Mutex::Lock env_lock(env_read_lock);
 #ifdef HAVE_GLIBMM_GETENV
     return Glib::getenv(var);
 #else
@@ -73,6 +84,7 @@ namespace Arc {
   }
 
   std::string GetEnv(const std::string& var, bool &found) {
+    Glib::Mutex::Lock env_lock(env_read_lock);
 #ifdef HAVE_GLIBMM_GETENV
     return Glib::getenv(var, found);
 #else
@@ -82,33 +94,29 @@ namespace Arc {
 #endif
   }
 
-  // The purpose of this mutex is to 'solve' problem with
-  // some third party libraries which use environment variables
-  // as input arguments :(
-  static Glib::Mutex env_lock;
-
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite) {
-    env_lock.lock();
+    env_write_lock.lock();
     bool r = SetEnvNonLock(var, value, overwrite);
-    env_lock.unlock();
+    env_write_lock.unlock();
     return r;
   }
 
   void UnsetEnv(const std::string& var) {
-    env_lock.lock();
+    env_write_lock.lock();
     UnsetEnvNonLock(var);
-    env_lock.unlock();
+    env_write_lock.unlock();
   }
 
   void EnvLockAcquire(void) {
-    env_lock.lock();
+    env_write_lock.lock();
   }
 
   void EnvLockRelease(void) {
-    env_lock.unlock();
+    env_write_lock.unlock();
   }
 
   bool SetEnvNonLock(const std::string& var, const std::string& value, bool overwrite) {
+    Glib::Mutex::Lock env_lock(env_read_lock);
 #ifdef HAVE_GLIBMM_SETENV
     return Glib::setenv(var, value, overwrite);
 #else
@@ -121,6 +129,7 @@ namespace Arc {
   }
 
   void UnsetEnvNonLock(const std::string& var) {
+    Glib::Mutex::Lock env_lock(env_read_lock);
 #ifdef HAVE_GLIBMM_UNSETENV
     Glib::unsetenv(var);
 #else
