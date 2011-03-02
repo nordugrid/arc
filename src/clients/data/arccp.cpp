@@ -150,7 +150,9 @@ bool arcregister(const Arc::URL& source_url,
     return false;
   }
   // Obtain meta-information about source
-  if (!source->Check()) {
+  Arc::FileInfo fileinfo;
+  Arc::DataPoint::DataPointInfoType verb = (Arc::DataPoint::DataPointInfoType)Arc::DataPoint::INFO_TYPE_CONTENT;
+  if (!source->Stat(fileinfo, verb)) {
     logger.msg(Arc::ERROR, "Source probably does not exist");
     return false;
   }
