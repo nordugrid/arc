@@ -257,6 +257,9 @@ int main(int argc, char *argv[]) {
                                          ),
                     info);
 
+  bool remove_proxy = false;
+  options.AddOption('r', "remove", istring("remove proxy"), remove_proxy);
+
   std::string user_name; //user name to MyProxy server
   options.AddOption('U', "user", istring("username to MyProxy server"),
                     istring("string"), user_name);
@@ -414,6 +417,23 @@ int main(int argc, char *argv[]) {
   }
 
   const Arc::Time now;
+  
+  if (remove_proxy) {
+    if (proxy_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
+                 "please setup environment X509_USER_PROXY, "
+                 "or proxypath in a configuration file");
+      return EXIT_FAILURE;
+    } else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
+        logger.msg(Arc::ERROR, "Cannot remove proxy file at %s, because it's not there", proxy_path);
+        return EXIT_FAILURE;
+    }
+    if((unlink(proxy_path.c_str()) != 0) && (errno != ENOENT)) {
+        logger.msg(Arc::ERROR, "Cannot remove proxy file at %s", proxy_path);
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+  }
 
   if (info) {
     std::vector<Arc::VOMSACInfo> voms_attributes;
