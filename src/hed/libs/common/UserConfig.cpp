@@ -304,7 +304,18 @@ namespace Arc {
         proxyPath.clear();
       }
     }
-    else if (!GetEnv("X509_USER_CERT").empty() &&
+    else if (!proxyPath.empty()) {
+      if (!Glib::file_test(proxyPath, Glib::FILE_TEST_IS_REGULAR)) {
+        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+        proxyPath.clear();
+      }
+    }
+    else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(WARNING, "Proxy file does not exist: %s "
+                          "trying certificate and key", proxyPath);
+      proxyPath.clear();
+    }
+    if (!GetEnv("X509_USER_CERT").empty() &&
              !GetEnv("X509_USER_KEY").empty()) {
       if (!Glib::file_test(certificatePath = GetEnv("X509_USER_CERT"), Glib::FILE_TEST_IS_REGULAR)) {
         logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
@@ -313,12 +324,6 @@ namespace Arc {
       if (!Glib::file_test(keyPath = GetEnv("X509_USER_KEY"), Glib::FILE_TEST_IS_REGULAR)) {
         logger.msg(ERROR, "Can not access key file: %s", keyPath);
         keyPath.clear();
-      }
-    }
-    else if (!proxyPath.empty()) {
-      if (!Glib::file_test(proxyPath, Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
-        proxyPath.clear();
       }
     }
     else if (!certificatePath.empty() && !keyPath.empty()) {
@@ -331,31 +336,26 @@ namespace Arc {
         keyPath.clear();
       }
     }
-    else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(WARNING, "Default proxy file does not exist: %s "
-                          "trying default certificate and key", proxyPath);
-      proxyPath.clear();
-      if (user.get_uid() == 0) {
-        certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
-        keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
-      }
-      else {
-        certificatePath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
-        keyPath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
-      }
+    else if (user.get_uid() == 0) {
+      certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
+      keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
+    }
+    else {
+      certificatePath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
+      keyPath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
 #ifdef WIN32
-        certificatePath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
-        keyPath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
+      certificatePath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
+      keyPath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
 #endif
+    }
 
-      if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
-        certificatePath.clear();
-      }
-      if (!Glib::file_test(keyPath, Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access key file: %s", keyPath);
-        keyPath.clear();
-      }
+    if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
+      certificatePath.clear();
+    }
+    if (!Glib::file_test(keyPath, Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(ERROR, "Can not access key file: %s", keyPath);
+      keyPath.clear();
     }
 
     if (!GetEnv("X509_CERT_DIR").empty()) {
@@ -384,7 +384,7 @@ namespace Arc {
 
     if (!proxyPath.empty())
       logger.msg(INFO, "Using proxy file: %s", proxyPath);
-    else if (!certificatePath.empty() && !keyPath.empty()) {
+    if (!certificatePath.empty() && !keyPath.empty()) {
       logger.msg(INFO, "Using certificate file: %s", certificatePath);
       logger.msg(INFO, "Using key file: %s", keyPath);
     }
