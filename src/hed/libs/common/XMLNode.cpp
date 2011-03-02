@@ -228,7 +228,9 @@ namespace Arc {
     : node_(NULL),
       is_owner_(false),
       is_temporary_(false) {
-    xmlDocPtr doc = xmlParseMemory((char*)(xml.c_str()), xml.length());
+    //xmlDocPtr doc = xmlParseMemory((char*)(xml.c_str()), xml.length());
+    xmlDocPtr doc = xmlReadMemory(xml.c_str(),xml.length(),NULL,NULL,
+                                  XML_PARSE_NODICT|XML_PARSE_NOERROR|XML_PARSE_NOWARNING);
     if (!doc)
       return;
     xmlNodePtr p = doc->children;
@@ -250,7 +252,9 @@ namespace Arc {
       return;
     if (len == -1)
       len = strlen(xml);
-    xmlDocPtr doc = xmlParseMemory((char*)xml, len);
+    //xmlDocPtr doc = xmlParseMemory((char*)xml, len);
+    xmlDocPtr doc = xmlReadMemory(xml,len,NULL,NULL,
+                                  XML_PARSE_NODICT|XML_PARSE_NOERROR|XML_PARSE_NOWARNING);
     if (!doc)
       return;
     xmlNodePtr p = doc->children;
@@ -1044,7 +1048,9 @@ namespace Arc {
     std::getline<char>(in, s, 0);
     if (!in)
       return false;
-    xmlDocPtr doc = xmlParseMemory((char*)(s.c_str()), s.length());
+    //xmlDocPtr doc = xmlParseMemory((char*)(s.c_str()), s.length());
+    xmlDocPtr doc = xmlReadMemory(s.c_str(),s.length(),NULL,NULL,
+                                  XML_PARSE_NODICT|XML_PARSE_NOERROR|XML_PARSE_NOWARNING);
     if (doc == NULL)
       return false;
     xmlNodePtr p = doc->children;
