@@ -772,7 +772,7 @@ namespace Arc {
         if (!SingleValue(c, mem))
           return false;
 
-        j.Resources.IndividualPhysicalMemory = stringto<int_t>(mem);
+        j.Resources.IndividualPhysicalMemory = stringto<int>(mem);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Resources.IndividualPhysicalMemory = j.Resources.IndividualPhysicalMemory;
@@ -785,7 +785,7 @@ namespace Arc {
         std::string disk;
         if (!SingleValue(c, disk))
           return false;
-        j.Resources.DiskSpaceRequirement.DiskSpace = stringto<int_t>(disk);
+        j.Resources.DiskSpaceRequirement.DiskSpace = stringto<int>(disk);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Resources.DiskSpaceRequirement.DiskSpace = j.Resources.DiskSpaceRequirement.DiskSpace;

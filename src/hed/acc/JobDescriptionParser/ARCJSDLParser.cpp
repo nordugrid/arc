@@ -389,23 +389,23 @@ namespace Arc {
         job.Resources.NetworkInfo = "infiniband";
     }
 
-    // Range<int_t> IndividualPhysicalMemory;
+    // Range<int> IndividualPhysicalMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualPhysicalMemory"]))
-      parseRange<int_t>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory, -1);
+      parseRange<int>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory, -1);
     else if (bool(xmlXApplication["MemoryLimit"])) {
-      if (!stringto<int_t>((std::string)xmlXApplication["MemoryLimit"], job.Resources.IndividualPhysicalMemory.max))
-        job.Resources.IndividualPhysicalMemory = Range<int_t>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["MemoryLimit"], job.Resources.IndividualPhysicalMemory.max))
+        job.Resources.IndividualPhysicalMemory = Range<int>(-1);
     }
 
-    // Range<int_t> IndividualVirtualMemory;
+    // Range<int> IndividualVirtualMemory;
     // If the consolidated element exist parse it, else try to parse the POSIX one.
     if (bool(resource["IndividualVirtualMemory"])) {
-      parseRange<int_t>(resource["IndividualVirtualMemory"], job.Resources.IndividualVirtualMemory, -1);
+      parseRange<int>(resource["IndividualVirtualMemory"], job.Resources.IndividualVirtualMemory, -1);
     }
     else if (bool(xmlXApplication["VirtualMemoryLimit"])) {
-      if (!stringto<int_t>((std::string)xmlXApplication["VirtualMemoryLimit"], job.Resources.IndividualVirtualMemory.max))
-        job.Resources.IndividualVirtualMemory = Range<int_t>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["VirtualMemoryLimit"], job.Resources.IndividualVirtualMemory.max))
+        job.Resources.IndividualVirtualMemory = Range<int>(-1);
     }
 
     // Range<int> IndividualCPUTime;
@@ -446,22 +446,22 @@ namespace Arc {
         job.Resources.TotalWallTime.range = Range<int>(-1);
     }
 
-    // Range<int_t> DiskSpace;
+    // Range<int> DiskSpace;
     // If the consolidated element exist parse it, else try to parse the JSDL one.
     if (bool(resource["DiskSpaceRequirement"]["DiskSpace"]))
-      parseRange<int_t>(resource["DiskSpaceRequirement"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
+      parseRange<int>(resource["DiskSpaceRequirement"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
     else if (bool(resource["FileSystem"]["DiskSpace"]))
-      parseRange<int_t>(resource["FileSystem"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
+      parseRange<int>(resource["FileSystem"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
 
-    // int_t CacheDiskSpace;
+    // int CacheDiskSpace;
     if (bool(resource["DiskSpaceRequirement"]["CacheDiskSpace"])) {
-      if (!stringto<int_t>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], job.Resources.DiskSpaceRequirement.CacheDiskSpace))
+      if (!stringto<int>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], job.Resources.DiskSpaceRequirement.CacheDiskSpace))
          job.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
     }
 
-    // int_t SessionDiskSpace;
+    // int SessionDiskSpace;
     if (bool(resource["DiskSpaceRequirement"]["SessionDiskSpace"])) {
-      if (!stringto<int_t>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], job.Resources.DiskSpaceRequirement.SessionDiskSpace))
+      if (!stringto<int>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], job.Resources.DiskSpaceRequirement.SessionDiskSpace))
         job.Resources.DiskSpaceRequirement.SessionDiskSpace = -1;
     }
 
@@ -815,38 +815,38 @@ namespace Arc {
       break;
     }
 
-    // Range<int_t> IndividualPhysicalMemory;
+    // Range<int> IndividualPhysicalMemory;
     {
       XMLNode xmlIPM("<IndividualPhysicalMemory/>");
-      outputARCJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int_t)-1);
+      outputARCJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int)-1);
       // JSDL compliance...
-      outputJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int_t)-1);
+      outputJSDLRange(job.Resources.IndividualPhysicalMemory, xmlIPM, (int)-1);
       if (xmlIPM.Size() > 0)
         xmlResources.NewChild(xmlIPM);
     }
 
-    // Range<int_t> IndividualVirtualMemory;
+    // Range<int> IndividualVirtualMemory;
     {
       XMLNode xmlIVM("<IndividualVirtualMemory/>");
-      outputARCJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int_t)-1);
-      outputJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int_t)-1);
+      outputARCJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int)-1);
+      outputJSDLRange(job.Resources.IndividualVirtualMemory, xmlIVM, (int)-1);
       if (xmlIVM.Size() > 0)
         xmlResources.NewChild(xmlIVM);
     }
 
     {
-      // Range<int_t> DiskSpace;
+      // Range<int> DiskSpace;
       XMLNode xmlDiskSpace("<DiskSpace/>");
-      outputARCJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int_t)-1);
+      outputARCJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int)-1);
 
       if (xmlDiskSpace.Size() > 0) {
         xmlResources.NewChild("DiskSpaceRequirement").NewChild(xmlDiskSpace);
 
-        // int_t CacheDiskSpace;
+        // int CacheDiskSpace;
         if (job.Resources.DiskSpaceRequirement.CacheDiskSpace != -1)
           xmlResources["DiskSpaceRequirement"].NewChild("CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace);
 
-        // int_t SessionDiskSpace;
+        // int SessionDiskSpace;
         if (job.Resources.DiskSpaceRequirement.SessionDiskSpace != -1)
           xmlResources["DiskSpaceRequirement"].NewChild("SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace);
       }
@@ -855,7 +855,7 @@ namespace Arc {
     {
       // JSDL Compliance...
       XMLNode xmlDiskSpace("<FileSystem/>");
-      outputJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int_t)-1);
+      outputJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int)-1);
       if (xmlDiskSpace.Size() > 0)
         xmlResources.NewChild("FileSystem").NewChild(xmlDiskSpace);
     }
