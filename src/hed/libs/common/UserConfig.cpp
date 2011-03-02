@@ -581,7 +581,7 @@ namespace Arc {
                 }
 
                 std::list<std::string> resolvedAliases(1, *it);
-                if (!ResolveAlias(selectedServices, resolvedAliases))
+                if (!ResolveAlias(rejectedServices, resolvedAliases))
                   return false;
               }
               else {
