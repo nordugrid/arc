@@ -578,6 +578,7 @@ namespace Arc {
     // end of Datastaging
 
     SourceLanguage(job) = (!language.empty() ? language : supportedLanguages.front());
+    logger.msg(INFO, "String successfully parsed as %s.", job.GetSourceLanguage());
     return true;
   }
 

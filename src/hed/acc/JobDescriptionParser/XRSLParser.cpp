@@ -284,7 +284,7 @@ namespace Arc {
       }
     }
 
-
+    logger.msg(INFO, "String successfully parsed as %s.", jobdescs.front().GetSourceLanguage());
     return true;
   }
 
