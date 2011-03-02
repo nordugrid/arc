@@ -153,8 +153,8 @@ int main(void) {
   std::vector<Arc::VOMSACInfo> attributes;
   Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
 
-  for(int n=0; n<attributes.size(); n++) {
-    for(int i=0; i<attributes[n].attributes.size(); i++) {
+  for(size_t n=0; n<attributes.size(); n++) {
+    for(size_t i=0; i<attributes[n].attributes.size(); i++) {
       std::cout<<"Line "<<n<<"."<<i<<" of the attributes returned: "<<attributes[n].attributes[i]<<std::endl;
     }
   }
