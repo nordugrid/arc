@@ -19,7 +19,7 @@ use vars qw($DEFAULT); $DEFAULT = -1;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
 use vars qw($glueHostMainMemoryRAMSize $glueHostArchitecturePlatformType $glueSubClusterUniqueID $GlueHostBenchmarkSI00 $GlueHostBenchmarkSF00);
 use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID);
-use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots);
+use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots $estRespTime $worstRespTime);
 use vars qw(@envs);
 
 #Create nordugrid ldif
@@ -400,6 +400,14 @@ sub write_gluece_entries(){
 	    if ( ($queue_attributes{'nordugrid-queue-totalcpus'} ne $DEFAULT) && ($queue_attributes{'nordugrid-queue-running'} ne $DEFAULT) ){
 		$freeSlots = $queue_attributes{'nordugrid-queue-totalcpus'} - $queue_attributes{'nordugrid-queue-running'};
 	    }
+	    
+	    # Get an arbitrary approximate of how long a job may
+	    # expect to wait at this site, it depends on jobs that are
+	    # currently running and jobs that are waiting. Formula
+	    # aquired from Kalle Happonen and the "NDGF BDII" for LHC
+	    # T1 services
+	    $estRespTime = int(600 + ($queue_attributes{'nordugrid-queue-running'} /$queue_attributes{'nordugrid-queue-maxrunning'}) *3600 + ($waitingJobs /$queue_attributes{'nordugrid-queue-maxrunning'}) * 600 );
+	    $worstRespTime = $estRespTime + 2000;
 
 	    # Write CE Entries
 	    
@@ -427,12 +435,12 @@ GlueCECapability: CPUScalingReferenceSI00=$CPUSCALINGREFERENCESI00
 GlueCEInfoJobManager: arc
 GlueCEInfoContactString: $cluster_attributes{'nordugrid-cluster-contactstring'}?queue=$queue_attributes{'nordugrid-queue-name'}
 GlueInformationServiceURL: ldap://$cluster_attributes{'nordugrid-cluster-name'}:$BDIIPORT/mds-vo-name=resource,o=grid
-GlueCEStateEstimatedResponseTime: 1000
+GlueCEStateEstimatedResponseTime: $estRespTime
 GlueCEStateRunningJobs: $queue_attributes{'nordugrid-queue-running'}
 GlueCEStateStatus: $mappedStatus
 GlueCEStateTotalJobs: $totalJobs
 GlueCEStateWaitingJobs: $waitingJobs
-GlueCEStateWorstResponseTime: 2000
+GlueCEStateWorstResponseTime: $worstRespTime
 GlueCEStateFreeJobSlots: $freeSlots
 GlueCEPolicyMaxCPUTime: $queue_attributes{'nordugrid-queue-maxcputime'}
 GlueCEPolicyMaxRunningJobs: $queue_attributes{'nordugrid-queue-maxrunning'}
