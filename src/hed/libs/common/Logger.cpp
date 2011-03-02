@@ -62,9 +62,10 @@ namespace Arc {
       return ERROR;
     else if (str == "FATAL")
       return FATAL;
-    else  // should not happen...
+    else { // should not happen...
       Logger::getRootLogger().msg(WARNING, "Invalid log level. Using FATAL.");
       return FATAL;
+    }
   }
 
   bool string_to_level(const std::string& str, LogLevel& ll) {
@@ -138,9 +139,10 @@ namespace Arc {
       return ERROR;
     else if (old_level == 0)
       return FATAL;
-    else  // cannot happen...
+    else { // cannot happen...
       Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using FATAL.");
       return FATAL;
+    }
   }
 
   LogMessage::LogMessage(LogLevel level,
