@@ -137,9 +137,9 @@ namespace Arc {
       DiskSpace(-1),
       CacheDiskSpace(-1),
       SessionDiskSpace(-1) {}
-    Range<int64_t> DiskSpace;
-    int64_t CacheDiskSpace;
-    int64_t SessionDiskSpace;
+    Range<int32_t> DiskSpace;
+    int32_t CacheDiskSpace;
+    int32_t SessionDiskSpace;
   };
 
   enum SessionDirectoryAccessMode {
@@ -170,8 +170,8 @@ namespace Arc {
     SoftwareRequirement OperatingSystem;
     std::string Platform;
     std::string NetworkInfo;
-    Range<int64_t> IndividualPhysicalMemory;
-    Range<int64_t> IndividualVirtualMemory;
+    Range<int32_t> IndividualPhysicalMemory;
+    Range<int32_t> IndividualVirtualMemory;
     DiskSpaceRequirementType DiskSpaceRequirement;
     Period SessionLifeTime;
     SessionDirectoryAccessMode SessionDirectoryAccess;

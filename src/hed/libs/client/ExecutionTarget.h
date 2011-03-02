@@ -242,7 +242,7 @@ namespace Arc {
      * hit, then the LRMS MAY kill the job.
      * A negative value specifies that this member is undefined.
      */
-    int64_t MaxMainMemory;
+    int_t MaxMainMemory;
 
     /// MaxVirtualMemory UInt64 0..1 MB
     /**
@@ -250,7 +250,7 @@ namespace Arc {
      * use; if the limit is hit, then the LRMS MAY kill the job.
      * A negative value specifies that this member is undefined.
      */
-    int64_t MaxVirtualMemory;
+    int_t MaxVirtualMemory;
 
     /// MaxDiskSpace UInt64 0..1 GB
     /**
@@ -258,7 +258,7 @@ namespace Arc {
      * limit is hit, then the LRMS MAY kill the job.
      * A negative value specifies that this member is undefined.
      */
-    int64_t MaxDiskSpace;
+    int_t MaxDiskSpace;
 
     URL DefaultStorageService;
     bool Preemption;
