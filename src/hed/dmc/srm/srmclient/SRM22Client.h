@@ -172,6 +172,12 @@ namespace Arc {
      * Call srmMkDir
      */
     SRMReturnCode mkDir(SRMClientRequest& req);
+
+    /**
+     * Call srmCheckPermission
+     */
+    SRMReturnCode checkPermissions(SRMClientRequest& req);
+
   };
 
 } // namespace Arc

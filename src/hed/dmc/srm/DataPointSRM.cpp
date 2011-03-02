@@ -72,11 +72,23 @@ namespace Arc {
       return DataStatus::CheckError;
     }
 
+    // first check permissions
+    SRMReturnCode res = client->checkPermissions(*srm_request);
+
+    if (res != SRM_OK && res != SRM_ERROR_NOT_SUPPORTED) {
+      delete srm_request;
+      srm_request = NULL;
+      delete client;
+      client = NULL;
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::CheckErrorRetryable;
+      return DataStatus::CheckError;
+    }
+
     logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
     srm_request->long_list(true);
     std::list<struct SRMFileMetaData> metadata;
 
-    SRMReturnCode res = client->info(*srm_request, metadata);
+    res = client->info(*srm_request, metadata);
     delete srm_request;
     srm_request = NULL;
     delete client;
@@ -86,7 +98,7 @@ namespace Arc {
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::CheckErrorRetryable;
       return DataStatus::CheckError;
     }
-    
+
     if (metadata.empty())
       return DataStatus::CheckError;
     if (metadata.front().size > 0) {

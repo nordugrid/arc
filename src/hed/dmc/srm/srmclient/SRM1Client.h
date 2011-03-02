@@ -43,6 +43,10 @@ namespace Arc {
     SRMReturnCode mkDir(SRMClientRequest& /* req */) {
       return SRM_ERROR_NOT_SUPPORTED;
     }
+    // not supported
+    SRMReturnCode checkPermissions(SRMClientRequest& /* req */) {
+      return SRM_ERROR_NOT_SUPPORTED;
+    }
   
     // v1 only operates in synchronous mode
     SRMReturnCode getTURLs(SRMClientRequest& req,

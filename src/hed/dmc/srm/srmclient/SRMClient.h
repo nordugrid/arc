@@ -657,6 +657,14 @@ namespace Arc {
      */
     virtual SRMReturnCode mkDir(SRMClientRequest& req) = 0;
 
+    /**
+     * Check permissions for the SURL in the request using the
+     * current credentials.
+     * @oaram req The request object
+     * @returns SRMReturnCode specifying outcome of operation
+     */
+    virtual SRMReturnCode checkPermissions(SRMClientRequest& req) = 0;
+
     operator bool() const {
       return client;
     }

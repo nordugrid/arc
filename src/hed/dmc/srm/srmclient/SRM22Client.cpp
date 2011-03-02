@@ -1619,4 +1619,36 @@ namespace Arc {
     return SRM_OK;
   }
 
+  SRMReturnCode SRM22Client::checkPermissions(SRMClientRequest& creq) {
+    PayloadSOAP request(ns);
+    XMLNode req = request.NewChild("SRMv2:srmCheckPermission")
+                  .NewChild("srmCheckPermissionRequest");
+    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
+
+    PayloadSOAP *response = NULL;
+    SRMReturnCode status = process(&request, &response);
+    if (status != SRM_OK)
+      return status;
+
+    XMLNode res = (*response)["srmCheckPermissionResponse"]["srmCheckPermissionResponse"];
+
+    std::string explanation;
+    SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
+
+    if (statuscode != SRM_SUCCESS) {
+      logger.msg(ERROR, "%s", explanation);
+      delete response;
+      if (statuscode == SRM_INTERNAL_ERROR)
+        return SRM_ERROR_TEMPORARY;
+      return SRM_ERROR_PERMANENT;
+    }
+    // check if 'r' bit is set
+    if (std::string(res["arrayOfPermissions"]["surlPermissionArray"]["permission"]).find('R') != std::string::npos) {
+      delete response;
+      return SRM_OK;
+    }
+    return SRM_ERROR_PERMANENT;
+  }
+
+
 } // namespace Arc
