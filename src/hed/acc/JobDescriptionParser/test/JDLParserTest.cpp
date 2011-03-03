@@ -225,8 +225,7 @@ void JDLParserTest::TestFilesCreateDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 5-Download-Download */
@@ -265,8 +264,7 @@ void JDLParserTest::TestFilesDownloadDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 6-Upload-Download */
@@ -305,8 +303,7 @@ void JDLParserTest::TestFilesUploadDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name, it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("/" + file.Name), it->Target.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
 /** 7-Create-Upload */

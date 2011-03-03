@@ -222,12 +222,12 @@ namespace Arc {
              * working directory of the job for later retrieval. Instead
              * the local grid ftp server to CREAM can be specified.
              */
-            url.ChangeProtocol("file");
-            url.ChangeHost("");
-            url.ChangePort(-1);
+            it->Target.clear();
+            it->KeepData = true;
           }
-          it->Target.front() = url;
-          it->KeepData = (it->Target.front().Protocol() == "file");
+          else {
+            it->Target.front() = url;
+          }
           i++;
         }
         else {
