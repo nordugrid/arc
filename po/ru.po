@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-02-25 02:53+0100\n"
-"PO-Revision-Date: 2011-02-25 03:39+0100\n"
+"POT-Creation-Date: 2011-03-03 01:05+0100\n"
+"PO-Revision-Date: 2011-03-03 02:02+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgstr "Создание цепи на стороне сервиса"
 #: src/tests/echo/test.cpp:31
 #: src/tests/echo/test_service.cpp:29
 msgid "Failed to load service configuration"
-msgstr "Не удалось загрузить конфигурацию сервиса"
+msgstr "Не удалось загрузить настройки сервиса"
 
 #: src/tests/echo/test.cpp:35
 #: src/tests/echo/test_service.cpp:33
@@ -81,7 +81,7 @@ msgstr "Создание цепи на стороне клиента"
 #: src/tests/echo/test_client.cpp:62
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:43
 msgid "Failed to load client configuration"
-msgstr "Не удалось загрузить конфигурацию клиента"
+msgstr "Не удалось загрузить настройки клиента"
 
 #: src/tests/echo/test_client.cpp:69
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:50
@@ -670,11 +670,11 @@ msgstr "Не удалось найти класс сервиса"
 
 #: src/services/wrappers/python/pythonwrapper.cpp:243
 msgid "Cannot create config argument"
-msgstr "Не удалось создать аргумент конфигурации"
+msgstr "Не удалось создать аргумент настроек"
 
 #: src/services/wrappers/python/pythonwrapper.cpp:250
 msgid "Cannot convert config to Python object"
-msgstr "Не удалось преобразовать конфигурацию в объект Python"
+msgstr "Не удалось преобразовать настройки в объект Python"
 
 #: src/services/wrappers/python/pythonwrapper.cpp:258
 msgid "Cannot create argument of the constructor"
@@ -761,7 +761,7 @@ msgstr "Не удалось преобразовать doc в объект Pytho
 #: src/services/wrappers/java/javawrapper.cpp:33
 #, c-format
 msgid "config: %s, class name: %s"
-msgstr "конфигурация: %s, класс: %s"
+msgstr "настройки: %s, класс: %s"
 
 #: src/services/wrappers/java/javawrapper.cpp:42
 msgid "libjvm.so not loadable - check your LD_LIBRARY_PATH"
@@ -991,23 +991,23 @@ msgstr "Закрывается канал (загрузки) в связи с л
 #: src/services/gridftpd/fileroot_config.cpp:29
 #: src/services/gridftpd/fileroot_config.cpp:508
 msgid "configuration file not found"
-msgstr "файл конфигурации не найден"
+msgstr "файл настроек не найден"
 
 #: src/services/gridftpd/fileroot_config.cpp:48
 msgid "Wrong port number in configuration"
-msgstr "Неприемлемый номер порта в конфигурации"
+msgstr "Неприемлемый номер порта в настройках"
 
 #: src/services/gridftpd/fileroot_config.cpp:57
 msgid "Wrong maxconnections number in configuration"
-msgstr "Неприемлемое значение maxconnections в конфигурации"
+msgstr "Неприемлемое значение maxconnections в настройках"
 
 #: src/services/gridftpd/fileroot_config.cpp:66
 msgid "Wrong defaultbuffer number in configuration"
-msgstr "Неприемлемое значение defaultbuffer в конфигурации"
+msgstr "Неприемлемое значение defaultbuffer в настройках"
 
 #: src/services/gridftpd/fileroot_config.cpp:75
 msgid "Wrong maxbuffer number in configuration"
-msgstr "Неприемлемое значение maxbuffer в конфигурации"
+msgstr "Неприемлемое значение maxbuffer в настройках"
 
 #: src/services/gridftpd/fileroot_config.cpp:107
 #: src/services/gridftpd/fileroot_config.cpp:115
@@ -1037,12 +1037,12 @@ msgstr "неизвестный (не занесённый в gridmap) польз
 
 #: src/services/gridftpd/fileroot_config.cpp:207
 msgid "couldn't process VO configuration"
-msgstr "не удалось обработать конфигурацию ВО"
+msgstr "не удалось обработать настройки ВО"
 
 #: src/services/gridftpd/fileroot_config.cpp:252
 #, c-format
 msgid "can't parse configuration line: %s %s %s %s"
-msgstr "невозможно разобрать строку конфигурации: %s %s %s %s"
+msgstr "невозможно разобрать строку настроек: %s %s %s %s"
 
 #: src/services/gridftpd/fileroot_config.cpp:257
 #, c-format
@@ -1070,7 +1070,7 @@ msgstr "сбой создания узла файла: %s"
 #: src/services/gridftpd/fileroot_config.cpp:292
 #, c-format
 msgid "unsupported configuration command: %s"
-msgstr "неподдерживаемая инструкция конфигурации: %s"
+msgstr "неподдерживаемая инструкция настроек: %s"
 
 #: src/services/gridftpd/fileroot_config.cpp:324
 msgid "unnamed group"
@@ -1175,7 +1175,7 @@ msgstr "Недопустимый максимальный размер буфе�
 
 #: src/services/gridftpd/listener.cpp:244
 msgid "Failed reading configuration"
-msgstr "Сбой чтения конфигурационного файла"
+msgstr "Сбой чтения файла настроек"
 
 #: src/services/gridftpd/listener.cpp:263
 msgid "Failed to create socket"
@@ -1329,7 +1329,7 @@ msgstr "Зашифрован: %s"
 
 #: src/services/gridftpd/commands.cpp:216
 msgid "User has no proper configuration associated"
-msgstr "Пользователь не ассоциирован с подходящей конфигурацией"
+msgstr "Пользователь не ассоциирован с подходящей настройкой"
 
 #: src/services/gridftpd/commands.cpp:224
 msgid ""
@@ -1775,28 +1775,28 @@ msgstr "    %s"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:53
 msgid "Can't parse access rights in configuration line"
-msgstr "Не удалось разобрать права доступа в строке конфигурации"
+msgstr "Не удалось разобрать права доступа в строке настроек"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:59
 msgid "Can't parse user:group in configuration line"
-msgstr "Не удалось разобрать user:group в строке конфигурации"
+msgstr "Не удалось разобрать user:group в строке настроек"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:66
 msgid "Can't recognize user in configuration line"
-msgstr "Не удалось определить пользователя в строке конфигурации"
+msgstr "Не удалось определить пользователя в строке настроек"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:75
 msgid "Can't recognize group in configuration line"
-msgstr "Не удалось определить группу в строке конфигурации"
+msgstr "Не удалось определить группу в строке настроек"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:82
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:87
 msgid "Can't parse or:and in configuration line"
-msgstr "Не удалось разобрать or:and в строке конфигурации"
+msgstr "Не удалось разобрать or:and в строке настроек"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:114
 msgid "Can't parse configuration line"
-msgstr "Не удалось разобрать строку конфигурации"
+msgstr "Не удалось разобрать строку настроек"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:118
 #, c-format
@@ -1804,19 +1804,17 @@ msgid "Bad directory name: %s"
 msgstr "Неверное имя каталога: %s"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:135
-#, fuzzy
 msgid "Can't parse create arguments in configuration line"
-msgstr "Не удалось открыть файл конфигурации"
+msgstr "Не удалось обработать аргументы create в файле конфигурации"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:144
-#, fuzzy
 msgid "Can't parse mkdir arguments in configuration line"
-msgstr "Не удалось открыть файл конфигурации"
+msgstr "Не удалось обработать аргументы mkdir в файле конфигурации"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:161
-#, fuzzy, c-format
+#, c-format
 msgid "Bad subcommand in configuration line: %s"
-msgstr "неверная строка в файле-каркасе"
+msgstr "Неверная инструкция в строке настроек: %s"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:173
 #, fuzzy
@@ -1829,9 +1827,9 @@ msgid "Mount point %s"
 msgstr "Точка подключения %s"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:181
-#, fuzzy, c-format
+#, c-format
 msgid "Unsupported configuration command: %s"
-msgstr "Не удалось отправить инструкцию"
+msgstr "Неподдерживаемая инструкция настроек: %s"
 
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:225
 #: src/services/gridftpd/fileplugin/fileplugin.cpp:298
@@ -1925,12 +1923,11 @@ msgstr "плагин для удаленного доступа через DBUS"
 
 #: src/services/gridftpd/conf/conf_map.cpp:25
 msgid "Can't open configuration file"
-msgstr "Не удалось открыть файл конфигурации"
+msgstr "Не удалось открыть файл настроек"
 
 #: src/services/gridftpd/conf/conf_map.cpp:32
-#, fuzzy
 msgid "Can't interpret configuration file as XML"
-msgstr "Не удалось открыть файл конфигурации"
+msgstr "Не удалось разобрать файл настроек как XML"
 
 #: src/services/gridftpd/conf/conf_map.cpp:50
 #, fuzzy
@@ -1952,7 +1949,7 @@ msgstr "Недостаточное количество параметров в 
 
 #: src/services/gridftpd/conf/conf_map.cpp:100
 msgid "Can't recognize type of configuration file"
-msgstr "Невозможно определить тип файла конфигурации"
+msgstr "Невозможно определить тип файла настроек"
 
 #: src/services/gridftpd/conf/daemon.cpp:49
 #: src/services/gridftpd/conf/daemon.cpp:153
@@ -2001,9 +1998,8 @@ msgid "Failed to open log file %s"
 msgstr "Произошёл сбой при применении функции fdopen() к файлу отладочной информации %s: %s\n"
 
 #: src/services/gridftpd/conf/environment.cpp:212
-#, fuzzy
 msgid "Central configuration file is missing at guessed location:\n"
-msgstr "Файл \"%s\" не является обычным файлом или каталогом."
+msgstr "Общий файл настроек не найден в предполагаемом месте:\n"
 
 #: src/services/gridftpd/conf/conf.cpp:108
 #, c-format
@@ -2138,44 +2134,40 @@ msgid "VOMS proxy processing returns: %i"
 msgstr "Ошибка при обработке строки %d из %s\n"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:40
-#, fuzzy
 msgid "Missing VO in configuration"
-msgstr "%s уже содержится в файле конфигурации\n"
+msgstr "В настройках отсутствует ВО"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:46
-#, fuzzy
 msgid "Missing group in configuration"
-msgstr "netname2user: пропущен список идентификаторов групп в `%s'."
+msgstr "В настройках отсутствует группа"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:52
-#, fuzzy
 msgid "Missing role in configuration"
-msgstr "%s уже содержится в файле конфигурации\n"
+msgstr "В настройках отсутствует роль"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:58
-#, fuzzy
 msgid "Missing capabilities in configuration"
-msgstr "%s уже содержится в файле конфигурации\n"
+msgstr "В настройках отсутствуют возможности"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:65
 #, c-format
 msgid "VOMS config: vo: %s"
-msgstr "Конфигурация VOMS: ВО: %s"
+msgstr "Настройки VOMS: ВО: %s"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:66
 #, c-format
 msgid "VOMS config: group: %s"
-msgstr "Конфигурация VOMS: группа: %s"
+msgstr "Настройки VOMS: группа: %s"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:67
 #, c-format
 msgid "VOMS config: role: %s"
-msgstr "Конфигурация VOMS: роль: %s"
+msgstr "Настройки VOMS: роль: %s"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:68
 #, c-format
 msgid "VOMS config: capabilities: %s"
-msgstr "Конфигурация VOMS: возможности: %s"
+msgstr "Настройки VOMS: возможности: %s"
 
 #: src/services/gridftpd/auth/auth_voms.cpp:75
 #, fuzzy, c-format
@@ -2388,12 +2380,12 @@ msgstr "http_get: start=%u, end=%u, burl=%s, hpath=%s"
 #: src/services/a-rex/cachecheck.cpp:43
 #: src/services/a-rex/cachecheck.cpp:81
 msgid "Error with cache configuration"
-msgstr "Ошибка при конфигурации кэша"
+msgstr "Ошибка при настройке кэша"
 
 #: src/services/a-rex/cachecheck.cpp:63
 #, c-format
 msgid "Error with cache configuration: %s"
-msgstr "Ошибка в настройке кэша: %s"
+msgstr "Ошибка при настройке кэша: %s"
 
 #: src/services/a-rex/cachecheck.cpp:107
 #, fuzzy, c-format
@@ -2879,7 +2871,7 @@ msgstr "процесс: подкаталог: %s"
 
 #: src/services/a-rex/arex.cpp:429
 msgid "Can't obtain configuration"
-msgstr "Не удалось получить конфигурацию"
+msgstr "Не удалось получить настройки"
 
 #: src/services/a-rex/arex.cpp:445
 msgid "process: factory endpoint"
@@ -2915,7 +2907,7 @@ msgstr "процесс: метод %s не поддерживается"
 
 #: src/services/a-rex/arex.cpp:654
 msgid "Failed to process service configuration"
-msgstr "Не удалось обработать конфигурацию сервиса"
+msgstr "Не удалось обработать настройки сервиса"
 
 #: src/services/a-rex/arex.cpp:670
 #: src/services/a-rex/arex.cpp:725
@@ -2931,17 +2923,17 @@ msgstr "Сбой создания временного файла в %s - %s"
 #: src/services/a-rex/arex.cpp:692
 #, c-format
 msgid "Storing configuration into temporary file - %s"
-msgstr "Запись конфигурации во временный файл - %s"
+msgstr "Запись настроек во временный файл - %s"
 
 #: src/services/a-rex/arex.cpp:709
 #, c-format
 msgid "Failed to store configuration into temporary file: %s"
-msgstr "Сбой записи конфигурации во временный файл: %s"
+msgstr "Сбой записи настроек во временный файл: %s"
 
 #: src/services/a-rex/arex.cpp:720
 #, c-format
 msgid "Failed to process configuration in %s"
-msgstr "Не удалось обработать конфигурацию в %s"
+msgstr "Не удалось обработать настройки в %s"
 
 #: src/services/a-rex/arex.cpp:735
 #, c-format
@@ -3021,15 +3013,15 @@ msgstr "Попытка запуска от имени неизвестного �
 #: src/services/a-rex/grid-manager/grid_manager.cpp:226
 #, c-format
 msgid "Used configuration file %s"
-msgstr "Используется файл конфигурации %s"
+msgstr "Используется файл настроек %s"
 
 #: src/services/a-rex/grid-manager/grid_manager.cpp:214
 msgid "Error processing configuration - EXITING"
-msgstr "Сбой при обработке конфигурации - ВЫХОД"
+msgstr "Сбой при обработке настроек - ВЫХОД"
 
 #: src/services/a-rex/grid-manager/grid_manager.cpp:217
 msgid "No suitable users found in configuration - EXITING"
-msgstr "В конфигурации не указано, от чьего имени производить запуск - ВЫХОД"
+msgstr "В настройках не указано, от чьего имени производить запуск - ВЫХОД"
 
 #: src/services/a-rex/grid-manager/grid_manager.cpp:260
 msgid "Failed to start new thread"
@@ -3161,9 +3153,8 @@ msgid "User %s is not valid"
 msgstr "Недействительный пользователь %s"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:217
-#, fuzzy
 msgid "Failed processing grid-manager configuration"
-msgstr "Не удалось получить настройки grid-manager"
+msgstr "Не удалось обработать настройки grid-manager"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:220
 msgid "Cannot use multiple session directories and remotegmdirs at the same time"
@@ -3184,7 +3175,7 @@ msgstr "Сводка засылки задач:"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:298
 msgid "No configuration file found"
-msgstr "Не найден файл конфигурации"
+msgstr "Не найден файл настроек"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:304
 #, fuzzy
@@ -3355,7 +3346,7 @@ msgstr "Не найден скрипт scan-%s-job - окончание зада
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:68
 msgid "Can't read configuration file"
-msgstr "Не удалось прочесть файл конфигурации"
+msgstr "Не удалось прочесть файл настроек"
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:159
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:167
@@ -3546,7 +3537,7 @@ msgstr "Отсутствует вспомогательная программа
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:616
 #, c-format
 msgid "%s user for helper program is not configured"
-msgstr "Пользователь %s для вспомогательной программы не сконфигурирован"
+msgstr "Пользователь %s для вспомогательной программы не настроен"
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:831
 msgid "serviceMail is empty"
@@ -3660,7 +3651,7 @@ msgstr "\tВремя жизни по умолчанию : %u"
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:1125
 msgid "No valid caches found in configuration, caching is disabled"
-msgstr "В конфигурации не обнаружено ни одного приемлемого кэша, кэширование отключено"
+msgstr "В настройках не обнаружено ни одного приемлемого кэша, кэширование отключено"
 
 #: src/services/a-rex/grid-manager/conf/conf_file.cpp:1130
 #, c-format
@@ -4503,7 +4494,7 @@ msgstr "Невозможно прочесть локальное описани�
 
 #: src/services/a-rex/grid-manager/loaders/downloader.cpp:590
 msgid "Not invoking janitor because it's not enabled in the config file"
-msgstr "Janitor не будет запущен, т.к. он не активирован в конфигурации"
+msgstr "Janitor не будет запущен, т.к. он не активирован в настройках"
 
 #: src/services/a-rex/grid-manager/loaders/downloader.cpp:595
 msgid "Janitor not enabled and job contains non-deployed RTEs"
@@ -4762,12 +4753,12 @@ msgstr "Неверный каталог в %s"
 #: src/services/a-rex/config/configcore.cpp:174
 #, c-format
 msgid "Using cached configuration: %s"
-msgstr "Используется сохранённая конфигурация: %s"
+msgstr "Используются сохранённые настройки: %s"
 
 #: src/services/a-rex/config/configcore.cpp:178
 #, c-format
 msgid "Reading configuration file: %s"
-msgstr "Чтение файла конфигурации: %s"
+msgstr "Чтение файла настроек: %s"
 
 #: src/services/isis/isis.cpp:104
 msgid "Empty URL list add to the thread."
@@ -4810,7 +4801,7 @@ msgstr ""
 
 #: src/services/isis/isis.cpp:341
 msgid "Parsing configuration parameters"
-msgstr "Обработка параметров конфигурации"
+msgstr "Обработка параметров настройки"
 
 #: src/services/isis/isis.cpp:348
 #, c-format
@@ -4824,7 +4815,7 @@ msgstr "Endpoint: %s"
 
 #: src/services/isis/isis.cpp:352
 msgid "Empty endpoint element in the configuration!"
-msgstr "Пустой элемент endpoint в конифгурации!"
+msgstr "Пустой элемент endpoint в настройках!"
 
 #: src/services/isis/isis.cpp:357
 #, c-format
@@ -4853,33 +4844,33 @@ msgstr "CACertficatePath: %s"
 
 #: src/services/isis/isis.cpp:377
 msgid "Missing or empty KeyPath element in the configuration!"
-msgstr "Пустой или отсутствующий элемент KeyPath в конфигурации!"
+msgstr "Пустой или отсутствующий элемент KeyPath в настройках!"
 
 #: src/services/isis/isis.cpp:380
 msgid "Misisng or empty CertificatePath element in the configuration!"
-msgstr "Пустой или отсутствующий элемент CertificatePath в конфигурации!"
+msgstr "Пустой или отсутствующий элемент CertificatePath в настройках!"
 
 #: src/services/isis/isis.cpp:383
 msgid "Missing or empty ProxyPath element in the configuration!"
-msgstr "Пустой или отсутствующий элемент ProxyPath в конфигурации!"
+msgstr "Пустой или отсутствующий элемент ProxyPath в настройках!"
 
 #: src/services/isis/isis.cpp:386
 msgid "Missing or empty CACertificatesDir element in the configuration!"
-msgstr "Пустой или отсутствующий элемент CACertificatesDir в конфигурации!"
+msgstr "Пустой или отсутствующий элемент CACertificatesDir в настройках!"
 
 #: src/services/isis/isis.cpp:387
 msgid "Missing or empty CACertificatePath element in the configuration!"
-msgstr "Пустой или отсутствующий элемент CACertificatePath в конфигурации!"
+msgstr "Пустой или отсутствующий элемент CACertificatePath в настройках!"
 
 #: src/services/isis/isis.cpp:403
 #, c-format
 msgid "Configuration error. Retry: \"%d\" is not a valid value. Default value will be used."
-msgstr ""
+msgstr "Ошибйка настроек. Retry: \"%d\" не является допустимым значением. Будет использовано значение по умолчанию."
 
 #: src/services/isis/isis.cpp:408
 #, c-format
 msgid "The Retry element is defined multiple time in ISIS configuration. The '%d' value will be used."
-msgstr ""
+msgstr "Элемент Retry задан несколько раз в настройках ISIS. Будет использовано значение '%d'."
 
 #: src/services/isis/isis.cpp:410
 #, c-format
@@ -4889,22 +4880,22 @@ msgstr "Повторная попытка: %d"
 #: src/services/isis/isis.cpp:419
 #, c-format
 msgid "Configuration error. Sparsity: \"%d\" is not a valid value. Default value will be used."
-msgstr ""
+msgstr "Ошибйка настроек. Sparsity: \"%d\" не является допустимым значением. Будет использовано значение по умолчанию."
 
 #: src/services/isis/isis.cpp:424
 #, c-format
 msgid "The Sparsity element is defined multiple time in ISIS configuration. The '%d' value will be used."
-msgstr ""
+msgstr "Элемент Sparsity задан несколько раз в настройках ISIS. Будет использовано значение '%d'."
 
 #: src/services/isis/isis.cpp:426
 #, c-format
 msgid "Sparsity: %d"
-msgstr ""
+msgstr "Sparsity: %d"
 
 #: src/services/isis/isis.cpp:436
 #, c-format
 msgid "Configuration error. ETValid: \"%s\" is not a valid value. Default value will be used."
-msgstr ""
+msgstr "Ошибйка настроек. ETValid: \"%s\" не является допустимым значением. Будет использовано значение по умолчанию."
 
 #: src/services/isis/isis.cpp:440
 msgid "Configuration error. ETValid is empty. Default value will be used."
@@ -4922,7 +4913,7 @@ msgstr "ETValid: %d секунд"
 #: src/services/isis/isis.cpp:450
 #, c-format
 msgid "Configuration error. ETRemove: \"%s\" is not a valid value. Default value will be used."
-msgstr ""
+msgstr "Ошибйка настроек. ETRemove: \"%s\" не является допустимым значением. Будет использовано значение по умолчанию."
 
 #: src/services/isis/isis.cpp:454
 msgid "Configuration error. ETRemove is empty. Default value will be used."
@@ -5056,9 +5047,9 @@ msgid "No A-REX config file found in cache service configuration"
 msgstr "Не удалось обработать конфигурацию сервиса"
 
 #: src/services/cache_service/CacheService.cpp:66
-#, fuzzy, c-format
+#, c-format
 msgid "Using A-REX config file %s"
-msgstr " ==> По умолчанию используется новый файл настройки.\n"
+msgstr "Используется файл настроек A-REX %s"
 
 #: src/services/cache_service/CacheService.cpp:71
 #, c-format
@@ -5071,9 +5062,9 @@ msgid "Setting max downloads to %u"
 msgstr "&Автоматически сохранять загрузки в:"
 
 #: src/services/cache_service/CacheService.cpp:88
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to process A-REX configuration in %s"
-msgstr "Не удалось обнаружить доверенности в конфигурации клиента"
+msgstr "Не удалось обработать настройки A-REX в %s"
 
 #: src/services/cache_service/CacheService.cpp:128
 #, fuzzy
@@ -5762,58 +5753,58 @@ msgstr "Не удалось обнаружить файл личного клю�
 msgid "Private key %s does not match certificate %s"
 msgstr "сертификат не совпадает с файлом личного ключа \"%s\": %s\n"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:132
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:133
 msgid "Failed to retrieve link to TLS stream. Additional policy matching is skipped."
 msgstr ""
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:145
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:146
 #, c-format
 msgid "Certificate %s failed Globus signing policy"
 msgstr ""
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:159
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:160
 #, c-format
 msgid "Certificate %s already expired"
 msgstr "Срок действия сертификата %s уже истёк"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:171
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:172
 #, c-format
 msgid "Certificate %s will expire in %s"
 msgstr "Срок действия сертификата %s истечёт через %s"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:191
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:192
 #, fuzzy
 msgid "Failed to store application data"
 msgstr "Не удалось записать данные по каналу"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:210
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:220
 msgid "Failed to retrieve application data from OpenSSL"
 msgstr ""
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:231
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:305
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:240
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:313
 msgid "Can not create the SSL Context object"
 msgstr ""
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:243
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:322
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:252
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:330
 msgid "Can't set OpenSSL verify flags"
 msgstr ""
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:266
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:339
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:275
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:347
 msgid "Can not create the SSL object"
 msgstr "Не удалось создать объект SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:274
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:282
 msgid "Failed to establish SSL connection"
 msgstr "Не удалось установить соединение SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:346
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:354
 msgid "Failed to accept SSL connection"
 msgstr "Не удалось принять соединение SSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:375
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:393
 msgid "Failed to shut down SSL"
 msgstr "Не удалось прервать SSL"
 
@@ -6449,7 +6440,7 @@ msgstr "описание засылаемой задачи: %s"
 
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:182
 msgid "Failed to find delegation credentials in client configuration"
-msgstr "Не удалось обнаружить параметры доступа для делегирования в конфигурации клиента"
+msgstr "Не удалось обнаружить параметры доступа для делегирования в настройках клиента"
 
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:203
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:236
@@ -6956,6 +6947,11 @@ msgstr ""
 msgid "[JDLParser] JDL syntax error. There is at least one equal sign missing where it would be expected."
 msgstr ""
 
+#: src/hed/acc/JobDescriptionParser/JDLParser.cpp:536
+#, fuzzy, c-format
+msgid "String successfully parsed as %s"
+msgstr "Описание шрифта в виде строки"
+
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:38
 #, c-format
 msgid "Can't evaluate left operand for RSL concatenation: %s"
@@ -7180,6 +7176,12 @@ msgstr "Ошибка при обработке точки."
 msgid "No RSL content in job desription found"
 msgstr "CreateActivity: Описание задачи не найдено"
 
+#: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:287
+#: src/hed/acc/JobDescriptionParser/ARCJSDLParser.cpp:581
+#, fuzzy, c-format
+msgid "String successfully parsed as %s."
+msgstr "Описание шрифта в виде строки"
+
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:294
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:313
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:332
@@ -7317,7 +7319,7 @@ msgstr ""
 msgid "Parsing the \"require\" attribute of the \"QueueName\" nordugrid-JSDL element failed. An invalid comparison operator was used, only \"ne\" or \"eq\" are allowed."
 msgstr ""
 
-#: src/hed/acc/JobDescriptionParser/ARCJSDLParser.cpp:958
+#: src/hed/acc/JobDescriptionParser/ARCJSDLParser.cpp:959
 #, fuzzy, c-format
 msgid "job.Resources.QueueName = %s"
 msgstr "/_Свернуть все ресурсы"
@@ -7523,7 +7525,7 @@ msgstr "Время начала фрагмента заднего плана"
 #: src/hed/daemon/unix/main_unix.cpp:194
 #, c-format
 msgid "Failed to load service configuration from file %s"
-msgstr "Не удалось загрузить конфигурацию сервиса из файла %s"
+msgstr "Не удалось загрузить настройки сервиса из файла %s"
 
 #: src/hed/daemon/win32/main_win32.cpp:124
 #: src/hed/daemon/unix/main_unix.cpp:260
@@ -7581,7 +7583,7 @@ msgstr "Ошибка проверки профиля"
 
 #: src/hed/daemon/unix/main_unix.cpp:214
 msgid "Failed to load service configuration from any default config file"
-msgstr "Не удалось загрузить конфигурацию сервиса ни из какого файла конфигурации"
+msgstr "Не удалось загрузить настройки сервиса ни из какого файла настроек"
 
 #: src/hed/daemon/unix/main_unix.cpp:245
 msgid "Schema validation error"
@@ -7867,7 +7869,7 @@ msgstr "Делегированные параметры доступа полу�
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:218
 msgid "The endpoint of delgation service should be configured"
-msgstr "Конечная точка сервиса делегирования должна быть сконфигурирована"
+msgstr "Конечная точка сервиса делегирования должна быть настроена"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:228
 #: src/hed/shc/delegationsh/DelegationSH.cpp:340
@@ -7958,23 +7960,23 @@ msgstr "Невозможно создать папку: %1"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:55
 msgid "Can not parse classname for FunctionFactory from configuration"
-msgstr "Не удалось определить имя класса для FunctionFactory из конфигурации"
+msgstr "Не удалось определить имя класса для FunctionFactory из настроек"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:63
 msgid "Can not parse classname for AttributeFactory from configuration"
-msgstr "Не удалось определить имя класса для AttributeFactory из конфигурации"
+msgstr "Не удалось определить имя класса для AttributeFactory из настроек"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:71
 msgid "Can not parse classname for CombiningAlgorithmFactory from configuration"
-msgstr "Не удалось определить имя класса для CombiningAlgorithmFactory из конфигурации"
+msgstr "Не удалось определить имя класса для CombiningAlgorithmFactory из настроек"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:79
 msgid "Can not parse classname for Request from configuration"
-msgstr "Не удалось определить имя класса для Request из конфигурации"
+msgstr "Не удалось определить имя класса для Request из настроек"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:88
 msgid "Can not parse classname for Policy from configuration"
-msgstr "Не удалось определить имя класса для Policy из конфигурации"
+msgstr "Не удалось определить имя класса для Policy из настроек"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:100
 msgid "Can not dynamically produce AttributeFactory"
@@ -9375,13 +9377,16 @@ msgstr ""
 msgid "The subject does not match the issuer name + proxy CN entry"
 msgstr ""
 
+#: src/hed/libs/credential/test/VOMSUtilTest.cpp:122
+#, fuzzy, c-format
+msgid "Line %d.%d of the attributes returned: %s"
+msgstr "Сервер ничего не ответил"
+
 #: src/hed/libs/data/DataMover.cpp:107
 msgid "No locations found - probably no more physical instances"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:111
-#: src/hed/libs/data/FileCache.cpp:751
-#: src/hed/libs/data/FileCache.cpp:766
 #, c-format
 msgid "Removing %s"
 msgstr "Удаляется %s"
@@ -9635,7 +9640,7 @@ msgstr "кэш-файл: %s"
 
 #: src/hed/libs/data/DataMover.cpp:716
 #, fuzzy, c-format
-msgid "Failed to check source %s"
+msgid "Failed to stat source %s"
 msgstr "Не удалось загрузить источник \"%s\": %s"
 
 #: src/hed/libs/data/DataMover.cpp:718
@@ -10640,7 +10645,7 @@ msgid " Error: %s"
 msgstr " Ошибка: %s"
 
 #: src/hed/libs/client/Job.cpp:444
-#: src/hed/libs/client/ExecutionTarget.cpp:326
+#: src/hed/libs/client/ExecutionTarget.cpp:333
 #, c-format
 msgid " Owner: %s"
 msgstr "Владелец: %s"
@@ -10651,7 +10656,7 @@ msgid " Other Messages: %s"
 msgstr "Другие сообщения: %s"
 
 #: src/hed/libs/client/Job.cpp:451
-#: src/hed/libs/client/ExecutionTarget.cpp:298
+#: src/hed/libs/client/ExecutionTarget.cpp:308
 #, c-format
 msgid " Queue: %s"
 msgstr "Очередь: %s"
@@ -10764,6 +10769,13 @@ msgstr "%s: Задача слишком старая - удаляется"
 msgid "Waiting for lock on job list file %s"
 msgstr "Задача %s удаляется из файла списка задач"
 
+#: src/hed/libs/client/Job.cpp:726
+#: src/hed/libs/client/Job.cpp:755
+#: src/hed/libs/client/Job.cpp:787
+#, fuzzy, c-format
+msgid "Waiting for lock on file %s"
+msgstr "Не удалось создать файл блокировки для %s: %s"
+
 #: src/hed/libs/client/JobSupervisor.cpp:49
 #: src/hed/libs/client/JobController.cpp:66
 #: src/hed/libs/client/Submitter.cpp:185
@@ -10814,7 +10826,7 @@ msgstr "Обрыв засылки задачи, т.к. ни один из рес
 
 #: src/hed/libs/client/JobSupervisor.cpp:229
 #, fuzzy, c-format
-msgid "Unable to resubmit job (%s), unable to parse retrieved job description"
+msgid "Unable to resubmit job (%s), unable to parse obtained job description"
 msgstr "Не удалось перезаслать задачу, невозможно разобрать полученное описание задачи"
 
 #: src/hed/libs/client/JobSupervisor.cpp:249
@@ -10826,6 +10838,31 @@ msgstr ""
 #, c-format
 msgid "Unable to resubmit job (%s), no targets applicable for submission"
 msgstr ""
+
+#: src/hed/libs/client/JobSupervisor.cpp:296
+#, fuzzy, c-format
+msgid "Unable to migrate job (%s), job description could not be retrieved remotely"
+msgstr "Невозможно открыть файл с описанием задачи: %s"
+
+#: src/hed/libs/client/JobSupervisor.cpp:313
+#, fuzzy
+msgid "Job migration aborted, no resource returned any information"
+msgstr "Обрыв засылки задачи, т.к. ни один из ресурсов не предоставил информацию"
+
+#: src/hed/libs/client/JobSupervisor.cpp:324
+#, fuzzy, c-format
+msgid "Job migration aborted, unable to load broker (%s)"
+msgstr "Распечатка описания задачи оборвана: Невозможно подгрузить планировщик %s"
+
+#: src/hed/libs/client/JobSupervisor.cpp:336
+#, fuzzy, c-format
+msgid "Unable to migrate job (%s), unable to parse obtained job description"
+msgstr "Не удалось перезаслать задачу, невозможно разобрать полученное описание задачи"
+
+#: src/hed/libs/client/JobSupervisor.cpp:355
+#, fuzzy, c-format
+msgid "Job migration failed for job (%s), no applicable targets"
+msgstr "Не удалось заслать задачу, возможные назначения отсутствуют"
 
 #: src/hed/libs/client/Broker.cpp:37
 #, c-format
@@ -11627,554 +11664,554 @@ msgstr "Файл не может быть создан"
 msgid "Loaded Submitter %s"
 msgstr "Подгружен  рассылающий модуль %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:285
+#: src/hed/libs/client/ExecutionTarget.cpp:286
 msgid "The ExecutionTarget::Print method is DEPRECATED, use the ExecutionTarget::SaveToStream method instead."
 msgstr ""
 
 #: src/hed/libs/client/ExecutionTarget.cpp:292
-#: src/hed/libs/client/ExecutionTarget.cpp:295
 #, fuzzy, c-format
 msgid "Execution Service: %s"
 msgstr "Недействительный сервис"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:301
+#: src/hed/libs/client/ExecutionTarget.cpp:299
+#: src/hed/libs/client/ExecutionTarget.cpp:304
 #, c-format
 msgid " URL: %s:%s"
 msgstr " URL: %s:%s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:304
-#: src/hed/libs/client/ExecutionTarget.cpp:377
+#: src/hed/libs/client/ExecutionTarget.cpp:311
+#: src/hed/libs/client/ExecutionTarget.cpp:384
 #, c-format
 msgid " Health State: %s"
 msgstr "Состояние здоровья: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:308
+#: src/hed/libs/client/ExecutionTarget.cpp:315
 msgid "Location information:"
 msgstr "Сведения о расположении:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:311
+#: src/hed/libs/client/ExecutionTarget.cpp:318
 #, c-format
 msgid " Address: %s"
 msgstr "Адрес: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:313
+#: src/hed/libs/client/ExecutionTarget.cpp:320
 #, c-format
 msgid " Place: %s"
 msgstr "Место: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:315
+#: src/hed/libs/client/ExecutionTarget.cpp:322
 #, c-format
 msgid " Country: %s"
 msgstr "Страна: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:317
+#: src/hed/libs/client/ExecutionTarget.cpp:324
 #, c-format
 msgid " Postal Code: %s"
 msgstr "Почтовый индекс: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:319
+#: src/hed/libs/client/ExecutionTarget.cpp:326
 #, c-format
 msgid " Latitude: %f"
 msgstr "Широта: %f"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:321
+#: src/hed/libs/client/ExecutionTarget.cpp:328
 #, c-format
 msgid " Longitude: %f"
 msgstr "Долгота: %f"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:323
+#: src/hed/libs/client/ExecutionTarget.cpp:330
 msgid "Domain information:"
 msgstr "Сведения о домене:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:328
+#: src/hed/libs/client/ExecutionTarget.cpp:335
 msgid "Service information:"
 msgstr "Сведения о службе:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:331
+#: src/hed/libs/client/ExecutionTarget.cpp:338
 #, c-format
 msgid " Service Name: %s"
 msgstr "Имя службы: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:333
+#: src/hed/libs/client/ExecutionTarget.cpp:340
 #, c-format
 msgid " Service Type: %s"
 msgstr "Тип службы: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:335
+#: src/hed/libs/client/ExecutionTarget.cpp:342
 msgid "Endpoint information:"
 msgstr "Информация о конечной точке:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:338
+#: src/hed/libs/client/ExecutionTarget.cpp:345
 #, c-format
 msgid " URL: %s"
 msgstr " URL: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:340
+#: src/hed/libs/client/ExecutionTarget.cpp:347
 msgid " Capabilities:"
 msgstr "Возможности:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:346
+#: src/hed/libs/client/ExecutionTarget.cpp:353
 #, c-format
 msgid " Technology: %s"
 msgstr "Технология: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:348
+#: src/hed/libs/client/ExecutionTarget.cpp:355
 #, c-format
 msgid " Interface Name: %s"
 msgstr "Имя интерфейса: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:351
+#: src/hed/libs/client/ExecutionTarget.cpp:358
 msgid " Interface Versions:"
 msgstr "Версии интерфейса:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:357
+#: src/hed/libs/client/ExecutionTarget.cpp:364
 msgid " Interface Extensions:"
 msgstr "Расширения интерфейса:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:364
+#: src/hed/libs/client/ExecutionTarget.cpp:371
 msgid " Supported Profiles:"
 msgstr "Поддерживаемые профили:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:370
+#: src/hed/libs/client/ExecutionTarget.cpp:377
 #, c-format
 msgid " Implementor: %s"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:372
+#: src/hed/libs/client/ExecutionTarget.cpp:379
 #, c-format
 msgid " Implementation Name: %s"
 msgstr "Имя реализации: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:375
+#: src/hed/libs/client/ExecutionTarget.cpp:382
 #, c-format
 msgid " Quality Level: %s"
 msgstr "Уровень качества: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:379
+#: src/hed/libs/client/ExecutionTarget.cpp:386
 #, c-format
 msgid " Health State Info: %s"
 msgstr "Состояние здоровья: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:382
+#: src/hed/libs/client/ExecutionTarget.cpp:389
 #, c-format
 msgid " Serving State: %s"
 msgstr "Состояние обслуживания: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:385
+#: src/hed/libs/client/ExecutionTarget.cpp:392
 #, fuzzy
 msgid " Installed application environments:"
 msgstr "Рабочая среда"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:393
+#: src/hed/libs/client/ExecutionTarget.cpp:400
 msgid " Execution environment supports inbound connections"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:396
+#: src/hed/libs/client/ExecutionTarget.cpp:403
 msgid " Execution environment does not support inbound connections"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:399
+#: src/hed/libs/client/ExecutionTarget.cpp:406
 msgid " Execution environment supports outbound connections"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:402
+#: src/hed/libs/client/ExecutionTarget.cpp:409
 msgid " Execution environment does not support outbound connections"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:406
+#: src/hed/libs/client/ExecutionTarget.cpp:413
 #, fuzzy, c-format
 msgid " Issuer CA: %s"
 msgstr "Cisco CA"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:408
+#: src/hed/libs/client/ExecutionTarget.cpp:415
 msgid " Trusted CAs:"
 msgstr "Доверенные центры сертификации:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:414
+#: src/hed/libs/client/ExecutionTarget.cpp:421
 #, fuzzy, c-format
 msgid " Downtime Starts: %s"
 msgstr "начинается сегодня"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:417
+#: src/hed/libs/client/ExecutionTarget.cpp:424
 #, fuzzy, c-format
 msgid " Downtime Ends: %s"
 msgstr "Смысл-конец"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:420
+#: src/hed/libs/client/ExecutionTarget.cpp:427
 #, c-format
 msgid " Staging: %s"
 msgstr "Размещается: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:422
+#: src/hed/libs/client/ExecutionTarget.cpp:429
 msgid " Job Descriptions:"
 msgstr "Описания задач:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:428
+#: src/hed/libs/client/ExecutionTarget.cpp:435
 msgid "Queue information:"
 msgstr "Сведения об очереди:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:431
+#: src/hed/libs/client/ExecutionTarget.cpp:438
 #, fuzzy, c-format
 msgid " Mapping Queue: %s"
 msgstr "Длина очереди"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:433
+#: src/hed/libs/client/ExecutionTarget.cpp:440
 #, c-format
 msgid " Max Wall Time: %s"
 msgstr "Длительность, наибольшая (по часам): %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:436
+#: src/hed/libs/client/ExecutionTarget.cpp:443
 #, fuzzy, c-format
 msgid " Max Total Wall Time: %s"
 msgstr "%t - использование процессора (система + пользователи)"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:439
+#: src/hed/libs/client/ExecutionTarget.cpp:446
 #, c-format
 msgid " Min Wall Time: %s"
 msgstr "Длительность, наименьшая (по часам): %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:442
+#: src/hed/libs/client/ExecutionTarget.cpp:449
 #, c-format
 msgid " Default Wall Time: %s"
 msgstr "Длительность по умолчанию (по часам): %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:445
+#: src/hed/libs/client/ExecutionTarget.cpp:452
 #, c-format
 msgid " Max CPU Time: %s"
 msgstr "Длительность, наибольшая (CPU): %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:448
+#: src/hed/libs/client/ExecutionTarget.cpp:455
 #, c-format
 msgid " Min CPU Time: %s"
 msgstr "Длительность, наименьшая (CPU): %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:451
+#: src/hed/libs/client/ExecutionTarget.cpp:458
 #, c-format
 msgid " Default CPU Time: %s"
 msgstr "Длительность по умолчанию (CPU): %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:454
+#: src/hed/libs/client/ExecutionTarget.cpp:461
 #, c-format
 msgid " Max Total Jobs: %i"
 msgstr "Всего заданий (предел): %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:456
+#: src/hed/libs/client/ExecutionTarget.cpp:463
 #, c-format
 msgid " Max Running Jobs: %i"
 msgstr "Задачи в счёте (предел): %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:459
+#: src/hed/libs/client/ExecutionTarget.cpp:466
 #, fuzzy, c-format
 msgid " Max Waiting Jobs: %i"
 msgstr "Задачи в счёте (предел): %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:462
+#: src/hed/libs/client/ExecutionTarget.cpp:469
 #, fuzzy, c-format
 msgid " Max Pre-LRMS Waiting Jobs: %i"
 msgstr "*** Ожидание завершения заданий..."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:465
+#: src/hed/libs/client/ExecutionTarget.cpp:472
 #, c-format
 msgid " Max User Running Jobs: %i"
 msgstr "Задачи пользователя в счёте (предел): %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:468
+#: src/hed/libs/client/ExecutionTarget.cpp:475
 #, fuzzy, c-format
 msgid " Max Slots Per Job: %i"
 msgstr "Макс. количество заданий на каждый принтер:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:471
+#: src/hed/libs/client/ExecutionTarget.cpp:478
 #, fuzzy, c-format
 msgid " Max Stage In Streams: %i"
 msgstr "Макс. разница в длине предложения:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:474
+#: src/hed/libs/client/ExecutionTarget.cpp:481
 #, c-format
 msgid " Max Stage Out Streams: %i"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:477
+#: src/hed/libs/client/ExecutionTarget.cpp:484
 #, fuzzy, c-format
 msgid " Scheduling Policy: %s"
 msgstr "Правила планировки"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:480
+#: src/hed/libs/client/ExecutionTarget.cpp:487
 #, fuzzy, c-format
 msgid " Max Memory: %i"
 msgstr "Макс. память:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:482
+#: src/hed/libs/client/ExecutionTarget.cpp:489
 #, fuzzy, c-format
 msgid " Max Virtual Memory: %i"
 msgstr "виртуальная память исчерпана"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:485
+#: src/hed/libs/client/ExecutionTarget.cpp:492
 #, fuzzy, c-format
 msgid " Max Disk Space: %i"
 msgstr "Диск, доступно"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:487
+#: src/hed/libs/client/ExecutionTarget.cpp:494
 #, fuzzy, c-format
 msgid " Default Storage Service: %s"
 msgstr "Модуль поддержки содержимого"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:490
+#: src/hed/libs/client/ExecutionTarget.cpp:497
 #, fuzzy
 msgid " Supports Preemption"
 msgstr "Поддержка Burnfree:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:492
+#: src/hed/libs/client/ExecutionTarget.cpp:499
 #, fuzzy
 msgid " Doesn't Support Preemption"
 msgstr "Класс \"%1\" не поддерживает %2."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:494
+#: src/hed/libs/client/ExecutionTarget.cpp:501
 #, c-format
 msgid " Total Jobs: %i"
 msgstr "Всего задач: %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:496
+#: src/hed/libs/client/ExecutionTarget.cpp:503
 #, c-format
 msgid " Running Jobs: %i"
 msgstr "Задачи в счёте: %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:498
+#: src/hed/libs/client/ExecutionTarget.cpp:505
 #, c-format
 msgid " Local Running Jobs: %i"
 msgstr "Внутренние задачи в счёте: %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:501
+#: src/hed/libs/client/ExecutionTarget.cpp:508
 #, fuzzy, c-format
 msgid " Waiting Jobs: %i"
 msgstr "*** Ожидание завершения заданий..."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:503
+#: src/hed/libs/client/ExecutionTarget.cpp:510
 #, fuzzy, c-format
 msgid " Local Waiting Jobs: %i"
 msgstr "Внутренние задачи в счёте: %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:506
+#: src/hed/libs/client/ExecutionTarget.cpp:513
 #, fuzzy, c-format
 msgid " Suspended Jobs: %i"
 msgstr "  -a, -all                     применить ко всем задачам пользователя"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:509
+#: src/hed/libs/client/ExecutionTarget.cpp:516
 #, fuzzy, c-format
 msgid " Local Suspended Jobs: %i"
 msgstr "Внутренние задачи в счёте: %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:512
+#: src/hed/libs/client/ExecutionTarget.cpp:519
 #, fuzzy, c-format
 msgid " Staging Jobs: %i"
 msgstr "  -a, -all                     применить ко всем задачам пользователя"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:514
+#: src/hed/libs/client/ExecutionTarget.cpp:521
 #, fuzzy, c-format
 msgid " Pre-LRMS Waiting Jobs: %i"
 msgstr "*** Ожидание завершения заданий..."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:517
+#: src/hed/libs/client/ExecutionTarget.cpp:524
 #, fuzzy, c-format
 msgid " Estimated Average Waiting Time: %s"
 msgstr "Ожидаемое время завершения: неизвестно"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:521
+#: src/hed/libs/client/ExecutionTarget.cpp:528
 #, fuzzy, c-format
 msgid " Estimated Worst Waiting Time: %s"
 msgstr "Ожидаемое время завершения: неизвестно"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:525
+#: src/hed/libs/client/ExecutionTarget.cpp:532
 #, fuzzy, c-format
 msgid " Free Slots: %i"
 msgstr "Разъёмы карт..."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:527
+#: src/hed/libs/client/ExecutionTarget.cpp:534
 msgid " Free Slots Grouped According To Time Limits (limit: free slots):"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:532
+#: src/hed/libs/client/ExecutionTarget.cpp:539
 #, c-format
 msgid "  %s: %i"
 msgstr "  %s: %i"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:536
+#: src/hed/libs/client/ExecutionTarget.cpp:543
 #, fuzzy, c-format
 msgid "  unspecified: %i"
 msgstr "Неопределённый"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:542
+#: src/hed/libs/client/ExecutionTarget.cpp:549
 #, fuzzy, c-format
 msgid " Used Slots: %i"
 msgstr "Использованные ядра: %d"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:544
+#: src/hed/libs/client/ExecutionTarget.cpp:551
 #, fuzzy, c-format
 msgid " Requested Slots: %i"
 msgstr "Разъёмы карт..."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:547
+#: src/hed/libs/client/ExecutionTarget.cpp:554
 #, fuzzy, c-format
 msgid " Reservation Policy: %s"
 msgstr "Правила планировки"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:550
+#: src/hed/libs/client/ExecutionTarget.cpp:557
 #, fuzzy
 msgid "Manager information:"
 msgstr "Информация о менеджере сертификатов"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:553
+#: src/hed/libs/client/ExecutionTarget.cpp:560
 #, fuzzy, c-format
 msgid " Resource Manager: %s"
 msgstr "Станции"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:556
+#: src/hed/libs/client/ExecutionTarget.cpp:563
 #, fuzzy, c-format
 msgid " Resource Manager Version: %s"
 msgstr "  -v, -version                 вывести информацию о версии клиента"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:559
+#: src/hed/libs/client/ExecutionTarget.cpp:566
 #, fuzzy
 msgid " Supports Advance Reservations"
 msgstr "VisualBoy Advance (эмулятор):"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:561
+#: src/hed/libs/client/ExecutionTarget.cpp:568
 #, fuzzy
 msgid " Doesn't Support Advance Reservations"
 msgstr "Учетная запись %s не поддерживает невидимость."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:564
+#: src/hed/libs/client/ExecutionTarget.cpp:571
 #, fuzzy
 msgid " Supports Bulk Submission"
 msgstr "Сводка засылки задач:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:566
+#: src/hed/libs/client/ExecutionTarget.cpp:573
 #, fuzzy
 msgid " Doesn't Support Bulk Submission"
 msgstr "Учетная запись %s не поддерживает невидимость."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:568
+#: src/hed/libs/client/ExecutionTarget.cpp:575
 #, fuzzy, c-format
 msgid " Total Physical CPUs: %i"
 msgstr "Физические экстенты (всего):   "
 
-#: src/hed/libs/client/ExecutionTarget.cpp:571
+#: src/hed/libs/client/ExecutionTarget.cpp:578
 #, fuzzy, c-format
 msgid " Total Logical CPUs: %i"
 msgstr "Процессоры, занятые"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:574
+#: src/hed/libs/client/ExecutionTarget.cpp:581
 #, fuzzy, c-format
 msgid " Total Slots: %i"
 msgstr "Разъёмы карт..."
 
-#: src/hed/libs/client/ExecutionTarget.cpp:576
+#: src/hed/libs/client/ExecutionTarget.cpp:583
 #, fuzzy
 msgid " Homogeneous Resource"
 msgstr "Допуск к ресурсам"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:578
+#: src/hed/libs/client/ExecutionTarget.cpp:585
 #, fuzzy
 msgid " Non-homogeneous Resource"
 msgstr "Выбор папки источника"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:580
+#: src/hed/libs/client/ExecutionTarget.cpp:587
 #, fuzzy
 msgid " Network Information:"
 msgstr "Информация о сетевой папке"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:586
+#: src/hed/libs/client/ExecutionTarget.cpp:593
 msgid " Working area is shared among jobs"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:589
+#: src/hed/libs/client/ExecutionTarget.cpp:596
 msgid " Working area is not shared among jobs"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:592
+#: src/hed/libs/client/ExecutionTarget.cpp:599
 #, fuzzy, c-format
 msgid " Working Area Total Size: %i"
 msgstr "Общий размер %1 байт"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:595
+#: src/hed/libs/client/ExecutionTarget.cpp:602
 #, fuzzy, c-format
 msgid " Working Area Free Size: %i"
 msgstr "Размер области перекрытия вкладок"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:598
+#: src/hed/libs/client/ExecutionTarget.cpp:605
 #, fuzzy, c-format
 msgid " Working Area Life Time: %s"
 msgstr "Использовать рабочее время от наследованного календаря"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:601
+#: src/hed/libs/client/ExecutionTarget.cpp:608
 #, fuzzy, c-format
 msgid " Cache Area Total Size: %i"
 msgstr "Общий размер %1 байт"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:604
+#: src/hed/libs/client/ExecutionTarget.cpp:611
 #, fuzzy, c-format
 msgid " Cache Area Free Size: %i"
 msgstr "Размер области перекрытия вкладок"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:610
+#: src/hed/libs/client/ExecutionTarget.cpp:617
 #, fuzzy
 msgid " Benchmark Information:"
 msgstr "Информация о сертификате"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:616
+#: src/hed/libs/client/ExecutionTarget.cpp:623
 #, fuzzy
 msgid "Execution Environment information:"
 msgstr "Генерировать код для стандартной среды выполнения C"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:620
+#: src/hed/libs/client/ExecutionTarget.cpp:627
 #, c-format
 msgid " Platform: %s"
 msgstr " Платформа: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:622
+#: src/hed/libs/client/ExecutionTarget.cpp:629
 #, fuzzy
 msgid " Execution environment is a virtual machine"
 msgstr "Xen - это менеджер виртуальных машин"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:625
+#: src/hed/libs/client/ExecutionTarget.cpp:632
 msgid " Execution environment is a physical machine"
 msgstr ""
 
-#: src/hed/libs/client/ExecutionTarget.cpp:628
+#: src/hed/libs/client/ExecutionTarget.cpp:635
 #, fuzzy, c-format
 msgid " CPU Vendor: %s"
 msgstr "&Метка производителя:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:630
+#: src/hed/libs/client/ExecutionTarget.cpp:637
 #, fuzzy, c-format
 msgid " CPU Model: %s"
 msgstr "Модель многопотоковости: %s\n"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:632
+#: src/hed/libs/client/ExecutionTarget.cpp:639
 #, fuzzy, c-format
 msgid " CPU Version: %s"
 msgstr "collect2 версия %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:634
+#: src/hed/libs/client/ExecutionTarget.cpp:641
 #, fuzzy, c-format
 msgid " CPU Clock Speed: %i"
 msgstr "Процессор %1: %2, неизвестная скорость"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:637
+#: src/hed/libs/client/ExecutionTarget.cpp:644
 #, fuzzy, c-format
 msgid " Main Memory Size: %i"
 msgstr "Размер в памяти:"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:641
+#: src/hed/libs/client/ExecutionTarget.cpp:648
 #, c-format
 msgid " OS Family: %s"
 msgstr " Семейство ОС: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:643
+#: src/hed/libs/client/ExecutionTarget.cpp:650
 #, c-format
 msgid " OS Name: %s"
 msgstr " Название ОС: %s"
 
-#: src/hed/libs/client/ExecutionTarget.cpp:645
+#: src/hed/libs/client/ExecutionTarget.cpp:652
 #, c-format
 msgid " OS Version: %s"
 msgstr " Версия ОС: %s"
@@ -12491,9 +12528,8 @@ msgid "No Attribute exists, which can deal with type: %s"
 msgstr ""
 
 #: src/hed/libs/message/MCCLoader.cpp:16
-#, fuzzy
 msgid "Chain(s) configuration failed"
-msgstr "Не удалось загрузить конфигурацию"
+msgstr "Не удалось настроить цепочку/и"
 
 #: src/hed/libs/message/MCCLoader.cpp:118
 #, fuzzy
@@ -12614,7 +12650,6 @@ msgid "Plexer (%s) - next %s(%s) has no target"
 msgstr "Коммутатор (%s) - следующий %s(%s) не содержит назначения"
 
 #: src/hed/libs/message/Service.cpp:25
-#: src/hed/libs/message/MCC.cpp:65
 #, c-format
 msgid "No security processing/check requested for '%s'"
 msgstr "Обработка/проверка параметров доступа не запрошена для '%s'"
@@ -12806,6 +12841,14 @@ msgstr ""
 msgid "Failed to unlock file with lock %s: %s"
 msgstr "Не удалось удалить устаревший файл блокировки '%s'."
 
+#: src/hed/libs/common/Logger.cpp:66
+msgid "Invalid log level. Using FATAL."
+msgstr ""
+
+#: src/hed/libs/common/Logger.cpp:143
+msgid "Invalid old log level. Using FATAL."
+msgstr ""
+
 #: src/hed/libs/common/IString.cpp:32
 #: src/hed/libs/common/IString.cpp:41
 #: src/hed/libs/common/IString.cpp:42
@@ -12858,9 +12901,9 @@ msgstr ""
 #: src/hed/libs/common/UserConfig.cpp:508
 #: src/hed/libs/common/UserConfig.cpp:564
 #: src/hed/libs/common/UserConfig.cpp:616
-#, fuzzy, c-format
+#, c-format
 msgid "Multiple %s attributes in configuration file (%s)"
-msgstr "&Хранить пароль в файле настроек"
+msgstr "Множественные атрибуты %s в файле настроек (%s)"
 
 #: src/hed/libs/common/UserConfig.cpp:41
 msgid "computing"
@@ -12874,43 +12917,42 @@ msgstr "index"
 #: src/hed/libs/common/UserConfig.cpp:96
 #: src/hed/libs/common/UserConfig.cpp:157
 #: src/hed/libs/common/UserConfig.cpp:163
-#, fuzzy, c-format
+#, c-format
 msgid "System configuration file (%s) contains errors."
-msgstr "Файл конфигурации сервиса Bonobo-activation содержит:\n"
+msgstr "Файл системных настроек (%s) содержит ошибки."
 
 #: src/hed/libs/common/UserConfig.cpp:101
 #: src/hed/libs/common/UserConfig.cpp:168
-#, fuzzy, c-format
+#, c-format
 msgid "System configuration file (%s or %s) does not exist."
-msgstr "Файл не существует - введите снова или отмените:"
+msgstr "Файл системных настроек (%s or %s) не существует."
 
 #: src/hed/libs/common/UserConfig.cpp:103
 #: src/hed/libs/common/UserConfig.cpp:105
 #: src/hed/libs/common/UserConfig.cpp:170
 #: src/hed/libs/common/UserConfig.cpp:172
-#, fuzzy, c-format
+#, c-format
 msgid "System configuration file (%s) does not exist."
-msgstr "Невозможно открыть файл «%1». Файл не существует."
+msgstr "Файл системных настроек (%s) не существует."
 
 #: src/hed/libs/common/UserConfig.cpp:112
 #: src/hed/libs/common/UserConfig.cpp:124
 #: src/hed/libs/common/UserConfig.cpp:179
 #: src/hed/libs/common/UserConfig.cpp:191
-#, fuzzy, c-format
+#, c-format
 msgid "User configuration file (%s) contains errors."
-msgstr "Файл конфигурации сервиса Bonobo-activation содержит:\n"
+msgstr "Файл настроек пользователя (%s) содержит ошибки."
 
 #: src/hed/libs/common/UserConfig.cpp:117
 #: src/hed/libs/common/UserConfig.cpp:184
-#, fuzzy
 msgid "No configuration file could be loaded."
-msgstr "Не удаётся загрузить файл сертификата."
+msgstr "Файл настроек не может быть подгружен."
 
 #: src/hed/libs/common/UserConfig.cpp:120
 #: src/hed/libs/common/UserConfig.cpp:187
-#, fuzzy, c-format
+#, c-format
 msgid "User configuration file (%s) does not exist or cannot be loaded."
-msgstr "Файл \"%s\" не является обычным файлом или каталогом."
+msgstr "Файл настроек пользователя (%s) не существует или не может быть подгружен."
 
 #: src/hed/libs/common/UserConfig.cpp:249
 #, c-format
@@ -12918,14 +12960,14 @@ msgid "Unable to parse the specified verbosity (%s) to one of the allowed levels
 msgstr ""
 
 #: src/hed/libs/common/UserConfig.cpp:265
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to create %s directory"
-msgstr "Не удалось создать каталог %1"
+msgstr "Не удалось создать каталог %s"
 
 #: src/hed/libs/common/UserConfig.cpp:270
-#, fuzzy, c-format
+#, c-format
 msgid "%s is not a directory, it is needed for the client to function correctly"
-msgstr "путь к доверяемому каталогу с сертификатами, используется только клиентом VOMS"
+msgstr "%s не является каталогом. Он необходим для нормальной работы клиента"
 
 #: src/hed/libs/common/UserConfig.cpp:276
 #, c-format
@@ -12938,29 +12980,29 @@ msgid "ARC job list file is not a regular file: %s"
 msgstr "Список задач ARC не является стандартным файлом: %s"
 
 #: src/hed/libs/common/UserConfig.cpp:303
-#: src/hed/libs/common/UserConfig.cpp:320
-#, fuzzy, c-format
+#: src/hed/libs/common/UserConfig.cpp:309
+#, c-format
 msgid "Can not access proxy file: %s"
-msgstr "Невозможно открыть файл доверенности: %s (%s)"
-
-#: src/hed/libs/common/UserConfig.cpp:310
-#: src/hed/libs/common/UserConfig.cpp:326
-#: src/hed/libs/common/UserConfig.cpp:352
-#, fuzzy, c-format
-msgid "Can not access certificate file: %s"
-msgstr "Невозможно открыть файл сертификата: %s (%s)"
+msgstr "Нет доступа к файлу доверенности: %s"
 
 #: src/hed/libs/common/UserConfig.cpp:314
-#: src/hed/libs/common/UserConfig.cpp:330
-#: src/hed/libs/common/UserConfig.cpp:356
-#, fuzzy, c-format
-msgid "Can not access key file: %s"
-msgstr "Не удалось обнаружить файл личного ключа: %s"
-
-#: src/hed/libs/common/UserConfig.cpp:335
 #, c-format
-msgid "Default proxy file does not exist: %s trying default certificate and key"
+msgid "Proxy file does not exist: %s trying certificate and key"
 msgstr ""
+
+#: src/hed/libs/common/UserConfig.cpp:321
+#: src/hed/libs/common/UserConfig.cpp:331
+#: src/hed/libs/common/UserConfig.cpp:353
+#, c-format
+msgid "Can not access certificate file: %s"
+msgstr "Нет доступа к файлу сертификата: %s"
+
+#: src/hed/libs/common/UserConfig.cpp:325
+#: src/hed/libs/common/UserConfig.cpp:335
+#: src/hed/libs/common/UserConfig.cpp:357
+#, c-format
+msgid "Can not access key file: %s"
+msgstr "Нет доступа к файлу личного ключа: %s"
 
 #: src/hed/libs/common/UserConfig.cpp:363
 #, fuzzy, c-format
@@ -12999,7 +13041,7 @@ msgstr "Используется каталог доверенных серти�
 #: src/hed/libs/common/UserConfig.cpp:400
 #, c-format
 msgid "Loading configuration (%s)"
-msgstr "Чтение файла конфигурации (%s)"
+msgstr "Чтение файла настроек (%s)"
 
 #: src/hed/libs/common/UserConfig.cpp:408
 #, fuzzy, c-format
@@ -13086,12 +13128,12 @@ msgstr "неизвестная кодировка %s --- пропускаю за
 #: src/hed/libs/common/UserConfig.cpp:644
 #, c-format
 msgid "Configuration (%s) loaded"
-msgstr "Конфигурация (%s) подгружена"
+msgstr "Настройки (%s) подгружены"
 
 #: src/hed/libs/common/UserConfig.cpp:647
 #, c-format
 msgid "Could not load configuration (%s)"
-msgstr "Не удалось подгрузить конфигурацию (%s)"
+msgstr "Не удалось подгрузить настройки (%s)"
 
 #: src/hed/libs/common/UserConfig.cpp:743
 #, fuzzy, c-format
@@ -13338,24 +13380,24 @@ msgstr ""
 msgid "This message goes to per-thread destination"
 msgstr ""
 
-#: src/hed/libs/crypto/OpenSSL.cpp:58
+#: src/hed/libs/crypto/OpenSSL.cpp:59
 msgid "FATAL: SSL locks not initialized"
 msgstr "СБОЙ: блокировка SSL не инициализирована"
 
-#: src/hed/libs/crypto/OpenSSL.cpp:62
+#: src/hed/libs/crypto/OpenSSL.cpp:63
 #, c-format
 msgid "FATAL: wrong SSL lock requested: %i of %i: %i - %s"
 msgstr ""
 
-#: src/hed/libs/crypto/OpenSSL.cpp:84
+#: src/hed/libs/crypto/OpenSSL.cpp:85
 msgid "Failed to lock arccrypto library in memory"
 msgstr "Невозможно заблокировать библиотеку arccrypto в памяти"
 
-#: src/hed/libs/crypto/OpenSSL.cpp:88
+#: src/hed/libs/crypto/OpenSSL.cpp:89
 msgid "Failed to initialize OpenSSL library"
 msgstr "Ошибка инициализации библиотеки OpenSSL"
 
-#: src/hed/libs/crypto/OpenSSL.cpp:109
+#: src/hed/libs/crypto/OpenSSL.cpp:110
 msgid "Number of OpenSSL locks changed - reinitializing"
 msgstr ""
 
@@ -13435,7 +13477,7 @@ msgstr "Несоответствий не обнаружено "
 #: src/hed/libs/infosys/InfoRegister.cpp:162
 #, c-format
 msgid "Configuration error. Retry: \"%s\" is not a valid value. Default value will be used."
-msgstr ""
+msgstr "Ошибйка настроек. Retry: \"%s\" не является допустимым значением. Будет использовано значение по умолчанию."
 
 #: src/hed/libs/infosys/InfoRegister.cpp:177
 #, c-format
@@ -13449,15 +13491,15 @@ msgstr "Сервис не обнаружен"
 
 #: src/hed/libs/infosys/InfoRegister.cpp:195
 msgid "Configuration error. Missing mandatory \"Period\" element."
-msgstr ""
+msgstr "Ошибка конфигурации. Отсутствует обязательный элемент \"Period\"."
 
 #: src/hed/libs/infosys/InfoRegister.cpp:200
 msgid "Configuration error. Missing mandatory \"Endpoint\" element."
-msgstr ""
+msgstr "Ошибка конфигурации. Отсутствует обязательный элемент \"Endpoint\"."
 
 #: src/hed/libs/infosys/InfoRegister.cpp:205
 msgid "Configuration error. Missing mandatory \"Expiration\" element."
-msgstr ""
+msgstr "Ошибка конфигурации. Отсутствует обязательный элемент \"Expiration\"."
 
 #: src/hed/libs/infosys/InfoRegister.cpp:212
 #, c-format
@@ -13811,7 +13853,7 @@ msgid "Not a collection"
 msgstr "&Коллекция изображений..."
 
 #: src/hed/dmc/arc/DataPointARC.cpp:284
-#: src/hed/dmc/srm/DataPointSRM.cpp:343
+#: src/hed/dmc/srm/DataPointSRM.cpp:355
 msgid "StartReading"
 msgstr "Начало чтения"
 
@@ -13823,7 +13865,7 @@ msgid "Recieved transfer URL: %s"
 msgstr "  -s, -source    адрес         загрузить с данного адреса"
 
 #: src/hed/dmc/arc/DataPointARC.cpp:377
-#: src/hed/dmc/srm/DataPointSRM.cpp:567
+#: src/hed/dmc/srm/DataPointSRM.cpp:579
 msgid "StartWriting"
 msgstr "Начало записи"
 
@@ -13840,6 +13882,10 @@ msgstr "Проверка"
 #, c-format
 msgid "Deleted %s"
 msgstr "Удалён %s"
+
+#: src/hed/dmc/ldap/DataPointLDAP.cpp:34
+msgid "Missing reference to factory and/or module. Curently safe unloading of LDAP DMC is not supported. Report to developers."
+msgstr ""
 
 #: src/hed/dmc/ldap/LDAPQuery.cpp:176
 msgid "SASL Interaction"
@@ -13940,235 +13986,229 @@ msgstr "Ошибка: не послан запрос LDAP к %s"
 msgid "LDAP query timed out: %s"
 msgstr "Истекло время ожидания ответа на запрос LDAP:  %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:75
+#: src/hed/dmc/srm/DataPointSRM.cpp:87
 #, c-format
 msgid "Check: looking for metadata: %s"
 msgstr "Проверка: поиск метаданных: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:93
+#: src/hed/dmc/srm/DataPointSRM.cpp:105
 #, c-format
 msgid "Check: obtained size: %lli"
 msgstr "Проверка: получен размер: %lli"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:99
+#: src/hed/dmc/srm/DataPointSRM.cpp:111
 #, c-format
 msgid "Check: obtained checksum: %s"
 msgstr "Проверка: получена контрольная сумма: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:103
+#: src/hed/dmc/srm/DataPointSRM.cpp:115
 #, c-format
 msgid "Check: obtained creation date: %s"
 msgstr "Проверка: получена дата создания: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:107
+#: src/hed/dmc/srm/DataPointSRM.cpp:119
 #, fuzzy
 msgid "Check: obtained access latency: low (ONLINE)"
 msgstr "Проверка: получена дата создания: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:111
+#: src/hed/dmc/srm/DataPointSRM.cpp:123
 #, fuzzy
 msgid "Check: obtained access latency: high (NEARLINE)"
 msgstr "Проверка: получена дата создания: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:142
+#: src/hed/dmc/srm/DataPointSRM.cpp:154
 #, fuzzy, c-format
 msgid "Remove: deleting: %s"
 msgstr "remove_srm: удаляется: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:175
-#: src/hed/dmc/srm/DataPointSRM.cpp:246
+#: src/hed/dmc/srm/DataPointSRM.cpp:187
+#: src/hed/dmc/srm/DataPointSRM.cpp:258
 msgid "Calling PrepareReading when request was already prepared!"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:211
+#: src/hed/dmc/srm/DataPointSRM.cpp:223
 #, c-format
 msgid "File %s is NEARLINE, will make request to bring online"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:224
+#: src/hed/dmc/srm/DataPointSRM.cpp:236
 #, c-format
 msgid "Bring online request %s is still in queue, should wait"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:229
+#: src/hed/dmc/srm/DataPointSRM.cpp:241
 #, c-format
 msgid "Bring online request %s finished successfully, file is now ONLINE"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:236
+#: src/hed/dmc/srm/DataPointSRM.cpp:248
 #, c-format
 msgid "Bad logic for %s - bringOnline returned ok but SRM request is not finished successfully or on going"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:294
+#: src/hed/dmc/srm/DataPointSRM.cpp:306
 #, fuzzy, c-format
 msgid "Get request %s is still in queue, should wait %i seconds"
 msgstr "Не удаётся соединиться с %s:%s (%s), connection timed out"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:302
-#: src/hed/dmc/srm/DataPointSRM.cpp:526
+#: src/hed/dmc/srm/DataPointSRM.cpp:314
+#: src/hed/dmc/srm/DataPointSRM.cpp:538
 #, c-format
 msgid "Checking URL returned by SRM: %s"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:329
-#: src/hed/dmc/srm/DataPointSRM.cpp:553
+#: src/hed/dmc/srm/DataPointSRM.cpp:341
+#: src/hed/dmc/srm/DataPointSRM.cpp:565
 #, c-format
 msgid "SRM returned no useful Transfer URLs: %s"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:335
+#: src/hed/dmc/srm/DataPointSRM.cpp:347
 #, c-format
 msgid "Bad logic for %s - getTURLs returned ok but SRM request is not finished successfully or on going"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:345
+#: src/hed/dmc/srm/DataPointSRM.cpp:357
 #, fuzzy
 msgid "StartReading: File was not prepared properly"
 msgstr "Неверный пароль, подпись не создана."
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:358
-#: src/hed/dmc/srm/DataPointSRM.cpp:582
+#: src/hed/dmc/srm/DataPointSRM.cpp:370
+#: src/hed/dmc/srm/DataPointSRM.cpp:594
 #, fuzzy, c-format
 msgid "TURL %s cannot be handled"
 msgstr "Невозможно извлечь сертификат"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:366
-#: src/hed/dmc/srm/DataPointSRM.cpp:590
+#: src/hed/dmc/srm/DataPointSRM.cpp:378
+#: src/hed/dmc/srm/DataPointSRM.cpp:602
 #, fuzzy, c-format
 msgid "Redirecting to new URL: %s"
 msgstr "Сохранить текущий проект в новый файл"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:438
+#: src/hed/dmc/srm/DataPointSRM.cpp:450
 msgid "Calling PrepareWriting when request was already prepared!"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:480
+#: src/hed/dmc/srm/DataPointSRM.cpp:492
 #, fuzzy
 msgid "No space token specified"
 msgstr "Задача не описана"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:485
+#: src/hed/dmc/srm/DataPointSRM.cpp:497
 msgid "Warning: Using SRM protocol v1 which does not support space tokens"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:487
+#: src/hed/dmc/srm/DataPointSRM.cpp:499
 #, fuzzy, c-format
 msgid "Using space token description %s"
 msgstr "Создать подпись, &с текстом описания изображения."
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:492
+#: src/hed/dmc/srm/DataPointSRM.cpp:504
 #, c-format
 msgid "Warning: Error looking up space tokens matching description %s. Will copy without using token"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:495
+#: src/hed/dmc/srm/DataPointSRM.cpp:507
 msgid "Warning: No space tokens found matching description! Will copy without using token"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:498
+#: src/hed/dmc/srm/DataPointSRM.cpp:510
 #, fuzzy, c-format
 msgid "Using space token %s"
 msgstr "%s:%d: предупреждение: неизвестный маркер \"%s\"\n"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:518
+#: src/hed/dmc/srm/DataPointSRM.cpp:530
 #, fuzzy, c-format
 msgid "Put request %s is still in queue, should wait %i seconds"
 msgstr "Не удаётся соединиться с %s:%s (%s), connection timed out"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:559
+#: src/hed/dmc/srm/DataPointSRM.cpp:571
 #, c-format
 msgid "Bad logic for %s - putTURLs returned ok but SRM request is not finished successfully or on going"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:569
+#: src/hed/dmc/srm/DataPointSRM.cpp:581
 #, fuzzy
 msgid "StartWriting: File was not prepared properly"
 msgstr "Неверный пароль, подпись не создана."
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:645
+#: src/hed/dmc/srm/DataPointSRM.cpp:657
 #, fuzzy, c-format
 msgid "FinishWriting: looking for metadata: %s"
 msgstr "Проверка: поиск метаданных: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:662
+#: src/hed/dmc/srm/DataPointSRM.cpp:674
 #, fuzzy, c-format
 msgid "FinishWriting: obtained checksum: %s"
 msgstr "Проверка: получена контрольная сумма: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:665
+#: src/hed/dmc/srm/DataPointSRM.cpp:677
 #, c-format
 msgid "Calculated/supplied transfer checksum %s matches checksum reported by SRM destination %s"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:668
+#: src/hed/dmc/srm/DataPointSRM.cpp:680
 #, c-format
 msgid "Checksum mismatch between calculated/supplied checksum (%s) and checksum reported by SRM destination (%s)"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:671
+#: src/hed/dmc/srm/DataPointSRM.cpp:683
 #, c-format
 msgid "Checksum type of SRM (%s) and calculated/supplied checksum (%s) differ, cannot compare"
 msgstr ""
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:672
-#: src/hed/dmc/srm/DataPointSRM.cpp:673
+#: src/hed/dmc/srm/DataPointSRM.cpp:684
+#: src/hed/dmc/srm/DataPointSRM.cpp:685
 #, fuzzy
 msgid "No checksum information from server"
 msgstr "Нет новых сообщений от сервера"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:674
+#: src/hed/dmc/srm/DataPointSRM.cpp:686
 #, fuzzy
 msgid "No checksum verification possible"
 msgstr "Больше нет ходов!"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:679
+#: src/hed/dmc/srm/DataPointSRM.cpp:691
 #, fuzzy
 msgid "Failed to release completed request"
 msgstr "Запрос %s к %s не выполнен, получен ответ: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:732
+#: src/hed/dmc/srm/DataPointSRM.cpp:744
 #, fuzzy, c-format
 msgid "ListFiles: looking for metadata: %s"
 msgstr "Проверка: поиск метаданных: %s"
 
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:50
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:65
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:122
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:52
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:103
 #, fuzzy, c-format
 msgid "Error reading srm info file %s:%s"
 msgstr "%s: ошибка чтения вспомогательного файла '%s': %s\n"
 
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:58
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:59
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:119
 #, fuzzy, c-format
-msgid "Error allocating memory for info file %s:%s"
-msgstr "%s: ошибка чтения вспомогательного файла '%s': %s\n"
+msgid "Error reading info from file %s"
+msgstr "Ошибка чтения из файла %1"
 
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:84
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:183
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:71
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:140
 #, fuzzy, c-format
 msgid "Bad or old format detected in file %s, in line %s"
 msgstr "Неправильный двоичный формат строки в интерпретируемом файле %s"
 
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:92
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:78
 #, fuzzy, c-format
 msgid "Can't convert string %s to int in file %s, line %s"
 msgstr "Неправильный двоичный формат строки в интерпретируемом файле %s"
 
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:132
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:201
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:111
 #, fuzzy, c-format
-msgid "Error opening srm info file for writing %s:%s"
-msgstr "Ошибка: Невозможно открыть файл %s для записи.\n"
+msgid "Error creating srm info file %s"
+msgstr "%s: ошибка закрытия вспомогательного файла '%s': %s\n"
 
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:148
+#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:153
 #, fuzzy, c-format
-msgid "Error allocating memory for srm info file %s:%s"
-msgstr "%s: ошибка чтения вспомогательного файла '%s': %s\n"
-
-#: src/hed/dmc/srm/srmclient/SRMInfo.cpp:155
-#, fuzzy, c-format
-msgid "Error opening srm info file %s:%s"
+msgid "Error writing srm info file %s"
 msgstr "%s: ошибка закрытия вспомогательного файла '%s': %s\n"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:150
@@ -14487,9 +14527,6 @@ msgstr ""
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:225
 #: src/hed/dmc/lfc/DataPointLFC.cpp:266
-#: src/hed/dmc/rls/DataPointRLS.cpp:245
-#: src/hed/dmc/rls/DataPointRLS.cpp:260
-#: src/hed/dmc/rls/DataPointRLS.cpp:271
 #, fuzzy, c-format
 msgid "Adding location: %s - %s"
 msgstr "выбранное расположение:"
@@ -14510,19 +14547,16 @@ msgid "No locations found for %s"
 msgstr "Не найдено определений для '%1'."
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:299
-#: src/hed/dmc/rls/DataPointRLS.cpp:431
 #, fuzzy, c-format
 msgid "meta_get_data: checksum: %s"
 msgstr "Просматривать мета-тэги"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:300
-#: src/hed/dmc/rls/DataPointRLS.cpp:432
 #, c-format
 msgid "meta_get_data: size: %llu"
 msgstr "meta_get_data: размер: %llu"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:301
-#: src/hed/dmc/rls/DataPointRLS.cpp:433
 #, fuzzy, c-format
 msgid "meta_get_data: created: %s"
 msgstr "Имя создаваемого get-метода"
@@ -14599,7 +14633,6 @@ msgid "Failed to remove LFN in LFC - You may need to do it by hand"
 msgstr ""
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:527
-#: src/hed/dmc/rls/DataPointRLS.cpp:822
 #, fuzzy
 msgid "Location is missing"
 msgstr "Отсутствует тег %1."
@@ -14667,76 +14700,76 @@ msgstr "Ошибка определения LFN из guid %s: %s"
 msgid "guid %s resolved to LFN %s"
 msgstr "Ошибка определения LFN из guid %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:274
+#: src/hed/dmc/file/DataPointFile.cpp:273
 #, fuzzy, c-format
 msgid "fsync of file %s failed: %s"
 msgstr "Ошибка записи файла"
 
-#: src/hed/dmc/file/DataPointFile.cpp:279
+#: src/hed/dmc/file/DataPointFile.cpp:278
 #, fuzzy, c-format
 msgid "closing file %s failed: %s"
 msgstr "Ошибка записи файла"
 
-#: src/hed/dmc/file/DataPointFile.cpp:299
+#: src/hed/dmc/file/DataPointFile.cpp:298
 #, c-format
 msgid "File is not accessible: %s"
 msgstr "Файл недоступен: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:304
-#: src/hed/dmc/file/DataPointFile.cpp:371
+#: src/hed/dmc/file/DataPointFile.cpp:303
+#: src/hed/dmc/file/DataPointFile.cpp:370
 #, c-format
 msgid "Can't stat file: %s"
 msgstr "Невозможно получить статус файла: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:395
+#: src/hed/dmc/file/DataPointFile.cpp:394
 #, c-format
 msgid "Failed to read object %s"
 msgstr "Сбой чтения объекта %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:411
+#: src/hed/dmc/file/DataPointFile.cpp:410
 #, c-format
 msgid "File is not accessible: %s - %s"
 msgstr "Файл недоступен: %s - %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:417
+#: src/hed/dmc/file/DataPointFile.cpp:416
 #, c-format
 msgid "Can't delete directory: %s - %s"
 msgstr "Не удалось удалить каталог: %s - %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:424
+#: src/hed/dmc/file/DataPointFile.cpp:423
 #, c-format
 msgid "Can't delete file: %s - %s"
 msgstr "Не удалось удалить файл: %s - %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:499
+#: src/hed/dmc/file/DataPointFile.cpp:498
 msgid "Failed to use channel stdout"
 msgstr "Сбой использования канала stdout"
 
-#: src/hed/dmc/file/DataPointFile.cpp:512
+#: src/hed/dmc/file/DataPointFile.cpp:511
 #, c-format
 msgid "Invalid url: %s"
 msgstr "Неверный URL: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:536
+#: src/hed/dmc/file/DataPointFile.cpp:535
 #, c-format
 msgid "Failed to create/open file %s (%d)"
 msgstr "Сбой при создании/открытии файла %s (%d)"
 
-#: src/hed/dmc/file/DataPointFile.cpp:547
+#: src/hed/dmc/file/DataPointFile.cpp:546
 #, c-format
 msgid "setting file %s to size %llu"
 msgstr "файлу %s присваивается размер %llu"
 
-#: src/hed/dmc/file/DataPointFile.cpp:569
+#: src/hed/dmc/file/DataPointFile.cpp:568
 msgid "Failed to preallocate space"
 msgstr "Сбой резервирования пространства"
 
-#: src/hed/dmc/file/DataPointFile.cpp:612
+#: src/hed/dmc/file/DataPointFile.cpp:611
 #, fuzzy, c-format
 msgid "Error during file validation. Can't stat file %s"
 msgstr "Ошибка при исполнении приложения"
 
-#: src/hed/dmc/file/DataPointFile.cpp:616
+#: src/hed/dmc/file/DataPointFile.cpp:615
 #, c-format
 msgid "Error during file validation: Local file size %llu does not match source file size %llu for file %s"
 msgstr ""
@@ -14954,22 +14987,22 @@ msgstr "Дата модификации источника: %s, размер %ll
 msgid "Stat: obtained modification time %s"
 msgstr "#  Время изменения ни разу не проверялось."
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:649
+#: src/hed/dmc/http/DataPointHTTP.cpp:652
 #, c-format
 msgid "Check: obtained size %llu"
 msgstr "Проверка: получен размер %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:651
+#: src/hed/dmc/http/DataPointHTTP.cpp:654
 #, fuzzy, c-format
 msgid "Check: obtained modification time %s"
 msgstr "#  Время изменения ни разу не проверялось."
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:735
+#: src/hed/dmc/http/DataPointHTTP.cpp:738
 #, c-format
 msgid "Redirecting to %s"
 msgstr "Перенаправление к %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:756
+#: src/hed/dmc/http/DataPointHTTP.cpp:759
 #, c-format
 msgid "HTTP failure %u - %s"
 msgstr "Ошибка HTTP %u - %s"
@@ -16236,14 +16269,12 @@ msgid "copy the cache file"
 msgstr "Обновление кэш-файла"
 
 #: src/libs/data-staging/CacheManager.cpp:39
-#, fuzzy
 msgid "file is executable"
-msgstr "Файл «%s» является исполняемым текстовым файлом."
+msgstr "файл является исполняемым файлом"
 
 #: src/libs/data-staging/CacheManager.cpp:42
-#, fuzzy
 msgid "configuration file"
-msgstr "Файл настройки"
+msgstr "файл настройки"
 
 #: src/libs/data-staging/CacheManager.cpp:51
 #, fuzzy
@@ -16265,14 +16296,13 @@ msgid "One of -l and -c must be specified"
 msgstr "должно быть одним из: C, S, E, P, или пустым"
 
 #: src/libs/data-staging/CacheManager.cpp:72
-#, fuzzy
 msgid "No configuration specified"
-msgstr "Команда не определена"
+msgstr "Файл настроек не указан"
 
 #: src/libs/data-staging/CacheManager.cpp:85
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open configuration file: %s"
-msgstr "Сбой при открытии файла \"%s\": сбой в функции fdopen(): %s"
+msgstr "Не удалось открыть файл настроек: %s"
 
 #: src/libs/data-staging/CacheManager.cpp:105
 #, fuzzy
@@ -16318,204 +16348,142 @@ msgstr "[ресурс ...]"
 msgid "The arcinfo command is used for obtaining the status of computing resources on the Grid."
 msgstr "Команда arcinfo используется для проверки состояния вычислительных ресурсов на Гриде"
 
-#: src/clients/arclib/arcinfo.cpp:42
-#: src/clients/arclib/arctest.cpp:56
-#: src/clients/arclib/arcsub.cpp:56
-#: src/clients/arclib/arcsync.cpp:48
-msgid ""
-"Argument to -g has the format Flavour:URL e.g.\n"
-"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
-"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
-"\n"
-"Argument to -c has the format Flavour:URL e.g.\n"
-"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"
-msgstr ""
-"Аргумент опции -g задаётся по форме Flavour:URL, например:\n"
-"ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
-"CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
-"\n"
-"Аргумент опции -c задаётся по форме Flavour:URL, например:\n"
-"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"
-
-#: src/clients/arclib/arcinfo.cpp:57
+#: src/clients/arclib/arcinfo.cpp:45
 #: src/clients/arclib/arcrenew.cpp:58
-#: src/clients/arclib/arctest.cpp:71
-#: src/clients/arclib/arckill.cpp:66
-#: src/clients/arclib/arcget.cpp:65
-#: src/clients/arclib/arcstat.cpp:67
-#: src/clients/arclib/arccat.cpp:66
-#: src/clients/arclib/arcclean.cpp:65
+#: src/clients/arclib/arctest.cpp:59
+#: src/clients/arclib/arckill.cpp:61
+#: src/clients/arclib/arcget.cpp:60
+#: src/clients/arclib/arcstat.cpp:62
+#: src/clients/arclib/arccat.cpp:61
+#: src/clients/arclib/arcclean.cpp:60
 #: src/clients/arclib/arcresume.cpp:58
-#: src/clients/arclib/arcresub.cpp:77
-#: src/clients/arclib/arcsub.cpp:71
-#: src/clients/arclib/arcsync.cpp:63
 msgid "explicitly select or reject a specific resource"
 msgstr "явным образом выбрать или отсеять указанный ресурс"
 
-#: src/clients/arclib/arcinfo.cpp:58
-#: src/clients/arclib/arcinfo.cpp:64
+#: src/clients/arclib/arcinfo.cpp:46
+#: src/clients/arclib/arcinfo.cpp:52
 #: src/clients/arclib/arcrenew.cpp:59
-#: src/clients/arclib/arctest.cpp:72
-#: src/clients/arclib/arctest.cpp:78
-#: src/clients/arclib/arckill.cpp:67
-#: src/clients/arclib/arcget.cpp:66
-#: src/clients/arclib/arcstat.cpp:68
-#: src/clients/arclib/arccat.cpp:67
-#: src/clients/arclib/arcclean.cpp:66
-#: src/clients/arclib/arcmigrate.cpp:84
-#: src/clients/arclib/arcmigrate.cpp:90
-#: src/clients/arclib/arcmigrate.cpp:96
+#: src/clients/arclib/arctest.cpp:60
+#: src/clients/arclib/arctest.cpp:66
+#: src/clients/arclib/arckill.cpp:62
+#: src/clients/arclib/arcget.cpp:61
+#: src/clients/arclib/arcstat.cpp:63
+#: src/clients/arclib/arccat.cpp:62
+#: src/clients/arclib/arcclean.cpp:61
+#: src/clients/arclib/arcmigrate.cpp:85
+#: src/clients/arclib/arcmigrate.cpp:91
+#: src/clients/arclib/arcmigrate.cpp:97
 #: src/clients/arclib/arcresume.cpp:59
-#: src/clients/arclib/arcresub.cpp:78
-#: src/clients/arclib/arcresub.cpp:85
-#: src/clients/arclib/arcresub.cpp:91
-#: src/clients/arclib/arcsub.cpp:72
-#: src/clients/arclib/arcsub.cpp:78
-#: src/clients/arclib/arcsync.cpp:64
-#: src/clients/arclib/arcsync.cpp:70
 msgid "[-]name"
 msgstr "[-]адрес"
 
-#: src/clients/arclib/arcinfo.cpp:63
-#: src/clients/arclib/arctest.cpp:77
-#: src/clients/arclib/arcmigrate.cpp:95
-#: src/clients/arclib/arcresub.cpp:90
-#: src/clients/arclib/arcsub.cpp:77
-#: src/clients/arclib/arcsync.cpp:69
+#: src/clients/arclib/arcinfo.cpp:51
+#: src/clients/arclib/arctest.cpp:65
+#: src/clients/arclib/arcmigrate.cpp:96
 msgid "explicitly select or reject an index server"
 msgstr "явным образом выбрать или отсеять каталог ресурсов"
 
-#: src/clients/arclib/arcinfo.cpp:69
-#: src/clients/arclib/arcstat.cpp:79
+#: src/clients/arclib/arcinfo.cpp:57
+#: src/clients/arclib/arcstat.cpp:74
 msgid "long format (more information)"
 msgstr "расширенный формат (дополнительная информация)"
 
-#: src/clients/arclib/arcinfo.cpp:73
+#: src/clients/arclib/arcinfo.cpp:61
 #: src/clients/arclib/arcrenew.cpp:69
-#: src/clients/arclib/arctest.cpp:110
+#: src/clients/arclib/arctest.cpp:98
+#: src/clients/arclib/arckill.cpp:77
+#: src/clients/arclib/arcget.cpp:94
+#: src/clients/arclib/arcstat.cpp:91
+#: src/clients/arclib/arccat.cpp:87
+#: src/clients/arclib/arcclean.cpp:77
+#: src/clients/arclib/arcmigrate.cpp:101
+#: src/clients/arclib/arcresume.cpp:69
+msgid "timeout in seconds (default 20)"
+msgstr "время ожидания в секундах (по умолчанию 20)"
+
+#: src/clients/arclib/arcinfo.cpp:62
+#: src/clients/arclib/arcrenew.cpp:70
+#: src/clients/arclib/arctest.cpp:99
+#: src/clients/arclib/arckill.cpp:78
+#: src/clients/arclib/arcget.cpp:95
+#: src/clients/arclib/arcstat.cpp:92
+#: src/clients/arclib/arccat.cpp:88
+#: src/clients/arclib/arcclean.cpp:78
+#: src/clients/arclib/arcmigrate.cpp:102
+#: src/clients/arclib/arcresume.cpp:70
+msgid "seconds"
+msgstr "секунд(а/ы)"
+
+#: src/clients/arclib/arcinfo.cpp:66
+#: src/clients/arclib/arcrenew.cpp:74
+#: src/clients/arclib/arctest.cpp:103
 #: src/clients/arclib/arckill.cpp:82
 #: src/clients/arclib/arcget.cpp:99
 #: src/clients/arclib/arcstat.cpp:96
 #: src/clients/arclib/arccat.cpp:92
 #: src/clients/arclib/arcclean.cpp:82
-#: src/clients/arclib/arcmigrate.cpp:100
-#: src/clients/arclib/arcresume.cpp:69
-#: src/clients/arclib/arcresub.cpp:111
-#: src/clients/arclib/arcsub.cpp:118
-#: src/clients/arclib/arcsync.cpp:90
-#: src/clients/data/arccp.cpp:550
-msgid "timeout in seconds (default 20)"
-msgstr "время ожидания в секундах (по умолчанию 20)"
-
-#: src/clients/arclib/arcinfo.cpp:74
-#: src/clients/arclib/arcrenew.cpp:70
-#: src/clients/arclib/arctest.cpp:111
-#: src/clients/arclib/arckill.cpp:83
-#: src/clients/arclib/arcget.cpp:100
-#: src/clients/arclib/arcstat.cpp:97
-#: src/clients/arclib/arccat.cpp:93
-#: src/clients/arclib/arcclean.cpp:83
-#: src/clients/arclib/arcmigrate.cpp:101
-#: src/clients/arclib/arcresume.cpp:70
-#: src/clients/arclib/arcresub.cpp:112
-#: src/clients/arclib/arcsub.cpp:119
-#: src/clients/arclib/arcsync.cpp:91
-#: src/clients/data/arccp.cpp:551
-msgid "seconds"
-msgstr "секунд(а/ы)"
-
-#: src/clients/arclib/arcinfo.cpp:78
-#: src/clients/arclib/arcrenew.cpp:74
-#: src/clients/arclib/arctest.cpp:115
-#: src/clients/arclib/arckill.cpp:87
-#: src/clients/arclib/arcget.cpp:104
-#: src/clients/arclib/arcstat.cpp:101
-#: src/clients/arclib/arccat.cpp:97
-#: src/clients/arclib/arcclean.cpp:87
-#: src/clients/arclib/arcmigrate.cpp:105
+#: src/clients/arclib/arcmigrate.cpp:106
 #: src/clients/arclib/arcresume.cpp:74
-#: src/clients/arclib/arcresub.cpp:116
-#: src/clients/arclib/arcsub.cpp:123
-#: src/clients/arclib/arcsync.cpp:95
-#: src/clients/data/arccp.cpp:555
 msgid "configuration file (default ~/.arc/client.conf)"
-msgstr "конфигурационный файл (по умолчанию ~/.arc/client.confl)"
+msgstr "файл настроек (по умолчанию ~/.arc/client.confl)"
 
-#: src/clients/arclib/arcinfo.cpp:79
+#: src/clients/arclib/arcinfo.cpp:67
 #: src/clients/arclib/arcrenew.cpp:47
 #: src/clients/arclib/arcrenew.cpp:53
 #: src/clients/arclib/arcrenew.cpp:75
-#: src/clients/arclib/arctest.cpp:90
-#: src/clients/arclib/arctest.cpp:96
-#: src/clients/arclib/arctest.cpp:116
-#: src/clients/arclib/arckill.cpp:54
-#: src/clients/arclib/arckill.cpp:60
-#: src/clients/arclib/arckill.cpp:88
-#: src/clients/arclib/arcget.cpp:54
-#: src/clients/arclib/arcget.cpp:60
-#: src/clients/arclib/arcget.cpp:105
-#: src/clients/arclib/arcstat.cpp:56
-#: src/clients/arclib/arcstat.cpp:62
-#: src/clients/arclib/arcstat.cpp:102
-#: src/clients/arclib/arccat.cpp:55
-#: src/clients/arclib/arccat.cpp:61
-#: src/clients/arclib/arccat.cpp:98
-#: src/clients/arclib/arcclean.cpp:54
-#: src/clients/arclib/arcclean.cpp:60
-#: src/clients/arclib/arcclean.cpp:88
-#: src/clients/arclib/arcmigrate.cpp:66
-#: src/clients/arclib/arcmigrate.cpp:72
-#: src/clients/arclib/arcmigrate.cpp:78
-#: src/clients/arclib/arcmigrate.cpp:106
+#: src/clients/arclib/arctest.cpp:78
+#: src/clients/arclib/arctest.cpp:84
+#: src/clients/arclib/arctest.cpp:104
+#: src/clients/arclib/arckill.cpp:49
+#: src/clients/arclib/arckill.cpp:55
+#: src/clients/arclib/arckill.cpp:83
+#: src/clients/arclib/arcget.cpp:49
+#: src/clients/arclib/arcget.cpp:55
+#: src/clients/arclib/arcget.cpp:100
+#: src/clients/arclib/arcstat.cpp:51
+#: src/clients/arclib/arcstat.cpp:57
+#: src/clients/arclib/arcstat.cpp:97
+#: src/clients/arclib/arccat.cpp:50
+#: src/clients/arclib/arccat.cpp:56
+#: src/clients/arclib/arccat.cpp:93
+#: src/clients/arclib/arcclean.cpp:49
+#: src/clients/arclib/arcclean.cpp:55
+#: src/clients/arclib/arcclean.cpp:83
+#: src/clients/arclib/arcmigrate.cpp:67
+#: src/clients/arclib/arcmigrate.cpp:73
+#: src/clients/arclib/arcmigrate.cpp:79
+#: src/clients/arclib/arcmigrate.cpp:107
 #: src/clients/arclib/arcresume.cpp:47
 #: src/clients/arclib/arcresume.cpp:53
 #: src/clients/arclib/arcresume.cpp:75
-#: src/clients/arclib/arcresub.cpp:60
-#: src/clients/arclib/arcresub.cpp:66
-#: src/clients/arclib/arcresub.cpp:72
-#: src/clients/arclib/arcresub.cpp:117
-#: src/clients/arclib/arcsub.cpp:98
-#: src/clients/arclib/arcsub.cpp:104
-#: src/clients/arclib/arcsub.cpp:124
-#: src/clients/arclib/arcsync.cpp:76
-#: src/clients/arclib/arcsync.cpp:96
-#: src/clients/data/arccp.cpp:556
 msgid "filename"
 msgstr "файл"
 
-#: src/clients/arclib/arcinfo.cpp:87
+#: src/clients/arclib/arcinfo.cpp:75
 #: src/clients/arclib/arcrenew.cpp:83
-#: src/clients/arclib/arctest.cpp:129
-#: src/clients/arclib/arckill.cpp:96
-#: src/clients/arclib/arcget.cpp:113
-#: src/clients/arclib/arcstat.cpp:110
-#: src/clients/arclib/arccat.cpp:106
-#: src/clients/arclib/arcclean.cpp:96
-#: src/clients/arclib/arcmigrate.cpp:114
+#: src/clients/arclib/arctest.cpp:117
+#: src/clients/arclib/arckill.cpp:91
+#: src/clients/arclib/arcget.cpp:108
+#: src/clients/arclib/arcstat.cpp:105
+#: src/clients/arclib/arccat.cpp:101
+#: src/clients/arclib/arcclean.cpp:91
+#: src/clients/arclib/arcmigrate.cpp:115
 #: src/clients/arclib/arcresume.cpp:83
-#: src/clients/arclib/arcresub.cpp:130
-#: src/clients/arclib/arcsub.cpp:145
-#: src/clients/arclib/arcsync.cpp:104
-#: src/clients/data/arccp.cpp:564
 msgid "print version information"
 msgstr "вывести информацию о версии"
 
-#: src/clients/arclib/arcinfo.cpp:107
-#: src/clients/arclib/arcrenew.cpp:106
-#: src/clients/arclib/arctest.cpp:146
-#: src/clients/arclib/arckill.cpp:119
-#: src/clients/arclib/arcget.cpp:136
-#: src/clients/arclib/arcstat.cpp:133
-#: src/clients/arclib/arccat.cpp:129
-#: src/clients/arclib/arcclean.cpp:119
-#: src/clients/arclib/arcmigrate.cpp:142
-#: src/clients/arclib/arcresume.cpp:106
-#: src/clients/arclib/arcresub.cpp:154
-#: src/clients/arclib/arcsub.cpp:162
-#: src/clients/arclib/arcsync.cpp:121
-#: src/clients/data/arccp.cpp:580
+#: src/clients/arclib/arcinfo.cpp:95
+#: src/clients/arclib/arcrenew.cpp:100
+#: src/clients/arclib/arctest.cpp:134
+#: src/clients/arclib/arckill.cpp:108
+#: src/clients/arclib/arcget.cpp:125
+#: src/clients/arclib/arcstat.cpp:122
+#: src/clients/arclib/arccat.cpp:118
+#: src/clients/arclib/arcclean.cpp:108
+#: src/clients/arclib/arcmigrate.cpp:143
+#: src/clients/arclib/arcresume.cpp:100
 msgid "Failed configuration initialization"
-msgstr "Не удалось загрузить конфигурацию"
+msgstr "Не удалось загрузить настройки"
 
 #: src/clients/arclib/arcrenew.cpp:37
 #: src/clients/arclib/arckill.cpp:37
@@ -16523,108 +16491,96 @@ msgstr "Не удалось загрузить конфигурацию"
 #: src/clients/arclib/arcstat.cpp:38
 #: src/clients/arclib/arccat.cpp:37
 #: src/clients/arclib/arcclean.cpp:37
-#: src/clients/arclib/arcmigrate.cpp:47
+#: src/clients/arclib/arcmigrate.cpp:48
 #: src/clients/arclib/arcresume.cpp:37
-#: src/clients/arclib/arcresub.cpp:50
 msgid "[job ...]"
 msgstr "[задача ...]"
 
 #: src/clients/arclib/arcrenew.cpp:41
+#: src/clients/arclib/arckill.cpp:43
+#: src/clients/arclib/arcget.cpp:43
+#: src/clients/arclib/arcstat.cpp:45
+#: src/clients/arclib/arccat.cpp:44
+#: src/clients/arclib/arcclean.cpp:43
+#: src/clients/arclib/arcmigrate.cpp:56
+#: src/clients/arclib/arcresume.cpp:41
+msgid "all jobs"
+msgstr "все задачи"
+
+#: src/clients/arclib/arcrenew.cpp:46
+#: src/clients/arclib/arctest.cpp:77
 #: src/clients/arclib/arckill.cpp:48
 #: src/clients/arclib/arcget.cpp:48
 #: src/clients/arclib/arcstat.cpp:50
 #: src/clients/arclib/arccat.cpp:49
 #: src/clients/arclib/arcclean.cpp:48
-#: src/clients/arclib/arcmigrate.cpp:55
-#: src/clients/arclib/arcresume.cpp:41
-#: src/clients/arclib/arcresub.cpp:54
-msgid "all jobs"
-msgstr "все задачи"
-
-#: src/clients/arclib/arcrenew.cpp:46
-#: src/clients/arclib/arctest.cpp:89
-#: src/clients/arclib/arckill.cpp:53
-#: src/clients/arclib/arcget.cpp:53
-#: src/clients/arclib/arcstat.cpp:55
-#: src/clients/arclib/arccat.cpp:54
-#: src/clients/arclib/arcclean.cpp:53
-#: src/clients/arclib/arcmigrate.cpp:65
+#: src/clients/arclib/arcmigrate.cpp:66
 #: src/clients/arclib/arcresume.cpp:46
-#: src/clients/arclib/arcresub.cpp:59
-#: src/clients/arclib/arcsub.cpp:97
-#: src/clients/arclib/arcsync.cpp:75
 msgid "the file storing information about active jobs (default ~/.arc/jobs.xml)"
 msgstr "файл для записи информации об активных задачах (по умолчанию ~/.arc/jobs.xml)"
 
 #: src/clients/arclib/arcrenew.cpp:52
-#: src/clients/arclib/arckill.cpp:59
-#: src/clients/arclib/arcget.cpp:59
-#: src/clients/arclib/arcstat.cpp:61
-#: src/clients/arclib/arccat.cpp:60
-#: src/clients/arclib/arcclean.cpp:59
-#: src/clients/arclib/arcmigrate.cpp:77
+#: src/clients/arclib/arckill.cpp:54
+#: src/clients/arclib/arcget.cpp:54
+#: src/clients/arclib/arcstat.cpp:56
+#: src/clients/arclib/arccat.cpp:55
+#: src/clients/arclib/arcclean.cpp:54
+#: src/clients/arclib/arcmigrate.cpp:78
 #: src/clients/arclib/arcresume.cpp:52
-#: src/clients/arclib/arcresub.cpp:71
 msgid "a file containing a list of jobIDs"
 msgstr "файл, содержащий ярлыки задач"
 
 #: src/clients/arclib/arcrenew.cpp:64
-#: src/clients/arclib/arckill.cpp:72
-#: src/clients/arclib/arcget.cpp:71
-#: src/clients/arclib/arcstat.cpp:73
-#: src/clients/arclib/arccat.cpp:72
-#: src/clients/arclib/arcclean.cpp:71
+#: src/clients/arclib/arckill.cpp:67
+#: src/clients/arclib/arcget.cpp:66
+#: src/clients/arclib/arcstat.cpp:68
+#: src/clients/arclib/arccat.cpp:67
+#: src/clients/arclib/arcclean.cpp:66
 #: src/clients/arclib/arcresume.cpp:64
-#: src/clients/arclib/arcresub.cpp:106
 msgid "only select jobs whose status is statusstr"
 msgstr "выполнить действие лишь над задачами в указанном состоянии"
 
 #: src/clients/arclib/arcrenew.cpp:65
-#: src/clients/arclib/arckill.cpp:73
-#: src/clients/arclib/arcget.cpp:72
-#: src/clients/arclib/arcstat.cpp:74
-#: src/clients/arclib/arccat.cpp:73
-#: src/clients/arclib/arcclean.cpp:72
+#: src/clients/arclib/arckill.cpp:68
+#: src/clients/arclib/arcget.cpp:67
+#: src/clients/arclib/arcstat.cpp:69
+#: src/clients/arclib/arccat.cpp:68
+#: src/clients/arclib/arcclean.cpp:67
 #: src/clients/arclib/arcresume.cpp:65
-#: src/clients/arclib/arcresub.cpp:107
 msgid "statusstr"
 msgstr "состояние"
 
-#: src/clients/arclib/arcrenew.cpp:90
-#: src/clients/arclib/arckill.cpp:103
-#: src/clients/arclib/arcget.cpp:120
-#: src/clients/arclib/arcstat.cpp:117
-#: src/clients/arclib/arccat.cpp:113
-#: src/clients/arclib/arcclean.cpp:103
-#: src/clients/arclib/arcmigrate.cpp:126
-#: src/clients/arclib/arcresume.cpp:90
-#: src/clients/arclib/arcresub.cpp:138
+#: src/clients/arclib/arcrenew.cpp:109
+#: src/clients/arclib/arckill.cpp:117
+#: src/clients/arclib/arcget.cpp:147
+#: src/clients/arclib/arcstat.cpp:131
+#: src/clients/arclib/arccat.cpp:127
+#: src/clients/arclib/arcclean.cpp:117
+#: src/clients/arclib/arcmigrate.cpp:127
+#: src/clients/arclib/arcresume.cpp:109
 #, c-format
 msgid "Cannot read specified jobid file: %s"
 msgstr "Не удаётся прочесть указанный файл, содержащий ярлыки задач: %s"
 
 #: src/clients/arclib/arcrenew.cpp:120
-#: src/clients/arclib/arckill.cpp:133
-#: src/clients/arclib/arcget.cpp:162
-#: src/clients/arclib/arcstat.cpp:164
-#: src/clients/arclib/arccat.cpp:143
-#: src/clients/arclib/arcclean.cpp:133
-#: src/clients/arclib/arcmigrate.cpp:159
+#: src/clients/arclib/arckill.cpp:128
+#: src/clients/arclib/arcget.cpp:158
+#: src/clients/arclib/arcstat.cpp:159
+#: src/clients/arclib/arccat.cpp:138
+#: src/clients/arclib/arcclean.cpp:128
+#: src/clients/arclib/arcmigrate.cpp:187
 #: src/clients/arclib/arcresume.cpp:120
-#: src/clients/arclib/arcresub.cpp:171
 msgid "No jobs given"
 msgstr "Задачи не указаны"
 
 #: src/clients/arclib/arcrenew.cpp:142
-#: src/clients/arclib/arckill.cpp:155
-#: src/clients/arclib/arcget.cpp:184
-#: src/clients/arclib/arcstat.cpp:184
-#: src/clients/arclib/arccat.cpp:165
-#: src/clients/arclib/arcclean.cpp:155
-#: src/clients/arclib/arcmigrate.cpp:195
+#: src/clients/arclib/arckill.cpp:150
+#: src/clients/arclib/arcget.cpp:180
+#: src/clients/arclib/arcstat.cpp:179
+#: src/clients/arclib/arccat.cpp:160
+#: src/clients/arclib/arcclean.cpp:150
+#: src/clients/arclib/arcmigrate.cpp:223
 #: src/clients/arclib/arcresume.cpp:142
-#: src/clients/arclib/arcresub.cpp:198
-#: src/clients/arclib/arcresub.cpp:311
 msgid "No job controller plugins loaded"
 msgstr "Не подгружен ни один модуль управления задачами"
 
@@ -16636,118 +16592,96 @@ msgstr " "
 msgid "The arctest command is used for testing clusters as resources."
 msgstr "Команда arctest используется для проверки кластеров как вычислительных ресурсов."
 
-#: src/clients/arclib/arctest.cpp:83
+#: src/clients/arclib/arctest.cpp:71
 msgid "submit test job given by the number"
 msgstr "апустить тестовую задачу под соответствующим номером"
 
-#: src/clients/arclib/arctest.cpp:84
+#: src/clients/arclib/arctest.cpp:72
 msgid "int"
 msgstr "число"
 
-#: src/clients/arclib/arctest.cpp:95
-#: src/clients/arclib/arcmigrate.cpp:71
-#: src/clients/arclib/arcresub.cpp:65
-#: src/clients/arclib/arcsub.cpp:103
+#: src/clients/arclib/arctest.cpp:83
+#: src/clients/arclib/arcmigrate.cpp:72
 msgid "the IDs of the submitted jobs will be appended to this file"
 msgstr "ярлыки запущенных задач будут занесены в этот файл"
 
-#: src/clients/arclib/arctest.cpp:100
+#: src/clients/arclib/arctest.cpp:88
 msgid "add dryrun option if available"
 msgstr "добавить холостую прогонку, если возможно"
 
-#: src/clients/arclib/arctest.cpp:105
-#: src/clients/arclib/arcsub.cpp:113
+#: src/clients/arclib/arctest.cpp:93
 msgid "do not submit - dump job description in the language accepted by the target"
 msgstr "не выполнять засылку: распечатка описания задачи на языке, приемлемом назначением"
 
-#: src/clients/arclib/arctest.cpp:125
-#: src/clients/arclib/arcmigrate.cpp:119
-#: src/clients/arclib/arcresub.cpp:126
-#: src/clients/arclib/arcsub.cpp:133
+#: src/clients/arclib/arctest.cpp:113
+#: src/clients/arclib/arcmigrate.cpp:120
 msgid "select broker method (Random (default), FastestQueue, or custom)"
 msgstr "выбрать алгоритм планировщика (Random (по умолчанию), FastestQueue, или специальный)"
 
-#: src/clients/arclib/arctest.cpp:126
-#: src/clients/arclib/arcmigrate.cpp:120
-#: src/clients/arclib/arcresub.cpp:127
-#: src/clients/arclib/arcsub.cpp:134
+#: src/clients/arclib/arctest.cpp:114
+#: src/clients/arclib/arcmigrate.cpp:121
 msgid "broker"
 msgstr "планировщик"
 
-#: src/clients/arclib/arctest.cpp:180
-#: src/clients/arclib/arcmigrate.cpp:228
-#: src/clients/arclib/arcresub.cpp:282
-#: src/clients/arclib/arcsub.cpp:270
+#: src/clients/arclib/arctest.cpp:168
+#: src/clients/arclib/arcmigrate.cpp:256
 #, c-format
 msgid "Cannot write jobid (%s) to file (%s)"
 msgstr "Невозможно записать ярлык задачи (%s)  в файл (%s) "
 
-#: src/clients/arclib/arctest.cpp:181
+#: src/clients/arclib/arctest.cpp:169
 #, c-format
 msgid "Test submitted with jobid: %s"
 msgstr "Тест запущен с ярлыком: %s"
 
-#: src/clients/arclib/arctest.cpp:191
+#: src/clients/arclib/arctest.cpp:179
 msgid "Test aborted because no resource returned any information"
 msgstr "Обрыв засылки теста, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arctest.cpp:198
-#: src/clients/arclib/arcmigrate.cpp:210
-#: src/clients/arclib/arcresub.cpp:255
-#: src/clients/arclib/arcsub.cpp:288
+#: src/clients/arclib/arctest.cpp:186
+#: src/clients/arclib/arcmigrate.cpp:238
 #, c-format
 msgid "Unable to load broker %s"
 msgstr "Невозможно подгрузить брокер %s"
 
-#: src/clients/arclib/arctest.cpp:201
-#: src/clients/arclib/arctest.cpp:246
-#: src/clients/arclib/arcmigrate.cpp:213
-#: src/clients/arclib/arcresub.cpp:259
-#: src/clients/arclib/arcsub.cpp:291
-#: src/clients/arclib/arcsub.cpp:370
+#: src/clients/arclib/arctest.cpp:189
+#: src/clients/arclib/arctest.cpp:234
+#: src/clients/arclib/arcmigrate.cpp:241
 #, c-format
 msgid "Broker %s loaded"
 msgstr "Подгружен планировщик %s"
 
-#: src/clients/arclib/arctest.cpp:216
+#: src/clients/arclib/arctest.cpp:204
 msgid "Test failed, no more possible targets"
 msgstr "Не удалось заслать тест, возможные назначения отсутствуют"
 
-#: src/clients/arclib/arctest.cpp:221
-#: src/clients/arclib/arcresub.cpp:293
-#: src/clients/arclib/arcsub.cpp:326
+#: src/clients/arclib/arctest.cpp:209
 #, c-format
 msgid "Warning: Failed to lock job list file %s"
 msgstr "Предупреждение: Не удалось заблокировать файл списка задач %s"
 
-#: src/clients/arclib/arctest.cpp:223
-#: src/clients/arclib/arcresub.cpp:295
-#: src/clients/arclib/arcsub.cpp:328
+#: src/clients/arclib/arctest.cpp:211
 msgid "To recover missing jobs, run arcsync"
 msgstr "Для восполнения недостающих задач, запустите arcsync"
 
-#: src/clients/arclib/arctest.cpp:236
-#: src/clients/arclib/arcsub.cpp:360
+#: src/clients/arclib/arctest.cpp:224
 msgid "Dumping job description aborted because no resource returned any information"
 msgstr "Обрыв распечатки описания задачи, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arctest.cpp:243
-#: src/clients/arclib/arcsub.cpp:367
+#: src/clients/arclib/arctest.cpp:231
 #, c-format
 msgid "Dumping job description aborted: Unable to load broker %s"
 msgstr "Распечатка описания задачи оборвана: Невозможно подгрузить планировщик %s"
 
-#: src/clients/arclib/arctest.cpp:254
+#: src/clients/arclib/arctest.cpp:242
 msgid "Unable to print job description: No target found."
 msgstr "Невозможно вывести описание задачи: Не найдено ни одного назначения"
 
-#: src/clients/arclib/arctest.cpp:277
-#: src/clients/arclib/arcsub.cpp:409
+#: src/clients/arclib/arctest.cpp:265
 msgid "An error occurred during the generation of the job description output."
 msgstr "Возникла ошибка при составлении выходного описания задачи"
 
-#: src/clients/arclib/arctest.cpp:282
-#: src/clients/arclib/arcsub.cpp:414
+#: src/clients/arclib/arctest.cpp:270
 #, c-format
 msgid "Job description to be sent to %s:"
 msgstr "Описание задачи будет послано на: %s"
@@ -16756,21 +16690,8 @@ msgstr "Описание задачи будет послано на: %s"
 msgid "The arckill command is used to kill running jobs."
 msgstr "Эта команда используется для прерывания исполняющихся задач"
 
-#: src/clients/arclib/arckill.cpp:40
-#: src/clients/arclib/arcget.cpp:40
-#: src/clients/arclib/arcstat.cpp:42
-#: src/clients/arclib/arccat.cpp:41
-#: src/clients/arclib/arcclean.cpp:40
-msgid ""
-"Argument to -c has the format Flavour:URL e.g.\n"
-"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"
-msgstr ""
-"Аргумент опции -c задаётся по форме Flavour:URL, например:\n"
-"ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-Vo-name=local,o=grid"
-
-#: src/clients/arclib/arckill.cpp:78
-#: src/clients/arclib/arcget.cpp:90
-#: src/clients/arclib/arcresub.cpp:96
+#: src/clients/arclib/arckill.cpp:73
+#: src/clients/arclib/arcget.cpp:85
 msgid "keep the files on the server (do not clean)"
 msgstr "сохранять файлы на сервере (не удалять)"
 
@@ -16778,32 +16699,32 @@ msgstr "сохранять файлы на сервере (не удалять)"
 msgid "The arcget command is used for retrieving the results from a job."
 msgstr "Эта команда используется для загрузки результатов работы задач"
 
-#: src/clients/arclib/arcget.cpp:77
+#: src/clients/arclib/arcget.cpp:72
 msgid "download directory (the job directory will be created in this directory)"
 msgstr "каталог загрузки (подкаталог задачи будет создан в этом каталоге)"
 
-#: src/clients/arclib/arcget.cpp:79
+#: src/clients/arclib/arcget.cpp:74
 msgid "dirname"
 msgstr "каталог"
 
-#: src/clients/arclib/arcget.cpp:84
+#: src/clients/arclib/arcget.cpp:79
 msgid "use the jobname instead of the short ID as the job directory name"
 msgstr "использовать имя задачи вместо краткого идентификатора в качестве названия каталога"
 
-#: src/clients/arclib/arcget.cpp:95
+#: src/clients/arclib/arcget.cpp:90
 msgid "force download (overwrite existing job directory)"
 msgstr "принудительная загрузка (перезаписать существующий каталог задачи)"
 
-#: src/clients/arclib/arcget.cpp:143
+#: src/clients/arclib/arcget.cpp:135
 #, c-format
 msgid "Job download directory from user configuration file: %s "
-msgstr "Каталог для загрузки задач (конфигурация пользователя): %s "
+msgstr "Каталог для загрузки задач (настройки пользователя): %s "
 
-#: src/clients/arclib/arcget.cpp:146
+#: src/clients/arclib/arcget.cpp:138
 msgid "Job download directory will be created in present working directory. "
 msgstr "Каталог для загрузки задачи будет создан в текущей рабочей директории"
 
-#: src/clients/arclib/arcget.cpp:150
+#: src/clients/arclib/arcget.cpp:142
 #, c-format
 msgid "Job download directory: %s "
 msgstr "Каталог для загрузки задач: %s "
@@ -16816,20 +16737,20 @@ msgstr ""
 "Команда arcstat используется для вывода информации о состоянии\n"
 "задач, отправленных на Грид "
 
-#: src/clients/arclib/arcstat.cpp:89
+#: src/clients/arclib/arcstat.cpp:84
 msgid "sort jobs according to jobid, submissiontime or jobname"
 msgstr "сортировать задачи по идентификатору, времени запуска или имени"
 
-#: src/clients/arclib/arcstat.cpp:90
-#: src/clients/arclib/arcstat.cpp:93
+#: src/clients/arclib/arcstat.cpp:85
+#: src/clients/arclib/arcstat.cpp:88
 msgid "order"
 msgstr "порядок"
 
-#: src/clients/arclib/arcstat.cpp:92
+#: src/clients/arclib/arcstat.cpp:87
 msgid "reverse sorting of jobs according to jobid, submissiontime or jobname"
 msgstr "сортировать задачи в обратном порядке по идентификатору, времени запуска или имени"
 
-#: src/clients/arclib/arcstat.cpp:144
+#: src/clients/arclib/arcstat.cpp:139
 msgid "The 'sort' and 'rsort' flags cannot be specified at the same time."
 msgstr "Опции 'sort' и 'rsort' не могут быть указаны одновременно"
 
@@ -16841,15 +16762,15 @@ msgstr ""
 "Эта команда предназначена для вывода на экран сообщений стандартного\n"
 "выхода, стандартной ошибки или ошибок системы при исполнении задачи"
 
-#: src/clients/arclib/arccat.cpp:78
+#: src/clients/arclib/arccat.cpp:73
 msgid "show the stdout of the job (default)"
 msgstr "вывести стандартный выход задачи (по умолчанию)"
 
-#: src/clients/arclib/arccat.cpp:83
+#: src/clients/arclib/arccat.cpp:78
 msgid "show the stderr of the job"
 msgstr "вывести стандартную ошибку задачи"
 
-#: src/clients/arclib/arccat.cpp:88
+#: src/clients/arclib/arccat.cpp:83
 msgid "show the CE's error log of the job"
 msgstr "вывести ошибки системы при исполнении задачи"
 
@@ -16859,13 +16780,13 @@ msgstr ""
 "Эта команда используется для удаления результатов работы задач\n"
 "с удалённого компьютера"
 
-#: src/clients/arclib/arcclean.cpp:77
+#: src/clients/arclib/arcclean.cpp:72
 msgid "remove the job from the local list of jobs even if the job is not found in the infosys"
 msgstr ""
 "удалить задачу из локального списка, даже если информация о ней \n"
 "отсутствует"
 
-#: src/clients/arclib/arcmigrate.cpp:48
+#: src/clients/arclib/arcmigrate.cpp:49
 msgid ""
 "The arcmigrate command is used for migrating queued jobs to another resource.\n"
 "Note that migration is only supported between A-REX powered resources."
@@ -16873,68 +16794,88 @@ msgstr ""
 "Команда arcmigrate используется для миграции ожидающих задач на другой ресурс.\n"
 "Миграция поддерживается только между службами A-REX."
 
-#: src/clients/arclib/arcmigrate.cpp:60
+#: src/clients/arclib/arcmigrate.cpp:61
 msgid "force migration, ignore kill failure"
 msgstr "принудительная миграция, игнорируется сбой прерывания"
 
-#: src/clients/arclib/arcmigrate.cpp:83
+#: src/clients/arclib/arcmigrate.cpp:84
 msgid "explicitly select or reject a resource holding queued jobs"
 msgstr "явным образом выбрать или отсеять ресурс, держащий задачи в очереди"
 
-#: src/clients/arclib/arcmigrate.cpp:89
+#: src/clients/arclib/arcmigrate.cpp:90
 msgid "explicitly select or reject a resource to migrate to"
 msgstr "явным образом выбрать или отсеять назначение миграции"
 
-#: src/clients/arclib/arcmigrate.cpp:203
+#: src/clients/arclib/arcmigrate.cpp:152
+msgid "Proxy expired. Job submission aborted."
+msgstr "Срок действия доверенности вышел. Засылка задачи оборвана."
+
+#: src/clients/arclib/arcmigrate.cpp:156
+msgid "Proxy successfully verified."
+msgstr "Доверенность подтверждена."
+
+#: src/clients/arclib/arcmigrate.cpp:160
+msgid "Proxy not valid. Job submission aborted."
+msgstr "Доверенность недействительна. Засылка задачи оборвана."
+
+#: src/clients/arclib/arcmigrate.cpp:165
+msgid "Cannot find CA certificates directory. Please specify the location to the directory in the client configuration file."
+msgstr "Не удалось найти каталог с открытыми ключами сертификационных агентств. Пожалуйста, введите расположение этого каталога в файл настроек клиента."
+
+#: src/clients/arclib/arcmigrate.cpp:170
+msgid "Cannot find any proxy. Please specify the path to the proxy file in the client configuration file."
+msgstr "Не удалось найти доверенность пользователя. Пожалуйста, введите расположение доверенности в файл конфигурации клиента."
+
+#: src/clients/arclib/arcmigrate.cpp:231
 msgid "Job migration aborted because no resource returned any information"
 msgstr "Обрыв засылки задачи, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arcmigrate.cpp:229
+#: src/clients/arclib/arcmigrate.cpp:257
 #, c-format
 msgid "Job migrated with jobid: %s"
 msgstr "Задача мигрирована с ярлыком: %s"
 
-#: src/clients/arclib/arcresub.cpp:83
+#: src/clients/arclib/arcresub.cpp:84
 msgid "explicitly select or reject a specific resource for the new job"
 msgstr "явным образом выбрать или отсеять указанный ресурс"
 
-#: src/clients/arclib/arcresub.cpp:101
+#: src/clients/arclib/arcresub.cpp:102
 msgid "resubmit to the same resource"
 msgstr "Заслать заново на тот же ресурс"
 
-#: src/clients/arclib/arcresub.cpp:213
+#: src/clients/arclib/arcresub.cpp:241
 msgid "No jobs to resubmit"
 msgstr "Нет задач для перезасылки"
 
-#: src/clients/arclib/arcresub.cpp:229
+#: src/clients/arclib/arcresub.cpp:257
 #, c-format
 msgid "Trying to resubmit job to %s"
 msgstr "Попытка перезапустить задачу %s"
 
-#: src/clients/arclib/arcresub.cpp:234
+#: src/clients/arclib/arcresub.cpp:262
 #, c-format
 msgid "Disregarding %s"
 msgstr "Игнорируется %s"
 
-#: src/clients/arclib/arcresub.cpp:248
-#: src/clients/arclib/arcsub.cpp:281
+#: src/clients/arclib/arcresub.cpp:276
+#: src/clients/arclib/arcsub.cpp:296
 msgid "Job submission aborted because no resource returned any information"
 msgstr "Обрыв засылки задачи, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arcresub.cpp:271
+#: src/clients/arclib/arcresub.cpp:299
 msgid "Job resubmission failed, unable to parse obtained job description"
 msgstr "Не удалось перезаслать задачу, невозможно разобрать полученное описание задачи"
 
-#: src/clients/arclib/arcresub.cpp:283
+#: src/clients/arclib/arcresub.cpp:311
 #, c-format
 msgid "Job resubmitted with new jobid: %s"
 msgstr "Задача запущена с новым ярлыком: %s"
 
-#: src/clients/arclib/arcresub.cpp:287
+#: src/clients/arclib/arcresub.cpp:315
 msgid "Job resubmission failed, no more possible targets"
 msgstr "Не удалось перезаслать задачу, возможные назначения отсутствуют"
 
-#: src/clients/arclib/arcresub.cpp:319
+#: src/clients/arclib/arcresub.cpp:347
 msgid "Job could not be killed or cleaned"
 msgstr "Задача не может быть прервана или стёрта"
 
@@ -16950,51 +16891,51 @@ msgstr ""
 "Эта команда используется для запуска задач на вычислительные\n"
 "ресурсы Грид"
 
-#: src/clients/arclib/arcsub.cpp:83
+#: src/clients/arclib/arcsub.cpp:71
 msgid "jobdescription string describing the job to be submitted"
 msgstr "Строка, содержащая описание запускаемой задачи"
 
-#: src/clients/arclib/arcsub.cpp:85
-#: src/clients/arclib/arcsub.cpp:92
+#: src/clients/arclib/arcsub.cpp:73
+#: src/clients/arclib/arcsub.cpp:80
 msgid "string"
 msgstr "строка"
 
-#: src/clients/arclib/arcsub.cpp:90
+#: src/clients/arclib/arcsub.cpp:78
 msgid "jobdescription file describing the job to be submitted"
 msgstr "Файл, содержащий описание запускаемой задачи"
 
-#: src/clients/arclib/arcsub.cpp:108
+#: src/clients/arclib/arcsub.cpp:96
 msgid "submit jobs as dry run (no submission to batch system)"
 msgstr "запуск задач в режиме холостой прогонки (без засылки на счёт)"
 
-#: src/clients/arclib/arcsub.cpp:188
+#: src/clients/arclib/arcsub.cpp:203
 msgid "No job description input specified"
 msgstr "Не задано описание задачи"
 
-#: src/clients/arclib/arcsub.cpp:271
+#: src/clients/arclib/arcsub.cpp:286
 #, c-format
 msgid "Job submitted with jobid: %s"
 msgstr "Задача запущена с ярлыком: %s"
 
-#: src/clients/arclib/arcsub.cpp:320
+#: src/clients/arclib/arcsub.cpp:335
 msgid "Job submission failed, no more possible targets"
 msgstr "Не удалось заслать задачу, возможные назначения отсутствуют"
 
-#: src/clients/arclib/arcsub.cpp:332
+#: src/clients/arclib/arcsub.cpp:347
 msgid "Job submission summary:"
 msgstr "Сводка засылки задач:"
 
-#: src/clients/arclib/arcsub.cpp:335
+#: src/clients/arclib/arcsub.cpp:350
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d из %d задач были засланы"
 
-#: src/clients/arclib/arcsub.cpp:339
+#: src/clients/arclib/arcsub.cpp:354
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "Следующие %d не были засланы"
 
-#: src/clients/arclib/arcsub.cpp:420
+#: src/clients/arclib/arcsub.cpp:435
 msgid "Unable to print job description: No matching target found."
 msgstr "Невозможно вывести описание задачи: Не найдено ни одного подходящего назначения."
 
@@ -17006,15 +16947,15 @@ msgstr ""
 "Команда arcsync синхронизирует Ваш локальный список задач с информацией\n"
 "на заданных кластерах или каталогах ресурсов "
 
-#: src/clients/arclib/arcsync.cpp:81
+#: src/clients/arclib/arcsync.cpp:69
 msgid "do not ask for verification"
 msgstr "не запрашивать подтверждения"
 
-#: src/clients/arclib/arcsync.cpp:86
+#: src/clients/arclib/arcsync.cpp:74
 msgid "truncate the joblist before synchronizing"
 msgstr "сжать список задач перед синхронизацией"
 
-#: src/clients/arclib/arcsync.cpp:130
+#: src/clients/arclib/arcsync.cpp:118
 msgid ""
 "Synchronizing the local list of active jobs with the information in the\n"
 "information system can result in some inconsistencies. Very recently submitted\n"
@@ -17026,57 +16967,59 @@ msgstr ""
 "могут быть ещё не зарегистрированы в системе, тогда как только что удалённые\n"
 "задачи могут всё ещё присутствовать."
 
-#: src/clients/arclib/arcsync.cpp:135
+#: src/clients/arclib/arcsync.cpp:123
 msgid "Are you sure you want to synchronize your local job list?"
 msgstr "Вы уверены, что хотите синхронизировать список локальных задач?"
 
-#: src/clients/arclib/arcsync.cpp:136
+#: src/clients/arclib/arcsync.cpp:124
 msgid "y"
 msgstr "y"
 
-#: src/clients/arclib/arcsync.cpp:136
+#: src/clients/arclib/arcsync.cpp:124
 msgid "n"
 msgstr "n"
 
-#: src/clients/arclib/arcsync.cpp:140
+#: src/clients/arclib/arcsync.cpp:128
 msgid "Cancelling synchronization request"
 msgstr "Запрос о синхронизации отменяется"
 
-#: src/clients/arclib/arcsync.cpp:192
+#: src/clients/arclib/arcsync.cpp:180
 #, c-format
 msgid "ERROR: Failed to lock job list file %s"
 msgstr "Ошибка: Не удалось заблокировать файл списка задач %s"
 
-#: src/clients/arclib/arcsync.cpp:193
+#: src/clients/arclib/arcsync.cpp:181
 msgid "Please try again later, or manually clean up lock file"
 msgstr "Пожалуйста, попытайтесь заново попозже, или удалите файл блокировки вручную"
 
 #: src/clients/data/arccp.cpp:64
 #: src/clients/data/arccp.cpp:68
-#: src/clients/data/arccp.cpp:210
-#: src/clients/data/arccp.cpp:215
+#: src/clients/data/arccp.cpp:212
+#: src/clients/data/arccp.cpp:217
+#: src/clients/data/arcrm.cpp:27
+#: src/clients/data/arcls.cpp:35
 #, c-format
 msgid "Invalid URL: %s"
 msgstr "Неверный URL: %s"
 
 #: src/clients/data/arccp.cpp:76
 #: src/clients/data/arccp.cpp:102
-#: src/clients/data/arccp.cpp:231
-#: src/clients/data/arccp.cpp:257
+#: src/clients/data/arccp.cpp:233
+#: src/clients/data/arccp.cpp:259
 #, c-format
 msgid "Can't read list of sources from file %s"
 msgstr "Невозможно прочесть список источников из файла %s"
 
 #: src/clients/data/arccp.cpp:81
 #: src/clients/data/arccp.cpp:116
-#: src/clients/data/arccp.cpp:236
-#: src/clients/data/arccp.cpp:272
+#: src/clients/data/arccp.cpp:238
+#: src/clients/data/arccp.cpp:274
 #, c-format
 msgid "Can't read list of destinations from file %s"
 msgstr "Невозможно прочестьсписок назначений из файла %s"
 
 #: src/clients/data/arccp.cpp:87
-#: src/clients/data/arccp.cpp:242
+#: src/clients/data/arccp.cpp:244
 msgid "Numbers of sources and destinations do not match"
 msgstr "Число источников и число назначений не соответствуют друг другу"
 
@@ -17090,16 +17033,16 @@ msgid "Unable to register file (%s): No valid credentials found"
 msgstr "Невозможно зарегистрировать файл (%s): Не обнаружено действительных параметров доступа"
 
 #: src/clients/data/arccp.cpp:139
-#: src/clients/data/arccp.cpp:326
-#: src/clients/data/arccp.cpp:358
-#: src/clients/data/arccp.cpp:431
+#: src/clients/data/arccp.cpp:328
+#: src/clients/data/arccp.cpp:360
+#: src/clients/data/arccp.cpp:433
 #, c-format
 msgid "Unsupported source url: %s"
 msgstr "Неподдерживаемый URL источника: %s"
 
 #: src/clients/data/arccp.cpp:143
-#: src/clients/data/arccp.cpp:362
-#: src/clients/data/arccp.cpp:435
+#: src/clients/data/arccp.cpp:364
+#: src/clients/data/arccp.cpp:437
 #, c-format
 msgid "Unsupported destination url: %s"
 msgstr "Неподдерживаемый URL назначения: %s"
@@ -17108,149 +17051,155 @@ msgstr "Неподдерживаемый URL назначения: %s"
 msgid "For registration source must be ordinary URL and destination must be indexing service"
 msgstr "Для регистрации, источник должен быть задан обычным URL, а назначением должен быть каталог ресурсов"
 
-#: src/clients/data/arccp.cpp:154
+#: src/clients/data/arccp.cpp:156
 msgid "Source probably does not exist"
 msgstr "Источник скорее всего не существует"
 
-#: src/clients/data/arccp.cpp:159
+#: src/clients/data/arccp.cpp:161
 msgid "Problems resolving destination"
 msgstr "Проблемы с разбором направления"
 
-#: src/clients/data/arccp.cpp:181
+#: src/clients/data/arccp.cpp:183
 msgid "Failed to accept new file/destination"
 msgstr "Сбой при приёме нового файла/направления"
 
-#: src/clients/data/arccp.cpp:186
-#: src/clients/data/arccp.cpp:191
+#: src/clients/data/arccp.cpp:188
+#: src/clients/data/arccp.cpp:193
 msgid "Failed to register new file/destination"
 msgstr "Сбой при регистрации нового файла/направления"
 
-#: src/clients/data/arccp.cpp:288
+#: src/clients/data/arccp.cpp:290
 msgid "Fileset copy to single object is not supported yet"
 msgstr "Копирование набора файлов в отдельный объект пока не поддерживается"
 
-#: src/clients/data/arccp.cpp:298
+#: src/clients/data/arccp.cpp:300
 msgid "Can't extract object's name from source url"
 msgstr "Невозможно извлечь имя объекта из URL источника"
 
-#: src/clients/data/arccp.cpp:317
+#: src/clients/data/arccp.cpp:319
 msgid "Fileset copy for this kind of source is not supported"
 msgstr "Копирование набора файлов из источника данного типа не поддерживается"
 
-#: src/clients/data/arccp.cpp:321
-#: src/clients/data/arccp.cpp:425
+#: src/clients/data/arccp.cpp:323
+#: src/clients/data/arccp.cpp:427
 #, c-format
 msgid "Unable to copy file %s: No valid credentials found"
 msgstr "Невозможно скопировать файл (%s): Не обнаружено действительных параметров доступа"
 
-#: src/clients/data/arccp.cpp:333
+#: src/clients/data/arccp.cpp:335
 msgid "Failed listing metafiles"
 msgstr "Перечисление метафайлов не удалось"
 
-#: src/clients/data/arccp.cpp:340
+#: src/clients/data/arccp.cpp:342
+#: src/clients/data/arcls.cpp:123
 msgid "Failed listing files"
 msgstr "Перечисление файлов не удалось"
 
-#: src/clients/data/arccp.cpp:350
+#: src/clients/data/arccp.cpp:352
 #, c-format
 msgid "Name: %s"
 msgstr "Имя: %s"
 
-#: src/clients/data/arccp.cpp:353
+#: src/clients/data/arccp.cpp:355
 #, c-format
 msgid "Source: %s"
 msgstr "Источник: %s"
 
-#: src/clients/data/arccp.cpp:354
+#: src/clients/data/arccp.cpp:356
 #, c-format
 msgid "Destination: %s"
 msgstr "Назначение: %s"
 
-#: src/clients/data/arccp.cpp:386
-#: src/clients/data/arccp.cpp:467
+#: src/clients/data/arccp.cpp:388
+#: src/clients/data/arccp.cpp:469
+#: src/clients/data/arcrm.cpp:63
+#: src/clients/data/arcls.cpp:125
 msgid "This seems like a temporary error, please try again later"
 msgstr "Похоже на временный сбой - пожалуйста, попытайтесь снова попозже"
 
-#: src/clients/data/arccp.cpp:398
+#: src/clients/data/arccp.cpp:400
 msgid "Some transfers failed"
 msgstr "Некоторые загрузки не удались"
 
-#: src/clients/data/arccp.cpp:410
+#: src/clients/data/arccp.cpp:412
 #, c-format
 msgid "Directory: %s"
 msgstr "Каталог: %s"
 
-#: src/clients/data/arccp.cpp:463
+#: src/clients/data/arccp.cpp:465
 #, c-format
 msgid "Transfer FAILED: %s - %s"
 msgstr "Передача НЕ УДАЛАСЬ: %s - %s"
 
-#: src/clients/data/arccp.cpp:465
+#: src/clients/data/arccp.cpp:467
 #, c-format
 msgid "Transfer FAILED: %s"
 msgstr "Передача НЕ УДАЛАСЬ: %s"
 
-#: src/clients/data/arccp.cpp:475
+#: src/clients/data/arccp.cpp:477
 msgid "Transfer complete"
 msgstr "Передача данных завершена"
 
-#: src/clients/data/arccp.cpp:490
+#: src/clients/data/arccp.cpp:492
 msgid "source destination"
 msgstr "источник назначение"
 
-#: src/clients/data/arccp.cpp:491
+#: src/clients/data/arccp.cpp:493
 msgid "The arccp command copies files to, from and between grid storage elements."
 msgstr "Команда arccp копирует файлы на, с и между запоминающими устройствами Грид."
 
-#: src/clients/data/arccp.cpp:496
+#: src/clients/data/arccp.cpp:498
 msgid "use passive transfer (does not work if secure is on, default if secure is not requested)"
 msgstr "использовать пассивную передачу данных (опция недоступна при защищённой передаче, и включена автоматически при незащищённой)"
 
-#: src/clients/data/arccp.cpp:502
+#: src/clients/data/arccp.cpp:504
 msgid "do not try to force passive transfer"
 msgstr "не пытаться форсировать пассивный способ передачи данных"
 
-#: src/clients/data/arccp.cpp:507
+#: src/clients/data/arccp.cpp:509
 msgid "if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers."
 msgstr "если назначением задан индексирующий сервис, отличный от источника, и это назначение уже зарегистрировано, копирование обычно не допускается. В случае же, когда указана эта опция, источник рассматривается как неофициальная копия зарегистрированного файла, и копирование производится как в случае тиражирования. При использовании этой опции пропускается сверка завершённых передач."
 
-#: src/clients/data/arccp.cpp:520
+#: src/clients/data/arccp.cpp:522
 msgid "show progress indicator"
 msgstr "показать индикатор выполнения"
 
-#: src/clients/data/arccp.cpp:525
+#: src/clients/data/arccp.cpp:527
 msgid "do not transfer file, just register it - destination must be non-existing meta-url"
 msgstr "зарегистрировать файл, не передавая его - назначением должен быть несуществующий адрес"
 
-#: src/clients/data/arccp.cpp:531
+#: src/clients/data/arccp.cpp:533
 msgid "use secure transfer (insecure by default)"
 msgstr "использовать защищённую передачу данных (передача не защищена по умолчанию)"
 
-#: src/clients/data/arccp.cpp:536
+#: src/clients/data/arccp.cpp:538
 msgid "path to local cache (use to put file into cache)"
 msgstr "путь к локальному кэшу (используется для записи файла в кэш)"
 
-#: src/clients/data/arccp.cpp:537
+#: src/clients/data/arccp.cpp:539
+#: src/clients/saml/saml_assertion_init.cpp:48
 msgid "path"
 msgstr "путь"
 
-#: src/clients/data/arccp.cpp:541
+#: src/clients/data/arccp.cpp:543
+#: src/clients/data/arcls.cpp:249
 msgid "operate recursively up to specified level"
 msgstr "рекурсивное исполнение до указанного уровня"
 
-#: src/clients/data/arccp.cpp:542
+#: src/clients/data/arccp.cpp:544
+#: src/clients/data/arcls.cpp:250
 msgid "level"
 msgstr "уровень"
 
-#: src/clients/data/arccp.cpp:546
+#: src/clients/data/arccp.cpp:548
 msgid "number of retries before failing file transfer"
 msgstr "количество попыток передачи файла"
 
-#: src/clients/data/arccp.cpp:547
+#: src/clients/data/arccp.cpp:549
 msgid "number"
 msgstr "число"
 
-#: src/clients/data/arccp.cpp:594
+#: src/clients/data/arccp.cpp:596
 msgid "Options 'p' and 'n' can't be used simultaneously"
 msgstr "Опции 'p' и 'n' не могут быть использованы одновременно"
 
@@ -17479,9 +17428,8 @@ msgid "service_url"
 msgstr "service_url"
 
 #: src/clients/saml/saml_assertion_init.cpp:47
-#: src/clients/charon/arcdecision.cpp:66
 msgid "path to config file"
-msgstr "путь к файлу конфигурации"
+msgstr "путь к файлу настроек"
 
 #: src/clients/saml/saml_assertion_init.cpp:140
 msgid "SOAP Request failed: No response"
@@ -17668,7 +17616,7 @@ msgstr "путь к каталогу с доверяемыми сертифик�
 
 #: src/clients/credentials/arcproxy.cpp:223
 msgid "path to the VOMS server configuration file"
-msgstr "путь к файлу конфигурации серверов VOMS"
+msgstr "путь к файлу настроек серверов VOMS"
 
 #: src/clients/credentials/arcproxy.cpp:227
 msgid ""
@@ -17730,14 +17678,18 @@ msgstr ""
 "              из сертификата, необходим 'trusted certdir'."
 
 #: src/clients/credentials/arcproxy.cpp:261
+msgid "remove proxy"
+msgstr "удаление доверенности"
+
+#: src/clients/credentials/arcproxy.cpp:264
 msgid "username to MyProxy server"
 msgstr "Имя пользователя сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:269
+#: src/clients/credentials/arcproxy.cpp:272
 msgid "hostname[:port] of MyProxy server"
 msgstr "hostname[:port] сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:273
+#: src/clients/credentials/arcproxy.cpp:276
 msgid ""
 "command to MyProxy server. The command can be PUT or GET.\n"
 "              PUT/put -- put a delegated credential to the MyProxy server; \n"
@@ -17752,91 +17704,102 @@ msgstr ""
 "                         в этом случае не требуются личные сертификаты и ключи.\n"
 "              Инструкции MyProxy и VOMS могут использоваться одновременно.\n"
 
-#: src/clients/credentials/arcproxy.cpp:283
+#: src/clients/credentials/arcproxy.cpp:286
 msgid "proxy constraints"
 msgstr "ограничения доверенности"
 
-#: src/clients/credentials/arcproxy.cpp:410
+#: src/clients/credentials/arcproxy.cpp:413
 msgid "Cannot find the CA Certificate Directory path, please setup environment X509_CERT_DIR, or cacertificatesdirectory in a configuration file"
-msgstr "Не удалось найти открытые ключам сертификационных агентств. Пожалуйста, задайте переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле конфигурации"
+msgstr "Не удалось найти каталог с открытыми ключами сертификационных агентств. Пожалуйста, задайте переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле настроек"
 
 #: src/clients/credentials/arcproxy.cpp:423
+#: src/clients/credentials/arcproxy.cpp:443
 msgid "Cannot find the path of the proxy file, please setup environment X509_USER_PROXY, or proxypath in a configuration file"
-msgstr "Не удалось найти доверенность пользователя. Пожалуйста, задайте переменную среды X509_USER_PROXY, или значение proxypath в файле конфигурации"
+msgstr "Не удалось найти доверенность пользователя. Пожалуйста, задайте переменную среды X509_USER_PROXY, или значение proxypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:429
+#: src/clients/credentials/arcproxy.cpp:428
+#, c-format
+msgid "Cannot remove proxy file at %s, because it's not there"
+msgstr "Невозможно удалить файл доверенности в %s, потому что его там нет"
+
+#: src/clients/credentials/arcproxy.cpp:432
+#, c-format
+msgid "Cannot remove proxy file at %s"
+msgstr "Невозможно удалить файл доверенности в %s"
+
+#: src/clients/credentials/arcproxy.cpp:449
 #, c-format
 msgid "Cannot find file at %s for getting the proxy. Please make sure this file exists."
 msgstr "Не удалось найти файл по адресу %s, содержащий доверенность. Пожалуйста, убедитесь, что файл существует."
 
-#: src/clients/credentials/arcproxy.cpp:435
+#: src/clients/credentials/arcproxy.cpp:455
 #, c-format
 msgid "Subject: %s"
 msgstr "Субъект: %s"
 
-#: src/clients/credentials/arcproxy.cpp:436
+#: src/clients/credentials/arcproxy.cpp:456
 #, c-format
 msgid "Identity: %s"
 msgstr "Личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:438
+#: src/clients/credentials/arcproxy.cpp:458
 msgid "Time left for proxy: Proxy expired"
 msgstr "Доверенность действительна на: Срок действия доверенности вышел"
 
-#: src/clients/credentials/arcproxy.cpp:440
+#: src/clients/credentials/arcproxy.cpp:460
 #, c-format
 msgid "Time left for proxy: %s"
 msgstr "Доверенность действительна на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:442
+#: src/clients/credentials/arcproxy.cpp:462
 msgid "Time left for proxy: Proxy not valid"
 msgstr "Доверенность действительна на: Доверенность недействительна"
 
-#: src/clients/credentials/arcproxy.cpp:443
+#: src/clients/credentials/arcproxy.cpp:463
 #, c-format
 msgid "Proxy path: %s"
 msgstr "Расположение доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:444
+#: src/clients/credentials/arcproxy.cpp:464
 #, c-format
 msgid "Proxy type: %s"
 msgstr "Тип доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:451
+#: src/clients/credentials/arcproxy.cpp:471
 msgid "AC extension information for VO "
 msgstr "Информация о расширении AC для VO "
 
-#: src/clients/credentials/arcproxy.cpp:459
+#: src/clients/credentials/arcproxy.cpp:479
 #, c-format
 msgid "Timeleft for AC: %s"
 msgstr "Оставшееся время для AC: %s"
 
-#: src/clients/credentials/arcproxy.cpp:466
+#: src/clients/credentials/arcproxy.cpp:486
 msgid "Cannot find the user certificate path, please setup environment X509_USER_CERT, or certificatepath in a configuration file"
-msgstr "Не удалось найти открытый ключ пользователя. Пожалуйста, задайте переменную среды X509_USER_CERT, или значение certificatepath в файле конфигурации"
+msgstr "Не удалось найти открытый ключ пользователя. Пожалуйста, задайте переменную среды X509_USER_CERT, или значение certificatepath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:470
+#: src/clients/credentials/arcproxy.cpp:490
 msgid "Cannot find the user private key path, please setup environment X509_USER_KEY, or keypath in a configuration file"
-msgstr "Не удалось найти закрытый ключ пользователя. Пожалуйста, задайте переменную среды X509_USER_KEY, или значение keypath в файле конфигурации"
+msgstr "Не удалось найти закрытый ключ пользователя. Пожалуйста, задайте переменную среды X509_USER_KEY, или значение keypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:576
+#: src/clients/credentials/arcproxy.cpp:596
 #, c-format
 msgid "Your identity: %s"
 msgstr "Ваши личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:581
+#: src/clients/credentials/arcproxy.cpp:601
 msgid "Proxy generation failed: Certificate has expired."
 msgstr "Сбой создания доверенности: Срок действия сертификата истёк"
 
-#: src/clients/credentials/arcproxy.cpp:583
+#: src/clients/credentials/arcproxy.cpp:603
 msgid "Proxy generation failed: Certificate is not valid yet."
 msgstr "Сбой создания доверенности: Срок действия сертификата ещё не начался"
 
-#: src/clients/credentials/arcproxy.cpp:585
+#: src/clients/credentials/arcproxy.cpp:605
 msgid "Proxy generation failed: Unable to verify certificate."
 msgstr "Сбой создания доверенности: Не удалось подтвердить действительность сертификата"
 
-#: src/clients/credentials/arcproxy.cpp:698
+#: src/clients/credentials/arcproxy.cpp:718
 #, c-format
 msgid ""
 "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\n"
@@ -17846,41 +17809,41 @@ msgid ""
 msgstr ""
 "$X509_VOMS_DIR, $X509_VOMS_FILE, и $X509_VOMSES не настроены;\n"
 "Пользователь не указал расположение файла vomses;\n"
-"Расположение файла vomses не найдено в файле конфигурации пользователя;\n"
-"Файл vomses не обнаружен в %s, %s, %s, %s, %s, а также соответствующие подкаталоги, такие, как %s, %s"
+"Расположение файла vomses не найдено в файле настроек пользователя;\n"
+"Файл vomses не обнаружен в %s, %s, %s, %s, %s, а также в соответствующих подкаталогах, таких, как %s, %s"
 
-#: src/clients/credentials/arcproxy.cpp:771
+#: src/clients/credentials/arcproxy.cpp:791
 #, c-format
 msgid "VOMS line contains wrong number of tokens (%u expected): \"%s\""
 msgstr "Строка VOMS содержит неверное количество токенов (ожидается %u): \"%s\""
 
-#: src/clients/credentials/arcproxy.cpp:812
+#: src/clients/credentials/arcproxy.cpp:832
 #, c-format
 msgid "Cannot get VOMS server %s information from the vomses files"
 msgstr "Невозможно найти информацию о сервере VOMS %s из файлов vomses"
 
-#: src/clients/credentials/arcproxy.cpp:832
+#: src/clients/credentials/arcproxy.cpp:852
 #, c-format
 msgid "There are %d commands to the same VOMS server %s"
 msgstr "%d инструкций направлено на один и тот же сервер VOMS, %s"
 
-#: src/clients/credentials/arcproxy.cpp:842
+#: src/clients/credentials/arcproxy.cpp:862
 #, c-format
 msgid "Cannot get VOMS server address information from vomses line: \"%s\""
 msgstr "Информация об адресе сервера VOMS отсутствует в строке: %s\""
 
-#: src/clients/credentials/arcproxy.cpp:852
-#: src/clients/credentials/arcproxy.cpp:854
+#: src/clients/credentials/arcproxy.cpp:872
+#: src/clients/credentials/arcproxy.cpp:874
 #, c-format
 msgid "Contacting VOMS server (named %s): %s on port: %s"
 msgstr "Устанавливается связь с сервером VOMS (по имени %s): %s по порту: %s"
 
-#: src/clients/credentials/arcproxy.cpp:885
+#: src/clients/credentials/arcproxy.cpp:905
 #, c-format
 msgid "Try to get attribute from VOMS server with order: %s"
 msgstr "Попытка получить атрибут с сервера VOMS с порядком: %s"
 
-#: src/clients/credentials/arcproxy.cpp:898
+#: src/clients/credentials/arcproxy.cpp:918
 #, c-format
 msgid ""
 "The VOMS server with the information:\n"
@@ -17891,25 +17854,25 @@ msgstr ""
 "%s\"\n"
 "пожалуйста, проверьте, доступен ли этот сервер"
 
-#: src/clients/credentials/arcproxy.cpp:903
+#: src/clients/credentials/arcproxy.cpp:923
 msgid "No stream response from VOMS server"
 msgstr "Сервер VOMS не отзывается"
 
-#: src/clients/credentials/arcproxy.cpp:916
+#: src/clients/credentials/arcproxy.cpp:936
 #, c-format
 msgid "Returned message from VOMS server: %s"
 msgstr "Сообщение с сервера VOMS: %s "
 
-#: src/clients/credentials/arcproxy.cpp:943
+#: src/clients/credentials/arcproxy.cpp:963
 #, c-format
 msgid "The attribute information from VOMS server: %s is list as following"
 msgstr "Информация об атрибутах с сервера VOMS: %s содержит следующий список"
 
-#: src/clients/credentials/arcproxy.cpp:978
+#: src/clients/credentials/arcproxy.cpp:998
 msgid "Proxy generation succeeded"
 msgstr "Доверенность успешно создана"
 
-#: src/clients/credentials/arcproxy.cpp:979
+#: src/clients/credentials/arcproxy.cpp:999
 #, c-format
 msgid "Your proxy is valid until: %s"
 msgstr "Ваша доверенность действительна до: %s"
@@ -18091,37 +18054,32 @@ msgid "Cannot set CheckPeriod, MinCheckInterval"
 msgstr "Невозможно выставить CheckPeriod, MinCheckInterval"
 
 #: src/services/storage/shepherd/shepherd.py:74
-#, fuzzy
 msgid "Got Librarian URLs from the config:"
-msgstr "В конфигурации обнаружен адрес Библиотекаря"
+msgstr "В настройках обнаружен адрес Библиотекаря:"
 
 #: src/services/storage/shepherd/shepherd.py:78
-#, fuzzy
 msgid "No Librarian URLs and no ISIS URLs found in the configuration: no self-healing!"
-msgstr "В конфигурации обнаружен адрес Библиотекаря"
+msgstr "В настройках не найдены адреса ни Библиотекаря, ни ISIS: самовосстановление невозможно!"
 
 #: src/services/storage/shepherd/shepherd.py:80
 msgid "Got ISIS URL, starting isisLibrarianThread"
 msgstr ""
 
 #: src/services/storage/shepherd/shepherd.py:86
-#, fuzzy
 msgid "Got Bartender URLs from the config:"
-msgstr "В конфигурации обнаружен адрес Бармена"
+msgstr "В настройках обнаружен адрес Бармена:"
 
 #: src/services/storage/shepherd/shepherd.py:90
-#, fuzzy
 msgid "No Bartender URLs and no ISIS URLs found in the configuration: no self-healing!"
-msgstr "В конфигурации обнаружен адрес Бармена"
+msgstr "В настройках не найдены адреса ни Бармена, ни ISIS: самовосстановление невозможно!"
 
 #: src/services/storage/shepherd/shepherd.py:92
 msgid "Got ISIS URL, starting isisBartenderThread"
 msgstr ""
 
 #: src/services/storage/shepherd/shepherd.py:125
-#, fuzzy
 msgid "Getting Librarians from ISISes"
-msgstr "LdapQuery: Получение результатов с"
+msgstr "Получение списка Библиотекарей из ISIS-ов"
 
 #: src/services/storage/shepherd/shepherd.py:129
 #, fuzzy
@@ -18254,18 +18212,16 @@ msgid "Cannot find CheckPeriod, HeartbeatTimeout in the config"
 msgstr ""
 
 #: src/services/storage/librarian/librarian.py:33
-#, fuzzy
 msgid "Getting AHash URL from the config"
-msgstr "В конфигурации обнаружен адрес А-Хэш"
+msgstr "В настройках обнаружен адрес А-Хэш"
 
 #: src/services/storage/librarian/librarian.py:36
-#, fuzzy
 msgid "Got AHash URLs:"
-msgstr "Загрузка ссылок изображений"
+msgstr "Получены адреса А-Хэш:"
 
 #: src/services/storage/librarian/librarian.py:37
 msgid "AHash URL found in the configuration."
-msgstr "В конфигурации обнаружен адрес А-Хэш"
+msgstr "В настройках обнаружен адрес А-Хэш"
 
 #: src/services/storage/librarian/librarian.py:42
 msgid "Starting checking thread"
@@ -18277,9 +18233,8 @@ msgid "Setting running state to True"
 msgstr "Создание и отправка запроса о состоянии"
 
 #: src/services/storage/librarian/librarian.py:47
-#, fuzzy
 msgid "No AHash from the config"
-msgstr "Нет ответа от сервера!"
+msgstr "В настройках нет А-Хэш"
 
 #: src/services/storage/librarian/librarian.py:50
 msgid "AHash URL and ISIS URL not found in the configuration."
@@ -18295,14 +18250,12 @@ msgid "Trying to get A-Hash from ISISes"
 msgstr ""
 
 #: src/services/storage/librarian/librarian.py:65
-#, fuzzy
 msgid "Trying to get A-Hash from"
-msgstr "Не удаётся получить номер процесса из файла '%1'."
+msgstr "Попытка получить адрес А-Хэш из"
 
 #: src/services/storage/librarian/librarian.py:69
-#, fuzzy
 msgid "Got A-Hash from ISIS:"
-msgstr "Удаление ISIS (%s) из списка InfoProviders."
+msgstr "Получен адрес А-Хэш из ISIS:"
 
 #: src/services/storage/librarian/librarian.py:78
 #: src/services/storage/bartender/bartender.py:79
@@ -18632,9 +18585,8 @@ msgid "cannot connect to gateway. Access of third party store required gateway."
 msgstr ""
 
 #: src/services/storage/bartender/bartender.py:56
-#, fuzzy
 msgid "Librarian URL or ISIS URL not found in the configuration."
-msgstr "В конфигурации обнаружен адрес Библиотекаря"
+msgstr "В настройках не найдены адреса ни Библиотекаря, ни ISIS."
 
 #: src/services/storage/bartender/bartender.py:76
 #, fuzzy, python-format
@@ -18773,9 +18725,8 @@ msgid "proxy store is not accessable."
 msgstr "хранилище доверенностей недоступно."
 
 #: src/services/storage/bartender/gateway/gateway.py:36
-#, fuzzy
 msgid "Certificate directory is not accessable! Check configuration file."
-msgstr "издатель сертификата не помечен как CA"
+msgstr "Каталог с открытыми ключами сертификационных агентств недоступен! Проверьте файл настроек."
 
 #: src/services/storage/bartender/gateway/gateway.py:68
 #, python-format
@@ -18996,6 +18947,45 @@ msgstr "Вызван конструктор StringStore"
 msgid "CachedStringStore constructor called"
 msgstr "Вызван конструктор CachedStringStore"
 
+#, fuzzy
+#~ msgid "Error allocating memory for info file %s:%s"
+#~ msgstr "%s: ошибка чтения вспомогательного файла '%s': %s\n"
+
+#, fuzzy
+#~ msgid "Error opening srm info file for writing %s:%s"
+#~ msgstr "Ошибка: Невозможно открыть файл %s для записи.\n"
+
+#, fuzzy
+#~ msgid "Error allocating memory for srm info file %s:%s"
+#~ msgstr "%s: ошибка чтения вспомогательного файла '%s': %s\n"
+
+#, fuzzy
+#~ msgid "Error opening srm info file %s:%s"
+#~ msgstr "%s: ошибка закрытия вспомогательного файла '%s': %s\n"
+#~ msgid ""
+#~ "Argument to -g has the format Flavour:URL e.g.\n"
+#~ "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+#~ "CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+#~ "\n"
+#~ "Argument to -c has the format Flavour:URL e.g.\n"
+#~ "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-"
+#~ "Vo-name=local,o=grid"
+#~ msgstr ""
+#~ "Аргумент опции -g задаётся по форме Flavour:URL, например:\n"
+#~ "ARC0:ldap://grid.tsl.uu.se:2135/mds-vo-name=sweden,O=grid\n"
+#~ "CREAM:ldap://cream.grid.upjs.sk:2170/o=grid\n"
+#~ "\n"
+#~ "Аргумент опции -c задаётся по форме Flavour:URL, например:\n"
+#~ "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-"
+#~ "Vo-name=local,o=grid"
+#~ msgid ""
+#~ "Argument to -c has the format Flavour:URL e.g.\n"
+#~ "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-"
+#~ "Vo-name=local,o=grid"
+#~ msgstr ""
+#~ "Аргумент опции -c задаётся по форме Flavour:URL, например:\n"
+#~ "ARC0:ldap://grid.tsl.uu.se:2135/nordugrid-cluster-name=grid.tsl.uu.se,Mds-"
+#~ "Vo-name=local,o=grid"
 #~ msgid "Job %s not found in job list."
 #~ msgstr "Задача %s не обнаружена в списке задач."
 #~ msgid "Removing job %s from job list file"
@@ -19435,8 +19425,6 @@ msgstr "Вызван конструктор CachedStringStore"
 #~ msgstr "Попытка синтаксического разбора как JDL"
 #~ msgid "Try to parse as ARCJSDL"
 #~ msgstr "Попытка синтаксического разбора как ARC JSDL"
-#~ msgid "There is no successfully parsed source"
-#~ msgstr "Отсутствует успешно разобранный источник"
 #~ msgid "Generate JDL output"
 #~ msgstr "Создание JDL на выходе"
 #~ msgid "Generating %s output was unsuccessful"
