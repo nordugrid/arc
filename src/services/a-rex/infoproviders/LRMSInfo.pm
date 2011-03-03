@@ -167,6 +167,14 @@ sub collect($) {
     $result->{cluster}{cpudistribution} =~ s/^\s+//;
     $result->{cluster}{cpudistribution} =~ s/\s+$//;
 
+    # make sure nodes are unique
+    for my $job (values %{$result->{jobs}}) {
+        next unless $job->{nodes};
+        my %nodes;
+        $nodes{$_} = 1 for @{$job->{nodes}};
+        $job->{nodes} = [ sort keys %nodes ];
+    }
+
     return $result;
 }
 
