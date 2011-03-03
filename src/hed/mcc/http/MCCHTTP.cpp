@@ -226,6 +226,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   nextinmsg.Attributes()->set("ENDPOINT",endpoint);
   nextinmsg.Attributes()->set("HTTP:ENDPOINT",nextpayload.Endpoint());
   nextinmsg.Attributes()->set("HTTP:METHOD",nextpayload.Method());
+  bool request_is_head = (upper(nextpayload.Method()) == "HEAD");
   // Filling security attributes
   HTTPSecAttr* sattr = new HTTPSecAttr(nextpayload);
   nextinmsg.Auth()->set("HTTP",sattr);
@@ -309,7 +310,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
     };
   };
 */
-  PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload);
+  PayloadHTTP* outpayload = new PayloadHTTP(http_code,http_resp,*inpayload,request_is_head);
   // Use attributes which higher level MCC may have produced for HTTP
   for(AttributeIterator i = nextoutmsg.Attributes()->getAll();i.hasMore();++i) {
     const char* key = i.key().c_str();

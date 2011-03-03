@@ -54,6 +54,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   uint64_t stream_offset_;
   int64_t chunked_size_;
   uint64_t chunked_offset_;
+  bool head_response_;
   /** Read from stream till \r\n */
   bool readline(std::string& line);
   /** Read up to 'size' bytes from stream_ */
@@ -78,9 +79,9 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
 
   /** Constructor - creates HTTP response to be sent through stream.
     HTTP message is not sent yet. */
-  PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream);
+  PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream,bool head_response = false);
   /** Constructor - creates HTTP response to be rendered through Raw interface. */
-  PayloadHTTP(int code,const std::string& reason);
+  PayloadHTTP(int code,const std::string& reason,bool head_response = false);
 
   virtual ~PayloadHTTP(void);
 
