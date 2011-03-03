@@ -917,6 +917,33 @@ namespace Arc {
     rejectedServices[INDEX].clear();
   }
 
+  bool UserConfig::ResolveAliases(std::list<std::string>& services, ServiceType st) {
+    for (std::list<std::string>::iterator it = services.begin();
+         it != services.end();) {
+      if (it->find_first_of(":. \t") == std::string::npos) { // Alias.
+        if (!aliasMap[*it]) {
+          logger.msg(ERROR, "Could not resolve alias \"%s\" it is not defined.", *it);
+          return false;
+        }
+
+        std::list<std::string> resolvedAliases(1, *it), resolvedServices;
+        if (!ResolveAlias(resolvedServices, st, resolvedAliases)) {
+          return false;
+        }
+        else if (!resolvedServices.empty()) {
+          services.insert(it, resolvedServices.begin(), resolvedServices.end());
+        }
+
+        it = services.erase(it);
+      }
+      else {
+        ++it;
+      }
+    }
+
+    return true;
+  }
+
   bool UserConfig::ResolveAlias(std::list<std::string>& services,
                                 ServiceType st,
                                 std::list<std::string>& resolvedAliases) {
@@ -965,8 +992,9 @@ namespace Arc {
           continue;
         }
         else if ((st == COMPUTING && serviceType != "computing") ||
-                 (st == INDEX && serviceType != "index"))
+                 (st == INDEX && serviceType != "index")) {
           continue;
+        }
 
         std::string service = it->substr(pos1 + 1);
         logger.msg(VERBOSE, "Adding service %s:%s from resolved alias %s",

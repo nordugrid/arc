@@ -73,7 +73,7 @@ namespace Arc {
    * - certificatelifetime / CertificateLifeTime(const Period&)
    * - slcs / SLCS(const URL&)
    * - storedirectory / StoreDirectory(const std::string&)
-   * - jobdownloaddirectory / JobDownloadDirectory(const std::string&) 
+   * - jobdownloaddirectory / JobDownloadDirectory(const std::string&)
    * - idpname / IdPName(const std::string&)
    *
    * where the first term is the name of the attribute used in the
@@ -304,7 +304,7 @@ namespace Arc {
      * - certificatelifetime (CertificateLifeTime(const Period&))
      * - slcs (SLCS(const URL&))
      * - storedirectory (StoreDirectory(const std::string&))
-     * - jobdownloaddirectory (JobDownloadDirectory(const std::string&)) 
+     * - jobdownloaddirectory (JobDownloadDirectory(const std::string&))
      * - idpname (IdPName(const std::string&))
      *
      * where the method in parentheses is the associated setter method.
@@ -409,6 +409,8 @@ namespace Arc {
      * @see JobListFile(const std::string&)
      **/
     const std::string& JobListFile() const { return joblistfile; }
+
+    bool ResolveAliases(std::list<std::string>& services, ServiceType st);
 
     /// Add selected and rejected services.
     /**
@@ -1025,10 +1027,10 @@ namespace Arc {
      * @see StoreDirectory(const std::string&)
      **/
     const std::string& StoreDirectory() const { return storeDirectory; }
-    
+
     /// Set download directory
     /**
-     * Sets directory which will be used to download the job 
+     * Sets directory which will be used to download the job
      * directory using arcget command.
      *
      * The attribute associated with this setter method is
@@ -1038,10 +1040,10 @@ namespace Arc {
      * @see
      **/
     bool JobDownloadDirectory(const std::string& newDownloadDirectory) { downloadDirectory = newDownloadDirectory; return true; }
-    
+
     /// Get download directory
     /**
-     * returns directory which will be used to download the job 
+     * returns directory which will be used to download the job
      * directory using arcget command.
      *
      * The attribute associated with the method is
@@ -1049,8 +1051,8 @@ namespace Arc {
      * @return This method returns the job download directory.
      * @see
      **/
-    const std::string& JobDownloadDirectory() const { return downloadDirectory; } 
-    
+    const std::string& JobDownloadDirectory() const { return downloadDirectory; }
+
     /// Set IdP name
     /**
      * Sets Identity Provider name (Shibboleth) to which user belongs.
