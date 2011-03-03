@@ -2,7 +2,6 @@
 
 #include <malloc.h>
 #include <string.h>
-#include <arc/ArcLocation.h>
 #include "../listfunc.h"
 
 class listfuncTest
@@ -47,14 +46,12 @@ void listfuncTest::listTest() {
   v2 = listadd(NULL,str2,sizeof(char*));
   CPPUNIT_ASSERT(v2);
 
-  v3 = listjoin(v1,v2,2);
+  v3 = listjoin(v1,v2,sizeof(char*));
   CPPUNIT_ASSERT(v3);
 
   v4 = listadd(v3,str3,sizeof(char*));
   CPPUNIT_ASSERT(v4);
 
-std::cerr<<"v4[0]: "<<v4[0]<<std::endl;
-std::cerr<<"str1: "<<str1<<std::endl;
   CPPUNIT_ASSERT(v4[0] == str1);
   CPPUNIT_ASSERT(v4[1] == str2);
   CPPUNIT_ASSERT(v4[2] == str3);

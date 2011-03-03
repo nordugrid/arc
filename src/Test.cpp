@@ -4,6 +4,7 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "libarcdatatest");
@@ -15,6 +16,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "libarcdatatest");
 int main(int argc, char **argv) {
 
   Arc::LogStream logcerr(std::cerr);
+  Arc::ArcLocation::Init(argv[0]);
 
   if (argc > 1 && strcmp(argv[1], "-v") == 0) {
     // set logging
