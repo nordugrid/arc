@@ -267,8 +267,7 @@ namespace Arc {
   DataPointHTTP::DataPointHTTP(const URL& url, const UserConfig& usercfg)
     : DataPointDirect(url, usercfg),
       chunks(NULL),
-      transfers_started(0),
-      transfers_finished(0) {
+      transfers_tofinish(0) {
     valid_url_options.push_back("tcpnodelay");
   }
 
@@ -426,7 +425,7 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::List(std::list<FileInfo>& files, DataPointInfoType verb) {
-    if (transfers_started != 0) return DataStatus::ListError;
+    if (transfers_started.get() != 0) return DataStatus::ListError;
     URL curl = url;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -509,59 +508,44 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
-    if (transfers_started != 0)
+    if (transfers_started.get() != 0)
       return DataStatus::ReadStartError;
     int transfer_streams = 1;
-    int started = 0;
     DataPointHTTP::buffer = &buffer;
     if (chunks)
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
+    transfer_lock.lock();
+    transfers_tofinish = 0;
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
       info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
-      if (!CreateThreadFunction(&read_thread, info))
+      if (!CreateThreadFunction(&read_thread, info, &transfers_started)) {
         delete info;
-      else
-        ++started;
+      } else {
+        ++transfers_tofinish;
+      }
     }
-    if (!started) {
+    if (!transfers_tofinish) {
+      transfer_lock.unlock();
       StopReading();
       return DataStatus::ReadStartError;
-    }
-    transfer_lock.lock();
-    while (transfers_started < started) {
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(10000); // Just in case
-      transfer_cond.timed_wait(transfer_lock,etime);
     }
     transfer_lock.unlock();
     return DataStatus::Success;
   }
 
   DataStatus DataPointHTTP::StopReading() {
-    if (!buffer)
-      return DataStatus::ReadStopError;
-    transfer_lock.lock();
-    if (transfers_finished < transfers_started) {
-      buffer->error_read(true);
-      while (transfers_finished < transfers_started) {
-        Glib::TimeVal etime;
-        etime.assign_current_time();
-        etime.add_milliseconds(10000); // Just in case
-        transfer_cond.timed_wait(transfer_lock,etime);
-      }
+    if (!buffer) return DataStatus::ReadStopError;
+    while (transfers_started.get()) {
+      transfers_started.wait(10000); // Just in case
     }
-    transfer_lock.unlock();
-    if (chunks)
-      delete chunks;
+    if (chunks) delete chunks;
     chunks = NULL;
-    transfers_finished = 0;
-    transfers_started = 0;
+    transfers_tofinish = 0;
     if (buffer->error_read()) {
       buffer = NULL;
       return DataStatus::ReadError;
@@ -572,59 +556,44 @@ namespace Arc {
 
   DataStatus DataPointHTTP::StartWriting(DataBuffer& buffer,
                                          DataCallback*) {
-    if (transfers_started != 0)
-      return DataStatus::WriteStartError;
+    if (transfers_started.get() != 0) return DataStatus::WriteStartError;
     int transfer_streams = 1;
-    int started = 0;
     DataPointHTTP::buffer = &buffer;
     if (chunks)
       delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
+    transfer_lock.lock();
+    transfers_tofinish = 0;
     for (int n = 0; n < transfer_streams; ++n) {
       HTTPInfo_t *info = new HTTPInfo_t;
       info->point = this;
       info->client = new ClientHTTP(cfg, url, usercfg.Timeout());
-      if (!CreateThreadFunction(&write_thread, info))
+      if (!CreateThreadFunction(&write_thread, info, &transfers_started)) {
         delete info;
-      else
-        ++started;
+      } else {
+        ++transfers_tofinish;
+      }
     }
-    if (!started) {
+    if (!transfers_tofinish) {
+      transfer_lock.unlock();
       StopWriting();
       return DataStatus::WriteStartError;
-    }
-    transfer_lock.lock();
-    while (transfers_started < started) {
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(10000); // Just in case
-      transfer_cond.timed_wait(transfer_lock,etime);
     }
     transfer_lock.unlock();
     return DataStatus::Success;
   }
 
   DataStatus DataPointHTTP::StopWriting() {
-    if (!buffer)
-      return DataStatus::WriteStopError;
-    transfer_lock.lock();
-    if (transfers_finished < transfers_started) {
-      buffer->error_write(true);
-      while (transfers_finished < transfers_started) {
-        Glib::TimeVal etime;
-        etime.assign_current_time();
-        etime.add_milliseconds(10000); // Just in case
-        transfer_cond.timed_wait(transfer_lock,etime);
-      }
+    if (!buffer) return DataStatus::WriteStopError;
+    while (transfers_started.get()) {
+      transfers_started.wait(); // Just in case
     }
-    transfer_lock.unlock();
     if (chunks)
       delete chunks;
     chunks = NULL;
-    transfers_finished = 0;
-    transfers_started = 0;
+    transfers_tofinish = 0;
     if (buffer->error_write()) {
       buffer = NULL;
       return DataStatus::WriteError;
@@ -662,14 +631,12 @@ namespace Arc {
   void DataPointHTTP::read_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
+    point.transfer_lock.lock();
+    point.transfer_lock.unlock();
     ClientHTTP *client = info.client;
     URL client_url = point.url;
     bool transfer_failure = false;
     int retries = 0;
-    point.transfer_lock.lock();
-    ++(point.transfers_started);
-    point.transfer_cond.signal();
-    point.transfer_lock.unlock();
     for (;;) {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
@@ -819,13 +786,12 @@ namespace Arc {
         break;
     }
     point.transfer_lock.lock();
-    ++(point.transfers_finished);
-    point.transfer_cond.signal();
-    if (transfer_failure)
-      point.buffer->error_read(true);
-    if (point.transfers_finished == point.transfers_started)
+    --(point.transfers_tofinish);
+    if (transfer_failure) point.buffer->error_read(true);
+    if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
       point.buffer->eof_read(true);
+    }
     if (client) delete client;
     delete &info;
     point.transfer_lock.unlock();
@@ -834,13 +800,11 @@ namespace Arc {
   void DataPointHTTP::write_thread(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
+    point.transfer_lock.lock();
+    point.transfer_lock.unlock();
     ClientHTTP *client = info.client;
     bool transfer_failure = false;
     int retries = 0;
-    point.transfer_lock.lock();
-    ++(point.transfers_started);
-    point.transfer_cond.signal();
-    point.transfer_lock.unlock();
     for (;;) {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
@@ -898,11 +862,9 @@ namespace Arc {
       point.buffer->is_written(transfer_handle);
     }
     point.transfer_lock.lock();
-    ++(point.transfers_finished);
-    point.transfer_cond.signal();
-    if (transfer_failure)
-      point.buffer->error_write(true);
-    if (point.transfers_finished == point.transfers_started) {
+    --(point.transfers_tofinish);
+    if (transfer_failure) point.buffer->error_write(true);
+    if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
       point.buffer->eof_write(true);
       if ((!(point.buffer->error())) && (point.buffer->eof_position() == 0))
@@ -943,8 +905,7 @@ namespace Arc {
           break;
         }
     }
-    if (client)
-      delete client;
+    if (client) delete client;
     delete &info;
     point.transfer_lock.unlock();
   }

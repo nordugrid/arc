@@ -30,10 +30,9 @@ namespace Arc {
     static void write_thread(void *arg);
     static Logger logger;
     ChunkControl *chunks;
-    int transfers_started;
-    int transfers_finished;
+    SimpleCounter transfers_started;
+    int transfers_tofinish;
     Glib::Mutex transfer_lock;
-    Glib::Cond transfer_cond;
   };
 
 } // namespace Arc
