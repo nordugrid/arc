@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include <openssl/evp.h>
+#include <arc/ArcLocation.h>
 #include <arc/credential/CertUtil.h>
 #include <arc/credential/Credential.h>
 
@@ -15,7 +16,9 @@ class CredentialTest
 
 public:
   CredentialTest() {}
-  void setUp() {}
+  void setUp() {
+    Arc::ArcLocation::Init("./bin/app");
+  }
   void tearDown() {}
   void CertTest();
 };

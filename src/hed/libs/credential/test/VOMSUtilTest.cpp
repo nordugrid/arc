@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <arc/ArcLocation.h>
 #include <arc/Logger.h>
 #include <arc/credential/VOMSUtil.h>
 
@@ -14,7 +15,9 @@ class VOMSUtilTest
 
 public:
   VOMSUtilTest() {}
-  void setUp() {}
+  void setUp() {
+    Arc::ArcLocation::Init("./bin/app");
+  }
   void tearDown() {}
   void VOMSTrustListTest();
 };
