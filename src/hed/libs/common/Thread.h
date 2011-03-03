@@ -213,6 +213,12 @@ namespace Arc {
       lock_.unlock();
       return r;
     }
+    int get(void) {
+      lock_.lock();
+      int r = count_;
+      lock_.unlock();
+      return r;
+    }
     void wait(void) {
       lock_.lock();
       while (count_ > 0) cond_.wait(lock_);
