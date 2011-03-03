@@ -327,10 +327,11 @@ sub get_gmjobs {
             unless ( open (GMJOB_DIAG, "<$gmjob_diag") ) {
                 $log->warning("Job $ID: Can't open $gmjob_diag");
             } else {
+                my %nodenames;
                 my ($kerneltime, $usertime);
                 while (my $line = <GMJOB_DIAG>) {
                     $line=~m/^nodename=(\S+)/ and
-                        push @{$job->{nodenames}}, $1;
+                        $nodenames{$1} = 1;
                     $line=~m/^WallTime=(\d+)(\.\d*)?/ and
                         $job->{WallTime} = ceil($1);
                     $line=~m/^exitcode=(\d+)/ and
@@ -343,6 +344,8 @@ sub get_gmjobs {
                         $usertime=$1;
                 }
                 close GMJOB_DIAG;
+
+                $job->{nodenames} = [ sort keys %nodenames ] if %nodenames;
 
                 $job->{CpuTime}= ceil($kerneltime + $usertime)
                     if defined $kerneltime and defined $usertime;
