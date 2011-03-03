@@ -259,7 +259,8 @@ $controldirs{$_} = 1 for map {$_->{controldir}} values %gmusers;
 
 # only interested in shared session disks
 if ($gmusers{'.'}) {
-    $sessiondirs{$_} = 1 for split /\[separator\]/, $gmusers{'.'}{sessiondir};
+    $sessiondirs{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; }
+                             split /\[separator\]/, $gmusers{'.'}{sessiondir};
 }
 
 if ($config{remotegmdirs}) {
@@ -267,7 +268,7 @@ if ($config{remotegmdirs}) {
     for my $dir (@remotedirs) {
         my ($ctrl, @sessions) = split ' ', $dir;
         $controldirs{$ctrl} = 1;
-        $sessiondirs{$_} = 1 for @sessions;
+        $sessiondirs{$_} = 1 for grep { $_ ne 'drain' } @sessions;
     }
 }
 error("No control directories configured") unless %controldirs;

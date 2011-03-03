@@ -250,13 +250,13 @@ sub get_host_info {
     # Considering only common session disk space (not including per-user session directoires)
     my (%commongridareas, $commonfree);
     if ($control->{'.'}) {
-        $commongridareas{$_} = 1 for @{$control->{'.'}{sessiondir}};
+        $commongridareas{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{'.'}{sessiondir}};
     }
     # Also include remote session directoires.
     if (my $remotes = $options->{remotegmdirs}) {
         for my $remote (@$remotes) {
             my ($ctrldir, @sessions) = split ' ', $remote;
-            $commongridareas{$_} = 1 for @sessions;
+            $commongridareas{$_} = 1 for grep { $_ ne 'drain' } @sessions;
             push @controldirs, $ctrldir;
         }
     }
@@ -277,7 +277,7 @@ sub get_host_info {
 
         # Are there grid-manager settings applying for this local user?
         if ($control->{$u}) {
-            my $sessiondirs = $control->{$u}{sessiondir};
+            my $sessiondirs = [ map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{$u}{sessiondir}} ];
             my %res = Sysinfo::diskspaces(@$sessiondirs);
             if ($res{errors}) {
                 $log->warning("Failed checking disk space available in session directories of user $u")

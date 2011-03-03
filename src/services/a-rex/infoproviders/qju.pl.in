@@ -295,7 +295,7 @@ sub qju_read_conf_file () {
     if ($config{remotegmdirs}) {
         my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
         for my $dir (@remotedirs) {
-            my ($ctrl, $sess) = split ' ', $dir;
+            my ($ctrl, @sessions) = split ' ', $dir;
             push @controldirs, $ctrl;
         }
     }
@@ -799,13 +799,14 @@ sub grid_diskspace (@) {
 
     my (%commongridareas, $commonfree);
     if ($gmusers{'.'}) {
-        $commongridareas{$_} = 1 for split /\[separator\]/, $gmusers{'.'}{sessiondir};
+        $commongridareas{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; }
+                                     split /\[separator\]/, $gmusers{'.'}{sessiondir};
     }
     if ($config{remotegmdirs}) {
         my @remotedirs = split /\[separator\]/, $config{remotegmdirs};
         for my $dir (@remotedirs) {
             my ($ctrl, @sessions) = split ' ', $dir;
-            $commongridareas{$_} = 1 for @sessions;
+            $commongridareas{$_} = 1 for grep { $_ ne 'drain' } @sessions;
         }
     }
     if (%commongridareas) {
@@ -821,7 +822,8 @@ sub grid_diskspace (@) {
 
         if (exists $gmusers{$u}) {
             # user is configured as a separate GM user
-            my $sessiondirs = [ split /\[separator\]/, $gmusers{$u}{sessiondir} ];
+            my $sessiondirs = [ map { my ($path, $drain) = split /\s+/, $_; $path; }
+                                split /\[separator\]/, $gmusers{$u}{sessiondir} ];
             my %res = diskspaces(@$sessiondirs);
             if ($res{errors}) {
                 warning("Failed checking disk space available in session directories of user $u")
