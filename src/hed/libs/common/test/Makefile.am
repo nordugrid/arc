@@ -5,7 +5,8 @@ MYSQL_WRAPPER_TEST =
 endif
 
 TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ProfileTest \
-        ArcRegexTest ThreadTest FileLockTest EnvTest $(MYSQL_WRAPPER_TEST)
+        ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
+        $(MYSQL_WRAPPER_TEST)
 
 check_PROGRAMS = $(TESTS)
 
@@ -48,6 +49,10 @@ FileLockTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
 EnvTest_SOURCES = $(top_srcdir)/src/Test.cpp EnvTest.cpp
 EnvTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 EnvTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+
+UserConfigTest_SOURCES = $(top_srcdir)/src/Test.cpp UserConfigTest.cpp
+UserConfigTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+UserConfigTest_LDADD = $(CPPUNIT_LIBS) $(MYSQL_LIBS) ../libarccommon.la
 
 if MYSQL_LIBRARY_ENABLED
 MysqlWrapperTest_SOURCES = $(top_srcdir)/src/Test.cpp MysqlWrapperTest.cpp
