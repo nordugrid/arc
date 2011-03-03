@@ -90,7 +90,7 @@ namespace Arc {
       return URL();
     }
     if (resp == NULL) {
-      logger.msg(ERROR, "There was no SOAP response");
+      logger.msg(VERBOSE, "There was no SOAP response");
       return URL();
     }
 

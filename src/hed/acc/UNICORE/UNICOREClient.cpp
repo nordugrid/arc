@@ -204,7 +204,7 @@ namespace Arc {
         return false;
       }
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         return false;
       }
     }
@@ -238,7 +238,7 @@ namespace Arc {
       }
       logger.msg(INFO, "Submission request succeed");
       if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was no response to a submission request");
+        logger.msg(VERBOSE, "There was no response to a submission request");
         return false;
       }
       try {
@@ -296,7 +296,7 @@ namespace Arc {
         client->process("http://schemas.ggf.org/bes/2006/08/bes-activity/BESActivityPortType/StartRequest",
                         &req, &resp);
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         return false;
       }
     }
@@ -319,8 +319,7 @@ namespace Arc {
       }
       logger.msg(INFO, "A start job request succeeded");
       if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a start job request");
+        logger.msg(VERBOSE, "There was no response to a start job request");
         return false;
       }
       try {
@@ -374,7 +373,7 @@ namespace Arc {
         client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
                         "BESFactoryPortType/GetActivityStatuses", &req, &resp);
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         return false;
       }
     }
@@ -398,7 +397,7 @@ namespace Arc {
       }
       logger.msg(INFO, "A status request succeed");
       if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR, "There was no response to a status request");
+        logger.msg(VERBOSE, "There was no response to a status request");
         return false;
       }
       try {
@@ -453,7 +452,7 @@ namespace Arc {
                     "/QueryResourceProperties/QueryResourcePropertiesRequest",
                     &req, &resp);
     if (resp == NULL) {
-      logger.msg(ERROR, "There was no SOAP response");
+      logger.msg(VERBOSE, "There was no SOAP response");
       return false;
     }
 
@@ -486,7 +485,7 @@ namespace Arc {
                         "BESFactoryPortType/GetFactoryAttributesDocument",
                         &req, &resp);
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         return false;
       }
     }
@@ -511,8 +510,7 @@ namespace Arc {
       }
       logger.msg(INFO, "A service status request succeeded");
       if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a service status request");
+        logger.msg(VERBOSE, "There was no response to a service status request");
         return false;
       }
       try {
@@ -564,7 +562,7 @@ namespace Arc {
         client->process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
                         "BESFactoryPortType/TerminateActivities", &req, &resp);
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         return false;
       }
     }
@@ -588,8 +586,7 @@ namespace Arc {
       }
       logger.msg(INFO, "A job termination request succeed");
       if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a job termination request");
+        logger.msg(VERBOSE, "There was no response to a job termination request");
         return false;
       }
       try {
@@ -641,7 +638,7 @@ namespace Arc {
     if (client) {
       MCC_Status status = client->process("", &req, &resp);
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         return false;
       }
     }
@@ -663,8 +660,7 @@ namespace Arc {
       }
       logger.msg(INFO, "A job cleaning request succeed");
       if (repmsg.Payload() == NULL) {
-        logger.msg(ERROR,
-                   "There was no response to a job cleaning request");
+        logger.msg(VERBOSE, "There was no response to a job cleaning request");
         return false;
       }
       try {

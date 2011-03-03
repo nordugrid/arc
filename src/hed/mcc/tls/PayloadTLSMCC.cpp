@@ -279,7 +279,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
       err = SSL_get_error(ssl_,err);
-      logger.msg(ERROR, "Failed to establish SSL connection");
+      logger.msg(VERBOSE, "Failed to establish SSL connection");
       goto error;
    };
    // if(SSL_in_init(ssl_)){

@@ -58,7 +58,7 @@ namespace Arc {
         client.process("http://schemas.ggf.org/bes/2006/08/bes-factory/"
                        "BESFactoryPortType/GetActivityStatuses", &req, &resp);
       if (resp == NULL) {
-        logger.msg(ERROR, "There was no SOAP response");
+        logger.msg(VERBOSE, "There was no SOAP response");
         continue;
       }
       XMLNode st, fs;

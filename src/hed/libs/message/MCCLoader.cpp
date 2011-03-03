@@ -13,7 +13,7 @@ namespace Arc {
     context_ = new ChainContext(*this);
     valid_ = make_elements(cfg);
     if(!valid_)
-      MCCLoader::logger.msg(ERROR, "Chain(s) configuration failed");
+      MCCLoader::logger.msg(VERBOSE, "Chain(s) configuration failed");
   }
 
   MCCLoader::~MCCLoader(void) {
@@ -175,7 +175,7 @@ namespace Arc {
     Plugin* plugin = factory_->get_instance(MCCPluginKind ,name, &arg);
     MCC* mcc = plugin?dynamic_cast<MCC*>(plugin):NULL;
     if(!mcc) {
-      logger.msg(ERROR, "Component %s(%s) could not be created", name, id);
+      logger.msg(VERBOSE, "Component %s(%s) could not be created", name, id);
       if(plugin) delete plugin;
       return NULL;
     }
@@ -378,7 +378,7 @@ namespace Arc {
           mcc->nexts.erase(next);
           continue;
         }
-        logger.msg(ERROR, "MCC %s(%s) - next %s(%s) has no target",
+        logger.msg(VERBOSE, "MCC %s(%s) - next %s(%s) has no target",
                    mcc->name, mcc->mcc->first, label, id);
         success = false;
         mcc->nexts.erase(next);

@@ -5,7 +5,7 @@
 #endif
 
 #ifdef WIN32
-#include <arc/win32.h> 
+#include <arc/win32.h>
 #endif
 
 #include <cstring>
@@ -288,7 +288,7 @@ namespace Arc {
   }
 
 
-  // Lock to protect thread-unsafe OpenLDAP functions - 
+  // Lock to protect thread-unsafe OpenLDAP functions -
   // currently ldap_initialize.
   // TODO: investigate if OpenLDAP unloads cleanly and if
   // not make this plugin persistent.
@@ -358,7 +358,7 @@ namespace Arc {
     if (!arg->valid) {
       arg->release();
       connection = NULL;
-      logger.msg(ERROR, "Failed to bind to ldap server (%s)", host);
+      logger.msg(VERBOSE, "Failed to bind to ldap server (%s)", host);
       return false;
     }
     arg->connection = NULL; // keep connection up
