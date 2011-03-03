@@ -231,6 +231,77 @@ sub read_qstat_f ($) {
     return %qstat_jobs;
 }
 
+
+# gets information about each destination queue behind a
+# routing queue and copies it into the routing queue data structure.
+# at the moment it only copies data from the first queue
+# 
+# input: $queue name of the current queue
+#	 $path to pbs binaries
+#        $singledqueue that contains the only queue behind the routing one
+#        %qstat{} for the current queue 
+# output: the %dqueue hash containing info about destination queues
+#         in %lrms_queue fashion
+
+sub process_dqueues($$%){
+    my $qname = shift;
+    my $path = shift;
+    my (%qstat) = %{$_[0]};
+    my $singledqueue;
+    my %dqueues;
+
+    # build DQs data structure
+    my @dqnames;
+    if (defined $qstat{'route_destinations'}) {
+	@dqnames=split(",",$qstat{'route_destinations'});
+	@dqueues{@dqnames}=undef;
+	foreach my $dqname ( keys %dqueues ) {
+	    debug($dqname);
+	    my (%dqstat);
+	    unless (open QSTATOUTPUT,   "$path/qstat -Q -f1 $dqname 2>/dev/null |") {
+		error("Error in executing qstat: $path/qstat -Q -f1 $dqname");
+	    }
+	    while (my $line= <QSTATOUTPUT>) {
+		if ($line =~ m/ = /) {
+                    chomp($line);
+                    my ($dqstat_var,$dqstat_value) = split("=", $line);
+                    $dqstat_var =~ s/\s+//g;
+                    $dqstat_value =~ s/\s+//g;
+                    $dqstat{$dqstat_var}=$dqstat_value;
+		}
+	    }
+	    close QSTATOUTPUT;
+	    $dqueues{$dqname}=\%dqstat;
+	}
+	# debug($dqueues{'verylong'}{'resources_max.walltime'});
+    }
+    else {
+	error("No route_destinations for routing queue $qname. Please check LRMS configuration.");
+    }
+    # take the first destination queue behind the RQ, copy its data to the RQ
+    # this happens only if the RQ has no data defined on PBS
+    # this should solve bug #859
+    $singledqueue=shift(@dqnames);
+    debug('Just one queue: '.$singledqueue);
+    my @attributes=(
+	'max_running',
+	'max_user_run',
+	'max_queuable',
+	'resources_max.cput',
+	'resources_min.cput',
+	'resources_default.cput',
+	'resources_max.walltime',
+	'resources_min.walltime',
+	'resources_default.walltime',
+	'state_count'
+	);
+    foreach my $rkey (@attributes) {
+	debug('with key '.$rkey.' qstat returns '.$qstat{$rkey}.' and the dest. queue has '.$dqueues{$singledqueue}{$rkey} );
+	if (!defined $qstat{$rkey}) {${$_[0]}{$rkey}=$dqueues{$singledqueue}{$rkey};};
+    }
+    return %dqueues;
+}
+
 ############################################
 # Public subs
 #############################################
@@ -412,6 +483,22 @@ sub queue_info ($$) {
     }	    
     close QSTATOUTPUT;
 
+    # this script contain a solution for a single queue behind the 
+    # routing one, the routing queue will inherit some of its
+    # attributes.
+    
+    # this hash contains qstat records for queues - in this case just one
+    my %dqueues;
+    # this variable contains the single destination queue
+    my $singledqueue;
+    if ($qstat{queue_type} =~ /Route/) {
+	%dqueues = process_dqueues($qname,$path,\%qstat);
+	$singledqueue = ( keys %dqueues )[0];
+    } else {
+    	undef %dqueues;
+        undef $singledqueue;
+    }
+
     my (%keywords) = ( 'max_running' => 'maxrunning',
 		       'max_user_run' => 'maxuserrun',
 		       'max_queuable' => 'maxqueuable' );
@@ -470,14 +557,32 @@ sub queue_info ($$) {
 	}
 	close QSTATOUTPUT;
 
+	# refresh routing queue records, in case something changed on the
+	# destination queues
+	if ($qstat{queue_type} =~ /Route/) {
+	    debug("For the 2nd time, queue type is $qstat{queue_type}");
+	    %dqueues = process_dqueues($qname,$path,\%qstat);
+	    # this variable contains the single destination queue
+	    $singledqueue = ( keys %dqueues )[0];
+	    
+	} else {
+	    undef %dqueues;
+	    undef $singledqueue;
+	}
+
 	# qstat does not return number of cpus, use pbsnodes instead.
 	my ($torque_freecpus,$torque_totalcpus)=(0,0);
 	foreach my $node (keys %hoh_pbsnodes){
 	    # If pbsnodes have properties assigned to them
 	    # check if queuename or dedicated_node_string matches.
+	    # $singledqueue check has been added for routing queue support,
+	    # also the destination queue is checked to calculate totalcpus
+            # also adds correct behaviour for queue_node_string
 	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || 
 		 ($hoh_pbsnodes{$node}{'properties'} =~ m/$qname/ ||
-		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{dedicated_node_string}/) ){
+		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{dedicated_node_string}/ ||
+		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{queue_node_string}/ ||
+		  $hoh_pbsnodes{$node}{"properties"} =~ m/$singledqueue/) ){
 		my $cpus;
 
 		next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
@@ -496,6 +601,8 @@ sub queue_info ($$) {
 	}
 	$lrms_queue{totalcpus} = $torque_totalcpus;
 
+	debug($lrms_queue{totalcpus});
+
 	if(defined $$config{totalcpus}){
 	    if ($lrms_queue{totalcpus} eq "" or $$config{totalcpus} < $lrms_queue{totalcpus}) {
 		$lrms_queue{totalcpus}=$$config{totalcpus};
@@ -511,6 +618,14 @@ sub queue_info ($$) {
 	    $lrms_queue{running}=0;
 	}
 
+        # calculate running in case of a routing queue
+        if ( $qstat{queue_type} =~ /Route/ ) {
+           debug($dqueues{$singledqueue}{state_count});
+	   if ( $dqueues{$singledqueue}{state_count} =~ m/.*Running:([0-9]*).*/ ) {
+		$lrms_queue{running}=$1;
+	   }
+	}
+
 	if ($lrms_queue{totalcpus} eq 0) {
 	    warning("Can't determine number of cpus for queue $qname");
 	}
@@ -519,6 +634,16 @@ sub queue_info ($$) {
 	    $lrms_queue{queued}=$1;
 	} else {
 	    $lrms_queue{queued}=0;
+	}
+
+ 	# calculate queued in case of a routing queue
+        # queued jobs is the sum of jobs queued in the routing queue
+        # plus jobs in the destination queue
+        if ( $qstat{queue_type} =~ /Route/ ) {
+           debug($dqueues{$singledqueue}{state_count});
+	   if ( $dqueues{$singledqueue}{state_count} =~ m/.*Queued:([0-9]*).*/ ) {
+		$lrms_queue{queued}=$lrms_queue{queued}+$1;
+	   }
 	}
 
     }
@@ -736,6 +861,10 @@ sub users_info($$@) {
     my $acl_user_enable = 0;
     my @acl_users;
     my $more_acls = 0;
+    # added for routing queue support
+    my @dqueues;
+    my $singledqueue;
+    my $isrouting;
     while (my $line= <QSTATOUTPUT>) {   
         chomp $line;
 
@@ -765,9 +894,69 @@ sub users_info($$@) {
 		$more_acls = 1 if $v =~ /,\s*$/;
 	    }
 	}
+        # added to support routing queues
+        if (!$acl_user_enable){
+	    if ($line =~ /\s*route_destinations\s=\s(.*)$/) {
+		@dqueues=split (',',$1);
+		$singledqueue=shift(@dqueues);
+		debug('local user acl taken from destination queue: '.$singledqueue);
+		$isrouting = 1;
+	    } else {
+		undef @dqueues;
+		undef $singledqueue;
+	    }
+        }
     }
     close QSTATOUTPUT;
 
+    # if the acl_user_enable is not defined in the RQ,
+    # it could be defined in the destination queues.
+    # we proceed same way as before but on the first
+    # destination queue to propagate the info to the routing one
+    if ($isrouting){
+        debug('Getting acl from destination queue');
+        # Check that users have access to the queue
+        unless (open QSTATOUTPUT,   "$path/qstat -f -Q $singledqueue 2>/dev/null |") {
+	    error("Error in executing qstat on destination queue: $path/qstat -f -Q $singledqueue");
+        }
+
+        $acl_user_enable = 0;
+        $more_acls = 0;
+    	while (my $line= <QSTATOUTPUT>) {
+	    chomp $line;
+
+	    # is this a continuation of the acl line?
+	    if ($more_acls) {
+		$line =~ s/^\s*//;  # strip leading spaces
+		push @acl_users, split ',', $line;
+		$more_acls = 0 unless $line =~ /,\s*$/;
+		next;
+	    }
+
+	    if ( $line =~ /\s*acl_user_enable/ ) {
+		my ( $k ,$v ) = split ' = ', $line;
+		unless ( $v eq 'False' ) {
+		    $acl_user_enable = 1;
+		}
+	    }
+
+	    if ( $line =~ /\s*acl_users/ ) {
+		my ( $k ,$v ) = split ' = ', $line;
+		unless ( $v eq 'False' ) {
+		    # This condition is kept here in case the reason
+		    # for it being there in the first place was that some
+		    # version or flavour of PBS really has False as an alternative
+		    # to usernames to indicate the absence of user access control
+		    # A Corrallary: Dont name your users 'False' ...
+		    push @acl_users, split ',', $v;
+		    $more_acls = 1 if $v =~ /,\s*$/;
+		}
+	    }
+	}
+	close QSTATOUTPUT;
+	debug(@acl_users);
+    }
+  
     # acl_users is only in effect when acl_user_enable is true
     if ($acl_user_enable) {
 	foreach my $a ( @{$accts} ) {
