@@ -1,3 +1,4 @@
+debian/tmp/usr/lib/libarcglobusutils.so.*
 debian/tmp/usr/lib/arc/libaccARC0.so
 debian/tmp/usr/lib/arc/libdmcgridftp.so
 debian/tmp/usr/lib/arc/libdmcrls.so

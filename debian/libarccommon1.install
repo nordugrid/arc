@@ -1,4 +1,16 @@
-debian/tmp/usr/lib/lib*.so.*
+debian/tmp/usr/lib/libarcclient.so.*
+debian/tmp/usr/lib/libarccommon.so.*
+debian/tmp/usr/lib/libarccredential.so.*
+debian/tmp/usr/lib/libarccredentialstore.so.*
+debian/tmp/usr/lib/libarccrypto.so.*
+debian/tmp/usr/lib/libarcdata2.so.*
+debian/tmp/usr/lib/libarcdbxml.so.*
+debian/tmp/usr/lib/libarcloader.so.*
+debian/tmp/usr/lib/libarcmessage.so.*
+debian/tmp/usr/lib/libarcsecurity.so.*
+debian/tmp/usr/lib/libarcws.so.*
+debian/tmp/usr/lib/libarcwssecurity.so.*
+debian/tmp/usr/lib/libarcxmlsec.so.*
 debian/tmp/usr/lib/arc/libmodcrypto.so
 debian/tmp/usr/lib/arc/libmodcredential.so
 debian/tmp/usr/lib/arc/libmodcrypto.apd
