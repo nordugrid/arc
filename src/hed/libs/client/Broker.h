@@ -41,7 +41,12 @@ namespace Arc {
     void Sort();
     bool EndOfList() const { return PossibleTargets.empty() || current == PossibleTargets.end(); }
     void Advance() { pCurrent = *(++current); }
+#ifndef SWIG
     const ExecutionTarget*& GetReference() { return pCurrent; }
+#else
+    // For bindings only return a pointer.
+    const ExecutionTarget* GetReference() { return pCurrent; }
+#endif
 
     /// Filter ExecutionTarget objects according to attributes in JobDescription object
     /**
