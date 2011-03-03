@@ -134,6 +134,8 @@ namespace Arc {
                              globus_object_t *error,
                              globus_ftp_control_response_t *response) {
     Lister *it = (Lister*)arg;
+    Arc::Logger::getRootLogger().setThreadContext();
+    Arc::Logger::getRootLogger().removeDestinations();
     globus_mutex_lock(&(it->mutex));
     if (error != GLOBUS_SUCCESS) {
       it->callback_status = CALLBACK_ERROR;
