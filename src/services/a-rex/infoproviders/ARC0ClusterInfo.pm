@@ -35,12 +35,18 @@ sub collect($) {
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
 
-    my $homogeneous = 1; 
-    $homogeneous = 0 if @allxenvs > 1;
-    $homogeneous = 0 if @allshares > 1 and @allxenvs == 0;
-    for my $xeconfig (values %{$config->{xenvs}}) {
-        $homogeneous = 0 if defined $xeconfig->{Homogeneous}
-                            and not $xeconfig->{Homogeneous};
+    # homogeneity of the cluster
+    my $homogeneous; 
+    if (defined $config->{service}{Homogeneous}) {
+        $homogeneous = $config->{service}{Homogeneous};
+    } else {
+        # not homogeneous if there are multiple ExecEnvs
+        $homogeneous = @allxenvs > 1 ? 0 : 1;
+        # not homogeneous if one ExecEnv is not homogeneous
+        for my $xeconfig (values %{$config->{xenvs}}) {
+            $homogeneous = 0 if defined $xeconfig->{Homogeneous}
+                                and not $xeconfig->{Homogeneous};
+        }
     }
 
     # config overrides
@@ -211,15 +217,15 @@ sub collect($) {
         $c->{'lrms-type'} = $lrms_info->{cluster}{lrms_type};
         $c->{'lrms-version'} = $lrms_info->{cluster}{lrms_version} if $lrms_info->{cluster}{lrms_version};
         $c->{'lrms-config'} = $config->{service}{lrmsconfig} if $config->{service}{lrmsconfig}; # orphan
-        $c->{architecture} = $config->{service}{Platform} if $homogeneous and $config->{service}{Platform};
+        $c->{architecture} = $config->{service}{Platform} if $config->{service}{Platform};
+        push @{$c->{opsys}}, @{$config->{service}{OpSys}} if $config->{service}{OpSys};
         push @{$c->{opsys}}, $config->{service}{OSName}.'-'.$config->{service}{OSVersion}
             if $config->{service}{OSName} and $config->{service}{OSVersion};
-        push @{$c->{opsys}}, @{$config->{service}{OpSys}} if $config->{service}{OpSys};
         $c->{benchmark} = [ map {join ' @ ', split /\s+/,$_,2 } @{$config->{service}{Benchmark}} ]
             if $config->{service}{Benchmark};
         $c->{nodecpu} = $config->{service}{CPUModel}." @ ".$config->{service}{CPUClockSpeed}." MHz"
             if $config->{service}{CPUModel} and $config->{service}{CPUClockSpeed};
-        $c->{homogeneity} = $homogeneous ? 'FALSE' : 'TRUE';
+        $c->{homogeneity} = $homogeneous ? 'TRUE' : 'FALSE';
         $c->{nodeaccess} = 'inbound' if $inbound;
         $c->{nodeaccess} = 'outbound' if $outbound;
         $c->{totalcpus} = $lrms_info->{cluster}{totalcpus};
@@ -291,7 +297,11 @@ sub collect($) {
             push @{$q->{comment}}, $sconfig->{Description} if $sconfig->{Description};
             push @{$q->{comment}}, $sconfig->{OtherInfo} if $sconfig->{OtherInfo};
             $q->{schedulingpolicy} = $sconfig->{SchedulingPolicy} if $sconfig->{SchedulingPolicy};
-            $q->{homogeneity} = @nxenvs > 1 ? 'FALSE' : 'TRUE';
+            if (defined $sconfig->{Homogeneous}) {
+                $q->{homogeneity} = $sconfig->{Homogeneous} ? 'TRUE' : 'FALSE';
+            } else {
+                $q->{homogeneity} = @nxenvs > 1 ? 'FALSE' : 'TRUE';
+            }
             $q->{nodecpu} = $sconfig->{CPUModel}." @ ".$sconfig->{CPUClockSpeed}." MHz"
                 if $sconfig->{CPUModel} and $sconfig->{CPUClockSpeed};
             $q->{nodememory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
