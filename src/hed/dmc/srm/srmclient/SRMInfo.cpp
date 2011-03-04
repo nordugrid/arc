@@ -1,7 +1,15 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <vector>
 #include <errno.h>
 #include <stdio.h>
 #include <sys/stat.h>
+
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
 
 #include <glibmm.h>
 
