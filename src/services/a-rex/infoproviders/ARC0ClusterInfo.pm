@@ -245,7 +245,7 @@ sub collect($) {
         $c->{'cache-free'} = $host_info->{cache_free};
         $c->{'cache-total'} = $host_info->{cache_total};
         $c->{runtimeenvironment} = [ sort keys %$rte_info ];
-        push @{$c->{middleware}}, "ARC-".$config->{arcversion};
+        push @{$c->{middleware}}, "nordugrid-arc-".$config->{arcversion};
         push @{$c->{middleware}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
         push @{$c->{middleware}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
 
