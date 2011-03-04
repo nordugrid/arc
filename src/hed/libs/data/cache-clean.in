@@ -266,8 +266,12 @@ foreach my $filesystem (@caches) {
     # remove expired files
     if ($expirytime > 0) {
         foreach my $fil (keys %expiredfiles) {
-            next if (-e "$fil.lock");
             next if (-d "$fil");
+            if (-e "$fil.lock") {
+                my $atime = (stat("$fil.lock"))[8];
+                next if ( defined $atime && ($currenttime - $atime) <= 86400);
+                unlink "$fil.lock";
+            }
 
             if ( unlink $fil ) {
                 $fsfree+=$expiredfiles{$fil}{size};
@@ -282,20 +286,19 @@ foreach my $filesystem (@caches) {
                     $log->verbose(join("", "Deleting expired file: $fil  atime: ", scalar localtime($expiredfiles{$fil}{atime}), "  size: $expiredfiles{$fil}{size}"));
                 }
             } else {
-		$log->warning("Error deleting file '$fil': $!");
-	    }
-        
- 
-	    # not critical if this fails
-	    next if (! -e "$fil.meta");
-	    if ( unlink "$fil.meta" ) {
-		my $lastslash = rindex($fil, "/");
-		if ( rmdir(substr($fil, 0, $lastslash))) {
-		    $log->verbose("Deleting directory ".substr($fil, 0, $lastslash));
-		}
-	    } else {
-		$log->warning("Error deleting file '$fil.meta': $!");
-	    } 
+                $log->warning("Error deleting file '$fil': $!");
+            }
+
+            # not critical if this fails
+            next if (! -e "$fil.meta");
+            if ( unlink "$fil.meta" ) {
+                my $lastslash = rindex($fil, "/");
+                if ( rmdir(substr($fil, 0, $lastslash))) {
+                     $log->verbose("Deleting directory ".substr($fil, 0, $lastslash));
+                }
+            } else {
+                $log->warning("Error deleting file '$fil.meta': $!");
+            } 
         }
     }
 
@@ -303,9 +306,12 @@ foreach my $filesystem (@caches) {
         # delete in order of access
         foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
             last if $fsfree > $minfbytes;
-
-            next if (-e "$fil.lock");
             next if (-d "$fil");
+            if (-e "$fil.lock") {
+                my $atime = (stat("$fil.lock"))[8];
+                next if ( defined $atime && ($currenttime - $atime) <= 86400);
+                unlink "$fil.lock"
+            }
 
             if ( unlink $fil ) {
                 $fsfree+=$files{$fil}{size};
@@ -350,10 +356,21 @@ sub wanted {
     return unless defined $atime;
 
     return unless !(-d _) || -f _;
-    if ($links != 1 || -e "$name.lock") {
+       
+    if ($links != 1) {
         $totlocksize += 512 * $blocks;
         $totlockfiles++;
         return;
+    }
+    
+    if (-e "$name.lock") {
+        # check if lock is still valid
+        my $lockatime = (stat("$name.lock"))[8];
+        if ( defined $lockatime && ($currenttime - $lockatime) <= 86400) {
+            $totlocksize += 512 * $blocks;
+            $totlockfiles++;
+            return;
+        }
     }
 
     if ($expirytime > 0 && ($currenttime - $atime) >= $expirytime) {
