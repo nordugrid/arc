@@ -27,8 +27,8 @@ namespace Arc {
   // environment variables.
   void EnvLockAcquire(void);
   void EnvLockRelease(void);
-  bool SetEnvNonLock(const std::string& var, const std::string& value, bool overwrite = true);
-  void UnsetEnvNonLock(const std::string& var);
+  void EnvLockWrap(bool all = false);
+  void EnvLockUnwrap(bool all = false);
 
   /// Portable function for obtaining description of last system error
   std::string StrError(int errnum = errno);

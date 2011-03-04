@@ -1166,28 +1166,28 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
 
 #define SET_OLD_VAR(name,var,set) { \
   if(set) { \
-    SetEnvNonLock(name,var,true); \
+    SetEnv(name,var,true); \
   } else { \
-    UnsetEnvNonLock(name); \
+    UnsetEnv(name); \
   }; \
 }
 
 #define SET_NEW_VAR(name,val) { \
   std::string v = val; \
   if(v.empty()) { \
-    UnsetEnvNonLock(name); \
+    UnsetEnv(name); \
   } else { \
-    SetEnvNonLock(name,v,true); \
+    SetEnv(name,v,true); \
   }; \
 }
 
 #define SET_NEW_VAR_FILE(name,val,fname) { \
   std::string v = val; \
   if(v.empty()) { \
-    UnsetEnvNonLock(name); \
+    UnsetEnv(name); \
   } else { \
     v = cert_file_fix(v,fname); \
-    SetEnvNonLock(name,v,true); \
+    SetEnv(name,v,true); \
   }; \
 }
 
@@ -1201,9 +1201,11 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
     SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
     SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
     SET_NEW_VAR("CA_CERT_DIR",cfg.CACertificatesDirectory());
+    EnvLockWrap(false);
   }
 
   CertEnvLocker::~CertEnvLocker(void) {
+    EnvLockUnwrap(false);
     SET_OLD_VAR("CA_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
     SET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     SET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);

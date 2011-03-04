@@ -63,6 +63,36 @@ namespace Arc {
   static SIGPIPEIngore sigpipe_ignore;
 #endif
 
+  // Below is a set of mutexes for protecting environment
+  // variables. Current implementation is very simplistic.
+  // There are 2 mutexes. 'env_read_lock' protects any 
+  // access to the pool of environment variables. It is
+  // exposed to outside through EnvLockWrap() and EnvLockUnwrap()
+  // functions. Any third party code doing setenv()/getenv()
+  // must be wrapped using those functions. GetEnv() and SetEnv()
+  // functions of this API are using that lock internally.
+  // Second mutex 'env_write_lock' is meant for protecting
+  // set of environment variables from modification. It
+  // is only supposed to be used outside this library
+  // for protecting access to external libraries using
+  // environment variables as input parameters. That mutex
+  // is exposed through EnvLockAcquire() and EnvLockRelease().
+  // Those functions do not acquire 'env_lock_read' mutex.
+  // Hence proper usage of this infrastructure requires
+  // one to acquire both mutexes. See example below:
+  //   EnvLockAcquire();
+  //   SetEnv("ARG","VAL"); // Setting variable needed for ext. library
+  //   EnvLockWrap();
+  //   func(); // Calling ext function which uses getenv()
+  //   EnvLockUnwrap();
+  //   EnvLockRelease();
+  // Current implementation locks too many resources and has
+  // negative performance impact. In a future (unless there
+  // will be no need for all that at all) EnvLockAcquire will
+  // must provide lock per variable. And EnvLockWrap must 
+  // provide different functionality depending on setenv() or
+  // getenv() is going to be wrapped.
+
   // The purpose of this mutex is to 'solve' problem with
   // some third party libraries which use environment variables
   // as input arguments :(
@@ -73,14 +103,39 @@ namespace Arc {
 
   // And this mutex is needed because it seems like none if
   // underlying functions provide proper thread protection  
-  // of environment variables
-  static Glib::Mutex& env_read_lock(void) {
-    static Glib::Mutex* mutex = new Glib::Mutex;
+  // of environment variables. Also calls to external libraries
+  // using getenv() need to be protected by this lock.
+  static SharedMutex& env_read_lock(void) {
+    static SharedMutex* mutex = new SharedMutex;
     return *mutex;
   }
 
+  class SharedMutexExclusive {
+   private:
+    SharedMutex& lock_;
+   public:
+    SharedMutexExclusive(SharedMutex& lock):lock_(lock) {
+      lock_.lockExclusive();
+    };
+    ~SharedMutexExclusive(void) {
+      lock_.unlockExclusive();
+    };
+  };
+
+  class SharedMutexShared {
+   private:
+    SharedMutex& lock_;
+   public:
+    SharedMutexShared(SharedMutex& lock):lock_(lock) {
+      lock_.lockShared();
+    };
+    ~SharedMutexShared(void) {
+      lock_.unlockShared();
+    };
+  };
+
   std::string GetEnv(const std::string& var) {
-    Glib::Mutex::Lock env_lock(env_read_lock());
+    SharedMutexShared env_lock(env_read_lock());
 #ifdef HAVE_GLIBMM_GETENV
     return Glib::getenv(var);
 #else
@@ -90,7 +145,7 @@ namespace Arc {
   }
 
   std::string GetEnv(const std::string& var, bool &found) {
-    Glib::Mutex::Lock env_lock(env_read_lock());
+    SharedMutexShared env_lock(env_read_lock());
 #ifdef HAVE_GLIBMM_GETENV
     return Glib::getenv(var, found);
 #else
@@ -101,28 +156,7 @@ namespace Arc {
   }
 
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite) {
-    env_write_lock().lock();
-    bool r = SetEnvNonLock(var, value, overwrite);
-    env_write_lock().unlock();
-    return r;
-  }
-
-  void UnsetEnv(const std::string& var) {
-    env_write_lock().lock();
-    UnsetEnvNonLock(var);
-    env_write_lock().unlock();
-  }
-
-  void EnvLockAcquire(void) {
-    env_write_lock().lock();
-  }
-
-  void EnvLockRelease(void) {
-    env_write_lock().unlock();
-  }
-
-  bool SetEnvNonLock(const std::string& var, const std::string& value, bool overwrite) {
-    Glib::Mutex::Lock env_lock(env_read_lock());
+    SharedMutexExclusive env_lock(env_read_lock());
 #ifdef HAVE_GLIBMM_SETENV
     return Glib::setenv(var, value, overwrite);
 #else
@@ -134,8 +168,8 @@ namespace Arc {
 #endif
   }
 
-  void UnsetEnvNonLock(const std::string& var) {
-    Glib::Mutex::Lock env_lock(env_read_lock());
+  void UnsetEnv(const std::string& var) {
+    SharedMutexExclusive env_lock(env_read_lock());
 #ifdef HAVE_GLIBMM_UNSETENV
     Glib::unsetenv(var);
 #else
@@ -145,6 +179,30 @@ namespace Arc {
     putenv(strdup(var.c_str()));
 #endif
 #endif
+  }
+
+  void EnvLockAcquire(void) {
+    env_write_lock().lock();
+  }
+
+  void EnvLockRelease(void) {
+    env_write_lock().unlock();
+  }
+
+  void EnvLockWrap(bool all) {
+    if(all) {
+      env_read_lock().lockExclusive();
+    } else {
+      env_read_lock().lockShared();
+    }
+  }
+
+  void EnvLockUnwrap(bool all) {
+    if(all) {
+      env_read_lock().unlockExclusive();
+    } else {
+      env_read_lock().unlockShared();
+    }
   }
 
   std::string StrError(int errnum) {
@@ -159,6 +217,7 @@ namespace Arc {
       return "Unknown error " + tostring(errnum);
 #endif
 #else
+#warning USING THREAD UNSAFE strerror(). UPGRADE YOUR libc.
     return strerror(errnum);
 #endif
   }

@@ -55,27 +55,29 @@ namespace Arc {
   public:
     static Logger logger;
     LFCEnvLocker(const UserConfig& usercfg, const URL& url):CertEnvLocker(usercfg) {
+      EnvLockUnwrap(false);
       // if root, we have to set X509_USER_CERT and X509_USER_KEY to
       // X509_USER_PROXY to force LFC to use the proxy. If they are undefined
       // the LFC lib uses the host cert and key.
       if (getuid() == 0 && !GetEnv("X509_USER_PROXY").empty()) {
-        SetEnvNonLock("X509_USER_KEY", GetEnv("X509_USER_PROXY"), true);
-        SetEnvNonLock("X509_USER_CERT", GetEnv("X509_USER_PROXY"), true);
+        SetEnv("X509_USER_KEY", GetEnv("X509_USER_PROXY"), true);
+        SetEnv("X509_USER_CERT", GetEnv("X509_USER_PROXY"), true);
       }
       // set retry env variables (don't overwrite if set already)
       // connection timeout
-      SetEnvNonLock("LFC_CONNTIMEOUT", "30", false);
+      SetEnv("LFC_CONNTIMEOUT", "30", false);
       // number of retries
-      SetEnvNonLock("LFC_CONRETRY", "1", false);
+      SetEnv("LFC_CONRETRY", "1", false);
       // interval between retries
-      SetEnvNonLock("LFC_CONRETRYINT", "10", false);
+      SetEnv("LFC_CONRETRYINT", "10", false);
 
       // set host name env var
-      SetEnvNonLock("LFC_HOST", url.Host());
+      SetEnv("LFC_HOST", url.Host());
 
       logger.msg(DEBUG, "Using proxy %s", GetEnv("X509_USER_PROXY"));
       logger.msg(DEBUG, "Using key %s", GetEnv("X509_USER_KEY"));
       logger.msg(DEBUG, "Using cert %s", GetEnv("X509_USER_CERT"));
+      EnvLockWrap(false);
     };
     ~LFCEnvLocker(void) {
     };

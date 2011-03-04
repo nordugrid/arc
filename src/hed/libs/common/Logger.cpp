@@ -11,6 +11,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include <unistd.h>
 #ifdef WIN32
@@ -253,6 +254,7 @@ namespace Arc {
 
   void LogStream::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
+    EnvLockWrap(true); // Protecting any setenv/getenv we do not know about
     const char *loc = NULL;
     if (!locale.empty()) {
       loc = setlocale(LC_ALL, NULL);
@@ -260,6 +262,7 @@ namespace Arc {
     }
     destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
+    EnvLockUnwrap(true);
   }
 
   LogStream::LogStream(const LogStream&)
@@ -360,12 +363,14 @@ namespace Arc {
       destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }
     if(!destination.is_open()) return;
+    EnvLockWrap(true); // Protecting any setenv/getenv we do not know about
     if (!locale.empty()) {
       loc = setlocale(LC_ALL, NULL);
       setlocale(LC_ALL, locale.c_str());
     }
     destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
+    EnvLockUnwrap(true);
     if (reopen) destination.close();
     backup();
   }

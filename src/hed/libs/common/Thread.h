@@ -283,6 +283,45 @@ namespace Arc {
     };
   };
 
+  class SharedMutex {
+  private:
+    Glib::Cond cond_;
+    Glib::Mutex lock_;
+    bool exclusive_;
+    int shared_;
+  public:
+    SharedMutex(void):exclusive_(false),shared_(0) { };
+    ~SharedMutex(void) { };
+    void lockShared(void) {
+      lock_.lock();
+      while(exclusive_) {
+        cond_.wait(lock_);
+      };
+      ++shared_;
+      lock_.unlock();
+    };
+    void unlockShared(void) {
+      lock_.lock();
+      if(shared_) --shared_;
+      cond_.broadcast();
+      lock_.unlock();
+    };
+    void lockExclusive(void) {
+      lock_.lock();
+      while(exclusive_ || shared_) {
+        cond_.wait(lock_);
+      };
+      exclusive_ = true;
+      lock_.unlock();
+    };
+    void unlockExclusive(void) {
+      lock_.lock();
+      exclusive_ = false;
+      cond_.broadcast();
+      lock_.unlock();
+    };
+  };
+
   /// This class is a set of conditions, mutexes, etc. conveniently
   /// exposed to monitor running child threads and to wait till
   /// they exit. There are no protections against race conditions.
