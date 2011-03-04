@@ -65,6 +65,7 @@
       <loader:next id="soap">POST</loader:next>
       <loader:next id="plexer">GET</loader:next>
       <loader:next id="plexer">PUT</loader:next>
+      <loader:next id="plexer">HEAD</loader:next>
     </loader:Component>
     <!-- This one parses content into XML tree -->
     <loader:Component name="soap.service" id="soap">
