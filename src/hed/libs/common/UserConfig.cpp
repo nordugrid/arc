@@ -311,8 +311,7 @@ namespace Arc {
       }
     }
     else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(WARNING, "Proxy file does not exist: %s "
-                          "trying certificate and key", proxyPath);
+      logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
       proxyPath.clear();
     }
     if (!GetEnv("X509_USER_CERT").empty() &&

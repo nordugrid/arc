@@ -161,7 +161,7 @@ int RUNRESUB(main)(int argc, char **argv) {
       Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "");
       if(holder.IsValid() ){
         if (holder.GetEndTime() < Arc::Time()){
-          std::cout << Arc::IString("Proxy expired. Job submission aborted.") << std::endl;
+          std::cout << Arc::IString("Proxy expired. Job submission aborted. Please run 'arcproxy'!") << std::endl;
           return 1;
         }
         else if (holder.GetVerification()) {
@@ -169,7 +169,7 @@ int RUNRESUB(main)(int argc, char **argv) {
         }
       }
       else {
-          std::cout << Arc::IString("Proxy not valid. Job submission aborted.") << std::endl;
+          std::cout << Arc::IString("Proxy not valid. Job submission aborted. Please run 'arcproxy'!") << std::endl;
           return 1;
         }
       }
@@ -179,7 +179,10 @@ int RUNRESUB(main)(int argc, char **argv) {
     }
   }
   else {
-    std::cout << Arc::IString("Cannot find any proxy. Please specify the path to the proxy file in the client configuration file.") << std::endl;
+    std::cout << Arc::IString("Cannot find any proxy. arcresub currently cannot run without a proxy.\n"
+                              "  If you have the proxy file in a non-default location,\n"
+                              "  please make sure the path is specified in the client configuration file.\n"
+                              "  If you don't have a proxy yet, please run 'arcproxy'!") << std::endl;
     return 1;
   }
 
