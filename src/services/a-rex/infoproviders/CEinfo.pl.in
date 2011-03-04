@@ -193,7 +193,7 @@ sub collect($) {
     $data->{gmjobs_info} = $gmjobs_info;
     $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
 
-    fix_adotf($config, $data->{host_info});
+    fix_adotf($config->{service}, $data->{host_info});
     fix_adotf($_, $data->{host_info}) for values %{$config->{xenvs}};
 
     return $data;
