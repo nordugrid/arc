@@ -3,6 +3,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/client/JobDescription.h>
 
@@ -84,6 +85,7 @@ std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings
 }
 
 void XRSLParserTest::setUp() {
+  Arc::ArcLocation::Init("./bin/app");
   INJOB.Application.Executable.Name = "executable";
   INJOB.Application.Executable.Argument.push_back("arg1");
   INJOB.Application.Executable.Argument.push_back("arg2");
