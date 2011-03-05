@@ -106,7 +106,7 @@ void FileChunks::Release(void) {
   }
 }
 
-void FileChunks::Add(off_t start,size_t csize) {
+void FileChunks::Add(off_t start,off_t csize) {
   off_t end = start+csize;
   lock.lock();
   last_accessed=time(NULL);

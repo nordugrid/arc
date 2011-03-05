@@ -15,9 +15,9 @@ class PayloadFile: public Arc::PayloadRawInterface {
   /* TODO: use system-independent file access */
   int handle_;
   char* addr_;
-  size_t size_; 
-  size_t start_; 
-  size_t end_; 
+  off_t size_; 
+  off_t start_; 
+  off_t end_; 
   void SetRead(int h,Size_t start,Size_t end);
  public:
   /** Creates object associated with file for reading from it.
@@ -45,7 +45,7 @@ class PayloadFile: public Arc::PayloadRawInterface {
 class PayloadBigFile: public Arc::PayloadStream {
  private:
   static Size_t threshold_;
-  size_t limit_; 
+  off_t limit_; 
  public:
   /** Creates object associated with file for reading from it */
   PayloadBigFile(const char* filename,Size_t start,Size_t end);

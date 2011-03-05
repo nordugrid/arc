@@ -123,7 +123,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     char* sbuf = buf.Buffer(n);
     if(sbuf == NULL) break;
     off_t offset = buf.BufferPos(n);
-    size_t size = buf.BufferSize(n);
+    off_t size = buf.BufferSize(n);
     if(size > 0) {
       off_t o = lseek(h,offset,SEEK_SET);
       if(o != offset) {

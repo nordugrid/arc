@@ -782,7 +782,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       gridmapfile
       CACertificatesDir
       CertificatePath
-      Keypath
+      KeyPath
       TCPPortRange
       UDPPortRange
     httpProxy

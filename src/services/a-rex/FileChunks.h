@@ -31,7 +31,7 @@ class FileChunks {
   /// Returns assigned file size
   off_t Size(void) { return size; };
   /// Report one more delivered chunk
-  void Add(off_t start,size_t csize);
+  void Add(off_t start,off_t csize);
   /// Returns true if all chunks were delivered.
   bool Complete(void);
   /// Prints chunks delivered so far. For debuging purposes.

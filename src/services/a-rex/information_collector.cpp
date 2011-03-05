@@ -256,7 +256,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
   std::string postfix_;
   int handle_;
   void* addr_;
-  size_t length_;
+  off_t length_;
  public:
   PrefixedFilePayload(const std::string& prefix,const std::string& postfix,int handle) {
     prefix_ = prefix;

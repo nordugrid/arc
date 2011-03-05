@@ -25,22 +25,22 @@
 
 namespace ARex {
 
-static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,size_t start,size_t end,bool no_content);
+static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
 
 Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
-  size_t range_start = 0;
-  size_t range_end = (size_t)(-1);
+  off_t range_start = 0;
+  off_t range_end = (off_t)(-1);
   {
     std::string val;
     val=inmsg.Attributes()->get("HTTP:RANGESTART");
     if(!val.empty()) { // Negative ranges not supported
-      if(!Arc::stringto<size_t>(val,range_start)) {
+      if(!Arc::stringto<off_t>(val,range_start)) {
         range_start=0;
       } else {
         val=inmsg.Attributes()->get("HTTP:RANGEEND");
         if(!val.empty()) {
-          if(!Arc::stringto<size_t>(val,range_end)) {
-            range_end=(size_t)(-1);
+          if(!Arc::stringto<off_t>(val,range_end)) {
+            range_end=(off_t)(-1);
           };
         };
       };
@@ -119,7 +119,7 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
   };
   Arc::MCC_Status r;
-  if(!(r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(size_t)(-1),true))) {
+  if(!(r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(off_t)(-1),true))) {
     // Can't stat file
     logger.msg(Arc::ERROR, "Head: can't process file %s", subpath);
     return r;
@@ -132,8 +132,8 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
 // hpath - path relative to base path and base URL
 // start - chunk start
 // start - chunk end
-static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,size_t start,size_t end,bool no_content) {
-Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, hpath=%s", (unsigned int)start, (unsigned int)end, burl, hpath);
+static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content) {
+Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=%s, hpath=%s", (unsigned long long int)start, (unsigned long long int)end, burl, hpath);
   if(!hpath.empty()) if(hpath[0] == '/') hpath=hpath.substr(1);
   if(!hpath.empty()) if(hpath[hpath.length()-1] == '/') hpath.resize(hpath.length()-1);
   std::string joblog = job.LogDir();
@@ -179,6 +179,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%u, end=%u, burl=%s, 
             Arc::PayloadRaw* buf = new Arc::PayloadRaw;
             if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
             ::close(file);
+            outmsg.Payload(buf);
           };
           outmsg.Attributes()->set("HTTP:content-type","text/plain");
           return Arc::MCC_Status(Arc::STATUS_OK);
