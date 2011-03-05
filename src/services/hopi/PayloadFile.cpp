@@ -149,13 +149,13 @@ Arc::PayloadStream::Size_t PayloadBigFile::Size(void) const {
 
 Arc::PayloadStream::Size_t PayloadBigFile::Limit(void) const {
   Size_t s = Size();
-  if((limit_ == (size_t)(-1)) || (limit_ > s)) return s;
+  if((limit_ == (off_t)(-1)) || (limit_ > s)) return s;
   return limit_;
 }
 
 bool PayloadBigFile::Get(char* buf,int& size) {
   if(handle_ == -1) return false;
-  if(limit_ == (size_t)(-1)) return PayloadStream::Get(buf,size);
+  if(limit_ == (off_t)(-1)) return PayloadStream::Get(buf,size);
   Size_t cpos = Pos();
   if(cpos >= limit_) {
     size=0; return false;

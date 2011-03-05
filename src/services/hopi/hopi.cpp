@@ -204,10 +204,10 @@ class HopiFile {
  public:
   HopiFile(const std::string& path,bool for_read,bool slave);
   ~HopiFile(void);
-  int Write(void* buf,off_t offset,int size);
-  int Read(void* buf,off_t offset,int size);
-  int Write(off_t offset,int size);
-  int Read(off_t offset,int size);
+  int Write(void* buf,off_t offset,size_t size);
+  int Read(void* buf,off_t offset,size_t size);
+  int Write(off_t offset,size_t size);
+  int Read(off_t offset,size_t size);
   void Size(off_t size) { chunks.Size(size); };
   off_t Size(void) { return chunks.Size(); };
   operator bool(void) { return (handle != -1); };
@@ -298,7 +298,7 @@ void HopiFile::DestroyAll(void) {
   }
 }
 
-int HopiFile::Write(void* buf,off_t offset,int size) {
+int HopiFile::Write(void* buf,off_t offset,size_t size) {
   if(handle == -1) return -1;
   if(for_read) return -1;
   int s = size;
@@ -313,7 +313,7 @@ int HopiFile::Write(void* buf,off_t offset,int size) {
   return size;
 }
 
-int HopiFile::Write(off_t offset,int size) {
+int HopiFile::Write(off_t offset,size_t size) {
   if(handle == -1) return -1;
   if(for_read) return -1;
   chunks.Add(offset,offset+size);
@@ -321,14 +321,14 @@ int HopiFile::Write(off_t offset,int size) {
   return size;
 }
 
-int HopiFile::Read(void* buf,off_t offset,int size) {
+int HopiFile::Read(void* buf,off_t offset,size_t size) {
   if(handle == -1) return -1;
   if(!for_read) return -1;
   if(lseek(handle,offset,SEEK_SET) != offset) return 0;
   return read(handle,buf,size);
 }
 
-int HopiFile::Read(off_t /* offset */,int size) {
+int HopiFile::Read(off_t /* offset */,size_t size) {
   if(handle == -1) return -1;
   if(!for_read) return -1;
   return size;
@@ -569,19 +569,19 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
     HopiFile::DestroyStuck();
     HopiFileTimeout::DestroyOld();
     if (method == "GET") {
-        size_t range_start = 0;
-        size_t range_end = (size_t)(-1);
+        off_t range_start = 0;
+        off_t range_end = (off_t)(-1);
         {
           std::string val;
           val=inmsg.Attributes()->get("HTTP:RANGESTART");
           if(!val.empty()) { // Negative ranges not supported
-            if(!Arc::stringto<size_t>(val,range_start)) {
+            if(!Arc::stringto<off_t>(val,range_start)) {
               range_start=0;
             } else {
               val=inmsg.Attributes()->get("HTTP:RANGEEND");
               if(!val.empty()) {
-                if(!Arc::stringto<size_t>(val,range_end)) {
-                  range_end=(size_t)(-1);
+                if(!Arc::stringto<off_t>(val,range_end)) {
+                  range_end=(off_t)(-1);
                 } else {
                   range_end+=1;
                 };
