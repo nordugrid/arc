@@ -1767,6 +1767,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/acc/CREAM/Makefile
                  src/hed/acc/UNICORE/Makefile
                  src/hed/acc/Broker/Makefile
+                 src/hed/acc/Broker/test/Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/acc/JobDescriptionParser/Makefile
                  src/hed/acc/JobDescriptionParser/test/Makefile
