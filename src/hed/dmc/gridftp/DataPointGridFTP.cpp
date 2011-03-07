@@ -693,10 +693,12 @@ namespace Arc {
       if (i->CheckSize()) {
         file.SetSize(i->GetSize());
         file.SetMetaData("size", tostring(i->GetSize()));
+        SetSize(i->GetSize());
       }
       if (i->CheckCreated()) {
         file.SetCreated(i->GetCreated());
         file.SetMetaData("mtime", i->GetCreated());
+        SetCreated(i->GetCreated());
       }
     }
     return result;
