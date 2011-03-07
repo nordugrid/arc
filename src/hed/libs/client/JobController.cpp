@@ -398,7 +398,7 @@ namespace Arc {
                           const std::list<std::string>& status,
                           const std::string& whichfile_) {
     std::string whichfile(whichfile_);
-    if (whichfile == "joblog") {
+    if (whichfile == "gmlog") {
       logger.msg(WARNING, "Specifying the \"gmlog\" value for the whichfile parameter in the Job::Cat method is DEPRECATED, use the \"joblog\" value instead.");
       whichfile = "joblog";
     }
