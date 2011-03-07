@@ -39,7 +39,7 @@ namespace Arc {
 
     for (iter = T2->Benchmarks.begin(); iter != T2->Benchmarks.end(); iter++)
       if (lower(iter->first) == benchmark) {
-        T1performance = iter->second;
+        T2performance = iter->second;
         break;
       }
 
