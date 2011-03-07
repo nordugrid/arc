@@ -51,6 +51,9 @@ namespace Arc {
 
     if (!targetretriever) {
       logger.msg(ERROR, "TargetRetriever %s could not be created", name);
+      if (name == "ARC0") {
+        logger.msg(ERROR, "Failed to connect to the legacy ARC server, please check whether nordugrid-arc-plugins-globus package is installed!");
+      }
       return NULL;
     }
 
