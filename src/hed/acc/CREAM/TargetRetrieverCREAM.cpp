@@ -449,6 +449,9 @@ namespace Arc {
         target.ManagerProductName = (std::string)CE["GlueCEInfoLRMSType"];
       if (CE["GlueCEInfoLRMSVersion"])
         target.ManagerProductVersion = (std::string)CE["GlueCEInfoLRMSVersion"];
+      if (Cluster["GlueClusterName"]) {
+        target.ServiceName = (std::string)Cluster["GlueClusterName"];
+      }
       if (Site["GlueSiteName"])
         target.DomainName = (std::string)Site["GlueSiteName"];
       if (Site["GlueSiteLocation"])
