@@ -842,10 +842,14 @@ namespace Arc {
                    destination.str());
         source_url.StopReading();
         source_url.FinishReading(true);
-        res = datares;
+        if (!destination.PreUnregister(replication ||
+                                       destination_meta_initially_stored).Passed())
+          logger.msg(ERROR, "Failed to unregister preregistered lfn. "
+                     "You may need to unregister it manually: %s", destination.str());
         /* try another source */
         if (destination.NextLocation())
           logger.msg(VERBOSE, "(Re)Trying next destination");
+        res = datares;
         continue;
       }
 
