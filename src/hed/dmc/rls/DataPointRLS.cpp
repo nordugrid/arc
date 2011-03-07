@@ -228,7 +228,7 @@ namespace Arc {
       if (source)
         registered = true;
     }
-    if (url.Locations().size() == 0) {
+    if (url.Locations().size() == 0 && !HaveLocations()) {
       for (globus_list_t *lp = pfns_list; lp; lp = globus_list_rest(lp)) {
         globus_rls_string2_t *str2 =
           (globus_rls_string2_t*)globus_list_first(lp);
@@ -384,7 +384,7 @@ namespace Arc {
       std::list<URL> lrcs;
       rlis.push_back(url.ConnectionURL());
       lrcs.push_back(url.ConnectionURL());
-      if (url.Locations().size() == 0)
+      if (url.Locations().size() == 0 && !HaveLocations())
         logger.msg(INFO, "Locations are missing in destination RLS url - "
                    "will use those registered with special name");
       meta_resolve_rls_t arg(*this, source);

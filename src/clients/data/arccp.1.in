@@ -35,6 +35,8 @@ path to local cache (use to put file into cache)
 operate recursively up to specified level
 .IP "\fB-R\fR, \fB--retries\fR=\fInumber\fR"
 number of retries before failing file transfer
+.IP "\fB-s\fR, \fB--replicas\fR=\fIURL(s)\fR"
+physical file(s) to write to when destination is an indexing service
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

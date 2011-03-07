@@ -187,7 +187,7 @@ namespace Arc {
         return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
       }
     }
-    if (!source && url.Locations().size() == 0) {
+    if (!source && url.Locations().size() == 0 && !HaveLocations()) {
       logger.msg(ERROR, "Locations are missing in destination LFC URL");
       lfc_endsess();
       return DataStatus::WriteResolveError;
