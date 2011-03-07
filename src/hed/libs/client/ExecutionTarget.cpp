@@ -289,20 +289,12 @@ namespace Arc {
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
    
-    out << IString("Execution Service: %s", ServiceName) << std::endl; 
-    if (ServiceType == "org.nordugrid.arc-classic") {
-       if (Cluster) {
-        std::string classicURL = Cluster.str();
-        classicURL = removeCharacter(classicURL);
-        std::string::size_type pos = classicURL.find("?");
-        classicURL = classicURL.substr(0,pos);   
-        out << IString(" URL: %s:%s" ,GridFlavour ,classicURL) << std::endl;
-       }
-    }
-    else {  
-       if (url) {
-        out << IString(" URL: %s:%s" ,GridFlavour ,url.str()) << std::endl;
-    }
+    out << IString("Execution Service: %s", ServiceName) << std::endl;
+    if (Cluster) {
+      std::string formattedURL = Cluster.str();
+      formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
+      std::string::size_type pos = formattedURL.find("?"); // Do not output characters after the '?' character.
+      out << IString(" URL: %s:%s", GridFlavour, formattedURL.substr(0, pos)) << std::endl;
     }
     if (!ComputingShareName.empty()) {
        out << IString(" Queue: %s", ComputingShareName) << std::endl;
