@@ -640,6 +640,10 @@ create_arc_slapd_conf () {
     done
 
     rm -f $bdii_slapd_conf
+
+    # ensure the configuration file is not world-readable,
+    # as it contains the slapd database password
+    (umask 077; > $bdii_slapd_conf)
     std_header $bdii_slapd_conf
     cat <<-EOF >> $bdii_slapd_conf
 	include ${coreschema}
