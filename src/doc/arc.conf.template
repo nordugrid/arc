@@ -895,6 +895,12 @@ maxjobdesc="5242880"
 
 [infosys]
 
+# infosys_compat - Setting this variable will cause ARC to use the old
+# infoproviders.  Basically, the new version uses A-REX to create LDIF
+# while the old version uses a BDII provider-script to do it. The new
+# version is required for Glue2 output.
+infosys_compat="disable"
+
 # overwrite_config - determines if the grid-infosys startup script 
 # should generate new low-level slapd configuration files.
 # By default the low-level configuration files are regenerated with every

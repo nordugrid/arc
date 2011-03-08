@@ -1620,6 +1620,15 @@ The infosys block configures the hosting environment of the
 Information services (Local Info Tree, Index Service, Registrations).
 
 .TP
+.B infosys_compat
+Setting this variable will cause ARC to use the old infoproviders.
+Basically, the new version uses A-REX to create LDIF while the old version
+uses a BDII provider-script to do it. The new version is required for Glue2 output.
+
+.IR Example :
+infosys_compat="disable"
+
+.TP
 .B overwrite_config
 Determines if the grid-infosys startup script should generate new
 low-level slapd configuration files. By default the low-level
