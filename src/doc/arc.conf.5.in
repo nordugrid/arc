@@ -1922,6 +1922,28 @@ Service. If the plain text format is used, the index service
 identified as "indexname" is defined by:
 
 .nf
+.B [infosys/site]
+.BR id="sitename"
+.fi
+
+Site BDII configuration block, this block is used to configure ARC to
+generate a site-bdii that can be registered in GOCDB etc to make it a
+part of a gLite network. The sitename part is to be declarative of the
+site-bdii being generated.
+
+.IR Examples :
+The unique id used to identify this site, eg "NDGF-T1"
+.br
+unique_id=""
+.br
+The url is on the format:
+ldap://host.domain:2170/mds-vo-name=something,o=grid and should point
+to the resource-bdii.
+.br
+url=""
+.br
+
+.nf
 .B [infosys/index]
 .BR id ="indexname"
 .fi

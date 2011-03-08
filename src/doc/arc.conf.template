@@ -1084,6 +1084,20 @@ provide_glue_site_info="true"
 
 ####################################################################
 #
+# [infosys/site/sitename] Site BDII configuration block, this block is
+# used to configure ARC to generate a site-bdii that can be registered
+# in GOCDB etc to make it a part of a gLite network. The sitename
+# part is to be declarative of the site-bdii being generated.
+[infosys/site/sitename]
+# The unique id used to identify this site, eg "NDGF-T1"
+unique_id=""
+# The url is on the format:
+# ldap://host.domain:2170/mds-vo-name=something,o=grid and should
+# point to the resource-bdii
+url=""
+
+####################################################################
+#
 # [infosys/index/indexname] Index Service block configures and enables 
 # an Information Index Service. A separate Index block is required for 
 # every Index Service you may run on the given machine.
