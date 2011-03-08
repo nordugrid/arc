@@ -137,7 +137,7 @@ namespace Arc {
   bool SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a ARC GM-powered resource is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a legacy ARC resource is not supported.", et.url.str());
     return false;
   }
 
