@@ -337,10 +337,12 @@ namespace Arc {
         std::cout << IString("Application Options:") << std::endl;
         for (std::list<OptionBase*>::iterator it = options.begin();
              it != options.end(); it++) {
-          std::cout << "  -" << (*it)->shortOpt << ", --" << (*it)->longOpt;
-          if (!(*it)->argDesc.empty())
-            std::cout << "=" << IString((*it)->argDesc);
-          std::cout << "    " << IString((*it)->optDesc) << std::endl;
+          std::cout << "  -" << (*it)->shortOpt << ", --";
+          if ((*it)->argDesc.empty())
+            std::cout << std::setw(20) << std::left << (*it)->longOpt;
+          else
+            std::cout << (*it)->longOpt << "=" << std::setw(19-((*it)->longOpt).length()) << std::left << IString((*it)->argDesc);
+          std::cout << "  " << IString((*it)->optDesc) << std::endl;
         }
         std::cout << std::endl;
         if (!description.empty())
