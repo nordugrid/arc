@@ -1720,6 +1720,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/Makefile
                  src/hed/libs/loader/Makefile
                  src/hed/libs/loader/schema/Makefile
+                 src/hed/libs/loader/test/Makefile
                  src/hed/libs/message/Makefile
                  src/hed/libs/security/Makefile
                  src/hed/libs/security/ArcPDP/Makefile

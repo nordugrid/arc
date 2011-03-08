@@ -1,4 +1,6 @@
-SUBDIRS=schema
+DIST_SUBDIRS = schema test
+SUBDIRS = schema $(TEST_DIR)
+
 lib_LTLIBRARIES = libarcloader.la
 
 libarcloader_ladir=$(pkgincludedir)/loader
