@@ -56,7 +56,7 @@ static void progress(FILE *o, const char*, unsigned int,
 bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
                  const std::list<std::string>& replicas,
-                 const Arc::UserConfig& usercfg,
+                 Arc::UserConfig& usercfg,
                  bool secure,
                  bool passive,
                  bool force_meta,
@@ -130,9 +130,12 @@ bool arcregister(const Arc::URL& source_url,
     logger.msg(Arc::ERROR, "Fileset registration is not supported yet");
     return false;
   }
-  if ((source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to register file (%s): No valid credentials found", source_url.str());
-    return false;
+  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
+    usercfg.InitializeCredentials();
+    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+      logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
+      return false;
+    }
   }
   Arc::DataHandle source(source_url, usercfg);
   Arc::DataHandle destination(destination_url, usercfg);
@@ -206,7 +209,7 @@ bool arccp(const Arc::URL& source_url_,
            const Arc::URL& destination_url_,
            const std::list<std::string>& replicas,
            const std::string& cache_dir,
-           const Arc::UserConfig usercfg,
+           Arc::UserConfig& usercfg,
            bool secure,
            bool passive,
            bool force_meta,
@@ -225,7 +228,6 @@ bool arccp(const Arc::URL& source_url_,
     return false;
   }
   std::string cache_path;
-  std::string cache_data_path;
   std::string id = "<ngcp>";
 
   if (timeout <= 0)
@@ -326,9 +328,12 @@ bool arccp(const Arc::URL& source_url_,
                    "Fileset copy for this kind of source is not supported");
         return false;
       }
-      if ((source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) && !Arc::Credential::IsCredentialsValid(usercfg)) {
-        logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
-        return false;
+      if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
+        usercfg.InitializeCredentials();
+        if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+          logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
+          return false;
+        }
       }
       Arc::DataHandle source(source_url, usercfg);
       if (!source) {
@@ -435,9 +440,12 @@ bool arccp(const Arc::URL& source_url_,
       return r;
     }
   }
-  if ((source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
-    return false;
+  if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
+    usercfg.InitializeCredentials();
+    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+      logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
+      return false;
+    }
   }
   Arc::DataHandle source(source_url, usercfg);
   Arc::DataHandle destination(destination_url, usercfg);
@@ -601,7 +609,8 @@ int main(int argc, char **argv) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-  Arc::UserConfig usercfg(conffile);
+  // credentials will be initialised later if necessary
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;

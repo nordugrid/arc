@@ -21,7 +21,7 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcls");
 
 static bool arcls(const Arc::URL& dir_url,
-           const Arc::UserConfig& usercfg,
+           Arc::UserConfig& usercfg,
            bool show_details, // longlist
            bool show_urls,    // locations
            bool show_meta,    // metadata
@@ -51,9 +51,12 @@ static bool arcls(const Arc::URL& dir_url,
     return r;
   }
 
-  if (dir_url.IsSecureProtocol() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
-    return false;
+  if (dir_url.IsSecureProtocol()) {
+    usercfg.InitializeCredentials();
+    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+      logger.msg(Arc::ERROR, "Unable to list content of %s: No valid credentials found", dir_url.str());
+      return false;
+    }
   }
 
   Arc::DataHandle url(dir_url, usercfg);
@@ -290,7 +293,8 @@ int main(int argc, char **argv) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-  Arc::UserConfig usercfg(conffile);
+  // credentials will be initialised later if necessary
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;

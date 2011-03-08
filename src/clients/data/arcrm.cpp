@@ -20,7 +20,7 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
 bool arcrm(const Arc::URL& file_url,
-           const Arc::UserConfig& usercfg,
+           Arc::UserConfig& usercfg,
            bool errcont,
            int timeout) {
   if (!file_url) {
@@ -43,9 +43,12 @@ bool arcrm(const Arc::URL& file_url,
     return r;
   }
 
-  if (file_url.IsSecureProtocol() && !Arc::Credential::IsCredentialsValid(usercfg)) {
-    logger.msg(Arc::ERROR, "Unable to remove file (%s): No valid credentials found", file_url.str());
-    return false;
+  if (file_url.IsSecureProtocol()) {
+    usercfg.InitializeCredentials();
+    if (!Arc::Credential::IsCredentialsValid(usercfg)) {
+      logger.msg(Arc::ERROR, "Unable to remove file %s: No valid credentials found", file_url.str());
+      return false;
+    }
   }
 
   Arc::DataHandle url(file_url, usercfg);
@@ -116,7 +119,8 @@ int main(int argc, char **argv) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-  Arc::UserConfig usercfg(conffile);
+  // credentials will be initialised later if necessary
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
