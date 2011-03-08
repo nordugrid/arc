@@ -1797,21 +1797,25 @@ If giis_location is not set, NORDUGRID_LOCATION will be used instead.
 giis_location="/opt/nordugrid"
 
 
-.TP 
-.B BDII related variables and their default values 
-Nordugrid ARC works together with both BDII4 and BDII5.
-If you use the nordugrid-packaged BDII installation, these variables have 
-sensible defaults and can be omitted. The only variables that system
+.TP .B BDII related variables and their default values Nordugrid ARC
+works together with both BDII4 and BDII5.  If you use the
+nordugrid-packaged BDII installation, these variables have sensible
+defaults and can be omitted. The only variables that system
 administrators may want to change when using nordugrid-bdii are
-infosys_nordugrid and infosys_glue12. 
-These two variables specify what format the output
-should be in, default is infosys_nordugrid=enable,
-infosys_glue12=disable. If infosys_glue12 is enabled, then you need to
-set resource_location, resource_latitude and resource_longitude under the
-[infosys/glue12] block so they describe where the site is. These variables do
-not have default values. The rest of the variables defaults are
-showcased here. infosys_debug disables/enables an ldap-database at the
-ldap tree entrypoint o=infosys. Note, the gLite supplied BDII installs into /opt/bdii. If you for some reason do not want to use the bdb ldap backend, you can set this with bdii_database.
+infosys_nordugrid and infosys_glue12.  These two variables specify
+what format the output should be in, default is
+infosys_nordugrid=enable, infosys_glue12=disable. If infosys_glue12 is
+enabled, then you need to set resource_location, resource_latitude,
+resource_longitude, cpuscalingreferencesi00,
+processorotherdescription, gluesiteweb and gluesiteuniqueid under the
+[infosys/glue12] block. These variables do not have default
+values. You may also want to set provide_glue_site_info to false in
+case you want to set up a more complicated setup with several
+publishers of data to a GlueSite.  The rest of the variables defaults
+are showcased here. infosys_debug disables/enables an ldap-database at
+the ldap tree entrypoint o=infosys. Note, the gLite supplied BDII
+installs into /opt/bdii. If you for some reason do not want to use the
+bdb ldap backend, you can set this with bdii_database.
 
 .IR Examples :
 
@@ -1837,12 +1841,25 @@ bdii_database="bdb"
 .br
 bdii_breathe_time="30"
 .br
+
+Glue 1.2 specific attributes
+
 resource_location="Kastrup, Denmark"
 .br
 resource_latitude="55.75000"
 .br
 resource_longitude="12.41670"
-
+.br
+cpuscalingreferencesi00="2400"
+.br
+processorotherdescription="Cores=3,Benchmark=9.8-HEP-SPEC06"
+.br
+gluesiteweb="http://www.ndgf.org"
+.br    
+gluesiteuniqueid="NDGF-T1"
+.br
+provide_glue_site_info="true"
+.br
 
 BDII4 specific options.
 

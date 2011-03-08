@@ -1065,6 +1065,23 @@ resource_latitude=""
 # Example: "12.41670"
 resource_longitude=""
 
+# Example 2400
+cpuscalingreferencesi00=""
+
+# Example Cores=3,Benchmark=9.8-HEP-SPEC06
+processorotherdescription=""
+
+# Example http://www.ndgf.org
+gluesiteweb=""
+
+# Example NDGF-T1
+gluesiteuniqueid=""
+
+# This variable decides if the GlueSite should be published. In case
+# you want to set up a more complicated setup with several publishers
+# of data to a GlueSite, then you may wish to tweak this parameter.
+provide_glue_site_info="true"
+
 ####################################################################
 #
 # [infosys/index/indexname] Index Service block configures and enables 
