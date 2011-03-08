@@ -36,7 +36,7 @@ operate recursively up to specified level
 .IP "\fB-R\fR, \fB--retries\fR=\fInumber\fR"
 number of retries before failing file transfer
 .IP "\fB-s\fR, \fB--replicas\fR=\fIURL(s)\fR"
-physical file(s) to write to when destination is an indexing service. Multiple replicas can be separated by the pipe (|) character. They will be tried in order until one succeeds.
+physical file(s) to write to when destination is an indexing service. This option can be used multiple times. Replicas will be tried in order until one succeeds.
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

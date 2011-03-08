@@ -55,7 +55,7 @@ static void progress(FILE *o, const char*, unsigned int,
 
 bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
-                 const std::string& replicas,
+                 const std::list<std::string>& replicas,
                  const Arc::UserConfig& usercfg,
                  bool secure,
                  bool passive,
@@ -152,9 +152,7 @@ bool arcregister(const Arc::URL& source_url,
   }
   if (!replicas.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    std::list<std::string> locations;
-    Arc::tokenize(replicas, locations, "|");
-    for (std::list<std::string>::iterator i = locations.begin(); i != locations.end(); ++i)
+    for (std::list<std::string>::const_iterator i = replicas.begin(); i != replicas.end(); ++i)
       destination->AddLocation(*i, meta);
   }
   // Obtain meta-information about source
@@ -206,7 +204,7 @@ bool arcregister(const Arc::URL& source_url,
 
 bool arccp(const Arc::URL& source_url_,
            const Arc::URL& destination_url_,
-           const std::string& replicas,
+           const std::list<std::string>& replicas,
            const std::string& cache_dir,
            const Arc::UserConfig usercfg,
            bool secure,
@@ -375,9 +373,7 @@ bool arccp(const Arc::URL& source_url_,
         }
         if (!replicas.empty() && destination->IsIndex()) {
           std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-          std::list<std::string> locations;
-          Arc::tokenize(replicas, locations, "|");
-          for (std::list<std::string>::iterator i = locations.begin(); i != locations.end(); ++i)
+          for (std::list<std::string>::const_iterator i = replicas.begin(); i != replicas.end(); ++i)
             destination->AddLocation(*i, meta);
         }
         Arc::DataMover mover;
@@ -456,9 +452,7 @@ bool arccp(const Arc::URL& source_url_,
   }
   if (!replicas.empty() && destination->IsIndex()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    std::list<std::string> locations;
-    Arc::tokenize(replicas, locations, "|");
-    for (std::list<std::string>::iterator i = locations.begin(); i != locations.end(); ++i)
+    for (std::list<std::string>::const_iterator i = replicas.begin(); i != replicas.end(); ++i)
       destination->AddLocation(*i, meta);
   }
   Arc::DataMover mover;
@@ -571,9 +565,11 @@ int main(int argc, char **argv) {
                     istring("number of retries before failing file transfer"),
                     istring("number"), retries);
 
-  std::string replicas;
+  std::list<std::string> replicas;
   options.AddOption('s', "replicas",
-                    istring("physical file(s) to write to when destination is an indexing service"),
+                    istring("physical file to write to when destination is an indexing service."
+                            " Can be specified multiple times. "
+                            "Replicas will be tried in order until one succeeds."),
                     istring("URL(s)"), replicas);
 
   int timeout = 20;
