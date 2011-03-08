@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarcmessage.la
-noinst_PROGRAMS = test
+noinst_PROGRAMS = testmcc
 noinst_LTLIBRARIES = libtestmcc.la
 
 libarcmessage_ladir = $(pkgincludedir)/message
@@ -13,7 +13,7 @@ libtestmcc_la_SOURCES  = TestMCC.cpp TestMCC.h
 libtestmcc_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
 libtestmcc_la_LIBADD   = $(GLIBMM_LIBS) ./libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la 
 
-test_SOURCES  = test.cpp
-test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDADD    = ./libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
+testmcc_SOURCES  = testmcc.cpp
+testmcc_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+testmcc_LDADD    = ./libarcmessage.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
