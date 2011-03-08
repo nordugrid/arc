@@ -1276,6 +1276,12 @@ nodecpu="AMD Duron(tm) Processor @ 700 MHz"
 # groups assigned to a queue and use queue-level attributes. 
 nodememory="512"
 
+# defaultmemory - If a user submits a job without specifying how much
+# memory should be used, this value will be taken first. The order is:
+# xrsl -> defaultmemory -> nodememory -> 1GB. This is the amount of
+# memory (specified in MB) that a job will request(per rank).
+defaultmemory="512"
+
 # benchmark name value - this optional multivalued attribute can be used to 
 # specify benchmark results on the cluster level. Use this cluster attribute 
 # if only the NODES are homogeneous with respect to the benchmark performance. 
