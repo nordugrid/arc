@@ -103,13 +103,16 @@ void FileLockTest::TestFileLockAcquire() {
 
 
   // try again with a non-existent pid
-  // only test this if processes can be checked through /proc
+  // will only succeed if processes can be checked through /proc
   std::string procdir("/proc");
+  _createFile(lock_file, "99999@" + host);
+  lock_removed = false;
   if (stat(procdir.c_str(), &fileStat) == 0) {
-    _createFile(lock_file, "99999@" + host);
-    lock_removed = false;
     CPPUNIT_ASSERT(lock.acquire(lock_removed));
     CPPUNIT_ASSERT(lock_removed);
+  } else {
+    CPPUNIT_ASSERT(!lock.acquire(lock_removed));
+    CPPUNIT_ASSERT(!lock_removed);
   }
 
   // set small timeout
@@ -148,12 +151,17 @@ void FileLockTest::TestFileLockAcquire() {
 
   CPPUNIT_ASSERT(lock.acquire());
 
-  // create lock with empty hostname - acquire should still work
+  // create lock with empty hostname - acquire should still work - only if /proc exists
   lock = Arc::FileLock(filename);
   _createFile(lock_file, "99999@");
   lock_removed = false;
-  CPPUNIT_ASSERT(lock.acquire(lock_removed));
-  CPPUNIT_ASSERT(lock_removed);
+  if (stat(procdir.c_str(), &fileStat) == 0) {
+    CPPUNIT_ASSERT(lock.acquire(lock_removed));
+    CPPUNIT_ASSERT(lock_removed);
+  } else {
+    CPPUNIT_ASSERT(!lock.acquire(lock_removed));
+    CPPUNIT_ASSERT(!lock_removed);
+  }
 }
 
 void FileLockTest::TestFileLockRelease() {
