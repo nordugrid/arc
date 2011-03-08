@@ -1,6 +1,6 @@
 TESTS = PluginTest
 
-noinst_LTLIBRARIES = libtestplugin.la
+check_LTLIBRARIES = libtestplugin.la
 check_PROGRAMS = $(TESTS)
 
 libtestplugin_la_SOURCES  = TestPlugin.cpp
