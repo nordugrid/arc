@@ -804,12 +804,16 @@ namespace Arc {
   std::string DataPointLFC::ResolveGUIDToLFN() {
 
     // check if guid is already defined
-    if (!guid.empty())
+    if (!guid.empty()) {
+      if (path_for_guid.empty()) return "/";
       return path_for_guid;
+    }
 
     // check for guid in the attributes
-    if (url.MetaDataOption("guid").empty())
+    if (url.MetaDataOption("guid").empty()) {
+      if (url.Path().empty()) return "/";
       return url.Path();
+    }
 
     guid = url.MetaDataOption("guid");
 
@@ -833,6 +837,7 @@ namespace Arc {
       lfc_listlinks(NULL, (char*)guid.c_str(), CNS_LIST_END, &listp);
     }
 
+    if (path_for_guid.empty()) return "/";
     return path_for_guid;
   }
 
