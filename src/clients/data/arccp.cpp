@@ -566,11 +566,11 @@ int main(int argc, char **argv) {
                     istring("number"), retries);
 
   std::list<std::string> replicas;
-  options.AddOption('s', "replicas",
+  options.AddOption('s', "replica",
                     istring("physical file to write to when destination is an indexing service."
                             " Can be specified multiple times. "
                             "Replicas will be tried in order until one succeeds."),
-                    istring("URL(s)"), replicas);
+                    istring("URL"), replicas);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
