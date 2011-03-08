@@ -520,8 +520,11 @@ namespace Arc {
       desc_str.erase(0, pos1);
       for (std::string::size_type i = 0; i != std::string::npos;) {
         i = desc_str.find("\"\"", i);
-        if (i != std::string::npos)
+        if (i != std::string::npos) {
           desc_str.erase(i, 1);
+          // let's step over the second doubleqoute in order not to reduce """" to "
+          if (i != std::string::npos) i++;
+        }
       }
       logger.msg(DEBUG, "Job description: %s", desc_str);
     }
