@@ -583,6 +583,9 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
+      // remove the queuename which was added during the original submission of the job
+      jobdescs.front().Resources.QueueName = "";    
+
       broker->PreFilterTargets(targetGen.GetExecutionTargets(), jobdescs.front());
       while (true) {
         const ExecutionTarget *currentTarget = broker->GetBestTarget();

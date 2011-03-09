@@ -306,6 +306,9 @@ int RUNRESUB(main)(int argc, char **argv) {
     jobdescs.front().Identification.ActivityOldId = it->ActivityOldID;
     jobdescs.front().Identification.ActivityOldId.push_back(it->JobID.str());
 
+    // remove the queuename which was added during the original submission of the job
+    jobdescs.front().Resources.QueueName = "";    
+
     if (ChosenBroker->Submit(targen.GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back())) {
       std::string jobid = resubmittedJobs.back().JobID.str();
       if (!jobidfileout.empty())

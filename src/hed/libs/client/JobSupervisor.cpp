@@ -235,6 +235,9 @@ namespace Arc {
       jobdescs.front().Identification.ActivityOldId = (*it)->ActivityOldID;
       jobdescs.front().Identification.ActivityOldId.push_back((*it)->JobID.str());
 
+      // remove the queuename which was added during the original submission of the job
+      jobdescs.front().Resources.QueueName = "";    
+
       std::list<URL> rejectTargets;
       if (destination == 1) { // Jobs should be resubmitted to same target.
         std::list<std::string> sametarget;
@@ -338,6 +341,9 @@ namespace Arc {
       }
       jobdescs.front().Identification.ActivityOldId = (*itJ)->ActivityOldID;
       jobdescs.front().Identification.ActivityOldId.push_back((*itJ)->JobID.str());
+
+      // remove the queuename which was added during the original submission of the job
+      jobdescs.front().Resources.QueueName = "";    
 
       migratedJobs.push_back(Job());
 
