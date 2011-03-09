@@ -198,15 +198,20 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(is_locked);
 
   // delete lock file and try again with a non-existent pid
-  // only test this if processes can be checked through /proc
+  // Start only succeeds if processes can be checked through /proc
   std::string procdir = "/proc";
+  CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
+  _createFile(_fc1->File(_url) + ".lock", "99999@" + host);
   if (stat(procdir.c_str(), &fileStat) == 0) {
-    CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
-    _createFile(_fc1->File(_url) + ".lock", "99999@" + host);
     CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
     CPPUNIT_ASSERT(!available);
     CPPUNIT_ASSERT(!is_locked);
     CPPUNIT_ASSERT(_fc1->Stop(_url));
+  } else {
+    CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
+    CPPUNIT_ASSERT(!available);
+    CPPUNIT_ASSERT(is_locked);
+    CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
   }
 
   // put different url in meta file
@@ -227,6 +232,8 @@ void FileCacheTest::testRemoteCache() {
   
   caches.push_back(_cache_dir);
   std::string remote_cache_dir = _testroot + "/remotecache";
+  std::string remote_cache_file(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac");
+  std::string remote_cache_lock(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock");
   remote_caches.push_back(remote_cache_dir);
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
@@ -248,7 +255,7 @@ void FileCacheTest::testRemoteCache() {
   
   // delete file and create in remote cache
   CPPUNIT_ASSERT(_fc1->StopAndDelete(_url));
-  CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"));
+  CPPUNIT_ASSERT(_createFile(remote_cache_file));
   
   // check not available if not using remote caches
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked, false));
@@ -261,7 +268,7 @@ void FileCacheTest::testRemoteCache() {
   CPPUNIT_ASSERT(available);
   CPPUNIT_ASSERT(!is_locked);
   struct stat fileStat; 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat remote lock file", 0, stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock").c_str(), &fileStat) );
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat remote lock file", 0, stat(remote_cache_lock.c_str(), &fileStat) );
 
   // check a symlink was created
   CPPUNIT_ASSERT_EQUAL_MESSAGE( "Could not stat soft link "+_fc1->File(_url), 0, lstat( _fc1->File(_url).c_str(), &fileStat) );
@@ -282,7 +289,7 @@ void FileCacheTest::testRemoteCache() {
   // stop cache to release locks and remove symlink
   CPPUNIT_ASSERT(_fc1->Stop(_url));
   CPPUNIT_ASSERT(stat( _fc1->File(_url).c_str(), &fileStat) != 0 );
-  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock").c_str(), &fileStat) != 0 );
+  CPPUNIT_ASSERT(stat(std::string(remote_cache_lock).c_str(), &fileStat) != 0 );
   CPPUNIT_ASSERT(stat((_fc1->File(_url)+".lock").c_str(), &fileStat) != 0 );
   
   // release
@@ -296,26 +303,37 @@ void FileCacheTest::testRemoteCache() {
   CPPUNIT_ASSERT_EQUAL(uname(&buf), 0);
   std::string host(buf.nodename);
 
-  CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock", std::string("99999@" + host)));
+  CPPUNIT_ASSERT(_createFile(remote_cache_lock, std::string("99999@" + host)));
 
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
-  // Start should succeed but delete remote file
-  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-  CPPUNIT_ASSERT(!available);
-  CPPUNIT_ASSERT(!is_locked);
-  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac.lock").c_str(), &fileStat) != 0 );
-  CPPUNIT_ASSERT(stat(std::string(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac").c_str(), &fileStat) != 0 );
+  // Start should succeed but delete remote file, only if /proc exists
+  std::string procdir = "/proc";
+  if (stat(procdir.c_str(), &fileStat) == 0) {
+    CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+    CPPUNIT_ASSERT(!available);
+    CPPUNIT_ASSERT(!is_locked);
+    CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) != 0 );
+    CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) != 0 );
 
-  // stop cache to release locks
-  CPPUNIT_ASSERT(_fc1->Stop(_url));
+    // stop cache to release locks
+    CPPUNIT_ASSERT(_fc1->Stop(_url));
+  } else {
+    CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
+    CPPUNIT_ASSERT(!available);
+    CPPUNIT_ASSERT(is_locked);
+    CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) == 0 );
+    CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) == 0 );
+    CPPUNIT_ASSERT_EQUAL(0, remove(remote_cache_lock.c_str()));
+    CPPUNIT_ASSERT_EQUAL(0, remove(remote_cache_file.c_str()));
+  }
 
   // test with a replicate policy
   delete _fc1;
   std::string remote_cache_dir_rep(remote_cache_dir + " replicate");
   remote_caches.clear();
   remote_caches.push_back(remote_cache_dir_rep);
-  CPPUNIT_ASSERT(_createFile(remote_cache_dir+"/data/69/59dbaef4f0a0d9aa84368e01a35a78abf267ac"));
+  CPPUNIT_ASSERT(_createFile(remote_cache_file));
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
   CPPUNIT_ASSERT(available);
@@ -964,31 +982,14 @@ void FileCacheTest::testInternal() {
 
 bool FileCacheTest::_createFile(std::string filename, std::string text) {
 
-  FILE *pFile;
-  pFile = fopen((char*)filename.c_str(), "w");
-  if (pFile == NULL) {
-    // try to create necessary dirs
-    std::string::size_type slashpos = filename.find("/", 1);
-    do {
-      std::string dirname = filename.substr(0, slashpos);
-      // list dir to see if it exists
-      struct stat statbuf;
-      if (stat(dirname.c_str(), &statbuf) == 0) {
-        slashpos = filename.find("/", slashpos + 1);
-        continue;
-      }
-      if (mkdir(dirname.c_str(), S_IRWXU) != 0)
-        if (errno != EEXIST)
-          return false;
-      slashpos = filename.find("/", slashpos + 1);
-    } while (slashpos != std::string::npos);
-    pFile = fopen((char*)filename.c_str(), "w");
-    if (pFile == NULL)
-      return false;
-  }
-  fputs((char*)text.c_str(), pFile);
-  fclose(pFile);
-  return true;
+  if (Arc::FileCreate(filename, text))
+    return true;
+
+  // try to create necessary dirs if possible
+  if (filename.rfind('/') == 0 || filename.rfind('/') == std::string::npos)
+    return false;
+  Arc::DirCreate(filename.substr(0, filename.rfind('/')), 0700, true);
+  return Arc::FileCreate(filename, text);
 }
 
 std::string FileCacheTest::_readFile(std::string filename) {
