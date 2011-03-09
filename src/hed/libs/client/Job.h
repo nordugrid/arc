@@ -12,6 +12,12 @@ namespace Arc {
 
   class Logger;
 
+  enum JobSaveFormat {
+    BASIC = 1,
+    DETAILED = 2,
+    IDONLY = 3
+  };
+
   /// Job
   /**
    * This class describe a Grid job. Most of the members contained in
@@ -117,7 +123,7 @@ namespace Arc {
      * @param longlist is a boolean for switching on long listing (more
      *        details).
      **/
-    void SaveToStream(std::ostream& out, bool longlist) const;
+    void SaveToStream(std::ostream& out, JobSaveFormat format) const;
 
     /// Set Job attributes from a XMLNode
     /**

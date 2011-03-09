@@ -74,6 +74,10 @@ int RUNSTAT(main)(int argc, char **argv) {
                     istring("long format (more information)"),
                     longlist);
 
+  bool printids = false;
+  options.AddOption('p', "print-jobids", istring("instead of the status only the IDs of "
+                    "the selected jobs will be printed"), printids);
+
   typedef bool (*JobSorting)(const Arc::Job*, const Arc::Job*);
   std::string sort = "", rsort = "";
   std::map<std::string, JobSorting> orderings;
@@ -106,6 +110,10 @@ int RUNSTAT(main)(int argc, char **argv) {
                     version);
 
   std::list<std::string> jobs = options.Parse(argc, argv);
+
+  Arc::JobSaveFormat save_format = Arc::BASIC;
+  if (longlist) save_format = Arc::DETAILED;
+  if (printids) save_format = Arc::IDONLY;
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcstat", VERSION)
@@ -192,12 +200,12 @@ int RUNSTAT(main)(int argc, char **argv) {
 
     for (std::vector<const Arc::Job*>::const_iterator it = jobs.begin();
          it != jobs.end(); it++)
-      (*it)->SaveToStream(std::cout, longlist);
+      (*it)->SaveToStream(std::cout, save_format);
   }
   else {
     for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
          it != jobcont.end(); it++) {
-      if (!(*it)->SaveJobStatusToStream(std::cout, status, longlist))
+      if (!(*it)->SaveJobStatusToStream(std::cout, status, save_format))
         retval = 1;
     }
   }

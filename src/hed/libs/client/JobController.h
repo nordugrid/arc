@@ -165,7 +165,7 @@ namespace Arc {
      **/
     bool SaveJobStatusToStream(std::ostream& out,
                                const std::list<std::string>& status,
-                               bool longlist);
+                               Arc::JobSaveFormat format);
 
     /// Migrate job from cluster A to Cluster B
     /**  Method to migrate the jobs contained in the jobstore.

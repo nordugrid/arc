@@ -218,7 +218,7 @@ namespace Arc {
 
   void Job::Print(bool longlist) const {
     logger.msg(WARNING, "The Job::Print method is DEPRECATED, use the Job::SaveToStream method instead.");
-    SaveToStream(std::cout, longlist);
+    SaveToStream(std::cout, longlist ? DETAILED : BASIC);
   }
 
   Job& Job::operator=(XMLNode job) {
@@ -420,7 +420,11 @@ namespace Arc {
     }
   }
 
-  void Job::SaveToStream(std::ostream& out, bool longlist) const {
+  void Job::SaveToStream(std::ostream& out, JobSaveFormat format) const {
+    if (format == IDONLY) {
+      out << IDFromEndpoint.str() << std::endl;
+      return;
+    } 
     out << IString("Job: %s", IDFromEndpoint.str()) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
@@ -439,7 +443,7 @@ namespace Arc {
         out << IString(" Error: %s", *it) << std::endl;
     }
 
-    if (longlist) {
+    if (format == DETAILED) {
       if (!Owner.empty())
         out << IString(" Owner: %s", Owner) << std::endl;
       if (!OtherMessages.empty())

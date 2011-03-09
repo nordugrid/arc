@@ -500,12 +500,12 @@ namespace Arc {
   bool JobController::PrintJobStatus(const std::list<std::string>& status,
                                      const bool longlist) {
     logger.msg(WARNING, "The JobController::PrintJobStatus method is DEPRECATED, use the Job::SaveJobStatusToStream method instead.");
-    return SaveJobStatusToStream(std::cout, status, longlist);
+    return SaveJobStatusToStream(std::cout, status, longlist ? Arc::DETAILED : Arc::BASIC);
   }
 
   bool JobController::SaveJobStatusToStream(std::ostream& out,
                                             const std::list<std::string>& status,
-                                            bool longlist) {
+                                            Arc::JobSaveFormat format) {
 
     GetJobInformation();
 
@@ -525,7 +525,7 @@ namespace Arc {
           std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      it->SaveToStream(out, longlist);
+      it->SaveToStream(out, format);
     }
     return true;
   }
