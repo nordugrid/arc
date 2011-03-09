@@ -93,14 +93,49 @@ namespace DataStaging {
       // TODO: how to deal with these internal errors?
       return;
     }
-    // reset mapped file
-    request->set_mapped_source();
 
-    // What to do depends on if there's no replicas left to try
-    if (!request->get_source()->NextLocation()) {
-      // Blocking error -- no transfer can be here
-      // Move to appropriate state for the post-processor to do cleanup
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: No more source replicas", request->get_short_id());
+    // Logic of whether to go for next source or destination
+    bool source_error(false);
+
+    if (request->get_error_status().GetErrorLocation() == DTRErrorStatus::ERROR_SOURCE)
+      source_error = true;
+    else if (request->get_error_status().GetErrorLocation() == DTRErrorStatus::ERROR_DESTINATION)
+      source_error = false;
+    else if (request->get_source()->IsIndex() && !request->get_destination()->IsIndex())
+      source_error = true;
+    else if (!request->get_source()->IsIndex() && request->get_destination()->IsIndex())
+      source_error = false;
+    else if (!request->get_source()->LastLocation() && request->get_destination()->LastLocation())
+      source_error = true;
+    else if (request->get_source()->LastLocation() && !request->get_destination()->LastLocation())
+      source_error = false;
+    else
+      // Unknown error location, and either both are index services with remaining
+      // replicas or neither are index services. Choose source in this case.
+      source_error = true;
+
+    bool replica_exists;
+    if (source_error) {
+      // reset mapped file
+      request->set_mapped_source();
+      replica_exists = request->get_source()->NextLocation();
+
+    } else {
+      replica_exists = request->get_destination()->NextLocation();
+    }
+
+    if (replica_exists) {
+      // Use next replica
+      // Clear the error flag to resume normal workflow
+      request->reset_error_status();
+      request->get_logger()->msg(Arc::INFO, "DTR %s: Using next %s replica", request->get_short_id(), source_error ? "source" : "destination");
+      // Perhaps not necessary to query replica again if the error was in the destination
+      // but the error could have been caused by a source problem during transfer
+      request->set_status(DTRStatus::QUERY_REPLICA);
+    }
+    else {
+      // No replicas - move to appropriate state for the post-processor to do cleanup
+      request->get_logger()->msg(Arc::ERROR, "DTR %s: No more %s replicas", request->get_short_id(), source_error ? "source" : "destination");
       if (request->get_destination()->IsIndex()) {
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will clean up pre-registered destination", request->get_short_id());
         request->set_status(DTRStatus::REGISTER_REPLICA);
@@ -112,12 +147,6 @@ namespace DataStaging {
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Moving to end of data staging", request->get_short_id());
         request->set_status(DTRStatus::CACHE_PROCESSED);
       }
-    } else {
-      // Just try another replica
-      // Clear the error flag to resume normal workflow
-      request->reset_error_status();
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Querying next source replica", request->get_short_id());
-      request->set_status(DTRStatus::QUERY_REPLICA);
     }
   }
 
@@ -324,7 +353,7 @@ namespace DataStaging {
       }
       else {
         // Need to set the timeout to prevent from waiting for too long
-        request->set_timeout(60);
+        request->set_timeout(3600);
         // processor will take care of staging source or destination or both
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source or destination requires staging", request->get_short_id());
         request->set_status(DTRStatus::STAGE_PREPARE);
@@ -437,8 +466,7 @@ namespace DataStaging {
     // originates from before (like Transfer errors, staging errors)
     // and is not from destination, we need to query another replica
     if (request->error() &&
-        request->get_error_status().GetLastErrorState() != DTRStatus::RELEASING_REQUEST &&
-        request->get_error_status().GetErrorLocation() != DTRErrorStatus::ERROR_DESTINATION) {
+        request->get_error_status().GetLastErrorState() != DTRStatus::RELEASING_REQUEST) {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Trying next replica", request->get_short_id());
       next_replica(request);
     } else if (request->get_destination()->IsIndex()) {

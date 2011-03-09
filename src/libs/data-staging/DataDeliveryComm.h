@@ -34,6 +34,7 @@ class DataDeliveryComm {
     time_t timestamp; // time when information was generated (filled by child)
     DTRStatus::DTRStatusType status; // generic status
     DTRErrorStatus::DTRErrorStatusType error; // error
+    DTRErrorStatus::DTRErrorLocation error_location; // where error happened
     char error_desc[256]; // error description
     unsigned int streams; // number of transfer streams active
     unsigned long long int transfered; // number of bytes transfered

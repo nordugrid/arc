@@ -39,7 +39,7 @@ namespace DataStaging {
       return;
     }
     dtr.get_logger()->msg(Arc::INFO, "Delivery received new DTR %s with source: %s, destination: %s",
-               dtr.get_id(), dtr.get_source()->str(), dtr.get_destination()->str());
+               dtr.get_id(), dtr.get_source()->CurrentLocation().str(), dtr.get_destination()->CurrentLocation().str());
     /*
      *  Change the status of the dtr to TRANSFERRING	 
      *  Start reading from the source into a buffer
@@ -153,7 +153,7 @@ namespace DataStaging {
              (status.error != DTRErrorStatus::NONE_ERROR)) {
             if(status.error == DTRErrorStatus::NONE_ERROR)
               status.error = DTRErrorStatus::INTERNAL_ERROR;
-            dp->dtr->set_error_status(status.error,DTRErrorStatus::ERROR_TRANSFER,
+            dp->dtr->set_error_status(status.error,status.error_location,
                      status.error_desc[0]?status.error_desc:dp->comm.GetError().c_str());
           }
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
