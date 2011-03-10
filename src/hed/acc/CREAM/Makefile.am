@@ -8,11 +8,12 @@ libaccCREAM_la_SOURCES  = DescriptorsCREAM.cpp \
 	JobStateCREAM.cpp JobStateCREAM.h
 libaccCREAM_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 	$(OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libaccCREAM_la_LIBADD   = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) \
+libaccCREAM_la_LIBADD   = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-        $(top_srcdir)/src/hed/libs/credential/libarccredential.la
+	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 libaccCREAM_la_LDFLAGS  = -no-undefined -avoid-version -module
