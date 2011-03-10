@@ -251,7 +251,10 @@ namespace Arc {
     bool JobsFound() const;
 
   private:
+    bool AddJob(const Job& job);
+
     static Logger logger;
+    std::map<std::string, JobController*> loadedJCs;
     JobControllerLoader loader;
     const UserConfig& usercfg;
   };

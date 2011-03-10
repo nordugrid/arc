@@ -24,6 +24,25 @@ namespace Arc {
 
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
+  bool JobSupervisor::AddJob(const Job& job) {
+    std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.Flavour);
+    if (currentJC == loadedJCs.end()) {
+      JobController *jc = loader.load(job.Flavour, usercfg);
+      currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.Flavour, jc)).first;
+      if (!jc) {
+        logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s plugin installed?", job.Flavour, job.Flavour);
+        return false;
+      }
+    }
+    else if (!currentJC->second) {
+      // Already tried to load JobController, and it failed.
+      return false;
+    }
+
+    currentJC->second->FillJobStore(job);
+    return true;
+  }
+
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobs)
     : usercfg(usercfg) {
