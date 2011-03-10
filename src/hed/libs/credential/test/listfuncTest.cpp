@@ -1,6 +1,6 @@
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../listfunc.h"
 
