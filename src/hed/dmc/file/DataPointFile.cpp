@@ -437,6 +437,11 @@ namespace Arc {
 
     if ((url.Path().rfind((std::string) G_DIR_SEPARATOR_S + "-") == url.Path().length()-2) && (url.Protocol() == "file") ){
       fd = dup(STDIN_FILENO);
+      if (fd == -1) {
+        logger.msg(ERROR, "Failed to use channel stdin");
+        reading = false;
+        return DataStatus::ReadStartError;
+      }
     }
     else {
       User user;
@@ -445,16 +450,16 @@ namespace Arc {
         return DataStatus::ReadStartError;
       }
       fd = FileOpen(url.Path(), flags);
-    }
-    if (fd == -1) {
-      reading = false;
-      return DataStatus::ReadStartError;
-    }
-    /* provide some metadata */
-    struct stat st;
-    if (fstat(fd, &st) == 0) {
-      SetSize(st.st_size);
-      SetCreated(st.st_mtime);
+      if (fd == -1) {
+        reading = false;
+        return DataStatus::ReadStartError;
+      }
+      /* provide some metadata */
+      struct stat st;
+      if (fstat(fd, &st) == 0) {
+        SetSize(st.st_size);
+        SetCreated(st.st_mtime);
+      }
     }
     buffer = &buf;
     transfer_cond.reset();
