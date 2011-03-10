@@ -291,7 +291,7 @@ namespace Arc {
     // Extracting port URL options (ARC extension)
     if (!host.empty()) {
       // Check for [ip6address] notation
-      // If behaving strictly we should check for valid address 
+      // If behaving strictly we should check for valid address
       // inside []. But if we do not do that only drawback is that
       // URL may have any hostname inside []. Not really important
       // issue.
@@ -330,7 +330,7 @@ namespace Arc {
       }
       if (pos3 != std::string::npos)
         urloptions = ParseOptions(host.substr(pos3 + 1), ';');
-      if (pos2 != std::string::npos) 
+      if (pos2 != std::string::npos)
         host.resize(pos2);
       if (ip6addr)
         host = host.substr(1,host.length()-2);
@@ -665,7 +665,7 @@ namespace Arc {
       urlstr += '@';
 
     if (!host.empty()) {
-      if(ip6addr) 
+      if(ip6addr)
         urlstr += "[" + host + "]";
       else
         urlstr += host;
@@ -1031,6 +1031,37 @@ namespace Arc {
     else
       URLLogger.msg(ERROR, "URL protocol is not urllist: %s", url.str());
     return urllist;
+  }
+
+  bool URL::StringMatchesURL(const std::string& _str) const {
+    std::string str = _str;
+    if (str[str.length()-1] == '/') {
+      str.erase(str.length()-1);
+    }
+
+    if (protocol + "://" == str.substr(0, protocol.length() + 3)) {
+      str.erase(0, protocol.length()+3);
+      if (str.empty()) {
+        return false;
+      }
+    }
+
+    if (host != str.substr(0, host.length())) {
+      return false;
+    }
+
+    str.erase(0, host.length());
+
+    std::string sPort = tostring(port);
+    if (":" + sPort == str.substr(0, sPort.length()+1)) {
+      str.erase(0, sPort.length()+1);
+    }
+
+    if (str.empty()) {
+      return true;
+    }
+
+    return path == str;
   }
 
 } // namespace Arc
