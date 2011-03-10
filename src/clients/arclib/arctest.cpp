@@ -26,6 +26,7 @@
 #include <arc/client/Submitter.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
+#include <arc/credential/Credential.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 
@@ -94,6 +95,9 @@ int RUNSUB(main)(int argc, char **argv) {
                             "in the language accepted by the target"),
                     dumpdescription);
 
+  bool show_credentials = false;
+  options.AddOption('E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -156,6 +160,48 @@ int RUNSUB(main)(int argc, char **argv) {
   int retval = 0;
   if (dumpdescription) {
      retval += dumpjobdescription(usercfg, jobid);
+  }
+
+  if (show_credentials) {
+    std::string proxy_path = usercfg.ProxyPath();
+    std::string cert_path = usercfg.CertificatePath();
+    std::string key_path = usercfg.KeyPath();
+    std::string ca_dir = usercfg.CACertificatesDirectory();
+
+    const Arc::Time now;
+
+    std::cout << "Certificate information:" << std::endl << std::endl;
+
+    if (cert_path.empty() || key_path.empty()) {
+      std::cout << Arc::IString("No user-certificate found") << std::endl << std::endl;
+    } else {
+      Arc::Credential holder(cert_path, "", ca_dir, "");
+      std::cout << Arc::IString("Certificate: %s", cert_path) << std::endl;
+      std::cout << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
+      std::cout << Arc::IString("Valid until: %s", (std::string) holder.GetEndTime() ) << std::endl << std::endl;
+    }
+
+    if (proxy_path.empty()) {
+      std::cout << "No proxy found" << std::endl << std::endl;
+    } else {
+      Arc::Credential holder(proxy_path, "", ca_dir, "");
+      std::cout << Arc::IString("Proxy: %s", proxy_path) << std::endl;
+      std::cout << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
+      if (holder.GetEndTime() < now) {
+        std::cout << Arc::IString("Valid for: Proxy expired") << std::endl << std::endl;
+      } else if (!holder.GetVerification()) {
+        std::cout << Arc::IString("Valid for: Proxy not valid") << std::endl << std::endl;
+      } else {
+        std::cout << Arc::IString("Valid for: %s", (holder.GetEndTime() - now).istr()) << std::endl << std::endl;
+      }
+    }
+
+    if (!cert_path.empty() && !key_path.empty()) {
+      Arc::Credential holder(cert_path, "", ca_dir, "");
+      std::cout << Arc::IString("Certificate issuer: %s", holder.GetIssuerName()) << std::endl << std::endl; //TODO
+    }
+
+    return EXIT_SUCCESS;
   }
 
   retval += test(usercfg, jobid, jobidfile);
