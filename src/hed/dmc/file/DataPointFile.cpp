@@ -435,7 +435,7 @@ namespace Arc {
     /* try to open */
     int flags = O_RDONLY;
 
-    if ((url.Path().rfind((std::string) G_DIR_SEPARATOR_S + "-") == url.Path().length()-2) && (url.Protocol() == "file") ){
+    if (url.Path() == "-"){ // won't work
       fd = dup(STDIN_FILENO);
       if (fd == -1) {
         logger.msg(ERROR, "Failed to use channel stdin");
@@ -498,7 +498,7 @@ namespace Arc {
     writing = true;
     /* try to open */
     buffer = &buf;
-    if ((url.Path().rfind((std::string) G_DIR_SEPARATOR_S + "-") == url.Path().length()-2) && (url.Protocol() == "file") ){
+    if (url.Path() == "-"){ // won't work
       fd = dup(STDOUT_FILENO);
       if (fd == -1) {
         logger.msg(ERROR, "Failed to use channel stdout");
