@@ -307,26 +307,24 @@ void FileCacheTest::testRemoteCache() {
 
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
-  // Start should succeed but delete remote file, only if /proc exists
+  // if /proc exists, start should succeed and delete remote cache file and lock
+  // if not, start should still succeed but download to local cache and
+  // leave remote file and lock alone
   std::string procdir = "/proc";
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(!is_locked);
   if (stat(procdir.c_str(), &fileStat) == 0) {
-    CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-    CPPUNIT_ASSERT(!available);
-    CPPUNIT_ASSERT(!is_locked);
     CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) != 0 );
     CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) != 0 );
-
-    // stop cache to release locks
-    CPPUNIT_ASSERT(_fc1->Stop(_url));
   } else {
-    CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
-    CPPUNIT_ASSERT(!available);
-    CPPUNIT_ASSERT(is_locked);
     CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) == 0 );
     CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) == 0 );
     CPPUNIT_ASSERT_EQUAL(0, remove(remote_cache_lock.c_str()));
     CPPUNIT_ASSERT_EQUAL(0, remove(remote_cache_file.c_str()));
   }
+  // stop cache to release locks
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
 
   // test with a replicate policy
   delete _fc1;
