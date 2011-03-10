@@ -274,6 +274,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libdmchttp.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcarc.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcldap.dll*
+%{_mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{_mingw32_libdir}/%{pkgdir}/libarcshc.dll*
 %{_mingw32_libdir}/%{pkgdir}/libidentitymap.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccARC1.dll*
@@ -288,7 +289,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libdmcgridftp.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libdmclfc.so
 %{_mingw32_libdir}/%{pkgdir}/libdmcrls.dll*
-%{_mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccARC0.dll*
 
 %files python

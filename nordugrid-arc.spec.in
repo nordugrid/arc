@@ -1002,6 +1002,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
 %{_libdir}/%{pkgdir}/libdmcldap.so
+%{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libidentitymap.so
 %{_libdir}/%{pkgdir}/libmcchttp.so
 %{_libdir}/%{pkgdir}/libmccmsgvalidator.so
@@ -1018,6 +1019,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libdmcfile.apd
 %{_libdir}/%{pkgdir}/libdmchttp.apd
 %{_libdir}/%{pkgdir}/libdmcldap.apd
+%{_libdir}/%{pkgdir}/libdmcsrm.apd
 %{_libdir}/%{pkgdir}/libidentitymap.apd
 %{_libdir}/%{pkgdir}/libmcchttp.apd
 %{_libdir}/%{pkgdir}/libmccsoap.apd
@@ -1036,10 +1038,8 @@ exit 0
 %{_libdir}/%{pkgdir}/libdmclfc.apd
 %endif
 %{_libdir}/%{pkgdir}/libdmcrls.so
-%{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcrls.apd
-%{_libdir}/%{pkgdir}/libdmcsrm.apd
 %{_libdir}/%{pkgdir}/libmccgsi.apd
 
 %files python

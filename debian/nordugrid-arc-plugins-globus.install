@@ -2,12 +2,10 @@ debian/tmp/usr/lib/libarcglobusutils.so.*
 debian/tmp/usr/lib/arc/libaccARC0.so
 debian/tmp/usr/lib/arc/libdmcgridftp.so
 debian/tmp/usr/lib/arc/libdmcrls.so
-debian/tmp/usr/lib/arc/libdmcsrm.so
 debian/tmp/usr/lib/arc/libmccgsi.so
 debian/tmp/usr/lib/arc/libaccARC0.apd
 debian/tmp/usr/lib/arc/libdmcgridftp.apd
 debian/tmp/usr/lib/arc/libdmcrls.apd
-debian/tmp/usr/lib/arc/libdmcsrm.apd
 debian/tmp/usr/lib/arc/libmccgsi.apd
 debian/tmp/usr/lib/arc/libdmclfc.so
 debian/tmp/usr/lib/arc/libdmclfc.apd
