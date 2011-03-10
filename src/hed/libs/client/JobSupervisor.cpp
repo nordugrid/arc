@@ -44,82 +44,88 @@ namespace Arc {
   }
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
-                               const std::list<std::string>& jobs)
+                               const std::list<std::string>& jobIDsAndNames)
     : usercfg(usercfg) {
-    std::map<std::string, std::list<URL> > jobmap;
-    XMLNodeList xmljobs;
+    if (usercfg.JobListFile().empty()) {
+      logger.msg(WARNING, "Job list file not specified.");
+      return;
+    }
 
-    Config jobstorage;
-    if (!usercfg.JobListFile().empty()) {
-      // lock job list file
-      FileLock lock(usercfg.JobListFile());
-      bool acquired = false;
-      for (int tries = 10; tries > 0; --tries) {
-        acquired = lock.acquire();
-        if (acquired) {
-          jobstorage.ReadFromFile(usercfg.JobListFile());
-          lock.release();
+    std::list<Job> jobs;
+    Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
+
+    // Add jobs explicitly specified.
+    for (std::list<std::string>::const_iterator it = jobIDsAndNames.begin();
+         it != jobIDsAndNames.end(); ++it) {
+      std::list<Job>::iterator itJ = jobs.begin();
+      for (; itJ != jobs.end(); ++itJ) {
+        if (*it == itJ->IDFromEndpoint.str() || *it == itJ->Name) {
           break;
         }
-        logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
-        usleep(500000);
       }
-      if (!acquired) {
-        logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
-        return;
+
+      if (itJ == jobs.end()) {
+        logger.msg(WARNING, "Job not found in job list: %s", *it);
+      }
+      else if (AddJob(*itJ)) {
+        // Job was added to JobController, remove it from list.
+        jobs.erase(itJ);
+      }
+      else {
+        logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", *it);
       }
     }
 
-    if (!jobs.empty()) {
-      for (std::list<std::string>::const_iterator it = jobs.begin();
-           it != jobs.end(); it++) {
-
-        xmljobs = jobstorage.XPathLookup("//Job[IDFromEndpoint='" +
-                                         *it + "']", NS());
-        if (xmljobs.empty())
-          // Included for backwards compatibility.
-          xmljobs = jobstorage.XPathLookup("//Job[JobID='" + *it + "']", NS());
-
-        // Sanity check. A Job ID should be unique, thus the following
-        // warning should never be shown.
-        if (xmljobs.size() > 1)
-          logger.msg(WARNING, "Job list (%s) contains %d jobs with identical "
-                     "IDs, however only one will be processed.",
-                     usercfg.JobListFile(), xmljobs.size());
-
-        // No jobs in job list matched the string as job id, try job name.
-        // Note: Multiple jobs can have identical names.
-        if (xmljobs.empty())
-          xmljobs = jobstorage.XPathLookup("//Job[Name='" + *it + "']", NS());
-
-        if (xmljobs.empty()) {
-          logger.msg(WARNING, "Job not found in job list: %s", *it);
-          continue;
-        }
-
-        for (XMLNodeList::iterator xit = xmljobs.begin();
-             xit != xmljobs.end(); xit++) {
-          std::string jobid = ((*xit)["IDFromEndpoint"] ?
-                               (std::string)(*xit)["IDFromEndpoint"] :
-                               (std::string)(*xit)["JobID"]);
-          jobmap[(std::string)(*xit)["Flavour"]].push_back(jobid);
+    // Exclude jobs on rejected services.
+    if (!usercfg.GetRejectedServices(COMPUTING).empty() && !jobs.empty()) {
+      for (std::list<std::string>::const_iterator itC = usercfg.GetRejectedServices(COMPUTING).begin();
+           itC != usercfg.GetRejectedServices(COMPUTING).end(); ++itC) {
+        std::size_t pos = itC->find(":");
+        std::string cFlavour = itC->substr(0, pos), service = itC->substr(pos+1);
+        logger.msg(DEBUG, "cFlavour = %s; service = %s", cFlavour, service);
+        for (std::list<Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
+          if ((cFlavour == "*" || cFlavour == itJ->Flavour) &&
+              (itJ->Cluster.StringMatches(service) || itJ->InfoEndpoint.StringMatches(service))) {
+            itJ = jobs.erase(itJ);
+          }
+          else {
+            ++itJ;
+          }
         }
       }
     }
 
-    if (jobs.empty() || !usercfg.GetSelectedServices(COMPUTING).empty()) {
-      xmljobs = jobstorage.Path("Job");
-      for (XMLNodeList::iterator xit = xmljobs.begin();
-           xit != xmljobs.end(); xit++)
-        if (jobmap.find((std::string)(*xit)["Flavour"]) == jobmap.end())
-          jobmap[(std::string)(*xit)["Flavour"]];
+    // Add jobs on selected services.
+    if (!usercfg.GetSelectedServices(COMPUTING).empty() && !jobs.empty()) {
+      for (std::list<std::string>::const_iterator itC = usercfg.GetSelectedServices(COMPUTING).begin();
+           itC != usercfg.GetSelectedServices(COMPUTING).end(); ++itC) {
+        std::size_t pos = itC->find(":");
+        std::string cFlavour = itC->substr(0, pos), service = itC->substr(pos+1);
+        logger.msg(DEBUG, "cFlavour = %s; service = %s", cFlavour, service);
+        for (std::list<Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
+          if ((cFlavour == "*" || cFlavour == itJ->Flavour) &&
+              (itJ->Cluster.StringMatches(service) || itJ->InfoEndpoint.StringMatches(service))) {
+            if (AddJob(*itJ)) {
+              // Job was added to JobController, remove it from list.
+              itJ = jobs.erase(itJ);
+              continue;
+            }
+            else {
+              logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", itJ->IDFromEndpoint.str());
+            }
+          }
+          ++itJ;
+        }
+      }
     }
 
-    for (std::map<std::string, std::list<URL> >::iterator it = jobmap.begin();
-         it != jobmap.end(); it++) {
-      JobController *JC = loader.load(it->first, usercfg);
-      if (JC) {
-        JC->FillJobStore(it->second);
+    // If neither jobs was specified explicitly or services was selected, all jobs should be added (except those rejected).
+    if (jobIDsAndNames.empty() && usercfg.GetSelectedServices(COMPUTING).empty() && !jobs.empty()) {
+      for (std::list<Job>::const_iterator itJ = jobs.begin();
+           itJ != jobs.end(); ++itJ) {
+        if (!AddJob(*itJ)) {
+          logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", itJ->IDFromEndpoint.str());
+        }
       }
     }
   }

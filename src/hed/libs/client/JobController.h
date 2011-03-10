@@ -47,15 +47,6 @@ namespace Arc {
     virtual ~JobController();
 
     /// Fill jobstore
-    /**
-     * Method to fill the jobstore with jobs that should be managed.
-     *
-     * @param jobids List of jobids to be loaded to the jobstore. If
-     * empty all jobs of the specialized grid flavour present in the
-     * joblist file (given through the usercfg to the constructor)
-     * will be loaded to the jobstore.
-     **/
-    void FillJobStore(const std::list<URL>& jobids);
     void FillJobStore(const Job& job);
 
     bool Get(const std::list<std::string>& status,
@@ -221,7 +212,6 @@ namespace Arc {
     std::list<Job> jobstore;
     DataHandle* data_source;
     DataHandle* data_destination;
-    Config jobstorage;
     static Logger logger;
   };
 
