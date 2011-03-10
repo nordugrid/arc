@@ -29,7 +29,7 @@
  * embeded into extension of X509 certificate/proxy certificate);
  * 2. certificate request, extension emeding and certificate signing, for both proxy certificate
  * and EEC (end entity certificate) certificate
- * The Crendential class support PEM, DER PKCS12 credential.
+ * The Credential class support PEM, DER PKCS12 credential.
  */
 
 namespace Arc {
@@ -233,6 +233,9 @@ class Credential {
 
     /**Get type of the certificate attached to this object*/
     ArcCredential::certType GetType(void) const;
+
+    /**Get issuer of the certificate attached to this object*/
+    std::string GetIssuerName(void) const;
 
     /**Get the proxy policy attached to the "proxy certificate
      * information" extension of the proxy certicate

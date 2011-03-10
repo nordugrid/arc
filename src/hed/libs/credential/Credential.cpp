@@ -8,6 +8,7 @@
 #include <fstream>
 #include <fcntl.h>
 #include <openssl/ui.h>
+#include <openssl/ssl.h>
 
 #include <glibmm/fileutils.h>
 
@@ -363,6 +364,18 @@ namespace Arc {
 
   certType Credential::GetType(void) const {
     return cert_type_;
+  }
+
+  std::string Credential::GetIssuerName(void) const {
+    X509_NAME *issuer = NULL;
+    if(!cert_) return "";
+    issuer = X509_get_issuer_name(cert_);
+    std::string str;
+    char buf[256];
+    if(issuer!=NULL)
+      X509_NAME_oneline(issuer,buf,sizeof(buf));
+    str.append(buf);
+    return str;
   }
 
   std::string Credential::GetProxyPolicy(void) const {
