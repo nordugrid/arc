@@ -26,6 +26,7 @@ class URLTest
   CPPUNIT_TEST(TestIP6Url2);
   CPPUNIT_TEST(TestIP6Url3);
   CPPUNIT_TEST(TestBadUrl);
+  CPPUNIT_TEST(TestStringMatchesURL);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -47,6 +48,7 @@ public:
   void TestIP6Url2();
   void TestIP6Url3();
   void TestBadUrl();
+  void TestStringMatchesURL();
 
 private:
   Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl, *srmurl, *ip6url, *ip6url2, *ip6url3;
@@ -104,7 +106,7 @@ void URLTest::TestGsiftpUrl() {
   CPPUNIT_ASSERT(gsiftpurl->HTTPOptions().empty());
   CPPUNIT_ASSERT(gsiftpurl->Options().empty());
   CPPUNIT_ASSERT(gsiftpurl->Locations().empty());
-  
+
   CPPUNIT_ASSERT(*gsiftpurl2);
   CPPUNIT_ASSERT_EQUAL(std::string("gsiftp"), gsiftpurl2->Protocol());
   CPPUNIT_ASSERT(gsiftpurl2->Username().empty());
@@ -383,7 +385,29 @@ void URLTest::TestBadUrl() {
   CPPUNIT_ASSERT(!(*url));
   url = new Arc::URL("http:/file1");
   CPPUNIT_ASSERT(!(*url));
-  delete url;    
+  delete url;
+}
+
+void URLTest::TestStringMatchesURL() {
+  std::string str;
+  Arc::URL url;
+
+  str = "example.org";
+  url = (std::string)"http://example.org:8080/path";
+
+  CPPUNIT_ASSERT(url.StringMatches(str));
+
+  str += ":8080";
+  CPPUNIT_ASSERT(url.StringMatches(str));
+
+  str = "http://" + str;
+  CPPUNIT_ASSERT(url.StringMatches(str));
+
+  str += "/path";
+  CPPUNIT_ASSERT(url.StringMatches(str));
+
+  str = "example.org/";
+  CPPUNIT_ASSERT(url.StringMatches(str));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(URLTest);
