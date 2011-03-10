@@ -265,6 +265,7 @@ for data management within a pilot job framework.
 Summary:	ARC LDAP information service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	bdii
 Provides:	%{name}-infoindex = %{version}-%{release}
 Obsoletes:	%{name}-infoindex < 0.8.2-1
 Provides:	%{name}-infosys-ldap = %{version}-%{release}
