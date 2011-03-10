@@ -435,8 +435,9 @@ namespace Arc {
     /* try to open */
     int flags = O_RDONLY;
 
-    if (url.Path() == "-") // won't work
+    if ((url.Path().rfind((std::string) G_DIR_SEPARATOR_S + "-") == url.Path().length()-2) && (url.Protocol() == "file") ){
       fd = dup(STDIN_FILENO);
+    }
     else {
       User user;
       if (user.check_file_access(url.Path(), flags) != 0) {
