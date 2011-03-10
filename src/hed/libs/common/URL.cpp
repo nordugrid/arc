@@ -1033,7 +1033,7 @@ namespace Arc {
     return urllist;
   }
 
-  bool URL::StringMatchesURL(const std::string& _str) const {
+  bool URL::StringMatches(const std::string& _str) const {
     std::string str = _str;
     if (str[str.length()-1] == '/') {
       str.erase(str.length()-1);

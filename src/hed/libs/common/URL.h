@@ -217,7 +217,7 @@ namespace Arc {
     bool operator!() const;
 
     /// Returns true if string matches url
-    bool StringMatchesURL(const std::string& str) const;
+    bool StringMatches(const std::string& str) const;
 
 
     /** Parse a string of options separated by separator into an attribute->value map */
