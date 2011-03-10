@@ -80,7 +80,8 @@ performs like it were called multiple times - once for every URL.
 
 Depending on the installed libraries, the
 following protocols may be used: file  (file://  prefix  may  be
-omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
+omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm. To connect 
+destination to standard output use '-' instead of URL.
  
 .SH FILES
 
