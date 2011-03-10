@@ -55,7 +55,7 @@ static void progress(FILE *o, const char*, unsigned int,
 
 bool arcregister(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
-                 const std::list<std::string>& replicas,
+                 const std::list<std::string>& locations,
                  Arc::UserConfig& usercfg,
                  bool secure,
                  bool passive,
@@ -93,7 +93,7 @@ bool arcregister(const Arc::URL& source_url,
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      if(!arcregister(*source, *destination, replicas, usercfg, secure, passive,
+      if(!arcregister(*source, *destination, locations, usercfg, secure, passive,
                       force_meta, timeout)) r = false;
     return r;
   }
@@ -107,7 +107,7 @@ bool arcregister(const Arc::URL& source_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      if(!arcregister(*source, destination_url, replicas, usercfg, secure, passive,
+      if(!arcregister(*source, destination_url, locations, usercfg, secure, passive,
                       force_meta, timeout)) r = false;
     return r;
   }
@@ -121,7 +121,7 @@ bool arcregister(const Arc::URL& source_url,
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      if(!arcregister(source_url, *destination, replicas, usercfg, secure, passive,
+      if(!arcregister(source_url, *destination, locations, usercfg, secure, passive,
                       force_meta, timeout)) r = false;
     return r;
   }
@@ -153,9 +153,9 @@ bool arcregister(const Arc::URL& source_url,
                " and destination must be indexing service");
     return false;
   }
-  if (!replicas.empty()) {
+  if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    for (std::list<std::string>::const_iterator i = replicas.begin(); i != replicas.end(); ++i)
+    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
       destination->AddLocation(*i, meta);
   }
   // Obtain meta-information about source
@@ -207,7 +207,7 @@ bool arcregister(const Arc::URL& source_url,
 
 bool arccp(const Arc::URL& source_url_,
            const Arc::URL& destination_url_,
-           const std::list<std::string>& replicas,
+           const std::list<std::string>& locations,
            const std::string& cache_dir,
            Arc::UserConfig& usercfg,
            bool secure,
@@ -258,7 +258,7 @@ bool arccp(const Arc::URL& source_url_,
                                        destination = destinations.begin();
          (source != sources.end()) && (destination != destinations.end());
          source++, destination++)
-      if(!arccp(*source, *destination, replicas, cache_dir, usercfg, secure, passive,
+      if(!arccp(*source, *destination, locations, cache_dir, usercfg, secure, passive,
                 force_meta, recursion, tries, verbose, timeout)) r = false;
     return r;
   }
@@ -272,7 +272,7 @@ bool arccp(const Arc::URL& source_url_,
     bool r = true;
     for (std::list<Arc::URL>::iterator source = sources.begin();
          source != sources.end(); source++)
-      if(!arccp(*source, destination_url, replicas, cache_dir, usercfg, secure,
+      if(!arccp(*source, destination_url, locations, cache_dir, usercfg, secure,
                 passive, force_meta, recursion, tries, verbose, timeout))
         r = false;
     return r;
@@ -287,7 +287,7 @@ bool arccp(const Arc::URL& source_url_,
     bool r = true;
     for (std::list<Arc::URL>::iterator destination = destinations.begin();
          destination != destinations.end(); destination++)
-      if(!arccp(source_url, *destination, replicas, cache_dir, usercfg, secure,
+      if(!arccp(source_url, *destination, locations, cache_dir, usercfg, secure,
                 passive, force_meta, recursion, tries, verbose, timeout))
         r = false;
     return r;
@@ -376,9 +376,9 @@ bool arccp(const Arc::URL& source_url_,
           logger.msg(Arc::INFO, "Unsupported destination url: %s", d_url.str());
           continue;
         }
-        if (!replicas.empty() && destination->IsIndex()) {
+        if (!locations.empty() && destination->IsIndex()) {
           std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-          for (std::list<std::string>::const_iterator i = replicas.begin(); i != replicas.end(); ++i)
+          for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
             destination->AddLocation(*i, meta);
         }
         Arc::DataMover mover;
@@ -433,7 +433,7 @@ bool arccp(const Arc::URL& source_url_,
           d_url += i->GetName();
           s_url += "/";
           d_url += "/";
-          if(!arccp(s_url, d_url, replicas, cache_dir, usercfg, secure, passive,
+          if(!arccp(s_url, d_url, locations, cache_dir, usercfg, secure, passive,
                     force_meta, recursion - 1, tries, verbose, timeout))
             r = false;
         }
@@ -458,9 +458,9 @@ bool arccp(const Arc::URL& source_url_,
                destination_url.str());
     return false;
   }
-  if (!replicas.empty() && destination->IsIndex()) {
+  if (!locations.empty() && destination->IsIndex()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
-    for (std::list<std::string>::const_iterator i = replicas.begin(); i != replicas.end(); ++i)
+    for (std::list<std::string>::const_iterator i = locations.begin(); i != locations.end(); ++i)
       destination->AddLocation(*i, meta);
   }
   Arc::DataMover mover;
@@ -573,12 +573,13 @@ int main(int argc, char **argv) {
                     istring("number of retries before failing file transfer"),
                     istring("number"), retries);
 
-  std::list<std::string> replicas;
-  options.AddOption('s', "replica",
-                    istring("physical file to write to when destination is an indexing service."
-                            " Can be specified multiple times. "
-                            "Replicas will be tried in order until one succeeds."),
-                    istring("URL"), replicas);
+  std::list<std::string> locations;
+  options.AddOption('L', "location",
+                    istring("physical location to write to when destination is an indexing service."
+                            " Must be specified for indexing services which do not automatically"
+                            " generate physical locations. Can be specified multiple times -"
+                            " locations will be tried in order until one succeeds."),
+                    istring("URL"), locations);
 
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -639,10 +640,10 @@ int main(int argc, char **argv) {
   std::string destination = *it;
 
   if (nocopy) {
-    if(!arcregister(source, destination, replicas, usercfg, secure, passive, force, timeout))
+    if(!arcregister(source, destination, locations, usercfg, secure, passive, force, timeout))
       return 1;
   } else {
-    if(!arccp(source, destination, replicas, cache_path, usercfg, secure, passive, force,
+    if(!arccp(source, destination, locations, cache_path, usercfg, secure, passive, force,
           recursion, retries + 1, verbose, timeout))
       return 1;
   }
