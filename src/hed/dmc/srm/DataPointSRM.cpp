@@ -325,7 +325,7 @@ namespace Arc {
         }
         DataHandle* r_handle = new DataHandle(redirected_url, usercfg);
         // check if url can be handled
-        if (!r_handle) {
+        if (!r_handle || !(*r_handle)) {
           continue;
         }
         if ((*r_handle)->IsIndex()) {
@@ -549,7 +549,7 @@ namespace Arc {
         }
         DataHandle* r_handle = new DataHandle(redirected_url, usercfg);
         // check if url can be handled
-        if (!r_handle) {
+        if (!r_handle || !(*r_handle)) {
           continue;
         }
         if ((*r_handle)->IsIndex()) {
