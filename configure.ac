@@ -118,7 +118,7 @@ enables_swig=yes
 enables_cppunit=yes
 enables_java=yes
 enables_python=yes
-enables_lfc=no
+enables_lfc=yes
 enables_gacl=yes
 enables_argus=no
 enables_xmlsec1=yes
@@ -1080,7 +1080,7 @@ AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
 # Check for LFC
-AC_ARG_ENABLE(lfc, AC_HELP_STRING([--enable-lfc], [enable the LFC support, default is disable]),[enables_lfc="$enableval"],[])
+AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[enables_lfc="$enableval"],[])
 if test "x$enables_lfc" = "xyes"; then
   LFC_CFLAGS="-I/usr/include/lfc"
   LFC_LDFLAGS=""

@@ -6,9 +6,9 @@ DEB_BUILD_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 LFC_SUPPORT = yes
 
 ifeq ($(LFC_SUPPORT),yes)
-LFC_CONFIGURE_OPTION = --enable-lfc
-else
 LFC_CONFIGURE_OPTION =
+else
+LFC_CONFIGURE_OPTION = --disable-lfc
 endif
 
 CFLAGS = -Wall -g

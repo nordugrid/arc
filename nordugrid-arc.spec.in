@@ -582,8 +582,8 @@ fetch-crl tool in the fetch-crl package.
 %if ! %{with_java}
      --disable-java \
 %endif
-%if %{with_lfc}
-     --enable-lfc \
+%if ! %{with_lfc}
+     --disable-lfc \
 %endif
      --disable-doc \
      --with-docdir=%{_docdir}/%{name}-%{version} \
