@@ -761,6 +761,7 @@ std::list<std::string> ARexJob::LogFiles(void) {
   if(id_.empty()) return logs;
   std::string dname = config_.User()->ControlDir();
   std::string prefix = "job." + id_ + ".";
+  // TODO: scanning is performace bottleneck. Use matching instead.
   Glib::Dir* dir = Arc::DirOpen(dname,config_.User()->get_uid(),config_.User()->get_gid());
   if(!dir) return logs;
   for(;;) {
@@ -769,6 +770,7 @@ std::list<std::string> ARexJob::LogFiles(void) {
     if(strncmp(prefix.c_str(),name.c_str(),prefix.length()) != 0) continue;
     logs.push_back(name.substr(prefix.length()));
   };
+  delete dir;
   return logs;
 }
 

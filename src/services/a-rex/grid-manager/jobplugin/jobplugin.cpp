@@ -1079,8 +1079,9 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
             };
           };
         };
+        dir->close();
+        delete dir;
       };
-      dir->close();
     };
     return 0;
   };
@@ -1122,6 +1123,7 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
         dir_list.push_back(dent);
       };
       d->close();
+      delete d;
       return 0;
     };
     if(log.length() > 0) {
