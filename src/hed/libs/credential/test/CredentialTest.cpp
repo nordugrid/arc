@@ -38,7 +38,7 @@ void CredentialTest::CertTest() {
   Arc::Credential ca(CAcert, CAkey, CAserial, 0, "", "", CApassphrase);
 
   // Did we load a CA cert?
-  CPPUNIT_ASSERT_EQUAL(ca.GetType(),ArcCredential::CERT_TYPE_CA);
+  CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_CA,ca.GetType());
 
   // Test if the DN is read properly
   CPPUNIT_ASSERT_EQUAL(CAdn,ca.GetDN());
@@ -85,7 +85,7 @@ void CredentialTest::CertTest() {
   // Did the signed cert get the right DN?
   CPPUNIT_ASSERT_EQUAL(host_dn,host_cert.GetDN());
   // Right type?
-  CPPUNIT_ASSERT_EQUAL(host_cert.GetType(),ArcCredential::CERT_TYPE_EEC);
+  CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_EEC,host_cert.GetType());
 
 
   //
@@ -134,7 +134,7 @@ void CredentialTest::CertTest() {
   // Did the signed cert get the right identity - trivial for non-proxy?
   CPPUNIT_ASSERT_EQUAL(user_dn,user_cert.GetIdentityName());
   // Right type?
-  CPPUNIT_ASSERT_EQUAL(user_cert.GetType(),ArcCredential::CERT_TYPE_EEC);
+  CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_EEC,user_cert.GetType());
 
   // Get the lifetime
   CPPUNIT_ASSERT_EQUAL(Arc::Period(12*60*60),user_cert.GetLifeTime());
