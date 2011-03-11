@@ -28,6 +28,7 @@ namespace Arc {
     virtual bool WriteOutOfOrder();
   private:
     SimpleCondition transfer_cond;
+    unsigned int get_channel();
     static void read_file_start(void* arg);
     static void write_file_start(void* arg);
     void read_file();
@@ -36,6 +37,8 @@ namespace Arc {
     bool writing;
     int fd;
     bool is_channel;
+    unsigned int channel_num;
+    std::map<unsigned int, std::string> stdfds;
     static Logger logger;
   };
 

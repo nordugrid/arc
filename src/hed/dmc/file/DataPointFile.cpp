@@ -46,7 +46,7 @@ namespace Arc {
       is_channel = false;
       local = true;
     }
-    else if (url.Path() == "-") { // won't work
+    else if (url.Protocol() == "stdio") {
       linkable = false;
       is_channel = true;
     }
@@ -61,9 +61,33 @@ namespace Arc {
     DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
     if (!dmcarg)
       return NULL;
-    if (((const URL &)(*dmcarg)).Protocol() != "file")
+    if (((const URL &)(*dmcarg)).Protocol() != "file" && ((const URL &)(*dmcarg)).Protocol() != "stdio")
       return NULL;
     return new DataPointFile(*dmcarg, *dmcarg);
+  }
+
+  unsigned int DataPointFile::get_channel() {
+    // map known channels to strings
+    stdfds[STDIN_FILENO]  = "stdin";
+    stdfds[STDOUT_FILENO] = "stdout";
+    stdfds[STDERR_FILENO] = "stderr";
+    if (!stringto(url.Path().substr(1, url.Path().length()-1), channel_num)) {
+      // requested channel is not a number
+      if (url.Path() == "/stdin")       channel_num = STDIN_FILENO;
+      else if (url.Path() == "/stdout") channel_num = STDOUT_FILENO;
+      else if (url.Path() == "/stderr") channel_num = STDERR_FILENO;
+      else {
+        logger.msg(ERROR, "Unknown channel %s for stdio protocol", url.Path());
+        fd = -1;
+        return fd;
+      }
+    }
+    fd = dup(channel_num);
+    if (fd == -1) {
+      if (channel_num < 3) logger.msg(ERROR, "Failed to open stdio channel %s", stdfds[channel_num]);
+      else logger.msg(ERROR, "Failed to open stdio channel %d", channel_num);
+    }
+    return fd;
   }
 
   void DataPointFile::read_file_start(void* arg) {
@@ -348,6 +372,24 @@ namespace Arc {
   }
 
   DataStatus DataPointFile::Stat(FileInfo& file, DataPointInfoType verb) {
+
+    if(is_channel) {
+      fd = get_channel();
+      if (fd == -1){
+        logger.msg(INFO, "Can't stat stdio channel %s", url.str());
+        return DataStatus::StatError;
+      }
+      struct stat st;
+      fstat(fd, &st);
+      if (channel_num < 3) file.SetName(stdfds[channel_num]);
+      else file.SetName(tostring(channel_num));
+      file.SetType(FileInfo::file_type_stdio);
+      file.SetMetaData("type", "stdio");
+      file.SetSize(st.st_size);
+      file.SetCreated(st.st_mtime);
+      return DataStatus::Success;
+    }
+
     std::string name = url.Path();
     // to make exact same behaviour for arcls and ngls all
     // lines down to file.SetName(name) should be removed
@@ -435,10 +477,9 @@ namespace Arc {
     /* try to open */
     int flags = O_RDONLY;
 
-    if (url.Path() == "-"){ // won't work
-      fd = dup(STDIN_FILENO);
+    if (is_channel){
+      fd = get_channel();
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to use channel stdin");
         reading = false;
         return DataStatus::ReadStartError;
       }
@@ -498,10 +539,9 @@ namespace Arc {
     writing = true;
     /* try to open */
     buffer = &buf;
-    if (url.Path() == "-"){ // won't work
-      fd = dup(STDOUT_FILENO);
+    if (is_channel) {
+      fd = get_channel();
       if (fd == -1) {
-        logger.msg(ERROR, "Failed to use channel stdout");
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
