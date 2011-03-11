@@ -639,6 +639,8 @@ int main(int argc, char **argv) {
   ++it;
   std::string destination = *it;
 
+  if (source == "-") source = "stdio:///stdin";
+  if (destination == "-") destination = "stdio:///stdout";
   if (nocopy) {
     if(!arcregister(source, destination, locations, usercfg, secure, passive, force, timeout))
       return 1;
