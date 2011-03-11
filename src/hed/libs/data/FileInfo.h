@@ -19,7 +19,8 @@ namespace Arc {
     enum Type {
       file_type_unknown = 0,
       file_type_file = 1,
-      file_type_dir = 2
+      file_type_dir = 2,
+      file_type_stdio = 3
     };
 
     FileInfo(const std::string& name = "")
