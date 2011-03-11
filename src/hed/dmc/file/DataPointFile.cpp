@@ -363,7 +363,7 @@ namespace Arc {
     }
     // remove first slash
     if(name.find_first_of(G_DIR_SEPARATOR) == 0){
-      name = name.substr(name.find_first_not_of(G_DIR_SEPARATOR), p);
+      name = name.substr(name.find_first_not_of(G_DIR_SEPARATOR), name.length()-1);
     }
     file.SetName(name);
     if(!do_stat(url.Path(), file, verb)) {
