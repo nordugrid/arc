@@ -7,13 +7,13 @@
 %global pkgdir arc
 
 Name:		@PACKAGE@
-Version:	@VERSION@
-Release:	1%{?dist}
+Version:	@baseversion@
+Release:	@fedorarelease@%{?dist}
 Summary:	ARC
 Group:		System Environment/Daemons
 License:	ASL 2.0
 URL:		http://www.nordugrid.org/
-Source:		%{name}-%{version}.tar.gz
+Source:		%{name}-%{version}@preversion@.tar.gz
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 Provides:	%{name}-libs = %{version}-%{release}
@@ -576,7 +576,7 @@ The functionality of the grid-update-crls tool is provided by the
 fetch-crl tool in the fetch-crl package.
 
 %prep
-%setup -q
+%setup @fedorasetupopts@
 
 %build
 %configure --disable-static \
@@ -1091,5 +1091,5 @@ exit 0
 %defattr(-,root,root,-)
 
 %changelog
-* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @VERSION@-1
+* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
 - Initial release

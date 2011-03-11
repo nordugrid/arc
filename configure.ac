@@ -8,6 +8,25 @@ AM_INIT_AUTOMAKE([foreign tar-pax])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_CONFIG_HEADER([config.h])
 
+baseversion=`echo $VERSION | sed 's/[[^0-9.]].*//'`
+preversion=`echo $VERSION | sed 's/^[[0-9.]]*//'`
+
+if test "x$preversion" = "x" ; then
+   fedorarelease="1"
+   fedorasetupopts="-q"
+   debianversion="$baseversion"
+else
+   fedorarelease="0.$preversion"
+   fedorasetupopts="-q -n %{name}-%{version}$preversion"
+   debianversion="$baseversion~$preversion"
+fi
+
+AC_SUBST(baseversion)
+AC_SUBST(preversion)
+AC_SUBST(fedorarelease)
+AC_SUBST(fedorasetupopts)
+AC_SUBST(debianversion)
+
 # This macro was introduced in autoconf 2.57g? but we currently only require 2.56
 m4_ifdef([AC_CONFIG_MACRO_DIR], [AC_CONFIG_MACRO_DIR([m4])])
 

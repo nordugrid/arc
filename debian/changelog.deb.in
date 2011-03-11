@@ -1,12 +1,5 @@
-nordugrid-arc (@VERSION@-1) unstable; urgency=low
+nordugrid-arc (@debianversion@-1) unstable; urgency=low
 
   * New upstream release.
 
  -- Anders Waananen <waananen@nbi.dk>  @DATER@
-
-nordugrid-arc-nox (1.0.0-1) unstable; urgency=low
-
-  * Initial release (Closes: #560255).
-
- -- Anders Waananen <waananen@nbi.dk>  Sun, 29 Nov 2009 23:46:25 +0100
-
