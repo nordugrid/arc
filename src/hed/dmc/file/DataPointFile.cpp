@@ -383,8 +383,8 @@ namespace Arc {
       fstat(fd, &st);
       if (channel_num < 3) file.SetName(stdfds[channel_num]);
       else file.SetName(tostring(channel_num));
-      file.SetType(FileInfo::file_type_stdio);
-      file.SetMetaData("type", "stdio");
+      file.SetType(FileInfo::file_type_file);
+      file.SetMetaData("type", "device");
       file.SetSize(st.st_size);
       file.SetCreated(st.st_mtime);
       return DataStatus::Success;

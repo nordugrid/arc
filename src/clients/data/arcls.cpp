@@ -156,10 +156,6 @@ static bool arcls(const Arc::URL& dir_url,
         std::cout << " dir";
         break;
 
-      case Arc::FileInfo::file_type_stdio:
-        std::cout << " stdio";
-        break;
-
       default:
         std::cout << " unknown";
         break;
