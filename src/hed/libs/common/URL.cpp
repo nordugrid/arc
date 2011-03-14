@@ -620,6 +620,10 @@ namespace Arc {
     metadataoptions[option] = value;
   }
 
+  void URL::AddLocation(const URLLocation& location) {
+    locations.push_back(location);
+  }
+
   const std::list<URLLocation>& URL::Locations() const {
     return locations;
   }
