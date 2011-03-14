@@ -857,7 +857,6 @@ exit 0
 %{_libdir}/%{pkgdir}/jobplugin.*
 %{_libdir}/%{pkgdir}/gaclplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*
-%{_libdir}/libarcglobusutils.so.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
 
 %files aris
@@ -1042,6 +1041,7 @@ exit 0
 %{_libdir}/%{pkgdir}/libmccgsi.so
 %{_libdir}/%{pkgdir}/libdmcrls.apd
 %{_libdir}/%{pkgdir}/libmccgsi.apd
+%{_libdir}/libarcglobusutils.so.*
 
 %files python
 %defattr(-,root,root,-)
