@@ -24,6 +24,8 @@ class ARCJSDLParserTest
   CPPUNIT_TEST(TestFilesCreateUpload);
   CPPUNIT_TEST(TestFilesDownloadUpload);
   CPPUNIT_TEST(TestFilesUploadUpload);
+  CPPUNIT_TEST(TestURIOptionsInput);
+  CPPUNIT_TEST(TestURIOptionsOutput);
   CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestDryRun);
   CPPUNIT_TEST(TestPOSIXCompliance);
@@ -46,6 +48,8 @@ public:
   void TestFilesCreateUpload();
   void TestFilesDownloadUpload();
   void TestFilesUploadUpload();
+  void TestURIOptionsInput();
+  void TestURIOptionsOutput();
   void TestQueue();
   void TestDryRun();
   void TestPOSIXCompliance();
@@ -349,6 +353,82 @@ void ARCJSDLParserTest::TestFilesUploadUpload() {
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Target.size() == 1 && OUTJOBS.front().Files.front().Target.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Target.front(), OUTJOBS.front().Files.front().Target.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
+}
+
+void ARCJSDLParserTest::TestURIOptionsInput() {
+  std::string jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition>"
+  "<JobDescription>"
+    "<Application>"
+      "<posix-jsdl:POSIXApplication>"
+      "<posix-jsdl:Executable>executable</posix-jsdl:Executable>"
+      "</posix-jsdl:POSIXApplication>"
+    "</Application>"
+    "<DataStaging>"
+      "<FileName>test.file</FileName>"
+      "<Source>"
+        "<URI>gsiftp://example.com/test.file</URI>"
+        "<URIOption>threads=5</URIOption>"
+      "</Source>"
+    "</DataStaging>"
+  "</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
+  const Arc::FileType f(OUTJOBS.front().Files.front());
+  CPPUNIT_ASSERT_EQUAL(std::string("test.file"), f.Name);
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/test.file"), f.Source.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), f.Source.front().Option("threads"));
+}
+
+void ARCJSDLParserTest::TestURIOptionsOutput() {
+  std::string jsdl = "<?xml version=\"1.0\"?>"
+"<JobDefinition>"
+  "<JobDescription>"
+    "<Application>"
+      "<posix-jsdl:POSIXApplication>"
+      "<posix-jsdl:Executable>executable</posix-jsdl:Executable>"
+      "</posix-jsdl:POSIXApplication>"
+    "</Application>"
+    "<DataStaging>"
+      "<FileName>test.file</FileName>"
+      "<Target>"
+        "<URI>rls://example.com/test.file</URI>"
+        "<URIOption>checksum=md5</URIOption>"
+        "<Location>"
+          "<URI>gsiftp://example.com/test.file</URI>"
+          "<URIOption>threads=5</URIOption>"
+        "</Location>"
+        "<Location>"
+          "<URI>gsiftp://example2.com/test.file</URI>"
+          "<URIOption>threads=10</URIOption>"
+        "</Location>"
+      "</Target>"
+    "</DataStaging>"
+  "</JobDescription>"
+"</JobDefinition>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
+  const Arc::FileType f(OUTJOBS.front().Files.front());
+
+  CPPUNIT_ASSERT_EQUAL(std::string("test.file"), f.Name);
+  CPPUNIT_ASSERT_EQUAL(std::string("rls://example.com:39281/test.file"), f.Target.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("md5"), f.Target.front().Option("checksum"));
+
+  const std::list<Arc::URLLocation> locations(f.Target.front().Locations());
+  CPPUNIT_ASSERT_EQUAL(2, (int)locations.size());
+
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/test.file"), locations.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), locations.front().Option("threads"));
+
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example2.com:2811/test.file"), locations.back().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("10"), locations.back().Option("threads"));
 }
 
 void ARCJSDLParserTest::TestQueue() {

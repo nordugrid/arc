@@ -24,6 +24,8 @@ class XRSLParserTest
   CPPUNIT_TEST(TestFilesCreateUpload);
   CPPUNIT_TEST(TestFilesDownloadUpload);
   CPPUNIT_TEST(TestFilesUploadUpload);
+  CPPUNIT_TEST(TestURIOptionsInput);
+  CPPUNIT_TEST(TestURIOptionsOutput);
   CPPUNIT_TEST(TestExecutables);
   CPPUNIT_TEST(TestFTPThreads);
   CPPUNIT_TEST(TestCache);
@@ -52,6 +54,8 @@ public:
   void TestFilesCreateUpload();
   void TestFilesDownloadUpload();
   void TestFilesUploadUpload();
+  void TestURIOptionsInput();
+  void TestURIOptionsOutput();
   void TestExecutables();
   void TestFTPThreads();
   void TestCache();
@@ -513,6 +517,43 @@ void XRSLParserTest::TestFilesUploadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.front(),  it->Target.front());
 
   remove(file.Name.c_str());
+}
+
+void XRSLParserTest::TestURIOptionsInput() {
+  xrsl = "&(executable=/bin/true)"
+         "(inputfiles=(\"in1\" \"gsiftp://example.com/in1\" \"threads=5\"))";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), OUTJOBS.front().Files.front().Source.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), OUTJOBS.front().Files.front().Source.front().Option("threads"));
+
+  xrsl = "&(executable=/bin/true)"
+         "(inputfiles=(\"in1\" \"gsiftp://example.com/in1\" \"threads\"))";
+
+  CPPUNIT_ASSERT(!PARSER.Parse(xrsl, OUTJOBS));
+}
+
+void XRSLParserTest::TestURIOptionsOutput() {
+  xrsl = "&(executable=/bin/true)"
+         "(outputfiles=(\"out1\" \"rls://example.com/in1\" \"checksum=md5\" \"location=gsiftp://example.com/in1\" \"threads=5\" \"location=gsiftp://example2.com/in1\" \"threads=10\"))";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Target.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("md5"), OUTJOBS.front().Files.front().Target.front().Option("checksum"));
+
+  const std::list<Arc::URLLocation> locations = OUTJOBS.front().Files.front().Target.front().Locations();
+  CPPUNIT_ASSERT_EQUAL(2, (int)locations.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), locations.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), locations.front().Option("threads"));
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example2.com:2811/in1"), locations.back().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("10"), locations.back().Option("threads"));
 }
 
 void XRSLParserTest::TestExecutables() {

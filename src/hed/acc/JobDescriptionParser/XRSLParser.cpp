@@ -536,7 +536,7 @@ namespace Arc {
 
       if (c->Attr() == "inputfiles") {
         std::list<std::list<std::string> > ll;
-        if (!SeqListValue(c, ll, 2))
+        if (!SeqListValue(c, ll))
           return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
@@ -546,10 +546,22 @@ namespace Arc {
           long fileSize;
           // The second string in the list (it2) might either be a URL or file size.
           if (!it2->empty() && !stringto(*it2, fileSize)) {
-            file.Source.push_back(URL(*it2));
-            if (!file.Source.back()) {
+            URL turl(*it2);
+            if (!turl) {
               return false;
             }
+            for (it2++; it2 != it->end(); ++it2) {
+              // add any options
+              std::string::size_type pos = it2->find('=');
+              if (pos == std::string::npos) {
+                logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", *it2, file.Name);
+                return false;
+              }
+              std::string attr_name(it2->substr(0, pos));
+              std::string attr_value(it2->substr(pos+1));
+              turl.AddOption(attr_name, attr_value, true);
+            }
+            file.Source.push_back(turl);
           }
           else {
             file.Source.push_back(URL(file.Name));
@@ -602,20 +614,46 @@ namespace Arc {
 
       if (c->Attr() == "outputfiles") {
         std::list<std::list<std::string> > ll;
-        if (!SeqListValue(c, ll, 2))
+        if (!SeqListValue(c, ll))
           return false;
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           std::list<std::string>::iterator it2 = it->begin();
           FileType file;
           file.Name = *it2++;
-          long fileSize;
           URL turl(*it2);
-          // The second string in the list (it2) might be a URL or file size.
-          if (!it2->empty() && !stringto(*it2, fileSize) && turl.Protocol() != "file") {
+          // The second string in the list (it2) might be a URL or empty
+          if (!it2->empty() && turl.Protocol() != "file") {
             if (!turl) {
               return false;
             }
+            URLLocation location;
+            for (it2++; it2 != it->end(); ++it2) {
+              // add any options and locations
+              // an option applies to the URL preceding it (main or location)
+              std::string::size_type pos = it2->find('=');
+              if (pos == std::string::npos) {
+                logger.msg(ERROR, "Invalid URL option syntax in option %s for output file %s", *it2, file.Name);
+                return false;
+              }
+              std::string attr_name(it2->substr(0, pos));
+              std::string attr_value(it2->substr(pos+1));
+              if (attr_name == "location") {
+                if (location)
+                  turl.AddLocation(location);
+                location = URLLocation(attr_value);
+                if (!location) {
+                  logger.msg(ERROR, "Invalid URL: %s in output file %s", attr_value, file.Name);
+                  return false;
+                }
+              } else if (location) {
+                location.AddOption(attr_name, attr_value, true);
+              } else {
+                turl.AddOption(attr_name, attr_value, true);
+              }
+            }
+            if (location)
+              turl.AddLocation(location);
             file.Target.push_back(turl);
           }
           else {

@@ -555,14 +555,72 @@ namespace Arc {
         file.Name = (std::string)filenameNode;
         if (bool(source)) {
           if (bool(source_uri)) {
-            file.Source.push_back(URL((std::string)source_uri));
+            URL source_url((std::string)source_uri);
+            if (!source_url)
+              return false;
+            // add any URL options
+            XMLNode options = source["URIOption"];
+            for (int j = 0; options[j]; ++j) {
+              XMLNode option = options[j];
+              std::string opt((std::string)option);
+              std::string::size_type pos = opt.find('=');
+              if (pos == std::string::npos) {
+                logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", opt, file.Name);
+                return false;
+              }
+              std::string attr_name(opt.substr(0, pos));
+              std::string attr_value(opt.substr(pos+1));
+              source_url.AddOption(attr_name, attr_value, true);
+            }
+            file.Source.push_back(source_url);
           }
           else {
             file.Source.push_back(URL(file.Name));
           }
         }
         if (bool(target) && bool(target_uri)) {
-          file.Target.push_back(URL((std::string)target_uri));
+          URL target_url((std::string)target_uri);
+          if (!target_url) {
+            return false;
+          }
+          // add any URL options
+          XMLNode options = target["URIOption"];
+          for (int j = 0; options[j]; ++j) {
+            XMLNode option = options[j];
+            std::string opt((std::string)option);
+            std::string::size_type pos = opt.find('=');
+            if (pos == std::string::npos) {
+              logger.msg(ERROR, "Invalid URL option syntax in option %s for output file %s", opt, file.Name);
+              return false;
+            }
+            std::string attr_name(opt.substr(0, pos));
+            std::string attr_value(opt.substr(pos+1));
+            target_url.AddOption(attr_name, attr_value, true);
+          }
+          // add URL Locations, which may have their own options
+          XMLNode locations = target["Location"];
+          for (int j = 0; locations[j]; ++j) {
+            XMLNode location = locations[j];
+            XMLNode location_uri = location["URI"];
+            URLLocation location_url((std::string)location_uri);
+            if (!location_url)
+              return false;
+            XMLNode loc_options = location["URIOption"];
+            for (int k = 0; loc_options[k]; ++k) {
+              XMLNode loc_option = loc_options[k];
+              std::string loc_opt((std::string)loc_option);
+              std::string::size_type pos = loc_opt.find('=');
+              if (pos == std::string::npos) {
+                logger.msg(ERROR, "Invalid URL option syntax in option %s for output file %s", loc_opt, file.Name);
+                return false;
+              }
+              std::string attr_name(loc_opt.substr(0, pos));
+              std::string attr_value(loc_opt.substr(pos+1));
+              location_url.AddOption(attr_name, attr_value, true);
+            }
+            target_url.AddLocation(location_url);
+          }
+          file.Target.push_back(target_url);
         }
 
         // If DeteleOnTermination is not set do not keep data. Only keep data if explicitly specified.
