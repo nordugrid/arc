@@ -550,8 +550,10 @@ namespace Arc {
             if (!turl) {
               return false;
             }
+            URLLocation location;
             for (it2++; it2 != it->end(); ++it2) {
-              // add any options
+              // add any options and locations
+              // an option applies to the URL preceding it (main or location)
               std::string::size_type pos = it2->find('=');
               if (pos == std::string::npos) {
                 logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", *it2, file.Name);
@@ -559,8 +561,22 @@ namespace Arc {
               }
               std::string attr_name(it2->substr(0, pos));
               std::string attr_value(it2->substr(pos+1));
-              turl.AddOption(attr_name, attr_value, true);
+              if (attr_name == "location") {
+                if (location)
+                  turl.AddLocation(location);
+                location = URLLocation(attr_value);
+                if (!location) {
+                  logger.msg(ERROR, "Invalid URL: %s in input file %s", attr_value, file.Name);
+                  return false;
+                }
+              } else if (location) {
+                location.AddOption(attr_name, attr_value, true);
+              } else {
+                turl.AddOption(attr_name, attr_value, true);
+              }
             }
+            if (location)
+              turl.AddLocation(location);
             file.Source.push_back(turl);
           }
           else {

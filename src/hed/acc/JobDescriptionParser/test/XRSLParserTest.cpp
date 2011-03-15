@@ -532,6 +532,19 @@ void XRSLParserTest::TestURIOptionsInput() {
   CPPUNIT_ASSERT_EQUAL(std::string("5"), OUTJOBS.front().Files.front().Source.front().Option("threads"));
 
   xrsl = "&(executable=/bin/true)"
+         "(inputfiles=(\"in1\" \"lfc://example.com/in1\" \"location=gsiftp://example.com/in1\" \"threads=5\"))";
+
+  CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
+
+  const std::list<Arc::URLLocation> locations = OUTJOBS.front().Files.front().Source.front().Locations();
+  CPPUNIT_ASSERT_EQUAL(1, (int)locations.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), locations.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), locations.front().Option("threads"));
+
+  xrsl = "&(executable=/bin/true)"
          "(inputfiles=(\"in1\" \"gsiftp://example.com/in1\" \"threads\"))";
 
   CPPUNIT_ASSERT(!PARSER.Parse(xrsl, OUTJOBS));
