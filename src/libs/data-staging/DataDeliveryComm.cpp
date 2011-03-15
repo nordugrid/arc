@@ -68,10 +68,19 @@ namespace DataStaging {
       std::string execpath = Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"DataStagingDelivery";
       args.push_back(execpath);
       // check for alternative source or destination eg cache, mapped URL, TURL
+      if (dtr.get_source()->TransferLocations().empty()) {
+        if (logger_) logger_->msg(Arc::ERROR, "No locations defined for %s", dtr.get_source()->str());
+        return;
+      }
       std::string surl = dtr.get_source()->TransferLocations()[0].fullstr();
       bool caching = false;
       if (!dtr.get_mapped_source().empty())
         surl = dtr.get_mapped_source();
+
+      if (dtr.get_destination()->TransferLocations().empty()) {
+        if (logger_) logger_->msg(Arc::ERROR, "No locations defined for %s", dtr.get_destination()->str());
+        return;
+      }
       std::string durl = dtr.get_destination()->TransferLocations()[0].fullstr();
       if ((dtr.get_cache_state() == CACHEABLE) && !dtr.get_cache_file().empty()) {
         durl = dtr.get_cache_file();
