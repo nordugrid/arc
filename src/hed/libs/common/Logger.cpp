@@ -24,6 +24,8 @@
 
 namespace Arc {
 
+  #define DefaultLogLevel (DEBUG)
+
   static std::string list_to_domain(const std::list<std::string>& subdomains) {
     std::string domain;
     for(std::list<std::string>::const_iterator subdomain = subdomains.begin();
@@ -64,8 +66,8 @@ namespace Arc {
     else if (str == "FATAL")
       return FATAL;
     else { // should not happen...
-      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using FATAL.");
-      return FATAL;
+      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using default "+level_to_string(DefaultLogLevel)+".");
+      return DefaultLogLevel;
     }
   }
 
@@ -141,8 +143,8 @@ namespace Arc {
     else if (old_level == 0)
       return FATAL;
     else { // cannot happen...
-      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using FATAL.");
-      return FATAL;
+      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using default "+level_to_string(DefaultLogLevel)+".");
+      return DefaultLogLevel;
     }
   }
 
@@ -562,7 +564,7 @@ namespace Arc {
   Logger::Logger()
     : parent(0),
       domain("Arc"),
-      context(DEBUG) {
+      context(DefaultLogLevel) {
     // addDestination(cerr);
   }
 

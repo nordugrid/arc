@@ -13,6 +13,7 @@ class LoggerTest
   CPPUNIT_TEST(TestLoggerINFO);
   CPPUNIT_TEST(TestLoggerVERBOSE);
   CPPUNIT_TEST(TestLoggerTHREAD);
+  CPPUNIT_TEST(TestLoggerDEFAULT);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -22,6 +23,7 @@ public:
   void TestLoggerINFO();
   void TestLoggerVERBOSE();
   void TestLoggerTHREAD();
+  void TestLoggerDEFAULT();
 
 private:
   std::stringstream stream;
@@ -109,5 +111,10 @@ void LoggerTest::thread(void* arg) {
   it.thread_lock.unlock();
 }
 
+void LoggerTest::TestLoggerDEFAULT() {
+  Arc::LogLevel default_level = Arc::Logger::getRootLogger().getThreshold();
+  Arc::LogLevel bad_level = Arc::string_to_level("COW");
+  CPPUNIT_ASSERT_EQUAL(bad_level, default_level);
+}
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LoggerTest);
