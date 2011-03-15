@@ -27,6 +27,7 @@ class URLTest
   CPPUNIT_TEST(TestIP6Url3);
   CPPUNIT_TEST(TestBadUrl);
   CPPUNIT_TEST(TestStringMatchesURL);
+  CPPUNIT_TEST(TestOptions);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -49,6 +50,7 @@ public:
   void TestIP6Url3();
   void TestBadUrl();
   void TestStringMatchesURL();
+  void TestOptions();
 
 private:
   Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *rlsurl, *rlsurl2, *rlsurl3, *lfcurl, *srmurl, *ip6url, *ip6url2, *ip6url3;
@@ -408,6 +410,28 @@ void URLTest::TestStringMatchesURL() {
 
   str = "example.org/";
   CPPUNIT_ASSERT(url.StringMatches(str));
+}
+
+void URLTest::TestOptions() {
+  Arc::URL url("http://example.org:8080/path");
+  CPPUNIT_ASSERT(url);
+
+  CPPUNIT_ASSERT(!url.AddOption(std::string("attr1")));
+  CPPUNIT_ASSERT(!url.AddOption(std::string(""), std::string("")));
+  CPPUNIT_ASSERT_EQUAL(std::string(""), (url.Option("attr1")));
+
+  CPPUNIT_ASSERT(url.AddOption(std::string("attr1"), std::string("value1")));
+  CPPUNIT_ASSERT_EQUAL(std::string("value1"), url.Option("attr1"));
+
+  CPPUNIT_ASSERT(!url.AddOption("attr1", "value2", false));
+  CPPUNIT_ASSERT_EQUAL(std::string("value1"), url.Option("attr1"));
+  CPPUNIT_ASSERT(url.AddOption("attr1", "value2", true));
+  CPPUNIT_ASSERT_EQUAL(std::string("value2"), url.Option("attr1"));
+
+  CPPUNIT_ASSERT(!url.AddOption("attr1=value1", false));
+  CPPUNIT_ASSERT_EQUAL(std::string("value2"), url.Option("attr1"));
+  CPPUNIT_ASSERT(url.AddOption("attr1=value1", true));
+  CPPUNIT_ASSERT_EQUAL(std::string("value1"), url.Option("attr1"));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(URLTest);

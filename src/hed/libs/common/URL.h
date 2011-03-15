@@ -172,9 +172,18 @@ namespace Arc {
     const std::string& MetaDataOption(const std::string& option,
                                       const std::string& undefined = "") const;
 
-    /** Adds a URL option. */
-    void AddOption(const std::string& option, const std::string& value,
+    /** Adds a URL option with the given value. Returns false if overwrite
+     *  is false and option already exists, true otherwise. Note that some
+     *  compilers may interpret AddOption("name", "value") as a call to
+     *  AddOption(string, bool) so it is recommended to use explicit
+     *  string types when calling this method. */
+    bool AddOption(const std::string& option, const std::string& value,
                    bool overwrite = true);
+
+    /** Adds a URL option where option has the format "name=value". Returns
+     *  false if overwrite is true and option already exists or if option does
+     *  not have the correct format. Returns true otherwise. */
+    bool AddOption(const std::string& option, bool overwrite = true);
 
     /** Adds a metadata option */
     void AddMetaDataOption(const std::string& option, const std::string& value,

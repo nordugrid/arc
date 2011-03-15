@@ -606,11 +606,24 @@ namespace Arc {
       return undefined;
   }
 
-  void URL::AddOption(const std::string& option, const std::string& value,
+  bool URL::AddOption(const std::string& option, const std::string& value,
                       bool overwrite) {
-    if (!overwrite && urloptions.find(option) != urloptions.end())
-      return;
+    if (option.empty() || value.empty() ||
+        (!overwrite && urloptions.find(option) != urloptions.end()))
+      return false;
     urloptions[option] = value;
+    return true;
+  }
+
+  bool URL::AddOption(const std::string& option, bool overwrite) {
+    std::string::size_type pos = option.find('=');
+    if (pos == std::string::npos) {
+      URLLogger.msg(ERROR, "URL option %s does not have format name=value", option);
+      return false;
+    }
+    std::string attr_name(option.substr(0, pos));
+    std::string attr_value(option.substr(pos+1));
+    return AddOption(attr_name, attr_value, overwrite);
   }
 
   void URL::AddMetaDataOption(const std::string& option, const std::string& value,
