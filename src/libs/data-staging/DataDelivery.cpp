@@ -34,7 +34,8 @@ namespace DataStaging {
   void DataDelivery::receiveDTR(DTR& dtr) {
     if(!dtr) {
       logger.msg(Arc::ERROR, "Received invalid DTR");
-      dtr.set_status(DTRStatus::ERROR);
+      dtr.set_error_status(DTRErrorStatus::INTERNAL_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Invalid DTR");
+      dtr.set_status(DTRStatus::TRANSFERRED);
       dtr.push(SCHEDULER);
       return;
     }
@@ -53,7 +54,8 @@ namespace DataStaging {
       dtr_list.push_back(d);
       dtr_list_lock.unlock();
     } else {
-      dtr.set_status(DTRStatus::ERROR);
+      dtr.set_error_status(DTRErrorStatus::INTERNAL_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Failed to start Delivery process");
+      dtr.set_status(DTRStatus::TRANSFERRED);
       dtr.push(SCHEDULER);
     }
     return;
