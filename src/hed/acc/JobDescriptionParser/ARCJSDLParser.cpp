@@ -559,18 +559,30 @@ namespace Arc {
             if (!source_url)
               return false;
             // add any URL options
-            XMLNode options = source["URIOption"];
-            for (int j = 0; options[j]; ++j) {
-              XMLNode option = options[j];
-              std::string opt((std::string)option);
-              std::string::size_type pos = opt.find('=');
-              if (pos == std::string::npos) {
-                logger.msg(ERROR, "Invalid URL option syntax in option %s for input file %s", opt, file.Name);
+            XMLNode option = source["URIOption"];
+            for (; (bool)option; ++option) {
+              if (!source_url.AddOption((std::string)option, true))
+                return false;
+            }
+            // add URL Locations, which may have their own options
+            XMLNode location = source["Location"];
+            for (; (bool)location; ++location) {
+              XMLNode location_uri = location["URI"];
+              if (!location_uri) {
+                logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
                 return false;
               }
-              std::string attr_name(opt.substr(0, pos));
-              std::string attr_value(opt.substr(pos+1));
-              source_url.AddOption(attr_name, attr_value, true);
+              URLLocation location_url((std::string)location_uri);
+              if (!location_url || location_url.Protocol() == "file") {
+                logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
+                return false;
+              }
+              XMLNode loc_option = location["URIOption"];
+              for (; (bool)loc_option; ++loc_option) {
+                if (!location_url.AddOption((std::string)loc_option, true))
+                  return false;
+              }
+              source_url.AddLocation(location_url);
             }
             file.Source.push_back(source_url);
           }
@@ -584,39 +596,28 @@ namespace Arc {
             return false;
           }
           // add any URL options
-          XMLNode options = target["URIOption"];
-          for (int j = 0; options[j]; ++j) {
-            XMLNode option = options[j];
-            std::string opt((std::string)option);
-            std::string::size_type pos = opt.find('=');
-            if (pos == std::string::npos) {
-              logger.msg(ERROR, "Invalid URL option syntax in option %s for output file %s", opt, file.Name);
+          XMLNode option = target["URIOption"];
+          for (; (bool)option; ++option) {
+            if (!target_url.AddOption((std::string)option, true))
               return false;
-            }
-            std::string attr_name(opt.substr(0, pos));
-            std::string attr_value(opt.substr(pos+1));
-            target_url.AddOption(attr_name, attr_value, true);
           }
           // add URL Locations, which may have their own options
-          XMLNode locations = target["Location"];
-          for (int j = 0; locations[j]; ++j) {
-            XMLNode location = locations[j];
+          XMLNode location = target["Location"];
+          for (; (bool)location; ++location) {
             XMLNode location_uri = location["URI"];
-            URLLocation location_url((std::string)location_uri);
-            if (!location_url)
+            if (!location_uri) {
+              logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
               return false;
-            XMLNode loc_options = location["URIOption"];
-            for (int k = 0; loc_options[k]; ++k) {
-              XMLNode loc_option = loc_options[k];
-              std::string loc_opt((std::string)loc_option);
-              std::string::size_type pos = loc_opt.find('=');
-              if (pos == std::string::npos) {
-                logger.msg(ERROR, "Invalid URL option syntax in option %s for output file %s", loc_opt, file.Name);
+            }
+            URLLocation location_url((std::string)location_uri);
+            if (!location_url || location_url.Protocol() == "file") {
+              logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
+              return false;
+            }
+            XMLNode loc_option = location["URIOption"];
+            for (; (bool)loc_option; ++loc_option) {
+              if (!location_url.AddOption((std::string)loc_option, true))
                 return false;
-              }
-              std::string attr_name(loc_opt.substr(0, pos));
-              std::string attr_value(loc_opt.substr(pos+1));
-              location_url.AddOption(attr_name, attr_value, true);
             }
             target_url.AddLocation(location_url);
           }
