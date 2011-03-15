@@ -230,20 +230,9 @@ namespace Arc {
     else { // add given locations, checking they don't already exist
       for (std::list<URLLocation>::const_iterator loc = url.Locations().begin(); loc != url.Locations().end(); ++loc) {
 
-        // Make pfn from loc + last part of LFN 
-        std::string pfn = loc->fullstr();
-        if (pfn.find_last_of("/") != pfn.length() - 1)
-          pfn += "/"; 
-        // take off leading dirs of LFN
-        std::string::size_type slash_index = path.rfind("/", path.length() + 1);
-        if (slash_index != std::string::npos)
-          pfn += path.substr(slash_index + 1);
-        else
-          pfn += path;
-
-        URL uloc(pfn);
+        URL uloc(loc->fullstr());
         if (!uloc) {
-          logger.msg(WARNING, "Skipping invalid location: %s - %s", url.ConnectionURL(), pfn);
+          logger.msg(WARNING, "Skipping invalid location: %s - %s", url.ConnectionURL(), loc->str());
           continue;
         }
 
