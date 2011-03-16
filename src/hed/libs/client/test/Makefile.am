@@ -27,17 +27,17 @@ BrokerTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
 JobControllerTest_SOURCES = $(top_srcdir)/src/Test.cpp JobControllerTest.cpp
 JobControllerTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 JobControllerTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
-                          $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la
+                          $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la libTestACCControl.la
 
 SubmitterTest_SOURCES = $(top_srcdir)/src/Test.cpp SubmitterTest.cpp
 SubmitterTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 SubmitterTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
-                      $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la
+                      $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la libTestACCControl.la
 
 TargetRetrieverTest_SOURCES = $(top_srcdir)/src/Test.cpp TargetRetrieverTest.cpp
 TargetRetrieverTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 TargetRetrieverTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
-                            $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la
+                            $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la libTestACCControl.la
 
 libaccTEST_la_SOURCES  = TestACCControl.h TestACCPluginDescriptors.cpp \
                          JobControllerTestACC.cpp JobControllerTestACC.h \
