@@ -9,6 +9,7 @@
 
 #include <arc/Logger.h>
 #include <arc/Run.h>
+#include <arc/Utils.h>
 
 #include "fileroot.h"
 #include "commands.h"
@@ -289,7 +290,7 @@ int main(int argc,char** argv) {
     socklen_t addrlen = sizeof(addr);
     int sock = accept(handle,(sockaddr*)&addr,&addrlen);
     if(sock == -1) {
-      if(!server_done) logger.msg(Arc::ERROR, "Accept failed: %s", strerror(errno));
+      if(!server_done) logger.msg(Arc::ERROR, "Accept failed: %s", Arc::StrError(errno));
       break;
     };
     logger.msg(Arc::INFO, "Have connections: %i, max: %i", curr_connections, max_connections);
@@ -297,7 +298,7 @@ int main(int argc,char** argv) {
       logger.msg(Arc::INFO, "New connection");
       switch (fork()) {
         case -1: {
-          logger.msg(Arc::ERROR, "Fork failed: %s", strerror(errno));
+          logger.msg(Arc::ERROR, "Fork failed: %s", Arc::StrError(errno));
         }; break;
         case 0: {
           /* child */
