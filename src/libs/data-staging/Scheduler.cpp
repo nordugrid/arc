@@ -7,6 +7,8 @@
 
 #include <set>
 
+#include <arc/Utils.h>
+
 #include "Scheduler.h"
 
 namespace DataStaging {
@@ -181,7 +183,7 @@ namespace DataStaging {
         }
         else {
           if (symlink(mapped_url.Path().c_str(), request->get_destination()->CurrentLocation().Path().c_str()) != 0) {
-            request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to create link: %s. Will not use mapped URL", request->get_short_id(), strerror(errno));
+            request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to create link: %s. Will not use mapped URL", request->get_short_id(), Arc::StrError(errno));
           }
           else {
             // successful link, so turn off caching, set to TRANSFERRED and return
