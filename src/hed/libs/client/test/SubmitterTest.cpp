@@ -17,7 +17,7 @@ class SubmitterTest
 
 public:
   SubmitterTest();
-  ~SubmitterTest() { delete s; }
+  ~SubmitterTest() { delete sl; }
 
   void setUp() {}
   void tearDown() {}
