@@ -8,7 +8,8 @@
 #include <string.h>
 #include <list>
 
-#include "arc/Logger.h"
+#include <arc/Logger.h>
+#include <arc/Utils.h>
 
 // Needed to redefine mkdir on mingw
 #ifdef WIN32
@@ -99,7 +100,7 @@ namespace Arc
 	   "Could not read archive file %s for job log file %s (%s), generating new Usage Record",
 	   archive_fn.c_str(),
 	   filename.c_str(),
-	   strerror(errno));
+	   StrError(errno));
       }
     //Otherwise go on and create new UR
     //***
@@ -379,7 +380,7 @@ namespace Arc
 		Arc::Logger::rootLogger.msg(Arc::ERROR,
 		    "Failed to create archive directory %s: %s",
 		    dir_name.c_str(),
-		    strerror(errno));
+		    StrError(errno));
 	      }
 	  }
 	
@@ -392,7 +393,7 @@ namespace Arc
 	    Arc::Logger::rootLogger.msg(Arc::ERROR,
 					"Failed to write file %s: %s",
 					archive_fn.c_str(),
-					strerror(errno));
+					StrError(errno));
 	  }
       }
     //***
@@ -423,7 +424,7 @@ namespace Arc
     if (e)
       Arc::Logger::rootLogger.msg(Arc::ERROR,"Failed to delete file %s:%s",
 		      filename.c_str(),
-		      strerror(errno));
+		      StrError(errno));
   }
 
   std::string JobLogFile::getArchivingPath()

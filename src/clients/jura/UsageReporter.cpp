@@ -9,7 +9,8 @@
 #include <time.h>
 #include <sstream>
 
-#include "arc/ArcRegex.h"
+#include <arc/ArcRegex.h>
+#include <arc/Utils.h>
 
 namespace Arc
 {
@@ -54,7 +55,7 @@ namespace Arc
 	logger.msg(Arc::ERROR, 
 		   "Could not open log directory \"%s\": %s",
 		   job_log_dir.c_str(),
-		   strerror(errno)
+		   StrError(errno)
 		   );
 	return -1;
       }
@@ -143,7 +144,7 @@ namespace Arc
 	logger.msg(Arc::ERROR, 
 		   "Error reading log directory \"%s\": %s",
 		   job_log_dir.c_str(),
-		   strerror(errno)
+		   StrError(errno)
 		   );
 	return -2;
       }
