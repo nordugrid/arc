@@ -24,6 +24,7 @@
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
 #include <arc/User.h>
+#include <arc/Utils.h>
 
 #include "FileCache.h"
 
@@ -228,7 +229,7 @@ namespace Arc {
     if (lock_removed) {
       if (remove(filename.c_str()) != 0 && errno != ENOENT) {
         lock.release();
-        logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
+        logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
         return false;
       }
     }
@@ -242,13 +243,13 @@ namespace Arc {
       FILE *pFile;
       pFile = fopen((char*)meta_file.c_str(), "r");
       if (pFile == NULL) {
-        logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
+        logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), StrError(errno));
         lock.release();
         return false;
       }
       std::string meta_str;
       if(!fgets(pFile, fileStat.st_size, meta_str)) {
-        logger.msg(ERROR, "Error reading valid and existing meta file %s: %s", _getMetaFileName(url), strerror(errno));
+        logger.msg(ERROR, "Error reading valid and existing meta file %s: %s", _getMetaFileName(url), StrError(errno));
         fclose(pFile);
         lock.release();
         return false;
@@ -271,7 +272,7 @@ namespace Arc {
       FILE *pFile;
       pFile = fopen((char*)meta_file.c_str(), "w");
       if (pFile == NULL) {
-        logger.msg(ERROR, "Failed to create info file %s: %s", meta_file, strerror(errno));
+        logger.msg(ERROR, "Failed to create info file %s: %s", meta_file, StrError(errno));
         lock.release();
         return false;
       }
@@ -282,7 +283,7 @@ namespace Arc {
       chmod(meta_file.c_str(), S_IRUSR | S_IWUSR);
     }
     else {
-      logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, StrError(errno));
       lock.release();
       return false;
     }
@@ -329,7 +330,7 @@ namespace Arc {
       // we delete the remote cache file and download from source again
       if (lock_removed) {
         if (remove(remote_cache_file.c_str()) != 0 && errno != ENOENT)
-          logger.msg(INFO, "Error removing remote cache file %s: %s", remote_cache_file, strerror(errno));
+          logger.msg(INFO, "Error removing remote cache file %s: %s", remote_cache_file, StrError(errno));
         remote_lock.release();
         return true;
       }
@@ -341,7 +342,7 @@ namespace Arc {
 
         int fdest = FileOpen(filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if(fdest == -1) {
-          logger.msg(ERROR, "Failed to create file %s for writing: %s",filename, strerror(errno));
+          logger.msg(ERROR, "Failed to create file %s for writing: %s",filename, StrError(errno));
           remote_lock.release();
           lock.release();
           return false;
@@ -350,7 +351,7 @@ namespace Arc {
         int fsource = FileOpen(remote_cache_file, O_RDONLY, 0);
         if(fsource == -1) {
           close(fdest);
-          logger.msg(ERROR, "Failed to open file %s for reading: %s", remote_cache_file, strerror(errno));
+          logger.msg(ERROR, "Failed to open file %s for reading: %s", remote_cache_file, StrError(errno));
           remote_lock.release();
           lock.release();
           return false;
@@ -358,7 +359,7 @@ namespace Arc {
         
         if(!FileCopy(fsource,fdest)) {
           close(fdest); close(fsource);
-          logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, strerror(errno));
+          logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, StrError(errno));
           remote_lock.release();
           lock.release();
           return false;
@@ -371,7 +372,7 @@ namespace Arc {
       else {
         logger.msg(VERBOSE, "Creating temporary link from %s to remote cache file %s", filename, remote_cache_file);
         if (symlink(remote_cache_file.c_str(), filename.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to create soft link to remote cache: %s Will download %s from source", strerror(errno), url);
+          logger.msg(ERROR, "Failed to create soft link to remote cache: %s Will download %s from source", StrError(errno), url);
           if (!remote_lock.release())
             logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
           return true;
@@ -381,7 +382,7 @@ namespace Arc {
     }
     else {
       // this is ok, we will download again
-      logger.msg(WARNING, "Warning: error looking up attributes of cached file: %s", strerror(errno));
+      logger.msg(WARNING, "Warning: error looking up attributes of cached file: %s", StrError(errno));
     }
     return true;
   }
@@ -398,7 +399,7 @@ namespace Arc {
       char buf[1024];
       int link_size = readlink(filename.c_str(), buf, sizeof(buf));
       if (link_size == -1) {
-        logger.msg(ERROR, "Could not read target of link %s: %s. Manual intervention may be required to remove lock in remote cache", filename, strerror(errno));
+        logger.msg(ERROR, "Could not read target of link %s: %s. Manual intervention may be required to remove lock in remote cache", filename, StrError(errno));
         return false;
       }
       std::string remote_file(buf); remote_file.resize(link_size);
@@ -407,7 +408,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
 
       if (remove(filename.c_str()) != 0) {
-        logger.msg(ERROR, "Error removing file %s: %s. Manual intervention may be required", filename, strerror(errno));
+        logger.msg(ERROR, "Error removing file %s: %s. Manual intervention may be required", filename, StrError(errno));
         return false;
       }
     }
@@ -415,7 +416,7 @@ namespace Arc {
     // delete the lock
     FileLock lock(filename);
     if (!lock.release()) {
-      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, strerror(errno));
+      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
       return false;
     }
     // get the hash of the url
@@ -444,7 +445,7 @@ namespace Arc {
       char buf[1024];
       int link_size = readlink(filename.c_str(), buf, sizeof(buf));
       if (link_size == -1) {
-        logger.msg(ERROR, "Could not read target of link %s: %s. Manual intervention may be required to remove lock in remote cache", filename, strerror(errno));
+        logger.msg(ERROR, "Could not read target of link %s: %s. Manual intervention may be required to remove lock in remote cache", filename, StrError(errno));
         return false;
       }
       std::string remote_file(buf); remote_file.resize(link_size);
@@ -456,17 +457,17 @@ namespace Arc {
     // delete the lock
     FileLock lock(filename);
     if (!lock.release()) {
-      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, strerror(errno));
+      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
       return false;
     }
 
     // delete the meta file - not critical so don't fail on error
     if (remove(_getMetaFileName(url).c_str()) != 0)
-      logger.msg(ERROR, "Failed to remove .meta file %s: %s", _getMetaFileName(url), strerror(errno));
+      logger.msg(ERROR, "Failed to remove .meta file %s: %s", _getMetaFileName(url), StrError(errno));
 
     // delete the cache file
     if (remove(filename.c_str()) != 0 && errno != ENOENT) {
-      logger.msg(ERROR, "Error removing cache file %s: %s", filename, strerror(errno));
+      logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
       return false;
     }
 
@@ -526,7 +527,7 @@ namespace Arc {
       if (errno == ENOENT)
         logger.msg(ERROR, "Error: Cache file %s does not exist", cache_file);
       else
-        logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, strerror(errno));
+        logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, StrError(errno));
       return false;
     }
   
@@ -559,7 +560,7 @@ namespace Arc {
       char link_target_buf[1024];
       int link_size = readlink(cache_file.c_str(), link_target_buf, sizeof(link_target_buf));
       if (link_size == -1) {
-        logger.msg(ERROR, "Could not read target of link %s: %s", cache_file, strerror(errno));
+        logger.msg(ERROR, "Could not read target of link %s: %s", cache_file, StrError(errno));
         return false;
       }
       // need to match the symlink target against the list of remote caches
@@ -602,27 +603,27 @@ namespace Arc {
       // if the link we want to make already exists, delete and make new one
       if (errno == EEXIST) {
         if (remove(hard_link_file.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to remove existing hard link at %s: %s", hard_link_file, strerror(errno));
+          logger.msg(ERROR, "Failed to remove existing hard link at %s: %s", hard_link_file, StrError(errno));
           return false;
         }
         if (link(cache_file.c_str(), hard_link_file.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, strerror(errno));
+          logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, StrError(errno));
           return false;
         }
       }
       else {
-        logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, strerror(errno));
+        logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, StrError(errno));
         return false;
       }
     }
     // ensure the hard link is readable by all and owned by root (or GM user)
     // (to make cache file immutable but readable by all)
     if (chown(hard_link_file.c_str(), getuid(), getgid()) != 0) {
-      logger.msg(ERROR, "Failed to change owner of hard link to %i: %s", getuid(), strerror(errno));
+      logger.msg(ERROR, "Failed to change owner of hard link to %i: %s", getuid(), StrError(errno));
       return false;
     }
     if (chmod(hard_link_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) != 0) {
-      logger.msg(ERROR, "Failed to change permissions of hard link to 0644: %s", strerror(errno));
+      logger.msg(ERROR, "Failed to change permissions of hard link to 0644: %s", StrError(errno));
       return false;
     }
 
@@ -636,11 +637,11 @@ namespace Arc {
       if (!_cacheMkDir(session_dir, true))
         return false;
       if (!switch_user && chown(session_dir.c_str(), _uid, _gid) != 0) {
-        logger.msg(ERROR, "Failed to change owner of session dir to %i: %s", _uid, strerror(errno));
+        logger.msg(ERROR, "Failed to change owner of session dir to %i: %s", _uid, StrError(errno));
         return false;
       }
       if (chmod(session_dir.c_str(), S_IRWXU) != 0) {
-        logger.msg(ERROR, "Failed to change permissions of session dir to 0700: %s", strerror(errno));
+        logger.msg(ERROR, "Failed to change permissions of session dir to 0700: %s", StrError(errno));
         return false;
       }
     }
@@ -653,11 +654,11 @@ namespace Arc {
       // UserSwitch is called inside FileOpen if switch_user
       int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT, switch_user ? _uid : getuid(), switch_user ? _gid : getgid(), perm);
       if (fdest == -1) {
-        logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, strerror(errno));
+        logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, StrError(errno));
         return false;
       }
       if (!switch_user && fchown(fdest, _uid, _gid) == -1) {
-        logger.msg(ERROR, "Failed change ownership of destination file %s: %s", dest_path, strerror(errno));
+        logger.msg(ERROR, "Failed change ownership of destination file %s: %s", dest_path, StrError(errno));
         close(fdest);
         return false;
       }
@@ -665,7 +666,7 @@ namespace Arc {
       int fsource = FileOpen(hard_link_file, O_RDONLY, switch_user ? _uid : getuid(), switch_user ? _gid : getgid(), 0);
       if (fsource == -1) {
         close(fdest);
-        logger.msg(ERROR, "Failed to open file %s for reading: %s", hard_link_file, strerror(errno));
+        logger.msg(ERROR, "Failed to open file %s for reading: %s", hard_link_file, StrError(errno));
         return false;
       }
 
@@ -673,7 +674,7 @@ namespace Arc {
       if(!FileCopy(fsource, fdest)) {
         close(fdest);
         close(fsource);
-        logger.msg(ERROR, "Failed to copy file %s to %s: %s", hard_link_file, dest_path, strerror(errno));
+        logger.msg(ERROR, "Failed to copy file %s to %s: %s", hard_link_file, dest_path, StrError(errno));
         return false;
       }
       close(fdest);
@@ -691,22 +692,22 @@ namespace Arc {
         // if the link we want to make already exists, delete and make new one
         if (errno == EEXIST) {
           if (remove(dest_path.c_str()) != 0) {
-            logger.msg(ERROR, "Failed to remove existing symbolic link at %s: %s", dest_path, strerror(errno));
+            logger.msg(ERROR, "Failed to remove existing symbolic link at %s: %s", dest_path, StrError(errno));
             return false;
           }
           if (symlink(hard_link_file.c_str(), dest_path.c_str()) != 0) {
-            logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, strerror(errno));
+            logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, StrError(errno));
             return false;
           }
         }
         else {
-          logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, strerror(errno));
+          logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, StrError(errno));
           return false;
         }
       }
       // change the owner of the soft link to the job user
       if (!switch_user && lchown(dest_path.c_str(), _uid, _gid) != 0) {
-        logger.msg(ERROR, "Failed to change owner of symbolic link to %i: %s", _uid, strerror(errno));
+        logger.msg(ERROR, "Failed to change owner of symbolic link to %i: %s", _uid, StrError(errno));
         return false;
       }
     }
@@ -737,7 +738,7 @@ namespace Arc {
       if (dirp == NULL) {
         if (errno == ENOENT)
           continue;
-        logger.msg(ERROR, "Error opening per-job dir %s: %s", job_dir, strerror(errno));
+        logger.msg(ERROR, "Error opening per-job dir %s: %s", job_dir, StrError(errno));
         return false;
       }
 
@@ -750,7 +751,7 @@ namespace Arc {
         std::string to_delete = job_dir + "/" + dp->d_name;
         logger.msg(DEBUG, "Removing %s", to_delete);
         if (remove(to_delete.c_str()) != 0) {
-          logger.msg(ERROR, "Failed to remove hard link %s: %s", to_delete, strerror(errno));
+          logger.msg(ERROR, "Failed to remove hard link %s: %s", to_delete, StrError(errno));
           closedir(dirp);
           return false;
         }
@@ -758,14 +759,14 @@ namespace Arc {
       closedir(dirp);
 
       if (errno != 0) {
-        logger.msg(ERROR, "Error listing dir %s: %s", job_dir, strerror(errno));
+        logger.msg(ERROR, "Error listing dir %s: %s", job_dir, StrError(errno));
         return false;
       }
 
       // remove now-empty dir
       logger.msg(DEBUG, "Removing %s", job_dir);
       if (rmdir(job_dir.c_str()) != 0) {
-        logger.msg(ERROR, "Failed to remove cache per-job dir %s: %s", job_dir, strerror(errno));
+        logger.msg(ERROR, "Failed to remove cache per-job dir %s: %s", job_dir, StrError(errno));
         return false;
       }
     }
@@ -784,19 +785,19 @@ namespace Arc {
     struct stat fileStat;
     int err = stat(meta_file.c_str(), &fileStat);
     if (0 != err) {
-      logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
     FILE *pFile;
     pFile = fopen(meta_file.c_str(), "r");
     if (pFile == NULL) {
-      logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
     // get the first line
     std::string first_line;
     if(!fgets(pFile, fileStat.st_size, first_line)) {
-      logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
 
@@ -841,7 +842,7 @@ namespace Arc {
     // write everything back to the file
     pFile = fopen(meta_file.c_str(), "w");
     if (pFile == NULL) {
-      logger.msg(ERROR, "Error opening meta file for writing %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error opening meta file for writing %s: %s", meta_file, StrError(errno));
       return false;
     }
     fputs((char*)first_line.c_str(), pFile);
@@ -861,13 +862,13 @@ namespace Arc {
     int err = stat(meta_file.c_str(), &fileStat);
     if (0 != err) {
       if (errno != ENOENT)
-        logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, strerror(errno));
+        logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
     FILE *pFile;
     pFile = fopen(meta_file.c_str(), "r");
     if (pFile == NULL) {
-      logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
 
@@ -917,7 +918,7 @@ namespace Arc {
       if (errno == ENOENT)
         logger.msg(ERROR, "Cache file %s does not exist", cache_file);
       else
-        logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, strerror(errno));
+        logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, StrError(errno));
       return 0;
     }
 
@@ -939,11 +940,11 @@ namespace Arc {
     char mystring[1024]; // should be long enough for a pid or url...
     pFile = fopen((char*)_getMetaFileName(url).c_str(), "r");
     if (pFile == NULL) {
-      logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), strerror(errno));
+      logger.msg(ERROR, "Error opening meta file %s: %s", _getMetaFileName(url), StrError(errno));
       return Time(0);
     }
     if (fgets(mystring, sizeof(mystring), pFile) == NULL) {
-      logger.msg(ERROR, "Error reading meta file %s: %s", _getMetaFileName(url), strerror(errno));
+      logger.msg(ERROR, "Error reading meta file %s: %s", _getMetaFileName(url), StrError(errno));
       fclose(pFile);
       return Time(0);
     }
@@ -986,7 +987,7 @@ namespace Arc {
     FILE *pFile;
     pFile = fopen((char*)meta_file.c_str(), "w");
     if (pFile == NULL) {
-      logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, strerror(errno));
+      logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
     std::string file_data = url + " " + val.str(MDSTime);
@@ -1039,12 +1040,12 @@ namespace Arc {
 
         if (mkdir(dirname.c_str(), perm) != 0)
           if (errno != EEXIST) {
-            logger.msg(ERROR, "Error creating required dirs: %s", strerror(errno));
+            logger.msg(ERROR, "Error creating required dirs: %s", StrError(errno));
             return false;
           }
         // chmod to get around GM umask setting
         if (chmod(dirname.c_str(), perm) != 0) {
-          logger.msg(ERROR, "Error changing permission of dir %s: %s", dirname, strerror(errno));
+          logger.msg(ERROR, "Error changing permission of dir %s: %s", dirname, StrError(errno));
           return false;
         }
       } while (slashpos != std::string::npos);

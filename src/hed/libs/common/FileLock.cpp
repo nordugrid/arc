@@ -19,6 +19,7 @@
 #endif
 
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include "FileLock.h"
 
@@ -65,26 +66,26 @@ namespace Arc {
     int err = stat(lock_file.c_str(), &fileStat);
     if (0 != err) {
       if (errno == EACCES) {
-        logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, strerror(errno));
+        logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, StrError(errno));
         return false;
       }
       else if (errno != ENOENT) {
         // some other error occurred opening the lock file
-        logger.msg(ERROR, "Error opening lock file %s in initial check: %s", lock_file, strerror(errno));
+        logger.msg(ERROR, "Error opening lock file %s in initial check: %s", lock_file, StrError(errno));
         return false;
       }
       // lock does not exist - create tmp file
       std::string tmpfile = lock_file + ".XXXXXX";
       int h = Glib::mkstemp(tmpfile);
       if (h == -1) {
-        logger.msg(ERROR, "Error creating file %s with mkstemp(): %s", tmpfile, strerror(errno));
+        logger.msg(ERROR, "Error creating file %s with mkstemp(): %s", tmpfile, StrError(errno));
         return false;
       }
       // write pid@hostname to the lock file
       if (use_pid) {
         std::string buf = pid + "@" + hostname;
         if (write(h, buf.c_str(), buf.length()) == -1) {
-          logger.msg(ERROR, "Error writing to tmp lock file %s: %s", tmpfile, strerror(errno));
+          logger.msg(ERROR, "Error writing to tmp lock file %s: %s", tmpfile, StrError(errno));
           // not much we can do if this doesn't work, but it is only a tmp file
           remove(tmpfile.c_str());
           close(h);
@@ -100,7 +101,7 @@ namespace Arc {
         if (errno == ENOENT) {
           // ok, we can create lock
           if (rename(tmpfile.c_str(), lock_file.c_str()) != 0) {
-            logger.msg(ERROR, "Error renaming tmp file %s to lock file %s: %s", tmpfile, lock_file, strerror(errno));
+            logger.msg(ERROR, "Error renaming tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
             remove(tmpfile.c_str());
             return false;
           }
@@ -116,11 +117,11 @@ namespace Arc {
             char lock_info[100]; // should be long enough for a pid + hostname
             pFile = fopen((char*)lock_file.c_str(), "r");
             if (pFile == NULL) {
-              logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, strerror(errno));
+              logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, StrError(errno));
               return false;
             }
             if (fgets(lock_info, 100, pFile) == NULL && errno != 0) {
-              logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, strerror(errno));
+              logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, StrError(errno));
               fclose(pFile);
               return false;
             }
@@ -145,13 +146,13 @@ namespace Arc {
           }
         }
         else if (errno == EACCES) {
-          logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, strerror(errno));
+          logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, StrError(errno));
           remove(tmpfile.c_str());
           return false;
         }
         else {
           // some other error occurred opening the lock file
-          logger.msg(ERROR, "Error opening lock file we just renamed successfully %s: %s", lock_file, strerror(errno));
+          logger.msg(ERROR, "Error opening lock file we just renamed successfully %s: %s", lock_file, StrError(errno));
           remove(tmpfile.c_str());
           return false;
         }
@@ -174,7 +175,7 @@ namespace Arc {
         // TODO: kill the process holding the lock, only if we know it was the original
         // process which created it
         if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
-          logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, strerror(errno));
+          logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
           return false;
         }
         // lock has expired and has been removed. Call acquire() again
@@ -200,11 +201,11 @@ namespace Arc {
             logger.msg(VERBOSE, "Lock that recently existed has been deleted by another process, calling acquire() again");
             return acquire(lock_removed);
           }
-          logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, strerror(errno));
+          logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, StrError(errno));
           return false;
         }
         if (fgets(lock_info, 100, pFile) == NULL && errno != 0) {
-          logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, strerror(errno));
+          logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, StrError(errno));
           fclose(pFile);
           return false;
         }
@@ -235,7 +236,7 @@ namespace Arc {
             if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
               logger.msg(VERBOSE, "The process owning the lock is no longer running, will remove lock");
               if (remove(lock_file.c_str()) != 0) {
-                logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, strerror(errno));
+                logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
                 return false;
               }
               // call acquire() again
@@ -265,7 +266,7 @@ namespace Arc {
       if (errno == ENOENT)
         logger.msg(ERROR, "Lock file %s doesn't exist", lock_file);
       else
-        logger.msg(ERROR, "Error listing lock file %s: %s", lock_file, strerror(errno));
+        logger.msg(ERROR, "Error listing lock file %s: %s", lock_file, StrError(errno));
       return false;
     }
     if (!force && use_pid) {
@@ -279,11 +280,11 @@ namespace Arc {
       char lock_info[100]; // should be long enough for a pid + hostname
       pFile = fopen((char*)lock_file.c_str(), "r");
       if (pFile == NULL) {
-        logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, strerror(errno));
+        logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, StrError(errno));
         return false;
       }
       if (fgets(lock_info, 100, pFile) == NULL && errno != 0) {
-        logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, strerror(errno));
+        logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, StrError(errno));
         fclose(pFile);
         return false;
       }
@@ -308,7 +309,7 @@ namespace Arc {
     }
     // delete the lock
     if (remove(lock_file.c_str()) != 0) {
-      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", lock_file, strerror(errno));
+      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", lock_file, StrError(errno));
       return false;
     }
 
