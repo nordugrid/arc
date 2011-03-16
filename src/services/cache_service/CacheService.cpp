@@ -9,6 +9,7 @@
 #include <arc/UserConfig.h>
 #include <arc/FileUtils.h>
 #include <arc/User.h>
+#include <arc/Utils.h>
 
 #include <arc/message/MessageAttributes.h>
 #include <arc/message/PayloadRaw.h>
@@ -319,7 +320,7 @@ Arc::MCC_Status CacheService::CacheCheck(Arc::XMLNode in, Arc::XMLNode out, cons
     if (Arc::FileStat(file_lfn, &fileStat, false))
       fileexist = true;
     else if (errno != ENOENT)
-      logger.msg(Arc::ERROR, "Problem accessing cache file %s: %s", file_lfn, strerror(errno));
+      logger.msg(Arc::ERROR, "Problem accessing cache file %s: %s", file_lfn, Arc::StrError(errno));
 
     resultelement.NewChild("FileURL") = fileurl;
     resultelement.NewChild("ExistInTheCache") = (fileexist ? "true": "false");
