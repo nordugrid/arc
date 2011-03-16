@@ -11,6 +11,7 @@
 namespace Arc {
 
   class Logger;
+  class XMLNode;
 
   enum JobSaveFormat {
     BASIC = 1,

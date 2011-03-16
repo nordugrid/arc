@@ -11,6 +11,7 @@
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/XMLNode.h>
 #include <arc/client/Job.h>
 
 #define JXMLTOSTRING(NAME) \
@@ -424,7 +425,7 @@ namespace Arc {
     if (format == IDONLY) {
       out << IDFromEndpoint.str() << std::endl;
       return;
-    } 
+    }
     out << IString("Job: %s", IDFromEndpoint.str()) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
