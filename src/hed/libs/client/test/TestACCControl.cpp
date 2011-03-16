@@ -3,6 +3,11 @@
 bool* BrokerTestACCControl::TargetSortingDone = NULL;
 std::list<Arc::ExecutionTarget*>* BrokerTestACCControl::PossibleTargets = NULL;
 
+bool JobDescriptionParserTestACCControl::parseStatus = false;
+bool JobDescriptionParserTestACCControl::unparseStatus = false;
+std::list<Arc::JobDescription>* JobDescriptionParserTestACCControl::parsedJobDescriptions = NULL;
+std::string* JobDescriptionParserTestACCControl::unparsedString = NULL;
+
 bool JobControllerTestACCControl::jobStatus = false;
 bool JobControllerTestACCControl::cleanStatus = false;
 bool JobControllerTestACCControl::cancelStatus = false;

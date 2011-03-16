@@ -1,4 +1,4 @@
-TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest JobControllerTest SubmitterTest TargetRetrieverTest
+TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest JobControllerTest JobDescriptionParserTest SubmitterTest TargetRetrieverTest
 
 check_LTLIBRARIES = libaccTEST.la libTestACCControl.la
 check_PROGRAMS = $(TESTS)
@@ -29,6 +29,11 @@ JobControllerTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS
 JobControllerTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
                           $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la libTestACCControl.la
 
+JobDescriptionParserTest_SOURCES = $(top_srcdir)/src/Test.cpp JobDescriptionParserTest.cpp
+JobDescriptionParserTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+JobDescriptionParserTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
+                                 $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcclient.la libTestACCControl.la
+
 SubmitterTest_SOURCES = $(top_srcdir)/src/Test.cpp SubmitterTest.cpp
 SubmitterTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
 SubmitterTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
@@ -41,6 +46,7 @@ TargetRetrieverTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
 
 libaccTEST_la_SOURCES  = TestACCControl.h TestACCPluginDescriptors.cpp \
                          JobControllerTestACC.cpp JobControllerTestACC.h \
+                         JobDescriptionParserTestACC.cpp JobDescriptionParserACC.h \
                          SubmitterTestACC.cpp SubmitterTestACC.h \
                          TargetRetrieverTestACC.cpp TargetRetrieverTestACC.h \
                          BrokerTestACC.cpp BrokerTestACC.h

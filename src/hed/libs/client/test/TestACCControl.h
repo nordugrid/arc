@@ -15,6 +15,14 @@ class BrokerTestACCControl {
     static std::list<Arc::ExecutionTarget*>* PossibleTargets;
 };
 
+class JobDescriptionParserTestACCControl {
+  public:
+    static bool parseStatus;
+    static bool unparseStatus;
+    static std::list<Arc::JobDescription>* parsedJobDescriptions;
+    static std::string* unparsedString;
+};
+
 class JobControllerTestACCControl {
   public:
     static bool jobStatus;
