@@ -22,6 +22,8 @@
 #include <sys/file.h>
 #endif /* HAVE_SYS_FILE_H */
 
+#include <arc/Utils.h>
+
 #include "daemon.h"
 
 namespace Arc {
@@ -33,7 +35,7 @@ Daemon::Daemon(const std::string& pid_file, const std::string& log_file_) : pid_
     pid_t pid = fork();
     switch(pid) {
         case -1: // parent fork error
-            logger.msg(ERROR, "Daemonization fork failed: %s", strerror(errno));
+            logger.msg(ERROR, "Daemonization fork failed: %s", StrError(errno));
             exit(1);
         case 0: // child
             /* clear inherited umasks */
