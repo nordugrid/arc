@@ -703,11 +703,11 @@ namespace Arc {
           logger.msg(ERROR, "Failed to create symbolic link from %s to %s: %s", dest_path, hard_link_file, strerror(errno));
           return false;
         }
-        // change the owner of the soft link to the job user
-        if (!switch_user && lchown(dest_path.c_str(), _uid, _gid) != 0) {
-          logger.msg(ERROR, "Failed to change owner of symbolic link to %i: %s", _uid, strerror(errno));
-          return false;
-        }
+      }
+      // change the owner of the soft link to the job user
+      if (!switch_user && lchown(dest_path.c_str(), _uid, _gid) != 0) {
+        logger.msg(ERROR, "Failed to change owner of symbolic link to %i: %s", _uid, strerror(errno));
+        return false;
       }
     }
     return true;
