@@ -50,6 +50,18 @@ namespace Arc {
   /// Stat a file using the specified uid and gid and put info into the st struct
   bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks);
 
+  /// Make symbolic or hard link of file
+  bool FileLink(const std::string& oldpath,const std::string& newpath, bool symbolic);
+
+  /// Make symbolic or hard link of file using the specified uid and gid
+  bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gid_t gid,bool symbolic);
+
+  /// Returns path at which symbolic link is pointing
+  std::string FileReadLink(const std::string& path);
+
+  /// Returns path at which symbolic link is pointing using the specified uid and gid
+  std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid);
+
   /// Create a new directory
   bool DirCreate(const std::string& path,mode_t mode,bool with_parents = false);
 

@@ -11,6 +11,7 @@ class FileUtilsTest
   CPPUNIT_TEST(TestFileOpen);
   CPPUNIT_TEST(TestFileStat);
   CPPUNIT_TEST(TestFileCopy);
+  CPPUNIT_TEST(TestFileLink);
   CPPUNIT_TEST(TestFileCreateAndRead);
   CPPUNIT_TEST(TestDirOpen);
   CPPUNIT_TEST(TestMakeAndDeleteDir);
@@ -24,6 +25,7 @@ public:
   void TestFileOpen();
   void TestFileStat();
   void TestFileCopy();
+  void TestFileLink();
   void TestFileCreateAndRead();
   void TestDirOpen();
   void TestMakeAndDeleteDir();
@@ -81,6 +83,18 @@ void FileUtilsTest::TestFileCopy() {
   CPPUNIT_ASSERT_EQUAL(0, close(h2));
 }
 
+void FileUtilsTest::TestFileLink() {
+  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
+  CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1s", true));
+  CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1h", false));
+  struct stat st;
+  CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1s", &st, true));
+  CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
+  CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1h", &st, true));
+  CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
+  CPPUNIT_ASSERT_EQUAL(testroot+"/file1", Arc::FileReadLink(testroot+"/file1s"));
+}
+
 void FileUtilsTest::TestFileCreateAndRead() {
   // create empty file
   std::string filename(testroot + "/file1");
@@ -106,8 +120,6 @@ void FileUtilsTest::TestFileCreateAndRead() {
   CPPUNIT_ASSERT_EQUAL(0, remove(filename.c_str()));
   CPPUNIT_ASSERT(!Arc::FileRead(filename, data));
 }
-
-
 
 void FileUtilsTest::TestDirOpen() {
   CPPUNIT_ASSERT(_createFile(testroot + "/file1"));

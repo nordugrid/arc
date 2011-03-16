@@ -232,8 +232,56 @@ bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool f
   return (r == 0);
 }
 
+bool FileLink(const std::string& oldpath,const std::string& newpath,bool symbolic) {
+  return FileLink(oldpath,newpath,0,0,symbolic);
+}
+
+bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gid_t gid,bool symbolic) {
+  UserSwitch usw(uid,gid);
+  if(!usw) return false;
+  if(symbolic) {
+    return (symlink(oldpath.c_str(),newpath.c_str()) == 0);
+  } else {
+    return (link(oldpath.c_str(),newpath.c_str()) == 0);
+  }
+}
+
 bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
   return DirCreate(path,0,0,mode,with_parents);
+}
+
+std::string FileReadLink(const std::string& path) {
+  return FileReadLink(path,0,0);
+}
+
+std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
+  class charbuf {
+   private:
+    char* v;
+   public:
+    charbuf(int size) {
+      v = new char[size];
+    };
+    ~charbuf(void) {
+      delete[] v;
+    };
+    char* str(void) {
+      return v;
+    };
+    char& operator[](int n) {
+      return v[n];
+    };
+  };
+  const int bufsize = 1024;
+  UserSwitch usw(uid,gid);
+  charbuf buf(bufsize);
+  ssize_t l = readlink(path.c_str(),buf.str(),bufsize);
+  if(l<0) {
+    l = 0;
+  } else if(l>bufsize) {
+    l = bufsize; 
+  }
+  return std::string(buf.str(),l);
 }
 
 // TODO: find non-blocking way to create directory
