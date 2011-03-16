@@ -25,6 +25,7 @@
 #include <arc/data/DataCallback.h>
 #include <arc/data/CheckSum.h>
 #include <arc/FileUtils.h>
+#include <arc/Utils.h>
 
 #ifdef WIN32
 #include <arc/win32.h>
@@ -294,7 +295,7 @@ namespace Arc {
 #ifndef WIN32
     // This is for broken filesystems. Specifically for Lustre.
     if (fd != -1 && fsync(fd) != 0 && errno != EINVAL) { // this error is caused by special files like stdout
-      logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), strerror(errno));
+      logger.msg(ERROR, "fsync of file %s failed: %s", url.Path(), StrError(errno));
       buffer->error_write(true);
     }
 #endif
