@@ -8,9 +8,6 @@
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
 
-#include "JobControllerTestACCControl.h"
-#include "JobControllerTestACC.h"
-
 class JobControllerTest
   : public CppUnit::TestFixture {
 

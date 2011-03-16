@@ -13,8 +13,3 @@ Arc::Plugin* JobControllerTestACC::GetInstance(Arc::PluginArgument *arg) {
   }
   return new JobControllerTestACC(*jcarg);
 }
-
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "TEST", "HED:JobController", 0, &JobControllerTestACC::GetInstance },
-  { NULL, NULL, 0, NULL }
-};

@@ -13,8 +13,3 @@ Arc::Plugin* TargetRetrieverTestACC::GetInstance(Arc::PluginArgument *arg) {
   }
   return new TargetRetrieverTestACC(*trarg, *trarg, *trarg);
 }
-
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "TEST", "HED:TargetRetriever", 0, &TargetRetrieverTestACC::GetInstance },
-  { NULL, NULL, 0, NULL }
-};

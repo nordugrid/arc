@@ -8,9 +8,6 @@
 #include <arc/Utils.h>
 #include <arc/client/TargetRetriever.h>
 
-#include "TargetRetrieverTestACCControl.h"
-#include "TargetRetrieverTestACC.h"
-
 class TargetRetrieverTest
   : public CppUnit::TestFixture {
 

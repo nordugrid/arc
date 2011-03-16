@@ -8,9 +8,6 @@
 #include <arc/client/Job.h>
 #include <arc/client/Submitter.h>
 
-#include "SubmitterTestACCControl.h"
-#include "SubmitterTestACC.h"
-
 class SubmitterTest
   : public CppUnit::TestFixture {
 

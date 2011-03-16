@@ -13,8 +13,3 @@ Arc::Plugin* SubmitterTestACC::GetInstance(Arc::PluginArgument *arg) {
   }
   return new SubmitterTestACC(*jcarg);
 }
-
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "TEST", "HED:Submitter", 0, &SubmitterTestACC::GetInstance },
-  { NULL, NULL, 0, NULL }
-};
