@@ -286,6 +286,15 @@ std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
   return std::string(buf.str(),l);
 }
 
+bool FileDelete(const std::string& path) {
+  return FileDelete(path,0,0);
+}
+
+bool FileDelete(const std::string& path,uid_t uid,gid_t gid) {
+  UserSwitch usw(uid,gid);
+  return (unlink(path.c_str()) == 0);
+}
+
 // TODO: find non-blocking way to create directory
 bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with_parents) {
   {

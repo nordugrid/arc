@@ -117,7 +117,7 @@ void FileUtilsTest::TestFileCreateAndRead() {
   CPPUNIT_ASSERT_EQUAL(std::string("xyz"), data.back());
 
   // remove file and check failure
-  CPPUNIT_ASSERT_EQUAL(0, remove(filename.c_str()));
+  CPPUNIT_ASSERT_EQUAL(true, Arc::FileDelete(filename.c_str()));
   CPPUNIT_ASSERT(!Arc::FileRead(filename, data));
 }
 
