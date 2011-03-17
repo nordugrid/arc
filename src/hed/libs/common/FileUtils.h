@@ -28,15 +28,17 @@ namespace Arc {
   /** The content is split into lines with the new line character removed,
    * and the lines are returned in the data list. For more complex file
    * handling or large files, FileOpen() should be used. No locking is
-   * performed by this method. */
-  bool FileRead(const std::string& filename, std::list<std::string>& data);
+   * performed by this method. UserSwitch is created with the given uid
+   * and gid. If these are zero then no real switch or uid/gid is done. */
+  bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t uid=0, gid_t gid=0);
 
   /// Simple method to create a new file containing given data.
   /** An existing file is overwritten with the new data. Permissions of the
    * created file are determined using the current umask. For more complex
    * file handling or large files, FileOpen() should be used. No locking is
-   * performed by this method. */
-  bool FileCreate(const std::string& filename, const std::string& data);
+   * performed by this method. UserSwitch is created with the given uid
+   * and gid. If these are zero then no real switch or uid/gid is done. */
+  bool FileCreate(const std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0);
 
   /// Open a directory and return a pointer to a Dir object which can be iterated over
   Glib::Dir* DirOpen(const std::string& path);

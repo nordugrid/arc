@@ -160,8 +160,9 @@ bool FileCopy(int source_handle,int destination_handle) {
   return r;
 }
 
-bool FileRead(const std::string& filename, std::list<std::string>& data) {
+bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t uid, gid_t gid) {
   data.clear();
+  UserSwitch usw(uid, gid);
   std::ifstream is(filename.c_str());
   if (!is.good()) {
     is.close();
@@ -175,7 +176,8 @@ bool FileRead(const std::string& filename, std::list<std::string>& data) {
   return true;
 }
 
-bool FileCreate(const std::string& filename, const std::string& data) {
+bool FileCreate(const std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
+  UserSwitch usw(uid, gid);
   if (remove(filename.c_str()) != 0 && errno != ENOENT)
     return false;
   std::ofstream os(filename.c_str());
