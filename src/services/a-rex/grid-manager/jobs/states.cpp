@@ -36,6 +36,7 @@
 #include <arc/FileUtils.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/data/FileCache.h>
+#include <arc/Utils.h>
 
 #include "dtr_generator.h"
 
@@ -399,7 +400,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i) {
     };
     if(!job_output_write_file(*i,*user,fl)) {
       r=false;
-      logger.msg(Arc::ERROR,"%s: Failed writing list of output files",i->job_id);
+      logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
     };
   } else {
     r=false;
@@ -539,7 +540,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       i->local->localid=local_id;
       if(!job_local_write_file(*i,*user,*(i->local))) {
         i->AddFailure("Internal error");
-        logger.msg(Arc::ERROR,"%s: Failed writing local information",i->job_id);
+        logger.msg(Arc::ERROR,"%s: Failed writing local information: %s",i->job_id,Arc::StrError(errno));
         return false;
       };
     } else {
@@ -1662,7 +1663,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         state_changed=false;
         i->job_pending=false;
         if(!job_state_write_file(*i,*user,i->job_state)) {
-          i->AddFailure("Failed writing job status");
+          i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
           job_error=true;
         } else {
           // talk to external plugin to ask if we can proceed
