@@ -1,12 +1,20 @@
-ARC clients
------------
 
-arclib      - Next generation command line interface (ARC1 arclib)
-a-rex       - Clients for a-rex service and other BES based services
-cache       - Clients for the HED cache handling service
-cream2      - Client library and command line interfaces to the gLite servers through the CREAM interface
-credentials - User tools for manipulating user credentials
-data        - CLI for basic data management
-echo        - Client for echo service
-isis        - Client for ISIS
-pdp         - arcdecision -- client for accessing PDP service and get decision result
+ARC clients
+===========
+
+ARC provides a number of command line clients that implement
+interfaces to various Grid services. The following distinct client
+groups exist in the source code:
+
+ o arclib      - client for computational job management
+ o cache       - client for internal A-REX cache handling service
+ o charon      - client for accessing ARC PDP service Charon
+ o credentials - user tools for handling user credentials
+ o data        - clients for basic file handlng on the Grid
+ o echo        - client for ARC Echo service (demo)    
+ o isis        - client for ARC ISIS information service
+ o jura        - A-REX compatible accounting agent for SGAS-LUTS
+ o saml        - client tool to communicate to SAML-based VOMS services
+ o srm         - ping client for the SRM service
+ o wsrf        - command for obtaining WS-ResourceProperties of services
+ 
