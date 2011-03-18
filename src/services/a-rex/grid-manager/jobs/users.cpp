@@ -40,6 +40,7 @@ JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   cred_plugin=NULL;
   strict_session=false;
   share_uid=0;
+  reruns = 0;
 }
 
 void JobUser::SetLRMS(const std::string &lrms_name,const std::string &queue_name) {
@@ -267,6 +268,7 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
   share_uid=0;
+  reruns = 0;
 }
 
 JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* cred):gm_env(env) {
@@ -300,6 +302,7 @@ JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* c
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
   share_uid=0;
+  reruns = 0;
 }
 
 JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
@@ -319,6 +322,7 @@ JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
   strict_session=user.strict_session;
   share_uid=user.share_uid;
   share_gids=user.share_gids;
+  reruns=user.reruns;
 }
 
 JobUser::~JobUser(void) { 
