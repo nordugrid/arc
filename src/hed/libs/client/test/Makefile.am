@@ -46,7 +46,7 @@ TargetRetrieverTest_LDADD = $(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) \
 
 libaccTEST_la_SOURCES  = TestACCControl.h TestACCPluginDescriptors.cpp \
                          JobControllerTestACC.cpp JobControllerTestACC.h \
-                         JobDescriptionParserTestACC.cpp JobDescriptionParserACC.h \
+                         JobDescriptionParserTestACC.cpp JobDescriptionParserTestACC.h \
                          SubmitterTestACC.cpp SubmitterTestACC.h \
                          TargetRetrieverTestACC.cpp TargetRetrieverTestACC.h \
                          BrokerTestACC.cpp BrokerTestACC.h
