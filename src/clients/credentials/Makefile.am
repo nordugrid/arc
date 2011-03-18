@@ -26,7 +26,8 @@ arcslcs_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSE
 arcslcs_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                   $(top_srcdir)/src/hed/libs/client/libarcclient.la \
                   $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-                  $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la
+                  $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+                  $(top_srcdir)/src/hed/libs/message/libarcmessage.la
 endif
 
 test2vomsserver_SOURCES  = test2vomsserver.cpp
@@ -41,7 +42,7 @@ test2vomsserver_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 
 test2myproxyserver_put_SOURCES  = test2myproxyserver_put.cpp
 test2myproxyserver_put_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test2myproxyserver_put_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test2myproxyserver_put_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) -lcrypto
 test2myproxyserver_put_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                            $(top_srcdir)/src/hed/libs/client/libarcclient.la \
@@ -50,7 +51,7 @@ test2myproxyserver_put_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon
 
 test2myproxyserver_get_SOURCES  = test2myproxyserver_get.cpp
 test2myproxyserver_get_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test2myproxyserver_get_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+test2myproxyserver_get_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) -lcrypto
 test2myproxyserver_get_LDADD    = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
                            $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
                            $(top_srcdir)/src/hed/libs/client/libarcclient.la \

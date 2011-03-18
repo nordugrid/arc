@@ -12,6 +12,6 @@ CLILIBS = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
 
 saml_assertion_init_SOURCES  = saml_assertion_init.cpp
 saml_assertion_init_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
-saml_assertion_init_LDADD    = $(CLILIBS)
+saml_assertion_init_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 EXTRA_DIST = $(doc_DATA)

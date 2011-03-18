@@ -23,7 +23,9 @@ pkglibexec_PROGRAMS = DataStagingDelivery CacheManager
 
 DataStagingDelivery_SOURCES = DataStagingDelivery.cpp
 DataStagingDelivery_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-DataStagingDelivery_LDADD = $(top_srcdir)/src/hed/libs/data/libarcdata2.la
+DataStagingDelivery_LDADD = $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS)
 
 CacheManager_SOURCES = CacheManager.cpp
 CacheManager_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
