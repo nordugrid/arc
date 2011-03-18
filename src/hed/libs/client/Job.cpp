@@ -441,7 +441,7 @@ namespace Arc {
     if (!Error.empty()) {
       for (std::list<std::string>::const_iterator it = Error.begin();
            it != Error.end(); it++)
-        out << IString(" Error: %s", *it) << std::endl;
+        out << IString(" Job Error: %s", *it) << std::endl;
     }
 
     if (format == DETAILED) {
