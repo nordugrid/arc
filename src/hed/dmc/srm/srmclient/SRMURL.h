@@ -33,7 +33,7 @@
     /**
      * eg pnfs/ndgf.org/data/atlas/disk/user/user.mlassnig.dataset.1/dummyfile3
      */
-    const std::string& FileName(void) const { if(!valid) return empty; return filename; };
+    std::string FileName(void) const { if(!valid) return ""; return filename; };
   
     /**
      * eg httpg://srm.ndgf.org:8443/srm/managerv2
@@ -64,7 +64,6 @@
     bool operator!(void) { return !valid; };
 
    private:
-    static std::string empty;
     std::string filename;
     bool isshort;
     bool valid;

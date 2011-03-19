@@ -38,8 +38,8 @@ namespace Arc {
   }
 
   DataPointSRM::~DataPointSRM() {
-    if(r_handle) delete r_handle;
-    if(srm_request) delete srm_request;
+    delete r_handle;
+    delete srm_request;
   }
 
   Plugin* DataPointSRM::Instance(PluginArgument *arg) {
@@ -61,36 +61,25 @@ namespace Arc {
       return DataStatus::CheckError;
     }
 
-    if (url.HTTPOption("SFN", "") == "")
-      srm_request = new SRMClientRequest(url.str());
-    else
-      srm_request = new SRMClientRequest(url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN"));
+    SRMClientRequest srm_request_tmp(
+      (url.HTTPOption("SFN", "") == "")?
+      url.str():(url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN"))
+    );
     
-    if (!srm_request) {
-      delete client;
-      client = NULL;
-      return DataStatus::CheckError;
-    }
-
     // first check permissions
-    SRMReturnCode res = client->checkPermissions(*srm_request);
+    SRMReturnCode res = client->checkPermissions(srm_request_tmp);
 
     if (res != SRM_OK && res != SRM_ERROR_NOT_SUPPORTED) {
-      delete srm_request;
-      srm_request = NULL;
       delete client;
-      client = NULL;
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::CheckErrorRetryable;
       return DataStatus::CheckError;
     }
 
     logger.msg(VERBOSE, "Check: looking for metadata: %s", CurrentLocation().str());
-    srm_request->long_list(true);
+    srm_request_tmp.long_list(true);
     std::list<struct SRMFileMetaData> metadata;
 
-    res = client->info(*srm_request, metadata);
-    delete srm_request;
-    srm_request = NULL;
+    res = client->info(srm_request_tmp, metadata);
     delete client;
     client = NULL;
 
@@ -99,8 +88,7 @@ namespace Arc {
       return DataStatus::CheckError;
     }
 
-    if (metadata.empty())
-      return DataStatus::CheckError;
+    if (metadata.empty()) return DataStatus::CheckError;
     if (metadata.front().size > 0) {
       logger.msg(INFO, "Check: obtained size: %lli", metadata.front().size);
       SetSize(metadata.front().size);
@@ -132,8 +120,7 @@ namespace Arc {
     bool timedout;
     SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
     if (!client) {
-      if (timedout)
-        return DataStatus::DeleteErrorRetryable;
+      if (timedout) return DataStatus::DeleteErrorRetryable;
       return DataStatus::DeleteError;
     }
 
@@ -144,20 +131,13 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
-    srm_request = new SRMClientRequest(canonic_url);
+    SRMClientRequest srm_request_tmp(canonic_url);
 
-    if (!srm_request) {
-      delete client;
-      client = NULL;
-      return DataStatus::DeleteError;
-    }
     logger.msg(VERBOSE, "Remove: deleting: %s", CurrentLocation().str());
 
-    SRMReturnCode res = client->remove(*srm_request);
+    SRMReturnCode res = client->remove(srm_request_tmp);
     delete client;
     client = NULL;
-    delete srm_request;
-    srm_request = NULL;
 
     if (res != SRM_OK) {
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::DeleteErrorRetryable;              
@@ -169,8 +149,8 @@ namespace Arc {
 
   DataStatus DataPointSRM::PrepareReading(unsigned int stage_timeout,
                                           unsigned int& wait_time) {
-    if (writing)
-      return DataStatus::IsWritingError;
+    if (writing) return DataStatus::IsWritingError;
+    if (reading && r_handle) return DataStatus::IsReadingError;
 
     reading = true;
     turls.clear();
@@ -185,12 +165,13 @@ namespace Arc {
         if (srm_request->status() != SRM_REQUEST_ONGOING) {
           // error, querying a request that was already prepared
           logger.msg(ERROR, "Calling PrepareReading when request was already prepared!");
+          reading = false;
           return DataStatus::ReadPrepareError;
         }
         SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
         if (!client) {
-          if (timedout)
-            return DataStatus::ReadPrepareErrorRetryable;
+          reading = false;
+          if (timedout) return DataStatus::ReadPrepareErrorRetryable;
           return DataStatus::ReadPrepareError;
         }
         res = client->requestBringOnlineStatus(*srm_request);
@@ -214,20 +195,13 @@ namespace Arc {
 
         delete srm_request;
         srm_request = new SRMClientRequest(canonic_url);
-
-        if (!srm_request) {
-          delete client;
-          client = NULL;
-          return DataStatus::ReadPrepareError;
-        }
         logger.msg(INFO, "File %s is NEARLINE, will make request to bring online", canonic_url);
         srm_request->request_timeout(stage_timeout);
         res = client->requestBringOnline(*srm_request);
         delete client;
       }
       if (res != SRM_OK) {
-        if (res == SRM_ERROR_TEMPORARY)
-          return DataStatus::ReadPrepareErrorRetryable;
+        if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadPrepareErrorRetryable;
         return DataStatus::ReadPrepareError;
       }
       if (srm_request->status() == SRM_REQUEST_ONGOING) {
@@ -260,8 +234,7 @@ namespace Arc {
       }
       SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
       if (!client) {
-        if (timedout)
-          return DataStatus::ReadPrepareErrorRetryable;
+        if (timedout) return DataStatus::ReadPrepareErrorRetryable;
         return DataStatus::ReadPrepareError;
       }
       res = client->getTURLsStatus(*srm_request, transport_urls);
@@ -271,8 +244,7 @@ namespace Arc {
     else {
       SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
       if (!client) {
-        if (timedout)
-          return DataStatus::ReadPrepareErrorRetryable;
+        if (timedout) return DataStatus::ReadPrepareErrorRetryable;
         return DataStatus::ReadPrepareError;
       }
 
@@ -285,19 +257,12 @@ namespace Arc {
 
       delete srm_request;
       srm_request = new SRMClientRequest(canonic_url);
-
-      if (!srm_request) {
-        delete client;
-        client = NULL;
-        return DataStatus::ReadPrepareError;
-      }
       srm_request->request_timeout(stage_timeout);
       res = client->getTURLs(*srm_request, transport_urls);
       delete client;
     }
     if (res != SRM_OK) {
-      if (res == SRM_ERROR_TEMPORARY)
-        return DataStatus::ReadPrepareErrorRetryable;
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::ReadPrepareErrorRetryable;
       return DataStatus::ReadPrepareError;
     }
     if (srm_request->status() == SRM_REQUEST_ONGOING) {
@@ -312,9 +277,7 @@ namespace Arc {
       for (std::list<std::string>::iterator i = transport_urls.begin(); i != transport_urls.end(); ++i) {
         // Avoid redirection to SRM
         logger.msg(VERBOSE, "Checking URL returned by SRM: %s", *i);
-        if (strncasecmp(i->c_str(), "srm://", 6) == 0) {
-          continue;
-        }
+        if (strncasecmp(i->c_str(), "srm://", 6) == 0) continue;
         // Try to use this TURL + old options
         URL redirected_url(*i);
         {
@@ -323,18 +286,11 @@ namespace Arc {
             for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); ++oi)
               redirected_url.AddOption((*oi).first, (*oi).second);
         }
-        DataHandle* r_handle = new DataHandle(redirected_url, usercfg);
+        DataHandle redirected_handle(redirected_url, usercfg);
         // check if url can be handled
-        if (!r_handle || !(*r_handle)) {
-          continue;
-        }
-        if ((*r_handle)->IsIndex()) {
-          delete r_handle;
-          r_handle = NULL;
-          continue;
-        }
+        if (!redirected_handle) continue;
+        if (redirected_handle->IsIndex()) continue;
         turls.push_back(redirected_url);
-        delete r_handle;
       }
 
       if (turls.empty()) {
@@ -353,7 +309,7 @@ namespace Arc {
   DataStatus DataPointSRM::StartReading(DataBuffer& buf) {
 
     logger.msg(VERBOSE, "StartReading");
-    if (!reading || turls.empty() || !srm_request) {
+    if (!reading || turls.empty() || !srm_request || r_handle) {
       logger.msg(ERROR, "StartReading: File was not prepared properly");
       return DataStatus::ReadStartError;
     }
@@ -366,7 +322,7 @@ namespace Arc {
     r_url = turls.at(n);
     r_handle = new DataHandle(r_url, usercfg);
     // check if url can be handled
-    if (!r_handle) {
+    if (!(*r_handle)) {
       logger.msg(ERROR, "TURL %s cannot be handled", r_url.str());
       return DataStatus::ReadStartError;
     }
@@ -377,22 +333,13 @@ namespace Arc {
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
     if (!(*r_handle)->StartReading(buf)) {
-      delete r_handle;
-      r_handle = NULL;
-      reading = false;
       return DataStatus::ReadStartError;
     }
     return DataStatus::Success;
   }
 
   DataStatus DataPointSRM::StopReading() {
-
-    if (!reading) {
-      delete srm_request;
-      srm_request = NULL;
-      return DataStatus::ReadStopError;
-    }
-
+    if (!reading) return DataStatus::Success;
     DataStatus r = DataStatus::Success;
     if (r_handle) {
       r = (*r_handle)->StopReading();
@@ -403,12 +350,8 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::FinishReading(bool error) {
-
-    if (!reading) {
-      delete srm_request;
-      srm_request = NULL;
-      return DataStatus::ReadFinishError;
-    }
+    if (!reading) return DataStatus::Success;
+    StopReading();
     reading = false;
 
     bool timedout;
@@ -433,9 +376,8 @@ namespace Arc {
 
   DataStatus DataPointSRM::PrepareWriting(unsigned int stage_timeout,
                                           unsigned int& wait_time) {
-
-    if (reading)
-      return DataStatus::IsReadingError;
+    if (reading) return DataStatus::IsReadingError;
+    if (writing && r_handle) return DataStatus::IsReadingError;
 
     writing = true;
     turls.clear();
@@ -452,8 +394,7 @@ namespace Arc {
       }
       SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
       if (!client) {
-        if (timedout)
-          return DataStatus::WritePrepareErrorRetryable;
+        if (timedout) return DataStatus::WritePrepareErrorRetryable;
         return DataStatus::WritePrepareError;
       }
       res = client->putTURLsStatus(*srm_request, transport_urls);
@@ -463,8 +404,7 @@ namespace Arc {
     else {
       SRMClient* client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
       if (!client) {
-        if (timedout)
-          return DataStatus::WritePrepareErrorRetryable;
+        if (timedout) return DataStatus::WritePrepareErrorRetryable;
         return DataStatus::WritePrepareError;
       }
 
@@ -477,34 +417,31 @@ namespace Arc {
 
       delete srm_request;
       srm_request = new SRMClientRequest(canonic_url);
-
-      if (!srm_request) {
-        delete client;
-        client = NULL;
-        return DataStatus::ReadPrepareError;
-      }
-
       // set space token
       std::string space_token = url.Option("spacetoken");
       if (space_token.empty()) {
-        if (client->getVersion().compare("v2.2") == 0)
+        if (client->getVersion().compare("v2.2") == 0) {
           // only print message if using v2.2
           logger.msg(VERBOSE, "No space token specified");
+        }
       }
       else {
-        if (client->getVersion().compare("v2.2") != 0)
+        if (client->getVersion().compare("v2.2") != 0) {
           // print warning if not using srm2.2
           logger.msg(WARNING, "Warning: Using SRM protocol v1 which does not support space tokens");
+        }
         else {
           logger.msg(VERBOSE, "Using space token description %s", space_token);
           // get token from SRM that matches description
           std::list<std::string> tokens;
-          if (client->getSpaceTokens(tokens, space_token) != SRM_OK)
+          if (client->getSpaceTokens(tokens, space_token) != SRM_OK) {
             // not critical so log a warning
             logger.msg(WARNING, "Warning: Error looking up space tokens matching description %s. Will copy without using token", space_token);
-          else if (tokens.empty())
+          }
+          else if (tokens.empty()) {
             // not critical so log a warning
             logger.msg(WARNING, "Warning: No space tokens found matching description! Will copy without using token");
+          }
           else {
             // take the first one in the list
             logger.msg(VERBOSE, "Using space token %s", tokens.front());
@@ -513,15 +450,13 @@ namespace Arc {
         }
       }
       srm_request->request_timeout(stage_timeout);
-      if (CheckSize())
-        srm_request->total_size(GetSize());
+      if (CheckSize()) srm_request->total_size(GetSize());
       res = client->putTURLs(*srm_request, transport_urls);
       delete client;
     }
 
     if (res != SRM_OK) {
-      if (res == SRM_ERROR_TEMPORARY)
-        return DataStatus::WritePrepareErrorRetryable;
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::WritePrepareErrorRetryable;
       return DataStatus::WritePrepareError;
     }
     if (srm_request->status() == SRM_REQUEST_ONGOING) {
@@ -536,9 +471,7 @@ namespace Arc {
       for (std::list<std::string>::iterator i = transport_urls.begin(); i != transport_urls.end(); ++i) {
         // Avoid redirection to SRM
         logger.msg(VERBOSE, "Checking URL returned by SRM: %s", *i);
-        if (strncasecmp(i->c_str(), "srm://", 6) == 0) {
-          continue;
-        }
+        if (strncasecmp(i->c_str(), "srm://", 6) == 0) continue;
         // Try to use this TURL + old options
         URL redirected_url(*i);
         {
@@ -547,18 +480,11 @@ namespace Arc {
             for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); ++oi)
               redirected_url.AddOption((*oi).first, (*oi).second);
         }
-        DataHandle* r_handle = new DataHandle(redirected_url, usercfg);
+        DataHandle redirected_handle(redirected_url, usercfg);
         // check if url can be handled
-        if (!r_handle || !(*r_handle)) {
-          continue;
-        }
-        if ((*r_handle)->IsIndex()) {
-          delete r_handle;
-          r_handle = NULL;
-          continue;
-        }
+        if (!redirected_handle) continue;
+        if (redirected_handle->IsIndex()) continue;
         turls.push_back(redirected_url);
-        delete r_handle;
       }
 
       if (turls.empty()) {
@@ -577,7 +503,7 @@ namespace Arc {
   DataStatus DataPointSRM::StartWriting(DataBuffer& buf,
                                         DataCallback *space_cb) {
     logger.msg(VERBOSE, "StartWriting");
-    if (!writing || turls.empty() || !srm_request) {
+    if (!writing || turls.empty() || !srm_request || r_handle) {
       logger.msg(ERROR, "StartWriting: File was not prepared properly");
       return DataStatus::WriteStartError;
     }
@@ -590,7 +516,7 @@ namespace Arc {
     r_url = turls.at(n);
     r_handle = new DataHandle(r_url, usercfg);
     // check if url can be handled
-    if (!r_handle) {
+    if (!(*r_handle)) {
       logger.msg(ERROR, "TURL %s cannot be handled", r_url.str());
       return DataStatus::WriteStartError;
     }
@@ -601,22 +527,13 @@ namespace Arc {
 
     logger.msg(INFO, "Redirecting to new URL: %s", (*r_handle)->CurrentLocation().str());
     if (!(*r_handle)->StartWriting(buf)) {
-      delete r_handle;
-      r_handle = NULL;
-      reading = false;
       return DataStatus::WriteStartError;
     }
     return DataStatus::Success;
   }
 
   DataStatus DataPointSRM::StopWriting() {
-
-    if (!writing) {
-      delete srm_request;
-      srm_request = NULL;
-      return DataStatus::WriteStopError;
-    }
-
+    if (!writing) return DataStatus::Success;
     DataStatus r = DataStatus::Success;
     if (r_handle) {
       r = (*r_handle)->StopWriting();
@@ -627,12 +544,8 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::FinishWriting(bool error) {
-
-    if (!writing) {
-      delete srm_request;
-      srm_request = NULL;
-      return DataStatus::WriteFinishError;
-    }
+    if (!writing) return DataStatus::Success;
+    StopWriting();
     writing = false;
 
     DataStatus r = DataStatus::Success;
@@ -663,8 +576,9 @@ namespace Arc {
               if (res != SRM_OK) {
                 client->abort(*srm_request); // if we can't list then we can't remove either
                 delete client;
-                if (res == SRM_ERROR_TEMPORARY)
-                  return DataStatus::WriteFinishErrorRetryable;
+                delete srm_request;
+                srm_request = NULL;
+                if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteFinishErrorRetryable;
                 return DataStatus::WriteFinishError;
               }
               if (!metadata.empty()) {
@@ -719,12 +633,14 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, int recursion) {
+    // This method does not use any dynamic members of this object. Hence
+    // it can be executed even while reading or writing
+    if(reading || writing) return DataStatus::ListErrorRetryable;
 
     bool timedout;
     SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
     if(!client) {
-      if (timedout)
-        return DataStatus::ListErrorRetryable;
+      if (timedout) return DataStatus::ListErrorRetryable;
       return DataStatus::ListError;
     }
     
@@ -734,24 +650,13 @@ namespace Arc {
     else
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
-    delete srm_request;
-    srm_request = new SRMClientRequest(canonic_url);
-    if (!srm_request) {
-      delete client;
-      client = NULL;
-      return DataStatus::ListError;
-    }
+    SRMClientRequest srm_request_tmp(canonic_url);
     logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", CurrentLocation().str());
-    if ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME) srm_request->long_list(true);
+    if ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME) srm_request_tmp.long_list(true);
     std::list<struct SRMFileMetaData> srm_metadata;
 
     // get info from SRM
-    SRMReturnCode res = client->info(*srm_request, srm_metadata, recursion);
-    delete client;
-    client = NULL;
-    delete srm_request;
-    srm_request = NULL;
-
+    SRMReturnCode res = client->info(srm_request_tmp, srm_metadata, recursion);
     if (res != SRM_OK) {
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::ListErrorRetryable;   
       return DataStatus::ListError;
@@ -761,15 +666,17 @@ namespace Arc {
       return DataStatus::Success;
     }
     // set URL attributes for surl requested (file or dir)
-    if(srm_metadata.front().size > 0)
+    if(srm_metadata.front().size > 0) {
       SetSize(srm_metadata.front().size);
+    }
     if(srm_metadata.front().checkSumType.length() > 0 &&
        srm_metadata.front().checkSumValue.length() > 0) {
       std::string csum(srm_metadata.front().checkSumType+":"+srm_metadata.front().checkSumValue);
       SetCheckSum(csum);
     }
-    if(srm_metadata.front().createdAtTime > 0) 
+    if(srm_metadata.front().createdAtTime > 0) {
       SetCreated(Time(srm_metadata.front().createdAtTime));
+    }
 
     // set FileInfo attributes for surl requested and any files within a dir
     for (std::list<struct SRMFileMetaData>::iterator i = srm_metadata.begin();

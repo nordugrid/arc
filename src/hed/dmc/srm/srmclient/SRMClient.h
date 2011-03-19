@@ -412,11 +412,6 @@ namespace Arc {
     SRMImplementation implementation;
 
     /**
-     * Timeout for connection to service
-     */
-    static time_t connection_timeout;
-
-    /**
      * Timeout for requests to the SRM service
      */
     time_t user_timeout;
@@ -457,8 +452,7 @@ namespace Arc {
      */
     static SRMClient* getInstance(const UserConfig& usercfg,
                                   const std::string& url,
-                                  bool& timedout,
-                                  time_t conn_timeout=60);
+                                  bool& timedout);
 
     /**
      * Destructor

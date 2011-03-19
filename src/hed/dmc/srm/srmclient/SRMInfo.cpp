@@ -16,6 +16,7 @@
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #include "SRMInfo.h"
 
@@ -44,28 +45,15 @@ std::string SRMFileInfo::versionString() const {
   return "";
 }
 
-Arc::SimpleCondition * SRMInfo::filelock = new Arc::SimpleCondition();
-
 SRMInfo::SRMInfo(std::string dir) {
   srm_info_filename = dir + G_DIR_SEPARATOR_S + "srms.conf";
 }
 
 bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
   
-  filelock->lock();
-  struct stat fileStat;
-  int err = stat( srm_info_filename.c_str(), &fileStat ); 
-  if (0 != err || fileStat.st_size == 0) {
-    if (0 != err && errno != ENOENT)
-      logger.msg(Arc::WARNING, "Error reading srm info file %s:%s", srm_info_filename, strerror(errno));
-    filelock->unlock();
-    return false;
-  }
-
   std::list<std::string> filedata;
   if (!Arc::FileRead(srm_info_filename, filedata)) {
-    logger.msg(Arc::WARNING, "Error reading info from file %s", srm_info_filename);
-    filelock->unlock();
+    logger.msg(Arc::WARNING, "Error reading info from file %s:%s", srm_info_filename, Arc::StrError(errno));
     return false;
   }
 
@@ -87,11 +75,9 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
         continue;
       }        
       srm_file_info.port = port_i;
-      filelock->unlock();
       return true;
     }
   }
-  filelock->unlock();
   return false;
 }
 
@@ -103,30 +89,10 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   header += "# This file can be freely edited, but it is not advisable while there\n";
   header += "# are on-going transfers. Comments begin with #\n#\n";
 
-  struct stat fileStat;
-  filelock->lock();
-  int err = stat( srm_info_filename.c_str(), &fileStat ); 
-  if (0 != err || fileStat.st_size == 0) {
-    if (0 != err && errno != ENOENT) {
-      logger.msg(Arc::WARNING, "Error reading srm info file %s:%s", srm_info_filename, strerror(errno));
-      filelock->unlock();
-      return;
-    }
-    // write new file
-    header += srm_file_info.host + ' ' + Arc::tostring(srm_file_info.port) + ' ' + srm_file_info.versionString() + '\n';
-    
-    if (!Arc::FileCreate(srm_info_filename, header))
-      logger.msg(Arc::WARNING, "Error creating srm info file %s", srm_info_filename);
-    filelock->unlock();
-    return;
-  }
-
-  // file already exists, so add this entry/replace existing entry
   std::list<std::string> filedata;
   if (!Arc::FileRead(srm_info_filename, filedata)) {
-    logger.msg(Arc::WARNING, "Error reading info from file %s", srm_info_filename);
-    filelock->unlock();
-    return;
+    // write new file
+    filedata.push_back(header);
   }
 
   std::string lines;
@@ -144,21 +110,24 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
     std::vector<std::string> fields;
     Arc::tokenize(*line, fields);
     if (fields.size() != 3) {
-      if (line->length() > 0)
+      if (line->length() > 0) {
         logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, *line);
+      }
       continue;
     }
     // if any line contains our combination of host and version, ignore it
-    if (fields.at(0) == srm_file_info.host && fields.at(2) == srm_file_info.versionString())
+    if (fields.at(0) == srm_file_info.host &&
+        fields.at(2) == srm_file_info.versionString()) {
       continue;
+    }
     lines += *line+'\n';
   }
   // add new info
   lines += srm_file_info.host + ' ' + Arc::tostring(srm_file_info.port) + ' ' + srm_file_info.versionString() + '\n';
 
   // write everything back to the file
-  if (!Arc::FileCreate(srm_info_filename, lines))
+  if (!Arc::FileCreate(srm_info_filename, lines)) {
     logger.msg(Arc::WARNING, "Error writing srm info file %s", srm_info_filename);
-
-  filelock->unlock();
+  };
 }
+

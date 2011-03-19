@@ -9,8 +9,6 @@ namespace Arc {
 
   Logger SRMClient::logger(Logger::getRootLogger(), "SRMClient");
 
-  time_t SRMClient::connection_timeout=60;
-  
   SRMClient::SRMClient(const UserConfig& usercfg, const SRMURL& url)
     : service_endpoint(url.ContactURL()),
       implementation(SRM_IMPLEMENTATION_UNKNOWN),
@@ -26,20 +24,19 @@ namespace Arc {
 
   SRMClient* SRMClient::getInstance(const UserConfig& usercfg,
                                     const std::string& url,
-                                    bool& timedout,
-                                    time_t conn_timeout) {
-    connection_timeout = conn_timeout;
+                                    bool& timedout) {
     SRMURL srm_url(url);
-    if (!srm_url)
-      return NULL;
+    if (!srm_url) return NULL;
 
     // can't use ping with srmv1 so just return
-    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1)
+    if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_1) {
       return new SRM1Client(usercfg, srm_url);
+    }
 
     if (usercfg.UtilsDirPath().empty()) {
-      if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2)
+      if (srm_url.SRMVersion() == SRMURL::SRM_URL_VERSION_2_2) {
         return new SRM22Client(usercfg, srm_url);
+      }
       return NULL;
     }
 
@@ -52,9 +49,9 @@ namespace Arc {
     std::list<int> ports;
 
     // if port is specified then only try that one
-    if (srm_url.PortDefined())
+    if (srm_url.PortDefined()) {
       ports.push_back(srm_url.Port());
-
+    }
     // take hints from certain keywords in the url
     else if (srm_url.Path().find("/dpm/") != std::string::npos) {
       ports.push_back(8446);
@@ -95,7 +92,6 @@ namespace Arc {
       }
       // if we get here no port has worked
       logger.msg(VERBOSE, "No port succeeded for %s", srm_url.Host());
-      return NULL;
     }
     // url agrees with file info
     else if (srm_file_info == srm_url) {
@@ -118,12 +114,13 @@ namespace Arc {
         return client;
       }
       delete client;
-      if (srm_error == SRM_ERROR_TEMPORARY)
+      if (srm_error == SRM_ERROR_TEMPORARY) {
         // probably correct port and service is down
         // but don't want to risk storing incorrect info
         timedout = true;
-      return NULL;
+      }
     }
+    return NULL;
   }
 
   SRMReturnCode SRMClient::process(PayloadSOAP *request,
@@ -141,17 +138,16 @@ namespace Arc {
     if (*response && (*response)->IsFault()) {
       logger.msg(DEBUG, "SOAP fault: %s", (*response)->Fault()->Reason());
       logger.msg(DEBUG, "Reconnecting");
+      delete *response; *response = NULL;
       delete client;
       client = new ClientSOAP(cfg, service_endpoint, user_timeout);
-      if (!client)
-        return SRM_ERROR_CONNECTION;
       status = client->process(request, response);
     }
 
     if (!status) {
       logger.msg(VERBOSE, "SRM Client status: %s", (std::string)status);
-      if (*response)
-        delete *response;
+      if (*response) delete *response;
+      *response = NULL;
       return SRM_ERROR_SOAP;
     }
     if (!(*response)) {
@@ -168,6 +164,7 @@ namespace Arc {
     if ((*response)->IsFault()) {
       logger.msg(VERBOSE, "SOAP fault: %s", (*response)->Fault()->Reason());
       delete *response;
+      *response = NULL;
       return SRM_ERROR_SOAP;
     }
 

@@ -33,9 +33,6 @@
     valid=false;
   }  
   
-  std::string SRMURL::empty("");
-  
-  
   void SRMURL::SetSRMVersion(const std::string& version) {
     if (version.empty()) return;
     if (version == "1") {
@@ -52,7 +49,7 @@
   }
   
   std::string SRMURL::ContactURL(void) const {
-    if(!valid) return empty;
+    if(!valid) return "";
     std::string contact_protocol("httpg");
     if((Option("protocol") == "tls") || (Option("protocol") == "ssl")) {
       contact_protocol = "https";
@@ -64,12 +61,12 @@
   }
   
   std::string SRMURL::BaseURL(void) const {
-    if(!valid) return empty;
+    if(!valid) return "";
     return (protocol+"://"+host+":"+Arc::tostring(port)+path+"?SFN=");
   }
   
   std::string SRMURL::FullURL(void) const {
-    if(!valid) return empty;
+    if(!valid) return "";
     return (protocol+"://"+host+":"+Arc::tostring(port)+path+"?SFN="+filename);
   }
   

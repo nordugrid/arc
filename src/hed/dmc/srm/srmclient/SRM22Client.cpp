@@ -11,6 +11,14 @@
 
 namespace Arc {
 
+  /**
+   * The max number of files returned when listing dirs
+   * current limits are 1000 for dcache, 1024 for castor
+   * info() will be called multiple times for directories
+   * with more entries than max_files_list
+   */
+  const static unsigned int max_files_list = 999;
+
   enum SRMStatusCode {
     SRM_SUCCESS,
     SRM_FAILURE,
