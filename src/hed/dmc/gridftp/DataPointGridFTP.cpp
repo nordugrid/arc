@@ -910,8 +910,14 @@ namespace Arc {
     StopReading();
     StopWriting();
     if (ftp_active) {
-      logger.msg(VERBOSE, "DataPoint::deinit_handle: destroy ftp_handle");
-      globus_ftp_client_handle_destroy(&ftp_handle);
+      logger.msg(DEBUG, "DataPoint::deinit_handle: destroy ftp_handle");
+      // In case globus is still doing something asynchronously
+      while(globus_ftp_client_handle_destroy(&ftp_handle) != GLOBUS_SUCCESS) {
+        logger.msg(VERBOSE, "DataPoint::deinit_handle: destroy ftp_handle failed - retrying");
+        // Unfortunately there is no sutable condition to wait for.
+        // But such situation should happen very rarely if ever.
+        sleep(1);
+      }
       globus_ftp_client_operationattr_destroy(&ftp_opattr);
     }
     if (credential)

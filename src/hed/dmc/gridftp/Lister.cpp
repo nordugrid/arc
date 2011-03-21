@@ -501,14 +501,19 @@ namespace Arc {
   Lister::~Lister() {
     close_connection();
     if (inited) {
-      if (globus_ftp_control_handle_destroy(handle) == GLOBUS_SUCCESS) {
-        free(handle);
-        handle = NULL;
+      inited = false;
+      // Waiting for stalled callbacks
+      while (handle && (globus_ftp_control_handle_destroy(handle) != GLOBUS_SUCCESS)) {
+        globus_abstime_t timeout;
+        GlobusTimeAbstimeSet(timeout,0,100000);
+        logger.msg(VERBOSE, "Looping for (globus_ftp_control_handle_t) to finish all operations");
+        globus_mutex_lock(&mutex);
+        globus_cond_timedwait(&cond, &mutex, &timeout);
+        globus_cond_wait(&cond, &mutex);
+        globus_mutex_unlock(&mutex);
       }
-      else {
-        logger.msg(VERBOSE, "Memory leak (globus_ftp_control_handle_t)");
-        handle = NULL;
-      }
+      free(handle);
+      handle = NULL;
       globus_mutex_destroy(&mutex);
       globus_cond_destroy(&cond);
     }
