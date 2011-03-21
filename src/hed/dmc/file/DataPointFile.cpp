@@ -654,7 +654,7 @@ namespace Arc {
     if (!buffer->error() && additional_checks && CheckSize()) {
       struct stat st;
       std::string path = url.Path();
-      if (stat(path.c_str(), &st) != 0 && errno != ENOENT) {
+      if (!FileStat(path, &st, true) && errno != ENOENT) {
         logger.msg(ERROR, "Error during file validation. Can't stat file %s: %s", url.Path(), strerror(errno));
         return DataStatus::WriteStopError;
       }
