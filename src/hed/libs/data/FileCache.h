@@ -147,13 +147,6 @@ namespace Arc {
      * Return the filename of the meta file associated to the given url
      */
     std::string _getMetaFileName(std::string url);
-    /**
-     * Generic method to make directories
-     * @param dir directory to create
-     * @param all_read if true, make the directory readable by all users,
-     * if false, it is readable only by the user who created it.
-     */
-    bool _cacheMkDir(std::string dir, bool all_read);
    /**
      * Choose a cache directory to use for this url, based on the free 
      * size of the cache directories and cache_size limitation of the arc.conf
