@@ -8,6 +8,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/User.h>
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
 #include <arc/data/URLMap.h>
@@ -460,6 +461,13 @@ namespace Arc {
     virtual void SortLocations(const std::string& pattern,
                                const URLMap& url_map) = 0;
 
+    /// Set User object under whose identity DataPoint must access the resource.
+    /// Currently only applicable for file protocol.
+    virtual void SetUser(const User& user);
+
+    /// Get User object under whose identity DataPoint must access the resource
+    /// Currently only applicable for file protocol.
+    virtual User GetUser() const;
 
   protected:
     URL url;
@@ -475,6 +483,7 @@ namespace Arc {
     DataStatus failure_code; /* filled by callback methods */
     bool cache;
     bool stageable;
+    User user;
     /** Subclasses should add their own specific options to this list */
     std::list<std::string> valid_url_options;
 

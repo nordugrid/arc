@@ -222,6 +222,15 @@ namespace Arc {
     
   }
 
+  void DataPoint::SetUser(const User& u) {
+    user = u;
+  }
+
+  User DataPoint::GetUser() const {
+    return user;
+  }
+
+
   DataPointLoader::DataPointLoader()
     : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 

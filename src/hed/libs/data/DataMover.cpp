@@ -700,6 +700,7 @@ namespace Arc {
         chdest.Passive(force_passive);
         chdest.SetAdditionalChecks(false); // don't pre-allocate space in cache
         chdest.SetMeta(destination); // share metadata
+        chdest.SetUser(User(getuid())); // don't switch user to access cache
       }
       DataPoint& source_url = mapped ? mapped_p : source;
       DataPoint& destination_url = cacheable ? chdest : destination;

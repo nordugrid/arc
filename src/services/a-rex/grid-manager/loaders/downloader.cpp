@@ -231,11 +231,14 @@ class PointPair {
   Arc::DataHandle source;
   Arc::DataHandle destination;
   PointPair(const std::string& source_str, const std::string& destination_str,
-      const Arc::UserConfig& usercfg)
+      const Arc::UserConfig& usercfg, const Arc::User& user)
     : source_url(source_str),
       destination_url(destination_str),
       source(source_url, usercfg),
-      destination(destination_url, usercfg) {};
+      destination(destination_url, usercfg) {
+    source->SetUser(user);
+    destination->SetUser(user);
+  };
   ~PointPair(void) {};
   static void callback(Arc::DataMover*,Arc::DataStatus res,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
@@ -632,7 +635,7 @@ int main(int argc,char** argv) {
             failure_reason+=std::string("User requested local input file ")+source.c_str()+"\n";
             logger.msg(Arc::ERROR, "Local source for download: %s", source); res=1; goto exit;
           };
-          PointPair* pair = new PointPair(source,destination,usercfg);
+          PointPair* pair = new PointPair(source,destination,usercfg,Arc::User(uid));
           if(!(pair->source)) {
             failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
             logger.msg(Arc::ERROR, "Can't accept URL: %s", source); delete pair; res=1; goto exit;

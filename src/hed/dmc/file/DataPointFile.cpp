@@ -19,7 +19,6 @@
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
-#include <arc/User.h>
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
@@ -300,7 +299,7 @@ namespace Arc {
     }
 #endif
     if (fd != -1 && close(fd) != 0) {
-      logger.msg(ERROR, "closing file %s failed: %s", url.Path(), strerror(errno));
+      logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(errno));
       buffer->error_write(true);
     }    
     if((do_cksum) && (cksum_chunks.eof() == cksum_p)) {
@@ -317,15 +316,14 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
-    User user;
     int res = user.check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
       logger.msg(INFO, "File is not accessible: %s", url.Path());
       return DataStatus::CheckError;
     }
     struct stat st;
-    if (stat((url.Path()).c_str(), &st) != 0) {
-      logger.msg(INFO, "Can't stat file: %s", url.Path());
+    if (!FileStat(url.Path(), &st, user.get_uid(), user.get_gid(), true)) {
+      logger.msg(INFO, "Can't stat file: %s: %s", url.Path(), StrError(errno));
       return DataStatus::CheckError;
     }
     SetSize(st.st_size);
@@ -335,7 +333,7 @@ namespace Arc {
 
   static DataStatus do_stat(const std::string& path, FileInfo& file, DataPoint::DataPointInfoType verb) {
     struct stat st;
-    if (stat(path.c_str(), &st) != 0) {
+    if (!FileStat(path, &st, true)) {
       return DataStatus::StatError;
     }
     if(S_ISREG(st.st_mode)) {
@@ -446,24 +444,24 @@ namespace Arc {
     if (writing)
       return DataStatus::IsReadingError;
       
-    const char* path = url.Path().c_str();
+    std::string path(url.Path());
     struct stat st;
-    if(stat(path,&st) != 0) {
+    if(!FileStat(path, &st, true) != 0) {
       if (errno == ENOENT) return DataStatus::Success;
-      logger.msg(INFO, "File is not accessible: %s - %s", path, strerror(errno));
+      logger.msg(INFO, "File is not accessible: %s - %s", path, StrError(errno));
       return DataStatus::DeleteError;
     }
     // path is a directory
     if(S_ISDIR(st.st_mode)) {
-      if (rmdir(path) == -1) {
-        logger.msg(INFO, "Can't delete directory: %s - %s", path, strerror(errno));
+      if (!DirDelete(path)) {
+        logger.msg(INFO, "Can't delete directory: %s - %s", path, StrError(errno));
         return DataStatus::DeleteError;
       }
       return DataStatus::Success;
     }
     // path is a file
-    if(unlink(path) == -1 && errno != ENOENT) {
-      logger.msg(INFO, "Can't delete file: %s - %s", path, strerror(errno));
+    if(!FileDelete(path) && errno != ENOENT) {
+      logger.msg(INFO, "Can't delete file: %s - %s", path, StrError(errno));
       return DataStatus::DeleteError;
     }
     return DataStatus::Success;
@@ -486,19 +484,20 @@ namespace Arc {
       }
     }
     else {
-      User user;
-      if (user.check_file_access(url.Path(), flags) != 0) {
-        reading = false;
-        return DataStatus::ReadStartError;
-      }
-      fd = FileOpen(url.Path(), flags);
+      // this check is probably unnecessary, as open and stat are already
+      // done after it
+      //if (user.check_file_access(url.Path(), flags) != 0) {
+      //  reading = false;
+      //  return DataStatus::ReadStartError;
+      //}
+      fd = FileOpen(url.Path(), flags, user.get_uid(), user.get_gid());
       if (fd == -1) {
         reading = false;
         return DataStatus::ReadStartError;
       }
       /* provide some metadata */
       struct stat st;
-      if (fstat(fd, &st) == 0) {
+      if (FileStat(url.Path(), &st, user.get_uid(), user.get_gid(), true)) {
         SetSize(st.st_size);
         SetCreated(st.st_mtime);
       }
@@ -550,7 +549,6 @@ namespace Arc {
       }
     }
     else {
-      User user;
       /* do not check permissions to create anything here -
          suppose it path was checked at higher level */
       /* make directories */
@@ -573,11 +571,9 @@ namespace Arc {
 
       /* try to create file, if failed - try to open it */
       int flags = (checksums.size() > 0)?O_RDWR:O_WRONLY;
-      fd = FileOpen(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      fd = FileOpen(url.Path(), flags | O_CREAT | O_EXCL, user.get_uid(), user.get_gid(), S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = FileOpen(url.Path(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
-      else  /* this file was created by us. Hence we can set it's owner */
-        (fchown(fd, user.get_uid(), user.get_gid()) != 0);
+        fd = FileOpen(url.Path(), flags | O_TRUNC, user.get_uid(), user.get_gid(), S_IRUSR | S_IWUSR);
       if (fd == -1) {
         logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
         buffer->error_write(true);
@@ -654,8 +650,8 @@ namespace Arc {
     if (!buffer->error() && additional_checks && CheckSize()) {
       struct stat st;
       std::string path = url.Path();
-      if (!FileStat(path, &st, true) && errno != ENOENT) {
-        logger.msg(ERROR, "Error during file validation. Can't stat file %s: %s", url.Path(), strerror(errno));
+      if (!FileStat(path, &st, user.get_uid(), user.get_gid(), true) && errno != ENOENT) {
+        logger.msg(ERROR, "Error during file validation. Can't stat file %s: %s", url.Path(), StrError(errno));
         return DataStatus::WriteStopError;
       }
       if (errno != ENOENT && GetSize() != st.st_size) {
