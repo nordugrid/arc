@@ -20,6 +20,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
+#include <arc/User.h>
 
 #include "FileLock.h"
 
@@ -61,6 +62,16 @@ namespace Arc {
     // - if not, create tmp file and check again
     // - if lock is still not there copy tmp file to .lock file
     // - check pid inside lock file matches ours
+
+    // wrap entire method with UserSwitch to protect from uid changes
+    UserSwitch usw(getuid(), getgid());
+    if (!usw)
+      return false;
+    return acquire_(lock_removed);
+  }
+
+
+  bool FileLock::acquire_(bool& lock_removed) {
 
     struct stat fileStat;
     int err = stat(lock_file.c_str(), &fileStat);
@@ -180,7 +191,7 @@ namespace Arc {
         }
         // lock has expired and has been removed. Call acquire() again
         lock_removed = true;
-        return acquire(lock_removed);
+        return acquire_(lock_removed);
       }
 
       // lock is still valid, check if we own it
@@ -199,7 +210,7 @@ namespace Arc {
           // lock could have been released by another process, so call acquire again
           if (errno == ENOENT) {
             logger.msg(VERBOSE, "Lock that recently existed has been deleted by another process, calling acquire() again");
-            return acquire(lock_removed);
+            return acquire_(lock_removed);
           }
           logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, StrError(errno));
           return false;
@@ -241,7 +252,7 @@ namespace Arc {
               }
               // call acquire() again
               lock_removed = true;
-              return acquire(lock_removed);
+              return acquire_(lock_removed);
             }
           }
           else {
@@ -258,6 +269,11 @@ namespace Arc {
   }
 
   bool FileLock::release(bool force) {
+
+    // wrap entire method with UserSwitch to protect from uid changes
+    UserSwitch usw(getuid(), getgid());
+    if (!usw)
+      return false;
 
     // check for existence of lock file
     struct stat fileStat;

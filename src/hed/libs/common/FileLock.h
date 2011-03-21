@@ -29,6 +29,11 @@ namespace Arc {
    * is checked to make sure the correct process ID and hostname are inside.
    * This eliminates race conditions where multiple processes compete to
    * obtain the lock.
+   *
+   * A UserSwitch object is created within acquire() and release() to protect
+   * against uid changes in an multi-threaded environment. It is therefore
+   * very important to not be under the UserSwitch lock when calling these
+   * methods or the code will deadlock.
    */
   class FileLock {
   public:
@@ -95,6 +100,10 @@ namespace Arc {
     std::string hostname;
     /// Logger object
     static Logger logger;
+
+    /// private acquire method. Need so that acquire can be called recursively
+    /// under UserSwitch
+    bool acquire_(bool& lock_removed);
   };
 
 } // namespace Arc
