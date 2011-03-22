@@ -1,51 +1,49 @@
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+//#include <unistd.h>
+//#include <sys/stat.h>
+//#include <sys/types.h>
+#include <iostream>
+#include <signal.h>
+
+#include "FileAccess.h"
 
 int main(void) {
-  int sendpipe[2];
-  int recvpipe[2];
-  pipe(sendpipe);
-  pipe(recvpipe);
-  if(fork() == 0) {
-    close(0);
-    close(1);
-    dup2(sendpipe[0],0);
-    dup2(recvpipe[1],1);
-    execl("./arc-file-access","arc-file-access","0","1",NULL);
+  signal(SIGTTOU,SIG_IGN);
+  signal(SIGTTIN,SIG_IGN);
+
+  Arc::FileAccess fa;
+  if(!fa) {
+    std::cerr<<"FileAccess creation failed: "<<fa.errno()<<std::endl;
     return -1;
-  }
-  int n;
-  char s[] = "/tmp/testdir";
+  };
+  if(!fa.ping()) {
+    std::cerr<<"FileAccess::ping failed: "<<fa.errno()<<std::endl;
+    return -1;
+  };
+  if(!fa.rmdir("/tmp/testdir")) {
+    std::cerr<<"FileAccess::rmdir failed: "<<fa.errno()<<std::endl;
+    if(!fa) return -1;
+  };
 
-  // rmdir
-  n=sizeof(int)+12; write(sendpipe[1],&n,sizeof(n)); // size
-  n=9; write(sendpipe[1],&n,sizeof(n)); // cmd
-  n=12; write(sendpipe[1],&n,sizeof(n)); write(sendpipe[1],s,12); // dir
-  read(recvpipe[0],&n,sizeof(n)); if(n != 2*sizeof(n)) return -1;
-  read(recvpipe[0],&n,sizeof(n)); if(n != 9) return -1;
-  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // res
-  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // err
+  if(!fa.setuid(1000,100)) {
+    std::cerr<<"FileAccess::setuid failed: "<<fa.errno()<<std::endl;
+    if(!fa) return -1;
+  };
 
-  // setuid
-  n=2*sizeof(n); write(sendpipe[1],&n,sizeof(n)); // size
-  n=1; write(sendpipe[1],&n,sizeof(n)); // cmd
-  n=1000; write(sendpipe[1],&n,sizeof(n)); // uid
-  n=100; write(sendpipe[1],&n,sizeof(n)); // gid
-  read(recvpipe[0],&n,sizeof(n)); if(n != 2*sizeof(n)) return -1;
-  read(recvpipe[0],&n,sizeof(n)); if(n != 1) return -1;
-  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // res
-  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // err
+  if(!fa.mkdir("/tmp/testdir",0777)) {
+    std::cerr<<"FileAccess::mkdir failed: "<<fa.errno()<<std::endl;
+    if(!fa) return -1;
+  };
 
-  // mkdir
-  n=sizeof(mode_t)+sizeof(int)+12; write(sendpipe[1],&n,sizeof(n)); // size
-  n=2; write(sendpipe[1],&n,sizeof(n)); // cmd
-  mode_t m=0777; write(sendpipe[1],&m,sizeof(m)); // mode
-  n=12; write(sendpipe[1],&n,sizeof(n)); write(sendpipe[1],s,12); // dir
-  read(recvpipe[0],&n,sizeof(n)); if(n != 2*sizeof(n)) return -1;
-  read(recvpipe[0],&n,sizeof(n)); if(n != 2) return -1;
-  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // res
-  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // err
+std::cerr<<"----------------------------------"<<std::endl;
+  struct stat st;
+  if(!fa.stat("/tmp/testdir",st)) {
+    std::cerr<<"FileAccess::stat failed: "<<fa.errno()<<std::endl;
+    if(!fa) return -1;
+  } else {
+    std::cerr<<"uid="<<st.st_uid<<std::endl;
+    std::cerr<<"gid="<<st.st_gid<<std::endl;
+    std::cerr<<"mode="<<std::hex<<st.st_mode<<std::dec<<std::endl;
+  };
 
   return 0;
 }

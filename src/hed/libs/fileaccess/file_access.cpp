@@ -16,133 +16,19 @@
 #include <dirent.h>
 #include <fcntl.h>
 
+#include "file_access.h"
+
 typedef struct {
   unsigned int size;
   unsigned int cmd;
 } header_t;
-
-#define CMD_PING (0)
-// -
-
-#define CMD_SETUID (1)
-// int uid
-// int gid
-// -
-// result
-// errno
-
-#define CMD_MKDIR  (2)
-// mode_t mode
-// string dirname
-// -
-// result
-// errno
-
-#define CMD_HARDLINK (3)
-// string oldname
-// string newname
-// -
-// result
-// errno
-
-#define CMD_SOFTLINK (4)
-// string oldname
-// string newname
-// -
-// result
-// errno
-
-#define CMD_STAT (5)
-// string path
-// -
-// result
-// errno
-// stat
-
-#define CMD_LSTAT (6)
-// string path
-// -
-// result
-// errno
-// stat
-
-#define CMD_REMOVE (7)
-// string path
-// -
-// result
-// errno
-
-#define CMD_UNLINK (8)
-// string path
-// -
-// result
-// errno
-
-#define CMD_RMDIR (9)
-// string path
-// -
-// result
-// errno
-
-#define CMD_OPENDIR (10)
-// string path
-// -
-// result
-// errno
-
-#define CMD_CLOSEDIR (11)
-// -
-// result
-// errno
-
-#define CMD_READDIR (12)
-// -
-// result
-// errno
-// string name
-
-#define CMD_OPENFILE (13)
-// flags
-// mode
-// string path
-// -
-// result
-// errno
-
-#define CMD_CLOSEFILE (14)
-// -
-// result
-// errno
-
-#define CMD_READFILE (15)
-// offset
-// size
-// -
-// result
-// errno
-// string data
-
-#define CMD_WRITEFILE (16)
-// offset
-// string data
-// -
-// result
-// errno
-
-#define CMD_SEEKFILE (17)
-// offset
-// whence
-// -
-// result
-// errno
-// offset
 
 static bool sread(int s,void* buf,size_t size) {
   while(size) {
 std::cerr<<"sread: size="<<size<<std::endl;
     ssize_t l = ::read(s,buf,size);
 std::cerr<<"sread: l="<<l<<std::endl;
-    if(l == -1) {
+    if(l < 0) {
       if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
         struct pollfd p[1];
         p[0].fd = s;
@@ -164,7 +50,7 @@ static ssize_t swrite(int s,const void* buf,size_t size) {
 std::cerr<<"swrite: size="<<size<<std::endl;
     ssize_t l = ::write(s,buf,size);
 std::cerr<<"swrite: l="<<l<<std::endl;
-    if(l == -1) {
+    if(l < 0) {
       if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
         struct pollfd p[1];
         p[0].fd = s;
@@ -236,7 +122,7 @@ static bool swrite_result(int s,int cmd,int res,int err) {
 static bool swrite_result(int s,int cmd,int res,int err,void* add,int addsize) {
   header_t header;
   header.cmd = cmd;
-  header.size = sizeof(res) + sizeof(err) + sizeof(addsize);
+  header.size = sizeof(res) + sizeof(err) + addsize;
   if(!swrite(s,&header,sizeof(header))) return -1;
   if(!swrite(s,&res,sizeof(res))) return -1;
   if(!swrite(s,&err,sizeof(err))) return -1;
@@ -247,7 +133,7 @@ static bool swrite_result(int s,int cmd,int res,int err,void* add,int addsize) {
 static bool swrite_result(int s,int cmd,int res,int err,void* add1,int addsize1,void* add2,int addsize2) {
   header_t header;
   header.cmd = cmd;
-  header.size = sizeof(res) + sizeof(err) + sizeof(addsize1) + sizeof(addsize2);
+  header.size = sizeof(res) + sizeof(err) + addsize1 + addsize2;
   if(!swrite(s,&header,sizeof(header))) return -1;
   if(!swrite(s,&res,sizeof(res))) return -1;
   if(!swrite(s,&err,sizeof(err))) return -1;
