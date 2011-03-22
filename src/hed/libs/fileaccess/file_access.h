@@ -93,7 +93,6 @@
 // errno
 
 #define CMD_READFILE (15)
-// offset
 // size
 // -
 // result
@@ -101,13 +100,27 @@
 // string data
 
 #define CMD_WRITEFILE (16)
+// string data
+// -
+// result
+// errno
+
+#define CMD_READFILEAT (17)
+// offset
+// size
+// -
+// result
+// errno
+// string data
+
+#define CMD_WRITEFILEAT (18)
 // offset
 // string data
 // -
 // result
 // errno
 
-#define CMD_SEEKFILE (17)
+#define CMD_SEEKFILE (19)
 // offset
 // whence
 // -

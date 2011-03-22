@@ -26,9 +26,9 @@ typedef struct {
 
 static bool sread(int s,void* buf,size_t size) {
   while(size) {
-std::cerr<<"sread: size="<<size<<std::endl;
+    //std::cerr<<"sread: size="<<size<<std::endl;
     ssize_t l = ::read(s,buf,size);
-std::cerr<<"sread: l="<<l<<std::endl;
+    //std::cerr<<"sread: l="<<l<<std::endl;
     if(l < 0) {
       if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
         struct pollfd p[1];
@@ -48,9 +48,9 @@ std::cerr<<"sread: l="<<l<<std::endl;
 
 static ssize_t swrite(int s,const void* buf,size_t size) {
   while(size) {
-std::cerr<<"swrite: size="<<size<<std::endl;
+    //std::cerr<<"swrite: size="<<size<<std::endl;
     ssize_t l = ::write(s,buf,size);
-std::cerr<<"swrite: l="<<l<<std::endl;
+    //std::cerr<<"swrite: l="<<l<<std::endl;
     if(l < 0) {
       if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
         struct pollfd p[1];
@@ -69,16 +69,16 @@ std::cerr<<"swrite: l="<<l<<std::endl;
 
 static bool sread_string(int s,std::string& str,unsigned int& maxsize) {
   unsigned int ssize;
-std::cerr<<"sread_string: maxsize="<<maxsize<<std::endl;
+  //std::cerr<<"sread_string: maxsize="<<maxsize<<std::endl;
   if(sizeof(ssize) > maxsize) return false;
   if(!sread(s,&ssize,sizeof(ssize))) return false;
-std::cerr<<"sread_string: ssize="<<ssize<<std::endl;
+  //std::cerr<<"sread_string: ssize="<<ssize<<std::endl;
   maxsize -= sizeof(ssize);
   if(ssize > maxsize) return false;
   str.assign(ssize,' ');
   // Not nice but saves memory copying
   if(!sread(s,(void*)(str.c_str()),ssize)) return false;
-std::cerr<<"sread_string: str="<<str<<std::endl;
+  //std::cerr<<"sread_string: str="<<str<<std::endl;
   maxsize -= ssize;
   return true;
 }
@@ -245,10 +245,8 @@ int main(int argc,char* argv[]) {
       case CMD_REMOVE:
       case CMD_UNLINK:
       case CMD_RMDIR: {
-std::cerr<<"CMD_RMDIR"<<std::endl;
         std::string path;
         if(!sread_string(sin,path,header.size)) return -1;
-std::cerr<<"CMD_RMDIR: header.size="<<header.size<<std::endl;
         if(header.size) return -1;
         int res = 0;
         if(header.cmd == CMD_REMOVE) {
@@ -256,9 +254,7 @@ std::cerr<<"CMD_RMDIR: header.size="<<header.size<<std::endl;
         } else if(header.cmd == CMD_UNLINK) {
           res = ::unlink(path.c_str());
         } else {
-std::cerr<<"CMD_RMDIR: path="<<path<<std::endl;
           res = ::rmdir(path.c_str());
-std::cerr<<"CMD_RMDIR: res="<<res<<std::endl;
         };
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
@@ -336,10 +332,7 @@ std::cerr<<"CMD_RMDIR: res="<<res<<std::endl;
 
       case CMD_READFILE: {
         // TODO: maybe use shared memory
-        off_t offset;
         size_t size;
-        if(!sread(sin,&offset,sizeof(offset))) return -1;
-        header.size -= sizeof(offset);
         if(!sread(sin,&size,sizeof(size))) return -1;
         header.size -= sizeof(size);
         if(header.size) return -1;
@@ -352,13 +345,38 @@ std::cerr<<"CMD_RMDIR: res="<<res<<std::endl;
       }; break;
 
       case CMD_WRITEFILE: {
+        unsigned int size = sizeof(filebuf);
+        if(!sread_buf(sin,filebuf,size,header.size)) return false;
+        if(header.size) return -1;
+        ssize_t l = ::write(curfile,filebuf,size);
+        int res = l;
+        if(!swrite_result(sout,header.cmd,res,errno)) return -1;
+      }; break;
+
+      case CMD_READFILEAT: {
+        off_t offset;
+        size_t size;
+        if(!sread(sin,&size,sizeof(size))) return -1;
+        header.size -= sizeof(size);
+        if(!sread(sin,&offset,sizeof(offset))) return -1;
+        header.size -= sizeof(offset);
+        if(header.size) return -1;
+        if(size > sizeof(filebuf)) size = sizeof(filebuf);
+        ssize_t l = ::pread(curfile,filebuf,size,offset);
+        int res = l;
+        if(l < 0) l = 0;
+        int n = l;
+        if(!swrite_result(sout,header.cmd,res,errno,&n,sizeof(n),filebuf,l)) return -1;
+      }; break;
+
+      case CMD_WRITEFILEAT: {
         off_t offset;
         if(!sread(sin,&offset,sizeof(offset))) return -1;
         header.size -= sizeof(offset);
         unsigned int size = sizeof(filebuf);
         if(!sread_buf(sin,filebuf,size,header.size)) return false;
         if(header.size) return -1;
-        ssize_t l = ::write(curfile,filebuf,size);
+        ssize_t l = ::pwrite(curfile,filebuf,size,offset);
         int res = l;
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;

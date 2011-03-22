@@ -36,6 +36,8 @@ namespace Arc {
     off_t lseek(off_t offset, int whence);
     ssize_t read(void* buf,size_t size);
     ssize_t write(const void* buf,size_t size);
+    ssize_t pread(void* buf,size_t size,off_t offset);
+    ssize_t pwrite(const void* buf,size_t size,off_t offset);
     int errno() { return errno_; };
     operator bool(void) { return (file_access_ != NULL); };
     bool operator!(void) { return (file_access_ == NULL); };
