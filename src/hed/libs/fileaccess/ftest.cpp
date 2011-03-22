@@ -16,7 +16,18 @@ int main(void) {
     return -1;
   }
   int n;
+  char s[] = "/tmp/testdir";
 
+  // rmdir
+  n=sizeof(int)+12; write(sendpipe[1],&n,sizeof(n)); // size
+  n=9; write(sendpipe[1],&n,sizeof(n)); // cmd
+  n=12; write(sendpipe[1],&n,sizeof(n)); write(sendpipe[1],s,12); // dir
+  read(recvpipe[0],&n,sizeof(n)); if(n != 2*sizeof(n)) return -1;
+  read(recvpipe[0],&n,sizeof(n)); if(n != 9) return -1;
+  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // res
+  read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // err
+
+  // setuid
   n=2*sizeof(n); write(sendpipe[1],&n,sizeof(n)); // size
   n=1; write(sendpipe[1],&n,sizeof(n)); // cmd
   n=1000; write(sendpipe[1],&n,sizeof(n)); // uid
@@ -26,10 +37,11 @@ int main(void) {
   read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // res
   read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // err
 
+  // mkdir
   n=sizeof(mode_t)+sizeof(int)+12; write(sendpipe[1],&n,sizeof(n)); // size
   n=2; write(sendpipe[1],&n,sizeof(n)); // cmd
   mode_t m=0777; write(sendpipe[1],&m,sizeof(m)); // mode
-  char s[] = "/tmp/testdir"; n=12; write(sendpipe[1],&n,sizeof(n)); write(sendpipe[1],s,12); // dir
+  n=12; write(sendpipe[1],&n,sizeof(n)); write(sendpipe[1],s,12); // dir
   read(recvpipe[0],&n,sizeof(n)); if(n != 2*sizeof(n)) return -1;
   read(recvpipe[0],&n,sizeof(n)); if(n != 2) return -1;
   read(recvpipe[0],&n,sizeof(n)); if(n != 0) return -1; // res
