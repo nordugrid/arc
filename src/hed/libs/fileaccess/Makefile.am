@@ -1,7 +1,3 @@
-DIST_SUBDIRS = test
-SUBDIRS = 
-#$(TEST_DIR)
-
 #pkglibexec_PROGRAMS = arc-file-access
 noinst_PROGRAMS = arc-file-access ftest
 
