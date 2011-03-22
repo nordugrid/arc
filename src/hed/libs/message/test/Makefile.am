@@ -7,7 +7,7 @@ libtestmcc_la_SOURCES = TestMCC.cpp
 libtestmcc_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libtestmcc_la_LIBADD = \
-	../libarcmessage.la
+	../libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS)

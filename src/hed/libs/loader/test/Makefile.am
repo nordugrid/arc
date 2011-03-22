@@ -3,12 +3,19 @@ TESTS = PluginTest
 check_LTLIBRARIES = libtestplugin.la
 check_PROGRAMS = $(TESTS)
 
-libtestplugin_la_SOURCES  = TestPlugin.cpp
-libtestplugin_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libtestplugin_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcloader.la
-libtestplugin_la_LDFLAGS  = $(LIBXML2_LIBS) -no-undefined -avoid-version -module -rpath $(CURDIR)
+libtestplugin_la_SOURCES = TestPlugin.cpp
+libtestplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libtestplugin_la_LIBADD = \
+	../libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS)
+libtestplugin_la_LDFLAGS = -no-undefined -avoid-version -module -rpath $(CURDIR)
 
 PluginTest_SOURCES = $(top_srcdir)/src/Test.cpp PluginTest.cpp
-PluginTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-PluginTest_LDADD = $(CPPUNIT_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcloader.la
-
+PluginTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+PluginTest_LDADD = \
+	../libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS)
