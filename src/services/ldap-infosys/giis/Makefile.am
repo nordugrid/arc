@@ -11,5 +11,5 @@ arc_infoindex_server_SOURCES = main.cpp \
 arc_infoindex_server_LDADD = -lpthread
 
 arc_infoindex_slapd_wrapper_la_SOURCES = SlapdWrapper.cpp
-arc_infoindex_slapd_wrapper_la_LDFLAGS = -module -avoid-version
+arc_infoindex_slapd_wrapper_la_LDFLAGS = -no-undefined -avoid-version -module
 arc_infoindex_slapd_wrapper_la_LIBADD = -lpthread -ldl

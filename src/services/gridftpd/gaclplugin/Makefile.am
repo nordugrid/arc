@@ -7,7 +7,7 @@ gaclplugin_la_SOURCES = init.cpp util.cpp util.h util++.cpp util++.h \
 gaclplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLOBUS_IO_CFLAGS) -I$(GACL_LOCATION) \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-gaclplugin_la_LDFLAGS = -module -avoid-version
+gaclplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
 gaclplugin_la_LIBADD = ../libgridftpd_la-misc.lo \
 	../libgridftpd_la-userspec.lo ../libgridftpd_la-names.lo \

@@ -12,7 +12,7 @@ jobplugin_la_SOURCES = jobplugin.cpp jobplugin.h init.cpp
 jobplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 	$(GLOBUS_FTP_CLIENT_CFLAGS) $(GACL_CFLAGS)
-jobplugin_la_LDFLAGS = -module -avoid-version
+jobplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
 jobplugin_la_LIBADD = \
 	../../../gridftpd/fileplugin/fileplugin_la-fileplugin.lo \

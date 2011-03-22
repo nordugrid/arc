@@ -18,4 +18,4 @@ libcacheservice_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS)
-libcacheservice_la_LDFLAGS = -no-defined -avoid-version -module
+libcacheservice_la_LDFLAGS = -no-undefined -avoid-version -module

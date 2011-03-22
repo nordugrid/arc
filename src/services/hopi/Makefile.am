@@ -12,6 +12,6 @@ libhopi_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS)
-libhopi_la_LDFLAGS = -no-defined -avoid-version -module
+libhopi_la_LDFLAGS = -no-undefined -avoid-version -module
 
 EXTRA_DIST = $(example_DATA)

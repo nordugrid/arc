@@ -29,7 +29,7 @@ _arc_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS)
-_arc_la_LDFLAGS = -no-undefined -module -avoid-version
+_arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = arc_wrap.cpp arc.py
 
