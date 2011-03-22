@@ -2,14 +2,12 @@ TESTS = TargetRetrieverARC1Test AREXClientTest
 check_PROGRAMS = $(TESTS)
 
 TargetRetrieverARC1Test_SOURCES = $(top_srcdir)/src/Test.cpp \
-	TargetRetrieverARC1Test.cpp
+	TargetRetrieverARC1Test.cpp \
+	../TargetRetrieverARC1.cpp ../AREXClient.cpp \
+	../JobStateARC1.cpp ../JobStateBES.cpp
 TargetRetrieverARC1Test_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 TargetRetrieverARC1Test_LDADD = \
-	../.libs/libaccARC1_la-TargetRetrieverARC1.o \
-	../.libs/libaccARC1_la-AREXClient.o \
-	../.libs/libaccARC1_la-JobStateARC1.o \
-	../.libs/libaccARC1_la-JobStateBES.o \
 	$(top_srcdir)/src/hed/libs/ws/libarcws.la \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \

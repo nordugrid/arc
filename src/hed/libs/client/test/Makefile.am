@@ -9,7 +9,7 @@ SoftwareTest_SOURCES = $(top_srcdir)/src/Test.cpp SoftwareTest.cpp
 SoftwareTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 SoftwareTest_LDADD = \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -17,7 +17,7 @@ JobTest_SOURCES = $(top_srcdir)/src/Test.cpp JobTest.cpp
 JobTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 JobTest_LDADD = \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -25,7 +25,7 @@ JobDescriptionTest_SOURCES = $(top_srcdir)/src/Test.cpp JobDescriptionTest.cpp
 JobDescriptionTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 JobDescriptionTest_LDADD = \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -33,7 +33,7 @@ JobStateTest_SOURCES = $(top_srcdir)/src/Test.cpp JobStateTest.cpp
 JobStateTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 JobStateTest_LDADD = \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -42,7 +42,7 @@ BrokerTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 BrokerTest_LDADD = \
 	libTestACCControl.la \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -51,7 +51,7 @@ JobControllerTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 JobControllerTest_LDADD = \
 	libTestACCControl.la \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -61,7 +61,7 @@ JobDescriptionParserTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 JobDescriptionParserTest_LDADD = \
 	libTestACCControl.la \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -70,7 +70,7 @@ SubmitterTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 SubmitterTest_LDADD = \
 	libTestACCControl.la \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -80,7 +80,7 @@ TargetRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 TargetRetrieverTest_LDADD = \
 	libTestACCControl.la \
-	../libarcclient.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 

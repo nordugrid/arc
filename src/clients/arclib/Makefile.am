@@ -5,12 +5,12 @@ man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
 	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1
 
 CLILIBS = \
-	../../hed/libs/client/libarcclient.la \
-	../../hed/libs/data/libarcdata2.la \
-	../../hed/libs/credential/libarccredential.la \
-	../../hed/libs/message/libarcmessage.la \
-	../../hed/libs/loader/libarcloader.la \
-	../../hed/libs/common/libarccommon.la
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
+	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 arcsub_SOURCES  = arcsub.cpp
 arcsub_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
