@@ -6,6 +6,7 @@
 #include <string>
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 // NOTE: On Solaris errno is not working properly if cerrno is included first
 #include <cerrno>

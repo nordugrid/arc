@@ -11,7 +11,7 @@ arc_file_access_LDADD    =
 #ftest_CXXFLAGS =
 #ftest_LDADD    =
 
-ftest_SOURCES = FileAccess.cpp ftest.cpp
+ftest_SOURCES = FileAccess.cpp FileAccess.h ftest.cpp
 #ftest_HEADERS = FileAccess.h
 ftest_CXXFLAGS = -I$(top_srcdir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(MYSQL_CFLAGS)
