@@ -1764,6 +1764,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/python/Makefile
                  src/hed/libs/python/arcom/Makefile
                  src/hed/libs/python/arcom/store/Makefile
+                 src/hed/libs/fileaccess/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/schema/Makefile
