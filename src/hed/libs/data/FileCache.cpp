@@ -586,12 +586,10 @@ namespace Arc {
     // (to make cache file immutable but readable by all)
 
     // Using UserSwitch as a temporary solution until it is possible to
-    // specify mode and owner when writing with File DMC
+    // specify mode when writing with File DMC
     {
       UserSwitch usw(getuid(), getgid());
-      res = chown(hard_link_file.c_str(), getuid(), getgid());
-      if (res == 0)
-        res = chmod(hard_link_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+      res = chmod(hard_link_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     }
     if (res != 0) {
       logger.msg(ERROR, "Failed to change permissions or set owner of hard link %s: %s", hard_link_file, StrError(errno));
