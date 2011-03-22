@@ -7,8 +7,19 @@ javalib_LTLIBRARIES = libjarc.la
 javashare_DATA = arc.jar
 
 libjarc_la_SOURCES = arc_init.cpp arc_wrap.cpp arc_jni.h
-libjarc_la_CXXFLAGS = -fno-strict-aliasing $(JDK_CFLAGS) -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
-libjarc_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/client/libarcclient.la $(top_srcdir)/src/hed/libs/data/libarcdata2.la $(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la $(top_srcdir)/src/hed/libs/crypto/libarccrypto.la $(LIBXML2_LIBS) $(GLIBMM_LIBS)
+libjarc_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(JDK_CFLAGS) \
+	-fno-strict-aliasing
+libjarc_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
+	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+	$(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libjarc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
@@ -20,7 +31,7 @@ MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
 
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
-arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
+arc_wrap.cpp: $(top_srcdir)/swig/*.i
 	mkdir -p $(DEPDIR)
 	grep -h '^#' $(top_srcdir)/swig/*.i | \
 	$(CXXCOMPILE) $(libjarc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT $(JAVA_PATH)/arc.java -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
@@ -43,15 +54,14 @@ arc_wrap.cpp $(JAVA_PATH)/*.java: $(top_srcdir)/swig/*.i
 		>> $(DEPDIR)/arc_wrap.deps ; \
 	done
 
-# Do not try to compile libjarc.la and start a java vm at the same time in parallel builds
-#libjarc.la: arc.jar
+$(JAVA_PATH)/*.java: arc_wrap.cpp
 
 $(JAVA_PATH)/arc.class: $(JAVA_PATH)/arc.java
 
 .java.class:
 	$(JAVAC) $(JAVAC_FLAGS) $<
 
-arc.jar: $(JAVA_PATH)/arc.class
+arc.jar: $(JAVA_PATH)/arc.class $(subst .java,.class,$(wildcard $(JAVA_PATH)/*.java))
 	rm -f $@
 	$(JAR) cf $@ $(JAVA_PATH)/*.class
 
