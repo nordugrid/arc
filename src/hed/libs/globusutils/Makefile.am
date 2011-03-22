@@ -11,7 +11,9 @@ libarcglobusutils_la_CXXFLAGS = \
 	$(GLOBUS_COMMON_CFLAGS) \
 	$(OPENSSL_FLAGS)
 
-libarcglobusutils_la_LIBADD = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(ARCCOMMON_LIBS) $(GLOBUS_COMMON_LIBS) $(GLOBUS_GSSAPI_GSI_LIBS)
+libarcglobusutils_la_LIBADD = \
+	$(ARCCOMMON_LIBS) \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) \
+	$(GLOBUS_COMMON_LIBS) $(GLOBUS_GSSAPI_GSI_LIBS)
 
 libarcglobusutils_la_LDFLAGS  = -version-info 1:0:0
-

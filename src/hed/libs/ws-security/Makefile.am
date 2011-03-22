@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libarcwssecurity.la
-#noinst_LTLIBRARIES = libwssecurity.la
+
 if XMLSEC_ENABLED
 noinst_PROGRAMS = test test_x509token test_samltoken
 else 
@@ -8,38 +8,56 @@ endif
 
 libarcwssecurity_ladir = $(pkgincludedir)/ws-security
 if XMLSEC_ENABLED
-libarcwssecurity_la_HEADERS  = UsernameToken.h X509Token.h SAMLToken.h 
-libarcwssecurity_la_SOURCES  = UsernameToken.cpp X509Token.cpp SAMLToken.cpp
-libarcwssecurity_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) -I$(top_srcdir)/include
-libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
-                               $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-                               $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
-                               $(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-                            $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) $(XMLSEC_LIBS) $(XMLSEC_OPENSSL_LIBS)
+libarcwssecurity_la_HEADERS = UsernameToken.h X509Token.h SAMLToken.h 
+libarcwssecurity_la_SOURCES = UsernameToken.cpp X509Token.cpp SAMLToken.cpp
+libarcwssecurity_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \
+	$(XMLSEC_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS)
+libarcwssecurity_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) \
+	$(XMLSEC_LIBS) $(XMLSEC_OPENSSL_LIBS)
 else
-libarcwssecurity_la_HEADERS  = UsernameToken.h
-libarcwssecurity_la_SOURCES  = UsernameToken.cpp
-libarcwssecurity_la_CXXFLAGS = $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
-libarcwssecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la \
-                               $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-                            $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
+libarcwssecurity_la_HEADERS = UsernameToken.h
+libarcwssecurity_la_SOURCES = UsernameToken.cpp
+libarcwssecurity_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
+libarcwssecurity_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 endif
-libarcwssecurity_la_LDFLAGS  = -version-info 1:0:0
+libarcwssecurity_la_LDFLAGS = -version-info 1:0:0
 
-test_SOURCES  = test.cpp 
-test_CXXFLAGS = $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS  = $(LIBXML2_LIBS)
-test_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+test_SOURCES = test.cpp 
+test_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS)
+test_LDADD = \
+	libarcwssecurity.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS)
 
 if XMLSEC_ENABLED
-test_x509token_SOURCES  = test_x509token.cpp
-test_x509token_CXXFLAGS = $(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
-test_x509token_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
-test_x509token_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la 
+test_x509token_SOURCES = test_x509token.cpp
+test_x509token_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+test_x509token_LDADD = \
+	libarcwssecurity.la \
+	$(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 
-test_samltoken_SOURCES  = test_samltoken.cpp
-test_samltoken_CXXFLAGS = $(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) -I$(top_srcdir)/include
-test_samltoken_LDFLAGS  = $(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
-test_samltoken_LDADD    = libarcwssecurity.la $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la 
-else
+test_samltoken_SOURCES = test_samltoken.cpp
+test_samltoken_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
+test_samltoken_LDADD = \
+	libarcwssecurity.la \
+	$(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 endif

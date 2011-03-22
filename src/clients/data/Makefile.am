@@ -2,19 +2,20 @@ bin_PROGRAMS = arccp arcls arcrm
 
 man_MANS = arccp.1 arcls.1 arcrm.1
 
-CLILIBS = $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+CLILIBS = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
+	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la
 
 arccp_SOURCES  = arccp.cpp
-arccp_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arccp_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arccp_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcls_SOURCES  = arcls.cpp
-arcls_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcls_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arcls_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 
 arcrm_SOURCES  = arcrm.cpp
-arcrm_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
+arcrm_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arcrm_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)

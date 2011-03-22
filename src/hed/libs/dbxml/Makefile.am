@@ -1,17 +1,21 @@
 lib_LTLIBRARIES = libarcdbxml.la
 noinst_PROGRAMS = test
 
-AM_CPPFLAGS=@DBCXX_CPPFLAGS@
-
 libarcdbxml_ladir = $(pkgincludedir)/dbxml
-libarcdbxml_la_HEADERS  = XmlDatabase.h XmlContainer.h
-libarcdbxml_la_SOURCES  = XmlDatabase.cpp XmlContainer.cpp
-libarcdbxml_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libarcdbxml_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
+libarcdbxml_la_HEADERS = XmlDatabase.h XmlContainer.h
+libarcdbxml_la_SOURCES = XmlDatabase.cpp XmlContainer.cpp
+libarcdbxml_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS)
+libarcdbxml_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS)
 
-libarcdbxml_la_LDFLAGS  = -version-info 1:0:0
+libarcdbxml_la_LDFLAGS = -version-info 1:0:0
 
-test_SOURCES  = test.cpp
-test_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-test_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
-test_LDADD    = ./libarcdbxml.la  $(top_srcdir)/src/hed/libs/common/libarccommon.la
+test_SOURCES = test.cpp
+test_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS)
+test_LDADD = \
+	libarcdbxml.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

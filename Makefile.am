@@ -17,7 +17,7 @@ endif
 
 SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian nsis $(RELNOTE_SD)
 
-DIST_SUBDIRS = src swig java python po include debian nsis release_notes
+DIST_SUBDIRS = src include swig java python po debian nsis release_notes
 
 EXTRA_DIST = nordugrid-arc.spec mingw32-nordugrid-arc.spec nordugrid-arc.SlackBuild autogen.sh LICENSE
 

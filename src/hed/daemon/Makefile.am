@@ -1,7 +1,7 @@
 if WIN32
-PLATFORM_DIR=win32
+PLATFORM_DIR = win32
 else
-PLATFORM_DIR=unix
+PLATFORM_DIR = unix
 endif
 
 SUBDIRS = scripts $(PLATFORM_DIR) schema
@@ -18,12 +18,15 @@ else
 SRC = $(SRC_UNIX)
 LIB = $(LIB_UNIX)
 endif
-SOURCES=$(SRC)
-LDADD=$(LIB)
+SOURCES = $(SRC)
+LDADD = $(LIB)
 
-arched_SOURCES  = $(SOURCES)
-arched_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-arched_LDFLAGS  = $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
-arched_LDADD    = $(LDADD) $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la
+arched_SOURCES = $(SOURCES)
+arched_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arched_LDADD = $(LDADD) \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
 
 man_MANS = arched.8

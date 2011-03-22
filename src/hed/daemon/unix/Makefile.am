@@ -1,7 +1,8 @@
-noinst_LTLIBRARIES= libdaemon.la
+noinst_LTLIBRARIES = libdaemon.la
 
-libdaemon_la_SOURCES  = daemon.cpp main_unix.cpp daemon.h
-libdaemon_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libdaemon_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la
-libdaemon_la_LDFLAGS  = $(LIBXML2_LIBS)
-
+libdaemon_la_SOURCES = daemon.cpp main_unix.cpp daemon.h
+libdaemon_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libdaemon_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS)

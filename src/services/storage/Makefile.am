@@ -1,5 +1,5 @@
-pythondir= $(PYTHON_SITE_PACKAGES)/storage
-exampledir =  $(pkgdatadir)/examples
+pythondir = $(PYTHON_SITE_PACKAGES)/storage
+exampledir = $(pkgdatadir)/examples
 
 python_DATA = __init__.py client.py common.py
 bin_SCRIPTS = chelonia

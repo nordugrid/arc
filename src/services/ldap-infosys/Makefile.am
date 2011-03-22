@@ -1,5 +1,3 @@
-initddir=@initddir@
-
 if GIIS_SERVICE_ENABLED
 GIIS_SERVICE = giis
 else
@@ -17,7 +15,7 @@ initd_SCRIPTS = $(GRID_INFOSYS_SCRIPT)
 
 pkglib_DATA = grid-infosys-bdii4 grid-infosys-bdii5 ConfigParser.pm
 
-SUBDIRS=$(GIIS_SERVICE)
-DIST_SUBDIRS=giis
+SUBDIRS = $(GIIS_SERVICE)
+DIST_SUBDIRS = giis
 
 EXTRA_DIST = ConfigParser.pm

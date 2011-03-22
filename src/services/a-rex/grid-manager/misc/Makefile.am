@@ -1,5 +1,11 @@
 noinst_LTLIBRARIES = libmisc.la
 
-libmisc_la_SOURCES=escaped.cpp canonical_dir.cpp escaped.h canonical_dir.h proxy.cpp proxy.h
-libmisc_la_CXXFLAGS=$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-libmisc_la_LIBADD=$(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/credential/libarccredential.la $(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la
+libmisc_la_SOURCES = \
+	escaped.cpp canonical_dir.cpp proxy.cpp \
+	escaped.h   canonical_dir.h   proxy.h
+libmisc_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libmisc_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la \
+	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la

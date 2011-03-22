@@ -11,53 +11,65 @@ TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ProfileTest \
 check_PROGRAMS = $(TESTS)
 
 URLTest_SOURCES = $(top_srcdir)/src/Test.cpp URLTest.cpp
-URLTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-URLTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+URLTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+URLTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 LoggerTest_SOURCES = $(top_srcdir)/src/Test.cpp LoggerTest.cpp
-LoggerTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-LoggerTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+LoggerTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+LoggerTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 RunTest_SOURCES = $(top_srcdir)/src/Test.cpp RunTest.cpp
-RunTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-RunTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+RunTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+RunTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 ProfileTest_SOURCES = $(top_srcdir)/src/Test.cpp ProfileTest.cpp
-ProfileTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-ProfileTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+ProfileTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+ProfileTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 ThreadTest_SOURCES = $(top_srcdir)/src/Test.cpp ThreadTest.cpp
-ThreadTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-ThreadTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+ThreadTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+ThreadTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 XMLNodeTest_SOURCES = $(top_srcdir)/src/Test.cpp XMLNodeTest.cpp
-XMLNodeTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-XMLNodeTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+XMLNodeTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+XMLNodeTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 FileUtilsTest_SOURCES = $(top_srcdir)/src/Test.cpp FileUtilsTest.cpp
-FileUtilsTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-FileUtilsTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+FileUtilsTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+FileUtilsTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 ArcRegexTest_SOURCES = $(top_srcdir)/src/Test.cpp ArcRegexTest.cpp
-ArcRegexTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-ArcRegexTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+ArcRegexTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+ArcRegexTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 FileLockTest_SOURCES = $(top_srcdir)/src/Test.cpp FileLockTest.cpp
-FileLockTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-FileLockTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+FileLockTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+FileLockTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 EnvTest_SOURCES = $(top_srcdir)/src/Test.cpp EnvTest.cpp
-EnvTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-EnvTest_LDADD = $(CPPUNIT_LIBS) ../libarccommon.la
+EnvTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+EnvTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 UserConfigTest_SOURCES = $(top_srcdir)/src/Test.cpp UserConfigTest.cpp
-UserConfigTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-UserConfigTest_LDADD = $(CPPUNIT_LIBS) $(MYSQL_LIBS) ../libarccommon.la
+UserConfigTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+UserConfigTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS)
 
 if MYSQL_LIBRARY_ENABLED
 MysqlWrapperTest_SOURCES = $(top_srcdir)/src/Test.cpp MysqlWrapperTest.cpp
-MysqlWrapperTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(MYSQL_CFLAGS) -I$(top_srcdir)/include
-MysqlWrapperTest_LDADD = $(CPPUNIT_LIBS) $(MYSQL_LIBS) ../libarccommon.la
+MysqlWrapperTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(MYSQL_CFLAGS)
+MysqlWrapperTest_LDADD = ../libarccommon.la $(CPPUNIT_LIBS) $(MYSQL_LIBS)
 endif
 
 EXTRA_DIST = rcode

@@ -3,17 +3,30 @@ TESTS = ChainTest
 check_LTLIBRARIES = libtestmcc.la libtestservice.la
 check_PROGRAMS = $(TESTS)
 
-libtestmcc_la_SOURCES  = TestMCC.cpp
-libtestmcc_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libtestmcc_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la ../libarcmessage.la
-libtestmcc_la_LDFLAGS  = $(LIBXML2_LIBS) -no-undefined -avoid-version -module -rpath $(CURDIR)
+libtestmcc_la_SOURCES = TestMCC.cpp
+libtestmcc_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libtestmcc_la_LIBADD = \
+	../libarcmessage.la
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS)
+libtestmcc_la_LDFLAGS = -no-undefined -avoid-version -module -rpath $(CURDIR)
 
-libtestservice_la_SOURCES  = TestService.cpp
-libtestservice_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libtestservice_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la ../libarcmessage.la
-libtestservice_la_LDFLAGS  = $(LIBXML2_LIBS) -no-undefined -avoid-version -module -rpath $(CURDIR)
+libtestservice_la_SOURCES = TestService.cpp
+libtestservice_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libtestservice_la_LIBADD = \
+	../libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS)
+libtestservice_la_LDFLAGS = -no-undefined -avoid-version -module -rpath $(CURDIR)
 
 ChainTest_SOURCES = $(top_srcdir)/src/Test.cpp ChainTest.cpp
-ChainTest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-ChainTest_LDADD = $(CPPUNIT_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcmessage.la
-
+ChainTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+ChainTest_LDADD = \
+	../libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS)

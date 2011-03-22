@@ -1,11 +1,16 @@
 SUBDIRS = ArcPDP
 
 lib_LTLIBRARIES = libarcsecurity.la
+
 libarcsecurity_ladir = $(pkgincludedir)/security
-libarcsecurity_la_HEADERS  = PDP.h   Security.h   ClassLoader.h
-libarcsecurity_la_SOURCES  = PDP.cpp Security.cpp ClassLoader.cpp
-libarcsecurity_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libarcsecurity_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-                             $(top_srcdir)/src/hed/libs/loader/libarcloader.la ArcPDP/libarcpdp.la \
-                             $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
+libarcsecurity_la_HEADERS = PDP.h   Security.h   ClassLoader.h
+libarcsecurity_la_SOURCES = PDP.cpp Security.cpp ClassLoader.cpp
+libarcsecurity_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libarcsecurity_la_LIBADD = \
+	ArcPDP/libarcpdp.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
 libarcsecurity_la_LDFLAGS  = -version-info 1:0:0

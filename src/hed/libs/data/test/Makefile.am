@@ -2,5 +2,9 @@ TESTS = libarcdatatest
 check_PROGRAMS = $(TESTS)
 
 libarcdatatest_SOURCES = $(top_srcdir)/src/Test.cpp FileCacheTest.cpp
-libarcdatatest_CXXFLAGS = $(CPPUNIT_CFLAGS) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) -I$(top_srcdir)/include
-libarcdatatest_LDADD = $(CPPUNIT_LIBS) $(top_srcdir)/src/hed/libs/common/libarccommon.la ../libarcdata2.la
+libarcdatatest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
+libarcdatatest_LDADD = \
+	../libarcdata2.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS)

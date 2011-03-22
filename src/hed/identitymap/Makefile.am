@@ -8,14 +8,25 @@ endif
 
 libidentitymap_la_SOURCES = IdentityMap.cpp SimpleMap.cpp \
                             IdentityMap.h   SimpleMap.h
-libidentitymap_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include
-libidentitymap_la_LIBADD   = $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) 
-libidentitymap_la_LDFLAGS  = -no-undefined -avoid-version -module
+libidentitymap_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libidentitymap_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) 
+libidentitymap_la_LDFLAGS = -no-undefined -avoid-version -module
 
 if ARGUS_ENABLED
 libarguspep_la_SOURCES = ArgusPEP.cpp ArgusPEP.h
-libarguspep_la_CXXFLAGS = $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_srcdir)/include $(ARGUS_CFLAGS)
-libarguspep_la_LIBADD   =  $(top_srcdir)/src/hed/libs/common/libarccommon.la $(top_srcdir)/src/hed/libs/message/libarcmessage.la $(top_srcdir)/src/hed/libs/loader/libarcloader.la $(top_srcdir)/src/hed/libs/security/libarcsecurity.la $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(ARGUS_LIBS)
-libarguspep_la_LDFLAGS  = -no-undefined -avoid-version -module
+libarguspep_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(ARGUS_CFLAGS)
+libarguspep_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(ARGUS_LIBS)
+libarguspep_la_LDFLAGS = -no-undefined -avoid-version -module
 endif
-

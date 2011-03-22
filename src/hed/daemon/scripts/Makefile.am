@@ -1,5 +1,3 @@
-initddir = @initddir@
-
 if SYSV_SCRIPTS_ENABLED
 HED_SCRIPT = arched
 else
