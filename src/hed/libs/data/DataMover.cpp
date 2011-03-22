@@ -395,6 +395,7 @@ namespace Arc {
           if (destination_meta_initially_stored) {
             logger.msg(INFO, "Deleted but still have locations at %s",
                        destination.str());
+            destination.NextTry(); /* try again */
             return DataStatus::WriteResolveError;
           }
         }
@@ -693,14 +694,16 @@ namespace Arc {
         logger.msg(INFO, "cache file: %s", churl.Path());
       }
 #endif
-      DataHandle chdest_h(churl, destination.GetUserConfig());
+      // don't switch user to access cache
+      UserConfig usercfg(destination.GetUserConfig());
+      usercfg.SetUser(User(getuid()));
+      DataHandle chdest_h(churl, usercfg);
       DataPoint& chdest(*chdest_h);
       if (chdest_h) {
         chdest.SetSecure(force_secure);
         chdest.Passive(force_passive);
         chdest.SetAdditionalChecks(false); // don't pre-allocate space in cache
         chdest.SetMeta(destination); // share metadata
-        chdest.SetUser(User(getuid())); // don't switch user to access cache
       }
       DataPoint& source_url = mapped ? mapped_p : source;
       DataPoint& destination_url = cacheable ? chdest : destination;
@@ -894,6 +897,7 @@ namespace Arc {
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
+          destination.NextLocation(); /* to decrease retry counter */
           return DataStatus::CacheError; // repeating won't help here
         }
 #endif
@@ -1086,6 +1090,7 @@ namespace Arc {
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
+          destination.NextLocation(); /* to decrease retry count */
           return DataStatus::CacheError; /* retry won't help */
         }
       }

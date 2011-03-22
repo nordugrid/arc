@@ -7,7 +7,6 @@
 #include <list>
 
 #include <arc/Logger.h>
-#include <arc/UserConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataHandle.h>
@@ -221,15 +220,6 @@ namespace Arc {
     return urls;
     
   }
-
-  void DataPoint::SetUser(const User& u) {
-    user = u;
-  }
-
-  User DataPoint::GetUser() const {
-    return user;
-  }
-
 
   DataPointLoader::DataPointLoader()
     : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}

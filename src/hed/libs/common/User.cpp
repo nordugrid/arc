@@ -89,7 +89,7 @@ static Glib::Mutex suid_lock;
     return false;
   }
 
-  int User::check_file_access(const std::string& path, int flags) {
+  int User::check_file_access(const std::string& path, int flags) const {
     int h;
     struct stat st;
     mode_t m;

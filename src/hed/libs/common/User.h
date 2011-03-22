@@ -38,7 +38,7 @@ namespace Arc {
     bool operator==(const std::string n) {
       return (n == name);
     }
-    int check_file_access(const std::string& path, int flags);
+    int check_file_access(const std::string& path, int flags) const;
     /* Run command as behalf of this user */
     bool RunAs(std::string cmd);
   }; // class User

@@ -316,13 +316,13 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
-    int res = user.check_file_access(url.Path(), O_RDONLY);
+    int res = usercfg.GetUser().check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
       logger.msg(INFO, "File is not accessible: %s", url.Path());
       return DataStatus::CheckError;
     }
     struct stat st;
-    if (!FileStat(url.Path(), &st, user.get_uid(), user.get_gid(), true)) {
+    if (!FileStat(url.Path(), &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
       logger.msg(INFO, "Can't stat file: %s: %s", url.Path(), StrError(errno));
       return DataStatus::CheckError;
     }
@@ -490,14 +490,14 @@ namespace Arc {
       //  reading = false;
       //  return DataStatus::ReadStartError;
       //}
-      fd = FileOpen(url.Path(), flags, user.get_uid(), user.get_gid());
+      fd = FileOpen(url.Path(), flags, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid());
       if (fd == -1) {
         reading = false;
         return DataStatus::ReadStartError;
       }
       /* provide some metadata */
       struct stat st;
-      if (FileStat(url.Path(), &st, user.get_uid(), user.get_gid(), true)) {
+      if (FileStat(url.Path(), &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
         SetSize(st.st_size);
         SetCreated(st.st_mtime);
       }
@@ -561,7 +561,7 @@ namespace Arc {
       }
       std::string dirpath = Glib::path_get_dirname(url.Path());
       if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S; // shouldn't happen
-      if (!DirCreate(dirpath, user.get_uid(), user.get_gid(), S_IRWXU, true)) {
+      if (!DirCreate(dirpath, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), S_IRWXU, true)) {
         logger.msg(ERROR, "Failed to create directory %s", dirpath);
         buffer->error_write(true);
         buffer->eof_write(true);
@@ -571,9 +571,9 @@ namespace Arc {
 
       /* try to create file, if failed - try to open it */
       int flags = (checksums.size() > 0)?O_RDWR:O_WRONLY;
-      fd = FileOpen(url.Path(), flags | O_CREAT | O_EXCL, user.get_uid(), user.get_gid(), S_IRUSR | S_IWUSR);
+      fd = FileOpen(url.Path(), flags | O_CREAT | O_EXCL, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), S_IRUSR | S_IWUSR);
       if (fd == -1)
-        fd = FileOpen(url.Path(), flags | O_TRUNC, user.get_uid(), user.get_gid(), S_IRUSR | S_IWUSR);
+        fd = FileOpen(url.Path(), flags | O_TRUNC, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), S_IRUSR | S_IWUSR);
       if (fd == -1) {
         logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
         buffer->error_write(true);
@@ -650,7 +650,7 @@ namespace Arc {
     if (!buffer->error() && additional_checks && CheckSize()) {
       struct stat st;
       std::string path = url.Path();
-      if (!FileStat(path, &st, user.get_uid(), user.get_gid(), true) && errno != ENOENT) {
+      if (!FileStat(path, &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true) && errno != ENOENT) {
         logger.msg(ERROR, "Error during file validation. Can't stat file %s: %s", url.Path(), StrError(errno));
         return DataStatus::WriteStopError;
       }

@@ -10,6 +10,7 @@
 #include <arc/ArcConfig.h>
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/User.h>
 
 namespace Arc {
 
@@ -1114,6 +1115,23 @@ namespace Arc {
      */
     const std::string& UtilsDirPath() const { return utilsdir; };
 
+    /// Set User for filesystem access
+    /**
+     * Sometimes it is desirable to use the identity of another user
+     * when accessing the filesystem. This user can be specified through
+     * this method. By default this user is the same as the user running
+     * the process.
+     * @param u User identity to use
+     */
+    void SetUser(const User& u) { user = u; };
+
+    /// Get User for filesystem access
+    /**
+     * @return The user identity to use for file system access
+     * @see SetUser(const User&)
+     */
+    const User& GetUser() const { return user; };
+
     /// Path to ARC user home directory
     /**
      * The \a ARCUSERDIRECTORY variable is the path to the ARC home
@@ -1220,6 +1238,9 @@ namespace Arc {
     std::string overlayfile;
     std::string utilsdir;
 
+    // User whose identity (uid/gid) should be used to access filesystem
+    // Normally this is the same as the process owner
+    User user;
     // Private members not refered to outside this class:
     // Alias map.
     XMLNode aliasMap;
