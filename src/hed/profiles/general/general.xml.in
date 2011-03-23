@@ -73,7 +73,7 @@ attributes depending on how the mapping should be done.
     </base:Logger>
   </base:Server>
   <ModuleManager>
-    <Path initype="multi" inisections="common" initag="libpath"/>
+    <Path initype="multi" inisections="common" initag="libpath" inidefaultvalue="@prefix@/@pkglibsubdir@"/>
   </ModuleManager>
   <Plugins>
     <Name>mcctcp</Name>

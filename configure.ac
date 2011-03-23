@@ -1803,6 +1803,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
+                 src/hed/profiles/general/general.xml
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile
                  src/hed/shc/arcpdp/schema/Makefile
