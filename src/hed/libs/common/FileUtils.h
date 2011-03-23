@@ -27,14 +27,16 @@ namespace Arc {
   /// Simple method to read file content from filename.
   /** The content is split into lines with the new line character removed,
    * and the lines are returned in the data list. For more complex file
-   * handling or large files, FileOpen() should be used.
+   * handling or large files, FileOpen() should be used. If protected
+   * access is required, FileLock should be used in addition to FileRead.
    * If uid/gid are zero then no real switch of uid/gid is done. */
   bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t uid=0, gid_t gid=0);
 
   /// Simple method to create a new file containing given data.
   /** An existing file is overwritten with the new data. Permissions of the
    * created file are determined using the current umask. For more complex
-   * file handling or large files, FileOpen() should be used.
+   * file handling or large files, FileOpen() should be used. If protected
+   * access is required, FileLock should be used in addition to FileRead.
    * If uid/gid are zero then no real switch of uid/gid is done. */
   bool FileCreate(const std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0);
 
@@ -62,10 +64,10 @@ namespace Arc {
   /// Returns path at which symbolic link is pointing using the specified uid and gid
   std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid);
 
-  /// Returns path at which symbolic link is pointing
+  /// Deletes file at path
   bool FileDelete(const std::string& path);
 
-  /// Returns path at which symbolic link is pointing using the specified uid and gid
+  /// Deletes file at path using the specified uid and gid
   bool FileDelete(const std::string& path,uid_t uid,gid_t gid);
 
   /// Create a new directory
