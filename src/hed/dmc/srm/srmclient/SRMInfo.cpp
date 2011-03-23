@@ -55,8 +55,9 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
   std::list<std::string> filedata;
   Arc::FileLock filelock(srm_info_filename);
   bool acquired = false;
-  for (int tries = 10; (tries > 0 && !acquired); --tries) {
+  for (int tries = 10; tries > 0; --tries) {
     acquired = filelock.acquire();
+    if (acquired) break;
     usleep(500000);
   }
   if (!acquired) {
@@ -69,6 +70,7 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
     filelock.release();
     return false;
   }
+  filelock.release();
 
   for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
     if (line->empty() || (*line)[0] == '#')
@@ -88,11 +90,9 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
         continue;
       }        
       srm_file_info.port = port_i;
-      filelock.release();
       return true;
     }
   }
-  filelock.release();
   return false;
 }
 
@@ -107,8 +107,9 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   std::list<std::string> filedata;
   Arc::FileLock filelock(srm_info_filename);
   bool acquired = false;
-  for (int tries = 10; (tries > 0 && !acquired); --tries) {
+  for (int tries = 10; tries > 0; --tries) {
     acquired = filelock.acquire();
+    if (acquired) break;
     usleep(500000);
   }
   if (!acquired) {
