@@ -35,7 +35,7 @@ void ARexService::InformationCollector(void) {
     int r = -1;
     {
       std::string cmd;
-      cmd=gm_env_->nordugrid_libexec_loc()+"/CEinfo.pl --nonordugrid --splitjobs --config "+gm_env_->nordugrid_config_loc();
+      cmd=gm_env_->nordugrid_data_loc()+"/CEinfo.pl --nonordugrid --splitjobs --config "+gm_env_->nordugrid_config_loc();
       std::string stdin_str;
       std::string stderr_str;
       Arc::Run run(cmd);

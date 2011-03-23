@@ -26,8 +26,8 @@ BEGIN {
 }
 
 BEGIN {
-    my $pkglibdir = dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
-    unshift @INC, $pkglibdir;
+    my $pkgdatadir = dirname($0);
+    unshift @INC, $pkgdatadir;
 }
 
 use ConfigCentral;
@@ -227,7 +227,7 @@ sub get_rte_info($) {
     $rte_opts->{configfile} = $configfile;
     $rte_opts->{runtimedir} = $config->{runtimedir} if $config->{runtimedir};
     $rte_opts->{use_janitor} = $config->{use_janitor} if $config->{use_janitor};
-    $rte_opts->{pkgdatadir} = dirname($0).'/@pkgdatadir_rel_to_pkglibexecdir@';
+    $rte_opts->{pkgdatadir} = dirname($0);
 
     return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }

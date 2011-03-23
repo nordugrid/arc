@@ -38,8 +38,8 @@ config_parse_file() {
         echo "config_parser: Cannot read config file: $arex_conf" 1>&2
         return 1
     fi
-    if [ -z "$pkglibdir" ]; then echo "pkglibdir must be set" 1>&2; return 1; fi
-    config=`/usr/bin/perl -I$pkglibdir -MConfigCentral -we 'ConfigCentral::printLRMSConfigScript($ARGV[0])' "$arex_conf"` || return $?
+    if [ -z "$pkgdatadir" ]; then echo "pkgdatadir must be set" 1>&2; return 1; fi
+    config=`/usr/bin/perl -I$pkgdatadir -MConfigCentral -we 'ConfigCentral::printLRMSConfigScript($ARGV[0])' "$arex_conf"` || return $?
     eval "$config" || return $?
     unset config
     return 0

@@ -4,7 +4,6 @@ else
 GIIS_SERVICE =
 endif
 
-
 if SYSV_SCRIPTS_ENABLED
 GRID_INFOSYS_SCRIPT = grid-infosys
 else
@@ -13,7 +12,7 @@ endif
 
 initd_SCRIPTS = $(GRID_INFOSYS_SCRIPT)
 
-pkglib_DATA = grid-infosys-bdii4 grid-infosys-bdii5 ConfigParser.pm
+pkgdata_DATA = grid-infosys-bdii4 grid-infosys-bdii5 ConfigParser.pm
 
 SUBDIRS = $(GIIS_SERVICE)
 DIST_SUBDIRS = giis

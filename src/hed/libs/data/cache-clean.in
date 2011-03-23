@@ -25,7 +25,7 @@ use warnings;
 
 
 BEGIN {
-    unshift @INC, dirname($0).'/@pkglibdir_rel_to_pkglibexecdir@';
+    unshift @INC, dirname($0).'/@pkgdatadir_rel_to_pkglibexecdir@';
 }
 
 use ConfigCentral;

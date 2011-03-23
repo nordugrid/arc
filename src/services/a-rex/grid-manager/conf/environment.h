@@ -19,6 +19,8 @@ class GMEnvironment {
 
   /// ARC installation path - $ARC_LOCATION, executable path
   std::string nordugrid_loc(void) const;
+  /// ARC system scripts - $ARC_LOCATION/share/arc, $ARC_LOCATION/share
+  std::string nordugrid_data_loc(void) const;
   /// ARC system tools - $ARC_LOCATION/libexec/arc, $ARC_LOCATION/libexec
   std::string nordugrid_libexec_loc(void) const;
   // ARC libraries and plugins - $ARC_LOCATION/lib/arc, $ARC_LOCATION/lib

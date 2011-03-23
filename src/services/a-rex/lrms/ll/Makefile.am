@@ -1,2 +1,2 @@
-dist_pkglib_DATA = configure-ll-env.sh
-dist_pkglibexec_SCRIPTS = scan-ll-job submit-ll-job cancel-ll-job
+dist_pkgdata_DATA = configure-ll-env.sh
+dist_pkgdata_SCRIPTS = scan-ll-job submit-ll-job cancel-ll-job

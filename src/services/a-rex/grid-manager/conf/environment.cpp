@@ -120,6 +120,8 @@ std::string operator+(const std::string& val1,const prstring& val2) {
 
 // ARC installation path - $ARC_LOCATION, executable path
 static prstring nordugrid_loc_;
+// ARC system scripts
+static prstring nordugrid_data_loc_;
 // ARC system tools
 static prstring nordugrid_libexec_loc_;
 // ARC libraries and plugins
@@ -137,6 +139,10 @@ static prstring support_mail_address_;
 
 std::string GMEnvironment::nordugrid_loc(void) const {
   return nordugrid_loc_.str();
+}
+
+std::string GMEnvironment::nordugrid_data_loc(void) const {
+  return nordugrid_data_loc_.str();
 }
 
 std::string GMEnvironment::nordugrid_libexec_loc(void) const {
@@ -194,6 +200,7 @@ static bool read_env_vars(bool guess) {
       nordugrid_loc_=Arc::ArcLocation::Get();
     };
     nordugrid_lib_loc_=nordugrid_loc_+"/"+PKGLIBSUBDIR;
+    nordugrid_data_loc_=nordugrid_loc_+"/"+PKGDATASUBDIR;
     nordugrid_libexec_loc_=nordugrid_loc_+"/"+PKGLIBEXECSUBDIR;
   };
 

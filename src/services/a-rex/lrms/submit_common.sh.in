@@ -26,11 +26,11 @@ init () {
 
    parse_arg_file $1
 
-   if [ -z "$pkglibdir" ]; then echo 'pkglibdir must be set' 1>&2; exit 1; fi
+   if [ -z "$pkgdatadir" ]; then echo 'pkgdatadir must be set' 1>&2; exit 1; fi
    if [ -z "$joboption_lrms" ]; then echo 'joboption_lrms must be set' 1>&2; exit 1; fi
 
    # May use joboption_queue (set by parse_arg_file)
-   . ${pkglibdir}/configure-${joboption_lrms}-env.sh
+   . ${pkgdatadir}/configure-${joboption_lrms}-env.sh
 
    # Where runtime scripts can be found on computing nodes (empty if does not exist)
    RUNTIME_CONFIG_DIR=$CONFIG_runtimedir
@@ -65,7 +65,7 @@ init () {
 
 read_arc_conf () {
    ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
-   . $pkglibdir/config_parser.sh || exit $?
+   . $pkgdatadir/config_parser.sh || exit $?
 
    config_parse_file $ARC_CONFIG 1>&2 || exit $?
    config_import_section "common"

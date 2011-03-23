@@ -357,7 +357,7 @@ sub test {
                     },
                     remotegmdirs => [ '/dummy/control /home',
                                       '/dummy/control /boot' ],
-                    libexecdir => '/opt/nordugrid/libexec/arc',
+                    libexecdir => '/usr/libexec/arc',
                     runtimedir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous) ],
                     localusers => [ qw(root bin daemon) ] };

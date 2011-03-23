@@ -120,7 +120,7 @@ check_if_bdii_unpatched () {
 ######################################################################
 
 # source function library
-if [ -r  @initddir@/functions ]; then
+if [ -r @initddir@/functions ]; then
     . @initddir@/functions
 else
     success(){
@@ -142,7 +142,7 @@ fi
 export ARC_LOCATION
 
 # source the config parsing routines
-. $ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh || exit $?
+. $ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh || exit $?
 
 ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 
@@ -183,7 +183,7 @@ config_set_defaults () {
 }
 
 # Read arc.conf
-export pkglibdir=$ARC_LOCATION/@pkglibsubdir@
+export pkgdatadir=$ARC_LOCATION/@pkgdatasubdir@
 config_parse_file $ARC_CONFIG || exit $?
 
 # Check for infosys-block
@@ -380,7 +380,7 @@ fi
 
 # If the new code path is selected...
 if [ "x$infosys_compat" != "xenable" ]; then
-    if [ ! -f "$pkglibdir/InfosysHelper.pm" ]; then
+    if [ ! -f "$pkgdatadir/InfosysHelper.pm" ]; then
         error_echo "A-REX is not installed. For operation without A-REX, set infosys_compat=enable"
         do_exit_start 1
     fi
@@ -415,10 +415,18 @@ fi
 
 #This is the slapd command that should be used by bdii
 if [ "`config_subsections infosys/index`" ]; then
+    if [ -r ${giis_location}/lib64/arc/arc-infoindex-slapd-wrapper.so ] ; then
+        pkglibdir=${giis_location}/lib64/arc
+    elif [ -r ${giis_location}/lib/arc/arc-infoindex-slapd-wrapper.so ] ; then
+        pkglibdir=${giis_location}/lib/arc
+    else
+        error_echo "Error, could not find infoindex slapd wrapper"
+        exit 1
+    fi
     rm -f ${arc_runtime_exec}/slapd
     cat <<-EOF > ${arc_runtime_exec}/slapd
 	#!/bin/sh
-	LD_PRELOAD=${giis_location}/@pkglibsubdir@/arc-infoindex-slapd-wrapper.so setsid ${slapd_cmd} -d 0 "\$@" </dev/null 1>/dev/null 2>/dev/null &
+	LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so setsid ${slapd_cmd} -d 0 "\$@" </dev/null 1>/dev/null 2>/dev/null &
 	sid=\$!
 	dir=\$(dirname \$2)
 	echo \$sid > \$dir/slapd.pid
@@ -440,9 +448,9 @@ fi
 if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
     # Guess a likely directory for ldap modules
-    ldaplib=$(find /usr/lib/ -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
+    ldaplib=$(find /usr/lib -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
     if [ "x" = "x$ldaplib" ]; then
-        error_echo "Error, could not find ldap libraries under /usr/lib/"
+        error_echo "Error, could not find ldap libraries under /usr/lib"
         do_exit_start 1
     fi
 
@@ -456,9 +464,9 @@ if [ "`config_subsections infosys/index`" ]; then
     if [ $(grep -Ec "shell_db_init|shell_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
         # Guess a likely directory for ldap modules
-        ldaplib=${ldaplib:-$(find /usr/lib/ -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
+        ldaplib=${ldaplib:-$(find /usr/lib -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
         if [ "x" = "x$ldaplib" ]; then
-            error_echo "Error, could not find ldap libraries under /usr/lib/"
+            error_echo "Error, could not find ldap libraries under /usr/lib"
             do_exit_start 1
         fi
 
@@ -820,7 +828,7 @@ create_arc_ldif_generator_compat () {
             cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
             cat <<-EOF >> ${ldif_generator_file}
-		$ARC_LOCATION/@pkglibexecsubdir@/cluster.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid 2>> "$providerlog"
+		$ARC_LOCATION/@pkgdatasubdir@/cluster.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid 2>> "$providerlog"
 		EOF
 
             # Create entries for all queues
@@ -830,7 +838,7 @@ create_arc_ldif_generator_compat () {
                     cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
                     cat <<-EOF >> ${ldif_generator_file}
-			$ARC_LOCATION/@pkglibexecsubdir@/qju.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-queue-name=$queue,nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid --queue $queue 2>> "$providerlog"
+			$ARC_LOCATION/@pkgdatasubdir@/qju.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-queue-name=$queue,nordugrid-cluster-name=$CONFIG_hostname,Mds-Vo-name=local,o=Grid --queue $queue 2>> "$providerlog"
 			EOF
                 )
             done
@@ -847,7 +855,7 @@ create_arc_ldif_generator_compat () {
             cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
             cat <<-EOF >> ${ldif_generator_file}
-		$ARC_LOCATION/@pkglibexecsubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$CONFIG_hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"
+		$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$CONFIG_hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"
 		EOF
         )
     done
@@ -897,7 +905,7 @@ create_arc_ldif_generator () {
             cat <<-EOF >> ${ldif_generator_file}
 			BEGIN {
 			    print "\n";
-			    system('$ARC_LOCATION/@pkglibexecsubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"');
+			    system('$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"');
 			}
 			EOF
         )
@@ -906,7 +914,7 @@ create_arc_ldif_generator () {
     # NG and GLUE2 come directly from a-rex infoprovider
     cat <<-EOF >> ${ldif_generator_file}
 
-	BEGIN { unshift @INC, '$pkglibdir'; }
+	BEGIN { unshift @INC, '$pkgdatadir'; }
 	use InfosysHelper;
 	exit 1 unless InfosysHelper::ldifIsReady('$arc_runtime_config', '$max_cycle', 1);
 	EOF
@@ -1086,7 +1094,7 @@ create_glue_ldif_generator () {
          s,\$BDIIPORT,$bdii_port_read,g;
          s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
          s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
-        " $ARC_LOCATION/@pkglibsubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+        " $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
 }
@@ -1180,7 +1188,7 @@ create_bdii_config_files () {
         echo "$unique_id $url" > "$site_config"
       # LOOP END 
       # Create script
-      printf "#!/bin/sh\n/$ARC_LOCATION/@pkglibsubdir@/glite-info-provider-ldap -m \"$site_bdii\" -c $site_config\n" > $site_provider
+      printf "#!/bin/sh\n/$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m \"$site_bdii\" -c $site_config\n" > $site_provider
       chmod +x $site_provider
     done
 
@@ -1305,7 +1313,7 @@ start () {
 
     # Info registration
     if [ "x$infosys_nordugrid" = "xenable" ]; then
-        $ARC_LOCATION/@pkglibexecsubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat $bdii_var_dir/bdii-update.pid` 1>/dev/null 2>/dev/null &
+        $ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat $bdii_var_dir/bdii-update.pid` 1>/dev/null 2>/dev/null &
     fi
 }
 

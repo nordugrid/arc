@@ -459,8 +459,8 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     };
     /* submit/cancel job to LRMS using submit/cancel-X-job */
     std::string cmd;
-    if(cancel) { cmd=user->Env().nordugrid_libexec_loc()+"/cancel-"+job_desc->lrms+"-job"; }
-    else { cmd=user->Env().nordugrid_libexec_loc()+"/submit-"+job_desc->lrms+"-job"; };
+    if(cancel) { cmd=user->Env().nordugrid_data_loc()+"/cancel-"+job_desc->lrms+"-job"; }
+    else { cmd=user->Env().nordugrid_data_loc()+"/submit-"+job_desc->lrms+"-job"; };
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMITTING: starting child: %s",i->job_id,cmd);
     } else {

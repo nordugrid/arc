@@ -29,15 +29,15 @@ RunPlugin cred_plugin;
 
 static void check_lrms_backends(const std::string& default_lrms,GMEnvironment& env) {
   std::string tool_path;
-  tool_path=env.nordugrid_libexec_loc()+"/cancel-"+default_lrms+"-job";
+  tool_path=env.nordugrid_data_loc()+"/cancel-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing cancel-%s-job - job cancelation may not work",default_lrms);
   };
-  tool_path=env.nordugrid_libexec_loc()+"/submit-"+default_lrms+"-job";
+  tool_path=env.nordugrid_data_loc()+"/submit-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing submit-%s-job - job submission to LRMS may not work",default_lrms);
   };
-  tool_path=env.nordugrid_libexec_loc()+"/scan-"+default_lrms+"-job";
+  tool_path=env.nordugrid_data_loc()+"/scan-"+default_lrms+"-job";
   if(!Glib::file_test(tool_path,Glib::FILE_TEST_IS_REGULAR)) {
     logger.msg(Arc::WARNING,"Missing scan-%s-job - may miss when job finished executing",default_lrms);
   };
@@ -561,7 +561,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
               goto exit;
             }
             /* add helper to poll for finished jobs */
-            std::string cmd_ = users.Env().nordugrid_libexec_loc();
+            std::string cmd_ = users.Env().nordugrid_data_loc();
             make_escaped_string(control_dir_);
             cmd_+="/scan-"+default_lrms+"-job";
             make_escaped_string(cmd_);
@@ -1034,7 +1034,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
             return false;
           }
           /* add helper to poll for finished jobs */
-          std::string cmd_ = users.Env().nordugrid_libexec_loc();
+          std::string cmd_ = users.Env().nordugrid_data_loc();
           make_escaped_string(control_dir_);
           cmd_+="/scan-"+default_lrms+"-job";
           make_escaped_string(cmd_);

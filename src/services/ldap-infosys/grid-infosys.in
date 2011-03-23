@@ -41,9 +41,9 @@ fi
 export ARC_LOCATION
 
 if [ -f /usr/sbin/bdii4-update ]; then
-    . $ARC_LOCATION/@pkglibsubdir@/grid-infosys-bdii4 $1
+    . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii4 $1
 elif [ -f /usr/sbin/bdii-update ]; then
-    . $ARC_LOCATION/@pkglibsubdir@/grid-infosys-bdii5 $1
+    . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii5 $1
 else
     echo "You don't have BDII 4 or 5 installed, this is a necessary component for the ARC LDAP information system."
 fi
