@@ -273,6 +273,9 @@ Provides:	%{name}-infosys-ldap = %{version}-%{release}
 Obsoletes:	%{name}-infosys-ldap < 1.0.0
 Provides:	nordugrid-arc-nox-ldap-infosys = 1.3.0
 Obsoletes:	nordugrid-arc-nox-ldap-infosys < 1.3.0
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
 
 Requires(post):		chkconfig
 Requires(preun):	chkconfig
