@@ -13,6 +13,7 @@
 
 #include <glibmm.h>
 
+#include <arc/FileLock.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
@@ -52,13 +53,25 @@ SRMInfo::SRMInfo(std::string dir) {
 bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
   
   std::list<std::string> filedata;
+  Arc::FileLock filelock(srm_info_filename);
+  bool acquired = false;
+  for (int tries = 10; (tries > 0 && !acquired); --tries) {
+    acquired = filelock.acquire();
+    usleep(500000);
+  }
+  if (!acquired) {
+    logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
+    return false;
+  }
   if (!Arc::FileRead(srm_info_filename, filedata)) {
-    logger.msg(Arc::WARNING, "Error reading info from file %s:%s", srm_info_filename, Arc::StrError(errno));
+    if (errno != ENOENT)
+      logger.msg(Arc::WARNING, "Error reading info from file %s:%s", srm_info_filename, Arc::StrError(errno));
+    filelock.release();
     return false;
   }
 
   for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
-    if (line->length() > 0 && (*line)[0] == '#')
+    if (line->empty() || (*line)[0] == '#')
       continue;
     // split line
     std::vector<std::string> fields;
@@ -75,9 +88,11 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
         continue;
       }        
       srm_file_info.port = port_i;
+      filelock.release();
       return true;
     }
   }
+  filelock.release();
   return false;
 }
 
@@ -87,9 +102,19 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   header += "# Its format is lines with 3 entries separated by spaces:\n";
   header += "# hostname port version\n#\n";
   header += "# This file can be freely edited, but it is not advisable while there\n";
-  header += "# are on-going transfers. Comments begin with #\n#\n";
+  header += "# are on-going transfers. Comments begin with #\n#";
 
   std::list<std::string> filedata;
+  Arc::FileLock filelock(srm_info_filename);
+  bool acquired = false;
+  for (int tries = 10; (tries > 0 && !acquired); --tries) {
+    acquired = filelock.acquire();
+    usleep(500000);
+  }
+  if (!acquired) {
+    logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
+    return;
+  }
   if (!Arc::FileRead(srm_info_filename, filedata)) {
     // write new file
     filedata.push_back(header);
@@ -97,10 +122,11 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
 
   std::string lines;
   for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
-    if (line->length() > 0 && (*line)[0] == '#') {
+    if (line->empty()) continue;
+    if ((*line)[0] == '#') {
       // check for old-style file - if so re-write whole file
       if (line->find("# Its format is lines with 4 entries separated by spaces:") == 0) {
-        lines = header;
+        lines = header+'\n';
         break;
       }
       lines += *line+'\n';
@@ -129,5 +155,6 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   if (!Arc::FileCreate(srm_info_filename, lines)) {
     logger.msg(Arc::WARNING, "Error writing srm info file %s", srm_info_filename);
   };
+  filelock.release();
 }
 
