@@ -1107,7 +1107,11 @@ if test "x$enables_lfc" = "xyes"; then
   if test ! "x$with_lfc" = "x" ; then
     LFC_LOCATION="$with_lfc"
     LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
-    LFC_LDFLAGS="-L$LFC_LOCATION/lib"
+    if test -d $LFC_LOCATION/lib64; then
+      LFC_LDFLAGS="-L$LFC_LOCATION/lib64"
+    else
+      LFC_LDFLAGS="-L$LFC_LOCATION/lib"
+    fi
   fi
   SAVE_CPPFLAGS=$CPPFLAGS
   CPPFLAGS="$CPPFLAGS $LFC_CFLAGS"
