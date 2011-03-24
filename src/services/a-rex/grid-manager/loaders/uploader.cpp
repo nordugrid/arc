@@ -451,12 +451,6 @@ int main(int argc,char** argv) {
       }
     }
   }
-  // remove dynamic output file lists from the files to upload
-  it = job_files_.begin();
-  while (it != job_files_.end()) {
-    if(it->pfn.find("@") == 1) it = job_files_.erase(it);
-    else it++;
-  }
   // check if any files share the same LFN, if so allow overwriting existing LFN
   for (it = job_files_.begin(); it != job_files_.end(); it++) {
     bool done = false;
@@ -491,6 +485,12 @@ int main(int argc,char** argv) {
     failure_reason+="Internal error in uploader\n";
     logger.msg(Arc::ERROR, "Can't remove junk files"); res=1; goto exit;
   };
+  // remove dynamic output file lists from the files to upload
+  it = job_files_.begin();
+  while (it != job_files_.end()) {
+    if(it->pfn.find("@") == 1) it = job_files_.erase(it);
+    else it++;
+  }
   expand_files(job_files_,session_dir);
   for(std::list<FileData>::iterator i = job_files_.begin();i!=job_files_.end();++i) {
     job_files.push_back(*i);
@@ -514,10 +514,10 @@ int main(int argc,char** argv) {
     // Initiate transfers
     int n = 0;
     SimpleConditionLock local_lock(pair_condition);
-    for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();++i) {
+    for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
       if(i->lfn.find(":") != std::string::npos) { /* is it lfn ? */
         ++n;
-        if(n <= pairs_initiated) continue; // skip files being processed
+        if(n <= pairs_initiated) { ++i; continue; }; // skip files being processed
         if(n > n_files) break; // quit if not allowed to process more
         /* have source and file to upload */
         std::string source;
@@ -537,16 +537,22 @@ int main(int argc,char** argv) {
           };
           if(strncasecmp(destination.c_str(),"file:/",6) == 0) {
             failure_reason+=std::string("User requested to store output locally ")+destination.c_str()+"\n";
-            logger.msg(Arc::ERROR, "Local destination for uploader %s", destination); res=1; goto exit;
+            logger.msg(Arc::ERROR, "Local destination for uploader %s", destination); res=1;
+            i->res = Arc::DataStatus::WriteAcquireError; failed_files.push_back(*i); i = job_files.erase(i);
+            continue;
           };
           PointPair* pair = new PointPair(source,destination,usercfg);
           if(!(pair->source)) {
             failure_reason+=std::string("Can't accept URL ")+source.c_str()+"\n";
-            logger.msg(Arc::ERROR, "Can't accept URL: %s", source); delete pair; res=1; goto exit;
+            logger.msg(Arc::ERROR, "Can't accept URL: %s", source); delete pair; res=1;
+            i->res = Arc::DataStatus::ReadAcquireError; failed_files.push_back(*i); i = job_files.erase(i);
+            continue;
           };
           if(!(pair->destination)) {
             failure_reason+=std::string("Can't accept URL ")+destination.c_str()+"\n";
-            logger.msg(Arc::ERROR, "Can't accept URL: %s", destination); delete pair; res=1; goto exit;
+            logger.msg(Arc::ERROR, "Can't accept URL: %s", destination); delete pair; res=1;
+            i->res = Arc::DataStatus::WriteAcquireError; failed_files.push_back(*i); i = job_files.erase(i);
+            continue;
           };
           i->pair=pair;
         };
@@ -562,10 +568,13 @@ int main(int argc,char** argv) {
         if (!dres.Passed()) {
           failure_reason+=std::string("Failed to initiate file transfer: ")+source.c_str()+" - "+std::string(dres)+"\n";
           logger.msg(Arc::ERROR, "Failed to initiate file transfer: %s - %s", source, std::string(dres));
-          delete it; res=1; goto exit;
+          delete it; res=1;
+          i->res = dres; failed_files.push_back(*i); i = job_files.erase(i);
+          continue;
         };
         ++pairs_initiated;
       };
+      ++i;
     };
     if(pairs_initiated <= 0) break; // Looks like no more files to process
     // Processing initiated - now wait for event
@@ -607,23 +616,21 @@ int main(int argc,char** argv) {
       res = 4;
       continue;
     }
+    i->lfn="";
+    job_files.push_back(*i);
     logger.msg(Arc::ERROR, "Failed to upload %s", i->lfn);
     failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
-    if(i->res == Arc::DataStatus::CredentialsExpiredError)
-      credentials_expired=true;
+    if(i->res == Arc::DataStatus::CredentialsExpiredError) credentials_expired=true;
     transferred=false;
   };
   // Check if all files have been properly uploaded
-  if(!transferred) {
-    logger.msg(Arc::INFO, "Some uploads failed"); res=2;
-    if(credentials_expired) res=3;
-    goto exit;
-  }
-  else if(res == 4) { logger.msg(Arc::INFO,"Some uploads failed, but may be retried"); }
-  else { /* all files left should be kept */
-    for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
-      i->lfn=""; ++i;
-    };
+  if(res == 4) {
+    logger.msg(Arc::INFO,"Some uploads failed, but (some) may be retried");
+  } else {
+    if(!transferred) {
+      logger.msg(Arc::INFO, "Some uploads failed"); res=2;
+      if(credentials_expired) res=3;
+    }
   }
   if(!userfiles_only) {
     job_files_.clear();
@@ -631,15 +638,13 @@ int main(int argc,char** argv) {
     if(!job_output_write_file(desc,user,job_files_)) {
       logger.msg(Arc::WARNING, "Failed writing changed output file");
     };
+    // clean uploaded files here 
+    clean_files(job_files_,session_dir);
   };
 exit:
   // release input files used for this job
   cache->Release();
   delete cache;
-  // clean uploaded files here 
-  job_files_.clear();
-  for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
-  clean_files(job_files_,session_dir);
   remove_proxy();
   // We are not extremely interested if janitor finished successfuly
   // but it should be at least reported.
