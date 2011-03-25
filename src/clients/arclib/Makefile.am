@@ -2,7 +2,7 @@ bin_PROGRAMS = arcsub arcget arcstat arcinfo arckill arcclean arccat arcsync \
 	arcresub arcmigrate arcresume arcrenew arctest
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
-	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1
+	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1 arctest.1
 
 CLILIBS = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \

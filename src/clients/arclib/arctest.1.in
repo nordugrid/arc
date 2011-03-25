@@ -1,0 +1,113 @@
+.TH arctest 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
+
+.SH NAME
+
+arctest \- ARC Test Suite
+
+.SH DESCRIPTION
+
+The
+.B arctest
+command can test various things related to a client- or server setup.
+
+.SH SYNOPSIS
+
+.B arctest [options]
+
+.SH OPTIONS
+
+.IP "\fB-O\fR, \fB-configuration\fR"
+prints user-configuration
+.IP "\fB-V\fR, \fB-vo\fR"
+print vo-membership information for the user
+.IP "\fB-r\fR \fItime\fR, \fB-runtime\fR \fItime\fR"
+run testjob 1 for the specified number of minutes (default 5)
+.IP "\fB-C\fR [-]\fIfilename\fR, \fB-clustlist\fR [-]\fIfilename\fR"
+list of clusters to select or reject
+.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
+explicitly select or reject a specific cluster
+.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
+explicitly select or reject an index server
+.IP "\fB-J\fR \fIjobid\fR, \fB--jobid\fR=\fIjobid\fR"
+submits testjob given by the jobid.
+.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
+the file storing information about active jobs (default ~/.arc/jobs.xml)
+.IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
+the IDs of the submitted jobs will be appended to this file
+.IP "\fB-D\fR, \fB--dryrun\fR"
+submit jobs as dry run (no submission to batch system)
+.IP "\fB-x\fR, \fB--dumpdescription\fR"
+do not submit - dump job description in the language accepted by the target
+.IP "\fB-E\fR, \fB--certificate\fR"
+prints information about installed user- and CA-certificates
+.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
+timeout in seconds (default 20)
+.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
+configuration file (default ~/.arc/client.conf)
+.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
+FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
+.IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
+selected broker: Random (default), FastestQueue or custom
+.IP "\fB-v\fR, \fB-version\fR"
+print version information
+.IP "\fB-h\fR, \fB-help\fR"
+print usage information
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+The
+.B arctest
+command is used for testing various things about the user and a
+client or server installation. arctest can print helpful output about
+installed certificates, user-authorization of clusters and
+storage-elements, vo-membership information and it can also
+be used to submit various test-jobs testing either a software
+installation on the client or some server.
+
+The testjobs are flavor specific and are used depending of the selected cluster.
+
+The testjobs available in this version of arctest are:
+
+Classic ARC testjob 1: This test-job calculates prime-numbers for 2 minutes and saves the
+list. The source-code for the prime-number program, the Makefile and the
+executable is downloaded to the cluster chosen from various servers and the
+program is compiled before the run. In this way, the test-job constitute a
+fairly comprehensive test of the basic setup of a grid cluster.
+
+Classic ARC testjob 2: This test-job does nothing -- but print "hello, grid" to stdout.
+
+Classic ARC testjob 3: This test-job tests download capabilities of the chosen cluster
+by downloading 8 inputfiles over different protocols -- HTTP, FTP, gsiFTP
+and RLS.
+
+.SH EXAMPLES
+
+arctest -job 1 -c <clustername>
+
+will submit test-job number 1 to the specified cluster belonging to the flavor of it.
+
+arctest -certificate
+
+will print certificate-information about the user's certificate
+and installed CA-certificates.
+
+.SH AUTHOR
+
+Ivan Marton <martoni@niif.hu>
+
+.SH SEE ALSO
+
+.BR arccat (1),
+.BR arcclean (1),
+.BR arcget (1),
+.BR arcinfo (1),
+.BR arckill (1),
+.BR arcmigrate (1),
+.BR arcrenew (1),
+.BR arcresub (1),
+.BR arcresume (1),
+.BR arcstat (1),
+.BR arcsub (1),
+.BR arcsync (1)
+
