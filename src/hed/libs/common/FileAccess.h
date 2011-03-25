@@ -21,8 +21,10 @@ namespace Arc {
     bool ping(void);
     bool setuid(int uid,int gid);
     bool mkdir(const std::string& path, mode_t mode);
+    bool mkdirp(const std::string& path, mode_t mode);
     bool link(const std::string& oldpath, const std::string& newpath);
     bool softlink(const std::string& oldpath, const std::string& newpath);
+    bool copy(const std::string& oldpath, const std::string& newpath, mode_t mode);
     bool stat(const std::string& path, struct stat& st);
     bool lstat(const std::string& path, struct stat& st);
     bool remove(const std::string& path);
@@ -38,7 +40,7 @@ namespace Arc {
     ssize_t write(const void* buf,size_t size);
     ssize_t pread(void* buf,size_t size,off_t offset);
     ssize_t pwrite(const void* buf,size_t size,off_t offset);
-    int errno() { return errno_; };
+    int geterrno() { return errno_; };
     operator bool(void) { return (file_access_ != NULL); };
     bool operator!(void) { return (file_access_ == NULL); };
   private:

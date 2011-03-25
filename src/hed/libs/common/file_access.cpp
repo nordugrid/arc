@@ -13,7 +13,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#ifndef WIN32
 #include <poll.h>
+#endif
 #include <dirent.h>
 #include <fcntl.h>
 
@@ -24,45 +26,54 @@ typedef struct {
   unsigned int cmd;
 } header_t;
 
+// How long it is allowed for controlling side to react
+#define COMMUNICATION_TIMEOUT (10)
+
+static bool sread_start = true;
+
 static bool sread(int s,void* buf,size_t size) {
   while(size) {
-    //std::cerr<<"sread: size="<<size<<std::endl;
-    ssize_t l = ::read(s,buf,size);
-    //std::cerr<<"sread: l="<<l<<std::endl;
-    if(l < 0) {
-      if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
-        struct pollfd p[1];
-        p[0].fd = s;
-        p[0].events = POLLIN;
-        p[0].revents = 0;
-        if(poll(p,1,-1) >= 0) continue;
-      };
-      return false;
+#ifndef WIN32
+    struct pollfd p[1];
+    p[0].fd = s;
+    p[0].events = POLLIN;
+    p[0].revents = 0;
+    int err = poll(p,1,sread_start?-1:(COMMUNICATION_TIMEOUT*1000));
+    if(err == 0) return false;
+    if((err == -1) && (errno != EINTR)) return false;
+    if(err == 1) {
+#else
+    {
+#endif
+      ssize_t l = ::read(s,buf,size);
+      if(l <= 0) return false;
+      size-=l;
+      buf = (void*)(((char*)buf)+l);
+      sread_start =  false;
     };
-    if(l == 0) return false;
-    size-=l;
-    buf = (void*)(((char*)buf)+l);
   };
   return true;
 }
 
-static ssize_t swrite(int s,const void* buf,size_t size) {
+static bool swrite(int s,const void* buf,size_t size) {
   while(size) {
-    //std::cerr<<"swrite: size="<<size<<std::endl;
-    ssize_t l = ::write(s,buf,size);
-    //std::cerr<<"swrite: l="<<l<<std::endl;
-    if(l < 0) {
-      if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
-        struct pollfd p[1];
-        p[0].fd = s;
-        p[0].events = POLLOUT;
-        p[0].revents = 0;
-        if(poll(p,1,-1) >= 0) continue;
-      };
-      return false;
+#ifndef WIN32
+    struct pollfd p[1];
+    p[0].fd = s;
+    p[0].events = POLLOUT;
+    p[0].revents = 0;
+    int err = poll(p,1,COMMUNICATION_TIMEOUT*1000);
+    if(err == 0) return false;
+    if((err == -1) && (errno != EINTR)) return false;
+    if(err == 1) {
+#else
+    {
+#endif
+      ssize_t l = ::write(s,buf,size);
+      if(l < 0) return false;
+      size-=l;
+      buf = (void*)(((char*)buf)+l);
     };
-    size-=l;
-    buf = (void*)(((char*)buf)+l);
   };
   return true;
 }
@@ -175,6 +186,7 @@ int main(int argc,char* argv[]) {
   while(true) {
     ssize_t l;
     header_t header;
+    sread_start = true;
     if(!sread(sin,&header,sizeof(header))) break;
     switch(header.cmd) {
       case CMD_PING: {
@@ -200,7 +212,8 @@ int main(int argc,char* argv[]) {
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
  
-      case CMD_MKDIR: {
+      case CMD_MKDIR:
+      case CMD_MKDIRP: {
         mode_t mode;
         std::string dirname;
         if(!sread(sin,&mode,sizeof(mode))) return -1;
@@ -208,6 +221,28 @@ int main(int argc,char* argv[]) {
         if(!sread_string(sin,dirname,header.size)) return -1;
         if(header.size) return -1;
         int res = ::mkdir(dirname.c_str(),mode);
+        if((res != 0) && (header.cmd == CMD_MKDIRP)) {
+          // resursively up
+          std::string::size_type p = dirname.length();
+          if(p > 0) {
+            while(errno == ENOENT) {
+              p = dirname.rfind('/',p-1); 
+              if(p == std::string::npos) break;
+              if(p == 0) break;
+              res = ::mkdir(dirname.substr(0,p).c_str(),mode);
+              if(res == 0) break;
+            };
+            if((res == 0) || (errno == EEXIST)) {
+              // resursively down
+              while(p < dirname.length()) {
+                p = dirname.find('/',p+1);
+                if(p == std::string::npos) p = dirname.length();
+                res = ::mkdir(dirname.substr(0,p).c_str(),mode);
+                if(res != 0) break;
+              };
+            };
+          };
+        };
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
 
@@ -225,6 +260,37 @@ int main(int argc,char* argv[]) {
           res = ::symlink(oldpath.c_str(),newpath.c_str());
         };
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
+      }; break;
+
+      case CMD_COPY: {
+        mode_t mode;
+        std::string oldpath;
+        std::string newpath;
+        if(!sread(sin,&mode,sizeof(mode))) return -1;
+        header.size -= sizeof(mode);
+        if(!sread_string(sin,oldpath,header.size)) return -1;
+        if(!sread_string(sin,newpath,header.size)) return -1;
+        if(header.size) return -1;
+        int res = 0;
+        int err = 0;
+        int h_src = ::open(oldpath.c_str(),O_RDONLY,0);
+        if(h_src != -1) {
+          int h_dst = ::open(oldpath.c_str(),O_WRONLY|O_CREAT|O_TRUNC,mode);
+          if(h_dst != -1) {
+            for(;;) {
+              ssize_t l = read(h_src,filebuf,sizeof(filebuf));
+              if(l <= 0) { err = errno; res = l; break; };
+              for(size_t p = 0;p<l;) {
+                ssize_t ll = write(h_dst,filebuf+p,l-p);
+                if(ll < 0) { err = errno; res = ll; break; };
+                p+=ll;
+              };
+            };
+            ::close(h_dst);
+          } else  { err = errno; res = -1; };
+          ::close(h_src);
+        } else { err = errno; res = -1; };
+        if(!swrite_result(sout,header.cmd,res,err)) return -1;
       }; break;
 
       case CMD_STAT:

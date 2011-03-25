@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <arc/Run.h>
+#include <arc/ArcLocation.h>
 
 #include "file_access.h"
 
@@ -16,7 +17,7 @@ namespace Arc {
   static Run* acquire_executer(void) {
     // TODO: pool
     std::list<std::string> argv;
-    argv.push_back("./arc-file-access");
+    argv.push_back(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"arc-file-access");
     argv.push_back("0");
     argv.push_back("1");
     Run* file_access = new Run(argv);
@@ -144,6 +145,7 @@ namespace Arc {
     ENDHEADER(CMD_SETUID,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -156,6 +158,20 @@ namespace Arc {
     ENDHEADER(CMD_MKDIR,0);
     return (res == 0);
     }
+    errno_ = -1;
+    return false;
+  }
+
+  bool FileAccess::mkdirp(const std::string& path, mode_t mode) {
+    RETRYLOOP {
+    STARTHEADER(CMD_MKDIRP,sizeof(mode)+sizeof(int)+path.length());
+    if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
+    if(!swrite_string(*file_access_,path)) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_MKDIRP,0);
+    return (res == 0);
+    }
+    errno_ = -1;
     return false;
   }
 
@@ -168,6 +184,7 @@ namespace Arc {
     ENDHEADER(CMD_HARDLINK,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -180,6 +197,21 @@ namespace Arc {
     ENDHEADER(CMD_SOFTLINK,0);
     return (res == 0);
     }
+    errno_ = -1;
+    return false;
+  }
+
+  bool FileAccess::copy(const std::string& oldpath, const std::string& newpath, mode_t mode) {
+    RETRYLOOP {
+    STARTHEADER(CMD_COPY,sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
+    if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
+    if(!swrite_string(*file_access_,oldpath)) ABORTALL;
+    if(!swrite_string(*file_access_,newpath)) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_COPY,0);
+    return (res == 0);
+    }
+    errno_ = -1;
     return false;
   }
 
@@ -192,6 +224,7 @@ namespace Arc {
     if(!sread(*file_access_,&st,sizeof(st))) ABORTALL;
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -204,6 +237,7 @@ namespace Arc {
     if(!sread(*file_access_,&st,sizeof(st))) ABORTALL;
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -215,6 +249,7 @@ namespace Arc {
     ENDHEADER(CMD_REMOVE,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -226,6 +261,7 @@ namespace Arc {
     ENDHEADER(CMD_UNLINK,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -237,6 +273,7 @@ namespace Arc {
     ENDHEADER(CMD_RMDIR,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -248,6 +285,7 @@ namespace Arc {
     ENDHEADER(CMD_OPENDIR,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -258,6 +296,7 @@ namespace Arc {
     ENDHEADER(CMD_CLOSEDIR,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -277,6 +316,7 @@ namespace Arc {
     if(!sread(*file_access_,(void*)name.c_str(),l)) ABORTALL;
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -290,6 +330,7 @@ namespace Arc {
     ENDHEADER(CMD_OPENFILE,0);
     return (res != -1);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -300,6 +341,7 @@ namespace Arc {
     ENDHEADER(CMD_CLOSEFILE,0);
     return (res == 0);
     }
+    errno_ = -1;
     return false;
   }
 
@@ -313,6 +355,7 @@ namespace Arc {
     if(!sread(*file_access_,&offset,sizeof(offset))) ABORTALL;
     return offset;
     }
+    errno_ = -1;
     return (off_t)(-1);
   }
 
@@ -331,6 +374,7 @@ namespace Arc {
     if(!sread_buf(*file_access_,buf,l,header.size)) ABORTALL;
     return (res < 0)?res:l;
     }
+    errno_ = -1;
     return -1;
   }
 
@@ -350,6 +394,7 @@ namespace Arc {
     if(!sread_buf(*file_access_,buf,l,header.size)) ABORTALL;
     return (res < 0)?res:l;
     }
+    errno_ = -1;
     return -1;
   }
 
@@ -363,6 +408,7 @@ namespace Arc {
     ENDHEADER(CMD_WRITEFILE,0);
     return res;
     }
+    errno_ = -1;
     return -1;
   }
 
@@ -377,6 +423,7 @@ namespace Arc {
     ENDHEADER(CMD_WRITEFILEAT,0);
     return res;
     }
+    errno_ = -1;
     return -1;
   }
 

@@ -16,70 +16,85 @@
 // result
 // errno
 
-#define CMD_HARDLINK (3)
+#define CMD_MKDIRP  (3)
+// mode_t mode
+// string dirname
+// -
+// result
+// errno
+
+#define CMD_HARDLINK (4)
 // string oldname
 // string newname
 // -
 // result
 // errno
 
-#define CMD_SOFTLINK (4)
+#define CMD_SOFTLINK (5)
 // string oldname
 // string newname
 // -
 // result
 // errno
 
-#define CMD_STAT (5)
+#define CMD_COPY (6)
+// mode_t mode
+// string oldname
+// string newname
+// -
+// result
+// errno
+
+#define CMD_STAT (7)
 // string path
 // -
 // result
 // errno
 // stat
 
-#define CMD_LSTAT (6)
+#define CMD_LSTAT (8)
 // string path
 // -
 // result
 // errno
 // stat
 
-#define CMD_REMOVE (7)
+#define CMD_REMOVE (9)
 // string path
 // -
 // result
 // errno
 
-#define CMD_UNLINK (8)
+#define CMD_UNLINK (10)
 // string path
 // -
 // result
 // errno
 
-#define CMD_RMDIR (9)
+#define CMD_RMDIR (11)
 // string path
 // -
 // result
 // errno
 
-#define CMD_OPENDIR (10)
+#define CMD_OPENDIR (12)
 // string path
 // -
 // result
 // errno
 
-#define CMD_CLOSEDIR (11)
+#define CMD_CLOSEDIR (13)
 // -
 // result
 // errno
 
-#define CMD_READDIR (12)
+#define CMD_READDIR (14)
 // -
 // result
 // errno
 // string name
 
-#define CMD_OPENFILE (13)
+#define CMD_OPENFILE (15)
 // flags
 // mode
 // string path
@@ -87,25 +102,25 @@
 // result
 // errno
 
-#define CMD_CLOSEFILE (14)
+#define CMD_CLOSEFILE (16)
 // -
 // result
 // errno
 
-#define CMD_READFILE (15)
+#define CMD_READFILE (17)
 // size
 // -
 // result
 // errno
 // string data
 
-#define CMD_WRITEFILE (16)
+#define CMD_WRITEFILE (18)
 // string data
 // -
 // result
 // errno
 
-#define CMD_READFILEAT (17)
+#define CMD_READFILEAT (19)
 // offset
 // size
 // -
@@ -113,14 +128,14 @@
 // errno
 // string data
 
-#define CMD_WRITEFILEAT (18)
+#define CMD_WRITEFILEAT (20)
 // offset
 // string data
 // -
 // result
 // errno
 
-#define CMD_SEEKFILE (19)
+#define CMD_SEEKFILE (21)
 // offset
 // whence
 // -
