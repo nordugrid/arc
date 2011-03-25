@@ -552,7 +552,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       return -1;
     // TODO: do it through context for timeout
     pollfd fd;
-    fd.fd = stdout_; fd.events = POLLOUT; fd.revents = 0;
+    fd.fd = stdin_; fd.events = POLLOUT; fd.revents = 0;
     int err = poll(&fd, 1, timeout);
     if(err <= 0) return err;
     if(!(fd.revents & POLLOUT)) return -1;
