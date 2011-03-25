@@ -748,7 +748,7 @@ exit 0
 # We need to have libmodcredential.so close to libarccredential
 %{_libdir}/%{pkgdir}/libmodcredential.so
 %{_libdir}/%{pkgdir}/libmodcredential.apd
-%{_libdir}/%{pkgdir}/arc-file-access
+%{_libexecdir}/%{pkgdir}/arc-file-access
 %{_bindir}/ngconfigtest
 %doc %{_mandir}/man1/ngconfigtest.1*
 %{_datadir}/%{pkgdir}/schema
