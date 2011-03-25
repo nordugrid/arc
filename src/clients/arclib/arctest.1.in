@@ -20,8 +20,6 @@ command can test various things related to a client- or server setup.
 prints user-configuration
 .IP "\fB-V\fR, \fB-vo\fR"
 print vo-membership information for the user
-.IP "\fB-r\fR \fItime\fR, \fB-runtime\fR \fItime\fR"
-run testjob 1 for the specified number of minutes (default 5)
 .IP "\fB-C\fR [-]\fIfilename\fR, \fB-clustlist\fR [-]\fIfilename\fR"
 list of clusters to select or reject
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
