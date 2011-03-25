@@ -172,8 +172,13 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arccat (1),
 .BR arcclean (1),
 .BR arcget (1),
+.BR arcinfo (1),
 .BR arckill (1),
+.BR arcmigrate (1),
+.BR arcrenew (1),
+.BR arcresub (1),
+.BR arcresume (1),
 .BR arcsub (1),
-.BR arccp (1),
-.BR arcls (1),
-.BR arcrm (1)
+.BR arcsync (1),
+.BR arctest (1)
+
