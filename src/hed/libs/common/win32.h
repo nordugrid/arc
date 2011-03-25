@@ -20,11 +20,14 @@
 #define SIGTTOU 22
 #define sleep(x) Sleep((x) * 1000)
 #define mkdir(x, y) mkdir((x))
+#define lstat stat
 // no windows functions
 #define chown(x, y, z) (0)
 #define lchown(x, y, z) (0)
 #define fchown(x, y, z) (0)
-#define symlink(x, y) (0)
+#define symlink(x, y) (-1)
+#define link(x, y) (-1)
+#define readlink(x, y, z) (-1)
 
 // pwd.h does not exist on windows
 struct passwd {

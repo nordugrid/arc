@@ -58,7 +58,7 @@ bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
   for (int tries = 10; tries > 0; --tries) {
     acquired = filelock.acquire();
     if (acquired) break;
-    usleep(500000);
+    Glib::usleep(500000);
   }
   if (!acquired) {
     logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
@@ -110,7 +110,7 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   for (int tries = 10; tries > 0; --tries) {
     acquired = filelock.acquire();
     if (acquired) break;
-    usleep(500000);
+    Glib::usleep(500000);
   }
   if (!acquired) {
     logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);

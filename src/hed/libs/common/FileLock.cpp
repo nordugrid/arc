@@ -14,6 +14,7 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
+#include <arc/win32.h>
 #define NOGDI
 #include <winsock2.h>
 #endif
@@ -64,9 +65,11 @@ namespace Arc {
     // - check pid inside lock file matches ours
 
     // wrap entire method with UserSwitch to protect from uid changes
+#ifndef WIN32
     UserSwitch usw(getuid(), getgid());
     if (!usw)
       return false;
+#endif
     return acquire_(lock_removed);
   }
 
@@ -271,9 +274,11 @@ namespace Arc {
   bool FileLock::release(bool force) {
 
     // wrap entire method with UserSwitch to protect from uid changes
+#ifndef WIN32
     UserSwitch usw(getuid(), getgid());
     if (!usw)
       return false;
+#endif
 
     // check for existence of lock file
     struct stat fileStat;

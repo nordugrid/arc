@@ -696,7 +696,9 @@ namespace Arc {
 #endif
       // don't switch user to access cache
       UserConfig usercfg(destination.GetUserConfig());
+#ifndef WIN32
       usercfg.SetUser(User(getuid()));
+#endif
       DataHandle chdest_h(churl, usercfg);
       DataPoint& chdest(*chdest_h);
       if (chdest_h) {

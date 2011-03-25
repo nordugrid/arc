@@ -2,6 +2,10 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 #include <iostream>
 #include <string>
 
@@ -170,8 +174,10 @@ static bool swrite_result(int s,int cmd,int res,int err,const std::string str) {
 static char filebuf[1024*1024*10];
 
 int main(int argc,char* argv[]) {
+#ifndef WIN32
   uid_t initial_uid = getuid();
   gid_t initial_gid = getgid();
+#endif
   DIR* curdir = NULL;
   int curfile = -1;
 
@@ -201,6 +207,7 @@ int main(int argc,char* argv[]) {
         if(header.size != (sizeof(uid)+sizeof(gid))) return -1;
         if(!sread(sin,&uid,sizeof(uid))) return -1;
         if(!sread(sin,&gid,sizeof(gid))) return -1;
+#ifndef WIN32
         seteuid(initial_uid);
         setegid(initial_gid);
         if((gid != 0) && (gid != initial_gid)) {
@@ -209,6 +216,7 @@ int main(int argc,char* argv[]) {
         if((res == 0) && (uid != 0) && (uid != initial_uid)) {
           res = seteuid(uid);
         };
+#endif
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
  
@@ -254,11 +262,13 @@ int main(int argc,char* argv[]) {
         if(!sread_string(sin,newpath,header.size)) return -1;
         if(header.size) return -1;
         int res = 0;
+#ifndef WIN32
         if(header.cmd == CMD_HARDLINK) {
           res = ::link(oldpath.c_str(),newpath.c_str());
         } else {
           res = ::symlink(oldpath.c_str(),newpath.c_str());
         };
+#endif
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
 
@@ -428,7 +438,13 @@ int main(int argc,char* argv[]) {
         header.size -= sizeof(offset);
         if(header.size) return -1;
         if(size > sizeof(filebuf)) size = sizeof(filebuf);
+#ifndef WIN32
         ssize_t l = ::pread(curfile,filebuf,size,offset);
+#else
+        if (::lseek(curfile,offset,SEEK_SET) == offset) {
+          ssize_t l = ::read(curfile,filebuf,size);
+        }
+#endif
         int res = l;
         if(l < 0) l = 0;
         int n = l;
@@ -442,7 +458,13 @@ int main(int argc,char* argv[]) {
         unsigned int size = sizeof(filebuf);
         if(!sread_buf(sin,filebuf,size,header.size)) return false;
         if(header.size) return -1;
+#ifndef WIN32
         ssize_t l = ::pwrite(curfile,filebuf,size,offset);
+#else
+        if (::lseek(curfile,offset,SEEK_SET) == offset) {
+          ssize_t l = ::write(curfile,filebuf,size);
+        }
+#endif
         int res = l;
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;

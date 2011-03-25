@@ -18,6 +18,8 @@
 #ifndef WIN32
 #include <poll.h>
 #include <sys/mman.h>
+#else
+#include <arc/win32.h>
 #endif
 
 #include <arc/StringConv.h>
@@ -221,15 +223,11 @@ bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool f
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
-#ifndef WIN32
     if(follow_symlinks) {
       r = ::stat(path.c_str(),st);
     } else {
       r = ::lstat(path.c_str(),st);
     };
-#else
-    r = ::stat(path.c_str(),st);
-#endif
   };
   return (r == 0);
 }
@@ -300,11 +298,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
   {
     UserSwitch usw(uid,gid);
     if(!usw) return false;
-#ifndef WIN32
     if(::mkdir(path.c_str(),mode) == 0) return true;
-#else
-    if(::mkdir(path.c_str()) == 0) return true;
-#endif
   }
   if(errno == EEXIST) {
     /*
@@ -334,11 +328,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
         if(!DirCreate(ppath,uid,gid,mode,true)) return false;
         UserSwitch usw(uid,gid);
         if(!usw) return false;
-#ifndef WIN32
         if(::mkdir(path.c_str(),mode) == 0) return true;
-#else
-        if(::mkdir(path.c_str()) == 0) return true;
-#endif
       }
     }
   }
@@ -368,11 +358,7 @@ bool DirDelete(const std::string& path) {
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(path);
       fullpath += '/' + file_name;
-#ifndef WIN32
       if (::lstat(fullpath.c_str(), &st) != 0) return false;
-#else
-      if (::stat(fullpath.c_str(), &st) != 0) return false;
-#endif
       if (S_ISDIR(st.st_mode)) {
         if (!DirDelete(fullpath.c_str())) {
           return false;
