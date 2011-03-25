@@ -1102,15 +1102,15 @@ AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[enables_lfc="$enableval"],[])
 if test "x$enables_lfc" = "xyes"; then
   LFC_CFLAGS="-I/usr/include/lfc"
-  LFC_LDFLAGS=""
+  LFC_LDFLAGS="-ldl"
   AC_ARG_WITH(lfc, [  --with-lfc=(PATH)  LFC location])
   if test ! "x$with_lfc" = "x" ; then
     LFC_LOCATION="$with_lfc"
     LFC_CFLAGS="-I$LFC_LOCATION/include/lfc"
     if test -d $LFC_LOCATION/lib64; then
-      LFC_LDFLAGS="-L$LFC_LOCATION/lib64"
+      LFC_LDFLAGS="-L$LFC_LOCATION/lib64 -ldl"
     else
-      LFC_LDFLAGS="-L$LFC_LOCATION/lib"
+      LFC_LDFLAGS="-L$LFC_LOCATION/lib -ldl"
     fi
   fi
   SAVE_CPPFLAGS=$CPPFLAGS
