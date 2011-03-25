@@ -153,6 +153,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libmodcredential.dll*
 %{_mingw32_datadir}/%{pkgdir}/schema
 %{_mingw32_bindir}/ngconfigtest
+%{_mingw32_libexecdir}/%{pkgdir}/arc-file-access.exe
 %doc %{_mingw32_mandir}/man1/ngconfigtest.1*
 
 %files client

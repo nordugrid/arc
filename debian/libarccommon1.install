@@ -15,6 +15,7 @@ debian/tmp/usr/lib/arc/libmodcrypto.so
 debian/tmp/usr/lib/arc/libmodcredential.so
 debian/tmp/usr/lib/arc/libmodcrypto.apd
 debian/tmp/usr/lib/arc/libmodcredential.apd
+debian/tmp/usr/lib/arc/arc-file-access
 debian/tmp/usr/bin/ngconfigtest
 debian/tmp/usr/share/man/man1/ngconfigtest.1
 debian/tmp/usr/share/arc/schema
