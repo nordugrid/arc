@@ -145,6 +145,7 @@ bool job_lrmsoutput_mark_get(JobDescription &desc,JobUser &user);
   Common purpose functions, used by previous functions.
 */
 bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files);
+bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files);
 std::string job_mark_read_s(const std::string &fname);
 long int job_mark_read_i(const std::string &fname);
 bool job_mark_write_s(const std::string &fname,const std::string &content);

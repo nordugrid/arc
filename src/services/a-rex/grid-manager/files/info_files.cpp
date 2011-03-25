@@ -74,7 +74,6 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
 static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
-static bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files);
 static bool job_Xput_read_file(std::list<FileData> &files);
 static bool job_strings_write_file(const std::string &fname,std::list<std::string> &str);
 
@@ -1073,9 +1072,9 @@ bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData
   return job_Xput_read_file(fname,files);
 }
 
-/* common finctions */
+/* common functions */
 
-static bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
+bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
   for(FileData::iterator i=files.begin();i!=files.end(); ++i) { 

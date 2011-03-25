@@ -435,6 +435,8 @@ int main(int argc,char** argv) {
   bool credentials_expired = false;
   std::list<FileData>::iterator it = job_files_.begin();
   std::list<FileData>::iterator it2 = job_files_.begin();
+  // this map will be used to write back dynamic output file lists in case of error
+  std::map<std::string, std::list<FileData> > dynamic_outputs;
   
   // get the list of output files
   if(!job_output_read_file(desc.get_id(),user,job_files_)) {
@@ -445,10 +447,13 @@ int main(int argc,char** argv) {
   for(it = job_files_.begin(); it != job_files_.end() ; ++it) {
     if(it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
       std::string outputfilelist = session_dir + std::string("/") + it->pfn.substr(2);
+      std::list<FileData> dynamic_files;
       logger.msg(Arc::INFO, "Reading output files from user generated list in %s", outputfilelist);
-      if (!job_Xput_read_file(outputfilelist, job_files_)) {
+      if (!job_Xput_read_file(outputfilelist, dynamic_files)) {
         logger.msg(Arc::ERROR, "Error reading user generated output file list in %s", outputfilelist); res=1; goto exit;
       }
+      dynamic_outputs[it->pfn] = dynamic_files;
+      job_files_.insert(job_files_.end(), dynamic_files.begin(), dynamic_files.end());
     }
   }
   // check if any files share the same LFN, if so allow overwriting existing LFN
@@ -616,22 +621,48 @@ int main(int argc,char** argv) {
       res = 4;
       continue;
     }
+    logger.msg(Arc::ERROR, "Failed to upload %s", i->lfn);
     i->lfn="";
     job_files.push_back(*i);
-    logger.msg(Arc::ERROR, "Failed to upload %s", i->lfn);
     failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError) credentials_expired=true;
     transferred=false;
   };
   // Check if all files have been properly uploaded
-  if(res == 4) {
-    logger.msg(Arc::INFO,"Some uploads failed, but (some) may be retried");
-  } else {
-    if(!transferred) {
-      logger.msg(Arc::INFO, "Some uploads failed"); res=2;
-      if(credentials_expired) res=3;
+  if(!transferred) {
+    logger.msg(Arc::INFO, "Some uploads failed"); res=2;
+    if(credentials_expired) res=3;
+    // recreate dynamic lists if necessary
+    for (std::map<std::string, std::list<FileData> >::iterator dyn_out = dynamic_outputs.begin();
+        dyn_out != dynamic_outputs.end(); ++dyn_out) {
+      std::list<FileData> failed_outputs;
+      for (std::list<FileData>::iterator dyn_file = dyn_out->second.begin();
+          dyn_file != dyn_out->second.end(); ++dyn_file) {
+        for (FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
+          if (*i == *dyn_file) {
+            failed_outputs.push_back(*dyn_file);
+          }
+        }
+      }
+      if (!failed_outputs.empty()) {
+        std::string outputfilelist = session_dir + std::string("/") + dyn_out->first.substr(2);
+        logger.msg(Arc::DEBUG, "Writing back dynamic output file %s", outputfilelist);
+        if (!job_Xput_write_file(outputfilelist, failed_outputs)) {
+          logger.msg(Arc::WARNING, "Failed to rewrite output file list %s. Job resuming may not work", dyn_out->first);
+        }
+        // @output
+        FileData at_output_file(dyn_out->first.c_str(), "");
+        job_files.push_back(at_output_file);
+        // output
+        FileData output_file(std::string('/' + dyn_out->first.substr(2)).c_str(), "");
+        job_files.push_back(output_file);
+      }
     }
   }
+  else if(res == 4) {
+    logger.msg(Arc::INFO,"Some uploads failed, but (some) may be retried");
+  }
+
   if(!userfiles_only) {
     job_files_.clear();
     for(FileDataEx::iterator i = job_files.begin();i!=job_files.end();++i) job_files_.push_back(*i);
