@@ -606,12 +606,12 @@ bool check_cert_type(X509* cert, certType& type) {
   ASN1_OBJECT* policylang = NULL;
   int policynid;
 
-  int index = -1;
+  int index;
   int critical;
   BASIC_CONSTRAINTS* x509v3_bc = NULL;
   if(!cert) return false;
   if((x509v3_bc = (BASIC_CONSTRAINTS*) X509_get_ext_d2i(cert,
-    NID_basic_constraints, &critical, &index)) && x509v3_bc->ca) {
+    NID_basic_constraints, &critical, NULL)) && x509v3_bc->ca) {
     type = CERT_TYPE_CA;
     if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
     return true;
