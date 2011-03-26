@@ -28,6 +28,8 @@
 #define symlink(x, y) (-1)
 #define link(x, y) (-1)
 #define readlink(x, y, z) (-1)
+#define getuid() (0)
+#define getgid() (0)
 
 // pwd.h does not exist on windows
 struct passwd {

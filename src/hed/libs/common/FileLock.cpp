@@ -65,11 +65,9 @@ namespace Arc {
     // - check pid inside lock file matches ours
 
     // wrap entire method with UserSwitch to protect from uid changes
-#ifndef WIN32
-    UserSwitch usw(getuid(), getgid());
+    UserSwitch usw(0,0);
     if (!usw)
       return false;
-#endif
     return acquire_(lock_removed);
   }
 
@@ -274,11 +272,9 @@ namespace Arc {
   bool FileLock::release(bool force) {
 
     // wrap entire method with UserSwitch to protect from uid changes
-#ifndef WIN32
-    UserSwitch usw(getuid(), getgid());
+    UserSwitch usw(0,0);
     if (!usw)
       return false;
-#endif
 
     // check for existence of lock file
     struct stat fileStat;
