@@ -404,8 +404,6 @@ int main(int argc,char** argv) {
   if(max_inactivity_time != 0)
     logger.msg(Arc::VERBOSE, "Maximal inactivity time: %i s", max_inactivity_time);
 
-  prepare_proxy();
-
   if(n_threads > 10) {
     logger.msg(Arc::WARNING, "Won't use more than 10 threads");
     n_threads=10;
@@ -676,7 +674,6 @@ exit:
   // release input files used for this job
   cache->Release();
   delete cache;
-  remove_proxy();
   // We are not extremely interested if janitor finished successfuly
   // but it should be at least reported.
   if(janitor) {

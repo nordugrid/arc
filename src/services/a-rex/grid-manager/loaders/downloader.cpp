@@ -503,7 +503,6 @@ int main(int argc,char** argv) {
     logger.msg(Arc::VERBOSE, "Maximal inactivity time: %i s", max_inactivity_time);
 
   CollectCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
-  prepare_proxy();
 
   if(n_threads > 10) {
     logger.msg(Arc::WARNING, "Won't use more than 10 threads");
@@ -855,7 +854,6 @@ exit:
     cache->Release();
   };
   delete cache;
-  remove_proxy();
   if(res != 0 && res != 4) {
     job_failed_mark_add(desc,user,failure_reason);
   };
