@@ -10,8 +10,10 @@
 #include <sys/systeminfo.h>
 #endif
 
+#include <arc/Thread.h>
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
@@ -163,11 +165,15 @@ namespace Arc {
     #define OBJC(c,n) OBJ_create(c,n,#c)
 
     X509V3_EXT_METHOD *vomsattribute_x509v3_ext_meth;
-    static int done=0;
-    if (done)
-      return;
 
-    done=1;
+
+    OpenSSLInit();
+
+    static Glib::Mutex lock_;
+    static bool done = false;
+
+    Glib::Mutex::Lock lock(lock_);
+    if (done) return;
 
     /* VOMS Attribute related objects*/
     //OBJ_create(email, "Email", "Email");
@@ -219,6 +225,12 @@ namespace Arc {
       vomsattribute_x509v3_ext_meth->ext_nid = OBJ_txt2nid("attributes");
       X509V3_EXT_add(vomsattribute_x509v3_ext_meth);
     }
+
+    if(!PersistentLibraryInit("modcredential")) {
+      CredentialLogger.msg(WARNING, "Failed to lock arccredential library in memory");
+    };
+    done=true;
+
   }
 
   int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,

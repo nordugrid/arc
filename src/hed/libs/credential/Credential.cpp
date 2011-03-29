@@ -16,9 +16,10 @@
 
 #include <glibmm/fileutils.h>
 
-#include <arc/crypto/OpenSSL.h>
+#include <arc/Thread.h>
 #include <arc/Utils.h>
 #include <arc/User.h>
+#include <arc/crypto/OpenSSL.h>
 
 #include <arc/credential/VOMSUtil.h>
 
