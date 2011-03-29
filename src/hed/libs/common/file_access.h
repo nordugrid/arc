@@ -175,3 +175,10 @@
 // result
 // errno
 
+#define CMD_CHMOD (27)
+// mode
+// string path
+// -
+// result
+// errno
+

@@ -261,6 +261,19 @@ namespace Arc {
     return false;
   }
 
+  bool FileAccess::chmod(const std::string& path, mode_t mode) {
+    RETRYLOOP {
+    STARTHEADER(CMD_CHMOD,sizeof(mode)+sizeof(int)+path.length());
+    if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
+    if(!swrite_string(*file_access_,path)) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_CHMOD,0);
+    return (res == 0);
+    }
+    errno_ = -1;
+    return false;
+  }
+
   bool FileAccess::fstat(struct stat& st) {
     RETRYLOOP {
     STARTHEADER(CMD_FSTAT,0);

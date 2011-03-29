@@ -39,6 +39,8 @@ namespace Arc {
     /// Copy file to new location.
     /// If new file is created it is assigned secified mode.
     bool copy(const std::string& oldpath, const std::string& newpath, mode_t mode);
+    /// Change mode of filesystem object
+    bool chmod(const std::string& path,mode_t mode);
     /// stat file.
     bool stat(const std::string& path, struct stat& st);
     /// stat symbolic link or file.

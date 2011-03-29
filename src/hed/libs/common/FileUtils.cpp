@@ -36,8 +36,11 @@ Glib::Mutex suid_lock;
 
 static bool write_all(int h,const void* buf,size_t l) {
   for(;l>0;) {
-    ssize_t ll = write(h,buf,l);
-    if(ll == -1) return false;
+    ssize_t ll = ::write(h,buf,l);
+    if(ll == -1) {
+      if(errno == EINTR) continue;
+      return false;
+    };
     buf = (const void*)(((const char*)buf)+ll);
     l-=ll;
   }
@@ -52,7 +55,9 @@ bool FileCopy(const std::string& source_path,const std::string& destination_path
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
     if(!fa.setuid(uid,gid)) return false;
-    return fa.copy(source_path,destination_path,S_IRUSR|S_IWUSR);
+    bool r = fa.copy(source_path,destination_path,S_IRUSR|S_IWUSR);
+    errno = fa.geterrno();
+    return r;
   };
   return FileCopy(source_path,destination_path);
 }
@@ -119,6 +124,7 @@ bool FileCopy(int source_handle,int destination_handle) {
     l=::read(source_handle,buf,l);
     if(l == 0) break; // less than expected
     if(l == -1) {
+      if(errno == EINTR) continue;
       // EWOULDBLOCK
       r = false;
       break;
@@ -135,7 +141,10 @@ bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t u
   data.clear();
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.setuid(uid,gid)) {
+      errno = fa.geterrno();
+      return false;
+    };
     char buf[1024];
     std::string line;
     for(;;) {
@@ -163,9 +172,9 @@ bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t u
 bool FileCreate(const std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
-    if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) return false;
-    if(!fa.open(filename,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR)) return false;
+    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
+    if(!fa.open(filename,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
     return true;
   }
   if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
@@ -184,11 +193,11 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
 bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if(follow_symlinks) {
-      if(!fa.stat(path,*st)) return false;
+      if(!fa.stat(path,*st)) { errno = fa.geterrno(); return false; }
     } else {
-      if(!fa.lstat(path,*st)) return false;
+      if(!fa.lstat(path,*st)) { errno = fa.geterrno(); return false; }
     }
     return true;
   };
@@ -220,14 +229,13 @@ bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gi
     FileAccess fa;
     if(!fa.setuid(uid,gid)) return false;
     if(symbolic) {
-      if(!fa.softlink(oldpath,newpath)) return false;
+      if(!fa.softlink(oldpath,newpath)) { errno = fa.geterrno(); return false; }
     } else {
-      if(!fa.link(oldpath,newpath)) return false;
+      if(!fa.link(oldpath,newpath)) { errno = fa.geterrno(); return false; }
     }
     return true;
   }
   return FileLink(oldpath,newpath,symbolic);
-
 }
 
 std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
@@ -236,6 +244,7 @@ std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
     if(!fa.setuid(uid,gid)) return false;
     std::string linkpath;
     fa.readlink(path,linkpath);
+    errno = fa.geterrno();
     return linkpath;
   }
   return FileReadLink(path);
@@ -277,8 +286,8 @@ bool FileDelete(const std::string& path) {
 bool FileDelete(const std::string& path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
-    if(!fa.unlink(path)) return false;
+    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.unlink(path)) { errno = fa.geterrno(); return false; }
     return true;
   };
   return FileDelete(path);
@@ -295,6 +304,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
       if(fa.mkdir(path,mode)) return true;
     }
     if(fa.geterrno() == EEXIST) return true;
+    errno = fa.geterrno();
     return false;
   }
   return DirCreate(path,mode,with_parents);
@@ -343,8 +353,9 @@ bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
 bool DirDelete(const std::string& path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
-    return fa.rmdirr(path);
+    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.rmdirr(path)) { errno = fa.geterrno(); return false; }
+    return true;
   }
   return DirDelete(path);
 }  

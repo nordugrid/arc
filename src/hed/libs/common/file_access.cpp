@@ -359,6 +359,18 @@ int main(int argc,char* argv[]) {
         if(!swrite_result(sout,header.cmd,res,errno,&st,sizeof(st))) return -1;
       }; break;
 
+      case CMD_CHMOD: {
+        mode_t mode;
+        std::string path;
+        if(!sread(sin,&mode,sizeof(mode))) return -1;
+        header.size -= sizeof(mode);
+        if(!sread_string(sin,path,header.size)) return -1;
+        if(header.size) return -1;
+        errno = 0;
+        int res = ::chmod(path.c_str(),mode);
+        if(!swrite_result(sout,header.cmd,res,errno)) return -1;
+      }; break;
+
       case CMD_REMOVE:
       case CMD_UNLINK:
       case CMD_RMDIR:

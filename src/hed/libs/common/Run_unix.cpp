@@ -4,7 +4,10 @@
 #include <config.h>
 #endif
 
-
+#include <cstdlib>
+#include <cstdio>
+// NOTE: On Solaris errno is not working properly if cerrno is included first
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
@@ -527,11 +530,15 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
     if (stdout_ == -1)
       return -1;
     // TODO: do it through context for timeout?
-    pollfd fd;
-    fd.fd = stdout_; fd.events = POLLIN; fd.revents = 0;
-    int err = poll(&fd, 1, timeout);
-    if(err <= 0) return err;
-    if(!(fd.revents & POLLIN)) return -1;
+    for(;;) {
+      pollfd fd;
+      fd.fd = stdout_; fd.events = POLLIN; fd.revents = 0;
+      int err = ::poll(&fd, 1, timeout);
+      if((err < 0) && (errno == EINTR)) continue;
+      if(err <= 0) return err;
+      if(!(fd.revents & POLLIN)) return -1;
+      break;
+    }
     return ::read(stdout_, buf, size);
   }
 
@@ -539,11 +546,15 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
     if (stderr_ == -1)
       return -1;
     // TODO: do it through context for timeout
-    pollfd fd;
-    fd.fd = stderr_; fd.events = POLLIN; fd.revents = 0;
-    int err = poll(&fd, 1, timeout);
-    if(err <= 0) return err;
-    if(!(fd.revents & POLLIN)) return -1;
+    for(;;) {
+      pollfd fd;
+      fd.fd = stderr_; fd.events = POLLIN; fd.revents = 0;
+      int err = ::poll(&fd, 1, timeout);
+      if((err < 0) && (errno == EINTR)) continue;
+      if(err <= 0) return err;
+      if(!(fd.revents & POLLIN)) return -1;
+      break;
+    }
     return ::read(stderr_, buf, size);
   }
 
@@ -551,11 +562,15 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
     if (stdin_ == -1)
       return -1;
     // TODO: do it through context for timeout
-    pollfd fd;
-    fd.fd = stdin_; fd.events = POLLOUT; fd.revents = 0;
-    int err = poll(&fd, 1, timeout);
-    if(err <= 0) return err;
-    if(!(fd.revents & POLLOUT)) return -1;
+    for(;;) {
+      pollfd fd;
+      fd.fd = stdin_; fd.events = POLLOUT; fd.revents = 0;
+      int err = ::poll(&fd, 1, timeout);
+      if((err < 0) && (errno == EINTR)) continue;
+      if(err <= 0) return err;
+      if(!(fd.revents & POLLOUT)) return -1;
+      break;
+    }
     return write(stdin_, buf, size);
   }
 
