@@ -18,7 +18,7 @@ namespace ARex {
 PayloadBigFile::Size_t PayloadBigFile::threshold_ = 1024*1024*10; // 10MB by default
 
 PayloadFile::PayloadFile(const char* filename,Size_t start,Size_t end) {
-  handle_=Arc::FileOpen(filename,O_RDONLY);
+  handle_=::open(filename,O_RDONLY);
   SetRead(handle_,start,end);
 }
 
@@ -125,11 +125,11 @@ bool PayloadFile::Truncate(Size_t /*size*/) {
 }
 
 static int open_file_read(const char* filename) {
-  return Arc::FileOpen(filename,O_RDONLY);
+  return ::open(filename,O_RDONLY);
 }
 
 //static int open_file_write(const char* filename) {
-//  return Arc::FileOpen(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
+//  return ::open(filename,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR);
 //}
 
 PayloadBigFile::PayloadBigFile(int h,Size_t start,Size_t end):
@@ -186,6 +186,51 @@ bool PayloadBigFile::Get(char* buf,int& size) {
   return PayloadStream::Get(buf,size);
 }
 
+PayloadFAFile::PayloadFAFile(Arc::FileAccess* h,Size_t start,Size_t end) {
+  handle_ = h;
+  if(handle_ == NULL) return;
+  handle_->lseek(start,SEEK_SET);
+  limit_ = end;
+}
+
+PayloadFAFile::~PayloadFAFile(void) {
+  if(handle_ != NULL) {
+    handle_->close();
+    delete handle_;
+  };
+}
+
+Arc::PayloadStream::Size_t PayloadFAFile::Pos(void) const {
+  if(handle_ == NULL) return 0;
+  return handle_->lseek(0,SEEK_CUR);
+}
+
+Arc::PayloadStream::Size_t PayloadFAFile::Size(void) const {
+  if(handle_ == NULL) return 0;
+  struct stat st;
+  if(!handle_->fstat(st)) return 0;
+  return st.st_size;
+}
+
+Arc::PayloadStream::Size_t PayloadFAFile::Limit(void) const {
+  Size_t s = Size();
+  if((limit_ == (off_t)(-1)) || (limit_ > s)) return s;
+  return limit_;
+}
+
+bool PayloadFAFile::Get(char* buf,int& size) {
+  if(handle_ == NULL) return false;
+  if(limit_ != (off_t)(-1)) {
+    Size_t cpos = Pos();
+    if(cpos >= limit_) { size=0; return false; }
+    if((cpos+size) > limit_) size=limit_-cpos;
+  };
+  ssize_t l = handle_->read(buf,size);
+  if(l < 0) { size=0; return false; }
+  size = (int)l;
+  return true;
+}
+
 Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::Size_t start,Arc::PayloadRawInterface::Size_t end) {
   int h = open_file_read(filename);
   return newFileRead(h,start,end);
@@ -209,6 +254,11 @@ Arc::MessagePayload* newFileRead(int h,Arc::PayloadRawInterface::Size_t start,Ar
   if(!*f) { delete f; return NULL; };
   return f;
 #endif
+}
+
+Arc::MessagePayload* newFileRead(Arc::FileAccess* h,Arc::PayloadRawInterface::Size_t start,Arc::PayloadRawInterface::Size_t end) {
+  PayloadFAFile* f = new PayloadFAFile(h,start,end);
+  return f;
 }
 
 } // namespace ARex

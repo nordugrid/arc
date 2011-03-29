@@ -35,6 +35,7 @@ class GMEnvironment {
 
   // Certificates directory location
   std::string cert_dir_loc() const;
+  void cert_dir_loc(const std::string&) const;
 
   // RTE setup scripts
   std::string runtime_config_dir(void) const;

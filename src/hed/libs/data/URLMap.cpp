@@ -34,7 +34,7 @@ namespace Arc {
           return false;
         }
         if (newurl.Protocol() == "file") { /* local file - check permissions */
-          int h = FileOpen(newurl.Path(), O_RDONLY, 0);
+          int h = ::open(newurl.Path().c_str(), O_RDONLY);
           if (h == -1) {
             logger.msg(ERROR, "file %s is not accessible", newurl.Path());
             return false;

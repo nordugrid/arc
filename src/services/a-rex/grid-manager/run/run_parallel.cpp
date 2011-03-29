@@ -123,17 +123,17 @@ void RunParallel::initializer(void* arg) {
   for(int i=0;i<max_files;i++) { close(i); };
   int h;
   // set up stdin,stdout and stderr
-  h=Arc::FileOpen("/dev/null",O_RDONLY); 
+  h=::open("/dev/null",O_RDONLY); 
   if(h != 0) { if(dup2(h,0) != 0) { sleep(10); exit(1); }; close(h); };
-  h=Arc::FileOpen("/dev/null",O_WRONLY);
+  h=::open("/dev/null",O_WRONLY);
   if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
   std::string errlog;
   if(!(it->jobid_.empty())) { 
     errlog = it->user_.ControlDir() + "/job." + it->jobid_ + ".errors";
-    h=Arc::FileOpen(errlog,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
-    if(h==-1) { h=Arc::FileOpen("/dev/null",O_WRONLY); };
+    h=::open(errlog.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+    if(h==-1) { h=::open("/dev/null",O_WRONLY); };
   }
-  else { h=Arc::FileOpen("/dev/null",O_WRONLY); };
+  else { h=::open("/dev/null",O_WRONLY); };
   if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
   // setting environment  - TODO - better environment 
   if(it->job_proxy_) {
@@ -141,6 +141,7 @@ void RunParallel::initializer(void* arg) {
     Arc::UnsetEnv("X509_USER_CERT");
     Arc::UnsetEnv("X509_USER_PROXY");
     Arc::UnsetEnv("X509_RUN_AS_SERVER");
+    Arc::UnsetEnv("X509_CERT_DIR");
     if(!(it->jobid_.empty())) {
       std::string proxy = it->user_.ControlDir() + "/job." + it->jobid_ + ".proxy";
       Arc::SetEnv("X509_USER_PROXY",proxy);
@@ -155,6 +156,8 @@ void RunParallel::initializer(void* arg) {
       Arc::SetEnv("X509_USER_KEY",proxy);
       Arc::SetEnv("X509_USER_CERT",proxy);
 #endif
+      std::string cert_dir = it->user_.Env().cert_dir_loc();
+      if(!cert_dir.empty()) Arc::SetEnv("X509_CERT_DIR",cert_dir);
     };
   };
 #endif

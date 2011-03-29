@@ -67,12 +67,21 @@ static bool write_file(int h,char* buf,size_t size) {
   return true;
 }
 
+static bool write_file(Arc::FileAccess* h,char* buf,size_t size) {
+  for(;size>0;) {
+    ssize_t l = h->write(buf,size);
+    if(l == -1) return false;
+    size-=l; buf+=l;
+  };
+  return true;
+}
+
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadStreamInterface& stream,FileChunksList& fchunks) {
   // TODO: Use memory mapped file to minimize number of in memory copies
   // File 
   const int bufsize = 1024*1024;
-  int h = job.CreateFile(hpath.c_str());
-  if(h == -1) {
+  Arc::FileAccess* h = job.CreateFile(hpath.c_str());
+  if(h == NULL) {
     // TODO: report something
     logger.msg(Arc::ERROR, "Put: failed to create file %s for job %s - %s", hpath, job.ID(), job.Failure());
     return Arc::MCC_Status();
@@ -80,15 +89,15 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
   FileChunks& fc = fchunks.Get(job.ID()+"/"+hpath);
   if(!fc.Size()) fc.Size(stream.Size());
   int pos = stream.Pos(); 
-  if(lseek(h,pos,SEEK_SET) != pos) {
+  if(h->lseek(pos,SEEK_SET) != pos) {
     std::string err = Arc::StrError();
-    ::close(h);
+    h->close(); delete h;
     logger.msg(Arc::ERROR, "Put: failed to set position of file %s for job %s to %i - %s", hpath, job.ID(), pos, err);
     return Arc::MCC_Status();
   };
   char* buf = new char[bufsize];
   if(!buf) {
-    ::close(h);
+    h->close(); delete h;
     logger.msg(Arc::ERROR, "Put: failed to allocate memory for file %s in job %s", hpath, job.ID());
     return Arc::MCC_Status();
   };
@@ -97,22 +106,24 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     if(!stream.Get(buf,size)) break;
     if(!write_file(h,buf,size)) {
       std::string err = Arc::StrError();
-      delete[] buf; ::close(h);
+      delete[] buf;
+      h->close(); delete h;
       logger.msg(Arc::ERROR, "Put: failed to write to file %s for job %s - %s", hpath, job.ID(), err);
       return Arc::MCC_Status();
     };
     if(size) fc.Add(pos,size);
     pos+=size;
   };
-  delete[] buf; ::close(h);
+  delete[] buf;
+  h->close(); delete h;
   if(fc.Complete()) job.ReportFileComplete(hpath);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf,FileChunksList& fchunks) {
   // File 
-  int h = job.CreateFile(hpath.c_str());
-  if(h == -1) {
+  Arc::FileAccess* h = job.CreateFile(hpath.c_str());
+  if(h == NULL) {
     // TODO: report something
     logger.msg(Arc::ERROR, "Put: failed to create file %s for job %s - %s", hpath, job.ID(), job.Failure());
     return Arc::MCC_Status();
@@ -125,19 +136,19 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     off_t offset = buf.BufferPos(n);
     off_t size = buf.BufferSize(n);
     if(size > 0) {
-      off_t o = lseek(h,offset,SEEK_SET);
+      off_t o = h->lseek(offset,SEEK_SET);
       if(o != offset) {
-        ::close(h);
+        h->close(); delete h;
         return Arc::MCC_Status();
       };
       if(!write_file(h,sbuf,size)) {
-        ::close(h);
+        h->close(); delete h;
         return Arc::MCC_Status();
       };
       if(size) fc.Add(offset,size);
     };
   };
-  ::close(h);
+  h->close(); delete h;
   if(fc.Complete()) job.ReportFileComplete(hpath);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }

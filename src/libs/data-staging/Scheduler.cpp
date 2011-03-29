@@ -7,6 +7,7 @@
 
 #include <set>
 
+#include <arc/FileUtils.h>
 #include <arc/Utils.h>
 
 #include "Scheduler.h"
@@ -173,26 +174,22 @@ namespace DataStaging {
       }
       else {
         request->get_logger()->msg(Arc::INFO, "DTR %s: Linking mapped file", request->get_short_id());
-        // Switch to local user to access session dir
-        // TODO: this will block other UserSwitch calls - maybe better to do in separate process
-        // One idea is to have persistent executable which gets fed link requests
-        Arc::UserSwitch us(request->get_local_user().get_uid(), request->get_local_user().get_gid());
-        if (!us) {
-          request->get_logger()->msg(Arc::ERROR, "DTR %s: Could not switch to user %i:%i. Will not use mapped URL",
-                     request->get_short_id(), request->get_local_user().get_uid(), request->get_local_user().get_gid());
+        // Access session dir under mapped user
+        if (!Arc::FileLink(mapped_url.Path(),
+                           request->get_destination()->CurrentLocation().Path(),
+                           request->get_local_user().get_uid(),
+                           request->get_local_user().get_gid(),
+                           true)) {
+          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to create link: %s. Will not use mapped URL",
+                                     request->get_short_id(), Arc::StrError(errno));
         }
         else {
-          if (symlink(mapped_url.Path().c_str(), request->get_destination()->CurrentLocation().Path().c_str()) != 0) {
-            request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to create link: %s. Will not use mapped URL", request->get_short_id(), Arc::StrError(errno));
-          }
-          else {
-            // successful link, so turn off caching, set to TRANSFERRED and return
-            request->set_mapped_source(mapped_url.str());
-            if (request->get_cache_state() == CACHEABLE)
-              request->set_cache_state(CACHE_NOT_USED);
-            request->set_status(DTRStatus::TRANSFERRED);
-            return true;
-          }
+          // successful link, so turn off caching, set to TRANSFERRED and return
+          request->set_mapped_source(mapped_url.str());
+          if (request->get_cache_state() == CACHEABLE)
+            request->set_cache_state(CACHE_NOT_USED);
+          request->set_status(DTRStatus::TRANSFERRED);
+          return true;
         }
       }
 #else

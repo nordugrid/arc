@@ -785,7 +785,7 @@ int DTRGenerator::user_file_exists(FileData &dt,const std::string& session_dir,s
     };
     if(f == have_files->end()) return 2;
   } else if(have_checksum) {
-    int h=Arc::FileOpen(fname,O_RDONLY);
+    int h=::open(fname.c_str(),O_RDONLY);
     if(h==-1) { /* if we can't read that file job won't too */
       logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);
       if(error) (*error)="Delivered file is unreadable.";

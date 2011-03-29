@@ -15,6 +15,7 @@
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
+#include <arc/Utils.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
@@ -567,7 +568,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(credentials.empty()) return true;
   std::string fname=config_.User()->ControlDir()+"/job."+id_+".proxy";
   ::unlink(fname.c_str());
-  int h=Arc::FileOpen(fname,O_WRONLY | O_CREAT | O_EXCL,0600);
+  int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
   if(h == -1) return false;
   fix_file_owner(fname,*config_.User());
   const char* s = credentials.c_str();
@@ -591,7 +592,7 @@ bool ARexJob::make_job_id(const std::string &id) {
   std::string fname=user->ControlDir()+"/job."+id+".description";
   struct stat st;
   if(stat(fname.c_str(),&st) == 0) return false;
-  int h = Arc::FileOpen(fname,O_RDWR | O_CREAT | O_EXCL,S_IRWXU);
+  int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,S_IRWXU);
   // So far assume control directory is on local fs.
   // TODO: add locks or links for NFS
   if(h == -1) return false;
@@ -614,7 +615,7 @@ bool ARexJob::make_job_id(void) {
     std::string fname=config_.User()->ControlDir()+"/job."+id_+".description";
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;
-    int h = Arc::FileOpen(fname,O_RDWR | O_CREAT | O_EXCL,0600);
+    int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
     int err = errno;
@@ -696,64 +697,107 @@ static bool normalize_filename(std::string& filename) {
   return true;
 }
 
-int ARexJob::CreateFile(const std::string& filename) {
-  if(id_.empty()) return -1;
+Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
+  if(id_.empty()) return NULL;
   std::string fname = filename;
   if((!normalize_filename(fname)) || (fname.empty())) {
     failure_="File name is not acceptable";
     failure_type_=ARexJobInternalError;
-    return -1;
+    return NULL;
   };
   int lname = fname.length();
   fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
   // First try to create/open file
-  int h = Arc::FileOpen(fname,O_WRONLY | O_CREAT,config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR);
-  if(h != -1) return h;
-  if(errno != ENOENT) return -1;
-  // If open reports missing directory - try to create all sudirectories
-  std::string::size_type n = fname.length()-lname;
-  for(;;) {
-    n=fname.find('/',n);
-    if(n == std::string::npos) break;
-    std::string dname = fname.substr(0,n);
-    ++n;
-    if(Arc::DirCreate(dname,config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR | S_IXUSR)) continue;
-    if(errno == EEXIST) continue;
+  Arc::FileAccess* fa = new Arc::FileAccess();
+  if(!*fa) {
+    delete fa;
+    return NULL;
   };
-  return Arc::FileOpen(fname,O_WRONLY | O_CREAT,config_.User()->get_uid(),config_.User()->get_gid(),S_IRUSR | S_IWUSR);
+  if(!fa->setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+    delete fa;
+    return NULL;
+  };
+  if(!fa->open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
+    if(fa->geterrno() != ENOENT) {
+      delete fa;
+      return NULL;
+    };
+    std::string::size_type n = fname.rfind('/');
+    if((n == std::string::npos) || (n < (fname.length()-lname))) {
+      delete fa;
+      return NULL;
+    };
+    if(!fa->mkdirp(fname.substr(0,n),S_IRUSR | S_IWUSR | S_IXUSR)) {
+      if(fa->geterrno() != EEXIST) {
+        delete fa;
+        return NULL;
+      };
+    };
+    if(!fa->open(fname,O_WRONLY | O_CREAT,S_IRUSR | S_IWUSR)) {
+      delete fa;
+      return NULL;
+    };
+  };
+  return fa;
 }
 
-int ARexJob::OpenFile(const std::string& filename,bool for_read,bool for_write) {
-  if(id_.empty()) return -1;
+Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,bool for_write) {
+  if(id_.empty()) return NULL;
   std::string fname = filename;
   if((!normalize_filename(fname)) || (fname.empty())) {
     failure_="File name is not acceptable";
     failure_type_=ARexJobInternalError;
-    return -1;
+    return NULL;
   };
   fname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+fname;
   int flags = 0;
   if(for_read && for_write) { flags=O_RDWR; }
   else if(for_read) { flags=O_RDONLY; }
   else if(for_write) { flags=O_WRONLY; }
-  return Arc::FileOpen(fname,flags,config_.User()->get_uid(),config_.User()->get_gid(),0);
+  //return Arc::FileOpen(fname,flags,config_.User()->get_uid(),config_.User()->get_gid(),0);
+  Arc::FileAccess* fa = new Arc::FileAccess();
+  if(*fa) {
+    if(fa->setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+      if(fa->open(fname,flags,0)) {
+        return fa;
+      };
+    };
+  };
+  failure_="Failed opening file - "+Arc::StrError(fa->geterrno());
+  failure_type_=ARexJobInternalError;
+  delete fa;
+  return NULL;
 }
 
-Glib::Dir* ARexJob::OpenDir(const std::string& dirname) {
+Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
   if(id_.empty()) return NULL;
   std::string dname = dirname;
-  if(!normalize_filename(dname)) return NULL;
+  if(!normalize_filename(dname)) {
+    failure_="Directory name is not acceptable";
+    failure_type_=ARexJobInternalError;
+    return NULL;
+  };
   //if(dname.empty()) return NULL;
   dname = config_.User()->SessionRoot(id_)+"/"+id_+"/"+dname;
-  Glib::Dir* dir = Arc::DirOpen(dname,config_.User()->get_uid(),config_.User()->get_gid());
-  return dir;
+  Arc::FileAccess* fa = new Arc::FileAccess();
+  if(*fa) {
+    if(fa->setuid(config_.User()->get_uid(),config_.User()->get_gid())) {
+      if(fa->opendir(dname)) {
+        return fa;
+      };
+    };
+  };
+  failure_="Failed opening directory - "+Arc::StrError(fa->geterrno());
+  failure_type_=ARexJobInternalError;
+  delete fa;
+  return NULL;
 }
 
 int ARexJob::OpenLogFile(const std::string& name) {
   if(id_.empty()) return -1;
   if(strchr(name.c_str(),'/')) return -1;
   std::string fname = config_.User()->ControlDir() + "/job." + id_ + "." + name;
-  return Arc::FileOpen(fname,O_RDONLY,0,0,0);
+  return ::open(fname.c_str(),O_RDONLY,0,0,0);
 }
 
 std::list<std::string> ARexJob::LogFiles(void) {
@@ -762,7 +806,7 @@ std::list<std::string> ARexJob::LogFiles(void) {
   std::string dname = config_.User()->ControlDir();
   std::string prefix = "job." + id_ + ".";
   // TODO: scanning is performace bottleneck. Use matching instead.
-  Glib::Dir* dir = Arc::DirOpen(dname,config_.User()->get_uid(),config_.User()->get_gid());
+  Glib::Dir* dir = new Glib::Dir(dname);
   if(!dir) return logs;
   for(;;) {
     std::string name = dir->read_name();

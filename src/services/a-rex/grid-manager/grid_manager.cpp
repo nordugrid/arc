@@ -346,7 +346,7 @@ void GridManager::grid_manager(void* arg) {
     for(JobUsers::iterator user = users.begin();user != users.end();++user) {
       // touch heartbeat file
       std::string gm_heartbeat(std::string(user->ControlDir() + "/" + heartbeat_file));
-      int r = Arc::FileOpen(gm_heartbeat, O_WRONLY|O_CREAT|O_TRUNC);
+      int r = ::open(gm_heartbeat.c_str(), O_WRONLY|O_CREAT|O_TRUNC);
       if (r < 0)
         logger.msg(Arc::WARNING, "Failed to open heartbeat file %s", gm_heartbeat);
       else

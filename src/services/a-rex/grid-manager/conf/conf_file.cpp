@@ -100,7 +100,11 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       continue;
     };
     if(cf->SectionNum() == 0) { // infosys user may be in common too
-      if(command == "user") infosys_user=rest;
+      if(command == "user") {
+        infosys_user=rest;
+      } else if(command == "x509_cert_dir") {
+        users.Env().cert_dir_loc(rest);
+      };
     };
     /*
     if(daemon) {

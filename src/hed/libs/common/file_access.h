@@ -143,3 +143,35 @@
 // errno
 // offset
 
+#define CMD_FSTAT (22)
+// -
+// result
+// errno
+// stat
+
+#define CMD_READLINK (23)
+// string path
+// -
+// result
+// errno
+// stat
+// string path
+
+#define CMD_RMDIRR (24)
+// string path
+// -
+// result
+// errno
+
+#define CMD_FTRUNCATE (25)
+// length
+// -
+// result
+// errno
+
+#define CMD_FALLOCATE (26)
+// length
+// -
+// result
+// errno
+

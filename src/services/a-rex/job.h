@@ -5,6 +5,7 @@
 #include <list>
 
 #include <arc/XMLNode.h>
+#include <arc/FileAccess.h>
 #include <arc/message/MessageAuth.h>
 #include "grid-manager/jobs/users.h"
 #include "grid-manager/files/info_types.h"
@@ -115,16 +116,16 @@ class ARexJob {
   /** Returns list of user's jobs. Fine-grained ACL is ignored. */
   static std::list<std::string> Jobs(ARexGMConfig& config,Arc::Logger& logger);
   /** Creates file in job's session directory and returns handler */
-  int CreateFile(const std::string& filename);
+  Arc::FileAccess* CreateFile(const std::string& filename);
   /** Opens file in job's session directory and returns handler */
-  int OpenFile(const std::string& filename,bool for_read,bool for_write);
+  Arc::FileAccess* OpenFile(const std::string& filename,bool for_read,bool for_write);
   std::string GetFilePath(const std::string& filename);
   bool ReportFileComplete(const std::string& filename);
   /** Opens log file in control directory */
   int OpenLogFile(const std::string& name);
   std::string GetLogFilePath(const std::string& name);
   /** Opens directory inside session directory */
-  Glib::Dir* OpenDir(const std::string& dirname);
+  Arc::FileAccess* OpenDir(const std::string& dirname);
   /** Returns list of existing log files */
   std::list<std::string> LogFiles(void);
   /** Updates job credentials */

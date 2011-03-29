@@ -390,7 +390,7 @@ void OptimizedInformationContainer::AssignFile(const std::string& filename) {
   filename_ = filename;
   handle_ = -1;
   if(!filename_.empty()) {
-    handle_ = Arc::FileOpen(filename_,O_RDONLY);
+    handle_ = ::open(filename_.c_str(),O_RDONLY);
     if(parse_xml_) {
       lock_.lock();
       doc_.ReadFromFile(filename_);

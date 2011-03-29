@@ -36,9 +36,9 @@ namespace Arc {
     bool reading;
     bool writing;
     int fd;
+    FileAccess* fa;
     bool is_channel;
     unsigned int channel_num;
-    std::map<unsigned int, std::string> stdfds;
     static Logger logger;
   };
 

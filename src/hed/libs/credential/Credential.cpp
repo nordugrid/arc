@@ -18,6 +18,7 @@
 
 #include <arc/crypto/OpenSSL.h>
 #include <arc/Utils.h>
+#include <arc/User.h>
 
 #include <arc/credential/VOMSUtil.h>
 
@@ -428,12 +429,18 @@ namespace Arc {
     loadCertificate(certbio,x509,certchain, false);
   }
 
+  static BIO* OpenFileBIO(const std::string& file) {
+    if(!Glib::file_test(file,Glib::FILE_TEST_IS_REGULAR)) return NULL;
+    return  BIO_new_file(file.c_str(), "r");
+  }
+
   void Credential::loadCertificateFile(const std::string& certfile, X509* &x509, STACK_OF(X509) **certchain) {
-    if(!Glib::file_test(certfile,Glib::FILE_TEST_IS_REGULAR)) {
+    BIO* b = OpenFileBIO(certfile);
+    if(!b) {
         CredentialLogger.msg(ERROR,"Can not find certificate file: %s", certfile);
         throw CredentialError("Can not find certificate file");
     }
-    AutoBIO certbio(BIO_new_file(certfile.c_str(), "r"));
+    AutoBIO certbio(b);
     if(!certbio){
       CredentialLogger.msg(ERROR,"Can not read certificate file: %s", certfile);
       LogError();
@@ -547,11 +554,12 @@ namespace Arc {
   }
 
   void Credential::loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase) {
-    if(!Glib::file_test(keyfile,Glib::FILE_TEST_IS_REGULAR)) {
+    BIO* b = OpenFileBIO(keyfile);
+    if(!b) {
         CredentialLogger.msg(ERROR,"Can not find key file: %s", keyfile);
         throw CredentialError("Can not find key file");
     }
-    AutoBIO keybio(BIO_new_file(keyfile.c_str(), "r"));
+    AutoBIO keybio(b);
     if(!keybio){
       CredentialLogger.msg(ERROR,"Can not open key file %s", keyfile);
       LogError();
@@ -1238,6 +1246,14 @@ namespace Arc {
     return true;
   }
 
+  static int BIO_write_filename_User(BIO *b, const char* file) {
+    return BIO_write_filename(b, (char*)file);
+  }
+
+  static int BIO_read_filename_User(BIO *b, const char* file) {
+    return BIO_read_filename(b, (char*)file);
+  }
+
   bool Credential::GenerateEECRequest(const char* req_filename, const char* key_filename, std::string dn) {
     BIO *req_out = BIO_new(BIO_s_file());
     BIO *key_out = BIO_new(BIO_s_file());
@@ -1245,12 +1261,12 @@ namespace Arc {
       CredentialLogger.msg(ERROR, "Can not create BIO for request");
       return false;
     }
-    if (!(BIO_write_filename(req_out, (char*)req_filename))) {
+    if (!(BIO_write_filename_User(req_out, req_filename))) {
       CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
       BIO_free_all(req_out); return false;
     }
 
-    if (!(BIO_write_filename(key_out, (char*)key_filename))) {
+    if (!(BIO_write_filename_User(key_out, key_filename))) {
       CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
       BIO_free_all(key_out);
       return false;
@@ -1465,7 +1481,7 @@ namespace Arc {
       CredentialLogger.msg(ERROR, "Can not create BIO for request");
       LogError(); return false;
     }
-    if (!(BIO_write_filename(out, (char*)filename))) {
+    if (!(BIO_write_filename_User(out, filename))) {
       CredentialLogger.msg(ERROR, "Can not set writable file for request BIO");
       LogError(); BIO_free_all(out); return false;
     }
@@ -1740,7 +1756,7 @@ err:
       CredentialLogger.msg(ERROR, "Can not create BIO for parsing request");
       LogError(); return false;
     }
-    if (!(BIO_read_filename(in, (char*)filename))) {
+    if (!BIO_read_filename_User(in, filename)) {
       CredentialLogger.msg(ERROR, "Can not set readable file for request BIO");
       LogError(); BIO_free_all(in); return false;
     }
@@ -2223,7 +2239,7 @@ err:
       CredentialLogger.msg(ERROR, "Can not create BIO for signed proxy certificate");
       LogError(); return false;
     }
-    if (!(BIO_write_filename(out, (char*)filename))) {
+    if (!BIO_write_filename_User(out, filename)) {
       CredentialLogger.msg(ERROR, "Can not set writable file for signed proxy certificate BIO");
       LogError(); BIO_free_all(out); return false;
     }
@@ -2313,7 +2329,7 @@ error:
       goto err;
     }
 
-    if (BIO_read_filename(in,serialfile) <= 0) {
+    if (BIO_read_filename_User(in,serialfile) <= 0) {
       if (!create) {
         perror(serialfile);
         goto err;
@@ -2376,7 +2392,7 @@ err:
       print_ssl_errors();
       goto err;
     }
-    if (BIO_write_filename(out,buf[0]) <= 0) {
+    if (BIO_write_filename_User(out,buf[0]) <= 0) {
       perror(serialfile);
       goto err;
     }
@@ -2766,7 +2782,7 @@ error:
       CredentialLogger.msg(ERROR, "Can not create BIO for signed EEC certificate");
       LogError(); return false;
     }
-    if (!(BIO_write_filename(out, (char*)filename))) {
+    if (!(BIO_write_filename_User(out, filename))) {
       CredentialLogger.msg(ERROR, "Can not set writable file for signed EEC certificate BIO");
       LogError(); BIO_free_all(out); return false;
     }

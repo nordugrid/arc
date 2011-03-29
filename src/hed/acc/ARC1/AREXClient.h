@@ -137,8 +137,6 @@ namespace Arc {
       return client;
     }
 
-    static const std::string mainStateModel;
-
     bool delegation(XMLNode& operation);
 
     void arexFeatures(bool val) { arex_enabled = val; };

@@ -286,21 +286,16 @@ namespace Arc {
      * copied directly to the session directory rather than via
      * the hard link.
      *
-     * The session directory is accessed under the uid passed in
-     * the constructor if switch_user is true. Switching uid involves
-     * holding a global lock, therefore care must be taken in a
-     * multi-threaded environment.
+     * The session directory is accessed under the uid and gid passed in
+     * the constructor.
      * @param link_path path to the session dir for soft-link or new file
      * @param url url of file to link to or copy
      * @param copy If true the file is copied rather than soft-linked
      * to the session dir
      * @param executable If true then file is copied and given execute
      * permissions in the session dir
-     * @param switch_user If true then the session dir is accessed
-     * under the uid passed in the constructor. Should be set to
-     * false in DataMover.
      */
-    bool Link(std::string link_path, std::string url, bool copy, bool executable, bool switch_user);
+    bool Link(std::string link_path, std::string url, bool copy, bool executable);
     /**
      * Copy the cache file corresponding to url to the dest_path.
      * The session directory is accessed under the uid passed in
@@ -406,7 +401,7 @@ namespace Arc {
     bool Stop(std::string url) { return false; }
     bool StopAndDelete(std::string url) {return false; }
     std::string File(std::string url) { return url; }
-    bool Link(std::string link_path, std::string url, bool copy, bool executable, bool switch_user)  { return false; }
+    bool Link(std::string link_path, std::string url, bool copy, bool executable)  { return false; }
     bool Copy(std::string dest_path, std::string url, bool executable = false) { return false; }
     bool Release() { return false;}
     bool AddDN(std::string url, std::string DN, Time expiry_time) { return false;}

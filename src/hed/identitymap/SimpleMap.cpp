@@ -70,7 +70,7 @@ SimpleMap::SimpleMap(const std::string& dir):dir_(dir) {
     char buf[PATH_MAX];
     if(getcwd(buf,sizeof(buf))) dir_=std::string(buf)+"/"+dir_;
   };
-  pool_handle_=Arc::FileOpen((dir_+"pool"),O_RDWR);
+  pool_handle_=::open((dir_+"pool").c_str(),O_RDWR);
 }
 
 SimpleMap::~SimpleMap(void) {

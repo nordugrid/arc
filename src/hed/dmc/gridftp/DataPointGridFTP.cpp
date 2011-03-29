@@ -410,7 +410,7 @@ namespace Arc {
                                            globus_bool_t eof) {
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error != GLOBUS_SUCCESS) {
-      logger.msg(VERBOSE, "ftp_read_callback: failure");
+      logger.msg(VERBOSE, "ftp_read_callback: failure: %s",globus_object_to_string(error));
       it->buffer->is_read((char*)buffer, 0, 0);
       return;
     }
@@ -561,7 +561,7 @@ namespace Arc {
                                             globus_bool_t) {
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error != GLOBUS_SUCCESS) {
-      logger.msg(VERBOSE, "ftp_write_callback: failure");
+      logger.msg(VERBOSE, "ftp_write_callback: failure: %s",globus_object_to_string(error));
       it->buffer->is_written((char*)buffer);
       return;
     }

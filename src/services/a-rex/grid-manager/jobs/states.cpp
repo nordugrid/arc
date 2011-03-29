@@ -752,7 +752,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
                 std::string new_proxy_file =
                         user->ControlDir()+"/job."+i->job_id+".proxy.tmp";
                 remove(new_proxy_file.c_str());
-                int h = Arc::FileOpen(new_proxy_file,
+                int h = ::open(new_proxy_file.c_str(),
                         O_WRONLY | O_CREAT | O_EXCL,S_IRUSR | S_IWUSR);
                 if(h!=-1) {
                   close(h);

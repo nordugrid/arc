@@ -20,7 +20,7 @@ generator_SOURCES = generator-main.cpp Generator.h Generator.cpp
 generator_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 generator_LDADD = libdatastaging.la
 
-pkglibexec_PROGRAMS = DataStagingDelivery CacheManager
+pkglibexec_PROGRAMS = DataStagingDelivery
 
 DataStagingDelivery_SOURCES = DataStagingDelivery.cpp
 DataStagingDelivery_CXXFLAGS = -I$(top_srcdir)/include \
@@ -29,8 +29,3 @@ DataStagingDelivery_LDADD = \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS)
-
-CacheManager_SOURCES = CacheManager.cpp
-CacheManager_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-CacheManager_LDADD = libdatastaging.la

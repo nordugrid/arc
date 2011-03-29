@@ -4,6 +4,7 @@
 
 #include <list>
 #include <iostream>
+#include <string.h>
 
 #include <arc/Run.h>
 #include <arc/ArcLocation.h>
@@ -14,22 +15,44 @@
 
 namespace Arc {
 
-  static Run* acquire_executer(void) {
-    // TODO: pool
-    std::list<std::string> argv;
-    argv.push_back(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"arc-file-access");
-    argv.push_back("0");
-    argv.push_back("1");
-    Run* file_access = new Run(argv);
-    file_access->KeepStdin(false);
-    file_access->KeepStdout(false);
-    file_access->KeepStderr(true);
-    if(!(file_access->Start())) {
-      delete file_access;
-      file_access = NULL;
+  static bool sread(Run& r,void* buf,size_t size) {
+    while(size) {
+      int l = r.ReadStdout(-1,(char*)buf,size);
+      if(l < 0) return false;
+      size-=l;
+      buf = (void*)(((char*)buf)+l);
     };
-    return file_access;
+    return true;
   }
+
+  static bool swrite(Run& r,const void* buf,size_t size) {
+    while(size) {
+      int l = r.WriteStdin(-1,(const char*)buf,size);
+      if(l < 0) return false;
+      size-=l;
+      buf = (void*)(((char*)buf)+l);
+    };
+    return true;
+  }
+
+#define ABORTALL { dispose_executer(file_access_); file_access_=NULL; continue; }
+
+#define STARTHEADER(CMD,SIZE) { \
+  if(!file_access_) break; \
+  if(!(file_access_->Running())) break; \
+  FileAccess::header_t header; \
+  header.cmd = CMD; \
+  header.size = SIZE; \
+  if(!swrite(*file_access_,&header,sizeof(header))) ABORTALL; \
+}
+
+#define ENDHEADER(CMD,SIZE) { \
+  FileAccess::header_t header; \
+  if(!sread(*file_access_,&header,sizeof(header))) ABORTALL; \
+  if((header.cmd != CMD) || (header.size != (sizeof(res)+sizeof(errno_)+SIZE))) ABORTALL; \
+  if(!sread(*file_access_,&res,sizeof(res))) ABORTALL; \
+  if(!sread(*file_access_,&errno_,sizeof(errno_))) ABORTALL; \
+}
 
   static void release_executer(Run* file_access) {
     delete file_access;
@@ -39,14 +62,39 @@ namespace Arc {
     delete file_access;
   }
 
-  static bool sread(Run& r,void* buf,size_t size) {
-    while(size) {
-      int l = r.ReadStdout(-1,(char*)buf,size);
-      if(l < 0) return false;
-      size-=l;
-      buf = (void*)(((char*)buf)+l);
+  static bool do_tests = false;
+
+  static Run* acquire_executer(uid_t uid,gid_t gid) {
+    // TODO: pool
+    std::list<std::string> argv;
+    if(!do_tests) {
+      argv.push_back(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"arc-file-access");
+    } else {
+      argv.push_back(std::string("..")+G_DIR_SEPARATOR_S+"arc-file-access");
+    }
+    argv.push_back("0");
+    argv.push_back("1");
+    Run* file_access_ = new Run(argv);
+    file_access_->KeepStdin(false);
+    file_access_->KeepStdout(false);
+    file_access_->KeepStderr(true);
+    if(!(file_access_->Start())) {
+      delete file_access_;
+      file_access_ = NULL;
+      return NULL;
+    }
+    if(uid || gid) {
+      for(int n=0;n<1;++n) {
+        STARTHEADER(CMD_SETUID,sizeof(uid)+sizeof(gid));
+        if(!swrite(*file_access_,&uid,sizeof(uid))) ABORTALL;
+        if(!swrite(*file_access_,&gid,sizeof(gid))) ABORTALL;
+        int res = 0;
+        int errno_ = 0;
+        ENDHEADER(CMD_SETUID,0);
+        if(res != 0) ABORTALL;
+      };
     };
-    return true;
+    return file_access_;
   }
 
   static bool sread_buf(Run& r,void* buf,unsigned int& bufsize,unsigned int& maxsize) {
@@ -76,16 +124,6 @@ namespace Arc {
     return true;
   }
 
-  static bool swrite(Run& r,const void* buf,size_t size) {
-    while(size) {
-      int l = r.WriteStdin(-1,(const char*)buf,size);
-      if(l < 0) return false;
-      size-=l;
-      buf = (void*)(((char*)buf)+l);
-    };
-    return true;
-  }
-
   static bool swrite_string(Run& r,const std::string& str) {
     int l = str.length();
     if(!swrite(r,&l,sizeof(l))) return false;
@@ -93,31 +131,12 @@ namespace Arc {
     return true;
   }
 
-#define ABORTALL { dispose_executer(file_access_); file_access_=NULL; continue; }
+#define RETRYLOOP Glib::Mutex::Lock mlock(lock_); for(int n = 2; n && (file_access_?file_access_:(file_access_=acquire_executer(uid_,gid_))) ;--n)
 
-#define STARTHEADER(CMD,SIZE) { \
-  if(!file_access_) break; \
-  if(!(file_access_->Running())) break; \
-  header_t header; \
-  header.cmd = CMD; \
-  header.size = SIZE; \
-  if(!swrite(*file_access_,&header,sizeof(header))) ABORTALL; \
-}
+#define NORETRYLOOP Glib::Mutex::Lock mlock(lock_); for(int n = 1; n && (file_access_?file_access_:(file_access_=acquire_executer(uid_,gid_))) ;--n)
 
-#define ENDHEADER(CMD,SIZE) { \
-  header_t header; \
-  if(!sread(*file_access_,&header,sizeof(header))) ABORTALL; \
-  if((header.cmd != CMD) || (header.size != (sizeof(res)+sizeof(errno_)+SIZE))) ABORTALL; \
-  if(!sread(*file_access_,&res,sizeof(res))) ABORTALL; \
-  if(!sread(*file_access_,&errno_,sizeof(errno_))) ABORTALL; \
-}
-
-#define RETRYLOOP for(int n = 2; n && (file_access_?file_access_:(file_access_=acquire_executer())) ;--n)
-
-#define NORETRYLOOP for(int n = 1; n && (file_access_?file_access_:(file_access_=acquire_executer())) ;--n)
-
-  FileAccess::FileAccess(void):file_access_(NULL),errno_(0) {
-    file_access_ = acquire_executer();
+  FileAccess::FileAccess(void):file_access_(NULL),errno_(0),uid_(0),gid_(0) {
+    file_access_ = acquire_executer(uid_,gid_);
   }
 
   FileAccess::~FileAccess(void) {
@@ -143,6 +162,7 @@ namespace Arc {
     if(!swrite(*file_access_,&gid,sizeof(gid))) ABORTALL;
     int res = 0;
     ENDHEADER(CMD_SETUID,0);
+    if(res == 0) { uid_ = uid; gid_ = gid; };
     return (res == 0);
     }
     errno_ = -1;
@@ -203,7 +223,7 @@ namespace Arc {
 
   bool FileAccess::copy(const std::string& oldpath, const std::string& newpath, mode_t mode) {
     RETRYLOOP {
-    STARTHEADER(CMD_COPY,sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
+    STARTHEADER(CMD_COPY,sizeof(mode)+sizeof(int)+oldpath.length()+sizeof(int)+newpath.length());
     if(!swrite(*file_access_,&mode,sizeof(mode))) ABORTALL;
     if(!swrite_string(*file_access_,oldpath)) ABORTALL;
     if(!swrite_string(*file_access_,newpath)) ABORTALL;
@@ -241,6 +261,64 @@ namespace Arc {
     return false;
   }
 
+  bool FileAccess::fstat(struct stat& st) {
+    RETRYLOOP {
+    STARTHEADER(CMD_FSTAT,0);
+    int res = 0;
+    ENDHEADER(CMD_FSTAT,sizeof(st));
+    if(!sread(*file_access_,&st,sizeof(st))) ABORTALL;
+    return (res == 0);
+    }
+    errno_ = -1;
+    return false;
+  }
+
+  bool FileAccess::ftruncate(off_t length) {
+    RETRYLOOP {
+    STARTHEADER(CMD_FTRUNCATE,sizeof(length));
+    if(!swrite(*file_access_,&length,sizeof(length))) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_FTRUNCATE,0);
+    return (res == 0);
+    }
+    errno_ = -1;
+    return false;
+  }
+
+  off_t FileAccess::fallocate(off_t length) {
+    RETRYLOOP {
+    STARTHEADER(CMD_FALLOCATE,sizeof(length));
+    if(!swrite(*file_access_,&length,sizeof(length))) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_FALLOCATE,sizeof(length));
+    if(!sread(*file_access_,&length,sizeof(length))) ABORTALL;
+    return length;
+    }
+    errno_ = -1;
+    return -1;
+  }
+
+  bool FileAccess::readlink(const std::string& path, std::string& linkpath) {
+    RETRYLOOP {
+    STARTHEADER(CMD_READLINK,sizeof(int)+path.length());
+    if(!swrite_string(*file_access_,path)) ABORTALL;
+    int res = 0;
+    int l = 0;
+    header_t header;
+    if(!sread(*file_access_,&header,sizeof(header))) ABORTALL;
+    if((header.cmd != CMD_READLINK) || (header.size < (sizeof(res)+sizeof(errno_)+sizeof(int)))) ABORTALL;
+    if(!sread(*file_access_,&res,sizeof(res))) ABORTALL;
+    if(!sread(*file_access_,&errno_,sizeof(errno_))) ABORTALL;
+    if(!sread(*file_access_,&l,sizeof(l))) ABORTALL;
+    if((sizeof(res)+sizeof(errno_)+sizeof(l)+l) != header.size) ABORTALL;
+    linkpath.assign(l,' ');
+    if(!sread(*file_access_,(void*)linkpath.c_str(),l)) ABORTALL;
+    return (res >= 0);
+    }
+    errno_ = -1;
+    return false;
+  }
+
   bool FileAccess::remove(const std::string& path) {
     RETRYLOOP {
     STARTHEADER(CMD_REMOVE,sizeof(int)+path.length());
@@ -271,6 +349,18 @@ namespace Arc {
     if(!swrite_string(*file_access_,path)) ABORTALL;
     int res = 0;
     ENDHEADER(CMD_RMDIR,0);
+    return (res == 0);
+    }
+    errno_ = -1;
+    return false;
+  }
+
+  bool FileAccess::rmdirr(const std::string& path) {
+    RETRYLOOP {
+    STARTHEADER(CMD_RMDIRR,sizeof(int)+path.length());
+    if(!swrite_string(*file_access_,path)) ABORTALL;
+    int res = 0;
+    ENDHEADER(CMD_RMDIRR,0);
     return (res == 0);
     }
     errno_ = -1;
@@ -347,11 +437,11 @@ namespace Arc {
 
   off_t FileAccess::lseek(off_t offset, int whence) {
     NORETRYLOOP {
-    STARTHEADER(CMD_OPENFILE,sizeof(offset)+sizeof(whence));
+    STARTHEADER(CMD_SEEKFILE,sizeof(offset)+sizeof(whence));
     if(!swrite(*file_access_,&offset,sizeof(offset))) ABORTALL;
     if(!swrite(*file_access_,&whence,sizeof(whence))) ABORTALL;
     int res = 0;
-    ENDHEADER(CMD_OPENFILE,sizeof(offset));
+    ENDHEADER(CMD_SEEKFILE,sizeof(offset));
     if(!sread(*file_access_,&offset,sizeof(offset))) ABORTALL;
     return offset;
     }
@@ -425,6 +515,10 @@ namespace Arc {
     }
     errno_ = -1;
     return -1;
+  }
+
+  void FileAccess::testtune(void) {
+    do_tests = true;
   }
 
 }

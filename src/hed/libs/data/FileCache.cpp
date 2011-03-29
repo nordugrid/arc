@@ -307,32 +307,13 @@ namespace Arc {
       if (remote_cache_link == "replicate") {
         // copy the file to the local cache, remove remote lock and exit with available=true
         logger.msg(VERBOSE, "Replicating file %s to local cache file %s", remote_cache_file, filename);
-
-        int fdest = FileOpen(filename, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-        if(fdest == -1) {
-          logger.msg(ERROR, "Failed to create file %s for writing: %s",filename, StrError(errno));
-          remote_lock.release();
-          lock.release();
-          return false;
-        }
         
-        int fsource = FileOpen(remote_cache_file, O_RDONLY);
-        if(fsource == -1) {
-          close(fdest);
-          logger.msg(ERROR, "Failed to open file %s for reading: %s", remote_cache_file, StrError(errno));
-          remote_lock.release();
-          lock.release();
-          return false;
-        }
-        
-        if(!FileCopy(fsource,fdest)) {
-          close(fdest); close(fsource);
+        if(!FileCopy(remote_cache_file, filename)) {
           logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, StrError(errno));
           remote_lock.release();
           lock.release();
           return false;
         }
-        close(fdest); close(fsource);
         if (!remote_lock.release())
           logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
       }
@@ -478,7 +459,7 @@ namespace Arc {
     return path;
   }
 
-  bool FileCache::Link(std::string dest_path, std::string url, bool copy, bool executable, bool switch_user) {
+  bool FileCache::Link(std::string dest_path, std::string url, bool copy, bool executable) {
 
     if (!(*this))
       return false;
@@ -547,16 +528,13 @@ namespace Arc {
       logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
       return false;
     }
-    int res;
-    {
-      UserSwitch usw(getuid(), getgid());
-      // earlier GM sets umask(0177) so need to add search permission for user
-      res = chmod(hard_link_path.c_str(), 0700);
-      if (res == 0)
-        res = chown(hard_link_path.c_str(), _uid, _gid);
+    // earlier GM sets umask(0177) so need to add search permission for user
+    if (chmod(hard_link_path.c_str(), 0700) != 0) {
+      logger.msg(ERROR, "Cannot change permissions of %s: %s", hard_link_path, StrError(errno));
+      return false;
     }
-    if (res != 0) {
-      logger.msg(ERROR, "Cannot change owner of %s", hard_link_path);
+    if (chown(hard_link_path.c_str(), _uid, _gid) != 0) {
+      logger.msg(ERROR, "Cannot change owner of %s: %s ", hard_link_path, StrError(errno));
       return false;
     }
 
@@ -583,55 +561,32 @@ namespace Arc {
       }
     }
     // ensure the hard link is readable by all and owned by root (or GM user)
-    // (to make cache file immutable but readable by all)
+    // to make cache file immutable but readable by mapped user
 
-    // Using UserSwitch as a temporary solution until it is possible to
+    // Using chmod as a temporary solution until it is possible to
     // specify mode when writing with File DMC
-    {
-      UserSwitch usw(getuid(), getgid());
-      res = chmod(hard_link_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    }
-    if (res != 0) {
+    if (chmod(hard_link_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) != 0) {
       logger.msg(ERROR, "Failed to change permissions or set owner of hard link %s: %s", hard_link_file, StrError(errno));
       return false;
     }
 
     // make necessary dirs for the soft link
     // the session dir should already exist but in the case of arccp with cache it may not
+    // here we use the mapped user to access session dir
 
-    // use to mapped user to access session dir if switch_user
-    if (!DirCreate(session_dir, switch_user ? _uid : getuid(), switch_user ? _gid : getgid(), S_IRWXU, true))
+    if (!DirCreate(session_dir, _uid, _gid, S_IRWXU, true))
       return false;
 
     // if _cache_link_path is '.' or copy or executable is true then copy instead
     if (copy || executable || cache_params.cache_link_path == ".") {
-      mode_t perm = S_IRUSR | S_IWUSR;
-      if (executable)
-        perm |= S_IXUSR;
-      // UserSwitch is called inside FileOpen if switch_user
-      int fdest = FileOpen(dest_path, O_WRONLY | O_CREAT, _uid, _gid, perm);
-      if (fdest == -1) {
-        logger.msg(ERROR, "Failed to create file %s for writing: %s", dest_path, StrError(errno));
-        return false;
-      }
-
-      int fsource = FileOpen(hard_link_file, O_RDONLY);
-      if (fsource == -1) {
-        close(fdest);
-        logger.msg(ERROR, "Failed to open file %s for reading: %s", hard_link_file, StrError(errno));
-        return false;
-      }
-      // If dest file is opened under non-root account then we can write
-      // data to it as root
-      //UserSwitch usw(switch_user ? _uid : getuid(), switch_user ? _gid : getgid());
-      if(!FileCopy(fsource, fdest)) {
-        close(fdest);
-        close(fsource);
+      if (!FileCopy(hard_link_file, dest_path, _uid, _gid)) {
         logger.msg(ERROR, "Failed to copy file %s to %s: %s", hard_link_file, dest_path, StrError(errno));
         return false;
       }
-      close(fdest);
-      close(fsource);
+      if (executable && chmod(dest_path.c_str(), 0700) != 0) {
+        logger.msg(ERROR, "Failed to set executable bit on file %s: %s", dest_path, StrError(errno));
+        return false;
+      }
     }
     else {
       // make the soft link, changing the target if cache_link_path is defined
@@ -661,7 +616,7 @@ namespace Arc {
 
   bool FileCache::Copy(std::string dest_path, std::string url, bool executable) {
 
-    return Link(dest_path, url, true, executable, false);
+    return Link(dest_path, url, true, executable);
   }
 
   bool FileCache::Release() {
@@ -684,7 +639,7 @@ namespace Arc {
         continue;
       Glib::Dir* dirp;
       try {
-        dirp = DirOpen(job_dir);
+        dirp = new Glib::Dir(job_dir);
       } catch (const Glib::FileError& e) {
         logger.msg(ERROR, "Error opening per-job dir %s", job_dir);
         return false;

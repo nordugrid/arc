@@ -146,7 +146,7 @@ namespace Arc {
     /** Separate thread to transfer data will be created. No other
        operation can be performed while reading is in progress.
        \param buffer operation will use this buffer to put
-       information into. Should not be destroyed before stop_reading
+       information into. Should not be destroyed before StopReading()
        was called and returned. */
     virtual DataStatus StartReading(DataBuffer& buffer) = 0;
 

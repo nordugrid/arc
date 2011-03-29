@@ -26,6 +26,7 @@
 #include <arc/DateTime.h>
 #include <arc/User.h>
 #include <arc/GUID.h>
+#include <arc/FileAccess.h>
 
 #include "FileUtils.h"
 
@@ -43,57 +44,25 @@ static bool write_all(int h,const void* buf,size_t l) {
   return true;
 }
 
-int FileOpen(const std::string& path,int flags,mode_t mode) {
-  return FileOpen(path,flags,0,0,mode);
-}
+//int FileOpen(const std::string& path,int flags,mode_t mode) {
+//  return FileOpen(path,flags,0,0,mode);
+//}
 
-int FileOpen(const std::string& path,int flags,uid_t uid,gid_t gid,mode_t mode) {
-  int h = -1;
-#ifndef WIN32
-  {
-    UserSwitch usw(uid,gid);
-    if(!usw) return -1;
-    h = open(path.c_str(),flags | O_NONBLOCK,mode);
+bool FileCopy(const std::string& source_path,const std::string& destination_path,uid_t uid,gid_t gid) {
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    return fa.copy(source_path,destination_path,S_IRUSR|S_IWUSR);
   };
-  if(h == -1) return -1;
-  if(flags & O_NONBLOCK) return h;
-  while(1) {
-    pollfd ph;
-    ph.fd=h; ph.events=POLLOUT; ph.revents=0;
-    if(poll(&ph,1,-1) <= 0) {
-      if(errno != EINTR) {
-        close(h);
-        return -1;
-      };
-    };
-    if(ph.revents & POLLOUT) break;
-  };
-  int fl = fcntl(h,F_GETFL);
-  if(fl == -1) {
-    close(h);
-    return -1;
-  };
-  fl &= ~O_NONBLOCK;
-  if(fcntl(h,F_SETFL,fl) == -1) {
-    close(h);
-    return -1;
-  };
-#else
-  {
-    UserSwitch usw(uid,gid);
-    if(!usw) return -1;
-    h = open(path.c_str(),flags,mode);
-  };
-#endif
-  return h;
+  return FileCopy(source_path,destination_path);
 }
 
 bool FileCopy(const std::string& source_path,const std::string& destination_path) {
   struct stat st;
-  int source_handle = FileOpen(source_path,O_RDONLY,0,0,0);
+  int source_handle = ::open(source_path.c_str(),O_RDONLY,0);
   if(source_handle == -1) return false;
-  if(!FileStat(source_path,&st,true)) return false;
-  int destination_handle = FileOpen(destination_path,O_WRONLY | O_CREAT | O_TRUNC,0,0,st.st_mode);
+  if(::fstat(source_handle,&st) != 0) return false;
+  int destination_handle = ::open(destination_path.c_str(),O_WRONLY | O_CREAT | O_TRUNC,st.st_mode);
   if(destination_handle == -1) {
     ::close(source_handle);
     return false;
@@ -105,7 +74,7 @@ bool FileCopy(const std::string& source_path,const std::string& destination_path
 }
 
 bool FileCopy(const std::string& source_path,int destination_handle) {
-  int source_handle = FileOpen(source_path,O_RDONLY,0,0,0);
+  int source_handle = ::open(source_path.c_str(),O_RDONLY,0);
   if(source_handle == -1) return false;
   if(::ftruncate(destination_handle,0) != 0) {
     ::close(source_handle);
@@ -117,7 +86,7 @@ bool FileCopy(const std::string& source_path,int destination_handle) {
 }
 
 bool FileCopy(int source_handle,const std::string& destination_path) {
-  int destination_handle = FileOpen(destination_path,O_WRONLY | O_CREAT | O_TRUNC,0,0,0600);
+  int destination_handle = ::open(destination_path.c_str(),O_WRONLY | O_CREAT | O_TRUNC,0600);
   if(destination_handle == -1) return false;
   bool r = FileCopy(source_handle,destination_handle);
   ::close(destination_handle);
@@ -164,24 +133,42 @@ bool FileCopy(int source_handle,int destination_handle) {
 
 bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t uid, gid_t gid) {
   data.clear();
-  UserSwitch usw(uid, gid);
-  std::ifstream is(filename.c_str());
-  if (!is.good()) {
-    is.close();
-    return false;
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    char buf[1024];
+    std::string line;
+    for(;;) {
+      ssize_t l = fa.read(buf,sizeof(buf)-1);
+      if(l <= 0) break;
+      buf[l] = 0; line += buf;
+      for(;;) {
+        std::string::size_type p = line.find('\r');
+        data.push_back(line.substr(0,p));
+        line.erase(0,p+1);
+      }
+    }
+    if(!line.empty()) data.push_back(line);
+    return true;
   }
+  std::ifstream is(filename.c_str());
+  if (!is.good()) return false;
   std::string line;
   while (std::getline(is, line)) {
     data.push_back(line);
   }
-  is.close();
   return true;
 }
 
 bool FileCreate(const std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
-  UserSwitch usw(uid, gid);
-  if (remove(filename.c_str()) != 0 && errno != ENOENT)
-    return false;
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) return false;
+    if(!fa.open(filename,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR)) return false;
+    return true;
+  }
+  if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
   std::ofstream os(filename.c_str());
   if (!os.good()) {
     os.close();
@@ -192,37 +179,25 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
   return true;
 }
 
-
-Glib::Dir* DirOpen(const std::string& path) {
-  return DirOpen(path,0,0);
-}
-
-// TODO: find non-blocking way to open directory
-Glib::Dir* DirOpen(const std::string& path,uid_t uid,gid_t gid) {
-  Glib::Dir* dir = NULL;
-  {
-    UserSwitch usw(uid,gid);
-    if(!usw) return NULL;
-    try {
-      dir = new Glib::Dir(path);
-    } catch(Glib::FileError& e) {
-      // err=e.what();
-    };
-  };
-  return dir;
-}
-
-bool FileStat(const std::string& path,struct stat *st,bool follow_symlinks) {
-  return FileStat(path,st,0,0,follow_symlinks);
-}
-
 // TODO: maybe by using open + fstat it would be possible to 
 // make this functin less blocking
 bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks) {
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    if(follow_symlinks) {
+      if(!fa.stat(path,*st)) return false;
+    } else {
+      if(!fa.lstat(path,*st)) return false;
+    }
+    return true;
+  };
+  return FileStat(path,st,follow_symlinks);
+}
+
+bool FileStat(const std::string& path,struct stat *st,bool follow_symlinks) {
   int r = -1;
   {
-    UserSwitch usw(uid,gid);
-    if(!usw) return false;
     if(follow_symlinks) {
       r = ::stat(path.c_str(),st);
     } else {
@@ -233,12 +208,6 @@ bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool f
 }
 
 bool FileLink(const std::string& oldpath,const std::string& newpath,bool symbolic) {
-  return FileLink(oldpath,newpath,0,0,symbolic);
-}
-
-bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gid_t gid,bool symbolic) {
-  UserSwitch usw(uid,gid);
-  if(!usw) return false;
   if(symbolic) {
     return (symlink(oldpath.c_str(),newpath.c_str()) == 0);
   } else {
@@ -246,15 +215,33 @@ bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gi
   }
 }
 
-bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
-  return DirCreate(path,0,0,mode,with_parents);
-}
+bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gid_t gid,bool symbolic) {
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    if(symbolic) {
+      if(!fa.softlink(oldpath,newpath)) return false;
+    } else {
+      if(!fa.link(oldpath,newpath)) return false;
+    }
+    return true;
+  }
+  return FileLink(oldpath,newpath,symbolic);
 
-std::string FileReadLink(const std::string& path) {
-  return FileReadLink(path,0,0);
 }
 
 std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    std::string linkpath;
+    fa.readlink(path,linkpath);
+    return linkpath;
+  }
+  return FileReadLink(path);
+}
+
+std::string FileReadLink(const std::string& path) {
   class charbuf {
    private:
     char* v;
@@ -273,7 +260,6 @@ std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
     };
   };
   const int bufsize = 1024;
-  UserSwitch usw(uid,gid);
   charbuf buf(bufsize);
   ssize_t l = readlink(path.c_str(),buf.str(),bufsize);
   if(l<0) {
@@ -285,21 +271,42 @@ std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
 }
 
 bool FileDelete(const std::string& path) {
-  return FileDelete(path,0,0);
+  return (unlink(path.c_str()) == 0);
 }
 
 bool FileDelete(const std::string& path,uid_t uid,gid_t gid) {
-  UserSwitch usw(uid,gid);
-  return (unlink(path.c_str()) == 0);
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.unlink(path)) return false;
+    return true;
+  };
+  return FileDelete(path);
 }
 
 // TODO: find non-blocking way to create directory
 bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with_parents) {
-  {
-    UserSwitch usw(uid,gid);
-    if(!usw) return false;
-    if(::mkdir(path.c_str(),mode) == 0) return true;
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    if(with_parents) {
+      if(fa.mkdirp(path,mode)) return true;
+    } else {
+      if(fa.mkdir(path,mode)) return true;
+    }
+    if(fa.geterrno() == EEXIST) return true;
+    return false;
   }
+  return DirCreate(path,mode,with_parents);
+}
+
+bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
+
+  if(::mkdir(path.c_str(),mode) == 0) {
+    if (chmod(path.c_str(), mode) == 0) return true;
+    else return false;
+  }
+
   if(errno == EEXIST) {
     /*
     Should it be just dumb mkdir or something clever?
@@ -325,26 +332,21 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
       std::string::size_type pos = ppath.rfind(G_DIR_SEPARATOR_S);
       if((pos != 0) && (pos != std::string::npos)) {
         ppath.resize(pos);
-        if(!DirCreate(ppath,uid,gid,mode,true)) return false;
-        UserSwitch usw(uid,gid);
-        if(!usw) return false;
-        if(::mkdir(path.c_str(),mode) == 0) return true;
+        if(!DirCreate(ppath,mode,true)) return false;
+        if((::mkdir(path.c_str(),mode) == 0) && (chmod(path.c_str(), mode) == 0)) return true;
       }
     }
   }
   return false;
 }
 
-
 bool DirDelete(const std::string& path,uid_t uid,gid_t gid) {
-
-  bool r = false;
-  {
-    UserSwitch usw(uid, gid);
-    if (!usw) return false;
-    r = DirDelete(path);
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) return false;
+    return fa.rmdirr(path);
   }
-  return r;
+  return DirDelete(path);
 }  
 
 bool DirDelete(const std::string& path) {

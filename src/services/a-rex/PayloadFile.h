@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <arc/FileAccess.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 
@@ -65,8 +66,38 @@ class PayloadBigFile: public Arc::PayloadStream {
   static void Threshold(Size_t t) { if(t > 0) threshold_=t; };
 };
 
+class PayloadFAFile: public Arc::PayloadStreamInterface {
+ protected:
+  Arc::FileAccess* handle_;
+  off_t limit_; 
+ public:
+  /** Creates object associated with file for reading from it */
+  PayloadFAFile(Arc::FileAccess* h,Size_t start,Size_t end);
+  virtual ~PayloadFAFile(void);
+  virtual Size_t Pos(void) const;
+  virtual Size_t Size(void) const;
+  virtual Size_t Limit(void) const;
+  virtual bool Get(char* buf,int& size);
+  virtual bool Get(std::string& buf) {
+    char cbuf[1024];
+    int size = sizeof(cbuf);
+    if(!Get(cbuf,size)) return false;
+    buf.assign(cbuf,size);
+    return true;
+  };
+  virtual std::string Get(void) { std::string buf; Get(buf); return buf; };
+  virtual bool Put(const char* buf,Size_t size) { return false; };
+  virtual bool Put(const std::string& buf) { return Put(buf.c_str(),buf.length()); };
+  virtual bool Put(const char* buf) { return Put(buf,buf?strlen(buf):0); };
+  virtual int Timeout(void) const { return 0; };
+  virtual void Timeout(int to) { };
+  operator bool(void) { return (handle_ != NULL); };
+  bool operator!(void) { return (handle_ == NULL); };
+};
+
 Arc::MessagePayload* newFileRead(const char* filename,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
 Arc::MessagePayload* newFileRead(int h,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
+Arc::MessagePayload* newFileRead(Arc::FileAccess* h,Arc::PayloadRawInterface::Size_t start = 0,Arc::PayloadRawInterface::Size_t end = (Arc::PayloadRawInterface::Size_t)(-1));
 
 } // namespace ARex
 

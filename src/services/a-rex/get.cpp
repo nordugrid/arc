@@ -188,7 +188,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
       };
     };
   };
-  Glib::Dir* dir = job.OpenDir(hpath);
+  Arc::FileAccess* dir = job.OpenDir(hpath);
   if(dir) {
     // Directory - html with file list
     if(!no_content) {
@@ -199,8 +199,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
       if(!hpath.empty()) furl+="/"+hpath;
       std::string path = job.GetFilePath(hpath);
       for(;;) {
-        file=dir->read_name();
-        if(file.empty()) break;
+        if(!dir->readdir(file)) break;
         if(file == ".") continue;
         if(file == "..") continue;
         std::string fpath = path+"/"+file;
@@ -249,21 +248,22 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
       outmsg.Payload(buf);
       outmsg.Attributes()->set("HTTP:content-type","text/html");
     };
+    dir->closedir();
     delete dir;
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
-  int file = job.OpenFile(hpath,true,false);
-  if(file != -1) {
+  Arc::FileAccess* file = job.OpenFile(hpath,true,false);
+  if(file) {
     // File 
     if(!no_content) {
       Arc::MessagePayload* h = newFileRead(file,start,end);
-      if(!h) { ::close(file); return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
+      if(!h) { file->close(); delete file; return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
       outmsg.Payload(h);
     } else {
       struct stat st;
       Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-      if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
-      ::close(file);
+      if(buf && (file->fstat(st))) buf->Truncate(st.st_size);
+      file->close(); delete file;
       outmsg.Payload(buf);
     };
     outmsg.Attributes()->set("HTTP:content-type","application/octet-stream");

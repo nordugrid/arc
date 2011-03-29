@@ -12,12 +12,10 @@ class FileUtilsTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(FileUtilsTest);
-  CPPUNIT_TEST(TestFileOpen);
   CPPUNIT_TEST(TestFileStat);
   CPPUNIT_TEST(TestFileCopy);
   CPPUNIT_TEST(TestFileLink);
   CPPUNIT_TEST(TestFileCreateAndRead);
-  CPPUNIT_TEST(TestDirOpen);
   CPPUNIT_TEST(TestMakeAndDeleteDir);
   CPPUNIT_TEST(TestTmpDirCreate);
   CPPUNIT_TEST_SUITE_END();
@@ -26,12 +24,10 @@ public:
   void setUp();
   void tearDown();
 
-  void TestFileOpen();
   void TestFileStat();
   void TestFileCopy();
   void TestFileLink();
   void TestFileCreateAndRead();
-  void TestDirOpen();
   void TestMakeAndDeleteDir();
   void TestTmpDirCreate();
 
@@ -51,21 +47,11 @@ void FileUtilsTest::tearDown() {
   Arc::DirDelete(testroot);
 }
 
-void FileUtilsTest::TestFileOpen() {
-  int h = Arc::FileOpen(testroot+"/file1", O_WRONLY | O_CREAT);
-  CPPUNIT_ASSERT(h > 0);
-  CPPUNIT_ASSERT_EQUAL(0, close(h));
-  h = Arc::FileOpen(testroot+"/file1", O_WRONLY | O_CREAT, -1, -1, S_IRUSR | S_IWUSR);
-  CPPUNIT_ASSERT(h < 0);
-}
-
 void FileUtilsTest::TestFileStat() {
-  int h = Arc::FileOpen(testroot+"/file1", O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-  CPPUNIT_ASSERT(h > 0);
-  CPPUNIT_ASSERT_EQUAL(0, close(h));
+  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
   struct stat st;
   CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1", &st, true));
-  CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
+  CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
   CPPUNIT_ASSERT(S_IRUSR & st.st_mode);
   CPPUNIT_ASSERT(S_IWUSR & st.st_mode);
   CPPUNIT_ASSERT(!Arc::FileStat(testroot+"/file2", &st, true));
@@ -78,9 +64,9 @@ void FileUtilsTest::TestFileCopy() {
   struct stat st;
   CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file2", &st, true));
   CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
-  int h = Arc::FileOpen(testroot+"/file2", O_RDONLY , S_IRUSR | S_IWUSR);
+  int h = open(std::string(testroot+"/file2").c_str(), O_RDONLY , S_IRUSR | S_IWUSR);
   CPPUNIT_ASSERT(h > 0);
-  int h2 = Arc::FileOpen(testroot+"/file3", O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+  int h2 = open(std::string(testroot+"/file3").c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
   CPPUNIT_ASSERT(h > 0);
   CPPUNIT_ASSERT(Arc::FileCopy(h, h2));
   CPPUNIT_ASSERT_EQUAL(0, close(h));
@@ -123,21 +109,6 @@ void FileUtilsTest::TestFileCreateAndRead() {
   // remove file and check failure
   CPPUNIT_ASSERT_EQUAL(true, Arc::FileDelete(filename.c_str()));
   CPPUNIT_ASSERT(!Arc::FileRead(filename, data));
-}
-
-void FileUtilsTest::TestDirOpen() {
-  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
-  CPPUNIT_ASSERT(_createFile(testroot + "/file2"));
-  Glib::Dir* dir = Arc::DirOpen(testroot);
-  std::list<std::string> entries (dir->begin(), dir->end());
-  CPPUNIT_ASSERT_EQUAL(2, (int)entries.size());
-  dir->rewind();
-  std::string name;
-  name = dir->read_name();
-  CPPUNIT_ASSERT((name == "file1") || (name == "file2"));
-  name = dir->read_name();
-  CPPUNIT_ASSERT((name == "file1") || (name == "file2"));
-  delete dir;
 }
 
 void FileUtilsTest::TestMakeAndDeleteDir() {

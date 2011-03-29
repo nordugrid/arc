@@ -516,9 +516,13 @@ int main(int argc,char** argv) {
 
   Janitor janitor(desc.get_id(),user.ControlDir(),user.Env());
 
-  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
   usercfg.UtilsDirPath(control_dir);
   usercfg.SetUser(Arc::User(uid));
+  usercfg.ProxyPath(x509_proxy);
+  usercfg.CertificatePath(x509_cert);
+  usercfg.KeyPath(x509_key);
+  usercfg.CACertificatesDirectory(x509_cadir);
 
   Arc::DataMover mover;
   mover.retry(true);

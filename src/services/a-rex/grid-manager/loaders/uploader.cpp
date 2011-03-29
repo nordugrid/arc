@@ -46,6 +46,19 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(), "Uploader");
 
 class PointPair;
 
+static void CollectCredentials(std::string& proxy,std::string& cert,std::string& key,std::string& cadir) {
+  proxy=Arc::GetEnv("X509_USER_PROXY");
+  if(proxy.empty()) {
+    cert=Arc::GetEnv("X509_USER_CERT");
+    key=Arc::GetEnv("X509_USER_KEY");
+  };
+  if(proxy.empty() && cert.empty()) {
+    proxy="/tmp/x509_up"+Arc::tostring(getuid());
+  };
+  cadir=Arc::GetEnv("X509_CERT_DIR");
+  if(cadir.empty()) cadir="/etc/grid-security/certificates";
+}
+
 class FileDataEx : public FileData {
  public:
   typedef std::list<FileDataEx>::iterator iterator;
@@ -404,6 +417,8 @@ int main(int argc,char** argv) {
   if(max_inactivity_time != 0)
     logger.msg(Arc::VERBOSE, "Maximal inactivity time: %i s", max_inactivity_time);
 
+  CollectCredentials(x509_proxy,x509_cert,x509_key,x509_cadir);
+
   if(n_threads > 10) {
     logger.msg(Arc::WARNING, "Won't use more than 10 threads");
     n_threads=10;
@@ -414,9 +429,13 @@ int main(int argc,char** argv) {
 
   Janitor janitor(desc.get_id(),user.ControlDir(),env);
   
-  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
   usercfg.UtilsDirPath(control_dir);
   usercfg.SetUser(Arc::User(uid));
+  usercfg.ProxyPath(x509_proxy);
+  usercfg.CertificatePath(x509_cert);
+  usercfg.KeyPath(x509_key);
+  usercfg.CACertificatesDirectory(x509_cadir);
 
   Arc::DataMover mover;
   mover.retry(true);
@@ -620,9 +639,9 @@ int main(int argc,char** argv) {
       continue;
     }
     logger.msg(Arc::ERROR, "Failed to upload %s", i->lfn);
+    failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     i->lfn="";
     job_files.push_back(*i);
-    failure_reason+="Output file: "+i->lfn+" - "+(std::string)(i->res)+"\n";
     if(i->res == Arc::DataStatus::CredentialsExpiredError) credentials_expired=true;
     transferred=false;
   };

@@ -2,17 +2,12 @@
 #include <config.h>
 #endif
 
-#include <sys/stat.h>
-
-#include <arc/Run.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileCache.h>
 #include <arc/credential/Credential.h>
-#include <arc/ArcLocation.h>
-#include <arc/Utils.h>
 
 #include "DTRStatus.h"
 #include "Processor.h"
@@ -516,9 +511,8 @@ namespace DataStaging {
   }
 
   void Processor::DTRProcessCache(void* arg) {
-    // link or copy cached file to session dir by launching external process,
-    // or release locks in case of error or deciding not to use cache (for
-    // example because of a mapped link)
+    // link or copy cached file to session dir, or release locks in case
+    // of error or deciding not to use cache (for example because of a mapped link)
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
     setUpLogger(request);
@@ -555,98 +549,16 @@ namespace DataStaging {
     bool executable = (request->get_source()->GetURL().Option("exec") == "yes") ? true : false;
     bool cache_copy = (request->get_source()->GetURL().Option("cache") == "copy") ? true : false;
 
-    // construct cache manager command
-    // real values will be obtained from configuration
-    std::string cmd_location = Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"CacheManager";
-//    std::string conf_file("/etc/arc.conf");
-    // Making temporary file with cache configuration.
-    // We could pass that information in arguments, but it is
-    // not clear how scalable it is. TODO: investigate.
-    // TODO: choose some better place than just /tmp.
-    std::string conf_file = Glib::build_filename(Glib::get_tmp_dir(),"cachecfgXXXXXX");
-    int h = Glib::mkstemp(conf_file);
-    if(h == -1) {
+    request->get_logger()->msg(Arc::INFO, "DTR %s: Linking/copying cached file to %s",
+                               request->get_short_id(), request->get_destination()->CurrentLocation().Path());
+
+    if (!cache.Link(request->get_destination()->CurrentLocation().Path(), canonic_url, cache_copy, executable)) {
+      request->get_logger()->msg(Arc::ERROR, "DTR %s: Error linking cache file to %s.",
+                                 request->get_short_id(), request->get_destination()->CurrentLocation().Path());
       request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                                 DTRErrorStatus::ERROR_DESTINATION,
-                                "Failed to create temporary file for cache configuration at " + conf_file+" - "+Arc::StrError(errno));
-      request->set_status(DTRStatus::CACHE_PROCESSED);
-      request->connect_logger();
-      request->push(SCHEDULER);
-      cache.Stop(canonic_url);
-      return;
+                                "Failed to link/copy cache file to session dir");
     }
-#ifndef WIN32
-    // Making configuration readable for anyone so CacheManager can read it.
-    // But it may be even better to change ownership.
-    ::chmod(conf_file.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-#endif
-    std::ofstream conf_stream(conf_file.c_str());
-    ::close(h);
-    conf_stream<<(request->get_cache_parameters());
-    conf_stream.close();
-    std::string cmd(cmd_location);
-    if (!request->get_source()->ReadOnly() || executable || cache_copy) {
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Copying cached file to %s",
-                 request->get_short_id(), request->get_destination()->CurrentLocation().Path());
-      cmd += " -c";
-    }
-    else {
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Linking/copying cached file to %s",
-                 request->get_short_id(), request->get_destination()->CurrentLocation().Path());
-      cmd += " -l";
-    }
-
-    cmd += " -f ";
-    cmd += conf_file;
-    cmd += " -u ";
-    cmd += Arc::tostring((int)request->get_local_user().get_uid());
-    cmd += " -g ";
-    cmd += Arc::tostring((int)request->get_local_user().get_gid());
-    cmd += " ";
-    cmd += request->get_parent_job_id();
-    cmd += " ";
-    cmd += canonic_url;
-    cmd += " ";
-    cmd += request->get_destination()->CurrentLocation().Path();
-
-    Arc::Run run(cmd);
-
-    // redirect stderr so we can report in this process' log
-    std::string cmd_stderr;
-    run.AssignStderr(cmd_stderr);
-
-    // start the process, giving a shortish timeout
-    request->get_logger()->msg(Arc::DEBUG, "DTR %s: Running command: %s", request->get_short_id(), cmd);
-    if (!run.Start()) {
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Cache post-processing process failed to start", request->get_short_id());
-      request->set_error_status(DTRErrorStatus::CACHE_ERROR,
-                                DTRErrorStatus::ERROR_DESTINATION,
-                                "Failed to link/copy to session directory " + request->get_source()->str());
-    }
-    else if (!run.Wait(600)) {
-      // timeout
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Cache post-processing process timed out. Process output:\n%s",
-                 request->get_short_id(), cmd_stderr);
-      request->set_error_status(DTRErrorStatus::CACHE_ERROR,
-                                DTRErrorStatus::ERROR_DESTINATION,
-                                "Failed to link/copy file session directory " + request->get_source()->str());
-    }
-    else if (run.Result() != 0) {
-      // error code returned
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Cache post-processing process failed. Process output:\n%s",
-                 request->get_short_id(), cmd_stderr);
-      request->set_error_status(DTRErrorStatus::CACHE_ERROR,
-                                DTRErrorStatus::ERROR_DESTINATION,
-                                "Failed to link/copy to session directory " + request->get_source()->str());
-    }
-    else {
-      // process was successful
-      request->get_logger()->msg(Arc::INFO, "DTR %s: Cache processing successful", request->get_short_id());
-      if (!cmd_stderr.empty())
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cache manager output:\n%s", request->get_short_id(), cmd_stderr);
-    }
-
-    ::unlink(conf_file.c_str());
     cache.Stop(canonic_url);
     request->set_status(DTRStatus::CACHE_PROCESSED);
     request->connect_logger();

@@ -278,8 +278,7 @@ namespace Arc {
             bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                                 canonic_url,
                                                 (!source.ReadOnly() || executable || cache_copy),
-                                                executable,
-                                                false);
+                                                executable);
             cache.Stop(canonic_url);
             source.NextLocation(); /* to decrease retry counter */
             if (!cache_link_result)
@@ -616,8 +615,7 @@ namespace Arc {
             if (!cache.Link(destination.CurrentLocation().Path(),
                             canonic_url,
                             (!source.ReadOnly() || executable || cache_copy),
-                            executable,
-                            false)) {
+                            executable)) {
               /* failed cache link is unhandleable */
               cache.Stop(canonic_url);
               source.NextLocation(); /* to decrease retry counter */
@@ -1082,8 +1080,7 @@ namespace Arc {
         bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                             canonic_url,
                                             (!source.ReadOnly() || executable || cache_copy),
-                                            executable,
-                                            false);
+                                            executable);
         cache.Stop(canonic_url);
         if (!cache_link_result) {
           if (!destination.PreUnregister(replication ||

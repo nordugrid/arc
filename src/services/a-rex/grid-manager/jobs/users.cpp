@@ -435,7 +435,7 @@ bool JobUser::SwitchUser(bool su) const {
 #endif
 
   /* set proper umask */
-  umask(0177);
+  umask(0077);
   if(!su) return true;
   uid_t cuid;
   if(((cuid=getuid()) != 0) && (uid != 0)) {

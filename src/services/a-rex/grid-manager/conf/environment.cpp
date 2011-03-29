@@ -161,12 +161,16 @@ std::string GMEnvironment::nordugrid_config_loc(void) const {
   return nordugrid_config_loc_.str();
 }
 
+void GMEnvironment::nordugrid_config_loc(const std::string& val) {
+  nordugrid_config_loc_=val;
+}
+
 std::string GMEnvironment::cert_dir_loc(void) const {
   return cert_dir_loc_.str();
 }
 
-void GMEnvironment::nordugrid_config_loc(const std::string& val) {
-  nordugrid_config_loc_=val;
+void GMEnvironment::cert_dir_loc(const std::string& val) const {
+  cert_dir_loc_=val;
 }
 
 std::string GMEnvironment::runtime_config_dir(void) const {

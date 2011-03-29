@@ -4,8 +4,8 @@ else
 MYSQL_WRAPPER_TEST =
 endif
 
-TESTS = URLTest LoggerTest RunTest XMLNodeTest FileUtilsTest ProfileTest \
-        ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
+TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
+        ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
         $(MYSQL_WRAPPER_TEST)
 
 check_PROGRAMS = $(TESTS)
@@ -49,6 +49,13 @@ XMLNodeTest_SOURCES = $(top_srcdir)/src/Test.cpp XMLNodeTest.cpp
 XMLNodeTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 XMLNodeTest_LDADD = \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS)
+
+FileAccessTest_SOURCES = $(top_srcdir)/src/Test.cpp FileAccessTest.cpp
+FileAccessTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+FileAccessTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS)
 

@@ -728,7 +728,7 @@ int JobPlugin::close(bool eof) {
   };
   if((job_desc.jobid.length() != 0) && (job_desc.jobid != job_id)) {
     // Client may specify it's own job ID
-    int h_old=Arc::FileOpen(rsl_fname.c_str(),O_RDONLY);
+    int h_old=::open(rsl_fname.c_str(),O_RDONLY);
     delete_job_id(); 
     if(readonly) {
       ::close(h_old);
@@ -748,7 +748,7 @@ int JobPlugin::close(bool eof) {
     {
       int l = -1;
       if(h_old != -1) {
-        int h=Arc::FileOpen(rsl_fname.c_str(),O_WRONLY,0600);
+        int h=::open(rsl_fname.c_str(),O_WRONLY,0600);
         if(h != -1) {
           for(;;) {
             char buf[256];
@@ -836,12 +836,12 @@ int JobPlugin::close(bool eof) {
    *********************************************** */
   if(proxy_fname.length() != 0) {
     std::string fname=user->ControlDir()+"/job."+job_id+".proxy";
-    int h=Arc::FileOpen(fname,O_WRONLY | O_CREAT | O_EXCL,0600);
+    int h=::open(fname.c_str(),O_WRONLY | O_CREAT | O_EXCL,0600);
     if(h == -1) {
       error_description="Failed to store credentials.";
       return 1;
     };
-    int hh=Arc::FileOpen(proxy_fname,O_RDONLY);
+    int hh=::open(proxy_fname.c_str(),O_RDONLY);
     if(hh == -1) {
       ::close(h);
       ::remove(fname.c_str());
@@ -1016,7 +1016,7 @@ int JobPlugin::write(unsigned char *buf,unsigned long long int offset,unsigned l
     return 1;
   };
   std::string rsl_fname=user->ControlDir()+"/job."+job_id+".description";
-  int h=Arc::FileOpen(rsl_fname.c_str(),O_WRONLY|O_CREAT,0600);
+  int h=::open(rsl_fname.c_str(),O_WRONLY|O_CREAT,0600);
   if(h == -1) {
     error_description="Failed to open job description file " + rsl_fname;
     return 1;
@@ -1062,7 +1062,7 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
     // loop through all control dirs
     for (std::vector<struct gm_dirs_>::iterator i = gm_dirs_info.begin(); i != gm_dirs_info.end(); i++) {
       std::string cdir=(*i).control_dir;
-      Glib::Dir *dir=Arc::DirOpen(cdir);
+      Glib::Dir *dir=new Glib::Dir(cdir);
       if(dir != NULL) {
         std::string file_name;
         while ((file_name = dir->read_name()) != "") {
@@ -1112,7 +1112,7 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
         dir_list.push_back(dent);
         return -1;
       };
-      Glib::Dir* d=Arc::DirOpen(user->ControlDir());
+      Glib::Dir* d=new Glib::Dir(user->ControlDir());
       if(d == NULL) { return 1; }; /* maybe return ? */
       id="job."+id+".";
       std::string file_name;
@@ -1345,7 +1345,7 @@ bool JobPlugin::make_job_id(const std::string &id) {
   // check the new ID is not used in any control dir
   std::vector<gm_dirs_>::iterator it = gm_dirs_info.begin();
   std::string fname=it->control_dir+"/job."+id+".description";
-  int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
+  int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
   if(h == -1)
     return false;
   it++;
@@ -1375,7 +1375,7 @@ bool JobPlugin::make_job_id(void) {
     // create job.id.description file then loop through all control dirs to find if it already exists
     std::vector<gm_dirs_>::iterator it = gm_dirs_info.begin();
     std::string fname=it->control_dir+"/job."+id+".description";
-    int h = Arc::FileOpen(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
+    int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
     // So far assume control directory is on local fs.
     // TODO: add locks or links for NFS
     if(h == -1) {

@@ -63,11 +63,6 @@ namespace Arc {
     // - if not, create tmp file and check again
     // - if lock is still not there copy tmp file to .lock file
     // - check pid inside lock file matches ours
-
-    // wrap entire method with UserSwitch to protect from uid changes
-    UserSwitch usw(0,0);
-    if (!usw)
-      return false;
     return acquire_(lock_removed);
   }
 
@@ -270,11 +265,6 @@ namespace Arc {
   }
 
   bool FileLock::release(bool force) {
-
-    // wrap entire method with UserSwitch to protect from uid changes
-    UserSwitch usw(0,0);
-    if (!usw)
-      return false;
 
     // check for existence of lock file
     struct stat fileStat;
