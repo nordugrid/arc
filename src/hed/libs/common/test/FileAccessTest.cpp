@@ -116,7 +116,12 @@ void FileAccessTest::TestDir() {
   CPPUNIT_ASSERT(fa.mkdir(testdir2,0700));
   CPPUNIT_ASSERT(fa.opendir(testdir1));
   std::string name;
-  CPPUNIT_ASSERT(fa.readdir(name));
+  while(true) {
+    CPPUNIT_ASSERT(fa.readdir(name));
+    if(name == ".") continue;
+    if(name == "..") continue;
+    break;
+  }
   CPPUNIT_ASSERT(fa.closedir());
   CPPUNIT_ASSERT_EQUAL(testdir2.substr(testdir1.length()+1),name);
   CPPUNIT_ASSERT(!fa.rmdir(testdir3));
