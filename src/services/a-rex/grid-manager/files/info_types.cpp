@@ -163,7 +163,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
 
         if (file->IsExecutable ||
             file->Name == arc_job_desc.Application.Executable.Name) {
-          u.AddOption("exec", "yes");
+          u.AddOption("exec", "yes", true);
         }
         inputdata.back().lfn = u.fullstr();
       }
