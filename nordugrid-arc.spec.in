@@ -929,7 +929,6 @@ exit 0
 %{_datadir}/%{pkgdir}/scan-*-job
 %{_datadir}/%{pkgdir}/submit-*-job
 %{_datadir}/%{pkgdir}/finish-condor-job
-%{_libexecdir}/%{pkgdir}/CacheManager
 %{_libexecdir}/%{pkgdir}/DataStagingDelivery
 %{_datadir}/%{pkgdir}/DGAuthplug.py*
 %{_datadir}/%{pkgdir}/DGBridgeDataPlugin.py*
