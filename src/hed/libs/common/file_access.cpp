@@ -574,6 +574,7 @@ int main(int argc,char* argv[]) {
       case CMD_FTRUNCATE: {
         off_t length;
         if(!sread(sin,&length,sizeof(length))) return -1;
+        header.size -= sizeof(length);
         if(header.size) return -1;
         int res = 0;
         errno = 0;
@@ -584,6 +585,7 @@ int main(int argc,char* argv[]) {
       case CMD_FALLOCATE: {
         off_t length;
         if(!sread(sin,&length,sizeof(length))) return -1;
+        header.size -= sizeof(length);
         if(header.size) return -1;
         int res = 0;
         int err = 0;

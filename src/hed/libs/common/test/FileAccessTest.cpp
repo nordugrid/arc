@@ -23,6 +23,7 @@ class FileAccessTest
   CPPUNIT_TEST(TestOpenWriteReadStat);
   CPPUNIT_TEST(TestCopy);
   CPPUNIT_TEST(TestDir);
+  CPPUNIT_TEST(TestSeekAllocate);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -32,6 +33,7 @@ public:
   void TestOpenWriteReadStat();
   void TestCopy();
   void TestDir();
+  void TestSeekAllocate();
 
 private:
   uid_t uid;
@@ -129,102 +131,15 @@ void FileAccessTest::TestDir() {
   CPPUNIT_ASSERT(fa.rmdirr(testdir3));
 }
 
-/*
-void FileAccessTest::TestFileLink() {
-  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
-  CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1s", true));
-  CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1h", false));
-  struct stat st;
-  CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1s", &st, true));
-  CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
-  CPPUNIT_ASSERT(Arc::FileStat(testroot+"/file1h", &st, true));
-  CPPUNIT_ASSERT_EQUAL(1, (int)st.st_size);
-  CPPUNIT_ASSERT_EQUAL(testroot+"/file1", Arc::FileReadLink(testroot+"/file1s"));
+void FileAccessTest::TestSeekAllocate() {
+  Arc::FileAccess fa;
+  std::string testfile = testroot+"/file3";
+  CPPUNIT_ASSERT(fa.setuid(uid,gid));
+  CPPUNIT_ASSERT(fa.open(testfile,O_WRONLY|O_CREAT|O_EXCL,0600));
+  CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.fallocate(4096));
+  CPPUNIT_ASSERT_EQUAL((int)0,(int)fa.lseek(0,SEEK_SET));
+  CPPUNIT_ASSERT_EQUAL((int)4096,(int)fa.lseek(0,SEEK_END));
+  CPPUNIT_ASSERT(fa.close());
 }
-
-void FileAccessTest::TestFileCreateAndRead() {
-  // create empty file
-  std::string filename(testroot + "/file1");
-  CPPUNIT_ASSERT(Arc::FileCreate(filename, ""));
-
-  struct stat st;
-  CPPUNIT_ASSERT(Arc::FileStat(filename, &st, true));
-  CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
-
-  std::list<std::string> data;
-  CPPUNIT_ASSERT(Arc::FileRead(filename, data));
-  CPPUNIT_ASSERT(data.empty());
-
-  // create again with some data
-  CPPUNIT_ASSERT(Arc::FileCreate(filename, "12\nabc\n\nxyz\n"));
-
-  CPPUNIT_ASSERT(Arc::FileRead(filename, data));
-  CPPUNIT_ASSERT_EQUAL(4, (int)data.size());
-  CPPUNIT_ASSERT_EQUAL(std::string("12"), data.front());
-  CPPUNIT_ASSERT_EQUAL(std::string("xyz"), data.back());
-
-  // remove file and check failure
-  CPPUNIT_ASSERT_EQUAL(true, Arc::FileDelete(filename.c_str()));
-  CPPUNIT_ASSERT(!Arc::FileRead(filename, data));
-}
-
-void FileAccessTest::TestDirOpen() {
-  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
-  CPPUNIT_ASSERT(_createFile(testroot + "/file2"));
-  Glib::Dir* dir = Arc::DirOpen(testroot);
-  std::list<std::string> entries (dir->begin(), dir->end());
-  CPPUNIT_ASSERT_EQUAL(2, (int)entries.size());
-  dir->rewind();
-  std::string name;
-  name = dir->read_name();
-  CPPUNIT_ASSERT((name == "file1") || (name == "file2"));
-  name = dir->read_name();
-  CPPUNIT_ASSERT((name == "file1") || (name == "file2"));
-  delete dir;
-}
-
-void FileAccessTest::TestMakeAndDeleteDir() {
-  // create a few subdirs and files then recursively delete
-  struct stat st;
-  CPPUNIT_ASSERT(stat(testroot.c_str(), &st) == 0);
-  CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
-  CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1").c_str(), &st) == 0);
-  CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot + "/dir1/file2"));
-  // should fail if with_parents is set to false
-  CPPUNIT_ASSERT(!Arc::DirCreate(std::string(testroot + "/dir1/dir2/dir3"), S_IRUSR | S_IWUSR | S_IXUSR, false));
-  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1/dir2/dir3"), S_IRUSR | S_IWUSR | S_IXUSR, true));
-  CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1/dir2/dir3").c_str(), &st) == 0);
-  CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(_createFile(testroot + "/dir1/dir2/dir3/file4"));
-  CPPUNIT_ASSERT(symlink(std::string(testroot + "/dir1/dir2").c_str(), std::string(testroot + "/dir1/dir2/link1").c_str()) == 0);
-
-  CPPUNIT_ASSERT(Arc::DirDelete(testroot));
-  CPPUNIT_ASSERT(stat(testroot.c_str(), &st) != 0);
-  
-}
-
-void FileAccessTest::TestTmpDirCreate() {
-  std::string path;
-  CPPUNIT_ASSERT(Arc::TmpDirCreate(path));
-  struct stat st;
-  CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
-  CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
-  CPPUNIT_ASSERT(Arc::DirDelete(path));
-  CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
-}
-
-bool FileAccessTest::_createFile(const std::string& filename, const std::string& text) {
-
-  FILE *pFile;
-  pFile = fopen((char*)filename.c_str(), "w");
-  if (pFile == NULL) return false;
-  fputs((char*)text.c_str(), pFile);
-  fclose(pFile);
-  return true;
-}
-
-*/
 
 CPPUNIT_TEST_SUITE_REGISTRATION(FileAccessTest);
