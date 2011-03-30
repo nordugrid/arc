@@ -21,6 +21,7 @@
 #include <glibmm.h>
 
 #include <arc/Logger.h>
+#include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
 #include <arc/StringConv.h>
@@ -528,11 +529,6 @@ namespace Arc {
       logger.msg(ERROR, "Cannot create directory \"%s\" for per-job hard links", hard_link_path);
       return false;
     }
-    // earlier GM sets umask(0177) so need to add search permission for user
-    if (chmod(hard_link_path.c_str(), 0700) != 0) {
-      logger.msg(ERROR, "Cannot change permissions of %s: %s", hard_link_path, StrError(errno));
-      return false;
-    }
     if (chown(hard_link_path.c_str(), _uid, _gid) != 0) {
       logger.msg(ERROR, "Cannot change owner of %s: %s ", hard_link_path, StrError(errno));
       return false;
@@ -583,9 +579,17 @@ namespace Arc {
         logger.msg(ERROR, "Failed to copy file %s to %s: %s", hard_link_file, dest_path, StrError(errno));
         return false;
       }
-      if (executable && chmod(dest_path.c_str(), 0700) != 0) {
-        logger.msg(ERROR, "Failed to set executable bit on file %s: %s", dest_path, StrError(errno));
-        return false;
+      if (executable) {
+        FileAccess fa;
+        if (!fa) {
+          logger.msg(ERROR, "Failed to set executable bit on file %s", dest_path);
+          return false;
+        }
+        if (!fa.setuid(_uid, _gid) || !fa.chmod(dest_path, S_IRWXU)) {
+          errno = fa.geterrno();
+          logger.msg(ERROR, "Failed to set executable bit on file %s: %s", dest_path, StrError(errno));
+          return false;
+        }
       }
     }
     else {
@@ -596,7 +600,7 @@ namespace Arc {
       if (!FileLink(hard_link_file, dest_path, _uid, _gid, true)) {
         // if the link we want to make already exists, delete and make new one
         if (errno == EEXIST) {
-          if (!FileDelete(dest_path)) {
+          if (!FileDelete(dest_path, _uid, _gid)) {
             logger.msg(ERROR, "Failed to remove existing symbolic link at %s: %s", dest_path, StrError(errno));
             return false;
           }
