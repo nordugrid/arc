@@ -400,13 +400,6 @@ namespace Arc {
         logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
     }
 
-    // delete the lock
-    FileLock lock(filename);
-    if (!lock.release()) {
-      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
-      return false;
-    }
-
     // delete the meta file - not critical so don't fail on error
     if (!FileDelete(_getMetaFileName(url)))
       logger.msg(ERROR, "Failed to remove .meta file %s: %s", _getMetaFileName(url), StrError(errno));
@@ -414,6 +407,13 @@ namespace Arc {
     // delete the cache file
     if (!FileDelete(filename) && errno != ENOENT) {
       logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
+      return false;
+    }
+
+    // delete the lock file last
+    FileLock lock(filename);
+    if (!lock.release()) {
+      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
       return false;
     }
 
