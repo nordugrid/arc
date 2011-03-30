@@ -67,7 +67,7 @@ void ProcessorTest::TestPreClean() {
   std::string destination("/tmp/file1");
 
   // create destination file
-  int h = ::open(destination.c_str(), O_WRONLY | O_CREAT);
+  int h = ::open(destination.c_str(), O_WRONLY | O_CREAT, S_IRUSR|S_IWUSR);
   CPPUNIT_ASSERT(h > 0);
   CPPUNIT_ASSERT_EQUAL(0, close(h));
   struct stat st;
@@ -165,7 +165,7 @@ void ProcessorTest::TestCacheCheck() {
 
   // locked file
   std::string lock_file(cache_file + ".lock");
-  int fd = ::open(lock_file.c_str(), O_WRONLY|O_CREAT);
+  int fd = ::open(lock_file.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
   CPPUNIT_ASSERT(fd);
   char lock_contents[] = "1@localhost";
   CPPUNIT_ASSERT(write(fd, lock_contents, sizeof(lock_contents)) > 0);
@@ -187,7 +187,7 @@ void ProcessorTest::TestCacheCheck() {
   // file present (need proxy for permission check)
   if (valid_proxy) {
 
-    fd = ::open(cache_file.c_str(), O_WRONLY|O_CREAT);
+    fd = ::open(cache_file.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
     CPPUNIT_ASSERT(fd);
     char cache_file_contents[] = "abcde";
     CPPUNIT_ASSERT(write(fd, cache_file_contents, sizeof(cache_file_contents)) > 0);
@@ -547,7 +547,7 @@ void ProcessorTest::TestCacheProcess() {
   // TODO Pass conf file to data staging. Until then this test will fail!!!
   std::string conf_file(tmpdir);
   conf_file += "/arc.conf";
-  int fd = ::open(conf_file.c_str(), O_WRONLY|O_CREAT);
+  int fd = ::open(conf_file.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
   CPPUNIT_ASSERT(fd);
   std::string conf("[grid-manager]\ncache=\"" + cache_dir + "\"\n");
   CPPUNIT_ASSERT(write(fd, conf.c_str(), conf.length()) > 0);
@@ -584,7 +584,7 @@ void ProcessorTest::TestCacheProcess() {
 
   // create cache file and try again
   CPPUNIT_ASSERT(Arc::DirCreate(std::string(cache_dir+"/data/0c"), 0700, true));
-  fd = ::open(cache_file.c_str(), O_WRONLY|O_CREAT);
+  fd = ::open(cache_file.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
   CPPUNIT_ASSERT(fd);
   char cache_file_contents[] = "abcde";
   CPPUNIT_ASSERT(write(fd, cache_file_contents, sizeof(cache_file_contents)) > 0);
