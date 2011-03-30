@@ -699,7 +699,7 @@ int main(int argc,char** argv) {
     }
   }   
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
-    if (i->res.Retryable()) {
+    if (i->res.Retryable() || i->res == Arc::DataStatus::TransferError) {
       logger.msg(Arc::ERROR, "Failed to download (but may be retried) %s",i->lfn);
       job_files.push_back(*i);
       res = 4;
