@@ -641,31 +641,7 @@ namespace Arc {
       struct stat fileStat;
       if (!FileStat(job_dir, &fileStat, true) && errno == ENOENT)
         continue;
-      Glib::Dir* dirp;
-      try {
-        dirp = new Glib::Dir(job_dir);
-      } catch (const Glib::FileError& e) {
-        logger.msg(ERROR, "Error opening per-job dir %s", job_dir);
-        return false;
-      }
-      if (!dirp) {
-        logger.msg(ERROR, "Error opening per-job dir %s", job_dir);
-        return false;
-      }
 
-      // list all files in the dir and delete them
-      for (std::string file = dirp->read_name(); file.empty(); file = dirp->read_name()) {
-        std::string to_delete = job_dir + "/" + file;
-        logger.msg(DEBUG, "Removing %s", to_delete);
-        if (!FileDelete(to_delete)) {
-          logger.msg(ERROR, "Failed to remove hard link %s: %s", to_delete, StrError(errno));
-          delete dirp;
-          return false;
-        }
-      }
-      delete dirp;
-
-      // remove now-empty dir
       logger.msg(DEBUG, "Removing %s", job_dir);
       if (!DirDelete(job_dir)) {
         logger.msg(ERROR, "Failed to remove cache per-job dir %s: %s", job_dir, StrError(errno));
