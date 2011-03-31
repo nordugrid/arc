@@ -797,7 +797,7 @@ int ARexJob::OpenLogFile(const std::string& name) {
   if(id_.empty()) return -1;
   if(strchr(name.c_str(),'/')) return -1;
   std::string fname = config_.User()->ControlDir() + "/job." + id_ + "." + name;
-  return ::open(fname.c_str(),O_RDONLY,0,0,0);
+  return ::open(fname.c_str(),O_RDONLY);
 }
 
 std::list<std::string> ARexJob::LogFiles(void) {
