@@ -393,11 +393,17 @@ namespace Arc {
       std::string remote_file = FileReadLink(filename.c_str());
       if (remote_file.empty()) {
         logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", filename);
-        return false;
       }
       FileLock remote_lock(remote_file);
       if (!remote_lock.release())
         logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
+    }
+
+    // first check that the lock is still valid before deleting anything
+    FileLock lock(filename);
+    if (!lock.check()) {
+      logger.msg(ERROR, "Invalid lock on file %s", filename);
+      return false;
     }
 
     // delete the meta file - not critical so don't fail on error
@@ -406,12 +412,12 @@ namespace Arc {
 
     // delete the cache file
     if (!FileDelete(filename) && errno != ENOENT) {
+      // leave the lock file so that a bad cache file is not used next time
       logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
       return false;
     }
 
     // delete the lock file last
-    FileLock lock(filename);
     if (!lock.release()) {
       logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
       return false;
