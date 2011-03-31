@@ -115,7 +115,8 @@ namespace Arc {
           // check it's really there
           err = stat(lock_file.c_str(), &fileStat);
           if (0 != err) {
-            logger.msg(ERROR, "Error renaming lock file, even though rename() did not return an error");
+            logger.msg(ERROR, "Error renaming lock file %s, even though rename() did not return an error: %s",
+                       lock_file, StrError(errno));
             return false;
           }
           // check the pid inside the lock file, just in case...
@@ -142,7 +143,7 @@ namespace Arc {
             }
 
             if (!lock_info_s.substr(index + 1).empty() && lock_info_s.substr(index + 1) != hostname) {
-              logger.msg(VERBOSE, "Lock is owned by a different host");
+              logger.msg(VERBOSE, "Lock %s is owned by a different host", lock_file);
               // TODO: here do ssh login and check
               return false;
             }
@@ -165,7 +166,7 @@ namespace Arc {
         }
       }
       else {
-        logger.msg(VERBOSE, "The file is currently locked with a valid lock");
+        logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
         remove(tmpfile.c_str());
         return false;
       }
@@ -175,10 +176,10 @@ namespace Arc {
       // look at modification time
       time_t mod_time = fileStat.st_mtime;
       time_t now = time(NULL);
-      logger.msg(VERBOSE, "%li seconds since lock file was created", now - mod_time);
+      logger.msg(VERBOSE, "%li seconds since lock file %s was created", now - mod_time, lock_file);
 
       if ((now - mod_time) > timeout) {
-        logger.msg(VERBOSE, "Timeout has expired, will remove lock file");
+        logger.msg(VERBOSE, "Timeout has expired, will remove lock file %s", lock_file);
         // TODO: kill the process holding the lock, only if we know it was the original
         // process which created it
         if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
@@ -205,7 +206,7 @@ namespace Arc {
         if (pFile == NULL) {
           // lock could have been released by another process, so call acquire again
           if (errno == ENOENT) {
-            logger.msg(VERBOSE, "Lock that recently existed has been deleted by another process, calling acquire() again");
+            logger.msg(VERBOSE, "Lock %s that recently existed has been deleted by another process, calling acquire() again", lock_file);
             return acquire_(lock_removed);
           }
           logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, StrError(errno));
@@ -226,14 +227,14 @@ namespace Arc {
         }
 
         if (!lock_info_s.substr(index + 1).empty() && lock_info_s.substr(index + 1) != hostname) {
-          logger.msg(VERBOSE, "Lock is owned by a different host");
+          logger.msg(VERBOSE, "Lock %s is owned by a different host", lock_file);
           // TODO: here do ssh login and check
           return false;
         }
         std::string lock_pid = lock_info_s.substr(0, index);
         if (lock_pid == pid)
           // safer to wait until lock expires than risk corruption
-          logger.msg(WARNING, "Warning: This process already owns the lock");
+          logger.msg(INFO, "This process already owns the lock on %s", filename);
         else {
           // check if the pid owning the lock is still running - if not we can claim the lock
           // this check only works on systems with /proc. On other systems locks will always be valid
@@ -241,7 +242,7 @@ namespace Arc {
           if (stat(procdir.c_str(), &fileStat) == 0) {
             procdir = procdir.append(lock_pid);
             if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
-              logger.msg(VERBOSE, "The process owning the lock is no longer running, will remove lock");
+              logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
               if (remove(lock_file.c_str()) != 0) {
                 logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
                 return false;
@@ -252,11 +253,11 @@ namespace Arc {
             }
           }
           else {
-            logger.msg(INFO, "Cannot check process info - assuming lock is still valid");
+            logger.msg(INFO, "Cannot check process info - assuming lock on %s is still valid", filename);
           }
         }
       }
-      logger.msg(VERBOSE, "The file is currently locked with a valid lock");
+      logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
       return false;
     }
 
@@ -317,7 +318,7 @@ namespace Arc {
       }
 
       if (!lock_info_s.substr(index + 1).empty() && lock_info_s.substr(index + 1) != hostname) {
-        logger.msg(VERBOSE, "Lock is owned by a different host");
+        logger.msg(VERBOSE, "Lock %s is owned by a different host", lock_file);
         // TODO: here do ssh login and check
         return false;
       }
