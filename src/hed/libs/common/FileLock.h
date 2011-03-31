@@ -13,7 +13,8 @@ namespace Arc {
   /**
    * This class can be used when protected access is required to files
    * which are used by multiple processes or threads. Call acquire() to
-   * obtain a lock and release() to release it when finished. Locks are
+   * obtain a lock and release() to release it when finished. check() can
+   * be used to verify if a lock is valid for the current process. Locks are
    * independent of FileLock objects - locks are only created and destroyed
    * through acquire() and release(), not on creation or destruction of
    * FileLock objects.
@@ -76,6 +77,12 @@ namespace Arc {
      * @param force Remove the lock without checking ownership or timeout
      */
     bool release(bool force=false);
+
+    /// Check the lock is valid
+    /**
+     * Returns true if the lock is valid for the current process
+     */
+    bool check();
 
     /// Get the lock suffix used
     static std::string getLockSuffix();

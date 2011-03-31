@@ -266,6 +266,18 @@ namespace Arc {
 
   bool FileLock::release(bool force) {
 
+    if (!force && !check())
+      return false;
+
+    // delete the lock
+    if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
+      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", lock_file, StrError(errno));
+      return false;
+    }
+    return true;
+  }
+
+  bool FileLock::check() {
     // check for existence of lock file
     struct stat fileStat;
     int err = stat(lock_file.c_str(), &fileStat);
@@ -276,7 +288,7 @@ namespace Arc {
         logger.msg(ERROR, "Error listing lock file %s: %s", lock_file, StrError(errno));
       return false;
     }
-    if (!force && use_pid) {
+    if (use_pid) {
       // an empty lock was created while we held the lock
       if (fileStat.st_size == 0) {
         logger.msg(ERROR, "Found unexpected empty lock file %s. Must go back to acquire()", lock_file);
@@ -314,12 +326,6 @@ namespace Arc {
         return false;
       }
     }
-    // delete the lock
-    if (remove(lock_file.c_str()) != 0) {
-      logger.msg(ERROR, "Failed to unlock file with lock %s: %s", lock_file, StrError(errno));
-      return false;
-    }
-
     return true;
   }
 

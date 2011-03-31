@@ -17,6 +17,7 @@ class FileLockTest
   CPPUNIT_TEST_SUITE(FileLockTest);
   CPPUNIT_TEST(TestFileLockAcquire);
   CPPUNIT_TEST(TestFileLockRelease);
+  CPPUNIT_TEST(TestFileLockCheck);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -25,6 +26,7 @@ public:
 
   void TestFileLockAcquire();
   void TestFileLockRelease();
+  void TestFileLockCheck();
 
 private:
   bool _createFile(const std::string& filename, const std::string& text = "a");
@@ -222,6 +224,51 @@ void FileLockTest::TestFileLockRelease() {
 
 }
 
+void FileLockTest::TestFileLockCheck() {
+
+  std::string filename(testroot + "/file3");
+  std::string lock_file(filename + ".lock");
+
+  // check non-existent lock
+  struct stat fileStat;
+  CPPUNIT_ASSERT(stat(lock_file.c_str(), &fileStat) != 0);
+  Arc::FileLock lock(filename);
+  CPPUNIT_ASSERT(!lock.check());
+
+  // construct hostname
+  char hostname[256];
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("Cannot determine hostname from gethostname()", 0, gethostname(hostname, sizeof(hostname)));
+  std::string host(hostname);
+
+  // create a valid lock file with this pid
+  _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@" + host));
+
+  lock = Arc::FileLock(filename);
+  CPPUNIT_ASSERT(lock.check());
+
+  // create a lock with a different pid
+  _createFile(lock_file, std::string("1@" + host));
+  CPPUNIT_ASSERT(!lock.check());
+
+  // create lock with different host
+  CPPUNIT_ASSERT_EQUAL(0, remove(lock_file.c_str()));
+  _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@mybadhost.org"));
+  CPPUNIT_ASSERT(!lock.check());
+
+  // create an empty lock file - check should fail
+  _createFile(lock_file, "");
+  lock = Arc::FileLock(filename);
+  CPPUNIT_ASSERT(!lock.check());
+
+  // set use_pid false, check should succeed now
+  lock = Arc::FileLock(filename, 30, false);
+  CPPUNIT_ASSERT(lock.check());
+
+  // create lock with empty hostname - check should still be ok
+  lock = Arc::FileLock(filename);
+  _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@"));
+  CPPUNIT_ASSERT(lock.check());
+}
 
 bool FileLockTest::_createFile(const std::string& filename, const std::string& text) {
 
