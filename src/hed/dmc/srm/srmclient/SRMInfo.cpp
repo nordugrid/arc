@@ -21,7 +21,19 @@
 
 #include "SRMInfo.h"
 
+Arc::SimpleCondition SRMInfo::lock;
+std::list<SRMFileInfo> SRMInfo::srm_info;
+
 Arc::Logger SRMInfo::logger(Arc::Logger::getRootLogger(), "SRMInfo");
+
+SRMFileInfo::SRMFileInfo(const std::string& host_, int port_, const std::string& version_)
+  : host(host_), port(port_) {
+    if (version_ == "1") version = SRMURL::SRM_URL_VERSION_1;
+    else if (version_ == "2.2") version = SRMURL::SRM_URL_VERSION_2_2;
+    else version = SRMURL::SRM_URL_VERSION_UNKNOWN;
+  }
+
+SRMFileInfo::SRMFileInfo(): host(""), port(0), version(SRMURL::SRM_URL_VERSION_UNKNOWN) {}
 
 bool SRMFileInfo::operator ==(SRMURL srm_url) {
   if (host == srm_url.Host() &&
@@ -48,56 +60,90 @@ std::string SRMFileInfo::versionString() const {
 
 SRMInfo::SRMInfo(std::string dir) {
   srm_info_filename = dir + G_DIR_SEPARATOR_S + "srms.conf";
+  lock.lock();
+  if (srm_info.empty()) {
+    // read info from file
+    std::list<std::string> filedata;
+    Arc::FileLock filelock(srm_info_filename);
+    bool acquired = false;
+    for (int tries = 10; tries > 0; --tries) {
+      acquired = filelock.acquire();
+      if (acquired) break;
+      // sleep random time to minimise clashes
+      int sleeptime = rand() % 500000 + 100000;
+      Glib::usleep(sleeptime);
+    }
+    if (!acquired) {
+      logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
+      lock.unlock();
+      return;
+    }
+    if (!Arc::FileRead(srm_info_filename, filedata)) {
+      if (errno != ENOENT)
+        logger.msg(Arc::WARNING, "Error reading info from file %s:%s", srm_info_filename, Arc::StrError(errno));
+      filelock.release();
+      lock.unlock();
+      return;
+    }
+    filelock.release();
+  
+    for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
+      if (line->empty() || (*line)[0] == '#')
+        continue;
+      // split line
+      std::vector<std::string> fields;
+      Arc::tokenize(*line, fields);
+      if (fields.size() != 3) {
+        logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, *line);
+        continue;
+      }
+      int port;
+      if (!Arc::stringto(fields[1], port)) {
+        logger.msg(Arc::WARNING, "Cannot convert string %s to int in line %s", fields[1], *line);
+        continue;
+      }
+      SRMFileInfo f(fields[0], port, fields[2]);
+      srm_info.push_back(f);
+    }
+  }
+  lock.unlock();
 }
 
 bool SRMInfo::getSRMFileInfo(SRMFileInfo& srm_file_info) {
-  
-  std::list<std::string> filedata;
-  Arc::FileLock filelock(srm_info_filename);
-  bool acquired = false;
-  for (int tries = 10; tries > 0; --tries) {
-    acquired = filelock.acquire();
-    if (acquired) break;
-    Glib::usleep(500000);
-  }
-  if (!acquired) {
-    logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
-    return false;
-  }
-  if (!Arc::FileRead(srm_info_filename, filedata)) {
-    if (errno != ENOENT)
-      logger.msg(Arc::WARNING, "Error reading info from file %s:%s", srm_info_filename, Arc::StrError(errno));
-    filelock.release();
-    return false;
-  }
-  filelock.release();
-
-  for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
-    if (line->empty() || (*line)[0] == '#')
-      continue;
-    // split line
-    std::vector<std::string> fields;
-    Arc::tokenize(*line, fields);
-    if (fields.size() != 3) {
-      logger.msg(Arc::WARNING, "Bad or old format detected in file %s, in line %s", srm_info_filename, *line);
-      continue;
-    }
-    // look for our combination of host and version
-    if (fields.at(0) == srm_file_info.host && fields.at(2) == srm_file_info.versionString()) {
-      int port_i = Arc::stringtoi(fields.at(1));
-      if (port_i == 0) {
-        logger.msg(Arc::WARNING, "Can't convert string %s to int in file %s, line %s", fields.at(1), srm_info_filename, *line);
-        continue;
-      }        
-      srm_file_info.port = port_i;
+  // look for our combination of host and version
+  lock.lock();
+  for (std::list<SRMFileInfo>::const_iterator i = srm_info.begin(); i != srm_info.end(); ++i) {
+    if (i->host == srm_file_info.host && i->version == srm_file_info.version) {
+      srm_file_info.port = i->port;
+      lock.unlock();
       return true;
     }
   }
+  lock.unlock();
   return false;
 }
 
 void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
-   
+
+  // fill info cached in memory
+  lock.lock();
+  for (std::list<SRMFileInfo>::iterator i = srm_info.begin(); i != srm_info.end();) {
+    if (i->host == srm_file_info.host && i->version == srm_file_info.version) {
+      if (i->port = srm_file_info.port) {
+        // this same info was already added
+        lock.unlock();
+        return;
+      }
+      // the info has changed, so erase existing info
+      i = srm_info.erase(i);
+    } else {
+      ++i;
+    }
+  }
+  srm_info.push_back(srm_file_info);
+  lock.unlock();
+
+  // now fill in file
   std::string header("# This file was automatically generated by ARC for caching SRM information.\n");
   header += "# Its format is lines with 3 entries separated by spaces:\n";
   header += "# hostname port version\n#\n";
@@ -110,7 +156,9 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   for (int tries = 10; tries > 0; --tries) {
     acquired = filelock.acquire();
     if (acquired) break;
-    Glib::usleep(500000);
+    // sleep random time to minimise clashes
+    int sleeptime = rand() % 500000 + 100000;
+    Glib::usleep(sleeptime);
   }
   if (!acquired) {
     logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
