@@ -261,7 +261,7 @@ namespace Arc {
           success = false;
           continue;
         }
-        logger.msg(INFO, "Loaded MCC %s(%s)",
+        logger.msg(DEBUG, "Loaded MCC %s(%s)",
                    (std::string)cn.Attribute("name"),
                    (std::string)cn.Attribute("id"));
         continue;
@@ -355,7 +355,7 @@ namespace Arc {
         if(mcc_l != mccs_.end()) {
           // Make link MCC->MCC
           mcc->mcc->second->Next(mcc_l->second, label);
-          logger.msg(INFO, "Linking MCC %s(%s) to MCC (%s) under %s",
+          logger.msg(DEBUG, "Linking MCC %s(%s) to MCC (%s) under %s",
                mcc->name, mcc->mcc->first, id, label);
           mcc->nexts.erase(next);
           continue;
