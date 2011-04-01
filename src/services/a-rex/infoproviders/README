@@ -28,4 +28,72 @@ ARC0ClusterInfo.pm - combines all information about A-REX and produces
 ARC1ClusterInfo.pm - combines all information about A-REX and produces
                      information structured according to the GLUE2 schema.
 
+Extended information:
 
+CEinfo.pl uses *Info.pm to read all information. LRMSInfo in turn uses 
+${LRMS}mod.pm and ${LRMS}.pm to get information.
+
+That information is aggregated by CEinfo.pl. CEinfo.pl then gives that data to 
+ARC*ClusterInfo.pm which transforms the output to the appropriate format.
+Lastly, CEinfo.pl uses *Printer.pm to generate ldif/xml. 
+
+Loading structure:
+CEinfo.pl loads: ARC*ClusterInfo.pm, GLUE2*Printer.pm, NGldifPrinter.pm, 
+                 {Host,RTE,GMJobsInfo,LRMS}Info.pm, InfosysHelper.pm,
+LRMSInfo loads: ${LRMS}mod.pm, ARC0mod.pm
+ARC0mod.pm: loads ${LRMS}.pm 
+
+Call-chain:
+
+CEinfo.pl read config ( $config = ConfigCentral::parseConfig($configfile) )
+CEinfo.pl   fix_config($config);
+CEinfo.pl   check_config($config);
+    
+CEinfo.pl get information from collectors ( $data = CEInfo::collect($config) )
+CEinfo.pl   $usermap = read_grid_mapfile($config->{gridmap});
+CEinfo.pl   $gmjobs_info = get_gmjobs_info($config);
+CEinfo.pl     #set config-variables specific to gmjobs
+CEinfo.pl     LRMSInfo::collect($lrms_opts)
+GMJobsInfo.pm # for each user, get all jobs associated by going through controldirs 
+                once for each user, return in gmjobs_info
+
+CEinfo.pl   # build the list of all jobs in state INLRMS
+CEinfo.pl   # build hash with all the input necessary for the renderers
+CEinfo.pl   $data->{config} = $config;
+CEinfo.pl   $data->{usermap} = $usermap;
+CEinfo.pl   $data->{host_info} = get_host_info($config,\@localusers);
+HostInfo.pm   # get os,cpu,mem,disk per user (from session dir)
+CEinfo.pl   $data->{rte_info} = get_rte_info($config);
+RTEInfo.pm    add_static_rtes($options->{runtimedir}, $rtes);
+RTEInfo.pm    add_janitor_res($options, $rtes);
+CEinfo.pl   $data->{gmjobs_info} = $gmjobs_info;
+CEinfo.pl   $data->{lrms_info} = get_lrms_info($config,\@localusers,\@jobids);
+LRMSInfo.pm   # Load ARC0 or ARC1 LRMS-backend
+LRMSInfo.pm   load_lrms($lrms_name);
+LRMSInfo.pm   $result = get_lrms_info($options);
+LRMSInfo.pm   # Verify that LRMS output is correct
+LRMSInfo.pm   @messages = $checker->verify($result);
+LRMSInfo.pm   # Fix various errors/differences like multiple nodes, trim spaces
+
+CEinfo.pl # print Glue2 ( $glue2data = ARC1ClusterInfo::collect($data) )
+CEinfo.pl $xmlPrinter = GLUE2xmlPrinter->new(*STDOUT, $splitjobs); # splitjobs comes from commandline
+GLUE2xmlPrinter.pm 
+CEinfo.pl $xmlPrinter->begin('InfoRoot');
+CEinfo.pl $xmlPrinter->Domains($glue2data)
+CEinfo.pl $xmlPrinter->end('InfoRoot');
+
+CEinfo.pl # Generate ldif for infosys-ldap -- but only if infosys expects it
+CEinfo.pl $ngdata = ARC0ClusterInfo::collect($data)
+ARC0ClusterInfo.pm # combine other sources and prepare info modeled on nordugrid-mds schema.
+
+CEinfo.pl if glue2ldap {
+CEinfo.pl     $ldifPrinter = GLUE2ldifPrinter->new($fh)
+CEinfo.pl     $ldifPrinter->Top($glue2data)
+CEinfo.pl }
+CEinfo.pl if mdsldap or glue12ldap {
+CEinfo.pl     $ldifPrinter = NGldifPrinter->new($fh, $config->{ttl})
+CEinfo.pl     $ldifPrinter->Top($ngdata)
+CEinfo.pl }
+
+CEinfo.pl InfosysHelper::createLdifScript($config, $print_ldif)
+InfosysHelper.pm
