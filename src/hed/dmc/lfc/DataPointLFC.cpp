@@ -145,6 +145,7 @@ namespace Arc {
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
       globus_thread_set_model("pthread");
 #endif
+      GlobusPrepareGSSAPI();
       globus_module_activate(GLOBUS_OPENSSL_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();
     }

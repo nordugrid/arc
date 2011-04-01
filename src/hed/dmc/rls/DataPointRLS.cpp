@@ -38,6 +38,7 @@ namespace Arc {
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
       globus_thread_set_model("pthread");
 #endif
+      GlobusPrepareGSSAPI();
       globus_module_activate(GLOBUS_COMMON_MODULE);
       globus_module_activate(GLOBUS_IO_MODULE);
       globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);

@@ -73,6 +73,13 @@ namespace Arc {
       dynamic_cast<TargetRetrieverPluginArgument*>(arg);
     if (!trarg)
       return NULL;
+    Glib::Module* module = trarg->get_module();
+    PluginsFactory* factory = trarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - TargetRetriver for ARC0 is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
     return new TargetRetrieverARC0(*trarg, *trarg, *trarg);
   }
 

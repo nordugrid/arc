@@ -42,6 +42,13 @@ namespace Arc {
       dynamic_cast<JobControllerPluginArgument*>(arg);
     if (!jcarg)
       return NULL;
+    Glib::Module* module = jcarg->get_module();
+    PluginsFactory* factory = jcarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - Submitter for ARC0 is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
     return new JobControllerARC0(*jcarg);
   }
 

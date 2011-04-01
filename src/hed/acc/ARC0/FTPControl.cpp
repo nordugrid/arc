@@ -8,10 +8,13 @@
 #include <arc/Thread.h>
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/globusutils/GSSCredential.h>
+#include <arc/globusutils/GlobusWorkarounds.h>
 
 #include "FTPControl.h"
 
 namespace Arc {
+
+  static bool activated_ = false;
 
   class FTPControl::CBArg {
    private:
@@ -121,15 +124,21 @@ namespace Arc {
   FTPControl::FTPControl() {
     connected = false;
     cb = new CBArg;
+    if(!activated_) {
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
-    globus_thread_set_model("pthread");
+      globus_thread_set_model("pthread");
 #endif
-    globus_module_activate(GLOBUS_FTP_CONTROL_MODULE);
+      GlobusPrepareGSSAPI();
+      globus_module_activate(GLOBUS_FTP_CONTROL_MODULE);
+      activated_ = GlobusRecoverProxyOpenSSL();
+    }
   }
 
   FTPControl::~FTPControl() {
     if(connected) Disconnect(10);
-    globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);
+    // Not deactivating Globus - that may be dangerous in some cases.
+    // Deactivation also not needeed because this plugin is persistent.
+    //globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);
     cb->release();
   }
 

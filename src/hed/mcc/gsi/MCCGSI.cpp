@@ -48,6 +48,7 @@ namespace Arc {
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
     globus_thread_set_model("pthread");
 #endif
+    GlobusPrepareGSSAPI();
     // Increasing globus module counter so it is never deactivated
     globus_module_activate(GLOBUS_OPENSSL_MODULE);
     // Tackel GLOBUS_GSI_GSSAPI_MODULE the same

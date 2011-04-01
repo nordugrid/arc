@@ -7,11 +7,16 @@
 #include <openssl/objects.h>
 #include <openssl/x509v3.h>
 
+#include <globus_gsi_callback.h>
+
+#include <arc/Thread.h>
 #include <arc/Utils.h>
 
 #include "GlobusWorkarounds.h"
 
 namespace Arc {
+
+  static Glib::Mutex lock_;
 
   bool GlobusRecoverProxyOpenSSL(void) {
 #ifdef HAVE_OPENSSL_PROXY
@@ -71,5 +76,11 @@ namespace Arc {
 #endif // HAVE_OPENSSL_PROXY
   }
 
+  bool GlobusPrepareGSSAPI(void) {
+    Glib::Mutex::Lock lock(lock_);
+    int index = -1;
+    globus_gsi_callback_get_X509_STORE_callback_data_index(&index);
+    globus_gsi_callback_get_SSL_callback_data_index(&index);
+  }
 }
 

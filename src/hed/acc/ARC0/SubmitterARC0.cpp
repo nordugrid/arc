@@ -30,6 +30,13 @@ namespace Arc {
       dynamic_cast<SubmitterPluginArgument*>(arg);
     if (!subarg)
       return NULL;
+    Glib::Module* module = subarg->get_module();
+    PluginsFactory* factory = subarg->get_factory();
+    if(!(factory && module)) {
+      logger.msg(ERROR, "Missing reference to factory and/or module. It is unsafe to use Globus in non-persistent mode - Submitter for ARC0 is disabled. Report to developers.");
+      return NULL;
+    }
+    factory->makePersistent(module);
     return new SubmitterARC0(*subarg);
   }
 
