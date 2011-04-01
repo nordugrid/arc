@@ -400,7 +400,7 @@ else
     chown ${bdii_user} ${registrationlog}
 
     touch ${providerlog}
-    chown root ${providerlog}
+    chown ${bdii_user} ${providerlog}
 
     arc_runtime_config="/var/tmp/${bdii_user}-nordugrid"
     if [ -d ${arc_runtime_config} ]; then
