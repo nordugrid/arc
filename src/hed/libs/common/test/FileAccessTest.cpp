@@ -84,9 +84,15 @@ void FileAccessTest::TestOpenWriteReadStat() {
   CPPUNIT_ASSERT(fa.close());
   std::string testdata2(buf,testdata.length());
   CPPUNIT_ASSERT_EQUAL(testdata,testdata2);
-  CPPUNIT_ASSERT(::memcmp(&st,&st2,sizeof(struct stat)) == 0);
+  CPPUNIT_ASSERT_EQUAL(st.st_mode,st2.st_mode);
+  CPPUNIT_ASSERT_EQUAL(st.st_uid,st2.st_uid);
+  CPPUNIT_ASSERT_EQUAL(st.st_gid,st2.st_gid);
+  CPPUNIT_ASSERT_EQUAL(st.st_size,st2.st_size);
   CPPUNIT_ASSERT(fa.stat(testfile,st2));
-  CPPUNIT_ASSERT(::memcmp(&st,&st2,sizeof(struct stat)) == 0);
+  CPPUNIT_ASSERT_EQUAL(st.st_mode,st2.st_mode);
+  CPPUNIT_ASSERT_EQUAL(st.st_uid,st2.st_uid);
+  CPPUNIT_ASSERT_EQUAL(st.st_gid,st2.st_gid);
+  CPPUNIT_ASSERT_EQUAL(st.st_size,st2.st_size);
 }
 
 void FileAccessTest::TestCopy() {
