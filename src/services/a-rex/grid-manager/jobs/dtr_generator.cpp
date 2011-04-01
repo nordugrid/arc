@@ -260,16 +260,15 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
     // for downloads, cancel all other transfers
     logger.msg(Arc::ERROR, "%s: DTR %s to copy file %s failed",
                jobid, dtr.get_id(), dtr.get_source()->str());
+    // add error to finished jobs
+    lock.lock();
+    finished_jobs[jobid] += std::string("Failed in data staging: " + dtr.get_error_status().GetDesc() + '\n');
+    lock.unlock();
 
     if (!dtr.get_source()->Local() && finished_jobs.find(jobid) == finished_jobs.end()) { // download
       // cancel other DTRs and erase from our list unless error was already reported
       logger.msg(Arc::INFO, "%s: Cancelling other DTRs", jobid);
       scheduler.cancelDTRs(jobid);
-
-      // add error to finished jobs
-      lock.lock();
-      finished_jobs[jobid] = std::string("Failed in data staging: " + dtr.get_error_status().GetDesc());
-      lock.unlock();
     }
   }
   else if (dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
