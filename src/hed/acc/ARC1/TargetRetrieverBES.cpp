@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
 #include <arc/client/TargetGenerator.h>
 
 #include "TargetRetrieverBES.h"
@@ -16,8 +17,12 @@ namespace Arc {
 
   static URL CreateURL(std::string service, ServiceType /* st */) {
     std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos)
+    if (pos1 == std::string::npos) {
       service = "https://" + service;
+    } else {
+      std::string proto = lower(service.substr(0,pos1));
+      if((proto != "http") && (proto != "https")) return URL();
+    }
     // Default port other than 443?
     // Default path?
     return service;
@@ -41,6 +46,7 @@ namespace Arc {
   void TargetRetrieverBES::GetExecutionTargets(TargetGenerator& mom) {
     logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
                flavour, tostring(serviceType), url.str());
+    if(!url) return;
 
     for (std::list<std::string>::const_iterator it =
            usercfg.GetRejectedServices(serviceType).begin();

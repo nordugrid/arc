@@ -45,6 +45,8 @@ namespace Arc {
     if (pos1 == std::string::npos) {
       service = "ldap://" + service;
       pos1 = 4;
+    } else {
+      if(lower(service.substr(0,pos1)) != "ldap") return URL();
     }
     std::string::size_type pos2 = service.find(":", pos1 + 3);
     std::string::size_type pos3 = service.find("/", pos1 + 3);
@@ -86,6 +88,7 @@ namespace Arc {
   void TargetRetrieverARC0::GetExecutionTargets(TargetGenerator& mom) {
     logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
                flavour, tostring(serviceType), url.str());
+    if(!url) return;
 
     for (std::list<std::string>::const_iterator it =
            usercfg.GetRejectedServices(serviceType).begin();
@@ -114,6 +117,7 @@ namespace Arc {
   void TargetRetrieverARC0::GetJobs(TargetGenerator& mom) {
     logger.msg(VERBOSE, "TargetRetriver%s initialized with %s service url: %s",
                flavour, tostring(serviceType), url.str());
+    if(!url) return;
 
     for (std::list<std::string>::const_iterator it =
            usercfg.GetRejectedServices(serviceType).begin();

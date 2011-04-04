@@ -10,7 +10,7 @@ libaccUNICORE_la_SOURCES = \
 libaccUNICORE_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libaccUNICORE_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/ws/libarcws.la
+	$(top_srcdir)/src/hed/libs/ws/libarcws.la \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
