@@ -111,8 +111,11 @@ Section "NorduGrid ARC clients"
   File "${SYS_PATH}/bin/python${PYVER}.exe"
   File "${SYS_PATH}/bin/libpython${PYVER}.dll"
   File "${SYS_PATH}/bin/pydoc"
+  File "${SYS_PATH}/bin/readline.dll"
+  File "${SYS_PATH}/bin/libtermcap-0.dll"
+  File "${SYS_PATH}/bin/libdb-4.7.dll"
   SetOutPath "$INSTDIR\lib\python${PYVER}"
-  File "${SYS_PATH}/lib/python${PYVER}/*.*"
+  File /r "${SYS_PATH}/lib/python${PYVER}/**"
 
 ; Globus ARC dependencies
   SetOutPath "$INSTDIR\bin"
@@ -155,6 +158,7 @@ Section "NorduGrid ARC clients"
   File "${ARC_LOCATION}/lib/arc/libaccCREAM.dll"
 ;  File "${ARC_LOCATION}/lib/arc/libaccUNICORE.dll"
   File "${ARC_LOCATION}/lib/arc/libaccJobDescriptionParser.dll"
+  File "${ARC_LOCATION}/lib/arc/libaccPythonBroker.dll"
   File "${ARC_LOCATION}/lib/arc/libarcshc.dll"
   File "${ARC_LOCATION}/lib/arc/libdmcarc.dll"
   File "${ARC_LOCATION}/lib/arc/libdmcfile.dll"
@@ -187,16 +191,17 @@ Section "NorduGrid ARC clients"
   File "${MISC_PATH}/vomses"
 SectionEnd
 
-;Section "NorduGrid ARC Server"
-;
-;  SetOutPath "$INSTDIR\sbin"
-;  File "${ARC_LOCATION}/sbin/arched.exe"
-;
-;  SetOutPath "$INSTDIR\lib\arc"
+Section "NorduGrid ARC Server"
+
+  SetOutPath "$INSTDIR\sbin"
+  File "${ARC_LOCATION}/sbin/arched.exe"
+
+  SetOutPath "$INSTDIR\lib\arc"
 ;  File "${ARC_LOCATION}/lib/arc/libslcs.dll"
-;  File "${ARC_LOCATION}/lib/arc/libecho.dll"
-;
-;SectionEnd
+  File "${ARC_LOCATION}/lib/arc/libecho.dll"
+  File "${ARC_LOCATION}/lib/arc/libpythonservice.dll"
+
+SectionEnd
 
 Section "IGTF Certificates"
   SetOutPath "$INSTDIR\etc\grid-security\certificates"
@@ -225,6 +230,7 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcfile.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcarc.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libarcshc.dll"
+  Delete /rebootok "$INSTDIR\lib\arc\libaccPythonBroker.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libaccJobDescriptionParser.dll"
 ;  Delete /rebootok "$INSTDIR\lib\arc\libaccUNICORE.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libaccCREAM.dll"
@@ -237,8 +243,9 @@ Section "Uninstall"
   Delete /rebootok "$INSTDIR\lib\arc\libmccgsi.dll"
   Delete /rebootok "$INSTDIR\lib\arc\libdmcrls.dll"
 
-;  Delete /rebootok "$INSTDIR\lib\arc\libslcs.dll"
-;  Delete /rebootok "$INSTDIR\lib\arc\libecho.dll"
+  Delete /rebootok "$INSTDIR\lib\arc\libpythonservice.dll"
+  Delete /rebootok "$INSTDIR\lib\arc\libecho.dll"
+  Delete /rebootok "$INSTDIR\lib\arc\libslcs.dll"
 
   RMDir "$INSTDIR\lib\arc"
 
@@ -246,7 +253,10 @@ Section "Uninstall"
 
   RMDir "$INSTDIR\lib"
 
-  Delete /rebootok "$INSTDIR\lib\python${PYVER}/*.*"
+  RmDir /r "$INSTDIR\lib\python${PYVER}"
+  Delete /rebootok "$INSTDIR\bin\libdb-4.7.dll"
+  Delete /rebootok "$INSTDIR\bin\libtermcap-0.dll"
+  Delete /rebootok "$INSTDIR\bin\readline.dll"
   Delete /rebootok "$INSTDIR\bin\pydoc"
   Delete /rebootok "$INSTDIR\bin\libpython${PYVER}.dll"
   Delete /rebootok "$INSTDIR\bin\python${PYVER}.exe"
@@ -373,6 +383,8 @@ Section "Uninstall"
 ;  DeleteRegValue ${env_hklm} X509_USER_CERT
 ;  DeleteRegValue ${env_hklm} X509_USER_KEY
 ;  DeleteRegValue ${env_hklm} X509_USER_PROXY
+  DeleteRegValue ${env_hklm} PYTHONHOME
+  DeleteRegValue ${env_hklm} PYTHONPATH
 
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
@@ -387,6 +399,8 @@ Section -post
 ;  WriteRegExpandStr ${env_hklm} X509_USER_CERT  "$PROFILE\.globus\usercert.pem"
 ;  WriteRegExpandStr ${env_hklm} X509_USER_KEY   "$PROFILE\.globus\userkey.pem"
 ;  WriteRegExpandStr ${env_hklm} X509_USER_PROXY "$TEMP\x509up_u0"
+  WriteRegExpandStr ${env_hklm} PYTHONHOME "$INSTDIR\lib\python${PYVER}"
+  WriteRegExpandStr ${env_hklm} PYTHONPATH "$INSTDIR\lib\python${PYVER}\site-packages"
 
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
