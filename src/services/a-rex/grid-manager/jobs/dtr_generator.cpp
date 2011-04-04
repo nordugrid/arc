@@ -36,10 +36,8 @@ void DTRGenerator::main_thread(void* arg) {
 void DTRGenerator::thread() {
 
   // set up logging - to avoid logging DTR logs to the main A-REX log
-  // we disconnect the root logger
+  // we disconnect the root logger while submitting to the Scheduler
   Arc::Logger::getRootLogger().setThreadContext();
-  logger.addDestinations(Arc::Logger::getRootLogger().getDestinations());
-  Arc::Logger::getRootLogger().removeDestinations();
 
   while (generator_state != DataStaging::TO_STOP) {
     // look at event queue and deal with any events.
@@ -62,6 +60,12 @@ void DTRGenerator::thread() {
       event_lock.unlock();
       processReceivedDTR(*it_dtrs);
       event_lock.lock();
+      // delete DTR Logger and LogDestinations
+      const std::list<Arc::LogDestination*> log_dests = it_dtrs->get_logger()->getDestinations();
+      for (std::list<Arc::LogDestination*>::const_iterator i = log_dests.begin(); i != log_dests.end(); ++i)
+        delete *i;
+      delete it_dtrs->get_logger();
+
       it_dtrs = dtrs_received.erase(it_dtrs);
     }
 
@@ -215,12 +219,6 @@ bool DTRGenerator::queryJobFinished(JobDescription& job) {
 
 
 bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
-
-  // delete DTR Logger and LogDestinations
-  const std::list<Arc::LogDestination*> log_dests = dtr.get_logger()->getDestinations();
-  for (std::list<Arc::LogDestination*>::const_iterator i = log_dests.begin(); i != log_dests.end(); ++i)
-    delete *i;
-  delete dtr.get_logger();
 
   std::string jobid(dtr.get_parent_job_id());
   logger.msg(Arc::DEBUG, "%s: Received DTR %s to copy file %s in state %s",
@@ -397,6 +395,19 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   // add to finished jobs (without overwriting existing error)
   finished_jobs[jobid] += "";
   lock.unlock();
+
+  // log summary to DTR log
+  const std::list<Arc::LogDestination*> log_dests = Arc::Logger::getRootLogger().getDestinations();
+  Arc::Logger::getRootLogger().removeDestinations();
+
+  if (finished_jobs[jobid].empty())
+    dtr.get_logger()->msg(Arc::INFO, "All %s finished successfully",
+                          dtr.get_source()->Local() ? "uploads":"downloads");
+  else
+    dtr.get_logger()->msg(Arc::INFO, "Some %s failed",
+                          dtr.get_source()->Local() ? "uploads":"downloads");
+
+  Arc::Logger::getRootLogger().addDestinations(log_dests);
 
   logger.msg(Arc::INFO, "%s: Data staging finished", jobid);
 
@@ -614,7 +625,12 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     lock.lock();
     active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr.get_id()));
     lock.unlock();
+
+    // Disconnect from root logger while submitting to Scheduler
+    const std::list<Arc::LogDestination*> log_dests = Arc::Logger::getRootLogger().getDestinations();
+    Arc::Logger::getRootLogger().removeDestinations();
     dtr.push(DataStaging::SCHEDULER);
+    Arc::Logger::getRootLogger().addDestinations(log_dests);
   }
   return true;
 }
@@ -655,7 +671,7 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
   std::list<FileData> input_files_ = input_files;
   if (!job_input_read_file(jobid, *jobuser, input_files)) {
     job.AddFailure("Error reading list of input files");
-    logger.msg(Arc::ERROR, "Can't read list of input files");
+    logger.msg(Arc::ERROR, "%s: Can't read list of input files", jobid);
     return 1;
   }
   int res = 0;
@@ -667,22 +683,22 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
   // loop through each file and check
   for (FileData::iterator i = input_files.begin(); i != input_files.end();) {
     if (i->lfn.find(":") == std::string::npos) { // not remote file
-      logger.msg(Arc::INFO, "Check user uploadable file: %s", i->pfn);
+      logger.msg(Arc::VERBOSE, "%s: Check user uploadable file: %s", jobid, i->pfn);
       std::string error;
       int err = user_file_exists(*i, session_dir, uploaded_files_, &error);
       if (err == 0) { /* file is uploaded */
-        logger.msg(Arc::INFO, "User has uploaded file %s", i->pfn);
+        logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
         // remove from input list
         i = input_files.erase(i);
         input_files_.clear();
         for (FileData::iterator it = input_files.begin(); it != input_files.end(); ++it)
           input_files_.push_back(*it);
         if (!job_input_write_file(job, *jobuser, input_files_)) {
-          logger.msg(Arc::WARNING, "Failed writing changed input file.");
+          logger.msg(Arc::WARNING, "%s: Failed writing changed input file.", jobid);
         }
       }
       else if (err == 1) { /* critical failure */
-        logger.msg(Arc::ERROR, "Critical error for uploadable file %s", i->pfn);
+        logger.msg(Arc::ERROR, "%s: Critical error for uploadable file %s", jobid, i->pfn);
         job.AddFailure("User file: "+i->pfn+" - "+error);
         res = 1;
         goto exit;
@@ -703,7 +719,7 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
         job.AddFailure("User file: "+i->pfn+" - Timeout waiting");
       };
     };
-    logger.msg(Arc::ERROR, "Uploadable files timed out");
+    logger.msg(Arc::ERROR, "%s: Uploadable files timed out", jobid);
     res = 1;
   };
 exit:

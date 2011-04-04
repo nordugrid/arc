@@ -55,7 +55,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   DataStaging::ProcessState generator_state;
   /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
   std::map<uid_t, const JobUser*> jobusers;
-  /** logger */
+  /** logger to a-rex log */
   static Arc::Logger logger;
   /** Associated scheduler */
   DataStaging::Scheduler scheduler;
