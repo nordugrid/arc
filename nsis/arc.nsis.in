@@ -385,8 +385,6 @@ Section "Uninstall"
 ;  DeleteRegValue ${env_hklm} X509_USER_CERT
 ;  DeleteRegValue ${env_hklm} X509_USER_KEY
 ;  DeleteRegValue ${env_hklm} X509_USER_PROXY
-  DeleteRegValue ${env_hklm} PYTHONHOME
-  DeleteRegValue ${env_hklm} PYTHONPATH
 
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
@@ -401,8 +399,6 @@ Section -post
 ;  WriteRegExpandStr ${env_hklm} X509_USER_CERT  "$PROFILE\.globus\usercert.pem"
 ;  WriteRegExpandStr ${env_hklm} X509_USER_KEY   "$PROFILE\.globus\userkey.pem"
 ;  WriteRegExpandStr ${env_hklm} X509_USER_PROXY "$TEMP\x509up_u0"
-  WriteRegExpandStr ${env_hklm} PYTHONHOME "$INSTDIR\lib\python${PYVER}"
-  WriteRegExpandStr ${env_hklm} PYTHONPATH "$INSTDIR\lib\python${PYVER}\site-packages"
 
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
