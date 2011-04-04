@@ -383,6 +383,8 @@ if [ "x$bdii_user" = "xroot" ] ; then
     touch ${providerlog}
     chown root ${providerlog}
 
+    chown root ${bdii_log_dir}
+
     arc_runtime_config="/var/run/nordugrid"
     mkdir -p ${arc_runtime_config}
     check_ownership ${arc_runtime_config} root
@@ -401,6 +403,8 @@ else
 
     touch ${providerlog}
     chown ${bdii_user} ${providerlog}
+
+    chown ${bdii_user} ${bdii_log_dir}
 
     arc_runtime_config="/var/tmp/${bdii_user}-nordugrid"
     if [ -d ${arc_runtime_config} ]; then
