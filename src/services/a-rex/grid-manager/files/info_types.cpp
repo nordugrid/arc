@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <limits.h>
+#include <errno.h>
 
 #include <arc/StringConv.h>
 #include "../misc/canonical_dir.h"
@@ -31,6 +32,22 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+static inline void write_str(int f,const char* buf, std::string::size_type len) {
+  for(;len > 0;) {
+    ssize_t l = write(f,buf,len);
+    if((l < 0) && (errno != EINTR)) break;
+    len -= l; buf += l;
+  };
+}
+
+static inline void write_chr(int f,const char c) {
+  for(;;) {
+    ssize_t l = write(f,&c,1);
+    if((l < 0) && (errno != EINTR)) break;
+    if(l == 1) break;
+  };
+}
+
 void output_escaped_string(std::ostream &o,const std::string &str) {
   std::string::size_type n,nn;
   for(nn=0;;) {
@@ -42,6 +59,19 @@ void output_escaped_string(std::ostream &o,const std::string &str) {
     nn=n+1;
   };
   o.write(str.data()+nn,str.length()-nn);
+}
+
+void output_escaped_string(int h,const std::string &str) {
+  std::string::size_type n,nn;
+  for(nn=0;;) {
+//    if((n=str.find(' ',nn)) == std::string::npos) break;
+    if((n=str.find_first_of(" \\",nn)) == std::string::npos) break;
+    write_str(h,str.data()+nn,n-nn);
+    write_chr(h,'\\');
+    write_chr(h,*(str.data()+n));
+    nn=n+1;
+  };
+  write_str(h,str.data()+nn,str.length()-nn);
 }
 
 std::ostream &operator<< (std::ostream &o,const FileData &fd) {
