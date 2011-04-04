@@ -406,7 +406,7 @@ namespace Arc {
   static bool AddNotificationState(
          NotificationType &notification,
          const std::string& states) {
-    for (int n = 0; n<states.length(); n++) {
+    for (int n = 0; n<(int)states.length(); n++) {
       std::string state = ShortcutToState(states[n]);
       if (state.empty()) {
         return false;
@@ -737,7 +737,7 @@ namespace Arc {
           // No alternatives allowed for GRIDMANAGER dialect.
           j.Resources.SessionLifeTime = Period(time, PeriodSeconds);
         } else {
-          j.Resources.SessionLifeTime = Period(time, PeriodDays);
+          j.Resources.SessionLifeTime = Period(time, PeriodMinutes);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
             it->Resources.SessionLifeTime = Period(time, PeriodDays);
