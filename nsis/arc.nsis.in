@@ -116,6 +116,8 @@ Section "NorduGrid ARC clients"
   File "${SYS_PATH}/bin/libdb-4.7.dll"
   SetOutPath "$INSTDIR\lib\python${PYVER}"
   File /r "${SYS_PATH}/lib/python${PYVER}/**"
+  SetOutPath "$INSTDIR\lib\python${PYVER}\site-packages"
+  File /oname=_arc.pyd "${SYS_PATH}/lib/python${PYVER}/site-packages/_arc.dll"
 
 ; Globus ARC dependencies
   SetOutPath "$INSTDIR\bin"
@@ -378,6 +380,7 @@ Section "Uninstall"
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\lib"    
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\lib\arc"  
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\sbin"
+  ${un.EnvVarUpdate} $0 "PYTHONPATH" "R" "HKLM" "$INSTDIR\lib\python${PYVER}\site-packages"
 
   DeleteRegValue ${env_hklm} ARC_LOCATION
   DeleteRegValue ${env_hklm} GLOBUS_LOCATION
@@ -406,6 +409,9 @@ Section -post
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\lib"  ; Append the new one
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\lib\arc"  ; Append the new one
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\sbin"  ; Append the new one
+
+  ${EnvVarUpdate} $0 "PYTHONPATH" "A" "HKLM" "$INSTDIR\lib\python${PYVER}\site-packages"
+
 SectionEnd
 
 Function .onInstSuccess
