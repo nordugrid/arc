@@ -33,7 +33,7 @@ Description: ARC grid middleware
  first release, ARC-0.x, was dependent on Globus, the current release
  keeps that compatibility but can also be used independently.
  .
- With ARC-nox, formerly known as ARC-1, the user gains flexibility
+ With ARC, the user gains flexibility
  with additional services and more supported platforms. The service
  developer notices that even for persistent functionality across the
  two major versions, what has been a script on the server side once,

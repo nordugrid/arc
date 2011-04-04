@@ -11,14 +11,13 @@ stability, reliability and performance of the middleware. A growing
 number of grid projects, like Swegrid, NDGF and Swiss Bio Grid have
 chosen ARC as their middleware.
 
-This release (February 2008) is a first release of a new generation
-of ARC and will now be referenced as ARC-nox, formerly ARC1. It is
-based on a service container - the Hosting Environment Daemon (HED)
-- and different grid capabilities are implemented as Web Services
-residing in HED. Currently, an OGSA BES compliant execution service -
-ARC Resource-coupled EXecution service (A-REX) - and an echo service
-(for testing purposes) are included, but the set of services is rapidly
-growing.
+This release (April 2011) is a first release of a new generation of
+ARC, formerly ARC1. It is based on a service container - the Hosting
+Environment Daemon (HED) - and different grid capabilities are
+implemented as Web Services residing in HED. Currently, an OGSA BES
+compliant execution service - ARC Resource-coupled EXecution service
+(A-REX) - and an echo service (for testing purposes) are included, but
+the set of services is rapidly growing.
 
 
 
@@ -83,7 +82,7 @@ Runtime dependencies:
   o Berkley DB Python interface - python-bsddb3 (replicated A-Hash)
 
 Please note that depending on operating system distribution to build
-ARC-nox you may need to install development versions of mentioned packages.
+ARC you may need to install development versions of mentioned packages.
 
 
 
@@ -101,41 +100,42 @@ The NorduGrid repository hosts the source code, and provides most of
 the required external software which are not part of a standard Linux
 distribution.
 
-You can get the latest source code for ARC-nox from the Subversion 
+You can get the latest source code for ARC from the Subversion 
 repository. See http://svn.nordugrid.org for more details.
 
-There are also nightly code snapshots available at 
-http://download.nordugrid.org/software/nordugrid-arc1/nightly/ .
-Choose latest date available and download snapshot tarball -
-for example nordugrid-arc1-200802201038-snapshot.tar.gz.
+There are also nightly code snapshots available at
+http://download.nordugrid.org/software/nordugrid-arc/experimental/ .
+Choose latest version available, go in to the src directory and
+download the tarball.
 
 
 
 Building & Installation
 =======================
 
-Building from source is currently the recommended way to install ARC-nox. 
-If you downloaded the tarball, unpack it and cd into the created
-directory.
+The recommended way to install ARC is from repositories.  If you want
+to build it yourself and downloaded the tarball, unpack it and cd into
+the created directory.
 
-  tar -zxvf nordugrid-arc1-200802201038-snapshot.tar.gz
-  cd nordugrid-arc1-200802201038
+  tar -zxvf nordugrid-arc-1.0.0.tar.gz
+  cd nordugrid-arc-1.0.0
 
 If you obtained the code from the Subversion repository, use the
-'trunk' directory.
-
-  cd trunk
+'tags/1.0.0' directory.
+  svn co http://svn.nordugrid.org/repos/nordugrid/arc1/tags/1.0.0 nordugrid-arc
+  cd nordugrid-arc
 
 Now configure the obtained code with
 
   ./autogen.sh
-  ./configure --prefix=PLACE_TO_INSTALL_ARC-nox
+  ./configure --prefix=PLACE_TO_INSTALL_ARC
 
-Choose the installation prefix wisely and according to the requirements of
-your OS and personal preferences. ARC-nox should function properly from
-any location. By default installation goes into /usr/local if you omit
-the '--prefix' option. For some modules of ARC-nox to work properly you
-may need to set up the environment variable after installation:
+Choose the installation prefix wisely and according to the
+requirements of your OS and personal preferences. ARC should function
+properly from any location. By default installation goes into /usr if
+you omit the '--prefix' option. If you instal into another directory
+than /usr you may need to set up the environment variable after
+installation:
 
   export ARC_LOCATION=PLACE_TO_INSTALL_ARC
 
@@ -144,7 +144,7 @@ long as 'configure' passes without errors. But in case of problems
 during configure or compilation, collect them and present while 
 reporting problems.
 
-If the previous commands finish without errors, compile and install ARC-nox
+If the previous commands finish without errors, compile and install ARC
 
   make
   make install
@@ -159,7 +159,7 @@ bin/ - user tools and command line clients
 lib/ - common libraries used by clients, server and plugins
 lib/arc/ - plugins implementing Message Chain, Service and Security components
 include/arc/ - C++ headers for application development
-libexec/ - additional modules used by ARC-nox services - currently only A-REX
+libexec/ - additional modules used by ARC services - currently only A-REX
 share/doc/arc - configuration examples/templates and documentation
 share/locale - internationalization files - curently very limited support
 share/man - manual pages for various utilities
@@ -169,7 +169,7 @@ share/man - manual pages for various utilities
 X509 Certificates
 =================
 
-Most of ARC-nox planned and existing services use HTTPS as transport protocol
+Most of ARC planned and existing services use HTTPS as transport protocol
 so they require proper setup of X509 security infrastructure. Minimal 
 requirements are:
 * Host certificate aka public key in PEM format
@@ -192,7 +192,7 @@ https://vls.grid.upjs.sk/CA/instantCA . It is especially useful if to test
 installations consisting on multiple hosts.
 
 Please remember that it is not safe to use such instant keys in publicly
-accessible installations of ARC-nox. Make sure that even the generate CA
+accessible installations of ARC. Make sure that even the generate CA
 certificate is removed before making your services available to the
 outside world.
 
@@ -203,7 +203,7 @@ private key must not be encrypted and or protected by a password sinc
 a service has no way to ask person about password. So make sure it is
 properly protected by means of file system.
 
-It is possible to configure ARC-nox server to accept either a single CA certificate
+It is possible to configure ARC server to accept either a single CA certificate
 or multiple CA certificates located in the specified directory. The latter
 option is recommended. The common location is /etc/grid-security/certificates/ .
 In that case names of certificate files have to follow hash values of
@@ -231,7 +231,7 @@ The key file has to be without passphrase for the server side. You can also
 configure a proxy certificate instead of the normal certificate (See part:
 Proxy certificate Generation & Usage).
 
-The same requirements are valid for the client tools of ARC-nox. You may use
+The same requirements are valid for the client tools of ARC. You may use
 the pregenerated user certificate and key located at the same
 place. Locations of the credentials are provided to the client tools
 from the command line.
@@ -265,9 +265,9 @@ Note: here only the ca information needs to be specified.
 
 The set of pre-generated keys and certificates also includes a user
 certificate in PKCS12 format which you can import into your browser
-for accessing ARC-nox services capable of producing HTML output.
+for accessing ARC services capable of producing HTML output.
 
-ARC-nox comes with the utility arcproxy to generate proxy credentials
+ARC comes with the utility arcproxy to generate proxy credentials
 from a certificate/private key pair. It provides only basic functionality 
 and is meant for testing purposes only. 
 
@@ -281,7 +281,7 @@ to be kept unencrypted.
 
 Proxy certificate Generation & Usage
 ====================================
-As metioned above, ARC-nox comes with utility proxy generation utility
+As metioned above, ARC comes with utility proxy generation utility
 --arcproxy. 
 arcproxy appears in ARC_LOCATION/bin. The usage of arcproxy is like:
 ARC_LOCATION/bin/arcproxy -P proxy.pem -C cert.pem -K key.pem 
@@ -328,11 +328,11 @@ extenstion in RFC3820's policy language "NID_id_ppl_anyLanguage".
 ARC Server Setup & Configuration
 ================================
 
-The configuration of the ARC server is specified in an XML file, the
-location of which is specified as a command line argument with the -c
-option of 'arched' daemon. Examples of configuration files with comments
-describing various elements are available in directory share/doc/arc of
-the ARC-nox installation. 
+The configuration of the ARC server can either be specified in
+arc.conf or in an XML file, the location of which is specified as a
+command line argument with the -c option of 'arched' daemon. Examples
+of configuration files with comments describing various elements are
+available in directory share/doc/arc of the ARC installation.
 
 
 
@@ -366,7 +366,7 @@ where <message> is the message which the echo service will return.
 The A-REX Service
 =================
 
-ARC-nox comes with OGSA BES compliant Grid job management service called A-REX.
+ARC comes with OGSA BES compliant Grid job management service called A-REX.
 To deploy A-REX use example configuration files available in share/doc/arc :
 
  * arex.xml - configuration for arched server. Read comments inside this file
@@ -382,10 +382,7 @@ executable. But you still need to setup its infrastructure as long as you are
 going to have anything more sophisticated than described in the example configuration.
 For more information read the previously mentioned document.
 
-Currently, a proper functioning A-REX requires environment variable ARC_LOCATION
-to be set to the installation prefix of ARC-nox.
-
-A-REX uses HTTPS as transport protocol (although You can reconfigure it to use 
+A-REX uses either GridFTP or HTTPS as transport protocol (although You can reconfigure it to use 
 plain HTTP) so it requires proper setup of X509 security infrastructure. See
 above for instructions.
 
@@ -394,11 +391,13 @@ to X509 certificates and Grid Manager configuration are set correctly. Start ser
 with command
 
   $ARC_LOCATION/sbin/arched -c path_to_edited_arex.xml
+  or
+  /etc/init.d/a-rex start
 
 Look into log file specified in arex.xml for possible errors. You can safely ignore 
 messages like "Not a '...' type plugin" and "Unknown element ... - ignoring".
 
-If you compiled ARC-nox with Globus support and you see complaints about "libglobus..." 
+If you compiled ARC with Globus support and you see complaints about "libglobus..." 
 and that it cannot open a shared object file, try to add "/opt/globus/lib" to your
 LD_LIBRARY_PATH:
 
@@ -572,7 +571,7 @@ Execution Environment information:
  Execution environment does not support outbound connections
 ---
 
-Please note that you can run similar arcinfo request against any ARC-nox service
+Please note that you can run similar arcinfo request against any ARC service
 except for the echo service.
 
 A-REX accepts jobs described in JSDL. Example JSDL jobs are provided
@@ -601,10 +600,10 @@ and arcclean commands. For more information please see the man pages of those ut
 Security and Authorization
 ==========================
 
-ARC-nox implements security related features through set of Security Handler and 
+ARC implements security related features through set of Security Handler and 
 Policy Decision Point components. Security Handler components are attached to 
 message processing components. Each Security Handler takes care of processing
-own part of security information. Currently ARC-nox comes with 2 Security Handlers:
+own part of security information. Currently ARC comes with 2 Security Handlers:
 
  * identity.map - associates client's identity with local (UNIX) identity. It 
    uses PDP components to choose local isentity and/or identity mapping algorithm.
