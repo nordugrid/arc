@@ -107,9 +107,11 @@ Section "NorduGrid ARC clients"
   File "${SYS_PATH}/bin/zlib1.dll"
 
 ; Python
-  File "${SYS_PATH}/bin/pydoc"
   File "${SYS_PATH}/bin/python.exe"
   File "${SYS_PATH}/bin/python${PYVER}.exe"
+  File "${SYS_PATH}/bin/libpython${PYVER}.dll"
+  File "${SYS_PATH}/bin/pydoc"
+  SetOutPath "$INSTDIR\lib\python${PYVER}"
   File "${SYS_PATH}/lib/python${PYVER}/*.*"
 
 ; Globus ARC dependencies
@@ -245,8 +247,10 @@ Section "Uninstall"
   RMDir "$INSTDIR\lib"
 
   Delete /rebootok "$INSTDIR\lib\python${PYVER}/*.*"
-  Delete /rebootok "$INSTDIR\bin\python${PYVER}.exe"
   Delete /rebootok "$INSTDIR\bin\pydoc"
+  Delete /rebootok "$INSTDIR\bin\libpython${PYVER}.dll"
+  Delete /rebootok "$INSTDIR\bin\python${PYVER}.exe"
+  Delete /rebootok "$INSTDIR\bin\python.exe"
   Delete /rebootok "$INSTDIR\bin\zlib1.dll"
   Delete /rebootok "$INSTDIR\bin\libxslt-1.dll"
   Delete /rebootok "$INSTDIR\bin\libxmlsec1-openssl.dll"
