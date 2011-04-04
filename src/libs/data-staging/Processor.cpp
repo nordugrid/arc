@@ -128,7 +128,7 @@ namespace DataStaging {
           }
           cache.AddDN(canonic_url, dn, exp_time);
         }
-        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Permission checking passed", request->get_short_id());
+        request->get_logger()->msg(Arc::INFO, "DTR %s: Permission checking passed", request->get_short_id());
         // check if file is fresh enough
         bool outdated = true;
         if (have_permission)

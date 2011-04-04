@@ -273,8 +273,8 @@ namespace Arc {
                      canonic_url, cache.File(canonic_url));
           // check the list of cached DNs
           if (cache.CheckDN(canonic_url, dn)) {
-            logger.msg(VERBOSE, "Permission checking passed");
-            logger.msg(VERBOSE, "Linking/copying cached file");
+            logger.msg(INFO, "Permission checking passed");
+            logger.msg(INFO, "Linking/copying cached file");
             bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                                 canonic_url,
                                                 (!source.ReadOnly() || executable || cache_copy),
@@ -575,7 +575,7 @@ namespace Arc {
             else {
               DataStatus cres = source.Check();
               if (!cres.Passed()) {
-                logger.msg(ERROR, "Permission checking failed: %s", source.str());
+                logger.msg(ERROR, "Permission checking failed: %s", canonic_url);
                 cache.Stop(canonic_url);
                 source.NextLocation(); /* try another source */
                 logger.msg(VERBOSE, "source.next_location");
@@ -584,7 +584,7 @@ namespace Arc {
               }
               cache.AddDN(canonic_url, dn, exp_time);
             }
-            logger.msg(VERBOSE, "Permission checking passed");
+            logger.msg(INFO, "Permission checking passed");
             /* check if file is fresh enough */
             bool outdated = true;
             if (have_permission)
@@ -611,7 +611,7 @@ namespace Arc {
               continue;
             }
             logger.msg(VERBOSE, "Cached copy is still valid");
-            logger.msg(VERBOSE, "Linking/copying cached file");
+            logger.msg(INFO, "Linking/copying cached file");
             if (!cache.Link(destination.CurrentLocation().Path(),
                             canonic_url,
                             (!source.ReadOnly() || executable || cache_copy),
@@ -1076,7 +1076,7 @@ namespace Arc {
         if (source.CheckValid())
           cache.SetValid(canonic_url, source.GetValid());
         cache.AddDN(canonic_url, dn, exp_time);
-        logger.msg(VERBOSE, "Linking/copying cached file");
+        logger.msg(INFO, "Linking/copying cached file");
         bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                             canonic_url,
                                             (!source.ReadOnly() || executable || cache_copy),
