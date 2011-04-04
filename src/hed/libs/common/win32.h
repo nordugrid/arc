@@ -19,17 +19,34 @@
 #define SIGTTIN 21
 #define SIGTTOU 22
 #define sleep(x) Sleep((x) * 1000)
-#define mkdir(x, y) mkdir((x))
-#define lstat stat
+//#define mkdir(x, y) mkdir((x))
+//#define lstat stat
 // no windows functions
 #define chown(x, y, z) (0)
 #define lchown(x, y, z) (0)
 #define fchown(x, y, z) (0)
 #define symlink(x, y) (-1)
-#define link(x, y) (-1)
-#define readlink(x, y, z) (-1)
+//#define link(x, y) (-1)
+//#define readlink(x, y, z) (-1)
 #define getuid() (0)
 #define getgid() (0)
+
+inline ssize_t readlink(const char *path, char *buf, size_t bufsiz) {
+    return -1;
+};
+
+inline int mkdir(const char *pathname, mode_t mode) {
+    return ::mkdir(pathname);
+}
+
+inline int link(const char *oldpath, const char *newpath) {
+    return -1;
+};
+
+#include <sys/stat.h>
+inline int lstat(const char *path, struct stat *buf) {
+    return ::stat(path,buf);
+};
 
 // pwd.h does not exist on windows
 struct passwd {
