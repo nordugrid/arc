@@ -283,6 +283,15 @@ Requires(preun):	chkconfig
 Requires(preun):	initscripts
 Requires(postun):	initscripts
 
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+Requires(post):		policycoreutils
+Requires(postun):	policycoreutils
+%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
+Requires(post):		policycoreutils-python
+Requires(postun):	policycoreutils-python
+%endif
+%endif
+
 %description aris
 The NorduGrid is a collaboration aiming at development, maintenance
 and support of the free Grid middleware, known as the Advanced Resource
@@ -700,6 +709,9 @@ exit 0
 
 %post aris
 /sbin/chkconfig --add grid-infosys
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
+%endif
 
 %preun aris
 if [ $1 = 0 ]; then
@@ -711,7 +723,11 @@ fi
 if [ "$1" -ge "1" ]; then
   service grid-infosys condrestart > /dev/null 2>&1
 fi
-exit 0
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+if [ $1 -eq 0 ]; then
+  semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
+fi
+%endif
 
 %if %{with_java} && %{with_gcj}
 %post java
