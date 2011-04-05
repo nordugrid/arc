@@ -39,10 +39,12 @@ bool SimpleListPDP::isPermitted(Message *msg) const {
     logger.msg(ERROR, "No policy file or DNs specified for simplelist.pdp, please set location attribute or at least one DN element for simplelist PDP node in configuration.");
     return false; 
   }
+  logger.msg(DEBUG, "Subject to match: %s", subject);
   for(std::list<std::string>::const_iterator dn = dns.begin();
                             dn != dns.end();++dn) {
+    logger.msg(DEBUG, "Policy subject: %s", *dn);
     if((*dn) == subject) {
-      logger.msg(VERBOSE, "Authorized from simplelist.pdp");
+      logger.msg(VERBOSE, "Authorized from simplelist.pdp: %s", subject);
       return true;
     }
   }
@@ -56,8 +58,7 @@ bool SimpleListPDP::isPermitted(Message *msg) const {
   while (!fs.eof()) {
     std::string::size_type p;
     getline (fs, line);
-    logger.msg(VERBOSE, "policy line: %s", line);
-    logger.msg(VERBOSE, "subject: %s", subject);
+    logger.msg(DEBUG, "Policy line: %s", line);
     p=line.find_first_not_of(" \t"); line.erase(0,p);
     p=line.find_last_not_of(" \t"); if(p != std::string::npos) line.erase(p+1);
     if(!line.empty()) {
@@ -69,12 +70,12 @@ bool SimpleListPDP::isPermitted(Message *msg) const {
     if(!line.empty()) {
       if(!(line.compare(subject))) {
          fs.close();
-         logger.msg(VERBOSE, "Authorized from simplelist.pdp");
+         logger.msg(VERBOSE, "Authorized from simplelist.pdp: %s", subject);
          return true;
       }
     }
   }
   fs.close();
-  logger.msg(ERROR, "Not authorized from simplelist.pdp");
+  logger.msg(ERROR, "Not authorized from simplelist.pdp: %s", subject);
   return false;
 }
