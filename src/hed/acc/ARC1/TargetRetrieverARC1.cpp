@@ -494,7 +494,7 @@ namespace Arc {
         targets.back().ApplicationEnvironments.push_back(ae);
       }
 
-      XMLNode ComputingShare = GLUEService["ComputingShares"]["ComputingShare"];
+      XMLNode ComputingShare = GLUEService["ComputingShare"];
       for (int i = 0; ComputingShare[i]; i++) {
         ExecutionTarget& currentTarget = targets.back();
         if (ComputingShare[i+1]) {
