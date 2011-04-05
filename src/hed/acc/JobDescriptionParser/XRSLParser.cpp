@@ -740,7 +740,7 @@ namespace Arc {
           j.Resources.SessionLifeTime = Period(time, PeriodMinutes);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
-            it->Resources.SessionLifeTime = Period(time, PeriodDays);
+            it->Resources.SessionLifeTime = Period(time, PeriodMinutes);
           }
         }
         return true;
