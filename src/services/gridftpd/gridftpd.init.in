@@ -144,7 +144,7 @@ else
   PID_FILE=$HOME/$prog.pid
 fi
 
-parser="$ARC_LOCATION/@pkglibsubdir@/config_parser_compat.sh"
+parser="$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
 if ! . "$parser"; then
     failure "Failed sourcing config parser"
     echo
