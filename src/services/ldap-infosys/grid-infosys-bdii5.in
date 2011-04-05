@@ -1252,6 +1252,7 @@ start () {
     create_directory $bdii_var_dir/db/glue2 "BDII_VAR_DIR/db/glue2"
     create_directory $bdii_var_dir/archive "BDII_VAR_DIR/archive"
     chown -R $bdii_user:$bdii_user $bdii_var_dir
+    [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir
     chown -R $bdii_user:$bdii_user $bdii_tmp_dir
     if [ ! -f $bdii_log_file ]; then
         touch $bdii_log_file
