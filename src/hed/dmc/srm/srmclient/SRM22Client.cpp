@@ -961,6 +961,8 @@ namespace Arc {
 
         statuscode = GetStatus(res["returnStatus"], explanation);
 
+        if (statuscode == SRM_TOO_MANY_RESULTS) break;
+
         // loop will exit on success or return false on error
         if (statuscode != SRM_SUCCESS &&
             statuscode != SRM_REQUEST_QUEUED &&
