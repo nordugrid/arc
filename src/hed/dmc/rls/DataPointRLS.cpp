@@ -39,9 +39,9 @@ namespace Arc {
       globus_thread_set_model("pthread");
 #endif
       GlobusPrepareGSSAPI();
-      globus_module_activate(GLOBUS_COMMON_MODULE);
-      globus_module_activate(GLOBUS_IO_MODULE);
-      globus_module_activate(GLOBUS_RLS_CLIENT_MODULE);
+      GlobusModuleActivate(GLOBUS_COMMON_MODULE);
+      GlobusModuleActivate(GLOBUS_IO_MODULE);
+      GlobusModuleActivate(GLOBUS_RLS_CLIENT_MODULE);
       proxy_initialized = GlobusRecoverProxyOpenSSL();
     }
     std::string guidopt = url.Option("guid", "no");

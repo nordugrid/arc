@@ -129,7 +129,7 @@ namespace Arc {
       globus_thread_set_model("pthread");
 #endif
       GlobusPrepareGSSAPI();
-      globus_module_activate(GLOBUS_FTP_CONTROL_MODULE);
+      GlobusModuleActivate(GLOBUS_FTP_CONTROL_MODULE);
       activated_ = GlobusRecoverProxyOpenSSL();
     }
   }

@@ -11,6 +11,7 @@
 #include <openssl/objects.h>
 #include <openssl/x509v3.h>
 
+#include <globus_module.h>
 #include <globus_gsi_callback.h>
 
 #include <arc/Thread.h>
@@ -85,6 +86,12 @@ namespace Arc {
     int index = -1;
     globus_gsi_callback_get_X509_STORE_callback_data_index(&index);
     globus_gsi_callback_get_SSL_callback_data_index(&index);
+    return true;
+  }
+
+  bool GlobusModuleActivate(globus_module_descriptor_t* module) {
+    Glib::Mutex::Lock lock(lock_);
+    return (globus_module_activate(module) == GLOBUS_SUCCESS);
   }
 }
 

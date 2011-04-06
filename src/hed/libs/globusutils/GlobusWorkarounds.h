@@ -8,5 +8,11 @@ bool GlobusRecoverProxyOpenSSL(void);
 // race condition.
 bool GlobusPrepareGSSAPI(void);
 
+
+// Wrapper for globus_module_activate() function to avoid
+// race conditions in some Globus module activation functions.
+bool GlobusModuleActivate(globus_module_descriptor_t* module);
+
+
 } // namespace Arc
 
