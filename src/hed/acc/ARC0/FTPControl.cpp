@@ -125,6 +125,7 @@ namespace Arc {
     connected = false;
     cb = new CBArg;
     if(!activated_) {
+      OpenSSLInit();
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
       globus_thread_set_model("pthread");
 #endif
