@@ -226,7 +226,7 @@ bool PayloadFAFile::Get(char* buf,int& size) {
     if((cpos+size) > limit_) size=limit_-cpos;
   };
   ssize_t l = handle_->read(buf,size);
-  if(l < 0) { size=0; return false; }
+  if(l <= 0) { size=0; return false; }
   size = (int)l;
   return true;
 }
