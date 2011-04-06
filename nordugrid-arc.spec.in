@@ -44,6 +44,7 @@ BuildRequires:	python-devel
 BuildRequires:	glibmm24-devel
 BuildRequires:	glib2-devel
 BuildRequires:	libxml2-devel
+BuildRequires:	openssl
 BuildRequires:	openssl-devel
 BuildRequires:	xmlsec1-devel >= 1.2.4
 BuildRequires:	xmlsec1-openssl-devel >= 1.2.4

@@ -29,6 +29,3 @@ noinst_DATA = ca_key.pem ca_cert.pem
 
 ca_key.pem ca_cert.pem:
 	openssl req -subj "/O=Grid/OU=ARC/CN=ARC CA" -set_serial 0 -passout pass:password -x509 -newkey rsa:2048 -keyout ca_key.pem -out ca_cert.pem
-
-# Make the CA credentials part of the distribution so as not to depend on openssl binary during testing
-EXTRA_DIST = ca_key.pem ca_cert.pem
