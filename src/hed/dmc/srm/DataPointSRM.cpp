@@ -645,10 +645,13 @@ namespace Arc {
     }
     
     std::string canonic_url;
-    if (!url.HTTPOption("SFN").empty())
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
-    else
+    std::string sfn_path = url.HTTPOption("SFN");
+    if (!sfn_path.empty()) {
+      while (sfn_path[0] == '/') sfn_path.erase(0,1);
+      canonic_url = url.Protocol() + "://" + url.Host() + "/" + sfn_path;
+    } else {
       canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
+    }
 
     SRMClientRequest srm_request_tmp(canonic_url);
     logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", CurrentLocation().str());
