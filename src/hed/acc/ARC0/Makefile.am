@@ -9,6 +9,7 @@ libaccARC0_la_SOURCES = \
 libaccARC0_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_FTP_CONTROL_CFLAGS)
 libaccARC0_la_LIBADD = \
+	$(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_srcdir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \

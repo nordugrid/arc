@@ -6,6 +6,7 @@
 
 #include <arc/Logger.h>
 #include <arc/Thread.h>
+#include <arc/crypto/OpenSSL.h>
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/globusutils/GSSCredential.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
