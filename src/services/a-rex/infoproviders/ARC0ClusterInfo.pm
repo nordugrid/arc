@@ -411,7 +411,7 @@ sub collect($) {
                     $j->{executionnodes} = $gmjob->{nodenames} if $gmjob->{nodenames};
                     $j->{usedmem} = $gmjob->{UsedMem} if $gmjob->{UsedMem};
                     $j->{completiontime} = $gmjob->{completiontime} if $gmjob->{completiontime};
-                    $j->{errors} = join "; ", map { substr($_,0,255) } @{$gmjob->{errors}} if $gmjob->{errors};
+                    $j->{errors} = join "; ", @{$gmjob->{errors}} if $gmjob->{errors};
                     $j->{exitcode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
                 }
 

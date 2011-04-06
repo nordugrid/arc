@@ -755,7 +755,7 @@ sub collect($) {
                 $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
                 # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
                 $cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
-                $cact->{Error} = [ map { substr($_,0,255) } @{$gmjob->{errors}} ] if $gmjob->{errors};
+                $cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
                 # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
                 $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
                 $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};

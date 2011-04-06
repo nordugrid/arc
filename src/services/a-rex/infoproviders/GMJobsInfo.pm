@@ -233,7 +233,9 @@ sub get_gmjobs {
             unless (open (GMJOB_FAILED, "<$gmjob_failed")) {
                 $log->warning("Job $ID: Can't open $gmjob_failed");
             } else {
-                chomp (my @allines = <GMJOB_FAILED>);
+                my $chars;
+                read GMJOB_FAILED, $chars, 1024;
+                my @allines = split "\n";
                 close GMJOB_FAILED;
                 $job->{errors} = \@allines;
             }
