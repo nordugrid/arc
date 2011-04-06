@@ -235,7 +235,7 @@ sub get_gmjobs {
             } else {
                 my $chars;
                 read GMJOB_FAILED, $chars, 1024;
-                my @allines = split "\n";
+                my @allines = split "\n", $chars;
                 close GMJOB_FAILED;
                 $job->{errors} = \@allines;
             }
