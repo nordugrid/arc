@@ -1279,7 +1279,7 @@ start () {
 
     # If index-server configured, start it
     if [ "`config_subsections infosys/index`" ]; then
-        ${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo
+        $RUNUSER -s "$USERSHELL" -c "${giis_location}/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo" ${bdii_user}
     fi
 
     # Start BDII
