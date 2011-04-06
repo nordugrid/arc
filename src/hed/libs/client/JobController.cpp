@@ -617,8 +617,8 @@ namespace Arc {
 
     URL src_(src);
     URL dst_(dst);
-    src_.AddOption("checksum","no");
-    dst_.AddOption("checksum","no");
+    src_.AddOption("checksum=no");
+    dst_.AddOption("checksum=no");
 
     if ((!data_source) || (!*data_source) ||
         (!(*data_source)->SetURL(src_))) {

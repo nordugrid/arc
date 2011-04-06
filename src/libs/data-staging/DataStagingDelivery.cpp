@@ -116,7 +116,7 @@ int main(int argc,char* argv[]) {
                            o != source_opts.end();++o) {
     std::string::size_type p = o->find('=');
     if(p == std::string::npos) {
-      source_url.AddOption(*o,"");
+      source_url.AddOption(*o);
     } else {
       std::string name = o->substr(0,p);
       if(name == "credential") {
@@ -124,7 +124,7 @@ int main(int argc,char* argv[]) {
       } else if(name == "ca") {
         source_ca_path = o->substr(p+1);
       } else {
-        source_url.AddOption(name,o->substr(p+1));
+        source_url.AddOption(*o);
       };
     };
   };
@@ -132,7 +132,7 @@ int main(int argc,char* argv[]) {
                            o != dest_opts.end();++o) {
     std::string::size_type p = o->find('=');
     if(p == std::string::npos) {
-      dest_url.AddOption(*o,"");
+      dest_url.AddOption(*o);
     } else {
       std::string name = o->substr(0,p);
       if(name == "credential") {
@@ -140,7 +140,7 @@ int main(int argc,char* argv[]) {
       } else if(name == "ca") {
         dest_ca_path = o->substr(p+1);
       } else {
-        dest_url.AddOption(name,o->substr(p+1));
+        dest_url.AddOption(*o);
       };
     };
   };

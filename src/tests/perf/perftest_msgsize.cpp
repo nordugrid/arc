@@ -60,7 +60,7 @@ void sendRequests(){
 
   //std::string url_str("https://127.0.0.1:60000/echo");
   Arc::URL url(url_str);
-  if(tcpNoDelay) url.AddOption("tcpnodelay","yes");
+  if(tcpNoDelay) url.AddOption("tcpnodelay=yes");
   Arc::MCCConfig mcc_cfg;
   mcc_cfg.AddPrivateKey("../echo/testuserkey-nopass.pem");
   mcc_cfg.AddCertificate("../echo/testusercert.pem");
