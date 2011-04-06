@@ -1119,7 +1119,7 @@ namespace Arc {
     return req_;
   }
 
-  bool Credential::GenerateEECRequest(BIO* reqbio, BIO* /*keybio*/, std::string dn) {
+  bool Credential::GenerateEECRequest(BIO* reqbio, BIO* /*keybio*/, const std::string& dn) {
     bool res = false;
     RSA* rsa_key = NULL;
     const EVP_MD *digest = signing_alg_;
@@ -1214,7 +1214,7 @@ namespace Arc {
     return res;
   }
 
-  bool Credential::GenerateEECRequest(std::string &req_content, std::string &key_content, std::string dn) {
+  bool Credential::GenerateEECRequest(std::string& req_content, std::string& key_content, const std::string& dn) {
     BIO *req_out = BIO_new(BIO_s_mem());
     BIO *key_out = BIO_new(BIO_s_mem());
     if(!req_out || !key_out) {
@@ -1255,7 +1255,7 @@ namespace Arc {
     return BIO_read_filename(b, (char*)file);
   }
 
-  bool Credential::GenerateEECRequest(const char* req_filename, const char* key_filename, std::string dn) {
+  bool Credential::GenerateEECRequest(const char* req_filename, const char* key_filename, const std::string& dn) {
     BIO *req_out = BIO_new(BIO_s_file());
     BIO *key_out = BIO_new(BIO_s_file());
     if(!req_out || !key_out) {
@@ -1866,7 +1866,7 @@ err:
     return false;
   }
 
-  bool Credential::AddExtension(std::string name, char** binary, bool) {
+  bool Credential::AddExtension(std::string name, char** binary) {
     X509_EXTENSION* ext = NULL;
     if(binary == NULL) return false;
     ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
@@ -2471,8 +2471,9 @@ err:
       goto end;
     }
     if (sno) bs = sno;
-    else if (!(bs = x509_load_serial(CAfile, serialfile, create)))
-      goto end;
+    else if (!(bs = x509_load_serial(CAfile, serialfile, create))) //bs = s2i_ASN1_INTEGER(NULL, "1");
+      goto end; 
+      
 
     X509_STORE_CTX_set_cert(&xsc,x);
     //if (!X509_verify_cert(&xsc))
@@ -2504,6 +2505,10 @@ err:
       X509V3_set_nconf(&ctx2, conf);
       if (!X509V3_EXT_add_nconf(conf, &ctx2, section, x)) goto end;
     }
+
+    X509V3_CTX ctx2;
+    X509_set_version(x,2); /* version 3 certificate */
+    X509V3_set_ctx(&ctx2, xca, x, NULL, NULL, 0);
 
     if (!X509_sign(x,pkey,digest)) goto end;
       ret=1;
@@ -2634,6 +2639,30 @@ error:
     return NULL;
   }
 
+  bool Credential::SelfSignEECRequest(const std::string& dn, const char* filename) {
+    cert_ = X509_new(); 
+    X509_NAME *name = NULL;
+    unsigned long chtype = MBSTRING_ASC;
+    if(!dn.empty()) {
+      name = parse_name((char*)(dn.c_str()), chtype, 0);
+      X509_set_subject_name(cert_, name);
+      X509_NAME_free(name);
+    }
+    else {
+      X509_set_subject_name(cert_, X509_REQ_get_subject_name(req_));
+    }
+
+    EVP_PKEY* tmpkey;
+    tmpkey = X509_REQ_get_pubkey(req_);
+    if(!tmpkey || !X509_set_pubkey(cert_, tmpkey)) {
+      CredentialLogger.msg(ERROR,"Failed to set the pubkey for X509 object by using pubkey from X509_REQ");
+      LogError(); return false;
+    }
+    EVP_PKEY_free(tmpkey);
+
+    return(SignEECRequest(this, dn, filename));
+  }
+
   bool Credential::SignEECRequest(Credential* eec, const std::string& dn, BIO* outputbio) {
     if(pkey_ == NULL) { CredentialLogger.msg(ERROR, "The private key for signing is not initialized"); return false; }
     bool res = false;
@@ -2655,7 +2684,7 @@ error:
     X509_set_pubkey(eec_cert, req_pubkey);
     EVP_PKEY_free(req_pubkey);
 
-    X509_set_issuer_name(eec_cert,eec->req_->req_info->subject);
+    //X509_set_issuer_name(eec_cert,eec->req_->req_info->subject);
     //X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
 
     X509_NAME *subject = NULL;

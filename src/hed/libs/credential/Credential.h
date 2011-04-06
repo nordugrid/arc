@@ -309,7 +309,7 @@ class Credential {
     * In openssl, the specific X509V3_EXT_METHOD can be got according to
     * the extension name/id, see X509V3_EXT_get_nid(ext_nid)
     */
-    bool AddExtension(std::string name, char** binary, bool crit = false);
+    bool AddExtension(std::string name, char** binary);
 
     /**Generate an EEC request, based on the keybits and signing
     * algorithm information inside this object
@@ -317,13 +317,13 @@ class Credential {
     *
     * The user will be asked for a private key password
     */
-    bool GenerateEECRequest(BIO* reqbio, BIO* keybio, std::string dn = "");
+    bool GenerateEECRequest(BIO* reqbio, BIO* keybio, const std::string& dn = "");
 
     /**Generate an EEC request, output the certificate request to a string*/
-    bool GenerateEECRequest(std::string &reqcontent, std::string &keycontent, std::string dn = "");
+    bool GenerateEECRequest(std::string &reqcontent, std::string &keycontent, const std::string& dn = "");
 
     /**Generate an EEC request, output the certificate request and the key to a file*/
-    bool GenerateEECRequest(const char* request_filename, const char* key_filename, std::string dn = "");
+    bool GenerateEECRequest(const char* request_filename, const char* key_filename, const std::string& dn = "");
 
     /**Generate a proxy request, base on the keybits and signing
     * algorithm information inside this object
@@ -367,16 +367,18 @@ class Credential {
      */
     bool SignRequest(Credential* proxy, const char* filename, bool foamat = false);
 
+    bool SelfSignEECRequest(const std::string& dn, const char* filename);
+
     //The following three methods is about signing an EEC certificate by implementing the same
     //functionality as a normal CA
     /**Sign eec request, and output the signed certificate to output BIO*/
-    bool SignEECRequest(Credential* eec, const std::string& DN, BIO* outputbio);
+    bool SignEECRequest(Credential* eec, const std::string& dn, BIO* outputbio);
 
     /**Sign request and output the signed certificate to a string*/
-    bool SignEECRequest(Credential* eec, const std::string& DN, std::string &content);
+    bool SignEECRequest(Credential* eec, const std::string& dn, std::string &content);
 
     /**Sign request and output the signed certificate to a file*/
-    bool SignEECRequest(Credential* eec, const std::string& DN, const char* filename);
+    bool SignEECRequest(Credential* eec, const std::string& dn, const char* filename);
 
   private:
     // PKI files
