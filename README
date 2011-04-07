@@ -188,7 +188,7 @@ and http://www.nordugrid.org/documents/ng-server-install.html#security
 For testing purposes you can use pre-generated certificates and
 keys available at:
 
- http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/sec/TestCA
+ http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/sec/TestCA
 
 Alternatively You may choose to use KnowARC Instant CA service available at 
 https://vls.grid.upjs.sk/CA/instantCA . It is especially useful if to test
@@ -378,7 +378,7 @@ To deploy A-REX use example configuration files available in share/doc/arc :
    file defines how jobs are managed by A-REX locally. Read and edit it. For more
    detailed information please read Grid Manager documentation available in SVN
    repository
-   http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/a-rex/arex_tech_doc.pdf?format=raw
+   http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/a-rex/arex_tech_doc.pdf?format=raw
 
 The Grid Manager runs as part of the A-REX service. There is no need to run any additional
 executable. But you still need to setup its infrastructure as long as you are 
