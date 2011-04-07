@@ -11,7 +11,6 @@
 #include <openssl/objects.h>
 #include <openssl/x509v3.h>
 
-#include <globus_module.h>
 #include <globus_gsi_callback.h>
 
 #include <arc/Thread.h>

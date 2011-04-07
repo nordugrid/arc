@@ -1,3 +1,5 @@
+#include <globus_module.h>
+
 namespace Arc {
 
 // Workaround for Globus adding own proxy object. It is not needed anymore.
