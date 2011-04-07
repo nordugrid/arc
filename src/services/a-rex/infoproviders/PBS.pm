@@ -469,8 +469,8 @@ sub queue_info ($$) {
     # read the queue information for the queue entry from the qstat
 
     my (%qstat);
-    unless (open QSTATOUTPUT,   "$path/qstat -f -Q $qname 2>/dev/null |") {
-	error("Error in executing qstat: $path/qstat -f -Q $qname");
+    unless (open QSTATOUTPUT,   "$path/qstat -Q -f1 $qname 2>/dev/null |") {
+	error("Error in executing qstat: $path/qstat -Q -f1 $qname");
     }
     while (my $line= <QSTATOUTPUT>) {       
 	if ($line =~ m/ = /) {
@@ -541,8 +541,8 @@ sub queue_info ($$) {
     $lrms_queue{queued} = 0;
     $lrms_queue{totalcpus} = 0;
     if ( ($qstat{"enabled"} =~ /True/) and ($qstat{"started"} =~ /True/)) {
-	unless (open QSTATOUTPUT,   "$path/qstat -f -Q $qname 2>/dev/null |") {
-	    error("Error in executing qstat: $path/qstat -f -Q $qname");
+	unless (open QSTATOUTPUT,   "$path/qstat -Q -f1 $qname 2>/dev/null |") {
+	    error("Error in executing qstat: $path/qstat -Q -f1 $qname");
 	}
 
 	my %qstat;
