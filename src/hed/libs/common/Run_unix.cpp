@@ -22,6 +22,7 @@
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/User.h>
+#include <arc/Utils.h>
 
 #include "Run.h"
 
@@ -357,6 +358,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       // is done with proper uid
       usw = new UserSwitch(0,0);
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
+      EnvLockWrap(); // Protection against gettext using getenv
       spawn_async_with_pipes(working_directory, argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
@@ -364,6 +366,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
                              stdin_keep_  ? NULL : &stdin_,
                              stdout_keep_ ? NULL : &stdout_,
                              stderr_keep_ ? NULL : &stderr_);
+      EnvLockUnwrap();
       *pid_ = pid;
       if (!stdin_keep_)
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);
