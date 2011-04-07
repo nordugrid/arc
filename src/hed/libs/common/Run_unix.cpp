@@ -111,6 +111,7 @@ namespace Arc {
   };
 
   void RunInitializerArgument::Run(void) {
+    EnvLockUnwrap(); // Clean lock left by getenv protection
     void *arg = arg_;
     void (*func)(void*) = func_;
     if(usw_) delete usw_;
