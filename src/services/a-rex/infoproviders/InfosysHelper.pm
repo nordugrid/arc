@@ -141,11 +141,7 @@ sub waitForProvider {
             }
             $log->verbose("Infosys pidfile found at: $pidfile");
             next unless (my $user = getpwuid($infosys_uid));
-            if ($user eq "root") {
-                $infosys_runtime_dir = "/var/run/nordugrid";
-            } else {
-                $infosys_runtime_dir = "/var/run/${user}-nordugrid";
-            }
+            $infosys_runtime_dir = "/var/run/arc/infosys";
             $log->verbose("Infosys pidfile owned by: $user ($infosys_uid)");
             last;
         }

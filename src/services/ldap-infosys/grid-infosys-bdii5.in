@@ -370,55 +370,28 @@ if [ "x$infosys_debug" = "xenable" ]; then
 fi
 
 # Check directories and permissions
-if [ "x$bdii_user" = "xroot" ] ; then
-    registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
-    if [ ! -d `dirname $registrationlog` ]; then
-	debug_echo "Could not find registrationlog directory: `dirname $registrationlog`, creating it now."
-	mkdir -p `dirname $registrationlog`
-    fi
-
-    touch ${registrationlog}
-    chown root ${registrationlog}
-
-    touch ${providerlog}
-    chown root ${providerlog}
-
-    chown root ${bdii_log_dir}
-
-    arc_runtime_config="/var/run/nordugrid"
-    mkdir -p ${arc_runtime_config}
-    check_ownership ${arc_runtime_config} root
-    check_ownership ${bdii_log_dir} root
-    check_ownership ${providerlog} root
-    check_ownership ${registrationlog} root
-else
-    registrationlog=${CONFIG_registrationlog:-/var/log/arc/${bdii_user}-inforegistration.log}
-    if [ ! -d `dirname $registrationlog` ]; then
-	debug_echo "Could not find registrationlog directory: `dirname $registrationlog`, creating it now."
-	mkdir -p `dirname $registrationlog`
-    fi
-    
-    touch ${registrationlog}
-    chown ${bdii_user} ${registrationlog}
-
-    touch ${providerlog}
-    chown ${bdii_user} ${providerlog}
-
-    chown ${bdii_user} ${bdii_log_dir}
-
-    arc_runtime_config="/var/tmp/${bdii_user}-nordugrid"
-    if [ -d ${arc_runtime_config} ]; then
-        check_ownership ${arc_runtime_config} ${bdii_user}
-    else
-        mkdir -p ${arc_runtime_config}
-        chown ${bdii_user} ${arc_runtime_config}
-        check_ownership ${arc_runtime_config} ${bdii_user}
-    fi
-
-    check_ownership ${registrationlog} ${bdii_user}
-    check_ownership ${bdii_log_dir} ${bdii_user}
-    check_ownership ${providerlog} ${bdii_user}
+registrationlog=${CONFIG_registrationlog:-/var/log/arc/inforegistration.log}
+if [ ! -d `dirname $registrationlog` ]; then
+    debug_echo "Could not find registrationlog directory: `dirname $registrationlog`, creating it now."
+    mkdir -p `dirname $registrationlog`
 fi
+
+touch ${registrationlog}
+chown ${bdii_user} ${registrationlog}
+
+touch ${providerlog}
+chown ${bdii_user} ${providerlog}
+
+chown ${bdii_user} ${bdii_log_dir}
+
+arc_runtime_config="/var/run/arc/infosys"
+mkdir -p ${arc_runtime_config}
+chown ${bdii_user} ${arc_runtime_config}
+
+check_ownership ${arc_runtime_config} ${bdii_user}
+check_ownership ${registrationlog} ${bdii_user}
+check_ownership ${bdii_log_dir} ${bdii_user}
+check_ownership ${providerlog} ${bdii_user}
 
 # If the new code path is selected...
 if [ "x$infosys_compat" != "xenable" ]; then
@@ -576,13 +549,13 @@ fi
 
 # bdii.conf is put into nordugrid runtime directory
 # together with other temporary files, needs to be exported so bdii can start
-BDII_CONF=${CONFIG_bdii_conf:-/var/run/nordugrid/bdii.conf}
+BDII_CONF=${CONFIG_bdii_conf:-${arc_runtime_config}/bdii.conf}
 export BDII_CONF
 
 giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
 
 # Call with: create_bdii_conf bdii_dir var_dir slapd_conf default_ldif port
-# Will create bdii.conf file in /var/run/nordugrid/bdii.conf
+# Will create bdii.conf file in /var/run/arc/infosys/bdii.conf
 create_bdii_conf () {
     if [ $# != 7 ]; then
         error_echo "Wrong number of arguments to create_bdii_conf"
@@ -1357,7 +1330,7 @@ start () {
 
     # Info registration
     if [ "x$infosys_nordugrid" = "xenable" ]; then
-        $ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat /var/run/bdii-update.pid` 1>/dev/null 2>/dev/null &
+        $ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat ${update_pid_file}` 1>/dev/null 2>/dev/null &
     fi
 
     success

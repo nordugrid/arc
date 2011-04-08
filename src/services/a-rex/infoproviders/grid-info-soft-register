@@ -1,7 +1,7 @@
 #! /bin/sh
 
 ldapbindir=/usr/bin
-tmpdir=/var/run/nordugrid
+tmpdir=/var/run/arc/infosys
 
 # no more than three times per minute
 MIN_SLAVE_REG_TIME=20
