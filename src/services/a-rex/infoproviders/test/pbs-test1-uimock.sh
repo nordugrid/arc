@@ -10,6 +10,7 @@
 #    pbsnodes -a
 #    qstat -f
 #    qstat -f -Q queue1
+#    qstat -Q -f1 queue1
 #    qstat -Q
 #    qstat -n
 
@@ -95,6 +96,24 @@ ENDF
 #######################################
   'qstat -n')
     cat <<ENDF
+ENDF
+    exit 0
+    ;;
+
+#######################################
+  'qstat -Q -f1 queue1')
+    cat <<ENDF
+Queue: queue1
+    queue_type = Execution
+    total_jobs = 0
+    state_count = Transit:0 Queued:0 Held:0 Waiting:0 Running:0 Exiting:0 
+    max_running = 10
+    mtime = 1263485241
+    resources_assigned.ncpus = 0
+    resources_assigned.nodect = 0
+    enabled = True
+    started = True
+
 ENDF
     exit 0
     ;;
