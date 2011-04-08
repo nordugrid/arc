@@ -69,9 +69,9 @@ class Credential {
     *is meaningless for any other use.
     */
     Credential(const std::string& CAfile, const std::string& CAkey,
-               const std::string& CAserial, bool CAcreateserial,
+               const std::string& CAserial,
                const std::string& extfile, const std::string& extsect,
-               const std::string& passphrase4key = "");
+               const std::string& passphrase4key);
 
     /**Constructor, specific constructor for proxy certificate, only acts as a
     * container for constraining certificate signing and/or generating certificate
@@ -424,7 +424,6 @@ class Credential {
 
     //CA functionality related information
     std::string CAserial_;
-    bool CAcreateserial_;
     std::string extfile_;
     std::string extsect_;
 

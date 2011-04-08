@@ -2260,11 +2260,11 @@ err:
  //The following is the methods about how to use a CA credential to sign an EEC
 
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
-       const std::string& CAserial, bool CAcreateserial, const std::string& extfile,
+       const std::string& CAserial, const std::string& extfile,
        const std::string& extsect, const std::string& passphrase4key) : certfile_(CAcertfile), keyfile_(CAkeyfile),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL),
-       CAserial_(CAserial), CAcreateserial_(CAcreateserial), extfile_(extfile), extsect_(extsect) {
+       CAserial_(CAserial), extfile_(extfile), extsect_(extsect) {
     OpenSSLInit();
 
     InitVerification();
@@ -2316,7 +2316,7 @@ error:
 
 #undef BSIZE
 #define BSIZE 256
-  BIGNUM *load_serial(char *serialfile, int create, ASN1_INTEGER **retai) {
+  BIGNUM *load_serial(const std::string& serialfile, ASN1_INTEGER **retai) {
     BIO *in=NULL;
     BIGNUM *ret=NULL;
     char buf[1024];
@@ -2330,18 +2330,7 @@ error:
       goto err;
     }
 
-    if (BIO_read_filename_User(in,serialfile) <= 0) {
-      if (!create) {
-        perror(serialfile);
-        goto err;
-      }
-      else {
-        ret=BN_new();
-        if (ret == NULL || !rand_serial(ret, ai))
-          CredentialLogger.msg(ERROR,"Out of memory");
-      }
-    }
-    else {
+    if (BIO_read_filename_User(in,serialfile.c_str()) > 0) {
       if (!a2i_ASN1_INTEGER(in,ai,buf,1024)) {
         CredentialLogger.msg(ERROR,"unable to load number from: %s",serialfile);
         goto err;
@@ -2363,7 +2352,7 @@ err:
       return(ret);
   }
 
-  int save_serial(char *serialfile, char *suffix, BIGNUM *serial, ASN1_INTEGER **retai) {
+  int save_serial(const std::string& serialfile, char *suffix, BIGNUM *serial, ASN1_INTEGER **retai) {
     char buf[1][BSIZE];
     BIO *out = NULL;
     int ret=0;
@@ -2371,21 +2360,21 @@ err:
     int j;
 
     if (suffix == NULL)
-      j = strlen(serialfile);
+      j = strlen(serialfile.c_str());
     else
-      j = strlen(serialfile) + strlen(suffix) + 1;
+      j = strlen(serialfile.c_str()) + strlen(suffix) + 1;
     if (j >= BSIZE) {
       CredentialLogger.msg(ERROR,"file name too long");
       goto err;
     }
 
     if (suffix == NULL)
-      BUF_strlcpy(buf[0], serialfile, BSIZE);
+      BUF_strlcpy(buf[0], serialfile.c_str(), BSIZE);
     else {
 #ifndef OPENSSL_SYS_VMS
-      j = BIO_snprintf(buf[0], sizeof buf[0], "%s.%s", serialfile, suffix);
+      j = BIO_snprintf(buf[0], sizeof buf[0], "%s.%s", serialfile.c_str(), suffix);
 #else
-      j = BIO_snprintf(buf[0], sizeof buf[0], "%s-%s", serialfile, suffix);
+      j = BIO_snprintf(buf[0], sizeof buf[0], "%s-%s", serialfile.c_str(), suffix);
 #endif
     }
     out=BIO_new(BIO_s_file());
@@ -2394,7 +2383,7 @@ err:
       goto err;
     }
     if (BIO_write_filename_User(out,buf[0]) <= 0) {
-      perror(serialfile);
+      perror(serialfile.c_str());
       goto err;
     }
     if ((ai=BN_to_ASN1_INTEGER(serial,NULL)) == NULL) {
@@ -2416,46 +2405,42 @@ err:
 
 #undef POSTFIX
 #define POSTFIX ".srl"
-  static ASN1_INTEGER *x509_load_serial(char *CAfile, char *serialfile, int create) {
+  static ASN1_INTEGER *x509_load_serial(const std::string& CAfile, const std::string& serialfile) {
     char *buf = NULL, *p;
     ASN1_INTEGER *bs = NULL;
     BIGNUM *serial = NULL;
     size_t len;
 
-    len = ((serialfile == NULL)
-            ?(strlen(CAfile)+strlen(POSTFIX)+1)
-            :(strlen(serialfile)))+1;
-    buf=(char*)(OPENSSL_malloc(len));
-    if (buf == NULL) { CredentialLogger.msg(ERROR,"out of memory"); goto end; }
-    if (serialfile == NULL) {
-      BUF_strlcpy(buf,CAfile,len);
-      for (p=buf; *p; p++)
-        if (*p == '.') {
-          *p='\0';
-          break;
-        }
-      BUF_strlcat(buf,POSTFIX,len);
+    std::string serial_f;
+    if(!serialfile.empty()) serial_f = serialfile;
+    else if(!CAfile.empty()){
+      std::size_t pos; pos = CAfile.rfind(".");
+      if(pos != std::string::npos) serial_f = CAfile.substr(0, pos); 
+      serial_f.append(".srl"); 
     }
-    else
-      BUF_strlcpy(buf,serialfile,len);
+    else{ return bs;}
 
-    serial = load_serial(buf, create, NULL);
-    if (serial == NULL) goto end;
+    serial = load_serial(serial_f, NULL);
+    if (serial == NULL) {
+      CredentialLogger.msg(ERROR,"load serial from %s failure",serial_f.c_str());
+      return bs;
+    }
 
     if (!BN_add_word(serial,1)) {
-      CredentialLogger.msg(ERROR,"add_word failure"); goto end;
+      CredentialLogger.msg(ERROR,"add_word failure");
+      BN_free(serial); return bs;
     }
 
-    if (!save_serial(buf, NULL, serial, &bs)) goto end;
-
- end:
-    if (buf) OPENSSL_free(buf);
+    if(!save_serial(serial_f, NULL, serial, &bs)) {
+      CredentialLogger.msg(ERROR,"save serial to %s failure",serial_f.c_str());
+      BN_free(serial); return bs;
+    }
     BN_free(serial);
     return bs;
   }
 
-  static int x509_certify(X509_STORE *ctx, char *CAfile, const EVP_MD *digest,
-             X509 *x, X509 *xca, EVP_PKEY *pkey, char *serialfile, int create,
+  static int x509_certify(X509_STORE *ctx, const std::string& CAfile, const EVP_MD *digest,
+             X509 *x, X509 *xca, EVP_PKEY *pkey, const std::string& serialfile,
              long lifetime, int clrext, CONF *conf, char *section, ASN1_INTEGER *sno) {
     int ret=0;
     ASN1_INTEGER *bs=NULL;
@@ -2471,9 +2456,14 @@ err:
       goto end;
     }
     if (sno) bs = sno;
-    else if (!(bs = x509_load_serial(CAfile, serialfile, create))) //bs = s2i_ASN1_INTEGER(NULL, "1");
-      goto end; 
-      
+    else if (!(bs = x509_load_serial(CAfile, serialfile))) {
+      bs = ASN1_INTEGER_new();
+      if( bs == NULL || !rand_serial(NULL,bs)) {
+        CredentialLogger.msg(ERROR,"Out of memory when generate random serial");
+        goto end;
+      } 
+      //bs = s2i_ASN1_INTEGER(NULL, "1"); 
+    }
 
     X509_STORE_CTX_set_cert(&xsc,x);
     //if (!X509_verify_cert(&xsc))
@@ -2766,8 +2756,8 @@ error:
     }
 
     long lifetime = 12*60*60; //Default lifetime 12 hours
-    if (!x509_certify(ctx,(char*)(certfile_.c_str()), digest, eec_cert, cert_,
-                      pkey_, (char*)(CAserial_.c_str()), CAcreateserial_, lifetime, 0,
+    if (!x509_certify(ctx, certfile_, digest, eec_cert, cert_,
+                      pkey_, CAserial_, lifetime, 0,
                       extconf, (char*)(extsect_.c_str()), NULL)) {
       CredentialLogger.msg(ERROR,"Can not sign a EEC"); LogError();
     }

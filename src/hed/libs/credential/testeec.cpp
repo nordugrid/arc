@@ -13,15 +13,41 @@ int main(void) {
   Arc::Logger::getRootLogger().addDestination(cdest);
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
-  std::string CAcert("./CAcert.pem"); 
-  std::string CAkey("./CAkey.pem");
+  //std::string CAcert("./CAcert.pem"); 
+  //std::string CAkey("./CAkey.pem");
   std::string CAserial("./CAserial");
 
-  int keybits = 1024;
-  Arc::Time t;
+  /**Generate CA certificate*/
+  std::string ca_file("test_ca_cert.pem");
+  std::string ca_key("test_ca_key.pem");
+
+  int ca_keybits = 2048;
+  Arc::Time ca_t;
+  Arc::Credential ca(ca_t, Arc::Period(365*24*3600), ca_keybits, "EEC");
+
+  BIO* ca_req_bio;
+  ca_req_bio = BIO_new(BIO_s_mem());
+  ca.GenerateRequest(ca_req_bio);
+
+  std::string cert_dn("/O=TEST/CN=CA");
+  std::string subkeyid("hash");
+  ca.AddExtension("subjectKeyIdentifier", subkeyid.c_str());
+  ca.AddExtension("authorityKeyIdentifier", "keyid:always,issuer");
+  ca.AddExtension("basicConstraints", "CA:TRUE");
+  ca.SelfSignEECRequest(cert_dn, ca_file.c_str());
+
+  std::ofstream out_key(ca_key.c_str(), std::ofstream::out);
+  std::string ca_private_key;
+  ca.OutputPrivatekey(ca_private_key);
+  out_key.write(ca_private_key.c_str(), ca_private_key.size());
+  out_key.close();
+
 
   /**Generate certificate request on one side, 
   *and sign the certificate request on the other side.*/
+
+  int keybits = 1024;
+  Arc::Time t;
 
   //Request side
   std::string req_file("./eec_request.pem");
@@ -40,7 +66,7 @@ int main(void) {
   }
   
   std::string ca_passphrase = "aa1122";
-  Arc::Credential signer(CAcert, CAkey, CAserial, 0, "", "", ca_passphrase);
+  Arc::Credential signer(ca_file, ca_key, CAserial, "", "", ca_passphrase);
   std::string identity_name = signer.GetIdentityName();
   std::cout<<"Identity Name: "<<identity_name<<std::endl;
 
