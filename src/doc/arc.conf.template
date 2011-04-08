@@ -1054,7 +1054,7 @@ giis_location="/opt/nordugrid"
 
 [infosys/glue12]
 
-# These three variables need to be set if infosys_glue12 is enabled.
+# These variables need to be set if infosys_glue12 is enabled.
 
 # Example: "Kastrup, Denmark"
 resource_location=""
@@ -1066,16 +1066,16 @@ resource_latitude=""
 resource_longitude=""
 
 # Example 2400
-cpuscalingreferencesi00=""
+cpu_scaling_reference_si00=""
 
 # Example Cores=3,Benchmark=9.8-HEP-SPEC06
-processorotherdescription=""
+processor_other_description=""
 
 # Example http://www.ndgf.org
-gluesiteweb=""
+glue_site_web=""
 
 # Example NDGF-T1
-gluesiteuniqueid=""
+glue_site_unique_id=""
 
 # This variable decides if the GlueSite should be published. In case
 # you want to set up a more complicated setup with several publishers
