@@ -1,0 +1,30 @@
+module nordugrid-arc-egiis 1.0.0;
+
+require {
+	type slapd_t;
+	type tmp_t;
+	type var_run_t;
+	attribute file_type;
+	attribute exec_type;
+	class file { execute execute_no_trans open read };
+	class fifo_file { create getattr lock open read unlink write };
+	class process { signal };
+}
+
+type arc_relay_exec_t, file_type, exec_type;
+
+allow slapd_t arc_relay_exec_t:file execute;
+allow slapd_t arc_relay_exec_t:file execute_no_trans;
+allow slapd_t arc_relay_exec_t:file open;
+allow slapd_t arc_relay_exec_t:file read;
+allow slapd_t self:fifo_file getattr;
+allow slapd_t self:process signal;
+allow slapd_t tmp_t:fifo_file create;
+allow slapd_t tmp_t:fifo_file getattr;
+allow slapd_t tmp_t:fifo_file open;
+allow slapd_t tmp_t:fifo_file read;
+allow slapd_t tmp_t:fifo_file unlink;
+allow slapd_t var_run_t:fifo_file getattr;
+allow slapd_t var_run_t:fifo_file lock;
+allow slapd_t var_run_t:fifo_file open;
+allow slapd_t var_run_t:fifo_file write;

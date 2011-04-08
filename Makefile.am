@@ -19,7 +19,9 @@ SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian nsis $(
 
 DIST_SUBDIRS = src include swig java python po debian nsis release_notes
 
-EXTRA_DIST = nordugrid-arc.spec mingw32-nordugrid-arc.spec nordugrid-arc.SlackBuild autogen.sh LICENSE
+EXTRA_DIST = nordugrid-arc.spec mingw32-nordugrid-arc.spec \
+	nordugrid-arc.SlackBuild autogen.sh LICENSE \
+	selinux/nordugrid-arc-egiis.te selinux/nordugrid-arc-egiis.fc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = arcbase.pc

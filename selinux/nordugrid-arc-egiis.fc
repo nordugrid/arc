@@ -1,0 +1,1 @@
+/usr/sbin/arc-infoindex-relay	gen_context(system_u:object_r:arc_relay_exec_t,s0)
