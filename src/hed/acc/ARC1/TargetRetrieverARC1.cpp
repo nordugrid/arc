@@ -472,42 +472,6 @@ namespace Arc {
           continue;
         }
       }
-      XMLNode ExecutionEnvironment = ComputingManager["ExecutionEnvironments"]["ExecutionEnvironment"];
-      for (int i = 0; ExecutionEnvironment[i]; i++) {
-        ExecutionTarget& currentTarget = targets.back();
-        //TODO: required or not?
-        //if (ExecutionEnviromnent[i+1]) {
-        //  targets.push_back(ExecutionTarget(targets.back()));
-        //}
-       if (ExecutionEnvironment[i]["Platform"]) {
-          currentTarget.Platform = (std::string)ExecutionEnvironment[i]["Platform"];
-        }
-
-        if (ExecutionEnvironment[i]["MainMemorySize"]) {
-          currentTarget.MainMemorySize = stringtoi((std::string)ExecutionEnvironment[i]["MainMemorySize"]);
-        }
-
-        if (ExecutionEnvironment[i]["OSName"]) {
-          if (ExecutionEnvironment[i]["OSVersion"]) {
-            if (ExecutionEnvironment[i]["OSFamily"]) {
-              currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSFamily"],
-                                                       (std::string)ExecutionEnvironment[i]["OSName"],
-                                                       (std::string)ExecutionEnvironment[i]["OSVersion"]);
-            } 
-            else {
-              currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSName"],
-                                                       (std::string)ExecutionEnvironment[i]["OSVersion"]);
-            }
-          }
-          else {
-            currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSName"]);
-          }
-        }
- 
-
-      }
-
-
       for (XMLNode n = ComputingManager["ApplicationEnvironments"]["ApplicationEnvironment"]; n; ++n) {
         ApplicationEnvironment ae((std::string)n["AppName"], (std::string)n["AppVersion"]);
         ae.State = (std::string)n["State"];
@@ -669,6 +633,31 @@ namespace Arc {
 
             if (ExecutionEnvironment) {
               logger.msg(DEBUG, "ExecutionEnvironment \"%s\" located", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
+
+              if (ExecutionEnvironment[i]["Platform"]) {
+                currentTarget.Platform = (std::string)ExecutionEnvironment[i]["Platform"];
+              }
+
+              if (ExecutionEnvironment[i]["MainMemorySize"]) {
+                currentTarget.MainMemorySize = stringtoi((std::string)ExecutionEnvironment[i]["MainMemorySize"]);
+              }
+
+              if (ExecutionEnvironment[i]["OSName"]) {
+                if (ExecutionEnvironment[i]["OSVersion"]) {
+                  if (ExecutionEnvironment[i]["OSFamily"]) {
+                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSFamily"],
+                                                             (std::string)ExecutionEnvironment[i]["OSName"],
+                                                             (std::string)ExecutionEnvironment[i]["OSVersion"]);
+                  } 
+                  else {
+                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSName"],
+                                                             (std::string)ExecutionEnvironment[i]["OSVersion"]);
+                  }
+                }
+                else {
+                  currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSName"]);
+                }
+              }
 
               if (ExecutionEnvironment["ConnectivityIn"]) {
                 currentTarget.ConnectivityIn = (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true");
