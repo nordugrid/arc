@@ -634,28 +634,28 @@ namespace Arc {
             if (ExecutionEnvironment) {
               logger.msg(DEBUG, "ExecutionEnvironment \"%s\" located", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
 
-              if (ExecutionEnvironment[i]["Platform"]) {
-                currentTarget.Platform = (std::string)ExecutionEnvironment[i]["Platform"];
+              if (ExecutionEnvironment["Platform"]) {
+                currentTarget.Platform = (std::string)ExecutionEnvironment["Platform"];
               }
 
-              if (ExecutionEnvironment[i]["MainMemorySize"]) {
-                currentTarget.MainMemorySize = stringtoi((std::string)ExecutionEnvironment[i]["MainMemorySize"]);
+              if (ExecutionEnvironment["MainMemorySize"]) {
+                currentTarget.MainMemorySize = stringtoi((std::string)ExecutionEnvironment["MainMemorySize"]);
               }
 
-              if (ExecutionEnvironment[i]["OSName"]) {
-                if (ExecutionEnvironment[i]["OSVersion"]) {
-                  if (ExecutionEnvironment[i]["OSFamily"]) {
-                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSFamily"],
-                                                             (std::string)ExecutionEnvironment[i]["OSName"],
-                                                             (std::string)ExecutionEnvironment[i]["OSVersion"]);
+              if (ExecutionEnvironment["OSName"]) {
+                if (ExecutionEnvironment["OSVersion"]) {
+                  if (ExecutionEnvironment["OSFamily"]) {
+                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSFamily"],
+                                                             (std::string)ExecutionEnvironment["OSName"],
+                                                             (std::string)ExecutionEnvironment["OSVersion"]);
                   } 
                   else {
-                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSName"],
-                                                             (std::string)ExecutionEnvironment[i]["OSVersion"]);
+                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"],
+                                                             (std::string)ExecutionEnvironment["OSVersion"]);
                   }
                 }
                 else {
-                  currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment[i]["OSName"]);
+                  currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"]);
                 }
               }
 
