@@ -1,14 +1,24 @@
 #!/bin/bash
 #
-# Init file for the NorduGrid gridftpd
+# Init file for the ARC gridftp server
 #
 # chkconfig: 2345 55 25
-# description: NorduGrid gridftpd
+# description: ARC gridftpd
 #
 # config: /etc/sysconfig/globus
 # config: /etc/sysconfig/nordugrid
 # config: @prefix@/etc/arc.conf
 # config: /etc/arc.conf
+
+### BEGIN INIT INFO
+# Provides:          gridftpd
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: ARC gridftpd
+# Description:       ARC gridftp server
+### END INIT INFO
 
 # source function library
 if [ -f @initddir@/functions ]; then
