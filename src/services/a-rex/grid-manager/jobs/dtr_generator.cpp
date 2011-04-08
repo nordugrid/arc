@@ -273,9 +273,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
     // remove from job.id.input/output files on success
     // find out if download or upload by checking which is remote file
     std::list<FileData> files;
+
     if (dtr.get_source()->Local()) {
       // output files
       dtr_transfer_statistics = "outputfile:url=" + dtr.get_destination()->str() + ',';
+
       if (!job_output_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING, "%s: Failed to read list of output files", jobid);
       } else {
@@ -284,16 +286,37 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           // compare 'standard' URLs
           Arc::URL file_lfn(i->lfn);
           Arc::URL dtr_lfn(dtr.get_destination()->str());
+
+          // check if it is in a dynamic list - if so remove from it
+          if (i->pfn.size() > 1 && i->pfn[1] == '@') {
+            std::string dynamic_output(session_dir+'/'+i->pfn.substr(2));
+            std::list<FileData> dynamic_files;
+            if (!job_Xput_read_file(dynamic_output, dynamic_files)) {
+              logger.msg(Arc::WARNING, "%s: Failed to read dynamic output files in %s", jobid, dynamic_output);
+            } else {
+              logger.msg(Arc::DEBUG, "%s: Going through files in list %s", jobid, dynamic_output);
+              for (std::list<FileData>::iterator dynamic_file = dynamic_files.begin();
+                   dynamic_file != dynamic_files.end(); ++dynamic_file) {
+                if (Arc::URL(dynamic_file->lfn).str() == dtr_lfn.str()) {
+                  logger.msg(Arc::DEBUG, "%s: Removing %s from dynamic output file %s", jobid, dtr_lfn.str(), dynamic_output);
+                  dynamic_files.erase(dynamic_file);
+                  if (!job_Xput_write_file(dynamic_output, dynamic_files))
+                    logger.msg(Arc::WARNING, "%s: Failed to write back dynamic output files in %s", jobid, dynamic_output);
+                  break;
+                }
+              }
+            }
+          }
           if (file_lfn.str() == dtr_lfn.str()) {
           	struct stat st;
             Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
             dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
-            break;
           } else {
             ++i;
           }
         }
+
         // write back .output file
         if (!job_output_write_file(job, *jobuser, files)) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of output files", jobid);
@@ -379,10 +402,21 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   // no DTRs left, clean up session dir if upload or failed download
   if (dtr.get_source()->Local()) {
     std::list<FileData> files;
+    // if error, don't remove dynamic output files so that resume will work
     if (!job_output_read_file(jobid, *jobuser, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of output files, can't clean up session dir", jobid);
-    else if (delete_all_files(job.SessionDir(), files, true) == 2)
-      logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
+    else {
+      if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
+        for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
+          if (i->pfn.size() > 1 && i->pfn[1] == '@') {
+            FileData fd(std::string(i->pfn.erase(1,1)).c_str(), "");
+            files.push_back(fd);
+          }
+        }
+      }
+      if (delete_all_files(job.SessionDir(), files, true) == 2)
+        logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
+    }
   }
   else if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
     // clean all files still in input list which could be half-downloaded
@@ -472,7 +506,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     for (std::list<FileData>::iterator i = files.begin(); i != files.end(); i++) {
       for (std::list<FileData>::iterator j = files.begin(); j != files.end(); j++) {
         if (i != j && j->pfn == i->pfn) {
-          logger.msg(Arc::ERROR, "Duplicate file in list of input files: %s", i->pfn);
+          logger.msg(Arc::ERROR, "%s: Duplicate file in list of input files: %s", jobid, i->pfn);
           lock.lock();
           finished_jobs[jobid] = std::string("Duplicate file in list of input files: " + i->pfn);
           lock.unlock();
@@ -510,21 +544,16 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     for (it = files.begin(); it != files.end() ; ++it) {
       if (it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
         std::string outputfilelist = job.SessionDir() + std::string("/") + it->pfn.substr(2);
-        logger.msg(Arc::INFO, "Reading output files from user generated list in %s", outputfilelist);
+        logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
         if (!job_Xput_read_file(outputfilelist, files)) {
-          logger.msg(Arc::ERROR, "Error reading user generated output file list in %s", outputfilelist);
+          logger.msg(Arc::ERROR, "%s: Error reading user generated output file list in %s", jobid, outputfilelist);
           lock.lock();
           finished_jobs[jobid] = std::string("Error reading user generated output file list");
           lock.unlock();
           return false;
         }
+        it->pfn.erase(1, 1);
       }
-    }
-    // remove dynamic output file lists from the files to upload
-    it = files.begin();
-    while (it != files.end()) {
-      if (it->pfn.find("@") == 1) it = files.erase(it);
-      else it++;
     }
     // check if any files share the same LFN, if so allow overwriting existing LFN
     for (it = files.begin(); it != files.end(); it++) {
@@ -533,7 +562,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
         if (it != it2 && !it->lfn.empty() && !it2->lfn.empty()) {
           // error if lfns (including locations) are identical
           if (it->lfn == it2->lfn) {
-            logger.msg(Arc::ERROR, "Two identical output destinations: %s", it->lfn);
+            logger.msg(Arc::ERROR, "%s: Two identical output destinations: %s", jobid, it->lfn);
             lock.lock();
             finished_jobs[jobid] = std::string("Two identical output destinations: " + it->lfn);
             lock.unlock();
@@ -544,7 +573,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
           if (u_it == u_it2) {
             // error if pfns are different
             if (it->pfn != it2->pfn) {
-              logger.msg(Arc::ERROR, "Cannot upload two different files %s and %s to same LFN: %s", it->pfn, it2->pfn, it->lfn);
+              logger.msg(Arc::ERROR, "%s: Cannot upload two different files %s and %s to same LFN: %s", jobid, it->pfn, it2->pfn, it->lfn);
               lock.lock();
               finished_jobs[jobid] = std::string("Cannot upload two different files to same LFN: " + it->lfn);
               lock.unlock();
@@ -570,7 +599,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   }
   else {
     // bad state
-    logger.msg(Arc::ERROR, "Received job %s in a bad state: %s", jobid, job.get_state_name());
+    logger.msg(Arc::ERROR, "%s: Received job in a bad state: %s", jobid, job.get_state_name());
     lock.lock();
     finished_jobs[jobid] = std::string("Logic error: DTR Generator received job in a bad state");
     lock.unlock();
