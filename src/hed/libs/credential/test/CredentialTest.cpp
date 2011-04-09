@@ -35,7 +35,7 @@ void CredentialTest::CertTest() {
   out_f << "00";
   out_f.close();
 
-  Arc::Credential ca(CAcert, CAkey, CAserial, 0, "", "", CApassphrase);
+  Arc::Credential ca(CAcert, CAkey, CAserial, "", "", CApassphrase);
 
   // Did we load a CA cert?
   CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_CA,ca.GetType());
