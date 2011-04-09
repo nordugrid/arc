@@ -47,7 +47,7 @@ void CredentialTest::CertTest() {
   std::string subkeyid("hash");
   ca.AddExtension("subjectKeyIdentifier", subkeyid.c_str());
   ca.AddExtension("authorityKeyIdentifier", "keyid:always,issuer");
-  ca.AddExtension("basicConstraints", "CA:TRUE");
+  ca.AddExtension("basicConstraints", (char **)("CA:TRUE"));
   ca.SelfSignEECRequest(CAdn, CAcert.c_str());
 
   std::ofstream out_key(CAkey.c_str(), std::ofstream::out);
