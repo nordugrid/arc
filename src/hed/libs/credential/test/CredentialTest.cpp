@@ -28,14 +28,34 @@ void CredentialTest::CertTest() {
   std::string CAkey("ca_key.pem");
   std::string CAserial("ca_serial");
   std::string CApassphrase("password");
-
-  std::ofstream out_f;
+  
   // Create serial file
+  std::ofstream out_f;
   out_f.open(CAserial.c_str());
   out_f << "00";
   out_f.close();
 
-  Arc::Credential ca(CAcert, CAkey, CAserial, "", "", CApassphrase);
+  // Create a CA certificate and its related key
+  int ca_keybits = 2048;
+  Arc::Time ca_t;
+  Arc::Credential ca(ca_t, Arc::Period(365*24*3600), ca_keybits, "EEC");
+
+  BIO* ca_req_bio;
+  ca_req_bio = BIO_new(BIO_s_mem());
+  ca.GenerateRequest(ca_req_bio);
+
+  std::string subkeyid("hash");
+  ca.AddExtension("subjectKeyIdentifier", subkeyid.c_str());
+  ca.AddExtension("authorityKeyIdentifier", "keyid:always,issuer");
+  ca.AddExtension("basicConstraints", "CA:TRUE");
+  ca.SelfSignEECRequest(CAdn, CAcert.c_str());
+
+  std::ofstream out_key(CAkey.c_str(), std::ofstream::out);
+  std::string ca_private_key;
+  ca.OutputPrivatekey(ca_private_key);
+  out_key.write(ca_private_key.c_str(), ca_private_key.size());
+  out_key.close();
+
 
   // Did we load a CA cert?
   CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_CA,ca.GetType());
@@ -49,7 +69,6 @@ void CredentialTest::CertTest() {
   Arc::Time t;
 
   // Hostcert signing
-
   std::string host_req_file("host_req.pem");
   std::string host_key_file("host_key.pem");
   std::string host_cert_file("host_cert.pem");

@@ -31,9 +31,10 @@ int main(void) {
 
   std::string cert_dn("/O=TEST/CN=CA");
   std::string subkeyid("hash");
-  ca.AddExtension("subjectKeyIdentifier", subkeyid.c_str());
-  ca.AddExtension("authorityKeyIdentifier", "keyid:always,issuer");
-  ca.AddExtension("basicConstraints", "CA:TRUE");
+  ca.AddExtension("subjectKeyIdentifier", (char**)(subkeyid.c_str()));
+  ca.AddExtension("authorityKeyIdentifier", (char**)("keyid:always,issuer"));
+  ca.AddExtension("basicConstraints", (char**)("CA:TRUE"));
+  ca.AddExtension("keyUsage",(char**)("nonRepudiation, digitalSignature, keyEncipherment"));
   ca.SelfSignEECRequest(cert_dn, ca_file.c_str());
 
   std::ofstream out_key(ca_key.c_str(), std::ofstream::out);

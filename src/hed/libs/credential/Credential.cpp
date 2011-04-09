@@ -1053,7 +1053,7 @@ namespace Arc {
   #endif
 
 
-  X509_EXTENSION* Credential::CreateExtension(std::string& name, std::string& data, bool crit) {
+  X509_EXTENSION* Credential::CreateExtension(const std::string& name, const std::string& data, bool crit) {
     X509_EXTENSION*   ext = NULL;
     ASN1_OBJECT*      ext_obj = NULL;
     ASN1_OCTET_STRING*  ext_oct = NULL;
@@ -1859,18 +1859,23 @@ err:
     return sk_X509_num(cert_chain_) - 2;
   }
 
-  bool Credential::AddExtension(std::string name, std::string data, bool crit) {
+  bool Credential::AddExtension(const std::string& name, const std::string& data, bool crit) {
     X509_EXTENSION* ext = NULL;
     ext = CreateExtension(name, data, crit);
     if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
     return false;
   }
 
-  bool Credential::AddExtension(std::string name, char** binary) {
+  bool Credential::AddExtension(const std::string& name, char** binary) {
     X509_EXTENSION* ext = NULL;
     if(binary == NULL) return false;
     ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
-    if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
+    if(ext && sk_X509_EXTENSION_push(extensions_, ext)) {
+     std::string str; str.append((char*)binary); 
+     if((name == std::string("basicConstraints")) && (str == "CA:TRUE"))
+        cert_type_ = CERT_TYPE_CA; 
+      return true;
+    }
     return false;
   }
 
@@ -2755,6 +2760,7 @@ error:
       }
     }
 
+    X509_set_version(cert_,2);
     long lifetime = 12*60*60; //Default lifetime 12 hours
     if (!x509_certify(ctx, certfile_, digest, eec_cert, cert_,
                       pkey_, CAserial_, lifetime, 0,

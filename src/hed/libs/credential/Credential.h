@@ -171,7 +171,7 @@ class Credential {
     * X509_EXTENSION_create_by_OBJ which is called inside
     * CreateExtension method.
     */
-    X509_EXTENSION* CreateExtension(std::string& name, std::string& data, bool crit = false);
+    X509_EXTENSION* CreateExtension(const std::string& name, const std::string& data, bool crit = false);
 
     /** Set the start and end time for the proxy credential.
     * After setting, the start time of proxy will not
@@ -295,7 +295,7 @@ class Credential {
     *should be registered into openssl firstly
     *@param data, the data which will be inserted into certificate extension
     */
-    bool AddExtension(std::string name, std::string data, bool crit = false);
+    bool AddExtension(const std::string& name, const std::string& data, bool crit = false);
 
     /**Add an extension to the extension part of the certificate
     * @param binary, the data which will be inserted into certificate
@@ -309,7 +309,7 @@ class Credential {
     * In openssl, the specific X509V3_EXT_METHOD can be got according to
     * the extension name/id, see X509V3_EXT_get_nid(ext_nid)
     */
-    bool AddExtension(std::string name, char** binary);
+    bool AddExtension(const std::string& name, char** binary);
 
     /**Generate an EEC request, based on the keybits and signing
     * algorithm information inside this object
