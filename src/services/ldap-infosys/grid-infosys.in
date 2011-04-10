@@ -3,7 +3,7 @@
 # Init file for the NorduGrid/ARC Information System
 #
 # chkconfig: 2345 55 25
-# description: NorduGrid Information system
+# description: NorduGrid/ARC Information system
 #
 # Originally based on globus-mds v0.27.
 #
@@ -28,34 +28,34 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: grid-infosys for ARC middleware
-# Description:       ldap-based grid information system for the ARC middleware
+# Short-Description: NorduGrid/ARC Information system
+# Description:       LDAP based grid information system for the ARC middleware
 ### END INIT INFO
 
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-  echo "ARC_LOCATION ($ARC_LOCATION) not found"
-  exit 1
+    echo "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
 fi
 export ARC_LOCATION
 
-if [ -f /usr/sbin/bdii4-update ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii4 $1
-elif [ -f /usr/sbin/bdii-update ]; then
+if [ -f /usr/sbin/bdii-update ]; then
     . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii5 $1
+elif [ -f /usr/sbin/bdii4-update ]; then
+    . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii4 $1
 else
-    echo "You don't have BDII 4 or 5 installed, this is a necessary component for the ARC LDAP information system."
+    echo "You don't have BDII 4 or 5 installed"
+    echo "This is a necessary component for the ARC LDAP information system"
+    exit 1
 fi
 
 case "$1" in
     start)
         start
-	do_exit_start $RETVAL
         ;;
     stop)
         stop
-	do_exit_stop $RETVAL
         ;;
     restart|reload)
         stop
@@ -64,20 +64,19 @@ case "$1" in
         start
         ;;
     status)
-	status
-	do_exit_status $RETVAL
+        status
         ;;
     condrestart)
-	if [ -f /usr/sbin/bdii4-update ]; then
-	    if [ -f "$PID_FILE" ] ; then
-		restart
-	    fi
-	else
+        if [ -f /usr/sbin/bdii5-update ]; then
             if [ -f ${slapd_lock_file} ] || [ -f ${update_lock_file} ]; then
-		restart
-	    fi
-	fi
-	;;
+                restart
+            fi
+        else
+            if [ -f "$PID_FILE" ] ; then
+                restart
+            fi
+        fi
+        ;;
     *)
         echo "Usage: $0 {start|stop|restart|reload|condrestart|status}"
         exit 1
