@@ -752,7 +752,7 @@ namespace Arc {
     transfer_cond.wait();         /* wait till writing thread exited */
     delete fa; fa = NULL;
     // validate file size, if transfer succeeded
-    if (!buffer->error() && additional_checks && CheckSize()) {
+    if (!buffer->error() && additional_checks && CheckSize() && !is_channel) {
       struct stat st;
       std::string path = url.Path();
       if (!FileStat(path, &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
