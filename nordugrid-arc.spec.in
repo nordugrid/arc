@@ -939,6 +939,7 @@ fi
 %{_datadir}/%{pkgdir}/LRMS.pm
 %{_datadir}/%{pkgdir}/Shared.pm
 %{_datadir}/%{pkgdir}/ConfigParser.pm
+%{_datadir}/%{pkgdir}/config_parser_compat.sh
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-aris
 
 %files egiis
@@ -1030,7 +1031,6 @@ fi
 %{_datadir}/%{pkgdir}/condor_env.pm
 %{_datadir}/%{pkgdir}/cancel_common.sh
 %{_datadir}/%{pkgdir}/config_parser.sh
-%{_datadir}/%{pkgdir}/config_parser_compat.sh
 %{_datadir}/%{pkgdir}/configure-*-env.sh
 %{_datadir}/%{pkgdir}/submit_common.sh
 %{_datadir}/%{pkgdir}/scan_common.sh

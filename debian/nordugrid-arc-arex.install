@@ -59,7 +59,6 @@ debian/tmp/usr/share/arc/LogUtils.pm
 debian/tmp/usr/share/arc/cancel_common.sh
 debian/tmp/usr/share/arc/condor_env.pm
 debian/tmp/usr/share/arc/config_parser.sh
-debian/tmp/usr/share/arc/config_parser_compat.sh
 debian/tmp/usr/share/arc/configure-*-env.sh
 debian/tmp/usr/share/arc/submit_common.sh
 debian/tmp/usr/share/arc/scan_common.sh
