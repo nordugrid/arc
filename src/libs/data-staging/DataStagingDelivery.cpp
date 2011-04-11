@@ -205,23 +205,36 @@ int main(int argc,char* argv[]) {
   dest->Passive(true);
 
   // Filling initial report buffer
-  ReportStatus(DataStaging::DTRStatus::NULL_STATE,DataStaging::DTRErrorStatus::NONE_ERROR,DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,"",0,0);
+  ReportStatus(DataStaging::DTRStatus::NULL_STATE,
+               DataStaging::DTRErrorStatus::NONE_ERROR,
+               DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+               "",0,0);
   // Initiating transfer
   DataStatus source_st = source->StartReading(buffer);
   if(!source_st) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                 (source_url.Protocol()!="file")?DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR:DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                 (source_url.Protocol()!="file") ?
+                  (source_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                                           DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_SOURCE,
-                 std::string("Failed reading from source: ")+source->CurrentLocation().str()+" : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),0,0);
+                 std::string("Failed reading from source: ")+source->CurrentLocation().str()+
+                  " : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),
+                 0,0);
     _exit(-1);
     //return -1;
   };
   DataStatus dest_st = dest->StartWriting(buffer);
   if(!dest_st) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                 (dest_url.Protocol() != "file")?DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR:DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                 (dest_url.Protocol() != "file") ?
+                  (dest_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                                         DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_DESTINATION,
-                 std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+(" : ")+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),0,0);
+                 std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
+                  " : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),
+                 0,0);
     _exit(-1);
     //return -1;
   };
@@ -232,38 +245,67 @@ int main(int argc,char* argv[]) {
     if(buffer.eof_read() && buffer.eof_write()) {
       eof_reached = true; break;
     };
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,DataStaging::DTRErrorStatus::NONE_ERROR,DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
+                 DataStaging::DTRErrorStatus::NONE_ERROR,
+                 DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+                 "",
+                 buffer.speed.transferred_size(),
+                 GetFileSize(*source,*dest));
     buffer.wait_any();
   };
-  ReportStatus(DataStaging::DTRStatus::TRANSFERRING,DataStaging::DTRErrorStatus::NONE_ERROR,DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
+  ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
+               DataStaging::DTRErrorStatus::NONE_ERROR,
+               DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+               "",
+               buffer.speed.transferred_size(),
+               GetFileSize(*source,*dest));
+
   bool source_failed = buffer.error_read();
   bool dest_failed = buffer.error_write();
   dest_st = dest->StopWriting();
   source_st = source->StopReading();
   bool reported = false;
+
   if(!eof_reached) {
     // Handle error
     if(source_failed || !source_st) {
       ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                   (source_url.Protocol() != "file")?DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR:DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                   (source_url.Protocol() != "file") ?
+                    DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR :
+                    DataStaging::DTRErrorStatus::INTERNAL_ERROR,
                    DataStaging::DTRErrorStatus::ERROR_SOURCE,
-                   std::string("Failed reading from source: ")+source->CurrentLocation().str()+" : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),0,0);
+                   std::string("Failed reading from source: ")+source->CurrentLocation().str()+
+                    " : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),
+                   0,0);
       reported = true;
     };
     if(dest_failed || !dest_st) {
       ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                   (dest_url.Protocol() != "file")?DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR:DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                   (dest_url.Protocol() != "file") ?
+                    DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR :
+                    DataStaging::DTRErrorStatus::INTERNAL_ERROR,
                    DataStaging::DTRErrorStatus::ERROR_DESTINATION,
-                   std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+" : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),0,0);
+                   std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
+                    " : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),
+                   0,0);
       reported = true;
     };
     if((!dest_failed) && (!source_failed)) {
-      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,DataStaging::DTRErrorStatus::ERROR_UNKNOWN,"Failed transferring data",0,0);
+      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                   DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,
+                   DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
+                   "Failed transferring data",
+                   0,0);
       reported = true;
     };
   };
   if(!reported) {
-    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,DataStaging::DTRErrorStatus::NONE_ERROR,DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,"",buffer.speed.transferred_size(),GetFileSize(*source,*dest));
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                 DataStaging::DTRErrorStatus::NONE_ERROR,
+                 DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
+                 "",
+                 buffer.speed.transferred_size(),
+                 GetFileSize(*source,*dest));
   };
   _exit(eof_reached?0:1);
   //return eof_reached?0:1;

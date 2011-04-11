@@ -505,10 +505,14 @@ namespace DataStaging {
   }
   
   void Scheduler::ProcessDTRCACHE_PROCESSED(DTR* request){
-    // Final stage within scheduler. No retries from here except retrying
-    // without cache in case of cache problems.
-    // Report either success or failure to generator
-    if(request->error()) {
+    // Final stage within scheduler. Retries are initiated from here if necessary,
+    // otherwise report success or failure to generator
+    if (request->cancel_requested()) {
+      // Cancellation steps finished
+      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cancellation complete", request->get_short_id());
+      request->set_status(DTRStatus::CANCELLED);
+    }
+    else if(request->error()) {
       // If the error occurred in cache processing we send back
       // to REPLICA_QUERIED to try the same replica again without cache.
       // If there was a cache timeout we go back to CACHE_CHECKED. If in
@@ -528,30 +532,32 @@ namespace DataStaging {
         return;
       }
       else {
-        // Here we may decide to retry based on whether the error is
+        request->decrease_tries_left();
+        // Here we decide to retry based on whether the error is
         // temporary or not and the configured retry strategy
-        /*if (request->get_error_status().GetErrorStatus() == TEMPORARY_REMOTE_ERROR) {
-          if (request->get_retries() > 0) {
-            request->set_retry_time(some algorithm based on remaining retries);
-            request->get_logger()->msg(Arc::INFO, "DTR %s: Retrying, will wait until %s", request->get_short_id(), request->get_retry_time().str());
+        if (request->get_error_status().GetErrorStatus() == DTRErrorStatus::TEMPORARY_REMOTE_ERROR ||
+            request->get_error_status().GetErrorStatus() == DTRErrorStatus::TRANSFER_SPEED_ERROR) {
+          if (request->get_tries_left() > 0) {
+            request->set_process_time(10);
+            request->get_logger()->msg(Arc::INFO, "DTR %s: %i retries left, will wait until %s before next attempt",
+                                       request->get_short_id(), request->get_tries_left(), request->get_process_time().str());
             // set state depending on where the error occurred
             if (request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA)
               request->set_status(DTRStatus::REGISTER_REPLICA);
-            else if ...
-            request->set_status(DTRStatus::NEW);
+            else if (request->get_error_status().GetLastErrorState() == DTRStatus::RELEASING_REQUEST)
+              request->set_status(DTRStatus::RELEASE_REQUEST);
+            else // if error happened before or during transfer set back to NEW
+              request->set_status(DTRStatus::NEW);
             return;
           }
           else
             request->get_logger()->msg(Arc::ERROR, "DTR %s: Out of retries", request->get_short_id());
-        }*/
+        }
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Permanent failure", request->get_short_id());
         request->set_status(DTRStatus::ERROR);
       }
-    } else if (request->cancel_requested()) {
-      // Cancellation steps finished
-      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cancellation complete", request->get_short_id());
-      request->set_status(DTRStatus::CANCELLED);
-    } else {
+    }
+    else {
       // Normal workflow is completed for this DTR successfully
       request->get_logger()->msg(Arc::INFO, "DTR %s: Finished successfully", request->get_short_id());
       request->set_status(DTRStatus::DONE);

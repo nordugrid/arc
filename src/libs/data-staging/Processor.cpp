@@ -462,7 +462,8 @@ namespace DataStaging {
         }
         else {
           request->get_logger()->msg(Arc::ERROR, "DTR %s: Error with post-transfer destination handling", request->get_short_id());
-          request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+          request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                                                      DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                     DTRErrorStatus::ERROR_DESTINATION,
                                     "Error with post-transfer destination handling of " +
                                        request->get_destination()->CurrentLocation().str());

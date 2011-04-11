@@ -197,6 +197,9 @@ namespace DataStaging {
        * make shares for different endpoints. */
       std::string sub_share;
 
+      /* Number of attempts left to complete this DTR */
+      unsigned int tries_left;
+
       /* A flag to say whether the DTR is replicating inside the same LFN
        * of an index service */
       bool replication;
@@ -351,6 +354,12 @@ namespace DataStaging {
      // Manipulate sub-share
      void set_sub_share(const std::string& share) { sub_share = share; };
      std::string get_sub_share() const { return sub_share; };
+
+     // Set and get the number of attempts remaining
+     void set_tries_left(unsigned int tries);
+     unsigned int get_tries_left() const { return tries_left; };
+     // Decrease attempt number
+     void decrease_tries_left();
 
      // Manipulate the status. Protected by lock.
      void set_status(DTRStatus stat);

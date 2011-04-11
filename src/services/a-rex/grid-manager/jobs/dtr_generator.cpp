@@ -636,6 +636,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
 
     // create DTR and send to Scheduler
     DataStaging::DTR dtr(source, destination, usercfg, jobid, job.get_uid(), dtr_log);
+    // set retry count (tmp errors only)
+    dtr.set_tries_left(jobuser->Env().jobs_cfg().MaxRetries());
     // allow the same file to be uploaded to multiple locations with same LFN
     dtr.set_force_registration(replication);
     // set sub-share for download or upload

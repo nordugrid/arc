@@ -43,6 +43,7 @@ namespace DataStaging {
        priority(50),
        transfershare("_default"),
        sub_share(""),
+       tries_left(1),
        replication(false),
        force_registration(false),
        status(DTRStatus::NEW,"Created by the generator"),
@@ -113,6 +114,7 @@ namespace DataStaging {
       priority(dtr.priority),
       transfershare(dtr.transfershare),
       sub_share(dtr.sub_share),
+      tries_left(dtr.tries_left),
       replication(dtr.replication),
       force_registration(dtr.force_registration),
       mapped_source(dtr.mapped_source),
@@ -160,6 +162,7 @@ namespace DataStaging {
     priority = dtr.priority;
     transfershare = dtr.transfershare;
     sub_share = dtr.sub_share;
+    tries_left = dtr.tries_left;
     replication = dtr.replication;
     force_registration = dtr.force_registration;
     mapped_source = dtr.mapped_source;
@@ -203,6 +206,14 @@ namespace DataStaging {
     mark_modification();
   }
   
+  void DTR::set_tries_left(unsigned int tries) {
+    tries_left = tries;
+  }
+
+  void DTR::decrease_tries_left() {
+    if (tries_left > 0) tries_left--;
+  }
+
   void DTR::set_status(DTRStatus stat)
   {
     logger->msg(Arc::VERBOSE, "DTR %s: %s->%s", get_short_id(), status.str(), stat.str());
