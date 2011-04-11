@@ -80,7 +80,8 @@ BuildRequires:	java-1.4.2-gcj-compat-devel
 BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
 BuildRequires:	mktemp
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
+# The compilation of the selinux module fails on Fedora 5
 BuildRequires:	selinux-policy-devel
 %endif
 
@@ -313,7 +314,7 @@ Requires:	%{name}-aris = %{version}-%{release}
 Provides:	nordugrid-arc-nox-giis = 1.3.0
 Obsoletes:	nordugrid-arc-nox-giis < 1.3.0
 
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 Requires(post):		policycoreutils
 Requires(postun):	policycoreutils
 %endif
@@ -620,7 +621,7 @@ cd -
 
 make %{?_smp_mflags}
 
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 cd selinux
 make -f /usr/share/selinux/devel/Makefile
 cd -
@@ -661,7 +662,7 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 %{_bindir}/aot-compile-rpm
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 cd selinux
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/selinux/packages/%{name}
 install -p -m 644 %{name}-egiis.pp \
@@ -759,13 +760,13 @@ fi
 %endif
 
 %post egiis
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 /usr/sbin/semodule -i %{_datadir}/selinux/packages/%{name}/%{name}-egiis.pp > /dev/null 2>&1 || :
 /sbin/restorecon %{_sbindir}/arc-infoindex-relay
 %endif
 
 %postun egiis
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ] ; then
   /usr/sbin/semodule -r %{name}-egiis > /dev/null 2>&1 || :
 fi
@@ -947,7 +948,7 @@ fi
 %{_sbindir}/arc-infoindex-server
 %{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.so
 %{_libdir}/%{pkgdir}/arc-infoindex-slapd-wrapper.apd
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
 %{_datadir}/selinux/packages/%{name}
 %endif
 
