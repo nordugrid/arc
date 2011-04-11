@@ -271,7 +271,6 @@ Summary:	ARC LDAP information service
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	bdii
-Requires:	redhat-lsb
 Provides:	%{name}-infoindex = %{version}-%{release}
 Obsoletes:	%{name}-infoindex < 0.8.2-1
 Provides:	%{name}-infosys-ldap = %{version}-%{release}
