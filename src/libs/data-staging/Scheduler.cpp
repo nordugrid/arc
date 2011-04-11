@@ -69,6 +69,11 @@ namespace DataStaging {
       transferShares.set_share_type(share_type);
   }
 
+  void Scheduler::SetTransferParameters(const TransferParameters& params) {
+    delivery.SetTransferParameters(params);
+  }
+
+
   bool Scheduler::start(void) {
     if(scheduler_state == RUNNING || scheduler_state == TO_STOP) return false;
     scheduler_state = RUNNING;

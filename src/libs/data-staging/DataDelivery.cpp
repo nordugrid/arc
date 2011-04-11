@@ -15,10 +15,11 @@ namespace DataStaging {
     DTR* dtr;
     DataDeliveryComm comm;
     bool cancelled;
-    delivery_pair_t(DTR* request);
+    delivery_pair_t(DTR* request, const TransferParameters& params);
   };
 
-  DataDelivery::delivery_pair_t::delivery_pair_t(DTR* request):dtr(request),comm(*request),cancelled(false) {
+  DataDelivery::delivery_pair_t::delivery_pair_t(DTR* request, const TransferParameters& params)
+    :dtr(request),comm(*request, params),cancelled(false) {
   }
 
   DataDelivery::DataDelivery(): delivery_state(INITIATED) {
@@ -48,7 +49,7 @@ namespace DataStaging {
      *  TODO: Do the checksome 
      */
     dtr.set_status(DTRStatus::TRANSFERRING);
-    delivery_pair_t* d = new delivery_pair_t(&dtr);
+    delivery_pair_t* d = new delivery_pair_t(&dtr, transfer_params);
     if(d->comm) {
       dtr_list_lock.lock();
       dtr_list.push_back(d);
@@ -98,6 +99,10 @@ namespace DataStaging {
     run_signal.wait();
     delivery_state = STOPPED;
     return true;
+  }
+
+  void DataDelivery::SetTransferParameters(const TransferParameters& params) {
+    transfer_params = params;
   }
 
   void DataDelivery::main_thread (void* arg) {

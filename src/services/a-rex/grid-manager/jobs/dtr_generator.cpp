@@ -101,6 +101,7 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
 //  DataStaging::DTR::registerCallback(&DTRGenerator::receiveDTR);
 
   JobsListConfig& jcfg = users.Env().jobs_cfg();
+
   // Converting old configuration values to something
   // useful for new framework
 
@@ -121,6 +122,17 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   shares.set_reference_shares(jcfg.GetLimitedShares());
   shares.set_share_type(jcfg.GetShareType());
   scheduler.SetTransferShares(shares);
+
+  // transfer limits
+  DataStaging::TransferParameters transfer_limits;
+  unsigned long long int min_speed, min_average_speed;
+  time_t min_time, max_inactivity_time;
+  jcfg.GetSpeedControl(min_speed, min_time, min_average_speed, max_inactivity_time);
+  transfer_limits.min_current_bandwidth = min_speed;
+  transfer_limits.averaging_time = min_time;
+  transfer_limits.min_average_bandwidth = min_average_speed;
+  transfer_limits.max_inactivity_time = max_inactivity_time;
+  scheduler.SetTransferParameters(transfer_limits);
 
   // URL mappings
   UrlMapConfig url_map(users.Env());

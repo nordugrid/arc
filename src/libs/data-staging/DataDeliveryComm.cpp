@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include <arc/ArcLocation.h>
+#include <arc/StringConv.h>
 
 #include "DataDeliveryComm.h"
 
@@ -52,7 +53,8 @@ namespace DataStaging {
     return (comm_handler = new DataDeliveryCommHandler);
   }
 
-  DataDeliveryComm::DataDeliveryComm(const DTR& dtr):child_(NULL),handler_(NULL),dtr_id(dtr.get_short_id()) {
+  DataDeliveryComm::DataDeliveryComm(const DTR& dtr, const TransferParameters& transfer_params)
+    : child_(NULL),handler_(NULL),dtr_id(dtr.get_short_id()) {
     logger_ = dtr.get_logger();
     if(!dtr.get_source()) return;
     if(!dtr.get_destination()) return;
@@ -102,6 +104,15 @@ namespace DataStaging {
         args.push_back("--dopt");
         args.push_back("ca="+dtr.get_usercfg().CACertificatesDirectory());
       }
+      args.push_back("--topt");
+      args.push_back("minspeed="+Arc::tostring(transfer_params.min_current_bandwidth));
+      args.push_back("--topt");
+      args.push_back("minspeedtime="+Arc::tostring(transfer_params.averaging_time));
+      args.push_back("--topt");
+      args.push_back("minavgspeed="+Arc::tostring(transfer_params.min_average_bandwidth));
+      args.push_back("--topt");
+      args.push_back("maxinacttime="+Arc::tostring(transfer_params.max_inactivity_time));
+
       child_ = new Arc::Run(args);
       // Set up pipes
       child_->KeepStdout(false);

@@ -32,8 +32,8 @@ namespace DataStaging {
     public:
     /// Minimum average bandwidth in bytes/sec - if the average bandwidth used drops below this level the transfer should be killed
     unsigned long long int min_average_bandwidth;
-    /// Minimum inactivity time in sec - if transfer stops for longer than this time it should be killed
-    unsigned int min_activity_time;
+    /// Maximum inactivity time in sec - if transfer stops for longer than this time it should be killed
+    unsigned int max_inactivity_time;
     /// Minimum current bandwidth - if bandwidth averaged over averaging_time is less than minimum the transfer should be killed (allows transfers which slow down to be killed quicker)
     unsigned long long int min_current_bandwidth;
     /// The time over which to average the calculation of min_curr_bandwidth
@@ -46,6 +46,8 @@ namespace DataStaging {
     Arc::CheckSum* checksum;
     /// Flag to say whether transfer is complete (all bytes copied successfully)
     bool transfer_finished;
+    TransferParameters() : min_average_bandwidth(0), max_inactivity_time(0), min_current_bandwidth(0),
+                           averaging_time(0), bytes_transferred(0), transfer_finished(false) {};
   };
 
   class CacheParameters {
@@ -173,9 +175,6 @@ namespace DataStaging {
       /* Cache configuration */
       CacheParameters cache_parameters;
 
-      /* Transfer parameters */
-      TransferParameters transfer_parameters;
-      
       /* Cache state for this DTR */
       CacheState cache_state;
 
@@ -336,9 +335,6 @@ namespace DataStaging {
 
      // Get the creation time
      Arc::Time get_creation_time() const { return created; };
-     // Manipulate the transfer parameters
-     void set_parameters(const struct TransferParameters& params);
-     const TransferParameters get_parameters() const { return transfer_parameters; };
      
      // Get the parent job ID
      std::string get_parent_job_id() const { return parent_job_id; };

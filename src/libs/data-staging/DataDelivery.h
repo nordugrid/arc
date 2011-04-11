@@ -12,9 +12,9 @@
 namespace DataStaging {
 
   /**
-   * The DataDelivery takes care of transfering data to/from 
+   * The DataDelivery takes care of transferring data to/from
    * specified location. It is a singleton class.
-   * Calling receiveDTR() starts new proces which performs
+   * Calling receiveDTR() starts new process which performs
    * data transfer as specified in DTR.
    */
   class DataDelivery: public DTRCallback {	
@@ -28,18 +28,15 @@ namespace DataStaging {
     class delivery_pair_t;
     std::list<delivery_pair_t*> dtr_list;
 	
+    /* Transfer limits */
+    TransferParameters transfer_params;
+
     /* Logger object */
     static Arc::Logger logger;
-
-    /* Singleton instance */
-    //static DataDelivery* instance;
 
     /* Flag describing delivery state. Used to decide whether to keep running
      * main loop */
     ProcessState delivery_state;
-
-    /* lock for events list */
-//??  Arc::SimpleCondition event_lock;
 
     /* Condition to signal end of running */
     Arc::SimpleCondition run_signal;
@@ -53,7 +50,6 @@ namespace DataStaging {
 
   public:
       
-    //static DataDelivery* getInstance();
     DataDelivery();
     ~DataDelivery() { stop(); };
 
@@ -73,6 +69,9 @@ namespace DataStaging {
 
     /* Tell the delivery to shut down all processes and threads and exit */
     bool stop();
+
+    /** Set transfer limits */
+    void SetTransferParameters(const TransferParameters& params);
 
   };   
   

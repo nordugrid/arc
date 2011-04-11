@@ -169,7 +169,11 @@ class Scheduler: public DTRCallback {
     /* Replace all shares */
     void SetSharePriorities(const std::map<std::string, int>& shares);
 
+    /* Set share type */
     void SetShareType(TransferShares::ShareType share_type);
+
+    /* Set transfer limits */
+    void SetTransferParameters(const TransferParameters& params);
 
     /* Start scheduling activity.
      * This method must be called after all configuration

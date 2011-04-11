@@ -107,7 +107,6 @@ namespace DataStaging {
       destination_endpoint(destination_url, cfg),
       cache_file(dtr.cache_file),
       cache_parameters(dtr.cache_parameters),
-      transfer_parameters(dtr.transfer_parameters),
       cache_state(dtr.cache_state),
       user(dtr.user),
       parent_job_id(dtr.parent_job_id),
@@ -155,7 +154,6 @@ namespace DataStaging {
     destination_endpoint = dest;
     cache_file = dtr.cache_file;
     cache_parameters = dtr.cache_parameters;
-    transfer_parameters = dtr.transfer_parameters;
     cache_state = dtr.cache_state;
     user = dtr.user;
     parent_job_id = dtr.parent_job_id;
@@ -191,12 +189,6 @@ namespace DataStaging {
     return short_id;
   }
 
-  void DTR::set_parameters(const struct TransferParameters& params)
-  {
-    transfer_parameters = params;
-    mark_modification();
-  }
-  
   void DTR::set_priority(int pri)
   {
     // limit priority between 1 and 100

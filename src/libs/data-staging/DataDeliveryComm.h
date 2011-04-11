@@ -58,8 +58,8 @@ class DataDeliveryComm {
 
  public:
   // Starts external executable with proper parameters
-  // derived from DTR
-  DataDeliveryComm(const DTR& dtr);
+  // derived from DTR and supplied transfer limits
+  DataDeliveryComm(const DTR& dtr, const TransferParameters& transfer_params);
   // Destroy object also stoping managed executable
   ~DataDeliveryComm(void);
   // Obtain status of transfer

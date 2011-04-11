@@ -164,20 +164,22 @@ int main(int argc,char* argv[]) {
       if(stringto(o->substr(p+1),value)) {
         if(name == "minspeed") {
           minspeed=value;
-          buffer.speed.set_min_speed(minspeed,minspeedtime);
         } else if(name == "minspeedtime") {
           minspeedtime=value;
-          buffer.speed.set_min_speed(minspeed,minspeedtime);
         } else if(name == "minavgspeed") {
           buffer.speed.set_min_average_speed(value);
         } else if(name == "maxinacttime") {
           buffer.speed.set_max_inactivity_time(value);
         } else if(name == "avgtime") {
           buffer.speed.set_base(value);
-        };
+        } else {
+          std::cerr<<"Unknown transfer option: "<<name<<std::endl;
+          _exit(-1);
+        }
       };
     };
-  };
+  }
+  buffer.speed.set_min_speed(minspeed,minspeedtime);
 
   UserConfig source_cfg(initializeCredentialsType(initializeCredentialsType::SkipCredentials));
   if(!source_cred_path.empty()) source_cfg.ProxyPath(source_cred_path);
@@ -294,7 +296,7 @@ int main(int argc,char* argv[]) {
       ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                    DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,
                    DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
-                   "Failed transferring data",
+                   "Transfer timed out",
                    0,0);
       reported = true;
     };
