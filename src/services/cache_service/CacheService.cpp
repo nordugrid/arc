@@ -122,7 +122,7 @@ int CacheService::Download(const std::map<std::string, std::string>& urls,
   job_desc.set_uid(mapped_user.get_uid(), mapped_user.get_gid());
   std::list<FileData> files;
   for (std::map<std::string, std::string>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-    FileData filedata(i->second.c_str(), i->first.c_str());
+    FileData filedata(i->second, i->first);
     files.push_back(filedata);
   }
   if (!job_input_write_file(job_desc, user, files)) {

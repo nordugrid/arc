@@ -668,10 +668,10 @@ int main(int argc,char** argv) {
           logger.msg(Arc::WARNING, "Failed to rewrite output file list %s. Job resuming may not work", dyn_out->first);
         }
         // @output
-        FileData at_output_file(dyn_out->first.c_str(), "");
+        FileData at_output_file(dyn_out->first, "");
         job_files.push_back(at_output_file);
         // output
-        FileData output_file(std::string('/' + dyn_out->first.substr(2)).c_str(), "");
+        FileData output_file(std::string('/' + dyn_out->first.substr(2)), "");
         job_files.push_back(output_file);
       }
     }

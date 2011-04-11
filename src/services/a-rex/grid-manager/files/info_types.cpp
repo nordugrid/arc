@@ -98,9 +98,9 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
 FileData::FileData(void) {
 }
 
-FileData::FileData(const char *pfn_s,const char *lfn_s) {
-  if(pfn_s) { pfn=pfn_s; } else { pfn.resize(0); };
-  if(lfn_s) { lfn=lfn_s; } else { lfn.resize(0); };
+FileData::FileData(const std::string& pfn_s,const std::string& lfn_s) {
+  if(!pfn_s.empty()) { pfn=pfn_s; } else { pfn.resize(0); };
+  if(!lfn_s.empty()) { lfn=lfn_s; } else { lfn.resize(0); };
 }
 
 FileData& FileData::operator= (const char *str) {
@@ -181,7 +181,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     // about initial JSDL description we have to make some guesses here.
     if(!file->Source.empty()) { // input file
       // Only one source per file supported
-      inputdata.push_back(FileData(fname.c_str(), ""));
+      inputdata.push_back(FileData(fname, ""));
       if (file->Source.front() &&
           file->Source.front().Protocol() != "file") {
         inputdata.back().lfn = file->Source.front().fullstr();
@@ -199,7 +199,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       }
     }
     if (!file->Target.empty()) { // output file
-      FileData fdata(fname.c_str(), file->Target.front().fullstr().c_str());
+      FileData fdata(fname, file->Target.front().fullstr());
       outputdata.push_back(fdata);
       ++uploads;
 
@@ -210,7 +210,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     }
     if (file->KeepData) {
       // user downloadable file
-      FileData fdata(fname.c_str(), NULL);
+      FileData fdata(fname, "");
       outputdata.push_back(fdata);
     }
   }

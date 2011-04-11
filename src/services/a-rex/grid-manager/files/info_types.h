@@ -21,7 +21,7 @@ class FileData {
  public:
   typedef std::list<FileData>::iterator iterator;
   FileData(void);
-  FileData(const char *pfn_s,const char *lfn_s);
+  FileData(const std::string& pfn_s,const std::string& lfn_s);
   std::string pfn;  /* path relative to session dir */
   std::string lfn;  /* input/output url or size.checksum */
   FileData& operator= (const char* str);

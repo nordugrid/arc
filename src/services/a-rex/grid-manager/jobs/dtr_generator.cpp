@@ -409,7 +409,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
       if (finished_jobs.find(jobid) != finished_jobs.end() && !finished_jobs[jobid].empty()) {
         for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
           if (i->pfn.size() > 1 && i->pfn[1] == '@') {
-            FileData fd(std::string(i->pfn.erase(1,1)).c_str(), "");
+            FileData fd(std::string(i->pfn.erase(1,1)), "");
             files.push_back(fd);
           }
         }
