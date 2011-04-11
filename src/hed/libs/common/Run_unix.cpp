@@ -345,21 +345,20 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
   }
 
   bool Run::Start(void) {
-    if (started_)
-      return false;
-    if (argv_.size() < 1)
-      return false;
+    if (started_) return false;
+    if (argv_.size() < 1) return false;
     RunPump& pump = RunPump::Instance();
     UserSwitch* usw = NULL;
     RunInitializerArgument *arg = NULL;
     try {
       running_ = true;
-      Glib::Pid pid;
+      Glib::Pid pid = 0;
       // Locking user switching to make sure fork is 
       // is done with proper uid
       usw = new UserSwitch(0,0);
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw, user_id_, group_id_);
-      EnvLockWrap(); // Protection against gettext using getenv
+      {
+      EnvLockWrapper wrapper; // Protection against gettext using getenv
       spawn_async_with_pipes(working_directory, argv_,
                              Glib::SpawnFlags(Glib::SPAWN_DO_NOT_REAP_CHILD),
                              sigc::mem_fun(*arg, &RunInitializerArgument::Run),
@@ -367,7 +366,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
                              stdin_keep_  ? NULL : &stdin_,
                              stdout_keep_ ? NULL : &stdout_,
                              stderr_keep_ ? NULL : &stderr_);
-      EnvLockUnwrap();
+      };
       *pid_ = pid;
       if (!stdin_keep_)
         fcntl(stdin_, F_SETFL, fcntl(stdin_, F_GETFL) | O_NONBLOCK);

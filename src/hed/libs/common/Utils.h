@@ -30,6 +30,14 @@ namespace Arc {
   void EnvLockWrap(bool all = false);
   void EnvLockUnwrap(bool all = false);
 
+  class EnvLockWrapper {
+   private:
+    bool all_;
+   public:
+    EnvLockWrapper(bool all = false):all_(all) { EnvLockWrap(all_); };
+    ~EnvLockWrapper(void) { EnvLockUnwrap(all_); };
+  };
+
   /// Portable function for obtaining description of last system error
   std::string StrError(int errnum = errno);
 
