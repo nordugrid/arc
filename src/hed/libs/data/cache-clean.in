@@ -201,14 +201,14 @@ foreach my $filesystem (@caches) {
     my $fssize = $fsvalues->{total};
     my $fsfree = $fsvalues->{free};
 
-    my $minfbytes=$fssize*$minfree/100;
+    my $maxfbytes=$fssize*$minfree/100;
     $log->info(join("", "$filesystem: used space ", printsize($fssize-$fsfree), " / ", printsize($fssize), " (", sprintf("%.2f",100-100*$fsfree/$fssize), "%)"));
-    if ($expirytime == 0 && $fsfree > $minfbytes && !$opts{'s'}) {
+    if ($expirytime == 0 && $fsfree > $maxfbytes && !$opts{'s'}) {
         $log->info(join("", "Used space is lower than upper limit (", 100-$minfree, "%)"));
         next;
     }
 
-    $minfbytes=$fssize*$mincleanfree/100;
+    my $minfbytes=$fssize*$mincleanfree/100;
     
     %files = ();
     %expiredfiles = ();
@@ -302,7 +302,7 @@ foreach my $filesystem (@caches) {
         }
     }
 
-    if ($fsfree < $minfbytes) {
+    if ($fsfree < $maxfbytes) {
         # delete in order of access
         foreach my $fil (sort { $files{$a}{atime} <=> $files{$b}{atime} } keys %files) {
             last if $fsfree > $minfbytes;
