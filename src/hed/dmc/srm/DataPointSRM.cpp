@@ -660,6 +660,7 @@ namespace Arc {
 
     // get info from SRM
     SRMReturnCode res = client->info(srm_request_tmp, srm_metadata, recursion);
+    delete client;
     if (res != SRM_OK) {
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::ListErrorRetryable;   
       return DataStatus::ListError;
