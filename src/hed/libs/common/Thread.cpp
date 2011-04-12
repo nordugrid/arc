@@ -582,5 +582,18 @@ namespace Arc {
 #endif
   }
 
+
+  void ThreadInitializer::forceReset(void) {
+#ifdef USE_THREAD_POOL
+#ifdef USE_THREAD_DATA
+    // TODO: This will reset all Logger per-thread settings. So we will
+    // need some workaround implemented later.
+    data_pool = NULL;
+#endif
+    pool = NULL;
+#endif
+    GlibThreadInitialize();
+  }
+
 } // namespace Arc
 

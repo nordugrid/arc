@@ -181,6 +181,12 @@ namespace Arc {
       flag_ = false;
       lock_.unlock();
     }
+    // This method is meant to be used only after fork.
+    // It resets state of all internal locks and variables.
+    void forceReset(void) {
+      flag_ = false;
+      lock_.unlock();
+    }
   };
 
   class SimpleCounter {
@@ -239,6 +245,11 @@ namespace Arc {
       lock_.unlock();
       return res;
     }
+    // This method is meant to be used only after fork.
+    // It resets state of all internal locks and variables.
+    void forceReset(void) {
+      lock_.unlock();
+    }
   };
 
   class TimedMutex {
@@ -281,6 +292,12 @@ namespace Arc {
       lock_.unlock();
       return true;
     };
+    // This method is meant to be used only after fork.
+    // It resets state of all internal locks and variables.
+    void forceReset(void) {
+      locked_ = false;
+      lock_.unlock();
+    }
   };
 
   class SharedMutex {
@@ -326,6 +343,13 @@ namespace Arc {
     bool isLockExclusive(void) {
       return exclusive_;
     };
+    // This method is meant to be used only after fork.
+    // It resets state of all internal locks and variables.
+    void forceReset(void) {
+      exclusive_ = false;
+      shared_ = 0;
+      lock_.unlock();
+    };
   };
 
   /// This class is a set of conditions, mutexes, etc. conveniently
@@ -354,6 +378,13 @@ namespace Arc {
     bool WaitForExit(int timeout = -1);
     // Send cancel request to registered threads
     void RequestCancel(void);
+    // This method is meant to be used only after fork.
+    // It resets state of all internal locks and variables.
+    void forceReset(void) {
+      counter_ = 0;
+      cancel_ = false;
+      lock_.unlock();
+    }
   };
 
   void GlibThreadInitialize(void);
@@ -364,6 +395,9 @@ namespace Arc {
     ThreadInitializer(void) {
       GlibThreadInitialize();
     }
+    // This method is meant to be used only after fork.
+    // It resets state of all internal locks and variables.
+    void forceReset(void);
   };
 
   // This is done intentionally to make sure glibmm is

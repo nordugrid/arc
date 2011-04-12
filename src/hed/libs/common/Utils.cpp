@@ -206,8 +206,7 @@ namespace Arc {
   }
 
   void EnvLockUnwrapComplete(void) {
-    while(env_read_lock().isLockExclusive()) env_read_lock().unlockExclusive();
-    while(env_read_lock().isLockShared()) env_read_lock().unlockShared();
+    env_read_lock().forceReset();
   }
 
   std::string StrError(int errnum) {

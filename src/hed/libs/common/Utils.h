@@ -27,8 +27,14 @@ namespace Arc {
   // environment variables.
   void EnvLockAcquire(void);
   void EnvLockRelease(void);
+  /// Start code which is using setenv/getenv.
+  /// Use all=true for setenv and all=false for getenv.
+  /// Must always have corresponding EnvLockUnwrap.
   void EnvLockWrap(bool all = false);
+  /// End code which is using setenv/getenv.
+  /// Value of all must be same as in corresponding EnvLockWrap.
   void EnvLockUnwrap(bool all = false);
+  /// Use after fork() to reset all internal variables and release all locks.
   void EnvLockUnwrapComplete(void);
 
   class EnvLockWrapper {
