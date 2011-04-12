@@ -205,6 +205,11 @@ namespace Arc {
     }
   }
 
+  void EnvLockUnwrapComplete(void) {
+    while(env_read_lock().isLockExclusive()) env_read_lock().unlockExclusive();
+    while(env_read_lock().isLockShared()) env_read_lock().unlockShared();
+  }
+
   std::string StrError(int errnum) {
 #ifdef HAVE_STRERROR_R
     char errbuf[BUFLEN];

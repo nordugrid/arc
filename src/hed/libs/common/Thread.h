@@ -306,6 +306,9 @@ namespace Arc {
       cond_.broadcast();
       lock_.unlock();
     };
+    bool isLockShared(void) {
+      return (shared_ > 0);
+    };
     void lockExclusive(void) {
       lock_.lock();
       while(exclusive_ || shared_) {
@@ -319,6 +322,9 @@ namespace Arc {
       exclusive_ = false;
       cond_.broadcast();
       lock_.unlock();
+    };
+    bool isLockExclusive(void) {
+      return exclusive_;
     };
   };
 

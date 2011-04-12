@@ -29,6 +29,7 @@ namespace Arc {
   void EnvLockRelease(void);
   void EnvLockWrap(bool all = false);
   void EnvLockUnwrap(bool all = false);
+  void EnvLockUnwrapComplete(void);
 
   class EnvLockWrapper {
    private:

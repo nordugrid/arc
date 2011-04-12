@@ -111,7 +111,9 @@ namespace Arc {
   };
 
   void RunInitializerArgument::Run(void) {
-    EnvLockUnwrap(); // Clean lock left by getenv protection
+    // It would be nice to have function which removes all Glib::Mutex locks.
+    // But so far we need to save ourselves only from Logger and SetEnv/GetEnv.
+    EnvLockUnwrapComplete(); // Clean lock left by getenv protection
     void *arg = arg_;
     void (*func)(void*) = func_;
     if(usw_) delete usw_;
