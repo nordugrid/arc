@@ -24,25 +24,6 @@ namespace Arc {
 
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
-  bool JobSupervisor::AddJob(const Job& job) {
-    std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.Flavour);
-    if (currentJC == loadedJCs.end()) {
-      JobController *jc = loader.load(job.Flavour, usercfg);
-      currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.Flavour, jc)).first;
-      if (!jc) {
-        logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s plugin installed?", job.Flavour, job.Flavour);
-        return false;
-      }
-    }
-    else if (!currentJC->second) {
-      // Already tried to load JobController, and it failed.
-      return false;
-    }
-
-    currentJC->second->FillJobStore(job);
-    return true;
-  }
-
   JobSupervisor::JobSupervisor(const UserConfig& usercfg,
                                const std::list<std::string>& jobIDsAndNames)
     : usercfg(usercfg) {
@@ -132,35 +113,37 @@ namespace Arc {
 
   JobSupervisor::JobSupervisor(const UserConfig& usercfg, const std::list<Job>& jobs)
     : usercfg(usercfg) {
-    std::map<std::string, JobController*> loadedJCs;
-    std::map<std::string, JobController*>::iterator currentJC;
-
     for (std::list<Job>::const_iterator it = jobs.begin();
          it != jobs.end(); ++it) {
-      if (it->Flavour.empty()) {
-        logger.msg(VERBOSE, "Ignoring job (%s), the Job::Flavour attribute must be specified", it->IDFromEndpoint.str());
-        continue;
-      }
-
-      currentJC = loadedJCs.find(it->Flavour);
-      if (currentJC == loadedJCs.end()) {
-        JobController *jc = loader.load(it->Flavour, usercfg);
-        currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(it->Flavour, jc)).first;
-        if (!jc) {
-          logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s module installed?", it->Flavour, it->Flavour);
-          continue;
-        }
-      }
-      else if (!currentJC->second) {
-        // Already tried to load JobController, and it failed.
-        continue;
-      }
-
-      currentJC->second->FillJobStore(*it);
+      AddJob(*it);
     }
   }
 
   JobSupervisor::~JobSupervisor() {}
+
+  bool JobSupervisor::AddJob(const Job& job) {
+    if (job.Flavour.empty()) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the Job::Flavour attribute must be specified", job.IDFromEndpoint.str());
+      return false;
+    }
+
+    std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.Flavour);
+    if (currentJC == loadedJCs.end()) {
+      JobController *jc = loader.load(job.Flavour, usercfg);
+      currentJC = loadedJCs.insert(std::pair<std::string, JobController*>(job.Flavour, jc)).first;
+      if (!jc) {
+        logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s plugin installed?", job.Flavour, job.Flavour);
+        return false;
+      }
+    }
+    else if (!currentJC->second) {
+      // Already tried to load JobController, and it failed.
+      return false;
+    }
+
+    currentJC->second->FillJobStore(job);
+    return true;
+  }
 
   bool JobSupervisor::Resubmit(const std::list<std::string>& status, int destination,
                                std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted) {
@@ -261,7 +244,7 @@ namespace Arc {
       jobdescs.front().Identification.ActivityOldId.push_back((*it)->JobID.str());
 
       // remove the queuename which was added during the original submission of the job
-      jobdescs.front().Resources.QueueName = "";    
+      jobdescs.front().Resources.QueueName = "";
 
       std::list<URL> rejectTargets;
       if (destination == 1) { // Jobs should be resubmitted to same target.
@@ -368,7 +351,7 @@ namespace Arc {
       jobdescs.front().Identification.ActivityOldId.push_back((*itJ)->JobID.str());
 
       // remove the queuename which was added during the original submission of the job
-      jobdescs.front().Resources.QueueName = "";    
+      jobdescs.front().Resources.QueueName = "";
 
       migratedJobs.push_back(Job());
 
