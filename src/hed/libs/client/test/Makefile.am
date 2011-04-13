@@ -1,6 +1,6 @@
 TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest \
 	JobControllerTest JobDescriptionParserTest SubmitterTest \
-	TargetRetrieverTest
+	TargetRetrieverTest JobSupervisorTest
 
 check_LTLIBRARIES = libaccTEST.la libTestACCControl.la
 check_PROGRAMS = $(TESTS)
@@ -50,6 +50,16 @@ JobControllerTest_SOURCES = $(top_srcdir)/src/Test.cpp JobControllerTest.cpp
 JobControllerTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 JobControllerTest_LDADD = \
+	libTestACCControl.la \
+	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+JobSupervisorTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	JobSupervisorTest.cpp
+JobSupervisorTest_CXXFLAGS = -I$(top_srcdir)/include\
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+JobSupervisorTest_LDADD = \
 	libTestACCControl.la \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
