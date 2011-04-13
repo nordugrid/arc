@@ -66,6 +66,8 @@ namespace Arc {
 
     ~JobSupervisor();
 
+    bool AddJob(const Job& job);
+
     /// Resubmit jobs
     /**
      * Jobs managed by this JobSupervisor will be resubmitted when invoking this
@@ -251,8 +253,6 @@ namespace Arc {
     bool JobsFound() const;
 
   private:
-    bool AddJob(const Job& job);
-
     static Logger logger;
     std::map<std::string, JobController*> loadedJCs;
     JobControllerLoader loader;
