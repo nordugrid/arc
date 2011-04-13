@@ -719,7 +719,8 @@ namespace Arc {
 
     if(!factory_->load(FinderLoader::GetLibrariesList(),
                        "HED:JobController", name)) {
-      logger.msg(ERROR, "JobController plugin \"%s\" not found.", name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
+      logger.msg(DEBUG, "JobController plugin \"%s\" not found.", name);
       return NULL;
     }
 
@@ -728,12 +729,13 @@ namespace Arc {
       factory_->GetInstance<JobController>("HED:JobController", name, &arg, false);
 
     if (!jobcontroller) {
-      logger.msg(ERROR, "JobController %s could not be created", name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
+      logger.msg(DEBUG, "JobController %s could not be created", name);
       return NULL;
     }
 
     jobcontrollers.push_back(jobcontroller);
-    logger.msg(INFO, "Loaded JobController %s", name);
+    logger.msg(DEBUG, "Loaded JobController %s", name);
     return jobcontroller;
   }
 

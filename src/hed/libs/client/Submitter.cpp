@@ -270,7 +270,8 @@ namespace Arc {
 
     if(!factory_->load(FinderLoader::GetLibrariesList(),
                        "HED:Submitter", name)) {
-      logger.msg(ERROR, "Submitter plugin \"%s\" not found.", name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
+      logger.msg(DEBUG, "Submitter plugin \"%s\" not found.", name);
       return NULL;
     }
 
@@ -279,12 +280,13 @@ namespace Arc {
       factory_->GetInstance<Submitter>("HED:Submitter", name, &arg, false);
 
     if (!submitter) {
-      logger.msg(ERROR, "Submitter %s could not be created", name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
+      logger.msg(DEBUG, "Submitter %s could not be created", name);
       return NULL;
     }
 
     submitters.push_back(submitter);
-    logger.msg(INFO, "Loaded Submitter %s", name);
+    logger.msg(DEBUG, "Loaded Submitter %s", name);
     return submitter;
   }
 

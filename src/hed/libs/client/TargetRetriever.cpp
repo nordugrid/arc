@@ -41,7 +41,8 @@ namespace Arc {
 
     if(!factory_->load(FinderLoader::GetLibrariesList(),
                        "HED:TargetRetriever", name)) {
-      logger.msg(ERROR, "TargetRetriever plugin \"%s\" not found. Please refer to installation instructions and check if package providing support for %s plugin is installed", name, name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for %s plugin is installed", name, name);
+      logger.msg(DEBUG, "TargetRetriever plugin \"%s\" not found.", name, name);
       return NULL;
     }
 
@@ -50,12 +51,13 @@ namespace Arc {
       factory_->GetInstance<TargetRetriever>("HED:TargetRetriever", name, &arg, false);
 
     if (!targetretriever) {
-      logger.msg(ERROR, "TargetRetriever %s could not be created. Please refer to installation instructions and check if package providing support for %s plugin is installed", name, name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
+      logger.msg(DEBUG, "TargetRetriever %s could not be created.", name, name);
       return NULL;
     }
 
     targetretrievers.push_back(targetretriever);
-    logger.msg(INFO, "Loaded TargetRetriever %s", name);
+    logger.msg(DEBUG, "Loaded TargetRetriever %s", name);
     return targetretriever;
   }
 
