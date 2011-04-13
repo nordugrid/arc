@@ -17,6 +17,7 @@ class JobSupervisorTest
   CPPUNIT_TEST(TestConstructor);
   CPPUNIT_TEST(TestAddJob);
   CPPUNIT_TEST(TestCancel);
+  CPPUNIT_TEST(TestClean);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -29,6 +30,7 @@ public:
   void TestConstructor();
   void TestAddJob();
   void TestCancel();
+  void TestClean();
 
   class JobStateTEST : public Arc::JobState {
   public:
@@ -154,6 +156,54 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT_EQUAL(2, (int)notCanceled.size());
   CPPUNIT_ASSERT_EQUAL(id1.str(), notCanceled.front().str());
   CPPUNIT_ASSERT_EQUAL(id3.str(), notCanceled.back().str());
+
+  delete js;
+}
+
+void JobSupervisorTest::TestClean()
+{
+  std::list<Arc::Job> jobs;
+  Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
+           id2("http://test.nordugrid.org/1234567890test2");
+
+  st = Arc::JobState::FINISHED;
+  j.State = JobStateTEST("R");
+  j.IDFromEndpoint = id1;
+  jobs.push_back(j);
+
+  st = Arc::JobState::UNDEFINED;
+  j.State = JobStateTEST("U");
+  j.IDFromEndpoint = id2;
+  jobs.push_back(j);
+
+  js = new Arc::JobSupervisor(usercfg, jobs);
+
+  std::list<Arc::URL> jobsToBeCleaned;
+  jobsToBeCleaned.push_back(id1);
+  jobsToBeCleaned.push_back(id2);
+  jobsToBeCleaned.push_back(Arc::URL("http://test.nordugrid.org/non-existent"));
+
+  JobControllerTestACCControl::cleanStatus = true;
+
+  std::list<Arc::URL> notCleaned;
+  std::list<Arc::URL> cleaned = js->Clean(jobsToBeCleaned, notCleaned);
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)cleaned.size());
+  CPPUNIT_ASSERT_EQUAL(id1.str(), cleaned.front().str());
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)notCleaned.size());
+  CPPUNIT_ASSERT_EQUAL(id2.str(), notCleaned.back().str());
+
+
+  notCleaned.clear();
+  JobControllerTestACCControl::cleanStatus = false;
+  cleaned = js->Clean(jobsToBeCleaned, notCleaned);
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)cleaned.size());
+
+  CPPUNIT_ASSERT_EQUAL(2, (int)notCleaned.size());
+  CPPUNIT_ASSERT_EQUAL(id1.str(), notCleaned.front().str());
+  CPPUNIT_ASSERT_EQUAL(id2.str(), notCleaned.back().str());
 
   delete js;
 }
