@@ -133,6 +133,7 @@ namespace Arc {
   void Lister::resp_callback(void *arg, globus_ftp_control_handle_t*,
                              globus_object_t *error,
                              globus_ftp_control_response_t *response) {
+    if(!arg) return;
     Lister *it = (Lister*)arg;
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
@@ -499,17 +500,18 @@ namespace Arc {
   }
 
   Lister::~Lister() {
+    GlobusResult res;
     close_connection();
     if (inited) {
       inited = false;
       // Waiting for stalled callbacks
-      while (handle && (globus_ftp_control_handle_destroy(handle) != GLOBUS_SUCCESS)) {
+      while (handle && (!(res=globus_ftp_control_handle_destroy(handle)))) {
+        logger.msg(DEBUG, "Failed destroying handle: %s",res.str());
         globus_abstime_t timeout;
         GlobusTimeAbstimeSet(timeout,0,100000);
         logger.msg(VERBOSE, "Looping for (globus_ftp_control_handle_t) to finish all operations");
         globus_mutex_lock(&mutex);
         globus_cond_timedwait(&cond, &mutex, &timeout);
-        globus_cond_wait(&cond, &mutex);
         globus_mutex_unlock(&mutex);
       }
       free(handle);
@@ -626,6 +628,7 @@ namespace Arc {
         resp_destroy();
         return -1;
       }
+      connected = true;
       resp_destroy();
       char *username_ = const_cast<char*>(username.c_str());
       char *userpass_ = const_cast<char*>(userpass.c_str());
@@ -650,20 +653,20 @@ namespace Arc {
           username_ = default_ftp_user;
         if (userpass.empty())
           userpass_ = default_ftp_pass;
-        if (globus_ftp_control_auth_info_init(&auth, GSS_C_NO_CREDENTIAL,
+        if (!(res = globus_ftp_control_auth_info_init(&auth, GSS_C_NO_CREDENTIAL,
                                               GLOBUS_FALSE, username_,
                                               userpass_, GLOBUS_NULL,
-                                              GLOBUS_NULL) !=
-            GLOBUS_SUCCESS) {
+                                              GLOBUS_NULL))) {
           logger.msg(ERROR, "Bad authentication information");
+          logger.msg(ERROR, "Failure: %s", res.str());
           return -1;
         }
         use_auth = GLOBUS_FALSE;
       }
-      if (globus_ftp_control_authenticate(handle, &auth, use_auth,
-                                          resp_callback, this) !=
-          GLOBUS_SUCCESS) {
+      if (!(res = globus_ftp_control_authenticate(handle, &auth, use_auth,
+                                          resp_callback, this))) {
         logger.msg(ERROR, "Failed authenticating");
+        logger.msg(ERROR, "Failure: %s", res.str());
         return -1;
       }
       if (wait_for_callback() != CALLBACK_DONE) {
@@ -672,7 +675,6 @@ namespace Arc {
         return -1;
       }
       resp_destroy();
-      connected = true;
     }
     return 0;
   }
