@@ -288,8 +288,8 @@ namespace Arc {
   }
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
-   
-    out << IString("Execution Service: %s", ServiceName) << std::endl;
+
+    out << IString("Execution Service: %s", (!ServiceName.empty() ? ServiceName : Cluster.Host())) << std::endl;
     if (Cluster) {
       std::string formattedURL = Cluster.str();
       formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
