@@ -34,19 +34,19 @@
 if [ -f /etc/init.d/functions ]; then
     . /etc/init.d/functions
     log_success_msg() {
-        echo -n "$@"
-        success "$@"
-        echo
+	echo -n "$@"
+	success "$@"
+	echo
     }
     log_warning_msg() {
-        echo -n "$@"
-        warning "$@"
-        echo
+	echo -n "$@"
+	warning "$@"
+	echo
     }
     log_failure_msg() {
-        echo -n "$@"
-        failure "$@"
-        echo
+	echo -n "$@"
+	failure "$@"
+	echo
     }
 elif [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
@@ -67,13 +67,13 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/grid-infosys ] ; then
+if [ -r /etc/sysconfig/grid-infosys ]; then
     . /etc/sysconfig/grid-infosys
-elif [ -r /etc/default/grid-infosys ] ; then
+elif [ -r /etc/default/grid-infosys ]; then
     . /etc/default/grid-infosys
 fi
 
-if [ "x$RUN" != "xyes" ] ; then
+if [ "x$RUN" != "xyes" ]; then
     echo "$prog disabled, please adjust the configuration to your needs "
     echo "and then set RUN to 'yes' in /etc/default/$prog to enable it."
     exit 0
@@ -81,8 +81,8 @@ fi
 
 debug_echo () {
     if test $debug -gt 0; then
-        info_string="`date +'%b %d %H:%M:%S'` `hostname` `basename $0`[$$]"
-        echo "${info_string} $*" >> ${infosyslog}
+	info_string="`date +'%b %d %H:%M:%S'` `hostname` `basename $0`[$$]"
+	echo "${info_string} $*" >> ${infosyslog}
     fi
 }
 
@@ -127,19 +127,19 @@ printregldif () {
 # support turning this feature off.
 check_if_bdii_unpatched () {
     if [ $# != 1 ]; then
-        error_echo "check_bdii called with too few arguments, wanted bdii_update_file_path"
-        exit 1
+	error_echo "check_bdii called with too few arguments, wanted bdii_update_file_path"
+	exit 1
     fi
     bdii_update_file=$1
     grep -q "bdii_infosys" $bdii_update_file
     if [ $? -eq 0 ]; then
-        debug_echo "You are using a patched version of BDII."
-        debug_echo "Will default to turning off o=infosys unless specifically handled in arc.conf"
-        return 0
+	debug_echo "You are using a patched version of BDII."
+	debug_echo "Will default to turning off o=infosys unless specifically handled in arc.conf"
+	return 0
     else
-        debug_echo "Warning: You are using a pure version of BDII."
-        debug_echo "Will not try to turn o=infosys off since this is not supported."
-        return 1
+	debug_echo "Warning: You are using a pure version of BDII."
+	debug_echo "Will not try to turn o=infosys off since this is not supported."
+	return 1
     fi
 }
 
@@ -166,12 +166,12 @@ ARC_CONFIG=${ARC_CONFIG:-/etc/arc.conf}
 if [ ! -r "$ARC_CONFIG" ]; then
     echo "ARC configuration file arc.conf was not found (usually /etc/arc.conf)"
     if [ -r "/etc/nordugrid.conf" ]; then
-        echo "Fallback /etc/nordugrid.conf was found, trying to use that one"
-        ARC_CONFIG="/etc/nordugrid.conf"
+	echo "Fallback /etc/nordugrid.conf was found, trying to use that one"
+	ARC_CONFIG="/etc/nordugrid.conf"
     else
-        log_warning_msg "arc.conf was not found. If this file is in a non-standard place,"
-        log_warning_msg "  it can be set with the ARC_CONFIG environment variable"
-        exit 0
+	log_warning_msg "arc.conf was not found. If this file is in a non-standard place,"
+	log_warning_msg "  it can be set with the ARC_CONFIG environment variable"
+	exit 0
     fi
 fi
 
@@ -179,9 +179,9 @@ fi
 if [ -s /etc/openldap/ldap.conf ]; then
     TLS_CACERTDIR=`cat /etc/openldap/ldap.conf | grep -E "^TLS_CACERTDIR" | sed -e 's/TLS_CACERTDIR[ \t]*//g'`
     if [ "x${TLS_CACERTDIR}" != "x" ] && [ ! -d ${TLS_CACERTDIR} ]; then
-        log_warning_msg "TLS_CACERTDIR=${TLS_CACERTDIR} is set in /etc/openldap/ldap.conf but directory does not exist"
-        log_warning_msg "This is a bug in OpenLDAP, please create the directory"
-        exit 0
+	log_warning_msg "TLS_CACERTDIR=${TLS_CACERTDIR} is set in /etc/openldap/ldap.conf but directory does not exist"
+	log_warning_msg "This is a bug in OpenLDAP, please create the directory"
+	exit 0
     fi
 fi
 
@@ -216,25 +216,25 @@ debug=${CONFIG_debug:-$debug}
 
 check_ownership () {
     if [ $# != 2 ]; then
-        error_echo "Wrong number of arguments to check_ownership"
-        exit 1
+	error_echo "Wrong number of arguments to check_ownership"
+	exit 1
     fi
     file=$1
     user=$2
 
     res=$(find `dirname $file`/ -maxdepth 1 -user $user -name `basename $file`)
     if [ "x${res}" = "x" ]; then
-        log_failure_msg "ERROR: ${file} is not owned by ${user}"
-        exit 1
+	log_failure_msg "ERROR: ${file} is not owned by ${user}"
+	exit 1
     fi
 }
 
 get_ldap_user () {
     ldap_user=`getent passwd | grep ldap | sed 's/\([az]*\):.*/\1/g'`
     if [ ! "xldap" = "x$ldap_user" ] && [ ! "xopenldap" = "x$ldap_user" ]; then
-        debug_echo "Warning, could not find ldap or openldap user"
-        debug_echo "resorting to using the root user."
-        ldap_user=root
+	debug_echo "Warning, could not find ldap or openldap user"
+	debug_echo "resorting to using the root user."
+	ldap_user=root
     fi
 }
 
@@ -350,10 +350,10 @@ check_ownership ${providerlog} ${bdii_user}
 if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_glue12" = "xenable" ];
  then
     if [ ! -f "$pkgdatadir/InfosysHelper.pm" ]; then
-        log_warning_msg "A-REX is not installed"
-        log_warning_msg "For operation without A-REX, disable publishing of cluster information"
-        log_warning_msg "(infosys_nordugrid, infosys_glue12 and infosys_glue2_ldap)"
-        exit 0
+	log_warning_msg "A-REX is not installed"
+	log_warning_msg "For operation without A-REX, disable publishing of cluster information"
+	log_warning_msg "(infosys_nordugrid, infosys_glue12 and infosys_glue2_ldap)"
+	exit 0
     fi
 fi
 
@@ -375,10 +375,10 @@ if [ "x" = "x$CONFIG_slapd" ]; then
     O_IFS=$IFS
     IFS=:
     for dir in $PATH; do
-        if test -x "$dir/slapd"; then
-            slapd_cmd="$dir/slapd"
-            break
-        fi
+	if test -x "$dir/slapd"; then
+	    slapd_cmd="$dir/slapd"
+	    break
+	fi
     done
     IFS=$O_IFS
 else
@@ -387,13 +387,13 @@ fi
 
 #This is the slapd command that should be used by bdii
 if [ "`config_subsections infosys/index`" ]; then
-    if [ -r ${giis_location}/lib64/arc/arc-infoindex-slapd-wrapper.so ] ; then
-        pkglibdir=${giis_location}/lib64/arc
-    elif [ -r ${giis_location}/lib/arc/arc-infoindex-slapd-wrapper.so ] ; then
-        pkglibdir=${giis_location}/lib/arc
+    if [ -r ${giis_location}/lib64/arc/arc-infoindex-slapd-wrapper.so ]; then
+	pkglibdir=${giis_location}/lib64/arc
+    elif [ -r ${giis_location}/lib/arc/arc-infoindex-slapd-wrapper.so ]; then
+	pkglibdir=${giis_location}/lib/arc
     else
-        error_echo "Error, could not find infoindex slapd wrapper"
-        exit 1
+	error_echo "Error, could not find infoindex slapd wrapper"
+	exit 1
     fi
     rm -f ${arc_runtime_exec}/slapd
     cat <<-EOF > ${arc_runtime_exec}/slapd
@@ -422,8 +422,8 @@ if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd
     # Guess a likely directory for ldap modules
     ldaplib=$(find /usr/lib -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
     if [ "x" = "x$ldaplib" ]; then
-        log_failure_msg "Could not find ldap libraries under /usr/lib"
-        exit 1
+	log_failure_msg "Could not find ldap libraries under /usr/lib"
+	exit 1
     fi
 
     # This will get written to bdii slapd.conf:
@@ -435,16 +435,16 @@ fi
 if [ "`config_subsections infosys/index`" ]; then
     if [ $(grep -Ec "shell_db_init|shell_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
-        # Guess a likely directory for ldap modules
-        ldaplib=${ldaplib:-$(find /usr/lib -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
-        if [ "x" = "x$ldaplib" ]; then
-            log_failure_msg "Could not find ldap libraries under /usr/lib"
-            exit 1
-        fi
+	# Guess a likely directory for ldap modules
+	ldaplib=${ldaplib:-$(find /usr/lib -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
+	if [ "x" = "x$ldaplib" ]; then
+	    log_failure_msg "Could not find ldap libraries under /usr/lib"
+	    exit 1
+	fi
 
-        # This will get written to bdii slapd.conf:
-        slapd_modulepath="modulepath      $ldaplib"
-        slapd_moduleload_index="moduleload      back_shell"
+	# This will get written to bdii slapd.conf:
+	slapd_modulepath="modulepath      $ldaplib"
+	slapd_moduleload_index="moduleload      back_shell"
     fi
 fi
 
@@ -475,8 +475,8 @@ provide_glue_site_info="true"
 if [ "x$infosys_glue12" = "xenable" ]; then
 
     if ! config_match_section infosys/glue12 ; then
-        log_failure_msg "infosys_glue12 is set to enable, but infosys/glue12 block is missing."
-        exit 1
+	log_failure_msg "infosys_glue12 is set to enable, but infosys/glue12 block is missing."
+	exit 1
     fi
 
     config_import_section infosys/glue12
@@ -490,47 +490,47 @@ if [ "x$infosys_glue12" = "xenable" ]; then
     provide_glue_site_info=${CONFIG_provide_glue_site_info:-$provide_glue_site_info}
 
     if [ "x$resource_location" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then resource_location must be set."
-        log_failure_msg "It should be set to a free-form string describing the location,"
-        log_failure_msg "for example: 'Kastrup, Denmark'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then resource_location must be set."
+	log_failure_msg "It should be set to a free-form string describing the location,"
+	log_failure_msg "for example: 'Kastrup, Denmark'"
+	exit 1
     fi
     if [ "x$resource_latitude" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then resource_latitude must be set."
-        log_failure_msg "It should be set to the latitude for the location,"
-        log_failure_msg "for example: '55.75000'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then resource_latitude must be set."
+	log_failure_msg "It should be set to the latitude for the location,"
+	log_failure_msg "for example: '55.75000'"
+	exit 1
     fi
     if [ "x$resource_longitude" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then resource_longitude must be set."
-        log_failure_msg "It should be set to the longitude for the location,"
-        log_failure_msg "for example: '12.41670'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then resource_longitude must be set."
+	log_failure_msg "It should be set to the longitude for the location,"
+	log_failure_msg "for example: '12.41670'"
+	exit 1
     fi
     if [ "x$cpuscalingreferencesi00" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then cpu_scaling_reference_si00 must be set."
-        log_failure_msg "It should be set to the SI00 value,"
-        log_failure_msg "for example: '2400'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then cpu_scaling_reference_si00 must be set."
+	log_failure_msg "It should be set to the SI00 value,"
+	log_failure_msg "for example: '2400'"
+	exit 1
     fi
     if [ "x$processorotherdescription" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then processor_other_description must be set."
-        log_failure_msg "It should be set to a value like in the example,where cores is the average number"
-        log_failure_msg "of cores in the machine"
-        log_failure_msg "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then processor_other_description must be set."
+	log_failure_msg "It should be set to a value like in the example,where cores is the average number"
+	log_failure_msg "of cores in the machine"
+	log_failure_msg "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
+	exit 1
     fi
     if [ "x$gluesiteweb" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then glue_site_web must be set."
-        log_failure_msg "It should be set to a url for the website belonging to the institution holding the resource,"
-        log_failure_msg "for example: 'http://www.ndgf.org'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then glue_site_web must be set."
+	log_failure_msg "It should be set to a url for the website belonging to the institution holding the resource,"
+	log_failure_msg "for example: 'http://www.ndgf.org'"
+	exit 1
     fi
     if [ "x$gluesiteuniqueid" = "x" ]; then
-        log_failure_msg "If infosys_glue12 is enabled, then glue_site_unique_id must be set."
-        log_failure_msg "It should be set to a unique id to the resource, this should be entered into the GocDb"
-        log_failure_msg "for example: 'NDGF-T1'"
-        exit 1
+	log_failure_msg "If infosys_glue12 is enabled, then glue_site_unique_id must be set."
+	log_failure_msg "It should be set to a unique id to the resource, this should be entered into the GocDb"
+	log_failure_msg "for example: 'NDGF-T1'"
+	exit 1
     fi
 
 fi
@@ -548,9 +548,9 @@ giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
 # Will create bdii.conf file in /var/run/arc/infosys/bdii.conf
 create_bdii_conf () {
     if [ $# != 7 ]; then
-        error_echo "Wrong number of arguments to create_bdii_conf"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_bdii_conf"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
     bdii_location=$1
     bdii_var_dir=$2
@@ -593,9 +593,9 @@ create_bdii_conf () {
 # Will create file /var/run/nordugrid/bdii-update.conf
 create_bdii_update_conf () {
     if [ $# != 3 ]; then
-        error_echo "Wrong number of arguments to create_bdii_update_conf"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_bdii_update_conf"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
     bdii_location=$1
     ldif_generator_file_ng=$2
@@ -605,12 +605,12 @@ create_bdii_update_conf () {
     std_header ${bdii_update_conf}
 
     if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_compat" != "xenable" ]; then
-        echo "ARC-PROVIDER file://${ldif_generator_file_ng}" >> \
-            ${bdii_update_conf}
+	echo "ARC-PROVIDER file://${ldif_generator_file_ng}" >> \
+	    ${bdii_update_conf}
     fi
     if [ "x$infosys_glue12" = "xenable" ] && [ "x$infosys_compat" = "xenable" ]; then
-        echo "GLUE-PROVIDER file://${ldif_generator_file_glue}" >> \
-            ${bdii_update_conf}
+	echo "GLUE-PROVIDER file://${ldif_generator_file_glue}" >> \
+	    ${bdii_update_conf}
     fi
 }
 
@@ -619,21 +619,21 @@ create_bdii_update_conf () {
 # $bdii_var_dir/arc-slapd.conf
 create_arc_slapd_conf () {
     if [ $# != 2 ]; then
-        error_echo "Wrong number of arguments to create_arc_slapd_conf"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_arc_slapd_conf"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
     bdii_location=$1
     bdii_slapd_conf=$2
 
     for i in "/etc/bdii4/BDII.schema" \
-             "${bdii_location}/etc/BDII.schema" \
-             "$ARC_LOCATION/@pkgdatasubdir@/ldap-schema/BDII.schema"; do
+	     "${bdii_location}/etc/BDII.schema" \
+	     "$ARC_LOCATION/@pkgdatasubdir@/ldap-schema/BDII.schema"; do
 
-        if [ -r $i ]; then
-            bdii_schema=$i
-            break
-        fi
+	if [ -r $i ]; then
+	    bdii_schema=$i
+	    break
+	fi
     done
 
     rm -f $bdii_slapd_conf
@@ -675,9 +675,9 @@ create_arc_slapd_conf () {
 
 add_info_service () {
     if [ $# != 2 ]; then
-        error_echo "Wrong number of arguments to add_info_service"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to add_info_service"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
     suffix=$1
     rootdn=$2
@@ -724,9 +724,9 @@ add_info_service () {
 # ${bdii_tmp_dir}/arc-default.ldif.pl
 create_default_ldif () {
     if [ $# != 1 ]; then
-        error_echo "Wrong number of arguments to create_default_ldif"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_default_ldif"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
 
     bdii_default_ldif=$1
@@ -777,9 +777,9 @@ create_default_ldif () {
 # ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif
 create_arc_ldif_generator_compat () {
     if [ $# != 2 ]; then
-        error_echo "Wrong number of arguments to create_arc_ldif_generator_compat"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_arc_ldif_generator_compat"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
 
     bdii_tmp_dir=$1
@@ -790,45 +790,45 @@ create_arc_ldif_generator_compat () {
     std_header ${ldif_generator_file}
 
     if config_match_section cluster; then
-        (
-            config_hide_all
-            config_set_defaults
-            config_import_section common
-            config_import_section infosys
-            config_import_section cluster
-            cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+	(
+	    config_hide_all
+	    config_set_defaults
+	    config_import_section common
+	    config_import_section infosys
+	    config_import_section cluster
+	    cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
-            cat <<-EOF >> ${ldif_generator_file}
+	    cat <<-EOF >> ${ldif_generator_file}
 		$ARC_LOCATION/@pkgdatasubdir@/cluster.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-cluster-name=$hostname,Mds-Vo-name=local,o=Grid 2>> "$providerlog"
 		EOF
 
-            # Create entries for all queues
-            for queue in `config_subsections queue`; do
-                (
-                    config_import_section queue/$queue
-                    cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+	    # Create entries for all queues
+	    for queue in `config_subsections queue`; do
+		(
+		    config_import_section queue/$queue
+		    cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
-                    cat <<-EOF >> ${ldif_generator_file}
+		    cat <<-EOF >> ${ldif_generator_file}
 			$ARC_LOCATION/@pkgdatasubdir@/qju.pl --valid-to $cachetime --config $ARC_CONFIG --loglevel $CONFIG_provider_loglevel --dn nordugrid-queue-name=$queue,nordugrid-cluster-name=$hostname,Mds-Vo-name=local,o=Grid --queue $queue 2>> "$providerlog"
 			EOF
-                )
-            done
-        )
+		)
+	    done
+	)
     fi
 
     for se in `config_subsections se`; do
-        (
-            config_hide_all
-            config_set_defaults
-            config_import_section common
-            config_import_section infosys
-            config_import_section se/$se
-            cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
+	(
+	    config_hide_all
+	    config_set_defaults
+	    config_import_section common
+	    config_import_section infosys
+	    config_import_section se/$se
+	    cachetime=${CONFIG_cachetime:-$bdii_breathe_time}
 
-            cat <<-EOF >> ${ldif_generator_file}
+	    cat <<-EOF >> ${ldif_generator_file}
 		$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"
 		EOF
-        )
+	)
     done
 
     chmod +x ${ldif_generator_file}
@@ -839,9 +839,9 @@ create_arc_ldif_generator_compat () {
 # ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif
 create_arc_ldif_generator () {
     if [ $# != 3 ]; then
-        error_echo "Wrong number of arguments to create_arc_ldif_generator"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_arc_ldif_generator"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
 
     arc_runtime_config=$1
@@ -861,25 +861,25 @@ create_arc_ldif_generator () {
 	EOF
 
     for se in `config_subsections se`; do
-        (
-            config_hide_all
-            config_set_defaults
-            config_import_section common
-            config_import_section infosys
-            if [ ! -f $providerlog ]; then
-                touch $providerlog
-            fi
-            chown ${bdii_user}:${bdii_user} ${providerlog}
-            config_import_section se/$se
-            cachetime=${CONFIG_cachetime:-$max_cycle}
+	(
+	    config_hide_all
+	    config_set_defaults
+	    config_import_section common
+	    config_import_section infosys
+	    if [ ! -f $providerlog ]; then
+		touch $providerlog
+	    fi
+	    chown ${bdii_user}:${bdii_user} ${providerlog}
+	    config_import_section se/$se
+	    cachetime=${CONFIG_cachetime:-$max_cycle}
 
-            cat <<-EOF >> ${ldif_generator_file}
+	    cat <<-EOF >> ${ldif_generator_file}
 			BEGIN {
 			    print "\n";
 			    system('$ARC_LOCATION/@pkgdatasubdir@/se.pl -valid-to $cachetime -config $ARC_CONFIG -dn nordugrid-se-name=$se:$hostname,Mds-Vo-name=local,o=Grid -se $se 2>> "$providerlog"');
 			}
 			EOF
-        )
+	)
     done
 
     # NG and GLUE2 come directly from a-rex infoprovider
@@ -891,13 +891,13 @@ create_arc_ldif_generator () {
 	EOF
 
     if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_glue2_ldap" = "xenable" ]; then
-        echo "system('$ldif_script');" >> ${ldif_generator_file}
+	echo "system('$ldif_script');" >> ${ldif_generator_file}
     fi
 
     if [ "x$infosys_glue12" = "xenable" ]; then
-        # Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
-        create_glue_ldif_generator $bdii_tmp_dir $ldif_script $ldif_glue12_generator
-        echo "system('$ldif_glue12_generator');" >> ${ldif_generator_file}
+	# Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
+	create_glue_ldif_generator $bdii_tmp_dir $ldif_script $ldif_glue12_generator
+	echo "system('$ldif_glue12_generator');" >> ${ldif_generator_file}
     fi
 
     chmod +x ${ldif_generator_file}
@@ -906,93 +906,93 @@ create_arc_ldif_generator () {
 create_registration_config_file () {
     std_header $arc_runtime_config/grid-info-resource-register.conf
     (
-        config_hide_all
-        config_set_defaults
-        config_import_section common
-        config_import_section infosys
+	config_hide_all
+	config_set_defaults
+	config_import_section common
+	config_import_section infosys
 
-        # Start with the Cluster registration blocks
-        for p in `config_subsections infosys/cluster/registration`; do
-        (
-            config_import_section infosys/cluster/registration/$p
+	# Start with the Cluster registration blocks
+	for p in `config_subsections infosys/cluster/registration`; do
+	(
+	    config_import_section infosys/cluster/registration/$p
 
-            targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=Grid"}
-            reghn=${CONFIG_targethostname:-"targethostname.not.set"}
-            regport=${CONFIG_targetport:-2135}
-            hn=${CONFIG_registranthostname:-$hostname}
-            port=${CONFIG_registrantport:-$CONFIG_port}
-            rootdn=${CONFIG_registrantsuffix:-"nordugrid-cluster-name=$hn,Mds-Vo-name=local,o=Grid"}
-            regperiod=${CONFIG_regperiod:-120}
-            ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
-            timeout=${CONFIG_timeout:-45}
-            cachettl=${CONFIG_cachettl:-0}
-            sizelimit=${CONFIG_sizelimit:-0}
-            bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
+	    targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=Grid"}
+	    reghn=${CONFIG_targethostname:-"targethostname.not.set"}
+	    regport=${CONFIG_targetport:-2135}
+	    hn=${CONFIG_registranthostname:-$hostname}
+	    port=${CONFIG_registrantport:-$CONFIG_port}
+	    rootdn=${CONFIG_registrantsuffix:-"nordugrid-cluster-name=$hn,Mds-Vo-name=local,o=Grid"}
+	    regperiod=${CONFIG_regperiod:-120}
+	    ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
+	    timeout=${CONFIG_timeout:-45}
+	    cachettl=${CONFIG_cachettl:-0}
+	    sizelimit=${CONFIG_sizelimit:-0}
+	    bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
 
-            debug_echo "Cluster Tree on $hn:$port/$rootdn REGISTERS to $reghn:$regport/$targetsuffix"
-            printregldif >> $arc_runtime_config/grid-info-resource-register.conf
+	    debug_echo "Cluster Tree on $hn:$port/$rootdn REGISTERS to $reghn:$regport/$targetsuffix"
+	    printregldif >> $arc_runtime_config/grid-info-resource-register.conf
 
-        )
-        done
+	)
+	done
 
-        # Now process the SE registration blocks
-        for seentry in `config_subsections infosys/se`; do
-        (
-            config_import_section infosys/se
-            CONFIG_name=
-            config_import_section se/$seentry
-            sename=${CONFIG_name:-$seentry}
-            config_import_section infosys/se/$seentry
+	# Now process the SE registration blocks
+	for seentry in `config_subsections infosys/se`; do
+	(
+	    config_import_section infosys/se
+	    CONFIG_name=
+	    config_import_section se/$seentry
+	    sename=${CONFIG_name:-$seentry}
+	    config_import_section infosys/se/$seentry
 
-            for p in `config_subsections infosys/se/$seentry/registration`; do
-            (
-                config_import_section infosys/se/$seentry/registration
-                config_import_section infosys/se/$seentry/registration/$p
+	    for p in `config_subsections infosys/se/$seentry/registration`; do
+	    (
+		config_import_section infosys/se/$seentry/registration
+		config_import_section infosys/se/$seentry/registration/$p
 
-                targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=Grid"}
-                reghn=${CONFIG_targethostname:-"targethostname.not.set"}
-                regport=${CONFIG_targetport:-2135}
-                hn=${CONFIG_registranthostname:-$hostname}
-                port=${CONFIG_registrantport:-$CONFIG_port}
-                rootdn=${CONFIG_registrantsuffix:-"nordugrid-se-name=$sename:$hn,Mds-Vo-name=local,o=Grid"}
-                regperiod=${CONFIG_regperiod:-120}
-                ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
-                timeout=${CONFIG_timeout:-45}
-                cachettl=${CONFIG_cachettl:-0}
-                sizelimit=${CONFIG_sizelimit:-0}
-                bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
+		targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$p,o=Grid"}
+		reghn=${CONFIG_targethostname:-"targethostname.not.set"}
+		regport=${CONFIG_targetport:-2135}
+		hn=${CONFIG_registranthostname:-$hostname}
+		port=${CONFIG_registrantport:-$CONFIG_port}
+		rootdn=${CONFIG_registrantsuffix:-"nordugrid-se-name=$sename:$hn,Mds-Vo-name=local,o=Grid"}
+		regperiod=${CONFIG_regperiod:-120}
+		ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
+		timeout=${CONFIG_timeout:-45}
+		cachettl=${CONFIG_cachettl:-0}
+		sizelimit=${CONFIG_sizelimit:-0}
+		bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
 
-                debug_echo "$seentry SE Tree on $hn:$port/$rootdn REGISTERS to $reghn:$regport/$targetsuffix"
-                printregldif >> $arc_runtime_config/grid-info-resource-register.conf
+		debug_echo "$seentry SE Tree on $hn:$port/$rootdn REGISTERS to $reghn:$regport/$targetsuffix"
+		printregldif >> $arc_runtime_config/grid-info-resource-register.conf
 
-            )
-            done
+	    )
+	    done
 
-        )
-        done # loop over SEs
+	)
+	done # loop over SEs
     )
 }
 
 add_index_services () {
     (
-        config_hide_all
-        config_set_defaults
-        config_import_section common
-        config_import_section infosys
+	config_hide_all
+	config_set_defaults
+	config_import_section common
+	config_import_section infosys
 
-        # Defaults for the Index Service slapd.conf block
+	# Defaults for the Index Service slapd.conf block
 
-        access="access to * by * write"
+	access="access to * by * write"
 
-        for vo in `config_subsections infosys/index`; do
-        (
-            debug_echo "Enabling the Index Service $vo"
+	for vo in `config_subsections infosys/index`; do
+	(
+	    debug_echo "Enabling the Index Service $vo"
 
-            CONFIG_name=
-            config_import_section infosys/index/$vo
-            indexname=${CONFIG_name:-$vo}
+	    CONFIG_name=
+	    config_import_section infosys/index/$vo
+	    indexname=${CONFIG_name:-$vo}
 
-            cat <<-EOF >> $bdii_slapd_conf
+	    cat <<-EOF >> $bdii_slapd_conf
 
 		# Index Service: $vo
 		database        shell
@@ -1003,37 +1003,37 @@ add_index_services () {
 		$access
 		EOF
 
-            # Registrations of the Index Services
+	    # Registrations of the Index Services
 
-            # grid-info-resource-register.conf
+	    # grid-info-resource-register.conf
 
-            for r in `config_subsections infosys/index/$vo/registration`; do
-            (
-                config_import_section infosys/index/$vo/registration/$r
+	    for r in `config_subsections infosys/index/$vo/registration`; do
+	    (
+		config_import_section infosys/index/$vo/registration/$r
 
-                targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$r,o=Grid"}
-                reghn=$CONFIG_targethostname
-                regport=${CONFIG_targetport:-2135}
-                hn=${CONFIG_registranthostname:-$hostname}
-                port=${CONFIG_registrantport:-$CONFIG_port}
-                rootdn=${CONFIG_registrantsuffix:-"Mds-Vo-name=$indexname,o=Grid"}
-                regperiod=${CONFIG_regperiod:-120}
-                ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
-                timeout=${CONFIG_timeout:-120}
-                cachettl=${CONFIG_cachettl:-0}
-                sizelimit=${CONFIG_sizelimit:-0}
-                bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
+		targetsuffix=${CONFIG_targetsuffix:-"Mds-Vo-name=$r,o=Grid"}
+		reghn=$CONFIG_targethostname
+		regport=${CONFIG_targetport:-2135}
+		hn=${CONFIG_registranthostname:-$hostname}
+		port=${CONFIG_registrantport:-$CONFIG_port}
+		rootdn=${CONFIG_registrantsuffix:-"Mds-Vo-name=$indexname,o=Grid"}
+		regperiod=${CONFIG_regperiod:-120}
+		ttl=${CONFIG_ttl:-$(( $regperiod * 2 ))}
+		timeout=${CONFIG_timeout:-120}
+		cachettl=${CONFIG_cachettl:-0}
+		sizelimit=${CONFIG_sizelimit:-0}
+		bindmethod=${CONFIG_bindmethod:-ANONYM-ONLY}
 
-                if [ -n "$targetsuffix" -a -n "$reghn" ]; then
-                    printregldif >> $arc_runtime_config/grid-info-resource-register.conf
-                    debug_echo "Index Service $hn:$port/$rootdn REGISTERS to $reghn:$regport/$targetsuffix"
-                fi
+		if [ -n "$targetsuffix" -a -n "$reghn" ]; then
+		    printregldif >> $arc_runtime_config/grid-info-resource-register.conf
+		    debug_echo "Index Service $hn:$port/$rootdn REGISTERS to $reghn:$regport/$targetsuffix"
+		fi
 
-            )
-            done
+	    )
+	    done
 
-        )
-        done
+	)
+	done
     )
 }
 
@@ -1042,9 +1042,9 @@ add_index_services () {
 # ${bdii_tmp_dir}/arc-glue-bdii-ldif
 create_glue_ldif_generator () {
     if [ $# != 3 ]; then
-        error_echo "Wrong number of arguments to create_glue_ldif_generator"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_glue_ldif_generator"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
 
     bdii_tmp_dir=$1
@@ -1056,16 +1056,16 @@ create_glue_ldif_generator () {
 
     # We use , instead of / here to allow for / in path, resource_location though, can contain commas..
     sed "s,\$LDIF_GENERATOR_FILE_NG,$ldif_generator_file_ng,g;
-         s/\$LOC/\"$resource_location\"/g;
-         s/\$LAT/$resource_latitude/g;
-         s/\$LONG/$resource_longitude/g;
-         s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
-         s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
-         s,\$GLUESITEWEB,$gluesiteweb,g;
-         s,\$BDIIPORT,$bdii_port_read,g;
-         s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
-         s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
-        " $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
+	 s/\$LOC/\"$resource_location\"/g;
+	 s/\$LAT/$resource_latitude/g;
+	 s/\$LONG/$resource_longitude/g;
+	 s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
+	 s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
+	 s,\$GLUESITEWEB,$gluesiteweb,g;
+	 s,\$BDIIPORT,$bdii_port_read,g;
+	 s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
+	 s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
+	" $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
 
     chmod +x ${ldif_generator_file_glue}
 }
@@ -1075,9 +1075,9 @@ create_glue_ldif_generator () {
 # Call with create_directory dir context
 create_directory () {
     if [ $# != 2 ]; then
-        error_echo "Wrong number of arguments to create_directory"
-        error_echo "Arguments were: $*"
-        exit 1
+	error_echo "Wrong number of arguments to create_directory"
+	error_echo "Arguments were: $*"
+	exit 1
     fi
 
     dir=$1
@@ -1085,12 +1085,12 @@ create_directory () {
     id=`id -u`
 
     if [ ${#dir} -le "1" ]; then
-        error_echo "$string error: directory string: $dir is too short"
-        exit 1
+	error_echo "$string error: directory string: $dir is too short"
+	exit 1
     fi
 
     if [ -e ${dir} ]; then
-        rm -rf $dir
+	rm -rf $dir
     fi
 
     #set rights
@@ -1099,8 +1099,8 @@ create_directory () {
 
     #check ownership just to be sure
     if [ ! -O ${dir} ]; then
-        error_echo "$string error: $dir should be owned by uid:$id"
-        exit 1
+	error_echo "$string error: $dir should be owned by uid:$id"
+	exit 1
     fi
 }
 
@@ -1127,22 +1127,22 @@ create_bdii_config_files () {
 
     if [ "x$infosys_compat" = "xenable" ]; then
 
-        # Create arc-nordugrid-bdii-ldif, generates ldif-files for nordugrid schema.
-        if [ "x$infosys_nordugrid" = "xenable" ]; then
-            # Call with create_arc_ldif_generator_compat bdii_tmp_dir ldif_generator_file
-            create_arc_ldif_generator_compat $bdii_tmp_dir ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif
-        fi
+	# Create arc-nordugrid-bdii-ldif, generates ldif-files for nordugrid schema.
+	if [ "x$infosys_nordugrid" = "xenable" ]; then
+	    # Call with create_arc_ldif_generator_compat bdii_tmp_dir ldif_generator_file
+	    create_arc_ldif_generator_compat $bdii_tmp_dir ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif
+	fi
     
-        # Create arc-glue-bdii-ldif, generates ldif-files for glue schema
-        if [ "x$infosys_glue12" = "xenable" ]; then
-            # Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
-            create_glue_ldif_generator $bdii_tmp_dir ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif ${bdii_tmp_dir}/arc-glue-bdii-ldif
-        fi
+	# Create arc-glue-bdii-ldif, generates ldif-files for glue schema
+	if [ "x$infosys_glue12" = "xenable" ]; then
+	    # Call with create_glue_ldif_generator bdii_tmp_dir ldif_generator_file_ng ldif_generator_file_glue
+	    create_glue_ldif_generator $bdii_tmp_dir ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif ${bdii_tmp_dir}/arc-glue-bdii-ldif
+	fi
 
     else
 
-        # Call with create_arc_ldif_generator arc_runtime_config ldif_generator_file_ng ldif_generator_file_glue
-        create_arc_ldif_generator $arc_runtime_config ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif ${arc_runtime_config}/arc-glue-bdii-ldif
+	# Call with create_arc_ldif_generator arc_runtime_config ldif_generator_file_ng ldif_generator_file_glue
+	create_arc_ldif_generator $arc_runtime_config ${bdii_tmp_dir}/arc-nordugrid-bdii-ldif ${arc_runtime_config}/arc-glue-bdii-ldif
 
     fi
 
@@ -1155,8 +1155,8 @@ create_bdii_config_files () {
       site_provider="$bdii_provider_dir/site_${site_bdii}.sh"
       # We should have a loop over urls here
       # LOOP START
-        url=${CONFIG_url}
-        echo "$unique_id $url" > "$site_config"
+	url=${CONFIG_url}
+	echo "$unique_id $url" > "$site_config"
       # LOOP END 
       # Create script
       printf "#!/bin/sh\n/$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m \"$site_bdii\" -c $site_config\n" > $site_provider
@@ -1189,16 +1189,16 @@ notify_about_bdii () {
 start () {
 
     #Check to see if the process is already started
-    if [  -f "$PID_FILE" ] ; then
-        status > /dev/null
-        if [ $RETVAL = 2 ]; then
-            echo "Stale lock file, removing ..."
-            rm -f "$PID_FILE"
-        else
-            log_success_msg
-            echo "$prog already running" 1>&2
-            exit 0
-        fi
+    if [ -f "$PID_FILE" ]; then
+	status > /dev/null
+	if [ $RETVAL = 2 ]; then
+	    echo "Stale lock file, removing ..."
+	    rm -f "$PID_FILE"
+	else
+	    log_success_msg
+	    echo "$prog already running" 1>&2
+	    exit 0
+	fi
     fi
 
     # Print help-message about new logs
@@ -1215,7 +1215,7 @@ start () {
 
     # If index-server configured, start it
     if [ "`config_subsections infosys/index`" ]; then
-        $giis_location/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo
+	$giis_location/sbin/arc-infoindex-server -c $ARC_CONFIG -f $giis_fifo
     fi
 
     # Start BDII
@@ -1225,36 +1225,36 @@ start () {
 
     for port in $bdii_ports_write; do
 
-        umask 022
+	umask 022
 
-        #Make the database directories.
-        dir=${bdii_var_dir}/${port}
-        rm -rf "$dir"
-        mkdir -p "$dir"
-        #mkdir -p "$dir/glue2"
-        mkdir -p "$dir/infosys"
+	#Make the database directories.
+	dir=${bdii_var_dir}/${port}
+	rm -rf "$dir"
+	mkdir -p "$dir"
+	#mkdir -p "$dir/glue2"
+	mkdir -p "$dir/infosys"
 
-        conf=$dir/bdii-slapd.conf
+	conf=$dir/bdii-slapd.conf
 
-        cp /etc/bdii4/DB_CONFIG $dir
-        #cp /etc/bdii4/DB_CONFIG $dir/glue2
-        cp /etc/bdii4/DB_CONFIG $dir/infosys
+	cp /etc/bdii4/DB_CONFIG $dir
+	#cp /etc/bdii4/DB_CONFIG $dir/glue2
+	cp /etc/bdii4/DB_CONFIG $dir/infosys
 
-        # ensure the configuration file is not world-readable,
-        # as it contains the slapd database password
+	# ensure the configuration file is not world-readable,
+	# as it contains the slapd database password
 
-        (umask 077; > $conf)
+	(umask 077; > $conf)
 
-        if [ ! -f ${bdii_slapd_conf} ]; then
-            log_failure_msg
-            echo "Can not find slapd file: ${bdii_slapd_conf}" 1>&2
-            exit 1
-        fi
+	if [ ! -f ${bdii_slapd_conf} ]; then
+	    log_failure_msg
+	    echo "Can not find slapd file: ${bdii_slapd_conf}" 1>&2
+	    exit 1
+	fi
 
-        cat ${bdii_slapd_conf} | sed "s/secret/${pass}/g" | sed "s#db_dir#${dir}#g"> $conf
+	cat ${bdii_slapd_conf} | sed "s/secret/${pass}/g" | sed "s#db_dir#${dir}#g"> $conf
 
-        # Touch the pid files.
-        touch "$dir/slapd.pid"
+	# Touch the pid files.
+	touch "$dir/slapd.pid"
     done
 
     chown -R $bdii_user "${bdii_var_dir}/"
@@ -1262,27 +1262,27 @@ start () {
     echo -n "Starting $prog"
 
     su -s "/bin/sh" -m $bdii_user -c "(
-        export LANG=C
+	export LANG=C
 
-        #This is to make infoindex relocateable.
-        export ARC_LDAPLIB_SHELL=$ldaplib/back_shell.so
+	#This is to make infoindex relocateable.
+	export ARC_LDAPLIB_SHELL=$ldaplib/back_shell.so
 
-        # It should be irrelevant where you are standing where you start the script
-        cd /
+	# It should be irrelevant where you are standing where you start the script
+	cd /
 
-        ${bdii_update_cmd} ${BDII_CONF} &
-        echo \$! > $PID_FILE
+	${bdii_update_cmd} ${BDII_CONF} &
+	echo \$! > $PID_FILE
     )"
 
     if [ $? = 0 ]; then
-        log_success_msg
+	log_success_msg
     else
-        log_failure_msg
+	log_failure_msg
     fi
 
     # Info registration
     if [ "x$infosys_nordugrid" = "xenable" ]; then
-        $ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat $bdii_var_dir/bdii-update.pid` 1>/dev/null 2>/dev/null &
+	$ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat $bdii_var_dir/bdii-update.pid` 1>/dev/null 2>/dev/null &
     fi
 }
 
@@ -1290,10 +1290,10 @@ stop () {
     # Stop GRIS
 
     #Check to see if the process is already stopped
-    if [ ! -f "$PID_FILE" ] ; then
-        log_success_msg "Stopping $prog"
-        RETVAL=0
-        return
+    if [ ! -f "$PID_FILE" ]; then
+	log_success_msg "Stopping $prog"
+	RETVAL=0
+	return
     fi
 
     #Try to term all slapd processes.
@@ -1301,9 +1301,9 @@ stop () {
     # ... and waiting provider scripts
     su -s "/bin/sh" -m $bdii_user -c 'killall -15 arc-nordugrid-bdii-ldif' 2>/dev/null
     for port in $bdii_ports_write; do
-        if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            su -s "/bin/sh" -m $bdii_user -c "kill -15 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
-        fi
+	if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
+	    su -s "/bin/sh" -m $bdii_user -c "kill -15 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
+	fi
     done
 
     rm -f "$PID_FILE"
@@ -1315,21 +1315,21 @@ stop () {
     # ... and waiting provider scripts
     su -s "/bin/sh" -m $bdii_user -c 'killall -9 arc-nordugrid-bdii-ldif' 2>/dev/null
     for port in $bdii_ports_write; do
-        if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            su -s "/bin/sh" -m $bdii_user -c "kill -9 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
-        fi
+	if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
+	    su -s "/bin/sh" -m $bdii_user -c "kill -9 $(cat ${bdii_var_dir}/${port}/slapd.pid)" 2>/dev/null
+	fi
     done
 
     RETVAL=0
     for port in $bdii_ports_write; do
-        if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
-            RETVAL=1
-        fi
+	if [ -s ${bdii_var_dir}/${port}/slapd.pid ]; then
+	    RETVAL=1
+	fi
     done
     if [ ${RETVAL} -eq 0 ]; then
-        log_success_msg "Stopping $prog"
+	log_success_msg "Stopping $prog"
     else
-        log_failure_msg "Stopping $prog"
+	log_failure_msg "Stopping $prog"
     fi
 
     # Stop GIIS
@@ -1342,10 +1342,10 @@ stop () {
 }
 
 status ()  {
-    if [ ! -f "$PID_FILE" ] ; then
-        echo "`basename $0` stopped" 1>&2
-        RETVAL=1
-        return
+    if [ ! -f "$PID_FILE" ]; then
+	echo "`basename $0` stopped" 1>&2
+	RETVAL=1
+	return
     fi
 
     PID=`cat "$PID_FILE"`
@@ -1353,13 +1353,13 @@ status ()  {
 
     bdii_update_base=$(basename $bdii_update_cmd)
     case "$ps" in
-        *$bdii_update_base*)
-            echo "`basename $0` OK"
-            RETVAL=0
-            ;;
-        *)
-            echo "lock file exists but PID $PID died" 1>&2
-            RETVAL=2
-            ;;
+	*$bdii_update_base*)
+	    echo "`basename $0` OK"
+	    RETVAL=0
+	    ;;
+	*)
+	    echo "lock file exists but PID $PID died" 1>&2
+	    RETVAL=2
+	    ;;
     esac
 }

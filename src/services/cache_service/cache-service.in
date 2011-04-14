@@ -20,288 +20,277 @@
 # Description:       ARC cache service
 ### END INIT INFO
 
-#  
-#
 # source function library
-if [ -f @initddir@/functions ]; then
-  . @initddir@/functions
+if [ -f /etc/init.d/functions ]; then
+    . /etc/init.d/functions
+    log_success_msg() {
+	echo -n "$@"
+	success "$@"
+	echo
+    }
+    log_warning_msg() {
+	echo -n "$@"
+	warning "$@"
+	echo
+    }
+    log_failure_msg() {
+	echo -n "$@"
+	failure "$@"
+	echo
+    }
+elif [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
 else
-  success() { echo -n "OK"
-  }
-  failure() { echo -n "FAILURE ($@)"
-  }
-  status() {
-    pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
-    if test "x$pid" != "x"; then
-      echo "$1 (pid $pid) is running..."
-      return 0
-    fi
-
-    if test -f "$PID_FILE"; then
-      read pid < "$PID_FILE"
-      if test "$pid" != ""; then
-        echo "$1 stopped but pid file exists"
-        return 1
-      fi
-    fi
-    if test -f $LOCKFILE; then
-      echo "$1 stopped but lockfile exist"
-      return 2
-    fi
-    echo "$1 is stopped"
-    return 3
-  }
+    echo "Error: Cannot source neither init.d nor lsb functions"
+    exit 1
 fi
 
 add_library_path() {
-  location="$1"
-  if [ ! "x$location" = "x" ] ; then
-    if [ ! "$location" = "/usr" ] ; then
-      libdir="$location/lib"
-      libdir64="$location/lib64"
-      if [ -d "$libdir64" ] ; then
-        if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-          LD_LIBRARY_PATH="$libdir64"
-        else
-          LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
-  fi
-      fi
-      if [ -d "$libdir" ] ; then
-        if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-          LD_LIBRARY_PATH="$libdir"
-        else
-          LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
-        fi
-      fi
+    location="$1"
+    if [ ! "x$location" = "x" ] ; then
+	if [ ! "$location" = "/usr" ] ; then
+	    libdir="$location/lib"
+	    libdir64="$location/lib64"
+	    if [ -d "$libdir64" ] ; then
+		if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+		    LD_LIBRARY_PATH="$libdir64"
+		else
+		    LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
+		fi
+	    fi
+	    if [ -d "$libdir" ] ; then
+		if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+		    LD_LIBRARY_PATH="$libdir"
+		else
+		    LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+		fi
+	    fi
+	fi
     fi
-  fi
 }
 
-# sysconfig files
-if [ -f /etc/sysconfig/globus ]; then
-    . /etc/sysconfig/globus
-fi
-if [ -f /etc/sysconfig/nordugrid ]; then
-    . /etc/sysconfig/nordugrid
-fi
-
 prog=arched
+RUN=yes
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/grid-infosys ]; then
+    . /etc/sysconfig/grid-infosys
+elif [ -r /etc/default/grid-infosys ]; then
+    . /etc/default/grid-infosys
+fi
 
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
 if [ ! -d "$GLOBUS_LOCATION" ]; then
-  echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
-  exit 1
+    log_failure_msg "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
+    exit 1
 fi
 export GLOBUS_LOCATION
 
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-  echo "ARC_LOCATION ($ARC_LOCATION) not found"
-  exit 1
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
 fi
 export ARC_LOCATION
 
-readconfigvar()
-{
-  fname=$1
-  if [ ! -r "$fname" ]; then
-    return
-  fi
-  bname="[$2]"
-  vname=$3
-  value=
-  cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
-    while true; do
-      read line
-      if [ ! $? = 0 ] ; then
-        return
-      fi
-      if [ "$line" = "$bname" ] ; then
-        while true ; do
-          read line
-          if [ ! $? = 0 ] ; then
-            return
-          fi
-          lstart=`echo "$line" | head -c 1`
-          if [ "$lstart" = '[' ] ; then
-            return
-          fi
-          vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
-          if [ "$vlname" = "$vname" ] ; then
-            val=`echo "$line" | sed 's/[^=]*=//'`
-            eval "echo $val"
-            return
-          fi
-        done
-      fi
-    done
-  }
+readconfigvar() {
+    fname=$1
+    if [ ! -r "$fname" ]; then
+	return
+    fi
+    bname="[$2]"
+    vname=$3
+    value=
+    cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
+	while true; do
+	    read line
+	    if [ ! $? = 0 ] ; then
+		return
+	    fi
+	    if [ "$line" = "$bname" ] ; then
+		while true ; do
+		    read line
+		    if [ ! $? = 0 ] ; then
+			return
+		    fi
+		    lstart=`echo "$line" | head -c 1`
+		    if [ "$lstart" = '[' ] ; then
+			return
+		    fi
+		    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+		    if [ "$vlname" = "$vname" ] ; then
+			val=`echo "$line" | sed 's/[^=]*=//'`
+			eval "echo $val"
+			return
+		    fi
+		done
+	    fi
+	done
+    }
 }
 
 # ARC_CONFIG
-if test "x$ARC_CONFIG" = "x"; then
-  if [ -r $ARC_LOCATION/etc/arc.conf ]; then
-    ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
-  elif [ -r /etc/arc.conf ]; then
-    ARC_CONFIG=/etc/arc.conf
-  fi
+if [ "x$ARC_CONFIG" = "x" ]; then
+    if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+	ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+    elif [ -r /etc/arc.conf ]; then
+	ARC_CONFIG=/etc/arc.conf
+    fi
 fi
 
-# PID and lock file
 PID_FILE=
 
 if [ `id -u` = 0 ] ; then
-  # Debian does not have /var/lock/subsys
-  if test -d /var/lock/subsys; then
-    LOCKFILE=/var/lock/subsys/$prog-cache-service
-  else
-    LOCKFILE=/var/lock/$prog-cache-service
-  fi
-  if test "x$PID_FILE" = "x"; then 
-    PID_FILE=/var/run/$prog-cache-service.pid
-  fi
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	LOCKFILE=/var/lock/subsys/$prog-cache-service
+    else
+	LOCKFILE=/var/lock/$prog-cache-service
+    fi
+    if [ "x$PID_FILE" = "x" ]; then
+	PID_FILE=/var/run/$prog-cache-service.pid
+    fi
 else
-  LOCKFILE=$HOME/$prog-cache-service.lock
-  if test "x$PID_FILE" = "x"; then 
-    PID_FILE=$HOME/$prog-cache-service.pid
-  fi
-fi 
-
-
-prepare() 
-{
-
-CMD="$ARC_LOCATION/sbin/$prog"
-if ! test -x "$CMD"; then
-    failure "Missing executable"
-    echo
-    exit 1
+    LOCKFILE=$HOME/$prog-cache-service.lock
+    if [ "x$PID_FILE" = "x" ]; then
+	PID_FILE=$HOME/$prog-cache-service.pid
+    fi
 fi
 
-if [ ! -r "$ARC_CONFIG" ]; then
-  echo "NorduGrid configuration not found (usually /etc/arc.conf)"
-  exit 1
-fi
+prepare() {
 
-# Creating configuration file of arched
-# Reading following information from config file:
-#  Debug level
-#  User name
-#  Log file is currently hard-coded
+    CMD="$ARC_LOCATION/sbin/$prog"
+    if [ ! -x "$CMD" ]; then
+	log_failure_msg "Missing executable"
+	exit 1
+    fi
 
-#LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
-LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
-LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
-USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
-X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
-X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
-X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
-GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
-GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
-GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
-if [ -z "$X509_USER_CERT" ] ; then
- X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
-fi
-if [ -z "$X509_USER_KEY" ] ; then
- X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
-fi
-if [ -z "$X509_CERT_DIR" ] ; then
- X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
-fi
-if [ -z "$GRIDMAP" ] ; then
- GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
-fi
-if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then
- GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
-fi
-if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
- GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
-fi
+    if [ ! -r "$ARC_CONFIG" ]; then
+	log_warning_msg "ARC configuration not found (usually /etc/arc.conf)"
+	exit 0
+    fi
 
-# Exporting collected variables
-if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
-if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
-if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
-if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
-if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
+    # Creating configuration file of arched
+    # Reading following information from config file:
+    #  Debug level
+    #  User name
+    #  Log file is currently hard-coded
 
-# Required defaults
-if [ -z "$GRIDMAP" ] ; then
- GRIDMAP=/etc/grid-security/grid-mapfile
-fi
-if [ -z "$X509_USER_CERT" ] ; then
- X509_USER_CERT=/etc/grid-security/hostcert.pem
-fi
-if [ -z "$X509_USER_KEY" ] ; then
- X509_USER_KEY=/etc/grid-security/hostkey.pem
-fi
-if [ -z "$X509_CERT_DIR" ] ; then
- X509_CERT_DIR=/etc/grid-security/certificates
-fi
+    #LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
+    LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
+    LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
+    USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
+    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
+    GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
+    GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
+    GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
+    if [ -z "$X509_USER_CERT" ] ; then
+	X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+    fi
+    if [ -z "$X509_USER_KEY" ] ; then
+	X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+    fi
+    if [ -z "$X509_CERT_DIR" ] ; then
+	X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
+    fi
+    if [ -z "$GRIDMAP" ] ; then
+	GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
+    fi
+    if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then
+	GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
+    fi
+    if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
+	GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
+    fi
 
-# Web Service configuration
-host=`readconfigvar "$ARC_CONFIG" common hostname`
-cache_endpoint=https://$host:60001/cacheservice
+    # Exporting collected variables
+    if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
+    if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
+    if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
+    if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
+    if [ ! -z "$GLOBUS_TCP_PORT_RANGE" ] ; then export GLOBUS_TCP_PORT_RANGE ; fi
+    if [ ! -z "$GLOBUS_UDP_PORT_RANGE" ] ; then export GLOBUS_UDP_PORT_RANGE ; fi
 
-CACHE_CONFIG=`mktemp -t cache-service.xml.XXXXXX`
-if [ -z "$CACHE_CONFIG" ] ; then
-  echo "Failed to create temporary file"
-  exit 1
-fi
+    # Required defaults
+    if [ -z "$GRIDMAP" ] ; then
+	GRIDMAP=/etc/grid-security/grid-mapfile
+    fi
+    if [ -z "$X509_USER_CERT" ] ; then
+	X509_USER_CERT=/etc/grid-security/hostcert.pem
+    fi
+    if [ -z "$X509_USER_KEY" ] ; then
+	X509_USER_KEY=/etc/grid-security/hostkey.pem
+    fi
+    if [ -z "$X509_CERT_DIR" ] ; then
+	X509_CERT_DIR=/etc/grid-security/certificates
+    fi
 
-echo "cache service endpoint: $cache_endpoint"
+    # Web Service configuration
+    host=`readconfigvar "$ARC_CONFIG" common hostname`
+    cache_endpoint=https://$host:60001/cacheservice
 
-CMD="$CMD -c '$CACHE_CONFIG'"
+    CACHE_CONFIG=`mktemp -t cache-service.xml.XXXXXX`
+    if [ -z "$CACHE_CONFIG" ] ; then
+	log_failure_msg "Failed to create temporary file"
+	exit 1
+    fi
 
-# VOMS_LOCATION
-VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
+    CMD="$CMD -c '$CACHE_CONFIG'"
 
-# GRIDSITE_LOCATION
-GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
+    # VOMS_LOCATION
+    VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
 
-add_library_path "$LFC_LOCATION"
-add_library_path "$GRIDSITE_LOCATION"
-add_library_path "$VOMS_LOCATION"
-add_library_path "$GLOBUS_LOCATION"
-if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-  LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
-else
-  LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
-fi
-SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
-export LD_LIBRARY_PATH SASL_PATH
+    # GRIDSITE_LOCATION
+    GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
 
-case "$LOGLEVEL" in 
-  0) LOGLEVEL="FATAL" ;;
-  1) LOGLEVEL="ERROR" ;;
-  2) LOGLEVEL="WARNING" ;;
-  3) LOGLEVEL="INFO" ;;
-  4) LOGLEVEL="VERBOSE" ;;
-  5) LOGLEVEL="DEBUG" ;;
-  *) LOGLEVEL="WARNING" ;;
-esac
+    add_library_path "$LFC_LOCATION"
+    add_library_path "$GRIDSITE_LOCATION"
+    add_library_path "$VOMS_LOCATION"
+    add_library_path "$GLOBUS_LOCATION"
+    if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+	LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
+    else
+	LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
+    fi
+    export LD_LIBRARY_PATH
 
-if [ "$USERNAME" = "root" ] ; then
-  USERNAME=""
-fi
+    case "$LOGLEVEL" in 
+	0) LOGLEVEL="FATAL" ;;
+	1) LOGLEVEL="ERROR" ;;
+	2) LOGLEVEL="WARNING" ;;
+	3) LOGLEVEL="INFO" ;;
+	4) LOGLEVEL="VERBOSE" ;;
+	5) LOGLEVEL="DEBUG" ;;
+	*) LOGLEVEL="WARNING" ;;
+    esac
 
-LOGFILE=${LOGFILE:-/var/log/arc/cache-service.log}
-if [ ! -d `dirname $LOGFILE` ]; then
- mkdir -p `dirname $LOGFILE` ]
-fi
-LOGSIZE=${LOGSIZE:--1 -1}
-LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
-LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
+    if [ "$USERNAME" = "root" ] ; then
+	USERNAME=""
+    fi
 
-if [ ! -z "$USERNAME" ] ; then
-  CMD="su '$USERNAME' -c \"$CMD\""
-fi
+    LOGFILE=${LOGFILE:-/var/log/arc/cache-service.log}
+    if [ ! -d `dirname $LOGFILE` ]; then
+	mkdir -p `dirname $LOGFILE`
+    fi
+    LOGSIZE=${LOGSIZE:--1 -1}
+    LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
+    LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
 
-# Cache service XML config
-CACHECFG="\
+    if [ ! -z "$USERNAME" ] ; then
+	CMD="$CMD -u $USERNAME"
+    fi
+
+    # Cache service XML config
+    CACHECFG="\
 <?xml version=\"1.0\"?>\
 <ArcConfig\
   xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
@@ -367,37 +356,32 @@ CACHECFG="\
 </ArcConfig>\
 "
 
-echo "$CACHECFG" > "$CACHE_CONFIG"
+    echo "$CACHECFG" > "$CACHE_CONFIG"
 
-if [ ! -z "$USERNAME" ] ; then
-  test -f $CACHE_CONFIG && chown $USERNAME $CACHE_CONFIG
-fi
-
+    if [ ! -z "$USERNAME" ] ; then
+	[ -f $CACHE_CONFIG ] && chown $USERNAME $CACHE_CONFIG
+    fi
 }
 
-
-start()
-{
-    if [ -r /etc/default/cache-service ]; then
-      if egrep -q '[ \t]*disable' /etc/default/cache-service 2>/dev/null ; then
-         echo "Start of $prog disabled"
-         return 0
-      fi
+start() {
+    if [ "$RUN" != "yes" ] ; then
+	echo "cache-service disabled in configuration"
+	return 0
     fi
+
     echo -n "Starting $prog: "
 
     # Check if we are already running
-    if test -f $PID_FILE; then
-      read pid < $PID_FILE
-      if test "x$pid" != "x"; then
-        ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
-        if [ "$?" == '0' ] ; then
-          failure "Error: already running (pid $pid)"
-          echo
-          return 1
-        fi
-      fi
-      rm -f "$PID_FILE" "$LOCKFILE"
+    if [ -f $PID_FILE ]; then
+	read pid < $PID_FILE
+	if [ "x$pid" != "x" ]; then
+	    ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+	    if [ $? -eq 0 ] ; then
+		log_success_msg "already running (pid $pid)"
+		return 0
+	    fi
+	fi
+	rm -f "$PID_FILE" "$LOCKFILE"
     fi
 
     prepare
@@ -406,60 +390,90 @@ start()
     RETVAL=$?
     rm -f "$CACHE_CONFIG"
 
-    if [ $RETVAL -ne 0 ]; then
-        failure "$prog startup"
+    if [ $RETVAL -eq 0 ]; then
+	touch $LOCKFILE
+	log_success_msg
     else
-       touch $LOCKFILE
-       success "$prog startup"
+	log_failure_msg
     fi
-    echo
     return $RETVAL
 }
 
-stop()
-{
+stop() {
     echo -n "Stopping $prog: "
 
-    if test -f "$PID_FILE"; then
-      PID=`cat "$PID_FILE"`
-      if [ ! -z "$PID" ] ; then
-        kill "$PID" && success "$prog shutdown" || failure "$prog shutdown"
-        RETVAL=$?
-        sleep 1
-        kill -9 "$PID" 1>/dev/null 2>&1
-        rm -f "$PID_FILE" "$LOCKFILE"
-      else
-        RETVAL=1
-        failure "$prog shutdown - pidfile is empty"     
-      fi
+    if [ -f "$PID_FILE" ]; then
+	read pid < "$PID_FILE"
+	if [ ! -z "$pid" ] ; then
+	    kill "$pid"
+	    RETVAL=$?
+	    if [ $RETVAL -eq 0 ]; then
+		log_success_msg
+	    else
+		log_failure_msg
+	    fi
+
+	    sleep 1
+	    kill -9 "$pid" 1>/dev/null 2>&1
+	    rm -f "$PID_FILE" "$LOCKFILE"
+	else
+	    RETVAL=1
+	    log_failure_msg "$prog shutdown - pidfile is empty"
+	fi
     else
-      RETVAL=0
-      success "$prog shutdown - already stopped"
+	RETVAL=0
+	log_success_msg "$prog shutdown - already stopped"
     fi
-    echo
     return $RETVAL
+}
+
+status() {
+    if [ -f "$PID_FILE" ]; then
+	read pid < "$PID_FILE"
+	if [ "$pid" != "" ]; then
+	    if ps -p "$pid" > /dev/null; then
+		echo "$1 (pid $pid) is running..."
+		return 0
+	    fi
+	    echo "$1 stopped but pid file exists"
+	    return 1
+	fi
+    fi
+    if [ -f $LOCKFILE ]; then
+	echo "$1 stopped but lockfile exist"
+	return 2
+    fi
+    echo "$1 is stopped"
+    return 3
+}
+
+restart() {
+    stop
+    start
 }
 
 case "$1" in
-  start)
-        start "$1"
-        ;;
-  stop)
-        stop
-        ;;
-  status)
-  status $prog
-        ;;
-  restart|reload|force-reload)
-        stop
-        start
-        ;;
-  condrestart)
-        test -f $LOCKFILE && stop && start
-        ;;
-  *)
-        echo "Usage: $0 {start|stop|status|restart|reload|force-reload|condrestart}"
-        exit 1
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status
+	;;
+    restart | force-reload)
+	restart
+	;;
+    reload)
+	;;
+    condrestart | try-restart)
+	[ -f $LOCKFILE ] && restart || :
+	;;
+    *)
+	echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart}"
+	exit 1
+	;;
 esac
 
 exit $?

@@ -21,104 +21,139 @@
 ### END INIT INFO
 
 # source function library
-if [ -f @initddir@/functions ]; then
-  . @initddir@/functions
+if [ -f /etc/init.d/functions ]; then
+    . /etc/init.d/functions
+    log_success_msg() {
+	echo -n "$@"
+	success "$@"
+	echo
+    }
+    log_warning_msg() {
+	echo -n "$@"
+	warning "$@"
+	echo
+    }
+    log_failure_msg() {
+	echo -n "$@"
+	failure "$@"
+	echo
+    }
+elif [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
 else
-  success() { echo -n "OK"
-  }
-  failure() { echo -n "FAILURE ($@)"
-  }
-  status() {
-    pid=`pidof -o $$ -o $PPID -o %PPID -x $1`
-    if test "x$pid" != "x"; then
-      echo "$1 (pid $pid) is running..."
-      return 0
-    fi
-
-    if test -f "$PID_FILE"; then
-      read pid < "$PID_FILE"
-      if test "$pid" != ""; then
-        echo "$1 stopped but pid file exists"
-        return 1
-      fi
-    fi
-    if test -f $LOCKFILE; then
-      echo "$1 stopped but lockfile exist"
-      return 2
-    fi
-    echo "$1 is stopped"
-    return 3
-  }
+    echo "Error: Cannot source neither init.d nor lsb functions"
+    exit 1
 fi
 
 add_library_path() {
-  location="$1"
-  if [ ! "x$location" = "x" ] ; then
-    if [ ! "$location" = "/usr" ] ; then
-      libdir="$location/lib"
-      libdir64="$location/lib64"
-      if [ -d "$libdir64" ] ; then
-        if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-          LD_LIBRARY_PATH="$libdir64"
-        else
-          LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
-        fi
-      fi
-      if [ -d "$libdir" ] ; then
-        if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-          LD_LIBRARY_PATH="$libdir"
-        else
-          LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
-        fi
-      fi
+    location="$1"
+    if [ ! "x$location" = "x" ] ; then
+	if [ ! "$location" = "/usr" ] ; then
+	    libdir="$location/lib"
+	    libdir64="$location/lib64"
+	    if [ -d "$libdir64" ] ; then
+		if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+		    LD_LIBRARY_PATH="$libdir64"
+		else
+		    LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
+		fi
+	    fi
+	    if [ -d "$libdir" ] ; then
+		if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+		    LD_LIBRARY_PATH="$libdir"
+		else
+		    LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+		fi
+	    fi
+	fi
     fi
-  fi
 }
 
-# sysconfig files
-if [ -f /etc/sysconfig/globus ]; then
-    . /etc/sysconfig/globus
-fi
-if [ -f /etc/sysconfig/nordugrid ]; then
-    . /etc/sysconfig/nordugrid
-fi
-
 prog=gridftpd
+RUN=yes
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/grid-infosys ]; then
+    . /etc/sysconfig/grid-infosys
+elif [ -r /etc/default/grid-infosys ]; then
+    . /etc/default/grid-infosys
+fi
 
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
 if [ ! -d "$GLOBUS_LOCATION" ]; then
-  echo "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
-  exit 1
+    log_failure_msg "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
+    exit 1
 fi
 export GLOBUS_LOCATION
 
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
 if [ ! -d "$ARC_LOCATION" ]; then
-  echo "ARC_LOCATION ($ARC_LOCATION) not found"
-  exit 1
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
 fi
 export ARC_LOCATION
 
+readconfigvar() {
+    fname=$1
+    if [ ! -r "$fname" ]; then
+	return
+    fi
+    bname="[$2]"
+    vname=$3
+    value=
+    cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
+	while true; do
+	    read line
+	    if [ ! $? = 0 ] ; then
+		return
+	    fi
+	    if [ "$line" = "$bname" ] ; then
+		while true ; do
+		    read line
+		    if [ ! $? = 0 ] ; then
+			return
+		    fi
+		    lstart=`echo "$line" | head -c 1`
+		    if [ "$lstart" = '[' ] ; then
+			return
+		    fi
+		    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+		    if [ "$vlname" = "$vname" ] ; then
+			val=`echo "$line" | sed 's/[^=]*=//'`
+			eval "echo $val"
+			return
+		    fi
+		done
+	    fi
+	done
+    }
+}
+
 CMD="$ARC_LOCATION/sbin/$prog"
-if ! test -x "$CMD"; then
-    failure "Missing executable"
-    echo
+if [ ! -x "$CMD" ]; then
+    log_failure_msg "Missing executable"
     exit 1
 fi
 
 # ARC_CONFIG
-if test "x$ARC_CONFIG" = "x"; then
-  if [ -r $ARC_LOCATION/etc/arc.conf ]; then
-    ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
-  elif [ -r /etc/arc.conf ]; then
-    ARC_CONFIG=/etc/arc.conf
-  fi
+if [ "x$ARC_CONFIG" = "x" ]; then
+    if [ -r $ARC_LOCATION/etc/arc.conf ]; then
+	ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+    elif [ -r /etc/arc.conf ]; then
+	ARC_CONFIG=/etc/arc.conf
+    fi
 fi
+
 if [ ! -r "$ARC_CONFIG" ]; then
-   echo "NorduGrid configuration not found (usually /etc/arc.conf)"
-   exit 1
+    log_warning_msg "ARC configuration not found (usually /etc/arc.conf)"
+    exit 0
 fi
 
 CMD="$CMD -c '$ARC_CONFIG'"
@@ -134,117 +169,149 @@ add_library_path "$GRIDSITE_LOCATION"
 add_library_path "$VOMS_LOCATION"
 add_library_path "$GLOBUS_LOCATION"
 if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-  LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
+    LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
 else
-  LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
+    LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
 fi
-SASL_PATH=${SASL_PATH:-$GLOBUS_LOCATION/lib/sasl}
-export LD_LIBRARY_PATH SASL_PATH
+export LD_LIBRARY_PATH
+
+PID_FILE=`readconfigvar "$ARC_CONFIG" gridftpd pidfile`
 
 if [ `id -u` = 0 ] ; then
-  # Debian does not have /var/lock/subsys
-  if test -d /var/lock/subsys; then
-    LOCKFILE=/var/lock/subsys/$prog
-  else
-    LOCKFILE=/var/lock/$prog
-  fi
-  PID_FILE=/var/run/$prog.pid
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+	LOCKFILE=/var/lock/subsys/$prog
+    else
+	LOCKFILE=/var/lock/$prog
+    fi
+    if [ "x$PID_FILE" = "x" ]; then
+	PID_FILE=/var/run/$prog.pid
+    fi
 else
-  LOCKFILE=$HOME/$prog.lock
-  PID_FILE=$HOME/$prog.pid
+    LOCKFILE=$HOME/$prog.lock
+    if [ "x$PID_FILE" = "x" ]; then
+	PID_FILE=$HOME/$prog.pid
+    fi
 fi
 
-parser="$ARC_LOCATION/@pkgdatasubdir@/config_parser_compat.sh"
-if ! . "$parser"; then
-    failure "Failed sourcing config parser"
-    echo
-    exit 1
+logfile=`readconfigvar "$ARC_CONFIG" gridftpd logfile`
+if [ "x$logfile" = "x" ]; then
+    logfile=/var/log/arc/gridftpd.log
 fi
-
-config_parse_file "$ARC_CONFIG"
-config_import_section gridftpd
-PID_FILE=${CONFIG_pidfile:-$PID_FILE}
-logfile=${CONFIG_logfile:-/var/log/arc/gridftpd.log}
 if [ ! -d `dirname $logfile` ]; then
-  mkdir -p `dirname $logfile`
+    mkdir -p `dirname $logfile`
 fi
-config_reset
 
 CMD="$CMD -P '$PID_FILE'"
 
-start()
-{
+start() {
+    if [ "$RUN" != "yes" ] ; then
+	echo "a-rex disabled in configuration"
+	return 0
+    fi
+
     echo -n "Starting $prog: "
 
     # Check if we are already running
-    if test -f $PID_FILE; then
-      read pid < $PID_FILE
-      if test "x$pid" != "x"; then
-        ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
-        if [ "$?" -eq '0' ] ; then
-          failure "Error: already running ($pid)"
-          echo
-          return 1
-        fi
-      fi
-      rm -f "$PID_FILE" "$LOCKFILE"
+    if [ -f $PID_FILE ]; then
+	read pid < $PID_FILE
+	if [ "x$pid" != "x" ]; then
+	    ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+	    if [ $? -eq 0 ] ; then
+		log_success_msg "already running (pid $pid)"
+		return 0
+	    fi
+	fi
+	rm -f "$PID_FILE" "$LOCKFILE"
     fi
 
     eval "$CMD"
     RETVAL=$?
 
-    if [ $RETVAL -ne 0 ]; then
-        failure "$prog startup"
+    if [ $RETVAL -eq 0 ]; then
+	touch $LOCKFILE
+	log_success_msg
     else
-       touch $LOCKFILE
-       success "$prog startup"
+	log_failure_msg
     fi
-    echo
     return $RETVAL
 }
 
-stop()
-{
+stop() {
     echo -n "Stopping $prog: "
 
-    if test -f "$PID_FILE"; then
-      kill `cat "$PID_FILE"` && success "$prog shutdown" || failure "$prog shutdown"
-      RETVAL=$?
-      sleep 1
-      kill -9 `cat "$PID_FILE"` 1>/dev/null 2>&1
-      rm -f "$PID_FILE" "$LOCKFILE"
+    if [ -f "$PID_FILE" ]; then
+	read pid < "$PID_FILE"
+	if [ ! -z "$pid" ] ; then
+	    kill "$pid"
+	    RETVAL=$?
+	    if [ $RETVAL -eq 0 ]; then
+		log_success_msg
+	    else
+		log_failure_msg
+	    fi
+
+	    sleep 1
+	    kill -9 "$pid" 1>/dev/null 2>&1
+	    rm -f "$PID_FILE" "$LOCKFILE"
+	else
+	    RETVAL=1
+	    log_failure_msg "$prog shutdown - pidfile is empty"
+	fi
     else
-      failure "$prog shutdown - pidfile missing"
+	RETVAL=0
+	log_success_msg "$prog shutdown - already stopped"
     fi
-    echo
     return $RETVAL
 }
 
-restart()
-{
+status() {
+    if [ -f "$PID_FILE" ]; then
+	read pid < "$PID_FILE"
+	if [ "$pid" != "" ]; then
+	    if ps -p "$pid" > /dev/null; then
+		echo "$1 (pid $pid) is running..."
+		return 0
+	    fi
+	    echo "$1 stopped but pid file exists"
+	    return 1
+	fi
+    fi
+    if [ -f $LOCKFILE ]; then
+	echo "$1 stopped but lockfile exist"
+	return 2
+    fi
+    echo "$1 is stopped"
+    return 3
+}
+
+restart() {
     stop
     start
 }
 
 case "$1" in
-  start)
-        start
-        ;;
-  stop)
-        stop
-        ;;
-  status)
-	status $prog
-        ;;
-  restart|reload)
-        restart
-        ;;
-  condrestart)
-        test -f $LOCKFILE && restart || :
-        ;;
-  *)
-        echo "Usage: $0 {start|stop|status|restart|reload|condrestart}"
-        exit 1
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status
+	;;
+    restart | force-reload)
+	restart
+	;;
+    reload)
+	;;
+    condrestart | try-restart)
+	[ -f $LOCKFILE ] && restart || :
+	;;
+    *)
+	echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart}"
+	exit 1
+	;;
 esac
 
 exit $?
