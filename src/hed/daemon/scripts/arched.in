@@ -49,15 +49,10 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/grid-infosys ]; then
-    . /etc/sysconfig/grid-infosys
-elif [ -r /etc/default/grid-infosys ]; then
-    . /etc/default/grid-infosys
-fi
-if [ -r /etc/sysconfig/$prog ]; then
-    . /etc/sysconfig/$prog
-elif [ -r /etc/default/$prog ]; then
-    . /etc/default/$prog
+if [ -r /etc/sysconfig/${prog} ]; then
+    . /etc/sysconfig/${prog}
+elif [ -r /etc/default/${prog} ]; then
+    . /etc/default/${prog}
 fi
 
 if [ "x$ARC_CONFIG" != "x" ]; then

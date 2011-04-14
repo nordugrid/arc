@@ -78,10 +78,10 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/grid-infosys ]; then
-    . /etc/sysconfig/grid-infosys
-elif [ -r /etc/default/grid-infosys ]; then
-    . /etc/default/grid-infosys
+if [ -r /etc/sysconfig/cache-service ]; then
+    . /etc/sysconfig/cache-service
+elif [ -r /etc/default/cache-service ]; then
+    . /etc/default/cache-service
 fi
 
 # GLOBUS_LOCATION
