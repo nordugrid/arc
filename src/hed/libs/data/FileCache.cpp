@@ -342,31 +342,36 @@ namespace Arc {
     if (!(*this))
       return false;
 
-    // if cache file is a symlink, remove remote cache lock and symlink
-    std::string filename = File(url);
-    struct stat fileStat;
-    if (FileStat(filename, &fileStat, false) && S_ISLNK(fileStat.st_mode)) {
-      std::string remote_file = FileReadLink(filename.c_str());
-      if (remote_file.empty()) {
-        logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", filename);
-        return false;
-      }
-      FileLock remote_lock(remote_file);
-      if (!remote_lock.release())
-        logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
+    // check if already unlocked
+    if (_urls_unlocked.find(url) == _urls_unlocked.end()) {
 
-      if (!FileDelete(filename)) {
-        logger.msg(ERROR, "Error removing file %s: %s. Manual intervention may be required", filename, StrError(errno));
+      // if cache file is a symlink, remove remote cache lock and symlink
+      std::string filename = File(url);
+      struct stat fileStat;
+      if (FileStat(filename, &fileStat, false) && S_ISLNK(fileStat.st_mode)) {
+        std::string remote_file = FileReadLink(filename.c_str());
+        if (remote_file.empty()) {
+          logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", filename);
+          return false;
+        }
+        FileLock remote_lock(remote_file);
+        if (!remote_lock.release())
+          logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
+
+        if (!FileDelete(filename)) {
+          logger.msg(ERROR, "Error removing file %s: %s. Manual intervention may be required", filename, StrError(errno));
+          return false;
+        }
+      }
+
+      // delete the lock
+      FileLock lock(filename);
+      if (!lock.release()) {
+        logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
         return false;
       }
     }
     
-    // delete the lock
-    FileLock lock(filename);
-    if (!lock.release()) {
-      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", filename, StrError(errno));
-      return false;
-    }
     // get the hash of the url
     std::string hash = FileCacheHash::getHash(url);
     int index = 0;
@@ -571,6 +576,30 @@ namespace Arc {
       logger.msg(ERROR, "Failed to change permissions or set owner of hard link %s: %s", hard_link_file, StrError(errno));
       return false;
     }
+
+    // The lock is now no longer necessary, so release it
+    // Also remove remote lock and symlink to remote cache if necessary
+    // Failure in anything here should not cause the job to fail, so log
+    // error and continue
+    std::string original_cache_file = File(url);
+    if (S_ISLNK(fileStat.st_mode)) {
+      std::string remote_file = FileReadLink(original_cache_file);
+      if (remote_file.empty())
+        logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", original_cache_file);
+
+      FileLock remote_lock(remote_file);
+      if (!remote_lock.release())
+        logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
+
+      if (!FileDelete(original_cache_file))
+        logger.msg(ERROR, "Error removing symlink %s: %s. Manual intervention may be required", original_cache_file, StrError(errno));
+    }
+    FileLock lock(original_cache_file);
+    if (!lock.release())
+      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", original_cache_file, StrError(errno));
+
+    // add to the unlocked files list
+    _urls_unlocked.insert(url);
 
     // make necessary dirs for the soft link
     // the session dir should already exist but in the case of arccp with cache it may not

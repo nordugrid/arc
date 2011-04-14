@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <set>
 #include <arc/DateTime.h>
 // Independent implementaion of std roundf() 
 #define roundf(num) ((fmod(num,1) < 0.5) ? floor(num):ceil(num))
@@ -39,7 +40,6 @@ namespace Arc {
    * the user's job. Stop() must then be called to release any
    * locks on the cache file.
    *
-   *
    * The cache directory(ies) and the optional directory to link to
    * when the soft-links are made are set in the global configuration
    * file. The names of cache files are formed from a hash of the URL
@@ -60,9 +60,11 @@ namespace Arc {
    * FileLock class, which creates a lock file with the '.lock' suffix
    * next to the cache file. Calling Start() creates this lock and Stop()
    * releases it. All processes calling Start() must wait until they
-   * successfully obtain the lock before downloading can begin. Once
-   * a process obtains a lock it must later release it by calling
-   * Stop() or StopAndDelete().
+   * successfully obtain the lock before downloading can begin or an existing
+   * cache file can be used. Once a process obtains a lock it must later
+   * release it by calling Stop() or StopAndDelete(). Once a cache file is
+   * successfully linked to the per-job directory in Link(), it is also
+   * unlocked, but Stop() should still be called after.
    */
   class FileCache {
   private:
@@ -84,6 +86,11 @@ namespace Arc {
      * Vector of caches to be drained. 
      */
     std::vector<struct CacheParameters> _draining_caches;
+    /**
+     * A list of URLs that have already been unlocked in Link(). URLs in
+     * this set will not be unlocked in Stop().
+     */
+    std::set<std::string> _urls_unlocked;
     /**
      * identifier used to claim files, ie the job id
      */
