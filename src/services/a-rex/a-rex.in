@@ -147,7 +147,7 @@ readconfigvar() {
 }
 
 # ARC_CONFIG
-if test "x$ARC_CONFIG" = "x"; then
+if [ "x$ARC_CONFIG" = "x" ]; then
     if [ -r $ARC_LOCATION/etc/arc.conf ]; then
 	ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
     elif [ -r /etc/arc.conf ]; then
@@ -160,17 +160,17 @@ PID_FILE=`readconfigvar "$ARC_CONFIG" grid-manager pidfile`
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
-    if test -d /var/lock/subsys; then
+    if [ -d /var/lock/subsys ]; then
 	LOCKFILE=/var/lock/subsys/$prog-arex
     else
 	LOCKFILE=/var/lock/$prog-arex
     fi
-    if test "x$PID_FILE" = "x"; then
+    if [ "x$PID_FILE" = "x" ]; then
 	PID_FILE=/var/run/$prog-arex.pid
     fi
 else
     LOCKFILE=$HOME/$prog-arex.lock
-    if test "x$PID_FILE" = "x"; then
+    if [ "x$PID_FILE" = "x" ]; then
 	PID_FILE=$HOME/$prog-arex.pid
     fi
 fi
@@ -178,7 +178,7 @@ fi
 prepare() {
 
     CMD="$ARC_LOCATION/sbin/$prog"
-    if ! test -x "$CMD"; then
+    if [ ! -x "$CMD" ]; then
 	log_failure_msg "Missing executable"
 	exit 1
     fi
@@ -477,7 +477,7 @@ stop() {
 	    rm -f "$PID_FILE" "$LOCKFILE"
 	else
 	    RETVAL=1
-	    log_failure_msg "$prog shutdown - pidfile is empty"     
+	    log_failure_msg "$prog shutdown - pidfile is empty"
 	fi
     else
 	RETVAL=0

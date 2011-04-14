@@ -80,7 +80,7 @@ if [ "x$RUN" != "xyes" ]; then
 fi
 
 debug_echo () {
-    if test $debug -gt 0; then
+    if [ $debug -gt 0 ]; then
 	info_string="`date +'%b %d %H:%M:%S'` `hostname` `basename $0`[$$]"
 	echo "${info_string} $*" >> ${infosyslog}
     fi
@@ -393,7 +393,7 @@ if [ "x" = "x$CONFIG_slapd" ]; then
     O_IFS=$IFS
     IFS=:
     for dir in $PATH; do
-	if test -x "$dir/slapd"; then
+	if [ -x "$dir/slapd" ]; then
 	    slapd_cmd="$dir/slapd"
 	    break
 	fi
