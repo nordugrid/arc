@@ -189,7 +189,7 @@ sub get_variable($$){
 }
 sub read_qstat_f ($) {
     my $path=shift;
-    unless ( open QSTAT_F, "$path/qstat -f1 2>/dev/null |") {
+    unless ( open QSTAT_F, "$path/qstat -f 2>/dev/null |") {
 	error("Error in executing qstat");
     }
     
@@ -258,8 +258,8 @@ sub process_dqueues($$%){
 	foreach my $dqname ( keys %dqueues ) {
 	    debug($dqname);
 	    my (%dqstat);
-	    unless (open QSTATOUTPUT,   "$path/qstat -Q -f1 $dqname 2>/dev/null |") {
-		error("Error in executing qstat: $path/qstat -Q -f1 $dqname");
+	    unless (open QSTATOUTPUT,   "$path/qstat -Q -f $dqname 2>/dev/null |") {
+		error("Error in executing qstat: $path/qstat -Q -f $dqname");
 	    }
 	    while (my $line= <QSTATOUTPUT>) {
 		if ($line =~ m/ = /) {
@@ -469,8 +469,8 @@ sub queue_info ($$) {
     # read the queue information for the queue entry from the qstat
 
     my (%qstat);
-    unless (open QSTATOUTPUT,   "$path/qstat -Q -f1 $qname 2>/dev/null |") {
-	error("Error in executing qstat: $path/qstat -Q -f1 $qname");
+    unless (open QSTATOUTPUT,   "$path/qstat -Q -f $qname 2>/dev/null |") {
+	error("Error in executing qstat: $path/qstat -Q -f $qname");
     }
     while (my $line= <QSTATOUTPUT>) {       
 	if ($line =~ m/ = /) {
@@ -541,8 +541,8 @@ sub queue_info ($$) {
     $lrms_queue{queued} = 0;
     $lrms_queue{totalcpus} = 0;
     if ( ($qstat{"enabled"} =~ /True/) and ($qstat{"started"} =~ /True/)) {
-	unless (open QSTATOUTPUT,   "$path/qstat -Q -f1 $qname 2>/dev/null |") {
-	    error("Error in executing qstat: $path/qstat -Q -f1 $qname");
+	unless (open QSTATOUTPUT,   "$path/qstat -Q -f $qname 2>/dev/null |") {
+	    error("Error in executing qstat: $path/qstat -Q -f $qname");
 	}
 
 	my %qstat;
