@@ -18,7 +18,7 @@ sub translator;
 use vars qw($DEFAULT); $DEFAULT = -1;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
 use vars qw($glueHostMainMemoryRAMSize $glueHostArchitecturePlatformType $glueSubClusterUniqueID $GlueHostBenchmarkSI00 $GlueHostBenchmarkSF00);
-use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID);
+use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID $processorOtherDesc);
 use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots $estRespTime $worstRespTime);
 use vars qw(@envs);
 
@@ -137,10 +137,10 @@ sub translator(){
     my $lat = $LAT; 
     my $long = $LONG;
     my $provide_glue_site_info = "$PROVIDE_GLUE_SITE_INFO";
-
+    $processorOtherDesc = "$PROCESSOROTHERDESCRIPTION";
     #set numeric values to $DEFAULT if they are on the list and not numeric
-	for (my $i=0; $i<=$#cluster_attributes_num; $i++){
-	    if (! ($cluster_attributes{$cluster_attributes_num[$i]} =~ /^\d+$/) ){ $cluster_attributes{$cluster_attributes_num[$i]} = $DEFAULT; }
+    for (my $i=0; $i<=$#cluster_attributes_num; $i++){
+	if (! ($cluster_attributes{$cluster_attributes_num[$i]} =~ /^\d+$/) ){ $cluster_attributes{$cluster_attributes_num[$i]} = $DEFAULT; }
     }
 
     # Write Site Entries
@@ -160,7 +160,12 @@ sub translator(){
 	$glueHostArchitecturePlatformType=$cluster_attributes{'nordugrid-cluster-architecture'};
 	$glueSubClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};
 	$glueSubClusterName=$glue_site_unique_id;
-	$glueSubClusterPhysicalCPUs=$cluster_attributes{'nordugrid-cluster-totalcpus'};
+	if ( $processorOtherDesc =~ m/Cores=(\d+)/ ){
+	    $glueSubClusterPhysicalCPUs=int($cluster_attributes{'nordugrid-cluster-totalcpus'}/$1);
+	}
+	else {
+	    $glueSubClusterPhysicalCPUs=$cluster_attributes{'nordugrid-cluster-totalcpus'};
+	}
 	$glueSubClusterLogicalCPUs=$cluster_attributes{'nordugrid-cluster-totalcpus'};
 	$glueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};
     
@@ -255,7 +260,7 @@ GlueHostProcessorVendor: $nodecpu[0]
 GlueHostProcessorModel: $nodecpu[1]
 GlueHostProcessorVersion: $cpuVer
 GlueHostProcessorClockSpeed: $clockSpeed
-GlueHostProcessorOtherDescription: $PROCESSOROTHERDESCRIPTION
+GlueHostProcessorOtherDescription: $processorOtherDesc
 GlueHostMainMemoryRAMSize: $glueHostMainMemoryRAMSize
 GlueHostArchitecturePlatformType: $glueHostArchitecturePlatformType
 GlueHostBenchmarkSI00: $GlueHostBenchmarkSI00
