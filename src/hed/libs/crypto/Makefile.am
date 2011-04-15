@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = libarccrypto.la
 
-libarccrypto_ladir = $(pkgincludedir)
+libarccrypto_ladir = $(pkgincludedir)/crypto
 libarccrypto_la_HEADERS = OpenSSL.h
 libarccrypto_la_SOURCES = OpenSSL.cpp
 libarccrypto_la_CXXFLAGS = -I$(top_srcdir)/include \

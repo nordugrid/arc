@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libarccredentialstore.la
 #noinst_PROGRAMS = test
 
-libarccredentialstore_ladir = $(pkgincludedir)/myproxy
+libarccredentialstore_ladir = $(pkgincludedir)/credentialstore
 libarccredentialstore_la_HEADERS = CredentialStore.h
 libarccredentialstore_la_SOURCES = CredentialStore.cpp
 libarccredentialstore_la_CXXFLAGS = -I$(top_srcdir)/include \
