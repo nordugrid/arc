@@ -143,7 +143,8 @@ bool myproxy_renew(const char* old_proxy_file,const char* new_proxy_file,const c
   if(!new_proxy_file) return false;
 
   Arc::URL url(myproxy_server);
-  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+  Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::TryCredentials);
+  Arc::UserConfig usercfg(cred_type);
   //usercfg.ProxyPath(old_proxy_file);
   usercfg.ProxyPath("");
   usercfg.CertificatePath("");

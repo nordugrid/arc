@@ -618,7 +618,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     lock.unlock();
     return false;
   }
-  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+  Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(cred_type);
   usercfg.ProxyPath(job_proxy_filename(jobid, *jobuser));
   usercfg.UtilsDirPath(jobuser->ControlDir());
   usercfg.CACertificatesDirectory(env.cert_dir_loc());

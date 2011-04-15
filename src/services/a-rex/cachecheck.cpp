@@ -100,7 +100,8 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& /* config */,Arc::XMLNode 
       Arc::XMLNode resultelement = results.NewChild("Result");
       fileexist = false;
       std::string file_lfn;
-      Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
+      Arc::UserConfig usercfg(cred_type);
       Arc::URL url(fileurl);
       Arc::DataHandle d(url, usercfg);
 

@@ -516,7 +516,8 @@ int main(int argc,char** argv) {
 
   Janitor janitor(desc.get_id(),user.ControlDir(),user.Env());
 
-  Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+  Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(control_dir);
   usercfg.SetUser(Arc::User(uid));
   usercfg.ProxyPath(x509_proxy);

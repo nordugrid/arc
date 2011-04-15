@@ -181,7 +181,8 @@ int main(int argc,char* argv[]) {
   }
   buffer.speed.set_min_speed(minspeed,minspeedtime);
 
-  UserConfig source_cfg(initializeCredentialsType(initializeCredentialsType::SkipCredentials));
+  initializeCredentialsType source_cred(initializeCredentialsType::SkipCredentials);
+  UserConfig source_cfg(source_cred);
   if(!source_cred_path.empty()) source_cfg.ProxyPath(source_cred_path);
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   //source_cfg.UtilsDirPath(...); - probably not needed
@@ -193,7 +194,8 @@ int main(int argc,char* argv[]) {
   };
   source->SetSecure(false);
   source->Passive(true);
-  UserConfig dest_cfg(initializeCredentialsType(initializeCredentialsType::SkipCredentials));
+  initializeCredentialsType dest_cred(initializeCredentialsType::SkipCredentials);
+  UserConfig dest_cfg(dest_cred);
   if(!dest_cred_path.empty()) dest_cfg.ProxyPath(dest_cred_path);
   if(!dest_ca_path.empty()) dest_cfg.CACertificatesDirectory(dest_ca_path);
   //dest_cfg.UtilsDirPath(...); - probably not needed
