@@ -22,7 +22,7 @@ class JobSupervisorTest
 
 public:
   JobSupervisorTest();
-  ~JobSupervisorTest() { delete js; }
+  ~JobSupervisorTest() {}
 
   void setUp() {}
   void tearDown() {}
