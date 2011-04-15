@@ -646,11 +646,11 @@ namespace Arc {
         inputSandboxList.push_back(job.Application.Input);
       if (addOutput) {
         outputSandboxList.push_back(job.Application.Output);
-        outputSandboxDestURIList.push_back(job.Application.Output);
-      }
+        outputSandboxDestURIList.push_back("gsiftp://localhost/" + job.Application.Output);
+      } 
       if (addError) {
         outputSandboxList.push_back(job.Application.Error);
-        outputSandboxDestURIList.push_back(job.Application.Error);
+        outputSandboxDestURIList.push_back("gsiftp://localhost/" + job.Application.Error);
       }
 
       if (!inputSandboxList.empty())
