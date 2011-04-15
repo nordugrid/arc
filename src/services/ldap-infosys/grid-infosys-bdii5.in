@@ -1244,10 +1244,10 @@ start () {
 	# The -d 0 is important for the GIIS to ensure that the binary doesn't fork.
 	ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
 	    LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
-	    ${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h ldap://${slapd_hostnamebind}:${bdii_port} \
+	    ${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" \
 	    -u ${bdii_user} </dev/null 1>/dev/null 2>/dev/null &
     else
-	${slapd_cmd} -f ${bdii_slapd_conf} -h ldap://${slapd_hostnamebind}:${bdii_port} -u ${bdii_user}
+	${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
     fi
 
     touch ${slapd_lock_file}
@@ -1268,7 +1268,7 @@ start () {
 	log_failure_msg "$prog SLAPD failed to start"
 	rm -f ${slapd_lock_file}
 	log_failure_msg "Error was: "
-	${slapd_cmd} -d 1 -f ${bdii_slapd_conf} -h ldap://${slapd_hostnamebind}:${bdii_port} -u ${bdii_user}
+	${slapd_cmd} -d 1 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
 	exit 1
     fi
 
@@ -1422,14 +1422,16 @@ stop () {
 status ()  {
     if [ ! -f "${slapd_lock_file}" ] && [ ! -f "${update_lock_file}" ]; then
 	log_success_msg "BDII Stopped"
-	return 3
+	RETVAL=3
+	return ${RETVAL}
     fi
 
     if [ -f ${slapd_pid_file} ]; then
 	ps $(cat ${slapd_pid_file}) >/dev/null 2>&1
 	if [ ! $? = 0 ]; then
 	    log_failure_msg "slapd pid file exists: ${slapd_pid_file} but the process died"
-	    return 1
+	    RETVAL=1
+	    return ${RETVAL}
 	fi
     else
 	log_failure_msg "slapd lock file: ${slapd_lock_file} and/or"
@@ -1437,14 +1439,16 @@ status ()  {
 	log_failure_msg "slapd pid file: ${slapd_pid_file} does not exist."
 	log_failure_msg "Maybe you had an unclean shutdown, please remove"
 	log_failure_msg "lockfiles and retry starting $prog"
-	return 1
+	RETVAL=1
+	return ${RETVAL}
     fi
 
     if [ -f ${update_pid_file} ]; then
 	ps $(cat ${update_pid_file}) >/dev/null 2>&1
 	if [ ! $? = 0 ]; then
 	    log_failure_msg "bdii-update pid file exists: ${update_pid_file} but the update process died"
-	    return 1
+	    RETVAL=1
+	    return ${RETVAL}
 	fi
     else
 	log_failure_msg "slapd lock file: $slapd_lock_file and/or"
@@ -1452,9 +1456,11 @@ status ()  {
 	log_failure_msg "update process pid file: ${update_pid_file} does not exist"
 	log_failure_msg "maybe you had an unclean shutdown, please remove"
 	log_failure_msg "lockfiles and retry starting $prog"
-	return 1
+	RETVAL=1
+	return ${RETVAL}
     fi
 
     log_success_msg "BDII Running"
-    return 0
+    RETVAL=0
+    return ${RETVAL}
 }
