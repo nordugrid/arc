@@ -364,7 +364,7 @@ check_ownership ${bdii_log_dir} ${bdii_user}
 check_ownership ${providerlog} ${bdii_user}
 
 # If the new code path is selected...
-if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_glue12" = "xenable" ]; then || [ "x$infosys_glue2_ldap" = "xenable" ]; then
+if [ "x$infosys_nordugrid" = "xenable" ] || [ "x$infosys_glue12" = "xenable" ] || [ "x$infosys_glue2_ldap" = "xenable" ]; then
     if [ ! -f "$pkgdatadir/InfosysHelper.pm" ]; then
 	log_warning_msg "A-REX is not installed"
 	log_warning_msg "For operation without A-REX, disable publishing of cluster information"
