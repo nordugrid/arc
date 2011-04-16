@@ -1870,13 +1870,61 @@ err:
     X509_EXTENSION* ext = NULL;
     if(binary == NULL) return false;
     ext = X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid((char*)(name.c_str())), (char*)binary);
-    if(ext && sk_X509_EXTENSION_push(extensions_, ext)) {
-     std::string str; str.append((char*)binary); 
-     if((name == std::string("basicConstraints")) && (str == "CA:TRUE"))
-        cert_type_ = CERT_TYPE_CA; 
-      return true;
-    }
+    if(ext && sk_X509_EXTENSION_push(extensions_, ext)) return true;
     return false;
+  }
+
+  std::string Credential::GetExtension(const std::string& name) {
+    std::string res;
+    if(cert_ == NULL) { std::cout<<"cert empty"<<std::endl; return res; }
+    int num;
+    if ((num = X509_get_ext_count(cert_)) > 0) {
+      for (int i = 0; i < num; i++) {
+        X509_EXTENSION *ext;
+        const char *extname;
+
+        ext = X509_get_ext(cert_, i);
+        extname = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
+
+        if (strcmp(extname, name.c_str()) == 0) {
+          X509V3_EXT_METHOD *method;
+          STACK_OF(CONF_VALUE) *val;
+          CONF_VALUE *nval;
+          void *extstr = NULL;
+#if (OPENSSL_VERSION_NUMBER >= 0x0090800FL)
+          const unsigned char *ext_value_data;
+#else
+          unsigned char *ext_value_data;
+#endif
+
+          //Get x509 extension method structure
+          if (!(method = (X509V3_EXT_METHOD *)(X509V3_EXT_get(ext)))) break;
+
+          ext_value_data = ext->value->data;
+
+          //Decode ASN1 item in data
+          if (method->it) {
+               //New style ASN1
+               extstr = ASN1_item_d2i(NULL, &ext_value_data, ext->value->length,
+                                      ASN1_ITEM_ptr(method->it));
+          } 
+          else {
+               //Old style ASN1
+               extstr = method->d2i(NULL, &ext_value_data, ext->value->length);
+          }
+          
+          val = method->i2v(method, extstr, NULL);
+          for (int j = 0; j < sk_CONF_VALUE_num(val); j++) {
+            nval = sk_CONF_VALUE_value(val, j);
+            std::string name = nval->name;
+            std::string val = nval->value;
+            if(!val.empty()) res = name + ":" + val;
+            else res = name;   
+          }
+        }
+      }
+    }
+    return res;
   }
 
   bool Credential::SignRequestAssistant(Credential* proxy, EVP_PKEY* req_pubkey, X509** tosign){
@@ -2470,7 +2518,8 @@ err:
       //bs = s2i_ASN1_INTEGER(NULL, "1"); 
     }
 
-    X509_STORE_CTX_set_cert(&xsc,x);
+    //X509_STORE_CTX_set_cert(&xsc,x);
+    //X509_STORE_CTX_set_flags(&xsc, X509_V_FLAG_CHECK_SS_SIGNATURE);
     //if (!X509_verify_cert(&xsc))
     //  goto end;
 
@@ -2495,15 +2544,14 @@ err:
 
     if (conf) {
       X509V3_CTX ctx2;
-      X509_set_version(x,2); /* version 3 certificate */
+      X509_set_version(x,2);
       X509V3_set_ctx(&ctx2, xca, x, NULL, NULL, 0);
       X509V3_set_nconf(&ctx2, conf);
-      if (!X509V3_EXT_add_nconf(conf, &ctx2, section, x)) goto end;
+      if (!X509V3_EXT_add_nconf(conf, &ctx2, section, x)) {
+        CredentialLogger.msg(ERROR,"Failed to load extension section: %s", section);
+        goto end;
+      }
     }
-
-    X509V3_CTX ctx2;
-    X509_set_version(x,2); /* version 3 certificate */
-    X509V3_set_ctx(&ctx2, xca, x, NULL, NULL, 0);
 
     if (!X509_sign(x,pkey,digest)) goto end;
       ret=1;
@@ -2634,7 +2682,9 @@ error:
     return NULL;
   }
 
-  bool Credential::SelfSignEECRequest(const std::string& dn, const char* filename) {
+  bool Credential::SelfSignEECRequest(const std::string& dn, const char* extfile, const std::string& extsect, const char* certfile) {
+    if(extfile != NULL){ extfile_ = extfile; }
+    if(!extsect.empty()){ extsect_ = extsect; }
     cert_ = X509_new(); 
     X509_NAME *name = NULL;
     unsigned long chtype = MBSTRING_ASC;
@@ -2655,7 +2705,7 @@ error:
     }
     EVP_PKEY_free(tmpkey);
 
-    return(SignEECRequest(this, dn, filename));
+    return(SignEECRequest(this, dn, certfile));
   }
 
   bool Credential::SignEECRequest(Credential* eec, const std::string& dn, BIO* outputbio) {
@@ -2679,14 +2729,15 @@ error:
     X509_set_pubkey(eec_cert, req_pubkey);
     EVP_PKEY_free(req_pubkey);
 
-    //X509_set_issuer_name(eec_cert,eec->req_->req_info->subject);
-    //X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
-
     X509_NAME *subject = NULL;
     unsigned long chtype = MBSTRING_ASC;  //TODO
-    subject = parse_name((char*)(dn.c_str()), chtype, 0);
-    X509_set_subject_name(eec_cert, subject);
-    X509_NAME_free(subject);
+    if(!dn.empty()) {
+      subject = parse_name((char*)(dn.c_str()), chtype, 0);
+      X509_set_subject_name(eec_cert, subject);
+      X509_NAME_free(subject);
+    }
+    else 
+      X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
 
     const EVP_MD *digest=EVP_sha1();
 #ifndef OPENSSL_NO_DSA
@@ -2699,8 +2750,8 @@ error:
       digest = EVP_ecdsa();
 #endif
 */
-    X509_STORE *ctx=NULL;
-    ctx=X509_STORE_new();
+    X509_STORE *ctx = NULL;
+    ctx = X509_STORE_new();
     //X509_STORE_set_verify_cb_func(ctx,callb);
     if (!X509_STORE_set_default_paths(ctx)) {
       LogError();
@@ -2722,14 +2773,16 @@ error:
              extfile_.c_str(), errorline);
         }
       }
+
       //section from config file with X509V3 extensions to add
       if (extsect_.empty()) {
-        extsect_.append(NCONF_get_string(extconf, "default", "extensions"));
-        if (extsect_.empty()) {
-          ERR_clear_error();
-          extsect_ = "default";
-        }
+        //if the extension section/group has not been specified, use the group name in
+        //the openssl.cnf file which is set by default when openssl is installed
+        char* str = NCONF_get_string(extconf, "usr_cert", "basicConstraints");
+        if(str != NULL) extsect_ = "usr_cert";
       }
+
+/*
       X509V3_set_ctx_test(&ctx2);
       X509V3_set_nconf(&ctx2, extconf);
       if (!X509V3_EXT_add_nconf(extconf, &ctx2, (char*)(extsect_.c_str()), NULL)) {
@@ -2737,6 +2790,7 @@ error:
           extsect_.c_str());
         LogError();
       }
+*/
     }
 
     //Add extensions to certificate object
@@ -2761,7 +2815,8 @@ error:
     }
 
     X509_set_version(cert_,2);
-    long lifetime = 12*60*60; //Default lifetime 12 hours
+    long lifetime = (eec->GetLifeTime()).GetPeriod();
+
     if (!x509_certify(ctx, certfile_, digest, eec_cert, cert_,
                       pkey_, CAserial_, lifetime, 0,
                       extconf, (char*)(extsect_.c_str()), NULL)) {

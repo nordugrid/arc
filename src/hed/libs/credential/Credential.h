@@ -311,6 +311,13 @@ class Credential {
     */
     bool AddExtension(const std::string& name, char** binary);
 
+    /**Get the specific extension (named by the parameter) in a certificate
+    * this function is only supposed to be called after certificate and key
+    * are loaded by the constructor for usual certificate 
+    *@param name, the name of the extension to get
+    */
+    std::string GetExtension(const std::string& name);
+
     /**Generate an EEC request, based on the keybits and signing
     * algorithm information inside this object
     * output the certificate request to output BIO
@@ -367,7 +374,14 @@ class Credential {
      */
     bool SignRequest(Credential* proxy, const char* filename, bool foamat = false);
 
-    bool SelfSignEECRequest(const std::string& dn, const char* filename);
+    /**Self sign a certificate. This functionality is specific for creating a CA credential
+    * by using this Credential class. 
+    * @param dn  the DN for the subject
+    * @param extfile  the configration file which includes the extension information, typically the openssl.cnf file
+    * @param extsect  the section/group name for the extension, e.g. in openssl.cnf, usr_cert and v3_ca
+    * @param certfile the certificate file, which contains the signed certificate 
+    */
+    bool SelfSignEECRequest(const std::string& dn, const char* extfile, const std::string& extsect, const char* certfile);
 
     //The following three methods is about signing an EEC certificate by implementing the same
     //functionality as a normal CA

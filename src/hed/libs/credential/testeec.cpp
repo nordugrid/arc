@@ -20,6 +20,8 @@ int main(void) {
   /**Generate CA certificate*/
   std::string ca_file("test_ca_cert.pem");
   std::string ca_key("test_ca_key.pem");
+  std::string conf_file("test/ca.cnf");
+  std::string ext_sect("v3_ca");
 
   int ca_keybits = 2048;
   Arc::Time ca_t;
@@ -33,10 +35,13 @@ int main(void) {
   std::string subkeyid("hash");
   ca.AddExtension("subjectKeyIdentifier", (char**)(subkeyid.c_str()));
   ca.AddExtension("authorityKeyIdentifier", (char**)("keyid:always,issuer"));
-  ca.AddExtension("basicConstraints", (char**)("CA:TRUE"));
-  ca.AddExtension("keyUsage",(char**)("nonRepudiation, digitalSignature, keyEncipherment"));
-  ca.SelfSignEECRequest(cert_dn, ca_file.c_str());
+  //ca.AddExtension("basicConstraints", (char**)("CA:TRUE"));
+  //ca.AddExtension("keyUsage",(char**)("nonRepudiation, digitalSignature, keyEncipherment"));
+  ca.SelfSignEECRequest(cert_dn, conf_file.c_str(), ext_sect, ca_file.c_str());
 
+  std::string ext_str = ca.GetExtension("basicConstraints");
+  std::cout<<"basicConstraints of the ca cert: "<<ext_str<<std::endl;
+ 
   std::ofstream out_key(ca_key.c_str(), std::ofstream::out);
   std::string ca_private_key;
   ca.OutputPrivatekey(ca_private_key);
@@ -73,6 +78,10 @@ int main(void) {
 
   std::string dn("/O=KnowARC/OU=UIO/CN=Test001");
   signer.SignEECRequest(&eec, dn, out_certfile.c_str());
+
+  ext_str = signer.GetExtension("basicConstraints");
+  std::cout<<"basicConstraints of the ca cert: "<<ext_str<<std::endl;
+
 
   //Request side, output private key
   std::string private_key;
