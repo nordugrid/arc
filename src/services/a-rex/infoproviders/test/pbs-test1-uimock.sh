@@ -10,7 +10,7 @@
 #    pbsnodes -a
 #    qstat -f
 #    qstat -f -Q queue1
-#    qstat -Q -f1 queue1
+#    qstat -Q -f queue1
 #    qstat -Q
 #    qstat -n
 
@@ -101,7 +101,7 @@ ENDF
     ;;
 
 #######################################
-  'qstat -Q -f1 queue1')
+  'qstat -Q -f queue1')
     cat <<ENDF
 Queue: queue1
     queue_type = Execution
