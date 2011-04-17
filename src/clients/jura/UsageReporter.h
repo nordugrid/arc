@@ -3,7 +3,7 @@
 
 #include <time.h>
 
-#include <list>
+#include <vector>
 #include <string>
 
 #include <arc/Logger.h>
@@ -28,13 +28,15 @@ namespace Arc
     /** Directory where A-REX puts job logs */
     std::string job_log_dir;
     time_t expiration_time;
-    std::list<std::string> urls; 
+    std::vector<std::string> urls; 
+    std::vector<std::string> topics; 
   public:
     /** Constructor. Gets the job log dir and the expiration time in seconds.
      *  Default expiration time is infinity (represented by zero value).
      */
     UsageReporter(std::string job_log_dir_, time_t expiration_time_=0,
-		  std::list<std::string> urls_=std::list<std::string>());
+                  std::vector<std::string> urls_=std::vector<std::string>(),
+                  std::vector<std::string> topics_=std::vector<std::string>());
     /** Processes job log files in '<control_dir>/logs'. */
     int report();
     ~UsageReporter();

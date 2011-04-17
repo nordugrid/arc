@@ -20,11 +20,12 @@ namespace Arc
    *  interactive mode.
    */
   UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
-			       std::list<std::string> urls_):
+			       std::vector<std::string> urls_, std::vector<std::string> topics_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     job_log_dir(job_log_dir_),
     expiration_time(expiration_time_),
-    urls(urls_)
+    urls(urls_),
+    topics(topics_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
 	       job_log_dir.c_str());
@@ -118,11 +119,12 @@ namespace Arc
 		      new Arc::JobLogFile(*logfile);
 		    dupl_logfile->allowRemove(false);
 
-		    for (std::list<std::string>::iterator it=urls.begin();
-			 it!=urls.end();
-			 ++it)
+		    for (int it=0; it<(int)urls.size(); it++)
 		      {
-			(*dupl_logfile)["loggerurl"] = *it;
+			(*dupl_logfile)["loggerurl"] = urls[it];
+                        if (!topics[it].empty()){
+			    (*dupl_logfile)["topic"] = topics[it];
+                        }
 
 			//Pass duplicated job log content to the appropriate 
 			//logging destination

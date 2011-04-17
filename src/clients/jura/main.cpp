@@ -25,9 +25,10 @@ int main(int argc, char **argv)
 
   opterr=0;
   time_t ex_period = 0;
-  std::list<std::string> urls;
+  std::vector<std::string> urls;
+  std::vector<std::string> topics;
   int n;
-  while((n=getopt(argc,argv,":E:u:")) != -1) {
+  while((n=getopt(argc,argv,":E:u:t:")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
@@ -44,6 +45,10 @@ int main(int argc, char **argv)
       break;
     case 'u':
       urls.push_back(std::string(optarg));
+      topics.push_back("");
+      break;
+    case 't':
+      topics.back() = (std::string(optarg));
       break;
     default: { std::cerr<<"Options processing error\n"; return 1; }
     }
@@ -56,7 +61,7 @@ int main(int argc, char **argv)
     {
       usagereporter=new Arc::UsageReporter(
 	                  std::string(argv[argind])+"/logs",
-			  ex_period, urls );
+			  ex_period, urls, topics );
       usagereporter->report();
       delete usagereporter;
     }
