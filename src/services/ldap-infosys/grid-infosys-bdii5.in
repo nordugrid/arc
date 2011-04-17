@@ -1242,12 +1242,23 @@ start () {
 	    exit 1
 	fi
 	# The -d 0 is important for the GIIS to ensure that the binary doesn't fork.
-	ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
-	    LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
-	    ${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" \
-	    -u ${bdii_user} </dev/null 1>/dev/null 2>/dev/null &
+	if [ "x$slapd_hostnamebind" = "x*" ]; then
+	    ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
+		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
+		${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" \
+		-u ${bdii_user} </dev/null 1>/dev/null 2>/dev/null &
+	else
+	    ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
+		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
+		${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" \
+		-u ${bdii_user} </dev/null 1>/dev/null 2>/dev/null &
+	fi
     else
-	${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	if [ "x$slapd_hostnamebind" = "x*" ]; then
+	    ${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	else
+	    ${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	fi
     fi
 
     touch ${slapd_lock_file}
@@ -1268,7 +1279,11 @@ start () {
 	log_failure_msg "$prog SLAPD failed to start"
 	rm -f ${slapd_lock_file}
 	log_failure_msg "Error was: "
-	${slapd_cmd} -d 1 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	if [ "x$slapd_hostnamebind" = "x*" ]; then
+	    ${slapd_cmd} -d 1 -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	else
+	    ${slapd_cmd} -d 1 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
+	fi
 	exit 1
     fi
 
