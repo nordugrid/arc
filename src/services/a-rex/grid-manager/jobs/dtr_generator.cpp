@@ -2,16 +2,13 @@
 #include <fcntl.h>
 
 #include <arc/FileUtils.h>
+#include <arc/data/FileCache.h>
 
 #include <arc/data-staging/Scheduler.h>
 
 #include "../files/info_files.h"
 #include "../files/delete.h"
 #include "../conf/conf_map.h"
-
-// need to import FileCache after Scheduler since define of round()
-// conflicts with math.h. TODO: fix this!
-#include <arc/data/FileCache.h>
 
 #include "dtr_generator.h"
 
