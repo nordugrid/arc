@@ -2050,7 +2050,6 @@ AC_CONFIG_FILES([Makefile
                  include/Makefile
                  debian/Makefile
                  debian/changelog.deb
-                 release_notes/Makefile
                  nordugrid-arc.spec
                  mingw32-nordugrid-arc.spec
                  src/hed/daemon/arched.8
