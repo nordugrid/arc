@@ -287,7 +287,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     }
     vctx->cert_type=type;
   }
-
+	
   /** We need to check whether the certificate is revoked if it is not a proxy;
    *for proxy, it does not ever get revoked
   */
@@ -535,7 +535,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       /**Parse the policy*/
       if(proxycertinfo != NULL) {
         int policynid = OBJ_obj2nid(PROXYPOLICY_get_policy_language(proxycertinfo->proxypolicy));
-        if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) {
+        if(policynid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) {
           /* Put whatever explicit policy here to this particular proxy certificate, usually by
            * pulling them from some database. If there is none policy which need to be explicitly
            * inserted here, clear all the policy storage (make this and any subsequent proxy certificate
@@ -543,7 +543,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
            */
           vctx->proxy_policy.clear();
         }
-        else if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) {
+        else if(policynid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) {
           /* This is basically a NOP */
         }
         else {
@@ -648,10 +648,10 @@ bool check_cert_type(X509* cert, certType& type) {
           goto err;
         }
         policynid = OBJ_obj2nid(policylang);
-        if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { type = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
-        else if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)) { type = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
-        else if(policynid == OBJ_sn2nid(ANYLANGUAGE_PROXY_SN)) { type = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
-        else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
+        if(policynid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) { type = CERT_TYPE_RFC_IMPERSONATION_PROXY; }
+        else if(policynid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)) { type = CERT_TYPE_RFC_INDEPENDENT_PROXY; }
+        else if(policynid == OBJ_txt2nid(ANYLANGUAGE_PROXY_OID)) { type = CERT_TYPE_RFC_ANYLANGUAGE_PROXY; }
+        else if(policynid == OBJ_txt2nid(LIMITED_PROXY_OID)) { type = CERT_TYPE_RFC_LIMITED_PROXY; }
         else { type = CERT_TYPE_RFC_RESTRICTED_PROXY; }
 
         if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V3), -1)) != -1) {
@@ -676,9 +676,9 @@ bool check_cert_type(X509* cert, certType& type) {
           goto err;
         }
         policynid = OBJ_obj2nid(policylang);
-        if(policynid == OBJ_sn2nid(IMPERSONATION_PROXY_SN)) { type = CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
-        else if(policynid == OBJ_sn2nid(INDEPENDENT_PROXY_SN)){ type = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
-        else if(policynid == OBJ_sn2nid(LIMITED_PROXY_SN)) { type = CERT_TYPE_GSI_3_LIMITED_PROXY; }
+        if(policynid == OBJ_txt2nid(IMPERSONATION_PROXY_OID)) { type = CERT_TYPE_GSI_3_IMPERSONATION_PROXY; }
+        else if(policynid == OBJ_txt2nid(INDEPENDENT_PROXY_OID)){ type = CERT_TYPE_GSI_3_INDEPENDENT_PROXY; }
+        else if(policynid == OBJ_txt2nid(LIMITED_PROXY_OID)) { type = CERT_TYPE_GSI_3_LIMITED_PROXY; }
         else {type = CERT_TYPE_GSI_3_RESTRICTED_PROXY; }
 
         if((index = X509_get_ext_by_NID(cert, OBJ_txt2nid(PROXYCERTINFO_V4), -1)) != -1) {

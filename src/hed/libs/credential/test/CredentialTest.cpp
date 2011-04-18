@@ -25,7 +25,7 @@ public:
   void testhostcert();
   void testusercert();
   void testproxy();
-  void testproxy2proxy(){};
+  void testproxy2proxy();
   void testproxycertinfo(){};
   
 private:
@@ -47,6 +47,8 @@ private:
   std::string user_cert_file; 
   std::string user_passphrase;
   std::string user_dn;
+
+  std::string user_proxy_file;
 };
 
 void CredentialTest::setUp() {
@@ -68,6 +70,8 @@ void CredentialTest::setUp() {
   user_cert_file = "user_cert.pem";
   user_passphrase = "userpassword";
   user_dn = "/O=Grid/OU=ARC/OU=localdomain/CN=User";
+ 
+  user_proxy_file = "user_proxy.pem";
 }
 
 void CredentialTest::testCAcert() {
@@ -254,16 +258,126 @@ void CredentialTest::testproxy() {
   user_cert.OutputCertificate(user_cert_string);
   proxy_cert_string.append(user_cert_string);
 
-  std::string user_proxy_file("user_proxy.pem");
   std::ofstream out_f;
   out_f.open(user_proxy_file.c_str());
   out_f<<proxy_cert_string;
   out_f.close();
 
   //Load proxy
-  Arc::Credential user_proxy(user_proxy_file,"",".","","");
+  Arc::Credential user_proxy(user_proxy_file,"",".",CAcert);
 
+  //Does the certificate chain verify?
+  CPPUNIT_ASSERT(user_proxy.GetVerification());
+
+  // Did we load a proxy with right type?
+  CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_RFC_INDEPENDENT_PROXY, user_proxy.GetType());
+
+  // Did the proxy get the right identity (identified by the DN of the original user cert) 
   CPPUNIT_ASSERT_EQUAL(user_dn,user_proxy.GetIdentityName());
+
+  // Get the lifetime
+  CPPUNIT_ASSERT_EQUAL(proxy_life, user_proxy.GetLifeTime());
+
+}
+
+void CredentialTest::testproxy2proxy() {
+
+  int keybits = 1024;
+  int proxydepth = 10;
+
+  Arc::Time t;
+
+  //Generate a proxy certificate based on existing proxy certificate
+  
+  // Generate certificate request
+  std::string req_file1("request1.pem");
+  std::string user_proxy_file1("user_proxy1.pem");
+  Arc::Credential request1(t, Arc::Period(168*3600), keybits);
+  request1.GenerateRequest(req_file1.c_str());
+
+  // Load the request
+  Arc::Credential proxy_cert1;
+  std::string signer_cert1 = user_proxy_file;
+  Arc::Credential signer1(signer_cert1, "", ".", CAcert);
+  proxy_cert1.InquireRequest(req_file1.c_str());
+  proxy_cert1.SetProxyPolicy("rfc","independent","",proxydepth);
+  
+  //Sign the request
+  signer1.SignRequest(&proxy_cert1, user_proxy_file1.c_str());
+
+  // Output a proxy
+  std::string private_key1, signing_cert1, signing_cert1_chain;
+  request1.OutputPrivatekey(private_key1);
+  signer1.OutputCertificate(signing_cert1);
+  signer1.OutputCertificateChain(signing_cert1_chain);
+  std::ofstream out_f1(user_proxy_file1.c_str(), std::ofstream::app);
+  out_f1.write(private_key1.c_str(), private_key1.size());
+  out_f1.write(signing_cert1.c_str(), signing_cert1.size());
+  out_f1.write(signing_cert1_chain.c_str(), signing_cert1_chain.size());
+  out_f1.close();
+
+  //Load the proxy
+  Arc::Credential user_proxy1(user_proxy_file1,"",".",CAcert);
+
+  //Does the certificate chain verify?
+  CPPUNIT_ASSERT(user_proxy1.GetVerification());
+
+  // Did we load a proxy with right type?
+  CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_RFC_INDEPENDENT_PROXY, user_proxy1.GetType());
+
+  // Did the proxy get the right identity (identified by the DN of the original user cert)
+  CPPUNIT_ASSERT_EQUAL(user_dn,user_proxy1.GetIdentityName());
+
+  // Get the lifetime
+  CPPUNIT_ASSERT_EQUAL(Arc::Period(12*3600), user_proxy1.GetLifeTime());
+
+
+
+  //Generate one more proxy based on existing proxy just generated
+ 
+  // Generate certificate request
+  std::string req_file2("request2.pem");
+  std::string user_proxy_file2("user_proxy2.pem");
+  Arc::Credential request2(t, Arc::Period(168*3600), keybits);
+  request2.GenerateRequest(req_file2.c_str());
+
+  // Load the request
+  Arc::Credential proxy_cert2;
+  std::string signer_cert2 = user_proxy_file1;
+  Arc::Credential signer2(signer_cert2, "", ".", CAcert);
+  proxy_cert2.InquireRequest(req_file2.c_str());
+  proxy_cert2.SetProxyPolicy("rfc","independent","",proxydepth-3);
+ 
+  //Sign the request
+  signer2.SignRequest(&proxy_cert2, user_proxy_file2.c_str());
+
+  // Output a proxy
+  std::string private_key2, signing_cert2, signing_cert2_chain;
+  request2.OutputPrivatekey(private_key2);
+  signer2.OutputCertificate(signing_cert2);
+  signer2.OutputCertificateChain(signing_cert2_chain);
+  std::ofstream out_f2(user_proxy_file2.c_str(), std::ofstream::app);
+  out_f2.write(private_key2.c_str(), private_key2.size());
+  out_f2.write(signing_cert2.c_str(), signing_cert2.size());
+  out_f2.write(signing_cert2_chain.c_str(), signing_cert2_chain.size());
+  out_f2.close();
+
+  //Load the proxy
+  Arc::Credential user_proxy2(user_proxy_file2,"","",CAcert);
+
+
+  //Does the certificate chain verify?
+  CPPUNIT_ASSERT(user_proxy2.GetVerification());
+
+  // Did we load a proxy with right type?
+  CPPUNIT_ASSERT_EQUAL(ArcCredential::CERT_TYPE_RFC_INDEPENDENT_PROXY, user_proxy2.GetType());
+
+  // Did the proxy get the right identity (identified by the DN of the original user cert)
+  CPPUNIT_ASSERT_EQUAL(user_dn,user_proxy2.GetIdentityName());
+
+  // Get the lifetime
+  CPPUNIT_ASSERT_EQUAL(Arc::Period(12*3600), user_proxy2.GetLifeTime());
+
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CredentialTest);

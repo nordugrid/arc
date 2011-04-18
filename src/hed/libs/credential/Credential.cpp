@@ -695,7 +695,7 @@ namespace Arc {
       verification_valid = true;
       return true;
     }
-    else {CredentialLogger.msg(INFO, "Certificate verification failed"); LogError(); return false;}
+    else { CredentialLogger.msg(INFO, "Certificate verification failed"); LogError(); return false;}
   }
 
   Credential::Credential() : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
@@ -1026,6 +1026,20 @@ namespace Arc {
 
     //Get the lifetime of the credential
     getLifetime(cert_chain_, cert_, start_, lifetime_);
+
+    X509_EXTENSION* ext = NULL;
+    X509_CINF*  cert_info = NULL;
+    cert_info = cert_->cert_info;
+    for (int i=0; i<sk_X509_EXTENSION_num(cert_info->extensions); i++) {
+      ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(cert_info->extensions, i));
+      if (ext == NULL) {
+        CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); return;
+      }
+      if (!sk_X509_EXTENSION_push(extensions_, ext)) {
+        CredentialLogger.msg(ERROR,"Failed to add extension into member variable: extensions_"); 
+        LogError(); return;
+      }
+    }
 
     if(!cacertfile_.empty() || !cacertdir_.empty())
       Verify();
