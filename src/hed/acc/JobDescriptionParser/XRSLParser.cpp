@@ -238,7 +238,9 @@ namespace Arc {
         }
       }
 
-      jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = source;
+      std::stringstream ss;
+      ss << **it;
+      jobdescs.back().OtherAttributes["nordugrid:xrsl;clientxrsl"] = ss.str();
     }
 
     if(jobdescs.empty()) {
