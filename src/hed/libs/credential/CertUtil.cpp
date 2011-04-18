@@ -694,7 +694,7 @@ bool check_cert_type(X509* cert, certType& type) {
      * as well.
      */
     X509_NAME_ENTRY* new_name_entry = NULL;
-    if(ret != CERT_TYPE_EEC && ret != CERT_TYPE_CA) {
+    if(type != CERT_TYPE_EEC && type != CERT_TYPE_CA) {
       issuer = X509_NAME_dup(X509_get_issuer_name(cert));
       new_name_entry = X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE, data->data, -1);
       if(!new_name_entry) goto err;
