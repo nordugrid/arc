@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <signal.h>
 
 #include <globus_common.h>
 #include <globus_ftp_control.h>
@@ -157,7 +159,7 @@ int main_internal(int argc,char** argv) {
 #else
 void sig_term_fork(int /* signum */) {
   int static passed = 0;
-  if(passed) return;
+  if(passed) _exit(-1);
   server_done=1;
   passed=1;
   kill(0,SIGTERM);

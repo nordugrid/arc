@@ -197,6 +197,7 @@ prepare() {
     LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
     LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
+    LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
     USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
     X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
     X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
@@ -310,6 +311,12 @@ prepare() {
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
+    LOGREOPEN=${LOGREOPEN:-no}
+    if [ "$LOGREOPEN" = "yes" ] ; then
+	LOGREOPEN="true"
+    else
+	LOGREOPEN="false"
+    fi
 
     if [ ! -z "$USERNAME" ] ; then
 	CMD="$CMD -u '$USERNAME'"
@@ -328,6 +335,7 @@ prepare() {
       <Level>$LOGLEVEL</Level>\
       <Backups>$LOGNUM</Backups>\
       <Maxsize>$LOGSIZE</Maxsize>\
+      <Reopen>$LOGREOPEN</Reopen>\
     </Logger>\
   </Server>\
   <ModuleManager>\
@@ -356,6 +364,7 @@ prepare() {
       <Level>$LOGLEVEL</Level>\
       <Backups>$LOGNUM</Backups>\
       <Maxsize>$LOGSIZE</Maxsize>\
+      <Reopen>$LOGREOPEN</Reopen>\
     </Logger>\
   </Server>\
   <ModuleManager>\

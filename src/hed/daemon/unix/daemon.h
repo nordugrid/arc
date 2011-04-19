@@ -11,8 +11,10 @@ class Daemon {
     Daemon() {};
     Daemon(const std::string &pid_file_, const std::string &log_file_);
     ~Daemon();
+    void logreopen(void);
   private:
     const std::string pid_file;
+    const std::string log_file;
     static Logger logger;
 };
 

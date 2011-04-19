@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
+#include <signal.h>
 
 #include <arc/Logger.h>
 
@@ -21,7 +22,15 @@ namespace gridftpd {
 
   static Arc::Logger logger(Arc::Logger::getRootLogger(),"Daemon");
 
-  Daemon::Daemon(void):logfile_(""),logsize_(0),lognum_(5),uid_((uid_t)(-1)),gid_((gid_t)(-1)),daemon_(true),pidfile_(""),debug_(-1) {
+  static Arc::LogFile* sighup_dest = NULL;
+
+  static void sighup_handler(int) {
+    if(!sighup_dest) return;
+    sighup_dest->setReopen(true);
+    sighup_dest->setReopen(false);
+  }
+
+  Daemon::Daemon(void):logfile_(""),logsize_(0),lognum_(5),logreopen_(false),uid_((uid_t)(-1)),gid_((gid_t)(-1)),daemon_(true),pidfile_(""),debug_(-1) {
   }
 
   Daemon::~Daemon(void) {
@@ -137,6 +146,15 @@ namespace gridftpd {
           return -1;
         };
       };
+    } else if(cmd == "logreopen") {
+      std::string arg = config_next_arg(rest);
+      if(arg=="") {
+        logger.msg(Arc::ERROR, "Missing option for command logreopen");
+        return -1;
+      };
+      if(strcasecmp("yes",arg.c_str()) == 0) { logreopen_=true; }
+      else if(strcasecmp("no",arg.c_str()) == 0) { logreopen_=false; }
+      else { logger.msg(Arc::ERROR, "Wrong option in logreopen"); return -1; };
     } else if(cmd == "user") {
       if(uid_ == (uid_t)(-1)) {
         std::string username = config_next_arg(rest);
@@ -223,15 +241,18 @@ namespace gridftpd {
       logger.msg(Arc::ERROR, "Failed to open log file %s", logfile_);
       return 1;
     }
-    if (logsize_ > 0)
-      logger_file->setMaxSize(logsize_);
-    if (lognum_ > 0)
-      logger_file->setBackups(lognum_);
-    if (debug_ > 0)
+    if (logsize_ > 0) logger_file->setMaxSize(logsize_);
+    if (lognum_ > 0) logger_file->setBackups(lognum_);
+    logger_file->setReopen(logreopen_);
+    if (debug_ > 0) {
       Arc::Logger::getRootLogger().setThreshold(Arc::old_level_to_level((unsigned int)debug_));
+    };
     Arc::Logger::getRootLogger().removeDestinations();
     Arc::Logger::getRootLogger().addDestination(*logger_file);
-
+    if(!logreopen_) {
+      sighup_dest = logger_file;
+      signal(SIGHUP,&sighup_handler);
+    };
     if(close_fds) {
       struct rlimit lim;
       int max_files;
@@ -251,7 +272,7 @@ namespace gridftpd {
       };
     };
     const char* log = logfile_.c_str();
-    if(daemon_) { if(log[0] == 0) log="/dev/null"; };
+    if(daemon_) { /*if(log[0] == 0)*/ log="/dev/null"; };
     if(log[0] != 0) {
       close(1); close(2);
       int h=::open(log,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);

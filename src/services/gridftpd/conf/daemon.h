@@ -12,6 +12,7 @@ namespace gridftpd {
     std::string logfile_;
     int logsize_;
     int lognum_;
+    bool logreopen_;
     uid_t uid_;
     gid_t gid_;
     bool daemon_;

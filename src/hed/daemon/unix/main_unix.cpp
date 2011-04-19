@@ -44,9 +44,11 @@ static void shutdown(int)
 static Arc::LogFile* sighup_dest = NULL;
 
 static void sighup_handler(int) {
-  if(!sighup_dest) return;
-  sighup_dest->setReopen(true);
-  sighup_dest->setReopen(false);
+    if(main_daemon) main_daemon->logreopen();
+    if(sighup_dest) {
+        sighup_dest->setReopen(true);
+        sighup_dest->setReopen(false);
+    }
 }
 
 static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
@@ -137,6 +139,7 @@ static std::string init_logger(Arc::XMLNode log, bool foreground)
       Arc::LogStream *err = new Arc::LogStream(std::cerr);
       Arc::Logger::rootLogger.addDestination(*err);
     }
+    if(reopen_b) return "";
     return log_file;
 }
 
