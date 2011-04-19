@@ -62,10 +62,10 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   std::string port_str = tostring(port);
   struct addrinfo *info = NULL;
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
-  if (ret != 0) {
+  if ((ret != 0) || (!info)) {
     std::string err_str = gai_strerror(ret); 
-    logger.msg(VERBOSE, "Failed to resolve %s (%s)", hostname, err_str);
-	return -1;
+    logger.msg(ERROR, "Failed to resolve %s (%s)", hostname, err_str);
+    return -1;
   }
   int s = -1;
   for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
@@ -73,7 +73,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
                      hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
     s = ::socket(info_->ai_family, info_->ai_socktype, info_->ai_protocol);
     if(s == -1) {
-      logger.msg(VERBOSE, "Failed to create socket to %s(%s):%d - %s",
+      logger.msg(ERROR, "Failed to create socket for connecting to %s(%s):%d - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno));
       continue;
@@ -92,7 +92,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     }
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
       if(errno != EINPROGRESS) {
-        logger.msg(VERBOSE, "Failed to connect to %s(%s):%i - %s",
+        logger.msg(ERROR, "Failed to connect to %s(%s):%i - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno));
         close(s); s = -1;
@@ -101,14 +101,14 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       unsigned int events = POLLOUT | POLLPRI;
       int pres = spoll(s,timeout_,events);
       if(pres == 0) {
-        logger.msg(VERBOSE, "Timeout connecting to %s(%s):%i - %i s",
+        logger.msg(ERROR, "Timeout connecting to %s(%s):%i - %i s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         timeout_);
         close(s); s = -1;
         continue;
       }
       if(pres != 1) {
-        logger.msg(VERBOSE, "Failed waiting connection to %s(%s):%i - %s",
+        logger.msg(ERROR, "Failed while waiting for connection to %s(%s):%i - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
                         Arc::StrError(errno));
         close(s); s = -1;
@@ -117,7 +117,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       // man connect says one has to check SO_ERROR, but poll() returns
       // POLLERR and POLLHUP so we can use them directly. 
       if(events & (POLLERR | POLLHUP)) {
-        logger.msg(VERBOSE, "Failed to connect to %s(%s):%i",
+        logger.msg(ERROR, "Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
         close(s); s = -1;
         continue;
@@ -125,16 +125,13 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     }
 #else
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
-      logger.msg(VERBOSE, "Failed to connect to %s(%s):%i",
+      logger.msg(ERROR, "Failed to connect to %s(%s):%i",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
       close(s); s = -1;
       continue;
     };
 #endif
     break;
-  };
-  if(s == -1) {
-    logger.msg(VERBOSE, "Failed to establish connection to %s:%i", hostname, port);
   };
   freeaddrinfo(info);
   return s;
