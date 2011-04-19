@@ -739,7 +739,7 @@ err:
 */
       }
       else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
-        X509_LOOKUP_load_file(lookup, NULL, X509_FILETYPE_PEM);
+        X509_LOOKUP_load_file(lookup, ca_cert_file.c_str(), X509_FILETYPE_PEM);
         for (int i = sk_X509_num(stack)-1; i >=0; i--) {
           X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
           index = X509_verify_cert(csc);
