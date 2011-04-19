@@ -705,54 +705,34 @@ err:
 
       if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
         X509_LOOKUP_add_dir(lookup, ca_cert_dir.c_str(), X509_FILETYPE_PEM);
-        //Check the AC issuer certificate's chain
-        for (int i = sk_X509_num(stack)-1; i >=0; i--) {
-          //Firstly, try to verify the certificate which is issues by CA;
-          //Then try to verify the next one; the last one is the certificate
-          //(voms server certificate) which issues AC.
-          //Normally the voms server certificate is directly issued by a CA,
-          //in this case, sk_X509_num(stack) should be 1.
-          //On the other hand, if the voms server certificate is issued by a CA
-          //which is issued by an parent CA, and so on, then the AC issuer should 
-          //put those CA certificates (except the root CA certificate which has 
-          //been configured to be trusted on the AC consumer side) together with 
-          //the voms server certificate itself in the 'certseq' part of AC.
-          //
-          //The CA certificates are checked one by one: the certificate which
-          //is signed by root CA is checked firstly; the voms server certificate
-          //is checked lastly.
-          //
-          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
-          index = X509_verify_cert(csc);
-          if(!index) break;
-          //If the 'i'th certificate is verified, then add it as trusted certificate,
-          //then 'i'th certificate will be used as 'trusted certificate' to check
-          //the 'i-1'th certificate
-          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
-        }
-/*
-        for (int i = 1; i < sk_X509_num(stack); i++)
-          X509_STORE_add_cert(ctx,sk_X509_value(stack, i)); 
-        ERR_clear_error();
-        X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
-        index = X509_verify_cert(csc);
-*/
       }
-      else if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
+      if (!(ca_cert_file.empty()) && (lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_file()))) {
         X509_LOOKUP_load_file(lookup, ca_cert_file.c_str(), X509_FILETYPE_PEM);
-        for (int i = sk_X509_num(stack)-1; i >=0; i--) {
-          X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
-          index = X509_verify_cert(csc);
-          if(!index) break;
-          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
-        }
-/*
-        for (int i = 1; i < sk_X509_num(stack); i++)
-          X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
-        ERR_clear_error();
-        X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, 0), NULL);
+      }
+      //Check the AC issuer certificate's chain
+      for (int i = sk_X509_num(stack)-1; i >=0; i--) {
+        //Firstly, try to verify the certificate which is issues by CA;
+        //Then try to verify the next one; the last one is the certificate
+        //(voms server certificate) which issues AC.
+        //Normally the voms server certificate is directly issued by a CA,
+        //in this case, sk_X509_num(stack) should be 1.
+        //On the other hand, if the voms server certificate is issued by a CA
+        //which is issued by an parent CA, and so on, then the AC issuer should 
+        //put those CA certificates (except the root CA certificate which has 
+        //been configured to be trusted on the AC consumer side) together with 
+        //the voms server certificate itself in the 'certseq' part of AC.
+        //
+        //The CA certificates are checked one by one: the certificate which
+        //is signed by root CA is checked firstly; the voms server certificate
+        //is checked lastly.
+        //
+        X509_STORE_CTX_init(csc, ctx, sk_X509_value(stack, i), NULL);
         index = X509_verify_cert(csc);
-*/
+        if(!index) break;
+        //If the 'i'th certificate is verified, then add it as trusted certificate,
+        //then 'i'th certificate will be used as 'trusted certificate' to check
+        //the 'i-1'th certificate
+        X509_STORE_add_cert(ctx,sk_X509_value(stack, i));
       }
     }
     if (ctx) X509_STORE_free(ctx);
