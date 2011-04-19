@@ -956,10 +956,10 @@ namespace Arc {
       // check if the usage percent is passed
       if ((100 - (100 * cache_it->second.second)/ cache_it->second.first) < _max_used) {                       
         // caches which are under the defined percentage 
-        // independent implementation of roundf() since it is not supported on all platforms
-        float num = (float) cache_it->second.first/total_size*10;
-        int percent = (int)(fmod(num, 1) < 0.5 ? floor(num) : ceil(num));
-        under_limit.insert(std::make_pair(cache_it->first, percent));
+        // chance of this cache being used is ratio of cache size to total of all cache sizes
+        // can't use roundf() since it is not supported on all platforms
+        int chance = (int)((float) cache_it->second.first/total_size*10 + 0.5);
+        under_limit.insert(std::make_pair(cache_it->first, chance));
       } else {
         // caches which are passed the defined percentage
         over_limit.insert(std::make_pair((unsigned long long)(cache_it->second.second), cache_it->first));
