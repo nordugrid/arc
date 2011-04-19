@@ -45,6 +45,10 @@ class CacheConfig {
     **/
    std::vector<std::string> _draining_cache_dirs;
    /**
+    * Logfile for cache cleaning messages
+    */
+   std::string _log_file;
+   /**
     * cache-clean log level
     */
    std::string _log_level;
@@ -80,6 +84,7 @@ class CacheConfig {
   int getCacheMax() { return _cache_max; };
   int getCacheMin() { return _cache_min; };
   bool cleanCache() { return (_cache_max > 0 && _cache_max < 100); };
+  std::string getLogFile() { return _log_file; };
   std::string getLogLevel() { return _log_level; };
   std::string getLifeTime() { return _lifetime; };
 };

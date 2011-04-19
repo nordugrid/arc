@@ -17,6 +17,7 @@
 #include <arc/Run.h>
 #include <arc/Thread.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 #include "jobs/users.h"
 #include "jobs/states.h"
 #include "jobs/commfifo.h"
@@ -26,6 +27,7 @@
 #include "files/info_types.h"
 #include "files/delete.h"
 #include "log/job_log.h"
+#include "run/run_redirected.h"
 #include "run/run_parallel.h"
 #include "jobs/dtr_generator.h"
 
@@ -46,72 +48,68 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 
 static void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
-  Arc::Run *proc = NULL;
-  JobUser gmuser(users->Env(),getuid()); // Cleaning should run under the GM user 
+  JobUser gmuser(users->Env(),getuid()); // Cleaning should run under the GM user
   
-  // run cache cleaning periodically 
+  // run cache cleaning periodically forever
   for(;;) {
     // go through each user and clean their caches. One user is processed per clean period
+    // if this flag is false after all users there are no caches and the thread exits
     bool have_caches = false;
+
     for (JobUsers::const_iterator cacheuser = users->begin(); cacheuser != users->end(); ++cacheuser) {
-      int exit_code = -1;
-      // if previous process has not finished
-      if(proc != NULL) {  
-        if(!(proc->Running())) {
-          exit_code=proc->Result();
-          delete proc;
-          proc=NULL;
-        };
-      };
-      if(proc == NULL) { // previous already exited
-        CacheConfig cache_info = cacheuser->CacheParams();
-        if (!cache_info.cleanCache()) continue;
-        
-        // get the cache dirs
-        std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
-        if (cache_info_dirs.empty()) continue;
-        have_caches = true;
-        
-        // in arc.conf % of used space is given, but cleanbyage uses % of free space
-        std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
-        std::string maxfreespace = Arc::tostring(100-cache_info.getCacheMin());
-        std::string cachelifetime = cache_info.getLifeTime();
-        
-        // set log file location - controldir/job.cache-clean.errors
-        // TODO: use GM log?
-        gmuser.SetControlDir(cacheuser->ControlDir()); // Should this requirement be removed ?
-        int argc=0;
-        char** args = new char*[9+cache_info_dirs.size()+1];
-        
-        // do cache-clean -h for explanation of options
-        std::string cmd = users->Env().nordugrid_libexec_loc() + "/cache-clean";
-        args[argc++]=(char*)cmd.c_str();
-        args[argc++]=(char*)"-m";
-        args[argc++]=(char*)minfreespace.c_str();
-        args[argc++]=(char*)"-M";
-        args[argc++]=(char*)maxfreespace.c_str();
-        args[argc++]=(char*)"-E";
-        args[argc++]=(char*)cachelifetime.c_str();        
-        args[argc++]=(char*)"-D";
-        args[argc++]=(char*)cache_info.getLogLevel().c_str();
-        std::vector<std::string> cache_dirs;
-        // have to loop over twice to avoid repeating the same pointer in args
-        for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
-          cache_dirs.push_back(i->substr(0, i->find(" ")));
+      CacheConfig cache_info = cacheuser->CacheParams();
+      if (!cache_info.cleanCache()) continue;
+
+      // get the cache dirs
+      std::vector<std::string> cache_info_dirs = cache_info.getCacheDirs();
+      if (cache_info_dirs.empty()) continue;
+      have_caches = true;
+
+      // in arc.conf % of used space is given, but cache-clean uses % of free space
+      std::string minfreespace = Arc::tostring(100-cache_info.getCacheMax());
+      std::string maxfreespace = Arc::tostring(100-cache_info.getCacheMin());
+      std::string cachelifetime = cache_info.getLifeTime();
+      std::string logfile = cache_info.getLogFile();
+
+      int h = open(logfile.c_str(), O_WRONLY | O_APPEND);
+      if (h < 0) {
+        std::string dirname(logfile.substr(0, logfile.rfind('/')));
+        if (!dirname.empty() && !Arc::DirCreate(dirname, S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
+          logger.msg(Arc::WARNING, "Cannot create directories for log file %s"
+              " messages will be logged to this log", logfile);
         }
-        for (std::vector<std::string>::iterator i = cache_dirs.begin(); i != cache_dirs.end(); i++) {
-          args[argc++]=(char*)(*i).c_str();
+        else {
+          h = open(logfile.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+          if (h < 0) {
+            logger.msg(Arc::WARNING, "Cannot open cache log file %s: %s. Cache cleaning"
+                " messages will be logged to this log", logfile, Arc::StrError(errno));
+          }
         }
-        args[argc]=NULL;
-        if(!RunParallel::run(gmuser,"cache-clean",args,&proc,false,false)) {
-          logger.msg(Arc::ERROR,"Failed to run cache cleanup script: %s", cmd);
-        };
-        delete[] args;
-      };
+      }
+
+      // do cache-clean -h for explanation of options
+      std::string cmd = users->Env().nordugrid_libexec_loc() + "/cache-clean";
+      cmd += " -m " + minfreespace;
+      cmd += " -M " + maxfreespace;
+      if (!cachelifetime.empty()) cmd += " -E " + cachelifetime;
+      cmd += " -D " + cache_info.getLogLevel();
+      std::vector<std::string> cache_dirs;
+      for (std::vector<std::string>::iterator i = cache_info_dirs.begin(); i != cache_info_dirs.end(); i++) {
+        cmd += " " + (i->substr(0, i->find(" ")));
+      }
+      logger.msg(Arc::DEBUG, "Running command %s", cmd);
+      // use large timeout, as disk scan can take a long time
+      // blocks until command finishes or timeout
+      int result = RunRedirected::run(gmuser, "cache-clean", -1, h, h, cmd.c_str(), 3600);
+      close(h);
+      if (result != 0) {
+        if (result == -1) logger.msg(Arc::ERROR, "Failed to start cache clean script");
+        else logger.msg(Arc::ERROR, "Cache cleaning script failed");
+      }
       for(unsigned int t=CACHE_CLEAN_PERIOD;t;) t=sleep(t);
-    };
+    }
     if(!have_caches) break;
-  };
+  }
   return NULL;
 }
 

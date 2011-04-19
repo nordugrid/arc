@@ -5,6 +5,7 @@
 CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
                                                 _cache_max(100),
                                                 _cache_min(100),
+                                                _log_file("/var/log/arc/cache-clean.log"),
                                                 _log_level("INFO") ,
                                                 _lifetime("0") {
   // open conf file
@@ -161,6 +162,12 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
         throw CacheConfigException("max cache size must be greater than min size");
       _cache_min = min_i;
     }
+    else if(command == "cachelogfile") {
+      std::string logfile = config_next_arg(rest);
+      if (logfile.length() < 2 || logfile[0] != '/' || logfile[logfile.length()-1] == '/')
+        throw CacheConfigException("Bad filename in cachelogfile parameter");
+      _log_file = logfile;
+    }
     else if(command == "cacheloglevel") {
       std::string log_level = config_next_arg(rest);
       if(log_level.length() == 0)
@@ -236,6 +243,7 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
       highWatermark
       lowWatermark
       cacheLifetime
+      cacheLogFile
       cacheLogLevel
     defaultTTL
     defaultTTR
@@ -321,6 +329,12 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
         if (min_i >= max_i)
           throw CacheConfigException("highWatermark must be greater than lowWatermark");
         _cache_min = min_i;
+      }
+      std::string cache_log_file = cache_node["cacheLogFile"];
+      if (!cache_log_file.empty()) {
+        if (cache_log_file.length() < 2 || cache_log_file[0] != '/' || cache_log_file[cache_log_file.length()-1] == '/')
+          throw CacheConfigException("Bad filename in cachelogfile parameter");
+        _log_file = cache_log_file;
       }
       std::string cache_log_level = cache_node["cacheLogLevel"];
       if (!cache_log_level.empty())
