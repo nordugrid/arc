@@ -180,7 +180,7 @@ class Credential {
     * will not after the ealier value from issuer's end
     * time and the "start" parameter plus "lifetime" paremeter
     */
-    bool SetProxyPeriod(X509* tosign, X509* issuer, Time& start, Period& lifetime);
+    bool SetProxyPeriod(X509* tosign, X509* issuer, const Time& start, const Period& lifetime);
 
     /**Assistant method for signing the proxy request, the method will duplicate some information
     *(subject and extension) from signing certificate

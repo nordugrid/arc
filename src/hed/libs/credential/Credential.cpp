@@ -714,7 +714,7 @@ namespace Arc {
     if(!proxy_init_) InitProxyCertInfo();
   }
 
-  Credential::Credential(int keybits) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+  Credential::Credential(const int keybits) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
     extensions_(NULL) {
@@ -1788,7 +1788,7 @@ err:
     return true;
   }
 
-  bool Credential::SetProxyPeriod(X509* tosign, X509* issuer, Time& start, Period& lifetime) {
+  bool Credential::SetProxyPeriod(X509* tosign, X509* issuer, const Time& start, const Period& lifetime) {
     time_t t1 = start.GetTime();
     Time tmp = start + lifetime;
     time_t t2 = tmp.GetTime();
@@ -2508,7 +2508,7 @@ err:
 
   static int x509_certify(X509_STORE *ctx, const std::string& CAfile, const EVP_MD *digest,
              X509 *x, X509 *xca, EVP_PKEY *pkey, const std::string& serialfile,
-             long lifetime, int clrext, CONF *conf, char *section, ASN1_INTEGER *sno) {
+             time_t start, time_t lifetime, int clrext, CONF *conf, char *section, ASN1_INTEGER *sno) {
     int ret=0;
     ASN1_INTEGER *bs=NULL;
     X509_STORE_CTX xsc;
@@ -2545,7 +2545,7 @@ err:
     if (!X509_set_issuer_name(x,X509_get_subject_name(xca))) goto end;
     if (!X509_set_serialNumber(x,bs)) goto end;
 
-    if (X509_gmtime_adj(X509_get_notBefore(x),0L) == NULL)
+    if (X509_gmtime_adj(X509_get_notBefore(x), start) == NULL)
       goto end;
 
     /* hardwired expired */
@@ -2829,10 +2829,15 @@ error:
     }
 
     X509_set_version(cert_,2);
-    long lifetime = (eec->GetLifeTime()).GetPeriod();
+    time_t lifetime = (eec->GetLifeTime()).GetPeriod();
+    Time t1 = eec->GetStartTime();
+    Time t2;
+    time_t start;
+    if(t1 > t2) start = t1.GetTime() - t2.GetTime();
+    else start = 0;
 
     if (!x509_certify(ctx, certfile_, digest, eec_cert, cert_,
-                      pkey_, CAserial_, lifetime, 0,
+                      pkey_, CAserial_, start, lifetime, 0,
                       extconf, (char*)(extsect_.c_str()), NULL)) {
       CredentialLogger.msg(ERROR,"Can not sign a EEC"); LogError();
     }

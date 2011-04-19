@@ -123,8 +123,7 @@ void CredentialTest::testhostcert() {
   // host cert signing
   std::string host_req_file("host_req.pem");
 
-  Arc::Period host_life(365*24*3600);
-  Arc::Credential host_req(t, host_life, keybits, "EEC");
+  Arc::Credential host_req(keybits);
   host_req.GenerateRequest(host_req_file.c_str());
 
   // Write private key to file for loading later - no passphrase for hosts
@@ -138,7 +137,8 @@ void CredentialTest::testhostcert() {
   // Load the request
   Arc::Credential host_eec;
   host_eec.InquireRequest(host_req_file.c_str(), true);
-  host_eec.SetLifeTime(Arc::Period(30*24*60*60));
+  Arc::Period host_life(30*24*3600);
+  host_eec.SetLifeTime(host_life);
 
   // Add subjectAltname extension to host cert
   std::string host_ext("DNS:localhost");
@@ -171,7 +171,6 @@ void CredentialTest::testusercert() {
 
   // User cert signing
   std::string user_req_file("user_req.pem");
-
   Arc::Period user_life(30*24*3600);
   Arc::Credential user_req(t, user_life, keybits, "EEC");
   user_req.GenerateRequest(user_req_file.c_str());
@@ -184,20 +183,22 @@ void CredentialTest::testusercert() {
   out_f << user_key;
   out_f.close();
 
-  // Load the request
-  Arc::Credential user_eec;
-  user_eec.InquireRequest(user_req_file.c_str(), true);
-  user_eec.SetLifeTime(user_life);
+  // Here the original Credential object is used for signing;
+  // We don't need to load the request, since we don't need to
+  // inquire the X509_REQ 
+  //Arc::Credential user_eec;
+  //user_eec.InquireRequest(user_req_file.c_str(), true);
+  //user_eec.SetLifeTime(user_life);
 
   // Add subjectAltname extension to host cert
   std::string user_ext("EMAIL:user@localhost");
-  user_eec.AddExtension("2.5.29.17", user_ext);
+  user_req.AddExtension("2.5.29.17", user_ext);
 
   // Load CA credential
   Arc::Credential ca(CAcert, CAkey, CAserial, CAconf, user_cert_ext_sect, CApassphrase);
 
   // Sign request
-  ca.SignEECRequest(&user_eec, user_dn, user_cert_file.c_str());
+  ca.SignEECRequest(&user_req, user_dn, user_cert_file.c_str());
 
   //Try to load user cert with wrong passphrase
   Arc::Credential user_cert_bad(user_cert_file,user_key_file,".",CAcert,"Bad password");
@@ -237,10 +238,10 @@ void CredentialTest::testproxy() {
   Arc::Credential user_cert(user_cert_file, user_key_file, ".", CAcert, user_passphrase);
 
   // Load the request 
-  Arc::Period proxy_life(24*3600);
   Arc::Credential proxy_cert;
   proxy_cert.InquireRequest(req);
   proxy_cert.SetProxyPolicy("rfc","independent","",-1);
+  Arc::Period proxy_life(7*24*3600);
   proxy_cert.SetLifeTime(proxy_life);
 
   // Sign the request
@@ -290,17 +291,20 @@ void CredentialTest::testproxy2proxy() {
   //Generate a proxy certificate based on existing proxy certificate
   
   // Generate certificate request
-  std::string req_file1("request1.pem");
+  std::string user_req_file1("user_req1.pem");
   std::string user_proxy_file1("user_proxy1.pem");
-  Arc::Credential request1(t, Arc::Period(168*3600), keybits);
-  request1.GenerateRequest(req_file1.c_str());
+
+  Arc::Credential request1(keybits);
+  request1.GenerateRequest(user_req_file1.c_str());
 
   // Load the request
   Arc::Credential proxy_cert1;
   std::string signer_cert1 = user_proxy_file;
   Arc::Credential signer1(signer_cert1, "", ".", CAcert);
-  proxy_cert1.InquireRequest(req_file1.c_str());
+  proxy_cert1.InquireRequest(user_req_file1.c_str());
   proxy_cert1.SetProxyPolicy("rfc","independent","",proxydepth);
+  Arc::Period proxy1_life(24*3600);
+  proxy_cert1.SetLifeTime(proxy1_life);
   
   //Sign the request
   signer1.SignRequest(&proxy_cert1, user_proxy_file1.c_str());
@@ -329,24 +333,26 @@ void CredentialTest::testproxy2proxy() {
   CPPUNIT_ASSERT_EQUAL(user_dn,user_proxy1.GetIdentityName());
 
   // Get the lifetime
-  CPPUNIT_ASSERT_EQUAL(Arc::Period(12*3600), user_proxy1.GetLifeTime());
+  CPPUNIT_ASSERT_EQUAL(proxy1_life, user_proxy1.GetLifeTime());
 
 
 
   //Generate one more proxy based on existing proxy just generated
  
   // Generate certificate request
-  std::string req_file2("request2.pem");
+  std::string user_req_file2("user_req2.pem");
   std::string user_proxy_file2("user_proxy2.pem");
-  Arc::Credential request2(t, Arc::Period(168*3600), keybits);
-  request2.GenerateRequest(req_file2.c_str());
+  Arc::Credential request2(t, Arc::Period(12*3600), keybits);
+  request2.GenerateRequest(user_req_file2.c_str());
 
   // Load the request
   Arc::Credential proxy_cert2;
   std::string signer_cert2 = user_proxy_file1;
   Arc::Credential signer2(signer_cert2, "", ".", CAcert);
-  proxy_cert2.InquireRequest(req_file2.c_str());
+  proxy_cert2.InquireRequest(user_req_file2.c_str());
   proxy_cert2.SetProxyPolicy("rfc","independent","",proxydepth-3);
+  Arc::Period proxy2_life(8*3600);
+  proxy_cert2.SetLifeTime(proxy2_life);
  
   //Sign the request
   signer2.SignRequest(&proxy_cert2, user_proxy_file2.c_str());
@@ -376,7 +382,7 @@ void CredentialTest::testproxy2proxy() {
   CPPUNIT_ASSERT_EQUAL(user_dn,user_proxy2.GetIdentityName());
 
   // Get the lifetime
-  CPPUNIT_ASSERT_EQUAL(Arc::Period(12*3600), user_proxy2.GetLifeTime());
+  CPPUNIT_ASSERT_EQUAL(proxy2_life, user_proxy2.GetLifeTime());
 
 }
 
