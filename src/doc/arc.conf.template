@@ -396,6 +396,10 @@ cachesize="80 70"
 # 30d. When no suffix is given the unit is seconds.
 cachelifetime="30d"
 
+# cachelogfile path - specifies the filename where output of the cache-clean
+# tool should be logged. Defaults to /var/log/arc/cache-clean.log.
+cachelogfile="/tmp/cache-clean.log"
+
 # cacheloglevel level - specifies the level of logging by the cache-clean
 # tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 cacheloglevel="4"

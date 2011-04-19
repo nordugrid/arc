@@ -244,6 +244,7 @@ attributes depending on how the mapping should be done.
           </arex:remotelocation>
           <arex:highWatermark inisections="arex/cache" initag="highwatermark" inidefaultvalue="80"/>
           <arex:lowWatermark inisections="arex/cache" initag="lowwatermark" inidefaultvalue="70"/>
+          <arex:cacheLogFile inisections="arex/cache" initag="logfile" inidefaultvalue="/var/log/arc/cache-clean.log"/>
           <arex:cacheLogLevel inisections="arex/cache" initag="loglevel" inidefaultvalue="2"/>
           <arex:cacheLifetime inisections="arex/cache" initag="lifetime"/>
         </arex:cache>

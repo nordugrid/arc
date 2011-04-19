@@ -225,6 +225,8 @@
                   to bring the used space down to the min level. It is a
                   good idea to have the cache on its own separate file system.
                   To turn off this feature those elements must be absent.
+                * cacheLogFile - the file where messages from cache cleaning
+                  are logged.
                 * cacheLogLevel - the log level used by the cache cleaning
                   script.
                 * cacheLifetime - the lifetime of cache files
@@ -239,6 +241,8 @@
                          minOccurs="0"/>
             <xsd:element name="lowWatermark" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
+            <xsd:element name="cacheLogFile" type="xsd:string"
+                         minOccurs="0"/>                         
             <xsd:element name="cacheLogLevel" type="xsd:string"
                          minOccurs="0"/>                         
             <xsd:element name="cacheLifetime" type="xsd:string"
