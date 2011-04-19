@@ -297,6 +297,7 @@ namespace Arc {
         if (source.HaveLocations())
           break;
         logger.msg(ERROR, "No locations for source found: %s", source.str());
+        dres = DataStatus::ReadResolveError;
       }
       else
         logger.msg(ERROR, "Failed to resolve source: %s", source.str());
@@ -313,6 +314,7 @@ namespace Arc {
           break;
         logger.msg(ERROR, "No locations for destination found: %s",
                    destination.str());
+        dres = DataStatus::WriteResolveError;
       }
       else
         logger.msg(ERROR, "Failed to resolve destination: %s", destination.str());
