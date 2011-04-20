@@ -18,7 +18,7 @@ sub translator;
 use vars qw($DEFAULT); $DEFAULT = -1;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
 use vars qw($glueHostMainMemoryRAMSize $glueHostArchitecturePlatformType $glueSubClusterUniqueID $GlueHostBenchmarkSI00 $GlueHostBenchmarkSF00);
-use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID $processorOtherDesc);
+use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID $processorOtherDesc $smpSize);
 use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots $estRespTime $worstRespTime);
 use vars qw(@envs);
 
@@ -161,9 +161,11 @@ sub translator(){
 	$glueSubClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};
 	$glueSubClusterName=$glue_site_unique_id;
 	if ( $processorOtherDesc =~ m/Cores=(\d+)/ ){
-	    $glueSubClusterPhysicalCPUs=int($cluster_attributes{'nordugrid-cluster-totalcpus'}/$1);
+	    $smpSize=$1;
+	    $glueSubClusterPhysicalCPUs=int($cluster_attributes{'nordugrid-cluster-totalcpus'}/$smpSize);
 	}
 	else {
+	    $smpSize=1;
 	    $glueSubClusterPhysicalCPUs=$cluster_attributes{'nordugrid-cluster-totalcpus'};
 	}
 	$glueSubClusterLogicalCPUs=$cluster_attributes{'nordugrid-cluster-totalcpus'};
@@ -212,7 +214,7 @@ objectClass: GlueKey
 	print "GlueHostApplicationSoftwareRunTimeEnvironment:  $_\n"
     }
  
-    print "GlueHostArchitectureSMPSize: 2
+    print "GlueHostArchitectureSMPSize: $smpSize
 GlueHostNetworkAdapterInboundIP: $inbIP
 GlueHostNetworkAdapterOutboundIP: $outbIP";
  
@@ -365,7 +367,14 @@ sub write_gluece_entries(){
 		$glueHostArchitecturePlatformType=$queue_attributes{'nordugrid-queue-architecture'}; ##XX
 		$glueSubClusterUniqueID=$queue_attributes{'nordugrid-queue-name'};  ##XX
 		$glueSubClusterName=$queue_attributes{'nordugrid-queue-name'};  ##XX
-		$glueSubClusterPhysicalCPUs=$queue_attributes{'nordugrid-queue-totalcpus'};  ##XX
+		if ( $processorOtherDesc =~ m/Cores=(\d+)/ ){
+		    $smpSize=$1;
+		    $glueSubClusterPhysicalCPUs=int($queue_attributes{'nordugrid-queue-totalcpus'}/$smpSize);
+		}
+		else {
+		    $smpSize=1;
+		    $glueSubClusterPhysicalCPUs=$queue_attributes{'nordugrid-queue-totalcpus'};
+		}
 		$glueSubClusterLogicalCPUs=$queue_attributes{'nordugrid-queue-totalcpus'};  ##XX
 		$glueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'};  ##XX
 
