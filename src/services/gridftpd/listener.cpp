@@ -119,7 +119,7 @@ int main(int argc,char** argv) {
   Arc::Logger::getRootLogger().setThreshold(Arc::INFO);
 
   globus_module_deactivate_all();
-  setpgrp();
+  setpgid(0,0);
   sig_old_term=signal(SIGTERM,&sig_term);
   if(sig_old_term == SIG_ERR) {
     perror("");
@@ -169,7 +169,7 @@ int main(int argc,char** argv) {
 #ifndef __DONT_USE_FORK__
   globus_module_deactivate_all();
 #endif
-  setpgrp();
+  setpgid(0,0);
 #endif
 
   // temporary stderr destination until configuration is read and used in daemon.daemon()
