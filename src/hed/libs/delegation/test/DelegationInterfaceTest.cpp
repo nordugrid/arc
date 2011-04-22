@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <sstream>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -9,14 +13,16 @@ class DelegationInterfaceTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(DelegationInterfaceTest);
-  CPPUNIT_TEST(TestDelegationInterfaceDELEGATE);
+  CPPUNIT_TEST(TestDelegationInterfaceDELEGATEARC);
+  CPPUNIT_TEST(TestDelegationInterfaceDELEGATEGDS20);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void setUp();
   void tearDown();
 
-  void TestDelegationInterfaceDELEGATE();
+  void TestDelegationInterfaceDELEGATEARC();
+  void TestDelegationInterfaceDELEGATEGDS20();
 
 private:
   std::string credentials;
@@ -41,13 +47,8 @@ Arc::MCC_Status DirectMCC::process(Arc::Message& in,Arc::Message& out) {
   Arc::NS ns;
   Arc::PayloadSOAP* out_payload = new Arc::PayloadSOAP(ns);
   out.Payload(out_payload);
-  if((*in_payload)["DelegateCredentialsInit"]) {
-    if(!container_.DelegateCredentialsInit(*in_payload,*out_payload)) return Arc::MCC_Status();
-  } else if((*in_payload)["UpdateCredentials"]) {
-    std::string cred;
-    if(!container_.UpdateCredentials(cred,*in_payload,*out_payload)) return Arc::MCC_Status();
-    if(cred.empty()) return Arc::MCC_Status();
-  };
+  if(!container_.Process(*in_payload,*out_payload,"")) return Arc::MCC_Status();
+  //  if(cred.empty()) return Arc::MCC_Status();
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -86,15 +87,27 @@ buEHRt+0Gp5Rod9S6w9Ppl6CphSPq5HRCo49SBBRgAWm\n\
 void DelegationInterfaceTest::tearDown() {
 }
 
-void DelegationInterfaceTest::TestDelegationInterfaceDELEGATE() {
+void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEARC() {
   Arc::DelegationContainerSOAP c;
   Arc::DelegationProviderSOAP p(credentials);
   DirectMCC m(c);
   Arc::MessageContext context;
 
-  CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context));
+  CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::ARCDelegation));
 #ifdef HAVE_OPENSSL_PROXY
-  CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context));
+  CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::ARCDelegation));
+#endif
+}
+
+void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEGDS20() {
+  Arc::DelegationContainerSOAP c;
+  Arc::DelegationProviderSOAP p(credentials);
+  DirectMCC m(c);
+  Arc::MessageContext context;
+
+  CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::GDS20));
+#ifdef HAVE_OPENSSL_PROXY
+  CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::GDS20));
 #endif
 }
 

@@ -24,6 +24,9 @@
 namespace Arc {
 
 #define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
+#define GDS10_NAMESPACE "http://www.gridsite.org/ns/delegation.wsdl"
+#define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
+
 //#define SERIAL_RAND_BITS 64
 #define SERIAL_RAND_BITS 31
 
@@ -852,76 +855,111 @@ DelegationProviderSOAP::DelegationProviderSOAP(const std::string& cert_file,cons
 DelegationProviderSOAP::~DelegationProviderSOAP(void) {
 }
 
-bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageContext* context) {
+bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageContext* context,DelegationProviderSOAP::ServiceType stype) {
   MessageAttributes attributes_in;
   MessageAttributes attributes_out;
-  return DelegateCredentialsInit(interface,&attributes_in,&attributes_out,context);
+  return DelegateCredentialsInit(interface,&attributes_in,&attributes_out,context,stype);
 }
 
-bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context) {
-  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
-  PayloadSOAP req_soap(ns);
-  req_soap.NewChild("deleg:DelegateCredentialsInit");
+static PayloadSOAP* do_process(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,PayloadSOAP* in) {
   Message req;
   Message resp;
   req.Attributes(attributes_in);
   req.Context(context);
-  req.Payload(&req_soap);
+  req.Payload(in);
   resp.Attributes(attributes_out);
   resp.Context(context);
   MCC_Status r = interface.process(req,resp);
-  if(r != STATUS_OK) return false;
-  if(!resp.Payload()) return false;
+  if(r != STATUS_OK) return NULL;
+  if(!resp.Payload()) return NULL;
   PayloadSOAP* resp_soap = NULL;
   try {
     resp_soap=dynamic_cast<PayloadSOAP*>(resp.Payload());
   } catch(std::exception& e) { };
-  if(!resp_soap) { delete resp.Payload(); return false; };
-  XMLNode token = (*resp_soap)["DelegateCredentialsInitResponse"]["TokenRequest"];
-  if(!token) { delete resp_soap; return false; };
-  if(((std::string)(token.Attribute("Format"))) != "x509") { delete resp_soap; return false; };
-  id_=(std::string)(token["Id"]);
-  request_=(std::string)(token["Value"]);
-  delete resp_soap;
-  if(id_.empty() || request_.empty()) return false;
-  return true;
+  if(!resp_soap) { delete resp.Payload(); return NULL; };
+  resp.Payload(NULL);
+  return resp_soap;
 }
 
-bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context,const DelegationRestrictions& /* restrictions */) {
+
+bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,DelegationProviderSOAP::ServiceType stype) {
+  if(stype == DelegationProviderSOAP::ARCDelegation) {
+    NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    req_soap.NewChild("deleg:DelegateCredentialsInit");
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    XMLNode token = (*resp_soap)["DelegateCredentialsInitResponse"]["TokenRequest"];
+    if(!token) { delete resp_soap; return false; };
+    if(((std::string)(token.Attribute("Format"))) != "x509") { delete resp_soap; return false; };
+    id_=(std::string)(token["Id"]);
+    request_=(std::string)(token["Value"]);
+    delete resp_soap;
+    if(id_.empty() || request_.empty()) return false;
+    return true;
+  } else if((stype == DelegationProviderSOAP::GDS10) ||
+            (stype == DelegationProviderSOAP::GDS10RENEW)) {
+    // No implemented yet due to problems with id
+  } else if((stype == DelegationProviderSOAP::GDS20) ||
+            (stype == DelegationProviderSOAP::GDS20RENEW)) {
+    NS ns; ns["deleg"]=GDS20_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    req_soap.NewChild("deleg:getNewProxyReq");
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    XMLNode token = (*resp_soap)["getNewProxyReqResponse"]["getNewProxyReqReturn"];
+    if(!token) { delete resp_soap; return false; };
+    id_=(std::string)(token["delegationID"]);
+    request_=(std::string)(token["proxyRequest"]);
+    delete resp_soap;
+    if(id_.empty() || request_.empty()) return false;
+    return true;
+  };
+  return false;
+}
+
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageContext* context,const DelegationRestrictions& /* restrictions */,DelegationProviderSOAP::ServiceType stype) {
   MessageAttributes attributes_in;
   MessageAttributes attributes_out;
-  return UpdateCredentials(interface,&attributes_in,&attributes_out,context);
+  return UpdateCredentials(interface,&attributes_in,&attributes_out,context,DelegationRestrictions(),stype);
 }
 
-bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,const DelegationRestrictions& restrictions) {
+bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,const DelegationRestrictions& restrictions,DelegationProviderSOAP::ServiceType stype) {
   if(id_.empty()) return false;
   if(request_.empty()) return false;
-  std::string delegation = Delegate(request_,restrictions);
-  if(delegation.empty()) return false;
-  NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
-  PayloadSOAP req_soap(ns);
-  XMLNode token = req_soap.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
-  token.NewAttribute("deleg:Format")="x509";
-  token.NewChild("deleg:Id")=id_;
-  token.NewChild("deleg:Value")=delegation;
-  Message req;
-  Message resp;
-  req.Attributes(attributes_in);
-  req.Context(context);
-  req.Payload(&req_soap);
-  resp.Attributes(attributes_out);
-  resp.Context(context);
-  MCC_Status r = interface.process(req,resp);
-  if(r != STATUS_OK) return false;
-  if(!resp.Payload()) return false;
-  PayloadSOAP* resp_soap = NULL;
-  try {
-    resp_soap=dynamic_cast<PayloadSOAP*>(resp.Payload());
-  } catch(std::exception& e) { };
-  if(!resp_soap) { delete resp.Payload(); return false; };
-  if(!(*resp_soap)["UpdateCredentialsResponse"]) 
-  delete resp_soap;
-  return true;
+  if(stype == DelegationProviderSOAP::ARCDelegation) {
+    std::string delegation = Delegate(request_,restrictions);
+    if(delegation.empty()) return false;
+    NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    XMLNode token = req_soap.NewChild("deleg:UpdateCredentials").NewChild("deleg:DelegatedToken");
+    token.NewAttribute("deleg:Format")="x509";
+    token.NewChild("deleg:Id")=id_;
+    token.NewChild("deleg:Value")=delegation;
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    if(!(*resp_soap)["UpdateCredentialsResponse"]) 
+    delete resp_soap;
+    return true;
+  } else if((stype == DelegationProviderSOAP::GDS10) ||
+            (stype == DelegationProviderSOAP::GDS10RENEW)) {
+    // No implemented yet due to problems with id
+  } else if((stype == DelegationProviderSOAP::GDS20) ||
+            (stype == DelegationProviderSOAP::GDS20RENEW)) {
+    std::string delegation = Delegate(request_,restrictions);
+    if(delegation.empty()) return false;
+    NS ns; ns["deleg"]=GDS20_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    XMLNode token = req_soap.NewChild("deleg:putProxy");
+    token.NewChild("deleg:delegationID")=id_;
+    token.NewChild("deleg:proxy")=delegation;
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    if(!(*resp_soap)["putProxyResponse"])
+    delete resp_soap;
+    return true;
+  };
+  return false;
 }
 
 bool DelegationProviderSOAP::DelegatedToken(XMLNode parent) {
@@ -939,8 +977,6 @@ bool DelegationProviderSOAP::DelegatedToken(XMLNode parent) {
 }
 
 // ---------------------------------------------------------------------------------
-// TODO:
-// 1. Add access control by assigning user's DN to id.
 
 class DelegationContainerSOAP::Consumer {
  public:
@@ -977,7 +1013,7 @@ DelegationContainerSOAP::~DelegationContainerSOAP(void) {
   lock_.unlock();
 }
 
-void DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client) {
+DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client) {
   Consumer c;
   c.deleg=consumer; 
   c.client_id=client;
@@ -987,6 +1023,7 @@ void DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsum
   if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
   consumers_first_=i;
   if(consumers_last_ == consumers_.end()) consumers_last_=i;
+  return i;
 }
 
 void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
@@ -1032,16 +1069,20 @@ void DelegationContainerSOAP::CheckConsumers(void) {
   };
 }
 
-bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
-  lock_.lock();
-  std::string id;
+bool DelegationContainerSOAP::MakeNewID(std::string& id) {
   for(int tries = 0;tries<1000;++tries) {
     GUID(id);
     ConsumerIterator i = consumers_.find(id);
     if(i == consumers_.end()) break;
     id.resize(0);
   };
-  if(id.empty()) { lock_.unlock(); return false; };
+  return !id.empty();
+}
+
+bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
+  lock_.lock();
+  std::string id;
+  if(!MakeNewID(id)) { lock_.unlock(); return false; }; 
   DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
   if(!(consumer->DelegateCredentialsInit(id,in,out))) { lock_.unlock(); delete consumer; return false; };
   AddConsumer(id,consumer,client);
@@ -1055,13 +1096,22 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
   return UpdateCredentials(credentials,identity,in,out,client);
 }
 
+#define ClientAuthorized(consumer,client) \
+  ( ((consumer).client_id.empty()) || ((consumer).client_id == (client)) )
+
+DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::FindConsumer(const std::string& id,const std::string& client) {
+  ConsumerIterator i = consumers_.find(id);
+  if(i == consumers_.end()) { return i; };
+  if(!(i->second.deleg)) { return consumers_.end(); };
+  if(!ClientAuthorized(i->second,client)) { return consumers_.end(); };
+  return i;
+}
+
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
   lock_.lock();
   std::string id = (std::string)(const_cast<SOAPEnvelope&>(in)["UpdateCredentials"]["DelegatedToken"]["Id"]);
-  ConsumerIterator i = consumers_.find(id);
+  ConsumerIterator i = FindConsumer(id,client);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
-  if(!(i->second.deleg)) { lock_.unlock(); return false; };
-  if((!(i->second.client_id.empty())) && (i->second.client_id != client)) { lock_.unlock(); return false; };
   bool r = i->second.deleg->UpdateCredentials(credentials,identity,in,out);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     RemoveConsumer(i);
@@ -1080,10 +1130,8 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,XMLNode to
 bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client) {
   lock_.lock();
   std::string id = (std::string)(token["Id"]);
-  ConsumerIterator i = consumers_.find(id);
+  ConsumerIterator i = FindConsumer(id,client);
   if(i == consumers_.end()) { lock_.unlock(); return false; };
-  if(!(i->second.deleg)) { lock_.unlock(); return false; };
-  if((!(i->second.client_id.empty())) && (i->second.client_id != client)) { lock_.unlock(); return false; };
   bool r = i->second.deleg->DelegatedToken(credentials,identity,token);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     RemoveConsumer(i);
@@ -1092,6 +1140,244 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::strin
   };
   lock_.unlock();
   return r;
+}
+
+#define GDS10FAULT(out,msg) { \
+  SOAPFault((out),SOAPFault::Receiver,msg); \
+}
+
+#define GDS20FAULT(out,msg) { \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("DelegationException"); \
+  ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
+}
+
+bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
+  XMLNode op = ((SOAPEnvelope&)in).Child(0);
+  if(!op) return false;
+  std::string op_ns = op.Namespace();
+  std::string op_name = op.Name();
+  if(op_ns == DELEGATION_NAMESPACE) {
+    // ARC Delegation
+    if(op_name == "DelegateCredentialsInit") {
+      return DelegateCredentialsInit(in,out,client);
+    } else if(op_name == "UpdateCredentials") {
+      std::string credentials;
+      return UpdateCredentials(credentials,in,out,client);
+      // loosing credentials
+    };
+  } else if(op_ns == GDS10_NAMESPACE) {
+    // Original GDS
+    NS ns("",GDS10_NAMESPACE);
+    if(op_name == "getProxyReq") {
+      Arc::XMLNode r = out.NewChild("getProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        GDS10FAULT(out,"No identifier specified");
+        return true;
+      };
+      // check if new id or id belongs to this client
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        if(consumers_.find(id) != consumers_.end()) {
+          GDS10FAULT(out,"Wrong identifier");
+          return true;
+        };
+        DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
+        i = AddConsumer(id,consumer,client);
+      };
+      std::string x509_request;
+      i->second.deleg->Request(x509_request);
+      lock.release();
+      if(x509_request.empty()) {
+        GDS10FAULT(out,"Failed to generate request");
+        return true;
+      };
+      r.NewChild("request") = x509_request;
+      return true;
+    } else if(op_name == "putProxy") {
+      Arc::XMLNode r = out.NewChild("putProxyResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      std::string credentials = op["proxy"];
+      if(id.empty()) {
+        GDS10FAULT(out,"Identifier is missing");
+        return true;
+      };
+      if(credentials.empty()) {
+        GDS10FAULT(out,"proxy is missing");
+        return true;
+      };
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        GDS20FAULT(out,"Failed to find identifier");
+        return true;
+      };
+      if(!i->second.deleg->Acquire(credentials)) {
+        GDS20FAULT(out,"Failed to acquire credentials");
+        return true;
+      };
+      // loosing credentials!!!!
+      return true;
+    };
+  } else if(op_ns == GDS20_NAMESPACE) {
+    // Glite GDS
+    NS ns("",GDS20_NAMESPACE);
+    if(op_name == "getVersion") {
+      Arc::XMLNode r = out.NewChild("getVersionResponse");
+      r.Namespaces(ns); r.NewChild("getVersionReturn")="0";
+      return true;
+    } else if(op_name == "getInterfaceVersion") {
+      Arc::XMLNode r = out.NewChild("getInterfaceVersionResponse");
+      r.Namespaces(ns); r.NewChild("getInterfaceVersionReturn")="2";
+      return true;
+    } else if(op_name == "getServiceMetadata") {
+      //Arc::XMLNode r = out.NewChild("getServiceMetadataResponse");
+      //r.Namespaces(ns);
+      GDS20FAULT(out,"Service has no metadata");
+      return true;
+    } else if(op_name == "getProxyReq") {
+      Arc::XMLNode r = out.NewChild("getProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        GDS20FAULT(out,"No identifier specified");
+        return true;
+      };
+      // check if new id or id belongs to this client
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        if(consumers_.find(id) != consumers_.end()) {
+          GDS20FAULT(out,"Wrong identifier");
+          return true;
+        };
+        DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
+        i = AddConsumer(id,consumer,client);
+      };
+      std::string x509_request;
+      i->second.deleg->Request(x509_request);
+      lock.release();
+      if(x509_request.empty()) {
+        GDS20FAULT(out,"Failed to generate request");
+        return true;
+      };
+      r.NewChild("getProxyReqReturn") = x509_request;
+      return true;
+    } else if(op_name == "getNewProxyReq") {
+      Arc::XMLNode r = out.NewChild("getNewProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id;
+      Glib::Mutex::Lock lock(lock_);
+      if(!MakeNewID(id)) {
+        GDS20FAULT(out,"Failed to generate identifier");
+        return true;
+      };
+      DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
+      std::string x509_request;
+      consumer->Request(x509_request);
+      if(x509_request.empty()) {
+        GDS20FAULT(out,"Failed to generate request");
+        return true;
+      };
+      AddConsumer(id,consumer,client);
+      CheckConsumers();
+      lock.release();
+      Arc::XMLNode ret = r.NewChild("getNewProxyReqReturn");
+      ret.NewChild("proxyRequest") = x509_request;
+      ret.NewChild("delegationID") = id;
+      return true;
+    } else if(op_name == "putProxy") {
+      Arc::XMLNode r = out.NewChild("putProxyResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      std::string credentials = op["proxy"];
+      if(id.empty()) {
+        GDS20FAULT(out,"Identifier is missing");
+        return true;
+      };
+      if(credentials.empty()) {
+        GDS20FAULT(out,"proxy is missing");
+        return true;
+      };
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        GDS20FAULT(out,"Failed to find identifier");
+        return true;
+      };
+      if(!i->second.deleg->Acquire(credentials)) {
+        GDS20FAULT(out,"Failed to acquire credentials");
+        return true;
+      };
+      // loosing credentials!!!!
+      return true;
+    } else if(op_name == "renewProxyReq") {
+      Arc::XMLNode r = out.NewChild("renewProxyReqResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        GDS20FAULT(out,"No identifier specified");
+        return true;
+      };
+      // check if new id or id belongs to this client
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        if(consumers_.find(id) != consumers_.end()) {
+          GDS20FAULT(out,"Wrong identifier");
+          return true;
+        };
+        DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
+        i = AddConsumer(id,consumer,client);
+      };
+      std::string x509_request;
+      i->second.deleg->Request(x509_request);
+      lock.release();
+      if(x509_request.empty()) {
+        GDS20FAULT(out,"Failed to generate request");
+        return true;
+      };
+      r.NewChild("renewProxyReqReturn") = x509_request;
+      return true;
+    } else if(op_name == "getTerminationTime") {
+      Arc::XMLNode r = out.NewChild("getTerminationTimeResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        GDS20FAULT(out,"No identifier specified");
+        return true;
+      };
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        GDS20FAULT(out,"Wrong identifier");
+        return true;
+      };
+      GDS20FAULT(out,"Feature not implemented");
+      return true;
+    } else if(op_name == "destroy") {
+      Arc::XMLNode r = out.NewChild("destroyResponse");
+      r.Namespaces(ns);
+      std::string id = op["delegationID"];
+      if(id.empty()) {
+        GDS20FAULT(out,"No identifier specified");
+        return true;
+      };
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      //if(i == consumers_.end()) {
+      //  GDS20FAULT(out,"Wrong identifier");
+      //  return true;
+      //};
+      if(i != consumers_.end()) RemoveConsumer(i);
+      return true;
+    };
+  };
+  return false;
 }
 
 } // namespace Arc

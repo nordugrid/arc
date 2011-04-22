@@ -116,6 +116,13 @@ class DelegationProviderSOAP: public DelegationProvider {
   std::string request_;
   std::string id_;
  public:
+  typedef enum {
+    ARCDelegation,
+    GDS10,
+    GDS10RENEW,
+    GDS20,
+    GDS20RENEW
+  } ServiceType;
   /** Creates instance from provided credentials.
      Credentials are used to sign delegated credentials. */
   DelegationProviderSOAP(const std::string& credentials);
@@ -128,25 +135,25 @@ class DelegationProviderSOAP: public DelegationProvider {
   /** Performs DelegateCredentialsInit SOAP operation.
      As result request for delegated credentials is received by this instance and stored 
     internally. Call to UpdateCredentials should follow. */
-  bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageContext* context);
+  bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageContext* context,ServiceType stype = ARCDelegation);
   /** Extended version of DelegateCredentialsInit(MCCInterface&,MessageContext*).
      Additionally takes attributes for request and response message to make fine
     control on message processing possible. */
-  bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context);
+  bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,ServiceType stype = ARCDelegation);
   /** Performs UpdateCredentials SOAP operation.
      This concludes delegation procedure and passes delagated credentials to 
     DelegationConsumerSOAP instance.
   */
-  bool UpdateCredentials(MCCInterface& mcc_interface,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions());
+  bool UpdateCredentials(MCCInterface& mcc_interface,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions(),ServiceType stype = ARCDelegation);
   /** Extended version of UpdateCredentials(MCCInterface&,MessageContext*).
      Additionally takes attributes for request and response message to make fine
     control on message processing possible. */
-  bool UpdateCredentials(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions());
+  bool UpdateCredentials(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions(),ServiceType stype = ARCDelegation);
   /** Generates DelegatedToken element.
      Element is created as child of provided XML element and contains structure
     described in delegation.wsdl. */
   bool DelegatedToken(XMLNode parent);
-  /** Returns the identifier by service accepting delegated credentials.
+  /** Returns the identifier provided by service accepting delegated credentials.
      This identifier may then be used to refer to credentials stored 
      at service. */
   const std::string& ID(void) { return id_;};
@@ -165,10 +172,12 @@ class DelegationContainerSOAP {
   ConsumerMap consumers_;
   ConsumerIterator consumers_first_;
   ConsumerIterator consumers_last_;
-  void AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client);
+  ConsumerIterator AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client);
   void TouchConsumer(ConsumerIterator i);
   ConsumerIterator RemoveConsumer(ConsumerIterator i);
   void CheckConsumers(void);
+  ConsumerIterator FindConsumer(const std::string& id,const std::string& client);
+  bool MakeNewID(std::string& id);
  protected:
   Glib::Mutex lock_;
   /** Max. number of delegation consumers */
@@ -192,6 +201,8 @@ class DelegationContainerSOAP {
   /** See DelegationConsumerSOAP::DelegatedToken */
   bool DelegatedToken(std::string& credentials,XMLNode token,const std::string& client = "");
   bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client = "");
+
+  bool Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
 };
 
 } // namespace Arc

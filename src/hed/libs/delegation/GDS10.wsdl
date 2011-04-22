@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="delegation"
+ targetNamespace="http://www.gridsite.org/ns/delegation.wsdl"
+ xmlns:tns="http://www.gridsite.org/ns/delegation.wsdl"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:ns="urn:delegation"
+ xmlns:SOAP="http://schemas.xmlsoap.org/wsdl/soap/"
+ xmlns:MIME="http://schemas.xmlsoap.org/wsdl/mime/"
+ xmlns:DIME="http://schemas.xmlsoap.org/ws/2002/04/dime/wsdl/"
+ xmlns:WSDL="http://schemas.xmlsoap.org/wsdl/"
+ xmlns="http://schemas.xmlsoap.org/wsdl/">
+<types>
+ <schema targetNamespace="urn:delegation"
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:ns="urn:delegation"
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="unqualified"
+  attributeFormDefault="unqualified">
+  <import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+ </schema>
+</types>
+<message name="getProxyReqRequest">
+ <part name="delegationID" type="xsd:string"/>
+</message>
+<message "getProxyReqResponse">
+ <part name="request" type="xsd:string"/>
+</message>
+</message>
+<message name="putProxy">
+ <part name="delegationID" type="xsd:string"/>
+ <part name="proxy" type="xsd:string"/>
+</message>
+<message name="putProxyResponse">
+</message>
+<portType name="delegationPortType">
+ <operation name="getProxyReq">
+  <documentation>Service definition of function ns__getProxyReq</documentation>
+  <input message="tns:getProxyReqRequest"/>
+  <output message="tns:getProxyReqResponse"/>
+ </operation>
+ <operation name="putProxy">
+  <documentation>Service definition of function ns__putProxy</documentation>
+  <input message="tns:putProxy"/>
+  <output message="tns:putProxyResponse"/>
+ </operation>
+</portType>
+<binding name="delegation" type="tns:delegationPortType">
+ <SOAP:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+ <operation name="getProxyReq">
+  <SOAP:operation style="rpc" soapAction=""/>
+  <input>
+     <SOAP:body use="encoded" namespace="urn:delegation" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+  </input>
+  <output>
+   <SOAP:body use="encoded" namespace="urn:delegation" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+  </output>
+ </operation>
+ <operation name="putProxy">
+  <SOAP:operation style="rpc" soapAction=""/>
+  <input>
+     <SOAP:body use="encoded" namespace="urn:delegation" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+  </input>
+  <output>
+   <SOAP:body use="encoded" namespace="urn:delegation" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+  </output>
+ </operation>
+</binding>
+<service name="delegation">
+ <documentation>gSOAP 2.7.4 generated service definition</documentation>
+ <port name="delegation" binding="tns:delegation">
+  <SOAP:address location="http://localhost/delegserver.cgi"/>
+ </port>
+</service>
+</definitions>
