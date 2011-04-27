@@ -26,8 +26,10 @@
 namespace ARex {
 
 static Arc::MCC_Status http_get(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
+static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content);
 
-Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath) {
+  bool force_logs = false;
   off_t range_start = 0;
   off_t range_end = (off_t)(-1);
   {
@@ -56,7 +58,10 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
       line+=config.Endpoint()+"/"+(*job);
       line+="\">";
       line+=(*job);
-      line+="</A>\r\n";
+      line+="</A>";
+      line+=" <A HREF=\"";
+      line+=config.Endpoint()+"/?logs/"+(*job);
+      line+="\">logs</A>\r\n";
       html+=line;
     };
     html+="</UL>\r\n";
@@ -70,6 +75,7 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
   if(id == "?info") {
+    if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
     int h = infodoc_.OpenDocument();
     if(h == -1) return Arc::MCC_Status();
     Arc::MessagePayload* payload = newFileRead(h);
@@ -78,6 +84,17 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     outmsg.Attributes()->set("HTTP:content-type","text/xml");
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
+  if(id == "?logs") {
+    force_logs = true;
+    if(subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+    std::string::size_type p = subpath.find('/');
+    if(p == 0) { subpath = subpath.substr(1); p = subpath.find('/'); };
+    if(p == std::string::npos) {
+      id = subpath; subpath = "";
+    } else {
+      id = subpath.substr(0,p); subpath = subpath.substr(p+1);
+    };
+  };
   ARexJob job(id,config,logger_);
   if(!job) {
     // There is no such job
@@ -85,7 +102,12 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
   };
   Arc::MCC_Status r;
-  if(!(r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,range_start,range_end,false))) {
+  if(force_logs) {
+    r=http_get_log(outmsg,config.Endpoint()+"/?logs/"+id,job,subpath,range_start,range_end,false);
+  } else {
+    r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,range_start,range_end,false);
+  };
+  if(!r) {
     // Can't get file
     logger.msg(Arc::ERROR, "Get: can't process file %s", subpath);
     return r;
@@ -93,7 +115,8 @@ Arc::MCC_Status ARexService::Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGM
   return Arc::MCC_Status(Arc::STATUS_OK);
 } 
 
-Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath) {
+  bool force_logs = false;
   if(id.empty()) {
     Arc::PayloadRaw* buf = new Arc::PayloadRaw;
     if(buf) buf->Truncate(0);
@@ -102,6 +125,7 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
   if(id == "?info") {
+    if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
     int h = infodoc_.OpenDocument();
     if(h == -1) return Arc::MCC_Status();
     struct stat st;
@@ -112,6 +136,17 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
     outmsg.Attributes()->set("HTTP:content-type","text/html");
     return Arc::MCC_Status(Arc::STATUS_OK);
   };
+  if(id == "?logs") {
+    force_logs = true;
+    if(subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+    std::string::size_type p = subpath.find('/');
+    if(p == 0) { subpath = subpath.substr(1); p = subpath.find('/'); };
+    if(p == std::string::npos) {
+      id = subpath; subpath = "";
+    } else {
+      id = subpath.substr(0,p); subpath = subpath.substr(p+1);
+    };
+  };
   ARexJob job(id,config,logger_);
   if(!job) {
     // There is no such job
@@ -119,7 +154,12 @@ Arc::MCC_Status ARexService::Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexG
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
   };
   Arc::MCC_Status r;
-  if(!(r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(off_t)(-1),true))) {
+  if(force_logs) {
+    r=http_get_log(outmsg,config.Endpoint()+"/?logs/"+id,job,subpath,0,(off_t)(-1),true);
+  } else {
+    r=http_get(outmsg,config.Endpoint()+"/"+id,job,subpath,0,(off_t)(-1),true);
+  };
+  if(!r) {
     // Can't stat file
     logger.msg(Arc::ERROR, "Head: can't process file %s", subpath);
     return r;
@@ -141,51 +181,7 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
     if((strncmp(joblog.c_str(),hpath.c_str(),joblog.length()) == 0)  && 
        ((hpath[joblog.length()] == '/') || (hpath[joblog.length()] == 0))) {
       hpath.erase(0,joblog.length()+1);
-      if(hpath.empty()) {
-        if(!no_content) {
-          std::list<std::string> logs = job.LogFiles();
-          std::string html;
-          html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job Logs</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
-          for(std::list<std::string>::iterator l = logs.begin();l != logs.end();++l) {
-            if(strncmp(l->c_str(),"proxy",5) == 0) continue;
-            std::string line = "<LI><I>file</I> <A HREF=\"";
-            line+=burl+"/"+joblog+"/"+(*l);
-            line+="\">";
-            line+=*l;
-            line+="</A> - log file\r\n";
-            html+=line;
-          };
-          html+="</UL>\r\n</BODY>\r\n</HTML>";
-          Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-          if(buf) buf->Insert(html.c_str(),0,html.length());
-          outmsg.Payload(buf);
-          outmsg.Attributes()->set("HTTP:content-type","text/html");
-        } else {
-          Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-          if(buf) buf->Truncate(0);
-          outmsg.Payload(buf);
-          outmsg.Attributes()->set("HTTP:content-type","text/html");
-        };
-        return Arc::MCC_Status(Arc::STATUS_OK);
-      } else {
-        int file = job.OpenLogFile(hpath);
-        if(file != -1) {
-          if(!no_content) {
-            Arc::MessagePayload* h = newFileRead(file,start,end);
-            if(!h) { ::close(file); return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
-            outmsg.Payload(h);
-          } else {
-            struct stat st;
-            Arc::PayloadRaw* buf = new Arc::PayloadRaw;
-            if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
-            ::close(file);
-            outmsg.Payload(buf);
-          };
-          outmsg.Attributes()->set("HTTP:content-type","text/plain");
-          return Arc::MCC_Status(Arc::STATUS_OK);
-        };
-        return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
-      };
+      return http_get_log(outmsg,burl+"/"+joblog,job,hpath,start,end,no_content);
     };
   };
   Arc::FileAccess* dir = job.OpenDir(hpath);
@@ -271,6 +267,54 @@ Arc::Logger::rootLogger.msg(Arc::VERBOSE, "http_get: start=%llu, end=%llu, burl=
   };
   // Can't process this path
   // offset=0; size=0;
+  return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+}
+
+static Arc::MCC_Status http_get_log(Arc::Message& outmsg,const std::string& burl,ARexJob& job,std::string hpath,off_t start,off_t end,bool no_content) {
+  if(hpath.empty()) {
+    if(!no_content) {
+      std::list<std::string> logs = job.LogFiles();
+      std::string html;
+      html="<HTML>\r\n<HEAD>\r\n<TITLE>ARex: Job Logs</TITLE>\r\n</HEAD>\r\n<BODY>\r\n<UL>\r\n";
+      for(std::list<std::string>::iterator l = logs.begin();l != logs.end();++l) {
+        if(strncmp(l->c_str(),"proxy",5) == 0) continue;
+        std::string line = "<LI><I>file</I> <A HREF=\"";
+        line+=burl+"/"+(*l);
+        line+="\">";
+        line+=*l;
+        line+="</A> - log file\r\n";
+        html+=line;
+      };
+      html+="</UL>\r\n</BODY>\r\n</HTML>";
+      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+      if(buf) buf->Insert(html.c_str(),0,html.length());
+      outmsg.Payload(buf);
+      outmsg.Attributes()->set("HTTP:content-type","text/html");
+    } else {
+      Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+      if(buf) buf->Truncate(0);
+      outmsg.Payload(buf);
+      outmsg.Attributes()->set("HTTP:content-type","text/html");
+    };
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  } else {
+    int file = job.OpenLogFile(hpath);
+    if(file != -1) {
+      if(!no_content) {
+        Arc::MessagePayload* h = newFileRead(file,start,end);
+        if(!h) { ::close(file); return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR); };
+        outmsg.Payload(h);
+      } else {
+        struct stat st;
+        Arc::PayloadRaw* buf = new Arc::PayloadRaw;
+        if(buf && (::fstat(file,&st) == 0)) buf->Truncate(st.st_size);
+        ::close(file);
+        outmsg.Payload(buf);
+      };
+      outmsg.Attributes()->set("HTTP:content-type","text/plain");
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 

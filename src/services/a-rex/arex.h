@@ -98,9 +98,9 @@ class ARexService: public Arc::RegisteredService {
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
   Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
-  Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);
-  Arc::MCC_Status Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);
-  Arc::MCC_Status Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,const std::string& id,const std::string& subpath);
+  Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
+  Arc::MCC_Status Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
+  Arc::MCC_Status Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
   void GenericFault(Arc::SOAPFault& fault);
   void NotAuthorizedFault(Arc::XMLNode fault);
   void NotAuthorizedFault(Arc::SOAPFault& fault);

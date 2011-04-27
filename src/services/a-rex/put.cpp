@@ -30,7 +30,7 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf,FileChunksList& fchunks);
 
 // TODO: monitor chunks written into files and report when file is complete
-Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& /*outmsg*/,ARexGMConfig& config,const std::string& id,const std::string& subpath) {
+Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& /*outmsg*/,ARexGMConfig& config,std::string id,std::string subpath) {
   if(id.empty()) return Arc::MCC_Status();
   ARexJob job(id,config,logger_);
   if(!job) {
