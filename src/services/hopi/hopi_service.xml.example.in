@@ -12,7 +12,7 @@
     </ModuleManager>
     <Plugins><Name>mcctcp</Name></Plugins>
     <Plugins><Name>mcchttp</Name></Plugins>
-    <Plugins><Name>httpd</Name></Plugins>
+    <Plugins><Name>hopi</Name></Plugins>
     <Chain>
         <Component name="tcp.service" id="tcp">
             <next id="http"/>
@@ -24,7 +24,7 @@
         </Component>
         <Service name="hopi" id="httpd">
             <DocumentRoot>/tmp/</DocumentRoot>
-            <SlaveMode>0<SlaveMode>
+            <SlaveMode>0</SlaveMode>
             <UploadTimeout>600</UploadTimeout>
             <DownloadTimeout>10</DownloadTimeout>
         </Service>

@@ -18,10 +18,12 @@ class PayloadFile: public Arc::PayloadRawInterface {
   off_t size_; 
   off_t start_; 
   off_t end_; 
+  void SetRead(int h,Size_t start,Size_t end);
  public:
   /** Creates object associated with file for reading from it.
     Use end=-1 for full size. */
   PayloadFile(const char* filename,Size_t start,Size_t end);
+  PayloadFile(int h,Size_t start,Size_t end);
   /** Creates object associated with file for writing into it.
     Use size=-1 for undefined size. */
   //PayloadFile(const char* filename,Size_t size);
@@ -44,9 +46,11 @@ class PayloadBigFile: public Arc::PayloadStream {
  private:
   static Size_t threshold_;
   off_t limit_; 
+  void SetRead(int h,Size_t start,Size_t end);
  public:
   /** Creates object associated with file for reading from it */
   PayloadBigFile(const char* filename,Size_t start,Size_t end);
+  PayloadBigFile(int h,Size_t start,Size_t end);
   /** Creates object associated with file for writing into it.
     Use size=-1 for undefined size. */
   //PayloadBigFile(const char* filename,Size_t size);

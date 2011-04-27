@@ -36,7 +36,7 @@ void PayloadFile::SetRead(int h,Size_t start,Size_t end) {
   struct stat st;
   if(fstat(handle_,&st) != 0) goto error;
   size_=st.st_size;
-  if(end_ > size_) {
+  if((end_ == ((off_t)-1)) || (end_ > size_)) {
     end_=size_;
   }
   if(start_ >= size_) {
