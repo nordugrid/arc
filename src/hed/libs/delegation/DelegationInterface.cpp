@@ -1159,6 +1159,12 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::strin
 }
 
 bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
+  std::string credentials;
+  return Process(credentials,in,out,client);
+}
+
+bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
+  credentials.resize(0);
   XMLNode op = ((SOAPEnvelope&)in).Child(0);
   if(!op) return false;
   std::string op_ns = op.Namespace();
@@ -1168,9 +1174,7 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
     if(op_name == "DelegateCredentialsInit") {
       return DelegateCredentialsInit(in,out,client);
     } else if(op_name == "UpdateCredentials") {
-      std::string credentials;
       return UpdateCredentials(credentials,in,out,client);
-      // loosing credentials
     };
   } else if(op_ns == GDS10_NAMESPACE) {
     // Original GDS
@@ -1207,12 +1211,12 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
       Arc::XMLNode r = out.NewChild("putProxyResponse");
       r.Namespaces(ns);
       std::string id = op["delegationID"];
-      std::string credentials = op["proxy"];
+      std::string cred = op["proxy"];
       if(id.empty()) {
         GDS10FAULT(out,"Identifier is missing");
         return true;
       };
-      if(credentials.empty()) {
+      if(cred.empty()) {
         GDS10FAULT(out,"proxy is missing");
         return true;
       };
@@ -1222,11 +1226,11 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
         GDS20FAULT(out,"Failed to find identifier");
         return true;
       };
-      if(!i->second.deleg->Acquire(credentials)) {
+      if(!i->second.deleg->Acquire(cred)) {
         GDS20FAULT(out,"Failed to acquire credentials");
         return true;
       };
-      // loosing credentials!!!!
+      credentials = cred;
       return true;
     };
   } else if(op_ns == GDS20_NAMESPACE) {
@@ -1300,12 +1304,12 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
       Arc::XMLNode r = out.NewChild("putProxyResponse");
       r.Namespaces(ns);
       std::string id = op["delegationID"];
-      std::string credentials = op["proxy"];
+      std::string cred = op["proxy"];
       if(id.empty()) {
         GDS20FAULT(out,"Identifier is missing");
         return true;
       };
-      if(credentials.empty()) {
+      if(cred.empty()) {
         GDS20FAULT(out,"proxy is missing");
         return true;
       };
@@ -1315,11 +1319,11 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
         GDS20FAULT(out,"Failed to find identifier");
         return true;
       };
-      if(!i->second.deleg->Acquire(credentials)) {
+      if(!i->second.deleg->Acquire(cred)) {
         GDS20FAULT(out,"Failed to acquire credentials");
         return true;
       };
-      // loosing credentials!!!!
+      credentials = cred;
       return true;
     } else if(op_name == "renewProxyReq") {
       Arc::XMLNode r = out.NewChild("renewProxyReqResponse");
@@ -1384,6 +1388,15 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
     };
   };
   return false;
+}
+
+bool DelegationContainerSOAP::MatchNamespace(const SOAPEnvelope& in) {
+  XMLNode op = ((SOAPEnvelope&)in).Child(0);
+  if(!op) return false;
+  std::string op_ns = op.Namespace();
+  return ((op_ns == DELEGATION_NAMESPACE) ||
+          (op_ns == GDS10_NAMESPACE) ||
+          (op_ns == GDS20_NAMESPACE));
 }
 
 } // namespace Arc

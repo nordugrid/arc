@@ -203,6 +203,8 @@ class DelegationContainerSOAP {
   bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client = "");
 
   bool Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
+  bool Process(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
+  bool MatchNamespace(const SOAPEnvelope& in);
 };
 
 } // namespace Arc
