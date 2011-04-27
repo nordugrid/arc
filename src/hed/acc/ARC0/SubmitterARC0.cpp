@@ -44,7 +44,7 @@ namespace Arc {
     std::string teststring;
     switch (testid) {
         case 1:
-          teststring = "&(\"executable\" = \"run.sh\" )(\"arguments\" = \"6\" )(\"inputfiles\" = (\"run.sh\" \"http://www.noryugrid.org;cache=no/data/run.sh\" ) (\"Makefile\" \"rls://rls.nordugrid.org/Makefile\" ) (\"prime.cpp\" \"ftp://ftp.nordugrid.org;cache=no/applications/test/prime.cpp\" ) )(\"stderr\" = \"primenumbers\" )(\"outputfiles\" = (\"primenumbers\" \"\" ) )(\"jobname\" = \"ARC testjob 1\" )(\"stdout\" = \"stdout\" )(\"gmlog\" = \"gmlog\" )(\"CPUTime\" = \"8\" )";
+          teststring = "&(\"executable\" = \"run.sh\" )(\"arguments\" = \"6\" )(\"inputfiles\" = (\"run.sh\" \"http://www.nordugrid.org;cache=no/data/run.sh\" ) (\"Makefile\" \"rls://rls.nordugrid.org/Makefile\" ) (\"prime.cpp\" \"ftp://ftp.nordugrid.org;cache=no/applications/test/prime.cpp\" ) )(\"stderr\" = \"primenumbers\" )(\"outputfiles\" = (\"primenumbers\" \"\" ) )(\"jobname\" = \"ARC testjob 1\" )(\"stdout\" = \"stdout\" )(\"gmlog\" = \"gmlog\" )(\"CPUTime\" = \"8\" )";
           break;
         case 2:
           teststring = "&(\"executable\" = \"/bin/echo\" )(\"arguments\" = \"hello, grid\" )(\"jobname\" = \"ARC testjob 2\" )(\"stdout\" = \"stdout\" )(\"cputime\" = \"5\" )";
