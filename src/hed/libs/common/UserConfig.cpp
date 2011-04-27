@@ -1195,17 +1195,17 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
     GET_OLD_VAR("X509_USER_KEY",x509_user_key_old,x509_user_key_set);
     GET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
     GET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
-    GET_OLD_VAR("CA_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
+    GET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
     SET_NEW_VAR_FILE("X509_USER_KEY",cfg.KeyPath(),x509_user_key_new);
     SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
     SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
-    SET_NEW_VAR("CA_CERT_DIR",cfg.CACertificatesDirectory());
+    SET_NEW_VAR("X509_CERT_DIR",cfg.CACertificatesDirectory());
     EnvLockWrap(false);
   }
 
   CertEnvLocker::~CertEnvLocker(void) {
     EnvLockUnwrap(false);
-    SET_OLD_VAR("CA_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
+    SET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
     SET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     SET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
     SET_OLD_VAR("X509_USER_KEY",x509_user_key_old,x509_user_key_set);
