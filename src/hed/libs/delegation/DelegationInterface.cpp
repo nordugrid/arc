@@ -907,7 +907,7 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     req_soap.NewChild("deleg:getNewProxyReq");
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
-    XMLNode token = (*resp_soap)["getNewProxyReqResponse"]["getNewProxyReqReturn"];
+    XMLNode token = (*resp_soap)["getNewProxyReqResponse"]["NewProxyReq"];
     if(!token) { delete resp_soap; return false; };
     id_=(std::string)(token["delegationID"]);
     request_=(std::string)(token["proxyRequest"]);
@@ -938,7 +938,10 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     token.NewChild("deleg:Value")=delegation;
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
-    if(!(*resp_soap)["UpdateCredentialsResponse"]) 
+    if(!(*resp_soap)["UpdateCredentialsResponse"]) {
+      delete resp_soap;
+      return false;
+    };
     delete resp_soap;
     return true;
   } else if((stype == DelegationProviderSOAP::GDS10) ||
@@ -955,7 +958,10 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     token.NewChild("deleg:proxy")=delegation;
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
-    if(!(*resp_soap)["putProxyResponse"])
+    if(!(*resp_soap)["putProxyResponse"]) {
+      delete resp_soap;
+      return false;
+    };
     delete resp_soap;
     return true;
   };
@@ -1286,7 +1292,7 @@ bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,c
       AddConsumer(id,consumer,client);
       CheckConsumers();
       lock.release();
-      Arc::XMLNode ret = r.NewChild("getNewProxyReqReturn");
+      Arc::XMLNode ret = r.NewChild("NewProxyReq");
       ret.NewChild("proxyRequest") = x509_request;
       ret.NewChild("delegationID") = id;
       return true;
