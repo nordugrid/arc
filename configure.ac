@@ -138,6 +138,7 @@ enables_cppunit=yes
 enables_java=yes
 enables_python=yes
 enables_lfc=yes
+enables_xrootd=yes
 enables_gacl=yes
 enables_argus=no
 enables_xmlsec1=yes
@@ -208,6 +209,7 @@ enables_java=$enableval
 enables_python=$enableval
 enables_gacl=$enableval
 enables_lfc=$enableval
+enables_xrootd=$enableval
 enables_xmlsec1=$enableval
 enables_argus=$enableval
 enables_cppunit=$enableval
@@ -1128,13 +1130,47 @@ if test "x$enables_lfc" = "xyes"; then
 fi
 AC_SUBST(LFC_CFLAGS)
 AC_SUBST(LFC_LIBS)
+
+# Check for xrootd (c++)
+
+AC_LANG_SAVE
+AC_LANG_CPLUSPLUS
+
+AC_ARG_ENABLE(xrootd, AC_HELP_STRING([--disable-xrootd], [disable the xrootd support, default is enable]),[enables_xrootd="$enableval"],[])
+if test "x$enables_xrootd" = "xyes"; then
+  XROOTD_CPPFLAGS="-I/usr/include/xrootd"
+  AC_ARG_WITH(xrootd, [  --with-xrootd=(PATH) Xrootd location])
+  if test ! "x$with_xrootd" = "x" ; then
+    XROOTD_LOCATION="$with_xrootd"
+    XROOTD_CPPFLAGS="-I$XROOTD_LOCATION/include/xrootd"
+    if test -d $XROOTD_LOCATION/lib64; then
+      XROOTD_LDFLAGS="-L$XROOTD_LOCATION/lib64"
+    else
+      XROOTD_LDFLAGS="-L$XROOTD_LOCATION/lib"
+    fi
+  fi
+  SAVE_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$CPPFLAGS $XROOTD_CPPFLAGS"
+  AC_CHECK_HEADER(XrdClient/XrdClient.hh, [], [enables_xrootd="no"] [#include <iostream>])
+  CPPFLAGS=$SAVE_CPPFLAGS
+  SAVE_LDFLAGS=$LDFLAGS
+  LDFLAGS="$LDFLAGS $XROOTD_LDFLAGS"
+  AC_CHECK_LIB([XrdClient], [_init],
+               [XROOTD_LIBS="$XROOTD_LDFLAGS -lXrdClient"], [enables_xrootd="no"])
+  LDFLAGS=$SAVE_LDFLAGS
 fi
+AC_SUBST(XROOTD_CPPFLAGS)
+AC_SUBST(XROOTD_LIBS)
+fi
+
+AC_LANG_RESTORE
 
 # Setup conditionals
 AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
+AM_CONDITIONAL([XROOTD_ENABLED], test x$enables_xrootd = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
 AM_CONDITIONAL([XMLSEC_ENABLED], test x$XMLSEC_INSTALLED = xyes)
@@ -1806,6 +1842,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/lfc/Makefile
                  src/hed/dmc/rls/Makefile
+                 src/hed/dmc/xrootd/Makefile
                  src/hed/profiles/general/general.xml
                  src/hed/shc/Makefile
                  src/hed/shc/arcpdp/Makefile
@@ -2073,6 +2110,7 @@ Available third-party features:
 RLS:                ${enables_rls}
 GridFTP:            ${enables_gridftp}
 LFC:                ${enables_lfc}
+Xrootd:             ${enables_xrootd}
 MYSQL CLIENT LIB:   ${enables_mysql}
 LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}

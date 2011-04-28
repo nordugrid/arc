@@ -19,6 +19,7 @@
 #define FTP_DEFAULT_PORT 21
 #define GSIFTP_DEFAULT_PORT 2811
 #define LFC_DEFAULT_PORT 5010
+#define XROOTD_DEFAULT_PORT 1094
 
 
 namespace Arc {

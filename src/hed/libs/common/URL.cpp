@@ -355,6 +355,8 @@ namespace Arc {
         port = GSIFTP_DEFAULT_PORT;
       if (protocol == "lfc")
         port = LFC_DEFAULT_PORT;
+      if (protocol == "root")
+        port = XROOTD_DEFAULT_PORT;
     }
 
     if (protocol != "ldap" && protocol != "arc") {
