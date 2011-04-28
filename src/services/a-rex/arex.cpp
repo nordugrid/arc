@@ -476,20 +476,16 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         MigrateActivity(*config,op,BESFactoryResponse(res,"MigrateActivity"),clientid);
       } else if(MatchXMLName(op,"CacheCheck")) {
         CacheCheck(*config,*inpayload,*outpayload);
-      } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
-        CountedResourceLock cl_lock(beslimit_);
-        if(!delegations_.DelegateCredentialsInit(*inpayload,*outpayload,config->GridName())) {
-          delete outpayload;
-          return make_soap_fault(outmsg);
-        };
-      } else if(MatchXMLName(op,"UpdateCredentials")) {
+      } else if(delegations_.MatchNamespace(*inpayload)) {
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
-        if(!delegations_.UpdateCredentials(credentials,*inpayload,*outpayload,config->GridName())) {
+        if(!delegations_.Process(credentials,*inpayload,*outpayload,config->GridName())) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
-        UpdateCredentials(*config,op,outpayload->Child(),credentials);
+        if(!credentials.empty()) {
+          UpdateCredentials(*config,op,outpayload->Child(),credentials);
+        };
       } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
         CountedResourceLock cl_lock(infolimit_);
         /*
