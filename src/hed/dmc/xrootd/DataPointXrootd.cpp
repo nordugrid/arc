@@ -130,10 +130,18 @@ namespace Arc {
     client = new XrdClient(url.str().c_str());
     set_log_level();
 
-    if (!client->Open(kXR_ur, kXR_open_read, false)) {
-       logger.msg(ERROR, "Could not open file %s for reading", url.str());
-       reading = false;
-       return DataStatus::ReadStartError;
+    {
+      CertEnvLocker env(usercfg);
+      if (!client->Open(kXR_ur, kXR_open_read)) {
+         logger.msg(ERROR, "Could not open file %s for reading", url.str());
+         reading = false;
+         return DataStatus::ReadStartError;
+      }
+    }
+    // wait for open to complete
+    if (!client->IsOpen_wait()) {
+      logger.msg(ERROR, "Failed to open file %s", url.str());
+      return DataStatus::ReadStartError;
     }
 
     // stat to find filesize if not already known
@@ -182,10 +190,19 @@ namespace Arc {
 
   DataStatus DataPointXrootd::Check() {
     // check if file can be opened for reading
-    if (!client->Open(kXR_ur, kXR_open_read, false)) {
-       logger.msg(ERROR, "Could not open file %s", url.str());
-       return DataStatus::CheckError;
+    {
+      CertEnvLocker env(usercfg);
+      if (!client->Open(kXR_ur, kXR_open_read)) {
+         logger.msg(ERROR, "Could not open file %s", url.str());
+         return DataStatus::CheckError;
+      }
     }
+    // wait for open to complete
+    if (!client->IsOpen_wait()) {
+      logger.msg(ERROR, "Failed to open file %s", url.str());
+      return DataStatus::CheckError;
+    }
+
     client->Close();
     return DataStatus::Success;
   }
@@ -193,10 +210,19 @@ namespace Arc {
   DataStatus DataPointXrootd::Stat(FileInfo& file, DataPointInfoType verb) {
     struct XrdClientStatInfo stinfo;
     bool already_opened = client->IsOpen();
-    if (!already_opened && !client->Open(kXR_ur, kXR_open_read, false)) {
-      logger.msg(ERROR, "Could not open file %s", url.str());
+    {
+      CertEnvLocker env(usercfg);
+      if (!already_opened && !client->Open(kXR_ur, kXR_open_read)) {
+        logger.msg(ERROR, "Could not open file %s", url.str());
+        return DataStatus::StatError;
+      }
+    }
+    // wait for open to complete
+    if (!client->IsOpen_wait()) {
+      logger.msg(ERROR, "Failed to open file %s", url.str());
       return DataStatus::StatError;
     }
+
     if (!client->Stat(&stinfo)) {
       logger.msg(ERROR, "Could not stat file %s", url.str());
       if (!already_opened)
