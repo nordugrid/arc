@@ -49,6 +49,8 @@ class SubmitterTestACCControl {
 class TargetRetrieverTestACCControl {
   public:
     static Arc::TargetGenerator* tg;
+    static std::list<Arc::ExecutionTarget>* foundTargets;
+    static std::list<Arc::Job>* foundJobs;
 };
 
 #endif // __ARC_TESTACCCONTROL_H__

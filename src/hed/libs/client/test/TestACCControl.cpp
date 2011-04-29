@@ -26,3 +26,5 @@ Arc::Job* SubmitterTestACCControl::submitJob = NULL;
 Arc::Job* SubmitterTestACCControl::migrateJob = NULL;
 
 Arc::TargetGenerator* TargetRetrieverTestACCControl::tg = NULL;
+std::list<Arc::ExecutionTarget>* TargetRetrieverTestACCControl::foundTargets = NULL;
+std::list<Arc::Job>* TargetRetrieverTestACCControl::foundJobs = NULL;
