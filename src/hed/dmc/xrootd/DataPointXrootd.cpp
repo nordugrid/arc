@@ -19,13 +19,8 @@ namespace Arc {
       reading(false),
       writing(false) {
     client = new XrdClient(url.str().c_str());
-    // log level
-    if (logger.getThreshold() == DEBUG)
-      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kHIDEBUG);
-    else if (logger.getThreshold() <= INFO)
-      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kUSERDEBUG);
-    else
-      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kNODEBUG);
+    // set xrootd log level
+    set_log_level();
   }
 
   DataPointXrootd::~DataPointXrootd() {
@@ -83,8 +78,14 @@ namespace Arc {
       if (GetSize() - offset < l) {
         l = GetSize() - offset;
         eof = true;
+        if (l == 0) {
+          buffer->is_read(h, 0, 0);
+          continue;
+        }
       }
+      logger.msg(DEBUG, "Reading %u bytes from byte %llu", l, offset);
       int res = client->Read((*(buffer))[h], offset, l);
+      logger.msg(DEBUG, "Read %i bytes", res);
       if (res <= 0) { /* error */
         buffer->is_read(h, 0, 0);
         buffer->error_read(true);
@@ -106,6 +107,14 @@ namespace Arc {
     transfer_cond.signal();
   }
 
+  void DataPointXrootd::set_log_level() {
+    if (logger.getThreshold() == DEBUG)
+      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kHIDEBUG);
+    else if (logger.getThreshold() <= INFO)
+      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kUSERDEBUG);
+    else
+      XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kNODEBUG);
+  }
 
   DataStatus DataPointXrootd::StartReading(DataBuffer& buf) {
     if (reading) return DataStatus::IsReadingError;
@@ -119,6 +128,7 @@ namespace Arc {
       client = NULL;
     }
     client = new XrdClient(url.str().c_str());
+    set_log_level();
 
     if (!client->Open(kXR_ur, kXR_open_read, false)) {
        logger.msg(ERROR, "Could not open file %s for reading", url.str());

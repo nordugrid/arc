@@ -29,11 +29,14 @@ namespace Arc {
     virtual DataStatus Remove();
 
    private:
-    // thread functions for async read/write
+    /// thread functions for async read/write
     static void read_file_start(void* arg);
     static void write_file_start(void* arg);
     void read_file();
     void write_file();
+
+    /// must be called everytime a new XrdClient is created
+    void set_log_level();
 
     SimpleCondition transfer_cond;
     XrdClient* client;
