@@ -56,6 +56,9 @@ class Scheduler: public DTRCallback {
     int DeliveryEmergencySlots;
     int PostProcessorSlots;
 
+    /* Where to dump DTR state */
+    std::string dumplocation;
+
     /* Logger object */
     static Arc::Logger logger;
 
@@ -174,6 +177,10 @@ class Scheduler: public DTRCallback {
 
     /* Set transfer limits */
     void SetTransferParameters(const TransferParameters& params);
+
+    /* Set location for periodic dump of DTR state (only file paths
+     * currently supported) */
+    void SetDumpLocation(const std::string& location);
 
     /* Start scheduling activity.
      * This method must be called after all configuration

@@ -95,7 +95,11 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   for (JobUsers::const_iterator i = users.begin(); i != users.end(); ++i) {
     jobusers[i->get_uid()] = &(*i);
   }
-//  DataStaging::DTR::registerCallback(&DTRGenerator::receiveDTR);
+  // set the DTR dump file to the first control dir registered
+  if (!jobusers.empty())
+    scheduler.SetDumpLocation(std::string(jobusers.begin()->second->ControlDir()+"/dtrstate.log"));
+
+  //  DataStaging::DTR::registerCallback(&DTRGenerator::receiveDTR);
 
   JobsListConfig& jcfg = users.Env().jobs_cfg();
 

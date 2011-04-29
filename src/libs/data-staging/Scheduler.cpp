@@ -73,6 +73,10 @@ namespace DataStaging {
     delivery.SetTransferParameters(params);
   }
 
+  void Scheduler::SetDumpLocation(const std::string& location) {
+    dumplocation = location;
+  }
+
 
   bool Scheduler::start(void) {
     if(scheduler_state == RUNNING || scheduler_state == TO_STOP) return false;
@@ -1024,9 +1028,9 @@ namespace DataStaging {
                              DtrList.number_of_dtrs_by_owner(DELIVERY),
                              DtrList.number_of_dtrs_by_owner(POST_PROCESSOR));
       // every 5 seconds, dump state
-      if (Arc::Time().GetTime() % 5 == 0) {
+      if (!dumplocation.empty() && Arc::Time().GetTime() % 5 == 0) {
         if (dump) {
-          DtrList.dumpState("/tmp/dtrstate.log");
+          DtrList.dumpState(dumplocation);
           dump = false;
         }
       } else
