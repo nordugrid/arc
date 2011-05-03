@@ -1,4 +1,4 @@
-.TH ldap-monitor 1 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
+.TH ldap-monitor 7 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
 .SH NAME
 
 ldap monitor \- Real-time NorduGrid monitoring tool
