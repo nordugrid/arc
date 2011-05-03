@@ -177,8 +177,7 @@ static void init_config(const Arc::ServerOptions &options)
             logger.msg(Arc::ERROR, "XML config file %s does not exist", options.xml_config_file);
             exit(1);
         }
-        config.parse(options.xml_config_file.c_str());
-        if (!config) {
+        if(!config.parse(options.xml_config_file.c_str())) {
             logger.msg(Arc::ERROR, "Failed to load service configuration from file %s", options.xml_config_file);
             exit(1);
         }
@@ -205,7 +204,10 @@ static void init_config(const Arc::ServerOptions &options)
                 if (Glib::file_test(xml_config_file,
                     Glib::FILE_TEST_EXISTS) == false) {
                 }
-                config.parse(xml_config_file.c_str());
+                if(!config.parse(xml_config_file.c_str())) {
+                    logger.msg(Arc::ERROR, "Error loading generated configuration");
+                    exit(1);
+                }
         } else {
             Arc::IniConfig ini_parser(ini_config_file);
             if (ini_parser.Evaluate(config) == false) {
@@ -213,7 +215,7 @@ static void init_config(const Arc::ServerOptions &options)
                 exit(1);
             }
         }
-        if (!config) {
+        if (config.Size() == 0) {
             logger.msg(Arc::ERROR, "Failed to load service configuration from any default config file");
             exit(1);
         }
