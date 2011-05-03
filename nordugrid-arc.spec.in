@@ -783,8 +783,9 @@ fi
 %endif
 
 %post ca-utils
-# Enable CRL updates via cron for backward compatibility
+# Enable and start CRL updates via cron for backward compatibility
 /sbin/chkconfig fetch-crl-cron on
+service fetch-crl-cron start > /dev/null 2>&1
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
