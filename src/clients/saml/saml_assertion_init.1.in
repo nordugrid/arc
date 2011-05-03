@@ -15,7 +15,7 @@ command is a prototype client which is used for sending an attribute query reque
 
 .B saml_assertion_init [options] [filename ...]
 
-./saml_assertion_init -c saml_assertion_init_client.xml -d DEBUG  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
+saml_assertion_init -c saml_assertion_init_client.xml -d DEBUG  https://squark.uio.no:8443/voms/saml/knowarc/services/AttributeAuthorityPortType
 
 .SH OPTIONS
 
