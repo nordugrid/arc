@@ -79,9 +79,18 @@ namespace Arc {
   void tokenize(const std::string& str, std::vector<std::string>& tokens,
                 const std::string& delimiters = " ",
                 const std::string& start_quotes = "", const std::string& end_quotes = "");
+
+  /// This method tokenizes string
   void tokenize(const std::string& str, std::list<std::string>& tokens,
                 const std::string& delimiters = " ",
                 const std::string& start_quotes = "", const std::string& end_quotes = "");
+
+  /// This method extracts first token in string str starting at pos
+  std::string::size_type get_token(std::string& token,
+                const std::string& str, std::string::size_type pos,
+                const std::string& delimiters = " ",
+                const std::string& start_quotes = "", const std::string& end_quotes = "");
+
 
   /// This method removes given separators from the beginning and the end of the string
   std::string trim(const std::string& str, const char *sep = NULL);

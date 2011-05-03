@@ -26,13 +26,17 @@ namespace Arc {
     return ret;
   }
 
-  static std::string::size_type get_token(std::string& token,
+  std::string::size_type get_token(std::string& token,
                 const std::string& str, std::string::size_type pos,
                 const std::string& delimiters,
                 const std::string& start_quotes, const std::string& end_quotes) {
+    std::string::size_type te = str.find_first_not_of(delimiters,pos);
+    if(te != std::string::npos) {
+      pos = te;
+    }
     std::string::size_type qp = start_quotes.find(str[pos]);
     if(qp != std::string::npos) {
-      std::string::size_type te = std::string::npos;
+      te = std::string::npos;
       if(qp >= end_quotes.length()) {
         te = str.find(start_quotes[qp],pos+1);
       } else {
@@ -43,7 +47,7 @@ namespace Arc {
         return te+1;
       }
     }
-    std::string::size_type te = str.find_first_of(delimiters,pos+1);
+    te = str.find_first_of(delimiters,pos+1);
     if(te != std::string::npos) {
       token = str.substr(pos, te - pos);
     } else {
