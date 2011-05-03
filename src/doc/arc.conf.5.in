@@ -2506,9 +2506,9 @@ config file on the node:
 .fi
 .br
 
-A job submitted to this queue is allowed to run on any node which satisfies the
-'condor_requirements' constraint.  If 'condor_requirements' is not set, jobs
-will be allowed to run on any of the nodes in the pool. When configuring
+A job submitted to this queue is allowed to run on any node which satisfies
+the 'condor_requirements' constraint.  If 'condor_requirements' is not set,
+jobs will be allowed to run on any of the nodes in the pool. When configuring
 multiple queues, you can differentiate them based on memory size or disk space.
 
 .IR Example :
