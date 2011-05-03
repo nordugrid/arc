@@ -677,6 +677,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %postun -p /sbin/ldconfig
 
+%post plugins-globus -p /sbin/ldconfig
+
+%postun plugins-globus -p /sbin/ldconfig
+
 %post hed
 /sbin/chkconfig --add arched
 
