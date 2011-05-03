@@ -4,7 +4,7 @@
 
 #include "auth.h"
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 int AuthUser::match_subject(const char* line) {
   std::list<std::string> tokens;
@@ -17,5 +17,5 @@ int AuthUser::match_subject(const char* line) {
   return AAA_NO_MATCH;
 }
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 

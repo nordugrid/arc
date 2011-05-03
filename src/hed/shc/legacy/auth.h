@@ -11,7 +11,7 @@
 //#include <gssapi.h>
 //#include <openssl/x509.h>
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 #define AAA_POSITIVE_MATCH 1
 #define AAA_NEGATIVE_MATCH -1
@@ -80,7 +80,6 @@ class AuthUser {
   int match_vo(const char* line);
   int match_lcas(const char *);
   int match_plugin(const char* line);
-  int process_voms(void);
 
 //  bool voms_extracted;
 
@@ -89,12 +88,12 @@ class AuthUser {
   std::list<std::string> vos; // VOs to which user belongs (external names)
 
   // References to related/source data
-  Message& message_;
+  Arc::Message& message_;
 
  public:
   AuthUser(const AuthUser&);
   // Constructor
-  AuthUser(Message& message);
+  AuthUser(Arc::Message& message);
 
   // subject - subject/DN of user
   // filename - file with (delegated) credentials
@@ -194,6 +193,6 @@ class AuthVO {
   ~AuthVO(void) { };
 };
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 
 #endif 

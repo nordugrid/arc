@@ -7,7 +7,7 @@
 
 #include "auth.h"
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
@@ -34,5 +34,5 @@ int AuthUser::match_file(const char* line) {
   return AAA_NO_MATCH;
 }
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 

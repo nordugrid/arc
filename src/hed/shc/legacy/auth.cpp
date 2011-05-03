@@ -8,7 +8,7 @@
 
 #include "auth.h"
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 int AuthUser::match_all(const char* /* line */) {
   default_voms_=NULL;
@@ -25,7 +25,7 @@ int AuthUser::match_group(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ","\"","\"");
     if(s.empty()) continue;
     for(std::list<group_t>::iterator i = groups.begin();i!=groups.end();++i) {
       if(s == i->name) {
@@ -46,7 +46,7 @@ int AuthUser::match_vo(const char* line) {
   std::string::size_type n = 0;
   for(;;) {
     std::string s("");
-    n = get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ","\"","\"");
     if(s.empty()) continue;
     for(std::list<std::string>::iterator i = vos.begin();i!=vos.end();++i) {
       if(s == *i) {
@@ -76,24 +76,6 @@ AuthUser::source_t AuthUser::sources[] = {
   { NULL, NULL }
 };
 
-
-/*
-AuthUser::AuthUser(const char* s,const char* f):subject(""),filename("") {
-  if(s) { subject=s; gridftpd::make_unescaped_string(subject); }
-  struct stat fileStat;
-  if(f && stat(f, &fileStat) == 0) filename=f;
-  proxy_file_was_created=false;
-  has_delegation=false; // ????
-  process_voms();
-  default_voms_=NULL;
-  default_vo_=NULL;
-  default_role_=NULL;
-  default_capability_=NULL;
-  default_vgroup_=NULL;
-  default_group_=NULL;
-}
-*/
-
 AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   subject_ = a.subject_;
   voms_data_ = a.voms_data_;
@@ -110,26 +92,26 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   default_group_=NULL;
 }
 
-AuthUser::AuthUser(Message& message):message_(message) {
+AuthUser::AuthUser(Arc::Message& message):message_(message) {
   subject_ = message.Attributes()->get("TLS:IDENTITYDN");
   // Fetch VOMS attributes
   std::vector<std::string> voms_attrs;
-  XMLNode tls_attrs;
+  Arc::XMLNode tls_attrs;
   std::list<std::string> auth_keys_allow;
   std::list<std::string> auth_keys_reject;
   auth_keys_allow.push_back("TLS");
-  MessageAuth* auth = NULL;
+  Arc::MessageAuth* auth = NULL;
   auth = message.Auth()->Filter(auth_keys_allow,auth_keys_reject);
   if(auth) {
-    auth->Export(SecAttr::ARCAuth,tls_attrs);
+    auth->Export(Arc::SecAttr::ARCAuth,tls_attrs);
     delete auth; auth = NULL;
   };
   auth = message.AuthContext()->Filter(auth_keys_allow,auth_keys_reject);
   if(auth) {
-    auth->Export(SecAttr::ARCAuth,tls_attrs);
+    auth->Export(Arc::SecAttr::ARCAuth,tls_attrs);
     delete auth; auth = NULL;
   };
-  XMLNode attr = tls_attrs["RequestItem"]["Subject"]["SubjectAttribute"];
+  Arc::XMLNode attr = tls_attrs["RequestItem"]["Subject"]["SubjectAttribute"];
   for(;(bool)attr;++attr) {
     if((std::string)tls_attrs.Attribute("AttributeId") == "http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute") {
       voms_attrs.push_back((std::string)attr);
@@ -137,131 +119,6 @@ AuthUser::AuthUser(Message& message):message_(message) {
   };
   voms_data_ = arc_to_voms(voms_attrs);
 }
-
-/*
-void AuthUser::operator=(const AuthUser& a) {
-  subject=a.subject;
-  filename=a.filename;
-  has_delegation=a.has_delegation;
-  voms_data.clear();
-  voms_extracted=false;
-  process_voms();
-  proxy_file_was_created=false;
-}
-*/
-
-/*
-void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char* hostname) {
-  if(hostname) from=hostname;
-  voms_data.clear();
-  voms_extracted=false;
-  process_voms();
-  proxy_file_was_created=false; filename=""; has_delegation=false;
-  subject=s; gridftpd::make_unescaped_string(subject);
-  filename="";
-  subject="";
-  char* p = gridftpd::write_proxy(cred);
-  if(p) {
-    filename=p; free(p); has_delegation=true;
-    proxy_file_was_created=true;
-  } else {
-    p=gridftpd::write_cert_chain(ctx);
-    if(p) {
-      filename=p; free(p);
-      proxy_file_was_created=true;
-    };
-  };
-  if(s == NULL) {
-    // Obtain subject from credentials or context
-    if(filename.length()) {
-      globus_gsi_cred_handle_t h;
-      if(globus_gsi_cred_handle_init(&h,GLOBUS_NULL) == GLOBUS_SUCCESS) {
-        if(globus_gsi_cred_read_proxy(h,(char*)(filename.c_str())) == GLOBUS_SUCCESS) {
-          char* sname = NULL;
-          if(globus_gsi_cred_get_subject_name(h,&sname) == GLOBUS_SUCCESS) {
-            subject=sname; gridftpd::make_unescaped_string(subject); free(sname);
-          };
-        };
-        globus_gsi_cred_handle_destroy(h);
-      };
-    };
-  } else {
-    subject=s;
-  };
-}
-*/
-
-/*
-static bool temporary_file(const char* prefix,std::string& name) {
-  char* tmp = getenv("TMP");
-  if(tmp == NULL) tmp=(char*)"/tmp";
-  if(prefix == NULL) prefix="";
-  char* fname = (char*)malloc(strlen(tmp)+1+strlen(prefix)+6+1);
-  if(fname == NULL) return false;
-  strcpy(fname,tmp);
-  strcat(fname,"/"); strcat(fname,prefix); strcat(fname,"XXXXXX");
-  int h = mkstemp(fname);
-  if(h == -1) { free(fname); return false; };
-  name=fname; free(fname); close(h); (void)chmod(name.c_str(),S_IRUSR | S_IWUSR);
-  return true;
-}
-*/
-
-/*
-void AuthUser::set(const char* s,STACK_OF(X509)* cred,const char* hostname) {
-  if(hostname) from=hostname;
-  voms_data.clear();
-  voms_extracted=false;
-  process_voms();
-  proxy_file_was_created=false; filename=""; has_delegation=false;
-  int chain_size = 0;
-  if(cred) chain_size=sk_X509_num(cred);
-  if((s == NULL) && (chain_size <= 0)) return;
-  if(s == NULL) {
-    X509* cert=sk_X509_value(cred,0);
-    if(cert) {
-      X509_NAME *name = X509_get_subject_name(cert);
-      if(name) {
-        if(globus_gsi_cert_utils_get_base_name(name,cred) == GLOBUS_SUCCESS) {
-          char buf[256]; buf[0]=0;
-          X509_NAME_oneline(X509_get_subject_name(cert),buf,256);
-          subject=buf;
-        };
-      };
-    };
-    if(subject.length() == 0) return;
-  } else {
-    subject=s;
-  };
-  if(chain_size > 0) {
-    if(!temporary_file("x509.",filename)) return;
-    BIO* bio;
-    if((bio=BIO_new_file(filename.c_str(), "w")) == NULL) return;
-    for(int chain_index = 0;chain_index<chain_size;++chain_index) {
-      X509* cert=sk_X509_value(cred,chain_index);
-      if(cert) {
-        if(!PEM_write_bio_X509(bio,cert))  {
-          BIO_free(bio); unlink(filename.c_str()); return;
-        };  
-      };
-    };
-    BIO_free(bio);
-    proxy_file_was_created=true;
-  };
-}
-
-void AuthUser::set(const char* s,const char* hostname) {
-  if(hostname) from=hostname;
-  voms_data.clear();
-  voms_extracted=false;
-  process_voms();
-  subject="";
-  filename="";
-  proxy_file_was_created=false; filename=""; has_delegation=false;
-  if(s == NULL) return;
-  subject=s;
-}
-*/
 
 std::vector<struct voms> AuthUser::arc_to_voms(const std::vector<std::string>& attributes) {
 
@@ -345,16 +202,6 @@ int AuthUser::evaluate(const char* line) {
   return AAA_FAILURE; 
 }
 
-/*
-const std::vector<struct voms>& AuthUser::voms(void) {
-  if(!voms_extracted) {
-    const char* line = "* * * *";
-    match_voms(line);
-  };
-  return voms_data;
-}
-*/
-
 const std::list<std::string>& AuthUser::VOs(void) {
   return vos;
 }
@@ -408,5 +255,5 @@ int AuthEvaluator::evaluate(AuthUser &u) const {
   return AAA_NO_MATCH;
 }
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 

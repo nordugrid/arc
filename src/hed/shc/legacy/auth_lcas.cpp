@@ -21,7 +21,7 @@
 
 #include "auth.h"
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 /*
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLCAS");
@@ -154,5 +154,5 @@ int AuthUser::match_lcas(const char* line) {
   return res;
 }
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 

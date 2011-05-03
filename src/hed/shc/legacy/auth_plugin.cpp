@@ -5,7 +5,7 @@
 
 #include "auth.h"
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 void AuthUserSubst(std::string& str,AuthUser& it) {
   int l = str.length();
@@ -35,15 +35,6 @@ void AuthUserSubst(std::string& str,AuthUser& it) {
   };
 }
 
-//static void subst_arg(std::string& str,void* arg) {
-//  AuthUser* it = (AuthUser*)arg;
-//  if(!it) return;
-//  AuthUserSubst(str,*it);
-//}
-
-void func(void) {
-}
-
 int AuthUser::match_plugin(const char* line) {
   // return AAA_NO_MATCH;
   if(!line) return AAA_NO_MATCH;
@@ -57,16 +48,16 @@ int AuthUser::match_plugin(const char* line) {
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return AAA_NO_MATCH;
   std::list<std::string> args;
-  tokenize(line,args," ","\"","\"");
+  Arc::tokenize(line,args," ","\"","\"");
   if(args.size() <= 0) return AAA_NO_MATCH;
   for(std::list<std::string>::iterator arg = args.begin();
           arg != args.end();++arg) AuthUserSubst(*arg,*this);
-  Run run(args);
+  Arc::Run run(args);
   if(!run.Start()) return AAA_NO_MATCH;
   if(!run.Wait()) return AAA_NO_MATCH;
   if(run.Result() != 0) return AAA_NO_MATCH;
   return AAA_POSITIVE_MATCH;
 }
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 

@@ -18,7 +18,7 @@
 
 #include "auth.h"
 
-namespace Arc {
+namespace ArcSHCLegacy {
 
 #define LDAP_CONNECT_TIMEOUT 10
 #define LDAP_QUERY_TIMEOUT 20
@@ -100,5 +100,5 @@ int AuthUser::match_ldap(const char* line) {
   return AAA_FAILURE;
 }
 
-} // namespace Arc
+} // namespace ArcSHCLegacy
 
