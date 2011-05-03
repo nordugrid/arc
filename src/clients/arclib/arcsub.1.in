@@ -221,8 +221,8 @@ helloworld.jsdl\fR
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the ARC client
-configuration file. The default services can be specified by the
-'defaultservices' attribute, thus when no \fB--cluster\fR or \fB--index\fR
+configuration file. The default services can be specified by
+the 'defaultservices' attribute, thus when no \fB--cluster\fR or \fB--index\fR
 options are given these will be used for submission. It is also possible to
 define aliases, and a alias can consist of multiple CEs and index servers. By
 using the \fB--conffile\fR option a different configuration file can be used
