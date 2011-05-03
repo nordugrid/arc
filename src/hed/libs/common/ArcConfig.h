@@ -52,7 +52,7 @@ namespace Arc {
         For debuging purposes. Printed content is not an XML document. */
     void print(void);
     /** Parse configuration document from file 'filename' */
-    void parse(const char *filename);
+    bool parse(const char *filename);
     /** Gives back file name of config file or empty string if it was
         generared from the XMLNode subtree */
     const std::string& getFileName(void) const {

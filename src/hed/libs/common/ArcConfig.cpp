@@ -44,9 +44,9 @@ namespace Arc {
     _print(*((XMLNode*)this), 0);
   }
 
-  void Config::parse(const char *filename) {
+  bool Config::parse(const char *filename) {
     file_name_ = filename;
-    ReadFromFile(filename);
+    return ReadFromFile(filename);
   }
 
   Config::Config(long cfg_ptr_addr) {
@@ -57,6 +57,7 @@ namespace Arc {
   Config::Config(const Config& cfg)
     : XMLNode() {
     cfg.New(*this);
+    file_name_ = cfg.file_name_;
   }
 
   void Config::save(const char *filename) {
