@@ -11,12 +11,10 @@ endif
 
 SUBDIRS = allowpdp denypdp simplelistpdp arcpdp xacmlpdp \
 	pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp \
-	$(SUBDIRS_XMLSEC) delegationsh
-# legacy
+	$(SUBDIRS_XMLSEC) delegationsh legacy
 DIST_SUBDIRS = allowpdp denypdp simplelistpdp arcpdp xacmlpdp \
 	pdpserviceinvoker arcauthzsh delegationpdp usernametokensh gaclpdp \
-	x509tokensh samltokensh saml2sso_assertionconsumersh delegationsh
-# legacy
+	x509tokensh samltokensh saml2sso_assertionconsumersh delegationsh legacy
 noinst_PROGRAMS = test testinterface_arc testinterface_xacml
 
 pkglib_LTLIBRARIES = libarcshc.la
