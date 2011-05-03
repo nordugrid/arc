@@ -145,25 +145,6 @@ just one possible service between a user and a remote machine.
 Many others are thinkable, and HED takes considerable effort
 away from the respective implementors.
 
-#%package charon
-#Summary:	ARC charon service
-#Group:		System Environment/Libraries
-#Requires:	%{name} = %{version}-%{release}
-#Requires:	%{name}-hed = %{version}-%{release}
-#Provides:	nordugrid-arc-nox-charon = 1.3.0
-#Obsoletes:	nordugrid-arc-nox-charon < 1.3.0
-#
-#%description charon
-#The NorduGrid is a collaboration aiming at development, maintenance
-#and support of the free Grid middleware, known as the Advanced
-#Resource Connector (ARC).
-#
-#CHARON is a remote policy decision point service.  It accepts formatted
-#policy decision request and return positive or negative response. When
-#running a CHARON (within the HED), the TLS layer can be used for
-#securing the communication, when the request or response  information
-#are critical.
-
 %package chelonia
 Summary:	ARC chelonia service
 Group:		System Environment/Libraries
@@ -363,21 +344,6 @@ Connector (ARC).
 This package contains the WS monitor system for ARC.
 This package is self-contained. It is used to set up a web-based monitor
 which pulls information from ISIS and shows it graphically.
-
-#%package slcs
-#Summary:	ARC slcs service
-#Group:		System Environment/Libraries
-#Requires:	%{name} = %{version}-%{release}
-#Requires:	%{name}-hed = %{version}-%{release}
-#Provides:	nordugrid-arc-nox-slcs = 1.3.0
-#Obsoletes:	nordugrid-arc-nox-slcs < 1.3.0
-#
-#%description slcs
-#The NorduGrid is a collaboration aiming at development, maintenance
-#and support of the free Grid middleware, known as the Advanced Resource
-#Connector (ARC).
-#
-#ARC Short-lived credential service.
 
 %package arex
 Summary:	ARC Remote EXecution service
@@ -825,7 +791,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arccat
 %{_bindir}/arcclean
 %{_bindir}/arccp
-#%{_bindir}/arcdecision
 %{_bindir}/arcecho
 %{_bindir}/arcget
 %{_bindir}/arcinfo
@@ -855,7 +820,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
-#%doc %{_mandir}/man1/arcdecision.1*
 %doc %{_mandir}/man1/arcecho.1*
 %doc %{_mandir}/man1/arcget.1*
 %doc %{_mandir}/man1/arcinfo.1*
@@ -879,8 +843,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
 %doc %{_mandir}/man1/ngclient2arc.1*
-#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_client.xml.example
-#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_request.xml.example
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
@@ -894,14 +856,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
-
-#%files charon
-#%defattr(-,root,root,-)
-#%{_libdir}/%{pkgdir}/libcharon.so
-#%{_libdir}/%{pkgdir}/libcharon.apd
-#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_arc.xml.example
-#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_policy_xacml.xml.example
-#%doc %{_datadir}/%{pkgdir}/examples/charon/charon_service.xml.example
 
 %files chelonia
 %defattr(-,root,root,-)
@@ -966,11 +920,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/ws-monitor/*
 %doc %{_mandir}/man7/ws-monitor.7*
-
-#%files slcs
-#%defattr(-,root,root,-)
-#%{_libdir}/%{pkgdir}/libslcs.so
-#%{_libdir}/%{pkgdir}/libslcs.apd
 
 %files cache-service
 %defattr(-,root,root,-)
@@ -1068,7 +1017,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
-#%{_libdir}/%{pkgdir}/libaccUNICORE.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
 %{_libdir}/%{pkgdir}/libdmcarc.so
@@ -1086,7 +1034,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
-#%{_libdir}/%{pkgdir}/libaccUNICORE.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd
 %{_libdir}/%{pkgdir}/libdmcarc.apd
