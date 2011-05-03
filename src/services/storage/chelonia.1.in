@@ -71,7 +71,7 @@ Let's see some examples with results:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.03 seconds.
-'/': not found
+\(aq/\(aq: not found
 .fi
 .B $ chelonia -x list /
 .nf
@@ -113,14 +113,14 @@ Response:
 </soap-env:Envelope>
 
 - done in 0.03 seconds.
-'/': not found
+\(aq/\(aq: not found
 .fi
 .B $ chelonia makeCollection /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's makeCollection method...
 - done in 0.05 seconds.
-Creating collection '/': done
+Creating collection \(aq/\(aq: done
 
 The methods can be listed with:
 $ chelonia
@@ -142,7 +142,7 @@ The LNs are always absolute, must start with a '/'. (or with a '<GUID>/'...)
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
-'/': collection
+\(aq/\(aq: collection
     empty.
 
 Actually you only need to type the first three character of the command:
@@ -153,7 +153,7 @@ Actually you only need to type the first three character of the command:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
-'/': collection
+\(aq/\(aq: collection
     empty.
 
 And you can use 'ls', 'mv', 'rmdir', 'mkdir', 'rm' as well:
@@ -164,7 +164,7 @@ And you can use 'ls', 'mv', 'rmdir', 'mkdir', 'rm' as well:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.03 seconds.
-'/': collection
+\(aq/\(aq: collection
     empty.
 
 Let's create some sub-collections (sub-directories):
@@ -174,14 +174,14 @@ Let's create some sub-collections (sub-directories):
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's makeCollection method...
 - done in 0.06 seconds.
-Creating collection '/tmp': done
+Creating collection \(aq/tmp\(aq: done
 .fi
 .B $ chelonia mkdir /home
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's makeCollection method...
 - done in 0.06 seconds.
-Creating collection '/home': done
+Creating collection \(aq/home\(aq: done
 
 Let's move them:
 
@@ -191,14 +191,14 @@ Let's move them:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's move method...
 - done in 0.05 seconds.
-Moving '/home' to '/tmp': targetexists
+Moving \(aq/home\(aq to \(aq/tmp\(aq: targetexists
 .fi
 .B $ chelonia mv /home /tmp/
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's move method...
 - done in 0.07 seconds.
-Moving '/home' to '/tmp/': moved
+Moving \(aq/home\(aq to \(aq/tmp/\(aq: moved
 
 Let's list them:
 
@@ -208,7 +208,7 @@ Let's list them:
 .nf
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
-'/': collection
+\(aq/\(aq: collection
   tmp                 <collection>
 .fi
 .B $ chelonia ls /tmp
@@ -216,7 +216,7 @@ Let's list them:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
-'/tmp': collection
+\(aq/tmp\(aq: collection
   home                <collection>
 .fi
 .B $ chelonia ls /tmp/home
@@ -224,7 +224,7 @@ Let's list them:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.05 seconds.
-'/tmp/home': collection
+\(aq/tmp/home\(aq: collection
     empty.
 .fi
 .B $ chelonia ls / /tmp /tmp/home
@@ -232,11 +232,11 @@ Let's list them:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.08 seconds.
-'/tmp': collection
+\(aq/tmp\(aq: collection
   home                <collection>
-'/': collection
+\(aq/\(aq: collection
   tmp                 <collection>
-'/tmp/home': collection
+\(aq/tmp/home\(aq: collection
     empty.
 
 Let's upload a file:
@@ -264,7 +264,7 @@ This is a testfile.
 - Uploading from 'testfile' to 'http://localhost:60000/httpd/d15900f5-34ee-4bba-bb10-73d60d1c0d75' with http...
 Uploading 20 bytes... data sent, waiting... done.
 - done in 0.0042 seconds.
-'testfile' (20 bytes) uploaded as '/tmp/testfile'.
+\(aqtestfile\(aq (20 bytes) uploaded as \(aq/tmp/testfile\(aq.
 
 Let's get some stats:
 
@@ -272,9 +272,9 @@ Let's get some stats:
 .B $ chelonia stat /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
-- Calling the Bartender's stat method...
+- Calling the Bartender\(aqs stat method...
 - done in 0.03 seconds.
-'/': found
+\(aq/\(aq: found
   states
     closed: 0
   entry
@@ -287,9 +287,9 @@ Let's get some stats:
 .B $ chelonia stat /tmp
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
-- Calling the Bartender's stat method...
+- Calling the Bartender\(aqs stat method...
 - done in 0.03 seconds.
-'/tmp': found
+\(aq/tmp\(aq: found
   states
     closed: 0
   timestamps
@@ -307,7 +307,7 @@ Let's get some stats:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's stat method...
 - done in 0.05 seconds.
-'/tmp/testfile': found
+\(aq/tmp/testfile\(aq: found
   states
     checksumType: md5
     neededReplicas: 1
@@ -334,7 +334,7 @@ Let's download the file:
 - Downloading from 'http://localhost:60000/httpd/dab911d0-110f-468e-b0c3-627af6e3af31' to 'newfile' with http...
 Downloading 20 bytes... done.
 - done in 0.0035 seconds.
-'/tmp/testfile' (20 bytes) downloaded as 'newfile'.
+\(aq/tmp/testfile\(aq (20 bytes) downloaded as \(aqnewfile\(aq.
 $ cat newfile
 This is a testfile.
 
@@ -346,14 +346,14 @@ Let's remove everything:
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.03 seconds.
-Removing collection '/tmp': collection is not empty
+Removing collection \(aq/tmp\(aq: collection is not empty
 .fi
 .B $ chelonia unmakeCollection /tmp/home
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.06 seconds.
-Removing collection '/tmp/home': removed
+Removing collection \(aq/tmp/home\(aq: removed
 .fi
 .B $ chelonia del /tmp/testfile
 .nf
@@ -367,14 +367,14 @@ Removing collection '/tmp/home': removed
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.05 seconds.
-Removing collection '/tmp': removed
+Removing collection \(aq/tmp\(aq: removed
 .fi
 .B $ chelonia ls /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
-'/': collection
+\(aq/\(aq: collection
     empty.
 .fi
 .B $ chelonia unmakeCollection /
@@ -382,14 +382,14 @@ Removing collection '/tmp': removed
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's unmakeCollection method...
 - done in 0.04 seconds.
-Removing collection '/': removed
+Removing collection \(aq/\(aq: removed
 .fi
 .B $ chelonia list /
 .nf
 - ARC_BARTENDER_URL environment variable not found, using http://localhost:60000/Bartender
 - Calling the Bartender's list method...
 - done in 0.04 seconds.
-'/': not found
+\(aq/\(aq: not found
 .fi
 .SH REPORTING BUGS
 
