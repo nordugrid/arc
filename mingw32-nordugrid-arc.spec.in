@@ -277,6 +277,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libdmcldap.dll*
 %{_mingw32_libdir}/%{pkgdir}/libdmcsrm.dll*
 %{_mingw32_libdir}/%{pkgdir}/libarcshc.dll*
+%{_mingw32_libdir}/%{pkgdir}/libarcshclegacy.dll*
 %{_mingw32_libdir}/%{pkgdir}/libidentitymap.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccARC1.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccCREAM.dll*

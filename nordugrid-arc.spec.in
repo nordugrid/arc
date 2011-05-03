@@ -1065,6 +1065,7 @@ fi
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 #%{_libdir}/%{pkgdir}/libaccUNICORE.so
 %{_libdir}/%{pkgdir}/libarcshc.so
+%{_libdir}/%{pkgdir}/libarcshclegacy.so
 %{_libdir}/%{pkgdir}/libdmcarc.so
 %{_libdir}/%{pkgdir}/libdmcfile.so
 %{_libdir}/%{pkgdir}/libdmchttp.so
@@ -1082,6 +1083,7 @@ fi
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 #%{_libdir}/%{pkgdir}/libaccUNICORE.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
+%{_libdir}/%{pkgdir}/libarcshclegacy.apd
 %{_libdir}/%{pkgdir}/libdmcarc.apd
 %{_libdir}/%{pkgdir}/libdmcfile.apd
 %{_libdir}/%{pkgdir}/libdmchttp.apd
