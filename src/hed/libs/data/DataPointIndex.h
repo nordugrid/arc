@@ -36,8 +36,8 @@ namespace Arc {
 
     virtual bool IsIndex() const;
     virtual bool IsStageable() const;
-    virtual bool AcceptsMeta();
-    virtual bool ProvidesMeta();
+    virtual bool AcceptsMeta() const;
+    virtual bool ProvidesMeta() const;
     virtual void SetMeta(const DataPoint& p);
     virtual void SetCheckSum(const std::string& val);
     virtual void SetSize(const unsigned long long int val);

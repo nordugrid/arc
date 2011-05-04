@@ -381,11 +381,11 @@ namespace Arc {
     virtual bool IsStageable() const;
 
     /// If endpoint can have any use from meta information.
-    virtual bool AcceptsMeta() = 0;
+    virtual bool AcceptsMeta() const = 0;
 
     /// If endpoint can provide at least some meta information
     /// directly.
-    virtual bool ProvidesMeta() = 0;
+    virtual bool ProvidesMeta() const = 0;
 
     /// Copy meta information from another object.
     /** Already defined values are not overwritten.

@@ -124,11 +124,11 @@ namespace Arc {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
 
-  bool DataPointDirect::AcceptsMeta() {
+  bool DataPointDirect::AcceptsMeta() const {
     return false;
   }
 
-  bool DataPointDirect::ProvidesMeta() {
+  bool DataPointDirect::ProvidesMeta() const {
     return false;
   }
 

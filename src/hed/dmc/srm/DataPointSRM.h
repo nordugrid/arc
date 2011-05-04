@@ -35,7 +35,7 @@ namespace Arc {
     DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual const std::string DefaultCheckSum() const;
-    virtual bool ProvidesMeta();
+    virtual bool ProvidesMeta() const;
     virtual bool IsStageable() const;
     virtual std::vector<URL> TransferLocations() const;
   private:

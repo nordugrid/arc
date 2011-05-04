@@ -256,11 +256,11 @@ namespace Arc {
     return (*h)->IsStageable();
   }
 
-  bool DataPointIndex::AcceptsMeta() {
+  bool DataPointIndex::AcceptsMeta() const {
     return true;
   }
 
-  bool DataPointIndex::ProvidesMeta() {
+  bool DataPointIndex::ProvidesMeta() const {
     return true;
   }
 

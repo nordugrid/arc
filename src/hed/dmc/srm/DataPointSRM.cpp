@@ -756,7 +756,7 @@ namespace Arc {
     return std::string("adler32");
   }
 
-  bool DataPointSRM::ProvidesMeta() {
+  bool DataPointSRM::ProvidesMeta() const {
     return true;
   }
 
