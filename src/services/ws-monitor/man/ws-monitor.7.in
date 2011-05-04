@@ -1,4 +1,4 @@
-.TH ws-monitor 1 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
+.TH ws-monitor 7 "2003-03-03" "NorduGrid @VERSION@" "NorduGrid Toolkit"
 .SH NAME
 
 ws-monitor \- Real-time NorduGrid monitoring tool
