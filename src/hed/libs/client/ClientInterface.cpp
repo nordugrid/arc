@@ -153,7 +153,7 @@ namespace Arc {
       if (!cfg.cadir.empty())
         comp.NewChild("CACertificatesDir") = cfg.cadir;
       comp.NewAttribute("entry") = "tls";
-      if (sec == SSL3Sec) 
+      if (sec == SSL3Sec)
         comp.NewChild("Handshake") = "SSLv3";
     }
     else if ((sec == GSISec) || (sec == GSIIOSec)) {
@@ -281,6 +281,7 @@ namespace Arc {
 
   static SecurityLayer http_url_to_sec(const URL& url) {
     if(url.Protocol() == "https") {
+      if(url.Option("protocol") == "ssl3") return SSL3Sec;
       return TLSSec;
     } else if(url.Protocol() == "httpg") {
       if(url.Option("protocol") == "gsi") return GSIIOSec;
