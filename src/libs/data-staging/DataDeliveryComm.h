@@ -41,6 +41,7 @@ class DataDeliveryComm {
     unsigned long long int offset; // last position to which file has no missing pieces 
     unsigned long long int size; // file size as obtained by protocol
     unsigned int speed; // current transfer speed in bytes/sec duiring last ~minute
+    // TODO checksum
   } Status;
   #pragma pack()
 

@@ -113,6 +113,21 @@ namespace DataStaging {
       args.push_back("--topt");
       args.push_back("maxinacttime="+Arc::tostring(transfer_params.max_inactivity_time));
 
+      if (dtr.get_source()->CheckCheckSum()) {
+        std::string csum(dtr.get_source()->GetCheckSum());
+        std::string::size_type pos(csum.find(':'));
+        if (pos == std::string::npos || pos == csum.length()-1) {
+          if(logger_) logger_->msg(Arc::WARNING, "DTR %s: Bad checksum format %s", dtr_id, csum);
+        } else {
+          args.push_back("--cstype");
+          args.push_back(csum.substr(0, pos));
+          args.push_back("--csvalue");
+          args.push_back(csum.substr(pos+1));
+        }
+      } else if (!dtr.get_destination()->GetURL().Option("checksum").empty()) {
+        args.push_back("--cstype");
+        args.push_back(dtr.get_destination()->GetURL().Option("checksum"));
+      }
       child_ = new Arc::Run(args);
       // Set up pipes
       child_->KeepStdout(false);

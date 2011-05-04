@@ -16,6 +16,7 @@
 
 using namespace Arc;
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(), "DataDelivery");
 
 static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
                          DataStaging::DTRErrorStatus::DTRErrorStatusType err,
@@ -70,13 +71,22 @@ static unsigned long long int GetFileSize(const DataPoint& source, const DataPoi
 }
 
 int main(int argc,char* argv[]) {
+
+  // log to stderr
+  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE); //TODO: configurable
+  Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::EmptyFormat);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+
   // Collecting parameters
   // --surl: source URL 
   // --durl: destination URL
   // --sopt: any URL option, credential - path to file storing credentials
   // --dopt: any URL option, credential - path to file storing credentials
   // --topt: minspeed, minspeedtime, minavgspeed, maxinacttime, avgtime
-  // surl and durl may be given only once
+  // --cstype: checksum type to calculate
+  // --csvalue: checksum value of source file to validate against
+  // surl, durl, cstype and csvalue may be given only once
   // sopt, dopt, topt may be given multiple times
   // type of credentials is detected automatically, so far only 
   // X.509 proxies or key+certificate are accepted
@@ -85,6 +95,8 @@ int main(int argc,char* argv[]) {
   std::list<std::string> source_opts;
   std::list<std::string> dest_opts;
   std::list<std::string> transfer_opts;
+  std::string checksum_type;
+  std::string checksum_value;
   std::string source_cred_path;
   std::string dest_cred_path;
   std::string source_ca_path;
@@ -95,22 +107,24 @@ int main(int argc,char* argv[]) {
   opt.AddOption(0,"sopt","","source options",source_opts);
   opt.AddOption(0,"dopt","","destination options",dest_opts);
   opt.AddOption(0,"topt","","transfer options",transfer_opts);
+  opt.AddOption(0,"cstype","","checksum type",checksum_type);
+  opt.AddOption(0,"csvalue","","checksum value",checksum_value);
   if(opt.Parse(argc,argv).size() != 0) {
-    std::cerr<<"Unexpected arguments"<<std::endl; return -1;
+    logger.msg(ERROR, "Unexpected arguments"); return -1;
   };
   if(source_str.empty()) {
-    std::cerr<<"Source URL missing"<<std::endl; return -1;
+    logger.msg(ERROR, "Source URL missing"); return -1;
   };
   if(dest_str.empty()) {
-    std::cerr<<"Destination URL missing"<<std::endl; return -1;
+    logger.msg(ERROR, "Destination URL missing"); return -1;
   };
   URL source_url(source_str);
   if(!source_url) {
-    std::cerr<<"Source URL not valid: "<<source_str<<std::endl; return -1;
+    logger.msg(ERROR, "Source URL not valid: %s", source_str); return -1;
   };
   URL dest_url(dest_str);
   if(!dest_url) {
-    std::cerr<<"Destination URL not valid: "<<dest_str<<std::endl; return -1;
+    logger.msg(ERROR, "Destination URL not valid: %s", dest_str); return -1;
   };
   for(std::list<std::string>::iterator o = source_opts.begin();
                            o != source_opts.end();++o) {
@@ -145,11 +159,6 @@ int main(int argc,char* argv[]) {
     };
   };
 
-  Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE); //TODO: configurable
-  Arc::LogStream logcerr(std::cerr);
-  logcerr.setFormat(Arc::EmptyFormat);
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-
   DataBuffer buffer;
   buffer.speed.verbose(true);
   unsigned long long int minspeed = 0;
@@ -173,7 +182,7 @@ int main(int argc,char* argv[]) {
         } else if(name == "avgtime") {
           buffer.speed.set_base(value);
         } else {
-          std::cerr<<"Unknown transfer option: "<<name<<std::endl;
+          logger.msg(ERROR, "Unknown transfer option: %s", name);
           _exit(-1);
         }
       };
@@ -188,7 +197,7 @@ int main(int argc,char* argv[]) {
   //source_cfg.UtilsDirPath(...); - probably not needed
   DataHandle source(source_url,source_cfg);
   if(!source) {
-    std::cerr<<"Source URL not supported: "<<source_url<<std::endl;
+    logger.msg(ERROR, "Source URL not supported: %s", source_url.str());
     _exit(-1);
     //return -1;
   };
@@ -201,7 +210,7 @@ int main(int argc,char* argv[]) {
   //dest_cfg.UtilsDirPath(...); - probably not needed
   DataHandle dest(dest_url,dest_cfg);
   if(!dest) {
-    std::cerr<<"Destination URL not supported: "<<dest_url<<std::endl;
+    logger.msg(ERROR, "Destination URL not supported: %s", dest_url.str());
     _exit(-1);
     //return -1;
   };
@@ -213,6 +222,33 @@ int main(int argc,char* argv[]) {
                DataStaging::DTRErrorStatus::NONE_ERROR,
                DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
                "",0,0);
+
+  // if checksum type is supplied, use that type, otherwise use default for the
+  // destination (if checksum is supported by the destination protocol)
+  CheckSumAny crc;
+  CheckSumAny crc_source;
+  CheckSumAny crc_dest;
+  std::string crc_type("");
+
+  if (!checksum_type.empty()) {
+    crc_type = checksum_type;
+    if (!checksum_value.empty())
+      source->SetCheckSum(checksum_type+':'+checksum_value);
+  }
+  else if (dest->AcceptsMeta() || dest->ProvidesMeta()) {
+    crc_type = dest->DefaultCheckSum();
+  }
+
+  if (!crc_type.empty()) {
+    crc = crc_type.c_str();
+    crc_source = crc_type.c_str();
+    crc_dest = crc_type.c_str();
+    if (crc.Type() != CheckSumAny::none) logger.msg(INFO, "Will calculate %s checksum", crc_type);
+    source->AddCheckSumObject(&crc_source);
+    dest->AddCheckSumObject(&crc_dest);
+  }
+  buffer.set(&crc);
+
   // Initiating transfer
   DataStatus source_st = source->StartReading(buffer);
   if(!source_st) {
@@ -303,6 +339,44 @@ int main(int argc,char* argv[]) {
       reported = true;
     };
   };
+
+  // checksum validation against supplied value
+  std::string calc_csum;
+  if (crc && buffer.checksum_valid()) {
+    char buf[100];
+    crc.print(buf,100);
+    calc_csum = buf;
+  } else if(crc_source) {
+    char buf[100];
+    crc_source.print(buf,100);
+    calc_csum = buf;
+  } else if(crc_dest) {
+    char buf[100];
+    crc_dest.print(buf,100);
+    calc_csum = buf;
+  }
+  if (!calc_csum.empty() && crc.Type() != CheckSumAny::none) {
+
+    // compare calculated to any checksum given as an option
+    if (source->CheckCheckSum()) {
+      if (calc_csum.substr(0, calc_csum.find(":")) != checksum_type) {
+        logger.msg(INFO, "Checksum type of source and calculated checksum differ, cannot compare");
+      } else if (calc_csum.substr(calc_csum.find(":")+1) != checksum_value) {
+        logger.msg(ERROR, "Checksum mismatch between calcuated checksum %s and source checksum %s", calc_csum, source->GetCheckSum());
+        ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                     DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,
+                     DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
+                     "Checksum mismatch",
+                     0,0);
+        reported = true;
+        eof_reached = false;
+      }
+      else
+        logger.msg(INFO, "Calculated transfer checksum %s matches source checksum", calc_csum);
+    }
+  } else {
+    logger.msg(VERBOSE, "Checksum not computed");
+  }
   if(!reported) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  DataStaging::DTRErrorStatus::NONE_ERROR,
