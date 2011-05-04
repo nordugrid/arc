@@ -7,4 +7,4 @@ libarcdatatest_CXXFLAGS = -I$(top_srcdir)/include \
 libarcdatatest_LDADD = \
 	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)

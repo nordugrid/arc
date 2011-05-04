@@ -18,4 +18,4 @@ PluginTest_CXXFLAGS = -I$(top_srcdir)/include \
 PluginTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)

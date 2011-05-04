@@ -29,4 +29,4 @@ ChainTest_CXXFLAGS = -I$(top_srcdir)/include \
 ChainTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
