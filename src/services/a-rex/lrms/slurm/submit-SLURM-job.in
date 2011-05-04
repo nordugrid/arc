@@ -379,14 +379,10 @@ done
 if [ $SLURM_RESULT -eq '0' ] ; then
 
 #TODO test what happens when the jobqueue is full or when the slurm ctld is not responding
-   slurm_version=`${sbatch} --version`
-   if [ "$slurm_version" = "slurm 2.2.1" ] || [ "$1" \> "slurm 2.2.1" ]; then
-     # newer versions, sbatch would output to stdout 
-     job_id=`cat $LRMS_JOB_OUT | sed 's/Submitted batch job \([0-9]*\)$/\1/'`
-   else
-     # older versions, sbatch would output to stderr and the output is slightly different 
-     job_id=`cat $LRMS_JOB_ERR | sed 's/sbatch: Submitted batch job \([0-9]*\)$/\1/'`
-   fi
+   # SLURM 1.x and 2.2.x outputs the jobid into STDERR and STDOUT respectively. Concat them,
+   # and let sed sort it out. From the exit code we know that the job was submitted, so this
+   # is safe. Ulf Tigerstedt <tigerste@csc.fi> 1.5.2011 
+   job_id=`cat $LRMS_JOB_OUT $LRMS_JOB_ERR |sed -e 's/^\(sbatch: \)\{0,1\}Submitted batch job \([0-9]*\)$/\2/'`
    if [ "${job_id}" = "" ] ; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the slurm jobid for the job!" 1>&2
