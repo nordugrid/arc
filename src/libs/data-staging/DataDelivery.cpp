@@ -162,7 +162,12 @@ namespace DataStaging {
               status.error = DTRErrorStatus::INTERNAL_ERROR;
             dp->dtr->set_error_status(status.error,status.error_location,
                      status.error_desc[0]?status.error_desc:dp->comm.GetError().c_str());
+          } else if (status.checksum) {
+            dp->dtr->get_destination()->SetCheckSum(status.checksum);
           }
+          dp->dtr->get_logger()->msg(Arc::INFO, "DTR %s: Transfer finished: %llu bytes transferred %s",
+                                     dp->dtr->get_short_id(), status.transfered,
+                                     (status.checksum[0] ? ": checksum "+std::string(status.checksum) : " "));
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
           dp->dtr->push(SCHEDULER);
           delete dp;

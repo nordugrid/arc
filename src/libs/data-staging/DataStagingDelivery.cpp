@@ -23,7 +23,8 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
                          DataStaging::DTRErrorStatus::DTRErrorLocation err_loc,
                          const std::string& err_desc,
                          unsigned long long int transfered,
-                         unsigned long long int size) {
+                         unsigned long long int size,
+                         const std::string& checksum = "") {
   static DataStaging::DataDeliveryComm::Status status;
   static DataStaging::DataDeliveryComm::Status status_;
   static unsigned int status_pos = 0;
@@ -41,6 +42,7 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
   status.size = size;
   status.offset = 0;
   status.speed = 0;
+  strncpy(status.checksum, checksum.c_str(), sizeof(status.checksum));
   if(status_pos == 0) {
     status_=status;
     status_changed=true;
@@ -221,7 +223,7 @@ int main(int argc,char* argv[]) {
   ReportStatus(DataStaging::DTRStatus::NULL_STATE,
                DataStaging::DTRErrorStatus::NONE_ERROR,
                DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
-               "",0,0);
+               "",0,0,"");
 
   // if checksum type is supplied, use that type, otherwise use default for the
   // destination (if checksum is supported by the destination protocol)
@@ -369,7 +371,7 @@ int main(int argc,char* argv[]) {
                      "Checksum mismatch",
                      0,0);
         reported = true;
-        eof_reached = false;
+        eof_reached = false; // TODO general error flag is better than this
       }
       else
         logger.msg(INFO, "Calculated transfer checksum %s matches source checksum", calc_csum);
@@ -383,7 +385,8 @@ int main(int argc,char* argv[]) {
                  DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
                  "",
                  buffer.speed.transferred_size(),
-                 GetFileSize(*source,*dest));
+                 GetFileSize(*source,*dest),
+                 calc_csum);
   };
   _exit(eof_reached?0:1);
   //return eof_reached?0:1;

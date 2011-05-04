@@ -127,6 +127,9 @@ namespace DataStaging {
       } else if (!dtr.get_destination()->GetURL().Option("checksum").empty()) {
         args.push_back("--cstype");
         args.push_back(dtr.get_destination()->GetURL().Option("checksum"));
+      } else if (dtr.get_destination()->AcceptsMeta() || dtr.get_destination()->ProvidesMeta()) {
+        args.push_back("--cstype");
+        args.push_back(dtr.get_destination()->DefaultCheckSum());
       }
       child_ = new Arc::Run(args);
       // Set up pipes
