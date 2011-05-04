@@ -274,8 +274,8 @@ int main(int argc, char *argv[]) {
 
   std::string myproxy_command; //command to myproxy server
   options.AddOption('M', "myproxycmd", istring("command to MyProxy server. The command can be PUT or GET.\n"
-                                               "              PUT/put -- put a delegated credential to the MyProxy server; \n"
-                                               "              GET/get -- get a delegated credential from the MyProxy server, \n"
+                                               "              PUT/put/Put -- put a delegated credential to the MyProxy server; \n"
+                                               "              GET/get/Get -- get a delegated credential from the MyProxy server, \n"
                                                "              credential (certificate and key) is not needed in this case. \n"
                                                "              MyProxy functionality can be used together with VOMS\n"
                                                "              functionality.\n"
@@ -481,7 +481,8 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  if (cert_path.empty() || key_path.empty()) {
+  if ((cert_path.empty() || key_path.empty()) && 
+      ((myproxy_command != "GET") && (myproxy_command != "get") && (myproxy_command != "Get"))) {
     if (cert_path.empty())
       logger.msg(Arc::ERROR, "Cannot find the user certificate path, "
                  "please setup environment X509_USER_CERT, "
@@ -553,7 +554,7 @@ int main(int argc, char *argv[]) {
   //For "GET" command, certificate and key are not needed, and
   //anonymous GSSAPI is used (GSS_C_ANON_FLAG)
   try {
-    if (myproxy_command == "get" || myproxy_command == "GET") {
+    if (myproxy_command == "get" || myproxy_command == "GET" || myproxy_command == "Get") {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
       if (user_name.empty())
@@ -567,6 +568,11 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("Error entering passphrase");
       passphrase = password;
       std::string proxy_cred_str_pem;
+
+      //if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
+      //if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
       std::map<std::string,std::string> myproxyopt;
       myproxyopt["username"] = user_name;
@@ -1008,7 +1014,7 @@ int main(int argc, char *argv[]) {
   //Delegate the former self-delegated credential to
   //myproxy server
   try {
-    if (myproxy_command == "put" || myproxy_command == "PUT") {
+    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
       if (user_name.empty())
@@ -1031,6 +1037,10 @@ int main(int argc, char *argv[]) {
       if(proxy_cred_str_pem.empty())
         throw std::invalid_argument("Failed to read proxy file "+proxy_path);
       proxy_cred_file.close();
+
+      if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
+      if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
 
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
       std::map<std::string,std::string> myproxyopt;
