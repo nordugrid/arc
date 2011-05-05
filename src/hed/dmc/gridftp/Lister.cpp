@@ -242,18 +242,8 @@ namespace Arc {
           name=name_start+1;
         };
       };
-      std::list<FileInfo>::iterator i;
-      if (name[0] == '/') {
-        i = it->fnames.insert(it->fnames.end(), FileInfo(name));
-      } else {
-        std::string name_ = !it->path.empty() ? it->path : "/";
-        // Workaround for bug in our gridftp server!
-        if(name[0]) {
-          name_ += "/";
-          name_ += name;
-        }
-        i = it->fnames.insert(it->fnames.end(), FileInfo(name_));
-      }
+      std::list<FileInfo>::iterator i = it->fnames.insert(it->fnames.end(), FileInfo(name));
+
       if (it->facts)
         SetAttributes(*i, attrs);
       if (nlen == length)

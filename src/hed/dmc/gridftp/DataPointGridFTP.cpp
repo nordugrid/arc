@@ -651,6 +651,33 @@ namespace Arc {
         f.SetCreated(modify_time);
       }
     }
+    if (!f.CheckCheckSum() && f.CheckType() != FileInfo::file_type_dir) {
+      // not all implementations support checksum so failure is not an error
+      logger.msg(DEBUG, "list_files_ftp: "
+                        "looking for checksum of %s", f_url);
+      char cksum[256];
+      const char * cksumtype(upper(DefaultCheckSum()).c_str());
+      res = globus_ftp_client_cksm(&ftp_handle, f_url.c_str(),
+                                   &ftp_opattr, cksum, (globus_off_t)0,
+                                   (globus_off_t)-1, cksumtype,
+                                   &ftp_complete_callback, this);
+      if (!res) {
+        logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksum failed");
+        logger.msg(VERBOSE, "Globus error: %s", res.str());
+      }
+      else if (!cond.wait(1000*usercfg.Timeout())) {
+        logger.msg(VERBOSE, "list_files_ftp: timeout waiting for cksum");
+        globus_ftp_client_abort(&ftp_handle);
+        cond.wait();
+      }
+      else if (!condstatus) {
+        logger.msg(INFO, "list_files_ftp: failed to get file's checksum");
+      }
+      else {
+        logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
+        f.SetCheckSum(DefaultCheckSum() + ':' + std::string(cksum));
+      }
+    }
     return result;
   }
 
@@ -670,36 +697,48 @@ namespace Arc {
     }
     lister.close_connection();
     DataStatus result = DataStatus::Success;
-    if((lister.size() != 1) || 
-       (trim(lister.begin()->GetName(),"/") != trim(url.Path(),"/"))) {
+    if(lister.size() != 1) {
       logger.msg(VERBOSE, "Wrong number of objects for stat from ftp: %s", url.str());
       // guess - that probably means it is directory 
-      file.SetName(FileInfo(url.Path()).GetLastName());
+      file.SetName(FileInfo(url.Path()).GetName());
       file.SetType(FileInfo::file_type_dir);
       return result;
     }
-    std::list<FileInfo>::iterator i = lister.begin();
-    if(i == lister.end()) {
-      result = DataStatus::StatError;
-    } else {
-      file.SetName(i->GetLastName());
-      file.SetMetaData("path", i->GetLastName());
-      if (more_info) {
-        DataStatus r = do_more_stat(*i);
-        if(!r) result = r;
-      }
-      file.SetType(i->GetType());
-      file.SetMetaData("type", (i->GetType() == FileInfo::file_type_dir) ? "dir" : "file");
-      if (i->CheckSize()) {
-        file.SetSize(i->GetSize());
-        file.SetMetaData("size", tostring(i->GetSize()));
-        SetSize(i->GetSize());
-      }
-      if (i->CheckCreated()) {
-        file.SetCreated(i->GetCreated());
-        file.SetMetaData("mtime", i->GetCreated());
-        SetCreated(i->GetCreated());
-      }
+    FileInfo lister_info(*(lister.begin()));
+    // does returned path match what we expect?
+    // remove trailing slashes from url
+    std::string fname(url.Path());
+    while (fname.length() > 1 && fname[fname.length()-1] == '/') fname.erase(fname.length()-1);
+    if ((lister_info.GetName().substr(lister_info.GetName().rfind('/')+1)) !=
+              (fname.substr(fname.rfind('/')+1))) {
+      logger.msg(ERROR, "Unexpected path %s returned from server", lister_info.GetName());
+      return DataStatus::StatError;
+    }
+    if (lister_info.GetName()[0] != '/')
+      lister_info.SetName(url.Path());
+
+    file.SetName(lister_info.GetName());
+    file.SetMetaData("path", lister_info.GetName());
+    if (more_info) {
+      DataStatus r = do_more_stat(lister_info);
+      if(!r) result = r;
+    }
+    file.SetType(lister_info.GetType());
+    file.SetMetaData("type", (lister_info.GetType() == FileInfo::file_type_dir) ? "dir" : "file");
+    if (lister_info.CheckSize()) {
+      file.SetSize(lister_info.GetSize());
+      file.SetMetaData("size", tostring(lister_info.GetSize()));
+      SetSize(lister_info.GetSize());
+    }
+    if (lister_info.CheckCreated()) {
+      file.SetCreated(lister_info.GetCreated());
+      file.SetMetaData("mtime", lister_info.GetCreated());
+      SetCreated(lister_info.GetCreated());
+    }
+    if (lister_info.CheckCheckSum()) {
+      file.SetCheckSum(lister_info.GetCheckSum());
+      file.SetMetaData("checksum", lister_info.GetCheckSum());
+      SetCheckSum(lister_info.GetCheckSum());
     }
     return result;
   }
@@ -722,6 +761,8 @@ namespace Arc {
     DataStatus result = DataStatus::Success;
     for (std::list<FileInfo>::iterator i = lister.begin();
          i != lister.end(); ++i) {
+      if (i->GetName()[0] != '/')
+        i->SetName(url.Path()+'/'+i->GetName());
       std::list<FileInfo>::iterator f =
         files.insert(files.end(), FileInfo(i->GetLastName()));
       f->SetMetaData("path", i->GetLastName());
@@ -741,6 +782,10 @@ namespace Arc {
       if (i->CheckCreated()) {
         f->SetCreated(i->GetCreated());
         f->SetMetaData("mtime", i->GetCreated());
+      }
+      if (i->CheckCheckSum()) {
+        f->SetCheckSum(i->GetCheckSum());
+        f->SetMetaData("checksum", i->GetCheckSum());
       }
     }
     return result;
@@ -953,8 +998,13 @@ namespace Arc {
     return true;
   }
 
-  bool DataPointGridFTP::ProvidesMeta() {
+  bool DataPointGridFTP::ProvidesMeta() const {
     return true;
+  }
+
+  const std::string DataPointGridFTP::DefaultCheckSum() const {
+    // no way to know which checksum is used for each file, so hard-code adler32 for now
+    return std::string("adler32");
   }
 
   bool DataPointGridFTP::SetURL(const URL& url) {
