@@ -15,7 +15,7 @@ command is a prototype client which is used for sending a policy decision reques
 
 .B arcdecision [options] [filename ...]
 
-./arcdecision -c pdp_client.xml -d DEBUG -s https://127.0.0.1:60001 -r request.xml
+arcdecision -c pdp_client.xml -d DEBUG -s https://127.0.0.1:60001 -r request.xml
 
 .SH OPTIONS
 
