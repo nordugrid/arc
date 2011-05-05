@@ -1,6 +1,7 @@
 #include "TestACCControl.h"
 
 bool* BrokerTestACCControl::TargetSortingDone = NULL;
+bool* BrokerTestACCControl::TargetSortingDoneSortTargets = NULL;
 std::list<Arc::ExecutionTarget*>* BrokerTestACCControl::PossibleTargets = NULL;
 
 bool JobDescriptionParserTestACCControl::parseStatus = false;

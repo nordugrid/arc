@@ -12,6 +12,7 @@
 class BrokerTestACCControl {
   public:
     static bool* TargetSortingDone;
+    static bool* TargetSortingDoneSortTargets;
     static std::list<Arc::ExecutionTarget*>* PossibleTargets;
 };
 
