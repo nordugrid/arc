@@ -75,16 +75,25 @@ install: build-stamp
 
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 
-	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.la
-	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
-	rm -rf $(CURDIR)/debian/tmp/usr/share/doc/arc
-	rm -f $(CURDIR)/debian/tmp/usr/share/arc/examples/storage_service.xml.example
+	find $(CURDIR)/debian/tmp -name \*.la -exec rm -fv '{}' ';'
 
-	mv debian/tmp/etc/init.d/a-rex debian/nordugrid-arc-arex.a-rex.init
-	mv debian/tmp/etc/init.d/arched debian/nordugrid-arc-hed.arched.init
-	mv debian/tmp/etc/init.d/cache-service debian/nordugrid-arc-cache-service.cache-service.init
-	mv debian/tmp/etc/init.d/gridftpd debian/nordugrid-arc-gridftpd.gridftpd.init
-	mv debian/tmp/etc/init.d/grid-infosys debian/nordugrid-arc-aris.grid-infosys.init
+	rm -f $(CURDIR)/debian/tmp/usr/lib/arc/lib*.a
+
+	mv debian/tmp/etc/init.d/a-rex \
+	   debian/nordugrid-arc-arex.a-rex.init
+	mv debian/tmp/etc/init.d/arched \
+	   debian/nordugrid-arc-hed.arched.init
+	mv debian/tmp/etc/init.d/cache-service \
+	   debian/nordugrid-arc-cache-service.cache-service.init
+	mv debian/tmp/etc/init.d/gridftpd \
+	   debian/nordugrid-arc-gridftpd.gridftpd.init
+	mv debian/tmp/etc/init.d/grid-infosys \
+	   debian/nordugrid-arc-aris.grid-infosys.init
+
+	mkdir -p debian/tmp/usr/share/java
+	mv debian/tmp/usr/lib/java/*.jar debian/tmp/usr/share/java
+	mkdir -p debian/tmp/usr/lib/jni
+	mv debian/tmp/usr/lib/java/*.so debian/tmp/usr/lib/jni
 
 binary-indep:
 	:
@@ -108,9 +117,13 @@ binary-arch: install
 	dh_pysupport
 	dh_link
 	dh_strip --dbg-package=nordugrid-arc-dbg
+
+	mv debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared \
+	   debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pymodules
+
 	dh_compress -X .pdf
 	dh_fixperms
-	dh_makeshlibs
+	dh_makeshlibs -X arc-infoindex-slapd-wrapper.so
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol

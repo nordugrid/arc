@@ -1,5 +1,4 @@
-debian/tmp/usr/lib/java/libjarc.so
-debian/tmp/usr/lib/java/libjarc.la
-debian/tmp/usr/lib/java/arc.jar
+debian/tmp/usr/lib/jni/libjarc.so
+debian/tmp/usr/share/java/arc.jar
 debian/tmp/usr/lib/arc/libjavaservice.so
 debian/tmp/usr/lib/arc/libjavaservice.apd
