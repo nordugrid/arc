@@ -387,7 +387,7 @@ namespace Arc {
     reqmsg.Attributes()->set("HTTP:METHOD", method);
     if (!path.empty()) {
       URL url(default_url);
-      url.ChangePath(path);
+      url.ChangeFullPath(path);
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
         reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));

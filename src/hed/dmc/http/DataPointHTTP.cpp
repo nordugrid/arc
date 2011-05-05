@@ -637,6 +637,7 @@ namespace Arc {
     URL client_url = point.url;
     bool transfer_failure = false;
     int retries = 0;
+    std::string path = point.CurrentLocation().FullPath();
     for (;;) {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
@@ -654,7 +655,6 @@ namespace Arc {
       HTTPClientInfo transfer_info;
       PayloadRaw request;
       PayloadRawInterface *inbuf;
-      std::string path = point.CurrentLocation().FullPath();
       MCC_Status r = client->process("GET", path, transfer_offset,
                                      transfer_end, &request, &transfer_info,
                                      &inbuf);
@@ -708,6 +708,7 @@ namespace Arc {
             (client_url.Protocol() == "https") ||
             (client_url.Protocol() == "httpg"))) {
           client = new ClientHTTP(cfg, client_url, point.usercfg.Timeout());
+          path = client_url.FullPath();
           continue;
         }
         transfer_failure = true;
@@ -805,6 +806,7 @@ namespace Arc {
     ClientHTTP *client = info.client;
     bool transfer_failure = false;
     int retries = 0;
+    std::string path = point.CurrentLocation().FullPath();
     for (;;) {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
@@ -822,7 +824,6 @@ namespace Arc {
                               transfer_offset, transfer_size,
                               point.CheckSize() ? point.GetSize() : 0);
       PayloadRawInterface *response;
-      std::string path = point.CurrentLocation().FullPath();
       MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                      &response);
       if (response)
@@ -873,7 +874,6 @@ namespace Arc {
           HTTPClientInfo transfer_info;
           PayloadMemConst request(NULL, 0, 0, 0);
           PayloadRawInterface *response;
-          std::string path = point.CurrentLocation().FullPath();
           MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                          &response);
           if (response)

@@ -125,6 +125,9 @@ namespace Arc {
     /** Changes the path of the URL. */
     void ChangePath(const std::string& newpath);
 
+    /** Changes the path of the URL and all options attached. */
+    void ChangeFullPath(const std::string& newpath);
+
     /** Returns HTTP options if any. */
     const std::map<std::string, std::string>& HTTPOptions() const;
 
@@ -298,6 +301,9 @@ namespace Arc {
 
     /** Overloaded operator << to print a URL. */
     friend std::ostream& operator<<(std::ostream& out, const URL& u);
+
+    /** Convenience method for spliting schema specific part into path and options */
+    void ParsePath(void);
   };
 
 

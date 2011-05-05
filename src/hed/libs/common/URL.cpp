@@ -379,6 +379,16 @@ namespace Arc {
       }
     }
 
+    ParsePath();
+
+    // Normally host/authority names are case-insensitive
+    host = lower(host);
+  }
+
+
+  void URL::ParsePath(void) {
+    std::string::size_type pos, pos2, pos3;
+
     // if protocol = http, get the options after the ?
     if (protocol == "http" ||
         protocol == "https" ||
@@ -430,8 +440,6 @@ namespace Arc {
         path.erase(0,1);
     }
 
-    // Normally host/authority names are case-insensitive
-    host = lower(host);
   }
 
   URL::~URL() {}
@@ -516,6 +524,13 @@ namespace Arc {
       fullpath += '?' + ldapfilter;
 
     return fullpath;
+  }
+
+  void URL::ChangeFullPath(const std::string& newpath) {
+    path = newpath;
+    ParsePath();
+    std::string basepath = path;
+    if (protocol != "ldap") ChangePath(basepath);
   }
 
   void URL::ChangePath(const std::string& newpath) {
