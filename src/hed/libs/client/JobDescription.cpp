@@ -24,6 +24,7 @@ namespace Arc {
   // it transparent. On another hand JobDescriptionParserLoader must not know
   // how it is used.
   Glib::Mutex JobDescription::jdpl_lock;
+  // TODO: JobDescriptionParserLoader need to be freed when not used any more.
   JobDescriptionParserLoader *JobDescription::jdpl = NULL;
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
