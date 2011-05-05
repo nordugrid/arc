@@ -17,8 +17,8 @@ public:
 
   static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
 
-  bool Parse(const std::string& /*source*/, std::list<Arc::JobDescription>& jobdescs, const std::string& /*language = ""*/, const std::string& /*dialect = ""*/) const {}
-  bool UnParse(const Arc::JobDescription& /*job*/, std::string& output, const std::string& /*language*/, const std::string& /*dialect = ""*/) const {}
+  bool Parse(const std::string& /*source*/, std::list<Arc::JobDescription>& jobdescs, const std::string& /*language = ""*/, const std::string& /*dialect = ""*/) const { if (JobDescriptionParserTestACCControl::parsedJobDescriptions) jobdescs = *JobDescriptionParserTestACCControl::parsedJobDescriptions; return JobDescriptionParserTestACCControl::parseStatus; }
+  bool UnParse(const Arc::JobDescription& /*job*/, std::string& output, const std::string& /*language*/, const std::string& /*dialect = ""*/) const { if (JobDescriptionParserTestACCControl::unparsedString) output = *JobDescriptionParserTestACCControl::unparsedString; return JobDescriptionParserTestACCControl::unparseStatus; }
 };
 
 #endif // __ARC_JOBDESCRIPTIONPARSERTESTACC_H__
