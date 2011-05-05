@@ -587,8 +587,7 @@ cd -
      --disable-lfc \
 %endif
      --disable-doc \
-     --with-docdir=%{_docdir}/%{name}-%{version} \
-     --disable-charon-service --disable-charon-client
+     --with-docdir=%{_docdir}/%{name}-%{version}
 
 make %{?_smp_mflags}
 

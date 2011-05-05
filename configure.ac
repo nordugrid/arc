@@ -163,7 +163,7 @@ enables_ldap_monitor=yes
 enables_ws_monitor=yes
 #  Clients
 enables_arclib_client=yes
-enables_charon_client=yes
+#enables_charon_client=yes
 enables_credentials_client=yes
 enables_echo_client=yes
 enables_data_client=yes
@@ -193,7 +193,7 @@ enables_janitor_service=$enableval
 enables_storage_service=$enableval
 enables_cache_service=$enableval
 enables_arclib_client=$enableval
-enables_charon_client=$enableval
+#enables_charon_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
@@ -220,7 +220,7 @@ enables_doc=$enableval
 AC_ARG_ENABLE(all-clients, AC_HELP_STRING([--disable-all-clients], [disables all buildable client components. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-clients to overwrite defaults and --enable-all.]),
 [
 enables_arclib_client=$enableval
-enables_charon_client=$enableval
+#enables_charon_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
@@ -1619,10 +1619,10 @@ AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable 
 AC_MSG_NOTICE([Arclib client tools enabled: $enables_arclib_client])
 AM_CONDITIONAL([ARCLIB_CLIENT_ENABLED],[test "x$enables_arclib_client" = "xyes"])
 
-AC_ARG_ENABLE(charon_client, AC_HELP_STRING([--disable-charon-client], [disable building client for Charon service]),
-  [enables_charon_client=$enableval],[])
-AC_MSG_NOTICE([Charon client tool enabled: $enables_charon_client])
-AM_CONDITIONAL([CHARON_CLIENT_ENABLED],[test "x$enables_charon_client" = "xyes"])
+#AC_ARG_ENABLE(charon_client, AC_HELP_STRING([--disable-charon-client], [disable building client for Charon service]),
+#  [enables_charon_client=$enableval],[])
+#AC_MSG_NOTICE([Charon client tool enabled: $enables_charon_client])
+#AM_CONDITIONAL([CHARON_CLIENT_ENABLED],[test "x$enables_charon_client" = "xyes"])
 
 AC_ARG_ENABLE(credentials_client, AC_HELP_STRING([--disable-credentials-client], [disable building client tools for handling X.509 credentials]),
   [enables_credentials_client=$enableval],[])
@@ -2133,7 +2133,6 @@ CACHE service:      ${enables_cache_service}
 
 ARCLIB clients:     ${enables_arclib_client}
 ISIS client:        ${enables_isis_client}
-CHARON client:      ${enables_charon_client}
 DATA clients:       ${enables_data_client}
 SRM ping client:    ${enables_srm_client}
 CREDENTIAL clients: ${enables_credentials_client}
