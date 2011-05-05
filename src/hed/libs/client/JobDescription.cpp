@@ -24,7 +24,7 @@ namespace Arc {
   // it transparent. On another hand JobDescriptionParserLoader must not know
   // how it is used.
   Glib::Mutex JobDescription::jdpl_lock;
-  JobDescriptionParserLoader JobDescription::jdpl;
+  JobDescriptionParserLoader *JobDescription::jdpl = NULL;
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
 
@@ -343,7 +343,11 @@ namespace Arc {
     }
 
     jdpl_lock.lock();
-    for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
+    if (!jdpl) {
+      jdpl = new JobDescriptionParserLoader();
+    }
+
+    for (JobDescriptionParserLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       // Releasing lock because we can't know how long parsing will take
       // But for current implementations of parsers it is not specified
       // if their Parse/Unparse methods can be called concurently.
@@ -377,7 +381,11 @@ namespace Arc {
     }
 
     jdpl_lock.lock();
-    for (JobDescriptionParserLoader::iterator it = jdpl.GetIterator(); it; ++it) {
+    if (!jdpl) {
+      jdpl = new JobDescriptionParserLoader();
+    }
+    
+    for (JobDescriptionParserLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       if (it->IsLanguageSupported(language)) {
         logger.msg(VERBOSE, "Generating %s job description output", language);
         bool r = it->UnParse(*this, product, language, dialect);
