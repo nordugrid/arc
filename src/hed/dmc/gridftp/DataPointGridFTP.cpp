@@ -651,7 +651,7 @@ namespace Arc {
         f.SetCreated(modify_time);
       }
     }
-    if (!f.CheckCheckSum() && f.CheckType() != FileInfo::file_type_dir) {
+    if (!f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
       // not all implementations support checksum so failure is not an error
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for checksum of %s", f_url);
