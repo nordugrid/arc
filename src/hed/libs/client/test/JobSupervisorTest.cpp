@@ -17,6 +17,7 @@ class JobSupervisorTest
   CPPUNIT_TEST(TestConstructor);
   CPPUNIT_TEST(TestAddJob);
   CPPUNIT_TEST(TestCancel);
+  CPPUNIT_TEST(TestResubmit);
   CPPUNIT_TEST(TestClean);
   CPPUNIT_TEST_SUITE_END();
 
@@ -29,6 +30,7 @@ public:
 
   void TestConstructor();
   void TestAddJob();
+  void TestResubmit();
   void TestCancel();
   void TestClean();
 
@@ -99,6 +101,52 @@ void JobSupervisorTest::TestAddJob()
   CPPUNIT_ASSERT(js->JobsFound());
   CPPUNIT_ASSERT(!js->AddJob(j));
   CPPUNIT_ASSERT(js->JobsFound());
+
+  delete js;
+}
+
+void JobSupervisorTest::TestResubmit()
+{
+  std::list<Arc::Job> jobs;
+  Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
+           id2("http://test.nordugrid.org/1234567890test2"),
+           id3("http://test.nordugrid.org/1234567890test3");
+
+  st = Arc::JobState::FAILED;
+  j.State = JobStateTEST("E");
+  j.IDFromEndpoint = id1;
+  j.JobDescriptionDocument = "CONTENT";
+  jobs.push_back(j);
+
+  st = Arc::JobState::RUNNING;
+  j.State = JobStateTEST("R");
+  j.IDFromEndpoint = id1;
+  j.JobDescriptionDocument = "CONTENT";
+  jobs.push_back(j);
+
+  usercfg.Broker("TEST");
+  usercfg.AddServices(std::list<std::string>(1, "TEST:http://test2.nordugrid.org"), Arc::COMPUTING);
+
+  js = new Arc::JobSupervisor(usercfg, jobs);
+
+  std::list<Arc::ExecutionTarget> targets(1, Arc::ExecutionTarget());
+  targets.back().url = Arc::URL("http://test2.nordugrid.org");
+  targets.back().GridFlavour = "TEST";
+  targets.back().HealthState = "ok";
+
+  std::list<Arc::JobDescription> jobdescs(1, Arc::JobDescription());
+
+  bool TargetSortingDone = true;
+  BrokerTestACCControl::TargetSortingDoneSortTargets = &TargetSortingDone;
+  TargetRetrieverTestACCControl::foundTargets = &targets;
+  JobDescriptionParserTestACCControl::parseStatus = true;
+  JobDescriptionParserTestACCControl::parsedJobDescriptions = &jobdescs;
+  SubmitterTestACCControl::submitStatus = true;
+
+  std::list<Arc::Job> resubmitted;
+  std::list<Arc::URL> notResubmitted;
+  CPPUNIT_ASSERT(js->Resubmit(std::list<std::string>(), 0, resubmitted, notResubmitted));
+  CPPUNIT_ASSERT_EQUAL(2, (int)resubmitted.size());
 
   delete js;
 }
