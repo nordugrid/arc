@@ -1106,12 +1106,12 @@ namespace Arc {
       metadata.size = -1;
 
     if (details["checkSumType"])
-      metadata.checkSumType = (std::string)details["checkSumType"];
+      metadata.checkSumType = lower((std::string)details["checkSumType"]);
     else
       metadata.checkSumType = "";
 
     if (details["checkSumValue"])
-      metadata.checkSumValue = (std::string)details["checkSumValue"];
+      metadata.checkSumValue = lower((std::string)details["checkSumValue"]);
     else
       metadata.checkSumValue = "";
 
