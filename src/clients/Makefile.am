@@ -28,11 +28,11 @@ else
 ARCLIB_CLIENT =
 endif
 
-if CHARON_CLIENT_ENABLED
-CHARON_CLIENT = charon
-else
+#if CHARON_CLIENT_ENABLED
+#CHARON_CLIENT = charon
+#else
 CHARON_CLIENT =
-endif
+#endif
 
 if SAML_CLIENT_ENABLED
 SAML_CLIENT = saml
