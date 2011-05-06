@@ -537,6 +537,8 @@ namespace Arc {
     DataStatus r = DataStatus::Success;
     if (r_handle) {
       r = (*r_handle)->StopWriting();
+      // check if checksum was verified at lower level
+      if ((*r_handle)->CheckCheckSum()) SetCheckSum((*r_handle)->GetCheckSum());
       delete r_handle;
       r_handle = NULL;
     }
@@ -561,42 +563,46 @@ namespace Arc {
            client->remove(*srm_request);
         }
         else {
-          // checksum verification - calculated or supplied checksum will be
-          // stored in DataPoint checksum object
-          if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS && additional_checks) {
-            std::string csum = GetCheckSum();
-            if (!csum.empty() && csum.find(':') != std::string::npos) {
-              // get checksum info for checksum verification
-              logger.msg(VERBOSE, "FinishWriting: looking for metadata: %s", url.str());
-              // create a new request
-              SRMClientRequest list_request(srm_request->surls());
-              list_request.long_list(true);
-              std::list<struct SRMFileMetaData> metadata;
-              SRMReturnCode res = client->info(list_request,metadata);
-              if (res != SRM_OK) {
-                client->abort(*srm_request); // if we can't list then we can't remove either
-                delete client;
-                delete srm_request;
-                srm_request = NULL;
-                if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteFinishErrorRetryable;
-                return DataStatus::WriteFinishError;
-              }
-              if (!metadata.empty()) {
-                if (metadata.front().checkSumValue.length() > 0 &&
-                   metadata.front().checkSumType.length() > 0) {
-                  std::string servercsum(metadata.front().checkSumType+":"+metadata.front().checkSumValue);
-                  logger.msg(INFO, "FinishWriting: obtained checksum: %s", servercsum);
-                  if (csum.substr(0, csum.find(':')) == metadata.front().checkSumType) {
-                    if (csum.substr(csum.find(':')+1) == metadata.front().checkSumValue) {
-                      logger.msg(INFO, "Calculated/supplied transfer checksum %s matches checksum reported by SRM destination %s", csum, servercsum);
-                    }
-                    else {
-                      logger.msg(ERROR, "Checksum mismatch between calculated/supplied checksum (%s) and checksum reported by SRM destination (%s)", csum, servercsum);
-                      r = DataStatus::WriteFinishErrorRetryable;
-                    }
-                  } else logger.msg(WARNING, "Checksum type of SRM (%s) and calculated/supplied checksum (%s) differ, cannot compare", servercsum, csum);
+          // checksum verification - if requested and not already done at lower level
+          if (srm_request->status() == SRM_REQUEST_FINISHED_SUCCESS && additional_checks && !CheckCheckSum()) {
+            const CheckSum * calc_sum = buffer->checksum_object();
+            if (calc_sum && *calc_sum && buffer->checksum_valid()) {
+              char buf[100];
+              calc_sum->print(buf,100);
+              std::string csum(buf);
+              if (!csum.empty() && csum.find(':') != std::string::npos) {
+                // get checksum info for checksum verification
+                logger.msg(VERBOSE, "FinishWriting: looking for metadata: %s", url.str());
+                // create a new request
+                SRMClientRequest list_request(srm_request->surls());
+                list_request.long_list(true);
+                std::list<struct SRMFileMetaData> metadata;
+                SRMReturnCode res = client->info(list_request,metadata);
+                if (res != SRM_OK) {
+                  client->abort(*srm_request); // if we can't list then we can't remove either
+                  delete client;
+                  delete srm_request;
+                  srm_request = NULL;
+                  if (res == SRM_ERROR_TEMPORARY) return DataStatus::WriteFinishErrorRetryable;
+                  return DataStatus::WriteFinishError;
+                }
+                if (!metadata.empty()) {
+                  if (metadata.front().checkSumValue.length() > 0 &&
+                     metadata.front().checkSumType.length() > 0) {
+                    std::string servercsum(metadata.front().checkSumType+":"+metadata.front().checkSumValue);
+                    logger.msg(INFO, "FinishWriting: obtained checksum: %s", servercsum);
+                    if (csum.substr(0, csum.find(':')) == metadata.front().checkSumType) {
+                      if (csum.substr(csum.find(':')+1) == metadata.front().checkSumValue) {
+                        logger.msg(INFO, "Calculated/supplied transfer checksum %s matches checksum reported by SRM destination %s", csum, servercsum);
+                      }
+                      else {
+                        logger.msg(ERROR, "Checksum mismatch between calculated/supplied checksum (%s) and checksum reported by SRM destination (%s)", csum, servercsum);
+                        r = DataStatus::WriteFinishErrorRetryable;
+                      }
+                    } else logger.msg(WARNING, "Checksum type of SRM (%s) and calculated/supplied checksum (%s) differ, cannot compare", servercsum, csum);
+                  } else logger.msg(WARNING, "No checksum information from server");
                 } else logger.msg(WARNING, "No checksum information from server");
-              } else logger.msg(WARNING, "No checksum information from server");
+              } else logger.msg(INFO, "No checksum verification possible");
             } else logger.msg(INFO, "No checksum verification possible");
           }
           if (r.Passed()) {

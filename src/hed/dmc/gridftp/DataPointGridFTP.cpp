@@ -14,6 +14,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
+#include <arc/data/CheckSum.h>
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
 #include <arc/globusutils/GSSCredential.h>
@@ -505,6 +506,51 @@ namespace Arc {
       globus_ftp_client_abort(&ftp_handle);
     }
     cond.wait();
+    // checksum verification
+    const CheckSum * calc_sum = buffer->checksum_object();
+    if (calc_sum && *calc_sum && buffer->checksum_valid()) {
+      char buf[100];
+      calc_sum->print(buf,100);
+      std::string csum(buf);
+      if (csum.substr(0, csum.find(':')) == DefaultCheckSum()) {
+        logger.msg(VERBOSE, "StopWriting: Calculated checksum %s", csum);
+        // list checksum and compare
+        // note: not all implementations support checksum
+        logger.msg(DEBUG, "list_files_ftp: "
+                          "looking for checksum of %s", url.str());
+        char cksum[256];
+        const char * cksumtype(upper(DefaultCheckSum()).c_str());
+        GlobusResult res = globus_ftp_client_cksm(&ftp_handle, url.str().c_str(),
+                                                  &ftp_opattr, cksum, (globus_off_t)0,
+                                                  (globus_off_t)-1, cksumtype,
+                                                  &ftp_complete_callback, this);
+        if (!res) {
+          logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksum failed");
+          logger.msg(VERBOSE, "Globus error: %s", res.str());
+        }
+        else if (!cond.wait(1000*usercfg.Timeout())) {
+          logger.msg(VERBOSE, "list_files_ftp: timeout waiting for cksum");
+          globus_ftp_client_abort(&ftp_handle);
+          cond.wait();
+        }
+        else if (!condstatus) {
+          // reset to success since failing to get checksum should not trigger an error
+          condstatus = DataStatus::Success;
+          logger.msg(INFO, "list_files_ftp: failed to get file's checksum");
+        }
+        else {
+          logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
+          if (csum.substr(csum.find(':')+1) == std::string(cksum)) {
+            logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
+            SetCheckSum(csum);
+          } else {
+            logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
+                       csum, std::string(DefaultCheckSum()+':'+cksum));
+            return DataStatus::TransferErrorRetryable;
+          }
+        }
+      }
+    }
     //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
     return condstatus;
   }
@@ -698,7 +744,7 @@ namespace Arc {
     lister.close_connection();
     DataStatus result = DataStatus::Success;
     if(lister.size() != 1) {
-      logger.msg(VERBOSE, "Wrong number of objects for stat from ftp: %s", url.str());
+      logger.msg(VERBOSE, "Wrong number of objects (%i) for stat from ftp: %s", lister.size(), url.str());
       // guess - that probably means it is directory 
       file.SetName(FileInfo(url.Path()).GetName());
       file.SetType(FileInfo::file_type_dir);
