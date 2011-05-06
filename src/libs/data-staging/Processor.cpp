@@ -375,6 +375,7 @@ namespace DataStaging {
       else if (res == Arc::DataStatus::ReadPrepareWait) {
         // if timeout then don't wait - scheduler will deal with it immediately
         if (Arc::Time() < request->get_timeout()) {
+          if (source_wait_time > 60) source_wait_time = 60;
           request->set_process_time(source_wait_time);
           request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source is not ready, will wait %u seconds", request->get_short_id(), source_wait_time);
         }
@@ -412,6 +413,7 @@ namespace DataStaging {
       else if (res == Arc::DataStatus::WritePrepareWait) {
         // if timeout then don't wait - scheduler will deal with it immediately
         if (Arc::Time() < request->get_timeout()) {
+          if (dest_wait_time > 60) dest_wait_time = 60;
           request->set_process_time(dest_wait_time);
           request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Destination is not ready, will wait %u seconds", request->get_short_id(), dest_wait_time);
         }
