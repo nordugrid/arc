@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <string>
 
 #include <arc/StringConv.h>
@@ -7,7 +11,7 @@
 
 namespace ArcSHCLegacy {
 
-void AuthUserSubst(std::string& str,AuthUser& it) {
+static void AuthUserSubst(std::string& str,AuthUser& it) {
   int l = str.length();
   // Substitutions: %D, %P
   for(int i=0;i<l;i++) {

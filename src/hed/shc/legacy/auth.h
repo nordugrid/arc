@@ -1,15 +1,12 @@
-#ifndef __GM_AUTH_H__
-#define __GM_AUTH_H__
-
 #include <string>
 #include <list>
 #include <vector>
 
 #include <string.h>
 
+#include <arc/ArcConfig.h>
 #include <arc/message/Message.h>
-//#include <gssapi.h>
-//#include <openssl/x509.h>
+//#include <arc/message/SecHandler.h>
 
 namespace ArcSHCLegacy {
 
@@ -84,8 +81,8 @@ class AuthUser {
 //  bool voms_extracted;
 
   // Evaluation results
-  std::list<group_t> groups; // Groups which user matched (internal names)
-  std::list<std::string> vos; // VOs to which user belongs (external names)
+  std::list<group_t> groups_; // Groups which user matched (internal names)
+  std::list<std::string> vos_; // VOs to which user belongs (external names)
 
   // References to related/source data
   Arc::Message& message_;
@@ -115,33 +112,35 @@ class AuthUser {
   const char* hostname(void) const { return from.c_str(); };
   // Remember this user belongs to group 'grp'
   void add_group(const char* grp) {
-    groups.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
+    groups_.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
   };
   void add_group(const std::string& grp) { add_group(grp.c_str()); };
   // Mark this user as belonging to no no groups
-  void clear_groups(void) { groups.clear(); default_group_=NULL; };
+  void clear_groups(void) { groups_.clear(); default_group_=NULL; };
   // Returns true if user belongs to specified group 'grp'
   bool check_group(const char* grp) const {
-    for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+    for(std::list<group_t>::const_iterator i=groups_.begin();i!=groups_.end();++i) {
       if(strcmp(i->name.c_str(),grp) == 0) return true;
     };
     return false;
   };
   bool check_group(const std::string& grp) const { return check_group(grp.c_str());};
-  void add_vo(const char* vo) { vos.push_back(std::string(vo)); };
-  void add_vo(const std::string& vo) { vos.push_back(vo); };
+  void get_groups(std::list<std::string>& groups) const;
+  void add_vo(const char* vo) { vos_.push_back(std::string(vo)); };
+  void add_vo(const std::string& vo) { vos_.push_back(vo); };
   bool add_vo(const char* vo,const char* filename);
   bool add_vo(const std::string& vo,const std::string& filename);
   bool add_vo(const AuthVO& vo);
   bool add_vo(const std::list<AuthVO>& vos);
-  void clear_vos(void) { vos.clear(); };
+  void clear_vos(void) { vos_.clear(); };
   bool check_vo(const char* vo) const {
-    for(std::list<std::string>::const_iterator i=vos.begin();i!=vos.end();++i) {
+    for(std::list<std::string>::const_iterator i=vos_.begin();i!=vos_.end();++i) {
       if(strcmp(i->c_str(),vo) == 0) return true;
     };
     return false;
   };
   bool check_vo(const std::string& vo) const { return check_vo(vo.c_str());};
+  void get_vos(std::list<std::string>& vos) const;
   //const char* default_voms(void) const { return default_voms_; };
   //const char* default_vo(void) const { return default_vo_; };
   //const char* default_role(void) const { return default_role_; };
@@ -165,6 +164,7 @@ class AuthUser {
   };
 };
 
+/*
 class AuthEvaluator {
  private:
   std::list<std::string> l;
@@ -181,6 +181,7 @@ class AuthEvaluator {
 };
 
 void AuthUserSubst(std::string& str,AuthUser& it);
+*/
 
 class AuthVO {
  friend class AuthUser;
@@ -193,6 +194,20 @@ class AuthVO {
   ~AuthVO(void) { };
 };
 
+/*
+class LegacySecHandler : public ArcSec::SecHandler {
+ private:
+  std::string conf_file_;
+
+ public:
+  LegacySecHandler(Arc::Config *cfg, Arc::ChainContext* ctx);
+  virtual ~LegacySecHandler(void);
+  static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg);
+  virtual bool Handle(Arc::Message* msg) const;
+  operator bool(void) { return !conf_file_.empty(); };
+  bool operator!(void) { return conf_file_.empty(); };
+};
+*/
+
 } // namespace ArcSHCLegacy
 
-#endif 

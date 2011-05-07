@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+   xmlns:xt="http://www.nordugrid.org/schemas/arcshclegacy/2011/05"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   targetNamespace="http://www.nordugrid.org/schemas/arcshclegacy/2011/05"
+   elementFormDefault="qualified"
+   attributeFormDefault="unqualified">
+
+  <!-- This schema defines elements which are accepted by ARCLegacy 
+       SecHandler and ARCLegacy PDP. ARCLegacy SecHandler collects
+       groups and VOs to which client is assigned according to 
+       [group] and [vo] blocks on arc.conf. ARCLegacy PDP is then used 
+       to permit only clients belonging to one of particular groups or VOs.
+       -->
+
+  <xsd:element name="ConfigFile" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          This element defines configuration file path for 
+          ARCLegacy SecHandler. That file contains [group]
+          and [vo] which wil be proessed by that SecHandler.
+          This elemnt is mandatory.
+        </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="Group" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          This element defines allowed group for ARCLegacy PDP.
+          If client belongs to that group PDP returns 
+          positive result.
+          There may be multiple such elements.
+        </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="VO" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          This element defines allowed VO for ARCLegacy PDP.
+          If client belongs to that VO  PDP returns 
+          positive result.
+          There may be multiple such elements.
+        </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+</xsd:schema>
+

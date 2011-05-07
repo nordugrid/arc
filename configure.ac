@@ -1870,6 +1870,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/delegationsh/Makefile
                  src/hed/shc/delegationsh/schema/Makefile
                  src/hed/shc/legacy/Makefile
+                 src/hed/shc/legacy/schema/Makefile
                  src/hed/identitymap/Makefile
                  src/hed/identitymap/schema/Makefile
                  src/libs/Makefile
