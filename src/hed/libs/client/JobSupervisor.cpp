@@ -105,7 +105,7 @@ namespace Arc {
       for (std::list<Job>::const_iterator itJ = jobs.begin();
            itJ != jobs.end(); ++itJ) {
         if (!AddJob(*itJ)) {
-          logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", itJ->IDFromEndpoint.str());
+          logger.msg(WARNING, "Unable to handle job (%s), no suitable job management plugin found.", itJ->IDFromEndpoint.str());
         }
       }
     }
