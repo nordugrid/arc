@@ -6,7 +6,7 @@
 
 //#include "../run/run_plugin.h"
 //#include "../misc/escaped.h"
-//#include "simplemap.h"
+#include "simplemap.h"
 
 #include "unixmap.h"
 
@@ -201,7 +201,6 @@ bool UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char
 }
 
 bool UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const char* line) {
-/*
   if(user.DN()[0] == 0) return false;
   SimpleMap pool(line);
   if(!pool) {
@@ -211,7 +210,6 @@ bool UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const c
   unix_user.name=pool.map(user.DN());
   if(unix_user.name.empty()) return false;
   split_unixname(unix_user.name,unix_user.group);
-*/
   return true;
 }
 

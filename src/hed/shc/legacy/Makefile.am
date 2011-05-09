@@ -6,6 +6,7 @@ pkglib_LTLIBRARIES = libarcshclegacy.la
 libarcshclegacy_la_SOURCES = auth_file.cpp auth_subject.cpp \
                              auth_plugin.cpp auth_lcas.cpp auth_ldap.cpp \
                              auth_voms.cpp auth.cpp auth.h \
+                             simplemap.cpp simplemap.h \
                              unixmap_lcmaps.cpp unixmap.cpp unixmap.h \
                              ConfigParser.cpp ConfigParser.h \
                              LegacySecAttr.cpp LegacySecAttr.h \
