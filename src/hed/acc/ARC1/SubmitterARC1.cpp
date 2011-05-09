@@ -253,7 +253,7 @@ namespace Arc {
       jobdesc.Files.push_back(file);
     }
 
-    if (!jobdesc.Application.Error.empty() && !errorIsAdded) {
+    if (!jobdesc.Application.Error.empty() && jobdesc.Application.Output != jobdesc.Application.Error && !errorIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.Error;
       file.KeepData = true;
