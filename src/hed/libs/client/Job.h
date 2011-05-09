@@ -341,6 +341,8 @@ namespace Arc {
      **/
     static bool WriteJobIDsToFile(const std::list<URL>& jobids, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
+    static bool WriteJobIDsToFile(const std::list<Job>& jobs, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
+
   private:
     static Logger logger;
   };

@@ -798,4 +798,37 @@ namespace Arc {
     return false;
   }
 
+  bool Job::WriteJobIDsToFile(const std::list<Job>& jobs, const std::string& filename, unsigned nTries, unsigned tryInterval) {
+    if (Glib::file_test(filename, Glib::FILE_TEST_IS_DIR)) return false;
+
+    FileLock lock(filename);
+    for (int tries = (int)nTries; tries > 0; --tries) {
+      if (lock.acquire()) {
+        std::ofstream os(filename.c_str(), std::ios::app);
+        if (!os.good()) {
+          os.close();
+          lock.release();
+          return false;
+        }
+        for (std::list<Job>::const_iterator it = jobs.begin();
+             it != jobs.end(); ++it) {
+          os << it->IDFromEndpoint.str() << std::endl;
+        }
+
+        bool good = os.good();
+        os.close();
+        lock.release();
+        return good;
+      }
+
+      if (tries == 6) {
+        logger.msg(WARNING, "Waiting for lock on file %s", filename);
+      }
+
+      usleep(tryInterval);
+    }
+
+    return false;
+  }
+
 } // namespace Arc
