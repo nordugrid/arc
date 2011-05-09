@@ -15,35 +15,58 @@
 
   <xsd:element name="ConfigFile" type="xsd:string">
     <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          This element defines configuration file path for 
-          ARCLegacy SecHandler. That file contains [group]
-          and [vo] which wil be proessed by that SecHandler.
-          This elemnt is mandatory.
-        </xsd:documentation>
+      <xsd:documentation xml:lang="en">
+        This element defines configuration file path for 
+        ARCLegacy SecHandler. That file contains [group]
+        and [vo] which wil be proessed by that SecHandler.
+        This elemnt is mandatory.
+      </xsd:documentation>
     </xsd:annotation>
   </xsd:element>
 
   <xsd:element name="Group" type="xsd:string">
     <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          This element defines allowed group for ARCLegacy PDP.
-          If client belongs to that group PDP returns 
-          positive result.
-          There may be multiple such elements.
-        </xsd:documentation>
+      <xsd:documentation xml:lang="en">
+        This element defines allowed group for ARCLegacy PDP.
+        If client belongs to that group PDP returns 
+        positive result.
+        There may be multiple such elements.
+      </xsd:documentation>
     </xsd:annotation>
   </xsd:element>
 
   <xsd:element name="VO" type="xsd:string">
     <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          This element defines allowed VO for ARCLegacy PDP.
-          If client belongs to that VO  PDP returns 
-          positive result.
-          There may be multiple such elements.
-        </xsd:documentation>
+      <xsd:documentation xml:lang="en">
+        This element defines allowed VO for ARCLegacy PDP.
+        If client belongs to that VO  PDP returns 
+        positive result.
+        There may be multiple such elements.
+      </xsd:documentation>
     </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="ConfigBlock">
+    <xsd:complexType>
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:sequence>
+        <xsd:element name="ConfigFile" type="xsd:string">
+          <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="BlockName" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+          <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            </xsd:documentation>
+          </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
   </xsd:element>
 
 </xsd:schema>

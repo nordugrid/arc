@@ -36,7 +36,7 @@ LegacyPDP::LegacyPDP(Arc::Config* cfg):PDP(cfg) {
 LegacyPDP::~LegacyPDP() {
 }
 
-static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2) {
+static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, Arc::Logger& logger) {
   for(std::list<std::string>::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
     for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
       if((*l1) == (*l2)) return true;
@@ -58,8 +58,8 @@ bool LegacyPDP::isPermitted(Arc::Message *msg) const {
   };
   const std::list<std::string>& groups(lattr->GetGroups());
   const std::list<std::string>& vos(lattr->GetVOs());
-  if(match_lists(groups_,groups)) return true;
-  if(match_lists(vos_,vos)) return true;
+  if(match_lists(groups_,groups,logger)) return true;
+  if(match_lists(vos_,vos,logger)) return true;
   return false;
 }
 

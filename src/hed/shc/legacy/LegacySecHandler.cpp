@@ -10,6 +10,7 @@
 
 #include "LegacySecAttr.h"
 #include "auth.h"
+#include "ConfigParser.h"
 
 #include "LegacySecHandler.h"
 
@@ -26,8 +27,15 @@ Arc::Plugin* LegacySecHandler::get_sechandler(Arc::PluginArgument* arg) {
 }
 
 LegacySecHandler::LegacySecHandler(Arc::Config *cfg,Arc::ChainContext* ctx):SecHandler(cfg) {
-  conf_file_ = (std::string)(*cfg)["ConfigFile"];
-  if(conf_file_.empty()) {
+  Arc::XMLNode conf_file = (*cfg)["ConfigFile"];
+  while((bool)conf_file) {
+    std::string filename = (std::string)conf_file;
+    if(!filename.empty()) {
+      conf_files_.push_back(filename);
+    };
+    ++conf_file;
+  };
+  if(conf_files_.size() <= 0) {
     logger.msg(Arc::ERROR, "LegacySecHandler: configuration file not specified");
   };
 }
@@ -35,97 +43,76 @@ LegacySecHandler::LegacySecHandler(Arc::Config *cfg,Arc::ChainContext* ctx):SecH
 LegacySecHandler::~LegacySecHandler(void) {
 }
 
+class LegacySHCP: public ConfigParser {
+ public:
+  LegacySHCP(const std::string& filename, Arc::Logger& logger, AuthUser& auth, LegacySecAttr& sattr):ConfigParser(filename,logger),auth_(auth),sattr_(sattr) {
+  };
+
+  virtual ~LegacySHCP(void) {
+  };
+
+ protected:
+  virtual bool BlockStart(const std::string& id, const std::string& name) {
+    group_match_ = AAA_NO_MATCH;
+    vo_match_ = false;
+    return true;
+  };
+
+  virtual bool BlockEnd(const std::string& id, const std::string& name) {
+    if(id == "group") {
+      if((group_match_ == AAA_POSITIVE_MATCH)  && !name.empty()) {
+        auth_.add_group(name.c_str());
+        sattr_.AddGroup(name);
+      };
+    } else if(id == "vo") {
+      if(vo_match_ && !name.empty()) {
+        auth_.add_vo(name.c_str());
+        sattr_.AddVO(name);
+      };
+    };
+    return true;
+  };
+
+  virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
+    if(id == "group") {
+      if(group_match_ == AAA_NO_MATCH) {
+        group_match_ = auth_.evaluate((cmd + " " + line).c_str());
+      };
+    } else if(id == "vo") {
+      if(!vo_match_) {
+        if(cmd == "file") {
+          if(!line.empty()) {
+            // Because file=filename looks exactly like 
+            // matching rule evaluate() can be used
+            int r = auth_.evaluate((cmd + " " + line).c_str());
+            vo_match_ = (r == AAA_POSITIVE_MATCH);
+          };
+        };
+      };
+    };
+    return true;
+  };
+
+ private:
+  AuthUser& auth_;
+  LegacySecAttr& sattr_;
+  int group_match_;
+  bool vo_match_;
+};
+
+
 bool LegacySecHandler::Handle(Arc::Message* msg) const {
-  if(conf_file_.empty()) {
+  if(conf_files_.size() <= 0) {
     logger.msg(Arc::ERROR, "LegacySecHandler: configuration file not specified");
     return false;
   };
   AuthUser auth(*msg);
-  std::ifstream f(conf_file_.c_str());
-  if(!f) {
-    logger.msg(Arc::ERROR, "LegacySecHandler: configuration file can not be read");
-    return false;
-  };
-  bool is_group = false;
-  bool is_vo = false;
-  int group_match = AAA_NO_MATCH;
-  bool vo_match = false;
-  std::string block_name;
-  // Match all [group] and [vo] blocks
   Arc::AutoPointer<LegacySecAttr> sattr(new LegacySecAttr(logger));
-  while(!f.eof()) {
-    if(!f) {
-      logger.msg(Arc::ERROR, "LegacySecHandler: configuration file can not be read");
-      return false;
-    };
-    std::string line;
-    getline(f,line);
-    line = Arc::trim(line);
-    if(line.empty()) continue;
-    if(line[0] == '#') continue;
-    if(line[0] == ']') {
-      if(line.length() < 2) return false;
-      // End of block processing
-      if(is_group && (group_match == AAA_POSITIVE_MATCH)  && !block_name.empty()) {
-        auth.add_group(block_name.c_str());
-        sattr->AddGroup(block_name);
-      };
-      if(is_vo && vo_match && !block_name.empty()) {
-        auth.add_vo(block_name.c_str());
-        sattr->AddVO(block_name);
-      };
-      line = line.substr(1,line.length()-2);
-      block_name = "";
-      std::string::size_type ps = line.find('/');
-      if(ps != std::string::npos) {
-        block_name = Arc::trim(line.substr(ps+1));
-        line.resize(ps);
-      };
-      line = Arc::trim(line);
-      is_group = (line == "group");
-      is_vo = (line == "vo");
-      group_match = AAA_NO_MATCH;
-      vo_match = false;
-      continue;
-    };
-    std::string cmd;
-    std::string::size_type p = line.find('=');
-    if(p == std::string::npos) {
-      cmd = Arc::trim(line);
-    } else {
-      line[p] = ' ';
-      cmd = Arc::trim(line.substr(0,p));
-    };
-    if(cmd == "name") {
-      if(p != std::string::npos) {
-        block_name = Arc::trim(Arc::trim(line.substr(p+1)),"\"");
-      };
-      continue;
-    };
-    if(is_group) {
-      if(group_match == AAA_NO_MATCH) {
-        group_match = auth.evaluate(line.c_str());
-      };
-    } else if(is_vo) {
-      if(cmd == "file") {
-        if(p != std::string::npos) {
-          // std::string filename = Arc::trim(Arc::trim(line.substr(p+1)),"\"");
-          // Because file=filename looks exactly like 
-          // matching rule evaluate() can be used
-          int r = auth.evaluate(line.c_str());
-          if(r == AAA_POSITIVE_MATCH) vo_match = vo_match || true;
-        };
-      };
-    };
-  };
-  // End of block processing
-  if(is_group && (group_match == AAA_POSITIVE_MATCH) && !block_name.empty()) {
-    auth.add_group(block_name.c_str());
-    sattr->AddGroup(block_name);
-  };
-  if(is_vo && vo_match && !block_name.empty()) {
-    auth.add_vo(block_name.c_str());
-    sattr->AddVO(block_name);
+  for(std::list<std::string>::const_iterator conf_file = conf_files_.begin();
+                             conf_file != conf_files_.end();++conf_file) {
+    LegacySHCP parser(*conf_file,logger,auth,*sattr);
+    if(!parser) return false;
+    if(!parser.Parse()) return false;
   };
   // Pass all matched groups and VOs to Message in SecAttr
   // TODO: maybe assign to context
