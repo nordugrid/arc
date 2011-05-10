@@ -182,3 +182,11 @@
 // result
 // errno
 
+#define CMD_TEMPFILE (28)
+// mode
+// string prefix
+// -
+// result
+// errno
+// string path
+

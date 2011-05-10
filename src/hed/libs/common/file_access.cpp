@@ -132,7 +132,7 @@ static bool swrite_result(int s,int cmd,int res,int err) {
   return true;
 }
 
-static bool swrite_result(int s,int cmd,int res,int err,void* add,int addsize) {
+static bool swrite_result(int s,int cmd,int res,int err,const void* add,int addsize) {
   header_t header;
   header.cmd = cmd;
   header.size = sizeof(res) + sizeof(err) + addsize;
@@ -143,7 +143,7 @@ static bool swrite_result(int s,int cmd,int res,int err,void* add,int addsize) {
   return true;
 }
 
-static bool swrite_result(int s,int cmd,int res,int err,void* add1,int addsize1,void* add2,int addsize2) {
+static bool swrite_result(int s,int cmd,int res,int err,const void* add1,int addsize1,const void* add2,int addsize2) {
   header_t header;
   header.cmd = cmd;
   header.size = sizeof(res) + sizeof(err) + addsize1 + addsize2;
@@ -457,6 +457,22 @@ int main(int argc,char* argv[]) {
         errno = 0;
         int res = (curfile = ::open(path.c_str(),flags,mode));
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
+      }; break;
+
+      case CMD_TEMPFILE: {
+        mode_t mode;
+        std::string path;
+        if(!sread(sin,&mode,sizeof(mode))) return -1;
+        header.size -= sizeof(mode);
+        if(!sread_string(sin,path,header.size)) return -1;
+        if(header.size) return -1;
+        if(curfile != -1) ::close(curfile);
+        errno = 0;
+        path+="XXXXXX";
+        int res = (curfile = ::mkstemp((char*)(path.c_str())));
+        if(res != -1) ::chmod(path.c_str(),mode);
+        int l = path.length();
+        if(!swrite_result(sout,header.cmd,res,errno,&l,sizeof(l),path.c_str(),l)) return -1;
       }; break;
 
       case CMD_CLOSEFILE: {

@@ -411,6 +411,18 @@ bool TmpDirCreate(std::string& path) {
   return result;
 }
 
-} // namespace Arc
+bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
+    if(!fa.mkstemp(filename,S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
+    return true;
+  }
+  int h = Glib::file_open_tmp(filename,"ARC-");
+  if(h == -1) return false;
+  if(!write_all(h,data.c_str(),data.length())) return false;
+  return true;
+}
 
+} // namespace Arc
 
