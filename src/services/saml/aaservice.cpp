@@ -284,7 +284,15 @@ Arc::MCC_Status Service_AA::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   Arc::XMLNode key_info = subject_confirmation_data.NewChild("ds:KeyInfo",ds_ns);
   Arc::XMLNode x509_data = key_info.NewChild("ds:X509Data");
   Arc::XMLNode x509_cert = x509_data.NewChild("ds:X509Certificate");
-  std::string x509_str = get_cert_str(inmsg.Attributes()->get("TLS:PEERCERT"));
+  std::string x509_str;
+  Arc::SecAttr sattr = inmsg.Auth()->get("TLS");
+  if(sattr) {
+    x509_str = sattr->get("CERTIFICATE");
+    if(x509_str.empty()) {
+      sattr = inmsg.AuthContext()->get("TLS");
+      if(sattr) x509_str = sattr->get("CERTIFICATE");
+    };
+  };
   x509_cert = x509_str;
 
  
