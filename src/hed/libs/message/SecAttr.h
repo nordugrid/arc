@@ -76,6 +76,18 @@ namespace Arc {
     virtual bool Import(SecAttrFormat format,const std::string &val);
     virtual bool Import(SecAttrFormat format,XMLNode val);
 
+    /** Access to specific item of the security attribute.
+       If there are few items of same id the first one is presented.
+       It is meant to be used for tightly coupled SecHandlers
+       and provides more effective interface than Export. */
+    virtual std::string get(const std::string& id) const;
+
+    /** Access to specific items of the security attribute.
+       This method returns all items which have id assigned.
+       It is meant to be used for tightly coupled SecHandlers
+       and provides more effective interface than Export. */
+    virtual std::list<std::string> getAll(const std::string& id) const;
+
    protected:
     virtual bool equal(const SecAttr &b) const;
   };

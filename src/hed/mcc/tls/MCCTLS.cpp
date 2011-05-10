@@ -73,12 +73,50 @@ class TLSSecAttr: public SecAttr {
   std::string X509Str(void) {
     return x509str_;
   };
+  std::string X509ChainStr(void) {
+    return x509chainstr_;
+  };
+  virtual std::string get(const std::string& id) {
+    if(id == "IDENTITY") return identity_;
+    if(id == "SUBJECT") return Subject();
+    if(id == "CA") return CA();
+    if(id == "CERTIFICATE") return x509str_;
+    if(id == "CERTIFICATECHAIN") return x509chainstr_;
+    if(id == "LOCALSUBJECT") return target_;
+    if((id == "VOMS") || (id == "VO")) {
+      std::list<std::string> items = getAll(id);
+      if(items.size() > 0) return *items.begin();
+      return "";
+    };
+    return "";
+  };
+  virtual std::list<std::string> getAll(const std::string& id) {
+    std::list<std::string> items;
+    if(id == "VOMS") {
+      for(std::vector<VOMSACInfo>::const_iterator v = voms_attributes_.begin();
+                                   v != voms_attributes_.end();++v) { 
+        for(std::vector<std::string>::const_iterator a = v->attributes.begin();
+                                   a != v->attributes.end();++a) {
+          items.push_back(*a);
+        };
+      };
+    } else if(id == "VO") {
+      for(std::vector<VOMSACInfo>::const_iterator v = voms_attributes_.begin();
+                                   v != voms_attributes_.end();++v) { 
+        items.push_back(v->voname);
+      };
+    } else {
+      return SecAttr::getAll(id);
+    };
+    return items;
+  };
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
   std::vector<VOMSACInfo> voms_attributes_; // VOMS attributes from the VOMS extension of proxy
   std::string target_; // Subject of host certificate
-  std::string x509str_; // The last certificate (in string format)
+  std::string x509str_; // The last certificate (in string format). TODO: extract on demand.
+  std::string x509chainstr_; // Other certificates (in string format). TODO: extract on demand.
   virtual bool equal(const SecAttr &b) const;
 };
 }
@@ -138,16 +176,19 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          X509_NAME_oneline(X509_get_subject_name(cert),buf,sizeof(buf));
          subject=buf;
          subjects_.push_back(subject);
+         std::string certstr;
+         x509_to_string(cert, certstr);
+         x509chainstr_=certstr+x509chainstr_;
 #ifdef HAVE_OPENSSL_PROXY
          if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) {
             identity_=subject;
          };
 #endif
-        // Parse VOMS attributes from each certificate of the peer chain.
-        bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
-        if(!res) {
-          logger.msg(ERROR,"VOMS attribute parsing failed");
-        };
+         // Parse VOMS attributes from each certificate of the peer chain.
+         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
+         if(!res) {
+            logger.msg(ERROR,"VOMS attribute parsing failed");
+         };
       };
    };
    X509* peercert = payload.GetPeerCert();
@@ -375,8 +416,6 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
       logger.msg(VERBOSE, "CA name: %s", sattr->CA());
       nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
-
-      nextinmsg.Attributes()->set("TLS:PEERCERT",sattr->X509Str());
       if(!((sattr->target_).empty()))
         nextinmsg.Attributes()->set("TLS:LOCALDN",sattr->target_);
    }

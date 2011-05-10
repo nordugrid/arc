@@ -48,6 +48,7 @@ class HTTPSecAttr: public SecAttr {
   virtual ~HTTPSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
+  virtual std::string get(const std::string& id) const;
  protected:
   std::string action_;
   std::string object_;
@@ -74,6 +75,12 @@ HTTPSecAttr::~HTTPSecAttr(void) {
 
 HTTPSecAttr::operator bool(void) const {
   return true;
+}
+
+std::string HTTPSecAttr::get(const std::string& id) const {
+  if(id == "ACTION") return action_;
+  if(id == "OBJECT") return object_;
+  return "";
 }
 
 bool HTTPSecAttr::equal(const SecAttr &b) const {

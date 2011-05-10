@@ -49,6 +49,7 @@ class SOAPSecAttr: public SecAttr {
   virtual ~SOAPSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
+  virtual std::string get(const std::string& id) const;
  protected:
   std::string action_;
   std::string object_;
@@ -67,6 +68,13 @@ SOAPSecAttr::~SOAPSecAttr(void) {
 
 SOAPSecAttr::operator bool(void) const {
   return !action_.empty();
+}
+
+std::string SOAPSecAttr::get(const std::string& id) const {
+  if(id == "ACTION") return action_;
+  if(id == "OBJECT") return object_;
+  if(id == "CONTEXT") return context_;
+  return "";
 }
 
 bool SOAPSecAttr::equal(const SecAttr &b) const {

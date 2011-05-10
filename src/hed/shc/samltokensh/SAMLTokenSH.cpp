@@ -49,6 +49,7 @@ class SAMLAssertionSecAttr: public Arc::SecAttr {
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
   virtual bool Import(SecAttrFormat format, const XMLNode& val);
+  virtual std::string get(const std::string& id) const;
  protected:
   virtual bool equal(const SecAttr &b) const;
  private:
@@ -64,6 +65,11 @@ SAMLAssertionSecAttr::SAMLAssertionSecAttr(std::string& node_str) {
 }
 
 SAMLAssertionSecAttr::~SAMLAssertionSecAttr(){}
+
+std::string SAMLAssertionSecAttr::get(const std::string& id) const {
+  // TODO: do some dissection of saml_assertion_node_
+  return "";
+}
 
 bool SAMLAssertionSecAttr::equal(const SecAttr& b) const {
   try {

@@ -39,6 +39,17 @@ bool SecAttr::Import(SecAttrFormat, XMLNode) {
   return false;
 }
 
+std::string SecAttr::get(const std::string&) const {
+  return std::string();
+}
+
+std::list<std::string> SecAttr::getAll(const std::string& id) const {
+  std::list<std::string> items;
+  std::string item = get(id);
+  if(!item.empty()) items.push_back(item);
+  return items;
+}
+
 MultiSecAttr::operator bool() const {
   return !attrs_.empty();
 }
