@@ -93,6 +93,12 @@ namespace Arc {
     operator T*(void) const {
       return object;
     }
+    /// Release refred object so that it can be passed to other container
+    T* Release(void) {
+      T* tmp = object;
+      object = NULL;
+      return tmp;
+    }
   };
 
   /// Wrapper for pointer with automatic destruction and mutiple references
@@ -113,14 +119,16 @@ namespace Arc {
       Base(Base<P>&) {}
     public:
       int cnt;
+      bool released;
       P *ptr;
       Base(P *p)
         : cnt(0),
-          ptr(p) {
+          ptr(p),
+          released(false) {
         add();
       }
       ~Base(void) {
-        if (ptr)
+        if (ptr && !released)
           delete ptr;
       }
       Base<P>* add(void) {
@@ -129,7 +137,7 @@ namespace Arc {
       }
       bool rem(void) {
         if (--cnt == 0) {
-          delete this;
+          if(!released) delete this;
           return true;
         }
         return false;
@@ -177,6 +185,12 @@ namespace Arc {
     /// Cast to original pointer
     operator T*(void) const {
       return (object->ptr);
+    }
+    /// Release refred object so that it can be passed to other container
+    T* Release(void) {
+      T* tmp = object->ptr;
+      object->released = true;
+      return tmp;
     }
   };
 
