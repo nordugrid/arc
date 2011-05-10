@@ -468,7 +468,6 @@ int main(int argc,char* argv[]) {
         if(header.size) return -1;
         if(curfile != -1) ::close(curfile);
         errno = 0;
-        path+="XXXXXX";
         int res = (curfile = ::mkstemp((char*)(path.c_str())));
         if(res != -1) ::chmod(path.c_str(),mode);
         int l = path.length();

@@ -74,7 +74,7 @@ namespace Arc {
     /// Close open file.
     bool close(void);
     /// Open new temporary file for writing.
-    /// On input path contains prefix of file.
+    /// On input path contains template of file name ending with XXXXXX.
     /// On output path is path to created file.
     bool mkstemp(std::string& path, mode_t mode);
     /// Change current position in open file.

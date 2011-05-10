@@ -18,6 +18,7 @@ class FileUtilsTest
   CPPUNIT_TEST(TestFileCreateAndRead);
   CPPUNIT_TEST(TestMakeAndDeleteDir);
   CPPUNIT_TEST(TestTmpDirCreate);
+  CPPUNIT_TEST(TestTmpFileCreate);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -30,6 +31,7 @@ public:
   void TestFileCreateAndRead();
   void TestMakeAndDeleteDir();
   void TestTmpDirCreate();
+  void TestTmpFileCreate();
 
 private:
   bool _createFile(const std::string& filename, const std::string& text = "a");
@@ -140,6 +142,17 @@ void FileUtilsTest::TestTmpDirCreate() {
   CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));
   CPPUNIT_ASSERT(Arc::DirDelete(path));
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
+}
+
+void FileUtilsTest::TestTmpFileCreate() {
+  std::string path;
+  CPPUNIT_ASSERT(Arc::TmpFileCreate(path,"TEST"));
+  struct stat st;
+  CPPUNIT_ASSERT(stat(path.c_str(), &st) == 0);
+  CPPUNIT_ASSERT(S_ISREG(st.st_mode));
+  CPPUNIT_ASSERT_EQUAL(4,(int)st.st_size);
+  CPPUNIT_ASSERT(Arc::FileDelete(path));
   CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
 }
 

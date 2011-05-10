@@ -406,8 +406,8 @@ bool TmpDirCreate(std::string& path) {
   std::string tmpdir(Glib::get_tmp_dir());
   bool result = false;
 #ifdef HAVE_MKDTEMP
-  char tmpdirtemplate[] = "ARC-XXXXXX";
-  tmpdir = Glib::build_filename(tmpdir, tmpdirtemplate);
+  char tmptemplate[] = "ARC-XXXXXX";
+  tmpdir = Glib::build_filename(tmpdir, tmptemplate);
   char* tmpdirchar = mkdtemp(const_cast<char*>(tmpdir.c_str()));
   if (tmpdirchar) {
     path = tmpdirchar;
@@ -423,6 +423,9 @@ bool TmpDirCreate(std::string& path) {
 }
 
 bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
+  std::string tmpdir(Glib::get_tmp_dir());
+  char tmptemplate[] = "ARC-XXXXXX";
+  filename = Glib::build_filename(tmpdir, tmptemplate);
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
@@ -430,7 +433,7 @@ bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gi
     if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
     return true;
   }
-  int h = Glib::file_open_tmp(filename,"ARC-");
+  int h = Glib::mkstemp(filename);
   if(h == -1) return false;
   if(!write_all(h,data.c_str(),data.length())) return false;
   return true;
