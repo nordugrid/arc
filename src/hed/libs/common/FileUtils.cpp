@@ -435,7 +435,11 @@ bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gi
   }
   int h = Glib::mkstemp(filename);
   if(h == -1) return false;
-  if(!write_all(h,data.c_str(),data.length())) return false;
+  if(!write_all(h,data.c_str(),data.length())) {
+    ::close(h);
+    return false;
+  };
+  ::close(h);
   return true;
 }
 
