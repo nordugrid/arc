@@ -243,5 +243,33 @@ void AuthUser::get_groups(std::list<std::string>& groups) const {
   };
 }
 
+void AuthUser::subst(std::string& str) {
+  int l = str.length();
+  // Substitutions: %D, %P
+  for(int i=0;i<l;i++) {
+    if(str[i] == '%') {
+      if(i<(l-1)) {
+        switch(str[i+1]) {
+          case 'D': {
+            const char* s = DN();
+            int s_l = strlen(s);
+            str.replace(i,2,s);
+            i+=(s_l-2-1);
+          }; break;
+          case 'P': {
+            const char* s = proxy();
+            int s_l = strlen(s);
+            str.replace(i,2,s);
+            i+=(s_l-2-1);
+          }; break;
+          default: {
+            i++;
+          }; break;
+        };
+      };
+    };
+  };
+}
+
 } // namespace ArcSHCLegacy
 

@@ -3,9 +3,8 @@
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/Run.h>
 
-//#include "../run/run_plugin.h"
-//#include "../misc/escaped.h"
 #include "simplemap.h"
 
 #include "unixmap.h"
@@ -142,15 +141,8 @@ bool UnixMap::mapname(const char* line) {
 
 // -----------------------------------------------------------
 
-static void subst_arg(std::string& str,void* arg) {
-//  AuthUser* it = (AuthUser*)arg;
-//  if(!it) return;
-//  AuthUserSubst(str,*it);
-}
-
 bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,const char* line) {
   // timeout path arg ...
-/*
   if(!line) return false;
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return false;
@@ -161,16 +153,21 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
   line=p;
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return false;
-  std::string s = line;
-  gridftpd::RunPlugin run(line);
-  run.timeout(to);
-  if(!run.run(subst_arg,&user_)) return false;
-  if(run.result() != 0) return false;
+  std::list<std::string> args;
+  Arc::tokenize(line,args," ","\"","\"");
+  if(args.size() <= 0) return false;
+  for(std::list<std::string>::iterator arg = args.begin();
+          arg != args.end();++arg) user_.subst(*arg);
+  std::string stdout_channel;
+  Arc::Run run(args);
+  run.AssignStdout(stdout_channel);
+  if(!run.Start()) return false;
+  if(!run.Wait(to)) return false;
+  if(run.Result() != 0) return false;
   // Plugin should print user[:group] at stdout
-  if(run.stdout_channel().length() > 512) return false; // really strange name
-  unix_user.name = run.stdout_channel();
+  if(stdout_channel.length() > 512) return false; // really strange name
+  unix_user.name = stdout_channel;
   split_unixname(unix_user.name,unix_user.group);
-*/
   return true;
 }
 

@@ -162,6 +162,7 @@ class AuthUser {
   const std::string get_property(const std::string /* property */) {
     return std::string("");
   };
+  void subst(std::string& str);
 };
 
 /*
