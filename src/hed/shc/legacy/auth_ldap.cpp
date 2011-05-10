@@ -8,14 +8,6 @@
 #include <arc/URL.h>
 #include <arc/Logger.h>
 
-
-/*
-#ifdef HAVE_LDAP
-#include "../misc/ldapquery.h"
-#endif
-#include "../misc/escaped.h"
-*/
-
 #include "auth.h"
 
 namespace ArcSHCLegacy {

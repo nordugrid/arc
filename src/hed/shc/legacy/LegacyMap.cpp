@@ -2,9 +2,6 @@
 #include <config.h>
 #endif
 
-//#include <iostream>
-//#include <globus_gsi_credential.h>
-
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 

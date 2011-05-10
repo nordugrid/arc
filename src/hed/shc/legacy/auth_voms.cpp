@@ -3,12 +3,9 @@
 #endif
 
 #include <iostream>
-//#include <globus_gsi_credential.h>
 
 #include <vector>
 
-//#include <arc/globusutils/GlobusErrorUtils.h>
-//#include <arc/credential/VOMSUtil.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 

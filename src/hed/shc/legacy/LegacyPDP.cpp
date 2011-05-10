@@ -2,11 +2,6 @@
 #include <config.h>
 #endif
 
-//#include <iostream>
-
-//#include <arc/StringConv.h>
-//#include <arc/Utils.h>
-
 #include "LegacySecAttr.h"
 
 #include "LegacyPDP.h"
@@ -47,6 +42,7 @@ static bool match_lists(const std::list<std::string>& list1, const std::list<std
 
 bool LegacyPDP::isPermitted(Arc::Message *msg) const {
   Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
+  if(!sattr) sattr = msg->AuthContext()->get("ARCLEGACY");
   if(!sattr) {
     logger.msg(Arc::ERROR, "LegacyPDP: there is no ARCLEGACY Sec Attribute defined. Probably ARC Legacy Sec Handler is not configured or failed.");
     return false;

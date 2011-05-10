@@ -2,14 +2,9 @@
 #include <config.h>
 #endif
 
-//#include <iostream>
-//#include <globus_gsi_credential.h>
-
 #include <arc/StringConv.h>
-//#include <arc/Utils.h>
-
-//#include "../misc/proxy.h"
-//#include "../misc/escaped.h"
+#include <arc/FileUtils.h>
+#include <arc/message/SecAttr.h>
 
 #include "LegacySecAttr.h"
 
@@ -102,36 +97,26 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
 AuthUser::AuthUser(Arc::Message& message):message_(message) {
   subject_ = message.Attributes()->get("TLS:IDENTITYDN");
   // Fetch VOMS attributes
-  std::vector<std::string> voms_attrs;
-  Arc::XMLNode tls_attrs;
-  std::list<std::string> auth_keys_allow;
-  std::list<std::string> auth_keys_reject;
-  auth_keys_allow.push_back("TLS");
-  Arc::MessageAuth* auth = NULL;
-  auth = message.Auth()->Filter(auth_keys_allow,auth_keys_reject);
-  if(auth) {
-    auth->Export(Arc::SecAttr::ARCAuth,tls_attrs);
-    delete auth; auth = NULL;
+  std::list<std::string> voms_attrs;
+  Arc::SecAttr* sattr = NULL;
+  sattr = message_.Auth()->get("TLS");
+  if(sattr) {
+    std::list<std::string> vomses = sattr->getAll("VOMS");
+    voms_attrs.splice(voms_attrs.end(),vomses);
   };
-  auth = message.AuthContext()->Filter(auth_keys_allow,auth_keys_reject);
-  if(auth) {
-    auth->Export(Arc::SecAttr::ARCAuth,tls_attrs);
-    delete auth; auth = NULL;
-  };
-  Arc::XMLNode attr = tls_attrs["RequestItem"]["Subject"]["SubjectAttribute"];
-  for(;(bool)attr;++attr) {
-    if((std::string)tls_attrs.Attribute("AttributeId") == "http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute") {
-      voms_attrs.push_back((std::string)attr);
-    };
+  sattr = message_.AuthContext()->get("TLS");
+  if(sattr) {
+    std::list<std::string> vomses = sattr->getAll("VOMS");
+    voms_attrs.splice(voms_attrs.end(),vomses);
   };
   voms_data_ = arc_to_voms(voms_attrs);
 }
 
-std::vector<struct voms> AuthUser::arc_to_voms(const std::vector<std::string>& attributes) {
+std::vector<struct voms> AuthUser::arc_to_voms(const std::list<std::string>& attributes) {
 
   std::vector<struct voms> voms_list;
   struct voms voms_item;
-  for(std::vector<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
+  for(std::list<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
     struct voms_attrs attrs;
     std::string vo;
     std::string attr = v->substr(v->find(" ")+1);
@@ -171,7 +156,7 @@ std::vector<struct voms> AuthUser::arc_to_voms(const std::vector<std::string>& a
 }
 
 AuthUser::~AuthUser(void) {
-  if(proxy_file_was_created && filename.length()) unlink(filename.c_str());
+  if(filename.length()) Arc::FileDelete(filename);
 }
 
 int AuthUser::evaluate(const char* line) {
@@ -269,6 +254,26 @@ void AuthUser::subst(std::string& str) {
       };
     };
   };
+}
+
+bool AuthUser::store_credentials(void) {
+  if(!filename.empty()) return true;
+  Arc::SecAttr* sattr = message_.Auth()->get("TLS");
+  if(sattr) {
+    std::string cred = sattr->get("CERTIFICATE");
+    if(cred.empty()) {
+      sattr = message_.AuthContext()->get("TLS");
+      if(sattr) cred = sattr->get("CERTIFICATE");
+    };
+    if(!cred.empty()) {
+      cred+=sattr->get("CERTIFICATECHAIN");
+      std::string tmpfile;
+      if(Arc::TmpFileCreate(tmpfile,cred)) {
+        return true;
+      };
+    };
+  };
+  return false;
 }
 
 } // namespace ArcSHCLegacy

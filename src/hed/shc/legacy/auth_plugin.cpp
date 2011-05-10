@@ -11,6 +11,8 @@
 
 namespace ArcSHCLegacy {
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
+
 int AuthUser::match_plugin(const char* line) {
   if(!line) return AAA_NO_MATCH;
   for(;*line;line++) if(!isspace(*line)) break;
@@ -26,7 +28,9 @@ int AuthUser::match_plugin(const char* line) {
   Arc::tokenize(line,args," ","\"","\"");
   if(args.size() <= 0) return AAA_NO_MATCH;
   for(std::list<std::string>::iterator arg = args.begin();
-          arg != args.end();++arg) subst(*arg);
+          arg != args.end();++arg) {
+    subst(*arg);
+  };
   Arc::Run run(args);
   if(!run.Start()) return AAA_NO_MATCH;
   if(!run.Wait(to)) return AAA_NO_MATCH;

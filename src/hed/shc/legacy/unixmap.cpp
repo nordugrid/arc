@@ -157,7 +157,9 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
   Arc::tokenize(line,args," ","\"","\"");
   if(args.size() <= 0) return false;
   for(std::list<std::string>::iterator arg = args.begin();
-          arg != args.end();++arg) user_.subst(*arg);
+          arg != args.end();++arg) {
+    user_.subst(*arg);
+  };
   std::string stdout_channel;
   Arc::Run run(args);
   run.AssignStdout(stdout_channel);

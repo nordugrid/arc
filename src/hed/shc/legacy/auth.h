@@ -107,7 +107,10 @@ class AuthUser {
   // Evaluate authentication rules
   int evaluate(const char* line);
   const char* DN(void) const { return subject_.c_str(); };
-  const char* proxy(void) const { return filename.c_str(); };
+  const char* proxy(void) const {
+    (const_cast<AuthUser*>(this))->store_credentials();
+    return filename.c_str();
+  };
   bool is_proxy(void) const { return has_delegation; };
   const char* hostname(void) const { return from.c_str(); };
   // Remember this user belongs to group 'grp'
@@ -151,7 +154,7 @@ class AuthUser {
   const std::vector<struct voms>& voms(void);
   const std::list<std::string>& VOs(void);
   // convert ARC list into voms structure
-  static std::vector<struct voms> arc_to_voms(const std::vector<std::string>& attributes);
+  static std::vector<struct voms> arc_to_voms(const std::list<std::string>& attributes);
   /*
    * Get a certain property of the AuthUser, for example DN
    * or VOMS VO. For possible values of property see the source
@@ -163,6 +166,7 @@ class AuthUser {
     return std::string("");
   };
   void subst(std::string& str);
+  bool store_credentials(void);
 };
 
 /*
