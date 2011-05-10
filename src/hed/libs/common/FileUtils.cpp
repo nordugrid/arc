@@ -47,9 +47,18 @@ static bool write_all(int h,const void* buf,size_t l) {
   return true;
 }
 
-//int FileOpen(const std::string& path,int flags,mode_t mode) {
-//  return FileOpen(path,flags,0,0,mode);
-//}
+static bool write_all(FileAccess& fa,const void* buf,size_t l) {
+  for(;l>0;) {
+    ssize_t ll = fa.write(buf,l);
+    if(ll == -1) {
+      if(fa.geterrno() == EINTR) continue;
+      return false;
+    };
+    buf = (const void*)(((const char*)buf)+ll);
+    l-=ll;
+  }
+  return true;
+}
 
 bool FileCopy(const std::string& source_path,const std::string& destination_path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
@@ -175,6 +184,8 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
     if(!fa.open(filename,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
+    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
+    fa.close();
     return true;
   }
   if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
@@ -416,6 +427,7 @@ bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gi
     FileAccess fa;
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if(!fa.mkstemp(filename,S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
+    if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
     return true;
   }
   int h = Glib::file_open_tmp(filename,"ARC-");
