@@ -284,6 +284,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libaccBroker.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libaccUNICORE.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccJobDescriptionParser.dll*
+%{_mingw32_libexecdir}/%{pkgdir}/arc-lcas.exe
+%{_mingw32_libexecdir}/%{pkgdir}/arc-lcmaps.exe
 
 %files plugins-globus
 %defattr(-,root,root,-)
