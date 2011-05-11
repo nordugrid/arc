@@ -87,11 +87,12 @@ sub glueState {
 
 # Helper function that assists the GLUE2 XML renderer handle the 'splitjobs' option
 #   $config       - the config hash
+#   $jobid        - job id from GM
 #   $gmjob        - a job hash ref as returned by GMJobsInfo
 #   $xmlGenerator - a function ref that returns a string (the job's GLUE2 XML description)
 # Returns undef on error, 0 if the XML file was already up to date, 1 if it was written
 sub jobXmlFileWriter {
-    my ($config, $gmjob, $xmlGenerator) = @_;
+    my ($config, $jobid, $gmjob, $xmlGenerator) = @_;
     # If this is defined, then it's a job managed by local A-REX.
     my $gmuser = $gmjob->{gmuser};
     # Skip for now jobs managed by remote A-REX.
@@ -879,7 +880,7 @@ sub collect($) {
                     $cact->{State} = glueState($gmjob->{status});
                 }
 
-                $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $gmjob, @_) };
+                $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
 
                 return $cact;
             };

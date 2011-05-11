@@ -407,7 +407,7 @@ sub ComputingActivities {
                 $memprinter->end('ComputingActivity');
                 close($memhandle);
                 return $xmlstring;
-            }
+            };
             my $filewriter = $data->{jobXmlFileWriter};
             &$filewriter($xmlGenerator);
         }
