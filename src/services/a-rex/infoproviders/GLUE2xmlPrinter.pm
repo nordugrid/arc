@@ -215,7 +215,6 @@ sub ComputingShares {
         $self->begin('Associations');
         $self->properties($data, 'ComputingEndpointID');
         $self->properties($data, 'ExecutionEnvironmentID');
-        $self->properties($data, 'ComputingActivityID');
         $self->end('Associations');
     });
 }

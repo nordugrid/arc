@@ -1156,7 +1156,6 @@ sub collect($) {
             push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
 
             $csha->{ComputingEndpointID} = $cepID;
-            $csha->{ComputingActivityID} = [ values %{$cactIDs{$share}} ] unless $nojobs;
             $csha->{ComputingServiceID} = $csvID;
 
             return $csha;
