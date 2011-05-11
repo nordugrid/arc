@@ -79,20 +79,23 @@ class FileDataEx : public FileData {
    * string to time_t while reading from local file
    */
   std::string starttime; /* time of transfer started */
-  std::string endtime; /* time of trnasfer finished */
+  std::string endtime; /* time of transfer finished */
   /* if the file was retrieved from cache: 
    *  - "yes";
    *  - "no"; 
    */
   std::string fromcache;
+  time_t mtime;
   FileDataEx(const FileData& f)
     : FileData(f),
       res(Arc::DataStatus::Success),
-      pair(NULL) {}
+      pair(NULL),
+      mtime((time_t)(-1)) {}
   FileDataEx(const FileData& f, Arc::DataStatus r)
     : FileData(f),
       res(r),
-      pair(NULL) {}
+      pair(NULL),
+      mtime((time_t)(-1)) {}
 };
 
 static std::list<FileData> job_files_;
@@ -114,7 +117,7 @@ class SimpleConditionLock {
   };
 };
 
-int clean_files(std::list<FileData> &job_files,char* session_dir) {
+static int clean_files(std::list<FileData> &job_files,char* session_dir) {
   std::string session(session_dir);
   /* delete only downloadable files, let user manage his/hers files */
   std::list<FileData> tmp;
@@ -128,13 +131,15 @@ int clean_files(std::list<FileData> &job_files,char* session_dir) {
            1 - it is not proper file or other error
            2 - not here yet
 */
-int user_file_exists(FileData &dt,char* session_dir,std::list<std::string>* have_files,std::string* error = NULL) {
+static int user_file_exists(FileDataEx &dt,char* session_dir,std::list<std::string>* have_files,std::string* error = NULL) {
   struct stat st;
   const char *str = dt.lfn.c_str();
   if(strcmp(str,"*.*") == 0) return 0; /* do not wait for this file */
   std::string fname=std::string(session_dir) + '/' + dt.pfn;
   /* check if file does exist at all */
+  // TODO: FileAccess?
   if(lstat(fname.c_str(),&st) != 0) return 2;
+  dt.mtime = st.st_mtime;
   /* check for misconfiguration */
   /* parse files information */
   char *str_;
@@ -275,7 +280,7 @@ int main(int argc,char** argv) {
   int res=0;
   bool not_uploaded;
   time_t start_time=time(NULL);
-  time_t upload_timeout = 0;
+  time_t files_changed = 0;
   int n_threads = 1;
   int n_files = MAX_DOWNLOADS;
   /* if != 0 - change owner of downloaded files to this user */
@@ -612,12 +617,6 @@ int main(int argc,char** argv) {
 
   // initialize structures to handle download
   /* TODO: add threads=# to all urls if n_threads!=1 */
-  // Compute wait time for user files
-  for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();++i) {
-    if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
-      upload_timeout+=MAX_USER_TIME;
-    };
-  };
   // Main download cycle
   if(!userfiles_only) for(;;) {
     // Initiate transfers
@@ -712,6 +711,7 @@ int main(int argc,char** argv) {
       credentials_expired=true;
     transferred=false;
   };
+  files_changed = ::time(NULL);
   // Check if all files have been properly downloaded
   if(!transferred) {
     logger.msg(Arc::INFO, "Some downloads failed"); res=2;
@@ -736,7 +736,9 @@ int main(int argc,char** argv) {
         /* process user uploadable file */
         logger.msg(Arc::INFO, "Check user uploadable file: %s", i->pfn);
         std::string error;
+        time_t mtime = i->mtime;
         int err=user_file_exists(*i,session_dir,uploaded_files_,&error);
+        if(mtime != i->mtime) files_changed = ::time(NULL);
         if(err == 0) { /* file is uploaded */
           logger.msg(Arc::INFO, "User has uploaded file %s", i->pfn);
           i=job_files.erase(i);
@@ -761,12 +763,9 @@ int main(int argc,char** argv) {
     };
     if(!not_uploaded) break;
     // check for timeout
-    if((time(NULL)-start_time) > upload_timeout) {
-      for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();++i) {
-        if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
-          failure_reason+="User file: "+i->pfn+" - Timeout waiting\n";
-        };
-      };
+    unsigned int time_passed = (unsigned int)(time(NULL) - files_changed);
+    if(time_passed > max_inactivity_time) {
+      logger.msg(Arc::INFO, "No changes in uploadable files for %u seconds",time_passed);
       logger.msg(Arc::ERROR, "Uploadable files timed out"); res=2; break;
     };
     if(uploaded_files_) {
