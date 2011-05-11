@@ -26,9 +26,9 @@ public:
 
   static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
 
-  void GetTargets(Arc::TargetGenerator& mom, int targetType, int detailLevel);
-  void GetExecutionTargets(Arc::TargetGenerator& mom);
-  void GetJobs(Arc::TargetGenerator& mom);
+  virtual void GetTargets(Arc::TargetGenerator& mom, int targetType, int detailLevel);
+  virtual void GetExecutionTargets(Arc::TargetGenerator& mom);
+  virtual void GetJobs(Arc::TargetGenerator& mom);
 
   static Arc::Logger logger;
 };

@@ -27,9 +27,9 @@ public:
 
   static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
 
-  bool Submit(const Arc::JobDescription& /*jobdesc*/, const Arc::ExecutionTarget& /*et*/, Arc::Job& job) { SubmitterTestACCControl::submitJob = &job; return SubmitterTestACCControl::submitStatus; }
-  bool Migrate(const Arc::URL& /*jobid*/, const Arc::JobDescription& /*jobdesc*/, const Arc::ExecutionTarget& /*et*/, bool /*forcemigration*/, Arc::Job& job) { SubmitterTestACCControl::migrateJob = &job; SubmitterTestACCControl::migrateStatus; }
-  bool ModifyJobDescription(Arc::JobDescription& /*jobdesc*/, const Arc::ExecutionTarget& /*et*/) const { return SubmitterTestACCControl::modifyStatus; }
+  virtual bool Submit(const Arc::JobDescription& /*jobdesc*/, const Arc::ExecutionTarget& /*et*/, Arc::Job& job) { SubmitterTestACCControl::submitJob = &job; return SubmitterTestACCControl::submitStatus; }
+  virtual bool Migrate(const Arc::URL& /*jobid*/, const Arc::JobDescription& /*jobdesc*/, const Arc::ExecutionTarget& /*et*/, bool /*forcemigration*/, Arc::Job& job) { SubmitterTestACCControl::migrateJob = &job; SubmitterTestACCControl::migrateStatus; }
+  virtual bool ModifyJobDescription(Arc::JobDescription& /*jobdesc*/, const Arc::ExecutionTarget& /*et*/) const { return SubmitterTestACCControl::modifyStatus; }
 
   static Arc::Logger logger;
 };

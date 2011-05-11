@@ -22,7 +22,7 @@ private:
 public:
   ~BrokerTestACC() {}
 
-  void SortTargets() { if (BrokerTestACCControl::TargetSortingDone) TargetSortingDone = *BrokerTestACCControl::TargetSortingDone; }
+  virtual void SortTargets() { if (BrokerTestACCControl::TargetSortingDone) TargetSortingDone = *BrokerTestACCControl::TargetSortingDone; }
 
   static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
 
