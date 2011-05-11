@@ -42,7 +42,8 @@ our $j = { 'jobID' => {
             runtimeenvironments=> [ '*' ],
             # from .status
             status             => '',
-            statustime         => '',  # seconds since epoch
+            statusmodified     => '',  # seconds since epoch
+            statusread         => '',  # seconds since epoch
             completiontime     => '*', # MDS time format
             localowner         => '',
             # from .failed
@@ -213,7 +214,8 @@ sub get_gmjobs {
                     $log->warning("Job $ID: Cannot determine user name for owner (uid $uid)");
                 }
 
-                $job->{"statustime"} = $file_stat[9];
+                $job->{"statusmodified"} = $file_stat[9];
+                $job->{"statusread"} = time();
                 # completiontime
                 if ($job->{"status"} eq "FINISHED") {
                     my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);

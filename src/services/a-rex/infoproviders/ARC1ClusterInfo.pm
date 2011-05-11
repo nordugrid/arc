@@ -85,6 +85,63 @@ sub glueState {
     return $status;
 }
 
+# Helper function that assists the GLUE2 XML renderer handle the 'splitjobs' option
+#   $config       - the config hash
+#   $gmjob        - a job hash ref as returned by GMJobsInfo
+#   $xmlGenerator - a function ref that returns a string (the job's GLUE2 XML description)
+# Returns undef on error, 0 if the XML file was already up to date, 1 if it was written
+sub jobXmlFileWriter {
+    my ($config, $gmjob, $xmlGenerator) = @_;
+    # If this is defined, then it's a job managed by local A-REX.
+    my $gmuser = $gmjob->{gmuser};
+    # Skip for now jobs managed by remote A-REX.
+    # These are still published in ldap-infosys. As long as
+    # distributing jobs to remote grid-managers is only
+    # implemented by gridftd, remote jobs are not of interest
+    # for the WS interface.
+    return 0 unless defined $gmuser;
+    my $controldir = $config->{control}{$gmuser}{controldir};
+    my $xml_file = $controldir . "/job." . $jobid . ".xml";
+
+    # Here goes simple optimisation - do not write new
+    # XML if status has not changed while in "slow" states
+    my $xml_time = (stat($xml_file))[9];
+    my $status_time = $gmjob->{statusmodified};
+    return 0 if defined $xml_time
+                and defined $status_time
+                and $status_time < $xml_time
+                and $gmjob->{status} =~ /ACCEPTED|FINISHED|FAILED|KILLED|DELETED/;
+
+    my $xmlstring = &$xmlGenerator();
+    return undef unless defined $xmlstring;
+
+    my $fh = FileHandle->new($xml_file, "w")
+        or $log->warning("Couldn't open $xml_file: $!")
+        and return undef;
+    print $fh $xmlstring
+        or $log->warning("Couldn't write $xml_file: $!")
+        and close $fh
+        and unlink $xml_file
+        and return undef;
+    close $fh
+        or $log->warning("Error closing $xml_file: $!")
+        and unlink $xml_file
+        and return undef;
+
+    # Set timestamp to the time when the status file was read in.
+    # This is because the status file might have been updated by the time the
+    # XML file gets written. This step ensures that the XML will be updated on
+    # the next run of the infoprovider.
+    my $status_read = $gmjob->{statusread};
+    return undef unless defined $status_read;
+    utime(time(), $status_read, $xml_file)
+        or $log->warning("Couldn't touch $xml_file: $!")
+        and return undef;
+
+    # *.xml file was updated
+    return 1;
+};
+
 # Intersection of two arrays that completes in linear time.  The input arrays
 # are the keys of the two hashes passed as reference.  The intersection array
 # consists of the keys of the returned hash reference.
@@ -741,10 +798,6 @@ sub collect($) {
                 my $share = $gmjob->{share};
                 my $gridid = $config->{endpoint}."/$jobid";
 
-                # for use by XML printer
-                $cact->{gmid} = $jobid;
-                $cact->{statustime} = $gmjob->{statustime};
-
                 $cact->{Type} = 'single';
                 $cact->{ID} = $cactIDs{$share}{$jobid};
                 $cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
@@ -826,29 +879,7 @@ sub collect($) {
                     $cact->{State} = glueState($gmjob->{status});
                 }
 
-                # Give some help to the XML renderer to handle splitjobs
-                my $getXmlFileHandle = sub {
-                    # If this is defined, then it's a job managed by local A-REX.
-                    my $gmuser = $gmjob->{gmuser};
-                    # Skip for now jobs managed by remote A-REX.
-                    # These are still published in ldap-infosys. As long as
-                    # distributing jobs to remote grid-managers is only
-                    # implemented by gridftd, remote jobs are not of interest
-                    # for the WS interface.
-                    return undef unless defined $gmuser;
-                    my $controldir = $config->{control}{$gmuser}{controldir};
-                    my $xml_file = $controldir . "/job." . $jobid . ".xml";
-                    # Here goes simple optimisation - do not write new
-                    # XML if status has not changed while in "slow" states
-                    my $xml_time = (stat($xml_file))[9];
-                    my $status_time = $gmjob->{statustime};
-                    return undef if defined $xml_time
-                                and defined $status_time
-                                and $status_time < $xml_time
-                                and $gmjob->{status} =~ /ACCEPTED|FINISHED|FAILED|KILLED|DELETED/;
-                    return FileHandle->new($xml_file, "w");
-                };
-                $cact->{xmlFileHandle} = $getXmlFileHandle;
+                $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $gmjob, @_) };
 
                 return $cact;
             };

@@ -391,19 +391,26 @@ sub ComputingActivities {
         Elements(@_, 'ComputingActivity', 'Activity', $filler);
     } else {
         while (my $data = &$collector()) {
-            my $fhmaker = $data->{xmlFileHandle};
-            my $fh = $fhmaker ? &$fhmaker() : undef;
-            next unless defined $fh;
-            my $printer = XmlPrinter->new($fh);
-            $data->{xmlns} = "http://schemas.ogf.org/glue/2009/03/spec/2/0";
-            # Todo: fix a-rex, client to handle correct namespace
-            $data->{xmlns} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
-            $data->{BaseType} = "Activity";
-            $printer->begin('ComputingActivity', $data, qw(xmlns BaseType CreationTime Validity ));
-            $printer->properties($data, qw(ID Name OtherInfo));
-            &$filler($printer, $data);
-            $printer->end('ComputingActivity');
-            close($fh);
+
+            # Function that returns a string containing the ComputingActivity's XML
+            my $xmlGenerator = sub {
+                my ($memhandle, $xmlstring);
+                open $memhandle, '>', \$xmlstring;
+                return undef unless defined $memhandle;
+                my $memprinter = XmlPrinter->new($memhandle);
+                $data->{xmlns} = "http://schemas.ogf.org/glue/2009/03/spec/2/0";
+                # Todo: fix a-rex, client to handle correct namespace
+                $data->{xmlns} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+                $data->{BaseType} = "Activity";
+                $memprinter->begin('ComputingActivity', $data, qw(xmlns BaseType CreationTime Validity ));
+                $memprinter->properties($data, qw(ID Name OtherInfo));
+                &$filler($memprinter, $data);
+                $memprinter->end('ComputingActivity');
+                close($memhandle);
+                return $xmlstring;
+            }
+            my $filewriter = $data->{jobXmlFileWriter};
+            &$filewriter($xmlGenerator);
         }
     }
 }
