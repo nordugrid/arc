@@ -16,7 +16,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
-. ${pkgdatadir}/cancel_common.sh $1 || exit $?
+. ${pkgdatadir}/cancel_common.sh || exit $?
 
 echo "$progname: canceling job $joboption_jobid with condor_rm..." 1>&2
 

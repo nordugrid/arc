@@ -59,7 +59,7 @@ if [ ! -z "${joboption_jobname}" ] ; then
   jobname=`echo "$joboption_jobname" | \
            sed 's/^\([^[:alpha:]]\)/N\1/' | \
            sed 's/[^[:alnum:]]/_/g' | \
-	   sed 's/\(...............\).*/\1/'`
+           sed 's/\(...............\).*/\1/'`
   echo "# @ job_name = $jobname" >> $LRMS_JOB_SCRIPT
 fi
 
@@ -179,23 +179,20 @@ else
   fi
   queue_names=`${LL_CLASS}|grep Name|awk '{split($0,field," ");print field[2]}'`
 
-  for queue in $queue_names
-  do
-    queue_time=`${LL_CLASS} ${queue}|grep Wall_clock_limit|awk '{split($0,field,"(");print field[2]}'|awk '{split($0,field," ");print field[1]}'` 
-    queue_times[$queue_time]=$queue_time
-    queue_names_ar[$queue_time]=$queue
-  done
-
   #default will be shortest queue
   if [! -n "$joboption_walltime" ] ; then  
     joboption_walltime_hard=1
   fi
-  
-  for j in ${queue_times[@]}
+
+  queue_time_sel=0
+  for queue in $queue_names
   do
-    class=${queue_names_ar[${j}]}
-    if ["${joboption_walltime_hard}" -lt "${j}"]; then 
-      break
+    queue_time=`${LL_CLASS} ${queue}|grep Wall_clock_limit|awk '{split($0,field,"(");print field[2]}'|awk '{split($0,field," ");print field[1]}'`
+    if [${joboption_walltime_hard} -lt ${queue_time}] ; then
+      if [${queue_time_sel} -eq 0] || [${queue_time_sel} -gt ${queue_time}] ; then
+        class=${queue}
+        queue_time_sel=${queue_time}
+      fi
     fi
   done
 fi

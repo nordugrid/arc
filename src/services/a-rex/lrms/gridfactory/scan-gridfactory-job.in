@@ -69,7 +69,7 @@ for control_dir in "$options" ; do
 		break
 	    else
 		echo "pstat failed" 1>&2
-		let GF_TRIES=GF_TRIES+1 
+		GF_TRIES=$(($GF_TRIES + 1))
 		sleep 10
 	    fi
 	done
@@ -84,9 +84,9 @@ for control_dir in "$options" ; do
 		exitcode=0
 		for file in $joboption_rsl_outputfiles; do
 		#skipping GM output files
-		    [ $file == "$joboption_rsl_gmlog" ] && continue
-		    [ $file == "$joboption_rsl_stdout" ] && continue
-		    [ $file == "$joboption_rsl_stderr" ] && continue
+		    [ $file = "$joboption_rsl_gmlog" ] && continue
+		    [ $file = "$joboption_rsl_stdout" ] && continue
+		    [ $file = "$joboption_rsl_stderr" ] && continue
 		# getting output files
 		    cp -p `echo $joboption_jobid|sed 's,file://,,g'`/$file $joboption_directory/$file
 		    [ $? -ne "0" ] && echo "transfer of outputfile $file failed" 1>&2
@@ -114,7 +114,7 @@ for control_dir in "$options" ; do
             "NOT found")
 		sleep 60
 		status_code=`su -c "$PSTAT $joboption_jobid" - $joboption_user | sed 's,$joboption_jobid ,,'`
-		if [ $status_code == "NOT found" ]; then
+		if [ $status_code = "NOT found" ]; then
 		    echo "Job lost in LRMS" > "${control_dir}/job.${job}.lrms_done"
 		fi
 		;;

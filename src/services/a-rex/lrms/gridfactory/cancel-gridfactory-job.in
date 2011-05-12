@@ -16,7 +16,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
-. ${pkgdatadir}/cancel_common.sh $1 || exit $?
+. ${pkgdatadir}/cancel_common.sh || exit $?
 
 if [ -z "$joboption_controldir" ] ; then
   joboption_controldir=`dirname "$arg_file"`

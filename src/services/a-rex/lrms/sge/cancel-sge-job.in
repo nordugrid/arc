@@ -16,7 +16,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
-. ${pkgdatadir}/cancel_common.sh $1 || exit $?
+. ${pkgdatadir}/cancel_common.sh || exit $?
 
 echo executing $SGE_BIN_PATH/qdel with job id $joboption_jobid 1>&2
 $SGE_BIN_PATH/qdel "${joboption_jobid}"

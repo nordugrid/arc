@@ -106,7 +106,7 @@ if [ -n "$joboption_nodeproperty_0" ]; then
                 break 2 # now $jope contains the requested parallel env
             fi
         done
-        (( i++ ))
+        i=$(($i + 1))
     done
     if [ -n "$jope" ] ; then
         echo "#\$ -pe $jope $joboption_count" >> $LRMS_JOB_SCRIPT
