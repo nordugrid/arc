@@ -78,18 +78,6 @@ sub switchEffectiveUser {
     };
 }
 
-# extract the lower limit of a RangeValue_Type expression
-sub get_range_minimum($$) {
-    my ($range_str, $jsdl_ns_re) = @_;
-    my $min;
-    my $any_range_re = "$jsdl_ns_re(?:Exact|(?:Lower|Upper)Bound(?:edRange)?)";
-    while ($range_str =~ m!<($any_range_re)\b[^>]*>[\s\n]*(-?[\d.]+)[\s\n]*</\1!mg) {
-        $min = $2 if not defined $min or $min > $2;
-    }
-    return $min;
-}
-
-
 sub collect {
     my ($controls, $remotegmdirs, $nojobs) = @_;
 
