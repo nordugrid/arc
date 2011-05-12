@@ -5,6 +5,7 @@ package ARC1ClusterInfo;
 
 use Storable;
 use FileHandle;
+use File::Temp;
 use POSIX qw(ceil);
 
 use strict;
@@ -116,17 +117,17 @@ sub jobXmlFileWriter {
     my $xmlstring = &$xmlGenerator();
     return undef unless defined $xmlstring;
 
-    my $fh = FileHandle->new($xml_file, "w")
-        or $log->warning("Couldn't open $xml_file: $!")
-        and return undef;
-    print $fh $xmlstring
-        or $log->warning("Couldn't write $xml_file: $!")
+    # tempfile croaks on error
+    my ($fh, $tmpnam) = File::Temp::tempfile("job.$jobid.xml.XXXXXXX", DIR => $controldir);
+    binmode $fh, ':encoding(utf8)';
+    print $fh $xmlstring and close $fh
+        or $log->warning("Error writing to temporary file $tmpnam: $!")
         and close $fh
-        and unlink $xml_file
+        and unlink $tmpnam
         and return undef;
-    close $fh
-        or $log->warning("Error closing $xml_file: $!")
-        and unlink $xml_file
+    rename $tmpnam, $xml_file
+        or $log->warning("Error moving $tmpnam to $xml_file: $!")
+        and unlink $tmpnam
         and return undef;
 
     # Set timestamp to the time when the status file was read in.
