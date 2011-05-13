@@ -32,3 +32,5 @@ debian/tmp/usr/lib/arc/libmcchttp.apd
 debian/tmp/usr/lib/arc/libmccsoap.apd
 debian/tmp/usr/lib/arc/libmcctcp.apd
 debian/tmp/usr/lib/arc/libmcctls.apd
+debian/tmp/usr/lib/arc/arc-lcas
+debian/tmp/usr/lib/arc/arc-lcmaps
