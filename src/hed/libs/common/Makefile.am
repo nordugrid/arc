@@ -42,6 +42,5 @@ libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) \
 libarccommon_la_LDFLAGS = -version-info 1:0:0
 
 arc_file_access_SOURCES  = file_access.cpp file_access.h
-arc_file_access_CXXFLAGS = -I$(top_srcdir)/include \
-        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(MYSQL_CFLAGS)
+arc_file_access_CXXFLAGS = -I$(top_srcdir)/include
 arc_file_access_LDADD    =
