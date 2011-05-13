@@ -468,7 +468,7 @@ int main(int argc,char* argv[]) {
         if(header.size) return -1;
         if(curfile != -1) ::close(curfile);
         errno = 0;
-        int res = (curfile = ::mkstemp((char*)(path.c_str())));
+        int res = (curfile = Glib::mkstemp((char*)(path.c_str())));
         if(res != -1) ::chmod(path.c_str(),mode);
         int l = path.length();
         if(!swrite_result(sout,header.cmd,res,errno,&l,sizeof(l),path.c_str(),l)) return -1;
