@@ -582,13 +582,13 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
       write_proxy_file(proxy_path,proxy_cred_str_pem);
 
-      //return EXIT_SUCCESS;
       //Assign proxy_path to cert_path and key_path,
       //so the later voms functionality can use the proxy_path
       //to create proxy with voms AC extension. In this
       //case, "--cert" and "--key" is not needed.
       cert_path = proxy_path;
       key_path = proxy_path;
+      return EXIT_SUCCESS;
     }
 
   } catch (std::exception& err) {
