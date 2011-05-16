@@ -118,7 +118,8 @@ binary-arch: install
 	dh_link
 	dh_strip --dbg-package=nordugrid-arc-dbg
 
-	mv debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared \
+	test -d debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared && \
+           mv debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared \
 	   debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pymodules
 
 	dh_compress -X .pdf
