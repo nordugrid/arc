@@ -10,6 +10,7 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
+libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
 pkgdatadir="$basedir"
 
 . "${pkgdatadir}/configure-condor-env.sh" || exit $?
@@ -404,7 +405,7 @@ job_write_donefile() {
     echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
-    "${basedir}"/gm-kick "job.$gridid.local"
+    "${libexecdir}"/gm-kick "job.$gridid.local"
 }
 
 #

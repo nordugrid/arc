@@ -15,7 +15,7 @@ basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 basewebdir="/var/www/3GBridge/"
 
-
+libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
 pkgdatadir="$basedir"
 
 . "${pkgdatadir}/configure-${joboption_lrms}-env.sh" || exit $?
@@ -247,7 +247,7 @@ done
 
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then
-    "${basedir}/gm-kick" \
+    "${libexecdir}/gm-kick" \
 	$(for ind in "${kicklist[@]}";do
 	    echo "${basenames[$ind]}.status"
 	    done | xargs)

@@ -14,6 +14,7 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
+libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
 pkgdatadir="$basedir"
 
 . "${pkgdatadir}/configure-${joboption_lrms}-env.sh" || exit $?
@@ -288,7 +289,7 @@ done
 
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then
-    "${basedir}/gm-kick" \
+    "${libexecdir}/gm-kick" \
 	$(for localid in "${kicklist[@]}";do
 	    echo "${basenames[$localid]}.local"
 	    done | xargs)

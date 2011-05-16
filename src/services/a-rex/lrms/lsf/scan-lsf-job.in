@@ -14,10 +14,11 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
+libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
 pkgdatadir="$basedir"
 
 # Assume that gm-kick is installed in the same directory
-GMKICK=${basedir}/gm-kick
+GMKICK=${libexecdir}/gm-kick
 
 . "${pkgdatadir}/configure-lsf-env.sh" || exit $?
 
