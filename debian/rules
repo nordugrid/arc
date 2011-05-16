@@ -120,7 +120,7 @@ binary-arch: install
 
 	test -d debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared && \
            mv debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared \
-	   debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pymodules
+	   debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pymodules || :
 
 	dh_compress -X .pdf
 	dh_fixperms
