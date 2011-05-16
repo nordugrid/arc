@@ -368,7 +368,7 @@ for my $controldir (keys %controldirs) {
 
     close GMJOBSOUTPUT;
     my $status = $? >> 8;
-    error("$config{arc_location}/bin/gm-jobs returned with non-zero exit status $status")
+    error("$config{arc_location}/@pkglibexecsubdir@/gm-jobs returned with non-zero exit status $status")
         if $status;
 }
 
