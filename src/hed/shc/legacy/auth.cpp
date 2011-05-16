@@ -12,6 +12,8 @@
 
 namespace ArcSHCLegacy {
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
+
 int AuthUser::match_all(const char* /* line */) {
   default_voms_=NULL;
   default_vo_=NULL;
@@ -198,30 +200,6 @@ const std::list<std::string>& AuthUser::VOs(void) {
   return vos_;
 }
 
-bool AuthUser::add_vo(const char* vo,const char* filename) {
-  if(match_file(filename) == AAA_POSITIVE_MATCH) {
-    add_vo(vo);
-    return true;
-  };
-  return false;
-}
-
-bool AuthUser::add_vo(const std::string& vo,const std::string& filename) {
-  return add_vo(vo.c_str(),filename.c_str());
-}
-
-bool AuthUser::add_vo(const AuthVO& vo) {
-  return add_vo(vo.name,vo.file);
-}
-
-bool AuthUser::add_vo(const std::list<AuthVO>& vos) {
-  bool r = true;
-  for(std::list<AuthVO>::const_iterator vo = vos.begin();vo!=vos.end();++vo) {
-    r&=add_vo(*vo);
-  };
-  return r;
-}
-
 void AuthUser::get_groups(std::list<std::string>& groups) const {
   for(std::list<group_t>::const_iterator g = groups_.begin();g!=groups_.end();++g) {
     groups.push_back(g->name);
@@ -259,22 +237,38 @@ void AuthUser::subst(std::string& str) {
 bool AuthUser::store_credentials(void) {
   if(!filename.empty()) return true;
   Arc::SecAttr* sattr = message_.Auth()->get("TLS");
+  std::string cred;
   if(sattr) {
-    std::string cred = sattr->get("CERTIFICATE");
-    if(cred.empty()) {
-      sattr = message_.AuthContext()->get("TLS");
-      if(sattr) cred = sattr->get("CERTIFICATE");
+    cred = sattr->get("CERTIFICATE");
+  };
+  if(cred.empty()) {
+    sattr = message_.AuthContext()->get("TLS");
+    if(sattr) {
+      cred = sattr->get("CERTIFICATE");
     };
-    if(!cred.empty()) {
-      cred+=sattr->get("CERTIFICATECHAIN");
-      std::string tmpfile;
-      if(Arc::TmpFileCreate(tmpfile,cred)) {
-        return true;
-      };
+  };
+  if(!cred.empty()) {
+    cred+=sattr->get("CERTIFICATECHAIN");
+    std::string tmpfile;
+    if(Arc::TmpFileCreate(tmpfile,cred)) {
+      filename = tmpfile;
+      logger.msg(Arc::VERBOSE,"Credentials stored in temporary file %s",filename);
+      return true;
     };
   };
   return false;
 }
+
+void AuthUser::add_group(const std::string& grp) {
+  groups_.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
+  logger.msg(Arc::VERBOSE,"Assigned to authorization group %s",grp);
+};
+
+void AuthUser::add_vo(const std::string& vo) {
+  vos_.push_back(vo);
+  logger.msg(Arc::VERBOSE,"Assigned to VO %s",vo);
+}
+
 
 } // namespace ArcSHCLegacy
 

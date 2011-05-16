@@ -58,12 +58,12 @@ class LegacySHCP: public ConfigParser {
   virtual bool BlockEnd(const std::string& id, const std::string& name) {
     if(id == "group") {
       if((group_match_ == AAA_POSITIVE_MATCH)  && !name.empty()) {
-        auth_.add_group(name.c_str());
+        auth_.add_group(name);
         sattr_.AddGroup(name);
       };
     } else if(id == "vo") {
       if(vo_match_ && !name.empty()) {
-        auth_.add_vo(name.c_str());
+        auth_.add_vo(name);
         sattr_.AddVO(name);
       };
     };

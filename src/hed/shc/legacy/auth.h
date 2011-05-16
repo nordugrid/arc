@@ -46,7 +46,7 @@ class AuthUser {
     const char* role;             //
     const char* capability;       //
     const char* vgroup;           //
-    group_t(const char* name_,const char* vo_,const char* role_,const char* cap_,const char* vgrp_,const char* voms_):voms(voms_?voms_:""),name(name_?name_:""),vo(vo_?vo_:""),role(role_?role_:""),capability(cap_?cap_:""),vgroup(vgrp_?vgrp_:"") { };
+    group_t(const std::string& name_,const char* vo_,const char* role_,const char* cap_,const char* vgrp_,const char* voms_):voms(voms_?voms_:""),name(name_),vo(vo_?vo_:""),role(role_?role_:""),capability(cap_?cap_:""),vgroup(vgrp_?vgrp_:"") { };
   };
 
   const char* default_voms_;
@@ -114,35 +114,25 @@ class AuthUser {
   bool is_proxy(void) const { return has_delegation; };
   const char* hostname(void) const { return from.c_str(); };
   // Remember this user belongs to group 'grp'
-  void add_group(const char* grp) {
-    groups_.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
-  };
-  void add_group(const std::string& grp) { add_group(grp.c_str()); };
+  void add_group(const std::string& grp);
   // Mark this user as belonging to no no groups
   void clear_groups(void) { groups_.clear(); default_group_=NULL; };
   // Returns true if user belongs to specified group 'grp'
-  bool check_group(const char* grp) const {
+  bool check_group(const std::string& grp) const {
     for(std::list<group_t>::const_iterator i=groups_.begin();i!=groups_.end();++i) {
-      if(strcmp(i->name.c_str(),grp) == 0) return true;
+      if(i->name == grp) return true;
     };
     return false;
   };
-  bool check_group(const std::string& grp) const { return check_group(grp.c_str());};
   void get_groups(std::list<std::string>& groups) const;
-  void add_vo(const char* vo) { vos_.push_back(std::string(vo)); };
-  void add_vo(const std::string& vo) { vos_.push_back(vo); };
-  bool add_vo(const char* vo,const char* filename);
-  bool add_vo(const std::string& vo,const std::string& filename);
-  bool add_vo(const AuthVO& vo);
-  bool add_vo(const std::list<AuthVO>& vos);
+  void add_vo(const std::string& vo);
   void clear_vos(void) { vos_.clear(); };
-  bool check_vo(const char* vo) const {
+  bool check_vo(const std::string& vo) const {
     for(std::list<std::string>::const_iterator i=vos_.begin();i!=vos_.end();++i) {
-      if(strcmp(i->c_str(),vo) == 0) return true;
+      if(*i == vo) return true;
     };
     return false;
   };
-  bool check_vo(const std::string& vo) const { return check_vo(vo.c_str());};
   void get_vos(std::list<std::string>& vos) const;
   //const char* default_voms(void) const { return default_voms_; };
   //const char* default_vo(void) const { return default_vo_; };
