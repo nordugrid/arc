@@ -62,21 +62,21 @@ class TLSSecAttr: public SecAttr {
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
   std::string Identity(void) { return identity_; };
-  std::string Subject(void) {
+  std::string Subject(void) const {
     if(subjects_.size() <= 0) return "";
     return *(--(subjects_.end()));
   };
-  std::string CA(void) {
+  std::string CA(void) const {
     if(subjects_.size() <= 0) return "";
     return *(subjects_.begin());
   };
-  std::string X509Str(void) {
+  std::string X509Str(void) const {
     return x509str_;
   };
-  std::string X509ChainStr(void) {
+  std::string X509ChainStr(void) const {
     return x509chainstr_;
   };
-  virtual std::string get(const std::string& id) {
+  virtual std::string get(const std::string& id) const {
     if(id == "IDENTITY") return identity_;
     if(id == "SUBJECT") return Subject();
     if(id == "CA") return CA();
@@ -90,7 +90,7 @@ class TLSSecAttr: public SecAttr {
     };
     return "";
   };
-  virtual std::list<std::string> getAll(const std::string& id) {
+  virtual std::list<std::string> getAll(const std::string& id) const {
     std::list<std::string> items;
     if(id == "VOMS") {
       for(std::vector<VOMSACInfo>::const_iterator v = voms_attributes_.begin();
