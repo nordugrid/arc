@@ -54,10 +54,15 @@ LegacyMap::~LegacyMap(void) {
 
 class LegacyMapCP: public ConfigParser {
  public:
-  LegacyMapCP(const LegacyMap::cfgfile& file, Arc::Logger& logger, AuthUser& auth, LegacySecAttr& sattr):ConfigParser(file.filename,logger),file_(file),auth_(auth),map_(auth),sattr_(sattr),is_block_(false) {
+  LegacyMapCP(const LegacyMap::cfgfile& file, Arc::Logger& logger, AuthUser& auth):ConfigParser(file.filename,logger),file_(file),map_(auth),is_block_(false) {
   };
 
   virtual ~LegacyMapCP(void) {
+  };
+
+  std::string LocalID(void) {
+    if(!map_) return "";
+    return map_.unix_name();
   };
 
  protected:
@@ -105,9 +110,8 @@ class LegacyMapCP: public ConfigParser {
 
  private:
   const LegacyMap::cfgfile& file_;
-  AuthUser& auth_;
+  //AuthUser& auth_;
   UnixMap map_;
-  LegacySecAttr& sattr_;
   bool is_block_;
 };
 
@@ -117,17 +121,19 @@ bool LegacyMap::Handle(Arc::Message* msg) const {
     logger.msg(Arc::ERROR, "LegacyMap: no configurations blocks defined");
     return false;
   };
+  // Populate with collected info
   AuthUser auth(*msg);
-  Arc::AutoPointer<LegacySecAttr> sattr(new LegacySecAttr(logger));
   for(std::list<cfgfile>::const_iterator block = blocks_.begin();
                               block!=blocks_.end();++block) {
-    LegacyMapCP parser(block->filename,logger,auth,*sattr);
+    LegacyMapCP parser(block->filename,logger,auth);
     if(!parser) return false;
     if(!parser.Parse()) return false;
+    std::string id = parser.LocalID();
+    if(!id.empty()) {
+      msg->Attributes()->set("SEC:LOCALID",id);
+      break;
+    };
   };
-  // Pass all matched groups and VOs to Message in SecAttr
-  // TODO: maybe assign to context
-  msg->Auth()->set("ARCLEGACY",sattr.Release());
   return true;
 }
 

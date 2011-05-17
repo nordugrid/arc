@@ -38,8 +38,8 @@ class UnixMap {
   const char* id(void) const { return map_id_.c_str(); };
   operator bool(void) const { return mapped_; };
   bool operator!(void) const { return !mapped_; };
-  const char* unix_name(void) const { return unix_user_.name.c_str(); };
-  const char* unix_group(void) const { return unix_user_.group.c_str(); };
+  const std::string& unix_name(void) const { return unix_user_.name; };
+  const std::string& unix_group(void) const { return unix_user_.group; };
   AuthUser& user(void) { return user_; };
   // Map
   bool mapname(const char* line);
