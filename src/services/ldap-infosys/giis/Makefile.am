@@ -13,3 +13,5 @@ arc_infoindex_server_LDADD = -lpthread
 arc_infoindex_slapd_wrapper_la_SOURCES = SlapdWrapper.cpp
 arc_infoindex_slapd_wrapper_la_LDFLAGS = -no-undefined -avoid-version -module
 arc_infoindex_slapd_wrapper_la_LIBADD = -lpthread -ldl
+
+man8_MANS = arc-infoindex-relay.8 arc-infoindex-server.8

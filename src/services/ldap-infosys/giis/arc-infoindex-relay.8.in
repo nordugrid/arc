@@ -1,0 +1,63 @@
+.\" -*- nroff -*-
+.TH ARC-INFOINDEX-RELAY 8 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arc-infoindex-relay \- ARC Information Index Relay Helper
+
+.SH DESCRIPTION
+
+The
+.B arc-infoindex-relay
+command is used internally by the ARC Information System to relay queries
+and responses between the slapd server and the arc-infoindex-server
+
+.SH SYNOPSIS
+
+.B arc-infoindex-relay
+.I server-fifo
+
+.SH ARGUMENTS
+
+.IP "\fBserver-fifo\fR"
+The FIFO on which the arc-infoindex-server accepts queries
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+\fBarc-infoindex-relay\fR acts as a bridge between the slapd server
+and the arc-infoindex-server in the NorduGrid ARC Information
+system. For each index served by the arc-index-server a shell backend
+database should be configured in the slapd configuration.
+
+Here is a sample configuration:
+
+.nf
+database  shell
+suffix    "Mds-Vo-name=Sweden,o=Grid"
+bind      /usr/sbin/arc-infoindex-relay /var/run/arc/infosys/giis-fifo
+add       /usr/sbin/arc-infoindex-relay /var/run/arc/infosys/giis-fifo
+search    /usr/sbin/arc-infoindex-relay /var/run/arc/infosys/giis-fifo
+access to * by * write
+.fi
+
+When a query for the configured database is recieved by the slapd
+server, the server will call out to the arc-index-relay. The
+arc-info-relay will then open a unique return FIFO for this query and
+then forward the query and the name of the return FIFO to the
+arc-index-server through the configured server FIFO. When the
+arc-index-server has processed the query it will return the result to
+the arc-index-relay using the return FIFO. The arc-index-relay then
+closes the return FIFO and forwards the response to the slapd server.
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arc-infoindex-server (8)

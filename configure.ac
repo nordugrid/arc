@@ -1971,6 +1971,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/ldap-infosys/grid-infosys-bdii4
                  src/services/ldap-infosys/grid-infosys-bdii5
                  src/services/ldap-infosys/giis/Makefile
+                 src/services/ldap-infosys/giis/arc-infoindex-relay.8
+                 src/services/ldap-infosys/giis/arc-infoindex-server.8
                  src/services/ldap-monitor/Makefile
                  src/services/ldap-monitor/ldap-monitor
                  src/services/ldap-monitor/README

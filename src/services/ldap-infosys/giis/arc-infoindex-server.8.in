@@ -1,0 +1,82 @@
+.\" -*- nroff -*-
+.TH ARC-INFOINDEX-SERVER 8 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+
+.SH NAME
+
+arc-infoindex-server \- ARC Information Index Server
+
+.SH DESCRIPTION
+
+The
+.B arc-infoindex-server
+accepts registrations about local information systems and other
+arc-infoindex-servers creating an hierarcical information system for
+discovering Grid resources
+
+.SH SYNOPSIS
+
+.B arc-infoindex-relay
+-c
+.I conffile
+-f
+.I fifo
+
+.SH OPTIONS
+
+.IP "\fB-c\fR conffile"
+The configuration file, usually /etc/arc.conf
+.LP
+
+.IP "\fB-f\fR fifo"
+The FIFO on which the server will accept queries
+.LP
+
+.SH EXTENDED DESCRIPTION
+
+\fBarc-infoindex-server\fR accepts registrations with information
+about local information systems and other arc-index-servers. It also
+responds to status queries returning the list of registered resources
+and their registration status (valid, invalid or purged).
+
+Queries are accepted on a FIFO and are normally forwarded from a slapd
+server through an arc-infoindex-relay process. The first line of a
+query should contain the name of a FIFO on which the response should
+be returned. The remaining part of the query should be a Globus MDS
+query in LDIF format.
+
+To stop arc-infoindex-server write the special query "STOP" to the
+server FIFO.
+
+.SH FILES
+
+.IP "\fB/etc/arc.conf\fR"
+Several resource indices can be kept in the same server. Each of them
+should have an [infosys/index] block in the configuration file. The
+set of resoures that are allowed to register to each index can be
+limited using allowreg keys.
+
+Here is an example configuration:
+
+.nf
+[infosys/index/Sweden]
+allowreg="*.uu.se:2135"
+allowreg="*.lu.se:2135"
+allowreg="*.liu.se:2135"
+allowreg="*.umu.se:2135"
+allowreg="*.chalmers.se:2135"
+allowreg="*.kth.se:2135"
+.fi
+.LP
+
+.SH COPYRIGHT
+
+APACHE LICENSE Version 2.0
+
+.SH AUTHOR
+
+Mattias Ellert <mattias.ellert@fysast.uu.se>
+
+.SH SEE ALSO
+
+.BR arc-infoindex-relay (8),
+.BR arc.conf (5)
