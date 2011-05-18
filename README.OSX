@@ -9,7 +9,19 @@ MacOS X platform. The compilation capability have been tested on Mac OS X
 
 1. Installing third party dependency packages:
 
-Use macports: http://www.macports.org/
+You can use Homebrew: http://mxcl.github.com/homebrew/
+
+Steps (tested on mac os x 10.6.7):
+  $ brew install pkgconfig
+  $ sudo echo /usr/local/share/aclocal >> /usr/share/aclocal/dirlist
+  $ brew install gettext
+  $ brew link gettext
+  $ brew install glibmm
+  $ brew install libxml2
+  $ brew link libxml2
+  $ brew install berkeley-db
+
+Or you can use macports: http://www.macports.org/
 
 e.g.:
   sudo port install pkgconfig
