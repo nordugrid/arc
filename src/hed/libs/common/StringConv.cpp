@@ -14,6 +14,64 @@ namespace Arc {
 
   Logger stringLogger(Logger::getRootLogger(), "StringConv");
 
+  static std::string char_to_hex(char c) {
+    // ASCII only
+    std::string s;
+    unsigned int n;
+    n = (unsigned int)((c>>4) & 0x0f);
+    s += (char)((n<10)?(n+'0'):(n-10+'a'));
+    n = (unsigned int)((c>>0) & 0x0f);
+    s += (char)((n<10)?(n+'0'):(n-10+'a'));
+    return s;
+  }
+
+  static std::string char_to_octal(char c) {
+    // ASCII only
+    std::string s;
+    unsigned int n;
+    n = (unsigned int)((c>>6) & 0x07);
+    s += (char)(n+'0');
+    n = (unsigned int)((c>>3) & 0x07);
+    s += (char)(n+'0');
+    n = (unsigned int)((c>>0) & 0x07);
+    s += (char)(n+'0');
+    return s;
+  }
+
+  static char hex_to_char(char n) {
+    // ASCII only
+    if((n>='0') && (n <= '9')) { n-='0'; }
+    else if((n>='a') && (n <= 'f')) { n = n - 'a' + 10; }
+    else if((n>='A') && (n <= 'F')) { n = n - 'A' + 10; }
+    else { n = 0; };
+    return n;
+  }
+
+  static char octal_to_char(char n) {
+    // ASCII only
+    if((n>='0') && (n <= '7')) { n-='0'; }
+    else { n = 0; };
+    return n;
+  }
+
+  char hex_to_char(const std::string& str) {
+    char c = 0;
+    for(std::string::size_type p = 0; p<str.length(); ++p) {
+      c <<= 4;
+      c |= hex_to_char(str[p]);
+    };
+    return c;
+  }
+
+  char octal_to_char(const std::string& str) {
+    char c = 0;
+    for(std::string::size_type p = 0; p<str.length(); ++p) {
+      c <<= 3;
+      c |= octal_to_char(str[p]);
+    };
+    return c;
+  }
+
   std::string lower(const std::string& s) {
     std::string ret = s;
     std::transform(ret.begin(), ret.end(), ret.begin(), (int(*) (int)) std::tolower);
@@ -187,7 +245,7 @@ namespace Arc {
     return ret;
   }
 
-  std::string escape_chars(const std::string& str, const std::string& chars, char esc) {
+  std::string escape_chars(const std::string& str, const std::string& chars, char esc, escape_type type) {
     std::string out = str;
     std::string esc_chars = chars;
     esc_chars += esc;
@@ -196,19 +254,42 @@ namespace Arc {
       p = out.find_first_of(esc_chars,p);
       if(p == std::string::npos) break;
       out.insert(p,1,esc);
-      p += 2;
+      ++p;
+      switch(type) {
+        case escape_octal:
+          out.replace(p,1,char_to_octal(out[p]));
+          p+=3;
+        break;
+        case escape_hex:
+          out.replace(p,1,char_to_hex(out[p]));
+          p+=2;
+        break;
+        default:
+          ++p;
+      };
     }
     return out;
   }
 
-  std::string unescape_chars(const std::string& str, char esc) {
+  std::string unescape_chars(const std::string& str, char esc, escape_type type) {
     std::string out = str;
     std::string::size_type p = 0;
     for(;(p+1)<out.length();) {
       p = out.find(esc,p);
       if(p == std::string::npos) break;
       out.erase(p,1);
-      ++p;
+      switch(type) {
+        case escape_hex:
+          out.replace(p,2,1,hex_to_char(out.substr(p,2)));
+          ++p;
+        break;
+        case escape_octal:
+          out.replace(p,3,1,octal_to_char(out.substr(p,3)));
+          ++p;
+        break;
+        default:
+          ++p;
+      }
     }
     return out;
   }

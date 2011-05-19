@@ -38,6 +38,14 @@ void StringConvTest::TestStringConv() {
   out += "###";
   out = Arc::unescape_chars(out,'#');
   CPPUNIT_ASSERT_EQUAL(in + "##", out);
+  out = Arc::escape_chars(in,"13579",'#',Arc::escape_hex);
+  CPPUNIT_ASSERT_EQUAL(std::string("#312#334#356#378#390"), out);
+  out = Arc::unescape_chars(out,'#',Arc::escape_hex);
+  CPPUNIT_ASSERT_EQUAL(in, out);
+  out = Arc::escape_chars(in,"13579",'#',Arc::escape_octal);
+  CPPUNIT_ASSERT_EQUAL(std::string("#0612#0634#0656#0678#0710"), out);
+  out = Arc::unescape_chars(out,'#',Arc::escape_octal);
+  CPPUNIT_ASSERT_EQUAL(in, out);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StringConvTest);

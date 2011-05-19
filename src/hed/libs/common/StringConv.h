@@ -104,8 +104,14 @@ namespace Arc {
   ///Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid
   std::string convert_to_rdn(const std::string& dn);
 
-  std::string escape_chars(const std::string& str, const std::string& chars, char esc);
-  std::string unescape_chars(const std::string& str, char esc);
+  typedef enum {
+    escape_char,
+    escape_octal,
+    escape_hex
+  } escape_type;
+
+  std::string escape_chars(const std::string& str, const std::string& chars, char esc, escape_type type = escape_char);
+  std::string unescape_chars(const std::string& str, char esc, escape_type type = escape_char);
 
 } // namespace Arc
 
