@@ -9,6 +9,7 @@
 
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
+#include <arc/StringConv.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobDescription.h>
@@ -17,6 +18,9 @@
 #include "FTPControl.h"
 
 namespace Arc {
+
+  // Characters to be escaped in LDAP filter according to RFC4515
+  static const std::string filter_esc("&|=!><~*/");
 
   Logger SubmitterARC0::logger(Logger::getRootLogger(), "Submitter.ARC0");
 
@@ -133,7 +137,7 @@ namespace Arc {
 
     // Prepare contact url for information about this job
     URL infoendpoint(et.Cluster);
-    infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + jobid.str() + ")");
+    infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',escape_hex) + ")");
     infoendpoint.ChangeLDAPScope(URL::subtree);
 
     AddJobDetails(modjobdesc, jobid, et.Cluster, infoendpoint, job);

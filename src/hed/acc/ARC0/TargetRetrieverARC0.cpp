@@ -19,6 +19,9 @@
 
 namespace Arc {
 
+  // Characters to be escaped in LDAP filter according to RFC4515
+  static const std::string filter_esc("&|=!><~*/");
+
   class ThreadArgARC0 {
   public:
     TargetGenerator *mom;
@@ -250,10 +253,10 @@ namespace Arc {
       url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
                            "(objectclass=nordugrid-queue)"
                            "(nordugrid-authuser-sn=" +
-                           credential.GetIdentityName() + "))");
+                           escape_chars(credential.GetIdentityName(),filter_esc,'\\',escape_hex) + "))");
     else
       url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" +
-                           credential.GetIdentityName() + "))");
+                           escape_chars(credential.GetIdentityName(),filter_esc,'\\',escape_hex) + "))");
 
     DataHandle handler(url, usercfg);
     DataBuffer buffer;
@@ -611,7 +614,7 @@ namespace Arc {
 
         URL infoEndpoint(url);
         infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
-                                      (std::string)(*it)["nordugrid-job-globalid"] + ")");
+                                      escape_chars((std::string)(*it)["nordugrid-job-globalid"],filter_esc,'\\',escape_hex) + ")");
         infoEndpoint.ChangeLDAPScope(URL::subtree);
         j.InfoEndpoint = infoEndpoint;
 
