@@ -365,18 +365,6 @@ namespace Arc {
       X509_NAME_free(subject);
     }
     str.append(buf);
-    std::string::size_type pos = 0;
-    // Replace every "(" characters to "\("
-    while ( (pos = str.find("(", pos)) != std::string::npos ) {
-        str.replace( pos, 1 , "\\(" );
-        pos=pos+3;    //Next character
-    }
-    // Replace every ")" characters to "\)"
-    pos = 0;
-    while ( (pos = str.find(")", pos)) != std::string::npos ) {
-        str.replace( pos, 1 , "\\)" );
-        pos=pos+3;    //Next character
-    }
     return str;
   }
 
