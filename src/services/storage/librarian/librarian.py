@@ -11,7 +11,7 @@ from arcom.service import librarian_uri, ahash_servicetype, true, false, parse_n
 
 from arcom.xmltree import XMLTree
 from storage.client import AHashClient, ISISClient
-from storage.common import global_root_guid, sestore_guid, ahash_list_guid, parse_metadata, create_metadata, serialize_ids
+from storage.common import global_root_guid, sestore_guid, ahash_list_guid, parse_metadata, create_metadata, serialize_ids, deserialize_ids
 from storage.common import OFFLINE, DELETED
 import traceback
 import copy
@@ -32,6 +32,7 @@ class Librarian:
             raise Exception, 'Librarian cannot run without CheckPeriod and HeartbeatTimeout'
         log.msg(arc.INFO,'Getting AHash URL from the config')
         ahash_urls =  get_child_values_by_name(cfg, 'AHashURL')
+        self.SEs = {}
         if ahash_urls:
             log.msg(arc.INFO,'Got AHash URLs:', ahash_urls)
             log.msg(arc.VERBOSE, 'AHash URL found in the configuration.')
@@ -157,23 +158,29 @@ class Librarian:
         while self.thread_is_running:
             try:
                 SEs = self.ahash_get([sestore_guid])[sestore_guid]
+                # store it for use in 'get'
+                self.SEs = SEs
                 #print 'registered shepherds:', SEs
                 now = time.time()
                 late_SEs = [serviceID for (serviceID, property), nextHeartbeat in SEs.items() if property == 'nextHeartbeat' and float(nextHeartbeat) < now and nextHeartbeat != '-1']
                 #print 'late shepherds (it is %s now)' % now, late_SEs
                 if late_SEs:
                     serviceGUIDs = dict([(serviceGUID, serviceID) for (serviceID, property), serviceGUID in SEs.items() if property == 'serviceGUID' and serviceID in late_SEs])
-                    #print 'late shepherds serviceGUIDs', serviceGUIDs
-                    filelists = self.ahash_get(serviceGUIDs.keys())
-                    changes = []
-                    for serviceGUID, serviceID in serviceGUIDs.items():
-                        filelist = filelists[serviceGUID]
-                        #print 'filelist of late shepherd', serviceID, filelist
-                        changes.extend([(GUID, serviceID, referenceID, OFFLINE)
-                            for (_, referenceID), GUID in filelist.items()])
-                    change_response = self._change_states(changes)
+                    #
+                    # Don't set the replicas to offline!
+                    #
+                    ##print 'late shepherds serviceGUIDs', serviceGUIDs
+                    #filelists = self.ahash_get(serviceGUIDs.keys())
+                    #changes = []
+                    #for serviceGUID, serviceID in serviceGUIDs.items():
+                        #filelist = filelists[serviceGUID]
+                        ##print 'filelist of late shepherd', serviceID, filelist
+                        #changes.extend([(GUID, serviceID, referenceID, OFFLINE)
+                            #for (_, referenceID), GUID in filelist.items()])
+                    #change_response = self._change_states(changes)
                     for _, serviceID in serviceGUIDs.items():
                         self._set_next_heartbeat(serviceID, -1)
+                    self.SEs = self.ahash_get([sestore_guid])[sestore_guid]
                 time.sleep(self.period)
             except Exception, e:
                 log.msg(arc.ERROR, "Error in Librarian's checking thread: %s" % e)
@@ -214,11 +221,13 @@ class Librarian:
             # we got the ID of the shepherd service, and a filelist which contains (GUID, referenceID, state) tuples
             # here we get the list of registered services from the A-Hash (stored with the GUID 'sestore_guid')
             ses = self.ahash_get([sestore_guid])[sestore_guid]
+            # refresh the cached version for use in get
+            self.SEs = ses
             # we get the GUID of the shepherd
             serviceGUID = ses.get((serviceID,'serviceGUID'), None)
             # or this shepherd was not registered yet
             if not serviceGUID:
-                ## print 'report se is not registered yet', serviceID
+                # print 'report se is not registered yet', serviceID
                 # let's create a new GUID
                 serviceGUID = arc.UUID()
                 # let's add the new shepherd-GUID to the list of shepherd-GUIDs but only if someone else not done that just now
@@ -232,37 +241,70 @@ class Librarian:
                     # let's try to get the GUID of the shepherd once again
                     ses = self.ahash_get([sestore_guid])[sestore_guid]
                     serviceGUID = ses.get((serviceID, 'serviceGUID'))
-            # if the next heartbeat time of this shepherd is -1 or nonexistent, we will ask it to send all the file states, not just the changed
-            please_send_all = int(ses.get((serviceID, 'nextHeartbeat'), -1)) == -1
+            # if the next heartbeat time of this shepherd is -1 or nonexistent, 
+            # then we suspect that we don't have everything
+            # so we will send the list of files we think the shepherd have
+            suspicious = int(ses.get((serviceID, 'nextHeartbeat'), -1)) == -1
             # calculate the next heartbeat time
             next_heartbeat = str(int(time.time() + self.hbtimeout))
             # register the next heartbeat time for this shepherd
             self._set_next_heartbeat(serviceID, next_heartbeat)
-            # change the states of replicas in the metadata of the files to the just now reported values
-            self._change_states([(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist])
-            # get the metadata of the shepherd
-            se = self.ahash_get([serviceGUID])[serviceGUID]
+            # prepare to change the states of replicas in the metadata of the files to the just now reported values
+            states_to_change = [(GUID, serviceID, referenceID, state) for GUID, referenceID, state in filelist if referenceID != '<NOTFOUND>']
+            ## get the metadata of the shepherd
+            # se = self.ahash_get([serviceGUID])[serviceGUID]
             ## print 'report se before:', se
             # we want to know which files this shepherd stores, that's why we collect the GUIDs and referenceIDs of all the replicas the shepherd reports
             # we store this information in the A-Hash by the GUID of this shepherd (serviceGUID)
             # so this request asks the A-Hash to store the referenceID and GUID of this file in the section called 'file' in the A-Hash entry of the Shepherd
             # but if the shepherd reports that a replica is DELETED then it will be removed from this list (unset)
-            change_request = dict([(referenceID, (serviceGUID, (state == DELETED) and 'unset' or 'set', 'file', referenceID, GUID, {}))
-                for GUID, referenceID, state in filelist])
+            #print "Librarian got filelist from Shepherd", filelist
+            # this files where not found on the shepherd
+            notfounds = [guid for (guid, referenceID, _) in filelist if referenceID == '<NOTFOUND>']
+            #print "These files were not found by the Shepherd", notfounds
+            # this files have a change in their states
+            change_request_list = [(referenceID, (serviceGUID, (state == DELETED) and 'unset' or 'set', 'file', referenceID, GUID, {})) for (GUID, referenceID, state) in filelist if referenceID != '<NOTFOUND>']
+            # we have to figure out the referenceIDs of the notfound files in order to delete them
+            if notfounds:
+                if '<IMBACK>' in notfounds:
+                    notfounds.remove('<IMBACK>')
+                    suspicious = True
+                try:
+                    se = self.ahash_get([serviceGUID])[serviceGUID]
+                    for (_, ref), gu in se.items():
+                        if gu in notfounds:
+                            change_request_list.append((ref, (serviceGUID, 'unset', 'file', ref, gu, {})))
+                            states_to_change.append((gu, serviceID, ref, DELETED))
+                except:
+                    log.msg()
+                    pass
             ## print 'report change_request:', change_request
-            change_response = self.ahash_change(change_request)
+            #print "These are the requested file changes", dict(change_request_list)
+            if change_request_list:
+                change_response = self.ahash_change(dict(change_request_list))
             # TODO: check the response and do something if something is wrong
             ## print 'report change_response:', change_response
-            ## se = self.ahash_get([serviceGUID])[serviceGUID]
+            # se = self.ahash_get([serviceGUID])[serviceGUID]
             ## print 'report se after:', se
             # if we want the shepherd to send the state of all the files, not just the changed one, we return -1 as the next heartbeat's time
+            if states_to_change:
+                self._change_states(states_to_change)
         except:
+            log.msg()
             log.msg(arc.ERROR, 'Error processing report message')
-            please_send_all = True
-        if please_send_all:
-            return -1
+            suspicious = True
+        if suspicious:
+            try:
+                ses = self.ahash_get([sestore_guid])[sestore_guid]
+                # refresh the cached version for use in 'get'
+                self.SEs = ses
+                serviceGUID = ses[(serviceID,'serviceGUID')]
+                se = self.ahash_get([serviceGUID])[serviceGUID]
+                return -1, se.values()
+            except:
+                return -1, {}
         else:
-            return int(self.hbtimeout)
+            return int(self.hbtimeout), {}
 
     def new(self, requests):
         response = {}
@@ -306,7 +348,22 @@ class Librarian:
         return response
 
     def get(self, requests, neededMetadata = []):
-        return self.ahash_get_tree(requests, neededMetadata)
+        tree = self.ahash_get_tree(requests, neededMetadata)
+        try:
+            xml = arc.XMLNode(arc.NS({'lbr':librarian_uri}), 'lbr:getResponseList')
+            tree.add_to_node(xml,'//')
+            for response_node in get_child_nodes(xml):
+                for m in get_child_nodes(response_node.Get('metadataList')):
+                    if str(m.Get('section')) == 'locations':
+                        serviceID, _ = deserialize_ids(str(m.Get('property')))
+                        if self.SEs.get((serviceID, 'nextHeartbeat'),'-1') == '-1':
+                            # the SE seems to be offline
+                            #print serviceID, 'is offline, changing state', m.GetXML()
+                            m.Get('value').Set(OFFLINE)
+            tree = XMLTree(xml)
+        except:
+            log.msg()
+        return tree
 
     def _parse_LN(self, LN):
         try:
@@ -361,6 +418,14 @@ class Librarian:
             else:
                 try:
                     metadata = self._traverse(guid, metadata0, path, traversed, GUIDs)
+                    # TODO: this is a duplication of the logic in 'get'
+                    for (section, prop) in metadata.keys():
+                        if section == 'locations':
+                            serviceID, _ = deserialize_ids(prop)
+                            if self.SEs.get((serviceID, 'nextHeartbeat'),'-1') == '-1':
+                                # the SE seems to be offline
+                                #print serviceID, 'is offline, changing state', section, prop
+                                metadata[(section, prop)] = OFFLINE
                     traversedList = [(traversed[i], GUIDs[i]) for i in range(len(traversed))]
                     wasComplete = len(path) == 0
                     traversedLN = guid0 + '/' + '/'.join(traversed[1:])
@@ -500,10 +565,13 @@ class LibrarianService(Service):
         filelist_node = request_node.Get('filelist')
         file_nodes = get_child_nodes(filelist_node)
         filelist = [(str(node.Get('GUID')), str(node.Get('referenceID')), str(node.Get('state'))) for node in file_nodes]
-        nextReportTime = self.librarian.report(serviceID, filelist)
+        nextReportTime, all_files = self.librarian.report(serviceID, filelist)
         out = self._new_soap_payload()
         response_node = out.NewChild('lbr:registerResponse')
         response_node.NewChild('lbr:nextReportTime').Set(str(nextReportTime))
+        allfile_node = response_node.NewChild('lbr:allFiles')
+        for guid in all_files:
+            allfile_node.NewChild('lbr:GUID').Set(str(guid))
         return out
 
     def RegistrationCollector(self, doc):

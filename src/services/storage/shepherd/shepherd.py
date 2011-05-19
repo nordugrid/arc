@@ -92,7 +92,8 @@ class Shepherd:
                 log.msg(arc.INFO,'Got ISIS URL, starting isisBartenderThread')
                 threading.Thread(target = self.isisBartenderThread, args = [isis_urls]).start()
 
-        self.changed_states = self.store.list()
+        self.changed_states = ['<FIRST>']
+        self.nonexistent_files = []
         threading.Thread(target = self.checkingThread, args = [self.period]).start()
         self.doReporting = True
         threading.Thread(target = self.reportingThread, args = []).start()
@@ -159,6 +160,29 @@ class Shepherd:
                 log.msg(arc.WARNING, 'Error in isisBartenderThread: %s' % e)
                 
 
+    def _check_filelist_from_librarian(self, all_files):
+        #print "_check_filelist_from_librarian", "all_files", all_files
+        referenceIDs = self.store.list()
+        #print "_check_filelist_from_librarian", "referenceIDs", referenceIDs
+        for referenceID in referenceIDs:
+            try:
+                localData = self.store.get(referenceID)
+                guid = localData['GUID']
+                try:
+                    all_files.remove(guid)
+                except ValueError:
+                    # the Librarian doesn't know we have this file
+                    # we should report it next time
+                    #print "_check_filelist_from_librarian", "this file was not in all_files", guid, referenceID
+                    self.changed_states.append(referenceID)
+            except:
+                pass
+        # if anything remained in all_files, that's something the Librarian
+        # thinks we have, but we don't know about it
+        for guid in all_files:
+            #print "_check_filelist_from_librarian", "this file was in all_files but I don't know about it", guid
+            self.nonexistent_files.append((guid, '<NOTFOUND>', DELETED))
+
     def reportingThread(self):
         # at the first start just wait for a few seconds
         time.sleep(5)
@@ -174,33 +198,35 @@ class Shepherd:
                     while len(self.changed_states) > 0: # while there is changed file
                         # get the first one. the changed_states list contains referenceIDs
                         changed = self.changed_states.pop()
-                        # get its local data (GUID, size, state, etc.)
-                        localData = self.store.get(changed)
-                        if not localData.has_key('GUID'):
-                            log.msg(arc.VERBOSE, 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
+                        if changed == '<FIRST>':
+                            filelist.append(('<IMBACK>','<NOTFOUND>',''))
                         else:
-                            # add to the filelist the GUID, the referenceID and the state of the file
-                            filelist.append((localData.get('GUID'), changed, localData.get('state')))
+                            # get its local data (GUID, size, state, etc.)
+                            localData = self.store.get(changed)
+                            if not localData.has_key('GUID'):
+                                log.msg(arc.VERBOSE, 'Error in shepherd.reportingThread()\n\treferenceID is in changed_states, but not in store')
+                            else:
+                                # add to the filelist the GUID, the referenceID and the state of the file
+                                filelist.append((localData.get('GUID'), changed, localData.get('state')))
+                    while len(self.nonexistent_files) > 0:
+                        filelist.append(self.nonexistent_files.pop())
                     #print 'reporting', self.serviceID, filelist
                     # call the report method of the librarian with the collected filelist and with our serviceID
                     try:
                         log.msg(arc.DEBUG, 'Shepherd', self.serviceID, 'calling Librarian with file list', filelist)
-                        next_report = self.librarian.report(self.serviceID, filelist)
-                        log.msg(arc.DEBUG, 'Shepherd', self.serviceID, 'got reply from Librarian', next_report)
+                        next_report, all_files = self.librarian.report(self.serviceID, filelist)
+                        log.msg(arc.DEBUG, 'Shepherd', self.serviceID, 'got reply from Librarian', next_report, all_files)
                     except:
                         log.msg(arc.WARNING, 'Error sending report message to the Librarian, reason:', traceback.format_exc())
-                        # if next_report is below zero, then we will send everything again
-                        next_report = -1
+                        next_report = 10
                     # we should get the time of the next report
                     # if we don't get any time, do the next report 10 seconds later
                     if not next_report:
                         next_report = 10
+                    # the librarian expect us to check the filelist it sent to us
+                    if next_report < 0:
+                        self._check_filelist_from_librarian(all_files)
                     last_report = time.time()
-                    # if the next report time is below zero it means:
-                    if next_report < 0: # 'please send all'
-                        log.msg(arc.VERBOSE, 'reporting - asked to send all file data again')
-                        # add the full list of stored files to the changed_state list - all the files will be reported next time (which is immediately, see below)
-                        self.changed_states.extend(self.store.list())
                     # let's wait until there is any changed file or the reporting time is up - we need to do report even if no file changed (as a heartbeat)
                     time.sleep(10)
                     while len(self.changed_states) == 0 and last_report + next_report * 0.5 > time.time():
@@ -215,7 +241,7 @@ class Shepherd:
         self.doReporting = doReporting
         return str(self.doReporting)
     
-    def _checking_checksum(self, referenceID, localData):
+    def _manage_checksum(self, referenceID, localData):
         # get the current state (which is stored locally) or an empty string if it somehow has no state
         state = localData.get('state','')
         # hack: if the file's state is ALIVE then only check the checksum if the last check was a long time ago
@@ -285,8 +311,8 @@ class Shepherd:
             # check if the cheksum changed in the Librarian
             metadata = self.librarian.get([GUID])[GUID]
             localData = self._refresh_checksum(referenceID, localData, metadata)
-        state = self._checking_checksum(referenceID, localData)
-        # if _checking_checksum haven't change the state to ALIVE: the file is corrupt
+        state = self._manage_checksum(referenceID, localData)
+        # if _manage_checksum haven't change the state to ALIVE: the file is corrupt
         # except if the checksum is '', then the arccp hasn't set the right checksum yet
         if state == CREATING and localData['checksum'] != '':
             self.changeState(referenceID, INVALID)
@@ -349,8 +375,8 @@ class Shepherd:
                             localData = self._refresh_checksum(referenceID, localData, metadata)
                             # check the real checksum of the file: if the checksum is OK or not, it changes the state of the replica as well
                             # and it returns the state and the GUID and the localID of the file
-                            #   if _checking_checksum changed the state then the new state is returned here:
-                            state = self._checking_checksum(referenceID, localData)
+                            #   if _manage_checksum changed the state then the new state is returned here:
+                            state = self._manage_checksum(referenceID, localData)
                             # now the file's state is according to its checksum
                             # checksum takes time, so refreshing metadata...
                             metadata = self.librarian.get([GUID])[GUID]

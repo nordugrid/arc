@@ -264,9 +264,11 @@ class LibrarianClient(Client):
         response = self.call(tree)
         node = self.xmlnode_class(response)
         try:
-            return int(str(node.Child().Child().Get('nextReportTime')))
+            next_report_time = int(str(node.Child().Child().Get('nextReportTime')))
+            guids = [str(guid_node) for guid_node in get_child_nodes(node.Child().Child().Get('allFiles'))]
+            return next_report_time, guids
         except:
-            return None
+            return None, None
 
 class BartenderClient(Client):
     """ Client for the Bartender service. """
