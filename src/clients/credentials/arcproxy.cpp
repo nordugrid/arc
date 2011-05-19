@@ -71,6 +71,12 @@ static void write_proxy_file(const std::string& path, const std::string& content
   ::close(f);
 }
 
+static void remove_proxy_file(const std::string& path) {
+  if((::unlink(path.c_str()) != 0) && (errno != ENOENT)) {
+    throw std::runtime_error("Failed to remove proxy file " + path);
+  }
+}
+
 static void tls_process_error(Arc::Logger& logger) {
   unsigned long err;
   err = ERR_get_error();
@@ -264,9 +270,14 @@ int main(int argc, char *argv[]) {
   options.AddOption('U', "user", istring("username to MyProxy server"),
                     istring("string"), user_name);
 
-  std::string passphrase; //passphrase to myproxy server
-//  options.AddOption('R', "pass", istring("passphrase to MyProxy server"),
-//                    istring("string"), passphrase);
+  bool use_empty_passphrase = false; //if use empty passphrase to myproxy server
+  options.AddOption('N', "nopassphrase", istring("don't prompt for a credential passphrase. Store credentials \n"
+                                         "              without a credential passphrase on MyProxy server."),
+                    use_empty_passphrase);
+  
+  std::string retrievable_by_cert; //if use empty passphrase to myproxy server
+  options.AddOption('R', "retrievable_by_cert", istring("Allow specified entity to retrieve credential without passphrase.\n"),
+                    istring("string"), retrievable_by_cert);
 
   std::string myproxy_server; //url of MyProxy server
   options.AddOption('L', "myproxysrv", istring("hostname[:port] of MyProxy server"),
@@ -557,20 +568,35 @@ int main(int argc, char *argv[]) {
     if (myproxy_command == "get" || myproxy_command == "GET" || myproxy_command == "Get") {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        std::string cert_dn = proxy_cred.GetIdentityName();
+        user_name = cert_dn;
+      }
       if (user_name.empty())
         throw std::invalid_argument("Username to MyProxy server is missing");
-//      if (passphrase.empty())
-//        throw std::invalid_argument("Passphrase to MyProxy server is missing");
+
       std::string prompt1 = "MyProxy server";
       char password[256];
-      int res = input_password(password, 256, false, prompt1, "", logger);
-      if (!res)
-        throw std::invalid_argument("Error entering passphrase");
-      passphrase = password;
+
+      std::string passphrase = password;
+      if(!use_empty_passphrase) {
+        int res = input_password(password, 256, false, prompt1, "", logger);
+        if (!res)
+          throw std::invalid_argument("Error entering passphrase");
+        passphrase = password;
+      }
+
       std::string proxy_cred_str_pem;
 
       //if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
       //if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }      
       if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
 
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
@@ -588,6 +614,8 @@ int main(int argc, char *argv[]) {
       //case, "--cert" and "--key" is not needed.
       cert_path = proxy_path;
       key_path = proxy_path;
+      std::cout << Arc::IString("Succeeded to get a proxy from MyProxy server") << std::endl;
+
       return EXIT_SUCCESS;
     }
 
@@ -1017,17 +1045,24 @@ int main(int argc, char *argv[]) {
     if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
-      if (user_name.empty())
+      if(user_name.empty()) {
+        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        std::string cert_dn = proxy_cred.GetIdentityName();
+        user_name = cert_dn;
+      }
+      if (user_name.empty()) 
         throw std::invalid_argument("Username to MyProxy server is missing");
-//      if (passphrase.empty())
-//        throw std::invalid_argument("Passphrase to myproxy server is missing");
+
       std::string prompt1 = "MyProxy server";
       std::string prompt2 = "MyProxy server";
       char password[256];
-      int res = input_password(password, 256, true, prompt1, prompt2, logger);
-      if (!res)
-        throw std::invalid_argument("Error entering passphrase");
-      passphrase = password;
+      std::string passphrase;
+      if(retrievable_by_cert.empty()) {
+        int res = input_password(password, 256, true, prompt1, prompt2, logger);
+        if (!res)
+          throw std::invalid_argument("Error entering passphrase");
+        passphrase = password;
+      }
 
       std::string proxy_cred_str_pem;
       std::ifstream proxy_cred_file(proxy_path.c_str());
@@ -1038,8 +1073,7 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("Failed to read proxy file "+proxy_path);
       proxy_cred_file.close();
 
-      if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
-      if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
+      if(usercfg.CertificatePath().empty() || usercfg.KeyPath().empty()) usercfg.ProxyPath(proxy_path);
       if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
 
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
@@ -1047,14 +1081,22 @@ int main(int argc, char *argv[]) {
       myproxyopt["username"] = user_name;
       myproxyopt["password"] = passphrase;
       myproxyopt["lifetime"] = "43200";
+      if(!retrievable_by_cert.empty()) {
+        myproxyopt["retriever_trusted"] = retrievable_by_cert;
+      }
       if(!cstore.Store(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
+
+      remove_proxy_file(proxy_path);
+
+      std::cout << Arc::IString("Succeeded to put a proxy onto MyProxy server") << std::endl;
 
       return EXIT_SUCCESS;
     }
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
     tls_process_error(logger);
+    remove_proxy_file(proxy_path);
     return EXIT_FAILURE;
   }
 

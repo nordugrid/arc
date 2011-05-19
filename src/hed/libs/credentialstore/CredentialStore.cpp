@@ -88,6 +88,7 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   std::string credname;
   std::string username;
   std::string password;
+  std::string trusted_retriever;
   int lifetime = 0;
   std::map<std::string,std::string>::const_iterator val;
   val = options.find("credname");
@@ -98,18 +99,23 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   if(val != options.end()) password = val->second;
   val = options.find("lifetime");
   if(val != options.end()) lifetime = stringto<int>(val->second);
+  val = options.find("retriever_trusted");
+  if(val != options.end()) trusted_retriever = val->second;
 
   std::string msg("VERSION=MYPROXYv2\nCOMMAND=1\n");
   if(username.empty()) return false;
   msg.append("USERNAME="+username+"\n");
-  if(!password.empty()) {
+  //if(!password.empty()) {
     msg.append("PASSPHRASE="+password+"\n");
-  }
+  //}
   if(lifetime > 0) {
     msg.append("LIFETIME="+tostring(lifetime)+"\n");
   }
   if(!credname.empty()) {
     msg.append("CRED_NAME="+credname+"\n");
+  }
+  if(!trusted_retriever.empty()) {
+    msg.append("RETRIEVER_TRUSTED="+trusted_retriever+"\n");
   }
   msg.append("\0");
   PayloadStreamInterface *response = NULL;
