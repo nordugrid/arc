@@ -2,7 +2,11 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
+
 #include "LegacySecAttr.h"
+#include "ConfigParser.h"
+#include "auth.h"
 
 #include "LegacyPDP.h"
 
@@ -26,6 +30,29 @@ LegacyPDP::LegacyPDP(Arc::Config* cfg):PDP(cfg) {
     vos_.push_back((std::string)vo);
     ++vo;
   };
+  Arc::XMLNode block = (*cfg)["ConfigBlock"];
+  while((bool)block) {
+    std::string filename = (std::string)(block["ConfigFile"]);
+    if(filename.empty()) {
+      logger.msg(Arc::ERROR, "Configuration file not specified n ConfigBlock");
+      blocks_.clear();
+      return;
+    };
+    cfgfile file(filename);
+    Arc::XMLNode name = block["BlockName"];
+    while((bool)name) {
+      std::string blockname = (std::string)name;
+      if(blockname.empty()) {
+        logger.msg(Arc::ERROR, "BlockName is empty");
+        blocks_.clear();
+        return;
+      };
+      file.blocknames.push_back(blockname);
+      ++name;
+    };
+    blocks_.push_back(file);
+    ++block;
+  };
 }
 
 LegacyPDP::~LegacyPDP() {
@@ -39,6 +66,59 @@ static bool match_lists(const std::list<std::string>& list1, const std::list<std
   };
   return false;
 }
+
+class LegacyPDPCP: public ConfigParser {
+ public:
+  LegacyPDPCP(const LegacyPDP::cfgfile& file, Arc::Logger& logger, AuthUser& auth):ConfigParser(file.filename,logger),file_(file),group_matched_(false),group_processed_(false) {
+    auth.get_groups(groups_);
+  };
+
+  virtual ~LegacyPDPCP(void) {
+  };
+
+  bool Matched(void) {
+    return group_matched_;
+  };
+
+  bool Processed(void) {
+    return group_processed_;
+  };
+
+ protected:
+  virtual bool BlockStart(const std::string& id, const std::string& name) {
+    return true;
+  };
+
+  virtual bool BlockEnd(const std::string& id, const std::string& name) {
+    return true;
+  };
+
+  virtual bool ConfigLine(const std::string& id, const std::string& name, const std::string& cmd, const std::string& line) {
+    if(group_matched_) return true;
+    if(cmd != "groupcfg") return true;
+    std::string bname = id;
+    if(!name.empty()) bname = bname+"/"+name;
+    for(std::list<std::string>::const_iterator block = file_.blocknames.begin();
+                                 block != file_.blocknames.end();++block) {
+      if(*block == bname) {
+        std::list<std::string> groups;
+        Arc::tokenize(line,groups," \t","\"","\"");
+        if(!groups.empty()) group_processed_ = true;
+        if(match_lists(groups_,groups,logger_)) {
+          group_matched_ = true;
+        };
+        break;
+      };
+    };
+    return true;
+  };
+
+ private:
+  const LegacyPDP::cfgfile& file_;
+  bool group_matched_;
+  bool group_processed_;
+  std::list<std::string> groups_;
+};
 
 bool LegacyPDP::isPermitted(Arc::Message *msg) const {
   Arc::SecAttr* sattr = msg->Auth()->get("ARCLEGACY");
@@ -56,6 +136,22 @@ bool LegacyPDP::isPermitted(Arc::Message *msg) const {
   const std::list<std::string>& vos(lattr->GetVOs());
   if(match_lists(groups_,groups,logger)) return true;
   if(match_lists(vos_,vos,logger)) return true;
+
+  // Populate with collected info
+  AuthUser auth(*msg);
+  auth.add_groups(lattr->GetGroups());
+  auth.add_vos(lattr->GetVOs());
+  bool processed = false;
+  for(std::list<cfgfile>::const_iterator block = blocks_.begin();
+                              block!=blocks_.end();++block) {
+    LegacyPDPCP parser(*block,logger,auth);
+    if(!parser) return false;
+    if(!parser.Parse()) return false;
+    if(parser.Matched()) return true;
+    if(parser.Processed()) processed = true;
+  };
+
+  if(groups_.empty() && vos_.empty() && !processed) return true;
   return false;
 }
 

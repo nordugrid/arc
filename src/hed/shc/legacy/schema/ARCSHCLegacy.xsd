@@ -47,6 +47,13 @@
   </xsd:element>
 
   <xsd:element name="ConfigBlock">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        This element defines configuration file and configuration
+        blocks for processing in ARCLegacy Identity Mapper and PDP.
+        There may be multiple such elements.
+      </xsd:documentation>
+    </xsd:annotation>
     <xsd:complexType>
       <xsd:annotation>
         <xsd:documentation xml:lang="en">

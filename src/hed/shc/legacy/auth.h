@@ -115,6 +115,7 @@ class AuthUser {
   const char* hostname(void) const { return from.c_str(); };
   // Remember this user belongs to group 'grp'
   void add_group(const std::string& grp);
+  void add_groups(const std::list<std::string>& grps);
   // Mark this user as belonging to no no groups
   void clear_groups(void) { groups_.clear(); default_group_=NULL; };
   // Returns true if user belongs to specified group 'grp'
@@ -126,6 +127,7 @@ class AuthUser {
   };
   void get_groups(std::list<std::string>& groups) const;
   void add_vo(const std::string& vo);
+  void add_vos(const std::list<std::string>& vos);
   void clear_vos(void) { vos_.clear(); };
   bool check_vo(const std::string& vo) const {
     for(std::list<std::string>::const_iterator i=vos_.begin();i!=vos_.end();++i) {

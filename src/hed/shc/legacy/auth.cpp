@@ -269,6 +269,20 @@ void AuthUser::add_vo(const std::string& vo) {
   logger.msg(Arc::VERBOSE,"Assigned to VO %s",vo);
 }
 
+void AuthUser::add_groups(const std::list<std::string>& grps) {
+  for(std::list<std::string>::const_iterator grp = grps.begin();
+                                    grp != grps.end(); ++grp) {
+    add_group(*grp);
+  }
+}
+
+void AuthUser::add_vos(const std::list<std::string>& vos) {
+  for(std::list<std::string>::const_iterator vo = vos.begin();
+                                    vo != vos.end(); ++vo) {
+    add_vo(*vo);
+  }
+}
+
 
 } // namespace ArcSHCLegacy
 
