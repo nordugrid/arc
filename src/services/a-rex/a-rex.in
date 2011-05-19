@@ -324,92 +324,115 @@ prepare() {
 
     # A-Rex without WS interface
     AREXCFG="\
-<?xml version=\"1.0\"?>\
-<ArcConfig\
-  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
-  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
-  <Server>\
-    <PidFile>$PID_FILE</PidFile>\
-    <Logger>\
-      <File>$LOGFILE</File>\
-      <Level>$LOGLEVEL</Level>\
-      <Backups>$LOGNUM</Backups>\
-      <Maxsize>$LOGSIZE</Maxsize>\
-      <Reopen>$LOGREOPEN</Reopen>\
-    </Logger>\
-  </Server>\
-  <ModuleManager>\
-    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\
-  </ModuleManager>\
-  <Plugins><Name>arex</Name></Plugins>\
-  <Chain>\
-    <Service name=\"a-rex\" id=\"a-rex\">\
-      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>\
-    </Service>\
-  </Chain>\
-</ArcConfig>\
+<?xml version=\"1.0\"?>
+<ArcConfig
+  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">
+  <Server>
+    <PidFile>$PID_FILE</PidFile>
+    <Logger>
+      <File>$LOGFILE</File>
+      <Level>$LOGLEVEL</Level>
+      <Backups>$LOGNUM</Backups>
+      <Maxsize>$LOGSIZE</Maxsize>
+      <Reopen>$LOGREOPEN</Reopen>
+    </Logger>
+  </Server>
+  <ModuleManager>
+    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
+  </ModuleManager>
+  <Plugins><Name>arex</Name></Plugins>
+  <Chain>
+    <Service name=\"a-rex\" id=\"a-rex\">
+      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+    </Service>
+  </Chain>
+</ArcConfig>
 "
 
     # A-Rex with WS interface over HTTPS
     AREXCFGWSS="\
-<?xml version=\"1.0\"?>\
-<ArcConfig\
-  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
+<?xml version=\"1.0\"?>
+<ArcConfig
+  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
   xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
-  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">\
-  <Server>\
-    <PidFile>$PID_FILE</PidFile>\
-    <Logger>\
-      <File>$LOGFILE</File>\
-      <Level>$LOGLEVEL</Level>\
-      <Backups>$LOGNUM</Backups>\
-      <Maxsize>$LOGSIZE</Maxsize>\
-      <Reopen>$LOGREOPEN</Reopen>\
-    </Logger>\
-  </Server>\
-  <ModuleManager>\
-    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\
-  </ModuleManager>\
-  <Plugins><Name>mcctcp</Name></Plugins>\
-  <Plugins><Name>mcctls</Name></Plugins>\
-  <Plugins><Name>mcchttp</Name></Plugins>\
-  <Plugins><Name>mccsoap</Name></Plugins>\
-  <Plugins><Name>arex</Name></Plugins>\
-  <Plugins><Name>identitymap</Name></Plugins>\
-  <Plugins><Name>arcshc</Name></Plugins>\
-  <Chain>\
-    <Component name=\"tcp.service\" id=\"tcp\">\
-      <next id=\"tls\"/>\
-      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>\
-    </Component>\
-    <Component name=\"tls.service\" id=\"tls\">\
-      <next id=\"http\"/>\
-      <KeyPath>$X509_USER_KEY</KeyPath>\
-      <CertificatePath>$X509_USER_CERT</CertificatePath>\
-      <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>\
-      <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">\
-        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>\
-        <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>\
-      </SecHandler>\
-    </Component>\
-    <Component name=\"http.service\" id=\"http\">\
-      <next id=\"soap\">POST</next>\
-      <next id=\"plexer\">GET</next>\
-      <next id=\"plexer\">PUT</next>\
-      <next id=\"plexer\">HEAD</next>\
-    </Component>\
-    <Component name=\"soap.service\" id=\"soap\">\
-      <next id=\"plexer\"/>\
-    </Component>\
-    <Plexer name=\"plexer.service\" id=\"plexer\">\
-      <next id=\"a-rex\">^/$arex_path</next>\
-    </Plexer>\
-    <Service name=\"a-rex\" id=\"a-rex\">\
+  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\">
+  <Server>
+    <PidFile>$PID_FILE</PidFile>
+    <Logger>
+      <File>$LOGFILE</File>
+      <Level>$LOGLEVEL</Level>
+      <Backups>$LOGNUM</Backups>
+      <Maxsize>$LOGSIZE</Maxsize>
+      <Reopen>$LOGREOPEN</Reopen>
+    </Logger>
+  </Server>
+  <ModuleManager>
+    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
+  </ModuleManager>
+  <Plugins><Name>mcctcp</Name></Plugins>
+  <Plugins><Name>mcctls</Name></Plugins>
+  <Plugins><Name>mcchttp</Name></Plugins>
+  <Plugins><Name>mccsoap</Name></Plugins>
+  <Plugins><Name>arex</Name></Plugins>
+  <Plugins><Name>identitymap</Name></Plugins>
+  <Plugins><Name>arcshc</Name></Plugins>
+  <Plugins><Name>arcshclegacy</Name></Plugins>
+  <Chain>
+    <Component name=\"tcp.service\" id=\"tcp\">
+      <next id=\"tls\"/>
+      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>
+    </Component>
+    <Component name=\"tls.service\" id=\"tls\">
+      <next id=\"http\"/>
+      <KeyPath>$X509_USER_KEY</KeyPath>
+      <CertificatePath>$X509_USER_CERT</CertificatePath>
+      <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
+      <!-- Do initial identity mappping by gridmap file -->
+      <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
+        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
+        <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>
+      </SecHandler>
+      <!-- Match client to legacy authorization groups -->
+      <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
+        <ConfigFile>$ARC_CONFIG</ConfigFile>
+      </SecHandler>
+    </Component>
+    <Component name=\"http.service\" id=\"http\">
+      <next id=\"soap\">POST</next>
+      <next id=\"plexer\">GET</next>
+      <next id=\"plexer\">PUT</next>
+      <next id=\"plexer\">HEAD</next>
+    </Component>
+    <Component name=\"soap.service\" id=\"soap\">
+      <next id=\"plexer\"/>
+    </Component>
+    <Plexer name=\"plexer.service\" id=\"plexer\">
+      <next id=\"a-rex\">^/$arex_path</next>
+    </Plexer>
+    <Service name=\"a-rex\" id=\"a-rex\">
+      <!-- Do authorization in same way as jobs plugin of gridftpd does -->
+      <!-- Beware of hardcoded block name -->
+      <SecHandler name=\"arc.authz\" event=\"incoming\">
+        <PDP name=\"arclegacy.pdp\">
+          <ConfigBlock>
+            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <BlockName>gridftpd/jobs</BlockName>
+          </ConfigBlock>
+        </PDP>
+      </SecHandler>
+      <!-- Perform client mapping according to rules of gridftpd -->
+      <SecHandler name=\"arclegacy.map\" event=\"incoming\">
+          <ConfigBlock>
+            <ConfigFile>$ARC_CONFIG</ConfigFile>
+            <BlockName>gridftpd</BlockName>
+          </ConfigBlock>
+      </SecHandler>
       $arex_endpoint
-      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>\
-    </Service>\
-  </Chain>\
-</ArcConfig>\
+      <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+    </Service>
+  </Chain>
+</ArcConfig>
 "
 
     if [ -z "$arex_proto" ] ; then
