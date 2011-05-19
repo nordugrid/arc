@@ -104,6 +104,9 @@ namespace Arc {
   ///Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid
   std::string convert_to_rdn(const std::string& dn);
 
+  std::string escape_chars(const std::string& str, const std::string& chars, char esc);
+  std::string unescape_chars(const std::string& str, char esc);
+
 } // namespace Arc
 
 #endif // ARCLIB_STRINGCONV

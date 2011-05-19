@@ -6,7 +6,7 @@ endif
 
 TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
         ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
-        $(MYSQL_WRAPPER_TEST)
+        StringConvTest $(MYSQL_WRAPPER_TEST)
 
 check_PROGRAMS = $(TESTS)
 
@@ -91,6 +91,13 @@ UserConfigTest_SOURCES = $(top_srcdir)/src/Test.cpp UserConfigTest.cpp
 UserConfigTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 UserConfigTest_LDADD = \
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+
+StringConvTest_SOURCES = $(top_srcdir)/src/Test.cpp StringConvTest.cpp
+StringConvTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS)
+StringConvTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 

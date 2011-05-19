@@ -105,17 +105,17 @@ namespace Arc {
     while (std::string::npos != pos) {
       const std::string tmpstr = str.substr(lastPos, pos-lastPos);
       if (!trim(tmpstr).empty()) {
-        if (!retstr.empty())
-          retstr += "\n";
+        if (!retstr.empty()) retstr += "\n";
         retstr += tmpstr;
       }
 
       lastPos = pos+1;
-      pos = str.find_first_of("\n", lastPos+1);
+      pos = str.find_first_of("\n", lastPos);
     }
 
     if (!str.substr(lastPos).empty()) {
-      retstr += "\n"+str.substr(lastPos);
+      if (!retstr.empty()) retstr += "\n";
+      retstr += str.substr(lastPos);
     }
 
     return retstr;
@@ -186,4 +186,31 @@ namespace Arc {
     }while(pos2 != std::string::npos && pos2 != (std::string::npos+1));
     return ret;
   }
+
+  std::string escape_chars(const std::string& str, const std::string& chars, char esc) {
+    std::string out = str;
+    std::string esc_chars = chars;
+    esc_chars += esc;
+    std::string::size_type p = 0;
+    for(;;) {
+      p = out.find_first_of(esc_chars,p);
+      if(p == std::string::npos) break;
+      out.insert(p,1,esc);
+      p += 2;
+    }
+    return out;
+  }
+
+  std::string unescape_chars(const std::string& str, char esc) {
+    std::string out = str;
+    std::string::size_type p = 0;
+    for(;(p+1)<out.length();) {
+      p = out.find(esc,p);
+      if(p == std::string::npos) break;
+      out.erase(p,1);
+      ++p;
+    }
+    return out;
+  }
+
 } // namespace Arc
