@@ -38,8 +38,9 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
   $hnarray   = array();
   $entries   = array();
   $blacklist = array();
+
   if ( file_exists("blacklist.inc") ) include('blacklist.inc');
-  
+
   // Loop on entered sites
   // If a host is blacklisted, skip
   // If a host is a cluster (GRIS), keep and skip
@@ -47,7 +48,10 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
 
   for ( $ig = 0; $ig < $ngiis; $ig++ ) {
     $ghost = $giislist[$ig]["host"];
-    if ( @$blacklist[$ghost] ) continue;
+    if ( @$blacklist[$ghost] ) {
+      if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>".$errors["122"]."$ghost</b></font></div>\n");
+      continue;
+    }
     $gport = $giislist[$ig]["port"];
     $gbase = $giislist[$ig]["base"];
     if ( preg_match("/$element/i",$gbase) ) {
@@ -63,8 +67,10 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
       continue;
     }
     if ( $debug == 2 ) dbgmsg("<div align=\"left\">".$errors["117"]."<b>$ghost</b>...");
+    $fp = @fsockopen($ghost, $gport, $errno, $errstr, 2);
     $gconn = ldap_connect($ghost,$gport);
-    if ( $gconn ) {
+    if ( $fp && $gconn ) {
+      fclose($fp);
       if ( $debug == 2 ) dbgmsg($errors["118"]);
       array_push($dsarray,$gconn);
       array_push($dnarray,$gbase);
@@ -81,9 +87,9 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
 
   // Check if there is underlying structure
 
-  $srarray = @ldap_read($dsarray,$dnarray,$gfilter,$greg,0,0,$tlim,LDAP_DEREF_NEVER);
-  // Fall back to a conventional LDAP
-  //  if (!count($srarray)) $srarray = @ldap_read($dsarray,$dnarray,$gfilter,$greg,0,0,$tlim,LDAP_DEREF_NEVER);
+    $srarray = @ldap_read($dsarray,$dnarray,$gfilter,$greg,0,0,$tlim,LDAP_DEREF_NEVER);
+  // If using the pached LDAP
+  //$srarray = @ldap_read($dsarray,$dnarray,$gfilter,$greg,0,0,$tlim,LDAP_DEREF_NEVER,$tout);
 
   // Debug: check if something eventualy timeouts or something
   if ( $debug ) {
@@ -131,13 +137,13 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
 	// Introduce "fake" DN for tagging purpose - helps skipping sites registering twice
 	$fakedn  = "hn=".$curhost.", ".$cursuff;
 	if ( @$tag[$fakedn] ) continue;
-	
-	if ( $curstat != "VALID" ) {
-	  if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>$curstat".$errors["121"]."$fakedn</b></font></div>\n");
+
+	if ( @$blacklist[$curhost] ) {
+	  if ( $debug>0 ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>".$errors["122"]."$curhost</b></font></div>\n");
 	  continue;
 	}
-	if ( @$blacklist[$curhost] ) {
-	  if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>".$errors["122"]."$curhost</b></font></div>\n");
+	if ( $curstat != "VALID" ) {
+	  if ( $debug ) dbgmsg("<div align=\"left\"><font color=\"red\"><b>$curstat".$errors["121"]."$fakedn</b></font></div>\n");
 	  continue;
 	}
 	

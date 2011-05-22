@@ -279,7 +279,7 @@ Kolumnens
                                       "Objekt"                       => 0,
                                       "Attributt"                     => 0
                                       ),
-                  "quelist"  => array("0" => "Informasjon om køen",
+                  "quelist"  => array("0" => "Kø",
                                       "help" => "<div align=\"left\">
                                                  <dl>
                                                    <dt><b>Attributt</b></dt>
@@ -425,6 +425,7 @@ autorisert på.</dd>
                                       "nordugrid-cluster-gridspace"          => "Griddiskplass (Utgått)",
                                       "nordugrid-cluster-opsysdistribution"  => "OS-distribusjon (Utgått)",
                                       "nordugrid-cluster-runningjobs"        => "Kjørende jobber (Utgått)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
                                       "nordugrid-queue-name"                 => "Kønavn",
                                       "nordugrid-queue-comment"              => "Kommentar",
                                       "nordugrid-queue-status"               => "Køstatus",

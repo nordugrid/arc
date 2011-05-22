@@ -253,7 +253,7 @@ jonon paikalliskaytanto saattaa muuttaa prioriteetteja.</dd>
                                       "Objekti"                       => 0,
                                       "Ominaisuus"                    => 0
                                       ),
-                  "quelist"  => array("0" => "Jono tarkemmin",
+                  "quelist"  => array("0" => "Jono",
                                       "help" => "<div align=\"left\">
                                                  <dl>
                                                    <dt><b>Ominaisuus</b></dt>
@@ -388,6 +388,7 @@ jonon paikalliskaytanto saattaa muuttaa prioriteetteja.</dd>
                                       "nordugrid-cluster-gridspace"          => "Grid levytila (VANHENTUNUT)",
                                       "nordugrid-cluster-opsysdistribution"  => "Käyttojärjestelmän jakelunimi (VANHENTUNUT)",
                                       "nordugrid-cluster-runningjobs"        => "TöItä, ajossa (VANHENTUNUT)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
                                       "nordugrid-queue-name"                 => "Jonon nimi",
                                       "nordugrid-queue-comment"              => "Kommentti",
                                       "nordugrid-queue-status"               => "Jonon tila",

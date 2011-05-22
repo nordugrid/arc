@@ -220,7 +220,7 @@ $message = array (
                                       "Objektum"                       => 0,
                                       "Attribútum"                    => 0
                                       ),
-                  "quelist"  => array("0" => "A várakozósor részletei",
+                  "quelist"  => array("0" => "Várakozósor",
                                       "help" => "<div align=\"left\">
                                                  <dl>
                                                    <dt><b>Attribútum</b></dt>
@@ -352,6 +352,7 @@ $message = array (
                                       "nordugrid-cluster-gridspace"          => "Grid lemez terület (ELAVULT)",
                                       "nordugrid-cluster-opsysdistribution"  => "OS disztribúció (ELAVULT)",
                                       "nordugrid-cluster-runningjobs"        => "Job-ok, futás (ELAVULT)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
                                       "nordugrid-queue-name"                 => "A várakozósor neve",
                                       "nordugrid-queue-comment"              => "Megjegyzés",
                                       "nordugrid-queue-status"               => "A várakozósor állapota",

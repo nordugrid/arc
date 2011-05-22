@@ -18,8 +18,8 @@ require_once('mylo.inc');
  */
 function ldap_nice_dump() {
 
-  $tlim = 30;
-  $tout = 30;
+  $tlim = 10;
+  $tout = 11;
 
   $strings = func_get_arg(0);
   $ds      = func_get_arg(1);
@@ -78,7 +78,7 @@ function ldap_nice_dump() {
 	$encatt = rawurlencode($curatt);
 	$attwin = popup("attlist.php?attribute=$encatt",650,300,7);
 
-	$attstring   = ( $mdsattr[$curatt] ) ? "<b>$engatt</b>" : "<a href=\"$attwin\"><b>$engatt</b></a>";
+	$attstring   = @( $mdsattr[$curatt] ) ? "<b>$engatt</b>" : "<a href=\"$attwin\"><b>$engatt</b></a>";
         $drowcont[0] = $attstring;
         $drowcont[1] = "&nbsp;";
         
@@ -88,6 +88,9 @@ function ldap_nice_dump() {
 	if ( $nval > 4 ) $drowcont[1] = $fhead;
 	for ($k=0; $k<$nval; $k++) {
 	  $curval = $entries[$curatt][$k];
+
+	  // Strip HTML tags some smart folks are adding
+	  $curval = strip_tags($curval);
 	  
 	  // Some time-stamp readability adjustment
 	  if ( strlen($curval) == 15 && $curval{14} == "Z" ) $curval=cnvtime($curval);

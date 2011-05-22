@@ -357,6 +357,7 @@ $message = array (
                                       "nordugrid-cluster-gridspace"          => "Gridový diskový priestor (ZASTARANÉ)",
                                       "nordugrid-cluster-opsysdistribution"  => "Distribúcia OS (ZASTARANÉ)",
                                       "nordugrid-cluster-runningjobs"        => "Bežiace úlohy (ZASTARANÉ)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
                                       "nordugrid-queue-name"                 => "Názov rady",
                                       "nordugrid-queue-comment"              => "Komentár",
                                       "nordugrid-queue-status"               => "Stav rady",

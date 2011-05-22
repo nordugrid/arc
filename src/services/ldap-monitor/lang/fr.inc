@@ -288,7 +288,7 @@ $message = array (
                                       "Objet"                        => 0,
                                       "Attribut"                     => 0
                                       ),
-                  "quelist"  => array("0" => "Details sur la file",
+                  "quelist"  => array("0" => "File",
                                       "help" => "<div align=\"left\">
                                                  <dl>
                                                    <dt><b>Attribut</b></dt>
@@ -427,6 +427,7 @@ $message = array (
                                       "nordugrid-cluster-gridspace"          => "Espace disque Grid (OBSOLETE)",
                                       "nordugrid-cluster-opsysdistribution"  => "OS distribution (OBSOLETE)",
                                       "nordugrid-cluster-runningjobs"        => "Jobs, en cours (OBSOLETE)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
                                       "nordugrid-queue-name"                 => "Nom de file",
                                       "nordugrid-queue-comment"              => "Commentaire",
                                       "nordugrid-queue-status"               => "Statut de file",

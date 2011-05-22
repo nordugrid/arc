@@ -60,8 +60,9 @@ class LmTable {
      *   array $locset  - set of localized headers etc
      */
     
-    ob_implicit_flush(0);
-    ob_start();
+    ob_implicit_flush(TRUE);
+#    ob_start();
+    ob_end_flush();
 
     require ('settings.inc');
 
@@ -188,8 +189,8 @@ class LmTable {
   function close() {
     echo "</table>\n";
     
-    ob_end_flush();
-    ob_implicit_flush();
+#    ob_end_flush();
+    ob_implicit_flush(FALSE);
   }
   
 }

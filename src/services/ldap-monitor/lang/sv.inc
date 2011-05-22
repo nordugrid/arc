@@ -278,7 +278,7 @@ $message = array (
                                       "Objekt"                       => 0,
                                       "Attribut"                     => 0
                                       ),
-                  "quelist"  => array("0" => "Information för kön",
+                  "quelist"  => array("0" => "Kö",
                                       "help" => "<div align=\"left\">
                                                  <dl>
                                                    <dt><b>Attribut</b></dt>
@@ -419,6 +419,7 @@ $message = array (
                                       "nordugrid-cluster-gridspace"          => "Griddiskutrymme (FÖRLEGAD)",
                                       "nordugrid-cluster-opsysdistribution"  => "OS-distribution (FÖRLEGAD)",
                                       "nordugrid-cluster-runningjobs"        => "Jobb, exekveras (FÖRLEGAD)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
                                       "nordugrid-queue-name"                 => "Könamn",
                                       "nordugrid-queue-comment"              => "Kommentar",
                                       "nordugrid-queue-status"               => "Köstatus",

@@ -288,7 +288,7 @@ $message = array (
                                       "Атрибут"                 => 0
                                       ),
                   "quelist"  => array(
-                                      "0" => "Описание очереди",
+                                      "0" => "Очередь",
                                       "help" => "<div align=\"left\">
                                                    <dl>
                                                      <dt><b>Атрибут</b></dt>
@@ -428,6 +428,7 @@ $message = array (
                                       "nordugrid-cluster-gridspace"          => "Грид-диск (УСТАРЕВШИЙ)",
                                       "nordugrid-cluster-opsysdistribution"  => "Дистрибутив ОС (УСТАРЕВШИЙ)",
                                       "nordugrid-cluster-runningjobs"        => "Задачи в счёте (УСТАРЕВШИЙ)",
+				      "nordugrid-cluster-credentialexpirationtime" => "Срок действия сертификата",
                                       "nordugrid-queue-name"                 => "Имя очереди",
                                       "nordugrid-queue-comment"              => "Комментарий",
                                       "nordugrid-queue-status"               => "Состояние очереди",

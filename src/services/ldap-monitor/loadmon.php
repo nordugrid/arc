@@ -60,7 +60,7 @@ $toppage->tabletop("<font face=\"Verdana,Geneva,Arial,Helvetica,sans-serif\">".E
 //********************** Legend - only needed for this module *********************
 echo "<table width=\"100%\" border=\"0\"><tr><td>\n";
 echo "<font size=\"-1\" face=\"Verdana,Geneva,Arial,Helvetica,Sans-serif,lucida\">".$errors["401"].":\n";
-echo "<img src=\"./mon-icons/icon_led.php?c1=204&c2=0&c3=0\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["305"]."\" alt=\"".$errors["305"]."\" width=\"14\" height=\"6\">".$errors["402"]."&nbsp;<img src=\"./mon-icons/icon_led.php?c1=176&c2=176&c3=176\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["306"]."\" alt=\"".$errors["306"]."\">".$errors["403"]."</font>\n";
+echo "<img src=\"./mon-icons/icon_led.php?c1=97&c2=144&c3=0\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["305"]."\" alt=\"".$errors["305"]."\" width=\"14\" height=\"6\">".$errors["402"]."&nbsp;<img src=\"./mon-icons/icon_led.php?c1=176&c2=176&c3=176\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["306"]."\" alt=\"".$errors["306"]."\">".$errors["403"]."</font>\n";
 echo "</td><td>";
 $sewin    = popup("sestat.php",650,200,8);
 $discwin  = popup("discover.php",700,400,9);
@@ -102,8 +102,8 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 
   // Setting time limits for ldapsearch
 
-  $tlim = 20;
-  $tout = 21;
+  $tlim = 10;
+  $tout = 11;
   if($debug) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</i></div>");
   
   // ldapsearch filter string for clusters and queues
@@ -158,6 +158,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       array_push($dsarray,$clconn);
       array_push($hnarray,$clhost);
       array_push($pnarray,$clport);
+      @ldap_set_option($clconn, LDAP_OPT_NETWORK_TIMEOUT, $tout);
       $sitetag[$clhost] = 1; /* filtering tag */
       if ($debug==2) dbgmsg("$k - <i>$clhost:$clport </i>");
     }
@@ -175,9 +176,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
   // Search all clusters and queues
   
   $ts1 = time();
-  $srarray = @ldap_search($dsarray,DN_LOCAL,$filter,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
-  // Fall back to a conventional LDAP
-  //  if (!count($srarray)) $srarray = @ldap_search($dsarray,DN_LOCAL,$filter,$lim,0,0,$tlim);
+    $srarray = @ldap_search($dsarray,DN_LOCAL,$filter,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
+  // If using the patched LDAP
+  //$srarray = @ldap_search($dsarray,DN_LOCAL,$filter,$lim,0,0,$tlim,LDAP_DEREF_NEVER,$tout);
   $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["109"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
   
   /*  
@@ -257,8 +258,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	  
 	  $curalias   = $entries[$i][CLU_ANAM][0];
 	  
-	  // Manipulate alias: replace the string if necessary and cut off at 22 characters
+	  // Manipulate alias: replace the string if necessary and cut off at 22 characters; strip HTML tags
 	  if (file_exists("cnvalias.inc")) include('cnvalias.inc');
+	  $curalias = strip_tags($curalias);
 	  if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
 	  
 	  $curtotjobs = @($entries[$i][CLU_TJOB][0]) ? $entries[$i][CLU_TJOB][0] : 0;

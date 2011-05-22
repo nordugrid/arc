@@ -2,8 +2,8 @@
 
 // ------ Labels: strings, titles, error messages etc, locale-dependent
 // -- German [de]
-// -- Translation: Steffen MÃ ller (moeller@pzr.uni-rostock.de)
-// --              Christian Häberli (christian.haeberli@cern.ch)
+// -- Translation: Steffen MÃƒ ller (moeller@pzr.uni-rostock.de)
+// --              Christian HÃ¤berli (christian.haeberli@cern.ch)
 // -- Author: oxana.smirnova@hep.lu.se
 
 // Some common strings:
@@ -269,7 +269,7 @@ $message = array (
                                       "Object"                       => 0,
                                       "Attribute"                    => 0
                                       ),
-                  "quelist"  => array("0" => "Details der Queue",
+                  "quelist"  => array("0" => "Queue",
                                       "help" => "<div align=\"left\">
                                                  <dl>
                                                    <dt><b>Attribut</b></dt>
@@ -389,12 +389,12 @@ $message = array (
                                       "nordugrid-cluster-sessiondir-free"    => "Plattenplatz, verf&uuml;gbar (MB)",
                                       "nordugrid-cluster-sessiondir-total"   => "Plattenplatz, gesamt (MB)",
                                       "nordugrid-cluster-sessiondir-lifetime"=> "Lebensdauer der Grid Session  (min)",
-                                      "nordugrid-cluster-cache-free"         => "Cache Gr&ouml;&szlig;e, verf&uuml;gbar (MB)",
-                                      "nordugrid-cluster-cache-total"        => "Cache Gr&ouml;&szlig;e, gesamt (MB)",
+                                      "nordugrid-cluster-cache-free"         => "Cache size, verf&uuml;gbar (MB)",
+                                      "nordugrid-cluster-cache-total"        => "Cache size, gesamt (MB)",
                                       "nordugrid-cluster-runtimeenvironment" => "Runtime environment",
                                       "nordugrid-cluster-localse"            => "Storage Element, lokal",
                                       "nordugrid-cluster-middleware"         => "Grid middleware",
-                                      "nordugrid-cluster-totaljobs"          => "Jobs, Gesamtanzahl",
+                                      "nordugrid-cluster-totaljobs"          => "Jobs, totale Anzahl",
                                       "nordugrid-cluster-usedcpus"           => "CPUs, belegt",
                                       "nordugrid-cluster-queuedjobs"         => "Jobs, in Queue wartend",
 				      "nordugrid-cluster-prelrmsqueued"      => "Grid jobs, noch nicht submitted",
@@ -408,11 +408,12 @@ $message = array (
                                       "nordugrid-cluster-gridspace"          => "Grid Plattenplatz (OBSOLETE)",
                                       "nordugrid-cluster-opsysdistribution"  => "OS Distribution (OBSOLETE)",
                                       "nordugrid-cluster-runningjobs"        => "Jobs, running (OBSOLETE)",
-                                      "nordugrid-queue-name"                 => "Queuename",
+				      "nordugrid-cluster-credentialexpirationtime" => "Credential expiration time",
+                                      "nordugrid-queue-name"                 => "Queue Name",
                                       "nordugrid-queue-comment"              => "Kommentar",
                                       "nordugrid-queue-status"               => "Queue Status",
                                       "nordugrid-queue-running"              => "CPUs, belegt",
-				      "nordugrid-queue-localqueued"          => "Lokale jobs, wartend",
+				      "nordugrid-queue-localqueued"          => "Local jobs, queued",
 				      "nordugrid-queue-prelrmsqueued"        => "Grid jobs, noch nicht submitted",
                                       "nordugrid-queue-queued"               => "Jobs, queued (OBSOLETE)",
                                       "nordugrid-queue-maxrunning"           => "Jobs, running (max)",
@@ -431,8 +432,8 @@ $message = array (
                                       "nordugrid-queue-architecture"         => "Architektur",
                                       "nordugrid-queue-opsys"                => "Betriebssystem",
                                       "nordugrid-queue-homogeneity"          => "Homogene Queue",
-                                      "nordugrid-queue-gridrunning"          => "CPUs belegt durch Grid jobs",
-                                      "nordugrid-queue-gridqueued"           => "Grid jobs, wartend",
+                                      "nordugrid-queue-gridrunning"          => "CPUs occupied by Grid jobs",
+                                      "nordugrid-queue-gridqueued"           => "Grid jobs, queued",
                                       "nordugrid-queue-benchmark"            => "Benchmark",
                                       "nordugrid-queue-assignedcpunumber"    => "CPUs je Queue (OBSOLETE)",
                                       "nordugrid-queue-assignedcputype"      => "CPU typ (OBSOLETE)",
