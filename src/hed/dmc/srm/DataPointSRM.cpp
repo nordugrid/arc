@@ -295,6 +295,7 @@ namespace Arc {
 
       if (turls.empty()) {
         logger.msg(ERROR, "SRM returned no useful Transfer URLs: %s", url.str());
+        srm_request->finished_abort();
         return DataStatus::ReadPrepareError;
       }
     }
@@ -489,6 +490,7 @@ namespace Arc {
 
       if (turls.empty()) {
         logger.msg(ERROR, "SRM returned no useful Transfer URLs: %s", url.str());
+        srm_request->finished_abort();
         return DataStatus::WritePrepareError;
       }
     }

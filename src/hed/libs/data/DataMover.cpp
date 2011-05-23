@@ -767,7 +767,7 @@ namespace Arc {
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to prepare source: %s",
                    source_url.str());
-        source_url.StopReading();
+        source_url.FinishReading(true);
         res = datares;
         /* try another source */
         if (source.NextLocation())
@@ -844,6 +844,7 @@ namespace Arc {
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to prepare destination: %s",
                    destination.str());
+        destination.FinishWriting(true);
         source_url.StopReading();
         source_url.FinishReading(true);
         if (!destination.PreUnregister(replication ||
