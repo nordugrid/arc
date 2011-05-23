@@ -271,12 +271,19 @@ int main(int argc, char *argv[]) {
                     istring("string"), user_name);
 
   bool use_empty_passphrase = false; //if use empty passphrase to myproxy server
-  options.AddOption('N', "nopassphrase", istring("don't prompt for a credential passphrase. Store credentials \n"
-                                         "              without a credential passphrase on MyProxy server."),
+  options.AddOption('N', "nopassphrase", istring("don't prompt for a credential passphrase, when retrieve a \n"
+                                         "              credential from on MyProxy server. \n"
+                                         "              The precondition of this choice is the credential is PUT onto\n"
+                                         "              the MyProxy server without a passphrase by using -R (--retrievable_by_cert) \n"
+                                         "              option when being PUTing onto Myproxy server. \n"
+                                         "              This option is specific for the GET command when contacting Myproxy server."
+                                         ),
                     use_empty_passphrase);
   
   std::string retrievable_by_cert; //if use empty passphrase to myproxy server
-  options.AddOption('R', "retrievable_by_cert", istring("Allow specified entity to retrieve credential without passphrase.\n"),
+  options.AddOption('R', "retrievable_by_cert", istring("Allow specified entity to retrieve credential without passphrase.\n"
+                                         "              This option is specific for the PUT command when contacting Myproxy server."
+                                         ),
                     istring("string"), retrievable_by_cert);
 
   std::string myproxy_server; //url of MyProxy server
