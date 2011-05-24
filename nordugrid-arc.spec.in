@@ -1115,6 +1115,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_sbindir}/nordugridmap
 %config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
 %doc src/utils/gridmap/nordugridmap.conf
+%doc %{_mandir}/man8/nordugridmap.8*
 
 %files ca-utils
 %defattr(-,root,root,-)

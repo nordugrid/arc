@@ -41,6 +41,11 @@ BuildRequires: mingw32-globus-ftp-client
 BuildRequires: mingw32-globus-ftp-control
 BuildRequires: mingw32-globus-rls-client
 
+BuildRequires:  java-devel
+BuildRequires:  jpackage-utils
+BuildRequires:  libgcj-devel
+BuildRequires:  java-gcj-compat-devel
+
 %description
 ARC
 
@@ -116,7 +121,6 @@ Python wrapper for ARC
 
 %build
 %{_mingw32_configure} \
-  --disable-java \
   --disable-doc \
   --disable-ws-monitor \
   --disable-ldap-monitor \
