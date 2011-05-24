@@ -820,7 +820,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
 %{_datadir}/%{pkgdir}/examples/client.conf
-%{_datadir}/%{pkgdir}/examples/arc.conf.template
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
@@ -857,6 +856,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libecho.apd
 %{_datadir}/%{pkgdir}/profiles
 %{_datadir}/%{pkgdir}/examples/config
+%{_datadir}/%{pkgdir}/examples/arc.conf.template
 %doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
