@@ -57,6 +57,27 @@
 
 [common]
 
+# hostname - the FQDN of the frontend node, optional in the common block but
+# MUST be set in the cluster block
+hostname="myhost.org"
+
+# lrms [queue] - sets the type of the Local Resource Management System
+# (queue system). Chose one from the following options: fork, sge,
+# condor, pbs, lsf, ll, slurm.  PBS has many flavours, we support
+# OpenPBS, PBSPro, ScalablePBS and Torque (the official name for
+# ScalablePBS). No need to specify the flavour or the version number
+# of the PBS, simply write 'pbs'.  <lrms> MUST be set here!  The
+# optional "queue" parameter specifies the default grid queue of the
+# LRMS.  The GM submits jobs to this queue if there is no queue set in
+# the job's XRSL.
+#
+# This file comes pre-configured for a sample pbs cluster, if you want
+# to use another lrms, change the lrms parameter as well as the
+# lrms-specific parameters below.
+
+#lrms="pbs grid"
+lrms="pbs"
+
 # the path to the qstat,pbsnodes,qmgr etc PBS binaries, 
 # no need to set if PBS is not used
 pbs_bin_path="/usr/bin"
@@ -67,11 +88,11 @@ pbs_log_path="/var/spool/pbs/server_logs"
 
 # condor_location - path to directory containing Condor's bin, sbin, etc.
 # need not to set if Condor is not used
-condor_location="/opt/condor"
+#condor_location="/opt/condor"
 
 # condor_config - path to Condor's configuration file
 # no need to set if Condor is not used
-condor_config="/opt/condor/etc/condor_config"
+#condor_config="/opt/condor/etc/condor_config"
 
 # condor_rank - If you are not happy with the way Condor picks nodes when
 # running jobs, you can define your own ranking algorithm by optionally
@@ -79,66 +100,50 @@ condor_config="/opt/condor/etc/condor_config"
 # ClassAd float expression that you could use in the Rank attribute 
 # in a Condor job description.
 # Obviously no need to set if Condor is not used. An example:
-condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
+#condor_rank="(1-LoadAvg/2)*(1-LoadAvg/2)*Memory/1000*KFlops/1000000"
 
 # sge_bin_path - Path to Sun Grid Engine (SGE) binaries, 
 # MUST be set if SGE is the LRMS used
-sge_bin_path="/opt/n1ge6/bin/lx24-x86"
+#sge_bin_path="/opt/n1ge6/bin/lx24-x86"
 
 # sge_root - Path to SGE installation directory. MUST be set if SGE is used.
-sge_root="/opt/n1ge6"
+#sge_root="/opt/n1ge6"
 
 # sge_cell - The name of the SGE cell to use. This option is only necessary
 # in case SGE is set up with a cell name different from 'default'
-sge_cell="default"
+#sge_cell="default"
 
 # sge_qmaster_port, sge_execd_port - these options should be used in case SGE
 # command line clients requre SGE_QMASTER_PORT and SGE_EXECD_PORT environment
 # variables to be set. Usually they are not necessary.
-sge_qmaster_port="536"
-sge_execd_port="537"
+#sge_qmaster_port="536"
+#sge_execd_port="537"
 
 # SLURM_bin_path - Path to SLURM binaries, must be set if installed
 # outside of normal $PATH
-SLURM_bin_path="/usr/bin"
+#SLURM_bin_path="/usr/bin"
 
 # Where to find the SLURM logs.
-SLURM_log_path="/var/spool/slurm/"
+#SLURM_log_path="/var/spool/slurm/"
 
 # How long should infosys wait between querying SLURM for new data.
-SLURM_wakeupperiod="15"
+#SLURM_wakeupperiod="15"
 
 # the PATH to LSF bin folder
 # no need to set if LSF is not used
-lsf_bin_path="/usr/local/lsf/bin/"
+#lsf_bin_path="/usr/local/lsf/bin/"
 
 # the PATH to profile.lsf
 # no need to set if LSF is not used
-lsf_profile_path="/usr/share/lsf/conf"
+#lsf_profile_path="/usr/share/lsf/conf"
 
 # the PATH to the LoadLeveler bin folder
 # no need to set if LoadLeveler is not used
-ll_bin_path="/opt/ibmll/LoadL/full/bin"
+#ll_bin_path="/opt/ibmll/LoadL/full/bin"
 
 # support for a LoadLeveler setup using Consumable Resources
 # no need to set if LoadLeveler is not used
-ll_consumable_resources="yes"
-
-# hostname - the FQDN of the frontend node, optional in the common block but
-# MUST be set in the cluster block
-hostname="myhost.org"
-
-# lrms [queue] - sets the type of the Local Resource Management System
-# (queue system). Chose one from the following options: fork, sge,
-# condor, pbs, lsf, ll, SLURM.  PBS has many flavours, we support
-# OpenPBS, PBSPro, ScalablePBS and Torque (the official name for
-# ScalablePBS). No need to specify the flavour or the version number
-# of the PBS, simply write 'pbs'.  <lrms> MUST be set here!  The
-# optional "queue" parameter specifies the default grid queue of the
-# LRMS.  The GM submits jobs to this queue if there is no queue set in
-# the job's XRSL.
-#lrms="pbs grid"
-lrms="pbs"
+#ll_consumable_resources="yes"
 
 # globus_tcp_port_range, globus_udp_port_range - Firewall configuration
 # In a firewalled environment the software which uses GSI needs to know what
@@ -409,26 +414,26 @@ user="grid"
 
 # debug debuglevel - Set debug level of the grid-manager daemon, between
 # 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
-debug="2"
+#debug="2"
 
 # logfile path - Specify log file location. This file is opened/created
 #  before daemon swithces to specified user. Hence it can be owned 
 #  by 'root'. Default log file is "/var/log/arc/grid-manage.log"
-logfile="/var/log/grid-manager.log"
+#logfile="/var/log/arc/grid-manager.log"
 
 # logsize size [number] - 'Size' specifies in bytes how big log file is 
 #  allowed to grow (approximately). If log file exceeds specified size
 #  it is renamed into logfile.0. And logfile.0 is renamed into 
 #  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
 #  want to enable the ARC logrotation because another logrotation tool is used.
-logsize="100000 2"
+#logsize="100000 2"
 
 # pidfile path - Specify location of file containig PID of daemon process.
 #  This is usefull for automatic star/stop scripts. 
 pidfile="/var/run/grid-manager.pid"
 
 # the gnu time command, default /usr/bin/time
-gnu_time="/usr/bin/time"
+#gnu_time="/usr/bin/time"
 
 # if computing node can access sesion directory at frontend, defaults to 'yes' 
 shared_filesystem="yes"
@@ -441,14 +446,14 @@ mail="grid.support@somewhere.org"
 #  and finished jobs. If path is empty or no such command - log is not written.
 #  This log is not used by any other part of ARC, so keep it disabled unless
 #  needed.
-joblog="/var/log/gm-jobs.log"
+#joblog="/var/log/arc/gm-jobs.log"
 
 # jobreport [url ...] [timeout] - tells to report all started and finished jobs 
 # to logger service at 'url'. Multiple urls and multiple jobreport commands 
 # are allowed. In that case the job info will be sent to all of them.
 # Timeout specifies how long (in days) to try to pass information before
 # give up. Suggested value is 30 days.
-jobreport="https://grid.uio.no:8001/logger"
+#jobreport="https://grid.uio.no:8001/logger"
 
 # maxjobs number1 number2 - specifies maximum allowed number of jobs.
 # number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
@@ -491,7 +496,7 @@ newdatastaging="yes"
 # NOTE: This parameter does not affect responsivity of backend scripts -
 # especially scan-*-job. That means that time for detecting job finished
 # executing is sum of responsivity of backend script + wakeupperiod.
-wakeupperiod="180"
+#wakeupperiod="180"
 
 # securetransfer yes|no - if data connection allows to choose use 
 # secure|non-secure data transfer. Currently only works for gridftp.
@@ -520,7 +525,7 @@ speedcontrol="0 300 0 300"
 # directory will survive after job execution has finished. If not specified
 # the default is 1 week. ttr is how long information about a job will be kept.
 # If not specified, the ttr default is one month.
-defaultttl="259200"  
+#defaultttl="259200"  
 
 # authplugin state options plugin_path - Every time job goes to 'state'
 # run 'plugin_path' executable. Options consist of key=value pairs separated
@@ -532,19 +537,19 @@ defaultttl="259200"
 # pass - continue executing job,
 # fail - cancel job,
 # log - write to log fail about problem and continue executing job.
-authplugin="ACCEPTED timeout=10 /opt/nordugrid/libexec/bank %C/job.%I.local %S"
+#authplugin="ACCEPTED timeout=10 /usr/libexec/arc/bank %C/job.%I.local %S"
 
 # ARC is distributed with the plugin "inputcheck". It's purpose is
 # to check if input files requested in job's RSL are accessible 
 # from this machine. It is better to run it before job enters cluster.
 # It accepts 2 arguments: names of files containing RSL and credentials'
 # proxy.
-authplugin="ACCEPTED 60 /opt/nordugrid/libexec/inputcheck %C/job.%I.description %C/job.%I.proxy"
+#authplugin="ACCEPTED 60 /usr/libexec/arc/inputcheck %C/job.%I.description %C/job.%I.proxy"
 
 # The second plugin in ARC is a UR generator. Its purpose is to create
 # records on job completion. See [logger] section and urlogger.pdf for
 # more details.
-authplugin="FINISHED timeout=10,onfailure=pass /opt/nordugrid/libexec/arc-ur-logger %C %I %S %U"
+#authplugin="FINISHED timeout=10,onfailure=pass /usr/libexec/arc/arc-ur-logger %C %I %S %U"
 
 # localcred timeout plugin_path - Every time an external executable
 # is run this plugin will be called. Its purpose is to set non-unix 
@@ -561,7 +566,7 @@ authplugin="FINISHED timeout=10,onfailure=pass /opt/nordugrid/libexec/arc-ur-log
 # will switch to mapped user's identity while accessing session
 # directory. This is usefull if session directory is on NFS
 # root squashing turned on. Default is no.
-norootpower="yes"
+#norootpower="yes"
 
 # allowsubmit [group ...]  - list of authorization groups of users allowed
 # to submit new jobs while "allownew=no" is active in jobplugin 
@@ -585,7 +590,7 @@ preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
 # If user is '*' - it's applied to all specified users.
 # if user is '.' - it is run unrelated to any specified user.
 # an example:
-helper=" . /usr/local/bin/myutility"
+#helper=" . /usr/local/bin/myutility"
 
 # copyurl url_head local_path - specifies that URLs, starting from 'url_head'
 # should be accessed in a different way (most probaly unix open). The
@@ -593,8 +598,8 @@ helper=" . /usr/local/bin/myutility"
 # file from obtained path will be copied to the session directory.
 # NOTE: 'local_path' can also be of URL type.
 # you can have several copyurl lines
-copyurl="gsiftp://example.org:2811/data/ gsiftp://example.org/data/"
-copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
+#copyurl="gsiftp://example.org:2811/data/ gsiftp://example.org/data/"
+#copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
 
 # linkurl url_head local_path [node_path] - identical to 'copyurl', only
 # file won't be copied, but soft-link will be created. The 'local_path'
@@ -603,11 +608,11 @@ copyurl="gsiftp://example2.org:2811/data/ gsiftp://example2.org/data/"
 # accessed from computing nodes, and will be used for soft-link creation.
 # If 'node_path' is missing - 'local_path' will be used.
 # you can have multiple linkurl settings
-linkurl="gsiftp://somewhere.org/data /data"
-linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
+#linkurl="gsiftp://somewhere.org/data /data"
+#linkurl="gsiftp://example.org:2811/data/  /scratch/data/"
 
 # tmpdir - used by the grid-manager, default is /tmp
-tmpdir="/tmp"
+#tmpdir="/tmp"
 
 # maxrerun -  specifies how many times job can be rerun if it failed in LRMS.
 # Default value is 5. This is only an upper limit, the actual rerun value is set
@@ -649,17 +654,17 @@ http_proxy="proxy.mydomain.org:3128"
 
 # debug debuglevel - Set debug level of the gridftpd daemon, between 
 # 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
-debug="2"
+#debug="2"
 
 # logfile path - Set logfile location
-logfile="/var/log/gridftpd.log"
+#logfile="/var/log/arc/gridftpd.log"
 
 # logsize size [number] - 'Size' specifies in bytes how big log file is 
 #  allowed to grow (approximately). If log file exceeds specified size
 #  it is renamed into logfile.0. And logfile.0 is renamed into 
 #  logfile.1, etc. up to 'number' logfiles. Don't set logsize if you don't
 #  want to enable the ARC logrotation because another logrotation tool is used.
-logsize="100000 2"
+#logsize="100000 2"
 
 # pidfile path - Specify location of file containig PID of daemon process.
 #  This is usefull for automatic star/stop scripts. 
@@ -670,7 +675,7 @@ port="2811"
 
 # pluginpath - directory where the plugin libraries are installed, default is
 # $NORDUGRID_LOCATION/lib
-pluginpath="/opt/nordugrid/lib"
+#pluginpath="/usr/lib/arc/"
 
 #encryption yes|no - should data encryption be allowed, default is no,
 # encryption is very heavy 
@@ -692,7 +697,7 @@ globus_udp_port_range="9000,12000"
 
 # firewall - hostname or IP addres to use in response to PASV command 
 # instead of IP address of a network interface of computer.
-firewall="hostname"
+#firewall="hostname"
 
 
 # x509_user_cert, x509_user_key - Server credentials location
@@ -903,50 +908,39 @@ maxjobdesc="5242880"
 # infoproviders.  Basically, the new version uses A-REX to create LDIF
 # while the old version uses a BDII provider-script to do it. The new
 # version is required for Glue2 output.
-infosys_compat="disable"
-
-# overwrite_config - determines if the grid-infosys startup script 
-# should generate new low-level slapd configuration files.
-# By default the low-level configuration files are regenerated with every
-# server startup making use of the values specified in the arc.conf
-overwrite_config="yes"
-
-# oldconfsuffix - sets the suffix of the backup files of the low-level 
-# slapd config files in case the they are regenerated. Default is
-# ".oldconfig"
-oldconfsuffix=".oldconfig"
+#infosys_compat="disable"
 
 # hostname - the hostname of the machine running the slapd service
-hostname="my.testbox" 
+#hostname="my.testbox" 
 
 # port - the port where the slapd service runs. Default infosys port is 2135.
-port="2135"
+#port="2135"
 
 # debug - sets the debug level/verbosity of the startup script {0 or 1}. 
 # Default is 0. 
-debug="1"
+#debug="1"
 
 # slapd_loglevel - sets the native slapd loglevel (see man slapd). 
 # Slapd logs via syslog. The default is set to no-logging (0) and it is 
 # RECOMMENDED not to be changed in a production environment.
 # Non-zero slap_loglevel value causes serious performance decrease.
-slapd_loglevel="0"
+#slapd_loglevel="0"
 
 # slapd_hostnamebind - may be used to set the hostname part of the
 # network interface to which the slapd process will bind. Most of
 # the cases no need to set since the hostname config parameter is already
 # sufficient. The default is empty. The example below will bind the slapd
 # process to all the network interfaces available on the server.
-slapd_hostnamebind="*"
+#slapd_hostnamebind="*"
 
 # threads - the native slapd threads parameter, default is 32. If you run an
 # Index service too you should modify this value.
-threads="128"
+#threads="128"
 
 # timelimit - the native slapd timelimit parameter. Maximum number of seconds
 # the slapd server will spend answering a search request. Default is 3600. 
 # You probably want a much lower value.
-timelimit="1800"
+#timelimit="1800"
 
 # idletimeout - the native slapd idletimeout parameter. Maximum number of
 # seconds the slapd server will wait before forcibly closing idle client
@@ -955,35 +949,30 @@ timelimit="1800"
 #idletimeout="1800"
 
 # registrationlog path - specifies the logfile for the registration processes
-# initiated by your machine. Default is "/var/log/inforegistration.log"
-registrationlog="/var/log/inforegistration.log"
+# initiated by your machine. Default is "/var/log/arc/inforegistration.log"
+#registrationlog="/var/log/arc/inforegistration.log"
 
 # providerlog path - Specifies log file location for the information 
 # provider scripts. The feature is only available with >= 0.5.26 tag.
-# Default is "/var/log/infoprovider.log"
-providerlog="/var/log/infoprovider.log"
+# Default is "/var/log/arc/infoprovider.log"
+#providerlog="/var/log/arc/infoprovider.log"
 
 # provider_loglevel - loglevel for the infoprovider scripts (0, 1, 2).
 # The default is 1 (critical errors are logged)
-provider_loglevel="2"
-
-# limit_core limit_nofile - shell limits for the slapd process set via
-# 'ulimit -c' and 'ulimit -n'
-limit_core="0"
-limit_nofile=""
+#provider_loglevel="2"
 
 # user unix_user - the unix user running the infosys processes such as 
 # the slapd, the registrations and infoprovider scripts. 
-# By default the user executing the startup script is set. 
+# By default the ldap-user is used, you can run it as root if you wish. 
 # In case of non-root value you must make sure that the grid-manager 
 # directories and their content are readable by the 'user' and the 'user' 
 # has access to the full LRMS information including jobs submitted by
 # other users. The grid-manager directories (controldir, sessiondir
 # runtimedir, cachedir) are specified in the [grid-manager] block
-user="root"
+#user="root"
 
-# If giis_location is not set, NORDUGRID_LOCATION will be used instead.
-giis_location="/opt/nordugrid"
+# If giis_location is not set, ARC_LOCATION will be used instead.
+#giis_location="/usr/"
 
 # Nordugrid ARC works together with both BDII4 and BDII5.
 # BDII related variables, when using the nordugrid-packaged bdii, these
@@ -1137,7 +1126,6 @@ name="indexname"
 allowreg="trusted.host.org.se:2135/Mds-vo-Name=Trusted-Index,o=Grid"
 
 
-
 ####################################################################
 #
 # [infosys/index/indexname/registration/registrationname]
@@ -1157,14 +1145,14 @@ targethostname="index.myinstitute.org"
 
 # targetport - the port on which the target Index Service is running.
 # The default is the 2135 Infosys port.
-targetport="2135"
+#targetport="2135"
 
 # targetsuffix - the LDAP suffix of the target Index Service
 targetsuffix="mds-vo-name=BigIndex,o=grid"
 
 # regperiod - The registration period in seconds, the registration messages are 
 # continously sent according to the regperiod. Default is 120 sec.
-regperiod="300"
+#regperiod="300"
 
 # registranthostname - the hostname of the machine sending the registrations.
 # This attribute inherits its value from the [common] and [infosys] blocks,
@@ -1174,7 +1162,7 @@ registranthostname="myhost.org"
 # registrantport - the port of the slapd service hosting the 
 # registrant Index Service. The attribute inherits its value from the 
 # [infosys] block (and therefore defaults to 2135)
-registrantport="2135"
+#registrantport="2135"
 
 # registrantsuffix - the LDAP suffix of the registrant Index Service.
 # It is automatically determined from the registration block name,
@@ -1366,7 +1354,7 @@ targetport="2135"
 targetsuffix="mds-vo-name=BigIndex,o=grid"
 
 # regperiod - see description earlier
-regperiod="300"
+#regperiod="300"
 
 # registranthostname - see description earlier
 registranthostname="myhost.org"
@@ -1411,21 +1399,21 @@ name="queuename"
 # can be used which will set the limit of running jobs to the number of cpus 
 # available in the machine. This parameter is used in the calculation of 
 # freecpus in a fork system.
-fork_job_limit="cpunumber"
+#fork_job_limit="cpunumber"
 
 # homogeneity - determines whether the queue consists of identical NODES with
 # respect to  cputype, memory, installed software (opsys). 
 # In case of inhomogeneous nodes, try to arrange the nodes into homogeneous 
 # groups and assigned them to a queue.
 # Possible values: True,False, the default is True.
-homogeneity="True"
+#homogeneity="True"
 
 # scheduling_policy - this optional parameter tells the schedulling policy of
 # the queue, PBS by default offers the FIFO scheduller, many sites run the MAUI.
 # At the moment FIFO & MAUI is supported. If you have a MAUI scheduller you 
 # should specify the "MAUI" value since it modifies the way the queue resources
 # are calculated.  BY default the "FIFO" sceduller is assumed.
-scheduling_policy="FIFO"
+#scheduling_policy="FIFO"
 
 # comment - a free text field for additional comments on the queue in a single
 # line, no newline character is allowed!
@@ -1434,7 +1422,7 @@ comment="This queue is nothing more than a condor pool"
 # maui_bin_path - set this parameter for the path of the maui commands like
 # showbf in case you specified the "MAUI"  scheduling_policy above. This
 # parameter can be set in the [common] block as well.
-maui_bin_path="/usr/local/bin"
+#maui_bin_path="/usr/local/bin"
 
 # queue_node_string - In PBS you can assign nodes to a queue (or a queue to
 # nodes) by using the "node property" PBS node config method and asssigning the
@@ -1466,7 +1454,7 @@ queue_node_string="gridlong_nodes"
 # multiple queues, you can differentiate them based on memory size or disk
 # space, for example:
 #
-condor_requirements="(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)"
+#condor_requirements="(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)"
 
 # CPU architecture to request when submitting jobs to LSF. Use only if you know
 # what you are doing.
