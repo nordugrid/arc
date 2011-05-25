@@ -161,10 +161,16 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
     user_.subst(*arg);
   };
   std::string stdout_channel;
+  std::string stderr_channel;
   Arc::Run run(args);
   run.AssignStdout(stdout_channel);
+  run.AssignStderr(stderr_channel);
   if(!run.Start()) return false;
   if(!run.Wait(to)) return false;
+  logger.msg(Arc::INFO,"Plugin returned: %u: %s",run.Result(),stdout_channel);
+  if(!stderr_channel.empty()) {
+    logger.msg(Arc::ERROR,"Plugin reported error: %s",stderr_channel);
+  };
   if(run.Result() != 0) return false;
   // Plugin should print user[:group] at stdout
   if(stdout_channel.length() > 512) return false; // really strange name

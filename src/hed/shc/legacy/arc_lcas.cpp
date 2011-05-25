@@ -10,7 +10,7 @@
 #include <arc/Utils.h>
 #include <arc/globusutils/GSSCredential.h>
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLCAS");
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCAS");
 
 #ifdef HAVE_LCAS
 #include <openssl/x509.h>
@@ -67,6 +67,7 @@ void recover_lcas_env(void) {
 
 int main(int argc,char* argv[]) {
   Arc::LogStream err(std::cerr);
+  err.setFormat(Arc::EmptyFormat);
   Arc::Logger::rootLogger.addDestination(err);
   std::string lcas_library;
   std::string lcas_db_file;

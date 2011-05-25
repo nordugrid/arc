@@ -12,7 +12,7 @@
 
 #include "unixmap.h"
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(),"UnixMap");
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCMAPS");
 
 #ifdef HAVE_LCMAPS
 #include <openssl/x509.h>
@@ -68,6 +68,7 @@ void recover_lcmaps_env(void) {
 
 int main(int argc,char* argv[]) {
   Arc::LogStream err(std::cerr);
+  err.setFormat(Arc::EmptyFormat);
   Arc::Logger::rootLogger.addDestination(err);
   std::string lcmaps_library;
   std::string lcmaps_db_file;
