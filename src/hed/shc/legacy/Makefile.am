@@ -29,7 +29,8 @@ libarcshclegacy_la_LDFLAGS = -no-undefined -avoid-version -module
 
 arc_lcas_SOURCES  = arc_lcas.cpp
 arc_lcas_CXXFLAGS = -I$(top_srcdir)/include \
-        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(MYSQL_CFLAGS) $(GLOBUS_COMMON_CFLAGS)
+        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
+        $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS)
 arc_lcas_LDADD    = \
 	$(top_srcdir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
@@ -37,7 +38,8 @@ arc_lcas_LDADD    = \
 
 arc_lcmaps_SOURCES  = arc_lcmaps.cpp
 arc_lcmaps_CXXFLAGS = -I$(top_srcdir)/include \
-        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(MYSQL_CFLAGS) $(GLOBUS_COMMON_CFLAGS)
+        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
+        $(OPENSSL_CFLAGS) $(LCMAPS_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS)
 arc_lcmaps_LDADD    = \
 	$(top_srcdir)/src/hed/libs/globusutils/libarcglobusutils.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \

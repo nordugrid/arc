@@ -2,10 +2,9 @@
 #include <config.h>
 #endif
 
-#include <string>
-#include <iostream>
-#include <dlfcn.h>
-#include <stdio.h>
+#include <glibmm.h>
+
+#include <gssapi.h>
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
@@ -16,6 +15,7 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"UnixMap");
 
 #ifdef HAVE_LCMAPS
+#include <openssl/x509.h>
 #define ALLOW_EMPTY_CREDENTIALS 1
 #define LCMAPS_GSI_MODE 1
 extern "C" {

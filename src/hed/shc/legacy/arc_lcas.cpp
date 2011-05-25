@@ -13,6 +13,7 @@
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserLCAS");
 
 #ifdef HAVE_LCAS
+#include <openssl/x509.h>
 #define ALLOW_EMPTY_CREDENTIALS 1
 extern "C" {
 #define extern typedef
