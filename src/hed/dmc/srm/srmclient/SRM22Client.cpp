@@ -268,11 +268,9 @@ namespace Arc {
       .NewChild("sourceSURL") = creq.surls().front();
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
-    protocols.NewChild("stringArray") = "gsiftp";
-    protocols.NewChild("stringArray") = "https";
-    protocols.NewChild("stringArray") = "httpg";
-    protocols.NewChild("stringArray") = "http";
-    protocols.NewChild("stringArray") = "ftp";
+    std::list<std::string> transport_protocols(creq.transport_protocols());
+    for (std::list<std::string>::iterator prot = transport_protocols.begin(); prot != transport_protocols.end(); ++prot)
+      protocols.NewChild("stringArray") = *prot;
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process(&request, &response);
@@ -670,11 +668,10 @@ namespace Arc {
     reqarray.NewChild("expectedFileSize") = tostring(creq.total_size());
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
-    protocols.NewChild("stringArray") = "gsiftp";
-    protocols.NewChild("stringArray") = "https";
-    protocols.NewChild("stringArray") = "httpg";
-    protocols.NewChild("stringArray") = "http";
-    protocols.NewChild("stringArray") = "ftp";
+
+    std::list<std::string> transport_protocols(creq.transport_protocols());
+    for (std::list<std::string>::iterator prot = transport_protocols.begin(); prot != transport_protocols.end(); ++prot)
+      protocols.NewChild("stringArray") = *prot;
 
     // set space token if supplied
     if (!creq.space_token().empty())

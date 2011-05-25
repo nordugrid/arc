@@ -158,7 +158,7 @@ namespace Arc {
     if (logger.getThreshold() <= DEBUG) {
       std::string xml;
       (*response)->GetXML(xml, true);
-      logger.msg(DEBUG, "SOAP response: %s", xml);
+      logger.msg(DEBUG, "SOAP response: %s", xml.substr(0, 10000));
     }
 
     if ((*response)->IsFault()) {

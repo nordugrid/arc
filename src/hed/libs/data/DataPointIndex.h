@@ -51,9 +51,11 @@ namespace Arc {
     virtual bool Local() const;
     virtual bool ReadOnly() const;
     virtual DataStatus PrepareReading(unsigned int timeout,
-                                      unsigned int& wait_time);
+                                      unsigned int& wait_time,
+                                      const std::list<std::string>& transport_protocols);
     virtual DataStatus PrepareWriting(unsigned int timeout,
-                                      unsigned int& wait_time);
+                                      unsigned int& wait_time,
+                                      const std::list<std::string>& transport_protocols);
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);

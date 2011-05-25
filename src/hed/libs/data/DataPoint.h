@@ -114,9 +114,12 @@ namespace Arc {
        \param wait_time If timeout is zero (caller would like asynchronous
        operation) and ReadPrepareWait is returned, a hint for how long to wait
        before a subsequent call may be given in wait_time.
+       \param transport_protocols A list of possible transport protocols for
+       the physical file in order of preference.
      */
     virtual DataStatus PrepareReading(unsigned int timeout,
-                                      unsigned int& wait_time);
+                                      unsigned int& wait_time,
+                                      const std::list<std::string>& transport_protocols);
 
     /// Prepare DataPoint for writing.
     /** This method should be implemented by protocols which require
@@ -138,9 +141,12 @@ namespace Arc {
        \param wait_time If timeout is zero (caller would like asynchronous
        operation) and WritePrepareWait is returned, a hint for how long to wait
        before a subsequent call may be given in wait_time.
+       \param transport_protocols A list of possible transport protocols for
+       the physical file in order of preference.
      */
     virtual DataStatus PrepareWriting(unsigned int timeout,
-                                      unsigned int& wait_time);
+                                      unsigned int& wait_time,
+                                      const std::list<std::string>& transport_protocols);
 
     /// Start reading data from URL.
     /** Separate thread to transfer data will be created. No other

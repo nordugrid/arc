@@ -148,7 +148,8 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::PrepareReading(unsigned int stage_timeout,
-                                          unsigned int& wait_time) {
+                                          unsigned int& wait_time,
+                                          const std::list<std::string>& requested_protocols) {
     if (writing) return DataStatus::IsWritingError;
     if (reading && r_handle) return DataStatus::IsReadingError;
 
@@ -157,6 +158,15 @@ namespace Arc {
     std::list<std::string> transport_urls;
     SRMReturnCode res;
     bool timedout;
+
+    std::list<std::string> transport_protocols(requested_protocols);
+    if (transport_protocols.empty()) {
+      transport_protocols.push_back("gsiftp");
+      transport_protocols.push_back("http");
+      transport_protocols.push_back("https");
+      transport_protocols.push_back("httpg");
+      transport_protocols.push_back("ftp");
+    }
 
     // If the file is NEARLINE (on tape) bringOnline is called
     // Whether or not to do this should eventually be specified by the user
@@ -256,8 +266,16 @@ namespace Arc {
         canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
       delete srm_request;
+
+      CheckProtocols(transport_protocols);
+      if (transport_protocols.empty()) {
+        logger.msg(ERROR, "None of the requested transport protocols are supported");
+        delete client;
+        return DataStatus::ReadPrepareError;
+      }
       srm_request = new SRMClientRequest(canonic_url);
       srm_request->request_timeout(stage_timeout);
+      srm_request->transport_protocols(transport_protocols);
       res = client->getTURLs(*srm_request, transport_urls);
       delete client;
     }
@@ -376,7 +394,8 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::PrepareWriting(unsigned int stage_timeout,
-                                          unsigned int& wait_time) {
+                                          unsigned int& wait_time,
+                                          const std::list<std::string>& requested_protocols) {
     if (reading) return DataStatus::IsReadingError;
     if (writing && r_handle) return DataStatus::IsReadingError;
 
@@ -385,6 +404,15 @@ namespace Arc {
     std::list<std::string> transport_urls;
     SRMReturnCode res;
     bool timedout;
+
+    std::list<std::string> transport_protocols(requested_protocols);
+    if (transport_protocols.empty()) {
+      transport_protocols.push_back("gsiftp");
+      transport_protocols.push_back("http");
+      transport_protocols.push_back("https");
+      transport_protocols.push_back("httpg");
+      transport_protocols.push_back("ftp");
+    }
 
     // If a request already exists, query status
     if (srm_request) {
@@ -417,6 +445,14 @@ namespace Arc {
         canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
 
       delete srm_request;
+
+      CheckProtocols(transport_protocols);
+      if (transport_protocols.empty()) {
+        logger.msg(ERROR, "None of the requested transport protocols are supported");
+        delete client;
+        return DataStatus::WritePrepareError;
+      }
+
       srm_request = new SRMClientRequest(canonic_url);
       // set space token
       std::string space_token = url.Option("spacetoken");
@@ -452,6 +488,7 @@ namespace Arc {
       }
       srm_request->request_timeout(stage_timeout);
       if (CheckSize()) srm_request->total_size(GetSize());
+      srm_request->transport_protocols(transport_protocols);
       res = client->putTURLs(*srm_request, transport_urls);
       delete client;
     }
@@ -774,6 +811,21 @@ namespace Arc {
 
   std::vector<URL> DataPointSRM::TransferLocations() const {
     return turls;
+  }
+
+  void DataPointSRM::CheckProtocols(std::list<std::string>& transport_protocols) {
+    for (std::list<std::string>::iterator protocol = transport_protocols.begin();
+         protocol != transport_protocols.end();) {
+      // try to load plugins
+      URL url(*protocol+"://host/path");
+      DataHandle handle(url, usercfg);
+      if (handle) {
+        ++protocol;
+      } else {
+        logger.msg(INFO, "plugin for transport protocol %s is not installed", *protocol);
+        protocol = transport_protocols.erase(protocol);
+      }
+    }
   }
 
 } // namespace Arc

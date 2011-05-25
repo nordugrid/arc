@@ -763,7 +763,8 @@ namespace Arc {
       source_url.AddCheckSumObject(&crc_source);
 
       unsigned int wait_time;
-      DataStatus datares = source_url.PrepareReading(max_inactivity_time, wait_time);
+      std::list<std::string> src_transport_protocols; // TODO fill from URL options
+      DataStatus datares = source_url.PrepareReading(max_inactivity_time, wait_time, src_transport_protocols);
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to prepare source: %s",
                    source_url.str());
@@ -840,7 +841,8 @@ namespace Arc {
       buffer.speed.reset();
 
       // cache files don't need prepared
-      datares = destination.PrepareWriting(max_inactivity_time, wait_time);
+      std::list<std::string> dest_transport_protocols; // TODO fill from URL options
+      datares = destination.PrepareWriting(max_inactivity_time, wait_time, dest_transport_protocols);
       if (!datares.Passed()) {
         logger.msg(ERROR, "Failed to prepare destination: %s",
                    destination.str());

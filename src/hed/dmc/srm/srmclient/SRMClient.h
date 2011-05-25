@@ -199,6 +199,11 @@ namespace Arc {
      */
     bool _long_list;
 
+    /**
+     * List of requested transport protocols
+     */
+    std::list<std::string> _transport_protocols;
+
   public:
     /**
      * Creates a request object with multiple SURLs.
@@ -371,6 +376,16 @@ namespace Arc {
     }
     bool long_list() const {
       return _long_list;
+    }
+
+    /**
+     * set and get transport protocols
+     */
+    void transport_protocols(const std::list<std::string>& protocols) {
+      _transport_protocols = protocols;
+    }
+    std::list<std::string> transport_protocols() const {
+      return _transport_protocols;
     }
   };
 

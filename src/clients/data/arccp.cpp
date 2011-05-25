@@ -227,8 +227,6 @@ bool arccp(const Arc::URL& source_url_,
     logger.msg(Arc::ERROR, "Invalid URL: %s", destination_url.str());
     return false;
   }
-  std::string cache_path;
-  std::string id = "<ngcp>";
 
   if (timeout <= 0)
     timeout = 300; // 5 minute default

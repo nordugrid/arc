@@ -301,17 +301,19 @@ namespace Arc {
   }
 
   DataStatus DataPointIndex::PrepareReading(unsigned int timeout,
-                                            unsigned int& wait_time) {
+                                            unsigned int& wait_time,
+                                            const std::list<std::string>& transport_protocols) {
     if (!h || !*h)
       return DataStatus::NoLocationError;
-    return (*h)->PrepareReading(timeout, wait_time);
+    return (*h)->PrepareReading(timeout, wait_time, transport_protocols);
   }
 
   DataStatus DataPointIndex::PrepareWriting(unsigned int timeout,
-                                            unsigned int& wait_time) {
+                                            unsigned int& wait_time,
+                                            const std::list<std::string>& transport_protocols) {
     if (!h || !*h)
       return DataStatus::NoLocationError;
-    return (*h)->PrepareWriting(timeout, wait_time);
+    return (*h)->PrepareWriting(timeout, wait_time, transport_protocols);
   }
 
   DataStatus DataPointIndex::StartWriting(DataBuffer& buffer,
