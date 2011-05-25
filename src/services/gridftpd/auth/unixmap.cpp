@@ -167,6 +167,10 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
   gridftpd::RunPlugin run(line);
   run.timeout(to);
   if(!run.run(subst_arg,&user_)) return false;
+  logger.msg(Arc::INFO,"Plugin returned %u: %s",(unsigned int)run.result(),run.stdout_channel());
+  if(run.stderr_channel().length()) {
+    logger.msg(Arc::ERROR,"Plugin reported error: %s",run.stderr_channel());
+  };
   if(run.result() != 0) return false;
   // Plugin should print user[:group] at stdout
   if(run.stdout_channel().length() > 512) return false; // really strange name
