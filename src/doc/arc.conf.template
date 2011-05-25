@@ -1040,6 +1040,12 @@ maxjobdesc="5242880"
 # /usr/sbin/slapadd
 #slapadd="/usr/sbin/slapadd"
 
+# LDAP parameters of the cluster.pl infoprovider, use the defaults, 
+# do NOT change them unless you know what you are doing
+#cachetime="30"
+#timelimit="30"
+#sizelimit="10"
+
 ####################################################################
 #
 # This block holds information that is needed by the glue 1.2
@@ -1321,13 +1327,6 @@ gm_mount_point="/jobs"
 # gm_port - this is the same as the "port" from the [gridftpd] block. The
 # default is "2811". Will be cleaned up later.
 gm_port="2811"
-
-# LDAP parameters of the cluster.pl infoprovider, use the defaults, 
-# do NOT change them unless you know what you are doing
-cachetime="30"
-timelimit="30"
-sizelimit="10"
-
   
 ####################################################################
 #
