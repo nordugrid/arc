@@ -157,11 +157,8 @@ namespace Arc {
         protocol = "file";
         path = url;
       }
-      if (!Glib::path_is_absolute(path)) {
-        char cwd[PATH_MAX];
-        if (getcwd(cwd, PATH_MAX))
-          path = Glib::build_filename(cwd, path);
-      }
+      if (!Glib::path_is_absolute(path))
+        path = Glib::build_filename(Glib::get_current_dir(), path);
       // Simple paths are not expected to contain any options or metadata
       return;
     }
@@ -181,11 +178,8 @@ namespace Arc {
       // This must be only path - we can accept path only for
       // limited set of protocols
       if ((protocol == "file" || protocol == "urllist" || protocol == "link")) {
-        if (!Glib::path_is_absolute(path)) {
-          char cwd[PATH_MAX];
-          if (getcwd(cwd, PATH_MAX))
-            path = Glib::build_filename(cwd, path);
-        }
+        if (!Glib::path_is_absolute(path))
+          path = Glib::build_filename(Glib::get_current_dir(), path);
         return;
       } else if (protocol == "arc") {
         // TODO: It is not defined how arc protocol discovers
@@ -540,15 +534,12 @@ namespace Arc {
     if (protocol == "ldap") {
       if (path.find("/") != std::string::npos)
         path = Path2BaseDN(path);
+    }
 
     // add absolute path for relative file URLs
-    } else if (protocol == "file" || protocol == "urllist") {
-      if(!Glib::path_is_absolute(path)) {
-        char cwd[PATH_MAX];
-        if (getcwd(cwd, PATH_MAX))
-          path = Glib::build_filename(cwd, path);
-      }
-    }
+    else if (protocol == "file" || protocol == "urllist")
+      if(!Glib::path_is_absolute(path))
+        path = Glib::build_filename(Glib::get_current_dir(), path);
 
     // for generic URL just make sure path has leading /
     else if ((path[0] != '/') && (!path.empty())) {

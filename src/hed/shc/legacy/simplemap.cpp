@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <glibmm/miscutils.h>
+
 #include <arc/Logger.h>
 
 #include "simplemap.h"
@@ -46,10 +48,7 @@ class FileLock {
 
 SimpleMap::SimpleMap(const char* dir):dir_(dir) {
   if((dir_.length() == 0) || (dir_[dir_.length()-1] != '/')) dir_+="/";
-  if(dir_[0] != '/') {
-    char buf[PATH_MAX];
-    if(getcwd(buf,sizeof(buf))) dir_=std::string(buf)+"/"+dir_;
-  };
+  if(dir_[0] != '/') dir_=Glib::get_current_dir()+"/"+dir_;
   pool_handle_=open((dir_+"pool").c_str(),O_RDWR);
 }
 

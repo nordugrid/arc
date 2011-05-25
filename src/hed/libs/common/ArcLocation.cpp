@@ -30,9 +30,8 @@ namespace Arc {
       if (path.rfind(G_DIR_SEPARATOR_S) == std::string::npos)
         path = Glib::find_program_in_path(path);
       if (path.substr(0, 2) == std::string(".") + G_DIR_SEPARATOR_S) {
-        char cwd[PATH_MAX];
-        if (getcwd(cwd, PATH_MAX))
-          path.replace(0, 1, cwd);
+        std::string cwd = Glib::get_current_dir();
+        path.replace(0, 1, cwd);
       }
       std::string::size_type pos = path.rfind(G_DIR_SEPARATOR_S);
       if (pos != std::string::npos && pos > 0) {
