@@ -534,15 +534,13 @@ namespace Arc {
     if (protocol == "ldap") {
       if (path.find("/") != std::string::npos)
         path = Path2BaseDN(path);
-    }
-
     // add absolute path for relative file URLs
-    else if (protocol == "file" || protocol == "urllist")
-      if(!Glib::path_is_absolute(path))
+    } else if (protocol == "file" || protocol == "urllist") {
+      if(!Glib::path_is_absolute(path)) {
         path = Glib::build_filename(Glib::get_current_dir(), path);
-
+      }
     // for generic URL just make sure path has leading /
-    else if ((path[0] != '/') && (!path.empty())) {
+    } else if ((path[0] != '/') && (!path.empty())) {
       URLLogger.msg(WARNING, "Attempt to assign relative path to URL - making it absolute");
       path = "/" + path;
     }
@@ -690,10 +688,11 @@ namespace Arc {
       urlstr += '@';
 
     if (!host.empty()) {
-      if(ip6addr)
+      if(ip6addr) {
         urlstr += "[" + host + "]";
-      else
+      } else {
         urlstr += host;
+      }
     }
 
     if (port != -1)
@@ -765,10 +764,11 @@ namespace Arc {
       urlstr += '@';
 
     if (!host.empty()) {
-      if(ip6addr)
+      if(ip6addr) {
         urlstr += "[" + host + "]";
-      else
+      } else {
         urlstr += host;
+      }
     }
 
     if (port != -1)
@@ -837,10 +837,11 @@ namespace Arc {
       urlstr = protocol + "://";
 
     if (!host.empty()) {
-      if(ip6addr)
+      if(ip6addr) {
         urlstr += "[" + host + "]";
-      else
+      } else {
         urlstr += host;
+      }
     }
 
     if (port != -1)
