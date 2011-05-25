@@ -25,7 +25,7 @@ libauth_la_SOURCES = auth.h auth.cpp auth_subject.cpp auth_file.cpp \
 	$(GACL_AUTH_SOURCES)
 libauth_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GLOBUS_IO_CFLAGS) \
-	$(LCAS_INCLUDES) $(LCMAPS_INCLUDES) $(GACL_CFLAGS)
+	$(LCAS_CFLAGS) $(LCMAPS_CFLAGS) $(GACL_CFLAGS)
 libauth_la_LIBADD = ../misc/libmisc.la ../run/librun.la ../conf/libconf.la \
 	$(GACL_LIB) $(top_srcdir)/src/hed/libs/common/libarccommon.la
 
@@ -37,7 +37,7 @@ libaccess_la_SOURCES = identity.cpp identity.h \
 	$(GACL_ACCESS_SOURCES)
 libaccess_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GLOBUS_IO_CFLAGS) \
-	$(LCAS_INCLUDES) $(LCMAPS_INCLUDES) $(GACL_CFLAGS)
+	$(LCAS_CFLAGS) $(LCMAPS_CFLAGS) $(GACL_CFLAGS)
 libaccess_la_LIBADD = $(GACL_LIB) \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(XML_LIBS)
@@ -47,5 +47,5 @@ libmap_la_SOURCES = unixmap.h unixmap.cpp unixmap_lcmaps.cpp \
 	$(GACL_MAP_SOURCES)
 libmap_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(GLOBUS_IO_CFLAGS) \
-	$(LCAS_INCLUDES) $(LCMAPS_INCLUDES) $(GACL_CFLAGS)
+	$(LCAS_CFLAGS) $(LCMAPS_CFLAGS) $(GACL_CFLAGS)
 libmap_la_LIBADD = libauth.la $(top_srcdir)/src/hed/libs/common/libarccommon.la
