@@ -8,6 +8,7 @@ ARCJSDLParserTest_CXXFLAGS = -I$(top_srcdir)/include \
 ARCJSDLParserTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 JDLParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
@@ -17,6 +18,7 @@ JDLParserTest_CXXFLAGS = -I$(top_srcdir)/include \
 JDLParserTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 XRSLParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
@@ -27,4 +29,5 @@ XRSLParserTest_CXXFLAGS = -I$(top_srcdir)/include \
 XRSLParserTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
