@@ -29,7 +29,7 @@ bool UnixMap::map_lcmaps(const AuthUser& user,unix_user_t& unix_user,const char*
   lcmaps_plugin+=std::string("\"")+user_.DN()+"\" ";
   lcmaps_plugin+=std::string("\"")+user_.proxy()+"\" ";
   lcmaps_plugin+=line;
-  int res = map_mapplugin(user,unix_user,lcmaps_plugin.c_str());
+  bool res = map_mapplugin(user,unix_user,lcmaps_plugin.c_str());
   return res;
 }
 

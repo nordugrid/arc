@@ -2,6 +2,11 @@
 #include <config.h>
 #endif
 
+#include <string>
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
+
 #include <glibmm.h>
 
 #include <gssapi.h>
@@ -22,21 +27,30 @@ extern "C" {
 #define extern typedef
 #define lcmaps_init (*lcmaps_init_t)
 #define lcmaps_run_and_return_username (*lcmaps_run_and_return_username_t)
+#define lcmaps_run (*lcmaps_run_t)
 #define lcmaps_term (*lcmaps_term_t)
+#define getCredentialData (*getCredentialData_t)
 #include <lcmaps.h>
+#include <lcmaps_cred_data.h>
 #undef lcmaps_init
+#undef lcmaps_run
 #undef lcmaps_run_and_return_username
 #undef lcmaps_term
+#undef getCredentialData
 #undef extern
 }
 #else
-//#warning Using hardcoded definition of LCMAPS functions - software will break during runtime if interface changed
+//#warning Using hardcoded definition of LCMAPS functions - software will break during runtime if interface changed. Otherwise compilation will break :)
 extern "C" {
 typedef char* lcmaps_request_t;
 typedef int (*lcmaps_init_t)(FILE *fp);
 typedef int (*lcmaps_run_and_return_username_t)(char *user_dn_tmp,gss_cred_id_t user_cred,lcmaps_request_t request,char **usernamep,int npols,char **policynames);
+typedef int (*lcmaps_run_t)(char *user_dn_tmp,gss_cred_id_t user_cred,lcmaps_request_t request);
 typedef int (*lcmaps_term_t)(void);
+typedef void* (*getCredentialData_t)(int datatype, int *count);
 }
+#define UID (10)
+#define PRI_GID (20)
 #endif
 
 static Arc::SimpleCondition lcmaps_global_lock;
@@ -118,7 +132,9 @@ int main(int argc,char* argv[]) {
   };
   lcmaps_init_t lcmaps_init_f = NULL;
   lcmaps_run_and_return_username_t lcmaps_run_and_return_username_f = NULL;
+  lcmaps_run_t lcmaps_run_f = NULL;
   lcmaps_term_t lcmaps_term_f = NULL;
+  getCredentialData_t getCredentialData_f = NULL;
   if((!lcmaps_handle.get_symbol("lcmaps_init",(void*&)lcmaps_init_f)) ||
      (!lcmaps_handle.get_symbol("lcmaps_run_and_return_username",(void*&)lcmaps_run_and_return_username_f)) ||
      (!lcmaps_handle.get_symbol("lcmaps_term",(void*&)lcmaps_term_f))) {
@@ -126,6 +142,10 @@ int main(int argc,char* argv[]) {
     logger.msg(Arc::ERROR, "Can't find LCMAPS functions in a library %s", lcmaps_library);
     return -1;
   };
+  lcmaps_handle.get_symbol("lcmaps_run",(void*&)lcmaps_run_f);
+  lcmaps_handle.get_symbol("getCredentialData",(void*&)getCredentialData_f);
+if(lcmaps_run_f) logger.msg(Arc::ERROR,"LCMAPS has lcmaps_run");
+if(getCredentialData_f) logger.msg(Arc::ERROR,"LCMAPS has getCredentialData");
   FILE* lcmaps_log = fdopen(STDERR_FILENO,"a");
   if((*lcmaps_init_f)(lcmaps_log) != 0) {
     recover_lcmaps_env();
@@ -136,11 +156,51 @@ int main(int argc,char* argv[]) {
   Arc::GSSCredential cred(filename,"","");
   char* username = NULL;
   int res = 1;
-  if((*lcmaps_run_and_return_username_f)(
-           (char*)(subject.c_str()),cred,(char*)"",&username,npols,policynames
-     ) == 0) {
-    if(username != NULL) {
-      res=1;
+  if((!getCredentialData_f) || (!lcmaps_run_f)) {
+   if((*lcmaps_run_and_return_username_f)(
+             (char*)(subject.c_str()),cred,(char*)"",&username,npols,policynames
+       ) == 0) {
+      if(username != NULL) {
+        res=0;
+        std::cout<<username<<std::flush;
+      };
+    };
+  } else {
+    std::string username;
+    if((*lcmaps_run_f)((char*)(subject.c_str()),cred,(char*)"") == 0) {
+      int cnt = 0;
+      uid_t* uids = (uid_t*)(*getCredentialData_f)(UID,&cnt);
+      if(cnt > 0) {
+        uid_t uid = uids[0];
+        gid_t gid = (gid_t)(-1);
+        gid_t* gids = (gid_t*)(*getCredentialData_f)(PRI_GID,&cnt);
+        if(cnt > 0) gid = gids[0];
+        struct passwd* pw = getpwuid(uid);
+        if(pw) {
+          username = pw->pw_name;
+          if(!username.empty()) {
+            if(gid != (gid_t)(-1)) {
+              struct group* gr = getgrgid(gid);
+              if(gr) {
+                username += std::string(":") + gr->gr_name;
+              } else {
+                logger.msg(Arc::ERROR,"LCMAPS returned invalid GID: %u",(unsigned int)gid);
+              };
+            } else {
+              logger.msg(Arc::WARNING,"LCMAPS did not return any GID");
+            };
+          } else {
+            logger.msg(Arc::ERROR,"LCMAPS returned UID which has no username: %u",(unsigned int)uid);
+          };
+        } else {
+          logger.msg(Arc::ERROR,"LCMAPS returned invalid UID: %u",(unsigned int)uid);
+        };        
+      } else {
+        logger.msg(Arc::ERROR,"LCMAPS did not return any UID");
+      };
+    };
+    if(!username.empty()) {
+      res=0;
       std::cout<<username<<std::flush;
     };
   };
