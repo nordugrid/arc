@@ -33,11 +33,11 @@ _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = arc_wrap.cpp arc.py
 
-EXTRA_DIST = $(SWIG_OUTPUTS) Doxyfile.api doxy2swig.py pydoxygen.i
+EXTRA_DIST = Doxyfile.api doxy2swig.py pydoxygen.i
 
-CLEANFILES = arc.pyc api
+CLEANFILES = $(SWIG_OUTPUTS) arc.pyc api
 
-MAINTAINERCLEANFILES = $(SWIG_OUTPUTS) pydoxygen.i
+MAINTAINERCLEANFILES = pydoxygen.i
 
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 

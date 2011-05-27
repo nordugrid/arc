@@ -63,9 +63,9 @@ BuildRequires:	lfc-devel
 %endif
 BuildRequires:	gridsite-devel
 %if %{?suse_version}%{!?suse_version:0}
-BuildRequires: libdb-4_5-devel
+BuildRequires:	libdb-4_5-devel
 %else
-BuildRequires: db4-devel
+BuildRequires:	db4-devel
 %endif
 %if %{with_java}
 BuildRequires:	java-devel
@@ -89,6 +89,7 @@ BuildRequires:	mktemp
 # The compilation of the selinux module fails on Fedora 5
 BuildRequires:	selinux-policy-devel
 %endif
+BuildRequires:	swig
 
 %define pyver %(python -c 'import sys; print sys.version[:3]')
 %if "%{pyver}" < "2.4"

@@ -24,10 +24,7 @@ libjarc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = arc_wrap.cpp $(JAVA_PATH)/*.java
 
-EXTRA_DIST = $(SWIG_OUTPUTS)
-
-CLEANFILES = $(JAVA_PATH)/*.class arc.jar
-MAINTAINERCLEANFILES = $(SWIG_OUTPUTS)
+CLEANFILES = $(SWIG_OUTPUTS) $(JAVA_PATH)/*.class arc.jar
 
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
