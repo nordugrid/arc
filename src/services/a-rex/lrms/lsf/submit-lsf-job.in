@@ -34,8 +34,8 @@ init $1
 read_arc_conf
 
 # enforce this 
-RUNTIME_FRONTEND_SEES_NODE='yes'
-RUNTIME_NODE_SEES_FRONTEND='yes'
+#RUNTIME_FRONTEND_SEES_NODE='yes'
+#RUNTIME_NODE_SEES_FRONTEND='yes'
 
 #TODO should this be specified here?
 joboption_localtransfer='no'
