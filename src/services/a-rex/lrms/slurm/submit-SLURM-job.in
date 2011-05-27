@@ -188,7 +188,6 @@ if [ ! -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
 else
   echo "RUNTIME_JOB_DIR=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid" >> $LRMS_JOB_SCRIPT
   echo "RUNTIME_JOB_DIAG=$RUNTIME_LOCAL_SCRATCH_DIR/${joboption_gridid}.diag" >> $LRMS_JOB_SCRIPT
-  echo "RUNTIME_GRIDAREA_DIR=" >> $LRMS_JOB_SCRIPT
   RUNTIME_STDIN_REL=`echo "${joboption_stdin}" | sed "s#^${joboption_directory}/*##"`
   RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}/*##"`
   RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}/*##"`
