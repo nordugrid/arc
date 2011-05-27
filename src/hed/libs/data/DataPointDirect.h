@@ -76,6 +76,7 @@ namespace Arc {
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
     virtual DataStatus RemoveLocation();
     virtual DataStatus RemoveLocations(const DataPoint& p);
+    virtual DataStatus ClearLocations();
     virtual void SortLocations(const std::string& /* pattern */,
                                const URLMap& /* url_map */) {};
 

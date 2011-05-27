@@ -141,6 +141,15 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointIndex::ClearLocations() {
+    locations.clear();
+    location = locations.end();
+    SetHandle();
+    return DataStatus::Success;
+  }
+
+
+
   DataStatus DataPointIndex::AddLocation(const URL& url,
                                          const std::string& meta) {
     logger.msg(DEBUG, "Add location: url: %s", url.str());

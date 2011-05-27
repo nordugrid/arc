@@ -30,6 +30,7 @@ namespace Arc {
     virtual bool LastLocation();
     virtual DataStatus RemoveLocation();
     virtual DataStatus RemoveLocations(const DataPoint& p);
+    virtual DataStatus ClearLocations();
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
     virtual void SortLocations(const std::string& pattern,
                                const URLMap& url_map);
@@ -92,11 +93,7 @@ namespace Arc {
   protected:
     bool resolved;
     bool registered;
-    void ClearLocations() {
-      locations.clear();
-      location = locations.end();
-      SetHandle();
-    };
+
   private:
     // Following members must be kept synchronised hence they are private
     /// List of locations at which file can be probably found.

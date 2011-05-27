@@ -179,6 +179,10 @@ namespace Arc {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
 
+  DataStatus DataPointDirect::ClearLocations() {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
   int DataPointDirect::AddCheckSumObject(CheckSum *cksum) {
     if(!cksum)
       return -1;

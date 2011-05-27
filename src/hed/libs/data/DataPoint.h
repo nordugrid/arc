@@ -453,6 +453,9 @@ namespace Arc {
     /// Remove locations present in another DataPoint object
     virtual DataStatus RemoveLocations(const DataPoint& p) = 0;
 
+    /// Remove all locations
+    virtual DataStatus ClearLocations() = 0;
+
     /// Add a checksum object which will compute checksum during transmission.
     /// \param cksum object which will compute checksum. Should not be
     /// destroyed till DataPointer itself.
