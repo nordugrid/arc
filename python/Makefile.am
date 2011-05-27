@@ -14,7 +14,8 @@ PYDOXFLAGS = -DPYDOXYGEN
 SWIG_INPUTS += pydoxygen.i
 endif
 
-_arc_la_SOURCES = arc_init.cpp arc_wrap.cpp
+_arc_la_SOURCES = arc_init.cpp
+nodist__arc_la_SOURCES = arc_wrap.cpp
 _arc_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(PYTHON_CFLAGS) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 	-fno-strict-aliasing -DSWIG_COBJECT_TYPES

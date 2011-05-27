@@ -6,7 +6,8 @@ javasharedir = $(libdir)/java
 javalib_LTLIBRARIES = libjarc.la
 javashare_DATA = arc.jar
 
-libjarc_la_SOURCES = arc_init.cpp arc_wrap.cpp arc_jni.h
+libjarc_la_SOURCES = arc_init.cpp arc_jni.h
+nodist_libjarc_la_SOURCES = arc_wrap.cpp
 libjarc_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(JDK_CFLAGS) \
 	-fno-strict-aliasing
