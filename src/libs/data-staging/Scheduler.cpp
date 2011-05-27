@@ -551,12 +551,16 @@ namespace DataStaging {
             request->get_logger()->msg(Arc::INFO, "DTR %s: %i retries left, will wait until %s before next attempt",
                                        request->get_short_id(), request->get_tries_left(), request->get_process_time().str());
             // set state depending on where the error occurred
-            if (request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA)
+            if (request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA) {
               request->set_status(DTRStatus::REGISTER_REPLICA);
-            else if (request->get_error_status().GetLastErrorState() == DTRStatus::RELEASING_REQUEST)
+            } else if (request->get_error_status().GetLastErrorState() == DTRStatus::RELEASING_REQUEST) {
               request->set_status(DTRStatus::RELEASE_REQUEST);
-            else // if error happened before or during transfer set back to NEW
+            } else {
+              // If error happened before or during transfer set back to NEW
+              // Reset DTR information set during this transfer
+              request->reset();
               request->set_status(DTRStatus::NEW);
+            }
             return;
           }
           else

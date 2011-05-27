@@ -183,6 +183,23 @@ namespace DataStaging {
     lock.unlock();
   }
 
+  void DTR::reset() {
+    // remove resolved locations
+    if (source_endpoint->IsIndex()) {
+      source_endpoint->ClearLocations();
+    }
+    source_endpoint->SetTries(source_endpoint->GetTries()+1);
+    if (destination_endpoint->IsIndex()) {
+      destination_endpoint->ClearLocations();
+    }
+    destination_endpoint->SetTries(destination_endpoint->GetTries()+1);
+
+    // empty cache and map info
+    cache_file.clear();
+    mapped_source.clear();
+    reset_error_status();
+  }
+
   std::string DTR::get_short_id() const {
     if(DTR_ID.length() < 8) return DTR_ID;
     std::string short_id(DTR_ID.substr(0,4)+"..."+DTR_ID.substr(DTR_ID.length()-4));

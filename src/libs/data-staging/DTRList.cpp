@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 
 #include "DTRList.h"
@@ -171,12 +172,8 @@ namespace DataStaging {
     }
     Lock.unlock();
 
-    remove(path.c_str());
-    std::ofstream myfile;
-    myfile.open (path.c_str());
-    myfile << data;
-    myfile.close();
-
+    Arc::FileDelete(path);
+    Arc::FileCreate(path, data);
   }
 
 } // namespace DataStaging

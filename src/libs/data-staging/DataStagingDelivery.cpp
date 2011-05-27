@@ -308,36 +308,45 @@ int main(int argc,char* argv[]) {
   source_st = source->StopReading();
   bool reported = false;
 
+  // Error at source or destination
+  if(source_failed || !source_st) {
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                 (source_url.Protocol() != "file") ?
+                  (!source_st && source_st.Retryable() ?
+                      DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                      DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                 DataStaging::DTRErrorStatus::ERROR_SOURCE,
+                 std::string("Failed reading from source: ")+source->CurrentLocation().str()+
+                  " : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),
+                 buffer.speed.transferred_size(),
+                 GetFileSize(*source,*dest));
+    reported = true;
+  };
+  if(dest_failed || !dest_st) {
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                 (dest_url.Protocol() != "file") ?
+                  (!dest_st && dest_st.Retryable() ?
+                         DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
+                         DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
+                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                 DataStaging::DTRErrorStatus::ERROR_DESTINATION,
+                 std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
+                  " : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),
+                 buffer.speed.transferred_size(),
+                 GetFileSize(*source,*dest));
+    reported = true;
+  };
+
+  // Transfer error, usually timeout
   if(!eof_reached) {
-    // Handle error
-    if(source_failed || !source_st) {
-      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                   (source_url.Protocol() != "file") ?
-                    DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR :
-                    DataStaging::DTRErrorStatus::INTERNAL_ERROR,
-                   DataStaging::DTRErrorStatus::ERROR_SOURCE,
-                   std::string("Failed reading from source: ")+source->CurrentLocation().str()+
-                    " : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),
-                   0,0);
-      reported = true;
-    };
-    if(dest_failed || !dest_st) {
-      ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
-                   (dest_url.Protocol() != "file") ?
-                    DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR :
-                    DataStaging::DTRErrorStatus::INTERNAL_ERROR,
-                   DataStaging::DTRErrorStatus::ERROR_DESTINATION,
-                   std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
-                    " : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),
-                   0,0);
-      reported = true;
-    };
     if((!dest_failed) && (!source_failed)) {
       ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                    DataStaging::DTRErrorStatus::TRANSFER_SPEED_ERROR,
                    DataStaging::DTRErrorStatus::ERROR_UNKNOWN,
                    "Transfer timed out",
-                   0,0);
+                   buffer.speed.transferred_size(),
+                   GetFileSize(*source,*dest));
       reported = true;
     };
   };

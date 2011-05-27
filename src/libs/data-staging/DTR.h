@@ -311,6 +311,10 @@ namespace DataStaging {
      std::list<DTRCallback*> get_callbacks(const std::map<StagingProcesses, std::list<DTRCallback*> >& proc_callback,
                                            StagingProcesses owner);
 
+     // Reset information held on this DTR, such as resolved replicas, error
+     // state etc. Useful when a failed DTR is to be retried
+     void reset();
+
      // Get the ID of this DTR
      std::string get_id() const { return DTR_ID; };
      // Get an abbreviated version of the DTR ID - useful to reduce logging verbosity
