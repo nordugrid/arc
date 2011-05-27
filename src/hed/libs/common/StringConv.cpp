@@ -88,6 +88,10 @@ namespace Arc {
                 const std::string& str, std::string::size_type pos,
                 const std::string& delimiters,
                 const std::string& start_quotes, const std::string& end_quotes) {
+    if(pos == std::string::npos) {
+      token.resize(0);
+      return std::string::npos;
+    }
     std::string::size_type te = str.find_first_not_of(delimiters,pos);
     if(te != std::string::npos) {
       pos = te;
