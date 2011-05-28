@@ -268,6 +268,18 @@ if test "$enables_swig" = "yes"; then
   if test "x$SWIG" == "x"; then
     enables_swig="no"
   fi
+  swigver=`swig -version 2>&1 | grep Version | sed 's/.* //'`
+  swigver1=`echo $swigver | cut -d. -f1`
+  swigver2=`echo $swigver | cut -d. -f2`
+  swigver3=`echo $swigver | cut -d. -f3`
+  if test $swigver1 -lt 1 || ( test $swigver1 -eq 1 && ( \
+     test $swigver2 -lt 3 || ( test $swigver2 -eq 3 && ( \
+     test $swigver3 -lt 25 ) ) ) ) ; then
+    NODEFAULTTORS="-nodefault"
+  else
+    NODEFAULTTORS="-nodefaultctor -nodefaultdtor"
+  fi
+  AC_SUBST(NODEFAULTTORS)
 else
   SWIG=""
 fi
