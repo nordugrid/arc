@@ -268,7 +268,7 @@ if test "$enables_swig" = "yes"; then
   if test "x$SWIG" == "x"; then
     enables_swig="no"
   fi
-  swigver=`swig -version 2>&1 | grep Version | sed 's/.* //'`
+  swigver=`$SWIG -version 2>&1 | grep Version | sed 's/.* //'`
   swigver1=`echo $swigver | cut -d. -f1`
   swigver2=`echo $swigver | cut -d. -f2`
   swigver3=`echo $swigver | cut -d. -f3`
