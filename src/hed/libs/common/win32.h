@@ -6,7 +6,6 @@
 #define WINVER 0x0501 /* we support XP or higher */
 #define WIN32_LEAN_AND_MEAN
 
-#include <string>
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -42,18 +41,22 @@ inline ssize_t readlink(const char *path, char *buf, size_t bufsiz) {
     return -1;
 };
 
+#if defined(__cplusplus)
 inline int mkdir(const char *pathname, mode_t mode) {
     return ::mkdir(pathname);
 }
+#endif
 
 inline int link(const char *oldpath, const char *newpath) {
     return -1;
 };
 
+#if defined(__cplusplus)
 #include <sys/stat.h>
 inline int lstat(const char *path, struct stat *buf) {
     return ::stat(path,buf);
 };
+#endif
 
 // pwd.h does not exist on windows
 struct passwd {
@@ -68,5 +71,4 @@ struct passwd {
   char *pw_shell;
 };
 
-std::string GetOsErrorMessage(void);
 #endif

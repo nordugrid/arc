@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <string>
 #include <glibmm.h>
 
 #include <iostream>
@@ -12,6 +13,8 @@
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 #include "Run.h"
+
+std::string GetOsErrorMessage(void);
 
 namespace Arc {
 

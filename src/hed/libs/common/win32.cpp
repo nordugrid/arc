@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <string>
+
 #include "win32.h"
 
 std::string GetOsErrorMessage(void) {
