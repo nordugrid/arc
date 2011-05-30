@@ -2,10 +2,16 @@
 #include <config.h>
 #endif
 
+#ifdef WIN32
+#include <arc/win32.h>
+#endif
+
 #include <string>
 #include <sys/types.h>
+#ifndef WIN32
 #include <pwd.h>
 #include <grp.h>
+#endif
 
 #include <glibmm.h>
 
@@ -165,6 +171,9 @@ if(getCredentialData_f) logger.msg(Arc::ERROR,"LCMAPS has getCredentialData");
         std::cout<<username<<std::flush;
       };
     };
+#ifdef WIN32
+  };
+#else
   } else {
     std::string username;
     if((*lcmaps_run_f)((char*)(subject.c_str()),cred,(char*)"") == 0) {
@@ -204,6 +213,7 @@ if(getCredentialData_f) logger.msg(Arc::ERROR,"LCMAPS has getCredentialData");
       std::cout<<username<<std::flush;
     };
   };
+#endif
   if((*lcmaps_term_f)() != 0) {
     logger.msg(Arc::WARNING, "Failed to terminate LCMAPS");
   };

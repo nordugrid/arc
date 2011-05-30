@@ -24,10 +24,13 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"SimpleMap");
 class FileLock {
  private:
   int h_;
+#ifndef WIN32
   struct flock l_;
+#endif
  public:
   FileLock(int h):h_(h) {
     if(h_ == -1) return;
+#ifndef WIN32
     l_.l_type=F_WRLCK;
     l_.l_whence=SEEK_SET;
     l_.l_start=0;
@@ -36,11 +39,14 @@ class FileLock {
       if(fcntl(h_,F_SETLKW,&l_) == 0) break;
       if(errno != EINTR) { h_=-1; return; };
     };
+#endif
   };
   ~FileLock(void) {
     if(h_ == -1) return;
+#ifndef WIN32
     l_.l_type=F_UNLCK;
     fcntl(h_,F_SETLKW,&l_);
+#endif
   };
   operator bool(void) { return (h_ != -1); };
   bool operator!(void) { return (h_ == -1); };
@@ -105,12 +111,18 @@ std::string SimpleMap::map(const char* subject) {
   std::string oldmap_name;
   std::string oldmap_subject;
   {
+#ifdef HAVE_READDIR_R
     struct dirent file_;
+#endif
     struct dirent *file;
     DIR *dir=opendir(dir_.c_str());
     if(dir == NULL) failure("can't list pool directory");
     for(;;) {
+#ifdef HAVE_READDIR_R
       readdir_r(dir,&file_,&file);
+#else
+      file = readdir(dir);
+#endif
       if(file == NULL) break;
       if(std::string(file->d_name) == ".") continue;
       if(std::string(file->d_name) == "..") continue;

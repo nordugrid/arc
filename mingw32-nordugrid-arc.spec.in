@@ -40,6 +40,7 @@ BuildRequires: mingw32-globus-common
 BuildRequires: mingw32-globus-ftp-client
 BuildRequires: mingw32-globus-ftp-control
 BuildRequires: mingw32-globus-rls-client
+BuildRequires: swig
 
 %description
 ARC

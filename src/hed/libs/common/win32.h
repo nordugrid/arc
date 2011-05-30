@@ -19,6 +19,13 @@
 #define SIGTTIN 21
 #define SIGTTOU 22
 #define sleep(x) Sleep((x) * 1000)
+#ifndef HAVE_MKSTEMP
+#ifdef HAVE_MKTEMP
+inline int mkstemp(char *pattern) {
+   return mktemp(pattern) != '\0';
+};
+#endif
+#endif
 //#define mkdir(x, y) mkdir((x))
 //#define lstat stat
 // no windows functions
