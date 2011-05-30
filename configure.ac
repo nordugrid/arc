@@ -1110,6 +1110,62 @@ DEFAULT_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
+#check lcas
+DEFAULT_LCAS_LOCATION=/opt/glite
+LCAS_LOCATION=
+LCAS_CFLAGS=
+LCAS_LIBS=
+AC_ARG_WITH(lcas-location,
+  [  --with-lcas-location=<PATH>        Specify the LCAS installation path. [[/opt/glite]]],
+  [
+    LCAS_LOCATION=$with_lcas_location
+    if test ! -d $LCAS_LOCATION; then
+      AC_MSG_WARN([LCAS_LOCATION ($LCAS_LOCATION) does not exist])
+      LCAS_LOCATION=
+    fi
+  ],[
+    if test "x$LCAS_LOCATION" = "x"; then
+      LCAS_LOCATION=$DEFAULT_LCAS_LOCATION
+    fi
+    if test ! -d $LCAS_LOCATION; then
+      LCAS_LOCATION=
+    fi
+  ]
+)
+if test "x$LCAS_LOCATION" != "x"; then
+  LCAS_CFLAGS=$LCAS_LOCATION/include/glite/security/lcas
+  if test ! -d $LCAS_CFLAGS; then
+    LCAS_CFLAGS=$LCAS_LOCATION/include/lcas
+    if test ! -d $LCAS_CFLAGS; then
+      LCAS_CFLAGS=$LCAS_LOCATION/include
+    fi
+  fi
+  LCAS_CFLAGS=-I$LCAS_CFLAGS
+  SAVE_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$LCAS_CFLAGS $GLOBUS_GSSAPI_GSI_CFLAGS"
+  AC_CHECK_HEADERS([lcas.h],
+    LCAS_LDFLAGS=
+    if test -d $LCAS_LOCATION/lib64; then
+      LCAS_LDFLAGS="-L$LCAS_LOCATION/lib64 $GLOBUS_GSSAPI_GSI_LIBS"
+    else
+      LCAS_LDFLAGS="-L$LCAS_LOCATION/lib $GLOBUS_GSSAPI_GSI_LIBS"
+    fi
+    SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS $LCAS_LDFLAGS"
+    AC_CHECK_LIB(lcas,lcas_init, LCAS_LIBS="$LCAS_LDFLAGS -llcas",LCAS_LOCATION="",)
+    LDFLAGS=$SAVE_LDFLAGS
+    ,
+    LCAS_LOCATION=""
+  )
+  CPPFLAGS=$SAVE_CPPFLAGS
+fi
+if test "x$LCAS_LOCATION" != "x"; then
+  AC_DEFINE(HAVE_LCAS,, [define if lcas is available])
+  AC_SUBST(LCAS_LOCATION)
+  AC_SUBST(LCAS_CFLAGS)
+  AC_SUBST(LCAS_LIBS)
+fi
+
 #check lcmaps
 DEFAULT_LCMAPS_LOCATION=/opt/glite
 LCMAPS_LOCATION=
@@ -1135,7 +1191,10 @@ AC_ARG_WITH(lcmaps-location,
 if test "x$LCMAPS_LOCATION" != "x"; then
   LCMAPS_CFLAGS=$LCMAPS_LOCATION/include/glite/security/lcmaps
   if test ! -d $LCMAPS_CFLAGS; then
-    LCMAPS_CFLAGS=$LCMAPS_LOCATION/include
+    LCMAPS_CFLAGS=$LCMAPS_LOCATION/include/lcmaps
+    if test ! -d $LCMAPS_CFLAGS; then
+      LCMAPS_CFLAGS=$LCMAPS_LOCATION/include
+    fi
   fi
   LCMAPS_CFLAGS=-I$LCMAPS_CFLAGS
   SAVE_CPPFLAGS=$CPPFLAGS
