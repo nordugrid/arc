@@ -46,6 +46,7 @@ class JobUser {
   std::string default_queue;
   /* local name, home directory, uid and gid of this user */
   std::string unix_name;
+  std::string unix_group;
   std::string home;
   uid_t uid;
   gid_t gid;
@@ -78,7 +79,7 @@ class JobUser {
   };
   JobUser(const GMEnvironment& env);
   JobUser(const GMEnvironment& env,const std::string &unix_name,RunPlugin* cred_plugin = NULL);
-  JobUser(const GMEnvironment& env,uid_t uid,RunPlugin* cred_plugin = NULL);
+  JobUser(const GMEnvironment& env,uid_t uid,gid_t gid,RunPlugin* cred_plugin = NULL);
   JobUser(const JobUser &user);
   ~JobUser(void);
   /* Set and get corresponding private values */

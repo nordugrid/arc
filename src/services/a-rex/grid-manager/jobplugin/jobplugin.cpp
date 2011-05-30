@@ -190,9 +190,13 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
   }
   else {
     if(configfile.length()) env.nordugrid_config_loc(configfile);
-    const char* uname = user_s.get_uname();
-    if((bool)job_map) uname=job_map.unix_name();
-    user=new JobUser(env, uname);
+    std::string uname = user_s.get_uname();
+    std::string ugroup = user_s.get_gname();
+    if((bool)job_map) {
+      uname=job_map.unix_name();
+      ugroup=job_map.unix_group();
+    };
+    user=new JobUser(env, uname+":"+ugroup);
     if(!user->is_valid()) {
       logger.msg(Arc::ERROR, "User %s is not valid", uname);
       initialized=false;

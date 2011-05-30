@@ -148,7 +148,9 @@ bool set_execs(const JobDescription &desc,const JobUser &user,const std::string 
   if (!get_arc_job_description(fname, arc_job_desc)) return false;
 
   if (user.StrictSession()) {
-    JobUser tmp_user(user.Env(),user.get_uid()==0?desc.get_uid():user.get_uid());
+    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
+    gid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
+    JobUser tmp_user(user.Env(),uid,gid);
     set_execs_t arg; arg.arc_job_desc=&arc_job_desc; arg.session_dir=&session_dir;
     return (RunFunction::run(tmp_user, "set_execs", &set_execs_callback, &arg, 20) == 0);
   }

@@ -52,7 +52,7 @@ bool RunParallel::run(const JobUser& user,const JobDescription& desc,const char 
   if((!cred) || (!(*cred))) { cred=NULL; };
   //RunPlugin* cred = NULL;
   if(user.get_uid() == 0) {
-    JobUser tmp_user(user.Env(),desc.get_uid());
+    JobUser tmp_user(user.Env(),desc.get_uid(),desc.get_gid());
     if(!tmp_user.is_valid()) return false;
     tmp_user.SetControlDir(user.ControlDir());
     tmp_user.SetSessionRoot(user.SessionRoot(desc.get_id()));

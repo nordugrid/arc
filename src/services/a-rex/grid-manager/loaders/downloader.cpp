@@ -281,6 +281,7 @@ int main(int argc,char** argv) {
   bool not_uploaded;
   time_t start_time=time(NULL);
   time_t files_changed = 0;
+  bool first_loop = true;
   int n_threads = 1;
   int n_files = MAX_DOWNLOADS;
   /* if != 0 - change owner of downloaded files to this user */
@@ -444,7 +445,7 @@ int main(int argc,char** argv) {
   if(file_group != 0) { gid=file_group; }
   else { gid= getgid(); };
   desc.set_uid(uid,gid);
-  JobUser user(env,uid);
+  JobUser user(env,uid,gid);
   user.SetControlDir(control_dir);
   user.SetSessionRoot(session_dir);
 
@@ -734,7 +735,7 @@ int main(int argc,char** argv) {
     for(FileDataEx::iterator i=job_files.begin();i!=job_files.end();) {
       if(i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
         /* process user uploadable file */
-        logger.msg(Arc::INFO, "Check user uploadable file: %s", i->pfn);
+        if(first_loop) logger.msg(Arc::INFO, "Checking user uploadable file: %s", i->pfn);
         std::string error;
         time_t mtime = i->mtime;
         int err=user_file_exists(*i,session_dir,uploaded_files_,&error);
@@ -761,6 +762,7 @@ int main(int argc,char** argv) {
         ++i;
       };
     };
+    first_loop = false;
     if(!not_uploaded) break;
     // check for timeout
     unsigned int time_passed = (unsigned int)(time(NULL) - files_changed);

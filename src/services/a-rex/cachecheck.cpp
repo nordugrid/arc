@@ -32,7 +32,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& /* config */,Arc::XMLNode 
   uid_t uid = getuid();
   gid_t gid = getgid();
   std::string file_owner_username = "";
-  JobUser user(*gm_env_,uid);
+  JobUser user(*gm_env_,uid,gid);
   std::vector<std::string> caches;
   struct passwd pw_;
   struct passwd *pw;

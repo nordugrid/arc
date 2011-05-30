@@ -48,7 +48,7 @@ static Arc::Logger logger(Arc::Logger::getRootLogger(),"AREX:GM");
 
 static void* cache_func(void* arg) {
   const JobUsers* users = (const JobUsers*)arg;
-  JobUser gmuser(users->Env(),getuid()); // Cleaning should run under the GM user
+  JobUser gmuser(users->Env(),getuid(),getgid()); // Cleaning should run under the GM user
   
   // run cache cleaning periodically forever
   for(;;) {

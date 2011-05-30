@@ -21,7 +21,7 @@ int main(int argc,char* argv[]) {
     JobLog job_log;
     JobsListConfig jobs_cfg;
     GMEnvironment env(job_log,jobs_cfg);
-    JobUser user(env,st.st_uid);
+    JobUser user(env,st.st_uid,st.st_gid);
     if(!user.is_valid()) continue;
     std::string path = argv[n];
     if(path[0] != '/') {

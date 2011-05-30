@@ -354,7 +354,7 @@ int main(int argc,char** argv) {
   if(file_group != 0) { gid=file_group; }
   else { gid= getgid(); };
   desc.set_uid(uid,gid);
-  JobUser user(env,uid);
+  JobUser user(env,uid,gid);
   user.SetControlDir(control_dir);
   user.SetSessionRoot(session_dir);
   

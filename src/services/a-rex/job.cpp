@@ -56,7 +56,10 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
   bool strict_session;
   std::string gridftp_endpoint; // for gridftp interface
   std::string arex_endpoint; // our interface
-  if(!configure_user_dirs(uname,control_dir,session_roots,
+  std::string username = uname;
+  std::string::size_type p =username.find(':');
+  if(p != std::string::npos) username.resize(p);
+  if(!configure_user_dirs(username,control_dir,session_roots,
                           session_roots_non_draining_,
                           default_lrms,default_queue,queues_,
                           cont_plugins_,*cred_plugin,

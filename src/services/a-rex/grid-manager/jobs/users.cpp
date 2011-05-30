@@ -33,7 +33,7 @@ static std::string empty_string("");
 
 JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   control_dir="";
-  unix_name=""; home=""; uid=0; gid=0;
+  unix_name=""; unix_group=""; home=""; uid=0; gid=0;
   valid=false; jobs=NULL;
   keep_finished=DEFAULT_KEEP_FINISHED;
   keep_deleted=DEFAULT_KEEP_DELETED;
@@ -237,14 +237,15 @@ bool JobUsers::substitute(std::string& param) const {
   return true;
 }
 
-JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env) {
+JobUser::JobUser(const GMEnvironment& env,uid_t uid_,gid_t gid_,RunPlugin* cred):gm_env(env) {
   struct passwd pw_;
   struct passwd *pw;
   char buf[BUFSIZ];
   uid=uid_;
+  gid=gid_;
   valid=false;
   cred_plugin=cred;
-  /* resolve name */
+  // resolve name
   if(uid_ == 0) {
     unix_name="";  
     gid=0;
@@ -255,7 +256,7 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env
     getpwuid_r(uid_,&pw_,buf,BUFSIZ,&pw);
     if(pw != NULL) {
       unix_name=pw->pw_name;  
-      gid=pw->pw_gid;
+      if(gid_ == 0) gid=pw->pw_gid;
       home=pw->pw_dir;
       valid=true;
     };
@@ -272,26 +273,39 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,RunPlugin* cred):gm_env(env
 }
 
 JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* cred):gm_env(env) {
-  struct passwd pw_;
-  struct passwd *pw;
   char buf[BUFSIZ];
   unix_name=u_name;  
+  std::string::size_type p = unix_name.find(':');
+  if(p != std::string::npos) {
+    unix_group = unix_name.substr(p+1);
+    unix_name.resize(p);
+  };
   cred_plugin=cred;
   valid=false;
   /* resolve name */
-  if(u_name.length() == 0) {
+  if(unix_name.length() == 0) {
     uid=0;  
     gid=0;
     home="/tmp";
     valid=true;
   }
   else {
-    getpwnam_r(u_name.c_str(),&pw_,buf,BUFSIZ,&pw);
+    struct passwd pw_;
+    struct passwd *pw = NULL;
+    getpwnam_r(unix_name.c_str(),&pw_,buf,BUFSIZ,&pw);
     if(pw != NULL) {
       uid=pw->pw_uid;
       gid=pw->pw_gid;
       home=pw->pw_dir;
       valid=true;
+      if(!unix_group.empty()) {
+        struct group gr_;
+        struct group *gr = NULL;
+        getgrnam_r(unix_group.c_str(),&gr_,buf,BUFSIZ,&gr);
+        if(gr != NULL) {
+          gid=gr->gr_gid;
+        };
+      };
     };
   };
   SetControlDir("");
@@ -308,6 +322,7 @@ JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* c
 JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
   uid=user.uid; gid=user.gid;
   unix_name=user.unix_name;  
+  unix_group=user.unix_group;  
   control_dir=user.control_dir;
   home=user.home;
   jobs=user.jobs;
@@ -418,20 +433,33 @@ bool JobUser::SwitchUser(bool su) const {
   //if(!Arc::SetEnv("USER_NAME",unix_name)) if(!su) return false;
 
   static char uid_s[64];
+  static char gid_s[64];
   snprintf(uid_s,63,"%llu",(long long unsigned int)uid);
+  snprintf(gid_s,63,"%llu",(long long unsigned int)gid);
   uid_s[63]=0;
+  gid_s[63]=0;
 #ifdef HAVE_SETENV
   if(setenv("USER_ID",uid_s,1) != 0) if(!su) return false;
+  if(setenv("USER_GID",gid_s,1) != 0) if(!su) return false;
   if(setenv("USER_NAME",unix_name.c_str(),1) != 0) if(!su) return false;
+  if(setenv("USER_GROUP",unix_group.c_str(),1) != 0) if(!su) return false;
 #else
   static char user_id_s[64];
+  static char user_gid_s[64];
   static char user_name_s[64];
+  static char user_group_s[64];
   strncpy(user_id_s,"USER_ID",63); user_id_s[63]=0;
   strncat(user_id_s,uid_s,63-strlen(user_id_s)); user_id_s[63]=0;
-  strncpy(user_name_s,"USER_ID",63); user_id_s[63]=0;
+  strncpy(user_gid_s,"USER_GID",63); user_gid_s[63]=0;
+  strncat(user_gid_s,gid_s,63-strlen(user_gid_s)); user_gid_s[63]=0;
+  strncpy(user_name_s,"USER_NAME",63); user_name_s[63]=0;
   strncat(user_name_s,unix_name.c_str(),63-strlen(user_name_s)); user_name_s[63]=0;
+  strncpy(user_group_s,"USER_GROUP",63); user_group_s[63]=0;
+  strncat(user_group_s,unix_group.c_str(),63-strlen(user_group_s)); user_group_s[63]=0;
   if(putenv(user_id_s) != 0) if(!su) return false;
+  if(putenv(user_gid_s) != 0) if(!su) return false;
   if(putenv(user_name_s) != 0) if(!su) return false;
+  if(putenv(user_group_s) != 0) if(!su) return false;
 #endif
 
   /* set proper umask */
