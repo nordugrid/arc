@@ -6,7 +6,11 @@
 %endif
 
 %global with_lfc  %{!?_without_lfc:1}%{?_without_lfc:0}
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %global with_java %{!?_without_java:1}%{?_without_java:0}
+%else
+%global with_java 0
+%endif
 %global with_gcj  %{!?_with_gcj:0}%{?_with_gcj:1}
 
 %global pkgdir arc

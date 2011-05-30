@@ -35,7 +35,7 @@ arc_wrap.cpp: $(top_srcdir)/swig/*.i
 	$(CXXCOMPILE) $(libjarc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT $(JAVA_PATH)/arc.java -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
 	rm -rf $(JAVA_PATH)
 	mkdir -p $(JAVA_PATH)
-	$(SWIG) -v -c++ -java $(NODEFAULTTORS) -module arc \
+	$(SWIG) -v -c++ -java -nodefaultctor -nodefaultdtor -module arc \
 		-package nordugrid.arc -o arc_wrap.cpp \
 		-outdir $(JAVA_PATH) \
 		-I/usr/include -I$(top_srcdir)/include \

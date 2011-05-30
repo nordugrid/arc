@@ -275,11 +275,8 @@ if test "$enables_swig" = "yes"; then
   if test $swigver1 -lt 1 || ( test $swigver1 -eq 1 && ( \
      test $swigver2 -lt 3 || ( test $swigver2 -eq 3 && ( \
      test $swigver3 -lt 25 ) ) ) ) ; then
-    NODEFAULTTORS="-nodefault"
-  else
-    NODEFAULTTORS="-nodefaultctor -nodefaultdtor"
+    SWIGTOOOLDFORJAVA="yes"
   fi
-  AC_SUBST(NODEFAULTTORS)
 else
   SWIG=""
 fi
@@ -358,7 +355,8 @@ if test "$enables_java" = "yes"; then
   fi
 
   JAVAWRAP=no
-  if test -f java/arc_wrap.cpp || test "x$SWIG" != "x" ; then
+  if test -f java/arc_wrap.cpp || \
+     ( test "x$SWIG" != "x" && test "x$SWIGTOOOLDFORJAVA" = "x" ) ; then
     JAVAWRAP=yes
   fi
 
