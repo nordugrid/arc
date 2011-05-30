@@ -80,21 +80,28 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   struct group gr_;
   struct passwd *pw;
   struct group *gr;
-  char buf[BUFSIZ];
+  char bufp[BUFSIZ];
+  char bufg[BUFSIZ];
   if(auth == NULL) return false;
   if(auth->auth_gssapi_subject == NULL) return false;
   std::string subject = auth->auth_gssapi_subject;
   gridftpd::make_unescaped_string(subject);
   char* name=NULL;
+  char* gname=NULL;
   if(!check_gridmap(subject.c_str(),&name)) {
     logger.msg(Arc::WARNING, "There is no local mapping for user");
-    name=NULL;
   } else {
     if((name == NULL) || (name[0] == 0)) {
       logger.msg(Arc::WARNING, "There is no local name for user");
       if(name) { std::free(name); name=NULL; };
     } else {
       gridmap=true;
+      gname = strchr(name,':');
+      if(gname) {
+        *gname = 0;
+        ++gname;
+        if(gname[0] == 0) gname = NULL;
+      };
     };
   };
   // fill host info
@@ -137,15 +144,24 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   };
   if((getuid() == 0) && name) {
     logger.msg(Arc::INFO, "Initially mapped to local user: %s", name);
-    getpwnam_r(name,&pw_,buf,BUFSIZ,&pw);
+    getpwnam_r(name,&pw_,bufp,BUFSIZ,&pw);
     if(pw == NULL) {
-      logger.msg(Arc::ERROR, "Local user does not exist");
+      logger.msg(Arc::ERROR, "Local user %s does not exist",name);
       std::free(name); name=NULL;
       return false;
     };
+    if(gname) {
+      logger.msg(Arc::INFO, "Initially mapped to local group: %s", gname);
+      getgrnam_r(gname,&gr_,bufg,BUFSIZ,&gr);
+      if(gr == NULL) {
+        logger.msg(Arc::ERROR, "Local group %s does not exist",gname);
+        std::free(name); name=NULL;
+        return false;
+      };
+    };
   } else {
-    if(name) std::free(name); name=NULL;
-    getpwuid_r(getuid(),&pw_,buf,BUFSIZ,&pw);
+    if(name) std::free(name); name=NULL; gname=NULL;
+    getpwuid_r(getuid(),&pw_,bufp,BUFSIZ,&pw);
     if(pw == NULL) {
       logger.msg(Arc::WARNING, "Running user has no name");
     } else {
@@ -155,12 +171,18 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   };
   if(pw) {
     uid=pw->pw_uid;
-    gid=pw->pw_gid;
-    logger.msg(Arc::INFO, "Mapped to local id: %i", pw->pw_uid);
+    if(gr) {
+      gid=gr->gr_gid;
+    } else {
+      gid=pw->pw_gid;
+    };
+    logger.msg(Arc::INFO, "Mapped to local id: %i", uid);
     home=pw->pw_dir;
-    getgrgid_r(pw->pw_gid,&gr_,buf,BUFSIZ,&gr);
-    if(gr == NULL) {
-      logger.msg(Arc::ERROR, "No group %i for mapped user", gid);
+    if(!gr) {
+      getgrgid_r(gid,&gr_,bufg,BUFSIZ,&gr);
+      if(gr == NULL) {
+        logger.msg(Arc::ERROR, "No group %i for mapped user", gid);
+      };
     };
     std::string mapstr;
     if(name) mapstr+=name;
@@ -168,7 +190,7 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
     if(gr) mapstr+=gr->gr_name;
     mapstr+=" all";
     default_map.mapname(mapstr.c_str());
-    logger.msg(Arc::INFO, "Mapped to local group id: %i", pw->pw_gid);
+    logger.msg(Arc::INFO, "Mapped to local group id: %i", gid);
     if(gr) logger.msg(Arc::INFO, "Mapped to local group name: %s", gr->gr_name);
     logger.msg(Arc::VERBOSE, "Mapped user's home: %s", home);
   };
@@ -181,9 +203,11 @@ bool userspec_t::fill(AuthUser& u) {
   struct group gr_;
   struct passwd *pw;
   struct group *gr;
-  char buf[BUFSIZ];
+  char bufp[BUFSIZ];
+  char bufg[BUFSIZ];
   std::string subject = u.DN();
   char* name=NULL;
+  char* gname=NULL;
   if(!check_gridmap(subject.c_str(),&name)) {
     logger.msg(Arc::WARNING, "There is no local mapping for user");
     name=NULL;
@@ -193,6 +217,12 @@ bool userspec_t::fill(AuthUser& u) {
       if(name) { std::free(name); name=NULL; };
     } else {
       gridmap=true;
+      gname = strchr(name,':');
+      if(gname) {
+        *gname = 0;
+        ++gname;
+        if(gname[0] == 0) gname = NULL;
+      };
     };
   };
   user=u;
@@ -203,15 +233,24 @@ bool userspec_t::fill(AuthUser& u) {
   };
   if((getuid() == 0) && name) {
     logger.msg(Arc::INFO, "Initially mapped to local user: %s", name);
-    getpwnam_r(name,&pw_,buf,BUFSIZ,&pw);
+    getpwnam_r(name,&pw_,bufp,BUFSIZ,&pw);
     if(pw == NULL) {
       logger.msg(Arc::ERROR, "Local user does not exist");
       std::free(name); name=NULL;
       return false;
     };
+    if(gname) {
+      logger.msg(Arc::INFO, "Initially mapped to local group: %s", gname);
+      getgrnam_r(gname,&gr_,bufg,BUFSIZ,&gr);
+      if(gr == NULL) {
+        logger.msg(Arc::ERROR, "Local group %s does not exist",gname);
+        std::free(name); name=NULL;
+        return false;
+      };
+    };
   } else {
-    if(name) std::free(name); name=NULL;
-    getpwuid_r(getuid(),&pw_,buf,BUFSIZ,&pw);
+    if(name) std::free(name); name=NULL; gname=NULL;
+    getpwuid_r(getuid(),&pw_,bufp,BUFSIZ,&pw);
     if(pw == NULL) {
       logger.msg(Arc::WARNING, "Running user has no name");
     } else {
@@ -221,12 +260,18 @@ bool userspec_t::fill(AuthUser& u) {
   };
   if(pw) {
     uid=pw->pw_uid;
-    gid=pw->pw_gid;
-    logger.msg(Arc::INFO, "Mapped to local id: %i", pw->pw_uid);
+    if(gr) {
+      gid=gr->gr_gid;
+    } else {
+      gid=pw->pw_gid;
+    };
+    logger.msg(Arc::INFO, "Mapped to local id: %i", uid);
     home=pw->pw_dir;
-    getgrgid_r(pw->pw_gid,&gr_,buf,BUFSIZ,&gr);
-    if(gr == NULL) {
-      logger.msg(Arc::INFO, "No group %i for mapped user", gid);
+    if(!gr) {
+      getgrgid_r(gid,&gr_,bufg,BUFSIZ,&gr);
+      if(gr == NULL) {
+        logger.msg(Arc::INFO, "No group %i for mapped user", gid);
+      };
     };
     std::string mapstr;
     if(name) mapstr+=name;
