@@ -1110,6 +1110,59 @@ DEFAULT_GLOBUS_LOCATION="$GLOBUS_LOCATION"
 AC_MSG_RESULT($DEFAULT_GLOBUS_LOCATION)
 AC_SUBST(DEFAULT_GLOBUS_LOCATION)
 
+#check lcmaps
+DEFAULT_LCMAPS_LOCATION=/opt/glite
+LCMAPS_LOCATION=
+LCMAPS_CFLAGS=
+LCMAPS_LIBS=
+AC_ARG_WITH(lcmaps-location,
+  [  --with-lcmaps-location=<PATH>        Specify the LCMAPS installation path. [[/opt/glite]]],
+  [
+    LCMAPS_LOCATION=$with_lcmaps_location
+    if test ! -d $LCMAPS_LOCATION; then
+      AC_MSG_WARN([LCMAPS_LOCATION ($LCMAPS_LOCATION) does not exist])
+      LCMAPS_LOCATION=
+    fi
+  ],[
+    if test "x$LCMAPS_LOCATION" = "x"; then
+      LCMAPS_LOCATION=$DEFAULT_LCMAPS_LOCATION
+    fi
+    if test ! -d $LCMAPS_LOCATION; then
+      LCMAPS_LOCATION=
+    fi
+  ]
+)
+if test "x$LCMAPS_LOCATION" != "x"; then
+  LCMAPS_CFLAGS=$LCMAPS_LOCATION/include/glite/security/lcmaps
+  if test ! -d $LCMAPS_CFLAGS; then
+    LCMAPS_CFLAGS=$LCMAPS_LOCATION/include
+  fi
+  LCMAPS_CFLAGS=-I$LCMAPS_CFLAGS
+  SAVE_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$LCMAPS_CFLAGS $GLOBUS_GSSAPI_GSI_CFLAGS"
+  AC_CHECK_HEADERS([lcmaps.h],
+    LCMAPS_LDFLAGS=
+    if test -d $LCMAPS_LOCATION/lib64; then
+      LCMAPS_LDFLAGS="-L$LCMAPS_LOCATION/lib64 $GLOBUS_GSSAPI_GSI_LIBS"
+    else
+      LCMAPS_LDFLAGS="-L$LCMAPS_LOCATION/lib $GLOBUS_GSSAPI_GSI_LIBS"
+    fi
+    SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="$LDFLAGS $LCMAPS_LDFLAGS"
+    AC_CHECK_LIB(lcmaps,lcmaps_init, LCMAPS_LIBS="$LCMAPS_LDFLAGS -llcmaps",LCMAPS_LOCATION="",)
+    LDFLAGS=$SAVE_LDFLAGS
+    ,
+    LCMAPS_LOCATION=""
+  )
+  CPPFLAGS=$SAVE_CPPFLAGS
+fi
+if test "x$LCMAPS_LOCATION" != "x"; then
+  AC_DEFINE(HAVE_LCMAPS,, [define if lcmaps is available])
+  AC_SUBST(LCMAPS_LOCATION)
+  AC_SUBST(LCMAPS_CFLAGS)
+  AC_SUBST(LCMAPS_LIBS)
+fi
+
 # Check for LFC
 AC_ARG_ENABLE(lfc, AC_HELP_STRING([--disable-lfc], [disable the LFC support, default is enable]),[enables_lfc="$enableval"],[])
 if test "x$enables_lfc" = "xyes"; then
