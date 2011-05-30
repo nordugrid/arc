@@ -2,7 +2,10 @@ SUBDIRS = schema
 DIST_SUBDIRS = schema
 
 pkglib_LTLIBRARIES = libarcshclegacy.la
+
+if GLOBUSUTILS_ENABLED
 pkglibexec_PROGRAMS = arc-lcas arc-lcmaps
+endif
 
 libarcshclegacy_la_SOURCES = auth_file.cpp auth_subject.cpp \
                              auth_plugin.cpp auth_lcas.cpp auth_ldap.cpp \
