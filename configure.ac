@@ -1768,6 +1768,10 @@ AC_SUBST(DATER)
 SPECDATE=`LANG=C date +"%a %b %d %Y"`
 AC_SUBST(SPECDATE)
 
+AH_BOTTOM([#ifdef WIN32
+#include <arc/win32.h>
+#endif])
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/hed/Makefile
