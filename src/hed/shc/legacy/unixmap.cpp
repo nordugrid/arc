@@ -169,7 +169,7 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
   if(!run.Wait(to)) return false;
   logger.msg(Arc::INFO,"Plugin returned: %u: %s",run.Result(),stdout_channel);
   if(!stderr_channel.empty()) {
-    logger.msg(Arc::ERROR,"Plugin reported error: %s",stderr_channel);
+    logger.msg((run.Result()==0)?Arc::VERBOSE:Arc::ERROR,"Plugin reported error: %s",stderr_channel);
   };
   if(run.Result() != 0) return false;
   // Plugin should print user[:group] at stdout
