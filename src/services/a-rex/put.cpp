@@ -88,11 +88,11 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
   };
   FileChunks& fc = fchunks.Get(job.ID()+"/"+hpath);
   if(!fc.Size()) fc.Size(stream.Size());
-  int pos = stream.Pos(); 
+  off_t pos = stream.Pos(); 
   if(h->lseek(pos,SEEK_SET) != pos) {
     std::string err = Arc::StrError();
     h->close(); delete h;
-    logger.msg(Arc::ERROR, "Put: failed to set position of file %s for job %s to %i - %s", hpath, job.ID(), pos, err);
+    logger.msg(Arc::ERROR, "Put: failed to set position of file %s for job %s to %Lu - %s", hpath, job.ID(), (unsigned long long int)pos, err);
     return Arc::MCC_Status();
   };
   char* buf = new char[bufsize];
