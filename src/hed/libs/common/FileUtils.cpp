@@ -18,8 +18,6 @@
 #ifndef WIN32
 #include <poll.h>
 #include <sys/mman.h>
-#else
-#include <arc/win32.h>
 #endif
 
 #include <arc/StringConv.h>

@@ -10,10 +10,6 @@
 
 #include <glibmm/miscutils.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include "URL.h"

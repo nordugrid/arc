@@ -5,10 +5,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include <arc/data/DataHandle.h>
 #include <arc/data/CheckSum.h>
 #include <arc/data/URLMap.h>

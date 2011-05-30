@@ -7,10 +7,6 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include <glibmm.h>
 
 #include <arc/FileLock.h>

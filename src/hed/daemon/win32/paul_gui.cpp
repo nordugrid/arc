@@ -5,7 +5,6 @@
 #include <string>
 #define NOGDI
 #include <windows.h>
-#include <arc/win32.h>
 #include <stdio.h>
 
 #include <arc/ArcConfig.h>

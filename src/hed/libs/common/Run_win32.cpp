@@ -11,7 +11,6 @@
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
-#include <arc/win32.h>
 #include "Run.h"
 
 namespace Arc {

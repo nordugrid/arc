@@ -15,9 +15,6 @@
 //#include <arc/loader/ClassLoader.h>
 #include <arc/Logger.h>
 #include <arc/security/ArcPDP/attr/AttributeValue.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 int main(void){
   signal(SIGTTOU,SIG_IGN);

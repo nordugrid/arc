@@ -7,9 +7,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <glibmm.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 #include "XmlContainer.h"
 

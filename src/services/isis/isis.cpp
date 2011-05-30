@@ -20,10 +20,6 @@
 
 #include "isis.h"
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 namespace ISIS
 {
 

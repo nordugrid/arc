@@ -21,10 +21,6 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/URL.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "../../hed/libs/xmlsec/XmlSecUtils.h"
 #include "../../hed/libs/xmlsec/XMLSecNode.h"
 

@@ -22,10 +22,6 @@
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "DataPointARC.h"
 
 namespace Arc {

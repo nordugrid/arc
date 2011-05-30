@@ -18,10 +18,6 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "DataPointHTTP.h"
 
 namespace Arc {

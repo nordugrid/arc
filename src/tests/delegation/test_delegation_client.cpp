@@ -18,9 +18,6 @@
 #include <arc/message/MCC.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientX509Delegation.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 //The following is for showing how to use the specific client API
 // (ClientX509Delegation) to delegate a proxy to ARC delegation 

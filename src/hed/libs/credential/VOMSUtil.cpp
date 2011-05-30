@@ -20,7 +20,6 @@
 #include "listfunc.h"
 
 #ifdef WIN32
-#include <arc/win32.h>
 int gethostname_mingw (char *, size_t);
 int gethostname_mingw (char *name, size_t len) {
   DWORD dlen = (len <= (DWORD)~0 ? len : (DWORD)~0);

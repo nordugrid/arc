@@ -27,10 +27,6 @@
 #include <arc/FileAccess.h>
 #include <arc/Utils.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "DataPointFile.h"
 
 namespace Arc {

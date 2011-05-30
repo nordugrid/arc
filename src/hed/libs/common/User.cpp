@@ -14,7 +14,6 @@
 #include <fcntl.h>
 
 #else // WIN32
-#include <arc/win32.h>
 #include <glibmm/miscutils.h>
 #endif
 

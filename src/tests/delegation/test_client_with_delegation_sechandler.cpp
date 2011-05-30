@@ -13,9 +13,6 @@
 #include <arc/message/MCC.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 

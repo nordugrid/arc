@@ -15,10 +15,6 @@
 #include <fstream>
 #include <cstdio>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 namespace Arc {
 
 static Logger logger(Logger::getRootLogger(), "InfoCache");

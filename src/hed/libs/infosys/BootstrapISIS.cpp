@@ -12,9 +12,6 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/StringConv.h>
 #include "InfoRegister.h"
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 namespace Arc {
 

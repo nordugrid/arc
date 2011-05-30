@@ -19,7 +19,6 @@
 #include <arc/Utils.h>
 
 #ifdef WIN32
-#include <arc/win32.h>
 #include <fcntl.h>
 #endif
 

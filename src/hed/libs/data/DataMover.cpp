@@ -31,10 +31,6 @@
 #include <arc/data/FileCache.h>
 #include <arc/data/URLMap.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 namespace Arc {
 
   Logger DataMover::logger(Logger::getRootLogger(), "DataMover");

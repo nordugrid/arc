@@ -8,8 +8,6 @@
 #ifndef WIN32
 #include <unistd.h>
 #include <sys/poll.h>
-#else
-#include <arc/win32.h>
 #endif
 
 #include "PayloadStream.h"

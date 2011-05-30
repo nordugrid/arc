@@ -15,9 +15,6 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/client/ClientSAML2SSO.h>
 #include <arc/client/ClientX509Delegation.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 int main(void) {
   signal(SIGTTOU,SIG_IGN);

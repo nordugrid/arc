@@ -2,9 +2,6 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 #include <cstring>
 #include <stdlib.h>
 #include <sys/time.h>

@@ -6,7 +6,6 @@
 #include <unistd.h>
 
 #ifdef WIN32
-#include <arc/win32.h>
 #include <winsock2.h>
 typedef int socklen_t;
 #define ErrNo WSAGetLastError()

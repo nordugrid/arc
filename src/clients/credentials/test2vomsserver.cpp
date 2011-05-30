@@ -20,9 +20,6 @@
 #include <arc/credential/VOMSUtil.h>
 #include <arc/credential/Credential.h>
 #include <arc/crypto/OpenSSL.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 int main(void) {
   setlocale(LC_ALL, "");

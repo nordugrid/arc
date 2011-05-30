@@ -7,9 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#else // UNIX
+#ifndef WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>

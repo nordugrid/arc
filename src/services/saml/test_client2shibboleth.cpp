@@ -24,10 +24,6 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/client/ClientInterface.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "../../hed/libs/xmlsec/XmlSecUtils.h"
 #include "../../hed/libs/xmlsec/XMLSecNode.h"
 #include "../../hed/libs/xmlsec/saml_util.h"

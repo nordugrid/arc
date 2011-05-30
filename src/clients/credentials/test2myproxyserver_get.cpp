@@ -15,9 +15,6 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/client/ClientInterface.h>
 #include <arc/credential/Credential.h>
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 int main(void) {
   setlocale(LC_ALL, "");

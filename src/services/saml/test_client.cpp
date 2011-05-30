@@ -19,10 +19,6 @@
 #include <arc/GUID.h>
 #include <arc/credential/Credential.h>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include "../../hed/libs/xmlsec/XmlSecUtils.h"
 #include "../../hed/libs/xmlsec/XMLSecNode.h"
 

@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#include <arc/win32.h>
 #define NOGDI
 #include <winsock2.h>
 #endif

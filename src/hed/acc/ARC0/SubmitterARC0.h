@@ -4,7 +4,6 @@
 #define __ARC_SUBMITTERARC0_H__
 
 #ifdef WIN32
-#include <arc/win32.h>
 #include <fcntl.h>
 #endif
 

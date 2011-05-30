@@ -4,10 +4,6 @@
 
 #include <cstring>
 
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
-
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>
 #include <xmlsec/xmltree.h>
