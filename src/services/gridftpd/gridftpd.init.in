@@ -206,7 +206,7 @@ CMD="$CMD -P '$PID_FILE'"
 
 start() {
     if [ "$RUN" != "yes" ] ; then
-	echo "a-rex disabled in configuration"
+	echo "gridftpd disabled in configuration"
 	return 0
     fi
 
