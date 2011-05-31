@@ -1032,6 +1032,10 @@ int main(int argc, char *argv[]) {
 
     proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
 
+    //If myproxy command is "Put", then the proxy path is set to /tmp/myproxy-proxy.uid.pid 
+    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
+      proxy_path = Glib::build_filename(Glib::get_tmp_dir(), "myproxy-proxy."
+                   + Arc::tostring(user.get_uid()) + Arc::tostring((int)(getpid())));
     write_proxy_file(proxy_path,proxy_cert);
 
     Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
