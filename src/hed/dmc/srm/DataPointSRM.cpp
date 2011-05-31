@@ -818,7 +818,7 @@ namespace Arc {
       if (handle) {
         ++protocol;
       } else {
-        logger.msg(INFO, "plugin for transport protocol %s is not installed", *protocol);
+        logger.msg(WARNING, "plugin for transport protocol %s is not installed", *protocol);
         protocol = transport_protocols.erase(protocol);
       }
     }
