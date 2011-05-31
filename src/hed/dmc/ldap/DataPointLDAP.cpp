@@ -56,51 +56,38 @@ namespace Arc {
                                const std::string& value,
                                void *ref) {
     DataPointLDAP& point = *(DataPointLDAP*)ref;
+
     if (attr == "dn") {
       point.entry = point.node;
 
-      std::list<std::pair<std::string, std::string> > pairs;
-      std::string::size_type pos = 0;
+      std::string path = "";
+      std::string::size_type pos_o = value.size();
+      while (pos_o != std::string::npos) {
+        std::string::size_type pos_n = value.rfind(',', pos_o);
+        std::string attr_val = (pos_n == std::string::npos ?
+                                value.substr(0, pos_o) :
+                                value.substr(pos_n+1, pos_o - pos_n));
+        pos_o = pos_n - (pos_n != std::string::npos);
 
-      while (pos != std::string::npos) {
-        std::string::size_type pos2 = value.find(',', pos);
-        std::string attr = (pos2 == std::string::npos ?
-                            value.substr(pos) :
-                            value.substr(pos, pos2 - pos));
-        pos = pos2;
-        if (pos != std::string::npos)
-          pos++;
-        pos2 = attr.find('=');
-        std::string s1 = attr.substr(0, pos2);
-        std::string s2 = attr.substr(pos2 + 1);
+        if (!path.empty()) {
+          path += "/";
+        }
+        path += attr_val;
 
-        while (s1[0] == ' ')
-          s1 = s1.erase(0, 1);
-        while (s1[s1.size() - 1] == ' ')
-          s1 = s1.erase(s1.size() - 1);
-        while (s2[0] == ' ')
-          s2 = s2.erase(0, 1);
-        while (s2[s2.size() - 1] == ' ')
-          s2 = s2.erase(s2.size() - 1);
-
-        pairs.push_back(std::make_pair(s1, s2));
-      }
-
-      for (std::list<std::pair<std::string, std::string> >::reverse_iterator
-           it = pairs.rbegin(); it != pairs.rend(); it++) {
-        bool found = false;
-        for (int i = 0; point.entry[it->first][i]; i++)
-          if ((std::string)point.entry[it->first][i] == it->second) {
-            point.entry = point.entry[it->first][i];
-            found = true;
-            break;
-          }
-        if (!found)
-          point.entry = point.entry.NewChild(it->first) = it->second;
+        std::map<std::string, XMLNode>::iterator c_path = point.dn_cache.find(path);
+        if (c_path != point.dn_cache.end()) {
+          point.entry = c_path->second;
+        }
+        else {
+          std::string::size_type pos_eq = attr_val.find('=');
+          point.entry = point.entry.NewChild(trim(attr_val.substr(0, pos_eq), " ")) = trim(attr_val.substr(pos_eq + 1), " ");
+          point.dn_cache.insert(std::make_pair(path, point.entry));
+        }
       }
     }
-    else
+    else {
       point.entry.NewChild(attr) = value;
+    }
   }
 
   DataStatus DataPointLDAP::StartReading(DataBuffer& buf) {
