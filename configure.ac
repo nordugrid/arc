@@ -395,31 +395,15 @@ if test "$enables_python" = "yes"; then
   AC_CHECK_PROGS(PYTHON, $with_python python)
 
   if test "X$PYTHON" != "X"; then
-    changequote(<<, >>)dnl
-    PYTHON_VERSION=`$PYTHON -c 'import sys; print(sys.version[:3])'`
-    PYTHON_VERSION_NODOT=`echo $PYTHON_VERSION | sed 's/\.//g'`
-
-    case $host in
-       *-*-mingw*)
-          SAVE_PYTHON_VERSION=$PYTHON_VERSION
-          PYTHON_VERSION=$PYTHON_VERSION_NODOT
-       ;;
-    esac
-
-    case $host in
-       *-*-mingw*)
-    # Use non-mingw32 python here
-    PYTHON_CFLAGS=-I`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print(sysconfig.get_python_inc())"`
-    PYTHON_SITE_PACKAGES=`python -c "from distutils import sysconfig; sysconfig.PREFIX = \"${prefix}\" ; print(sysconfig.get_python_lib(1,0,\"${prefix}\"))"`
-    PYTHON_LIBS="-L${prefix}/bin -lpython$SAVE_PYTHON_VERSION"
-       ;;
-                *)
+    PYNAME=`basename $PYTHON`
+    PKG_CHECK_MODULES(PYTHON, $PYNAME, [
+    PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
+    ],[
+    PYTHON_VERSION=`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
     PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
     PY_SYSLIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SYSLIBS'))" | sed s/None//`
     PY_LIBDEST=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBDEST'))" | sed s/None//`
-    PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
-    changequote([, ])dnl
     PYTHON_LIBS="$PY_LIBS $PY_SYSLIBS"
     SAVE_LDFLAGS=$LDFLAGS
     LDFLAGS="$PYTHON_LIBS $LDFLAGS"
@@ -432,18 +416,36 @@ if test "$enables_python" = "yes"; then
             AC_MSG_NOTICE([Adding path to python library])
             PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
             AC_ERROR([Can't find python library])])])
-
-    AC_CHECK_LIB([python$PYTHON_VERSION], [Py_InitializeEx],[
-        AC_MSG_NOTICE([Python includes functionality of skipping initialization registration of signal handlers])
-        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX,,[Define if you have Py_InitializeEx function])],[AC_MSG_NOTICE([Python does not include functionality of skipping initialization registration of signal handlers, since its version is below 2.4])])
-
     LDFLAGS=$SAVE_LDFLAGS
-       ;;
-    esac
+    ])
     AC_SUBST(PYTHON_VERSION)
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
+
+    AC_ARG_WITH(python-site-packages, AC_HELP_STRING([--with-python-site-packages=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
+    if test "X$PYTHON_SITE_PACKAGES" = "X"; then
+      PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
+    fi
     AC_SUBST(PYTHON_SITE_PACKAGES)
+
+    SAVE_LDFLAGS=$LDFLAGS
+    SAVE_CPPFLAGS=$CPPFLAGS
+    LDFLAGS="$LDFLAGS $PYTHON_LIBS"
+    CPPFLAGS="$CPPFLAGS $PYTHON_CFLAGS"
+
+    AC_CHECK_HEADER(Python.h, [pythonh="yes"], [pythonh="no"])
+
+    AC_TRY_COMPILE([#include <Python.h>], [Py_InitializeEx(0)],[
+        AC_MSG_NOTICE([Python includes functionality of skipping initialization registration of signal handlers])
+        AC_DEFINE(HAVE_PYTHON_INITIALIZE_EX,,[Define if you have Py_InitializeEx function])
+        enables_python_service="yes"
+    ],[
+        AC_MSG_NOTICE([Python does not include functionality of skipping initialization registration of signal handlers, since its version is below 2.4])
+        enables_python_service="no"
+    ])
+
+    LDFLAGS=$SAVE_LDFLAGS
+    CPPFLAGS=$SAVE_CPPFLAGS
   fi
 
   PYTHONWRAP=no
@@ -451,17 +453,17 @@ if test "$enables_python" = "yes"; then
     PYTHONWRAP=yes
   fi
 
-  case $host in
-   *-*-mingw*)
-     PYTHON_VERSION=$SAVE_PYTHON_VERSION
-   ;;
-  esac
-
-  if test "X$PYTHONWRAP" != "Xyes"; then
+  if test "X$PYTHON" = "X"; then
+    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    enables_python=no
+  elif test "X$pythonh" != "Xyes"; then
+    AC_MSG_NOTICE([Missing Python header - skipping Python bindings])
+    enables_python=no
+  elif test "X$PYTHONWRAP" != "Xyes"; then
     AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
     enables_python=no
-  elif test "X$PYTHON" == "X"; then
-    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+  elif test "X$PYTHON_SITE_PACKAGES" = "X"; then
+    AC_MSG_NOTICE([Missing python site packages location - skipping Python bindings])
     enables_python=no
   else
     AC_MSG_NOTICE([Python available: $PYTHON_VERSION])
@@ -472,7 +474,7 @@ fi
 AC_MSG_NOTICE([Python enabled: $enables_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
-AM_CONDITIONAL([PYTHON_SERVICE],[test "$PYTHON_VERSION_NODOT" '-ge' "24"])
+AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python_service" = "xyes"])
 
 
 # using pkgconfig
