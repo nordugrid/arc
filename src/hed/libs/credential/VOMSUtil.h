@@ -220,7 +220,7 @@ namespace Arc {
 
   /**Extract the needed field from the certificate
   */
-  const std::string get_property(const Arc::Credential& u, const std::string property);
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property);
 }// namespace Arc
 
 #endif /* __ARC_VOMSUTIL_H__ */

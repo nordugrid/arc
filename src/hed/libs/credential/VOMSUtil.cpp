@@ -1661,7 +1661,7 @@ err:
     return MyDecode(data, size, j);
   }
 
-  const std::string get_property(const Arc::Credential& u,const std::string property) {
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property) {
     if (property == "dn"){
         return u.GetIdentityName();
     }

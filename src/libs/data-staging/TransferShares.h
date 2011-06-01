@@ -69,19 +69,19 @@ class TransferShares {
     /* Find the name of the share this dtr belongs to
      */
     std::string extract_user_share(const Arc::Credential& cred){
-      return get_property(cred, "dn");
+      return getCredentialProperty(cred, "dn");
     }
 
     std::string extract_vo_share(const Arc::Credential& cred){
-      return get_property(cred, "voms:vo");
+      return getCredentialProperty(cred, "voms:vo");
     }
 
     std::string extract_group_share(const Arc::Credential& cred){
-      return get_property(cred, "voms:group");
+      return getCredentialProperty(cred, "voms:group");
     }
 
     std::string extract_role_share(const Arc::Credential& cred){
-      return get_property(cred, "voms:role");
+      return getCredentialProperty(cred, "voms:role");
     }
 
   public:

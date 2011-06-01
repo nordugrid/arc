@@ -962,7 +962,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               std::string v = user->Env().cert_dir_loc();
               if(! v.empty()) cert_dir = v;
                 Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = get_property(u,jcfg.share_type);
+                const std::string share = getCredentialProperty(u,jcfg.share_type);
                 i->set_share(share);
                 logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
@@ -993,7 +993,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               std::string v = user->Env().cert_dir_loc();
               if(! v.empty()) cert_dir = v;
                 Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = get_property(u,jcfg.share_type);
+                const std::string share = getCredentialProperty(u,jcfg.share_type);
                 i->set_share(share);
                 logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
