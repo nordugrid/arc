@@ -313,7 +313,7 @@ bool job_diagnostics_mark_put(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
-    return (RunFunction::run(tmp_user,"job_diagnostics_mark_put",&job_mark_put_callback,&fname,10) == 0);
+    return (RunFunction::run(tmp_user,"job_diagnostics_mark_put",&job_mark_put_callback,&fname,-1) == 0);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
@@ -324,7 +324,7 @@ bool job_session_create(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
-    return (RunFunction::run(tmp_user,"job_session_create",&job_dir_create_callback,&dname,10) == 0);
+    return (RunFunction::run(tmp_user,"job_session_create",&job_dir_create_callback,&dname,-1) == 0);
   };
   return job_dir_create(dname) & fix_file_owner(dname,desc,user) & fix_file_permissions(dname,true);
 }
@@ -352,7 +352,7 @@ bool job_lrmsoutput_mark_put(const JobDescription &desc,const JobUser &user) {
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
-    return (RunFunction::run(tmp_user,"job_lrmsoutput_mark_put",&job_mark_put_callback,&fname,10) == 0);
+    return (RunFunction::run(tmp_user,"job_lrmsoutput_mark_put",&job_mark_put_callback,&fname,-1) == 0);
   };
   return job_mark_put(fname) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
@@ -364,7 +364,7 @@ bool job_diagnostics_mark_add(const JobDescription &desc,const JobUser &user,con
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
     job_mark_add_t arg; arg.fname=&fname; arg.content=&content;
-    return (RunFunction::run(tmp_user,"job_diagnostics_mark_add",&job_mark_add_callback,&arg,10) == 0);
+    return (RunFunction::run(tmp_user,"job_diagnostics_mark_add",&job_mark_add_callback,&arg,-1) == 0);
   };
   return job_mark_add_s(fname,content) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
@@ -377,7 +377,7 @@ bool job_diagnostics_mark_remove(const JobDescription &desc,const JobUser &user)
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
-    return (res1 | (RunFunction::run(tmp_user,"job_diagnostics_mark_remove",&job_mark_remove_callback,&fname,10) == 0));
+    return (res1 | (RunFunction::run(tmp_user,"job_diagnostics_mark_remove",&job_mark_remove_callback,&fname,-1) == 0));
   };
   return (res1 | job_mark_remove(fname));
 }
@@ -388,7 +388,7 @@ bool job_lrmsoutput_mark_remove(const JobDescription &desc,const JobUser &user) 
     uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
-    return (RunFunction::run(tmp_user,"job_lrmsoutpur_mark_remove",&job_mark_remove_callback,&fname,10) == 0);
+    return (RunFunction::run(tmp_user,"job_lrmsoutpur_mark_remove",&job_mark_remove_callback,&fname,-1) == 0);
   };
   return job_mark_remove(fname);
 }
@@ -427,7 +427,7 @@ bool job_diagnostics_mark_move(const JobDescription &desc,const JobUser &user) {
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
     job_file_read_t arg; arg.h=h2; arg.fname=&fname1;
-    RunFunction::run(tmp_user,"job_diagnostics_mark_move",&job_file_read_callback,&arg,10);
+    RunFunction::run(tmp_user,"job_diagnostics_mark_move",&job_file_read_callback,&arg,-1);
     close(h2);
     return true;
   };
@@ -1251,7 +1251,7 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
     uid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
     JobUser tmp_user(user.Env(),uid,gid);
     job_dir_remove_t arg; arg.dname=&dname; arg.flist=&flist;
-    return (RunFunction::run(tmp_user,"job_clean_deleted",&job_dir_remove_callback,&arg,10) == 0);
+    return (RunFunction::run(tmp_user,"job_clean_deleted",&job_dir_remove_callback,&arg,-1) == 0);
   } else {
     delete_all_files(dname,flist,true);
     remove(dname.c_str());

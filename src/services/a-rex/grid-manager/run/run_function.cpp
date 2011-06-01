@@ -35,6 +35,10 @@ int RunFunction::run(const JobUser& user,const char* cmdname,int (*func)(void*),
     return -1;
   };
   delete rf;
+  if(timeout < 0) {
+    re.Wait();
+    return re.Result();
+  };
   if(!re.Wait(timeout)) {
     logger.msg(Arc::ERROR,"%s: Failure waiting for child process to finish",cmdname?cmdname:"");
     return -1;
