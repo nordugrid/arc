@@ -61,18 +61,18 @@ namespace Arc {
       point.entry = point.node;
 
       std::string path = "";
+      std::string attr_val = "";
       std::string::size_type pos_o = value.size();
       while (pos_o != std::string::npos) {
-        std::string::size_type pos_n = value.rfind(',', pos_o);
-        std::string attr_val = (pos_n == std::string::npos ?
-                                value.substr(0, pos_o+1) :
-                                value.substr(pos_n+1, pos_o - pos_n));
-        pos_o = pos_n - (pos_n != std::string::npos);
-
-        if (!path.empty()) {
-          path += "/";
+        std::string::size_type pos_n = (pos_o>0)?value.rfind(',', pos_o-1):std::string::npos;
+        if(pos_n == std::string::npos) {
+          attr_val = value.substr(0,pos_o);
+        } else {
+          attr_val = value.substr(pos_n+1,pos_o-pos_n-1);
         }
-        path += attr_val;
+        pos_o = pos_n;
+        attr_val = trim(attr_val, " ");
+        path+=attr_val+",";
 
         std::map<std::string, XMLNode>::iterator c_path = point.dn_cache.find(path);
         if (c_path != point.dn_cache.end()) {
@@ -80,7 +80,11 @@ namespace Arc {
         }
         else {
           std::string::size_type pos_eq = attr_val.find('=');
-          point.entry = point.entry.NewChild(trim(attr_val.substr(0, pos_eq), " ")) = trim(attr_val.substr(pos_eq + 1), " ");
+          if(pos_eq != std::string::npos) {
+            point.entry = point.entry.NewChild(trim(attr_val.substr(0, pos_eq), " ")) = trim(attr_val.substr(pos_eq + 1), " ");
+          } else {
+            point.entry = point.entry.NewChild(trim(attr_val, " "));
+          };
           point.dn_cache.insert(std::make_pair(path, point.entry));
         }
       }
