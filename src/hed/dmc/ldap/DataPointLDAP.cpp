@@ -65,7 +65,7 @@ namespace Arc {
       while (pos_o != std::string::npos) {
         std::string::size_type pos_n = value.rfind(',', pos_o);
         std::string attr_val = (pos_n == std::string::npos ?
-                                value.substr(0, pos_o) :
+                                value.substr(0, pos_o+1) :
                                 value.substr(pos_n+1, pos_o - pos_n));
         pos_o = pos_n - (pos_n != std::string::npos);
 
