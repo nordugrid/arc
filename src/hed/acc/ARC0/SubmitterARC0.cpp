@@ -20,7 +20,7 @@
 namespace Arc {
 
   // Characters to be escaped in LDAP filter according to RFC4515
-  static const std::string filter_esc("&|=!><~*/");
+  static const std::string filter_esc("&|=!><~*/()");
 
   Logger SubmitterARC0::logger(Logger::getRootLogger(), "Submitter.ARC0");
 
