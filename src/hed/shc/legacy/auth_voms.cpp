@@ -48,23 +48,23 @@ int AuthUser::match_voms(const char* line) {
   if(!auto_c.empty()) {
     if(auto_c == "auto") auto_cert=true;
   };
-  logger.msg(Arc::VERBOSE, "VOMS config: vo: %s", vo);
-  logger.msg(Arc::VERBOSE, "VOMS config: group: %s", group);
-  logger.msg(Arc::VERBOSE, "VOMS config: role: %s", role);
-  logger.msg(Arc::VERBOSE, "VOMS config: capabilities: %s", capabilities);
+  logger.msg(Arc::VERBOSE, "Rule: vo: %s", vo);
+  logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
+  logger.msg(Arc::VERBOSE, "Rule: role: %s", role);
+  logger.msg(Arc::VERBOSE, "Rule: capabilities: %s", capabilities);
   if(voms_data_.size() == 0) return AAA_NO_MATCH;
   // analyse permissions
   for(std::vector<struct voms>::iterator v = voms_data_.begin();v!=voms_data_.end();++v) {
-    logger.msg(Arc::DEBUG, "match vo: %s", v->voname);
+    logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);
     if((vo == "*") || (vo == v->voname)) {
       for(std::vector<struct voms_attrs>::iterator d=v->attrs.begin();d!=v->attrs.end();++d) {
-        logger.msg(Arc::VERBOSE, "match group: %s", d->group);
-        logger.msg(Arc::VERBOSE, "match role: %s", d->role);
-        logger.msg(Arc::VERBOSE, "match capabilities: %s", d->cap);
+        logger.msg(Arc::VERBOSE, "Match group: %s", d->group);
+        logger.msg(Arc::VERBOSE, "Match role: %s", d->role);
+        logger.msg(Arc::VERBOSE, "Match capabilities: %s", d->cap);
         if(((group == "*") || (group == d->group)) &&
            ((role == "*") || (role == d->role)) &&
            ((capabilities == "*") || (capabilities == d->cap))) {
-          logger.msg(Arc::VERBOSE, "VOMS matched");
+          logger.msg(Arc::VERBOSE, "Match: %s %s %s %s",v->voname,d->group,d->role,d->cap);
           default_voms_=v->server.c_str();
           default_vo_=v->voname.c_str();
           default_role_=d->role.c_str();
@@ -75,7 +75,7 @@ int AuthUser::match_voms(const char* line) {
       };
     };
   };
-  logger.msg(Arc::VERBOSE, "VOMS matched nothing");
+  logger.msg(Arc::VERBOSE, "Matched nothing");
   return AAA_NO_MATCH;
 }
 

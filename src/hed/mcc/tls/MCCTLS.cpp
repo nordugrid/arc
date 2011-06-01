@@ -97,7 +97,8 @@ class TLSSecAttr: public SecAttr {
                                    v != voms_attributes_.end();++v) { 
         for(std::vector<std::string>::const_iterator a = v->attributes.begin();
                                    a != v->attributes.end();++a) {
-          items.push_back(*a);
+          std::string vattr = VOMSFQANToFull(v->voname,*a);
+          items.push_back(vattr);
         };
       };
     } else if(id == "VO") {
@@ -286,7 +287,8 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
         for(int n=0; n < voms_attributes_[k].attributes.size(); n++) {
-          add_arc_subject_attribute(subj, voms_attributes_[k].attributes[n],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+          std::string vattr = VOMSFQANToFull(voms_attributes_[k].voname,voms_attributes_[k].attributes[n]);
+          add_arc_subject_attribute(subj,vattr,"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
         };
       };
     };
@@ -323,7 +325,8 @@ bool TLSSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
     if(!voms_attributes_.empty()) {
       for(int k=0; k < voms_attributes_.size(); k++) {
         for(int n=0; n < voms_attributes_[k].attributes.size(); n++) {
-          add_xacml_subject_attribute(subj, voms_attributes_[k].attributes[n],"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
+          std::string vattr = VOMSFQANToFull(voms_attributes_[k].voname,voms_attributes_[k].attributes[n]);
+          add_xacml_subject_attribute(subj,vattr,"http://www.nordugrid.org/schemas/policy-arc/types/tls/vomsattribute");
         };
       };
     };

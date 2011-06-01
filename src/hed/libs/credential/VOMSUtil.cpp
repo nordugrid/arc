@@ -13,6 +13,7 @@
 #include <arc/Thread.h>
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
+#include <arc/StringConv.h>
 #include <arc/crypto/OpenSSL.h>
 
 #include <arc/credential/VOMSAttribute.h>
@@ -1036,30 +1037,16 @@ err:
       }
 
       std::string fqan((const char*)(capname->data), capname->length);
-      if(fqan[0] == '/') fqan.erase(0,1);
-      std::size_t group_pos = fqan.find("/",0);
-      std::size_t role_pos = std::string::npos;
-      if(group_pos != std::string::npos) {
-        role_pos = fqan.find("/Role=",group_pos);
-        if(role_pos == group_pos) {
-          fqan.insert(group_pos,"/Group=NULL");
-        } else {
-          fqan.insert(group_pos+1,"Group=");
-        }
-      }
-      fqan.insert(0,"/VO=");
 
-      // if the attribute is like: /VO=knowarc.eu/Group=NULL/Role=NULL/Capability=NULL
-      // or /VO=knowarc.eu/Group=NULL/Role=tester/Capability=NULL
+      // if the attribute is like: /knowarc.eu/Role=NULL/Capability=NULL
+      // or /knowarc.eu/Role=tester/Capability=NULL
       // then remove the element with "=NULL" to be:
-      // /VO=knowarc.eu
-      // /VO=knowarc.eu/Role=tester
+      // /knowarc.eu
+      // /knowarc.eu/Role=tester
 
       std::string str = fqan;
       std::size_t pos = str.find("/Role=NULL");
       if(pos != std::string::npos) str.erase(pos, 10);
-      pos = str.find("/Group=NULL");
-      if(pos != std::string::npos) str.erase(pos, 11);
       pos = str.find("/Capability=NULL");
       if(pos != std::string::npos) str.erase(pos, 16);
 
@@ -1451,19 +1438,19 @@ err:
 
     AC_ATTR * caps = sk_AC_ATTR_value(atts, pos);
     if(!caps) {
-      CredentialLogger.msg(ERROR,"VOMS: unable to extract vo name from AC");
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
       return false;
     }
 
     AC_IETFATTR * capattr = sk_AC_IETFATTR_value(caps->ietfattr, 0);
     if(!capattr) {
-      CredentialLogger.msg(ERROR,"VOMS: unable to extract vo name from AC");
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
       return false;
     }
 
     GENERAL_NAME * name = sk_GENERAL_NAME_value(capattr->names, 0);
     if(!name) {
-      CredentialLogger.msg(ERROR,"VOMS: unable to extract vo name from AC");
+      CredentialLogger.msg(ERROR,"VOMS: unable to extract VO name from AC");
       return false;
     }
 
@@ -1661,7 +1648,7 @@ err:
     return MyDecode(data, size, j);
   }
 
-  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property) {
+  std::string getCredentialProperty(const Arc::Credential& u,const std::string& property) {
     if (property == "dn"){
         return u.GetIdentityName();
     }
@@ -1735,6 +1722,24 @@ err:
     else return "";
   }
 
+  std::string VOMSFQANToFull(const std::string& voname, const std::string& fqan) {
+    std::list<std::string> elements;
+    tokenize(fqan,elements,"/");
+    if(elements.empty()) return fqan; // No idea how to handle
+    std::list<std::string>::iterator element = elements.begin();
+    if(element->find('=') != std::string::npos) return fqan; // Already full
+    // Insert Group= into every group part
+    std::string fqan_ = "/Group="+(*element);
+    for(++element;element!=elements.end();++element) {
+      if(element->find('=') != std::string::npos) break;
+      fqan_ += "/Group="+(*element);
+    }
+    for(;element!=elements.end();++element) {
+      fqan_ += "/"+(*element);
+    }
+    if(!voname.empty()) fqan_ = std::string("/VO=")+voname+fqan_;
+    return fqan_;
+  }
 
 } // namespace Arc
 

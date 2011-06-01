@@ -62,26 +62,26 @@ int AuthUser::match_voms(const char* line) {
   if(n != 0) {
     if(auto_c == "auto") auto_cert=true;
   };
-  logger.msg(Arc::VERBOSE, "VOMS config: vo: %s", vo);
-  logger.msg(Arc::VERBOSE, "VOMS config: group: %s", group);
-  logger.msg(Arc::VERBOSE, "VOMS config: role: %s", role);
-  logger.msg(Arc::VERBOSE, "VOMS config: capabilities: %s", capabilities);
+  logger.msg(Arc::VERBOSE, "Rule: vo: %s", vo);
+  logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
+  logger.msg(Arc::VERBOSE, "Rule: role: %s", role);
+  logger.msg(Arc::VERBOSE, "Rule: capabilities: %s", capabilities);
   // extract info from voms proxy
   // if(voms_data->size() == 0) {
   process_voms();
   if(voms_data.size() == 0) return AAA_NO_MATCH;
   // analyse permissions
   for(std::vector<struct voms>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
-    logger.msg(Arc::DEBUG, "match vo: %s", v->voname);
+    logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);
     if((vo == "*") || (vo == v->voname)) {
-      for(std::vector<struct voms_attrs>::iterator d=v->std.begin();d!=v->std.end();++d) {
-        logger.msg(Arc::VERBOSE, "match group: %s", d->group);
-        logger.msg(Arc::VERBOSE, "match role: %s", d->role);
-        logger.msg(Arc::VERBOSE, "match capabilities: %s", d->cap);
+      for(std::vector<struct voms_attrs>::iterator d=v->attrs.begin();d!=v->attrs.end();++d) {
+        logger.msg(Arc::VERBOSE, "Match group: %s", d->group);
+        logger.msg(Arc::VERBOSE, "Match role: %s", d->role);
+        logger.msg(Arc::VERBOSE, "Match capabilities: %s", d->cap);
         if(((group == "*") || (group == d->group)) &&
            ((role == "*") || (role == d->role)) &&
            ((capabilities == "*") || (capabilities == d->cap))) {
-          logger.msg(Arc::VERBOSE, "VOMS matched");
+          logger.msg(Arc::VERBOSE, "Match: %s %s %s %s",v->voname,d->group,d->role,d->cap);
           default_voms_=v->server.c_str();
           default_vo_=v->voname.c_str();
           default_role_=d->role.c_str();
@@ -92,7 +92,7 @@ int AuthUser::match_voms(const char* line) {
       };
     };
   };
-  logger.msg(Arc::VERBOSE, "VOMS matched nothing");
+  logger.msg(Arc::VERBOSE, "Matched nothing");
   return AAA_NO_MATCH;
 }
 
@@ -114,7 +114,6 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /
   FILE *f = NULL;
   Arc::Credential c(filename, filename, cert_dir, "");
   std::vector<Arc::VOMSACInfo> output;
-  std::vector<std::string> output_merged;
   std::string emptystring = "";
   Arc::VOMSTrustList emptylist;
 
@@ -156,11 +155,8 @@ int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /
     goto error_exit;
   };
   for(size_t n=0;n<output.size();++n) {
-    for(size_t i=0;i<output[n].attributes.size();++i) {
-      output_merged.push_back(output[n].attributes[i]);
-    };
+    data.push_back(AuthUser::arc_to_voms(output[n].voname,output[n].attributes));
   };
-  data = AuthUser::arc_to_voms(output_merged);
   X509_free(cert);
   EVP_PKEY_free(key);
   sk_X509_pop_free(cert_chain, X509_free);

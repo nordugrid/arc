@@ -121,7 +121,6 @@ std::vector<struct voms> AuthUser::arc_to_voms(const std::list<std::string>& att
   for(std::list<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
     struct voms_attrs attrs;
     std::string vo;
-    std::string attr = v->substr(v->find(" ")+1);
     std::list<std::string> elements;
     Arc::tokenize(*v, elements, "/");
     for (std::list<std::string>::iterator i = elements.begin(); i != elements.end(); ++i) {
@@ -144,14 +143,15 @@ std::vector<struct voms> AuthUser::arc_to_voms(const std::list<std::string>& att
           else if (keyvalue[0] == "Role")
             attrs.role = keyvalue[1];
           else if (keyvalue[0] == "Group")
-            attrs.group = keyvalue[1];
+            attrs.group += std::string("/")+keyvalue[1];
           else if (keyvalue[0] == "Capability")
             attrs.cap = keyvalue[1];
         }
       }
     }
-    if (!vo.empty() || !attrs.cap.empty() || !attrs.group.empty() || !attrs.role.empty())
+    if (!vo.empty() || !attrs.cap.empty() || !attrs.group.empty() || !attrs.role.empty()) {
       voms_item.attrs.push_back(attrs);
+    };
   }
   voms_list.push_back(voms_item);
   return voms_list;

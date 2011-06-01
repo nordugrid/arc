@@ -221,6 +221,9 @@ namespace Arc {
   /**Extract the needed field from the certificate
   */
   std::string getCredentialProperty(const Arc::Credential& u, const std::string& property);
+
+  std::string VOMSFQANToFull(const std::string& vo, const std::string& fqan);
+
 }// namespace Arc
 
 #endif /* __ARC_VOMSUTIL_H__ */

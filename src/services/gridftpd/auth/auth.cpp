@@ -221,47 +221,39 @@ void AuthUser::set(const char* s,const char* hostname) {
   subject=s;
 }
 
-std::vector<struct voms> AuthUser::arc_to_voms(const std::vector<std::string>& attributes) {
+struct voms AuthUser::arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes) {
 
-  std::vector<struct voms> voms_list;
   struct voms voms_item;
+  voms_item.voname = vo;
+  // For matching against pure VO
+  voms_item.attrs.push_back(voms_attrs());
   for(std::vector<std::string>::const_iterator v = attributes.begin(); v != attributes.end(); ++v) {
     struct voms_attrs attrs;
-    std::string vo;
-    std::string attr = v->substr(v->find(" ")+1);
     std::list<std::string> elements;
     Arc::tokenize(*v, elements, "/");
     for (std::list<std::string>::iterator i = elements.begin(); i != elements.end(); ++i) {
       std::vector<std::string> keyvalue;
       Arc::tokenize(*i, keyvalue, "=");
-      if (keyvalue.size() == 2) {
+      // /mygroup/mysubgroup/Role=myrole
+      if (keyvalue.size() == 1) { // part of Group
+        attrs.group += "/"+(*i);
+      } else if (keyvalue.size() == 2) {
+        if(i == elements.begin()) break; // not FQAN you are looking for
         if (keyvalue[0] == "voname") { // new VO
-          if (v != attributes.begin() && keyvalue[1] != voms_item.voname) {
-            voms_list.push_back(voms_item);
-            voms_item.std.clear();
-          }
-          voms_item.voname = keyvalue[1];
-        }
-        else if (keyvalue[0] == "hostname")
+        } else if (keyvalue[0] == "hostname") {
           voms_item.server = keyvalue[1];
-        else {
-          // /VO=myvo/Group=mygroup/Role=myrole
-          if (keyvalue[0] == "VO")
-            vo = keyvalue[1];
-          else if (keyvalue[0] == "Role")
-            attrs.role = keyvalue[1];
-          else if (keyvalue[0] == "Group")
-            attrs.group = keyvalue[1];
-          else if (keyvalue[0] == "Capability")
-            attrs.cap = keyvalue[1];
+        } else if (keyvalue[0] == "Role") {
+          attrs.role = keyvalue[1];
+        } else if (keyvalue[0] == "Group") {
+          attrs.group = keyvalue[1];
+        } else if (keyvalue[0] == "Capability") {
+          attrs.cap = keyvalue[1];
         }
       }
     }
-    if (!vo.empty() || !attrs.cap.empty() || !attrs.group.empty() || !attrs.role.empty())
-      voms_item.std.push_back(attrs);
+    if(!attrs.group.empty()) voms_item.attrs.push_back(attrs);
   }
-  voms_list.push_back(voms_item);
-  return voms_list;
+  return voms_item;
 }
 
 AuthUser::~AuthUser(void) {

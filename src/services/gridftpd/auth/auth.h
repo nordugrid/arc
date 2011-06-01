@@ -26,7 +26,7 @@ struct voms_attrs {
 struct voms {
   std::string server;      /*!< The VOMS server DN, as from its certificate */
   std::string voname;      /*!< The name of the VO to which the VOMS belongs */
-  std::vector<voms_attrs> std;   /*!< User's characteristics */
+  std::vector<voms_attrs> attrs;   /*!< User's characteristics */
 };
 
 class AuthUser {
@@ -131,7 +131,7 @@ class AuthUser {
   const std::vector<struct voms>& voms(void);
   const std::list<std::string>& VOs(void);
   // convert ARC list into voms structure
-  static std::vector<struct voms> arc_to_voms(const std::vector<std::string>& attributes);
+  static struct voms arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes);
   /*
    * Get a certain property of the AuthUser, for example DN
    * or VOMS VO. For possible values of property see the source
