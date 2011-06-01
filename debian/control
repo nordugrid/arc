@@ -100,7 +100,7 @@ Description: ARC Hosting Environment Daemon
 Package: nordugrid-arc-chelonia
 Provides: nordugrid-arc-nox-chelonia
 Replaces: nordugrid-arc-nox-chelonia (<< 1.3.0~)
-Conflicts: nordugrid-arc-nox-chelonia (<< 1.3.0~)
+Conflicts: nordugrid-arc-nox-chelonia (<< 1.3.0~), nordugrid-arc-client (<< 1.0.1~)
 Architecture: any
 Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-python (= ${binary:Version}), python-fuse
 Description: ARC Chelonia service

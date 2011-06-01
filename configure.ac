@@ -265,22 +265,25 @@ AC_ARG_ENABLE(swig, AC_HELP_STRING([--disable-swig], [disable all bindings throu
 [enables_swig=$enableval],[])
 if test "$enables_swig" = "yes"; then
   AC_CHECK_PROGS(SWIG, swig)
-  if test "x$SWIG" == "x"; then
+  if test "x$SWIG" = "x"; then
     enables_swig="no"
-  fi
-  swigver=`$SWIG -version 2>&1 | grep Version | sed 's/.* //'`
-  swigver1=`echo $swigver | cut -d. -f1`
-  swigver2=`echo $swigver | cut -d. -f2`
-  swigver3=`echo $swigver | cut -d. -f3`
-  if test $swigver1 -lt 1 || ( test $swigver1 -eq 1 && ( \
-     test $swigver2 -lt 3 || ( test $swigver2 -eq 3 && ( \
-     test $swigver3 -lt 25 ) ) ) ) ; then
-    SWIGTOOOLDFORJAVA="yes"
+  else
+    swigver=`$SWIG -version 2>&1 | grep Version | sed 's/.* //'`
+    swigver1=`echo $swigver | cut -d. -f1`
+    swigver2=`echo $swigver | cut -d. -f2`
+    swigver3=`echo $swigver | cut -d. -f3`
+    if test $swigver1 -lt 1 || ( test $swigver1 -eq 1 && ( \
+       test $swigver2 -lt 3 || ( test $swigver2 -eq 3 && ( \
+       test $swigver3 -lt 25 ) ) ) ) ; then
+      AC_MSG_NOTICE([swig is too old (< 1.3.25)])
+      SWIG=""
+      enables_swig="no"
+    fi
   fi
 else
   SWIG=""
 fi
-AM_CONDITIONAL([SWIG_ENABLED],[test "x$SWIG" != "x"])
+AM_CONDITIONAL([SWIG_ENABLED],[test "x$enables_swig" = "xyes"])
 
 AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
 [enables_hed=$enableval],[])
@@ -355,22 +358,21 @@ if test "$enables_java" = "yes"; then
   fi
 
   JAVAWRAP=no
-  if test -f java/arc_wrap.cpp || \
-     ( test "x$SWIG" != "x" && test "x$SWIGTOOOLDFORJAVA" = "x" ) ; then
+  if test -f java/arc_wrap.cpp || test "x$enables_swig" = "xyes" ; then
     JAVAWRAP=yes
   fi
 
-  if test "x$jni_h" != "xyes"; then
+  if test "x$JAVAC" = "x"; then
+    AC_MSG_NOTICE([Missing Java compiler - skipping Java bindings])
+    enables_java="no"
+  elif test "x$JAR" = "x"; then
+    AC_MSG_NOTICE([Missing Java archiver - skipping Java bindings])
+    enables_java="no"
+  elif test "x$jni_h" != "xyes"; then
     AC_MSG_NOTICE([Missing Java headers - skipping Java bindings])
     enables_java="no"
   elif test "x$JAVAWRAP" != "xyes"; then
     AC_MSG_NOTICE([Missing pre-compiled Java wrapper or SWIG - skipping Java bindings])
-    enables_java="no"
-  elif test "x$JAVAC" == "x"; then
-    AC_MSG_NOTICE([Missing Java compiler - skipping Java bindings])
-    enables_java="no"
-  elif test "x$JAR" == "x"; then
-    AC_MSG_NOTICE([Missing Java archiver - skipping Java bindings])
     enables_java="no"
   else
     AC_MSG_NOTICE([Java available: $JAVAC])
@@ -449,7 +451,7 @@ if test "$enables_python" = "yes"; then
   fi
 
   PYTHONWRAP=no
-  if test -f python/arc_wrap.cpp || test "X$SWIG" != "X" ; then
+  if test -f python/arc_wrap.cpp || test "x$enables_swig" = "xyes" ; then
     PYTHONWRAP=yes
   fi
 
@@ -474,8 +476,8 @@ fi
 AC_MSG_NOTICE([Python enabled: $enables_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
-AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python_service" = "xyes"])
-
+AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python" = "xyes" &&
+                                 test "x$enables_python_service" = "xyes"])
 
 # using pkgconfig
 # check gthread
@@ -1522,7 +1524,7 @@ esac
 AC_SUBST(EXTRA_LIBS)
 AC_SUBST(REGEX_LIBS)
 AC_SUBST(SOCKET_LIBS)
-AM_CONDITIONAL([WIN32], [ test "x$WIN32" == "xyes" ])
+AM_CONDITIONAL([WIN32], [ test "x$WIN32" = "xyes" ])
 
 case " $LDFLAGS " in
      " -Wl,--no-undefined ") ;;

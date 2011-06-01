@@ -49,7 +49,9 @@ BuildRequires:	libuuid-devel
 BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 BuildRequires:	python-devel
+%endif
 BuildRequires:	glibmm24-devel
 BuildRequires:	glib2-devel
 BuildRequires:	libxml2-devel
@@ -94,13 +96,6 @@ BuildRequires:	mktemp
 BuildRequires:	selinux-policy-devel
 %endif
 BuildRequires:	swig
-
-%define pyver %(python -c 'import sys; print sys.version[:3]')
-%if "%{pyver}" < "2.4"
-%define ifpy #
-%else
-%define ifpy %{nil}
-%endif
 
 %description
 ARC
@@ -155,6 +150,7 @@ just one possible service between a user and a remote machine.
 Many others are thinkable, and HED takes considerable effort
 away from the respective implementors.
 
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %package chelonia
 Summary:	ARC chelonia service
 Group:		System Environment/Libraries
@@ -172,6 +168,7 @@ Connector (ARC).
 The NorduGrid storage service Chelonia consists of a set of SOAP based
 services residing within HED. Together, the services provide a self-healing,
 reliable, robust, scalable, resilient and consistent data storage system.
+%endif
 
 %package hopi
 Summary:	ARC hopi service
@@ -450,6 +447,7 @@ Daemon (HED) can be extended for novel services. Considerable parts
 of a regular installation of a regular installation of the NorduGrid
 represent such modules.
 
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %package python
 Summary:	ARC Python wrapper
 Group:		Development/Libraries
@@ -471,6 +469,7 @@ a remote site via an interface compatible with ARC, may find it
 preferable to perform that remote invocation from within Python.
 While today most services in ARC are associated with computation or
 storage, there is no constraint on these applications.
+%endif
 
 %if %{with_java}
 %package java
@@ -818,7 +817,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/arcsync
 %{_bindir}/arctest
 %{_bindir}/arcwsrf
-%{_bindir}/chelonia
 %{_bindir}/isistest
 %{_bindir}/perftest
 %{_bindir}/saml_assertion_init
@@ -846,7 +844,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/arcsync.1*
 %doc %{_mandir}/man1/arctest.1*
 %doc %{_mandir}/man1/arcwsrf.1*
-%doc %{_mandir}/man1/chelonia.1*
 %doc %{_mandir}/man1/isistest.1*
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
@@ -866,11 +863,15 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
 
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %files chelonia
 %defattr(-,root,root,-)
 %{_bindir}/arcfs
+%{_bindir}/chelonia
+%doc %{_mandir}/man1/chelonia.1*
 %{python_sitearch}/storage
 %doc %{_datadir}/%{pkgdir}/examples/storage_service.xml.example
+%endif
 
 %files hopi
 %defattr(-,root,root,-)
@@ -1077,18 +1078,20 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmccgsi.apd
 %{_libdir}/libarcglobusutils.so.*
 
+%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %files python
 %defattr(-,root,root,-)
 %{python_sitearch}/_arc.so
 %{python_sitearch}/arc.py*
 %{python_sitearch}/arcom
 %{python_sitearch}/cache
-%{ifpy}%{python_sitearch}/echo_python
+%{python_sitearch}/echo_python
 %{_libdir}/%{pkgdir}/libaccPythonBroker.so
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
-%{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.so
-%{ifpy}%{_libdir}/%{pkgdir}/libpythonservice.apd
+%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_libdir}/%{pkgdir}/libpythonservice.apd
 %doc %{_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%endif
 
 %if %{with_java}
 %files java
