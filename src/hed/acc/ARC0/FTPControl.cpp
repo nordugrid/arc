@@ -18,9 +18,6 @@ namespace Arc {
   static bool activated_ = false;
 
   class FTPControl::CBArg {
-   private:
-    unsigned int counter_;
-    ~CBArg(void);
    public:
     Arc::SimpleCondition cond;
     std::string response;
@@ -29,31 +26,21 @@ namespace Arc {
     bool ctrl;
     bool close;
     CBArg(void);
-    CBArg* claim(void);
-    bool release(void);
+    ~CBArg(void);
+    std::string Response();
   };
 
-  FTPControl::CBArg::CBArg(void):counter_(1) {
+  FTPControl::CBArg::CBArg(void) {
   }
 
   FTPControl::CBArg::~CBArg(void) {
   }
 
-  FTPControl::CBArg* FTPControl::CBArg::claim(void) {
+  std::string FTPControl::CBArg::Response() {
     cond.lock();
-    ++counter_;
+    std::string res = response;
     cond.unlock();
-    return this;
-  }
-
-  bool FTPControl::CBArg::release(void) {
-    cond.lock();
-    --counter_;
-    bool done = (counter_ <= 0);
-    cond.unlock();
-    // This looks unsafe, but is alright for how it is used
-    if(done) delete this;
-    return done;
+    return res;
   }
 
   static void CloseCallback(void *arg, globus_ftp_control_handle_t*,
@@ -63,7 +50,6 @@ namespace Arc {
     // TODO: handle error - if ever can happen here
     cb->close = true;
     cb->cond.signal();
-    cb->release();
   }
 
   static void ControlCallback(void *arg, globus_ftp_control_handle_t*,
@@ -80,6 +66,7 @@ namespace Arc {
                          response->response_buffer[len - 1] == '\n' ||
                          response->response_buffer[len - 1] == '\0'))
         len--;
+      cb->cond.lock();
       cb->response.assign((const char*)response->response_buffer, len);
       switch (response->response_class) {
       case GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY:
@@ -92,9 +79,15 @@ namespace Arc {
         cb->responseok = false;
         break;
       }
+      cb->cond.unlock();
     }
     cb->ctrl = true;
     cb->cond.signal();
+  }
+
+  static void DataCloseCallback(void *arg, globus_ftp_control_handle_t*,
+                              globus_object_t *error) {
+    ControlCallback(arg, NULL, error, NULL);
   }
 
   static void ConnectCallback(void *arg, globus_ftp_control_handle_t*,
@@ -102,7 +95,6 @@ namespace Arc {
                               globus_ftp_control_response_t *response) {
     FTPControl::CBArg *cb = (FTPControl::CBArg*)arg;
     ControlCallback(arg,NULL,error,response);
-    cb->release();
   }
 
   static void DataConnectCallback(void *arg, globus_ftp_control_handle_t*,
@@ -141,7 +133,7 @@ namespace Arc {
     // Not deactivating Globus - that may be dangerous in some cases.
     // Deactivation also not needeed because this plugin is persistent.
     //globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);
-    cb->release();
+    delete cb;
   }
 
   bool FTPControl::Connect(const URL& url,
@@ -160,13 +152,14 @@ namespace Arc {
     }
 
     cb->ctrl = false;
+    connected = true;
     result = globus_ftp_control_connect(&control_handle,
                                         const_cast<char*>(url.Host().c_str()),
                                         url.Port(), &ConnectCallback,
-                                        cb->claim());
+                                        cb);
     if (!result) {
-      cb->release();
       logger.msg(VERBOSE, "Connect: Failed to connect: %s", result.str());
+      connected = false;
       return false;
     }
     while (!cb->ctrl) {
@@ -174,14 +167,15 @@ namespace Arc {
       if (!timedin) {
         logger.msg(VERBOSE, "Connect: Connecting timed out after %d ms",
                    timeout * 1000);
+        Disconnect(timeout);
         return false;
       }
     }
     if (!cb->responseok) {
-      logger.msg(VERBOSE, "Connect: Failed to connect: %s", cb->response);
+      logger.msg(VERBOSE, "Connect: Failed to connect: %s", cb->Response());
+      Disconnect(timeout);
       return false;
     }
-    connected = true;
 
     GSSCredential handle(proxyPath, certificatePath, keyPath);
 
@@ -193,6 +187,7 @@ namespace Arc {
     if (!result) {
       logger.msg(VERBOSE, "Connect: Failed to init auth info handle: %s",
                  result.str());
+      Disconnect(timeout);
       return false;
     }
 
@@ -202,6 +197,7 @@ namespace Arc {
                                              &ControlCallback, cb);
     if (!result) {
       logger.msg(VERBOSE, "Connect: Failed authentication: %s", result.str());
+      Disconnect(timeout);
       return false;
     }
     while (!cb->ctrl) {
@@ -209,11 +205,13 @@ namespace Arc {
       if (!timedin) {
         logger.msg(VERBOSE, "Connect: Authentication timed out after %d ms",
                    timeout * 1000);
+        Disconnect(timeout);
         return false;
       }
     }
     if (!cb->responseok) {
-      logger.msg(VERBOSE, "Connect: Failed authentication: %s", cb->response);
+      logger.msg(VERBOSE, "Connect: Failed authentication: %s", cb->Response());
+      Disconnect(timeout);
       return false;
     }
 
@@ -241,7 +239,7 @@ namespace Arc {
       }
     }
     if (!cb->responseok) {
-      logger.msg(VERBOSE, "SendCommand: Failed: %s", cb->response);
+      logger.msg(VERBOSE, "SendCommand: Failed: %s", cb->Response());
       return false;
     }
 
@@ -270,11 +268,11 @@ namespace Arc {
       }
     }
     if (!cb->responseok) {
-      logger.msg(VERBOSE, "SendCommand: Failed: %s", cb->response);
+      logger.msg(VERBOSE, "SendCommand: Failed: %s", cb->Response());
       return false;
     }
 
-    response = cb->response;
+    response = cb->Response();
 
     return true;
 
@@ -383,7 +381,7 @@ namespace Arc {
     }
     if (!cb->responseok) {
       logger.msg(VERBOSE, "SendData: Data connect write failed: %s",
-                 cb->response);
+                 cb->Response());
       return false;
     }
 
@@ -414,7 +412,7 @@ namespace Arc {
       }
     }
     if (!cb->responseok) {
-      logger.msg(VERBOSE, "SendData: Data write failed: %s", cb->response);
+      logger.msg(VERBOSE, "SendData: Data write failed: %s", cb->Response());
       return false;
     }
 
@@ -424,56 +422,72 @@ namespace Arc {
 
   bool FTPControl::Disconnect(int timeout) {
 
-    bool timedin;
     GlobusResult result;
-    bool res = true;
 
-    if(!connected) return res;
+    if(!connected) return true;
+    connected = false;
+
+    // Do all posible to stop communication
+
+    cb->ctrl = false;
+    result = globus_ftp_control_abort(&control_handle, &ControlCallback, cb);
+    if (!result) {
+      // Maybe connection is already lost
+      logger.msg(VERBOSE, "Disconnect: Failed aborting - ignoring: %s", result.str());
+    } else while (!cb->ctrl) {
+      if(!cb->cond.wait(timeout * 1000)) {
+        logger.msg(VERBOSE, "Disconnect: Abort timed out after %d ms", timeout * 1000);
+      }
+    }
+
+    cb->ctrl = false;
+    result = globus_ftp_control_data_force_close(&control_handle, &DataCloseCallback, cb);
+    if (!result) {
+      // Maybe connection is already lost
+      logger.msg(VERBOSE, "Disconnect: Failed aborting - ignoring: %s", result.str());
+    } else while (!cb->ctrl) {
+      if(!cb->cond.wait(timeout * 1000)) {
+        logger.msg(VERBOSE, "Disconnect: Data close timed out after %d ms", timeout * 1000);
+      }
+    }
 
     cb->ctrl = false;
     result = globus_ftp_control_quit(&control_handle, &ControlCallback, cb);
     if (!result) {
-      logger.msg(VERBOSE, "Disconnect: Failed quitting: %s", result.str());
-      return false;
-    }
-    while (!cb->ctrl) {
-      timedin = cb->cond.wait(timeout * 1000);
-      if (!timedin) {
-        logger.msg(VERBOSE, "Disconnect: Quitting timed out after %d ms",
-                   timeout * 1000);
-        res = false;
+      // Maybe connection is already lost
+      logger.msg(VERBOSE, "Disconnect: Failed quitting - ignoring: %s", result.str());
+    } else while (!cb->ctrl) {
+      if(!cb->cond.wait(timeout * 1000)) {
+        logger.msg(VERBOSE, "Disconnect: Quitting timed out after %d ms", timeout * 1000);
       }
     }
 
-    connected = false;
     cb->close = false;
-    result = globus_ftp_control_force_close(&control_handle, &CloseCallback,
-                                     cb->claim());
+    result = globus_ftp_control_force_close(&control_handle, &CloseCallback, cb);
     if (!result) {
-      cb->release();
       // Assuming only reason for failure here is that connection is 
       // already closed
       logger.msg(DEBUG, "Disconnect: Failed closing - ignoring: %s",
                  result.str());
-    } else {
+    } else while (!cb->close) {
       // Need to wait for callback to make sure handle destruction will work
       // Hopefully forced close should never take long time
-      while (!cb->close) {
-        timedin = cb->cond.wait(timeout * 1000);
-        if (!timedin) {
-          logger.msg(ERROR, "Disconnect: Closing timed out after %d ms",
-                     timeout * 1000);
-          res = false;
-        }
+      if(!cb->cond.wait(timeout * 1000)) {
+        logger.msg(ERROR, "Disconnect: Closing timed out after %d ms", timeout * 1000);
       }
     }
 
-    result = globus_ftp_control_handle_destroy(&control_handle);
-    if (!result) {
-      // That means memory leak
-      logger.msg(VERBOSE, "Disconnect: Failed to destroy handle: %s",
-                 result.str());
-      return false;
+    bool first_time = true;
+    while(!(result = globus_ftp_control_handle_destroy(&control_handle))) {
+      if(first_time) {
+        logger.msg(VERBOSE, "Disconnect: Failed to destroy handle: %s. Will retry.",
+                   result.str());
+        first_time = false;
+      }
+      cb->cond.wait(1000);
+    }
+    if(!first_time) {
+      logger.msg(VERBOSE, "Disconnect: handle destroyed.");
     }
 
     return true;

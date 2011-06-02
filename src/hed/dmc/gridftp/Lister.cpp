@@ -148,7 +148,7 @@ namespace Arc {
       if (it->resp_n < LISTER_MAX_RESPONSES) {
         memmove((it->resp) + 1, it->resp,
                 sizeof(globus_ftp_control_response_t) * (it->resp_n));
-        if (response->response_buffer) {
+        if (response && response->response_buffer) {
           globus_ftp_control_response_copy(response, it->resp);
         } else {    // invalid reply causes *_copy to segfault
           it->resp->response_buffer = (globus_byte_t*)strdup("000 ");
@@ -160,13 +160,18 @@ namespace Arc {
         (it->resp_n)++;
       }
       it->callback_status = CALLBACK_DONE;
-      if(response->response_buffer) {
+      if(response && response->response_buffer) {
         dos_to_unix((char*)(response->response_buffer));
         logger.msg(VERBOSE, "Response: %s", response->response_buffer);
       }
     }
     globus_cond_signal(&(it->cond));
     globus_mutex_unlock(&(it->mutex));
+  }
+
+  void Lister::simple_callback(void *arg, globus_ftp_control_handle_t*,
+                             globus_object_t *error) {
+    resp_callback(arg, NULL, error, NULL);
   }
 
   void Lister::list_read_callback(void *arg,
@@ -462,30 +467,32 @@ namespace Arc {
   }
 
   int Lister::close_connection() {
-    if (!connected)
-      return 0;
-    logger.msg(VERBOSE, "Closing connection");
-    if (globus_ftp_control_quit(handle, resp_callback, this) !=
-        GLOBUS_SUCCESS)
-      if (globus_ftp_control_force_close(handle, resp_callback, this) !=
-          GLOBUS_SUCCESS) {
-        logger.msg(INFO, "Failed to close connection 1");
-        return -1;
-      }
-    if (wait_for_callback() != CALLBACK_DONE) {
-      if (globus_ftp_control_force_close(handle, resp_callback, this) !=
-          GLOBUS_SUCCESS) {
-        logger.msg(INFO, "Failed to close connection 2");
-        return -1;
-      }
-      if (wait_for_callback() != CALLBACK_DONE) {
-        logger.msg(INFO, "Failed to close connection 3");
-        return -1;
-      }
-    }
+    if (!connected) return 0;
     connected = false;
-    logger.msg(VERBOSE, "Closed successfully");
-    return 0;
+    int res = 0;
+    logger.msg(VERBOSE, "Closing connection");
+    if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    } else if (wait_for_callback() != CALLBACK_DONE) {
+      res = -1;
+    }
+    if (globus_ftp_control_data_force_close(handle, simple_callback, this) != GLOBUS_SUCCESS) {
+    } else if (wait_for_callback() != CALLBACK_DONE) {
+      res = -1;
+    }
+    if (globus_ftp_control_quit(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    } else if (wait_for_callback() != CALLBACK_DONE) {
+      res = -1;
+    }
+    if (globus_ftp_control_force_close(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    } else if (wait_for_callback() != CALLBACK_DONE) {
+      res = -1;
+    }
+    if(res == 0) {
+      logger.msg(VERBOSE, "Closed successfully");
+    } else {
+      logger.msg(VERBOSE, "Closing may have failed");
+    }
+    return res;
   }
 
   Lister::~Lister() {

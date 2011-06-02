@@ -54,6 +54,8 @@ namespace Arc {
     static void resp_callback(void *arg, globus_ftp_control_handle_t *h,
                               globus_object_t *error,
                               globus_ftp_control_response_t *response);
+    static void simple_callback(void *arg, globus_ftp_control_handle_t *h,
+                                globus_object_t *error);
     static void list_read_callback(void *arg,
                                    globus_ftp_control_handle_t *hctrl,
                                    globus_object_t *error,
