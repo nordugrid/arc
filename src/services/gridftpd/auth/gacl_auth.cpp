@@ -22,7 +22,7 @@ GACLuser* AuthUserGACL(AuthUser& auth) {
     cred=NULL;
   };
   for(std::vector<struct voms>::const_iterator v = auth.voms().begin();v!=auth.voms().end();++v) {
-    for(std::vector<struct voms_attrs>::const_iterator u = v->std.begin();u!=v->std.end();++u) {
+    for(std::vector<struct voms_attrs>::const_iterator u = v->attrs.begin();u!=v->attrs.end();++u) {
       if((cred=GACLnewCred((char*)"voms")) == NULL) goto err_exit;
       std::string fqan;
       if(!v->voname.empty()) fqan += '/' + v->voname;
