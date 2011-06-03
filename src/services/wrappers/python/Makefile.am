@@ -11,4 +11,4 @@ libpythonservice_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(PYTHON_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(PYTHON_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DLOPEN_LIBS)
