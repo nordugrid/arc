@@ -78,8 +78,8 @@ int fill_user_spec(userspec_t *spec,globus_ftp_control_auth_info_t *auth,globus_
 bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle) {
   struct passwd pw_;
   struct group gr_;
-  struct passwd *pw;
-  struct group *gr;
+  struct passwd* pw=NULL;
+  struct group* gr=NULL;
   char bufp[BUFSIZ];
   char bufg[BUFSIZ];
   if(auth == NULL) return false;
