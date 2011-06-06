@@ -51,6 +51,8 @@ static std::string read_response(PayloadStreamInterface& stream,bool nullterm = 
     char buf[256];
     int len = sizeof(buf);
     if(!stream.Get(buf,len)) break;
+    //std::cout<<"Response: "<<buf<<std::endl;
+
     if(nullterm) {
       char* p = (char*)memchr(buf,0,len);
       if(p) {
@@ -71,9 +73,15 @@ static std::map<std::string,std::string> parse_response(const std::string& str) 
   for(std::list<std::string>::iterator line = lines.begin();
                           line != lines.end();++line) {
     std::list<std::string> tokens;
-    tokenize(*line,tokens,"=");
+
+    //trick to deal with the token in response like:
+    //CRED_OWNER=/O=Grid/OU=ARC/OU=localdomain/CN=User
+    std::string::size_type pos = (*line).find_first_of("=");
+    if(pos!=std::string::npos)(*line).replace(pos,1,"+");
+
+    tokenize(*line,tokens,"+");
     if(tokens.size() != 2) continue;
-    vals[*tokens.begin()] += *(++tokens.begin());
+    vals[*tokens.begin()] += vals[*tokens.begin()].empty()? (*(++tokens.begin())) : ("; " + *(++tokens.begin()));
   }
   return vals;
 }
@@ -82,12 +90,11 @@ static std::map<std::string,std::string> parse_response(PayloadStreamInterface& 
   return parse_response(read_response(stream));
 }
 
-bool CredentialStore::Store(const std::map<std::string,std::string>& options,const std::string& cred) {
-  if(!valid) return false;
-
+bool compose_msg(std::string& msg, const std::map<std::string,std::string>& options, bool dummy_pass = false) {
   std::string credname;
   std::string username;
   std::string password;
+  std::string newpassword;
   std::string trusted_retriever;
   int lifetime = 0;
   std::map<std::string,std::string>::const_iterator val;
@@ -97,20 +104,34 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   if(val != options.end()) username = val->second;
   val = options.find("password");
   if(val != options.end()) password = val->second;
+  val = options.find("newpassword");
+  if(val != options.end()) newpassword = val->second;
   val = options.find("lifetime");
   if(val != options.end()) lifetime = stringto<int>(val->second);
   val = options.find("retriever_trusted");
   if(val != options.end()) trusted_retriever = val->second;
 
-  std::string msg("VERSION=MYPROXYv2\nCOMMAND=1\n");
   if(username.empty()) return false;
+  //USERNAME must be provided; PASSPHRASE could be empty 
+  //if RETRIEVER_TRUSTED is provided.
   msg.append("USERNAME="+username+"\n");
-  //if(!password.empty()) {
+
+  if(!dummy_pass)
     msg.append("PASSPHRASE="+password+"\n");
-  //}
+  else
+    msg.append("PASSPHRASE=DUMMY-PASSPHRASE\n");
+
+  if(!newpassword.empty()) {
+    msg.append("NEW_PHRASE="+newpassword+"\n");
+  }
+
   if(lifetime > 0) {
     msg.append("LIFETIME="+tostring(lifetime)+"\n");
   }
+  else {
+    msg.append("LIFETIME=0").append("\n");
+  }
+  //The other attributes are optional.
   if(!credname.empty()) {
     msg.append("CRED_NAME="+credname+"\n");
   }
@@ -118,6 +139,21 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
     msg.append("RETRIEVER_TRUSTED="+trusted_retriever+"\n");
   }
   msg.append("\0");
+
+  return true;
+}
+
+bool CredentialStore::Store(const std::map<std::string,std::string>& options,const std::string& cred,bool if_delegate) {
+  if(!valid) return false;
+  if(if_delegate) {
+    std::string msg("VERSION=MYPROXYv2\nCOMMAND=1\n");
+  }
+  else {
+    std::string msg("VERSION=MYPROXYv2\nCOMMAND=5\n");
+    //TODO
+  }
+  if(!compose_msg(msg, options)) return false;
+
   PayloadStreamInterface *response = NULL;
   std::map<std::string,std::string> rvals;
   ClientTCP client(concfg,host,port,GSISec,timeout);
@@ -141,6 +177,11 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   }
   std::string credrequest = read_response(*response,false);
   delete response; response=NULL;
+  
+  int lifetime = 43200; 
+  std::map<std::string,std::string>::const_iterator life_val;
+  life_val = options.find("lifetime");
+  if(life_val != options.end()) lifetime = stringto<int>(life_val->second);
   Arc::Credential proxy(Time(),Period(lifetime),1024,"rfc","inheritAll","",-1);
   // DER binary request
   if(!proxy.InquireRequest(credrequest, false, true)) return false;
@@ -191,36 +232,11 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   return true;
 }
 
-bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,std::string& cred) {
+bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,std::string& cred,bool if_delegate) {
   if(!valid) return false;
-
-  std::string credname;
-  std::string username;
-  std::string password;
-  int lifetime = 0;
-  std::map<std::string,std::string>::const_iterator val;
-  val = options.find("credname");
-  if(val != options.end()) credname = val->second;
-  val = options.find("username");
-  if(val != options.end()) username = val->second;
-  val = options.find("password");
-  if(val != options.end()) password = val->second;
-  val = options.find("lifetime");
-  if(val != options.end()) lifetime = stringto<int>(val->second);
-
   std::string msg("VERSION=MYPROXYv2\nCOMMAND=0\n");
-  if(username.empty()) return false;
-  msg.append("USERNAME="+username+"\n");
-  if(!password.empty()) {
-    msg.append("PASSPHRASE="+password+"\n");
-  }
-  if(lifetime > 0) {
-    msg.append("LIFETIME="+tostring(lifetime)+"\n");
-  }
-  if(!credname.empty()) {
-    msg.append("CRED_NAME="+credname+"\n");
-  }
-  msg.append("\0");
+  if(!compose_msg(msg, options)) return false;
+
   PayloadStreamInterface *response = NULL;
   ClientTCP client(concfg,host,port,GSISec,timeout);
   {
@@ -242,7 +258,7 @@ bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,
     return false;
   }
   std::string credrequest;
-  Arc::Credential requester(Time(),Period(lifetime),1024,"rfc","inheritAll","",-1);
+  Arc::Credential requester(Time(), 0 ,1024);
   requester.GenerateRequest(credrequest,true);
   {
     PayloadRaw request;
@@ -275,6 +291,106 @@ bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,
   credtmp.clear();
   proxy.OutputCertificateChain(credtmp);
   cred.append(credtmp);
+  return true;
+}
+
+bool CredentialStore::Info(const std::map<std::string,std::string>& options,std::string& respinfo){
+  if(!valid) return false;
+  std::string msg("VERSION=MYPROXYv2\nCOMMAND=2\n");
+  if(!compose_msg(msg, options,true)) return false;
+
+  PayloadStreamInterface *response = NULL;
+  std::map<std::string,std::string> rvals;
+  ClientTCP client(concfg,host,port,GSISec,timeout);
+  {
+    PayloadRaw request;
+    request.Insert(msg.c_str(),0,msg.length());
+    MCC_Status status = client.process(&request,&response,true);
+    if(!status) {
+      if(response) delete response;
+      return false;
+    };
+    if(!response) {
+      return false;
+    };
+  };
+  rvals = parse_response(*response);
+  delete response; response=NULL;
+  if(rvals["RESPONSE"] != "0") {
+    logger.msg(ERROR, "MyProxy failure: %s",rvals["ERROR"]);
+    return false;
+  }
+  std::string owner = rvals["CRED_OWNER"];
+  respinfo.append("owner: ").append(rvals["CRED_OWNER"]).append("\n");
+
+  std::string et_str = rvals["CRED_END_TIME"];
+  long end = stringto<long>(et_str);
+  Time endtime(end);
+  Time now;
+  Period left(endtime-now);
+  std::string left_str = left;
+  respinfo.append("time left: ").append(left_str).append("\n");
+  std::cout<<respinfo;
+  return true;
+}
+
+bool CredentialStore::ChangePassword(const std::map<std::string,std::string>& options) {
+  if(!valid) return false;
+  std::string msg("VERSION=MYPROXYv2\nCOMMAND=4\n");
+  if(!compose_msg(msg, options)) return false;
+
+  PayloadStreamInterface *response = NULL;
+  std::map<std::string,std::string> rvals;
+  ClientTCP client(concfg,host,port,GSISec,timeout);
+  {
+    PayloadRaw request;
+    request.Insert(msg.c_str(),0,msg.length());
+    MCC_Status status = client.process(&request,&response,true);
+    if(!status) {
+      if(response) delete response;
+      return false;
+    };
+    if(!response) {
+      return false;
+    };
+  };
+  rvals = parse_response(*response);
+  delete response; response=NULL;
+  if(rvals["RESPONSE"] != "0") {
+    logger.msg(ERROR, "MyProxy failure: %s",rvals["ERROR"]);
+    return false;
+  }
+
+  return true;
+}
+
+bool CredentialStore::Destroy(const std::map<std::string,std::string>& options) {
+  if(!valid) return false;
+  std::string msg("VERSION=MYPROXYv2\nCOMMAND=3\n");
+  if(!compose_msg(msg, options)) return false;
+
+  PayloadStreamInterface *response = NULL;
+  std::map<std::string,std::string> rvals;
+  ClientTCP client(concfg,host,port,GSISec,timeout);
+  {
+    PayloadRaw request;
+    request.Insert(msg.c_str(),0,msg.length());
+    MCC_Status status = client.process(&request,&response,true);
+    if(!status) {
+      if(response) delete response;
+      return false;
+    };
+    if(!response) {
+      return false;
+    };
+  };
+  rvals = parse_response(*response);
+  delete response; response=NULL;
+  if(rvals["RESPONSE"] != "0") {
+    logger.msg(ERROR, "MyProxy failure: %s",rvals["ERROR"]);
+    return false;
+  }
+
   return true;
 }
 

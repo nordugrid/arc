@@ -28,14 +28,19 @@ namespace Arc {
     ~CredentialStore(void);
     operator bool(void) { return valid; };
     bool operator!(void) { return !valid; };
-    // Store delegated credentials to credential store.
+    // Store delegated credentials (or an end-entity credential) to credential store.
     // The options contains key=value pairs affecting how credentials are
     // stored. For MyProxy following options are supported -
     //  username, password, credname, lifetime.
-    // If cred is not empty it should contains credentials to delegate.
+    // If cred is not empty it should contains credentials to delegate/store.
     // Otherwise credentials of user configuration are used.
-    bool Store(const std::map<std::string,std::string>& options,const std::string& cred = "");
-    bool Retrieve(const std::map<std::string,std::string>& options,std::string& cred);
+    bool Store(const std::map<std::string,std::string>& options,
+               const std::string& cred = "", bool if_delegate = true);
+    bool Retrieve(const std::map<std::string,std::string>& options,
+                  std::string& cred, bool if_delegate = true);
+    bool Info(const std::map<std::string,std::string>& options,std::string& respinfo);
+    bool Destroy(const std::map<std::string,std::string>& options);
+    bool ChangePassword(const std::map<std::string,std::string>& options);
 };
 
 }

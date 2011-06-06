@@ -500,7 +500,7 @@ int main(int argc, char *argv[]) {
   }
 
   if ((cert_path.empty() || key_path.empty()) && 
-      ((myproxy_command != "GET") && (myproxy_command != "get") && (myproxy_command != "Get"))) {
+      ((myproxy_command == "PUT") || (myproxy_command == "put") || (myproxy_command == "Put"))) {
     if (cert_path.empty())
       logger.msg(Arc::ERROR, "Cannot find the user certificate path, "
                  "please setup environment X509_USER_CERT, "
@@ -566,6 +566,158 @@ int main(int argc, char *argv[]) {
   std::string voms_period = Arc::tostring(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
 
   Arc::OpenSSLInit();
+
+  //If the "INFO" myproxy command is given, try to get the 
+  //information about the existence of stored credentials 
+  //on the myproxy server.
+  try {
+    if (myproxy_command == "info" || myproxy_command == "INFO" || myproxy_command == "Info") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        std::string cert_dn = proxy_cred.GetIdentityName();
+        user_name = cert_dn;
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string respinfo;
+
+      //if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
+      //if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }      
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      if(!cstore.Info(myproxyopt,respinfo))
+        throw std::invalid_argument("Failed to get info from MyProxy service");
+
+      std::cout << Arc::IString("Succeeded to get info from MyProxy server") << std::endl;
+      std::cout << respinfo << std::endl;
+      return EXIT_SUCCESS;
+    }
+
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return EXIT_FAILURE;
+  }
+
+  //If the "NEWPASS" myproxy command is given, try to get the 
+  //information about the existence of stored credentials 
+  //on the myproxy server.
+  try {
+    if (myproxy_command == "newpass" || myproxy_command == "NEWPASS" || myproxy_command == "Newpass" || myproxy_command == "NewPass") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        std::string cert_dn = proxy_cred.GetIdentityName();
+        user_name = cert_dn;
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      char password[256];
+      std::string passphrase;
+      int res = input_password(password, 256, false, prompt1, "", logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
+      passphrase = password;
+     
+      std::string prompt2 = "MyProxy server";
+      char newpassword[256];
+      std::string newpassphrase;
+      res = input_password(newpassword, 256, true, prompt1, prompt2, logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
+      newpassphrase = newpassword;
+     
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      myproxyopt["newpassword"] = newpassphrase;
+      if(!cstore.ChangePassword(myproxyopt))
+        throw std::invalid_argument("Failed to change password MyProxy service");
+
+      std::cout << Arc::IString("Succeeded to change password on MyProxy server") << std::endl;
+
+      return EXIT_SUCCESS;
+    }
+
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return EXIT_FAILURE;
+  }
+
+  //If the "DESTROY" myproxy command is given, try to get the 
+  //information about the existence of stored credentials 
+  //on the myproxy server.
+  try {
+    if (myproxy_command == "destroy" || myproxy_command == "DESTROY" || myproxy_command == "Destroy") {
+      if (myproxy_server.empty())
+        throw std::invalid_argument("URL of MyProxy server is missing");
+
+      if(user_name.empty()) {
+        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        std::string cert_dn = proxy_cred.GetIdentityName();
+        user_name = cert_dn;
+      }
+      if (user_name.empty())
+        throw std::invalid_argument("Username to MyProxy server is missing");
+
+      std::string prompt1 = "MyProxy server";
+      char password[256];
+      std::string passphrase;
+      int res = input_password(password, 256, false, prompt1, "", logger);
+      if (!res)
+        throw std::invalid_argument("Error entering passphrase");
+      passphrase = password;
+
+      std::string respinfo;
+
+      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
+      else {
+        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
+        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
+      }
+      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+
+      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      std::map<std::string,std::string> myproxyopt;
+      myproxyopt["username"] = user_name;
+      myproxyopt["password"] = passphrase;
+      if(!cstore.Destroy(myproxyopt))
+        throw std::invalid_argument("Failed to destroy credential on MyProxy service");
+
+      std::cout << Arc::IString("Succeeded to destroy credential on MyProxy server") << std::endl;
+
+      return EXIT_SUCCESS;
+    }
+  } catch (std::exception& err) {
+    logger.msg(Arc::ERROR, err.what());
+    tls_process_error(logger);
+    return EXIT_FAILURE;
+  }
 
   //If the "GET" myproxy command is given, try to get a delegated
   //certificate from the myproxy server.
