@@ -53,8 +53,8 @@ namespace DataStaging {
     return (comm_handler = new DataDeliveryCommHandler);
   }
 
-  DataDeliveryComm::DataDeliveryComm(const DTR& dtr, const TransferParameters& transfer_params)
-    : child_(NULL),handler_(NULL),dtr_id(dtr.get_short_id()) {
+  DataDeliveryComm::DataDeliveryComm(const DTR& dtr, const TransferParameters& params)
+    : child_(NULL),handler_(NULL),dtr_id(dtr.get_short_id()),transfer_params(params),last_comm(Arc::Time()) {
     logger_ = dtr.get_logger();
     if(!dtr.get_source()) return;
     if(!dtr.get_destination()) return;
@@ -216,12 +216,21 @@ namespace DataStaging {
         }
         if(l == 0) break;
         status_pos_+=l;
+        last_comm = Arc::Time();
       }
       if(status_pos_ >= sizeof(status_buf_)) {
         status_buf_.error_desc[sizeof(status_buf_.error_desc)-1] = 0;
         status_=status_buf_;
         status_pos_-=sizeof(status_buf_);
       }
+    }
+    // check for stuck child process (no report through comm channel)
+    Arc::Period t = Arc::Time() - last_comm;
+    if (t >= transfer_params.max_inactivity_time) {
+      logger_->msg(Arc::ERROR, "Transfer killed after %i seconds without communication", t.GetPeriod());
+      child_->Kill(1);
+      delete child_;
+      child_ = NULL;
     }
   }
 

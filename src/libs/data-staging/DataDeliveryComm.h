@@ -54,13 +54,15 @@ class DataDeliveryComm {
   std::string errstr_;
   DataDeliveryCommHandler* handler_;
   std::string dtr_id;
+  TransferParameters transfer_params;
+  Arc::Time last_comm;
   Arc::Logger* logger_;
   void PullStatus(void);
 
  public:
   // Starts external executable with proper parameters
   // derived from DTR and supplied transfer limits
-  DataDeliveryComm(const DTR& dtr, const TransferParameters& transfer_params);
+  DataDeliveryComm(const DTR& dtr, const TransferParameters& params);
   // Destroy object also stoping managed executable
   ~DataDeliveryComm(void);
   // Obtain status of transfer
