@@ -25,7 +25,7 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-f\fR, \fB--force\fR"
 don't ask for verification
 .IP "\fB-T\fR, \fB--truncate\fR"
-merge the found jobs with the jobs already in the joblist
+truncate the joblist before synchronizing
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
