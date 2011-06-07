@@ -927,7 +927,7 @@ namespace Arc {
       paral.fixed.size = 1;
     }
     globus_ftp_client_operationattr_set_parallelism(&ftp_opattr, &paral);
-    globus_ftp_client_operationattr_set_striped(&ftp_opattr, GLOBUS_TRUE);
+    globus_ftp_client_operationattr_set_striped(&ftp_opattr, GLOBUS_FALSE);
     /*   globus_ftp_client_operationattr_set_layout         */
     /*   globus_ftp_client_operationattr_set_tcp_buffer     */
     globus_ftp_client_operationattr_set_type(&ftp_opattr,
