@@ -294,6 +294,8 @@ namespace Arc {
       logger.msg(INFO, "Failure: %s", tmp);
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
+      // if data failed no reason to wait for control
+      it->callback_status = CALLBACK_ERROR;
       globus_cond_signal(&(it->cond));
       globus_mutex_unlock(&(it->mutex));
       return;
@@ -308,6 +310,8 @@ namespace Arc {
       logger.msg(INFO, "Failed reading data");
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
+      // if data failed no reason to wait for control
+      it->callback_status = CALLBACK_ERROR;
       globus_cond_signal(&(it->cond));
       globus_mutex_unlock(&(it->mutex));
       return;
@@ -316,13 +320,13 @@ namespace Arc {
 
   globus_ftp_control_response_class_t Lister::send_command(const char *command, const char *arg, bool wait_for_response, char **sresp, int* code, char delim) {
     char *cmd = NULL;
-    if (sresp)
-      (*sresp) = NULL;
+    if (sresp) (*sresp) = NULL;
     if (code) *code = 0;
     if (command) { /* if no command - waiting for second reply */
       globus_mutex_lock(&mutex);
-      for (int i = 0; i < resp_n; i++)
+      for (int i = 0; i < resp_n; i++) {
         globus_ftp_control_response_destroy(resp + i);
+      }
       resp_n = 0;
       callback_status = CALLBACK_NOTREADY;
       globus_mutex_unlock(&mutex);
@@ -345,8 +349,7 @@ namespace Arc {
       if (globus_ftp_control_send_command(handle, cmd, resp_callback, this)
           != GLOBUS_SUCCESS) {
         logger.msg(VERBOSE, "%s failed", command);
-        if (cmd)
-          free(cmd);
+        if (cmd) free(cmd);
         return GLOBUS_FTP_UNKNOWN_REPLY;
       }
       logger.msg(DEBUG, "Command is being sent");
@@ -471,11 +474,11 @@ namespace Arc {
     connected = false;
     int res = 0;
     logger.msg(VERBOSE, "Closing connection");
-    if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    if (globus_ftp_control_data_force_close(handle, simple_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
       res = -1;
     }
-    if (globus_ftp_control_data_force_close(handle, simple_callback, this) != GLOBUS_SUCCESS) {
+    if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
       res = -1;
     }
@@ -500,18 +503,44 @@ namespace Arc {
     close_connection();
     if (inited) {
       inited = false;
-      // Waiting for stalled callbacks
-      while (handle && (!(res=globus_ftp_control_handle_destroy(handle)))) {
-        logger.msg(DEBUG, "Failed destroying handle: %s",res.str());
-        globus_abstime_t timeout;
-        GlobusTimeAbstimeSet(timeout,0,100000);
-        logger.msg(VERBOSE, "Looping for (globus_ftp_control_handle_t) to finish all operations");
-        globus_mutex_lock(&mutex);
-        globus_cond_timedwait(&cond, &mutex, &timeout);
-        globus_mutex_unlock(&mutex);
-      }
-      free(handle);
-      handle = NULL;
+      if(handle) {
+        // Waiting for stalled callbacks
+        // If globus_ftp_control_handle_destroy is called with dc_handle
+        // state not GLOBUS_FTP_DATA_STATE_NONE then handle is messed
+        // and next call causes assertion. So here we are waiting for
+        // proper state.
+        bool first_time = true;
+        globus_mutex_lock(&(handle->cc_handle.mutex));
+        while ((handle->dc_handle.state != GLOBUS_FTP_DATA_STATE_NONE) ||
+               (handle->cc_handle.cc_state != GLOBUS_FTP_CONTROL_UNCONNECTED)) {
+//          if((handle->cc_handle.cc_state == GLOBUS_FTP_CONTROL_UNCONNECTED) &&
+//             (handle->dc_handle.state == GLOBUS_FTP_DATA_STATE_CLOSING)) {
+//            handle->dc_handle.state = GLOBUS_FTP_DATA_STATE_NONE;
+//            break;
+//          };
+          globus_mutex_unlock(&(handle->cc_handle.mutex));
+          if(first_time) {
+            logger.msg(VERBOSE, "Disconnect: waiting for globus handle to settle");
+            first_time = false;
+          }
+          globus_abstime_t timeout;
+          GlobusTimeAbstimeSet(timeout,0,100000);
+          logger.msg(DEBUG, "Handle is not in proper state %u/%u",handle->cc_handle.cc_state,handle->dc_handle.state);
+          globus_mutex_lock(&mutex);
+          globus_cond_timedwait(&cond, &mutex, &timeout);
+          globus_mutex_unlock(&mutex);
+          globus_mutex_lock(&(handle->cc_handle.mutex));
+        }
+        globus_mutex_unlock(&(handle->cc_handle.mutex));
+        if(!(res=globus_ftp_control_handle_destroy(handle))) {
+          // This situation can't be fixed because call to globus_ftp_control_handle_destroy
+          // makes handle unusable even if it fails.
+          logger.msg(DEBUG, "Failed destroying handle: %s. Can't handle such situation.",res.str());
+        } else {
+          free(handle);
+        };
+        handle = NULL;
+      };
       globus_mutex_destroy(&mutex);
       globus_cond_destroy(&cond);
     }
@@ -866,25 +895,23 @@ namespace Arc {
     for (;;) {
       /* waiting for response received */
       cmd_resp = send_command(NULL, NULL, true, &sresp);
-      if (cmd_resp == GLOBUS_FTP_POSITIVE_COMPLETION_REPLY)
-        break;
+      if (cmd_resp == GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) break;
       if ((cmd_resp != GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY) &&
           (cmd_resp != GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY)) {
         if (sresp) {
           logger.msg(INFO, "Data transfer aborted: %s", sresp);
           free(sresp);
         }
-        else
+        else {
           logger.msg(INFO, "Data transfer aborted");
+        }
         // Destroy data connections here ?????????
         pasv_set = false;
         return -1;
       }
-      if (sresp)
-        free(sresp);
+      if (sresp) free(sresp);
     }
-    if (sresp)
-      free(sresp);
+    if (sresp) free(sresp);
     /* waiting for data ended */
     if (wait_for_data_callback() != CALLBACK_DONE) {
       logger.msg(INFO, "Failed to transfer data");

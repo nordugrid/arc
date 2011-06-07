@@ -129,7 +129,7 @@ namespace Arc {
   }
 
   FTPControl::~FTPControl() {
-    if(connected) Disconnect(10);
+    Disconnect(10);
     // Not deactivating Globus - that may be dangerous in some cases.
     // Deactivation also not needeed because this plugin is persistent.
     //globus_module_deactivate(GLOBUS_FTP_CONTROL_MODULE);
@@ -421,24 +421,12 @@ namespace Arc {
   } // end SendData
 
   bool FTPControl::Disconnect(int timeout) {
-
-    GlobusResult result;
-
     if(!connected) return true;
     connected = false;
 
-    // Do all posible to stop communication
+    GlobusResult result;
 
-    cb->ctrl = false;
-    result = globus_ftp_control_abort(&control_handle, &ControlCallback, cb);
-    if (!result) {
-      // Maybe connection is already lost
-      logger.msg(VERBOSE, "Disconnect: Failed aborting - ignoring: %s", result.str());
-    } else while (!cb->ctrl) {
-      if(!cb->cond.wait(timeout * 1000)) {
-        logger.msg(VERBOSE, "Disconnect: Abort timed out after %d ms", timeout * 1000);
-      }
-    }
+    // Do all posible to stop communication
 
     cb->ctrl = false;
     result = globus_ftp_control_data_force_close(&control_handle, &DataCloseCallback, cb);
@@ -448,6 +436,17 @@ namespace Arc {
     } else while (!cb->ctrl) {
       if(!cb->cond.wait(timeout * 1000)) {
         logger.msg(VERBOSE, "Disconnect: Data close timed out after %d ms", timeout * 1000);
+      }
+    }
+
+    cb->ctrl = false;
+    result = globus_ftp_control_abort(&control_handle, &ControlCallback, cb);
+    if (!result) {
+      // Maybe connection is already lost
+      logger.msg(VERBOSE, "Disconnect: Failed aborting - ignoring: %s", result.str());
+    } else while (!cb->ctrl) {
+      if(!cb->cond.wait(timeout * 1000)) {
+        logger.msg(VERBOSE, "Disconnect: Abort timed out after %d ms", timeout * 1000);
       }
     }
 
@@ -478,18 +477,36 @@ namespace Arc {
     }
 
     bool first_time = true;
-    while(!(result = globus_ftp_control_handle_destroy(&control_handle))) {
+    // Waiting for stalled callbacks
+    // If globus_ftp_control_handle_destroy is called with dc_handle
+    // state not GLOBUS_FTP_DATA_STATE_NONE then handle is messed
+    // and next call causes assertion. So here we are waiting for
+    // proper state.
+    globus_mutex_lock(&(control_handle.cc_handle.mutex));
+    while ((control_handle.dc_handle.state != GLOBUS_FTP_DATA_STATE_NONE) ||
+           (control_handle.cc_handle.cc_state != GLOBUS_FTP_CONTROL_UNCONNECTED)) {
       if(first_time) {
-        logger.msg(VERBOSE, "Disconnect: Failed to destroy handle: %s. Will retry.",
-                   result.str());
+        logger.msg(VERBOSE, "Disconnect: waiting for globus handle to settle");
         first_time = false;
       }
+      //if((control_handle.cc_handle.cc_state == GLOBUS_FTP_CONTROL_UNCONNECTED) &&
+      //   (control_handle.dc_handle.state == GLOBUS_FTP_DATA_STATE_CLOSING)) {
+      //  logger.msg(VERBOSE, "Disconnect: Tweaking Globus to think data connection is closed");
+      //  control_handle.dc_handle.state = GLOBUS_FTP_DATA_STATE_NONE;
+      //  break;
+      //}
+      globus_mutex_unlock(&(control_handle.cc_handle.mutex));
       cb->cond.wait(1000);
+      globus_mutex_lock(&(control_handle.cc_handle.mutex));
     }
-    if(!first_time) {
+    globus_mutex_unlock(&(control_handle.cc_handle.mutex));
+    if(!(result = globus_ftp_control_handle_destroy(&control_handle))) {
+      // This situation can't be fixed because call to globus_ftp_control_handle_destroy
+      // makes handle unusable even if it fails.
+      logger.msg(ERROR, "Disconnect: Failed destroying handle: %s. Can't handle such situation.",result.str());
+    } else if(!first_time) {
       logger.msg(VERBOSE, "Disconnect: handle destroyed.");
     }
-
     return true;
 
   } // end Disconnect
