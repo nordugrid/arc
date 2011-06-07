@@ -145,13 +145,13 @@ bool compose_msg(std::string& msg, const std::map<std::string,std::string>& opti
 
 bool CredentialStore::Store(const std::map<std::string,std::string>& options,const std::string& cred,bool if_delegate) {
   if(!valid) return false;
-  if(if_delegate) {
+  //if(if_delegate) {
     std::string msg("VERSION=MYPROXYv2\nCOMMAND=1\n");
-  }
-  else {
-    std::string msg("VERSION=MYPROXYv2\nCOMMAND=5\n");
+  //}
+  //else {
+  //  std::string msg("VERSION=MYPROXYv2\nCOMMAND=5\n");
     //TODO
-  }
+  //}
   if(!compose_msg(msg, options)) return false;
 
   PayloadStreamInterface *response = NULL;
