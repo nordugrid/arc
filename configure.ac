@@ -392,7 +392,7 @@ if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[enables_python=$enableval],[])
 if test "$enables_python" = "yes"; then
 
-  AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)], [set the full path to the python program to use]))
+  AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)], [specify alternative python program from PATH]))
 
   AC_CHECK_PROGS(PYTHON, $with_python python)
 
