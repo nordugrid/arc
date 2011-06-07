@@ -160,6 +160,7 @@ namespace DataStaging {
       }
       else { // file is not there but we are ready to download it
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Will download to cache file %s", request->get_short_id(), request->get_cache_file());
+        request->set_cache_state(CACHEABLE);
       }
       break;
     }
