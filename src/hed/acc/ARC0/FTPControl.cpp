@@ -477,6 +477,7 @@ namespace Arc {
     }
 
     bool first_time = true;
+    time_t start_time = time(NULL);
     // Waiting for stalled callbacks
     // If globus_ftp_control_handle_destroy is called with dc_handle
     // state not GLOBUS_FTP_DATA_STATE_NONE then handle is messed
@@ -498,12 +499,18 @@ namespace Arc {
       globus_mutex_unlock(&(control_handle.cc_handle.mutex));
       cb->cond.wait(1000);
       globus_mutex_lock(&(control_handle.cc_handle.mutex));
+      // Protection against broken Globus
+      if(((unsigned int)(time(NULL)-start_time)) > 60) {
+        logger.msg(VERBOSE, "Disconnect: globus handle is stuck.");
+        break;
+      }
     }
     globus_mutex_unlock(&(control_handle.cc_handle.mutex));
     if(!(result = globus_ftp_control_handle_destroy(&control_handle))) {
       // This situation can't be fixed because call to globus_ftp_control_handle_destroy
       // makes handle unusable even if it fails.
       logger.msg(ERROR, "Disconnect: Failed destroying handle: %s. Can't handle such situation.",result.str());
+      cb = NULL;
     } else if(!first_time) {
       logger.msg(VERBOSE, "Disconnect: handle destroyed.");
     }

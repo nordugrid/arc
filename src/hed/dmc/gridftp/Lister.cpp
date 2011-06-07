@@ -510,6 +510,7 @@ namespace Arc {
         // and next call causes assertion. So here we are waiting for
         // proper state.
         bool first_time = true;
+        time_t start_time = time(NULL);
         globus_mutex_lock(&(handle->cc_handle.mutex));
         while ((handle->dc_handle.state != GLOBUS_FTP_DATA_STATE_NONE) ||
                (handle->cc_handle.cc_state != GLOBUS_FTP_CONTROL_UNCONNECTED)) {
@@ -520,7 +521,7 @@ namespace Arc {
 //          };
           globus_mutex_unlock(&(handle->cc_handle.mutex));
           if(first_time) {
-            logger.msg(VERBOSE, "Disconnect: waiting for globus handle to settle");
+            logger.msg(VERBOSE, "Waiting for globus handle to settle");
             first_time = false;
           }
           globus_abstime_t timeout;
@@ -530,6 +531,11 @@ namespace Arc {
           globus_cond_timedwait(&cond, &mutex, &timeout);
           globus_mutex_unlock(&mutex);
           globus_mutex_lock(&(handle->cc_handle.mutex));
+          if(((unsigned int)(time(NULL) - start_time)) > 60) {
+            logger.msg(VERBOSE, "Globus handle is stuck");
+            first_time = false;
+            break;
+          }
         }
         globus_mutex_unlock(&(handle->cc_handle.mutex));
         if(!(res=globus_ftp_control_handle_destroy(handle))) {

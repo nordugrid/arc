@@ -899,6 +899,8 @@ namespace Arc {
       }
     }
     ftp_active = true;
+    ftp_threads = 3;
+/*
     ftp_threads = 1;
     if (allow_out_of_order) {
       ftp_threads = stringtoi(url.Option("threads"));
@@ -907,6 +909,7 @@ namespace Arc {
       if (ftp_threads > MAX_PARALLEL_STREAMS)
         ftp_threads = MAX_PARALLEL_STREAMS;
     }
+*/
     autodir = additional_checks;
     std::string autodir_s = url.Option("autodir");
     if(autodir_s == "yes") {
@@ -919,15 +922,17 @@ namespace Arc {
   void DataPointGridFTP::set_attributes(void) {
     globus_ftp_control_parallelism_t paral;
     if (ftp_threads > 1) {
+std::cerr<<"***** PARALLELISM_FIXED: "<<ftp_threads<<std::endl;
       paral.fixed.mode = GLOBUS_FTP_CONTROL_PARALLELISM_FIXED;
       paral.fixed.size = ftp_threads;
     }
     else {
+std::cerr<<"***** PARALLELISM_NONE: "<<ftp_threads<<std::endl;
       paral.fixed.mode = GLOBUS_FTP_CONTROL_PARALLELISM_NONE;
       paral.fixed.size = 1;
     }
     globus_ftp_client_operationattr_set_parallelism(&ftp_opattr, &paral);
-    globus_ftp_client_operationattr_set_striped(&ftp_opattr, GLOBUS_FALSE);
+    globus_ftp_client_operationattr_set_striped(&ftp_opattr, GLOBUS_TRUE);
     /*   globus_ftp_client_operationattr_set_layout         */
     /*   globus_ftp_client_operationattr_set_tcp_buffer     */
     globus_ftp_client_operationattr_set_type(&ftp_opattr,
