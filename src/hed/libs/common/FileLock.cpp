@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <glibmm.h>
+#include <signal.h>
 #include <sys/stat.h>
 
 #ifdef WIN32
@@ -236,23 +237,16 @@ namespace Arc {
           logger.msg(INFO, "This process already owns the lock on %s", filename);
         else {
           // check if the pid owning the lock is still running - if not we can claim the lock
-          // this check only works on systems with /proc. On other systems locks will always be valid
-          std::string procdir("/proc/");
-          if (stat(procdir.c_str(), &fileStat) == 0) {
-            procdir = procdir.append(lock_pid);
-            if (stat(procdir.c_str(), &fileStat) != 0 && errno == ENOENT) {
-              logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
-              if (remove(lock_file.c_str()) != 0) {
-                logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
-                return false;
-              }
-              // call acquire() again
-              lock_removed = true;
-              return acquire_(lock_removed);
+          int pid_i;
+          if (stringto(lock_pid, pid_i) && kill(pid_i, 0) != 0 && errno == ESRCH) {
+            logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
+            if (remove(lock_file.c_str()) != 0) {
+              logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
+              return false;
             }
-          }
-          else {
-            logger.msg(INFO, "Cannot check process info - assuming lock on %s is still valid", filename);
+            // call acquire() again
+            lock_removed = true;
+            return acquire_(lock_removed);
           }
         }
       }

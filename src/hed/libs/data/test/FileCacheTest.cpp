@@ -198,21 +198,12 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(is_locked);
 
   // delete lock file and try again with a non-existent pid
-  // Start only succeeds if processes can be checked through /proc
-  std::string procdir = "/proc";
   CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
   _createFile(_fc1->File(_url) + ".lock", "99999@" + host);
-  if (stat(procdir.c_str(), &fileStat) == 0) {
-    CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
-    CPPUNIT_ASSERT(!available);
-    CPPUNIT_ASSERT(!is_locked);
-    CPPUNIT_ASSERT(_fc1->Stop(_url));
-  } else {
-    CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
-    CPPUNIT_ASSERT(!available);
-    CPPUNIT_ASSERT(is_locked);
-    CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url) + ".lock").c_str()));
-  }
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  CPPUNIT_ASSERT(!available);
+  CPPUNIT_ASSERT(!is_locked);
+  CPPUNIT_ASSERT(_fc1->Stop(_url));
 
   // put different url in meta file
   _createFile(_fc1->File(_url) + ".meta", "http://badfile 1234567890");
@@ -307,22 +298,13 @@ void FileCacheTest::testRemoteCache() {
 
   delete _fc1;
   _fc1 = new Arc::FileCache(caches, remote_caches, draining_caches, _jobid, _uid, _gid);
-  // if /proc exists, start should succeed and delete remote cache file and lock
-  // if not, start should still succeed but download to local cache and
-  // leave remote file and lock alone
-  std::string procdir = "/proc";
+  // Start() should succeed and delete remote cache file and lock
   CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
   CPPUNIT_ASSERT(!available);
   CPPUNIT_ASSERT(!is_locked);
-  if (stat(procdir.c_str(), &fileStat) == 0) {
-    CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) != 0 );
-    CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) != 0 );
-  } else {
-    CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) == 0 );
-    CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) == 0 );
-    CPPUNIT_ASSERT_EQUAL(0, remove(remote_cache_lock.c_str()));
-    CPPUNIT_ASSERT_EQUAL(0, remove(remote_cache_file.c_str()));
-  }
+  CPPUNIT_ASSERT(stat(remote_cache_lock.c_str(), &fileStat) != 0 );
+  CPPUNIT_ASSERT(stat(remote_cache_file.c_str(), &fileStat) != 0 );
+
   // stop cache to release locks
   CPPUNIT_ASSERT(_fc1->Stop(_url));
 

@@ -103,19 +103,11 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT(!lock.acquire(lock_removed));
   CPPUNIT_ASSERT(!lock_removed);
 
-
   // try again with a non-existent pid
-  // will only succeed if processes can be checked through /proc
-  std::string procdir("/proc");
   _createFile(lock_file, "99999@" + host);
   lock_removed = false;
-  if (stat(procdir.c_str(), &fileStat) == 0) {
-    CPPUNIT_ASSERT(lock.acquire(lock_removed));
-    CPPUNIT_ASSERT(lock_removed);
-  } else {
-    CPPUNIT_ASSERT(!lock.acquire(lock_removed));
-    CPPUNIT_ASSERT(!lock_removed);
-  }
+  CPPUNIT_ASSERT(lock.acquire(lock_removed));
+  CPPUNIT_ASSERT(lock_removed);
 
   // set small timeout
   CPPUNIT_ASSERT_EQUAL(0, remove(lock_file.c_str()));
