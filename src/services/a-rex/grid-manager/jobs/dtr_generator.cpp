@@ -111,12 +111,9 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   int max_processing_emergency;
   int max_downloads;
   jcfg.GetMaxJobsLoad(max_processing,max_processing_emergency,max_downloads);
-  if(max_processing <= 0) max_processing = 1;
-  if(max_processing_emergency <= 0) max_processing_emergency = 0;
-  if(max_downloads <= 0) max_downloads = 1;
-  max_processing *= max_downloads;
-  max_processing_emergency *= max_downloads;
-  scheduler.SetSlots(max_processing*2,max_processing*2,max_processing,max_processing_emergency);
+  if (max_processing > 0 && max_downloads > 0) max_processing *= max_downloads;
+  if (max_processing_emergency > 0 && max_downloads > 0) max_processing_emergency *= max_downloads;
+  scheduler.SetSlots(max_processing,max_processing,max_processing,max_processing_emergency);
 
   // transfer shares
   DataStaging::TransferShares shares;

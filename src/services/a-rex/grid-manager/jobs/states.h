@@ -11,8 +11,8 @@
 #define DEFAULT_KEEP_FINISHED (7*24*60*60)
 /* default job ttr after deleted - 1 month */
 #define DEFAULT_KEEP_DELETED (30*24*60*60)
-/* default maximal number of jobs in memory */
-#define DEFAULT_MAX_JOBS (100)
+/* default maximum number of jobs in download/upload */
+#define DEFAULT_MAX_LOAD (100)
 /* default maximal allowed amount of reruns */
 #define DEFAULT_JOB_RERUNS (5)
 /* not used */

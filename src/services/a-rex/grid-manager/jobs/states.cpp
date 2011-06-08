@@ -48,7 +48,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 JobsListConfig::JobsListConfig(void) {
   for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
   jobs_pending = 0;
-  max_jobs_processing=DEFAULT_MAX_JOBS;
+  max_jobs_processing=DEFAULT_MAX_LOAD;
   max_jobs_processing_emergency=1;
   max_jobs_running=-1;
   max_jobs_total=-1;
@@ -1041,13 +1041,14 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
           job_error=true; 
           return; /* go to next job */
         };
-        if((jcfg.max_jobs_processing == -1) ||
-           (jcfg.use_local_transfer) ||
-           ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
-           (jcfg.max_jobs_per_dn < 0 || jcfg.jobs_dn[i->local->DN] < jcfg.max_jobs_per_dn))
+        // check per-DN limit on processing jobs
+        if(jcfg.max_jobs_per_dn < 0 || jcfg.jobs_dn[i->local->DN] < jcfg.max_jobs_per_dn)
         {
           // apply limits for old data staging
           if (jcfg.use_new_data_staging ||
+              (jcfg.max_jobs_processing == -1) ||
+              (jcfg.use_local_transfer) ||
+              ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
               (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
                ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) &&
                 (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
