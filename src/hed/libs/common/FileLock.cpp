@@ -236,6 +236,7 @@ namespace Arc {
           // safer to wait until lock expires than risk corruption
           logger.msg(INFO, "This process already owns the lock on %s", filename);
         else {
+#ifndef WIN32
           // check if the pid owning the lock is still running - if not we can claim the lock
           int pid_i;
           if (stringto(lock_pid, pid_i) && kill(pid_i, 0) != 0 && errno == ESRCH) {
@@ -248,6 +249,7 @@ namespace Arc {
             lock_removed = true;
             return acquire_(lock_removed);
           }
+#endif
         }
       }
       logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
