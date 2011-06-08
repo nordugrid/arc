@@ -531,7 +531,7 @@ status() {
 	fi
     fi
     if [ -f $LOCKFILE ]; then
-	echo "$1 stopped but lockfile exist"
+	echo "$1 stopped but lockfile exists"
 	return 2
     fi
     echo "$1 is stopped"
@@ -551,7 +551,7 @@ case "$1" in
 	stop
 	;;
     status)
-	status
+	status $prog
 	;;
     restart | force-reload)
 	restart
