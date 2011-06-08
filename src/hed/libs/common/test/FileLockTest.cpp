@@ -145,17 +145,12 @@ void FileLockTest::TestFileLockAcquire() {
 
   CPPUNIT_ASSERT(lock.acquire());
 
-  // create lock with empty hostname - acquire should still work - only if /proc exists
+  // create lock with empty hostname - acquire should still work
   lock = Arc::FileLock(filename);
   _createFile(lock_file, "99999@");
   lock_removed = false;
-  if (stat(procdir.c_str(), &fileStat) == 0) {
-    CPPUNIT_ASSERT(lock.acquire(lock_removed));
-    CPPUNIT_ASSERT(lock_removed);
-  } else {
-    CPPUNIT_ASSERT(!lock.acquire(lock_removed));
-    CPPUNIT_ASSERT(!lock_removed);
-  }
+  CPPUNIT_ASSERT(lock.acquire(lock_removed));
+  CPPUNIT_ASSERT(lock_removed);
 }
 
 void FileLockTest::TestFileLockRelease() {
