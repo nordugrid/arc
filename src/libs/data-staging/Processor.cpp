@@ -544,7 +544,12 @@ namespace DataStaging {
 
     // check for error, cancellation or cache not being used
     if (request->error() || request->cancel_requested() || request->get_cache_state() == CACHE_NOT_USED) {
-      (request->error() || request->cancel_requested()) ? cache.StopAndDelete(canonic_url) : cache.Stop(canonic_url);
+      // don't delete cache file if it was already present or successfully downloaded
+      if (request->error() || (request->cancel_requested() && request->get_cache_state() == CACHEABLE)) {
+        cache.StopAndDelete(canonic_url);
+      } else {
+        cache.Stop(canonic_url);
+      }
       request->set_status(DTRStatus::CACHE_PROCESSED);
       request->connect_logger();
       request->push(SCHEDULER);
