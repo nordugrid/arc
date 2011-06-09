@@ -417,7 +417,7 @@ if test "$enables_python" = "yes"; then
         AC_CHECK_LIB([python$PYTHON_VERSION], [Py_Finalize],[
             AC_MSG_NOTICE([Adding path to python library])
             PYTHON_LIBS="-L$PY_LIBDEST/config -lpython$PYTHON_VERSION $PYTHON_LIBS"],[
-            AC_ERROR([Can't find python library])])])
+            PYTHON_LIBS=""])])
     LDFLAGS=$SAVE_LDFLAGS
     ])
     AC_SUBST(PYTHON_VERSION)
@@ -457,6 +457,9 @@ if test "$enables_python" = "yes"; then
 
   if test "X$PYTHON" = "X"; then
     AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    enables_python=no
+  elif test "X$PYTHON_LIBS" = "X"; then
+    AC_MSG_NOTICE([Missing Python library - skipping Python bindings])
     enables_python=no
   elif test "X$pythonh" != "Xyes"; then
     AC_MSG_NOTICE([Missing Python header - skipping Python bindings])
