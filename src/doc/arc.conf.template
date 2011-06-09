@@ -229,7 +229,7 @@ mapped_unixid="gridtest"
 # require_issuerdn yes/no - another nordugridmap option. YES would map only
 # those DNs obtained from the urls which have the corresponding public CA 
 # packages installed. Default is 'no'.
-require_issuerdn="no"
+#require_issuerdn="no"
 
 # x509_cert_dir path - The directory containing the CA certificates. This
 # information is needed by the 'require_issuerdn' option. 
@@ -403,11 +403,11 @@ cachelifetime="30d"
 
 # cachelogfile path - specifies the filename where output of the cache-clean
 # tool should be logged. Defaults to /var/log/arc/cache-clean.log.
-cachelogfile="/tmp/cache-clean.log"
+#cachelogfile="/tmp/cache-clean.log"
 
 # cacheloglevel level - specifies the level of logging by the cache-clean
 # tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
-cacheloglevel="4"
+#cacheloglevel="4"
 
 # user user[:group] - Switch to a non root user/group after startup
 user="grid"
@@ -430,13 +430,13 @@ user="grid"
 
 # pidfile path - Specify location of file containig PID of daemon process.
 #  This is usefull for automatic star/stop scripts. 
-pidfile="/var/run/grid-manager.pid"
+#pidfile="/var/run/arched-arex.pid"
 
 # the gnu time command, default /usr/bin/time
 #gnu_time="/usr/bin/time"
 
 # if computing node can access sesion directory at frontend, defaults to 'yes' 
-shared_filesystem="yes"
+#shared_filesystem="yes"
 
 # specifies the email address from where the notification mails are sent, <must
 # be specified>
@@ -482,12 +482,12 @@ maxloadshare="4 voms:role"
 # the name of the share and limit is the number of processes for this
 # share. In the configuration should appear after maxloadshare. Can be
 # repeated several times for different shares.
-share_limit="atlas:production 10"
+#share_limit="atlas:production 10"
 
 # newdatastaging yes|no - turns on and off the new data staging framework
 # which replaces the downloader and uploader for managing input and output
 # files. It is off by default.
-newdatastaging="yes"
+#newdatastaging="yes"
 
 # wakeupperiod time - specifies how often grid-manager cheks for new
 # jobs arrived, job state change requests, etc. That is resposivity of
@@ -501,25 +501,25 @@ newdatastaging="yes"
 # securetransfer yes|no - if data connection allows to choose use 
 # secure|non-secure data transfer. Currently only works for gridftp.
 # default is no
-securetransfer="no"
+#securetransfer="no"
 
 # passivetransfer yes|no - If yes, gridftp transfers are passive. Setting
 # this option to yes can solve transfer problems caused by firewalls.
 # default is no
-passivetransfer="no"
+#passivetransfer="no"
 
 # localtransfer yes|no - If yes, then the data download from to Grid to the
 # session directory (stagein) will be part of the batch job (prior to the
 # execution of the binary). Default is no.
-localtransfer="no"
+#localtransfer="no"
 
 # speedcontrol min_speed min_time min_average_speed max_inactivity - specifies
 #  how slow data transfer must be to trigger error. Tranfer is canceled if 
 #  speed is below min_speed bytes per second for at least min_time seconds,
 #  or if average rate is below min_average_speed bytes per second, or no data
 #  was transfered for longer than max_inactivity seconds. Value of zero turns
-#  feature off. Default is
-speedcontrol="0 300 0 300"
+#  feature off. Default is "0 300 0 300"
+#speedcontrol="0 300 0 300"
 
 # defaultttl [ttl [ttr]] - ttl is the time in seconds for how long a session
 # directory will survive after job execution has finished. If not specified
@@ -571,8 +571,8 @@ speedcontrol="0 300 0 300"
 # allowsubmit [group ...]  - list of authorization groups of users allowed
 # to submit new jobs while "allownew=no" is active in jobplugin 
 # configuration. Multiple commands are allowed.
-allowsubmit="mygroup"
-allowsubmit="yourgroup"
+#allowsubmit="mygroup"
+#allowsubmit="yourgroup"
 
 # preferredpattern pattern - specifies a preferred pattern on which
 # to sort multiple replicas of an input file. It consists of one or
@@ -580,7 +580,7 @@ allowsubmit="yourgroup"
 # preference. Replicas will be ordered by the earliest match. If the
 # dollar character ($) is used at the end of a pattern, the pattern
 # will be matched to the end of the hostname of the replica.
-preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
+#preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
 
 # helper user executable arguments - allows to run additional
 # executables on behalf of users. Every time this executable finishes it
@@ -617,7 +617,7 @@ preferredpattern="srm://myhost.ac.uk|.uk$|ndgf.org$"
 # maxrerun -  specifies how many times job can be rerun if it failed in LRMS.
 # Default value is 5. This is only an upper limit, the actual rerun value is set
 # by the user in his xrsl. 
-maxrerun="5" 
+#maxrerun="5" 
 
 # maxtransfertries - the maximum number of times download and upload will
 # be attempted per job (retries are only performed if an error is judged
@@ -668,10 +668,10 @@ http_proxy="proxy.mydomain.org:3128"
 
 # pidfile path - Specify location of file containig PID of daemon process.
 #  This is usefull for automatic star/stop scripts. 
-pidfile="/var/run/gridftpd.pid"
+#pidfile="/var/run/gridftpd.pid"
 
 # port bindport - Port to listen on (default 2811)
-port="2811"
+#port="2811"
 
 # pluginpath - directory where the plugin libraries are installed, default is
 # $NORDUGRID_LOCATION/lib
@@ -679,7 +679,7 @@ port="2811"
 
 #encryption yes|no - should data encryption be allowed, default is no,
 # encryption is very heavy 
-encryption="no"
+#encryption="no"
 
 # allowunknown yes|no - if no, check user subject against grid-mapfile and
 # reject if missing. By default unknown (not in the grid-mapfile) grid users 
@@ -688,7 +688,7 @@ allowunknown="no"
 
 # maxconnections - maximum number of connections accepted by a gridftpd server
 # only supported in the 0.5.x tags. Default is 100.
-maxconnections="200"
+#maxconnections="200"
 
 # globus_tcp_port_range, globus_udp_port_range - Firewall configuration
 globus_tcp_port_range="9000,12000"
@@ -738,7 +738,7 @@ unixgroup="users simplepool /etc/grid-security/pool/users"
 # Please read "The NorduGrid Grid Manager and GridFTP Server" for more 
 # information. This command is similar to 'unixgroup' described above and 
 # exists for convenience for setups which base mapping on VOs users belong to.
-unixvo="ATLAS unixuser atlas:atlas"
+#unixvo="ATLAS unixuser atlas:atlas"
 
 
 ####################
@@ -880,19 +880,19 @@ groupcfg="users"
 # The 'allownew' config parameter sets if the grid resource accepts
 # submission of new jobs. This parameter can be used to close down a grid.
 # The default is yes
-allownew="yes"
+#allownew="yes"
 
 # remotegmdirs controldir sessiondir - Specifies control
 # and session directories to which jobs can be submitted but which are
 # under the control of another GM. The corresponding controldir and
 # sessiondir parameters must be defined in another grid-manager's
 # configuration. Multiple remotegmdirs can be specified.
-remotegmdirs="/mnt/host1/control /mnt/host1/session"
+#remotegmdirs="/mnt/host1/control /mnt/host1/session"
 
 # maxjobdesc size - specifies maximal allowed size of job description
 # in bytes. Default value is 5MB. If value is missing or 0 size is not
 # limited.
-maxjobdesc="5242880"
+#maxjobdesc="5242880"
 
 
 ####################################################################
@@ -1226,14 +1226,14 @@ clustersupport="grid.support@myproject.org"
 
 # lrmsconfig - an optional free text field to describe the configuration of your
 # Local Resource Management System (batch system).
-lrmsconfig="single job per processor"
+#lrmsconfig="single job per processor"
 
 # homogeneity - determines whether the cluster consists of identical NODES with
 # respect to  cputype, memory, installed software (opsys). The frontend is NOT
 # needed to be homogeneous with the nodes. In case of inhomogeneous nodes, try
 # to arrange the nodes into homogeneous groups assigned to a queue and use
 # queue-level attributes. Possible values: True,False, the default is True.
-homogeneity="True"
+#homogeneity="True"
 
 # architecture - sets the hardware architecture of the NODES. The "architecture"
 # is defined as the output of the "uname -m" (e.g. i686). Use this cluster
@@ -1252,9 +1252,9 @@ architecture="adotf"
 # If the NODES are inhomogeneous with respect to this attribute do NOT set it on
 # cluster level, arrange your nodes into homogeneous groups assigned to a queue
 # and use queue-level attributes. 
-opsys="Linux-2.4.21-mypatch"
-opsys="glibc-2.3.1"
-opsys="Redhat-7.2"
+opsys="Linux-2.6.18"
+opsys="glibc-2.5.58"
+opsys="CentOS-5.6"
 
 # nodecpu - this is the cputype of the homogeneous nodes. The string is
 # constructed from the /proc/cpuinfo  as  the value of "model name"  and "@" and
@@ -1313,12 +1313,12 @@ nodeaccess="outbound"
 # the "node property" method to assign certain nodes to grid queues. You
 # shouldn't use this config option unless you make sure  your PBS config makes
 # use of the above described setup.
-dedicated_node_string="gridnode"
+#dedicated_node_string="gridnode"
 
 # localse - this multivalued parameter tells the BROKER that certain URLs (and
 # locations below that) should be considered "locally" available to the cluster.
 #localse="gsiftp://my.storage/data1/"
-localse="gsiftp://my.storage/data2/"
+#localse="gsiftp://my.storage/data2/"
 
 # gm_mount_point - this is the same as the "path" from the [gridftpd/jobs]
 # block. The default is "/jobs". Will be cleaned up later, do NOT touch it.
@@ -1326,7 +1326,7 @@ gm_mount_point="/jobs"
 
 # gm_port - this is the same as the "port" from the [gridftpd] block. The
 # default is "2811". Will be cleaned up later.
-gm_port="2811"
+#gm_port="2811"
   
 ####################################################################
 #
@@ -1431,7 +1431,7 @@ comment="This queue is nothing more than a condor pool"
 # changes how the queue-totalcpus, user freecpus are determined for this queue.
 # Read the pbs_config.txt for more info. You shouldn't use this option unless
 # you make sure that your PBS config makes use of the above configuration.
-queue_node_string="gridlong_nodes"
+#queue_node_string="gridlong_nodes"
 
 # sge_jobopts - additional SGE options to be used when submitting jobs to SGE
 # from this queue.  If in doubt, leave it commented out
@@ -1466,7 +1466,7 @@ queue_node_string="gridlong_nodes"
 # (this case the cluster level totalcpus is the relevant parameter). Use this
 # static parameter only if some special method is applied to assign a subset of
 # totalcpus to the queue.
-totalcpus="32"
+#totalcpus="32"
 
 # queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
 # and benchmark should be set if they are homogeneous over the nodes assigned 
@@ -1480,8 +1480,8 @@ totalcpus="32"
 nodecpu="adotf"
 nodememory="512"
 architecture="adotf"
-opsys="Mandrake 8.0"
-opsys="Linux-2.4.19"
+opsys="Fedora 16"
+opsys="Linux-3.0"
 benchmark="SPECINT2000  222"
 benchmark="SPECFP2000 333" 
 
@@ -1493,6 +1493,6 @@ gridmap="/etc/grid-security/queuename-gridmap"
 
 # LDAP parameters of the queue+jobs+users.pl infoprovider, use the defaults,
 # do NOT change them unless you know what you are doing
-cachetime="30"
-timelimit="30"
-sizelimit="5000"
+#cachetime="30"
+#timelimit="30"
+#sizelimit="5000"
