@@ -111,7 +111,7 @@ namespace Arc {
   ///Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid
   std::string convert_to_rdn(const std::string& dn);
 
-  /// Typr of escaping or encoding to use
+  /// Type of escaping or encoding to use
   typedef enum {
     escape_char,  /// place the escape character before the character being escaped
     escape_octal, /// octal encoding of the character

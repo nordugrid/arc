@@ -7,6 +7,7 @@
 #include <vector>
 #include <ctype.h>
 #include <algorithm>
+#include <glib.h>
 #include <arc/Logger.h>
 #include "StringConv.h"
 
@@ -183,15 +184,6 @@ namespace Arc {
     return retstr;
   }
   
-#if HAVE_URI_UNESCAPE_STRING
-  std::string uri_encode(const std::string& str) {
-    return Glib::uri_escape_string(str, NULL, true);
-  }
-  std::string uri_unencode(const std::string& str) {
-    return Glib::uri_unescape_string(str);
-  }
-#else
-#include <glib.h>
   static int unescape_character(const std::string& scanner, int i) {
     int first_digit;
     int second_digit;
@@ -235,7 +227,6 @@ namespace Arc {
     out.resize(j);
     return out;
   }
-#endif
 
   std::string convert_to_rdn(const std::string& dn) {
     std::string ret;
