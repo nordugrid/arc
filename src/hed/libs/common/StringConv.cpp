@@ -184,7 +184,10 @@ namespace Arc {
   }
   
 #if HAVE_URI_UNESCAPE_STRING
-  std::string uri_unescape(const std::string& str) {
+  std::string uri_encode(const std::string& str) {
+    return Glib::uri_escape_string(str, NULL, true);
+  }
+  std::string uri_unencode(const std::string& str) {
     return Glib::uri_unescape_string(str);
   }
 #else
@@ -204,7 +207,14 @@ namespace Arc {
     return (first_digit << 4) | second_digit;
   }
 
-  std::string uri_unescape(const std::string& str) {
+  std::string uri_encode(const std::string& str, bool encode_slash) {
+    // characters not to escape (unreserved characters from RFC 3986)
+    std::string unreserved_chars("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~");
+    if (!encode_slash) unreserved_chars += '/';
+    return escape_chars(str, unreserved_chars, '%', true, escape_hex);
+  }
+
+  std::string uri_unencode(const std::string& str) {
     std::string out = str;
     int character;
 
@@ -249,13 +259,14 @@ namespace Arc {
     return ret;
   }
 
-  std::string escape_chars(const std::string& str, const std::string& chars, char esc, escape_type type) {
+  std::string escape_chars(const std::string& str, const std::string& chars, char esc, bool excl, escape_type type) {
     std::string out = str;
     std::string esc_chars = chars;
-    esc_chars += esc;
+    if (!excl) esc_chars += esc;
     std::string::size_type p = 0;
     for(;;) {
-      p = out.find_first_of(esc_chars,p);
+      if (excl) p = out.find_first_not_of(esc_chars,p);
+      else p = out.find_first_of(esc_chars,p);
       if(p == std::string::npos) break;
       out.insert(p,1,esc);
       ++p;

@@ -122,6 +122,11 @@ namespace Arc {
     /** Returns the path of the URL with all options attached. */
     std::string FullPath() const;
 
+    /** Returns the path and all options, URI-encoded according to RFC 3986.
+        Forward slashes ('/') in the path are not encoded but are encoded in
+        the options. */
+    std::string FullPathURIEncoded() const;
+
     /** Changes the path of the URL. */
     void ChangePath(const std::string& newpath);
 

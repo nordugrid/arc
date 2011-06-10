@@ -137,7 +137,7 @@ namespace Arc {
 
     // Prepare contact url for information about this job
     URL infoendpoint(et.Cluster);
-    infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',escape_hex) + ")");
+    infoendpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" + escape_chars(jobid.str(),filter_esc,'\\',false,escape_hex) + ")");
     infoendpoint.ChangeLDAPScope(URL::subtree);
 
     AddJobDetails(modjobdesc, jobid, et.Cluster, infoendpoint, job);

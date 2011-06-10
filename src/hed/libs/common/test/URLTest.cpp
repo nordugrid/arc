@@ -61,7 +61,7 @@ void URLTest::setUp() {
   gsiftpurl = new Arc::URL("gsiftp://hathi.hep.lu.se/public/test.txt");
   gsiftpurl2 = new Arc::URL("gsiftp://hathi.hep.lu.se:2811/public:/test.txt:checksumtype=adler32");
   ldapurl = new Arc::URL("ldap://grid.uio.no/o=grid/mds-vo-name=local");
-  httpurl = new Arc::URL("http://www.nordugrid.org/monitor.php?debug=2&sort=yes");
+  httpurl = new Arc::URL("http://www.nordugrid.org/monitor.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\"");
   fileurl = new Arc::URL("file:/home/grid/runtime/TEST-ATLAS-8.0.5");
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");
   opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;threads=10;autodir=yes/public/test.txt");
@@ -146,16 +146,28 @@ void URLTest::TestHttpUrl() {
   CPPUNIT_ASSERT_EQUAL(80, httpurl->Port());
   CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php"), httpurl->Path());
 
+  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\""), httpurl->FullPath());
+  CPPUNIT_ASSERT_EQUAL(std::string("/monitor.php?debug=2&newpath=%2fpath%2fto%2ffile&sort=yes&symbols=%28%29%20%2a%21%25%22"), httpurl->FullPathURIEncoded());
+
   std::map<std::string, std::string> httpmap = httpurl->HTTPOptions();
-  CPPUNIT_ASSERT_EQUAL((int)httpmap.size(), 2);
+  CPPUNIT_ASSERT_EQUAL((int)httpmap.size(), 4);
 
   std::map<std::string, std::string>::iterator mapit = httpmap.begin();
   CPPUNIT_ASSERT_EQUAL(mapit->first, std::string("debug"));
   CPPUNIT_ASSERT_EQUAL(mapit->second, std::string("2"));
 
   mapit++;
+  CPPUNIT_ASSERT_EQUAL(mapit->first, std::string("newpath"));
+  CPPUNIT_ASSERT_EQUAL(mapit->second, std::string("/path/to/file"));
+
+  mapit++;
   CPPUNIT_ASSERT_EQUAL(mapit->first, std::string("sort"));
   CPPUNIT_ASSERT_EQUAL(mapit->second, std::string("yes"));
+
+  mapit++;
+  CPPUNIT_ASSERT_EQUAL(mapit->first, std::string("symbols"));
+  CPPUNIT_ASSERT_EQUAL(mapit->second, std::string("() *!%\""));
+
 
   CPPUNIT_ASSERT(httpurl->Options().empty());
   CPPUNIT_ASSERT(httpurl->Locations().empty());

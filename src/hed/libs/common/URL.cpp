@@ -516,6 +516,54 @@ namespace Arc {
     return fullpath;
   }
 
+  std::string URL::FullPathURIEncoded() const {
+    std::string fullpath;
+
+    if (!path.empty())
+      fullpath += uri_encode(path, false);
+
+    for (std::map<std::string, std::string>::const_iterator
+         it = httpoptions.begin(); it != httpoptions.end(); it++) {
+      if (it == httpoptions.begin())
+        fullpath += '?';
+      else
+        fullpath += '&';
+      fullpath += uri_encode(it->first, true) + '=' + uri_encode(it->second, true);
+    }
+
+    if (!ldapattributes.empty() || (ldapscope != base) || !ldapfilter.empty()) {
+      for (std::list<std::string>::const_iterator
+          it = ldapattributes.begin(); it != ldapattributes.end(); it++) {
+        if (it == ldapattributes.begin())
+          fullpath += '?';
+        else
+          fullpath += ',';
+        fullpath += uri_encode(*it, true);
+      }
+    }
+
+    if ((ldapscope != base) || !ldapfilter.empty()) {
+      switch (ldapscope) {
+      case base:
+        fullpath += "?base";
+        break;
+
+      case onelevel:
+        fullpath += "?one";
+        break;
+
+      case subtree:
+        fullpath += "?sub";
+        break;
+      }
+    }
+
+    if (!ldapfilter.empty())
+      fullpath += '?' + uri_encode(ldapfilter, true);
+
+    return fullpath;
+  }
+
   void URL::ChangeFullPath(const std::string& newpath) {
     path = newpath;
     ParsePath();

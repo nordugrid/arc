@@ -98,19 +98,31 @@ namespace Arc {
   /// This method removes blank lines from the passed text string. Lines with only space on them are considered blank.
   std::string strip(const std::string& str);
 
-  /// This method unescape the URI encoded string
-  std::string uri_unescape(const std::string& str);
+  /// This method %-encodes characters in URI str
+  /** Characters which are not unreserved according to RFC 3986 are encoded.
+      If encode_slash is true forward slashes will also be encoded. It is
+      useful to set encode_slash to false when encoding full paths. */
+  /// be encoded
+  std::string uri_encode(const std::string& str, bool encode_slash);
+
+  /// This method unencodes the %-encoded URI str
+  std::string uri_unencode(const std::string& str);
 
   ///Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid
   std::string convert_to_rdn(const std::string& dn);
 
+  /// Typr of escaping or encoding to use
   typedef enum {
-    escape_char,
-    escape_octal,
-    escape_hex
+    escape_char,  /// place the escape character before the character being escaped
+    escape_octal, /// octal encoding of the character
+    escape_hex    /// hex encoding of the character
   } escape_type;
 
-  std::string escape_chars(const std::string& str, const std::string& chars, char esc, escape_type type = escape_char);
+  /// Escape or encode the given chars in str using the escape character esc.
+  /// If excl is true then escape all characters not in chars
+  std::string escape_chars(const std::string& str, const std::string& chars, char esc, bool excl, escape_type type = escape_char);
+
+  /// Unescape or encode characters in str escaped with esc
   std::string unescape_chars(const std::string& str, char esc, escape_type type = escape_char);
 
 } // namespace Arc

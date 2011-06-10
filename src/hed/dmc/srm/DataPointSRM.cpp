@@ -57,10 +57,13 @@ namespace Arc {
       return DataStatus::CheckError;
     }
 
-    SRMClientRequest srm_request_tmp(
-      (url.HTTPOption("SFN", "") == "")?
-      url.str():(url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN"))
-    );
+    std::string canonic_url;
+    if (!url.HTTPOption("SFN").empty())
+      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
+    else
+      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
+
+    SRMClientRequest srm_request_tmp(canonic_url);
     
     // first check permissions
     SRMReturnCode res = client->checkPermissions(srm_request_tmp);
@@ -120,12 +123,12 @@ namespace Arc {
       return DataStatus::DeleteError;
     }
 
-    // take out options in srm url
+    // take out options in srm url and encode path
     std::string canonic_url;
     if (!url.HTTPOption("SFN").empty())
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
+      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
     else
-      canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
+      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
 
     SRMClientRequest srm_request_tmp(canonic_url);
 
@@ -192,12 +195,12 @@ namespace Arc {
           return DataStatus::ReadPrepareError;
         }
 
-        // take out options in srm url
+        // take out options in srm url and encode path
         std::string canonic_url;
         if (!url.HTTPOption("SFN").empty())
-          canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
+          canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
         else
-          canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
+          canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
 
         delete srm_request;
         srm_request = new SRMClientRequest(canonic_url);
@@ -254,12 +257,12 @@ namespace Arc {
         return DataStatus::ReadPrepareError;
       }
 
-      // take out options in srm url
+      // take out options in srm url and encode path
       std::string canonic_url;
       if (!url.HTTPOption("SFN").empty())
-        canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
+        canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
       else
-        canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
+        canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
 
       delete srm_request;
 
@@ -433,12 +436,12 @@ namespace Arc {
         return DataStatus::WritePrepareError;
       }
 
-      // take out options in srm url
+      // take out options in srm url and encode path
       std::string canonic_url;
       if (!url.HTTPOption("SFN").empty())
-        canonic_url = url.Protocol() + "://" + url.Host() + "/" + url.HTTPOption("SFN");
+        canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
       else
-        canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
+        canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
 
       delete srm_request;
 
@@ -689,9 +692,9 @@ namespace Arc {
     std::string sfn_path = url.HTTPOption("SFN");
     if (!sfn_path.empty()) {
       while (sfn_path[0] == '/') sfn_path.erase(0,1);
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + sfn_path;
+      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(sfn_path, false);
     } else {
-      canonic_url = url.Protocol() + "://" + url.Host() + url.Path();
+      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
     }
 
     SRMClientRequest srm_request_tmp(canonic_url);

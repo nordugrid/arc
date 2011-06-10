@@ -325,6 +325,7 @@ namespace Arc {
           if (!url_end)
             return false; // Broken HTML
           std::string url(url_start, url_end - url_start);
+          url = uri_unencode(url);
           if (url.find("://") != std::string::npos) {
             URL u(url);
             std::string b = base.str();
@@ -396,7 +397,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
     ClientHTTP client(cfg, url, usercfg.Timeout());
 
-    DataStatus r = do_stat(url.FullPath(), client, file);
+    DataStatus r = do_stat(url.FullPathURIEncoded(), client, file);
     if(!r) return r;
     std::string name = url.FullPath();
     std::string::size_type p = name.rfind('/');
@@ -429,7 +430,7 @@ namespace Arc {
     {
       ClientHTTP client(cfg, curl, usercfg.Timeout());
       FileInfo file;
-      DataStatus r = do_stat(curl.FullPath(), client, file);
+      DataStatus r = do_stat(curl.FullPathURIEncoded(), client, file);
       if(r) {
         if(file.CheckSize()) size = file.GetSize();
         if(file.CheckCreated()) created = file.GetCreated();
@@ -496,7 +497,7 @@ namespace Arc {
           }
           */
           ClientHTTP client(cfg, curl, usercfg.Timeout());
-          do_stat(furl.FullPath(), client, *f);
+          do_stat(furl.FullPathURIEncoded(), client, *f);
         }
       }
     }
@@ -605,7 +606,7 @@ namespace Arc {
     PayloadRaw request;
     PayloadRawInterface *inbuf;
     HTTPClientInfo info;
-    MCC_Status r = client.process("GET", url.FullPath(), 0, 15,
+    MCC_Status r = client.process("GET", url.FullPathURIEncoded(), 0, 15,
                                   &request, &info, &inbuf);
     PayloadRawInterface::Size_t logsize = 0;
     if (inbuf){
@@ -633,7 +634,7 @@ namespace Arc {
     URL client_url = point.url;
     bool transfer_failure = false;
     int retries = 0;
-    std::string path = point.CurrentLocation().FullPath();
+    std::string path = point.CurrentLocation().FullPathURIEncoded();
     for (;;) {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
@@ -704,7 +705,7 @@ namespace Arc {
             (client_url.Protocol() == "https") ||
             (client_url.Protocol() == "httpg"))) {
           client = new ClientHTTP(cfg, client_url, point.usercfg.Timeout());
-          path = client_url.FullPath();
+          path = client_url.FullPathURIEncoded();
           continue;
         }
         transfer_failure = true;
@@ -802,7 +803,7 @@ namespace Arc {
     ClientHTTP *client = info.client;
     bool transfer_failure = false;
     int retries = 0;
-    std::string path = point.CurrentLocation().FullPath();
+    std::string path = point.CurrentLocation().FullPathURIEncoded();
     for (;;) {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;

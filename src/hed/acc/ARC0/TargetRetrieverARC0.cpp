@@ -253,10 +253,10 @@ namespace Arc {
       url.ChangeLDAPFilter("(|(objectclass=nordugrid-cluster)"
                            "(objectclass=nordugrid-queue)"
                            "(nordugrid-authuser-sn=" +
-                           escape_chars(credential.GetIdentityName(),filter_esc,'\\',escape_hex) + "))");
+                           escape_chars(credential.GetIdentityName(),filter_esc,'\\',false,escape_hex) + "))");
     else
       url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" +
-                           escape_chars(credential.GetIdentityName(),filter_esc,'\\',escape_hex) + "))");
+                           escape_chars(credential.GetIdentityName(),filter_esc,'\\',false,escape_hex) + "))");
 
     DataHandle handler(url, usercfg);
     DataBuffer buffer;
@@ -614,7 +614,7 @@ namespace Arc {
 
         URL infoEndpoint(url);
         infoEndpoint.ChangeLDAPFilter("(nordugrid-job-globalid=" +
-                                      escape_chars((std::string)(*it)["nordugrid-job-globalid"],filter_esc,'\\',escape_hex) + ")");
+                                      escape_chars((std::string)(*it)["nordugrid-job-globalid"],filter_esc,'\\',false,escape_hex) + ")");
         infoEndpoint.ChangeLDAPScope(URL::subtree);
         j.InfoEndpoint = infoEndpoint;
 
