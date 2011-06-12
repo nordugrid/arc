@@ -643,6 +643,11 @@ namespace Arc {
       return false;
     }
 
+    // Set desired number of retries. Also resets any lost 
+    // tries from previous files.
+    source->SetTries((src.Protocol() == "file")?1:3);
+    destination->SetTries((dst.Protocol() == "file")?1:3);
+
     // Turn off all features we do not need
     source->SetAdditionalChecks(false);
     destination->SetAdditionalChecks(false);
@@ -656,6 +661,13 @@ namespace Arc {
         logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());
       else
         logger.msg(ERROR, "File download failed: %s", std::string(res));
+      // Reset connection because one can't be sure how failure 
+      // affects server and/or connection state.
+      // TODO: Investigate/define DMC behavior in such case.
+      delete data_source;
+      data_source = NULL;
+      delete data_destination;
+      data_destination = NULL;
       return false;
     }
 
