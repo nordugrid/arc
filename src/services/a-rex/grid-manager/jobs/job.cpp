@@ -124,3 +124,11 @@ bool JobDescription::GetLocalDescription(const JobUser &user) {
   return true;
 }
 
+std::string JobDescription::GetFailure(const JobUser &user) const {
+  std::string reason = job_failed_mark_read(job_id,user);
+  if(!failure_reason.empty()) {
+    reason+=failure_reason; reason+="\n";
+  };
+  return reason;
+};
+

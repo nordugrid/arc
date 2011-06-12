@@ -90,7 +90,7 @@ bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
       o<<"lrms: "<<job_desc->lrms<<", queue: "<<job_desc->queue;
       if(job_desc->localid.length() >0) o<<", lrmsid: "<<job_desc->localid;
     };
-    tmps = job.GetFailure();
+    tmps = job.GetFailure(user);
     if(tmps.length()) {
       for(std::string::size_type i=0;;) {
         i=tmps.find('\n',i);

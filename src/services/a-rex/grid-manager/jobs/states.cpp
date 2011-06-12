@@ -567,7 +567,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
     // Job is in data staging - check progress
     if (dtr_generator->queryJobFinished(*i)) {
       // Finished - check for failure
-      if (!i->GetFailure().empty()) {
+      if (!i->GetFailure(*user).empty()) {
         JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
         return false;
       }
@@ -1177,7 +1177,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
           }; 
         } 
         else {
-          if(i->GetFailure().length() == 0)
+          if(i->GetFailure(*user).length() == 0)
             i->AddFailure("Data staging failed (pre-processing)");
           job_error=true;
           preparing_job_share[i->transfer_share]--;
@@ -1355,7 +1355,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
           // i->job_state = JOB_STATE_FINISHED;
           state_changed=true; /* to send mail */
           once_more=true;
-          if(i->GetFailure().length() == 0)
+          if(i->GetFailure(*user).length() == 0)
             i->AddFailure("uploader failed (post-processing)");
           job_error=true;
           finishing_job_share[i->transfer_share]--;

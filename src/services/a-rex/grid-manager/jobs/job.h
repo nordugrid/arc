@@ -126,7 +126,7 @@ class JobDescription {
     //if(failure_reason.length()) failure_reason+="\n";
     failure_reason+=reason; failure_reason+="\n";
   };
-  const std::string& GetFailure(void) const { return failure_reason; };
+  std::string GetFailure(const JobUser &user) const;
   JobLocalDescription* get_local(void) const { return local; };
   void set_local(JobLocalDescription* desc) { local=desc; };
 //  void set_state(job_state_t state) { job_state=state; };

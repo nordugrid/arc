@@ -35,7 +35,7 @@ bool send_mail(const JobDescription &desc,JobUser &user) {
 //  job_local_read_notify(desc.get_id(),user,notify);
   if(notify.length() == 0) return true; /* save some time */
   Arc::Run* child = NULL;
-  std::string failure_reason=desc.GetFailure();
+  std::string failure_reason=desc.GetFailure(user);
   if(job_failed_mark_check(desc.get_id(),user)) {
     if(failure_reason.length() == 0) failure_reason="<unknown>";
   };
