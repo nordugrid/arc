@@ -4,17 +4,15 @@
 
 #include <cstring>
 
-#include <xmlsec/base64.h>
-#include <xmlsec/errors.h>
-#include <xmlsec/xmltree.h>
+// Workaround for include bugs in xmlsec
+#include <libxml/tree.h>
+
+#include <xmlsec/xmlsec.h>
 #include <xmlsec/xmldsig.h>
 #include <xmlsec/xmlenc.h>
 #include <xmlsec/templates.h>
-#include <xmlsec/crypto.h>
-#include <xmlsec/keys.h>
-#include <xmlsec/keyinfo.h>
 
-#include <xmlsec/openssl/app.h>
+//#include <xmlsec/openssl/app.h>
 #include <openssl/bio.h>
 
 #include <openssl/evp.h>
