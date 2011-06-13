@@ -206,8 +206,9 @@ CMD="$CMD -P '$PID_FILE'"
 
 start() {
     if [ "$RUN" != "yes" ] ; then
-	echo "gridftpd disabled in configuration"
-	return 0
+        echo "$prog disabled, please adjust the configuration to your needs "
+        echo "and then set RUN to 'yes' in /etc/default/$prog to enable it."
+        return 0
     fi
 
     echo -n "Starting $prog: "

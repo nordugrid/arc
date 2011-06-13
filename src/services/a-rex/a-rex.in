@@ -451,8 +451,9 @@ prepare() {
 
 start() {
     if [ "$RUN" != "yes" ] ; then
-	echo "a-rex disabled in configuration"
-	return 0
+        echo "a-rex disabled, please adjust the configuration to your needs "
+        echo "and then set RUN to 'yes' in /etc/default/a-rex to enable it."
+        return 0
     fi
 
     echo -n "Starting $prog: "
