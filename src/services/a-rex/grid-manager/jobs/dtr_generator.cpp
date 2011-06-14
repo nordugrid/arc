@@ -464,7 +464,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
 }
 
 
-bool DTRGenerator::processReceivedJob(const JobDescription& job) {
+bool DTRGenerator::processReceivedJob(JobDescription& job) {
 
   JobId jobid(job.get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
@@ -674,6 +674,17 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     Arc::Logger::getRootLogger().removeDestinations();
     dtr.push(DataStaging::SCHEDULER);
     Arc::Logger::getRootLogger().addDestinations(log_dests);
+
+    // update .local with transfer share
+    JobLocalDescription *job_desc = new JobLocalDescription;
+    if (!job_local_read_file(jobid, *jobuser, *job_desc)) {
+      logger.msg(Arc::ERROR, "%s: Failed reading local information", jobid);
+      continue;
+    }
+    job_desc->transfershare = dtr.get_transfer_share();
+    if (!job_local_write_file(job, *jobuser, *job_desc)) {
+      logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
+    }
   }
   return true;
 }
