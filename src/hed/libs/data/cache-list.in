@@ -130,7 +130,11 @@ sub wanted {
     return if ! -e substr($name, 0, -5);
     open FILE, $name or die "$name $!";
     my $line = <FILE>;
-    my @data = split(/\s+/, $line);
+    close FILE;
+    chomp($line);
+    if (rindex($line, ' ') != -1) {
+        $line = substr($line, 0, rindex($line, ' '));
+    }
     my $fname = substr($name, 0, rindex($name, ".meta"));
-    print " $data[0] $fname\n";
+    print " $line $fname\n";
 }

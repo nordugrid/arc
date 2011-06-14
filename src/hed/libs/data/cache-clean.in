@@ -317,10 +317,13 @@ foreach my $filesystem (@caches) {
                 $fsfree+=$files{$fil}{size};
                 if (defined($opts{'D'}) && -e "$fil.meta") {
                     open FILE, "$fil.meta";
-                    my @lines = <FILE>;
+                    my $line = <FILE>;
                     close FILE;
-                    my @values = split(' ', $lines[0]);
-                    $log->verbose(join("", "Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}  url: $values[0]"));
+                    chomp($line);
+                    if (rindex($line, ' ') != -1) {
+                        $line = substr($line, 0, rindex($line, ' '));
+                    }
+                    $log->verbose(join("", "Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}  url: $line"));
                 }
                 else {
                     $log->verbose(join("","Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}"));

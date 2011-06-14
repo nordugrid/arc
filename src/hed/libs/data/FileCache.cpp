@@ -235,7 +235,7 @@ namespace Arc {
         return false;
       }
       std::string meta_str = lines.front();
-      std::string::size_type space_pos = meta_str.find(' ', 0);
+      std::string::size_type space_pos = meta_str.rfind(' ');
       if (meta_str.substr(0, space_pos) != url) {
         logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached",
                    url, filename, meta_str.substr(0, space_pos));
@@ -244,8 +244,8 @@ namespace Arc {
       }
     }
     else if (errno == ENOENT) {
-      // create new file
-      if (!FileCreate(meta_file, std::string(url + '\n'))) {
+      // create new file with "infinite" validity time (just under 32 bit max time)
+      if (!FileCreate(meta_file, std::string(url + " 20380101000000Z\n"))) {
         logger.msg(ERROR, "Failed to create meta file %s", meta_file);
         lock.release();
         return false;

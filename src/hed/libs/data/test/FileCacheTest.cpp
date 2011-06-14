@@ -122,7 +122,7 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
   std::string meta_url = _readFile(meta_file);
   CPPUNIT_ASSERT(meta_url != "");
-  CPPUNIT_ASSERT_EQUAL(std::string(_url) + '\n', meta_url);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url) + " 20380101000000Z\n", meta_url);
 
   // test calling Start() again is ok
   // waits for timeout so takes long time
@@ -366,7 +366,7 @@ void FileCacheTest::testStop() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
   std::string meta_url = _readFile(meta_file);
   CPPUNIT_ASSERT(meta_url != "");
-  CPPUNIT_ASSERT_EQUAL(std::string(_url) + '\n', meta_url);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url) + " 20380101000000Z\n", meta_url);
 
   // call with non-existent lock file
   CPPUNIT_ASSERT(!_fc1->Stop(_url));
@@ -825,12 +825,12 @@ void FileCacheTest::testValidityDate() {
   // create cache file
   CPPUNIT_ASSERT(_createFile(_fc1->File(_url)));
 
-  // test validity date is not available
-  CPPUNIT_ASSERT(!_fc1->CheckValid(_url));
+  // test validity date is available
+  CPPUNIT_ASSERT(_fc1->CheckValid(_url));
 
-  // look inside the meta file to check
+  // look inside the meta file to check that it is "infinity"
   std::string meta_file = _fc1->File(_url) + ".meta";
-  CPPUNIT_ASSERT_EQUAL(_url + '\n', _readFile(meta_file));
+  CPPUNIT_ASSERT_EQUAL(_url + " 20380101000000Z\n", _readFile(meta_file));
 
   // set validity time to now
   Arc::Time now;
