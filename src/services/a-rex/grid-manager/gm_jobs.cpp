@@ -9,8 +9,10 @@
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/DateTime.h>
+#include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
+#include <arc/StringConv.h>
 
 #include "jobs/users.h"
 #include "conf/conf_file.h"
@@ -43,6 +45,37 @@ void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
     if (node.Attribute("name") == "a-rex") {
       node.New(arex);
       return;
+    }
+  }
+}
+
+/** Fill maps with shares taken from data staging states log */
+void get_new_data_staging_shares(const std::string& control_dir,
+                                 std::map<std::string, int>& share_preparing,
+                                 std::map<std::string, int>& share_preparing_pending,
+                                 std::map<std::string, int>& share_finishing,
+                                 std::map<std::string, int>& share_finishing_pending) {
+  // read dtrstate.log
+  std::list<std::string> data;
+  if (!Arc::FileRead(control_dir+"/dtrstate.log", data)) {
+    std::cout<<"Can't read transfer states from "<<control_dir<<"/dtrstate.log";
+    return;
+  }
+  // format DTR_ID state priority share
+  // any state but TRANSFERRING is a pending state
+  for (std::list<std::string>::iterator line = data.begin(); line != data.end(); ++line) {
+    std::vector<std::string> entries;
+    Arc::tokenize(*line, entries, " ");
+    if (entries.size() != 4) continue;
+
+    std::string state = entries[1];
+    std::string share = entries[3];
+    bool preparing = (share.find("-download") == share.size()-9);
+    if (state == "TRANSFERRING") {
+      preparing ? share_preparing[share]++ : share_finishing[share]++;
+    }
+    else {
+      preparing ? share_preparing_pending[share]++ : share_finishing_pending[share]++;
     }
   }
 }
@@ -211,53 +244,58 @@ int main(int argc, char* argv[]) {
   unsigned int jobs_total = 0;
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
     if((!notshow_jobs) || (!notshow_states) || (show_share)) {
-    user->get_jobs()->ScanAllJobs();
-    for (JobsList::iterator i=user->get_jobs()->begin(); i!=user->get_jobs()->end(); ++i) {
-      if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
-      jobs_total++;
-      bool pending;
-      job_state_t new_state = job_state_read_file(i->get_id(), *user, pending);
-      Arc::Time job_time(job_state_time(i->get_id(), *user));
-      counters[new_state]++;
-      if (pending) counters_pending[new_state]++;
-      if (new_state == JOB_STATE_UNDEFINED) {
-        std::cout<<" : ERROR : Unrecognizable state"<<std::endl;
-        continue;
+      if (show_share && jobs_cfg.GetNewDataStaging()) {
+        get_new_data_staging_shares(user->ControlDir(),
+                                    share_preparing, share_preparing_pending,
+                                    share_finishing, share_finishing_pending);
       }
-      JobLocalDescription job_desc;
-      if (!job_local_read_file(i->get_id(), *user, job_desc)) {
-        std::cout<<" : ERROR : No local information."<<std::endl;
-        continue;
+      user->get_jobs()->ScanAllJobs();
+      for (JobsList::iterator i=user->get_jobs()->begin(); i!=user->get_jobs()->end(); ++i) {
+        if((!show_share) && (!notshow_jobs)) std::cout << "Job: "<<i->get_id();
+        jobs_total++;
+        bool pending;
+        job_state_t new_state = job_state_read_file(i->get_id(), *user, pending);
+        Arc::Time job_time(job_state_time(i->get_id(), *user));
+        counters[new_state]++;
+        if (pending) counters_pending[new_state]++;
+        if (new_state == JOB_STATE_UNDEFINED) {
+          std::cout<<" : ERROR : Unrecognizable state"<<std::endl;
+          continue;
+        }
+        JobLocalDescription job_desc;
+        if (!job_local_read_file(i->get_id(), *user, job_desc)) {
+          std::cout<<" : ERROR : No local information."<<std::endl;
+          continue;
+        }
+        if (show_share && !jobs_cfg.GetNewDataStaging()) {
+          if(new_state == JOB_STATE_PREPARING && !pending) share_preparing[job_desc.transfershare]++;
+          else if(new_state == JOB_STATE_ACCEPTED && pending) share_preparing_pending[job_desc.transfershare]++;
+          else if(new_state == JOB_STATE_FINISHING) share_finishing[job_desc.transfershare]++;
+          else if(new_state == JOB_STATE_INLRMS && pending) {
+            std::string jobid = i->get_id();
+            if (job_lrms_mark_check(jobid,*user)) share_finishing_pending[job_desc.transfershare]++;
+          }
+        }
+        if(!notshow_jobs) {
+          if (!long_list) {
+            std::cout<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
+            continue;
+          }
+          std::cout<<std::endl;
+          std::cout<<"\tState: "<<states_all[new_state].name;
+          if (pending)
+            std::cout<<" (PENDING)";
+          std::cout<<std::endl;
+          std::cout<<"\tModified: "<<job_time.str()<<std::endl;
+          std::cout<<"\tUser: "<<job_desc.DN<<std::endl;
+          if (!job_desc.localid.empty())
+            std::cout<<"\tLRMS id: "<<job_desc.localid<<std::endl;
+          if (!job_desc.jobname.empty())
+            std::cout<<"\tName: "<<job_desc.jobname<<std::endl;
+          if (!job_desc.clientname.empty())
+            std::cout<<"\tFrom: "<<job_desc.clientname<<std::endl;
+        }
       }
-      if (show_share){
-	if(new_state == JOB_STATE_PREPARING && !pending) share_preparing[job_desc.transfershare]++;
-        else if(new_state == JOB_STATE_ACCEPTED && pending) share_preparing_pending[job_desc.transfershare]++;
-        else if(new_state == JOB_STATE_FINISHING) share_finishing[job_desc.transfershare]++;
-        else if(new_state == JOB_STATE_INLRMS && pending) {
-          std::string jobid = i->get_id();
-          if (job_lrms_mark_check(jobid,*user)) share_finishing_pending[job_desc.transfershare]++;
-        };
-      }
-      if(!notshow_jobs) {
-      if (!long_list) {
-        std::cout<<" : "<<states_all[new_state].name<<" : "<<job_desc.DN<<" : "<<job_time.str()<<std::endl;
-        continue;
-      }
-      std::cout<<std::endl;
-      std::cout<<"\tState: "<<states_all[new_state].name;
-      if (pending)
-        std::cout<<" (PENDING)";
-      std::cout<<std::endl;
-      std::cout<<"\tModified: "<<job_time.str()<<std::endl;
-      std::cout<<"\tUser: "<<job_desc.DN<<std::endl;
-      if (!job_desc.localid.empty())
-        std::cout<<"\tLRMS id: "<<job_desc.localid<<std::endl;
-      if (!job_desc.jobname.empty()) 
-        std::cout<<"\tName: "<<job_desc.jobname<<std::endl;
-      if (!job_desc.clientname.empty()) 
-        std::cout<<"\tFrom: "<<job_desc.clientname<<std::endl;
-      }
-    }
     }
     if(show_service) {
       if(PingFIFO(*user)) service_alive = true;
