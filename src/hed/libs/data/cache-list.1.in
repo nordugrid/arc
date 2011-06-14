@@ -1,7 +1,7 @@
 .TH cache-list 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid ARC"
 .SH NAME
 
-cache-list \- List contents of the Grid Manager cache.
+cache-list \- List contents of the A-REX cache.
 
 .SH SYNOPSIS
 
@@ -14,15 +14,15 @@ cache-list [-h] [-c config_file] [url1 [url2 [...]]]
 
 .B -c
 - configuration file from which to read cache information. The
-  ARC_CONFIG environment variable can be set in place of this option.
+ARC_CONFIG environment variable can be set in place of this option.
 
 .B cache-list
 is used to list all files present in each cache or, given a list of
-  URLs as arguments, shows the location of each URL in the cache if
-  present. If no arguments are given, it prints to stdout each cache
-  directory specified in the configuration file then a list of files
-  in each cache directory and the corresponding URLs of their source
-  in the format:
+URLs as arguments, shows the location of each URL in the cache if
+present. If no arguments are given, it prints to stdout each cache
+directory specified in the configuration file then a list of files
+in each cache directory and the corresponding URLs of their source
+in the format:
 
 .B url filename
 
