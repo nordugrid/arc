@@ -464,7 +464,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
 }
 
 
-bool DTRGenerator::processReceivedJob(JobDescription& job) {
+bool DTRGenerator::processReceivedJob(const JobDescription& job) {
 
   JobId jobid(job.get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
