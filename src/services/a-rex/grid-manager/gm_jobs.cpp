@@ -303,21 +303,21 @@ int main(int argc, char* argv[]) {
   }
   
   if(show_share) {
-    std::cout<<"\n Preparing/Pending\tTransfer share"<<std::endl;
+    std::cout<<"\n Preparing/Pending "<<(jobs_cfg.GetNewDataStaging() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_preparing.begin(); i != share_preparing.end(); i++) {
-      std::cout<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+      std::cout<<"         "<<i->second<<"/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
     for (std::map<std::string, int>::iterator i = share_preparing_pending.begin(); i != share_preparing_pending.end(); i++) {
       if (share_preparing[i->first] == 0)
-        std::cout<<"         0/"<<share_preparing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+        std::cout<<"         0/"<<share_preparing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
-    std::cout<<"\n Finishing/Pending\tTransfer share"<<std::endl;
+    std::cout<<"\n Finishing/Pending "<<(jobs_cfg.GetNewDataStaging() ? "files" : "jobs ")<<"\tTransfer share"<<std::endl;
     for (std::map<std::string, int>::iterator i = share_finishing.begin(); i != share_finishing.end(); i++) {
-      std::cout<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+      std::cout<<"         "<<i->second<<"/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
     for (std::map<std::string, int>::iterator i = share_finishing_pending.begin(); i != share_finishing_pending.end(); i++) {
       if (share_finishing[i->first] == 0)
-        std::cout<<"         0/"<<share_finishing_pending[i->first]<<"\t\t"<<i->first<<std::endl;
+        std::cout<<"         0/"<<share_finishing_pending[i->first]<<"\t\t\t"<<i->first<<std::endl;
     }
     std::cout<<std::endl;
   }
