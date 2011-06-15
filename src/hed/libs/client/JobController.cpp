@@ -500,13 +500,15 @@ namespace Arc {
           std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      if (!it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+      if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
+        logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
         continue;
       }
 
       renewable.push_back(&(*it));
     }
+
+    if (renewable.empty()) return false;
 
     bool ok = true;
     for (std::list<Job*>::iterator it = renewable.begin();

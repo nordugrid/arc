@@ -150,7 +150,9 @@ int RUNRENEW(main)(int argc, char **argv) {
       retval = 1;
 
   if (retval == 0)
-    std::cout << "The credentials renewed" << std::endl;
+    std::cout << "Credentials renewed" << std::endl;
+  else
+    std::cout << "Failed to renew credentials for some or all jobs" << std::endl;
 
   return retval;
 }

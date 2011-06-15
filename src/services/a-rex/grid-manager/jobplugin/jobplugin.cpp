@@ -1199,25 +1199,25 @@ int JobPlugin::checkdir(std::string &dirname) {
       };
       /* check if new proxy is better than old one */
       std::string old_proxy_fname=user->ControlDir()+"/job."+id+".proxy";
-      time_t new_proxy_expires = time(NULL);
-      time_t old_proxy_expires = time(NULL);
+      Arc::Time new_proxy_expires;
+      Arc::Time old_proxy_expires;
       JobLog job_log;
       JobsListConfig jobs_cfg;
       GMEnvironment env(job_log,jobs_cfg);
       try {
         Arc::Credential new_ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
-        job_desc.expiretime = new_ci.GetEndTime();
+        new_proxy_expires = new_ci.GetEndTime();
       } catch (std::exception) { };
       try {
         Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, env.cert_dir_loc(), "");
-        job_desc.expiretime = old_ci.GetEndTime();
+        old_proxy_expires = old_ci.GetEndTime();
       } catch (std::exception) { };
-      if(((int)(new_proxy_expires-old_proxy_expires)) > 0) {
+      if(new_proxy_expires > old_proxy_expires) {
         /* try to renew proxy */
         logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
         if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
           fix_file_owner(old_proxy_fname,*user);
-          logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::MDSTime));
+          logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
           JobDescription job(id,"",JOB_STATE_ACCEPTED);
           job_desc.expiretime=new_proxy_expires;
           if(!job_local_write_file(job,*user,job_desc)) {
@@ -1228,7 +1228,7 @@ int JobPlugin::checkdir(std::string &dirname) {
           error_description="";
           /* Cause restart of job if it potentially failed 
              because of expired proxy */
-          if((((int)(old_proxy_expires-time(NULL))) <= 0) && (
+          if((old_proxy_expires < Arc::Time()) && (
               (job_desc.failedstate == 
                     JobDescription::get_state_name(JOB_STATE_PREPARING)) ||
               (job_desc.failedstate == 
@@ -1243,6 +1243,8 @@ int JobPlugin::checkdir(std::string &dirname) {
         } else {
           logger.msg(Arc::ERROR, "Failed to renew proxy");
         };
+      } else {
+        logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
       };
     };
     ApplyLocalCred(user,&id,"read");
