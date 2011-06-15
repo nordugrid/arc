@@ -1107,17 +1107,6 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
               return;
             };
             if(i->local->arguments.size()) {
-              // with new data staging, when a job fails or is cancelled we wait until all
-              // DTRs complete before continuing, so here we check for failure
-              if(jcfg.use_new_data_staging && dtr_generator) {
-                if(job_failed_mark_check(i->job_id, *user)) {
-                  state_changed=true; once_more=true;
-                  i->job_state = JOB_STATE_FINISHING;
-                  dtr_generator->receiveJob(*i);
-                  finishing_job_share[i->transfer_share]++;
-                  return;
-                };
-              };
               if((JOB_NUM_RUNNING<jcfg.max_jobs_running) || (jcfg.max_jobs_running==-1)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;
@@ -1636,9 +1625,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
             }
             state_changed=true;
             once_more=true;
-          } else if (!jcfg.use_new_data_staging || i->job_state != JOB_STATE_PREPARING){
-            // If job fails in preparing with new data staging, wait for DTRs to finish
-            // Any other failure should cause transfer to go to FINISHING
+          } else {
             i->job_state = JOB_STATE_FINISHING;
             if (jcfg.use_new_data_staging && dtr_generator) {
               dtr_generator->receiveJob(*i);
