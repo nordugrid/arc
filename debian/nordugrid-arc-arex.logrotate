@@ -9,3 +9,12 @@
 	kill -HUP `cat /var/run/arched-arex.pid`
   endscript
 }
+
+/var/log/arc/cache-clean.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+}
