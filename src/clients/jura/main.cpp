@@ -6,6 +6,14 @@
 #include <errno.h>
 #include <unistd.h>
 
+
+//TODO cross-platform
+#include <dirent.h>
+#include <signal.h>
+#include <errno.h>
+#include <time.h>
+#include <sstream>
+
 #ifdef WIN32
 #include <arc/win32.h>
 #endif
@@ -27,8 +35,9 @@ int main(int argc, char **argv)
   time_t ex_period = 0;
   std::vector<std::string> urls;
   std::vector<std::string> topics;
+  std::string output_dir;
   int n;
-  while((n=getopt(argc,argv,":E:u:t:")) != -1) {
+  while((n=getopt(argc,argv,":E:u:t:o:")) != -1) {
     switch(n) {
     case ':': { std::cerr<<"Missing argument\n"; return 1; }
     case '?': { std::cerr<<"Unrecognized option\n"; return 1; }
@@ -48,7 +57,14 @@ int main(int argc, char **argv)
       topics.push_back("");
       break;
     case 't':
+      if (topics.begin() == topics.end()){
+          std::cerr<<"Add URL value before a topic. (for example: -u [...] -t [...])\n";
+          return -1;
+      }
       topics.back() = (std::string(optarg));
+      break;
+    case 'o':
+      output_dir = (std::string(optarg));
       break;
     default: { std::cerr<<"Options processing error\n"; return 1; }
     }
@@ -61,7 +77,7 @@ int main(int argc, char **argv)
     {
       usagereporter=new Arc::UsageReporter(
 	                  std::string(argv[argind])+"/logs",
-			  ex_period, urls, topics );
+			  ex_period, urls, topics, output_dir );
       usagereporter->report();
       delete usagereporter;
     }

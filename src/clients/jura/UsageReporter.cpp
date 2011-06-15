@@ -20,12 +20,14 @@ namespace Arc
    *  interactive mode.
    */
   UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
-			       std::vector<std::string> urls_, std::vector<std::string> topics_):
+			       std::vector<std::string> urls_, std::vector<std::string> topics_,
+                               std::string out_dir_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     job_log_dir(job_log_dir_),
     expiration_time(expiration_time_),
     urls(urls_),
-    topics(topics_)
+    topics(topics_),
+    out_dir(out_dir_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
 	       job_log_dir.c_str());
@@ -61,6 +63,19 @@ namespace Arc
 	return -1;
       }
 
+    DIR *odirp;
+    errno=0;
+    //if ( !out_dir.empty() && (odirp=opendir(out_dir.c_str()))==NULL )
+    if ( (odirp=opendir(out_dir.c_str()))==NULL )
+      {
+	logger.msg(Arc::ERROR, 
+		   "Could not open output directory \"%s\": %s",
+		   out_dir.c_str(),
+		   StrError(errno)
+		   );
+	return -1;
+      }
+
     // Seek "<jobnumber>.<randomstring>" files.
     Arc::RegularExpression logfilepattern("^[0-9]+\\.[^.]+$");
     errno = 0;
@@ -73,6 +88,9 @@ namespace Arc
 	    //TODO handle DOS-style path separator!
 	    std::string fname=job_log_dir+"/"+entp->d_name;
 	    logfile=new Arc::JobLogFile(fname);
+            if (!out_dir.empty()){
+                (*logfile)["outputdir"] = out_dir;
+            }
 
 	    //A. Non-interactive mode: each jlf is parsed, and if valid, 
 	    //   submitted to the destination given  by "loggerurl=..."

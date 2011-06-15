@@ -29,14 +29,16 @@ namespace Arc
     std::string job_log_dir;
     time_t expiration_time;
     std::vector<std::string> urls; 
-    std::vector<std::string> topics; 
+    std::vector<std::string> topics;
+    std::string out_dir;
   public:
     /** Constructor. Gets the job log dir and the expiration time in seconds.
      *  Default expiration time is infinity (represented by zero value).
      */
     UsageReporter(std::string job_log_dir_, time_t expiration_time_=0,
                   std::vector<std::string> urls_=std::vector<std::string>(),
-                  std::vector<std::string> topics_=std::vector<std::string>());
+                  std::vector<std::string> topics_=std::vector<std::string>(),
+                  std::string out_dir_="");
     /** Processes job log files in '<control_dir>/logs'. */
     int report();
     ~UsageReporter();

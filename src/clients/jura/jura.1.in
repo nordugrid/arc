@@ -14,7 +14,8 @@ application is a resource-side accounting (usage logging) client.
 .SH SYNOPSIS
 
 jura [\fB-E\fR \fIexp_time\fR] [\fB-u\fR \fIurl\fR [\fB-u\fR
-\fIurl\fR ...] ] \fIctrl_dir\fR [\fIctrl_dir\fR ...]
+\fIurl\fR \fB-t\fR \fItopic\fR \fB-u\fR \fIurl\fR ...] ] 
+\fIctrl_dir\fR [\fIctrl_dir\fR ...]
 
 .SH OPTIONS
 
@@ -22,6 +23,10 @@ jura [\fB-E\fR \fIexp_time\fR] [\fB-u\fR \fIurl\fR [\fB-u\fR
 expiration time (validity length) of job log files in days
 .IP "\fB-u\fR"
 logging destination URL
+.IP "\fB-t\fR"
+topic for a destination URL
+.IP "\fB-o\fR"
+aggregated Apel accounting records directory
 .LP
 
 .SH ARGUMENTS

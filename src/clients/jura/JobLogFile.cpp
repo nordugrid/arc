@@ -331,9 +331,9 @@ namespace Arc
       }
     
     //Queue
-    if (find("lrms")!=end())
+    if (find("queue")!=end())
       {
-	ur.NewChild("Queue")=(*this)["lrms"];  //OK for Queue?
+	ur.NewChild("Queue")=(*this)["queue"];
       }
     
     //ProjectName
@@ -361,6 +361,13 @@ namespace Arc
 	ur.NewChild("arc:RunTimeEnvironment")=*jt;
       }
     
+    //LocalJobId
+    if (find("localjobid")!=end())
+      {
+	ur.NewChild("LocalJobId")=(*this)["localjobid"];
+      }
+
+
     //TODO user id info
 
     //***

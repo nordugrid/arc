@@ -1,45 +1,45 @@
 
-OGF-UR property	     A-REX log entry		  ARC-UR property
+OGF-UR property	     A-REX log entry		  ARC-UR property		APEL-UR elements
 
 RecordIdentity:      nodename, ngjobid 
 		     (hyphen-separated, 
 		     with custom prefix)
 GlobalJobId:         (ngjobid) globalid		  globaljobid
-LocalJobId:          localjobid			  localjobid
+LocalJobId:          localjobid			  localjobid			LocalJobId
 ProcessId:           [MISSING]			  processid
-GlobalUserName:      usersn			  globaluserid
-LocalUserId:         localuser			  localuserid
+GlobalUserName:      usersn			  globaluserid			GlobalUserName
+LocalUserId:         localuser			  localuserid			LocalUserId
 JobName:             jobname			  jobname
 Charge:              [MISSING]			  charge
 Status:              status			  status
 		     (no conversion yet!)
-WallDuration:        usedwalltime		  usedwalltime
-CpuDuration:         usedcputime		  usedcputime
-StartTime:           submissiontime		  submissiontime
-EndTime:             endtime			  endtime
-MachineName:         nodename			  nodename
+WallDuration:        usedwalltime		  usedwalltime			WallDuration
+CpuDuration:         usedcputime		  usedcputime			CpuDuration
+StartTime:           submissiontime		  submissiontime		StartTime
+EndTime:             endtime			  endtime			EndTime
+MachineName:         nodename			  nodename			Site
 Host:                nodename
 SubmitHost:          clienthost			  submithost
                      (port number removed)
-Queue:               lrms			  queue (lrms)
+Queue:               queue			  queue (lrms)			SubmitHost
 ProjectName:         projectname		  projectname
 
 Differentiated properties
 
 Network:             [MISSING]			  network
 Disk:                [MISSING]			  useddisk
-Memory:              [MISSING] 			  usedmemory
-                     (usedmemory is always zero
-                     due to bug in GNU time
-		     using fork scheduler)
+Memory:              usedmemory			  usedmemory			MemoryReal
 Swap:                [MISSING]			  usedswap
-NodeCount:           nodecount			  nodecount
-Processors:          [MISSING]			  processors
+NodeCount:           nodecount			  nodecount			NodeCount
+Processors:          [MISSING]			  processors			Processors
 
 TimeDuration:        [MISSING]
 TimeInstant:         [MISSING]
 ServiceLevel:        [MISSING]
 Extension:           [MISSING]
+										UserFQAN
+										ScalingFactor
+										ScalingFactorUnit
 
 Unmatched Logger ARC-UR properties
 
