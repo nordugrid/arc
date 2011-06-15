@@ -700,7 +700,7 @@ namespace Arc {
         }
         n++;
         SkipWS();
-      } while (s[n] == '(');
+      } while (n < s.size() && s[n] == '(');
       return b;
     }
     else {
