@@ -51,8 +51,8 @@ void JobLog::SetExpiration(time_t period) {
 bool JobLog::open_stream(std::ofstream &o) {
     o.open(filename.c_str(),std::ofstream::app);
     if(!o.is_open()) return false;
-    o<<" ";
     o<<(Arc::Time().str(Arc::UserTime));
+    o<<" ";
     return true;
 }
 
