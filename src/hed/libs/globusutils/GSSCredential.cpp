@@ -67,14 +67,13 @@ namespace Arc {
   }
 
   GSSCredential::~GSSCredential() {
-
     if (credential != GSS_C_NO_CREDENTIAL) {
       OM_uint32 majstat, minstat;
       majstat = gss_release_cred(&minstat, &credential);
       if (GSS_ERROR(majstat)) {
-	logger.msg(ERROR, "Failed to release GSS credential "
-		   "(major: %d, minor: %d):%s", majstat, minstat, ErrorStr(majstat, minstat));
-	return;
+        logger.msg(DEBUG, "Failed to release GSS credential "
+          "(major: %d, minor: %d):%s", majstat, minstat, ErrorStr(majstat, minstat));
+        return;
       }
     }
   }
