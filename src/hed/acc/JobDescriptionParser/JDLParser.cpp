@@ -41,7 +41,7 @@ namespace Arc {
     std::list<char> stack;
     std::string actual_line;
 
-    for (int i = 0; i < jdl_text.size() - 1; i++) {
+    if(!jdl_text.empty()) for (int i = 0; i < jdl_text.size() - 1; i++) {
       // Looking for control character marks the line end
       if (jdl_text[i] == ';' && !quotation && stack.empty()) {
         lines.push_back(actual_line);
@@ -54,10 +54,11 @@ namespace Arc {
       }
       // Determinize the quotations
       if (jdl_text[i] == '"') {
-        if (!quotation)
+        if (!quotation) {
           quotation = true;
-        else if (jdl_text[i - 1] != '\\')
+        } else if ((i > 0) && (jdl_text[i - 1] != '\\')) {
           quotation = false;
+        }
       }
       else if (!quotation) {
         if (jdl_text[i] == '{' || jdl_text[i] == '[')
@@ -85,11 +86,16 @@ namespace Arc {
     const size_t last_pos = attributeValue.find_last_of("\"");
 
     // If the text is not between quotation marks, then return with the original form
-    if (attributeValue.substr(attributeValue.find_first_not_of(whitespaces), 1) != "\"" || last_pos == std::string::npos)
+    if ((last_pos == std::string::npos) ||
+        (attributeValue.substr(attributeValue.find_first_not_of(whitespaces), 1) != "\"")) {
       return trim(attributeValue);
-    // Else remove the marks and return with the quotation's content
-    else
-      return attributeValue.substr(attributeValue.find_first_of("\"") + 1, last_pos - attributeValue.find_first_of("\"") - 1);
+    }
+    else {
+      // Else remove the marks and return with the quotation's content
+      const size_t first_pos = attributeValue.find_first_of("\"");
+      if(last_pos == first_pos) return trim(attributeValue);
+      return attributeValue.substr(first_pos + 1, last_pos - first_pos - 1);
+    }
   }
 
   std::list<std::string> JDLParser::listJDLvalue(const std::string& attributeValue, std::pair<char, char> brackets, char lineEnd) const {
@@ -105,12 +111,15 @@ namespace Arc {
       return elements;
     }
     std::list<std::string> listElements;
-    tokenize(attributeValue.substr(first_bracket + 1,
-                                   last_bracket - first_bracket - 1),
-             listElements, tostring(lineEnd));
+    if (first_bracket != last_bracket) {
+      tokenize(attributeValue.substr(first_bracket + 1,
+                                     last_bracket - first_bracket - 1),
+                                     listElements, tostring(lineEnd));
+    }
     for (std::list<std::string>::const_iterator it = listElements.begin();
-         it != listElements.end(); it++)
+         it != listElements.end(); it++) {
       elements.push_back(simpleJDLvalue(*it));
+    }
     return elements;
   }
 
@@ -474,8 +483,8 @@ namespace Arc {
 
     unsigned long first = source.find_first_of("[");
     unsigned long last = source.find_last_of("]");
-    if (first == std::string::npos || last == std::string::npos) {
-      logger.msg(VERBOSE, "[JDLParser] There is at least one necessary ruler character missing. ('[' or ']')");
+    if (first == std::string::npos || last == std::string::npos || first >= last) {
+      logger.msg(VERBOSE, "[JDLParser] There is at least one necessary ruler character missing or their order incorrect. ('[' or ']')");
       jobdescs.clear();
       return false;
     }
