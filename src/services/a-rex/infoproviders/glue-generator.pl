@@ -19,8 +19,8 @@ use vars qw($DEFAULT); $DEFAULT = -1;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
 use vars qw($glueHostMainMemoryRAMSize $glueHostArchitecturePlatformType $glueSubClusterUniqueID $GlueHostBenchmarkSI00 $GlueHostBenchmarkSF00);
 use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID $processorOtherDesc $smpSize);
-use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots $estRespTime $worstRespTime);
-use vars qw(@envs);
+use vars qw($AssignedSlots $mappedStatus $waitingJobs $totalJobs $waitingJobs $freeSlots $estRespTime $worstRespTime $vo $ce_unique_id);
+use vars qw(@envs @vos);
 
 #Create nordugrid ldif
 #TODO read this from optarg
@@ -422,6 +422,7 @@ sub write_gluece_entries(){
 	    # T1 services
 	    $estRespTime = int(600 + ($queue_attributes{'nordugrid-queue-running'} /$queue_attributes{'nordugrid-queue-maxrunning'}) *3600 + ($waitingJobs /$queue_attributes{'nordugrid-queue-maxrunning'}) * 600 );
 	    $worstRespTime = $estRespTime + 2000;
+	    my @vos= split / /, $cluster_attributes{'nordugrid-cluster-acl'};
 
 	    # Write CE Entries
 	    
@@ -461,14 +462,48 @@ GlueCEPolicyMaxRunningJobs: $queue_attributes{'nordugrid-queue-maxrunning'}
 GlueCEPolicyMaxTotalJobs: $queue_attributes{'nordugrid-queue-maxqueuable'}
 GlueCEPolicyMaxWallClockTime: $queue_attributes{'nordugrid-queue-maxcputime'}
 GlueCEPolicyPriority: 1
-GlueCEPolicyAssignedJobSlots: $AssignedSlots
-GlueCEAccessControlBaseRule: $cluster_attributes{'nordugrid-cluster-acl'}
-GlueForeignKey: GlueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'}
+GlueCEPolicyAssignedJobSlots: $AssignedSlots\n";
+            foreach (@vos){
+                chomp;
+                print "GlueCEAccessControlBaseRule: $_\n";
+            }
+            print "GlueForeignKey: GlueClusterUniqueID=$cluster_attributes{'nordugrid-cluster-name'}
 GlueSchemaVersionMajor: 1
 GlueSchemaVersionMinor: 2
 ";
-	    
-	}
+
+            foreach (@vos){
+                chomp;
+        	$vo = $_;
+        	$vo =~ s/VO:// ;
+
+                print "
+dn: GlueVOViewLocalID=$vo,GlueCEUniqueID=$ce_unique_id,Mds-Vo-name=resource,o=grid
+objectClass: GlueCETop
+objectClass: GlueVOView
+objectClass: GlueCEInfo
+objectClass: GlueCEState
+objectClass: GlueCEAccessControlBase
+objectClass: GlueCEPolicy
+objectClass: GlueKey
+objectClass: GlueSchemaVersion
+GlueSchemaVersionMajor: 1
+GlueSchemaVersionMinor: 2
+GlueCEInfoDefaultSE: $cluster_attributes{'nordugrid-cluster-localse'}
+GlueCEStateTotalJobs: $totalJobs
+GlueCEInfoDataDir: unset
+GlueCEAccessControlBaseRule: VO:$vo
+GlueCEStateRunningJobs: $queue_attributes{'nordugrid-queue-running'}
+GlueChunkKey: GlueCEUniqueID=$ce_unique_id
+GlueVOViewLocalID: $vo
+GlueCEInfoApplicationDir: unset
+GlueCEStateWaitingJobs: $waitingJobs
+GlueCEStateEstimatedResponseTime: $estRespTime
+GlueCEStateWorstResponseTime: $worstRespTime
+GlueCEStateFreeJobSlots: $freeSlots
+";
+            }
+        }
     }
 }
 
