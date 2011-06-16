@@ -214,6 +214,7 @@ void XRSLParserTest::TestFilesUploadDelete() {
   file.Name = "3-Upload-Delete";
   file.Source.push_back(Arc::URL(file.Name));
   file.KeepData = false;
+  file.FileSize = file.Name.length();
   INJOB.Files.push_back(file);
 
   // The file need to be there, otherwise the XRSLParser will fail.
@@ -232,6 +233,7 @@ void XRSLParserTest::TestFilesUploadDelete() {
   std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
@@ -339,6 +341,7 @@ void XRSLParserTest::TestFilesUploadDownload() {
   file.Name = "6-Upload-Download";
   file.Source.push_back(Arc::URL(file.Name));
   file.KeepData = true;
+  file.FileSize = file.Name.length();
   INJOB.Files.push_back(file);
 
   // The file need to be there, otherwise the XRSLParser will fail.
@@ -357,6 +360,7 @@ void XRSLParserTest::TestFilesUploadDownload() {
   std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
@@ -476,6 +480,7 @@ void XRSLParserTest::TestFilesUploadUpload() {
   file.Source.push_back(Arc::URL(file.Name));
   file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
   file.KeepData = false;
+  file.FileSize = file.Name.length();
   INJOB.Files.push_back(file);
 
   // The file need to be there, otherwise the XRSLParser will fail.
@@ -494,6 +499,7 @@ void XRSLParserTest::TestFilesUploadUpload() {
   std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.front(),  it->Source.back());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());

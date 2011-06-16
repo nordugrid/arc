@@ -545,7 +545,7 @@ namespace Arc {
           std::list<std::string>::iterator it2 = it->begin();
           FileType file;
           file.Name = *it2++;
-          long fileSize;
+          long fileSize = -1;
           // The second string in the list (it2) might either be a URL or file size.
           if (!it2->empty() && !stringto(*it2, fileSize)) {
             URL turl(*it2);
@@ -582,6 +582,7 @@ namespace Arc {
             file.Source.push_back(turl);
           }
           else {
+            if (fileSize != -1) file.FileSize = fileSize;
             file.Source.push_back(URL(file.Name));
           }
           file.KeepData = false;

@@ -197,6 +197,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         }
         inputdata.back().lfn = u.fullstr();
       }
+      else if (file->FileSize != -1) {
+        inputdata.back().lfn = Arc::tostring(file->FileSize);
+      }
     }
     if (!file->Target.empty()) { // output file
       FileData fdata(fname, file->Target.front().fullstr());

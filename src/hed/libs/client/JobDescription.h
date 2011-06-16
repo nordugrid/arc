@@ -190,12 +190,14 @@ namespace Arc {
   public:
     FileType() :
       KeepData(false),
-      IsExecutable(false) {}
+      IsExecutable(false),
+      FileSize(-1) {}
     std::string Name;
     bool KeepData;
     bool IsExecutable;
     std::list<URL> Source;
     std::list<URL> Target;
+    long FileSize;
   };
 
   class JobDescription {
