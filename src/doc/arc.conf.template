@@ -1004,11 +1004,11 @@ groupcfg="users"
 # BDII4 will use these directories internally
 #bdii_tmp_dir="/var/tmp/bdii4"
 #bdii_var_dir="/var/run/bdii4"
-#bdii_log_dir="/var/log/bdii4"
+#bdii_log_dir="/var/log/arc/bdii4"
 
 # BDII5 uses these variables
 #bdii_var_dir="/var/run/bdii"
-#bdii_log_dir="/var/log/bdii"
+#bdii_log_dir="/var/log/arc/bdii"
 #bdii_tmp_dir="/var/tmp/bdii"
 
 # If installed in gLite default location or somewhere else, set these variables

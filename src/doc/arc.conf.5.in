@@ -572,7 +572,7 @@ daemon switches to specified user. Hence it can be owned by
 root. Default log file is "/var/log/arc/grid-manager.log".
 
 .IR Example :
-logfile="/var/log/grid-manager.log"
+logfile="/var/log/arc/grid-manager.log"
 
 .TP
 .B logsize
@@ -623,7 +623,7 @@ jobs. If the given path is empty or the joblog attribute is not given
 the log is disabled.
 
 .IR Example :
-joblog="/var/log/gm-jobs.log"
+joblog="/var/log/arc/gm-jobs.log"
 
 .TP
 .B jobreport
@@ -1233,7 +1233,7 @@ debug="2"
 Set log file location.
 
 .IR Example :
-logfile="/var/log/gridftpd.log"
+logfile="/var/log/arc/gridftpd.log"
 
 .TP
 .B logsize
@@ -1727,19 +1727,19 @@ idletimeout="1800"
 .TP
 .B registrationlog
 Specifies the log file for the registration processes initiated by your
-machine. Default is "/var/log/inforegistration.log".
+machine. Default is "/var/log/arc/inforegistration.log".
 
 .IR Example :
-registrationlog="/var/log/inforegistration.log"
+registrationlog="/var/log/arc/inforegistration.log"
 
 .TP
 .B providerlog
 Specifies log file location for the information provider scripts. The
 feature is only available with >= 0.5.26 tag. Default is
-"/var/log/infoprovider.log"
+"/var/log/arc/infoprovider.log"
 
 .IR Example :
-providerlog="/var/log/infoprovider.log"
+providerlog="/var/log/arc/infoprovider.log"
 
 .TP
 .B provider_loglevel
@@ -1841,7 +1841,7 @@ bdii_tmp_dir="/var/tmp/bdii"
 .br
 bdii_var_dir="/var/run/bdii"
 .br
-bdii_log_dir="/var/log/bdii"
+bdii_log_dir="/var/log/arc/bdii"
 .br
 bdii_conf="/var/run/nordugrid/bdii.conf"
 .br
