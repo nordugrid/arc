@@ -542,10 +542,11 @@ namespace Arc {
 #ifndef WIN32
       if (cacheable) {
         res = DataStatus::Success;
+        bool use_remote = true;
         for (;;) { /* cycle for outdated cache files */
           bool is_in_cache = false;
           bool is_locked = false;
-          if (!cache.Start(canonic_url, is_in_cache, is_locked)) {
+          if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote)) {
             if (is_locked) {
               logger.msg(VERBOSE, "Cached file is locked - should retry");
               source.NextLocation(); /* to decrease retry counter */
@@ -561,6 +562,7 @@ namespace Arc {
             if (cache_option == "renew") {
               logger.msg(VERBOSE, "Forcing re-download of file %s", canonic_url);
               cache.StopAndDelete(canonic_url);
+              use_remote = false;
               continue;
             }
             /* just need to check permissions */
@@ -606,6 +608,7 @@ namespace Arc {
             if (outdated) {
               cache.StopAndDelete(canonic_url);
               logger.msg(INFO, "Cached file is outdated, will re-download");
+              use_remote = false;
               continue;
             }
             logger.msg(VERBOSE, "Cached copy is still valid");
