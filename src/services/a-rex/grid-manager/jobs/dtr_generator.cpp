@@ -697,7 +697,6 @@ bool DTRGenerator::processCancelledJob(const std::string& jobid) {
   return true;
 }
 
-/* taken straight from old downloader - could be re-written better */
 int DTRGenerator::checkUploadedFiles(JobDescription& job) {
 
   JobId jobid(job.get_id());
@@ -724,137 +723,137 @@ int DTRGenerator::checkUploadedFiles(JobDescription& job) {
     return 1;
   }
   int res = 0;
-  // read input_status files
-  std::list<std::string> uploaded_files;
-  std::list<std::string>* uploaded_files_ = NULL;
-  if (job_input_status_read_file(jobid, *jobuser, uploaded_files))
-    uploaded_files_ = &uploaded_files;
+
   // loop through each file and check
   for (FileData::iterator i = input_files.begin(); i != input_files.end();) {
-    if (i->lfn.find(":") == std::string::npos) { // not remote file
-      logger.msg(Arc::VERBOSE, "%s: Check user uploadable file: %s", jobid, i->pfn);
-      std::string error;
-      int err = user_file_exists(*i, session_dir, uploaded_files_, &error);
-      if (err == 0) { /* file is uploaded */
-        logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
-        // remove from input list
-        i = input_files.erase(i);
-        input_files_.clear();
-        for (FileData::iterator it = input_files.begin(); it != input_files.end(); ++it)
-          input_files_.push_back(*it);
-        if (!job_input_write_file(job, *jobuser, input_files_)) {
-          logger.msg(Arc::WARNING, "%s: Failed writing changed input file.", jobid);
-        }
-      }
-      else if (err == 1) { /* critical failure */
-        logger.msg(Arc::ERROR, "%s: Critical error for uploadable file %s", jobid, i->pfn);
-        job.AddFailure("User file: "+i->pfn+" - "+error);
-        res = 1;
-        goto exit;
-      }
-      else {
-        res = 2;
-        ++i;
+    // all remote files should have been downloaded by this point
+    if (i->lfn.find(":") != std::string::npos) {
+      ++i;
+      continue;
+    }
+    logger.msg(Arc::VERBOSE, "%s: Checking user uploadable file: %s", jobid, i->pfn);
+    std::string error;
+    int err = user_file_exists(*i, session_dir, error);
+
+    if (err == 0) { // file is uploaded
+      logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
+      // remove from input list
+      i = input_files.erase(i);
+      input_files_.clear();
+      for (FileData::iterator it = input_files.begin(); it != input_files.end(); ++it)
+        input_files_.push_back(*it);
+      if (!job_input_write_file(job, *jobuser, input_files_)) {
+        logger.msg(Arc::WARNING, "%s: Failed writing changed input file.", jobid);
       }
     }
-    else {
+    else if (err == 1) { // critical failure
+      logger.msg(Arc::ERROR, "%s: Critical error for uploadable file %s", jobid, i->pfn);
+      job.AddFailure("User file: "+i->pfn+" - "+error);
+      res = 1;
+      break;
+    }
+    else { // still waiting
+      res = 2;
       ++i;
     }
   }
   // check for timeout
   if (res == 2 && ((time(NULL) - job.GetStartTime()) > 600)) { // hard-coded timeout
     for (FileData::iterator i = input_files.begin(); i != input_files.end(); ++i) {
-      if (i->lfn.find(":") == std::string::npos) { /* is it lfn ? */
+      if (i->lfn.find(":") == std::string::npos) {
         job.AddFailure("User file: "+i->pfn+" - Timeout waiting");
-      };
-    };
+      }
+    }
     logger.msg(Arc::ERROR, "%s: Uploadable files timed out", jobid);
     res = 1;
-  };
-exit:
+  }
   // clean unfinished files here
-  input_files_.clear();
-  for (FileData::iterator i = input_files.begin(); i != input_files.end(); ++i)
-    input_files_.push_back(*i);
-  delete_all_files(session_dir, input_files_, false, true, false);
+  delete_all_files(session_dir, input_files, false, true, false);
   return res;
 }
 
-/*
-   Check for existence of user uploadable file
-   returns 0 if file exists
-           1 - it is not proper file or other error
-           2 - not here yet
-   TODO: Copied straight from old downloader - should be cleaned up
-*/
-int DTRGenerator::user_file_exists(FileData &dt,const std::string& session_dir,std::list<std::string>* have_files,std::string* error) {
+int DTRGenerator::user_file_exists(FileData &dt,
+                                   const std::string& session_dir,
+                                   std::string& error) {
   struct stat st;
-  const char *str = dt.lfn.c_str();
-  if(strcmp(str,"*.*") == 0) return 0; /* do not wait for this file */
-  std::string fname=session_dir + '/' + dt.pfn;
-  /* check if file does exist at all */
-  if(lstat(fname.c_str(),&st) != 0) return 2;
-  /* check for misconfiguration */
-  /* parse files information */
-  char *str_;
-  unsigned long long int fsize;
-  unsigned long long int fsum = (unsigned long long int)(-1);
+  std::string file_info(dt.lfn);
+  if (file_info == "*.*") return 0; // do not wait for this file
+
+  std::string fname = session_dir + '/' + dt.pfn;
+  // check if file exists at all
+  if (lstat(fname.c_str(), &st) != 0) return 2;
+
+  // if no size/checksum was supplied, return success
+  if (file_info.empty()) return 0;
+
+  if (S_ISDIR(st.st_mode)) {
+    error = "Expected file. Directory found.";
+    return 1;
+  }
+  if (!S_ISREG(st.st_mode)) {
+    error = "Expected ordinary file. Special object found.";
+    return 1;
+  }
+
+  long long int fsize;
+  long long int fsum;
   bool have_size = false;
   bool have_checksum = false;
-  errno = 0;
-  fsize = strtoull(str,&str_,10);
-  if((*str_) == '.') {
-    if(str_ != str) have_size=true;
-    str=str_+1;
-    fsum = strtoull(str,&str_,10);
-    if((*str_) != 0) {
-      logger.msg(Arc::ERROR, "Invalid checksum in %s for %s", dt.lfn, dt.pfn);
-      if(error) (*error)="Bad information about file: checksum can't be parsed.";
+
+  // parse format [size][.checksum]
+  if (file_info[0] == '.') { // checksum only
+    if (!Arc::stringto(file_info.substr(1), fsum)) {
+      logger.msg(Arc::ERROR, "Can't convert checksum %s to int for %s", file_info.substr(1), dt.pfn);
+      error = "Invalid checksum information";
       return 1;
-    };
-    have_checksum=true;
+    }
+    have_checksum = true;
+  } else if (file_info.find('.') == std::string::npos) { // size only
+    if (!Arc::stringto(file_info, fsize)) {
+      logger.msg(Arc::ERROR, "Can't convert filesize %s to int for %s", file_info, dt.pfn);
+      error = "Invalid file size information";
+      return 1;
+    }
+    have_size = true;
+  } else { // size and checksum
+    std::vector<std::string> file_attrs;
+    Arc::tokenize(dt.lfn, file_attrs, ".");
+    if (file_attrs.size() != 2) {
+      logger.msg(Arc::ERROR, "Invalid size/checksum information (%s) for %s", file_info, dt.pfn);
+      error = "Invalid size/checksum information";
+      return 1;
+    }
+    if (!Arc::stringto(file_attrs[0], fsize)) {
+      logger.msg(Arc::ERROR, "Can't convert filesize %s to int for %s", file_attrs[0], dt.pfn);
+      error = "Invalid file size information";
+      return 1;
+    }
+    if (!Arc::stringto(file_attrs[1], fsum)) {
+      logger.msg(Arc::ERROR, "Can't convert checksum %s to int for %s", file_attrs[1], dt.pfn);
+      error = "Invalid checksum information";
+      return 1;
+    }
+    have_size = true;
+    have_checksum = true;
   }
-  else {
-    if(str_ != str) have_size=true;
-    if((*str_) != 0) {
-      logger.msg(Arc::ERROR, "Invalid file size in %s for %s ", dt.lfn, dt.pfn);
-      if(error) (*error)="Bad information about file: size can't be parsed.";
-      return 1;
-    };
-  };
-  if(S_ISDIR(st.st_mode)) {
-    if(have_size || have_checksum) {
-      if(error) (*error)="Expected file. Directory found.";
-      return 1;
-    };
-    return 0;
-  };
-  if(!S_ISREG(st.st_mode)) {
-    if(error) (*error)="Expected ordinary file. Special object found.";
-    return 1;
-  };
-  /* now check if proper size */
-  if(have_size) {
-    if(st.st_size < fsize) return 2;
-    if(st.st_size > fsize) {
+
+  // now check if proper size
+  if (have_size) {
+    if (st.st_size < fsize) return 2;
+    if (st.st_size > fsize) {
       logger.msg(Arc::ERROR, "Invalid file: %s is too big.", dt.pfn);
-      if(error) (*error)="Delivered file is bigger than specified.";
-      return 1; /* too big file */
-    };
-  };
-  if(have_files) {
-    std::list<std::string>::iterator f = have_files->begin();
-    for(;f!=have_files->end();++f) {
-      if(dt.pfn == *f) break;
-    };
-    if(f == have_files->end()) return 2;
-  } else if(have_checksum) {
-    int h=::open(fname.c_str(),O_RDONLY);
-    if(h==-1) { /* if we can't read that file job won't too */
-      logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);
-      if(error) (*error)="Delivered file is unreadable.";
+      error = "Delivered file is bigger than specified.";
       return 1;
-    };
+    }
+  }
+
+  if (have_checksum) { // calculate checksum
+    int h = ::open(fname.c_str(), O_RDONLY);
+    if (h == -1) { // if we can't read that file job won't too
+      logger.msg(Arc::ERROR, "Error accessing file %s", dt.pfn);
+      error = "Delivered file is unreadable.";
+      return 1;
+    }
     Arc::CRC32Sum crc;
     char buffer[1024];
     ssize_t l;
@@ -862,23 +861,24 @@ int DTRGenerator::user_file_exists(FileData &dt,const std::string& session_dir,s
     for(;;) {
       if((l=read(h,buffer,1024)) == -1) {
         logger.msg(Arc::ERROR, "Error reading file %s", dt.pfn);
-        if(error) (*error)="Could not read file to compute checksum.";
+        error = "Could not read file to compute checksum.";
         return 1;
-      };
-      if(l==0) break; ll+=l;
+      }
+      if(l==0) break;
+      ll+=l;
       crc.add(buffer,l);
-    };
+    }
     close(h);
     crc.end();
-    if(fsum != crc.crc()) {
-      if(have_size) { /* size was checked - it is an error to have wrong crc */
+    if (fsum != crc.crc()) {
+      if (have_size) { // size was checked and is ok
         logger.msg(Arc::ERROR, "File %s has wrong CRC.", dt.pfn);
-        if(error) (*error)="Delivered file has wrong checksum.";
+        error = "Delivered file has wrong checksum.";
         return 1;
-      };
-      return 2; /* just not uploaded yet */
-    };
-  };
-  return 0; /* all checks passed - file is ok */
+      }
+      return 2; // not uploaded yet
+    }
+  }
+  return 0; // all checks passed - file is ok
 }
 

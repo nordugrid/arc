@@ -83,9 +83,17 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** Process a cancelled job */
   bool processCancelledJob(const std::string& jobid);
 
-  // Utility method copied from downloader
-  /** Check that user-uploadable file exists */
-  static int user_file_exists(FileData &dt,const std::string& session_dir,std::list<std::string>* have_files,std::string* error = NULL);
+  /** Check that user-uploadable file exists.
+   * Returns 0 - if file exists
+   *         1 - it is not proper file or other error
+   *         2 - not there yet
+   * @param dt Filename and size/checksum information
+   * @param session_dir Directory in which to find uploaded file
+   * @param error Errors are reported in this string
+   */
+  static int user_file_exists(FileData &dt,
+                              const std::string& session_dir,
+                              std::string& error);
 
  public:
   /**
