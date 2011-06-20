@@ -40,6 +40,8 @@ namespace DataStaging {
 
     // Create cache using configuration
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
+                         request->get_cache_parameters().remote_cache_dirs,
+                         request->get_cache_parameters().drain_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
                          request->get_local_user().get_gid());
@@ -70,8 +72,9 @@ namespace DataStaging {
 
     bool is_in_cache = false;
     bool is_locked = false;
+    bool use_remote = true;
     for (;;) {
-      if (!cache.Start(canonic_url, is_in_cache, is_locked)) {
+      if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote)) {
         if (is_locked) {
           request->get_logger()->msg(Arc::WARNING, "DTR %s: Cached file is locked - should retry", request->get_short_id());
           request->set_cache_state(CACHE_LOCKED);
@@ -106,6 +109,7 @@ namespace DataStaging {
         if (cache_option == "renew") {
           request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Forcing re-download of file %s", request->get_short_id(), canonic_url);
           cache.StopAndDelete(canonic_url);
+          use_remote = false;
           continue;
         }
         // just need to check permissions
@@ -152,6 +156,7 @@ namespace DataStaging {
         if (outdated) {
           cache.StopAndDelete(canonic_url);
           request->get_logger()->msg(Arc::INFO, "DTR %s: Cached file is outdated, will re-download", request->get_short_id());
+          use_remote = false;
           continue;
         }
         // cached file is present and valid
@@ -524,6 +529,8 @@ namespace DataStaging {
     setUpLogger(request);
 
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
+                         request->get_cache_parameters().remote_cache_dirs,
+                         request->get_cache_parameters().drain_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
                          request->get_local_user().get_gid());
