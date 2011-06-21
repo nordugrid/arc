@@ -295,7 +295,14 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
 
     // Return if test jobdescription is not defined
     if (!(submitter->GetTestJob(testid, jobdescdump))) {
-      logger.msg(Arc::ERROR, "Illegal testjob-id given");
+      std::ostringstream ids;
+      int i = 0;
+      while (submitter->GetTestJob(++i, jobdescdump)) {
+        if ( i-1 == 0 ) ids << i;
+        else ids << ", " << i;
+      }
+      if ( i-1 == 0 ) logger.msg(Arc::ERROR, "For this middleware there are no testjobs defined.");
+      else logger.msg(Arc::ERROR, "For this middleware only %s testjobs are defined.", ids.str());
       return false;
     }
 
