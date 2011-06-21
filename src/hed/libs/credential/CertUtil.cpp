@@ -141,14 +141,19 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       break;
 #endif
 
-#if (OPENSSL_VERSION_NUMBER > 0x0090706fL)
+#ifdef X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION
       /*
       * In the later version (097g+) OpenSSL does know about
       * proxies, but not non-rfc compliant proxies, it will
       * count them as unhandled critical extensions.
+      * Of cause before version 097g, any proxy (not only non-rfc proxy) 
+      * extension will be count as unhandled critical extensions. 
       * So we will ignore the errors and do our
       * own checks later on, when we check the last
       * certificate in the chain we will check the chain.
+      * Since the X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION (with value 34) 
+      * starts to be defined in version 097(first version of 097 series), 
+      * the detection of this value is used to switch to the following case.
       * As OpenSSL does not recognize legacy proxies (pre-RFC, and older fasion proxies)
       */
     case X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION:
@@ -172,6 +177,9 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
   #endif
       ok = 1;
       break;
+#endif
+
+#ifdef X509_V_ERR_INVALID_PURPOSE
     case X509_V_ERR_INVALID_PURPOSE:
       /*
       * Invalid purpose if we init sec context with a server that does
