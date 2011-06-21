@@ -515,10 +515,10 @@ namespace Arc {
         logger.msg(DEBUG, "list_files_ftp: "
                           "looking for checksum of %s", url.str());
         char cksum[256];
-        const char * cksumtype(upper(DefaultCheckSum()).c_str());
+        std::string cksumtype(upper(DefaultCheckSum()));
         GlobusResult res = globus_ftp_client_cksm(&ftp_handle, url.str().c_str(),
                                                   &ftp_opattr, cksum, (globus_off_t)0,
-                                                  (globus_off_t)-1, cksumtype,
+                                                  (globus_off_t)-1, cksumtype.c_str(),
                                                   &ftp_complete_callback, this);
         if (!res) {
           logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksum failed");
@@ -698,10 +698,10 @@ namespace Arc {
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for checksum of %s", f_url);
       char cksum[256];
-      const char * cksumtype(upper(DefaultCheckSum()).c_str());
+      std::string cksumtype(upper(DefaultCheckSum()).c_str());
       res = globus_ftp_client_cksm(&ftp_handle, f_url.c_str(),
                                    &ftp_opattr, cksum, (globus_off_t)0,
-                                   (globus_off_t)-1, cksumtype,
+                                   (globus_off_t)-1, cksumtype.c_str(),
                                    &ftp_complete_callback, this);
       if (!res) {
         logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksum failed");
