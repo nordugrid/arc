@@ -320,9 +320,6 @@ foreach my $filesystem (@caches) {
                     my $line = <FILE>;
                     close FILE;
                     chomp($line);
-                    if (rindex($line, ' ') != -1) {
-                        $line = substr($line, 0, rindex($line, ' '));
-                    }
                     $log->verbose(join("", "Deleting file: $fil  atime: ", scalar localtime($files{$fil}{atime}), "  size: $files{$fil}{size}  url: $line"));
                 }
                 else {

@@ -225,27 +225,39 @@ namespace Arc {
       // check URL inside file for possible hash collisions
       std::list<std::string> lines;
       if (!FileRead(meta_file, lines)) {
-        logger.msg(ERROR, "Error reading meta file %s", _getMetaFileName(url));
+        logger.msg(ERROR, "Error reading meta file %s", meta_file);
         lock.release();
         return false;
       }
       if (lines.empty()) {
-        logger.msg(ERROR, "Meta file %s is empty", _getMetaFileName(url));
+        logger.msg(ERROR, "Meta file %s is empty", meta_file);
         lock.release();
         return false;
       }
       std::string meta_str = lines.front();
-      std::string::size_type space_pos = meta_str.rfind(' ');
-      if (meta_str.substr(0, space_pos) != url) {
-        logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached",
-                   url, filename, meta_str.substr(0, space_pos));
-        lock.release();
-        return false;
+      // check new and old format for validity time - if old change to new
+      if (meta_str != url) {
+        if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
+          logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached",
+                     url, filename, meta_str);
+          lock.release();
+          return false;
+        } else {
+          logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
+          std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
+          lines.pop_front();
+          for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
+            new_meta += *i + '\n';
+          }
+          if (!FileCreate(meta_file, new_meta)) {
+            logger.msg(WARNING, "Could not write meta file %s", meta_file);
+          }
+        }
       }
     }
     else if (errno == ENOENT) {
-      // create new file with "infinite" validity time (just under 32 bit max time)
-      if (!FileCreate(meta_file, std::string(url + " 20380101000000Z\n"))) {
+      // create new file
+      if (!FileCreate(meta_file, std::string(url + '\n'))) {
         logger.msg(ERROR, "Failed to create meta file %s", meta_file);
         lock.release();
         return false;
@@ -714,32 +726,41 @@ namespace Arc {
     std::list<std::string>::iterator line = lines.begin();
     std::string first_line(*line);
 
-    // check for correct formatting and possible hash collisions between URLs
-    std::string::size_type space_pos = first_line.rfind(' ');
-
-    if (first_line.substr(0, space_pos) != url) {
+    // check for possible hash collisions between URLs
+    // taking into account old meta file format
+    if (first_line != url && first_line.substr(0, first_line.rfind(' ')) != url) {
       logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - will not add DN to cached list",
-                 url, File(url), first_line.substr(0, space_pos));
+                 url, File(url), first_line);
       return false;
     }
 
     std::string newdnlist(first_line + '\n');
-    newdnlist += std::string(DN + ' ' + expiry_time.str(MDSTime) + '\n');
 
-    // check list of DNs for expired and this DN
-    for (++line; line != lines.end(); ++line) {
-      space_pos = line->rfind(' ');
+    // second line may contain validity time
+    ++line;
+    if (line != lines.end()) {
+      std::string::size_type space_pos = line->rfind(' ');
       if (space_pos == std::string::npos) {
-        logger.msg(WARNING, "Bad format detected in file %s, in line %s", meta_file, *line);
-        continue;
+        newdnlist += std::string(*line + '\n');
+        ++line;
       }
-      // remove expired DNs (after some grace period)
-      if (line->substr(0, space_pos) != DN) {
-        Time exp_time(line->substr(space_pos + 1));
-        if (exp_time > Time(time(NULL) - CACHE_DEFAULT_AUTH_VALIDITY))
-          newdnlist += std::string(*line + '\n');
+
+      // check list of DNs for expired and this DN
+      for (; line != lines.end(); ++line) {
+        space_pos = line->rfind(' ');
+        if (space_pos == std::string::npos) {
+          logger.msg(WARNING, "Bad format detected in file %s, in line %s", meta_file, *line);
+          continue;
+        }
+        // remove expired DNs (after some grace period)
+        if (line->substr(0, space_pos) != DN) {
+          Time exp_time(line->substr(space_pos + 1));
+          if (exp_time > Time(time(NULL) - CACHE_DEFAULT_AUTH_VALIDITY))
+            newdnlist += std::string(*line + '\n');
+        }
       }
     }
+    newdnlist += std::string(DN + ' ' + expiry_time.str(MDSTime) + '\n');
 
     // write everything back to the file
     if (!FileCreate(meta_file, newdnlist)) {
@@ -812,10 +833,10 @@ namespace Arc {
       return 0;
     }
 
-    time_t ctime = fileStat.st_ctime;
-    if (ctime <= 0)
+    time_t mtime = fileStat.st_mtime;
+    if (mtime <= 0)
       return Time(0);
-    return Time(ctime);
+    return Time(mtime);
   }
 
   bool FileCache::CheckValid(std::string url) {
@@ -842,39 +863,25 @@ namespace Arc {
       return false;
     }
 
-    // get the first line
-    std::string meta_str(lines.front());
-
-    // if the file contains only the url, we don't have an expiry time
-    if (meta_str == url)
+    // if the file contains only one line, we don't have an expiry time
+    if (lines.size() == 1)
       return Time(0);
 
-    // check sensible formatting - should be like "rls://rls1.ndgf.org/file1 20080101123456Z"
-    if (meta_str.substr(0, url.length() + 1) != url + " ") {
-      logger.msg(ERROR, "Mismatching url in file %s: %s Expected %s", _getMetaFileName(url), meta_str, url);
+    // second line may contain expiry time in form 20080101123456Z,
+    // but it could be a cached DN
+    std::string meta_str(*(lines.erase(lines.begin())));
+
+    if (meta_str.find(' ') != std::string::npos || meta_str.length() != 15)
       return Time(0);
-    }
-    if (meta_str.length() != url.length() + 16) {
-      logger.msg(ERROR, "Bad format in file %s: %s", _getMetaFileName(url), meta_str);
-      return Time(0);
-    }
-    if (meta_str.substr(url.length(), 1) != " ") {
-      logger.msg(ERROR, "Bad separator in file %s: %s", _getMetaFileName(url), meta_str);
-      return Time(0);
-    }
-    if (meta_str.substr(url.length() + 1).length() != 15) {
-      logger.msg(ERROR, "Bad value of expiry time in %s: %s", _getMetaFileName(url), meta_str);
-      return Time(0);
-    }
 
     // convert to Time object
-    return Time(meta_str.substr(url.length() + 1));
+    return Time(meta_str);
   }
 
   bool FileCache::SetValid(std::string url, Time val) {
 
     std::string meta_file(_getMetaFileName(url));
-    std::string file_data(url + " " + val.str(MDSTime));
+    std::string file_data(url + '\n' + val.str(MDSTime));
     if (!FileCreate(meta_file, file_data)) {
       logger.msg(ERROR, "Error opening meta file for writing %s", meta_file);
       return false;

@@ -122,7 +122,7 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
   std::string meta_url = _readFile(meta_file);
   CPPUNIT_ASSERT(meta_url != "");
-  CPPUNIT_ASSERT_EQUAL(std::string(_url) + " 20380101000000Z\n", meta_url);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url) + '\n', meta_url);
 
   // test calling Start() again is ok
   // waits for timeout so takes long time
@@ -206,12 +206,17 @@ void FileCacheTest::testStart() {
   CPPUNIT_ASSERT(_fc1->Stop(_url));
 
   // put different url in meta file
-  _createFile(_fc1->File(_url) + ".meta", "http://badfile 1234567890");
+  _createFile(_fc1->File(_url) + ".meta", "http://badfile");
   CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
   _createFile(_fc1->File(_url) + ".meta", "rls://rls1.ndgf.org/file1.bad");
   CPPUNIT_ASSERT(!_fc1->Start(_url, available, is_locked));
   CPPUNIT_ASSERT_EQUAL(0, remove(std::string(_fc1->File(_url)+".meta").c_str()));
 
+  // put old validity format in meta file and check it is changed to new
+  _createFile(_fc1->File(_url) + ".meta", _url + " 1234567890");
+  CPPUNIT_ASSERT(_fc1->Start(_url, available, is_locked));
+  meta_url = _readFile(meta_file);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url + '\n' + "1234567890\n"), meta_url);
 }
 
 void FileCacheTest::testRemoteCache() {
@@ -366,7 +371,7 @@ void FileCacheTest::testStop() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("Could not stat meta file " + meta_file, 0, stat(meta_file.c_str(), &fileStat));
   std::string meta_url = _readFile(meta_file);
   CPPUNIT_ASSERT(meta_url != "");
-  CPPUNIT_ASSERT_EQUAL(std::string(_url) + " 20380101000000Z\n", meta_url);
+  CPPUNIT_ASSERT_EQUAL(std::string(_url) + '\n', meta_url);
 
   // call with non-existent lock file
   CPPUNIT_ASSERT(!_fc1->Stop(_url));
@@ -673,7 +678,7 @@ void FileCacheTest::testCheckDN() {
   CPPUNIT_ASSERT(_fc1->AddDN(_url, dn2, futuretime));
   CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
   CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn2));
-  CPPUNIT_ASSERT_EQUAL(_url + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n', _readFile(meta_file));
+  CPPUNIT_ASSERT_EQUAL(_url + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + '\n', _readFile(meta_file));
 
   // create expired DN and check it gets removed
   pasttime = Arc::Time(now.GetTime() - 86401);
@@ -685,7 +690,7 @@ void FileCacheTest::testCheckDN() {
   // add with no specified expiry time
   CPPUNIT_ASSERT(_fc1->AddDN(_url, dn2, Arc::Time(0)));
   // test should not fail if time changes during the test
-  CPPUNIT_ASSERT((_url + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + '\n') == _readFile(meta_file) ||
+  CPPUNIT_ASSERT((_url + "\n" + dn1 + " " + futuretime.str(Arc::MDSTime) + "\n" + dn2 + " " + futuretime.str(Arc::MDSTime) + '\n') == _readFile(meta_file) ||
                  (Arc::Time().GetTime() != now.GetTime()));
 }
 
@@ -825,12 +830,12 @@ void FileCacheTest::testValidityDate() {
   // create cache file
   CPPUNIT_ASSERT(_createFile(_fc1->File(_url)));
 
-  // test validity date is available
-  CPPUNIT_ASSERT(_fc1->CheckValid(_url));
+  // test validity date is not available
+  CPPUNIT_ASSERT(!_fc1->CheckValid(_url));
 
-  // look inside the meta file to check that it is "infinity"
+  // look inside the meta file to check
   std::string meta_file = _fc1->File(_url) + ".meta";
-  CPPUNIT_ASSERT_EQUAL(_url + " 20380101000000Z\n", _readFile(meta_file));
+  CPPUNIT_ASSERT_EQUAL(_url + '\n', _readFile(meta_file));
 
   // set validity time to now
   Arc::Time now;
@@ -838,24 +843,24 @@ void FileCacheTest::testValidityDate() {
   CPPUNIT_ASSERT(_fc1->SetValid(_url, now));
   CPPUNIT_ASSERT(_fc1->CheckValid(_url));
   CPPUNIT_ASSERT_EQUAL(now, _fc1->GetValid(_url));
-  CPPUNIT_ASSERT_EQUAL(_url + " " + now.str(Arc::MDSTime), _readFile(meta_file));
+  CPPUNIT_ASSERT_EQUAL(_url + '\n' + now.str(Arc::MDSTime), _readFile(meta_file));
 
   // put bad format inside metafile
   CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + " abcd"));
   CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "abc 1234567890"));
+  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "\nabc 1234567890"));
   CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "abc1234567890"));
+  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "\nabc1234567890"));
   CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
   // cannot be more than MAX_INT
-  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + " 1234567890123"));
+  CPPUNIT_ASSERT(_createFile(_fc1->File(_url) + ".meta", _url + "\n1234567890123"));
   CPPUNIT_ASSERT_EQUAL(0, (int)(_fc1->GetValid(_url).GetTime()));
 
   // set new time
   Arc::Time newtime(time(NULL) + 10);
   CPPUNIT_ASSERT(_fc1->SetValid(_url, newtime));
   CPPUNIT_ASSERT_EQUAL(newtime, _fc1->GetValid(_url));
-  CPPUNIT_ASSERT_EQUAL(_url + " " + newtime.str(Arc::MDSTime), _readFile(meta_file));
+  CPPUNIT_ASSERT_EQUAL(_url + '\n' + newtime.str(Arc::MDSTime), _readFile(meta_file));
 
   // Stop cache to release lock
   CPPUNIT_ASSERT(_fc1->Stop(_url));

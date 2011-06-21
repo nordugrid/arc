@@ -132,9 +132,6 @@ sub wanted {
     my $line = <FILE>;
     close FILE;
     chomp($line);
-    if (rindex($line, ' ') != -1) {
-        $line = substr($line, 0, rindex($line, ' '));
-    }
     my $fname = substr($name, 0, rindex($name, ".meta"));
     print " $line $fname\n";
 }
