@@ -14,6 +14,8 @@
 #endif
 
 %{
+typedef long time_t;
+typedef unsigned int uint32_t;
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
@@ -25,6 +27,10 @@
 #include <arc/UserConfig.h>
 #include <arc/GUID.h>
 %}
+#ifdef SWIGPYTHON
+typedef long time_t;
+typedef unsigned int uint32_t;
+#endif
 %include <typemaps.i>
 %include <std_vector.i>
 
