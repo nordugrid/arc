@@ -106,5 +106,41 @@ Arc::MCC_Status ARexService::GetActivityStatuses(ARexGMConfig& config,Arc::XMLNo
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESGetActivityStatusI(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESGetActivityInfoI(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESGetActivityStatusM(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESGetActivityInfoM(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
 } // namespace ARex
 

@@ -449,5 +449,17 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
   };
 }
 
+Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
 }
 

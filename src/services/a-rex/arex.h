@@ -52,6 +52,7 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
   void Assign(const std::string& xml);
 };
 
+#define AREXOP(NAME) Arc::MCC_Status NAME(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out)
 class ARexService: public Arc::RegisteredService {
  protected:
   Arc::ThreadRegistry thread_count_;
@@ -83,17 +84,39 @@ class ARexService: public Arc::RegisteredService {
   GridManager* gm_;
   bool valid_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
+
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
-  Arc::MCC_Status GetActivityStatuses(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
-  Arc::MCC_Status TerminateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
-  Arc::MCC_Status GetActivityDocuments(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
-  Arc::MCC_Status GetFactoryAttributesDocument(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
-  Arc::MCC_Status StopAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
-  Arc::MCC_Status StartAcceptingNewActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
-  Arc::MCC_Status ChangeActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  AREXOP(GetActivityStatuses);
+  AREXOP(TerminateActivities);
+  AREXOP(GetActivityDocuments);
+  AREXOP(GetFactoryAttributesDocument);
+
+  AREXOP(StopAcceptingNewActivities);
+  AREXOP(StartAcceptingNewActivities);
+
+  AREXOP(ChangeActivityStatus);
   Arc::MCC_Status MigrateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
-  Arc::MCC_Status CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out);
+  AREXOP(CacheCheck);
   Arc::MCC_Status UpdateCredentials(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& credentials);
+
+  AREXOP(ESCreateActivites);
+  AREXOP(ESInitDelegation);
+  AREXOP(ESPutDelegation);
+  AREXOP(ESGetDelegationInfo);
+  AREXOP(ESGetResourceInfo);
+  AREXOP(ESQueryResourceInfo);
+  AREXOP(ESPauseActivity);
+  AREXOP(ESResumeActivity);
+  AREXOP(ESNotifyService);
+  AREXOP(ESCancelActivity);
+  AREXOP(ESWipeActivity);
+  AREXOP(ESRestartActivity);
+  AREXOP(ESGetActivityStatusM);
+  AREXOP(ESGetActivityInfoM);
+  AREXOP(ESListActivities);
+  AREXOP(ESGetActivityStatusI);
+  AREXOP(ESGetActivityInfoI);
+
   Arc::MCC_Status make_empty_response(Arc::Message& outmsg);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
   Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);

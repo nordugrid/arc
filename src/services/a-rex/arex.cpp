@@ -44,8 +44,29 @@ static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/20
 static const std::string BES_ARC_NPREFIX("a-rex");
 static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
 
+static const std::string DELEG_ARC_NPREFIX("arcdeleg");
+static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
+
 static const std::string BES_GLUE_NPREFIX("glue");
 static const std::string BES_GLUE_NAMESPACE("http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01");
+
+static const std::string ES_TYPES_NPREFIX("estypes");
+static const std::string ES_TYPES_NAMESPACE("http://www.eu-emi.eu/es/2010/12/types");
+
+static const std::string ES_CREATE_NPREFIX("escreate");
+static const std::string ES_CREATE_NAMESPACE("http://www.eu-emi.eu/es/2010/12/creation");
+
+static const std::string ES_DELEG_NPREFIX("esdeleg");
+static const std::string ES_DELEG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/delegation");
+
+static const std::string ES_RINFO_NPREFIX("esrinfo");
+static const std::string ES_RINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/resourceinfo");
+
+static const std::string ES_MANAG_NPREFIX("esmanag");
+static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activitymanagement");
+
+static const std::string ES_AINFO_NPREFIX("esainfo");
+static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity");
 
 
 #define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
@@ -81,45 +102,117 @@ ARexSecAttr::ARexSecAttr(const std::string& action) {
 }
 
 ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
-  if(MatchXMLName(op,"CreateActivity")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_CREATE;
-  } else if(MatchXMLName(op,"GetActivityStatuses")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_READ;
-  } else if(MatchXMLName(op,"TerminateActivities")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_MODIFY;
-  } else if(MatchXMLName(op,"GetActivityDocuments")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_READ;
-  } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
-    id_=AREX_POLICY_OPERATION_URN;
-    action_=AREX_POLICY_OPERATION_INFO;
-  } else if(MatchXMLName(op,"StopAcceptingNewActivities")) {
-    id_=AREX_POLICY_OPERATION_URN;
-    action_=AREX_POLICY_OPERATION_ADMIN;
-  } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
-    id_=AREX_POLICY_OPERATION_URN;
-    action_=AREX_POLICY_OPERATION_ADMIN;
-  } else if(MatchXMLName(op,"ChangeActivityStatus")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_MODIFY;
-  } else if(MatchXMLName(op,"MigrateActivity")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_MODIFY;
-  } else if(MatchXMLName(op,"CacheCheck")) {
-    id_=AREX_POLICY_OPERATION_URN;
-    action_=AREX_POLICY_OPERATION_INFO;
-  } else if(MatchXMLName(op,"DelegateCredentialsInit")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_CREATE;
-  } else if(MatchXMLName(op,"UpdateCredentials")) {
-    id_=JOB_POLICY_OPERATION_URN;
-    action_=JOB_POLICY_OPERATION_MODIFY;
+  if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
+    if(MatchXMLName(op,"CreateActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_CREATE;
+    } else if(MatchXMLName(op,"GetActivityStatuses")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    } else if(MatchXMLName(op,"TerminateActivities")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"GetActivityDocuments")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
+      id_=AREX_POLICY_OPERATION_URN;
+      action_=AREX_POLICY_OPERATION_INFO;
+    }
+  } else if(MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
+    if(MatchXMLName(op,"StopAcceptingNewActivities")) {
+      id_=AREX_POLICY_OPERATION_URN;
+      action_=AREX_POLICY_OPERATION_ADMIN;
+    } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
+      id_=AREX_POLICY_OPERATION_URN;
+      action_=AREX_POLICY_OPERATION_ADMIN;
+    }
+  } else if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+    if(MatchXMLName(op,"ChangeActivityStatus")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"MigrateActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"CacheCheck")) {
+      id_=AREX_POLICY_OPERATION_URN;
+      action_=AREX_POLICY_OPERATION_INFO;
+    }
+  } else if(MatchXMLNamespace(op,DELEG_ARC_NAMESPACE)) {
+    if(MatchXMLName(op,"DelegateCredentialsInit")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_CREATE;
+    } else if(MatchXMLName(op,"UpdateCredentials")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    }
   } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
     id_=AREX_POLICY_OPERATION_URN;
     action_=AREX_POLICY_OPERATION_INFO;
+  } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
+    if(MatchXMLName(op,"CreateActivities")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_CREATE;
+    }
+  } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
+    if(MatchXMLName(op,"InitDelegation")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_CREATE;
+    } else if(MatchXMLName(op,"PutDelegation")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"GetDelegationInfo")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    }
+  } else if(MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
+    if(MatchXMLName(op,"GetResourceInfo")) {
+      id_=AREX_POLICY_OPERATION_URN;
+      action_=AREX_POLICY_OPERATION_INFO;
+    } else if(MatchXMLName(op,"QueryResourceInfo")) {
+      id_=AREX_POLICY_OPERATION_URN;
+      action_=AREX_POLICY_OPERATION_INFO;
+    }
+  } else if(MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+    if(MatchXMLName(op,"PauseActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"ResumeActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"ResumeActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"NotifyService")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"CancelActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"WipeActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"RestartActivity")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_MODIFY;
+    } else if(MatchXMLName(op,"GetActivityStatus")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    } else if(MatchXMLName(op,"GetActivityInfo")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    }
+  } else if(MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+    if(MatchXMLName(op,"ListActivities")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    } else if(MatchXMLName(op,"GetActivityStatus")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    } else if(MatchXMLName(op,"GetActivityInfo")) {
+      id_=JOB_POLICY_OPERATION_URN;
+      action_=JOB_POLICY_OPERATION_READ;
+    }
   }
 }
 
@@ -171,6 +264,31 @@ static Arc::XMLNode BESManagementResponse(Arc::PayloadSOAP& res,const char* opna
 
 static Arc::XMLNode BESARCResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(BES_ARC_NPREFIX + ":" + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode ESCreateResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(ES_CREATE_NPREFIX + ":" + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode ESDelegResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(ES_DELEG_NPREFIX + ":" + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode ESRInfoResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(ES_RINFO_NPREFIX + ":" + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode ESManagResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(ES_MANAG_NPREFIX + ":" + opname + "Response");
+  return response;
+}
+
+static Arc::XMLNode ESAInfoResponse(Arc::PayloadSOAP& res,const char* opname) {
+  Arc::XMLNode response = res.NewChild(ES_AINFO_NPREFIX + ":" + opname + "Response");
   return response;
 }
 
@@ -357,6 +475,13 @@ static std::string GetPath(Arc::Message &inmsg,std::string &base) {
   return path;
 }
 
+#define SOAP_NOT_SUPPORTED { \
+  logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name()); \
+  delete outpayload; \
+  return make_soap_fault(outmsg); \
+}
+
+
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Split request path into parts: service, job and file path. 
   // TODO: make it HTTP independent
@@ -447,35 +572,118 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       Arc::PayloadSOAP& res = *outpayload;
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
-      if(MatchXMLName(op,"CreateActivity")) {
-        CountedResourceLock cl_lock(beslimit_);
-        CreateActivity(*config,op,BESFactoryResponse(res,"CreateActivity"),clientid);
-      } else if(MatchXMLName(op,"GetActivityStatuses")) {
-        CountedResourceLock cl_lock(beslimit_);
-        GetActivityStatuses(*config,op,BESFactoryResponse(res,"GetActivityStatuses"));
-      } else if(MatchXMLName(op,"TerminateActivities")) {
-        CountedResourceLock cl_lock(beslimit_);
-        TerminateActivities(*config,op,BESFactoryResponse(res,"TerminateActivities"));
-      } else if(MatchXMLName(op,"GetActivityDocuments")) {
-        CountedResourceLock cl_lock(beslimit_);
-        GetActivityDocuments(*config,op,BESFactoryResponse(res,"GetActivityDocuments"));
-      } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
-        CountedResourceLock cl_lock(beslimit_);
-        GetFactoryAttributesDocument(*config,op,BESFactoryResponse(res,"GetFactoryAttributesDocument"));
-      } else if(MatchXMLName(op,"StopAcceptingNewActivities")) {
-        CountedResourceLock cl_lock(beslimit_);
-        StopAcceptingNewActivities(*config,op,BESManagementResponse(res,"StopAcceptingNewActivities"));
-      } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
-        CountedResourceLock cl_lock(beslimit_);
-        StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
-      } else if(MatchXMLName(op,"ChangeActivityStatus")) {
-        CountedResourceLock cl_lock(beslimit_);
-        ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
-      } else if(MatchXMLName(op,"MigrateActivity")) {
-        CountedResourceLock cl_lock(beslimit_);
-        MigrateActivity(*config,op,BESFactoryResponse(res,"MigrateActivity"),clientid);
-      } else if(MatchXMLName(op,"CacheCheck")) {
-        CacheCheck(*config,*inpayload,*outpayload);
+      if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
+        if(MatchXMLName(op,"CreateActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          CreateActivity(*config,op,BESFactoryResponse(res,"CreateActivity"),clientid);
+        } else if(MatchXMLName(op,"GetActivityStatuses")) {
+          CountedResourceLock cl_lock(beslimit_);
+          GetActivityStatuses(*config,op,BESFactoryResponse(res,"GetActivityStatuses"));
+        } else if(MatchXMLName(op,"TerminateActivities")) {
+          CountedResourceLock cl_lock(beslimit_);
+          TerminateActivities(*config,op,BESFactoryResponse(res,"TerminateActivities"));
+        } else if(MatchXMLName(op,"GetActivityDocuments")) {
+          CountedResourceLock cl_lock(beslimit_);
+          GetActivityDocuments(*config,op,BESFactoryResponse(res,"GetActivityDocuments"));
+        } else if(MatchXMLName(op,"GetFactoryAttributesDocument")) {
+          CountedResourceLock cl_lock(beslimit_);
+          GetFactoryAttributesDocument(*config,op,BESFactoryResponse(res,"GetFactoryAttributesDocument"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
+        if(MatchXMLName(op,"StopAcceptingNewActivities")) {
+          CountedResourceLock cl_lock(beslimit_);
+          StopAcceptingNewActivities(*config,op,BESManagementResponse(res,"StopAcceptingNewActivities"));
+        } else if(MatchXMLName(op,"StartAcceptingNewActivities")) {
+          CountedResourceLock cl_lock(beslimit_);
+          StartAcceptingNewActivities(*config,op,BESManagementResponse(res,"StartAcceptingNewActivities"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
+        if(MatchXMLName(op,"CreateActivities")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESCreateActivites(*config,op,ESCreateResponse(res,"CreateActivites"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
+        if(MatchXMLName(op,"InitDelegation")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESInitDelegation(*config,op,ESDelegResponse(res,"InitDelegation"));
+        } else if(MatchXMLName(op,"PutDelegation")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESPutDelegation(*config,op,ESDelegResponse(res,"PutDelegation"));
+        } else if(MatchXMLName(op,"GetDelegationInfo")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESGetDelegationInfo(*config,op,ESDelegResponse(res,"GetDelegationInfo"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
+        if(MatchXMLName(op,"GetResourceInfo")) {
+          CountedResourceLock cl_lock(infolimit_);
+          ESGetResourceInfo(*config,op,ESRInfoResponse(res,"GetResourceInfo"));
+        } else if(MatchXMLName(op,"QueryResourceInfo")) {
+          CountedResourceLock cl_lock(infolimit_);
+          ESQueryResourceInfo(*config,op,ESRInfoResponse(res,"QueryResourceInfo"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+        if(MatchXMLName(op,"PauseActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESPauseActivity(*config,op,ESManagResponse(res,"PauseActivity"));
+        } else if(MatchXMLName(op,"ResumeActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESResumeActivity(*config,op,ESManagResponse(res,"ResumeActivity"));
+        } else if(MatchXMLName(op,"NotifyService")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESNotifyService(*config,op,ESManagResponse(res,"NotifyService"));
+        } else if(MatchXMLName(op,"CancelActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESCancelActivity(*config,op,ESManagResponse(res,"CancelActivity"));
+        } else if(MatchXMLName(op,"WipeActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESWipeActivity(*config,op,ESManagResponse(res,"WipeActivity"));
+        } else if(MatchXMLName(op,"RestartActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESRestartActivity(*config,op,ESManagResponse(res,"RestartActivity"));
+        } else if(MatchXMLName(op,"GetActivityStatus")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESGetActivityStatusM(*config,op,ESManagResponse(res,"GetActivityStatus"));
+        } else if(MatchXMLName(op,"GetActivityInfo")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESGetActivityInfoM(*config,op,ESManagResponse(res,"GetActivityInfo"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+        if(MatchXMLName(op,"ListActivities")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESListActivities(*config,op,ESAInfoResponse(res,"ListActivities"));
+        } else if(MatchXMLName(op,"GetActivityStatus")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESGetActivityStatusI(*config,op,ESAInfoResponse(res,"GetActivityStatus"));
+        } else if(MatchXMLName(op,"GetActivityInfo")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ESGetActivityInfoI(*config,op,ESAInfoResponse(res,"GetActivityInfo"));
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
+      } else if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+        if(MatchXMLName(op,"ChangeActivityStatus")) {
+          CountedResourceLock cl_lock(beslimit_);
+          ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
+        } else if(MatchXMLName(op,"MigrateActivity")) {
+          CountedResourceLock cl_lock(beslimit_);
+          MigrateActivity(*config,op,BESFactoryResponse(res,"MigrateActivity"),clientid);
+        } else if(MatchXMLName(op,"CacheCheck")) {
+          CacheCheck(*config,*inpayload,*outpayload);
+        } else {
+          SOAP_NOT_SUPPORTED;
+        }
       } else if(delegations_.MatchNamespace(*inpayload)) {
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
@@ -523,9 +731,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         };
         return Arc::MCC_Status(Arc::STATUS_OK);
       } else {
-        logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
-        delete outpayload;
-        return make_soap_fault(outmsg);
+        SOAP_NOT_SUPPORTED;
       };
       if(logger_.getThreshold() <= Arc::VERBOSE) {
         std::string str;
@@ -615,7 +821,13 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   ns_[BES_GLUE_NPREFIX]=BES_GLUE_NAMESPACE;
   ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
   ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
-  ns_["deleg"]="http://www.nordugrid.org/schemas/delegation";
+  ns_[DELEG_ARC_NPREFIX]=DELEG_ARC_NAMESPACE;
+  ns_[ES_TYPES_NPREFIX]=ES_TYPES_NAMESPACE;
+  ns_[ES_CREATE_NPREFIX]=ES_CREATE_NAMESPACE;
+  ns_[ES_DELEG_NPREFIX]=ES_DELEG_NAMESPACE;
+  ns_[ES_RINFO_NPREFIX]=ES_RINFO_NAMESPACE;
+  ns_[ES_MANAG_NPREFIX]=ES_MANAG_NAMESPACE;
+  ns_[ES_AINFO_NPREFIX]=ES_AINFO_NAMESPACE;
   ns_["wsa"]="http://www.w3.org/2005/08/addressing";
   ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
   ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";

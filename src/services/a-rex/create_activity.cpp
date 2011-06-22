@@ -132,5 +132,29 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+Arc::MCC_Status ARexService::ESCreateActivites(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESInitDelegation(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESPutDelegation(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
+Arc::MCC_Status ARexService::ESGetDelegationInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
+  out.Destroy();
+  return Arc::MCC_Status();
+}
+
 } // namespace ARex
 
