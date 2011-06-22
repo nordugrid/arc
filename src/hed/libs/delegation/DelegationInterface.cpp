@@ -26,6 +26,8 @@ namespace Arc {
 #define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 #define GDS10_NAMESPACE "http://www.gridsite.org/ns/delegation.wsdl"
 #define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"
+#define EMIES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/delegation"
+#define EMIES_TYPES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/types"
 
 //#define SERIAL_RAND_BITS 64
 #define SERIAL_RAND_BITS 31
@@ -210,6 +212,63 @@ static bool X509_add_ext_by_nid(X509 *cert,int nid,char *value,int pos) {
   X509_add_ext(cert,ext,pos);
   X509_EXTENSION_free(ext);
   return true;
+}
+
+static std::string::size_type find_line(const std::string& val, const char* token, std::string::size_type p = std::string::npos) {
+  std::string::size_type l = ::strlen(token);
+  if(p == std::string::npos) {
+    p = val.find(token);
+  } else {
+    p = val.find(token,p);
+  };
+  if(p == std::string::npos) return p;
+  if((p > 0) && (val[p-1] != '\r') && (val[p-1] != '\n')) return std::string::npos;
+  if(((p+l) < val.length()) && (val[p+l] != '\r') && (val[p+l] != '\n')) std::string::npos;
+  return p;
+}
+
+static bool strip_PEM(std::string& val, const char* ts, const char* te) {
+  std::string::size_type ps = find_line(val,ts);
+  if(ps == std::string::npos) return false;
+  ps += ::strlen(ts);
+  ps = val.find_first_not_of("\r\n",ps);
+  if(ps == std::string::npos) return false;
+  std::string::size_type pe = find_line(val,te,ps);
+  if(pe == std::string::npos) return false;
+  if(pe == 0) return false;
+  pe = val.find_last_not_of("\r\n",pe-1);
+  if(pe == std::string::npos) return false;
+  if(pe < ps) return false;
+  val = val.substr(ps,pe-ps+1);
+  return true;
+}
+
+static void wrap_PEM(std::string& val, const char* ts, const char* te) {
+  val = std::string(ts)+"\n"+trim(val,"\r\n")+"\n"+te;
+}
+
+static bool strip_PEM_request(std::string& val) {
+  const char* ts = "-----BEGIN CERTIFICATE REQUEST-----";
+  const char* te = "-----END CERTIFICATE REQUEST-----";
+  return strip_PEM(val, ts, te);
+}
+
+static bool strip_PEM_cert(std::string& val) {
+  const char* ts = "-----BEGIN CERTIFICATE-----";
+  const char* te = "-----END CERTIFICATE-----";
+  return strip_PEM(val, ts, te);
+}
+
+static void wrap_PEM_request(std::string& val) {
+  const char* ts = "-----BEGIN CERTIFICATE REQUEST-----";
+  const char* te = "-----END CERTIFICATE REQUEST-----";
+  wrap_PEM(val, ts, te);
+}
+
+static void wrap_PEM_cert(std::string& val) {
+  const char* ts = "-----BEGIN CERTIFICATE-----";
+  const char* te = "-----END CERTIFICATE-----";
+  wrap_PEM(val, ts, te);
 }
 
 
@@ -914,6 +973,22 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     delete resp_soap;
     if(id_.empty() || request_.empty()) return false;
     return true;
+  } else if((stype == DelegationProviderSOAP::EMIES)) {
+    NS ns; ns["deleg"]=EMIES_NAMESPACE; ns["estypes"]=EMIES_TYPES_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    XMLNode op = req_soap.NewChild("deleg:InitDelegation");
+    op.NewChild("deleg:CredentialType") = "RFC3820";
+    op.NewChild("deleg:RenewalID") = "";
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    XMLNode token = (*resp_soap)["InitDelegationResponse"];
+    if(!token) { delete resp_soap; return false; };
+    id_=(std::string)(token["DelegationID"]);
+    request_=(std::string)(token["CSR"]);
+    delete resp_soap;
+    if(id_.empty() || request_.empty()) return false;
+    wrap_PEM_request(request_);
+    return true;
   };
   return false;
 }
@@ -959,6 +1034,23 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     if(!(*resp_soap)["putProxyResponse"]) {
+      delete resp_soap;
+      return false;
+    };
+    delete resp_soap;
+    return true;
+  } else if((stype == DelegationProviderSOAP::EMIES)) {
+    std::string delegation = Delegate(request_,restrictions);
+    if((!strip_PEM_cert(delegation)) || (delegation.empty())) return false;
+    NS ns; ns["deleg"]=EMIES_NAMESPACE; ns["estypes"]=EMIES_TYPES_NAMESPACE;
+    PayloadSOAP req_soap(ns);
+    XMLNode token = req_soap.NewChild("deleg:PutDelegation");
+    token.NewChild("deleg:CredentialType")="RFC3820";
+    token.NewChild("deleg:DelegationId")=id_;
+    token.NewChild("deleg:Credential")=delegation;
+    PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
+    if(!resp_soap) return false;
+    if(!(*resp_soap)["PutDelegationResponse"]["SUCCESS"]) {
       delete resp_soap;
       return false;
     };
@@ -1149,13 +1241,36 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::strin
 }
 
 #define GDS10FAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
   SOAPFault((out),SOAPFault::Receiver,msg); \
 }
 
 #define GDS20FAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
   XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
   XMLNode ex = r.NewChild("DelegationException"); \
   ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
+}
+
+#define EMIESFAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("InternalServiceDelegationFault"); \
+  ex.Namespaces(ns); \
+  ex.NewChild("estypes:Message") = (msg); \
+  ex.NewChild("estypes:Timestamp") = Time().str(ISOTime); \
+  /*ex.NewChild("estypes:Description") = "";*/ \
+  /*ex.NewChild("estypes:FailureCode") = "0";*/ \
+}
+
+#define EMIESIDFAULT(out,msg) { \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("UnknownDelegationIDFault"); \
+  ex.Namespaces(ns); \
+  ex.NewChild("Message") = (msg); \
+  ex.NewChild("Timestamp") = Time().str(ISOTime); \
+  /*ex.NewChild("Description") = "";*/ \
+  /*ex.NewChild("FailureCode") = "0";*/ \
 }
 
 bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
@@ -1223,11 +1338,11 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       Glib::Mutex::Lock lock(lock_);
       ConsumerIterator i = FindConsumer(id,client);
       if(i == consumers_.end()) {
-        GDS20FAULT(out,"Failed to find identifier");
+        GDS10FAULT(out,"Failed to find identifier");
         return true;
       };
       if(!i->second.deleg->Acquire(cred)) {
-        GDS20FAULT(out,"Failed to acquire credentials");
+        GDS10FAULT(out,"Failed to acquire credentials");
         return true;
       };
       credentials = cred;
@@ -1386,6 +1501,92 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       if(i != consumers_.end()) RemoveConsumer(i);
       return true;
     };
+  } else if(op_ns == EMIES_NAMESPACE) {
+    // EMI Execution Service own delegation interface
+    NS ns("",EMIES_NAMESPACE);
+    ns["estypes"] = EMIES_TYPES_NAMESPACE;
+    if(op_name == "InitDelegation") {
+      Arc::XMLNode r = out.NewChild("InitDelegationResponse");
+      r.Namespaces(ns);
+      if((std::string)op["CredentialType"] != "RFC3820") {
+        EMIESFAULT(out,"Unsupported credential type requested");
+        return true;
+      }
+      unsigned long long int lifetime = 0;
+      if((bool)op["InitDelegationLifetime"]) {
+        if(!stringto((std::string)op["InitDelegationLifetime"],lifetime)) {
+          EMIESFAULT(out,"Unsupported credential lifetime requested");
+          return true;
+        }
+      }
+      std::string id;
+      Glib::Mutex::Lock lock(lock_);
+      if(!MakeNewID(id)) {
+        EMIESFAULT(out,"Failed to generate identifier");
+        return true;
+      };
+      DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
+      std::string x509_request;
+      // TODO: use lifetime
+      consumer->Request(x509_request);
+      if((!strip_PEM_request(x509_request)) || (x509_request.empty())) {
+        EMIESFAULT(out,"Failed to generate request");
+        return true;
+      };
+      AddConsumer(id,consumer,client);
+      CheckConsumers();
+      lock.release();
+      r.NewChild("DelegationID") = id;
+      r.NewChild("CSR") = x509_request;
+      return true;
+    } else if(op_name == "PutDelegation") {
+      Arc::XMLNode r = out.NewChild("PutDelegationResponse");
+      r.Namespaces(ns);
+      if((std::string)op["CredentialType"] != "RFC3820") {
+        EMIESFAULT(out,"Unsupported credential type requested");
+        return true;
+      }
+      std::string id = op["DelegationId"];
+      std::string cred = op["Credential"];
+      if(id.empty()) {
+        EMIESFAULT(out,"Identifier is missing");
+        return true;
+      };
+      if(cred.empty()) {
+        EMIESFAULT(out,"Delegated credential is missing");
+        return true;
+      };
+      wrap_PEM_cert(cred);
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        EMIESIDFAULT(out,"Failed to find identifier");
+        return true;
+      };
+      if(!i->second.deleg->Acquire(cred)) {
+        EMIESFAULT(out,"Failed to acquire credentials");
+        return true;
+      };
+      credentials = cred;
+      r.NewChild("SUCCESS");
+      return true;
+    } else if(op_name == "GetDelegationInfo") {
+      Arc::XMLNode r = out.NewChild("GetDelegationInfoResponse");
+      r.Namespaces(ns);
+      std::string id = op["DelegationID"];
+      if(id.empty()) {
+        EMIESFAULT(out,"Identifier is missing");
+        return true;
+      };
+      Glib::Mutex::Lock lock(lock_);
+      ConsumerIterator i = FindConsumer(id,client);
+      if(i == consumers_.end()) {
+        EMIESIDFAULT(out,"Wrong identifier");
+        return true;
+      };
+      EMIESFAULT(out,"Feature not implemented");
+      return true;
+    };
   };
   return false;
 }
@@ -1396,7 +1597,8 @@ bool DelegationContainerSOAP::MatchNamespace(const SOAPEnvelope& in) {
   std::string op_ns = op.Namespace();
   return ((op_ns == DELEGATION_NAMESPACE) ||
           (op_ns == GDS10_NAMESPACE) ||
-          (op_ns == GDS20_NAMESPACE));
+          (op_ns == GDS20_NAMESPACE) ||
+          (op_ns == EMIES_NAMESPACE));
 }
 
 } // namespace Arc

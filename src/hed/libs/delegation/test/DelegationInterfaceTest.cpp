@@ -15,6 +15,7 @@ class DelegationInterfaceTest
   CPPUNIT_TEST_SUITE(DelegationInterfaceTest);
   CPPUNIT_TEST(TestDelegationInterfaceDELEGATEARC);
   CPPUNIT_TEST(TestDelegationInterfaceDELEGATEGDS20);
+  CPPUNIT_TEST(TestDelegationInterfaceDELEGATEEMIES);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -23,6 +24,7 @@ public:
 
   void TestDelegationInterfaceDELEGATEARC();
   void TestDelegationInterfaceDELEGATEGDS20();
+  void TestDelegationInterfaceDELEGATEEMIES();
 
 private:
   std::string credentials;
@@ -108,6 +110,18 @@ void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEGDS20() {
   CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::GDS20));
 #ifdef HAVE_OPENSSL_PROXY
   CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::GDS20));
+#endif
+}
+
+void DelegationInterfaceTest::TestDelegationInterfaceDELEGATEEMIES() {
+  Arc::DelegationContainerSOAP c;
+  Arc::DelegationProviderSOAP p(credentials);
+  DirectMCC m(c);
+  Arc::MessageContext context;
+
+  CPPUNIT_ASSERT((bool)p.DelegateCredentialsInit(m,&context,Arc::DelegationProviderSOAP::EMIES));
+#ifdef HAVE_OPENSSL_PROXY
+  CPPUNIT_ASSERT((bool)p.UpdateCredentials(m,&context,Arc::DelegationRestrictions(),Arc::DelegationProviderSOAP::EMIES));
 #endif
 }
 

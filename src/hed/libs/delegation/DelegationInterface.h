@@ -45,8 +45,8 @@ class DelegationConsumer {
   /** Ads private key into certificates chain in 'content'
      On exit content contains complete delegated credentials.  */
   bool Acquire(std::string& content);
-  /** Includes the functionality in Acquire(content); pluse extracting the 
-  *credential identity*/  
+  /** Includes the functionality of Acquire(content) plus extracting the 
+     credential identity. */  
   bool Acquire(std::string& content,std::string& identity);
 };
 
@@ -121,7 +121,8 @@ class DelegationProviderSOAP: public DelegationProvider {
     GDS10,
     GDS10RENEW,
     GDS20,
-    GDS20RENEW
+    GDS20RENEW,
+    EMIES
   } ServiceType;
   /** Creates instance from provided credentials.
      Credentials are used to sign delegated credentials. */
