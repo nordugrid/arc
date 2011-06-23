@@ -64,5 +64,64 @@ namespace ARex {
     return state;
   }
 
+  void convertActivityStatusES(const std::string& gm_state,std::string& primary_state,std::list<std::string>& state_attributes,bool failed,bool pending) {
+    primary_state = "";
+    if(gm_state == "ACCEPTED") {
+      primary_state="ACCEPTED";
+    } else if(gm_state == "PREPARING") {
+      primary_state="PREPROCESSING";
+      state_attributes.push_back("CLIENT-STAGEIN-POSSIBLE");
+      state_attributes.push_back("SERVER-STAGEIN");
+    } else if(gm_state == "SUBMIT") {
+      primary_state="PROCESSING-ACCEPTING";
+    } else if(gm_state == "INLRMS") {
+      //primary_state="PROCESSING-QUEUED"; TODO
+      primary_state="PROCESSING-RUNNING";
+      state_attributes.push_back("APP-RUNNING"); // TODO
+      //state_attributes.push_back("BATCH-SUSPEND"); TODO
+    } else if(gm_state == "FINISHING") {
+      primary_state="POSTPROCESSING";
+      state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
+      state_attributes.push_back("SERVER-STAGEOUT");
+    } else if(gm_state == "FINISHED") {
+      primary_state="TERMINAL";
+      state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
+    } else if(gm_state == "DELETED") {
+      primary_state="TERMINAL";
+      state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
+    } else if(gm_state == "CANCELING") {
+      primary_state="PROCESSING";
+    };
+    if(primary_state == "TERMINAL") {
+      if(failed) {
+        //state_attributes.push_back("PREPROCESSING-CANCEL"); TODO
+        //state_attributes.push_back("PROCESSING-CANCEL"); TODO
+        //state_attributes.push_back("POSTPROCESSING-CANCEL"); TODO
+        //state_attributes.push_back("VALIDATION-FAILURE"); TODO
+        //state_attributes.push_back("PREPROCESSING-FAILURE"); TODO
+        //state_attributes.push_back("PROCESSING-FAILURE"); TODO
+        //state_attributes.push_back("POSTPROCESSING-FAILURE"); TODO
+        state_attributes.push_back("APP-FAILURE"); // TODO
+      };
+    };
+    if(!primary_state.empty()) {
+      if(pending) state_attributes.push_back("SERVER-PAUSED");
+    };
+  }
+
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending) {
+    std::string primary_state;
+    std::list<std::string> state_attributes;
+    std::string glue_state("");
+    convertActivityStatusES(gm_state,primary_state,state_attributes,failed,pending);
+    Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
+    state.NewChild("estypes:Status") = primary_state;
+    for(std::list<std::string>::iterator st = state_attributes.begin();
+                  st!=state_attributes.end();++st) {
+      state.NewChild("estypes:Attribute") = *st;
+    };
+    return state;
+  }
+
 }
 

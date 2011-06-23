@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
+
 #include "arex.h"
 #include "tools.h"
 
@@ -31,6 +33,8 @@
   */
 
 namespace ARex {
+
+// A-REX faults
 
 static const std::string BES_FACTORY_FAULT_URL("http://schemas.ggf.org/bes/2006/08/bes-factory/BESFactoryPortType/Fault");
 
@@ -124,6 +128,56 @@ void ARexService::InvalidRequestMessageFault(Arc::SOAPFault& fault,const std::st
   SetFaultResponse(fault);
 }
 
+
+// EMI ES faults
+
+void ARexService::ESInternalBaseFault(Arc::XMLNode fault,const std::string& message,const std::string& desc) {
+  fault.Name("estypes:InternalBaseFault");
+  fault.NewChild("estypes:Message") = message;
+  fault.NewChild("estypes:Timestamp") = Arc::Time().str(Arc::ISOTime);
+  if(!desc.empty()) fault.NewChild("estypes:Description") = desc;
+  //fault.NewChild("estypes:FailureCode") = 0;
+}
+
+void ARexService::ESInternalBaseFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc) {
+  ESInternalBaseFault(fault.Detail(true).NewChild("dummy"),message,desc);
+}
+
+void ARexService::ESVectorLimitExceededFault(Arc::XMLNode fault,unsigned long limit,const std::string& message,const std::string& desc) {
+  ESInternalBaseFault(fault,message.empty()?"Limit of parallel requests exceeded":message,desc);
+  fault.NewChild("estypes:ServerLimit") = Arc::tostring(limit);
+  fault.Name("estypes:AccessControlFault");
+}
+
+void ARexService::ESVectorLimitExceededFault(Arc::SOAPFault& fault,unsigned long limit,const std::string& message,const std::string& desc) {
+  ESVectorLimitExceededFault(fault.Detail(true).NewChild("dummy"),limit,message,desc);
+}
+
+#define ES_SIMPLE_FAULT(NAME,NAMESPACE,MESSAGE) \
+void ARexService::ES##NAME(Arc::XMLNode fault, \
+                           const std::string& message,const std::string& desc) { \
+  ESInternalBaseFault(fault,message.empty()?(MESSAGE):message,desc); \
+  fault.Name("##NAMESPACE##:##NAME##"); \
+} \
+ \
+void ARexService::ES##NAME(Arc::SOAPFault& fault, \
+                           const std::string& message,const std::string& desc) { \
+  ES##NAME(fault.Detail(true).NewChild("dummy"),message,desc); \
+}
+
+ES_SIMPLE_FAULT(AccessControlFault,estypes,"Access denied")
+
+ES_SIMPLE_FAULT(UnsupportedCapabilityFault,escreate,"Unsupported capability")
+
+ES_SIMPLE_FAULT(InvalidActivityDescriptionSemanticFault,escreate,"Invalid activity description semantics")
+
+ES_SIMPLE_FAULT(InvalidActivityDescriptionFault,escreate,"Invalid activity description")
+
+ES_SIMPLE_FAULT(InternalResourceInfoFault,esrinfo,"Internal failure retrieving resource information")
+
+ES_SIMPLE_FAULT(InvalidActivityIDFault,esainfo,"Invalid activity ID")
+
+ES_SIMPLE_FAULT(UnknownActivityIDFault,esainfo,"Unknown activity ID")
 
 }
 

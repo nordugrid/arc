@@ -604,20 +604,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
         if(MatchXMLName(op,"CreateActivities")) {
           CountedResourceLock cl_lock(beslimit_);
-          ESCreateActivites(*config,op,ESCreateResponse(res,"CreateActivites"));
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
-        if(MatchXMLName(op,"InitDelegation")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESInitDelegation(*config,op,ESDelegResponse(res,"InitDelegation"));
-        } else if(MatchXMLName(op,"PutDelegation")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESPutDelegation(*config,op,ESDelegResponse(res,"PutDelegation"));
-        } else if(MatchXMLName(op,"GetDelegationInfo")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESGetDelegationInfo(*config,op,ESDelegResponse(res,"GetDelegationInfo"));
+          ESCreateActivities(*config,op,ESCreateResponse(res,"CreateActivities"),clientid);
         } else {
           SOAP_NOT_SUPPORTED;
         }
@@ -652,10 +639,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           ESRestartActivity(*config,op,ESManagResponse(res,"RestartActivity"));
         } else if(MatchXMLName(op,"GetActivityStatus")) {
           CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityStatusM(*config,op,ESManagResponse(res,"GetActivityStatus"));
+          ESGetActivityStatus(*config,op,ESManagResponse(res,"GetActivityStatus"));
         } else if(MatchXMLName(op,"GetActivityInfo")) {
           CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityInfoM(*config,op,ESManagResponse(res,"GetActivityInfo"));
+          ESGetActivityInfo(*config,op,ESManagResponse(res,"GetActivityInfo"));
         } else {
           SOAP_NOT_SUPPORTED;
         }
@@ -665,10 +652,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           ESListActivities(*config,op,ESAInfoResponse(res,"ListActivities"));
         } else if(MatchXMLName(op,"GetActivityStatus")) {
           CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityStatusI(*config,op,ESAInfoResponse(res,"GetActivityStatus"));
+          ESGetActivityStatus(*config,op,ESAInfoResponse(res,"GetActivityStatus"));
         } else if(MatchXMLName(op,"GetActivityInfo")) {
           CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityInfoI(*config,op,ESAInfoResponse(res,"GetActivityInfo"));
+          ESGetActivityInfo(*config,op,ESAInfoResponse(res,"GetActivityInfo"));
         } else {
           SOAP_NOT_SUPPORTED;
         }

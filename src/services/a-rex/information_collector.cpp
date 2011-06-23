@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include <glibmm.h>
 
@@ -449,10 +450,49 @@ void OptimizedInformationContainer::Assign(const std::string& xml) {
   };
 }
 
+#define ESFAULT(MSG) { \
+  logger_.msg(Arc::ERROR, std::string("ES:GetResourceInfo: ")+(MSG)); \
+  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,(MSG)); \
+  ESInternalResourceInfoFault(fault,(MSG)); \
+  out.Destroy(); \
+  return Arc::MCC_Status(); \
+}
+
 Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
+  // WARNING. Suboptimal temporary solution.
+  int h = infodoc_.OpenDocument();
+  if(h == -1) ESFAULT("Failed to open resource information file");
+  struct stat st;
+  if((::fstat(h,&st) != 0) || (st.st_size == 0)) ESFAULT("Failed to stat resource information file");
+  char* buf = (char*)::malloc(st.st_size+1);
+  if(!buf) ESFAULT("Failed to allocate memory for resoure information");
+  off_t p = 0;
+  for(;p<st.st_size;++p) {
+    ssize_t l = ::read(h,buf+p,st.st_size-p);
+    if(l == 0) break;
+    if(l == -1) {
+      if(errno != EAGAIN) {
+        ::free(buf);
+        ESFAULT("Failed to read resource information file");
+      };
+    };
+    p+=l;
+  };
+  buf[p] = 0;
+  Arc::XMLNode doc(buf);
+  if(!doc) {
+    ::free(buf);
+    ESFAULT("Failed to parse resource information file");
+  };
+  free(buf); buf=NULL;
+  Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
+  if(!service) {
+    ESFAULT("Missing ComputingService in resource information");
+  };
+  service = out.NewChild(service);
+  service.Name("esrinfo:ComputingService");
+  out.NewChild("esrinfo:ActivityManager");
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {

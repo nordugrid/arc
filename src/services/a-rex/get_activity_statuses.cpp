@@ -112,28 +112,57 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::ESGetActivityStatusI(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
+Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::XMLNode id = in["ActivityID"];
+  // TODO: vector limit
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esainfo:ActivityStatusItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:GetActivityStatus: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      bool job_pending = false;
+      std::string gm_state = job.State(job_pending);
+      Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job.Failed(),job_pending);
+      status.NewChild("estypes:Timestamp") = Arc::Time().str(Arc::ISOTime); // TODO
+      //status.NewChild("estypes:Description);  TODO
+    };
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status ARexService::ESGetActivityInfoI(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
-}
-
-Arc::MCC_Status ARexService::ESGetActivityStatusM(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
-}
-
-Arc::MCC_Status ARexService::ESGetActivityInfoM(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
+Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  Arc::XMLNode id = in["ActivityID"];
+  // TODO: vector limit
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esainfo:ActivityInfoItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:GetActivityStatus: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      std::string glue_s;
+      Arc::XMLNode info;
+      if(job_xml_read_file(jobid,*config.User(),glue_s)) {
+        Arc::XMLNode glue_xml(glue_s);
+        if((bool)glue_xml) {
+          (info = item.NewChild(glue_xml)).Name("estypes:ActivityInfo");
+        };
+      };
+      if(!info) {
+        logger_.msg(Arc::ERROR, "ESEMI:GetActivityStatus: job %s - failed to retrieve Glue2 information", jobid);
+        ESInternalBaseFault(item.NewChild("dummy"),"failed to retrieve Glue2 information");
+      };
+    };
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {

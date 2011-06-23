@@ -85,6 +85,7 @@ class ARexService: public Arc::RegisteredService {
   bool valid_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
 
+  // A-REX operations
   Arc::MCC_Status CreateActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   AREXOP(GetActivityStatuses);
   AREXOP(TerminateActivities);
@@ -99,10 +100,8 @@ class ARexService: public Arc::RegisteredService {
   AREXOP(CacheCheck);
   Arc::MCC_Status UpdateCredentials(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& credentials);
 
-  AREXOP(ESCreateActivites);
-  AREXOP(ESInitDelegation);
-  AREXOP(ESPutDelegation);
-  AREXOP(ESGetDelegationInfo);
+  // EMI ES operations
+  Arc::MCC_Status ESCreateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   AREXOP(ESGetResourceInfo);
   AREXOP(ESQueryResourceInfo);
   AREXOP(ESPauseActivity);
@@ -111,19 +110,22 @@ class ARexService: public Arc::RegisteredService {
   AREXOP(ESCancelActivity);
   AREXOP(ESWipeActivity);
   AREXOP(ESRestartActivity);
-  AREXOP(ESGetActivityStatusM);
-  AREXOP(ESGetActivityInfoM);
   AREXOP(ESListActivities);
-  AREXOP(ESGetActivityStatusI);
-  AREXOP(ESGetActivityInfoI);
+  AREXOP(ESGetActivityStatus);
+  AREXOP(ESGetActivityInfo);
 
+  // Convenience methods
   Arc::MCC_Status make_empty_response(Arc::Message& outmsg);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
   Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);
   Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
+
+  // HTTP operations
   Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
   Arc::MCC_Status Head(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
   Arc::MCC_Status Put(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
+
+  // A-REX faults
   void GenericFault(Arc::SOAPFault& fault);
   void NotAuthorizedFault(Arc::XMLNode fault);
   void NotAuthorizedFault(Arc::SOAPFault& fault);
@@ -139,6 +141,27 @@ class ARexService: public Arc::RegisteredService {
   void UnknownActivityIdentifierFault(Arc::SOAPFault& fault,const std::string& message);
   void InvalidRequestMessageFault(Arc::XMLNode fault,const std::string& element,const std::string& message);
   void InvalidRequestMessageFault(Arc::SOAPFault& fault,const std::string& element,const std::string& message);
+
+  // EMI ES faults
+  void ESInternalBaseFault(Arc::XMLNode fault,const std::string& message,const std::string& desc = "");
+  void ESInternalBaseFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
+  void ESVectorLimitExceededFault(Arc::XMLNode fault,unsigned long limit,const std::string& message = "",const std::string& desc = "");
+  void ESVectorLimitExceededFault(Arc::SOAPFault& fault,unsigned long limit,const std::string& message = "",const std::string& desc = "");
+  void ESAccessControlFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESAccessControlFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESUnsupportedCapabilityFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESUnsupportedCapabilityFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidActivityDescriptionSemanticFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidActivityDescriptionSemanticFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidActivityDescriptionFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidActivityDescriptionFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESInternalResourceInfoFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESInternalResourceInfoFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidActivityIDFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidActivityIDFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESUnknownActivityIDFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESUnknownActivityIDFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+
  public:
   ARexService(Arc::Config *cfg);
   virtual ~ARexService(void);
