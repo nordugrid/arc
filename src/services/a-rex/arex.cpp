@@ -927,7 +927,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   lrms_name_ = (std::string)((*cfg)["LRMSName"]);
   // Must be URI. URL may be too restrictive, but is safe.
   if(!Arc::URL(lrms_name_)) {
-    logger_.msg(Arc::ERROR, "Provided LRMSName is not a valid URL: %s",lrms_name_);
+    if (!lrms_name_.empty()) logger_.msg(Arc::ERROR, "Provided LRMSName is not a valid URL: %s",lrms_name_);
     // Filling something to make it follow BES specs
     lrms_name_ = "uri:undefined";
   };
