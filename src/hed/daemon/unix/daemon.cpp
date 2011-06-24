@@ -39,7 +39,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_) : pid
             exit(1);
         case 0: // child
             /* clear inherited umasks */
-            ::umask(0);
+            ::umask(0022);
             /*
              * Become a session leader: setsid must succeed because child is
              * guaranteed not to be a process group leader (it belongs to the
