@@ -185,7 +185,7 @@ void JobsList::CalculateShares(){
     }
     else if (i->job_state == JOB_STATE_INLRMS) {
       // is job ready to move to finishing?
-      if (job_lrms_mark_check(i->job_id,*user) && i->next_retry <= time(NULL)) {
+      if ((job_lrms_mark_check(i->job_id,*user) || i->job_pending) && i->next_retry <= time(NULL)) {
         pre_finishing_job_share[i->transfer_share]++;
       }
     }
