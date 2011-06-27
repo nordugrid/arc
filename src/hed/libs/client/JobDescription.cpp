@@ -204,9 +204,9 @@ namespace Arc {
       STRPRINT(out, Resources.Platform, Platform)
       INTPRINT(out, Resources.IndividualPhysicalMemory.max, IndividualPhysicalMemory)
       INTPRINT(out, Resources.IndividualVirtualMemory.max, IndividualVirtualMemory)
-      INTPRINT(out, Resources.DiskSpaceRequirement.DiskSpace.max, DiskSpace)
-      INTPRINT(out, Resources.DiskSpaceRequirement.CacheDiskSpace, CacheDiskSpace)
-      INTPRINT(out, Resources.DiskSpaceRequirement.SessionDiskSpace, SessionDiskSpace)
+      INTPRINT(out, Resources.DiskSpaceRequirement.DiskSpace.max, DiskSpace [MB])
+      INTPRINT(out, Resources.DiskSpaceRequirement.CacheDiskSpace, CacheDiskSpace [MB])
+      INTPRINT(out, Resources.DiskSpaceRequirement.SessionDiskSpace, SessionDiskSpace [MB])
       STRPRINT(out, Resources.QueueName, QueueName)
 
       if (!Resources.CEType.empty()) {

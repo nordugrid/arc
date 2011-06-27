@@ -273,67 +273,73 @@ namespace Arc {
           }
         }
 
-      if (job->Resources.DiskSpaceRequirement.SessionDiskSpace != -1) {
-        if (target->MaxDiskSpace != -1) {     // Example: 5656
-          if (target->MaxDiskSpace < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (SessionDiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+      if (job->Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
+        if (target->MaxDiskSpace > -1) {     // Example: 5656
+          if (target->MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
+            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (SessionDiskSpace)", target->MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
             continue;
           }
         }
-        else if (target->WorkingAreaTotal != -1) {     // Example: 5656
-          if (target->WorkingAreaTotal < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, WorkingAreaTotal problem, ExecutionTarget: %d (WorkingAreaTotal) JobDescription: %d (SessionDiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+
+        if (target->WorkingAreaFree > -1) {     // Example: 5656
+          if (target->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", target->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
             continue;
           }
         }
-        else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
+        
+        if (target->MaxDiskSpace <= -1 && target->WorkingAreaFree <= -1) {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
           continue;
         }
       }
 
-      if (job->Resources.DiskSpaceRequirement.DiskSpace != -1 && job->Resources.DiskSpaceRequirement.CacheDiskSpace != -1) {
-        if (target->MaxDiskSpace != -1) {     // Example: 5656
-          if (target->MaxDiskSpace < job->Resources.DiskSpaceRequirement.DiskSpace - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace) - %d (CacheDiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (job->Resources.DiskSpaceRequirement.DiskSpace.max > -1 && job->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
+        if (target->MaxDiskSpace > -1) {     // Example: 5656
+          if (target->MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", target->MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
             continue;
           }
         }
-        else if (target->WorkingAreaTotal != -1) {     // Example: 5656
-          if (target->WorkingAreaTotal < job->Resources.DiskSpaceRequirement.DiskSpace - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, WorkingAreaTotal >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace) - %d (CacheDiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+
+        if (target->WorkingAreaFree > -1) {     // Example: 5656
+          if (target->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", target->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
             continue;
           }
         }
-        else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
+        
+        if (target->MaxDiskSpace <= -1 && target->WorkingAreaFree <= -1) {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
           continue;
         }
       }
 
-      if (job->Resources.DiskSpaceRequirement.DiskSpace != -1) {
-        if (target->MaxDiskSpace != -1) {     // Example: 5656
-          if (target->MaxDiskSpace < job->Resources.DiskSpaceRequirement.DiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d (MaxDiskSpace) JobDescription: %d (DiskSpace)", target->MaxDiskSpace, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+      if (job->Resources.DiskSpaceRequirement.DiskSpace.max > -1) {
+        if (target->MaxDiskSpace > -1) {     // Example: 5656
+          if (target->MaxDiskSpace*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
+            logger.msg(VERBOSE, "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace)", target->MaxDiskSpace*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
             continue;
           }
         }
-        else if (target->WorkingAreaTotal != -1) {     // Example: 5656
-          if (target->WorkingAreaTotal < job->Resources.DiskSpaceRequirement.DiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, WorkingAreaTotal problem, ExecutionTarget: %d (WorkingAreaTotal) JobDescription: %d (DiskSpace)", target->WorkingAreaTotal, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+        
+        if (target->WorkingAreaFree > -1) {     // Example: 5656
+          if (target->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
+            logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", target->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
             continue;
           }
         }
-        else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaTotal are not defined", target->url.str());
+        
+        if (target->WorkingAreaFree <= -1 && target->MaxDiskSpace <= -1) {
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
           continue;
         }
       }
 
-      if (job->Resources.DiskSpaceRequirement.CacheDiskSpace != -1) {
-        if (target->CacheTotal != -1) {     // Example: 5656
-          if (target->CacheTotal < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-            logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d (CacheTotal) JobDescription: %d (CacheDiskSpace)", target->CacheTotal, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (job->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
+        if (target->CacheTotal > -1) {     // Example: 5656
+          if (target->CacheTotal*1024 < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+            logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", target->CacheTotal*1024, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
             continue;
           }
         }

@@ -448,21 +448,43 @@ namespace Arc {
 
     // Range<int> DiskSpace;
     // If the consolidated element exist parse it, else try to parse the JSDL one.
-    if (bool(resource["DiskSpaceRequirement"]["DiskSpace"]))
-      parseRange<int>(resource["DiskSpaceRequirement"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
-    else if (bool(resource["FileSystem"]["DiskSpace"]))
-      parseRange<int>(resource["FileSystem"]["DiskSpace"], job.Resources.DiskSpaceRequirement.DiskSpace, -1);
+    if (bool(resource["DiskSpaceRequirement"]["DiskSpace"])) {
+      Range<long long int> diskspace = -1;
+      parseRange<long long int>(resource["DiskSpaceRequirement"]["DiskSpace"], diskspace, -1);
+      if (diskspace > -1) {
+        job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
+        job.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
+      }
+    }
+    else if (bool(resource["FileSystem"]["DiskSpace"])) {
+      Range<long long int> diskspace = -1;
+      parseRange<long long int>(resource["FileSystem"]["DiskSpace"], diskspace, -1);
+      if (diskspace > -1) {
+        job.Resources.DiskSpaceRequirement.DiskSpace.max = diskspace.max/(1024*1024);
+        job.Resources.DiskSpaceRequirement.DiskSpace.min = diskspace.min/(1024*1024);
+      }
+    }
 
     // int CacheDiskSpace;
     if (bool(resource["DiskSpaceRequirement"]["CacheDiskSpace"])) {
-      if (!stringto<int>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], job.Resources.DiskSpaceRequirement.CacheDiskSpace))
+      long long int cachediskspace = -1;
+      if (!stringto<long long int>((std::string)resource["DiskSpaceRequirement"]["CacheDiskSpace"], cachediskspace)) {
          job.Resources.DiskSpaceRequirement.CacheDiskSpace = -1;
+      }
+      else if (cachediskspace > -1) {
+        job.Resources.DiskSpaceRequirement.CacheDiskSpace = cachediskspace/(1024*1024);
+      }
     }
 
     // int SessionDiskSpace;
     if (bool(resource["DiskSpaceRequirement"]["SessionDiskSpace"])) {
-      if (!stringto<int>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], job.Resources.DiskSpaceRequirement.SessionDiskSpace))
+      long long int sessiondiskspace = -1;
+      if (!stringto<long long int>((std::string)resource["DiskSpaceRequirement"]["SessionDiskSpace"], sessiondiskspace)) {
         job.Resources.DiskSpaceRequirement.SessionDiskSpace = -1;
+      }
+     else if (sessiondiskspace > -1) {
+        job.Resources.DiskSpaceRequirement.SessionDiskSpace = sessiondiskspace/(1024*1024);
+      }
     }
 
     // Period SessionLifeTime;
@@ -896,27 +918,31 @@ namespace Arc {
     {
       // Range<int> DiskSpace;
       XMLNode xmlDiskSpace("<DiskSpace/>");
-      outputARCJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int)-1);
+      Range<long long int> diskspace;
+      diskspace.max = job.Resources.DiskSpaceRequirement.DiskSpace.max*1024*1024;
+      diskspace.min = job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024;
+      outputARCJSDLRange(diskspace, xmlDiskSpace, (long long int)-1);
 
       if (xmlDiskSpace.Size() > 0) {
         xmlResources.NewChild("DiskSpaceRequirement").NewChild(xmlDiskSpace);
 
         // int CacheDiskSpace;
-        if (job.Resources.DiskSpaceRequirement.CacheDiskSpace != -1)
-          xmlResources["DiskSpaceRequirement"].NewChild("CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace);
+        if (job.Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
+          xmlResources["DiskSpaceRequirement"].NewChild("CacheDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.CacheDiskSpace*1024*1024);
+        }
 
         // int SessionDiskSpace;
-        if (job.Resources.DiskSpaceRequirement.SessionDiskSpace != -1)
-          xmlResources["DiskSpaceRequirement"].NewChild("SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace);
+        if (job.Resources.DiskSpaceRequirement.SessionDiskSpace > -1) {
+          xmlResources["DiskSpaceRequirement"].NewChild("SessionDiskSpace") = tostring(job.Resources.DiskSpaceRequirement.SessionDiskSpace*1024*1024);
+        }
       }
-    }
 
-    {
       // JSDL Compliance...
-      XMLNode xmlDiskSpace("<FileSystem/>");
-      outputJSDLRange(job.Resources.DiskSpaceRequirement.DiskSpace, xmlDiskSpace, (int)-1);
-      if (xmlDiskSpace.Size() > 0)
-        xmlResources.NewChild("FileSystem").NewChild(xmlDiskSpace);
+      XMLNode xmlFileSystem("<FileSystem/>");
+      outputJSDLRange(diskspace, xmlFileSystem, (long long int)-1);
+      if (xmlFileSystem.Size() > 0) {
+        xmlResources.NewChild("FileSystem").NewChild(xmlFileSystem);
+      }
     }
 
     // Period SessionLifeTime;

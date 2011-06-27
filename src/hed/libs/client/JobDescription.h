@@ -137,8 +137,19 @@ namespace Arc {
       DiskSpace(-1),
       CacheDiskSpace(-1),
       SessionDiskSpace(-1) {}
+    /** Specifies the required size of disk space which must be available to
+     * the job in mega-bytes (MB). A negative value undefines this attribute
+     */
     Range<int> DiskSpace;
+    /** Specifies the required size of cache which must be available
+     * to the job in mega-bytes (MB). A negative value undefines this
+     * attribute
+     */
     int CacheDiskSpace;
+    /** Specifies the required size of job session disk space which must be
+     * available to the job in mega-byte (MB). A negative value undefines
+     * this attribute.
+     */
     int SessionDiskSpace;
   };
 

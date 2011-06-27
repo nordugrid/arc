@@ -193,7 +193,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     if(arc_job_desc.Resources.IndividualPhysicalMemory.max>=0) o_dst<<"requestedmemory="<<arc_job_desc.Resources.IndividualPhysicalMemory.max<<std::endl;
     if(arc_job_desc.Resources.TotalCPUTime.range.max>=0) o_dst<<"requestedcputime="<<arc_job_desc.Resources.TotalCPUTime.range.max<<std::endl;
     if(arc_job_desc.Resources.TotalWallTime.range.max>=0) o_dst<<"requestedwalltime="<<arc_job_desc.Resources.TotalWallTime.range.max<<std::endl;
-    if(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max>=0) o_dst<<"requesteddisk="<<arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max<<std::endl;
+    if(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max>=0) o_dst<<"requesteddisk="<<(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max*1024*1024)<<std::endl;
     if(arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().size()>0) {
       std::string rteStr;
       for (std::list<Arc::Software>::const_iterator itSW = arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().begin();

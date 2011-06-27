@@ -228,7 +228,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   stderr_ = arc_job_desc.Application.Error;
 
   if (arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace > -1)
-    diskspace = (unsigned long long int)arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace;
+    diskspace = (unsigned long long int)(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace*1024*1024);
 
   processtime = arc_job_desc.Application.ProcessingStartTime;
 

@@ -232,7 +232,7 @@ namespace Arc {
 
     //WorkingAreaFree
     if (jobdesc.Resources.DiskSpaceRequirement.DiskSpace) {
-      WorkingAreaFree -= (int)(jobdesc.Resources.DiskSpaceRequirement.DiskSpace / 10E9);
+      WorkingAreaFree -= (int)(jobdesc.Resources.DiskSpaceRequirement.DiskSpace / 1024);
       if (WorkingAreaFree < 0)
         WorkingAreaFree = 0;
     }
