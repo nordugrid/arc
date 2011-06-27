@@ -930,7 +930,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     if (!lrms_name_.empty()) {
       logger_.msg(Arc::ERROR, "Provided LRMSName is not a valid URL: %s",lrms_name_);
     } else {
-      logger_.msg(Arc::ERROR, "No LRMSName is provided. Needed for BES compliance.");
+      logger_.msg(Arc::WARNING, "No LRMSName is provided. This is needed if you wish to support the BES interface to A-REX.");
     };
     // Filling something to make it follow BES specs
     lrms_name_ = "uri:undefined";
