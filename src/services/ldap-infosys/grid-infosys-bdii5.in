@@ -331,9 +331,16 @@ bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 update_pid_file=${PID_FILE:-/var/run/bdii-update.pid}
 slapd_pid_file=${slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
 
-update_lock_file=${update_lock_file:-/var/lock/subsys/bdii-update}
-slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/bdii-slapd}
-lockfile=/var/lock/subsys/$prog
+# Debian does not have /var/lock/subsys
+if [ -d /var/lock/subsys ]; then
+    update_lock_file=${update_lock_file:-/var/lock/subsys/bdii-update}
+    slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/bdii-slapd}
+    lockfile=/var/lock/subsys/$prog
+else
+    update_lock_file=${update_lock_file:-/var/lock/bdii-update}
+    slapd_lock_file=${slapd_lock_file:-/var/lock/bdii-slapd}
+    lockfile=/var/lock/$prog
+fi
 
 # o=infosys should be disabled by default if possible.
 infosys_debug=${CONFIG_infosys_debug:-"disable"}
@@ -1187,7 +1194,6 @@ start () {
     create_directory $bdii_tmp_dir/ldif "BDII_TMP_DIR/ldif"
     create_directory $bdii_tmp_dir/provider "BDII_TMP_DIR/provider"
     create_directory $bdii_tmp_dir/plugin "BDII_TMP_DIR/plugin"
-    create_directory /var/lock/subsys "/var/lock/subsys"
     create_bdii_config_files
 
     #Initialize the database directory
