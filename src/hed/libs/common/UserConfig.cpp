@@ -365,7 +365,7 @@ namespace Arc {
     }
     else if (!caCertificatesDirectory.empty()) {
       if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified", caCertificatesDirectory);
+        logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
         caCertificatesDirectory.clear();
       }
     }
@@ -376,7 +376,7 @@ namespace Arc {
              !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
       caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
       if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(WARNING, "Can not locate CA certificate directory on the default directories: ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
+        logger.msg(WARNING, "Can not find CA certificate directory in default locations: ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
         caCertificatesDirectory.clear();
       }
     }
@@ -881,7 +881,7 @@ namespace Arc {
           if (port)
             service = "*:" + service;
         }
-        logger.msg(VERBOSE, "Adding %s service %s ", isSelectedNotRejected ?
+        logger.msg(VERBOSE, "Adding %s service %s", isSelectedNotRejected ?
                    istring("selected") : istring("rejected"), service);
         servicesRef.push_back(service);
       }
@@ -1066,7 +1066,7 @@ namespace Arc {
       }
       else {
         logger.msg(WARNING,
-                   "Alias (%s) contains a wrongly formated element (%s)",
+                   "Alias (%s) contains a wrongly formatted element (%s)",
                    resolvedAliases.front(), *it);
       }
     }

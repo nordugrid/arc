@@ -75,8 +75,8 @@ static void* cache_func(void* arg) {
       if (h < 0) {
         std::string dirname(logfile.substr(0, logfile.rfind('/')));
         if (!dirname.empty() && !Arc::DirCreate(dirname, S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
-          logger.msg(Arc::WARNING, "Cannot create directories for log file %s"
-              " messages will be logged to this log", logfile);
+          logger.msg(Arc::WARNING, "Cannot create directories for log file %s."
+              " Messages will be logged to this log", logfile);
         }
         else {
           h = open(logfile.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
