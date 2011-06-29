@@ -101,7 +101,7 @@ BuildRequires:	swig
 ARC
 
 %package client
-Summary:	ARC prototype clients
+Summary:	ARC command line interface
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}

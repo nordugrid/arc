@@ -46,13 +46,13 @@ BuildRequires: swig
 ARC
 
 %package client
-Summary: ARC prototype clients
+Summary: ARC command line interface
 Group: Applications/Internet
 Requires: %{name} = %{version}
 Requires: %{name}-plugins-needed = %{version}
 
 %description client
-ARC prototype clients.
+ARC command line interface.
 
 %package hed
 Summary: ARC Hosting Environment Daemon
