@@ -73,10 +73,9 @@ namespace Arc {
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
 
-    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS))
-    {
-      logger.msg(INFO, "%s directory exist! This job downloaded previously.", dstpath);
-      return true;
+    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS)) {
+      logger.msg(WARNING, "%s directory exist! Skipping job.", dstpath);
+      return false;
     }
 
     if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/')) {

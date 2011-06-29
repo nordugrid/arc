@@ -71,6 +71,11 @@ namespace Arc {
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();
 
+    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS)) {
+      logger.msg(WARNING, "%s directory exist! Skipping job.", dstpath);
+      return false;
+    }
+
     if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/'))
       srcpath += '/';
     if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR))
