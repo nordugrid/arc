@@ -6,6 +6,7 @@
 
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
+#include <arc/client/Job.h>
 
 #include "EMIESClient.h"
 
@@ -200,17 +201,6 @@ namespace Arc {
           estypes:ActivityID
           estypes:ActivityStatus
           estypes:InternalBaseFault
-
-
-      esainfo:GetActivityInfo
-        estypes:ActivityID
-        esainfo:AttributeName (xsd:QName)
-
-      esainfo:GetActivityInfoResponse
-        esainfo:ActivityInfoItem
-          estypes:ActivityID
-          estypes:ActivityInfo (glue:ComputingActivity_t)
-          estypes:InternalBaseFault
     */
 
     std::string action = "GetActivityStatus";
@@ -228,6 +218,37 @@ namespace Arc {
     if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
     state = item["estypes:ActivityStatus"];
     if(!state) return false;
+    return true;
+  }
+
+  bool EMIESClient::stat(const EMIESJob& job, Job& info) {
+    /*
+      esainfo:GetActivityInfo
+        estypes:ActivityID
+        esainfo:AttributeName (xsd:QName)
+
+      esainfo:GetActivityInfoResponse
+        esainfo:ActivityInfoItem
+          estypes:ActivityID
+          estypes:ActivityInfo (glue:ComputingActivity_t)
+          estypes:InternalBaseFault
+    */
+
+    std::string action = "GetActivityInfo";
+    logger.msg(VERBOSE, "Creating and sending job information query request to %s", rurl.str());
+
+    PayloadSOAP req(ns);
+    req.NewChild("esainfo:" + action).NewChild("estypes:ActivityID") = job.id;
+
+    XMLNode response;
+    if (!process(req, false, response)) return false;
+
+    response.Namespaces(ns);
+    XMLNode item = response.Child(0);
+    if(!MatchXMLName(item,"esainfo:ActivityInfoItem")) return false;
+    if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
+    info = item["estypes:ActivityInfo"];
+    //if(!info) return false;
     return true;
   }
 

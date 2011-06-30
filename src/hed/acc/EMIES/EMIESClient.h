@@ -30,6 +30,7 @@ namespace Arc {
   class Logger;
   class MCCConfig;
   class PayloadSOAP;
+  class Job;
 
   class EMIESJobState {
   public:
@@ -127,8 +128,8 @@ namespace Arc {
        @param state The state of the job.
        @return true on success
      */
-//    bool stat(const std::string& jobid, std::string& status);
     bool stat(const EMIESJob& job, EMIESJobState& state);
+    bool stat(const EMIESJob& job, Job& info);
 
     //! Terminates a job.
     /*! This method sends a request to the EMI ES service to terminate
