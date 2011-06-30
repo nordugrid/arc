@@ -16,7 +16,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 
 pkgdatadir="$basedir"
 
-. ${pkgdatadir}/cancel_common.sh || exit $?
+. ${pkgdatadir}/cancel_common.sh $1 || exit $?
 
 echo "executing wsclient delete with endpoint $joboption_wsendpoint and job id $joboption_jobid" 1>&2
 #remember to generalize endpoint to config file

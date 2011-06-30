@@ -64,8 +64,9 @@ def dict2xml(line):
     # This dictionary/arrayrepresents valid elements as well as the order
     order = ['dt',
              'event',
+             'bridge_id',
              'job_id',
-             'grid_job_id',
+             'job_id_bridge',
              'status',
              'application',
              'input_grid_name',
@@ -75,10 +76,11 @@ def dict2xml(line):
              'dt' : 'dt',
              'event' : 'event',
              'job_id' : 'job_id',
-             'grid_job_id' : 'grid_job_id',
+             'job_id_bridge' : 'job_id_bridge',
              'status' : 'status',
              'application' : 'application',
              'input_grid_name' : 'input_grid_name',
+             'bridge_id' : 'output_grid_name',
            }
 
     # Fix date 

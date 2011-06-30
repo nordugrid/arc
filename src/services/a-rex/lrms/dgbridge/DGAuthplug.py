@@ -143,7 +143,6 @@ def IsAccepted(control_dir,runtime_dir,jobid):
 
     # Find the primary VO
     vo = GetPrimaryVO(control_dir,jobid)
-    vo = 'all'
 
     # Find requested runtime environments
     desc = GetDescription(control_dir,jobid)
@@ -151,7 +150,12 @@ def IsAccepted(control_dir,runtime_dir,jobid):
 
     allowed_vos = GetAllowedVOs(runtime_dir,rte)
     if vo not in allowed_vos and 'all' not in allowed_vos:
-        ExitError("You are not allowed",1)
+#        ExitError("You are not allowed",1)
+#        ExitError("Your vo %s are not among the allowed: %s"%(vo,allowed_vos),1)
+        if not vo:
+            ExitError("You must be assigned to one of the allowed VOs",1)
+        else:
+            ExitError("Your vo <%s> is not among the allowed VOs for %s"%(vo,rte),1)
 
     return True
 

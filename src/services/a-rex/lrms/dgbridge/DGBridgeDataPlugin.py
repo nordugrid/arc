@@ -26,25 +26,25 @@ if not jobdesc.Parse(rawdesc):
 
 #extract staging info
 dselements=[]
-while jobdesc.DataStaging.File.size()>0:
-  dselements.append(jobdesc.DataStaging.File.pop())
+while jobdesc.Files.size()>0:
+  dselements.append(jobdesc.Files.pop())
 
 inputfiles=""
 locelements=[]
 #filter staging
 for dsel in dselements:
   if dsel.Source.size()==0: #not an input file
-    jobdesc.DataStaging.File.append(dsel)
+    jobdesc.Files.append(dsel)
   else: #check for attic or http
-    proto=dsel.Source[0].URI.Protocol()
-    url=dsel.Source[0].URI.str()
+    proto=dsel.Source[0].Protocol()
+    url=dsel.Source[0].str()
     matchlist = re.findall(".*?;md5=.*?:size=.*?$",url) #check whether url has md5 and size set
     if (proto=='attic' or proto=='http') and len(matchlist)==1 and matchlist[0]==url : #we can put http here also, but we'll need to check for md5 and size
       locelements.append(dsel)
     else:
-      jobdesc.DataStaging.File.append(dsel)
-      if not dsel.Source[0].URI.Protocol()=='file':
-        inputfiles = inputfiles +  dsel.Name + " " + dsel.Source[0].URI.str() + "\n"
+      jobdesc.Files.append(dsel)
+      if not dsel.Source[0].Protocol()=='file':
+        inputfiles = inputfiles +  dsel.Name + " " + dsel.Source[0].str() + "\n"
       else:
         inputfiles = inputfiles + dsel.Name + "\n"
 
@@ -61,7 +61,7 @@ print("attic type files\n")
 f=open(locfile,'a')
 outstr=""
 for elem in locelements:
-  outstr=outstr + elem.Name+ " " + elem.Source[0].URI.str() + "\n"
+  outstr=outstr + elem.Name+ " " + elem.Source[0].str() + "\n"
 
 print(outstr)
 f.write(outstr)
