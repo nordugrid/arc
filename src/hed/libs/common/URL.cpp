@@ -605,6 +605,19 @@ namespace Arc {
       return undefined;
   }
 
+  bool URL::AddHTTPOption(const std::string& option, const std::string& value,
+                      bool overwrite) {
+    if (option.empty() || value.empty() ||
+        (!overwrite && httpoptions.find(option) != httpoptions.end()))
+      return false;
+    httpoptions[option] = value;
+    return true;
+  }
+
+  void URL::RemoveHTTPOption(const std::string& option) {
+    httpoptions.erase(option);
+  }
+
   const std::map<std::string, std::string>& URL::MetaDataOptions() const {
     return metadataoptions;
   }
@@ -685,6 +698,14 @@ namespace Arc {
 
   void URL::AddLocation(const URLLocation& location) {
     locations.push_back(location);
+  }
+
+  void URL::RemoveOption(const std::string& option) {
+    urloptions.erase(option);
+  }
+
+  void URL::RemoveMetaDataOption(const std::string& option) {
+    metadataoptions.erase(option);
   }
 
   const std::list<URLLocation>& URL::Locations() const {

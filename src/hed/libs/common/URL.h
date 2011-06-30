@@ -143,6 +143,15 @@ namespace Arc {
     const std::string& HTTPOption(const std::string& option,
                                   const std::string& undefined = "") const;
 
+    /** Adds a HTP option with the given value. Returns false if overwrite
+     *  is false and option already exists, true otherwise. */
+    bool AddHTTPOption(const std::string& option, const std::string& value,
+                   bool overwrite = true);
+
+    /** Removes a HTTP option if exists.
+     *  \param option     The option to remove. */
+    void RemoveHTTPOption(const std::string& option);
+
     /** Returns the LDAP attributes if any. */
     const std::list<std::string>& LDAPAttributes() const;
 
@@ -214,6 +223,14 @@ namespace Arc {
     const std::string& CommonLocOption(const std::string& option,
                                        const std::string&
                                        undefined = "") const;
+
+    /** Removes a URL option if exists.
+     *  \param option     The option to remove. */
+    void RemoveOption(const std::string& option);
+
+    /** Remove a metadata option if exits.
+     *  \param option     The option to remove. */
+    void RemoveMetaDataOption(const std::string& option);
 
     /** Returns a string representation of the URL including meta-options. */
     virtual std::string str() const;
