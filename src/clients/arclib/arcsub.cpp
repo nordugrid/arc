@@ -319,7 +319,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     bool descriptionSubmitted = false;
     submittedJobs.push_back(Arc::Job());
     if (ChosenBroker->Submit(targen.GetExecutionTargets(), *it, submittedJobs.back())) {
-      printjobid(submittedJobs.back().JobID.str(), jobidfile);
+      printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
       descriptionSubmitted = true;
     }
     else if (it->HasAlternatives()) {
@@ -327,7 +327,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
       for (std::list<Arc::JobDescription>::const_iterator itAlt = it->GetAlternatives().begin();
            itAlt != it->GetAlternatives().end(); itAlt++) {
         if (ChosenBroker->Submit(targen.GetExecutionTargets(), *itAlt, submittedJobs.back())) {
-          printjobid(submittedJobs.back().JobID.str(), jobidfile);
+          printjobid(submittedJobs.back().JobID.fullstr(), jobidfile);
           descriptionSubmitted = true;
           break;
         }
