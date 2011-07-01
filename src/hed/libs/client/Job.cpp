@@ -678,8 +678,8 @@ namespace Arc {
         XMLNodeList xmlJobs = jobstorage.Path("Job");
         for (std::list<URL>::const_iterator it = jobids.begin(); it != jobids.end(); ++it) {
           for (XMLNodeList::iterator xJIt = xmlJobs.begin(); xJIt != xmlJobs.end(); ++xJIt) {
-            if ((*xJIt)["IDFromEndpoint"] == it->str() ||
-                (*xJIt)["JobID"] == it->str() // Included for backwards compatibility.
+            if ((*xJIt)["IDFromEndpoint"] == it->fullstr() ||
+                (*xJIt)["JobID"] == it->fullstr() // Included for backwards compatibility.
                 ) {
               xJIt->Destroy(); // Do not break, since for some reason there might be multiple identical jobs in the file.
             }
