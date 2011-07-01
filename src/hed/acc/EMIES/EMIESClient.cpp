@@ -7,6 +7,7 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/client/Job.h>
+#include "JobStateEMIES.h"
 
 #include "EMIESClient.h"
 
@@ -39,6 +40,9 @@ static const std::string ES_ADL_NAMESPACE("http://www.eu-emi.eu/es/2010/12/adl")
 static const std::string GLUE2_NPREFIX("glue2");
 static const std::string GLUE2_NAMESPACE("http://schemas.ogf.org/glue/2009/03/spec/2/0");
 
+static const std::string GLUE2PRE_NPREFIX("glue2pre");
+static const std::string GLUE2PRE_NAMESPACE("http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01");
+
 namespace Arc {
 
   Logger EMIESClient::logger(Logger::rootLogger, "EMI ES Client");
@@ -52,6 +56,7 @@ namespace Arc {
     ns[ES_AINFO_NPREFIX]  = ES_AINFO_NAMESPACE;
     ns[ES_ADL_NPREFIX]    = ES_ADL_NAMESPACE;
     ns[GLUE2_NPREFIX]     = GLUE2_NAMESPACE;
+    ns[GLUE2PRE_NPREFIX]  = GLUE2PRE_NAMESPACE;
     ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl"; // TODO: move to EMI ES lang.
   }
 
@@ -152,7 +157,7 @@ namespace Arc {
   }
 
   bool EMIESClient::submit(const std::string& jobdesc, EMIESJob& job, EMIESJobState& state, bool delegate) {
-    std::string action = "CreateActivites";
+    std::string action = "CreateActivities";
     logger.msg(VERBOSE, "Creating and sending job submit request to %s", rurl.str());
 
     // Create job request
@@ -173,7 +178,7 @@ namespace Arc {
 
     PayloadSOAP req(ns);
     XMLNode op = req.NewChild("escreate:" + action);
-    XMLNode act_doc = req.NewChild(XMLNode(jobdesc));
+    XMLNode act_doc = op.NewChild(XMLNode(jobdesc));
     act_doc.Name("esadl:ActivityDescription"); // Pretending it is ADL
 
     logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
@@ -248,6 +253,20 @@ namespace Arc {
     if(!MatchXMLName(item,"esainfo:ActivityInfoItem")) return false;
     if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
     info = item["estypes:ActivityInfo"];
+    // Looking for EMI ES specific state
+    XMLNode state = item["estypes:ActivityInfo"]["State"];
+    const std::string state_prefix("eu-emi:");
+    for(;(bool)state;++state) {
+      if(state["estypes:ActivityStatus"]) {
+        info.State = JobStateEMIES(state["estypes:ActivityStatus"]);
+        break;
+      }
+    }
+    // Making EMI ES specific jo id
+    // URL-izing job id
+    URL jobidu(job.manager);
+    jobidu.AddOption("emiesjobid",job.id,true);
+    info.JobID = jobidu;
     //if(!info) return false;
     return true;
   }
@@ -271,11 +290,13 @@ namespace Arc {
     response.Namespaces(ns);
     XMLNode service = response["glue2:ComputingService"];
     XMLNode manager = response["glue2:ActivityManager"];
-    if((!service)) {
+    if(!service) service = response["glue2pre:ComputingService"];
+    if(!manager) manager = response["glue2pre:ActivityManager"];
+    if(!service) {
       logger.msg(VERBOSE, "Missing ComputingService in response from %s", rurl.str());
       return false;
     }
-    if((!manager)) {
+    if(!manager) {
       logger.msg(VERBOSE, "Missing ActivityManager in response from %s", rurl.str());
       return false;
     }

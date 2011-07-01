@@ -1,4 +1,4 @@
-noinst_LTLIBRARIES = libaccEMIES.la
+pkglib_LTLIBRARIES = libaccEMIES.la
 
 libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 	JobStateEMIES.cpp JobStateEMIES.h \

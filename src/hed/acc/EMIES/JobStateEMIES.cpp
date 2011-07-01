@@ -42,6 +42,7 @@ namespace Arc {
       if(st.HasAttribute("APP-FAILURE")) return JobState::FAILED;
       return JobState::FINISHED;
     }
+    return JobState::OTHER;
   }
 
 }

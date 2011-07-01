@@ -60,13 +60,59 @@ namespace Arc {
                                  const std::string& downloaddir,
                                  const bool usejobname,
                                  const bool force) {
-    logger.msg(INFO, "Get of EMI ES jobs is not supported");
-    return false;
+    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
+
+    std::string jobidnum;
+    if (usejobname && !job.Name.empty()) {
+      jobidnum = job.Name;
+    } else {
+      jobidnum = job.JobID.Option("emiesjobid");
+    }
+
+    // TODO: This only works for ARC implementation
+    URL src(GetFileUrlForJob(job,""));
+    URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
+    std::list<std::string> files = GetDownloadFiles(src);
+
+    std::string srcpath = src.Path();
+    std::string dstpath = dst.Path();
+
+    if (!force && Glib::file_test(dstpath, Glib::FILE_TEST_EXISTS))
+    {
+      logger.msg(INFO, "%s directory exist! This job downloaded previously.", dstpath);
+      return true;
+    }
+
+    if (srcpath.empty() || (srcpath[srcpath.size() - 1] != '/')) {
+      srcpath += '/';
+    }
+    if (dstpath.empty() || (dstpath[dstpath.size() - 1] != G_DIR_SEPARATOR)) {
+      dstpath += G_DIR_SEPARATOR_S;
+    }
+
+    bool ok = true;
+
+    for (std::list<std::string>::iterator it = files.begin();
+         it != files.end(); it++) {
+      src.ChangePath(srcpath + *it);
+      dst.ChangePath(dstpath + *it);
+      if (!ARCCopyFile(src, dst)) {
+        logger.msg(INFO, "Failed dowloading %s to %s", src.str(), dst.str());
+        ok = false;
+      }
+    }
+
+    return ok;
   }
 
   bool JobControllerEMIES::CleanJob(const Job& job) {
-    logger.msg(INFO, "Clean of EMI ES jobs is not supported");
-    return false;
+    bool ok = true;
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+
+    EMIESJob ejob = JobToEMIES(job);
+    EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
+    return ac.clean(ejob);
   }
 
   bool JobControllerEMIES::CancelJob(const Job& job) {
@@ -88,6 +134,7 @@ namespace Arc {
                                           const std::string& whichfile) {
     // TODO: Folowing only works for ARC implementation
     URL url(job.JobID);
+    url.ChangePath(url.Path() + '/' + url.Option("emiesjobid"));
     url.RemoveOption("emiesjobid");
 
     if (whichfile == "stdout") {
@@ -96,6 +143,8 @@ namespace Arc {
       url.ChangePath(url.Path() + '/' + job.StdErr);
     } else if (whichfile == "joblog") {
       url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
+    } else {
+      if(!whichfile.empty()) url.ChangePath(url.Path() + "/" + whichfile);
     }
 
     return url;
