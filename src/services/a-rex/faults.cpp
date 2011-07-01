@@ -153,16 +153,16 @@ void ARexService::ESVectorLimitExceededFault(Arc::SOAPFault& fault,unsigned long
   ESVectorLimitExceededFault(fault.Detail(true).NewChild("dummy"),limit,message,desc);
 }
 
-#define ES_SIMPLE_FAULT(NAME,NAMESPACE,MESSAGE) \
-void ARexService::ES##NAME(Arc::XMLNode fault, \
+#define ES_SIMPLE_FAULT(FAULTNAME,NAMESPACE,MESSAGE) \
+void ARexService::ES##FAULTNAME(Arc::XMLNode fault, \
                            const std::string& message,const std::string& desc) { \
   ESInternalBaseFault(fault,message.empty()?(MESSAGE):message,desc); \
-  fault.Name("##NAMESPACE##:##NAME##"); \
+  fault.Name(#NAMESPACE ":" #FAULTNAME); \
 } \
  \
-void ARexService::ES##NAME(Arc::SOAPFault& fault, \
+void ARexService::ES##FAULTNAME(Arc::SOAPFault& fault, \
                            const std::string& message,const std::string& desc) { \
-  ES##NAME(fault.Detail(true).NewChild("dummy"),message,desc); \
+  ES##FAULTNAME(fault.Detail(true).NewChild("dummy"),message,desc); \
 }
 
 ES_SIMPLE_FAULT(AccessControlFault,estypes,"Access denied")
@@ -178,6 +178,8 @@ ES_SIMPLE_FAULT(InternalResourceInfoFault,esrinfo,"Internal failure retrieving r
 ES_SIMPLE_FAULT(InvalidActivityIDFault,esainfo,"Invalid activity ID")
 
 ES_SIMPLE_FAULT(UnknownActivityIDFault,esainfo,"Unknown activity ID")
+
+ES_SIMPLE_FAULT(InvalidActivityStateFault,esainfo,"Invalid activity state")
 
 }
 

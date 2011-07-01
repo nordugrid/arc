@@ -191,9 +191,39 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
 }
 
 Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
+  /*
+    esmanag:WipeActivity
+      estypes:ActivityID
+
+    esmanag:WipeActivityResponse
+      esmanag:ResponseItem
+        estypes:ActivityID
+        esmang:EstimatedTime (xsd:unsignedLong)
+        estypes:InternalBaseFault
+  */
+  Arc::XMLNode id = in["ActivityID"];
+  // TODO: vector limit
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      if(!job.Clean()) {
+        // Probably wrong current state
+        logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
+        // TODO: check ffor real reason
+        ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+      } else {
+        item.NewChild("esmang:EstimatedTime") = "0"; // TODO: real estimation
+      };
+    };
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {

@@ -152,8 +152,18 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
       Arc::XMLNode info;
       if(job_xml_read_file(jobid,*config.User(),glue_s)) {
         Arc::XMLNode glue_xml(glue_s);
+        // TODO: if xml information is not ready yet create something minimal
         if((bool)glue_xml) {
+          std::string glue2_namespace = glue_xml.Namespace();
           (info = item.NewChild(glue_xml)).Name("estypes:ActivityInfo");
+          info.Namespaces(ns_);
+          bool job_pending = false;
+          std::string gm_state = job.State(job_pending);
+          Arc::XMLNode status = addActivityStatusES(
+               info.NewChild(info.NamespacePrefix(glue2_namespace.c_str())+":State",0,false),
+               gm_state,Arc::XMLNode(),job.Failed(),job_pending);
+          status.NewChild("estypes:Timestamp") = Arc::Time().str(Arc::ISOTime); // TODO
+          //status.NewChild("estypes:Description);  TODO
         };
       };
       if(!info) {
