@@ -122,7 +122,7 @@ check_exceeded_resources_grami () {
   echo ++++++++++++++++++++++++++   >> "$errorsfile"
   echo Resources:                   >> "$errorsfile"
   echo ++++++++++++++++++++++++++   >> "$errorsfile"
-  echo req_memory=$req_memory Mb    >> "$errorsfile"
+  echo req_memory=$req_memory MB    >> "$errorsfile"
   echo req_cputime=$req_cputime     >> "$errorsfile"
   echo req_walltime=$req_walltime   >> "$errorsfile"
   echo used_memory=$used_memory kB  >> "$errorsfile"
