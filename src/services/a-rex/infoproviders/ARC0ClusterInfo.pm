@@ -93,7 +93,7 @@ sub collect($) {
             }
             if ((defined $lrmsjob) and $lrmsjob->{status} ne 'EXECUTED') {
                 if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
-                    $gridrunning{$share}++;
+                    $gridrunning{$share} += $lrmsjob->{cpus};
                 } else {
                     $gridqueued{$share}++;
                 }

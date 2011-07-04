@@ -581,7 +581,7 @@ sub queue_info ($$) {
 	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || 
 		 ($hoh_pbsnodes{$node}{'properties'} =~ m/$qname/ ||
 		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{dedicated_node_string}/ ||
-		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{queue_node_string}/ ||
+		  $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$$config{queue_node_string}(,[^,]+)*$/ ||
 		  ( defined $singledqueue && $hoh_pbsnodes{$node}{"properties"} =~ m/$singledqueue/) ) ){
 		my $cpus;
 
