@@ -726,12 +726,12 @@ if [ -r /var/lock/subsys/grid-infosys && \
    mv /var/lock/subsys/bdii-slapd /var/lock/subsys/arc-bdii-slapd
    [ -r /var/run/bdii-update.pid ] && \
    mv /var/run/bdii-update.pid /var/run/arc-bdii-update.pid
-   [ -d /var/run/bdii ] && mkdir -p /var/run/arc && \
-   mv /var/run/bdii /var/run/arc/bdii
-   [ -d /var/tmp/bdii ] && mkdir -p /var/tmp/arc && \
-   mv /var/tmp/bdii /var/tmp/arc/bdii
-   [ -d /var/log/bdii ] && mkdir -p /var/log/arc && \
-   mv /var/log/bdii /var/log/arc/bdii
+   [ -d /var/run/bdii ] && [ ! -d /var/run/arc/bdii ] && \
+   mkdir -p /var/run/arc && mv /var/run/bdii /var/run/arc/bdii
+   [ -d /var/tmp/bdii ] && [ ! -d /var/tmp/arc/bdii ] && \
+   mkdir -p /var/tmp/arc && mv /var/tmp/bdii /var/tmp/arc/bdii
+   [ -d /var/log/bdii ] && [ ! -d /var/log/arc/bdii ] && \
+   mkdir -p /var/log/arc && mv /var/log/bdii /var/log/arc/bdii
 fi
 
 %preun aris
