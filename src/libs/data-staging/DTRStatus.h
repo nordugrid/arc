@@ -7,13 +7,12 @@
 
 namespace DataStaging {
       
-  /**
-   * A class to be used for tracking and manipulating DTR status.
-   */
+  /// Class representing the status of a DTR.
   class DTRStatus {
 
   public:
     
+    /// Possible state values
     enum DTRStatusType {
     	
       /* Set by the generator */
@@ -134,42 +133,53 @@ namespace DataStaging {
       
     };
     
+    /// Make new DTRStatus with given status
     DTRStatus(const DTRStatusType& status, std::string desc="")
       : status(status), desc(desc) {}
+    /// Make new DTRStatus with default NEW status
     DTRStatus() 
       : status(NEW), desc ("") {}
-    ~DTRStatus() {}
 
+    /// Returns true if this status is the same as the given DTRStatusType
     bool operator==(const DTRStatusType& s) const {
       return status == s;
     }
+    /// Returns true if this status is the same as the given DTRStatus
     bool operator==(const DTRStatus& s) const {
       return status == s.status;
     }
   
+
+    /// Returns true if this status is not the same as the given DTRStatusType
     bool operator!=(const DTRStatusType& s) const {
       return status != s;
     }
+    /// Returns true if this status is not the same as the given DTRStatus
     bool operator!=(const DTRStatus& s) const {
       return status != s.status;
     }
   
+    /// Make a new DTRStatus with the same status as the given DTRStatusType
     DTRStatus operator=(const DTRStatusType& s) {
       status = s;
       return *this;
     }
 
+    /// Returns a string representation of the current state
     std::string str() const;
 
+    /// Set the detailed description of the current state
     void SetDesc(const std::string& d) {
       desc = d;
     }
     
+    /// Get the detailed description of the current state
     std::string GetDesc() const {
       return desc;
     }
     
-     DTRStatusType GetStatus() const {
+    /// Get the DTRStatusType of the current state
+    DTRStatusType GetStatus() const {
       return status;
     }
 
@@ -182,9 +192,7 @@ namespace DataStaging {
 
   }; // DTRStatus
 
-  /**
-   * A class to represent error states reported by various components.
-   */
+  /// A class to represent error states reported by various components.
   class DTRErrorStatus {
 
    public:
@@ -236,6 +244,7 @@ namespace DataStaging {
       ERROR_UNKNOWN
     };
 
+    /// Create a new DTRErrorStatus with given error states
     DTRErrorStatus(DTRErrorStatusType status,
                    DTRStatus::DTRStatusType error_state,
                    DTRErrorLocation location,
@@ -245,46 +254,52 @@ namespace DataStaging {
       error_location(location),
       desc(desc) {};
 
+    /// Create a new DTRErrorStatus with default none/null error states
     DTRErrorStatus() :
       error_status(NONE_ERROR),
       last_error_state(DTRStatus::NULL_STATE),
       error_location(NO_ERROR_LOCATION),
       desc("") {};
 
-    /** returns the error type */
+    /// Returns the error type
     DTRErrorStatusType GetErrorStatus() const {
      return error_status;
     }
 
-    /** returns the state in which the error occurred */
+    /// Returns the state in which the error occurred
     DTRStatus::DTRStatusType GetLastErrorState() const {
       return last_error_state.GetStatus();
     }
 
-    /** returns the location at which the error occurred */
+    /// Returns the location at which the error occurred
     DTRErrorLocation GetErrorLocation() const {
       return error_location;
     }
 
-    /** returns the error description */
+    /// Returns the error description
     std::string GetDesc() const {
       return desc;
     }
 
+    /// Returns true if this error status is the same as the given DTRErrorStatusType
     bool operator==(const DTRErrorStatusType& s) const {
       return error_status == s;
     }
+    /// Returns true if this error status is the same as the given DTRErrorStatus
     bool operator==(const DTRErrorStatus& s) const {
       return error_status == s.error_status;
     }
 
+    /// Returns true if this error status is not the same as the given DTRErrorStatusType
     bool operator!=(const DTRErrorStatusType& s) const {
       return error_status != s;
     }
+    /// Returns true if this error status is not the same as the given DTRErrorStatus
     bool operator!=(const DTRErrorStatus& s) const {
       return error_status != s.error_status;
     }
 
+    /// Make a new DTRErrorStatus with the same error status as the given DTRErrorStatusType
     DTRErrorStatus operator=(const DTRErrorStatusType& s) {
       error_status = s;
       return *this;

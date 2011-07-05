@@ -136,7 +136,6 @@ namespace DataStaging {
       child_->KeepStdout(false);
       child_->KeepStderr(false);
       child_->KeepStdin(false);
-      //child_->AssignStderr(errstr_);
       if(!caching) {
         child_->AssignUserId(dtr.get_local_user().get_uid());
         child_->AssignGroupId(dtr.get_local_user().get_gid());
@@ -176,8 +175,6 @@ namespace DataStaging {
   }
 
 
-  // Check for new state from child and fill state accordingly.
-  // Detects communication and delivery failures and delivery termination.
   void DataDeliveryComm::PullStatus(void) {
     Glib::Mutex::Lock lock(lock_);
     if(!child_) return;

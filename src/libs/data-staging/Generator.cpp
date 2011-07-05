@@ -13,18 +13,11 @@
 namespace DataStaging {
 
   Arc::Logger Generator::logger(Arc::Logger::getRootLogger(), "DataStaging.Generator");
-  //Generator* Generator::instance = NULL;
-  //Arc::SimpleCondition Generator::cond;
-
-  //Generator* Generator::getInstance() {
-  //  if (!instance)
-  //    instance = new Generator();
-  //  return instance;
-  //}
+  Arc::SimpleCondition Generator::cond;
 
   void Generator::shutdown(int sig) {
     logger.msg(Arc::INFO, "Cancelling all DTRs");
-//    cond.signal();
+    cond.signal();
   }
 
   void Generator::receiveDTR(DTR& dtr) {
@@ -39,9 +32,8 @@ namespace DataStaging {
 
     logger.msg(Arc::INFO, "Generator started");
     signal(SIGINT, shutdown);
-    // set up job and session dir
+
     std::string job_id = Arc::UUID();
-    std::string session_dir = "/var/tmp/arc/session";
     Arc::UserConfig cfg;
 
     // check credentials
@@ -61,7 +53,6 @@ namespace DataStaging {
       Arc::Logger * log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
       Arc::LogDestination * dest = new Arc::LogStream(std::cerr);
       log->addDestination(*dest);
-      //log->detach();
 
       // Free DTR immediately after passing to scheduler
       DTR dtr(source, destination, cfg, job_id,  Arc::User().get_uid(), log);
@@ -74,7 +65,6 @@ namespace DataStaging {
       dtr.registerCallback(&scheduler,SCHEDULER);
       dtr.push(SCHEDULER);
     }
-    //Scheduler::getInstance()->cancel_dtrs(job_desc);
     
     cond.wait();
     logger.msg(Arc::INFO, "Generator finished, shutting down scheduler");

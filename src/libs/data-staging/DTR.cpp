@@ -408,41 +408,4 @@ namespace DataStaging {
        drain_cache_dirs(drain_caches) {
 }
 
-std::ostream& operator<<(std::ostream& stream, const CacheParameters& obj) {
-  for(std::vector<std::string>::const_iterator d = obj.cache_dirs.begin();
-                      d != obj.cache_dirs.end();++d) {
-    stream<<"cache="<<*d<<std::endl;
-  };
-  for(std::vector<std::string>::const_iterator d = obj.remote_cache_dirs.begin();
-                      d != obj.remote_cache_dirs.end();++d) {
-    stream<<"remotecache="<<*d<<std::endl;
-  };
-  for(std::vector<std::string>::const_iterator d = obj.drain_cache_dirs.begin();
-                      d != obj.drain_cache_dirs.end();++d) {
-    stream<<"draincache="<<*d<<std::endl;
-  };
-  return stream;
-}
-
-std::istream& operator>>(std::istream& stream, CacheParameters& obj) {
-  obj.cache_dirs.clear();
-  obj.remote_cache_dirs.clear();
-  obj.drain_cache_dirs.clear();
-  std::string s;
-  while(std::getline(stream,s)) {
-    std::string::size_type p = s.find('=');
-    if(p == std::string::npos) continue;
-    std::string key = s.substr(0,p);
-    if(key == "cache") {
-      obj.cache_dirs.push_back(s.substr(p+1));
-    } else if(key == "remotecache") {
-      obj.remote_cache_dirs.push_back(s.substr(p+1));
-    } else if(key == "draincache") {
-      obj.drain_cache_dirs.push_back(s.substr(p+1));
-    };
-  };
-  return stream;
-}
-
-
 } // namespace DataStaging

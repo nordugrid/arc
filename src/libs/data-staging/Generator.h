@@ -1,13 +1,6 @@
 #ifndef GENERATOR_H_
 #define GENERATOR_H_
 
-/**
- * The real generator will most likely be part of A-REX, and the
- * entry point into data staging code will be the scheduler.
- * This code is mainly for independent testing of the data staging
- * framework and will not be in the released version.
- */
-
 #include <arc/Thread.h>
 #include <arc/Logger.h>
 
@@ -15,37 +8,29 @@
 
 namespace DataStaging {
 
+  /// Simple Generator implementation
   /**
-   * Generator is a singleton class. It generates DTRs and submits
-   * them to the data staging system, then waits for them to complete.
+   * This Generator implementation is included in the data staging library for
+   * for basic direct testing of the library and to show how a Generator can
+   * be written. It has one method, run(), which creates a single DTR
+   * and submits it to the Scheduler.
    */
   class Generator: public DTRCallback {
 
    private:
 
-    /** Condition to wait on until DTR has finished */
-    Arc::SimpleCondition cond;
+    /// Condition to wait on until DTR has finished
+    static Arc::SimpleCondition cond;
 
-    /** Singleton instance */
-    //static Generator* instance;
-
-    /** Private constructors and assignment operators */
-    Generator(const Generator&);
-    Generator& operator=(const Generator&);
-
-    /** Interrupt signal handler */
+    /// Interrupt signal handler
     static void shutdown(int sig);
 
-    /** Logger object */
+    /// Logger object
     static Arc::Logger logger;
 
    public:
 
-    Generator() {};
-    ~Generator() {};
-    /** Get the singleton instance */
-    //static Generator* getInstance();
-
+    /// Implementation of callback from DTRCallback
     /**
      * Callback method used when DTR processing is complete to
      * pass back to the generator. The DTR is passed by value so
@@ -54,7 +39,7 @@ namespace DataStaging {
      */
     virtual void receiveDTR(DTR& dtr);
 
-    /** Produce and submit some DTRs, with given source and destination */
+    /// Submit a DTR with given source and destination
     void run(const std::string& source, const std::string& destination);
   };
 
