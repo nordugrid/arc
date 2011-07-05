@@ -718,8 +718,8 @@ semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
 semanage fcontext -a -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 %endif
 # Move files to new locations so that the condrestart in postun works
-if [ -r /var/lock/subsys/grid-infosys && \
-   ! -r /var/lock/subsys/arc-bdii-update ] ; then
+if [ -r /var/lock/subsys/grid-infosys ] && \
+   [ ! -r /var/lock/subsys/arc-bdii-update ] ; then
    [ -r /var/lock/subsys/bdii-update ] && \
    mv /var/lock/subsys/bdii-update /var/lock/subsys/arc-bdii-update
    [ -r /var/lock/subsys/bdii-slapd ] && \
