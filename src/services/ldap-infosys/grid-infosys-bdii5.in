@@ -272,8 +272,8 @@ bdii_user=${CONFIG_user:-$ldap_user}
 bdii_location=${CONFIG_bdii_location:-/usr}
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 
-bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/bdii}
-bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/bdii}
+bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
+bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
 bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
 bdii_log_file="${bdii_log_dir}/bdii-update.log"
 
@@ -328,17 +328,17 @@ else
 fi
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
-update_pid_file=${PID_FILE:-/var/run/bdii-update.pid}
+update_pid_file=${PID_FILE:-/var/run/arc-bdii-update.pid}
 slapd_pid_file=${slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
 
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
-    update_lock_file=${update_lock_file:-/var/lock/subsys/bdii-update}
-    slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/bdii-slapd}
+    update_lock_file=${update_lock_file:-/var/lock/subsys/arc-bdii-update}
+    slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/arc-bdii-slapd}
     lockfile=/var/lock/subsys/$prog
 else
-    update_lock_file=${update_lock_file:-/var/lock/bdii-update}
-    slapd_lock_file=${slapd_lock_file:-/var/lock/bdii-slapd}
+    update_lock_file=${update_lock_file:-/var/lock/arc-bdii-update}
+    slapd_lock_file=${slapd_lock_file:-/var/lock/arc-bdii-slapd}
     lockfile=/var/lock/$prog
 fi
 

@@ -22,3 +22,10 @@
   rotate 14
   create
 }
+/var/log/arc/bdii/bdii-update.log {
+  missingok
+  compress
+  daily
+  rotate 30
+  copytruncate	
+}

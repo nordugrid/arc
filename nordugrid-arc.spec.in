@@ -659,83 +659,100 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/chkconfig --add arched
 
 %preun hed
-if [ $1 = 0 ]; then
+if [ $1 -eq 0 ]; then
   service arched stop > /dev/null 2>&1
   /sbin/chkconfig --del arched
 fi
 
 %postun hed
-if [ "$1" -ge "1" ]; then
+if [ $1 -ge 1 ]; then
   service arched condrestart > /dev/null 2>&1
 fi
-exit 0
 
 %post arex
 /sbin/chkconfig --add a-rex
 
 %preun arex
-if [ $1 = 0 ]; then
+if [ $1 -eq 0 ]; then
   service a-rex stop > /dev/null 2>&1
   /sbin/chkconfig --del a-rex
 fi
 
 %postun arex
-if [ "$1" -ge "1" ]; then
+if [ $1 -ge 1 ]; then
   service a-rex condrestart > /dev/null 2>&1
 fi
-exit 0
 
 %post gridftpd
 /sbin/chkconfig --add gridftpd
 
 %preun gridftpd
-if [ $1 = 0 ]; then
+if [ $1 -eq 0 ]; then
   service gridftpd stop > /dev/null 2>&1
   /sbin/chkconfig --del gridftpd
 fi
 
 %postun gridftpd
-if [ "$1" -ge "1" ]; then
+if [ $1 -ge 1 ]; then
   service gridftpd condrestart > /dev/null 2>&1
 fi
-exit 0
 
 %post cache-service
 /sbin/chkconfig --add cache-service
 
 %preun cache-service
-if [ $1 = 0 ]; then
+if [ $1 -eq 0 ]; then
   service cache-service stop > /dev/null 2>&1
   /sbin/chkconfig --del cache-service
 fi
 
 %postun cache-service
-if [ "$1" -ge "1" ]; then
+if [ $1 -ge 1 ]; then
   service cache-service condrestart > /dev/null 2>&1
 fi
-exit 0
 
 %post aris
 /sbin/chkconfig --add grid-infosys
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
+semanage fcontext -a -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 %endif
+# Move files to new locations so that the condrestart in postun works
+if [ -r /var/lock/subsys/grid-infosys && \
+   ! -r /var/lock/subsys/arc-bdii-update ] ; then
+   [ -r /var/lock/subsys/bdii-update ] && \
+   mv /var/lock/subsys/bdii-update /var/lock/subsys/arc-bdii-update
+   [ -r /var/lock/subsys/bdii-slapd ] && \
+   mv /var/lock/subsys/bdii-slapd /var/lock/subsys/arc-bdii-slapd
+   [ -r /var/run/bdii-update.pid ] && \
+   mv /var/run/bdii-update.pid /var/run/arc-bdii-update.pid
+   [ -d /var/run/bdii ] && mkdir -p /var/run/arc && \
+   mv /var/run/bdii /var/run/arc/bdii
+   [ -d /var/tmp/bdii ] && mkdir -p /var/tmp/arc && \
+   mv /var/tmp/bdii /var/tmp/arc/bdii
+   [ -d /var/log/bdii ] && mkdir -p /var/log/arc && \
+   mv /var/log/bdii /var/log/arc/bdii
+fi
 
 %preun aris
-if [ $1 = 0 ]; then
+if [ $1 -eq 0 ]; then
   service grid-infosys stop > /dev/null 2>&1
   /sbin/chkconfig --del grid-infosys
 fi
 
 %postun aris
-if [ "$1" -ge "1" ]; then
+if [ $1 -ge 1 ]; then
   service grid-infosys condrestart > /dev/null 2>&1
 fi
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 if [ $1 -eq 0 ]; then
   semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
+  semanage fcontext -d -t slapd_db_t "/var/run/arc/bdii(/.*)?" 2>/dev/null || :
 fi
 %endif
+
+%triggerun aris -- bdii
+service grid-infosys condrestart > /dev/null 2>&1
 
 %post egiis
 %if %{?fedora}%{!?fedora:0} >= 6 || %{?rhel}%{!?rhel:0} >= 5
