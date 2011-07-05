@@ -1061,7 +1061,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
 %{_libdir}/%{pkgdir}/libaccARC1.apd
-%{_libdir}/%{pkgdir}/libacciEMIES.apd
+%{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
