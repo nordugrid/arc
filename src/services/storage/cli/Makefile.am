@@ -1,4 +1,4 @@
-pythondir= $(PYTHON_SITE_PACKAGES)/storage/cli
+pythondir= $(PYTHON_SITE_LIB)/storage/cli
 
 python_DATA = librarian_client.py ahash_client.py shepherd_client.py bartender_client.py
 

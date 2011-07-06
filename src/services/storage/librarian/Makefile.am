@@ -1,5 +1,5 @@
 SUBDIRS=schema
-pythondir= $(PYTHON_SITE_PACKAGES)/storage/librarian
+pythondir= $(PYTHON_SITE_LIB)/storage/librarian
 
 python_DATA = __init__.py librarian.py
 

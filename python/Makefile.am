@@ -1,7 +1,16 @@
-pythondir = $(PYTHON_SITE_PACKAGES)
+pythondir = $(PYTHON_SITE_ARCH)
 
+if PYTHON_ENABLED
 python_DATA = arc.py
 python_LTLIBRARIES = _arc.la
+endif
+
+altpythondir = $(ALTPYTHON_SITE_ARCH)
+
+if ALTPYTHON_ENABLED
+altpython_DATA = arc.py
+altpython_LTLIBRARIES = alt/_arc.la
+endif
 
 if WIN32
 AM_CPPFLAGS = -DWIN32 -DWINNT
@@ -14,12 +23,7 @@ PYDOXFLAGS = -DPYDOXYGEN
 SWIG_INPUTS += pydoxygen.i
 endif
 
-_arc_la_SOURCES = arc_init.cpp
-nodist__arc_la_SOURCES = arc_wrap.cpp
-_arc_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(PYTHON_CFLAGS) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
-	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
-_arc_la_LIBADD = \
+ARCLIBS = \
 	$(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
 	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
@@ -28,9 +32,25 @@ _arc_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS)
+	$(top_srcdir)/src/hed/libs/common/libarccommon.la
+
+_arc_la_SOURCES = arc_init.cpp
+nodist__arc_la_SOURCES = arc_wrap.cpp
+_arc_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) \
+	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
+_arc_la_LIBADD = \
+	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
+
+alt__arc_la_SOURCES = arc_init.cpp
+nodist_alt__arc_la_SOURCES = arc_wrap.cpp
+alt__arc_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(ALTPYTHON_CFLAGS) \
+	-fno-strict-aliasing -DSWIG_COBJECT_TYPES
+alt__arc_la_LIBADD = \
+	$(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ALTPYTHON_LIBS)
+alt__arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 SWIG_OUTPUTS = arc_wrap.cpp arc.py
 

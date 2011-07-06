@@ -1,4 +1,4 @@
-pythondir= $(PYTHON_SITE_PACKAGES)/arcom
+pythondir= $(PYTHON_SITE_LIB)/arcom
 docdir = @docdir@
 
 python_DATA = __init__.py client.py logger.py security.py service.py xmltree.py threadpool.py

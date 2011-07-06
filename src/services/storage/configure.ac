@@ -10,9 +10,9 @@ AC_CONFIG_SRCDIR([Makefile.am])
 AC_CHECK_PROGS(PYTHON,python)
 if test "X$PYTHON" != "X" ; then
     changequote(<<, >>)dnl
-    PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(1,0,"${prefix}")'`
+    PYTHON_SITE_LIB=`$PYTHON -c 'from distutils import sysconfig; print sysconfig.get_python_lib(0,0,"${prefix}")'`
     changequote([, ])dnl
-    AC_SUBST(PYTHON_SITE_PACKAGES)
+    AC_SUBST(PYTHON_SITE_LIB)
 else
     AC_MSG_ERROR([python binary not found])
 fi

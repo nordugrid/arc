@@ -1,4 +1,4 @@
-pythondir = $(PYTHON_SITE_PACKAGES)/storage
+pythondir = $(PYTHON_SITE_LIB)/storage
 exampledir = $(pkgdatadir)/examples
 
 python_DATA = __init__.py client.py common.py

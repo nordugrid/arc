@@ -1,4 +1,4 @@
-pythondir= $(PYTHON_SITE_PACKAGES)/storage/bartender
+pythondir= $(PYTHON_SITE_LIB)/storage/bartender
 
 python_DATA = __init__.py bartender.py
 

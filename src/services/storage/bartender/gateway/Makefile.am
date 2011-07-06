@@ -1,4 +1,4 @@
-pythondir= $(PYTHON_SITE_PACKAGES)/storage/bartender/gateway
+pythondir= $(PYTHON_SITE_LIB)/storage/bartender/gateway
 
 python_DATA = __init__.py gateway.py
 

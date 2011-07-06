@@ -5,14 +5,11 @@ ACLOCAL_AMFLAGS = -I m4 `test -d /opt/local/share/aclocal && echo -I /opt/local/
 if JAVA_ENABLED 
 JAVA_SD = java 
 endif
-if PYTHON_ENABLED
-PYTHON_SD = python
-endif
 if SWIG_ENABLED
 SWIG_SD = swig
 endif
 
-SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) $(PYTHON_SD) $(POSUB) debian nsis
+SUBDIRS = src include $(SWIG_SD) $(JAVA_SD) python $(POSUB) debian nsis
 
 DIST_SUBDIRS = src include swig java python po debian nsis
 

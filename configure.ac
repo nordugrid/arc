@@ -137,6 +137,7 @@ enables_swig=yes
 enables_cppunit=yes
 enables_java=yes
 enables_python=yes
+enables_altpython=yes
 enables_lfc=yes
 enables_xrootd=yes
 enables_gacl=yes
@@ -207,6 +208,7 @@ enables_unicore_client=$enableval
 enables_hed=$enableval
 enables_java=$enableval
 enables_python=$enableval
+enables_altpython=$enableval
 enables_gacl=$enableval
 enables_lfc=$enableval
 enables_xrootd=$enableval
@@ -389,10 +391,13 @@ AC_SUBST(JDK_CFLAGS)
 
 # Python
 if test "$enables_hed" = "yes"; then
-AC_ARG_ENABLE(python, AC_HELP_STRING([--disable-python], [disable the Python binding]),[enables_python=$enableval],[])
-if test "$enables_python" = "yes"; then
+AC_ARG_ENABLE(python,
+  AC_HELP_STRING([--disable-python], [disable Python binding]),
+  [enables_python=$enableval], [])
 
-  AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)], [specify alternative python program from PATH]))
+if test "$enables_python" = "yes"; then
+  AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)],
+    [specify python program from PATH]))
 
   AC_CHECK_PROGS(PYTHON, $with_python python)
 
@@ -424,11 +429,17 @@ if test "$enables_python" = "yes"; then
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
 
-    AC_ARG_WITH(python-site-packages, AC_HELP_STRING([--with-python-site-packages=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
-    if test "X$PYTHON_SITE_PACKAGES" = "X"; then
-      PYTHON_SITE_PACKAGES=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
+    AC_ARG_WITH(python-site-arch, AC_HELP_STRING([--with-python-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
+    if test "X$PYTHON_SITE_ARCH" = "X"; then
+      PYTHON_SITE_ARCH=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
     fi
-    AC_SUBST(PYTHON_SITE_PACKAGES)
+    AC_SUBST(PYTHON_SITE_ARCH)
+
+    AC_ARG_WITH(python-site-lib, AC_HELP_STRING([--with-python-site-lib=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
+    if test "X$PYTHON_SITE_LIB" = "X"; then
+      PYTHON_SITE_LIB=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(0,0,"${prefix}"))'`
+    fi
+    AC_SUBST(PYTHON_SITE_LIB)
 
     SAVE_LDFLAGS=$LDFLAGS
     SAVE_CPPFLAGS=$CPPFLAGS
@@ -467,7 +478,7 @@ if test "$enables_python" = "yes"; then
   elif test "X$PYTHONWRAP" != "Xyes"; then
     AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
     enables_python=no
-  elif test "X$PYTHON_SITE_PACKAGES" = "X"; then
+  elif test "X$PYTHON_SITE_ARCH" = "X" || test "X$PYTHON_SITE_LIB" = "X"; then
     AC_MSG_NOTICE([Missing python site packages location - skipping Python bindings])
     enables_python=no
   else
@@ -482,7 +493,99 @@ AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
 AM_CONDITIONAL([PYTHON_SERVICE],[test "x$enables_python" = "xyes" &&
                                  test "x$enables_python_service" = "xyes"])
 
-# using pkgconfig
+# Alternative Python
+if test "$enables_hed" = "yes"; then
+AC_ARG_ENABLE(altpython,
+  AC_HELP_STRING([--disable-altpython], [enable alternative Python binding]),
+  [enables_altpython=$enableval], [])
+
+if test "$enables_altpython" = "yes"; then
+  AC_ARG_WITH(altpython, AC_HELP_STRING([--with-altpython=(PYTHON)],
+    [specify alternative python program from PATH]))
+
+  AC_CHECK_PROGS(ALTPYTHON, $with_altpython)
+
+  if test "X$ALTPYTHON" != "X"; then
+    ALTPYNAME=`basename $ALTPYTHON`
+    PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME, [
+    ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
+    ],[
+    ALTPYTHON_VERSION=`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    ALTPYTHON_CFLAGS=-I`$ALTPYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
+    ALTPY_LIBS=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
+    ALTPY_SYSLIBS=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SYSLIBS'))" | sed s/None//`
+    ALTPY_LIBDEST=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBDEST'))" | sed s/None//`
+    ALTPYTHON_LIBS="$ALTPY_LIBS $ALTPY_SYSLIBS"
+    SAVE_LDFLAGS=$LDFLAGS
+    LDFLAGS="$ALTPYTHON_LIBS $LDFLAGS"
+    AC_CHECK_LIB([python$ALTPYTHON_VERSION], [Py_Initialize],[
+        AC_MSG_NOTICE([No additional path to python library needed])
+        ALTPYTHON_LIBS="-lpython$ALTPYTHON_VERSION $ALTPYTHON_LIBS"],[
+        LDFLAGS="-L$ALTPY_LIBDEST/config $LDFLAGS"
+        # check a different symbol or else configure will used cached value
+        AC_CHECK_LIB([python$ALTPYTHON_VERSION], [Py_Finalize],[
+            AC_MSG_NOTICE([Adding path to python library])
+            ALTPYTHON_LIBS="-L$ALTPY_LIBDEST/config -lpython$ALTPYTHON_VERSION $ALTPYTHON_LIBS"],[
+            ALTPYTHON_LIBS=""])])
+    LDFLAGS=$SAVE_LDFLAGS
+    ])
+    AC_SUBST(ALTPYTHON_VERSION)
+    AC_SUBST(ALTPYTHON_CFLAGS)
+    AC_SUBST(ALTPYTHON_LIBS)
+
+    AC_ARG_WITH(altpython-site-arch, AC_HELP_STRING([--with-altpython-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
+    if test "X$ALTPYTHON_SITE_ARCH" = "X"; then
+      ALTPYTHON_SITE_ARCH=`$ALTPYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
+    fi
+    AC_SUBST(ALTPYTHON_SITE_ARCH)
+
+    AC_ARG_WITH(altpython-site-lib, AC_HELP_STRING([--with-altpython-site-lib=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
+    if test "X$ALTPYTHON_SITE_LIB" = "X"; then
+      ALTPYTHON_SITE_LIB=`$ALTPYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(0,0,"${prefix}"))'`
+    fi
+    AC_SUBST(ALTPYTHON_SITE_LIB)
+
+    SAVE_LDFLAGS=$LDFLAGS
+    SAVE_CPPFLAGS=$CPPFLAGS
+    LDFLAGS="$LDFLAGS $ALTPYTHON_LIBS"
+    CPPFLAGS="$CPPFLAGS $ALTPYTHON_CFLAGS"
+
+    AC_CHECK_HEADER(Python.h, [altpythonh="yes"], [altpythonh="no"])
+
+    LDFLAGS=$SAVE_LDFLAGS
+    CPPFLAGS=$SAVE_CPPFLAGS
+  fi
+
+  ALTPYTHONWRAP=no
+  if test -f python/arc_wrap.cpp || test "x$enables_swig" = "xyes" ; then
+    ALTPYTHONWRAP=yes
+  fi
+
+  if test "X$ALTPYTHON" = "X"; then
+    AC_MSG_NOTICE([Missing Python - skipping Python bindings])
+    enables_altpython=no
+  elif test "X$ALTPYTHON_LIBS" = "X"; then
+    AC_MSG_NOTICE([Missing Python library - skipping Python bindings])
+    enables_altpython=no
+  elif test "X$altpythonh" != "Xyes"; then
+    AC_MSG_NOTICE([Missing Python header - skipping Python bindings])
+    enables_altpython=no
+  elif test "X$ALTPYTHONWRAP" != "Xyes"; then
+    AC_MSG_NOTICE([Missing pre-compiled Python wrapper and SWIG - skipping Python bindings])
+    enables_altpython=no
+  elif test "X$ALTPYTHON_SITE_ARCH" = "X" || test "X$ALTPYTHON_SITE_LIB" = "X"; then
+    AC_MSG_NOTICE([Missing python site packages location - skipping Python bindings])
+    enables_altpython=no
+  else
+    AC_MSG_NOTICE([Alternative Python available: $ALTPYTHON_VERSION])
+  fi
+fi
+fi
+
+AC_MSG_NOTICE([Alternative Python enabled: $enables_altpython])
+
+AM_CONDITIONAL([ALTPYTHON_ENABLED],[test "x$enables_altpython" = "xyes"])
+
 # check gthread
 if test "$enables_hed" = "yes"; then
 PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
@@ -2243,6 +2346,7 @@ AC_MSG_RESULT([
 Unit testing:       ${enables_cppunit}
 Java binding:       ${enables_java}
 Python binding:     ${enables_python} ($PYTHON_VERSION)
+Alt.Python binding: ${enables_altpython} ($ALTPYTHON_VERSION)
 
 Available third-party features:
 
