@@ -18,5 +18,6 @@ debian/tmp/usr/lib/arc/libmodcredential.apd
 debian/tmp/usr/lib/arc/arc-file-access
 debian/tmp/usr/bin/ngconfigtest
 debian/tmp/usr/share/man/man1/ngconfigtest.1
+debian/tmp/usr/share/arc/examples/arc.conf.template
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo

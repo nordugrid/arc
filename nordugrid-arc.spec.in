@@ -807,8 +807,9 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/arc-file-access
 %{_bindir}/ngconfigtest
 %doc %{_mandir}/man1/ngconfigtest.1*
+%dir %{_datadir}/%{pkgdir}/examples
+%doc %{_datadir}/%{pkgdir}/examples/arc.conf.template
 %{_datadir}/%{pkgdir}/schema
-%dir %{_datadir}/%{pkgdir}/perl
 %dir %{_datadir}/%{pkgdir}
 %doc README AUTHORS LICENSE
 
@@ -840,7 +841,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_bindir}/saml_assertion_init
 %{_bindir}/ngclient2arc
 %config(noreplace) %{_sysconfdir}/%{pkgdir}/client.conf
-%{_datadir}/%{pkgdir}/examples/client.conf
+%doc %{_datadir}/%{pkgdir}/examples/client.conf
 %doc %{_mandir}/man1/arccat.1*
 %doc %{_mandir}/man1/arcclean.1*
 %doc %{_mandir}/man1/arccp.1*
@@ -866,7 +867,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/perftest.1.gz
 %doc %{_mandir}/man1/saml_assertion_init.1*
 %doc %{_mandir}/man1/ngclient2arc.1*
-%doc %{_datadir}/%{pkgdir}/examples/echo/echo.wsdl
 
 %files hed
 %defattr(-,root,root,-)
@@ -875,9 +875,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libecho.so
 %{_libdir}/%{pkgdir}/libecho.apd
 %{_datadir}/%{pkgdir}/profiles
-%{_datadir}/%{pkgdir}/examples/config
-%{_datadir}/%{pkgdir}/examples/arc.conf.template
-%doc %{_datadir}/%{pkgdir}/examples/echo/echo_service.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/config
+%doc %{_datadir}/%{pkgdir}/examples/echo
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
 
@@ -895,7 +894,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libhopi.so
 %{_libdir}/%{pkgdir}/libhopi.apd
-%doc %{_datadir}/%{pkgdir}/examples/hopi/hopi_service.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/hopi
 
 %files isis
 %defattr(-,root,root,-)
@@ -1021,12 +1020,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
-%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_minimalistic.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_secure.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_showcase.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_janitor.xml.example
-%doc %{_datadir}/%{pkgdir}/examples/a-rex/arex_xmlonly.xml.example
+%doc %{_datadir}/%{pkgdir}/examples/a-rex
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
 
@@ -1110,7 +1104,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
-%doc %{_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%doc %{_datadir}/%{pkgdir}/examples/PythonBroker
 %endif
 
 %if %{with_java}
@@ -1129,6 +1123,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 %{_libexecdir}/%{pkgdir}/janitor
 %{_datadir}/%{pkgdir}/janitor
+%dir %{_datadir}/%{pkgdir}/perl
 %{_datadir}/%{pkgdir}/perl/Janitor
 %doc %{_mandir}/man8/janitor.8*
 

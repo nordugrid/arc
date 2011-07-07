@@ -7,4 +7,4 @@ debian/tmp/usr/lib/arc/libaccPythonBroker.so
 debian/tmp/usr/lib/arc/libpythonservice.so
 debian/tmp/usr/lib/arc/libaccPythonBroker.apd
 debian/tmp/usr/lib/arc/libpythonservice.apd
-debian/tmp/usr/share/arc/examples/PythonBroker/SampleBroker.py
+debian/tmp/usr/share/arc/examples/PythonBroker
