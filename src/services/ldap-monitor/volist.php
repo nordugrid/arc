@@ -14,6 +14,10 @@ require_once('comfun.inc');
 require_once('toreload.inc');
 require_once('ldap_purge.inc');
 
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
+
 // Setting up the page itself
 
 $toppage = new LmDoc("volist");
@@ -188,12 +192,12 @@ foreach ( $vos as $contact ) {
 	if ($sr) $nusers = @ldap_count_entries($ds,$sr);
       }
     }
-    $vostring  = popup("vo-users.php?host=$server&port=$port&vo=$dn&group=$group",750,300,6);
+    $vostring  = popup("vo-users.php?host=$server&port=$port&vo=$dn&group=$group",750,300,6,$lang,$debug);
   } else {
     $url = $server."/".$group;
     $users = file($url);
     $nusers = count($users);
-    $vostring = popup($url,750,300,6);
+    $vostring = popup($url,750,300,6,$lang,$debug);
   }
   
   $rowcont[] = "<a href=\"$vostring\">".$contact["name"]."</a>";

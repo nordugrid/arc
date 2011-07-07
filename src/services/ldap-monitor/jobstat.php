@@ -33,11 +33,14 @@ require_once('ldap_nice_dump.inc');
 
 // getting parameters
 
-$host   = ( $_GET["host"] )   ? $_GET["host"]   : "quark.hep.lu.se";
-$port   = ( $_GET["port"] )   ? $_GET["port"]   : 2135;
-$status = ( $_GET["status"] ) ? $_GET["status"] : "Running";
-$jobdn  = ( $_GET["jobdn"] )  ? $_GET["jobdn"]  : "all";
-$debug  = ( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$host   = @( $_GET["host"] )   ? $_GET["host"]   : "quark.hep.lu.se";
+$port   = @( $_GET["port"] )   ? $_GET["port"]   : 2135;
+$status = @( $_GET["status"] ) ? $_GET["status"] : "Running";
+$jobdn  = @( $_GET["jobdn"] )  ? $_GET["jobdn"]  : "all";
+$debug  = @( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )    $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -52,7 +55,7 @@ $errors   = &$toppage->errors;
 $titles   = explode(":",$toptitle); // two alternative titles, separated by column
 
 if ($jobdn=="all") {
-  $clstring = popup("clusdes.php?host=$host&port=$port",700,620,1);
+  $clstring = popup("clusdes.php?host=$host&port=$port",700,620,1,$lang,$debug);
   $gtitle   = "<b><i>".$titles[0]." <a href=\"$clstring\">$host</a></i></b>";
 } else {
   $jobdn     = rawurldecode($jobdn);
@@ -173,9 +176,9 @@ if ($ds) {
 	  $queue   = ($entries[$i][JOB_EQUE][0]) ? $entries[$i][JOB_EQUE][0] : "";
 	  $time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
 	  $ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
-	  $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jdn",750,430,4);
-	  $quewin  = popup("quelist.php?host=$host&port=$port&qname=$queue",750,430,6);
-	  $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5);
+	  $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jdn",750,430,4,$lang,$debug);
+	  $quewin  = popup("quelist.php?host=$host&port=$port&qname=$queue",750,430,6,$lang,$debug);
+	  $usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5,$lang,$debug);
 
 	  $jcount++;
 

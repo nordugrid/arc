@@ -23,14 +23,13 @@ require_once('ldap_nice_dump.inc');
 
 // getting parameters
 
-$host   = $_GET["host"];
-$port   = $_GET["port"];
-$debug  = $_GET["debug"];
-$isse   = $_GET["isse"];
-if ( !$host )  $host = "quark.hep.lu.se";
-if ( !$port )  $port = 2135;
-if ( !$debug ) $debug = 0; 
-if ( !$isse )  $isse = 0; 
+$host   = @( $_GET["host"] )   ? $_GET["host"]   : "quark.hep.lu.se";
+$port   = @( $_GET["port"] )   ? $_GET["port"]   : 2135;
+$isse   = @( $_GET["isse"] )   ? $_GET["isse"]   : 0;
+$debug  = @( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -125,7 +124,7 @@ if ($ds) {
 	$gridque = @($qentries[$k][QUE_GQUE][0]) ? $qentries[$k][QUE_GQUE][0] : "0";
 	$gmque   = @($qentries[$k][QUE_PQUE][0]) ? ($qentries[$k][QUE_PQUE][0]) : 0; /* new since 0.5.38 */
 	$gridrun = @($qentries[$k][QUE_GRUN][0]) ? $qentries[$k][QUE_GRUN][0] : "0";
-	$quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6);
+	$quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname",750,430,6,$lang,$debug);
 
 	$gridque = $gridque + $gmque;
 	if ( $queued == 0 ) $queued = $locque + $gridque;

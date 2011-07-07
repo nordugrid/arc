@@ -27,11 +27,14 @@ require_once('toreload.inc');
 
 // getting parameters
 
-$host   = ( $_GET["host"] )   ? $_GET["host"]   : "grid-vo.nordugrid.org";
-$port   = ( $_GET["port"] )   ? $_GET["port"]   : 389;
-$qname  = $_GET["vo"];
-$group  = $_GET["group"];
-$debug  = ( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$host   = @( $_GET["host"] )   ? $_GET["host"]   : "grid-vo.nordugrid.org";
+$port   = @( $_GET["port"] )   ? $_GET["port"]   : 389;
+$qname  = @$_GET["vo"];
+$group  = @$_GET["group"];
+$debug  = @( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -113,7 +116,7 @@ if ($ds) {
 	//	  $org      = utf8_decode($org);
 	$mail     = $entries[$i][VO_MAIL][0];
 	$mailstr  = "mailto:".$mail;
-	$usrwin   = popup("userlist.php?owner=$encuname",700,500,5);
+	$usrwin   = popup("userlist.php?owner=$encuname",700,500,5,$lang,$debug);
 	
 	// filling the table
 	

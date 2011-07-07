@@ -17,6 +17,9 @@ require_once('recursive_giis_info.inc');
 // getting parameters
 
 $debug = ( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -122,7 +125,7 @@ for ( $ids = 0; $ids < $nhosts; $ids++ ) {
       $curcapacity = ( $entries[$i][SEL_TOTA][0] ) ? $entries[$i][SEL_TOTA][0] : $curspace;
       $cururl      = ( $entries[$i][SEL_BURL][0] ) ? $entries[$i][SEL_BURL][0] : $entries[$i][SEL_CURL][0];
       $curtype     = $entries[$i][SEL_TYPE][0];
-      $clstring    = popup("clusdes.php?host=$curname&port=$curport&isse=1&debug=$debug",700,620,1);
+      $clstring    = popup("clusdes.php?host=$curname&port=$curport&isse=1&debug=$debug",700,620,1,$lang,$debug);
 	
       $curspace  = intval($curspace/1000);
       $occupancy = 1; // by default, all occupied
@@ -143,7 +146,7 @@ for ( $ids = 0; $ids < $nhosts; $ids++ ) {
 
       if ($debug==2) dbgmsg("<i>$senum: <b>$curname</b> at $hn</i><br>");
       if ( strlen($curalias) > 15 ) $curalias = substr($curalias,0,15) . ">";
-      //      $clstring  = popup("clusdes.php?host=$curname&port=2135",700,620,1);
+      //      $clstring  = popup("clusdes.php?host=$curname&port=2135",700,620,1,$lang,$debug);
 	
       $rowcont[] = "$senum";
       $rowcont[] = "<a href=\"$clstring\">&nbsp;<b>$curalias</b></a>";

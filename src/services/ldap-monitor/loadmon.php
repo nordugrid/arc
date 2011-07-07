@@ -39,9 +39,12 @@ require_once('cache.inc');
 $order   = @$_GET["order"];
 $display = @$_GET["display"];
 $debug   = @$_GET["debug"];
+$lang    = @$_GET["lang"];
 if ( !$order )   $order   = "country";
 if ( !$display ) $display = "all";
 if ( !$debug )   $debug   = 0; 
+if ( !$lang )    $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -62,11 +65,11 @@ echo "<table width=\"100%\" border=\"0\"><tr><td>\n";
 echo "<font size=\"-1\" face=\"Verdana,Geneva,Arial,Helvetica,Sans-serif,lucida\">".$errors["401"].":\n";
 echo "<img src=\"./mon-icons/icon_led.php?c1=97&c2=144&c3=0\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["305"]."\" alt=\"".$errors["305"]."\" width=\"14\" height=\"6\">".$errors["402"]."&nbsp;<img src=\"./mon-icons/icon_led.php?c1=176&c2=176&c3=176\" vspace=\"1\" hspace=\"3\" border=\"0\" title=\"".$errors["306"]."\" alt=\"".$errors["306"]."\">".$errors["403"]."</font>\n";
 echo "</td><td>";
-$sewin    = popup("sestat.php",650,200,8);
-$discwin  = popup("discover.php",700,400,9);
-$vostring = popup("volist.php",440,330,11);
-$usstring = popup("allusers.php",650,700,12);
-$acstring = popup("allusers.php?limit=1",500,600,12);
+$sewin    = popup("sestat.php",650,200,8,$lang,$debug);
+$discwin  = popup("discover.php",700,400,9,$lang,$debug);
+$vostring = popup("volist.php",440,330,11,$lang,$debug);
+$usstring = popup("allusers.php",650,700,12,$lang,$debug);
+$acstring = popup("allusers.php?limit=1",500,600,12,$lang,$debug);
 echo "<div align=\"right\"><nobr>\n";
 //******** Authorised users
 echo "<a href=\"$usstring\"><img src=\"./mon-icons/icon-folks.png\" width=\"24\" height=\"24\" border=\"0\" title=\"".$errors["307"]."\" alt=\"".$errors["307"]."\"></a>&nbsp;\n";
@@ -248,6 +251,8 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	  $vo = guess_country($curname,$entries[$i][CLU_ZIPC][0]);
 	  if ($debug==2) dbgmsg("<i>$ids: <b>$curname</b>".$errors["112"]."$vo</i><br>");
 	  $vostring = $_SERVER['PHP_SELF']."?display=vo=$vo";
+    if ( $lang != "default") $vostring .= "&lang=".$lang;
+    if ( $debug ) $vostring .= "&debug=".$debug;
 	  $country  = $vo;
 	  if ( $yazyk !== "en" ) $country = $strings["tlconvert"][$vo];
 	  
@@ -267,7 +272,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	  $curusedcpu = @($entries[$i][CLU_UCPU][0]) ? $entries[$i][CLU_UCPU][0] : -1;
 	  $totqueued  = @($entries[$i][CLU_QJOB][0]) ? $entries[$i][CLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
 	  $gmqueued   = @($entries[$i][CLU_PQUE][0]) ? $entries[$i][CLU_PQUE][0] : 0; /* new since 0.5.38 */
-	  $clstring   = popup("clusdes.php?host=$curname&port=$curport",700,620,1);
+    $clstring   = popup("clusdes.php?host=$curname&port=$curport",700,620,1,$lang,$debug);
 	  
 	  $nclu++;
 	  
@@ -320,8 +325,8 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       $gridload  = ($curtotcpu > 0)  ? $gridjobs/$curtotcpu : 0;
       $clusload  = ($curtotcpu > 0)  ? $allrun/$curtotcpu   : 0;
       $tstring   = urlencode("$gridjobs+$localrun");
-      $jrstring  = popup("jobstat.php?host=$curname&port=$curport&status=Running&jobdn=all",600,500,2);
-      $jqstring  = popup("jobstat.php?host=$curname&port=$curport&status=Queueing&jobdn=all",600,500,2);
+      $jrstring  = popup("jobstat.php?host=$curname&port=$curport&status=Running&jobdn=all",600,500,2,$lang,$debug);
+      $jqstring  = popup("jobstat.php?host=$curname&port=$curport&status=Queueing&jobdn=all",600,500,2,$lang,$debug);
       
       if ( $toflag2 ) {
 	$tstring .= " (no queue info)"; // not sure if this is localizeable at all
@@ -455,11 +460,16 @@ $ctable->close();
 if ( @$showvo ) {
   echo "<br><nobr>\n";
   foreach ( $votolink as $volink ) {
-    $vostring  = $_SERVER['PHP_SELF']."?debug=$debug&display=vo=$volink";
+    $vostring  = $_SERVER['PHP_SELF']."?display=vo=$volink";
+    if ( $lang != "default" ) $vostring .= "&lang=".$lang;
+    if ( $debug ) $vostring .= "&debug=".$debug;
     $voimage   = "<img src=\"./mon-icons/$volink.png\" title=\"".$errors["312"]."$volink\" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">";
     echo "<a href=\"$vostring\">$voimage</a>&nbsp;&nbsp;";
   }
-  echo "<a href=\"".$_SERVER['PHP_SELF']."\"><b>".$errors["409"]."</b></a><BR>\n";
+  $linkback = $_SERVER['PHP_SELF'];
+  if ( $lang != "default") $linkback .= "?lang=".$lang;
+  if ( $debug ) $linkback .= "&debug=".$debug;
+  echo "<a href=\"".$linkback."\"><b>".$errors["409"]."</b></a><BR>\n";
   echo "</nobr>\n";
 }
 

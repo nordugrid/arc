@@ -52,9 +52,12 @@ function freeproc ($cpustring) {
 
 // getting parameters
 
-$owner = $_GET["owner"];
+$owner = @$_GET["owner"];
 $bdn   = DN_GLOBL;
 $debug = ( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Exrracting names
 
@@ -151,7 +154,7 @@ for ( $ids = 0; $ids < $nhosts; $ids++ ) {
   $hn    = $hnarray[$ids];
   $pn    = $pnarray[$ids];
   $dst   = $dsarray[$ids];
-  $curl  = popup("clusdes.php?host=$hn&port=$pn",700,620,1);
+  $curl  = popup("clusdes.php?host=$hn&port=$pn",700,620,1,$lang,$debug);
 
   if ($dst && $ui) {
 
@@ -190,8 +193,8 @@ for ( $ids = 0; $ids < $nhosts; $ids++ ) {
 
 	if ( $debug == 2 ) dbgmsg("$hn -- $ucluster<br>");
 
-	$qurl  = popup("quelist.php?host=$ucluster&port=$pn&qname=$uqueue",750,430,6);
-	$curl  = popup("clusdes.php?host=$ucluster&port=$pn",700,620,1);
+	$qurl  = popup("quelist.php?host=$ucluster&port=$pn&qname=$uqueue",750,430,6,$lang,$debug);
+	$curl  = popup("clusdes.php?host=$ucluster&port=$pn",700,620,1,$lang,$debug);
 	$fcpu  = $allres[$j][USR_CPUS][0];
 	$fproc = freeproc($fcpu);
 	$fdisk = $allres[$j][USR_DISK][0];
@@ -269,9 +272,9 @@ for ( $ids = 0; $ids < $nghosts; $ids++ ) {
 	$error    = ($entries[$i][JOB_ERRS][0]);
 	if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
 	if ( $debug == 2 ) dbgmsg("$ghn --- $cluster<br>");
-	$newwin   = popup("jobstat.php?host=$cluster&port=$gpn&status=$status&jobdn=$jobdn",750,430,4);
-	$quewin   = popup("quelist.php?host=$cluster&port=$gpn&qname=$queue",750,430,6);
-	$clstring = popup("clusdes.php?host=$cluster&port=$gpn",700,620,1);
+	$newwin   = popup("jobstat.php?host=$cluster&port=$gpn&status=$status&jobdn=$jobdn",750,430,4,$lang,$debug);
+	$quewin   = popup("quelist.php?host=$cluster&port=$gpn&qname=$queue",750,430,6,$lang,$debug);
+	$clstring = popup("clusdes.php?host=$cluster&port=$gpn",700,620,1,$lang,$debug);
 	$jcount++;
 					
 	// filling the table

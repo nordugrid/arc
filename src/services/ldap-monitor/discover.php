@@ -10,6 +10,10 @@ set_include_path(get_include_path().":".getcwd()."/includes".":".getcwd()."/lang
 
 require_once('headfoot.inc');
 
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
+
 $toppage = new LmDoc("attlist");
 define("TOPTIT",$toppage->title);
 $strings  = &$toppage->strings;
@@ -44,7 +48,7 @@ if ( $ifsub ) {
        $thething == "queue"   || 
        $thething == "authuser" ) $thething = "cluster";
 
-  //  $attwin = popup("attlist.php?attribute=$encatt",650,300,7);
+  //  $attwin = popup("attlist.php?attribute=$encatt",650,300,7,$lang,$debug);
 
   do_attlist($thething,$attributes,$signs,$filters,$strings,$giislist);
 
@@ -64,7 +68,7 @@ if ( $ifsub ) {
   echo "<h3>".$errors["416"].$object."</h3>\n";
   echo "<div><i>".$errors["417"]."</i></div>\n";
   echo "<div><i>".$errors["418"]."</i></div><br><br>\n";
-  $attwin = popup($itself,650,300,7);
+  $attwin = popup($itself,650,300,7,$lang,$debug);
   
   echo "<form name=\"attlist\" action=\"$itself\" method=\"post\" onReset=\"clean_reset()\">";  
   echo "<table border=\"0\">\n";

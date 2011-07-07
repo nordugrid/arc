@@ -33,6 +33,9 @@ $host   = ( $_GET["host"] )  ? $_GET["host"]  : "quark.hep.lu.se";
 $port   = ( $_GET["port"] )  ? $_GET["port"]  : 2135;
 $qname  = $_GET["qname"];
 $debug  = ( $_GET["debug"] ) ? $_GET["debug"] : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )    $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -42,7 +45,7 @@ $module   = &$toppage->module;
 $strings  = &$toppage->strings;
 $errors   = &$toppage->errors;
 
-$clstring = popup("clusdes.php?host=$host&port=$port",700,620,1);
+$clstring = popup("clusdes.php?host=$host&port=$port",700,620,1,$lang,$debug);
 
 // Header table
 
@@ -130,8 +133,8 @@ if ($ds) {
 	$error   = ($entries[$i][JOB_ERRS][0]);
 	if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
 	$status  = "All";
-	$newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn",750,430,4);
-	$usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5);
+	$newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn",750,430,4,$lang,$debug);
+	$usrwin  = popup("userlist.php?bdn=$topdn&owner=$encuname",700,500,5,$lang,$debug);
           
 	// filling the table
           

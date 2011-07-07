@@ -71,6 +71,7 @@ class LmDoc { // class LmDoc
 
 	$yaccept = @$_SERVER["HTTP_ACCEPT_LANGUAGE"] ;
 	if ( !$yaccept ) $yaccept = "en";
+  if ( FORCE_LANG != "default" ) $yaccept = FORCE_LANG;
 	$yazyk  = "en";
 	$yazyki = explode(",",$yaccept);
 	foreach ( $yazyki as $option ) {
@@ -160,6 +161,8 @@ class LmDoc { // class LmDoc
    */
   function tabletop ( $toptitle="", $subtitle="" ) { // function tabletop()
 
+    $lang = FORCE_LANG;
+
     echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">\n";
     echo "<tr><td nowrap align=\"center\" colspan=\"2\"><b>".$toptitle."</b></td>\n";
     echo "<tr><td nowrap align=\"left\"><b><i>".$subtitle."</i></b></td>\n";
@@ -167,7 +170,7 @@ class LmDoc { // class LmDoc
     echo "     <img src=\"./mon-icons/icon-refresh.png\" vspace=\"4\" width=\"24\" height=\"24\" border=\"0\" align=\"absmiddle\" title=\"".$this->errors["301"]."\" alt=\"".$this->errors["301"]."\"></a>\n";
     echo "     <a href=\"javascript:(self.print();)\" onClick=\"self.print();\">\n";
     echo "     <img src=\"./mon-icons/icon-print.png\" vspace=\"4\" width=\"24\" height=\"24\" border=\"0\" align=\"absmiddle\" title=\"".$this->errors["302"]."\" alt=\"".$this->errors["302"]."\"></a>\n";
-    echo "     <a href=\"javascript:monitor('help.php?module=".$this->module."',400,300,10);\" onClick=\"javascript:monitor('help.php?module=".$this->module."',400,300,10);\">\n";
+    echo "     <a href=\"javascript:monitor('help.php?module=".$this->module."&lang=".$lang."',400,300,10);\" onClick=\"javascript:monitor('help.php?module=".$this->module."',400,300,10);\">\n";
     echo "     <img src=\"./mon-icons/icon-help.png\" vspace=\"4\" width=\"24\" height=\"24\" border=\"0\" align=\"absmiddle\" title=\"".$this->errors["303"]."\" alt=\"".$this->errors["303"]."\"></a>\n";
     echo "     <a href=\"javascript:(self.close();)\" onClick=\"self.close();\">\n";
     echo "     <img src=\"./mon-icons/icon-close.png\" vspace=\"4\" width=\"24\" height=\"24\" border=\"0\" align=\"absmiddle\" title=\"".$this->errors["304"]."\" alt=\"".$this->errors["304"]."\"></a>\n";
@@ -240,7 +243,7 @@ function dbgmsg( $dbgtxt="Debug" )
 $agent = @$_SERVER["HTTP_USER_AGENT"] ;
 if ( !defined("USERAGENT") ) define("USERAGENT",$agent);
 
-function popup( $contact, $x=400, $y=300, $n=1 )
+function popup( $contact, $x=400, $y=300, $n=1, $lang, $debug )
 {
   ( USERAGENT ) ? $agent = USERAGENT : $agent = "lynx";
   if ( preg_match("/opera/i",$agent) 
@@ -248,6 +251,22 @@ function popup( $contact, $x=400, $y=300, $n=1 )
        || preg_match("/konqueror/i",$agent) 
        ) return $contact;
   //  $link  = "javascript:monitor('".$contact."',$x,$y,$n)";
+  if ( $lang != "default" && $lang != FALSE ) {
+    if ( strpos($contact,"?") ) {
+      $contact .= "&" ;
+        } else {
+      $contact .= "?" ;
+    }
+    $contact .= "lang=$lang";
+  }
+  if ( $debug ) {
+    if ( strpos($contact,"?") ) {
+      $contact .= "&" ;
+        } else {
+      $contact .= "?" ;
+    }
+    $contact .= "debug=$debug";
+  }
   $link = $contact."\" target=\"win".$n."\" onClick=\"monitor('".$contact."',$x,$y,$n); return false";
   return $link;
 }

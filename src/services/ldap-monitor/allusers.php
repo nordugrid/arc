@@ -31,10 +31,11 @@ require('ldap_purge.inc');
 
 // getting parameters
 
-$debug  = $_GET["debug"];
-$jobnum = $_GET["limit"];
-if ( !$jobnum ) $jobnum = 0;
-if ( !$debug ) $debug = 0; 
+$debug  = @( $_GET["debug"] )  ? $_GET["debug"]  : 0;
+$jobnum = @( $_GET["limit"] )  ? $_GET["limit"]  : 0;
+$lang   = @$_GET["lang"];
+if ( !$lang )  $lang    = "default"; // browser language
+define("FORCE_LANG",$lang);
 
 // Setting up the page itself
 
@@ -215,7 +216,7 @@ foreach ( $usrlist as $ussn => $data ) {
     
   $count++;
   $encuname = rawurlencode($ussn);
-  $usrwin   = popup("userlist.php?owner=$encuname",700,500,5);
+  $usrwin   = popup("userlist.php?owner=$encuname",700,500,5,$lang,$debug);
   $urowcont[] = $count;    
   $urowcont[] = "<a href=\"$usrwin\">$name</a>";
   $urowcont[] = $org;
