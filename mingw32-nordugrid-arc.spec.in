@@ -299,7 +299,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
 %doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
-%doc %{_mingw32_datadir}/%{pkgdir}/examples/storage_service.xml.example
 
 %changelog
 
