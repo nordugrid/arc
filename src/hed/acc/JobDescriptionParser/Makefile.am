@@ -2,6 +2,7 @@ pkglib_LTLIBRARIES = libaccJobDescriptionParser.la
 
 libaccJobDescriptionParser_la_SOURCES = \
 	ARCJSDLParser.cpp ARCJSDLParser.h \
+	ADLParser.cpp ADLParser.h \
 	JDLParser.cpp JDLParser.h \
 	XRSLParser.cpp XRSLParser.h \
 	RSLParser.cpp RSLParser.h \
