@@ -1,4 +1,5 @@
 debian/tmp/usr/lib/arc/libaccARC1.so
+debian/tmp/usr/lib/arc/libaccEMIES.so
 debian/tmp/usr/lib/arc/libaccCREAM.so
 debian/tmp/usr/lib/arc/libaccBroker.so
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.so
@@ -16,6 +17,7 @@ debian/tmp/usr/lib/arc/libmccsoap.so
 debian/tmp/usr/lib/arc/libmcctcp.so
 debian/tmp/usr/lib/arc/libmcctls.so
 debian/tmp/usr/lib/arc/libaccARC1.apd
+debian/tmp/usr/lib/arc/libaccEMIES.apd
 debian/tmp/usr/lib/arc/libaccCREAM.apd
 debian/tmp/usr/lib/arc/libaccBroker.apd
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.apd
