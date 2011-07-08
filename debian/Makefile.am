@@ -1,5 +1,5 @@
 EXTRA_DIST = changelog compat control copyright rules source/format \
-             *.doc-base* *.install *.docs *.default *.examples *.logrotate \
+             *.doc-base* *.install *.docs *.default *.logrotate \
              README.Debian README.source
 
 changelog: changelog.deb
