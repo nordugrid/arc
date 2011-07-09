@@ -1341,6 +1341,9 @@ err:
         return false;
       }
 
+      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %i", ASN1_INTEGER_get(cert->cert_info->serialNumber));
+      CredentialLogger.msg(DEBUG,"VOMS: the serial number in AC is:  %i", ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
+
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
         CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as the serial number in AC %i",
           ASN1_INTEGER_get(cert->cert_info->serialNumber),
