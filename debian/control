@@ -360,7 +360,7 @@ Description: ARC dynamic runtime environment installation
  a site, and this Janitor service helps automating this process.
  .
  The Janitor is a recent development and the community to prepare
- catalogues of dynamically installable packages still needs to evolve.
+ catalogs of dynamically installable packages still needs to evolve.
 
 Package: nordugrid-arc-doxygen
 Architecture: all
