@@ -541,8 +541,7 @@ environments have been developed. Those can be added to or removed from
 a site, and this Janitor service helps automating this process.
 
 The Janitor is a recent development and the community to prepare
-catalogues of dynamically installable packages still needs to
-evolve.
+catalogs of dynamically installable packages still needs to evolve.
 
 %package doxygen
 Summary:	ARC API documentation
