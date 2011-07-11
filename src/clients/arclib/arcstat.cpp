@@ -74,6 +74,7 @@ int RUNSTAT(main)(int argc, char **argv) {
                     istring("long format (more information)"),
                     longlist);
 
+  // Option 'long' takes precedence over this option (print-jobids).
   bool printids = false;
   options.AddOption('p', "print-jobids", istring("instead of the status only the IDs of "
                     "the selected jobs will be printed"), printids);
@@ -109,11 +110,7 @@ int RUNSTAT(main)(int argc, char **argv) {
   options.AddOption('v', "version", istring("print version information"),
                     version);
 
-  std::list<std::string> jobs = options.Parse(argc, argv);
-
-  Arc::JobSaveFormat save_format = Arc::BASIC;
-  if (longlist) save_format = Arc::DETAILED;
-  if (printids) save_format = Arc::IDONLY;
+  std::list<std::string> jobidentifiers = options.Parse(argc, argv);
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcstat", VERSION)
@@ -135,7 +132,7 @@ int RUNSTAT(main)(int argc, char **argv) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
   }
@@ -160,15 +157,15 @@ int RUNSTAT(main)(int argc, char **argv) {
     return 1;
   }
 
-  if ((!joblist.empty() || !status.empty()) && jobs.empty() && clusters.empty())
+  if ((!joblist.empty() || !status.empty()) && jobidentifiers.empty() && clusters.empty())
     all = true;
 
-  if (jobs.empty() && clusters.empty() && !all) {
+  if (jobidentifiers.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  if (!jobs.empty() || all)
+  if (!jobidentifiers.empty() || all)
     usercfg.ClearSelectedServices();
 
   if (!clusters.empty()) {
@@ -176,7 +173,7 @@ int RUNSTAT(main)(int argc, char **argv) {
     usercfg.AddServices(clusters, Arc::COMPUTING);
   }
 
-  Arc::JobSupervisor jobmaster(usercfg, jobs);
+  Arc::JobSupervisor jobmaster(usercfg, jobidentifiers);
   if (!jobmaster.JobsFound()) {
     std::cout << "No jobs" << std::endl;
     return 0;
@@ -188,27 +185,27 @@ int RUNSTAT(main)(int argc, char **argv) {
     return 1;
   }
 
-  int retval = 0;
-  if (!sort.empty()) {
-    std::vector<const Arc::Job*> jobs;
-    for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-         it != jobcont.end(); it++)
-      (*it)->FetchJobs(status, jobs);
+  std::vector<const Arc::Job*> jobs;
+  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
+       it != jobcont.end(); it++) {
+    (*it)->FetchJobs(status, jobs);
+  }
 
+  if (!sort.empty()) {
     rsort.empty() ? std::sort(jobs.begin(),  jobs.end(),  orderings[sort]) :
                     std::sort(jobs.rbegin(), jobs.rend(), orderings[sort]);
-
-    for (std::vector<const Arc::Job*>::const_iterator it = jobs.begin();
-         it != jobs.end(); it++)
-      (*it)->SaveToStream(std::cout, save_format);
   }
-  else {
-    for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-         it != jobcont.end(); it++) {
-      if (!(*it)->SaveJobStatusToStream(std::cout, status, save_format))
-        retval = 1;
+
+  for (std::vector<const Arc::Job*>::const_iterator it = jobs.begin();
+       it != jobs.end(); it++) {
+    // Option 'long' (longlist) takes precedence over option 'print-jobids' (printids)
+    if (longlist || !printids) {
+      (*it)->SaveToStream(std::cout, longlist);
+    }
+    else {
+      std::cout << (*it)->JobID.fullstr() << std::endl;
     }
   }
 
-  return retval;
+  return 0;
 }

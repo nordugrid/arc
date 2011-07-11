@@ -365,12 +365,12 @@ namespace Arc {
   bool JobController::PrintJobStatus(const std::list<std::string>& status,
                                      const bool longlist) {
     logger.msg(WARNING, "The JobController::PrintJobStatus method is DEPRECATED, use the Job::SaveJobStatusToStream method instead.");
-    return SaveJobStatusToStream(std::cout, status, longlist ? Arc::DETAILED : Arc::BASIC);
+    return SaveJobStatusToStream(std::cout, status, longlist);
   }
 
   bool JobController::SaveJobStatusToStream(std::ostream& out,
                                             const std::list<std::string>& status,
-                                            Arc::JobSaveFormat format) {
+                                            bool longlist) {
 
     GetJobInformation();
 
@@ -390,7 +390,7 @@ namespace Arc {
           std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
         continue;
 
-      it->SaveToStream(out, format);
+      it->SaveToStream(out, longlist);
     }
     return true;
   }
@@ -645,7 +645,7 @@ namespace Arc {
       return false;
     }
 
-    // Set desired number of retries. Also resets any lost 
+    // Set desired number of retries. Also resets any lost
     // tries from previous files.
     source->SetTries((src.Protocol() == "file")?1:3);
     destination->SetTries((dst.Protocol() == "file")?1:3);
@@ -663,7 +663,7 @@ namespace Arc {
         logger.msg(ERROR, "File download failed: %s - %s", std::string(res), res.GetDesc());
       else
         logger.msg(ERROR, "File download failed: %s", std::string(res));
-      // Reset connection because one can't be sure how failure 
+      // Reset connection because one can't be sure how failure
       // affects server and/or connection state.
       // TODO: Investigate/define DMC behavior in such case.
       delete data_source;
