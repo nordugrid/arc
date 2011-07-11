@@ -18,18 +18,18 @@ Conflicts: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}
 Description: ARC grid middleware
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  The Advanced Resource Connector (ARC) brings computing resources
  together across institutional boundaries. This concept is commonly
  referred to as a "computational grid". Historically, grids address the
- organisation of distributed storage of data and parallel computation,
+ organization of distributed storage of data and parallel computation,
  but arbitrary services are thinkable.
  .
  Just like the web, ARC has its roots in the IT infrastructure that was
- erected to analyse the experiments for high energy physics at CERN. The
+ erected to analyze the experiments for high energy physics at CERN. The
  first release, ARC-0.x, was dependent on Globus, the current release
  keeps that compatibility but can also be used independently.
  .
@@ -49,8 +49,8 @@ Conflicts: nordugrid-arc1-client (<< 1.0.0~), nordugrid-arc-nox-client (<< 1.3.0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}, nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC command line interface
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  For the regular user of any ARC-based computational grid,
@@ -66,8 +66,8 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: nordugrid-arc-python
 Description: ARC Hosting Environment Daemon
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  The ARC Hosting Environment Daemon (HED). This daemon presents a site
@@ -87,8 +87,8 @@ Description: ARC Hosting Environment Daemon
 #Architecture: any
 #Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 #Description: ARC Charon service
-# The NorduGrid is a collaboration aiming at development, maintenance
-# and support of the free Grid middleware, known as the Advanced Resource
+# NorduGrid is a collaboration aiming at development, maintenance and
+# support of the free Grid middleware, known as the Advanced Resource
 # Connector (ARC).
 # .
 # Charon is a remote policy decision point service. It accepts formatted
@@ -104,8 +104,8 @@ Conflicts: nordugrid-arc-nox-chelonia (<< 1.3.0~), nordugrid-arc-client (<< 1.0.
 Architecture: any
 Depends: ${misc:Depends}, ${python:Depends}, nordugrid-arc-python (= ${binary:Version}), python-fuse
 Description: ARC Chelonia service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  The NorduGrid storage service Chelonia consists of a set of SOAP based
@@ -119,8 +119,8 @@ Conflicts: nordugrid-arc-nox-hopi (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 Description: ARC Hopi service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  The Hopi service provides a simple implementation of an http(s)
@@ -135,8 +135,8 @@ Conflicts: nordugrid-arc-nox-isis (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC Isis service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  Isis is the new ARC information system implemented within HED. Isis
@@ -151,8 +151,8 @@ Conflicts: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC gridftp server
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  This package contains the ARC gridftp server which has a plugin framework.
@@ -169,8 +169,8 @@ Conflicts: nordugrid-arc-nox-cache-service (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC cache service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  This package contains the ARC cache service. It provides a way to perform
@@ -184,8 +184,8 @@ Conflicts: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosy
 Architecture: all
 Depends: ${misc:Depends}, ${perl:Depends}, bdii
 Description: ARC LDAP infosys service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  This package contains the LDAP based information system for ARC.
@@ -200,8 +200,8 @@ Conflicts: nordugrid-arc-nox-giis (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-aris (= ${source:Version})
 Description: ARC EGIIS service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC). 
  .
  The EGIIS is the Information Index Service used by ARC, This service is
@@ -215,8 +215,8 @@ Conflicts: nordugrid-arc-monitor (<< 1.0.0~)
 Architecture: all
 Depends: ${misc:Depends}
 Description: ARC LDAP monitor service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  This package contains the LDAP monitor system for ARC.
@@ -227,8 +227,8 @@ Package: nordugrid-arc-ws-monitor
 Architecture: all
 Depends: ${misc:Depends}
 Description: ARC WS monitor service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  This package contains the WS monitor system for ARC.
@@ -242,8 +242,8 @@ Description: ARC WS monitor service
 #Architecture: any
 #Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version})
 #Description: ARC slcs service
-# The NorduGrid is a collaboration aiming at development, maintenance
-# and support of the free Grid middleware, known as the Advanced Resource
+# NorduGrid is a collaboration aiming at development, maintenance and
+# support of the free Grid middleware, known as the Advanced Resource
 # Connector (ARC).
 # .
 # ARC Short-lived credential service.
@@ -255,8 +255,8 @@ Conflicts: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-aris (= ${source:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), libxml-simple-perl
 Description: ARC Remote EXecution service
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  The ARC Remote EXecution service (AREX) represents those parts of the
@@ -270,7 +270,7 @@ Conflicts: nordugrid-arc1-plugins-base (<< 1.0.0~), nordugrid-arc-nox-plugins-ba
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC base plugins
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -284,7 +284,7 @@ Conflicts: nordugrid-arc1-plugins-globus (<< 1.0.0~), nordugrid-arc-nox-plugins-
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: ARC Globus plugins
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -298,7 +298,7 @@ Conflicts: nordugrid-arc-libs-devel (<< 1.0.0~), nordugrid-arc1-dev (<< 1.0.0~),
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libxml2-dev (>=2.4.0), libssl-dev, libglibmm-2.4-dev
 Description: ARC development files
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -315,7 +315,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
 XB-Python-Version: ${python:Versions}
 Description: ARC Python wrapper
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -332,7 +332,7 @@ Conflicts: nordugrid-arc1-java (<< 1.0.0~), nordugrid-arc-nox-java (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, default-jre | java6-runtime | java5-runtime
 Description: ARC Java wrapper
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -350,7 +350,7 @@ Architecture: any
 Depends: ${misc:Depends}, ${perl:Depends}
 Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
 Description: ARC dynamic runtime environment installation
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -367,7 +367,7 @@ Architecture: all
 Depends: ${misc:Depends}
 Conflicts: nordugrid-arc-nox-doc (<< 1.3.0~)
 Description: ARC API documentation
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -378,19 +378,19 @@ Architecture: all
 Depends: libnet-ldap-perl, libxml-dom-perl, libcrypt-ssleay-perl, ${perl:Depends}, ${misc:Depends}
 Recommends: cron
 Description: NorduGrid authorization tools
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
  This package contains the ARC authorization machinery.
  A prominent tool distributed in this package is the nordugridmap
- script to collect user information from the virtual organisations.
+ script to collect user information from the virtual organizations.
 
 Package: nordugrid-arc-ca-utils
 Architecture: all
 Depends: fetch-crl, ${misc:Depends}
 Description: NorduGrid authentication tools
- The NorduGrid is a collaboration aiming at development, maintenance
+ NorduGrid is a collaboration aiming at development, maintenance and
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
@@ -407,8 +407,8 @@ Section: debug
 Priority: extra
 Depends: ${misc:Depends}, libarccommon1 (= ${binary:Version}) | nordugrid-arc-client (= ${binary:Version}) | nordugrid-arc-hed (= ${binary:Version}) | nordugrid-arc-hopi (= ${binary:Version}) | nordugrid-arc-isis (= ${binary:Version}) | nordugrid-arc-arex (= ${binary:Version}) | nordugrid-arc-plugins-needed(= ${binary:Version}) | nordugrid-arc-plugins-globus (= ${binary:Version}) | nordugrid-arc-dev (= ${binary:Version}) | nordugrid-arc-python (= ${binary:Version}) | nordugrid-arc-java (= ${binary:Version}) | nordugrid-arc-janitor (= ${binary:Version}) | nordugrid-arc-cache-service (= ${binary:Version}) | nordugrid-arc-gridftpd (= ${binary:Version})
 Description: ARC grid middleware - Debug Symbols
- The NorduGrid is a collaboration aiming at development, maintenance
- and support of the free Grid middleware, known as the Advanced Resource
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
  This package provides dubug symbols for the ARC grid middleware.
