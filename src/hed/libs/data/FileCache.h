@@ -15,9 +15,7 @@ namespace Arc {
 
   class Logger;
 
-  /**
-   * Contains data on the parameters of a cache.
-   */
+  /// Contains data on the parameters of a cache.
   struct CacheParameters {
     std::string cache_path;
     std::string cache_link_path;
@@ -25,9 +23,9 @@ namespace Arc {
 
 #ifndef WIN32
 
+  /// FileCache provides an interface to all cache operations.
   /**
-   * FileCache provides an interface to all cache operations
-   * to be used by external classes. An instance should be created
+   * An instance of FileCache should be created
    * per job, and all files within the job are managed by that
    * instance. When it is decided a file should be downloaded to the
    * cache, Start() should be called, so that the cache file can be
@@ -36,7 +34,8 @@ namespace Arc {
    * a per-job directory in the cache and then soft link, or copy
    * the file directly to the session directory so it can be accessed from
    * the user's job. Stop() must then be called to release any
-   * locks on the cache file.
+   * locks on the cache file. After the job has finished, Release()
+   * should be called to remove the hard links.
    *
    * The cache directory(ies) and the optional directory to link to
    * when the soft-links are made are set in the global configuration
@@ -47,12 +46,12 @@ namespace Arc {
    * 76f11edda169848038efbd9fa3df5693 is stored in
    * 76/f11edda169848038efbd9fa3df5693. A cache filename can be found
    * by passing the URL to Find(). For more information on the
-   * structure of the cache, see the Grid Manager Administration Guide.
+   * structure of the cache, see the A-REX Administration Guide
+   * (NORDUGRID-TECH-14).
    *
    * A metadata file with the '.meta' suffix is stored next to each
    * cache file. This contains the URL corresponding to the cache
-   * file and the expiry time, if it is available. For example
-   * lfc://lfc1.ndgf.org//grid/atlas/test/test1 20081007151045Z
+   * file and the expiry time, if it is available.
    *
    * While cache files are downloaded, they are locked using the
    * FileLock class, which creates a lock file with the '.lock' suffix
@@ -140,10 +139,10 @@ namespace Arc {
     /**
      * Common code for constuctors
      */
-    bool _init(std::vector<std::string> caches,
-               std::vector<std::string> remote_caches,
-               std::vector<std::string> draining_caches,
-               std::string id,
+    bool _init(const std::vector<std::string>& caches,
+               const std::vector<std::string>& remote_caches,
+               const std::vector<std::string>& draining_caches,
+               const std::string& id,
                uid_t job_uid,
                gid_t job_gid,
                int cache_max = 100,
@@ -151,17 +150,17 @@ namespace Arc {
     /**
      * Return the filename of the meta file associated to the given url
      */
-    std::string _getMetaFileName(std::string url);
+    std::string _getMetaFileName(const std::string& url);
    /**
      * Choose a cache directory to use for this url, based on the free 
      * size of the cache directories and cache_size limitation of the arc.conf
      * Returns the index of the cache to use in the list.
      */ 
-    int _chooseCache(std::string url);
+    int _chooseCache(const std::string& url) const;
     /**
      * Retun the cache info < total space in KB, used space in KB>   
      */
-    std::pair <unsigned long long , unsigned long long> _getCacheInfo(std::string path);
+    std::pair <unsigned long long , unsigned long long> _getCacheInfo(const std::string& path) const;
     /**
      * Logger for messages
      */
@@ -181,8 +180,8 @@ namespace Arc {
      * readable by this user
      * @param job_gid owner group of job
      */
-    FileCache(std::string cache_path,
-              std::string id,
+    FileCache(const std::string& cache_path,
+              const std::string& id,
               uid_t job_uid,
               gid_t job_gid);
 
@@ -196,8 +195,8 @@ namespace Arc {
      * readable by this user
      * @param job_gid owner group of job
      */
-    FileCache(std::vector<std::string> caches,
-              std::string id,
+    FileCache(const std::vector<std::string>& caches,
+              const std::string& id,
               uid_t job_uid,
               gid_t job_gid);       
     /**
@@ -220,10 +219,10 @@ namespace Arc {
      * @param cache_min minimum used space by cache, as percentage
      * of the file system
      */
-    FileCache(std::vector<std::string> caches,
-              std::vector<std::string> remote_caches,
-              std::vector<std::string> draining_caches, 
-              std::string id,
+    FileCache(const std::vector<std::string>& caches,
+              const std::vector<std::string>& remote_caches,
+              const std::vector<std::string>& draining_caches,
+              const std::string& id,
               uid_t job_uid,
               gid_t job_gid,
               int cache_max = 100,
@@ -248,11 +247,11 @@ namespace Arc {
      * @param available true on exit if the file is already in cache
      * @param is_locked true on exit if the file is already locked, ie
      * cannot be used by this process
-     * @param remote_caches Same format as caches. These are the
-     * paths to caches which are under the control of other Grid
-     * Managers and are read-only for this process.
+     * @param use_remote Whether to look to see if the file exists in a
+     * remote cache. Can be set to false if for example a forced download
+     * to cache is desired.
      */
-    bool Start(std::string url, bool& available, bool& is_locked, bool use_remote = true);
+    bool Start(const std::string& url, bool& available, bool& is_locked, bool use_remote = true);
     /**
      * This method (or stopAndDelete) must be called after file was
      * downloaded or download failed, to release the lock on the
@@ -263,7 +262,7 @@ namespace Arc {
      * to delete the lock file.
      * @param url the url of the file that was downloaded
      */
-    bool Stop(std::string url);
+    bool Stop(const std::string& url);
     /**
      * Release the cache file and delete it, because for example a
      * failed download left an incomplete copy, or it has expired.
@@ -273,12 +272,13 @@ namespace Arc {
      * @param url the url corresponding to the cache file that has
      * to be released and deleted
      */
-    bool StopAndDelete(std::string url);
+    bool StopAndDelete(const std::string& url);
     /**
      * Returns the full pathname of the file in the cache which
      * corresponds to the given url.
+     * @param url the URL to looks for in the cache
      */
-    std::string File(std::string url);
+    std::string File(const std::string& url);
     /**
      * Create a hard-link to the per-job dir from
      * the cache dir, and then a soft-link from here to the
@@ -300,7 +300,7 @@ namespace Arc {
      * @param executable If true then file is copied and given execute
      * permissions in the session dir
      */
-    bool Link(std::string link_path, std::string url, bool copy, bool executable);
+    bool Link(const std::string& link_path, const std::string& url, bool copy, bool executable);
     /**
      * Copy the cache file corresponding to url to the dest_path.
      * The session directory is accessed under the uid passed in
@@ -310,13 +310,13 @@ namespace Arc {
      * This method is deprecated - Link() should be used instead with
      * copy set to true.
      */
-    bool Copy(std::string dest_path, std::string url, bool executable = false);
+    bool Copy(const std::string& dest_path, const std::string& url, bool executable = false);
     /**
      * Release claims on input files for the job specified by id.
      * For each cache directory the per-job directory with the
      * hard-links will be deleted.
      */
-    bool Release();
+    bool Release() const;
     /**
      * Add the given DN to the list of cached DNs with the given expiry time
      * @param url the url corresponding to the cache file to which we
@@ -324,14 +324,14 @@ namespace Arc {
      * @param DN the DN of the user
      * @param expiry_time the expiry time of this DN in the DN cache
      */
-    bool AddDN(std::string url, std::string DN, Time expiry_time);
+    bool AddDN(const std::string& url, const std::string& DN, const Time& expiry_time);
     /**
      * Check if the given DN is cached for authorisation.
      * @param url the url corresponding to the cache file for which we
      * want to check the cached DN
      * @param DN the DN of the user
      */
-    bool CheckDN(std::string url, std::string DN);
+    bool CheckDN(const std::string& url, const std::string& DN);
     /**
      * Check if there is an information about creation time. Returns
      * true if the file exists in the cache, since the creation time
@@ -339,34 +339,34 @@ namespace Arc {
      * @param url the url corresponding to the cache file for which we
      * want to know if the creation date exists
      */
-    bool CheckCreated(std::string url);
+    bool CheckCreated(const std::string& url);
     /**
      * Get the creation time of a cached file. If the cache file does
      * not exist, 0 is returned.
      * @param url the url corresponding to the cache file for which we
      * want to know the creation date
      */
-    Time GetCreated(std::string url);
+    Time GetCreated(const std::string& url);
     /**
      * Check if there is an information about expiry time.
      * @param url the url corresponding to the cache file for which we
      * want to know if the expiration time exists
      */
-    bool CheckValid(std::string url);
+    bool CheckValid(const std::string& url);
     /**
      * Get expiry time of a cached file. If the time is not available,
      * a time equivalent to 0 is returned.
      * @param url the url corresponding to the cache file for which we
      * want to know the expiry time
      */
-    Time GetValid(std::string url);
+    Time GetValid(const std::string& url);
     /**
      * Set expiry time.
      * @param url the url corresponding to the cache file for which we
      * want to set the expiry time
      * @param val expiry time
      */
-    bool SetValid(std::string url, Time val);
+    bool SetValid(const std::string& url, const Time& val);
     /**
      * Returns true if object is useable.
      */
@@ -384,38 +384,38 @@ namespace Arc {
 
   class FileCache {
   public:
-    FileCache(std::string cache_path,
-              std::string id,
+    FileCache(const std::string& cache_path,
+              const std::string& id,
               int job_uid,
               int job_gid) {}
-    FileCache(std::vector<std::string> caches,
-              std::string id,
+    FileCache(const std::vector<std::string>& caches,
+              const std::string& id,
               int job_uid,
               int job_gid) {}
-    FileCache(std::vector<std::string> caches,
-              std::vector<std::string> remote_caches,
-              std::vector<std::string> draining_caches, 
-              std::string id,
+    FileCache(const std::vector<std::string>& caches,
+              const std::vector<std::string>& remote_caches,
+              const std::vector<std::string>& draining_caches,
+              const std::string& id,
               int job_uid,
               int job_gid,
               int cache_max=100,
               int cache_min=100) {}
     FileCache(const FileCache& cache) {}
     FileCache() {}
-    bool Start(std::string url, bool& available, bool& is_locked, bool use_remote=true) { return false; }
-    bool Stop(std::string url) { return false; }
-    bool StopAndDelete(std::string url) {return false; }
-    std::string File(std::string url) { return url; }
-    bool Link(std::string link_path, std::string url, bool copy, bool executable)  { return false; }
-    bool Copy(std::string dest_path, std::string url, bool executable = false) { return false; }
-    bool Release() { return false;}
-    bool AddDN(std::string url, std::string DN, Time expiry_time) { return false;}
-    bool CheckDN(std::string url, std::string DN) { return false; }
-    bool CheckCreated(std::string url){ return false; }
-    Time GetCreated(std::string url) { return Time(); }
-    bool CheckValid(std::string url) { return false; }
-    Time GetValid(std::string url)  { return Time(); }
-    bool SetValid(std::string url, Time val) { return false; }
+    bool Start(const std::string& url, bool& available, bool& is_locked, bool use_remote=true) { return false; }
+    bool Stop(const std::string& url) { return false; }
+    bool StopAndDelete(const std::string& url) {return false; }
+    std::string File(const std::string& url) { return url; }
+    bool Link(const std::string& link_path, const std::string& url, bool copy, bool executable)  { return false; }
+    bool Copy(const std::string& dest_path, const std::string& url, bool executable = false) { return false; }
+    bool Release() const { return false;}
+    bool AddDN(const std::string& url, const std::string& DN, const Time& expiry_time) { return false;}
+    bool CheckDN(const std::string& url, const std::string& DN) { return false; }
+    bool CheckCreated(const std::string& url){ return false; }
+    Time GetCreated(const std::string& url) { return Time(); }
+    bool CheckValid(const std::string& url) { return false; }
+    Time GetValid(const std::string& url)  { return Time(); }
+    bool SetValid(const std::string& url, const Time& val) { return false; }
     operator bool() {
       return false;
     };

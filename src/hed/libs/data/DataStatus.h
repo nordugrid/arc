@@ -9,6 +9,8 @@
 namespace Arc {
   
 #define DataStatusRetryableBase (100)
+
+  /// Status code returned by many DataPoint methods.
   /**
    * A class to be used for return types of all major data handling
    * methods. It describes the outcome of the method.
@@ -17,6 +19,7 @@ namespace Arc {
 
   public:
 
+    /// Status codes
     enum DataStatusType {
 
       /// Operation completed successfully
@@ -188,28 +191,32 @@ namespace Arc {
       return *this;
     }
 
-    bool operator!() {
+    bool operator!() const {
       return (status != Success) && (status != SuccessCached);
     }
-    operator bool() {
+    operator bool() const {
       return (status == Success) || (status == SuccessCached);
     }
 
-    bool Passed(void) {
+    /// Returns true if no error occurred
+    bool Passed() const {
       return ((status == Success) || (status == NotSupportedForDirectDataPointsError) ||
               (status == ReadPrepareWait) || (status == WritePrepareWait) ||
               (status == SuccessCached));
     }
   
-    bool Retryable() {
+    /// Returns true if the error was temporary and could be retried
+    bool Retryable() const {
       return status > 100;
     }
   
-    void SetDesc(std::string d) {
+    /// Set a text description of the status
+    void SetDesc(const std::string& d) {
       desc = d;
     }
     
-    std::string GetDesc() {
+    /// Get a text description of the status
+    std::string GetDesc() const {
       return desc;
     }
 

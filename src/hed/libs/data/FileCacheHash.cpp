@@ -11,6 +11,8 @@
 
 #include "FileCacheHash.h"
 
+namespace Arc {
+
 int FileCacheHash::MAX_MD5_LENGTH = 32;
 int FileCacheHash::MAX_SHA1_LENGTH = 40;
 
@@ -39,3 +41,5 @@ std::string FileCacheHash::getHash(std::string url) {
   }
   return res;
 }
+
+} // namespace Arc

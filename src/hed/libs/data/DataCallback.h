@@ -5,9 +5,9 @@
 
 namespace Arc {
 
-  /// This class is used by DataHandle to report missing space on local
-  /// filesystem. One of 'cb' functions here will be called if operation
-  /// initiated by DataHandle::start_reading runs out of disk space.
+  /// This class is used by DataHandle to report missing space on local filesystem.
+  /** One of 'cb' functions here will be called if operation
+   * initiated by DataHandle::StartReading runs out of disk space. */
   class DataCallback {
   public:
     DataCallback() {}

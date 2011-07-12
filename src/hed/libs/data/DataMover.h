@@ -16,10 +16,8 @@ namespace Arc {
   class Logger;
   class URLMap;
 
-  /// A purpose of this class is to provide an interface that moves data
-  /// between two locations specified by URLs. It's main action is
-  /// represented by methods DataMover::Transfer.
-  /// Instance represents only attributes used during transfer.
+  /// DataMover provides an interface to transfer data between two DataPoints.
+  /** Its main action is represented by Transfer methods */
   class DataMover {
   private:
     bool be_verbose;
@@ -48,7 +46,7 @@ namespace Arc {
     /// \param cache controls caching of downloaded files (if destination
     /// url is "file://"). If caching is not needed default constructor
     /// FileCache() can be used.
-    /// \param map URL mapping/convertion table (for 'source' URL).
+    /// \param map URL mapping/conversion table (for 'source' URL).
     /// \param cb if not NULL, transfer is done in separate thread and 'cb'
     /// is called after transfer completes/fails.
     /// \param arg passed to 'cb'.
@@ -73,6 +71,7 @@ namespace Arc {
                         time_t max_inactivity_time,
                         callback cb = NULL, void *arg = NULL,
                         const char *prefix = NULL);
+    /// Delete the file at url.
     DataStatus Delete(DataPoint& url, bool errcont = false);
     /// Check if printing information about transfer status is activated.
     bool verbose();
@@ -86,7 +85,7 @@ namespace Arc {
     bool retry();
     /// Set if transfer will be retried in case of failure.
     void retry(bool);
-    /// Set if high level of security (encryption) will be used duirng
+    /// Set if high level of security (encryption) will be used during
     /// transfer if available.
     void secure(bool);
     /// Set if passive transfer should be used for FTP-like transfers.
@@ -94,10 +93,10 @@ namespace Arc {
     /// Set if file should be transferred and registered even if such LFN
     /// is already registered and source is not one of registered locations.
     void force_to_meta(bool);
-    /// Check if check for existance of remote file is done before
+    /// Check if check for existence of remote file is done before
     /// initiating 'reading' and 'writing' operations.
     bool checks();
-    /// Set if to make check for existance of remote file (and probably
+    /// Set if to make check for existence of remote file (and probably
     /// other checks too) before initiating 'reading' and 'writing' operations.
     /// \param v true if allowed (default is true).
     void checks(bool v);
@@ -121,9 +120,11 @@ namespace Arc {
     void set_default_max_inactivity_time(time_t max_inactivity_time) {
       default_max_inactivity_time = max_inactivity_time;
     }
+    /// Set function which is called every second during the transfer
     void set_progress_indicator(DataSpeed::show_progress_t func = NULL) {
       show_progress = func;
     }
+    /// Set a preferred pattern for ordering of replicas
     void set_preferred_pattern(const std::string& pattern) {
       preferred_pattern = pattern;
     }

@@ -41,8 +41,8 @@ namespace Arc {
 
   Logger FileCache::logger(Logger::getRootLogger(), "FileCache");
 
-  FileCache::FileCache(std::string cache_path,
-                       std::string id,
+  FileCache::FileCache(const std::string& cache_path,
+                       const std::string& id,
                        uid_t job_uid,
                        gid_t job_gid) {
 
@@ -58,8 +58,8 @@ namespace Arc {
       _caches.clear();
   }
 
-  FileCache::FileCache(std::vector<std::string> caches,
-                       std::string id,
+  FileCache::FileCache(const std::vector<std::string>& caches,
+                       const std::string& id,
                        uid_t job_uid,
                        gid_t job_gid) {
 
@@ -71,10 +71,10 @@ namespace Arc {
       _caches.clear();
   }
 
-  FileCache::FileCache(std::vector<std::string> caches,
-                       std::vector<std::string> remote_caches,
-                       std::vector<std::string> draining_caches,
-                       std::string id,
+  FileCache::FileCache(const std::vector<std::string>& caches,
+                       const std::vector<std::string>& remote_caches,
+                       const std::vector<std::string>& draining_caches,
+                       const std::string& id,
                        uid_t job_uid,
                        gid_t job_gid,
                        int cache_max,
@@ -85,10 +85,10 @@ namespace Arc {
       _caches.clear();
   }
 
-  bool FileCache::_init(std::vector<std::string> caches,
-                        std::vector<std::string> remote_caches,
-                        std::vector<std::string> draining_caches,
-                        std::string id,
+  bool FileCache::_init(const std::vector<std::string>& caches,
+                        const std::vector<std::string>& remote_caches,
+                        const std::vector<std::string>& draining_caches,
+                        const std::string& id,
                         uid_t job_uid,
                         gid_t job_gid,
                         int cache_max,
@@ -184,7 +184,7 @@ namespace Arc {
     return true;
   }
 
-  bool FileCache::Start(std::string url, bool& available, bool& is_locked, bool use_remote) {
+  bool FileCache::Start(const std::string& url, bool& available, bool& is_locked, bool use_remote) {
 
     if (!(*this))
       return false;
@@ -349,7 +349,7 @@ namespace Arc {
     return true;
   }
 
-  bool FileCache::Stop(std::string url) {
+  bool FileCache::Stop(const std::string& url) {
 
     if (!(*this))
       return false;
@@ -398,7 +398,7 @@ namespace Arc {
     return true;
   }
 
-  bool FileCache::StopAndDelete(std::string url) {
+  bool FileCache::StopAndDelete(const std::string& url) {
 
     if (!(*this))
       return false;
@@ -454,7 +454,7 @@ namespace Arc {
     return true;
   }
 
-  std::string FileCache::File(std::string url) {
+  std::string FileCache::File(const std::string& url) {
 
     if (!(*this))
       return "";
@@ -483,7 +483,7 @@ namespace Arc {
     return path;
   }
 
-  bool FileCache::Link(std::string dest_path, std::string url, bool copy, bool executable) {
+  bool FileCache::Link(const std::string& dest_path, const std::string& url, bool copy, bool executable) {
 
     if (!(*this))
       return false;
@@ -665,12 +665,12 @@ namespace Arc {
     return true;
   }
 
-  bool FileCache::Copy(std::string dest_path, std::string url, bool executable) {
+  bool FileCache::Copy(const std::string& dest_path, const std::string& url, bool executable) {
 
     return Link(dest_path, url, true, executable);
   }
 
-  bool FileCache::Release() {
+  bool FileCache::Release() const {
 
     // go through all caches (including remote caches and draining caches)
     // and remove per-job dirs for our job id
@@ -698,10 +698,11 @@ namespace Arc {
     return true;
   }
 
-  bool FileCache::AddDN(std::string url, std::string DN, Time expiry_time) {
+  bool FileCache::AddDN(const std::string& url, const std::string& DN, const Time& exp_time) {
 
     if (DN.empty())
       return false;
+    Time expiry_time(exp_time);
     if (expiry_time == Time(0))
       expiry_time = Time(time(NULL) + CACHE_DEFAULT_AUTH_VALIDITY);
 
@@ -770,7 +771,7 @@ namespace Arc {
     return true;
   }
 
-  bool FileCache::CheckDN(std::string url, std::string DN) {
+  bool FileCache::CheckDN(const std::string& url, const std::string& DN) {
 
     if (DN.empty())
       return false;
@@ -810,7 +811,7 @@ namespace Arc {
     return false;
   }
 
-  bool FileCache::CheckCreated(std::string url) {
+  bool FileCache::CheckCreated(const std::string& url) {
 
     // check the cache file exists - if so we can get the creation date
     // follow symlinks
@@ -819,7 +820,7 @@ namespace Arc {
     return FileStat(cache_file, &fileStat, true);
   }
 
-  Time FileCache::GetCreated(std::string url) {
+  Time FileCache::GetCreated(const std::string& url) {
 
     // check the cache file exists
     std::string cache_file = File(url);
@@ -839,11 +840,11 @@ namespace Arc {
     return Time(mtime);
   }
 
-  bool FileCache::CheckValid(std::string url) {
+  bool FileCache::CheckValid(const std::string& url) {
     return (GetValid(url) != Time(0));
   }
 
-  Time FileCache::GetValid(std::string url) {
+  Time FileCache::GetValid(const std::string& url) {
 
     // open meta file and pick out expiry time if it exists
     std::string meta_file(_getMetaFileName(url));
@@ -878,7 +879,7 @@ namespace Arc {
     return Time(meta_str);
   }
 
-  bool FileCache::SetValid(std::string url, Time val) {
+  bool FileCache::SetValid(const std::string& url, const Time& val) {
 
     std::string meta_file(_getMetaFileName(url));
     std::string file_data(url + '\n' + val.str(MDSTime));
@@ -905,11 +906,11 @@ namespace Arc {
              );
   }
 
-  std::string FileCache::_getMetaFileName(std::string url) {
+  std::string FileCache::_getMetaFileName(const std::string& url) {
     return File(url) + CACHE_META_SUFFIX;
   }
 
-  int FileCache::_chooseCache(std::string url) {
+  int FileCache::_chooseCache(const std::string& url) const {
     
     // get the hash of the url
     std::string hash = FileCacheHash::getHash(url);
@@ -995,7 +996,7 @@ namespace Arc {
     return cache_no;
   }
   
-  std::pair <unsigned long long, unsigned long long> FileCache::_getCacheInfo(std::string path) {
+  std::pair <unsigned long long, unsigned long long> FileCache::_getCacheInfo(const std::string& path) const {
   
     struct statvfs info;
     if (statvfs(path.c_str(), &info) != 0) {

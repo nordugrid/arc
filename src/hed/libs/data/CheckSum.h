@@ -12,7 +12,7 @@
 
 namespace Arc {
 
-  /// Defines interface for variuos checksum manipulations
+  /// Defines interface for various checksum manipulations.
   /** This class is used during data transfers through DataBuffer class */
   class CheckSum {
   public:
@@ -139,7 +139,7 @@ namespace Arc {
     }
   };
 
-  /// Wraper for CheckSum class
+  /// Wrapper for CheckSum class.
   /** To be used for manipulation of any supported checksum type
      in a transparent way. */
   class CheckSumAny
