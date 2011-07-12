@@ -1,8 +1,22 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0)")}
 
+%if %{?rhel}%{!?rhel:0} == 5
+%global __python26 %{_bindir}/python2.6
+%{!?python26_sitearch: %global python26_sitearch %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+%{!?python26_sitelib: %global python26_sitelib %(%{__python26} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(0)")}
+# Disable the default python byte compilation
+%global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
+%endif
+
 %if %{?filter_setup:1}%{!?filter_setup:0}
 %filter_provides_in %{python_sitearch}.*\.so$
+%if %{?rhel}%{!?rhel:0} == 5
+%filter_provides_in %{python26_sitearch}.*\.so$
+%endif
+%if %{?fedora}%{!?fedora:0} >= 13
+%filter_provides_in %{python3_sitearch}.*\.so$
+%endif
 %filter_setup
 %endif
 
@@ -173,6 +187,7 @@ Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-python = %{version}-%{release}
+Requires:	fuse-python
 Provides:	nordugrid-arc-nox-chelonia = 1.3.0
 Obsoletes:	nordugrid-arc-nox-chelonia < 1.3.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
@@ -471,14 +486,49 @@ represent such modules.
 Summary:	ARC Python wrapper
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	python
-Requires:	fuse-python
 Provides:	nordugrid-arc1-python = 1.3.0
 Obsoletes:	nordugrid-arc1-python < 1.0.0
 Provides:	nordugrid-arc-nox-python = 1.3.0
 Obsoletes:	nordugrid-arc-nox-python < 1.3.0
 
 %description python
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+Developers with an interest to integrate the some functionality on
+a remote site via an interface compatible with ARC, may find it
+preferable to perform that remote invocation from within Python.
+While today most services in ARC are associated with computation or
+storage, there is no constraint on these applications.
+%endif
+
+%if %{?rhel}%{!?rhel:0} == 5
+%package python26
+Summary:	ARC Python wrapper
+Group:		Development/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	python(abi) = 2.6
+
+%description python26
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+Developers with an interest to integrate the some functionality on
+a remote site via an interface compatible with ARC, may find it
+preferable to perform that remote invocation from within Python.
+While today most services in ARC are associated with computation or
+storage, there is no constraint on these applications.
+%endif
+
+%if %{?fedora}%{!?fedora:0} >= 13
+%package python3
+Summary:	ARC Python wrapper
+Group:		Development/Libraries
+Requires:	%{name} = %{version}-%{release}
+
+%description python3
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the free Grid middleware, known as the Advanced Resource
 Connector (ARC).
@@ -611,6 +661,12 @@ cd -
 %if ! %{with_lfc}
      --disable-lfc \
 %endif
+%if %{?rhel}%{!?rhel:0} == 5
+     --with-altpython=python26 \
+%endif
+%if %{?fedora}%{!?fedora:0} >= 13
+     --with-altpython=python3 \
+%endif
      --disable-doc \
      --with-docdir=%{_docdir}/%{name}-%{version}
 
@@ -663,6 +719,13 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/selinux/packages/%{name}
 install -p -m 644 %{name}-egiis.pp \
     $RPM_BUILD_ROOT%{_datadir}/selinux/packages/%{name}
 cd -
+%endif
+
+%if %{?rhel}%{!?rhel:0} == 5
+%{__python}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
+%{__python} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
+%{__python26}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
+%{__python26} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %endif
 
 %clean
@@ -1115,7 +1178,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %files python
 %defattr(-,root,root,-)
-%{python_sitearch}/_arc.so
+%{python_sitearch}/_arc*.so
 %{python_sitearch}/arc.py*
 %{python_sitelib}/arcom
 %{python_sitelib}/cache
@@ -1125,6 +1188,23 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
 %doc %{_datadir}/%{pkgdir}/examples/PythonBroker
+%endif
+
+%if %{?rhel}%{!?rhel:0} == 5
+%files python26
+%defattr(-,root,root,-)
+%{python26_sitearch}/_arc*.so
+%{python26_sitearch}/arc.py*
+%endif
+
+%if %{?fedora}%{!?fedora:0} >= 13
+%files python3
+%defattr(-,root,root,-)
+%{python3_sitearch}/_arc*.so
+%{python3_sitearch}/arc.py*
+%if %{?fedora}%{!?fedora:0} >= 15
+%{python3_sitearch}/__pycache__/arc*
+%endif
 %endif
 
 %if %{with_java}

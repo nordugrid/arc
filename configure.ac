@@ -429,6 +429,9 @@ if test "$enables_python" = "yes"; then
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
 
+    PYTHON_SOABI=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
+    AC_SUBST(PYTHON_SOABI)
+
     AC_ARG_WITH(python-site-arch, AC_HELP_STRING([--with-python-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$PYTHON_SITE_ARCH" = "X"; then
       PYTHON_SITE_ARCH=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
@@ -532,6 +535,9 @@ if test "$enables_altpython" = "yes"; then
     AC_SUBST(ALTPYTHON_VERSION)
     AC_SUBST(ALTPYTHON_CFLAGS)
     AC_SUBST(ALTPYTHON_LIBS)
+
+    ALTPYTHON_SOABI=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
+    AC_SUBST(ALTPYTHON_SOABI)
 
     AC_ARG_WITH(altpython-site-arch, AC_HELP_STRING([--with-altpython-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$ALTPYTHON_SITE_ARCH" = "X"; then

@@ -74,3 +74,13 @@ pydoxygen.i: Doxyfile.api
 	doxygen Doxyfile.api
 	python doxy2swig.py api/xml/index.xml $@
 	rm -rf api
+
+install-data-hook:
+	if test -n "$(PYTHON_SOABI)" ; then \
+	  mv $(DESTDIR)$(pythondir)/_arc.so \
+	  $(DESTDIR)$(pythondir)/_arc.$(PYTHON_SOABI).so ; \
+	fi
+	if test -n "$(ALTPYTHON_SOABI)" ; then \
+	  mv $(DESTDIR)$(altpythondir)/_arc.so \
+	  $(DESTDIR)$(altpythondir)/_arc.$(ALTPYTHON_SOABI).so ; \
+	fi
