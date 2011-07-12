@@ -26,51 +26,64 @@ namespace Arc {
 
   class URLLocation;
 
+  // Note: The \ separator is escaped in doxygen comments below
 
-  /// Class to hold general URL's.
-  /** The URL is split into protocol, hostname, port and path.
-     This class tries to follow RFC 3986 for spliting URLs at least
-     for protocol + host part.
-     It also accepts local file paths which are converted to file:path.
-     Usual system dependant file paths are supported. Relative
-     paths are converted to absolute ones by prepending them
-     with current working directory path.
-     File path can't start from # symbol (why?).
-     If string representation of URL starts from '@' then it is
-     treated as path to file containing list of URLs.
-     Simple URL is parsed in following way:
-        [protocol:][//[username:passwd@][host][:port]][;urloptions[;...]][/path[?httpoption[&...]][:metadataoption[:...]]]
-     The 'protocol' and 'host' parts are treated as case-insensitive and
-     to avoid confusion are converted to lowercase in constructor.
-     Note that 'path' is always converted to absolute path in constructor.
-     Meaning of 'absolute' may depend upon URL type. For generic URL and
-     local POSIX file paths that means path starts from / like
-       /path/to/file
-     For Windows paths absolute path may look like
-       C:\path\to\file
-     It is important to note that path still can be empty.
-     For referencing local file using absolute path on POSIX filesystem
-     one may use either
-       file:///path/to/file
-     or
-       file:/path/to/file
-     Relative path will look like
-       file:to/file
-     For local Windows files possible URLs are
-       file:C:\path\to\file
-       file:to\file
-     URLs representing LDAP resources have different structure of options
-     following 'path' part
-        ldap://host[:port][;urloptions[;...]][/path[?attributes[?scope[?filter]]]]
-     For LDAP URLs paths are converted from /key1=value1/.../keyN=valueN
-     notation to keyN=valueN,...,key1=value1 and hence path does not contain
-     leading /. If LDAP URL initially had path in second notation leading
-     / is treated as separator only and is stripped.
-     URLs of indexing services optionally may have locations specified
-     before 'host' part
-        protocol://[location[;location[;...]]@][host][:port]...
-     The structure of 'location' element is protocol specific.
-  */
+  /// Class to hold general URLs.
+  /** The URL is split into protocol, hostname, port and path. This class tries
+   *  to follow RFC 3986 for spliting URLs, at least for protocol + host part.
+   *  It also accepts local file paths which are converted to file:path.
+   *  The usual system dependent file paths are supported. Relative paths are
+   *  converted to absolute paths by prepending them with current working
+   *  directory path. A file path can't start from # symbol. If the string
+   *  representation of URL starts from '@' then it is treated as path to a
+   *  file containing a list of URLs.
+   *
+   *  A URL is parsed in the following way:
+   *
+   *  [protocol:][//[username:passwd@][host][:port]][;urloptions[;...]][/path[?httpoption[&...]][:metadataoption[:...]]]
+   *
+   *  The 'protocol' and 'host' parts are treated as case-insensitive and
+   *  to avoid confusion are converted to lowercase in constructor. Note that
+   *  'path' is always converted to absolute path in constructor. The meaning
+   *  of 'absolute' may depend upon URL type. For generic URL and local POSIX
+   *  file paths that means path starts from / like
+   *
+   *   /path/to/file
+   *
+   *  For Windows paths absolute path may look like
+   *
+   *   C:\\path\\to\\file
+   *
+   *  It is important to note that path still can be empty. For referencing
+   *  local file using absolute path on POSIX filesystem one may use either
+   *
+   *   file:///path/to/file or file:/path/to/file
+   *
+   *  Relative path will look like
+   *
+   *   file:to/file
+   *
+   *  For local Windows files possible URLs are
+   *
+   *   %file:C:\\path\\to\\file or %file:to\\file
+   *
+   *  URLs representing LDAP resources have different structure of options
+   *  following 'path' part:
+   *
+   *   ldap://host[:port][;urloptions[;...]][/path[?attributes[?scope[?filter]]]]
+   *
+   *  For LDAP URLs paths are converted from /key1=value1/.../keyN=valueN
+   *  notation to keyN=valueN,...,key1=value1 and hence path does not contain
+   *  leading /. If LDAP URL initially had path in second notation leading
+   *  / is treated as separator only and is stripped.
+   *
+   *  URLs of indexing services optionally may have locations specified
+   *  before 'host' part
+   *
+   *   protocol://[location[;location[;...]]@][host][:port]...
+   *
+   *  The structure of 'location' element is protocol specific.
+   */
   class URL {
 
   public:
