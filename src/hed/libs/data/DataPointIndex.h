@@ -17,7 +17,6 @@ namespace Arc {
   class DataPointIndex
     : public DataPoint {
   public:
-    DataPointIndex(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointIndex();
 
     virtual const URL& CurrentLocation() const;
@@ -93,6 +92,7 @@ namespace Arc {
   protected:
     bool resolved;
     bool registered;
+    DataPointIndex(const URL& url, const UserConfig& usercfg);
 
   private:
     // Following members must be kept synchronised hence they are private

@@ -143,40 +143,6 @@ namespace DataStaging {
 
   }
 
-  DTR& DTR::operator=(const DTR& dtr) {
-    DTR_ID = dtr.DTR_ID;
-    source_url = dtr.source_url;
-    destination_url = dtr.destination_url;
-    cfg = dtr.cfg;
-    Arc::DataHandle src(source_url, cfg);
-    source_endpoint = src;
-    Arc::DataHandle dest(destination_url, cfg);
-    destination_endpoint = dest;
-    cache_file = dtr.cache_file;
-    cache_parameters = dtr.cache_parameters;
-    cache_state = dtr.cache_state;
-    user = dtr.user;
-    parent_job_id = dtr.parent_job_id;
-    priority = dtr.priority;
-    transfershare = dtr.transfershare;
-    sub_share = dtr.sub_share;
-    tries_left = dtr.tries_left;
-    replication = dtr.replication;
-    force_registration = dtr.force_registration;
-    mapped_source = dtr.mapped_source;
-    status = dtr.status;
-    error_status = dtr.error_status;
-    timeout = dtr.timeout;
-    created = dtr.created;
-    next_process_time = dtr.next_process_time;
-    cancel_request = dtr.cancel_request;
-    current_owner = dtr.current_owner;
-    logger = dtr.logger;
-    log_destinations = dtr.log_destinations;
-    proc_callback = dtr.proc_callback;
-    return *this;
-  }
-
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
     lock.lock();
     proc_callback[owner].push_back(cb);

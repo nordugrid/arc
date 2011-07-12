@@ -277,6 +277,9 @@ namespace DataStaging {
       /// Change modification time
       void mark_modification () { last_modified.SetTime(time(NULL)); };
 
+      /// Assignment operator. Private and not implemented since DataHandle cannot be copied.
+      DTR& operator=(const DTR& dtr);
+
     public:
       
       /// Public empty constructor
@@ -290,8 +293,10 @@ namespace DataStaging {
        * @param source Endpoint from which to read data
        * @param destination Endpoint to which to write data
        * @param usercfg Provides some user configuration information
-       * @param job_id ID of the job associated with this data transfer
-       * @param uid UID of the local user the grid job is mapped to
+       * @param jobid ID of the job associated with this data transfer
+       * @param uid UID to use when accessing local file system if source
+       * or destination is a local file. If this is different to the current
+       * uid then the current uid must have sufficient privileges to change uid.
        * @param log Pointer to log object. If NULL the root logger is used.
        */
       DTR(const std::string& source,
@@ -304,8 +309,6 @@ namespace DataStaging {
       /// Empty destructor
       ~DTR() {};
 
-      /// Assignment operator. Must be defined because DataHandle copy constructor is private.
-      DTR& operator=(const DTR& dtr);
       
      /// Is DTR valid?
      operator bool() const {

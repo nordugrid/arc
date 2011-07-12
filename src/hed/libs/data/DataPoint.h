@@ -23,22 +23,84 @@ namespace Arc {
   class XMLNode;
   class CheckSum;
 
-  /// This base class is an abstraction of URL.
-  /** Specializations should be provided for different kind of direct
-      access URLs (file://, ftp://, gsiftp://, http://, https://,
-      httpg://, ...) or indexing service URLs (rls://, lfc://, ...).
-      DataPoint provides means to resolve an indexing service URL into
-      multiple URLs and to loop through them. */
-
+  /// A DataPoint represents a data resource and is an abstraction of a URL.
+  /**
+   * DataPoint uses ARC's Plugin mechanism to dynamically load the required
+   * Data Manager Component (DMC) when necessary. A DMC typically defines a
+   * subclass of DataPoint (e.g. DataPointHTTP) and is responsible for a
+   * specific protocol (e.g. http). DataPoints should not be used directly,
+   * instead the DataHandle wrapper class should be used, which automatically
+   * loads the correct DMC.
+   *
+   * DataPoint defines methods for access to the data resource. To transfer
+   * data between two DataPoints, DataMover::Transfer() can be used.
+   *
+   * There are two subclasses of DataPoint, DataPointDirect and DataPointIndex.
+   * None of these three classes can be instantiated directly.
+   * DataPointDirect and its subclasses handle "physical" resources through
+   * protocols such as file, http and gsiftp. These classes implement methods
+   * such as StartReading() and StartWriting(). DataPointIndex and its
+   * subclasses handle resources such as indexes and catalogs and implement
+   * methods like Resolve() and PreRegister().
+   *
+   * When creating a new DMC, a subclass of either DataPointDirect or
+   * DataPointIndex should be created, and the appropriate methods implemented.
+   * DataPoint itself has no direct external dependencies, but plugins may
+   * rely on third-party components. The new DMC must also add itself to the
+   * list of available plugins and provide an Instance() method which returns
+   * a new instance of itself, if the supplied arguments are valid for the
+   * protocol. Here is an example implementation of a new DMC for protocol
+   * MyProtocol which represents a physical resource accessible through
+   * protocol my://
+   *
+   * @code
+   * #include <arc/data/DataPointDirect.h>
+   *
+   * namespace Arc {
+   *
+   * class DataPointMyProtocol : public DataPointDirect {
+   *  public:
+   *   DataPointMyProtocol(const URL& url, const UserConfig& usercfg);
+   *   static Plugin* Instance(PluginArgument *arg);
+   *   virtual DataStatus StartReading(DataBuffer& buffer);
+   *   ...
+   * };
+   *
+   * DataPointMyProtocol::DataPointMyProtocol(const URL& url, const UserConfig& usercfg) {
+   *   ...
+   * }
+   *
+   * DataPointMyProtocol::StartReading(DataBuffer& buffer) { ... }
+   *
+   * ...
+   *
+   * Plugin* DataPointMyProtocol::Instance(PluginArgument *arg) {
+   *   DataPointPluginArgument *dmcarg = dynamic_cast<DataPointPluginArgument*>(arg);
+   *   if (!dmcarg)
+   *     return NULL;
+   *   if (((const URL &)(*dmcarg)).Protocol() != "my")
+   *     return NULL;
+   *   return new DataPointMyProtocol(*dmcarg, *dmcarg);
+   * }
+   *
+   * } // namespace Arc
+   *
+   * Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+   *   { "my", "HED:DMC", 0, &Arc::DataPointMyProtocol::Instance },
+   *   { NULL, NULL, 0, NULL }
+   * };
+   * @endcode
+   */
   class DataPoint
     : public Plugin {
   public:
 
     /// Describes the latency to access this URL
     /** For now this value is one of a small set specified
-       by the enumeration. In the future with more sophisticated
-       protocols or information it could be replaced by a more
-       fine-grained list of possibilities such as an int value. */
+     *  by the enumeration. In the future with more sophisticated
+     *  protocols or information it could be replaced by a more
+     *  fine-grained list of possibilities such as an int value.
+     */
     enum DataPointAccessLatency {
       /// URL can be accessed instantly
       ACCESS_LATENCY_ZERO,
@@ -50,23 +112,16 @@ namespace Arc {
 
     /// Describes type of information about URL to request
     enum DataPointInfoType {
-      INFO_TYPE_MINIMAL = 0, /// Whatever protocol can get with no additional effort. 
-      INFO_TYPE_NAME = 1, /// Only name of object (relative).
-      INFO_TYPE_TYPE = 2, /// Type of object - currently file or dir.
-      INFO_TYPE_TIMES = 4, /// Timestamps associated with object.
-      INFO_TYPE_CONTENT = 8, /// Metadata describing content, like size, checksum, etc.
-      INFO_TYPE_ACCESS = 16, /// Access control - ownership, permission, etc.
-      INFO_TYPE_STRUCT = 32, /// Fine structure - replicas, transfer locations, redirections.
-      INFO_TYPE_REST = 64, /// All the other parameters.
-      INFO_TYPE_ALL = 127 /// All the parameters.
+      INFO_TYPE_MINIMAL = 0,  ///< Whatever protocol can get with no additional effort.
+      INFO_TYPE_NAME = 1,     ///< Only name of object (relative).
+      INFO_TYPE_TYPE = 2,     ///< Type of object - currently file or dir.
+      INFO_TYPE_TIMES = 4,    ///< Timestamps associated with object.
+      INFO_TYPE_CONTENT = 8,  ///< Metadata describing content, like size, checksum, etc.
+      INFO_TYPE_ACCESS = 16,  ///< Access control - ownership, permission, etc.
+      INFO_TYPE_STRUCT = 32,  ///< Fine structure - replicas, transfer locations, redirections.
+      INFO_TYPE_REST = 64,    ///< All the other parameters.
+      INFO_TYPE_ALL = 127     ///< All the parameters.
     };
-
-    /// Constructor requires URL to be provided.
-    /** Reference to usercfg argument is stored 
-       internally and hence corresponding objects must stay
-       available during whole lifetime of this instance.
-       TODO: do we really need it? */
-    DataPoint(const URL& url, const UserConfig& usercfg);
 
     /// Destructor.
     virtual ~DataPoint();
@@ -243,7 +298,7 @@ namespace Arc {
        \param v true if allowed (default is true). */
     virtual void SetAdditionalChecks(bool v) = 0;
 
-    /// Check if additional checks before will be performed.
+    /// Check if additional checks before transfer will be performed.
     virtual bool GetAdditionalChecks() const = 0;
 
     /// Allow/disallow heavy security during data transfer.
@@ -462,6 +517,7 @@ namespace Arc {
     /// \return integer position in the list of checksum objects.
     virtual int AddCheckSumObject(CheckSum *cksum) = 0;
 
+    /// Get CheckSum object at given position in list
     virtual const CheckSum* GetCheckSumObject(int index) const = 0;
 
     /// Sort locations according to the specified pattern.
@@ -471,7 +527,7 @@ namespace Arc {
 
   protected:
     URL url;
-    const UserConfig& usercfg;
+    const UserConfig usercfg;
 
     // attributes
     unsigned long long int size;
@@ -487,8 +543,19 @@ namespace Arc {
     std::list<std::string> valid_url_options;
 
     static Logger logger;
+
+    /// Constructor.
+    /**
+     * Constructor is protected because DataPoints should not be created
+     * directly. Subclasses should however call this in their constructors to
+     * set various common attributes.
+     * \param url The URL representing the DataPoint
+     * \param usercfg User configuration object
+     */
+    DataPoint(const URL& url, const UserConfig& usercfg);
   };
 
+  /// Class used by DataHandle to load the required DMC.
   class DataPointLoader
     : public Loader {
   private:
@@ -498,12 +565,13 @@ namespace Arc {
     friend class DataHandle;
   };
 
+  /// Class representing the arguments passed to DMC plugins.
   class DataPointPluginArgument
     : public PluginArgument {
   public:
     DataPointPluginArgument(const URL& url, const UserConfig& usercfg)
       : url(url),
-	usercfg(usercfg) {}
+        usercfg(usercfg) {}
     ~DataPointPluginArgument() {}
     operator const URL&() {
       return url;

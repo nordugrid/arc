@@ -27,7 +27,6 @@ namespace Arc {
   class DataPointDirect
     : public DataPoint {
   public:
-    DataPointDirect(const URL& url, const UserConfig& usercfg);
     virtual ~DataPointDirect();
 
     virtual bool IsIndex() const;
@@ -95,6 +94,7 @@ namespace Arc {
     unsigned long long int range_start;
     unsigned long long int range_end;
     std::list<CheckSum*> checksums;
+    DataPointDirect(const URL& url, const UserConfig& usercfg);
   };
 
 } // namespace Arc
