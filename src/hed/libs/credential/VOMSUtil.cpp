@@ -1345,7 +1345,7 @@ err:
       CredentialLogger.msg(DEBUG,"VOMS: the serial number in AC is:  %i", ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
 
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
-        CredentialLogger.msg(WARNING,"VOMS: the holder serial number %i is not the same as the serial number in AC %i",
+        CredentialLogger.msg(INFO,"VOMS: the holder serial number %i is not the same as the serial number in AC %i, the holder certificate that is used to create a voms proxy could be a proxy certificate with a different serial number as the original EEC cert",
           ASN1_INTEGER_get(cert->cert_info->serialNumber),
           ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
         // return false;
@@ -1358,14 +1358,21 @@ err:
         return false;
       }
       
-      //If the holder is self-signed, and the holder also self sign the AC
-      CredentialLogger.msg(DEBUG,"VOMS: DN of holder in AC: %s",X509_NAME_oneline(name->d.dirn,NULL,0));
-      CredentialLogger.msg(DEBUG,"VOMS: DN of holder: %s",X509_NAME_oneline(cert->cert_info->subject,NULL,0));
-      CredentialLogger.msg(DEBUG,"VOMS: DN of issuer: %s",X509_NAME_oneline(cert->cert_info->issuer,NULL,0));
-      if (X509_NAME_cmp(name->d.dirn, cert->cert_info->subject) && 
-        X509_NAME_cmp(name->d.dirn, cert->cert_info->issuer)) {
-        CredentialLogger.msg(ERROR,"VOMS: the holder itself can not sign an AC by using a self-sign certificate"); 
-        return false;
+      std::string ac_holder_name = X509_NAME_oneline(name->d.dirn,NULL,0);
+      std::string holder_name = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
+      std::string holder_issuer_name = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
+      CredentialLogger.msg(DEBUG,"VOMS: DN of holder in AC: %s",ac_holder_name.c_str());
+      CredentialLogger.msg(DEBUG,"VOMS: DN of holder: %s",holder_name.c_str());
+      CredentialLogger.msg(DEBUG,"VOMS: DN of issuer: %s",holder_issuer_name.c_str());
+
+      if ((ac_holder_name != holder_name) && (ac_holder_name != holder_issuer_name)) {
+        std::size_t found1, found2;
+        found1 = holder_name.find(ac_holder_name);
+        found2 = holder_issuer_name.find(ac_holder_name);
+        if((found1 == std::string::npos) && (found2 == std::string::npos)) {
+          CredentialLogger.msg(ERROR,"VOMS: the holder name in AC is not related to the distinguished name in holder certificate");
+          return false;
+        }
       }
 
       if ((ac->acinfo->holder->baseid->uid && cert->cert_info->issuerUID) ||
