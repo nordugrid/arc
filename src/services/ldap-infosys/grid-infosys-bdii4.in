@@ -652,9 +652,9 @@ create_arc_slapd_conf () {
 	#nordugrid specific schemas
 	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/nordugrid.schema
 	#glue schemas
-	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/glue-1.2/Glue-CORE.schema
-	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/glue-1.2/Glue-CE.schema
-	include $ARC_LOCATION/@pkgdatasubdir@/ldap-schema/glue-1.2/Glue-CESEBind.schema
+	include /etc/ldap/schema/Glue-CORE.schema
+	include /etc/ldap/schema/Glue-CE.schema
+	include /etc/ldap/schema/Glue-CESEBind.schema
 	##glue2 schema
 	#include /etc/ldap/schema/GLUE20.schema
 

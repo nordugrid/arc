@@ -15,14 +15,6 @@ pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm DGBridge.pm \
 arcldapschemadir = $(pkgdatadir)/ldap-schema
 arcldapschema_DATA = schema/nordugrid.schema
 
-arcglueldapschemadir = $(arcldapschemadir)/glue-1.2
-arcglueldapschema_DATA = schema/glue-1.2/Glue-CE.schema \
-	schema/glue-1.2/Glue-CESEBind.schema \
-	schema/glue-1.2/Glue-CORE.schema \
-	schema/glue-1.2/Glue-MDS.schema \
-	schema/glue-1.2/Glue-SE.schema
-
-EXTRA_DIST = $(pkgdata_SCRIPTS) $(pkgdata_DATA) \
-	$(arcldapschema_DATA) $(arcglueldapschema_DATA)
+EXTRA_DIST = $(pkgdata_SCRIPTS) $(pkgdata_DATA) $(arcldapschema_DATA)
 
 SUBDIRS = test

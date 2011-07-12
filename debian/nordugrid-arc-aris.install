@@ -1,9 +1,4 @@
 debian/tmp/usr/share/arc/ldap-schema/nordugrid.schema
-debian/tmp/usr/share/arc/ldap-schema/glue-1.2/Glue-SE.schema
-debian/tmp/usr/share/arc/ldap-schema/glue-1.2/Glue-CE.schema
-debian/tmp/usr/share/arc/ldap-schema/glue-1.2/Glue-MDS.schema
-debian/tmp/usr/share/arc/ldap-schema/glue-1.2/Glue-CORE.schema
-debian/tmp/usr/share/arc/ldap-schema/glue-1.2/Glue-CESEBind.schema
 
 debian/tmp/usr/share/arc/grid-info-soft-register
 
