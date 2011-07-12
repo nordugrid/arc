@@ -67,6 +67,12 @@ BuildRequires:	gettext
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 BuildRequires:	python-devel
 %endif
+%if %{?rhel}%{!?rhel:0} == 5
+BuildRequires:	python26-devel
+%endif
+%if %{?fedora}%{!?fedora:0} >= 13
+BuildRequires:	python3-devel
+%endif
 BuildRequires:	glibmm24-devel
 BuildRequires:	glib2-devel
 BuildRequires:	libxml2-devel
