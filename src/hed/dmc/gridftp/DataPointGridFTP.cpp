@@ -388,9 +388,13 @@ namespace Arc {
       else
         n_buffers++;
     }
-    /* make sure complete callback is called */
+    // make sure complete callback is called
     logger.msg(VERBOSE, "ftp_read_thread: waiting for eof");
     it->buffer->wait_eof_read();
+    // And now make sure all buffers were released in case Globus calls
+    // complete_callback before calling all read_callbacks
+    logger.msg(VERBOSE, "ftp_read_thread: waiting for buffers released");
+    it->buffer->wait_for_read();
     logger.msg(VERBOSE, "ftp_read_thread: exiting");
     it->condstatus = it->buffer->error_read() ? DataStatus::ReadError :
                      DataStatus::Success;
@@ -586,8 +590,13 @@ namespace Arc {
         sleep(1);
       }
     }
-    /* make sure complete callback is called */
+    // make sure complete callback is called
+    logger.msg(VERBOSE, "ftp_write_thread: waiting for eof");
     it->buffer->wait_eof_write();
+    // And now make sure all buffers were released in case Globus calls
+    // complete_callback before calling all read_callbacks
+    logger.msg(VERBOSE, "ftp_write_thread: waiting for buffers released");
+    it->buffer->wait_for_write();
     it->condstatus = it->buffer->error_write() ? DataStatus::WriteError :
                      DataStatus::Success;
     it->cond.signal();
