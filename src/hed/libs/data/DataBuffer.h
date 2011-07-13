@@ -182,6 +182,10 @@ namespace Arc {
     bool wait_any();
     /// Wait till there are no more used buffers left in object.
     bool wait_used();
+    /// Wait till no more buffers taken for "READING INTO" left in object.
+    bool wait_for_read();
+    /// Wait till no more buffers taken for "WRITING FROM" left in object.
+    bool wait_for_write();
     /// Returns true if checksum was successfully computed, returns
     /// false if index is not in list.
     /// \param index of the checksum in question.

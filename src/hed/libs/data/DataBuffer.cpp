@@ -577,7 +577,7 @@ namespace Arc {
 
   bool DataBuffer::wait_used() {
     lock.lock();
-    for (int i = 0; i < bufs_n; i++)
+    for (int i = 0; i < bufs_n; i++) {
       if ((bufs[i].taken_for_read) || (bufs[i].taken_for_write) ||
           (bufs[i].used != 0)) {
         if (!cond_wait()) {
@@ -586,6 +586,37 @@ namespace Arc {
         }
         i = -1;
       }
+    }
+    lock.unlock();
+    return true;
+  }
+
+  bool DataBuffer::wait_for_read() {
+    lock.lock();
+    for (int i = 0; i < bufs_n; i++) {
+      if (bufs[i].taken_for_read) {
+        if (!cond_wait()) {
+          lock.unlock();
+          return false;
+        }
+        i = -1;
+      }
+    }
+    lock.unlock();
+    return true;
+  }
+
+  bool DataBuffer::wait_for_write() {
+    lock.lock();
+    for (int i = 0; i < bufs_n; i++) {
+      if (bufs[i].taken_for_write) {
+        if (!cond_wait()) {
+          lock.unlock();
+          return false;
+        }
+        i = -1;
+      }
+    }
     lock.unlock();
     return true;
   }
