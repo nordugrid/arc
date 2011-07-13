@@ -132,7 +132,7 @@ sub waitForProvider {
         my ($infosys_uid, $infosys_gid);
         my $infosys_runtime_dir;
     
-        my $bdii_pidfile = "/var/run/bdii-update.pid";
+        my $bdii_pidfile = "/var/run/arc/bdii-update.pid";
         my $bdii4_pidfile = "$bdii4_var_dir/bdii-update.pid";
         for my $pidfile ( $bdii_pidfile, $bdii4_pidfile ) {
             unless ( ($infosys_uid, $infosys_gid) = uidGidFromFile($pidfile) ) {
