@@ -81,7 +81,8 @@ namespace Arc {
       for (std::list<std::string>::const_iterator itC = usercfg.GetSelectedServices(COMPUTING).begin();
            itC != usercfg.GetSelectedServices(COMPUTING).end(); ++itC) {
         std::size_t pos = itC->find(":");
-        std::string cFlavour = itC->substr(0, pos), service = itC->substr(pos+1);
+	Arc::URL serviceURL(itC->substr(pos+1));
+        std::string cFlavour = itC->substr(0, pos), service = serviceURL.str();
         logger.msg(DEBUG, "cFlavour = %s; service = %s", cFlavour, service);
         for (std::list<Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
           if ((cFlavour == "*" || cFlavour == itJ->Flavour) &&
