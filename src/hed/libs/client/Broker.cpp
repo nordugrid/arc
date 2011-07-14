@@ -464,14 +464,14 @@ namespace Arc {
           if ( i-1 == 0 ) ids << i;
           else ids << ", " << i;
         }
-        if ( i-1 == 0 ) logger.msg(Arc::ERROR, "For this middleware there are no testjobs defined.");
-        else logger.msg(Arc::ERROR, "For this middleware only %s testjobs are defined.", ids.str());
-        return false;
-      }
-      if ((*it)->Submit(usercfg, jobdescription, job)) {
-        current = it;
-        RegisterJobsubmission();
-        return true;
+        if ( i-1 == 0 ) logger.msg(Arc::INFO, "For this middleware there are no testjobs defined.");
+        else logger.msg(Arc::INFO, "For this middleware only %s testjobs are defined.", ids.str());
+      } else {
+        if ((*it)->Submit(usercfg, jobdescription, job)) {
+          current = it;
+          RegisterJobsubmission();
+          return true;
+        }
       }
     }
 

@@ -67,7 +67,7 @@ int RUNSUB(main)(int argc, char **argv) {
                     istring("[-]name"),
                     indexurls);
 
-  int jobid;
+  int jobid = -1;
   options.AddOption('J', "job",
                     istring("submit test job given by the number"),
                     istring("int"),
@@ -129,6 +129,13 @@ int RUNSUB(main)(int argc, char **argv) {
     return 0;
   }
 
+  if ((jobid == -1) && (show_credentials == false)) {
+    std::cout << Arc::IString("Nothing to do:\n"
+        "you have to either specify a test job id with -J (--job)\n"
+        "or query information about the certificates with -E (--certificate)\n");
+    return 0;
+  }
+
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
@@ -148,6 +155,7 @@ int RUNSUB(main)(int argc, char **argv) {
   if (!broker.empty())
     usercfg.Broker(broker);
 
+
   if (!clusters.empty() || !indexurls.empty())
     usercfg.ClearSelectedServices();
 
@@ -157,10 +165,6 @@ int RUNSUB(main)(int argc, char **argv) {
   if (!indexurls.empty())
     usercfg.AddServices(indexurls, Arc::INDEX);
 
-  int retval = 0;
-  if (dumpdescription) {
-     retval += dumpjobdescription(usercfg, jobid);
-  }
 
   if (show_credentials) {
     std::string proxy_path = usercfg.ProxyPath();
@@ -204,6 +208,17 @@ int RUNSUB(main)(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
+  // TODO: this shouldn't be hardwired
+  if ((jobid < 1) || (jobid > 3)) {
+    std::cout << Arc::IString("The testjob ID should be 1, 2 or 3.\n");
+    return 1;
+  }
+
+  int retval = 0;
+  if (dumpdescription) {
+     retval += dumpjobdescription(usercfg, jobid);
+     return retval;
+  }
   retval += test(usercfg, jobid, jobidfile);
   return retval;
 }
@@ -293,7 +308,6 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
 
     Arc::JobDescription jobdescdump;
 
-    // Return if test jobdescription is not defined
     if (!(submitter->GetTestJob(testid, jobdescdump))) {
       std::ostringstream ids;
       int i = 0;
@@ -301,28 +315,27 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
         if ( i-1 == 0 ) ids << i;
         else ids << ", " << i;
       }
-      if ( i-1 == 0 ) logger.msg(Arc::ERROR, "For this middleware there are no testjobs defined.");
-      else logger.msg(Arc::ERROR, "For this middleware only %s testjobs are defined.", ids.str());
-      return false;
-    }
+      if ( i-1 == 0 ) logger.msg(Arc::INFO, "For this middleware there are no testjobs defined.");
+      else logger.msg(Arc::INFO, "For this middleware only %s testjobs are defined.", ids.str());
+    } else {
+      std::string jobdesclang = "nordugrid:jsdl";
+      if (target->GridFlavour == "ARC0") {
+        jobdesclang = "nordugrid:xrsl";
+      }
+      else if (target->GridFlavour == "CREAM") {
+        jobdesclang = "egee:jdl";
+      }
+      std::string jobdesc;
+      if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
+        std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
+        retval = 1;
+        break;
+      }
 
-    std::string jobdesclang = "nordugrid:jsdl";
-    if (target->GridFlavour == "ARC0") {
-      jobdesclang = "nordugrid:xrsl";
-    }
-    else if (target->GridFlavour == "CREAM") {
-      jobdesclang = "egee:jdl";
-    }
-    std::string jobdesc;
-    if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
-      std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
-      retval = 1;
+      std::cout << Arc::IString("Job description to be sent to %s:", target->Cluster.str()) << std::endl;
+      std::cout << jobdesc << std::endl;
       break;
     }
-
-    std::cout << Arc::IString("Job description to be sent to %s:", target->Cluster.str()) << std::endl;
-    std::cout << jobdesc << std::endl;
-    break;
   } //end loop over all possible targets
 
   return retval;

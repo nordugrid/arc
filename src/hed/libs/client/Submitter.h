@@ -42,7 +42,7 @@ namespace Arc {
     * This method should return with the JobDescription or NULL if ther is no
     * test description defined with the requested id.
     */
-    virtual bool GetTestJob(const int& testid, JobDescription& jobdescription) { return false; };
+    bool GetTestJob(const int& testid, JobDescription& jobdescription);
 
     /**
      * This virtual method should be overridden by plugins which should

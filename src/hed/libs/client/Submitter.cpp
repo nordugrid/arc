@@ -33,6 +33,35 @@ namespace Arc {
 
   Submitter::~Submitter() {}
 
+  bool Submitter::GetTestJob(const int& testid, JobDescription& jobdescription) {
+    std::string teststring;
+    switch (testid) {
+        case 1:
+          teststring = "&(executable='/bin/echo')(arguments='hello, grid')(jobname='arctest1')(stdout='stdout')";
+          break;
+        case 2:
+          teststring = "&(executable='/bin/env')(jobname='arctest2')(stdout='stdout')(join='yes')";
+          break;
+        case 3:
+          teststring = "&(executable='/bin/cp')(arguments=in.html out.html)(stdout='stdout')(stderr='stderr')(inputfiles=(in.html http://www.nordugrid.org))(outputfiles=(out.html ''))(jobname='arctest3')";
+          break;
+        default:
+          return false;
+    }
+    std::list<JobDescription> jobdescs;
+    if (!JobDescription::Parse(teststring, jobdescs, "nordugrid:xrsl")) {
+      logger.msg(ERROR, "Test was defined with id %d, but some error occured during parsing it.", testid);
+      return false;
+    }
+    if (jobdescs.size() < 1) {
+      logger.msg(ERROR, "No jobdescription resulted at %d. test", testid);
+      return false;
+    }
+    jobdescription = (*(jobdescs.begin()));
+    return true;
+  }
+
+
   bool Submitter::PutFiles(const JobDescription& job, const URL& url) const {
 
     FileCache cache;

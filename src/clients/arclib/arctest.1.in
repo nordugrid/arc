@@ -16,12 +16,6 @@ command can test various things related to a client- or server setup.
 
 .SH OPTIONS
 
-.IP "\fB-O\fR, \fB-configuration\fR"
-prints user-configuration
-.IP "\fB-V\fR, \fB-vo\fR"
-print vo-membership information for the user
-.IP "\fB-C\fR [-]\fIfilename\fR, \fB-clustlist\fR [-]\fIfilename\fR"
-list of clusters to select or reject
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster
 .IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
