@@ -18,20 +18,6 @@
 
 #include <arc/credential/CertUtil.h>
 
-/**Credential class covers the functionality about general processing about certificate/key
- * files, including:
- * 1. cerficate/key parsing, information extracting (such as subject name,
- * issuer name, lifetime, etc.), chain verifying, extension processing about proxy certinfo,
- * extension processing about other general certificate extension (such as voms attributes,
- * it should be the extension-specific code itself to create, parse and verify the extension,
- * not the Credential class. For voms, it is some code about writing and parsing voms-implementing
- * Attibute Certificate/ RFC3281, the voms-attibute is then be looked as a binary part and
- * embeded into extension of X509 certificate/proxy certificate);
- * 2. certificate request, extension emeding and certificate signing, for both proxy certificate
- * and EEC (end entity certificate) certificate
- * The Credential class support PEM, DER PKCS12 credential.
- */
-
 namespace Arc {
   // An exception class for the Credential class.
   /** This is an exception class that is used to handle runtime errors
@@ -51,6 +37,19 @@ typedef enum {CRED_PEM, CRED_DER, CRED_PKCS, CRED_UNKNOWN} Credformat;
 /**Logger to be used by all modules of credentials library*/
 extern Logger CredentialLogger;
 
+/**Credential class covers the functionality about general processing about certificate/key
+ * files, including:
+ * 1. cerficate/key parsing, information extracting (such as subject name,
+ * issuer name, lifetime, etc.), chain verifying, extension processing about proxy certinfo,
+ * extension processing about other general certificate extension (such as voms attributes,
+ * it should be the extension-specific code itself to create, parse and verify the extension,
+ * not the Credential class. For voms, it is some code about writing and parsing voms-implementing
+ * Attibute Certificate/ RFC3281, the voms-attibute is then be looked as a binary part and
+ * embeded into extension of X509 certificate/proxy certificate);
+ * 2. certificate request, extension emeding and certificate signing, for both proxy certificate
+ * and EEC (end entity certificate) certificate
+ * The Credential class support PEM, DER PKCS12 credential.
+ */
 class Credential {
   public:
     /**Default constructor, only acts as a container for inquiring certificate request,

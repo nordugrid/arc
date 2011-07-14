@@ -10,21 +10,6 @@
 #include <arc/URL.h>
 #include <arc/client/Software.h>
 
-/** JobDescription
- * The JobDescription class is the internal representation of a job description
- * in the ARC-lib. It is structured into a number of other classes/objects which
- * should strictly follow the description given in the job description document
- * <http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/tech_doc/client/job_description.odt>.
- *
- * The class consist of a parsing method JobDescription::Parse which tries to
- * parse the passed source using a number of different parsers. The parser
- * method is complemented by the JobDescription::UnParse method, a method to
- * generate a job description document in one of the supported formats.
- * Additionally the internal representation is contained in public members which
- * makes it directly accessible and modifiable from outside the scope of the
- * class.
- */
-
 
 namespace Arc {
 
@@ -211,6 +196,20 @@ namespace Arc {
     long FileSize;
   };
 
+  /**
+   * The JobDescription class is the internal representation of a job description
+   * in the ARC-lib. It is structured into a number of other classes/objects which
+   * should strictly follow the description given in the job description document
+   * <http://svn.nordugrid.org/trac/nordugrid/browser/arc1/trunk/doc/tech_doc/client/job_description.odt>.
+   *
+   * The class consist of a parsing method JobDescription::Parse which tries to
+   * parse the passed source using a number of different parsers. The parser
+   * method is complemented by the JobDescription::UnParse method, a method to
+   * generate a job description document in one of the supported formats.
+   * Additionally the internal representation is contained in public members which
+   * makes it directly accessible and modifiable from outside the scope of the
+   * class.
+   */
   class JobDescription {
   public:
     friend class JobDescriptionParser;

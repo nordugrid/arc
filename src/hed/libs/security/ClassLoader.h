@@ -8,11 +8,11 @@
 #include <arc/Logger.h>
 #include <arc/loader/Plugin.h>
 
-/**Some implicit idea in the ClassLoader/ModuleManager stuff:
-share_lib_name (e.g. mccsoap) should be global identical
-plugin_name (e.g. __arc_attrfactory_modules__) should be global identical
-desc->name (e.g. attr.factory) should also be global identical
-*/
+//Some implicit idea in the ClassLoader/ModuleManager stuff:
+//share_lib_name (e.g. mccsoap) should be global identical
+//plugin_name (e.g. __arc_attrfactory_modules__) should be global identical
+//desc->name (e.g. attr.factory) should also be global identical
+
 namespace Arc{
 
 typedef Plugin LoadableClass;

@@ -8,7 +8,7 @@
 
 #include <arc/XMLNode.h>
 
-///Some utility methods for using xml security library (http://www.aleksey.com/xmlsec/)
+//Some utility methods for using xml security library (http://www.aleksey.com/xmlsec/)
 namespace Arc {
   /**callback method for inputing passphrase of key file*/
   int passphrase_callback(char* buf, int size, int rwflag, void *);

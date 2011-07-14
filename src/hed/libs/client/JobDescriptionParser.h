@@ -9,19 +9,19 @@
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 
-/** JobDescriptionParser
- * The JobDescriptionParser class is abstract which provide a interface for job
- * description parsers. A job description parser should inherit this class and
- * overwrite the JobDescriptionParser::Parse and
- * JobDescriptionParser::UnParse methods.
- */
 
 namespace Arc {
 
   class JobDescription;
   class Logger;
 
-  // Abstract class for the different parsers
+  /// Abstract class for the different parsers
+  /**
+   * The JobDescriptionParser class is abstract which provide a interface for job
+   * description parsers. A job description parser should inherit this class and
+   * overwrite the JobDescriptionParser::Parse and
+   * JobDescriptionParser::UnParse methods.
+   */
   class JobDescriptionParser
     : public Plugin {
   public:

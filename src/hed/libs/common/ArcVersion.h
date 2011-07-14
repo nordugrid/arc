@@ -3,6 +3,7 @@
 #ifndef __ARC_ARCVERSION_H__
 #define __ARC_ARCVERSION_H__
 
+/// Arc namespace contains all core ARC classes.
 namespace Arc {
 
   /// Determines ARC HED libraries version
