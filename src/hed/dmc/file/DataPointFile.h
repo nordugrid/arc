@@ -10,6 +10,10 @@
 
 namespace Arc {
 
+  /**
+   * This class allows access to the regular local filesystem through the
+   * same interface as is used for remote storage on the grid.
+   */
   class DataPointFile
     : public DataPointDirect {
   public:

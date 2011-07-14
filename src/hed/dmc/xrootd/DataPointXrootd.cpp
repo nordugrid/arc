@@ -108,6 +108,8 @@ namespace Arc {
   }
 
   void DataPointXrootd::set_log_level() {
+    // TODO xrootd lib logs to stderr - need to redirect to log file
+    // for new data staging
     if (logger.getThreshold() == DEBUG)
       XrdClientDebug::Instance()->SetLevel(XrdClientDebug::kHIDEBUG);
     else if (logger.getThreshold() <= INFO)

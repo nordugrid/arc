@@ -16,6 +16,12 @@ namespace Arc {
   class Logger;
   class URL;
 
+  /**
+   * The Replica Location Service (RLS) is a replica catalog developed by
+   * Globus. It maps filenames in a flat namespace to one or more physical
+   * locations, and can also store meta-information on each file. This class
+   * uses the Globus Toolkit libraries for accessing RLS.
+   */
   class DataPointRLS
     : public DataPointIndex {
   public:

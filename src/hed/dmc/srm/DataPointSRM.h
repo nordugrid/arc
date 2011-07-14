@@ -13,6 +13,12 @@
 
 namespace Arc {
 
+  /**
+   * The Storage Resource Manager (SRM) protocol allows access to data
+   * distributed across physical storage through a unified namespace
+   * and management interface. PrepareReading() or PrepareWriting() must
+   * be used before reading or writing a physical file.
+   */
   class DataPointSRM
     : public DataPointDirect {
   public:

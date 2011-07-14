@@ -11,6 +11,11 @@ namespace Arc {
   class Logger;
   class URL;
 
+  /**
+   * The LCG File Catalog (LFC) is a replica catalog developed by CERN. It
+   * consists of a hierarchical namespace of grid files and each filename
+   * can be associated with one or more physical locations.
+   */
   class DataPointLFC
     : public DataPointIndex {
   public:

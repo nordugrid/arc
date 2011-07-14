@@ -17,6 +17,11 @@ namespace Arc {
   class GSSCredential;
   class URL;
 
+  /**
+   * GridFTP is essentially the FTP protocol with GSI security. This class
+   * uses libraries from the Globus Toolkit. It can also be used for regular
+   * FTP.
+   */
   class DataPointGridFTP
     : public DataPointDirect {
   private:

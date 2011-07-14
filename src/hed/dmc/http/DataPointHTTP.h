@@ -10,6 +10,10 @@ namespace Arc {
 
   class ChunkControl;
 
+  /**
+   * This class allows access through HTTP to remote resources. HTTP over SSL
+   * (HTTPS) and HTTP over GSI (HTTPG) are also supported.
+   */
   class DataPointHTTP
     : public DataPointDirect {
   public:

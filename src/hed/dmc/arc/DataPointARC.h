@@ -13,6 +13,9 @@
 
 namespace Arc {
 
+  /**
+   * Provides an interface to the Chelonia storage system developed by ARC.
+   */
   class DataPointARC
     : public DataPointDirect {
   private:
