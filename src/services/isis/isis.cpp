@@ -461,7 +461,7 @@ static void soft_state_thread(void *data) {
         }
 
         // Create ServiceURL hash
-        FileCacheHash md5;
+        Arc::FileCacheHash md5;
         // calculate my hash from the endpoint URL
         my_hash = md5.getHash(endpoint_);
 
@@ -865,7 +865,7 @@ static void soft_state_thread(void *data) {
             // Reposition itself in the peer-to-peer network
             // if disconnected from every neighbors then reconnect to
             // the network
-            FileCacheHash md5;
+            Arc::FileCacheHash md5;
             my_hash = md5.getHash(my_hash);
             {
                 Glib::Mutex::Lock lock(connection_lock, Glib::TRY_LOCK);
@@ -1073,7 +1073,7 @@ static void soft_state_thread(void *data) {
         }
 
         if ( peerid.empty() ){
-            FileCacheHash md5;
+            Arc::FileCacheHash md5;
             // calculate hash from the endpoint URL or serviceID
             if ( bool(regentry["SrcAdv"]["EPR"]["Address"]) ){
                peerid = md5.getHash((std::string)regentry["SrcAdv"]["EPR"]["Address"]);
