@@ -297,9 +297,9 @@ rm -rf $RPM_BUILD_ROOT
 %files python
 %defattr(-,root,root,-)
 %{_mingw32_libdir}/python?.?/site-packages/
-%{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
-%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
-%doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+#%{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
+#%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
+#%doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
 
 %changelog
 
