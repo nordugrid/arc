@@ -1,5 +1,24 @@
 // -*- indent-tabs-mode: nil -*-
 
+// Summary page for doxygen docs on libarcdata
+
+/**
+ * \mainpage Summary of libarcdata
+ *
+ * libarcdata is a library for data access. It provides a uniform interface
+ * to several types of grid storage and catalogs using various protocols. See
+ * the DataPoint inheritance diagram for a list of currently supported
+ * protocols. The interface can be used to read, write, list, transfer and
+ * delete data to and from storage systems and catalogs.
+ *
+ * The library uses ARC's dynamic plugin mechanism to load plugins for
+ * specific protocols only when required at runtime. These plugins are
+ * called Data Manager Components (DMCs). To create a new DMC for a protocol
+ * which is not yet supported see the instruction and examples in the
+ * DataPoint class documentation. This also gives a complete overview of
+ * the interface.
+ */
+
 #ifndef __ARC_DATAPOINT_H__
 #define __ARC_DATAPOINT_H__
 
