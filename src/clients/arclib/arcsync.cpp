@@ -139,6 +139,13 @@ int RUNSYNC(main)(int argc, char **argv) {
   if (!indexurls.empty())
     usercfg.AddServices(indexurls, Arc::INDEX);
 
+  if (usercfg.GetSelectedServices(Arc::COMPUTING).empty() && usercfg.GetSelectedServices(Arc::INDEX).empty()) {
+    logger.msg(Arc::WARNING, "No defaultservices set in client.conf. Most probably this will yield "
+                             "no results. Please edit the file or specify a cluster or an index with "
+                             "appropriate command line options (see manpage)");
+    return 5;
+  }
+
   //Find all jobs
   Arc::TargetGenerator targen(usercfg);
   targen.RetrieveJobs();  
