@@ -551,7 +551,7 @@ namespace Arc {
         logger.msg(VERBOSE, "Waiting for lock on job list file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     if (!acquired) {
@@ -595,7 +595,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on job list file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;
@@ -651,7 +651,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on job list file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;
@@ -693,7 +693,7 @@ namespace Arc {
       if (tries == 6) {
         logger.msg(VERBOSE, "Waiting for lock on job list file %s", filename);
       }
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;
@@ -727,7 +727,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;
@@ -756,7 +756,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;
@@ -788,7 +788,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;
@@ -821,7 +821,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      usleep(tryInterval);
+      Glib::usleep(tryInterval);
     }
 
     return false;

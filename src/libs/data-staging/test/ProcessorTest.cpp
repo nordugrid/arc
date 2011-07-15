@@ -87,7 +87,7 @@ void ProcessorTest::TestPreClean() {
   // sleep while thread deletes
   Arc::Time now;
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
   // check file is deleted
@@ -106,7 +106,7 @@ void ProcessorTest::TestPreClean() {
   // sleep while thread deletes
   now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   // PRE_CLEANED is the correct status even after an error
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
@@ -157,7 +157,7 @@ void ProcessorTest::TestCacheCheck() {
   // sleep while thread checks cache
   Arc::Time now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHEABLE, dtr->get_cache_state());
@@ -178,7 +178,7 @@ void ProcessorTest::TestCacheCheck() {
   // sleep while thread checks cache
   now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_WAIT) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_WAIT, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHE_LOCKED, dtr->get_cache_state());
@@ -200,7 +200,7 @@ void ProcessorTest::TestCacheCheck() {
     // sleep while thread checks cache
     now = Arc::Time();
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
 
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::CACHE_ALREADY_PRESENT, dtr->get_cache_state());
@@ -226,7 +226,7 @@ void ProcessorTest::TestCacheCheck() {
   // sleep while thread checks cache
   now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHEABLE, dtr->get_cache_state());
@@ -260,7 +260,7 @@ void ProcessorTest::TestResolve() {
     // sleep while thread resolves
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
@@ -283,7 +283,7 @@ void ProcessorTest::TestResolve() {
     // sleep while thread resolves
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
@@ -318,7 +318,7 @@ void ProcessorTest::TestResolve() {
     // sleep while thread resolves
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
@@ -346,7 +346,7 @@ void ProcessorTest::TestResolve() {
     // sleep while thread resolves
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     // will fail since force_registration is not set
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
@@ -361,7 +361,7 @@ void ProcessorTest::TestResolve() {
     // sleep while thread resolves
     now = Arc::Time();
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     // should be successful now
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
@@ -386,7 +386,7 @@ void ProcessorTest::TestResolve() {
     // sleep while thread resolves
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     // will fail with self-replication error
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::SELF_REPLICATION_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
@@ -415,7 +415,7 @@ void ProcessorTest::TestQueryReplica() {
   // sleep while replica is queried
   Arc::Time now;
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
@@ -434,7 +434,7 @@ void ProcessorTest::TestQueryReplica() {
   // sleep while replica is queried
   now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
@@ -457,7 +457,7 @@ void ProcessorTest::TestQueryReplica() {
     // sleep while replicas are resolved
     now = Arc::Time();
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
 
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
     dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
@@ -467,7 +467,7 @@ void ProcessorTest::TestQueryReplica() {
     // sleep while replica is queried
     now = Arc::Time();
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
 
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
@@ -510,7 +510,7 @@ void ProcessorTest::TestReplicaRegister() {
     // sleep while thread resgisters
     Arc::Time now;
     while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_REGISTERED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-      usleep(100);
+      Glib::usleep(100);
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_REGISTERED, dtr->get_status().GetStatus());
 
@@ -577,7 +577,7 @@ void ProcessorTest::TestCacheProcess() {
   // sleep while cache is processed
   Arc::Time now;
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::CACHE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_PROCESSED, dtr->get_status().GetStatus());
@@ -598,7 +598,7 @@ void ProcessorTest::TestCacheProcess() {
   // sleep while cache is processed
   now = Arc::Time();
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
-    usleep(100);
+    Glib::usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_PROCESSED, dtr->get_status().GetStatus());

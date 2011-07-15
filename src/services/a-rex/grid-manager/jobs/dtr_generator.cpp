@@ -75,7 +75,7 @@ void DTRGenerator::thread() {
       it_jobs = jobs_received.erase(it_jobs);
     }
     event_lock.unlock();
-    usleep(50000);
+    Glib::usleep(50000);
   }
   // stop scheduler - cancels all DTRs and waits for them to complete
   scheduler.stop();

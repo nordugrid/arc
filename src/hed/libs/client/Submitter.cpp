@@ -152,7 +152,7 @@ namespace Arc {
         break;
       }
       logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
-      usleep(500000);
+      Glib::usleep(500000);
     }
     if (!acquired)
       logger.msg(ERROR, "Failed to lock job list file %s. Job list will be out of sync", usercfg.JobListFile());
@@ -208,7 +208,7 @@ namespace Arc {
         break;
       }
       logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
-      usleep(500000);
+      Glib::usleep(500000);
     }
     if (!acquired) {
       logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());
@@ -244,7 +244,7 @@ namespace Arc {
         break;
       }
       logger.msg(VERBOSE, "Waiting for lock on job list file %s", usercfg.JobListFile());
-      usleep(500000);
+      Glib::usleep(500000);
     }
     if (!acquired) {
       logger.msg(ERROR, "Failed to lock job list file %s", usercfg.JobListFile());

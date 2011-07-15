@@ -18,6 +18,7 @@
 #define SIGTTIN 21
 #define SIGTTOU 22
 #define sleep(x) Sleep((x) * 1000)
+#define usleep(x) Sleep(((x) + 999) / 1000)
 #ifndef HAVE_MKSTEMP
 #ifdef HAVE_MKTEMP
 inline int mkstemp(char *pattern) {

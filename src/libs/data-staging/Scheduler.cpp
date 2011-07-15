@@ -1039,7 +1039,7 @@ namespace DataStaging {
         }
       } else
         dump = true;
-      usleep(50000);
+      Glib::usleep(50000);
     }
     logger.msg(Arc::INFO, "Scheduler loop exited");
     run_signal.signal();
