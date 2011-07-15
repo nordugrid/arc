@@ -59,6 +59,7 @@ namespace Arc {
 			      &gbuf, GSS_C_INDEFINITE, NULL);
 
       if (GSS_ERROR(majstat)) {
+        credential = GSS_C_NO_CREDENTIAL;
         logger.msg(ERROR, "Failed to convert GSI credential to "
                     "GSS credential (major: %d, minor: %d)%s", majstat, minstat, ErrorStr(majstat, minstat));
         return;
