@@ -978,7 +978,7 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     PayloadSOAP req_soap(ns);
     XMLNode op = req_soap.NewChild("deleg:InitDelegation");
     op.NewChild("deleg:CredentialType") = "RFC3820";
-    op.NewChild("deleg:RenewalID") = "";
+    //op.NewChild("deleg:RenewalID") = "";
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
     XMLNode token = (*resp_soap)["InitDelegationResponse"];
@@ -1519,6 +1519,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
           return true;
         }
       }
+      // TODO: RenewalID
       std::string id;
       Glib::Mutex::Lock lock(lock_);
       if(!MakeNewID(id)) {
