@@ -38,7 +38,7 @@ void check_url(void *arg) {
     lfn->failed=true; lfn->done=true; cond.signal();
     return;
   };
-  if(!source->Resolve(true)) {
+  if(source->Resolve(true).Passed()) {
     logger.msg(Arc::ERROR,"Failed to resolve %s",lfn->lfn);
     lfn->failed=true; lfn->done=true; cond.signal();
     return;
