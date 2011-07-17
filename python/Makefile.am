@@ -70,6 +70,7 @@ arc_wrap.cpp arc.py: $(SWIG_INPUTS)
 		-I/usr/include -I$(top_srcdir)/include \
 		$(PYDOXFLAGS) $(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/Arc.i
 	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' -i arc_wrap.cpp # Workaround for RHEL5 swig + EPEL5 python26
+	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' -i arc_wrap.cpp # Ditto - for 64 bit
 
 pydoxygen.i: Doxyfile.api
 	doxygen Doxyfile.api
