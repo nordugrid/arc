@@ -1125,19 +1125,19 @@ namespace Arc {
   }
 
   bool URL::StringMatches(const std::string& _str) const {
-    std::string str = lower(_str);
+    std::string str = _str;
     if (str[str.length()-1] == '/') {
       str.erase(str.length()-1);
     }
 
-    if (lower(protocol) + "://" == str.substr(0, protocol.length() + 3)) {
+    if (lower(protocol) + "://" == lower(str.substr(0, protocol.length() + 3))) {
       str.erase(0, protocol.length()+3);
       if (str.empty()) {
         return false;
       }
     }
 
-    if (lower(host) != str.substr(0, host.length())) {
+    if (lower(host) != lower(str.substr(0, host.length()))) {
       return false;
     }
 
@@ -1152,7 +1152,7 @@ namespace Arc {
       return true;
     }
 
-    return lower(path) == str;
+    return path == str;
   }
 
 } // namespace Arc
