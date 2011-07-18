@@ -206,7 +206,7 @@ namespace Arc {
     ASN1_GENERALIZEDTIME* s = ASN1_GENERALIZEDTIME_new();
     if(!s) return NULL;
     std::string t_str = t.str(MDSTime);
-    if(ASN1_GENERALIZEDTIME_set_string(s,t_str.c_str())) return s;
+    if(ASN1_GENERALIZEDTIME_set_string(s,(char*)t_str.c_str())) return s;
     ASN1_GENERALIZEDTIME_free(s);
     return NULL;
   }
