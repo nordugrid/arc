@@ -21,6 +21,9 @@ namespace Arc {
    * GridFTP is essentially the FTP protocol with GSI security. This class
    * uses libraries from the Globus Toolkit. It can also be used for regular
    * FTP.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointGridFTP
     : public DataPointDirect {

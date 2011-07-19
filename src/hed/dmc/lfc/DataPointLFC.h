@@ -15,6 +15,9 @@ namespace Arc {
    * The LCG File Catalog (LFC) is a replica catalog developed by CERN. It
    * consists of a hierarchical namespace of grid files and each filename
    * can be associated with one or more physical locations.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointLFC
     : public DataPointIndex {

@@ -13,6 +13,9 @@ namespace Arc {
   /**
    * This class allows access through HTTP to remote resources. HTTP over SSL
    * (HTTPS) and HTTP over GSI (HTTPG) are also supported.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointHTTP
     : public DataPointDirect {

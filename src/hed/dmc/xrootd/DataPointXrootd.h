@@ -10,6 +10,9 @@ namespace Arc {
   /**
    * xrootd is a protocol for data access across large scale storage clusters.
    * More information can be found at http://xrootd.slac.stanford.edu/
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointXrootd
     : public DataPointDirect {

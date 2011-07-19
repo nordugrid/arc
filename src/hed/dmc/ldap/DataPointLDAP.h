@@ -17,6 +17,9 @@ namespace Arc {
    * LDAP is used in grids mainly to store information about grid services
    * or resources rather than to store data itself. This class allows access
    * to LDAP data through the same interface as other grid resources.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointLDAP
     : public DataPointDirect {

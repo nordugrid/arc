@@ -21,6 +21,9 @@ namespace Arc {
    * Globus. It maps filenames in a flat namespace to one or more physical
    * locations, and can also store meta-information on each file. This class
    * uses the Globus Toolkit libraries for accessing RLS.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointRLS
     : public DataPointIndex {

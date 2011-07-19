@@ -18,6 +18,9 @@ namespace Arc {
    * distributed across physical storage through a unified namespace
    * and management interface. PrepareReading() or PrepareWriting() must
    * be used before reading or writing a physical file.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointSRM
     : public DataPointDirect {

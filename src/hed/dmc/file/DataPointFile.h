@@ -13,6 +13,9 @@ namespace Arc {
   /**
    * This class allows access to the regular local filesystem through the
    * same interface as is used for remote storage on the grid.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointFile
     : public DataPointDirect {

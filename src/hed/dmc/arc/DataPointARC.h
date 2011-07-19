@@ -15,6 +15,9 @@ namespace Arc {
 
   /**
    * Provides an interface to the Chelonia storage system developed by ARC.
+   *
+   * This class is a loadable module and cannot be used directly. The DataHandle
+   * class loads modules at runtime and should be used instead of this.
    */
   class DataPointARC
     : public DataPointDirect {

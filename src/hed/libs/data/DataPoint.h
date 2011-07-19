@@ -13,10 +13,44 @@
  *
  * The library uses ARC's dynamic plugin mechanism to load plugins for
  * specific protocols only when required at runtime. These plugins are
- * called Data Manager Components (DMCs). To create a new DMC for a protocol
- * which is not yet supported see the instruction and examples in the
- * DataPoint class documentation. This also gives a complete overview of
- * the interface.
+ * called Data Manager Components (DMCs). The DataHandle class should be used
+ * to automatically load the required DMC at runtime. To create a new DMC for
+ * a protocol which is not yet supported see the instruction and examples in
+ * the DataPoint class documentation. This documentation also gives a complete
+ * overview of the interface.
+ *
+ * The following protocols are currently supported in standard distributions
+ * of ARC (except XRootd, which is not yet distributed).
+ *
+ * ARC (arc://) - Protocol to access the Chelonia storage system developed by
+ * ARC.
+ *
+ * File (file://) - Regular local file system.
+ *
+ * GridFTP (gsiftp://) - GridFTP is essentially the FTP protocol with GSI
+ * security. Regular FTP can also be used.
+ *
+ * HTTP(S/G) (http://) - Hypertext Transfer Protocol. HTTP over SSL (HTTPS)
+ * and HTTP over GSI (HTTPG) are also supported.
+ *
+ * LDAP (ldap://) - Lightweight Directory Access Protocol. LDAP is used in
+ * grids mainly to store information about grid services or resources rather
+ * than to store data itself.
+ *
+ * LFC (lfc://) - The LCG File Catalog (LFC) is a replica catalog developed
+ * by CERN. It consists of a hierarchical namespace of grid files and each
+ * filename can be associated with one or more physical locations.
+ *
+ * RLS (rls://) - The Replica Location Service (RLS) is a replica catalog
+ * developed by Globus. It maps filenames in a flat namespace to one or
+ * more physical locations, and can also store meta-information on each file.
+ *
+ * SRM (srm://) - The Storage Resource Manager (SRM) protocol allows access
+ * to data distributed across physical storage through a unified namespace
+ * and management interface.
+ *
+ * XRootd (root://) - Protocol for data access across large scale storage
+ * clusters. More information can be found at http://xrootd.slac.stanford.edu/
  */
 
 #ifndef __ARC_DATAPOINT_H__
