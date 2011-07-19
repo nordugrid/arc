@@ -364,6 +364,17 @@ int main(int argc, char *argv[]) {
 #endif
     if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
       key_path = "";
+    if (key_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the key file, "
+                 "please setup environment X509_USER_KEY, "
+                 "or keypath in a configuration file");
+      return EXIT_FAILURE;
+    }
+    else if (!(Glib::file_test(key_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the key. "
+                 "Please make sure this file exists.", key_path);
+      return EXIT_FAILURE;
+    }
 
     if (cert_path.empty())
       cert_path = Arc::GetEnv("X509_USER_CERT");
@@ -377,6 +388,17 @@ int main(int argc, char *argv[]) {
 #endif
     if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
       cert_path = "";
+    if (cert_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the certificate file, "
+                 "please setup environment X509_USER_CERT, "
+                 "or certpath in a configuration file");
+      return EXIT_FAILURE;
+    }
+    else if (!(Glib::file_test(cert_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the certificate. "
+                 "Please make sure this file exists.", cert_path);
+      return EXIT_FAILURE;
+    }
 
     if (proxy_path.empty())
       proxy_path = Arc::GetEnv("X509_USER_PROXY");
