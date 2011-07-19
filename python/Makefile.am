@@ -62,7 +62,9 @@ MAINTAINERCLEANFILES = pydoxygen.i
 
 @AMDEP_TRUE@include ./$(DEPDIR)/arc_wrap.deps
 
-arc_wrap.cpp arc.py: $(SWIG_INPUTS)
+arc.py: arc_wrap.cpp
+
+arc_wrap.cpp: $(SWIG_INPUTS)
 	mkdir -p $(DEPDIR)
 	grep -h '^#' $(SWIG_INPUTS) | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT arc_wrap.cpp -MT arc.py -MP -MF "$(DEPDIR)/arc_wrap.deps" -x c++ -
