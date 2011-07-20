@@ -125,7 +125,7 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
   lock.lock();
   for (std::list<SRMFileInfo>::iterator i = srm_info.begin(); i != srm_info.end();) {
     if (i->host == srm_file_info.host && i->version == srm_file_info.version) {
-      if (i->port = srm_file_info.port) {
+      if (i->port == srm_file_info.port) {
         // this same info was already added
         lock.unlock();
         return;

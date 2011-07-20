@@ -223,7 +223,7 @@ static std::string::size_type find_line(const std::string& val, const char* toke
   };
   if(p == std::string::npos) return p;
   if((p > 0) && (val[p-1] != '\r') && (val[p-1] != '\n')) return std::string::npos;
-  if(((p+l) < val.length()) && (val[p+l] != '\r') && (val[p+l] != '\n')) std::string::npos;
+  if(((p+l) < val.length()) && (val[p+l] != '\r') && (val[p+l] != '\n')) return std::string::npos;
   return p;
 }
 

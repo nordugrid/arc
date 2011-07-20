@@ -15,6 +15,6 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
                   &ArcSHCLegacy::LegacyPDP::get_pdp},
     { "arclegacy.map", "HED:SHC", 0,
                   &ArcSHCLegacy::LegacyMap::get_sechandler},
-    { NULL, NULL, NULL }
+    { NULL, NULL, 0, NULL }
 };
 

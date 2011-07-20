@@ -100,10 +100,10 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   vos_ = a.vos_;
 }
 
-AuthUser::AuthUser(Arc::Message& message):message_(message),
+AuthUser::AuthUser(Arc::Message& message):
     default_voms_(NULL), default_vo_(NULL), default_role_(NULL),
     default_capability_(NULL), default_vgroup_(NULL), default_group_(NULL),
-    proxy_file_was_created(false), has_delegation(false) {
+    proxy_file_was_created(false), has_delegation(false), message_(message) {
   subject_ = message.Attributes()->get("TLS:IDENTITYDN");
   // Fetch VOMS attributes
   std::list<std::string> voms_attrs;

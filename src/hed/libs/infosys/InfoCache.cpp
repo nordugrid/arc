@@ -40,7 +40,7 @@ static void merge_xml(std::string& path_base, XMLNode &node)
     }
 }
 
-static bool create_directory(const std::string dir) {
+static bool create_directory(const std::string& dir) {
     if (!Glib::file_test(dir, Glib::FILE_TEST_IS_DIR)) {
         // create directory
         if (mkdir(dir.c_str(), 0700) != 0) {

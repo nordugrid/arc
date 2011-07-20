@@ -53,6 +53,7 @@ namespace Arc {
   }
 
   bool SubmitterARC1::releaseClient(const URL& url) {
+    return true;
   }
 
   bool SubmitterARC1::deleteAllClients() {
@@ -60,6 +61,7 @@ namespace Arc {
     for (it = clients.begin(); it != clients.end(); it++) {
         if ((*it).second != NULL) delete (*it).second;
     }
+    return true;
   }
 
   bool SubmitterARC1::Submit(const JobDescription& jobdesc,

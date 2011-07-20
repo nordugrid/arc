@@ -64,8 +64,8 @@ namespace Arc {
                          const MCCConfig& cfg,
                          int timeout)
     : client(NULL),
-      cfg(cfg),
-      rurl(url) {
+      rurl(url),
+      cfg(cfg) {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
     client = new ClientSOAP(cfg, url, timeout);

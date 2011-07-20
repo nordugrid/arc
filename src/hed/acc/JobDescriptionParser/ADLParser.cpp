@@ -168,6 +168,7 @@ namespace Arc {
       case NAT_INBOUND: resources.NewChild("NodeAccess") = "inbound"; break;
       case NAT_OUTBOUND: resources.NewChild("NodeAccess") = "outbound"; break;
       case NAT_INOUTBOUND: resources.NewChild("NodeAccess") = "inoutbound"; break;
+      default: break;
     }
     if(job.Resources.IndividualPhysicalMemory.max != -1) {
       resources.NewChild("IndividualPhysicalMemory") = tostring(job.Resources.IndividualPhysicalMemory.max);

@@ -93,7 +93,6 @@ namespace Arc {
   static void ConnectCallback(void *arg, globus_ftp_control_handle_t*,
                               globus_object_t *error,
                               globus_ftp_control_response_t *response) {
-    FTPControl::CBArg *cb = (FTPControl::CBArg*)arg;
     ControlCallback(arg,NULL,error,response);
   }
 

@@ -119,8 +119,8 @@ namespace Arc {
       Base(Base<P>&) {}
     public:
       int cnt;
-      bool released;
       P *ptr;
+      bool released;
       Base(P *p)
         : cnt(0),
           ptr(p),

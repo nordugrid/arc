@@ -205,7 +205,6 @@ int main(int argc,char* argv[]) {
   int sout = strtoul(argv[2],&e,10);
   if((e == argv[2]) || (*e != 0)) return -1;
   while(true) {
-    ssize_t l;
     header_t header;
     sread_start = true;
     if(!sread(sin,&header,sizeof(header))) break;

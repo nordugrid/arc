@@ -26,8 +26,6 @@
 
 namespace ARex {
 
-static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states);
-
 void ARexService::InformationCollector(void) {
   thread_count_.RegisterThread();
   for(;;) {
@@ -220,35 +218,6 @@ return true;
 
 std::string ARexService::getID() {
   return "ARC:AREX";
-}
-
-static void GetGlueStates(Arc::XMLNode infodoc,std::map<std::string,std::string>& states) {
-  std::string path = "Domains/AdminDomain/Services/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity";
-  states.clear();
-  // Obtaining all job descriptions
-  Arc::XMLNodeList nodes = infodoc.Path(path);
-  // Pulling ids and states
-  for(Arc::XMLNodeList::iterator node = nodes.begin();node!=nodes.end();++node) {
-    // Exract ID of job
-    std::string id = (*node)["IDFromEndpoint"];
-    if(id.empty()) id = (std::string)((*node)["ID"]);
-    if(id.empty()) continue;
-    std::string::size_type p = id.rfind('/');
-    if(p != std::string::npos) id.erase(0,p+1);
-    if(id.empty()) continue;
-    Arc::XMLNode state_node = (*node)["State"];
-    for(;(bool)state_node;++state_node) {
-      std::string state  = (std::string)state_node;
-      if(state.empty()) continue;
-      // Look for nordugrid prefix
-      if(strncmp("nordugrid:",state.c_str(),10) == 0) {
-        // Remove prefix
-        state.erase(0,10);
-        // Store state under id
-        states[id] = state;
-      };
-    };
-  };
 }
 
 class PrefixedFilePayload: public Arc::PayloadRawInterface {

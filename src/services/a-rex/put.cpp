@@ -58,15 +58,6 @@ Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& /*outmsg*/,AR
   return Arc::MCC_Status();
 } 
 
-static bool write_file(int h,char* buf,size_t size) {
-  for(;size>0;) {
-    ssize_t l = write(h,buf,size);
-    if(l == -1) return false;
-    size-=l; buf+=l;
-  };
-  return true;
-}
-
 static bool write_file(Arc::FileAccess* h,char* buf,size_t size) {
   for(;size>0;) {
     ssize_t l = h->write(buf,size);

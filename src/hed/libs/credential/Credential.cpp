@@ -2323,7 +2323,7 @@ err:
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
        const std::string& CAserial, const std::string& extfile,
        const std::string& extsect, const std::string& passphrase4key) :
-       verification_valid(false), certfile_(CAcertfile), keyfile_(CAkeyfile),
+       certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid(false),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
        proxyver_(0), pathlength_(0), extensions_(NULL),
@@ -2768,7 +2768,6 @@ error:
     CONF *extconf = NULL;
     if (!extfile_.empty()) {
       long errorline = -1;
-      X509V3_CTX ctx2;
       extconf = NCONF_new(NULL);
       //configuration file with X509V3 extensions to add
       if (!NCONF_load(extconf, extfile_.c_str(),&errorline)) {

@@ -50,6 +50,7 @@ namespace Arc {
   }
 
   bool SubmitterEMIES::releaseClient(const URL& url) {
+    return true;
   }
 
   bool SubmitterEMIES::deleteAllClients() {
@@ -57,6 +58,7 @@ namespace Arc {
     for (it = clients.begin(); it != clients.end(); it++) {
         if ((*it).second != NULL) delete (*it).second;
     }
+    return true;
   }
 
   bool SubmitterEMIES::Submit(const JobDescription& jobdesc,
