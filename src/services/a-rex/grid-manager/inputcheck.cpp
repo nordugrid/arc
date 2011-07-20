@@ -38,7 +38,7 @@ void check_url(void *arg) {
     lfn->failed=true; lfn->done=true; cond.signal();
     return;
   };
-  if(source->Resolve(true).Passed()) {
+  if(!source->Resolve(true).Passed()) {
     logger.msg(Arc::ERROR,"Failed to resolve %s",lfn->lfn);
     lfn->failed=true; lfn->done=true; cond.signal();
     return;
@@ -47,11 +47,13 @@ void check_url(void *arg) {
   // TODO. Run every URL in separate thread.
   // TODO. Do only connection (optionally)
   bool check_passed = false;
-  if(source->HaveLocations()) for(;source->NextLocation();) {
-    if(source->Check()) {
-      check_passed=true;
-      break;
-    };
+  if(source->HaveLocations()) {
+    do {
+      if(source->Check().Passed()) {
+        check_passed=true;
+        break;
+      }
+    } while (source->NextLocation());
   };
   if(!check_passed) {
     logger.msg(Arc::ERROR,"Failed to check %s",lfn->lfn);
