@@ -29,10 +29,6 @@ namespace Arc {
     return new ARCJSDLParser();
   }
 
-  static void XmlErrorHandler(void* /* ctx */, const char* /* msg */) {
-    return;
-  }
-
   bool ARCJSDLParser::parseSoftware(XMLNode xmlSoftware, SoftwareRequirement& sr) const {
     for (int i = 0; (bool)(xmlSoftware["Software"][i]); i++) {
       Software::ComparisonOperator comOp = &Software::operator==;
@@ -166,23 +162,10 @@ namespace Arc {
     jobdescs.push_back(JobDescription());
     JobDescription& job = jobdescs.back();
 
-    xmlParserCtxtPtr ctxt = xmlNewParserCtxt();
-
-    if (ctxt == NULL) {
-        logger.msg(VERBOSE, "[ARCJSDLParser] Failed to create parser context");
-    }
-    xmlSetGenericErrorFunc(NULL, (xmlGenericErrorFunc)XmlErrorHandler);
     XMLNode node(source);
-    xmlSetGenericErrorFunc(NULL, NULL);
-
     if (!node) {
         logger.msg(VERBOSE, "[ARCJSDLParser] Parsing error: %s\n", (xmlGetLastError())->message);
     }
-    else if (ctxt->valid == 0) {
-        logger.msg(VERBOSE, "[ARCJSDLParser] Validating error");
-    }
-
-    xmlFreeParserCtxt(ctxt);
 
     if (node.Size() == 0) {
       logger.msg(VERBOSE, "[ARCJSDLParser] Wrong XML structure! ");
