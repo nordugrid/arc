@@ -199,8 +199,8 @@ int main(int argc, char *argv[]) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(" ",
-                            istring("The arcproxy command creates a proxy from a key/certificate pair for use in\n"
-                                    "the ARC middleware"),
+                            istring("The arcproxy command creates a proxy from a key/certificate pair which can\n"
+                                    "then be used to access grid resources."),
                             istring("Supported constraints are:\n"
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
