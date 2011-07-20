@@ -63,8 +63,8 @@ namespace Arc {
                          int timeout,
                          bool arex_extensions)
     : client(NULL),
-      cfg(cfg),
       rurl(url),
+      cfg(cfg),
       arex_enabled(arex_extensions) {
 
     logger.msg(DEBUG, "Creating an A-REX client");

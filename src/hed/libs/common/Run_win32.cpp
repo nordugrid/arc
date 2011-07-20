@@ -56,10 +56,13 @@ namespace Arc {
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
+      kicker_arg_(NULL),
       started_(false),
       running_(false),
       abandoned_(false),
-      result_(-1) {
+      result_(-1),
+      user_id_(0),
+      group_id_(0) {
     pid_ = new Pid();
   }
 
@@ -71,15 +74,21 @@ namespace Arc {
       stdout_str_(NULL),
       stderr_str_(NULL),
       stdin_str_(NULL),
+      stdout_keep_(false),
+      stderr_keep_(false),
+      stdin_keep_(false),
       pid_(NULL),
       argv_(argv),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
+      kicker_arg_(NULL),
       started_(false),
       running_(false),
       abandoned_(false),
-      result_(-1) {
+      result_(-1),
+      user_id_(0),
+      group_id_(0) {
     pid_ = new Pid();
   }
 

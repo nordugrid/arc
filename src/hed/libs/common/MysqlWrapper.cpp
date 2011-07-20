@@ -51,8 +51,8 @@ namespace Arc {
     is_connected = false;
   }
 
-  bool MySQLDatabase::enable_ssl(const std::string keyfile, const std::string certfile,
-                                 const std::string cafile, const std::string capath) {
+  bool MySQLDatabase::enable_ssl(const std::string& keyfile, const std::string& certfile,
+                                 const std::string& cafile, const std::string& capath) {
     return mysql_ssl_set(mysql, keyfile.c_str(), certfile.c_str(), cafile.c_str(), capath.c_str(), NULL) == 0;
 
   }
@@ -64,7 +64,7 @@ namespace Arc {
 
 
   MySQLQuery::MySQLQuery(Database *db)
-    : db_(NULL), res(NULL) {
+    : db_(NULL), res(NULL), num_rows(0), num_colums(0) {
     MySQLDatabase *database = NULL;
     database = dynamic_cast<MySQLDatabase*>(db);
     if(database == NULL) std::cerr<<"The parameter of constructor should be MySQLDatabase type"<<std::endl;

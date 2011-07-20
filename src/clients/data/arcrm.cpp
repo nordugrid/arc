@@ -29,7 +29,7 @@ bool arcrm(const Arc::URL& file_url,
   }
   if (file_url.Protocol() == "filelist") {
     std::list<Arc::URL> files = Arc::ReadURLList(file_url);
-    if (files.size() == 0) {
+    if (files.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
                  file_url.Path());
       return false;

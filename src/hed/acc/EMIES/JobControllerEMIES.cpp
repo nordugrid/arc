@@ -106,7 +106,6 @@ namespace Arc {
   }
 
   bool JobControllerEMIES::CleanJob(const Job& job) {
-    bool ok = true;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 

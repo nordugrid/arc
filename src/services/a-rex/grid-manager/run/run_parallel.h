@@ -22,8 +22,8 @@ class RunParallel {
   static void (*kicker_func_)(void*);
   static void* kicker_arg_;
  public:
-  operator bool(void) { return true; };
-  bool operator!(void) { return false; };
+  operator bool(void) const { return true; };
+  bool operator!(void) const { return false; };
   static bool run(const JobUser& user,const char* jobid,const char *const args[],Arc::Run**,bool su = true,bool job_proxy = true, RunPlugin* cred = NULL, RunPlugin::substitute_t subst = NULL, void* subst_arg = NULL);
   static bool run(const JobUser& user,const JobDescription& desc,const char *const args[],Arc::Run**,bool su = true);
   static void kicker(void (*kicker_func)(void*),void* kicker_arg) {

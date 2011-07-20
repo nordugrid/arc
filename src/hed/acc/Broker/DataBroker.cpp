@@ -47,10 +47,14 @@ namespace Arc {
 
       MCC_Status status = client.process(&request, &response);
 
-      if (!status)
+      if (!status) {
         CacheMappingTable[(*target)->url.fullstr()] = 0;
-      if (response == NULL)
+        continue;
+      }
+      if (response == NULL) {
         CacheMappingTable[(*target)->url.fullstr()] = 0;
+        continue;
+      }
 
       XMLNode ExistCount = (*response)["CacheCheckResponse"]["CacheCheckResult"]["Result"];
 
@@ -61,11 +65,8 @@ namespace Arc {
       }
 
       CacheMappingTable[(*target)->url.fullstr()] = DataSize;
-
-      if (response != NULL) {
-        delete response;
-        response = NULL;
-      }
+      delete response;
+      response = NULL;
     }
 
     return true;

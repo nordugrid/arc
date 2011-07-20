@@ -296,8 +296,8 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "wakeupperiod") {
       std::string wakeup_s = config_next_arg(rest);
-      unsigned int wakeup_period;
       if(wakeup_s.length() != 0) {
+        unsigned int wakeup_period;
         if(!Arc::stringto(wakeup_s,wakeup_period)) {
           logger.msg(Arc::ERROR,"Wrong number in wakeupperiod: %s",wakeup_s);
           goto exit;
@@ -335,8 +335,8 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     }
     else if(command == "maxtransfertries") {
       std::string maxtries_s = config_next_arg(rest);
-      int max_retries = DEFAULT_MAX_RETRIES;
       if(maxtries_s.length() != 0) {
+        int max_retries = DEFAULT_MAX_RETRIES;
         if(!Arc::stringto(maxtries_s,max_retries)) {
           logger.msg(Arc::ERROR,"Wrong number in maxtransfertries"); goto exit;
         };
@@ -560,7 +560,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
               CacheConfig cache_config = CacheConfig(users.Env(),user->UnixName());
               user->SetCacheParams(cache_config);
             }
-            catch (CacheConfigException e) {
+            catch (CacheConfigException& e) {
               logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
               goto exit;
             }
@@ -996,7 +996,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       };
       userlist.push_back(username);
     };
-    if(userlist.size() == 0) {
+    if(userlist.empty()) {
       logger.msg(Arc::ERROR,"No username entries in control directory"); return false;
     };
     for(std::list<std::string>::iterator username = userlist.begin();
@@ -1033,7 +1033,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
             CacheConfig cache_config(users.Env(),user->UnixName());
             user->SetCacheParams(cache_config);
           }
-          catch (CacheConfigException e) {
+          catch (CacheConfigException& e) {
             logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
             return false;
           }

@@ -59,7 +59,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& /* config */,Arc::XMLNode 
         caches.push_back(*i);
      }
   }
-  catch (CacheConfigException e) {
+  catch (CacheConfigException& e) {
      logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what()); 
      Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Error with cache configuration");  
      fault.Detail(true).NewChild("CacheConfigurationFault");

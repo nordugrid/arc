@@ -9,8 +9,8 @@ namespace gridftpd {
     bool valid_;
    public:
     GMEnvironment(bool guess = false);
-    operator bool(void) { return valid_; };
-    bool operator!(void) { return !valid_; };
+    operator bool(void) const { return valid_; };
+    bool operator!(void) const { return !valid_; };
 
     /// ARC installation path - $ARC_LOCATION, executable path
     std::string nordugrid_loc(void) const;

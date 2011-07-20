@@ -26,7 +26,7 @@ CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
         parseXMLConf(username, cfg);
       } catch (CacheConfigException& e) {
         config_close(cfile);
-        throw e;
+        throw;
       }
     }; break;
     case config_file_INI: {
@@ -36,7 +36,7 @@ CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
       } catch (CacheConfigException& e) {
         delete cf;
         config_close(cfile);
-        throw e;
+        throw;
       }
       delete cf;
     }; break;

@@ -41,13 +41,13 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
     int r;
     r=daemon.config(command,rest);
     if(r == 0) continue;
-    if(r == -1) { gridftpd::config_close(cfile); if(cf) delete cf; return 1; };
+    if(r == -1) { gridftpd::config_close(cfile); delete cf; return 1; };
     if(command == "port") {
       if(params) {
         if(sscanf(rest.c_str(),"%u",&(params->port)) != 1) {
           logger.msg(Arc::ERROR, "Wrong port number in configuration");
           gridftpd::config_close(cfile);
-          if(cf) delete cf;
+          delete cf;
           return 1;
         };
       };
@@ -56,7 +56,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
         if(sscanf(rest.c_str(),"%u",&(params->max_connections)) != 1) {
           logger.msg(Arc::ERROR, "Wrong maxconnections number in configuration");
           gridftpd::config_close(cfile);
-          if(cf) delete cf;
+          delete cf;
           return 1;
         };
       };
@@ -65,7 +65,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
         if(sscanf(rest.c_str(),"%u",&(params->default_buffer)) != 1) {
           logger.msg(Arc::ERROR, "Wrong defaultbuffer number in configuration");
           gridftpd::config_close(cfile);
-          if(cf) delete cf;
+          delete cf;
           return 1;
         };
       };
@@ -74,7 +74,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
         if(sscanf(rest.c_str(),"%u",&(params->max_buffer)) != 1) {
           logger.msg(Arc::ERROR, "Wrong maxbuffer number in configuration");
           gridftpd::config_close(cfile);
-          if(cf) delete cf;
+          delete cf;
           return 1;
         };
       };
@@ -114,7 +114,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
             (host->h_addr_list[0] == NULL) ) {
           logger.msg(Arc::ERROR, "Can't resolve host %s", value);
           gridftpd::config_close(cfile);
-          if(cf) delete cf;
+          delete cf;
           return 1;
         };
         unsigned char* addr = (unsigned char*)(&(((struct in_addr*)(host->h_addr_list[0]))->s_addr));
@@ -126,7 +126,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
     };
   };
     gridftpd::config_close(cfile);
-  if(cf) delete cf;
+  delete cf;
   return 0;
 }
 

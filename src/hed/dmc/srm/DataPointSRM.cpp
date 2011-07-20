@@ -372,8 +372,8 @@ namespace Arc {
     StopReading();
     reading = false;
 
-    bool timedout;
     if (srm_request) {
+      bool timedout;
       SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
       // if the request finished with an error there is no need to abort or release request
       if (client && (srm_request->status() != SRM_REQUEST_FINISHED_ERROR)) {
@@ -589,10 +589,10 @@ namespace Arc {
     writing = false;
 
     DataStatus r = DataStatus::Success;
-    bool timedout;
 
     // if the request finished with an error there is no need to abort or release request
     if (srm_request) {
+      bool timedout;
       SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
       if (client && (srm_request->status() != SRM_REQUEST_FINISHED_ERROR)) {
         // call abort if failure, or releasePut on success

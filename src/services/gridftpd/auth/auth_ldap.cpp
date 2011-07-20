@@ -58,14 +58,14 @@ int AuthUser::match_ldap(const char* line) {
       std::vector<std::string> attrs; attrs.push_back("description");
       try {
         ldap.Query(url.Path(),"",attrs,gridftpd::LdapQuery::onelevel);
-      } catch (gridftpd::LdapQueryError e) {
+      } catch (gridftpd::LdapQueryError& e) {
         logger.msg(Arc::ERROR, "Failed to query LDAP server %s", u);
         return AAA_FAILURE;
       };
       result_t r(subject.c_str());
       try {
         ldap.Result(&result_callback,&r) ;
-      } catch (gridftpd::LdapQueryError e) {
+      } catch (gridftpd::LdapQueryError& e) {
         logger.msg(Arc::ERROR, "Failed to get results from LDAP server %s", u);
         return AAA_FAILURE;
       };
@@ -77,7 +77,7 @@ int AuthUser::match_ldap(const char* line) {
         default_vgroup_=NULL;
       }; 
       return r.decision;
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
       return AAA_FAILURE;
     };
   };

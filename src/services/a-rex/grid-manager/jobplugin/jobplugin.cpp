@@ -798,7 +798,7 @@ int JobPlugin::close(bool eof) {
     delete_job_id(); 
     return 1;
   };
-  if(avail_queues.size() > 0) { // If no queues configured - service takes any
+  if(!avail_queues.empty()) { // If no queues configured - service takes any
     for(std::list<std::string>::iterator q = avail_queues.begin();;++q) {
       if(q == avail_queues.end()) {
         error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
@@ -1591,7 +1591,7 @@ DirectFilePlugin * JobPlugin::selectFilePlugin(std::string id) {
 
 bool JobPlugin::chooseControlAndSessionDir(std::string /* job_id */, std::string& controldir, std::string& sessiondir) {
 
-  if (gm_dirs_non_draining.size() == 0) {
+  if (gm_dirs_non_draining.empty()) {
     // no active control or session dirs available
     logger.msg(Arc::ERROR, "No non-draining control or session directories available");
     return false;

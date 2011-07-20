@@ -42,7 +42,8 @@ LegacySecHandler::~LegacySecHandler(void) {
 
 class LegacySHCP: public ConfigParser {
  public:
-  LegacySHCP(const std::string& filename, Arc::Logger& logger, AuthUser& auth, LegacySecAttr& sattr):ConfigParser(filename,logger),auth_(auth),sattr_(sattr) {
+  LegacySHCP(const std::string& filename, Arc::Logger& logger, AuthUser& auth, LegacySecAttr& sattr):
+    ConfigParser(filename,logger),auth_(auth),sattr_(sattr),group_match_(0),vo_match_(false) {
   };
 
   virtual ~LegacySHCP(void) {

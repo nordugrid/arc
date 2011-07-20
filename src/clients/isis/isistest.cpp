@@ -261,7 +261,7 @@ std::vector<std::string> GetISISList( Arc::URL url, Arc::UserConfig usercfg ){
 }
 
 // Split the given string by the given delimiter and return its parts
-std::vector<std::string> split( const std::string original_string, const std::string delimiter ) {
+std::vector<std::string> split( const std::string& original_string, const std::string& delimiter ) {
     std::vector<std::string> retVal;
     unsigned long start=0;
     unsigned long end;

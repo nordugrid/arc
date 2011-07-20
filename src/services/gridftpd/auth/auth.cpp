@@ -104,7 +104,7 @@ AuthUser::AuthUser(const AuthUser& a) {
   default_group_=NULL;
 }
 
-void AuthUser::operator=(const AuthUser& a) {
+AuthUser& AuthUser::operator=(const AuthUser& a) {
   subject=a.subject;
   filename=a.filename;
   has_delegation=a.has_delegation;
@@ -112,6 +112,7 @@ void AuthUser::operator=(const AuthUser& a) {
   voms_extracted=false;
   process_voms();
   proxy_file_was_created=false;
+  return *this;
 }
 
 void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char* hostname) {
@@ -303,7 +304,7 @@ const std::vector<struct voms>& AuthUser::voms(void) {
   return voms_data;
 }
 
-const std::list<std::string>& AuthUser::VOs(void) {
+const std::list<std::string>& AuthUser::VOs(void) const {
   return vos;
 }
 

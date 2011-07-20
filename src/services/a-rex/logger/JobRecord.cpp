@@ -11,7 +11,7 @@
 
 namespace ARex {
 
-static void split(const std::string& str, const std::string delim, Arc::XMLNode& root, const std::string& name) {
+static void split(const std::string& str, const std::string& delim, Arc::XMLNode& root, const std::string& name) {
   std::string::size_type offset = 0;
   std::string::size_type delimIndex = 0;
 
@@ -65,7 +65,6 @@ void JobRecord::set(std::istream& i) {
     std::string key = config_read_line(i,value,'=');
     if(key=="loggerurl") { url=value; }
     else if(key=="ngjobid") { NewChild("globaljobid")=value; }
-    else if(key=="usersn") { NewChild("globaluserid")=value; }
     else if(key=="usersn") { NewChild("globaluserid")=value; }
     else if(key=="cluster") { NewChild("cluster")=value; }
     else if(key=="description") { NewChild("jobdescription")=value; }

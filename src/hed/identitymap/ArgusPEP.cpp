@@ -96,7 +96,6 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
     xacml_response_t * response = NULL;
     xacml_request_t * request = NULL;
     std::list<xacml_request_t*> requests;
-    bool client_initialized = false;
     std::string subject , resource , action;
     Arc::XMLNode secattr;   
     try{
@@ -124,7 +123,6 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
         if (rc != 0) {
             throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
         }
-        bool authorized = false;
         std::string local_id; 
         xacml_decision_t decision = XACML_DECISION_INDETERMINATE; 
         // Simple combining algorithm. At least one deny means deny. If none, then at 

@@ -21,7 +21,7 @@ namespace Arc {
   public:
     // get current user
     User();
-    User(const std::string name);
+    User(const std::string& name);
     User(int uid);
     const std::string& Name(void) const {
       return name;
@@ -35,7 +35,7 @@ namespace Arc {
     int get_gid(void) const {
       return (int)gid;
     }
-    bool operator==(const std::string n) {
+    bool operator==(const std::string& n) {
       return (n == name);
     }
     int check_file_access(const std::string& path, int flags) const;

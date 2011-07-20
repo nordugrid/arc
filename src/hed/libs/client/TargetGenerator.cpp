@@ -175,7 +175,7 @@ namespace Arc {
     return xmlFoundJobs;
   }
 
-  bool TargetGenerator::AddService(const std::string flavour,
+  bool TargetGenerator::AddService(const std::string& flavour,
                                    const URL& url) {
     bool added = false;
     Glib::Mutex::Lock serviceLock(serviceMutex);
@@ -187,7 +187,7 @@ namespace Arc {
     return added;
   }
 
-  bool TargetGenerator::AddIndexServer(const std::string flavour,
+  bool TargetGenerator::AddIndexServer(const std::string& flavour,
                                        const URL& url) {
     bool added = false;
     Glib::Mutex::Lock indexServerLock(indexServerMutex);

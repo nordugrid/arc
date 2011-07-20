@@ -117,7 +117,7 @@ void Janitor::deploy_thread(void* arg) {
   user.SetControlDir(it.cdir_);
   std::list<std::string> rtes;
   if(!job_rte_read_file(it.id_,user,rtes)) { it.completed_.signal(); return; };
-  if(rtes.size() == 0) {
+  if(rtes.empty()) {
     it.result_=DEPLOYED;
     it.completed_.signal();
     return;
@@ -125,7 +125,7 @@ void Janitor::deploy_thread(void* arg) {
   std::string cmd;
   // Make command line
   cmd = it.path_ + " register " + it.id_;
-  while(rtes.size() > 0) {
+  while(!rtes.empty()) {
     cmd += " " + *rtes.begin();
     rtes.pop_front();
   };

@@ -20,7 +20,6 @@ class LoggerClient {
   Arc::URL url;
   Arc::ClientSOAP* client;
   //struct soap soap;
-  bool SameContact(const char* url);
   bool NewURL(const char* url);
  public:
   LoggerClient(void);

@@ -146,7 +146,7 @@ PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
   acquired_=true;
 }
 
-PayloadTCPSocket::PayloadTCPSocket(const std::string endpoint, int timeout,
+PayloadTCPSocket::PayloadTCPSocket(const std::string& endpoint, int timeout,
 				                   Logger& logger) :
   logger(logger)
 {

@@ -45,7 +45,7 @@ namespace Arc {
   class ClientX509Delegation {
   public:
     /** Constructor creates MCC chain and connects to server.*/
-    ClientX509Delegation() {}
+    ClientX509Delegation() : soap_client_(NULL), signer_(NULL) {}
     ClientX509Delegation(const BaseConfig& cfg, const URL& url);
     virtual ~ClientX509Delegation();
     /** Create the delegation credential according to the different remote

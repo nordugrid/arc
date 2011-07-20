@@ -65,6 +65,9 @@ static int makedirs(std::string &name) {
 
 GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
   data_file=-1;
+  acl_buf[0]=0;
+  acl_length=0;
+  file_mode=file_access_none;
   /* read configuration */
   std::string xml;
   acl=NULL;

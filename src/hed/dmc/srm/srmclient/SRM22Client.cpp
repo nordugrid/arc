@@ -769,35 +769,6 @@ namespace Arc {
       return SRM_ERROR_PERMANENT;
 
     }
-    else if (statuscode != SRM_SUCCESS) {
-      // check individual file statuses
-      std::string statusexplanation;
-      SRMStatusCode status = GetStatus(res["arrayOfFileStatuses"]
-                                       ["statusArray"]["status"],
-                                       statusexplanation);
-      if (status == SRM_INVALID_PATH) {
-        // make directories
-        logger.msg(VERBOSE,
-                   "Path %s is invalid, creating required directories",
-                   creq.surls().front());
-        SRMReturnCode mkdirres = mkDir(creq);
-        delete response;
-        if (mkdirres == SRM_OK)
-          return putTURLs(creq, urls);
-        logger.msg(ERROR, "Error creating required directories for %s",
-                   creq.surls().front());
-        creq.finished_error();
-        return mkdirres;
-      }
-      if (res["arrayOfFileStatuses"]["statusArray"]["status"])
-        logger.msg(ERROR, statusexplanation);
-      logger.msg(ERROR, explanation);
-      creq.finished_error();
-      delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
-        return SRM_ERROR_TEMPORARY;
-      return SRM_ERROR_PERMANENT;
-    }
 
     // the file is ready and pinned - we can get the TURL
     std::string turl = (std::string)res["arrayOfFileStatuses"]["statusArray"]

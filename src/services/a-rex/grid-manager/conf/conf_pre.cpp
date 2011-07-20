@@ -228,7 +228,7 @@ bool configure_user_dirs(const std::string &my_username,
           if(command == "gm_port") {
             char *ep;
             gm_port = strtoul(config_next_arg(rest).c_str(),&ep,10);
-            if((*ep != 0) || (gm_port<0)) { config_close(cfile); if(cf) delete cf; return false; };
+            if((*ep != 0) || (gm_port<0)) { config_close(cfile); delete cf; return false; };
           } else if(command == "hostname") {
             gm_hostname = config_next_arg(rest);
           };
@@ -246,24 +246,24 @@ bool configure_user_dirs(const std::string &my_username,
           if(configured) continue;
           default_lrms = config_next_arg(rest);
           default_queue = config_next_arg(rest);
-          if(default_lrms.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(default_lrms.length() == 0) { config_close(cfile); delete cf; return false; };
         }
         else if(command == "authplugin") { /* set plugin to be called on
                                               state changes */
           std::string state_name = config_next_arg(rest);
-          if(state_name.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(state_name.length() == 0) { config_close(cfile); delete cf; return false; };
           std::string options_s = config_next_arg(rest);
-          if(options_s.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(options_s.length() == 0) { config_close(cfile); delete cf; return false; };
           if(!plugins.add(state_name.c_str(),options_s.c_str(),rest.c_str())) {
-            config_close(cfile); if(cf) delete cf; return false;
+            config_close(cfile); delete cf; return false;
           };
         }
         else if(command == "localcred") {
           std::string timeout_s = config_next_arg(rest);
-          if(timeout_s.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(timeout_s.length() == 0) { config_close(cfile); delete cf; return false; };
           char *ep;
           int to = strtoul(timeout_s.c_str(),&ep,10);
-          if((*ep != 0) || (to<0)) { config_close(cfile); if(cf) delete cf; return false; };
+          if((*ep != 0) || (to<0)) { config_close(cfile); delete cf; return false; };
           cred_plugin = rest;
           cred_plugin.timeout(to);
         }
@@ -282,7 +282,7 @@ bool configure_user_dirs(const std::string &my_username,
         else if(command == "sessiondir") {
           if(configured) continue;
           std::string session_root = config_next_arg(rest);
-          if(session_root.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(session_root.length() == 0) { config_close(cfile); delete cf; return false; };
           session_roots.push_back(session_root);
           std::string drain = config_next_arg(rest);
           if (drain.empty() || drain != "drain") {
@@ -295,23 +295,23 @@ bool configure_user_dirs(const std::string &my_username,
         else if(command == "control") {
           if(configured) continue;
           control_dir = config_next_arg(rest);
-          if(control_dir.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(control_dir.length() == 0) { config_close(cfile); delete cf; return false; };
           if(control_dir == "*") control_dir="";
           for(;;) {
             std::string username = config_next_arg(rest);
             if(username.length() == 0) break;
             if(username == "*") {  /* add all gridmap users */
-              config_close(cfile); if(cf) delete cf; return false;
+              config_close(cfile); delete cf; return false;
             };
             if(username[0] == '@') {  /* add users from file */
               std::string filename = username.substr(1);
-              if(!file_user_list(filename,rest)) { config_close(cfile); if(cf) delete cf; return false; };
+              if(!file_user_list(filename,rest)) { config_close(cfile); delete cf; return false; };
               continue;
             };
             if((username == my_username) || (username == ".")) { 
               if(username == ".") username = "";
               JobUser user(env,username);
-              if(!user.is_valid()) { config_close(cfile); if(cf) delete cf; return false; };
+              if(!user.is_valid()) { config_close(cfile); delete cf; return false; };
               user.SetLRMS(default_lrms,default_queue);
               user.substitute(control_dir);
               user.SetControlDir(control_dir);
@@ -454,7 +454,7 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env) {
         }
         else if(command == "sessiondir") {
           session_root = config_next_arg(rest);
-          if(session_root.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(session_root.length() == 0) { config_close(cfile); delete cf; return false; };
           if(session_root == "*") session_root="";
         }
         else if(command == "controldir") {
@@ -462,22 +462,22 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env) {
         }
         else if(command == "control") {
           std::string control_dir = config_next_arg(rest);
-          if(control_dir.length() == 0) { config_close(cfile); if(cf) delete cf; return false; };
+          if(control_dir.length() == 0) { config_close(cfile); delete cf; return false; };
           if(control_dir == "*") control_dir="";
           for(;;) {
             std::string username = config_next_arg(rest);
             if(username.length() == 0) break;
             if(username == "*") {  /* add all gridmap users */
-              config_close(cfile); if(cf) delete cf; return false;
+              config_close(cfile); delete cf; return false;
             };
             if(username[0] == '@') {  /* add users from file */
               std::string filename = username.substr(1);
-              if(!file_user_list(filename,rest)) { config_close(cfile); if(cf) delete cf; return false; };
+              if(!file_user_list(filename,rest)) { config_close(cfile); delete cf; return false; };
               continue;
             };
             if(username == ".") username = "";
             JobUsers::iterator user=users.AddUser(username);
-            if(user == users.end()) { config_close(cfile); if(cf) delete cf; return false; };
+            if(user == users.end()) { config_close(cfile); delete cf; return false; };
             user->substitute(control_dir);
             user->substitute(session_root);
             user->SetControlDir(control_dir);

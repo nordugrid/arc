@@ -22,7 +22,6 @@ int AuthUser::match_voms(const char* line) {
   std::string role("");
   std::string capabilities("");
   std::string auto_c("");
-  bool auto_cert = false;
   std::string::size_type n = 0;
   n=Arc::get_token(vo,line,n," ","\"","\"");
   if((n == std::string::npos) && (vo.empty())) {
@@ -45,14 +44,11 @@ int AuthUser::match_voms(const char* line) {
     return AAA_FAILURE;
   };
   n=Arc::get_token(auto_c,line,n," ","\"","\"");
-  if(!auto_c.empty()) {
-    if(auto_c == "auto") auto_cert=true;
-  };
   logger.msg(Arc::VERBOSE, "Rule: vo: %s", vo);
   logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
   logger.msg(Arc::VERBOSE, "Rule: role: %s", role);
   logger.msg(Arc::VERBOSE, "Rule: capabilities: %s", capabilities);
-  if(voms_data_.size() == 0) return AAA_NO_MATCH;
+  if(voms_data_.empty()) return AAA_NO_MATCH;
   // analyse permissions
   for(std::vector<struct voms>::iterator v = voms_data_.begin();v!=voms_data_.end();++v) {
     logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);

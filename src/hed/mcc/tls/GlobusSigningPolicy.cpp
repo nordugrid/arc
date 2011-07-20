@@ -146,7 +146,7 @@ static bool get_conditions(std::string s,std::list<std::string>& patterns) {
   return true;
 }
 
-static bool match_all(const std::string& issuer_subject,const std::string& subject,const std::string policy_ca_subject,std::list<std::string> policy_patterns) {
+static bool match_all(const std::string& issuer_subject,const std::string& subject,const std::string& policy_ca_subject,std::list<std::string> policy_patterns) {
   if(issuer_subject == policy_ca_subject) {
     std::list<std::string>::iterator pattern = policy_patterns.begin();
     for(;pattern!=policy_patterns.end();++pattern) {

@@ -266,7 +266,7 @@ namespace gridftpd {
     try {
       SetConnectionOptions(version);
     }
-    catch (LdapQueryError e) {
+    catch (LdapQueryError& e) {
       // Clean up and re-throw exception
       ldap_unbind_ext (connection, NULL, NULL);
       connection = NULL;
@@ -447,7 +447,7 @@ namespace gridftpd {
 
     try {
       HandleResult(callback, ref);
-    } catch (LdapQueryError e) {
+    } catch (LdapQueryError& e) {
       // Clean up and re-throw exception
       ldap_unbind_ext (connection, NULL, NULL);
       connection = NULL;
@@ -618,7 +618,7 @@ namespace gridftpd {
       pthread_mutex_lock(&plq->lock);
       ldapq.Query(qurl.Path(), plq->filter, plq->attrs, plq->scope); /* is Path() correct here to replace BaseDN() ?? */
       pthread_mutex_unlock(&plq->lock);
-    } catch (LdapQueryError e) {
+    } catch (LdapQueryError& e) {
       pthread_mutex_unlock(&plq->lock);
       logger.msg(Arc::VERBOSE, "%s: %s", _("Warning"), e.what());
       pthread_exit(NULL);
@@ -628,7 +628,7 @@ namespace gridftpd {
 
     try {
       ldapq.Result(plq->callback, plq->object);
-    } catch (LdapQueryError e) {
+    } catch (LdapQueryError& e) {
       logger.msg(Arc::VERBOSE, "%s: %s", _("Warning"), e.what());
     }
 

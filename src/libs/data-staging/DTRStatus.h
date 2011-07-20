@@ -160,7 +160,7 @@ namespace DataStaging {
     }
   
     /// Make a new DTRStatus with the same status as the given DTRStatusType
-    DTRStatus operator=(const DTRStatusType& s) {
+    DTRStatus& operator=(const DTRStatusType& s) {
       status = s;
       return *this;
     }
@@ -300,7 +300,7 @@ namespace DataStaging {
     }
 
     /// Make a new DTRErrorStatus with the same error status as the given DTRErrorStatusType
-    DTRErrorStatus operator=(const DTRErrorStatusType& s) {
+    DTRErrorStatus& operator=(const DTRErrorStatusType& s) {
       error_status = s;
       return *this;
     }

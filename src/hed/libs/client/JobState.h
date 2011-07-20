@@ -53,7 +53,7 @@ namespace Arc {
     JobState& operator=(const JobState& newState) { type = newState.type; state = newState.state; return *this; }
 
     operator bool() const { return type != UNDEFINED; }
-    operator JobState::StateType() const { return type; }
+    operator StateType() const { return type; }
     bool operator!() const { return type == UNDEFINED; }
     bool operator==(const StateType& st) const { return type == st; }
     bool operator!=(const StateType& st) const { return type != st; }

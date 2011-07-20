@@ -64,7 +64,7 @@ static Glib::Mutex suid_lock;
   }
 
   // Unix implementation
-  User::User(std::string name) {
+  User::User(const std::string& name) {
     this->name = name;
     struct passwd pwd;
     char pwdbuf[2048];
@@ -89,7 +89,6 @@ static Glib::Mutex suid_lock;
   }
 
   int User::check_file_access(const std::string& path, int flags) const {
-    int h;
     struct stat st;
     mode_t m;
     char **grmem;
@@ -98,6 +97,7 @@ static Glib::Mutex suid_lock;
     if ((flags != O_RDWR) && (flags != O_RDONLY) && (flags != O_WRONLY))
       return -1;
     if (getuid() != 0) { /* not root - just try to open */
+      int h;
       if ((h = open(path.c_str(), flags)) == -1)
         return -1;
       close(h);
@@ -196,7 +196,6 @@ static Glib::Mutex suid_lock;
     this->name = name;
     int uid = get_user_id();
     int gid = get_group_id();
-    bool found;
 
     struct passwd pwd_p;
 
@@ -278,7 +277,7 @@ static Glib::Mutex suid_lock;
     };
   }
 #else
-  UserSwitch::UserSwitch(int uid,int gid):valid(false) {
+  UserSwitch::UserSwitch(int uid,int gid):old_uid(0),old_gid(0),valid(false) {
   }
 
   UserSwitch::~UserSwitch(void) {

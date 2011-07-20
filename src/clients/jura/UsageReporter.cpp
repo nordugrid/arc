@@ -73,8 +73,10 @@ namespace Arc
 		   out_dir.c_str(),
 		   StrError(errno)
 		   );
+	closedir(dirp);
 	return -1;
       }
+    closedir(odirp);
 
     // Seek "<jobnumber>.<randomstring>" files.
     Arc::RegularExpression logfilepattern("^[0-9]+\\.[^.]+$");
@@ -158,6 +160,7 @@ namespace Arc
 	  }
 	errno = 0;
       }
+    closedir(dirp);
 
     if (errno!=0)
       {

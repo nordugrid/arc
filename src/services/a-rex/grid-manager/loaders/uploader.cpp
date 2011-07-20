@@ -64,7 +64,6 @@ class FileDataEx : public FileData {
   typedef std::list<FileDataEx>::iterator iterator;
   Arc::DataStatus res;
   PointPair* pair;
-  int size; /* size of the file in bytes */
   /* Times are string to eliminate the need to convert
    * string to time_t while reading from local file
    */
@@ -112,18 +111,13 @@ int clean_files(std::list<FileData> &job_files,char* session_dir) {
 }
 
 class PointPair {
- private:
-  Arc::URL source_url;
-  Arc::URL destination_url;
  public:
   Arc::DataHandle source;
   Arc::DataHandle destination;
   PointPair(const std::string& source_str, const std::string& destination_str,
 	    const Arc::UserConfig& usercfg)
-    : source_url(source_str),
-      destination_url(destination_str),
-      source(source_url, usercfg),
-      destination(destination_url, usercfg) {};
+    : source(source_str, usercfg),
+      destination(destination_str, usercfg) {};
   ~PointPair(void) {};
   static void callback(Arc::DataMover*,Arc::DataStatus res,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
@@ -388,7 +382,7 @@ int main(int argc,char** argv) {
         exit(1);
       }
     }
-    catch (CacheConfigException e) {
+    catch (CacheConfigException& e) {
       logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
       delete cache;
       exit(1);

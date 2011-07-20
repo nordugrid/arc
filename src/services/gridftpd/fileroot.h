@@ -120,7 +120,7 @@ class FileNode {
     point=""; plugname="";
     handle=NULL; init=NULL; plug=NULL;
   }; 
-  /* following two constructrs should be used only for copying in list */
+  /* following two constructors should be used only for copying in list */
   FileNode(const FileNode &node) { 
     point=node.point; plugname=node.plugname;
     plug=node.plug; handle=node.handle;
@@ -139,13 +139,13 @@ class FileNode {
   FileNode(char* dirname,char* plugin,std::istream &cfile,userspec_t &user);
   ~FileNode(void);
 
-  bool has_plugin(void) { return (plug != NULL); };
+  bool has_plugin(void) const { return (plug != NULL); };
   static bool compare(const FileNode &left,const FileNode &right) { return (left.point.length() > right.point.length()); };
-  bool operator> (const FileNode &right) { return (point.length() > right.point.length()); };
-  bool operator< (const FileNode &right) { return (point.length() < right.point.length()); };
-  bool operator> (char* right) { return (point.length() > strlen(right)); };
-  bool operator< (char* right) { return (point.length() < strlen(right)); };
-  bool operator== (std::string right) { return (point == right); };
+  bool operator> (const FileNode &right) const { return (point.length() > right.point.length()); };
+  bool operator< (const FileNode &right) const { return (point.length() < right.point.length()); };
+  bool operator> (char* right) const { return (point.length() > strlen(right)); };
+  bool operator< (char* right) const { return (point.length() < strlen(right)); };
+  bool operator== (std::string right) const { return (point == right); };
   bool belongs(const char* name);
   bool is_in_dir(const char* name);
   std::string last_name(void);
@@ -159,7 +159,7 @@ class FileNode {
   int makedir(std::string &dirname);
   int removedir(std::string &dirname);
   int removefile(std::string &name);
-  const std::string& error(void) { if(plug) return plug->error_description; return no_error; };
+  const std::string& error(void) const { if(plug) return plug->error_description; return no_error; };
 };
 
 class GridFTP_Commands;
@@ -198,7 +198,7 @@ class FileRoot {
   int write(unsigned char *buf,unsigned long long int offset,unsigned long long int size);
   int read(unsigned char *buf,unsigned long long int offset,unsigned long long int *size);
   int readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::object_info_level mode);
-  std::string cwd() { return "/"+cur_dir; };
+  std::string cwd() const { return "/"+cur_dir; };
   int cwd(std::string &name);
   int mkd(std::string &name);
   int rmd(std::string &name);

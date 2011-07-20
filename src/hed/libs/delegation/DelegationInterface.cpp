@@ -348,14 +348,13 @@ bool DelegationConsumer::Backup(std::string& content) {
 }
 
 bool DelegationConsumer::Restore(const std::string& content) {
-  bool res = false;
   RSA *rsa = NULL;
   BIO *in = BIO_new_mem_buf((void*)(content.c_str()),content.length());
   if(in) {
     if(PEM_read_bio_RSAPrivateKey(in,&rsa,NULL,NULL)) {
       if(rsa) {
         if(key_) RSA_free((RSA*)key_);
-        key_=rsa; res=true;
+        key_=rsa;
       };
     };
     BIO_free_all(in);

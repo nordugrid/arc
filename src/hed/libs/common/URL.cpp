@@ -78,7 +78,7 @@ namespace Arc {
   }
 
 
-  static std::string AttributeString(const std::list<std::string> attributes,
+  static std::string AttributeString(const std::list<std::string>& attributes,
                                      char separator) {
 
     std::string attrstring;
@@ -1047,7 +1047,8 @@ namespace Arc {
   PathIterator::PathIterator(const std::string& path, bool end)
     : path(path),
       pos(std::string::npos),
-      end(end) {
+      end(end),
+      done(false) {
     if (end)
       operator--();
     else

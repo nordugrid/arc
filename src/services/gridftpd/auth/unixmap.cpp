@@ -137,7 +137,7 @@ bool UnixMap::mapname(const char* line) {
   return false;
 }
 
-bool UnixMap::unmap(void) {
+bool UnixMap::unmap(void) const {
   if(!mapped_) return true;
   // Not functioning yet
   return true;

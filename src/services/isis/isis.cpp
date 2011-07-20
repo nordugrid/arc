@@ -23,17 +23,17 @@
 namespace ISIS
 {
 
-std::vector<std::string>::iterator Neighbor_Container::find_element(const std::string value) {
+std::vector<std::string>::iterator Neighbor_Container::find_element(const std::string& value) {
     return find(content.begin(), content.end(), value);
 }
 
-bool Neighbor_Container::contains(const std::string val) {
+bool Neighbor_Container::contains(const std::string& val) {
     Glib::Mutex::Lock lock(container_lock);
     bool ret_val = (content.end() != find(content.begin(), content.end(), val));
     return ret_val;
 }
 
-void Neighbor_Container::push(const std::string val) {
+void Neighbor_Container::push(const std::string& val) {
     Glib::Mutex::Lock lock(container_lock);
     content.push_back(val);
 }

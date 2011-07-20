@@ -37,7 +37,7 @@ static bool arcls(const Arc::URL& dir_url,
   }
   if (dir_url.Protocol() == "urllist") {
     std::list<Arc::URL> dirs = Arc::ReadURLList(dir_url);
-    if (dirs.size() == 0) {
+    if (dirs.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of locations from file %s",
                  dir_url.Path());
       return false;
@@ -122,7 +122,7 @@ static bool arcls(const Arc::URL& dir_url,
     }
   }
   if (!res) {
-    if (files.size() == 0) {
+    if (files.empty()) {
       logger.msg(Arc::ERROR, "Failed listing files");
       if (res.Retryable())
         logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");

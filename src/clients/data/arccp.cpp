@@ -73,12 +73,12 @@ bool arcregister(const Arc::URL& source_url,
       destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
-    if (sources.size() == 0) {
+    if (sources.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
       return false;
     }
-    if (destinations.size() == 0) {
+    if (destinations.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
       return false;
@@ -99,7 +99,7 @@ bool arcregister(const Arc::URL& source_url,
   }
   if (source_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
-    if (sources.size() == 0) {
+    if (sources.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
       return false;
@@ -113,7 +113,7 @@ bool arcregister(const Arc::URL& source_url,
   }
   if (destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
-    if (destinations.size() == 0) {
+    if (destinations.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
       return false;
@@ -236,12 +236,12 @@ bool arccp(const Arc::URL& source_url_,
       destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
-    if (sources.size() == 0) {
+    if (sources.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
       return false;
     }
-    if (destinations.size() == 0) {
+    if (destinations.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
       return false;
@@ -262,7 +262,7 @@ bool arccp(const Arc::URL& source_url_,
   }
   if (source_url.Protocol() == "urllist") {
     std::list<Arc::URL> sources = Arc::ReadURLList(source_url);
-    if (sources.size() == 0) {
+    if (sources.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of sources from file %s",
                  source_url.Path());
       return false;
@@ -277,7 +277,7 @@ bool arccp(const Arc::URL& source_url_,
   }
   if (destination_url.Protocol() == "urllist") {
     std::list<Arc::URL> destinations = Arc::ReadURLList(destination_url);
-    if (destinations.size() == 0) {
+    if (destinations.empty()) {
       logger.msg(Arc::ERROR, "Can't read list of destinations from file %s",
                  destination_url.Path());
       return false;

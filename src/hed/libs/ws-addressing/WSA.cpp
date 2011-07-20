@@ -93,7 +93,7 @@ WSAHeader::WSAHeader(SOAPEnvelope& soap) {
   header_.Namespaces(ns);
 } 
 
-WSAHeader::WSAHeader(const std::string&) {
+WSAHeader::WSAHeader(const std::string&): header_allocated_(false) {
 }
 
 

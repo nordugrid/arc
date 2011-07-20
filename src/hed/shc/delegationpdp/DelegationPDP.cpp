@@ -157,13 +157,13 @@ bool DelegationPDP::isPermitted(Message *msg) const {
    
     //Call the evaluation functionality inside Evaluator
     Response *resp = eval->evaluate(requestxml);
-    logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
-    bool atleast_onedeny = false;
-    bool atleast_onepermit = false;
     if(!resp) {
       logger.msg(ERROR,"No authorization response was returned");
       throw std::exception();
     };
+    logger.msg(INFO, "There are %d requests, which satisfy at least one policy", (resp->getResponseItems()).size());
+    bool atleast_onedeny = false;
+    bool atleast_onepermit = false;
 
     ResponseList rlist = resp->getResponseItems();
     int size = rlist.size();

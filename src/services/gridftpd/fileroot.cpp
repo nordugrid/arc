@@ -323,7 +323,6 @@ int FileRoot::write(unsigned char *buf,unsigned long long int offset,unsigned lo
 /* 0 - ok , 1 - failure, -1 - this is a file */
 int FileRoot::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::object_info_level mode) {
   std::string fullname;
-  bool belongs_found = false;
   if(name[0] != '/') { fullname=cur_dir+'/'+name; }
   else { fullname=name; };
   error=FileNode::no_error;
@@ -331,7 +330,6 @@ int FileRoot::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::o
   int res = 1;
   for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
     if(i->belongs(fullname.c_str())) {
-      belongs_found=true;
       res=i->readdir(fullname.c_str(),dir_list,mode);
       error=i->error();
       break;

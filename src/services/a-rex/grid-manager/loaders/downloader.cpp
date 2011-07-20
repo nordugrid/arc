@@ -74,7 +74,6 @@ class FileDataEx : public FileData {
   typedef std::list<FileDataEx>::iterator iterator;
   Arc::DataStatus res;
   PointPair* pair;
-  int size; /* size of the file in bytes */
   /* Times are string to eliminate the need to convert
    * string to time_t while reading from local file
    */
@@ -204,14 +203,13 @@ static int user_file_exists(FileDataEx &dt,char* session_dir,std::list<std::stri
     Arc::CRC32Sum crc;
     char buffer[1024];
     ssize_t l;
-    size_t ll = 0;
     for(;;) {
       if((l=read(h,buffer,1024)) == -1) {
         logger.msg(Arc::ERROR, "Error reading file %s", dt.pfn);
         if(error) (*error)="Could not read file to compute checksum.";
         return 1;
       };
-      if(l==0) break; ll+=l;
+      if(l==0) break;
       crc.add(buffer,l);
     };
     close(h);
@@ -229,18 +227,13 @@ static int user_file_exists(FileDataEx &dt,char* session_dir,std::list<std::stri
 }
 
 class PointPair {
- private:
-  Arc::URL source_url;
-  Arc::URL destination_url;
  public:
   Arc::DataHandle source;
   Arc::DataHandle destination;
   PointPair(const std::string& source_str, const std::string& destination_str,
       const Arc::UserConfig& usercfg)
-    : source_url(source_str),
-      destination_url(destination_str),
-      source(source_url, usercfg),
-      destination(destination_url, usercfg) {};
+    : source(source_str, usercfg),
+      destination(destination_str, usercfg) {};
   ~PointPair(void) {};
   static void callback(Arc::DataMover*,Arc::DataStatus res,void* arg) {
     FileDataEx::iterator &it = *((FileDataEx::iterator*)arg);
@@ -479,7 +472,7 @@ int main(int argc,char** argv) {
         exit(1);
       }
     }
-    catch (CacheConfigException e) {
+    catch (CacheConfigException& e) {
       logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
       delete cache;
       exit(1);

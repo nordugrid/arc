@@ -18,7 +18,7 @@ namespace Arc {
   template<class T>
   class Range {
   public:
-    Range<T>() {}
+    Range<T>() : min(0), max(0) {}
     Range<T>(const T& t) : min(t), max(t) {}
     operator T(void) const { return max; }
 

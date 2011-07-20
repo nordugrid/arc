@@ -66,7 +66,7 @@ bool ConfigSections::ReadNext(std::string& line) {
       current_section_changed=true;
       continue;
     };
-    if(section_names.size()) { // only limited sections allowed
+    if(!section_names.empty()) { // only limited sections allowed
       bool match = false;
       int s_n = -1;
       for(std::list<std::string>::iterator sec = section_names.begin();

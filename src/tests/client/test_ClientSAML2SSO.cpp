@@ -72,16 +72,14 @@ int main(void) {
   Arc::PayloadSOAP req_soap(echo_ns);
   req_soap.NewChild("echo").NewChild("say")="HELLO";
   Arc::PayloadSOAP* resp_soap = NULL;
-  if(client_soap) {
-    Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name, username, password);
-    if(!status) {
-      logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
-      throw std::runtime_error("SOAP with SAML2SSO invokation failed");
-    }
-    if(resp_soap == NULL) {
-      logger.msg(Arc::ERROR,"There was no SOAP response");
-      throw std::runtime_error("There was no SOAP response");
-    }
+  Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name, username, password);
+  if(!status) {
+    logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
+    throw std::runtime_error("SOAP with SAML2SSO invokation failed");
+  }
+  if(resp_soap == NULL) {
+    logger.msg(Arc::ERROR,"There was no SOAP response");
+    throw std::runtime_error("There was no SOAP response");
   }
   std::string xml_soap;
   resp_soap->GetXML(xml_soap);

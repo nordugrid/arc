@@ -154,7 +154,7 @@ class AuthUser {
    *
    * Not used in gridftpd
    */
-  const std::string get_property(const std::string /* property */) {
+  const std::string get_property(const std::string /* property */) const {
     return std::string("");
   };
   void subst(std::string& str);

@@ -11,7 +11,7 @@ class SimpleMap {
   ~SimpleMap(void);
   std::string map(const char* subject);
   bool unmap(const char* subject);
-  operator bool(void) { return (pool_handle_ != -1); };
-  bool operator!(void) { return (pool_handle_ == -1); };
+  operator bool(void) const { return (pool_handle_ != -1); };
+  bool operator!(void) const { return (pool_handle_ == -1); };
 };
 

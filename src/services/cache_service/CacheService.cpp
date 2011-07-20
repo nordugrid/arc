@@ -427,7 +427,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
     Arc::Credential ci(usercfg.ProxyPath(), usercfg.ProxyPath(), usercfg.CACertificatesDirectory(), "");
     dn = ci.GetIdentityName();
     exp_time = ci.GetEndTime();
-  } catch (Arc::CredentialError e) {
+  } catch (Arc::CredentialError& e) {
     logger.msg(Arc::ERROR, "Couldn't handle certificate: %s", e.what());
     return Arc::MCC_Status(Arc::GENERIC_ERROR, "CacheLink", std::string("Error with proxy at "+proxy_path));
   }

@@ -1214,7 +1214,7 @@ GridFTP_Commands_timeout::~GridFTP_Commands_timeout(void) {
 void GridFTP_Commands_timeout::remove(const GridFTP_Commands& cmd) {
   if(exit_cond_flag) return;
   globus_mutex_lock(&lock);
-  for(std::list<GridFTP_Commands*>::iterator i=cmds.begin();i!=cmds.end();++i) {
+  for(std::list<GridFTP_Commands*>::iterator i=cmds.begin();i!=cmds.end();) {
     if(&cmd == (*i)) { i=cmds.erase(i); } else { ++i; };
   };
   globus_mutex_unlock(&lock);

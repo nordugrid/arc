@@ -11,7 +11,7 @@ private:
   std::string id;
   
 public:
-  BooleanAttribute() { };
+  BooleanAttribute() : value(false) { };
   BooleanAttribute(const bool& v,const std::string& i = std::string()) : value(v), id(i){ };
   virtual ~BooleanAttribute(){ };
 

@@ -61,7 +61,6 @@ static std::string lcmaps_dir_old;
 
 void set_lcmaps_env(const std::string& lcmaps_db_file,const std::string& lcmaps_dir) {
   lcmaps_global_lock.lock();
-  char* s;
   lcmaps_db_file_old=Arc::GetEnv("LCMAPS_DB_FILE");
   if(lcmaps_db_file.length() != 0) Arc::SetEnv("LCMAPS_DB_FILE",lcmaps_db_file,true);
   lcmaps_dir_old=Arc::GetEnv("LCMAPS_DIR");

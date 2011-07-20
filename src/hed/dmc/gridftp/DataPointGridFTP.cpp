@@ -93,7 +93,6 @@ namespace Arc {
     globus_off_t size = 0;
     globus_abstime_t gl_modify_time;
     time_t modify_time;
-    int modify_utime;
     set_attributes();
     res = globus_ftp_client_size(&ftp_handle, url.str().c_str(), &ftp_opattr,
                                  &size, &ftp_complete_callback, this);
@@ -128,6 +127,7 @@ namespace Arc {
     else if (!condstatus)
       logger.msg(INFO, "check_ftp: failed to get file's modification time");
     else {
+      int modify_utime;
       GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
       SetCreated(modify_time);
       logger.msg(VERBOSE, "check_ftp: obtained creation date: %s", GetCreated().str());
@@ -643,7 +643,6 @@ namespace Arc {
     globus_off_t size = 0;
     globus_abstime_t gl_modify_time;
     time_t modify_time;
-    int modify_utime;
     std::string f_url = url.ConnectionURL() + f.GetName();
     if ((!f.CheckSize()) && (f.GetType() != FileInfo::file_type_dir)) {
       logger.msg(DEBUG, "list_files_ftp: looking for size of %s", f_url);
@@ -698,6 +697,7 @@ namespace Arc {
         result = DataStatus::StatError;
       }
       else {
+        int modify_utime;
         GlobusTimeAbstimeGet(gl_modify_time, modify_time, modify_utime);
         f.SetCreated(modify_time);
       }
@@ -848,7 +848,9 @@ namespace Arc {
       condstatus(DataStatus::Success),
       credential(NULL),
       reading(false),
-      writing(false) {
+      writing(false),
+      ftp_eof_flag(false),
+      check_received_length(0) {
     //globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
     //if (!proxy_initialized)
     //  proxy_initialized = GlobusRecoverProxyOpenSSL();

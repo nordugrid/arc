@@ -126,7 +126,8 @@ namespace DataStaging {
       current_owner(dtr.current_owner),
       logger(dtr.logger),
       log_destinations(dtr.log_destinations),
-      proc_callback(dtr.proc_callback)
+      proc_callback(dtr.proc_callback),
+      lock()
   {
     // set insecure by default. Real value will come from configuration
     source_endpoint->SetSecure(false);

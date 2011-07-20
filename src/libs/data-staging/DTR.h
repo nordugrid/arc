@@ -49,7 +49,7 @@ namespace DataStaging {
     bool transfer_finished;
     /// Constructor. Initialises all values to zero
     TransferParameters() : min_average_bandwidth(0), max_inactivity_time(0), min_current_bandwidth(0),
-                           averaging_time(0), bytes_transferred(0), transfer_finished(false) {};
+                           averaging_time(0), bytes_transferred(0), checksum(NULL), transfer_finished(false) {};
   };
 
   /// The configured cache directories

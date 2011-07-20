@@ -218,7 +218,8 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
   return it;
 }
 
-PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) {
+PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
+    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0) {
    // Client mode
    int err = SSL_ERROR_NONE;
    char gsi_cmd[1] = { '0' };
@@ -293,7 +294,8 @@ error:
    return;
 }
 
-PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC& cfg, Logger& logger):PayloadTLSStream(logger),sslctx_(NULL),config_(cfg) {
+PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC& cfg, Logger& logger):
+    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0) {
    // Server mode
    int err = SSL_ERROR_NONE;
    master_=true;
@@ -364,7 +366,7 @@ error:
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
-  PayloadTLSStream(stream), config_(stream.config_) {
+    PayloadTLSStream(stream), config_(stream.config_), flags_(0) {
    master_=false;
    sslctx_=stream.sslctx_;
    ssl_=stream.ssl_;

@@ -151,7 +151,7 @@ static bool swrite_result(int s,int cmd,int res,int err,const void* add1,int add
   return true;
 }
 
-static bool swrite_result(int s,int cmd,int res,int err,const std::string str) {
+static bool swrite_result(int s,int cmd,int res,int err,const std::string& str) {
   unsigned int l = str.length();
   header_t header;
   header.cmd = cmd;
@@ -166,7 +166,7 @@ static bool swrite_result(int s,int cmd,int res,int err,const std::string str) {
 
 static char filebuf[1024*1024*10];
 
-static bool cleandir(const std::string path,int& err) {
+static bool cleandir(const std::string& path,int& err) {
   errno = 0;
   DIR* dir = opendir(path.c_str());
   if(!dir) { err = errno; return false; };

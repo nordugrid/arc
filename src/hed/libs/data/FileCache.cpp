@@ -974,7 +974,7 @@ namespace Arc {
       }
     }
     int cache_no = 0;
-    if (under_limit.size() > 0) {
+    if (!under_limit.empty()) {
       std::vector<int> utility_cache;
       for ( std::map<int,int> ::iterator cache_it = under_limit.begin(); cache_it != under_limit.end(); cache_it++) {
         // fill the vector with the frequency of cache number according to the cache size. 

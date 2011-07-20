@@ -719,7 +719,6 @@ namespace Arc {
     std::string& guid(((meta_unregister_rls_t*)arg)->guid);
 
     int lrc_offset = 0;
-    int lrc_limit = 0;
     globus_result_t err;
     int errcode;
     char errmsg[MAXERRMSG + 32];
@@ -753,6 +752,7 @@ namespace Arc {
       globus_rls_client_free_list(guids);
     }
     if (all) {
+      int lrc_limit = 0;
       if (!guid.empty())
         err = globus_rls_client_lrc_get_pfn
                 (h, const_cast<char*>(guid.c_str()),
@@ -1215,7 +1215,7 @@ namespace Arc {
     list_files_rls_t arg(*this, files, (verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
     rls_find_lrcs(rlis, lrcs, true, false, usercfg,
                   &list_files_callback, (void*)&arg);
-    if ((files.size() > 0) && (arg.success.Passed())) {
+    if (!files.empty() && arg.success.Passed()) {
       file = files.front();
       // set some metadata
       if (file.CheckSize()) SetSize(file.GetSize());

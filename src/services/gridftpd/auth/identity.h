@@ -13,7 +13,7 @@ class Identity {
    public:
     Item(void);
     virtual ~Item(void);
-    const std::string& type(void) { return type_; };
+    const std::string& type(void) const { return type_; };
     virtual Item* duplicate(void) const;
     virtual const std::string& name(unsigned int n);
     virtual const std::string& value(unsigned int n);

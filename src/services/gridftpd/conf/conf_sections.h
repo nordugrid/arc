@@ -21,18 +21,18 @@ namespace gridftpd {
     ConfigSections(const char* filename);
     ConfigSections(std::istream& f);
     ~ConfigSections(void);
-    operator bool(void) { return ((fin!=NULL) && (*fin)); };
+    operator bool(void) const { return ((fin!=NULL) && (*fin)); };
     bool AddSection(const char* name);
     bool ReadNext(std::string& line);
     bool ReadNext(std::string& name,std::string& value);
-    const char* Section(void) { return current_section.c_str(); };
-    bool SectionNew(void) { return current_section_changed; };
-    int SectionNum(void) { return current_section_n; };
-    const char* SectionMatch(void) {
+    const char* Section(void) const { return current_section.c_str(); };
+    bool SectionNew(void) const { return current_section_changed; };
+    int SectionNum(void) const { return current_section_n; };
+    const char* SectionMatch(void) const {
       if(current_section_n<0) return "";
       return current_section_p->c_str();
     };
-    const char* SubSection(void) {
+    const char* SubSection(void) const {
       if(current_section_n<0) return "";
       if(current_section.length() > current_section_p->length())
         return (current_section.c_str()+current_section_p->length()+1);

@@ -44,7 +44,8 @@ namespace Arc {
     : DataPointDirect(url, usercfg),
       reading(false),
       writing(false),
-      is_channel(false) {
+      is_channel(false),
+      channel_num(0) {
     fd = -1;
     fa = NULL;
     if (url.Protocol() == "file") {

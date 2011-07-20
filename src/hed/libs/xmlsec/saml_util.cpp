@@ -131,7 +131,7 @@ namespace Arc {
   }
 
   //bool VerifyQuery(const std::string query, const xmlSecKey *sender_public_key) {
-  bool VerifyQuery(const std::string query, const std::string& sender_cert_str) {
+  bool VerifyQuery(const std::string& query, const std::string& sender_cert_str) {
 
     xmlSecKey* sender_public_key = NULL;
     sender_public_key =  get_key_from_certstr(sender_cert_str);
@@ -262,9 +262,7 @@ namespace Arc {
   }
 
   std::string Base64Encode(const std::string& data) {
-    unsigned long len;
     xmlChar *b64_out = NULL;
-    len = data.length();
     b64_out = xmlSecBase64Encode((xmlChar*)(data.c_str()), data.length(), 0);
     std::string ret;
     if(b64_out != NULL) {
@@ -398,7 +396,7 @@ namespace Arc {
     return false;
   }
 
-  bool BuildNodefromMsg(const std::string msg, XMLNode& node) {
+  bool BuildNodefromMsg(const std::string& msg, XMLNode& node) {
     bool b64 = false;
     char* str = (char*)(msg.c_str());
     if (is_base64(msg.c_str())) {   

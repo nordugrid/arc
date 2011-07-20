@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 
     try {
         std::list<std::string> params = options.Parse(argc, argv);
-        if (params.size() == 0) {
+        if (params.empty()) {
             /* Load and parse config file */
             init_config(options);
 

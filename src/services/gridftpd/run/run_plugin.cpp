@@ -59,7 +59,7 @@ namespace gridftpd {
       args_.push_back(std::string(*arg));
     };
     free_args(args);
-    if(args_.size() == 0) return;
+    if(args_.empty()) return;
     std::string& exc = *(args_.begin());
     if(exc[0] == '/') return;
     std::string::size_type n = exc.find('@');
@@ -76,7 +76,7 @@ namespace gridftpd {
     for(char const * const * arg = args;*arg;arg++) {
       args_.push_back(std::string(*arg));
     };
-    if(args_.size() == 0) return;
+    if(args_.empty()) return;
     std::string& exc = *(args_.begin());
     if(exc[0] == '/') return;
     std::string::size_type n = exc.find('@');
@@ -88,7 +88,7 @@ namespace gridftpd {
   }
 
   bool RunPlugin::run(void) {
-    if(args_.size() == 0) return true;
+    if(args_.empty()) return true;
     char** args = (char**)malloc(sizeof(char*)*(args_.size()+1));
     if(args == NULL) return false;
     int n = 0;
@@ -151,7 +151,7 @@ namespace gridftpd {
   bool RunPlugin::run(substitute_t subst,void* arg) {
     result_=0; stdout_=""; stderr_="";
     if(subst == NULL) return run();
-    if(args_.size() == 0) return true;
+    if(args_.empty()) return true;
     char** args = (char**)malloc(sizeof(char*)*(args_.size()+1));
     if(args == NULL) return false;
     std::list<std::string> args__;

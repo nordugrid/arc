@@ -92,7 +92,7 @@ class TransferShares {
     /// Copy constructor must be defined because SimpleCondition cannot be copied
     TransferShares(const TransferShares& shares);
     /// Assignment operator must be defined because SimpleCondition cannot be copied
-    TransferShares operator=(const TransferShares& shares);
+    TransferShares& operator=(const TransferShares& shares);
 
     /// Get the name of the share the DTR should be assigned to
     std::string extract_share_info(const DTR& DTRToExtract);

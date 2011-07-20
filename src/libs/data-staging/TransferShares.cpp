@@ -22,7 +22,7 @@ namespace DataStaging {
     ActiveSharesSlots(shares.ActiveSharesSlots)
   {}
 
-  TransferShares TransferShares::operator=(const TransferShares& shares) {
+  TransferShares& TransferShares::operator=(const TransferShares& shares) {
     //SharesLock = Arc::SimpleCondition();
     shareType = shares.shareType;
     ReferenceShares = shares.ReferenceShares;

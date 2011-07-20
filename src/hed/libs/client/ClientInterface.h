@@ -102,7 +102,7 @@ namespace Arc {
     : public ClientTCP {
   public:
     ClientHTTP()
-      : http_entry(NULL) {}
+      : http_entry(NULL), relative_uri(false), sec(NoSec) {}
     ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout = -1, const std::string& proxy_host = "", int proxy_port = 0);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,

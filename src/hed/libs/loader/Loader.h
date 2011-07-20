@@ -23,7 +23,7 @@ namespace Arc {
     PluginsFactory *factory_;
 
    public:
-    Loader() {};
+    Loader() : factory_(NULL) {};
     /** Constructor that takes whole XML configuration and performs
        common configuration part */
     Loader(XMLNode cfg);

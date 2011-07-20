@@ -49,7 +49,7 @@ class UnixMap {
   bool mapname(const char* line);
   bool mapgroup(const char* line);
   bool mapvo(const char* line);
-  bool unmap(void);
+  bool unmap(void) const;
 };
 
 #endif // __GM_UNIXMAP_H__

@@ -27,6 +27,7 @@ int main(int argc,char* argv[]) {
   eval = eval_loader.getEvaluator(evaluator);
   if(!eval) {
     std::cerr<<"Failed to create policy evaluator"<<std::endl;
+    return -1;
   };
   eval->addPolicy(SourceFile(argv[1]));
   Response *resp = eval->evaluate(SourceFile(argv[2]));

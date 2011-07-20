@@ -33,7 +33,6 @@ int AuthUser::match_voms(const char* line) {
   std::string role("");
   std::string capabilities("");
   std::string auto_c("");
-  bool auto_cert = false;
   int n;
   n=gridftpd::input_escaped_string(line,vo,' ','"');
   if(n == 0) {
@@ -59,9 +58,6 @@ int AuthUser::match_voms(const char* line) {
     return AAA_FAILURE;
   };
   n=gridftpd::input_escaped_string(line,auto_c,' ','"');
-  if(n != 0) {
-    if(auto_c == "auto") auto_cert=true;
-  };
   logger.msg(Arc::VERBOSE, "Rule: vo: %s", vo);
   logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
   logger.msg(Arc::VERBOSE, "Rule: role: %s", role);
@@ -69,7 +65,7 @@ int AuthUser::match_voms(const char* line) {
   // extract info from voms proxy
   // if(voms_data->size() == 0) {
   process_voms();
-  if(voms_data.size() == 0) return AAA_NO_MATCH;
+  if(voms_data.empty()) return AAA_NO_MATCH;
   // analyse permissions
   for(std::vector<struct voms>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
     logger.msg(Arc::DEBUG, "Match vo: %s", v->voname);

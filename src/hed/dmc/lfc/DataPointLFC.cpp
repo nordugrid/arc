@@ -161,7 +161,7 @@ namespace Arc {
       if(r == DataStatus::ListError) r = DataStatus::CheckError;
       return r;
     }
-    if(files.size() == 0) return DataStatus::CheckError;
+    if(files.empty()) return DataStatus::CheckError;
     return DataStatus::Success;
   }
 

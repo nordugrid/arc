@@ -245,7 +245,7 @@ namespace Arc {
     AC_ATTR *capabilities = NULL;
     AC_IETFATTR *capnames = NULL;
     AC_FULL_ATTRIBUTES *ac_full_attrs = NULL;
-    ASN1_OBJECT *cobj = NULL, *aobj = NULL;
+    ASN1_OBJECT *cobj = NULL;
     X509_ALGOR *alg1, *alg2;
     ASN1_GENERALIZEDTIME *time1 = NULL, *time2 = NULL;
     X509_EXTENSION *norevavail = NULL, *targetsext = NULL, *auth = NULL, *certstack = NULL;
@@ -275,7 +275,6 @@ namespace Arc {
     version         = BN_to_ASN1_INTEGER((BIGNUM *)(BN_value_one()), NULL);
     capabilities    = AC_ATTR_new();
     cobj            = OBJ_txt2obj("idatcap",0);
-    aobj            = OBJ_txt2obj("attributes",0);
     capnames        = AC_IETFATTR_new();
     ac_full_attrs   = AC_FULL_ATTRIBUTES_new();
     ac_att_holder   = AC_ATT_HOLDER_new();

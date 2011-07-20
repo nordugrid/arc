@@ -249,7 +249,6 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::string& j
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
-  int jobnr = 1;
   std::list<std::string> jobids;
   std::list<Arc::Job> submittedJobs;
   std::map<int, std::string> notsubmitted;

@@ -19,9 +19,9 @@ namespace ISIS {
             std::vector<std::string> content;
         public:
             Neighbor_Container() {}
-            std::vector<std::string>::iterator find_element(const std::string);
-            bool contains(const std::string);
-            void push(const std::string);
+            std::vector<std::string>::iterator find_element(const std::string&);
+            bool contains(const std::string&);
+            void push(const std::string&);
             void remove(std::string);
             int count();
     };

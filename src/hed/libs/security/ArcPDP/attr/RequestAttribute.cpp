@@ -65,7 +65,7 @@ std::string RequestAttribute::getAttributeId () const{
   return id;
 }
 
-void RequestAttribute::setAttributeId (const std::string attributeId){
+void RequestAttribute::setAttributeId (const std::string& attributeId){
   id = attributeId;
 }
 
@@ -73,7 +73,7 @@ std::string RequestAttribute::getDataType () const{
   return type;
 }
 
-void RequestAttribute::setDataType (const std::string dataType){
+void RequestAttribute::setDataType (const std::string& dataType){
   type = dataType;
 }
 
@@ -81,7 +81,7 @@ std::string RequestAttribute::getIssuer () const{
   return issuer;
 }
 
-void RequestAttribute::setIssuer (const std::string is){
+void RequestAttribute::setIssuer (const std::string& is){
   issuer = is;
 }
 

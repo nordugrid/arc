@@ -63,7 +63,7 @@ ClientsTest::testARCwsrf()
   std::string url("http://arc-emi.grid.upjs.sk:60000/isis");
 
   char urlv[url.size()];
-  for (int i=0;i<=url.size();i++){
+  for (int i=0;i<url.size();i++){
     urlv[i]=url[i];
   }
 

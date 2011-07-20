@@ -703,10 +703,11 @@ namespace Arc {
     else { CredentialLogger.msg(INFO, "Certificate verification failed"); LogError(); return false;}
   }
 
-  Credential::Credential() : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+  Credential::Credential() : verification_valid(false), cert_(NULL), pkey_(NULL),
+        cert_chain_(NULL), proxy_cert_info_(NULL), format(CRED_UNKNOWN),
         start_(Time()), lifetime_(Period("PT12H")),
         req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
-        extensions_(NULL) {
+        proxyver_(0), pathlength_(0), extensions_(NULL) {
 
     OpenSSLInit();
     //EVP_add_digest(EVP_sha1());
@@ -719,7 +720,8 @@ namespace Arc {
     if(!proxy_init_) InitProxyCertInfo();
   }
 
-  Credential::Credential(const int keybits) : cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+  Credential::Credential(const int keybits) : cert_(NULL),
+    pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits),
     extensions_(NULL) {
@@ -967,6 +969,8 @@ namespace Arc {
     rsa_key_ = NULL;
     signing_alg_ = (EVP_MD*)EVP_sha1();
     keybits_ = 1024;
+    proxyver_ = 0;
+    pathlength_ = 0;
     extensions_ = NULL;
 
     OpenSSLInit();
@@ -2318,9 +2322,11 @@ err:
 
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
        const std::string& CAserial, const std::string& extfile,
-       const std::string& extsect, const std::string& passphrase4key) : certfile_(CAcertfile), keyfile_(CAkeyfile),
+       const std::string& extsect, const std::string& passphrase4key) :
+       verification_valid(false), certfile_(CAcertfile), keyfile_(CAkeyfile),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
-       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024), extensions_(NULL),
+       req_(NULL), rsa_key_(NULL), signing_alg_((EVP_MD*)EVP_sha1()), keybits_(1024),
+       proxyver_(0), pathlength_(0), extensions_(NULL),
        CAserial_(CAserial), extfile_(extfile), extsect_(extsect) {
     OpenSSLInit();
 
@@ -2463,10 +2469,8 @@ err:
 #undef POSTFIX
 #define POSTFIX ".srl"
   static ASN1_INTEGER *x509_load_serial(const std::string& CAfile, const std::string& serialfile) {
-    char *buf = NULL, *p;
     ASN1_INTEGER *bs = NULL;
     BIGNUM *serial = NULL;
-    size_t len;
 
     std::string serial_f;
     if(!serialfile.empty()) serial_f = serialfile;

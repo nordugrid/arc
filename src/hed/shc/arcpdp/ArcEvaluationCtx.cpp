@@ -20,7 +20,6 @@ ArcRequestTuple::ArcRequestTuple() : RequestTuple() {
 
 RequestTuple* ArcRequestTuple::duplicate(const RequestTuple* req_tpl) {  
   XMLNode root = tuple;
-  int n;
   //ArcRequestTuple* tpl = dynamic_cast<ArcRequestTuple*>(req_tpl);
 
   //Reconstruct the XMLNode by using the information inside req_tpl
@@ -31,7 +30,6 @@ RequestTuple* ArcRequestTuple::duplicate(const RequestTuple* req_tpl) {
   XMLNode subject;
   if(!req_sub.empty())
     subject = root.NewChild("ra:Subject");
-  n = req_sub.size();
   for(sit = req_sub.begin(); sit != req_sub.end(); sit++){
     //Record the object of the Attribute
     RequestAttribute* attr = new RequestAttribute;
@@ -58,7 +56,6 @@ RequestTuple* ArcRequestTuple::duplicate(const RequestTuple* req_tpl) {
   XMLNode resource;
   if(!req_res.empty())
     resource = root.NewChild("ra:Resource");
-  n = req_res.size();
   for(rit = req_res.begin(); rit != req_res.end(); rit++){
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*rit));
@@ -78,7 +75,6 @@ RequestTuple* ArcRequestTuple::duplicate(const RequestTuple* req_tpl) {
   XMLNode action;
   if(!req_act.empty())
     action = root.NewChild("ra:Action");
-  n = req_act.size();
   for(ait = req_act.begin(); ait != req_act.end(); ait++){
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*ait));
@@ -98,7 +94,6 @@ RequestTuple* ArcRequestTuple::duplicate(const RequestTuple* req_tpl) {
   XMLNode context;
   if(!req_ctx.empty())
     context = root.NewChild("ra:Context");
-  n = req_ctx.size();
   for(cit = req_ctx.begin(); cit != req_ctx.end(); cit++){
     RequestAttribute* attr = new RequestAttribute;
     attr->duplicate(*(*cit));

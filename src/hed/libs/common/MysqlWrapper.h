@@ -29,8 +29,8 @@ namespace Arc {
 
     virtual void close();
 
-    virtual bool enable_ssl(const std::string keyfile = "", const std::string certfile = "",
-                            const std::string cafile = "", const std::string capath = "");
+    virtual bool enable_ssl(const std::string& keyfile = "", const std::string& certfile = "",
+                            const std::string& cafile = "", const std::string& capath = "");
 
     virtual bool shutdown();
 
@@ -41,7 +41,6 @@ namespace Arc {
     std::string dbname_;
     std::string user_;
     std::string password_;
-    bool secured; //whether ssl is used
 
     MYSQL *mysql;
   };

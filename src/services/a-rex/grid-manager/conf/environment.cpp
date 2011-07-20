@@ -28,9 +28,9 @@ class prstring {
   prstring(void);
   prstring(const char*);
   prstring(const prstring&);
-  void operator=(const char*);
-  void operator=(const std::string&);
-  void operator=(const prstring&);
+  prstring& operator=(const char*);
+  prstring& operator=(const std::string&);
+  prstring& operator=(const prstring&);
   void operator+=(const char*);
   void operator+=(const std::string&);
   std::string operator+(const char*) const;
@@ -46,26 +46,29 @@ std::string operator+(const std::string&,const prstring&);
 prstring::prstring(void) {
 }
 
-prstring::prstring(const char* val):val_(val) {
+prstring::prstring(const char* val):lock_(), val_(val) {
 }
 
-prstring::prstring(const prstring& val):val_(val.str()) {
+prstring::prstring(const prstring& val):lock_(), val_(val.str()) {
 }
 
-void prstring::operator=(const char* val) {
+prstring& prstring::operator=(const char* val) {
   Glib::Mutex::Lock lock(lock_);
   val_=val;
+  return *this;
 }
 
-void prstring::operator=(const std::string& val) {
+prstring& prstring::operator=(const std::string& val) {
   Glib::Mutex::Lock lock(lock_);
   val_=val;
+  return *this;
 }
 
-void prstring::operator=(const prstring& val) {
-  if(&val == this) return;
+prstring& prstring::operator=(const prstring& val) {
+  if(&val == this) return *this;
   Glib::Mutex::Lock lock(lock_);
   val_=val.str();
+  return *this;
 }
 
 void prstring::operator+=(const char* val) {

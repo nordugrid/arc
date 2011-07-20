@@ -88,9 +88,9 @@ namespace Arc {
     Pid(void):p_(0) { }; 
     Pid(Glib::Pid p):p_(p) { }; 
     ~Pid(void) { if(p_) Glib::spawn_close_pid(p_); };
-    operator Glib::Pid(void) { return p_; };
-    Glib::Pid pid(void) { return p_; };
-    Glib::Pid operator=(Glib::Pid p) { return (p_=p); };
+    operator Glib::Pid(void) const { return p_; };
+    Glib::Pid pid(void) const { return p_; };
+    Glib::Pid& operator=(const Glib::Pid& p) { return (p_=p); };
   };
 
   class RunInitializerArgument {
@@ -302,6 +302,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
+      kicker_arg_(NULL),
       started_(false),
       running_(false),
       abandoned_(false),
@@ -327,6 +328,7 @@ std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
       initializer_func_(NULL),
       initializer_arg_(NULL),
       kicker_func_(NULL),
+      kicker_arg_(NULL),
       started_(false),
       running_(false),
       abandoned_(false),

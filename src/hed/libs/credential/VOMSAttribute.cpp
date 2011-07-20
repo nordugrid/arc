@@ -1051,7 +1051,6 @@ void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
   char *list = strdup(data);
   AC_TARGETS *a = AC_TARGETS_new();
 
-  int attlist;
   do {
     pos = strchr(list, ',');
     if (pos)
@@ -1072,7 +1071,6 @@ void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
       g->d.ia5 = tmpr;
       targ->name = g;
       sk_AC_TARGET_push(a->targets, targ);
-      attlist++;
     }
     if (pos)
       list = pos++;

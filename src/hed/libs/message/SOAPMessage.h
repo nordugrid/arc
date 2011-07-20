@@ -28,7 +28,7 @@ class SOAPMessage {
   SOAPMessage& operator=(SOAPMessage& msg);
  public:
   /** Dummy constructor */
-  SOAPMessage(void):payload_(NULL),auth_(NULL),attributes_(NULL) { };
+  SOAPMessage(void):payload_(NULL),auth_(NULL),attributes_(NULL),context_(NULL) { };
   /** Copy constructor. Used by language bindigs */
   SOAPMessage(long msg_ptr_addr);
   /** Copy constructor. Ensures shallow copy. */

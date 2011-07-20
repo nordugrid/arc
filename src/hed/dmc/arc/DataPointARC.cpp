@@ -54,7 +54,7 @@ namespace Arc {
     try{
       status = client.process(&request, &response);
     }
-    catch(std::exception e){
+    catch(std::exception& e){
       logger.msg(WARNING, bartender_url.Path(), "did not work");
     }
 

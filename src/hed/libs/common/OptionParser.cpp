@@ -244,7 +244,7 @@ namespace Arc {
 
     try {
       ctx.parse(argc, argv);
-    } catch (Glib::OptionError err) {
+    } catch (Glib::OptionError& err) {
       std::cout << err.what() << std::endl;
       exit(1);
     }

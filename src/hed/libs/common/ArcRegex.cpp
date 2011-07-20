@@ -23,7 +23,7 @@ namespace Arc {
     regfree(&preg);
   }
 
-  const RegularExpression& RegularExpression::operator=(const RegularExpression& regex) {
+  RegularExpression& RegularExpression::operator=(const RegularExpression& regex) {
     regfree(&preg);
     pattern = regex.pattern;
     status = regcomp(&preg, pattern.c_str(), 0);
@@ -41,7 +41,7 @@ namespace Arc {
   bool RegularExpression::match(const std::string& str) const {
     std::list<std::string> unmatched;
     std::list<std::string> matched;
-    return match(str, unmatched, matched) && (unmatched.size() == 0);
+    return match(str, unmatched, matched) && (unmatched.empty());
   }
 
   bool RegularExpression::match(const std::string& str, std::list<std::string>& unmatched, std::list<std::string>& matched) const {

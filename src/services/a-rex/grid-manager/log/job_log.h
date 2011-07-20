@@ -36,7 +36,7 @@ class JobLog {
   bool finish_info(JobDescription &job,const JobUser &user);
   /* read information stored by start_info and finish_info */
   static bool read_info(std::fstream &i,bool &processed,bool &jobstart,struct tm &t,JobId &jobid,JobLocalDescription &job_desc,std::string &failure);
-  bool is_reporting(void) { return (urls.size() > 0); };
+  bool is_reporting(void) { return (!urls.empty()); };
   /* Run external utility to report gathered information to logger service */
   bool RunReporter(JobUsers& users);
   /* Set url of service and local name to use */

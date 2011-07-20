@@ -22,23 +22,23 @@ class userspec_t {
   UnixMap default_map;
  public:
   bool  gridmap;
-  void free(void);
+  void free(void) const;
   userspec_t(void);
   ~userspec_t(void);
   // Initial setup
   bool fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle);
   bool fill(AuthUser& user);
-  int get_uid(void) { return uid; };
-  int get_gid(void) { return gid; };
+  int get_uid(void) const { return uid; };
+  int get_gid(void) const { return gid; };
   const char* get_uname(void);
   const char* get_gname(void);
-  short unsigned int get_port(void) { return port; };
-  int* get_host(void) { return host; };
-  AuthUser& get_user(void) { return user; };
+  short unsigned int get_port(void) const { return port; };
+  const int* get_host(void) const { return host; };
+  const AuthUser& get_user(void) const { return user; };
   bool mapname(const char* line);
   bool mapgroup(const char* line);
   bool mapvo(const char* line);
-  bool mapped(void) { return (bool)map; };
+  bool mapped(void) const { return (bool)map; };
 };
 
 std::string subst_user_spec(std::string &in,userspec_t *spec);

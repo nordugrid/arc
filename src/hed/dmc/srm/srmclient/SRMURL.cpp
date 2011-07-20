@@ -29,7 +29,7 @@
       path = "/srm/managerv2";
       isshort=true;
     }
-  } catch (std::exception e) {
+  } catch (std::exception& e) {
     valid=false;
   }  
   

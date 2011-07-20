@@ -54,7 +54,7 @@ void PayloadTLSStream::ClearError(void) {
   }
 }
 
-PayloadTLSStream::PayloadTLSStream(Logger& logger,SSL* ssl):ssl_(ssl),logger_(logger) {
+PayloadTLSStream::PayloadTLSStream(Logger& logger,SSL* ssl):timeout_(0),ssl_(ssl),logger_(logger) {
   //initialize something
   return;
 }

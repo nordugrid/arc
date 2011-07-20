@@ -14,7 +14,7 @@ namespace DREService
 	Arc::Logger  Task::logger(Arc::Logger::rootLogger, "Task");
 
 
-	Task::Task(int taskID, Arc::Message* pRequest, Arc::Message* pResponse){
+	Task::Task(int taskID, Arc::Message* pRequest, Arc::Message* pResponse): bla(0) {
 		this->taskID    = taskID;
 		this->pRequest  = pRequest;
 		this->pResponse = pResponse;

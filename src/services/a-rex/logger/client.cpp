@@ -23,18 +23,6 @@ bool LoggerClient::Initialized(void) {
   return (client != NULL);
 }
 
-bool LoggerClient::SameContact(const char* url_) {
-  if(!url) return false;
-  try {
-    Arc::URL u(url_);
-    return((u.Protocol() == url.Protocol()) && 
-           (u.Host() == url.Host()) && 
-           (u.Port() == url.Port()));
-  } catch (std::exception e) {
-    return false;
-  };
-}
-
 bool LoggerClient::NewURL(const char* url_) {
   if(url_ == NULL) return false;
   try {
@@ -51,7 +39,7 @@ bool LoggerClient::NewURL(const char* url_) {
     } else { // initialize for first connection
       url=Arc::URL(url_); if(client) delete client; client=NULL;
     };
-  } catch (std::exception e) {
+  } catch (std::exception& e) {
     if(client) delete client; client=NULL;
     return false;
   };

@@ -434,12 +434,15 @@ namespace Arc {
 
   Lister::Lister(GSSCredential& credential)
     : inited(false),
+      facts(true),
       handle(NULL),
       resp_n(0),
       callback_status(CALLBACK_NOTREADY),
+      data_callback_status(CALLBACK_NOTREADY),
       connected(false),
       pasv_set(false),
       data_activated(false),
+      free_format(false),
       port((unsigned short int)(-1)),
       credential(credential) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {

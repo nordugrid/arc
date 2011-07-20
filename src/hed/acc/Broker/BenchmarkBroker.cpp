@@ -17,7 +17,7 @@ namespace Arc {
 
   class cmp {
   public:
-    cmp(const std::string benchmark)
+    cmp(const std::string& benchmark)
       : benchmark(benchmark) {}
     bool ComparePerformance(const ExecutionTarget *T1,
                             const ExecutionTarget *T2);

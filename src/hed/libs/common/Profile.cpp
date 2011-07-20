@@ -158,7 +158,7 @@ namespace Arc {
   static void MapMultiElement(XMLNode node,
                               XMLNodeList& parentNodes,
                               const std::string& thisSectionName,
-                              const std::string thisTagName,
+                              const std::string& thisTagName,
                               IniConfig iniNode) {
     for (int i = 0; node.Child(i); i++) {
       if (!isenabled(node.Child(i), iniNode)) {

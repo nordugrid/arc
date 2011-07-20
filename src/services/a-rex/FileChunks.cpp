@@ -23,10 +23,14 @@ void FileChunks::Size(off_t size) {
   lock.unlock();
 }
 
-FileChunks::FileChunks(FileChunksList& container):list(container),self(container.files.end()),size(0),last_accessed(time(NULL)),refcount(0) {
+FileChunks::FileChunks(FileChunksList& container):
+    list(container),self(container.files.end()),size(0),
+    last_accessed(time(NULL)),refcount(0) {
 }
 
-FileChunks::FileChunks(const FileChunks& obj):list(obj.list),self(obj.list.files.end()),size(0),last_accessed(time(NULL)),refcount(0) {
+FileChunks::FileChunks(const FileChunks& obj):
+    lock(),list(obj.list),self(obj.list.files.end()),chunks(obj.chunks),
+    size(0),last_accessed(time(NULL)),refcount(0) {
 }
 
 FileChunks* FileChunksList::GetStuck(void) {
@@ -158,7 +162,7 @@ bool FileChunks::Complete(void) {
   return r;
 }
 
-FileChunksList::FileChunksList(void) {
+FileChunksList::FileChunksList(void):timeout(0) {
 }
 
 FileChunksList::~FileChunksList(void) {

@@ -230,7 +230,7 @@ namespace Arc {
     /**
      * Default constructor. Invalid cache.
      */
-    FileCache() {
+    FileCache() : _max_used(0), _min_used(0) {
       _caches.clear();
     }
 
@@ -371,7 +371,7 @@ namespace Arc {
      * Returns true if object is useable.
      */
     operator bool() {
-      return (_caches.size() != 0);
+      return (!_caches.empty());
     };
     /**
      * Return true if all attributes are equal

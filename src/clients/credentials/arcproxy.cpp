@@ -91,8 +91,8 @@ static void tls_process_error(Arc::Logger& logger) {
 
 #define PASS_MIN_LENGTH 6
 static int input_password(char *password, int passwdsz, bool verify,
-                          const std::string prompt_info,
-                          const std::string prompt_verify_info,
+                          const std::string& prompt_info,
+                          const std::string& prompt_verify_info,
                           Arc::Logger& logger) {
   UI *ui = NULL;
   int res = 0;
@@ -348,7 +348,7 @@ int main(int argc, char *argv[]) {
   Arc::User user;
 
   try {
-    if (params.size() != 0)
+    if (!params.empty())
       throw std::invalid_argument("Wrong number of arguments!");
 
     // TODO: Conver to UserConfig. But only after UserConfig is extended.

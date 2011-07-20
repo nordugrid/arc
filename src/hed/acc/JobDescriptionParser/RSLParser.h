@@ -212,7 +212,7 @@ namespace Arc {
 
   class RSLParser {
   public:
-    RSLParser(const std::string s);
+    RSLParser(const std::string& s);
     ~RSLParser();
     // The Parse method returns a pointer to an RSL object containing a
     // parsed representation of the rsl string given to the constructor.

@@ -154,7 +154,7 @@ namespace Arc {
      * @param url URL pointing to the information system of the computing service.
      *
      **/
-    bool AddService(const std::string Flavour, const URL& url);
+    bool AddService(const std::string& Flavour, const URL& url);
 
     /// Add a new index server to the foundIndexServers list
     /**
@@ -168,7 +168,7 @@ namespace Arc {
      * @param url URL pointing to the index server.
      *
      **/
-    bool AddIndexServer(const std::string Flavour, const URL& url);
+    bool AddIndexServer(const std::string& Flavour, const URL& url);
 
     /// Add a new ExecutionTarget to the foundTargets list
     /**

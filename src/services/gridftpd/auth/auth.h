@@ -79,7 +79,7 @@ class AuthUser {
   // filename - file with (delegated) credentials
   AuthUser(const char* subject = NULL,const char* filename = NULL);
   ~AuthUser(void);
-  void operator=(const AuthUser&);
+  AuthUser& operator=(const AuthUser&);
   // Reassign user with supplied credentials
   //void operator=(gss_cred_id_t cred);
   //void operator=(gss_ctx_id_t ctx);
@@ -129,7 +129,7 @@ class AuthUser {
   const char* default_group(void) const { return default_group_; };
   const char* default_subject(void) const { return subject.c_str(); };
   const std::vector<struct voms>& voms(void);
-  const std::list<std::string>& VOs(void);
+  const std::list<std::string>& VOs(void) const;
   // convert ARC list into voms structure
   static struct voms arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes);
   /*
@@ -139,7 +139,7 @@ class AuthUser {
    *
    * Not used in gridftpd
    */
-  const std::string get_property(const std::string /* property */) {
+  const std::string get_property(const std::string /* property */) const {
     return std::string("");
   };
 };
@@ -155,8 +155,8 @@ class AuthEvaluator {
   void add(const char*);
   int evaluate(AuthUser &) const;
   bool operator==(const char* s) { return (strcmp(name.c_str(),s)==0); };
-  bool operator==(const std::string& s) { return (name == s); };
-  const char* get_name() { return name.c_str(); };
+  bool operator==(const std::string& s) const { return (name == s); };
+  const char* get_name() const { return name.c_str(); };
 };
 
 void AuthUserSubst(std::string& str,AuthUser& it);

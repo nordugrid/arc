@@ -31,8 +31,8 @@ namespace gridftpd {
     RunPlugin(void):timeout_(10),result_(0) { };
     RunPlugin(const std::string& cmd):timeout_(10),result_(0) { set(cmd); };
     RunPlugin(char const * const * args):timeout_(10),result_(0) { set(args); };
-    void operator=(const std::string& cmd) { set(cmd); };
-    void operator=(char const * const * args) { set(args); };
+    RunPlugin& operator=(const std::string& cmd) { set(cmd); return *this; };
+    RunPlugin& operator=(char const * const * args) { set(args); return *this; };
     bool run(void);
     bool run(substitute_t subst,void* arg);
     int result(void) const { return result_; };
@@ -40,7 +40,7 @@ namespace gridftpd {
     void stdin_channel(const std::string& s) { stdin_=s; };
     const std::string& stdout_channel(void) const { return stdout_; };
     const std::string& stderr_channel(void) const { return stderr_; };
-    operator bool(void) const { return (args_.size() > 0); };
+    operator bool(void) const { return !args_.empty(); };
   };
 
 

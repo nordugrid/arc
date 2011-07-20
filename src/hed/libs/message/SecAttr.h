@@ -17,8 +17,8 @@ namespace Arc {
    public:
     inline SecAttrFormat(const SecAttrFormat& format):format_(format.format_) {};
     inline SecAttrFormat(const char* format = ""):format_(format) {};
-    inline SecAttrFormat operator=(SecAttrFormat format) { format_=format.format_; return *this; };
-    inline SecAttrFormat operator=(const char* format) { format_=format; return *this; };
+    inline SecAttrFormat& operator=(SecAttrFormat format) { format_=format.format_; return *this; };
+    inline SecAttrFormat& operator=(const char* format) { format_=format; return *this; };
     inline bool operator==(SecAttrFormat format) { return (strcmp(format_,format.format_) == 0); };
     inline bool operator==(const char* format) { return (strcmp(format_,format) == 0); };
     inline bool operator!=(SecAttrFormat format) { return (strcmp(format_,format.format_) != 0); };

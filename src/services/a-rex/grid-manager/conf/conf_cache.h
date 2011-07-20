@@ -81,12 +81,12 @@ class CacheConfig {
   void setCacheDirs(std::vector<std::string> cache_dirs) { _cache_dirs = cache_dirs; };
   void setRemoteCacheDirs(std::vector<std::string> remote_cache_dirs) { _remote_cache_dirs = remote_cache_dirs; };
   void setDrainingCacheDirs(std::vector<std::string> draining_cache_dirs) { _draining_cache_dirs = draining_cache_dirs; }; 
-  int getCacheMax() { return _cache_max; };
-  int getCacheMin() { return _cache_min; };
-  bool cleanCache() { return (_cache_max > 0 && _cache_max < 100); };
-  std::string getLogFile() { return _log_file; };
-  std::string getLogLevel() { return _log_level; };
-  std::string getLifeTime() { return _lifetime; };
+  int getCacheMax() const { return _cache_max; };
+  int getCacheMin() const { return _cache_min; };
+  bool cleanCache() const { return (_cache_max > 0 && _cache_max < 100); };
+  std::string getLogFile() const { return _log_file; };
+  std::string getLogLevel() const { return _log_level; };
+  std::string getLifeTime() const { return _lifetime; };
 };
 
 #endif /*__GM_CONFIG_CACHE_H__*/

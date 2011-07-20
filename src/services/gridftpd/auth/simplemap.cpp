@@ -40,8 +40,8 @@ class FileLock {
     l_.l_type=F_UNLCK;
     fcntl(h_,F_SETLKW,&l_);
   };
-  operator bool(void) { return (h_ != -1); };
-  bool operator!(void) { return (h_ == -1); };
+  operator bool(void) const { return (h_ != -1); };
+  bool operator!(void) const { return (h_ == -1); };
 };
 
 SimpleMap::SimpleMap(const char* dir):dir_(dir) {
@@ -97,7 +97,7 @@ std::string SimpleMap::map(const char* subject) {
       names.push_back(buf);
     };
   };
-  if(!names.size()) failure("pool is empty");
+  if(names.empty()) failure("pool is empty");
   // Remove all used names from list. Also find oldest maping.
   time_t oldmap_time = 0;
   std::string oldmap_name;
@@ -144,7 +144,7 @@ std::string SimpleMap::map(const char* subject) {
     };
     closedir(dir);
   };
-  if(names.size()) {
+  if(!names.empty()) {
     // Claim one of unused names
     std::ofstream f(filename.c_str());
     if(!f.is_open()) failure("can't create mapping file");

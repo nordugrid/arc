@@ -11,7 +11,7 @@ namespace Arc {
 PayloadWSRF::PayloadWSRF(const SOAPMessage& soap):wsrf_(CreateWSRF(soap)) {
 }
 
-PayloadWSRF::PayloadWSRF(WSRF& wsrf):wsrf_(wsrf) {
+PayloadWSRF::PayloadWSRF(WSRF& wsrf):wsrf_(wsrf), owner_(false) {
 }
 
 PayloadWSRF::~PayloadWSRF(void) {

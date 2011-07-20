@@ -19,11 +19,11 @@ Entry::Entry(const std::list<std::string>& query) : port(-1),
       port = atoi(it->substr(18).c_str());
     if(it->substr(0, 25) == "Mds-Service-Ldap-suffix: ")
       suffix = it->substr(25);
-    if(it->substr(0, 28) == "Mds-Service-Ldap-cachettl: ")
+    if(it->substr(0, 27) == "Mds-Service-Ldap-cachettl: ")
       cachetime = atoi(it->substr(28).c_str());
-    if(it->substr(0, 27) == "Mds-Service-Ldap-timeout: ")
+    if(it->substr(0, 26) == "Mds-Service-Ldap-timeout: ")
       timelimit = atoi(it->substr(27).c_str());
-    if(it->substr(0, 29) == "Mds-Service-Ldap-sizelimit: ")
+    if(it->substr(0, 28) == "Mds-Service-Ldap-sizelimit: ")
       sizelimit = atoi(it->substr(29).c_str());
     if(it->substr(0, 15) == "Mds-validfrom: ")
       validfrom = it->substr(15);

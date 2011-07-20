@@ -20,7 +20,7 @@ namespace Arc {
   class ClientHTTPwithSAML2SSO {
   public:
     /** Constructor creates MCC chain and connects to server. */
-    ClientHTTPwithSAML2SSO() {}
+    ClientHTTPwithSAML2SSO() : http_client_(NULL), authn_(false) {}
     ClientHTTPwithSAML2SSO(const BaseConfig& cfg, const URL& url);
     virtual ~ClientHTTPwithSAML2SSO();
 
@@ -50,7 +50,7 @@ namespace Arc {
   class ClientSOAPwithSAML2SSO {
   public:
     /** Constructor creates MCC chain and connects to server.*/
-    ClientSOAPwithSAML2SSO() {}
+    ClientSOAPwithSAML2SSO() : soap_client_(NULL), authn_(NULL) {}
     ClientSOAPwithSAML2SSO(const BaseConfig& cfg, const URL& url);
     virtual ~ClientSOAPwithSAML2SSO();
     /** Send SOAP request and receive response. */

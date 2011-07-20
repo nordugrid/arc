@@ -83,6 +83,7 @@ AuthUser::source_t AuthUser::sources[] = {
 AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   subject_ = a.subject_;
   voms_data_ = a.voms_data_;
+  from = a.from;
 
   filename=a.filename;
   has_delegation=a.has_delegation;
@@ -94,9 +95,15 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   default_capability_=NULL;
   default_vgroup_=NULL;
   default_group_=NULL;
+
+  groups_ = a.groups_;
+  vos_ = a.vos_;
 }
 
-AuthUser::AuthUser(Arc::Message& message):message_(message) {
+AuthUser::AuthUser(Arc::Message& message):message_(message),
+    default_voms_(NULL), default_vo_(NULL), default_role_(NULL),
+    default_capability_(NULL), default_vgroup_(NULL), default_group_(NULL),
+    proxy_file_was_created(false), has_delegation(false) {
   subject_ = message.Attributes()->get("TLS:IDENTITYDN");
   // Fetch VOMS attributes
   std::list<std::string> voms_attrs;
@@ -112,6 +119,7 @@ AuthUser::AuthUser(Arc::Message& message):message_(message) {
     voms_attrs.splice(voms_attrs.end(),vomses);
   };
   voms_data_ = arc_to_voms(voms_attrs);
+
 }
 
 std::vector<struct voms> AuthUser::arc_to_voms(const std::list<std::string>& attributes) {

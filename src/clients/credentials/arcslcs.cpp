@@ -103,18 +103,16 @@ void handleSLCS() {
     req_soap.NewChild("GetSLCSCertificateRequest").NewChild("X509Request") = cert_req_str;
 
     Arc::PayloadSOAP *resp_soap = NULL;
-    if (client_soap) {
-      Arc::MCC_Status status = client_soap->process(&req_soap, &resp_soap, idp_name, username, password);//, true);
-      if (!status) {
-        logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
-        delete client_soap;
-        throw std::runtime_error("SOAP with SAML2SSO invokation failed");
-      }
-      if (resp_soap == NULL) {
-        logger.msg(Arc::ERROR, "There was no SOAP response");
-        delete client_soap;
-        throw std::runtime_error("There was no SOAP response");
-      }
+    Arc::MCC_Status status = client_soap->process(&req_soap, &resp_soap, idp_name, username, password);//, true);
+    if (!status) {
+      logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
+      delete client_soap;
+      throw std::runtime_error("SOAP with SAML2SSO invokation failed");
+    }
+    if (resp_soap == NULL) {
+      logger.msg(Arc::ERROR, "There was no SOAP response");
+      delete client_soap;
+      throw std::runtime_error("There was no SOAP response");
     }
 
     std::string cert_str = (std::string)((*resp_soap)["GetSLCSCertificateResponse"]["X509Certificate"]);
@@ -257,7 +255,7 @@ int main(int argc, char *argv[]) {
   trusted_ca_dir = usercfg.CACertificatesDirectory();
 
   try {
-    if (params.size() != 0)
+    if (!params.empty())
       throw std::invalid_argument("Wrong number of arguments!");
 
     if (storedir.empty()) {

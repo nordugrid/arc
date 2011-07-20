@@ -243,7 +243,6 @@ namespace DREService
 			close(dataOutPfd[1]);
 
 			const char* work = "1\0";
-			const char* end  = "0\0";
 
 			std::string message = "";
 			std::string temp    = "";
@@ -268,6 +267,7 @@ namespace DREService
 					if(!inpayload) {
 						logger.msg(Arc::ERROR, "Thread %d, Input is not SOAP", threadID);
 // 						return makeFault(outmsg, "Received message was not a valid SOAP message.");
+						return; // is this right? continuing will seg fault due to null pointer dereference
 					};
 					std::string xml;
 					inpayload->GetXML(xml, 0);
@@ -364,7 +364,6 @@ int PerlProcessor::perl_call_va (PerlInterpreter* my_perl, char *subname, ...)
     char *p;
     char *str = NULL; int i = 0; double d = 0;
     int  nret = 0; /* number of return params expected*/
-    int  ax;
     int ii=0;
 
     typedef struct {

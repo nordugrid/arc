@@ -381,7 +381,7 @@ namespace Arc {
     os << attr << ' ' << op << ' ' << *values;
   }
 
-  RSLParser::RSLParser(const std::string s)
+  RSLParser::RSLParser(const std::string& s)
     : s(s),
       n(0),
       parsed(NULL),
@@ -660,7 +660,7 @@ namespace Arc {
         concat = nextconcat;
       } while (left || right);
       return values;
-    } catch (std::exception e) {
+    } catch (std::exception& e) {
       if (values)
         delete values;
       if (left)

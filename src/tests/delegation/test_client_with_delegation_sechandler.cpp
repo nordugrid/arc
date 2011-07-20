@@ -89,17 +89,15 @@ int main(void) {
 
   Arc::PayloadSOAP* resp = NULL;
 
-  if(client) {
-    std::string str;
-    req.GetXML(str);
-    std::cout<<"request: "<<str<<std::endl;
-    Arc::MCC_Status status = client->process(&req,&resp);
-    if(!status) {
-      logger.msg(Arc::ERROR, "SOAP invokation failed");
-    }
-    if(resp == NULL) {
-      logger.msg(Arc::ERROR,"There was no SOAP response");
-    }
+  std::string str;
+  req.GetXML(str);
+  std::cout<<"request: "<<str<<std::endl;
+  Arc::MCC_Status status = client->process(&req,&resp);
+  if(!status) {
+    logger.msg(Arc::ERROR, "SOAP invokation failed");
+  }
+  if(resp == NULL) {
+    logger.msg(Arc::ERROR,"There was no SOAP response");
   }
 
   std::string xml;

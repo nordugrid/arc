@@ -13,12 +13,13 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"userspec_t");
 
-void userspec_t::free(void) {
+void userspec_t::free(void) const {
   // Keep authentication info to preserve proxy (just in case)
 }
 
 //userspec_t::userspec_t(void):user(),map(user),default_map(user),name(NULL),group(NULL),home(NULL),gridmap(false) {
-userspec_t::userspec_t(void):user(),uid(-1),gid(-1),map(user),default_map(user),gridmap(false) {
+userspec_t::userspec_t(void):user(),uid(-1),gid(-1),port(0),map(user),default_map(user),gridmap(false) {
+  host[0] = 0;
 }
 
 userspec_t::~userspec_t(void) {

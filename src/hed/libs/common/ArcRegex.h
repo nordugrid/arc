@@ -17,7 +17,7 @@ namespace Arc {
   public:
 
     //! default constructor
-    RegularExpression() {}
+    RegularExpression() : status(-1) {}
 
     //! Creates a reges from a pattern string.
     RegularExpression(std::string pattern);
@@ -29,7 +29,7 @@ namespace Arc {
     ~RegularExpression();
 
     //! Assignment operator.
-    const RegularExpression& operator=(const RegularExpression& regex);
+    RegularExpression& operator=(const RegularExpression& regex);
 
     //! Returns true if the pattern of this regex is ok.
     bool isOk();

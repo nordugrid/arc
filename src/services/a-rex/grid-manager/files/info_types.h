@@ -123,8 +123,8 @@ class LRMSResult {
   LRMSResult(const std::string& s) { set(s.c_str()); };
   LRMSResult(int c):code_(c),description_("") { };
   LRMSResult(const char* s) { set(s); };
-  void operator=(const std::string& s) { set(s.c_str()); };
-  void operator=(const char* s) { set(s); };
+  LRMSResult& operator=(const std::string& s) { set(s.c_str()); return *this; };
+  LRMSResult& operator=(const char* s) { set(s); return *this; };
   int code(void) const { return code_; }; 
   const std::string& description(void) const { return description_; };
 };

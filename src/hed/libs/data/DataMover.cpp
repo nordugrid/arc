@@ -254,7 +254,7 @@ namespace Arc {
         Credential ci(source.GetUserConfig().ProxyPath(), source.GetUserConfig().ProxyPath(), source.GetUserConfig().CACertificatesDirectory(), "");
         dn = ci.GetIdentityName();
         exp_time = ci.GetEndTime();
-      } catch (CredentialError e) {
+      } catch (CredentialError& e) {
         logger.msg(WARNING, "Couldn't handle certificate: %s", e.what());
       }
     }

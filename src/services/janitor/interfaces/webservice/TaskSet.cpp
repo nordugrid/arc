@@ -11,15 +11,13 @@ namespace DREService
 //TODO: MAYBE BROADCAST
 	Arc::Logger               TaskSet::logger(Arc::Logger::rootLogger, "TaskSet");
 
-	TaskSet::TaskSet(int size){
+	TaskSet::TaskSet(int size): level(0), start(0), taskCounter(0), semaphore(0) {
 		this->size = size;
 		
 		ppTask  = new Task*[size];
 		for (int i=0; i<size; i++){
 			ppTask[i] = 0;
 		}
-
-		semaphore   = 0;
 
 		pthread_mutex_init(&mutex, NULL);
 
@@ -87,7 +85,6 @@ namespace DREService
 			}
 
 			// check if task would be unique
-			int maxvalue = 1;
 			for (int i=0; i<size; i++){
 				if(ppTask[i] != 0 && ppTask[i]->getTaskID() == pTask->getTaskID()){ 
 					found = 1;

@@ -85,7 +85,7 @@ class TLSSecAttr: public SecAttr {
     if(id == "LOCALSUBJECT") return target_;
     if((id == "VOMS") || (id == "VO")) {
       std::list<std::string> items = getAll(id);
-      if(items.size() > 0) return *items.begin();
+      if(!items.empty()) return *items.begin();
       return "";
     };
     return "";

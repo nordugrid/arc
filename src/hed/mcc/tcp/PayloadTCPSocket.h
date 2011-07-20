@@ -20,7 +20,7 @@ class PayloadTCPSocket: public PayloadStreamInterface {
   /** Constructor - connects to TCP server at specified hostname:port */
   PayloadTCPSocket(const char* hostname,int port, int timeout, Logger& logger);
   /** Constructor - connects to TCP server at specified endpoint - hostname:port */
-  PayloadTCPSocket(const std::string endpoint,int timeout, Logger& logger);
+  PayloadTCPSocket(const std::string& endpoint,int timeout, Logger& logger);
   /** Constructor - creates object of already connected socket.
     Socket is NOT closed in destructor. */
   PayloadTCPSocket(int s, int timeout, Logger& logger):
