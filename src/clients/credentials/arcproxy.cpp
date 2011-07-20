@@ -391,7 +391,7 @@ int main(int argc, char *argv[]) {
     if (cert_path.empty()) {
       logger.msg(Arc::ERROR, "Cannot find the path of the certificate file, "
                  "please setup environment X509_USER_CERT, "
-                 "or certpath in a configuration file");
+                 "or certificatepath in a configuration file");
       return EXIT_FAILURE;
     }
     else if (!(Glib::file_test(cert_path, Glib::FILE_TEST_EXISTS))) {

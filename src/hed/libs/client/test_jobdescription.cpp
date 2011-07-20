@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
 
   Arc::OptionParser options(istring("[job description ...]"),
-                            istring("This tiny tool can be used for testing"
+                            istring("This tiny tool can be used for testing "
                                     "the JobDescription's conversion abilities."),
                             istring("The job description also can be a file or a string in JDL, POSIX JSDL, JSDL, or XRSL format."));
 
