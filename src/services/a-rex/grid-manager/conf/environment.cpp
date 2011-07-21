@@ -195,7 +195,7 @@ void GMEnvironment::support_mail_address(const std::string& val) {
 
 static bool file_exists(const char* name) {
   struct stat st;
-  if(lstat(name,&st) != 0) return false;
+  if(stat(name,&st) != 0) return false;
   if(!S_ISREG(st.st_mode)) return false;
   return true;
 }
@@ -219,8 +219,8 @@ static bool read_env_vars(bool guess) {
         tmp="/etc/arc.conf";
         nordugrid_config_loc_=tmp;
         if(!file_exists(tmp.c_str())) {
-          logger.msg(Arc::ERROR, "Central configuration file is missing at guessed location:\n",
-              "  /etc/arc.conf\n",
+          logger.msg(Arc::ERROR, "Central configuration file is missing at guessed location:\n"
+              "  /etc/arc.conf\n"
               "Use ARC_CONFIG variable for non-standard location");
           return false;
         };
