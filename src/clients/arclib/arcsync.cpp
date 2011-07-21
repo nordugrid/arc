@@ -140,9 +140,9 @@ int RUNSYNC(main)(int argc, char **argv) {
     usercfg.AddServices(indexurls, Arc::INDEX);
 
   if (usercfg.GetSelectedServices(Arc::COMPUTING).empty() && usercfg.GetSelectedServices(Arc::INDEX).empty()) {
-    logger.msg(Arc::WARNING, "No defaultservices set in client.conf. Most probably this will yield "
-                             "no results. Please edit the file or specify a cluster or an index with "
-                             "appropriate command line options (see manpage)");
+    logger.msg(Arc::ERROR, "No services specified. Please specify a cluster or index (-c or -g "
+                           "options, see arcsync -h) or set the \"defaultservices\" attribute in the client "
+                           "configuration.");
     return 5;
   }
 
