@@ -16,7 +16,6 @@ class SoftwareTest
   CPPUNIT_TEST(ComparisonTest);
   CPPUNIT_TEST(BasicRequirementsTest);
   CPPUNIT_TEST(RequirementsAndTest);
-  CPPUNIT_TEST(RequirementsOrTest);
   CPPUNIT_TEST(RequirementsNotTest);
   CPPUNIT_TEST(RequirementsGreaterThanTest);
   CPPUNIT_TEST(RequirementsLessThanTest);
@@ -34,7 +33,6 @@ public:
   void ComparisonTest();
   void BasicRequirementsTest();
   void RequirementsAndTest();
-  void RequirementsOrTest();
   void RequirementsNotTest();
   void RequirementsGreaterThanTest();
   void RequirementsLessThanTest();
@@ -114,19 +112,19 @@ void SoftwareTest::BasicRequirementsTest() {
   CPPUNIT_ASSERT(!SR(SV("A-1.5")).isSatisfied(versions));
   CPPUNIT_ASSERT(SR(SV("A-1.5"), &SV::operator !=).isSatisfied(versions));
 
-  CPPUNIT_ASSERT(SR(versions.back(), &SV::operator==, false).isSatisfied(versions));
-  CPPUNIT_ASSERT(!SR(versions.back(), &SV::operator!=, false).isSatisfied(versions));
-  CPPUNIT_ASSERT(SR(versions.back(), &SV::operator<=, false).isSatisfied(versions));
-  CPPUNIT_ASSERT(SR(versions.back(), &SV::operator>=, false).isSatisfied(versions));
-  CPPUNIT_ASSERT(!SR(versions.back(), &SV::operator>, false).isSatisfied(versions));
-  CPPUNIT_ASSERT(!SR(versions.back(), &SV::operator<, false).isSatisfied(versions));
+  CPPUNIT_ASSERT(SR(versions.back(), &SV::operator==).isSatisfied(versions));
+  CPPUNIT_ASSERT(!SR(versions.back(), &SV::operator!=).isSatisfied(versions));
+  CPPUNIT_ASSERT(SR(versions.back(), &SV::operator<=).isSatisfied(versions));
+  CPPUNIT_ASSERT(SR(versions.back(), &SV::operator>=).isSatisfied(versions));
+  CPPUNIT_ASSERT(!SR(versions.back(), &SV::operator>).isSatisfied(versions));
+  CPPUNIT_ASSERT(!SR(versions.back(), &SV::operator<).isSatisfied(versions));
 
-  CPPUNIT_ASSERT(!SR(SV("A-1.5"), &SV::operator==, false).isSatisfied(versions));
-  CPPUNIT_ASSERT(SR(SV("A-1.5"), &SV::operator!=, false).isSatisfied(versions));
+  CPPUNIT_ASSERT(!SR(SV("A-1.5"), &SV::operator==).isSatisfied(versions));
+  CPPUNIT_ASSERT(SR(SV("A-1.5"), &SV::operator!=).isSatisfied(versions));
 }
 
 void SoftwareTest::RequirementsAndTest() {
-  SR sr(true); sr.add(SV("A-1.03")); sr.add(SV("B-2.12"));
+  SR sr; sr.add(SV("A-1.03")); sr.add(SV("B-2.12"));
 
   versions.push_back(SV("A-1.03"));
   versions.push_back(SV("B-2.12"));
@@ -137,47 +135,8 @@ void SoftwareTest::RequirementsAndTest() {
   versions.clear();
 }
 
-void SoftwareTest::RequirementsOrTest() {
-  SR sr(false);
-
-  // Test: A-3.83 OR A-3.84
-  sr.add(SV("A-3.83")); sr.add(SV("A-3.84"));
-  versions.push_back(SV("A-3.83"));
-  CPPUNIT_ASSERT(sr.isSatisfied(versions));
-  CPPUNIT_ASSERT(sr.selectSoftware(versions));
-  CPPUNIT_ASSERT_EQUAL(1, (int) sr.getSoftwareList().size()); // Only 1 software should be chosen.
-  CPPUNIT_ASSERT_EQUAL(versions.front(), sr.getSoftwareList().front()); // The chosen software should equal the one from the list.
-  CPPUNIT_ASSERT(sr.isResolved());
-  versions.clear();
-  sr.clear();
-
-  // Test: Order should have no influence.
-  sr.add(SV("A-3.83"));
-  sr.add(SV("A-3.84"));
-  versions.push_back(SV("A-3.84"));
-  CPPUNIT_ASSERT(sr.isSatisfied(versions));
-  CPPUNIT_ASSERT(sr.selectSoftware(versions));
-  CPPUNIT_ASSERT_EQUAL(1, (int) sr.getSoftwareList().size());
-  CPPUNIT_ASSERT_EQUAL(versions.front(), sr.getSoftwareList().front());
-  CPPUNIT_ASSERT(sr.isResolved());
-  versions.clear();
-  sr.clear();
-
-  // Test if chosen software has highest version number.
-  sr.add(SV("A-3.83"));
-  sr.add(SV("A-3.84"));
-  versions.push_back(SV("A-3.83"));
-  versions.push_back(SV("A-3.84"));
-  CPPUNIT_ASSERT(sr.isSatisfied(versions));
-  CPPUNIT_ASSERT(sr.selectSoftware(versions));
-  CPPUNIT_ASSERT_EQUAL(1, (int) sr.getSoftwareList().size());
-  CPPUNIT_ASSERT_EQUAL(versions.back(), sr.getSoftwareList().front());
-  CPPUNIT_ASSERT(sr.isResolved());
-  versions.clear();
-}
-
 void SoftwareTest::RequirementsNotTest() {
-  SR sr(false);
+  SR sr;
 
   sr.add(SV("A-1.3"), &Arc::Software::operator!=);
   versions.push_back(SV("A-1.3"));
@@ -203,7 +162,6 @@ void SoftwareTest::RequirementsNotTest() {
   versions.push_back(SV("B-3"));
   versions.push_back(SV("A-1.2"));
   versions.push_back(SV("A-1.3"));
-  sr.setRequirement(true);
   sr.add(SV("A-1.3"), &Arc::Software::operator!=);
   sr.add(SV("B-2"), &Arc::Software::operator!=);
   CPPUNIT_ASSERT(sr.isSatisfied(versions));
@@ -218,7 +176,7 @@ void SoftwareTest::RequirementsNotTest() {
 }
 
 void SoftwareTest::RequirementsGreaterThanTest() {
-  SR sr1(true), sr2(true);
+  SR sr1, sr2;
 
   sr1.add(SV("A-1.3"), &Arc::Software::operator>);
   sr2.add(SV("A-1.3"), &Arc::Software::operator>=);
@@ -287,7 +245,7 @@ void SoftwareTest::RequirementsGreaterThanTest() {
 }
 
 void SoftwareTest::RequirementsLessThanTest() {
-  SR sr1(true), sr2(true);
+  SR sr1, sr2;
 
   sr1.add(SV("A-1.3"), &Arc::Software::operator<);
   sr2.add(SV("A-1.3"), &Arc::Software::operator<=);
@@ -356,7 +314,7 @@ void SoftwareTest::RequirementsLessThanTest() {
 }
 
 void SoftwareTest::RequirementsRangeTest() {
-  SR sr(true);
+  SR sr;
 
   sr.add(SV("A-4.17"), &Arc::Software::operator>);
   sr.add(SV("A-5.0"), &Arc::Software::operator<);
@@ -379,7 +337,7 @@ void SoftwareTest::RequirementsRangeTest() {
 }
 
 void SoftwareTest::RequirementsGreaterThanAndTest() {
-  SR sr(true);
+  SR sr;
 
   sr.add(SV("A-4.17"), &Arc::Software::operator>);
   sr.add(SV("B-0.15"), &Arc::Software::operator>);
@@ -409,7 +367,7 @@ void SoftwareTest::RequirementsGreaterThanAndTest() {
 }
 
 void SoftwareTest::RequirementsLessThanAndTest() {
-  SR sr(true);
+  SR sr;
 
   sr.add(SV("A-4.17"), &Arc::Software::operator<);
   sr.add(SV("B-0.15"), &Arc::Software::operator<);

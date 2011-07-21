@@ -322,13 +322,8 @@ namespace Arc {
     /**
      * The created SoftwareRequirement object will contain no
      * requirements.
-     *
-     * @param requiresAll indicates whether the all requirements have to
-     *        be satisfied (\c true) or if only a single one (\c false),
-     *        the default is that only a single requirement need to be
-     *        satisfied.
      **/
-    SoftwareRequirement(bool requiresAll = false) : requiresAll(requiresAll) {}
+    SoftwareRequirement() {}
 #ifndef SWIG
     /// Create a SoftwareRequirement object.
     /**
@@ -338,20 +333,15 @@ namespace Arc {
      *
      * This constructor is not available in language bindings created by
      * Swig, since method pointers are not supported by Swig, see
-     * SoftwareRequirement(const Software&, Software::ComparisonOperatorEnum, bool)
+     * SoftwareRequirement(const Software&, Software::ComparisonOperatorEnum)
      * instead.
      *
      * @param sw is the Software object of the requirement to add.
      * @param swComOp is the Software::ComparisonOperator of the
      *        requirement to add.
-     * @param requiresAll indicates whether the all requirements have to
-     *        be satisfied (\c true) or if only a single one (\c false),
-     *        the default is that only a single requirement need to be
-     *        satisfied.
      **/
     SoftwareRequirement(const Software& sw,
-                        Software::ComparisonOperator swComOp = &Software::operator==,
-                        bool requiresAll = false);
+                        Software::ComparisonOperator swComOp = &Software::operator==);
 #endif
 
     /// Create a SoftwareRequirement object.
@@ -363,14 +353,9 @@ namespace Arc {
      * @param sw is the Software object of the requirement to add.
      * @param co is the Software::ComparisonOperatorEnum of the
      *        requirement to add.
-     * @param requiresAll indicates whether the all requirements have to
-     *        be satisfied (\c true) or if only a single one (\c false),
-     *        the default is that only a single requirement need to be
-     *        satisfied.
      **/
     SoftwareRequirement(const Software& sw,
-                        Software::ComparisonOperatorEnum co,
-                        bool requiresAll = false);
+                        Software::ComparisonOperatorEnum co);
 
     /// Assignment operator.
     /**
@@ -419,28 +404,6 @@ namespace Arc {
      *        Software::EQUAL.
      **/
     void add(const Software& sw, Software::ComparisonOperatorEnum co);
-
-    /// Indicates whether all requirments has to be satisfied.
-    /**
-     * This method returns \c true if all requirements has to be
-     * satisfied. If only one requirement has to be satisfied, \c false
-     * is returned.
-     *
-     * @return \c true if all requirements has to be satisfied,
-     *         otherwise \c false.
-     * @see setRequirement.
-     **/
-    bool isRequiringAll() const { return requiresAll; }
-    /// Set relation between requirements.
-    /**
-     * Specifies if all requirements stored need to be satisfied
-     * or if it is enough to satisfy only one of them.
-     *
-     * @param all is a boolean specifying if all requirements has to be
-     *        satified.
-     * @see isRequiringAll().
-     **/
-    void setRequirement(bool all) { requiresAll = all; }
 
     /// Test if requirements are satisfied.
     /**
@@ -606,7 +569,6 @@ namespace Arc {
     std::list<Software::ComparisonOperator> comparisonOperatorList;
     typedef std::pair<Software*, Software::ComparisonOperator> SWRelPair;
     std::list< std::list<SWRelPair> > orderedSoftwareList;
-    bool requiresAll;
 
     static Logger logger;
   };

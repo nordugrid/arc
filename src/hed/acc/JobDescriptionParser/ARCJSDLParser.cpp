@@ -74,9 +74,6 @@ namespace Arc {
           xmlVersion.NewAttribute("require") = Software::toString(*itCO);
       }
     }
-
-    if (bool(arcJSDL["Software"]) && sr.isRequiringAll())
-      arcJSDL.NewAttribute("require") = "all";
   }
 
   template<typename T>
@@ -535,8 +532,6 @@ namespace Arc {
 
     // SoftwareRequirement RunTimeEnvironment;
     if (bool(resource["RunTimeEnvironment"])) {
-      if (bool(resource["RunTimeEnvironment"].Attribute("require")))
-        job.Resources.RunTimeEnvironment.setRequirement(lower((std::string)resource["RunTimeEnvironment"].Attribute("require")) == "all");
       if (!parseSoftware(resource["RunTimeEnvironment"], job.Resources.RunTimeEnvironment)) {
         jobdescs.clear();
         return false;

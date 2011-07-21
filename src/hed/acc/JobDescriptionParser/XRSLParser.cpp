@@ -856,14 +856,9 @@ namespace Arc {
         if (!SingleValue(c, runtime))
           return false;
 
-        /* Since OR expressions in XRSL is spilt into several alternative
-         * JobDescriptions the requirement for RTE must be all (AND).
-         */
-        j.Resources.RunTimeEnvironment.setRequirement(true);
         j.Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          it->Resources.RunTimeEnvironment.setRequirement(true);
           it->Resources.RunTimeEnvironment.add(Software(runtime), convertOperator(c->Op()));
         }
 
