@@ -120,6 +120,24 @@ printregldif () {
 	EOF
 }
 
+# Function checks if you have a bad current working directory
+# (i.e. one that will be removed by running this script.)
+# The function must be run after bdii_var_dir and bdii_tmp_dir have
+# been set.
+check_cwd () {
+    current_dir=`pwd`
+    case "$current_dir" in
+       $bdii_var_dir*|$bdii_tmp_dir* )
+         log_failure_msg "Checking current working directory: "
+         echo "You are not allowed to be at or below these directories: "
+         echo "$bdii_var_dir , $bdii_tmp_dir "
+         echo "when starting or stopping grid-infosys since they will be removed."
+         exit 1
+         ;;
+    esac
+}
+
+
 # Function checks if we are using a nordugrid-patched bdii Returns
 # true (1) if bdii is unpatched. Returns false (0) if it is patched.
 # In case it is patched, we should disable o=infosys as default.  If
@@ -1188,6 +1206,9 @@ start () {
     # Print help-message about new logs
     notify_about_bdii
 
+    # Check that you are not in a directory that will be removed by the script
+    check_cwd
+
     # Create directories for storing temporary scripts and check permissions etc
     create_directory $bdii_var_dir "BDII_VAR_DIR"
     create_directory $bdii_tmp_dir "BDII_TMP_DIR"
@@ -1330,6 +1351,9 @@ start () {
 
 stop () {
     # Stop GRIS
+
+    # Check that you are not in a directory that will be removed by this script.
+    check_cwd
 
     # Check the existance of the lock file
     if [ ! -f "${slapd_lock_file}" ] &&  [ ! -f "${update_lock_file}" ]; then
