@@ -75,7 +75,7 @@ and RLS.
 
 .SH EXAMPLES
 
-arctest -job 1 -c <clustername>
+arctest -J 1 -c <clustername>
 
 will submit test-job number 1 to the specified cluster belonging to the flavor of it.
 
