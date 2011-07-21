@@ -1902,6 +1902,11 @@ bdii_db_config="/etc/bdii/DB_CONFIG"
 fix_glue="no"
 .br
 bdii_archive_size="0"
+.br
+bdii_update_pid_file="/var/run/arc/bdii-update.pid"
+.br
+slapd_pid_file="$bdii_var_dir/db/slapd.pid"
+
 
 .TP
 .B slapd

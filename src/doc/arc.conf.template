@@ -1007,9 +1007,11 @@ groupcfg="users"
 #bdii_log_dir="/var/log/arc/bdii4"
 
 # BDII5 uses these variables
-#bdii_var_dir="/var/run/bdii"
+#bdii_var_dir="/var/run/arc/bdii"
 #bdii_log_dir="/var/log/arc/bdii"
 #bdii_tmp_dir="/var/tmp/bdii"
+#bdii_update_pid_file="/var/run/arc/bdii-update.pid"
+#slapd_pid_file="$bdii_var_dir/db/slapd.pid"
 
 # If installed in gLite default location or somewhere else, set these variables
 # these are unnecessary if installed from nordugrid packages or if bdii5 is used.

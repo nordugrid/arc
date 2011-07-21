@@ -125,16 +125,17 @@ sub waitForProvider {
     sub findInfosys {
         return @$cache if defined $cache;
 
-        my ($bdii4_var_dir) = @_;
-    
-        $bdii4_var_dir ||= "/var/run/bdii4";
+	my $config = @_;
+        my ($bdii_var_dir) = $config->{bdii_var_dir} || "/var/run/bdii4"; 
+	my ($bdii_update_pid_file) = $config->{bdii_update_pid_file} || "/var/run/arc/bdii-update.pid"; 
     
         my ($infosys_uid, $infosys_gid);
         my $infosys_runtime_dir;
     
-        my $bdii_pidfile = "/var/run/arc/bdii-update.pid";
-        my $bdii4_pidfile = "$bdii4_var_dir/bdii-update.pid";
-        for my $pidfile ( $bdii_pidfile, $bdii4_pidfile ) {
+	# if not specified with bdii_update_pid_file, it's likely here
+        my $bdii5_pidfile = "/var/run/arc/bdii-update.pid";
+        my $bdii4_pidfile = "$bdii_var_dir/bdii-update.pid";
+        for my $pidfile ( $bdii_update_pid_file, $bdii5_pidfile, $bdii4_pidfile ) {
             unless ( ($infosys_uid, $infosys_gid) = uidGidFromFile($pidfile) ) {
                 $log->verbose("Infosys pidfile not found at: $pidfile");
                 next;
@@ -168,7 +169,7 @@ sub waitForProvider {
 sub notifyInfosys {
     my ($config) = @_;
 
-    my ($infosys_runtime_dir) = findInfosys($config->{bdii_var_dir});
+    my ($infosys_runtime_dir) = findInfosys($config);
     return undef unless $infosys_runtime_dir;
 
     my $fifopath = "$infosys_runtime_dir/ldif-provider.fifo";
@@ -217,7 +218,7 @@ sub notifyInfosys {
 sub createLdifScript {
     my ($config, $print_ldif) = @_;
 
-    my ($infosys_runtime_dir, $infosys_uid, $infosys_gid) = findInfosys($config->{bdii_var_dir});
+    my ($infosys_runtime_dir, $infosys_uid, $infosys_gid) = findInfosys($config);
     return undef unless $infosys_runtime_dir;
 
     eval { mkpath($infosys_runtime_dir); };

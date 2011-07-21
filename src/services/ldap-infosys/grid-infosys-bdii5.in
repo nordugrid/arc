@@ -328,8 +328,8 @@ else
 fi
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
-update_pid_file=${PID_FILE:-/var/run/arc-bdii-update.pid}
-slapd_pid_file=${slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
+update_pid_file=${CONFIG_bdii_update_pid_file:-/var/run/arc/bdii-update.pid}
+slapd_pid_file=${CONFIG_slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
 
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
