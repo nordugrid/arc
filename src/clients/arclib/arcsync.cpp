@@ -143,7 +143,7 @@ int RUNSYNC(main)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "No services specified. Please specify a cluster or index (-c or -g "
                            "options, see arcsync -h) or set the \"defaultservices\" attribute in the client "
                            "configuration.");
-    return 5;
+    return 1;
   }
 
   //Find all jobs
