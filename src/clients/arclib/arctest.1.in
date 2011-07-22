@@ -8,7 +8,7 @@ arctest \- ARC Test Suite
 
 The
 .B arctest
-command can test various things related to a client- or server setup.
+command tests basic client and server setup.
 
 .SH SYNOPSIS
 
@@ -50,39 +50,30 @@ print usage information
 
 The
 .B arctest
-command is used for testing various things about the user and a
-client or server installation. arctest can print helpful output about
-installed certificates, user-authorization of clusters and
-storage-elements, vo-membership information and it can also
-be used to submit various test-jobs testing either a software
-installation on the client or some server.
+command is used for basic testing of client and server installation
+through submitting various test jobs. It can also print basic information
+about user's certificate. The command is complementary to
+.B arcinfo
+and
+.B arcproxy -I
 
-The testjobs are flavor specific and are used depending of the selected cluster.
+The test jobs available in this version of arctest are:
 
-The testjobs available in this version of arctest are:
+Test job 1: a classical hello World job
 
-Classic ARC testjob 1: This test-job calculates prime-numbers for 2 minutes and saves the
-list. The source-code for the prime-number program, the Makefile and the
-executable is downloaded to the cluster chosen from various servers and the
-program is compiled before the run. In this way, the test-job constitute a
-fairly comprehensive test of the basic setup of a grid cluster.
+Test job 2: attempts to list all environment variables at the remote site
 
-Classic ARC testjob 2: This test-job does nothing -- but print "hello, grid" to stdout.
-
-Classic ARC testjob 3: This test-job tests download capabilities of the chosen cluster
-by downloading 8 inputfiles over different protocols -- HTTP, FTP, gsiFTP
-and RLS.
+Test job 3: copies a remote file from an HTTP server into a local file
 
 .SH EXAMPLES
 
 arctest -J 1 -c <clustername>
 
-will submit test-job number 1 to the specified cluster belonging to the flavor of it.
+will submit test job number 1 to the specified cluster belonging to the flavor of it.
 
-arctest -certificate
+arctest --certificate
 
-will print certificate-information about the user's certificate
-and installed CA-certificates.
+will print basic information about the user's certificate.
 
 .SH AUTHOR
 
