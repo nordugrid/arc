@@ -43,7 +43,7 @@ namespace Arc {
           teststring = "&(executable='/bin/env')(jobname='arctest2')(stdout='stdout')(join='yes')";
           break;
         case 3:
-          teststring = "&(executable='/bin/cp')(arguments=in.html out.html)(stdout='stdout')(stderr='stderr')(inputfiles=(in.html http://www.nordugrid.org))(outputfiles=(out.html ''))(jobname='arctest3')";
+          teststring = "&(executable='/bin/cp')(arguments=in.html out.html)(stdout='stdout')(stderr='stderr')(inputfiles=(in.html http://www.nordugrid.org/data/in.html))(outputfiles=(out.html ''))(jobname='arctest3')";
           break;
         default:
           return false;
