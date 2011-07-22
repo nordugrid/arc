@@ -963,8 +963,9 @@ int JobPlugin::close(bool eof) {
   };
   if((getuid()==0) && (user) && (user->StrictSession())) {
     RESET_USER_UID;
-  };
-  fix_file_owner(dir,*user);
+  } else {
+    fix_file_owner(dir,*user);
+  }
   /* **********************************************************
    * Create status file (do it last so GM picks job up here)  *
    ********************************************************** */
