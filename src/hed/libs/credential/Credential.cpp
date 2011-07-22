@@ -230,22 +230,22 @@ namespace Arc {
     int n;
     ASN1_UTCTIME* atime = NULL;
 
-    if((cert == NULL) || (certchain == NULL)) {
+    if(cert == NULL) {
       start = Time();
       lifetime = Period();
       return;
     }
 
-    for (n = 0; n < sk_X509_num(certchain); n++) {
+    if(certchain) for (n = 0; n < sk_X509_num(certchain); n++) {
       tmp_cert = sk_X509_value(certchain, n);
 
       atime = X509_get_notAfter(tmp_cert);
-      Time end = asn1_to_utctime(atime);
-      if (end_time == Time(-1) || end < end_time) { end_time = end; }
+      Time e = asn1_to_utctime(atime);
+      if (end_time == Time(-1) || e < end_time) { end_time = e; }
 
       atime = X509_get_notBefore(tmp_cert);
-      Time start = asn1_to_utctime(atime);
-      if (start_time == Time(-1) || start > start_time) { start_time = start; }
+      Time s = asn1_to_utctime(atime);
+      if (start_time == Time(-1) || s > start_time) { start_time = s; }
     }
 
     atime = X509_get_notAfter(cert);
@@ -330,6 +330,7 @@ namespace Arc {
   }
 
   std::string Credential::GetIdentityName(void) const {
+    // TODO: it is more correct to go through chain till first non-proxy cert
     X509_NAME *subject = NULL;
     X509_NAME_ENTRY *ne = NULL;
     if(!cert_) return "";
@@ -363,13 +364,13 @@ namespace Arc {
       else break;
     }
 
-    std::string str;
     char buf[256];
     if(subject!=NULL) {
-      X509_NAME_oneline(subject,buf,sizeof(buf));
+      X509_NAME_oneline(subject,buf,sizeof(buf)-1);
       X509_NAME_free(subject);
     }
-    str.append(buf);
+    buf[sizeof(buf)-1] = 0;
+    std::string str(buf);
     return str;
   }
 
@@ -1036,17 +1037,18 @@ namespace Arc {
     //Get the lifetime of the credential
     getLifetime(cert_chain_, cert_, start_, lifetime_);
 
-    X509_EXTENSION* ext = NULL;
-    X509_CINF*  cert_info = NULL;
-    cert_info = cert_->cert_info;
-    for (int i=0; i<sk_X509_EXTENSION_num(cert_info->extensions); i++) {
-      ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(cert_info->extensions, i));
-      if (ext == NULL) {
-        CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); return;
-      }
-      if (!sk_X509_EXTENSION_push(extensions_, ext)) {
-        CredentialLogger.msg(ERROR,"Failed to add extension into member variable: extensions_"); 
-        LogError(); return;
+    if(cert_) {
+      X509_EXTENSION* ext = NULL;
+      X509_CINF*  cert_info = cert_->cert_info;
+      for (int i=0; i<sk_X509_EXTENSION_num(cert_info->extensions); i++) {
+        ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(cert_info->extensions, i));
+        if (ext == NULL) {
+          CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); return;
+        }
+        if (!sk_X509_EXTENSION_push(extensions_, ext)) {
+          CredentialLogger.msg(ERROR,"Failed to add extension into member variable: extensions_"); 
+          LogError(); return;
+        }
       }
     }
 
@@ -1624,6 +1626,7 @@ namespace Arc {
   }
 
   bool Credential::OutputCertificate(std::string &content, bool if_der) {
+    if(!cert_) return false;
     BIO *out = BIO_new(BIO_s_mem());
     if(!out) return false;
     if(if_der == false) {
@@ -1653,7 +1656,7 @@ namespace Arc {
     //will include the CA certificate and the certificate (which
     //need to be verified here) itself.
     //Those two certificates are excluded when outputing
-    for (int n = 1; n < sk_X509_num(cert_chain_) - 1 ; n++) {
+    if(cert_chain_) for (int n = 1; n < sk_X509_num(cert_chain_) - 1 ; n++) {
       cert = sk_X509_value(cert_chain_, n);
       if(if_der == false) {
         if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
@@ -1840,7 +1843,7 @@ err:
 
   EVP_PKEY* Credential::GetPubKey(void) const {
     EVP_PKEY* key = NULL;
-    key = X509_get_pubkey(cert_);
+    if(cert_) key = X509_get_pubkey(cert_);
     return key;
   }
 
@@ -1854,7 +1857,7 @@ err:
     STACK_OF(X509)* chain = NULL;
     chain = sk_X509_new_null();
     //Return the cert chain (not including this certificate itself)
-    for (int i=1; i < sk_X509_num(cert_chain_)-1; i++) {
+    if(cert_chain_) for (int i=1; i < sk_X509_num(cert_chain_)-1; i++) {
       X509* tmp = X509_dup(sk_X509_value(cert_chain_,i));
       sk_X509_insert(chain, tmp, i);
     }
@@ -1864,6 +1867,7 @@ err:
   int Credential::GetCertNumofChain(void) const {
     //Return the number of certificates
     //in the issuer chain
+    if(!cert_chain_) return 0;
     return sk_X509_num(cert_chain_) - 2;
   }
 
@@ -1884,7 +1888,7 @@ err:
 
   std::string Credential::GetExtension(const std::string& name) {
     std::string res;
-    if(cert_ == NULL) { std::cout<<"cert empty"<<std::endl; return res; }
+    if(cert_ == NULL) return res;
     int num;
     if ((num = X509_get_ext_count(cert_)) > 0) {
       for (int i = 0; i < num; i++) {
