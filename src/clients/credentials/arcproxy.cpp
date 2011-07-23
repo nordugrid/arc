@@ -504,19 +504,33 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("Proxy type: %s", certTypeToString(holder.GetType())) << std::endl;
 
     std::vector<std::string> voms_trust_dn;
-    res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
-    if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
+    res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false, true);
+    // Not printing error message because parseVOMSAC will print everything itself
+    //if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
     for(int n = 0; n<voms_attributes.size(); ++n) {
       if(voms_attributes[n].attributes.size() > 0) {
         std::cout<<"====== "<<Arc::IString("AC extension information for VO ")<<
                    voms_attributes[n].voname<<" ======"<<std::endl;
+        Arc::Time ct;
+        if(ct < voms_attributes[n].from) {
+          std::cout << Arc::IString("Time left for AC: AC is not valid yet")<<std::endl;
+        } else if(ct > voms_attributes[n].till) {
+          std::cout << Arc::IString("Time left for AC: AC has expired")<<std::endl;
+        } else {
+          std::cout << Arc::IString("Time left for AC: %s", (voms_attributes[n].till-ct).istr())<<std::endl;
+        }
+        if(voms_attributes[n].status & Arc::VOMSACInfo::ParsingError) {
+          std::cout << Arc::IString("Error detected while parsing this AC")<<std::endl;
+        }
+        if(voms_attributes[n].status & Arc::VOMSACInfo::ValidationError) {
+          std::cout << Arc::IString("AC is invalid")<<std::endl;
+        }
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
           std::cout<<"Attribute: "<<voms_attributes[n].attributes[i]<<std::endl;
           //do not display those attributes that have already been displayed 
           //(this can happen when there are multiple voms server )
         }
       }
-      std::cout << Arc::IString("Timeleft for AC: %s", voms_attributes[n].validity.istr())<<std::endl;
     }
     return EXIT_SUCCESS;
   }
