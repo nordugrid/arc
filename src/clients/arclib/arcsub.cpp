@@ -410,7 +410,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
       Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
       if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
-        std::cout << "Unable to modify job description according to needs of the target resource." << std::endl;
+        std::cout << Arc::IString("Unable to modify job description according to needs of the target resource.") << std::endl;
         retval = 1;
         break;
       }

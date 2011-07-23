@@ -131,7 +131,7 @@ int RUNRENEW(main)(int argc, char **argv) {
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
-    std::cout << "No jobs" << std::endl;
+    std::cout << Arc::IString("No jobs") << std::endl;
     return 0;
   }
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
@@ -150,9 +150,9 @@ int RUNRENEW(main)(int argc, char **argv) {
       retval = 1;
 
   if (retval == 0)
-    std::cout << "Credentials renewed" << std::endl;
+    std::cout << Arc::IString("Credentials renewed") << std::endl;
   else
-    std::cout << "Failed to renew credentials for some or all jobs" << std::endl;
+    std::cout << Arc::IString("Failed to renew credentials for some or all jobs") << std::endl;
 
   return retval;
 }

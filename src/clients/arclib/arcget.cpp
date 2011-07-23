@@ -169,7 +169,7 @@ int RUNGET(main)(int argc, char **argv) {
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
-    std::cout << "No jobs" << std::endl;
+    std::cout << Arc::IString("No jobs") << std::endl;
     return 0;
   }
   std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();

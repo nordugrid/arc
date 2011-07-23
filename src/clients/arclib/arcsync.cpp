@@ -158,7 +158,7 @@ int RUNSYNC(main)(int argc, char **argv) {
       for (std::list<Arc::Job>::const_iterator it = targen.GetJobs().begin();
            it != targen.GetJobs().end(); it++) {
         if (!jobsReported) {
-          std::cout << "Found the following jobs:"<<std::endl; 
+          std::cout << Arc::IString("Found the following jobs:")<<std::endl; 
           jobsReported = true;
         }
         if (!it->Name.empty()) {
@@ -168,7 +168,7 @@ int RUNSYNC(main)(int argc, char **argv) {
           std::cout << it->JobID.fullstr() << std::endl;
         }
       }
-      std::cout << "Total number of jobs found: " << targen.GetJobs().size() << std::endl;
+      std::cout << Arc::IString("Total number of jobs found: ") << targen.GetJobs().size() << std::endl;
     }
   }
   else {
@@ -177,7 +177,7 @@ int RUNSYNC(main)(int argc, char **argv) {
       for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
            it != newJobs.end(); it++) {
         if (!jobsReported) {
-          std::cout << "Found the following new jobs:"<<std::endl; 
+          std::cout << Arc::IString("Found the following new jobs:")<<std::endl; 
           jobsReported = true;
         }
         if (!(*it)->Name.empty()) {
@@ -187,7 +187,7 @@ int RUNSYNC(main)(int argc, char **argv) {
           std::cout << (*it)->JobID.fullstr() << std::endl;
         }
       }
-      std::cout << "Total number of new jobs found: " << newJobs.size() << std::endl;
+      std::cout << Arc::IString("Total number of new jobs found: ") << newJobs.size() << std::endl;
     }
   }
   

@@ -174,7 +174,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
     const Arc::Time now;
 
-    std::cout << "Certificate information:" << std::endl << std::endl;
+    std::cout << Arc::IString("Certificate information:") << std::endl << std::endl;
 
     if (cert_path.empty() || key_path.empty()) {
       std::cout << Arc::IString("No user-certificate found") << std::endl << std::endl;
@@ -186,7 +186,7 @@ int RUNSUB(main)(int argc, char **argv) {
     }
 
     if (proxy_path.empty()) {
-      std::cout << "No proxy found" << std::endl << std::endl;
+      std::cout << Arc::IString("No proxy found") << std::endl << std::endl;
     } else {
       Arc::Credential holder(proxy_path, "", ca_dir, "");
       std::cout << Arc::IString("Proxy: %s", proxy_path) << std::endl;
