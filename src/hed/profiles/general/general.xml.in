@@ -113,6 +113,9 @@ attributes depending on how the mapping should be done.
       <tls:KeyPath inisections="common" initag="x509_user_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
       <tls:CertificatePath inisections="common" initag="x509_user_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
+      <tls:VOMSCertTrustDNChain>
+        <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
+      </tls:VOMSCertTrustDNChain>
     </Component>
     <Component name="http.service" id="http">
       <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="common#policystore">
