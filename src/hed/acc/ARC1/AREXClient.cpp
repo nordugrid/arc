@@ -53,8 +53,10 @@ namespace Arc {
   static void set_arex_namespaces(NS& ns) {
     ns["a-rex"] = "http://www.nordugrid.org/schemas/a-rex";
     ns["glue"] = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    ns["glue2"] = "http://schemas.ogf.org/glue/2009/03/spec/2/0";
     ns["jsdl-arc"] = "http://www.nordugrid.org/ws/schemas/jsdl-arc";
     ns["rp"] = "http://docs.oasis-open.org/wsrf/rp-2";
+  
     set_bes_namespaces(ns);
   }
 
@@ -297,7 +299,8 @@ namespace Arc {
       action = "QueryResourceProperties";
       logger.msg(VERBOSE, "Creating and sending service information query request to %s", rurl.str());
 
-      PayloadSOAP req(*InformationRequest(XMLNode("<XPathQuery>//glue:Services/glue:ComputingService</XPathQuery>")).SOAP());
+      PayloadSOAP req(*InformationRequest(XMLNode("<XPathQuery>//glue:Services/glue:ComputingService | //glue2:Services/glue2:ComputingService</XPathQuery>")).SOAP());
+      req.Child(0).Namespaces(arex_ns);
       if (!process(req, false, response)) return false;
     } else {
       // GetFactoryAttributesDocument
