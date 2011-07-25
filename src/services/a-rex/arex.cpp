@@ -522,8 +522,6 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "input is not SOAP");
       return make_soap_fault(outmsg);
     };
-    // Aplying known namespaces
-    inpayload->Namespaces(ns_);
     if(logger_.getThreshold() <= Arc::VERBOSE) {
         std::string str;
         inpayload->GetDoc(str, true);
@@ -576,6 +574,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
       if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
           CountedResourceLock cl_lock(beslimit_);
           CreateActivity(*config,op,BESFactoryResponse(res,"CreateActivity"),clientid);
@@ -595,6 +595,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"StopAcceptingNewActivities")) {
           CountedResourceLock cl_lock(beslimit_);
           StopAcceptingNewActivities(*config,op,BESManagementResponse(res,"StopAcceptingNewActivities"));
@@ -605,6 +607,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivities")) {
           CountedResourceLock cl_lock(beslimit_);
           ESCreateActivities(*config,op,ESCreateResponse(res,"CreateActivities"),clientid);
@@ -612,6 +616,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"GetResourceInfo")) {
           CountedResourceLock cl_lock(infolimit_);
           ESGetResourceInfo(*config,op,ESRInfoResponse(res,"GetResourceInfo"));
@@ -622,6 +628,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"PauseActivity")) {
           CountedResourceLock cl_lock(beslimit_);
           ESPauseActivity(*config,op,ESManagResponse(res,"PauseActivity"));
@@ -650,6 +658,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ListActivities")) {
           CountedResourceLock cl_lock(beslimit_);
           ESListActivities(*config,op,ESAInfoResponse(res,"ListActivities"));
@@ -663,6 +673,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ChangeActivityStatus")) {
           CountedResourceLock cl_lock(beslimit_);
           ChangeActivityStatus(*config,op,BESARCResponse(res,"ChangeActivityStatus"));
@@ -675,6 +687,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(delegations_.MatchNamespace(*inpayload)) {
+        // Aplying known namespaces
+        inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
         if(!delegations_.Process(credentials,*inpayload,*outpayload,config->GridName())) {
