@@ -382,6 +382,27 @@ namespace Arc {
       }
     }
 
+    // TODO: scan for default locations. 
+    // TODO: multiple voms paths
+    if (!GetEnv("X509_VOMS_FILE").empty()) {
+      if (!Glib::file_test(vomsServerPath = GetEnv("X509_VOMS_FILE"), Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
+        vomsServerPath.clear();
+      }
+    }
+    else if (!GetEnv("X509_VOMSES").empty()) {
+      if (!Glib::file_test(vomsServerPath = GetEnv("X509_VOMSES"), Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
+        vomsServerPath.clear();
+      }
+    }
+    else if (!vomsServerPath.empty()) {
+      if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
+        vomsServerPath.clear();
+      }
+    }
+
     if (!proxyPath.empty())
       logger.msg(INFO, "Using proxy file: %s", proxyPath);
     if (!certificatePath.empty() && !keyPath.empty()) {
