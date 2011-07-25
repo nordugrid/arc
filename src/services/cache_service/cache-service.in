@@ -325,6 +325,9 @@ prepare() {
       <KeyPath>$X509_USER_KEY</KeyPath>\
       <CertificatePath>$X509_USER_CERT</CertificatePath>\
       <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>\
+      <VOMSCertTrustDNChain>
+        <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
+      </VOMSCertTrustDNChain>
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">\
         <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>\
         <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>\

@@ -62,6 +62,9 @@ appropiate.
       <tls:KeyPath>/etc/grid-security/hostkey.pem</tls:KeyPath>
       <tls:CertificatePath>/etc/grid-security/hostcert.pem</tls:CertificatePath>
       <tls:CACertificatesDir>/etc/grid-security/certificates</tls:CACertificatesDir>
+      <tls:VOMSCertTrustDNChain>
+        <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
+      </tls:VOMSCertTrustDNChain>
       <!-- SecHandler below calls specified Policy Decision Point components.
            In this example only one PDP is defined - simplelist.pdp. This
            PDP compares Distinguished Name of connecting client against

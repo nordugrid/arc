@@ -29,7 +29,10 @@
             <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
             <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
             <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
-        </Component>
+            <VOMSCertTrustDNChain>
+                <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
+            </VOMSCertTrustDNChain>
+         </Component>
         <Component name="http.service" id="http">
             <next id="soap">POST</next>
         </Component>

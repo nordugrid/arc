@@ -38,6 +38,9 @@
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
+      <VOMSCertTrustDNChain>
+        <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
+      </VOMSCertTrustDNChain>
       <!-- Evaluate requestor's identity into local identity.
            Comment it if no user mapping is needed. -->
       <SecHandler name="identity.map" id="map" event="incoming">
