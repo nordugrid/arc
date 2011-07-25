@@ -32,15 +32,6 @@ Description: ARC grid middleware
  erected to analyze the experiments for high energy physics at CERN. The
  first release, ARC-0.x, was dependent on Globus, the current release
  keeps that compatibility but can also be used independently.
- .
- With ARC, the user gains flexibility
- with additional services and more supported platforms. The service
- developer notices that even for persistent functionality across the
- two major versions, what has been a script on the server side once,
- that was repeatedly started and ran through, this has now become a
- service. Those are only started once and can then be queried, which
- is far more efficient, far more responsive, and is no longer stateless
- but can observe changes of values over time.
 
 Package: nordugrid-arc-client
 Provides: nordugrid-arc1-client, nordugrid-arc-nox-client
@@ -70,15 +61,8 @@ Description: ARC Hosting Environment Daemon
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC Hosting Environment Daemon (HED). This daemon presents a site
- to other participants on the grid. An intrinsic component of any grid
- system is a mechanism allowing for the secure stateful communication with
- remote environments. HED prepares for such an environment and as such
- is the core of the ARC middleware. HED was however written in a way,
- that represents typical grid computing tasks (the sharing of CPU time
- or storage) to become just one possible service between a user and a
- remote machine. Many others are thinkable, and HED takes considerable
- effort away from the respective implementors.
+ The ARC Hosting Environment Daemon (HED). This daemon is a container for
+ ARC services.
 
 #Package: nordugrid-arc-charon
 #Provides: nordugrid-arc-nox-charon
@@ -259,9 +243,8 @@ Description: ARC Remote EXecution service
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC Remote EXecution service (AREX) represents those parts of the
- middleware that is responsible for the execution of compute jobs and
- the transfer of input or output data.
+ The ARC Remote EXecution service (AREX) provides a service for the
+ execution of compute jobs and the transfer of input or output data.
 
 Package: nordugrid-arc-plugins-needed
 Provides: nordugrid-arc1-plugins-base, nordugrid-arc-nox-plugins-base, nordugrid-arc-plugins-base
@@ -302,10 +285,7 @@ Description: ARC development files
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- The ARC middleware's core functionality, the Hosting Environment
- Daemon (HED) can be extended for novel services. Considerable parts
- of a regular installation of a regular installation of the NorduGrid
- represent such modules.
+ Header files and libraries needed to develop applications using ARC.
 
 Package: nordugrid-arc-python
 Provides: nordugrid-arc1-python, nordugrid-arc-nox-python
@@ -319,11 +299,7 @@ Description: ARC Python wrapper
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- Developers with an interest to integrate the some functionality on a
- remote site via an interface compatible with ARC, may find it preferable
- to perform that remote invocation from within Python. While today most
- services in ARC are associated with computation or storage, there is
- no constraint on these applications.
+ Python bindings for ARC.
 
 Package: nordugrid-arc-java
 Provides: nordugrid-arc1-java, nordugrid-arc-nox-java
@@ -336,11 +312,7 @@ Description: ARC Java wrapper
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- Developers with an interest to integrate the some functionality on a
- remote site via an interface compatible with ARC, may find it preferable
- to perform that remote invocation from within Java. While today most
- services in ARC are associated with computation or storage, there is
- no constraint on these applications.
+ Java bindings for ARC.
 
 Package: nordugrid-arc-janitor
 Provides: nordugrid-arc1-janitor, nordugrid-arc-nox-janitor
