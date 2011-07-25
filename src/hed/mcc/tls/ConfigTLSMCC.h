@@ -25,6 +25,12 @@ class ConfigTLSMCC {
     tls_handshake,
     ssl3_handshake
   } handshake_;
+  enum {
+    relaxed_voms,
+    standard_voms,
+    strict_voms,
+    noerrors_voms
+  } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
   ConfigTLSMCC(void);
  public:
@@ -42,6 +48,9 @@ class ConfigTLSMCC {
   bool IfClientAuthn(void) const { return client_authn_; };
   bool IfTLSHandshake(void) const { return handshake_ == tls_handshake; };
   bool IfSSLv3Handshake(void) const { return handshake_ == ssl3_handshake; };
+  bool IfCheckVOMSCritical(void) const { return (voms_processing_ != relaxed_voms); };
+  bool IfFailOnVOMSParsing(void) const { return (voms_processing_ == noerrors_voms) || (voms_processing_ == strict_voms); };
+  bool IfFailOnVOMSInvalid(void) const { return (voms_processing_ == noerrors_voms); };
 };
 
 } // namespace Arc 

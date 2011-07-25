@@ -71,6 +71,18 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,Logger& logger,bool client) {
       file >> node;
       config_VOMS_add(node,vomscert_trust_dn_);
     };
+    std::string vproc = cfg["VOMSProcessing"];
+    if(vproc == "relaxed") {
+      voms_processing_ = relaxed_voms;
+    } else if(vproc == "standard") {
+      voms_processing_ = standard_voms;
+    } else if(vproc == "strict") {
+      voms_processing_ = strict_voms;
+    } else if(vproc == "noerrors") {
+      voms_processing_ = noerrors_voms;
+    } else {
+      voms_processing_ = standard_voms;
+    }
     //If ClientAuthn is explicitly set to be "false" in configuration,
     //then client/authentication is not required, which means client 
     //side does not need to provide certificate and key in its configuration.

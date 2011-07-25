@@ -118,6 +118,7 @@ class TLSSecAttr: public SecAttr {
   std::string target_; // Subject of host certificate
   std::string x509str_; // The last certificate (in string format). TODO: extract on demand.
   std::string x509chainstr_; // Other certificates (in string format). TODO: extract on demand.
+  bool processing_failed_;
   virtual bool equal(const SecAttr &b) const;
 };
 }
@@ -158,6 +159,7 @@ using namespace Arc;
 TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& logger) {
    char buf[100];
    std::string subject;
+   processing_failed_ = false;
    STACK_OF(X509)* peerchain = payload.GetPeerChain();
    voms_attributes_.clear();
    if(peerchain != NULL) {
@@ -186,7 +188,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          };
 #endif
          // Parse VOMS attributes from each certificate of the peer chain.
-         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
+         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_, true, true);
          if(!res) {
             logger.msg(ERROR,"VOMS attribute parsing failed");
          };
@@ -214,7 +216,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       };
 #endif
       // Parse VOMS attributes from peer certificate
-      bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_);
+      bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.VOMSCertTrustDN(), voms_attributes_, true, true);
       if(!res) {
         logger.msg(ERROR,"VOMS attribute parsing failed");
       };
@@ -230,13 +232,34 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       target_=buf;
       //logger.msg(VERBOSE, "Host name: %s", peer_dn);
    };
+   // Cleaning collected VOMS attributes
+   for(std::vector<VOMSACInfo>::iterator v = voms_attributes_.begin();
+                                           v != voms_attributes_.end();) {
+     if(v->status & VOMSACInfo::Error) {
+       if(config.IfCheckVOMSCritical() && (v->status & VOMSACInfo::IsCritical)) {
+         processing_failed_ = true; 
+         logger.msg(ERROR,"Critical VOMS attribute processing failed");
+       };
+       if(config.IfFailOnVOMSParsing() && (v->status & VOMSACInfo::ParsingError)) {
+         processing_failed_ = true; 
+         logger.msg(ERROR,"VOMS attribute parsing failed");
+       };
+       if(config.IfFailOnVOMSInvalid() && (v->status & VOMSACInfo::ValidationError)) {
+         processing_failed_ = true; 
+         logger.msg(ERROR,"VOMS attribute validation failed");
+       };
+       v = voms_attributes_.erase(v);
+     } else {
+       ++v;
+     };
+   };
 }
 
 TLSSecAttr::~TLSSecAttr(void) {
 }
 
 TLSSecAttr::operator bool(void) const {
-  return true;
+  return !processing_failed_;
 }
 
 bool TLSSecAttr::equal(const SecAttr &b) const {
@@ -411,7 +434,6 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
    // Filling security attributes
    if(tstream && (config_.IfClientAuthn())) {
       TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, logger);
-      nextinmsg.Auth()->set("TLS",sattr);
       //Getting the subject name of peer(client) certificate
       logger.msg(VERBOSE, "Peer name: %s", sattr->Subject());
       nextinmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
@@ -419,8 +441,15 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
       nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
       logger.msg(VERBOSE, "CA name: %s", sattr->CA());
       nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
-      if(!((sattr->target_).empty()))
+      if(!((sattr->target_).empty())) {
         nextinmsg.Attributes()->set("TLS:LOCALDN",sattr->target_);
+      }
+      if(!*sattr) {
+        logger.msg(ERROR, "Failed to process security attributes in TLS MCC for incoming message");
+        delete sattr;
+        return MCC_Status();
+      }
+      nextinmsg.Auth()->set("TLS",sattr);
    }
 
    // Checking authentication and authorization;

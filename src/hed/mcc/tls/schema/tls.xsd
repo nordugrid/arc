@@ -100,6 +100,27 @@
     </xsd:annotation>
 </xsd:element>
 
+<xsd:element name="VOMSProcessing" type="xsd:string">
+    <xsd:simpleType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            How to behave if failure happens during VOMS processing.
+             relaxed - use everything that passed validation.
+             standard - same as relaxed but fail if parsing errors took place and 
+                  VOMS extension is marked as critical. This is a default.
+             strict - fail if any parsing error was discovered.
+             noerrors - fail if any parsing or validation error happened.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="relaxed"/>
+            <xsd:enumeration value="standard"/>
+            <xsd:enumeration value="strict"/>
+            <xsd:enumeration value="noerrors"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:element>
+
 <xsd:element name="Handshake" default="TLS">
     <xsd:simpleType>
         <xsd:annotation>
