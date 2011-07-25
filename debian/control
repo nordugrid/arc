@@ -17,21 +17,23 @@ Replaces: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-
 Conflicts: nordugrid-arc-libs (<< 1.0.0~), nordugrid-arc1 (<< 1.0.0~), nordugrid-arc-nox (<< 1.3.0~), nordugrid-arc-httpsd (<< 0.8.2~), nordugrid-arc-logger-server (<< 0.8.2~), nordugrid-arc-nox-charon (<< 1.3.0~), nordugrid-arc-nox-compiler (<< 1.3.0~), nordugrid-arc-nox-delegation (<< 1.3.0~), nordugrid-arc-nox-paul (<< 1.3.0~), nordugrid-arc-nox-saml2sp (<< 1.3.0~), nordugrid-arc-nox-slcs (<< 1.3.0~), nordugrid-arc-hed (<< 1.0.1~rc2~), libarccommon0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}
-Description: ARC grid middleware
+Description: ARC Grid middleware
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The Advanced Resource Connector (ARC) brings computing resources
- together across institutional boundaries. This concept is commonly
- referred to as a "computational grid". Historically, grids address the
- organization of distributed storage of data and parallel computation,
- but arbitrary services are thinkable.
+ The Advanced Resource Connector (ARC) is a software suite that makes
+ use of Grid technologies to federate heterogeneous computing and data
+ resources across administrative domains. The resulting infrastructure
+ is commonly referred to as a computational or a data Grid, depending
+ on prevalence of CPU-intensive or data-intensive applications. ARC is
+ developed and supported by the NorduGrid Consortium.
  .
- Just like the web, ARC has its roots in the IT infrastructure that was
- erected to analyze the experiments for high energy physics at CERN. The
- first release, ARC-0.x, was dependent on Globus, the current release
- keeps that compatibility but can also be used independently.
+ Just like the Web, ARC has its roots in the IT infrastructure that was
+ erected to analyze data collected by high energy physics experiments
+ at CERN. While first versions of ARC made heavy use of the Globus
+ Toolkit, the current release does not require Globus as such, though
+ maintains backward compatibility.
 
 Package: nordugrid-arc-client
 Provides: nordugrid-arc1-client, nordugrid-arc-nox-client
@@ -44,10 +46,11 @@ Description: ARC command line interface
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- For the regular user of any ARC-based computational grid,
+ For the regular user of any ARC-based computational Grid,
  this client package contains (or depends on) all packages
  that are needed to submit jobs, query their status and
- retrieve results.
+ retrieve results. Basic Grid file manipulation tools are
+ also offered.
 
 Package: nordugrid-arc-hed
 Provides: nordugrid-arc1-server, nordugrid-arc-nox-hed
@@ -93,8 +96,9 @@ Description: ARC Chelonia service
  Connector (ARC).
  .
  The NorduGrid storage service Chelonia consists of a set of SOAP based
- services residing within HED. Together, the services provide a self-healing,
- reliable, robust, scalable, resilient and consistent data storage system.
+ services residing within ARC container (HED). Together, the services
+ provide a self-healing, reliable, robust, scalable, resilient and
+ consistent data storage system.
 
 Package: nordugrid-arc-hopi
 Provides: nordugrid-arc-nox-hopi
@@ -109,7 +113,7 @@ Description: ARC Hopi service
  .
  The Hopi service provides a simple implementation of an http(s)
  server. It supports GET and PUT operations. It can be used as a simple
- file transfer service and it is usable via common web browsers and
+ file transfer service and it is usable via common Web browsers and
  other http(s) clients (e.g. wget).
 
 Package: nordugrid-arc-isis
@@ -118,15 +122,17 @@ Replaces: nordugrid-arc-nox-isis (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-isis (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-plugins-needed (= ${binary:Version})
-Description: ARC Isis service
+Description: ARC ISIS service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- Isis is the new ARC information system implemented within HED. Isis
- comes with P2P capabilities and a web-services interface. The new system
- grants grid participants an increase in flexibility, robustness and it
- also offers easier configuration and self-healing capability.
+ ISIS is a P2P information system for ARC, implemented within ARC
+ container (HED). ISIS comes with a Web Service interface. The system
+ is necessary to enable a Grid infrastructure as such. Compared to
+ traditional LDAP-based information systems, ISIS grants Grid
+ participants an increase in flexibility, robustness and offers
+ easier configuration and self-healing capability.
 
 Package: nordugrid-arc-gridftpd
 Provides: nordugrid-arc-nox-gridftp-server
@@ -134,15 +140,18 @@ Replaces: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Conflicts: nordugrid-arc-nox-gridftp-server (<< 1.3.0~)
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: ARC gridftp server
+Description: ARC GridFTP server
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the ARC gridftp server which has a plugin framework.
+ This package contains the ARC GridFTP server which is implemented using
+ original Globus tools, but extended with a plugin framework and other
+ functionalities.
+ .
  Current plugins include:
  .
-   fileplugin : Standard gridftp server based on Globus globus-ftp-control
+   fileplugin : Standard GridFTP server based on Globus globus-ftp-control
    gaclplugin : Enhanced server with support for GACL authorization
    jobplugin  : Classical ARC job submission interface
 
@@ -158,8 +167,9 @@ Description: ARC cache service
  Connector (ARC).
  .
  This package contains the ARC cache service. It provides a way to perform
- some operations on the A-REX cache remotely. It can be especially helpful
- for data management within a pilot job framework.
+ some operations on the ARC Compute Element cache remotely. It can be
+ especially helpful for data-driven job scheduling within pilot job
+ frameworks.
 
 Package: nordugrid-arc-aris
 Provides: nordugrid-arc-infosys-ldap, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-infoindex
@@ -172,10 +182,11 @@ Description: ARC LDAP infosys service
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the LDAP based information system for ARC.
- This package is not self-contained. it should be pulled in by either
- nordugrid-arc-arex to be a part of a local information system or
- by nordugrid-arc-egiis to be a part of a EGIIS service.
+ ARIS stands for ARC Resource Information Service. The package contains
+ LDAP based information system for ARC services. This package is not
+ self-contained: it should be coupled either with ARC Compute Element
+ to be a part of a local information system or with ARC Information
+ Indexing Service (EGIIS) to be a part of an EGIIS service.
 
 Package: nordugrid-arc-egiis
 Provides: nordugrid-arc-nox-giis
@@ -189,8 +200,8 @@ Description: ARC EGIIS service
  Connector (ARC). 
  .
  The EGIIS is the Information Index Service used by ARC, This service is
- used to set up a ldap-based server that local information systems register
- to.
+ used to set up a LDAP-based server that local information systems (ARIS)
+ register to.
 
 Package: nordugrid-arc-ldap-monitor
 Provides: nordugrid-arc-monitor
@@ -204,8 +215,9 @@ Description: ARC LDAP monitor service
  Connector (ARC).
  .
  This package contains the LDAP monitor system for ARC.
- This package is self-contained. It is used to set up a web-based monitor
- which pulls information from a EGIIS and shows it graphically.
+ This package is self-contained. It is used to set up a Web-based monitor
+ which pulls information from ARIS and displays it in a readable
+ manner.
 
 Package: nordugrid-arc-ws-monitor
 Architecture: all
@@ -216,8 +228,10 @@ Description: ARC WS monitor service
  Connector (ARC).
  .
  This package contains the WS monitor system for ARC.
- This package is self-contained. It is used to set up a web-based monitor
- which pulls information from ISIS and shows it graphically.
+ This package is self-contained. It is used to set up a Web-based monitor
+ which pulls information from ISIS and displays it in a readable
+ manner.
+
 
 #Package: nordugrid-arc-slcs
 #Provides: nordugrid-arc-nox-slcs
@@ -243,8 +257,10 @@ Description: ARC Remote EXecution service
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- The ARC Remote EXecution service (AREX) provides a service for the
- execution of compute jobs and the transfer of input or output data.
+ The ARC Resource-coupled EXecution service (AREX) provides a service
+ for the execution of compute jobs - also known as a Compute Element.
+ A-REX also handles transfer of input and output data, as well as
+ input data caching to minimise data traffic.
 
 Package: nordugrid-arc-plugins-needed
 Provides: nordugrid-arc1-plugins-base, nordugrid-arc-nox-plugins-base, nordugrid-arc-plugins-base
@@ -258,7 +274,7 @@ Description: ARC base plugins
  Resource Connector (ARC).
  .
  ARC base plugins. This includes the Message Chain Components (MCCs)
- and Data Manager Components (DMCs).
+ and Data Management Components (DMCs).
 
 Package: nordugrid-arc-plugins-globus
 Provides: nordugrid-arc1-plugins-globus, nordugrid-arc-nox-plugins-globus
@@ -271,8 +287,9 @@ Description: ARC Globus plugins
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- ARC Globus plugins. This includes the Globus dependent Data Manager
- Components (DMCs).
+ ARC Globus plugins. This includes the Globus dependent Data
+ Management Components (DMCs). These plugins are needed for most
+ traditional Grid infrastructures.
 
 Package: nordugrid-arc-dev
 Provides: nordugrid-arc-libs-devel, nordugrid-arc1-dev, nordugrid-arc-nox-dev
@@ -326,12 +343,12 @@ Description: ARC dynamic runtime environment installation
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- For grid computing, a major challenge is to keep the working environments
+ For Grid computing, a major challenge is to keep the working environments
  homogeneous between the sites. To help this situation, runtime
  environments have been developed. Those can be added to or removed from
- a site, and this Janitor service helps automating this process.
+ a site, and the Janitor service helps automating this process.
  .
- The Janitor is a recent development and the community to prepare
+ Janitor is a recent development and the community to prepare
  catalogs of dynamically installable packages still needs to evolve.
 
 Package: nordugrid-arc-doxygen
@@ -343,7 +360,7 @@ Description: ARC API documentation
  and support of the free Grid middleware, known as the Advanced
  Resource Connector (ARC).
  .
- Reference to the ARC programming API. It is prepared with doxygen.
+ Reference to the ARC programming API. It is prepared with Doxygen.
 
 Package: nordugrid-arc-gridmap-utils
 Architecture: all
@@ -356,7 +373,7 @@ Description: NorduGrid authorization tools
  .
  This package contains the ARC authorization machinery.
  A prominent tool distributed in this package is the nordugridmap
- script to collect user information from the virtual organizations.
+ script to map Grid user identities to local Linux accounts.
 
 Package: nordugrid-arc-ca-utils
 Architecture: all
@@ -383,4 +400,4 @@ Description: ARC grid middleware - Debug Symbols
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package provides dubug symbols for the ARC grid middleware.
+ This package provides debug symbols for the ARC Grid middleware.
