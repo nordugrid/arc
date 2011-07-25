@@ -203,12 +203,20 @@ namespace Arc {
   }
 
   ASN1_UTCTIME* utc_to_asn1time(const Time& t) {
-    ASN1_GENERALIZEDTIME* s = ASN1_GENERALIZEDTIME_new();
-    if(!s) return NULL;
+    // Using ASN1_UTCTIME instead of ASN1_GENERALIZEDTIME because of dCache
     std::string t_str = t.str(MDSTime);
-    if(ASN1_GENERALIZEDTIME_set_string(s,(char*)t_str.c_str())) return s;
-    ASN1_GENERALIZEDTIME_free(s);
+    if(t_str.length() < 2) return NULL; // paranoic
+    ASN1_UTCTIME* s = ASN1_UTCTIME_new();
+    if(!s) return NULL;
+    if(ASN1_UTCTIME_set_string(s,(char*)(t_str.c_str()+2))) return s;
+    ASN1_UTCTIME_free(s);
     return NULL;
+    //ASN1_GENERALIZEDTIME* s = ASN1_GENERALIZEDTIME_new();
+    //if(!s) return NULL;
+    //std::string t_str = t.str(MDSTime);
+    //if(ASN1_GENERALIZEDTIME_set_string(s,(char*)t_str.c_str())) return s;
+    //ASN1_GENERALIZEDTIME_free(s);
+    //return NULL;
   }
 
   class AutoBIO {
