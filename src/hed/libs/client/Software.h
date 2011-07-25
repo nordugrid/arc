@@ -437,7 +437,7 @@ namespace Arc {
      * @see selectSoftware(const std::list<Software>&),
      * @see isResolved() const.
      **/
-    bool isSatisfied(const std::list<Software>& swList) const;
+    bool isSatisfied(const std::list<Software>& swList) const { return isSatisfiedSelect(swList); }
     /// Test if requirements are satisfied.
     /**
      * This method behaves in exactly the same way as the
@@ -569,6 +569,8 @@ namespace Arc {
     std::list<Software::ComparisonOperator> comparisonOperatorList;
     typedef std::pair<Software*, Software::ComparisonOperator> SWRelPair;
     std::list< std::list<SWRelPair> > orderedSoftwareList;
+
+    bool isSatisfiedSelect(const std::list<Software>&, SoftwareRequirement* = NULL) const;
 
     static Logger logger;
   };

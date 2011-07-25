@@ -191,10 +191,15 @@ void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperatorEn
   add(sw, Software::convert(co));
 }
 
-bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
+bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& swList) const {
+  return isSatisfiedSelect(reinterpret_cast< const std::list<Software>& >(swList));
+}
+
+bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, SoftwareRequirement* sr) const {
   // Compare Software objects in the 'versions' list with those in 'swList'.
   std::list< std::list<SWRelPair> >::const_iterator itOSL = orderedSoftwareList.begin();
   for (; itOSL != orderedSoftwareList.end(); itOSL++) {
+    Software * currentSelectedSoftware = NULL; // Pointer to the current selected software from the argument list.
     // Loop over 'swList'.
     std::list<Software>::const_iterator itSWList = swList.begin();
     for (; itSWList != swList.end(); itSWList++) {
@@ -209,12 +214,26 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
         }
       }
 
-      if (itSRL == itOSL->end()) // All requirements in the group have been satisfied by a single software.
-        break;
+      if (itSRL == itOSL->end()) { // All requirements satisfied by this software.
+        if (sr != NULL) {
+          if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the selected software.
+            sr->softwareList.push_back(*itSWList);
+            sr->comparisonOperatorList.push_back(&Software::operator ==);
+          }
+          else if (*currentSelectedSoftware < *itSWList) { // Select the software with the highest version still satisfying the requirement.
+            sr->softwareList.back() = *itSWList;
+          }
+
+          currentSelectedSoftware = &sr->softwareList.back();
+        }
+        else {
+          break;
+        }
+      }
     }
 
-    if (itSWList == swList.end()) { // End of Software list reached, ie. requirement not satisfied.
-      logger.msg(VERBOSE, "End of list reached requirement not met.");
+    if (itSWList == swList.end() && currentSelectedSoftware == NULL) { // End of Software list reached, ie. requirement not satisfied.
+      logger.msg(VERBOSE, "Requirement NOT satisfied.");
       return false;
     }
   }
@@ -223,45 +242,17 @@ bool SoftwareRequirement::isSatisfied(const std::list<Software>& swList) const {
   return true;
 }
 
-bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& swList) const {
-  return isSatisfied(reinterpret_cast< const std::list<Software>& >(swList));
-}
-
 bool SoftwareRequirement::selectSoftware(const std::list<Software>& swList) {
-  SoftwareRequirement sr;
+  SoftwareRequirement* sr = new SoftwareRequirement();
 
-  std::list< std::list<SWRelPair> >::const_iterator itOSL = orderedSoftwareList.begin();
-  for (; itOSL != orderedSoftwareList.end(); itOSL++) {
-    Software * currentSelectedSoftware = NULL; // Pointer to the current selected software from the argument list.
-    for (std::list<Software>::const_iterator itSWList = swList.begin();
-         itSWList != swList.end(); itSWList++) {
-      std::list<SWRelPair>::const_iterator itSRP = itOSL->begin();
-      for (; itSRP != itOSL->end(); itSRP++) {
-        if (!((*itSWList).*itSRP->second)(*itSRP->first)) { // Requirement not satisfied.
-          break;
-        }
-      }
-
-      if (itSRP == itOSL->end()) { // All requirements satisfied by this software.
-        if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the selected software.
-          sr.softwareList.push_back(*itSWList);
-          sr.comparisonOperatorList.push_back(&Software::operator ==);
-        }
-        else if (*currentSelectedSoftware < *itSWList) { // Select the software with the highest version still satisfying the requirement.
-          sr.softwareList.back() = *itSWList;
-        }
-
-        currentSelectedSoftware = &sr.softwareList.back();
-      }
-    }
-
-    if (currentSelectedSoftware == NULL) {
-      return false;
-    }
+  bool status = isSatisfiedSelect(swList, sr);
+  
+  if (status) {
+    *this = *sr;
   }
+  delete sr;
 
-  *this = sr;
-  return true;
+  return status;
 }
 
 bool SoftwareRequirement::selectSoftware(const std::list<ApplicationEnvironment>& swList) {
