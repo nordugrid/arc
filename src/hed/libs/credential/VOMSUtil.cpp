@@ -889,10 +889,10 @@ err:
         }
 
         if (!success) {
-          AC_CERTS_free(certs);
+          //AC_CERTS_free(certs);
           CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
           status |= VOMSACInfo::TrustFailed;
-          return false;
+          //return false;
         }
       }
                   
@@ -1446,13 +1446,15 @@ err:
     }
   
     names = ac->acinfo->form->names;
-    if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || 
-       (name->type != GEN_DIRNAME) || X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
-      CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
-        X509_NAME_oneline(issuer->cert_info->subject,NULL,0),
-        X509_NAME_oneline(name->d.dirn,NULL,0));
-      status |= VOMSACInfo::ACParsingFailed;
-      return false;
+    if(issuer) {
+      if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || 
+         (name->type != GEN_DIRNAME) || X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
+        CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
+          X509_NAME_oneline(issuer->cert_info->subject,NULL,0),
+          X509_NAME_oneline(name->d.dirn,NULL,0));
+        status |= VOMSACInfo::ACParsingFailed;
+        return false;
+      }
     }
 
     if (ac->acinfo->serial->length > 20) {
