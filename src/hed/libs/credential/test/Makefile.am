@@ -26,9 +26,9 @@ listfuncTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
-#noinst_DATA = ca_key.pem ca_cert.pem
-
 ca_key.pem ca_cert.pem:
 	openssl req -x509 -set_serial 0 -passout pass:password -newkey rsa:2048 -keyout ca_key.pem -out ca_cert.pem -config ca.cnf
 
 EXTRA_DIST = ca.cnf
+
+CLEANFILES = *.pem ca_serial
