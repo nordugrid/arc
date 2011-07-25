@@ -388,6 +388,9 @@ prepare() {
       <KeyPath>$X509_USER_KEY</KeyPath>
       <CertificatePath>$X509_USER_CERT</CertificatePath>
       <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
+      <VOMSCertTrustDNChain>
+        <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
+      </VOMSCertTrustDNChain>
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
         <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>
