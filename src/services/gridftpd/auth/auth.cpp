@@ -8,6 +8,7 @@
 
 #include "auth.h"
 
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
 int AuthUser::match_all(const char* /* line */) {
   default_voms_=NULL;
@@ -76,50 +77,61 @@ AuthUser::source_t AuthUser::sources[] = {
 
 
 AuthUser::AuthUser(const char* s,const char* f):subject(""),filename("") {
+  valid = true;
   if(s) { subject=s; gridftpd::make_unescaped_string(subject); }
   struct stat fileStat;
   if(f && stat(f, &fileStat) == 0) filename=f;
   proxy_file_was_created=false;
+  voms_extracted=false;
   has_delegation=false; // ????
-  process_voms();
   default_voms_=NULL;
   default_vo_=NULL;
   default_role_=NULL;
   default_capability_=NULL;
   default_vgroup_=NULL;
   default_group_=NULL;
+  if(process_voms() == AAA_FAILURE) valid=false;
 }
 
 AuthUser::AuthUser(const AuthUser& a) {
+  valid=a.valid;
   subject=a.subject;
   filename=a.filename;
   has_delegation=a.has_delegation;
   proxy_file_was_created=false;
-  process_voms();
+  voms_extracted=false;
   default_voms_=NULL;
   default_vo_=NULL;
   default_role_=NULL;
   default_capability_=NULL;
   default_vgroup_=NULL;
   default_group_=NULL;
+  if(process_voms() == AAA_FAILURE) valid=false;
 }
 
 AuthUser& AuthUser::operator=(const AuthUser& a) {
+  valid=a.valid;
   subject=a.subject;
   filename=a.filename;
   has_delegation=a.has_delegation;
   voms_data.clear();
   voms_extracted=false;
-  process_voms();
   proxy_file_was_created=false;
+  default_voms_=NULL;
+  default_vo_=NULL;
+  default_role_=NULL;
+  default_capability_=NULL;
+  default_vgroup_=NULL;
+  default_group_=NULL;
+  if(process_voms() == AAA_FAILURE) valid=false;
   return *this;
 }
 
 void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char* hostname) {
+  valid=true;
   if(hostname) from=hostname;
   voms_data.clear();
   voms_extracted=false;
-  process_voms();
   proxy_file_was_created=false; filename=""; has_delegation=false;
   subject=s; gridftpd::make_unescaped_string(subject);
   filename="";
@@ -152,6 +164,7 @@ void AuthUser::set(const char* s,gss_ctx_id_t ctx,gss_cred_id_t cred,const char*
   } else {
     subject=s;
   };
+  if(process_voms() == AAA_FAILURE) valid=false;
 }
 
 static bool temporary_file(const char* prefix,std::string& name) {
@@ -169,10 +182,10 @@ static bool temporary_file(const char* prefix,std::string& name) {
 }
 
 void AuthUser::set(const char* s,STACK_OF(X509)* cred,const char* hostname) {
+  valid=true;
   if(hostname) from=hostname;
   voms_data.clear();
   voms_extracted=false;
-  process_voms();
   proxy_file_was_created=false; filename=""; has_delegation=false;
   int chain_size = 0;
   if(cred) chain_size=sk_X509_num(cred);
@@ -208,18 +221,19 @@ void AuthUser::set(const char* s,STACK_OF(X509)* cred,const char* hostname) {
     BIO_free(bio);
     proxy_file_was_created=true;
   };
+  if(process_voms() == AAA_FAILURE) valid=false;
 }
 
 void AuthUser::set(const char* s,const char* hostname) {
+  valid=true;
   if(hostname) from=hostname;
   voms_data.clear();
   voms_extracted=false;
-  process_voms();
   subject="";
   filename="";
   proxy_file_was_created=false; filename=""; has_delegation=false;
-  if(s == NULL) return;
-  subject=s;
+  if(s != NULL) subject=s;
+  //if(process_voms() == AAA_FAILURE) valid=false;
 }
 
 struct voms AuthUser::arc_to_voms(const std::string& vo,const std::vector<std::string>& attributes) {
@@ -262,6 +276,7 @@ AuthUser::~AuthUser(void) {
 }
 
 int AuthUser::evaluate(const char* line) {
+  if(!valid) return AAA_FAILURE; 
   bool invert = false;
   bool no_match = false;
   const char* command = "subject";
@@ -293,6 +308,7 @@ int AuthUser::evaluate(const char* line) {
       return res;
     };
   };
+  logger.msg(Arc::ERROR, "Unknown authorization command %s", command);
   return AAA_FAILURE; 
 }
 
@@ -332,6 +348,12 @@ bool AuthUser::add_vo(const std::list<AuthVO>& vos) {
   return r;
 }
 
+std::string AuthUser::err_to_string(int err) {
+  if(err == AAA_POSITIVE_MATCH) return "positive";
+  if(err == AAA_NEGATIVE_MATCH) return "negative";
+  if(err == AAA_NO_MATCH) return "no match";
+  if(err == AAA_FAILURE) return "failure";
+}
 
 AuthEvaluator::AuthEvaluator(void):name("") {
 

@@ -66,16 +66,6 @@ bool check_gridmap(const char* dn,char** user,const char* mapfile) {
   return false;
 }
 
-/*
-int fill_user_spec(userspec_t *spec,globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle) {
-  if(spec == NULL) return 1;
-  if(auth == NULL) return 1;
-  if(!(spec->fill(auth,handle)
-    )) return 1;
-  return 0;
-}
-*/
-
 bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle) {
   struct passwd pw_;
   struct group gr_;
@@ -137,11 +127,14 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
       user.set(auth->auth_gssapi_subject,auth->auth_gssapi_context,
                auth->delegated_credential_handle,abuf);
     };
+  } else {
+    user.set(auth->auth_gssapi_subject,auth->auth_gssapi_context,
+             auth->delegated_credential_handle);
   };
   if((!user.is_proxy()) || (user.proxy() == NULL) || (user.proxy()[0] == 0)) {
     logger.msg(Arc::INFO, "No proxy provided");
   } else {
-    logger.msg(Arc::VERBOSE, "Proxy stored at %s", user.proxy());
+    logger.msg(Arc::VERBOSE, "Proxy/credentials stored at %s", user.proxy());
   };
   if((getuid() == 0) && name) {
     logger.msg(Arc::INFO, "Initially mapped to local user: %s", name);
@@ -196,6 +189,7 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
     logger.msg(Arc::VERBOSE, "Mapped user's home: %s", home);
   };
   if(name) std::free(name);
+  if(!user) return false;
   return true;
 }
 

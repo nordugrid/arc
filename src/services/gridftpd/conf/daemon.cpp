@@ -11,6 +11,7 @@
 #include <signal.h>
 
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #include "conf.h"
 #include "environment.h"
@@ -92,21 +93,23 @@ namespace gridftpd {
 
   int Daemon::config(const std::string& cmd,std::string& rest) {
     if(cmd == "gridmap") {
-      setenv("GRIDMAP",rest.c_str(),1); return 0;
+      Arc::SetEnv("GRIDMAP",rest.c_str()); return 0;
     } else if(cmd == "hostname") {
-      setenv("GLOBUS_HOSTNAME",rest.c_str(),1); return 0;
+      Arc::SetEnv("GLOBUS_HOSTNAME",rest.c_str()); return 0;
     } else if(cmd == "globus_tcp_port_range") {
-      setenv("GLOBUS_TCP_PORT_RANGE",rest.c_str(),1); return 0;
+      Arc::SetEnv("GLOBUS_TCP_PORT_RANGE",rest.c_str()); return 0;
     } else if(cmd == "globus_udp_port_range") {
-      setenv("GLOBUS_UDP_PORT_RANGE",rest.c_str(),1); return 0;
+      Arc::SetEnv("GLOBUS_UDP_PORT_RANGE",rest.c_str()); return 0;
     } else if(cmd == "x509_user_key") {
-      setenv("X509_USER_KEY",rest.c_str(),1); return 0;
+      Arc::SetEnv("X509_USER_KEY",rest.c_str()); return 0;
     } else if(cmd == "x509_user_cert") {
-      setenv("X509_USER_CERT",rest.c_str(),1); return 0;
+      Arc::SetEnv("X509_USER_CERT",rest.c_str()); return 0;
     } else if(cmd == "x509_cert_dir") {
-      setenv("X509_CERT_DIR",rest.c_str(),1); return 0;
+      Arc::SetEnv("X509_CERT_DIR",rest.c_str()); return 0;
     } else if(cmd == "http_proxy") {
-      setenv("ARC_HTTP_PROXY",rest.c_str(),1); return 0;
+      Arc::SetEnv("ARC_HTTP_PROXY",rest.c_str()); return 0;
+    } else if(cmd == "voms_processing") {
+      Arc::SetEnv("VOMS_PROCESSING",rest.c_str()); return 0;
     };
     if(cmd == "daemon") {
       if(daemon_) {

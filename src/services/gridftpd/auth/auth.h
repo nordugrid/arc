@@ -72,6 +72,7 @@ class AuthUser {
   bool voms_extracted;
   std::list<group_t> groups; // Groups which user matched (internal names)
   std::list<std::string> vos; // VOs to which user belongs (external names)
+  bool valid;
  public:
   AuthUser(const AuthUser&);
   // Constructor
@@ -80,6 +81,8 @@ class AuthUser {
   AuthUser(const char* subject = NULL,const char* filename = NULL);
   ~AuthUser(void);
   AuthUser& operator=(const AuthUser&);
+  bool operator!(void) { return !valid; };
+  operator bool(void) { return valid; };
   // Reassign user with supplied credentials
   //void operator=(gss_cred_id_t cred);
   //void operator=(gss_ctx_id_t ctx);
@@ -97,7 +100,7 @@ class AuthUser {
     groups.push_back(group_t(grp,default_vo_,default_role_,default_capability_,default_vgroup_,default_voms_));
   };
   void add_group(const std::string& grp) { add_group(grp.c_str()); };
-  // Mark this user as belonging to no no groups
+  // Mark this user as belonging to no groups
   void clear_groups(void) { groups.clear(); default_group_=NULL; };
   // Returns true if user belongs to specified group 'grp'
   bool check_group(const char* grp) const {
@@ -142,6 +145,8 @@ class AuthUser {
   const std::string get_property(const std::string /* property */) const {
     return std::string("");
   };
+
+  static std::string err_to_string(int err);
 };
 
 class AuthEvaluator {

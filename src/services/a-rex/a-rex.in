@@ -205,6 +205,7 @@ prepare() {
     GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
+    VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" grid-manager voms_processing`
     if [ -z "$X509_USER_CERT" ] ; then
 	X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi
@@ -222,6 +223,9 @@ prepare() {
     fi
     if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
 	GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
+    fi
+    if [ -z "$VOMS_PROCESSING" ] ; then
+	VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
     fi
 
     # Exporting collected variables
@@ -317,6 +321,7 @@ prepare() {
     else
 	LOGREOPEN="false"
     fi
+    VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
 
     if [ ! -z "$USERNAME" ] ; then
 	CMD="$CMD -u '$USERNAME'"
@@ -391,6 +396,7 @@ prepare() {
       <VOMSCertTrustDNChain>
         <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
       </VOMSCertTrustDNChain>
+      <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
       <!-- Do initial identity mappping by gridmap file -->
       <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">
         <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>

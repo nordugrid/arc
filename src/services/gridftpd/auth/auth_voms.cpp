@@ -5,6 +5,7 @@
 
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/credential/VOMSUtil.h>
+#include <arc/Utils.h>
 #include <arc/Logger.h>
 
 #include "../misc/escaped.h"
@@ -12,14 +13,14 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserVOMS");
 
-int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool auto_cert = false);
+static int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool auto_cert = false);
 
 int AuthUser::process_voms(void) {
   if(!voms_extracted) {
     if(filename.length() > 0) {
       int err = process_vomsproxy(filename.c_str(),voms_data);
       voms_extracted=true;
-      logger.msg(Arc::DEBUG, "VOMS proxy processing returns: %i", err);
+      logger.msg(Arc::DEBUG, "VOMS proxy processing returns: %i - %s", err, err_to_string(err));
       if(err != AAA_POSITIVE_MATCH) return err;
     };
   };
@@ -64,7 +65,7 @@ int AuthUser::match_voms(const char* line) {
   logger.msg(Arc::VERBOSE, "Rule: capabilities: %s", capabilities);
   // extract info from voms proxy
   // if(voms_data->size() == 0) {
-  process_voms();
+  if(process_voms() != AAA_POSITIVE_MATCH) return AAA_FAILURE;
   if(voms_data.empty()) return AAA_NO_MATCH;
   // analyse permissions
   for(std::vector<struct voms>::iterator v = voms_data.begin();v!=voms_data.end();++v) {
@@ -93,78 +94,43 @@ int AuthUser::match_voms(const char* line) {
 }
 
 
-int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /* auto_cert */) {
-  X509 * cert = NULL;
-  STACK_OF(X509) * cert_chain = NULL;
-  EVP_PKEY * key = NULL;
+static int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /* auto_cert */) {
   int n = 0;
   std::vector<struct voms>::iterator i;
-  std::string voms_dir = "/etc/grid-security/vomsdir";
+  //std::string voms_dir = "/etc/grid-security/vomsdir";
   std::string cert_dir = "/etc/grid-security/certificates";
   {
-    char *v;
-    if((v = getenv("X509_VOMS_DIR"))) voms_dir = v;
-    if((v = getenv("X509_CERT_DIR"))) cert_dir = v;
+    std::string v;
+    //if((v = getenv("X509_VOMS_DIR"))) voms_dir = v;
+    if(!(v = Arc::GetEnv("X509_CERT_DIR")).empty()) cert_dir = v;
   };
-  BIO *bio = NULL;
-  FILE *f = NULL;
+  std::string voms_processing = Arc::GetEnv("VOMS_PROCESSING");
   Arc::Credential c(filename, filename, cert_dir, "");
   std::vector<Arc::VOMSACInfo> output;
   std::string emptystring = "";
   Arc::VOMSTrustList emptylist;
-
-  if((bio = BIO_new_file(filename, "r")) == NULL) {
-    logger.msg(Arc::ERROR, "Failed to open file %s", filename);
-    goto error_exit;
-  };
-  if(!PEM_read_bio_X509(bio,&cert, NULL, NULL)) {
-    logger.msg(Arc::ERROR, "Failed to read PEM from file %s", filename);
-    goto error_exit;
-  };
-  key=PEM_read_bio_PrivateKey(bio,NULL,NULL,NULL);
-  if(!key) {
-    logger.msg(Arc::ERROR, "Failed to read private key from file %s - probably no delegation was done", filename);
-    // goto error_exit;
-  };
-  if((cert_chain = sk_X509_new_null()) == NULL) {
-    logger.msg(Arc::ERROR, "Failed in SSL (sk_X509_new_null)");
-    goto error_exit;
-  };
-  while(!BIO_eof(bio)) {
-    X509 * tmp_cert = NULL;
-    if(!PEM_read_bio_X509(bio, &tmp_cert, NULL, NULL)) {
-      break;
-    };
-    if(n == 0) {
-      X509_free(cert); cert=tmp_cert;
-    } else { 
-      if(!sk_X509_insert(cert_chain, tmp_cert, n-1)) {
-        logger.msg(Arc::ERROR, "Failed in SSL (sk_X509_insert)");
+  emptylist.AddRegex(".*");
+  parseVOMSAC(c, cert_dir, emptystring, emptylist, output, true, true);
+  for(size_t n=0;n<output.size();++n) {
+    if(!(output[n].status & Arc::VOMSACInfo::Error)) {
+      data.push_back(AuthUser::arc_to_voms(output[n].voname,output[n].attributes));
+    } else {
+      if(voms_processing == "relaxed") {
+      } else if(voms_processing == "standard") {
+        if(output[n].status & Arc::VOMSACInfo::IsCritical) goto error_exit;
+      } else if(voms_processing == "strict") {
+        if(output[n].status & Arc::VOMSACInfo::IsCritical) goto error_exit;
+        if(output[n].status & Arc::VOMSACInfo::ParsingError) goto error_exit;
+      } else if(voms_processing == "noerrors") {
         goto error_exit;
+      } else { // == standard
+        if(output[n].status & Arc::VOMSACInfo::IsCritical) goto error_exit;
       };
     };
-    ++n;
   };
-
-  if (!parseVOMSAC(c, emptystring, emptystring, emptylist, output, false)) {
-    logger.msg(Arc::ERROR, "Error: no VOMS extension found");
-    goto error_exit;
-  };
-  for(size_t n=0;n<output.size();++n) {
-    data.push_back(AuthUser::arc_to_voms(output[n].voname,output[n].attributes));
-  };
-  X509_free(cert);
-  EVP_PKEY_free(key);
-  sk_X509_pop_free(cert_chain, X509_free);
-  BIO_free(bio);
   ERR_clear_error();
   return AAA_POSITIVE_MATCH;
 error_exit:
-  if(f) fclose(f);
-  if(cert) X509_free(cert);
-  if(key) EVP_PKEY_free(key);
-  if(cert_chain) sk_X509_pop_free(cert_chain, X509_free);
-  if(bio) BIO_free(bio);
   ERR_clear_error();
   return AAA_FAILURE;
 }

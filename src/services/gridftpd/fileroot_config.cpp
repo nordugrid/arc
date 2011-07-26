@@ -197,7 +197,11 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
         if(rest == "end") break;
         if(decision == AAA_NO_MATCH) {
           decision = user.user.evaluate(rest.c_str());
-          if(decision == AAA_FAILURE) decision=AAA_NO_MATCH;
+          if(decision == AAA_FAILURE) {
+            //decision=AAA_NO_MATCH;
+            logger.msg(Arc::ERROR, "Failed processing authorization group %s",group_name);
+            return 1;
+          };
         };
       };
       if(decision == AAA_POSITIVE_MATCH) user.user.add_group(group_name);
@@ -465,7 +469,11 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
           if(group_decision == AAA_NO_MATCH) {
             rest=command+" "+rest;
             group_decision = user.user.evaluate(rest.c_str());
-            if(group_decision == AAA_FAILURE) group_decision=AAA_NO_MATCH;
+            if(group_decision == AAA_FAILURE) {
+              //group_decision=AAA_NO_MATCH;
+              logger.msg(Arc::ERROR, "Failed processing authorization group %s",group_name);
+              return 1;
+            };
           };
         };
       }; break;
@@ -516,6 +524,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   cf->AddSection("vo");
   /* keep information about user */
   if(!user.fill(auth,handle)) {
+    logger.msg(Arc::ERROR, "failed to process client identification");
     delete cf;
     return 1;
   };

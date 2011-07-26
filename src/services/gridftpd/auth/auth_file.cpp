@@ -7,7 +7,7 @@
 #include "../misc/escaped.h"
 #include "auth.h"
 
-static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserFile");
 
 int AuthUser::match_file(const char* line) {
   for(;;) {

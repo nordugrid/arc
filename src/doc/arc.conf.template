@@ -178,6 +178,14 @@ x509_cert_dir="/etc/grid-security/certificates"
 # The default is /etc/grid-security/grid-mapfile
 gridmap="/etc/grid-security/grid-mapfile"
 
+# voms_processing - Defines how to behave if errors in VOMS AC processing detected.
+#   relaxed - use everything that passed validation.
+#   standard - same as relaxed but fail if parsing errors took place and
+#              VOMS extension is marked as critical. This is a default.
+#   strict - fail if any parsing error was discovered.
+#   noerrors - fail if any parsing or validation error happened.
+# This command can also be used in [grid-manager] and [griftpd] blocks.
+voms_processing="standard"
 
 ####################################################################
 #

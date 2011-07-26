@@ -1122,6 +1122,22 @@ environment variable GRIDMAP. The default is
 gridmap="/etc/grid-security/grid-mapfile"
 
 .TP
+.B voms_processing
+Defines how to behave if errors in VOMS AC processing detected.
+.br
+relaxed - use everything that passed validation.
+.br
+standard - same as relaxed but fail if parsing errors took place and
+VOMS extension is marked as critical. This is a default.
+.br
+strict - fail if any parsing error was discovered.
+.br
+noerrors - fail if any parsing or validation error happened.
+
+.IR Example :
+voms_processing="strict"
+
+.TP
 .B http_proxy
 Use an http proxy server for downloading files from http servers. The
 format of the argument is host[:port].
@@ -1207,7 +1223,7 @@ reason (for localcred plugins only, substituted at runtime). Possible reasons ar
 .PP
 See some of the examples above for examples of use.
 
-.SH GRIDFTPD OPTION
+.SH GRIDFTPD OPTIONS
 
 The gridftpd block configures the gridftpd server.
 
@@ -1337,6 +1353,22 @@ The gridmap file location. The default is /etc/grid-security/grid-mapfile
 
 .IR Example :
 gridmap="/etc/grid-security/grid-mapfile"
+
+.TP
+.B voms_processing
+Defines how to behave if errors in VOMS AC processing detected.
+.br
+relaxed - use everything that passed validation.
+.br
+standard - same as relaxed but fail if parsing errors took place and
+VOMS extension is marked as critical. This is a default.
+.br
+strict - fail if any parsing error was discovered.
+.br
+noerrors - fail if any parsing or validation error happened.
+
+.IR Example :
+voms_processing="strict"
 
 .SH GRIDFTPD FILEPLUGIN OPTIONS
 
