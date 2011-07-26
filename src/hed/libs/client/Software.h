@@ -127,10 +127,8 @@ namespace Arc {
 
     /// Equality operator.
     /**
-     * Two Software objects are equal if they are of the same family,
-     * and if they have the same name. If BOTH objects specifies a
-     * version they must also equal, for the objects to be equal.
-     * Otherwise the two objects does not equal. This operator can also
+     * Two Software objects are equal only if they are of the same family,
+     * have the same name and is of same version. This operator can also
      * be represented by the Software::EQUAL #ComparisonOperatorEnum
      * value.
      *
@@ -139,23 +137,18 @@ namespace Arc {
      **/
     bool operator==(const Software& sw) const { return family  == sw.family &&
                                                        name    == sw.name &&
-                                                       (version.empty() || sw.version.empty() || version == sw.version); }
-    /// Inequality operator (non-trivial behaviour).
+                                                       version == sw.version; }
+    /// Inequality operator.
     /**
-     * The inequality operator should be used to test if two Software
-     * objects are of different versions but share the same name and
-     * family. So it should not be used to test if two Software objects
-     * differ in either name, version or family. Two Software objects
-     * are inequal if they share the same name and family but have
-     * different versions and the versions are non-empty.
-     *
+     * The behaviour of the inequality operator is just opposite that of the
+     * equality operator (operator==()).
+     * 
      * @param sw is the RHS Software object.
      * @return \c true when the two objects are inequal, otherwise
      *         \c false.
      **/
-    bool operator!=(const Software& sw) const { return family == sw.family &&
-                                                       name   == sw.name &&
-                                                       !(version == sw.version || version.empty() || sw.version.empty()); }
+    bool operator!=(const Software& sw) const { return !operator==(sw); }
+     
     /// Greater-than operator.
     /**
      * For the LHS object to be greater than the RHS object they must
