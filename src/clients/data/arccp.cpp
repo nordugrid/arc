@@ -484,10 +484,7 @@ bool arccp(const Arc::URL& source_url_,
   if (cache)
     cache.Release();
   if (!res.Passed()) {
-    if (!res.GetDesc().empty())
-      logger.msg(Arc::ERROR, "Transfer FAILED: %s - %s", std::string(res), res.GetDesc());
-    else
-      logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
+    logger.msg(Arc::ERROR, "Transfer FAILED: %s", std::string(res));
     if (res.Retryable())
       logger.msg(Arc::ERROR, "This seems like a temporary error, please try again later");
     return false;

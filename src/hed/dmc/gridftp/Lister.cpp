@@ -46,7 +46,7 @@ namespace Arc {
 
   static Logger logger(Logger::rootLogger, "Lister");
 
-  bool SetAttributes(FileInfo& fi, const char *facts) {
+  void SetAttributes(FileInfo& fi, const char *facts) {
     const char *name;
     const char *value;
     const char *p = facts;
@@ -95,7 +95,6 @@ namespace Arc {
           fi.SetCreated(tmp_s); // ISO time
       }
     }
-    return true;
   }
 
   Lister::callback_status_t Lister::wait_for_callback() {
@@ -139,8 +138,7 @@ namespace Arc {
     globus_mutex_lock(&(it->mutex));
     if (error != GLOBUS_SUCCESS) {
       it->callback_status = CALLBACK_ERROR;
-      std::string tmp = globus_object_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp);
+      logger.msg(INFO, "Failure: %s", globus_object_to_string(error));
       if (response)
         logger.msg(INFO, "Response: %s", response->response_buffer);
     }
@@ -187,8 +185,7 @@ namespace Arc {
     if (error != GLOBUS_SUCCESS) {
       /* no such file or connection error - assume no such file */
       logger.msg(INFO, "Error getting list of files (in list)");
-      std::string tmp = globus_object_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp);
+      logger.msg(INFO, "Failure: %s", globus_object_to_string(error));
       logger.msg(INFO, "Assuming - file not found");
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
@@ -290,8 +287,7 @@ namespace Arc {
     /* if(!callback_active) return; */
     Lister *it = (Lister*)arg;
     if (error != GLOBUS_SUCCESS) {
-      std::string tmp = globus_object_to_string(error);
-      logger.msg(INFO, "Failure: %s", tmp);
+      logger.msg(INFO, "Failure: %s", globus_object_to_string(error));
       globus_mutex_lock(&(it->mutex));
       it->data_callback_status = CALLBACK_ERROR;
       // if data failed no reason to wait for control
@@ -472,37 +468,35 @@ namespace Arc {
     inited = true;
   }
 
-  int Lister::close_connection() {
-    if (!connected) return 0;
+  void Lister::close_connection() {
+    if (!connected) return;
     connected = false;
-    int res = 0;
+    bool res = true;
     logger.msg(VERBOSE, "Closing connection");
     if (globus_ftp_control_data_force_close(handle, simple_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
-      res = -1;
+      res = false;
     }
     if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
-      res = -1;
+      res = false;
     }
     if (globus_ftp_control_quit(handle, resp_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
-      res = -1;
+      res = false;
     }
     if (globus_ftp_control_force_close(handle, resp_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
-      res = -1;
+      res = false;
     }
-    if(res == 0) {
+    if(res) {
       logger.msg(VERBOSE, "Closed successfully");
     } else {
       logger.msg(VERBOSE, "Closing may have failed");
     }
-    return res;
   }
 
   Lister::~Lister() {
-    GlobusResult res;
     close_connection();
     if (inited) {
       inited = false;
@@ -541,6 +535,7 @@ namespace Arc {
           }
         }
         globus_mutex_unlock(&(handle->cc_handle.mutex));
+        GlobusResult res;
         if(!(res=globus_ftp_control_handle_destroy(handle))) {
           // This situation can't be fixed because call to globus_ftp_control_handle_destroy
           // makes handle unusable even if it fails.
@@ -555,19 +550,21 @@ namespace Arc {
     }
   }
 
-  int Lister::setup_pasv(globus_ftp_control_host_port_t& pasv_addr) {
-    if(pasv_set) return 0;
+  DataStatus Lister::setup_pasv(globus_ftp_control_host_port_t& pasv_addr) {
+    if(pasv_set) return DataStatus::Success;
     char *sresp;
     GlobusResult res;
+    DataStatus result = DataStatus::ListError;
     if (send_command("PASV", NULL, true, &sresp, NULL, '(') !=
         GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
       if (sresp) {
         logger.msg(INFO, "PASV failed: %s", sresp);
+        result.SetDesc(sresp);
         free(sresp);
       }
       else
         logger.msg(INFO, "PASV failed");
-      return -1;
+      return result;
     }
     pasv_addr.port = 0;
     if (sresp) {
@@ -580,9 +577,10 @@ namespace Arc {
     }
     if (pasv_addr.port == 0) {
       logger.msg(INFO, "Can't parse host and port in response to PASV");
+      result.SetDesc("Can't parse host and port in response to PASV");
       if (sresp)
         free(sresp);
-      return -1;
+      return result;
     }
     free(sresp);
     logger.msg(VERBOSE, "Data channel: %d.%d.%d.%d %d", pasv_addr.host[0],
@@ -590,8 +588,10 @@ namespace Arc {
                pasv_addr.port);
     if (!(res = globus_ftp_control_local_port(handle, &pasv_addr))) {
       logger.msg(INFO, "Obtained host and address are not acceptable");
-      logger.msg(INFO, "Failure: %s", res.str());
-      return -1;
+      std::string globus_err(res.str());
+      logger.msg(INFO, "Failure: %s", globus_err);
+      result.SetDesc(globus_err);
+      return result;
     }
     /* it looks like _pasv is not enough for connection - start reading
        immediately */
@@ -599,15 +599,17 @@ namespace Arc {
     if (globus_ftp_control_data_connect_read(handle, &list_conn_callback,
                                              this) != GLOBUS_SUCCESS) {
       logger.msg(INFO, "Failed to open data channel");
+      result.SetDesc("Failed to open data channel");
       pasv_set = false;
-      return -1;
+      return result;
     }
     pasv_set = true;
-    return 0;
+    return DataStatus::Success;
   }
 
-  int Lister::handle_connect(const URL& url) {
+  DataStatus Lister::handle_connect(const URL& url) {
     GlobusResult res;
+    DataStatus result = DataStatus::ListError;
     /* get listing */
     fnames.clear();
     globus_ftp_control_auth_info_t auth;
@@ -615,7 +617,8 @@ namespace Arc {
     if ((url.Protocol() != "ftp") &&
         (url.Protocol() != "gsiftp")) {
       logger.msg(ERROR, "Unsupported protocol in url %s", url.str());
-      return -1;
+      result.SetDesc("Unsupported protocol in url " + url.str());
+      return result;
     }
 
     bool reconnect = true;
@@ -653,14 +656,15 @@ namespace Arc {
                                              port, &resp_callback, this))) {
         logger.msg(ERROR, "Failed connecting to server %s:%d",
                    host.c_str(), port);
-        logger.msg(ERROR, "Failure: %s", res.str());
-        return -1;
+        result.SetDesc(res.str());
+        return result;
       }
       if (wait_for_callback() != CALLBACK_DONE) {
         logger.msg(ERROR, "Failed to connect to server %s:%d",
                    host.c_str(), port);
+        result.SetDesc("Failed to connect to server");
         resp_destroy();
-        return -1;
+        return result;
       }
       connected = true;
       resp_destroy();
@@ -678,7 +682,8 @@ namespace Arc {
                                               GLOBUS_NULL) !=
             GLOBUS_SUCCESS) {
           logger.msg(ERROR, "Bad authentication information");
-          return -1;
+          result.SetDesc("Bad authentication information");
+          return result;
         }
         use_auth = GLOBUS_TRUE;
       }
@@ -691,30 +696,37 @@ namespace Arc {
                                               GLOBUS_FALSE, username_,
                                               userpass_, GLOBUS_NULL,
                                               GLOBUS_NULL))) {
-          logger.msg(ERROR, "Bad authentication information");
-          logger.msg(ERROR, "Failure: %s", res.str());
-          return -1;
+          std::string globus_err(res.str());
+          logger.msg(ERROR, "Bad authentication information: %s", globus_err);
+          result.SetDesc(globus_err);
+          return result;
         }
         use_auth = GLOBUS_FALSE;
       }
       if (!(res = globus_ftp_control_authenticate(handle, &auth, use_auth,
                                           resp_callback, this))) {
-        logger.msg(ERROR, "Failed authenticating");
-        logger.msg(ERROR, "Failure: %s", res.str());
-        return -1;
+        std::string globus_err(res.str());
+        logger.msg(ERROR, "Failed authenticating: %s", globus_err);
+        result.SetDesc(globus_err);
+        return result;
       }
       if (wait_for_callback() != CALLBACK_DONE) {
         logger.msg(ERROR, "Failed authenticating");
+        result.SetDesc("Failed authenticating");
         resp_destroy();
-        return -1;
+        return result;
       }
       resp_destroy();
     }
-    return 0;
+    return DataStatus::Success;
   }
 
-  int Lister::retrieve_file_info(const URL& url,bool names_only) {
-    if(handle_connect(url) != 0) return -1;
+  DataStatus Lister::retrieve_file_info(const URL& url,bool names_only) {
+
+    DataStatus result = DataStatus::StatError;
+    DataStatus con_result = handle_connect(url);
+    if(!con_result) return con_result;
+
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp;
     if (url.Protocol() == "gsiftp") {
@@ -723,11 +735,12 @@ namespace Arc {
           (cmd_resp != GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY)) {
         if (sresp) {
           logger.msg(INFO, "DCAU failed: %s", sresp);
+          result.SetDesc(sresp);
           free(sresp);
         }
         else
           logger.msg(INFO, "DCAU failed");
-        return -1;
+        return result;
       }
       free(sresp);
     }
@@ -742,11 +755,12 @@ namespace Arc {
       int code = 0;
       cmd_resp = send_command("MLST", path.c_str(), true, &sresp, &code);
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
-        if((code == 500) || (code == 550)) { // 550 - workaround for old bug
+        if (code == 500) {
           logger.msg(INFO, "MLST is not supported - trying LIST");
           free(sresp);
           /* run NLST */
-          if (setup_pasv(pasv_addr) != 0) return -1;
+          DataStatus pasv_res = setup_pasv(pasv_addr);
+          if (!pasv_res) return pasv_res;
           facts = false;
           free_format = true;
           cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
@@ -758,8 +772,9 @@ namespace Arc {
         // 250 -
         if (cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
           logger.msg(INFO, "Immediate completion expected: %s", sresp);
+          result.SetDesc(sresp);
           free(sresp);
-          return -1;
+          return result;
         }
         // Try to collect full response
         char* nresp = strchr(sresp,'\n');
@@ -770,8 +785,9 @@ namespace Arc {
           cmd_resp = send_command(NULL, NULL, true, &sresp);
           if(cmd_resp != GLOBUS_FTP_UNKNOWN_REPLY) {
             logger.msg(INFO, "Missing information in reply: %s", sresp);
+            result.SetDesc(sresp);
             free(sresp);
-            return -1;
+            return result;
           }
           nresp=sresp;
         }
@@ -783,7 +799,7 @@ namespace Arc {
           *fresp=0;
           list_shift = 0;
           fnames.clear();
-          int nlength = strlen(nresp);
+          size_t nlength = strlen(nresp);
           if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
           memcpy(readbuf,nresp,nlength);
           data_activated = true;
@@ -797,16 +813,18 @@ namespace Arc {
           cmd_resp = send_command(NULL, NULL, true, &sresp);
           if(cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
             logger.msg(INFO, "Missing final reply: %s", sresp);
+            result.SetDesc(sresp);
             free(sresp);
-            return -1;
+            return result;
           }
           fresp=sresp;
         }
         free(sresp);
-        return 0; 
+        return DataStatus::Success;
       }
     } else {
-      if (setup_pasv(pasv_addr) != 0) return -1;
+      DataStatus pasv_res = setup_pasv(pasv_addr);
+      if (!pasv_res) return pasv_res;
       facts = false;
       free_format = true;
       cmd_resp = send_command("LIST", path.c_str(), true, &sresp);
@@ -815,25 +833,31 @@ namespace Arc {
       /* completion is not expected here */
       pasv_set = false;
       logger.msg(INFO, "Unexpected immediate completion: %s", sresp);
+      result.SetDesc(sresp);
       if (sresp) free(sresp);
-      return -1;
+      return result;
     }
     if ((cmd_resp != GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY) &&
         (cmd_resp != GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY)) {
       if (sresp) {
         logger.msg(INFO, "LIST/MLST failed: %s", sresp);
+        result.SetDesc(sresp);
         free(sresp);
       }
       else
         logger.msg(INFO, "LIST/MLST failed");
-      return -1;
+      return result;
     }
     free(sresp);
     return transfer_list();
   }
 
-  int Lister::retrieve_dir_info(const URL& url,bool names_only) {
-    if(handle_connect(url) != 0) return -1;
+  DataStatus Lister::retrieve_dir_info(const URL& url,bool names_only) {
+
+    DataStatus result = DataStatus::StatError;
+    DataStatus con_result = handle_connect(url);
+    if(!con_result) return con_result;
+
     globus_ftp_control_response_class_t cmd_resp;
     char *sresp = NULL;
     if (url.Protocol() == "gsiftp") {
@@ -842,11 +866,12 @@ namespace Arc {
           (cmd_resp != GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY)) {
         if (sresp) {
           logger.msg(INFO, "DCAU failed: %s", sresp);
+          result.SetDesc(sresp);
           free(sresp);
         }
         else
           logger.msg(INFO, "DCAU failed");
-        return -1;
+        return result;
       }
       free(sresp);
     }
@@ -856,9 +881,9 @@ namespace Arc {
     globus_ftp_control_host_port_t pasv_addr;
     facts = true;
     free_format = false;
-    if (setup_pasv(pasv_addr) != 0)
-      return -1;
-    if(!names_only) {
+    DataStatus pasv_res = setup_pasv(pasv_addr);
+    if (!pasv_res) return pasv_res;
+    if (!names_only) {
       /* try MLSD */
       int code = 0;
       cmd_resp = send_command("MLSD", path.c_str(), true, &sresp, &code);
@@ -879,25 +904,28 @@ namespace Arc {
       /* completion is not expected here */
       pasv_set = false;
       logger.msg(INFO, "Immediate completion: %s", sresp);
+      result.SetDesc(sresp);
       if (sresp)
         free(sresp);
-      return -1;
+      return result;
     }
     if ((cmd_resp != GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY) &&
         (cmd_resp != GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY)) {
       if (sresp) {
         logger.msg(INFO, "NLST/MLSD failed: %s", sresp);
+        result.SetDesc(sresp);
         free(sresp);
       }
       else
         logger.msg(INFO, "NLST/MLSD failed");
-      return -1;
+      return result;
     }
     free(sresp);
     return transfer_list();
   }
 
-  int Lister::transfer_list(void) {
+  DataStatus Lister::transfer_list(void) {
+    DataStatus result = DataStatus::ListError;
     globus_ftp_control_response_class_t cmd_resp;
     char* sresp = NULL;
     /* start transfer */
@@ -909,6 +937,7 @@ namespace Arc {
           (cmd_resp != GLOBUS_FTP_POSITIVE_INTERMEDIATE_REPLY)) {
         if (sresp) {
           logger.msg(INFO, "Data transfer aborted: %s", sresp);
+          result.SetDesc(sresp);
           free(sresp);
         }
         else {
@@ -916,7 +945,7 @@ namespace Arc {
         }
         // Destroy data connections here ?????????
         pasv_set = false;
-        return -1;
+        return result;
       }
       if (sresp) free(sresp);
     }
@@ -924,12 +953,13 @@ namespace Arc {
     /* waiting for data ended */
     if (wait_for_data_callback() != CALLBACK_DONE) {
       logger.msg(INFO, "Failed to transfer data");
+      result.SetDesc("Failed to obtain data");
       pasv_set = false;
-      return -1;
+      return result;
     }
     pasv_set = false;
     /* success */
-    return 0;
+    return DataStatus::Success;
   }
 
 } // namespace Arc

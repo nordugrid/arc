@@ -6,6 +6,7 @@
 #include <list>
 #include <string>
 
+#include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
 
 #include <globus_ftp_control.h>
@@ -69,15 +70,15 @@ namespace Arc {
     globus_ftp_control_response_class_t
     send_command(const char *command, const char *arg, bool wait_for_response,
                  char **sresp = NULL, int *code = NULL, char delim = 0);
-    int setup_pasv(globus_ftp_control_host_port_t& pasv_addr);
-    int handle_connect(const URL& url);
-    int transfer_list(void);
+    DataStatus setup_pasv(globus_ftp_control_host_port_t& pasv_addr);
+    DataStatus handle_connect(const URL& url);
+    DataStatus transfer_list(void);
 
   public:
     Lister(GSSCredential& credential);
     ~Lister();
-    int retrieve_dir_info(const URL& url,bool names_only = false);
-    int retrieve_file_info(const URL& url,bool names_only = false);
+    DataStatus retrieve_dir_info(const URL& url,bool names_only = false);
+    DataStatus retrieve_file_info(const URL& url,bool names_only = false);
     operator bool() {
       return inited;
     }
@@ -90,7 +91,7 @@ namespace Arc {
     int size() const {
       return fnames.size();
     }
-    int close_connection();
+    void close_connection();
   };
 
 } // namespace Arc
