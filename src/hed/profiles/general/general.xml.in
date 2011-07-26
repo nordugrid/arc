@@ -116,6 +116,7 @@ attributes depending on how the mapping should be done.
       <tls:VOMSCertTrustDNChain>
         <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
       </tls:VOMSCertTrustDNChain>
+      <tls:VOMSProcessing inisections="common" initag="voms_processing" inidefaultvalue="standard"/>
     </Component>
     <Component name="http.service" id="http">
       <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="common#policystore">
