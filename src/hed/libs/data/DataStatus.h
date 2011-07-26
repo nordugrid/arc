@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string>
 
+#include <arc/StringConv.h>
+
 namespace Arc {
   
 #define DataStatusRetryableBase (100)
@@ -210,9 +212,9 @@ namespace Arc {
       return status > 100;
     }
   
-    /// Set a text description of the status
+    /// Set a text description of the status, removing trailing new line if present
     void SetDesc(const std::string& d) {
-      desc = d;
+      desc = trim(d);
     }
     
     /// Get a text description of the status

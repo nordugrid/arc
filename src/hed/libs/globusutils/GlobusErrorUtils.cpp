@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
+
 #include "GlobusErrorUtils.h"
 
 namespace Arc {
@@ -46,7 +48,7 @@ namespace Arc {
     }
     if (err)
       globus_object_free(err);
-    return s;
+    return trim(s);
   }
 
   std::ostream& operator<<(std::ostream& o, globus_object_t *err) {
