@@ -22,6 +22,7 @@
 #include <arc/FileUtils.h>
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 #include <arc/credential/Credential.h>
 
 #include "../conf/conf.h"
@@ -345,23 +346,20 @@ int JobPlugin::makedir(std::string &dname) {
   std::string id;
   bool spec_dir;
   if((dname == "new") || (dname == "info")) return 0;
-  if(is_allowed(dname.c_str(),true,&spec_dir,&id) & IS_ALLOWED_WRITE) {
-    if(spec_dir) {
-      error_description="Can't create subdirectory in a special directory.";
-      return 1;
-    };
-    ApplyLocalCred(user,&id,"write");
-    DirectFilePlugin * fp = selectFilePlugin(id);
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      SET_USER_UID;
-      int r=fp->makedir(dname);
-      RESET_USER_UID;
-      return r;
-    };
-    return fp->makedir(dname);
+  if(!is_allowed(dname.c_str(),IS_ALLOWED_WRITE,true,&spec_dir,&id)) return 1;
+  if(spec_dir) {
+    error_description="Can't create subdirectory in a special directory.";
+    return 1;
   };
-  error_description="Not allowed for this job.";
-  return 1;
+  ApplyLocalCred(user,&id,"write");
+  DirectFilePlugin * fp = selectFilePlugin(id);
+  if((getuid()==0) && (user) && (user->StrictSession())) {
+    SET_USER_UID;
+    int r=fp->makedir(dname);
+    RESET_USER_UID;
+    return r;
+  };
+  return fp->makedir(dname);
 }
 
 int JobPlugin::removefile(std::string &name) {
@@ -371,43 +369,37 @@ int JobPlugin::removefile(std::string &name) {
       error_description="Special directory can't be mangled.";
       return 1;
     };
-    if(is_allowed(name.c_str()) & IS_ALLOWED_WRITE) {  /* owner of the job */
-      JobId id(name); JobDescription job_desc(id,"");
-      std::string controldir = getControlDir(id);
-      if (controldir.empty()) {
-        error_description="No control information found for this job.";
-        return 1;
-      }    
-      user->SetControlDir(controldir);
-      logger.msg(Arc::INFO, "Cancelling job %s", id);
-      if(job_cancel_mark_put(job_desc,*user)) return 0;
-    };
-    error_description="Not allowed to cancel this job.";
-    return 1;
+    if(!is_allowed(name.c_str(),IS_ALLOWED_WRITE)) return 1;  /* owner of the job */
+    JobId id(name); JobDescription job_desc(id,"");
+    std::string controldir = getControlDir(id);
+    if (controldir.empty()) {
+      error_description="No control information found for this job.";
+      return 1;
+    }
+    user->SetControlDir(controldir);
+    logger.msg(Arc::INFO, "Cancelling job %s", id);
+    if(job_cancel_mark_put(job_desc,*user)) return 0;
   };
   const char* logname;
   std::string id;
   bool spec_dir;
-  if(is_allowed(name.c_str(),false,&spec_dir,&id,&logname) & IS_ALLOWED_WRITE) {
-    if(logname) {
-      if((*logname) != 0) return 0; /* pretend status file is deleted */
-    };
-    if(spec_dir) {
-      error_description="Special directory can't be mangled.";
-      return 1; /* can delete status directory */
-    };
-    ApplyLocalCred(user,&id,"write");
-    DirectFilePlugin * fp = selectFilePlugin(id);
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      SET_USER_UID;
-      int r=fp->removefile(name);
-      RESET_USER_UID;
-      return r;
-    };
-    return fp->removefile(name);
+  if(!is_allowed(name.c_str(),IS_ALLOWED_WRITE,false,&spec_dir,&id,&logname)) return 1;
+  if(logname) {
+    if((*logname) != 0) return 0; /* pretend status file is deleted */
   };
-  error_description="Not allowed for this job.";
-  return 1;
+  if(spec_dir) {
+    error_description="Special directory can't be mangled.";
+    return 1; /* can delete status directory */
+  };
+  ApplyLocalCred(user,&id,"write");
+  DirectFilePlugin * fp = selectFilePlugin(id);
+  if((getuid()==0) && (user) && (user->StrictSession())) {
+    SET_USER_UID;
+    int r=fp->removefile(name);
+    RESET_USER_UID;
+    return r;
+  };
+  return fp->removefile(name);
 }
 
 int JobPlugin::removedir(std::string &dname) {
@@ -417,59 +409,53 @@ int JobPlugin::removedir(std::string &dname) {
       error_description="Special directory can't be mangled.";
       return 1;
     };
-    if(is_allowed(dname.c_str()) & IS_ALLOWED_WRITE) {  /* owner of the job */
-      /* check the status */
-      JobId id(dname); 
-      std::string controldir = getControlDir(id);
-      if (controldir.empty()) {
-        error_description="No control information found for this job.";
-        return 1;
-      }    
-      user->SetControlDir(controldir);
-      std::string sessiondir = getSessionDir(id);
-      if (sessiondir.empty()) {
-        // session dir could have already been cleaned, so set to first in list
-        sessiondir = user->SessionRoots().at(0);
-      }    
-      user->SetSessionRoot(sessiondir);
-      job_state_t status=job_state_read_file(id,*user);
-      logger.msg(Arc::INFO, "Cleaning job %s", id);
-      if((status == JOB_STATE_FINISHED) ||
-         (status == JOB_STATE_DELETED)) { /* remove files */
-        if(job_clean_final(JobDescription(id,user->SessionRoot()+"/"+id),
-                           *user)) return 0;
-      }
-      else { /* put marks */
-        JobDescription job_desc(id,"");
-        bool res = job_cancel_mark_put(job_desc,*user);
-        res &= job_clean_mark_put(job_desc,*user);
-        if(res) return 0;
-      };
-      error_description="Failed to clean job.";
+    if(!is_allowed(dname.c_str(), IS_ALLOWED_WRITE)) return 1; /* owner of the job */
+    /* check the status */
+    JobId id(dname);
+    std::string controldir = getControlDir(id);
+    if (controldir.empty()) {
+      error_description="No control information found for this job.";
       return 1;
+    }
+    user->SetControlDir(controldir);
+    std::string sessiondir = getSessionDir(id);
+    if (sessiondir.empty()) {
+      // session dir could have already been cleaned, so set to first in list
+      sessiondir = user->SessionRoots().at(0);
+    }
+    user->SetSessionRoot(sessiondir);
+    job_state_t status=job_state_read_file(id,*user);
+    logger.msg(Arc::INFO, "Cleaning job %s", id);
+    if((status == JOB_STATE_FINISHED) ||
+       (status == JOB_STATE_DELETED)) { /* remove files */
+      if(job_clean_final(JobDescription(id,user->SessionRoot()+"/"+id),
+                         *user)) return 0;
+    }
+    else { /* put marks */
+      JobDescription job_desc(id,"");
+      bool res = job_cancel_mark_put(job_desc,*user);
+      res &= job_clean_mark_put(job_desc,*user);
+      if(res) return 0;
     };
-    error_description="Not allowed for this job.";
+    error_description="Failed to clean job.";
     return 1;
   };
   std::string id;
   bool spec_dir;
-  if(is_allowed(dname.c_str(),false,&spec_dir,&id) & IS_ALLOWED_WRITE) {
-    if(spec_dir) {
-      error_description="Special directory can't be mangled.";
-      return 1;
-    };
-    ApplyLocalCred(user,&id,"write");
-    DirectFilePlugin * fp = selectFilePlugin(id);
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      SET_USER_UID;
-      int r=fp->removedir(dname);
-      RESET_USER_UID;
-      return r;
-    };
-    return fp->removedir(dname);
+  if(!is_allowed(dname.c_str(),IS_ALLOWED_WRITE,false,&spec_dir,&id)) return 1;
+  if(spec_dir) {
+    error_description="Special directory can't be mangled.";
+    return 1;
   };
-  error_description="Not allowed for this job.";
-  return 1;
+  ApplyLocalCred(user,&id,"write");
+  DirectFilePlugin * fp = selectFilePlugin(id);
+  if((getuid()==0) && (user) && (user->StrictSession())) {
+    SET_USER_UID;
+    int r=fp->removedir(dname);
+    RESET_USER_UID;
+    return r;
+  };
+  return fp->removedir(dname);
 }
 
 int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size) {
@@ -492,41 +478,38 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     const char* logname;
     /* check if reading status files */
     bool spec_dir;
-    if(is_allowed(name,false,&spec_dir,&fname,&logname) & IS_ALLOWED_READ) {
-      std::string controldir = getControlDir(fname);
-      if (controldir.empty()) {
-        error_description="No control information found for this job.";
-        return 1;
-      }    
-      user->SetControlDir(controldir);
-      chosenFilePlugin = selectFilePlugin(fname);
-      if(logname) {
-        if((*logname) != 0) {
-          if(strncmp(logname,"proxy",5) == 0) {
-            error_description="Not allowed for this file.";
-            chosenFilePlugin = NULL;
-            return 1;
-          }; 
-          fname=user->ControlDir()+"/job."+fname+"."+logname;
-          logger.msg(Arc::INFO, "Retrieving file %s", fname);
-          return chosenFilePlugin->open_direct(fname.c_str(),mode);
+    if(!is_allowed(name,IS_ALLOWED_READ,false,&spec_dir,&fname,&logname)) return 1;
+    std::string controldir = getControlDir(fname);
+    if (controldir.empty()) {
+      error_description="No control information found for this job.";
+      return 1;
+    }
+    user->SetControlDir(controldir);
+    chosenFilePlugin = selectFilePlugin(fname);
+    if(logname) {
+      if((*logname) != 0) {
+        if(strncmp(logname,"proxy",5) == 0) {
+          error_description="Not allowed for this file.";
+          chosenFilePlugin = NULL;
+          return 1;
         };
+        fname=user->ControlDir()+"/job."+fname+"."+logname;
+        logger.msg(Arc::INFO, "Retrieving file %s", fname);
+        return chosenFilePlugin->open_direct(fname.c_str(),mode);
       };
-      if(spec_dir) {
-        error_description="Special directory can't be mangled.";
-        return 1;
-      };
-      ApplyLocalCred(user,&fname,"read");
-      if((getuid()==0) && (user) && (user->StrictSession())) {
-        SET_USER_UID;
-        int r=chosenFilePlugin->open(name,mode);
-        RESET_USER_UID;
-        return r;
-      };
-      return chosenFilePlugin->open(name,mode);
     };
-    error_description="Not allowed for this job.";
-    return 1;
+    if(spec_dir) {
+      error_description="Special directory can't be mangled.";
+      return 1;
+    };
+    ApplyLocalCred(user,&fname,"read");
+    if((getuid()==0) && (user) && (user->StrictSession())) {
+      SET_USER_UID;
+      int r=chosenFilePlugin->open(name,mode);
+      RESET_USER_UID;
+      return r;
+    };
+    return chosenFilePlugin->open(name,mode);
   }
   else if( mode == GRIDFTP_OPEN_STORE ) {
     std::string name_f(name);
@@ -571,42 +554,39 @@ int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size
     std::string id;
     bool spec_dir;
     const char* logname;
-    if(is_allowed(name,true,&spec_dir,&id,&logname) & IS_ALLOWED_WRITE) {
-      std::string controldir = getControlDir(id);
-      if (controldir.empty()) {
-        std::string sessiondir;
-        if (!chooseControlAndSessionDir(job_id, controldir, sessiondir)) {
-          error_description="No control and/or session directory available.";
-          return 1;
-        }
-        user->SetSessionRoot(sessiondir);
-      }    
-      user->SetControlDir(controldir);
-      chosenFilePlugin = selectFilePlugin(id);
-      logger.msg(Arc::INFO, "Storing file %s", name);
-      if(spec_dir) {
-        // It is allowed to modify ACL
-        if(logname) {
-          if(strcmp(logname,"acl") == 0) {
-            std::string fname=user->ControlDir()+"/job."+id+"."+logname;
-            return chosenFilePlugin->open_direct(fname.c_str(),mode);
-          };
-        };
-        error_description="Special directory can't be mangled.";
-        chosenFilePlugin = NULL;
+    if(!is_allowed(name,IS_ALLOWED_WRITE,true,&spec_dir,&id,&logname)) return 1;
+    std::string controldir = getControlDir(id);
+    if (controldir.empty()) {
+      std::string sessiondir;
+      if (!chooseControlAndSessionDir(job_id, controldir, sessiondir)) {
+        error_description="No control and/or session directory available.";
         return 1;
+      }
+      user->SetSessionRoot(sessiondir);
+    }
+    user->SetControlDir(controldir);
+    chosenFilePlugin = selectFilePlugin(id);
+    logger.msg(Arc::INFO, "Storing file %s", name);
+    if(spec_dir) {
+      // It is allowed to modify ACL
+      if(logname) {
+        if(strcmp(logname,"acl") == 0) {
+          std::string fname=user->ControlDir()+"/job."+id+"."+logname;
+          return chosenFilePlugin->open_direct(fname.c_str(),mode);
+        };
       };
-      ApplyLocalCred(user,&id,"write");
-      if((getuid()==0) && (user) && (user->StrictSession())) {
-        SET_USER_UID;
-        int r=chosenFilePlugin->open(name,mode,size);
-        RESET_USER_UID;
-        return r;
-      };
-      return chosenFilePlugin->open(name,mode,size);
+      error_description="Special directory can't be mangled.";
+      chosenFilePlugin = NULL;
+      return 1;
     };
-    error_description="Not allowed for this job.";
-    return 1;
+    ApplyLocalCred(user,&id,"write");
+    if((getuid()==0) && (user) && (user->StrictSession())) {
+      SET_USER_UID;
+      int r=chosenFilePlugin->open(name,mode,size);
+      RESET_USER_UID;
+      return r;
+    };
+    return chosenFilePlugin->open(name,mode,size);
   }
   else {
     logger.msg(Arc::ERROR, "Unknown open mode %i", mode);
@@ -683,12 +663,7 @@ int JobPlugin::close(bool eof) {
     };
     const char* logname;
     std::string id;
-    if(!(is_allowed(job_desc.jobid.c_str(),false,NULL,&id,&logname) & 
-                                                       IS_ALLOWED_LIST)) {
-      error_description="Not allowed for this job.";
-      logger.msg(Arc::ERROR, "%s", error_description);
-      return 1;
-    };
+    if(!is_allowed(job_desc.jobid.c_str(),IS_ALLOWED_LIST,false,NULL,&id,&logname)) return 1;
     if(job_desc.jobid != id) {
       error_description="Wrong ID specified.";
       logger.msg(Arc::ERROR, "%s", error_description);
@@ -1097,61 +1072,58 @@ int JobPlugin::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::
   const char* logname;
   std::string id;
   std::string log;
-  if(is_allowed(name,false,NULL,&id,&logname,&log) & IS_ALLOWED_LIST) {
-    if(logname) {
-      std::string controldir = getControlDir(id);
-      if (controldir.empty()) {
-        error_description="No control information found for this job.";
-        return 1;
-      }    
-      user->SetControlDir(controldir);
-      if((*logname) != 0) {
-        if(strchr(logname,'/') != NULL) return 1; /* no subdirs */
-        if(strncmp(logname,"proxy",5) == 0) return 1;
-        id=user->ControlDir()+"/job."+id+"."+logname;
-        struct stat st;
-        if(::stat(id.c_str(),&st) != 0) return 1;
-        if(!S_ISREG(st.st_mode)) return 1;
-        DirEntry dent(true,logname);
-        if(strncmp(logname,"proxy",5) != 0) dent.may_read=true;
-        dir_list.push_back(dent);
-        return -1;
-      };
-      Glib::Dir* d=new Glib::Dir(user->ControlDir());
-      if(d == NULL) { return 1; }; /* maybe return ? */
-      id="job."+id+".";
-      std::string file_name;
-      while ((file_name = d->read_name()) != "") {
-        if(file_name.substr(0, id.length()) != id) continue;
-        if(file_name.substr(file_name.length() - 5) == "proxy") continue;
-        DirEntry dent(true, file_name.substr(id.length()));
-        dir_list.push_back(dent);
-      };
-      d->close();
-      delete d;
-      return 0;
+  if(!is_allowed(name,IS_ALLOWED_LIST,false,NULL,&id,&logname,&log)) return 1;
+  if(logname) {
+    std::string controldir = getControlDir(id);
+    if (controldir.empty()) {
+      error_description="No control information found for this job.";
+      return 1;
+    }
+    user->SetControlDir(controldir);
+    if((*logname) != 0) {
+      if(strchr(logname,'/') != NULL) return 1; /* no subdirs */
+      if(strncmp(logname,"proxy",5) == 0) return 1;
+      id=user->ControlDir()+"/job."+id+"."+logname;
+      struct stat st;
+      if(::stat(id.c_str(),&st) != 0) return 1;
+      if(!S_ISREG(st.st_mode)) return 1;
+      DirEntry dent(true,logname);
+      if(strncmp(logname,"proxy",5) != 0) dent.may_read=true;
+      dir_list.push_back(dent);
+      return -1;
     };
-    if(log.length() > 0) {
-      const char* s = strchr(name,'/');
-      if((s == NULL) || (s[1] == 0)) {
-        DirEntry dent(false,log.c_str());
-        dent.may_dirlist=true;
-        dir_list.push_back(dent);
-      };
+    Glib::Dir* d=new Glib::Dir(user->ControlDir());
+    if(d == NULL) { return 1; }; /* maybe return ? */
+    id="job."+id+".";
+    std::string file_name;
+    while ((file_name = d->read_name()) != "") {
+      if(file_name.substr(0, id.length()) != id) continue;
+      if(file_name.substr(file_name.length() - 5) == "proxy") continue;
+      DirEntry dent(true, file_name.substr(id.length()));
+      dir_list.push_back(dent);
     };
-    /* allowed - pass to file system */
-    ApplyLocalCred(user,&id,"read");
-    chosenFilePlugin = selectFilePlugin(id);
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      SET_USER_UID;
-      int r=chosenFilePlugin->readdir(name,dir_list,mode);
-      RESET_USER_UID;
-      return r;
-    };
-    return chosenFilePlugin->readdir(name,dir_list,mode);
+    d->close();
+    delete d;
+    return 0;
   };
-  error_description="Not allowed for this job.";
-  return 1;
+  if(log.length() > 0) {
+    const char* s = strchr(name,'/');
+    if((s == NULL) || (s[1] == 0)) {
+      DirEntry dent(false,log.c_str());
+      dent.may_dirlist=true;
+      dir_list.push_back(dent);
+    };
+  };
+  /* allowed - pass to file system */
+  ApplyLocalCred(user,&id,"read");
+  chosenFilePlugin = selectFilePlugin(id);
+  if((getuid()==0) && (user) && (user->StrictSession())) {
+    SET_USER_UID;
+    int r=chosenFilePlugin->readdir(name,dir_list,mode);
+    RESET_USER_UID;
+    return r;
+  };
+  return chosenFilePlugin->readdir(name,dir_list,mode);
 }
 
 int JobPlugin::checkdir(std::string &dirname) {
@@ -1177,89 +1149,86 @@ int JobPlugin::checkdir(std::string &dirname) {
   };
   const char* logname;
   std::string id;
-  if(is_allowed(dirname.c_str(),false,NULL,&id,&logname) & IS_ALLOWED_LIST) {
-    std::string controldir = getControlDir(id);
-    if (controldir.empty()) {
-      error_description="No control information found for this job.";
-      return 1;
-    }    
-    user->SetControlDir(controldir);
-    if(logname) {
-      if((*logname) != 0) {
-        error_description="There is no such special subdirectory.";
-        return 1; /* log directory has no subdirs */
-      };
-      return 0;
+  if(!is_allowed(dirname.c_str(),IS_ALLOWED_LIST,false,NULL,&id,&logname)) return 1;
+  std::string controldir = getControlDir(id);
+  if (controldir.empty()) {
+    error_description="No control information found for this job.";
+    return 1;
+  }
+  user->SetControlDir(controldir);
+  if(logname) {
+    if((*logname) != 0) {
+      error_description="There is no such special subdirectory.";
+      return 1; /* log directory has no subdirs */
     };
-    if((dirname == id) && (proxy_fname.length())) {  /* cd to session directory - renew proxy request */
-      JobLocalDescription job_desc;
-      if(!job_local_read_file(id,*user,job_desc)) {
-        error_description="Job is probably corrupted: can't read internal information.";
-        logger.msg(Arc::ERROR, "%s", error_description);
-        return 1;
-      };
-      /* check if new proxy is better than old one */
-      std::string old_proxy_fname=user->ControlDir()+"/job."+id+".proxy";
-      Arc::Time new_proxy_expires;
-      Arc::Time old_proxy_expires;
-      JobLog job_log;
-      JobsListConfig jobs_cfg;
-      GMEnvironment env(job_log,jobs_cfg);
-      try {
-        Arc::Credential new_ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
-        new_proxy_expires = new_ci.GetEndTime();
-      } catch (std::exception) { };
-      try {
-        Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, env.cert_dir_loc(), "");
-        old_proxy_expires = old_ci.GetEndTime();
-      } catch (std::exception) { };
-      if(new_proxy_expires > old_proxy_expires) {
-        /* try to renew proxy */
-        logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
-        if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
-          fix_file_owner(old_proxy_fname,*user);
-          logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
-          JobDescription job(id,"",JOB_STATE_ACCEPTED);
-          job_desc.expiretime=new_proxy_expires;
-          if(!job_local_write_file(job,*user,job_desc)) {
-            logger.msg(Arc::ERROR, "Failed to write 'local' information");
+    return 0;
+  };
+  if((dirname == id) && (proxy_fname.length())) {  /* cd to session directory - renew proxy request */
+    JobLocalDescription job_desc;
+    if(!job_local_read_file(id,*user,job_desc)) {
+      error_description="Job is probably corrupted: can't read internal information.";
+      logger.msg(Arc::ERROR, "%s", error_description);
+      return 1;
+    };
+    /* check if new proxy is better than old one */
+    std::string old_proxy_fname=user->ControlDir()+"/job."+id+".proxy";
+    Arc::Time new_proxy_expires;
+    Arc::Time old_proxy_expires;
+    JobLog job_log;
+    JobsListConfig jobs_cfg;
+    GMEnvironment env(job_log,jobs_cfg);
+    try {
+      Arc::Credential new_ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
+      new_proxy_expires = new_ci.GetEndTime();
+    } catch (std::exception) { };
+    try {
+      Arc::Credential old_ci(old_proxy_fname, old_proxy_fname, env.cert_dir_loc(), "");
+      old_proxy_expires = old_ci.GetEndTime();
+    } catch (std::exception) { };
+    if(new_proxy_expires > old_proxy_expires) {
+      /* try to renew proxy */
+      logger.msg(Arc::INFO, "Renewing proxy for job %s", id);
+      if(renew_proxy(old_proxy_fname.c_str(),proxy_fname.c_str()) == 0) {
+        fix_file_owner(old_proxy_fname,*user);
+        logger.msg(Arc::INFO, "New proxy expires at %s", Arc::TimeStamp(Arc::Time(new_proxy_expires), Arc::UserTime));
+        JobDescription job(id,"",JOB_STATE_ACCEPTED);
+        job_desc.expiretime=new_proxy_expires;
+        if(!job_local_write_file(job,*user,job_desc)) {
+          logger.msg(Arc::ERROR, "Failed to write 'local' information");
+        };
+        error_description="Applying external credentials locally failed.";
+        ApplyLocalCred(user,&id,"renew");
+        error_description="";
+        /* Cause restart of job if it potentially failed
+           because of expired proxy */
+        if((old_proxy_expires < Arc::Time()) && (
+            (job_desc.failedstate ==
+                  JobDescription::get_state_name(JOB_STATE_PREPARING)) ||
+            (job_desc.failedstate ==
+                  JobDescription::get_state_name(JOB_STATE_FINISHING))
+           )
+          ) {
+          logger.msg(Arc::INFO, "Job could have died due to expired proxy: restarting");
+          if(!job_restart_mark_put(JobDescription(id,""),*user)) {
+            logger.msg(Arc::ERROR, "Failed to report renewed proxy to job");
           };
-          error_description="Applying external credentials locally failed.";
-          ApplyLocalCred(user,&id,"renew");
-          error_description="";
-          /* Cause restart of job if it potentially failed 
-             because of expired proxy */
-          if((old_proxy_expires < Arc::Time()) && (
-              (job_desc.failedstate == 
-                    JobDescription::get_state_name(JOB_STATE_PREPARING)) ||
-              (job_desc.failedstate == 
-                    JobDescription::get_state_name(JOB_STATE_FINISHING))
-             )
-            ) {
-            logger.msg(Arc::INFO, "Job could have died due to expired proxy: restarting");
-            if(!job_restart_mark_put(JobDescription(id,""),*user)) {
-              logger.msg(Arc::ERROR, "Failed to report renewed proxy to job");
-            };
-          };
-        } else {
-          logger.msg(Arc::ERROR, "Failed to renew proxy");
         };
       } else {
-        logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
+        logger.msg(Arc::ERROR, "Failed to renew proxy");
       };
+    } else {
+      logger.msg(Arc::WARNING, "New proxy expiry time is not later than old proxy, not renewing proxy");
     };
-    ApplyLocalCred(user,&id,"read");
-    chosenFilePlugin = selectFilePlugin(id);
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      SET_USER_UID;
-      int r=chosenFilePlugin->checkdir(dirname);
-      RESET_USER_UID;
-      return r;
-    };
-    return chosenFilePlugin->checkdir(dirname);
   };
-  error_description="Not allowed for this job.";
-  return 1;
+  ApplyLocalCred(user,&id,"read");
+  chosenFilePlugin = selectFilePlugin(id);
+  if((getuid()==0) && (user) && (user->StrictSession())) {
+    SET_USER_UID;
+    int r=chosenFilePlugin->checkdir(dirname);
+    RESET_USER_UID;
+    return r;
+  };
+  return chosenFilePlugin->checkdir(dirname);
 }
 
 int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_level mode) {
@@ -1274,50 +1243,47 @@ int JobPlugin::checkfile(std::string &name,DirEntry &info,DirEntry::object_info_
   };
   const char* logname;
   std::string id;
-  if(is_allowed(name.c_str(),false,NULL,&id,&logname) & IS_ALLOWED_LIST) {
-    std::string controldir = getControlDir(id);
-    if (controldir.empty()) {
-      error_description="No control information found for this job.";
-      return 1;
-    }    
-    user->SetControlDir(controldir);
-    if(logname) {
-      if((*logname) == 0) { /* directory itself */
-        info.is_file=false; info.name=""; info.may_dirlist=true;
-      }
-      else {
-        if(strncmp(logname,"proxy",5) == 0) {
-          error_description="There is no such special file.";
-          return 1;
-        };
-        id=user->ControlDir()+"/job."+id+"."+logname;
-        logger.msg(Arc::INFO, "Checking file %s", id);
-        struct stat st;
-        if(::stat(id.c_str(),&st) != 0) {
-          error_description="There is no such special file.";
-          return 1;
-        };
-        if(!S_ISREG(st.st_mode)) {
-          error_description="There is no such special file.";
-          return 1;
-        };
-        info.is_file=true; info.name="";
-        info.may_read=true; info.size=st.st_size;
+  if(!is_allowed(name.c_str(),IS_ALLOWED_LIST,false,NULL,&id,&logname)) return 1;
+  std::string controldir = getControlDir(id);
+  if (controldir.empty()) {
+    error_description="No control information found for this job.";
+    return 1;
+  }
+  user->SetControlDir(controldir);
+  if(logname) {
+    if((*logname) == 0) { /* directory itself */
+      info.is_file=false; info.name=""; info.may_dirlist=true;
+    }
+    else {
+      if(strncmp(logname,"proxy",5) == 0) {
+        error_description="There is no such special file.";
+        return 1;
       };
-      return 0;
+      id=user->ControlDir()+"/job."+id+"."+logname;
+      logger.msg(Arc::INFO, "Checking file %s", id);
+      struct stat st;
+      if(::stat(id.c_str(),&st) != 0) {
+        error_description="There is no such special file.";
+        return 1;
+      };
+      if(!S_ISREG(st.st_mode)) {
+        error_description="There is no such special file.";
+        return 1;
+      };
+      info.is_file=true; info.name="";
+      info.may_read=true; info.size=st.st_size;
     };
-    ApplyLocalCred(user,&id,"read");
-    chosenFilePlugin = selectFilePlugin(id);
-    if((getuid()==0) && (user) && (user->StrictSession())) {
-      SET_USER_UID;
-      int r=chosenFilePlugin->checkfile(name,info,mode);
-      RESET_USER_UID;
-      return r;
-    };
-    return chosenFilePlugin->checkfile(name,info,mode);
+    return 0;
   };
-  error_description="Not allowed for this job.";
-  return 1;
+  ApplyLocalCred(user,&id,"read");
+  chosenFilePlugin = selectFilePlugin(id);
+  if((getuid()==0) && (user) && (user->StrictSession())) {
+    SET_USER_UID;
+    int r=chosenFilePlugin->checkfile(name,info,mode);
+    RESET_USER_UID;
+    return r;
+  };
+  return chosenFilePlugin->checkfile(name,info,mode);
 }
 
 bool JobPlugin::delete_job_id(void) {
@@ -1420,29 +1386,37 @@ bool JobPlugin::make_job_id(void) {
 
 /*
   name - name of file to access
+  perm - permission to check
   locked - true if job already running
   jobid - returns id extracted from name
   logname - name of log file (errors, status, etc.)
   log - stdlog of job
   spec_dir - if file belogs to virtual directory 
-  returns access rights. For special files superset of all  rights is
-  returned. Distinction between files is processed at higher levels.
+  returns true if access rights include the specified permission. For special
+  files true is returned and spec_dir is set to true. Distinction between
+  files is processed at higher levels.
+  In case of error, error_description is set.
 */
-int JobPlugin::is_allowed(const char* name,bool /* locked */,bool* spec_dir,std::string* jobid,char const ** logname,std::string* log) {
+bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spec_dir,std::string* jobid,char const ** logname,std::string* log) {
   if(logname) (*logname) = NULL;
   if(log) (*log)="";
   if(spec_dir) (*spec_dir)=false;
   JobId id(name);
   if(id == "info") { // directory which contains list of jobs-directories
     if(spec_dir) (*spec_dir)=false;
-    return (IS_ALLOWED_READ | IS_ALLOWED_LIST);
+    if(perm & (IS_ALLOWED_READ | IS_ALLOWED_LIST) == perm) return true;
+    error_description = "Not allowed for this job: permission denied";
+    return false;
   };
   if(strncmp(id.c_str(),"info/",5) == 0) {
     if(spec_dir) (*spec_dir)=true;
     name+=5; id=name;
     std::string::size_type n=id.find('/'); if(n != std::string::npos) id.erase(n);
     if(jobid) (*jobid)=id;
-    if(id.length() == 0) return 0;
+    if(id.length() == 0) {
+      error_description = "No job id found";
+      return false;
+    }
     const char* l_name = name+id.length();
     if(l_name[0] == '/') l_name++;
     if(logname) { (*logname)=l_name; };
@@ -1450,10 +1424,13 @@ int JobPlugin::is_allowed(const char* name,bool /* locked */,bool* spec_dir,std:
     std::string controldir = getControlDir(id);
     if (controldir.empty()) {
       error_description="No control information found for this job.";
-      return 1;
+      return false;
     }    
     user->SetControlDir(controldir);
-    if(!job_local_read_file(id,*user,job_desc)) return false;
+    if(!job_local_read_file(id,*user,job_desc)) {
+      error_description = "Not allowed for this job: "+Arc::StrError(errno);
+      return false;
+    }
     if(job_desc.DN != subject) {
       // Not an owner. Check acl.
 #ifdef HAVE_GACL
@@ -1473,16 +1450,18 @@ int JobPlugin::is_allowed(const char* name,bool /* locked */,bool* spec_dir,std:
               res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
             //if(strncmp(l_name,"proxy",5) == 0) res&=IS_ALLOWED_LIST;
             //if(strncmp(l_name,"acl",3) != 0) res&=~IS_ALLOWED_WRITE;
-            return res;
+            if (res & perm == perm) return true;
+            error_description = "Not allowed for this job: permission denied";
+            return false;
           };
         };
       };
 #endif
-      return 0;
+      return true;
     };
     //if(strncmp(l_name,"proxy",5) == 0) return (IS_ALLOWED_LIST);
     //if(strncmp(l_name,"acl",3) != 0) return (IS_ALLOWED_READ | IS_ALLOWED_LIST);;
-    return (IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
+    return true;
   };
   std::string::size_type n=id.find('/'); if(n != std::string::npos) id.erase(n);
   if(jobid) (*jobid)=id;
@@ -1490,71 +1469,74 @@ int JobPlugin::is_allowed(const char* name,bool /* locked */,bool* spec_dir,std:
   std::string controldir = getControlDir(id);
   if (controldir.empty()) {
     error_description="No control information found for this job.";
-    return 1;
+    return false;
   }    
   user->SetControlDir(controldir);
-  if(job_local_read_file(id,*user,job_desc)) {
-    int res = 0;
-    bool spec = false;
-    //bool proxy = false;
-    //bool acl = false;
-    if(log) (*log)=job_desc.stdlog;
-    if(n != std::string::npos) {
-      int l = job_desc.stdlog.length();
-      if(l != 0) {
-        if(strncmp(name+n+1,job_desc.stdlog.c_str(),l) == 0) {
-          if(name[n+1+l] == 0) {
-            if(spec_dir) (*spec_dir)=true;
-            if(logname) (*logname)=name+n+1+l;
-            spec=true;
-          } else if(name[n+1+l] == '/') {
-            if(spec_dir) (*spec_dir)=true;
-            if(logname) (*logname)=name+n+1+l+1;
-            spec=true;
-            //if(strncmp(name+n+1+l+1,"proxy",5) == 0) proxy=true;
-            //if(strncmp(name+n+1+l+1,"acl",3) == 0) acl=true;
-          };
-        };
-      };
-    };
-    if(job_desc.DN == subject) {
-      res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
-    } else {
-      // Not an owner. Check acl.
-#ifdef HAVE_GACL
-      std::string acl_file = user->ControlDir()+"/job."+id+".acl";
-      struct stat st;
-      if(stat(acl_file.c_str(),&st) == 0) {
-        if(S_ISREG(st.st_mode)) {
-          GACLacl* acl = GACLloadAcl((char*)(acl_file.c_str()));
-          if(acl) {
-            GACLperm perm = AuthUserGACLTest(acl,user_a);
-            if(spec) {
-              if(GACLhasList(perm))
-                res|=IS_ALLOWED_LIST;
-              if(GACLhasRead(perm) | GACLhasWrite(perm))
-                res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
-              if(GACLhasAdmin(perm))
-                res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
-            } else {
-              if(GACLhasList(perm)) res|=IS_ALLOWED_LIST;
-              if(GACLhasRead(perm)) res|=IS_ALLOWED_READ;
-              if(GACLhasWrite(perm)) res|=IS_ALLOWED_WRITE;
-              if(GACLhasAdmin(perm))
-                res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
-            };
-          } else {
-            logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, user->ControlDir());
-          };
-        };
-      };
-#endif
-    };
-    return res; 
-  } else {
+  if(!job_local_read_file(id,*user,job_desc)) {
     logger.msg(Arc::ERROR, "Failed to read job's local description for job %s from %s", id, user->ControlDir());
+    if (errno == ENOENT) error_description="No such job";
+    else error_description=Arc::StrError(errno);
+    return false;
+  }
+  int res = 0;
+  bool spec = false;
+  //bool proxy = false;
+  //bool acl = false;
+  if(log) (*log)=job_desc.stdlog;
+  if(n != std::string::npos) {
+    int l = job_desc.stdlog.length();
+    if(l != 0) {
+      if(strncmp(name+n+1,job_desc.stdlog.c_str(),l) == 0) {
+        if(name[n+1+l] == 0) {
+          if(spec_dir) (*spec_dir)=true;
+          if(logname) (*logname)=name+n+1+l;
+          spec=true;
+        } else if(name[n+1+l] == '/') {
+          if(spec_dir) (*spec_dir)=true;
+          if(logname) (*logname)=name+n+1+l+1;
+          spec=true;
+          //if(strncmp(name+n+1+l+1,"proxy",5) == 0) proxy=true;
+          //if(strncmp(name+n+1+l+1,"acl",3) == 0) acl=true;
+        };
+      };
+    };
   };
-  return 0;
+  if(job_desc.DN == subject) {
+    res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
+  } else {
+    // Not an owner. Check acl.
+#ifdef HAVE_GACL
+    std::string acl_file = user->ControlDir()+"/job."+id+".acl";
+    struct stat st;
+    if(stat(acl_file.c_str(),&st) == 0) {
+      if(S_ISREG(st.st_mode)) {
+        GACLacl* acl = GACLloadAcl((char*)(acl_file.c_str()));
+        if(acl) {
+          GACLperm perm = AuthUserGACLTest(acl,user_a);
+          if(spec) {
+            if(GACLhasList(perm))
+              res|=IS_ALLOWED_LIST;
+            if(GACLhasRead(perm) | GACLhasWrite(perm))
+              res|=(IS_ALLOWED_READ | IS_ALLOWED_LIST);
+            if(GACLhasAdmin(perm))
+              res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
+          } else {
+            if(GACLhasList(perm)) res|=IS_ALLOWED_LIST;
+            if(GACLhasRead(perm)) res|=IS_ALLOWED_READ;
+            if(GACLhasWrite(perm)) res|=IS_ALLOWED_WRITE;
+            if(GACLhasAdmin(perm))
+              res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
+          };
+        } else {
+          logger.msg(Arc::ERROR, "Failed to read job's ACL for job %s from %s", id, user->ControlDir());
+        };
+      };
+    };
+#endif
+  };
+  if (res & perm == perm) return true;
+  error_description="Not allowed for this job: permission denied";
+  return false;
 }
 
 /*

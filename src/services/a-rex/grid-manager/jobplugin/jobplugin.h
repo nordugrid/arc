@@ -31,7 +31,7 @@ class JobPlugin: public FilePlugin {
   bool make_job_id(const std::string &);
   bool make_job_id(void);
   bool delete_job_id(void);
-  int is_allowed(const char* name,bool locked = false,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
+  bool is_allowed(const char* name,int perm,bool locked = false,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
   DirectFilePlugin * selectFilePlugin(std::string id);
   /** Find the control dir used by this job id */
   std::string getControlDir(std::string id);
