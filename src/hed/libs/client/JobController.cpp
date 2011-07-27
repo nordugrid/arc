@@ -328,23 +328,24 @@ namespace Arc {
         ok = false;
         continue;
       }
-      close(tmp_h);
 
       logger.msg(VERBOSE, "Catting %s for job %s", whichfile, (*it)->JobID.str());
 
       URL src = GetFileUrlForJob((**it), whichfile);
       if (!src) {
         logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, (*it)->JobID.str(), src.str());
+        close(tmp_h);
+        unlink(filename.c_str());
         continue;
       }
 
-      URL dst(filename);
+      URL dst("stdio:///"+tostring(tmp_h));
       if (!dst) {
         logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.str(), dst.str());
+        close(tmp_h);
+        unlink(filename.c_str());
         continue;
       }
-      // it is not allowed to write to an existing file
-      dst.AddOption("overwrite=yes");
 
       bool copied = ARCCopyFile(src, dst);
 
@@ -357,10 +358,12 @@ namespace Arc {
           out.put(c);
         }
         is.close();
-        unlink(filename.c_str());
       }
-      else
+      else {
         ok = false;
+      }
+      close(tmp_h);
+      unlink(filename.c_str());
     }
 
     return ok;
