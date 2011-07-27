@@ -206,6 +206,9 @@ prepare() {
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_tcp_port_range`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" grid-manager globus_udp_port_range`
     VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" grid-manager voms_processing`
+    MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_job_control_requests`
+    MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
+    MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
     if [ -z "$X509_USER_CERT" ] ; then
 	X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi
@@ -322,6 +325,9 @@ prepare() {
 	LOGREOPEN="false"
     fi
     VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
+    MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
+    MAX_INFOSYS_REQUESTS=${MAX_INFOSYS_REQUESTS:-1}
+    MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
 
     if [ ! -z "$USERNAME" ] ; then
 	CMD="$CMD -u '$USERNAME'"
@@ -439,6 +445,9 @@ prepare() {
       </SecHandler>
       $arex_endpoint
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
+      <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
+      <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
+      <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
     </Service>
   </Chain>
 </ArcConfig>
