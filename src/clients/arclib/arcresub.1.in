@@ -28,7 +28,7 @@ the IDs of the submitted jobs will be appended to this file
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
 explicitly select or reject jobs from a specific cluster
 .IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster for the new cluster
+explicitly select or reject a specific cluster for the new job
 .IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject jobs from an index server
 .IP "\fB-k\fR, \fB--keep\fR"
