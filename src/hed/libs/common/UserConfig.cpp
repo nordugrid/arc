@@ -314,8 +314,8 @@ namespace Arc {
     else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
       if (initializeCredentials == initializeCredentialsType::RequireCredentials) {
         logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
+        proxyPath.clear();
       }
-      proxyPath.clear();
     }
     if (!GetEnv("X509_USER_CERT").empty() &&
              !GetEnv("X509_USER_KEY").empty()) {
