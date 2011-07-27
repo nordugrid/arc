@@ -152,14 +152,16 @@ namespace Arc {
     /// Greater-than operator.
     /**
      * For the LHS object to be greater than the RHS object they must
-     * first share the same family and name and have non-empty versions.
-     * Then, the first version token of each object is compared and if
-     * they are identical, the two next version tokens will be compared.
-     * If not identical, the two tokens will be parsed as integers, and
-     * if parsing fails the LHS is not greater than the RHS. If parsing
-     * succeeds and the integers equals, the two next tokens will be
-     * compared, otherwise the comparison is resolved by the integer
-     * comparison.
+     * first share the same family and name. If the version of the LHS is
+     * empty or the LHS and RHS versions equal then LHS is not greater than
+     * RHS. If the LHS version is not empty while the RHS is then LHS is
+     * greater than RHS. If both versions are non empty and not equal then,
+     * the first version token of each object is compared and if they are
+     * identical, the two next version tokens will be compared. If not
+     * identical, the two tokens will be parsed as integers, and if parsing
+     * fails the LHS is not greater than the RHS. If parsing succeeds and
+     * the integers equals, the two next tokens will be compared, otherwise
+     * the comparison is resolved by the integer comparison.
      *
      * If the LHS contains more version tokens than the RHS, and the
      * comparison have not been resolved at the point of equal number of
@@ -538,7 +540,7 @@ namespace Arc {
      * The requirements in this object will be cleared when invoking
      * this method.
      **/
-    void clear() { softwareList.clear(); comparisonOperatorList.clear(); orderedSoftwareList.clear(); }
+    void clear() { softwareList.clear(); comparisonOperatorList.clear(); }
 
     /// Get list of Software objects.
     /**
@@ -560,8 +562,6 @@ namespace Arc {
   private:
     std::list<Software> softwareList;
     std::list<Software::ComparisonOperator> comparisonOperatorList;
-    typedef std::pair<Software*, Software::ComparisonOperator> SWRelPair;
-    std::list< std::list<SWRelPair> > orderedSoftwareList;
 
     bool isSatisfiedSelect(const std::list<Software>&, SoftwareRequirement* = NULL) const;
 

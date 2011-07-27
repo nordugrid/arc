@@ -60,8 +60,16 @@ std::string Software::operator()() const {
 
 bool Software::operator>(const Software& sv) const {
   if (family != sv.family || name != sv.name ||
-      version.empty() || sv.version.empty() ||
-      version == sv.version) return false;
+      version.empty() ||
+      version == sv.version) {
+    logger.msg(VERBOSE, "%s > %s => false", (std::string)*this, (std::string)sv);
+    return false;
+  }
+
+  if (sv.version.empty()) {
+    logger.msg(VERBOSE, "%s > %s => true", (std::string)*this, (std::string)sv);
+    return true;
+  }
 
   int lhsInt, rhsInt;
   std::list<std::string>::const_iterator lhsIt, rhsIt;
@@ -136,37 +144,17 @@ Software::ComparisonOperator Software::convert(const Software::ComparisonOperato
 
 SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperatorEnum co)
-  : softwareList(1, sw), comparisonOperatorList(1, Software::convert(co)),
-    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front())))
+  : softwareList(1, sw), comparisonOperatorList(1, Software::convert(co))
 {}
 
 SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperator swComOp)
-  : softwareList(1, sw), comparisonOperatorList(1, swComOp),
-    orderedSoftwareList(1, std::list<SWRelPair>(1, SWRelPair(&softwareList.front(), comparisonOperatorList.front())))
+  : softwareList(1, sw), comparisonOperatorList(1, swComOp)
 {}
 
 SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& sr) {
   softwareList = sr.softwareList;
   comparisonOperatorList = sr.comparisonOperatorList;
-
-  orderedSoftwareList.clear();
-  std::list<Software>::iterator itSW = softwareList.begin();
-  std::list<Software::ComparisonOperator>::iterator itCO = comparisonOperatorList.begin();
-  for (; itSW != softwareList.end(); itSW++, itCO++) {
-    std::list< std::list<SWRelPair> >::iterator itRel = orderedSoftwareList.begin();
-    for (; itRel != orderedSoftwareList.end(); itRel++) {
-      if (itRel->front().first->getName() == itSW->getName() &&
-          itRel->front().first->getFamily() == itSW->getFamily()) {
-        itRel->push_back(SWRelPair(&*itSW, *itCO));
-        break;
-      }
-    }
-
-    if (itRel == orderedSoftwareList.end())
-      orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(&*itSW, *itCO)));
-  }
-
   return *this;
 }
 
@@ -174,16 +162,6 @@ void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator s
   if (!sw.empty()) {
     softwareList.push_back(sw);
     comparisonOperatorList.push_back(swComOp);
-    for (std::list< std::list<SWRelPair> >::iterator it = orderedSoftwareList.begin();
-         it != orderedSoftwareList.end(); it++) {
-      if (it->front().first->getName() == sw.getName() &&
-          it->front().first->getFamily() == sw.getFamily()) {
-        it->push_back(SWRelPair(&softwareList.back(), comparisonOperatorList.back()));
-        return;
-      }
-    }
-
-    orderedSoftwareList.push_back(std::list<SWRelPair>(1, SWRelPair(&softwareList.back(), comparisonOperatorList.back())));
   }
 }
 
@@ -197,24 +175,18 @@ bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& s
 
 bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, SoftwareRequirement* sr) const {
   // Compare Software objects in the 'versions' list with those in 'swList'.
-  std::list< std::list<SWRelPair> >::const_iterator itOSL = orderedSoftwareList.begin();
-  for (; itOSL != orderedSoftwareList.end(); itOSL++) {
+  std::list<Software>::const_iterator itSW = softwareList.begin();
+  std::list<Software::ComparisonOperator>::const_iterator itSWC = comparisonOperatorList.begin();
+  for (; itSW != softwareList.end() && itSWC != comparisonOperatorList.end(); itSW++, itSWC++) {
     Software * currentSelectedSoftware = NULL; // Pointer to the current selected software from the argument list.
     // Loop over 'swList'.
     std::list<Software>::const_iterator itSWList = swList.begin();
     for (; itSWList != swList.end(); itSWList++) {
-      std::list<SWRelPair>::const_iterator itSRL = itOSL->begin();
-      for (; itSRL != itOSL->end(); itSRL++) {
-        if (((*itSWList).*itSRL->second)(*itSRL->first)) { // One of the requirements satisfied.
-          logger.msg(VERBOSE, "Requirement satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
+      if (((*itSWList).**itSWC)(*itSW)) { // One of the requirements satisfied.
+        if (*itSWC == &Software::operator!=) {
+          continue;
         }
-        else {
-          logger.msg(VERBOSE, "Requirement NOT satisfied. %s %s %s.", (std::string)*itSWList, Software::toString(itSRL->second), (std::string)*itSRL->first);
-          break;
-        }
-      }
-
-      if (itSRL == itOSL->end()) { // All requirements satisfied by this software.
+        
         if (sr != NULL) {
           if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the selected software.
             sr->softwareList.push_back(*itSWList);
@@ -223,22 +195,33 @@ bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, S
           else if (*currentSelectedSoftware < *itSWList) { // Select the software with the highest version still satisfying the requirement.
             sr->softwareList.back() = *itSWList;
           }
-
+  
           currentSelectedSoftware = &sr->softwareList.back();
         }
         else {
           break;
         }
       }
+      else if (*itSWC == &Software::operator!=) {
+        logger.msg(VERBOSE, "Requirement \"%s %s\" NOT satisfied.", Software::toString(*itSWC), (std::string)*itSW);
+        return false;
+      }
     }
 
-    if (itSWList == swList.end() && currentSelectedSoftware == NULL) { // End of Software list reached, ie. requirement not satisfied.
-      logger.msg(VERBOSE, "Requirement NOT satisfied.");
+    if (*itSWC == &Software::operator!=) {
+      logger.msg(VERBOSE, "Requirement \"%s %s\" satisfied.", Software::toString(*itSWC), (std::string)*itSW);
+      continue;
+    }
+
+    if (itSWList == swList.end() && currentSelectedSoftware == NULL) {
+      logger.msg(VERBOSE, "Requirement \"%s %s\" NOT satisfied.", Software::toString(*itSWC), (std::string)*itSW);
       return false;
     }
+
+    logger.msg(VERBOSE, "Requirement \"%s %s\" satisfied by \"%s\".", Software::toString(*itSWC), (std::string)*itSW, (std::string)(currentSelectedSoftware == NULL ? *itSWList : *currentSelectedSoftware));
   }
 
-  logger.msg(VERBOSE, "Requirements satisfied.");
+  logger.msg(VERBOSE, "All requirements satisfied.");
   return true;
 }
 
@@ -260,10 +243,11 @@ bool SoftwareRequirement::selectSoftware(const std::list<ApplicationEnvironment>
 }
 
 bool SoftwareRequirement::isResolved() const {
-  for (std::list< std::list<SWRelPair> >::const_iterator it = orderedSoftwareList.begin();
-       it != orderedSoftwareList.end(); it++) {
-    if (it->size() > 1 || it->front().second != &Software::operator==)
+  for (std::list<Software::ComparisonOperator>::const_iterator it = comparisonOperatorList.begin();
+       it != comparisonOperatorList.end(); it++) {
+    if (*it != &Software::operator==) {
       return false;
+    }
   }
 
   return true;
