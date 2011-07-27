@@ -1229,7 +1229,7 @@ start () {
 	touch $bdii_log_file
     fi
     chown $bdii_user:$bdii_user $bdii_log_file
-    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/" $bdii_user
+    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/stats" $bdii_user
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/arc" $bdii_user
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/glue2" $bdii_user
     #Need to remove / from mkpasswd, otherwise sed will break.
