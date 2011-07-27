@@ -117,7 +117,7 @@ namespace Arc {
     else {
       if(fd != -1) lseek(fd, 0, SEEK_SET);
       if(fa) fa->lseek(0, SEEK_SET);
-    };
+    }
     for (;;) {
       if (limit_length) if (range_length == 0) break;
       /* read from fd here and push to buffer */
@@ -141,12 +141,12 @@ namespace Arc {
         p = lseek(fd, 0, SEEK_CUR);
         if (p == (unsigned long long int)(-1)) p = offset;
         ll = read(fd, (*(buffer))[h], l);
-      };
+      }
       if(fa) {
         if(fa) p = fa->lseek(0, SEEK_CUR);
         if (p == (unsigned long long int)(-1)) p = offset;
         ll = fa->read((*(buffer))[h], l);
-      };
+      }
       if (ll == -1) { /* error */
         buffer->is_read(h, 0, 0);
         buffer->error_read(true);
@@ -197,15 +197,15 @@ namespace Arc {
     std::list<chunk_t> chunks;
    public:
     write_file_chunks(void) {
-    };
+    }
     unsigned long long int eof(void) {
       if(chunks.size() <= 0) return 0;
       return (--(chunks.end()))->end;
-    };
+    }
     unsigned long long int extends(void) {
       if(chunks.size() <= 0) return 0;
       return chunks.begin()->end;
-    };
+    }
     void add(unsigned long long int start, unsigned long long int end) {
       chunk_t c;
       c.start = start;
@@ -213,13 +213,13 @@ namespace Arc {
       if(chunks.size() <= 0) {
         chunks.push_back(c);
         return;
-      };
+      }
       for(std::list<chunk_t>::iterator chunk = chunks.begin();
                   chunk != chunks.end();++chunk) {
         if(end < chunk->start) {
           chunks.insert(chunk,c);
           return;
-        };
+        }
         if(((start >= chunk->start) && (start <= chunk->end)) ||
            ((end >= chunk->start) && (end <= chunk->end))) {
           if(chunk->start < start) start = chunk->start;
@@ -227,10 +227,10 @@ namespace Arc {
           chunks.erase(chunk);
           add(start,end);
           return;
-        };
-      };
+        }
+      }
       chunks.push_back(c);
-    };
+    }
   };
 
   void DataPointFile::write_file() {
@@ -278,7 +278,7 @@ namespace Arc {
               int ll = -1;
               if(fd != -1) ll = read(fd,tbuf,l);
               if(fa) ll = fa->read(tbuf,l);
-              if(ll < 0) { do_cksum=false; break; };
+              if(ll < 0) { do_cksum=false; break; }
               for(std::list<CheckSum*>::iterator cksum = checksums.begin();
                         cksum != checksums.end(); ++cksum) {
                 if(*cksum) (*cksum)->add(tbuf, ll);
@@ -290,7 +290,7 @@ namespace Arc {
         }
       }
       /* 2. write */
-      int l_ = 0;
+      unsigned int l_ = 0;
       int ll = 0;
       if(fd != -1) {
         lseek(fd, p, SEEK_SET);
@@ -355,12 +355,12 @@ namespace Arc {
     // TODO: redo
     int res = usercfg.GetUser().check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
-      logger.msg(INFO, "File is not accessible: %s", url.Path());
+      logger.msg(ERROR, "File is not accessible: %s", url.Path());
       return DataStatus::CheckError;
     }
     struct stat st;
     if (!FileStat(url.Path(), &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
-      logger.msg(INFO, "Can't stat file: %s: %s", url.Path(), StrError(errno));
+      logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), StrError(errno));
       return DataStatus::CheckError;
     }
     SetSize(st.st_size);
@@ -371,7 +371,7 @@ namespace Arc {
   static DataStatus do_stat(const std::string& path, FileInfo& file, DataPoint::DataPointInfoType verb, uid_t uid, gid_t gid) {
     struct stat st;
     if (!FileStat(path, &st, uid, gid, true)) {
-      return DataStatus::StatError;
+      return DataStatus(DataStatus::StatError, StrError(errno));
     }
     if(S_ISREG(st.st_mode)) {
       file.SetType(FileInfo::file_type_file);
@@ -412,7 +412,7 @@ namespace Arc {
     if(is_channel) {
       fd = get_channel();
       if (fd == -1){
-        logger.msg(INFO, "Can't stat stdio channel %s", url.str());
+        logger.msg(ERROR, "Can't stat stdio channel %s", url.str());
         return DataStatus::StatError;
       }
       struct stat st;
@@ -444,8 +444,9 @@ namespace Arc {
       name = name.substr(name.find_first_not_of(G_DIR_SEPARATOR), name.length()-1);
     }
     file.SetName(name);
-    if(!do_stat(url.Path(), file, verb, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid())) {
-      logger.msg(INFO, "Can't stat file: %s", url.Path());
+    DataStatus res = do_stat(url.Path(), file, verb, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid());
+    if (!res) {
+      logger.msg(ERROR, "Can't stat file: %s: %s", url.Path(), res.GetDesc());
       return DataStatus::StatError;
     }
     SetSize(file.GetSize());
@@ -456,7 +457,10 @@ namespace Arc {
   DataStatus DataPointFile::List(std::list<FileInfo>& files, DataPointInfoType verb) {
     FileInfo file;
     if(!Stat(file, verb)) return DataStatus::ListError;
-    if(file.GetType() != FileInfo::file_type_dir) return DataStatus::ListError;
+    if(file.GetType() != FileInfo::file_type_dir) {
+      logger.msg(WARNING, "%s is not a directory", url.Path());
+      return DataStatus::ListError;
+    }
     try {
       Glib::Dir dir(url.Path());
       std::string file_name;
@@ -469,7 +473,7 @@ namespace Arc {
         }
       }
     } catch (Glib::FileError& e) {
-      logger.msg(INFO, "Failed to read object %s", url.Path());
+      logger.msg(ERROR, "Failed to read object %s: %s", url.Path(), e.what());
       return DataStatus::ListError;
     }
     return DataStatus::Success;
@@ -483,22 +487,21 @@ namespace Arc {
       
     std::string path(url.Path());
     struct stat st;
-    if(!FileStat(path, &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true) != 0) {
-      if (errno == ENOENT) return DataStatus::Success;
-      logger.msg(INFO, "File is not accessible: %s - %s", path, StrError(errno));
+    if(!FileStat(path, &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
+      logger.msg(ERROR, "File is not accessible %s: %s", path, StrError(errno));
       return DataStatus::DeleteError;
     }
     // path is a directory
     if(S_ISDIR(st.st_mode)) {
-      if (!DirDelete(path)) {
-        logger.msg(INFO, "Can't delete directory: %s - %s", path, StrError(errno));
+      if (rmdir(path.c_str()) != 0) {
+        logger.msg(ERROR, "Can't delete directory %s: %s", path, StrError(errno));
         return DataStatus::DeleteError;
       }
       return DataStatus::Success;
     }
     // path is a file
     if(!FileDelete(path) && errno != ENOENT) {
-      logger.msg(INFO, "Can't delete file: %s - %s", path, StrError(errno));
+      logger.msg(ERROR, "Can't delete file %s: %s", path, StrError(errno));
       return DataStatus::DeleteError;
     }
     return DataStatus::Success;
@@ -525,6 +528,7 @@ namespace Arc {
       fa = NULL;
       fd = ::open(url.Path().c_str(), flags);
       if (fd == -1) {
+        logger.msg(ERROR, "Failed to open %s for reading: %s", url.Path(), StrError(errno));
         reading = false;
         return DataStatus::ReadStartError;
       }
@@ -538,10 +542,14 @@ namespace Arc {
       fd = -1;
       fa = new FileAccess;
       if(!fa->setuid(uid,gid)) {
+        delete fa; fa = NULL;
+        logger.msg(ERROR, "Failed to switch user id to %d/%d", (unsigned int)uid, (unsigned int)gid);
         reading = false;
         return DataStatus::ReadStartError;
       }
       if(!fa->open(url.Path(), flags, 0)) {
+        delete fa; fa = NULL;
+        logger.msg(ERROR, "Failed to create/open file %s: %s", url.Path(), StrError(errno));
         reading = false;
         return DataStatus::ReadStartError;
       }
@@ -556,8 +564,9 @@ namespace Arc {
     /* create thread to maintain reading */
     if(!CreateThreadFunction(&DataPointFile::read_file_start,this)) {
       if(fd != -1) close(fd);
-      if(fa) { fa->close(); delete fa; };
+      if(fa) { fa->close(); delete fa; }
       fd = -1; fa = NULL;
+      logger.msg(ERROR, "Failed to create thread");
       reading = false;
       return DataStatus::ReadStartError;
     }
@@ -586,19 +595,19 @@ namespace Arc {
       if((fa->geterrno() == 0) || (fa->geterrno() == ENOSPC)) {
         fsize = nsize;
         return true;
-      };
+      }
       return false;
-    };
+    }
 #ifdef HAVE_POSIX_FALLOCATE
     int err = posix_fallocate(fd,0,fsize);
     if((err == 0) || (err == ENOSPC)) {
       fsize = lseek(fd,0,SEEK_END);
       return true;
-    };
+    }
     return false;
 #else
     unsigned long long int old_size = lseek(fd, 0, SEEK_END);
-    if(old_size >= fsize) { fsize = old_size; return true; };
+    if(old_size >= fsize) { fsize = old_size; return true; }
     char buf[65536];
     memset(buf, 0xFF, sizeof(buf));
     while(old_size < fsize) {
@@ -607,9 +616,9 @@ namespace Arc {
       // because filesytem can skip empty blocks do real write 
       if (write(fd, buf, l) == -1) {
         fsize = old_size; return (errno = ENOSPC);
-      };
+      }
       old_size = lseek(fd, 0, SEEK_END);
-    };
+    }
     fsize = old_size; return true;
 #endif
   }
@@ -645,21 +654,20 @@ namespace Arc {
       std::string dirpath = Glib::path_get_dirname(url.Path());
       if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S; // shouldn't happen
       if (!DirCreate(dirpath, uid, gid, S_IRWXU, true)) {
-        logger.msg(ERROR, "Failed to create directory %s", dirpath);
+        logger.msg(ERROR, "Failed to create directory %s: %s", dirpath, StrError(errno));
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
         return DataStatus::WriteStartError;
       }
 
-      /* try to create file, if failed - try to open it */
+      /* try to create file. Opening an existing file will cause failure */
       int flags = (checksums.size() > 0)?O_RDWR:O_WRONLY;
       if(((!uid) || (uid == getuid())) && ((!gid) || (gid == getgid()))) {
         fa = NULL;
         fd = ::open(url.Path().c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-        if (fd == -1) fd = ::open(url.Path().c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR);
         if (fd == -1) {
-          logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
+          logger.msg(ERROR, "Failed to create file %s: %s", url.Path(), StrError(errno));
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
@@ -675,17 +683,15 @@ namespace Arc {
           buffer->eof_write(true);
           writing = false;
           return DataStatus::WriteStartError;
-        };
+        }
         if(!fa->open(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) {
-          if(!fa->open(url.Path().c_str(), flags | O_TRUNC, S_IRUSR | S_IWUSR)) {
-            delete fa; fa = NULL;
-            logger.msg(ERROR, "Failed to create/open file %s (%d)", url.Path(), errno);
-            buffer->error_write(true);
-            buffer->eof_write(true);
-            writing = false;
-            return DataStatus::WriteStartError;
-          };
-        };
+          delete fa; fa = NULL;
+          logger.msg(ERROR, "Failed to create file %s: %s", url.Path(), StrError(errno));
+          buffer->error_write(true);
+          buffer->eof_write(true);
+          writing = false;
+          return DataStatus::WriteStartError;
+        }
       }
 
       /* preallocate space */
@@ -700,25 +706,25 @@ namespace Arc {
             /* out of space */
             if (space_cb != NULL) {
               if (space_cb->cb(fsize-nsize)) continue;
-            };
-          };
+            }
+          }
           if(fd != -1) {
             lseek(fd, 0, SEEK_SET); (ftruncate(fd, 0) != 0);
             close(fd); fd = -1;
-          };
+          }
           if(fa) {
             fa->lseek(0, SEEK_SET);
             fa->ftruncate(0);
             fa->close(); delete fa; fa = NULL;
-          };
-          logger.msg(INFO, "Failed to preallocate space");
+          }
+          logger.msg(ERROR, "Failed to preallocate space for %s", url.Path());
           buffer->speed.reset();
           buffer->speed.hold(false);
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
           return DataStatus::WriteStartError;
-        };
+        }
       }
     }
     buffer->speed.reset();
