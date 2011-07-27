@@ -1245,6 +1245,8 @@ namespace Arc {
     // Alias map.
     XMLNode aliasMap;
 
+    initializeCredentialsType initializeCredentials;
+
     bool ok;
 
     static Logger logger;

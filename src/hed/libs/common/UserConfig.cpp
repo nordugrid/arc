@@ -62,7 +62,8 @@ namespace Arc {
 
   const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
 
-  UserConfig::UserConfig(initializeCredentialsType initializeCredentials) {
+  UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
+    : ok(false), initializeCredentials(initializeCredentials) {
     if (initializeCredentials != initializeCredentialsType::SkipCredentials) {
       InitializeCredentials();
       if ((!CredentialsFound()) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
@@ -82,7 +83,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : ok(false) {
+    : ok(false), initializeCredentials(initializeCredentials)  {
     if (loadSysConfig) {
 #ifndef WIN32
       if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
@@ -144,7 +145,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : ok(false) {
+    : ok(false), initializeCredentials(initializeCredentials)  {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     if (!jfile.empty() && !JobListFile(jfile))
@@ -311,7 +312,9 @@ namespace Arc {
       }
     }
     else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
+      if (initializeCredentials == initializeCredentialsType::RequireCredentials) {
+        logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
+      }
       proxyPath.clear();
     }
     if (!GetEnv("X509_USER_CERT").empty() &&
