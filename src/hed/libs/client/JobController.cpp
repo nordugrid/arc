@@ -318,6 +318,8 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::iterator it = catable.begin();
          it != catable.end(); it++) {
+      // saving to a temp file is necessary because chunks from server
+      // may arrive out of order
       std::string filename = Glib::build_filename(Glib::get_tmp_dir(), "arccat.XXXXXX");
       int tmp_h = Glib::mkstemp(filename);
       if (tmp_h == -1) {
@@ -341,6 +343,8 @@ namespace Arc {
         logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.str(), dst.str());
         continue;
       }
+      // it is not allowed to write to an existing file
+      dst.AddOption("overwrite=yes");
 
       bool copied = ARCCopyFile(src, dst);
 
