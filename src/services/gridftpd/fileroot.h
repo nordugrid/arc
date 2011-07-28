@@ -79,6 +79,7 @@ class DirEntry {
 class FilePlugin { /* this is the base class for plugins */
  public:
   std::string error_description;
+  virtual std::string get_error_description() const { return error_description; };
   /* virtual functions are not defined in base class */
   virtual int open(const char*,open_modes,unsigned long long int /* size */ = 0) { return 1; };
   virtual int close(bool /* eof */ = true) { return 1; };
@@ -159,7 +160,7 @@ class FileNode {
   int makedir(std::string &dirname);
   int removedir(std::string &dirname);
   int removefile(std::string &name);
-  const std::string& error(void) const { if(plug) return plug->error_description; return no_error; };
+  std::string error(void) const { if(plug) return plug->get_error_description(); return no_error; };
 };
 
 class GridFTP_Commands;

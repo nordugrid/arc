@@ -340,6 +340,11 @@ JobPlugin::~JobPlugin(void) {
   }
 }
  
+std::string JobPlugin::get_error_description() const {
+  if (!error_description.empty()) return error_description;
+  if (!chosenFilePlugin) return std::string("");
+  return chosenFilePlugin->error_description;
+}
 
 int JobPlugin::makedir(std::string &dname) {
   if(!initialized) return 1;

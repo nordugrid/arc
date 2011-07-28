@@ -15,6 +15,8 @@
 #include <sys/vfs.h>
 #endif
 
+#include <arc/Utils.h>
+
 #include "fileplugin.h"
 #include "../conf/conf.h"
 #include "../userspec.h"
@@ -307,6 +309,14 @@ int DirectFilePlugin::removefile(std::string &name) {
   if(!(i->access.del)) return 1;
   std::string fname=real_name(name);
   int ur=i->unix_rights(fname,uid,gid);
+  if(ur == 0 && errno > 0) { // stat failed
+    error_description = Arc::StrError(errno);
+    return 1;
+  }
+  if(ur & S_IFDIR) {
+    error_description = "Is a directory";
+    return 1;
+  }
   if(!(ur & S_IFREG)) return 1;
   if(i->unix_set(uid,gid) != 0) return 1;
   if(::remove(fname.c_str()) != 0) {
@@ -323,7 +333,14 @@ int DirectFilePlugin::removedir(std::string &dname) {
   if(!(i->access.del)) return 1;
   std::string fdname=real_name(dname);
   int ur=i->unix_rights(fdname,uid,gid);
-  if(!(ur & S_IFDIR)) return 1;
+  if(ur == 0 && errno > 0) { // stat failed
+    error_description = Arc::StrError(errno);
+    return 1;
+  }
+  if(!(ur & S_IFDIR)) {
+    error_description = "Not a directory";
+    return 1;
+  }
   if(i->unix_set(uid,gid) != 0) return 1;
   if(::remove(fdname.c_str()) != 0) {
     i->unix_reset();
@@ -341,6 +358,10 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
     if(i==access.end()) return 1; /* error ? */
     if(i->access.read) {
       int ur=(*i).unix_rights(fname,uid,gid);
+      if(ur == 0 && errno > 0) { // stat failed
+        error_description = Arc::StrError(errno);
+        return 1;
+      }
       if((ur & S_IFREG) && (ur & S_IRUSR)) {
         /* so open it */
         if(i->unix_set(uid,gid) != 0) return 1;
@@ -394,6 +415,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
           return 0;
         };
       };
+      error_description="File exists, overwrite not allowed";
       return 1;
     }
     else if(ur & S_IFDIR) { /* it's a directory */
@@ -686,6 +708,10 @@ int DirectFilePlugin::readdir(const char* name,std::list<DirEntry> &dir_list,Dir
   std::string fname = real_name(name);
   if(i->access.dirlist) {
     int ur=i->unix_rights(fname,uid,gid);
+    if(ur == 0 && errno > 0) { // stat failed
+      error_description = Arc::StrError(errno);
+      return 1;
+    }
     if((ur & S_IFDIR) && (ur & S_IRUSR) && (ur & S_IXUSR)) {
       /* allowed to list in configuration and by unix rights */
       /* following Linux semantics - need r-x for dirlist */
@@ -729,6 +755,10 @@ int DirectFilePlugin::checkdir(std::string &dirname) {
   std::string fname = real_name(dirname);
   if(i->access.cd) {
     int ur=(*i).unix_rights(fname,uid,gid);
+    if(ur == 0 && errno > 0) { // stat failed
+      error_description = Arc::StrError(errno);
+      return 1;
+    }
     if((ur & S_IXUSR) && (ur & S_IFDIR)) {
   logger.msg(Arc::VERBOSE, "plugin: checkdir: access: allowed: %s", fname);
       return 0;
@@ -753,11 +783,16 @@ int DirectFilePlugin::checkfile(std::string &name,DirEntry &info,DirEntry::objec
   if(!(i->access.dirlist)) { return 1; };
   std::string fdname = real_name(dname);
   int ur=i->unix_rights(fdname,uid,gid);
+  if(ur == 0 && errno > 0) { // stat failed
+    error_description = Arc::StrError(errno);
+    return 1;
+  }
   if(!((ur & S_IXUSR) && (ur & S_IFDIR)))  { return 1; };
   std::string fname = real_name(name);
   DirEntry dent(true,get_last_name(fname.c_str()));
   bool is_manageable = fill_object_info(dent,fdname,ur,i,mode);
   if(!is_manageable) {
+    if (errno > 0) error_description = Arc::StrError(errno);
     return 1;
   };
   info=dent;

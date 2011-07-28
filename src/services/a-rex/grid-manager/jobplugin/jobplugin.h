@@ -67,6 +67,7 @@ class JobPlugin: public FilePlugin {
  public:
   JobPlugin(std::istream &cfile,userspec_t &user);
   ~JobPlugin(void);
+  virtual std::string get_error_description() const;
   virtual int open(const char* name,open_modes mode,unsigned long long int size = 0);
   virtual int close(bool eof);
   virtual int read(unsigned char *buf,unsigned long long int offset,unsigned long long int *size);
