@@ -164,8 +164,12 @@ namespace Arc {
       /// Data was already cached
       SuccessCached = 38,
       
+      /// General error which doesn't fit any other error
+      GenericError = 39,
+      GenericErrorRetryable = DataStatusRetryableBase+GenericError,
+
       /// Undefined
-      UnknownError = 39
+      UnknownError = 40
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")

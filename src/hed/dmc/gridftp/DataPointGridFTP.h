@@ -37,7 +37,7 @@ namespace Arc {
     bool autodir;
 
     SimpleCondition cond;
-    std::string callback_error;
+    DataStatus callback_status;
     GSSCredential *credential;
 
     bool reading;

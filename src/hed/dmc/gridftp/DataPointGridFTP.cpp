@@ -31,11 +31,12 @@ namespace Arc {
     DataPointGridFTP *it = (DataPointGridFTP*)arg;
     if (error == GLOBUS_SUCCESS) {
       logger.msg(DEBUG, "ftp_complete_callback: success");
+      it->callback_status = DataStatus::Success;
       it->cond.signal();
     }
     else {
       logger.msg(VERBOSE, "ftp_complete_callback: error: %s", globus_object_to_string(error));
-      it->callback_error = trim(globus_object_to_string(error));
+      it->callback_status = DataStatus(DataStatus::GenericError, trim(globus_object_to_string(error)));
       it->cond.signal();
     }
   }
@@ -103,7 +104,7 @@ namespace Arc {
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
     }
-    else if (!callback_error.empty())
+    else if (!callback_status)
       logger.msg(INFO, "check_ftp: failed to get file's size");
     else {
       SetSize(size);
@@ -122,7 +123,7 @@ namespace Arc {
       globus_ftp_client_abort(&ftp_handle);
       cond.wait();
     }
-    else if (!callback_error.empty())
+    else if (!callback_status)
       logger.msg(INFO, "check_ftp: failed to get file's modification time");
     else {
       int modify_utime;
@@ -168,8 +169,8 @@ namespace Arc {
         cond.wait();
         return DataStatus::CheckError;
       }
-      if (ftp_eof_flag || callback_error.empty()) return DataStatus::Success;
-      return DataStatus(DataStatus::CheckError, callback_error);
+      if (ftp_eof_flag) return DataStatus::Success;
+      return DataStatus(DataStatus::CheckError, callback_status.GetDesc());
     }
     else {
       // Do not use it at all. It does not give too much useful
@@ -203,9 +204,9 @@ namespace Arc {
       cond.wait();
       return DataStatus(DataStatus::DeleteError, "Timeout waiting for delete");
     }
-    if (!callback_error.empty()) {
-      logger.msg(ERROR, callback_error);
-      return DataStatus(DataStatus::DeleteError, callback_error);
+    if (!callback_status) {
+      logger.msg(ERROR, callback_status.GetDesc());
+      return DataStatus(DataStatus::DeleteError, callback_status.GetDesc());
     }
     return DataStatus::Success;
   }
@@ -262,7 +263,7 @@ namespace Arc {
         cond.wait();
         return false;
       }
-      if (!callback_error.empty())
+      if (!callback_status)
         result = false;
     }
     return result;
@@ -335,7 +336,7 @@ namespace Arc {
     cond.wait();
     logger.msg(VERBOSE, "stop_reading_ftp: exiting: %s", url.str());
     //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
-    if (!callback_error.empty()) return DataStatus(DataStatus::ReadStopError, callback_error);
+    if (!callback_status) return DataStatus(DataStatus::ReadStopError, callback_status.GetDesc());
     return DataStatus::Success;
   }
 
@@ -401,7 +402,8 @@ namespace Arc {
     logger.msg(VERBOSE, "ftp_read_thread: waiting for buffers released");
     it->buffer->wait_for_read();
     logger.msg(VERBOSE, "ftp_read_thread: exiting");
-    if (it->buffer->error_read()) it->callback_error = "Read error";
+    it->callback_status = it->buffer->error_read() ? DataStatus::ReadError :
+                          DataStatus::Success;
     it->cond.signal();
     return NULL;
   }
@@ -537,9 +539,9 @@ namespace Arc {
           globus_ftp_client_abort(&ftp_handle);
           cond.wait();
         }
-        else if (!callback_error.empty()) {
+        else if (!callback_status) {
           // reset to success since failing to get checksum should not trigger an error
-          callback_error.clear();
+          callback_status = DataStatus::Success;
           logger.msg(INFO, "list_files_ftp: failed to get file's checksum");
         }
         else {
@@ -556,7 +558,7 @@ namespace Arc {
       }
     }
     //globus_ftp_client_handle_flush_url_state(&ftp_handle, url.str().c_str());
-    if (!callback_error.empty()) return DataStatus(DataStatus::WriteStopError, callback_error);
+    if (!callback_status) return DataStatus(DataStatus::WriteStopError, callback_status.GetDesc());
     return DataStatus::Success;
   }
 
@@ -602,7 +604,8 @@ namespace Arc {
     // complete_callback before calling all read_callbacks
     logger.msg(VERBOSE, "ftp_write_thread: waiting for buffers released");
     it->buffer->wait_for_write();
-    if (it->buffer->error_write()) it->callback_error = "Write error";
+    it->callback_status = it->buffer->error_write() ? DataStatus::WriteError :
+                         DataStatus::Success;
     it->cond.signal();
     return NULL;
   }
@@ -665,9 +668,9 @@ namespace Arc {
         cond.wait();
         result = DataStatus(DataStatus::StatError, "timeout waiting for file size");
       }
-      else if (!callback_error.empty()) {
+      else if (!callback_status) {
         logger.msg(INFO, "list_files_ftp: failed to get file's size");
-        result = DataStatus(DataStatus::StatError, callback_error);
+        result = DataStatus(DataStatus::StatError, callback_status.GetDesc());
         // Guessing - directories usually have no size
         f.SetType(FileInfo::file_type_dir);
       }
@@ -697,10 +700,10 @@ namespace Arc {
         cond.wait();
         result = DataStatus(DataStatus::StatError, "timeout waiting for file size");
       }
-      else if (!callback_error.empty()) {
+      else if (!callback_status) {
         logger.msg(INFO, "list_files_ftp: "
                          "failed to get file's modification time");
-        result = DataStatus(DataStatus::StatError, callback_error);
+        result = DataStatus(DataStatus::StatError, callback_status.GetDesc());
       }
       else {
         int modify_utime;
@@ -727,7 +730,7 @@ namespace Arc {
         globus_ftp_client_abort(&ftp_handle);
         cond.wait();
       }
-      else if (!callback_error.empty()) {
+      else if (!callback_status) {
         logger.msg(INFO, "list_files_ftp: failed to get file's checksum");
       }
       else {

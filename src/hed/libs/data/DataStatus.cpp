@@ -46,7 +46,8 @@ namespace Arc {
     istring("Failed to finish source"), // 36
     istring("Failed to finish destination"), // 37
     istring("Data was already cached"), // 38
-    istring("Unknown error") // 39
+    istring("General error"), // 39
+    istring("Unknown error") // 40
   };
 
   DataStatus::operator std::string() const {
