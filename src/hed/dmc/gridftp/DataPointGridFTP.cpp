@@ -190,7 +190,25 @@ namespace Arc {
       return DataStatus::IsWritingError;
     GlobusResult res;
     set_attributes();
-    res = globus_ftp_client_delete(&ftp_handle, url.str().c_str(),
+    // first check for file or dir
+    FileInfo f;
+    DataStatus stat_res = Stat(f, DataPoint::INFO_TYPE_TYPE);
+    if (!stat_res) return DataStatus(DataStatus::DeleteError, stat_res.GetDesc());
+
+    // if file type is unknown, try file delete and then dir delete if that fails
+    DataStatus rm_res;
+    if (f.GetType() != FileInfo::file_type_dir) {
+      rm_res = RemoveFile();
+    }
+    if (f.GetType() == FileInfo::file_type_dir ||
+        (f.GetType() == FileInfo::file_type_unknown && !rm_res)) {
+      rm_res = RemoveDir();
+    }
+    return rm_res;
+  }
+
+  DataStatus DataPointGridFTP::RemoveFile() {
+    GlobusResult res = globus_ftp_client_delete(&ftp_handle, url.str().c_str(),
                                    &ftp_opattr, &ftp_complete_callback, this);
     if (!res) {
       logger.msg(VERBOSE, "delete_ftp: globus_ftp_client_delete failed");
@@ -210,6 +228,29 @@ namespace Arc {
     }
     return DataStatus::Success;
   }
+
+  DataStatus DataPointGridFTP::RemoveDir() {
+    GlobusResult res = globus_ftp_client_rmdir(&ftp_handle, url.str().c_str(),
+                                  &ftp_opattr, &ftp_complete_callback, this);
+    if (!res) {
+      logger.msg(VERBOSE, "delete_ftp: globus_ftp_client_rmdir failed");
+      std::string globus_err(res.str());
+      logger.msg(ERROR, globus_err);
+      return DataStatus(DataStatus::DeleteError, globus_err);
+    }
+    if (!cond.wait(1000*usercfg.Timeout())) {
+      logger.msg(ERROR, "delete_ftp: timeout waiting for delete");
+      globus_ftp_client_abort(&ftp_handle);
+      cond.wait();
+      return DataStatus(DataStatus::DeleteError, "Timeout waiting for delete");
+    }
+    if (!callback_status) {
+      logger.msg(ERROR, callback_status.GetDesc());
+      return DataStatus(DataStatus::DeleteError, callback_status.GetDesc());
+    }
+    return DataStatus::Success;
+  }
+
 
   static bool remove_last_dir(std::string& dir) {
     // dir also contains proto and server

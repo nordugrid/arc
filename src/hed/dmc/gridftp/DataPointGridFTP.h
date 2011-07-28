@@ -78,6 +78,8 @@ namespace Arc {
     char ftp_buf[16];
     bool check_credentials();
     void set_attributes();
+    DataStatus RemoveFile();
+    DataStatus RemoveDir();
     DataStatus do_more_stat(FileInfo& f);
   public:
     DataPointGridFTP(const URL& url, const UserConfig& usercfg);
