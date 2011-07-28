@@ -192,7 +192,7 @@ static Glib::Mutex suid_lock;
     set(&pwd_p);
   }
 
-  User::User(std::string name) {
+  User::User(const std::string& name) {
     this->name = name;
     int uid = get_user_id();
     int gid = get_group_id();
