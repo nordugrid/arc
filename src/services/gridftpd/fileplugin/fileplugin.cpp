@@ -320,6 +320,7 @@ int DirectFilePlugin::removefile(std::string &name) {
   if(!(ur & S_IFREG)) return 1;
   if(i->unix_set(uid,gid) != 0) return 1;
   if(::remove(fname.c_str()) != 0) {
+    error_description = Arc::StrError(errno);
     i->unix_reset();
     return 1;
   };
@@ -343,6 +344,7 @@ int DirectFilePlugin::removedir(std::string &dname) {
   }
   if(i->unix_set(uid,gid) != 0) return 1;
   if(::remove(fdname.c_str()) != 0) {
+    error_description = Arc::StrError(errno);
     i->unix_reset();
     return 1;
   };
