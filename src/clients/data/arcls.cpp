@@ -143,6 +143,7 @@ static bool arcls(const Arc::URL& dir_url,
     }
     std::cout << std::endl;
   }
+  files.sort();
   for (std::list<Arc::FileInfo>::iterator i = files.begin();
        i != files.end(); i++) {
     std::cout << i->GetName();
@@ -193,6 +194,9 @@ static bool arcls(const Arc::URL& dir_url,
       for (std::map<std::string, std::string>::iterator mi = md.begin(); mi != md.end(); ++mi)
         std::cout<<mi->first<<":"<<mi->second<<std::endl;
     }
+  }
+  for (std::list<Arc::FileInfo>::iterator i = files.begin();
+       i != files.end(); i++) {
     // Do recursion. Recursion has no sense if listing is forbidden.
     if ((recursion > 0) && (!no_list)) {
       if (i->GetType() == Arc::FileInfo::file_type_dir) {

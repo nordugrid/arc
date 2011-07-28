@@ -136,6 +136,10 @@ namespace Arc {
       metadata[att] = val;
     }
     
+    bool operator<(const FileInfo& f) const {
+      return (lower(this->name).compare(lower(f.name)) < 0);
+    }
+
   private:
 
     std::string name;
