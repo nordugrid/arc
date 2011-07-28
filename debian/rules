@@ -115,7 +115,7 @@ binary-arch: install
 	dh_installinit --name grid-infosys
 	dh_perl
 	dh_pysupport
-	[ -x /usr/bin/dh_lintian ] && dh_lintian
+	[ -x /usr/bin/dh_lintian ] && dh_lintian || :
 	dh_link
 	dh_strip --dbg-package=nordugrid-arc-dbg
 
