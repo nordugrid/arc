@@ -1181,8 +1181,13 @@ registranthostname="myhost.org"
 #registrantport="2135"
 
 # registrantsuffix - the LDAP suffix of the registrant Index Service.
-# It is automatically determined from the registration block name,
+# It is automatically determined from the registration block name, 
 # therefore most of the cases no need to specify.
+# In this case the default registration suffix will be:
+#                  "Mds-Vo-name=indexname"
+# please mind uppercase/lowercase characters in the above string
+# when defining allowreg in an index!
+# Don't set it unless you want to overwrite the default.
 registrantsuffix="mds-vo-name=indexname,o=grid"
 
 
@@ -1373,8 +1378,11 @@ registrantport="2135"
 
 # registrantsuffix - the LDAP suffix of the registrant cluster resource
 # It is automatically determined from the [infosys] block and the 
-# registration blockname. Don't set it unless you want to 
-# overwrite the default. 
+# registration blockname. In this case the default registration suffix will be:
+#    "nordugrid-cluster-name=hostname,Mds-Vo-name=local,o=Grid"
+# please mind uppercase/lowercase characters above if defining 
+# allowreg in an index!
+# Don't set it unless you want to overwrite the default. 
 registrantsuffix="nordugrid-cluster-name=myhost.org,Mds-Vo-name=local,o=grid"
 
   
