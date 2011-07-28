@@ -358,13 +358,16 @@ int JobPlugin::makedir(std::string &dname) {
   };
   ApplyLocalCred(user,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
+  int r;
   if((getuid()==0) && (user) && (user->StrictSession())) {
     SET_USER_UID;
-    int r=fp->makedir(dname);
+    r=fp->makedir(dname);
     RESET_USER_UID;
-    return r;
-  };
-  return fp->makedir(dname);
+  } else {
+    r=fp->makedir(dname);
+  }
+  if (r != 0) error_description = fp->get_error_description();
+  return r;
 }
 
 int JobPlugin::removefile(std::string &name) {
@@ -398,13 +401,16 @@ int JobPlugin::removefile(std::string &name) {
   };
   ApplyLocalCred(user,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
+  int r;
   if((getuid()==0) && (user) && (user->StrictSession())) {
     SET_USER_UID;
-    int r=fp->removefile(name);
+    r=fp->removefile(name);
     RESET_USER_UID;
-    return r;
-  };
-  return fp->removefile(name);
+  } else {
+    r=fp->removefile(name);
+  }
+  if (r != 0) error_description = fp->get_error_description();
+  return r;
 }
 
 int JobPlugin::removedir(std::string &dname) {
@@ -454,13 +460,17 @@ int JobPlugin::removedir(std::string &dname) {
   };
   ApplyLocalCred(user,&id,"write");
   DirectFilePlugin * fp = selectFilePlugin(id);
+  int r;
   if((getuid()==0) && (user) && (user->StrictSession())) {
     SET_USER_UID;
-    int r=fp->removedir(dname);
+    r=fp->removedir(dname);
     RESET_USER_UID;
-    return r;
-  };
-  return fp->removedir(dname);
+  } else {
+    r=fp->removedir(dname);
+  }
+  if (r != 0) error_description = fp->get_error_description();
+  return r;
+
 }
 
 int JobPlugin::open(const char* name,open_modes mode,unsigned long long int size) {
