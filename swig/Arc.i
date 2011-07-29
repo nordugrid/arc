@@ -167,6 +167,16 @@ namespace Arc {
   PyTuple_SetItem(tuple,1,Py_BuildValue("s",$1->c_str()));
   $result = tuple;
 }
+
+
+// Convert output 'std::list<std::string>*' to a Python list containing Python strings.
+%typemap(out) std::list<std::string>* {
+  $result = PyList_New(0);
+  for (std::list<std::string>::iterator it = $1->begin();
+       it != $1->end(); ++it) {
+    PyList_Append($result, PyString_FromString(it->c_str()));
+  }
+}
 }
 #endif
 
