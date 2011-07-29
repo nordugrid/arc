@@ -22,7 +22,7 @@ private:
 public:
   CacheConfigException(std::string desc = ""): _desc(desc) {};
   ~CacheConfigException() throw() {};
-  std::string what() {return _desc;};
+  virtual const char* what() const throw() {return _desc.c_str();};
 };
 
 /**
