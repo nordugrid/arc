@@ -50,13 +50,13 @@ namespace DataStaging {
        created(time(NULL)),
        cancel_request(false),
        current_owner(GENERATOR),
-       logger(log),
-       log_destinations(logger->getDestinations())
+       logger(log)
   {
     if (!logger) {
       // use root logger if none is supplied
       logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DTR");
     }
+    log_destinations = logger->getDestinations();
 
     // check that endpoints can be handled
     if (!source_endpoint) {
