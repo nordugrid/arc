@@ -235,6 +235,11 @@ int main(int argc, char **argv)
     try {
         std::list<std::string> params = options.Parse(argc, argv);
         if (params.empty()) {
+            if (options.version) {
+                std::cout << Arc::IString("%s version %s", "arched", VERSION) << std::endl;
+                exit(0);
+            }
+
             /* Load and parse config file */
             init_config(options);
 
@@ -254,11 +259,6 @@ int main(int argc, char **argv)
                 std::string str;
                 config.GetXML(str, true);
                 std::cout << Arc::strip(str) << std::endl;
-                exit(0);
-            }
-
-            if (options.version) {
-                std::cout << Arc::IString("%s version %s", "arched", VERSION) << std::endl;
                 exit(0);
             }
 

@@ -109,16 +109,16 @@ int main(int argc, char **argv)
     try {
         std::list<std::string> params = options.Parse(argc, argv);
         if (params.empty()) {
+            if (options.version) {
+                std::cout << Arc::IString("%s version %s", "arched", VERSION) << std::endl;
+                exit(0);
+            }
+
             /* Load and parse config file */
             if(!config.parse(options.xml_config_file.c_str())) {
                 logger.msg(Arc::ERROR, "Failed to load service configuration from file %s",options.xml_config_file);
                 exit(1);
             };
-
-            if (options.version) {
-                std::cout << Arc::IString("%s version %s", "arched", VERSION) << std::endl;
-                exit(0);
-            }
 
             if(!MatchXMLName(config,"ArcConfig")) {
               logger.msg(Arc::ERROR, "Configuration root element is not <ArcConfig>");
