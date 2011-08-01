@@ -285,7 +285,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // New job is created here
   // First get and acquire new id
   if(!make_job_id()) return;
-  // Turn JSDL into text
+  // Turn job description into text
   std::string job_desc_str;
   // Make full XML doc out of subtree
   {
@@ -301,7 +301,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
-  // Analyze JSDL (checking, substituting, etc)
+  // Analyze job descrption (checking, substituting, etc)
   std::string acl("");
   if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl))) != ARexJobNoError) {
     if(failure_.empty()) {

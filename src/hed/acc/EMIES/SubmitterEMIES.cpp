@@ -75,8 +75,8 @@ namespace Arc {
     }
 
     std::string product;
-    if (!modjobdesc.UnParse(product, "nordugrid:jsdl")) { // TODO: EMI ES job desc. lang.
-      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
+    if (!modjobdesc.UnParse(product, "emies:adl")) {
+      logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
       releaseClient(et.url);
       return false;
     }

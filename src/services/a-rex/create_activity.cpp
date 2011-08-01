@@ -166,8 +166,8 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     in.GetXML(s);
     logger_.msg(Arc::VERBOSE, "EMIES:CreateActivities: request = \n%s", s);
   };
-  Arc::XMLNode jsdl = in["ActivityDescription"];
-  if(!jsdl) {
+  Arc::XMLNode adl = in["ActivityDescription"];
+  if(!adl) {
     // Wrongly formated request
     logger_.msg(Arc::ERROR, "EMIES:CreateActivities: no job description found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"ActivityDescription element is missing");
@@ -175,8 +175,8 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     out.Destroy();
     return Arc::MCC_Status();
   };
-  Arc::XMLNode jsdl2 = jsdl; ++jsdl2;
-  if((bool)jsdl2) {
+  Arc::XMLNode adl2 = adl; ++adl2;
+  if((bool)adl2) {
     logger_.msg(Arc::ERROR, "EMIES:CreateActivities: too many job description found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Too many ActivityDescription elements");
     ESVectorLimitExceededFault(fault,1,"Too many ActivityDescription elements");
@@ -190,7 +190,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     out.Destroy();
     return Arc::MCC_Status();
   };
-  ARexJob job(jsdl,config,"",clientid,logger_);
+  ARexJob job(adl,config,"",clientid,logger_);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();
