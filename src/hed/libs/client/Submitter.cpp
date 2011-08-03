@@ -134,7 +134,12 @@ namespace Arc {
           }
           XMLNode File = info["LocalInputFiles"].NewChild("File");
           File.NewChild("Source") = it->Name;
-          File.NewChild("CheckSum") = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::md5);
+          if (!it->Checksum.empty()) {
+            File.NewChild("CheckSum") = it->Checksum;
+          }
+          else {
+            File.NewChild("CheckSum") = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::md5);
+          }
         }
 
     // lock job list file
@@ -177,7 +182,12 @@ namespace Arc {
     for (std::list<FileType>::const_iterator it = jobdesc.Files.begin();
          it != jobdesc.Files.end(); it++) {
       if (!it->Source.empty() && it->Source.front().Protocol() == "file") {
-        job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::md5);
+        if (!it->Checksum.empty()) {
+          job.LocalInputFiles[it->Name] = it->Checksum;
+        }
+        else {
+          job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::md5);
+        }
       }
     }
   }

@@ -199,6 +199,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       }
       else if (file->FileSize != -1) {
         inputdata.back().lfn = Arc::tostring(file->FileSize);
+        if (!file->Checksum.empty()) { // Only set checksum if FileSize is also set.
+          inputdata.back().lfn += "."+file->Checksum;
+        }
       }
     }
     if (!file->Target.empty()) { // output file

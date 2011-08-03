@@ -8,7 +8,6 @@
 #include <map>
 
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <arc/StringConv.h>
@@ -1353,7 +1352,6 @@ namespace Arc {
     }
 
     if (!j.Files.empty() || !j.Application.Executable.Name.empty() || !j.Application.Input.empty()) {
-      struct stat fileStat;
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.Files.begin();
            it != j.Files.end(); it++) {
@@ -1362,16 +1360,12 @@ namespace Arc {
         }
         RSLList *s = new RSLList;
         s->Add(new RSLLiteral(it->Name));
-        if (it->Source.front().Protocol() == "file") {
-          if (stat(it->Source.front().Path().c_str(), &fileStat) == 0)
-            s->Add(new RSLLiteral(tostring(fileStat.st_size)));
-          else {
-            logger.msg(ERROR, "Cannot stat local input file %s", it->Source.front().Path());
-            delete s;
-            if (l)
-              delete l;
-            return "";
+        if (it->Source.front().Protocol() == "file" && it->FileSize != -1) {
+          std::string fsizechecksum = tostring(it->FileSize);
+          if (!it->Checksum.empty()) {
+            fsizechecksum += "."+it->Checksum;
           }
+          s->Add(new RSLLiteral(fsizechecksum));
         }
         else
           s->Add(new RSLLiteral(it->Source.front().fullstr()));

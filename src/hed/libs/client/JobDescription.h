@@ -187,13 +187,20 @@ namespace Arc {
     FileType() :
       KeepData(false),
       IsExecutable(false),
-      FileSize(-1) {}
+      FileSize(-1),
+      Checksum("") {}
     std::string Name;
     bool KeepData;
     bool IsExecutable;
     std::list<URL> Source;
     std::list<URL> Target;
     long FileSize;
+    /// MD5 checksum of file
+    /**
+     * The Checksum attribute specifies the textural representation of MD5
+     * checksum of file in base 16.
+     **/
+    std::string Checksum;
   };
 
   /**

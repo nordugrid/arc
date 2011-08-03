@@ -631,6 +631,13 @@ namespace Arc {
         if (ds["DownloadToCache"] && !file.Source.empty()) {
           file.Source.back().AddOption("cache", (std::string)ds["DownloadToCache"]);
         }
+        if (ds["FileSize"]) {
+          stringto<long>((std::string)ds["FileSize"], file.FileSize);
+        }
+        if (ds["Checksum"]) {
+          file.Checksum = (std::string)ds["Checksum"];
+        }
+        
         job.Files.push_back(file);
       }
     }
@@ -1063,6 +1070,13 @@ namespace Arc {
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
       if (!it->Source.empty() && !it->Source.front().Option("cache").empty()) {
         datastaging.NewChild("DownloadToCache") = it->Source.front().Option("cache");
+      }
+
+      if (!it->FileSize != -1) {
+        datastaging.NewChild("FileSize") = tostring(it->FileSize);
+      }
+      if (!it->Checksum.empty()) {
+        datastaging.NewChild("Checksum") = it->Checksum;
       }
     }
     // End of DataStaging

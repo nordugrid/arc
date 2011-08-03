@@ -5,8 +5,11 @@
 #endif
 
 #include <unistd.h>
+#include <sys/stat.h>
+
 #include <glibmm.h>
 
+#include <arc/CheckSum.h>
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/StringConv.h>
@@ -131,9 +134,11 @@ namespace Arc {
 
     // Check for identical file names.
     // Check if executable and input is contained in the file list.
+    // Calculate checksum and filesize for local input files.
     bool executableIsAdded(false), inputIsAdded(false), outputIsAdded(false), errorIsAdded(false), logDirIsAdded(false);
     bool targets_exist(false);
-    for (std::list<FileType>::const_iterator it1 = jobdesc.Files.begin();
+    struct stat fileStat;
+    for (std::list<FileType>::iterator it1 = jobdesc.Files.begin();
          it1 != jobdesc.Files.end(); it1++) {
       for (std::list<FileType>::const_iterator it2 = it1;
            it2 != jobdesc.Files.end(); it2++) {
@@ -150,6 +155,25 @@ namespace Arc {
           }
           logger.msg(ERROR, "Two files have identical file name '%s'.", it1->Name);
           return false;
+        }
+      }
+
+      if (!it1->Source.empty() && it1->Source.front().Protocol() == "file") {
+        if (it1->FileSize != -1) {
+          if (stat(it1->Source.front().Path().c_str(), &fileStat) == 0) {
+            it1->FileSize = fileStat.st_size;
+          }
+          else {
+            logger.msg(ERROR, "Cannot stat local input file %s", it1->Source.front().Path());
+            return false;
+          }
+        }
+        if (it1->Checksum.empty()) {
+          it1->Checksum = CheckSumAny::FileChecksum(it1->Source.front().Path(), CheckSumAny::md5);
+          if (it1->Checksum.empty()) {
+            logger.msg(ERROR, "Unable to calculate checksum of local input file %s", it1->Source.front().Path());
+            return false;
+          }
         }
       }
 
