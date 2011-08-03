@@ -12,31 +12,93 @@
 
 namespace Arc {
 
-  /// Defines interface for various checksum manipulations.
-  /** This class is used during data transfers through DataBuffer class */
+  /// Interface for checksum manipulations.
+  /** This class is an interface and is extended in the specialized classes
+   * CRC32Sum, MD5Sum and Adler32Sum. The interface is among others used
+   * during data transfers through DataBuffer class
+   *
+   * @see CRC32Sum
+   * @see MD5Sum
+   * @see Adler32Sum
+   **/
   class CheckSum {
   public:
+    /// Default constructor
     CheckSum(void) {}
     virtual ~CheckSum(void) {}
+
+    /// Initiate the checksum algorithm.
+    /**
+     * This method must be called before starting a new checksum
+     * calculation.
+     **/
     virtual void start(void) = 0;
+
+    /// Add data to be checksummed
+    /**
+     * This method calculates the checksum of the passed data chuck, taking
+     * into account the previous state of this object.
+     * 
+     * @param buf pointer to data chuck to be checksummed.
+     * @param len size of the data chuck.
+     **/
     virtual void add(void *buf, unsigned long long int len) = 0;
+
+    /// Finalize the checksumming
+    /**
+     * This method finalizes the checksum algorithm, that is calculating the
+     * final checksum result.
+     **/
     virtual void end(void) = 0;
+
+    /// Retrieve result of checksum as binary blob
     virtual void result(unsigned char*& res, unsigned int& len) const = 0;
+
+    /// Retrieve result of checksum into a string
+    /**
+     * The passed string buf is filled with result of checksum algorithm in
+     * base 16. At most len chacters is filled into buffer buf. The
+     * hexadecimal value is prepended with "<algorithm>:", where <algorithm>
+     * is one of "cksum", "md5" or "adler32" respectively corresponding to
+     * the result from the CRC32Sum, MD5Sum and Adler32 classes.
+     *
+     * @param buf pointer to buffer which should be filled with checksum
+     *  result.
+     * @param len max number of character filled into buffer.
+     **/
     virtual int print(char *buf, int len) const {
       if (len > 0)
         buf[0] = 0;
       return 0;
     }
+
+    /// Set internal checksum state
+    /**
+     * This method sets the internal state to that of the passed textural
+     * representation. The format passed to this method must be the same as
+     * retrieved from the CheckSum::print method.
+     *
+     * @param buf string containing textural representation of checksum
+     * @see CheckSum::print
+     **/
     virtual void scan(const char *buf) = 0;
+    
+    /// Indicates whether the checksum has been calculated
     virtual operator bool(void) const {
       return false;
     }
+
+    /// Indicates whether the checksum has not been calculated
     virtual bool operator!(void) const {
       return true;
     }
   };
 
   /// Implementation of CRC32 checksum
+  /**
+   * This class is a specialized class of the CheckSum class. It provides an
+   * implementation for the CRC-32 IEEE 802.3 standard.
+   **/
   class CRC32Sum
     : public CheckSum {
   private:
@@ -67,6 +129,11 @@ namespace Arc {
   };
 
   /// Implementation of MD5 checksum
+  /**
+   * This class is a specialized class of the CheckSum class. It provides an
+   * implementation of the MD5 message-digest algorithm specified in RFC
+   * 1321.
+   **/
   class MD5Sum
     : public CheckSum {
   private:
@@ -99,6 +166,10 @@ namespace Arc {
   };
 
   /// Implementation of Adler32 checksum
+  /**
+   * This class is a specialized class of the CheckSum class. It provides an
+   * implementation of the Adler-32 checksum algorithm.
+   **/
   class Adler32Sum
     : public CheckSum {
    private:
@@ -139,9 +210,11 @@ namespace Arc {
     }
   };
 
-  /// Wrapper for CheckSum class.
-  /** To be used for manipulation of any supported checksum type
-     in a transparent way. */
+  /// Wrapper for CheckSum class
+  /**
+   * To be used for manipulation of any supported checksum type in a
+   * transparent way.
+   **/
   class CheckSumAny
     : public CheckSum {
   public:
