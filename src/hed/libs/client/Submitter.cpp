@@ -15,7 +15,6 @@
 #include <arc/UserConfig.h>
 #include <arc/data/FileCache.h>
 #include <arc/CheckSum.h>
-#include <arc/data/DataBuffer.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/URLMap.h>
@@ -135,7 +134,7 @@ namespace Arc {
           }
           XMLNode File = info["LocalInputFiles"].NewChild("File");
           File.NewChild("Source") = it->Name;
-          File.NewChild("CheckSum") = GetCksum(it->Source.front().Path());
+          File.NewChild("CheckSum") = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::md5);
         }
 
     // lock job list file
@@ -178,7 +177,7 @@ namespace Arc {
     for (std::list<FileType>::const_iterator it = jobdesc.Files.begin();
          it != jobdesc.Files.end(); it++) {
       if (!it->Source.empty() && it->Source.front().Protocol() == "file") {
-        job.LocalInputFiles[it->Name] = GetCksum(it->Source.front().Path());
+        job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::md5);
       }
     }
   }
@@ -252,35 +251,6 @@ namespace Arc {
     }
 
     return j.JobID;
-  }
-
-  std::string Submitter::GetCksum(const std::string& file, const UserConfig& usercfg) {
-    DataHandle source(file, usercfg);
-    DataBuffer buffer;
-
-    MD5Sum md5sum;
-    buffer.set(&md5sum);
-
-    if (!source->StartReading(buffer))
-      return "";
-
-    int handle;
-    unsigned int length;
-    unsigned long long int offset;
-
-    while (buffer.for_write() || !buffer.eof_read())
-      if (buffer.for_write(handle, length, offset, true))
-        buffer.is_written(handle);
-
-    if (!source->StopReading())
-      return "";
-
-    if (!buffer.checksum_valid())
-      return "";
-
-    char buf[100];
-    md5sum.print(buf, 100);
-    return buf;
   }
 
   SubmitterLoader::SubmitterLoader()

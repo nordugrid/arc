@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/CheckSum.h>
 #include <arc/FileLock.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -179,7 +180,7 @@ namespace Arc {
         if (!it->LocalInputFiles.empty()) {
           std::map<std::string, std::string>::iterator itF = it->LocalInputFiles.begin();
           for (; itF != it->LocalInputFiles.end(); ++itF) {
-            if (itF->second != Submitter::GetCksum(itF->first, usercfg)) {
+            if (itF->second != CheckSumAny::FileChecksum(itF->first, CheckSumAny::md5)) {
               break;
             }
           }
