@@ -8,7 +8,7 @@
 
 #include <sys/types.h>
 
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 
 #ifdef WIN32
 typedef unsigned char u_char;

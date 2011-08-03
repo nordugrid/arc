@@ -9,7 +9,7 @@
 #include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 #include <arc/data/DataHandle.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 
 namespace Arc {
 

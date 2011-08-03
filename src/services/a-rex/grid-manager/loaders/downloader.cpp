@@ -18,7 +18,7 @@
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
 #include <arc/UserConfig.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>

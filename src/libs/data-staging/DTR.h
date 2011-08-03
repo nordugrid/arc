@@ -6,7 +6,7 @@
 #endif
 
 #include <arc/data/DataHandle.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/data/URLMap.h>
 #include <arc/DateTime.h>
 #include <arc/Logger.h>

@@ -18,12 +18,12 @@ endif
 libarcdata2_ladir = $(pkgincludedir)/data
 libarcdata2_la_HEADERS = DataPoint.h DataPointDirect.h \
 	DataPointIndex.h DataBuffer.h \
-	CheckSum.h DataSpeed.h DataMover.h URLMap.h \
+	DataSpeed.h DataMover.h URLMap.h \
 	DataCallback.h DataHandle.h FileInfo.h DataStatus.h \
 	FileCache.h FileCacheHash.h
 libarcdata2_la_SOURCES = DataPoint.cpp DataPointDirect.cpp \
 	DataPointIndex.cpp DataBuffer.cpp \
-	CheckSum.cpp DataSpeed.cpp DataMover.cpp URLMap.cpp \
+	DataSpeed.cpp DataMover.cpp URLMap.cpp \
 	DataStatus.cpp \
 	FileCache.cpp FileCacheHash.cpp
 libarcdata2_la_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) \

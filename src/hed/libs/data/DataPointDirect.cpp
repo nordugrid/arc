@@ -6,7 +6,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/data/DataPointDirect.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 
 namespace Arc {
 

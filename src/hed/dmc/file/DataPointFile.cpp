@@ -22,7 +22,7 @@
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/FileUtils.h>
 #include <arc/FileAccess.h>
 #include <arc/Utils.h>

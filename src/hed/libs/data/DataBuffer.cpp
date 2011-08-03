@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/data/DataBuffer.h>
 
 namespace Arc {

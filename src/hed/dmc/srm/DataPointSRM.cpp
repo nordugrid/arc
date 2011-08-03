@@ -15,7 +15,7 @@
 #include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataCallback.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 
 #include "DataPointSRM.h"
 

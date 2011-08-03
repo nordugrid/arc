@@ -24,7 +24,7 @@
 #include <arc/Utils.h>
 #include <arc/credential/Credential.h>
 #include <arc/data/DataBuffer.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataPoint.h>
 #include <arc/data/DataHandle.h>

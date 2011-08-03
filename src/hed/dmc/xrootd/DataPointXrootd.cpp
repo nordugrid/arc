@@ -2,7 +2,7 @@
 
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 
 // "Error" macro defined here conflicts with same name macro in glib
 // so have to include after glib includes

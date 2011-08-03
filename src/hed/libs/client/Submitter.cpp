@@ -14,7 +14,7 @@
 #include <arc/client/Submitter.h>
 #include <arc/UserConfig.h>
 #include <arc/data/FileCache.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataMover.h>
 #include <arc/data/DataHandle.h>

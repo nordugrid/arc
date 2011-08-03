@@ -10,7 +10,7 @@
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/data/DataBuffer.h>
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/globusutils/GlobusErrorUtils.h>
 #include <arc/globusutils/GlobusWorkarounds.h>
 #include <arc/globusutils/GSSCredential.h>

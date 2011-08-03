@@ -14,7 +14,7 @@
 
 #include <glibmm.h>
 
-#include <arc/data/CheckSum.h>
+#include <arc/CheckSum.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>

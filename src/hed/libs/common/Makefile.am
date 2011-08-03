@@ -14,7 +14,7 @@ pkglibexec_PROGRAMS = arc-file-access
 
 libarccommon_ladir = $(pkgincludedir)
 libarccommon_la_HEADERS = ArcVersion.h ArcConfig.h ArcLocation.h ArcRegex.h \
-	Base64.h ByteArray.h DBInterface.h DateTime.h \
+	Base64.h ByteArray.h CheckSum.h DBInterface.h DateTime.h \
 	FileLock.h FileUtils.h FileAccess.h GUID.h IString.h \
 	Logger.h OptionParser.h StringConv.h Thread.h URL.h \
 	User.h UserConfig.h Utils.h XMLNode.h \
@@ -28,7 +28,7 @@ PLATFORM_SPECIFIC = Run_unix.cpp
 endif
 
 libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp ArcRegex.cpp \
-	Base64.cpp ByteArray.cpp DBranch.cpp DBranch.h DateTime.cpp \
+	Base64.cpp ByteArray.cpp CheckSum.cpp DBranch.cpp DBranch.h DateTime.cpp \
 	FileLock.cpp FileUtils.cpp FileAccess.cpp GUID.cpp IString.cpp \
 	Logger.cpp OptionParser.cpp StringConv.cpp Thread.cpp URL.cpp \
 	User.cpp UserConfig.cpp Utils.cpp XMLNode.cpp \
