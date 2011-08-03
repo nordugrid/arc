@@ -73,6 +73,11 @@ namespace DataStaging {
     delivery.SetTransferParameters(params);
   }
 
+  void Scheduler::SetRemoteDeliveryServices(const std::vector<Arc::URL>& endpoints) {
+    if (scheduler_state == INITIATED)
+      remote_delivery = endpoints;
+  }
+
   void Scheduler::SetDumpLocation(const std::string& location) {
     dumplocation = location;
   }
@@ -83,6 +88,10 @@ namespace DataStaging {
     scheduler_state = RUNNING;
     processor.start();
     delivery.start();
+    if (!remote_delivery.empty()) {
+      DeliverySlots *= remote_delivery.size();
+      DeliveryEmergencySlots *= remote_delivery.size();
+    }
     Arc::CreateThreadFunction(&main_thread, this);
     return true;
   }
@@ -888,6 +897,10 @@ namespace DataStaging {
           break;
         if ((shares_in_delivery.find(tmp->get_transfer_share()) == shares_in_delivery.end()) &&
             transferShares.can_start(tmp->get_transfer_share())) {
+          // choose remote delivery service - random for now
+          if (!remote_delivery.empty()) {
+            tmp->set_remote_delivery_endpoint(remote_delivery.at(rand() % remote_delivery.size()));
+          }
           transferShares.decrease_number_of_slots(tmp->get_transfer_share());
           tmp->set_status(DTRStatus::TRANSFER);
           tmp->push(DELIVERY);
@@ -896,6 +909,10 @@ namespace DataStaging {
         }
       }
       else if(transferShares.can_start(tmp->get_transfer_share())){
+        // choose remote delivery service - random for now
+        if (!remote_delivery.empty()) {
+          tmp->set_remote_delivery_endpoint(remote_delivery.at(rand() % remote_delivery.size()));
+        }
       	transferShares.decrease_number_of_slots(tmp->get_transfer_share());
         tmp->set_status(DTRStatus::TRANSFER);
         tmp->push(DELIVERY);

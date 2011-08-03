@@ -243,6 +243,9 @@ namespace DataStaging {
       /// True if some process requested cancellation
       bool cancel_request;
       
+      /// Endpoint of remote delivery service this DTR is scheduled for
+      Arc::URL delivery_endpoint;
+
       /// The process in charge of this DTR right now
       StagingProcesses current_owner;
 
@@ -333,6 +336,8 @@ namespace DataStaging {
      /** Useful when a failed DTR is to be retried. */
      void reset();
 
+     /// Set the ID of this DTR. Useful when passing DTR between processes
+     void set_id(const std::string& id);
      /// Get the ID of this DTR
      std::string get_id() const { return DTR_ID; };
      /// Get an abbreviated version of the DTR ID - useful to reduce logging verbosity
@@ -409,6 +414,11 @@ namespace DataStaging {
      /// Returns true if cancellation has been requested
      bool cancel_requested() const { return cancel_request; };
      
+     /// Set remote delivery endpoint. If empty then local delivery is used
+     void set_remote_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
+     /// Returns remote delivery endpoint
+     const Arc::URL& get_remote_delivery_endpoint() const { return delivery_endpoint; };
+
      /// Set cache filename
      void set_cache_file(const std::string& filename);
      /// Get cache filename

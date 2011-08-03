@@ -7,6 +7,8 @@ libdatastaging_la_SOURCES = DTR.cpp DTR.h Scheduler.cpp Scheduler.h \
   Processor.cpp Processor.h DTRList.h DTRList.cpp \
   DataDelivery.cpp DataDelivery.h \
   DataDeliveryComm.cpp DataDeliveryComm.h \
+  DataDeliveryRemoteComm.cpp DataDeliveryRemoteComm.h \
+  DataDeliveryLocalComm.cpp DataDeliveryLocalComm.h \
   DTRStatus.h DTRStatus.cpp \
   TransferShares.h TransferShares.cpp
 

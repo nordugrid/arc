@@ -49,6 +49,7 @@ namespace DataStaging {
        status(DTRStatus::NEW,"Created by the generator"),
        created(time(NULL)),
        cancel_request(false),
+       delivery_endpoint(Arc::URL()),
        current_owner(GENERATOR),
        logger(log)
   {
@@ -123,6 +124,7 @@ namespace DataStaging {
       created(dtr.created),
       next_process_time(dtr.next_process_time),
       cancel_request(dtr.cancel_request),
+      delivery_endpoint(dtr.delivery_endpoint),
       current_owner(dtr.current_owner),
       logger(dtr.logger),
       log_destinations(dtr.log_destinations),
@@ -165,6 +167,15 @@ namespace DataStaging {
     cache_file.clear();
     mapped_source.clear();
     reset_error_status();
+  }
+
+  void DTR::set_id(const std::string& id) {
+    // sanity check - regular expressions would be useful here
+    if (id.length() != DTR_ID.length()) {
+      logger->msg(Arc::WARNING, "Invalid ID: %s", id);
+    } else {
+      DTR_ID = id;
+    }
   }
 
   std::string DTR::get_short_id() const {

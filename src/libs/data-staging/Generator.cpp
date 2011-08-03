@@ -46,6 +46,9 @@ namespace DataStaging {
 
     // Scheduler instance
     Scheduler scheduler;
+    std::vector<Arc::URL> endpoints;
+    endpoints.push_back(Arc::URL("https://localhost:60002/datadeliveryservice"));
+    scheduler.SetRemoteDeliveryServices(endpoints);
     // Starting scheduler with default configuration
     scheduler.start();
 

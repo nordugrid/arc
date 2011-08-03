@@ -3,23 +3,29 @@
 #endif
 
 #include "DataDeliveryComm.h"
-
 #include "DataDelivery.h"
 
 namespace DataStaging {
 
   Arc::Logger DataDelivery::logger(Arc::Logger::getRootLogger(), "DataStaging.DataDelivery");
 
+  /// Wrapper class around DataDeliveryComm
   class DataDelivery::delivery_pair_t {
     public:
     DTR* dtr;
-    DataDeliveryComm comm;
+    DataDeliveryComm* comm;
     bool cancelled;
     delivery_pair_t(DTR* request, const TransferParameters& params);
+    ~delivery_pair_t();
   };
 
   DataDelivery::delivery_pair_t::delivery_pair_t(DTR* request, const TransferParameters& params)
-    :dtr(request),comm(*request, params),cancelled(false) {
+    :dtr(request),cancelled(false) {
+    comm = DataDeliveryComm::CreateInstance(*request, params);
+  }
+
+  DataDelivery::delivery_pair_t::~delivery_pair_t() {
+    delete comm;
   }
 
   DataDelivery::DataDelivery(): delivery_state(INITIATED) {
@@ -129,7 +135,7 @@ namespace DataStaging {
         dtr_list_lock.unlock();
         delivery_pair_t* dp = *d;
         DataDeliveryComm::Status status;
-        status = dp->comm.GetStatus();
+        status = dp->comm->GetStatus();
         // TODO: fill status into DTR
         //std::cerr<<"Time: "<<status.timestamp
         //         <<", Comm. Status: "<<status.commstatus
@@ -161,7 +167,7 @@ namespace DataStaging {
             if(status.error == DTRErrorStatus::NONE_ERROR)
               status.error = DTRErrorStatus::INTERNAL_ERROR;
             dp->dtr->set_error_status(status.error,status.error_location,
-                     status.error_desc[0]?status.error_desc:dp->comm.GetError().c_str());
+                     status.error_desc[0]?status.error_desc:dp->comm->GetError().c_str());
           } else if (status.checksum) {
             dp->dtr->get_destination()->SetCheckSum(status.checksum);
           }
@@ -180,7 +186,7 @@ namespace DataStaging {
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
           dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_ERROR,DTRErrorStatus::ERROR_TRANSFER,
-                   dp->comm.GetError().empty()?"Connection with delivery process lost":dp->comm.GetError());
+                   dp->comm->GetError().empty()?"Connection with delivery process lost":dp->comm->GetError());
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
           dp->dtr->push(SCHEDULER);
           delete dp;
