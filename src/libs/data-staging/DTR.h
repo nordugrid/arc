@@ -24,7 +24,8 @@ namespace DataStaging {
   /// Internal state of staging processes
   enum ProcessState {INITIATED, RUNNING, TO_STOP, STOPPED};
 
-  /// Represents limits and properties of a DTR transfer
+  /// Represents limits and properties of a DTR transfer. These generally apply
+  /// to all DTRs.
   class TransferParameters {
     public:
     /// Minimum average bandwidth in bytes/sec - if the average bandwidth used
@@ -39,17 +40,9 @@ namespace DataStaging {
     unsigned long long int min_current_bandwidth;
     /// The time over which to average the calculation of min_curr_bandwidth
     unsigned int averaging_time;
-    /// Number of bytes transferred so far
-    unsigned long long int bytes_transferred; // TODO and/or offset?
-    /// Time at which transfer started
-    Arc::Time start_time;
-    /// Pointer to checksum object
-    Arc::CheckSum* checksum;
-    /// Flag to say whether transfer is complete (all bytes copied successfully)
-    bool transfer_finished;
     /// Constructor. Initialises all values to zero
-    TransferParameters() : min_average_bandwidth(0), max_inactivity_time(0), min_current_bandwidth(0),
-                           averaging_time(0), bytes_transferred(0), checksum(NULL), transfer_finished(false) {};
+    TransferParameters() : min_average_bandwidth(0), max_inactivity_time(0),
+                           min_current_bandwidth(0), averaging_time(0) {};
   };
 
   /// The configured cache directories
@@ -230,6 +223,9 @@ namespace DataStaging {
       /// Error status of the DTR
       DTRErrorStatus error_status;
 
+      /// Number of bytes transferred so far
+      unsigned long long int bytes_transferred; // TODO and/or offset?
+
       /** Timing variables **/
       /// When should we finish the current action
       Arc::Time timeout;
@@ -408,6 +404,11 @@ namespace DataStaging {
      void reset_error_status();
      /// Get the error status.
      DTRErrorStatus get_error_status();
+
+     /// Set bytes transferred (should be set by whatever is controlling the transfer)
+     void set_bytes_transferred(unsigned long long int bytes) { bytes_transferred = bytes; };
+     /// Get current number of bytes transferred
+     unsigned long long int get_bytes_transferred() const { return bytes_transferred; };
 
      /// Set the DTR to be cancelled
      void set_cancel_request();

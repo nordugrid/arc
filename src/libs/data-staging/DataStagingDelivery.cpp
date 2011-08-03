@@ -22,7 +22,7 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
                          DataStaging::DTRErrorStatus::DTRErrorStatusType err,
                          DataStaging::DTRErrorStatus::DTRErrorLocation err_loc,
                          const std::string& err_desc,
-                         unsigned long long int transfered,
+                         unsigned long long int transferred,
                          unsigned long long int size,
                          const std::string& checksum = "") {
   static DataStaging::DataDeliveryComm::Status status;
@@ -38,7 +38,7 @@ static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
   status.error_location = err_loc;
   strncpy(status.error_desc,err_desc.c_str(),sizeof(status.error_desc));
   status.streams = 0;
-  status.transfered = transfered;
+  status.transferred = transferred;
   status.size = size;
   status.offset = 0;
   status.speed = 0;

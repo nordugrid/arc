@@ -136,11 +136,7 @@ namespace DataStaging {
         delivery_pair_t* dp = *d;
         DataDeliveryComm::Status status;
         status = dp->comm->GetStatus();
-        // TODO: fill status into DTR
-        //std::cerr<<"Time: "<<status.timestamp
-        //         <<", Comm. Status: "<<status.commstatus
-        //         <<", Status: "<<status.status
-        //         <<", Bytes: "<<status.transfered<<"/"<<status.size<<std::endl;
+        dp->dtr->set_bytes_transferred(status.transferred);
 
         // check for cancellation
         if (dp->cancelled) {
@@ -172,7 +168,7 @@ namespace DataStaging {
             dp->dtr->get_destination()->SetCheckSum(status.checksum);
           }
           dp->dtr->get_logger()->msg(Arc::INFO, "DTR %s: Transfer finished: %llu bytes transferred %s",
-                                     dp->dtr->get_short_id(), status.transfered,
+                                     dp->dtr->get_short_id(), status.transferred,
                                      (status.checksum[0] ? ": checksum "+std::string(status.checksum) : " "));
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
           dp->dtr->push(SCHEDULER);

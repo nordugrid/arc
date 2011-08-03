@@ -47,6 +47,7 @@ namespace DataStaging {
        replication(false),
        force_registration(false),
        status(DTRStatus::NEW,"Created by the generator"),
+       bytes_transferred(0),
        created(time(NULL)),
        cancel_request(false),
        delivery_endpoint(Arc::URL()),
@@ -120,6 +121,7 @@ namespace DataStaging {
       mapped_source(dtr.mapped_source),
       status(dtr.status),
       error_status(dtr.error_status),
+      bytes_transferred(dtr.bytes_transferred),
       timeout(dtr.timeout),
       created(dtr.created),
       next_process_time(dtr.next_process_time),
@@ -166,6 +168,7 @@ namespace DataStaging {
     // empty cache and map info
     cache_file.clear();
     mapped_source.clear();
+    bytes_transferred = 0;
     reset_error_status();
   }
 

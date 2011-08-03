@@ -47,7 +47,7 @@ namespace DataStaging {
       DTRErrorStatus::DTRErrorLocation error_location; ///< Where error happened
       char error_desc[256];              ///< Error description
       unsigned int streams;              ///< Number of transfer streams active
-      unsigned long long int transfered; ///< Number of bytes transfered
+      unsigned long long int transferred;///< Number of bytes transferred
       unsigned long long int offset;     ///< Last position to which file has no missing pieces
       unsigned long long int size;       ///< File size as obtained by protocol
       unsigned int speed;                ///< Current transfer speed in bytes/sec during last ~minute
