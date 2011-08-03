@@ -5,6 +5,7 @@
 #endif
 
 #include <cctype>
+#include <fstream>
 
 #include <sys/types.h>
 
@@ -536,6 +537,34 @@ namespace Arc {
     if (memcmp(res, res_, len) != 0)
       return false;
     return true;
+  }
+
+  std::string CheckSumAny::FileChecksum(const std::string& file_path, type tp) {
+    std::ifstream file(file_path.c_str(), std::ios_base::in|std::ios_base::binary|std::ios_base::ate);
+    if (!file) {
+      return "";
+    }
+    
+    long size = file.tellg();
+    file.seekg(0, std::ios_base::beg);
+    char * buffer = new char [size];
+    file.read(buffer, size);
+    file.close();
+  
+    CheckSumAny csa(tp);
+    csa.start();
+    csa.add(buffer, size);
+    csa.end();
+    delete[] buffer;
+
+    char checksum[100];
+    csa.print(checksum, 100);
+    std::string sChecksum(checksum);
+    std::string::size_type pos = sChecksum.find(':');
+    if (pos == std::string::npos) {
+      return "";
+    }
+    return sChecksum.substr(pos+1);
   }
 
 } // namespace Arc

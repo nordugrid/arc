@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <string>
 
 #include <inttypes.h>
 #include <sys/types.h>
@@ -289,6 +290,17 @@ namespace Arc {
     void operator=(const char *type);
     bool operator==(const char *s);
     bool operator==(const CheckSumAny& ck);
+
+    /// Get checksum of a file
+    /**
+     * This method provide an easy way to get the checksum of a file, by only
+     * specifying the path to the file. Optionally the checksum type can be
+     * specified, if not the MD5 algorithm will be used.
+     *
+     * @param filepath path to file of which checksum should be calculated
+     * @param tp type of checksum algorithm to use, default is md5.
+     **/
+    static std::string FileChecksum(const std::string& filepath, type tp = md5);
   };
 
 } // namespace Arc
