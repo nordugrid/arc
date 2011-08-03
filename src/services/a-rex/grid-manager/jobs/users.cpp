@@ -41,6 +41,7 @@ JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   strict_session=false;
   share_uid=0;
   reruns = 0;
+  diskspace = 0;
 }
 
 void JobUser::SetLRMS(const std::string &lrms_name,const std::string &queue_name) {
@@ -75,7 +76,7 @@ void JobUser::SetSessionRoot(const std::vector<std::string> &dirs) {
 }
 
 const std::string & JobUser::SessionRoot(std::string job_id) const {
-  if (session_roots.size() == 0) return empty_string;
+  if (session_roots.empty()) return empty_string;
   if (session_roots.size() == 1 || job_id.empty()) return session_roots[0];
   // search for this jobid's session dir
   struct stat st;
@@ -140,17 +141,15 @@ bool JobUser::CreateDirectories(void) {
       (chown((control_dir+"/finished").c_str(),uid,gid) != 0);
     };
   };
-  if(session_roots.size() != 0) {
-    for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
-      if(!Arc::DirCreate(*i,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
-        res=false;
+  for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
+    if(!Arc::DirCreate(*i,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
+      res=false;
+    } else {
+      (chown(i->c_str(),uid,gid) != 0);
+      if(uid == 0) {
+        chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
       } else {
-        (chown(i->c_str(),uid,gid) != 0);
-        if(uid == 0) {
-          chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-        } else {
-          chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
-        };
+        chmod(i->c_str(),S_IRUSR | S_IWUSR | S_IXUSR);
       };
     };
   };
@@ -270,6 +269,7 @@ JobUser::JobUser(const GMEnvironment& env,uid_t uid_,gid_t gid_,RunPlugin* cred)
   strict_session=false;
   share_uid=0;
   reruns = 0;
+  diskspace = 0;
 }
 
 JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* cred):gm_env(env) {
@@ -316,6 +316,7 @@ JobUser::JobUser(const GMEnvironment& env,const std::string &u_name,RunPlugin* c
   keep_deleted=DEFAULT_KEEP_DELETED;
   strict_session=false;
   share_uid=0;
+  diskspace=0;
   reruns = 0;
 }
 
@@ -337,7 +338,9 @@ JobUser::JobUser(const JobUser &user):gm_env(user.gm_env) {
   strict_session=user.strict_session;
   share_uid=user.share_uid;
   share_gids=user.share_gids;
+  diskspace=user.diskspace;
   reruns=user.reruns;
+  helpers=user.helpers;
 }
 
 JobUser::~JobUser(void) { 
@@ -405,7 +408,7 @@ std::string JobUsers::ControlDir(iterator user) {
   return (*user).ControlDir();
 }
 
-JobUsers::iterator JobUsers::find(const std::string user) {
+JobUsers::iterator JobUsers::find(const std::string& user) {
   iterator i;
   for(i=users.begin();i!=users.end();++i) {
     if((*i) == user) break;
@@ -413,7 +416,7 @@ JobUsers::iterator JobUsers::find(const std::string user) {
   return i;
 }
 
-std::string JobUsers::ControlDir(const std::string user) {
+std::string JobUsers::ControlDir(const std::string& user) {
   for(iterator i=users.begin();i!=users.end();++i) {
     if((*i) == user) return (*i).ControlDir();
   };

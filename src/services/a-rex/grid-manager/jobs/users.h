@@ -74,8 +74,9 @@ class JobUser {
   JobsList* get_jobs() const { 
     return jobs;
   };
-  void operator=(JobsList *jobs_list) { 
+  JobUser& operator=(JobsList *jobs_list) {
     jobs=jobs_list;
+    return *this;
   };
   JobUser(const GMEnvironment& env);
   JobUser(const GMEnvironment& env,const std::string &unix_name,RunPlugin* cred_plugin = NULL);
@@ -95,7 +96,7 @@ class JobUser {
   void SetStrictSession(bool v) { strict_session=v; };
   void SetShareID(uid_t suid);
   bool CreateDirectories(void);
-  bool is_valid(void) { return valid; };
+  bool is_valid(void) const { return valid; };
   const std::string & ControlDir(void) const { return control_dir; };
   const std::string & SessionRoot(std::string job_id = "") const;
   const std::vector<std::string> & SessionRoots() const { return session_roots; };
@@ -116,7 +117,7 @@ class JobUser {
   RunPlugin* CredPlugin(void) const { return cred_plugin; };
   unsigned long long int DiskSpace(void) const { return diskspace; };
   const GMEnvironment& Env(void) const { return gm_env; };
-  bool operator==(std::string name) { return (name == unix_name); };
+  bool operator==(std::string name) const { return (name == unix_name); };
   /* Change owner of the process to this user if su=true.
      Otherwise just set environment variables USER_ID and USER_NAME.
      Real switch is done only if running as root.
@@ -128,7 +129,7 @@ class JobUser {
   void add_helper(const std::string &helper) {
     helpers.push_back(JobUserHelper(helper));
   };
-  bool has_helpers(void) { return (helpers.size() != 0); };
+  bool has_helpers(void) { return (!helpers.empty()); };
   /* Start/restart all helper processes */
   bool run_helpers(void);
   bool substitute(std::string& param) const;
@@ -163,10 +164,10 @@ class JobUsers {
     return false;
   };
   std::string ControlDir(iterator user);
-  std::string ControlDir(const std::string user);
+  std::string ControlDir(const std::string& user);
   GMEnvironment& Env(void) const { return gm_env; };
   /* Find user of given unix name */
-  iterator find(const std::string user);
+  iterator find(const std::string& user);
   /* Start/restart all associated processes of all users */
   bool run_helpers(void);
   bool substitute(std::string& param) const;

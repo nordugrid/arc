@@ -130,9 +130,9 @@ class JobDescription {
   JobLocalDescription* get_local(void) const { return local; };
   void set_local(JobLocalDescription* desc) { local=desc; };
 //  void set_state(job_state_t state) { job_state=state; };
-  bool operator==(const JobDescription& job) { return (job_id == job.job_id); };
-  bool operator==(const JobId &id) { return (job_id == id); };
-  bool operator!=(const JobId &id) { return (job_id != id); };
+  bool operator==(const JobDescription& job) const { return (job_id == job.job_id); };
+  bool operator==(const JobId &id) const { return (job_id == id); };
+  bool operator!=(const JobId &id) const { return (job_id != id); };
   void set_uid(uid_t uid,gid_t gid) {
     if(uid != (uid_t)(-1)) { job_uid=uid; };
     if(gid != (uid_t)(-1)) { job_gid=gid; };

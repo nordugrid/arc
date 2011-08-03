@@ -6,7 +6,6 @@
 
 #include <arc/data-staging/Scheduler.h>
 
-#include "../files/info_files.h"
 #include "../files/delete.h"
 #include "../conf/conf_map.h"
 
@@ -80,6 +79,7 @@ void DTRGenerator::thread() {
   // stop scheduler - cancels all DTRs and waits for them to complete
   scheduler.stop();
   run_condition.signal();
+  logger.msg(Arc::INFO, "Exiting Generator thread");
 }
 
 DTRGenerator::DTRGenerator(const JobUsers& users,
@@ -147,11 +147,10 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
 
 DTRGenerator::~DTRGenerator() {
   if (generator_state != DataStaging::RUNNING)
-    return; // false;
+    return;
   generator_state = DataStaging::TO_STOP;
   run_condition.wait();
   generator_state = DataStaging::STOPPED;
-  return; // true;
 }
 
 void DTRGenerator::receiveDTR(DataStaging::DTR& dtr) {
@@ -857,7 +856,6 @@ int DTRGenerator::user_file_exists(FileData &dt,
     Arc::CRC32Sum crc;
     char buffer[1024];
     ssize_t l;
-    size_t ll = 0;
     for(;;) {
       if((l=read(h,buffer,1024)) == -1) {
         logger.msg(Arc::ERROR, "Error reading file %s", dt.pfn);
@@ -865,7 +863,6 @@ int DTRGenerator::user_file_exists(FileData &dt,
         return 1;
       }
       if(l==0) break;
-      ll+=l;
       crc.add(buffer,l);
     }
     close(h);

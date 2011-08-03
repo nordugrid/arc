@@ -4,6 +4,8 @@
 #include <arc/data-staging/DTR.h>
 #include <arc/data-staging/Scheduler.h>
 
+#include "../files/info_files.h"
+
 #include "job.h"
 
 

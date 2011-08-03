@@ -271,7 +271,7 @@ class JobsListConfig {
     limited_share[share_name] = share_limit;
     return true;
   }
-  const std::map<std::string, int>& GetLimitedShares(void) {
+  const std::map<std::string, int>& GetLimitedShares(void) const {
     return limited_share;
   };
 

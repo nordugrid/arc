@@ -1360,7 +1360,7 @@ void JobsList::ActJobFinishing(JobsList::iterator &i,
                                  i->job_id, i->job_uid, i->job_gid);
             cache.Release();
           }
-          catch (CacheConfigException e) {
+          catch (CacheConfigException& e) {
             logger.msg(Arc::WARNING, "Error with cache configuration: %s. Cannot clean up files for job %s", e.what(), i->job_id);
           }
         }
@@ -1444,7 +1444,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
                 try {
                   cache_config = CacheConfig(user->Env());
                 }
-                catch (CacheConfigException e) {
+                catch (CacheConfigException& e) {
                   logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
                   job_clean_deleted(*i,*user);
                   i->job_state = JOB_STATE_DELETED;
@@ -1854,7 +1854,7 @@ bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) {
       };
     };
   } catch(Glib::FileError& e) {
-    logger.msg(Arc::ERROR,"Failed reading control directory: %s",user->ControlDir());
+    logger.msg(Arc::ERROR,"Failed reading control directory: %s: %s",user->ControlDir(), e.what());
     return false;
   };
   return true;
