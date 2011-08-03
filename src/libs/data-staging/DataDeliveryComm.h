@@ -63,6 +63,8 @@ namespace DataStaging {
     Status status_buf_;
     /// Reading position of Status buffer
     unsigned int status_pos_;
+    /// Lock to protect access to status
+    Glib::Mutex lock_;
     /// Pointer to singleton handler of all DataDeliveryComm objects
     DataDeliveryCommHandler* handler_;
     /// ID of the DTR this object is handling. Used in log messages.
@@ -93,7 +95,7 @@ namespace DataStaging {
     virtual ~DataDeliveryComm() {};
 
     /// Obtain status of transfer
-    virtual Status GetStatus() const = 0;
+    Status GetStatus() const;
 
     /// Get explanation of error
     std::string GetError() const { return status_.error_desc; };

@@ -11,9 +11,6 @@ namespace DataStaging {
     DataDeliveryRemoteComm(const DTR& request, const TransferParameters& params);
     ~DataDeliveryRemoteComm();
 
-    /// Obtain status of transfer
-    virtual DataDeliveryComm::Status GetStatus() const;
-
     /// Read status from service
     virtual void PullStatus();
 

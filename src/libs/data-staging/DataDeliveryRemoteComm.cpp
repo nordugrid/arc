@@ -3,16 +3,17 @@
 namespace DataStaging {
 
   DataDeliveryRemoteComm::DataDeliveryRemoteComm(const DTR& request, const TransferParameters& params)
-    : DataDeliveryComm(request, params)
-  {}
-
-  DataDeliveryRemoteComm::~DataDeliveryRemoteComm() {};
-
-  DataDeliveryComm::Status DataDeliveryRemoteComm::GetStatus() const {
-    return DataDeliveryComm::Status();
+    : DataDeliveryComm(request, params) {
+    // connect to service and make a new transfer request
   }
 
-  void DataDeliveryRemoteComm::PullStatus() {}
+  DataDeliveryRemoteComm::~DataDeliveryRemoteComm() {
+    // if transfer is still going, send cancellation request to service
+  }
+
+  void DataDeliveryRemoteComm::PullStatus() {
+    // send query request to service and fill status_
+  }
 
 
 } // namespace DataStaging

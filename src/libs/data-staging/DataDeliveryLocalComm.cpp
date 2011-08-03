@@ -104,7 +104,6 @@ namespace DataStaging {
         return;
       }
     }
-    handler_= DataDeliveryCommHandler::getInstance();
     handler_->Add(this);
   }
 
@@ -118,13 +117,6 @@ namespace DataStaging {
     }
     if(handler_) handler_->Remove(this);
   }
-
-  DataDeliveryComm::Status DataDeliveryLocalComm::GetStatus(void) const {
-    Glib::Mutex::Lock lock(*(const_cast<Glib::Mutex*>(&lock_)));
-    DataDeliveryComm::Status tmp = status_;
-    return tmp;
-  }
-
 
   void DataDeliveryLocalComm::PullStatus(void) {
     Glib::Mutex::Lock lock(lock_);

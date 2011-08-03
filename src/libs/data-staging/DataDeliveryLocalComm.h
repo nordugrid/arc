@@ -16,9 +16,6 @@ namespace DataStaging {
     /// This stops the child process
     ~DataDeliveryLocalComm();
 
-    /// Obtain status of transfer
-    virtual DataDeliveryComm::Status GetStatus() const;
-
     /// Read from stdout of child to get status
     virtual void PullStatus();
 
@@ -28,8 +25,6 @@ namespace DataStaging {
     virtual bool operator!() const { return (child_ == NULL); };
 
   private:
-    /// Lock to protect access to child process
-    Glib::Mutex lock_;
     /// Child process
     Arc::Run* child_;
     /// Time last communication was received from child

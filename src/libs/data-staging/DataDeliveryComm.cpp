@@ -15,8 +15,15 @@ namespace DataStaging {
   }
 
   DataDeliveryComm::DataDeliveryComm(const DTR& dtr, const TransferParameters& params)
-    : handler_(NULL),dtr_id(dtr.get_short_id()),transfer_params(params)
-  {}
+    : dtr_id(dtr.get_short_id()),transfer_params(params) {
+    handler_= DataDeliveryCommHandler::getInstance();
+  }
+
+  DataDeliveryComm::Status DataDeliveryComm::GetStatus(void) const {
+    Glib::Mutex::Lock lock(*(const_cast<Glib::Mutex*>(&lock_)));
+    DataDeliveryComm::Status tmp = status_;
+    return tmp;
+  }
 
   DataDeliveryCommHandler::DataDeliveryCommHandler(void) {
     Glib::Mutex::Lock lock(lock_);
