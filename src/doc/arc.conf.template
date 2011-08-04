@@ -1220,7 +1220,7 @@ cluster_alias="Big Blue Cluster in Nowhere"
 # line, no newline character is allowed!
 comment="This cluster is specially designed for XYZ applications: www.xyz.org"
 
-# cluster_location - The geographycal location of the cluster, preferably
+# cluster_location - The geographical location of the cluster, preferably
 # specified as a postal code with a two letter country prefix
 cluster_location="DK-2100"
 
