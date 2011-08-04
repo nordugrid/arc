@@ -361,7 +361,7 @@ sub cluster_info ($) {
 
 	if ( exists $$config{dedicated_node_string} ) {
 	    unless ( $hoh_pbsnodes{$node}{"properties"} =~
-		     m/$$config{dedicated_node_string}/) {
+		     m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/) {
 		next;
 	    }
 	}
@@ -579,10 +579,10 @@ sub queue_info ($$) {
 	    # also the destination queue is checked to calculate totalcpus
             # also adds correct behaviour for queue_node_string
 	    if ( ! defined $hoh_pbsnodes{$node}{'properties'} || 
-		 ($hoh_pbsnodes{$node}{'properties'} =~ m/$qname/ ||
-		  $hoh_pbsnodes{$node}{"properties"} =~ m/$$config{dedicated_node_string}/ ||
+		 ($hoh_pbsnodes{$node}{'properties'} =~ m/^([^,]+,)*$qname(,[^,]+)*$/ ||
+		  $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/ ||
 		  $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$$config{queue_node_string}(,[^,]+)*$/ ||
-		  ( defined $singledqueue && $hoh_pbsnodes{$node}{"properties"} =~ m/$singledqueue/) ) ){
+		  ( defined $singledqueue && $hoh_pbsnodes{$node}{"properties"} =~ m/^([^,]+,)*$singledqueue/(,[^,]+)*$) ) ){
 		my $cpus;
 
 		next if $hoh_pbsnodes{$node}{'state'} =~ m/offline/;
