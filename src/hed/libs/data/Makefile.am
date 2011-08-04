@@ -27,13 +27,13 @@ libarcdata2_la_SOURCES = DataPoint.cpp DataPointDirect.cpp \
 	DataStatus.cpp \
 	FileCache.cpp FileCacheHash.cpp
 libarcdata2_la_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) \
-	$(LIBXML2_CFLAGS) $(GTHREAD_CFLAGS) $(OPENSSL_CFLAGS) $(ZLIB_CFLAGS)
+	$(LIBXML2_CFLAGS) $(GTHREAD_CFLAGS) $(OPENSSL_CFLAGS)
 libarcdata2_la_LIBADD = \
 	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
 	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
 	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) \
-	$(OPENSSL_LIBS) $(ZLIB_LIBS)
+	$(OPENSSL_LIBS)
 libarcdata2_la_LDFLAGS = -version-info 1:0:0
 
 if WIN32

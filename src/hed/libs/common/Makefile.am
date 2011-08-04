@@ -35,8 +35,8 @@ libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp ArcRegex.
 	Counter.cpp IntraProcessCounter.cpp IniConfig.cpp Profile.cpp \
 	$(PLATFORM_SPECIFIC) $(MYSQL_WRAPPER_CPP)
 libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(MYSQL_CFLAGS)
-libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(ZLIB_CFLAGS) $(MYSQL_CFLAGS)
+libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(ZLIB_LIBS) \
 	$(REGEX_LIBS) $(UUID_LIBS) $(EXTRA_LIBS) $(SOCKET_LIBS) \
 	$(MYSQL_LIBS) $(LIBINTL)
 libarccommon_la_LDFLAGS = -version-info 1:0:0
