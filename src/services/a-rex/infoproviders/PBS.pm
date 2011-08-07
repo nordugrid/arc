@@ -359,7 +359,7 @@ sub cluster_info ($) {
 
     foreach my $node (keys %hoh_pbsnodes){
 
-	if ( exists $$config{dedicated_node_string} ) {
+	if ( exists $$config{dedicated_node_string} &&  $$config{dedicated_node_string} ne "") {
 	    unless ( $hoh_pbsnodes{$node}{"properties"} =~
 		     m/^([^,]+,)*$$config{dedicated_node_string}(,[^,]+)*$/) {
 		next;
