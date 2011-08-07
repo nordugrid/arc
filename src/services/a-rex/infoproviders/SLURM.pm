@@ -1,6 +1,5 @@
 package SLURM;
 
-use Switch;
 use POSIX qw(ceil floor);
 
 @ISA = ('Exporter');
@@ -451,14 +450,26 @@ sub jobs_info ($$$) {
     #jobs can't have overlapping job-ids between queues in SLURM
 
     foreach my $jid (@{$jids}){
-	switch($scont_jobs{$jid}{"JobState"}){
-	    case "RUNNING" { $lrms_jobs{$jid}{status} = "R"; }
-	    case "COMPLETED" { $lrms_jobs{$jid}{status} = "E"; }
-	    case "CANCELLED" { $lrms_jobs{$jid}{status} = "O"; }
-	    case "FAILED" { $lrms_jobs{$jid}{status} = "O"; }
-	    case "PENDING" { $lrms_jobs{$jid}{status} = "Q"; }
-	    case "TIMEOUT" { $lrms_jobs{$jid}{status} = "O"; }
-	    else { $lrms_jobs{$jid}{status} = "O"; }
+	if ($scont_jobs{$jid}{"JobState"} eq "RUNNING") {
+	    $lrms_jobs{$jid}{status} = "R";
+	}
+	elsif ($scont_jobs{$jid}{"JobState"} eq "COMPLETED") {
+	    $lrms_jobs{$jid}{status} = "E";
+	}
+	elsif ($scont_jobs{$jid}{"JobState"} eq "CANCELLED") {
+	    $lrms_jobs{$jid}{status} = "O";
+	}
+	elsif ($scont_jobs{$jid}{"JobState"} eq "FAILED") {
+	    $lrms_jobs{$jid}{status} = "O";
+	}
+	elsif ($scont_jobs{$jid}{"JobState"} eq "PENDING") {
+	    $lrms_jobs{$jid}{status} = "Q";
+	}
+	elsif ($scont_jobs{$jid}{"JobState"} eq "TIMEOUT") {
+	    $lrms_jobs{$jid}{status} = "O";
+	}
+	else {
+	    $lrms_jobs{$jid}{status} = "O";
 	}
 	#TODO: calculate rank? Probably not possible.
 	$lrms_jobs{$jid}{rank} = 0;

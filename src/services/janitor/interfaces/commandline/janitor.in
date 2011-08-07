@@ -34,7 +34,6 @@ janitor - command line access to the Janitor service
 
 use warnings;
 use strict;
-use Switch;
 use Janitor::Janitor qw(process);
 use Janitor::Util qw(sane_rte_name sane_job_id);
 
@@ -68,11 +67,6 @@ my $format = "   %-12s %s\n";
 my $initstate = Janitor::Janitor::initstate();
 exit $initstate if defined $initstate;
 
-
-switch ($ARGV[0]) {
-
-
-
 ######################################################################
 
 =item help
@@ -83,7 +77,7 @@ Shows a short summary of the options of the program.
 
 ######################################################################
 
-	case "help" {
+	if ($ARGV[0] eq "help") {
 		&usage(0);
 	}
 
@@ -97,7 +91,7 @@ List all information of the current system
 
 ######################################################################
 
-	case "list" {
+	elsif ($ARGV[0] eq "list") {
 		my $response = &process(new Janitor::Request(Janitor::Request::LIST));
 		my %result = $response->result();
 		if($result{errorcode} == 0){
@@ -112,38 +106,36 @@ List all information of the current system
 				$show_installed = 0;
 				$show_installable = 0;
 				foreach my $show(@ARGV){
-					switch ($show) {
-						case "all" {
+						if ($show eq "all") {
 							$show_jobs = 1;
 							$show_manual = 1;
 							$show_installed = 1;
 							$show_installable = 1;
 						}
-						case "jobs" {
+						elsif ($show eq "jobs") {
 							$show_jobs = 1;
 					 	}
-						case "rtes" {
+						elsif ($show eq "rtes") {
 							$show_manual = 1;
 							$show_installed = 1;
 							$show_installable = 1;
 						}
-						case "local" {
+						elsif ($show eq "local") {
 							$show_manual = 1;
 						}
-						case "dynamic" {
+						elsif ($show eq "dynamic") {
 							$show_installed = 1;
 							$show_installable = 1;
 						}
-						case "installed" {
+						elsif ($show eq "installed") {
 							$show_installed = 1;
 						}
-						case "installable" {
+						elsif ($show eq "installable") {
 							$show_installable = 1;
 						}
-						case "shortlist" {
+						elsif ($show eq "shortlist") {
 							$show_short = 1;
 						}
-					}
 				}
 			}
 			# JOBS
@@ -255,7 +247,7 @@ about this job are listed.
 
 ######################################################################
 
-	case "info" {
+	elsif ($ARGV[0] eq "info") {
 		if (scalar @ARGV != 2) {
 			&usage;
 		}else{
@@ -309,7 +301,7 @@ manually installed runtime environments.
 
 ######################################################################
 
-	case "search" {
+	elsif ($ARGV[0] eq "search") {
 
 		&usage unless scalar @ARGV > 1; 
 		
@@ -374,7 +366,7 @@ occured 2 is returned.
 ######################################################################
 
 
-	case "register" {
+	elsif ($ARGV[0] eq "register") {
 		&usage(2) unless scalar @ARGV > 1; 
 		
 		my @rte = @ARGV;
@@ -412,7 +404,7 @@ successfull it returns 0, otherwise 1.
 
 ######################################################################
 
-	case "deploy" {
+	elsif ($ARGV[0] eq "deploy") {
 		&usage unless scalar @ARGV == 2; 
 
 		my $jobid = $ARGV[1];
@@ -439,7 +431,7 @@ Removes the job <job-id> from the Janitors database.
 
 ######################################################################
 
-	case "remove" {
+	elsif ($ARGV[0] eq "remove") {
 		&usage unless scalar @ARGV == 2;
 
 		my $request = new Janitor::Request(Janitor::Request::REMOVE, $ARGV[1]);
@@ -466,7 +458,7 @@ Sets the state of a RE.
 
 ######################################################################
 
-	case "setstate" {
+	elsif ($ARGV[0] eq "setstate") {
 		&usage unless scalar @ARGV > 1; 
 
 		my @rte = @ARGV;
@@ -502,7 +494,7 @@ configured in the arc.conf configuration file.
 
 ######################################################################
 
-	case "sweep" {
+	elsif ($ARGV[0] eq "sweep") {
 		&usage unless scalar @ARGV <= 2;
 
 		my $request = new Janitor::Request(Janitor::Request::SWEEP);
@@ -523,7 +515,6 @@ configured in the arc.conf configuration file.
 	else {	
 		&usage;
 	}
-}
 
 ######################################################################
 

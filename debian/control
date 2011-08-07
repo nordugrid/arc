@@ -251,7 +251,7 @@ Provides: nordugrid-arc-grid-manager, nordugrid-arc-server, nordugrid-arc1-arex,
 Replaces: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
 Conflicts: nordugrid-arc-grid-manager (<< 1.0.0~), nordugrid-arc-server (<< 1.0.0~), nordugrid-arc1-arex (<< 1.0.0~), nordugrid-arc-nox-arex (<< 1.3.0~)
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-aris (= ${source:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), libxml-simple-perl, libswitch-perl | perl (<< 5.10.1-13)
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, ${python:Depends}, nordugrid-arc-hed (= ${binary:Version}), nordugrid-arc-aris (= ${source:Version}), nordugrid-arc-plugins-needed (= ${binary:Version}), libxml-simple-perl
 Description: ARC Remote EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the free Grid middleware, known as the Advanced Resource
@@ -336,7 +336,7 @@ Provides: nordugrid-arc1-janitor, nordugrid-arc-nox-janitor
 Replaces: nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox-janitor (<< 1.3.0~)
 Conflicts: nordugrid-arc1-janitor (<< 1.0.0~), nordugrid-arc-nox-janitor (<< 1.3.0~)
 Architecture: any
-Depends: ${misc:Depends}, ${perl:Depends}, libswitch-perl | perl (<< 5.10.1-13)
+Depends: ${misc:Depends}, ${perl:Depends}
 Recommends: liblog-log4perl-perl, libfile-copy-recursive-perl
 Description: ARC dynamic runtime environment installation
  NorduGrid is a collaboration aiming at development, maintenance and
