@@ -160,6 +160,7 @@ enables_janitor_service=yes
 #enables_charon_service=yes
 enables_storage_service=yes
 enables_cache_service=yes
+enables_datadelivery_service=yes
 enables_ldap_monitor=yes
 enables_ws_monitor=yes
 #  Clients
@@ -193,6 +194,7 @@ enables_janitor_service=$enableval
 #enables_charon_service=$enableval
 enables_storage_service=$enableval
 enables_cache_service=$enableval
+enables_datadelivery_service=$enableval
 enables_arclib_client=$enableval
 #enables_charon_client=$enableval
 enables_credentials_client=$enableval
@@ -257,6 +259,7 @@ enables_janitor_service=$enableval
 #enables_charon_service=$enableval
 enables_storage_service=$enableval
 enables_cache_service=$enableval
+enables_datadelivery_service=$enableval
 ],
 [])
 
@@ -1846,10 +1849,21 @@ if test "$enables_cache_service" = "yes"; then
     AC_MSG_NOTICE([Cache service can't be built for WIN32 environment - disabling])
   fi
 fi
-AC_MSG_NOTICE([Cache service enabled: $enables_service_service])
+AC_MSG_NOTICE([Cache service enabled: $enables_cache_service])
 AM_CONDITIONAL([CACHE_SERVICE_ENABLED],[test "x$enables_cache_service" = "xyes"])
 AM_CONDITIONAL([CACHE_WEBSERVICE_ENABLED],[test "x$enables_cache_service" = "xyes"])
 
+# DataDelivery service
+AC_ARG_ENABLE(datadelivery_service, AC_HELP_STRING([--disable-datadelivery-service], [disable building DataDelivery service]),
+  [enables_datadelivery_service=$enableval],[])
+if test "$enables_datadelivery_service" = "yes"; then
+  if test "x$WIN32" = "xyes" ; then
+    enables_datadelivery_service="no"
+    AC_MSG_NOTICE([DataDelivery service can't be built for WIN32 environment - disabling])
+  fi
+fi
+AC_MSG_NOTICE([DataDelivery service enabled: $enables_datadelivery_service])
+AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_service" = "xyes"])
 
 # Check for explicitely and implicitely disabled clients
 AC_ARG_ENABLE(arclib_client, AC_HELP_STRING([--disable-arclib-client], [disable building Arclib (job management) client tools]),
@@ -1934,6 +1948,7 @@ if test "$enables_hed" = "no"; then
           "$enables_charon_service" = "yes" -o \
           "$enables_storage_service" = "yes" -o \
           "$enables_cache_service" = "yes" -o \
+          "$enables_datadelivery_service" = "yes" -o \
           "$enables_arclib_client" = "yes" -o \
           "$enables_charon_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
@@ -2195,6 +2210,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/charon/Makefile
                  src/services/charon/schema/Makefile
                  src/services/charon/charon_service.xml.example
+                 src/services/data-staging/Makefile
+                 src/services/data-staging/datadelivery-service
                  src/services/gridftpd/Makefile
                  src/services/gridftpd/gridftpd.init
                  src/services/gridftpd/auth/Makefile
@@ -2378,6 +2395,7 @@ HOPI service:       ${enables_hopi_service}
 STORAGE service:    ${enables_storage_service}
 JANITOR service:    ${enables_janitor_service}
 CACHE service:      ${enables_cache_service}
+DATADELIVERY service: ${enables_cache_service}
 
 ARCLIB clients:     ${enables_arclib_client}
 ISIS client:        ${enables_isis_client}
