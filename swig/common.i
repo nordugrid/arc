@@ -153,7 +153,7 @@ protected:
 class CPyOstream : public std::ostream
 {
 public:
-     CPyOstream(PyObject* obj) : m_Buf(obj), std::ostream(&m_Buf) {}
+     CPyOstream(PyObject* obj) : std::ostream(&m_Buf), m_Buf(obj) {}
 private:
      CPyOutbuf m_Buf;
 };
