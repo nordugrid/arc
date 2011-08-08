@@ -6,7 +6,6 @@ namespace DataStaging {
 
   DataDeliveryLocalComm::DataDeliveryLocalComm(const DTR& dtr, const TransferParameters& params)
     : DataDeliveryComm(dtr, params),child_(NULL),last_comm(Arc::Time()) {
-    logger_ = dtr.get_logger();
     if(!dtr.get_source()) return;
     if(!dtr.get_destination()) return;
     {
@@ -22,7 +21,7 @@ namespace DataStaging {
       args.push_back(execpath);
       // check for alternative source or destination eg cache, mapped URL, TURL
       if (dtr.get_source()->TransferLocations().empty()) {
-        if (logger_) logger_->msg(Arc::ERROR, "No locations defined for %s", dtr.get_source()->str());
+        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr.get_source()->str());
         return;
       }
       std::string surl = dtr.get_source()->TransferLocations()[0].fullstr();
@@ -31,7 +30,7 @@ namespace DataStaging {
         surl = dtr.get_mapped_source();
 
       if (dtr.get_destination()->TransferLocations().empty()) {
-        if (logger_) logger_->msg(Arc::ERROR, "No locations defined for %s", dtr.get_destination()->str());
+        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr.get_destination()->str());
         return;
       }
       std::string durl = dtr.get_destination()->TransferLocations()[0].fullstr();
@@ -68,7 +67,7 @@ namespace DataStaging {
         std::string csum(dtr.get_source()->GetCheckSum());
         std::string::size_type pos(csum.find(':'));
         if (pos == std::string::npos || pos == csum.length()-1) {
-          if(logger_) logger_->msg(Arc::WARNING, "DTR %s: Bad checksum format %s", dtr_id, csum);
+          logger_->msg(Arc::WARNING, "DTR %s: Bad checksum format %s", dtr_id, csum);
         } else {
           args.push_back("--cstype");
           args.push_back(csum.substr(0, pos));
@@ -97,7 +96,7 @@ namespace DataStaging {
         cmd += *arg;
         cmd += " ";
       }
-      if(logger_) logger_->msg(Arc::DEBUG, "DTR %s: Running command: %s", dtr_id, cmd);
+      logger_->msg(Arc::DEBUG, "DTR %s: Running command: %s", dtr_id, cmd);
       if(!child_->Start()) {
         delete child_;
         child_=NULL;
@@ -130,15 +129,13 @@ namespace DataStaging {
           l = child_->ReadStderr(0,buf,sizeof(buf)-1);
           if(l <= 0) break;
           buf[l] = 0;
-          if(logger_) {
-            char* start = buf;
-            for(;*start;) {
-              char* end = strchr(start,'\n');
-              if(end) *end = 0;
-              logger_->msg(Arc::INFO, "DTR %s: DataDelivery: %s", dtr_id, start);
-              if(!end) break;
-              start = end + 1;
-            }
+          char* start = buf;
+          for(;*start;) {
+            char* end = strchr(start,'\n');
+            if(end) *end = 0;
+            logger_->msg(Arc::INFO, "DTR %s: DataDelivery: %s", dtr_id, start);
+            if(!end) break;
+            start = end + 1;
           }
         }
         l = child_->ReadStdout(0,((char*)&status_buf_)+status_pos_,sizeof(status_buf_)-status_pos_);

@@ -46,9 +46,9 @@ namespace DataStaging {
 
     // Scheduler instance
     Scheduler scheduler;
-    std::vector<Arc::URL> endpoints;
-    endpoints.push_back(Arc::URL("https://localhost:60002/datadeliveryservice"));
-    scheduler.SetRemoteDeliveryServices(endpoints);
+    //std::vector<Arc::URL> endpoints;
+    //endpoints.push_back(Arc::URL("https://localhost:60002/datadeliveryservice"));
+    //scheduler.SetDeliveryServices(endpoints);
     // Starting scheduler with default configuration
     scheduler.start();
 
@@ -66,6 +66,7 @@ namespace DataStaging {
       // register callback with DTR
       dtr.registerCallback(this,GENERATOR);
       dtr.registerCallback(&scheduler,SCHEDULER);
+      dtr.set_tries_left(5);
       dtr.push(SCHEDULER);
     }
     

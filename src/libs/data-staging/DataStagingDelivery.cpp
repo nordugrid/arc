@@ -258,7 +258,7 @@ int main(int argc,char* argv[]) {
                  (source_url.Protocol()!="file") ?
                   (source_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                                            DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_SOURCE,
                  std::string("Failed reading from source: ")+source->CurrentLocation().str()+
                   " : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),
@@ -272,7 +272,7 @@ int main(int argc,char* argv[]) {
                  (dest_url.Protocol() != "file") ?
                   (dest_st.Retryable() ? DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                                          DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_DESTINATION,
                  std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
                   " : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),
@@ -315,7 +315,7 @@ int main(int argc,char* argv[]) {
                   (!source_st && source_st.Retryable() ?
                       DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                       DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_SOURCE,
                  std::string("Failed reading from source: ")+source->CurrentLocation().str()+
                   " : "+source->GetFailureReason().GetDesc()+": "+source_st.GetDesc(),
@@ -329,7 +329,7 @@ int main(int argc,char* argv[]) {
                   (!dest_st && dest_st.Retryable() ?
                          DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR :
                          DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR) :
-                  DataStaging::DTRErrorStatus::INTERNAL_ERROR,
+                  DataStaging::DTRErrorStatus::LOCAL_FILE_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_DESTINATION,
                  std::string("Failed writing to destination: ")+dest->CurrentLocation().str()+
                   " : "+dest->GetFailureReason().GetDesc()+": "+dest_st.GetDesc(),

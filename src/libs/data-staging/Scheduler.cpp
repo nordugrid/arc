@@ -11,6 +11,7 @@
 #include <arc/Utils.h>
 
 #include "Scheduler.h"
+#include "DataDeliveryRemoteComm.h"
 
 namespace DataStaging {
 	
@@ -73,9 +74,9 @@ namespace DataStaging {
     delivery.SetTransferParameters(params);
   }
 
-  void Scheduler::SetRemoteDeliveryServices(const std::vector<Arc::URL>& endpoints) {
+  void Scheduler::SetDeliveryServices(const std::vector<Arc::URL>& endpoints) {
     if (scheduler_state == INITIATED)
-      remote_delivery = endpoints;
+      delivery_services = endpoints;
   }
 
   void Scheduler::SetDumpLocation(const std::string& location) {
@@ -88,10 +89,14 @@ namespace DataStaging {
     scheduler_state = RUNNING;
     processor.start();
     delivery.start();
-    if (!remote_delivery.empty()) {
-      DeliverySlots *= remote_delivery.size();
-      DeliveryEmergencySlots *= remote_delivery.size();
+    // if no delivery services set, then use local
+    if (delivery_services.empty()) {
+      std::vector<Arc::URL> services;
+      services.push_back(DTR::LOCAL_DELIVERY);
+      delivery_services = services;
     }
+    DeliverySlots *= delivery_services.size();
+    DeliveryEmergencySlots *= delivery_services.size();
     Arc::CreateThreadFunction(&main_thread, this);
     return true;
   }
@@ -108,7 +113,7 @@ namespace DataStaging {
 
   void Scheduler::next_replica(DTR* request) {
     if (!request->error()) { // bad logic
-      request->set_error_status(DTRErrorStatus::INTERNAL_ERROR,
+      request->set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR,
                                 DTRErrorStatus::ERROR_UNKNOWN,
                                 "Bad logic: next_replica called when there is no error");
       // TODO: how to deal with these internal errors?
@@ -554,7 +559,8 @@ namespace DataStaging {
         // Here we decide to retry based on whether the error is
         // temporary or not and the configured retry strategy
         if (request->get_error_status().GetErrorStatus() == DTRErrorStatus::TEMPORARY_REMOTE_ERROR ||
-            request->get_error_status().GetErrorStatus() == DTRErrorStatus::TRANSFER_SPEED_ERROR) {
+            request->get_error_status().GetErrorStatus() == DTRErrorStatus::TRANSFER_SPEED_ERROR ||
+            request->get_error_status().GetErrorStatus() == DTRErrorStatus::INTERNAL_PROCESS_ERROR) {
           if (request->get_tries_left() > 0) {
             request->set_process_time(10);
             request->get_logger()->msg(Arc::INFO, "DTR %s: %i retries left, will wait until %s before next attempt",
@@ -897,9 +903,10 @@ namespace DataStaging {
           break;
         if ((shares_in_delivery.find(tmp->get_transfer_share()) == shares_in_delivery.end()) &&
             transferShares.can_start(tmp->get_transfer_share())) {
-          // choose remote delivery service - random for now
-          if (!remote_delivery.empty()) {
-            tmp->set_remote_delivery_endpoint(remote_delivery.at(rand() % remote_delivery.size()));
+          // choose delivery service - random for now
+          // if this is a retry, try to use a different service
+          if (!delivery_services.empty()) {
+            tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
           }
           transferShares.decrease_number_of_slots(tmp->get_transfer_share());
           tmp->set_status(DTRStatus::TRANSFER);
@@ -910,8 +917,9 @@ namespace DataStaging {
       }
       else if(transferShares.can_start(tmp->get_transfer_share())){
         // choose remote delivery service - random for now
-        if (!remote_delivery.empty()) {
-          tmp->set_remote_delivery_endpoint(remote_delivery.at(rand() % remote_delivery.size()));
+        // if this is a retry, try to use a different service
+        if (!delivery_services.empty()) {
+          tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
         }
       	transferShares.decrease_number_of_slots(tmp->get_transfer_share());
         tmp->set_status(DTRStatus::TRANSFER);

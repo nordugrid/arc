@@ -41,27 +41,23 @@ namespace DataStaging {
   void DataDelivery::receiveDTR(DTR& dtr) {
     if(!dtr) {
       logger.msg(Arc::ERROR, "Received invalid DTR");
-      dtr.set_error_status(DTRErrorStatus::INTERNAL_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Invalid DTR");
+      dtr.set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Invalid DTR");
       dtr.set_status(DTRStatus::TRANSFERRED);
       dtr.push(SCHEDULER);
       return;
     }
     dtr.get_logger()->msg(Arc::INFO, "Delivery received new DTR %s with source: %s, destination: %s",
                dtr.get_id(), dtr.get_source()->CurrentLocation().str(), dtr.get_destination()->CurrentLocation().str());
-    /*
-     *  Change the status of the dtr to TRANSFERRING	 
-     *  Start reading from the source into a buffer
-     *  TODO: Complete reading the file   
-     *  TODO: Do the checksome 
-     */
+
     dtr.set_status(DTRStatus::TRANSFERRING);
     delivery_pair_t* d = new delivery_pair_t(&dtr, transfer_params);
-    if(d->comm) {
+    if(*(d->comm)) {
       dtr_list_lock.lock();
       dtr_list.push_back(d);
       dtr_list_lock.unlock();
     } else {
-      dtr.set_error_status(DTRErrorStatus::INTERNAL_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Failed to start Delivery process");
+      delete d;
+      dtr.set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Failed to start Delivery process");
       dtr.set_status(DTRStatus::TRANSFERRED);
       dtr.push(SCHEDULER);
     }
@@ -161,7 +157,7 @@ namespace DataStaging {
           if((status.commstatus == DataDeliveryComm::CommFailed) ||
              (status.error != DTRErrorStatus::NONE_ERROR)) {
             if(status.error == DTRErrorStatus::NONE_ERROR)
-              status.error = DTRErrorStatus::INTERNAL_ERROR;
+              status.error = DTRErrorStatus::INTERNAL_PROCESS_ERROR;
             dp->dtr->set_error_status(status.error,status.error_location,
                      status.error_desc[0]?status.error_desc:dp->comm->GetError().c_str());
           } else if (status.checksum) {
@@ -175,13 +171,13 @@ namespace DataStaging {
           delete dp;
           continue;
         }
-        if(!(dp->comm)) {
+        if(!(*(dp->comm))) {
           // Error happened
           // comm.GetError()
           dtr_list_lock.lock();
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
-          dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_ERROR,DTRErrorStatus::ERROR_TRANSFER,
+          dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,DTRErrorStatus::ERROR_TRANSFER,
                    dp->comm->GetError().empty()?"Connection with delivery process lost":dp->comm->GetError());
           dp->dtr->set_status(DTRStatus::TRANSFERRED);
           dp->dtr->push(SCHEDULER);

@@ -71,7 +71,7 @@ namespace DataStaging {
     std::string dtr_id;
     /// Transfer limits
     TransferParameters transfer_params;
-    /// Logger object
+    /// Logger object. Pointer to DTR's Logger.
     Arc::Logger* logger_;
 
     /// Check for new state and fill state accordingly.

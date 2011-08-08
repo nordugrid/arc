@@ -204,7 +204,10 @@ namespace DataStaging {
       NONE_ERROR,
 
       /// Internal error in Data Staging logic
-      INTERNAL_ERROR,
+      INTERNAL_LOGIC_ERROR,
+
+      /// Internal processing error, like losing contact with external process
+      INTERNAL_PROCESS_ERROR,
 
       /// Attempt to replicate a file to itself
       SELF_REPLICATION_ERROR,
@@ -217,6 +220,9 @@ namespace DataStaging {
 
       /// Permanent error with remote service
       PERMANENT_REMOTE_ERROR,
+
+      /// Error with local file
+      LOCAL_FILE_ERROR,
 
       /// Transfer rate was too slow
       TRANSFER_SPEED_ERROR,

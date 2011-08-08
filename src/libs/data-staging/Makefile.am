@@ -14,7 +14,11 @@ libdatastaging_la_SOURCES = DTR.cpp DTR.h Scheduler.cpp Scheduler.h \
 
 libdatastaging_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libdatastaging_la_LIBADD = $(top_srcdir)/src/hed/libs/data/libarcdata2.la
+libdatastaging_la_LIBADD = \
+  $(top_srcdir)/src/hed/libs/data/libarcdata2.la \
+  $(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+  $(top_srcdir)/src/hed/libs/loader/libarcloader.la \
+  $(top_srcdir)/src/hed/libs/client/libarcclient.la
 
 noinst_PROGRAMS = generator
 

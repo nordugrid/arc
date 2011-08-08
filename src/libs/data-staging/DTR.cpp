@@ -26,6 +26,8 @@ namespace DataStaging {
     return owner_name[proc];
   }
 
+  const Arc::URL DTR::LOCAL_DELIVERY("file:/local");
+
   DTR::DTR(const std::string& source,
            const std::string& destination,
            const Arc::UserConfig& usercfg,
@@ -50,7 +52,7 @@ namespace DataStaging {
        bytes_transferred(0),
        created(time(NULL)),
        cancel_request(false),
-       delivery_endpoint(Arc::URL()),
+       delivery_endpoint(LOCAL_DELIVERY),
        current_owner(GENERATOR),
        logger(log)
   {
@@ -159,11 +161,13 @@ namespace DataStaging {
     if (source_endpoint->IsIndex()) {
       source_endpoint->ClearLocations();
     }
-    source_endpoint->SetTries(source_endpoint->GetTries()+1);
+    // reset retry count to 1
+    source_endpoint->SetTries(1);
+
     if (destination_endpoint->IsIndex()) {
       destination_endpoint->ClearLocations();
     }
-    destination_endpoint->SetTries(destination_endpoint->GetTries()+1);
+    destination_endpoint->SetTries(1);
 
     // empty cache and map info
     cache_file.clear();
@@ -243,6 +247,11 @@ namespace DataStaging {
     DTRErrorStatus s = error_status;
     lock.unlock();
     return s;
+  }
+
+  void DTR::set_bytes_transferred(unsigned long long int bytes) {
+    bytes_transferred = bytes;
+    mark_modification();
   }
 
   void DTR::set_cache_file(const std::string& filename)

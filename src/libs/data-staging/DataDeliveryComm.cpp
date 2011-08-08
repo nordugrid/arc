@@ -9,14 +9,15 @@
 namespace DataStaging {
 
   DataDeliveryComm* DataDeliveryComm::CreateInstance(const DTR& dtr, const TransferParameters& params) {
-    if (dtr.get_remote_delivery_endpoint())
-      return new DataDeliveryRemoteComm(dtr, params);
-    return new DataDeliveryLocalComm(dtr, params);
+    if (!dtr.get_delivery_endpoint() || dtr.get_delivery_endpoint() == DTR::LOCAL_DELIVERY)
+      return new DataDeliveryLocalComm(dtr, params);
+    return new DataDeliveryRemoteComm(dtr, params);
   }
 
   DataDeliveryComm::DataDeliveryComm(const DTR& dtr, const TransferParameters& params)
     : dtr_id(dtr.get_short_id()),transfer_params(params) {
     handler_= DataDeliveryCommHandler::getInstance();
+    logger_ = dtr.get_logger();
   }
 
   DataDeliveryComm::Status DataDeliveryComm::GetStatus(void) const {

@@ -638,7 +638,7 @@ namespace DataStaging {
 
       default: {
         // unexpected state - report error
-        request.set_error_status(DTRErrorStatus::INTERNAL_ERROR,
+        request.set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR,
                               DTRErrorStatus::ERROR_UNKNOWN,
                               "Received a DTR in an unexpected state ("+request.get_status().str()+") in processor");
         request.push(SCHEDULER);

@@ -64,8 +64,8 @@ class Scheduler: public DTRCallback {
     /// Where to dump DTR state. Currently only a path to a file is supported.
     std::string dumplocation;
 
-    /// Endpoints of remote delivery services.
-    std::vector<Arc::URL> remote_delivery;
+    /// Endpoints of delivery services
+    std::vector<Arc::URL> delivery_services;
 
     /// Logger object
     static Arc::Logger logger;
@@ -203,8 +203,8 @@ class Scheduler: public DTRCallback {
     /// Set transfer limits
     void SetTransferParameters(const TransferParameters& params);
 
-    /// Set the list of remote delivery endpoints
-    void SetRemoteDeliveryServices(const std::vector<Arc::URL>& endpoints);
+    /// Set the list of delivery services. DTR::LOCAL_DELIVERY means local Delivery.
+    void SetDeliveryServices(const std::vector<Arc::URL>& endpoints);
 
     /// Set location for periodic dump of DTR state (only file paths currently supported)
     void SetDumpLocation(const std::string& location);

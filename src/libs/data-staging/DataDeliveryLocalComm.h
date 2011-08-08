@@ -12,7 +12,7 @@ namespace DataStaging {
   public:
 
     /// Starts child process
-    DataDeliveryLocalComm(const DTR& request, const TransferParameters& params);
+    DataDeliveryLocalComm(const DTR& dtr, const TransferParameters& params);
     /// This stops the child process
     ~DataDeliveryLocalComm();
 

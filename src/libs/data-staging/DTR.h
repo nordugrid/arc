@@ -239,7 +239,8 @@ namespace DataStaging {
       /// True if some process requested cancellation
       bool cancel_request;
       
-      /// Endpoint of remote delivery service this DTR is scheduled for
+      /// Endpoint of delivery service this DTR is scheduled for.
+      /** By default it is LOCAL_DELIVERY so local Delivery is used. */
       Arc::URL delivery_endpoint;
 
       /// The process in charge of this DTR right now
@@ -281,6 +282,9 @@ namespace DataStaging {
 
     public:
       
+      /// URL that is used to denote local Delivery should be used
+      const static Arc::URL LOCAL_DELIVERY;
+
       /// Public empty constructor
       DTR();
       
@@ -364,6 +368,9 @@ namespace DataStaging {
      /// Get the creation time
      Arc::Time get_creation_time() const { return created; };
      
+     /// Get the modification time
+     Arc::Time get_modification_time() const { return last_modified; };
+
      /// Get the parent job ID
      std::string get_parent_job_id() const { return parent_job_id; };
      
@@ -406,7 +413,7 @@ namespace DataStaging {
      DTRErrorStatus get_error_status();
 
      /// Set bytes transferred (should be set by whatever is controlling the transfer)
-     void set_bytes_transferred(unsigned long long int bytes) { bytes_transferred = bytes; };
+     void set_bytes_transferred(unsigned long long int bytes);
      /// Get current number of bytes transferred
      unsigned long long int get_bytes_transferred() const { return bytes_transferred; };
 
@@ -415,10 +422,10 @@ namespace DataStaging {
      /// Returns true if cancellation has been requested
      bool cancel_requested() const { return cancel_request; };
      
-     /// Set remote delivery endpoint. If empty then local delivery is used
-     void set_remote_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
-     /// Returns remote delivery endpoint
-     const Arc::URL& get_remote_delivery_endpoint() const { return delivery_endpoint; };
+     /// Set delivery endpoint
+     void set_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
+     /// Returns delivery endpoint
+     const Arc::URL& get_delivery_endpoint() const { return delivery_endpoint; };
 
      /// Set cache filename
      void set_cache_file(const std::string& filename);
