@@ -174,11 +174,11 @@ namespace Arc {
   $result = PyList_New(0);
   for (std::list<std::string>::iterator it = $1->begin();
        it != $1->end(); ++it) {
-#if PY_MAJOR_VERSION >= 3
+%#if PY_MAJOR_VERSION >= 3
     PyList_Append($result, PyUnicode_FromString(it->c_str()));
-#else
+%#else
     PyList_Append($result, PyString_FromString(it->c_str()));
-#endif
+%#endif
   }
 }
 }
