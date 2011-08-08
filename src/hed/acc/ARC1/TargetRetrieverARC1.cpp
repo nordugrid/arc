@@ -91,8 +91,8 @@ namespace Arc {
     }
 
     if (serviceType == INDEX && flavour != "ARC1") return;
-    if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
-        serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
+    if ( (serviceType == COMPUTING && mom.AddService(flavour, url))  ||
+         (serviceType == INDEX     && mom.AddIndexServer(flavour, url))) {
       ThreadArgARC1 *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
@@ -122,8 +122,8 @@ namespace Arc {
       }
     }
 
-    if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
-        serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
+    if ((serviceType == COMPUTING && mom.AddService(flavour, url)) ||
+        (serviceType == INDEX     && mom.AddIndexServer(flavour, url))) {
       ThreadArgARC1 *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
@@ -516,7 +516,7 @@ namespace Arc {
             tokenize(*it, fswdPair, ":");
             long duration = LONG_MAX;
             int freeSlots = 0;
-            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || fswdPair.size() == 2 && !stringto(fswdPair.back(), duration)) {
+            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
               logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute published by \"%s\" is wrongly formatted. Ignoring it.");
               logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
               continue;

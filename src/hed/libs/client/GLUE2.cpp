@@ -274,7 +274,7 @@ namespace Arc {
             tokenize(*it, fswdPair, ":");
             long duration = LONG_MAX;
             int freeSlots = 0;
-            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || fswdPair.size() == 2 && !stringto(fswdPair.back(), duration)) {
+            if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration)) ) {
               logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute published by \"%s\" is wrongly formatted. Ignoring it.");
               logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
               continue;

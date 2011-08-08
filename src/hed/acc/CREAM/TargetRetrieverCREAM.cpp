@@ -96,8 +96,8 @@ namespace Arc {
       }
     }
 
-    if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
-        serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
+    if ((serviceType == COMPUTING && mom.AddService(flavour, url)) ||
+        (serviceType == INDEX     && mom.AddIndexServer(flavour, url))) {
       ThreadArgCREAM *arg = CreateThreadArg(mom, true);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
@@ -126,8 +126,8 @@ namespace Arc {
       }
     }
 
-    if (serviceType == COMPUTING && mom.AddService(flavour, url) ||
-        serviceType == INDEX     && mom.AddIndexServer(flavour, url)) {
+    if ((serviceType == COMPUTING && mom.AddService(flavour, url)) ||
+        (serviceType == INDEX     && mom.AddIndexServer(flavour, url))) {
       ThreadArgCREAM *arg = CreateThreadArg(mom, false);
       if (!CreateThreadFunction((serviceType == COMPUTING ?
                                  &InterrogateTarget : &QueryIndex),
