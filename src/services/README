@@ -4,6 +4,7 @@ ARC services
 a-rex           - ARC REsource-coupled EXecutation Service/Execution Capability
 cache_service   - Service to expose some A-REX cache operations 
 charon          - Remote Policy Decision Point/Security Capability
+data-staging    - Service to execute data transfer requests
 echo_java       - Demonstration services: how to write Java service 
 echo_python     - Simple test service to demonstrate how Python based services should work
 gridftpd        - GridFTP server

@@ -82,11 +82,17 @@ else
 CACHE_SERVICE =
 endif
 
+if DATADELIVERY_SERVICE_ENABLED
+DATADELIVERY_SERVICE = data-staging
+else
+DATADELIVERY_SERVICE =
+endif
+
 SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(ISIS_SERVICE) $(LDAP_SERVICE) \
 	$(LDAP_MONITOR) $(WS_MONITOR) $(CHARON_SERVICE) $(HOPI_SERVICE) \
 	$(STORAGE_SERVICE) $(JANITOR_SERVICE) $(CACHE_SERVICE) $(SLCS_SERVICE) \
-	wrappers $(PYTHON_SERVICE) $(JAVA_SERVICE)
+	$(DATADELIVERY_SERVICE) wrappers $(PYTHON_SERVICE) $(JAVA_SERVICE)
 DIST_SUBDIRS = gridftpd a-rex isis ldap-infosys \
 	ldap-monitor ws-monitor charon hopi \
 	storage janitor cache_service slcs \
-	wrappers echo_python echo_java
+	data-staging wrappers echo_python echo_java
