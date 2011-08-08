@@ -154,7 +154,7 @@ int RUNSYNC(main)(int argc, char **argv) {
   bool jobsReported = false;
   //Write extracted job info to joblist
   if (truncate) {
-    if (jobsWritten = Arc::Job::WriteJobsToTruncatedFile(usercfg.JobListFile(), targen.GetJobs())) {
+    if ( (jobsWritten = Arc::Job::WriteJobsToTruncatedFile(usercfg.JobListFile(), targen.GetJobs())) ) {
       for (std::list<Arc::Job>::const_iterator it = targen.GetJobs().begin();
            it != targen.GetJobs().end(); it++) {
         if (!jobsReported) {
@@ -173,7 +173,7 @@ int RUNSYNC(main)(int argc, char **argv) {
   }
   else {
     std::list<const Arc::Job*> newJobs;
-    if (jobsWritten = Arc::Job::WriteJobsToFile(usercfg.JobListFile(), targen.GetJobs(), newJobs)) {
+    if ( (jobsWritten = Arc::Job::WriteJobsToFile(usercfg.JobListFile(), targen.GetJobs(), newJobs)) ) {
       for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
            it != newJobs.end(); it++) {
         if (!jobsReported) {
