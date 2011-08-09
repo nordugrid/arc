@@ -12,6 +12,7 @@ LFC_CONFIGURE_OPTION = --disable-lfc
 endif
 
 CFLAGS = -Wall -g
+CXXFLAGS = $(CFLAGS)
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 CFLAGS += -O0
