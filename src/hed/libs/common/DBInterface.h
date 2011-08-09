@@ -40,8 +40,8 @@ namespace Arc {
        @param cafile   The location of ca file.
        @param capath   The location of ca directory
      */
-    virtual bool enable_ssl(const std::string keyfile = "", const std::string certfile = "",
-                            const std::string cafile = "", const std::string capath = "") = 0;
+    virtual bool enable_ssl(const std::string& keyfile = "", const std::string& certfile = "",
+                            const std::string& cafile = "", const std::string& capath = "") = 0;
     /**Ask database server to shutdown*/
     virtual bool shutdown() = 0;
   };
