@@ -250,7 +250,7 @@ bool FileLink(const std::string& oldpath,const std::string& newpath,uid_t uid,gi
 std::string FileReadLink(const std::string& path,uid_t uid,gid_t gid) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
-    if(!fa.setuid(uid,gid)) return false;
+    if(!fa.setuid(uid,gid)) return "";
     std::string linkpath;
     fa.readlink(path,linkpath);
     errno = fa.geterrno();

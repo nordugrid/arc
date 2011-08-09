@@ -134,7 +134,7 @@ XACMLTargetMatchGroup::~XACMLTargetMatchGroup() {
 }
 
 MatchResult XACMLTargetMatchGroup::match(EvaluationCtx* ctx) {
-  MatchResult res;
+  MatchResult res = NO_MATCH;
   std::list<XACMLTargetMatch*>::iterator i;
   for(i = matches.begin(); i!= matches.end(); i++) {
     res = (*i)->match(ctx);
@@ -172,7 +172,7 @@ XACMLTargetSection::~XACMLTargetSection() {
 }
 
 MatchResult XACMLTargetSection::match(EvaluationCtx* ctx) {
-  MatchResult res;
+  MatchResult res = NO_MATCH;
   std::list<XACMLTargetMatchGroup*>::iterator i;
   for(i = groups.begin(); i!= groups.end(); i++) {
     res = (*i)->match(ctx);
@@ -205,7 +205,7 @@ XACMLTarget::~XACMLTarget() {
 }
 
 MatchResult XACMLTarget::match(EvaluationCtx* ctx) {
-  MatchResult res;
+  MatchResult res = NO_MATCH;
   std::list<XACMLTargetSection*>::iterator i;
   for(i = sections.begin(); i!= sections.end(); i++) {
     res = (*i)->match(ctx);

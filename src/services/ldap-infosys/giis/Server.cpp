@@ -170,7 +170,7 @@ void Server::Add(const std::string& file,
 void Server::Search(const std::string& file,
 		    const std::list<std::string>& query) {
   std::string name;
-  int scope;
+  int scope = 0;
   std::string attrs;
 
   for(std::list<std::string>::const_iterator it = query.begin();

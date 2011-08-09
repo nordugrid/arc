@@ -1419,7 +1419,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
   JobId id(name);
   if(id == "info") { // directory which contains list of jobs-directories
     if(spec_dir) (*spec_dir)=false;
-    if(perm & (IS_ALLOWED_READ | IS_ALLOWED_LIST) == perm) return true;
+    if((perm & (IS_ALLOWED_READ | IS_ALLOWED_LIST)) == perm) return true;
     error_description = "Not allowed for this job: permission denied";
     return false;
   };
@@ -1549,7 +1549,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
     };
 #endif
   };
-  if (res & perm == perm) return true;
+  if ((res & perm) == perm) return true;
   error_description="Not allowed for this job: permission denied";
   return false;
 }

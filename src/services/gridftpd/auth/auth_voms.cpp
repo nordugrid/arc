@@ -95,7 +95,6 @@ int AuthUser::match_voms(const char* line) {
 
 
 static int process_vomsproxy(const char* filename,std::vector<struct voms> &data,bool /* auto_cert */) {
-  int n = 0;
   std::vector<struct voms>::iterator i;
   //std::string voms_dir = "/etc/grid-security/vomsdir";
   std::string cert_dir = "/etc/grid-security/certificates";

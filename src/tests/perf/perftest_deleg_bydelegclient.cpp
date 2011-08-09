@@ -68,7 +68,7 @@ void sendRequests(){
       // Send the delegation request and time it.
       tBefore.assign_current_time();
       std::string arc_delegation_id;
-      bool res;
+      bool res = false;
       if(client) {
         if(!(res = client->createDelegation(Arc::DELEG_ARC, arc_delegation_id))) {
           std::cerr<<"Delegation to ARC delegation service failed"<<std::endl;

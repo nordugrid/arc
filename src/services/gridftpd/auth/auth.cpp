@@ -353,6 +353,7 @@ std::string AuthUser::err_to_string(int err) {
   if(err == AAA_NEGATIVE_MATCH) return "negative";
   if(err == AAA_NO_MATCH) return "no match";
   if(err == AAA_FAILURE) return "failure";
+  return "";
 }
 
 AuthEvaluator::AuthEvaluator(void):name("") {

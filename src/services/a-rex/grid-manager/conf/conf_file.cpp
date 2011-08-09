@@ -194,7 +194,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
     else if(command == "maxload") { /* maximum number of the jobs processed on frontend */
       std::string max_jobs_s = config_next_arg(rest);
       long int i;
-      int max_jobs_processing, max_jobs_processing_emergency, max_downloads = -1;
+      int max_jobs_processing = -1, max_jobs_processing_emergency = -1, max_downloads = -1;
       if(max_jobs_s.length() != 0) {
         if(!Arc::stringto(max_jobs_s,i)) {
           logger.msg(Arc::ERROR,"Wrong number in maxload: %s",max_jobs_s);

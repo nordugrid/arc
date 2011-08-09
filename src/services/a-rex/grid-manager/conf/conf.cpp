@@ -73,6 +73,7 @@ std::string config_next_arg(std::string &rest,char separator) {
 
 config_file_type config_detect(std::istream& in) {
   char inchar;
+  if (!in.good()) return config_file_unknown;
   while(in.good()) {
     inchar = (char)(in.get());
     if(isspace(inchar)) continue;

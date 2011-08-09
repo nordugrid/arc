@@ -9,10 +9,10 @@
 
 namespace Arc {
   MySQLDatabase::MySQLDatabase(std::string& server, int port)
-    : server_(server),
+    : is_connected(false),
+      server_(server),
       port_(port),
-      mysql(NULL),
-      is_connected(false)
+      mysql(NULL)
   {}
 
   MySQLDatabase::MySQLDatabase(const MySQLDatabase& other)
@@ -74,7 +74,7 @@ namespace Arc {
 
   MySQLQuery::~MySQLQuery() {
     //  if(db_!=NULL) delete db_;
-    db_ == NULL;
+    db_ = NULL;
     if (res)
       mysql_free_result(res);
   }

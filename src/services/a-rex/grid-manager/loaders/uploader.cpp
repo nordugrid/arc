@@ -364,7 +364,7 @@ int main(int argc,char** argv) {
     if(pw->pw_name) file_owner_username=pw->pw_name;
   }
   
-  Arc::FileCache * cache;
+  Arc::FileCache * cache = NULL;
 
   if (use_conf_cache) {
     try {
