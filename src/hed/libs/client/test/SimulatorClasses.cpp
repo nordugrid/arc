@@ -44,4 +44,5 @@ bool Arc::DelegationProviderSOAPTest::DelegatedToken(XMLNode parent)
   token.NewAttribute("deleg:Format")="x509";
   token.NewChild("deleg:Id")=id_;
   token.NewChild("deleg:Value")= "delegation";
+  return true;
 }

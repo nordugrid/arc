@@ -7,6 +7,7 @@ check_PROGRAMS = $(TESTS)
 
 SoftwareTest_SOURCES = $(top_srcdir)/src/Test.cpp SoftwareTest.cpp
 SoftwareTest_CXXFLAGS = -I$(top_srcdir)/include \
+        -fno-strict-aliasing \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 SoftwareTest_LDADD = \
 	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
