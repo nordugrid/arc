@@ -20,7 +20,7 @@
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>
 
-//#include <xmlsec/openssl/app.h>
+#include <xmlsec/openssl/app.h>
 #include <openssl/bio.h>
 
 #include <openssl/err.h>
