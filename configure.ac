@@ -810,6 +810,13 @@ if test "x$enables_xmlsec1" = "xyes"; then
       PKG_CHECK_MODULES(XMLSEC_OPENSSL, [xmlsec1-openssl >= $XMLSEC_OPENSSL_MIN_VERSION],
           [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
     fi
+    dnl Overwrite values found by pkgconfig above due to quoting problems
+    if test "x$XMLSEC_INSTALLED" = "xyes" ; then
+      XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
+      XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
+      XMLSEC_OPENSSL_LIBS="`$XMLSEC_CONFIG --libs --crypto=openssl`"
+      XMLSEC_OPENSSL_CFLAGS="`$XMLSEC_CONFIG --cflags --crypto=openssl`"
+    fi
   fi
 
   if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
