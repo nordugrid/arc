@@ -91,8 +91,8 @@ static void tls_process_error(Arc::Logger& logger) {
 
 #define PASS_MIN_LENGTH 6
 static int input_password(char *password, int passwdsz, bool verify,
-                          const std::string prompt_info,
-                          const std::string prompt_verify_info,
+                          const std::string& prompt_info,
+                          const std::string& prompt_verify_info,
                           Arc::Logger& logger) {
   UI *ui = NULL;
   int res = 0;
@@ -199,8 +199,8 @@ int main(int argc, char *argv[]) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(" ",
-                            istring("The arcproxy command creates a proxy from a key/certificate pair for use in\n"
-                                    "the ARC middleware"),
+                            istring("The arcproxy command creates a proxy from a key/certificate pair which can\n"
+                                    "then be used to access grid resources."),
                             istring("Supported constraints are:\n"
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return EXIT_FAILURE;
@@ -348,79 +348,100 @@ int main(int argc, char *argv[]) {
   Arc::User user;
 
   try {
-    if (params.size() != 0)
+    if (!params.empty())
       throw std::invalid_argument("Wrong number of arguments!");
 
-    // TODO: Conver to UserConfig. But only after UserConfig is extended.
-    if (key_path.empty())
-      key_path = Arc::GetEnv("X509_USER_KEY");
+    //if (key_path.empty())
+    //  key_path = Arc::GetEnv("X509_USER_KEY");
     if (key_path.empty())
       key_path = usercfg.KeyPath();
-    if (key_path.empty())
+    //if (key_path.empty())
 #ifndef WIN32
-      key_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
+    //  key_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
 #else
-      key_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
+    //  key_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
 #endif
-    if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
-      key_path = "";
+    //if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
+    //  key_path = "";
+    //if (key_path.empty()) {
+    //  logger.msg(Arc::ERROR, "Cannot find the path of the key file, "
+    //             "please setup environment X509_USER_KEY, "
+    //             "or keypath in a configuration file");
+    //  return EXIT_FAILURE;
+    //}
+    //else if (!(Glib::file_test(key_path, Glib::FILE_TEST_EXISTS))) {
+    //  logger.msg(Arc::ERROR, "Cannot find file at %s for getting the key. "
+    //             "Please make sure this file exists.", key_path);
+    //  return EXIT_FAILURE;
+    //}
 
-    if (cert_path.empty())
-      cert_path = Arc::GetEnv("X509_USER_CERT");
+    //if (cert_path.empty())
+    //  cert_path = Arc::GetEnv("X509_USER_CERT");
     if (cert_path.empty())
       cert_path = usercfg.CertificatePath();
-    if (cert_path.empty())
+    //if (cert_path.empty())
 #ifndef WIN32
-      cert_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
+    //  cert_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
 #else
-      cert_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
+    //  cert_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
 #endif
-    if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
-      cert_path = "";
+    //if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
+    //  cert_path = "";
+    if (cert_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the certificate file, "
+                 "please setup environment X509_USER_CERT, "
+                 "or certificatepath in a configuration file");
+      return EXIT_FAILURE;
+    }
+    else if (!(Glib::file_test(cert_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the certificate. "
+                 "Please make sure this file exists.", cert_path);
+      return EXIT_FAILURE;
+    }
 
-    if (proxy_path.empty())
-      proxy_path = Arc::GetEnv("X509_USER_PROXY");
+    //if (proxy_path.empty())
+    //  proxy_path = Arc::GetEnv("X509_USER_PROXY");
     if (proxy_path.empty())
       proxy_path = usercfg.ProxyPath();
-    if (proxy_path.empty())
-      proxy_path = Glib::build_filename(Glib::get_tmp_dir(), "x509up_u" + Arc::tostring(user.get_uid()));
+    //if (proxy_path.empty())
+    //  proxy_path = Glib::build_filename(Glib::get_tmp_dir(), "x509up_u" + Arc::tostring(user.get_uid()));
 
-    if (ca_dir.empty())
-      ca_dir = Arc::GetEnv("X509_CERT_DIR");
+    //if (ca_dir.empty())
+    //  ca_dir = Arc::GetEnv("X509_CERT_DIR");
     if (ca_dir.empty())
       ca_dir = usercfg.CACertificatesDirectory();
-    if (ca_dir.empty()) {
-      ca_dir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
-    if (ca_dir.empty()) {
-      ca_dir = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
+    //if (ca_dir.empty()) {
+    //  ca_dir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
+    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+    //    ca_dir = "";
+    //}
+    //if (ca_dir.empty()) {
+    //  ca_dir = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
+    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+    //    ca_dir = "";
+    //}
 #ifndef WIN32
-    if (ca_dir.empty()) {
-      ca_dir = "/etc/grid-security/certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
+    //if (ca_dir.empty()) {
+    //  ca_dir = "/etc/grid-security/certificates";
+    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+    //    ca_dir = "";
+    //}
 #endif
-    if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
-    if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
-    if (ca_dir.empty()) {
-      ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates";
-      if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-        ca_dir = "";
-    }
+    //if (ca_dir.empty()) {
+    //  ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates";
+    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+    //    ca_dir = "";
+    //}
+    //if (ca_dir.empty()) {
+    //  ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates";
+    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+    //    ca_dir = "";
+    //}
+    //if (ca_dir.empty()) {
+    //  ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates";
+    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
+    //    ca_dir = "";
+    //}
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
     tls_process_error(logger);
@@ -429,7 +450,7 @@ int main(int argc, char *argv[]) {
 
   if (ca_dir.empty()) {
     logger.msg(Arc::ERROR, "Cannot find the CA Certificate Directory path, "
-               "please setup environment X509_CERT_DIR, "
+               "please set environment variable X509_CERT_DIR, "
                "or cacertificatesdirectory in a configuration file");
     return EXIT_FAILURE;
   }
@@ -481,25 +502,61 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("Proxy path: %s", proxy_path) << std::endl;
     std::cout << Arc::IString("Proxy type: %s", certTypeToString(holder.GetType())) << std::endl;
 
-    std::vector<std::string> voms_trust_dn;
-    res = parseVOMSAC(holder, "", "", voms_trust_dn, voms_attributes, false);
-    if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
+    Arc::VOMSTrustList voms_trust_dn;
+    voms_trust_dn.AddRegex(".*");
+    res = parseVOMSAC(holder, ca_dir, "", voms_trust_dn, voms_attributes, true, true);
+    // Not printing error message because parseVOMSAC will print everything itself
+    //if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
     for(int n = 0; n<voms_attributes.size(); ++n) {
       if(voms_attributes[n].attributes.size() > 0) {
         std::cout<<"====== "<<Arc::IString("AC extension information for VO ")<<
                    voms_attributes[n].voname<<" ======"<<std::endl;
+        Arc::Time ct;
+        if(ct < voms_attributes[n].from) {
+          std::cout << Arc::IString("Time left for AC: AC is not valid yet")<<std::endl;
+        } else if(ct > voms_attributes[n].till) {
+          std::cout << Arc::IString("Time left for AC: AC has expired")<<std::endl;
+        } else {
+          std::cout << Arc::IString("Time left for AC: %s", (voms_attributes[n].till-ct).istr())<<std::endl;
+        }
+        if(voms_attributes[n].status & Arc::VOMSACInfo::ParsingError) {
+          std::cout << Arc::IString("Error detected while parsing this AC")<<std::endl;
+          if(voms_attributes[n].status & Arc::VOMSACInfo::X509ParsingFailed) {
+            std::cout << "Failed parsing X509 structures ";
+          }
+          if(voms_attributes[n].status & Arc::VOMSACInfo::ACParsingFailed) {
+            std::cout << "Failed parsing Attribute Certificate structures ";
+          }
+          if(voms_attributes[n].status & Arc::VOMSACInfo::InternalParsingFailed) {
+            std::cout << "Failed parsing VOMS structures ";
+          }
+          std::cout << std::endl;
+        }
+        if(voms_attributes[n].status & Arc::VOMSACInfo::ValidationError) {
+          std::cout << Arc::IString("AC is invalid: ");
+          if(voms_attributes[n].status & Arc::VOMSACInfo::CAUnknown) {
+            std::cout << "CA of VOMS service is not known ";
+          }
+          if(voms_attributes[n].status & Arc::VOMSACInfo::CertRevoked) {
+            std::cout << "VOMS service certificate is revoked ";
+          }
+          if(voms_attributes[n].status & Arc::VOMSACInfo::CertRevoked) {
+            std::cout << "LSC matching/processing failed ";
+          }
+          if(voms_attributes[n].status & Arc::VOMSACInfo::TrustFailed) {
+            std::cout << "Failed to match configured trust chain ";
+          }
+          if(voms_attributes[n].status & Arc::VOMSACInfo::TimeValidFailed) {
+            std::cout << "Out of time restrictions ";
+          }
+          std::cout << std::endl;
+        }
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
           std::cout<<"Attribute: "<<voms_attributes[n].attributes[i]<<std::endl;
           //do not display those attributes that have already been displayed 
           //(this can happen when there are multiple voms server )
         }
       }
-      Arc::Time now;
-      Arc::Time till = voms_attributes[n].till;
-      if(now >= till)
-        std::cout << Arc::IString("Timeleft for AC: %s", (till-now).istr())<<std::endl;
-      else
-        std::cout << Arc::IString("AC has been expired for: %s", (now-till).istr())<<std::endl;
     }
     return EXIT_SUCCESS;
   }
@@ -853,10 +910,10 @@ int main(int argc, char *argv[]) {
 
       //Parse the 'vomses' file to find configure lines corresponding to
       //the information from the command line
-      if (vomses_path.empty())
-        vomses_path = Arc::GetEnv("X509_VOMS_FILE");
-      if (vomses_path.empty())
-        vomses_path = Arc::GetEnv("X509_VOMSES");
+      //if (vomses_path.empty())
+      //  vomses_path = Arc::GetEnv("X509_VOMS_FILE");
+      //if (vomses_path.empty())
+      //  vomses_path = Arc::GetEnv("X509_VOMSES");
       if (vomses_path.empty())
         vomses_path = usercfg.VOMSServerPath();
 
@@ -1271,3 +1328,4 @@ int main(int argc, char *argv[]) {
   return EXIT_SUCCESS;
 
 }
+
