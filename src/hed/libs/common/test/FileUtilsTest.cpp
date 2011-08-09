@@ -1,3 +1,5 @@
+// TODO: test for operations under different account
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -118,6 +120,7 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   struct stat st;
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) == 0);
   CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
+  CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
   CPPUNIT_ASSERT(Arc::DirCreate(std::string(testroot + "/dir1"), S_IRUSR | S_IWUSR | S_IXUSR));
   CPPUNIT_ASSERT(stat(std::string(testroot + "/dir1").c_str(), &st) == 0);
   CPPUNIT_ASSERT(S_ISDIR(st.st_mode));

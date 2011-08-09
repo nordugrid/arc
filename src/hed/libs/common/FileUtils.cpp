@@ -305,14 +305,48 @@ bool FileDelete(const std::string& path,uid_t uid,gid_t gid) {
 // TODO: find non-blocking way to create directory
 bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with_parents) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    bool created = false;
+    bool exists = false;
     FileAccess fa;
     if(!fa.setuid(uid,gid)) return false;
     if(with_parents) {
-      if(fa.mkdirp(path,mode)) return true;
+      created = fa.mkdirp(path,mode);
     } else {
-      if(fa.mkdir(path,mode)) return true;
+      created = fa.mkdir(path,mode);
     }
-    if(fa.geterrno() == EEXIST) return true;
+    int err = fa.geterrno();
+    exists = created;
+    if(!created) {
+      // Normally following should be done only if errno is EEXIST.
+      // But some file systems may return different error even if 
+      // directory exists. Lustre for example returns EACCESS
+      // if user can't create directory even if directory already exists.
+      // So doing stat in order to check if directory exists and that it 
+      // is directory. That still does not solve problem with parent
+      // directory without x access right.
+      struct stat st;
+      // Doing lstat because this function is supposed to create directory,
+      // not link to directory.
+      if(fa.lstat(path,st)) {
+        if(S_ISDIR(st.st_mode)) {
+          exists = true;
+        } else {
+          err = EEXIST; // exists, but not a directory
+        }
+      }
+    }
+    if(!exists) {
+      // Nothing we can do - escape
+      errno = err;
+      return false;
+    }
+    if(!created) {
+      // Directory was created by another actor. 
+      // There is no sense to apply permissions in that case.
+      errno = EEXIST;
+      return true;
+    }
+    if(fa.chmod(path,mode)) return true;
     errno = fa.geterrno();
     return false;
   }
@@ -322,27 +356,11 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
 bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
 
   if(::mkdir(path.c_str(),mode) == 0) {
-    if (chmod(path.c_str(), mode) == 0) return true;
+    if (::chmod(path.c_str(), mode) == 0) return true;
     else return false;
   }
 
-  if(errno == EEXIST) {
-    /*
-    Should it be just dumb mkdir or something clever?
-    struct stat st; 
-    int r = ::stat(path.c_str(),&st);
-    if((r == 0) && (S_ISDIR(st.st_mode))) {
-      if((uid == 0) || (st.st_uid == uid)) {
-        if((gid == 0) || (st.st_gid == gid) ||
-           (::chown(path.c_str(),(uid_t)(-1),gid) == 0)) {
-          // mode ?
-          return true;
-        }
-      }
-    }
-    */
-    return true;
-  } else if(errno == ENOENT) {
+  if(errno == ENOENT) {
     if(with_parents) {
       std::string ppath(path);
       if(!Glib::path_is_absolute(ppath)) {
@@ -356,7 +374,12 @@ bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
       }
     }
   }
-  return false;
+  // Look above in previous DirCreate() for description of following
+  struct stat st;
+  if(::lstat(path.c_str(),&st) != 0) return false;
+  if(!S_ISDIR(st.st_mode)) return false;
+  errno == EEXIST;
+  return true;
 }
 
 bool DirDelete(const std::string& path,uid_t uid,gid_t gid) {
