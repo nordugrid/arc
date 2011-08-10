@@ -364,12 +364,24 @@ namespace DataStaging {
     if (request->get_source()->IsStageable() || request->get_destination()->IsStageable()) {
       // Normal workflow is STAGE_PREPARE
 
-      // Apply primitive limit to staging - in future may be better to limit per remote host
-      // TODO: non-stageable transfers can block staging ones, so only count
-      // stageable transfers in the delivery queue. Also one share may block others.
+      // Apply limit to staging to avoid preparing too many files and then
+      // pins expire while in the transfer queue. In future it may be better
+      // to limit per remote host. For now count staging transfers in this
+      // share already in transfer queue and apply limit. In order not to block
+      // the highest priority DTRs here we allow them to bypass the limit.
       std::list<DTR*> DeliveryQueue;
       DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
-      if (DeliveryQueue.size() >= DeliverySlots*2) {
+
+      int share_queue = 0, highest_priority = 0;
+      for (std::list<DTR*>::iterator dtr = DeliveryQueue.begin(); dtr != DeliveryQueue.end(); ++dtr) {
+        if ((*dtr)->get_transfer_share() == request->get_transfer_share() &&
+            ((*dtr)->get_source()->IsStageable() ||
+             (*dtr)->get_destination()->IsStageable())) {
+          ++share_queue;
+          if ((*dtr)->get_priority() > highest_priority) highest_priority = (*dtr)->get_priority();
+        }
+      }
+      if (share_queue >= DeliverySlots*2 && request->get_priority() <= highest_priority) {
         request->get_logger()->msg(Arc::INFO, "DTR %s: Large transfer queue - will wait 10s before staging", request->get_short_id());
         request->set_process_time(10);
       }
@@ -916,7 +928,7 @@ namespace DataStaging {
         }
       }
       else if(transferShares.can_start(tmp->get_transfer_share())){
-        // choose remote delivery service - random for now
+        // choose delivery service - random for now
         // if this is a retry, try to use a different service
         if (!delivery_services.empty()) {
           tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
