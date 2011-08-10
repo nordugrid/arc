@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/RegisteredService.h>
 #include <arc/message/Message.h>
 #include <arc/Logger.h>
@@ -50,6 +51,10 @@ namespace DataStaging {
     std::map<std::string, std::string> archived_dtrs;
     /// Object to manage Delivery processes
     DataDelivery delivery;
+    /// Container for delegated credentials
+    Arc::DelegationContainerSOAP delegation;
+    /// Directory in which to store temporary delegated proxies
+    std::string tmp_proxy_dir;
     /// Logger object
     static Arc::Logger logger;
 

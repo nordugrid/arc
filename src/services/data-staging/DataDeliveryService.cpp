@@ -1,7 +1,13 @@
+#include <sys/stat.h>
+
 #include <arc/message/MessageAttributes.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 #include <arc/message/PayloadSOAP.h>
+
+#include <arc/GUID.h>
+#include <arc/FileUtils.h>
+#include <arc/Utils.h>
 
 #include "DataDeliveryService.h"
 
@@ -68,6 +74,15 @@ namespace DataStaging {
   }
 
   void DataDeliveryService::receiveDTR(DTR& dtr) {
+    // note: logger doesn't work here - to fix
+    logger.msg(Arc::INFO, "Received DTR %s in state %s", dtr.get_id(), dtr.get_status().str());
+
+    // delete temp proxy file
+    std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr.get_parent_job_id()+".proxy");
+    logger.msg(Arc::DEBUG, "Removing temp proxy %s", proxy_file);
+    if (unlink(proxy_file.c_str()) && errno != ENOENT) {
+      logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
+    }
     --current_processes;
   }
 
@@ -106,9 +121,39 @@ namespace DataStaging {
     Arc::XMLNode resp = out.NewChild("DataDeliveryStartResponse");
     Arc::XMLNode results = resp.NewChild("DataDeliveryStartResult");
 
-    // TODO Get proxy passed to service, save to temp file and set in UserConfig
+    // Save credentials to temp file and set in UserConfig
+    Arc::XMLNode delegated_token = in["DataDeliveryStart"]["deleg:DelegatedToken"];
+    if (!delegated_token) {
+      logger.msg(Arc::ERROR, "No delegation token in request");
+      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "No delegation token received");
+    }
+
+    // Check credentials were already delegated
+    std::string credential;
+    if (!delegation.DelegatedToken(credential, delegated_token)) {
+      // Failed to accept delegation
+      logger.msg(Arc::ERROR, "Failed to accept delegation");
+      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to accept delegation");
+    }
+
+    // Store proxy, only readable by user. Use DTR job id as proxy name.
+    std::string groupid(Arc::UUID());
+    std::string proxy_file(tmp_proxy_dir+"/DTR."+groupid+".proxy");
+    logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
+
+    if (!Arc::FileCreate(proxy_file, credential)) {
+      logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
+      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to create temp proxy");
+    }
+
+    if (chown(proxy_file.c_str(), user.get_uid(), user.get_gid()) != 0) {
+      logger.msg(Arc::ERROR, "Failed to change owner of temp proxy at %s to %i:%i: %s",
+                 proxy_file, user.get_uid(), user.get_gid(), Arc::StrError(errno));
+      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to create temp proxy");
+    }
 
     Arc::UserConfig usercfg;
+    usercfg.ProxyPath(proxy_file);
 
     for(int n = 0;;++n) {
       Arc::XMLNode dtrnode = in["DataDeliveryStart"]["DTR"][n];
@@ -136,9 +181,10 @@ namespace DataStaging {
       std::stringstream * stream = new std::stringstream();
       Arc::LogDestination * output = new Arc::LogStream(*stream);
       Arc::Logger * log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
+      log->removeDestinations();
       log->addDestination(*output);
 
-      DTR * dtr = new DTR(src, dest, usercfg, dtrid, user.get_uid(), log);
+      DTR * dtr = new DTR(src, dest, usercfg, groupid, user.get_uid(), log);
       if (!(*dtr)) {
         logger.msg(Arc::ERROR, "Invalid DTR");
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
@@ -304,6 +350,14 @@ namespace DataStaging {
       logger.msg(Arc::ERROR, "Failed to start archival thread");
       return;
     }
+    // TODO get from configuration
+    tmp_proxy_dir = "/tmp/arc";
+    if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true)) {
+      logger.msg(Arc::ERROR, "Failed to create dir %s for temp proxies: %s", tmp_proxy_dir, Arc::StrError(errno));
+      return;
+    }
+    // Set restrictive umask
+    umask(0077);
     // Start new DataDelivery
     delivery.start();
     valid = true;
@@ -350,10 +404,10 @@ namespace DataStaging {
       }
       // Applying known namespaces
       inpayload->Namespaces(ns);
-      if(logger.getThreshold() <= Arc::VERBOSE) {
+      if(logger.getThreshold() <= Arc::DEBUG) {
           std::string str;
           inpayload->GetDoc(str, true);
-          logger.msg(Arc::VERBOSE, "process: request=%s",str);
+          logger.msg(Arc::DEBUG, "process: request=%s",str);
       }
       // Analyzing request
       Arc::XMLNode op = inpayload->Child(0);
@@ -368,17 +422,27 @@ namespace DataStaging {
 
       Arc::MCC_Status result(Arc::STATUS_OK);
       // choose operation
+      // Make a new request
       if (MatchXMLName(op,"DataDeliveryStart")) {
         result = Start(*inpayload, *outpayload, mapped_user);
       }
+      // Query a request
       else if (MatchXMLName(op,"DataDeliveryQuery")) {
         result = Query(*inpayload, *outpayload, mapped_user);
       }
+      // Cancel a request
       else if (MatchXMLName(op,"DataDeliveryCancel")) {
         result = Cancel(*inpayload, *outpayload, mapped_user);
       }
+      // Delegate credentials. Should be called before making a new request
+      else if (delegation.MatchNamespace(*inpayload)) {
+        if (!delegation.Process(*inpayload, *outpayload)) {
+          delete outpayload;
+          return make_soap_fault(outmsg);
+        }
+      }
+      // Unknown operation
       else {
-        // unknown operation
         logger.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name());
         delete outpayload;
         return make_soap_fault(outmsg);
@@ -387,10 +451,10 @@ namespace DataStaging {
       if (!result)
         return make_soap_fault(outmsg, result.getExplanation());
 
-      if (logger.getThreshold() <= Arc::VERBOSE) {
+      if (logger.getThreshold() <= Arc::DEBUG) {
         std::string str;
         outpayload->GetDoc(str, true);
-        logger.msg(Arc::VERBOSE, "process: response=%s", str);
+        logger.msg(Arc::DEBUG, "process: response=%s", str);
       }
       outmsg.Payload(outpayload);
 

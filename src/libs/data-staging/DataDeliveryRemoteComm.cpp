@@ -1,4 +1,6 @@
 #include <arc/message/MCC.h>
+#include <arc/delegation/DelegationInterface.h>
+#include <arc/ws-addressing/WSA.h>
 
 #include "DataDeliveryRemoteComm.h"
 
@@ -49,6 +51,7 @@ namespace DataStaging {
 
     Arc::NS ns;
     Arc::PayloadSOAP request(ns);
+
     Arc::XMLNode dtrnode = request.NewChild("DataDeliveryStart").NewChild("DTR");
 
     dtrnode.NewChild("ID") = dtr.get_id();
@@ -63,6 +66,13 @@ namespace DataStaging {
     // caching
     if (caching) dtrnode.NewChild("Caching") = "true";
     else dtrnode.NewChild("Caching") = "false";
+
+    // delegate credentials
+    Arc::XMLNode op = request.Child(0);
+    if (!SetupDelegation(op, dtr.get_usercfg())) {
+      logger_->msg(Arc::ERROR, "Failed to set up credential delegation");
+      return;
+    }
 
     std::string xml;
     request.GetXML(xml, true);
@@ -246,4 +256,34 @@ namespace DataStaging {
     }
   }
 
+
+  bool DataDeliveryRemoteComm::SetupDelegation(Arc::XMLNode& op, const Arc::UserConfig& usercfg) {
+    const std::string& cert = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath());
+    const std::string& key  = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.KeyPath());
+
+    if (key.empty() || cert.empty()) {
+      logger_->msg(Arc::VERBOSE, "Failed locating credentials.");
+      return false;
+    }
+
+    if(!client->Load()) {
+      logger_->msg(Arc::VERBOSE, "Failed initiate client connection.");
+      return false;
+    }
+
+    Arc::MCC* entry = client->GetEntry();
+    if(!entry) {
+      logger_->msg(Arc::VERBOSE, "Client connection has no entry point.");
+      return false;
+    }
+
+    Arc::DelegationProviderSOAP deleg(cert, key);
+    logger_->msg(Arc::VERBOSE, "Initiating delegation procedure");
+    if (!deleg.DelegateCredentialsInit(*entry, &(client->GetContext()))) {
+      logger_->msg(Arc::VERBOSE, "Failed to initiate delegation credentials");
+      return false;
+    }
+    deleg.DelegatedToken(op);
+    return true;
+  }
 } // namespace DataStaging

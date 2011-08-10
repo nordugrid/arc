@@ -35,6 +35,9 @@ namespace DataStaging {
     /// Fill Status object with data in node. If empty fields are initialised
     /// to default values.
     void FillStatus(const Arc::XMLNode& node = Arc::XMLNode());
+
+    /// Set up delegation so the credentials can be used by the service
+    bool SetupDelegation(Arc::XMLNode& op, const Arc::UserConfig& usercfg);
   };
 
 } // namespace DataStaging
