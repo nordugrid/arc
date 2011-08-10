@@ -617,8 +617,10 @@ namespace Arc {
     // the session dir should already exist but in the case of arccp with cache it may not
     // here we use the mapped user to access session dir
 
-    if (!DirCreate(session_dir, _uid, _gid, S_IRWXU, true))
+    if (!DirCreate(session_dir, _uid, _gid, S_IRWXU, true)) {
+      logger.msg(ERROR, "Failed to create directory %s: %s", session_dir, StrError(errno));
       return false;
+    }
 
     // if _cache_link_path is '.' or copy or executable is true then copy instead
     if (copy || executable || cache_params.cache_link_path == ".") {
