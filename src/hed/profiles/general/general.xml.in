@@ -251,6 +251,7 @@ attributes depending on how the mapping should be done.
           <arex:cacheLogFile inisections="arex/cache" initag="logfile" inidefaultvalue="/var/log/arc/cache-clean.log"/>
           <arex:cacheLogLevel inisections="arex/cache" initag="loglevel" inidefaultvalue="2"/>
           <arex:cacheLifetime inisections="arex/cache" initag="lifetime"/>
+          <arex:cacheCleanTimeout inisections="arex/cache" initag="cachecleantimeout"/>
         </arex:cache>
         <arex:defaultTTL inisections="arex" initag="defaultttl" inidefaultvalue="604800"/>
         <arex:defaultTTR inisections="arex" initag="defaultttr" inidefaultvalue="2592000"/>

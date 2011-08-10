@@ -7,7 +7,8 @@ CacheConfig::CacheConfig(const GMEnvironment& env,std::string username):
                                                 _cache_min(100),
                                                 _log_file("/var/log/arc/cache-clean.log"),
                                                 _log_level("INFO") ,
-                                                _lifetime("0") {
+                                                _lifetime("0"),
+                                                _clean_timeout(0) {
   // open conf file
   std::ifstream cfile;
   //if(nordugrid_config_loc().empty()) read_env_vars(true);
@@ -199,6 +200,14 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
         _lifetime = lifetime;
       }
     }
+    else if (command == "cachecleantimeout") {
+      std::string timeout = config_next_arg(rest);
+      if(timeout.length() == 0)
+        continue;
+
+      if(!Arc::stringto(timeout, _clean_timeout))
+        throw CacheConfigException("bad number in cachecleantimeout parameter");
+    }
     else if(command == "control") {
       // if the user specified here matches the one given, exit the loop
       config_next_arg(rest);
@@ -223,6 +232,7 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
       _cache_max = 100;
       _cache_min = 100;
       _lifetime = "0";
+      _clean_timeout = 0;
     }
   }
 }
@@ -245,6 +255,7 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
       cacheLifetime
       cacheLogFile
       cacheLogLevel
+      cacheCleanTimeout
     defaultTTL
     defaultTTR
     maxReruns
@@ -342,6 +353,11 @@ void CacheConfig::parseXMLConf(std::string username, Arc::XMLNode cfg) {
       std::string cache_lifetime = cache_node["cacheLifetime"];
       if (!cache_lifetime.empty())
         _lifetime = cache_lifetime;
+      std::string clean_timeout = cache_node["cacheCleanTimeout"];
+      if (!clean_timeout.empty()) {
+        if(!Arc::stringto(clean_timeout, _clean_timeout))
+          throw CacheConfigException("bad number in cacheCleanTimeout parameter");
+      }
       Arc::XMLNode remote_location_node = cache_node["remotelocation"];
       for(;remote_location_node;++remote_location_node) {
         std::string cache_dir = remote_location_node["path"];

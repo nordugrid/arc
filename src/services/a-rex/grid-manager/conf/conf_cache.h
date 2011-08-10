@@ -56,6 +56,10 @@ class CacheConfig {
     * Lifetime of files in cache
     */
    std::string _lifetime;
+   /**
+    * Timeout for cleaning process
+    */
+   int _clean_timeout;
  public:
    /**
     * Create a new CacheConfig instance. Read the config file and fill in
@@ -66,7 +70,7 @@ class CacheConfig {
   /**
    * Empty CacheConfig
    */
-  CacheConfig(): _cache_max(0), _cache_min(0) {};
+  CacheConfig(): _cache_max(0), _cache_min(0), _clean_timeout(0) {};
   /**
    * Parsers for the two different conf styles
    */
@@ -87,6 +91,7 @@ class CacheConfig {
   std::string getLogFile() const { return _log_file; };
   std::string getLogLevel() const { return _log_level; };
   std::string getLifeTime() const { return _lifetime; };
+  int getCleanTimeout() const { return _clean_timeout; };
 };
 
 #endif /*__GM_CONFIG_CACHE_H__*/

@@ -547,6 +547,15 @@ and 5 (DEBUG). Defaults to 3 (INFO).
 cacheloglevel="2"
 
 .TP
+.B cachecleantimeout
+The timeout in seconds for running the cache-clean tool. If using a large
+cache or slow file system this value can be increased to allow the cleaning
+to complete. Defaults to 3600 (1 hour).
+
+.IR Example:
+cachecleantimeout="10000"
+
+.TP
 .B user
 Switch to a non-root user/group after startup. The format of the
 argument is user[:group]. 

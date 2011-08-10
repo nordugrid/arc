@@ -39,6 +39,9 @@
 /* cache cleaning every 5 minutes */
 #define CACHE_CLEAN_PERIOD 300
 
+/* cache cleaning default timeout */
+#define CACHE_CLEAN_TIMEOUT 3600
+
 #define DEFAULT_LOG_FILE "/var/log/arc/grid-manager.log"
 #define DEFAULT_PID_FILE "/var/run/grid-manager.pid"
 
@@ -100,7 +103,9 @@ static void* cache_func(void* arg) {
       logger.msg(Arc::DEBUG, "Running command %s", cmd);
       // use large timeout, as disk scan can take a long time
       // blocks until command finishes or timeout
-      int result = RunRedirected::run(gmuser, "cache-clean", -1, h, h, cmd.c_str(), 3600);
+      int clean_timeout = cache_info.getCleanTimeout();
+      if (clean_timeout == 0) clean_timeout = CACHE_CLEAN_TIMEOUT;
+      int result = RunRedirected::run(gmuser, "cache-clean", -1, h, h, cmd.c_str(), clean_timeout);
       close(h);
       if (result != 0) {
         if (result == -1) logger.msg(Arc::ERROR, "Failed to start cache clean script");

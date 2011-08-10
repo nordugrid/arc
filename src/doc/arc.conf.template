@@ -417,6 +417,11 @@ cachelifetime="30d"
 # tool, between 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
 #cacheloglevel="4"
 
+# cachecleantimeout time - the timeout in seconds for running the cache-clean
+# tool. If using a large cache or slow file system this value can be
+# increased to allow the cleaning to complete. Defaults to 3600 (1 hour).
+#cachecleantimeout="10000"
+
 # user user[:group] - Switch to a non root user/group after startup
 user="grid"
 
