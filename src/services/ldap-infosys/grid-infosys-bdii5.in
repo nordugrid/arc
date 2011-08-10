@@ -240,7 +240,7 @@ check_ownership () {
     file=$1
     user=$2
 
-    res=$(find `dirname $file`/ -maxdepth 1 -user $user -name `basename $file`)
+    res=$(cd / && find `dirname $file`/ -maxdepth 1 -user $user -name `basename $file`)
     if [ "x${res}" = "x" ]; then
 	log_failure_msg "ERROR: ${file} is not owned by ${user}"
 	exit 1
@@ -407,7 +407,7 @@ if [ "x$infosys_compat" = "xenable" ]; then
 fi
 
 # Check for existance of core ldap schema
-coreschema=$(find /etc/ -name core.schema -printf "%h/%f\n" 2>/dev/null)
+coreschema=$(cd / && find /etc/ -name core.schema -printf "%h/%f\n" 2>/dev/null)
 if [ "x" = "x$coreschema" ]; then
     log_failure_msg "Error, could not find ldap core schema file under /etc"
     exit 1
@@ -440,7 +440,7 @@ fi
 if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
     # Guess a likely directory for ldap modules
-    ldaplib=$(find /usr/lib -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
+    ldaplib=$(cd / && find /usr/lib -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
     if [ "x" = "x$ldaplib" ]; then
 	log_failure_msg "Could not find ldap libraries under /usr/lib"
 	exit 1
@@ -456,7 +456,7 @@ if [ "`config_subsections infosys/index`" ]; then
     if [ $(grep -Ec "shell_db_init|shell_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
 	# Guess a likely directory for ldap modules
-	ldaplib=${ldaplib:-$(find /usr/lib -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
+	ldaplib=${ldaplib:-$(cd / && find /usr/lib -name "back_shell.so" -printf "%h/\n" 2>/dev/null)}
 	if [ "x" = "x$ldaplib" ]; then
 	    log_failure_msg "Could not find ldap libraries under /usr/lib"
 	    exit 1
