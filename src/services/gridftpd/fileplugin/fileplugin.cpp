@@ -628,8 +628,9 @@ int DirectAccess::unix_set(int uid,int gid) {
 }
 
 void DirectAccess::unix_reset(void) {
-    if(geteuid() != getuid()) seteuid(getuid());
-    if(getegid() != getgid()) setegid(getgid());
+  if(access.access == local_none_access) return;
+  if(geteuid() != getuid()) seteuid(getuid());
+  if(getegid() != getgid()) setegid(getgid());
 }
 
 std::list<DirectAccess>::iterator DirectFilePlugin::control_dir(const std::string &name,bool indir) {
@@ -720,7 +721,6 @@ int DirectFilePlugin::readdir(const char* name,std::list<DirEntry> &dir_list,Dir
       /* now get real listing */
       if(i->unix_set(uid,gid) != 0) return 1;
       DIR* d=::opendir(fname.c_str());
-      i->unix_reset();
       if(d == NULL) { return 1; }; /* maybe return ? */
       struct dirent *de;
       for(;;) {
@@ -728,12 +728,15 @@ int DirectFilePlugin::readdir(const char* name,std::list<DirEntry> &dir_list,Dir
         if(de == NULL) break;
         if((!strcmp(de->d_name,".")) || (!strcmp(de->d_name,".."))) continue;
         DirEntry dent(true,de->d_name); // treat it as file by default
+        i->unix_reset();
         bool is_manageable = fill_object_info(dent,fname,ur,i,mode);
+        i->unix_set(uid,gid);
         if(is_manageable) {
           dir_list.push_back(dent);
         };
       };
       ::closedir(d);
+      i->unix_reset();
       return 0;
     }
     else if(ur & S_IFREG) {
