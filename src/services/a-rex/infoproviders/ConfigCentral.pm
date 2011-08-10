@@ -686,6 +686,7 @@ sub build_config_from_inifile {
     if (%$cluster) {
         # Ignored: cluster_location, lrmsconfig
         rename_keys $cluster, $config, {arex_mount_point => 'endpoint'};
+        rename_keys $cluster, $config->{location}, { cluster_location => 'PostCode' };
         rename_keys $cluster, $config->{service}, {
                                  interactive_contactstring => 'InteractiveContactstring',
                                  cluster_owner => 'ClusterOwner', localse => 'LocalSE',
