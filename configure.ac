@@ -768,14 +768,6 @@ else
   enables_cppunit="no"
 fi
 
-#check lasso
-#LASSO_INSTALLED=no
-#PKG_CHECK_MODULES(LASSO, [lasso >= 2.1.1],
-#[AC_SUBST(LASSO_CFLAGS)
-# AC_SUBST(LASSO_LIBS)
-# LASSO_INSTALLED=yes],
-#[])
-
 ##############################
 #
 # Check xmlsec1
@@ -811,12 +803,12 @@ if test "x$enables_xmlsec1" = "xyes"; then
           [XMLSEC_INSTALLED=yes],[XMLSEC_INSTALLED=no])
     fi
     dnl Overwrite values found by pkgconfig above due to quoting problems
-    if test "x$XMLSEC_INSTALLED" = "xyes" ; then
-      XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
-      XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
-      XMLSEC_OPENSSL_LIBS="`$XMLSEC_CONFIG --libs --crypto=openssl`"
-      XMLSEC_OPENSSL_CFLAGS="`$XMLSEC_CONFIG --cflags --crypto=openssl`"
-    fi
+#    if test "x$XMLSEC_INSTALLED" = "xyes" ; then
+#      XMLSEC_LIBS="`$XMLSEC_CONFIG --libs`"
+#      XMLSEC_CFLAGS="`$XMLSEC_CONFIG --cflags`"
+#      XMLSEC_OPENSSL_LIBS="`$XMLSEC_CONFIG --libs --crypto=openssl`"
+#      XMLSEC_OPENSSL_CFLAGS="`$XMLSEC_CONFIG --cflags --crypto=openssl`"
+#    fi
   fi
 
   if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
