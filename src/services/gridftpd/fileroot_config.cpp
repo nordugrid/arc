@@ -125,7 +125,7 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
       };
     };
   };
-    gridftpd::config_close(cfile);
+  gridftpd::config_close(cfile);
   delete cf;
   return 0;
 }
@@ -511,7 +511,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   /* open and read configuration file */
   std::ifstream cfile;
   gridftpd::ConfigSections* cf = NULL;
-  config_open_gridftp(cfile);
+  std::string config_file = config_open_gridftp(cfile);
   if(!cfile.is_open()) {
     logger.msg(Arc::ERROR, "configuration file not found");
     delete cf;
@@ -523,7 +523,7 @@ int FileRoot::config(globus_ftp_control_auth_info_t *auth,
   cf->AddSection("gridftpd");
   cf->AddSection("vo");
   /* keep information about user */
-  if(!user.fill(auth,handle)) {
+  if(!user.fill(auth,handle,config_file.c_str())) {
     logger.msg(Arc::ERROR, "failed to process client identification");
     delete cf;
     return 1;

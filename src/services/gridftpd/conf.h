@@ -15,7 +15,7 @@
 #define DEFAULT_CENTRAL_CONFIG_FILE2 "/etc/nordugrid.conf"
 extern const char* config_file;
 
-bool config_open_gridftp(std::ifstream &cfile);
+std::string config_open_gridftp(std::ifstream &cfile);
 void config_strip(std::string &rest);
 
 #endif // __GFS_CONF_H__

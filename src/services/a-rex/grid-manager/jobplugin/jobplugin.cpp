@@ -128,7 +128,7 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
   user=NULL;
   direct_fs=NULL;
   proxy_fname="";
-  std::string configfile("");
+  std::string configfile = user_s.get_config_file();
   cont_plugins=NULL;
   cred_plugin=NULL;
   readonly=false;

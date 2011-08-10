@@ -6,7 +6,7 @@ static const char* default_central_config_file2 = DEFAULT_CENTRAL_CONFIG_FILE2;
 const char* config_file = NULL;
 
 
-bool config_open_gridftp(std::ifstream &cfile) {
+std::string config_open_gridftp(std::ifstream &cfile) {
   std::string config_name;
   gridftpd::GMEnvironment env;
   if(!env)
@@ -22,7 +22,8 @@ bool config_open_gridftp(std::ifstream &cfile) {
       config_name=default_central_config_file2;
     };
   };
-  return gridftpd::config_open(cfile,config_name);
+  if(gridftpd::config_open(cfile,config_name)) return config_name;
+  return "";
 }
 
 void config_strip(std::string &rest) {

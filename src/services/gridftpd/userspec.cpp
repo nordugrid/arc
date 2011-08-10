@@ -66,13 +66,14 @@ bool check_gridmap(const char* dn,char** user,const char* mapfile) {
   return false;
 }
 
-bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle) {
+bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_handle_t *handle, const char* cfg) {
   struct passwd pw_;
   struct group gr_;
   struct passwd* pw=NULL;
   struct group* gr=NULL;
   char bufp[BUFSIZ];
   char bufg[BUFSIZ];
+  if(cfg) config_file = cfg;
   if(auth == NULL) return false;
   if(auth->auth_gssapi_subject == NULL) return false;
   std::string subject = auth->auth_gssapi_subject;
@@ -193,7 +194,7 @@ bool userspec_t::fill(globus_ftp_control_auth_info_t *auth,globus_ftp_control_ha
   return true;
 }
 
-bool userspec_t::fill(AuthUser& u) {
+bool userspec_t::fill(AuthUser& u, const char* cfg) {
   struct passwd pw_;
   struct group gr_;
   struct passwd *pw;
@@ -203,6 +204,7 @@ bool userspec_t::fill(AuthUser& u) {
   std::string subject = u.DN();
   char* name=NULL;
   char* gname=NULL;
+  if(cfg) config_file = cfg;
   if(!check_gridmap(subject.c_str(),&name)) {
     logger.msg(Arc::WARNING, "There is no local mapping for user");
     name=NULL;
