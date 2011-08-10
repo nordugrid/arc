@@ -421,7 +421,7 @@ fi
 if [ $(grep -Ec "${bdii_database}_db_init|${bdii_database}_back_db_init" "$slapd_cmd") -eq 0 ]; then
 
     # Guess a likely directory for ldap modules
-    ldaplib=$(cd / find /usr/lib -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
+    ldaplib=$(cd / && find /usr/lib -name "back_${bdii_database}.so" -printf "%h/\n" 2>/dev/null)
     if [ "x" = "x$ldaplib" ]; then
 	log_failure_msg "Could not find ldap libraries under /usr/lib"
 	exit 1
