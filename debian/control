@@ -171,6 +171,17 @@ Description: ARC cache service
  especially helpful for data-driven job scheduling within pilot job
  frameworks.
 
+Package: nordugrid-arc-datadelivery-service
+Provides: nordugrid-arc-nox-datadelivery-service
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ARC data delivery service
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the free Grid middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the ARC data deliver service.
+
 Package: nordugrid-arc-aris
 Provides: nordugrid-arc-infosys-ldap, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-infoindex
 Replaces: nordugrid-arc-infosys-ldap (<< 1.0.0~), nordugrid-arc-nox-ldap-infosys (<< 1.3.0~), nordugrid-arc-infoindex (<< 0.8.2~)

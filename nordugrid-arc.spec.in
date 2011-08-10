@@ -293,6 +293,25 @@ This package contains the ARC cache service. It provides a way to perform
 some operations on the A-REX cache remotely. It can be especially helpful
 for data management within a pilot job framework.
 
+%package datadelivery-service
+Summary:	ARC data delivery service
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+Requires:	%{name}-hed = %{version}-%{release}
+Requires:	%{name}-plugins-needed = %{version}-%{release}
+
+Requires(post):		chkconfig
+Requires(preun):	chkconfig
+Requires(preun):	initscripts
+Requires(postun):	initscripts
+
+%description datadelivery-service
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC data delivery service.
+
 %package aris
 Summary:	ARC LDAP information service
 Group:		System Environment/Libraries
@@ -782,6 +801,20 @@ if [ $1 -ge 1 ]; then
   service cache-service condrestart > /dev/null 2>&1
 fi
 
+%post datadelivery-service
+/sbin/chkconfig --add datadelivery-service
+
+%preun datadelivery-service
+if [ $1 -eq 0 ]; then
+  service datadelivery-service stop > /dev/null 2>&1
+  /sbin/chkconfig --del datadelivery-service
+fi
+
+%postun datadelivery-service
+if [ $1 -ge 1 ]; then
+  service datadelivery-service condrestart > /dev/null 2>&1
+fi
+
 %post aris
 /sbin/chkconfig --add grid-infosys
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
@@ -1025,6 +1058,12 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_initrddir}/cache-service
 %{_libdir}/%{pkgdir}/libcacheservice.so
 %{_libdir}/%{pkgdir}/libcacheservice.apd
+
+%files datadelivery-service
+%defattr(-,root,root,-)
+%{_initrddir}/datadelivery-service
+%{_libdir}/%{pkgdir}/libdatadeliveryservice.so
+%{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
 
 %files arex
 %defattr(-,root,root,-)
