@@ -59,6 +59,11 @@ namespace DataStaging {
   // new state reported by comm instances and modifies states accordingly
   void DataDeliveryCommHandler::func(void* arg) {
     if(!arg) return;
+
+    // disconnect from root logger since messages are logged to per-DTR Logger
+    Arc::Logger::getRootLogger().setThreadContext();
+    Arc::Logger::getRootLogger().removeDestinations();
+
     // We do not need extremely low latency, so this
     // thread simply polls for data 2 times per second.
     DataDeliveryCommHandler& it = *(DataDeliveryCommHandler*)arg;

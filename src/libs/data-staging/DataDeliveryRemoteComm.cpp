@@ -1,6 +1,5 @@
 #include <arc/message/MCC.h>
 #include <arc/delegation/DelegationInterface.h>
-#include <arc/ws-addressing/WSA.h>
 
 #include "DataDeliveryRemoteComm.h"
 
