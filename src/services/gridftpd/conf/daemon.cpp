@@ -322,7 +322,10 @@ namespace gridftpd {
     };
     if(hp != -1) {
       char buf[30]; int l = snprintf(buf,29,"%u",getpid()); buf[l]=0;
-      ::write(hp,buf,l);
+      if(::write(hp,buf,l)<0) {
+        ::close(hp);
+        return 0;
+      };
       ::close(hp);
     };
     return 0;

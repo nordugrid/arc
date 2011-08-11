@@ -126,7 +126,10 @@ namespace gridftpd {
       l+=ll;
     };
     if(stat(old_proxy,&st) == 0) {
-      fchown(h,st.st_uid,st.st_gid);
+      if (fchown(h,st.st_uid,st.st_gid) !=0) {
+        fprintf(stderr,"Can't change owner/group (%d,%d) of proxy: %s\n",st.st_uid,st.st_gid,old_proxy);
+        //goto exit;
+      };
       if(remove(old_proxy) != 0) {
         fprintf(stderr,"Can't remove proxy: %s\n",old_proxy);
         goto exit;

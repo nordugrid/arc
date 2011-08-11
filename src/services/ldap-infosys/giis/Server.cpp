@@ -84,7 +84,11 @@ void Server::Start() {
     FD_SET(sfd, &fs);
     if(select(sfd + 1, &fs, NULL, NULL, NULL) > 0) {
       char buf[2048];
-      fgets(buf, 2048, sf);
+      if (!fgets(buf, 2048, sf)) {
+        running = false;
+        fclose(sf);
+        return;
+      };
       std::string file(buf, strlen(buf) - 1);
       if(file == "STOP")
 	running = false;
