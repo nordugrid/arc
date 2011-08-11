@@ -1465,7 +1465,7 @@ bool JobPlugin::is_allowed(const char* name,int perm,bool /* locked */,bool* spe
               res|=(IS_ALLOWED_READ | IS_ALLOWED_WRITE | IS_ALLOWED_LIST);
             //if(strncmp(l_name,"proxy",5) == 0) res&=IS_ALLOWED_LIST;
             //if(strncmp(l_name,"acl",3) != 0) res&=~IS_ALLOWED_WRITE;
-            if (res & perm == perm) return true;
+            if ( (res & perm) == perm) return true;
             error_description = "Not allowed for this job: permission denied";
             return false;
           };
