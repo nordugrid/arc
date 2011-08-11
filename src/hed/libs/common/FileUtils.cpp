@@ -378,7 +378,7 @@ bool DirCreate(const std::string& path,mode_t mode,bool with_parents) {
   struct stat st;
   if(::lstat(path.c_str(),&st) != 0) return false;
   if(!S_ISDIR(st.st_mode)) return false;
-  errno == EEXIST;
+  errno = EEXIST;
   return true;
 }
 
