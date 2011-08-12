@@ -42,6 +42,8 @@ namespace Arc {
     std::string path_for_guid;
   private:
     std::string ResolveGUIDToLFN();
+    /// Returns true if serrno is a temporary error and can potentially be retried
+    bool IsTempError() const;
     DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, bool listdir);
 
   };

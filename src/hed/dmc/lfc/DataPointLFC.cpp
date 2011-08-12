@@ -174,7 +174,7 @@ namespace Arc {
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
       lfc_endsess();
-      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+      if (IsTempError())
         return source ? DataStatus::ReadResolveErrorRetryable : DataStatus::WriteResolveErrorRetryable;
       return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }
@@ -317,7 +317,7 @@ namespace Arc {
                       const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+      if (IsTempError())
         return DataStatus::PreRegisterErrorRetryable;      
       return DataStatus::PreRegisterError;
     }
@@ -434,7 +434,7 @@ namespace Arc {
     LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()), const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+      if (IsTempError())
         return DataStatus::PostRegisterErrorRetryable;
       return DataStatus::PostRegisterError;
     }
@@ -492,7 +492,7 @@ namespace Arc {
                       const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+      if (IsTempError())
         return DataStatus::UnregisterErrorRetryable;
       return DataStatus::UnregisterError;
     }
@@ -523,7 +523,7 @@ namespace Arc {
                       const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+      if (IsTempError())
         return DataStatus::UnregisterErrorRetryable;
       return DataStatus::UnregisterError;
     }
@@ -616,7 +616,7 @@ namespace Arc {
                       const_cast<char*>("ARC")), url);
     if(lfc_r != 0) {
       logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      if (serrno == SECOMERR || serrno == ENSNACT || serrno == SETIMEDOUT)
+      if (IsTempError())
         return DataStatus::ListErrorRetryable;
       return DataStatus::ListError;
     }
@@ -841,6 +841,19 @@ namespace Arc {
     if (!url.MetaDataOption("guid").empty())
       tmp += ":guid=" + url.MetaDataOption("guid");
     return tmp;
+  }
+
+  bool DataPointLFC::IsTempError() const {
+    // err codes in includepath/lfc/serrno.h
+    if (serrno == SECOMERR ||     // communication error
+        serrno == ENSNACT ||      // name server not active
+        serrno == SETIMEDOUT ||   // timeout
+        serrno == SEINTERNAL ||   // internal error
+        serrno == SECONNDROP ||   // connection dropped by server
+        serrno == SEWOULDBLOCK || // temporarily unavailable
+        serrno == SESYSERR        // system error
+        ) return true;
+    return false;
   }
 
 } // namespace Arc
