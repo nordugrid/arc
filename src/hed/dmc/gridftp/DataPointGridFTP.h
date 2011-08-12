@@ -16,6 +16,7 @@ namespace Arc {
 
   class GSSCredential;
   class URL;
+  class Lister;
 
   /**
    * GridFTP is essentially the FTP protocol with GSI security. This class
@@ -45,6 +46,8 @@ namespace Arc {
 
     bool ftp_eof_flag;
     int check_received_length;
+
+    Lister* lister;
 
     static void ftp_complete_callback(void *arg,
                                       globus_ftp_client_handle_t *handle,

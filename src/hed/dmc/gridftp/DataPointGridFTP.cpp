@@ -789,29 +789,31 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
+    reading = true;
     set_attributes();
-    Lister lister(*credential);
     bool more_info = ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
-    DataStatus lister_res = lister.retrieve_file_info(url,!more_info);
+    DataStatus lister_res = lister->retrieve_file_info(url,!more_info);
     if (!lister_res) {
       logger.msg(ERROR, "Failed to obtain stat from ftp: %s", lister_res.GetDesc());
+      reading = false;
       return lister_res;
     }
-    lister.close_connection();
     DataStatus result = DataStatus::StatError;
-    if (lister.size() == 0) {
+    if (lister->size() == 0) {
       logger.msg(ERROR, "No results returned from stat");
       result.SetDesc("No results found");
+      reading = false;
       return result;
     }
-    if(lister.size() != 1) {
-      logger.msg(VERBOSE, "Wrong number of objects (%i) for stat from ftp: %s", lister.size(), url.str());
+    if(lister->size() != 1) {
+      logger.msg(VERBOSE, "Wrong number of objects (%i) for stat from ftp: %s", lister->size(), url.str());
       // guess - that probably means it is directory 
       file.SetName(FileInfo(url.Path()).GetName());
       file.SetType(FileInfo::file_type_dir);
+      reading = false;
       return DataStatus::Success;
     }
-    FileInfo lister_info(*(lister.begin()));
+    FileInfo lister_info(*(lister->begin()));
     // does returned path match what we expect?
     // remove trailing slashes from url
     std::string fname(url.Path());
@@ -820,6 +822,7 @@ namespace Arc {
               (fname.substr(fname.rfind('/')+1))) {
       logger.msg(ERROR, "Unexpected path %s returned from server", lister_info.GetName());
       result.SetDesc("Unexpected path returned from server");
+      reading = false;
       return result;
     }
     result = DataStatus::Success;
@@ -849,6 +852,7 @@ namespace Arc {
       file.SetMetaData("checksum", lister_info.GetCheckSum());
       SetCheckSum(lister_info.GetCheckSum());
     }
+    reading = false;
     return result;
   }
 
@@ -859,18 +863,18 @@ namespace Arc {
       return DataStatus::IsReadingError;
     if (writing)
       return DataStatus::IsWritingError;
+    reading = true;
     set_attributes();
-    Lister lister(*credential);
     bool more_info = ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME);
-    DataStatus lister_res = lister.retrieve_dir_info(url,!more_info);
+    DataStatus lister_res = lister->retrieve_dir_info(url,!more_info);
     if (!lister_res) {
       logger.msg(ERROR, "Failed to obtain listing from ftp: %s", lister_res.GetDesc());
+      reading = false;
       return lister_res;
     }
-    lister.close_connection();
     DataStatus result = DataStatus::Success;
-    for (std::list<FileInfo>::iterator i = lister.begin();
-         i != lister.end(); ++i) {
+    for (std::list<FileInfo>::iterator i = lister->begin();
+         i != lister->end(); ++i) {
       if (i->GetName()[0] != '/')
         i->SetName(url.Path()+'/'+i->GetName());
       std::list<FileInfo>::iterator f =
@@ -898,6 +902,7 @@ namespace Arc {
         f->SetMetaData("checksum", i->GetCheckSum());
       }
     }
+    reading = false;
     return result;
   }
 
@@ -908,7 +913,8 @@ namespace Arc {
       reading(false),
       writing(false),
       ftp_eof_flag(false),
-      check_received_length(0) {
+      check_received_length(0),
+      lister(NULL) {
     //globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
     //if (!proxy_initialized)
     //  proxy_initialized = GlobusRecoverProxyOpenSSL();
@@ -983,6 +989,7 @@ namespace Arc {
     } else if(autodir_s == "no") {
       autodir = false;
     }
+    lister = new Lister();
   }
 
   void DataPointGridFTP::set_attributes(void) {
@@ -1029,41 +1036,42 @@ namespace Arc {
       if (!credential)
         credential = new GSSCredential(usercfg.ProxyPath(),
                                        usercfg.CertificatePath(), usercfg.KeyPath());
+      lister->set_credential(credential);
 
       GlobusResult r = globus_ftp_client_operationattr_set_authorization(
                      &ftp_opattr,
                      *credential,":globus-mapping:","user@",
                      GLOBUS_NULL,GLOBUS_NULL);
       if(!r) {
-        logger.msg(WARNING, "Failed to set credentials for GridFTP transfer");
-        logger.msg(VERBOSE, "globus_ftp_client_operationattr_set_authorization: error: %s", r.str());
-      }
-      if (force_secure || (url.Option("secure") == "yes")) {
-        globus_ftp_client_operationattr_set_mode(&ftp_opattr,
-                                                 GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
-        globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
-                                                            GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
-        logger.msg(VERBOSE, "Using secure data transfer");
-      }
-      else {
-        if (force_passive)
-          globus_ftp_client_operationattr_set_mode(&ftp_opattr,
-                                                   GLOBUS_FTP_CONTROL_MODE_STREAM);
-        else
-          globus_ftp_client_operationattr_set_mode(&ftp_opattr,
-                                                   GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
-        globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
-                                                            GLOBUS_FTP_CONTROL_PROTECTION_CLEAR);
-        logger.msg(VERBOSE, "Using insecure data transfer");
-      }
-      globus_ftp_client_operationattr_set_control_protection(&ftp_opattr,
-                                                             GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
-    }
-    /*   globus_ftp_client_operationattr_set_dcau                         */
-    /*   globus_ftp_client_operationattr_set_resume_third_party_transfer  */
-    /*   globus_ftp_client_operationattr_set_authorization                */
-    globus_ftp_client_operationattr_set_append(&ftp_opattr, GLOBUS_FALSE);
-  }
+		logger.msg(WARNING, "Failed to set credentials for GridFTP transfer");
+		logger.msg(VERBOSE, "globus_ftp_client_operationattr_set_authorization: error: %s", r.str());
+	      }
+	      if (force_secure || (url.Option("secure") == "yes")) {
+		globus_ftp_client_operationattr_set_mode(&ftp_opattr,
+							 GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
+		globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
+								    GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
+		logger.msg(VERBOSE, "Using secure data transfer");
+	      }
+	      else {
+		if (force_passive)
+		  globus_ftp_client_operationattr_set_mode(&ftp_opattr,
+							   GLOBUS_FTP_CONTROL_MODE_STREAM);
+		else
+		  globus_ftp_client_operationattr_set_mode(&ftp_opattr,
+							   GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK);
+		globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
+								    GLOBUS_FTP_CONTROL_PROTECTION_CLEAR);
+		logger.msg(VERBOSE, "Using insecure data transfer");
+	      }
+	      globus_ftp_client_operationattr_set_control_protection(&ftp_opattr,
+								     GLOBUS_FTP_CONTROL_PROTECTION_PRIVATE);
+	    }
+	    /*   globus_ftp_client_operationattr_set_dcau                         */
+	    /*   globus_ftp_client_operationattr_set_resume_third_party_transfer  */
+	    /*   globus_ftp_client_operationattr_set_authorization                */
+	    globus_ftp_client_operationattr_set_append(&ftp_opattr, GLOBUS_FALSE);
+	  }
 
   DataPointGridFTP::~DataPointGridFTP() {
     StopReading();

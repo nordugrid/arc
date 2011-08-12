@@ -97,11 +97,18 @@ namespace Arc {
     }
   }
 
-  Lister::callback_status_t Lister::wait_for_callback() {
+  Lister::callback_status_t Lister::wait_for_callback(int to) {
     callback_status_t res;
     globus_mutex_lock(&mutex);
-    while (callback_status == CALLBACK_NOTREADY)
-      globus_cond_wait(&cond, &mutex);
+    if(to < 0) {
+      while (callback_status == CALLBACK_NOTREADY) {
+        globus_cond_wait(&cond, &mutex);
+      }
+    } else {
+      globus_abstime_t timeout;
+      GlobusTimeAbstimeSet(timeout,to,0);
+      globus_cond_timedwait(&cond, &mutex, &timeout);
+    }
     res = callback_status;
     callback_status = CALLBACK_NOTREADY;
     globus_mutex_unlock(&mutex);
@@ -111,10 +118,23 @@ namespace Arc {
   Lister::callback_status_t Lister::wait_for_data_callback() {
     callback_status_t res;
     globus_mutex_lock(&mutex);
-    while (data_callback_status == CALLBACK_NOTREADY)
+    while (data_callback_status == CALLBACK_NOTREADY) {
       globus_cond_wait(&cond, &mutex);
+    }
     res = data_callback_status;
     data_callback_status = CALLBACK_NOTREADY;
+    globus_mutex_unlock(&mutex);
+    return res;
+  }
+
+  Lister::callback_status_t Lister::wait_for_close_callback() {
+    callback_status_t res;
+    globus_mutex_lock(&mutex);
+    while (close_callback_status == CALLBACK_NOTREADY) {
+      globus_cond_wait(&cond, &mutex);
+    }
+    res = close_callback_status;
+    close_callback_status = CALLBACK_NOTREADY;
     globus_mutex_unlock(&mutex);
     return res;
   }
@@ -165,6 +185,24 @@ namespace Arc {
     }
     globus_cond_signal(&(it->cond));
     globus_mutex_unlock(&(it->mutex));
+  }
+
+  void Lister::close_callback(void *arg, globus_ftp_control_handle_t*,
+                             globus_object_t *error,
+                             globus_ftp_control_response_t *response) {
+    if(!arg) return;
+    Lister *it = (Lister*)arg;
+    Arc::Logger::getRootLogger().setThreadContext();
+    Arc::Logger::getRootLogger().removeDestinations();
+    globus_mutex_lock(&(it->mutex));
+    if (error != GLOBUS_SUCCESS) {
+      it->close_callback_status = CALLBACK_ERROR;
+    } else {
+      it->close_callback_status = CALLBACK_DONE;
+    }
+    globus_cond_signal(&(it->cond));
+    globus_mutex_unlock(&(it->mutex));
+    return;
   }
 
   void Lister::simple_callback(void *arg, globus_ftp_control_handle_t*,
@@ -428,7 +466,7 @@ namespace Arc {
     /* !!!!!!! Memory LOST - cmd !!!!!!!! */
   }
 
-  Lister::Lister(GSSCredential& credential)
+  Lister::Lister()
     : inited(false),
       facts(true),
       handle(NULL),
@@ -440,7 +478,7 @@ namespace Arc {
       data_activated(false),
       free_format(false),
       port((unsigned short int)(-1)),
-      credential(credential) {
+      credential(NULL) {
     if (globus_cond_init(&cond, GLOBUS_NULL) != GLOBUS_SUCCESS) {
       logger.msg(ERROR, "Failed initing condition");
       return;
@@ -472,21 +510,25 @@ namespace Arc {
     if (!connected) return;
     connected = false;
     bool res = true;
+    close_callback_status = CALLBACK_NOTREADY;
     logger.msg(VERBOSE, "Closing connection");
     if (globus_ftp_control_data_force_close(handle, simple_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
       res = false;
     }
-    if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
-    } else if (wait_for_callback() != CALLBACK_DONE) {
+    //if (globus_ftp_control_abort(handle, resp_callback, this) != GLOBUS_SUCCESS) {
+    //} else if (wait_for_callback() != CALLBACK_DONE) {
+    //    res = false;
+    //}
+    if(send_command("ABOR", NULL, true, NULL) == GLOBUS_FTP_UNKNOWN_REPLY) {
       res = false;
     }
     if (globus_ftp_control_quit(handle, resp_callback, this) != GLOBUS_SUCCESS) {
     } else if (wait_for_callback() != CALLBACK_DONE) {
       res = false;
     }
-    if (globus_ftp_control_force_close(handle, resp_callback, this) != GLOBUS_SUCCESS) {
-    } else if (wait_for_callback() != CALLBACK_DONE) {
+    if (globus_ftp_control_force_close(handle, close_callback, this) != GLOBUS_SUCCESS) {
+    } else if (wait_for_close_callback() != CALLBACK_DONE) {
       res = false;
     }
     if(res) {
@@ -623,7 +665,7 @@ namespace Arc {
 
     bool reconnect = true;
 
-    if (connected)
+    if (connected) {
       if ((host == url.Host()) &&
           (port == url.Port()) &&
           (scheme == url.Protocol()) &&
@@ -632,9 +674,11 @@ namespace Arc {
         /* same server - check if connection alive */
         logger.msg(VERBOSE, "Reusing connection");
         if (send_command("NOOP", NULL, true, NULL) ==
-            GLOBUS_FTP_POSITIVE_COMPLETION_REPLY)
+            GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
           reconnect = false;
+        }
       }
+    }
 
     path = url.Path();
     if ((path.length() != 0) && (path[path.length() - 1] == '/'))
@@ -676,7 +720,12 @@ namespace Arc {
           username_ = default_gsiftp_user;
         if (userpass.empty())
           userpass_ = default_gsiftp_pass;
-        if (globus_ftp_control_auth_info_init(&auth, credential,
+        if (!credential) {
+          logger.msg(ERROR, "Missing authentication information");
+          result.SetDesc("Missing authentication information");
+          return result;
+        }
+        if (globus_ftp_control_auth_info_init(&auth, *credential,
                                               GLOBUS_TRUE, username_,
                                               userpass_, GLOBUS_NULL,
                                               GLOBUS_NULL) !=
@@ -717,6 +766,8 @@ namespace Arc {
         return result;
       }
       resp_destroy();
+    } else {
+      // Calling NOOP to test connection
     }
     return DataStatus::Success;
   }

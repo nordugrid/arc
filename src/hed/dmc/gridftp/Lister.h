@@ -36,6 +36,7 @@ namespace Arc {
     };
     callback_status_t callback_status;
     callback_status_t data_callback_status;
+    callback_status_t close_callback_status;
     globus_off_t list_shift;
     bool connected;
     bool pasv_set;
@@ -47,12 +48,16 @@ namespace Arc {
     std::string userpass;
     std::string path;
     std::string scheme;
-    GSSCredential& credential;
+    GSSCredential* credential;
 
-    callback_status_t wait_for_callback();
+    callback_status_t wait_for_callback(int to = -1);
     callback_status_t wait_for_data_callback();
+    callback_status_t wait_for_close_callback();
     void resp_destroy();
     static void resp_callback(void *arg, globus_ftp_control_handle_t *h,
+                              globus_object_t *error,
+                              globus_ftp_control_response_t *response);
+    static void close_callback(void *arg, globus_ftp_control_handle_t *h,
                               globus_object_t *error,
                               globus_ftp_control_response_t *response);
     static void simple_callback(void *arg, globus_ftp_control_handle_t *h,
@@ -75,8 +80,9 @@ namespace Arc {
     DataStatus transfer_list(void);
 
   public:
-    Lister(GSSCredential& credential);
+    Lister();
     ~Lister();
+    void set_credential(GSSCredential* cred) { credential = cred; };
     DataStatus retrieve_dir_info(const URL& url,bool names_only = false);
     DataStatus retrieve_file_info(const URL& url,bool names_only = false);
     operator bool() {
