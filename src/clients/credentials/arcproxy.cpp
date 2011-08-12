@@ -557,6 +557,12 @@ int main(int argc, char *argv[]) {
           //(this can happen when there are multiple voms server )
         }
       }
+      Arc::Time now;
+      Arc::Time till = voms_attributes[n].till;
+      if(now >= till)
+        std::cout << Arc::IString("Timeleft for AC: %s", (till-now).istr())<<std::endl;
+      else
+        std::cout << Arc::IString("AC has been expired for: %s", (now-till).istr())<<std::endl;
     }
     return EXIT_SUCCESS;
   }
@@ -1298,8 +1304,8 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("Failed to read proxy file "+proxy_path);
       proxy_cred_file.close();
 
-      if(usercfg.CertificatePath().empty() || usercfg.KeyPath().empty()) usercfg.ProxyPath(proxy_path);
-      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
+      usercfg.ProxyPath(proxy_path);
+      if(usercfg.CACertificatesDirectory().empty()) { usercfg.CACertificatesDirectory(ca_dir); }
 
       Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
       std::map<std::string,std::string> myproxyopt;
