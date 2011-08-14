@@ -205,7 +205,8 @@ int main(int argc, char *argv[]) {
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
                                     "  validityPeriod=time (e.g. 43200 or 12h or 12H; if both validityPeriod and validityEnd not specified, the default is 12 hours)\n"
-                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, validityPeriod is used\n"
+                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, validityPeriod is used)\n"
+                                    "  myproxyvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, validityPeriod is used)\n"
                                     "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file"));
 
@@ -399,49 +400,12 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
-    //if (proxy_path.empty())
-    //  proxy_path = Arc::GetEnv("X509_USER_PROXY");
     if (proxy_path.empty())
       proxy_path = usercfg.ProxyPath();
-    //if (proxy_path.empty())
-    //  proxy_path = Glib::build_filename(Glib::get_tmp_dir(), "x509up_u" + Arc::tostring(user.get_uid()));
 
-    //if (ca_dir.empty())
-    //  ca_dir = Arc::GetEnv("X509_CERT_DIR");
     if (ca_dir.empty())
       ca_dir = usercfg.CACertificatesDirectory();
-    //if (ca_dir.empty()) {
-    //  ca_dir = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
-    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-    //    ca_dir = "";
-    //}
-    //if (ca_dir.empty()) {
-    //  ca_dir = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates";
-    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-    //    ca_dir = "";
-    //}
-#ifndef WIN32
-    //if (ca_dir.empty()) {
-    //  ca_dir = "/etc/grid-security/certificates";
-    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-    //    ca_dir = "";
-    //}
-#endif
-    //if (ca_dir.empty()) {
-    //  ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates";
-    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-    //    ca_dir = "";
-    //}
-    //if (ca_dir.empty()) {
-    //  ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates";
-    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-    //    ca_dir = "";
-    //}
-    //if (ca_dir.empty()) {
-    //  ca_dir = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates";
-    //  if (!Glib::file_test(ca_dir, Glib::FILE_TEST_IS_DIR))
-    //    ca_dir = "";
-    //}
+
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
     tls_process_error(logger);
@@ -618,7 +582,7 @@ int main(int argc, char *argv[]) {
     constraints["vomsACvalidityPeriod"] = strtmp;
   }
 
-  //Set the default proxy validity lifetime to 12 hours if there is
+  //Set the default voms AC validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["vomsACvalidityPeriod"].empty()) {
     if ((constraints["validityEnd"].empty()) &&
@@ -632,6 +596,32 @@ int main(int argc, char *argv[]) {
   }
 
   std::string voms_period = Arc::tostring(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
+
+  if (!(constraints["myproxyvalidityPeriod"].empty()) &&
+      ((constraints["myproxyvalidityPeriod"].rfind("h") != std::string::npos) ||
+       (constraints["myproxyvalidityPeriod"].rfind("H") != std::string::npos))) {
+    unsigned long tmp;
+    tmp = strtoll(constraints["myproxyvalidityPeriod"].c_str(), NULL, 0);
+    tmp = tmp * 3600;
+    std::string strtmp = Arc::tostring(tmp);
+    constraints["myproxyvalidityPeriod"] = strtmp;
+  }
+
+  //Set the default myproxy validity lifetime to 12 hours if there is
+  //no validity lifetime provided by command caller
+  if (constraints["myproxyvalidityPeriod"].empty()) {
+    if ((constraints["validityEnd"].empty()) &&
+        (constraints["validityPeriod"].empty()))
+      constraints["myproxyvalidityPeriod"] = "43200";
+    else if ((constraints["validityEnd"].empty()) &&
+             (!(constraints["validityPeriod"].empty())))
+      constraints["myproxyvalidityPeriod"] = constraints["validityPeriod"];
+    else
+      constraints["myproxyvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
+  }
+
+  std::string myproxy_period = Arc::tostring(Arc::Period(constraints["myproxyvalidityPeriod"]).GetPeriod());
+
 
   Arc::OpenSSLInit();
 
@@ -816,21 +806,15 @@ int main(int argc, char *argv[]) {
       }
 
       std::string proxy_cred_str_pem;
+     
+      Arc::UserConfig usercfg_tmp(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+      usercfg_tmp.CACertificatesDirectory(usercfg.CACertificatesDirectory());
 
-      //if(usercfg.CertificatePath().empty()) usercfg.CertificatePath(cert_path);
-      //if(usercfg.KeyPath().empty()) usercfg.KeyPath(key_path);
-      if(usercfg.ProxyPath().empty() && !proxy_path.empty()) usercfg.ProxyPath(proxy_path);
-      else {
-        if(usercfg.CertificatePath().empty() && !cert_path.empty()) usercfg.CertificatePath(cert_path);
-        if(usercfg.KeyPath().empty() && !key_path.empty()) usercfg.KeyPath(key_path);
-      }      
-      if(usercfg.CACertificatesDirectory().empty()) usercfg.CACertificatesDirectory(ca_dir);
-
-      Arc::CredentialStore cstore(usercfg,Arc::URL("myproxy://"+myproxy_server));
+      Arc::CredentialStore cstore(usercfg_tmp,Arc::URL("myproxy://"+myproxy_server));
       std::map<std::string,std::string> myproxyopt;
       myproxyopt["username"] = user_name;
       myproxyopt["password"] = passphrase;
-      myproxyopt["lifetime"] = "43200";
+      myproxyopt["lifetime"] = myproxy_period;
       if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
       write_proxy_file(proxy_path,proxy_cred_str_pem);
@@ -1311,7 +1295,7 @@ int main(int argc, char *argv[]) {
       std::map<std::string,std::string> myproxyopt;
       myproxyopt["username"] = user_name;
       myproxyopt["password"] = passphrase;
-      myproxyopt["lifetime"] = "43200";
+      myproxyopt["lifetime"] = myproxy_period;
       if(!retrievable_by_cert.empty()) {
         myproxyopt["retriever_trusted"] = retrievable_by_cert;
       }
