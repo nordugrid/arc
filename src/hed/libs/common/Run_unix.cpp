@@ -199,10 +199,8 @@ namespace Arc {
           // returning false non-stop was observed. So here we 
           // are trying to prevent that.
           if((++storm_count) >= 10) {
-std::cout<<"--- "<<"!dispatched sleep"<<std::endl;
             sleep(1);
             storm_count = 0;
-std::cout<<"--- "<<"!dispatched sleep ends"<<std::endl;
           };
         } else {
           storm_count = 0;
