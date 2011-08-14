@@ -144,5 +144,6 @@ class JobDescription {
   bool GetLocalDescription(const JobUser &user);
   void Start() { start_time = time(NULL); };
   time_t GetStartTime() const { return start_time; };
+  void PrepareToDestroy(void);
 };
 #endif

@@ -133,6 +133,7 @@ class JobUser {
   /* Start/restart all helper processes */
   bool run_helpers(void);
   bool substitute(std::string& param) const;
+  void PrepareToDestroy(void);
 };
 
 /*

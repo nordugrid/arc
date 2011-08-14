@@ -490,6 +490,10 @@ bool JobUser::run_helpers(void) {
   return started;
 }
 
+void JobUser::PrepareToDestroy() {
+  // TODO: send signals to helpers and stop started threads
+}
+
 bool JobUsers::run_helpers(void) {
   for(iterator i=users.begin();i!=users.end();++i) {
     i->run_helpers();

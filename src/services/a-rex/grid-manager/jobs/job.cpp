@@ -109,7 +109,12 @@ JobDescription::JobDescription(const JobId &id,const std::string &dir,job_state_
 }
 
 JobDescription::~JobDescription(void){
- /* child is not destroyed here */
+  if(child) {
+    // Wait for downloader/uploader/script to finish
+    child->Wait();
+    delete child;
+    child=NULL;
+  }
 }
 
 bool JobDescription::GetLocalDescription(const JobUser &user) {
@@ -130,5 +135,11 @@ std::string JobDescription::GetFailure(const JobUser &user) const {
     reason+=failure_reason; reason+="\n";
   };
   return reason;
-};
+}
+
+void JobDescription::PrepareToDestroy(void) {
+  // We could send signals to downloaders and uploaders.
+  // But currently those do not implement safe shutdown.
+  // So we will simply wait for them to finish in destructor.
+}
 

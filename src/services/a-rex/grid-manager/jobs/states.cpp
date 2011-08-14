@@ -277,6 +277,12 @@ void JobsList::CalculateShares(){
   }
 }
 
+void JobsList::PrepareToDestroy(void) {
+  for(iterator i=jobs.begin();i!=jobs.end();++i) {
+    i->PrepareToDestroy();
+  }
+}
+
 bool JobsList::ActJobs(void) {
   JobsListConfig& jcfg = user->Env().jobs_cfg();
 /*

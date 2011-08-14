@@ -31,6 +31,7 @@ bool configure_user_dirs(const std::string &my_username,
                 std::string& gridftp_endpoint,
                 std::string& arex_endpoint,
                 const GMEnvironment& env) {
+logger.msg(Arc::FATAL,"Called configure_user_dirs");
   std::ifstream cfile;
   int gm_port = 0;
   std::string gm_mount_point;
@@ -48,6 +49,7 @@ bool configure_user_dirs(const std::string &my_username,
   };
   switch(config_detect(cfile)) {
     case config_file_XML: {
+logger.msg(Arc::FATAL,"configuration file is XML");
       Arc::XMLNode cfg;
       if(!cfg.ReadFromStream(cfile)) {
         logger.msg(Arc::ERROR,"Can't interpret configuration file as XML");
@@ -197,6 +199,7 @@ bool configure_user_dirs(const std::string &my_username,
       }; // for(control)
     }; break;
     case config_file_INI: {
+logger.msg(Arc::FATAL,"configuration file is INI");
       cf=new ConfigSections(cfile);
       cf->AddSection("common");
       cf->AddSection("grid-manager");
@@ -214,6 +217,7 @@ bool configure_user_dirs(const std::string &my_username,
             break;
           };
         };
+logger.msg(Arc::FATAL,"processing command '%s' in section %u",command,cf->SectionNum());
         if(cf->SectionNum() == 2) { // queue
           if(cf->SectionNew()) {
             const char* name = cf->SubSection();
@@ -272,10 +276,13 @@ bool configure_user_dirs(const std::string &my_username,
         }
         else if(command == "norootpower") {
           std::string s = config_next_arg(rest);
+logger.msg(Arc::FATAL,"processing norootpower with argument '%s' and rest '%s'",s,rest);
           if(strcasecmp("yes",s.c_str()) == 0) {
+logger.msg(Arc::FATAL,"norootpower is yes");
             strict_session=true;
           }
           else if(strcasecmp("no",s.c_str()) == 0) {
+logger.msg(Arc::FATAL,"norootpower is no");
             strict_session=false;
           };
         }
@@ -345,6 +352,7 @@ bool configure_user_dirs(const std::string &my_username,
     }; break;
 
     default: {
+logger.msg(Arc::FATAL,"configuration file is of unknow type");
     }; break;
   };
   config_close(cfile);

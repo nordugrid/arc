@@ -119,8 +119,7 @@ static void* cache_func(void* arg) {
 }
 
 typedef struct {
-  pthread_cond_t* sleep_cond;
-  pthread_mutex_t* sleep_mutex;
+  Arc::SimpleCondition* sleep_cond;
   CommFIFO* timeout;
 } sleep_st;
 
@@ -128,18 +127,14 @@ static void* wakeup_func(void* arg) {
   sleep_st* s = (sleep_st*)arg;
   for(;;) {
     s->timeout->wait();
-    pthread_mutex_lock(s->sleep_mutex);
-    pthread_cond_signal(s->sleep_cond);
-    pthread_mutex_unlock(s->sleep_mutex);
+    s->sleep_cond->signal();
   };
   return NULL;
 }
 
 static void kick_func(void* arg) {
   sleep_st* s = (sleep_st*)arg;
-  pthread_mutex_lock(s->sleep_mutex);
-  pthread_cond_signal(s->sleep_cond);
-  pthread_mutex_unlock(s->sleep_mutex);
+  s->sleep_cond->signal();
 }
 
 typedef struct {
@@ -234,11 +229,8 @@ void GridManager::grid_manager(void* arg) {
   pthread_t wakeup_thread;
   pthread_t cache_thread;
   time_t hard_job_time; 
-  pthread_cond_t sleep_cond = PTHREAD_COND_INITIALIZER;
-  pthread_mutex_t sleep_mutex = PTHREAD_MUTEX_INITIALIZER;
   sleep_st wakeup_h;
-  wakeup_h.sleep_cond=&sleep_cond;
-  wakeup_h.sleep_mutex=&sleep_mutex;
+  wakeup_h.sleep_cond=gm->sleep_cond_;
   wakeup_h.timeout=&wakeup_interface;
   for(JobUsers::iterator i = users.begin();i!=users.end();++i) {
     wakeup_interface.add(*i);
@@ -342,6 +334,7 @@ void GridManager::grid_manager(void* arg) {
   /* main loop - forever */
   logger.msg(Arc::INFO,"Starting jobs' monitoring");
   for(;;) {
+    if(gm->tostop_) break;
     users.run_helpers();
     env.job_log().RunReporter(users);
     my_user->run_helpers();
@@ -368,9 +361,7 @@ void GridManager::grid_manager(void* arg) {
       user->get_jobs()->ActJobs();
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;
-    pthread_mutex_lock(&sleep_mutex);
-    pthread_cond_wait(&sleep_cond,&sleep_mutex);
-    pthread_mutex_unlock(&sleep_mutex);
+    gm->sleep_cond_->wait();
 //#    if(run.was_hup()) {
 //#      logger.msg(Arc::INFO,"SIGHUP detected");
 //#//      if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
@@ -381,6 +372,17 @@ void GridManager::grid_manager(void* arg) {
       logger.msg(Arc::DEBUG,"Waking up");
 //#    };
   };
+  // Waiting for children to finish
+  logger.msg(Arc::INFO,"Stopping jobs processing thread");
+  for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+    user->PrepareToDestroy();
+    user->get_jobs()->PrepareToDestroy();
+  };
+  logger.msg(Arc::INFO,"Destroying jobs and waiting for underlying processes to finish");
+  for(JobUsers::iterator user = users.begin();user != users.end();++user) {
+    delete user->get_jobs();
+  };
+  gm->active_ = false;
   return;
 }
 
@@ -404,24 +406,31 @@ GridManager::GridManager(Arc::XMLNode argv):active_(false) {
 }
 */
 
-GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false) {
+GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false),tostop_(false) {
   env_ = &env;
   users_ = new JobUsers(env);
   dtr_generator_ = NULL;
+  sleep_cond_ = new Arc::SimpleCondition;
   void* arg = (void*)this; // config_filename?strdup(config_filename):NULL;
   active_=Arc::CreateThreadFunction(&grid_manager,arg);
   //if(!active_) if(arg) free(arg);
 }
 
 GridManager::~GridManager(void) {
-  logger.msg(Arc::INFO, "Shutting down grid-manager thread");
+  logger.msg(Arc::INFO, "Shutting down job processing");
   if(active_) {
     if (dtr_generator_) {
       logger.msg(Arc::INFO, "Shutting down data staging threads");
       delete dtr_generator_;
     }
     // Stop GM thread
+    tostop_ = true;
+    while(active_) {
+      sleep_cond_->signal();
+      sleep(1); // TODO: use condition
+    }
   }
+  delete sleep_cond_;
 }
 
 } // namespace ARex
