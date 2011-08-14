@@ -1,6 +1,7 @@
 <?php
 
 // ------ Labels: strings, titles, error messages etc, locale-dependent
+// -- DEFAULT (mandatory for the Monitor to work)
 // -- English [en]
 // -- Author: oxana.smirnova@hep.lu.se
 

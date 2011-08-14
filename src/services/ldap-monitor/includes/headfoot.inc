@@ -71,7 +71,7 @@ class LmDoc { // class LmDoc
 
 	$yaccept = @$_SERVER["HTTP_ACCEPT_LANGUAGE"] ;
 	if ( !$yaccept ) $yaccept = "en";
-  if ( FORCE_LANG != "default" ) $yaccept = FORCE_LANG;
+	if ( FORCE_LANG != "default" ) $yaccept = FORCE_LANG;
 	$yazyk  = "en";
 	$yazyki = explode(",",$yaccept);
 	foreach ( $yazyki as $option ) {

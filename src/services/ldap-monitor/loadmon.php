@@ -457,6 +457,18 @@ $rowcont[] = "<b><i>$sumgridqueued + $sumloclqueued</i></b>";
 $ctable->addrow($rowcont, "#ffffff");
 $ctable->close();
 
+// To change language, link back to ALL
+
+$linkback = $_SERVER['PHP_SELF'];
+if ( $debug ) {
+  $linkback .= "?debug=".$debug;
+  $separator = "&";
+ } else {
+  $separator = "?";
+ }
+
+// Show flags if only one country is chosen
+
 if ( @$showvo ) {
   echo "<br><nobr>\n";
   foreach ( $votolink as $volink ) {
@@ -466,12 +478,24 @@ if ( @$showvo ) {
     $voimage   = "<img src=\"./mon-icons/$volink.png\" title=\"".$errors["312"]."$volink\" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">";
     echo "<a href=\"$vostring\">$voimage</a>&nbsp;&nbsp;";
   }
-  $linkback = $_SERVER['PHP_SELF'];
-  if ( $lang != "default") $linkback .= "?lang=".$lang;
-  if ( $debug ) $linkback .= "&debug=".$debug;
-  echo "<a href=\"".$linkback."\"><b>".$errors["409"]."</b></a><BR>\n";
+  if ( $lang != "default") $linkall = $linkback.$separator."lang=".$lang;
+  echo "<a href=\"".$linkall."\"><b>".$errors["409"]."</b></a><BR>\n";  // Show ALL
   echo "</nobr>\n";
-}
+ } else {
+
+  // Show languages
+  
+  $translations = scandir(getcwd()."/lang");
+  echo "<center><br><nobr>\n";
+  foreach ( $translations as $transfile ) {
+    $twoletcod = substr($transfile,0,2);
+    if ( stristr($transfile,".") == ".inc" && $twoletcod != "us" ) {
+      $linklang = $linkback.$separator."lang=".$twoletcod;
+      echo "<a href=\"".$linklang."\">$twoletcod</a>&nbsp;&nbsp;";
+    }
+  }
+  echo "</nobr><br></center>\n";
+ }
 
 return 0;
 

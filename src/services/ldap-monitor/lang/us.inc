@@ -1,8 +1,9 @@
 <?php
 
 // ------ Labels: strings, titles, error messages etc, locale-dependent
+// -- TEMPLATE !!! Replace English phrases on right side of assignments with your language
 // -- <Language> [<2-letter code>]
-// -- Translation: <your details here>
+// -- Translation: <your details (e-mail or such) here>
 // -- Author: oxana.smirnova@hep.lu.se
 
 // Some common strings:
