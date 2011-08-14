@@ -595,7 +595,14 @@ int main(int argc, char *argv[]) {
       constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
   }
 
-  std::string voms_period = Arc::tostring(Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod());
+  //If the voms AC lifetime is set more that 24 hours, then shorten it to 24 hours.
+  unsigned long period_val;
+  period_val = Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod();
+  if(period_val > 86400) period_val = 86400;
+  std::string period_str = Arc::tostring(period_val);
+  constraints["vomsACvalidityPeriod"] = period_str;
+
+  std::string voms_period = period_str;
 
   if (!(constraints["myproxyvalidityPeriod"].empty()) &&
       ((constraints["myproxyvalidityPeriod"].rfind("h") != std::string::npos) ||
