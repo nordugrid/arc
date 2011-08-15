@@ -922,7 +922,7 @@ namespace Arc {
         destination_url.FinishWriting(true);
         buffer.error_write(true);
       }
-      else if (!destination_url.FinishWriting(false)) {
+      else if (!destination_url.FinishWriting(buffer.error())) {
         logger.msg(ERROR, "Failed to complete writing to destination");
         buffer.error_write(true);
       }

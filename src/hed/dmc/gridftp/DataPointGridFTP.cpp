@@ -555,7 +555,7 @@ namespace Arc {
     cond.wait();
     // checksum verification
     const CheckSum * calc_sum = buffer->checksum_object();
-    if (calc_sum && *calc_sum && buffer->checksum_valid()) {
+    if (!buffer->error() && calc_sum && *calc_sum && buffer->checksum_valid()) {
       char buf[100];
       calc_sum->print(buf,100);
       std::string csum(buf);
