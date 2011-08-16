@@ -1089,6 +1089,8 @@ namespace Arc {
     }
     if (credential)
       delete credential;
+    if (lister)
+      delete lister;
     // See activation for description
     //globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);
   }
