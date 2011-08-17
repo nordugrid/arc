@@ -34,19 +34,19 @@
 if [ -f /etc/init.d/functions ]; then
     . /etc/init.d/functions
     log_success_msg() {
-	echo -n "$@"
-	success "$@"
-	echo
+        echo -n "$@"
+        success "$@"
+        echo
     }
     log_warning_msg() {
-	echo -n "$@"
-	warning "$@"
-	echo
+        echo -n "$@"
+        warning "$@"
+        echo
     }
     log_failure_msg() {
-	echo -n "$@"
-	failure "$@"
-	echo
+        echo -n "$@"
+        failure "$@"
+        echo
     }
 elif [ -f /lib/lsb/init-functions ]; then
     . /lib/lsb/init-functions
@@ -58,24 +58,24 @@ fi
 add_library_path() {
     location="$1"
     if [ ! "x$location" = "x" ] ; then
-	if [ ! "$location" = "/usr" ] ; then
-	    libdir="$location/lib"
-	    libdir64="$location/lib64"
-	    if [ -d "$libdir64" ] ; then
-		if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-		    LD_LIBRARY_PATH="$libdir64"
-		else
-		    LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
-		fi
-	    fi
-	    if [ -d "$libdir" ] ; then
-		if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-		    LD_LIBRARY_PATH="$libdir"
-		else
-		    LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
-		fi
-	    fi
-	fi
+        if [ ! "$location" = "/usr" ] ; then
+            libdir="$location/lib"
+            libdir64="$location/lib64"
+            if [ -d "$libdir64" ] ; then
+                if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+                    LD_LIBRARY_PATH="$libdir64"
+                else
+                    LD_LIBRARY_PATH="$libdir64:$LD_LIBRARY_PATH"
+                fi
+            fi
+            if [ -d "$libdir" ] ; then
+                if [ "x$LD_LIBRARY_PATH" = "x" ]; then
+                    LD_LIBRARY_PATH="$libdir"
+                else
+                    LD_LIBRARY_PATH="$libdir:$LD_LIBRARY_PATH"
+                fi
+            fi
+        fi
     fi
 }
 
@@ -113,45 +113,45 @@ export ARC_LOCATION
 readconfigvar() {
     fname=$1
     if [ ! -r "$fname" ]; then
-	return
+        return
     fi
     bname="[$2]"
     vname=$3
     value=
     cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
-	while true; do
-	    read line
-	    if [ ! $? = 0 ] ; then
-		return
-	    fi
-	    if [ "$line" = "$bname" ] ; then
-		while true ; do
-		    read line
-		    if [ ! $? = 0 ] ; then
-			return
-		    fi
-		    lstart=`echo "$line" | head -c 1`
-		    if [ "$lstart" = '[' ] ; then
-			return
-		    fi
-		    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
-		    if [ "$vlname" = "$vname" ] ; then
-			val=`echo "$line" | sed 's/[^=]*=//'`
-			eval "echo $val"
-			return
-		    fi
-		done
-	    fi
-	done
+        while true; do
+            read line
+            if [ ! $? = 0 ] ; then
+                return
+            fi
+            if [ "$line" = "$bname" ] ; then
+                while true ; do
+                    read line
+                    if [ ! $? = 0 ] ; then
+                        return
+                    fi
+                    lstart=`echo "$line" | head -c 1`
+                    if [ "$lstart" = '[' ] ; then
+                        return
+                    fi
+                    vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+                    if [ "$vlname" = "$vname" ] ; then
+                        val=`echo "$line" | sed 's/[^=]*=//'`
+                        eval "echo $val"
+                        return
+                    fi
+                done
+            fi
+        done
     }
 }
 
 # ARC_CONFIG
 if [ "x$ARC_CONFIG" = "x" ]; then
     if [ -r $ARC_LOCATION/etc/arc.conf ]; then
-	ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
+        ARC_CONFIG=$ARC_LOCATION/etc/arc.conf
     elif [ -r /etc/arc.conf ]; then
-	ARC_CONFIG=/etc/arc.conf
+        ARC_CONFIG=/etc/arc.conf
     fi
 fi
 
@@ -161,17 +161,17 @@ PID_FILE=`readconfigvar "$ARC_CONFIG" grid-manager pidfile`
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
     if [ -d /var/lock/subsys ]; then
-	LOCKFILE=/var/lock/subsys/$prog-arex
+        LOCKFILE=/var/lock/subsys/$prog-arex
     else
-	LOCKFILE=/var/lock/$prog-arex
+        LOCKFILE=/var/lock/$prog-arex
     fi
     if [ "x$PID_FILE" = "x" ]; then
-	PID_FILE=/var/run/$prog-arex.pid
+        PID_FILE=/var/run/$prog-arex.pid
     fi
 else
     LOCKFILE=$HOME/$prog-arex.lock
     if [ "x$PID_FILE" = "x" ]; then
-	PID_FILE=$HOME/$prog-arex.pid
+        PID_FILE=$HOME/$prog-arex.pid
     fi
 fi
 
@@ -179,13 +179,13 @@ prepare() {
 
     CMD="$ARC_LOCATION/sbin/$prog"
     if [ ! -x "$CMD" ]; then
-	log_failure_msg "Missing executable"
-	exit 1
+        log_failure_msg "Missing executable"
+        exit 1
     fi
 
     if [ ! -r "$ARC_CONFIG" ]; then
-	log_warning_msg "ARC configuration not found (usually /etc/arc.conf)"
-	exit 0
+        log_warning_msg "ARC configuration not found (usually /etc/arc.conf)"
+        exit 0
     fi
 
     # Creating configuration file of arched
@@ -210,25 +210,25 @@ prepare() {
     MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_infosys_requests`
     MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_CONFIG" grid-manager max_data_transfer_requests`
     if [ -z "$X509_USER_CERT" ] ; then
-	X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
+        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi
     if [ -z "$X509_USER_KEY" ] ; then
-	X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
+        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
-	X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
+        X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
     fi
     if [ -z "$GRIDMAP" ] ; then
-	GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
+        GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
     fi
     if [ -z "$GLOBUS_TCP_PORT_RANGE" ] ; then
-	GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
+        GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_tcp_port_range`
     fi
     if [ -z "$GLOBUS_UDP_PORT_RANGE" ] ; then
-	GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
+        GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_CONFIG" common globus_udp_port_range`
     fi
     if [ -z "$VOMS_PROCESSING" ] ; then
-	VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
+        VOMS_PROCESSING=`readconfigvar "$ARC_CONFIG" common voms_processing`
     fi
 
     # Exporting collected variables
@@ -241,16 +241,16 @@ prepare() {
 
     # Required defaults
     if [ -z "$GRIDMAP" ] ; then
-	GRIDMAP=/etc/grid-security/grid-mapfile
+        GRIDMAP=/etc/grid-security/grid-mapfile
     fi
     if [ -z "$X509_USER_CERT" ] ; then
-	X509_USER_CERT=/etc/grid-security/hostcert.pem
+        X509_USER_CERT=/etc/grid-security/hostcert.pem
     fi
     if [ -z "$X509_USER_KEY" ] ; then
-	X509_USER_KEY=/etc/grid-security/hostkey.pem
+        X509_USER_KEY=/etc/grid-security/hostkey.pem
     fi
     if [ -z "$X509_CERT_DIR" ] ; then
-	X509_CERT_DIR=/etc/grid-security/certificates
+        X509_CERT_DIR=/etc/grid-security/certificates
     fi
 
     # Web Service configuration
@@ -258,24 +258,24 @@ prepare() {
     arex_mount_point=`readconfigvar "$ARC_CONFIG" grid-manager arex_mount_point`
     arex_mount_point=${arex_mount_point:-`readconfigvar "$ARC_CONFIG" cluster arex_mount_point`}
     if [ ! -z "$arex_mount_point" ] ; then
-	arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
-	arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
-	arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
-	arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
-	if [ -z "$arex_port" ] ; then
-	    if [ "$arex_proto" = "https" ] ; then
-		arex_port="443"
-	    else
-		arex_port="80"
-	    fi
-	fi
-	arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
+        arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
+        arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
+        arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
+        arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
+        if [ -z "$arex_port" ] ; then
+            if [ "$arex_proto" = "https" ] ; then
+                arex_port="443"
+            else
+                arex_port="80"
+            fi
+        fi
+        arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
     fi
 
     AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
     if [ -z "$AREX_CONFIG" ] ; then
-	log_failure_msg "Failed to create temporary file"
-	exit 1
+        log_failure_msg "Failed to create temporary file"
+        exit 1
     fi
 
     CMD="$CMD -c '$AREX_CONFIG'"
@@ -291,38 +291,38 @@ prepare() {
     add_library_path "$VOMS_LOCATION"
     add_library_path "$GLOBUS_LOCATION"
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
-	LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
+        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
     else
-	LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
+        LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
     fi
     export LD_LIBRARY_PATH
 
     case "$LOGLEVEL" in 
-	0) LOGLEVEL="FATAL" ;;
-	1) LOGLEVEL="ERROR" ;;
-	2) LOGLEVEL="WARNING" ;;
-	3) LOGLEVEL="INFO" ;;
-	4) LOGLEVEL="VERBOSE" ;;
-	5) LOGLEVEL="DEBUG" ;;
-	*) LOGLEVEL="WARNING" ;;
+        0) LOGLEVEL="FATAL" ;;
+        1) LOGLEVEL="ERROR" ;;
+        2) LOGLEVEL="WARNING" ;;
+        3) LOGLEVEL="INFO" ;;
+        4) LOGLEVEL="VERBOSE" ;;
+        5) LOGLEVEL="DEBUG" ;;
+        *) LOGLEVEL="WARNING" ;;
     esac
 
     if [ "$USERNAME" = "root" ] ; then
-	USERNAME=""
+        USERNAME=""
     fi
 
     LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
     if [ ! -d `dirname $LOGFILE` ]; then
-	mkdir -p `dirname $LOGFILE`
+        mkdir -p `dirname $LOGFILE`
     fi
     LOGSIZE=${LOGSIZE:--1 -1}
     LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
     LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
     LOGREOPEN=${LOGREOPEN:-no}
     if [ "$LOGREOPEN" = "yes" ] ; then
-	LOGREOPEN="true"
+        LOGREOPEN="true"
     else
-	LOGREOPEN="false"
+        LOGREOPEN="false"
     fi
     VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
     MAX_JOB_CONTROL_REQUESTS=${MAX_JOB_CONTROL_REQUESTS:-100}
@@ -330,7 +330,7 @@ prepare() {
     MAX_DATA_TRANSFER_REQUESTS=${MAX_DATA_TRANSFER_REQUESTS:-100}
 
     if [ ! -z "$USERNAME" ] ; then
-	CMD="$CMD -u '$USERNAME'"
+        CMD="$CMD -u '$USERNAME'"
     fi
 
     # A-Rex without WS interface
@@ -454,16 +454,16 @@ prepare() {
 "
 
     if [ -z "$arex_proto" ] ; then
-	echo "$AREXCFG" > "$AREX_CONFIG"
+        echo "$AREXCFG" > "$AREX_CONFIG"
     elif [ "$arex_proto" = "https" ] ; then
-	echo "$AREXCFGWSS" > "$AREX_CONFIG"
+        echo "$AREXCFGWSS" > "$AREX_CONFIG"
     else
-	log_failure_msg "Unsupported protocol: $arex_proto"
-	exit 1
+        log_failure_msg "Unsupported protocol: $arex_proto"
+        exit 1
     fi
 
     if [ ! -z "$USERNAME" ] ; then
-	[ -f $AREX_CONFIG ] && chown $USERNAME $AREX_CONFIG
+        [ -f $AREX_CONFIG ] && chown $USERNAME $AREX_CONFIG
     fi
 }
 
@@ -478,15 +478,15 @@ start() {
 
     # Check if we are already running
     if [ -f $PID_FILE ]; then
-	read pid < $PID_FILE
-	if [ "x$pid" != "x" ]; then
-	    ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
-	    if [ $? -eq 0 ] ; then
-		log_success_msg "already running (pid $pid)"
-		return 0
-	    fi
-	fi
-	rm -f "$PID_FILE" "$LOCKFILE"
+        read pid < $PID_FILE
+        if [ "x$pid" != "x" ]; then
+            ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+            if [ $? -eq 0 ] ; then
+                log_success_msg "already running (pid $pid)"
+                return 0
+            fi
+        fi
+        rm -f "$PID_FILE" "$LOCKFILE"
     fi
 
     prepare
@@ -496,10 +496,10 @@ start() {
     rm -f "$AREX_CONFIG"
 
     if [ $RETVAL -eq 0 ]; then
-	touch $LOCKFILE
-	log_success_msg
+        touch $LOCKFILE
+        log_success_msg
     else
-	log_failure_msg
+        log_failure_msg
     fi
     return $RETVAL
 }
@@ -508,50 +508,59 @@ stop() {
     echo -n "Stopping $prog: "
 
     if [ -f "$PID_FILE" ]; then
-	read pid < "$PID_FILE"
-	if [ ! -z "$pid" ] ; then
-	    kill "$pid"
-	    RETVAL=$?
-	    if [ $RETVAL -eq 0 ]; then
-		log_success_msg
-	    else
-		log_failure_msg
-	    fi
+        read pid < "$PID_FILE"
+        if [ ! -z "$pid" ] ; then
+            if [ "x$1" != "x" ]; then
+                # kill whole process group on force-kill
+                kill -TERM "-$pid"
+            else
+                kill "$pid"
+            fi
+            RETVAL=$?
+            if [ $RETVAL -eq 0 ]; then
+                log_success_msg
+            else
+                log_failure_msg
+            fi
+      
+      timeout=84600; # "forever" for stopping nicely
+      if [ "x$1" != "x" ]; then
+              timeout=1 # 1 second for force-kill
+            fi
+            
+            while ( ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [ $timeout -ge 1 ] ; do
+                sleep 1
+                timeout=$(($timeout - 1))
+            done
 
-	    timeout=30
-	    while ( ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [ $timeout -ge 1 ] ; do
-		sleep 1
-		timeout=$(($timeout - 1))
-	    done
-
-	    [ $timeout -lt 1 ] && kill -9 "$pid" 1>/dev/null 2>&1
-	    rm -f "$PID_FILE" "$LOCKFILE"
-	else
-	    RETVAL=1
-	    log_failure_msg "$prog shutdown - pidfile is empty"
-	fi
+            [ $timeout -lt 1 ] && kill -9 "$pid" 1>/dev/null 2>&1
+            rm -f "$PID_FILE" "$LOCKFILE"
+        else
+            RETVAL=1
+            log_failure_msg "$prog shutdown - pidfile is empty"
+        fi
     else
-	RETVAL=0
-	log_success_msg "$prog shutdown - already stopped"
+        RETVAL=0
+        log_success_msg "$prog shutdown - already stopped"
     fi
     return $RETVAL
 }
 
 status() {
     if [ -f "$PID_FILE" ]; then
-	read pid < "$PID_FILE"
-	if [ "$pid" != "" ]; then
-	    if ps -p "$pid" > /dev/null; then
-		echo "$1 (pid $pid) is running..."
-		return 0
-	    fi
-	    echo "$1 stopped but pid file exists"
-	    return 1
-	fi
+        read pid < "$PID_FILE"
+        if [ "$pid" != "" ]; then
+            if ps -p "$pid" > /dev/null; then
+                echo "$1 (pid $pid) is running..."
+                return 0
+            fi
+            echo "$1 stopped but pid file exists"
+            return 1
+        fi
     fi
     if [ -f $LOCKFILE ]; then
-	echo "$1 stopped but lockfile exists"
-	return 2
+        echo "$1 stopped but lockfile exists"
+        return 2
     fi
     echo "$1 is stopped"
     return 3
@@ -564,26 +573,29 @@ restart() {
 
 case "$1" in
     start)
-	start
-	;;
+        start
+        ;;
     stop)
-	stop
-	;;
+        stop
+        ;;
     status)
-	status $prog
-	;;
+        status $prog
+        ;;
     restart | force-reload)
-	restart
-	;;
+        restart
+        ;;
     reload)
-	;;
+        ;;
     condrestart | try-restart)
-	[ -f $LOCKFILE ] && restart || :
-	;;
+        [ -f $LOCKFILE ] && restart || :
+        ;;
+          force-kill)
+        stop 1
+        ;;
     *)
-	echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart}"
-	exit 1
-	;;
+        echo "Usage: $0 {start|stop|status|restart|force-reload|reload|condrestart|try-restart|force-kill}"
+        exit 1
+        ;;
 esac
 
 exit $?
