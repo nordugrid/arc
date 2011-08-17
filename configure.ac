@@ -787,7 +787,7 @@ fi
 if test "$enables_hed" = "yes"; then
 XMLSEC_MIN_VERSION="1.2.4"
 XMLSEC_OPENSSL_MIN_VERSION="1.2.4"
-XMLSEC_CONFIG="xmlsec1-config"
+XMLSEC_CONFIG="${XMLSEC1_CONFIG:-xmlsec1-config}"
 XMLSEC_CFLAGS=""
 XMLSEC_LIBS=""
 XMLSEC_INSTALLED=no
