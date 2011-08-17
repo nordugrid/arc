@@ -523,9 +523,9 @@ stop() {
                 log_failure_msg
             fi
       
-      timeout=84600; # "forever" for stopping nicely
-      if [ "x$1" != "x" ]; then
-              timeout=1 # 1 second for force-kill
+            timeout=84600; # "forever" for stopping nicely
+            if [ "x$1" != "x" ]; then
+                timeout=1 # 1 second for force-kill
             fi
             
             while ( ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [ $timeout -ge 1 ] ; do
