@@ -653,6 +653,15 @@ x509_cert_dir="/etc/grid-security/certificates"
 # http_proxy - http proxy server location
 http_proxy="proxy.mydomain.org:3128"
 
+# arex_mount_point - enables web services interfaces, including 
+#  job execution and information system. The argument is
+#  an https URL defining the endpoint port and path:
+#      https://<hostname>:<port>/<path>
+#  In order to submit job a client must specify the exact published
+#  path. Make sure the choosen port is not blocked by firewall
+#  or other security rules.
+#arex_mount_point="https://piff.hep.lu.se:60000/arex"
+
 ####################################################################
 #
 # [gridftpd] block configures the gridftpd server
