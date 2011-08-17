@@ -1552,6 +1552,8 @@ err:
       //CredentialLogger.msg(ERROR,"VOMS: problems while parsing information in AC");
       res = false;
     }
+
+    if(issuer) X509_free(issuer);
     return res;
   }
 
@@ -1600,6 +1602,7 @@ err:
       ERR_clear_error();
     } 
 
+    if(aclist) listfree((char **)aclist, (freefn)AC_free);
     return verified;
   }
 
