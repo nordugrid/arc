@@ -74,7 +74,10 @@ void FileAccessTest::TestOpenWriteReadStat() {
   CPPUNIT_ASSERT_EQUAL(0,::stat(testfile.c_str(),&st));
   CPPUNIT_ASSERT_EQUAL((int)testdata.length(),(int)st.st_size);
   CPPUNIT_ASSERT_EQUAL(uid,st.st_uid);
-  CPPUNIT_ASSERT_EQUAL(gid,st.st_gid);
+  // Group ownership of a file is not guaranteed to be gid of user proces.
+  // This is especially true on MAC OSX:
+  //  https://bugzilla.nordugrid.org/show_bug.cgi?id=2089#c3
+  //CPPUNIT_ASSERT_EQUAL(gid,st.st_gid);
   CPPUNIT_ASSERT_EQUAL(0600,(int)(st.st_mode & 0777));
   CPPUNIT_ASSERT(fa.open(testfile,O_RDONLY,0));
   char buf[16];
