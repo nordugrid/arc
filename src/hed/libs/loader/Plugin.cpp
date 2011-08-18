@@ -515,6 +515,7 @@ namespace Arc {
     if(mod) {
       desc.name = name;
       mod->get(desc.plugins);
+      delete mod;
       return true;
     }
     // Descriptor not found

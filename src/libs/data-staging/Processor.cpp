@@ -32,6 +32,7 @@ namespace DataStaging {
   void Processor::DTRCheckCache(void* arg) {
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
 
     setUpLogger(request);
 
@@ -180,6 +181,7 @@ namespace DataStaging {
     // call request.destination.PreRegister() to lock destination LFN
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
 
     setUpLogger(request);
 
@@ -249,6 +251,7 @@ namespace DataStaging {
     // check source is ok and obtain metadata
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
 
     setUpLogger(request);
 
@@ -291,6 +294,7 @@ namespace DataStaging {
     // only if the entry already exists
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
     setUpLogger(request);
 
     Arc::DataStatus res = Arc::DataStatus::Success;
@@ -363,6 +367,7 @@ namespace DataStaging {
     // and/or request.destination.PrepareWriting() to get TURL for writing or query status of request
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
 
     setUpLogger(request);
 
@@ -450,6 +455,7 @@ namespace DataStaging {
     // request.destination.FinishWriting() to release or abort requests
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
     setUpLogger(request);
 
     Arc::DataStatus res;
@@ -491,6 +497,7 @@ namespace DataStaging {
     // RESOLVE stage for error workflow
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
     setUpLogger(request);
 
     // TODO: If the copy completed before request was cancelled, unregistering
@@ -526,6 +533,7 @@ namespace DataStaging {
     // of error or deciding not to use cache (for example because of a mapped link)
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR* request = targ->dtr;
+    delete targ;
     setUpLogger(request);
 
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,

@@ -694,12 +694,14 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     JobLocalDescription *job_desc = new JobLocalDescription;
     if (!job_local_read_file(jobid, *jobuser, *job_desc)) {
       logger.msg(Arc::ERROR, "%s: Failed reading local information", jobid);
+      delete job_desc;
       continue;
     }
     job_desc->transfershare = dtr.get_transfer_share();
     if (!job_local_write_file(job, *jobuser, *job_desc)) {
       logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
     }
+    delete job_desc;
   }
   return true;
 }

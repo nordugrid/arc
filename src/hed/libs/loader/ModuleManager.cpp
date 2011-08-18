@@ -97,7 +97,7 @@ std::string ModuleManager::find(const std::string& name)
 Glib::Module *ModuleManager::load(const std::string& name,bool probe /*,bool reload*/ )
 {
   if (!Glib::Module::get_supported()) {
-    return false;
+    return NULL;
   }
   // find name in plugin_cache
   {

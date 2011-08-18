@@ -343,6 +343,7 @@ namespace Arc {
       CloseStderr();
       CloseStdin();
       RunPump::Instance().Remove(this);
+      delete pid_;
     };
   }
 
