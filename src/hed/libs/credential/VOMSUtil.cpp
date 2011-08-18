@@ -1602,7 +1602,7 @@ err:
       ERR_clear_error();
     } 
 
-    if(aclist) listfree((char **)aclist, (freefn)AC_free);
+    if(aclist)AC_SEQ_free(aclist);
     return verified;
   }
 
