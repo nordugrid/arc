@@ -39,7 +39,7 @@ ERROR = False
 
 
 # static file locations
-DEFAULT_LOGFILE        = '/var/log/arc-ur-registration.log'
+DEFAULT_LOGFILE        = '/var/log/arc/ur-registration.log'
 
 # config sections
 CONFIG_SECTION_COMMON  = 'common'
@@ -64,7 +64,7 @@ DEFAULT_NORDUGRID_CONFIG_FILE = "/etc/nordugrid.conf"
 DEFAULT_HOSTKEY      = '/etc/grid-security/hostkey.pem'
 DEFAULT_HOSTCERT     = '/etc/grid-security/hostcert.pem'
 DEFAULT_CERTDIR      = '/etc/grid-security/certificates'
-DEFAULT_LOG_DIR      = '/var/spool/nordugrid/usagerecords/'
+DEFAULT_LOG_DIR      = '/var/spool/arc/usagerecords/'
 DEFAULT_BATCH_SIZE   = 100
 DEFAULT_UR_LIFETIME  = 30 # days
 

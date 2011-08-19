@@ -25,7 +25,7 @@ except ImportError:
 
 
 # constant / defaults
-DEFAULT_LOG_DIR    = "/var/spool/nordugrid/usagerecords"
+DEFAULT_LOG_DIR    = "/var/spool/arc/usagerecords"
 DEFAULT_LOGLEVEL   = logging.INFO
 UR_DIRECTORY       = "urs"
 GM_DEFAULT_PORT    = 2811
@@ -60,7 +60,7 @@ LOGLEVELS = {
 ARC_DEFAULT_CONFIG_FILE       = "/etc/arc.conf"
 NORDUGRID_DEFAULT_CONFIG_FILE = "/etc/nordugrid.conf"
 GRID_VO_MAPFILE               = "/etc/grid-security/grid-vo-mapfile"
-DEFAULT_LOGFILE               = "/var/log/arc-ur-logger.log"
+DEFAULT_LOGFILE               = "/var/log/arc/ur-logger.log"
 
 # executables
 VOMS_PROXY_INFO = 'voms-proxy-info'
