@@ -101,7 +101,7 @@ done
 done
 
 # No need to continue further if no jobs have status INLRMS
-if [ "x${localids[@]}" = "x" ];then
+if [ ${#localids[@]} -eq 0 ]; then
     exit 0
 fi
 
