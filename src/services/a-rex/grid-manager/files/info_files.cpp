@@ -76,7 +76,7 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
 static bool job_state_write_file(const std::string &fname,job_state_t state,bool pending = false);
-static bool job_Xput_read_file(std::list<FileData> &files);
+// static bool job_Xput_read_file(std::list<FileData> &files);
 static bool job_strings_write_file(const std::string &fname,std::list<std::string> &str);
 
 
@@ -1174,16 +1174,18 @@ bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
   return true;
 }
 
+/*
 static bool job_Xput_read_file(std::list<FileData> &files) {
   for(;!std::cin.eof();) {
     FileData fd; std::cin >> fd;
 //    if((fd.pfn.length() != 0) && (fd.pfn != "/")) {
-    if(fd.pfn.length() != 0) {  /* returns zero length only if empty std::string */
+    if(fd.pfn.length() != 0) { // returns zero length only if empty std::string
       files.push_back(fd);
     };
   };
   return true;
 }
+*/
 
 bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files) {
   std::ifstream f(fname.c_str());
@@ -1191,7 +1193,7 @@ bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files) {
   for(;!f.eof();) {
     FileData fd; f >> fd;
 //    if((fd.pfn.length() != 0) && (fd.pfn != "/")) {
-    if(fd.pfn.length() != 0) {  /* returns zero length only if empty std::string */
+    if(fd.pfn.length() != 0) { // returns zero length only if empty std::string
       files.push_back(fd);
     };
   };

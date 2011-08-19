@@ -10,6 +10,8 @@
 
 #include <gacl.h>
 
+#define NGGRSTerrorLog(GRSTerrorLevel, ...) ((GRSTerrorLogFunc != NULL) && ((GRSTerrorLogFunc)((char *) __FILE__, __LINE__, GRSTerrorLevel, __VA_ARGS__)))
+
 // These are not in the gridsite header file
 extern "C" {
 GRSTgaclAcl *GRSTgaclAclParse(xmlDocPtr, xmlNodePtr, GRSTgaclAcl *);
@@ -85,18 +87,18 @@ static GRSTgaclAcl *NGACLparse(xmlDocPtr doc)
   if (cur == NULL) 
     {
       xmlFreeDoc(doc);
-      GRSTerrorLog(GRST_LOG_DEBUG, "NGACLparse failed to parse root of ACL");
+      NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLparse failed to parse root of ACL");
       return NULL;
     }
 
   if (!xmlStrcmp(cur->name, (const xmlChar *) "Policy")) 
     { 
-      GRSTerrorLog(GRST_LOG_DEBUG, "NGACLparse parsing XACML");
+      NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLparse parsing XACML");
       acl=GRSTxacmlAclParse(doc, cur, acl);
     }
   else if (!xmlStrcmp(cur->name, (const xmlChar *) "gacl")) 
     {
-      GRSTerrorLog(GRST_LOG_DEBUG, "NGACLparse parsing GACL");
+      NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLparse parsing GACL");
       acl=GRSTgaclAclParse(doc, cur, acl);
     }
   else // ACL format not recognised
@@ -114,18 +116,18 @@ GRSTgaclAcl *NGACLloadAcl(char *filename)
 {
   xmlDocPtr   doc;
 
-  GRSTerrorLog(GRST_LOG_DEBUG, "NGACLloadAcl() starting");
+  NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLloadAcl() starting");
 
   if (filename == NULL) 
     {
-      GRSTerrorLog(GRST_LOG_DEBUG, "NGACLloadAcl() cannot open a NULL filename");
+      NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLloadAcl() cannot open a NULL filename");
       return NULL;
     }
 
   doc = xmlParseFile(filename);
   if (doc == NULL) 
     {
-      GRSTerrorLog(GRST_LOG_DEBUG, "NGACLloadAcl failed to open ACL file %s", filename);
+      NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLloadAcl failed to open ACL file %s", filename);
       return NULL;
     }
 
@@ -157,12 +159,12 @@ GRSTgaclAcl *NGACLacquireAcl(const char *str)
 {
   xmlDocPtr   doc;
 
-  GRSTerrorLog(GRST_LOG_DEBUG, "NGACLacquireAcl() starting");
+  NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLacquireAcl() starting");
 
   doc = xmlParseMemory(str,strlen(str));
   if (doc == NULL) 
     {
-      GRSTerrorLog(GRST_LOG_DEBUG, "NGACLacquireAcl failed to parse ACL string");
+      NGGRSTerrorLog(GRST_LOG_DEBUG, (char *) "NGACLacquireAcl failed to parse ACL string");
       return NULL;
     }
 

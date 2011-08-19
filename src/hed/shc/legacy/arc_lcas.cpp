@@ -107,16 +107,20 @@ int main(int argc,char* argv[]) {
     logger.msg(Arc::ERROR, "Can't load LCAS library %s: %s", lcas_library, Glib::Module::get_last_error());
     return -1;
   };
-  lcas_init_t lcas_init_f = NULL;
-  lcas_get_fabric_authorization_t lcas_get_fabric_authorization_f = NULL;
-  lcas_term_t lcas_term_f = NULL;
-  if((!lcas_handle.get_symbol("lcas_init",(void*&)lcas_init_f)) ||
-     (!lcas_handle.get_symbol("lcas_get_fabric_authorization",(void*&)lcas_get_fabric_authorization_f)) ||
-     (!lcas_handle.get_symbol("lcas_term",(void*&)lcas_term_f))) {
+  void *lcas_init_p = NULL;
+  void *lcas_get_fabric_authorization_p = NULL;
+  void *lcas_term_p = NULL;
+  if((!lcas_handle.get_symbol("lcas_init",lcas_init_p)) ||
+     (!lcas_handle.get_symbol("lcas_get_fabric_authorization",lcas_get_fabric_authorization_p)) ||
+     (!lcas_handle.get_symbol("lcas_term",lcas_term_p))) {
     recover_lcas_env();
     logger.msg(Arc::ERROR, "Can't find LCAS functions in a library %s", lcas_library);
     return -1;
   };
+  lcas_init_t lcas_init_f = (lcas_init_t)lcas_init_p;
+  lcas_get_fabric_authorization_t lcas_get_fabric_authorization_f =
+    (lcas_get_fabric_authorization_t)lcas_get_fabric_authorization_p;
+  lcas_term_t lcas_term_f = (lcas_term_t)lcas_term_p;
   FILE* lcas_log = fdopen(STDERR_FILENO,"a");
   if((*lcas_init_f)(lcas_log) != 0) {
     recover_lcas_env();

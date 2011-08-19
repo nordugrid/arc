@@ -154,7 +154,7 @@ GACLPlugin::GACLPlugin(std::istream &cfile,userspec_t &u) {
         if(h == -1) {
           logger.msg(Arc::WARNING, "Creation of top level ACL %s failed.", fname);
         } else {
-          ::write(h,default_top_gacl,strlen(default_top_gacl));
+          if(::write(h,default_top_gacl,strlen(default_top_gacl)) == -1) {};
           ::close(h);
         };
       };
@@ -362,7 +362,7 @@ int GACLPlugin::open(const char* name,open_modes mode,unsigned long long int siz
           if(data_file == -1) return 1;
           file_mode=file_access_overwrite;
           file_name=filename;
-          truncate(file_name.c_str(),0);
+          if(truncate(file_name.c_str(),0) != 0) {}
           return 0;
         };
         ReportGACLerror(filename.c_str(),false,"write");

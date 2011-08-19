@@ -268,13 +268,13 @@ int DirectFilePlugin::makedir(std::string &dname) {
     if(i->unix_set(uid,gid) == 0) {
       if(::mkdir(fdname.c_str(),
               i->access.mkdir_perm_or & i->access.mkdir_perm_and) == 0) {
-        (void)::chmod(fdname.c_str(),
+        chmod(fdname.c_str(),
               i->access.mkdir_perm_or & i->access.mkdir_perm_and);
         i->unix_reset();
         uid_t u = i->access.mkdir_uid;
         gid_t g = i->access.mkdir_gid;
         if(u == ((uid_t)(-1))) u=uid; if(g == ((gid_t)(-1))) g=gid;
-        (void)::chown(fdname.c_str(),u,g);
+        if(chown(fdname.c_str(),u,g) != 0) {}
         continue;
       } else {
         i->unix_reset();
@@ -413,7 +413,7 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
           if(data_file == -1) return 1;
           file_mode=file_access_overwrite;
           file_name=fname;
-          truncate(file_name.c_str(),0);
+          if(truncate(file_name.c_str(),0) != 0) {}
           return 0;
         };
       };
@@ -453,9 +453,9 @@ int DirectFilePlugin::open(const char* name,open_modes mode,unsigned long long i
           gid_t g = i->access.creat_gid;
           if(u == ((uid_t)(-1))) u=uid; if(g == ((gid_t)(-1))) g=gid;
           logger.msg(Arc::VERBOSE, "open: changing owner for %s, %i, %i", fname, u, gid);
-          (void)chown(fname.c_str(),u,g);
+          if(chown(fname.c_str(),u,g) != 0) {}
           /* adjust permissions because open uses umask */
-          (void)chmod(fname.c_str(),
+          chmod(fname.c_str(),
                 i->access.creat_perm_or & i->access.creat_perm_and);
           struct stat st;
           stat(fname.c_str(),&st);
@@ -505,9 +505,9 @@ int DirectFilePlugin::open_direct(const char* name,open_modes mode) {
     if(data_file == -1) return 1;
     file_mode=file_access_create;
     file_name=fname;
-    truncate(file_name.c_str(),0);
-    (void)chown(fname.c_str(),uid,gid);
-    (void)chmod(fname.c_str(),S_IRUSR | S_IWUSR);
+    if(truncate(file_name.c_str(),0) != 0) {}
+    if(chown(fname.c_str(),uid,gid) != 0) {}
+    chmod(fname.c_str(),S_IRUSR | S_IWUSR);
     return 0;
   }
   else {

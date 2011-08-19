@@ -275,10 +275,12 @@ static Arc::XMLNode ESCreateResponse(Arc::PayloadSOAP& res,const char* opname) {
   return response;
 }
 
+/*
 static Arc::XMLNode ESDelegResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(ES_DELEG_NPREFIX + ":" + opname + "Response");
   return response;
 }
+*/
 
 static Arc::XMLNode ESRInfoResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(ES_RINFO_NPREFIX + ":" + opname + "Response");

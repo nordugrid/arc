@@ -131,22 +131,29 @@ int main(int argc,char* argv[]) {
     logger.msg(Arc::ERROR, "Can't load LCMAPS library %s: %s", lcmaps_library, Glib::Module::get_last_error());
     return -1;
   };
-  lcmaps_init_t lcmaps_init_f = NULL;
-  lcmaps_run_and_return_username_t lcmaps_run_and_return_username_f = NULL;
-  lcmaps_run_t lcmaps_run_f = NULL;
-  lcmaps_term_t lcmaps_term_f = NULL;
-  getCredentialData_t getCredentialData_f = NULL;
-  if((!lcmaps_handle.get_symbol("lcmaps_init",(void*&)lcmaps_init_f)) ||
-     (!lcmaps_handle.get_symbol("lcmaps_run_and_return_username",(void*&)lcmaps_run_and_return_username_f)) ||
-     (!lcmaps_handle.get_symbol("lcmaps_term",(void*&)lcmaps_term_f))) {
+  void *lcmaps_init_p = NULL;
+  void *lcmaps_run_and_return_username_p = NULL;
+  void *lcmaps_run_p = NULL;
+  void *lcmaps_term_p = NULL;
+  void *getCredentialData_p = NULL;
+  if((!lcmaps_handle.get_symbol("lcmaps_init",lcmaps_init_p)) ||
+     (!lcmaps_handle.get_symbol("lcmaps_run_and_return_username",lcmaps_run_and_return_username_p)) ||
+     (!lcmaps_handle.get_symbol("lcmaps_term",lcmaps_term_p))) {
     recover_lcmaps_env();
     logger.msg(Arc::ERROR, "Can't find LCMAPS functions in a library %s", lcmaps_library);
     return -1;
   };
-  lcmaps_handle.get_symbol("lcmaps_run",(void*&)lcmaps_run_f);
-  lcmaps_handle.get_symbol("getCredentialData",(void*&)getCredentialData_f);
-if(lcmaps_run_f) logger.msg(Arc::ERROR,"LCMAPS has lcmaps_run");
-if(getCredentialData_f) logger.msg(Arc::ERROR,"LCMAPS has getCredentialData");
+  lcmaps_handle.get_symbol("lcmaps_run",lcmaps_run_p);
+  lcmaps_handle.get_symbol("getCredentialData",getCredentialData_p);
+  lcmaps_init_t lcmaps_init_f = (lcmaps_init_t)lcmaps_init_p;
+  lcmaps_run_and_return_username_t lcmaps_run_and_return_username_f =
+    (lcmaps_run_and_return_username_t)lcmaps_run_and_return_username_p;
+  lcmaps_run_t lcmaps_run_f = (lcmaps_run_t)lcmaps_run_p;
+  lcmaps_term_t lcmaps_term_f = (lcmaps_term_t)lcmaps_term_p;
+  getCredentialData_t getCredentialData_f =
+    (getCredentialData_t)getCredentialData_p;
+  if(lcmaps_run_f) logger.msg(Arc::ERROR,"LCMAPS has lcmaps_run");
+  if(getCredentialData_f) logger.msg(Arc::ERROR,"LCMAPS has getCredentialData");
   FILE* lcmaps_log = fdopen(STDERR_FILENO,"a");
   if((*lcmaps_init_f)(lcmaps_log) != 0) {
     recover_lcmaps_env();

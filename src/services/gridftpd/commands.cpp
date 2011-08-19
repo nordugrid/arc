@@ -57,7 +57,7 @@ int GridFTP_Commands::send_response(const char* response) {
 }
 
 int GridFTP_Commands::wait_response(void) {
-  int  res;
+  int res = 0; // What is the right deafault here?
   globus_abstime_t timeout;
   last_action_time=time(NULL);
   GlobusTimeAbstimeSet(timeout,0,100000);
@@ -360,7 +360,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
     };
   };
 #endif
-  switch(command->code) {
+  switch((int)command->code) {
     case GLOBUS_FTP_CONTROL_COMMAND_AUTH: {
       it->send_response("534 Reauthentication is not supported\r\n");
     }; break;

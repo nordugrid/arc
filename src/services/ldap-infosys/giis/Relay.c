@@ -88,7 +88,12 @@ int main(int argv, char** argc) {
 
   rewind(stdinf);
 
-  mktemp(replyfile);
+  if(*mktemp(replyfile) == '\0') {
+    fclose(stdinf);
+    unlink(stdinfile);
+    return Error(53, "Could not create reply FIFO filename");
+  }
+
   if(mkfifo(replyfile, S_IRUSR | S_IWUSR) == -1) {
     fclose(stdinf);
     unlink(stdinfile);
@@ -113,7 +118,7 @@ int main(int argv, char** argc) {
   if (!sf) {
     fclose(stdinf);
     unlink(stdinfile);
-    lockf(sfd, F_ULOCK, 0);
+    if(lockf(sfd, F_ULOCK, 0) != 0) {}
     close(sfd);
     unlink(replyfile);
     return Error(53, "Could not open server FIFO");
@@ -123,7 +128,7 @@ int main(int argv, char** argc) {
   if (rfd == -1) {
     fclose(stdinf);
     unlink(stdinfile);
-    lockf(sfd, F_ULOCK, 0);
+    if(lockf(sfd, F_ULOCK, 0) != 0) {}
     fclose(sf);
     unlink(replyfile);
     return Error(53, "Could not open reply FIFO");
@@ -132,7 +137,7 @@ int main(int argv, char** argc) {
   if (!rf) {
     fclose(stdinf);
     unlink(stdinfile);
-    lockf(sfd, F_ULOCK, 0);
+    if(lockf(sfd, F_ULOCK, 0) != 0) {}
     fclose(sf);
     close(rfd);
     unlink(replyfile);
@@ -155,7 +160,7 @@ int main(int argv, char** argc) {
 
   fflush(sf);
 
-  lockf(sfd, F_ULOCK, 0);
+  if(lockf(sfd, F_ULOCK, 0) != 0) {}
   fclose(sf);
 
   FD_ZERO(&fs);
