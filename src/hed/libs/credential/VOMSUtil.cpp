@@ -876,10 +876,13 @@ err:
 
       if(verify) {
         bool success = false;
-
+        if((vomscert_trust_dn.SizeChains()==0) && (vomscert_trust_dn.SizeRegexs()==0)) {
+          CredentialLogger.msg(INFO,"VOMS: there is no constraints of trusted voms DNs, the certificates stack in AC will not be checked.");
+          success = true;
+        }
         //Check if the DN of those certificates in the certificate stack
         //corresponds to the trusted DN chain in the configuration 
-        if(certstack) {
+        if(certstack && !success) {
           for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
             const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
             if(checkTrust(chain,certstack)) {
