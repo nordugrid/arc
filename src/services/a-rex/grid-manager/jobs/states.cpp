@@ -1052,7 +1052,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
         {
           // apply limits for old data staging
           if (jcfg.use_new_data_staging ||
-              (jcfg.max_jobs_processing == -1) ||
+              ((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
               (jcfg.use_local_transfer) ||
               ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
               (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
@@ -1126,7 +1126,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
               i->job_state = JOB_STATE_FINISHING;
               dtr_generator->receiveJob(*i);
               finishing_job_share[i->transfer_share]++;
-            } else if((jcfg.max_jobs_processing == -1) ||
+            } else if(((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
                       (jcfg.use_local_transfer) ||
                       (i->local->uploads == 0) ||
                       (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
@@ -1274,7 +1274,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
               dtr_generator->receiveJob(*i);
               finishing_job_share[i->transfer_share]++;
             }
-            else if ((jcfg.max_jobs_processing == -1) ||
+            else if (((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
               (jcfg.use_local_transfer) ||
               (i->local->uploads == 0) ||
               (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
@@ -1289,7 +1289,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
                  finishing_job_share[i->transfer_share]++;
             } else JobPending(i);
           }
-        } else if((jcfg.max_jobs_processing == -1) ||
+        } else if(((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
             (jcfg.use_local_transfer) ||
             (i->local->uploads == 0) ||
             (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
