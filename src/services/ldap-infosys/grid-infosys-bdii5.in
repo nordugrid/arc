@@ -577,7 +577,7 @@ create_bdii_conf () {
 	BDII_DIR=$bdii_location
 	BDII_VAR_DIR=$bdii_var_dir
 	BDII_LOG_FILE=$bdii_log_file
-	BDII_LOG_LEVEL=DEBUG
+	BDII_LOG_LEVEL=ERROR
 	BDII_LDIF_DIR=$bdii_ldif_dir
 	BDII_PROVIDER_DIR=$bdii_provider_dir
 	BDII_PLUGIN_DIR=$bdii_plugin_dir
