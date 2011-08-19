@@ -554,7 +554,12 @@ err:
 
     if(createVOMSAC(issuer, issuerchain, holder, issuerkey, (BIGNUM *)(BN_value_one()),
              fqan, targets, attributes, &ac, voname, uri, lifetime)){
-      AC_free(ac); return false;
+      if(ac) AC_free(ac);
+      if(issuer) X509_free(issuer);
+      if(holder) X509_free(holder);
+      if(issuerkey) EVP_PKEY_free(issuerkey);
+      if(issuerchain) sk_X509_pop_free(issuerchain, X509_free);
+      return false;
     }
 
     unsigned int len = i2d_AC(ac, NULL);
@@ -568,8 +573,11 @@ err:
     }
     free(tmp);
 
-    AC_free(ac);
-  
+    if(ac) AC_free(ac);
+    if(issuer) X509_free(issuer);
+    if(holder) X509_free(holder);
+    if(issuerkey) EVP_PKEY_free(issuerkey);
+    if(issuerchain) sk_X509_pop_free(issuerchain, X509_free);
     return true;
   }
 
@@ -1212,6 +1220,7 @@ err:
                   break;
               }
             }
+            AC_TARGETS_free(targets);
           }
           ASN1_STRING_free(fqdns);
         }
@@ -1396,9 +1405,12 @@ err:
         return false;
       }
       
-      std::string ac_holder_name = X509_NAME_oneline(name->d.dirn,NULL,0);
-      std::string holder_name = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
-      std::string holder_issuer_name = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
+      char *ac_holder_name_chars = X509_NAME_oneline(name->d.dirn,NULL,0);
+      std::string ac_holder_name = ac_holder_name_chars; OPENSSL_free(ac_holder_name_chars);
+      char *holder_name_chars = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
+      std::string holder_name = holder_name_chars; OPENSSL_free(holder_name_chars);
+      char *holder_issuer_name_chars = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
+      std::string holder_issuer_name = holder_issuer_name_chars; OPENSSL_free(holder_issuer_name_chars);
       CredentialLogger.msg(DEBUG,"VOMS: DN of holder in AC: %s",ac_holder_name.c_str());
       CredentialLogger.msg(DEBUG,"VOMS: DN of holder: %s",holder_name.c_str());
       CredentialLogger.msg(DEBUG,"VOMS: DN of issuer: %s",holder_issuer_name.c_str());
