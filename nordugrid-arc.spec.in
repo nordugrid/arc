@@ -1182,8 +1182,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmcctcp.apd
 %{_libdir}/%{pkgdir}/libmccmsgvalidator.apd
 %{_libdir}/%{pkgdir}/libmcctls.apd
-%{_libexecdir}/%{pkgdir}/arc-lcas
-%{_libexecdir}/%{pkgdir}/arc-lcmaps
 
 %files plugins-globus
 %defattr(-,root,root,-)
@@ -1200,6 +1198,8 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libdmcrls.apd
 %{_libdir}/%{pkgdir}/libmccgsi.apd
 %{_libdir}/libarcglobusutils.so.*
+%{_libexecdir}/%{pkgdir}/arc-lcas
+%{_libexecdir}/%{pkgdir}/arc-lcmaps
 
 %if %{with_python}
 %files python

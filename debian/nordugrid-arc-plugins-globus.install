@@ -9,3 +9,5 @@ debian/tmp/usr/lib/arc/libdmcrls.apd
 debian/tmp/usr/lib/arc/libmccgsi.apd
 debian/tmp/usr/lib/arc/libdmclfc.so
 debian/tmp/usr/lib/arc/libdmclfc.apd
+debian/tmp/usr/lib/arc/arc-lcas
+debian/tmp/usr/lib/arc/arc-lcmaps
