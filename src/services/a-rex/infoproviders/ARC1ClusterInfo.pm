@@ -782,6 +782,8 @@ sub collect($) {
                     return $apol;
                 };
             }
+	
+	    $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
 
             # Computing Activities
