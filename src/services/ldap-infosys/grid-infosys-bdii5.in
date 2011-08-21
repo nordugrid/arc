@@ -463,8 +463,17 @@ if [ "`config_subsections infosys/index`" ]; then
 	fi
 
 	# This will get written to bdii slapd.conf:
-	slapd_modulepath="modulepath      $ldaplib"
-	slapd_moduleload_index="moduleload      back_shell"
+	if [ -r ${giis_location}/lib64/arc/arc-infoindex-slapd-wrapper.so ]; then
+	    pkglibdir=${giis_location}/lib64/arc
+	elif [ -r ${giis_location}/lib/arc/arc-infoindex-slapd-wrapper.so ]; then
+	    pkglibdir=${giis_location}/lib/arc
+	else
+	    error_echo "Error, could not find infoindex slapd wrapper"
+	    exit 1
+	fi
+	slapd_modulepath="modulepath      $ldaplib:$pkglibdir"
+	slapd_moduleload_index1="moduleload      back_shell"
+	slapd_moduleload_index2="moduleload      arc-infoindex-slapd-wrapper"
     fi
 fi
 
@@ -639,7 +648,8 @@ create_arc_slapd_conf () {
 
 	$slapd_modulepath
 	$slapd_moduleload
-	$slapd_moduleload_index
+	$slapd_moduleload_index1
+	$slapd_moduleload_index2
 
 	allow bind_v2
 
@@ -1268,17 +1278,14 @@ start () {
 	    error_echo "Error, could not find infoindex slapd wrapper"
 	    exit 1
 	fi
-	# The -d 0 is important for the GIIS to ensure that the binary doesn't fork.
 	if [ "x$slapd_hostnamebind" = "x*" ]; then
 	    ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
 		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
-		${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" \
-		-u ${bdii_user} </dev/null 1>/dev/null 2>/dev/null &
+		${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
 	else
 	    ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
 		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
-		${slapd_cmd} -d 0 -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" \
-		-u ${bdii_user} </dev/null 1>/dev/null 2>/dev/null &
+		${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
 	fi
     else
 	if [ "x$slapd_hostnamebind" = "x*" ]; then
