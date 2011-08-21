@@ -346,7 +346,7 @@ else
 fi
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
-update_pid_file=${CONFIG_bdii_update_pid_file:-/var/run/arc/bdii-update.pid}
+update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_var_dir/bdii-update.pid}
 slapd_pid_file=${CONFIG_slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
 
 # Debian does not have /var/lock/subsys
@@ -586,6 +586,7 @@ create_bdii_conf () {
 	BDII_DIR=$bdii_location
 	BDII_VAR_DIR=$bdii_var_dir
 	BDII_LOG_FILE=$bdii_log_file
+	BDII_PID_FILE=$update_pid_file
 	BDII_LOG_LEVEL=ERROR
 	BDII_LDIF_DIR=$bdii_ldif_dir
 	BDII_PROVIDER_DIR=$bdii_provider_dir
@@ -1327,13 +1328,10 @@ start () {
     $RUNUSER -s "$USERSHELL" -c "${bdii_update_cmd} -c ${BDII_CONF} -d" ${bdii_user}
     touch ${update_lock_file}
 
-    if [ ! -f ${bdii_var_dir}/bdii-update.pid ]; then
+    if [ ! -f ${update_pid_file} ]; then
 	sleep 2
     fi
-    if [ -f ${bdii_var_dir}/bdii-update.pid ]; then
-	touch ${update_pid_file}
-	chown ${bdii_user} ${update_pid_file}
-	mv ${bdii_var_dir}/bdii-update.pid ${update_pid_file}
+    if [ -f ${update_pid_file} ]; then
 	ps $(cat ${update_pid_file}) >/dev/null 2>&1
 	RETVAL=$?
     else
