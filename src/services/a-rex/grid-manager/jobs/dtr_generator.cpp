@@ -437,7 +437,6 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   }
   // add to finished jobs (without overwriting existing error)
   finished_jobs[jobid] += "";
-  lock.unlock();
 
   // log summary to DTR log
   const std::list<Arc::LogDestination*> log_dests = Arc::Logger::getRootLogger().getDestinations();
@@ -451,6 +450,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
     dtr.get_logger()->msg(Arc::INFO, "Some %s failed",
                           dtr.get_source()->Local() ? "uploads":"downloads");
 
+  lock.unlock();
   Arc::Logger::getRootLogger().addDestinations(log_dests);
 
   logger.msg(Arc::INFO, "%s: Data staging finished", jobid);
