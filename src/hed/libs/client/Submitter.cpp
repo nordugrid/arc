@@ -213,6 +213,7 @@ namespace Arc {
         jobstorage.ReadFromFile(usercfg.JobListFile());
         XMLNode xmljob = jobstorage.NewChild("Job");
         j.ToXML(xmljob);
+        jobstorage.SaveToFile(usercfg.JobListFile());
         lock.release();
         break;
       }
