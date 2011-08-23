@@ -165,32 +165,22 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  /* perform resolve operation, which can take long time */
   DataStatus DataPointLFC::Resolve(bool source) {
     int lfc_r;
 
-    LFCLOCKINT(lfc_r,lfc_startsess(const_cast<char*>(url.Host().c_str()),
-                      const_cast<char*>("ARC")), url);
-    if(lfc_r != 0) {
-      logger.msg(ERROR, "Error starting session: %s", sstrerror(serrno));
-      lfc_endsess();
-      if (IsTempError())
-        return source ? DataStatus::ReadResolveErrorRetryable : DataStatus::WriteResolveErrorRetryable;
-      return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
-    }
+    // NOTE: Sessions are not used in Resolve(), because under heavy load in A-REX
+    // it can end up using all the LFC server threads. See bug 2576 for more info.
 
     std::string path = url.Path();
 
     if (source || path.empty() || path == "/") {
       path = ResolveGUIDToLFN();
       if (path.empty()) {
-        lfc_endsess();
         return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
       }
     }
     if (!source && url.Locations().size() == 0 && !HaveLocations()) {
       logger.msg(ERROR, "Locations are missing in destination LFC URL");
-      lfc_endsess();
       return DataStatus::WriteResolveError;
     }
 
@@ -202,7 +192,6 @@ namespace Arc {
     if(lfc_r != 0) {
       if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
         logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
-        lfc_endsess();
         return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
       }
       nbentries = 0;
@@ -265,7 +254,6 @@ namespace Arc {
     LFCLOCKINT(lfc_r,lfc_statg(path.c_str(), NULL, &st), url);
     if(lfc_r == 0) {
       if (st.filemode & S_IFDIR) { // directory
-        lfc_endsess();
         return DataStatus::Success;
       }
       registered = true;
@@ -283,7 +271,6 @@ namespace Arc {
       }
       guid = st.guid;
     }
-    lfc_endsess();
     if (!HaveLocations()) {
       logger.msg(ERROR, "No locations found for %s", url.str());
       return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
