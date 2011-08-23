@@ -67,7 +67,11 @@ void DTRGenerator::thread() {
 
     // finally new jobs
     std::list<JobDescription>::iterator it_jobs = jobs_received.begin();
-    while (it_jobs != jobs_received.end()) {
+    // it can happen that the list grows faster than the jobs are processed
+    // so here we only process for a small time to avoid blocking other
+    // jobs finishing
+    Arc::Time limit(Arc::Time() + Arc::Period(30));
+    while (it_jobs != jobs_received.end() && Arc::Time() < limit) {
       event_lock.unlock();
       processReceivedJob(*it_jobs);
       event_lock.lock();
