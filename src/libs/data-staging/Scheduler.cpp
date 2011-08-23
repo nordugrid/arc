@@ -773,9 +773,9 @@ namespace DataStaging {
     while(PreProcessorRunning < PreProcessorSlots && !PreProcessorQueue.empty()){
       // Push to the pre-processor, register in the list
       // of processed DTRs and delete from the queue
-      tmp = PreProcessorQueue.back();
+      tmp = PreProcessorQueue.front();
       tmp->push(PRE_PROCESSOR);
-      PreProcessorQueue.pop_back();
+      PreProcessorQueue.pop_front();
       PreProcessorRunning++;
     }
   }
@@ -823,9 +823,9 @@ namespace DataStaging {
     while(PostProcessorRunning < PostProcessorSlots && !PostProcessorQueue.empty()){
       // Push to the post-processor, register in the list
       // of processed DTRs and delete from the queue
-      tmp = PostProcessorQueue.back();
+      tmp = PostProcessorQueue.front();
       tmp->push(POST_PROCESSOR);
-      PostProcessorQueue.pop_back();
+      PostProcessorQueue.pop_front();
       PostProcessorRunning++;
     }
   }
