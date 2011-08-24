@@ -734,13 +734,19 @@ namespace DataStaging {
   void Scheduler::revise_pre_processor_queue()
   {
     std::list<DTR*> PreProcessorQueue;
-    std::list<DTR*>::iterator dtr;
-
     DtrList.filter_dtrs_by_next_receiver(PRE_PROCESSOR,PreProcessorQueue);
+
+    if (PreProcessorQueue.empty()) return;
+
+    // Sort the queue by priority
+    PreProcessorQueue.sort(dtr_sort_predicate);
 
     DTR* tmp;
 
-    for(dtr = PreProcessorQueue.begin(); dtr != PreProcessorQueue.end();){
+    std::list<DTR*>::iterator dtr = PreProcessorQueue.begin();
+    int highest_priority = (*dtr)->get_priority();
+
+    while (dtr != PreProcessorQueue.end()) {
 
       tmp = *dtr;
       // The cancellation requests break the normal workflow. A cancelled
@@ -752,19 +758,21 @@ namespace DataStaging {
         continue;
       }
 
-      // DTRs that have passed their timeout should have the
-      // priority boosted high. Alternative solution -- recompute
-      // the priority with compute_priority() function, so this
-      // function contains all the logic, but it may
-      // take too long time
-      if(tmp->get_timeout() < time(NULL)){
-        tmp->set_priority(tmp->get_priority() + 100);
+      // To avoid the situation where DTRs get blocked due to higher
+      // priority DTRs, DTRs that have passed their timeout should have their
+      // priority boosted. But this should only happen if there are higher
+      // priority DTRs, since there could be a large queue of low priority DTRs
+      // which, after having their priority boosted, would then block new
+      // high priority requests.
+      // The simple solution here is to increase priority by 1 every 5 minutes.
+      // There is plenty of scope for more intelligent solutions.
+      // TODO reset priority back to original value after pre-processing
+      if(tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority){
+        tmp->set_priority(tmp->get_priority() + 1);
+        tmp->set_timeout(300);
       }
       ++dtr;
     }
-
-    // No sorting of the queue -- make it FIFO for the time being
-    // PreProcessorQueue.sort(dtr_sort_predicate);
 
     // Reset the number of the DTRs running in the pre-processor
     int PreProcessorRunning = DtrList.number_of_dtrs_by_owner(PRE_PROCESSOR);
@@ -793,28 +801,29 @@ namespace DataStaging {
     // cleanup activities.
 
     std::list<DTR*> PostProcessorQueue;
-    std::list<DTR*>::iterator dtr;
-    DTR* tmp;
-
     DtrList.filter_dtrs_by_next_receiver(POST_PROCESSOR,PostProcessorQueue);
 
-    for(dtr = PostProcessorQueue.begin(); dtr != PostProcessorQueue.end(); dtr++){
+    if (PostProcessorQueue.empty()) return;
+
+    // Sort the queue by priority
+    PostProcessorQueue.sort(dtr_sort_predicate);
+
+    DTR* tmp;
+
+    std::list<DTR*>::iterator dtr = PostProcessorQueue.begin();
+    int highest_priority = (*dtr)->get_priority();
+
+    while (dtr != PostProcessorQueue.end()) {
 
       tmp = *dtr;
 
-      // DTRs that have passed their timeout should have the
-      // priority boosted high. Alternative solution -- recompute
-      // the priority with compute_priority() function, so this
-      // function contains all the logic, but it may
-      // take too long time
-      if(tmp->get_timeout() < time(NULL)){
-        tmp->set_priority(tmp->get_priority()+100);
+      // see revise_pre_processor_queue() for explanation
+      if(tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority){
+        tmp->set_priority(tmp->get_priority() + 1);
+        tmp->set_timeout(300);
       }
-
+      ++dtr;
     }
-
-    // No sorting of the queue -- make it FIFO for the time being
-    // PostProcessorQueue.sort(dtr_sort_predicate);
 
     // Reset the number of the DTRs running in the pre-processor
     int PostProcessorRunning = DtrList.number_of_dtrs_by_owner(POST_PROCESSOR);
@@ -833,12 +842,19 @@ namespace DataStaging {
   void Scheduler::revise_delivery_queue()
   {
     std::list<DTR*> DeliveryQueue;    
-    std::list<DTR*>::iterator dtr;
-    DTR* tmp;
-
     DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
 
-    for(dtr = DeliveryQueue.begin(); dtr != DeliveryQueue.end();){
+    // Sort the Delivery Queue according to
+    // the priorities the DTRs have.
+    DeliveryQueue.sort(dtr_sort_predicate);
+
+    DTR* tmp;
+    int highest_priority = 0;
+
+    std::list<DTR*>::iterator dtr = DeliveryQueue.begin();
+
+    while (dtr != DeliveryQueue.end()) {
+      if (dtr == DeliveryQueue.begin()) highest_priority = (*dtr)->get_priority();
 
       tmp = *dtr;
       // The cancellation requests break the normal workflow. A cancelled
@@ -850,13 +866,10 @@ namespace DataStaging {
         continue;
       }
 
-      // DTRs that have passed their timeout should have the
-      // priority boosted high. Alternative solution -- recompute
-      // the priority with compute_priority() function, so this
-      // function contains all the logic, but it may
-      // take too long time
-      if(tmp->get_timeout() < time(NULL)){
-        tmp->set_priority(tmp->get_priority()+100);
+      // see revise_pre_processor_queue() for explanation
+      if(tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority){
+        tmp->set_priority(tmp->get_priority() + 1);
+        tmp->set_timeout(300);
       }
       dtr++;
     }
@@ -899,10 +912,6 @@ namespace DataStaging {
     // Refresh the number of DTRs running in the Delivery,
     int DeliveryRunning = DtrList.number_of_dtrs_by_owner(DELIVERY);
 
-    // Sort the Delivery Queue according to 
-    // the priorities the DTRs have.
-    DeliveryQueue.sort(dtr_sort_predicate);
-    
     // Now at the beginning of the queue we have DTRs that
     // should be launched first. Launch them, but with respect
     // to the transfer shares.

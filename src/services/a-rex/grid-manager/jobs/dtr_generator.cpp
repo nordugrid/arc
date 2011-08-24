@@ -25,6 +25,10 @@ void DTRInfo::receiveDTR(DataStaging::DTR& dtr) {
 
 Arc::Logger DTRGenerator::logger(Arc::Logger::getRootLogger(), "Generator");
 
+bool compare_job_description(JobDescription first, JobDescription second) {
+  return first.get_local()->priority > second.get_local()->priority;
+}
+
 void DTRGenerator::main_thread(void* arg) {
   ((DTRGenerator*)arg)->thread();
 }
@@ -71,6 +75,9 @@ void DTRGenerator::thread() {
     // so here we only process for a small time to avoid blocking other
     // jobs finishing
     Arc::Time limit(Arc::Time() + Arc::Period(30));
+
+    // sort the list by job priority
+    jobs_received.sort(compare_job_description);
     while (it_jobs != jobs_received.end() && Arc::Time() < limit) {
       event_lock.unlock();
       processReceivedJob(*it_jobs);
