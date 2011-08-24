@@ -62,6 +62,22 @@ Requires: %{name} = %{version}
 %description hed
 ARC Hosting Environment Daemon (HED).
 
+%package chelonia
+Summary:        ARC chelonia service
+Group:          System Environment/Libraries
+Requires:       %{name} = %{version}-%{release}
+Requires:       %{name}-hed = %{version}-%{release}
+Requires:       %{name}-python = %{version}-%{release}
+
+%description chelonia
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the free Grid middleware, known as the Advanced Resource
+Connector (ARC).
+
+The ARC storage service Chelonia consists of a set of SOAP based
+services residing within HED. Together, the services provide a self-healing,
+reliable, robust, scalable, resilient and consistent data storage system.
+
 %package plugins-needed
 Summary: ARC base plugins
 Group: System Environment/Libraries
@@ -296,10 +312,22 @@ rm -rf $RPM_BUILD_ROOT
 
 %files python
 %defattr(-,root,root,-)
-%{_mingw32_libdir}/python?.?/site-packages/
-#%{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
-#%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
-#%doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+%{_mingw32_libdir}/python?.?/site-packages/_arc.dll*
+%{_mingw32_libdir}/python?.?/site-packages/arc.py*
+%{_mingw32_libdir}/python?.?/site-packages/arcom
+%{_mingw32_libdir}/python?.?/site-packages/cache
+%{_mingw32_libdir}/python?.?/site-packages/echo_python
+%{_mingw32_libdir}/%{pkgdir}/libpythonservice.dll*
+%{_mingw32_libdir}/%{pkgdir}/libaccPythonBroker.dll*
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/PythonBroker/SampleBroker.py*
+
+%files chelonia
+%defattr(-,root,root,-)
+%{_mingw32_bindir}/chelonia
+%doc %{_mingw32_mandir}/man1/chelonia.1*
+%{_mingw32_libdir}/python?.?/site-packages/storage
+%doc %{_mingw32_datadir}/%{pkgdir}/examples/storage_service.xml.example
+
 
 %changelog
 

@@ -120,7 +120,7 @@ AM_GNU_GETTEXT_VERSION([0.12])
 AC_SYS_LARGEFILE
 
 # pkg-config needed for many checks
-AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+AC_PATH_TOOL(PKG_CONFIG, pkg-config, no)
 if test "x$PKG_CONFIG" = "xno"; then
         AC_MSG_ERROR([ *** pkg-config not found])
 else
@@ -402,7 +402,13 @@ if test "$enables_python" = "yes"; then
   AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)],
     [specify python program from PATH]))
 
-  AC_CHECK_PROGS(PYTHON, $with_python python)
+  # We do not look for python binary when cross-compiling
+  # but we need to make the variable non-empty
+  if test "$build_triplet" = "$host_triplet"; then
+    AC_CHECK_PROGS(PYTHON, $with_python python)
+  else
+    PYTHON="X"
+  fi
 
   if test "X$PYTHON" != "X"; then
     PYNAME=`basename $PYTHON`
@@ -432,18 +438,30 @@ if test "$enables_python" = "yes"; then
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
 
-    PYTHON_SOABI=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
+    if test "$build_triplet" = "$host_triplet"; then
+        PYTHON_SOABI=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
+    else
+        PYTHON_SOABI=""
+    fi
     AC_SUBST(PYTHON_SOABI)
 
     AC_ARG_WITH(python-site-arch, AC_HELP_STRING([--with-python-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$PYTHON_SITE_ARCH" = "X"; then
-      PYTHON_SITE_ARCH=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
+      if test "$build_triplet" = "$host_triplet"; then
+        PYTHON_SITE_ARCH=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
+      else
+        PYTHON_SITE_ARCH=""
+      fi
     fi
     AC_SUBST(PYTHON_SITE_ARCH)
 
     AC_ARG_WITH(python-site-lib, AC_HELP_STRING([--with-python-site-lib=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$PYTHON_SITE_LIB" = "X"; then
-      PYTHON_SITE_LIB=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(0,0,"${prefix}"))'`
+      if test "$build_triplet" = "$host_triplet"; then
+        PYTHON_SITE_LIB=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(0,0,"${prefix}"))'`
+      else
+        PYTHON_SITE_LIB=""
+      fi
     fi
     AC_SUBST(PYTHON_SITE_LIB)
 
@@ -1621,7 +1639,7 @@ case "${host}" in
     # its required to libtool generate .dlls on win32 using mingw
     LDFLAGS="$LDFLAGS -no-undefined"
     AC_DEFINE(HAVE_GETDOMAINNAME,,[windows has gethostname method])
-    AC_CHECK_PROGS(WINDRES, windres.exe i686-pc-mingw32-windres)
+    AC_CHECK_PROGS(WINDRES, windres.exe ${host}-windres)
     ;;
   *solaris*)
     SOCKET_LIBS="-lsocket"
