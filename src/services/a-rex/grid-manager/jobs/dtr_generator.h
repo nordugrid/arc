@@ -112,8 +112,8 @@ class DTRGenerator: public DataStaging::DTRCallback {
    */
   ~DTRGenerator();
 
-  operator bool(void) { return true; };
-  bool operator!(void) { return false; };
+  operator bool(void) { return (generator_state == DataStaging::RUNNING); };
+  bool operator!(void) { return (generator_state != DataStaging::RUNNING); };
 
   /**
    * Callback called when DTR is finished. This DTR is marked done in the

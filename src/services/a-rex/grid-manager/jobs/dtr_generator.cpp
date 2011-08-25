@@ -181,10 +181,11 @@ void DTRGenerator::receiveDTR(DataStaging::DTR& dtr) {
 void DTRGenerator::receiveJob(const JobDescription& job) {
 
   if (generator_state != DataStaging::RUNNING) {
-    logger.msg(Arc::ERROR, "DTRGenerator is not running!");
-    return;
+    logger.msg(Arc::WARNING, "DTRGenerator is not running!");
   }
 
+  // Add to jobs list even if Generator is stopped, so that A-REX doesn't
+  // think that staging has finished.
   event_lock.lock();
   jobs_received.push_back(job);
   event_lock.unlock();
@@ -193,9 +194,9 @@ void DTRGenerator::receiveJob(const JobDescription& job) {
 void DTRGenerator::cancelJob(const JobDescription& job) {
 
   if (generator_state != DataStaging::RUNNING) {
-    logger.msg(Arc::ERROR, "DTRGenerator is not running!");
-    return;
+    logger.msg(Arc::WARNING, "DTRGenerator is not running!");
   }
+
   event_lock.lock();
   jobs_cancelled.push_back(job.get_id());
   event_lock.unlock();
