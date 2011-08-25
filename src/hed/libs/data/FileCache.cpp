@@ -197,7 +197,10 @@ namespace Arc {
     if (!DirCreate(filename.substr(0, filename.rfind("/")), S_IRWXU, true))
       return false;
 
-    int lock_timeout = 86400; // one day timeout on lock TODO: make configurable?
+    // 15 min lock timeout. The lock file is continually updated during the
+    // transfer so 15 mins with no transfer update should mean stale lock.
+    // TODO: make configurable?
+    int lock_timeout = 900;
 
     // acquire lock
     FileLock lock(filename, lock_timeout);

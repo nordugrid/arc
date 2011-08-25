@@ -11,10 +11,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <utime.h>
 
 #include <glibmm.h>
 
 #include <arc/DateTime.h>
+#include <arc/FileLock.h>
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/Thread.h>
@@ -861,6 +863,7 @@ namespace Arc {
 
       DataStatus read_failure = DataStatus::Success;
       DataStatus write_failure = DataStatus::Success;
+      std::string cache_lock;
       if (!cacheable) {
         destination.AddCheckSumObject(&crc_dest);
         datares = destination.StartWriting(buffer);
@@ -902,11 +905,20 @@ namespace Arc {
           destination.NextLocation(); /* to decrease retry counter */
           return DataStatus::CacheError; // repeating won't help here
         }
+        cache_lock = chdest.GetURL().Path()+FileLock::getLockSuffix();
 #endif
       }
       logger.msg(VERBOSE, "Waiting for buffer");
-      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();)
+      for (; (!buffer.eof_read() || !buffer.eof_write()) && !buffer.error();) {
         buffer.wait_any();
+        if (cacheable && !cache_lock.empty()) {
+          // touch cache lock file regularly so it is still valid
+          if (utime(cache_lock.c_str(), NULL) == -1) {
+            logger.msg(WARNING, "Failed updating timestamp on cache lock file %s for file %s: %s",
+                       cache_lock, source_url.str(), StrError(errno));
+          }
+        }
+      }
       logger.msg(INFO, "buffer: read eof : %i", (int)buffer.eof_read());
       logger.msg(INFO, "buffer: write eof: %i", (int)buffer.eof_write());
       logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
