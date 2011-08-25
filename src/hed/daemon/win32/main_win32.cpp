@@ -14,11 +14,18 @@
 Arc::Config config;
 Arc::MCCLoader *loader = NULL;
 Arc::Logger& logger=Arc::Logger::rootLogger;
+static bool req_shutdown = false;
 
-static void shutdown(int)
+static void sig_shutdown(int)
+{
+    if(req_shutdown) _exit(0);
+    req_shutdown = true;
+}
+
+static void do_shutdown(void)
 {
     logger.msg(Arc::VERBOSE, "shutdown");
-    delete loader;
+    if(loader) delete loader;
     _exit(0);
 }
 
@@ -132,8 +139,8 @@ int main(int argc, char **argv)
             std::string root_log_file = init_logger(config);
             
             // set signal handlers 
-            signal(SIGTERM, shutdown);
-            signal(SIGINT, shutdown);
+            signal(SIGTERM, sig_shutdown);
+            signal(SIGINT, sig_shutdown);
 
             // bootstrap
             loader = new Arc::MCCLoader(config);
@@ -142,8 +149,8 @@ int main(int argc, char **argv)
             } else {
                 logger.msg(Arc::INFO, "Service side MCCs are loaded");
                 // sleep forever
-                for (;;) {
-                    sleep(INT_MAX);
+                for (;!req_shutdown;) {
+                    sleep(1);
                 }
             }
         } else {
@@ -153,5 +160,6 @@ int main(int argc, char **argv)
       logger.msg(Arc::ERROR, error.what());
     }
     
+    do_shutdown();
     return 0;
 }

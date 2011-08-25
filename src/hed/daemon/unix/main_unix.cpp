@@ -22,13 +22,20 @@
 #include "daemon.h"
 #include "../options.h"
 
-Arc::Daemon *main_daemon = NULL;
-Arc::Config config;
-Arc::MCCLoader *loader = NULL;
-Arc::Logger& logger = Arc::Logger::rootLogger;
-int exit_code = 0;
+static Arc::Daemon *main_daemon = NULL;
+static Arc::Config config;
+static Arc::MCCLoader *loader = NULL;
+static Arc::Logger& logger = Arc::Logger::rootLogger;
+static int exit_code = 0;
+static bool req_shutdown = false;
 
-static void shutdown(int)
+static void sig_shutdown(int)
+{
+    if(req_shutdown) _exit(exit_code);
+    req_shutdown = true;
+}
+
+static void do_shutdown(void)
 {
     logger.msg(Arc::VERBOSE, "shutdown");
     if(loader) delete loader;
@@ -275,8 +282,8 @@ int main(int argc, char **argv)
             std::string user = (std::string)config["Server"]["User"];
             std::string group = (std::string)config["Server"]["Group"];
             // set signal handlers
-            signal(SIGTERM, shutdown);
-            signal(SIGINT, shutdown);
+            signal(SIGTERM, sig_shutdown);
+            signal(SIGINT, sig_shutdown);
 
             // switch user
             if (getuid() == 0) { // are we root?
@@ -309,8 +316,8 @@ int main(int argc, char **argv)
             } else {
                 logger.msg(Arc::INFO, "Service side MCCs are loaded");
                 // sleep forever
-                for (;;) {
-                    sleep(INT_MAX);
+                for (;!req_shutdown;) {
+                    sleep(1);
                 }
             }
         } else {
@@ -321,6 +328,6 @@ int main(int argc, char **argv)
     }
 
     exit_code = -1;
-    shutdown(0);
+    do_shutdown();
     return exit_code;
 }
