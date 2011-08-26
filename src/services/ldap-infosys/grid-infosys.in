@@ -69,13 +69,19 @@ case "$1" in
 	status
 	;;
     condrestart | try-restart)
-	if [ -f /usr/sbin/bdii5-update ]; then
+	if [ -f /usr/sbin/bdii-update ]; then
 	    if [ -f ${slapd_lock_file} ] || [ -f ${update_lock_file} ]; then
-		restart
+		stop
+		# avoid race
+		sleep 3
+		start
 	    fi
 	else
 	    if [ -f "$PID_FILE" ] ; then
-		restart
+		stop
+		# avoid race
+		sleep 3
+		start
 	    fi
 	fi
 	;;
