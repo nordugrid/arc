@@ -137,30 +137,6 @@ check_cwd () {
     esac
 }
 
-
-# Function checks if we are using a nordugrid-patched bdii Returns
-# true (1) if bdii is unpatched. Returns false (0) if it is patched.
-# In case it is patched, we should disable o=infosys as default.  If
-# it is not patched, then keep o=infosys since plain bdii does not
-# support turning this feature off.
-check_if_bdii_unpatched () {
-    if [ $# != 1 ]; then
-	error_echo "check_bdii called with too few arguments, wanted bdii_update_file_path"
-	exit 1
-    fi
-    bdii_update_file=$1
-    grep -q "bdii_infosys" $bdii_update_file
-    if [ $? -eq 0 ]; then
-	debug_echo "You are using a patched version of BDII."
-	debug_echo "Will default to turning off o=infosys unless specifically handled in arc.conf"
-	return 0
-    else
-	debug_echo "Warning: You are using a pure version of BDII."
-	debug_echo "Will not try to turn o=infosys off since this is not supported."
-	return 1
-    fi
-}
-
 ###############  Standard configuration  ######################
 
 # Set ARC location
@@ -290,21 +266,27 @@ bdii_user=${CONFIG_user:-$ldap_user}
 bdii_location=${CONFIG_bdii_location:-/usr}
 giis_location=${CONFIG_giis_location:-$ARC_LOCATION}
 
-bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
-bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
-bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
-bdii_log_file="${bdii_log_dir}/bdii-update.log"
-
-mkdir -p $bdii_log_dir
-
-bdii_slapd_conf=$bdii_var_dir/bdii-slapd.conf
-
 bdii_update_cmd=${CONFIG_bdii_update_cmd:-"${bdii_location}/sbin/bdii-update"}
 if [ ! -e $bdii_update_cmd ]; then
     log_failure_msg "Can not find bdii-update command at: $bdii_update_cmd."
     log_failure_msg "Please set bdii_update_cmd in arc.conf"
     exit 1
 fi
+
+bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
+if grep -q BDII_PID_FILE $bdii_update_cmd ; then
+bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
+bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+else
+bdii_var_dir=${CONFIG_bdii_var_dir:-/var/run/arc/bdii}
+bdii_run_dir=$bdii_var_dir
+fi
+bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
+bdii_log_file="${bdii_log_dir}/bdii-update.log"
+
+mkdir -p $bdii_log_dir
+
+bdii_slapd_conf=$bdii_run_dir/bdii-slapd.conf
 
 bdii_default_ldif_ng=${bdii_tmp_dir}/provider/arc-default.ldif.pl
 bdii_ldif_dir=${bdii_tmp_dir}/ldif
@@ -313,12 +295,11 @@ bdii_plugin_dir=${bdii_tmp_dir}/plugin
 
 bdii_port=${CONFIG_port:-2135}
 
-#Using uppercase characters in bdii_bind will break infosys.
+# Using uppercase characters in bdii_bind will break infosys.
 bdii_bind="o=grid"
-#TODO add to BDII
+
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
-bdii_database=${CONFIG_bdii_database:-"bdb"}
-bdii_fix_glue=${CONFIG_fix_glue:-no}
+bdii_database=${CONFIG_bdii_database:-"hdb"}
 bdii_archive_size=${CONFIG_bdii_archive_size:-0}
 
 infosys_compat=${CONFIG_infosys_compat:-"disable"}
@@ -346,8 +327,8 @@ else
 fi
 bdii_delete_delay=${CONFIG_bdii_delete_delay:-0}
 
-update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_var_dir/bdii-update.pid}
-slapd_pid_file=${CONFIG_slapd_pid_file:-$bdii_var_dir/db/slapd.pid}
+update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
+slapd_pid_file=${CONFIG_slapd_pid_file:-$bdii_run_dir/db/slapd.pid}
 
 # Debian does not have /var/lock/subsys
 if [ -d /var/lock/subsys ]; then
@@ -358,13 +339,6 @@ else
     update_lock_file=${update_lock_file:-/var/lock/arc-bdii-update}
     slapd_lock_file=${slapd_lock_file:-/var/lock/arc-bdii-slapd}
     lockfile=/var/lock/$prog
-fi
-
-# o=infosys should be disabled by default if possible.
-infosys_debug=${CONFIG_infosys_debug:-"disable"}
-bdii_infosys="no"
-if [ "x$infosys_debug" = "xenable" ]; then
-    bdii_infosys="yes"
 fi
 
 # Check directories and permissions
@@ -477,14 +451,6 @@ if [ "`config_subsections infosys/index`" ]; then
     fi
 fi
 
-# If we are running on an unpatched BDII, handle it gracefully by
-# having o=infosys enabled.
-check_if_bdii_unpatched $bdii_update_cmd
-if [ $? -gt 0 ]; then
-    infosys_debug=enable
-    bdii_infosys=yes
-fi
-
 resource_location=""
 resource_latitude=""
 resource_longitude=""
@@ -583,8 +549,6 @@ create_bdii_conf () {
     rm -f ${BDII_CONF}
     std_header ${BDII_CONF}
     cat <<-EOF >> ${BDII_CONF}
-	BDII_DIR=$bdii_location
-	BDII_VAR_DIR=$bdii_var_dir
 	BDII_LOG_FILE=$bdii_log_file
 	BDII_PID_FILE=$update_pid_file
 	BDII_LOG_LEVEL=ERROR
@@ -592,21 +556,19 @@ create_bdii_conf () {
 	BDII_PROVIDER_DIR=$bdii_provider_dir
 	BDII_PLUGIN_DIR=$bdii_plugin_dir
 	BDII_PORT=$bdii_port
-	BDII_USER=$bdii_user
-	BDII_BIND=$bdii_bind
 	BDII_BREATHE_TIME=$bdii_breathe_time
 	BDII_READ_TIMEOUT=$bdii_read_timeout
-	BDII_DELETE_DELAY=$bdii_delete_delay
-	BDII_INFOSYS=$bdii_infosys
 	BDII_ARCHIVE_SIZE=$bdii_archive_size
-	FIX_GLUE=$bdii_fix_glue
+	BDII_DELETE_DELAY=$bdii_delete_delay
+	BDII_USER=$bdii_user
+	BDII_VAR_DIR=$bdii_var_dir
 	SLAPD_CONF=$bdii_slapd_conf
 	EOF
 }
 
 # Call with: create_arc_slapd_conf bdii_dir bdii_slapd_conf_file
 # Will create file $bdii_slapd_conf, normally located at:
-# $bdii_var_dir/arc-slapd.conf
+# $bdii_run_dir/arc-slapd.conf
 create_arc_slapd_conf () {
     if [ $# != 2 ]; then
 	error_echo "Wrong number of arguments to create_arc_slapd_conf"
@@ -654,8 +616,8 @@ create_arc_slapd_conf () {
 
 	allow bind_v2
 
-	pidfile         $bdii_var_dir/db/slapd.pid
-	argsfile        $bdii_var_dir/db/slapd.args
+	pidfile         $bdii_run_dir/db/slapd.pid
+	argsfile        $bdii_run_dir/db/slapd.args
 	loglevel        $slapd_loglevel
 	threads         $threads
 	idletimeout     120
@@ -679,6 +641,7 @@ add_info_service () {
 	cachesize       150000
 	dbnosync
 	suffix          "$suffix"
+	checkpoint      131072 60
 	rootdn          "$rootdn"
 	rootpw          secret
 	directory       $bdii_var_dir/db/arc
@@ -688,23 +651,21 @@ add_info_service () {
 	cachesize       150000
 	dbnosync
 	suffix          "o=glue"
+	checkpoint      131072 60
 	rootdn          "o=glue"
 	rootpw          secret
 	directory       $bdii_var_dir/db/glue2
-	EOF
 
-    if [ "x$infosys_debug" = "xenable" ]; then
-    cat <<-EOF >> $bdii_slapd_conf
 	# Infosys database definitions
 	database        ${bdii_database}
-	cachesize       150000
+	cachesize       60
 	dbnosync
 	suffix          "o=infosys"
+	checkpoint      131072 60
 	rootdn          "o=infosys"
 	rootpw          secret
 	directory       $bdii_var_dir/db/stats
 	EOF
-    fi
 }
 
 # Call with: create_default_ldif bdii_default_ldif_file
@@ -1229,25 +1190,27 @@ start () {
     create_bdii_config_files
 
     #Initialize the database directory
-    create_directory $bdii_var_dir/db/stats "BDII_VAR_DIR/db/stats"
+    create_directory $bdii_run_dir/db "BDII_RUN_DIR/db"
+    chown -R $bdii_user:$bdii_user $bdii_run_dir
+    [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_run_dir/db
     create_directory $bdii_var_dir/db/arc "BDII_VAR_DIR/db/arc"
     create_directory $bdii_var_dir/db/glue2 "BDII_VAR_DIR/db/glue2"
+    create_directory $bdii_var_dir/db/stats "BDII_VAR_DIR/db/stats"
+    chown -R $bdii_user:$bdii_user $bdii_var_dir/db
+    [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir/db
     create_directory $bdii_var_dir/archive "BDII_VAR_DIR/archive"
     chown -R $bdii_user:$bdii_user $bdii_var_dir
-    [ -x /sbin/restorecon ] && /sbin/restorecon -R $bdii_var_dir
     chown -R $bdii_user:$bdii_user $bdii_tmp_dir
     if [ ! -f $bdii_log_file ]; then
 	touch $bdii_log_file
     fi
     chown $bdii_user:$bdii_user $bdii_log_file
-    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/stats" $bdii_user
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/arc" $bdii_user
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/glue2" $bdii_user
+    $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/stats" $bdii_user
     #Need to remove / from mkpasswd, otherwise sed will break.
     pass=`/usr/bin/mkpasswd -s 0 2> /dev/null` || pass=$RANDOM$RANDOM
     pass=${pass//\//x}
-
-    (umask 077; >> $bdii_slapd_conf)
 
     if [ ! -f ${bdii_slapd_conf} ]; then
 	log_failure_msg "Can not find slapd file: ${bdii_slapd_conf}"
@@ -1255,6 +1218,7 @@ start () {
     fi
 
     sed -i "s/secret/${pass}/g" $bdii_slapd_conf
+    [ -x /sbin/restorecon ] && /sbin/restorecon $bdii_slapd_conf
 
     # Finished with the config file generation.
     # Time to start the whole infosys

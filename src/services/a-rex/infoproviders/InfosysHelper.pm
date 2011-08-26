@@ -125,15 +125,16 @@ sub waitForProvider {
     sub findInfosys {
         return @$cache if defined $cache;
 
-	my $config = @_;
-        my ($bdii_var_dir) = $config->{bdii_var_dir} || "/var/run/bdii4"; 
-	my ($bdii_update_pid_file) = $config->{bdii_update_pid_file} || "/var/run/arc/bdii-update.pid"; 
-    
+        my $config = @_;
+        my ($bdii_var_dir) = $config->{bdii_var_dir} || "/var/lib/arc/bdii";
+        my ($bdii_run_dir) = $config->{bdii_run_dir} || "/var/run/arc/bdii";
+        my ($bdii_update_pid_file) = $config->{bdii_update_pid_file} || "$bdii_run_dir/bdii-update.pid";
+
         my ($infosys_uid, $infosys_gid);
         my $infosys_runtime_dir;
-    
-	# if not specified with bdii_update_pid_file, it's likely here
-        my $bdii5_pidfile = "/var/run/arc/bdii-update.pid";
+
+        # if not specified with bdii_update_pid_file, it's likely here
+        my $bdii5_pidfile = "$bdii_run_dir/bdii-update.pid";
         my $bdii4_pidfile = "$bdii_var_dir/bdii-update.pid";
         for my $pidfile ( $bdii_update_pid_file, $bdii5_pidfile, $bdii4_pidfile ) {
             unless ( ($infosys_uid, $infosys_gid) = uidGidFromFile($pidfile) ) {
