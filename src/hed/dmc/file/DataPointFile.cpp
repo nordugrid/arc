@@ -513,6 +513,9 @@ namespace Arc {
     reading = true;
     /* try to open */
     int flags = O_RDONLY;
+#ifdef WIN32
+    flags |= O_BINARY;
+#endif
     uid_t uid = usercfg.GetUser().get_uid();
     gid_t gid = usercfg.GetUser().get_gid();
 
@@ -663,6 +666,9 @@ namespace Arc {
 
       /* try to create file. Opening an existing file will cause failure */
       int flags = (checksums.size() > 0)?O_RDWR:O_WRONLY;
+#ifdef WIN32
+      flags |= O_BINARY;
+#endif
       if(((!uid) || (uid == getuid())) && ((!gid) || (gid == getgid()))) {
         fa = NULL;
         fd = ::open(url.Path().c_str(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
