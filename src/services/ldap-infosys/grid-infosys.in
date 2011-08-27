@@ -43,9 +43,11 @@ export ARC_LOCATION
 if [ -f /usr/sbin/bdii-update ]; then
     . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii5 $1
 elif [ -f /usr/sbin/bdii4-update ]; then
-    . $ARC_LOCATION/@pkgdatasubdir@/grid-infosys-bdii4 $1
+    echo "You are using bdii 4"
+    echo "This is no longer supported - please update to bdii 5"
+    exit 1
 else
-    echo "You don't have BDII 4 or 5 installed"
+    echo "You don't have bdii installed"
     echo "This is a necessary component for the ARC LDAP information system"
     exit 1
 fi
@@ -69,20 +71,11 @@ case "$1" in
 	status
 	;;
     condrestart | try-restart)
-	if [ -f /usr/sbin/bdii-update ]; then
-	    if [ -f ${slapd_lock_file} ] || [ -f ${update_lock_file} ]; then
-		stop
-		# avoid race
-		sleep 3
-		start
-	    fi
-	else
-	    if [ -f "$PID_FILE" ] ; then
-		stop
-		# avoid race
-		sleep 3
-		start
-	    fi
+	if [ -f ${slapd_lock_file} ] || [ -f ${update_lock_file} ]; then
+	    stop
+	    # avoid race
+	    sleep 3
+	    start
 	fi
 	;;
     *)

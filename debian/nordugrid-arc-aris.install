@@ -14,4 +14,3 @@ debian/tmp/usr/share/arc/ConfigParser.pm
 debian/tmp/usr/share/arc/config_parser_compat.sh
 
 debian/tmp/usr/share/arc/grid-infosys-bdii5
-debian/tmp/usr/share/arc/grid-infosys-bdii4

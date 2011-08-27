@@ -295,15 +295,9 @@ sub createLdifScript {
 #  * returns true if/when there is a fresh ldif
 #
 sub ldifIsReady {
-    my ($infosys_runtime_dir, $max_age, $is_bdii4) = @_;
+    my ($infosys_runtime_dir, $max_age) = @_;
 
-    if (not $is_bdii4) {
-        LogUtils::timestamps(1);
-    } else {
-        # We can't just print anything to stderr because BDII4 redirects stderr
-        # to stdout. Disguise log records as comments!
-        $log = LogUtils->getLogger("# ".__PACKAGE__);
-    }
+    LogUtils::timestamps(1);
 
     # Check if ldif generator script exists and is fresh enough
     my $scriptpath = "$infosys_runtime_dir/ldif-provider.sh";
