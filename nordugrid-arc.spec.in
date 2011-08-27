@@ -441,7 +441,6 @@ Connector (ARC).
 The ARC Remote EXecution service (AREX) provides a service for the
 execution of compute jobs and the transfer of input or output data.
 
-
 %package plugins-needed
 Summary:	ARC base plugins
 Group:		System Environment/Libraries
@@ -730,7 +729,7 @@ cd -
 %if %{?rhel}%{!?rhel:0} == 5
 %{__python}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
 %{__python} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT"'", 10, "%{python_sitearch}", 1)' > /dev/null
-%{__python26}    -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
+%{__python26}	 -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %{__python26} -O -c 'import compileall; compileall.compile_dir("'"$RPM_BUILD_ROOT%{python26_sitearch}"'", 10, "%{python26_sitearch}", 1)' > /dev/null
 %endif
 
