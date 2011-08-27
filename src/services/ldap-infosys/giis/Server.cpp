@@ -85,10 +85,11 @@ void Server::Start() {
     if(select(sfd + 1, &fs, NULL, NULL, NULL) > 0) {
       char buf[2048];
       if (!fgets(buf, 2048, sf)) {
-        running = false;
-        fclose(sf);
-        return;
-      };
+	fclose(sf);
+	sfd = open(fifo.c_str(), O_RDONLY | O_NONBLOCK);
+	sf = fdopen(sfd, "r");
+	continue;
+      }
       std::string file(buf, strlen(buf) - 1);
       if(file == "STOP")
 	running = false;
