@@ -9,7 +9,7 @@ Index::Index(const std::string& name) : name(name) {
 Index::Index(const Index& ix) : name(ix.name),
 				policies(ix.policies),
 				entries(ix.entries) {
-  pthread_mutex_init(&lock, NULL);  
+  pthread_mutex_init(&lock, NULL);
 }
 
 Index::~Index() {

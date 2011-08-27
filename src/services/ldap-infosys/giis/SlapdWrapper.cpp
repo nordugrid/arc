@@ -21,10 +21,10 @@ typedef void** (*backend_info_t)(const char*);
    only the size of the pointers is important. */
 
 typedef struct req_search_s {
-  int rs_scope; 
-  int rs_deref; 
-  int rs_slimit; 
-  int rs_tlimit; 
+  int rs_scope;
+  int rs_deref;
+  int rs_slimit;
+  int rs_tlimit;
   void *rs_limit;     /* struct slap_limits_set* */
   int rs_attrsonly;
   void *rs_attrs;     /* AttributeName*          */
