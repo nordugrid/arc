@@ -1174,16 +1174,17 @@ namespace Arc {
 
     BN_GENCB_set(&cb,&keygen_cb,NULL);
     if(prime && rsa_key) {
-      if(BN_set_word(prime,RSA_F4)) {
-        if(!RSA_generate_key_ex(rsa_key, keybits, prime, &cb)) {
-          CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
-          LogError();
-          if(prime) BN_free(prime);
-          return false;
-        }
-      }
-      else{
+      int val1 = BN_set_word(prime,RSA_F4);
+      if(val1 != 1) {
         CredentialLogger.msg(ERROR, "BN_set_word failed");
+        LogError();
+        if(prime) BN_free(prime);
+        if(rsa_key) RSA_free(rsa_key);
+        return false;
+      }
+      int val2 = RSA_generate_key_ex(rsa_key, keybits, prime, &cb);
+      if(val2 != 1) {
+        CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
         LogError();
         if(prime) BN_free(prime);
         if(rsa_key) RSA_free(rsa_key);
@@ -1242,6 +1243,8 @@ namespace Arc {
         }
       }
     }
+
+    if(rsa_key) RSA_free(rsa_key);
 
     req_ = req;
     return res;
@@ -1347,20 +1350,22 @@ namespace Arc {
 
     BN_GENCB_set(&cb,&keygen_cb,NULL);
     if(prime && rsa_key) {
-      if(BN_set_word(prime,RSA_F4)) {
-        if(RSA_generate_key_ex(rsa_key, keybits, prime, &cb) != 1) {
-          CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
-          LogError();
-          if(prime) BN_free(prime);
-          return false;
-        }
-      }
-      else{
+      int val1 = BN_set_word(prime,RSA_F4);
+      if(val1 != 1) {
         CredentialLogger.msg(ERROR, "BN_set_word failed");
         LogError();
         if(prime) BN_free(prime);
         if(rsa_key) RSA_free(rsa_key);
-        return false; }
+        return false;
+      }
+      int val2 = RSA_generate_key_ex(rsa_key, keybits, prime, &cb);
+      if(val2 != 1) {
+        CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
+        LogError();
+        if(prime) BN_free(prime);
+        if(rsa_key) RSA_free(rsa_key);
+        return false;
+      }
     }
     else {
       CredentialLogger.msg(ERROR, "BN_new || RSA_new failed");
@@ -1422,7 +1427,10 @@ namespace Arc {
                   ext_method = X509V3_EXT_get_nid(OBJ_sn2nid(certinfo_sn.c_str()));
                   if(ext_method == NULL) {
                     CredentialLogger.msg(ERROR, "Can get X509V3_EXT_METHOD for %s",certinfo_sn.c_str());
-                    LogError(); return false;
+                    LogError();                   
+                    if(pkey) EVP_PKEY_free(pkey);
+                    if(rsa_key) RSA_free(rsa_key); 
+                    return false;
                   }
                   length = ext_method->i2d(proxy_cert_info_, NULL);
                   if(length < 0) {
@@ -1484,6 +1492,8 @@ namespace Arc {
         else { CredentialLogger.msg(ERROR, "Can not set private key"); LogError(); res = false;}
       }
     }
+
+    if(rsa_key) RSA_free(rsa_key);
 
     req_ = req;
     return res;

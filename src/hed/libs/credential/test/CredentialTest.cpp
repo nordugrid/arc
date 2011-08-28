@@ -87,7 +87,7 @@ void CredentialTest::testCAcert() {
   Arc::Time ca_t;
   Arc::Credential ca(ca_t, Arc::Period(365*24*3600), ca_keybits, "EEC");
 
-  BIO* ca_req_bio;
+  BIO* ca_req_bio = NULL;
   ca_req_bio = BIO_new(BIO_s_mem());
   ca.GenerateRequest(ca_req_bio);
 
@@ -112,6 +112,7 @@ void CredentialTest::testCAcert() {
   // Test if the DN is read properly
   CPPUNIT_ASSERT_EQUAL(CAdn, ca2.GetDN());
 
+  if(ca_req_bio)BIO_free_all(ca_req_bio);
 }
 
 void CredentialTest::testhostcert() {
