@@ -44,7 +44,13 @@ configure-stamp:
 		    $(LFC_CONFIGURE_OPTION)
 	touch $@
 
-build: build-stamp
+build: build-arch build-indep
+	:
+
+build-arch: build-stamp
+	:
+
+build-indep: build-stamp
 	:
 
 build-stamp: configure-stamp
@@ -140,4 +146,4 @@ binary-arch: install
 binary: binary-arch binary-indep
 	:
 
-.PHONY: build clean binary-indep binary-arch binary install configure
+.PHONY: build-arch build-indep build clean binary-arch binary-indep binary install configure
