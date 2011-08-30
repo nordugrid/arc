@@ -404,10 +404,10 @@ if test "$enables_python" = "yes"; then
 
   # We do not look for python binary when cross-compiling
   # but we need to make the variable non-empty
-  if test "$build_triplet" = "$host_triplet"; then
+  if test "${build}" = "${host}"; then
     AC_CHECK_PROGS(PYTHON, $with_python python)
   else
-    PYTHON="X"
+    PYTHON=python
   fi
 
   if test "X$PYTHON" != "X"; then
@@ -438,7 +438,7 @@ if test "$enables_python" = "yes"; then
     AC_SUBST(PYTHON_CFLAGS)
     AC_SUBST(PYTHON_LIBS)
 
-    if test "$build_triplet" = "$host_triplet"; then
+    if test "${build}" = "${host}"; then
         PYTHON_SOABI=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
     else
         PYTHON_SOABI=""
@@ -447,20 +447,20 @@ if test "$enables_python" = "yes"; then
 
     AC_ARG_WITH(python-site-arch, AC_HELP_STRING([--with-python-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$PYTHON_SITE_ARCH" = "X"; then
-      if test "$build_triplet" = "$host_triplet"; then
+      if test "${build}" = "${host}"; then
         PYTHON_SITE_ARCH=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(1,0,"${prefix}"))'`
       else
-        PYTHON_SITE_ARCH=""
+        PYTHON_SITE_ARCH="${libdir}/python${PYTHON_VERSION}/site-packages"
       fi
     fi
     AC_SUBST(PYTHON_SITE_ARCH)
 
     AC_ARG_WITH(python-site-lib, AC_HELP_STRING([--with-python-site-lib=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$PYTHON_SITE_LIB" = "X"; then
-      if test "$build_triplet" = "$host_triplet"; then
+      if test "${build}" = "${host}"; then
         PYTHON_SITE_LIB=`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_lib(0,0,"${prefix}"))'`
       else
-        PYTHON_SITE_LIB=""
+        PYTHON_SITE_LIB="${libdir}/python${PYTHON_VERSION}/site-packages"
       fi
     fi
     AC_SUBST(PYTHON_SITE_LIB)
