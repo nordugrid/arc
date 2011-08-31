@@ -159,7 +159,7 @@ namespace Arc {
       }
 
       if (!it1->Source.empty() && it1->Source.front().Protocol() == "file") {
-        if (it1->FileSize != -1) {
+        if (it1->FileSize < 0) {
           if (stat(it1->Source.front().Path().c_str(), &fileStat) == 0) {
             it1->FileSize = fileStat.st_size;
           }
