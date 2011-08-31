@@ -16,12 +16,6 @@
 #include <arc/client/ClientInterface.h>
 #include <arc/message/PayloadSOAP.h>
 #include "TargetRetrieverEMIREG.h"
-#include "../ARC0/TargetRetrieverARC0.h"
-#include "../ARC1/TargetRetrieverARC1.h"
-#include "../CREAM/TargetRetrieverCREAM.h"
-#include "../UNICORE/TargetRetrieverUNICORE.h"
-#include "../EMIES/TargetRetrieverEMIES.h"
-
 
 #include "TargetRetrieverEMIREG.h"
 
@@ -153,74 +147,39 @@ namespace Arc {
             for (int i=0; i<resp_xml.Size(); i++) {
                 std::string service_url = (std::string)resp_xml["Service"][i]["Endpoint"]["URL"];
                 services.push_back( std::pair<URL, ServiceType>(Arc::URL(service_url), COMPUTING) );
-                switch ( it->first){
-                    case ARC0:
-                        {
-                            r = tartgetloader.load("ARC0", *(thrarg->usercfg), service_url, COMPUTING);
-                            if (thrarg->isExecutionTarget)
-                                ((TargetRetrieverARC0*)r)->GetExecutionTargets(*(thrarg->mom));
-                            else {}
-                            if ( i == resp_xml.Size()-1 ){
-                                logger.msg(VERBOSE,
-                                       "Found %u ARC0 execution services from the index service at %s",
-                                       resp_xml.Size(), thrarg->url.str());
-                            }
-                        }
-                        break;
-                    case ARC1:
-                        {
-                            r = tartgetloader.load("ARC1", *(thrarg->usercfg), service_url, COMPUTING);
-                            if (thrarg->isExecutionTarget)
-                                ((TargetRetrieverARC1*)r)->GetExecutionTargets(*(thrarg->mom));
-                            else {}
-                            if ( i == resp_xml.Size()-1 ){
-                                logger.msg(VERBOSE,
-                                       "Found %u ARC1 execution services from the index service at %s",
-                                       resp_xml.Size(), thrarg->url.str());
-                            }
-                        }
-                        break;
-                    case GLITE:
-                        {
-                            r = tartgetloader.load("CREAM", *(thrarg->usercfg), service_url, COMPUTING);
-                            if (thrarg->isExecutionTarget)
-                                ((TargetRetrieverCREAM*)r)->GetExecutionTargets(*(thrarg->mom));
-                            else {}
-                            if ( i == resp_xml.Size()-1 ){
-                                logger.msg(VERBOSE,
-                                       "Found %u CREAM execution services from the index service at %s",
-                                       resp_xml.Size(), thrarg->url.str());
-                            }
-                        }
-                        break;
-                    case UNICORE:
-                        {
-                            r = tartgetloader.load("UNICORE", *(thrarg->usercfg), service_url, COMPUTING);
-                            if (thrarg->isExecutionTarget)
-                                ((TargetRetrieverUNICORE*)r)->GetExecutionTargets(*(thrarg->mom));
-                            else {}
-                            if ( i == resp_xml.Size()-1 ){
-                                logger.msg(VERBOSE,
-                                       "Found %u UNICORE execution services from the index service at %s",
-                                       resp_xml.Size(), thrarg->url.str());
-                            }
-                        }
-                        break;
-                    case EMIES:
-                        {
-                            r = tartgetloader.load("EMIES", *(thrarg->usercfg), service_url, COMPUTING);
-                            if (thrarg->isExecutionTarget)
-                                ((TargetRetrieverEMIES*)r)->GetExecutionTargets(*(thrarg->mom));
-                            else {}
-                            if ( i == resp_xml.Size()-1 ){
-                                logger.msg(VERBOSE,
-                                      "Found %u EMIES execution services from the index service at %s",
-                                      resp_xml.Size(), thrarg->url.str());
-                            }
-                        }
-                        break;
-                    default:
-                       logger.msg(ERROR, "Wrong middleware type: %s", it->first);
+                std::string mtype = "";
+                switch (it->first) {
+                  case ARC0:
+                    mtype = "ARC0";
+                    break;
+                  case ARC1:
+                    mtype = "ARC1";
+                    break;
+                  case GLITE:
+                    mtype = "CREAM";
+                    break;
+                  case UNICORE:
+                    mtype = "UNICORE";
+                    break;
+                  case EMIES:
+                    mtype = "EMIES";
+                    break;
+                }
+                if (mtype.empty()) {
+                  logger.msg(ERROR, "Wrong middleware type: %s", it->first);
+                  continue;
+                }
+
+                r = tartgetloader.load(mtype, *(thrarg->usercfg), service_url, COMPUTING);
+                if (thrarg->isExecutionTarget) {
+                  r->GetExecutionTargets(*(thrarg->mom));
+                }
+                else {}
+                
+                if ( i == resp_xml.Size()-1 ){
+                  logger.msg(VERBOSE,
+                         "Found %u %s execution services from the index service at %s",
+                         resp_xml.Size(), mtype, thrarg->url.str());
                 }
             }
         } else {
@@ -237,7 +196,5 @@ namespace Arc {
 
     delete thrarg;
   }
-
-
 
 } // namespace Arc
