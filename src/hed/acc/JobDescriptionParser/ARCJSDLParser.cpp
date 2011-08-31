@@ -1072,7 +1072,7 @@ namespace Arc {
         datastaging.NewChild("DownloadToCache") = it->Source.front().Option("cache");
       }
 
-      if (!it->FileSize != -1) {
+      if (it->FileSize > -1) {
         datastaging.NewChild("FileSize") = tostring(it->FileSize);
       }
       if (!it->Checksum.empty()) {
