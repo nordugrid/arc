@@ -24,7 +24,6 @@ namespace Arc {
    **/
   class TargetRetriever
     : public Plugin {
-    friend class TargetGenerator;
   protected:
 
     /// TargetRetriever constructor
@@ -59,7 +58,6 @@ namespace Arc {
     virtual void GetTargets(TargetGenerator& mom, int targetType,
                             int detailLevel) = 0;
 
-  protected:
     /// Method for collecting targets
     /**
      * Pure virtual method for collecting targets. Implementation
@@ -82,6 +80,7 @@ namespace Arc {
      **/
     virtual void GetJobs(TargetGenerator& mom) = 0;
 
+  protected:
     const std::string flavour;
     const UserConfig& usercfg;
     const URL url;
