@@ -1,4 +1,4 @@
-noinst_pkglib_LTLIBRARIES = libaccEMIREG.la
+noinst_LTLIBRARIES = libaccEMIREG.la
 
 libaccEMIREG_la_SOURCES  = TargetRetrieverEMIREG.cpp TargetRetrieverEMIREG.h \
 	DescriptorsEMIREG.cpp
