@@ -115,9 +115,11 @@ bool compose_msg(std::string& msg, const std::map<std::string,std::string>& opti
   //USERNAME must be provided; PASSPHRASE could be empty 
   //if RETRIEVER_TRUSTED is provided.
   msg.append("USERNAME="+username+"\n");
+  //if(!password.empty()) {
 
   if(!dummy_pass)
     msg.append("PASSPHRASE="+password+"\n");
+  //}
   else
     msg.append("PASSPHRASE=DUMMY-PASSPHRASE\n");
 
@@ -178,10 +180,7 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   std::string credrequest = read_response(*response,false);
   delete response; response=NULL;
   
-  int lifetime = 43200; 
-  std::map<std::string,std::string>::const_iterator life_val;
-  life_val = options.find("lifetime");
-  if(life_val != options.end()) lifetime = stringto<int>(life_val->second);
+  long lifetime = 3600 * 24 * 7; 
   Arc::Credential proxy(Time(),Period(lifetime),1024,"rfc","inheritAll","",-1);
   // DER binary request
   if(!proxy.InquireRequest(credrequest, false, true)) return false;

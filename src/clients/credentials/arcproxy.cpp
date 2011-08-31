@@ -186,6 +186,25 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
   return s;
 }
 
+static void convert_period(std::string& period) {
+  std::string ret;
+  if (!period.empty() && ((period.rfind("h") != std::string::npos) || (period.rfind("H") != std::string::npos))) {
+    //If the validityPeriod is set as hours  
+    unsigned long tmp;
+    tmp = strtoll(period.c_str(), NULL, 0);
+    tmp = tmp * 3600;
+    period = Arc::tostring(tmp);
+  }
+  else if (!period.empty() && ((period.rfind("d") != std::string::npos) || (period.rfind("D") != std::string::npos))) {
+    //If the validityPeriod is set as days
+    unsigned long tmp;
+    tmp = strtoll(period.c_str(), NULL, 0);
+    tmp = tmp * 3600 * 24;
+    period = Arc::tostring(tmp);
+  }
+}
+
+
 int main(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
@@ -554,33 +573,19 @@ int main(int argc, char *argv[]) {
       constraints[*it] = "";
   }
 
+  //proxy validity period
   //Set the default proxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if ((constraints["validityEnd"].empty()) &&
       (constraints["validityPeriod"].empty()))
     constraints["validityPeriod"] = "43200";
 
-  //If the period is formated with hours, e.g., 12h, then change
-  //it into seconds
-  if (!(constraints["validityPeriod"].empty()) &&
-      ((constraints["validityPeriod"].rfind("h") != std::string::npos) ||
-       (constraints["validityPeriod"].rfind("H") != std::string::npos))) {
-    unsigned long tmp;
-    tmp = strtoll(constraints["validityPeriod"].c_str(), NULL, 0);
-    tmp = tmp * 3600;
-    std::string strtmp = Arc::tostring(tmp);
-    constraints["validityPeriod"] = strtmp;
-  }
-
-  if (!(constraints["vomsACvalidityPeriod"].empty()) &&
-      ((constraints["vomsACvalidityPeriod"].rfind("h") != std::string::npos) ||
-       (constraints["vomsACvalidityPeriod"].rfind("H") != std::string::npos))) {
-    unsigned long tmp;
-    tmp = strtoll(constraints["vomsACvalidityPeriod"].c_str(), NULL, 0);
-    tmp = tmp * 3600;
-    std::string strtmp = Arc::tostring(tmp);
-    constraints["vomsACvalidityPeriod"] = strtmp;
-  }
+  if(!constraints["validityPeriod"].empty())
+    convert_period(constraints["validityPeriod"]);
+ 
+ //voms AC valitity period
+  if(!constraints["vomsACvalidityPeriod"].empty())
+    convert_period(constraints["vomsACvalidityPeriod"]);
 
   //Set the default voms AC validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
@@ -604,21 +609,15 @@ int main(int argc, char *argv[]) {
 
   std::string voms_period = period_str;
 
-  if (!(constraints["myproxyvalidityPeriod"].empty()) &&
-      ((constraints["myproxyvalidityPeriod"].rfind("h") != std::string::npos) ||
-       (constraints["myproxyvalidityPeriod"].rfind("H") != std::string::npos))) {
-    unsigned long tmp;
-    tmp = strtoll(constraints["myproxyvalidityPeriod"].c_str(), NULL, 0);
-    tmp = tmp * 3600;
-    std::string strtmp = Arc::tostring(tmp);
-    constraints["myproxyvalidityPeriod"] = strtmp;
-  }
+  //myproxy validity period.
+  if(!constraints["myproxyvalidityPeriod"].empty())
+    convert_period(constraints["myproxyvalidityPeriod"]);
 
   //Set the default myproxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["myproxyvalidityPeriod"].empty()) {
     if ((constraints["validityEnd"].empty()) &&
-        (constraints["validityPeriod"].empty()))
+        (constraints["validityPeriod"].empty())) 
       constraints["myproxyvalidityPeriod"] = "43200";
     else if ((constraints["validityEnd"].empty()) &&
              (!(constraints["validityPeriod"].empty())))
@@ -860,6 +859,10 @@ int main(int argc, char *argv[]) {
 
     std::string private_key, signing_cert, signing_cert_chain;
 
+    //Set validity period for PUT operation to myproxy server, it is set here to not to
+    //confuse with the period for GET operation to myproxy server, since GET processing will
+    //never gets here.
+
     Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
     Arc::Period period1 = constraints["validityEnd"].empty() ? Arc::Period(std::string("43200")) : (Arc::Time(constraints["validityEnd"]) - start);
     Arc::Period period = constraints["validityPeriod"].empty() ? period1 : (Arc::Period(constraints["validityPeriod"]));
@@ -867,7 +870,10 @@ int main(int argc, char *argv[]) {
     std::string req_str;
     std::string policy;
     policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-    //Arc::Credential cred_request(start, period, keybits, "rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
+    //For myproxy PUT operation, the proxy should be 7 days according to the default 
+    //definition in myproxy implementation.
+    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
+      period = Arc::Period(std::string("604800"));
     Arc::Credential cred_request(start - Arc::Period(300), period, keybits);
     cred_request.GenerateRequest(req_str);
     cred_request.OutputPrivatekey(private_key);
