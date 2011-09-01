@@ -759,7 +759,16 @@ namespace Arc {
     }
     // buffer->wait_eof_write();
     transfer_cond.wait();         /* wait till writing thread exited */
+
+    // clean up if transfer failed for any reason
+    if (buffer->error()) {
+      bool err = false;
+      if (fa) err = fa->unlink(url.Path());
+      else err = FileDelete(url.Path());
+      if (!err && errno != ENOENT) logger.msg(WARNING, "Failed to clean up file %s: %s", url.Path(), StrError(errno));
+    }
     delete fa; fa = NULL;
+
     // validate file size, if transfer succeeded
     if (!buffer->error() && additional_checks && CheckSize() && !is_channel) {
       struct stat st;
