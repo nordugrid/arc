@@ -243,6 +243,8 @@ namespace Arc {
       }
     }
     locations = sorted_locations;
+    location = locations.begin();
+    SetHandle();
   }
 
 
