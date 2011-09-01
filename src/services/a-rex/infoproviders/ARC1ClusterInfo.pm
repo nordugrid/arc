@@ -696,7 +696,7 @@ sub collect($) {
                                        ];
             $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
             $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC";
+            $cep->{ImplementationName} = "ARC CE";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
             $cep->{QualityLevel} = "development";
