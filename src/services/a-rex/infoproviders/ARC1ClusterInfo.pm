@@ -687,8 +687,9 @@ sub collect($) {
             $cep->{Technology} = 'webservice';
             $cep->{InterfaceName} = 'ogf.bes';
             $cep->{InterfaceVersion} = [ '1.0' ];
-            # InterfaceExtension should return the same as BESExtension attribute of BES-Factory 
-            #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
+            # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
+            # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
+            $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
             $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
             # Wrong type, should be URI
             $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
