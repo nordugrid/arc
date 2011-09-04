@@ -7,6 +7,7 @@
 #include <arc/credential/VOMSUtil.h>
 #include <arc/Utils.h>
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 
 #include "../misc/escaped.h"
 #include "auth.h"
