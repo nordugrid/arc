@@ -187,6 +187,26 @@ gridmap="/etc/grid-security/grid-mapfile"
 # This command can also be used in [grid-manager] and [griftpd] blocks.
 voms_processing="standard"
 
+# voms_trust_chain - Define the DN chain that the host services trust when the 
+# voms AC from peer voms proxy certificate is parsed and validated. 
+# This variable is similar to the information in *.lsc file, but with two differences:
+#  1, you don't need to create a *.lsc file per VOMS server, but create a chain per VOMS server;
+#  2, the regular expression is support when matching the DNs.
+# This variable is not limited to [common], but can be used in [grid-manager]
+# and [gridftpd] blocks.
+# This variable should be used together with voms_processing.
+# This variable will overwrite the information in *.lsc if *.lsc exists. 
+# voms_trust_chains = "
+#       /O=Grid/O=NorduGrid/CN=host/arthur.hep.lu.se
+#       /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
+#       ----NEXT CHAIN---
+#       /O=Grid/O=NorduGrid/CN=host/emi-arc.eu
+#       /O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority
+#       ----NEXT CHAIN---
+#       ^/O=Grid/O=NorduGrid
+# "
+
+
 ####################################################################
 #
 # [vo] block is used to define VOs and generate mapfiles from user 

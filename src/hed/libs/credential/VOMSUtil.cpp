@@ -1744,15 +1744,16 @@ err:
     return MyDecode(data, size, j);
   }
 
-  std::string getCredentialProperty(const Arc::Credential& u,const std::string& property) {
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::vector<std::string>& voms_trust_list) {
     if (property == "dn"){
         return u.GetIdentityName();
     }
-// If it was not DN, then we have to deal with VOMS
+    // If it was not DN, then we have to deal with VOMS
     std::vector<VOMSACInfo> output;
-    std::string emptystring = "";
-    VOMSTrustList emptylist;
-    parseVOMSAC(u,emptystring,emptystring,emptylist,output,false);
+    VOMSTrustList vomstrustlist(voms_trust_list);
+    bool verify = false;
+    if(vomstrustlist.SizeRegexs() || vomstrustlist.SizeChains())verify = true;
+    parseVOMSAC(u,ca_cert_dir,ca_cert_file,vomstrustlist,output,verify);
     if (property == "voms:vo"){
         if (output.empty()) {
                 // if it's not possible to determine the VO -- such jobs will go into generic share

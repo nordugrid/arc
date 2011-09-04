@@ -107,9 +107,15 @@ static int process_vomsproxy(const char* filename,std::vector<struct voms> &data
   Arc::Credential c(filename, filename, cert_dir, "");
   std::vector<Arc::VOMSACInfo> output;
   std::string emptystring = "";
+/*
   Arc::VOMSTrustList emptylist;
   emptylist.AddRegex(".*");
-  parseVOMSAC(c, cert_dir, emptystring, emptylist, output, true, true);
+*/  
+  std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
+  std::vector<std::string> vomstrustlist;
+  Arc::tokenize(voms_trust_chains, vomstrustlist, "\n");
+  Arc::VOMSTrustList voms_trust_list(vomstrustlist);
+  parseVOMSAC(c, cert_dir, emptystring, voms_trust_list, output, true, true);
   for(size_t n=0;n<output.size();++n) {
     if(!(output[n].status & Arc::VOMSACInfo::Error)) {
       data.push_back(AuthUser::arc_to_voms(output[n].voname,output[n].attributes));

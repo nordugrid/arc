@@ -966,11 +966,14 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               std::string user_proxy_file = job_proxy_filename(i->get_id(), *user).c_str();
               std::string cert_dir = "/etc/grid-security/certificates";
               std::string v = user->Env().cert_dir_loc();
-              if(! v.empty()) cert_dir = v;
-                Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = getCredentialProperty(u,jcfg.share_type);
-                i->set_share(share);
-                logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
+              if(!v.empty()) cert_dir = v;
+              Arc::Credential u(user_proxy_file,"",cert_dir,"");
+              std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
+              std::vector<std::string> vomstrustlist;
+              Arc::tokenize(voms_trust_chains, vomstrustlist, "\n");
+              const std::string share = getCredentialProperty(u,jcfg.share_type,cert_dir,"",vomstrustlist);
+              i->set_share(share);
+              logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
             job_desc->transfershare = i->transfer_share;
             job_local_write_file(*i,*user,*job_desc);
@@ -998,10 +1001,13 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
               std::string cert_dir = "/etc/grid-security/certificates";
               std::string v = user->Env().cert_dir_loc();
               if(! v.empty()) cert_dir = v;
-                Arc::Credential u(user_proxy_file,"",cert_dir,"");
-                const std::string share = getCredentialProperty(u,jcfg.share_type);
-                i->set_share(share);
-                logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
+              Arc::Credential u(user_proxy_file,"",cert_dir,"");
+              std::string voms_trust_chains = Arc::GetEnv("VOMS_TRUST_CHAINS");
+              std::vector<std::string> vomstrustlist;
+              Arc::tokenize(voms_trust_chains, vomstrustlist, "\n");
+              const std::string share = getCredentialProperty(u,jcfg.share_type,cert_dir,"",vomstrustlist);
+              i->set_share(share);
+              logger.msg(Arc::INFO, "%s: adding to transfer share %s",i->get_id(),i->transfer_share);
             }
             job_local_read_file(i->job_id, *user, *job_desc);
             job_desc->transfershare = i->transfer_share;

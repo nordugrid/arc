@@ -247,9 +247,17 @@ namespace Arc {
   * coding method (not base64 encoding), we simply copy the method from voms code to here*/
   char *VOMSDecode(const char *data, int size, int *j);
 
-  /**Extract the needed field from the certificate
+  /**Extract the needed field from the certificate.
+  /**Parse the certificate, and output the attributes.
+   * @param u  The proxy certificate which includes the voms
+   *          specific formated AC.
+   * @param property The property that caller would get, 
+   *          including: dn, voms:vo, voms:role, voms:group 
+   * @param ca_cert_dir 
+   * @param ca_cert_file
+   * @param voms_trust_list  the dn chain that is trusted when parsing voms AC
   */
-  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property);
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir = std::string(""), const std::string& ca_cert_file = std::string(""), const std::vector<std::string>& voms_trust_list = std::vector<std::string>());
 
   std::string VOMSFQANToFull(const std::string& vo, const std::string& fqan);
 
