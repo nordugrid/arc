@@ -124,6 +124,17 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         break;
       };
     };
+    if(command == "voms_processing") {
+      std::string voms_processing = config_next_arg(rest);
+      //Since the voms_processing could not only be used by gridmanager,
+      //but also used by other services (e.g., gridftp service),
+      //the value is set as environment variables.
+      Arc::SetEnv("VOMS_PROCESSING", voms_processing.c_str());
+    }
+    if(command == "voms_trust_chains") {
+      std::string voms_trust_chains = config_next_arg(rest);
+      Arc::SetEnv("VOMS_TRUST_CHAINS", voms_trust_chains.c_str());
+    }
     if(command == "runtimedir") {
       users.Env().runtime_config_dir(rest);
     } else if(command == "joblog") { /* where to write job inforamtion */
