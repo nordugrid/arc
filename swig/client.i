@@ -72,6 +72,10 @@ the first member will be the '*response' and the second member is the original r
     PyTuple_SetItem(tuple,1,$result);
     $result = tuple;
 }
+
+%extend JobDescription {
+  bool Parse(const std::string& str, std::list<JobDescription>& jobdescs, const std::string& lang = "", const std::string& dialect = "") { return Arc::JobDescription::Parse(str, jobdescs, lang, dialect); }
+};
 }
 #endif
 
