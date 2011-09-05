@@ -10,7 +10,7 @@
 
 namespace Arc {
   
-  Logger DataSpeed::logger(Logger::getRootLogger(), "DataSpeed", VERBOSE); 
+  Logger DataSpeed::logger(Logger::getRootLogger(), "DataSpeed");
 
   bool DataSpeed::verbose(void) {
     return be_verbose;
@@ -101,7 +101,7 @@ namespace Arc {
             (min_speed_failed ? '!' : '.'),
             (min_average_speed_failed ? '!' : '.'),
             (max_inactivity_time_failed ? '!' : '.'));
-      logger.msg(VERBOSE, out);
+      logger.msg(INFO, out);
     } catch(std::exception& e) { }
     delete[] out;
   }
