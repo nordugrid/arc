@@ -1021,6 +1021,7 @@ namespace Arc {
         do {
           list_metadata.clear();
           SRMClientRequest list_req(creq.surls().front());
+          list_req.long_list(creq.long_list());
           int list_offset = max_files_list * list_no;
           int list_count = max_files_list;
           SRMReturnCode res = info(list_req, list_metadata, 0, true,
