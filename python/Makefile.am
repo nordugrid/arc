@@ -75,6 +75,8 @@ arc_wrap.cpp: $(SWIG_INPUTS)
 	mv arc_wrap.cpp.new arc_wrap.cpp
 	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' arc_wrap.cpp > arc_wrap.cpp.new # Ditto - for 64 bit
 	mv arc_wrap.cpp.new arc_wrap.cpp
+	sed '/*_wrap_delete_SwigPyIterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new # Dont allow threading when deleting SwigPyIterator objects
+	mv arc_wrap.cpp.new arc_wrap.cpp
 
 pydoxygen.i: Doxyfile.api
 	doxygen Doxyfile.api
