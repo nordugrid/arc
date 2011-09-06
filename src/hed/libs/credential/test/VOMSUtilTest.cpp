@@ -91,9 +91,9 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
 
   std::vector<std::string> vomscert_trust_dn;
-  //vomscert_trust_dn.push_back("/O=Grid/OU=ARC/OU=localdomain/CN=User");
-  //vomscert_trust_dn.push_back("/O=Grid/OU=ARC/CN=CA");
-  //vomscert_trust_dn.push_back("NEXT CHAIN");
+  vomscert_trust_dn.push_back("/O=Grid/OU=ARC/OU=localdomain/CN=User");
+  vomscert_trust_dn.push_back("/O=Grid/OU=ARC/CN=CA");
+  vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("^/O=Grid/OU=ARC");
 
   // Read and pars VOMS proxy
