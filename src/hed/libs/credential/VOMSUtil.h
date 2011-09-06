@@ -249,7 +249,6 @@ namespace Arc {
   char *VOMSDecode(const char *data, int size, int *j);
 
   /**Extract the needed field from the certificate.
-  /**Parse the certificate, and output the attributes.
    * @param u  The proxy certificate which includes the voms
    *          specific formated AC.
    * @param property The property that caller would get, 
