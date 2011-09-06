@@ -21,7 +21,7 @@ namespace Arc {
       Success = 0,
       CAUnknown = (1<<0), // Signed by VOMS certificate of unknow CA
       CertRevoked = (1<<1), // Signed by revoked VOMS certificate
-      LSCFAiled = (1<<2), // Failed while matching VOMS attr. against LSC files
+      LSCFailed = (1<<2), // Failed while matching VOMS attr. against LSC files
       TrustFailed = (1<<2), // Failed matching VOMS attr. against specified trust list
       X509ParsingFailed = (1<<3), // Failed while parsing at X509 level
       ACParsingFailed = (1<<4), // Failed while parsing at AC level
@@ -29,7 +29,7 @@ namespace Arc {
       TimeValidFailed = (1<<6), // VOMS attributes are not valid yet or expired
       IsCritical = (1<<7), // VOMS extension was marked as critical (unusual but not error)
       ParsingError = (X509ParsingFailed | ACParsingFailed | InternalParsingFailed), // Mask to test if status represents any failure caused by failed parsing
-      ValidationError = (CAUnknown | CertRevoked | LSCFAiled | TrustFailed | TimeValidFailed), // Mask to test if status represents any failure caused by validation rules
+      ValidationError = (CAUnknown | CertRevoked | LSCFailed | TrustFailed | TimeValidFailed), // Mask to test if status represents any failure caused by validation rules
       Error = (0xffff & ~IsCritical) // Mask to test if status represents any failure
     } status_t;
     std::string voname;
@@ -109,6 +109,7 @@ namespace Arc {
       VOMSTrustChain& AddChain(const VOMSTrustChain& chain);
       /** Adds empty chain of trusted DNs to list. */
       VOMSTrustChain& AddChain(void);
+      void AddElement(const std::vector<std::string>& encoded_list);
       /** Adds regular expression to list.
         During verification each signature of AC is checked against
         all stored regular expressions. DN of signing certificate
@@ -230,7 +231,7 @@ namespace Arc {
    */
   bool parseVOMSAC(X509* holder, const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
-                   const VOMSTrustList& vomscert_trust_dn,
+                   VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output, 
                    bool verify = true, bool reportall = false);
 
@@ -239,7 +240,7 @@ namespace Arc {
   bool parseVOMSAC(const Credential& holder_cred,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file, 
-                   const VOMSTrustList& vomscert_trust_dn,
+                   VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output,
                    bool verify = true, bool reportall = false);
   

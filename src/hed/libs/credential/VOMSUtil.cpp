@@ -60,7 +60,7 @@ using namespace ArcCredential;
 
 namespace Arc {
 
-  VOMSTrustList::VOMSTrustList(const std::vector<std::string>& encoded_list) {
+  void VOMSTrustList::AddElement(const std::vector<std::string>& encoded_list) {
     VOMSTrustChain chain;
     for(std::vector<std::string>::const_iterator i = encoded_list.begin();
                                 i != encoded_list.end(); ++i) {
@@ -100,6 +100,10 @@ namespace Arc {
       chain.clear();
     }
   }
+  
+  VOMSTrustList::VOMSTrustList(const std::vector<std::string>& encoded_list) {
+    AddElement(encoded_list);
+  }
 
   VOMSTrustList::VOMSTrustList(const std::vector<VOMSTrustChain>& chains,
     const std::vector<VOMSTrustRegex>& regexs):chains_(chains) {
@@ -130,7 +134,6 @@ namespace Arc {
     regexs_.insert(regexs_.end(),r);
     return *r;
   }
-
 
   void InitVOMSAttribute(void) {
     #define idpkix                "1.3.6.1.5.5.7"
@@ -812,7 +815,7 @@ err:
       current = sk_X509_value(certstack,n);
       if(!current) return false;
       if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
-        CredentialLogger.msg(ERROR,"VOMS: the DN does in certificate: %s does not match that in trusted DN list: %s",
+        CredentialLogger.msg(ERROR,"VOMS: the DN in certificate: %s does not match that in trusted DN list: %s",
           X509_NAME_oneline(X509_get_subject_name(current),NULL,0), chain[n]);
         return false;
       }
@@ -840,11 +843,31 @@ err:
     return (reg.match(subject,unmatched,matched) && reg.match(issuer,unmatched,matched));
 
   }
+  
+  /* Get the DNs chain from relative *.lsc file.
+   * The location of .lsc file is fixed as default path: /etc/grid-security/vomsdir/<VO>/<hostname>.lsc
+   */
+  static bool getLSC(const std::string& voname, const std::string& hostname, std::vector<std::string>& vomscert_trust_dn) {
+    std::string lsc_loc = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("vomsdir") + G_DIR_SEPARATOR_S + voname + G_DIR_SEPARATOR_S + hostname + ".lsc");
+    if (!Glib::file_test(lsc_loc, Glib::FILE_TEST_IS_REGULAR)) {
+      CredentialLogger.msg(INFO, "VOMS: The lsc file %s does not exist", lsc_loc);
+      return false;
+    }
+    std::string trustdn_str;  
+    std::ifstream in(lsc_loc.c_str(), std::ios::in);
+    if (!in) {       
+      CredentialLogger.msg(ERROR, "VOMS: The lsc file %s can not be open", lsc_loc);
+      return false;
+    }
+    std::getline<char>(in, trustdn_str, 0);
+    in.close();
+    tokenize(trustdn_str, vomscert_trust_dn, "\n");
+    return true;
+  }
 
-  static bool checkSignature(AC* ac, std::string& voname, 
-    std::string& /* hostname */, 
+  static bool checkSignature(AC* ac, std::string& voname, std::string& hostname, 
     const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-    const VOMSTrustList& vomscert_trust_dn, 
+    VOMSTrustList& vomscert_trust_dn, 
     X509*& issuer_cert, unsigned int& status, bool verify) {
 
     bool res = true;
@@ -876,10 +899,20 @@ err:
 
       if(verify) {
         bool success = false;
+        bool lsc_check = false;
         if((vomscert_trust_dn.SizeChains()==0) && (vomscert_trust_dn.SizeRegexs()==0)) {
-          CredentialLogger.msg(INFO,"VOMS: there is no constraints of trusted voms DNs, the certificates stack in AC will not be checked.");
-          success = true;
+          std::vector<std::string> voms_trustdn;
+          if(!getLSC(voname, hostname, voms_trustdn)) {
+            CredentialLogger.msg(INFO,"VOMS: there is no constraints of trusted voms DNs, the certificates stack in AC will not be checked.");
+            success = true;
+          }
+          else { 
+            vomscert_trust_dn.AddElement(voms_trustdn);
+            lsc_check = true;
+            //lsc checking only happens if the VOMSTrustList argument is empty. 
+         }
         }
+
         //Check if the DN of those certificates in the certificate stack
         //corresponds to the trusted DN chain in the configuration 
         if(certstack && !success) {
@@ -902,7 +935,8 @@ err:
         if (!success) {
           //AC_CERTS_free(certs);
           CredentialLogger.msg(ERROR,"VOMS: unable to match certificate chain against VOMS trusted DNs");
-          status |= VOMSACInfo::TrustFailed;
+          if(!lsc_check) status |= VOMSACInfo::TrustFailed;
+          else status |= VOMSACInfo::LSCFailed;
           //return false;
         }
       }
@@ -1491,7 +1525,7 @@ err:
   // Also always fills status with information about errors detected if any.
   static bool verifyVOMSAC(AC* ac,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        const VOMSTrustList& vomscert_trust_dn,
+        VOMSTrustList& vomscert_trust_dn,
         X509* holder, std::vector<std::string>& attr_output, 
         std::string& vo_name, Time& from, Time& till, unsigned int& status, bool verify) {
     bool res = true;
@@ -1574,7 +1608,7 @@ err:
 
   bool parseVOMSAC(X509* holder,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-        const VOMSTrustList& vomscert_trust_dn,
+        VOMSTrustList& vomscert_trust_dn,
         std::vector<VOMSACInfo>& output, bool verify, bool reportall) {
 
     InitVOMSAttribute();
@@ -1623,7 +1657,7 @@ err:
 
   bool parseVOMSAC(const Credential& holder_cred,
          const std::string& ca_cert_dir, const std::string& ca_cert_file,
-         const VOMSTrustList& vomscert_trust_dn,
+         VOMSTrustList& vomscert_trust_dn,
          std::vector<VOMSACInfo>& output, bool verify, bool reportall) {
     X509* holder = holder_cred.GetCert();
     if(!holder) return false;

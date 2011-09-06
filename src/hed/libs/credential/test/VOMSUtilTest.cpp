@@ -91,17 +91,18 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
 
   std::vector<std::string> vomscert_trust_dn;
-  vomscert_trust_dn.push_back("/O=Grid/OU=ARC/OU=localdomain/CN=User");
-  vomscert_trust_dn.push_back("^/O=Grid/OU=ARC/CN=CA");
-  vomscert_trust_dn.push_back("NEXT CHAIN");
-  vomscert_trust_dn.push_back("/O=Grid/OU=ARC/CN=CA");
+  //vomscert_trust_dn.push_back("/O=Grid/OU=ARC/OU=localdomain/CN=User");
+  //vomscert_trust_dn.push_back("/O=Grid/OU=ARC/CN=CA");
+  //vomscert_trust_dn.push_back("NEXT CHAIN");
+  vomscert_trust_dn.push_back("^/O=Grid/OU=ARC");
 
   // Read and pars VOMS proxy
 
   Arc::Credential voms_proxy(voms_proxy_file, "", ".", CAcert);
 
   std::vector<Arc::VOMSACInfo> attributes;
-  Arc::parseVOMSAC(voms_proxy, ".", CAcert, vomscert_trust_dn, attributes, false); 
+  Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
+  Arc::parseVOMSAC(voms_proxy, ".", CAcert, trust_dn, attributes, true); 
   
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {
