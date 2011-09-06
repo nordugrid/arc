@@ -142,16 +142,17 @@ int main(void) {
   vomscert_trust_dn.push_back("^/O=Grid/O=NorduGrid");
   //vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid ***");
   //vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid abc");
-//  vomscert_trust_dn.push_back("NEXT CHAIN");
+  vomscert_trust_dn.push_back("NEXT CHAIN");
 //  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/OU=fys.uio.no/CN=Weizhong Qiang");
 //  vomscert_trust_dn.push_back("/O=Grid/O=NorduGrid/CN=NorduGrid Certification Authority");
-  vomscert_trust_dn.push_back("NEXT CHAIN");
+//  vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("/O=Grid/O=Test/CN=localhost");
   vomscert_trust_dn.push_back("/O=Grid/O=Test/CN=CA");
 
+  Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
   Arc::Credential proxy2(in_file_ac, "", ca_cert_dir, ca_cert_file);
   std::vector<Arc::VOMSACInfo> attributes;
-  Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, vomscert_trust_dn, attributes); 
+  Arc::parseVOMSAC(proxy2, ca_cert_dir, ca_cert_file, trust_dn, attributes); 
 
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {
