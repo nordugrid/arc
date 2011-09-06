@@ -919,7 +919,10 @@ int main(int argc, char *argv[]) {
       //  vomses_path = Arc::GetEnv("X509_VOMSES");
       if (vomses_path.empty())
         vomses_path = usercfg.VOMSServerPath();
-
+      if (vomses_path.empty()) {
+        logger.msg(Arc::ERROR, "$X509_VOMS_FILE, and $X509_VOMSES are not set;\nUser has not specify the location for vomses information;\nThere is also not vomses location information in user's configuration file;\nCannot find vomses in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, and the location at the corresponding sub-directory");
+        return EXIT_FAILURE;
+      }
 
       //the 'vomses' location could be one single files; 
       //or it could be a directory which includes multiple files, such as 'vomses/voA', 'vomses/voB', etc.
@@ -932,6 +935,13 @@ int main(int argc, char *argv[]) {
       //If the locaton is a directory, all the files and directories will be scanned
       //to find the vomses information. The scanning will not stop until all of the
       //files and directories are all scanned.
+      else {
+        std::vector<std::string> files;
+        files = search_vomses(vomses_path);
+        if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
+        files.clear();
+      }
+/*
       else if (vomses_path.empty() || !is_file(vomses_path)) {
         std::vector<std::string> files;
         if(!vomses_path.empty()) {
@@ -978,6 +988,7 @@ int main(int argc, char *argv[]) {
           }      
         }
       }  
+*/
 
 /*
       if (vomses_path.empty() {

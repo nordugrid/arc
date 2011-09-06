@@ -384,9 +384,8 @@ namespace Arc {
         caCertificatesDirectory.clear();
       }
     }
-
-    // TODO: scan for default locations. 
-    // TODO: multiple voms paths
+    //vomsServerPath could be regular file or directory, therefore only existence is checked here.
+    //multiple voms paths under one vomsServerPath is processed under arcproxy implementation.
     if (!GetEnv("X509_VOMS_FILE").empty()) {
       if (!Glib::file_test(vomsServerPath = GetEnv("X509_VOMS_FILE"), Glib::FILE_TEST_EXISTS)) {
         logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
@@ -399,14 +398,26 @@ namespace Arc {
         vomsServerPath.clear();
       }
     }
-    else if ((user.get_uid() == 0 || !Glib::file_test(vomsServerPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_IS_REGULAR)) &&
-             !Glib::file_test(vomsServerPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_IS_REGULAR) &&
-             !Glib::file_test(vomsServerPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_IS_REGULAR) &&
-             !Glib::file_test(vomsServerPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_IS_REGULAR)) {
-      vomsServerPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("vomses"));
-      if (!Glib::file_test(vomsServerPath.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(WARNING, "Can not find voms service configuration file (vomses) in default locations: ~/.arc/vomses, $ARC_LOCATION/etc/vomses, /etc/vomses, and $PWD/vomses");
+    else if (!vomsServerPath.empty()) {
+      if (!Glib::file_test(vomsServerPath, Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
         vomsServerPath.clear();
+      }
+    }
+    else if ((user.get_uid() == 0 || !Glib::file_test(vomsServerPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsServerPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) &&
+             !Glib::file_test(vomsServerPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsServerPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsServerPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsServerPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsServerPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) {
+      vomsServerPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("vomses"));
+      if (!Glib::file_test(vomsServerPath.c_str(), Glib::FILE_TEST_EXISTS)) {
+        vomsServerPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc") + G_DIR_SEPARATOR_S + "grid-security", std::string("vomses"));
+        if (!Glib::file_test(vomsServerPath.c_str(), Glib::FILE_TEST_EXISTS)) {
+          logger.msg(WARNING, "Can not find voms service configuration file (vomses) in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses");
+          vomsServerPath.clear();
+        }
       }
     }
 
