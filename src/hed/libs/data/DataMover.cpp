@@ -278,7 +278,7 @@ namespace Arc {
                                                 (!source.ReadOnly() || executable || cache_copy),
                                                 executable);
             cache.Stop(canonic_url);
-            source.NextLocation(); /* to decrease retry counter */
+            source.NextTry(); /* to decrease retry counter */
             if (!cache_link_result)
               return DataStatus::CacheError;           
             return DataStatus::SuccessCached;
@@ -551,11 +551,12 @@ namespace Arc {
           if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote)) {
             if (is_locked) {
               logger.msg(VERBOSE, "Cached file is locked - should retry");
-              source.NextLocation(); /* to decrease retry counter */
+              source.NextTry(); /* to decrease retry counter */
               return DataStatus::CacheErrorRetryable;
             }
             cacheable = false;
             logger.msg(INFO, "Failed to initiate cache");
+            source.NextLocation(); /* try another source */
             break;
           }
           if (is_in_cache) {
@@ -621,7 +622,7 @@ namespace Arc {
                             executable)) {
               /* failed cache link is unhandleable */
               cache.Stop(canonic_url);
-              source.NextLocation(); /* to decrease retry counter */
+              source.NextTry(); /* to decrease retry counter */
               return DataStatus::CacheError;
             }
             cache.Stop(canonic_url);
@@ -1103,7 +1104,7 @@ namespace Arc {
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
-          destination.NextLocation(); /* to decrease retry count */
+          source.NextTry(); /* to decrease retry count */
           return DataStatus::CacheError; /* retry won't help */
         }
       }
