@@ -790,31 +790,31 @@ if [ $1 -ge 1 ]; then
 fi
 
 %post cache-service
-/sbin/chkconfig --add cache-service
+/sbin/chkconfig --add arc-cache-service
 
 %preun cache-service
 if [ $1 -eq 0 ]; then
-  service cache-service stop > /dev/null 2>&1
-  /sbin/chkconfig --del cache-service
+  service arc-cache-service stop > /dev/null 2>&1
+  /sbin/chkconfig --del arc-cache-service
 fi
 
 %postun cache-service
 if [ $1 -ge 1 ]; then
-  service cache-service condrestart > /dev/null 2>&1
+  service arc-cache-service condrestart > /dev/null 2>&1
 fi
 
 %post datadelivery-service
-/sbin/chkconfig --add datadelivery-service
+/sbin/chkconfig --add arc-datadelivery-service
 
 %preun datadelivery-service
 if [ $1 -eq 0 ]; then
-  service datadelivery-service stop > /dev/null 2>&1
-  /sbin/chkconfig --del datadelivery-service
+  service arc-datadelivery-service stop > /dev/null 2>&1
+  /sbin/chkconfig --del arc-datadelivery-service
 fi
 
 %postun datadelivery-service
 if [ $1 -ge 1 ]; then
-  service datadelivery-service condrestart > /dev/null 2>&1
+  service arc-datadelivery-service condrestart > /dev/null 2>&1
 fi
 
 %post aris
@@ -1061,7 +1061,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files cache-service
 %defattr(-,root,root,-)
-%{_initrddir}/cache-service
+%{_initrddir}/arc-cache-service
 %{_libdir}/%{pkgdir}/libcacheservice.so
 %{_libdir}/%{pkgdir}/libcacheservice.apd
 

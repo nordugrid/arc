@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libcacheservice.la
 
 if SYSV_SCRIPTS_ENABLED
-CACHE_SCRIPT = cache-service
+CACHE_SCRIPT = arc-cache-service
 else
 CACHE_SCRIPT =
 endif

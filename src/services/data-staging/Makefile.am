@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libdatadeliveryservice.la
 
 if SYSV_SCRIPTS_ENABLED
-DATA_DELIVERY_SCRIPT = datadelivery-service
+DATA_DELIVERY_SCRIPT = arc-datadelivery-service
 else
 DATA_DELIVERY_SCRIPT =
 endif

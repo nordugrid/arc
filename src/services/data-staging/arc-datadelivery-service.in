@@ -8,7 +8,7 @@
 # processname: arched
 
 ### BEGIN INIT INFO
-# Provides:          datadelivery-service
+# Provides:          arc-datadelivery-service
 # Required-Start:    $local_fs $remote_fs
 # Required-Stop:     $local_fs $remote_fs
 # Default-Start:     2 3 4 5
@@ -75,10 +75,10 @@ if [ -r /etc/sysconfig/nordugrid ]; then
 elif [ -r /etc/default/nordugrid ]; then
     . /etc/default/nordugrid
 fi
-if [ -r /etc/sysconfig/datadelivery-service ]; then
-    . /etc/sysconfig/datadelivery-service
-elif [ -r /etc/default/datadelivery-service ]; then
-    . /etc/default/datadelivery-service
+if [ -r /etc/sysconfig/arc-datadelivery-service ]; then
+    . /etc/sysconfig/arc-datadelivery-service
+elif [ -r /etc/default/arc-datadelivery-service ]; then
+    . /etc/default/arc-datadelivery-service
 fi
 
 # GLOBUS_LOCATION
@@ -225,7 +225,7 @@ prepare() {
     host=`readconfigvar "$ARC_CONFIG" common hostname`
     datadelivery_endpoint=https://$host:60002/datadelivery-service
 
-    SERVICE_CONFIG=`mktemp -t datadelivery-service.xml.XXXXXX`
+    SERVICE_CONFIG=`mktemp -t arc-datadelivery-service.xml.XXXXXX`
     if [ -z "$SERVICE_CONFIG" ] ; then
         log_failure_msg "Failed to create temporary file"
         exit 1
@@ -351,7 +351,7 @@ prepare() {
 
 start() {
     if [ "$RUN" != "yes" ] ; then
-        echo "datadelivery-service disabled in configuration"
+        echo "arc-datadelivery-service disabled in configuration"
         return 0
     fi
 
