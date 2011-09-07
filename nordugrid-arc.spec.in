@@ -1067,7 +1067,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 
 %files datadelivery-service
 %defattr(-,root,root,-)
-%{_initrddir}/datadelivery-service
+%{_initrddir}/arc-datadelivery-service
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.so
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
 
