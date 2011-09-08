@@ -52,8 +52,8 @@ Build & runtime:
   o openssl version 0.9.7a or later
 
 If you are using LDAP based infosys:
-  o open-ldap server (LDAP Infosys, LDAP DMC)
-  o bdii version 5 or later (LDAP Infosys)
+  o open-ldap server
+  o bdii version 5 or later
 
 Optional dependencies
 ---------------------
@@ -63,6 +63,7 @@ Build:
   o swig version 1.3.28 or later (Chelonia, bindings)
 
 Build & runtime:
+  o open-ldap client (LDAP DMC)
   o python 2.4 or higher (Chelonia, bindings)
   o java sdk 1.4 or later (bindings)
   o globus-common 4 (arclib)
