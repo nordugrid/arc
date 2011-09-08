@@ -496,6 +496,9 @@ namespace Arc {
     //! Removes all LogDestinations.
     void removeDestinations(void);
 
+    //! Remove all LogDestinations and delete LogDestination objects
+    void deleteDestinations(void);
+
     //! Sets the threshold
     /*! This method sets the threshold of the Logger. Any message sent
        to this Logger that has a level below this threshold will be

@@ -466,9 +466,9 @@ namespace DataStaging {
      Arc::Logger * get_logger() const { return logger; };
 
      /// Connect log destinations to logger. Only needs to be done after disconnect()
-     void connect_logger() { logger->addDestinations(log_destinations); };
+     void connect_logger() { if (logger) logger->addDestinations(log_destinations); };
      /// Disconnect log destinations from logger.
-     void disconnect_logger() { logger->removeDestinations(); };
+     void disconnect_logger() { if (logger) logger->removeDestinations(); };
 
      /// Pass the DTR from one process to another. Protected by lock.
      void push(StagingProcesses new_owner);

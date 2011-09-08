@@ -61,9 +61,7 @@ void DTRGenerator::thread() {
       processReceivedDTR(*it_dtrs);
       event_lock.lock();
       // delete DTR Logger and LogDestinations
-      const std::list<Arc::LogDestination*> log_dests = it_dtrs->get_logger()->getDestinations();
-      for (std::list<Arc::LogDestination*>::const_iterator i = log_dests.begin(); i != log_dests.end(); ++i)
-        delete *i;
+      it_dtrs->get_logger()->deleteDestinations();
       delete it_dtrs->get_logger();
 
       it_dtrs = dtrs_received.erase(it_dtrs);

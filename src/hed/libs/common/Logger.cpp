@@ -506,6 +506,16 @@ namespace Arc {
     getContext().destinations.clear();
   }
 
+  void Logger::deleteDestinations(void) {
+    Glib::Mutex::Lock lock(mutex);
+    std::list<LogDestination*> destinations = getContext().destinations;
+    for(std::list<LogDestination*>::iterator dest = destinations.begin();
+                            dest != destinations.end();) {
+      delete *dest;
+      dest = destinations.erase(dest);
+    }
+  }
+
   void Logger::setThreshold(LogLevel threshold) {
     Glib::Mutex::Lock lock(mutex);
     this->getContext().threshold = threshold;
