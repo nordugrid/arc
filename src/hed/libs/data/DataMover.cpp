@@ -920,14 +920,15 @@ namespace Arc {
           }
         }
       }
-      logger.msg(INFO, "buffer: read eof : %i", (int)buffer.eof_read());
-      logger.msg(INFO, "buffer: write eof: %i", (int)buffer.eof_write());
-      logger.msg(INFO, "buffer: error    : %i", (int)buffer.error());
+      logger.msg(INFO, "buffer: read EOF : %s", buffer.eof_read()?"yes":"no");
+      logger.msg(INFO, "buffer: write EOF: %s", buffer.eof_write()?"yes":"no");
+      logger.msg(INFO, "buffer: error    : %s, read: %s, write: %s", buffer.error()?"yes":"no", buffer.error_read()?"yes":"no", buffer.error_write()?"yes":"no");
       logger.msg(VERBOSE, "Closing read channel");
       read_failure = source_url.StopReading();
       source_url.FinishReading((!read_failure.Passed() || buffer.error()));
-      if (cacheable && mapped)
+      if (cacheable && mapped) {
         source.SetMeta(mapped_p); // pass more metadata (checksum)
+      }
       logger.msg(VERBOSE, "Closing write channel");
       // turn off checks during stop_writing() if force is turned on
       destination_url.SetAdditionalChecks(!force_registration);
