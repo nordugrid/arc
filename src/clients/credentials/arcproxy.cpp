@@ -353,6 +353,10 @@ int main(int argc, char *argv[]) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+  if(!cert_path.empty())Arc::SetEnv("X509_USER_CERT", cert_path);
+  if(!key_path.empty())Arc::SetEnv("X509_USER_KEY", key_path);
+  if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
+  if(!ca_dir.empty())Arc::SetEnv("X509_CERT_DIR", ca_dir);
   Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
@@ -600,10 +604,8 @@ int main(int argc, char *argv[]) {
       constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
   }
 
-  //If the voms AC lifetime is set more that 24 hours, then shorten it to 24 hours.
   unsigned long period_val;
   period_val = Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod();
-  if(period_val > 86400) period_val = 86400;
   std::string period_str = Arc::tostring(period_val);
   constraints["vomsACvalidityPeriod"] = period_str;
 
@@ -1207,7 +1209,13 @@ int main(int argc, char *argv[]) {
           };
           if((!node) || ((bool)(node["error"]))) {
             std::string str = node["error"]["item"]["message"];
-            throw std::runtime_error("Cannot get any AC or attributes info from VOMS server: " + voms_server + ";\n       Returned message from VOMS server: " + str);
+            std::string::size_type pos;
+            if((pos = str.find("The validity of this VOMS AC in your proxy is shortened to"))!= std::string::npos) {
+              std::string tmp = str.substr(pos + 59); 
+              std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
+            }
+            else
+              throw std::runtime_error("Cannot get any AC or attributes info from VOMS server: " + voms_server + ";\n       Returned message from VOMS server: " + str);
           }
 
           //Put the return attribute certificate into proxy certificate as the extension part
