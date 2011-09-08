@@ -154,6 +154,13 @@ If the previous commands finish without errors, compile and install ARC
   make
   make install
 
+If you have already installed ARC libraries in the system default
+location such as /usr/lib you may need to use the following
+installation command instead in order to override installed pkgconfig
+files and/or libtool archives which contains -L/usr/lib:
+
+  make LDFLAGS="-L<PLACE_TO_INSTALL_ARC>/lib" install
+
 On some systems you may need to use gmake instead of make.
 
 Depending on chosen installation location you may need to run the last
