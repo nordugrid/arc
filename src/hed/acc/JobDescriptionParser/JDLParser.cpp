@@ -450,7 +450,7 @@ namespace Arc {
       return true;
     }
 
-    logger.msg(WARNING, "[JDL Parser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
+    logger.msg(WARNING, "[JDLParser]: Unknown attribute name: \'%s\', with value: %s", attributeName, attributeValue);
     return true;
   }
 
