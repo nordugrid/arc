@@ -228,7 +228,12 @@ sub collect($) {
         $c->{homogeneity} = $homogeneous ? 'TRUE' : 'FALSE';
         $c->{nodeaccess} = 'inbound' if $inbound;
         $c->{nodeaccess} = 'outbound' if $outbound;
-        $c->{totalcpus} = $lrms_info->{cluster}{totalcpus};
+       if ($config->{service}{totalcpus}) {
+           $c->{totalcpus} = $config->{service}{totalcpus};
+       }
+       else {
+           $c->{totalcpus} = $lrms_info->{cluster}{totalcpus};
+       }
         $c->{usedcpus} = $lrms_info->{cluster}{usedcpus};
         $c->{cpudistribution} = $lrms_info->{cluster}{cpudistribution};
         $c->{prelrmsqueued} = ($gmjobcount{accepted} + $gmjobcount{preparing} + $gmjobcount{submit});

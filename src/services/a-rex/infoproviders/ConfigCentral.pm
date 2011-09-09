@@ -77,6 +77,7 @@ my $share_options = {
     MaxSlotsPerJob => '*',
     SchedulingPolicy => '*',
     Preemption => '*',
+    totalcpus => '*',
 };
 my $gmuser_options = {
     controldir => '',
@@ -727,7 +728,6 @@ sub build_config_from_inifile {
         $log->error("NodeSelection option only allowed under ExecutionEnvironment section") if $queue->{NodeSelection};
         delete $queue->{NodeSelection};
 
-        # Ignored: totalcpus
         rename_keys $queue, $sconf, {scheduling_policy => 'SchedulingPolicy',
                                      nodememory => 'MaxVirtualMemory', comment => 'Description'};
         move_keys $queue, $sconf, [keys %$share_options, keys %$lrms_share_options];
