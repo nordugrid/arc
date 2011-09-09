@@ -15,6 +15,7 @@
 #include <arc/credential/Credential.h>
 #include <arc/data/DataHandle.h>
 #include <arc/data/DataMover.h>
+#include <arc/loader/FinderLoader.h>
 #include <arc/OptionParser.h>
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
@@ -90,6 +91,11 @@ int main(int argc, char **argv) {
                             "if not all physical instances were removed"),
                     force);
 
+  bool show_plugins = false;
+  options.AddOption('P', "listplugins",
+                    istring("list the available plugins (protocols supported)"),
+                    show_plugins);
+
   int timeout = 20;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -118,6 +124,23 @@ int main(int argc, char **argv) {
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (show_plugins) {
+    std::list<Arc::ModuleDesc> modules;
+    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:DMC", modules);
+
+    std::cout << Arc::IString("Protocols supported by arccp:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+    return 0;
+  }
 
   // credentials will be initialised later if necessary
   Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType::SkipCredentials);

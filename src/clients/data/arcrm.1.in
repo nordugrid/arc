@@ -19,6 +19,8 @@ command deletes files on grid storage elements and indexing services.
 
 .IP "\fB-f\fR, \fB--force\fR"
 remove logical file name registration even if not all physical instances were removed
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins (protocols supported)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
@@ -56,8 +58,9 @@ In this case
 .B arcrm
 performs like it were called multiple times - once for every URL.
 
-Depending on the installed libraries, the
-following protocols may be used: file  (file://  prefix  may  be
+Depending on the installed libraries (check with
+.B -P
+), the following protocols may be used: file  (file://  prefix  may  be
 omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
 
 .SH FILES

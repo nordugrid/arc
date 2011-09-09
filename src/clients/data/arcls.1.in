@@ -39,6 +39,9 @@ show only description of requested object, do not list content of directories (l
 .IP "\fB-c\fR, \fB--checkaccess\fR"
 check readability of object. Retrieving and showing information about object is supressed.
 
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins (protocols supported)
+
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 
@@ -65,8 +68,9 @@ the location to list
 The
 .B arcls
 command lists files and directories on grid storage elements and in
-file index catalogues. Depending on the installed libraries, the
-following protocols may be used: file  (file://  prefix  may  be
+file index catalogues. Depending on the installed libraries (check with
+.B -P
+), the following protocols may be used: file  (file://  prefix  may  be
 omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
  
 In the case of a directory/fileset, attributes of objects belonging

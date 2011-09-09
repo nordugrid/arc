@@ -1234,6 +1234,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "rls", "HED:DMC", NULL, 0, &Arc::DataPointRLS::Instance },
+  { "rls", "HED:DMC", "Globus Replica Location Service", 0, &Arc::DataPointRLS::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

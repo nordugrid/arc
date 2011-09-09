@@ -37,6 +37,8 @@ operate recursively up to specified level
 number of retries before failing file transfer
 .IP "\fB-L\fR, \fB--location\fR=\fIURL\fR"
 physical file to write to when destination is an indexing service. Must be specified for indexing services which do not automatically generate physical locations. Can be specified multiple times - locations will be tried in order until one succeeds.
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins (protocols supported)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
@@ -78,8 +80,9 @@ In this case
 .B arccp
 performs like it were called multiple times - once for every URL.
 
-Depending on the installed libraries, the
-following protocols may be used: file  (file://  prefix  may  be
+Depending on the installed libraries (check with
+.B -P
+), the following protocols may be used: file  (file://  prefix  may  be
 omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm. To connect 
 source or destination to standard input/output use '-' instead of URL.
  

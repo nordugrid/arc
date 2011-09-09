@@ -270,6 +270,6 @@ namespace Arc {
 
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "xrootd", "HED:DMC", 0, &Arc::DataPointXrootd::Instance },
-  { NULL, NULL, 0, NULL }
+  { "root", "HED:DMC", "XRootd", 0, &Arc::DataPointXrootd::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

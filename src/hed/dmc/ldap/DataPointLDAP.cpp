@@ -154,6 +154,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "ldap", "HED:DMC", NULL, 0, &Arc::DataPointLDAP::Instance },
+  { "ldap", "HED:DMC", "Lightweight Directory Access Protocol", 0, &Arc::DataPointLDAP::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

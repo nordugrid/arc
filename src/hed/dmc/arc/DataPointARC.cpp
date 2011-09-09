@@ -645,6 +645,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "arc", "HED:DMC", NULL, 0, &Arc::DataPointARC::Instance },
+  { "arc", "HED:DMC", "Chelonia Storage Element", 0, &Arc::DataPointARC::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
