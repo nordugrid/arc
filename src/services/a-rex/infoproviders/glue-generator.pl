@@ -15,7 +15,7 @@ use IO::Handle;
 sub translator;
 
 # Global variables for translator
-use vars qw($DEFAULT); $DEFAULT = -1;
+use vars qw($DEFAULT); $DEFAULT = 0;
 use vars qw($outbIP $inbIP $glueSubClusterUniqueID $norduBenchmark $norduOpsys $norduNodecput $norduNodecpu);
 use vars qw($glueHostMainMemoryRAMSize $glueHostArchitecturePlatformType $glueSubClusterUniqueID $GlueHostBenchmarkSI00 $GlueHostBenchmarkSF00);
 use vars qw($glueSubClusterName $glueSubClusterPhysicalCPUs $glueSubClusterLogicalCPUs $glueClusterUniqueID $processorOtherDesc $smpSize);
