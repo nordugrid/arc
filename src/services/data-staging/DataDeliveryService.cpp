@@ -58,19 +58,25 @@ namespace DataStaging {
             archived_dtrs[dtr->get_id()] = dtr->get_status().str();
           }
           // clean up DTR memory - delete DTR Logger and LogDestinations
+          cleanDTR(i->first);
           delete i->second;
-          const std::list<Arc::LogDestination*> log_dests = dtr->get_logger()->getDestinations();
-          for (std::list<Arc::LogDestination*>::const_iterator ld = log_dests.begin(); ld != log_dests.end(); ++ld)
-            delete *ld;
-          delete dtr->get_logger();
-          delete dtr;
-
           active_dtrs.erase(i);
         }
       }
       active_dtrs_lock.unlock();
     }
 
+  }
+
+  void DataDeliveryService::cleanDTR(DTR* dtr) {
+    if (!dtr) return;
+
+    if (dtr->get_logger()) {
+      dtr->get_logger()->deleteDestinations();
+      delete dtr->get_logger();
+    }
+    delete dtr;
+    dtr = NULL;
   }
 
   void DataDeliveryService::receiveDTR(DTR& dtr) {
@@ -174,6 +180,30 @@ namespace DataStaging {
         continue;
       }
 
+      // check if dtrid is in the active list - if so it is probably a retry
+      active_dtrs_lock.lock();
+      std::map<DTR*, std::stringstream*>::iterator i = active_dtrs.begin();
+
+      for (; i != active_dtrs.end(); ++i) {
+        if (i->first->get_id() == dtrid) break;
+      }
+      if (i != active_dtrs.end()) {
+        if (i->first->get_status() == DTRStatus::TRANSFERRING) {
+          logger.msg(Arc::ERROR, "Received retry for DTR %s still in transfer", dtrid);
+          resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+          resultelement.NewChild("ErrorDescription") = "DTR is still in transfer";
+          active_dtrs_lock.unlock();
+          continue;
+        }
+        // Erase this DTR from active list
+        logger.msg(Arc::VERBOSE, "Replacing DTR %s in state %s with new request", dtrid, i->first->get_status().str());
+        cleanDTR(i->first);
+        delete i->second;
+        active_dtrs.erase(i);
+      }
+      active_dtrs_lock.unlock();
+
+
       // Logger for this DTR. Uses a string stream so log can easily be sent
       // back to the client. LogStream keeps a reference to the stream so we
       // cannot delete it until deleting LogStream. These pointers are
@@ -207,6 +237,7 @@ namespace DataStaging {
 
       dtr->push(DELIVERY);
 
+      // Add to active list
       active_dtrs_lock.lock();
       active_dtrs[dtr] = stream;
       active_dtrs_lock.unlock();
@@ -330,7 +361,7 @@ namespace DataStaging {
        <Result>
          <ID>id</ID>
          <ReturnCode>ERROR</ReturnCode>
-         <ReturnExplanation>...</ReturnExplanation>
+         <ErrorDescription>...</ErrorDescription>
        </Result>
        ...
      </DataDeliveryCancelResult>
@@ -350,9 +381,10 @@ namespace DataStaging {
       logger.msg(Arc::ERROR, "Failed to start archival thread");
       return;
     }
+    // Create tmp dir for proxies, readable only by root
     // TODO get from configuration
     tmp_proxy_dir = "/tmp/arc";
-    if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true)) {
+    if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU, true)) {
       logger.msg(Arc::ERROR, "Failed to create dir %s for temp proxies: %s", tmp_proxy_dir, Arc::StrError(errno));
       return;
     }

@@ -108,7 +108,7 @@ namespace DataStaging {
     std::string resultcode = (std::string)(resultnode["ResultCode"]);
     if (resultcode != "OK") {
       logger_->msg(Arc::ERROR, "DTR %s: Could not make new transfer request: %s: %s",
-                   dtr_id, resultcode, (std::string)(resultnode[0]["ResultExplanation"]));
+                   dtr_id, resultcode, (std::string)(resultnode[0]["ErrorDescription"]));
       delete response;
       return;
     }

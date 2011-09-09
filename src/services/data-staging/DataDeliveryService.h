@@ -63,6 +63,10 @@ namespace DataStaging {
     /// Archival thread
     void ArchivalThread(void);
 
+    /// Clean up DTR memory, including deleting Logger and LogDestinations and
+    /// DTR itself.
+    void cleanDTR(DTR* dtr);
+
     /* individual operations */
     /// Start a new transfer
     Arc::MCC_Status Start(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user);
