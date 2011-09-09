@@ -309,7 +309,7 @@ int main(int argc, char **argv) {
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:DMC", modules);
 
-    std::cout << Arc::IString("Protocols supported by arccp:") << std::endl;
+    std::cout << Arc::IString("Protocols supported by arcls:") << std::endl;
     for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
          itMod != modules.end(); itMod++) {
       for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
