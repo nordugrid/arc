@@ -32,11 +32,7 @@ class XRSLParserTest
   CPPUNIT_TEST(TestQueue);
   CPPUNIT_TEST(TestNotify);
   CPPUNIT_TEST(TestJoin);
-<<<<<<< .mine
-  CPPUNIT_TEST(TestQueue);
-=======
   CPPUNIT_TEST(TestDryRun);
->>>>>>> .r21096
   CPPUNIT_TEST(TestGridTime);
   CPPUNIT_TEST(TestAdditionalAttributes);
   CPPUNIT_TEST(TestMultiRSL);
@@ -66,20 +62,12 @@ public:
   void TestQueue();
   void TestNotify();
   void TestJoin();
-<<<<<<< .mine
-  void TestQueue();
-=======
   void TestDryRun();
->>>>>>> .r21096
   void TestGridTime();
-<<<<<<< .mine
-
-=======
   void TestAdditionalAttributes();
   void TestMultiRSL();
   void TestDisjunctRSL();
 
->>>>>>> .r21096
 private:
   Arc::JobDescription INJOB;
   std::list<Arc::JobDescription> OUTJOBS;
@@ -982,31 +970,8 @@ void XRSLParserTest::TestGridTime() {
   CPPUNIT_ASSERT_EQUAL(2800., OUTJOBS.front().Resources.TotalCPUTime.benchmark.second);
 }
 
-<<<<<<< .mine
-void XRSLParserTest::TestQueue() {
-  std::string xrsl = "&(executable='/bin/echo')(queue='queue1')";
-
-  INJOB = PARSER.Parse(xrsl);
-  UNPARSE_PARSE;
-
-  PARSE_ASSERT(INJOB);
-  PARSE_ASSERT(OUTJOB);
-  PARSE_ASSERT_EQUAL2((int)1, INJOB.Resources.CandidateTarget.size());
-  PARSE_ASSERT_EQUAL2((int)1, OUTJOB.Resources.CandidateTarget.size());
-  PARSE_ASSERT_EQUAL2((std::string)"queue1", INJOB.Resources.CandidateTarget.front().QueueName);
-  PARSE_ASSERT_EQUAL2((std::string)"queue1", OUTJOB.Resources.CandidateTarget.front().QueueName);
-  PARSE_ASSERT(INJOB.Resources.CandidateTarget.front().UseQueue);
-  PARSE_ASSERT(OUTJOB.Resources.CandidateTarget.front().UseQueue);
-}
-
-void XRSLParserTest::TestGridTime() {
-  std::string xrsl = "&(executable=/bin/echo)(gridtime=600s)";
-  OUTJOB = PARSER.Parse(xrsl);
-  CPPUNIT_ASSERT(OUTJOB);
-=======
 void XRSLParserTest::TestAdditionalAttributes() {
   std::string tmpjobdesc;
->>>>>>> .r21096
 
   INJOB.OtherAttributes["nordugrid:xrsl;hostname"] = "localhost";
   INJOB.OtherAttributes["nordugrid:xrsl;unknownattribute"] = "none";
