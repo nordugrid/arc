@@ -234,6 +234,11 @@ namespace DataStaging {
     // Fresh DTRs should receive the initial priority
     // This is to be implemented
     //compute_priority(request);
+    request->get_logger()->msg(Arc::INFO, "Scheduler received new DTR %s with source: %s,"
+        " destination: %s, assigned to transfer share %s with priority %d",
+        request->get_id(), request->get_source()->str(), request->get_destination()->str(),
+        request->get_transfer_share(), request->get_priority());
+
     // Normal workflow is CHECK_CACHE
     if (request->get_cache_state() == NON_CACHEABLE || request->get_cache_parameters().cache_dirs.empty()) {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is not cacheable, was requested not to be cached or no cache available, skipping cache check", request->get_short_id());
@@ -957,8 +962,6 @@ namespace DataStaging {
        // If DTR is not NEW scheduler will pick it up itself.
        return;
     }
-    request.get_logger()->msg(Arc::INFO, "Scheduler received new DTR %s with source: %s, destination: %s",
-               request.get_id(), request.get_source()->str(), request.get_destination()->str());
     
     request.registerCallback(&processor,PRE_PROCESSOR);
     request.registerCallback(&processor,POST_PROCESSOR);
@@ -991,7 +994,6 @@ namespace DataStaging {
     // This is the priority of the share adjusted by the priority
     // of the parent job
     request.set_priority(int(transferShares.get_basic_priority(DtrTransferShare) * request.get_priority() * 0.01));
-    request.get_logger()->msg(Arc::INFO,"DTR %s: Assigned to transfer share %s with priority %d",request.get_short_id(),DtrTransferShare,request.get_priority());
     /* Shares part ends*/               
     
     DtrList.add_dtr(request);
