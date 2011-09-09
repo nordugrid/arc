@@ -32,6 +32,8 @@ a file containing a list of jobIDs
 all jobs specified in the jobfile will be tried migrated
 .IP "\fB-f\fR, \fB--force\fR"
 force migration, ignore kill failure
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

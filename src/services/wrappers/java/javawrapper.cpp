@@ -15,8 +15,8 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "arcservice_javawrapper", "HED:SERVICE", 0, &get_service },
-    { NULL, NULL, 0, NULL }
+    { "arcservice_javawrapper", "HED:SERVICE", NULL, 0, &get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };
 
 namespace Arc {

@@ -919,6 +919,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "http", "HED:DMC", 0, &Arc::DataPointHTTP::Instance },
-  { NULL, NULL, 0, NULL }
+  { "http", "HED:DMC", NULL, 0, &Arc::DataPointHTTP::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

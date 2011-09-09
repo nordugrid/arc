@@ -38,7 +38,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 		1,						/* Version of plugin (0 if not applicable)		*/
 		&get_service 			/* Pointer to constructor function				*/
 	},
-	{ NULL, NULL, 0, NULL }		/* The array is terminated by element			*/
+	{ NULL, NULL, NULL, 0, NULL }		/* The array is terminated by element			*/
 								/* with all components set to NULL				*/
 };
 

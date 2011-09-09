@@ -702,6 +702,6 @@ Arc::MCC_Status CacheService::make_soap_fault(Arc::Message& outmsg, const std::s
 } // namespace Cache
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "cacheservice", "HED:SERVICE", 0, &Cache::get_service },
-    { NULL, NULL, 0, NULL }
+    { "cacheservice", "HED:SERVICE", NULL, 0, &Cache::get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };

@@ -29,6 +29,8 @@ a file containing a list of jobIDs
 explicitly select or reject a specific cluster
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

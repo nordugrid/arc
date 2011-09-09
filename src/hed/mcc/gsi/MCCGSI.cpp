@@ -576,7 +576,7 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "gsi.service", "HED:MCC", 0, &Arc::get_mcc_service },
-  { "gsi.client", "HED:MCC", 0, &Arc::get_mcc_client },
-  { NULL, NULL, 0, NULL }
+  { "gsi.service", "HED:MCC", NULL, 0, &Arc::get_mcc_service },
+  { "gsi.client", "HED:MCC", NULL, 0, &Arc::get_mcc_client },
+  { NULL, NULL, NULL, 0, NULL }
 };

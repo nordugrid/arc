@@ -1139,6 +1139,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "gridftp", "HED:DMC", 0, &Arc::DataPointGridFTP::Instance },
-  { NULL, NULL, 0, NULL }
+  { "gridftp", "HED:DMC", NULL, 0, &Arc::DataPointGridFTP::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

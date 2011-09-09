@@ -52,6 +52,7 @@ namespace Arc {
      public:
       std::string name;
       std::string kind;
+      std::string description;
       uint32_t version;
       bool valid;
       ARCPluginDescriptor(std::ifstream& in):valid(false) {
@@ -77,6 +78,8 @@ namespace Arc {
             name = line;
           } else if(tag == "kind") {
             kind = line;
+          } else if(tag == "description") {
+            description = line;
           } else if(tag == "version") {
             if(!stringto(line,version)) return;
           }
@@ -132,6 +135,7 @@ namespace Arc {
         PluginDesc pd;
         pd.name = desc->name;
         pd.kind = desc->kind;
+        pd.description = desc->description;
         pd.version = desc->version;
         descs.push_back(pd);
       };

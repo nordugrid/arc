@@ -369,7 +369,7 @@ bool Charon::PolicyLocation::IsModified(void) {
 } // namespace ArcSec
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "charon", "HED:SERVICE", 0, &ArcSec::get_service },
-    { NULL, NULL, 0, NULL }
+    { "charon", "HED:SERVICE", NULL, 0, &ArcSec::get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };
 

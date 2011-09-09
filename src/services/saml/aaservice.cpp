@@ -464,6 +464,6 @@ bool Service_AA::query_db(Arc::QueryArrayResult& attributes, const std::string& 
 } // namespace ArcSec
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "aa.service", "HED:SERVICE", 0, &ArcSec::get_service },
-    { NULL, NULL, 0, NULL }
+    { "aa.service", "HED:SERVICE", NULL, 0, &ArcSec::get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };

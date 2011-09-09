@@ -118,7 +118,7 @@ Arc::Plugin* DelegationCollector::get_sechandler(Arc::PluginArgument* arg) {
 }
 
 //Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-//    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationCollector::get_sechandler},
-//    { NULL, NULL, 0, NULL }
+//    { "delegation.collector", "HED:SHC", NULL, 0, &ArcSec::DelegationCollector::get_sechandler},
+//    { NULL, NULL, NULL, 0, NULL }
 //};
 

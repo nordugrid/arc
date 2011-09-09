@@ -26,6 +26,8 @@ the file storing information about active jobs (default ~/.arc/jobs.xml)
 don't ask for verification
 .IP "\fB-T\fR, \fB--truncate\fR"
 truncate the joblist before synchronizing
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

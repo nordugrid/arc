@@ -21,7 +21,7 @@ command is used for submitting jobs to grid enabled computing resources.
 explicitly select or reject a specific cluster
 .IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
 explicitly select or reject an index server
-.IP "\fB-e\fR, \fB--jobdescrstring=\fIstring"
+.IP "\fB-e\fR, \fB--jobdescrstring=\fIString"
 jobdescription string describing the job to be submitted
 .IP "\fB-f\fR, \fB--jobdescrfile=\fIfilename"
 jobdescription file describing the job to be submitted
@@ -33,6 +33,8 @@ the IDs of the submitted jobs will be appended to this file
 submit jobs as dry run (no submission to batch system)
 .IP "\fB-x\fR, \fB--dumpdescription\fR"
 do not submit - dump job description in the language accepted by the target
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

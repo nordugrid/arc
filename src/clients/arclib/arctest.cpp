@@ -27,6 +27,8 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/credential/Credential.h>
+#include <arc/loader/FinderLoader.h>
+#include <arc/loader/Plugin.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 
@@ -98,6 +100,11 @@ int RUNSUB(main)(int argc, char **argv) {
   bool show_credentials = false;
   options.AddOption('E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
 
+  bool show_plugins = false;
+  options.AddOption('P', "listplugins",
+                    istring("list the available plugins"),
+                    show_plugins);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -129,7 +136,7 @@ int RUNSUB(main)(int argc, char **argv) {
     return 0;
   }
 
-  if ((jobid == -1) && (show_credentials == false)) {
+  if ((jobid == -1) && (!show_credentials) && (!show_plugins)) {
     std::cout << Arc::IString("Nothing to do:\n"
         "you have to either specify a test job id with -J (--job)\n"
         "or query information about the certificates with -E (--certificate)\n");
@@ -140,10 +147,83 @@ int RUNSUB(main)(int argc, char **argv) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+
   Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+
+  if (show_plugins) {
+    std::list<Arc::ModuleDesc> modules;
+    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
+    
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
+    std::cout << Arc::IString("Types of execution services ARC client tools is able to submit to:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+    
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
+    std::cout << Arc::IString("Types of index and information services ARC client tools is able collect information from:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:JobController", modules);
+    std::cout << Arc::IString("Types of services ARC client tools is able to manage jobs at:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:JobDescriptionParser", modules);
+    std::cout << Arc::IString("Job description languages supported by ARC client tools:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+    
+    modules.clear();
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
+    bool isDefaultBrokerLocated = false;
+    std::cout << Arc::IString("Brokers available to ARC client tools:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name;
+        if (itPlug->name == usercfg.Broker().first) {
+          std::cout << " (default)";
+          isDefaultBrokerLocated = true;
+        }
+        std::cout << " - " << itPlug->description << std::endl;
+      }
+    }
+
+    if (!isDefaultBrokerLocated) {
+      logger.msg(Arc::WARNING, "Default broker (%s) is not available. When using arcsub a broker should be specified explicitly.", usercfg.Broker().first);
+    }
+    return 0;
   }
 
   if (debug.empty() && !usercfg.Verbosity().empty())

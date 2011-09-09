@@ -225,7 +225,7 @@ bool Service_SLCS::RegistrationCollector(Arc::XMLNode &doc) {
 } // namespace ArcSec
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "slcs.service", "HED:SERVICE", 0, &ArcSec::get_service },
-    { NULL, NULL, 0, NULL }
+    { "slcs.service", "HED:SERVICE", NULL, 0, &ArcSec::get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };
 

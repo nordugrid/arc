@@ -1381,7 +1381,7 @@ static void soft_state_thread(void *data) {
 } // namespace
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "isis", "HED:SERVICE", 0, &ISIS::get_service },
-    { NULL, NULL, 0, NULL }
+    { "isis", "HED:SERVICE", NULL, 0, &ISIS::get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };
 

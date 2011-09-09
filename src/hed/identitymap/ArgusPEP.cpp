@@ -22,8 +22,13 @@ static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+<<<<<<< .mine
+  { "arguspep.map", "HED:SHC", NULL, 0, &get_sechandler},
+  { NULL, NULL, NULL, 0, NULL }
+=======
     { "arguspep.map", "HED:SHC", 0, &get_sechandler},
     { NULL, NULL, 0, NULL }
+>>>>>>> .r21096
 }; 
 
 namespace ArcSec {

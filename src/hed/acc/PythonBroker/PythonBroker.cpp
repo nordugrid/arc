@@ -393,6 +393,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "PythonBroker", "HED:Broker", 0, &Arc::PythonBroker::Instance },
-  { NULL, NULL, 0, NULL }
+  { "PythonBroker", "HED:Broker", istring("Do sorting using user created python broker"), 0, &Arc::PythonBroker::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

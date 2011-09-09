@@ -830,6 +830,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "srm", "HED:DMC", 0, &Arc::DataPointSRM::Instance },
-  { NULL, NULL, 0, NULL }
+  { "srm", "HED:DMC", NULL, 0, &Arc::DataPointSRM::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

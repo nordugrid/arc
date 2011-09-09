@@ -33,9 +33,9 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "http.service", "HED:MCC", 0, &get_mcc_service },
-    { "http.client",  "HED:MCC", 0, &get_mcc_client  },
-    { NULL, NULL, 0, NULL }
+    { "http.service", "HED:MCC", NULL, 0, &get_mcc_service },
+    { "http.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
+    { NULL, NULL, NULL, 0, NULL }
 };
 
 namespace Arc {

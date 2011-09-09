@@ -86,11 +86,17 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
         if(create_apd) {
             apd << "name=" << encode_for_var(desc->name) << std::endl;
             apd << "kind=" << encode_for_var(desc->kind) << std::endl;
+            if (desc->description != NULL) {
+              apd << "description=" << encode_for_var(desc->description) << std::endl;
+            }
             apd << "version=" << encode_for_var(desc->version) << std::endl;
             apd << std::endl; // end of description mark
         } else {
             std::cout << "name: " << desc->name << std::endl;
             std::cout << "kind: " << desc->kind << std::endl;
+            if (desc->description != NULL) {
+              std::cout << "description: " << desc->description << std::endl;
+            }
             std::cout << "version: " << desc->version << std::endl;
             std::cout << std::endl;
         };
@@ -101,7 +107,7 @@ static bool process_module(const std::string& plugin_filename, bool create_apd) 
         std::cout << "Created descriptor " << descriptor_filename << std::endl;
     };
 
-    // We are not unloading module because it may be not suitable 
+    // We are not unloading module because it may be not suitable
     // for unloading or it may be library which may fail unloading
     // after it was loaded with dlopen().
     //delete module;
@@ -125,9 +131,9 @@ int main(int argc, char **argv)
             break;
         };
     };
-   
+
     if (argc < 2) {
-        std::cerr << "Invalid arguments" << std::endl;        
+        std::cerr << "Invalid arguments" << std::endl;
         return -1;
     };
 

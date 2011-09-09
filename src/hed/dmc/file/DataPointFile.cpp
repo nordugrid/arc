@@ -799,6 +799,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "file", "HED:DMC", 0, &Arc::DataPointFile::Instance },
-  { NULL, NULL, 0, NULL }
+  { "file", "HED:DMC", NULL, 0, &Arc::DataPointFile::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

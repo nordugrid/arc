@@ -15,6 +15,8 @@
 #include <arc/StringConv.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
+#include <arc/loader/FinderLoader.h>
+#include <arc/loader/Plugin.h>
 #include <arc/UserConfig.h>
 
 #ifdef TEST
@@ -73,6 +75,11 @@ int RUNKILL(main)(int argc, char **argv) {
                     istring("keep the files on the server (do not clean)"),
                     keep);
 
+  bool show_plugins = false;
+  options.AddOption('P', "listplugins",
+                    istring("list the available plugins"),
+                    show_plugins);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -102,6 +109,23 @@ int RUNKILL(main)(int argc, char **argv) {
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
+  if (show_plugins) {
+    std::list<Arc::ModuleDesc> modules;
+    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:JobController", modules);
+
+    std::cout << Arc::IString("Types of services arckill is able to manage jobs at:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+    return 0;
+  }
 
   Arc::UserConfig usercfg(conffile, joblist);
   if (!usercfg) {

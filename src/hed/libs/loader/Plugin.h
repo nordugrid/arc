@@ -81,6 +81,7 @@ namespace Arc {
   typedef struct {
     const char* name; // Unique name of plugin in scope of its kind
     const char* kind; // Type/kind of plugin
+    const char* description; // Short description of plugin
     uint32_t version; // Version of plugin (0 if not applicable)
     get_plugin_instance instance; // Pointer to constructor function
   } PluginDescriptor;
@@ -92,6 +93,7 @@ namespace Arc {
    public:
     std::string name;
     std::string kind;
+    std::string description;
     uint32_t version;
   };
 

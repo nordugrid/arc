@@ -37,6 +37,8 @@ sort jobs according to jobid, submissiontime or jobname
 reverse sorting of jobs according to jobid, submissiontime or jobname
 .IP "\fB-p\fR, \fB--print-jobids\fR"
 instead of the status only the IDs of the selected jobs will be printed
+.IP "\fB-P\fR, \fB--listplugins\fR"
+list the available plugins
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"

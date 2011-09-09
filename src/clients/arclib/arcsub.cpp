@@ -20,14 +20,17 @@
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
-#include <arc/client/Submitter.h>
-#include <arc/client/TargetGenerator.h>
-#include <arc/client/JobDescription.h>
-#include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
+#include <arc/client/JobDescription.h>
+#include <arc/client/TargetGenerator.h>
+#include <arc/client/Submitter.h>
+#include <arc/loader/Plugin.h>
+#include <arc/loader/FinderLoader.h>
 #include <arc/credential/Credential.h>
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
 int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::string& jobidfile);
@@ -118,7 +121,7 @@ int RUNSUB(main)(int argc, char **argv) {
 
   std::string broker;
   options.AddOption('b', "broker",
-                    istring("select broker method (Random (default), FastestQueue, or custom)"),
+                    istring("select broker method (list available brokers with --listplugins flag)"),
                     istring("broker"), broker);
 
 /**
@@ -128,6 +131,10 @@ int RUNSUB(main)(int argc, char **argv) {
                     istring("store job descriptions in local sandbox."),
                     dolocalsandbox);
 */
+
+  bool show_plugins = false;
+  options.AddOption('P', "listplugins", istring("list the available plugins"),
+                    show_plugins);
 
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
@@ -149,6 +156,67 @@ int RUNSUB(main)(int argc, char **argv) {
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
+  }
+
+  if (show_plugins) {
+    std::list<Arc::ModuleDesc> modules;
+    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
+    
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
+    std::cout << Arc::IString("Types of execution services arcsub is able to submit jobs to:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+    
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
+    std::cout << Arc::IString("Types of index and information services which arcsub is able collect information from:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+    
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:JobDescriptionParser", modules);
+    std::cout << Arc::IString("Job description languages supported by arcsub:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
+      }
+    }
+
+    modules.clear();
+    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
+    Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
+    bool isDefaultBrokerLocated = false;
+    std::cout << Arc::IString("Brokers available to arcsub:") << std::endl;
+    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
+         itMod != modules.end(); itMod++) {
+      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
+           itPlug != itMod->plugins.end(); itPlug++) {
+        std::cout << "  " << itPlug->name;
+        if (itPlug->name == usercfg.Broker().first) {
+          std::cout << " (default)";
+          isDefaultBrokerLocated = true;
+        }
+        std::cout << " - " << itPlug->description << std::endl;
+      }
+    }
+
+    if (!isDefaultBrokerLocated) {
+      logger.msg(Arc::WARNING, "Default broker (%s) is not available. When using arcsub a broker should be specified explicitly (-b option).", usercfg.Broker().first);
+    }
+    return 0;
   }
 
   if (!usercfg.ProxyPath().empty() ) {

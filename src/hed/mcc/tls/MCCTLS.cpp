@@ -144,10 +144,10 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "tls.service", "HED:MCC", 0, &get_mcc_service },
-    { "tls.client",  "HED:MCC", 0, &get_mcc_client  },
-    { "delegation.collector", "HED:SHC", 0, &ArcSec::DelegationCollector::get_sechandler},
-    { NULL, NULL, 0, NULL }
+    { "tls.service", "HED:MCC", NULL, 0, &get_mcc_service },
+    { "tls.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
+    { "delegation.collector", "HED:SHC", NULL, 0, &ArcSec::DelegationCollector::get_sechandler},
+    { NULL, NULL, NULL, 0, NULL }
 };
 
 using namespace Arc;

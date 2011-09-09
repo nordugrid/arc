@@ -846,6 +846,6 @@ namespace Arc {
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "lfc", "HED:DMC", 0, &Arc::DataPointLFC::Instance },
-  { NULL, NULL, 0, NULL }
+  { "lfc", "HED:DMC", NULL, 0, &Arc::DataPointLFC::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

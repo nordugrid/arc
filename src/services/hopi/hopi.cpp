@@ -618,6 +618,6 @@ Arc::MCC_Status Hopi::process(Arc::Message &inmsg, Arc::Message &outmsg)
 } // namespace Hopi
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "hopi", "HED:SERVICE", 0, &Hopi::get_service },
-    { NULL, NULL, 0, NULL}
+    { "hopi", "HED:SERVICE", NULL, 0, &Hopi::get_service },
+    { NULL, NULL, NULL, 0, NULL}
 };

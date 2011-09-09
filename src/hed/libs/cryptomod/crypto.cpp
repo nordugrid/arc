@@ -11,6 +11,6 @@
 
 // Adding plugin descriptor to avoid warning messages from loader
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { NULL, NULL, 0, NULL }
+    { NULL, NULL, NULL, 0, NULL }
 };
 

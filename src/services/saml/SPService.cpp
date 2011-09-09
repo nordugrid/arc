@@ -27,8 +27,8 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "saml.sp", "HED:SERVICE", 0, &get_service },
-    { NULL, NULL, 0, NULL }
+    { "saml.sp", "HED:SERVICE", NULL, 0, &get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };
 
 namespace SPService {

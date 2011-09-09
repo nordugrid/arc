@@ -9,6 +9,6 @@
 #include "TargetRetrieverEMIREG.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "EMIREG", "HED:TargetRetriever", 0, &Arc::TargetRetrieverEMIREG::Instance },
-  { NULL, NULL, 0, NULL }
+  { "EMIREG", "HED:TargetRetriever", "EMI Registry service", 0, &Arc::TargetRetrieverEMIREG::Instance },
+  { NULL, NULL, NULL, 0, NULL }
 };

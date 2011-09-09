@@ -30,6 +30,7 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     {
         "testplugin",         /* name */
         "TEST",               /* kind */
+        NULL,                 /* description */
         0,                    /* version */
         Test::get_instance    /* get_instance function */
     },

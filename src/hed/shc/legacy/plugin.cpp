@@ -9,12 +9,12 @@
 #include "LegacyMap.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "arclegacy.handler", "HED:SHC", 0,
+    { "arclegacy.handler", "HED:SHC", NULL, 0,
                   &ArcSHCLegacy::LegacySecHandler::get_sechandler},
-    { "arclegacy.pdp", "HED:PDP", 0,
+    { "arclegacy.pdp", "HED:PDP", NULL, 0,
                   &ArcSHCLegacy::LegacyPDP::get_pdp},
-    { "arclegacy.map", "HED:SHC", 0,
+    { "arclegacy.map", "HED:SHC", NULL, 0,
                   &ArcSHCLegacy::LegacyMap::get_sechandler},
-    { NULL, NULL, 0, NULL }
+    { NULL, NULL, NULL, 0, NULL }
 };
 
