@@ -213,7 +213,7 @@ namespace Arc {
     case DebugFormat:
       Time ct;
       static Time lt(0);
-      os << "[" << ct.GetTime() << "." << ct.GetTimeNanosec()/1000;
+      os << "[" << ct.GetTime() << "." << std::setfill('0') << std::setw(6) << ct.GetTimeNanosec()/1000 << std::setfill(' ') << std::setw(0);
       if(lt.GetTime()) {
         Period d = ct - lt;
         os << "(" << d.GetPeriod()*1000000+d.GetPeriodNanoseconds()/1000<<")";
