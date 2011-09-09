@@ -32,6 +32,7 @@ namespace DataStaging {
   }
 
   std::string TransferShares::extract_share_info(const DTR& DTRToExtract){
+    if (shareType == NONE) return "_default";
     Arc::Credential cred(DTRToExtract.get_usercfg().ProxyPath(),
                          DTRToExtract.get_usercfg().ProxyPath(),
                          DTRToExtract.get_usercfg().CACertificatesDirectory(), "");
@@ -40,7 +41,6 @@ namespace DataStaging {
       case VO: return extract_vo_share(cred);
       case GROUP: return extract_group_share(cred);
       case ROLE: return extract_role_share(cred);
-      case NONE: return "_default";
       default: // Something really strange
         return "";
     }
