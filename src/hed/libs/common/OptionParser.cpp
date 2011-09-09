@@ -9,6 +9,9 @@
 
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_SET_SUMMARY
 #include <glibmm/optioncontext.h>
+#ifndef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
+#include <arc/IString.h>
+#endif
 #else
 #include <getopt.h>
 #include <arc/IString.h>
