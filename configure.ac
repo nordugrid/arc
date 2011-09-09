@@ -2243,7 +2243,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/isis/schema/Makefile
                  src/services/ldap-infosys/Makefile
                  src/services/ldap-infosys/grid-infosys
-                 src/services/ldap-infosys/grid-infosys-bdii5
                  src/services/ldap-infosys/giis/Makefile
                  src/services/ldap-infosys/giis/arc-infoindex-relay.8
                  src/services/ldap-infosys/giis/arc-infoindex-server.8

@@ -12,7 +12,7 @@ endif
 
 initd_SCRIPTS = $(GRID_INFOSYS_SCRIPT)
 
-pkgdata_DATA = grid-infosys-bdii5 ConfigParser.pm
+pkgdata_DATA = ConfigParser.pm
 
 SUBDIRS = $(GIIS_SERVICE)
 DIST_SUBDIRS = giis
