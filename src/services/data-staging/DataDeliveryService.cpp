@@ -214,7 +214,10 @@ namespace DataStaging {
       log->removeDestinations();
       log->addDestination(*output);
 
-      DTR * dtr = new DTR(src, dest, usercfg, groupid, user.get_uid(), log);
+      int uid = user.get_uid();
+      if (dtrnode["Caching"] == "true") uid = Arc::User().get_uid();
+
+      DTR * dtr = new DTR(src, dest, usercfg, groupid, uid, log);
       if (!(*dtr)) {
         logger.msg(Arc::ERROR, "Invalid DTR");
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
@@ -230,7 +233,13 @@ namespace DataStaging {
       dtr->registerCallback(this, SCHEDULER);
       dtr->registerCallback(&delivery, DELIVERY);
 
-      // TODO transfer parameters, caching
+      // Set transfer limits
+      TransferParameters transfer_params;
+      if (dtrnode["MinAverageSpeed"]) transfer_params.min_average_bandwidth = Arc::stringtoull((std::string)dtrnode["MinAverageSpeed"]);
+      if (dtrnode["AverageTime"]) transfer_params.averaging_time = Arc::stringtoui((std::string)dtrnode["AverageTime"]);
+      if (dtrnode["MinCurrentSpeed"]) transfer_params.min_current_bandwidth = Arc::stringtoull((std::string)dtrnode["MinCurrentSpeed"]);
+      if (dtrnode["MaxInactivityTime"]) transfer_params.max_inactivity_time = Arc::stringtoui((std::string)dtrnode["MaxInactivityTime"]);
+      delivery.SetTransferParameters(transfer_params);
 
       dtr->set_id(dtrid);
       dtr->set_status(DTRStatus::TRANSFER);
@@ -307,19 +316,12 @@ namespace DataStaging {
 
         logger.msg(Arc::ERROR, "No active DTR %s", dtrid);
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorStatus") = Arc::tostring(DTRErrorStatus::ERROR_TRANSFER);
         resultelement.NewChild("ErrorDescription") = "No such active DTR";
         continue;
       }
-      DTR * dtr = dtr_it->first;
-      // check user matches - is this necessary?
-      if (dtr->get_local_user().get_uid() != user.get_uid()) {
-        logger.msg(Arc::ERROR, "Local user does not match user of DTR %s", dtrid);
-        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
-        resultelement.NewChild("ErrorDescription") = "Mapped user does not match DTR user";
-        active_dtrs_lock.unlock();
-        continue;
-      }
 
+      DTR * dtr = dtr_it->first;
       resultelement.NewChild("Log") = dtr_it->second->str();
       resultelement.NewChild("BytesTransferred") = Arc::tostring(dtr->get_bytes_transferred());
 

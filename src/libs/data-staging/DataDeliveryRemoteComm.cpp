@@ -255,8 +255,10 @@ namespace DataStaging {
     if (status_.commstatus != CommNoError) {
       // log message is limited to 2048 chars so just print last few lines
       std::string log = (std::string)node["Log"];
-      if (log.size() > 2000) log = log.substr(log.find('\n', log.size()-2000));
-      logger_->msg(Arc::INFO, "DTR %s: DataDelivery log tail:\n%s", dtr_id, log);
+      if (!log.empty()) {
+        if (log.size() > 2000) log = log.substr(log.find('\n', log.size()-2000));
+        logger_->msg(Arc::INFO, "DTR %s: DataDelivery log tail:\n%s", dtr_id, log);
+      }
     }
   }
 
