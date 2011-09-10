@@ -145,6 +145,7 @@ namespace Arc {
    *  			  as the grantor of this AC
    * @param lifetime	The lifetime of this AC
    */
+  /*
   int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder,
                    EVP_PKEY *pkey, BIGNUM *serialnum,
                    std::vector<std::string> &fqan,
@@ -152,6 +153,7 @@ namespace Arc {
                    std::vector<std::string>& attributes,
                    ArcCredential::AC **ac, std::string voname,
                    std::string uri, int lifetime);
+  */
 
   /**Create AC(Attribute Certificate) with voms specific format.
    * @param codedac	  The coded AC as output of this method

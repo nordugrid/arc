@@ -12,10 +12,10 @@
 #include <arc/credentialstore/CredentialStore.h>
 %}
 
+#define STACK_OF(A) void
 %template(VOMSACInfoVector) std::vector<Arc::VOMSACInfo>;
 %template(StringVector) std::vector<std::string>;
 
-%import <openssl/safestack.h>
 %include "../src/hed/libs/crypto/OpenSSL.h"
 %include "../src/hed/libs/credential/Credential.h"
 %include "../src/hed/libs/common/ArcRegex.h"
