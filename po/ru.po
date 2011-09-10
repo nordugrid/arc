@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-09 01:12+0100\n"
-"PO-Revision-Date: 2011-09-09 01:20+0100\n"
+"POT-Creation-Date: 2011-09-10 01:33+0100\n"
+"PO-Revision-Date: 2011-09-10 02:46+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: \n"
@@ -605,115 +605,120 @@ msgstr "Архивирование запроса DTR %s, состояние ERR
 msgid "Archiving DTR %s, state %s"
 msgstr "Архивирование запроса DTR %s, состояние %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:78
+#: src/services/data-staging/DataDeliveryService.cpp:84
 #, c-format
 msgid "Received DTR %s in state %s"
 msgstr "Получен запрос DTR %s, состояние %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:82
+#: src/services/data-staging/DataDeliveryService.cpp:88
 #, c-format
 msgid "Removing temp proxy %s"
 msgstr "Удаление временной доверенности %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:84
+#: src/services/data-staging/DataDeliveryService.cpp:90
 #, c-format
 msgid "Failed to remove temporary proxy %s: %s"
 msgstr "Не удалось удалить временную доверенность %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:127
+#: src/services/data-staging/DataDeliveryService.cpp:133
 msgid "No delegation token in request"
 msgstr "В запросе отсутствует токен делегирования"
 
-#: src/services/data-staging/DataDeliveryService.cpp:135
+#: src/services/data-staging/DataDeliveryService.cpp:141
 msgid "Failed to accept delegation"
 msgstr "Не удалось принять делегирование"
 
-#: src/services/data-staging/DataDeliveryService.cpp:142
+#: src/services/data-staging/DataDeliveryService.cpp:148
 #, c-format
 msgid "Storing temp proxy at %s"
 msgstr "Сохранение временной доверенности в %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:145
+#: src/services/data-staging/DataDeliveryService.cpp:151
 #, c-format
 msgid "Failed to create temp proxy at %s: %s"
 msgstr "Не удалось создать временную доверенность в %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:150
+#: src/services/data-staging/DataDeliveryService.cpp:156
 #, c-format
 msgid "Failed to change owner of temp proxy at %s to %i:%i: %s"
 msgstr "Не удалось поменять владельца временной доверенности в %s на %i:%i: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:171
+#: src/services/data-staging/DataDeliveryService.cpp:177
 #, c-format
 msgid "All %u process slots used"
 msgstr "Квота на процессы (%u) использована"
 
-#: src/services/data-staging/DataDeliveryService.cpp:189
+#: src/services/data-staging/DataDeliveryService.cpp:192
+#, fuzzy, c-format
+msgid "Received retry for DTR %s still in transfer"
+msgstr "Получен запрос DTR %s, состояние %s"
+
+#: src/services/data-staging/DataDeliveryService.cpp:199
+#, fuzzy, c-format
+msgid "Replacing DTR %s in state %s with new request"
+msgstr "Получен запрос DTR %s, состояние %s"
+
+#: src/services/data-staging/DataDeliveryService.cpp:222
 msgid "Invalid DTR"
 msgstr "Недействительный запрос DTR"
 
-#: src/services/data-staging/DataDeliveryService.cpp:277
+#: src/services/data-staging/DataDeliveryService.cpp:317
 #, c-format
 msgid "No active DTR %s"
 msgstr "Нет активных запросов DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:285
-#, c-format
-msgid "Local user does not match user of DTR %s"
-msgstr "Локальный пользователь не соответствует пользователю DTR %s"
-
-#: src/services/data-staging/DataDeliveryService.cpp:296
+#: src/services/data-staging/DataDeliveryService.cpp:329
 #, c-format
 msgid "DTR %s failed"
 msgstr "Сбой запроса DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:303
+#: src/services/data-staging/DataDeliveryService.cpp:336
 #, c-format
 msgid "DTR %s finished successfully"
 msgstr "Запрос DTR %s успешно завершён"
 
-#: src/services/data-staging/DataDeliveryService.cpp:309
+#: src/services/data-staging/DataDeliveryService.cpp:342
 #, c-format
 msgid "DTR %s still in progress"
 msgstr "Запрос DTR %s ещё в процессе"
 
-#: src/services/data-staging/DataDeliveryService.cpp:350
+#: src/services/data-staging/DataDeliveryService.cpp:383
 msgid "Failed to start archival thread"
 msgstr "Не удалось запустить поток архивирования"
 
-#: src/services/data-staging/DataDeliveryService.cpp:356
+#: src/services/data-staging/DataDeliveryService.cpp:390
 #, c-format
 msgid "Failed to create dir %s for temp proxies: %s"
 msgstr "Не удалось создать каталог %s для временных доверенностей: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:376
+#: src/services/data-staging/DataDeliveryService.cpp:410
 msgid "Unauthorized"
 msgstr "Доступ закрыт"
 
-#: src/services/data-staging/DataDeliveryService.cpp:385
+#: src/services/data-staging/DataDeliveryService.cpp:419
 msgid "No local user mapping found"
 msgstr "Пользователь не приписан ни к одному локальному имени"
 
-#: src/services/data-staging/DataDeliveryService.cpp:393
+#: src/services/data-staging/DataDeliveryService.cpp:427
 #: src/services/charon/charon.cpp:66
 msgid "process: POST"
 msgstr "процесс: POST"
 
-#: src/services/data-staging/DataDeliveryService.cpp:394
+#: src/services/data-staging/DataDeliveryService.cpp:428
 #, c-format
 msgid "Identity is %s"
 msgstr "Личные данные: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:446
+#: src/services/data-staging/DataDeliveryService.cpp:480
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "Операция SOAP не поддерживается: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:462
+#: src/services/data-staging/DataDeliveryService.cpp:496
 msgid "Security Handlers processing failed"
 msgstr "Сбой в процессе обработки прав доступа"
 
-#: src/services/data-staging/DataDeliveryService.cpp:469
+#: src/services/data-staging/DataDeliveryService.cpp:503
 msgid "Only POST is supported in DataDeliveryService"
 msgstr "DataDeliveryService поддерживает только POST"
 
@@ -5663,20 +5668,20 @@ msgstr "Ошибка длины маркера\n"
 
 #: src/hed/mcc/gsi/PayloadGSIStream.cpp:70
 #: src/hed/mcc/gsi/MCCGSI.cpp:217
-#, fuzzy, c-format
+#, c-format
 msgid "GSS unwrap: %i/%i"
-msgstr "Нижняя панель|НеПеренос."
+msgstr "Развёртывание GSS: %i/%i"
 
 #: src/hed/mcc/gsi/PayloadGSIStream.cpp:80
 #: src/hed/mcc/gsi/MCCGSI.cpp:359
-#, fuzzy, c-format
+#, c-format
 msgid "GSS wrap: %i/%i"
-msgstr "Переносить Действия"
+msgstr "Свёртывание GSS: %i/%i"
 
 #: src/hed/mcc/gsi/PayloadGSIStream.cpp:83
-#, fuzzy, c-format
+#, c-format
 msgid "GSS wrap/unwrap failed: %i/%i%s"
-msgstr "Нижняя панель|НеПеренос."
+msgstr "Сбой свёртывания/развёртывания GSS: %i/%i%s"
 
 #: src/hed/mcc/gsi/PayloadGSIStream.cpp:89
 #, fuzzy, c-format
@@ -5706,9 +5711,9 @@ msgid "Returned token length: %i"
 msgstr "Ошибка длины маркера\n"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:211
-#, fuzzy, c-format
+#, c-format
 msgid "GSS unwrap failed: %i/%i%s"
-msgstr "Отмена операции не удалась"
+msgstr "Сбой развёртывания GSS: %i/%i%s"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:219
 #: src/hed/mcc/gsi/MCCGSI.cpp:361
@@ -5730,9 +5735,9 @@ msgid "Security check failed in GSI MCC for outgoing message"
 msgstr "Не прошла проверка безопасности в SOAP MCC для исходящего сообщения"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:355
-#, fuzzy, c-format
+#, c-format
 msgid "GSS wrap failed: %i/%i%s"
-msgstr "Отмена операции не удалась"
+msgstr "Сбой свёртывания GSS: %i/%i%s"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:438
 msgid "Could not resolve peer side's hostname"
@@ -5771,14 +5776,12 @@ msgid "Transfer protocol is GLOBUS SSL"
 msgstr "Протокол передачи GLOBUS SSL"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:551
-#, fuzzy
 msgid "Transfer protocol is SSL2"
-msgstr "Протокол передачи GLOBUS SSL"
+msgstr "Протокол передачи SSL2"
 
 #: src/hed/mcc/gsi/MCCGSI.cpp:553
-#, fuzzy
 msgid "Transfer protocol is GSI"
-msgstr "Протокол передачи GLOBUS SSL"
+msgstr "Протокол передачи GSI"
 
 #: src/hed/mcc/http/MCCHTTP.cpp:154
 #, c-format
@@ -5822,9 +5825,8 @@ msgid "Missing CA subject in Globus signing policy"
 msgstr ""
 
 #: src/hed/mcc/tls/GlobusSigningPolicy.cpp:95
-#, fuzzy
 msgid "Negative rights are not supported in Globus signing policy"
-msgstr "Мы поддерживаем только права globus в политике подписи Globus - %s не поддерживается"
+msgstr "Отрицательные права не поддерживаются политикой подписи Globus"
 
 #: src/hed/mcc/tls/GlobusSigningPolicy.cpp:99
 #, c-format
@@ -5888,14 +5890,12 @@ msgid "VOMS attribute parsing failed"
 msgstr "Сбой обработки атрибутов VOMS"
 
 #: src/hed/mcc/tls/MCCTLS.cpp:243
-#, fuzzy
 msgid "Critical VOMS attribute processing failed"
-msgstr "Сбой обработки атрибутов VOMS"
+msgstr "Сбой обработки критического атрибута VOMS"
 
 #: src/hed/mcc/tls/MCCTLS.cpp:251
-#, fuzzy
 msgid "VOMS attribute validation failed"
-msgstr "Сбой обработки атрибутов VOMS"
+msgstr "Сбой проверки атрибутов VOMS"
 
 #: src/hed/mcc/tls/MCCTLS.cpp:440
 #: src/hed/mcc/tls/MCCTLS.cpp:508
@@ -5916,20 +5916,17 @@ msgid "CA name: %s"
 msgstr "Имя сертификационного агентства: %s"
 
 #: src/hed/mcc/tls/MCCTLS.cpp:450
-#, fuzzy
 msgid "Failed to process security attributes in TLS MCC for incoming message"
-msgstr "Не прошла проверка безопасности в SOAP MCC для входящего сообщения"
+msgstr "Не удалось обработать атрибуты безопасности в TLS MCC для входящего сообщения"
 
 #: src/hed/mcc/tls/MCCTLS.cpp:459
 #: src/hed/mcc/tls/MCCTLS.cpp:535
-#, fuzzy
 msgid "Security check failed in TLS MCC for incoming message"
-msgstr "Не прошла проверка безопасности в SOAP MCC для входящего сообщения"
+msgstr "Не прошла проверка безопасности в TLS MCC для входящего сообщения"
 
 #: src/hed/mcc/tls/MCCTLS.cpp:518
-#, fuzzy
 msgid "Security check failed in TLS MCC for outgoing message"
-msgstr "Не прошла проверка безопасности в SOAP MCC для исходящего сообщения"
+msgstr "Не прошла проверка безопасности в TLS MCC для исходящего сообщения"
 
 #: src/hed/mcc/tls/ConfigTLSMCC.cpp:67
 #, c-format
@@ -5976,9 +5973,8 @@ msgid "Certificate %s will expire in %s"
 msgstr "Срок действия сертификата %s истечёт через %s"
 
 #: src/hed/mcc/tls/PayloadTLSMCC.cpp:188
-#, fuzzy
 msgid "Failed to store application data"
-msgstr "Не удалось записать данные по каналу"
+msgstr "Не удалось записать данные приложения"
 
 #: src/hed/mcc/tls/PayloadTLSMCC.cpp:216
 msgid "Failed to retrieve application data from OpenSSL"
@@ -6029,9 +6025,8 @@ msgid "Proxy with specific policy: %s"
 msgstr "Использовать авторизацию на прокси"
 
 #: src/hed/mcc/tls/DelegationCollector.cpp:60
-#, fuzzy
 msgid "Proxy with ARC Policy"
-msgstr "Пересечение с этой дугой"
+msgstr "Доверенность с политикой ARC"
 
 #: src/hed/mcc/tls/DelegationCollector.cpp:62
 msgid "Proxy with unknown policy  - fail on unrecognized policy"
@@ -6065,9 +6060,9 @@ msgstr "Не прошла проверка безопасности в SOAP MCC 
 #: src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:111
 #: src/hed/acc/EMIES/TargetRetrieverEMIES.cpp:74
 #: src/hed/acc/EMIES/TargetRetrieverEMIES.cpp:101
-#, fuzzy, c-format
+#, c-format
 msgid "TargetRetriver%s initialized with %s service url: %s"
-msgstr "TargetRetriverARC0 запущен с URL службы %s:: %s"
+msgstr "TargetRetriver%s запущен с URL службы %s: %s"
 
 #: src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:93
 #: src/hed/acc/CREAM/TargetRetrieverCREAM.cpp:123
@@ -6183,9 +6178,8 @@ msgstr "Создание и отправка запроса о начале за
 
 #: src/hed/acc/CREAM/CREAMClient.cpp:424
 #: src/hed/acc/CREAM/CREAMClient.cpp:486
-#, fuzzy
 msgid "Creating delegation"
-msgstr "Создание клиента SOAP для делегации"
+msgstr "Создание делегирования"
 
 #: src/hed/acc/CREAM/CREAMClient.cpp:437
 #, fuzzy
@@ -6198,9 +6192,8 @@ msgid "Delegatable credentials expired: %s"
 msgstr "Срок действия делегируемых параметров доступа истек: %s"
 
 #: src/hed/acc/CREAM/CREAMClient.cpp:458
-#, fuzzy
 msgid "Failed signing certificate request"
-msgstr "Запрос сертификата KDE - Пароль"
+msgstr "Не удалось подписать запрос сертификата"
 
 #: src/hed/acc/CREAM/CREAMClient.cpp:478
 #, fuzzy
@@ -6215,9 +6208,9 @@ msgstr "Не удалось получить информацию о задач�
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:55
 #: src/hed/acc/EMIES/JobControllerEMIES.cpp:63
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:211
-#, fuzzy, c-format
+#, c-format
 msgid "Downloading job: %s"
-msgstr "Не удалось получить результаты задачи %s"
+msgstr "Загружается задача: %s"
 
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:75
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:231
@@ -6227,9 +6220,9 @@ msgstr "Каталог %s уже сушествует! Задача пропус
 
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:91
 #: src/hed/acc/EMIES/JobControllerEMIES.cpp:100
-#, fuzzy, c-format
+#, c-format
 msgid "Failed dowloading %s to %s"
-msgstr "Не удалось инициализировать"
+msgstr "Не удалось загрузить %s в %s"
 
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:108
 #, c-format
@@ -6247,47 +6240,40 @@ msgid "Failed canceling job: %s"
 msgstr "Не удалось прервать задачу: %s"
 
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:138
-#, fuzzy
 msgid "Renewal of CREAM jobs is not supported"
-msgstr "Возобновление задач EMI ES не поддерживается"
+msgstr "Возобновление задач CREAM не поддерживается"
 
 #: src/hed/acc/CREAM/JobControllerCREAM.cpp:143
-#, fuzzy
 msgid "Resumation of CREAM jobs is not supported"
-msgstr "Прерывание задач EMI ES не поддерживается"
+msgstr "Перезапуск задач CREAM не поддерживается"
 
 #: src/hed/acc/EMIES/SubmitterEMIES.cpp:92
-#, fuzzy
 msgid "No valid job identifier returned by EMI ES"
-msgstr "A-REX не возвратил ни одного ярлыка задачи"
+msgstr "EMI ES не возвратил действительных ярлыков задач"
 
 #: src/hed/acc/EMIES/SubmitterEMIES.cpp:140
 #: src/hed/acc/ARC0/SubmitterARC0.cpp:156
-#, fuzzy, c-format
+#, c-format
 msgid "Two files have identical file name '%s'."
-msgstr "Искать файлы только по имени"
+msgstr "Два файла с идентичными именами '%s'."
 
 #: src/hed/acc/EMIES/SubmitterEMIES.cpp:199
-#, fuzzy
 msgid "Unable to select run time environment"
-msgstr "Генерировать код для среды выполнения GNU"
+msgstr "Невозможно выбрать среду выполнения"
 
 #: src/hed/acc/EMIES/SubmitterEMIES.cpp:206
 #: src/hed/acc/ARC0/SubmitterARC0.cpp:240
-#, fuzzy
 msgid "Unable to select middleware"
-msgstr "Не удаётся выбрать базу данных."
+msgstr "Невозможно выбрать подпрограммное обеспечение."
 
 #: src/hed/acc/EMIES/SubmitterEMIES.cpp:213
 #: src/hed/acc/ARC0/SubmitterARC0.cpp:247
-#, fuzzy
 msgid "Unable to select operating system."
-msgstr "Не удается %s вследствие системной ошибки!"
+msgstr "Невозможно выбрать операционную систему."
 
 #: src/hed/acc/EMIES/SubmitterEMIES.cpp:226
-#, fuzzy
 msgid "Migration for EMI ES is not implemented"
-msgstr "Эта функция не реализована"
+msgstr "Миграция для EMI ES не реализована"
 
 #: src/hed/acc/EMIES/TargetRetrieverEMIES.cpp:131
 #, fuzzy, c-format
@@ -6295,19 +6281,18 @@ msgid "Collecting ExecutionTarget (%s) information."
 msgstr "  -v, -version                 вывести информацию о версии клиента"
 
 #: src/hed/acc/EMIES/TargetRetrieverEMIES.cpp:149
-#, fuzzy, c-format
+#, c-format
 msgid "Collecting Job (%s jobs) information."
-msgstr "Недоступна информация о задаче"
+msgstr "Собирается информация о задачах (%s задач)"
 
 #: src/hed/acc/EMIES/TargetRetrieverEMIES.cpp:170
-#, fuzzy
 msgid "Generating EMIES targets"
-msgstr "Сортировка назначений"
+msgstr "Создаются назначения EMIES"
 
 #: src/hed/acc/EMIES/TargetRetrieverEMIES.cpp:179
-#, fuzzy, c-format
+#, c-format
 msgid "Generated EMIES target: %s"
-msgstr "Целевая архитектура имеет разбиение памяти для кода и данных"
+msgstr "Созданы назначения EMIES: %s"
 
 #: src/hed/acc/EMIES/JobControllerEMIES.cpp:54
 #, c-format
@@ -6340,23 +6325,20 @@ msgid "Creating an EMI ES client"
 msgstr "Создаётся клиент EMI ES"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:73
-#, fuzzy
 msgid "Unable to create SOAP client used by EMIESClient."
-msgstr "Не удалось создать клиент SOAP использующийся CREAMClient."
+msgstr "Не удалось создать клиент SOAP использующийся EMIESClient."
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:87
 msgid "Failed locating credentials."
 msgstr "Невозможно обнаружить параметры доступа"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:92
-#, fuzzy
 msgid "Failed initiate client connection."
-msgstr "*** Не удалость соединиться с клиентом / Соединение разорвано ***"
+msgstr "Не удалось инициировать соединие с клиентом"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:98
-#, fuzzy
 msgid "Client connection has no entry point."
-msgstr "Отсутстует точка входа в клиентскую цепь"
+msgstr "Отсутствует точка входа в клиентскую цепь."
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:105
 msgid "Failed to initiate delegation credentials"
@@ -6393,9 +6375,9 @@ msgid "%s request to %s failed. Empty response."
 msgstr "Запрос %s к %s не выполнен. Получен пустой ответ."
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:161
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job submit request to %s"
-msgstr "Создание и отправка запроса о прерывании задачи"
+msgstr "Создание и отправка запроса об исполнении задачи на %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:184
 #, c-format
@@ -6404,14 +6386,14 @@ msgstr "описание засылаемой задачи: %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:212
 #: src/hed/acc/EMIES/EMIESClient.cpp:243
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job information query request to %s"
-msgstr "Создание и отправка запроса о регистрации задачи"
+msgstr "Создание и отправка запроса о состоянии задачи на %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:283
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending service information query request to %s"
-msgstr "Создание и отправка запроса о состоянии службы"
+msgstr "Создание и отправка запроса о состоянии службы на %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:296
 #, fuzzy, c-format
@@ -6425,24 +6407,24 @@ msgstr "Отсутствующий элемент 'from' в mapURL"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:319
 #: src/hed/acc/EMIES/EMIESClient.cpp:336
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job clean request to %s"
-msgstr "Создание и отправка запроса об удалении результатов работы задачи"
+msgstr "Создание и отправка запроса об удалении результатов работы задачи на %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:353
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job suspend request to %s"
-msgstr "Создание и отправка запроса о прерывании задачи"
+msgstr "Создание и отправка запроса о приостановке задачи на %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:370
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job resume request to %s"
-msgstr "Создание и отправка запроса о прерывании задачи"
+msgstr "Создание и отправка запроса о возобновлении задачи на %s"
 
 #: src/hed/acc/EMIES/EMIESClient.cpp:387
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job restart request to %s"
-msgstr "Создание и отправка запроса о прерывании задачи"
+msgstr "Создание и отправка запроса о перезапуске задачи на %s"
 
 #: src/hed/acc/ARC0/SubmitterARC0.cpp:43
 #: src/hed/acc/ARC0/JobControllerARC0.cpp:47
@@ -6827,14 +6809,12 @@ msgid "Failed retrieving job status information"
 msgstr "Не удалось извлечь информацию о состоянии задачи"
 
 #: src/hed/acc/UNICORE/JobControllerUNICORE.cpp:180
-#, fuzzy
 msgid "Renewal of UNICORE jobs is not supported"
-msgstr "Возобновление задач EMI ES не поддерживается"
+msgstr "Возобновление задач UNICORE не поддерживается"
 
 #: src/hed/acc/UNICORE/JobControllerUNICORE.cpp:185
-#, fuzzy
 msgid "Resumation of UNICORE jobs is not supported"
-msgstr "Прерывание задач EMI ES не поддерживается"
+msgstr "Перезапуск задач UNICORE не поддерживается"
 
 #: src/hed/acc/UNICORE/UNICOREClient.cpp:67
 msgid "Creating a UNICORE client"
@@ -7114,52 +7094,46 @@ msgid "Unable to migrate job. Job description is not valid in the %s format"
 msgstr "Невозможно открыть файл с описанием задачи: %s"
 
 #: src/hed/acc/ARC1/JobControllerARC1.cpp:122
-#, fuzzy
 msgid "Renewal of ARC1 jobs is not supported"
-msgstr "Возобновление задач EMI ES не поддерживается"
+msgstr "Возобновление задач ARC1 не поддерживается"
 
 #: src/hed/acc/ARC1/JobControllerARC1.cpp:133
-#, fuzzy, c-format
+#, c-format
 msgid "Resuming job: %s at state: %s (%s)"
-msgstr "Возобновление задачи %s в состоянии %s"
+msgstr "Возобновление задачи %s в состоянии %s (%s)"
 
 #: src/hed/acc/ARC1/JobControllerARC1.cpp:141
 msgid "Job resuming successful"
 msgstr "Задача успешно возобновлена"
 
 #: src/hed/acc/ARC1/JobControllerARC1.cpp:173
-#, fuzzy, c-format
+#, c-format
 msgid "Failed retrieving job description for job: %s"
-msgstr "Не удалось получить описание задачи (%s)"
+msgstr "Не удалось получить описание задачи: %s"
 
 #: src/hed/acc/ARC1/JobControllerBES.cpp:81
-#, fuzzy
 msgid "Getting BES jobs is not supported"
-msgstr "Прерывание задач EMI ES не поддерживается"
+msgstr "Извлечение задач BES не поддерживается"
 
 #: src/hed/acc/ARC1/JobControllerBES.cpp:86
-#, fuzzy
 msgid "Cleaning of BES jobs is not supported"
-msgstr "Прерывание задач EMI ES не поддерживается"
+msgstr "Очистка результатов задач BES не поддерживается"
 
 #: src/hed/acc/ARC1/JobControllerBES.cpp:99
-#, fuzzy
 msgid "Renewal of BES jobs is not supported"
-msgstr "Возобновление задач EMI ES не поддерживается"
+msgstr "Возобновление задач BES не поддерживается"
 
 #: src/hed/acc/ARC1/JobControllerBES.cpp:104
-#, fuzzy
 msgid "Resuming BES jobs is not supported"
-msgstr "Прерывание задач EMI ES не поддерживается"
+msgstr "Перезапуск задач BES не поддерживается"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:72
 msgid "Creating an A-REX client"
 msgstr "Создаётся клиент A-REX"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:75
-#, fuzzy
 msgid "Unable to create SOAP client used by AREXClient."
-msgstr "Не удалось создать клиент SOAP использующийся CREAMClient."
+msgstr "Не удалось создать клиент SOAP использующийся AREXClient."
 
 #: src/hed/acc/ARC1/AREXClient.cpp:125
 #, fuzzy
@@ -7173,9 +7147,9 @@ msgstr "Создаётся и отправляется запрос на зас�
 
 #: src/hed/acc/ARC1/AREXClient.cpp:247
 #: src/hed/acc/ARC1/AREXClient.cpp:290
-#, fuzzy, c-format
+#, c-format
 msgid "Unable to retrieve status of job (%s)"
-msgstr "Ошибка при получении информации о задании: "
+msgstr "Ошибка при получении информации о состоянии задачи (%s)"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:320
 #, fuzzy, c-format
@@ -7192,24 +7166,24 @@ msgid "No execution services registered in the index service"
 msgstr "Ни одна служба исполнения не зарегистрирована в службе регистрации"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:346
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending terminate request to %s"
-msgstr "Создание и отправка запроса о прерывании задачи"
+msgstr "Создание и отправка запроса о прерывании задачи на %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:368
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending clean request to %s"
-msgstr "Создание и отправка запроса об удалении результатов работы задачи"
+msgstr "Создание и отправка запроса об удалении результатов работы задачи на %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:398
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job description retrieval request to %s"
-msgstr "Создание и отправка запроса о регистрации задачи"
+msgstr "Создание и отправка запроса на получение описания задачи на %s"
 
 #: src/hed/acc/ARC1/AREXClient.cpp:418
-#, fuzzy, c-format
+#, c-format
 msgid "Creating and sending job migrate request to %s"
-msgstr "Создание и отправка запроса о прерывании задачи"
+msgstr "Создание и отправка запроса о миграции задачи на %s"
 
 #: src/hed/acc/ARC1/test/TargetRetrieverARC1Test.cpp:377
 #, c-format
@@ -7217,9 +7191,9 @@ msgid "targets.size() = %d"
 msgstr "targets.size() = %d"
 
 #: src/hed/acc/EMIREG/TargetRetrieverEMIREG.cpp:169
-#, fuzzy, c-format
+#, c-format
 msgid "Wrong middleware type: %s"
-msgstr "Неверный тип декларации"
+msgstr "Недопустимый тип подпрограммного обеспечению: %s"
 
 #: src/hed/acc/EMIREG/TargetRetrieverEMIREG.cpp:181
 #, fuzzy, c-format
@@ -7253,7 +7227,7 @@ msgstr ""
 
 #: src/hed/acc/JobDescriptionParser/JDLParser.cpp:453
 #, c-format
-msgid "[JDL Parser]: Unknown attribute name: '%s', with value: %s"
+msgid "[JDLParser]: Unknown attribute name: '%s', with value: %s"
 msgstr ""
 
 #: src/hed/acc/JobDescriptionParser/JDLParser.cpp:477
@@ -7407,15 +7381,15 @@ msgstr ""
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:589
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:617
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:697
-#, fuzzy, c-format
+#, c-format
 msgid "Expected ) at position %ld"
-msgstr "недопустимая входная последовательность в позиции %ld"
+msgstr "Ожидается ) на позиции %ld"
 
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:599
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:682
-#, fuzzy, c-format
+#, c-format
 msgid "Expected ( at position %ld"
-msgstr "недопустимая входная последовательность в позиции %ld"
+msgstr "Ожидается ( на позиции %ld"
 
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:607
 #, c-format
@@ -7428,9 +7402,9 @@ msgid "Variable name contains invalid character at position %ld"
 msgstr ""
 
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:628
-#, fuzzy, c-format
+#, c-format
 msgid "Broken string at position %ld"
-msgstr "недопустимая входная последовательность в позиции %ld"
+msgstr "Повреждённая строка на позиции %ld"
 
 #: src/hed/acc/JobDescriptionParser/RSLParser.cpp:641
 #, c-format
@@ -7848,6 +7822,22 @@ msgstr ""
 msgid "job.Resources.QueueName = %s"
 msgstr "/_Свернуть все ресурсы"
 
+#: src/hed/acc/Broker/DescriptorsBroker.cpp:13
+msgid "Sorting according to free slots in queue"
+msgstr ""
+
+#: src/hed/acc/Broker/DescriptorsBroker.cpp:14
+msgid "Random sorting"
+msgstr "Случайная сортировка"
+
+#: src/hed/acc/Broker/DescriptorsBroker.cpp:15
+msgid "Sorting according to specified benchmark (default \"specint2000\")"
+msgstr ""
+
+#: src/hed/acc/Broker/DescriptorsBroker.cpp:16
+msgid "Sorting according to input data availability at target"
+msgstr ""
+
 #: src/hed/acc/Broker/BenchmarkBroker.cpp:91
 #, c-format
 msgid "Matching against job description,following targets possible for BenchmarkBroker: %d"
@@ -7914,14 +7904,13 @@ msgid "Matching against job description, following targets possible for RandomBr
 msgstr "Сравнение с описанием задачи; следующие назначения рассматриваются в алгоритме RandomBroker: %d"
 
 #: src/hed/acc/PythonBroker/PythonBroker.cpp:90
-#, fuzzy, c-format
+#, c-format
 msgid "Loading Python broker (%i)"
-msgstr "Загружается %u-я служба Python"
+msgstr "Подгрузка Python broker (%i)"
 
 #: src/hed/acc/PythonBroker/PythonBroker.cpp:114
-#, fuzzy
 msgid "PythonBroker init"
-msgstr " A - Строка инициализации."
+msgstr "Инициализация PythonBroker"
 
 #: src/hed/acc/PythonBroker/PythonBroker.cpp:127
 #, c-format
@@ -8014,6 +8003,10 @@ msgstr "Не удалось создать аргумент конструкто
 #, fuzzy
 msgid "Cannot convert ExecutionTarget to python object"
 msgstr "Не удалось преобразовать документацию в объект Python"
+
+#: src/hed/acc/PythonBroker/PythonBroker.cpp:396
+msgid "Do sorting using user created python broker"
+msgstr ""
 
 #: src/hed/daemon/win32/main_win32.cpp:27
 #: src/hed/daemon/unix/main_unix.cpp:40
@@ -8484,9 +8477,9 @@ msgid "Can not create function: FunctionId does not exist"
 msgstr ""
 
 #: src/hed/shc/xacmlpdp/XACMLApply.cpp:33
-#, fuzzy, c-format
+#, c-format
 msgid "Can not create function %s"
-msgstr "Невозможно создать папку: %1"
+msgstr "Невозможно создать функцию %s"
 
 #: src/hed/shc/xacmlpdp/XACMLEvaluator.cpp:55
 msgid "Can not parse classname for FunctionFactory from configuration"
@@ -8529,9 +8522,8 @@ msgid "No target available inside the rule"
 msgstr ""
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:88
-#, fuzzy
 msgid "Can not find XACMLPDPContext"
-msgstr "Не обнаружен StatusCode"
+msgstr "Невозможно найти XACMLPDPContext"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:117
 msgid "Evaluator does not support loadable Combining Algorithms"
@@ -8548,9 +8540,8 @@ msgstr ""
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:151
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:159
-#, fuzzy
 msgid "Failed to convert security information to XACML request"
-msgstr "Не удалось преобразовать информацию о защите в запрос ARC"
+msgstr "Не удалось преобразовать информацию о защите в запрос XACML"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:167
 #, c-format
@@ -8558,14 +8549,12 @@ msgid "XACML request: %s"
 msgstr "запрос XACML: %s"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:179
-#, fuzzy
 msgid "Authorized from xacml.pdp"
-msgstr "Допущен службой Charon"
+msgstr "Допущен через xacml.pdp"
 
 #: src/hed/shc/xacmlpdp/XACMLPDP.cpp:180
-#, fuzzy
 msgid "UnAuthorized from xacml.pdp"
-msgstr "Защитить компьютер от несанкционированного использования"
+msgstr "Не допущен через xacml.pdp"
 
 #: src/hed/shc/xacmlpdp/XACMLRequest.cpp:34
 msgid "Request is empty"
@@ -8986,44 +8975,44 @@ msgstr "Не удаётся создать новое окно.\n"
 msgid "Can not create XACML request\n"
 msgstr "Не удалось создать запрос X509"
 
-#: src/hed/libs/loader/Plugin.cpp:252
-#: src/hed/libs/loader/Plugin.cpp:438
+#: src/hed/libs/loader/Plugin.cpp:256
+#: src/hed/libs/loader/Plugin.cpp:442
 #, fuzzy, c-format
 msgid "Could not find loadable module descriptor by name %s"
 msgstr "Не удалось найти подгружаемый модуль %s (%s)"
 
-#: src/hed/libs/loader/Plugin.cpp:258
-#: src/hed/libs/loader/Plugin.cpp:446
+#: src/hed/libs/loader/Plugin.cpp:262
+#: src/hed/libs/loader/Plugin.cpp:450
 #, c-format
 msgid "Could not find loadable module by name %s (%s)"
 msgstr "Не удалось найти подгружаемый модуль %s (%s)"
 
-#: src/hed/libs/loader/Plugin.cpp:264
-#: src/hed/libs/loader/Plugin.cpp:366
-#: src/hed/libs/loader/Plugin.cpp:451
+#: src/hed/libs/loader/Plugin.cpp:268
+#: src/hed/libs/loader/Plugin.cpp:370
+#: src/hed/libs/loader/Plugin.cpp:455
 #, c-format
 msgid "Module %s is not an ARC plugin (%s)"
 msgstr "Модуль %s не является подключаемым модулем ARC (%s)"
 
-#: src/hed/libs/loader/Plugin.cpp:281
-#: src/hed/libs/loader/Plugin.cpp:376
-#: src/hed/libs/loader/Plugin.cpp:473
+#: src/hed/libs/loader/Plugin.cpp:285
+#: src/hed/libs/loader/Plugin.cpp:380
+#: src/hed/libs/loader/Plugin.cpp:477
 #, fuzzy, c-format
 msgid "Module %s failed to reload (%s)"
 msgstr "Не удалось перезагрузить диск"
 
-#: src/hed/libs/loader/Plugin.cpp:331
-#: src/hed/libs/loader/Plugin.cpp:347
+#: src/hed/libs/loader/Plugin.cpp:335
+#: src/hed/libs/loader/Plugin.cpp:351
 #, c-format
 msgid "Loadable module %s contains no requested plugin %s of kind %s"
 msgstr ""
 
-#: src/hed/libs/loader/Plugin.cpp:354
+#: src/hed/libs/loader/Plugin.cpp:358
 #, fuzzy, c-format
 msgid "Could not find loadable module descriptor by names %s and %s"
 msgstr "Невозможно найти модуль %s"
 
-#: src/hed/libs/loader/Plugin.cpp:360
+#: src/hed/libs/loader/Plugin.cpp:364
 #, fuzzy, c-format
 msgid "Could not find loadable module by names %s and %s (%s)"
 msgstr "Невозможно найти модуль %s"
@@ -11862,8 +11851,9 @@ msgid "Generating EMIES target: %s"
 msgstr "Целевая архитектура имеет разбиение памяти для кода и данных"
 
 #: src/hed/libs/client/GLUE2.cpp:379
+#, fuzzy
 msgid "Multiple execution environments per queue specified for target. Execution environment information will be ignored."
-msgstr ""
+msgstr "Для назначения \"%s\" указаны множественные рабочие среды очередей. Информация о рабочих средах игнорируется."
 
 #: src/hed/libs/client/ClientSAML2SSO.cpp:80
 msgid "Request failed: No response from SPService"
@@ -12894,9 +12884,9 @@ msgid " Execution environment is a physical machine"
 msgstr ""
 
 #: src/hed/libs/client/ExecutionTarget.cpp:627
-#, fuzzy, c-format
+#, c-format
 msgid " CPU Vendor: %s"
-msgstr "&Метка производителя:"
+msgstr " Производитель процессора: %s"
 
 #: src/hed/libs/client/ExecutionTarget.cpp:629
 #, fuzzy, c-format
@@ -13592,32 +13582,32 @@ msgstr "(пусто)"
 msgid "(null)"
 msgstr "(нулевой)"
 
-#: src/hed/libs/common/OptionParser.cpp:104
+#: src/hed/libs/common/OptionParser.cpp:107
 #, c-format
 msgid "Cannot parse integer value '%s' for -%c"
 msgstr "Не удаётся разобрать целое значение '%s' для -%c"
 
-#: src/hed/libs/common/OptionParser.cpp:255
+#: src/hed/libs/common/OptionParser.cpp:258
 msgid "Use -? to get usage description"
 msgstr "Для получения справки используйте \"-?\"."
 
-#: src/hed/libs/common/OptionParser.cpp:325
+#: src/hed/libs/common/OptionParser.cpp:328
 msgid "Usage:"
 msgstr "Использование:"
 
-#: src/hed/libs/common/OptionParser.cpp:328
+#: src/hed/libs/common/OptionParser.cpp:331
 msgid "OPTION..."
 msgstr "ПАРАМЕТР..."
 
-#: src/hed/libs/common/OptionParser.cpp:334
+#: src/hed/libs/common/OptionParser.cpp:337
 msgid "Help Options:"
 msgstr "Параметры справки:"
 
-#: src/hed/libs/common/OptionParser.cpp:335
+#: src/hed/libs/common/OptionParser.cpp:338
 msgid "Show help options"
 msgstr "Показать параметры справки"
 
-#: src/hed/libs/common/OptionParser.cpp:337
+#: src/hed/libs/common/OptionParser.cpp:340
 msgid "Application Options:"
 msgstr "Параметры приложения:"
 
@@ -14790,7 +14780,7 @@ msgstr ""
 #: src/hed/dmc/srm/DataPointSRM.cpp:271
 #: src/hed/dmc/srm/DataPointSRM.cpp:450
 msgid "None of the requested transport protocols are supported"
-msgstr ""
+msgstr "Не поддерживается ни один из запрошенных протоколов транспортного уровня"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:288
 #, fuzzy, c-format
@@ -14842,7 +14832,7 @@ msgstr "Задача не описана"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:467
 msgid "Warning: Using SRM protocol v1 which does not support space tokens"
-msgstr ""
+msgstr "Warning: Используется версия v1 протокола SRM, которая не поддерживает токены места"
 
 #: src/hed/dmc/srm/DataPointSRM.cpp:470
 #, fuzzy, c-format
@@ -14928,7 +14918,7 @@ msgstr "Проверка: поиск метаданных: %s"
 #: src/hed/dmc/srm/DataPointSRM.cpp:824
 #, c-format
 msgid "plugin for transport protocol %s is not installed"
-msgstr ""
+msgstr "не установлен подключаемый модуль для протокола транспортного уровня %s"
 
 #: src/hed/dmc/srm/srmclient/SRMInfo.cpp:73
 #: src/hed/dmc/srm/srmclient/SRMInfo.cpp:160
@@ -16848,7 +16838,7 @@ msgid "Failed to set up credential delegation"
 msgstr "Не удалось инициализировать делегирование"
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:78
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:142
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:147
 #, fuzzy, c-format
 msgid ""
 "DTR %s: Request:\n"
@@ -16866,7 +16856,7 @@ msgid "DTR %s: No SOAP response from Delivery service %s"
 msgstr "Принят неверный отклик \"%c\" от сервера.\n"
 
 #: src/libs/data-staging/DataDeliveryRemoteComm.cpp:98
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:165
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:170
 #, fuzzy, c-format
 msgid ""
 "DTR %s: Response:\n"
@@ -16888,22 +16878,22 @@ msgstr ""
 msgid "DTR %s: Started remote Delivery at %s"
 msgstr " P - Время сброса DTR (0=нет)."
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:149
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:154
 #, fuzzy, c-format
 msgid "DTR %s: %s"
 msgstr "DTR %s: %s->%s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:158
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:163
 #, fuzzy, c-format
 msgid "DTR %s: No SOAP response"
 msgstr "Нет ответа SOAP"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:169
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:174
 #, fuzzy, c-format
 msgid "DTR %s: Bad format in XML response: %s"
 msgstr "Неверный формат инкрементного файла"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:254
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:260
 #, fuzzy, c-format
 msgid ""
 "DTR %s: DataDelivery log tail:\n"
@@ -16965,274 +16955,269 @@ msgstr ""
 msgid "DTR %s: Linking mapped file - can't link on Windows"
 msgstr "Ввод из спроецированного файла"
 
-#: src/libs/data-staging/Scheduler.cpp:239
+#: src/libs/data-staging/Scheduler.cpp:237
+#, fuzzy, c-format
+msgid "Scheduler received new DTR %s with source: %s, destination: %s, assigned to transfer share %s with priority %d"
+msgstr "Выберите общий каталог - %1"
+
+#: src/libs/data-staging/Scheduler.cpp:244
 #, c-format
 msgid "DTR %s: File is not cacheable, was requested not to be cached or no cache available, skipping cache check"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:245
+#: src/libs/data-staging/Scheduler.cpp:250
 #, c-format
 msgid "DTR %s: File is cacheable, will check cache"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:260
+#: src/libs/data-staging/Scheduler.cpp:265
 #, c-format
 msgid "DTR %s: Timed out while waiting for cache lock"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:264
+#: src/libs/data-staging/Scheduler.cpp:269
 #, c-format
 msgid "DTR %s: Checking cache again"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:280
+#: src/libs/data-staging/Scheduler.cpp:285
 #, fuzzy, c-format
 msgid "DTR %s: Destination file is in cache"
 msgstr "проверка, есть ли файл в кэше...нет"
 
-#: src/libs/data-staging/Scheduler.cpp:284
+#: src/libs/data-staging/Scheduler.cpp:289
 #, c-format
 msgid "DTR %s: Source and/or destination is index service, will resolve replicas"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:287
+#: src/libs/data-staging/Scheduler.cpp:292
 #, c-format
 msgid "DTR %s: Neither source nor destination are index services, will skip resolving replicas"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:297
+#: src/libs/data-staging/Scheduler.cpp:302
 #, c-format
 msgid "DTR %s: Problem with index service, will release cache lock"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:301
+#: src/libs/data-staging/Scheduler.cpp:306
 #, c-format
 msgid "DTR %s: Problem with index service, will proceed to end of data staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:311
+#: src/libs/data-staging/Scheduler.cpp:316
 #, c-format
 msgid "DTR %s: Checking source file is present"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:319
+#: src/libs/data-staging/Scheduler.cpp:324
 #, c-format
 msgid "DTR %s: Error with source file, moving to next replica"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:336
+#: src/libs/data-staging/Scheduler.cpp:341
 #, c-format
 msgid "DTR %s: Replica %s has long latency, trying next replica"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:338
+#: src/libs/data-staging/Scheduler.cpp:343
 #, c-format
 msgid "DTR %s: No more replicas, will use %s"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:341
+#: src/libs/data-staging/Scheduler.cpp:346
 #, fuzzy, c-format
 msgid "DTR %s: Checking replica %s"
 msgstr "Идентичное местонахождение реплики: %s"
 
-#: src/libs/data-staging/Scheduler.cpp:351
+#: src/libs/data-staging/Scheduler.cpp:356
 #, c-format
 msgid "DTR %s: Overwrite requested - will pre-clean destination"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:354
+#: src/libs/data-staging/Scheduler.cpp:359
 #, c-format
 msgid "DTR %s: No overwrite requested or allowed, skipping pre-cleaning"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:362
+#: src/libs/data-staging/Scheduler.cpp:367
 #, c-format
 msgid "DTR %s: Pre-clean failed, will still try to copy"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:385
+#: src/libs/data-staging/Scheduler.cpp:390
 #, c-format
 msgid "DTR %s: Large transfer queue - will wait 10s before staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:392
+#: src/libs/data-staging/Scheduler.cpp:397
 #, c-format
 msgid "DTR %s: Source or destination requires staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:397
+#: src/libs/data-staging/Scheduler.cpp:402
 #, c-format
 msgid "DTR %s: No need to stage source or destination, skipping staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:427
+#: src/libs/data-staging/Scheduler.cpp:432
 #, c-format
 msgid "DTR %s: Staging request timed out, will release request"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:431
+#: src/libs/data-staging/Scheduler.cpp:436
 #, c-format
 msgid "DTR %s: Querying status of staging request"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:440
+#: src/libs/data-staging/Scheduler.cpp:445
 #, fuzzy, c-format
 msgid "DTR %s: Releasing requests"
 msgstr "Принимать _непрямые запросы"
 
-#: src/libs/data-staging/Scheduler.cpp:461
+#: src/libs/data-staging/Scheduler.cpp:466
 #, c-format
 msgid "DTR %s: DTR is ready for transfer, moving to delivery queue"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:478
+#: src/libs/data-staging/Scheduler.cpp:483
 #, fuzzy, c-format
 msgid "DTR %s: Transfer failed: %s"
 msgstr "Сбой переноса файла."
 
-#: src/libs/data-staging/Scheduler.cpp:489
+#: src/libs/data-staging/Scheduler.cpp:494
 #, c-format
 msgid "DTR %s: Releasing request(s) made during staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:492
+#: src/libs/data-staging/Scheduler.cpp:497
 #, c-format
 msgid "DTR %s: Neither source nor destination were staged, skipping releasing requests"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:504
+#: src/libs/data-staging/Scheduler.cpp:509
 #, fuzzy, c-format
 msgid "DTR %s: Trying next replica"
 msgstr "Сбой засылки задачи на %s, проверка следующего назначения"
 
-#: src/libs/data-staging/Scheduler.cpp:508
+#: src/libs/data-staging/Scheduler.cpp:513
 #, fuzzy, c-format
 msgid "DTR %s: Will %s in destination index service"
 msgstr "Ни одна служба исполнения не зарегистрирована в службе регистрации"
 
-#: src/libs/data-staging/Scheduler.cpp:512
+#: src/libs/data-staging/Scheduler.cpp:517
 #, c-format
 msgid "DTR %s: Destination is not index service, skipping replica registration"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:525
+#: src/libs/data-staging/Scheduler.cpp:530
 #, c-format
 msgid "DTR %s: Error registering replica, moving to end of data staging"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:533
+#: src/libs/data-staging/Scheduler.cpp:538
 #, fuzzy, c-format
 msgid "DTR %s: Will process cache"
 msgstr "Дисковый кэш, всего"
 
-#: src/libs/data-staging/Scheduler.cpp:537
+#: src/libs/data-staging/Scheduler.cpp:542
 #, c-format
 msgid "DTR %s: File is not cacheable, skipping cache processing"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:547
+#: src/libs/data-staging/Scheduler.cpp:552
 #, fuzzy, c-format
 msgid "DTR %s: Cancellation complete"
 msgstr "Полное И уточнение"
 
-#: src/libs/data-staging/Scheduler.cpp:556
+#: src/libs/data-staging/Scheduler.cpp:561
 #, c-format
 msgid "DTR %s: Error in cache processing, will retry without caching"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:563
+#: src/libs/data-staging/Scheduler.cpp:568
 #, c-format
 msgid "DTR %s: Will retry without caching"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:578
+#: src/libs/data-staging/Scheduler.cpp:583
 #, fuzzy, c-format
 msgid "DTR %s: %i retries left, will wait until %s before next attempt"
 msgstr "%s: Сбой отгрузки. Осталось %d попыток. Повторная попытка через %dс"
 
-#: src/libs/data-staging/Scheduler.cpp:594
+#: src/libs/data-staging/Scheduler.cpp:599
 #, fuzzy, c-format
 msgid "DTR %s: Out of retries"
 msgstr "превышен лимит количества попыток (max-retries)"
 
-#: src/libs/data-staging/Scheduler.cpp:596
+#: src/libs/data-staging/Scheduler.cpp:601
 #, fuzzy, c-format
 msgid "DTR %s: Permanent failure"
 msgstr "ошибка выделения памяти"
 
-#: src/libs/data-staging/Scheduler.cpp:602
+#: src/libs/data-staging/Scheduler.cpp:607
 #, fuzzy, c-format
 msgid "DTR %s: Finished successfully"
 msgstr "Запрос DTR %s успешно завершён"
 
-#: src/libs/data-staging/Scheduler.cpp:612
+#: src/libs/data-staging/Scheduler.cpp:617
 #, fuzzy, c-format
 msgid "DTR %s: Returning to generator"
 msgstr "возврат ссылки на временную переменную"
 
-#: src/libs/data-staging/Scheduler.cpp:899
+#: src/libs/data-staging/Scheduler.cpp:904
 #, fuzzy, c-format
 msgid "DTR %s: Cancelling active transfer"
 msgstr "Нет активных сессий передачи файлов"
 
-#: src/libs/data-staging/Scheduler.cpp:960
-#, c-format
-msgid "Scheduler received new DTR %s with source: %s, destination: %s"
-msgstr ""
-
-#: src/libs/data-staging/Scheduler.cpp:994
-#, fuzzy, c-format
-msgid "DTR %s: Assigned to transfer share %s with priority %d"
-msgstr "Выберите общий каталог - %1"
-
-#: src/libs/data-staging/Scheduler.cpp:1034
+#: src/libs/data-staging/Scheduler.cpp:1036
 #, fuzzy
 msgid "Scheduler starting up"
 msgstr "Запускается служба APM: "
 
-#: src/libs/data-staging/Scheduler.cpp:1035
+#: src/libs/data-staging/Scheduler.cpp:1037
 #, fuzzy
 msgid "Scheduler configuration:"
 msgstr "&Сохранить конфигурацию"
 
-#: src/libs/data-staging/Scheduler.cpp:1036
+#: src/libs/data-staging/Scheduler.cpp:1038
 #, fuzzy, c-format
 msgid "  Pre-processor slots: %i"
 msgstr "Разъёмы PCMCIA и CardBus"
 
-#: src/libs/data-staging/Scheduler.cpp:1037
+#: src/libs/data-staging/Scheduler.cpp:1039
 #, fuzzy, c-format
 msgid "  Delivery slots: %i"
 msgstr "Разъёмы карт..."
 
-#: src/libs/data-staging/Scheduler.cpp:1038
+#: src/libs/data-staging/Scheduler.cpp:1040
 #, fuzzy, c-format
 msgid "  Emergency Delivery slots: %i"
 msgstr "Разъёмы PCMCIA и CardBus"
 
-#: src/libs/data-staging/Scheduler.cpp:1039
+#: src/libs/data-staging/Scheduler.cpp:1041
 #, fuzzy, c-format
 msgid "  Post-processor slots: %i"
 msgstr "Разъёмы PCMCIA и CardBus"
 
-#: src/libs/data-staging/Scheduler.cpp:1040
+#: src/libs/data-staging/Scheduler.cpp:1042
 #, fuzzy, c-format
 msgid ""
 "  Shares configuration:\n"
 "%s"
 msgstr "&Сохранить конфигурацию"
 
-#: src/libs/data-staging/Scheduler.cpp:1058
+#: src/libs/data-staging/Scheduler.cpp:1060
 #, fuzzy, c-format
 msgid "DTR %s cancelled"
 msgstr "Подсчитывание прервано"
 
-#: src/libs/data-staging/Scheduler.cpp:1075
+#: src/libs/data-staging/Scheduler.cpp:1077
 #, c-format
 msgid "Pre-processor %i, DeliveryQueue %i, Delivery %i, Post-processor %i"
 msgstr ""
 
-#: src/libs/data-staging/Scheduler.cpp:1090
+#: src/libs/data-staging/Scheduler.cpp:1092
 #, fuzzy
 msgid "Scheduler loop exited"
 msgstr "%s: программа %s завершилась с кодом %d\n"
@@ -17308,9 +17293,8 @@ msgid "Transfer killed after %i seconds without communication"
 msgstr ""
 
 #: src/libs/data-staging/Generator.cpp:19
-#, fuzzy
 msgid "Cancelling all DTRs"
-msgstr "%s: Прерывание активных запросов"
+msgstr "Прерывание всех запросов DTR"
 
 #: src/libs/data-staging/Generator.cpp:24
 #, c-format
@@ -17338,318 +17322,334 @@ msgstr ""
 msgid "Scheduler stopped, exiting"
 msgstr "Планировщик остановлен, выход"
 
-#: src/clients/arclib/arcinfo.cpp:38
+#: src/clients/arclib/arcinfo.cpp:40
 msgid "[resource ...]"
 msgstr "[ресурс ...]"
 
-#: src/clients/arclib/arcinfo.cpp:39
+#: src/clients/arclib/arcinfo.cpp:41
 msgid "The arcinfo command is used for obtaining the status of computing resources on the Grid."
 msgstr "Команда arcinfo используется для проверки состояния вычислительных ресурсов на Гриде"
 
-#: src/clients/arclib/arcinfo.cpp:45
-#: src/clients/arclib/arcrenew.cpp:58
-#: src/clients/arclib/arctest.cpp:60
-#: src/clients/arclib/arckill.cpp:61
-#: src/clients/arclib/arcget.cpp:60
-#: src/clients/arclib/arcstat.cpp:62
-#: src/clients/arclib/arccat.cpp:61
-#: src/clients/arclib/arcclean.cpp:60
-#: src/clients/arclib/arcresume.cpp:58
+#: src/clients/arclib/arcinfo.cpp:47
+#: src/clients/arclib/arcrenew.cpp:60
+#: src/clients/arclib/arctest.cpp:62
+#: src/clients/arclib/arckill.cpp:63
+#: src/clients/arclib/arcget.cpp:62
+#: src/clients/arclib/arcstat.cpp:64
+#: src/clients/arclib/arccat.cpp:63
+#: src/clients/arclib/arcclean.cpp:62
+#: src/clients/arclib/arcresume.cpp:60
 msgid "explicitly select or reject a specific resource"
 msgstr "явным образом выбрать или отсеять указанный ресурс"
 
-#: src/clients/arclib/arcinfo.cpp:46
-#: src/clients/arclib/arcinfo.cpp:52
-#: src/clients/arclib/arcrenew.cpp:59
-#: src/clients/arclib/arctest.cpp:61
-#: src/clients/arclib/arctest.cpp:67
-#: src/clients/arclib/arckill.cpp:62
-#: src/clients/arclib/arcget.cpp:61
-#: src/clients/arclib/arcstat.cpp:63
-#: src/clients/arclib/arccat.cpp:62
-#: src/clients/arclib/arcclean.cpp:61
-#: src/clients/arclib/arcmigrate.cpp:85
-#: src/clients/arclib/arcmigrate.cpp:91
-#: src/clients/arclib/arcmigrate.cpp:97
-#: src/clients/arclib/arcresume.cpp:59
+#: src/clients/arclib/arcinfo.cpp:48
+#: src/clients/arclib/arcinfo.cpp:54
+#: src/clients/arclib/arcrenew.cpp:61
+#: src/clients/arclib/arctest.cpp:63
+#: src/clients/arclib/arctest.cpp:69
+#: src/clients/arclib/arckill.cpp:64
+#: src/clients/arclib/arcget.cpp:63
+#: src/clients/arclib/arcstat.cpp:65
+#: src/clients/arclib/arccat.cpp:64
+#: src/clients/arclib/arcclean.cpp:63
+#: src/clients/arclib/arcmigrate.cpp:87
+#: src/clients/arclib/arcmigrate.cpp:93
+#: src/clients/arclib/arcmigrate.cpp:99
+#: src/clients/arclib/arcresume.cpp:61
 msgid "[-]name"
 msgstr "[-]адрес"
 
-#: src/clients/arclib/arcinfo.cpp:51
-#: src/clients/arclib/arctest.cpp:66
-#: src/clients/arclib/arcmigrate.cpp:96
+#: src/clients/arclib/arcinfo.cpp:53
+#: src/clients/arclib/arctest.cpp:68
+#: src/clients/arclib/arcmigrate.cpp:98
 msgid "explicitly select or reject an index server"
 msgstr "явным образом выбрать или отсеять каталог ресурсов"
 
-#: src/clients/arclib/arcinfo.cpp:57
-#: src/clients/arclib/arcstat.cpp:74
+#: src/clients/arclib/arcinfo.cpp:59
+#: src/clients/arclib/arcstat.cpp:76
 msgid "long format (more information)"
 msgstr "расширенный формат (дополнительная информация)"
 
-#: src/clients/arclib/arcinfo.cpp:61
-#: src/clients/arclib/arcrenew.cpp:69
-#: src/clients/arclib/arctest.cpp:102
-#: src/clients/arclib/arckill.cpp:77
-#: src/clients/arclib/arcget.cpp:94
-#: src/clients/arclib/arcstat.cpp:96
-#: src/clients/arclib/arccat.cpp:87
-#: src/clients/arclib/arcclean.cpp:77
-#: src/clients/arclib/arcmigrate.cpp:101
-#: src/clients/arclib/arcresume.cpp:69
+#: src/clients/arclib/arcinfo.cpp:64
+#: src/clients/arclib/arcrenew.cpp:72
+#: src/clients/arclib/arctest.cpp:105
+#: src/clients/arclib/arckill.cpp:80
+#: src/clients/arclib/arcget.cpp:97
+#: src/clients/arclib/arcstat.cpp:99
+#: src/clients/arclib/arccat.cpp:90
+#: src/clients/arclib/arcclean.cpp:80
+#: src/clients/arclib/arcmigrate.cpp:104
+#: src/clients/arclib/arcresume.cpp:72
+msgid "list the available plugins"
+msgstr "перечисление доступных подключаемых модулей"
+
+#: src/clients/arclib/arcinfo.cpp:68
+#: src/clients/arclib/arcrenew.cpp:76
+#: src/clients/arclib/arctest.cpp:109
+#: src/clients/arclib/arckill.cpp:84
+#: src/clients/arclib/arcget.cpp:101
+#: src/clients/arclib/arcstat.cpp:103
+#: src/clients/arclib/arccat.cpp:94
+#: src/clients/arclib/arcclean.cpp:84
+#: src/clients/arclib/arcmigrate.cpp:108
+#: src/clients/arclib/arcresume.cpp:76
 msgid "timeout in seconds (default 20)"
 msgstr "время ожидания в секундах (по умолчанию 20)"
 
-#: src/clients/arclib/arcinfo.cpp:62
-#: src/clients/arclib/arcrenew.cpp:70
-#: src/clients/arclib/arctest.cpp:103
-#: src/clients/arclib/arckill.cpp:78
-#: src/clients/arclib/arcget.cpp:95
-#: src/clients/arclib/arcstat.cpp:97
-#: src/clients/arclib/arccat.cpp:88
-#: src/clients/arclib/arcclean.cpp:78
-#: src/clients/arclib/arcmigrate.cpp:102
-#: src/clients/arclib/arcresume.cpp:70
+#: src/clients/arclib/arcinfo.cpp:69
+#: src/clients/arclib/arcrenew.cpp:77
+#: src/clients/arclib/arctest.cpp:110
+#: src/clients/arclib/arckill.cpp:85
+#: src/clients/arclib/arcget.cpp:102
+#: src/clients/arclib/arcstat.cpp:104
+#: src/clients/arclib/arccat.cpp:95
+#: src/clients/arclib/arcclean.cpp:85
+#: src/clients/arclib/arcmigrate.cpp:109
+#: src/clients/arclib/arcresume.cpp:77
 msgid "seconds"
 msgstr "секунд(а/ы)"
 
-#: src/clients/arclib/arcinfo.cpp:66
-#: src/clients/arclib/arcrenew.cpp:74
-#: src/clients/arclib/arctest.cpp:107
-#: src/clients/arclib/arckill.cpp:82
-#: src/clients/arclib/arcget.cpp:99
-#: src/clients/arclib/arcstat.cpp:101
-#: src/clients/arclib/arccat.cpp:92
-#: src/clients/arclib/arcclean.cpp:82
-#: src/clients/arclib/arcmigrate.cpp:106
-#: src/clients/arclib/arcresume.cpp:74
+#: src/clients/arclib/arcinfo.cpp:73
+#: src/clients/arclib/arcrenew.cpp:81
+#: src/clients/arclib/arctest.cpp:114
+#: src/clients/arclib/arckill.cpp:89
+#: src/clients/arclib/arcget.cpp:106
+#: src/clients/arclib/arcstat.cpp:108
+#: src/clients/arclib/arccat.cpp:99
+#: src/clients/arclib/arcclean.cpp:89
+#: src/clients/arclib/arcmigrate.cpp:113
+#: src/clients/arclib/arcresume.cpp:81
 msgid "configuration file (default ~/.arc/client.conf)"
 msgstr "файл настроек (по умолчанию ~/.arc/client.confl)"
 
-#: src/clients/arclib/arcinfo.cpp:67
-#: src/clients/arclib/arcrenew.cpp:47
-#: src/clients/arclib/arcrenew.cpp:53
-#: src/clients/arclib/arcrenew.cpp:75
-#: src/clients/arclib/arctest.cpp:79
-#: src/clients/arclib/arctest.cpp:85
-#: src/clients/arclib/arctest.cpp:108
-#: src/clients/arclib/arckill.cpp:49
-#: src/clients/arclib/arckill.cpp:55
-#: src/clients/arclib/arckill.cpp:83
-#: src/clients/arclib/arcget.cpp:49
-#: src/clients/arclib/arcget.cpp:55
-#: src/clients/arclib/arcget.cpp:100
-#: src/clients/arclib/arcstat.cpp:51
-#: src/clients/arclib/arcstat.cpp:57
-#: src/clients/arclib/arcstat.cpp:102
-#: src/clients/arclib/arccat.cpp:50
-#: src/clients/arclib/arccat.cpp:56
-#: src/clients/arclib/arccat.cpp:93
-#: src/clients/arclib/arcclean.cpp:49
-#: src/clients/arclib/arcclean.cpp:55
-#: src/clients/arclib/arcclean.cpp:83
-#: src/clients/arclib/arcmigrate.cpp:67
-#: src/clients/arclib/arcmigrate.cpp:73
-#: src/clients/arclib/arcmigrate.cpp:79
-#: src/clients/arclib/arcmigrate.cpp:107
-#: src/clients/arclib/arcresume.cpp:47
-#: src/clients/arclib/arcresume.cpp:53
-#: src/clients/arclib/arcresume.cpp:75
+#: src/clients/arclib/arcinfo.cpp:74
+#: src/clients/arclib/arcrenew.cpp:49
+#: src/clients/arclib/arcrenew.cpp:55
+#: src/clients/arclib/arcrenew.cpp:82
+#: src/clients/arclib/arctest.cpp:81
+#: src/clients/arclib/arctest.cpp:87
+#: src/clients/arclib/arctest.cpp:115
+#: src/clients/arclib/arckill.cpp:51
+#: src/clients/arclib/arckill.cpp:57
+#: src/clients/arclib/arckill.cpp:90
+#: src/clients/arclib/arcget.cpp:51
+#: src/clients/arclib/arcget.cpp:57
+#: src/clients/arclib/arcget.cpp:107
+#: src/clients/arclib/arcstat.cpp:53
+#: src/clients/arclib/arcstat.cpp:59
+#: src/clients/arclib/arcstat.cpp:109
+#: src/clients/arclib/arccat.cpp:52
+#: src/clients/arclib/arccat.cpp:58
+#: src/clients/arclib/arccat.cpp:100
+#: src/clients/arclib/arcclean.cpp:51
+#: src/clients/arclib/arcclean.cpp:57
+#: src/clients/arclib/arcclean.cpp:90
+#: src/clients/arclib/arcmigrate.cpp:69
+#: src/clients/arclib/arcmigrate.cpp:75
+#: src/clients/arclib/arcmigrate.cpp:81
+#: src/clients/arclib/arcmigrate.cpp:114
+#: src/clients/arclib/arcresume.cpp:49
+#: src/clients/arclib/arcresume.cpp:55
+#: src/clients/arclib/arcresume.cpp:82
 msgid "filename"
 msgstr "файл"
 
-#: src/clients/arclib/arcinfo.cpp:75
-#: src/clients/arclib/arcrenew.cpp:83
-#: src/clients/arclib/arctest.cpp:121
-#: src/clients/arclib/arckill.cpp:91
-#: src/clients/arclib/arcget.cpp:108
-#: src/clients/arclib/arcstat.cpp:110
-#: src/clients/arclib/arccat.cpp:101
-#: src/clients/arclib/arcclean.cpp:91
-#: src/clients/arclib/arcmigrate.cpp:115
-#: src/clients/arclib/arcresume.cpp:83
+#: src/clients/arclib/arcinfo.cpp:82
+#: src/clients/arclib/arcrenew.cpp:90
+#: src/clients/arclib/arctest.cpp:128
+#: src/clients/arclib/arckill.cpp:98
+#: src/clients/arclib/arcget.cpp:115
+#: src/clients/arclib/arcstat.cpp:117
+#: src/clients/arclib/arccat.cpp:108
+#: src/clients/arclib/arcclean.cpp:98
+#: src/clients/arclib/arcmigrate.cpp:122
+#: src/clients/arclib/arcresume.cpp:90
 msgid "print version information"
 msgstr "вывести информацию о версии"
 
-#: src/clients/arclib/arcinfo.cpp:95
-#: src/clients/arclib/arcrenew.cpp:100
-#: src/clients/arclib/arctest.cpp:145
-#: src/clients/arclib/arckill.cpp:108
-#: src/clients/arclib/arcget.cpp:125
-#: src/clients/arclib/arcstat.cpp:127
-#: src/clients/arclib/arccat.cpp:118
-#: src/clients/arclib/arcclean.cpp:108
-#: src/clients/arclib/arcmigrate.cpp:143
-#: src/clients/arclib/arcresume.cpp:100
+#: src/clients/arclib/arcinfo.cpp:106
+msgid "Types of index and information services which arcinfo is able collect information from:"
+msgstr ""
+
+#: src/clients/arclib/arcinfo.cpp:119
+#: src/clients/arclib/arcrenew.cpp:124
+#: src/clients/arclib/arctest.cpp:153
+#: src/clients/arclib/arckill.cpp:132
+#: src/clients/arclib/arcget.cpp:149
+#: src/clients/arclib/arcstat.cpp:151
+#: src/clients/arclib/arccat.cpp:142
+#: src/clients/arclib/arcclean.cpp:132
+#: src/clients/arclib/arcmigrate.cpp:150
+#: src/clients/arclib/arcresume.cpp:107
 msgid "Failed configuration initialization"
 msgstr "Не удалось загрузить настройки"
 
-#: src/clients/arclib/arcrenew.cpp:37
-#: src/clients/arclib/arckill.cpp:37
-#: src/clients/arclib/arcget.cpp:37
-#: src/clients/arclib/arcstat.cpp:38
-#: src/clients/arclib/arccat.cpp:37
-#: src/clients/arclib/arcclean.cpp:37
-#: src/clients/arclib/arcmigrate.cpp:48
-#: src/clients/arclib/arcresume.cpp:37
+#: src/clients/arclib/arcrenew.cpp:39
+#: src/clients/arclib/arckill.cpp:39
+#: src/clients/arclib/arcget.cpp:39
+#: src/clients/arclib/arcstat.cpp:40
+#: src/clients/arclib/arccat.cpp:39
+#: src/clients/arclib/arcclean.cpp:39
+#: src/clients/arclib/arcmigrate.cpp:50
+#: src/clients/arclib/arcresume.cpp:39
 msgid "[job ...]"
 msgstr "[задача ...]"
 
-#: src/clients/arclib/arcrenew.cpp:41
-#: src/clients/arclib/arckill.cpp:43
-#: src/clients/arclib/arcget.cpp:43
-#: src/clients/arclib/arcstat.cpp:45
-#: src/clients/arclib/arccat.cpp:44
-#: src/clients/arclib/arcclean.cpp:43
-#: src/clients/arclib/arcmigrate.cpp:56
-#: src/clients/arclib/arcresume.cpp:41
+#: src/clients/arclib/arcrenew.cpp:43
+#: src/clients/arclib/arckill.cpp:45
+#: src/clients/arclib/arcget.cpp:45
+#: src/clients/arclib/arcstat.cpp:47
+#: src/clients/arclib/arccat.cpp:46
+#: src/clients/arclib/arcclean.cpp:45
+#: src/clients/arclib/arcmigrate.cpp:58
+#: src/clients/arclib/arcresume.cpp:43
 msgid "all jobs"
 msgstr "все задачи"
 
-#: src/clients/arclib/arcrenew.cpp:46
-#: src/clients/arclib/arctest.cpp:78
-#: src/clients/arclib/arckill.cpp:48
-#: src/clients/arclib/arcget.cpp:48
-#: src/clients/arclib/arcstat.cpp:50
-#: src/clients/arclib/arccat.cpp:49
-#: src/clients/arclib/arcclean.cpp:48
-#: src/clients/arclib/arcmigrate.cpp:66
-#: src/clients/arclib/arcresume.cpp:46
+#: src/clients/arclib/arcrenew.cpp:48
+#: src/clients/arclib/arctest.cpp:80
+#: src/clients/arclib/arckill.cpp:50
+#: src/clients/arclib/arcget.cpp:50
+#: src/clients/arclib/arcstat.cpp:52
+#: src/clients/arclib/arccat.cpp:51
+#: src/clients/arclib/arcclean.cpp:50
+#: src/clients/arclib/arcmigrate.cpp:68
+#: src/clients/arclib/arcresume.cpp:48
 msgid "the file storing information about active jobs (default ~/.arc/jobs.xml)"
 msgstr "файл для записи информации об активных задачах (по умолчанию ~/.arc/jobs.xml)"
 
-#: src/clients/arclib/arcrenew.cpp:52
-#: src/clients/arclib/arckill.cpp:54
-#: src/clients/arclib/arcget.cpp:54
-#: src/clients/arclib/arcstat.cpp:56
-#: src/clients/arclib/arccat.cpp:55
-#: src/clients/arclib/arcclean.cpp:54
-#: src/clients/arclib/arcmigrate.cpp:78
-#: src/clients/arclib/arcresume.cpp:52
+#: src/clients/arclib/arcrenew.cpp:54
+#: src/clients/arclib/arckill.cpp:56
+#: src/clients/arclib/arcget.cpp:56
+#: src/clients/arclib/arcstat.cpp:58
+#: src/clients/arclib/arccat.cpp:57
+#: src/clients/arclib/arcclean.cpp:56
+#: src/clients/arclib/arcmigrate.cpp:80
+#: src/clients/arclib/arcresume.cpp:54
 msgid "a file containing a list of jobIDs"
 msgstr "файл, содержащий ярлыки задач"
 
-#: src/clients/arclib/arcrenew.cpp:64
-#: src/clients/arclib/arckill.cpp:67
-#: src/clients/arclib/arcget.cpp:66
-#: src/clients/arclib/arcstat.cpp:68
-#: src/clients/arclib/arccat.cpp:67
-#: src/clients/arclib/arcclean.cpp:66
-#: src/clients/arclib/arcresume.cpp:64
+#: src/clients/arclib/arcrenew.cpp:66
+#: src/clients/arclib/arckill.cpp:69
+#: src/clients/arclib/arcget.cpp:68
+#: src/clients/arclib/arcstat.cpp:70
+#: src/clients/arclib/arccat.cpp:69
+#: src/clients/arclib/arcclean.cpp:68
+#: src/clients/arclib/arcresume.cpp:66
 msgid "only select jobs whose status is statusstr"
 msgstr "выполнить действие лишь над задачами в указанном состоянии"
 
-#: src/clients/arclib/arcrenew.cpp:65
-#: src/clients/arclib/arckill.cpp:68
-#: src/clients/arclib/arcget.cpp:67
-#: src/clients/arclib/arcstat.cpp:69
-#: src/clients/arclib/arccat.cpp:68
-#: src/clients/arclib/arcclean.cpp:67
-#: src/clients/arclib/arcresume.cpp:65
+#: src/clients/arclib/arcrenew.cpp:67
+#: src/clients/arclib/arckill.cpp:70
+#: src/clients/arclib/arcget.cpp:69
+#: src/clients/arclib/arcstat.cpp:71
+#: src/clients/arclib/arccat.cpp:70
+#: src/clients/arclib/arcclean.cpp:69
+#: src/clients/arclib/arcresume.cpp:67
 msgid "statusstr"
 msgstr "состояние"
 
-#: src/clients/arclib/arcrenew.cpp:109
-#: src/clients/arclib/arckill.cpp:117
-#: src/clients/arclib/arcget.cpp:147
-#: src/clients/arclib/arcstat.cpp:136
-#: src/clients/arclib/arccat.cpp:127
-#: src/clients/arclib/arcclean.cpp:117
-#: src/clients/arclib/arcmigrate.cpp:127
-#: src/clients/arclib/arcresume.cpp:109
+#: src/clients/arclib/arcrenew.cpp:111
+msgid "Types of services arcrenew is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arcrenew.cpp:133
+#: src/clients/arclib/arckill.cpp:141
+#: src/clients/arclib/arcget.cpp:171
+#: src/clients/arclib/arcstat.cpp:160
+#: src/clients/arclib/arccat.cpp:151
+#: src/clients/arclib/arcclean.cpp:141
+#: src/clients/arclib/arcmigrate.cpp:134
+#: src/clients/arclib/arcresume.cpp:133
 #, c-format
 msgid "Cannot read specified jobid file: %s"
 msgstr "Не удаётся прочесть указанный файл, содержащий ярлыки задач: %s"
 
-#: src/clients/arclib/arcrenew.cpp:120
-#: src/clients/arclib/arckill.cpp:128
-#: src/clients/arclib/arcget.cpp:158
-#: src/clients/arclib/arcstat.cpp:164
-#: src/clients/arclib/arccat.cpp:138
-#: src/clients/arclib/arcclean.cpp:128
-#: src/clients/arclib/arcmigrate.cpp:190
-#: src/clients/arclib/arcresume.cpp:120
+#: src/clients/arclib/arcrenew.cpp:144
+#: src/clients/arclib/arckill.cpp:152
+#: src/clients/arclib/arcget.cpp:182
+#: src/clients/arclib/arcstat.cpp:188
+#: src/clients/arclib/arccat.cpp:162
+#: src/clients/arclib/arcclean.cpp:152
+#: src/clients/arclib/arcmigrate.cpp:247
+#: src/clients/arclib/arcresume.cpp:144
 msgid "No jobs given"
 msgstr "Задачи не указаны"
 
-#: src/clients/arclib/arcrenew.cpp:134
-#: src/clients/arclib/arckill.cpp:144
-#: src/clients/arclib/arcget.cpp:172
-#: src/clients/arclib/arcstat.cpp:178
-#: src/clients/arclib/arccat.cpp:152
-#: src/clients/arclib/arcclean.cpp:142
-#: src/clients/arclib/arcmigrate.cpp:220
-#: src/clients/arclib/arcresume.cpp:134
+#: src/clients/arclib/arcrenew.cpp:158
+#: src/clients/arclib/arckill.cpp:168
+#: src/clients/arclib/arcget.cpp:196
+#: src/clients/arclib/arcstat.cpp:202
+#: src/clients/arclib/arccat.cpp:176
+#: src/clients/arclib/arcclean.cpp:166
+#: src/clients/arclib/arcmigrate.cpp:277
+#: src/clients/arclib/arcresume.cpp:158
 msgid "No jobs"
 msgstr "Задач нет"
 
-#: src/clients/arclib/arcrenew.cpp:142
-#: src/clients/arclib/arckill.cpp:150
-#: src/clients/arclib/arcget.cpp:180
-#: src/clients/arclib/arcstat.cpp:184
-#: src/clients/arclib/arccat.cpp:160
-#: src/clients/arclib/arcclean.cpp:150
-#: src/clients/arclib/arcmigrate.cpp:226
-#: src/clients/arclib/arcresume.cpp:142
+#: src/clients/arclib/arcrenew.cpp:166
+#: src/clients/arclib/arckill.cpp:174
+#: src/clients/arclib/arcget.cpp:204
+#: src/clients/arclib/arcstat.cpp:208
+#: src/clients/arclib/arccat.cpp:184
+#: src/clients/arclib/arcclean.cpp:174
+#: src/clients/arclib/arcmigrate.cpp:283
+#: src/clients/arclib/arcresume.cpp:166
 msgid "No job controller plugins loaded"
 msgstr "Не подгружен ни один модуль управления задачами"
 
-#: src/clients/arclib/arcrenew.cpp:153
-#, fuzzy
+#: src/clients/arclib/arcrenew.cpp:177
 msgid "Credentials renewed"
-msgstr "успешно обновлена доверенность"
+msgstr "Параметры доступа обновлены"
 
-#: src/clients/arclib/arcrenew.cpp:155
-#, fuzzy
+#: src/clients/arclib/arcrenew.cpp:179
 msgid "Failed to renew credentials for some or all jobs"
-msgstr "Не удалось установить параметры доступа для передачи данных по GridFTP"
+msgstr "Не удалось обновить параметры доступа для некоторых или всех задач"
 
-#: src/clients/arclib/arctest.cpp:54
+#: src/clients/arclib/arctest.cpp:56
 msgid " "
 msgstr " "
 
-#: src/clients/arclib/arctest.cpp:55
+#: src/clients/arclib/arctest.cpp:57
 msgid "The arctest command is used for testing clusters as resources."
 msgstr "Команда arctest используется для проверки кластеров как вычислительных ресурсов."
 
-#: src/clients/arclib/arctest.cpp:72
+#: src/clients/arclib/arctest.cpp:74
 msgid "submit test job given by the number"
 msgstr "апустить тестовую задачу под соответствующим номером"
 
-#: src/clients/arclib/arctest.cpp:73
+#: src/clients/arclib/arctest.cpp:75
 msgid "int"
 msgstr "число"
 
-#: src/clients/arclib/arctest.cpp:84
-#: src/clients/arclib/arcmigrate.cpp:72
+#: src/clients/arclib/arctest.cpp:86
+#: src/clients/arclib/arcmigrate.cpp:74
 msgid "the IDs of the submitted jobs will be appended to this file"
 msgstr "ярлыки запущенных задач будут занесены в этот файл"
 
-#: src/clients/arclib/arctest.cpp:89
+#: src/clients/arclib/arctest.cpp:91
 msgid "add dryrun option if available"
 msgstr "добавить холостую прогонку, если возможно"
 
-#: src/clients/arclib/arctest.cpp:94
+#: src/clients/arclib/arctest.cpp:96
 msgid "do not submit - dump job description in the language accepted by the target"
 msgstr "не выполнять засылку: распечатка описания задачи на языке, приемлемом назначением"
 
-#: src/clients/arclib/arctest.cpp:99
-#, fuzzy
+#: src/clients/arclib/arctest.cpp:101
 msgid "prints info about installed user- and CA-certificates"
-msgstr ""
-"  -E, -certificate             вывести информацию об установленных мандатах\n"
-"                                 пользователя и открытых ключах агентств"
+msgstr "вывести информацию об установленных сертификатах пользователя и сертификационных агентств"
 
-#: src/clients/arclib/arctest.cpp:117
-#: src/clients/arclib/arcmigrate.cpp:120
+#: src/clients/arclib/arctest.cpp:124
+#: src/clients/arclib/arcmigrate.cpp:127
 msgid "select broker method (Random (default), FastestQueue, or custom)"
 msgstr "выбрать алгоритм планировщика (Random (по умолчанию), FastestQueue, или специальный)"
 
-#: src/clients/arclib/arctest.cpp:118
-#: src/clients/arclib/arcmigrate.cpp:121
+#: src/clients/arclib/arctest.cpp:125
+#: src/clients/arclib/arcmigrate.cpp:128
 msgid "broker"
 msgstr "планировщик"
 
-#: src/clients/arclib/arctest.cpp:133
+#: src/clients/arclib/arctest.cpp:140
 msgid ""
 "Nothing to do:\n"
 "you have to either specify a test job id with -J (--job)\n"
@@ -17659,175 +17659,205 @@ msgstr ""
 "Вы должны либо указать номер тестового задания, используя опцию -J (--job),\n"
 "либо запросить информацию о сертификатах, используя опцию -E (--certificate)\n"
 
-#: src/clients/arclib/arctest.cpp:177
-#, fuzzy
-msgid "Certificate information:"
-msgstr "Информация о сертификате"
+#: src/clients/arclib/arctest.cpp:163
+msgid "Types of execution services ARC client tools is able to submit to:"
+msgstr ""
 
-#: src/clients/arclib/arctest.cpp:180
+#: src/clients/arclib/arctest.cpp:174
+msgid "Types of index and information services ARC client tools is able collect information from:"
+msgstr ""
+
+#: src/clients/arclib/arctest.cpp:185
+msgid "Types of services ARC client tools is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arctest.cpp:196
+msgid "Job description languages supported by ARC client tools:"
+msgstr "Следующие языки описания задач поддерживаются клиентскими средствами ARC:"
+
+#: src/clients/arclib/arctest.cpp:209
+msgid "Brokers available to ARC client tools:"
+msgstr ""
+
+#: src/clients/arclib/arctest.cpp:224
+#, c-format
+msgid "Default broker (%s) is not available. When using arcsub a broker should be specified explicitly."
+msgstr ""
+
+#: src/clients/arclib/arctest.cpp:257
+msgid "Certificate information:"
+msgstr "Информация о сертификате:"
+
+#: src/clients/arclib/arctest.cpp:260
 msgid "No user-certificate found"
 msgstr "Сертификат пользователя не обнаружен"
 
-#: src/clients/arclib/arctest.cpp:183
+#: src/clients/arclib/arctest.cpp:263
 #, c-format
 msgid "Certificate: %s"
 msgstr "Сертификат: %s"
 
-#: src/clients/arclib/arctest.cpp:184
+#: src/clients/arclib/arctest.cpp:264
 #, c-format
 msgid "Subject name: %s"
 msgstr "Имя субъекта: %s"
 
-#: src/clients/arclib/arctest.cpp:185
+#: src/clients/arclib/arctest.cpp:265
 #, c-format
 msgid "Valid until: %s"
 msgstr "Действует по: %s"
 
-#: src/clients/arclib/arctest.cpp:189
-#, fuzzy
+#: src/clients/arclib/arctest.cpp:269
 msgid "No proxy found"
 msgstr "Не удалось обнаружить доверенность"
 
-#: src/clients/arclib/arctest.cpp:192
+#: src/clients/arclib/arctest.cpp:272
 #, c-format
 msgid "Proxy: %s"
 msgstr "Доверенность: %s"
 
-#: src/clients/arclib/arctest.cpp:193
+#: src/clients/arclib/arctest.cpp:273
 #, c-format
 msgid "Proxy-subject: %s"
 msgstr "Имя субъекта доверенности: %s"
 
-#: src/clients/arclib/arctest.cpp:195
+#: src/clients/arclib/arctest.cpp:275
 msgid "Valid for: Proxy expired"
 msgstr "Доверенность действительна на: Срок действия доверенности вышел"
 
-#: src/clients/arclib/arctest.cpp:197
+#: src/clients/arclib/arctest.cpp:277
 msgid "Valid for: Proxy not valid"
 msgstr "Доверенность действительна на: Доверенность недействительна"
 
-#: src/clients/arclib/arctest.cpp:199
+#: src/clients/arclib/arctest.cpp:279
 #, c-format
 msgid "Valid for: %s"
 msgstr "Срок действия истекает через: %s"
 
-#: src/clients/arclib/arctest.cpp:205
+#: src/clients/arclib/arctest.cpp:285
 #, c-format
 msgid "Certificate issuer: %s"
 msgstr "Сертификат выдан: %s"
 
-#: src/clients/arclib/arctest.cpp:213
-#, fuzzy
+#: src/clients/arclib/arctest.cpp:293
 msgid "The testjob ID should be 1, 2 or 3.\n"
-msgstr "Показываются ли вкладки"
+msgstr "Номер тестовой задачи может быть 1, 2 или 3.\n"
 
-#: src/clients/arclib/arctest.cpp:229
-#: src/clients/arclib/arcmigrate.cpp:259
+#: src/clients/arclib/arctest.cpp:309
+#: src/clients/arclib/arcmigrate.cpp:316
 #, c-format
 msgid "Cannot write jobid (%s) to file (%s)"
 msgstr "Невозможно записать ярлык задачи (%s)  в файл (%s) "
 
-#: src/clients/arclib/arctest.cpp:230
+#: src/clients/arclib/arctest.cpp:310
 #, c-format
 msgid "Test submitted with jobid: %s"
 msgstr "Тест запущен с ярлыком: %s"
 
-#: src/clients/arclib/arctest.cpp:240
+#: src/clients/arclib/arctest.cpp:320
 msgid "Test aborted because no resource returned any information"
 msgstr "Обрыв засылки теста, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arctest.cpp:247
-#: src/clients/arclib/arcmigrate.cpp:241
+#: src/clients/arclib/arctest.cpp:327
+#: src/clients/arclib/arcmigrate.cpp:298
 #, c-format
 msgid "Unable to load broker %s"
 msgstr "Невозможно подгрузить брокер %s"
 
-#: src/clients/arclib/arctest.cpp:250
-#: src/clients/arclib/arctest.cpp:294
-#: src/clients/arclib/arcmigrate.cpp:244
+#: src/clients/arclib/arctest.cpp:330
+#: src/clients/arclib/arctest.cpp:374
+#: src/clients/arclib/arcmigrate.cpp:301
 #, c-format
 msgid "Broker %s loaded"
 msgstr "Подгружен планировщик %s"
 
-#: src/clients/arclib/arctest.cpp:264
+#: src/clients/arclib/arctest.cpp:344
 msgid "Test failed, no more possible targets"
 msgstr "Не удалось заслать тест, возможные назначения отсутствуют"
 
-#: src/clients/arclib/arctest.cpp:269
+#: src/clients/arclib/arctest.cpp:349
 #, c-format
 msgid "Warning: Failed to lock job list file %s"
 msgstr "Предупреждение: Не удалось заблокировать файл списка задач %s"
 
-#: src/clients/arclib/arctest.cpp:271
+#: src/clients/arclib/arctest.cpp:351
 msgid "To recover missing jobs, run arcsync"
 msgstr "Для восполнения недостающих задач, запустите arcsync"
 
-#: src/clients/arclib/arctest.cpp:284
+#: src/clients/arclib/arctest.cpp:364
 msgid "Dumping job description aborted because no resource returned any information"
 msgstr "Обрыв распечатки описания задачи, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arctest.cpp:291
+#: src/clients/arclib/arctest.cpp:371
 #, c-format
 msgid "Dumping job description aborted: Unable to load broker %s"
 msgstr "Распечатка описания задачи оборвана: Невозможно подгрузить планировщик %s"
 
-#: src/clients/arclib/arctest.cpp:302
+#: src/clients/arclib/arctest.cpp:382
 msgid "Unable to print job description: No target found."
 msgstr "Невозможно вывести описание задачи: Не найдено ни одного назначения"
 
-#: src/clients/arclib/arctest.cpp:329
+#: src/clients/arclib/arctest.cpp:409
 msgid "An error occurred during the generation of the job description output."
 msgstr "Возникла ошибка при составлении выходного описания задачи"
 
-#: src/clients/arclib/arctest.cpp:334
+#: src/clients/arclib/arctest.cpp:414
 #, c-format
 msgid "Job description to be sent to %s:"
 msgstr "Описание задачи будет послано на: %s"
 
-#: src/clients/arclib/arckill.cpp:38
+#: src/clients/arclib/arckill.cpp:40
 msgid "The arckill command is used to kill running jobs."
 msgstr "Эта команда используется для прерывания исполняющихся задач"
 
-#: src/clients/arclib/arckill.cpp:73
-#: src/clients/arclib/arcget.cpp:85
+#: src/clients/arclib/arckill.cpp:75
+#: src/clients/arclib/arcget.cpp:87
 msgid "keep the files on the server (do not clean)"
 msgstr "сохранять файлы на сервере (не удалять)"
 
-#: src/clients/arclib/arcget.cpp:38
+#: src/clients/arclib/arckill.cpp:119
+msgid "Types of services arckill is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arcget.cpp:40
 msgid "The arcget command is used for retrieving the results from a job."
 msgstr "Эта команда используется для загрузки результатов работы задач"
 
-#: src/clients/arclib/arcget.cpp:72
+#: src/clients/arclib/arcget.cpp:74
 msgid "download directory (the job directory will be created in this directory)"
 msgstr "каталог загрузки (подкаталог задачи будет создан в этом каталоге)"
 
-#: src/clients/arclib/arcget.cpp:74
+#: src/clients/arclib/arcget.cpp:76
 msgid "dirname"
 msgstr "каталог"
 
-#: src/clients/arclib/arcget.cpp:79
+#: src/clients/arclib/arcget.cpp:81
 msgid "use the jobname instead of the short ID as the job directory name"
 msgstr "использовать имя задачи вместо краткого идентификатора в качестве названия каталога"
 
-#: src/clients/arclib/arcget.cpp:90
+#: src/clients/arclib/arcget.cpp:92
 msgid "force download (overwrite existing job directory)"
 msgstr "принудительная загрузка (перезаписать существующий каталог задачи)"
 
-#: src/clients/arclib/arcget.cpp:135
+#: src/clients/arclib/arcget.cpp:136
+msgid "Types of services arcget is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arcget.cpp:159
 #, c-format
 msgid "Job download directory from user configuration file: %s "
 msgstr "Каталог для загрузки задач (настройки пользователя): %s "
 
-#: src/clients/arclib/arcget.cpp:138
+#: src/clients/arclib/arcget.cpp:162
 msgid "Job download directory will be created in present working directory. "
 msgstr "Каталог для загрузки задачи будет создан в текущей рабочей директории"
 
-#: src/clients/arclib/arcget.cpp:142
+#: src/clients/arclib/arcget.cpp:166
 #, c-format
 msgid "Job download directory: %s "
 msgstr "Каталог для загрузки задач: %s "
 
-#: src/clients/arclib/arcstat.cpp:39
+#: src/clients/arclib/arcstat.cpp:41
 msgid ""
 "The arcstat command is used for obtaining the status of jobs that have\n"
 "been submitted to Grid enabled resources."
@@ -17835,28 +17865,32 @@ msgstr ""
 "Команда arcstat используется для вывода информации о состоянии\n"
 "задач, отправленных на Грид "
 
-#: src/clients/arclib/arcstat.cpp:79
+#: src/clients/arclib/arcstat.cpp:81
 msgid "instead of the status only the IDs of the selected jobs will be printed"
 msgstr "вместо состояния будут выведены только ярлыки указанных задач"
 
-#: src/clients/arclib/arcstat.cpp:89
+#: src/clients/arclib/arcstat.cpp:91
 msgid "sort jobs according to jobid, submissiontime or jobname"
 msgstr "сортировать задачи по идентификатору, времени запуска или имени"
 
-#: src/clients/arclib/arcstat.cpp:90
-#: src/clients/arclib/arcstat.cpp:93
+#: src/clients/arclib/arcstat.cpp:92
+#: src/clients/arclib/arcstat.cpp:95
 msgid "order"
 msgstr "порядок"
 
-#: src/clients/arclib/arcstat.cpp:92
+#: src/clients/arclib/arcstat.cpp:94
 msgid "reverse sorting of jobs according to jobid, submissiontime or jobname"
 msgstr "сортировать задачи в обратном порядке по идентификатору, времени запуска или имени"
 
-#: src/clients/arclib/arcstat.cpp:144
+#: src/clients/arclib/arcstat.cpp:138
+msgid "Types of services arcstat is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arcstat.cpp:168
 msgid "The 'sort' and 'rsort' flags cannot be specified at the same time."
 msgstr "Опции 'sort' и 'rsort' не могут быть указаны одновременно"
 
-#: src/clients/arclib/arccat.cpp:38
+#: src/clients/arclib/arccat.cpp:40
 msgid ""
 "The arccat command performs the cat command on the stdout, stderr or grid\n"
 "manager's error log of the job."
@@ -17864,31 +17898,39 @@ msgstr ""
 "Эта команда предназначена для вывода на экран сообщений стандартного\n"
 "выхода, стандартной ошибки или ошибок системы при исполнении задачи"
 
-#: src/clients/arclib/arccat.cpp:73
+#: src/clients/arclib/arccat.cpp:75
 msgid "show the stdout of the job (default)"
 msgstr "вывести стандартный выход задачи (по умолчанию)"
 
-#: src/clients/arclib/arccat.cpp:78
+#: src/clients/arclib/arccat.cpp:80
 msgid "show the stderr of the job"
 msgstr "вывести стандартную ошибку задачи"
 
-#: src/clients/arclib/arccat.cpp:83
+#: src/clients/arclib/arccat.cpp:85
 msgid "show the CE's error log of the job"
 msgstr "вывести ошибки системы при исполнении задачи"
 
-#: src/clients/arclib/arcclean.cpp:38
+#: src/clients/arclib/arccat.cpp:129
+msgid "Types of services arccat is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arcclean.cpp:40
 msgid "The arcclean command removes a job from the computing resource."
 msgstr ""
 "Эта команда используется для удаления результатов работы задач\n"
 "с удалённого компьютера"
 
-#: src/clients/arclib/arcclean.cpp:72
+#: src/clients/arclib/arcclean.cpp:74
 msgid "remove the job from the local list of jobs even if the job is not found in the infosys"
 msgstr ""
 "удалить задачу из локального списка, даже если информация о ней \n"
 "отсутствует"
 
-#: src/clients/arclib/arcmigrate.cpp:49
+#: src/clients/arclib/arcclean.cpp:119
+msgid "Types of services arcclean is able to manage jobs at:"
+msgstr ""
+
+#: src/clients/arclib/arcmigrate.cpp:51
 msgid ""
 "The arcmigrate command is used for migrating queued jobs to another resource.\n"
 "Note that migration is only supported between A-REX powered resources."
@@ -17896,35 +17938,52 @@ msgstr ""
 "Команда arcmigrate используется для миграции ожидающих задач на другой ресурс.\n"
 "Миграция поддерживается только между службами A-REX."
 
-#: src/clients/arclib/arcmigrate.cpp:61
+#: src/clients/arclib/arcmigrate.cpp:63
 msgid "force migration, ignore kill failure"
 msgstr "принудительная миграция, игнорируется сбой прерывания"
 
-#: src/clients/arclib/arcmigrate.cpp:84
+#: src/clients/arclib/arcmigrate.cpp:86
 msgid "explicitly select or reject a resource holding queued jobs"
 msgstr "явным образом выбрать или отсеять ресурс, держащий задачи в очереди"
 
-#: src/clients/arclib/arcmigrate.cpp:90
+#: src/clients/arclib/arcmigrate.cpp:92
 msgid "explicitly select or reject a resource to migrate to"
 msgstr "явным образом выбрать или отсеять назначение миграции"
 
-#: src/clients/arclib/arcmigrate.cpp:152
+#: src/clients/arclib/arcmigrate.cpp:160
+msgid "Types of execution services arcmigrate is able to submit jobs to:"
+msgstr ""
+
+#: src/clients/arclib/arcmigrate.cpp:171
+msgid "Types of index and information services which arcmigrate is able collect information from:"
+msgstr ""
+
+#: src/clients/arclib/arcmigrate.cpp:184
+msgid "Brokers available to arcmigrate:"
+msgstr "Следующие планировщики доступны для arcmigrate:"
+
+#: src/clients/arclib/arcmigrate.cpp:199
+#, c-format
+msgid "Default broker (%s) is not available. When using arcsub a broker should be specified explicitly (-b option)."
+msgstr ""
+
+#: src/clients/arclib/arcmigrate.cpp:209
 msgid "Proxy expired. Job submission aborted. Please run 'arcproxy'!"
 msgstr "Срок действия доверенности вышел. Засылка задачи оборвана. Пожалуйста, запустите 'arcproxy'!"
 
-#: src/clients/arclib/arcmigrate.cpp:156
+#: src/clients/arclib/arcmigrate.cpp:213
 msgid "Proxy successfully verified."
 msgstr "Доверенность подтверждена."
 
-#: src/clients/arclib/arcmigrate.cpp:160
+#: src/clients/arclib/arcmigrate.cpp:217
 msgid "Proxy not valid. Job submission aborted. Please run 'arcproxy'!"
 msgstr "Доверенность недействительна. Засылка задачи оборвана. Пожалуйста, запустите 'arcproxy'!"
 
-#: src/clients/arclib/arcmigrate.cpp:165
+#: src/clients/arclib/arcmigrate.cpp:222
 msgid "Cannot find CA certificates directory. Please specify the location to the directory in the client configuration file."
 msgstr "Не удалось найти каталог с открытыми ключами сертификационных агентств. Пожалуйста, введите расположение этого каталога в файл настроек клиента."
 
-#: src/clients/arclib/arcmigrate.cpp:170
+#: src/clients/arclib/arcmigrate.cpp:227
 msgid ""
 "Cannot find any proxy. arcmigrate currently cannot run without a proxy.\n"
 "  If you have the proxy file in a non-default location,\n"
@@ -17936,29 +17995,44 @@ msgstr ""
 " убедитесь, что в настройках клиента указан правильный путь.\n"
 " Если же Вы пока не создали доверенность, запустите 'arcproxy'!"
 
-#: src/clients/arclib/arcmigrate.cpp:234
+#: src/clients/arclib/arcmigrate.cpp:291
 msgid "Job migration aborted because no resource returned any information"
 msgstr "Обрыв засылки задачи, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arcmigrate.cpp:260
+#: src/clients/arclib/arcmigrate.cpp:317
 #, c-format
 msgid "Job migrated with jobid: %s"
 msgstr "Задача мигрирована с ярлыком: %s"
 
-#: src/clients/arclib/arcresume.cpp:153
-#, fuzzy
-msgid "All jobs were resumed"
-msgstr "Показать задания для всех принтеров"
+#: src/clients/arclib/arcresume.cpp:120
+msgid "Types of services arcresume is able to manage jobs at:"
+msgstr ""
 
-#: src/clients/arclib/arcresub.cpp:84
+#: src/clients/arclib/arcresume.cpp:177
+msgid "All jobs were resumed"
+msgstr "Все задачи были возобновлены"
+
+#: src/clients/arclib/arcresub.cpp:86
 msgid "explicitly select or reject a specific resource for the new job"
 msgstr "явным образом выбрать или отсеять указанный ресурс"
 
-#: src/clients/arclib/arcresub.cpp:102
+#: src/clients/arclib/arcresub.cpp:104
 msgid "resubmit to the same resource"
 msgstr "Заслать заново на тот же ресурс"
 
-#: src/clients/arclib/arcresub.cpp:182
+#: src/clients/arclib/arcresub.cpp:172
+msgid "Types of execution services arcresub is able to submit jobs to:"
+msgstr ""
+
+#: src/clients/arclib/arcresub.cpp:183
+msgid "Types of index and information services which arcresub is able collect information from:"
+msgstr ""
+
+#: src/clients/arclib/arcresub.cpp:196
+msgid "Brokers available to arcresub:"
+msgstr "Следующие планировщики доступны для arcresub:"
+
+#: src/clients/arclib/arcresub.cpp:239
 msgid ""
 "Cannot find any proxy. arcresub currently cannot run without a proxy.\n"
 "  If you have the proxy file in a non-default location,\n"
@@ -17970,47 +18044,47 @@ msgstr ""
 " убедитесь, что в настройках клиента указан правильный путь.\n"
 " Если же Вы пока не создали доверенность, запустите 'arcproxy'!"
 
-#: src/clients/arclib/arcresub.cpp:244
+#: src/clients/arclib/arcresub.cpp:301
 msgid "No jobs to resubmit"
 msgstr "Нет задач для перезасылки"
 
-#: src/clients/arclib/arcresub.cpp:260
+#: src/clients/arclib/arcresub.cpp:317
 #, c-format
 msgid "Trying to resubmit job to %s"
 msgstr "Попытка перезапустить задачу %s"
 
-#: src/clients/arclib/arcresub.cpp:265
+#: src/clients/arclib/arcresub.cpp:322
 #, c-format
 msgid "Disregarding %s"
 msgstr "Игнорируется %s"
 
-#: src/clients/arclib/arcresub.cpp:279
-#: src/clients/arclib/arcsub.cpp:299
+#: src/clients/arclib/arcresub.cpp:336
+#: src/clients/arclib/arcsub.cpp:367
 msgid "Job submission aborted because no resource returned any information"
 msgstr "Обрыв засылки задачи, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/clients/arclib/arcresub.cpp:302
+#: src/clients/arclib/arcresub.cpp:359
 msgid "Job resubmission failed, unable to parse obtained job description"
 msgstr "Не удалось перезаслать задачу, невозможно разобрать полученное описание задачи"
 
-#: src/clients/arclib/arcresub.cpp:317
+#: src/clients/arclib/arcresub.cpp:374
 #, c-format
 msgid "Job resubmitted with new jobid: %s"
 msgstr "Задача запущена с новым ярлыком: %s"
 
-#: src/clients/arclib/arcresub.cpp:321
+#: src/clients/arclib/arcresub.cpp:378
 msgid "Job resubmission failed, no more possible targets"
 msgstr "Не удалось перезаслать задачу, возможные назначения отсутствуют"
 
-#: src/clients/arclib/arcresub.cpp:353
+#: src/clients/arclib/arcresub.cpp:410
 msgid "Job could not be killed or cleaned"
 msgstr "Задача не может быть прервана или стёрта"
 
-#: src/clients/arclib/arcsub.cpp:52
+#: src/clients/arclib/arcsub.cpp:55
 msgid "[filename ...]"
 msgstr "[файл ...]"
 
-#: src/clients/arclib/arcsub.cpp:53
+#: src/clients/arclib/arcsub.cpp:56
 msgid ""
 "The arcsub command is used for submitting jobs to Grid enabled computing\n"
 "resources."
@@ -18018,24 +18092,44 @@ msgstr ""
 "Эта команда используется для запуска задач на вычислительные\n"
 "ресурсы Грид"
 
-#: src/clients/arclib/arcsub.cpp:71
+#: src/clients/arclib/arcsub.cpp:74
 msgid "jobdescription string describing the job to be submitted"
 msgstr "Строка, содержащая описание запускаемой задачи"
 
-#: src/clients/arclib/arcsub.cpp:73
-#: src/clients/arclib/arcsub.cpp:80
+#: src/clients/arclib/arcsub.cpp:76
+#: src/clients/arclib/arcsub.cpp:83
 msgid "string"
 msgstr "строка"
 
-#: src/clients/arclib/arcsub.cpp:78
+#: src/clients/arclib/arcsub.cpp:81
 msgid "jobdescription file describing the job to be submitted"
 msgstr "Файл, содержащий описание запускаемой задачи"
 
-#: src/clients/arclib/arcsub.cpp:96
+#: src/clients/arclib/arcsub.cpp:99
 msgid "submit jobs as dry run (no submission to batch system)"
 msgstr "запуск задач в режиме холостой прогонки (без засылки на счёт)"
 
-#: src/clients/arclib/arcsub.cpp:177
+#: src/clients/arclib/arcsub.cpp:124
+msgid "select broker method (list available brokers with --listplugins flag)"
+msgstr ""
+
+#: src/clients/arclib/arcsub.cpp:167
+msgid "Types of execution services arcsub is able to submit jobs to:"
+msgstr ""
+
+#: src/clients/arclib/arcsub.cpp:178
+msgid "Types of index and information services which arcsub is able collect information from:"
+msgstr ""
+
+#: src/clients/arclib/arcsub.cpp:189
+msgid "Job description languages supported by arcsub:"
+msgstr "Следующие языки описания задач поддерживаются arcsub:"
+
+#: src/clients/arclib/arcsub.cpp:202
+msgid "Brokers available to arcsub:"
+msgstr "Следующие планировщики доступны для arcsub:"
+
+#: src/clients/arclib/arcsub.cpp:245
 msgid ""
 "Cannot find any proxy. arcsub currently cannot run without a proxy.\n"
 "  If you have the proxy file in a non-default location,\n"
@@ -18047,43 +18141,42 @@ msgstr ""
 " убедитесь, что в настройках клиента указан правильный путь.\n"
 " Если же Вы пока не создали доверенность, запустите 'arcproxy'!"
 
-#: src/clients/arclib/arcsub.cpp:206
+#: src/clients/arclib/arcsub.cpp:274
 msgid "No job description input specified"
 msgstr "Не задано описание задачи"
 
-#: src/clients/arclib/arcsub.cpp:289
+#: src/clients/arclib/arcsub.cpp:357
 #, c-format
 msgid "Job submitted with jobid: %s"
 msgstr "Задача запущена с ярлыком: %s"
 
-#: src/clients/arclib/arcsub.cpp:338
+#: src/clients/arclib/arcsub.cpp:406
 msgid "Job submission failed, no more possible targets"
 msgstr "Не удалось заслать задачу, возможные назначения отсутствуют"
 
-#: src/clients/arclib/arcsub.cpp:350
+#: src/clients/arclib/arcsub.cpp:418
 msgid "Job submission summary:"
 msgstr "Сводка засылки задач:"
 
-#: src/clients/arclib/arcsub.cpp:353
+#: src/clients/arclib/arcsub.cpp:421
 #, c-format
 msgid "%d of %d jobs were submitted"
 msgstr "%d из %d задач были засланы"
 
-#: src/clients/arclib/arcsub.cpp:357
+#: src/clients/arclib/arcsub.cpp:425
 #, c-format
 msgid "The following %d were not submitted"
 msgstr "Следующие %d не были засланы"
 
-#: src/clients/arclib/arcsub.cpp:413
-#, fuzzy
+#: src/clients/arclib/arcsub.cpp:481
 msgid "Unable to modify job description according to needs of the target resource."
-msgstr "Невозможно вывести описание задачи: Не найдено ни одного подходящего назначения."
+msgstr "Невозможно изменить описание задачи в соответствии с требованиями назначения."
 
-#: src/clients/arclib/arcsub.cpp:438
+#: src/clients/arclib/arcsub.cpp:506
 msgid "Unable to print job description: No matching target found."
 msgstr "Невозможно вывести описание задачи: Не найдено ни одного подходящего назначения."
 
-#: src/clients/arclib/arcsync.cpp:45
+#: src/clients/arclib/arcsync.cpp:47
 msgid ""
 "The arcsync command synchronizes your local job list with the information at\n"
 "the given resources or index servers."
@@ -18091,15 +18184,19 @@ msgstr ""
 "Команда arcsync синхронизирует Ваш локальный список задач с информацией\n"
 "на заданных кластерах или каталогах ресурсов "
 
-#: src/clients/arclib/arcsync.cpp:69
+#: src/clients/arclib/arcsync.cpp:71
 msgid "do not ask for verification"
 msgstr "не запрашивать подтверждения"
 
-#: src/clients/arclib/arcsync.cpp:74
+#: src/clients/arclib/arcsync.cpp:76
 msgid "truncate the joblist before synchronizing"
 msgstr "сжать список задач перед синхронизацией"
 
-#: src/clients/arclib/arcsync.cpp:118
+#: src/clients/arclib/arcsync.cpp:119
+msgid "Types of index and information services which arcsync is able collect information from:"
+msgstr ""
+
+#: src/clients/arclib/arcsync.cpp:143
 msgid ""
 "Synchronizing the local list of active jobs with the information in the\n"
 "information system can result in some inconsistencies. Very recently submitted\n"
@@ -18111,319 +18208,327 @@ msgstr ""
 "могут быть ещё не зарегистрированы в системе, тогда как только что удалённые\n"
 "задачи могут всё ещё присутствовать."
 
-#: src/clients/arclib/arcsync.cpp:123
+#: src/clients/arclib/arcsync.cpp:148
 msgid "Are you sure you want to synchronize your local job list?"
 msgstr "Вы уверены, что хотите синхронизировать список локальных задач?"
 
-#: src/clients/arclib/arcsync.cpp:124
+#: src/clients/arclib/arcsync.cpp:149
 msgid "y"
 msgstr "y"
 
-#: src/clients/arclib/arcsync.cpp:124
+#: src/clients/arclib/arcsync.cpp:149
 msgid "n"
 msgstr "n"
 
-#: src/clients/arclib/arcsync.cpp:128
+#: src/clients/arclib/arcsync.cpp:153
 msgid "Cancelling synchronization request"
 msgstr "Запрос о синхронизации отменяется"
 
-#: src/clients/arclib/arcsync.cpp:143
+#: src/clients/arclib/arcsync.cpp:168
 msgid "No services specified. Please set the \"defaultservices\" attribute in the client configuration, or specify a cluster or index (-c or -g options, see arcsync -h)."
 msgstr "Не задано ни одного назначения. Пожалуйста, задайте значение атрибута \"defaultservices\" в файле настроек клиента, либо укажите явным образом ресурс или каталог ресурсов (опции -c или -g, см. arcsync -h)."
 
-#: src/clients/arclib/arcsync.cpp:161
-#, fuzzy
+#: src/clients/arclib/arcsync.cpp:186
 msgid "Found the following jobs:"
-msgstr "Обнаружены задачи"
+msgstr "Обнаружены следующие задачи:"
 
-#: src/clients/arclib/arcsync.cpp:171
-#, fuzzy
+#: src/clients/arclib/arcsync.cpp:196
 msgid "Total number of jobs found: "
-msgstr "Задачи в очереди (предел)"
+msgstr "Количество всех обнаруженных задач:"
 
-#: src/clients/arclib/arcsync.cpp:180
-#, fuzzy
+#: src/clients/arclib/arcsync.cpp:205
 msgid "Found the following new jobs:"
-msgstr "Обнаружен новый каталог дубликатов"
+msgstr "Обнаружены следующие новые задачи:"
 
-#: src/clients/arclib/arcsync.cpp:190
-#, fuzzy
+#: src/clients/arclib/arcsync.cpp:215
 msgid "Total number of new jobs found: "
-msgstr "\t\tконец: (c,h,s) ожидалось (%ld,%ld,%ld) найдено (%ld,%ld,%ld)\n"
+msgstr "Количество обнаруженных новых задач:"
 
-#: src/clients/arclib/arcsync.cpp:195
+#: src/clients/arclib/arcsync.cpp:220
 #, c-format
 msgid "ERROR: Failed to lock job list file %s"
 msgstr "Ошибка: Не удалось заблокировать файл списка задач %s"
 
-#: src/clients/arclib/arcsync.cpp:196
+#: src/clients/arclib/arcsync.cpp:221
 msgid "Please try again later, or manually clean up lock file"
 msgstr "Пожалуйста, попытайтесь заново попозже, или удалите файл блокировки вручную"
 
-#: src/clients/data/arccp.cpp:65
-#: src/clients/data/arccp.cpp:69
-#: src/clients/data/arccp.cpp:222
-#: src/clients/data/arccp.cpp:227
-#: src/clients/data/arcrm.cpp:27
-#: src/clients/data/arcls.cpp:35
+#: src/clients/data/arccp.cpp:66
+#: src/clients/data/arccp.cpp:70
+#: src/clients/data/arccp.cpp:223
+#: src/clients/data/arccp.cpp:228
+#: src/clients/data/arcrm.cpp:28
+#: src/clients/data/arcls.cpp:36
 #, c-format
 msgid "Invalid URL: %s"
 msgstr "Неверный URL: %s"
 
-#: src/clients/data/arccp.cpp:77
-#: src/clients/data/arccp.cpp:103
-#: src/clients/data/arccp.cpp:240
-#: src/clients/data/arccp.cpp:266
+#: src/clients/data/arccp.cpp:78
+#: src/clients/data/arccp.cpp:104
+#: src/clients/data/arccp.cpp:241
+#: src/clients/data/arccp.cpp:267
 #, c-format
 msgid "Can't read list of sources from file %s"
 msgstr "Невозможно прочесть список источников из файла %s"
 
-#: src/clients/data/arccp.cpp:82
-#: src/clients/data/arccp.cpp:117
-#: src/clients/data/arccp.cpp:245
-#: src/clients/data/arccp.cpp:281
+#: src/clients/data/arccp.cpp:83
+#: src/clients/data/arccp.cpp:118
+#: src/clients/data/arccp.cpp:246
+#: src/clients/data/arccp.cpp:282
 #, c-format
 msgid "Can't read list of destinations from file %s"
 msgstr "Невозможно прочестьсписок назначений из файла %s"
 
-#: src/clients/data/arccp.cpp:88
-#: src/clients/data/arccp.cpp:251
+#: src/clients/data/arccp.cpp:89
+#: src/clients/data/arccp.cpp:252
 msgid "Numbers of sources and destinations do not match"
 msgstr "Число источников и число назначений не соответствуют друг другу"
 
-#: src/clients/data/arccp.cpp:130
+#: src/clients/data/arccp.cpp:131
 msgid "Fileset registration is not supported yet"
 msgstr "Регистрация наборов файлов пока не поддерживается"
 
-#: src/clients/data/arccp.cpp:136
+#: src/clients/data/arccp.cpp:137
 #, c-format
 msgid "Unable to register file %s: No valid credentials found"
 msgstr "Невозможно зарегистрировать файл %s: Не обнаружено действительных параметров доступа"
 
-#: src/clients/data/arccp.cpp:143
-#: src/clients/data/arccp.cpp:338
-#: src/clients/data/arccp.cpp:370
-#: src/clients/data/arccp.cpp:451
+#: src/clients/data/arccp.cpp:144
+#: src/clients/data/arccp.cpp:339
+#: src/clients/data/arccp.cpp:371
+#: src/clients/data/arccp.cpp:452
 #, c-format
 msgid "Unsupported source url: %s"
 msgstr "Неподдерживаемый URL источника: %s"
 
-#: src/clients/data/arccp.cpp:147
-#: src/clients/data/arccp.cpp:374
-#: src/clients/data/arccp.cpp:455
+#: src/clients/data/arccp.cpp:148
+#: src/clients/data/arccp.cpp:375
+#: src/clients/data/arccp.cpp:456
 #, c-format
 msgid "Unsupported destination url: %s"
 msgstr "Неподдерживаемый URL назначения: %s"
 
-#: src/clients/data/arccp.cpp:152
+#: src/clients/data/arccp.cpp:153
 msgid "For registration source must be ordinary URL and destination must be indexing service"
 msgstr "Для регистрации, источник должен быть задан обычным URL, а назначением должен быть каталог ресурсов"
 
-#: src/clients/data/arccp.cpp:165
+#: src/clients/data/arccp.cpp:166
 msgid "Source probably does not exist"
 msgstr "Источник скорее всего не существует"
 
-#: src/clients/data/arccp.cpp:170
+#: src/clients/data/arccp.cpp:171
 msgid "Problems resolving destination"
 msgstr "Проблемы с разбором направления"
 
-#: src/clients/data/arccp.cpp:192
+#: src/clients/data/arccp.cpp:193
 msgid "Failed to accept new file/destination"
 msgstr "Сбой при приёме нового файла/направления"
 
-#: src/clients/data/arccp.cpp:197
-#: src/clients/data/arccp.cpp:202
+#: src/clients/data/arccp.cpp:198
+#: src/clients/data/arccp.cpp:203
 msgid "Failed to register new file/destination"
 msgstr "Сбой при регистрации нового файла/направления"
 
-#: src/clients/data/arccp.cpp:297
+#: src/clients/data/arccp.cpp:298
 msgid "Fileset copy to single object is not supported yet"
 msgstr "Копирование набора файлов в отдельный объект пока не поддерживается"
 
-#: src/clients/data/arccp.cpp:307
+#: src/clients/data/arccp.cpp:308
 msgid "Can't extract object's name from source url"
 msgstr "Невозможно извлечь имя объекта из URL источника"
 
-#: src/clients/data/arccp.cpp:326
+#: src/clients/data/arccp.cpp:327
 msgid "Fileset copy for this kind of source is not supported"
 msgstr "Копирование набора файлов из источника данного типа не поддерживается"
 
-#: src/clients/data/arccp.cpp:332
-#: src/clients/data/arccp.cpp:444
+#: src/clients/data/arccp.cpp:333
+#: src/clients/data/arccp.cpp:445
 #, c-format
 msgid "Unable to copy file %s: No valid credentials found"
 msgstr "Невозможно скопировать файл (%s): Не обнаружено действительных параметров доступа"
 
-#: src/clients/data/arccp.cpp:345
+#: src/clients/data/arccp.cpp:346
 msgid "Failed listing metafiles"
 msgstr "Перечисление метафайлов не удалось"
 
-#: src/clients/data/arccp.cpp:352
-#: src/clients/data/arcls.cpp:126
+#: src/clients/data/arccp.cpp:353
+#: src/clients/data/arcls.cpp:127
 msgid "Failed listing files"
 msgstr "Перечисление файлов не удалось"
 
-#: src/clients/data/arccp.cpp:362
+#: src/clients/data/arccp.cpp:363
 #, c-format
 msgid "Name: %s"
 msgstr "Имя: %s"
 
-#: src/clients/data/arccp.cpp:365
+#: src/clients/data/arccp.cpp:366
 #, c-format
 msgid "Source: %s"
 msgstr "Источник: %s"
 
-#: src/clients/data/arccp.cpp:366
+#: src/clients/data/arccp.cpp:367
 #, c-format
 msgid "Destination: %s"
 msgstr "Назначение: %s"
 
-#: src/clients/data/arccp.cpp:403
-#: src/clients/data/arccp.cpp:489
-#: src/clients/data/arcrm.cpp:66
-#: src/clients/data/arcls.cpp:128
+#: src/clients/data/arccp.cpp:404
+#: src/clients/data/arccp.cpp:490
+#: src/clients/data/arcrm.cpp:67
+#: src/clients/data/arcls.cpp:129
 msgid "This seems like a temporary error, please try again later"
 msgstr "Похоже на временный сбой - пожалуйста, попытайтесь снова попозже"
 
-#: src/clients/data/arccp.cpp:415
+#: src/clients/data/arccp.cpp:416
 msgid "Some transfers failed"
 msgstr "Некоторые загрузки не удались"
 
-#: src/clients/data/arccp.cpp:427
+#: src/clients/data/arccp.cpp:428
 #, c-format
 msgid "Directory: %s"
 msgstr "Каталог: %s"
 
-#: src/clients/data/arccp.cpp:487
+#: src/clients/data/arccp.cpp:488
 #, c-format
 msgid "Transfer FAILED: %s"
 msgstr "Передача НЕ УДАЛАСЬ: %s"
 
-#: src/clients/data/arccp.cpp:497
+#: src/clients/data/arccp.cpp:498
 msgid "Transfer complete"
 msgstr "Передача данных завершена"
 
-#: src/clients/data/arccp.cpp:512
+#: src/clients/data/arccp.cpp:513
 msgid "source destination"
 msgstr "источник назначение"
 
-#: src/clients/data/arccp.cpp:513
+#: src/clients/data/arccp.cpp:514
 msgid "The arccp command copies files to, from and between grid storage elements."
 msgstr "Команда arccp копирует файлы на, с и между запоминающими устройствами Грид."
 
-#: src/clients/data/arccp.cpp:518
+#: src/clients/data/arccp.cpp:519
 msgid "use passive transfer (does not work if secure is on, default if secure is not requested)"
 msgstr "использовать пассивную передачу данных (опция недоступна при защищённой передаче, и включена автоматически при незащищённой)"
 
-#: src/clients/data/arccp.cpp:524
+#: src/clients/data/arccp.cpp:525
 msgid "do not try to force passive transfer"
 msgstr "не пытаться форсировать пассивный способ передачи данных"
 
-#: src/clients/data/arccp.cpp:529
+#: src/clients/data/arccp.cpp:530
 msgid "if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers."
 msgstr "если назначением задан индексирующий сервис, отличный от источника, и это назначение уже зарегистрировано, копирование обычно не допускается. В случае же, когда указана эта опция, источник рассматривается как неофициальная копия зарегистрированного файла, и копирование производится как в случае тиражирования. При использовании этой опции пропускается сверка завершённых передач."
 
-#: src/clients/data/arccp.cpp:542
+#: src/clients/data/arccp.cpp:543
 msgid "show progress indicator"
 msgstr "показать индикатор выполнения"
 
-#: src/clients/data/arccp.cpp:547
+#: src/clients/data/arccp.cpp:548
 msgid "do not transfer file, just register it - destination must be non-existing meta-url"
 msgstr "зарегистрировать файл, не передавая его - назначением должен быть несуществующий адрес"
 
-#: src/clients/data/arccp.cpp:553
+#: src/clients/data/arccp.cpp:554
 msgid "use secure transfer (insecure by default)"
 msgstr "использовать защищённую передачу данных (передача не защищена по умолчанию)"
 
-#: src/clients/data/arccp.cpp:558
+#: src/clients/data/arccp.cpp:559
 msgid "path to local cache (use to put file into cache)"
 msgstr "путь к локальному кэшу (используется для записи файла в кэш)"
 
-#: src/clients/data/arccp.cpp:559
+#: src/clients/data/arccp.cpp:560
 #: src/clients/saml/saml_assertion_init.cpp:48
 msgid "path"
 msgstr "путь"
 
-#: src/clients/data/arccp.cpp:563
-#: src/clients/data/arcls.cpp:256
+#: src/clients/data/arccp.cpp:564
+#: src/clients/data/arcls.cpp:257
 msgid "operate recursively up to specified level"
 msgstr "рекурсивное исполнение до указанного уровня"
 
-#: src/clients/data/arccp.cpp:564
-#: src/clients/data/arcls.cpp:257
+#: src/clients/data/arccp.cpp:565
+#: src/clients/data/arcls.cpp:258
 msgid "level"
 msgstr "уровень"
 
-#: src/clients/data/arccp.cpp:568
+#: src/clients/data/arccp.cpp:569
 msgid "number of retries before failing file transfer"
 msgstr "количество попыток передачи файла"
 
-#: src/clients/data/arccp.cpp:569
+#: src/clients/data/arccp.cpp:570
 msgid "number"
 msgstr "число"
 
-#: src/clients/data/arccp.cpp:573
+#: src/clients/data/arccp.cpp:574
 msgid "physical location to write to when destination is an indexing service. Must be specified for indexing services which do not automatically generate physical locations. Can be specified multiple times - locations will be tried in order until one succeeds."
 msgstr "физический адрес для записи, если в качестве назначения указан каталог ресурсов. Должен быть указан для каталогов, не генерирующих физические адреса автоматически. Несколько значений может быть указано - адреса будут перебираться, пока не будет достигнут успех."
 
-#: src/clients/data/arccp.cpp:577
+#: src/clients/data/arccp.cpp:578
 msgid "URL"
 msgstr "URL"
 
+#: src/clients/data/arccp.cpp:582
+#: src/clients/data/arcrm.cpp:96
+#: src/clients/data/arcls.cpp:274
+msgid "list the available plugins (protocols supported)"
+msgstr "Показать список доступных модулей (поддерживаемые протоколы)"
+
 #: src/clients/data/arccp.cpp:620
 #: src/clients/data/arcrm.cpp:134
-#: src/clients/data/arcls.cpp:314
+#: src/clients/data/arcls.cpp:312
+msgid "Protocol plugins available:"
+msgstr "Доступны модули для следующих протоколов:"
+
+#: src/clients/data/arccp.cpp:643
+#: src/clients/data/arcrm.cpp:157
+#: src/clients/data/arcls.cpp:337
 msgid "Wrong number of parameters specified"
 msgstr "Задано неверное количество параметров"
 
-#: src/clients/data/arccp.cpp:625
+#: src/clients/data/arccp.cpp:648
 msgid "Options 'p' and 'n' can't be used simultaneously"
 msgstr "Опции 'p' и 'n' не могут быть использованы одновременно"
 
-#: src/clients/data/arcrm.cpp:33
-#: src/clients/data/arcls.cpp:41
+#: src/clients/data/arcrm.cpp:34
+#: src/clients/data/arcls.cpp:42
 #, c-format
 msgid "Can't read list of locations from file %s"
 msgstr "Невозможно прочесть список адресов из файла %s"
 
-#: src/clients/data/arcrm.cpp:49
+#: src/clients/data/arcrm.cpp:50
 #, c-format
 msgid "Unable to remove file %s: No valid credentials found"
 msgstr "Невозможно удалить файл %s: Не обнаружено действительных параметров доступа"
 
-#: src/clients/data/arcrm.cpp:56
-#: src/clients/data/arcls.cpp:64
+#: src/clients/data/arcrm.cpp:57
+#: src/clients/data/arcls.cpp:65
 msgid "Unsupported URL given"
 msgstr "Заданный URL не поддерживается"
 
-#: src/clients/data/arcrm.cpp:64
+#: src/clients/data/arcrm.cpp:65
 #, c-format
 msgid "Delete failed: %s"
 msgstr "Сбой при удалении: %s"
 
-#: src/clients/data/arcrm.cpp:83
-#: src/clients/data/arcls.cpp:237
+#: src/clients/data/arcrm.cpp:84
+#: src/clients/data/arcls.cpp:238
 msgid "url"
 msgstr "URL"
 
-#: src/clients/data/arcrm.cpp:84
+#: src/clients/data/arcrm.cpp:85
 msgid "The arcrm command deletes files and on grid storage elements."
 msgstr "Команда arcrm удаляет файлы с запоминающих устройств."
 
-#: src/clients/data/arcrm.cpp:89
+#: src/clients/data/arcrm.cpp:90
 msgid "remove logical file name registration even if not all physical instances were removed"
 msgstr "удалить логическое имя файла, даже если не все физические копии удалены"
 
-#: src/clients/data/arcls.cpp:57
+#: src/clients/data/arcls.cpp:58
 #, c-format
 msgid "Unable to list content of %s: No valid credentials found"
 msgstr "Невозможно просмотреть содержимое %s: Не обнаружено действительных параметров доступа"
 
-#: src/clients/data/arcls.cpp:131
+#: src/clients/data/arcls.cpp:132
 msgid "Warning: Failed listing files but some information is obtained"
 msgstr "Предупреждение: Не удалось вывести список файлов, но некоторая информация была получена"
 
-#: src/clients/data/arcls.cpp:238
+#: src/clients/data/arcls.cpp:239
 msgid ""
 "The arcls command is used for listing files in grid storage elements and file\n"
 "index catalogues."
@@ -18432,31 +18537,31 @@ msgstr ""
 "хранящихся на накопительных устройствах Грид, а также в занесённых\n"
 "в каталоги данных."
 
-#: src/clients/data/arcls.cpp:247
+#: src/clients/data/arcls.cpp:248
 msgid "show URLs of file locations"
 msgstr "вывести адреса физических файлов"
 
-#: src/clients/data/arcls.cpp:251
+#: src/clients/data/arcls.cpp:252
 msgid "display all available metadata"
 msgstr "показать все доступные метаданные"
 
-#: src/clients/data/arcls.cpp:260
+#: src/clients/data/arcls.cpp:261
 msgid "show only description of requested object, do not list content of directories"
 msgstr "показывать только описание запрашиваемого объекта, не выводить содержимое каталогов"
 
-#: src/clients/data/arcls.cpp:264
+#: src/clients/data/arcls.cpp:265
 msgid "treat requested object as directory and always try to list content"
 msgstr "интерпретировать запрошенный объект как каталог, и всегда пытаться вывести его содержимое"
 
-#: src/clients/data/arcls.cpp:268
+#: src/clients/data/arcls.cpp:269
 msgid "check readability of object, does not show any information about object"
 msgstr "проверить читаемость объекта, не показывать информацию об объекте"
 
-#: src/clients/data/arcls.cpp:319
+#: src/clients/data/arcls.cpp:342
 msgid "Incompatible options --nolist and --forcelist requested"
 msgstr "Запрошены несовместимые опции --nolist и --forcelist"
 
-#: src/clients/data/arcls.cpp:324
+#: src/clients/data/arcls.cpp:347
 msgid "Requesting recursion and --nolist has no sense"
 msgstr "Запрос рекурсивного просмотра и --nolist не имеет смысла"
 
@@ -18586,11 +18691,9 @@ msgid "Could not open log directory \"%s\": %s"
 msgstr "Невозможно открыть каталог с журналами \"%s\": %s"
 
 #: src/clients/jura/UsageReporter.cpp:72
-#, fuzzy, c-format
+#, c-format
 msgid "Could not open output directory \"%s\": %s"
-msgstr ""
-"Невозможно открыть каталог со справкой:\n"
-"%s"
+msgstr "Невозможно открыть выходной каталог \"%s\": %s"
 
 #: src/clients/jura/UsageReporter.cpp:105
 #, c-format
@@ -18760,16 +18863,14 @@ msgid "Aborted!"
 msgstr "Исполнение прервано!"
 
 #: src/clients/credentials/arcproxy.cpp:221
-#, fuzzy
 msgid ""
 "The arcproxy command creates a proxy from a key/certificate pair which can\n"
 "then be used to access grid resources."
 msgstr ""
-"Команда arcproxy создаёт доверенности из пары закрытый/открытый ключ\n"
-"для использования на Гриде"
+"Команда arcproxy создаёт доверенность из пары закрытый/открытый ключ\n"
+"для получения доступа к гриду."
 
 #: src/clients/credentials/arcproxy.cpp:223
-#, fuzzy
 msgid ""
 "Supported constraints are:\n"
 "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
@@ -18786,6 +18887,8 @@ msgstr ""
 "  validityPeriod=время (например, 43200, или 12h, или 12H; если не указаны ни validityPeriod,\n"
 "    ни validityEnd, то срок действия по умолчанию составляет 12 часов)\n"
 "  vomsACvalidityPeriod=время (например, 43200, или 12h, или 12H; если не указано, то используется\n"
+"    значение validityPeriod)\n"
+"  myproxyvalidityPeriod=время (например, 43200, или 12h, или 12H; если не указано, то используется\n"
 "    значение validityPeriod)\n"
 "  proxyPolicy=содержимое норматива\n"
 "  proxyPolicyFile=файл норматива"
@@ -18926,7 +19029,6 @@ msgid "Cannot find file at %s for getting the certificate. Please make sure this
 msgstr "Не удалось найти файл по адресу %s, содержащий сертификат. Пожалуйста, убедитесь, что файл существует."
 
 #: src/clients/credentials/arcproxy.cpp:439
-#, fuzzy
 msgid "Cannot find the CA Certificate Directory path, please set environment variable X509_CERT_DIR, or cacertificatesdirectory in a configuration file"
 msgstr "Не удалось найти каталог с открытыми ключами сертификационных агентств. Пожалуйста, задайте переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле настроек"
 
@@ -18988,29 +19090,25 @@ msgid "AC extension information for VO "
 msgstr "Информация о расширении AC для VO "
 
 #: src/clients/credentials/arcproxy.cpp:503
-#, fuzzy
 msgid "Time left for AC: AC is not valid yet"
-msgstr "Доверенность действительна на: Доверенность недействительна"
+msgstr "Сертификат атрибута действителен на: Сертификат пока недействителен"
 
 #: src/clients/credentials/arcproxy.cpp:505
-#, fuzzy
 msgid "Time left for AC: AC has expired"
-msgstr "Доверенность действительна на: Срок действия доверенности вышел"
+msgstr "Сертификат атрибута действителен на: Срок действия сертификата закончился"
 
 #: src/clients/credentials/arcproxy.cpp:507
-#, fuzzy, c-format
+#, c-format
 msgid "Time left for AC: %s"
-msgstr "Доверенность действительна на: %s"
+msgstr "Сертификат атрибута действителен на: %s"
 
 #: src/clients/credentials/arcproxy.cpp:510
-#, fuzzy
 msgid "Error detected while parsing this AC"
-msgstr "Ошибка чтения файла%1"
+msgstr "Обнаружена ошибка при разборе сертификата атрибута"
 
 #: src/clients/credentials/arcproxy.cpp:523
-#, fuzzy
 msgid "AC is invalid: "
-msgstr "Некоректное описание задачи"
+msgstr "Сертификат атрибута недействителен:"
 
 #: src/clients/credentials/arcproxy.cpp:550
 #, c-format
@@ -19018,9 +19116,9 @@ msgid "Timeleft for AC: %s"
 msgstr "Оставшееся время для AC: %s"
 
 #: src/clients/credentials/arcproxy.cpp:552
-#, fuzzy, c-format
+#, c-format
 msgid "AC has been expired for: %s"
-msgstr "был создан для устройства"
+msgstr "Срок действия сертификат атрибута для %s закончился"
 
 #: src/clients/credentials/arcproxy.cpp:560
 msgid "Cannot find the user certificate path, please setup environment X509_USER_CERT, or certificatepath in a configuration file"
@@ -19064,17 +19162,16 @@ msgid "Proxy generation failed: Unable to verify certificate."
 msgstr "Сбой создания доверенности: Не удалось подтвердить действительность сертификата"
 
 #: src/clients/credentials/arcproxy.cpp:925
-#, fuzzy
 msgid ""
 "$X509_VOMS_FILE, and $X509_VOMSES are not set;\n"
 "User has not specify the location for vomses information;\n"
 "There is also not vomses location information in user's configuration file;\n"
 "Cannot find vomses in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, and the location at the corresponding sub-directory"
 msgstr ""
-"$X509_VOMS_DIR, $X509_VOMS_FILE, и $X509_VOMSES не настроены;\n"
+"$X509_VOMS_FILE и $X509_VOMSES не настроены;\n"
 "Пользователь не указал расположение файла vomses;\n"
 "Расположение файла vomses не найдено в файле настроек пользователя;\n"
-"Файл vomses не обнаружен в %s, %s, %s, %s, %s, а также в соответствующих подкаталогах, таких, как %s, %s"
+"Файл vomses не обнаружен в ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, а также в соответствующих подкаталогах"
 
 #: src/clients/credentials/arcproxy.cpp:1062
 #, c-format
@@ -19304,20 +19401,17 @@ msgid "ApacheBackend transferdir:"
 msgstr "Каталог передачи ApacheBackend:"
 
 #: src/services/storage/shepherd/shepherd.py:34
-#, fuzzy, python-format
+#, python-format
 msgid "Cannot import backend class %(c)s (reason: %(r)s)"
-msgstr "Невозможно импортировать класс внутреннего интерфейса"
+msgstr "Невозможно импортировать класс внутреннего интерфейса %(c)s (причина: %(r)s)"
 
 #: src/services/storage/shepherd/shepherd.py:42
 msgid "Cannot import store class"
 msgstr "Невозможно импортировать класс хранения"
 
 #: src/services/storage/shepherd/shepherd.py:47
-#, fuzzy
 msgid "Cannot get serviceID from config"
-msgstr ""
-"Не удалось получить сообщение: %s из папки %s\n"
-"  %s"
+msgstr "Невозможно извлечь значение serviceID из настроек"
 
 #: src/services/storage/shepherd/shepherd.py:53
 msgid "Cannot set CheckPeriod, MinCheckInterval"
@@ -19360,9 +19454,9 @@ msgid "Got Librarian from ISIS:"
 msgstr "Получен адрес Боблиотекаря из ISIS:"
 
 #: src/services/storage/shepherd/shepherd.py:138
-#, fuzzy, python-format
+#, python-format
 msgid "Error in isisLibrarianThread: %s"
-msgstr "Ошибка в libkabc"
+msgstr "Ошибка в isisLibrarianThread: %s"
 
 #: src/services/storage/shepherd/shepherd.py:148
 msgid "Getting Bartenders from ISISes"
@@ -19377,9 +19471,9 @@ msgid "Got Bartender from ISIS:"
 msgstr "Получен адрес Бармена из ISIS:"
 
 #: src/services/storage/shepherd/shepherd.py:160
-#, fuzzy, python-format
+#, python-format
 msgid "Error in isisBartenderThread: %s"
-msgstr "Ошибка в libkabc"
+msgstr "Ошибка в isisBartenderThread: %s"
 
 #: src/services/storage/shepherd/shepherd.py:207
 msgid ""
@@ -19521,9 +19615,9 @@ msgstr "Получен адрес А-Хэш из ISIS:"
 
 #: src/services/storage/librarian/librarian.py:79
 #: src/services/storage/bartender/bartender.py:79
-#, fuzzy, python-format
+#, python-format
 msgid "Error in initThread: %s"
-msgstr "Ошибка в libkabc"
+msgstr "Ошибка в initThread: %s"
 
 #: src/services/storage/librarian/librarian.py:80
 msgid "initThread finishes, starting checkingThread"
@@ -20207,6 +20301,9 @@ msgstr "Вызван конструктор StringStore"
 #: src/hed/libs/python/arcom/store/cachedstringstore.py:21
 msgid "CachedStringStore constructor called"
 msgstr "Вызван конструктор CachedStringStore"
+
+#~ msgid "Local user does not match user of DTR %s"
+#~ msgstr "Локальный пользователь не соответствует пользователю DTR %s"
 
 #~ msgid ""
 #~ "No services specified. Please specify a cluster or index (-c or -g "
@@ -21887,10 +21984,6 @@ msgstr "Вызван конструктор CachedStringStore"
 #, fuzzy
 #~ msgid "Cannot migrate from %s clusters."
 #~ msgstr "недопустимая инициализация %qT из %qT"
-
-#, fuzzy
-#~ msgid "job description language"
-#~ msgstr "Язык описаний и детализаций (SDL)"
 
 #, fuzzy
 #~ msgid "Transfer FAILED"
