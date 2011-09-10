@@ -5,10 +5,10 @@
 #include "TargetRetrieverTestACC.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "TEST", "HED:Broker", 0, &BrokerTestACC::GetInstance },
-  { "TEST", "HED:JobController", 0, &JobControllerTestACC::GetInstance },
-  { "TEST", "HED:JobDescriptionParser", 0, &JobDescriptionParserTestACC::GetInstance },
-  { "TEST", "HED:Submitter", 0, &SubmitterTestACC::GetInstance },
-  { "TEST", "HED:TargetRetriever", 0, &TargetRetrieverTestACC::GetInstance },
+  { "TEST", "HED:Broker", NULL, 0, &BrokerTestACC::GetInstance },
+  { "TEST", "HED:JobController", NULL, 0, &JobControllerTestACC::GetInstance },
+  { "TEST", "HED:JobDescriptionParser", NULL, 0, &JobDescriptionParserTestACC::GetInstance },
+  { "TEST", "HED:Submitter", NULL, 0, &SubmitterTestACC::GetInstance },
+  { "TEST", "HED:TargetRetriever", NULL, 0, &TargetRetrieverTestACC::GetInstance },
   { NULL, NULL, 0, NULL }
 };

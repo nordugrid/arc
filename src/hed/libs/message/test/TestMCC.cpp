@@ -39,7 +39,7 @@ static Arc::Plugin* get_mcc(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "testmcc", "HED:MCC", 0, &get_mcc },
-    { NULL, NULL, 0, NULL }
+    { "testmcc", "HED:MCC", NULL, 0, &get_mcc },
+    { NULL, NULL, NULL, 0, NULL }
 };
 

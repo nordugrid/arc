@@ -29,7 +29,7 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "testservice", "HED:SERVICE", 0, &get_service },
-    { NULL, NULL, 0, NULL }
+    { "testservice", "HED:SERVICE", NULL, 0, &get_service },
+    { NULL, NULL, NULL, 0, NULL }
 };
 
