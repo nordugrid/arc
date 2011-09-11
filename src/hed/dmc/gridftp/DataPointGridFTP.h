@@ -29,7 +29,22 @@ namespace Arc {
   class DataPointGridFTP
     : public DataPointDirect {
   private:
+    class CBArg {
+    private:
+      Glib::Mutex lock;
+      DataPointGridFTP* arg;
+      CBArg(void) {};
+      CBArg(const CBArg&) {};
+    public:
+      CBArg(DataPointGridFTP* a);
+      ~CBArg(void) {};
+      DataPointGridFTP* acquire(void);
+      void release(void);
+      void abandon(void);
+    };
+
     static Logger logger;
+    CBArg* cbarg;
     bool ftp_active;
     globus_ftp_client_handle_t ftp_handle;
     globus_ftp_client_operationattr_t ftp_opattr;
