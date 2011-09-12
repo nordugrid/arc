@@ -412,11 +412,12 @@ namespace Arc {
     unsigned int l;
     GlobusResult res;
     int registration_failed = 0;
+    it->data_error = false;
+    it->data_counter.set(0);
     logger.msg(INFO, "ftp_read_thread: get and register buffers");
     int n_buffers = 0;
     for (;;) {
-      if (it->buffer->eof_read())
-        break;
+      if (it->buffer->eof_read()) break;
       if (!it->buffer->for_read(h, l, true)) { /* eof or error */
         if (it->buffer->error()) { /* error -> abort reading */
           logger.msg(VERBOSE, "ftp_read_thread: for_read failed - aborting: %s",
@@ -425,11 +426,22 @@ namespace Arc {
         }
         break;
       }
+      if (it->data_error) {
+        // This is meant to reduce time window for globus bug.
+        // See comment in ftp_write_thread.
+        it->buffer->is_read(h, 0, 0);
+        logger.msg(VERBOSE, "ftp_read_thread: data callback failed - aborting: %s",
+                   it->url.str());
+        globus_ftp_client_abort(&(it->ftp_handle));
+        break;
+      }
+      it->data_counter.inc();
       res =
         globus_ftp_client_register_read(&(it->ftp_handle),
                                         (globus_byte_t*)((*(it->buffer))[h]),
                                         l, &(it->ftp_read_callback), it->cbarg);
       if (!res) {
+        it->data_counter.dec();
         logger.msg(DEBUG, "ftp_read_thread: Globus error: %s", res.str());
         // This can happen if handle can't either yet or already 
         // provide data. In last case there is no reason to retry.
@@ -466,7 +478,14 @@ namespace Arc {
     // And now make sure all buffers were released in case Globus calls
     // complete_callback before calling all read_callbacks
     logger.msg(VERBOSE, "ftp_read_thread: waiting for buffers released");
-    it->buffer->wait_for_read();
+    //if(!it->buffer->wait_for_read(15)) {
+    if(!it->data_counter.wait(15)) {
+      // See comment in ftp_write_thread for explanation.
+      logger.msg(VERBOSE, "ftp_read_thread: failed to release buffers - leaking");
+      CBArg* cbarg_old = it->cbarg;
+      it->cbarg = new CBArg(it);
+      cbarg_old->abandon();
+    };
     logger.msg(VERBOSE, "ftp_read_thread: exiting");
     it->callback_status = it->buffer->error_read() ? DataStatus::ReadError :
                           DataStatus::Success;
@@ -484,6 +503,7 @@ namespace Arc {
     DataPointGridFTP *it = ((CBArg*)arg)->acquire();
     if(!it) return;
     if (error != GLOBUS_SUCCESS) {
+      it->data_error = true;
       logger.msg(VERBOSE, "ftp_read_callback: failure: %s",globus_object_to_string(error));
       it->buffer->is_read((char*)buffer, 0, 0);
     } else {
@@ -491,6 +511,7 @@ namespace Arc {
       it->buffer->is_read((char*)buffer, length, offset);
       if (eof) it->ftp_eof_flag = true;
     }
+    it->data_counter.dec();
     ((CBArg*)arg)->release();
     return;
   }
@@ -653,6 +674,8 @@ namespace Arc {
     unsigned long long int o;
     GlobusResult res;
     globus_bool_t eof = GLOBUS_FALSE;
+    it->data_error = false;
+    it->data_counter.set(0);
     logger.msg(INFO, "ftp_write_thread: get and register buffers");
     for (;;) {
       if (!it->buffer->for_write(h, l, o, true)) {
@@ -671,11 +694,21 @@ namespace Arc {
         // if(res == GLOBUS_SUCCESS) break;
         // sleep(1); continue;
       }
+      if (it->data_error) {
+        // This is meant to reduce time window for globus bug.
+        // See comment below about data_counter.
+        it->buffer->is_notwritten(h);
+        logger.msg(VERBOSE, "ftp_write_thread: data callback failed - aborting");
+        globus_ftp_client_abort(&(it->ftp_handle));
+        break;
+      }
+      it->data_counter.inc();
       res =
         globus_ftp_client_register_write(&(it->ftp_handle),
                                          (globus_byte_t*)((*(it->buffer))[h]),
                                          l, o, eof, &(it->ftp_write_callback), it->cbarg);
       if (!res) {
+        it->data_counter.dec();
         it->buffer->is_notwritten(h);
         sleep(1);
       }
@@ -686,7 +719,18 @@ namespace Arc {
     // And now make sure all buffers were released in case Globus calls
     // complete_callback before calling all read_callbacks
     logger.msg(VERBOSE, "ftp_write_thread: waiting for buffers released");
-    it->buffer->wait_for_write();
+    // if that does not happen quickly that means there are problems.
+    //if(!it->buffer->wait_for_write(15)) {
+    if(!it->data_counter.wait(15000)) {
+      // If buffer registration happens while globus is reporting error
+      // those buffers are lost by globus. But still we can't be sure
+      // callback is never called. So switching to new cbarg to detach
+      // potential callbacks from this object.
+      logger.msg(VERBOSE, "ftp_write_thread: failed to release buffers - leaking");
+      CBArg* cbarg_old = it->cbarg;
+      it->cbarg = new CBArg(it);
+      cbarg_old->abandon();
+    };
     logger.msg(VERBOSE, "ftp_write_thread: exiting");
     it->callback_status = it->buffer->error_write() ? DataStatus::WriteError :
                          DataStatus::Success;
@@ -709,12 +753,14 @@ namespace Arc {
       return;
     }
     if (error != GLOBUS_SUCCESS) {
+      it->data_error = true;
       logger.msg(VERBOSE, "ftp_write_callback: failure: %s",globus_object_to_string(error));
       it->buffer->is_notwritten((char*)buffer);
     } else {
       logger.msg(DEBUG, "ftp_write_callback: success %s",is_eof?"eof":"   ");
       it->buffer->is_written((char*)buffer);
     }
+    it->data_counter.dec();
     ((CBArg*)arg)->release();
     return;
   }
@@ -1146,17 +1192,17 @@ namespace Arc {
         // so it is free to destroy DataPointGridFTP and related objects.
         sleep(1);
       }
-      globus_ftp_client_operationattr_destroy(&ftp_opattr);
+      if(destroy_timeout) globus_ftp_client_operationattr_destroy(&ftp_opattr);
     }
     if (credential) delete credential;
     if (lister) delete lister;
+    cbarg->abandon(); // acquires lock
     if(destroy_timeout) {
       delete cbarg;
     } else {
       // So globus maybe did not call all callbacks. Keeping 
       // intermediate object.
       logger.msg(VERBOSE, "~DataPoint: failed to destroy ftp_handle - leaking");
-      cbarg->abandon();
     }
     // See activation for description
     //globus_module_deactivate(GLOBUS_FTP_CLIENT_MODULE);

@@ -62,6 +62,9 @@ namespace Arc {
     bool ftp_eof_flag;
     int check_received_length;
 
+    bool data_error;
+    SimpleCounter data_counter;
+
     Lister* lister;
 
     static void ftp_complete_callback(void *arg,
