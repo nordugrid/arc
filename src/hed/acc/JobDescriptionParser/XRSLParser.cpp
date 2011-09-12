@@ -542,8 +542,20 @@ namespace Arc {
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           std::list<std::string>::iterator it2 = it->begin();
+
+          // Check whether the first string exists in the list
+          if (it2 == it->end()) {
+            return false;
+          }
+
           FileType file;
           file.Name = *it2++;
+
+          // Check whether the second string exists in the list
+          if (it2 == it->end()) {
+            return false;
+          }
+
           long fileSize = -1;
           // The second string in the list (it2) might either be a URL or file size.
           if (!it2->empty() && !stringto(*it2, fileSize)) {
@@ -637,8 +649,20 @@ namespace Arc {
         for (std::list<std::list<std::string> >::iterator it = ll.begin();
              it != ll.end(); it++) {
           std::list<std::string>::iterator it2 = it->begin();
+
+          // Check whether the first string exists in the list
+          if (it2 == it->end()) {
+            return false;
+          }
+
           FileType file;
           file.Name = *it2++;
+          
+          // Check whether the second string exists in the list
+          if (it2 == it->end()) {
+            return false;
+          }
+
           URL turl(*it2);
           // The second string in the list (it2) might be a URL or empty
           if (!it2->empty() && turl.Protocol() != "file") {
