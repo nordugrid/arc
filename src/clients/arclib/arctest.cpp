@@ -405,6 +405,14 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
         jobdesclang = "egee:jdl";
       }
       std::string jobdesc;
+
+      // Modify the test jobdescription according the choosen submitter if necessary
+      if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
+        std::cout << Arc::IString("Unable to modify job description according to needs of the target resource.") << std::endl;
+        retval = 1;
+        break;
+      }
+
       if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
         std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
         retval = 1;
