@@ -195,7 +195,7 @@ namespace Arc {
     Glib::Mutex lock_;
     int count_;
   public:
-   SimpleCounter(void)
+    SimpleCounter(void)
       : count_(0) {}
     ~SimpleCounter(void) {
       /* race condition ? */
@@ -221,6 +221,14 @@ namespace Arc {
     }
     int get(void) {
       lock_.lock();
+      int r = count_;
+      lock_.unlock();
+      return r;
+    }
+    int set(int v) {
+      lock_.lock();
+      count_ = v;
+      if(count_ <= 0) cond_.signal();
       int r = count_;
       lock_.unlock();
       return r;
