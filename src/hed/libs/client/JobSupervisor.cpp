@@ -34,6 +34,7 @@ namespace Arc {
     }
 
     std::list<Job> jobs;
+    std::list<Job> alreadyFoundJobs;
     Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
 
     // Add jobs explicitly specified.
@@ -42,19 +43,26 @@ namespace Arc {
       std::list<Job>::iterator itJ = jobs.begin();
       for (; itJ != jobs.end(); ++itJ) {
         if (*it == itJ->IDFromEndpoint.str() || *it == itJ->Name) {
-          break;
+          // If the job wasn't already selected in a previous cycle...
+          bool alreadySelectedJob = false;
+          for (std::list<Job>::iterator itAJ = alreadyFoundJobs.begin(); itAJ != alreadyFoundJobs.end(); itAJ++) {
+            if (*itAJ == *itJ) {
+              alreadySelectedJob = true;
+            }
+          }
+          // Add it! 
+          if (!alreadySelectedJob && AddJob(*itJ)) {
+            // Job was added to JobController, remove it from list.
+            // jobs.erase(itJ);
+            alreadyFoundJobs.push_back(*itJ);
+          } else {
+            logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", *it);
+          }
         }
       }
 
-      if (itJ == jobs.end()) {
+      if (alreadyFoundJobs.empty()) {
         logger.msg(WARNING, "Job not found in job list: %s", *it);
-      }
-      else if (AddJob(*itJ)) {
-        // Job was added to JobController, remove it from list.
-        jobs.erase(itJ);
-      }
-      else {
-        logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", *it);
       }
     }
 

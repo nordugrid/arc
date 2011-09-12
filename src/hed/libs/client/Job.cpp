@@ -217,6 +217,10 @@ namespace Arc {
     return *this;
   }
 
+  int Job::operator==(const Job& other) {
+    return IDFromEndpoint == other.IDFromEndpoint;
+  }
+
   void Job::Print(bool longlist) const {
     logger.msg(WARNING, "The Job::Print method is DEPRECATED, use the Job::SaveToStream method instead.");
     SaveToStream(std::cout, longlist);

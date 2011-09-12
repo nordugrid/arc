@@ -135,6 +135,8 @@ namespace Arc {
 
     Job& operator=(const Job& job);
 
+    int operator==(const Job& other);
+
     /// Add job information to a XMLNode
     /**
      * Child nodes of GLUE ComputingActivity type containing job information of
