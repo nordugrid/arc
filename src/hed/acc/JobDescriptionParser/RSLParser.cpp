@@ -198,7 +198,7 @@ namespace Arc {
         if (!rsl) {
           std::stringstream ss;
           ss << **it;
-          logger.msg(ERROR, "RLS (inside multi) could not be evaluated: %s",
+          logger.msg(ERROR, "RSL (inside multi) could not be evaluated: %s",
                      ss.str());
           delete rsl;
           return NULL;
@@ -213,7 +213,7 @@ namespace Arc {
       if (!result) {
         std::stringstream ss;
         ss << *this;
-        logger.msg(ERROR, "RLS could not be evaluated: %s", ss.str());
+        logger.msg(ERROR, "RSL could not be evaluated: %s", ss.str());
         return NULL;
       }
       return result;
@@ -237,7 +237,7 @@ namespace Arc {
           if (!rsl) {
             std::stringstream ss;
             ss << **it;
-            logger.msg(ERROR, "Can't evaluate RLS fragment: %s", ss.str());
+            logger.msg(ERROR, "Can't evaluate RSL fragment: %s", ss.str());
             delete rsl;
             return NULL;
           }
@@ -255,7 +255,7 @@ namespace Arc {
           if (!s) {
             std::stringstream ss;
             ss << **it;
-            logger.msg(ERROR, "RLS substitution is not a sequence: %s",
+            logger.msg(ERROR, "RSL substitution is not a sequence: %s",
                        ss.str());
             delete l;
             return NULL;
@@ -263,7 +263,7 @@ namespace Arc {
           if (s->size() != 2) {
             std::stringstream ss;
             ss << *s;
-            logger.msg(ERROR, "RLS substitution sequence is not of "
+            logger.msg(ERROR, "RSL substitution sequence is not of "
                        "length 2: %s", ss.str());
             delete l;
             return NULL;
@@ -273,7 +273,7 @@ namespace Arc {
           if (!var) {
             std::stringstream ss;
             ss << **it2;
-            logger.msg(ERROR, "Can't evaluate RLS substitution variable "
+            logger.msg(ERROR, "Can't evaluate RSL substitution variable "
                        "name: %s", ss.str());
             delete l;
             return NULL;
@@ -283,7 +283,7 @@ namespace Arc {
           if (!val) {
             std::stringstream ss;
             ss << **it2;
-            logger.msg(ERROR, "Can't evaluate RLS substitution variable "
+            logger.msg(ERROR, "Can't evaluate RSL substitution variable "
                        "value: %s", ss.str());
             delete l;
             delete var;
@@ -293,7 +293,7 @@ namespace Arc {
           if (!nvar) {
             std::stringstream ss;
             ss << *var;
-            logger.msg(ERROR, "RLS substitution variable name does not "
+            logger.msg(ERROR, "RSL substitution variable name does not "
                        "evaluate to a literal: %s", ss.str());
             delete l;
             delete var;
@@ -304,7 +304,7 @@ namespace Arc {
           if (!nval) {
             std::stringstream ss;
             ss << *val;
-            logger.msg(ERROR, "RLS substitution variable value does not "
+            logger.msg(ERROR, "RSL substitution variable value does not "
                        "evaluate to a literal: %s", ss.str());
             delete l;
             delete var;
