@@ -128,6 +128,7 @@ namespace DataStaging {
   }
 
   void DataDeliveryRemoteComm::CancelDTR() {
+    Glib::Mutex::Lock lock(lock_);
     if (!client) return;
     Arc::NS ns;
     Arc::PayloadSOAP request(ns);
