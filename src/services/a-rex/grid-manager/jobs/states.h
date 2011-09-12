@@ -4,6 +4,9 @@
 #include <sys/types.h>
 #include <list>
 #include <glibmm.h>
+
+#include <arc/URL.h>
+
 #include "../jobs/job.h"
 #include "../conf/environment.h"
 
@@ -177,6 +180,7 @@ class JobsListConfig {
   bool use_new_data_staging;
   unsigned int wakeup_period;
   std::string preferred_pattern;
+  std::vector<Arc::URL> delivery_services;
   /* the list of shares with defined limits */
   std::map<std::string, int> limited_share;
  public:
@@ -263,6 +267,15 @@ class JobsListConfig {
   };
   std::string GetShareType() const {
     return share_type;
+  }
+  bool AddDeliveryService(const std::string& url) {
+    Arc::URL u(url);
+    if (!u) return false;
+    delivery_services.push_back(u);
+    return true;
+  }
+  std::vector<Arc::URL> GetDeliveryServices() const {
+    return delivery_services;
   }
   bool AddLimitedShare(std::string share_name, unsigned int share_limit) {
     if(max_processing_share == 0)

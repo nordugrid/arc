@@ -313,6 +313,10 @@
             <xsd:element name="Globus" minOccurs="0" type="Globus_Type"/>            
             <xsd:element name="httpProxy" type="xsd:anyURI"
                          minOccurs="0"/>
+            <xsd:element name="deliveryService" type="xsd:anyURI"
+                         minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="localDelivery" type="xsd:boolean"
+                         minOccurs="0"/>                         
         </xsd:sequence>
     </xsd:complexType>
 

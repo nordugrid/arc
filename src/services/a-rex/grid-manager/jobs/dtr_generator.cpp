@@ -148,6 +148,9 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   // preferred pattern
   scheduler.SetPreferredPattern(jcfg.GetPreferredPattern());
 
+  // delivery services
+  scheduler.SetDeliveryServices(jcfg.GetDeliveryServices());
+
   scheduler.start();
 
   Arc::CreateThreadFunction(&main_thread, this);

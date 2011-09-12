@@ -154,6 +154,9 @@ appropiate.
               <arex:UDPPortRange>8000-9000</arex:UDPPortRange>
           </arex:Globus>
           <arex:httpProxy>http://proxy.org:8080</arex:httpProxy>
+          <arex:newDataStaging>true</arex:newDataStaging>
+          <arex:deliveryService>https://example.com:60002/datadeliveryservice</arex:deliveryService>
+          <arex:localDelivery>true</arex:localDelivery>
       </arex:dataTransfer>
       <arex:jobLogPath>/var/log/arc/arex-jobs.log</arex:jobLogPath>
       <arex:jobReport>

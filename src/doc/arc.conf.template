@@ -522,6 +522,15 @@ maxloadshare="4 voms:role"
 # files. It is off by default.
 #newdatastaging="yes"
 
+# delivery_service URL - specifies a remote delivery service to be used by
+# the new data staging framework.
+#delivery_service="https://example.com:60002/datadeliveryservice"
+
+# local_delivery yes|no - in case remote delivery services are configured
+# using the previous option, this option specifices whether or not delivery
+# should also be done locally on the A-REX host. Default is no.
+#local_delivery="yes"
+
 # wakeupperiod time - specifies how often grid-manager cheks for new
 # jobs arrived, job state change requests, etc. That is resposivity of
 # grid-manager. 'time' is time period in seconds. Default is 3 minutes.

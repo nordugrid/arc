@@ -1040,6 +1040,10 @@ namespace DataStaging {
     logger.msg(Arc::INFO, "  Emergency Delivery slots: %i", DeliveryEmergencySlots);
     logger.msg(Arc::INFO, "  Post-processor slots: %i", PostProcessorSlots);
     logger.msg(Arc::INFO, "  Shares configuration:\n%s", transferShares.conf());
+    for (std::vector<Arc::URL>::iterator i = delivery_services.begin(); i != delivery_services.end(); ++i) {
+      if (*i == DTR::LOCAL_DELIVERY) logger.msg(Arc::INFO, "  Delivery service: LOCAL");
+      else logger.msg(Arc::INFO, "  Delivery service: %s", i->str());
+    }
 
     // disconnect from root logger
     // messages are logged to per-DTR Logger

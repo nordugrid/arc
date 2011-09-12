@@ -501,7 +501,23 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       };
       jcfg.SetNewDataStaging(use_new_data_staging);
     }
-    else if(command == "sessiondir") {
+    else if(command == "delivery_service") {
+      std::string url = config_next_arg(rest);
+      if (!jcfg.AddDeliveryService(url)) {
+        logger.msg(Arc::ERROR, "Bad URL in delivery_service: %s", url);
+        goto exit;
+      }
+    }
+    else if(command == "local_delivery") {
+      std::string use_local = config_next_arg(rest);
+      if (use_local == "yes") {
+        if (!jcfg.AddDeliveryService("file:/local")) {
+          logger.msg(Arc::ERROR, "Could not add file:/local to delivery services");
+          goto exit;
+        }
+      }
+    }
+   else if(command == "sessiondir") {
       /* set session root directory - applied
          to all following 'control' commands */
       std::string session_root = config_next_arg(rest);
@@ -801,6 +817,8 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
       TCPPortRange
       UDPPortRange
     httpProxy
+    deliveryService
+    localDelivery
   */
   tmp_node = cfg["dataTransfer"];
   if(tmp_node) {
@@ -813,6 +831,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     bool use_passive_transfer = true;
     bool use_local_transfer = false;
     bool use_new_data_staging = false;
+    bool use_local_delivery = false;
     Arc::XMLNode to_node = tmp_node["timeouts"];
     if(to_node) {
       elementtoint(tmp_node,"minSpeed",min_speed,&logger);
@@ -835,6 +854,18 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     }
     std::string preferred_pattern = tmp_node["preferredPattern"];
     jcfg.SetPreferredPattern(preferred_pattern);
+    std::string delivery_service = tmp_node["deliveryService"];
+    if (!delivery_service.empty() && !jcfg.AddDeliveryService(delivery_service)) {
+      logger.msg(Arc::ERROR, "Bad URL in deliveryService: %s", delivery_service);
+      return false;
+    }
+    elementtobool(tmp_node,"localDelivery",use_local_delivery,&logger);
+    if (use_local_delivery) {
+      if (!jcfg.AddDeliveryService("file:/local")) {
+        logger.msg(Arc::ERROR, "Could not add file:/local to delivery services");
+        return false;
+      }
+    }
   };
   /*
   serviceMail

@@ -704,6 +704,24 @@ by default
 newdatastaging="yes"
 
 .TP
+.B delivery_service
+Specifies a remote delivery service to be used by the new data staging framework.
+
+.IR Example:
+delivery_service="https://example.com:60002/datadeliveryservice
+
+.TP
+.B local_delivery
+
+In case remote delivery services are configured using the previous option, this option
+specifices whether or not delivery should also be done locally on the A-REX
+host. Default is
+.B no.
+
+.IR Example:
+local_delivery="yes"
+
+.TP
 .B wakeupperiod
 Specifies how often the grid-manager checks for new jobs arrived, jobs
 finished in LRMS, etc. The value should be an integer representing a
