@@ -48,7 +48,7 @@ namespace DataStaging {
 
         DTR* dtr = i->first;
 
-        if (dtr->get_modification_time() < timelimit) {
+        if (dtr->get_modification_time() < timelimit && dtr->get_status() != DTRStatus::TRANSFERRING) {
           if (dtr->error()) {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state ERROR", dtr->get_id());
             archived_dtrs[dtr->get_id()] = "ERROR";
@@ -370,6 +370,45 @@ namespace DataStaging {
    </DataDeliveryCancelResponse>
    */
   Arc::MCC_Status DataDeliveryService::Cancel(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user) {
+
+    Arc::XMLNode resp = out.NewChild("DataDeliveryCancelResponse");
+    Arc::XMLNode results = resp.NewChild("DataDeliveryCancelResult");
+
+    for (int n = 0;;++n) {
+      Arc::XMLNode dtrnode = in["DataDeliveryCancel"]["DTR"][n];
+
+      if (!dtrnode) break;
+
+      std::string dtrid((std::string)dtrnode["ID"]);
+
+      Arc::XMLNode resultelement = results.NewChild("Result");
+      resultelement.NewChild("ID") = dtrid;
+
+      // Check if DTR is still in active list
+      active_dtrs_lock.lock();
+      std::map<DTR*, std::stringstream*>::iterator dtr_it = active_dtrs.begin();
+      for (; dtr_it != active_dtrs.end(); ++dtr_it) {
+        if (dtr_it->first->get_id() == dtrid) break;
+      }
+
+      if (dtr_it == active_dtrs.end()) {
+        active_dtrs_lock.unlock();
+        logger.msg(Arc::ERROR, "No active DTR %s", dtrid);
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "No such active DTR";
+        continue;
+      }
+      // DTR could be already finished, but report successful cancel anyway
+
+      DTR * dtr = dtr_it->first;
+      // Delivery will automatically kill running process
+      dtr->set_cancel_request();
+
+      logger.msg(Arc::INFO, "DTR %s cancelled", dtr->get_id());
+      resultelement.NewChild("ResultCode") = "OK";
+      active_dtrs_lock.unlock();
+    }
+
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
 

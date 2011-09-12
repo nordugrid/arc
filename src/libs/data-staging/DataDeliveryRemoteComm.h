@@ -32,6 +32,9 @@ namespace DataStaging {
     /// Logger object (main log, not DTR's log)
     static Arc::Logger logger;
 
+    /// Cancel a DTR, by sending a cancel request to the service
+    void CancelDTR();
+
     /// Fill Status object with data in node. If empty fields are initialised
     /// to default values.
     void FillStatus(const Arc::XMLNode& node = Arc::XMLNode());

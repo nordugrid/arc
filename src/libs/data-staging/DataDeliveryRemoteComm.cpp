@@ -69,7 +69,7 @@ namespace DataStaging {
     // delegate credentials
     Arc::XMLNode op = request.Child(0);
     if (!SetupDelegation(op, dtr.get_usercfg())) {
-      logger_->msg(Arc::ERROR, "Failed to set up credential delegation");
+      logger_->msg(Arc::ERROR, "DTR %s: Failed to set up credential delegation", dtr_id);
       return;
     }
 
@@ -121,9 +121,55 @@ namespace DataStaging {
   }
 
   DataDeliveryRemoteComm::~DataDeliveryRemoteComm() {
-    // if transfer is still going, send cancellation request to service
-    if(handler_) handler_->Remove(this);
+    // If transfer is still going, send cancellation request to service
+    if (valid) CancelDTR();
+    if (handler_) handler_->Remove(this);
     delete client;
+  }
+
+  void DataDeliveryRemoteComm::CancelDTR() {
+    if (!client) return;
+    Arc::NS ns;
+    Arc::PayloadSOAP request(ns);
+    Arc::XMLNode dtrnode = request.NewChild("DataDeliveryCancel").NewChild("DTR");
+
+    dtrnode.NewChild("ID") = dtr_full_id;
+
+    std::string xml;
+    request.GetXML(xml, true);
+    if (logger_) logger_->msg(Arc::DEBUG, "DTR %s: Request:\n%s", dtr_id, xml);
+
+    Arc::PayloadSOAP *response = NULL;
+
+    Arc::MCC_Status status = client->process(&request, &response);
+
+    if (!status) {
+      if (logger_) logger_->msg(Arc::ERROR, "DTR %s: Failed to send cancel request: %s", dtr_id, (std::string)status);
+      if (response)
+        delete response;
+      return;
+    }
+
+    if (!response) {
+      if (logger_) logger_->msg(Arc::ERROR, "DTR %s: Failed to cancel: No SOAP response", dtr_id);
+      return;
+    }
+
+    response->GetXML(xml, true);
+    if (logger_) logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
+
+    Arc::XMLNode resultnode = (*response)["DataDeliveryCancelResponse"]["DataDeliveryCancelResult"]["Result"][0];
+    if (!resultnode || !resultnode["ResultCode"]) {
+      logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response: %s", dtr_id, xml);
+      delete response;
+      return;
+    }
+
+    if ((std::string)resultnode["ResultCode"] != "OK") {
+      Arc::XMLNode errnode = resultnode["ErrorDescription"];
+      if (logger_) logger_->msg(Arc::ERROR, "DTR %s: Failed to cancel: %s", dtr_id, (std::string)errnode);
+    }
+    delete response;
   }
 
   void DataDeliveryRemoteComm::PullStatus() {
@@ -259,6 +305,7 @@ namespace DataStaging {
         if (log.size() > 2000) log = log.substr(log.find('\n', log.size()-2000));
         logger_->msg(Arc::INFO, "DTR %s: DataDelivery log tail:\n%s", dtr_id, log);
       }
+      valid = false;
     }
   }
 
@@ -268,25 +315,25 @@ namespace DataStaging {
     const std::string& key  = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.KeyPath());
 
     if (key.empty() || cert.empty()) {
-      logger_->msg(Arc::VERBOSE, "Failed locating credentials.");
+      logger_->msg(Arc::VERBOSE, "DTR %s: Failed locating credentials", dtr_id);
       return false;
     }
 
     if(!client->Load()) {
-      logger_->msg(Arc::VERBOSE, "Failed initiate client connection.");
+      logger_->msg(Arc::VERBOSE, "DTR %s: Failed to initiate client connection", dtr_id);
       return false;
     }
 
     Arc::MCC* entry = client->GetEntry();
     if(!entry) {
-      logger_->msg(Arc::VERBOSE, "Client connection has no entry point.");
+      logger_->msg(Arc::VERBOSE, "DTR %s: Client connection has no entry point", dtr_id);
       return false;
     }
 
     Arc::DelegationProviderSOAP deleg(cert, key);
-    logger_->msg(Arc::VERBOSE, "Initiating delegation procedure");
+    logger_->msg(Arc::VERBOSE, "DTR %s: Initiating delegation procedure", dtr_id);
     if (!deleg.DelegateCredentialsInit(*entry, &(client->GetContext()))) {
-      logger_->msg(Arc::VERBOSE, "Failed to initiate delegation credentials");
+      logger_->msg(Arc::VERBOSE, "DTR %s: Failed to initiate delegation credentials", dtr_id);
       return false;
     }
     deleg.DelegatedToken(op);
