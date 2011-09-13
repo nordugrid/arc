@@ -454,7 +454,7 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
     if (holder.GetEndTime() < now)
       std::cout << Arc::IString("Time left for proxy: Proxy expired") << std::endl;
-    else if (now < signer.GetStartTime())
+    else if (now < holder.GetStartTime())
       std::cout << Arc::IString("Time left for proxy: Proxy not valid yet") << std::endl;
     else
       std::cout << Arc::IString("Time left for proxy: %s", (holder.GetEndTime() - now).istr()) << std::endl;
