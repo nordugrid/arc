@@ -238,12 +238,14 @@ namespace Arc {
     TargetGenerator& mom = *thrarg->mom;
     const UserConfig& usercfg = *thrarg->usercfg;
 
+    std::string emptycadir;
+    std::string emptycafile;
     //Create credential object in order to get the user DN
     Credential credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
                                                          usercfg.CertificatePath(),
                           !usercfg.ProxyPath().empty() ? usercfg.ProxyPath() :
                                                          usercfg.KeyPath(),
-                          usercfg.CACertificatesDirectory(), "");
+                          emptycadir, emptycafile);
 
     //Query GRIS for all relevant information
     URL url = thrarg->url;

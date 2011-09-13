@@ -449,15 +449,15 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
 
-    Arc::Credential holder(proxy_path, "", ca_dir, "");
+    Arc::Credential holder(proxy_path, "", "", "");
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
     if (holder.GetEndTime() < now)
       std::cout << Arc::IString("Time left for proxy: Proxy expired") << std::endl;
-    else if (holder.GetVerification())
-      std::cout << Arc::IString("Time left for proxy: %s", (holder.GetEndTime() - now).istr()) << std::endl;
+    else if (now < signer.GetStartTime())
+      std::cout << Arc::IString("Time left for proxy: Proxy not valid yet") << std::endl;
     else
-      std::cout << Arc::IString("Time left for proxy: Proxy not valid") << std::endl;
+      std::cout << Arc::IString("Time left for proxy: %s", (holder.GetEndTime() - now).istr()) << std::endl;
     std::cout << Arc::IString("Proxy path: %s", proxy_path) << std::endl;
     std::cout << Arc::IString("Proxy type: %s", certTypeToString(holder.GetType())) << std::endl;
 
@@ -614,7 +614,7 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("URL of MyProxy server is missing");
 
       if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        Arc::Credential proxy_cred(proxy_path, "", "", "");
         std::string cert_dn = proxy_cred.GetIdentityName();
         user_name = cert_dn;
       }
@@ -658,7 +658,7 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("URL of MyProxy server is missing");
 
       if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        Arc::Credential proxy_cred(proxy_path, "", "", "");
         std::string cert_dn = proxy_cred.GetIdentityName();
         user_name = cert_dn;
       }
@@ -716,7 +716,7 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("URL of MyProxy server is missing");
 
       if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        Arc::Credential proxy_cred(proxy_path, "", "", "");
         std::string cert_dn = proxy_cred.GetIdentityName();
         user_name = cert_dn;
       }
@@ -767,7 +767,7 @@ int main(int argc, char *argv[]) {
         throw std::invalid_argument("URL of MyProxy server is missing");
 
       if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        Arc::Credential proxy_cred(proxy_path, "", "", "");
         std::string cert_dn = proxy_cred.GetIdentityName();
         user_name = cert_dn;
       }
@@ -820,7 +820,7 @@ int main(int argc, char *argv[]) {
   try {
     std::cout << Arc::IString("Your identity: %s", Arc::Credential(cert_path, "", "", "").GetDN()) << std::endl;
 
-    Arc::Credential signer(cert_path, key_path, ca_dir, "");
+    Arc::Credential signer(cert_path, key_path, "", "");
     if (now > signer.GetEndTime()) {
       std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;
       return EXIT_FAILURE;
@@ -1143,7 +1143,7 @@ int main(int argc, char *argv[]) {
                    + Arc::tostring(user.get_uid()) + Arc::tostring((int)(getpid())));
     write_proxy_file(proxy_path,proxy_cert);
 
-    Arc::Credential proxy_cred(proxy_path, proxy_path, ca_dir, "");
+    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "");
     Arc::Time left = proxy_cred.GetEndTime();
     std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
     std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;
@@ -1162,7 +1162,7 @@ int main(int argc, char *argv[]) {
       if (myproxy_server.empty())
         throw std::invalid_argument("URL of MyProxy server is missing");
       if(user_name.empty()) {
-        Arc::Credential proxy_cred(proxy_path, "", ca_dir, "");
+        Arc::Credential proxy_cred(proxy_path, "", "", "");
         std::string cert_dn = proxy_cred.GetIdentityName();
         user_name = cert_dn;
       }

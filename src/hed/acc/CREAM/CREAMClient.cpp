@@ -439,7 +439,9 @@ namespace Arc {
     }
 
     //Sign the proxy certificate
-    Credential signer(proxy, "", cadir, cafile);
+    std::string emptycadir;
+    std::string emptycafile;
+    Credential signer(proxy, "", emptycadir, emptycafile);
     std::string signedCert;
     // TODO: Hardcoded time shift - VERY BAD approach
     Time start_time = Time() - Period(300);
