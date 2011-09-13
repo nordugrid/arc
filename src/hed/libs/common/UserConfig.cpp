@@ -389,7 +389,7 @@ namespace Arc {
 
     if (!proxyPath.empty())
       logger.msg(INFO, "Using proxy file: %s", proxyPath);
-    if (!certificatePath.empty() && !keyPath.empty()) {
+    if ((!certificatePath.empty()) && (!keyPath.empty())) {
       logger.msg(INFO, "Using certificate file: %s", certificatePath);
       logger.msg(INFO, "Using key file: %s", keyPath);
     }
