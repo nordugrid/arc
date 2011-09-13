@@ -360,30 +360,47 @@ namespace Arc {
       keyPath.clear();
     }
 
-    if (!GetEnv("X509_CERT_DIR").empty()) {
-      if (!Glib::file_test(caCertificatesDirectory = GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
-        caCertificatesDirectory.clear();
+    if(initializeCredentials != initializeCredentialsType::SkipCACredentials) {
+      if (!GetEnv("X509_CERT_DIR").empty()) {
+        if (!Glib::file_test(caCertificatesDirectory = GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
+          logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+          caCertificatesDirectory.clear();
+        }
+      }
+      else if (!caCertificatesDirectory.empty()) {
+        if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_IS_DIR)) {
+          logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+          caCertificatesDirectory.clear();
+        }
+      }
+      //TODO: remove that Globusism
+      else if ((user.get_uid() == 0 || !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) &&
+               !Glib::file_test(caCertificatesDirectory = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+               !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+               !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+               !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
+        caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
+        if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
+          logger.msg(WARNING, "Can not find CA certificate directory in default locations: ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
+          caCertificatesDirectory.clear();
+        }
       }
     }
-    else if (!caCertificatesDirectory.empty()) {
-      if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
-        caCertificatesDirectory.clear();
-      }
+
+    if (!proxyPath.empty())
+      logger.msg(INFO, "Using proxy file: %s", proxyPath);
+    if (!certificatePath.empty() && !keyPath.empty()) {
+      logger.msg(INFO, "Using certificate file: %s", certificatePath);
+      logger.msg(INFO, "Using key file: %s", keyPath);
     }
-    //TODO: remove that Globusism
-    else if ((user.get_uid() == 0 || !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) &&
-             !Glib::file_test(caCertificatesDirectory = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-             !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-             !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-             !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
-      caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
-      if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
-        logger.msg(WARNING, "Can not find CA certificate directory in default locations: ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
-        caCertificatesDirectory.clear();
-      }
-    }
+
+    if (!caCertificatesDirectory.empty())
+      logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
+  }
+
+  const std::string& UserConfig::VOMSServerPath() { 
+    if(!vomsServerPath.empty()) return vomsServerPath;
+
     //vomsServerPath could be regular file or directory, therefore only existence is checked here.
     //multiple voms paths under one vomsServerPath is processed under arcproxy implementation.
     if (!GetEnv("X509_VOMS_FILE").empty()) {
@@ -421,15 +438,7 @@ namespace Arc {
       }
     }
 
-    if (!proxyPath.empty())
-      logger.msg(INFO, "Using proxy file: %s", proxyPath);
-    if (!certificatePath.empty() && !keyPath.empty()) {
-      logger.msg(INFO, "Using certificate file: %s", certificatePath);
-      logger.msg(INFO, "Using key file: %s", keyPath);
-    }
-
-    if (!caCertificatesDirectory.empty())
-      logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
+    return vomsServerPath; 
   }
 
   bool UserConfig::LoadConfigurationFile(const std::string& conffile, bool ignoreJobListFile) {

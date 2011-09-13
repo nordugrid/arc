@@ -724,7 +724,7 @@ namespace Arc {
      * @return The path to VOMS configuration file is returned.
      * @see VOMSServerPath(const std::string&)
      **/
-    const std::string& VOMSServerPath() const { return vomsServerPath; }
+    const std::string& VOMSServerPath();
 
     /// Set user-name for SLCS
     /**

@@ -357,7 +357,8 @@ int main(int argc, char *argv[]) {
   if(!key_path.empty())Arc::SetEnv("X509_USER_KEY", key_path);
   if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
   if(!ca_dir.empty())Arc::SetEnv("X509_CERT_DIR", ca_dir);
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+
+  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType((!vomslist.empty() || !myproxy_command.empty()) ? Arc::initializeCredentialsType::TryCredentials : Arc::initializeCredentialsType::SkipCACredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return EXIT_FAILURE;
