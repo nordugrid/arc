@@ -375,42 +375,11 @@ int main(int argc, char *argv[]) {
     if (!params.empty())
       throw std::invalid_argument("Wrong number of arguments!");
 
-    //if (key_path.empty())
-    //  key_path = Arc::GetEnv("X509_USER_KEY");
     if (key_path.empty())
       key_path = usercfg.KeyPath();
-    //if (key_path.empty())
-#ifndef WIN32
-    //  key_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
-#else
-    //  key_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem";
-#endif
-    //if (!Glib::file_test(key_path, Glib::FILE_TEST_IS_REGULAR))
-    //  key_path = "";
-    //if (key_path.empty()) {
-    //  logger.msg(Arc::ERROR, "Cannot find the path of the key file, "
-    //             "please setup environment X509_USER_KEY, "
-    //             "or keypath in a configuration file");
-    //  return EXIT_FAILURE;
-    //}
-    //else if (!(Glib::file_test(key_path, Glib::FILE_TEST_EXISTS))) {
-    //  logger.msg(Arc::ERROR, "Cannot find file at %s for getting the key. "
-    //             "Please make sure this file exists.", key_path);
-    //  return EXIT_FAILURE;
-    //}
 
-    //if (cert_path.empty())
-    //  cert_path = Arc::GetEnv("X509_USER_CERT");
     if (cert_path.empty())
       cert_path = usercfg.CertificatePath();
-    //if (cert_path.empty())
-#ifndef WIN32
-    //  cert_path = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
-#else
-    //  cert_path = std::string(g_get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem";
-#endif
-    //if (!Glib::file_test(cert_path, Glib::FILE_TEST_IS_REGULAR))
-    //  cert_path = "";
     if (cert_path.empty()) {
       logger.msg(Arc::ERROR, "Cannot find the path of the certificate file, "
                  "please setup environment X509_USER_CERT, "
@@ -435,10 +404,12 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (ca_dir.empty()) {
-    logger.msg(Arc::ERROR, "Cannot find the CA Certificate Directory path, "
+  if (ca_dir.empty() && (!vomslist.empty() || !myproxy_command.empty())) {
+    logger.msg(Arc::ERROR, "Cannot find the CA certificates directory path, "
                "please set environment variable X509_CERT_DIR, "
                "or cacertificatesdirectory in a configuration file");
+    logger.msg(Arc::ERROR, "The CA certificates directory is required by voms or myproxy functionality"
+               "when contacting voms or myproxy server");
     return EXIT_FAILURE;
   }
 
@@ -849,13 +820,12 @@ int main(int argc, char *argv[]) {
     std::cout << Arc::IString("Your identity: %s", Arc::Credential(cert_path, "", "", "").GetDN()) << std::endl;
 
     Arc::Credential signer(cert_path, key_path, ca_dir, "");
-    if((signer.GetVerification()) == false) {
-      if (now > signer.GetEndTime())
-        std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;
-      else if (now < signer.GetStartTime())
-        std::cerr << Arc::IString("Proxy generation failed: Certificate is not valid yet.") << std::endl;
-      else
-        std::cerr << Arc::IString("Proxy generation failed: Unable to verify certificate.") << std::endl;
+    if (now > signer.GetEndTime()) {
+      std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;
+      return EXIT_FAILURE;
+    }
+    else if (now < signer.GetStartTime()) {
+      std::cerr << Arc::IString("Proxy generation failed: Certificate is not valid yet.") << std::endl;
       return EXIT_FAILURE;
     }
 
@@ -891,14 +861,7 @@ int main(int argc, char *argv[]) {
         throw std::runtime_error("Failed to sign proxy");
       proxy_cert.append(private_key).append(signing_cert).append(signing_cert_chain);
       write_proxy_file(proxy_path,proxy_cert);
-/*
-      signer.SignRequest(&cred_request, proxy_path.c_str());
-      std::ofstream out_f(proxy_path.c_str(), std::ofstream::app);
-      out_f.write(private_key.c_str(), private_key.size());
-      out_f.write(signing_cert.c_str(), signing_cert.size());
-      out_f.write(signing_cert_chain.c_str(), signing_cert_chain.size());
-      out_f.close();
-*/
+
       //Parse the voms server and command from command line
       std::multimap<std::string, std::string> server_command_map;
       for (std::list<std::string>::iterator it = vomslist.begin();
@@ -915,10 +878,6 @@ int main(int argc, char *argv[]) {
 
       //Parse the 'vomses' file to find configure lines corresponding to
       //the information from the command line
-      //if (vomses_path.empty())
-      //  vomses_path = Arc::GetEnv("X509_VOMS_FILE");
-      //if (vomses_path.empty())
-      //  vomses_path = Arc::GetEnv("X509_VOMSES");
       if (vomses_path.empty())
         vomses_path = usercfg.VOMSServerPath();
       if (vomses_path.empty()) {
@@ -943,97 +902,6 @@ int main(int argc, char *argv[]) {
         if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
         files.clear();
       }
-/*
-      else if (vomses_path.empty() || !is_file(vomses_path)) {
-        std::vector<std::string> files;
-        if(!vomses_path.empty()) {
-          files = search_vomses(vomses_path);
-          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-          files.clear();
-        }
-        else {
-          std::string path1, path2, path3, path4, path5, path6;
-          path1 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-          path2 = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses"; 
-          path3 = G_DIR_SEPARATOR_S; path3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
-          path4 = Arc::ArcLocation::Get() + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
-          path5 = G_DIR_SEPARATOR_S; path5.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
-
-          files = search_vomses(path1);
-          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-          files.clear();
-
-          files = search_vomses(path2);
-          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-          files.clear();
-
-          files = search_vomses(path3);
-          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-          files.clear();
-
-          files = search_vomses(path4);
-          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-          files.clear();
-
-          files = search_vomses(path5);
-          if(!files.empty())vomses_files.insert(vomses_files.end(), files.begin(), files.end());
-          files.clear();
-       
-          if(vomses_files.empty()) {
-            std::string tmp1, tmp2;
-            tmp1 = path1;
-            tmp1.append(G_DIR_SEPARATOR_S).append("voA");
-            tmp2 = path1;
-            tmp2.append(G_DIR_SEPARATOR_S).append("extra").append(G_DIR_SEPARATOR_S).append("myprivatevo");
-            logger.msg(Arc::ERROR, "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\nUser has not specify the location for vomses information;\nThere is also not vomses location information in user's configuration file;\nCannot find vomses at %s, %s, %s, %s, %s, and the location at the corresponding sub-directory, such as %s, %s", path1, path2, path3, path4, path5, tmp1, tmp2);
-            return EXIT_FAILURE;
-          }      
-        }
-      }  
-*/
-
-/*
-      if (vomses_path.empty() {
-        vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-        if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-          vomses_path = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses";
-          if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-            vomses_path = G_DIR_SEPARATOR_S;
-            vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
-            if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-              vomses_path = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
-              if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                vomses_path = G_DIR_SEPARATOR_S;
-                vomses_path.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
-                //search /etc/vomses recursively
-                //search /etc/vomses/vomses
-                if (Glib::file_test(vomses_path, Glib::FILE_TEST_IS_DIR)) {
-                  std::string tmp = vomses_path;
-                  tmp.append(G_DIR_SEPARATOR_S).append("vomses");             
-                  //search /etc/vomses/vomses/vomses
-                  if (Glib::file_test(vomses_path, Glib::FILE_TEST_IS_DIR)) {
-                    std::string tmp = vomses_path;
-                    tmp.append(G_DIR_SEPARATOR_S).append("vomses");
-                  }
-                }
-                else if (!Glib::file_test(vomses_path, Glib::FILE_TEST_IS_REGULAR)) {
-                  std::string tmp1 = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses";
-                  std::string tmp2 = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses";
-                  std::string tmp3 = G_DIR_SEPARATOR_S;
-                  tmp3.append("etc").append(G_DIR_SEPARATOR_S).append("grid-security").append(G_DIR_SEPARATOR_S).append("vomses");
-                  std::string tmp4 = Arc::ArcLocation::Get() + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses";
-                  std::string tmp5 = G_DIR_SEPARATOR_S;
-                  tmp5.append("etc").append(G_DIR_SEPARATOR_S).append("vomses");
-                  logger.msg(Arc::ERROR, "$X509_VOMS_DIR, $X509_VOMS_FILE, and $X509_VOMSES are not set;\n there is also not vomses location information in user's configuration file;\n Cannot find vomses at %s, %s, %s, %s and %s",
-                             tmp1, tmp2, tmp3, tmp4, tmp5);
-                  return EXIT_FAILURE;
-                }
-              }
-            }
-          }
-        }
-      }
-*/
 
       std::map<std::string, std::vector<std::vector<std::string> > > matched_voms_line;
       for(std::vector<std::string>::iterator file_i = vomses_files.begin(); file_i != vomses_files.end(); file_i++) {
