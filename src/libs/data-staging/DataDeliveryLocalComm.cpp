@@ -149,7 +149,7 @@ namespace DataStaging {
               status_.commstatus = CommFailed;
             }
           }
-          delete child_; child_=NULL; break;
+          delete child_; child_=NULL; return;
         }
         if(l == 0) break;
         status_pos_+=l;
