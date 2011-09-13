@@ -200,7 +200,8 @@ void JobsList::CalculateShares(){
   int privileged_jobs_processing = 0;
   int privileged_preparing_job_share = 0;
   int privileged_finishing_job_share = 0;
-  for (std::map<std::string, int>::iterator i = jcfg.limited_share.begin(); i != jcfg.limited_share.end(); i++) {
+  std::map<std::string, int> limited_shares = jcfg.limited_share;
+  for (std::map<std::string, int>::iterator i = limited_shares.begin(); i != limited_shares.end(); i++) {
     if (pre_preparing_job_share.find(i->first) != pre_preparing_job_share.end()) {
       privileged_preparing_job_share++;
       privileged_jobs_processing += i->second;
@@ -257,21 +258,23 @@ void JobsList::CalculateShares(){
     unprivileged_finishing_limit = unprivileged_finishing_limit < 2 ? 1 : unprivileged_finishing_limit/2;
   }
 
-  if (jcfg.max_jobs_processing > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2)
-  for (std::map<std::string, int>::iterator i = jcfg.limited_share.begin(); i != jcfg.limited_share.end(); i++)
-    i->second = i->second < 2 ? 1 : i->second/2; 
+  if (jcfg.max_jobs_processing > 0 && privileged_total_pre_preparing > privileged_jobs_processing/2 && privileged_total_pre_finishing > privileged_jobs_processing/2) {
+    for (std::map<std::string, int>::iterator i = limited_shares.begin(); i != limited_shares.end(); i++) {
+      i->second = i->second < 2 ? 1 : i->second/2;
+    }
+  }
       
   preparing_max_share = pre_preparing_job_share;
   finishing_max_share = pre_finishing_job_share;
   for (std::map<std::string, int>::iterator i = preparing_max_share.begin(); i != preparing_max_share.end(); i++){
-    if (jcfg.limited_share.find(i->first) != jcfg.limited_share.end())
-      i->second = jcfg.limited_share[i->first];
+    if (limited_shares.find(i->first) != limited_shares.end())
+      i->second = limited_shares[i->first];
     else
       i->second = unprivileged_preparing_limit;
   }
   for (std::map<std::string, int>::iterator i = finishing_max_share.begin(); i != finishing_max_share.end(); i++){
-    if (jcfg.limited_share.find(i->first) != jcfg.limited_share.end())
-      i->second = jcfg.limited_share[i->first];
+    if (limited_shares.find(i->first) != limited_shares.end())
+      i->second = limited_shares[i->first];
     else
       i->second = unprivileged_finishing_limit;
   }
