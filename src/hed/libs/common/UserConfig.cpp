@@ -298,24 +298,28 @@ namespace Arc {
 
   void UserConfig::InitializeCredentials() {
     const User user;
+    bool has_proxy = false;
     // Look for credentials.
     if (!GetEnv("X509_USER_PROXY").empty()) {
       if (!Glib::file_test(proxyPath = GetEnv("X509_USER_PROXY"), Glib::FILE_TEST_IS_REGULAR)) {
         logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
         proxyPath.clear();
       }
+      else has_proxy = true;
     }
     else if (!proxyPath.empty()) {
       if (!Glib::file_test(proxyPath, Glib::FILE_TEST_IS_REGULAR)) {
         logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
         proxyPath.clear();
       }
+      else has_proxy = true;
     }
     else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
       if (initializeCredentials == initializeCredentialsType::RequireCredentials) {
         logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
         proxyPath.clear();
       }
+      else has_proxy = true;
     }
     if (!GetEnv("X509_USER_CERT").empty() &&
              !GetEnv("X509_USER_KEY").empty()) {
@@ -338,26 +342,37 @@ namespace Arc {
         keyPath.clear();
       }
     }
-    else if (user.get_uid() == 0) { //TODO: remove that Globusism
-      certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
-      keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
-    }
     else {
-      certificatePath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
-      keyPath = Glib::build_filename(user.Home(), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
-#ifdef WIN32
-      certificatePath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S +  std::string("usercert.pem"));
-      keyPath = Glib::build_filename(std::string(g_get_home_dir()), std::string(".globus") + G_DIR_SEPARATOR_S + std::string("userkey.pem"));
+      if (user.get_uid() == 0) {
+        certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
+        keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
+        if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
+          logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
+          certificatePath.clear();
+        }
+        if (!Glib::file_test(keyPath, Glib::FILE_TEST_IS_REGULAR)) {
+          logger.msg(ERROR, "Can not access key file: %s", keyPath);
+          keyPath.clear();
+        }
+      }
+      else if(
+#ifndef WIN32
+        !Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
+#else 
+        !Glib::file_test(certificatePath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(keyPath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
 #endif
-    }
-
-    if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
-      certificatePath.clear();
-    }
-    if (!Glib::file_test(keyPath, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(ERROR, "Can not access key file: %s", keyPath);
-      keyPath.clear();
+        !Glib::file_test(certificatePath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(keyPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(certificatePath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        !Glib::file_test(keyPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) {
+        if((has_proxy == false) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
+          logger.msg(WARNING, "Can not find certificate/key (usercert.pem, userkey.pem) in default location: ~/.arc/, ~/.globus/, $ARC_LOCATION/etc/arc, and $PWD/; And proxy certificate path has not been set and does not existing in /tmp; Please manually specify the certificate/key location, or use arcproxy to create a proxy certificte");
+        certificatePath.clear(); keyPath.clear();
+      }
     }
 
     if(initializeCredentials != initializeCredentialsType::SkipCACredentials) {
@@ -373,15 +388,20 @@ namespace Arc {
           caCertificatesDirectory.clear();
         }
       }
-      //TODO: remove that Globusism
-      else if ((user.get_uid() == 0 || !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) &&
-               !Glib::file_test(caCertificatesDirectory = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+      else if (user.get_uid() == 0 || 
+#ifndef WIN32
+               !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+               !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+#else
+               !Glib::file_test(caCertificatesDirectory = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+               !Glib::file_test(caCertificatesDirectory = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
+#endif
                !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
                !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
                !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
         caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
         if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
-          logger.msg(WARNING, "Can not find CA certificate directory in default locations: ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
+          logger.msg(WARNING, "Can not find CA certificate directory in default locations: ~/.arc/certificates, ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
           caCertificatesDirectory.clear();
         }
       }
