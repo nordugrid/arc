@@ -101,6 +101,9 @@ class InfoRegistrar {
         InfoRegistrar(XMLNode cfg);
         // Configuration parameters
         std::string id_;
+        // Type of the information system connected to (EMIREG, ISIS, etc.)
+        std::string infosys_type;
+        std::string path;
         int retry;
         // Security attributes
         std::string key_;
@@ -134,6 +137,13 @@ class InfoRegistrar {
         void getISISList(ISIS_description isis);
         ISIS_description getISIS(void);
         // End of ISIS handle attributes & functions
+
+        // Sending functions
+        bool already_registered;
+        void sendRegistrationToISIS();
+        void sendRegistrationToEMIREG();
+        void sendDeleteToISIS(std::list<Register_Info_Type>::iterator r);
+        void sendDeleteToEMIREG(std::list<Register_Info_Type>::iterator r);
 
     public:
         ~InfoRegistrar(void);
