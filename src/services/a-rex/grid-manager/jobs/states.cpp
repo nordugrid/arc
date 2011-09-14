@@ -1566,15 +1566,17 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         if(i->job_state == JOB_STATE_INLRMS) {
           i->job_state = JOB_STATE_CANCELING;
         }
+        // if new data staging we wait to get back all DTRs
         else if(i->job_state == JOB_STATE_FINISHING) {
-          i->job_state = JOB_STATE_FINISHED;
-          if(GetLocalDescription(i)) {
-            if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
-              jcfg.jobs_dn.erase(i->local->DN);
+          if (!jcfg.use_new_data_staging) {
+            i->job_state = JOB_STATE_FINISHED;
+            if(GetLocalDescription(i)) {
+              if (--(jcfg.jobs_dn[i->local->DN]) <= 0)
+                jcfg.jobs_dn.erase(i->local->DN);
+            }
           }
         }
         else if (!jcfg.use_new_data_staging || i->job_state != JOB_STATE_PREPARING) {
-          // if preparing with new data staging we wait to get back all DTRs
           i->job_state = JOB_STATE_FINISHING;
           finishing_job_share[i->transfer_share]++;
         };
