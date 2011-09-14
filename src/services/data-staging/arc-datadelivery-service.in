@@ -399,8 +399,13 @@ stop() {
                 log_failure_msg
             fi
 
-            sleep 1
-            kill -9 "$pid" 1>/dev/null 2>&1
+            timeout=10; # enough time to kill any active processes
+            while ( ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [ $timeout -ge 1 ] ; do
+                sleep 1
+                timeout=$(($timeout - 1))
+            done
+
+            [ $timeout -lt 1 ] && kill -9 "$pid" 1>/dev/null 2>&1
             rm -f "$PID_FILE" "$LOCKFILE"
         else
             RETVAL=1

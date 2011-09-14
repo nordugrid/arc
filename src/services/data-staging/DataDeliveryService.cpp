@@ -469,6 +469,7 @@ namespace DataStaging {
     // Stop accepting new requests and cancel all active transfers
     // DataDelivery destructor automatically calls stop()
     valid = false;
+    logger.msg(Arc::INFO, "Shutting down data delivery service");
   }
 
   Arc::MCC_Status DataDeliveryService::process(Arc::Message &inmsg, Arc::Message &outmsg) {

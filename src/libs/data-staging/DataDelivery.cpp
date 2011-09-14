@@ -192,6 +192,14 @@ namespace DataStaging {
       // TODO: replace with condition
       Glib::usleep(500000);
     }
+    // Kill any transfers still running
+    dtr_list_lock.lock();
+    for (std::list<delivery_pair_t*>::iterator d = dtr_list.begin(); d != dtr_list.end();) {
+      delete *d;
+      d = dtr_list.erase(d);
+    }
+    dtr_list_lock.unlock();
+
     logger.msg(Arc::INFO, "Data delivery loop exited");
     run_signal.signal();
   }

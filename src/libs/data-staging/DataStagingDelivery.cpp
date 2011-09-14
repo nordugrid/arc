@@ -17,6 +17,13 @@
 using namespace Arc;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "DataDelivery");
+static bool shutdown = false;
+
+static void sig_shutdown(int)
+{
+    if(shutdown) _exit(0);
+    shutdown = true;
+}
 
 static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
                          DataStaging::DTRErrorStatus::DTRErrorStatusType err,
@@ -219,6 +226,10 @@ int main(int argc,char* argv[]) {
   dest->SetSecure(false);
   dest->Passive(true);
 
+  // set signal handlers
+  signal(SIGTERM, sig_shutdown);
+  signal(SIGINT, sig_shutdown);
+
   // Filling initial report buffer
   ReportStatus(DataStaging::DTRStatus::NULL_STATE,
                DataStaging::DTRErrorStatus::NONE_ERROR,
@@ -283,7 +294,7 @@ int main(int argc,char* argv[]) {
   // While transfer is running in another threads
   // here we periodically report status to parent
   bool eof_reached = false;
-  for(;!buffer.error();) {
+  for(;!buffer.error() && !shutdown;) {
     if(buffer.eof_read() && buffer.eof_write()) {
       eof_reached = true; break;
     };
@@ -295,6 +306,17 @@ int main(int argc,char* argv[]) {
                  GetFileSize(*source,*dest));
     buffer.wait_any();
   };
+  if (shutdown) {
+    ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
+                 DataStaging::DTRErrorStatus::INTERNAL_PROCESS_ERROR,
+                 DataStaging::DTRErrorStatus::ERROR_TRANSFER,
+                 "DataStagingProcess process killed",
+                 buffer.speed.transferred_size(),
+                 GetFileSize(*source,*dest));
+    buffer.error_write(true); // to trigger cleanup of destination
+    dest->StopWriting();
+    _exit(-1);
+  }
   ReportStatus(DataStaging::DTRStatus::TRANSFERRING,
                DataStaging::DTRErrorStatus::NONE_ERROR,
                DataStaging::DTRErrorStatus::NO_ERROR_LOCATION,
