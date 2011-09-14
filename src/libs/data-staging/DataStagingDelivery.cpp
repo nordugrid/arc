@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include <arc/OptionParser.h>
