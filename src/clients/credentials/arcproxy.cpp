@@ -559,21 +559,17 @@ int main(int argc, char *argv[]) {
   if(!constraints["validityPeriod"].empty())
     convert_period(constraints["validityPeriod"]);
  
- //voms AC valitity period
+  //voms AC valitity period
   if(!constraints["vomsACvalidityPeriod"].empty())
     convert_period(constraints["vomsACvalidityPeriod"]);
 
   //Set the default voms AC validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["vomsACvalidityPeriod"].empty()) {
-    if ((constraints["validityEnd"].empty()) &&
-        (constraints["validityPeriod"].empty()))
-      constraints["vomsACvalidityPeriod"] = "43200";
-    else if ((constraints["validityEnd"].empty()) &&
-             (!(constraints["validityPeriod"].empty())))
+    if (!constraints["validityPeriod"].empty())
       constraints["vomsACvalidityPeriod"] = constraints["validityPeriod"];
-    else
-      constraints["vomsACvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
+    else if (!(constraints["validityPeriod"].empty()))
+      constraints["vomsACvalidityPeriod"] = "43200";
   }
 
   unsigned long period_val;
@@ -590,14 +586,10 @@ int main(int argc, char *argv[]) {
   //Set the default myproxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["myproxyvalidityPeriod"].empty()) {
-    if ((constraints["validityEnd"].empty()) &&
-        (constraints["validityPeriod"].empty())) 
-      constraints["myproxyvalidityPeriod"] = "43200";
-    else if ((constraints["validityEnd"].empty()) &&
-             (!(constraints["validityPeriod"].empty())))
+    if (!constraints["validityPeriod"].empty())
       constraints["myproxyvalidityPeriod"] = constraints["validityPeriod"];
-    else
-      constraints["myproxyvalidityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - Arc::Time(constraints["validityStart"]));
+    else if (!(constraints["validityPeriod"].empty()))
+      constraints["myproxyvalidityPeriod"] = "43200";
   }
 
   std::string myproxy_period = Arc::tostring(Arc::Period(constraints["myproxyvalidityPeriod"]).GetPeriod());
