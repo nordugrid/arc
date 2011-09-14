@@ -181,7 +181,7 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   delete response; response=NULL;
   
   long lifetime = 3600 * 24 * 7; 
-  Arc::Credential proxy(Time(),Period(lifetime),1024,"rfc","inheritAll","",-1);
+  Arc::Credential proxy(Time()- Arc::Period(300),Period(lifetime),1024);
   // DER binary request
   if(!proxy.InquireRequest(credrequest, false, true)) return false;
   std::string signercred = cred;
