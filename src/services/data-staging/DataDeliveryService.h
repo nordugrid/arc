@@ -67,6 +67,9 @@ namespace DataStaging {
     /// DTR itself.
     void cleanDTR(DTR* dtr);
 
+    /// Sanity check on file sources and destinations
+    bool CheckInput(const std::string& url, const Arc::UserConfig& usercfg);
+
     /* individual operations */
     /// Start a new transfer
     Arc::MCC_Status Start(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user);

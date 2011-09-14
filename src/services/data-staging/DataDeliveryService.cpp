@@ -79,6 +79,23 @@ namespace DataStaging {
     dtr = NULL;
   }
 
+  bool DataDeliveryService::CheckInput(const std::string& url, const Arc::UserConfig& usercfg) {
+
+    Arc::DataHandle h(url, usercfg);
+    if (!h || !(*h)) {
+      logger.msg(Arc::ERROR, "Can't handle url %s", url);
+      return false;
+    }
+    if (h->Local()) {
+      // TODO only access to session and cache should be allowed
+      if (h->GetURL().Path().find("../") != std::string::npos) {
+        logger.msg(Arc::ERROR, "'../' is not allowed in filename");
+        return false;
+      }
+    }
+    return true;
+  }
+
   void DataDeliveryService::receiveDTR(DTR& dtr) {
     // note: logger doesn't work here - to fix
     logger.msg(Arc::INFO, "Received DTR %s in state %s", dtr.get_id(), dtr.get_status().str());
@@ -172,6 +189,18 @@ namespace DataStaging {
 
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("ID") = dtrid;
+
+      if (!CheckInput(src, usercfg)) {
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "Bad input for source";
+        continue;
+      }
+
+      if (!CheckInput(dest, usercfg)) {
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "Bad input for destination";
+        continue;
+      }
 
       if (current_processes >= max_processes) {
         logger.msg(Arc::WARNING, "All %u process slots used", max_processes);
