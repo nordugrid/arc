@@ -97,6 +97,11 @@ namespace DataStaging {
     response->GetXML(xml, true);
     logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
 
+    if (SOAPFault(*response)) {
+      delete response;
+      return;
+    }
+
     Arc::XMLNode resultnode = (*response)["DataDeliveryStartResponse"]["DataDeliveryStartResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
       logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response from service at %s: %s",
@@ -159,6 +164,11 @@ namespace DataStaging {
     response->GetXML(xml, true);
     if (logger_) logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
 
+    if (SOAPFault(*response)) {
+      delete response;
+      return;
+    }
+
     Arc::XMLNode resultnode = (*response)["DataDeliveryCancelResponse"]["DataDeliveryCancelResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
       logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response: %s", dtr_id, xml);
@@ -215,6 +225,14 @@ namespace DataStaging {
 
     response->GetXML(xml, true);
     if (logger_) logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
+
+    if (SOAPFault(*response)) {
+      delete response;
+      status_.commstatus = CommFailed;
+      strncpy(status_.error_desc, "SOAP error in connection with delivery service", sizeof(status_.error_desc));
+      valid = false;
+      return;
+    }
 
     Arc::XMLNode resultnode = (*response)["DataDeliveryQueryResponse"]["DataDeliveryQueryResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
@@ -340,4 +358,13 @@ namespace DataStaging {
     deleg.DelegatedToken(op);
     return true;
   }
+
+  bool DataDeliveryRemoteComm::SOAPFault(const Arc::XMLNode& response) {
+    if (response["Fault"]) {
+      logger_->msg(Arc::ERROR, "SOAP Fault: %s", (std::string)response["faultstring"]);
+      return true;
+    }
+    return false;
+  }
+
 } // namespace DataStaging
