@@ -51,15 +51,15 @@ namespace Arc {
 
     bool Get(const std::list<std::string>& status,
              const std::string& downloaddir,
-             const bool keep,
-             const bool usejobname,
-             const bool force = true);
+             bool keep,
+             bool usejobname,
+             bool force = true);
 
     bool Kill(const std::list<std::string>& status,
-              const bool keep);
+              bool keep);
 
     bool Clean(const std::list<std::string>& status,
-               const bool force);
+               bool force);
 
     /// DEPRECATED: Catenate a log-file to standard out
     /**
@@ -127,7 +127,7 @@ namespace Arc {
      * @see JobState
      **/
     bool PrintJobStatus(const std::list<std::string>& status,
-                        const bool longlist);
+                        bool longlist);
 
     /// Print job status to a std::ostream object
     /**
@@ -174,7 +174,7 @@ namespace Arc {
     bool Migrate(TargetGenerator& targetGen,
                  Broker *broker,
                  const UserConfig& usercfg,
-                 const bool forcemigration,
+                 bool forcemigration,
                  std::list<URL>& migratedJobIDs);
 
     bool Renew(const std::list<std::string>& status);
@@ -185,7 +185,7 @@ namespace Arc {
     bool ARCCopyFile(const URL& src, const URL& dst);
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
-                                      const bool getlocal);
+                                      bool getlocal);
 
     void FetchJobs(const std::list<std::string>& status, std::vector<const Job*>& jobs);
 
@@ -196,7 +196,7 @@ namespace Arc {
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
     virtual bool GetJob(const Job& job, const std::string& downloaddir,
-                        const bool usejobname, const bool force) = 0;
+                        bool usejobname, bool force);
     virtual bool CleanJob(const Job& job) = 0;
     virtual bool CancelJob(const Job& job) = 0;
     virtual bool RenewJob(const Job& job) = 0;

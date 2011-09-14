@@ -67,9 +67,9 @@ namespace Arc {
 
   bool JobController::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
-                          const bool keep,
-                          const bool usejobname,
-                          const bool force) {
+                          bool keep,
+                          bool usejobname,
+                          bool force) {
     GetJobInformation();
 
     std::list< std::list<Job>::iterator > downloadable;
@@ -129,7 +129,7 @@ namespace Arc {
   }
 
   bool JobController::Kill(const std::list<std::string>& status,
-                           const bool keep) {
+                           bool keep) {
     GetJobInformation();
 
     std::list< std::list<Job>::iterator > killable;
@@ -188,7 +188,7 @@ namespace Arc {
   }
 
   bool JobController::Clean(const std::list<std::string>& status,
-                            const bool force) {
+                            bool force) {
     GetJobInformation();
 
     std::list<URL> toberemoved;
@@ -370,7 +370,7 @@ namespace Arc {
   }
 
   bool JobController::PrintJobStatus(const std::list<std::string>& status,
-                                     const bool longlist) {
+                                     bool longlist) {
     logger.msg(WARNING, "The JobController::PrintJobStatus method is DEPRECATED, use the Job::SaveJobStatusToStream method instead.");
     return SaveJobStatusToStream(std::cout, status, longlist);
   }
@@ -429,7 +429,7 @@ namespace Arc {
   bool JobController::Migrate(TargetGenerator& targetGen,
                               Broker *broker,
                               const UserConfig& usercfg,
-                              const bool forcemigration,
+                              bool forcemigration,
                               std::list<URL>& migratedJobIDs) {
     GetJobInformation();
 
@@ -685,7 +685,7 @@ namespace Arc {
   }
 
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
-                                                   const bool getlocal) {
+                                                   bool getlocal) {
     GetJobInformation();
 
     // Only selected jobs with specified status
