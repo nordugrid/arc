@@ -375,9 +375,8 @@ namespace DataStaging {
     if (request->get_source()->IsStageable() && request->get_source()->TransferLocations().empty()) {
       // give default wait time for cases where no wait time is given by the remote service
       unsigned int source_wait_time = 10;
-      std::list<std::string> transport_protocols; // TODO fill from URL options
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Preparing to stage source", request->get_short_id());
-      Arc::DataStatus res = request->get_source()->PrepareReading(0, source_wait_time, transport_protocols);
+      Arc::DataStatus res = request->get_source()->PrepareReading(0, source_wait_time);
       if (!res.Passed()) {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to prepare source", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
@@ -414,9 +413,8 @@ namespace DataStaging {
     if (request->get_destination()->IsStageable() && request->get_destination()->TransferLocations().empty()) {
       // give default wait time for cases where no wait time is given by the remote service
       unsigned int dest_wait_time = 10;
-      std::list<std::string> transport_protocols; // TODO fill from URL options
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Preparing to stage destination", request->get_short_id());
-      Arc::DataStatus res = request->get_destination()->PrepareWriting(0, dest_wait_time, transport_protocols);
+      Arc::DataStatus res = request->get_destination()->PrepareWriting(0, dest_wait_time);
       if (!res.Passed()) {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to prepare destination", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,

@@ -31,6 +31,7 @@ namespace Arc {
       writing(false) {
     valid_url_options.push_back("protocol");
     valid_url_options.push_back("spacetoken");
+    valid_url_options.push_back("transferprotocol");
   }
 
   DataPointSRM::~DataPointSRM() {
@@ -147,8 +148,7 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::PrepareReading(unsigned int stage_timeout,
-                                          unsigned int& wait_time,
-                                          const std::list<std::string>& requested_protocols) {
+                                          unsigned int& wait_time) {
     if (writing) return DataStatus::IsWritingError;
     if (reading && r_handle) return DataStatus::IsReadingError;
 
@@ -158,14 +158,9 @@ namespace Arc {
     SRMReturnCode res;
     bool timedout;
 
-    std::list<std::string> transport_protocols(requested_protocols);
-    if (transport_protocols.empty()) {
-      transport_protocols.push_back("gsiftp");
-      transport_protocols.push_back("http");
-      transport_protocols.push_back("https");
-      transport_protocols.push_back("httpg");
-      transport_protocols.push_back("ftp");
-    }
+    // choose transfer procotols
+    std::list<std::string> transport_protocols;
+    ChooseTransferProtocols(transport_protocols);
 
     // If the file is NEARLINE (on tape) bringOnline is called
     // Whether or not to do this should eventually be specified by the user
@@ -393,8 +388,7 @@ namespace Arc {
   }
 
   DataStatus DataPointSRM::PrepareWriting(unsigned int stage_timeout,
-                                          unsigned int& wait_time,
-                                          const std::list<std::string>& requested_protocols) {
+                                          unsigned int& wait_time) {
     if (reading) return DataStatus::IsReadingError;
     if (writing && r_handle) return DataStatus::IsReadingError;
 
@@ -404,14 +398,9 @@ namespace Arc {
     SRMReturnCode res;
     bool timedout;
 
-    std::list<std::string> transport_protocols(requested_protocols);
-    if (transport_protocols.empty()) {
-      transport_protocols.push_back("gsiftp");
-      transport_protocols.push_back("http");
-      transport_protocols.push_back("https");
-      transport_protocols.push_back("httpg");
-      transport_protocols.push_back("ftp");
-    }
+    // choose transfer procotols
+    std::list<std::string> transport_protocols;
+    ChooseTransferProtocols(transport_protocols);
 
     // If a request already exists, query status
     if (srm_request) {
@@ -824,6 +813,20 @@ namespace Arc {
         logger.msg(WARNING, "plugin for transport protocol %s is not installed", *protocol);
         protocol = transport_protocols.erase(protocol);
       }
+    }
+  }
+
+  void DataPointSRM::ChooseTransferProtocols(std::list<std::string>& transport_protocols) {
+
+    std::string option_protocols(url.Option("transferprotocol"));
+    if (option_protocols.empty()) {
+      transport_protocols.push_back("gsiftp");
+      transport_protocols.push_back("http");
+      transport_protocols.push_back("https");
+      transport_protocols.push_back("httpg");
+      transport_protocols.push_back("ftp");
+    } else {
+      Arc::tokenize(option_protocols, transport_protocols, ",");
     }
   }
 

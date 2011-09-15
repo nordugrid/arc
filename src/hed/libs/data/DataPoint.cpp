@@ -85,15 +85,13 @@ namespace Arc {
   }
 
   DataStatus DataPoint::PrepareReading(unsigned int timeout,
-                                       unsigned int& wait_time,
-                                       const std::list<std::string>& transport_protocols) {
+                                       unsigned int& wait_time) {
     wait_time = 0;
     return DataStatus::Success;
   }
 
   DataStatus DataPoint::PrepareWriting(unsigned int timeout,
-                                       unsigned int& wait_time,
-                                       const std::list<std::string>& transport_protocols) {
+                                       unsigned int& wait_time) {
     wait_time = 0;
     return DataStatus::Success;
   }

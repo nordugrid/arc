@@ -29,11 +29,9 @@ namespace Arc {
     virtual ~DataPointSRM();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus PrepareReading(unsigned int timeout,
-                                      unsigned int& wait_time,
-                                      const std::list<std::string>& transport_protocols);
+                                      unsigned int& wait_time);
     virtual DataStatus PrepareWriting(unsigned int timeout,
-                                      unsigned int& wait_time,
-                                      const std::list<std::string>& transport_protocols);
+                                      unsigned int& wait_time);
     virtual DataStatus StartReading(DataBuffer& buffer);
     virtual DataStatus StartWriting(DataBuffer& buffer,
                                     DataCallback *space_cb = NULL);
@@ -60,6 +58,8 @@ namespace Arc {
     DataStatus ListFiles(std::list<FileInfo>& files, DataPointInfoType verb, int recursion);
     /** Check protocols given in list can be used, and if not remove them */
     void CheckProtocols(std::list<std::string>& transport_protocols);
+    /** Select transfer protocols from URL option or hard-coded list */
+    void ChooseTransferProtocols(std::list<std::string>& transport_protocols);
   };
 
 } // namespace Arc
