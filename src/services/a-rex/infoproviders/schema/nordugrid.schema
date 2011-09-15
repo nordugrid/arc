@@ -223,8 +223,8 @@ attributetype ( 1.3.6.1.4.1.11604.2.1.1.2
 attributetype ( 1.3.6.1.4.1.11604.2.1.1.3
     NAME 'nordugrid-cluster-contactstring'
     DESC 'The URL of the job submission service running on the cluster frontend'
-    EQUALITY caseExactIA5Match
-    SUBSTR caseExactIA5SubstringsMatch
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26
     SINGLE-VALUE )
     
@@ -366,9 +366,9 @@ attributetype ( 1.3.6.1.4.1.11604.2.1.1.19
 attributetype ( 1.3.6.1.4.1.11604.2.1.1.20
     NAME 'nordugrid-cluster-localse'
     DESC 'The URL of a storage element considered to be local to the cluster'
-    EQUALITY caseExactMatch
-    ORDERING caseExactOrderingMatch
-    SUBSTR caseExactSubstringsMatch
+    EQUALITY caseIgnoreMatch
+    ORDERING caseIgnoreOrderingMatch
+    SUBSTR caseIgnoreSubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )  
 
 attributetype ( 1.3.6.1.4.1.11604.2.1.1.21
@@ -454,8 +454,8 @@ attributetype ( 1.3.6.1.4.1.11604.2.1.1.29
 attributetype ( 1.3.6.1.4.1.11604.2.1.1.30
     NAME 'nordugrid-cluster-interactive-contactstring'
     DESC 'The URL for interactive login'
-    EQUALITY caseExactIA5Match
-    SUBSTR caseExactIA5SubstringsMatch
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 ) 
 
 attributetype ( 1.3.6.1.4.1.11604.2.1.1.31
@@ -828,8 +828,8 @@ objectclass ( 1.3.6.1.4.1.11604.2.1.3
 attributetype ( 1.3.6.1.4.1.11604.2.1.4.1
     NAME 'nordugrid-job-globalid'
     DESC 'The global job identifier string'
-    EQUALITY caseExactIA5Match
-    SUBSTR caseExactIA5SubstringsMatch
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26    
     SINGLE-VALUE )
 
