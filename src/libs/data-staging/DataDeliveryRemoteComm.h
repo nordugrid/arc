@@ -42,8 +42,6 @@ namespace DataStaging {
     /// Set up delegation so the credentials can be used by the service
     bool SetupDelegation(Arc::XMLNode& op, const Arc::UserConfig& usercfg);
 
-    /// Checks the response for SOAP faults, and returns true if there is one
-    bool SOAPFault(const Arc::XMLNode& response);
   };
 
 } // namespace DataStaging

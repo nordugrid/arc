@@ -1,4 +1,5 @@
 #include <arc/message/MCC.h>
+#include <arc/message/SOAPEnvelope.h>
 #include <arc/delegation/DelegationInterface.h>
 
 #include "DataDeliveryRemoteComm.h"
@@ -97,7 +98,14 @@ namespace DataStaging {
     response->GetXML(xml, true);
     logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
 
-    if (SOAPFault(*response)) {
+    if (response->IsFault()) {
+      Arc::SOAPFault& fault = *response->Fault();
+      std::string err("SOAP fault: %s", fault.Code());
+      for (int n = 0;;++n) {
+        if (fault.Reason(n).empty()) break;
+        err += ": " + fault.Reason(n);
+      }
+      logger_->msg(Arc::ERROR, "DTR %s: Failed to start transfer request: %s", dtr_id, err);
       delete response;
       return;
     }
@@ -164,7 +172,14 @@ namespace DataStaging {
     response->GetXML(xml, true);
     if (logger_) logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
 
-    if (SOAPFault(*response)) {
+    if (response->IsFault()) {
+      Arc::SOAPFault& fault = *response->Fault();
+      std::string err("SOAP fault: %s", fault.Code());
+      for (int n = 0;;++n) {
+        if (fault.Reason(n).empty()) break;
+        err += ": " + fault.Reason(n);
+      }
+      if (logger_) logger_->msg(Arc::ERROR, "DTR %s: Failed to cancel transfer request: %s", dtr_id, err);
       delete response;
       return;
     }
@@ -226,7 +241,14 @@ namespace DataStaging {
     response->GetXML(xml, true);
     if (logger_) logger_->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr_id, xml);
 
-    if (SOAPFault(*response)) {
+    if (response->IsFault()) {
+      Arc::SOAPFault& fault = *response->Fault();
+      std::string err("SOAP fault: %s", fault.Code());
+      for (int n = 0;;++n) {
+        if (fault.Reason(n).empty()) break;
+        err += ": " + fault.Reason(n);
+      }
+      if (logger_) logger_->msg(Arc::ERROR, "DTR %s: Failed to query state: %s", dtr_id, err);
       delete response;
       status_.commstatus = CommFailed;
       strncpy(status_.error_desc, "SOAP error in connection with delivery service", sizeof(status_.error_desc));
@@ -357,14 +379,6 @@ namespace DataStaging {
     }
     deleg.DelegatedToken(op);
     return true;
-  }
-
-  bool DataDeliveryRemoteComm::SOAPFault(const Arc::XMLNode& response) {
-    if (response["Fault"]) {
-      logger_->msg(Arc::ERROR, "SOAP Fault: %s", (std::string)response["faultstring"]);
-      return true;
-    }
-    return false;
   }
 
 } // namespace DataStaging
