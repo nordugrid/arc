@@ -68,6 +68,49 @@ namespace Arc {
 
     bool AddJob(const Job& job);
 
+    /// Retrieve job output files
+    /**
+     * This method retrieves output files of jobs managed by this JobSupervisor.
+     *
+     * Before identifying jobs for which to retrieve output files, the
+     * JobController::GetJobInformation method is called for each loaded
+     * JobController in order to retrieve the most up to date job information.
+     * If an empty status-filter is specified, all jobs managed by this
+     * JobSupervisor will be considered for retrieval, except jobs in the
+     * undefined state (see JobState). If the status-filter is not empty, then
+     * only jobs with a general or specific state (see JobState) identical to
+     * any of the entries in the status-filter will be considered, except jobs
+     * in the undefined state. Jobs in the state JobState::DELETED and
+     * unfinished jobs (see JobState::IsFinished) will also not be considered.
+     *
+     * For each of the jobs considered for retrieval, the files will be
+     * downloaded to a directory named either as the last part of the job ID
+     * or the job name, which is determined by the 'usejobname' argument. The
+     * download directories will be located in the directory specified by the
+     * 'downloaddir' argument, as either a relative or absolute path. If the
+     * 'force' argument is set to 'true', and a download directory for a
+     * given job already exist it will be overwritten, otherwise files for
+     * that job will not be downloaded. This method calls the
+     * JobController::GetJob method in order to download jobs, and if a job
+     * is successfully retrieved the job ID will be appended to the
+     * 'retrievedJobs' list. If all jobs are successfully retrieved this
+     * method returns true, otherwise false.
+     *
+     * @param statusfilter list of job status used for filtering jobs.
+     * @param downloaddir specifies the path to in which job download
+     *   directories will be located.
+     * @param usejobname specifies whether to use the job name or job ID as
+     *   directory name to store job output files in.
+     * @param force indicates whether existing job directories should be
+     *   overwritten or not.
+     * @param retrievedJobs job IDs of successfully retrieved jobs will be
+     *   appended to this list.
+     * @see JobController::GetJob.
+     * @return true if all jobs are successfully retrieved, otherwise false.
+     **/
+    bool Get(const std::list<std::string>& statusfilter, const std::string& downloaddir,
+             bool usejobname, bool force, std::list<URL>& retrievedJobs);
+
     /// Resubmit jobs
     /**
      * Jobs managed by this JobSupervisor will be resubmitted when invoking this
