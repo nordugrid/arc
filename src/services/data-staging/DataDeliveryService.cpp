@@ -469,6 +469,8 @@ namespace DataStaging {
     // Stop accepting new requests and cancel all active transfers
     // DataDelivery destructor automatically calls stop()
     valid = false;
+    // clear any proxies left behind
+    Arc::DirDelete(tmp_proxy_dir);
     logger.msg(Arc::INFO, "Shutting down data delivery service");
   }
 
