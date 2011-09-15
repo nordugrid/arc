@@ -357,18 +357,18 @@ namespace Arc {
       }
       else if(
 #ifndef WIN32
-        !Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
+        !(Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
+        !(Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
 #else 
-        !Glib::file_test(certificatePath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(keyPath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
+        !(Glib::file_test(certificatePath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        Glib::file_test(keyPath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
 #endif
-        !Glib::file_test(certificatePath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(keyPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(certificatePath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        !Glib::file_test(keyPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) {
+        !(Glib::file_test(certificatePath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        Glib::file_test(keyPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
+        !(Glib::file_test(certificatePath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
+        Glib::file_test(keyPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS))) {
         if((has_proxy == false) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
           logger.msg(WARNING, "Can not find certificate/key (usercert.pem, userkey.pem) in default location: ~/.arc/, ~/.globus/, $ARC_LOCATION/etc/arc, and $PWD/; And proxy certificate path has not been set and does not existing in /tmp; Please manually specify the certificate/key location, or use arcproxy to create a proxy certificte");
         certificatePath.clear(); keyPath.clear();
