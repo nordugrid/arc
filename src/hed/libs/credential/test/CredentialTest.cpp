@@ -5,6 +5,7 @@
 #include <openssl/evp.h>
 #include <arc/credential/CertUtil.h>
 #include <arc/credential/Credential.h>
+#include <arc/Utils.h>
 
 class CredentialTest
   : public CppUnit::TestFixture {
@@ -29,6 +30,8 @@ public:
   void testproxycertinfo(){};
   
 private:
+  std::string srcdir;
+
   std::string CAcert;
   std::string CAkey;
   std::string CAserial;
@@ -52,12 +55,15 @@ private:
 };
 
 void CredentialTest::setUp() {
+  srcdir = Arc::GetEnv("srcdir");
+  if (srcdir.length() == 0)
+    srcdir = ".";
   CAcert = "ca_cert.pem";
   CAkey = "ca_key.pem";
   CAserial = "ca_serial";
   CApassphrase = "capassword";
   CAdn = "/O=Grid/OU=ARC/CN=CA";
-  CAconf = "ca.cnf";
+  CAconf = srcdir + "/ca.cnf";
   ca_ext_sect = "v3_ca";
   host_cert_ext_sect = "host_cert";
   user_cert_ext_sect = "usr_cert"; 

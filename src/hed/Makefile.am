@@ -18,4 +18,10 @@ install-profileexampleDATA: $(profile_DATA)
           done ) ; \
         done
 
+uninstall-profileexampleDATA:
+	for p in $(profile_DATA); do \
+	    p=`echo $$p | sed 's|^\(.*/\)\?profiles/||'`; \
+	    rm -f "$(DESTDIR)$(profileexampledir)/$$p"; \
+	done
+
 EXTRA_DIST = profiles/*/*

@@ -6,6 +6,7 @@
 
 #include <arc/Run.h>
 #include <arc/User.h>
+#include <arc/Utils.h>
 
 class RunTest
   : public CppUnit::TestFixture {
@@ -22,10 +23,14 @@ public:
   void TestRun255();
 
 private:
+  std::string srcdir;
 };
 
 
 void RunTest::setUp() {
+  srcdir = Arc::GetEnv("srcdir");
+  if (srcdir.length() == 0)
+    srcdir = ".";
 }
 
 
@@ -40,7 +45,7 @@ static void initializer_func(void* arg) {
 void RunTest::TestRun0() {
   std::string outstr;
   std::string errstr;
-  Arc::Run run("./rcode 0");
+  Arc::Run run(srcdir + "/rcode 0");
   run.AssignStdout(outstr);
   run.AssignStderr(errstr);
   run.AssignInitializer(&initializer_func,(void*)1);
@@ -55,7 +60,7 @@ void RunTest::TestRun0() {
 void RunTest::TestRun255() {
   std::string outstr;
   std::string errstr;
-  Arc::Run run("./rcode 255");
+  Arc::Run run(srcdir + "/rcode 255");
   run.AssignStdout(outstr);
   run.AssignStderr(errstr);
   CPPUNIT_ASSERT((bool)run);

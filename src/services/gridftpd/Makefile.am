@@ -6,11 +6,15 @@ GRIDFTPD_SCRIPT = gridftpd.init
 else
 GRIDFTPD_SCRIPT =
 endif
-initd_SCRIPTS = $(GRIDFTPD_SCRIPT)
+EXTRA_DIST = $(GRIDFTPD_SCRIPT)
 
 if SYSV_SCRIPTS_ENABLED
-install-data-hook:
-	cd $(DESTDIR)$(initddir) && mv -f gridftpd.init gridftpd
+# Not using initd_SCRIPTS due to rename.
+install-data-local:
+	$(MKDIR_P) "$(DESTDIR)$(initddir)"
+	$(INSTALL_SCRIPT) gridftpd.init $(DESTDIR)$(initddir)/gridftpd
+uninstall-local:
+	rm -f $(DESTDIR)$(initddir)/gridftpd
 endif
 
 libgridftpd_la_SOURCES = userspec.cpp names.cpp misc.cpp

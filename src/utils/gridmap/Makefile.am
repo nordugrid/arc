@@ -1,11 +1,14 @@
 sbin_SCRIPTS = nordugridmap
 
 cronddir = @cronddir@
-crond_DATA = nordugridmap.cron
 
 man_MANS = nordugridmap.8
 
-install-data-hook:
-	cd $(DESTDIR)$(cronddir) && mv -f nordugridmap.cron nordugridmap
+# Not using crond_DATA since we need to rename it.
+install-exec-local:
+	$(MKDIR_P) "$(DESTDIR)$(cronddir)"
+	$(INSTALL_DATA) nordugridmap.cron $(DESTDIR)$(cronddir)/nordugridmap
+uninstall-local:
+	rm -f $(DESTDIR)$(cronddir)/nordugridmap
 
-EXTRA_DIST = $(sbin_SCRIPTS) nordugridmap.conf
+EXTRA_DIST = $(sbin_SCRIPTS) nordugridmap.conf nordugridmap.cron

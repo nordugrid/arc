@@ -1,4 +1,4 @@
-T = pbs-test1.t
+T = $(srcdir)/pbs-test1.t
 
 PERL = /usr/bin/perl
 TESTS_ENVIRONMENT = $(PERL) -I$(srcdir) -I$(srcdir)/.. -w
