@@ -4,4 +4,4 @@ libarcfn_la_HEADERS = Function.h FnFactory.h EqualFunction.h MatchFunction.h InR
 libarcfn_la_SOURCES = EqualFunction.cpp MatchFunction.cpp InRangeFunction.cpp
 libarcfn_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libarcfn_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libarcfn_la_LIBADD = $(top_builddir)/src/hed/libs/common/libarccommon.la

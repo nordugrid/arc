@@ -13,11 +13,11 @@ libinfosys_la_SOURCES = InformationInterface.cpp InfoCache.cpp \
 libinfosys_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libinfosys_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/wsrf/libwsrf.la \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/wsrf/libwsrf.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS)
 
 #test_SOURCES = test.cpp

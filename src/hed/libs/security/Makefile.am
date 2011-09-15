@@ -9,8 +9,8 @@ libarcsecurity_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libarcsecurity_la_LIBADD = \
 	ArcPDP/libarcpdp.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
 libarcsecurity_la_LDFLAGS  = -version-info 1:0:0

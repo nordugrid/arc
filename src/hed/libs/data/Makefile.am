@@ -29,9 +29,9 @@ libarcdata2_la_SOURCES = DataPoint.cpp DataPointDirect.cpp \
 libarcdata2_la_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) \
 	$(LIBXML2_CFLAGS) $(GTHREAD_CFLAGS) $(OPENSSL_CFLAGS)
 libarcdata2_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) \
 	$(OPENSSL_LIBS)
 libarcdata2_la_LDFLAGS = -version-info 1:0:0

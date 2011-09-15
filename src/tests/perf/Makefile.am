@@ -17,20 +17,20 @@ endif
 perftest_SOURCES = perftest.cpp
 perftest_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 perftest_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_msgsize_SOURCES = perftest_msgsize.cpp
 perftest_msgsize_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 perftest_msgsize_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 if XMLSEC_ENABLED
@@ -39,12 +39,12 @@ perftest_samlaa_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 perftest_samlaa_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
-	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 
 perftest_saml2sso_SOURCES = perftest_saml2sso.cpp
@@ -52,11 +52,11 @@ perftest_saml2sso_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 perftest_saml2sso_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 
 perftest_slcs_SOURCES = perftest_slcs.cpp
@@ -64,12 +64,12 @@ perftest_slcs_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 perftest_slcs_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/xmlsec/libarcxmlsec.la \
-	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 endif
 
@@ -77,38 +77,38 @@ perftest_deleg_bysechandler_SOURCES = perftest_deleg_bysechandler.cpp
 perftest_deleg_bysechandler_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 perftest_deleg_bysechandler_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_deleg_bydelegclient_SOURCES = perftest_deleg_bydelegclient.cpp
 perftest_deleg_bydelegclient_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 perftest_deleg_bydelegclient_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_duration_SOURCES = perftest_cmd_duration.cpp
 perftest_cmd_duration_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 perftest_cmd_duration_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 perftest_cmd_times_SOURCES = perftest_cmd_times.cpp
 perftest_cmd_times_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 perftest_cmd_times_LDADD = \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

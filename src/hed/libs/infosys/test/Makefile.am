@@ -18,5 +18,5 @@ RegisteredServiceTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 RegisteredServiceTest_LDADD = \
 	../libinfosys.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(CPPUNIT_LIBS)

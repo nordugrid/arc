@@ -5,4 +5,4 @@ libarcattr_la_HEADERS = AttributeValue.h StringAttribute.h DateTimeAttribute.h X
 libarcattr_la_SOURCES = RequestAttribute.cpp StringAttribute.cpp DateTimeAttribute.cpp X500NameAttribute.cpp AnyURIAttribute.cpp BooleanAttribute.cpp GenericAttribute.cpp
 libarcattr_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libarcattr_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libarcattr_la_LIBADD = $(top_builddir)/src/hed/libs/common/libarccommon.la

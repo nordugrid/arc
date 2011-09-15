@@ -1,4 +1,4 @@
 monitorincdir   = @ldap_monitor_prefix@/includes
-monitorinc_DATA = *.inc
+monitorinc_DATA = $(srcdir)/*.inc
 
 EXTRA_DIST = $(monitorinc_DATA)

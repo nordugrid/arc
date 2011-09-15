@@ -7,8 +7,8 @@ libarcxmlsec_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS)
 libarcxmlsec_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS) \
 	$(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS) $(ZLIB_LIBS)
 libarcxmlsec_la_LDFLAGS  = -version-info 1:0:0
@@ -20,6 +20,6 @@ test_xmlsecnode_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(XMLSEC_CFLAGS)
 test_xmlsecnode_LDADD = \
 	libarcxmlsec.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(XMLSEC_LIBS) $(EXTRA_LIBS)

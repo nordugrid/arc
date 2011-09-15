@@ -6,4 +6,4 @@ libgaclpdp_la_SOURCES = GACLRequest.cpp GACLRequest.h \
 	GACLPDP.cpp GACLPDP.h
 libgaclpdp_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libgaclpdp_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la
+libgaclpdp_la_LIBADD = $(top_builddir)/src/hed/libs/common/libarccommon.la

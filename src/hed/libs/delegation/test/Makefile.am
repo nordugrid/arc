@@ -6,5 +6,5 @@ DelegationInterfaceTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 DelegationInterfaceTest_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 DelegationInterfaceTest_LDADD = \
-	$(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
+	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(CPPUNIT_LIBS)

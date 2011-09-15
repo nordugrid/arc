@@ -24,9 +24,9 @@ LDADD = $(LIB)
 arched_SOURCES = $(SOURCES)
 arched_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arched_LDADD = $(LDADD) \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
 
 man_MANS = arched.8

@@ -4,4 +4,4 @@ libarcalg_la_HEADERS = AlgFactory.h CombiningAlg.h DenyOverridesAlg.h PermitOver
 libarcalg_la_SOURCES = DenyOverridesAlg.cpp PermitOverridesAlg.cpp OrderedAlg.cpp
 libarcalg_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libarcalg_la_LIBADD = $(top_srcdir)/src/hed/libs/common/libarccommon.la 
+libarcalg_la_LIBADD = $(top_builddir)/src/hed/libs/common/libarccommon.la

@@ -31,50 +31,50 @@ libarcshc_la_LIBADD = \
 	arcauthzsh/libarcauthzsh.la usernametokensh/libusernametokensh.la \
 	$(LIBS_WITH_XMLSEC) \
 	delegationsh/libdelegationsh.la \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS)
 libarcshc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 test_SOURCES = test.cpp
 test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 test_LDADD = \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 testinterface_arc_SOURCES = testinterface_arc.cpp
 testinterface_arc_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 testinterface_arc_LDADD = \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 testinterface_xacml_SOURCES = testinterface_xacml.cpp
 testinterface_xacml_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 testinterface_xacml_LDADD = \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 #classload_test_SOURCES = classload_test.cpp
 #classload_test_CXXFLAGS = -I$(top_srcdir)/include \
 #	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 #classload_test_LDADD = \
-#	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-#	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-#	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-#	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+#	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+#	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+#	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+#	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 #	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

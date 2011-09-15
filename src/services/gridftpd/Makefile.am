@@ -26,8 +26,8 @@ gridftpd_CXXFLAGS = -I$(top_srcdir)/include \
 
 gridftpd_LDADD = libgridftpd.la conf/libconf.la run/librun.la \
 	misc/libmisc.la auth/libauth.la auth/libmap.la \
-	$(top_srcdir)/src/hed/libs/globusutils/libarcglobusutils.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/globusutils/libarcglobusutils.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLOBUS_FTP_CONTROL_LIBS) $(GLOBUS_COMMON_LIBS)
 
 gridftpd_LDFLAGS = -rdynamic

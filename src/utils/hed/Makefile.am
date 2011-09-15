@@ -6,11 +6,11 @@ wsdl2hed_SOURCES = wsdl2hed.cpp schemaconv.cpp schemaconv.h \
 	common.cpp simpletype.cpp complextype.cpp
 wsdl2hed_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 wsdl2hed_LDADD = \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)
 
 arcplugin_SOURCES = arcplugin.cpp
 arcplugin_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arcplugin_LDADD = \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(EXTRA_LIBS)

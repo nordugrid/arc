@@ -12,5 +12,5 @@ gaclplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 gaclplugin_la_LIBADD = ../libgridftpd_la-misc.lo \
 	../libgridftpd_la-userspec.lo ../libgridftpd_la-names.lo \
 	../auth/libmap.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLOBUS_IO_LIBS)

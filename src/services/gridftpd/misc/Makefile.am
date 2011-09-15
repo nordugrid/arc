@@ -13,7 +13,7 @@ endif
 libmisc_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GLOBUS_GSSAPI_GSI_CFLAGS)
 libmisc_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la \
-	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LDAP_LIBS) -lpthread

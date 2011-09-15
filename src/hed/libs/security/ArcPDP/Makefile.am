@@ -12,6 +12,6 @@ libarcpdp_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarcpdp_la_LIBADD = \
 	attr/libarcattr.la fn/libarcfn.la \
 	policy/libarcpolicy.la alg/libarcalg.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS)

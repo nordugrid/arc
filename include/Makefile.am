@@ -2,7 +2,8 @@ HEADERFILESCHECK:
 
 ./$(DEPDIR)/HEADERFILES: HEADERFILESCHECK
 	echo "HEADERFILES = \\" > HEADERFILES
-	find . -name *.h -print | sort | sed 's/$$/ \\/' >> HEADERFILES
+	find $(srcdir) -name \*.h -print | sort | \
+		sed -e 's|^$(srcdir)/||' -e 's/$$/ \\/' >> HEADERFILES
 	echo "./$(DEPDIR)/HEADERFILES" >> HEADERFILES
 	if diff ./$(DEPDIR)/HEADERFILES HEADERFILES >/dev/null 2>&1 ; then \
 		rm -f HEADERFILES ; \

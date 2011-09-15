@@ -13,14 +13,14 @@ libaccARC1_la_SOURCES  = TargetRetrieverARC1.cpp TargetRetrieverARC1.h \
 libaccARC1_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libaccARC1_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/ws/libarcws.la \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
-	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la\
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la\
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libaccARC1_la_LDFLAGS = -no-undefined -avoid-version -module
 
@@ -28,12 +28,12 @@ libarexclient_la_SOURCES = AREXClient.cpp AREXClient.h
 libarexclient_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarexclient_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/ws/libarcws.la \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/delegation/libarcdelegation.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/ws/libarcws.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
 DIST_SUBDIRS = test

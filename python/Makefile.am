@@ -24,15 +24,15 @@ SWIG_INPUTS += pydoxygen.i
 endif
 
 ARCLIBS = \
-	$(top_srcdir)/src/hed/libs/credentialstore/libarccredentialstore.la \
-	$(top_srcdir)/src/hed/libs/client/libarcclient.la \
-	$(top_srcdir)/src/hed/libs/security/libarcsecurity.la \
-	$(top_srcdir)/src/hed/libs/data/libarcdata2.la \
-	$(top_srcdir)/src/hed/libs/credential/libarccredential.la \
-	$(top_srcdir)/src/hed/libs/crypto/libarccrypto.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/loader/libarcloader.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la
+	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
+	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 _arc_la_SOURCES = arc_init.cpp
 nodist__arc_la_SOURCES = arc_wrap.cpp
@@ -78,9 +78,9 @@ arc_wrap.cpp: $(SWIG_INPUTS)
 	sed '/*_wrap_delete_SwigPyIterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new # Dont allow threading when deleting SwigPyIterator objects
 	mv arc_wrap.cpp.new arc_wrap.cpp
 
-pydoxygen.i: Doxyfile.api
-	doxygen Doxyfile.api
-	python doxy2swig.py api/xml/index.xml $@
+pydoxygen.i: $(srcdir)/Doxyfile.api
+	doxygen $(srcdir)/Doxyfile.api
+	python $(srcdir)/doxy2swig.py api/xml/index.xml $@
 	rm -rf api
 
 install-data-hook:

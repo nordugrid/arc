@@ -6,6 +6,6 @@ libarccrypto_la_SOURCES = OpenSSL.cpp
 libarccrypto_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS)
 libarccrypto_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(GTHREAD_LIBS) $(OPENSSL_LIBS)
 libarccrypto_la_LDFLAGS = -version-info 1:0:0

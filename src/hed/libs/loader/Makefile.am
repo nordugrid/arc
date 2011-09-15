@@ -9,7 +9,7 @@ libarcloader_la_SOURCES = Plugin.cpp Loader.cpp ModuleManager.cpp FinderLoader.c
 libarcloader_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libarcloader_la_LIBADD = \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 libarcloader_la_LDFLAGS = -version-info 1:0:0
 
@@ -21,6 +21,6 @@ libarcloader_la_LDFLAGS = -version-info 1:0:0
 #test_SOURCES = test.cpp 
 #test_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 #test_LDADD = ./libarcloader.la \
-	$(top_srcdir)/src/hed/libs/message/libarcmessage.la \
-	$(top_srcdir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
