@@ -57,7 +57,7 @@ namespace Arc {
       }
       j = strlen(pwd);
       if(verify && (j < PASS_MIN_LENGTH)) {
-        CredentialLogger.msg(ERROR,"Input phrase is too short (at least %d char",PASS_MIN_LENGTH);
+        CredentialLogger.msg(ERROR,"Input phrase is too short (at least %d char)",PASS_MIN_LENGTH);
       }
       else { return j; }
     }
@@ -779,7 +779,7 @@ namespace Arc {
         cert_type_ = CERT_TYPE_GSI_2_LIMITED_PROXY;
       }
       else if (policylang_.compare("RESTRICTED") == 0 || policylang_.compare("restricted") == 0) {
-        CredentialLogger.msg(ERROR,"Globus legacy proxies can not carry policy data or path length contraints");
+        CredentialLogger.msg(ERROR,"Globus legacy proxies can not carry policy data or path length constraints");
       }
       else {
         cert_type_ = CERT_TYPE_GSI_2_PROXY;

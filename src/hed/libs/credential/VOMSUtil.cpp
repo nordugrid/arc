@@ -700,7 +700,7 @@ err:
     int index = 0;
 
     if(ca_cert_dir.empty() && ca_cert_file.empty()) {
-      CredentialLogger.msg(ERROR,"VOMS: CA direcory or CA file must be provided");
+      CredentialLogger.msg(ERROR,"VOMS: CA directory or CA file must be provided");
       return false;
     }
 
@@ -820,7 +820,7 @@ err:
         return false;
       }
       if(chain[n+1] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
-        CredentialLogger.msg(ERROR,"VOMS: the Issuer identity does in certificate: %s does not match that in trusted DN list: %s",
+        CredentialLogger.msg(ERROR,"VOMS: the Issuer identity in certificate: %s does not match that in trusted DN list: %s",
           X509_NAME_oneline(X509_get_issuer_name(current),NULL,0), chain[n+1]);
         return false;
       }
