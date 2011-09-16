@@ -249,6 +249,9 @@ slapd_hostnamebind=${CONFIG_slapd_hostnamebind:-"*"}
 threads=${CONFIG_threads:-32}
 providerlog=${CONFIG_providerlog:-/var/log/arc/infoprovider.log}
 infosyslog=${CONFIG_logfile:-/var/log/arc/$prog.log}
+db_archive=${CONFIG_db_archive:-/usr/sbin/slapd_db_archive}
+db_checkpoint=${CONFIG_db_checkpoint:-/usr/sbin/slapd_db_checkpoint}
+slapd_cron_checkpoint=${CONFIG_slapd_cron_checkpoint:-disable}
 
 mkdir -p `dirname $providerlog`
 mkdir -p `dirname $infosyslog`
@@ -425,7 +428,7 @@ fi
 
 #TODO this does not check against slapd_cmd as empty string
 
-if [ ! -x $slapd_cmd ]; then
+if [ -z "$slapd_cmd" ] || [ ! -x "$slapd_cmd" ]; then
     log_failure_msg "Could not find ldap server binary, usually /usr/bin/slapd"
     log_failure_msg "Please update your PATH-variable."
     exit 1
@@ -688,6 +691,21 @@ add_info_service () {
 	rootpw          secret
 	directory       $bdii_var_dir/db/stats
 	EOF
+
+    if [ "x${slapd_cron_checkpoint}" = "xenable" ]; then
+	if [ -n $db_checkpoint ] && [ -x $db_checkpoint ] && [ -n $db_archive ] && [ -x $db_archive ] && [ -d "/etc/cron.d" ]; then
+	    cat <<-EOF > /etc/cron.d/nordugrid-arc-aris
+0-59/5 * * * * $bdii_user $db_checkpoint -1 -h $bdii_var_dir/db/arc && $db_archive -a -h $bdii_var_dir/db/arc|xargs rm -f
+EOF
+	else
+	    error_echo "You have enabled slapd cron checkpointing." 
+	    error_echo "However, grid-infosys failed to configure slapd cron checkpointing, "
+	    error_echo "please check db_checkpoint, db_archive and that /etc/cron.d exists." 
+	    error_echo "The first two are configurable through arc.conf."
+	    exit 1
+	fi
+    fi
+
 }
 
 # Call with: create_default_ldif bdii_default_ldif_file
