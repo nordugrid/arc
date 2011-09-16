@@ -18,12 +18,12 @@
 using namespace Arc;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "DataDelivery");
-static bool shutdown = false;
+static bool delivery_shutdown = false;
 
 static void sig_shutdown(int)
 {
-    if(shutdown) _exit(0);
-    shutdown = true;
+    if(delivery_shutdown) _exit(0);
+    delivery_shutdown = true;
 }
 
 static void ReportStatus(DataStaging::DTRStatus::DTRStatusType st,
@@ -295,7 +295,7 @@ int main(int argc,char* argv[]) {
   // While transfer is running in another threads
   // here we periodically report status to parent
   bool eof_reached = false;
-  for(;!buffer.error() && !shutdown;) {
+  for(;!buffer.error() && !delivery_shutdown;) {
     if(buffer.eof_read() && buffer.eof_write()) {
       eof_reached = true; break;
     };
@@ -307,7 +307,7 @@ int main(int argc,char* argv[]) {
                  GetFileSize(*source,*dest));
     buffer.wait_any();
   };
-  if (shutdown) {
+  if (delivery_shutdown) {
     ReportStatus(DataStaging::DTRStatus::TRANSFERRED,
                  DataStaging::DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                  DataStaging::DTRErrorStatus::ERROR_TRANSFER,
