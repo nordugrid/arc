@@ -45,6 +45,10 @@ AC_DISABLE_STATIC
 AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
+# EL-5 compatibility.  $(mkdir_p) is now obsolete.
+test -n "$MKDIR_P" || MKDIR_P="$mkdir_p"
+AC_SUBST([MKDIR_P])
+
 dnl --with-docdir since older autoconf (<2.60) does not support --docdir
 AC_ARG_WITH([docdir],
 AC_HELP_STRING([--with-docdir=DIR],
