@@ -785,6 +785,15 @@ err:
   }
 #endif
 
+  static std::string x509name2ascii(X509_NAME* name) {
+    std::string str;
+    char buf[256];
+    if(name!=NULL)
+      X509_NAME_oneline(name, buf, sizeof(buf));
+    str.append(buf);
+    return str;
+  }
+
   static bool checkTrust(const VOMSTrustChain& chain,STACK_OF(X509)* certstack) {
     int n = 0;
     X509 *current = NULL;
@@ -814,14 +823,16 @@ err:
       if((n+1) >= chain.size()) return true;
       current = sk_X509_value(certstack,n);
       if(!current) return false;
-      if(chain[n] != X509_NAME_oneline(X509_get_subject_name(current),NULL,0)) {
+      std::string sub_name = x509name2ascii(X509_get_subject_name(current));
+      if(chain[n] != sub_name) {
         CredentialLogger.msg(ERROR,"VOMS: the DN in certificate: %s does not match that in trusted DN list: %s",
-          X509_NAME_oneline(X509_get_subject_name(current),NULL,0), chain[n]);
+          sub_name, chain[n]);
         return false;
       }
-      if(chain[n+1] != X509_NAME_oneline(X509_get_issuer_name(current),NULL,0)) {
+      std::string iss_name = x509name2ascii(X509_get_issuer_name(current));
+      if(chain[n+1] != iss_name) {
         CredentialLogger.msg(ERROR,"VOMS: the Issuer identity in certificate: %s does not match that in trusted DN list: %s",
-          X509_NAME_oneline(X509_get_issuer_name(current),NULL,0), chain[n+1]);
+          iss_name, chain[n+1]);
         return false;
       }
     }
@@ -837,8 +848,8 @@ err:
     std::list<std::string> unmatched, matched;
     return reg.match(subject,unmatched,matched);
 #endif
-    std::string subject(X509_NAME_oneline(X509_get_subject_name(current),NULL,0));
-    std::string issuer(X509_NAME_oneline(X509_get_issuer_name(current),NULL,0));
+    std::string subject = x509name2ascii(X509_get_subject_name(current));
+    std::string issuer = x509name2ascii(X509_get_issuer_name(current));
     std::list<std::string> unmatched, matched;
     return (reg.match(subject,unmatched,matched) && reg.match(issuer,unmatched,matched));
 
@@ -1441,7 +1452,7 @@ err:
         status |= VOMSACInfo::ACParsingFailed;
         return false;
       }
-      
+     
       char *ac_holder_name_chars = X509_NAME_oneline(name->d.dirn,NULL,0);
       std::string ac_holder_name = ac_holder_name_chars; OPENSSL_free(ac_holder_name_chars);
       char *holder_name_chars = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
@@ -1498,9 +1509,10 @@ err:
     if(issuer) {
       if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || 
          (name->type != GEN_DIRNAME) || X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
+        std::string issuer_name = x509name2ascii(issuer->cert_info->subject);
+        std::string ac_issuer_name = x509name2ascii(name->d.dirn);
         CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
-          X509_NAME_oneline(issuer->cert_info->subject,NULL,0),
-          X509_NAME_oneline(name->d.dirn,NULL,0));
+          issuer_name, ac_issuer_name);
         status |= VOMSACInfo::ACParsingFailed;
         return false;
       }
