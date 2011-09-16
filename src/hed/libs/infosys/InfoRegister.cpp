@@ -267,7 +267,7 @@ bool InfoRegistrar::removeService(InfoRegister* reg) {
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
         if(reg == r->p_register) {
-    	    if ( infosys_type == "ISIS" ) {
+            if ( infosys_type == "ISIS" ) {
                 sendDeleteToISIS(r);
             } else if ( infosys_type == "EMIREG" ) {
                 sendDeleteToEMIREG(r);
@@ -795,45 +795,77 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
             bool first_item =true;
             for(XMLNode node = send_doc["RegEntry"];(bool)node;++node) {
                 // Message generation from the XMLNode
-                //tmp_message.clear();
                 if (first_item){
-		    first_item = false;
+                    first_item = false;
                 } else {
                     tmp_message += ",";
-		}
+                }
                 tmp_message += "{";
-		if ( ((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.execution") != std::string::npos){
+                // Service_Name
+                if ( ((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.execution") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"ComputingService\",";
-		} else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.tests") != std::string::npos){
+                } else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.tests") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"TestService\",";
-		} else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.storage") != std::string::npos){
+                } else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.storage") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"StorageService\",";
-		} else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.security") != std::string::npos){
+                } else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.security") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"SecurityService\",";
-		} else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.infosys") != std::string::npos){
+                } else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.infosys") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"InfosysService\",";
-		} else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.accounting") != std::string::npos){
+                } else if (((std::string)node["SrcAdv"]["Type"]).find("org.nordugrid.accounting") != std::string::npos){
                     tmp_message += "\"Service_Name\":\"AccountingService\",";
-		}
+                }
+                // Service_Type
                 tmp_message += "\"Service_Type\":\"";
-		tmp_message += (std::string)node["SrcAdv"]["Type"];
-		tmp_message += "\",";
+                tmp_message += (std::string)node["SrcAdv"]["Type"];
+                tmp_message += "\",";
+                //Service_Endpoint_URL
                 tmp_message += "\"Service_Endpoint_URL\":\"";
-		tmp_message += (std::string)node["SrcAdv"]["EPR"]["Address"];
-		tmp_message += "\"";
+                tmp_message += (std::string)node["SrcAdv"]["EPR"]["Address"];
+                tmp_message += "\"";
+                if (already_registered){
+                    // Service_ExpireOn
+                     Period expiration((std::string)node["MetaSrcAdv"]["Expiration"]);
+                    time_t time = current_time+expiration.GetPeriod();
+                    ptm = gmtime ( &time );
 
+                    std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+                    std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
+                    std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
+                    std::string min_prefix = (ptm->tm_min < 10)?"0":"";
+                    std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
+                    std::stringstream out_exp;
+                    out_exp << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+                    out_exp << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+                    out_exp << ".000Z";
+
+                    tmp_message += ",\"Service_ExpireOn\":{\"$date\":\"";
+                    tmp_message += out_exp.str();
+                    tmp_message += "\"},";
+
+                    // Service_CreationTime
+                    time_t creation = creation_time.GetTime(); 
+                    ptm = gmtime ( &creation );
+                    mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
+                    day_prefix = (ptm->tm_mday < 10)?"0":"";
+                    hour_prefix = (ptm->tm_hour < 10)?"0":"";
+                    min_prefix = (ptm->tm_min < 10)?"0":"";
+                    sec_prefix = (ptm->tm_sec < 10)?"0":"";
+                    std::stringstream out_creat;
+                    out_creat << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T";
+                    out_creat << hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec;
+                    out_creat << ".000Z";
+
+                    tmp_message += "\"Service_CreationTime\":{\"$date\":\"";
+                    tmp_message += out_creat.str();
+                    tmp_message += "\"}";
+                }
                 tmp_message += "}";
             }
             tmp_message += "]";
-	    const std::string &message( tmp_message );
-            //header.NewChild("MessageGenerationTime") = out.str();
+            const std::string &message( tmp_message );
+            logger_.msg(DEBUG, "Sent entry: %s", message);
 
-            { 
-                    std::string doc;
-		send_doc.GetXML(doc, true);
-                    logger_.msg(VERBOSE, "Service_doc: %s", doc);
-                    logger_.msg(VERBOSE, "Sent entry: %s", message);
-            }
             //Add the message into the request
             http_request.Insert(message.c_str());
 
@@ -848,7 +880,7 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                 } else {
                     if( http_info.code == 200 )  {
                         std::string response_string;
-                         logger_.msg(VERBOSE, "Successful %s to EMIRegistry (%s)", method, id_);
+                        logger_.msg(VERBOSE, "Successful %s to EMIRegistry (%s)", method, id_);
                         break;
                     } else {
                         std::string method2 = already_registered ? "update" : "register";
@@ -859,8 +891,8 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                 logger_.msg(VERBOSE, "Retry connecting to the EMIRegistry (%s) %d. time(s).", id_, retry-retry_);
             }
             if (http_response) delete http_response;
-	}
-	already_registered = true;
+        }
+        already_registered = true;
         // end of the connection with the EMIRegistry
 
         // Thread sleeping
