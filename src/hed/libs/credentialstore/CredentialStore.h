@@ -35,7 +35,7 @@ namespace Arc {
     // If cred is not empty it should contains credentials to delegate/store.
     // Otherwise credentials of user configuration are used.
     bool Store(const std::map<std::string,std::string>& options,
-               const std::string& cred = "", bool if_delegate = true);
+               const std::string& cred = "", bool if_delegate = true, const Arc::Time deleg_start = Arc::Time(), const Arc::Period deleg_period = 604800);
     bool Retrieve(const std::map<std::string,std::string>& options,
                   std::string& cred, bool if_delegate = true);
     bool Info(const std::map<std::string,std::string>& options,std::string& respinfo);

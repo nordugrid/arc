@@ -145,7 +145,7 @@ bool compose_msg(std::string& msg, const std::map<std::string,std::string>& opti
   return true;
 }
 
-bool CredentialStore::Store(const std::map<std::string,std::string>& options,const std::string& cred,bool if_delegate) {
+bool CredentialStore::Store(const std::map<std::string,std::string>& options,const std::string& cred, bool if_delegate, const Arc::Time deleg_start, const Arc::Period deleg_period) {
   if(!valid) return false;
   //if(if_delegate) {
     std::string msg("VERSION=MYPROXYv2\nCOMMAND=1\n");
@@ -180,8 +180,7 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
   std::string credrequest = read_response(*response,false);
   delete response; response=NULL;
   
-  long lifetime = 3600 * 24 * 7; 
-  Arc::Credential proxy(Time()- Arc::Period(300),Period(lifetime),1024);
+  Arc::Credential proxy(deleg_start,deleg_period,1024);
   // DER binary request
   if(!proxy.InquireRequest(credrequest, false, true)) return false;
   std::string signercred = cred;

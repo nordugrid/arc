@@ -223,9 +223,14 @@ int main(int argc, char *argv[]) {
                             istring("Supported constraints are:\n"
                                     "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
                                     "  validityEnd=time\n"
-                                    "  validityPeriod=time (e.g. 43200 or 12h or 12H; if both validityPeriod and validityEnd not specified, the default is 12 hours)\n"
-                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, validityPeriod is used)\n"
-                                    "  myproxyvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, validityPeriod is used)\n"
+                                    "  validityPeriod=time (e.g. 43200 or 12h or 12H; if both validityPeriod and validityEnd\n"
+                                    "  not specified, the default is 12 hours for local proxy, and 168 hours for delegated\n"
+                                    "  proxy on myproxy server)\n"
+                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, the default\n"
+                                    "  is the minimum value of 12 hours and validityPeriod)\n"
+                                    "  myproxyvalidityPeriod=time (lifetime of proxies delegated by myproxy server,\n"
+                                    "  e.g. 43200 or 12h or 12H; if not specified, the default is the minimum value of\n"
+                                    "  12 hours and validityPeriod (which is lifetime of the delegated proxy on myproxy server))\n"
                                     "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file"));
 
@@ -553,11 +558,47 @@ int main(int argc, char *argv[]) {
   //Set the default proxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if ((constraints["validityEnd"].empty()) &&
-      (constraints["validityPeriod"].empty()))
-    constraints["validityPeriod"] = "43200";
-
-  if(!constraints["validityPeriod"].empty())
-    convert_period(constraints["validityPeriod"]);
+      (constraints["validityPeriod"].empty())) {
+    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
+      constraints["validityPeriod"] = "604800";    
+      //For myproxy PUT operation, the proxy should be 7 days according to the default 
+      //definition in myproxy implementation.
+    else
+      constraints["validityPeriod"] = "43200";
+  }
+  else if(!(constraints["validityEnd"].empty()) && (constraints["validityPeriod"].empty())){
+    constraints["validityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - (Arc::Time(constraints["validityStart"]) > now ? Arc::Time(constraints["validityStart"]) : now));
+  }
+  else if((constraints["validityEnd"].empty()) && !(constraints["validityPeriod"].empty())){
+    Arc::Time start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
+    if(start < now) {
+      Arc::Period prd = Arc::Period(constraints["validityPeriod"]);
+      if(prd > (now - start).GetPeriod())
+        constraints["validityPeriod"] = Arc::tostring(Arc::Period(prd.GetPeriod() - (now - start).GetPeriod()));
+      else constraints["validityPeriod"] = "";
+      constraints["validityStart"] = now;
+    }
+  }
+  else {
+    Arc::Time start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
+    if(start < now) { 
+      start = now; 
+      constraints["validityStart"] = now ;
+    }
+    Arc::Time end = Arc::Time(constraints["validityEnd"]);
+    if(end > start)
+      constraints["validityPeriod"] = (end - start) >= Arc::Period(constraints["validityPeriod"]) ? constraints["validityPeriod"] : Arc::tostring((end - start).GetPeriod()); 
+    else 
+      constraints["validityPeriod"] = "";
+  }
+  
+  if(constraints["validityPeriod"].empty()) {
+    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
+      constraints["validityPeriod"] = "604800";
+    else
+      constraints["validityPeriod"] = "43200";
+  }
+  convert_period(constraints["validityPeriod"]);
  
   //voms AC valitity period
   if(!constraints["vomsACvalidityPeriod"].empty())
@@ -566,18 +607,13 @@ int main(int argc, char *argv[]) {
   //Set the default voms AC validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["vomsACvalidityPeriod"].empty()) {
-    if (!constraints["validityPeriod"].empty())
+    unsigned long period_val = Arc::Period(constraints["validityPeriod"]).GetPeriod();
+    if(period_val<=43200)
       constraints["vomsACvalidityPeriod"] = constraints["validityPeriod"];
-    else if (!(constraints["validityPeriod"].empty()))
+    else 
       constraints["vomsACvalidityPeriod"] = "43200";
   }
-
-  unsigned long period_val;
-  period_val = Arc::Period(constraints["vomsACvalidityPeriod"]).GetPeriod();
-  std::string period_str = Arc::tostring(period_val);
-  constraints["vomsACvalidityPeriod"] = period_str;
-
-  std::string voms_period = period_str;
+  std::string voms_period = constraints["vomsACvalidityPeriod"];
 
   //myproxy validity period.
   if(!constraints["myproxyvalidityPeriod"].empty())
@@ -586,13 +622,13 @@ int main(int argc, char *argv[]) {
   //Set the default myproxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
   if (constraints["myproxyvalidityPeriod"].empty()) {
-    if (!constraints["validityPeriod"].empty())
+    unsigned long period_val = Arc::Period(constraints["validityPeriod"]).GetPeriod();
+    if(period_val<=43200)
       constraints["myproxyvalidityPeriod"] = constraints["validityPeriod"];
-    else if (!(constraints["validityPeriod"].empty()))
+    else  
       constraints["myproxyvalidityPeriod"] = "43200";
   }
-
-  std::string myproxy_period = Arc::tostring(Arc::Period(constraints["myproxyvalidityPeriod"]).GetPeriod());
+  std::string myproxy_period = constraints["myproxyvalidityPeriod"];
 
 
   Arc::OpenSSLInit();
@@ -808,6 +844,9 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
+  Arc::Time proxy_start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
+  Arc::Period proxy_period = Arc::Period(constraints["validityPeriod"]);
+
   //Create proxy or voms proxy
   try {
     std::cout << Arc::IString("Your identity: %s", Arc::Credential(cert_path, "", "", "").GetDN()) << std::endl;
@@ -824,22 +863,11 @@ int main(int argc, char *argv[]) {
 
     std::string private_key, signing_cert, signing_cert_chain;
 
-    //Set validity period for PUT operation to myproxy server, it is set here to not to
-    //confuse with the period for GET operation to myproxy server, since GET processing will
-    //never gets here.
-
-    Arc::Time start = constraints["validityStart"].empty() ? Arc::Time() : Arc::Time(constraints["validityStart"]);
-    Arc::Period period1 = constraints["validityEnd"].empty() ? Arc::Period(std::string("43200")) : (Arc::Time(constraints["validityEnd"]) - start);
-    Arc::Period period = constraints["validityPeriod"].empty() ? period1 : (Arc::Period(constraints["validityPeriod"]));
     int keybits = 1024;
     std::string req_str;
     std::string policy;
     policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-    //For myproxy PUT operation, the proxy should be 7 days according to the default 
-    //definition in myproxy implementation.
-    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
-      period = Arc::Period(std::string("604800"));
-    Arc::Credential cred_request(start - Arc::Period(300), period, keybits);
+    Arc::Credential cred_request(proxy_start - Arc::Period(300), proxy_period, keybits);
     cred_request.GenerateRequest(req_str);
     cred_request.OutputPrivatekey(private_key);
     signer.OutputCertificate(signing_cert);
@@ -1192,7 +1220,7 @@ int main(int argc, char *argv[]) {
       if(!retrievable_by_cert.empty()) {
         myproxyopt["retriever_trusted"] = retrievable_by_cert;
       }
-      if(!cstore.Store(myproxyopt,proxy_cred_str_pem))
+      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start,proxy_period))
         throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
 
       remove_proxy_file(proxy_path);
