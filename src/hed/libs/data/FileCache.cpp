@@ -233,27 +233,30 @@ namespace Arc {
         return false;
       }
       if (lines.empty()) {
-        logger.msg(ERROR, "Meta file %s is empty", meta_file);
-        lock.release();
-        return false;
+        logger.msg(WARNING, "Meta file %s is empty, will recreate", meta_file);
+        if (!FileCreate(meta_file, std::string(url + '\n'))) {
+          logger.msg(WARNING, "Failed to create meta file %s", meta_file);
+        }
       }
-      std::string meta_str = lines.front();
-      // check new and old format for validity time - if old change to new
-      if (meta_str != url) {
-        if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
-          logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached",
-                     url, filename, meta_str);
-          lock.release();
-          return false;
-        } else {
-          logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
-          std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
-          lines.pop_front();
-          for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
-            new_meta += *i + '\n';
-          }
-          if (!FileCreate(meta_file, new_meta)) {
-            logger.msg(WARNING, "Could not write meta file %s", meta_file);
+      else {
+        std::string meta_str = lines.front();
+        // check new and old format for validity time - if old change to new
+        if (meta_str != url) {
+          if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
+            logger.msg(ERROR, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
+                       url, filename, meta_str);
+            lock.release();
+            return false;
+          } else {
+            logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
+            std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
+            lines.pop_front();
+            for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
+              new_meta += *i + '\n';
+            }
+            if (!FileCreate(meta_file, new_meta)) {
+              logger.msg(WARNING, "Could not write meta file %s", meta_file);
+            }
           }
         }
       }
@@ -261,9 +264,7 @@ namespace Arc {
     else if (errno == ENOENT) {
       // create new file
       if (!FileCreate(meta_file, std::string(url + '\n'))) {
-        logger.msg(ERROR, "Failed to create meta file %s", meta_file);
-        lock.release();
-        return false;
+        logger.msg(WARNING, "Failed to create meta file %s", meta_file);
       }
     }
     else {
