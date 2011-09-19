@@ -111,6 +111,38 @@ namespace Arc {
     bool Get(const std::list<std::string>& statusfilter, const std::string& downloaddir,
              bool usejobname, bool force, std::list<URL>& retrievedJobs);
 
+    /// Kill jobs
+    /**
+     * This method kills jobs managed by this JobSupervisor.
+     *
+     * Before identifying jobs to kill, the JobController::GetJobInformation
+     * method is called for each loaded JobController in order to retrieve
+     * the most up to date job information.
+     *
+     * Since jobs in the JobState::DELETED, JobState::FINISHED,
+     * JobState::KILLED or JobState::FAILED states is already in a terminal
+     * state, a terminate action will not be send for those. Also no
+     * terminate action will be send for jobs in the JobState::UNDEFINED
+     * state, since job information is not available.
+     * If the status-filter is non-empty, a terminate action will only be
+     * send to jobs with a general or specific state (see JobState)
+     * identical to any of the entries in the status-filter, excluding the
+     * states mentioned above.
+     *
+     * For each job to be killed, the specialized JobController::CancelJob
+     * method is called and is responsible for terminating the given job. If
+     * the method fails to terminate a job, this method will return false,
+     * otherwise true is returned. The job ID of successfully terminated
+     * jobs will be appended to the passed killedJobs list.
+     *
+     * @param statusfilter list of job status used for filtering jobs.
+     * @param killedJobs list of URLs which to append job IDs of
+     *  successfully terminated jobs to.
+     * @see JobController::CancelJob.
+     * @return true if all jobs terminated successfully, otherwise false.
+     **/
+    bool Kill(const std::list<std::string>& statusfilter, std::list<URL>& killedJobs);
+
     /// Resubmit jobs
     /**
      * Jobs managed by this JobSupervisor will be resubmitted when invoking this

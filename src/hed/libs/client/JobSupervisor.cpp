@@ -208,6 +208,56 @@ namespace Arc {
     return ok;
   }
 
+  bool JobSupervisor::Kill(const std::list<std::string>& status,
+                           std::list<URL>& killedJobs) {
+    bool ok = true;
+
+    std::list<JobController*> jobConts = loader.GetJobControllers();
+    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
+         itJobC != jobConts.end(); itJobC++) {
+      (*itJobC)->GetJobInformation();
+
+      std::list<Job*> killable;
+      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
+           it != (*itJobC)->jobstore.end(); it++) {
+
+        if (!it->State) {
+          logger.msg(WARNING, "Unable to kill job (%s), job information not found at execution service", it->JobID.str());
+          continue;
+        }
+
+        if (!status.empty() &&
+            std::find(status.begin(), status.end(), it->State()) == status.end() &&
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+          continue;
+        }
+
+        if (it->State == JobState::DELETED) {
+          logger.msg(WARNING, "Unable to kill job (%s), job is deleted", it->JobID.str());
+          continue;
+        }
+        else if (it->State.IsFinished()) {
+          logger.msg(WARNING, "Unable to kill job (%s), job has already finished", it->JobID.str());
+          continue;
+        }
+
+        killable.push_back(&(*it));
+      }
+
+      for (std::list<Job*>::iterator it = killable.begin();
+           it != killable.end(); it++) {
+        if (!(*itJobC)->CancelJob(**it)) {
+          logger.msg(ERROR, "Failed killing job (%s)", (*it)->JobID.str());
+          ok = false;
+        }
+        else {
+          killedJobs.push_back((*it)->JobID);
+        }
+      }
+    }
+
+    return ok;
+  }
 
   bool JobSupervisor::Resubmit(const std::list<std::string>& status, int destination,
                                std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted) {
