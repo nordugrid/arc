@@ -427,7 +427,7 @@ namespace Arc {
       out << std::endl << IString("Queue information:") << std::endl;
 
       if (!ComputingShareName.empty())
-        out << IString(" Mapping Queue: %s", ComputingShareName) << std::endl;
+        out << IString(" Name: %s", ComputingShareName) << std::endl;
       if (MaxWallTime != -1)
         out << IString(" Max Wall Time: %s", MaxWallTime.istr())
                   << std::endl;
