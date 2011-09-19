@@ -62,7 +62,7 @@ namespace Arc {
      * @param jobs List of Job objects which will be managed by the created
      *  object.
      **/
-    JobSupervisor(const UserConfig& usercfg, const std::list<Job>& jobs);
+    JobSupervisor(const UserConfig& usercfg, const std::list<Job>& jobs = std::list<Job>());
 
     ~JobSupervisor();
 
