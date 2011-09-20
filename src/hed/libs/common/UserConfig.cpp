@@ -361,7 +361,7 @@ namespace Arc {
         Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
         !(Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
         Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
-#else 
+#else
         !(Glib::file_test(certificatePath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
         Glib::file_test(keyPath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
 #endif
@@ -388,7 +388,7 @@ namespace Arc {
           caCertificatesDirectory.clear();
         }
       }
-      else if (user.get_uid() == 0 || 
+      else if (user.get_uid() == 0 ||
 #ifndef WIN32
                !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
                !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
@@ -418,7 +418,7 @@ namespace Arc {
       logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
   }
 
-  const std::string& UserConfig::VOMSServerPath() { 
+  const std::string& UserConfig::VOMSServerPath() {
     if(!vomsServerPath.empty()) return vomsServerPath;
 
     //vomsServerPath could be regular file or directory, therefore only existence is checked here.
@@ -458,7 +458,7 @@ namespace Arc {
       }
     }
 
-    return vomsServerPath; 
+    return vomsServerPath;
   }
 
   bool UserConfig::LoadConfigurationFile(const std::string& conffile, bool ignoreJobListFile) {
@@ -786,7 +786,7 @@ namespace Arc {
     }
     if (!rejectedServices[COMPUTING].empty() ||
         !rejectedServices[INDEX].empty()) {
-      file << "rejectedservices =";
+      file << "rejectservices =";
       for (std::list<std::string>::const_iterator it =
              rejectedServices[COMPUTING].begin();
            it != rejectedServices[COMPUTING].end(); it++)
