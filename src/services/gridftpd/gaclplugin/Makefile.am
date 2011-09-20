@@ -1,6 +1,6 @@
 pkglib_LTLIBRARIES = gaclplugin.la
 
-GACL_LOCATION = ../external/gacl
+GACL_LOCATION = $(top_srcdir)/src/services/gridftpd/external/gacl
 
 gaclplugin_la_SOURCES = init.cpp util.cpp util.h util++.cpp util++.h \
 	gaclplugin.cpp gaclplugin.h

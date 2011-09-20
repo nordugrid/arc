@@ -1,5 +1,5 @@
 if GACL_ENABLED
-GACL_CFLAGS = -I../../../gridftpd/external/gacl
+GACL_CFLAGS = -I$(top_srcdir)/src/services/gridftpd/external/gacl
 else
 GACL_CFLAGS =
 endif

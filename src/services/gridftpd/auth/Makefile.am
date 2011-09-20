@@ -1,5 +1,5 @@
 if GACL_ENABLED
-GACL_CFLAGS = -I../external/gacl
+GACL_CFLAGS = -I$(top_srcdir)/src/services/gridftpd/external/gacl
 GACL_LIB = ../external/gacl/libgacl.la
 GACL_SOURCES = identity_gacl.cpp identity_gacl.h \
 	permission_gacl.cpp permission_gacl.h \
