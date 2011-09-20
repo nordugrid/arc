@@ -51,11 +51,11 @@ namespace DataStaging {
         if (dtr->get_modification_time() < timelimit && dtr->get_status() != DTRStatus::TRANSFERRING) {
           if (dtr->error()) {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state ERROR", dtr->get_id());
-            archived_dtrs[dtr->get_id()] = "ERROR";
+            archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>("ERROR", dtr->get_error_status().GetDesc());
           }
           else {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state %s", dtr->get_id(), dtr->get_status().str());
-            archived_dtrs[dtr->get_id()] = dtr->get_status().str();
+            archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>(dtr->get_status().str(), "");
           }
           // clean up DTR memory - delete DTR Logger and LogDestinations
           cleanDTR(i->first);
@@ -337,16 +337,17 @@ namespace DataStaging {
         active_dtrs_lock.unlock();
 
         // if not in active list, look in archived list
-        std::map<std::string, std::string>::const_iterator arc_it = archived_dtrs.find(dtrid);
+        std::map<std::string, std::pair<std::string, std::string> >::const_iterator arc_it = archived_dtrs.find(dtrid);
         if (arc_it != archived_dtrs.end()) {
-          resultelement.NewChild("ResultCode") = archived_dtrs[dtrid];
+          resultelement.NewChild("ResultCode") = archived_dtrs[dtrid].first;
+          resultelement.NewChild("ErrorDescription") = archived_dtrs[dtrid].second;
           continue;
         }
 
-        logger.msg(Arc::ERROR, "No active DTR %s", dtrid);
+        logger.msg(Arc::ERROR, "No such DTR %s", dtrid);
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorStatus") = Arc::tostring(DTRErrorStatus::ERROR_TRANSFER);
-        resultelement.NewChild("ErrorDescription") = "No such active DTR";
+        resultelement.NewChild("ErrorDescription") = "No such DTR";
         continue;
       }
 
@@ -360,17 +361,25 @@ namespace DataStaging {
         resultelement.NewChild("ErrorDescription") = dtr->get_error_status().GetDesc();
         resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr->get_error_status().GetErrorStatus());
         resultelement.NewChild("ErrorLocation") = Arc::tostring(dtr->get_error_status().GetErrorLocation());
+        archived_dtrs[dtrid] = std::pair<std::string, std::string>("ERROR", dtr->get_error_status().GetDesc());
       }
       else if (dtr->get_status() == DTRStatus::TRANSFERRED) {
         logger.msg(Arc::INFO, "DTR %s finished successfully", dtrid);
         resultelement.NewChild("ResultCode") = "TRANSFERRED";
         // pass calculated checksum back to Scheduler (eg to insert in catalog)
         if (dtr->get_destination()->CheckCheckSum()) resultelement.NewChild("CheckSum") = dtr->get_destination()->GetCheckSum();
+        archived_dtrs[dtrid] = std::pair<std::string, std::string>("TRANSFERRED", "");
       }
       else {
         logger.msg(Arc::INFO, "DTR %s still in progress", dtrid);
         resultelement.NewChild("ResultCode") = "TRANSFERRING";
+        active_dtrs_lock.unlock();
+        return Arc::MCC_Status(Arc::STATUS_OK);
       }
+      // Terminal state -  clean up DTR memory and delete DTR Logger and LogDestinations
+      cleanDTR(dtr);
+      delete dtr_it->second;
+      active_dtrs.erase(dtr_it);
       active_dtrs_lock.unlock();
     }
     return Arc::MCC_Status(Arc::STATUS_OK);

@@ -28,6 +28,14 @@ namespace DataStaging {
    *  - TRANSFERRED    - transfer finished successfully
    *  - TRANSFER_ERROR - transfer failed
    *  - SERVICE_ERROR  - something went wrong in the service itself
+   *
+   * An internal list of active transfers is held in memory. After the first
+   * query of a finished transfer (successful or not) the DTR is moved to an
+   * archived list where only summary information is kept about the transfer
+   * (DTR ID, state and short error description). The DTR object is then
+   * deleted. This archived list is also kept in memory. In case a transfer is
+   * never queried, a separate thread moves any transfers which completed more
+   * than one hour ago to the archived list.
    */
   class DataDeliveryService: public Arc::RegisteredService, DTRCallback {
 
@@ -46,9 +54,9 @@ namespace DataStaging {
     std::map<DTR*, std::stringstream*> active_dtrs;
     /// Lock for DTRs list
     Arc::SimpleCondition active_dtrs_lock;
-    /// Archived list of finished DTRs, just ID and final state
+    /// Archived list of finished DTRs, just ID and final state and short explanation
     /// TODO: save to file, DB?
-    std::map<std::string, std::string> archived_dtrs;
+    std::map<std::string, std::pair<std::string, std::string> > archived_dtrs;
     /// Object to manage Delivery processes
     DataDelivery delivery;
     /// Container for delegated credentials
