@@ -386,20 +386,16 @@ int main(int argc, char *argv[]) {
 
     if (cert_path.empty())
       cert_path = usercfg.CertificatePath();
-    if (cert_path.empty()) {
-      logger.msg(Arc::ERROR, "Cannot find the path of the certificate file, "
-                 "please setup environment X509_USER_CERT, "
-                 "or certificatepath in a configuration file");
-      return EXIT_FAILURE;
-    }
-    else if (!(Glib::file_test(cert_path, Glib::FILE_TEST_EXISTS))) {
-      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the certificate. "
-                 "Please make sure this file exists.", cert_path);
-      return EXIT_FAILURE;
-    }
 
     if (proxy_path.empty())
       proxy_path = usercfg.ProxyPath();
+
+    if ((cert_path.empty() ||key_path.empty()) && proxy_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the certificate/key file, and proxy file, "
+                 "please setup environment X509_USER_CERT/X509_USER_KEY, or X509_USER_PROXY,"
+                 "or setup certificatepath/keypath, or proxypath in a configuration file");
+      return EXIT_FAILURE;
+    }
 
     if (ca_dir.empty())
       ca_dir = usercfg.CACertificatesDirectory();
@@ -572,24 +568,44 @@ int main(int argc, char *argv[]) {
   else if((constraints["validityEnd"].empty()) && !(constraints["validityPeriod"].empty())){
     Arc::Time start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
     if(start < now) {
+      std::cout << Arc::IString("The start time that you set: %s is before current time: %s", (std::string)start, (std::string)now) << std::endl;
       Arc::Period prd = Arc::Period(constraints["validityPeriod"]);
-      if(prd > (now - start).GetPeriod())
-        constraints["validityPeriod"] = Arc::tostring(Arc::Period(prd.GetPeriod() - (now - start).GetPeriod()));
-      else constraints["validityPeriod"] = "";
+      if(start + prd < now) {
+        std::cout << Arc::IString("The start time that you set plus validityPeriod: %s is before current time: %s.\nPlease set the time constraints once again.", (std::string)(start + constraints["validityPeriod"]), (std::string)now) << std::endl;
+        return EXIT_FAILURE;
+      }
+      else {
+        std::string tmp = Arc::tostring(Arc::Period(prd.GetPeriod() - (now - start).GetPeriod()));
+        std::cout << Arc::IString("The start time that you set plus validityPeriod: %s is after current time: %s.\nThe validityPeriod will be shorten to %s.", (std::string)(start + constraints["validityPeriod"]), (std::string)now, tmp) << std::endl;
+        constraints["validityPeriod"] = tmp;
+      }
       constraints["validityStart"] = now;
     }
   }
   else {
     Arc::Time start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
-    if(start < now) { 
-      start = now; 
-      constraints["validityStart"] = now ;
+    if(start < now) {  
+      std::cout << Arc::IString("The start time that you set: %s is before current time: %s.\nThe current time will be used as start time.", (std::string)start, (std::string)now) << std::endl;
+      start = now;
+      constraints["validityStart"] = now;
     }
+    else if(start > now)
+      std::cout << Arc::IString("The start time that you set: %s is after current time: %s.", (std::string)start, (std::string)now) << std::endl;
+
     Arc::Time end = Arc::Time(constraints["validityEnd"]);
-    if(end > start)
-      constraints["validityPeriod"] = (end - start) >= Arc::Period(constraints["validityPeriod"]) ? constraints["validityPeriod"] : Arc::tostring((end - start).GetPeriod()); 
-    else 
-      constraints["validityPeriod"] = "";
+    if(end > start) {
+      if((end - start) >= Arc::Period(constraints["validityPeriod"])) {
+        std::cout << Arc::IString("The end time that you set: %s is after the start time plus validityPeriod: %s.\n The validityPeriod will not be changed.\n", (std::string)end, (std::string)(start+Arc::Period(constraints["validityPeriod"]))) << std::endl;
+      }
+      else {
+        std::cout << Arc::IString("The end time that you set: %s is before the start time plus validityPeriod: %s.\nThe validityPeriod will be shorten to: %s.", (std::string)end, (std::string)(start+Arc::Period(constraints["validityPeriod"])), Arc::tostring(end - start)) << std::endl;
+        constraints["validityPeriod"] = Arc::tostring((end - start).GetPeriod()); 
+      }
+    }
+    else { 
+      std::cout << Arc::IString("The end time that you set: %s is before start time: %s.\nPlease set the time constraints once again.\n", (std::string)end, (std::string)(start)) << std::endl;
+      return EXIT_FAILURE;
+    }
   }
   
   if(constraints["validityPeriod"].empty()) {
