@@ -180,6 +180,40 @@ namespace Arc {
      **/
     bool Renew(const std::list<std::string>& statusfilter, std::list<URL>& renewedJobs);
 
+    /// Resume job
+    /**
+     * This method resumes jobs managed by this
+     * JobSupervisor.
+     *
+     * Before identifying jobs to resume, the
+     * JobController::GetJobInformation method is called for each loaded
+     * JobController in order to retrieve the most up to date job
+     * information.
+     *
+     * Since jobs in the JobState::DELETED, JobState::FINISHED or
+     * JobState::KILLED states is in a terminal state credentials for those
+     * jobs will not be renewed. Also jobs in the JobState::UNDEFINED state
+     * will not be resumed, since job information is not available. The
+     * JobState::FAILED state is also a terminal state, but jobs in this
+     * state are allowed to be restarted. If the status-filter is non-empty,
+     * only jobs with a general or specific state (see JobState) identical
+     * to any of the entries in the status-filter will be resumed, excluding
+     * the already filtered states as mentioned above.
+     *
+     * For each job to resume, the specialized JobController::ResumeJob
+     * method is called and is responsible for resuming the particular job.
+     * If the method fails to resume a job, this method will return false,
+     * otherwise true is returned. The job ID of successfully resumed jobs
+     * will be appended to the passed resumedJobs list.
+     *
+     * @param statusfilter list of job status used for filtering jobs.
+     * @param resumeJobs list of URLs which to append job IDs to, of jobs
+     *  which was successfully resumed.
+     * @see JobController::ResumeJob.
+     * @return true if all jobs were successfully resumed, otherwise false.
+     **/
+    bool Resume(const std::list<std::string>& statusfilter, std::list<URL>& resumedJobs);
+
     /// Resubmit jobs
     /**
      * Jobs managed by this JobSupervisor will be resubmitted when invoking this

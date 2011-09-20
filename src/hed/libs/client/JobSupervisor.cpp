@@ -306,6 +306,53 @@ namespace Arc {
     return ok;
   }
 
+  bool JobSupervisor::Resume(const std::list<std::string>& status,
+                             std::list<URL>& resumedJobs) {
+    bool ok = true;
+
+    std::list<JobController*> jobConts = loader.GetJobControllers();
+    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
+         itJobC != jobConts.end(); itJobC++) {
+      (*itJobC)->GetJobInformation();
+
+      std::list<Job*> resumable;
+      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
+           it != (*itJobC)->jobstore.end(); it++) {
+
+        if (!it->State) {
+          logger.msg(WARNING, "Unable to resume job (%s), job information not found", it->JobID.str());
+          continue;
+        }
+
+        if (!status.empty() &&
+            std::find(status.begin(), status.end(), it->State()) == status.end() &&
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+          continue;
+        }
+
+        if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
+          logger.msg(WARNING, "Unable to resume job (%s), job is %s and cannot be resumed", it->JobID.str(), it->State.GetGeneralState());
+          continue;
+        }
+
+        resumable.push_back(&(*it));
+      }
+
+      for (std::list<Job*>::iterator it = resumable.begin();
+           it != resumable.end(); it++) {
+        if (!(*itJobC)->ResumeJob(**it)) {
+          logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.str());
+          ok = false;
+        }
+        else {
+          resumedJobs.push_back((*it)->JobID);
+        }
+      }
+    }
+
+    return ok;
+  }
+
   bool JobSupervisor::Resubmit(const std::list<std::string>& status, int destination,
                                std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted) {
     bool ok = true;
