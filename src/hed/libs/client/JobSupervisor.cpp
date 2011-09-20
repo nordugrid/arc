@@ -259,6 +259,53 @@ namespace Arc {
     return ok;
   }
 
+  bool JobSupervisor::Renew(const std::list<std::string>& status,
+                            std::list<URL>& renewedJobs) {
+    bool ok = true;
+
+    std::list<JobController*> jobConts = loader.GetJobControllers();
+    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
+         itJobC != jobConts.end(); itJobC++) {
+      (*itJobC)->GetJobInformation();
+
+      std::list<Job*> renewable;
+      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
+           it != (*itJobC)->jobstore.end(); it++) {
+
+        if (!it->State) {
+          logger.msg(WARNING, "Unable to renew job {%s), job information not found at execution service", it->JobID.str());
+          continue;
+        }
+
+        if (!status.empty() &&
+            std::find(status.begin(), status.end(), it->State()) == status.end() &&
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+          continue;
+        }
+
+        if (!it->State.IsFinished()) {
+          logger.msg(WARNING, "Unable to renew job (%s), job has not finished yet", it->JobID.str());
+          continue;
+        }
+
+        renewable.push_back(&(*it));
+      }
+
+      for (std::list<Job*>::iterator it = renewable.begin();
+           it != renewable.end(); it++) {
+        if (!(*itJobC)->RenewJob(**it)) {
+          logger.msg(ERROR, "Failed renewing job (%s)", (*it)->JobID.str());
+          ok = false;
+        }
+        else {
+          renewedJobs.push_back((*it)->JobID);
+        }
+      }
+    }
+
+    return ok;
+  }
+
   bool JobSupervisor::Resubmit(const std::list<std::string>& status, int destination,
                                std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted) {
     bool ok = true;

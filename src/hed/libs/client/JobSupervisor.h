@@ -143,6 +143,43 @@ namespace Arc {
      **/
     bool Kill(const std::list<std::string>& statusfilter, std::list<URL>& killedJobs);
 
+    /// Renew job credentials
+    /**
+     * This method renew credentials of the jobs managed by this
+     * JobSupervisor.
+     *
+     * Before identifying jobs for which to renew credentials, the
+     * JobController::GetJobInformation method is called for each loaded
+     * JobController in order to retrieve the most up to date job
+     * information.
+     *
+     * Since jobs in the JobState::DELETED, JobState::FINISHED or
+     * JobState::KILLED states is in a terminal state credentials for those
+     * jobs will not be renewed. Also jobs in the JobState::UNDEFINED state
+     * will get their credentials renewed, since job information is not
+     * available. The JobState::FAILED state is also a terminal state, but
+     * since jobs in this state can be restarted, credentials for such jobs
+     * can be renewed. If the status-filter is non-empty, a renewal of
+     * credentials will be done for jobs with a general or specific state
+     * (see JobState) identical to any of the entries in the status-filter,
+     * excluding the already filtered states as mentioned above.
+     *
+     * For each job for which to renew credentials, the specialized
+     * JobController::RenewJob method is called and is responsible for
+     * renewing the credentials for the given job. If the method fails to
+     * renew job credentials, this method will return false,
+     * otherwise true is returned. The job ID of successfully renewed jobs
+     * will be appended to the passed renewedJobs list.
+     *
+     * @param statusfilter list of job status used for filtering jobs.
+     * @param renewedJobs list of URLs which to append job IDs to, of
+     *  jobs for which credentials was successfully renewed.
+     * @see JobController::RenewJob.
+     * @return true if credentials for all jobs were successfully renewed,
+     *  otherwise false.
+     **/
+    bool Renew(const std::list<std::string>& statusfilter, std::list<URL>& renewedJobs);
+
     /// Resubmit jobs
     /**
      * Jobs managed by this JobSupervisor will be resubmitted when invoking this
