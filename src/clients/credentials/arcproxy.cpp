@@ -452,6 +452,7 @@ int main(int argc, char *argv[]) {
 
     Arc::Credential holder(proxy_path, "", "", "");
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
+    std::cout << Arc::IString("Issuer: %s", holder.GetIssuerName()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
     if (holder.GetEndTime() < now)
       std::cout << Arc::IString("Time left for proxy: Proxy expired") << std::endl;
