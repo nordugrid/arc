@@ -92,3 +92,6 @@ install-data-hook:
 	  mv $(DESTDIR)$(altpythondir)/_arc.so \
 	  $(DESTDIR)$(altpythondir)/_arc.$(ALTPYTHON_SOABI).so ; \
 	fi
+
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)

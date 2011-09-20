@@ -2365,6 +2365,7 @@ AC_CONFIG_FILES([Makefile
                  swig/Makefile
                  java/Makefile
                  python/Makefile
+                 python/test/Makefile
                  po/Makefile.in
                  include/Makefile
                  debian/Makefile
