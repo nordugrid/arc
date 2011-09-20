@@ -273,7 +273,7 @@ namespace Arc {
            it != (*itJobC)->jobstore.end(); it++) {
 
         if (!it->State) {
-          logger.msg(WARNING, "Unable to renew job {%s), job information not found at execution service", it->JobID.str());
+          logger.msg(WARNING, "Unable to renew job (%s), job information not found at execution service", it->JobID.str());
           continue;
         }
 
@@ -283,8 +283,8 @@ namespace Arc {
           continue;
         }
 
-        if (!it->State.IsFinished()) {
-          logger.msg(WARNING, "Unable to renew job (%s), job has not finished yet", it->JobID.str());
+        if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
+          logger.msg(WARNING, "Unable to renew job (%s), job already finished", it->JobID.str());
           continue;
         }
 
