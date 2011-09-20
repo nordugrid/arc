@@ -183,7 +183,7 @@ namespace Arc {
       job.State = JobStateCREAM((std::string)lastStatusNode["name"]);
 
     if (!job.State) {
-      logger.msg(VERBOSE, "Unable to retrieve job status.");
+      logger.msg(VERBOSE, "Unable to retrieved job status.");
       return false;
     }
 
@@ -439,9 +439,7 @@ namespace Arc {
     }
 
     //Sign the proxy certificate
-    std::string emptycadir;
-    std::string emptycafile;
-    Credential signer(proxy, "", emptycadir, emptycafile);
+    Credential signer(proxy, "", cadir, cafile);
     std::string signedCert;
     // TODO: Hardcoded time shift - VERY BAD approach
     Time start_time = Time() - Period(300);

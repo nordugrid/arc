@@ -156,7 +156,7 @@ namespace Arc {
      * Since jobs in the JobState::DELETED, JobState::FINISHED or
      * JobState::KILLED states is in a terminal state credentials for those
      * jobs will not be renewed. Also jobs in the JobState::UNDEFINED state
-     * will get their credentials renewed, since job information is not
+     * will not get their credentials renewed, since job information is not
      * available. The JobState::FAILED state is also a terminal state, but
      * since jobs in this state can be restarted, credentials for such jobs
      * can be renewed. If the status-filter is non-empty, a renewal of

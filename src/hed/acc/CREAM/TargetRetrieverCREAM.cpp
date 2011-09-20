@@ -552,11 +552,13 @@ namespace Arc {
 
       // target.MaxDiskSpace          - not available in schema
 
-      if (VOView["GlueCEInfoDefaultSE"])
-        target.DefaultStorageService =
-          (std::string)VOView["GlueCEInfoDefaultSE"];
-      else if (CE["GlueCEInfoDefaultSE"])
-        target.DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
+      if (VOView["GlueCEInfoDefaultSE"]) {
+        // Assume protocol is gsiftp.
+        target.DefaultStorageService = "gsiftp://" + (std::string)VOView["GlueCEInfoDefaultSE"];
+      }
+      else if (CE["GlueCEInfoDefaultSE"]) {
+        target.DefaultStorageService = "gsiftp://" + (std::string)CE["GlueCEInfoDefaultSE"];
+      }
       if (VOView["GlueCEPolicyPreemption"])
         target.Preemption = stringtoi(VOView["GlueCEPolicyPreemption"]);
       else if (CE["GlueCEPolicyPreemption"])

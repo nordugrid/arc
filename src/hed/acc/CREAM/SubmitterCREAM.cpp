@@ -96,6 +96,37 @@ namespace Arc {
       jobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ManagerProductName;
     }
 
+    bool addOutput = !jobdesc.Application.Output.empty(), addError = !jobdesc.Application.Error.empty();
+    for (std::list<FileType>::iterator it = jobdesc.Files.begin();
+         it != jobdesc.Files.end(); it++) {
+      if (it->KeepData && (it->Target.empty() || it->Target.front().Protocol() == "file")) {
+        // User downloadable files should go to the default storage element.
+        if (it->Target.empty()) {
+          it->Target.push_back(URL());
+        }
+        it->Target.front() = et.DefaultStorageService;
+        it->Target.front().ChangePath("/tmp/" + it->Name);
+      }
+      addOutput &= (it->Name != jobdesc.Application.Output);
+      addError  &= (it->Name != jobdesc.Application.Error);
+    }
+
+    if (addOutput) {
+      jobdesc.Files.push_back(FileType());
+      jobdesc.Files.back().Name = jobdesc.Application.Output;
+      jobdesc.Files.back().KeepData = true;
+      jobdesc.Files.back().Target.push_back(et.DefaultStorageService);
+      jobdesc.Files.back().Target.back().ChangePath("/tmp/" + jobdesc.Application.Output);
+    }
+
+    if (addError && jobdesc.Application.Output != jobdesc.Application.Error) {
+      jobdesc.Files.push_back(FileType());
+      jobdesc.Files.back().Name = jobdesc.Application.Output;
+      jobdesc.Files.back().KeepData = true;
+      jobdesc.Files.back().Target.push_back(et.DefaultStorageService);
+      jobdesc.Files.back().Target.back().ChangePath("/tmp/" + jobdesc.Application.Error);
+    }
+
     jobdesc.Resources.QueueName = et.ComputingShareName;;
 
     return true;
