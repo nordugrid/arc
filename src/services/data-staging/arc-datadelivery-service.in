@@ -175,19 +175,15 @@ prepare() {
     fi
 
     # Creating configuration file of arched
-    # Reading following information from config file:
-    #  Debug level
-    #  User name
-    #  Log file is currently hard-coded
 
-    #LOGFILE=`readconfigvar "$ARC_CONFIG" grid-manager logfile`
-    LOGLEVEL=`readconfigvar "$ARC_CONFIG" grid-manager debug`
-    LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
-    USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
-    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
-    GRIDMAP=`readconfigvar "$ARC_CONFIG" grid-manager gridmap`
+    LOGFILE=`readconfigvar "$ARC_CONFIG" datadelivery-service logfile`
+    LOGLEVEL=`readconfigvar "$ARC_CONFIG" datadelivery-service debug`
+    LOGSIZE=`readconfigvar "$ARC_CONFIG" datadelivery-service logsize`
+    USERNAME=`readconfigvar "$ARC_CONFIG" datadelivery-service user`
+    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" datadelivery-service x509_user_cert`
+    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" datadelivery-service x509_user_key`
+    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" datadelivery-service x509_cert_dir`
+
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
     fi
@@ -197,20 +193,13 @@ prepare() {
     if [ -z "$X509_CERT_DIR" ] ; then
         X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
     fi
-    if [ -z "$GRIDMAP" ] ; then
-        GRIDMAP=`readconfigvar "$ARC_CONFIG" common gridmap`
-    fi
 
     # Exporting collected variables
     if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
     if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
     if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-    if [ ! -z "$GRIDMAP" ] ; then export GRIDMAP ; fi
 
     # Required defaults
-    if [ -z "$GRIDMAP" ] ; then
-        GRIDMAP=/etc/grid-security/grid-mapfile
-    fi
     if [ -z "$X509_USER_CERT" ] ; then
         X509_USER_CERT=/etc/grid-security/hostcert.pem
     fi
@@ -222,26 +211,24 @@ prepare() {
     fi
 
     # Web Service configuration
-    host=`readconfigvar "$ARC_CONFIG" common hostname`
-    datadelivery_endpoint=https://$host:60002/datadelivery-service
+    PORT=`readconfigvar "$ARC_CONFIG" datadelivery-service port`
+    PORT=${PORT:-60002}
 
     SERVICE_CONFIG=`mktemp -t arc-datadelivery-service.xml.XXXXXX`
     if [ -z "$SERVICE_CONFIG" ] ; then
         log_failure_msg "Failed to create temporary file"
         exit 1
     fi
+    
+    # Allowed client credentials
+    ALLOWED_DN=`readconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
+    if [ "x$ALLOWED_DN" = "x" ]; then
+        log_failure_msg "No allowed DN specified in configuration"
+        exit 1
+    fi
 
     CMD="$CMD -c '$SERVICE_CONFIG'"
 
-    # VOMS_LOCATION
-    VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
-
-    # GRIDSITE_LOCATION
-    GRIDSITE_LOCATION=${GRIDSITE_LOCATION:-@DEFAULT_GRIDSITE_LOCATION@}
-
-    add_library_path "$LFC_LOCATION"
-    add_library_path "$GRIDSITE_LOCATION"
-    add_library_path "$VOMS_LOCATION"
     add_library_path "$GLOBUS_LOCATION"
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
         LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
@@ -305,7 +292,7 @@ prepare() {
   <Chain>\
     <Component name=\"tcp.service\" id=\"tcp\">\
       <next id=\"tls\"/>\
-      <tcp:Listen><tcp:Port>60002</tcp:Port></tcp:Listen>\
+      <tcp:Listen><tcp:Port>$PORT</tcp:Port></tcp:Listen>\
     </Component>\
     <Component name=\"tls.service\" id=\"tls\">\
       <next id=\"http\"/>\
@@ -315,9 +302,10 @@ prepare() {
       <VOMSCertTrustDNChain>
         <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
       </VOMSCertTrustDNChain>
-      <SecHandler name=\"identity.map\" id=\"map\" event=\"incoming\">\
-        <PDP name=\"allow.pdp\"><LocalList>$GRIDMAP</LocalList></PDP>\
-        <PDP name=\"allow.pdp\"><LocalName>nobody</LocalName></PDP>\
+      <SecHandler name=\"arc.authz\" id=\"authz\" event=\"incoming\">\
+        <PDP name=\"simplelist.pdp\">\
+          <DN>$ALLOWED_DN</DN>\
+        </PDP>\
       </SecHandler>\
     </Component>\
     <Component name=\"http.service\" id=\"http\">\
@@ -332,11 +320,6 @@ prepare() {
       <next id=\"datadeliveryservice\">^/datadeliveryservice</next>\
     </Plexer>\
     <Service name=\"datadeliveryservice\" id=\"datadeliveryservice\">\
-      <!-- Put sec handler in here so that sensible error message can\
-           be returned -->\
-      <SecHandler name=\"arc.authz\" id=\"map\" event=\"incoming\">\
-        <PDP name=\"simplelist.pdp\" location=\"$GRIDMAP\"/>\
-      </SecHandler>\
     </Service>\
   </Chain>\
 </ArcConfig>\
@@ -431,7 +414,7 @@ status() {
         fi
     fi
     if [ -f $LOCKFILE ]; then
-        echo "$1 stopped but lockfile exist"
+        echo "$1 stopped but lockfile exists"
         return 2
     fi
     echo "$1 is stopped"

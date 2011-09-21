@@ -101,7 +101,7 @@ namespace DataStaging {
     logger.msg(Arc::INFO, "Received DTR %s in state %s", dtr.get_id(), dtr.get_status().str());
 
     // delete temp proxy file
-    std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr.get_parent_job_id()+".proxy");
+    std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr.get_id()+".proxy");
     logger.msg(Arc::DEBUG, "Removing temp proxy %s", proxy_file);
     if (unlink(proxy_file.c_str()) && errno != ENOENT) {
       logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
@@ -504,7 +504,7 @@ namespace DataStaging {
 
     if(method == "POST") {
       logger.msg(Arc::VERBOSE, "process: POST");
-      logger.msg(Arc::INFO, "Identity is %s", inmsg.Attributes()->get("TLS:PEERDN"));
+      logger.msg(Arc::VERBOSE, "Identity is %s", inmsg.Attributes()->get("TLS:PEERDN"));
       // Both input and output are supposed to be SOAP
       // Extracting payload
       Arc::PayloadSOAP* inpayload = NULL;
