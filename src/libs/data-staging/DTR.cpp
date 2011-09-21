@@ -53,6 +53,7 @@ namespace DataStaging {
        created(time(NULL)),
        cancel_request(false),
        delivery_endpoint(LOCAL_DELIVERY),
+       use_host_cert_for_remote_delivery(false),
        current_owner(GENERATOR),
        logger(log)
   {
@@ -129,6 +130,7 @@ namespace DataStaging {
       next_process_time(dtr.next_process_time),
       cancel_request(dtr.cancel_request),
       delivery_endpoint(dtr.delivery_endpoint),
+      use_host_cert_for_remote_delivery(dtr.use_host_cert_for_remote_delivery),
       current_owner(dtr.current_owner),
       logger(dtr.logger),
       log_destinations(dtr.log_destinations),

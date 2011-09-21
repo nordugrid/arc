@@ -116,6 +116,8 @@ namespace DataStaging {
        <ID>id</ID>
        <Source>url</Source>
        <Destination>url</Destination>
+       <Uid>1000</Uid>
+       <Gid>1000</Gid>
        <Caching>true</Caching>
        <CheckSum>adler32:12345678</CheckSum>
        <MinAverageSpeed>100</MinAverageSpeed>
@@ -139,7 +141,7 @@ namespace DataStaging {
      </DataDeliveryStartResult>
    </DataDeliveryStartResponse>
    */
-  Arc::MCC_Status DataDeliveryService::Start(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user) {
+  Arc::MCC_Status DataDeliveryService::Start(Arc::XMLNode in, Arc::XMLNode out) {
 
     Arc::XMLNode resp = out.NewChild("DataDeliveryStartResponse");
     Arc::XMLNode results = resp.NewChild("DataDeliveryStartResult");
@@ -159,25 +161,6 @@ namespace DataStaging {
       return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to accept delegation");
     }
 
-    // Store proxy, only readable by user. Use DTR job id as proxy name.
-    std::string groupid(Arc::UUID());
-    std::string proxy_file(tmp_proxy_dir+"/DTR."+groupid+".proxy");
-    logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
-
-    if (!Arc::FileCreate(proxy_file, credential)) {
-      logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
-      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to create temp proxy");
-    }
-
-    if (chown(proxy_file.c_str(), user.get_uid(), user.get_gid()) != 0) {
-      logger.msg(Arc::ERROR, "Failed to change owner of temp proxy at %s to %i:%i: %s",
-                 proxy_file, user.get_uid(), user.get_gid(), Arc::StrError(errno));
-      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to create temp proxy");
-    }
-
-    Arc::UserConfig usercfg;
-    usercfg.ProxyPath(proxy_file);
-
     for(int n = 0;;++n) {
       Arc::XMLNode dtrnode = in["DataDeliveryStart"]["DTR"][n];
 
@@ -186,6 +169,13 @@ namespace DataStaging {
       std::string dtrid((std::string)dtrnode["ID"]);
       std::string src((std::string)dtrnode["Source"]);
       std::string dest((std::string)dtrnode["Destination"]);
+      int uid = Arc::stringtoi((std::string)dtrnode["Uid"]);
+      int gid = Arc::stringtoi((std::string)dtrnode["Gid"]);
+      if (dtrnode["Caching"] == "true") {
+        uid = Arc::User().get_uid();
+        gid = Arc::User().get_gid();
+      }
+      Arc::UserConfig usercfg;
 
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("ID") = dtrid;
@@ -232,6 +222,27 @@ namespace DataStaging {
       }
       active_dtrs_lock.unlock();
 
+      // Store proxy, only readable by user. Use DTR job id as proxy name.
+      // TODO: it is inefficient to create a file for every DTR, better to
+      // use some kind of proxy store
+      std::string proxy_file(tmp_proxy_dir+"/DTR."+dtrid+".proxy");
+      logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
+
+      if (!Arc::FileCreate(proxy_file, credential)) {
+        logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
+        continue;
+      }
+
+      if (chown(proxy_file.c_str(), uid, gid) != 0) {
+        logger.msg(Arc::ERROR, "Failed to change owner of temp proxy at %s to %i:%i: %s",
+                   proxy_file, uid, gid, Arc::StrError(errno));
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "Failed to store temporary proxy";
+        continue;
+      }
+      usercfg.ProxyPath(proxy_file);
 
       // Logger for this DTR. Uses a string stream so log can easily be sent
       // back to the client. LogStream keeps a reference to the stream so we
@@ -243,8 +254,7 @@ namespace DataStaging {
       log->removeDestinations();
       log->addDestination(*output);
 
-      int uid = user.get_uid();
-      if (dtrnode["Caching"] == "true") uid = Arc::User().get_uid();
+      std::string groupid(Arc::UUID());
 
       DTR * dtr = new DTR(src, dest, usercfg, groupid, uid, log);
       if (!(*dtr)) {
@@ -312,7 +322,7 @@ namespace DataStaging {
      </DataDeliveryQueryResult>
    </DataDeliveryQueryResponse>
    */
-  Arc::MCC_Status DataDeliveryService::Query(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user) {
+  Arc::MCC_Status DataDeliveryService::Query(Arc::XMLNode in, Arc::XMLNode out) {
 
     Arc::XMLNode resp = out.NewChild("DataDeliveryQueryResponse");
     Arc::XMLNode results = resp.NewChild("DataDeliveryQueryResult");
@@ -407,7 +417,7 @@ namespace DataStaging {
      </DataDeliveryCancelResult>
    </DataDeliveryCancelResponse>
    */
-  Arc::MCC_Status DataDeliveryService::Cancel(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user) {
+  Arc::MCC_Status DataDeliveryService::Cancel(Arc::XMLNode in, Arc::XMLNode out) {
 
     Arc::XMLNode resp = out.NewChild("DataDeliveryCancelResponse");
     Arc::XMLNode results = resp.NewChild("DataDeliveryCancelResult");
@@ -460,10 +470,10 @@ namespace DataStaging {
       logger.msg(Arc::ERROR, "Failed to start archival thread");
       return;
     }
-    // Create tmp dir for proxies, readable only by root
+    // Create tmp dir for proxies
     // TODO get from configuration
     tmp_proxy_dir = "/tmp/arc";
-    if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU, true)) {
+    if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true)) {
       logger.msg(Arc::ERROR, "Failed to create dir %s for temp proxies: %s", tmp_proxy_dir, Arc::StrError(errno));
       return;
     }
@@ -490,18 +500,7 @@ namespace DataStaging {
       logger.msg(Arc::ERROR, "Unauthorized");
       return make_soap_fault(outmsg, "Authorization failed");
     }
-
     std::string method = inmsg.Attributes()->get("HTTP:METHOD");
-
-    // find local user
-    std::string mapped_username = inmsg.Attributes()->get("SEC:LOCALID");
-    if (mapped_username.empty()) {
-      logger.msg(Arc::ERROR, "No local user mapping found");
-      return make_soap_fault(outmsg, "No local user mapping found");
-    }
-    Arc::User mapped_user(mapped_username);
-    // User must be the same as user running job. This will work if normal mapfiles
-    // are used but may cause problems when using user pools.
 
     if(method == "POST") {
       logger.msg(Arc::VERBOSE, "process: POST");
@@ -538,15 +537,15 @@ namespace DataStaging {
       // choose operation
       // Make a new request
       if (MatchXMLName(op,"DataDeliveryStart")) {
-        result = Start(*inpayload, *outpayload, mapped_user);
+        result = Start(*inpayload, *outpayload);
       }
       // Query a request
       else if (MatchXMLName(op,"DataDeliveryQuery")) {
-        result = Query(*inpayload, *outpayload, mapped_user);
+        result = Query(*inpayload, *outpayload);
       }
       // Cancel a request
       else if (MatchXMLName(op,"DataDeliveryCancel")) {
-        result = Cancel(*inpayload, *outpayload, mapped_user);
+        result = Cancel(*inpayload, *outpayload);
       }
       // Delegate credentials. Should be called before making a new request
       else if (delegation.MatchNamespace(*inpayload)) {

@@ -80,13 +80,13 @@ namespace DataStaging {
 
     /* individual operations */
     /// Start a new transfer
-    Arc::MCC_Status Start(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user);
+    Arc::MCC_Status Start(Arc::XMLNode in, Arc::XMLNode out);
 
     /// Query status of transfer
-    Arc::MCC_Status Query(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user);
+    Arc::MCC_Status Query(Arc::XMLNode in, Arc::XMLNode out);
 
     /// Cancel a transfer
-    Arc::MCC_Status Cancel(Arc::XMLNode in, Arc::XMLNode out, const Arc::User& user);
+    Arc::MCC_Status Cancel(Arc::XMLNode in, Arc::XMLNode out);
 
    public:
     /// Make a new DataDeliveryService. Sets up the process handler.

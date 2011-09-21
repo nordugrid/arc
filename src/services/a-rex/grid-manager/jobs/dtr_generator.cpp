@@ -685,6 +685,9 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     // set priority as given in job description
     if (job.get_local())
       dtr.set_priority(job.get_local()->priority);
+    // use A-REX host certificate for remote delivery services
+    dtr.host_cert_for_remote_delivery(true);
+
     DataStaging::CacheParameters cache_parameters;
     cache_parameters.cache_dirs = jobuser->CacheParams().getCacheDirs();
     cache_parameters.remote_cache_dirs = jobuser->CacheParams().getRemoteCacheDirs();

@@ -43,7 +43,13 @@ namespace DataStaging {
 
     // connect to service and make a new transfer request
     Arc::MCCConfig cfg;
-    dtr.get_usercfg().ApplyToConfig(cfg);
+    if (dtr.host_cert_for_remote_delivery()) {
+      Arc::UserConfig host_cfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+      host_cfg.ProxyPath(""); // to force using cert/key files instead of non-existent proxy
+      host_cfg.ApplyToConfig(cfg);
+    } else {
+      dtr.get_usercfg().ApplyToConfig(cfg);
+    }
 
     logger_->msg(Arc::VERBOSE, "DTR %s: Connecting to Delivery service at %s",
                  dtr_id, dtr.get_delivery_endpoint().str());
@@ -58,6 +64,8 @@ namespace DataStaging {
     dtrnode.NewChild("Source") = surl;
     dtrnode.NewChild("Destination") = durl;
     if (dtr.get_source()->CheckCheckSum()) dtrnode.NewChild("CheckSum") = dtr.get_source()->GetCheckSum();
+    dtrnode.NewChild("Uid") = Arc::tostring(dtr.get_local_user().get_uid());
+    dtrnode.NewChild("Gid") = Arc::tostring(dtr.get_local_user().get_gid());
     // transfer parameters
     dtrnode.NewChild("MinAverageSpeed") = Arc::tostring(params.min_average_bandwidth);
     dtrnode.NewChild("AverageTime") = Arc::tostring(params.averaging_time);

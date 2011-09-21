@@ -243,6 +243,9 @@ namespace DataStaging {
       /** By default it is LOCAL_DELIVERY so local Delivery is used. */
       Arc::URL delivery_endpoint;
 
+      /// Whether to use host instead of user credentials for contacting remote delivery services.
+      bool use_host_cert_for_remote_delivery;
+
       /// The process in charge of this DTR right now
       StagingProcesses current_owner;
 
@@ -426,6 +429,11 @@ namespace DataStaging {
      void set_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
      /// Returns delivery endpoint
      const Arc::URL& get_delivery_endpoint() const { return delivery_endpoint; };
+
+     /// Set the flag for using host certificate for contacting remote delivery services
+     void host_cert_for_remote_delivery(bool host) { use_host_cert_for_remote_delivery = host; };
+     /// Set the flag for using host certificate for contacting remote delivery services
+     bool host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
 
      /// Set cache filename
      void set_cache_file(const std::string& filename);
