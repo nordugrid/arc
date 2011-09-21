@@ -5,3 +5,5 @@ else
 TESTS =
 endif
 check_SCRIPTS = $(TESTS)
+
+EXTRA_DIST = SwigPyIteratorSegFaultRegTest.py
