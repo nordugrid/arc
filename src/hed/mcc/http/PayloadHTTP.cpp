@@ -31,63 +31,262 @@ static bool ParseHTTPVersion(const std::string& s,int& major,int& minor) {
   return true;
 }
 
-// Assuming there are no zeroes in stream
+bool PayloadHTTP::readtbuf(void) {
+  int l = (sizeof(tbuf_)-1) - tbuflen_;
+  if(l > 0) {
+    if(stream_->Get(tbuf_+tbuflen_,l)) {
+      tbuflen_ += l;
+      tbuf_[tbuflen_]=0;
+    }
+  }
+  return (tbuflen_>0);
+}
+
 bool PayloadHTTP::readline(std::string& line) {
   line.resize(0);
-  for(;;) {
-    char* p = strchr(tbuf_,'\n');
+  for(;line.length()<4096;) { // keeping line size sane
+    char* p = (char*)memchr(tbuf_,'\n',tbuflen_);
     if(p) {
       *p=0;
-      line+=tbuf_;
+      line.append(tbuf_,p-tbuf_);
       tbuflen_-=(p-tbuf_)+1;
       memmove(tbuf_,p+1,tbuflen_+1); 
-      if(line[line.length()-1] == '\r') line.resize(line.length()-1);
+      if((!line.empty()) && (line[line.length()-1] == '\r')) line.resize(line.length()-1);
       return true;
     };
-    line+=tbuf_;
-    tbuflen_=sizeof(tbuf_)-1;
-    if(!stream_->Get(tbuf_,tbuflen_)) break;
-    tbuf_[tbuflen_]=0;
+    line.append(tbuf_,tbuflen_);
+    tbuflen_=0;
+    if(!readtbuf()) break;
   }; 
   tbuf_[tbuflen_]=0;
   return false;
 }
 
-bool PayloadHTTP::parse_header(void) {
-  method_.resize(0);
-  code_=0;
-  keep_alive_=false;
-  // Skip empty lines
-  std::string line;
-  for(;line.empty();) if(!readline(line)) {
-    method_="END";  // Special name to repsent closed connection
-    chunked_=false; length_=0;
-    return true;
-  };
-  // Parse request/response line
-  std::string::size_type pos2 = line.find(' ');
-  if(pos2 == std::string::npos) return false;
-  std::string word1 = line.substr(0,pos2);
-  // Identify request/response
-  if(ParseHTTPVersion(line.substr(0,pos2),version_major_,version_minor_)) {
-    // Response
-    std::string::size_type pos3 = line.find(' ',pos2+1);
-    if(pos3 == std::string::npos) return false;
-    code_=strtol(line.c_str()+pos2+1,NULL,10);
-    reason_=line.substr(pos3+1);
+bool PayloadHTTP::read(char* buf,int64_t& size) {
+  if(tbuflen_ >= size) {
+    memcpy(buf,tbuf_,size);
+    memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
+    tbuflen_-=size;
   } else {
-    // Request
-    std::string::size_type pos3 = line.rfind(' ');
-    if((pos3 == pos2) || (pos2 == std::string::npos)) return false;
-    if(!ParseHTTPVersion(line.substr(pos3+1),version_major_,version_minor_)) return false;
-    method_=line.substr(0,pos2);
-    uri_=line.substr(pos2+1,pos3-pos2-1);
+    memcpy(buf,tbuf_,tbuflen_);
+    buf+=tbuflen_; 
+    int64_t l = size-tbuflen_;
+    size=tbuflen_; tbuflen_=0; tbuf_[0]=0; 
+    for(;l;) {
+      int l_ = (l>INT_MAX)?INT_MAX:l;
+      if(!stream_->Get(buf,l_)) return (size>0);
+      size+=l_; buf+=l_; l-=l_;
+    };
   };
-  if((version_major_ > 1) || ((version_major_ == 1) && (version_minor_ >= 1))) {
-    keep_alive_=true;
+  return true;
+}
+
+bool PayloadHTTP::readline_chunked(std::string& line) {
+  if(!chunked_) return readline(line);
+  line.resize(0);
+  for(;line.length()<4096;) { // keeping line size sane
+    if(tbuflen_ <= 0) {
+      if(!readtbuf()) break;
+    };
+    char c;
+    int64_t l = 1;
+    if(!read_chunked(&c,l)) break;
+    if(c == '\n') {
+      if((!line.empty()) && (line[line.length()-1] == '\r')) line.resize(line.length()-1);
+      return true;
+    };
+    line.append(&c,1); // suboptimal
   };
-  // Parse header lines
-  for(;readline(line) && (!line.empty());) {
+  return false;
+}
+
+bool PayloadHTTP::read_chunked(char* buf,int64_t& size) {
+  if(!chunked_) return read(buf,size);
+  int64_t bufsize = size;
+  size = 0;
+  if(chunked_ == CHUNKED_ERROR) return false;
+  for(;bufsize>0;) {
+    if(chunked_ == CHUNKED_EOF) break;
+    if(chunked_ == CHUNKED_START) { // reading chunk size
+      std::string line;
+      chunked_ = CHUNKED_ERROR;
+      if(!readline(line)) break;
+      char* e;
+      chunk_size_ = strtoll(line.c_str(),&e,16);
+      if((*e != ';') && (*e != 0)) break;
+      if(e == line.c_str()) break;
+      if(chunk_size_ == 0) {
+        chunked_ = CHUNKED_EOF;
+      } else {
+        chunked_ = CHUNKED_CHUNK;
+      };
+    };
+    if(chunked_ == CHUNKED_CHUNK) { // reading chunk data
+      int64_t l = bufsize;
+      if(chunk_size_ < l) l = chunk_size_;
+      chunked_ = CHUNKED_ERROR;
+      if(!read(buf,l)) break;
+      chunk_size_ -= l;
+      size += l;
+      bufsize -= l;
+      buf += l;
+      if(chunk_size_ <= 0) {
+        chunked_ = CHUNKED_END;
+      } else {
+        chunked_ = CHUNKED_CHUNK;
+      };
+    };
+    if(chunked_ == CHUNKED_END) { // reading CRLF at end of chunk
+      std::string line;
+      chunked_ = CHUNKED_ERROR;
+      if(!readline(line)) break;
+      if(!line.empty()) break;
+      chunked_ = CHUNKED_START;
+    };
+  };
+  return (size>0);
+}
+
+bool PayloadHTTP::flush_chunked(void) {
+  if(!chunked_) return true;
+  if(chunked_ == CHUNKED_EOF) return true;
+  if(chunked_ == CHUNKED_ERROR) return false;
+  const int bufsize = 1024;
+  char* buf = new char[bufsize];
+  for(;;) {
+    if(chunked_ == CHUNKED_EOF) break;
+    if(chunked_ == CHUNKED_ERROR) break;
+    int64_t l = bufsize;
+    if(!read_chunked(buf,l)) break;
+  };
+  delete[] buf;
+  return (chunked_ == CHUNKED_EOF);
+}
+
+char* PayloadHTTP::find_multipart(char* buf,int64_t size) {
+  char* p = buf;
+  for(;;++p) {
+    p = (char*)memchr(p,'\r',size-(p-buf));
+    if(!p) break; // no tag found
+    int64_t l = (multipart_tag_.length()+2) - (size-(p-buf));
+    if(l > 0) {
+      // filling buffer with necessary amount of information
+      if(l > multipart_buf_.length()) {
+        int64_t ll = multipart_buf_.length();
+        multipart_buf_.resize(l);
+        l = l-ll;
+        if(!read_chunked((char*)(multipart_buf_.c_str()+ll),l)) {
+          p = NULL;
+          break;
+        };
+        multipart_buf_.resize(ll+l);
+      }
+    }
+    int64_t pos = p-buf;
+    ++pos;
+    char c = '\0';
+    if(pos < size) {
+      c = buf[pos];
+    } else if((pos-size) < multipart_buf_.length()) {
+      c = multipart_buf_[pos-size];
+    };
+    if(c != '\n') continue;
+    int tpos = 0;
+    for(;tpos<multipart_tag_.length();++tpos) {
+      ++pos;
+      c = '\0';
+      if(pos < size) {
+        c = buf[pos];
+      } else if((pos-size) < multipart_buf_.length()) {
+        c = multipart_buf_[pos-size];
+      };
+      if(c != multipart_tag_[tpos]) break;
+    };
+    if(tpos >= multipart_tag_.length()) break; // tag found
+  }
+  return p;
+}
+
+bool PayloadHTTP::read_multipart(char* buf,int64_t& size) {
+  if(!multipart_) return read_chunked(buf,size);
+  if(multipart_ == MULTIPART_END) return false;
+  if(multipart_ == MULTIPART_EOF) return false;
+  int64_t bufsize = size;
+  size = 0;
+  if(!multipart_buf_.empty()) {
+    // pick up previously loaded data
+    if(bufsize >= multipart_buf_.length()) {
+      memcpy(buf,multipart_buf_.c_str(),multipart_buf_.length());
+      size = multipart_buf_.length();
+      multipart_buf_.resize(0);
+    } else {
+      memcpy(buf,multipart_buf_.c_str(),bufsize);
+      size = bufsize;
+      multipart_buf_.erase(0,bufsize);
+    };
+  }
+  // read more data if needed
+  if(size < bufsize) {
+    int64_t l = bufsize - size;
+    if(!read_chunked(buf+size,l)) return false;
+    size += l;
+  }
+  // looking for tag
+  const char* p = find_multipart(buf,size);
+  if(p) {
+    // tag found
+    // hope nothing sends GBs in multipart
+    multipart_buf_.insert(0,p,size-(p-buf));
+    size = (p-buf);
+    // TODO: check if it is last tag
+    multipart_ = MULTIPART_END;
+  };
+}
+
+bool PayloadHTTP::flush_multipart(void) {
+  if(!multipart_) return true;
+  if(multipart_ == MULTIPART_ERROR) return false;
+  std::string::size_type pos = 0;
+  for(;multipart_ != MULTIPART_EOF;) {
+    pos = multipart_buf_.find('\r',pos);
+    if(pos == std::string::npos) {
+      pos = 0;
+      // read just enough
+      int64_t l = multipart_tag_.length()+4;
+      multipart_buf_.resize(l);
+      if(!read_chunked((char*)(multipart_buf_.c_str()),l)) return false;
+      multipart_buf_.resize(l);
+      continue;
+    }
+    multipart_buf_.erase(0,pos); // suboptimal
+    pos = 0;
+    int64_t l = multipart_tag_.length()+4;
+    if(l > multipart_buf_.length()) {
+      int64_t ll = multipart_buf_.length();
+      multipart_buf_.resize(l);
+      l = l - ll;
+      if(!read_chunked((char*)(multipart_buf_.c_str()+ll),l)) return false;
+      ll += l;
+      if(ll < multipart_buf_.length()) return false; // can't read enough data
+    };
+    ++pos;
+    if(multipart_buf_[pos] != '\n') continue;
+    ++pos;
+    if(strncmp(multipart_buf_.c_str()+pos,multipart_tag_.c_str(),multipart_tag_.length())
+                 != 0) continue;
+    pos+=multipart_tag_.length();
+    if(multipart_buf_[pos] != '-') continue;
+    ++pos;
+    if(multipart_buf_[pos] != '-') continue;
+    // end tag found
+    multipart_ == MULTIPART_EOF;
+  };
+  return true;
+}
+
+bool PayloadHTTP::read_header(void) {
+  std::string line;
+  for(;readline_chunked(line) && (!line.empty());) {
     std::string::size_type pos = line.find(':');
     if(pos == std::string::npos) continue;
     std::string name = line.substr(0,pos);
@@ -100,7 +299,6 @@ bool PayloadHTTP::parse_header(void) {
       Attribute(name,"");
     };
   };
-  length_=-1; chunked_=false;
   std::map<std::string,std::string>::iterator it;
   it=attributes_.find("content-length");
   if(it != attributes_.end()) {
@@ -137,7 +335,7 @@ bool PayloadHTTP::parse_header(void) {
       // Non-implemented encoding
       return false;
     };
-    chunked_=true;
+    chunked_= CHUNKED_START;
   };
   it=attributes_.find("connection");
   if(it != attributes_.end()) {
@@ -147,31 +345,90 @@ bool PayloadHTTP::parse_header(void) {
       keep_alive_=false;
     };
   };
+  it=attributes_.find("content-type");
+  if(it != attributes_.end()) {
+    if(strncasecmp(it->second.c_str(),"multipart/",10) == 0) {
+      const char* boundary = strcasestr(it->second.c_str()+10,"boundary=");
+      if(!boundary) return false;
+      const char* tag_start = strchr(boundary,'"');
+      if(!tag_start) return false;
+      ++tag_start;
+      const char* tag_end = strchr(tag_start,'"');
+      if(!tag_end) return false;
+      multipart_tag_ = std::string(tag_start,tag_end-tag_start);
+      if(multipart_tag_.empty()) return false;
+      multipart_ = MULTIPART_START;
+      multipart_tag_.insert(0,"--");
+      multipart_buf_.resize(0);
+    }
+  }
+  return true;
+}
+
+bool PayloadHTTP::parse_header(void) {
+  method_.resize(0);
+  code_=0;
+  keep_alive_=false;
+  multipart_ = MULTIPART_NONE;
+  multipart_tag_ = "";
+  chunked_=CHUNKED_NONE;
+  // Skip empty lines
+  std::string line;
+  for(;line.empty();) if(!readline(line)) {
+    method_="END";  // Special name to represent closed connection
+    length_=0;
+    return true;
+  };
+  // Parse request/response line
+  std::string::size_type pos2 = line.find(' ');
+  if(pos2 == std::string::npos) return false;
+  std::string word1 = line.substr(0,pos2);
+  // Identify request/response
+  if(ParseHTTPVersion(line.substr(0,pos2),version_major_,version_minor_)) {
+    // Response
+    std::string::size_type pos3 = line.find(' ',pos2+1);
+    if(pos3 == std::string::npos) return false;
+    code_=strtol(line.c_str()+pos2+1,NULL,10);
+    reason_=line.substr(pos3+1);
+  } else {
+    // Request
+    std::string::size_type pos3 = line.rfind(' ');
+    if((pos3 == pos2) || (pos2 == std::string::npos)) return false;
+    if(!ParseHTTPVersion(line.substr(pos3+1),version_major_,version_minor_)) return false;
+    method_=line.substr(0,pos2);
+    uri_=line.substr(pos2+1,pos3-pos2-1);
+  };
+  if((version_major_ > 1) || ((version_major_ == 1) && (version_minor_ >= 1))) {
+    keep_alive_=true;
+  };
+  // Parse header lines
+  length_=-1; chunked_=CHUNKED_NONE;
+  if(!read_header()) return false;
+  if(multipart_ == MULTIPART_START) {
+    attributes_.erase("content-type");
+    // looking for multipart
+    std::string line;
+    for(;;) {
+      if(!readline_chunked(line)) return false;
+      if(line.length() >= multipart_tag_.length()) {
+        if(strncmp(line.c_str(),multipart_tag_.c_str(),multipart_tag_.length()) == 0) {
+          multipart_ = MULTIPART_BODY;
+          break;
+        };
+      };
+    };
+    // reading additional header lines
+    chunked_t chunked = chunked_;
+    if(!read_header()) return false;
+    if(multipart_ !=  MULTIPART_BODY) return false; // nested multipart
+    if(chunked_ != chunked) return false; // can't change transfer encoding per part
+    // TODO:  check if content-length can be defined here
+    // now real body follows
+  }
   // In case of keep_alive (HTTP1.1) there must be length specified
   if(keep_alive_ && (length_ == -1)) length_=0;
   // If size of object was not reported then try to deduce it.
   if((size_ == 0) && (length_ != -1)) size_=offset_+length_;
-  return true;
-}
-
-bool PayloadHTTP::read(char* buf,int64_t& size) {
-//char* buff = buf;
-//memset(buf,0,size);
-  if(tbuflen_ >= size) {
-    memcpy(buf,tbuf_,size);
-    memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
-    tbuflen_-=size;
-  } else {
-    memcpy(buf,tbuf_,tbuflen_);
-    buf+=tbuflen_; 
-    int64_t l = size-tbuflen_;
-    size=tbuflen_; tbuflen_=0; tbuf_[0]=0; 
-    for(;l;) {
-      int l_ = (l>INT_MAX)?INT_MAX:l;
-      if(!stream_->Get(buf,l_)) return (size>0);
-      size+=l_; buf+=l_; l-=l_;
-    };
-  };
   return true;
 }
 
@@ -182,38 +439,22 @@ bool PayloadHTTP::get_body(void) {
   // TODO: Check for methods and responses which can't have body
   char* result = NULL;
   int64_t result_size = 0;
-  if(chunked_) {
-    for(;;) {
-      std::string line;
-      if(!readline(line)) return false;
-      char* e;
-      int64_t chunk_size = strtoll(line.c_str(),&e,16);
-      if((*e != ';') && (*e != 0)) { free(result); return false; };
-      if(e == line.c_str()) { free(result); return false; };
-      if(chunk_size == 0) break;
-      char* new_result = (char*)realloc(result,result_size+chunk_size+1);
-      if(new_result == NULL) { free(result); return false; };
-      result=new_result;
-      if(!read(result+result_size,chunk_size)) { free(result); return false; };
-      result_size+=chunk_size;
-      if(!readline(line)) return false;
-      if(!line.empty()) return false;
-    };
-  } else if(length_ == 0) {
+  if(length_ == 0) {
     valid_=true;
     return true;
   } else if(length_ > 0) {
+    // TODO: combination of chunked and defined length is probably impossible
     result=(char*)malloc(length_+1);
-    if(!read(result,length_)) { free(result); return false; };
+    if(!read_multipart(result,length_)) { free(result); return false; };
     result_size=length_;
-  } else {
-    // Read till connection closed
+  } else { // length undefined
+    // Read till connection closed or some logic reports eof
     for(;;) {
       int64_t chunk_size = 4096;
       char* new_result = (char*)realloc(result,result_size+chunk_size+1);
       if(new_result == NULL) { free(result); return false; };
       result=new_result;
-      if(!read(result+result_size,chunk_size)) break;
+      if(!read_multipart(result+result_size,chunk_size)) break;
       result_size+=chunk_size;
     };
   };
@@ -228,6 +469,9 @@ bool PayloadHTTP::get_body(void) {
   // If size of object was not reported then try to deduce it.
   if(size_ == 0) size_=offset_+result_size;
   valid_=true;
+  // allign to and of message
+  flush_multipart();
+  flush_chunked();
   return true;
 }
 
@@ -248,7 +492,7 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
 PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):
     valid_(false),fetched_(false),stream_(&stream),stream_own_(own),
     rbody_(NULL),sbody_(NULL),body_own_(false),keep_alive_(true),
-    stream_offset_(0),chunked_size_(0),chunked_offset_(0),head_response_(false) {
+    stream_offset_(0),head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   // If stream_ is owned then body can be fetched later
@@ -259,8 +503,8 @@ PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):
 PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):
     valid_(true),fetched_(true),stream_(&stream),stream_own_(false),
     rbody_(NULL),sbody_(NULL),body_own_(false),uri_(url),method_(method),
-    code_(0),chunked_(false),keep_alive_(true),stream_offset_(0),
-    chunked_size_(0),chunked_offset_(0),head_response_(false) {
+    code_(0),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
@@ -269,8 +513,8 @@ PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,Payloa
 PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream,bool head_response):
     valid_(true),fetched_(true),stream_(&stream),stream_own_(false),
     rbody_(NULL),sbody_(NULL),body_own_(false),code_(code),
-    reason_(reason),chunked_(false),keep_alive_(true),stream_offset_(0),
-    chunked_size_(0),chunked_offset_(0),head_response_(head_response) {
+    reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    head_response_(head_response) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
@@ -279,8 +523,8 @@ PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterfa
 PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
     valid_(true),fetched_(true),stream_(NULL),stream_own_(false),
     rbody_(NULL),sbody_(NULL),body_own_(false),uri_(url),method_(method),
-    code_(0),chunked_(false),keep_alive_(true),stream_offset_(0),
-    chunked_size_(0),chunked_offset_(0),head_response_(false) {
+    code_(0),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
   // TODO: encode URI properly
@@ -289,14 +533,17 @@ PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
 PayloadHTTP::PayloadHTTP(int code,const std::string& reason,bool head_response):
     valid_(true),fetched_(true),stream_(NULL),stream_own_(false),
     rbody_(NULL),sbody_(NULL),body_own_(false),code_(code),
-    reason_(reason),chunked_(false),keep_alive_(true),stream_offset_(0),
-    chunked_size_(0),chunked_offset_(0),head_response_(head_response) {
+    reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    head_response_(head_response) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
   if(reason_.empty()) reason_="OK";
 }
 
 PayloadHTTP::~PayloadHTTP(void) {
+  // allign to and of message
+  flush_multipart();
+  flush_chunked();
   if(rbody_ && body_own_) delete rbody_;
   if(sbody_ && body_own_) delete sbody_;
   if(stream_ && stream_own_) delete stream_;
@@ -587,39 +834,8 @@ bool PayloadHTTP::Get(char* buf,int& size) {
     };
     return false;
   };
-    // TODO: Check for methods and responses which can't have body
-  if(chunked_) {
-    if(chunked_size_ == -1) { // chunked stream is over
-      size=0;
-      return false;
-    };
-    if(chunked_size_ == chunked_offset_) {
-      // read chunk size
-      std::string line;
-      if(!readline(line)) return false;
-      char* e;
-      chunked_size_ = strtoll(line.c_str(),&e,16);
-      if(((*e != ';') && (*e != 0)) || (e == line.c_str())) {
-        chunked_size_=-1; // No more stream
-        valid_=false; // Object becomes invalid
-        size=0;
-        return false;
-      };
-      chunked_offset_=0;
-      if(chunked_size_ == 0) {
-        // end of stream
-        chunked_size_=-1; size=0;
-        return false;
-      };
-    };
-    // read chunk content
-    int64_t bs = chunked_size_-chunked_offset_;
-    if(bs > size) bs=size;
-    if(!read(buf,bs)) { size=bs; return false; };
-    chunked_offset_+=bs;
-    size=bs; stream_offset_+=bs;
-    return true;
-  };
+  // Read directly from stream
+  // TODO: Check for methods and responses which can't have body
   if(length_ == 0) {
     // No body
     size=0;
@@ -630,7 +846,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
     int64_t bs = length_-stream_offset_;
     if(bs == 0) { size=0; return false; }; // End of content
     if(bs > size) bs=size;
-    if(!read(buf,bs)) {
+    if(!read_multipart(buf,bs)) {
       valid_=false; // This is not expected, hence invalidate object
       size=bs; return false;
     };
@@ -639,7 +855,7 @@ bool PayloadHTTP::Get(char* buf,int& size) {
   };
   // Ordinary stream with no length known
   int64_t tsize = size;
-  bool r = read(buf,tsize);
+  bool r = read_multipart(buf,tsize);
   if(r) stream_offset_+=tsize;
   size=tsize;
   // TODO: adjust logical parameters of buffers
@@ -647,10 +863,11 @@ bool PayloadHTTP::Get(char* buf,int& size) {
 }
 
 bool PayloadHTTP::Get(std::string& buf) {
-  char tbuf[1024];
-  int l = sizeof(tbuf);
-  bool result = Get(tbuf,l);
-  buf.assign(tbuf,l);
+  int l = 1024;
+  buf.resize(l);
+  bool result = Get((char*)buf.c_str(),l);
+  if(!result) l=0;
+  buf.resize(l);
   return result;
 }
 

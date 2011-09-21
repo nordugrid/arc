@@ -26,6 +26,22 @@ namespace Arc {
   for including as payload into Message passed through MCC chains. */
 class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterface {
  protected:
+  typedef enum {
+    MULTIPART_NONE = 0,
+    MULTIPART_START,
+    MULTIPART_BODY,
+    MULTIPART_END,
+    MULTIPART_EOF,
+    MULTIPART_ERROR
+  } multipart_t;
+  typedef enum {
+    CHUNKED_NONE = 0,
+    CHUNKED_START,
+    CHUNKED_CHUNK,
+    CHUNKED_END,
+    CHUNKED_EOF,
+    CHUNKED_ERROR
+  } chunked_t;
   bool valid_;
   bool fetched_;                   /** true if whole content of HTTP body 
                                        was fetched and stored in buffers. 
@@ -46,20 +62,36 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   int64_t length_;                 /** Content-length of HTTP message */
   //int offset_;                   /** Logical beginning of content computed from Content-Range */
   //int size_;                     /** Logical size of content obtained from Content-Range */
-  bool chunked_;                   /** true if content is chunked */
+  chunked_t chunked_;              /** chunked encoding parsing state */
+  int64_t chunk_size_;
   bool keep_alive_;                /** true if conection should not be closed after response */
   std::multimap<std::string,std::string> attributes_; /* All HTTP attributes */
   char tbuf_[1024];
   int tbuflen_;
   uint64_t stream_offset_;
-  int64_t chunked_size_;
-  uint64_t chunked_offset_;
+  //int64_t chunked_size_;
+  //uint64_t chunked_offset_;
   bool head_response_;
+  multipart_t multipart_;
+  std::string multipart_tag_;
+  std::string multipart_buf_;
+
+  bool readtbuf(void);
   /** Read from stream till \r\n */
   bool readline(std::string& line);
+  bool readline_chunked(std::string& line);
+  bool readline_multipart(std::string& line);
   /** Read up to 'size' bytes from stream_ */
   bool read(char* buf,int64_t& size);
+
+  bool read_chunked(char* buf,int64_t& size);
+  bool flush_chunked(void);
+
+  char* find_multipart(char* buf,int64_t size);
+  bool read_multipart(char* buf,int64_t& size);
+  bool flush_multipart(void);
   /** Read HTTP header and fill internal variables */
+  bool read_header(void);
   bool parse_header(void);
   /** Read Body of HTTP message and attach it to inherited PayloadRaw object */
   bool get_body(void);
