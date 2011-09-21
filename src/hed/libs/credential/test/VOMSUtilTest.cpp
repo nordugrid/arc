@@ -32,8 +32,11 @@ void VOMSUtilTest::VOMSTrustListTest() {
   std::string CAcert("ca_cert.pem");
   std::string user_key_file("user_key.pem");
   std::string user_cert_file("user_cert.pem");
-
   Arc::Credential issuer_cred(user_cert_file, user_key_file, "", CAcert, "userpassword");
+
+  std::string vomsserver_key_file("host_key.pem");
+  std::string vomsserver_cert_file("host_cert.pem");
+  Arc::Credential ac_issuer_cred(vomsserver_cert_file, vomsserver_key_file, "", CAcert, "");
 
   std::string holder_proxy_file("user_proxy.pem");
   Arc::Credential holder_cred(holder_proxy_file, "", "", CAcert);
@@ -52,7 +55,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
   std::string uri = "voms.nordugrid.org:50000";
 
   std::string ac_str;
-  Arc::createVOMSAC(ac_str, issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
+  Arc::createVOMSAC(ac_str, ac_issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
   
   //
   // Create the full AC which is an ordered list of AC 
@@ -91,7 +94,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
 
   std::vector<std::string> vomscert_trust_dn;
-  vomscert_trust_dn.push_back("/O=Grid/OU=ARC/OU=localdomain/CN=User");
+  vomscert_trust_dn.push_back("/O=Grid/OU=ARC/CN=localhost");
   vomscert_trust_dn.push_back("/O=Grid/OU=ARC/CN=CA");
   vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("^/O=Grid/OU=ARC");

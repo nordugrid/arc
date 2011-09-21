@@ -1375,8 +1375,8 @@ err:
   }
 
   static bool checkACInfo(X509* cert, X509* issuer, AC* ac, 
-    std::vector<std::string>& output,
-    Time& valid_from, Time& valid_till, unsigned int& status) {
+    std::vector<std::string>& output, std::string& ac_holder_name, 
+    std::string& ac_issuer_name, Time& valid_from, Time& valid_till, unsigned int& status) {
 
     bool res = true;
 
@@ -1448,13 +1448,13 @@ err:
       names = ac->acinfo->holder->baseid->issuer;
       if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) ||
         (name->type != GEN_DIRNAME)) {
-        CredentialLogger.msg(ERROR,"VOMS: the holder issuer information in AC is wrong");
+        CredentialLogger.msg(ERROR,"VOMS: the holder information in AC is wrong");
         status |= VOMSACInfo::ACParsingFailed;
         return false;
       }
      
       char *ac_holder_name_chars = X509_NAME_oneline(name->d.dirn,NULL,0);
-      std::string ac_holder_name = ac_holder_name_chars; OPENSSL_free(ac_holder_name_chars);
+      ac_holder_name = ac_holder_name_chars; OPENSSL_free(ac_holder_name_chars);
       char *holder_name_chars = X509_NAME_oneline(cert->cert_info->subject,NULL,0);
       std::string holder_name = holder_name_chars; OPENSSL_free(holder_name_chars);
       char *holder_issuer_name_chars = X509_NAME_oneline(cert->cert_info->issuer,NULL,0);
@@ -1506,11 +1506,16 @@ err:
     }
   
     names = ac->acinfo->form->names;
+    if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) ||
+      (name->type != GEN_DIRNAME)) {
+      CredentialLogger.msg(ERROR,"VOMS: the issuer information in AC is wrong");
+      status |= VOMSACInfo::ACParsingFailed;
+      return false;
+    }
+    ac_issuer_name = x509name2ascii(name->d.dirn);
     if(issuer) {
-      if ((sk_GENERAL_NAME_num(names) != 1) || !(name = sk_GENERAL_NAME_value(names,0)) || 
-         (name->type != GEN_DIRNAME) || X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
+      if (X509_NAME_cmp(name->d.dirn, issuer->cert_info->subject)) {
         std::string issuer_name = x509name2ascii(issuer->cert_info->subject);
-        std::string ac_issuer_name = x509name2ascii(name->d.dirn);
         CredentialLogger.msg(ERROR,"VOMS: the issuer name %s is not the same as that in AC - %s",
           issuer_name, ac_issuer_name);
         status |= VOMSACInfo::ACParsingFailed;
@@ -1539,7 +1544,8 @@ err:
         const std::string& ca_cert_dir, const std::string& ca_cert_file, 
         VOMSTrustList& vomscert_trust_dn,
         X509* holder, std::vector<std::string>& attr_output, 
-        std::string& vo_name, Time& from, Time& till, unsigned int& status, bool verify) {
+        std::string& vo_name, std::string& ac_holder_name, std::string& ac_issuer_name, 
+        Time& from, Time& till, unsigned int& status, bool verify) {
     bool res = true;
     //Extract name 
     STACK_OF(AC_ATTR) * atts = ac->acinfo->attrib;
@@ -1608,7 +1614,7 @@ err:
       res = false;
     }
 
-    if(!checkACInfo(holder, issuer, ac, attr_output, from, till, status)) {
+    if(!checkACInfo(holder, issuer, ac, attr_output, ac_holder_name, ac_issuer_name, from, till, status)) {
       // Not printing anything because checkACInfo prints a lot of information itself
       //CredentialLogger.msg(ERROR,"VOMS: problems while parsing information in AC");
       res = false;
@@ -1653,8 +1659,8 @@ err:
       AC *ac = (AC *)sk_AC_value(aclist->acs, i);
       VOMSACInfo ac_info;
       bool r = verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, vomscert_trust_dn, 
-          holder, ac_info.attributes, ac_info.voname, ac_info.from, ac_info.till,
-          ac_info.status, verify);
+          holder, ac_info.attributes, ac_info.voname, ac_info.holder, ac_info.issuer, 
+          ac_info.from, ac_info.till, ac_info.status, verify);
       if(!r) verified = false;
       if(r || reportall) {
         if(critical) ac_info.status |= VOMSACInfo::IsCritical;

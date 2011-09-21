@@ -33,6 +33,9 @@ namespace Arc {
       Error = (0xffff & ~IsCritical) // Mask to test if status represents any failure
     } status_t;
     std::string voname;
+    std::string holder;
+    std::string issuer;
+    std::string target;
     std::vector<std::string> attributes;
     Time from;
     Time till;

@@ -399,7 +399,23 @@ int main(int argc, char *argv[]) {
 
     if (ca_dir.empty())
       ca_dir = usercfg.CACertificatesDirectory();
-
+    if (ca_dir.empty()) { 
+      //The usercfg could be created with SkipCACredentials, 
+      //then X509_CERT_DIR will not been got by UserConfig.
+      //There are two cases like the following:
+      //for the case "arcproxy -I -P /where/is/your/vomsproxy", ca_dir is required; 
+      //for the case "arcproxy -I -P /where/is/your/normalproxy", ca_dir is not required.
+      //but we can not distinguish them, and then we can not give different argument 
+      //for UserConfig to differentiate them.
+      //So here we get X509_CERT_DIR anyway if it exists, 
+      //but the getting is not forced.
+      if (!Arc::GetEnv("X509_CERT_DIR").empty()) {
+        if (!Glib::file_test(ca_dir = Arc::GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
+          logger.msg(Arc::WARNING, "CA certificate directory: %s is given by X509_CERT_DIR, but it can't been accessed.", ca_dir);
+          ca_dir.clear();
+        }
+      }
+    }
   } catch (std::exception& err) {
     logger.msg(Arc::ERROR, err.what());
     tls_process_error(logger);
@@ -472,14 +488,6 @@ int main(int argc, char *argv[]) {
       if(voms_attributes[n].attributes.size() > 0) {
         std::cout<<"====== "<<Arc::IString("AC extension information for VO ")<<
                    voms_attributes[n].voname<<" ======"<<std::endl;
-        Arc::Time ct;
-        if(ct < voms_attributes[n].from) {
-          std::cout << Arc::IString("Time left for AC: AC is not valid yet")<<std::endl;
-        } else if(ct > voms_attributes[n].till) {
-          std::cout << Arc::IString("Time left for AC: AC has expired")<<std::endl;
-        } else {
-          std::cout << Arc::IString("Time left for AC: %s", (voms_attributes[n].till-ct).istr())<<std::endl;
-        }
         if(voms_attributes[n].status & Arc::VOMSACInfo::ParsingError) {
           std::cout << Arc::IString("Error detected while parsing this AC")<<std::endl;
           if(voms_attributes[n].status & Arc::VOMSACInfo::X509ParsingFailed) {
@@ -512,18 +520,44 @@ int main(int argc, char *argv[]) {
           }
           std::cout << std::endl;
         }
+        std::cout << "VO        : "<<voms_attributes[n].voname << std::endl;
+        std::cout << "subject   : "<<voms_attributes[n].holder << std::endl;
+        std::cout << "issuer    : "<<voms_attributes[n].issuer << std::endl;
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
-          std::cout<<"Attribute: "<<voms_attributes[n].attributes[i]<<std::endl;
+          std::string attr = voms_attributes[n].attributes[i];
+          std::string::size_type pos;
+          if((pos = attr.find("role")) != std::string::npos) {
+            std::string str = attr.substr(pos+5);
+            std::cout << "attribute : role = " << str << " (" << voms_attributes[n].voname << ")"<<std::endl; 
+          }
+          else if((pos = attr.find("hostname")) != std::string::npos) {
+            std::string str = attr.substr(pos+9);
+            std::cout << "uri       : " << str <<std::endl;
+          }
+          else
+            std::cout << "attribute : " << attr <<std::endl;
+ 
+          //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
           //do not display those attributes that have already been displayed 
           //(this can happen when there are multiple voms server )
         }
+        Arc::Time ct;
+        if(ct < voms_attributes[n].from) {
+          std::cout << Arc::IString("Time left for AC: AC is not valid yet")<<std::endl;
+        } else if(ct > voms_attributes[n].till) {
+          std::cout << Arc::IString("Time left for AC: AC has expired")<<std::endl;
+        } else {
+          std::cout << Arc::IString("Time left for AC: %s", (voms_attributes[n].till-ct).istr())<<std::endl;
+        }
       }
+/*
       Arc::Time now;
       Arc::Time till = voms_attributes[n].till;
-      if(now >= till)
+      if(now < till)
         std::cout << Arc::IString("Timeleft for AC: %s", (till-now).istr())<<std::endl;
       else
         std::cout << Arc::IString("AC has been expired for: %s", (now-till).istr())<<std::endl;
+*/
     }
     return EXIT_SUCCESS;
   }
