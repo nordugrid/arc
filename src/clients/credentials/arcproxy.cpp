@@ -1003,6 +1003,7 @@ int main(int argc, char *argv[]) {
           }
           if(voms_tokens.size() > VOMS_LINE_NAME) {
             std::string str = voms_tokens[VOMS_LINE_NAME];
+
             for (std::multimap<std::string, std::string>::iterator it = server_command_map.begin();
                  it != server_command_map.end(); it++) {
               std::string voms_server = (*it).first;
@@ -1044,8 +1045,6 @@ int main(int argc, char *argv[]) {
                      (*it).first);
 
       //Contact the voms server to retrieve attribute certificate
-      std::string voms_server;
-      std::list<std::string> command_list;
       ArcCredential::AC **aclist = NULL;
       std::string acorder;
       Arc::MCCConfig cfg;
@@ -1054,6 +1053,8 @@ int main(int argc, char *argv[]) {
 
       for (std::map<std::string, std::vector<std::vector<std::string> > >::iterator it = matched_voms_line.begin();
            it != matched_voms_line.end(); it++) {
+        std::string voms_server;
+        std::list<std::string> command_list;
         voms_server = (*it).first;
         std::vector<std::vector<std::string> > voms_lines = (*it).second;
 
@@ -1115,8 +1116,9 @@ int main(int argc, char *argv[]) {
           }
           logger.msg(Arc::VERBOSE, "Try to get attribute from VOMS server with order: %s", ordering);
           send_msg.append("<order>").append(ordering).append("</order>");
-  
           send_msg.append("<lifetime>").append(voms_period).append("</lifetime></voms>");
+          logger.msg(Arc::VERBOSE, "Message sent to VOMS server %s is: %s", voms_name, send_msg);
+          
           Arc::ClientTCP client(cfg, address, atoi(port.c_str()), use_gsi_comm ? Arc::GSISec : Arc::SSL3Sec, usercfg.Timeout());
           Arc::PayloadRaw request;
           request.Insert(send_msg.c_str(), 0, send_msg.length());
@@ -1155,7 +1157,7 @@ int main(int argc, char *argv[]) {
               std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
             }
             else
-              throw std::runtime_error("Cannot get any AC or attributes info from VOMS server: " + voms_server + ";\n       Returned message from VOMS server: " + str);
+              std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
           }
 
           //Put the return attribute certificate into proxy certificate as the extension part
