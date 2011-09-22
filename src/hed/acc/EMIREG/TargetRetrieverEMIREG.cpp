@@ -64,7 +64,7 @@ namespace Arc {
                                            ServiceType st,
                                            const std::string& flav)
     : TargetRetriever(usercfg, CreateURL(service, st), st, flav) {
-    queryPath.insert(std::pair<middlewareType, std::string>(ARC0, "services/query.xml?Service_Type=job-management"));
+    queryPath.insert(std::pair<middlewareType, std::string>(ARC0, "services/query.xml?Service_Type=org.nordugrid.arc-classic"));
     queryPath.insert(std::pair<middlewareType, std::string>(ARC1, "services/query.xml?Service_Type=org.nordugrid.execution.arex"));
     queryPath.insert(std::pair<middlewareType, std::string>(GLITE, "services/query.xml?Service_Type=org.ogf.bes"));
     queryPath.insert(std::pair<middlewareType, std::string>(UNICORE, "services/query.xml?Service_Type=eu.unicore.tsf"));
