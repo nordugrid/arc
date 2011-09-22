@@ -418,47 +418,47 @@ namespace Arc {
       logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
   }
 
-  const std::string& UserConfig::VOMSServerPath() {
-    if(!vomsServerPath.empty()) return vomsServerPath;
+  const std::string& UserConfig::VOMSESPath() {
+    if(!vomsesPath.empty()) return vomsesPath;
 
-    //vomsServerPath could be regular file or directory, therefore only existence is checked here.
-    //multiple voms paths under one vomsServerPath is processed under arcproxy implementation.
+    //vomsesPath could be regular file or directory, therefore only existence is checked here.
+    //multiple voms paths under one vomsesPath is processed under arcproxy implementation.
     if (!GetEnv("X509_VOMS_FILE").empty()) {
-      if (!Glib::file_test(vomsServerPath = GetEnv("X509_VOMS_FILE"), Glib::FILE_TEST_EXISTS)) {
-        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
-        vomsServerPath.clear();
+      if (!Glib::file_test(vomsesPath = GetEnv("X509_VOMS_FILE"), Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMSES file/directory: %s.", vomsesPath);
+        vomsesPath.clear();
       }
     }
     else if (!GetEnv("X509_VOMSES").empty()) {
-      if (!Glib::file_test(vomsServerPath = GetEnv("X509_VOMSES"), Glib::FILE_TEST_EXISTS)) {
-        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
-        vomsServerPath.clear();
+      if (!Glib::file_test(vomsesPath = GetEnv("X509_VOMSES"), Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMSES file/directory: %s.", vomsesPath);
+        vomsesPath.clear();
       }
     }
-    else if (!vomsServerPath.empty()) {
-      if (!Glib::file_test(vomsServerPath, Glib::FILE_TEST_EXISTS)) {
-        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsServerPath);
-        vomsServerPath.clear();
+    else if (!vomsesPath.empty()) {
+      if (!Glib::file_test(vomsesPath, Glib::FILE_TEST_EXISTS)) {
+        logger.msg(WARNING, "Can not access VOMS file/directory: %s.", vomsesPath);
+        vomsesPath.clear();
       }
     }
-    else if ((user.get_uid() == 0 || !Glib::file_test(vomsServerPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsServerPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) &&
-             !Glib::file_test(vomsServerPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsServerPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsServerPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsServerPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsServerPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) {
-      vomsServerPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("vomses"));
-      if (!Glib::file_test(vomsServerPath.c_str(), Glib::FILE_TEST_EXISTS)) {
-        vomsServerPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc") + G_DIR_SEPARATOR_S + "grid-security", std::string("vomses"));
-        if (!Glib::file_test(vomsServerPath.c_str(), Glib::FILE_TEST_EXISTS)) {
+    else if ((user.get_uid() == 0 || !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) &&
+             !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsesPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) {
+      vomsesPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("vomses"));
+      if (!Glib::file_test(vomsesPath.c_str(), Glib::FILE_TEST_EXISTS)) {
+        vomsesPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc") + G_DIR_SEPARATOR_S + "grid-security", std::string("vomses"));
+        if (!Glib::file_test(vomsesPath.c_str(), Glib::FILE_TEST_EXISTS)) {
           logger.msg(WARNING, "Can not find voms service configuration file (vomses) in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses");
-          vomsServerPath.clear();
+          vomsesPath.clear();
         }
       }
     }
 
-    return vomsServerPath;
+    return vomsesPath;
   }
 
   bool UserConfig::LoadConfigurationFile(const std::string& conffile, bool ignoreJobListFile) {
@@ -539,7 +539,7 @@ namespace Arc {
               while (common["bartender"]) common["bartender"].Destroy();
             }
           }
-          HANDLESTRATT("vomsserverpath", VOMSServerPath)
+          HANDLESTRATT("vomsespath", VOMSESPath)
           HANDLESTRATT("username", UserName)
           HANDLESTRATT("password", Password)
           HANDLESTRATT("proxypath", ProxyPath)
@@ -743,8 +743,8 @@ namespace Arc {
       }
       file << std::endl;
     }
-    if (!vomsServerPath.empty())
-      file << "vomsserverpath = " << vomsServerPath << std::endl;
+    if (!vomsesPath.empty())
+      file << "vomsespath = " << vomsesPath << std::endl;
     if (!username.empty())
       file << "username = " << username << std::endl;
     if (!password.empty())

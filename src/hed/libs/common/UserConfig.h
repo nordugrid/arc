@@ -66,7 +66,7 @@ namespace Arc {
    * - brokername / Broker(const std::string&) or Broker(const std::string&, const std::string&)
    * - brokerarguments / Broker(const std::string&) or Broker(const std::string&, const std::string&)
    * - bartender / Bartender(const std::list<URL>&)
-   * - vomsserverpath / VOMSServerPath(const std::string&)
+   * - vomsserverpath / VOMSESPath(const std::string&)
    * - username / UserName(const std::string&)
    * - password / Password(const std::string&)
    * - keypassword / KeyPassword(const std::string&)
@@ -297,7 +297,7 @@ namespace Arc {
      * - brokername (Broker(const std::string&) or Broker(const std::string&, const std::string&))
      * - brokerarguments (Broker(const std::string&) or Broker(const std::string&, const std::string&))
      * - bartender (Bartender(const std::list<URL>&))
-     * - vomsserverpath (VOMSServerPath(const std::string&))
+     * - vomsserverpath (VOMSESPath(const std::string&))
      * - username (UserName(const std::string&))
      * - password (Password(const std::string&))
      * - keypassword (KeyPassword(const std::string&))
@@ -713,18 +713,18 @@ namespace Arc {
      *
      * @param path the path to VOMS configuration file
      * @return This method always return true.
-     * @see VOMSServerPath() const
+     * @see VOMSESPath() const
      **/
-    bool VOMSServerPath(const std::string& path) { vomsServerPath = path; return true; }
+    bool VOMSESPath(const std::string& path) { vomsesPath = path; return true; }
     /// Get path to file containing VOMS configuration
     /**
      * Get path to file which contians list of VOMS services and
      * associated configuration parameters.
      *
      * @return The path to VOMS configuration file is returned.
-     * @see VOMSServerPath(const std::string&)
+     * @see VOMSESPath(const std::string&)
      **/
-    const std::string& VOMSServerPath();
+    const std::string& VOMSESPath();
 
     /// Set user-name for SLCS
     /**
@@ -1226,7 +1226,7 @@ namespace Arc {
 
     URL slcs;
 
-    std::string vomsServerPath;
+    std::string vomsesPath;
 
     std::string storeDirectory;
     std::string downloadDirectory;

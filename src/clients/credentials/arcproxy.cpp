@@ -951,7 +951,7 @@ int main(int argc, char *argv[]) {
       //Parse the 'vomses' file to find configure lines corresponding to
       //the information from the command line
       if (vomses_path.empty())
-        vomses_path = usercfg.VOMSServerPath();
+        vomses_path = usercfg.VOMSESPath();
       if (vomses_path.empty()) {
         logger.msg(Arc::ERROR, "$X509_VOMS_FILE, and $X509_VOMSES are not set;\nUser has not specify the location for vomses information;\nThere is also not vomses location information in user's configuration file;\nCannot find vomses in default locations: ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, and the location at the corresponding sub-directory");
         return EXIT_FAILURE;
