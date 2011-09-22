@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-19 02:29+0100\n"
-"PO-Revision-Date: 2011-09-19 02:44+0100\n"
+"POT-Creation-Date: 2011-09-23 00:41+0100\n"
+"PO-Revision-Date: 2011-09-23 00:42+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: \n"
@@ -629,115 +629,115 @@ msgstr "Удаление временной доверенности %s"
 msgid "Failed to remove temporary proxy %s: %s"
 msgstr "Не удалось удалить временную доверенность %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:150
+#: src/services/data-staging/DataDeliveryService.cpp:152
 msgid "No delegation token in request"
 msgstr "В запросе отсутствует токен делегирования"
 
-#: src/services/data-staging/DataDeliveryService.cpp:158
+#: src/services/data-staging/DataDeliveryService.cpp:160
 msgid "Failed to accept delegation"
 msgstr "Не удалось принять делегирование"
 
-#: src/services/data-staging/DataDeliveryService.cpp:165
-#, c-format
-msgid "Storing temp proxy at %s"
-msgstr "Сохранение временной доверенности в %s"
-
-#: src/services/data-staging/DataDeliveryService.cpp:168
-#, c-format
-msgid "Failed to create temp proxy at %s: %s"
-msgstr "Не удалось создать временную доверенность в %s: %s"
-
-#: src/services/data-staging/DataDeliveryService.cpp:173
-#, c-format
-msgid "Failed to change owner of temp proxy at %s to %i:%i: %s"
-msgstr "Не удалось поменять владельца временной доверенности в %s на %i:%i: %s"
-
-#: src/services/data-staging/DataDeliveryService.cpp:206
+#: src/services/data-staging/DataDeliveryService.cpp:196
 #, c-format
 msgid "All %u process slots used"
 msgstr "Квота на процессы (%u) использована"
 
-#: src/services/data-staging/DataDeliveryService.cpp:221
+#: src/services/data-staging/DataDeliveryService.cpp:211
 #, c-format
 msgid "Received retry for DTR %s still in transfer"
 msgstr "Получена повторная попытка запроса DTR %s, всё ещё в состоянии передачи"
 
-#: src/services/data-staging/DataDeliveryService.cpp:228
+#: src/services/data-staging/DataDeliveryService.cpp:218
 #, c-format
 msgid "Replacing DTR %s in state %s with new request"
 msgstr "Запрос DTR %s в состоянии %s заменяется новым запросом"
 
-#: src/services/data-staging/DataDeliveryService.cpp:251
+#: src/services/data-staging/DataDeliveryService.cpp:229
+#, c-format
+msgid "Storing temp proxy at %s"
+msgstr "Сохранение временной доверенности в %s"
+
+#: src/services/data-staging/DataDeliveryService.cpp:232
+#, c-format
+msgid "Failed to create temp proxy at %s: %s"
+msgstr "Не удалось создать временную доверенность в %s: %s"
+
+#: src/services/data-staging/DataDeliveryService.cpp:239
+#, c-format
+msgid "Failed to change owner of temp proxy at %s to %i:%i: %s"
+msgstr "Не удалось поменять владельца временной доверенности в %s на %i:%i: %s"
+
+#: src/services/data-staging/DataDeliveryService.cpp:261
 msgid "Invalid DTR"
 msgstr "Недействительный запрос DTR"
 
-#: src/services/data-staging/DataDeliveryService.cpp:346
-#: src/services/data-staging/DataDeliveryService.cpp:425
+#: src/services/data-staging/DataDeliveryService.cpp:357
 #, c-format
-msgid "No active DTR %s"
-msgstr "Нет активных запросов DTR %s"
+msgid "No such DTR %s"
+msgstr "Нет такого запроса DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:358
+#: src/services/data-staging/DataDeliveryService.cpp:369
 #, c-format
 msgid "DTR %s failed"
 msgstr "Сбой запроса DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:365
+#: src/services/data-staging/DataDeliveryService.cpp:377
 #, c-format
 msgid "DTR %s finished successfully"
 msgstr "Запрос DTR %s успешно завершён"
 
-#: src/services/data-staging/DataDeliveryService.cpp:371
+#: src/services/data-staging/DataDeliveryService.cpp:384
 #, c-format
 msgid "DTR %s still in progress"
 msgstr "Запрос DTR %s ещё в процессе"
 
-#: src/services/data-staging/DataDeliveryService.cpp:436
+#: src/services/data-staging/DataDeliveryService.cpp:444
+#, c-format
+msgid "No active DTR %s"
+msgstr "Нет активных запросов DTR %s"
+
+#: src/services/data-staging/DataDeliveryService.cpp:455
 #, c-format
 msgid "DTR %s cancelled"
 msgstr "Запрос DTR %s отменён"
 
-#: src/services/data-staging/DataDeliveryService.cpp:451
+#: src/services/data-staging/DataDeliveryService.cpp:470
 msgid "Failed to start archival thread"
 msgstr "Не удалось запустить поток архивирования"
 
-#: src/services/data-staging/DataDeliveryService.cpp:458
+#: src/services/data-staging/DataDeliveryService.cpp:477
 #, c-format
 msgid "Failed to create dir %s for temp proxies: %s"
 msgstr "Не удалось создать каталог %s для временных доверенностей: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:474
+#: src/services/data-staging/DataDeliveryService.cpp:493
 msgid "Shutting down data delivery service"
 msgstr "Закрывается служба размещения данных"
 
-#: src/services/data-staging/DataDeliveryService.cpp:481
+#: src/services/data-staging/DataDeliveryService.cpp:500
 msgid "Unauthorized"
 msgstr "Доступ закрыт"
 
-#: src/services/data-staging/DataDeliveryService.cpp:490
-msgid "No local user mapping found"
-msgstr "Пользователь не приписан ни к одному локальному имени"
-
-#: src/services/data-staging/DataDeliveryService.cpp:498
+#: src/services/data-staging/DataDeliveryService.cpp:506
 #: src/services/charon/charon.cpp:66
 msgid "process: POST"
 msgstr "процесс: POST"
 
-#: src/services/data-staging/DataDeliveryService.cpp:499
+#: src/services/data-staging/DataDeliveryService.cpp:507
 #, c-format
 msgid "Identity is %s"
 msgstr "Личные данные: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:551
+#: src/services/data-staging/DataDeliveryService.cpp:559
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "Операция SOAP не поддерживается: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:567
+#: src/services/data-staging/DataDeliveryService.cpp:575
 msgid "Security Handlers processing failed"
 msgstr "Сбой в процессе обработки прав доступа"
 
-#: src/services/data-staging/DataDeliveryService.cpp:574
+#: src/services/data-staging/DataDeliveryService.cpp:582
 msgid "Only POST is supported in DataDeliveryService"
 msgstr "DataDeliveryService поддерживает только POST"
 
@@ -2339,7 +2339,7 @@ msgstr "Совпадений нет"
 #: src/services/gridftpd/auth/unixmap.cpp:170
 #, c-format
 msgid "Plugin returned %u: %s"
-msgstr "Подключаемый одуль ответил %u: %s"
+msgstr "Подключаемый модуль ответил %u: %s"
 
 #: src/services/gridftpd/auth/unixmap.cpp:172
 #, c-format
@@ -3855,7 +3855,7 @@ msgstr "%s: Получен запрос DTR %s на копирование фа�
 
 #: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:256
 #: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:490
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:740
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:743
 #, c-format
 msgid "%s: No configured user found for uid %i"
 msgstr "%s: Не обнаружено сконфигурированных пользователей для uid %i"
@@ -3992,7 +3992,7 @@ msgstr "%s: Невозможно записать два разных файла
 msgid "%s: Received job in a bad state: %s"
 msgstr "%s: Задача получена в плохом состоянии: %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:709
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:712
 #: src/services/a-rex/grid-manager/jobs/states.cpp:429
 #: src/services/a-rex/grid-manager/jobs/states.cpp:445
 #: src/services/a-rex/grid-manager/jobs/states.cpp:912
@@ -4000,79 +4000,79 @@ msgstr "%s: Задача получена в плохом состоянии: %s
 msgid "%s: Failed reading local information"
 msgstr "%s: Не удалось прочесть локальную информацию"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:715
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:718
 #, c-format
 msgid "%s: Failed writing local information"
 msgstr "%s: Не удалось записать локальную информацию"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:725
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:728
 #, c-format
 msgid "%s: Cancelling active DTRs"
 msgstr "%s: Прерывание активных запросов"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:752
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:755
 #, c-format
 msgid "%s: Can't read list of input files"
 msgstr "%s: Невозможно прочесть список входных файлов"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:764
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:767
 #, c-format
 msgid "%s: Checking user uploadable file: %s"
 msgstr "%s: Проверка отгружаемого файла пользователя: %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:769
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:772
 #, c-format
 msgid "%s: User has uploaded file %s"
 msgstr "%s: Пользователь отгрузил файл %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:776
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:779
 #, c-format
 msgid "%s: Failed writing changed input file."
 msgstr "%s: Не удалось записать изменившийся входной файл"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:780
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:783
 #, c-format
 msgid "%s: Critical error for uploadable file %s"
 msgstr "%s: Критическая ошибка для отгружаемого файла %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:797
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:800
 #, c-format
 msgid "%s: Uploadable files timed out"
 msgstr "%s: Истекло время ожидания отгружаемых файлов"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:836
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:862
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:839
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:865
 #, c-format
 msgid "Can't convert checksum %s to int for %s"
 msgstr "Невозможно преобразовать контрольную сумму файла %s в целое для %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:843
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:857
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:846
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:860
 #, c-format
 msgid "Can't convert filesize %s to int for %s"
 msgstr "Невозможно преобразовать размер файла %s в целое для %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:852
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:855
 #, c-format
 msgid "Invalid size/checksum information (%s) for %s"
 msgstr "Неверная информация о размере/контрольной сумме (%s) для %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:874
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:877
 #, c-format
 msgid "Invalid file: %s is too big."
 msgstr "Неверный файл: %s слишком велик."
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:883
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:886
 #, c-format
 msgid "Error accessing file %s"
 msgstr "Ошибка доступа к файлу %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:892
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:895
 #, c-format
 msgid "Error reading file %s"
 msgstr "Ошибка при чтении файла %s"
 
-#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:903
+#: src/services/a-rex/grid-manager/jobs/dtr_generator.cpp:906
 #, c-format
 msgid "File %s has wrong CRC."
 msgstr "У файла %s неверная контрольная сумма"
@@ -5419,6 +5419,10 @@ msgstr "Проверка прав доступа пройдена для URL %s"
 msgid "CacheService: Unauthorized"
 msgstr "CacheService: Нет допуска"
 
+#: src/services/cache_service/CacheService.cpp:582
+msgid "No local user mapping found"
+msgstr "Пользователь не приписан ни к одному локальному имени"
+
 #: src/services/cache_service/CacheService.cpp:600
 #, c-format
 msgid "No configuration found for user %s in A-REX configuration"
@@ -6161,7 +6165,7 @@ msgstr "Запрос %s не выполнен"
 #: src/hed/acc/CREAM/CREAMClient.cpp:347
 #: src/hed/acc/CREAM/CREAMClient.cpp:372
 #: src/hed/acc/CREAM/CREAMClient.cpp:410
-#: src/hed/acc/CREAM/CREAMClient.cpp:500
+#: src/hed/acc/CREAM/CREAMClient.cpp:498
 msgid "Empty response"
 msgstr "Пустой ответ"
 
@@ -6200,7 +6204,7 @@ msgid "Creating and sending job start request"
 msgstr "Создание и отправка запроса о начале задачи"
 
 #: src/hed/acc/CREAM/CREAMClient.cpp:424
-#: src/hed/acc/CREAM/CREAMClient.cpp:488
+#: src/hed/acc/CREAM/CREAMClient.cpp:486
 msgid "Creating delegation"
 msgstr "Создание делегирования"
 
@@ -6208,16 +6212,16 @@ msgstr "Создание делегирования"
 msgid "Malformed response: missing getProxyReqReturn"
 msgstr "Искажённый отзыв: отсутствует getProxyReqReturn"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:450
+#: src/hed/acc/CREAM/CREAMClient.cpp:448
 #, c-format
 msgid "Delegatable credentials expired: %s"
 msgstr "Срок действия делегируемых параметров доступа истек: %s"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:460
+#: src/hed/acc/CREAM/CREAMClient.cpp:458
 msgid "Failed signing certificate request"
 msgstr "Не удалось подписать запрос сертификата"
 
-#: src/hed/acc/CREAM/CREAMClient.cpp:480
+#: src/hed/acc/CREAM/CREAMClient.cpp:478
 msgid "Failed putting signed delegation certificate to service"
 msgstr "Сбой при передаче подписанного сертификата делегирования на сервис"
 
@@ -8003,27 +8007,25 @@ msgstr "Выключение"
 
 #: src/hed/daemon/win32/main_win32.cpp:36
 #: src/hed/daemon/unix/main_unix.cpp:61
-#, fuzzy
 msgid "No server config part of config file"
-msgstr "На сервере нет дискового пространства"
+msgstr "В файле настроек отсутствуют настройки сервера"
 
 #: src/hed/daemon/win32/main_win32.cpp:65
 #: src/hed/daemon/unix/main_unix.cpp:107
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown log level %s"
-msgstr "Уровень &журналирования по умолчанию:"
+msgstr "Неизвестный уровень журналирования %s"
 
 #: src/hed/daemon/win32/main_win32.cpp:74
 #: src/hed/daemon/unix/main_unix.cpp:116
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open log file: %s"
-msgstr "Не удалось открыть журнальный файл %s"
+msgstr "Не удалось открыть журнальный файл: %s"
 
 #: src/hed/daemon/win32/main_win32.cpp:100
 #: src/hed/daemon/unix/main_unix.cpp:141
-#, fuzzy
 msgid "Start foreground"
-msgstr "Время начала фрагмента заднего плана"
+msgstr "Запуск с высоким приоритетом"
 
 #: src/hed/daemon/win32/main_win32.cpp:120
 #: src/hed/daemon/unix/main_unix.cpp:246
@@ -8040,26 +8042,23 @@ msgstr "Не удалось загрузить настройки сервиса
 
 #: src/hed/daemon/win32/main_win32.cpp:131
 #: src/hed/daemon/unix/main_unix.cpp:273
-#, fuzzy
 msgid "Configuration root element is not <ArcConfig>"
-msgstr "[ADLParser] Корневой элемент не является ActivityDescription "
+msgstr "Корневой элемент настроек не является <ArcConfig>"
 
 #: src/hed/daemon/win32/main_win32.cpp:148
 #: src/hed/daemon/unix/main_unix.cpp:315
-#, fuzzy
 msgid "Failed to load service side MCCs"
-msgstr "Не удалось загрузить конфигурацию сервиса из файла %s"
+msgstr "Не удалось загрузить компоненты MCC сервера"
 
 #: src/hed/daemon/win32/main_win32.cpp:157
 #: src/hed/daemon/unix/main_unix.cpp:324
-#, fuzzy
 msgid "Unexpected arguments supplied"
-msgstr "Пароль не введен"
+msgstr "Заданы непредусмотренные аргументы"
 
 #: src/hed/daemon/unix/daemon.cpp:38
-#, fuzzy, c-format
+#, c-format
 msgid "Daemonization fork failed: %s"
-msgstr "fetchmail: не удалось создать дочерний процесс\n"
+msgstr "Не удалось создать дочерний демон: %s"
 
 #: src/hed/daemon/unix/daemon.cpp:78
 msgid "Shutdown daemon"
@@ -8070,23 +8069,22 @@ msgid "exit"
 msgstr " выход  "
 
 #: src/hed/daemon/unix/main_unix.cpp:180
-#, fuzzy, c-format
+#, c-format
 msgid "XML config file %s does not exist"
-msgstr "Невозможно открыть файл «%1». Файл не существует."
+msgstr "Файл настроек XML %s не существует"
 
 #: src/hed/daemon/unix/main_unix.cpp:190
-#, fuzzy, c-format
+#, c-format
 msgid "INI config file %s does not exist"
-msgstr "Невозможно открыть файл «%1». Файл не существует."
+msgstr "Файл настроек INI %s не существует"
 
 #: src/hed/daemon/unix/main_unix.cpp:195
 msgid "Error evaluating profile"
 msgstr "Ошибка проверки профиля"
 
 #: src/hed/daemon/unix/main_unix.cpp:211
-#, fuzzy
 msgid "Error loading generated configuration"
-msgstr "Ошибка загрузки настройки сети"
+msgstr "Ошибка загрузки сгенерированных настроек"
 
 #: src/hed/daemon/unix/main_unix.cpp:217
 msgid "Error evaulating profile"
@@ -8101,14 +8099,14 @@ msgid "Schema validation error"
 msgstr "Ошибка проверки схемы"
 
 #: src/hed/daemon/unix/main_unix.cpp:294
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot switch to group (%s)"
-msgstr "&Переход к следующей группе"
+msgstr "Невозможно перейти к группе (%s)"
 
 #: src/hed/daemon/unix/main_unix.cpp:302
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot switch to user (%s)"
-msgstr "невозможно установить идентификатор пользователя равным %lu"
+msgstr "Невозможно перейти к пользователю (%s)"
 
 #: src/hed/shc/test.cpp:27
 #: src/hed/shc/testinterface_arc.cpp:26
@@ -8116,9 +8114,8 @@ msgid "Start test"
 msgstr "Начать тест"
 
 #: src/hed/shc/test.cpp:101
-#, fuzzy
 msgid "Input request from a file: Request.xml"
-msgstr "Удовлетворить запрос передачи файлов от %s?"
+msgstr "Запрос ввода из файла: Request.xml"
 
 #: src/hed/shc/test.cpp:107
 #: src/hed/shc/test.cpp:197
@@ -8128,35 +8125,32 @@ msgid "There is %d subjects, which satisfy at least one policy"
 msgstr "Обнаружены %d субъекта, удовлетворяющих хотя бы одной политике"
 
 #: src/hed/shc/test.cpp:121
-#, fuzzy, c-format
+#, c-format
 msgid "Attribute Value (1): %s"
-msgstr "&Значение атрибута:"
+msgstr "Значение атрибута (1): %s"
 
 #: src/hed/shc/test.cpp:132
-#, fuzzy
 msgid "Input request from code"
-msgstr "IDEAI код из KDevelop"
+msgstr "Запрос ввода из программы"
 
 #: src/hed/shc/test.cpp:183
 #: src/hed/shc/testinterface_arc.cpp:102
-#, fuzzy
 msgid "Can not dynamically produce Request"
-msgstr "Не удалось динамически создать AlgFacroty"
+msgstr "Не удалось динамически создать Request"
 
 #: src/hed/shc/test.cpp:211
-#, fuzzy, c-format
+#, c-format
 msgid "Attribute Value (2): %s"
-msgstr "&Значение атрибута:"
+msgstr "Значение атрибута (2): %s"
 
 #: src/hed/shc/testinterface_arc.cpp:75
-#, fuzzy
 msgid "Can not dynamically produce Policy"
-msgstr "Не удалось динамически создать AlgFacroty"
+msgstr "Не удалось динамически создать Policy"
 
 #: src/hed/shc/testinterface_arc.cpp:138
-#, fuzzy, c-format
+#, c-format
 msgid "Attribute Value inside Subject: %s"
-msgstr "  (Неизвестное значение внутристрочного атрибута: %lx)"
+msgstr "Значение атрибута в субъекте: %s"
 
 #: src/hed/shc/testinterface_arc.cpp:148
 msgid "The request has passed the policy evaluation"
@@ -8177,19 +8171,17 @@ msgstr "Элемент Username отсутствует или пуст"
 
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:65
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Processing type not supported: %s"
-msgstr "Не поддерживается тип цветовой карты"
+msgstr "Неподдерживаемый тип обработки: %s"
 
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:79
-#, fuzzy
 msgid "The payload of incoming message is empty"
-msgstr "Привет, вам сообщение :-)"
+msgstr "Во входящем сообщении отсутствует полезная нагрузка"
 
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:84
-#, fuzzy
 msgid "Failed to cast PayloadSOAP from incoming payload"
-msgstr "Не удалось создать PayloadSOAP из исходящей нагрузки"
+msgstr "Не удалось создать PayloadSOAP из входящей нагрузки"
 
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:89
 msgid "Failed to parse Username Token from incoming SOAP"
@@ -8206,14 +8198,12 @@ msgstr "Успешная проверка подлинности UsernameToken"
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:101
 #: src/hed/shc/x509tokensh/X509TokenSH.cpp:94
 #: src/hed/shc/delegationsh/DelegationSH.cpp:345
-#, fuzzy
 msgid "Incoming Message is not SOAP"
-msgstr "входящее сообщение не в формате SOAP"
+msgstr "Входящее сообщение не в формате SOAP"
 
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:108
-#, fuzzy
 msgid "The payload of outgoing message is empty"
-msgstr "Это исходящее сообщение"
+msgstr "В исходящем сообщении отсутствует полезная нагрузка"
 
 #: src/hed/shc/usernametokensh/UsernameTokenSH.cpp:113
 msgid "Failed to cast PayloadSOAP from outgoing payload"
@@ -8242,24 +8232,22 @@ msgstr "Пустые правила"
 
 #: src/hed/shc/gaclpdp/GACLPolicy.cpp:50
 #: src/hed/shc/gaclpdp/GACLPolicy.cpp:63
-#, fuzzy
 msgid "Policy is not gacl"
-msgstr "Файл GACL %s не является обычным файлом"
+msgstr "Политика не в формате GACL"
 
 #: src/hed/shc/gaclpdp/GACLEvaluator.cpp:31
 #: src/hed/shc/gaclpdp/GACLEvaluator.cpp:37
-#, fuzzy
 msgid "Can not create PolicyStore object"
-msgstr "Не удалось создать объект SSL"
+msgstr "Не удалось создать объект PolicyStore"
 
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:121
 msgid "Evaluator for GACLPDP was not loaded"
 msgstr "Обработчик для GACLPDP не был загружен"
 
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:152
-#, fuzzy, c-format
+#, c-format
 msgid "GACL Auth. request: %s"
-msgstr "  -c, -cancel    идентификатор отменить запрос"
+msgstr "Запрос авторизации GACL: %s"
 
 #: src/hed/shc/gaclpdp/GACLPDP.cpp:155
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:114
@@ -8333,35 +8321,32 @@ msgid "Missing or empty CertificatePath or CACertificatesDir element"
 msgstr "Элемент CertificatePath или CACertificatesDir отсутствует или пуст"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:81
-#, fuzzy, c-format
+#, c-format
 msgid "Delegation role not supported: %s"
-msgstr "-mhard-float не поддерживается"
+msgstr "Неподдерживаемая роль делегирования: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:90
-#, fuzzy, c-format
+#, c-format
 msgid "Delegation type not supported: %s"
-msgstr "Не поддерживается тип цветовой карты"
+msgstr "Неподдерживаемый тип делегирования: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:115
-#, fuzzy
 msgid "Failed to acquire delegation context"
-msgstr "Не удалось создать контекст анализатора"
+msgstr "Не удалось извлечь контекст делегирования"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:143
 #: src/hed/shc/delegationsh/DelegationSH.cpp:254
-#, fuzzy
 msgid "Can't create delegation context"
-msgstr "Не удалось создать объект SSL Context"
+msgstr "Не удалось создать контекст делегирования"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:149
-#, fuzzy
 msgid "Delegation handler with delegatee role starts to process"
-msgstr "Поддержка ETRN не настроена.\n"
+msgstr "Запущен обработчик делегирования с ролью делегата"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:166
-#, fuzzy, c-format
+#, c-format
 msgid "Delegation service: %s"
-msgstr "Недействительный сервис"
+msgstr "Служба делегирования: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:181
 #: src/hed/shc/delegationsh/DelegationSH.cpp:188
@@ -8386,14 +8371,12 @@ msgstr "Конечная точка сервиса делегирования д
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:228
 #: src/hed/shc/delegationsh/DelegationSH.cpp:340
-#, fuzzy
 msgid "Delegation handler with delegatee role ends"
-msgstr "Поддержка ETRN не настроена.\n"
+msgstr "Завершена обработка делегирования с ролью делегата"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:260
-#, fuzzy
 msgid "Delegation handler with delegator role starts to process"
-msgstr "Поддержка ETRN не настроена.\n"
+msgstr "Запущен обработчик делегирования с ролью поручителя"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:269
 #, c-format
@@ -8401,9 +8384,9 @@ msgid "The delegated credential got from path: %s"
 msgstr "Делегированные параметры доступа извлечены из каталога: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:290
-#, fuzzy, c-format
-msgid "Can not create delegation crendential to delgation service: %s"
-msgstr "Не удалось обнаружить доверенности в конфигурации клиента"
+#, c-format
+msgid "Can not create delegation crendential to delegation service: %s"
+msgstr "Невозможно создать делегируемый документ  для службы делегированию: %s"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:339
 #, c-format
@@ -8411,9 +8394,8 @@ msgid "Succeeded to send DelegationService: %s and DelegationID: %s info to peer
 msgstr "Информация о DelegationService: %s и DelegationID: %s успешно отправлена партнёрскому сервису"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:356
-#, fuzzy
 msgid "Delegation handler is not configured"
-msgstr "Обработчик токена Username не настроен"
+msgstr "Обработчик делегирвания не настроен"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:48
 msgid "Creating a pdpservice client"
@@ -8424,9 +8406,9 @@ msgid "Arc policy can not been carried by SAML2.0 profile of XACML"
 msgstr "Политика ARC не может быть задана в профиле SAML2.0 XACML"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:111
-#, fuzzy, c-format
+#, c-format
 msgid "ARC Auth. request: %s"
-msgstr "  -c, -cancel    идентификатор отменить запрос"
+msgstr "Запрос авторизации ARC: %s"
 
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:152
 #: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:185
@@ -8444,9 +8426,8 @@ msgid "Unauthorized from remote pdp service"
 msgstr "Не допущен удалённой службой PDP"
 
 #: src/hed/shc/saml2sso_assertionconsumersh/SAML2SSO_AssertionConsumerSH.cpp:69
-#, fuzzy
 msgid "Can not get SAMLAssertion SecAttr from message context"
-msgstr "Невозможно получить SAMLAssertion SecAttr из исходящего сообщения AuthContext"
+msgstr "Невозможно извлечь SAMLAssertion SecAttr из контекста сообщения"
 
 #: src/hed/shc/xacmlpdp/XACMLPolicy.cpp:55
 msgid "Can not find <Policy/> element with proper namespace"
@@ -8554,48 +8535,47 @@ msgid "Can not find <Request/> element with proper namespace"
 msgstr "Невозможно найти элемент <Request/> с нужным пространством имён"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:29
-#, fuzzy, c-format
+#, c-format
 msgid "Access list location: %s"
-msgstr "Расположение списка задач:"
+msgstr "Местонахождение списка доступа: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:39
 msgid "No policy file or DNs specified for simplelist.pdp, please set location attribute or at least one DN element for simplelist PDP node in configuration."
 msgstr "Для simplelist.pdp не задан файл политик или DN; пожалуйста, задайте в настройках атрибут location или хотя бы один элемент DN для узла PDP simplelist."
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:42
-#, fuzzy, c-format
+#, c-format
 msgid "Subject to match: %s"
-msgstr "Число совпадений"
+msgstr "Субъект для сверки: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:45
-#, fuzzy, c-format
+#, c-format
 msgid "Policy subject: %s"
-msgstr "Субъект сертификата"
+msgstr "Субъект политики: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:47
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:73
-#, fuzzy, c-format
+#, c-format
 msgid "Authorized from simplelist.pdp: %s"
-msgstr "Допущен через xacml.pdp"
+msgstr "Допущен через simplelist.pdp: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:54
 msgid "The policy file setup for simplelist.pdp does not exist, please check location attribute for simplelist PDP node in service configuration"
 msgstr "Для simplelist.pdp не задан файл настройки политик; пожалуйста, проверьте атрибут location в настройках службы узла PDP simplelist."
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:61
-#, fuzzy, c-format
+#, c-format
 msgid "Policy line: %s"
-msgstr "<command line>"
+msgstr "Строка политики: %s"
 
 #: src/hed/shc/simplelistpdp/SimpleListPDP.cpp:79
-#, fuzzy, c-format
+#, c-format
 msgid "Not authorized from simplelist.pdp: %s"
-msgstr "Допущен удалённой службой PDP"
+msgstr "Не допущен через simplelist.pdp: %s"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:108
-#, fuzzy
 msgid "Can not find ArcPDPContext"
-msgstr "Не обнаружен StatusCode"
+msgstr "Не обнаружен ArcPDPContext"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:156
 msgid "Evaluator for ArcPDP was not loaded"
@@ -8606,9 +8586,8 @@ msgid "Not authorized from arc.pdp - failed to get reponse from Evaluator"
 msgstr "Нет допуска от arc.pdp - не удалось получить ответ обработчика"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:243
-#, fuzzy
 msgid "Authorized by arc.pdp"
-msgstr "Дуга по трём точкам"
+msgstr "Допущен через arc.pdp"
 
 #: src/hed/shc/arcpdp/ArcPDP.cpp:244
 msgid "Not authorized by arc.pdp - some of the RequestItem elements do not satisfy Policy"
@@ -8620,9 +8599,9 @@ msgid "Result value (0=Permit, 1=Deny, 2=Indeterminate, 3=Not_Applicable): %d"
 msgstr "Результат (0=Допуск, 1=Отказ, 2=Неопределённый, 3=Неприменим): %d"
 
 #: src/hed/shc/arcpdp/ArcEvaluationCtx.cpp:251
-#, fuzzy, c-format
+#, c-format
 msgid "There is %d RequestItems"
-msgstr "Нет выделения"
+msgstr "Обнаужено %d RequestItems"
 
 #: src/hed/shc/samltokensh/SAMLTokenSH.cpp:163
 msgid "Both of CACertificatePath and CACertificatesDir elements missing or empty"
@@ -8641,14 +8620,14 @@ msgid "Succeeded to authenticate SAMLToken"
 msgstr "Успешная проверка подлинности SAMLToken"
 
 #: src/hed/shc/samltokensh/SAMLTokenSH.cpp:275
-#, fuzzy, c-format
-msgid "No response from AA service %s failed"
-msgstr "Принят неверный отклик \"%c\" от сервера.\n"
+#, c-format
+msgid "No response from AA service %s"
+msgstr "Нет ответа от сервера AA %s"
 
 #: src/hed/shc/samltokensh/SAMLTokenSH.cpp:279
-#, fuzzy, c-format
+#, c-format
 msgid "SOAP Request to AA service %s failed"
-msgstr "Ошибка запроса DDE poke"
+msgstr "Ошибка запроса SOAP к серверу AA %s"
 
 #: src/hed/shc/samltokensh/SAMLTokenSH.cpp:287
 msgid "Cannot find content under response soap message"
@@ -8663,28 +8642,22 @@ msgid "Failed to generate SAML Token for outgoing SOAP"
 msgstr "Не удалось создать токен SAML для исходящего сообщения SOAP"
 
 #: src/hed/shc/samltokensh/SAMLTokenSH.cpp:345
-#, fuzzy
 msgid "SAML Token handler is not configured"
-msgstr "Обработчик токена Username не настроен"
+msgstr "Обработчик токена SAML не настроен"
 
 #: src/hed/shc/legacy/LegacyMap.cpp:31
 #: src/hed/shc/legacy/LegacyPDP.cpp:37
-#, fuzzy
-msgid "Configuration file not specified n ConfigBlock"
-msgstr ""
-"Указанный файл не существует:\n"
-"%1"
+msgid "Configuration file not specified in ConfigBlock"
+msgstr "Не указан файл настроек в ConfigBlock"
 
 #: src/hed/shc/legacy/LegacyMap.cpp:40
 #: src/hed/shc/legacy/LegacyPDP.cpp:46
-#, fuzzy
 msgid "BlockName is empty"
-msgstr "%s-%s задает пустой диапазон"
+msgstr "Не указан BlockName"
 
 #: src/hed/shc/legacy/LegacyMap.cpp:121
-#, fuzzy
 msgid "LegacyMap: no configurations blocks defined"
-msgstr "SELinux пользователь %s не определен"
+msgstr "LegacyMap: не заданы группы настроек"
 
 #: src/hed/shc/legacy/LegacyMap.cpp:127
 #: src/hed/shc/legacy/LegacyPDP.cpp:127
@@ -8702,16 +8675,14 @@ msgid "Grid identity is mapped to local identity '%s'"
 msgstr "Опознавательные признаки Грид поставлены в соответствие местной учётной записи '%s'"
 
 #: src/hed/shc/legacy/ConfigParser.cpp:13
-#, fuzzy
 msgid "Configuration file not specified"
-msgstr "использовать указанный файл настроек"
+msgstr "Не указан файл настроек"
 
 #: src/hed/shc/legacy/ConfigParser.cpp:18
 #: src/hed/shc/legacy/ConfigParser.cpp:53
 #: src/hed/shc/legacy/ConfigParser.cpp:58
-#, fuzzy
 msgid "Configuration file can not be read"
-msgstr "Невозможно прочесть локальный список задач"
+msgstr "Невозможно прочесть файл настроек"
 
 #: src/hed/shc/legacy/ConfigParser.cpp:68
 #, c-format
@@ -8720,30 +8691,26 @@ msgstr "Файл настроек испорчен - слишком коротк
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:96
 #: src/hed/shc/legacy/arc_lcas.cpp:80
-#, fuzzy
 msgid "Missing subject name"
-msgstr "Имя субъекта доверенности"
+msgstr "Отсутствует имя субъекта"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:101
 #: src/hed/shc/legacy/arc_lcas.cpp:85
-#, fuzzy
 msgid "Missing path of credentials file"
-msgstr "Путь к файлу меток цели:"
+msgstr "Отсутствует путь к файлу параметров доступа"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:106
-#, fuzzy
 msgid "Missing name of LCMAPS library"
-msgstr "Невозможно иметь LIBRARY и NAME"
+msgstr "Отсутствует имя библиотеки LCMAPS"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:120
-#, fuzzy
 msgid "Can't read policy names"
-msgstr "Чтение имён файла из ФАЙЛА"
+msgstr "Невозможно прочесть названия политик"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:131
-#, fuzzy, c-format
+#, c-format
 msgid "Can't load LCMAPS library %s: %s"
-msgstr "Не удалось обнаружить функции LCMAPS в библиотеке %s"
+msgstr "Невозможно загрузить библиотеку LCMAPS %s: %s"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:143
 #, c-format
@@ -8751,29 +8718,25 @@ msgid "Can't find LCMAPS functions in a library %s"
 msgstr "Не удалось обнаружить функции LCMAPS в библиотеке %s"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:155
-#, fuzzy
 msgid "LCMAPS has lcmaps_run"
-msgstr "${base} отработал"
+msgstr "LCMAPS содержит lcmaps_run"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:156
-#, fuzzy
 msgid "LCMAPS has getCredentialData"
-msgstr "Срок действия доверенности истёк"
+msgstr "LCMAPS содержит getCredentialData"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:160
-#, fuzzy
 msgid "Failed to initialize LCMAPS"
-msgstr "сбой инициализации PAM\n"
+msgstr "Сбой инициализации LCMAPS"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:198
-#, fuzzy, c-format
+#, c-format
 msgid "LCMAPS returned invalid GID: %u"
-msgstr "Сервер возвратил недопустимый ярлык задачи"
+msgstr "LCMAPS возвратил недопустимый GID: %u"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:201
-#, fuzzy
 msgid "LCMAPS did not return any GID"
-msgstr "SRM не возвратил никакой информации"
+msgstr "LCMAPS не возвратил никакого GID"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:204
 #, c-format
@@ -8781,29 +8744,26 @@ msgid "LCMAPS returned UID which has no username: %u"
 msgstr "LCMAPS возвратил UID не соответствующий учётной записи: %u"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:207
-#, fuzzy, c-format
+#, c-format
 msgid "LCMAPS returned invalid UID: %u"
-msgstr "Сервер возвратил недопустимый ярлык задачи"
+msgstr "LCMAPS возвратил недопустимый UID: %u"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:210
-#, fuzzy
 msgid "LCMAPS did not return any UID"
-msgstr "SRM не возвратил никакой информации"
+msgstr "LCMAPS не возвратил никакого UID"
 
 #: src/hed/shc/legacy/arc_lcmaps.cpp:220
-#, fuzzy
 msgid "Failed to terminate LCMAPS"
-msgstr "Не удалось завершить поток."
+msgstr "Сбой остановки LCMAPS"
 
 #: src/hed/shc/legacy/arc_lcas.cpp:90
-#, fuzzy
 msgid "Missing name of LCAS library"
-msgstr "Невозможно иметь LIBRARY и NAME"
+msgstr "Отсутствует имя библиотеки LCAS"
 
 #: src/hed/shc/legacy/arc_lcas.cpp:107
-#, fuzzy, c-format
+#, c-format
 msgid "Can't load LCAS library %s: %s"
-msgstr "Не удалось обнаружить функции LCAS в библиотеке %s"
+msgstr "Невозможно загрузить библиотеку LCAS %s: %s"
 
 #: src/hed/shc/legacy/arc_lcas.cpp:117
 #, c-format
@@ -8811,47 +8771,41 @@ msgid "Can't find LCAS functions in a library %s"
 msgstr "Не удалось обнаружить функции LCAS в библиотеке %s"
 
 #: src/hed/shc/legacy/arc_lcas.cpp:127
-#, fuzzy
 msgid "Failed to initialize LCAS"
-msgstr "сбой инициализации PAM\n"
+msgstr "Сбой инициализации LCAS"
 
 #: src/hed/shc/legacy/arc_lcas.cpp:137
-#, fuzzy
 msgid "Failed to terminate LCAS"
-msgstr "Не удалось завершить поток."
+msgstr "Сбой остановки LCAS"
 
 #: src/hed/shc/legacy/auth_ldap.cpp:91
-#, fuzzy
 msgid "LDAP authorization is not implemented yet"
-msgstr "Эта команда ещё не реализована."
+msgstr "Авторизация для LDAP ещё не реализована"
 
 #: src/hed/shc/legacy/LegacySecHandler.cpp:36
 #: src/hed/shc/legacy/LegacySecHandler.cpp:104
-#, fuzzy
 msgid "LegacySecHandler: configuration file not specified"
-msgstr ""
-"Указанный файл не существует:\n"
-"%1"
+msgstr "LegacySecHandler: не указан файл настроек"
 
 #: src/hed/shc/legacy/unixmap.cpp:170
-#, fuzzy, c-format
+#, c-format
 msgid "Plugin returned: %u: %s"
-msgstr "Подключаемый одуль ответил %u: %s"
+msgstr "Подключаемый модуль ответил: %u: %s"
 
 #: src/hed/shc/legacy/auth.cpp:263
-#, fuzzy, c-format
+#, c-format
 msgid "Credentials stored in temporary file %s"
-msgstr "Сбой создания временного файла в %s - %s"
+msgstr "Параметры доступа сохранены во временном файле %s"
 
 #: src/hed/shc/legacy/auth.cpp:272
-#, fuzzy, c-format
+#, c-format
 msgid "Assigned to authorization group %s"
-msgstr "Не удалось обработать группу допуска %s"
+msgstr "Приписан к группе допуска %s"
 
 #: src/hed/shc/legacy/auth.cpp:277
-#, fuzzy, c-format
+#, c-format
 msgid "Assigned to VO %s"
-msgstr "Удалить действие, привязанное к '%s'"
+msgstr "Приписан к VO %s"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:75
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:129
@@ -8860,20 +8814,18 @@ msgstr "В данном контексте и сообщении отсутст�
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:95
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:109
-#, fuzzy
 msgid "Failed to convert security information to ARC policy"
-msgstr "Не удалось преобразовать информацию о защите в запрос ARC"
+msgstr "Не удалось преобразовать информацию о безопасности в политику ARC"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:116
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:123
-#, fuzzy, c-format
+#, c-format
 msgid "ARC delegation policy: %s"
-msgstr "Доверенность с политикой ARC"
+msgstr "Политика делегирования ARC: %s"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:161
-#, fuzzy
 msgid "No authorization response was returned"
-msgstr "Нет ответа HTTP"
+msgstr "Не получен ответ о допуске"
 
 #: src/hed/shc/delegationpdp/DelegationPDP.cpp:164
 #, c-format
@@ -8903,26 +8855,26 @@ msgid "PEPD location: %s"
 msgstr "расположение PEPD: %s"
 
 #: src/hed/identitymap/ArgusPEP.cpp:49
-#, fuzzy
 msgid "Conversion mode is set to DIRECT"
-msgstr "Преобразование из набора символов \"%s\" в \"%s\" не поддерживается"
+msgstr "Задан способ преобразования DIRECT"
 
 #: src/hed/identitymap/ArgusPEP.cpp:52
-#, fuzzy
 msgid "Conversion mode is set to SUBJECT"
-msgstr "Преобразование из набора символов \"%s\" в \"%s\" не поддерживается"
+msgstr "Задан способ преобразования SUBJECT"
 
 #: src/hed/identitymap/ArgusPEP.cpp:130
-#, fuzzy, c-format
+#, c-format
 msgid "Have %i requests to process"
-msgstr "Присоединить к процессу"
+msgstr "%i запросов для обработки"
 
 #: src/hed/identitymap/ArgusPEP.cpp:175
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Not authorized according to request:\n"
 "%s"
-msgstr "Нет доступа для чтения папки"
+msgstr ""
+"Нет допуска согласно запросу:\n"
+"%s"
 
 #: src/hed/identitymap/ArgusPEP.cpp:177
 #, c-format
@@ -8930,9 +8882,8 @@ msgid "%s is not authorized to do action %s in resource %s "
 msgstr "%s не допущен к исполнению действия %s на ресурсе %s "
 
 #: src/hed/identitymap/ArgusPEP.cpp:202
-#, fuzzy
 msgid "Subject of request is null \n"
-msgstr "указатель соединения является NULL\n"
+msgstr "Отсутствует субъект запроса\n"
 
 #: src/hed/identitymap/ArgusPEP.cpp:207
 #, c-format
@@ -9248,13 +9199,13 @@ msgid "VOMS: the holder serial number %i is not the same as the serial number in
 msgstr "VOMS: серийный номер владельца %i не совпадает с таковым в сертификате атрибута (AC) %i; сертификат, используемый для создания доверенности VOMS, может быть доверенностью с серийным номером, отличным от изначального сертификата"
 
 #: src/hed/libs/credential/VOMSUtil.cpp:1451
-msgid "VOMS: the holder issuer information in AC is wrong"
-msgstr "VOMS: неверная информация в сертификате атрибута (AC) об агентстве, выдавшем сертификат"
+msgid "VOMS: the holder information in AC is wrong"
+msgstr "VOMS: неверная информация о владельце в сертификате атрибута (AC)"
 
 #: src/hed/libs/credential/VOMSUtil.cpp:1462
-#, fuzzy, c-format
+#, c-format
 msgid "VOMS: DN of holder in AC: %s"
-msgstr "VOMS: серийный номер в сертификате атрибута (AC):  %i"
+msgstr "VOMS: DN владельца в сертификате атрибута (AC): %s"
 
 #: src/hed/libs/credential/VOMSUtil.cpp:1463
 #, c-format
@@ -9279,29 +9230,33 @@ msgstr "VOMS: атрибут issuerUID в сертификате владель�
 msgid "VOMS: the holder issuer name is not the same as that in AC"
 msgstr "VOMS: имя агентства, выдавшего сертификат, не совпадает с таковым в сертификате атрибута (AC)"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1514
+#: src/hed/libs/credential/VOMSUtil.cpp:1511
+msgid "VOMS: the issuer information in AC is wrong"
+msgstr "VOMS: неверная информация об агентстве, выдавшем сертификат, в сертификате атрибута (AC)"
+
+#: src/hed/libs/credential/VOMSUtil.cpp:1519
 #, c-format
 msgid "VOMS: the issuer name %s is not the same as that in AC - %s"
 msgstr "VOMS: имя агентства, выдавшего сертификат - %s - не совпадает с таковым в сертификате атрибута (AC) - %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1522
+#: src/hed/libs/credential/VOMSUtil.cpp:1527
 msgid "VOMS: the serial number of AC INFO is too long - expecting no more than 20 octets"
 msgstr "VOMS: слишком длинный серийный номер AC INFO - ожидается не более 20-и октетов"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1551
-#: src/hed/libs/credential/VOMSUtil.cpp:1559
-#: src/hed/libs/credential/VOMSUtil.cpp:1567
-#: src/hed/libs/credential/VOMSUtil.cpp:1575
-#: src/hed/libs/credential/VOMSUtil.cpp:1598
+#: src/hed/libs/credential/VOMSUtil.cpp:1557
+#: src/hed/libs/credential/VOMSUtil.cpp:1565
+#: src/hed/libs/credential/VOMSUtil.cpp:1573
+#: src/hed/libs/credential/VOMSUtil.cpp:1581
+#: src/hed/libs/credential/VOMSUtil.cpp:1604
 msgid "VOMS: unable to extract VO name from AC"
 msgstr "VOMS: невозможно извлечь название виртуальной организации из сертификата атрибута (AC)"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1589
+#: src/hed/libs/credential/VOMSUtil.cpp:1595
 #, c-format
 msgid "VOMS: unable to determine hostname of AC from VO name: %s"
 msgstr "VOMS: невозможно определить название узла сертификата атрибута (AC) из названия виртуальной организации: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1607
+#: src/hed/libs/credential/VOMSUtil.cpp:1613
 msgid "VOMS: can not verify the signature of the AC"
 msgstr "VOMS: не удалось подтвердить подпись сертификата атрибута"
 
@@ -9310,9 +9265,9 @@ msgid "Failed to read input passphrase"
 msgstr "Не удалось прочесть пароль"
 
 #: src/hed/libs/credential/Credential.cpp:60
-#, fuzzy, c-format
+#, c-format
 msgid "Input phrase is too short (at least %d char)"
-msgstr "Пароль слишком короткий, используйте хотя бы %u символов."
+msgstr "Пароль слишком короткий (используйте по крайней мере %d символов)"
 
 #: src/hed/libs/credential/Credential.cpp:69
 #, c-format
@@ -9343,9 +9298,8 @@ msgid "Can't get the first byte of input to determine its format"
 msgstr "Невозможно получить первый байт сертификата, чтобы определить его формат"
 
 #: src/hed/libs/credential/Credential.cpp:295
-#, fuzzy
 msgid "Can't reset the input"
-msgstr "ошибка при закрытии входного файла %s: %m"
+msgstr "Невозможно сбросить ввод"
 
 #: src/hed/libs/credential/Credential.cpp:321
 msgid "Can't get the first byte of input BIO to get its format"
@@ -9412,30 +9366,27 @@ msgid "If you specify a policy you also need to specify a policy language"
 msgstr "Указывая политику, указывайте также её язык"
 
 #: src/hed/libs/credential/Credential.cpp:889
-#, fuzzy, c-format
+#, c-format
 msgid "Error: can't open policy file: %s"
-msgstr "%s: ошибка создания/открытия clean-файла '%s': %s\n"
+msgstr "Ошибка: невозможно открыть файл политик: %s"
 
 #: src/hed/libs/credential/Credential.cpp:902
-#, fuzzy, c-format
+#, c-format
 msgid "Error: policy location: %s is not a regular file"
-msgstr "Список задач ARC не является стандартным файлом: %s"
+msgstr "Ошибка: местонахождение политик: %s не является стандартным файлом"
 
 #: src/hed/libs/credential/Credential.cpp:993
-#, fuzzy
 msgid "Certificate/Proxy path is empty"
-msgstr "предполагаем получение в формате PEM"
+msgstr "Путь к сертификату/доверенности не задан"
 
 #: src/hed/libs/credential/Credential.cpp:1054
 #: src/hed/libs/credential/Credential.cpp:2838
-#, fuzzy
 msgid "Failed to duplicate extension"
-msgstr "Сбой инициализации расширения stream_restore: %s"
+msgstr "Не удалось скопировать расширение"
 
 #: src/hed/libs/credential/Credential.cpp:1057
-#, fuzzy
 msgid "Failed to add extension into member variable: extensions_"
-msgstr "Сбой записи настроек во временный файл: %s"
+msgstr "Не удалось добавить расширение к внутренней переменной: extensions_"
 
 #: src/hed/libs/credential/Credential.cpp:1114
 #: src/hed/libs/credential/Credential.cpp:1119
@@ -9448,15 +9399,13 @@ msgstr "Невозможно создать расширение для дове
 
 #: src/hed/libs/credential/Credential.cpp:1166
 #: src/hed/libs/credential/Credential.cpp:1341
-#, fuzzy
 msgid "RSA_generate_key failed"
-msgstr "Сбой метода RSA_generate_key_ex "
+msgstr "Сбой метода RSA_generate_key"
 
 #: src/hed/libs/credential/Credential.cpp:1179
 #: src/hed/libs/credential/Credential.cpp:1355
-#, fuzzy
 msgid "BN_set_word failed"
-msgstr "Не удалось установить CairoRenderContext"
+msgstr "Сбой метода BN_set_word"
 
 #: src/hed/libs/credential/Credential.cpp:1187
 #: src/hed/libs/credential/Credential.cpp:1363
@@ -9465,9 +9414,8 @@ msgstr "Сбой метода RSA_generate_key_ex "
 
 #: src/hed/libs/credential/Credential.cpp:1195
 #: src/hed/libs/credential/Credential.cpp:1371
-#, fuzzy
 msgid "BN_new || RSA_new failed"
-msgstr "Сбой метода RSA_generate_key_ex "
+msgstr "Сбой метода BN_new или RSA_new"
 
 #: src/hed/libs/credential/Credential.cpp:1205
 msgid "Created RSA key, proceeding with request"
@@ -9482,9 +9430,8 @@ msgid "Generate new X509 request!"
 msgstr "Создайте новый запрос X509!"
 
 #: src/hed/libs/credential/Credential.cpp:1219
-#, fuzzy
 msgid "Setting subject name!"
-msgstr "Имя субъекта доверенности"
+msgstr "Задаётся имя субъекта!"
 
 #: src/hed/libs/credential/Credential.cpp:1227
 #: src/hed/libs/credential/Credential.cpp:1473
@@ -9495,9 +9442,8 @@ msgstr "Сбой PEM_write_bio_X509_REQ"
 #: src/hed/libs/credential/Credential.cpp:1298
 #: src/hed/libs/credential/Credential.cpp:1505
 #: src/hed/libs/credential/Credential.cpp:1525
-#, fuzzy
 msgid "Can not create BIO for request"
-msgstr "Невозможно создать BIO для разбора запроса"
+msgstr "Невозможно создать BIO для запроса"
 
 #: src/hed/libs/credential/Credential.cpp:1275
 msgid "Failed to write request into string"
@@ -9532,8 +9478,8 @@ msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr "Невозможно создать новую переменную X509_NAME_ENTRY для запроса доверенности"
 
 #: src/hed/libs/credential/Credential.cpp:1429
-#, fuzzy, c-format
-msgid "Can get X509V3_EXT_METHOD for %s"
+#, c-format
+msgid "Can not get X509V3_EXT_METHOD for %s"
 msgstr "Невозможно извлечь X509V3_EXT_METHOD для %s"
 
 #: src/hed/libs/credential/Credential.cpp:1437
@@ -9572,9 +9518,9 @@ msgid "Failed to get public key"
 msgstr "Не удалось получить открытый ключ"
 
 #: src/hed/libs/credential/Credential.cpp:1671
-#, fuzzy, c-format
+#, c-format
 msgid "Certiticate chain number %d"
-msgstr "Задачи, в очереди"
+msgstr "Номер цепочки сертификатов %d"
 
 #: src/hed/libs/credential/Credential.cpp:1700
 msgid "NULL BIO passed to InquireRequest"
@@ -9643,9 +9589,8 @@ msgid "Credential is not initialized"
 msgstr "Параметры доступа не инициализированы"
 
 #: src/hed/libs/credential/Credential.cpp:1982
-#, fuzzy
 msgid "Failed to initialize X509 structure"
-msgstr "ошибка инициализации контекста libsmbclient"
+msgstr "Не удалось инициализировать структуру X509"
 
 #: src/hed/libs/credential/Credential.cpp:2005
 #, c-format
@@ -9658,9 +9603,8 @@ msgid "Can not add X509 extension to proxy cert"
 msgstr "Невозможно добавить расширение X509 к доверенности"
 
 #: src/hed/libs/credential/Credential.cpp:2063
-#, fuzzy
 msgid "Can not get extension from issuer certificate"
-msgstr "Невозможно получить расширенное расширение KeyUsage из сертификата агентства"
+msgstr "Невозможно извлечь расширение из сертификата агентства"
 
 #: src/hed/libs/credential/Credential.cpp:2068
 msgid "Can not convert keyUsage struct from DER encoded format"
@@ -9745,9 +9689,8 @@ msgid "Failed to add issuer's extension into proxy"
 msgstr "Сбой добавления расширения выдающего агентства в доверенность"
 
 #: src/hed/libs/credential/Credential.cpp:2233
-#, fuzzy
 msgid "Failed to find extension"
-msgstr "не найден класс '%s'"
+msgstr "Не удалось найти расширение"
 
 #: src/hed/libs/credential/Credential.cpp:2237
 msgid "Failed to add extension into proxy"
@@ -9763,35 +9706,29 @@ msgid "The signing algorithm %s is not allowed,it should be SHA1 to sign certifi
 msgstr "Недопустимый алгоритм подписи %s: запросы сертификата должны подписываться SHA1"
 
 #: src/hed/libs/credential/Credential.cpp:2258
-#, fuzzy
 msgid "Failed to sign the proxy certificate"
-msgstr "Сбой создания доверенности: Не удалось подтвердить действительность сертификата"
+msgstr "Не удалось подписать доверенность"
 
 #: src/hed/libs/credential/Credential.cpp:2260
-#, fuzzy
 msgid "Succeeded to sign the proxy certificate"
-msgstr "Сбой создания доверенности: Не удалось подтвердить действительность сертификата"
+msgstr "Доверенность успешно подписана"
 
 #: src/hed/libs/credential/Credential.cpp:2265
-#, fuzzy
 msgid "Failed to verify the signed certificate"
-msgstr "Не могу проверить сертификат"
+msgstr "Сбой проверки подписанного сертификата"
 
 #: src/hed/libs/credential/Credential.cpp:2267
-#, fuzzy
 msgid "Succeeded to verify the signed certificate"
-msgstr "Не могу проверить сертификат"
+msgstr "Подписанный сертификат успешно проверен"
 
 #: src/hed/libs/credential/Credential.cpp:2272
 #: src/hed/libs/credential/Credential.cpp:2281
-#, fuzzy
 msgid "Output the proxy certificate"
-msgstr "Не удалось сохранить доверенность"
+msgstr "Вывод доверенности"
 
 #: src/hed/libs/credential/Credential.cpp:2275
-#, fuzzy
 msgid "Can not convert signed proxy cert into PEM format"
-msgstr "Невозможно преобразовать подписанную доверенность в формат DER"
+msgstr "Невозможно преобразовать подписанную доверенность в формат PEM"
 
 #: src/hed/libs/credential/Credential.cpp:2284
 msgid "Can not convert signed proxy cert into DER format"
@@ -9799,9 +9736,8 @@ msgstr "Невозможно преобразовать подписанную �
 
 #: src/hed/libs/credential/Credential.cpp:2300
 #: src/hed/libs/credential/Credential.cpp:2323
-#, fuzzy
 msgid "Can not create BIO for signed proxy certificate"
-msgstr "Невозможно создать неформатированный ввод/вывод BIO для подписанного сертификата EEC"
+msgstr "Невозможно создать неформатированный ввод/вывод BIO для подписанной доверенности"
 
 #: src/hed/libs/credential/Credential.cpp:2327
 msgid "Can not set writable file for signed proxy certificate BIO"
@@ -9826,9 +9762,9 @@ msgid "SSL error: %s, libs: %s, func: %s, reason: %s"
 msgstr "Ошибка SSL: %s, libs: %s, func: %s, причина: %s"
 
 #: src/hed/libs/credential/Credential.cpp:2420
-#, fuzzy, c-format
+#, c-format
 msgid "unable to load number from: %s"
-msgstr "Невозможно определить число загружаемых символов\n"
+msgstr "невозможно прочесть номер из: %s"
 
 #: src/hed/libs/credential/Credential.cpp:2425
 msgid "error converting number from bin to BIGNUM"
@@ -9843,24 +9779,22 @@ msgid "error converting serial to ASN.1 format"
 msgstr "ошибка преобразования серийного номера в формат ASN.1"
 
 #: src/hed/libs/credential/Credential.cpp:2508
-#, fuzzy, c-format
+#, c-format
 msgid "load serial from %s failure"
-msgstr "Загрузить текст из файла"
+msgstr "сбой чтения серийного номера из %s"
 
 #: src/hed/libs/credential/Credential.cpp:2513
-#, fuzzy
 msgid "add_word failure"
-msgstr "ошибка выделения памяти"
+msgstr "Сбой add_word"
 
 #: src/hed/libs/credential/Credential.cpp:2518
-#, fuzzy, c-format
+#, c-format
 msgid "save serial to %s failure"
-msgstr "Ошибка при повторной попытке загрузки:"
+msgstr "сбой записи серийного номера в %s"
 
 #: src/hed/libs/credential/Credential.cpp:2538
-#, fuzzy
 msgid "Error initialising X509 store"
-msgstr "Ошибка инициализации SCSI-устройства %s - %s"
+msgstr "Ошибка при инициализации хранилища X509"
 
 #: src/hed/libs/credential/Credential.cpp:2545
 msgid "Out of memory when generate random serial"
@@ -9871,18 +9805,17 @@ msgid "CA certificate and CA private key do not match"
 msgstr "Сертификат и закрытый ключ агентства не совпадают"
 
 #: src/hed/libs/credential/Credential.cpp:2581
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to load extension section: %s"
-msgstr "Невозможно загрузить изображение в %1"
+msgstr "Сбой загрузки раздела расширений: %s"
 
 #: src/hed/libs/credential/Credential.cpp:2617
 msgid "malloc error"
 msgstr "ошибка malloc"
 
 #: src/hed/libs/credential/Credential.cpp:2621
-#, fuzzy
 msgid "Subject does not start with '/'"
-msgstr "ключ '%s' не начинается с '-'"
+msgstr "Субъект не начинается с '/'"
 
 #: src/hed/libs/credential/Credential.cpp:2637
 #: src/hed/libs/credential/Credential.cpp:2658
@@ -9913,9 +9846,9 @@ msgid "The private key for signing is not initialized"
 msgstr "Закрытый ключ для подписи не инициализирован"
 
 #: src/hed/libs/credential/Credential.cpp:2797
-#, fuzzy, c-format
+#, c-format
 msgid "Error when loading the extension config file: %s"
-msgstr "Ошибка при загрузке файла настроек расширений: %s в строке: %d"
+msgstr "Ошибка при загрузке файла настроек расширений: %s"
 
 #: src/hed/libs/credential/Credential.cpp:2801
 #, c-format
@@ -9923,24 +9856,20 @@ msgid "Error when loading the extension config file: %s on line: %d"
 msgstr "Ошибка при загрузке файла настроек расширений: %s в строке: %d"
 
 #: src/hed/libs/credential/Credential.cpp:2842
-#, fuzzy
 msgid "Failed to add extension into EEC certificate"
-msgstr "Сбой добавления расширения выдающего агентства в доверенность"
+msgstr "Сбой добавления расширения в сертификат EEC"
 
 #: src/hed/libs/credential/Credential.cpp:2857
-#, fuzzy
 msgid "Can not sign a EEC"
-msgstr "Не подписывать OpenPGP"
+msgstr "Невозможно подписать EEC"
 
 #: src/hed/libs/credential/Credential.cpp:2861
-#, fuzzy
 msgid "Output EEC certificate"
-msgstr "Сертификат выдан"
+msgstr "Вывод сертификата EEC"
 
 #: src/hed/libs/credential/Credential.cpp:2864
-#, fuzzy
 msgid "Can not convert signed EEC cert into DER format"
-msgstr "Невозможно преобразовать подписанную доверенность в формат DER"
+msgstr "Невозможно преобразовать подписанный сертификат EEC в формат DER"
 
 #: src/hed/libs/credential/Credential.cpp:2878
 #: src/hed/libs/credential/Credential.cpp:2897
@@ -9976,18 +9905,18 @@ msgid "X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"
 msgstr "X509_V_ERR_UNHANDLED_CRITICAL_EXTENSION"
 
 #: src/hed/libs/credential/CertUtil.cpp:222
-#, fuzzy, c-format
+#, c-format
 msgid "Error number in store context: %i"
-msgstr "Количество &строк в диалоге различий:"
+msgstr "Номер ошибки в контексте хранилища: %i"
 
 #: src/hed/libs/credential/CertUtil.cpp:223
 msgid "Self-signed certificate"
 msgstr "Самостоятельно подписанный сертификат"
 
 #: src/hed/libs/credential/CertUtil.cpp:226
-#, fuzzy, c-format
+#, c-format
 msgid "The certificate with subject %s  is not valid"
-msgstr "Сбой создания доверенности: Срок действия сертификата ещё не начался"
+msgstr "Сертификат с субъектом %s недействителен"
 
 #: src/hed/libs/credential/CertUtil.cpp:229
 #, c-format
@@ -9995,9 +9924,9 @@ msgid "Can not find issuer certificate for the certificate with subject %s and h
 msgstr "Невозможно найти сертификат агентства, выдавшего сертификат с субъектом %s и отпечатком: %lu"
 
 #: src/hed/libs/credential/CertUtil.cpp:232
-#, fuzzy, c-format
+#, c-format
 msgid "Certificate with subject %s has expired"
-msgstr "Сбой создания доверенности: Срок действия сертификата истёк"
+msgstr "Срок действия сертификата с субъектом %s истёк"
 
 #: src/hed/libs/credential/CertUtil.cpp:235
 #, c-format
@@ -10036,18 +9965,16 @@ msgid "In the available CRL the lastUpdate field is not valid"
 msgstr "В доступном списке отзыва сертификатов (CRL) значение lastUpdate недействительно"
 
 #: src/hed/libs/credential/CertUtil.cpp:353
-#, fuzzy
 msgid "The available CRL is not yet valid"
-msgstr "В доступном списке отзыва сертификатов (CRL) значение lastUpdate недействительно"
+msgstr "Доступный список отзыва сертификатов (CRL) пока недействителен"
 
 #: src/hed/libs/credential/CertUtil.cpp:361
 msgid "In the available CRL, the nextUpdate field is not valid"
 msgstr "В доступном списке отзыва сертификатов (CRL) значение nextUpdate недействительно"
 
 #: src/hed/libs/credential/CertUtil.cpp:367
-#, fuzzy
 msgid "The available CRL has expired"
-msgstr "Ваш сертификат просрочен!"
+msgstr "Доступный список отзыва сертификатов (CRL) просрочен"
 
 #: src/hed/libs/credential/CertUtil.cpp:389
 #, c-format
@@ -10073,9 +10000,9 @@ msgstr "Невозможно преобразовать расширение PRO
 
 #: src/hed/libs/credential/CertUtil.cpp:487
 #: src/hed/libs/credential/CertUtil.cpp:537
-#, fuzzy, c-format
+#, c-format
 msgid "proxy_depth: %i, path_length: %i"
-msgstr "Превышено ограничение по длине пути"
+msgstr "proxy_depth: %i, path_length: %i"
 
 #: src/hed/libs/credential/CertUtil.cpp:608
 msgid "Trying to check X509 cert with check_cert_type"
@@ -10083,19 +10010,16 @@ msgstr "Попытка проверки сертификата X509 с помо�
 
 #: src/hed/libs/credential/CertUtil.cpp:647
 #: src/hed/libs/credential/CertUtil.cpp:675
-#, fuzzy
 msgid "Can't convert DER encoded PROXYCERTINFO extension to internal form"
 msgstr "Невозможно преобразовать расширение PROXYCERTINFO в кодировке DER во внутренний формат"
 
 #: src/hed/libs/credential/CertUtil.cpp:651
 #: src/hed/libs/credential/CertUtil.cpp:679
-#, fuzzy
 msgid "Can't get policy from PROXYCERTINFO extension"
 msgstr "Невозможно извлечь политику из расширения PROXYCERTINFO"
 
 #: src/hed/libs/credential/CertUtil.cpp:655
 #: src/hed/libs/credential/CertUtil.cpp:683
-#, fuzzy
 msgid "Can't get policy language from PROXYCERTINFO extension"
 msgstr "Невозможно извлечь язык политики из расширения PROXYCERTINFO"
 
@@ -10108,67 +10032,63 @@ msgstr "Обнаружено более одного расширения PCI"
 msgid "The subject does not match the issuer name + proxy CN entry"
 msgstr "Субъект не соответствует имени выдавшего агентства и атрибуту доверенности CN"
 
-#: src/hed/libs/credential/test/VOMSUtilTest.cpp:109
-#, fuzzy, c-format
+#: src/hed/libs/credential/test/VOMSUtilTest.cpp:112
+#, c-format
 msgid "Line %d.%d of the attributes returned: %s"
-msgstr "Сервер ничего не ответил"
+msgstr "Строка %d.%d атрибутов выдала: %s"
 
 #: src/hed/libs/data/DataMover.cpp:105
 msgid "No locations found - probably no more physical instances"
-msgstr ""
+msgstr "Не найдено расположений - возможно, копий больше нет"
 
 #: src/hed/libs/data/DataMover.cpp:109
-#: src/hed/libs/data/FileCache.cpp:697
+#: src/hed/libs/data/FileCache.cpp:698
 #, c-format
 msgid "Removing %s"
 msgstr "Удаляется %s"
 
 #: src/hed/libs/data/DataMover.cpp:122
 msgid "This instance was already deleted"
-msgstr ""
+msgstr "Эта копия уже удалена"
 
 #: src/hed/libs/data/DataMover.cpp:127
-#, fuzzy
 msgid "Failed to delete physical file"
-msgstr "Сбой при удалении старого файла \"%s\": %s"
+msgstr "Сбой при удалении физического файла"
 
 #: src/hed/libs/data/DataMover.cpp:137
-#, fuzzy, c-format
+#, c-format
 msgid "Removing metadata in %s"
-msgstr "dpkg: чтобы можно было установить пакет %2$s, необходимо удалить %1$s...\n"
+msgstr "Удаляются метаданные в %s"
 
 #: src/hed/libs/data/DataMover.cpp:141
-#, fuzzy
 msgid "Failed to delete meta-information"
-msgstr "&Удалить настройки сеанса через:"
+msgstr "Сбой при удалении мета-информации"
 
 #: src/hed/libs/data/DataMover.cpp:154
 msgid "Failed to remove all physical instances"
-msgstr ""
+msgstr "Сбой удаления всех фактических копий"
 
 #: src/hed/libs/data/DataMover.cpp:158
-#, fuzzy, c-format
+#, c-format
 msgid "Removing logical file from metadata %s"
-msgstr "Задача %s удаляется из файла списка задач"
+msgstr "Удаляется логический файл из метаданных %s"
 
 #: src/hed/libs/data/DataMover.cpp:161
-#, fuzzy
 msgid "Failed to delete logical file"
-msgstr "Сбой при удалении старого файла \"%s\": %s"
+msgstr "Сбой при удалении логического файла"
 
 #: src/hed/libs/data/DataMover.cpp:168
-#, fuzzy
 msgid "Failed to remove instance"
-msgstr "ОШИБКА при удалении %1 из %2: \"%3\"\n"
+msgstr "Не удалось удалить копию"
 
 #: src/hed/libs/data/DataMover.cpp:205
 msgid "DataMover::Transfer : starting new thread"
-msgstr ""
+msgstr "DataMover::Transfer : запуск нового потока"
 
 #: src/hed/libs/data/DataMover.cpp:233
-#, fuzzy, c-format
+#, c-format
 msgid "Transfer from %s to %s"
-msgstr "копирование из `%s' [%s] в `%s' [%s]\n"
+msgstr "Передача из %s в %s"
 
 #: src/hed/libs/data/DataMover.cpp:235
 msgid "Not valid source"
@@ -10180,9 +10100,9 @@ msgstr "Цель недействительна"
 
 #: src/hed/libs/data/DataMover.cpp:270
 #: src/hed/libs/data/DataMover.cpp:572
-#, fuzzy, c-format
+#, c-format
 msgid "File %s is cached (%s) - checking permissions"
-msgstr "проверка, есть ли файл в кэше...нет"
+msgstr "Файл %s присутствует в кэше (%s) - проверяется допуск"
 
 #: src/hed/libs/data/DataMover.cpp:274
 #: src/hed/libs/data/DataMover.cpp:590
@@ -10193,65 +10113,63 @@ msgstr "Проверка допуска пройдена"
 #: src/hed/libs/data/DataMover.cpp:275
 #: src/hed/libs/data/DataMover.cpp:618
 #: src/hed/libs/data/DataMover.cpp:1095
-#, fuzzy
 msgid "Linking/copying cached file"
-msgstr "Ошибка копирования временного почтового файла: %s"
+msgstr "Подцепление/копирование файла из кэша"
 
 #: src/hed/libs/data/DataMover.cpp:297
-#, fuzzy, c-format
+#, c-format
 msgid "No locations for source found: %s"
-msgstr "<qt>Не найдено совпадений для '<b>%1</b>'.</qt>"
+msgstr "Не найдено расположений для файла источника: %s"
 
 #: src/hed/libs/data/DataMover.cpp:301
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to resolve source: %s"
-msgstr "Не удалось загрузить источник \"%s\": %s"
+msgstr "Не удалось определить источник: %s"
 
 #: src/hed/libs/data/DataMover.cpp:313
 #: src/hed/libs/data/DataMover.cpp:381
-#, fuzzy, c-format
+#, c-format
 msgid "No locations for destination found: %s"
-msgstr "<qt>Не найдено совпадений для '<b>%1</b>'.</qt>"
+msgstr "Не найдено физических адресов для назначения: %s"
 
 #: src/hed/libs/data/DataMover.cpp:318
 #: src/hed/libs/data/DataMover.cpp:385
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to resolve destination: %s"
-msgstr "Не удалось зарегистрировать назначение: %s"
+msgstr "Не удалось определить назначение: %s"
 
 #: src/hed/libs/data/DataMover.cpp:333
 #, c-format
 msgid "No locations for destination different from source found: %s"
-msgstr ""
+msgstr "Не найдено расположений для назначения, отличающихся от источника: %s"
 
 #: src/hed/libs/data/DataMover.cpp:354
 #, c-format
 msgid "DataMover::Transfer: trying to destroy/overwrite destination: %s"
-msgstr ""
+msgstr "DataMover::Transfer: попытка стереть/перезаписать назначение: %s"
 
 #: src/hed/libs/data/DataMover.cpp:365
 #, c-format
 msgid "Failed to delete %s but will still try to upload"
-msgstr ""
+msgstr "Сбой удаления %s, попытка перезаписи"
 
 #: src/hed/libs/data/DataMover.cpp:368
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to delete %s"
-msgstr "Сбой при удалении \"%s\": %s"
+msgstr "Сбой при удалении %s"
 
 #: src/hed/libs/data/DataMover.cpp:395
 #, c-format
 msgid "Deleted but still have locations at %s"
-msgstr ""
+msgstr "Удалён, но остались копии в %s"
 
 #: src/hed/libs/data/DataMover.cpp:406
-#, fuzzy
 msgid "DataMover: cycle"
-msgstr "Влево"
+msgstr "DataMover: цикл"
 
 #: src/hed/libs/data/DataMover.cpp:408
 msgid "DataMover: no retries requested - exit"
-msgstr ""
+msgstr "DataMover: не запрошено повторных попыток, выход"
 
 #: src/hed/libs/data/DataMover.cpp:413
 msgid "DataMover: source out of tries - exit"
@@ -10262,84 +10180,81 @@ msgid "DataMover: destination out of tries - exit"
 msgstr "DataMover: закончились попытки поиска назначений - завершение"
 
 #: src/hed/libs/data/DataMover.cpp:424
-#, fuzzy, c-format
+#, c-format
 msgid "Real transfer from %s to %s"
-msgstr "преобразование из %qT в %qT"
+msgstr "Фактическая передача из %s в %s"
 
 #: src/hed/libs/data/DataMover.cpp:450
-#, fuzzy, c-format
+#, c-format
 msgid "Creating buffer: %lli x %i"
-msgstr "Буфер прочитан, длина"
+msgstr "Создаётся буфер: %lli x %i"
 
 #: src/hed/libs/data/DataMover.cpp:466
 #, c-format
 msgid "DataMove::Transfer: no checksum calculation for %s"
-msgstr ""
+msgstr "DataMove::Transfer: контрольная сумма для %s не будет вычислена"
 
 #: src/hed/libs/data/DataMover.cpp:471
 #, c-format
 msgid "DataMove::Transfer: using supplied checksum %s:%s"
-msgstr ""
+msgstr "DataMove::Transfer: используется заданная контрольная сумма %s:%s"
 
 #: src/hed/libs/data/DataMover.cpp:495
 #, c-format
 msgid "DataMove::Transfer: will calculate %s checksum"
-msgstr ""
+msgstr "DataMove::Transfer: будет вычислена контрольная сумма для %s"
 
 #: src/hed/libs/data/DataMover.cpp:501
-#, fuzzy
 msgid "Buffer creation failed !"
-msgstr "Невозможно создать подпроект"
+msgstr "Невозможно создать буфер!"
 
 #: src/hed/libs/data/DataMover.cpp:524
-#, fuzzy, c-format
+#, c-format
 msgid "Url is mapped to: %s"
-msgstr "Hyper назначено на клавиши Win"
+msgstr "URL поставлен в соответствие к: %s"
 
 #: src/hed/libs/data/DataMover.cpp:553
 msgid "Cached file is locked - should retry"
-msgstr ""
+msgstr "Файл в кэше заблокирован - попытаемся заново"
 
 #: src/hed/libs/data/DataMover.cpp:558
-#, fuzzy
 msgid "Failed to initiate cache"
-msgstr "Сбой при кэшировании сообщения %s: %s"
+msgstr "Сбой при инициализации кэша"
 
 #: src/hed/libs/data/DataMover.cpp:566
-#, fuzzy, c-format
+#, c-format
 msgid "Forcing re-download of file %s"
-msgstr "Не удаётся загрузить файл."
+msgstr "Принудительная перезагрузка файла %s"
 
 #: src/hed/libs/data/DataMover.cpp:584
 #: src/hed/libs/data/DataMover.cpp:649
 #: src/hed/libs/data/DataMover.cpp:670
 #: src/hed/libs/data/DataMover.cpp:680
-#, fuzzy
 msgid "source.next_location"
-msgstr "Перейти к следующему посещенному адресу"
+msgstr "source.next_location"
 
 #: src/hed/libs/data/DataMover.cpp:598
-#, fuzzy, c-format
+#, c-format
 msgid "Source creation date: %s"
-msgstr "В порядке возрастания по дате создания"
+msgstr "Дата создания источника: %s"
 
 #: src/hed/libs/data/DataMover.cpp:599
-#, fuzzy, c-format
+#, c-format
 msgid "Cache creation date: %s"
-msgstr "В порядке возрастания по дате создания"
+msgstr "Дата создания кэша: %s"
 
 #: src/hed/libs/data/DataMover.cpp:605
-#, fuzzy, c-format
+#, c-format
 msgid "Cache file valid until: %s"
-msgstr "Некорректный кэш: %s\n"
+msgstr "Файл в кэше действителен до: %s"
 
 #: src/hed/libs/data/DataMover.cpp:613
 msgid "Cached file is outdated, will re-download"
-msgstr ""
+msgstr "Файл в кэше устарел, будет загружен заново"
 
 #: src/hed/libs/data/DataMover.cpp:617
 msgid "Cached copy is still valid"
-msgstr ""
+msgstr "Копия в кэше ещё действительна"
 
 #: src/hed/libs/data/DataMover.cpp:642
 msgid "URL is mapped to local access - checking permissions on original URL"
@@ -10351,19 +10266,18 @@ msgid "Permission checking on original URL failed: %s"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:659
-#, fuzzy
 msgid "Linking local file"
-msgstr "Локальное имя файла"
+msgstr "Подцепляется локальный файл"
 
 #: src/hed/libs/data/DataMover.cpp:668
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create directory %s"
-msgstr "не удалось создать каталог \"%s\""
+msgstr "Не удалось создать каталог %s"
 
 #: src/hed/libs/data/DataMover.cpp:677
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to make symbolic link %s to %s : %s"
-msgstr "Произошёл сбой при чтении символической ссылки \"%s\": %s"
+msgstr "Сбой при создании символической ссылки %s на %s : %s"
 
 #: src/hed/libs/data/DataMover.cpp:696
 #, c-format
@@ -10371,9 +10285,9 @@ msgid "cache file: %s"
 msgstr "кэш-файл: %s"
 
 #: src/hed/libs/data/DataMover.cpp:722
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to stat source %s"
-msgstr "Не удалось загрузить источник \"%s\": %s"
+msgstr "Сбой проверки статуса источника %s"
 
 #: src/hed/libs/data/DataMover.cpp:724
 #: src/hed/libs/data/DataMover.cpp:739
@@ -10383,14 +10297,13 @@ msgstr "Не удалось загрузить источник \"%s\": %s"
 #: src/hed/libs/data/DataMover.cpp:986
 #: src/hed/libs/data/DataMover.cpp:995
 #: src/hed/libs/data/DataMover.cpp:1060
-#, fuzzy
 msgid "(Re)Trying next source"
-msgstr "Реорганизация исходного кода."
+msgstr "Следующий источник"
 
 #: src/hed/libs/data/DataMover.cpp:737
-#, fuzzy, c-format
+#, c-format
 msgid "Meta info of source and location do not match for %s"
-msgstr "Число источников и число назначений не соответствуют друг другу"
+msgstr "Мета-информация источника и адрес не соответствуют друг другу для  %s"
 
 #: src/hed/libs/data/DataMover.cpp:751
 #, c-format
@@ -10403,9 +10316,9 @@ msgid "Replica %s has high latency, trying next source"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:770
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to prepare source: %s"
-msgstr "Не удалось подготовить источник"
+msgstr "Не удалось подготовить источник: %s"
 
 #: src/hed/libs/data/DataMover.cpp:786
 #, c-format
@@ -10413,11 +10326,8 @@ msgid "Failed to start reading from source: %s"
 msgstr ""
 
 #: src/hed/libs/data/DataMover.cpp:807
-#, fuzzy
 msgid "Metadata of source and destination are different"
-msgstr ""
-"Файл назначения совпадает с исходным.\n"
-"%1"
+msgstr "Метаданные источника и назначения не совпадают"
 
 #: src/hed/libs/data/DataMover.cpp:828
 #, c-format
@@ -10426,14 +10336,13 @@ msgstr "Не удалось предварительно зарегистрир�
 
 #: src/hed/libs/data/DataMover.cpp:833
 #: src/hed/libs/data/DataMover.cpp:1082
-#, fuzzy
 msgid "destination.next_location"
-msgstr "Перейти к следующему посещенному адресу"
+msgstr "destination.next_location"
 
 #: src/hed/libs/data/DataMover.cpp:847
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to prepare destination: %s"
-msgstr "Не удалось подготовить назначение"
+msgstr "Не удалось подготовить назначение: %s"
 
 #: src/hed/libs/data/DataMover.cpp:854
 #: src/hed/libs/data/DataMover.cpp:878
@@ -10448,19 +10357,17 @@ msgstr ""
 #: src/hed/libs/data/DataMover.cpp:980
 #: src/hed/libs/data/DataMover.cpp:1000
 #: src/hed/libs/data/DataMover.cpp:1043
-#, fuzzy
 msgid "(Re)Trying next destination"
-msgstr "Сбой засылки задачи на %s, проверка следующего назначения"
+msgstr "Следующее назначение"
 
 #: src/hed/libs/data/DataMover.cpp:870
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to start writing to destination: %s"
-msgstr "Ошибка при записи в цель"
+msgstr "Сбой начала записи в назначение: %s"
 
 #: src/hed/libs/data/DataMover.cpp:894
-#, fuzzy
 msgid "Failed to start writing to cache"
-msgstr "Не удалось запустить скрипт очистки кэша"
+msgstr "Сбой начала записи в кэш"
 
 #: src/hed/libs/data/DataMover.cpp:902
 #: src/hed/libs/data/DataMover.cpp:949
@@ -10473,24 +10380,24 @@ msgid "Waiting for buffer"
 msgstr "Ожидание буфера"
 
 #: src/hed/libs/data/DataMover.cpp:916
-#, fuzzy, c-format
+#, c-format
 msgid "Failed updating timestamp on cache lock file %s for file %s: %s"
-msgstr "Сбой копирования файла '%s' в '%s'."
+msgstr "Сбой обновления метки времени файла блокировки кэша %s для файла %s: %s"
 
 #: src/hed/libs/data/DataMover.cpp:921
-#, fuzzy, c-format
+#, c-format
 msgid "buffer: read EOF : %s"
-msgstr "буфер: чтение конца файла : %i"
+msgstr "буфер: чтение конца файла : %s"
 
 #: src/hed/libs/data/DataMover.cpp:922
-#, fuzzy, c-format
+#, c-format
 msgid "buffer: write EOF: %s"
-msgstr "буфер: запись конца файла: %i"
+msgstr "буфер: запись конца файла: %s"
 
 #: src/hed/libs/data/DataMover.cpp:923
-#, fuzzy, c-format
+#, c-format
 msgid "buffer: error    : %s, read: %s, write: %s"
-msgstr "%s: внутренняя ошибка bzip2: прочитано(%i) != записано(%i)"
+msgstr "буфер: ошибка:    %s, чтение: %s, запись: %s"
 
 #: src/hed/libs/data/DataMover.cpp:924
 msgid "Closing read channel"
@@ -10501,9 +10408,8 @@ msgid "Closing write channel"
 msgstr "Закрывается канал передачи"
 
 #: src/hed/libs/data/DataMover.cpp:938
-#, fuzzy
 msgid "Failed to complete writing to destination"
-msgstr "Ошибка при записи в цель"
+msgstr "Сбой завершения записи в назначение"
 
 #: src/hed/libs/data/DataMover.cpp:990
 msgid "Cause of failure unclear - choosing randomly"
@@ -10722,9 +10628,8 @@ msgid "Failed to finish destination"
 msgstr "Не удалось завершить назначение"
 
 #: src/hed/libs/data/DataStatus.cpp:48
-#, fuzzy
 msgid "Data was already cached"
-msgstr "Файл `%s' уже был обработан.\n"
+msgstr "Данные уже записаны в кэщ"
 
 #: src/hed/libs/data/DataStatus.cpp:49
 msgid "General error"
@@ -10735,9 +10640,9 @@ msgid "Unknown error"
 msgstr "Неизвестная ошибка"
 
 #: src/hed/libs/data/DataPointIndex.cpp:85
-#, fuzzy, c-format
+#, c-format
 msgid "Can't handle location %s"
-msgstr "Не удается отобразить адрес «%s»"
+msgstr "Невозможно использовать адрес %s"
 
 #: src/hed/libs/data/DataPointIndex.cpp:155
 #, fuzzy, c-format
@@ -10756,7 +10661,7 @@ msgstr ""
 #: src/hed/libs/data/DataPointIndex.cpp:181
 #, fuzzy, c-format
 msgid "Replica %s is mapped"
-msgstr "установлено соответствие %s локальному %s\n"
+msgstr "URL поставлен в соответствие к: %s"
 
 #: src/hed/libs/data/DataPointIndex.cpp:189
 #, c-format
@@ -10805,7 +10710,7 @@ msgid "Failed to obtain lock on cache file %s"
 msgstr "Невозможно установить разрешения файлу блокировки '%s'"
 
 #: src/hed/libs/data/FileCache.cpp:218
-#: src/hed/libs/data/FileCache.cpp:436
+#: src/hed/libs/data/FileCache.cpp:437
 #, fuzzy, c-format
 msgid "Error removing cache file %s: %s"
 msgstr "Ошибка удаления файла '%s'... Игнорируется."
@@ -10819,266 +10724,269 @@ msgstr ""
 
 #: src/hed/libs/data/FileCache.cpp:236
 #, fuzzy, c-format
-msgid "Meta file %s is empty"
-msgstr "Файл сертификата пуст."
+msgid "Meta file %s is empty, will recreate"
+msgstr ""
+"\n"
+" Таблица имен файлов пуста.\n"
 
-#: src/hed/libs/data/FileCache.cpp:244
+#: src/hed/libs/data/FileCache.cpp:238
+#: src/hed/libs/data/FileCache.cpp:267
+#, fuzzy, c-format
+msgid "Failed to create meta file %s"
+msgstr "Не удалось создать файл «%s»: %s"
+
+#: src/hed/libs/data/FileCache.cpp:246
 #, c-format
-msgid "Error: File %s is already cached at %s under a different URL: %s - this file will not be cached"
+msgid "File %s is already cached at %s under a different URL: %s - this file will not be cached"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:249
+#: src/hed/libs/data/FileCache.cpp:251
 #, c-format
 msgid "Changing old validity time format to new in %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:256
+#: src/hed/libs/data/FileCache.cpp:258
 #, fuzzy, c-format
 msgid "Could not write meta file %s"
 msgstr ""
 "Не удаётся записать в файл:\n"
 "%1"
 
-#: src/hed/libs/data/FileCache.cpp:264
-#, fuzzy, c-format
-msgid "Failed to create meta file %s"
-msgstr "Не удалось создать файл «%s»: %s"
-
-#: src/hed/libs/data/FileCache.cpp:270
+#: src/hed/libs/data/FileCache.cpp:271
 #, c-format
 msgid "Error looking up attributes of meta file %s: %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:304
+#: src/hed/libs/data/FileCache.cpp:305
 #, fuzzy, c-format
 msgid "Found file %s in remote cache at %s"
 msgstr "%s обнаружен в кэше"
 
-#: src/hed/libs/data/FileCache.cpp:309
+#: src/hed/libs/data/FileCache.cpp:310
 #, c-format
 msgid "File exists in remote cache at %s but is locked. Will download from source"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:317
+#: src/hed/libs/data/FileCache.cpp:318
 #, fuzzy, c-format
 msgid "Error removing remote cache file %s: %s"
 msgstr "Ошибка: недопустимая строка %s в файле индекса кэша\n"
 
-#: src/hed/libs/data/FileCache.cpp:325
+#: src/hed/libs/data/FileCache.cpp:326
 #, fuzzy, c-format
 msgid "Replicating file %s to local cache file %s"
 msgstr "Сбой при открытии кеш-файла: %s\n"
 
-#: src/hed/libs/data/FileCache.cpp:328
-#: src/hed/libs/data/FileCache.cpp:631
+#: src/hed/libs/data/FileCache.cpp:329
+#: src/hed/libs/data/FileCache.cpp:632
 #, fuzzy, c-format
 msgid "Failed to copy file %s to %s: %s"
 msgstr "Сбой копирования файла '%s' в '%s'."
 
-#: src/hed/libs/data/FileCache.cpp:334
-#: src/hed/libs/data/FileCache.cpp:342
+#: src/hed/libs/data/FileCache.cpp:335
+#: src/hed/libs/data/FileCache.cpp:343
 #, c-format
 msgid "Failed to remove remote lock file on %s. Some manual intervention may be required"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:338
+#: src/hed/libs/data/FileCache.cpp:339
 #, c-format
 msgid "Creating temporary link from %s to remote cache file %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:340
+#: src/hed/libs/data/FileCache.cpp:341
 #, c-format
 msgid "Failed to create soft link to remote cache: %s Will download %s from source"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:350
+#: src/hed/libs/data/FileCache.cpp:351
 #, c-format
 msgid "Warning: error looking up attributes of cached file: %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:369
-#: src/hed/libs/data/FileCache.cpp:415
-#: src/hed/libs/data/FileCache.cpp:603
+#: src/hed/libs/data/FileCache.cpp:370
+#: src/hed/libs/data/FileCache.cpp:416
+#: src/hed/libs/data/FileCache.cpp:604
 #, c-format
 msgid "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:374
-#: src/hed/libs/data/FileCache.cpp:419
-#: src/hed/libs/data/FileCache.cpp:607
+#: src/hed/libs/data/FileCache.cpp:375
+#: src/hed/libs/data/FileCache.cpp:420
+#: src/hed/libs/data/FileCache.cpp:608
 #, c-format
 msgid "Failed to unlock remote cache file %s. Manual intervention may be required"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:377
+#: src/hed/libs/data/FileCache.cpp:378
 #, c-format
 msgid "Error removing file %s: %s. Manual intervention may be required"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:385
-#: src/hed/libs/data/FileCache.cpp:442
-#: src/hed/libs/data/FileCache.cpp:614
+#: src/hed/libs/data/FileCache.cpp:386
+#: src/hed/libs/data/FileCache.cpp:443
+#: src/hed/libs/data/FileCache.cpp:615
 #, fuzzy, c-format
 msgid "Failed to unlock file %s: %s. Manual intervention may be required"
 msgstr "Не удалось разблокировать файл блокировки '%s'"
 
-#: src/hed/libs/data/FileCache.cpp:425
+#: src/hed/libs/data/FileCache.cpp:426
 #, fuzzy, c-format
 msgid "Invalid lock on file %s"
 msgstr "Файл был изменён на диске"
 
-#: src/hed/libs/data/FileCache.cpp:431
+#: src/hed/libs/data/FileCache.cpp:432
 #, fuzzy, c-format
 msgid "Failed to remove .meta file %s: %s"
 msgstr "Ошибка удаления файла блокировки '%s'"
 
-#: src/hed/libs/data/FileCache.cpp:500
+#: src/hed/libs/data/FileCache.cpp:501
 #, fuzzy, c-format
 msgid "Error: Cache file %s does not exist"
 msgstr "<qt><strong>Ошибка открытия файла.</strong> Файл с именем '%1' не существует.</qt>"
 
-#: src/hed/libs/data/FileCache.cpp:502
-#: src/hed/libs/data/FileCache.cpp:838
+#: src/hed/libs/data/FileCache.cpp:503
+#: src/hed/libs/data/FileCache.cpp:839
 #, fuzzy, c-format
 msgid "Error accessing cache file %s: %s"
 msgstr "Проблема при доступе к кэшированному файлу %s: %s"
 
-#: src/hed/libs/data/FileCache.cpp:521
+#: src/hed/libs/data/FileCache.cpp:522
 #, fuzzy, c-format
 msgid "Error: Cache not found for file %s"
 msgstr "файл каталога для домена '%s' не найден."
 
-#: src/hed/libs/data/FileCache.cpp:534
+#: src/hed/libs/data/FileCache.cpp:535
 #, fuzzy, c-format
 msgid "Could not read target of link %s"
 msgstr "Ошибка создания символической ссылки"
 
-#: src/hed/libs/data/FileCache.cpp:548
+#: src/hed/libs/data/FileCache.cpp:549
 #, c-format
 msgid "Couldn't match link target %s to any remote cache"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:555
+#: src/hed/libs/data/FileCache.cpp:556
 #, c-format
 msgid "Cannot create directory \"%s\" for per-job hard links"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:559
+#: src/hed/libs/data/FileCache.cpp:560
 #, fuzzy, c-format
 msgid "Cannot change owner of %s: %s "
 msgstr ""
 "Невозможно изменить владельца папки %1.\n"
 "Ошибка: %2"
 
-#: src/hed/libs/data/FileCache.cpp:572
+#: src/hed/libs/data/FileCache.cpp:573
 #, fuzzy, c-format
 msgid "Failed to remove existing hard link at %s: %s"
 msgstr "Невозможно удалить жесткую ссылку %s: %s"
 
-#: src/hed/libs/data/FileCache.cpp:576
-#: src/hed/libs/data/FileCache.cpp:581
+#: src/hed/libs/data/FileCache.cpp:577
+#: src/hed/libs/data/FileCache.cpp:582
 #, fuzzy, c-format
 msgid "Failed to create hard link from %s to %s: %s"
 msgstr "жесткая ссылка %s на каталог %s не будет создана"
 
-#: src/hed/libs/data/FileCache.cpp:591
+#: src/hed/libs/data/FileCache.cpp:592
 #, fuzzy, c-format
 msgid "Failed to change permissions or set owner of hard link %s: %s"
 msgstr "Не удалось сменить текущий каталог на административный каталог %sinfo"
 
-#: src/hed/libs/data/FileCache.cpp:610
+#: src/hed/libs/data/FileCache.cpp:611
 #, fuzzy, c-format
 msgid "Error removing symlink %s: %s. Manual intervention may be required"
 msgstr "Не удалось разблокировать файл блокировки '%s'"
 
-#: src/hed/libs/data/FileCache.cpp:624
+#: src/hed/libs/data/FileCache.cpp:625
 #, fuzzy, c-format
 msgid "Failed to create directory %s: %s"
 msgstr "не удалось создать каталог \"%s\""
 
-#: src/hed/libs/data/FileCache.cpp:637
+#: src/hed/libs/data/FileCache.cpp:638
 #, fuzzy, c-format
 msgid "Failed to set executable bit on file %s"
 msgstr "Невозможно установить разрешения файлу блокировки '%s'"
 
-#: src/hed/libs/data/FileCache.cpp:642
+#: src/hed/libs/data/FileCache.cpp:643
 #, fuzzy, c-format
 msgid "Failed to set executable bit on file %s: %s"
 msgstr "Невозможно установить разрешения файлу блокировки '%s'"
 
-#: src/hed/libs/data/FileCache.cpp:656
+#: src/hed/libs/data/FileCache.cpp:657
 #, fuzzy, c-format
 msgid "Failed to remove existing symbolic link at %s: %s"
 msgstr "Произошёл сбой при чтении символической ссылки \"%s\": %s"
 
-#: src/hed/libs/data/FileCache.cpp:660
-#: src/hed/libs/data/FileCache.cpp:665
+#: src/hed/libs/data/FileCache.cpp:661
+#: src/hed/libs/data/FileCache.cpp:666
 #, fuzzy, c-format
 msgid "Failed to create symbolic link from %s to %s: %s"
 msgstr "сбой создания потока из сокета: %s\n"
 
-#: src/hed/libs/data/FileCache.cpp:699
+#: src/hed/libs/data/FileCache.cpp:700
 #, c-format
 msgid "Failed to remove cache per-job dir %s: %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:718
-#: src/hed/libs/data/FileCache.cpp:788
-#: src/hed/libs/data/FileCache.cpp:859
+#: src/hed/libs/data/FileCache.cpp:719
+#: src/hed/libs/data/FileCache.cpp:789
+#: src/hed/libs/data/FileCache.cpp:860
 #, fuzzy, c-format
 msgid "Error reading meta file %s: %s"
 msgstr ""
 "\n"
 "%s: ошибка чтения входного файла '%s': %s\n"
 
-#: src/hed/libs/data/FileCache.cpp:723
-#: src/hed/libs/data/FileCache.cpp:793
-#: src/hed/libs/data/FileCache.cpp:864
+#: src/hed/libs/data/FileCache.cpp:724
+#: src/hed/libs/data/FileCache.cpp:794
+#: src/hed/libs/data/FileCache.cpp:865
 #, fuzzy, c-format
 msgid "Error opening meta file %s"
 msgstr "Ошибка открытия файла вывода"
 
-#: src/hed/libs/data/FileCache.cpp:728
-#: src/hed/libs/data/FileCache.cpp:797
-#: src/hed/libs/data/FileCache.cpp:868
+#: src/hed/libs/data/FileCache.cpp:729
+#: src/hed/libs/data/FileCache.cpp:798
+#: src/hed/libs/data/FileCache.cpp:869
 #, fuzzy, c-format
 msgid "meta file %s is empty"
 msgstr "Файл сертификата пуст."
 
-#: src/hed/libs/data/FileCache.cpp:738
+#: src/hed/libs/data/FileCache.cpp:739
 #, c-format
 msgid "Error: File %s is already cached at %s under a different URL: %s - will not add DN to cached list"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:758
+#: src/hed/libs/data/FileCache.cpp:759
 #, fuzzy, c-format
 msgid "Bad format detected in file %s, in line %s"
 msgstr "Неправильный двоичный формат строки в интерпретируемом файле %s"
 
-#: src/hed/libs/data/FileCache.cpp:773
-#: src/hed/libs/data/FileCache.cpp:892
+#: src/hed/libs/data/FileCache.cpp:774
+#: src/hed/libs/data/FileCache.cpp:893
 #, fuzzy, c-format
 msgid "Error opening meta file for writing %s"
 msgstr "Ошибка: Невозможно открыть файл %s для записи.\n"
 
-#: src/hed/libs/data/FileCache.cpp:807
+#: src/hed/libs/data/FileCache.cpp:808
 #, c-format
 msgid "DN %s is cached and is valid until %s for URL %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:811
+#: src/hed/libs/data/FileCache.cpp:812
 #, c-format
 msgid "DN %s is cached but has expired for URL %s"
 msgstr ""
 
-#: src/hed/libs/data/FileCache.cpp:836
+#: src/hed/libs/data/FileCache.cpp:837
 #, fuzzy, c-format
 msgid "Cache file %s does not exist"
 msgstr ""
 "Указанный файл не существует:\n"
 "%1"
 
-#: src/hed/libs/data/FileCache.cpp:1008
+#: src/hed/libs/data/FileCache.cpp:1009
 #, c-format
 msgid "Error getting info from statvfs for the path: %s"
 msgstr ""
@@ -11512,60 +11420,110 @@ msgstr "Не удалось перенаправить задачу (%s), т.к.
 msgid "Failed getting job (%s)"
 msgstr "Не удалось послать задачу"
 
+#: src/hed/libs/client/JobSupervisor.cpp:225
+#, fuzzy, c-format
+msgid "Unable to kill job (%s), job information not found at execution service"
+msgstr "Невозможно открыть файл с описанием задачи: %s"
+
 #: src/hed/libs/client/JobSupervisor.cpp:236
+#, fuzzy, c-format
+msgid "Unable to kill job (%s), job is deleted"
+msgstr "ERROR: ÐÐµ ÑÐ´Ð°ÐµÑÑÑ Ð¿Ð¾Ð»ÑÑÐ¸ÑÑ Ð°ÑÑÐ¸Ð±ÑÑÑ Ð·Ð°Ð´Ð°Ð½Ð¸Ñ %d (%s)!\n"
+
+#: src/hed/libs/client/JobSupervisor.cpp:240
+#, fuzzy, c-format
+msgid "Unable to kill job (%s), job has already finished"
+msgstr "Не удалось перенаправить задачу (%s), т.к. невозможно разобрать полученное описание задачи"
+
+#: src/hed/libs/client/JobSupervisor.cpp:250
+#, fuzzy, c-format
+msgid "Failed killing job (%s)"
+msgstr "Не удалось послать задачу"
+
+#: src/hed/libs/client/JobSupervisor.cpp:276
+#, fuzzy, c-format
+msgid "Unable to renew job (%s), job information not found at execution service"
+msgstr "Невозможно открыть файл с описанием задачи: %s"
+
+#: src/hed/libs/client/JobSupervisor.cpp:287
+#, fuzzy, c-format
+msgid "Unable to renew job (%s), job already finished"
+msgstr "Не удалось перенаправить задачу (%s), т.к. невозможно разобрать полученное описание задачи"
+
+#: src/hed/libs/client/JobSupervisor.cpp:297
+#, fuzzy, c-format
+msgid "Failed renewing job (%s)"
+msgstr "Не удалось обновить доверенность задачи %s"
+
+#: src/hed/libs/client/JobSupervisor.cpp:323
+#, fuzzy, c-format
+msgid "Unable to resume job (%s), job information not found"
+msgstr "Невозможно открыть файл с описанием задачи: %s"
+
+#: src/hed/libs/client/JobSupervisor.cpp:334
+#, fuzzy, c-format
+msgid "Unable to resume job (%s), job is %s and cannot be resumed"
+msgstr "ERROR: ÐÐµ ÑÐ´Ð°ÐµÑÑÑ Ð¿Ð¾Ð»ÑÑÐ¸ÑÑ Ð°ÑÑÐ¸Ð±ÑÑÑ Ð·Ð°Ð´Ð°Ð½Ð¸Ñ %d (%s)!\n"
+
+#: src/hed/libs/client/JobSupervisor.cpp:344
+#, c-format
+msgid "Failed resuming job %s"
+msgstr "Не удалось возобновить задачу %s"
+
+#: src/hed/libs/client/JobSupervisor.cpp:380
 #, fuzzy, c-format
 msgid "Unable to resubmit job (%s), job description could not be retrieved remotely"
 msgstr "Невозможно открыть файл с описанием задачи: %s"
 
-#: src/hed/libs/client/JobSupervisor.cpp:252
+#: src/hed/libs/client/JobSupervisor.cpp:396
 #, fuzzy, c-format
 msgid "Unable to resubmit job (%s), local input file (%s) has changed"
 msgstr "Не удалось записать изменившийся входной файл"
 
-#: src/hed/libs/client/JobSupervisor.cpp:271
+#: src/hed/libs/client/JobSupervisor.cpp:415
 #, c-format
 msgid "Job resubmission failed: Unable to load broker (%s)"
 msgstr "Перезасылка задачи оборвана: Невозможно подгрузить планировщик (%s)"
 
-#: src/hed/libs/client/JobSupervisor.cpp:284
+#: src/hed/libs/client/JobSupervisor.cpp:428
 msgid "Job resubmission aborted because no resource returned any information"
 msgstr "Перезасылка задачи оборвана, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/hed/libs/client/JobSupervisor.cpp:301
+#: src/hed/libs/client/JobSupervisor.cpp:445
 #, c-format
 msgid "Unable to resubmit job (%s), unable to parse obtained job description"
 msgstr "Не удалось перезаслать задачу (%s), т.к. невозможно разобрать полученное описание задачи"
 
-#: src/hed/libs/client/JobSupervisor.cpp:324
+#: src/hed/libs/client/JobSupervisor.cpp:468
 #, c-format
 msgid "Unable to resubmit job (%s), target information retrieval failed for target: %s"
 msgstr ""
 
-#: src/hed/libs/client/JobSupervisor.cpp:339
+#: src/hed/libs/client/JobSupervisor.cpp:483
 #, c-format
 msgid "Unable to resubmit job (%s), no targets applicable for submission"
 msgstr ""
 
-#: src/hed/libs/client/JobSupervisor.cpp:371
+#: src/hed/libs/client/JobSupervisor.cpp:515
 #, fuzzy, c-format
 msgid "Unable to migrate job (%s), job description could not be retrieved remotely"
 msgstr "Невозможно открыть файл с описанием задачи: %s"
 
-#: src/hed/libs/client/JobSupervisor.cpp:388
+#: src/hed/libs/client/JobSupervisor.cpp:532
 msgid "Job migration aborted, no resource returned any information"
 msgstr "Перенаправление задачи оборвано, т.к. ни один из ресурсов не предоставил информацию"
 
-#: src/hed/libs/client/JobSupervisor.cpp:399
+#: src/hed/libs/client/JobSupervisor.cpp:543
 #, c-format
 msgid "Job migration aborted, unable to load broker (%s)"
 msgstr "Перенаправление задачи оборвано, невозможно подгрузить планировщик (%s)"
 
-#: src/hed/libs/client/JobSupervisor.cpp:411
+#: src/hed/libs/client/JobSupervisor.cpp:555
 #, c-format
 msgid "Unable to migrate job (%s), unable to parse obtained job description"
 msgstr "Не удалось перенаправить задачу (%s), т.к. невозможно разобрать полученное описание задачи"
 
-#: src/hed/libs/client/JobSupervisor.cpp:433
+#: src/hed/libs/client/JobSupervisor.cpp:577
 #, c-format
 msgid "Job migration failed for job (%s), no applicable targets"
 msgstr "Не удалось перенаправить задачу (%s), возможные назначения отсутствуют"
@@ -12202,11 +12160,6 @@ msgstr "Не удалось заблокировать файл списка з�
 msgid "Failed renewing job %s"
 msgstr "Не удалось обновить доверенность задачи %s"
 
-#: src/hed/libs/client/JobController.cpp:564
-#, c-format
-msgid "Failed resuming job %s"
-msgstr "Не удалось возобновить задачу %s"
-
 #: src/hed/libs/client/JobController.cpp:579
 #: src/hed/libs/client/JobController.cpp:584
 #, c-format
@@ -12545,11 +12498,6 @@ msgstr "Описания задач:"
 #: src/hed/libs/client/ExecutionTarget.cpp:427
 msgid "Queue information:"
 msgstr "Сведения об очереди:"
-
-#: src/hed/libs/client/ExecutionTarget.cpp:430
-#, fuzzy, c-format
-msgid " Mapping Queue: %s"
-msgstr "Длина очереди"
 
 #: src/hed/libs/client/ExecutionTarget.cpp:432
 #, c-format
@@ -12962,7 +12910,7 @@ msgstr ""
 #: src/hed/libs/client/confusa/ConfusaCertHandler.cpp:50
 #, fuzzy
 msgid "The request is NULL!"
-msgstr "Ключ имеет значение NULL"
+msgstr "Отсутствует субъект запроса\n"
 
 #: src/hed/libs/client/confusa/ConfusaCertHandler.cpp:68
 msgid "No characters were read from the BIO in public key extraction"
@@ -13752,6 +13700,10 @@ msgstr "Используется каталог доверенных серти�
 
 #: src/hed/libs/common/UserConfig.cpp:428
 #: src/hed/libs/common/UserConfig.cpp:434
+#, fuzzy, c-format
+msgid "Can not access VOMSES file/directory: %s."
+msgstr "Невозможно открыть файл задач ARC: %s (%s)"
+
 #: src/hed/libs/common/UserConfig.cpp:440
 #, fuzzy, c-format
 msgid "Can not access VOMS file/directory: %s."
@@ -14101,24 +14053,24 @@ msgstr ""
 msgid "This message goes to per-thread destination"
 msgstr ""
 
-#: src/hed/libs/crypto/OpenSSL.cpp:55
+#: src/hed/libs/crypto/OpenSSL.cpp:76
 msgid "FATAL: SSL locks not initialized"
 msgstr "СБОЙ: блокировка SSL не инициализирована"
 
-#: src/hed/libs/crypto/OpenSSL.cpp:59
+#: src/hed/libs/crypto/OpenSSL.cpp:80
 #, c-format
 msgid "FATAL: wrong SSL lock requested: %i of %i: %i - %s"
 msgstr ""
 
-#: src/hed/libs/crypto/OpenSSL.cpp:81
+#: src/hed/libs/crypto/OpenSSL.cpp:102
 msgid "Failed to lock arccrypto library in memory"
 msgstr "Невозможно заблокировать библиотеку arccrypto в памяти"
 
-#: src/hed/libs/crypto/OpenSSL.cpp:85
+#: src/hed/libs/crypto/OpenSSL.cpp:106
 msgid "Failed to initialize OpenSSL library"
 msgstr "Ошибка инициализации библиотеки OpenSSL"
 
-#: src/hed/libs/crypto/OpenSSL.cpp:106
+#: src/hed/libs/crypto/OpenSSL.cpp:127
 msgid "Number of OpenSSL locks changed - reinitializing"
 msgstr ""
 
@@ -15101,9 +15053,9 @@ msgstr ""
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:756
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:830
-#, fuzzy, c-format
+#, c-format
 msgid "Error creating required directories for %s"
-msgstr "Ошибка создания домашнего каталога для %s: %s\n"
+msgstr "Ошибка создания необходимых каталогов для %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:953
 #, fuzzy, c-format
@@ -15149,19 +15101,18 @@ msgid "File type is not available, attempting file delete"
 msgstr ""
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1372
-#, fuzzy
 msgid "File delete failed, attempting directory delete"
-msgstr "Сбой при удалении старого файла \"%s\": %s"
+msgstr "Сбой при удалении файла, попытка удаления каталога"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1400
-#, fuzzy, c-format
+#, c-format
 msgid "File %s removed successfully"
-msgstr "Удалён неполный файл '%1'."
+msgstr "Успешно удалён файл %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1430
 #, fuzzy, c-format
 msgid "Directory %s removed successfully"
-msgstr "Успешно создан каталог %s\n"
+msgstr "Успешно удалён файл %s"
 
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1519
 #, fuzzy, c-format
@@ -15245,23 +15196,23 @@ msgstr "Запроса SOAP: %s"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:139
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:165
-#, fuzzy, c-format
+#, c-format
 msgid "SOAP fault: %s"
-msgstr "Получена ошибка SOAP"
+msgstr "Ошибка SOAP: %s"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:140
 msgid "Reconnecting"
 msgstr "Пересоединение"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:148
-#, fuzzy, c-format
+#, c-format
 msgid "SRM Client status: %s"
-msgstr "Запрос о состоянии удался"
+msgstr "Состояние клиента SRM: %s"
 
 #: src/hed/dmc/srm/srmclient/SRMClient.cpp:161
-#, fuzzy, c-format
+#, c-format
 msgid "SOAP response: %s"
-msgstr "Нет ответа SOAP"
+msgstr "Ответ SOAP: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:77
 #, c-format
@@ -15283,18 +15234,18 @@ msgid "Missing reference to factory and/or module. It is unsafe to use Globus in
 msgstr "Отсутствует указание на фабрику и/или модуль. Использование Globus в неопределённом режиме небезопасно - обращение к LFC заблокировано. Свяжитесь с разработчиками."
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:139
-#, fuzzy, c-format
+#, c-format
 msgid "Cthread_init() error: %s"
-msgstr "%s: ошибка записи файла '%s': %s\n"
+msgstr "Ошибка Cthread_init(): %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:183
 msgid "Locations are missing in destination LFC URL"
 msgstr ""
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:194
-#, fuzzy, c-format
+#, c-format
 msgid "Error finding replicas: %s"
-msgstr "Ошибка получения реплик: %s"
+msgstr "Ошибка обнаружения копий: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:208
 #: src/hed/dmc/lfc/DataPointLFC.cpp:225
@@ -15324,14 +15275,14 @@ msgid "Duplicate replica location: %s"
 msgstr "Идентичное местонахождение реплики: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:275
-#, fuzzy, c-format
+#, c-format
 msgid "No locations found for %s"
-msgstr "Не найдено определений для '%1'."
+msgstr "Не найдено расположений для %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:278
-#, fuzzy, c-format
+#, c-format
 msgid "meta_get_data: checksum: %s"
-msgstr "meta_get_data: размер: %llu"
+msgstr "meta_get_data: контрольная сумма: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:279
 #, c-format
@@ -15339,9 +15290,9 @@ msgid "meta_get_data: size: %llu"
 msgstr "meta_get_data: размер: %llu"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:280
-#, fuzzy, c-format
+#, c-format
 msgid "meta_get_data: created: %s"
-msgstr "meta_get_data: размер: %llu"
+msgstr "meta_get_data: создан: %s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:291
 msgid "LFN is missing in LFC (needed for replication)"
@@ -15363,7 +15314,7 @@ msgstr "Редактор..."
 #: src/hed/dmc/lfc/DataPointLFC.cpp:313
 #, fuzzy, c-format
 msgid "Using supplied guid %s"
-msgstr "Пароль не введен"
+msgstr "DataMove::Transfer: используется заданная контрольная сумма %s:%s"
 
 #: src/hed/dmc/lfc/DataPointLFC.cpp:336
 #, c-format
@@ -15512,9 +15463,9 @@ msgstr "Ошибка записи файла"
 
 #: src/hed/dmc/file/DataPointFile.cpp:329
 #: src/hed/dmc/file/DataPointFile.cpp:336
-#, fuzzy, c-format
+#, c-format
 msgid "closing file %s failed: %s"
-msgstr "Ошибка записи файла"
+msgstr "сбой при закрытии файла %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:358
 #, c-format
@@ -15523,9 +15474,9 @@ msgstr "Файл недоступен: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:363
 #: src/hed/dmc/file/DataPointFile.cpp:449
-#, fuzzy, c-format
+#, c-format
 msgid "Can't stat file: %s: %s"
-msgstr "Невозможно получить статус файла: %s"
+msgstr "Невозможно получить статус файла: %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:415
 #, fuzzy, c-format
@@ -15533,9 +15484,9 @@ msgid "Can't stat stdio channel %s"
 msgstr "Не могу получить статус входного файла %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:461
-#, fuzzy, c-format
+#, c-format
 msgid "%s is not a directory"
-msgstr "«%1» не является каталогом."
+msgstr "%s не является каталогом"
 
 #: src/hed/dmc/file/DataPointFile.cpp:476
 #, c-format
@@ -15543,24 +15494,24 @@ msgid "Failed to read object %s: %s"
 msgstr "Сбой чтения объекта %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:491
-#, fuzzy, c-format
+#, c-format
 msgid "File is not accessible %s: %s"
-msgstr "Файл недоступен: %s"
+msgstr "Файл недоступен %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:497
-#, fuzzy, c-format
+#, c-format
 msgid "Can't delete directory %s: %s"
-msgstr "Не удалось удалить каталог: %s - %s"
+msgstr "Невозможно удалить каталог %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:504
-#, fuzzy, c-format
+#, c-format
 msgid "Can't delete file %s: %s"
-msgstr "%s: ошибка удаления файла '%s': %s\n"
+msgstr "Невозможно удалить файл %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:534
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open %s for reading: %s"
-msgstr "Не могу открыть \"%s\" для чтения!"
+msgstr "Невозможно открыть %s для чтения: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:549
 #: src/hed/dmc/file/DataPointFile.cpp:687
@@ -15569,14 +15520,13 @@ msgid "Failed to switch user id to %d/%d"
 msgstr "Невозможно пропустить идентификатор ленты."
 
 #: src/hed/dmc/file/DataPointFile.cpp:555
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create/open file %s: %s"
-msgstr "Сбой при создании/открытии файла %s (%d)"
+msgstr "Сбой при создании/открытии файла %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:572
-#, fuzzy
 msgid "Failed to create thread"
-msgstr "Не удалось создать поток для привязки к LDAP (%s)"
+msgstr "Не удалось создать поток"
 
 #: src/hed/dmc/file/DataPointFile.cpp:651
 #, c-format
@@ -15585,9 +15535,9 @@ msgstr "Неверный URL: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:676
 #: src/hed/dmc/file/DataPointFile.cpp:695
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to create file %s: %s"
-msgstr "Произошёл сбой при создании файла \"%s\": %s"
+msgstr "Сбой при создании файла %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:707
 #, c-format
@@ -15690,14 +15640,13 @@ msgstr "Атрибут: %s - %s"
 #: src/hed/dmc/rls/DataPointRLS.cpp:466
 #: src/hed/dmc/rls/DataPointRLS.cpp:817
 #: src/hed/dmc/rls/DataPointRLS.cpp:1209
-#, fuzzy
 msgid "RLS URL must contain host"
-msgstr "ID пользователя не должен содержать ресурс."
+msgstr "RLS URL должен содержать имя узла"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:365
 #, fuzzy
 msgid "Source must contain LFN"
-msgstr "ID пользователя не должен содержать ресурс."
+msgstr "RLS URL должен содержать имя узла"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:380
 #, fuzzy
@@ -15713,7 +15662,7 @@ msgstr ""
 #: src/hed/dmc/rls/DataPointRLS.cpp:396
 #, fuzzy
 msgid "No locations found for destination"
-msgstr "<qt>Не найдено совпадений для '<b>%1</b>'.</qt>"
+msgstr "Не найдено физических адресов для назначения: %s"
 
 #: src/hed/dmc/rls/DataPointRLS.cpp:445
 msgid "LFN is missing in RLS (needed for replication)"
@@ -15823,14 +15772,14 @@ msgid "Reading %u bytes from byte %llu"
 msgstr "Чтение %i=0x%x байтов из порта..."
 
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:88
-#, fuzzy, c-format
+#, c-format
 msgid "Read %i bytes"
-msgstr "Всего прочитано байт"
+msgstr "Прочитано %i байт"
 
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:138
-#, fuzzy, c-format
+#, c-format
 msgid "Could not open file %s for reading"
-msgstr "Невозможно открыть файл \"%s\" для чтения"
+msgstr "Невозможно открыть файл %s для чтения"
 
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:145
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:204
@@ -15846,14 +15795,14 @@ msgstr "Копирование набора файлов в отдельный �
 
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:198
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:218
-#, fuzzy, c-format
+#, c-format
 msgid "Could not open file %s"
 msgstr "Не удалось открыть файл %s"
 
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:229
-#, fuzzy, c-format
+#, c-format
 msgid "Could not stat file %s"
-msgstr "Не удалось определить параметры временного файла"
+msgstr "Не удалось определить состояние файла %s"
 
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:256
 msgid "Cannot list directories with xrootd"
@@ -15976,7 +15925,7 @@ msgstr "Успешное прекращение"
 #: src/hed/dmc/gridftp/Lister.cpp:537
 #, fuzzy
 msgid "Closing may have failed"
-msgstr "Отключение: Не удалось отключиться - игнорируется: %s"
+msgstr "сбой при закрытии файла %s: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:563
 msgid "Waiting for globus handle to settle"
@@ -16594,7 +16543,7 @@ msgstr "Сбой при открытии кеш-файла: %s\n"
 #: src/libs/data-staging/Processor.cpp:111
 #, fuzzy, c-format
 msgid "DTR %s: Forcing re-download of file %s"
-msgstr "Не удаётся загрузить файл."
+msgstr "Файл в кэше устарел, будет загружен заново"
 
 #: src/libs/data-staging/Processor.cpp:117
 #, fuzzy, c-format
@@ -16845,38 +16794,38 @@ msgstr "Ошибка копирования временного почтово�
 msgid "DTR %s: Error linking cache file to %s."
 msgstr "Копирование файла '%s' из '%s'..."
 
-#: src/libs/data-staging/DTR.cpp:67
-#: src/libs/data-staging/DTR.cpp:71
+#: src/libs/data-staging/DTR.cpp:68
+#: src/libs/data-staging/DTR.cpp:72
 #, fuzzy, c-format
 msgid "Could not handle endpoint %s"
 msgstr "Не удалось создать дескриптор мандата"
 
-#: src/libs/data-staging/DTR.cpp:81
+#: src/libs/data-staging/DTR.cpp:82
 #, fuzzy
 msgid "Source is the same as destination"
 msgstr "совпадает со старым"
 
-#: src/libs/data-staging/DTR.cpp:182
+#: src/libs/data-staging/DTR.cpp:184
 #, fuzzy, c-format
 msgid "Invalid ID: %s"
 msgstr "неверный id"
 
-#: src/libs/data-staging/DTR.cpp:213
+#: src/libs/data-staging/DTR.cpp:215
 #, c-format
 msgid "DTR %s: %s->%s"
 msgstr "DTR %s: %s->%s"
 
-#: src/libs/data-staging/DTR.cpp:308
+#: src/libs/data-staging/DTR.cpp:310
 #, fuzzy, c-format
 msgid "DTR %s: No callback for %s defined"
 msgstr "Не определено обработчика для изображения типа %d."
 
-#: src/libs/data-staging/DTR.cpp:323
+#: src/libs/data-staging/DTR.cpp:325
 #, fuzzy, c-format
 msgid "DTR %s: NULL callback for %s"
 msgstr "Нулевой канал"
 
-#: src/libs/data-staging/DTR.cpp:326
+#: src/libs/data-staging/DTR.cpp:328
 #, c-format
 msgid "DTR %s: Request to push to unknown owner - %u"
 msgstr ""
@@ -16923,135 +16872,135 @@ msgstr "Закрывается служба размещения данных"
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:33
 #, fuzzy, c-format
 msgid "DTR %s: No locations defined for %s"
-msgstr "Не определено обработчика для изображения типа %d."
+msgstr "Не найдено расположений для файла источника: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:48
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:54
 #, fuzzy, c-format
 msgid "DTR %s: Connecting to Delivery service at %s"
 msgstr "Идентичное местонахождение реплики: %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:73
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:81
 #, fuzzy, c-format
 msgid "DTR %s: Failed to set up credential delegation"
 msgstr "Не удалось инициализировать делегирование"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:79
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:154
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:219
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:87
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:162
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:227
 #, fuzzy, c-format
 msgid ""
 "DTR %s: Request:\n"
 "%s"
 msgstr "Запрос удался!!!"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:85
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:93
 #, fuzzy, c-format
 msgid "DTR %s: Could not connect to service %s: %s"
 msgstr "Невозможно назначить канал для службы %1."
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:93
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:101
 #, fuzzy, c-format
 msgid "DTR %s: No SOAP response from Delivery service %s"
 msgstr "Принят неверный отклик \"%c\" от сервера.\n"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:99
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:173
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:242
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:107
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:181
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:250
 #, fuzzy, c-format
 msgid ""
 "DTR %s: Response:\n"
 "%s"
 msgstr "возврат modifyMetadata"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:108
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:116
 #, fuzzy, c-format
 msgid "DTR %s: Failed to start transfer request: %s"
 msgstr "Невозможно запустить менеджер передачи файлов Jabber"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:115
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:123
 #, c-format
 msgid "DTR %s: Bad format in XML response from service at %s: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:123
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:131
 #, c-format
 msgid "DTR %s: Could not make new transfer request: %s: %s"
 msgstr ""
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:128
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:136
 #, fuzzy, c-format
 msgid "DTR %s: Started remote Delivery at %s"
 msgstr " P - Время сброса DTR (0=нет)."
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:161
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:169
 #, fuzzy, c-format
 msgid "DTR %s: Failed to send cancel request: %s"
 msgstr "Сбой при удалении старого файла \"%s\": %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:168
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:176
 #, fuzzy, c-format
 msgid "DTR %s: Failed to cancel: No SOAP response"
 msgstr "Нет ответа SOAP"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:182
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:190
 #, fuzzy, c-format
 msgid "DTR %s: Failed to cancel transfer request: %s"
 msgstr "Сбой при удалении старого файла \"%s\": %s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:189
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:261
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:197
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:269
 #, fuzzy, c-format
 msgid "DTR %s: Bad format in XML response: %s"
 msgstr "Неверный формат инкрементного файла"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:196
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:204
 #, fuzzy, c-format
 msgid "DTR %s: Failed to cancel: %s"
 msgstr "Не удалось прервать задачу"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:226
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:234
 #, fuzzy, c-format
 msgid "DTR %s: %s"
 msgstr "DTR %s: %s->%s"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:235
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:243
 #, fuzzy, c-format
 msgid "DTR %s: No SOAP response"
 msgstr "Нет ответа SOAP"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:251
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:259
 #, fuzzy, c-format
 msgid "DTR %s: Failed to query state: %s"
 msgstr "%s: Состояние: %s: невозможно обновить параметры доступа"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:347
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:355
 #, fuzzy, c-format
 msgid ""
 "DTR %s: DataDelivery log tail:\n"
 "%s"
 msgstr " P - Время сброса DTR (0=нет)."
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:359
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:367
 #, fuzzy, c-format
 msgid "DTR %s: Failed locating credentials"
 msgstr "ChangeActivityStatus: невозможно обновить параметры доступа"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:364
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:372
 #, fuzzy, c-format
 msgid "DTR %s: Failed to initiate client connection"
 msgstr "*** Не удалость соединиться с клиентом / Соединение разорвано ***"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:370
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:378
 #, fuzzy, c-format
 msgid "DTR %s: Client connection has no entry point"
 msgstr "Отсутствует точка входа в клиентскую цепь."
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:375
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:383
 #, fuzzy, c-format
 msgid "DTR %s: Initiating delegation procedure"
 msgstr "Инициализация процедуры делегирования:"
 
-#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:377
+#: src/libs/data-staging/DataDeliveryRemoteComm.cpp:385
 #, fuzzy, c-format
 msgid "DTR %s: Failed to initiate delegation credentials"
 msgstr "Не удалось обнаружить доверенности в конфигурации клиента"
@@ -17254,7 +17203,7 @@ msgstr ""
 #: src/libs/data-staging/Scheduler.cpp:509
 #, fuzzy, c-format
 msgid "DTR %s: Trying next replica"
-msgstr "Сбой засылки задачи на %s, проверка следующего назначения"
+msgstr "Следующий источник"
 
 #: src/libs/data-staging/Scheduler.cpp:513
 #, fuzzy, c-format
@@ -17384,49 +17333,46 @@ msgid "Scheduler loop exited"
 msgstr "%s: программа %s завершилась с кодом %d\n"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:123
-#, fuzzy
 msgid "Unexpected arguments"
-msgstr "аргументы %<...%>.)"
+msgstr "Непредусмотренные аргументы"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:126
-#, fuzzy
 msgid "Source URL missing"
-msgstr "Неподдерживаемый URL источника: %s"
+msgstr "Отсутствует URL источника"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:129
-#, fuzzy
 msgid "Destination URL missing"
-msgstr "Новый URL цели"
+msgstr "Отсутствует URL назначения"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:133
-#, fuzzy, c-format
+#, c-format
 msgid "Source URL not valid: %s"
-msgstr "Недействительный адрес"
+msgstr "Недействительный URL источника: %s"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:137
-#, fuzzy, c-format
+#, c-format
 msgid "Destination URL not valid: %s"
-msgstr "Недействительный адрес"
+msgstr "Недействительный URL назначения: %s"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:195
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown transfer option: %s"
-msgstr "некорректный ключ -m%s=: '%s'"
+msgstr "Неизвестная опция передачи файлов: %s"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:210
-#, fuzzy, c-format
+#, c-format
 msgid "Source URL not supported: %s"
-msgstr "-mhard-float не поддерживается"
+msgstr "Неподдерживаемый URL источника: %s"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:223
-#, fuzzy, c-format
+#, c-format
 msgid "Destination URL not supported: %s"
-msgstr "-mhard-float не поддерживается"
+msgstr "Неподдерживаемый URL назначения: %s"
 
 #: src/libs/data-staging/DataStagingDelivery.cpp:260
-#, fuzzy, c-format
+#, c-format
 msgid "Will calculate %s checksum"
-msgstr "Несовпадение контрольной суммы"
+msgstr "Будет вычислена контрольная сумма для %s"
 
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:70
 #, fuzzy, c-format
@@ -19020,7 +18966,6 @@ msgstr ""
 "для получения доступа к гриду."
 
 #: src/clients/credentials/arcproxy.cpp:223
-#, fuzzy
 msgid ""
 "Supported constraints are:\n"
 "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
@@ -19040,13 +18985,15 @@ msgstr ""
 "  validityStart=время (например, 2008-05-29T10:20:30Z; если не указано, то начинается немедленно)\n"
 "  validityEnd=время\n"
 "  validityPeriod=время (например, 43200, или 12h, или 12H; если не указаны ни validityPeriod,\n"
-"    ни validityEnd, то срок действия по умолчанию составляет 12 часов)\n"
+"    ни validityEnd, то срок действия по умолчанию составляет 12 часов для локальной доверенности,\n"
+"    и 168 часов для делегированной доверенности на сервере MyProxy)\n"
 "  vomsACvalidityPeriod=время (например, 43200, или 12h, или 12H; если не указано, то используется\n"
-"    значение validityPeriod)\n"
-"  myproxyvalidityPeriod=время (например, 43200, или 12h, или 12H; если не указано, то используется\n"
-"    значение validityPeriod)\n"
-"  proxyPolicy=содержимое норматива\n"
-"  proxyPolicyFile=файл норматива"
+"    наименьшее между 12 часами и значением validityPeriod)\n"
+"  myproxyvalidityPeriod=время (срок годности доверенности, делегированной через сервер MyProxy\n"
+"    например, 43200, или 12h, или 12H; если не указано, то используется наименьшее между 12 часами\n"
+"    и значением validityPeriod - сроком годности доверенности, делегированной через сервер MyProxy)\n"
+"  proxyPolicy=содержимое политики\n"
+"  proxyPolicyFile=файл политики"
 
 #: src/clients/credentials/arcproxy.cpp:238
 msgid "path to the proxy file"
@@ -19144,12 +19091,20 @@ msgid ""
 "              option when being PUTing onto Myproxy server. \n"
 "              This option is specific for the GET command when contacting Myproxy server."
 msgstr ""
+"не запрашивать пароль учётных данных при получении этих \n"
+"              данных с сервера MyProxy. \n"
+"              Это возможно при условии, если данные были сохранены методом PUT\n"
+"              на сервере MyProxy без пароля, используя опцию -R (--retrievable_by_cert) \n"
+"              при выполнении операции PUT в отношении сервера Myproxy. \n"
+"              Эта опция используется только командой GET в отношении сервера Myproxy."
 
 #: src/clients/credentials/arcproxy.cpp:309
 msgid ""
 "Allow specified entity to retrieve credential without passphrase.\n"
 "              This option is specific for the PUT command when contacting Myproxy server."
 msgstr ""
+"Разрешить указанному клиенту получать учётные данные без пароля.\n"
+"              Эта опция используется только командой PUT в отношении сервера Myproxy."
 
 #: src/clients/credentials/arcproxy.cpp:315
 msgid "hostname[:port] of MyProxy server"
@@ -19174,151 +19129,208 @@ msgstr ""
 msgid "proxy constraints"
 msgstr "ограничения доверенности"
 
-#: src/clients/credentials/arcproxy.cpp:390
-msgid "Cannot find the path of the certificate file, please setup environment X509_USER_CERT, or certificatepath in a configuration file"
-msgstr "Не удалось найти путь к открытому ключу. Пожалуйста, задайте переменную среды X509_USER_CERT, или значение certificatepath в файле конфигурации"
-
-#: src/clients/credentials/arcproxy.cpp:396
-#, c-format
-msgid "Cannot find file at %s for getting the certificate. Please make sure this file exists."
-msgstr "Не удалось найти файл по адресу %s, содержащий сертификат. Пожалуйста, убедитесь, что файл существует."
+#: src/clients/credentials/arcproxy.cpp:394
+msgid "Cannot find the path of the certificate/key file, and proxy file, please setup environment X509_USER_CERT/X509_USER_KEY, or X509_USER_PROXY,or setup certificatepath/keypath, or proxypath in a configuration file"
+msgstr "Не удалось найти путь к открытому/закрытому ключу и доверенности. Пожалуйста, задайте переменную среды X509_USER_CERT/X509_USER_KEY, или X509_USER_PROXY, или значение certificatepath/keypath, или proxypath в файле настроек"
 
 #: src/clients/credentials/arcproxy.cpp:414
-#, fuzzy
-msgid "Cannot find the CA certificates directory path, please set environment variable X509_CERT_DIR, or cacertificatesdirectory in a configuration file"
-msgstr "Не удалось найти каталог с открытыми ключами сертификационных агентств. Пожалуйста, задайте переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле настроек"
-
-#: src/clients/credentials/arcproxy.cpp:417
-msgid "The CA certificates directory is required by voms or myproxy functionalitywhen contacting voms or myproxy server"
-msgstr ""
+#, c-format
+msgid "CA certificate directory: %s is given by X509_CERT_DIR, but it can't been accessed."
+msgstr "Каталог сертификатов агентств CA %s задан X509_CERT_DIR, но не может быть прочитан."
 
 #: src/clients/credentials/arcproxy.cpp:426
-#: src/clients/credentials/arcproxy.cpp:446
+msgid "Cannot find the CA certificates directory path, please set environment variable X509_CERT_DIR, or cacertificatesdirectory in a configuration file"
+msgstr "Не удалось найти каталог с сертификатами агентств CA. Пожалуйста, задайте переменную среды X509_CERT_DIR, или значение cacertificatesdirectory в файле настроек"
+
+#: src/clients/credentials/arcproxy.cpp:429
+msgid "The CA certificates directory is required by voms or myproxy functionalitywhen contacting voms or myproxy server"
+msgstr "Каталог сертификатов агентств CA необходим для работы средств VOMS или MyProxy при связи с серверами VOMS или MyProxy"
+
+#: src/clients/credentials/arcproxy.cpp:438
+#: src/clients/credentials/arcproxy.cpp:458
 msgid "Cannot find the path of the proxy file, please setup environment X509_USER_PROXY, or proxypath in a configuration file"
 msgstr "Не удалось найти доверенность пользователя. Пожалуйста, задайте переменную среды X509_USER_PROXY, или значение proxypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:431
+#: src/clients/credentials/arcproxy.cpp:443
 #, c-format
 msgid "Cannot remove proxy file at %s, because it's not there"
 msgstr "Невозможно удалить файл доверенности в %s, потому что его там нет"
 
-#: src/clients/credentials/arcproxy.cpp:435
+#: src/clients/credentials/arcproxy.cpp:447
 #, c-format
 msgid "Cannot remove proxy file at %s"
 msgstr "Невозможно удалить файл доверенности в %s"
 
-#: src/clients/credentials/arcproxy.cpp:452
+#: src/clients/credentials/arcproxy.cpp:464
 #, c-format
 msgid "Cannot find file at %s for getting the proxy. Please make sure this file exists."
 msgstr "Не удалось найти файл по адресу %s, содержащий доверенность. Пожалуйста, убедитесь, что файл существует."
 
-#: src/clients/credentials/arcproxy.cpp:458
+#: src/clients/credentials/arcproxy.cpp:470
 #, c-format
 msgid "Subject: %s"
 msgstr "Субъект: %s"
 
-#: src/clients/credentials/arcproxy.cpp:459
+#: src/clients/credentials/arcproxy.cpp:471
+#, c-format
+msgid "Issuer: %s"
+msgstr "Кем выдана: %s"
+
+#: src/clients/credentials/arcproxy.cpp:472
 #, c-format
 msgid "Identity: %s"
 msgstr "Личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:461
+#: src/clients/credentials/arcproxy.cpp:474
 msgid "Time left for proxy: Proxy expired"
 msgstr "Доверенность действительна на: Срок действия доверенности вышел"
 
-#: src/clients/credentials/arcproxy.cpp:463
-#, fuzzy
+#: src/clients/credentials/arcproxy.cpp:476
 msgid "Time left for proxy: Proxy not valid yet"
-msgstr "Сертификат атрибута действителен на: Сертификат пока недействителен"
+msgstr "Доверенность действительна на: Доверенность пока недействительна"
 
-#: src/clients/credentials/arcproxy.cpp:465
+#: src/clients/credentials/arcproxy.cpp:478
 #, c-format
 msgid "Time left for proxy: %s"
 msgstr "Доверенность действительна на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:466
+#: src/clients/credentials/arcproxy.cpp:479
 #, c-format
 msgid "Proxy path: %s"
 msgstr "Расположение доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:467
+#: src/clients/credentials/arcproxy.cpp:480
 #, c-format
 msgid "Proxy type: %s"
 msgstr "Тип доверенности: %s"
 
-#: src/clients/credentials/arcproxy.cpp:476
+#: src/clients/credentials/arcproxy.cpp:489
 msgid "AC extension information for VO "
 msgstr "Информация о расширении AC для VO "
 
-#: src/clients/credentials/arcproxy.cpp:480
+#: src/clients/credentials/arcproxy.cpp:492
+msgid "Error detected while parsing this AC"
+msgstr "Обнаружена ошибка при разборе сертификата атрибута"
+
+#: src/clients/credentials/arcproxy.cpp:505
+msgid "AC is invalid: "
+msgstr "Сертификат атрибута недействителен:"
+
+#: src/clients/credentials/arcproxy.cpp:546
 msgid "Time left for AC: AC is not valid yet"
 msgstr "Сертификат атрибута действителен на: Сертификат пока недействителен"
 
-#: src/clients/credentials/arcproxy.cpp:482
+#: src/clients/credentials/arcproxy.cpp:548
 msgid "Time left for AC: AC has expired"
 msgstr "Сертификат атрибута действителен на: Срок действия сертификата закончился"
 
-#: src/clients/credentials/arcproxy.cpp:484
+#: src/clients/credentials/arcproxy.cpp:550
 #, c-format
 msgid "Time left for AC: %s"
 msgstr "Сертификат атрибута действителен на: %s"
 
-#: src/clients/credentials/arcproxy.cpp:487
-msgid "Error detected while parsing this AC"
-msgstr "Обнаружена ошибка при разборе сертификата атрибута"
-
-#: src/clients/credentials/arcproxy.cpp:500
-msgid "AC is invalid: "
-msgstr "Сертификат атрибута недействителен:"
-
-#: src/clients/credentials/arcproxy.cpp:527
-#, c-format
-msgid "Timeleft for AC: %s"
-msgstr "Оставшееся время для AC: %s"
-
-#: src/clients/credentials/arcproxy.cpp:529
-#, c-format
-msgid "AC has been expired for: %s"
-msgstr "Срок действия сертификат атрибута для %s закончился"
-
-#: src/clients/credentials/arcproxy.cpp:537
+#: src/clients/credentials/arcproxy.cpp:568
 msgid "Cannot find the user certificate path, please setup environment X509_USER_CERT, or certificatepath in a configuration file"
 msgstr "Не удалось найти путь к открытому ключу пользователя. Пожалуйста, задайте переменную среды X509_USER_CERT, или значение certificatepath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:541
+#: src/clients/credentials/arcproxy.cpp:572
 msgid "Cannot find the user private key path, please setup environment X509_USER_KEY, or keypath in a configuration file"
 msgstr "Не удалось найти закрытый ключ пользователя. Пожалуйста, задайте переменную среды X509_USER_KEY, или значение keypath в файле настроек"
 
-#: src/clients/credentials/arcproxy.cpp:669
+#: src/clients/credentials/arcproxy.cpp:606
+#, c-format
+msgid "The start time that you set: %s is before current time: %s"
+msgstr "Указанное время начала %s предшествует текущему времени: %s"
+
+#: src/clients/credentials/arcproxy.cpp:609
+#, c-format
+msgid ""
+"The start time that you set plus validityPeriod: %s is before current time: %s.\n"
+"Please set the time constraints once again."
+msgstr ""
+"Указанное время начала с добавлением срока годности %s предшествует текущему времени: %s.\n"
+"Пожалуйста, задайте сроки снова."
+
+#: src/clients/credentials/arcproxy.cpp:614
+#, c-format
+msgid ""
+"The start time that you set plus validityPeriod: %s is after current time: %s.\n"
+"The validityPeriod will be shorten to %s."
+msgstr ""
+"Указанное время начала с добавлением срока годности %s позже текущего времени: %s.\n"
+"Срок годности будет сокращён до %s."
+
+#: src/clients/credentials/arcproxy.cpp:623
+#, c-format
+msgid ""
+"The start time that you set: %s is before current time: %s.\n"
+"The current time will be used as start time."
+msgstr ""
+"Указанное время начала %s предшествует текущему времени: %s.\n"
+"Текущее время будет использовано в качестве начального."
+
+#: src/clients/credentials/arcproxy.cpp:628
+#, c-format
+msgid "The start time that you set: %s is after current time: %s."
+msgstr "Указанное время начала %s позже текущего времени: %s."
+
+#: src/clients/credentials/arcproxy.cpp:633
+#, c-format
+msgid ""
+"The end time that you set: %s is after the start time plus validityPeriod: %s.\n"
+" The validityPeriod will not be changed.\n"
+msgstr ""
+"Указанное время окончания %s позже времени начала с добавлением срока годности: %s.\n"
+"Срок годности не будет изменён.\n"
+
+#: src/clients/credentials/arcproxy.cpp:636
+#, c-format
+msgid ""
+"The end time that you set: %s is before the start time plus validityPeriod: %s.\n"
+"The validityPeriod will be shorten to: %s."
+msgstr ""
+"Указанное время окончания %s предшествует времени начала с добавлением срока годности: %s.\n"
+"Срок годности будет сокращён до: %s."
+
+#: src/clients/credentials/arcproxy.cpp:641
+#, c-format
+msgid ""
+"The end time that you set: %s is before start time: %s.\n"
+"Please set the time constraints once again.\n"
+msgstr ""
+"Указанное время окончания %s предшествует времени начала: %s.\n"
+"Пожалуйста, задайте сроки снова.\n"
+
+#: src/clients/credentials/arcproxy.cpp:720
 msgid "Succeeded to get info from MyProxy server"
 msgstr "Удалось получить информацию с сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:727
+#: src/clients/credentials/arcproxy.cpp:778
 msgid "Succeeded to change password on MyProxy server"
 msgstr "Удалось поменять пароль на сервере MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:778
+#: src/clients/credentials/arcproxy.cpp:829
 msgid "Succeeded to destroy credential on MyProxy server"
 msgstr "Удалось уничтожить доверенность на сервере MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:836
+#: src/clients/credentials/arcproxy.cpp:887
 msgid "Succeeded to get a proxy from MyProxy server"
 msgstr "Удалось получить доверенность с сервера MyProxy"
 
-#: src/clients/credentials/arcproxy.cpp:852
+#: src/clients/credentials/arcproxy.cpp:903
 #, c-format
 msgid "Your identity: %s"
 msgstr "Ваши личные данные: %s"
 
-#: src/clients/credentials/arcproxy.cpp:856
+#: src/clients/credentials/arcproxy.cpp:907
 msgid "Proxy generation failed: Certificate has expired."
 msgstr "Сбой создания доверенности: Срок действия сертификата истёк"
 
-#: src/clients/credentials/arcproxy.cpp:860
+#: src/clients/credentials/arcproxy.cpp:911
 msgid "Proxy generation failed: Certificate is not valid yet."
 msgstr "Сбой создания доверенности: Срок действия сертификата ещё не начался"
 
-#: src/clients/credentials/arcproxy.cpp:905
+#: src/clients/credentials/arcproxy.cpp:956
 msgid ""
 "$X509_VOMS_FILE, and $X509_VOMSES are not set;\n"
 "User has not specify the location for vomses information;\n"
@@ -19330,38 +19342,43 @@ msgstr ""
 "Расположение файла vomses не найдено в файле настроек пользователя;\n"
 "Файл vomses не обнаружен в ~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses, а также в соответствующих подкаталогах"
 
-#: src/clients/credentials/arcproxy.cpp:951
+#: src/clients/credentials/arcproxy.cpp:1002
 #, c-format
 msgid "VOMS line contains wrong number of tokens (%u expected): \"%s\""
 msgstr "Строка VOMS содержит неверное количество токенов (ожидается %u): \"%s\""
 
-#: src/clients/credentials/arcproxy.cpp:992
+#: src/clients/credentials/arcproxy.cpp:1044
 #, c-format
 msgid "Cannot get VOMS server %s information from the vomses files"
 msgstr "Невозможно найти информацию о сервере VOMS %s из файлов vomses"
 
-#: src/clients/credentials/arcproxy.cpp:1012
+#: src/clients/credentials/arcproxy.cpp:1064
 #, c-format
 msgid "There are %d commands to the same VOMS server %s"
 msgstr "%d инструкций направлено на один и тот же сервер VOMS, %s"
 
-#: src/clients/credentials/arcproxy.cpp:1022
+#: src/clients/credentials/arcproxy.cpp:1074
 #, c-format
 msgid "Cannot get VOMS server address information from vomses line: \"%s\""
 msgstr "Информация об адресе сервера VOMS отсутствует в строке: %s\""
 
-#: src/clients/credentials/arcproxy.cpp:1032
-#: src/clients/credentials/arcproxy.cpp:1034
+#: src/clients/credentials/arcproxy.cpp:1084
+#: src/clients/credentials/arcproxy.cpp:1086
 #, c-format
 msgid "Contacting VOMS server (named %s): %s on port: %s"
 msgstr "Устанавливается связь с сервером VOMS (по имени %s): %s по порту: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1065
+#: src/clients/credentials/arcproxy.cpp:1117
 #, c-format
 msgid "Try to get attribute from VOMS server with order: %s"
 msgstr "Попытка получить атрибут с сервера VOMS с порядком: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1078
+#: src/clients/credentials/arcproxy.cpp:1120
+#, c-format
+msgid "Message sent to VOMS server %s is: %s"
+msgstr "Сообщение, отправленное на сервер VOMS %s: %s "
+
+#: src/clients/credentials/arcproxy.cpp:1131
 #, c-format
 msgid ""
 "The VOMS server with the information:\n"
@@ -19372,35 +19389,44 @@ msgstr ""
 "%s\"\n"
 "пожалуйста, проверьте, доступен ли этот сервер"
 
-#: src/clients/credentials/arcproxy.cpp:1083
+#: src/clients/credentials/arcproxy.cpp:1136
 msgid "No stream response from VOMS server"
 msgstr "Сервер VOMS не отзывается"
 
-#: src/clients/credentials/arcproxy.cpp:1096
+#: src/clients/credentials/arcproxy.cpp:1149
 #, c-format
 msgid "Returned message from VOMS server: %s"
 msgstr "Сообщение с сервера VOMS: %s "
 
-#: src/clients/credentials/arcproxy.cpp:1104
+#: src/clients/credentials/arcproxy.cpp:1157
 #, c-format
 msgid "The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n"
-msgstr ""
+msgstr "Срок действия сертификата атрибута VOMS (AC) сокращён с %s до %s, в связи с ограничением со стороны сервера VOMS.\n"
 
-#: src/clients/credentials/arcproxy.cpp:1129
+#: src/clients/credentials/arcproxy.cpp:1160
+#, c-format
+msgid ""
+"Cannot get any AC or attributes info from VOMS server: %s;\n"
+"       Returned message from VOMS server: %s\n"
+msgstr ""
+"Невозможно получить сертификат атрибута (AC) или информацию об атрибутах с сервера VOMS: %s;\n"
+"       Сообщение, вовращённое сервером VOMS: %s\n"
+
+#: src/clients/credentials/arcproxy.cpp:1182
 #, c-format
 msgid "The attribute information from VOMS server: %s is list as following"
 msgstr "Информация об атрибутах с сервера VOMS: %s содержит следующий список"
 
-#: src/clients/credentials/arcproxy.cpp:1168
+#: src/clients/credentials/arcproxy.cpp:1221
 msgid "Proxy generation succeeded"
 msgstr "Доверенность успешно создана"
 
-#: src/clients/credentials/arcproxy.cpp:1169
+#: src/clients/credentials/arcproxy.cpp:1222
 #, c-format
 msgid "Your proxy is valid until: %s"
 msgstr "Ваша доверенность действительна до: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1228
+#: src/clients/credentials/arcproxy.cpp:1281
 msgid "Succeeded to put a proxy onto MyProxy server"
 msgstr "Удалось делегировать доверенность серверу MyProxy"
 
@@ -20261,12 +20287,12 @@ msgstr "Ответ на запрос о перечислении: %s "
 #: src/services/echo_python/EchoService.py:14
 #, fuzzy
 msgid "EchoService (python) constructor called"
-msgstr "Вызван процесс Python wrapper"
+msgstr "Вызван Python-конструктор планировщика (%d)"
 
 #: src/services/echo_python/EchoService.py:26
 #, fuzzy
 msgid "EchoService (python) destructor called"
-msgstr "Вызван процесс Python wrapper"
+msgstr "Вызван Python-деструктор планировщика (%d)"
 
 #: src/services/echo_python/EchoService.py:29
 msgid "EchoService (python) thread test starting"
@@ -20458,6 +20484,27 @@ msgstr "Вызван конструктор StringStore"
 #: src/hed/libs/python/arcom/store/cachedstringstore.py:21
 msgid "CachedStringStore constructor called"
 msgstr "Вызван конструктор CachedStringStore"
+
+#~ msgid ""
+#~ "Cannot find file at %s for getting the certificate. Please make sure this "
+#~ "file exists."
+#~ msgstr ""
+#~ "Не удалось найти файл по адресу %s, содержащий сертификат. Пожалуйста, "
+#~ "убедитесь, что файл существует."
+
+#~ msgid "Timeleft for AC: %s"
+#~ msgstr "Оставшееся время для AC: %s"
+
+#~ msgid "AC has been expired for: %s"
+#~ msgstr "Срок действия сертификат атрибута для %s закончился"
+
+#, fuzzy
+#~ msgid "Can get X509V3_EXT_METHOD for %s"
+#~ msgstr "Невозможно извлечь X509V3_EXT_METHOD для %s"
+
+#, fuzzy
+#~ msgid " Mapping Queue: %s"
+#~ msgstr "Длина очереди"
 
 #, fuzzy
 #~ msgid "Service_doc: %s"

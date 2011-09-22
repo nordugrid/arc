@@ -1426,7 +1426,7 @@ namespace Arc {
                   int length;
                   ext_method = X509V3_EXT_get_nid(OBJ_sn2nid(certinfo_sn.c_str()));
                   if(ext_method == NULL) {
-                    CredentialLogger.msg(ERROR, "Can get X509V3_EXT_METHOD for %s",certinfo_sn.c_str());
+                    CredentialLogger.msg(ERROR, "Can not get X509V3_EXT_METHOD for %s",certinfo_sn.c_str());
                     LogError();                   
                     if(pkey) EVP_PKEY_free(pkey);
                     if(rsa_key) RSA_free(rsa_key); 

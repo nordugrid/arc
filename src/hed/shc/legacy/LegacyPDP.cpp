@@ -34,7 +34,7 @@ LegacyPDP::LegacyPDP(Arc::Config* cfg):PDP(cfg) {
   while((bool)block) {
     std::string filename = (std::string)(block["ConfigFile"]);
     if(filename.empty()) {
-      logger.msg(Arc::ERROR, "Configuration file not specified n ConfigBlock");
+      logger.msg(Arc::ERROR, "Configuration file not specified in ConfigBlock");
       blocks_.clear();
       return;
     };

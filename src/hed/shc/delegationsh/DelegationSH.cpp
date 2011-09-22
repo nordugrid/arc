@@ -287,7 +287,7 @@ bool DelegationSH::Handle(Arc::Message* msg) const {
         //delegation_id will be used later to interact           
         //with the next intermediate service.
         if(!client_deleg.createDelegation(DELEG_ARC,delegation_id)) {
-          logger.msg(ERROR,"Can not create delegation crendential to delgation service: %s",ds_endpoint_.c_str());
+          logger.msg(ERROR,"Can not create delegation crendential to delegation service: %s",ds_endpoint_.c_str());
           return false;
         };
 

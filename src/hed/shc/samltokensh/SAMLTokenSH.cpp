@@ -272,7 +272,7 @@ bool SAMLTokenSH::Handle(Arc::Message* msg) const {
         Arc::PayloadSOAP *response = NULL;
         Arc::MCC_Status status = client.process(&request,&response);
         if (!response) {
-          logger.msg(Arc::ERROR, "No response from AA service %s failed", aa_service_.c_str());
+          logger.msg(Arc::ERROR, "No response from AA service %s", aa_service_.c_str());
           return false;
         }
         if (!status) {
