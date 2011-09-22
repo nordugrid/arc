@@ -26,6 +26,27 @@ namespace Arc {
     return *logger_;
   }
 
+  // This class takes care of cleaning OpenSSL data stored per-thread.
+  // Here assumption is that every thread dealing with OpenSSL either 
+  // calls OpenSSLInit or is started by thread which called OpenSSLInit.
+  class OpenSSLThreadCleaner: private ThreadDataItem {
+   public:
+    OpenSSLThreadCleaner(void);
+    virtual ~OpenSSLThreadCleaner(void);
+    virtual void Dup(void);
+  };
+
+  OpenSSLThreadCleaner::OpenSSLThreadCleaner(void):ThreadDataItem("arc.openssl.thread.cleaner") {
+  }
+
+  OpenSSLThreadCleaner::~OpenSSLThreadCleaner(void) {
+    ERR_remove_state(0);
+  }
+
+  void OpenSSLThreadCleaner::Dup(void) {
+    new OpenSSLThreadCleaner;
+  }
+
   void HandleOpenSSLError(void) {
     HandleOpenSSLError(SSL_ERROR_NONE);
   }
@@ -121,6 +142,7 @@ namespace Arc {
     if(!initialized) {
       OpenSSL_add_all_algorithms();
     }
+    new OpenSSLThreadCleaner;
     initialized=true;
     return true;
   }
