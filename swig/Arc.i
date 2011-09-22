@@ -15,6 +15,8 @@
 #endif
 #endif
 
+#define DEPRECATED(X) X
+
 #ifdef SWIGJAVA
 %include <std_common.i>
 %include <std_string.i>
@@ -168,6 +170,22 @@ namespace Arc {
   $result = tuple;
 }
 }
+
+%pythoncode %{
+import warnings
+
+def deprecated(method):
+    """This decorator is used to mark python methods as deprecated, _not_
+    functions. It will result in a warning being emmitted when the method
+    is used."""
+    def newMethod(*args, **kwargs):
+        warnings.warn("Call to deprecated method 'arc.%s.%s'." % (args[0].__class__.__name__, method.__name__), category = DeprecationWarning, stacklevel = 2)
+        return method(*args, **kwargs)
+    newMethod.__name__ = method.__name__
+    newMethod.__doc__ = method.__doc__
+    newMethod.__dict__.update(method.__dict__)
+    return newMethod
+%}
 #endif
 
 #ifdef SWIGJAVA
