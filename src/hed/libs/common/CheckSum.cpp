@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 
+#include <arc/StringConv.h>
 #include <arc/CheckSum.h>
 
 #ifdef WIN32
@@ -417,8 +418,8 @@ namespace Arc {
       return;
     }
     if(strncasecmp("adler32",type,7) == 0) {
-      cs=new Adler32Sum; 
-      tp=adler32; 
+      cs=new Adler32Sum;
+      tp=adler32;
       return;
     }
   }
@@ -539,18 +540,18 @@ namespace Arc {
     return true;
   }
 
-  std::string CheckSumAny::FileChecksum(const std::string& file_path, type tp) {
+  std::string CheckSumAny::FileChecksum(const std::string& file_path, type tp, bool decimalbase) {
     std::ifstream file(file_path.c_str(), std::ios_base::in|std::ios_base::binary|std::ios_base::ate);
     if (!file) {
       return "";
     }
-    
+
     long size = file.tellg();
     file.seekg(0, std::ios_base::beg);
     char * buffer = new char [size];
     file.read(buffer, size);
     file.close();
-  
+
     CheckSumAny csa(tp);
     csa.start();
     csa.add(buffer, size);
@@ -564,7 +565,19 @@ namespace Arc {
     if (pos == std::string::npos) {
       return "";
     }
-    return sChecksum.substr(pos+1);
+
+    if (!decimalbase) {
+      return sChecksum.substr(pos+1);
+    }
+
+    // Convert to specified base
+    char* str;
+    unsigned long long int val = strtoull(sChecksum.substr(pos+1).c_str(), &str, 16);
+    if (!str) {
+      return "";
+    }
+
+    return tostring(val);
   }
 
 } // namespace Arc

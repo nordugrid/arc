@@ -138,7 +138,7 @@ namespace Arc {
             File.NewChild("CheckSum") = it->Checksum;
           }
           else {
-            File.NewChild("CheckSum") = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::cksum);
+            File.NewChild("CheckSum") = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::cksum, true);
           }
         }
 
@@ -186,7 +186,7 @@ namespace Arc {
           job.LocalInputFiles[it->Name] = it->Checksum;
         }
         else {
-          job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::cksum);
+          job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::cksum, true);
         }
       }
     }

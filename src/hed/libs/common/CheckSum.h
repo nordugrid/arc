@@ -39,7 +39,7 @@ namespace Arc {
     /**
      * This method calculates the checksum of the passed data chuck, taking
      * into account the previous state of this object.
-     * 
+     *
      * @param buf pointer to data chuck to be checksummed.
      * @param len size of the data chuck.
      **/
@@ -83,7 +83,7 @@ namespace Arc {
      * @see CheckSum::print
      **/
     virtual void scan(const char *buf) = 0;
-    
+
     /// Indicates whether the checksum has been calculated
     virtual operator bool(void) const {
       return false;
@@ -177,24 +177,24 @@ namespace Arc {
     uLong adler;
     bool computed;
    public:
-    Adler32Sum(void) : computed(false) { 
-      start(); 
+    Adler32Sum(void) : computed(false) {
+      start();
     }
     virtual void start(void) {
-      adler = adler32(0L, Z_NULL, 0); 
+      adler = adler32(0L, Z_NULL, 0);
     }
     virtual void add(void* buf,unsigned long long int len) {
-      adler = adler32(adler, (const Bytef *)buf, len); 
+      adler = adler32(adler, (const Bytef *)buf, len);
     }
     virtual void end(void) {
       computed = true;
     }
-    virtual void result(unsigned char*& res,unsigned int& len) const { 
+    virtual void result(unsigned char*& res,unsigned int& len) const {
       res=(unsigned char*)&adler;
       len=4;
-    }  
-    virtual int print(char* buf,int len) const { 
-      if(!computed) { 
+    }
+    virtual int print(char* buf,int len) const {
+      if(!computed) {
         if(len>0) {
           buf[0]=0;
           return 0;
@@ -299,8 +299,11 @@ namespace Arc {
      *
      * @param filepath path to file of which checksum should be calculated
      * @param tp type of checksum algorithm to use, default is md5.
+     * @param decimalbase specifies whether output should be in base 10 or
+     *  16
+     * @return a string containing the calculated checksum is returned.
      **/
-    static std::string FileChecksum(const std::string& filepath, type tp = md5);
+    static std::string FileChecksum(const std::string& filepath, type tp = md5, bool decimalbase = false);
   };
 
 } // namespace Arc

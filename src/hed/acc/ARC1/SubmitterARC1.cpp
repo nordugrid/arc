@@ -236,7 +236,7 @@ namespace Arc {
           }
         }
         if (it1->Checksum.empty()) {
-          it1->Checksum = CheckSumAny::FileChecksum(it1->Source.front().Path(), CheckSumAny::cksum);
+          it1->Checksum = CheckSumAny::FileChecksum(it1->Source.front().Path(), CheckSumAny::cksum, true);
           if (it1->Checksum.empty()) {
             logger.msg(ERROR, "Unable to calculate checksum of local input file %s", it1->Source.front().Path());
             return false;
