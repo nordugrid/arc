@@ -571,4 +571,52 @@ GlueSchemaVersionMinor: 2
     }
 }
 
+sub write_service_information () {
+    my $serviceuniqueid = shift;
+    my $servicename = shift;
+    my $mdsvoname = shift;
+    my $s_acb=shift;
+    my $s_acr=shift;
+    my $glueservicestatus = shift;
+    my $glueservicestatusinfo = shift;
+    my $serviceendpoint = shift;
+    my $serviceversion = shift;
+    my $servicetype = shift;
+    my $servicewsdl = shift;
+    my @accesscontrolbase = @{$s_acb};
+    my @accesscontrolrule = @{$s_acr};
+    print "
+dn: GlueServiceUniqueID=$serviceuniqueid,Mds-Vo-name=$mdsvoname,Mds-Vo-name=local,o=grid
+";
+    foreach (@accesscontrolbase) {
+	chomp;
+	print "
+GlueServiceAccessControlBaseRule: $_
+";
+    }
+    print "
+GlueServiceStatus: $glueservicestatus
+GlueServiceStatusInfo: $glueservicestatusinfo
+objectClass: GlueTop
+objectClass: GlueService
+objectClass: GlueKey
+objectClass: GlueSchemaVersion
+GlueServiceUniqueID: $serviceuniqueid
+";
+    foreach (@accesscontrolrule) {
+	chomp;
+	print "
+GlueServiceAccessControlRule: $_
+";
+    }
+    print "
+GlueServiceEndpoint: $serviceendpoint
+GlueServiceVersion: $serviceversion
+GlueSchemaVersionMinor: 3
+GlueServiceName: $servicename
+GlueServiceType: $servicetype
+GlueServiceWSDL: $servicewsdl
+";
+}
+
 #EOF
