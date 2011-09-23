@@ -387,7 +387,7 @@ namespace Arc {
         if (!it->LocalInputFiles.empty()) {
           std::map<std::string, std::string>::iterator itF = it->LocalInputFiles.begin();
           for (; itF != it->LocalInputFiles.end(); ++itF) {
-            if (itF->second != CheckSumAny::FileChecksum(itF->first, CheckSumAny::md5)) {
+            if (itF->second != CheckSumAny::FileChecksum(itF->first, CheckSumAny::cksum)) {
               break;
             }
           }
