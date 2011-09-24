@@ -1152,7 +1152,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files plugins-needed
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccARC1.so
-%{_libdir}/%{pkgdir}/libaccEMIES.so
+#%{_libdir}/%{pkgdir}/libaccEMIES.so
 %{_libdir}/%{pkgdir}/libaccEMIREG.so
 %{_libdir}/%{pkgdir}/libaccCREAM.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
@@ -1171,7 +1171,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
 %{_libdir}/%{pkgdir}/libaccARC1.apd
-%{_libdir}/%{pkgdir}/libaccEMIES.apd
+#%{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccEMIREG.apd
 %{_libdir}/%{pkgdir}/libaccCREAM.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
