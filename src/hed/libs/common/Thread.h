@@ -94,7 +94,7 @@ namespace Arc {
        dummy constructor. */
     void Attach(const std::string& key);
     /** Retrieves object attached to thread under key.
-       Returns if no such obejct. */
+       Returns NULL if no such obejct. */
     static ThreadDataItem* Get(const std::string& key);
     /** Creates copy of object. 
       This method is called when new thread is created from current thread.
