@@ -86,6 +86,23 @@ sub glueState {
     return $status;
 }
 
+sub getGMStatus {
+    my ($controldir, $ID) = @_;
+    foreach my $gmjob_status ("$controldir/accepting/job.$ID.status", "$controldir/processing/job.$ID.status", "$controldir/finished/job.$ID.status") {
+        unless (open (GMJOB_STATUS, "<$gmjob_status")) {
+            next;
+        } else {
+            chomp (my ($first_line) = <GMJOB_STATUS>);
+            close GMJOB_STATUS;
+            unless ($first_line) {
+                next;
+            }
+            return $first_line;
+        }
+    }
+    return undef;
+}
+
 # Helper function that assists the GLUE2 XML renderer handle the 'splitjobs' option
 #   $config       - the config hash
 #   $jobid        - job id from GM
@@ -129,6 +146,14 @@ sub jobXmlFileWriter {
         or $log->warning("Error moving $tmpnam to $xml_file: $!")
         and unlink $tmpnam
         and return undef;
+
+
+    # Avoid .xml files created after job is deleted
+    # Check if status file exists
+    if(not defined getGMStatus($controldir,$jobid)) {
+      unlink $xml_file;
+      return undef;
+    }
 
     # Set timestamp to the time when the status file was read in.
     # This is because the status file might have been updated by the time the
