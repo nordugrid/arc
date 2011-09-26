@@ -779,17 +779,29 @@ namespace DataStaging {
       ++dtr;
     }
 
-    // Reset the number of the DTRs running in the pre-processor
-    int PreProcessorRunning = DtrList.number_of_dtrs_by_owner(PRE_PROCESSOR);
+    transferShares.calculate_shares(PreProcessorSlots);
 
-    // Now at the end of the list are DTRs that should be launched first
+    std::list<DTR*> InPreProcessor;
+    DtrList.filter_dtrs_by_owner(PRE_PROCESSOR, InPreProcessor);
+
+    // Number of the DTRs running in the pre-processor
+    int PreProcessorRunning = InPreProcessor.size();
+    if (PreProcessorRunning == PreProcessorSlots) return;
+
+    // Decrease shares for those already in the pre-processor
+    for (dtr = InPreProcessor.begin(); dtr != InPreProcessor.end(); ++dtr) {
+      transferShares.decrease_number_of_slots((*dtr)->get_transfer_share());
+    }
+
+    // Send to pre-processor according to share and place in the queue
     while(PreProcessorRunning < PreProcessorSlots && !PreProcessorQueue.empty()){
-      // Push to the pre-processor, register in the list
-      // of processed DTRs and delete from the queue
       tmp = PreProcessorQueue.front();
-      tmp->push(PRE_PROCESSOR);
       PreProcessorQueue.pop_front();
-      PreProcessorRunning++;
+      if (transferShares.can_start(tmp->get_transfer_share())) {
+        tmp->push(PRE_PROCESSOR);
+        PreProcessorRunning++;
+        transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+      }
     }
   }
   
@@ -830,17 +842,29 @@ namespace DataStaging {
       ++dtr;
     }
 
-    // Reset the number of the DTRs running in the pre-processor
-    int PostProcessorRunning = DtrList.number_of_dtrs_by_owner(POST_PROCESSOR);
+    transferShares.calculate_shares(PostProcessorSlots);
 
-    // Now at the end of the list are DTRs that should be launched first
+    std::list<DTR*> InPostProcessor;
+    DtrList.filter_dtrs_by_owner(POST_PROCESSOR, InPostProcessor);
+
+    // Number of the DTRs running in the post-processor
+    int PostProcessorRunning = InPostProcessor.size();
+    if (PostProcessorRunning == PostProcessorSlots) return;
+
+    // Decrease shares for those already in the post-processor
+    for (dtr = InPostProcessor.begin(); dtr != InPostProcessor.end(); ++dtr) {
+      transferShares.decrease_number_of_slots((*dtr)->get_transfer_share());
+    }
+
+    // Send to pre-processor according to share and place in the queue
     while(PostProcessorRunning < PostProcessorSlots && !PostProcessorQueue.empty()){
-      // Push to the post-processor, register in the list
-      // of processed DTRs and delete from the queue
       tmp = PostProcessorQueue.front();
-      tmp->push(POST_PROCESSOR);
       PostProcessorQueue.pop_front();
-      PostProcessorRunning++;
+      if (transferShares.can_start(tmp->get_transfer_share())) {
+        tmp->push(POST_PROCESSOR);
+        PostProcessorRunning++;
+        transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+      }
     }
   }
   
