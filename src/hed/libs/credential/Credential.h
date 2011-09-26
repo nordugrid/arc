@@ -236,6 +236,11 @@ class Credential {
     /**Get issuer of the certificate attached to this object*/
     std::string GetIssuerName(void) const;
 
+    /**Get CA of the certificate attached to this object, if the certificate 
+     *is an EEC, GetCAName get the same value as GetIssuerName
+     */
+    std::string GetCAName(void) const;
+
     /**Get the proxy policy attached to the "proxy certificate
      * information" extension of the proxy certicate
      */

@@ -398,6 +398,21 @@ namespace Arc {
     return str;
   }
 
+  std::string Credential::GetCAName(void) const {
+    X509 *cacert = NULL;
+    X509_NAME *caname = NULL;
+    if(!cert_chain_) return "";
+    int num = sk_X509_num(cert_chain_);
+    cacert = sk_X509_value(cert_chain_, num-1);
+    caname = X509_get_issuer_name(cacert);
+    std::string str;
+    char buf[256];
+    if(cacert!=NULL)
+      X509_NAME_oneline(caname,buf,sizeof(buf));
+    str.append(buf);
+    return str;
+  }
+
   std::string Credential::GetProxyPolicy(void) const {
     return (verify_ctx_.proxy_policy);
   }
