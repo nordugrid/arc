@@ -1959,7 +1959,7 @@ AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables
 AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
 AM_CONDITIONAL([UNICORE_ENABLED],[test "x$enables_unicore_client" = "xyes"])
 
-AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--enable-emi-es-client], [enables building EMI ES-related plugins.]),
+AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--enable-emies-client], [enables building EMI ES-related plugins.]),
   [enables_emies_client=$enableval],[])
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
 AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
