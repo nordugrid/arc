@@ -426,7 +426,7 @@ bool PayloadHTTP::parse_header(void) {
     // now real body follows
   }
   // In case of keep_alive (HTTP1.1) there must be length specified
-  if(keep_alive_ && (length_ == -1)) length_=0;
+  if(keep_alive_ && (!chunked_) && (length_ == -1)) length_=0;
   // If size of object was not reported then try to deduce it.
   if((size_ == 0) && (length_ != -1)) size_=offset_+length_;
   return true;
