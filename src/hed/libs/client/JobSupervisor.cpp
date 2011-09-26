@@ -42,7 +42,7 @@ namespace Arc {
          it != jobIDsAndNames.end(); ++it) {
       std::list<Job>::iterator itJ = jobs.begin();
       for (; itJ != jobs.end(); ++itJ) {
-        if (*it == itJ->IDFromEndpoint.str() || *it == itJ->Name) {
+        if (*it == itJ->IDFromEndpoint.fullstr() || *it == itJ->Name) {
           // If the job wasn't already selected in a previous cycle...
           bool alreadySelectedJob = false;
           for (std::list<Job>::iterator itAJ = alreadyFoundJobs.begin(); itAJ != alreadyFoundJobs.end(); itAJ++) {
@@ -101,7 +101,7 @@ namespace Arc {
               continue;
             }
             else {
-              logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", itJ->IDFromEndpoint.str());
+              logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", itJ->IDFromEndpoint.fullstr());
             }
           }
           ++itJ;
@@ -114,7 +114,7 @@ namespace Arc {
       for (std::list<Job>::const_iterator itJ = jobs.begin();
            itJ != jobs.end(); ++itJ) {
         if (!AddJob(*itJ)) {
-          logger.msg(WARNING, "Unable to handle job (%s), no suitable job management plugin found.", itJ->IDFromEndpoint.str());
+          logger.msg(WARNING, "Unable to handle job (%s), no suitable job management plugin found.", itJ->IDFromEndpoint.fullstr());
         }
       }
     }
@@ -132,7 +132,7 @@ namespace Arc {
 
   bool JobSupervisor::AddJob(const Job& job) {
     if (job.Flavour.empty()) {
-      logger.msg(VERBOSE, "Ignoring job (%s), the Job::Flavour attribute must be specified", job.IDFromEndpoint.str());
+      logger.msg(VERBOSE, "Ignoring job (%s), the Job::Flavour attribute must be specified", job.IDFromEndpoint.fullstr());
       return false;
     }
 
@@ -377,7 +377,7 @@ namespace Arc {
 
         // If job description is not set, then try to fetch it from execution service.
         if (it->JobDescriptionDocument.empty() && !(*itJobC)->GetJobDescription(*it, it->JobDescriptionDocument)) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.str());
+          logger.msg(ERROR, "Unable to resubmit job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.fullstr());
           notresubmitted.push_back(it->IDFromEndpoint);
           ok = false;
           continue;
@@ -393,7 +393,7 @@ namespace Arc {
           }
 
           if (itF != it->LocalInputFiles.end()) {
-            logger.msg(ERROR, "Unable to resubmit job (%s), local input file (%s) has changed", it->IDFromEndpoint.str(), itF->first);
+            logger.msg(ERROR, "Unable to resubmit job (%s), local input file (%s) has changed", it->IDFromEndpoint.fullstr(), itF->first);
             notresubmitted.push_back(it->IDFromEndpoint);
             ok = false;
             continue;
@@ -442,7 +442,7 @@ namespace Arc {
 
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((*it)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (*it)->IDFromEndpoint.str());
+        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (*it)->IDFromEndpoint.fullstr());
         resubmittedJobs.pop_back();
         notresubmitted.push_back((*it)->IDFromEndpoint);
         ok = false;
@@ -465,7 +465,7 @@ namespace Arc {
         tg = new TargetGenerator(resubmitUsercfg);
         tg->RetrieveExecutionTargets();
         if (tg->GetExecutionTargets().empty()) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (*it)->IDFromEndpoint.str(), (*it)->Cluster.str());
+          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (*it)->IDFromEndpoint.fullstr(), (*it)->Cluster.str());
           delete tg;
           resubmittedJobs.pop_back();
           notresubmitted.push_back((*it)->IDFromEndpoint);
@@ -480,7 +480,7 @@ namespace Arc {
         resubmittedJobs.pop_back();
         notresubmitted.push_back((*it)->IDFromEndpoint);
         ok = false;
-        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (*it)->IDFromEndpoint.str());
+        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (*it)->IDFromEndpoint.fullstr());
       }
 
       if (destination == 1) {
@@ -512,7 +512,7 @@ namespace Arc {
 
         // If job description is not set, then try to fetch it from execution service.
         if (it->JobDescriptionDocument.empty() && !(*itJobC)->GetJobDescription(*it, it->JobDescriptionDocument)) {
-          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.str());
+          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.fullstr());
           notmigrated.push_back(it->IDFromEndpoint);
           ok = false;
           continue;
@@ -552,7 +552,7 @@ namespace Arc {
          itJ != migratableJobs.end(); ++itJ) {
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse((*itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (*itJ)->IDFromEndpoint.str());
+        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (*itJ)->IDFromEndpoint.fullstr());
         continue;
       }
       jobdescs.front().Identification.ActivityOldId = (*itJ)->ActivityOldID;
@@ -574,7 +574,7 @@ namespace Arc {
       }
 
       if (chosenBroker->EndOfList()) {
-        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (*itJ)->IDFromEndpoint.str());
+        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (*itJ)->IDFromEndpoint.fullstr());
         ok = false;
         migratedJobs.pop_back();
         notmigrated.push_back((*itJ)->IDFromEndpoint);

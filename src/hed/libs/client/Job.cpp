@@ -426,7 +426,7 @@ namespace Arc {
   }
 
   void Job::SaveToStream(std::ostream& out, bool longlist) const {
-    out << IString("Job: %s", IDFromEndpoint.str()) << std::endl;
+    out << IString("Job: %s", IDFromEndpoint.fullstr()) << std::endl;
     if (!Name.empty())
       out << IString(" Name: %s", Name) << std::endl;
     if (!State().empty())
@@ -812,7 +812,7 @@ namespace Arc {
         }
         for (std::list<Job>::const_iterator it = jobs.begin();
              it != jobs.end(); ++it) {
-          os << it->IDFromEndpoint.str() << std::endl;
+          os << it->IDFromEndpoint.fullstr() << std::endl;
         }
 
         bool good = os.good();

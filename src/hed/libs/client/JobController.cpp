@@ -178,7 +178,7 @@ namespace Arc {
           continue;
         }
 
-        toberemoved.push_back((*it)->IDFromEndpoint.str());
+        toberemoved.push_back((*it)->IDFromEndpoint.fullstr());
         jobstore.erase(*it);
       }
     }
@@ -712,11 +712,11 @@ namespace Arc {
         continue;
       }
       if (GetJobDescription(*it, it->JobDescriptionDocument)) {
-        logger.msg(VERBOSE, "Job description retrieved from execution service for job (%s)", it->IDFromEndpoint.str());
+        logger.msg(VERBOSE, "Job description retrieved from execution service for job (%s)", it->IDFromEndpoint.fullstr());
         it++;
       }
       else {
-        logger.msg(INFO, "Failed retrieving job description for job (%s)", it->IDFromEndpoint.str());
+        logger.msg(INFO, "Failed retrieving job description for job (%s)", it->IDFromEndpoint.fullstr());
         it = gettable.erase(it);
       }
     }
