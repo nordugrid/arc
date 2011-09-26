@@ -16,14 +16,14 @@ namespace Arc {
     istring("Can't write to destination"), // 6
     istring("Failed while reading from source"), // 7
     istring("Failed while writing to destination"), // 8
-    istring("Failed while transfering data (mostly timeout)"), // 9
+    istring("Failed while transferring data (mostly timeout)"), // 9
     istring("Failed while finishing reading from source"), // 10
     istring("Failed while finishing writing to destination"), // 11
     istring("First stage of registration of index service URL failed"), // 12
     istring("Last stage of registration of index service URL failed"), // 13
     istring("Unregistration of index service URL failed"), // 14
     istring("Error in caching procedure"), // 15
-    istring("Error due to provided credentials are expired"), // 16
+    istring("Error due to expiration of provided credentials"), // 16
     istring("Error deleting location or URL"), // 17
     istring("No valid location available"), // 18
     istring("Location already exists"), // 19

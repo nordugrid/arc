@@ -338,7 +338,7 @@ namespace Arc {
       else {
         logger.msg(VERBOSE, "Creating temporary link from %s to remote cache file %s", filename, remote_cache_file);
         if (!FileLink(remote_cache_file, filename, true)) {
-          logger.msg(ERROR, "Failed to create soft link to remote cache: %s Will download %s from source", StrError(errno), url);
+          logger.msg(ERROR, "Failed to create soft link to remote cache: %s. Will download %s from source", StrError(errno), url);
           if (!remote_lock.release())
             logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
           return true;

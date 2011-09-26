@@ -521,7 +521,7 @@ namespace Arc {
         if (!mapped)
           mapped_url = URL();
         else {
-          logger.msg(VERBOSE, "Url is mapped to: %s", mapped_url.str());
+          logger.msg(VERBOSE, "URL is mapped to: %s", mapped_url.str());
           if (mapped_url.Protocol() == "link")
             /* can't cache links */
             cacheable = false;
