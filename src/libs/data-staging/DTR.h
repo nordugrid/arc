@@ -383,7 +383,7 @@ namespace DataStaging {
      int get_priority() const { return priority; };
      
      /// Set the transfer share. sub_share is automatically added to transfershare
-     void set_transfer_share(std::string share_name);
+     void set_transfer_share(const std::string& share_name);
      /// Get the transfer share. sub_share is automatically added to transfershare
      std::string get_transfer_share() const { return transfershare; };
      

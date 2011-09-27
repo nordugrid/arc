@@ -37,8 +37,11 @@ class Scheduler: public DTRCallback {
     /// A lock for the cancelled jobs list
     Arc::SimpleCondition cancelled_jobs_lock;
 
-    /// Transfer shares the scheduler uses
-    TransferShares transferShares;
+    /// Transfer shares the scheduler uses for each component
+    std::map<StagingProcesses, TransferShares> transferShares;
+
+    /// Configuration of transfer shares
+    TransferSharesConf transferSharesConf;
 
     /// URLMap containing information on any local mappings defined in the configuration
     Arc::URLMap url_map;
@@ -188,17 +191,8 @@ class Scheduler: public DTRCallback {
     /// Set the preferred pattern
     void SetPreferredPattern(const std::string& pattern);
 
-    /// Set TransferShares
-    void SetTransferShares(const TransferShares& shares);
-
-    /// Add share
-    void AddSharePriority(const std::string& name, int priority);
-
-    /// Replace all shares
-    void SetSharePriorities(const std::map<std::string, int>& shares);
-
-    /// Set share type
-    void SetShareType(TransferShares::ShareType share_type);
+    /// Set TransferShares configuration
+    void SetTransferSharesConf(const TransferSharesConf& share_conf);
 
     /// Set transfer limits
     void SetTransferParameters(const TransferParameters& params);

@@ -50,24 +50,15 @@ namespace DataStaging {
       preferred_pattern = pattern;
   }
 
-  void Scheduler::SetTransferShares(const TransferShares& shares) {
-    if (scheduler_state == INITIATED)
-      transferShares = shares;
-  }
-
-  void Scheduler::AddSharePriority(const std::string& name, int priority) {
-    if (scheduler_state == INITIATED)
-      transferShares.set_reference_share(name, priority);
-  }
-
-  void Scheduler::SetSharePriorities(const std::map<std::string, int>& shares) {
-    if (scheduler_state == INITIATED)
-      transferShares.set_reference_shares(shares);
-  }
-
-  void Scheduler::SetShareType(TransferShares::ShareType share_type) {
-    if (scheduler_state == INITIATED)
-      transferShares.set_share_type(share_type);
+  void Scheduler::SetTransferSharesConf(const TransferSharesConf& share_conf) {
+    if (scheduler_state == INITIATED) {
+      transferSharesConf = share_conf;
+      // initialise shares for each process
+      TransferShares shares(transferSharesConf);
+      transferShares[PRE_PROCESSOR] = shares;
+      transferShares[POST_PROCESSOR] = shares;
+      transferShares[DELIVERY] = shares;
+    }
   }
 
   void Scheduler::SetTransferParameters(const TransferParameters& params) {
@@ -374,6 +365,7 @@ namespace DataStaging {
       // to limit per remote host. For now count staging transfers in this
       // share already in transfer queue and apply limit. In order not to block
       // the highest priority DTRs here we allow them to bypass the limit.
+      // TODO Also need to count DTRs in STAGE_PREPARE
       std::list<DTR*> DeliveryQueue;
       DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
 
@@ -616,8 +608,6 @@ namespace DataStaging {
   	// Return to the generator
     request->get_logger()->msg(Arc::INFO, "DTR %s: Returning to generator", request->get_short_id());
     request->push(GENERATOR);
-    // Decrease the corresponding transfer share
-    transferShares.decrease_transfer_share(request->get_transfer_share());
     // Delete from the global list
     DtrList.delete_dtr(request);
   }
@@ -652,6 +642,11 @@ namespace DataStaging {
         default: ; //DoNothing
       }
     }
+    // Update shares according to new state
+    if (request->is_destined_for_pre_processor()) transferShares[PRE_PROCESSOR].increase_transfer_share(request->get_transfer_share());
+    else if (request->is_destined_for_post_processor()) transferShares[POST_PROCESSOR].increase_transfer_share(request->get_transfer_share());
+    else if (request->is_destined_for_delivery()) transferShares[DELIVERY].increase_transfer_share(request->get_transfer_share());
+
     if (request->is_in_final_state()) {
       // If we came here -- we were in the final state,
       // so the DTR is returned to the generator and deleted
@@ -760,6 +755,7 @@ namespace DataStaging {
       if(tmp->cancel_requested()){
         map_cancel_state_and_process(tmp);
         dtr = PreProcessorQueue.erase(dtr);
+        transferShares[PRE_PROCESSOR].decrease_transfer_share(tmp->get_transfer_share());
         continue;
       }
 
@@ -779,7 +775,7 @@ namespace DataStaging {
       ++dtr;
     }
 
-    transferShares.calculate_shares(PreProcessorSlots);
+    transferShares[PRE_PROCESSOR].calculate_shares(PreProcessorSlots);
 
     std::list<DTR*> InPreProcessor;
     DtrList.filter_dtrs_by_owner(PRE_PROCESSOR, InPreProcessor);
@@ -790,17 +786,17 @@ namespace DataStaging {
 
     // Decrease shares for those already in the pre-processor
     for (dtr = InPreProcessor.begin(); dtr != InPreProcessor.end(); ++dtr) {
-      transferShares.decrease_number_of_slots((*dtr)->get_transfer_share());
+      transferShares[PRE_PROCESSOR].decrease_number_of_slots((*dtr)->get_transfer_share());
     }
 
     // Send to pre-processor according to share and place in the queue
     while(PreProcessorRunning < PreProcessorSlots && !PreProcessorQueue.empty()){
       tmp = PreProcessorQueue.front();
       PreProcessorQueue.pop_front();
-      if (transferShares.can_start(tmp->get_transfer_share())) {
+      if (transferShares[PRE_PROCESSOR].can_start(tmp->get_transfer_share())) {
         tmp->push(PRE_PROCESSOR);
         PreProcessorRunning++;
-        transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+        transferShares[PRE_PROCESSOR].decrease_number_of_slots(tmp->get_transfer_share());
       }
     }
   }
@@ -842,7 +838,7 @@ namespace DataStaging {
       ++dtr;
     }
 
-    transferShares.calculate_shares(PostProcessorSlots);
+    transferShares[POST_PROCESSOR].calculate_shares(PostProcessorSlots);
 
     std::list<DTR*> InPostProcessor;
     DtrList.filter_dtrs_by_owner(POST_PROCESSOR, InPostProcessor);
@@ -853,17 +849,17 @@ namespace DataStaging {
 
     // Decrease shares for those already in the post-processor
     for (dtr = InPostProcessor.begin(); dtr != InPostProcessor.end(); ++dtr) {
-      transferShares.decrease_number_of_slots((*dtr)->get_transfer_share());
+      transferShares[POST_PROCESSOR].decrease_number_of_slots((*dtr)->get_transfer_share());
     }
 
     // Send to pre-processor according to share and place in the queue
     while(PostProcessorRunning < PostProcessorSlots && !PostProcessorQueue.empty()){
       tmp = PostProcessorQueue.front();
       PostProcessorQueue.pop_front();
-      if (transferShares.can_start(tmp->get_transfer_share())) {
+      if (transferShares[POST_PROCESSOR].can_start(tmp->get_transfer_share())) {
         tmp->push(POST_PROCESSOR);
         PostProcessorRunning++;
-        transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+        transferShares[POST_PROCESSOR].decrease_number_of_slots(tmp->get_transfer_share());
       }
     }
   }
@@ -892,6 +888,7 @@ namespace DataStaging {
       if(tmp->cancel_requested()){
         map_cancel_state_and_process(tmp);
         dtr = DeliveryQueue.erase(dtr);
+        transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
         continue;
       }
 
@@ -903,7 +900,7 @@ namespace DataStaging {
       dtr++;
     }
 
-    transferShares.calculate_shares(DeliverySlots);
+    transferShares[DELIVERY].calculate_shares(DeliverySlots);
     
     // Shares which have at least one DTR in Delivery
     // Shares can only use emergency slots if they are not in this list
@@ -933,7 +930,7 @@ namespace DataStaging {
         // Every active DTR for sure has its share represented
         // in active shares. So we can just decrease the corresponding
         // number
-        transferShares.decrease_number_of_slots(sharetmp->get_transfer_share());
+        transferShares[DELIVERY].decrease_number_of_slots(sharetmp->get_transfer_share());
         shares_in_delivery.insert(sharetmp->get_transfer_share());
       }
     }
@@ -952,26 +949,26 @@ namespace DataStaging {
         if (DeliveryRunning == DeliverySlots + DeliveryEmergencySlots)
           break;
         if ((shares_in_delivery.find(tmp->get_transfer_share()) == shares_in_delivery.end()) &&
-            transferShares.can_start(tmp->get_transfer_share())) {
+            transferShares[DELIVERY].can_start(tmp->get_transfer_share())) {
           // choose delivery service - random for now
           // if this is a retry, try to use a different service
           if (!delivery_services.empty()) {
             tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
           }
-          transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+          transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
           tmp->set_status(DTRStatus::TRANSFER);
           tmp->push(DELIVERY);
           DeliveryRunning++;
           shares_in_delivery.insert(tmp->get_transfer_share());
         }
       }
-      else if(transferShares.can_start(tmp->get_transfer_share())){
+      else if(transferShares[DELIVERY].can_start(tmp->get_transfer_share())){
         // choose delivery service - random for now
         // if this is a retry, try to use a different service
         if (!delivery_services.empty()) {
           tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
         }
-      	transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+      	transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
         tmp->set_status(DTRStatus::TRANSFER);
         tmp->push(DELIVERY);
         DeliveryRunning++;
@@ -983,8 +980,12 @@ namespace DataStaging {
 
   void Scheduler::receiveDTR(DTR& request){
     if(request.get_status() != DTRStatus::NEW) {
-       // If DTR is not NEW scheduler will pick it up itself.
-       return;
+      // If DTR is not NEW we just have to reduce the appropriate transfer share
+      // of the process it came from. Then the scheduler picks up the DTR itself
+      if (request.came_from_pre_processor()) transferShares[PRE_PROCESSOR].decrease_transfer_share(request.get_transfer_share());
+      else if (request.came_from_post_processor()) transferShares[POST_PROCESSOR].decrease_transfer_share(request.get_transfer_share());
+      else if (request.came_from_delivery()) transferShares[DELIVERY].decrease_transfer_share(request.get_transfer_share());
+      return;
     }
     
     request.registerCallback(&processor,PRE_PROCESSOR);
@@ -992,7 +993,7 @@ namespace DataStaging {
     request.registerCallback(&delivery,DELIVERY);
     /* Shares part*/
     // First, get the transfer share this dtr should belong to
-    std::string DtrTransferShare = transferShares.extract_share_info(request);
+    std::string DtrTransferShare = transferSharesConf.extract_share_info(request);
 
     // If no share information could be obtained, use default share
     if (DtrTransferShare.empty())
@@ -1000,30 +1001,27 @@ namespace DataStaging {
 
     // If this share is a reference share, we have to add the sub-share
     // to the reference list
-    bool in_reference = transferShares.is_configured(DtrTransferShare);
-    int priority = transferShares.get_basic_priority(DtrTransferShare);
+    bool in_reference = transferSharesConf.is_configured(DtrTransferShare);
+    int priority = transferSharesConf.get_basic_priority(DtrTransferShare);
 
     request.set_transfer_share(DtrTransferShare);
     DtrTransferShare = request.get_transfer_share();
 
     // Now the sub-share is added to DtrTransferShare, add it to reference
-    // shares if appropriate
-    if (in_reference && !transferShares.is_configured(DtrTransferShare))
-      transferShares.set_reference_share(DtrTransferShare, priority);
-        
-    // Increase the number of DTRs belonging to this share
-    transferShares.increase_transfer_share(DtrTransferShare);
+    // shares if appropriate and update each TransferShare
+    if (in_reference && !transferSharesConf.is_configured(DtrTransferShare)) {
+      transferSharesConf.set_reference_share(DtrTransferShare, priority);
+      transferShares[PRE_PROCESSOR].set_shares_conf(transferSharesConf);
+      transferShares[POST_PROCESSOR].set_shares_conf(transferSharesConf);
+      transferShares[DELIVERY].set_shares_conf(transferSharesConf);
+    }
     
-    // Compute the priority this DTR receives
-    // This is the priority of the share adjusted by the priority
-    // of the parent job
-    request.set_priority(int(transferShares.get_basic_priority(DtrTransferShare) * request.get_priority() * 0.01));
+    // Compute the priority this DTR receives - this is the priority of the
+    // share adjusted by the priority of the parent job
+    request.set_priority(int(transferSharesConf.get_basic_priority(DtrTransferShare) * request.get_priority() * 0.01));
     /* Shares part ends*/               
     
     DtrList.add_dtr(request);
-    
-    // Accepted successfully
-    return;
   }
 
   bool Scheduler::cancelDTRs(const std::string& jobid) {
@@ -1063,7 +1061,7 @@ namespace DataStaging {
     logger.msg(Arc::INFO, "  Delivery slots: %i", DeliverySlots);
     logger.msg(Arc::INFO, "  Emergency Delivery slots: %i", DeliveryEmergencySlots);
     logger.msg(Arc::INFO, "  Post-processor slots: %i", PostProcessorSlots);
-    logger.msg(Arc::INFO, "  Shares configuration:\n%s", transferShares.conf());
+    logger.msg(Arc::INFO, "  Shares configuration:\n%s", transferSharesConf.conf());
     for (std::vector<Arc::URL>::iterator i = delivery_services.begin(); i != delivery_services.end(); ++i) {
       if (*i == DTR::LOCAL_DELIVERY) logger.msg(Arc::INFO, "  Delivery service: LOCAL");
       else logger.msg(Arc::INFO, "  Delivery service: %s", i->str());

@@ -34,7 +34,7 @@ namespace DataStaging {
     signal(SIGINT, shutdown);
 
     std::string job_id = Arc::UUID();
-    Arc::UserConfig cfg;
+    Arc::UserConfig cfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
 
     // check credentials
     if (!Arc::Credential::IsCredentialsValid(cfg)) {

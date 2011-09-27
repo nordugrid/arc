@@ -384,7 +384,7 @@ namespace DataStaging {
    	   status == DTRStatus::ERROR);
   }
   
-  void DTR::set_transfer_share(std::string share_name) {
+  void DTR::set_transfer_share(const std::string& share_name) {
   	lock.lock(); 
   	transfershare = share_name;
   	if (!sub_share.empty())

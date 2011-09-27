@@ -125,10 +125,8 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
   scheduler.SetSlots(max_processing,max_processing,max_processing,max_processing_emergency);
 
   // transfer shares
-  DataStaging::TransferShares shares;
-  shares.set_reference_shares(jcfg.GetLimitedShares());
-  shares.set_share_type(jcfg.GetShareType());
-  scheduler.SetTransferShares(shares);
+  DataStaging::TransferSharesConf share_conf(jcfg.GetShareType(), jcfg.GetLimitedShares());
+  scheduler.SetTransferSharesConf(share_conf);
 
   // transfer limits
   DataStaging::TransferParameters transfer_limits;
