@@ -57,12 +57,8 @@ namespace Arc {
         }
       }
 
-      bool findDN = false;
       if ( find(target->TrustedCA.begin(), target->TrustedCA.end(), proxyIssuerCA)
-              != target->TrustedCA.end() ){
-          findDN = true;
-      }
-      if (!findDN){
+              == target->TrustedCA.end() ){
           logger.msg(VERBOSE, "Your issuer CA's DN (%s) is not supported on (%s) target.",proxyIssuerCA, target->url.str());
           continue;
       }
