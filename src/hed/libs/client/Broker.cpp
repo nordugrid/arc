@@ -11,6 +11,7 @@
 #include <arc/client/Broker.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
+#include <arc/credential/Credential.h>
 #include <arc/loader/FinderLoader.h>
 
 namespace Arc {
@@ -32,6 +33,10 @@ namespace Arc {
     PossibleTargets.clear();
     job = &jobdesc;
 
+    Credential credential(usercfg);
+    std::string proxyIssuerCA = credential.GetCAName();
+    logger.msg(DEBUG, "Your issuer CA's DN: %s.", proxyIssuerCA);
+
     for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
       logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
@@ -50,6 +55,16 @@ namespace Arc {
           logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->url.str());
           continue;
         }
+      }
+
+      bool findDN = false;
+      if ( find(target->TrustedCA.begin(), target->TrustedCA.end(), proxyIssuerCA)
+              != target->TrustedCA.end() ){
+          findDN = true;
+      }
+      if (!findDN){
+          logger.msg(VERBOSE, "Your issuer CA's DN (%s) is not supported on (%s) target.",proxyIssuerCA, target->url.str());
+          continue;
       }
 
       std::map<std::string, std::string>::const_iterator itAtt;
