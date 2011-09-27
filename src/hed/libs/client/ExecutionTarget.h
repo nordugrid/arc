@@ -217,6 +217,7 @@ namespace Arc {
      * This variable represents the ComputingShare.Name attribute of GLUE2.
      **/
     std::string ComputingShareName;
+    std::string MappingQueue;
 
     Period MaxWallTime;
     Period MaxTotalWallTime; // not in current Glue2 draft
