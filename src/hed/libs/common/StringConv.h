@@ -48,6 +48,7 @@ namespace Arc {
   }
 
 
+
 #define stringtoi(A) stringto < int > ((A))
 #define stringtoui(A) stringto < unsigned int > ((A))
 #define stringtol(A) stringto < long > ((A))
@@ -58,15 +59,70 @@ namespace Arc {
 #define stringtod(A) stringto < double > ((A))
 #define stringtold(A) stringto < long double > ((A))
 
+  /// Convert string to integer with specified base.
+  /// Returns false if any argument is wrong.
+  bool strtoint(const std::string& s, signed int& t, int base = 10);
+
+  /// Convert string to unsigned integer with specified base.
+  /// Returns false if any argument is wrong.
+  bool strtoint(const std::string& s, unsigned int& t, int base = 10);
+
+  /// Convert string to long integer with specified base.
+  /// Returns false if any argument is wrong.
+  bool strtoint(const std::string& s, signed long& t, int base = 10);
+
+  /// Convert string to unsigned long integer with specified base.
+  /// Returns false if any argument is wrong.
+  bool strtoint(const std::string& s, unsigned long& t, int base = 10);
+
+  /// Convert string to long long integer with specified base.
+  /// Returns false if any argument is wrong.
+  bool strtoint(const std::string& s, signed long long& t, int base = 10);
+
+  /// Convert string to unsigned long long integer with specified base.
+  /// Returns false if any argument is wrong.
+  bool strtoint(const std::string& s, unsigned long long& t, int base = 10);
 
   /// This method converts any type to a string of the width given.
   template<typename T>
-  std::string tostring(T t, const int width = 0, const int precision = 0) {
+  std::string tostring(T t, int width = 0, int precision = 0) {
     std::stringstream ss;
     if (precision)
       ss << std::setprecision(precision);
     ss << std::setw(width) << t;
     return ss.str();
+  }
+
+  /// Convert long long integer to textual representation for specied base.
+  /// Result is padded with zeroes on left till width.
+  std::string inttostr(signed long long t, int base = 10, int width = 0);
+
+  /// Convert unsigned long long integer to textual representation for specied base.
+  /// Result is padded with zeroes on left till width.
+  std::string inttostr(unsigned long long t, int base = 10, int width = 0);
+
+  /// Convert integer to textual representation for specied base.
+  /// Result is padded with zeroes on left till width.
+  inline std::string inttostr(signed int t, int base = 10, int width = 0) {
+    return inttostr((signed long long)t,base,width);
+  }
+
+  /// Convert unsigned integer to textual representation for specied base.
+  /// Result is padded with zeroes on left till width.
+  inline std::string inttostr(unsigned int t, int base = 10, int width = 0) {
+    return inttostr((unsigned long long)t,base,width);
+  }
+
+  /// Convert long integer to textual representation for specied base.
+  /// Result is padded with zeroes on left till width.
+  inline std::string inttostr(signed long t, int base = 10, int width = 0) {
+    return inttostr((signed long long)t,base,width);
+  }
+
+  /// Convert unsigned long integer to textual representation for specied base.
+  /// Result is padded with zeroes on left till width.
+  inline std::string inttostr(unsigned long t, int base = 10, int width = 0) {
+    return inttostr((unsigned long long)t,base,width);
   }
 
   /// This method converts to lower case of the string

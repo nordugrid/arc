@@ -8,11 +8,13 @@ class StringConvTest
   CPPUNIT_TEST_SUITE(StringConvTest);
   CPPUNIT_TEST(TestStringConv);
   CPPUNIT_TEST(TestURIEncode);
+  CPPUNIT_TEST(TestIntegers);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void TestStringConv();
   void TestURIEncode();
+  void TestIntegers();
 };
 
 void StringConvTest::TestStringConv() {
@@ -74,6 +76,25 @@ void StringConvTest::TestURIEncode() {
   CPPUNIT_ASSERT_EQUAL(std::string("http%3a%2f%2flocalhost%3a80%2fdata%2ffile%20with%20spaces%26name%3dvalue%26symbols%3d%28%29%21%25%2a%24"), out);
   CPPUNIT_ASSERT_EQUAL(in, Arc::uri_unencode(out));
 
+}
+
+void StringConvTest::TestIntegers() {
+  int n = 12345;
+
+  CPPUNIT_ASSERT_EQUAL(std::string("12345"),Arc::inttostr(n));
+  CPPUNIT_ASSERT_EQUAL(std::string("-12345"),Arc::inttostr(-n));
+
+  CPPUNIT_ASSERT_EQUAL(std::string("0000012345"),Arc::inttostr(n,10,10));
+
+  CPPUNIT_ASSERT_EQUAL(std::string("343340"),Arc::inttostr(n,5,2));
+  CPPUNIT_ASSERT_EQUAL(std::string("1ah5"),Arc::inttostr(n,20));
+
+  CPPUNIT_ASSERT(Arc::strtoint("12345",n));
+  CPPUNIT_ASSERT_EQUAL(12345,n);
+  CPPUNIT_ASSERT(Arc::strtoint("343340",n,5));
+  CPPUNIT_ASSERT_EQUAL(12345,n);
+  CPPUNIT_ASSERT(Arc::strtoint("1ah5",n,20));
+  CPPUNIT_ASSERT_EQUAL(12345,n);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StringConvTest);

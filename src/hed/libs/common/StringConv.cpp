@@ -300,4 +300,137 @@ namespace Arc {
     return out;
   }
 
+  static bool strtoint(const std::string& s, unsigned long long&t, bool& sign, int base) {
+    if(base < 2) return false;
+    if(base > 36) return false;
+
+    std::string::size_type p = 0;
+    for(;;++p) {
+      if(p >= s.length()) return false;
+      if(!isspace(s[p])) break;
+    }
+
+    if(s[p] == '+') {
+      sign = true;
+    } else if(s[p] == '-') {
+      sign = false;
+    } else {
+      sign = true;
+    }
+
+    unsigned long long n = 0;
+    for(;p < s.length();++p) {
+      unsigned int v = 0;
+      char c = s[p];
+      if((c >= '0') && (c <= '9')) {
+        v = (unsigned int)((unsigned char)(c-'0'));
+      } else if((c >= 'a') && (c <= 'z')) {
+        v = (unsigned int)((unsigned char)(c-'a'))+10U;
+      } else if((c >= 'A') && (c <= 'A')) {
+        v = (unsigned int)((unsigned char)(c-'A'))+10U;
+      } else {
+        break; // false?
+      }
+      if(v >= (unsigned int)base) break; // false?
+      n = n*base + (unsigned long long)v;
+    }
+    t = n;
+
+    return true;
+  }
+
+  bool strtoint(const std::string& s, int& t, int base) {
+    unsigned long long n;
+    bool sign;
+    if(!strtoint(s,n,sign,base)) return false;
+    t = (int)n;
+    if(!sign) t=-t;
+    return true;
+  }
+
+  bool stroint(const std::string& s, unsigned int& t, int base) {
+    unsigned long long n;
+    bool sign;
+    if(!strtoint(s,n,sign,base)) return false;
+    if(!sign) return false;
+    t = (unsigned int)n;
+    return true;
+  }
+
+  bool strtoint(const std::string& s, long& t, int base) {
+    unsigned long long n;
+    bool sign;
+    if(!strtoint(s,n,sign,base)) return false;
+    t = (long)n;
+    if(!sign) t=-t;
+    return true;
+    return false;
+  }
+
+  bool strtoint(const std::string& s, unsigned long& t, int base) {
+    unsigned long long n;
+    bool sign;
+    if(!strtoint(s,n,sign,base)) return false;
+    if(!sign) return false;
+    t = (unsigned long)n;
+    return true;
+  }
+
+  bool strtoint(const std::string& s, long long& t, int base) {
+    unsigned long long n;
+    bool sign;
+    if(!strtoint(s,n,sign,base)) return false;
+    t = (long long)n;
+    if(!sign) t=-t;
+    return true;
+  }
+
+  bool strtoint(const std::string& s, unsigned long long& t, int base) {
+    unsigned long long n;
+    bool sign;
+    if(!strtoint(s,n,sign,base)) return false;
+    if(!sign) return false;
+    t = n;
+    return true;
+  }
+
+  std::string inttostr(signed long long t, int base, int width) {
+    unsigned long long n;
+    if(t < 0) {
+      n = (unsigned long long)(-t);
+    } else {
+      n = (unsigned long long)t;
+    }
+    std::string s = inttostr(n,base,width);
+    if((!s.empty()) && (t < 0)) {
+      if((s.length() > 1) && (s[0] == '0')) {
+        s[0] = '-';
+      } else {
+        s.insert(0,1,'-');
+      }
+    }
+    return s;
+  }
+
+  std::string inttostr(unsigned long long t, int base, int width) {
+    if(base < 2) return "";
+    if(base > 36) return "";
+
+    std::string s;
+    for(;t;) {
+      unsigned int v = t % (unsigned int)base;
+      char c;
+      if(v < 10) {
+        c = ((char)v) + '0';
+      } else {
+        c = ((char)(v-10)) + 'a';
+      }
+      s.insert(0,1,c);
+      t = t / (unsigned int)base;
+    }
+    if(s.empty()) s="0";
+    while(s.length() < width) s.insert(0,1,'0');
+    return s;
+  }
+
 } // namespace Arc
