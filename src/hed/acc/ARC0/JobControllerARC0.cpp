@@ -459,34 +459,15 @@ namespace Arc {
     std::string shortid = jobid.substr(pos + 1);
 
     // Transfer job description
-    DataMover mover;
-    mover.secure(false);
-    mover.passive(true);
-    mover.verbose(false);
-    mover.force_to_meta(false);
-    mover.retry(true);
-    FileCache cache;
     URL source_url(cluster + "/info/" + shortid + "/description");
     std::string tmpfile = shortid + G_DIR_SEPARATOR_S + "description";
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
-    DataHandle source(source_url, usercfg);
-    DataHandle destination(dest_url, usercfg);
-    source->SetTries(1);
-    destination->SetTries(1);
-    DataStatus res = mover.Transfer(*source, *destination, cache, URLMap(),
-                                    0, 0, 0, usercfg.Timeout());
-    if (!res.Passed()) {
-      if (!res.GetDesc().empty())
-        logger.msg(INFO, "Current transfer FAILED: %s - %s",
-                   std::string(res), res.GetDesc());
-      else
-        logger.msg(INFO, "Current transfer FAILED: %s", std::string(res));
-      mover.Delete(*destination);
+
+    // Transfer job description
+    if (!ARCCopyFile(source_url, dest_url)) {
       return false;
     }
-    else
-      logger.msg(INFO, "Current transfer complete");
 
     // Read job description from file
     std::ifstream descriptionfile(localfile.c_str());
@@ -509,7 +490,6 @@ namespace Arc {
     desc_str = (std::string)buffer;
     //Cleaning up
     delete[] buffer;
-    destination->Remove();
 
     // Extracting original client xrsl
     pos = desc_str.find("clientxrsl");
