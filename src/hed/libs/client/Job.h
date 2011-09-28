@@ -256,7 +256,7 @@ namespace Arc {
      **/
     static bool WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries = 10, unsigned tryInterval = 500000);
 
-    /// Truncate file and write jobs to it
+    /// Remove job from file
     /**
      * This static method will remove the jobs having IDFromEndpoint identical
      * to any of those in the passed list jobids. File locking will be done as
