@@ -97,6 +97,7 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
+# Needed to get pid file
 readconfigvar() {
     fname=$1
     if [ ! -r "$fname" ]; then
@@ -142,7 +143,7 @@ if [ "x$ARC_CONFIG" = "x" ]; then
     fi
 fi
 
-PID_FILE=
+PID_FILE=`readconfigvar "$ARC_CONFIG" common pidfile`
 
 if [ `id -u` = 0 ] ; then
     # Debian does not have /var/lock/subsys
@@ -174,60 +175,8 @@ prepare() {
         exit 0
     fi
 
-    # Creating configuration file of arched
-
-    LOGFILE=`readconfigvar "$ARC_CONFIG" datadelivery-service logfile`
-    LOGLEVEL=`readconfigvar "$ARC_CONFIG" datadelivery-service debug`
-    LOGSIZE=`readconfigvar "$ARC_CONFIG" datadelivery-service logsize`
-    USERNAME=`readconfigvar "$ARC_CONFIG" datadelivery-service user`
-    X509_USER_CERT=`readconfigvar "$ARC_CONFIG" datadelivery-service x509_user_cert`
-    X509_USER_KEY=`readconfigvar "$ARC_CONFIG" datadelivery-service x509_user_key`
-    X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" datadelivery-service x509_cert_dir`
-
-    if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=`readconfigvar "$ARC_CONFIG" common x509_user_cert`
-    fi
-    if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=`readconfigvar "$ARC_CONFIG" common x509_user_key`
-    fi
-    if [ -z "$X509_CERT_DIR" ] ; then
-        X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" common x509_cert_dir`
-    fi
-
-    # Exporting collected variables
-    if [ ! -z "$X509_USER_CERT" ] ; then export X509_USER_CERT ; fi
-    if [ ! -z "$X509_USER_KEY" ] ; then export X509_USER_KEY ; fi
-    if [ ! -z "$X509_CERT_DIR" ] ; then export X509_CERT_DIR ; fi
-
-    # Required defaults
-    if [ -z "$X509_USER_CERT" ] ; then
-        X509_USER_CERT=/etc/grid-security/hostcert.pem
-    fi
-    if [ -z "$X509_USER_KEY" ] ; then
-        X509_USER_KEY=/etc/grid-security/hostkey.pem
-    fi
-    if [ -z "$X509_CERT_DIR" ] ; then
-        X509_CERT_DIR=/etc/grid-security/certificates
-    fi
-
-    # Web Service configuration
-    PORT=`readconfigvar "$ARC_CONFIG" datadelivery-service port`
-    PORT=${PORT:-60002}
-
-    SERVICE_CONFIG=`mktemp -t arc-datadelivery-service.xml.XXXXXX`
-    if [ -z "$SERVICE_CONFIG" ] ; then
-        log_failure_msg "Failed to create temporary file"
-        exit 1
-    fi
-    
-    # Allowed client credentials
-    ALLOWED_DN=`readconfigvar "$ARC_CONFIG" datadelivery-service allowed_dn`
-    if [ "x$ALLOWED_DN" = "x" ]; then
-        log_failure_msg "No allowed DN specified in configuration"
-        exit 1
-    fi
-
-    CMD="$CMD -c '$SERVICE_CONFIG'"
+    # Assuming ini style config
+    CMD="$CMD -i '$ARC_CONFIG'"
 
     add_library_path "$GLOBUS_LOCATION"
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
@@ -236,100 +185,6 @@ prepare() {
         LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$LD_LIBRARY_PATH
     fi
     export LD_LIBRARY_PATH
-
-    case "$LOGLEVEL" in 
-        0) LOGLEVEL="FATAL" ;;
-        1) LOGLEVEL="ERROR" ;;
-        2) LOGLEVEL="WARNING" ;;
-        3) LOGLEVEL="INFO" ;;
-        4) LOGLEVEL="VERBOSE" ;;
-        5) LOGLEVEL="DEBUG" ;;
-        *) LOGLEVEL="WARNING" ;;
-    esac
-
-    if [ "$USERNAME" = "root" ] ; then
-        USERNAME=""
-    fi
-
-    LOGFILE=${LOGFILE:-/var/log/arc/datadelivery-service.log}
-    if [ ! -d `dirname $LOGFILE` ]; then
-        mkdir -p `dirname $LOGFILE`
-    fi
-    LOGSIZE=${LOGSIZE:--1 -1}
-    LOGNUM=`echo "$LOGSIZE" | sed 's/^ *[-+0-9]* *//'`
-    LOGSIZE=`echo "$LOGSIZE" | sed 's/^ *\([-+0-9]*\).*/\1/'`
-
-    if [ ! -z "$USERNAME" ] ; then
-        CMD="$CMD -u $USERNAME"
-    fi
-
-    # datadelivery service XML config
-    SERVICECFG="\
-<?xml version=\"1.0\"?>\
-<ArcConfig\
-  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"\
-  xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
-  xmlns:datadeliveryservice=\"urn:datadeliveryservice_config\">\
-  <Server>\
-    <PidFile>$PID_FILE</PidFile>\
-    <Logger>\
-      <File>$LOGFILE</File>\
-      <Level>$LOGLEVEL</Level>\
-      <Backups>$LOGNUM</Backups>\
-      <Maxsize>$LOGSIZE</Maxsize>\
-    </Logger>\
-  </Server>\
-  <ModuleManager>\
-    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>\
-  </ModuleManager>\
-  <Plugins><Name>mcctcp</Name></Plugins>\
-  <Plugins><Name>mcctls</Name></Plugins>\
-  <Plugins><Name>mcchttp</Name></Plugins>\
-  <Plugins><Name>mccsoap</Name></Plugins>\
-  <Plugins><Name>identitymap</Name></Plugins>\
-  <Plugins><Name>arcshc</Name></Plugins>\
-  <Plugins><Name>datadeliveryservice</Name></Plugins>\
-  <Chain>\
-    <Component name=\"tcp.service\" id=\"tcp\">\
-      <next id=\"tls\"/>\
-      <tcp:Listen><tcp:Port>$PORT</tcp:Port></tcp:Listen>\
-    </Component>\
-    <Component name=\"tls.service\" id=\"tls\">\
-      <next id=\"http\"/>\
-      <KeyPath>$X509_USER_KEY</KeyPath>\
-      <CertificatePath>$X509_USER_CERT</CertificatePath>\
-      <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>\
-      <VOMSCertTrustDNChain>
-        <VOMSCertTrustRegex>.*</VOMSCertTrustRegex>
-      </VOMSCertTrustDNChain>
-      <SecHandler name=\"arc.authz\" id=\"authz\" event=\"incoming\">\
-        <PDP name=\"simplelist.pdp\">\
-          <DN>$ALLOWED_DN</DN>\
-        </PDP>\
-      </SecHandler>\
-    </Component>\
-    <Component name=\"http.service\" id=\"http\">\
-      <next id=\"soap\">POST</next>\
-      <next id=\"plexer\">GET</next>\
-      <next id=\"plexer\">PUT</next>\
-    </Component>\
-    <Component name=\"soap.service\" id=\"soap\">\
-      <next id=\"plexer\"/>\
-    </Component>\
-    <Plexer name=\"plexer.service\" id=\"plexer\">\
-      <next id=\"datadeliveryservice\">^/datadeliveryservice</next>\
-    </Plexer>\
-    <Service name=\"datadeliveryservice\" id=\"datadeliveryservice\">\
-    </Service>\
-  </Chain>\
-</ArcConfig>\
-"
-
-    echo "$SERVICECFG" > "$SERVICE_CONFIG"
-
-    if [ ! -z "$USERNAME" ] ; then
-        [ -f $SERVICE_CONFIG ] && chown $USERNAME $SERVICE_CONFIG
-    fi
 }
 
 start() {

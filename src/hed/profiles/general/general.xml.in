@@ -158,6 +158,7 @@ attributes depending on how the mapping should be done.
       <next id="shepherd" inisections="shepherd" initag="endpointpattern" initokenenables="shepherd" inidefaultvalue="^/shepherd$"/>
       <next id="hopi-chelonia" inisections="shepherd" initag="hopi-endpointpattern" initokenenables="shepherd" inidefaultvalue="^/shepherd/"/>
       <next id="hopi" inisections="hopi" initag="endpointpattern" initokenenables="hopi" inidefaultvalue="^/hopi"/>
+      <next id="datadeliveryservice" inisections="datadelivery-service" initag="endpointpattern" initokenenables="datadelivery-service" inidefaultvalue="^/datadeliveryservice"/>
     </Plexer>
 
     <Service name="a-rex" id="a-rex" initokenenables="arex">
@@ -1301,5 +1302,16 @@ attributes depending on how the mapping should be done.
         <CACertificatesDir inisections="hopi common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
       </SecHandler>
     </Service>
+    
+    <Service name="datadeliveryservice" id="datadeliveryservice" initokenenables="datadelivery-service">
+      <!-- Service-specific configuration here -->
+      <SecHandler name="arc.authz" id="pdpdn" event="incoming" initokenenables="datadelivery-service">
+        <!-- allowed_dn to filter users by their DN is mandatory -->
+        <PDP name="simplelist.pdp">
+          <DN initype="multi" inisections="datadelivery-service" initag="allowed_dn"/>
+        </PDP>
+      
+    </Service>
+    
   </Chain>
 </ArcConfig>
