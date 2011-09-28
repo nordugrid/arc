@@ -47,7 +47,7 @@ namespace Arc {
     virtual ~JobController();
 
     /// Fill jobstore
-    void FillJobStore(const Job& job);
+    bool FillJobStore(const Job& job);
 
     bool Get(const std::list<std::string>& status,
              const std::string& downloaddir,
