@@ -66,7 +66,35 @@ namespace Arc {
 
     ~JobSupervisor();
 
+    /// Add job
+    /**
+     * Add Job object to this JobSupervisor for job management. The Job
+     * object will be passed to the corresponding specialized JobController.
+     *
+     * @param job Job object to add for job management
+     * @return true is returned if the passed Job object was added to the
+     *  underlying JobController, otherwise false is returned and a log
+     *  message emitted with the reason.
+     **/
     bool AddJob(const Job& job);
+
+    /// Get list of managed jobs
+    /**
+     * The list of jobs managed by this JobSupervisor is returned when
+     * calling this method.
+     *
+     * @return list of Job objects managed by this JobSupervisor
+     **/
+    std::list<Job> GetJobs() const;
+
+    /// Update job information
+    /**
+     * When invoking this method the job information for the jobs managed by
+     * this JobSupervisor will be updated. Internally, for each loaded
+     * JobController the JobController::GetJobInformation method will be
+     * called, which will be responsible for updating job information.
+     **/
+    void Update();
 
     /// Retrieve job output files
     /**

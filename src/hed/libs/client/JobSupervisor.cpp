@@ -154,6 +154,26 @@ namespace Arc {
     return true;
   }
 
+  std::list<Job> JobSupervisor::GetJobs() const {
+    std::list<Job> jobs;
+    for (std::list<JobController*>::const_iterator itJC = loader.GetJobControllers().begin();
+         itJC != loader.GetJobControllers().end(); ++itJC) {
+      for (std::list<Job>::const_iterator itJ = (*itJC)->jobstore.begin();
+           itJ != (*itJC)->jobstore.end(); ++itJ) {
+        jobs.push_back(*itJ);
+      }
+    }
+
+    return jobs;
+  }
+
+  void JobSupervisor::Update() {
+    for (std::list<JobController*>::const_iterator itJC = loader.GetJobControllers().begin();
+         itJC != loader.GetJobControllers().end(); ++itJC) {
+      (*itJC)->GetJobInformation();
+    }
+  }
+
   bool JobSupervisor::Get(const std::list<std::string>& status,
                           const std::string& downloaddir,
                           bool usejobname,
