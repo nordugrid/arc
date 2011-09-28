@@ -34,8 +34,8 @@ namespace Arc {
     job = &jobdesc;
 
     Credential credential(usercfg);
+    std::string proxyDN = credential.GetDN();
     std::string proxyIssuerCA = credential.GetCAName();
-    logger.msg(DEBUG, "Your issuer CA's DN: %s.", proxyIssuerCA);
 
     for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
@@ -59,7 +59,7 @@ namespace Arc {
 
       if ( !(target->TrustedCA.empty()) && (find(target->TrustedCA.begin(), target->TrustedCA.end(), proxyIssuerCA)
               == target->TrustedCA.end()) ){
-          logger.msg(VERBOSE, "Your issuer CA's DN (%s) is not supported on (%s) target.",proxyIssuerCA, target->url.str());
+          logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, target->url.str());
           continue;
       }
 
@@ -298,7 +298,7 @@ namespace Arc {
             continue;
           }
         }
-        
+
         if (target->MaxDiskSpace <= -1 && target->WorkingAreaFree <= -1) {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
           continue;
@@ -319,7 +319,7 @@ namespace Arc {
             continue;
           }
         }
-        
+
         if (target->MaxDiskSpace <= -1 && target->WorkingAreaFree <= -1) {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
           continue;
@@ -333,14 +333,14 @@ namespace Arc {
             continue;
           }
         }
-        
+
         if (target->WorkingAreaFree > -1) {     // Example: 5656
           if (target->WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
             logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", target->WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
             continue;
           }
         }
-        
+
         if (target->WorkingAreaFree <= -1 && target->MaxDiskSpace <= -1) {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
           continue;
