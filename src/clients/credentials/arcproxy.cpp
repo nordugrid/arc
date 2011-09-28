@@ -884,7 +884,7 @@ int main(int argc, char *argv[]) {
       //case, "--cert" and "--key" is not needed.
       cert_path = proxy_path;
       key_path = proxy_path;
-      std::cout << Arc::IString("Succeeded to get a proxy from MyProxy server") << std::endl;
+      std::cout << Arc::IString("Succeeded to get a proxy in %s for user %s from MyProxy server %s", proxy_path, user_name, myproxy_server) << std::endl;
 
       return EXIT_SUCCESS;
     }
@@ -918,7 +918,7 @@ int main(int argc, char *argv[]) {
     std::string req_str;
     std::string policy;
     policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-    Arc::Credential cred_request(proxy_start - Arc::Period(300), proxy_period, keybits);
+    Arc::Credential cred_request(proxy_start - Arc::Period(300), proxy_period.GetPeriod() + 300, keybits);
     cred_request.GenerateRequest(req_str);
     cred_request.OutputPrivatekey(private_key);
     signer.OutputCertificate(signing_cert);
@@ -1273,7 +1273,7 @@ int main(int argc, char *argv[]) {
       if(!retrievable_by_cert.empty()) {
         myproxyopt["retriever_trusted"] = retrievable_by_cert;
       }
-      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start,proxy_period))
+      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start - Arc::Period(300),proxy_period.GetPeriod() + 300))
         throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
 
       remove_proxy_file(proxy_path);
