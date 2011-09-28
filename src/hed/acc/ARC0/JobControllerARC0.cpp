@@ -464,7 +464,6 @@ namespace Arc {
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
 
-    // Transfer job description
     if (!ARCCopyFile(source_url, dest_url)) {
       return false;
     }
