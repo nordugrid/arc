@@ -572,16 +572,19 @@ namespace Arc {
 
   bool Job::WriteJobsToTruncatedFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
     Config jobfile;
+    std::map<std::string, XMLNode> jobIDXMLMap;
     for (std::list<Job>::const_iterator it = jobs.begin();
          it != jobs.end(); it++) {
-      std::list<Job>::const_iterator it2 = it;
-      for (++it2; it2 != jobs.end(); ++it2) {
-        if (it->IDFromEndpoint == it2->IDFromEndpoint) {
-          return false; // Identical jobs found in list.
-        }
+      std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->IDFromEndpoint.fullstr());
+      if (itJobXML == jobIDXMLMap.end()) {
+        XMLNode xJob = jobfile.NewChild("Job");
+        it->ToXML(xJob);
+        jobIDXMLMap[it->IDFromEndpoint.fullstr()] = xJob;
       }
-      XMLNode xJob = jobfile.NewChild("Job");
-      it->ToXML(xJob);
+      else {
+        itJobXML->second.Replace(XMLNode(NS(), "Job"));
+        it->ToXML(itJobXML->second);
+      }
     }
 
     FileLock lock(filename);

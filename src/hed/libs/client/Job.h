@@ -192,9 +192,9 @@ namespace Arc {
      * This static method will write the passed list of jobs to the specified
      * file, but before writing the file will be truncated. Jobs will be written
      * in XML format as returned by the ToXML method, and each job will be
-     * contained in a element named "Job". The passed list of jobs must not
-     * contain two identical jobs (i.e. IDFromEndpoint identical), if that is
-     * the case false will be returned. File locking will be done as described
+     * contained in a element named "Job". If the passed list of jobs contains
+     * two identical jobs (i.e. IDFromEndpoint identical), only the latter
+     * Job object is stored. File locking will be done as described
      * for the ReadAllJobsFromFile method. The method will return false if
      * writing jobs to the file fails. Otherwise it returns true.
      *
