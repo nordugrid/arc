@@ -34,9 +34,9 @@ The FIFO on which the server will accept queries
 .SH EXTENDED DESCRIPTION
 
 \fBarc-infoindex-server\fR accepts registrations with information
-about local information systems and other arc-index-servers. It also
-responds to status queries returning the list of registered resources
-and their registration status (valid, invalid or purged).
+about local information systems and other arc-infoindex-servers. It
+also responds to status queries returning the list of registered
+resources and their registration status (valid, invalid or purged).
 
 Queries are accepted on a FIFO and are normally forwarded from a slapd
 server through an arc-infoindex-relay process. The first line of a

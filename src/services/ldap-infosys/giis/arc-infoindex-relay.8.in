@@ -27,8 +27,8 @@ The FIFO on which the arc-infoindex-server accepts queries
 
 \fBarc-infoindex-relay\fR acts as a bridge between the slapd server
 and the arc-infoindex-server in the NorduGrid ARC Information
-system. For each index served by the arc-index-server a shell backend
-database should be configured in the slapd configuration.
+system. For each index served by the arc-infoindex-server a shell
+backend database should be configured in the slapd configuration.
 
 Here is a sample configuration:
 
@@ -42,13 +42,14 @@ access to * by * write
 .fi
 
 When a query for the configured database is recieved by the slapd
-server, the server will call out to the arc-index-relay. The
-arc-info-relay will then open a unique return FIFO for this query and
-then forward the query and the name of the return FIFO to the
-arc-index-server through the configured server FIFO. When the
-arc-index-server has processed the query it will return the result to
-the arc-index-relay using the return FIFO. The arc-index-relay then
-closes the return FIFO and forwards the response to the slapd server.
+server, the server will call out to the arc-infoindex-relay. The
+arc-infoindex-relay will then open a unique return FIFO for this query
+and then forward the query and the name of the return FIFO to the
+arc-infoindex-server through the configured server FIFO. When the
+arc-infoindex-server has processed the query it will return the result
+to the arc-infoindex-relay using the return FIFO. The
+arc-infoindex-relay then closes the return FIFO and forwards the
+response to the slapd server.
 
 .SH COPYRIGHT
 
