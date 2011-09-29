@@ -348,12 +348,22 @@ bool PayloadHTTP::read_header(void) {
   it=attributes_.find("content-type");
   if(it != attributes_.end()) {
     if(strncasecmp(it->second.c_str(),"multipart/",10) == 0) {
-      const char* boundary = strcasestr(it->second.c_str()+10,"boundary=");
+      // TODO: more bulletproof approach is needed
+      std::string lline = lower(it->second);
+      const char* boundary = strstr(lline.c_str()+10,"boundary=");
       if(!boundary) return false;
+      boundary = it->second.c_str()+(boundary-lline.c_str());
+      //const char* boundary = strcasestr(it->second.c_str()+10,"boundary=");
       const char* tag_start = strchr(boundary,'"');
-      if(!tag_start) return false;
-      ++tag_start;
-      const char* tag_end = strchr(tag_start,'"');
+      const char* tag_end = NULL;
+      if(!tag_start) {
+        tag_start = boundary + 9;
+        tag_end = strchr(tag_start,' ');
+        if(!tag_end) tag_end = tag_start + strlen(tag_start);
+      } else {
+        ++tag_start;
+        tag_end = strchr(tag_start,'"');
+      }
       if(!tag_end) return false;
       multipart_tag_ = std::string(tag_start,tag_end-tag_start);
       if(multipart_tag_.empty()) return false;
