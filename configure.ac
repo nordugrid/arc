@@ -798,16 +798,17 @@ fi
 # Check xmlsec1
 #
 #############################
-MACOS=""
+MACOSX=""
 case "${host}" in
   *darwin*)
-    MACOS="yes"
+    MACOSX="yes"
     ;;
 esac
 
-if test "x$MACOS" = "xyes"; then
+if test "x$MACOSX" = "xyes"; then
   AC_DEFINE(_MACOSX,,[Define if compiling for MacOSX])
 fi
+AM_CONDITIONAL([MACOSX], [ test "x$MACOSX" = "xyes"])
 
 if test "$enables_hed" = "yes"; then
 XMLSEC_MIN_VERSION="1.2.4"
@@ -833,7 +834,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     XMLSEC_OPENSSL_CFLAGS=`echo $XMLSEC_OPENSSL_CFLAGS | sed 's/\\\\\\\"/\\"/g'`
   fi
 
-  if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" != "xyes"; then
+  if test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOSX" != "xyes"; then
       AC_MSG_CHECKING(for xmlsec1 libraries >= $XMLSEC_MIN_VERSION)
       if test "x$with_xmlsec1" != "x" ; then
         XMLSEC_CONFIG=$with_xmlsec1/bin/$XMLSEC_CONFIG
@@ -855,8 +856,8 @@ if test "x$enables_xmlsec1" = "xyes"; then
           AC_MSG_WARN(You need at least xmlsec1 $XMLSEC_MIN_VERSION for this version of arc1)
         fi
       fi
-  elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOS" = "xyes"; then
-    #MACOS has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
+  elif test "x$XMLSEC_INSTALLED" = "xno" -a "x$MACOSX" = "xyes"; then
+    #MACOSX has no "ldd" which is needed by xmlsec1-config, so here simply we use PKG_CHECK_MODULES
     PKG_CONFIG_PATH="$with_xmlsec1/lib/pkgconfig/:$PKG_CONFIG_PATH"
     PKG_CHECK_MODULES(XMLSEC, [xmlsec1 >= $XMLSEC_MIN_VERSION],
         [XMLSEC_INSTALLED=yes], [XMLSEC_INSTALLED=no])
