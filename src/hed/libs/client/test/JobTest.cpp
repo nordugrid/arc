@@ -364,10 +364,23 @@ void JobTest::FileTest() {
   inJobs.back().IDFromEndpoint.ChangePath("/arex/job5");
 
   inJobs.push_back(inJobs.back());
+  inJobs.back().Name = "Job5New";
 
-  // Identical jobs in job list is not allowed.
-  CPPUNIT_ASSERT(!Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
-  CPPUNIT_ASSERT(!Arc::Job::WriteJobsToFile(jobfile, inJobs, newJobs));
+  // Duplicate jobs will be overwritten.
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfile, inJobs));
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+
+  // Truncate file.
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfile, std::list<Arc::Job>()));
+  newJobs.clear();
+  CPPUNIT_ASSERT(Arc::Job::WriteJobsToFile(jobfile, inJobs, newJobs));
+  CPPUNIT_ASSERT_EQUAL(4, (int)newJobs.size());
+  CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
+  CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
+  CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
+  
   inJobs.pop_back();
 
   // Adding more jobs to file.
