@@ -225,23 +225,23 @@ namespace Arc {
 
     /// Write jobs to file
     /**
-     * This static method will write (appending) the passed list of jobs to the
+     * This static method will write (append) the passed list of jobs to the
      * specified file. Jobs will be written in XML format as returned by the
      * ToXML method, and each job will be contained in a element named "Job".
-     * The passed list of jobs must not contain two identical jobs (i.e.
-     * IDFromEndpoint identical), if that is the case false will be returned. If
-     * on the other hand a job in the list is identical to one in file, the one
-     * in file will be overwritten. A pointer (no new) to those jobs from the
-     * list which are not in the file will be added to newJobs list, thus these
-     * pointers goes out of scope when jobs list goes out of scope. File locking
-     * will be done as described for the ReadAllJobsFromFile method. The method
-     * will return false if writing jobs to the file fails. Otherwise it returns
-     * true.
+     * If the passed list of jobs contains two identical jobs (i.e.
+     * IDFromEndpoint identical), only the latter Job object is stored. If
+     * a job in the list is identical to one in file, the one in file will be
+     * replaced with the one from the list. A pointer (no memory allocation) to
+     * those jobs from the list which are not in the file will be added to the
+     * newJobs list, thus these pointers goes out of scope when 'jobs' list goes
+     * out of scope. File locking will be done as described for the
+     * ReadAllJobsFromFile method. The method will return false if writing jobs
+     * to the file fails. Otherwise it returns true.
      *
      * @param filename is the filename of the job list to write jobs to.
      * @param jobs is the list of Job objects which should be written to file.
      * @param newJobs is a reference to a list of pointers to Job objects which
-     *  are not duplicates (cleared before use).
+     *  are not duplicates.
      * @param nTries specifies the maximal number of times the method will try
      *  to acquire a lock on file to read.
      * @param tryInterval specifies the interval (in micro seconds) between each

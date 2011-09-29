@@ -614,38 +614,51 @@ namespace Arc {
   }
 
   bool Job::WriteJobsToFile(const std::string& filename, const std::list<Job>& jobs, std::list<const Job*>& newJobs, unsigned nTries, unsigned tryInterval) {
-    newJobs.clear();
-
     FileLock lock(filename);
     for (int tries = (int)nTries; tries > 0; --tries) {
       if (lock.acquire()) {
         Config jobfile;
         jobfile.ReadFromFile(filename);
 
-        for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-          std::list<Job>::const_iterator it2 = it;
-          for (++it2; it2 != jobs.end(); ++it2) {
-            if (it->IDFromEndpoint == it2->IDFromEndpoint) {
-              newJobs.clear();
-              lock.release();
-              return false; // Identical jobs found in list.
-            }
+        // Use std::map to store job IDs to be searched for duplicates.
+        std::map<std::string, XMLNode> jobIDXMLMap;
+        for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
+          if (!((std::string)j["IDFromEndpoint"]).empty()) {
+            jobIDXMLMap[(std::string)j["IDFromEndpoint"]] = j;
           }
-          bool jobExists = false;
-          for (Arc::XMLNode j = jobfile["Job"]; j; ++j) {
-            if (((std::string)j["JobID"])          == it->IDFromEndpoint.fullstr() ||
-                ((std::string)j["IDFromEndpoint"]) == it->IDFromEndpoint.fullstr()) {
-              j.Destroy(); // Overwrite existing job with the current.
-              jobExists = true;
-              break;
-            }
-          }
-
-          it->ToXML(jobfile.NewChild("Job"));
-          if (!jobExists) {
-            newJobs.push_back(&*it);
+          else if (!((std::string)j["JobID"]).empty()) {
+            jobIDXMLMap[(std::string)j["JobID"]] = j;
           }
         }
+
+        std::map<std::string, const Job*> newJobsMap;
+        for (std::list<Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+          std::map<std::string, XMLNode>::iterator itJobXML = jobIDXMLMap.find(it->IDFromEndpoint.fullstr());
+          if (itJobXML == jobIDXMLMap.end()) {
+            XMLNode xJob = jobfile.NewChild("Job");
+            it->ToXML(xJob);
+            jobIDXMLMap[it->IDFromEndpoint.fullstr()] = xJob;
+            newJobsMap[it->IDFromEndpoint.fullstr()] = &(*it);
+          }
+          else {
+            // Duplicate found, replace it.
+            itJobXML->second.Replace(XMLNode(NS(), "Job"));
+            it->ToXML(itJobXML->second);
+            
+            // Only add to newJobsMap if this is a new job, i.e. not previous present in jobfile.
+            std::map<std::string, const Job*>::iterator itNewJobsMap = newJobsMap.find(it->IDFromEndpoint.fullstr());
+            if (itNewJobsMap != newJobsMap.end()) {
+              itNewJobsMap->second = &(*it);
+            }
+          }
+        }
+
+        // Add pointers to new Job objects to the newJobs list.
+        for (std::map<std::string, const Job*>::const_iterator it = newJobsMap.begin();
+             it != newJobsMap.end(); ++it) {
+          newJobs.push_back(it->second);
+        }
+
         if (!jobfile.SaveToFile(filename)) {
           lock.release();
           return false;
