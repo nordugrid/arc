@@ -332,7 +332,7 @@ static void soft_state_thread(void *data) {
     }
 }
 
-    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),valid("PT12H"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0) {
+    ISIService::ISIService(Arc::Config *cfg):RegisteredService(cfg),logger_(Arc::Logger::rootLogger, "ISIS"),validity("PT12H"),remove("PT1D"),db_(NULL),neighbors_update_needed(false),available_provider(false),neighbors_count(0) {
 
         logger_.msg(Arc::VERBOSE, "Parsing configuration parameters");
 
@@ -431,12 +431,12 @@ static void soft_state_thread(void *data) {
                 if(validp.GetPeriod() <= 0) {
                     logger_.msg(Arc::ERROR, "Configuration error. ETValid: \"%s\" is not a valid value. Default value will be used.",(std::string)(*cfg)["ETValid"]);
                 } else {
-                    valid.SetPeriod( validp.GetPeriod() );
+                    validity.SetPeriod( validp.GetPeriod() );
                 }
             } else logger_.msg(Arc::ERROR, "Configuration error. ETValid is empty. Default value will be used.");
         } else logger_.msg(Arc::VERBOSE, "ETValid: Default value will be used.");
 
-        logger_.msg(Arc::VERBOSE, "ETValid: %d seconds", valid.GetPeriod());
+        logger_.msg(Arc::VERBOSE, "ETValid: %d seconds", validity.GetPeriod());
 
         // Set up ETRemove if there is any in the configuration
         if ((bool)(*cfg)["ETRemove"]) {
@@ -516,7 +516,7 @@ static void soft_state_thread(void *data) {
         // or not, and if yes, then destroy itself and free the relevant pointer.
         valid_data = new Soft_State();
         valid_data->function = "ETValid";
-        valid_data->sleep = ((int)valid.GetPeriod());
+        valid_data->sleep = ((int)validity.GetPeriod());
         valid_data->query = "//RegEntry/MetaSrcAdv[count(Expiration)=1]/ServiceID";
         valid_data->database = db_;
         valid_data->kill_thread = &KillThread;

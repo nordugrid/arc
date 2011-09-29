@@ -53,8 +53,6 @@ class CacheService: public Arc::RegisteredService {
   /** Configuration information, held by reference inside gm_env so must
       not be deleted before it. */
   JobsListConfig* jcfg;
-  /** Flag to say whether CacheService is valid */
-  bool valid;
   /** Logger object */
   static Arc::Logger logger;
 

@@ -48,8 +48,6 @@ namespace DataStaging {
     unsigned int max_processes;
     /// Current processes - using gint to guarantee atomic thread-safe operations
     gint current_processes;
-    /// Flag to say whether DataDeliveryService is valid
-    bool valid;
     /// Internal list of active DTRs, mapped to the stream with the transfer log
     std::map<DTR*, std::stringstream*> active_dtrs;
     /// Lock for DTRs list
@@ -103,10 +101,6 @@ namespace DataStaging {
     /// Supplies information on the service for use in the information system.
     bool RegistrationCollector(Arc::XMLNode &doc);
 
-    /// Returns true if the CacheService is valid.
-    operator bool() const { return valid; };
-    /// Returns true if the CacheService is not valid.
-    bool operator!() const { return !valid; };
   };
 
 } // namespace DataStaging

@@ -47,8 +47,8 @@ CacheService::CacheService(Arc::Config *cfg) : RegisteredService(cfg),
                                                current_downloads(0),
                                                users(NULL),
                                                gm_env(NULL),
-                                               jcfg(NULL),
-                                               valid(false) {
+                                               jcfg(NULL) {
+  valid = false;
   // read configuration information
   /*
   cacheservice config specifies A-REX conf file

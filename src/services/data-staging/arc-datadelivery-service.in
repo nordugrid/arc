@@ -212,7 +212,6 @@ start() {
 
     eval "$CMD"
     RETVAL=$?
-    rm -f "$SERVICE_CONFIG"
 
     if [ $RETVAL -eq 0 ]; then
         touch $LOCKFILE

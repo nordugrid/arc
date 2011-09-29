@@ -819,8 +819,8 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
               job_log_(NULL),
               jobs_cfg_(NULL),
               gm_env_(NULL),
-              gm_(NULL),
-              valid_(false) {
+              gm_(NULL) {
+  valid = false;
   // logger_.addDestination(logcerr);
   // Define supported namespaces
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
@@ -988,7 +988,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     if(!(*gm_)) { delete gm_; gm_=NULL; return; };
   };
   CreateThreadFunction(&information_collector_starter,this);
-  valid_=true;
+  valid=true;
 }
 
 ARexService::~ARexService(void) {

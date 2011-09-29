@@ -8,7 +8,7 @@ namespace Arc {
 
 Logger Service::logger(Logger::getRootLogger(), "Service");
 
-Service::Service(Config*) {
+Service::Service(Config*) : valid(true) {
 }
 
 void Service::AddSecHandler(Config* cfg,ArcSec::SecHandler* sechandler,const std::string& label) {

@@ -82,7 +82,6 @@ class ARexService: public Arc::RegisteredService {
   JobsListConfig* jobs_cfg_;
   GMEnvironment* gm_env_;
   GridManager* gm_;
-  bool valid_;
   ARexConfigContext* get_configuration(Arc::Message& inmsg);
 
   // A-REX operations
@@ -172,8 +171,6 @@ class ARexService: public Arc::RegisteredService {
   virtual bool RegistrationCollector(Arc::XMLNode &doc);
   virtual std::string getID();
   void StopChildThreads(void);
-  operator bool(void) { return valid_; };
-  bool operator!(void) { return !valid_; };
 };
 
 } // namespace ARex

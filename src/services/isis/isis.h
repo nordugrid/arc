@@ -31,7 +31,7 @@ namespace ISIS {
             // Configuration parameters
             Arc::Logger logger_;
             std::string endpoint_;
-            Arc::Period valid;
+            Arc::Period validity;
             Arc::Period remove;
             int retry;
             int sparsity;

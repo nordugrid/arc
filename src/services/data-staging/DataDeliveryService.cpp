@@ -465,6 +465,13 @@ namespace DataStaging {
     : RegisteredService(cfg),
       max_processes(100),
       current_processes(0) {
+
+    valid = false;
+    // Check configuration
+    if (!(*cfg)["SecHandler"]["PDP"]["DN"]) {
+      logger.msg(Arc::ERROR, "Invalid configuration - no allowed DNs specified");
+      return;
+    }
     // Start archival thread
     if (!Arc::CreateThreadFunction(ArchivalThread, this)) {
       logger.msg(Arc::ERROR, "Failed to start archival thread");
@@ -494,6 +501,8 @@ namespace DataStaging {
   }
 
   Arc::MCC_Status DataDeliveryService::process(Arc::Message &inmsg, Arc::Message &outmsg) {
+
+    if (!valid) return make_soap_fault(outmsg, "Service is not valid");
 
     // Check authorization
     if(!ProcessSecHandlers(inmsg, "incoming")) {
