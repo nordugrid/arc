@@ -60,7 +60,7 @@ attributes depending on how the mapping should be done.
     xmlns:janitor="http://www.nordugrid.org/schemas/Janitor/2009/08"
   >
   <base:Server>
-    <base:PidFile inisections="common" initag="pidfile" inidefaultvalue="/var/log/arched.pid"/>
+    <base:PidFile inisections="common" initag="pidfile" inidefaultvalue="/var/run/arched.pid"/>
     <base:User inisections="common" initag="user"/>
     <base:Group inisections="common" initag="group"/>
     <base:Logger>
@@ -1310,7 +1310,7 @@ attributes depending on how the mapping should be done.
         <PDP name="simplelist.pdp">
           <DN initype="multi" inisections="datadelivery-service" initag="allowed_dn"/>
         </PDP>
-      
+      </SecHandler>
     </Service>
     
   </Chain>

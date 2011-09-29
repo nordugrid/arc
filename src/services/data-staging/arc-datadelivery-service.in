@@ -153,12 +153,12 @@ if [ `id -u` = 0 ] ; then
         LOCKFILE=/var/lock/$prog-datadelivery-service
     fi
     if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=/var/run/$prog-datadelivery-service.pid
+        PID_FILE=/var/run/$prog.pid
     fi
 else
     LOCKFILE=$HOME/$prog-datadelivery-service.lock
     if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=$HOME/$prog-datadelivery-service.pid
+        PID_FILE=$HOME/$prog.pid
     fi
 fi
 
