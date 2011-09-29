@@ -424,8 +424,10 @@ namespace Arc {
     if(d != datas_.end()) {
       ThreadData* data = d->second;
       datas_.erase(d);
+      lock_.unlock();
       data->Release();
       //delete data;
+      return;
     }
     lock_.unlock();
   }
