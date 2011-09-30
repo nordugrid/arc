@@ -307,7 +307,7 @@ namespace Arc {
         ServicePluginArgument arg(&cfg_,context_);
         Plugin* plugin = factory_->get_instance(ServicePluginKind, name, &arg);
               Service* service = plugin?dynamic_cast<Service*>(plugin):NULL;
-        if(!service || !(*service)) {
+        if(!service) {
           logger.msg(ERROR, "Service %s(%s) could not be created", name, id);
           success = false;
           continue;
