@@ -122,8 +122,8 @@ void GridFTP_Commands::data_store_callback(void* arg,globus_ftp_control_handle_t
         };
       }
       else {
-        logger.msg(Arc::VERBOSE, "Time spent waiting for network: %llu mkS", it->time_spent_network);
-        logger.msg(Arc::VERBOSE, "Time spent waiting for disc: %llu mkS", it->time_spent_disc);
+        logger.msg(Arc::VERBOSE, "Time spent waiting for network: %.3f ms", (float)(it->time_spent_network/1000.0));
+        logger.msg(Arc::VERBOSE, "Time spent waiting for disc: %.3f ms", (float)(it->time_spent_disc/1000.0));
         it->send_response("226 Requested file transfer completed\r\n");
       };
     };
