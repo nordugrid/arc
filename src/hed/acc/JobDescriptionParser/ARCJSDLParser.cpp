@@ -637,7 +637,7 @@ namespace Arc {
         if (ds["Checksum"]) {
           file.Checksum = (std::string)ds["Checksum"];
         }
-        
+
         job.Files.push_back(file);
       }
     }
@@ -903,10 +903,20 @@ namespace Arc {
     {
       // Range<int> DiskSpace;
       XMLNode xmlDiskSpace("<DiskSpace/>");
-      Range<long long int> diskspace;
-      diskspace.max = job.Resources.DiskSpaceRequirement.DiskSpace.max*1024*1024;
-      diskspace.min = job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024;
-      outputARCJSDLRange(diskspace, xmlDiskSpace, (long long int)-1);
+      XMLNode xmlFileSystem("<FileSystem/>"); // JDSL compliance...
+      if (job.Resources.DiskSpaceRequirement.DiskSpace.max != -1 || job.Resources.DiskSpaceRequirement.DiskSpace.min != -1) {
+        Range<long long int> diskspace;
+        if (job.Resources.DiskSpaceRequirement.DiskSpace.max != -1) {
+          diskspace.max = job.Resources.DiskSpaceRequirement.DiskSpace.max*1024*1024;
+        }
+        if (job.Resources.DiskSpaceRequirement.DiskSpace.min != -1) {
+          diskspace.min = job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024;
+        }
+        outputARCJSDLRange(diskspace, xmlDiskSpace, (long long int)-1);
+
+        // JSDL compliance...
+        outputJSDLRange(diskspace, xmlFileSystem, (long long int)-1);
+      }
 
       if (xmlDiskSpace.Size() > 0) {
         xmlResources.NewChild("DiskSpaceRequirement").NewChild(xmlDiskSpace);
@@ -923,8 +933,6 @@ namespace Arc {
       }
 
       // JSDL Compliance...
-      XMLNode xmlFileSystem("<FileSystem/>");
-      outputJSDLRange(diskspace, xmlFileSystem, (long long int)-1);
       if (xmlFileSystem.Size() > 0) {
         xmlResources.NewChild("FileSystem").NewChild(xmlFileSystem);
       }
