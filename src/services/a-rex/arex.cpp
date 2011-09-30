@@ -71,6 +71,7 @@ static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/act
 static const std::string ES_AINFO_NPREFIX("esainfo");
 static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity");
 
+static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
 
 #define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
 #define AREX_POLICY_OPERATION_ADMIN "Admin"
@@ -149,7 +150,7 @@ ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
       id_=JOB_POLICY_OPERATION_URN;
       action_=JOB_POLICY_OPERATION_MODIFY;
     }
-  } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+  } else if(MatchXMLNamespace(op,WSRF_NAMESPACE)) {
     id_=AREX_POLICY_OPERATION_URN;
     action_=AREX_POLICY_OPERATION_INFO;
   } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
@@ -575,7 +576,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       Arc::PayloadSOAP& res = *outpayload;
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
-      if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
+      if(enablearc_ && MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
@@ -596,7 +597,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
+      } else if(enablearc_ && MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"StopAcceptingNewActivities")) {
@@ -608,7 +609,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
+      } else if(enableemies_ && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivities")) {
@@ -617,7 +618,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
+      } else if(enableemies_ && MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"GetResourceInfo")) {
@@ -629,7 +630,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+      } else if(enableemies_ && MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"PauseActivity")) {
@@ -659,7 +660,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+      } else if(enableemies_ && MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ListActivities")) {
@@ -674,7 +675,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+      } else if(enablearc_ && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ChangeActivityStatus")) {
@@ -700,7 +701,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         if(!credentials.empty()) {
           UpdateCredentials(*config,op,outpayload->Child(),credentials);
         };
-      } else if(MatchXMLNamespace(op,"http://docs.oasis-open.org/wsrf/rp-2")) {
+      } else if(enablearc_ && MatchXMLNamespace(op,WSRF_NAMESPACE)) {
         CountedResourceLock cl_lock(infolimit_);
         /*
         Arc::SOAPEnvelope* out_ = infodoc_.Arc::InformationInterface::Process(*inpayload);
@@ -845,11 +846,13 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   endpoint_=(std::string)((*cfg)["endpoint"]);
   uname_=(std::string)((*cfg)["usermap"]["defaultLocalName"]);
   gmconfig_=(std::string)((*cfg)["gmconfig"]);
-  if ((*cfg)["publishStaticInfo"] && Arc::lower((std::string)((*cfg)["publishStaticInfo"])) == "yes")
+  if (Arc::lower((std::string)((*cfg)["publishStaticInfo"])) == "yes") {
     publishstaticinfo_=true;
-  else
+  } else {
     publishstaticinfo_=false;
-  
+  }
+  enablearc_=true;
+  enableemies_=false;
   job_log_ = new JobLog;
   jobs_cfg_ = new JobsListConfig;
   gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_);
@@ -865,7 +868,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
     // some better approach - maybe like creating file with service
     // id in its name.
     try {
-      if(!configure_users_dirs(*cfg,users)) {
+      if(!configure_users_dirs(*cfg,users,enablearc_,enableemies_)) {
         logger_.msg(Arc::ERROR, "Failed to process service configuration");
         return;
       }
@@ -931,7 +934,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   } else {
     // External configuration file
     gm_env_->nordugrid_config_loc(gmconfig_);
-    if(!configure_users_dirs(users,*gm_env_)) {
+    if(!configure_users_dirs(users,*gm_env_,enablearc_,enableemies_)) {
       logger_.msg(Arc::ERROR, "Failed to process configuration in %s",gmconfig_);
     }
     // create control and session directories if not yet done

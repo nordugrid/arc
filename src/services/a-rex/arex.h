@@ -65,6 +65,8 @@ class ARexService: public Arc::RegisteredService {
   CountedResource beslimit_;
   CountedResource datalimit_;
   std::string endpoint_;
+  bool enablearc_;
+  bool enableemies_;
   bool publishstaticinfo_;
   std::string uname_;
   std::string gmconfig_;

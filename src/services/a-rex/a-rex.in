@@ -272,6 +272,11 @@ prepare() {
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
     fi
 
+    enable_emies_interface=`readconfigvar "$ARC_CONFIG" grid-manager enable_emies_interface`
+    if [ ! -z "$enable_emies_interface" ] ; then
+        enable_emies_interface="<arex:enableEMIESInterface>$enable_emies_interface</arex:enableEMIESInterface>"
+    fi
+
     AREX_CONFIG=`mktemp -t arex.xml.XXXXXX`
     if [ -z "$AREX_CONFIG" ] ; then
         log_failure_msg "Failed to create temporary file"
@@ -444,6 +449,7 @@ prepare() {
           </ConfigBlock>
       </SecHandler>
       $arex_endpoint
+      $enable_emies_interface
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>

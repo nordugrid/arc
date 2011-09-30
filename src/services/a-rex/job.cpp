@@ -57,6 +57,8 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
   std::string gridftp_endpoint; // for gridftp interface
   std::string arex_endpoint; // our interface
   std::string username = uname;
+  bool enable_arc;
+  bool enable_emies;
   std::string::size_type p =username.find(':');
   if(p != std::string::npos) username.resize(p);
   if(!configure_user_dirs(username,control_dir,session_roots,
@@ -64,7 +66,8 @@ ARexGMConfig::ARexGMConfig(const GMEnvironment& env,const std::string& uname,con
                           default_lrms,default_queue,queues_,
                           cont_plugins_,*cred_plugin,
                           allowsubmit,strict_session,
-                          gridftp_endpoint,arex_endpoint,env)
+                          gridftp_endpoint,arex_endpoint,
+                          enable_arc,enable_emies,env)
                           || control_dir.empty() ) {
     // olog<<"Failed processing grid-manager configuration"<<std::endl;
     delete user_; user_=NULL; delete cred_plugin; return;

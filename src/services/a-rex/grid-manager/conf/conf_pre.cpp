@@ -30,12 +30,16 @@ bool configure_user_dirs(const std::string &my_username,
                 std::string& allow_submit,bool& strict_session,
                 std::string& gridftp_endpoint,
                 std::string& arex_endpoint,
+                bool& enable_arc_interface,
+                bool& enable_emies_interface,
                 const GMEnvironment& env) {
   std::ifstream cfile;
   int gm_port = 0;
   std::string gm_mount_point;
   std::string gm_hostname;
   std::string arex_mount_point;
+  bool enable_arc = true;
+  bool enable_emies = false;
   //read_env_vars(true);
   bool configured = false;
   std::string central_control_dir("");
@@ -239,6 +243,12 @@ bool configure_user_dirs(const std::string &my_username,
         else if(command == "arex_mount_point") {
           arex_mount_point = config_next_arg(rest);
         }
+        else if(command == "enable_arc_interface") {
+          enable_arc = (Arc::lower(config_next_arg(rest)) == "yes");
+        }
+        else if(command == "enable_emies_interface") {
+          enable_emies = (Arc::lower(config_next_arg(rest)) == "yes");
+        }
         else if(command == "hostname") {
           gm_hostname = config_next_arg(rest);
         }
@@ -359,11 +369,29 @@ bool configure_user_dirs(const std::string &my_username,
   if(gm_mount_point[0] != '/') gm_mount_point = "/"+gm_mount_point;;
   gridftp_endpoint = "gsiftp://"+gm_hostname+":"+Arc::tostring(gm_port)+gm_mount_point;
   arex_endpoint = arex_mount_point;
+  enable_arc_interface = enable_arc;
+  enable_emies_interface = enable_emies;
   return true;
 }
 
-bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users) {
+bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users,bool& enable_arc_interface,bool& enable_emies_interface) {
   Arc::XMLNode tmp_node;
+  tmp_node = cfg["enableARCInterface"];
+  if(tmp_node) {
+    if (Arc::lower((std::string)tmp_node) == "no") {
+      enable_arc_interface=false;
+    } else {
+      enable_arc_interface=true;
+    }
+  }
+  tmp_node = cfg["enableEMIESInterface"];
+  if(tmp_node) {
+    if (Arc::lower((std::string)tmp_node) == "no") {
+      enable_emies_interface=false;
+    } else {
+      enable_emies_interface=true;
+    }
+  }
   tmp_node = cfg["control"];
   for(;tmp_node;++tmp_node) {
     Arc::XMLNode unode = tmp_node["username"];
@@ -410,7 +438,7 @@ bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users) {
   return true;
 }
 
-bool configure_users_dirs(JobUsers& users,GMEnvironment& env) {
+bool configure_users_dirs(JobUsers& users,GMEnvironment& env,bool& enable_arc_interface,bool& enable_emies_interface) {
   std::ifstream cfile;
   //read_env_vars(true);
   std::string central_control_dir("");
@@ -428,7 +456,7 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env) {
         config_close(cfile);
         return false;
       };
-      if(!configure_users_dirs(cfg,users)) {
+      if(!configure_users_dirs(cfg,users,enable_arc_interface,enable_emies_interface)) {
         config_close(cfile);
         return false;
       };
@@ -483,6 +511,12 @@ bool configure_users_dirs(JobUsers& users,GMEnvironment& env) {
             user->SetControlDir(control_dir);
             user->SetSessionRoot(session_root);
           };
+        }
+        else if(command == "enable_arc_interface") {
+          enable_arc_interface = (Arc::lower(config_next_arg(rest)) == "yes");
+        }
+        else if(command == "enable_emies_interface") {
+          enable_emies_interface = (Arc::lower(config_next_arg(rest)) == "yes");
         };
       };
     }; break;

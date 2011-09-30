@@ -403,6 +403,36 @@
       </xsd:simpleType>
     </xsd:element>
 
+    <xsd:element name="enableARCInterface" default="yes">
+      <xsd:simpleType>
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            This optional parameter can be used to disable ARC (BES based)
+            job management interface. By default it is enabled.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="no">
+          <xsd:enumeration value="yes">
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="enableEMIESInterface" default="no">
+      <xsd:simpleType>
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            This optional parameter can be used to enable EMI ES
+            job management interface. By default it is disabled.
+          </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="no">
+          <xsd:enumeration value="yes">
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:element>
+
     <!-- BES informational elements. -->
 
     <xsd:element name="commonName" type="xsd:string">

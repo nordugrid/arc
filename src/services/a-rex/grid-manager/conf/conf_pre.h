@@ -32,6 +32,8 @@ bool configure_user_dirs(const std::string &my_username,
                 std::string& allow_submit,bool& strict_session,
                 std::string& gridftp_endpoint,
                 std::string& arex_endpoint,
+                bool& enable_arc_interface,
+                bool& enable_emies_interface,
                 const GMEnvironment& env);
 
 /*
@@ -41,7 +43,7 @@ bool configure_user_dirs(const std::string &my_username,
     false - failure
     On success 'control_dirs' contains list of all control directories.
 */
-bool configure_users_dirs(JobUsers& users,GMEnvironment& env);
-bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users);
+bool configure_users_dirs(JobUsers& users,GMEnvironment& env,bool& enable_arc_interface,bool& enable_emies_interface);
+bool configure_users_dirs(Arc::XMLNode cfg,JobUsers& users,bool& enable_arc_interface,bool& enable_emies_interface);
 
 #endif // __GM_CONFIG_PRE_H__
