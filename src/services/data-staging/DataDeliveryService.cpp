@@ -79,17 +79,25 @@ namespace DataStaging {
     dtr = NULL;
   }
 
-  bool DataDeliveryService::CheckInput(const std::string& url, const Arc::UserConfig& usercfg) {
+  bool DataDeliveryService::CheckInput(const std::string& url, const Arc::UserConfig& usercfg, Arc::XMLNode& resultelement) {
 
     Arc::DataHandle h(url, usercfg);
     if (!h || !(*h)) {
-      logger.msg(Arc::ERROR, "Can't handle url %s", url);
+      resultelement.NewChild("ErrorDescription") = "Can't handle URL " + url;
       return false;
     }
     if (h->Local()) {
-      // TODO only access to session and cache should be allowed
-      if (h->GetURL().Path().find("../") != std::string::npos) {
-        logger.msg(Arc::ERROR, "'../' is not allowed in filename");
+      std::string path(h->GetURL().Path());
+      if (path.find("../") != std::string::npos) {
+        resultelement.NewChild("ErrorDescription") = "'../' is not allowed in filename";
+        return false;
+      }
+      bool allowed = false;
+      for (std::list<std::string>::iterator i = allowed_dirs.begin(); i != allowed_dirs.end(); ++i) {
+        if (path.find(*i) == 0) allowed = true;
+      }
+      if (!allowed) {
+        resultelement.NewChild("ErrorDescription") = "Access denied to path " + path;
         return false;
       }
     }
@@ -180,23 +188,25 @@ namespace DataStaging {
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("ID") = dtrid;
 
-      if (!CheckInput(src, usercfg)) {
+      if (!CheckInput(src, usercfg, resultelement)) {
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
-        resultelement.NewChild("ErrorDescription") = "Bad input for source";
+        resultelement["ErrorDescription"] = (std::string)resultelement["ErrorDescription"] + ": Cannot use source";
+        logger.msg(Arc::ERROR, (std::string)resultelement["ErrorDescription"]);
         continue;
       }
 
-      if (!CheckInput(dest, usercfg)) {
+      if (!CheckInput(dest, usercfg, resultelement)) {
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
-        resultelement.NewChild("ErrorDescription") = "Bad input for destination";
-        continue;
+        resultelement["ErrorDescription"] = (std::string)resultelement["ErrorDescription"] + ": Cannot use destination";
+        logger.msg(Arc::ERROR, (std::string)resultelement["ErrorDescription"]);
+       continue;
       }
 
       if (current_processes >= max_processes) {
         logger.msg(Arc::WARNING, "All %u process slots used", max_processes);
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "No free process slot available";
-        continue;
+       continue;
       }
 
       // check if dtrid is in the active list - if so it is probably a retry
@@ -261,6 +271,10 @@ namespace DataStaging {
         logger.msg(Arc::ERROR, "Invalid DTR");
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "Could not create DTR";
+        cleanDTR(dtr);
+        if (unlink(proxy_file.c_str()) && errno != ENOENT) {
+          logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
+        }
         continue;
       }
       ++current_processes;
@@ -467,11 +481,21 @@ namespace DataStaging {
       current_processes(0) {
 
     valid = false;
-    // Check configuration
+    // Check configuration - at least one allowed DN and dir must be specified
     if (!(*cfg)["SecHandler"]["PDP"]["DN"]) {
       logger.msg(Arc::ERROR, "Invalid configuration - no allowed DNs specified");
       return;
     }
+    if (!(*cfg)["AllowedDir"]) {
+      logger.msg(Arc::ERROR, "Invalid configuration - no allowed dirs specified");
+      return;
+    }
+    for (int n = 0;;++n) {
+      Arc::XMLNode allowed_dir = (*cfg)["AllowedDir"][n];
+      if (!allowed_dir) break;
+      allowed_dirs.push_back((std::string)allowed_dir);
+    }
+
     // Start archival thread
     if (!Arc::CreateThreadFunction(ArchivalThread, this)) {
       logger.msg(Arc::ERROR, "Failed to start archival thread");

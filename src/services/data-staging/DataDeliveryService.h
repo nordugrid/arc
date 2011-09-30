@@ -44,6 +44,8 @@ namespace DataStaging {
     Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
     /// DataDeliveryService namespace
     Arc::NS ns;
+    /// Directories the service is allowed to copy files from or to
+    std::list<std::string> allowed_dirs;
     /// Process limit read from cache service configuration
     unsigned int max_processes;
     /// Current processes - using gint to guarantee atomic thread-safe operations
@@ -74,7 +76,7 @@ namespace DataStaging {
     void cleanDTR(DTR* dtr);
 
     /// Sanity check on file sources and destinations
-    bool CheckInput(const std::string& url, const Arc::UserConfig& usercfg);
+    bool CheckInput(const std::string& url, const Arc::UserConfig& usercfg, Arc::XMLNode& resultelement);
 
     /* individual operations */
     /// Start a new transfer

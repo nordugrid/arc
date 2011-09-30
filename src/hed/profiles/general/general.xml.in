@@ -1305,6 +1305,8 @@ attributes depending on how the mapping should be done.
     
     <Service name="datadeliveryservice" id="datadeliveryservice" initokenenables="datadelivery-service">
       <!-- Service-specific configuration here -->
+      <!-- AllowedDir: File system paths the service is allowed to read/write files to/from -->
+      <AllowedDir initype="multi" inisections="datadelivery-service" initag="allowed_dir"/>
       <SecHandler name="arc.authz" id="pdpdn" event="incoming" initokenenables="datadelivery-service">
         <!-- allowed_dn to filter users by their DN is mandatory -->
         <PDP name="simplelist.pdp">
