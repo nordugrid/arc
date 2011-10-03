@@ -884,7 +884,10 @@ int main(int argc, char *argv[]) {
       //case, "--cert" and "--key" is not needed.
       cert_path = proxy_path;
       key_path = proxy_path;
-      std::cout << Arc::IString("Succeeded to get a proxy in %s for user %s from MyProxy server %s", proxy_path, user_name, myproxy_server) << std::endl;
+      //TODO: change the following line to the next commented one when it compiles properly.
+      std::cout << Arc::IString("Succeeded to get a proxy from MyProxy server") << std::endl;
+      //The following line crashes gcc on 64bit fedora 6,7 and centos 5.
+      //std::cout << Arc::IString("Succeeded to get a proxy in %s for user %s from MyProxy server %s", proxy_path, user_name, myproxy_server) << std::endl;
 
       return EXIT_SUCCESS;
     }
