@@ -189,16 +189,24 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
 static void convert_period(std::string& period) {
   std::string ret;
   if (!period.empty() && ((period.rfind("h") != std::string::npos) || (period.rfind("H") != std::string::npos))) {
-    //If the validityPeriod is set as hours  
+    //If the validityPeriod is set as hours
+    std::string str;
+    std::string::size_type pos1 = period.find_first_of("0123456789");
+    std::string::size_type pos2 = period.find_last_of("0123456789");
+    str = period.substr(pos1, pos2-pos1+1);
     unsigned long tmp;
-    tmp = strtoll(period.c_str(), NULL, 0);
+    tmp = strtoll(str.c_str(), NULL, 0);
     tmp = tmp * 3600;
     period = Arc::tostring(tmp);
   }
   else if (!period.empty() && ((period.rfind("d") != std::string::npos) || (period.rfind("D") != std::string::npos))) {
     //If the validityPeriod is set as days
+    std::string str;
+    std::string::size_type pos1 = period.find_first_of("0123456789");
+    std::string::size_type pos2 = period.find_last_of("0123456789");
+    str = period.substr(pos1, pos2-pos1+1);
     unsigned long tmp;
-    tmp = strtoll(period.c_str(), NULL, 0);
+    tmp = strtoll(str.c_str(), NULL, 0);
     tmp = tmp * 3600 * 24;
     period = Arc::tostring(tmp);
   }
@@ -614,7 +622,7 @@ int main(int argc, char *argv[]) {
         std::cout << Arc::IString("The start time that you set plus validityPeriod: %s is after current time: %s.\nThe validityPeriod will be shorten to %s.", (std::string)(start + constraints["validityPeriod"]), (std::string)now, tmp) << std::endl;
         constraints["validityPeriod"] = tmp;
       }
-      constraints["validityStart"] = now;
+      //constraints["validityStart"] = now;
     }
   }
   else {
@@ -622,7 +630,7 @@ int main(int argc, char *argv[]) {
     if(start < now) {  
       std::cout << Arc::IString("The start time that you set: %s is before current time: %s.\nThe current time will be used as start time.", (std::string)start, (std::string)now) << std::endl;
       start = now;
-      constraints["validityStart"] = now;
+      //constraints["validityStart"] = now;
     }
     else if(start > now)
       std::cout << Arc::IString("The start time that you set: %s is after current time: %s.", (std::string)start, (std::string)now) << std::endl;
@@ -650,7 +658,7 @@ int main(int argc, char *argv[]) {
       constraints["validityPeriod"] = "43200";
   }
   convert_period(constraints["validityPeriod"]);
- 
+
   //voms AC valitity period
   if(!constraints["vomsACvalidityPeriod"].empty())
     convert_period(constraints["vomsACvalidityPeriod"]);
@@ -895,8 +903,9 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  Arc::Time proxy_start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
+  Arc::Time proxy_start = constraints["validityStart"].empty() ? (now - Arc::Period(300)) : Arc::Time(constraints["validityStart"]);
   Arc::Period proxy_period = Arc::Period(constraints["validityPeriod"]);
+  if(constraints["validityStart"].empty()) proxy_period = proxy_period.GetPeriod() + 300;
 
   //Create proxy or voms proxy
   try {
@@ -918,7 +927,7 @@ int main(int argc, char *argv[]) {
     std::string req_str;
     std::string policy;
     policy = constraints["proxyPolicy"].empty() ? constraints["proxyPolicyFile"] : constraints["proxyPolicy"];
-    Arc::Credential cred_request(proxy_start - Arc::Period(300), proxy_period.GetPeriod() + 300, keybits);
+    Arc::Credential cred_request(proxy_start, proxy_period, keybits);
     cred_request.GenerateRequest(req_str);
     cred_request.OutputPrivatekey(private_key);
     signer.OutputCertificate(signing_cert);
@@ -1273,7 +1282,7 @@ int main(int argc, char *argv[]) {
       if(!retrievable_by_cert.empty()) {
         myproxyopt["retriever_trusted"] = retrievable_by_cert;
       }
-      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start - Arc::Period(300),proxy_period.GetPeriod() + 300))
+      if(!cstore.Store(myproxyopt,proxy_cred_str_pem,true,proxy_start,proxy_period))
         throw std::invalid_argument("Failed to delegate proxy to MyProxy service");
 
       remove_proxy_file(proxy_path);
