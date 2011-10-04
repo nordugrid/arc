@@ -343,7 +343,11 @@ namespace Arc {
       }
     }
     else {
-      if (user.get_uid() == 0) {
+#ifndef WIN32
+      if (user.get_uid() == 0) { //get_uid is only valid for unix-like systems. root user goes into this branch.
+#else 
+      if(0) { //for win, the get_uid will always gives 0
+#endif
         certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
         keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
         if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
@@ -388,7 +392,7 @@ namespace Arc {
           caCertificatesDirectory.clear();
         }
       }
-      else if (user.get_uid() == 0 ||
+      else if (
 #ifndef WIN32
                !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
                !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
@@ -441,10 +445,14 @@ namespace Arc {
         vomsesPath.clear();
       }
     }
-    else if ((user.get_uid() == 0 || !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) &&
+    else if (
+#ifndef WIN32
+             !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+             !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+#else
              !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
+#endif
              !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) {
