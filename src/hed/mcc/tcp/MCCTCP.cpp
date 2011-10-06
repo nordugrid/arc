@@ -178,7 +178,14 @@ MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),valid_(false),max_exe
                   logger.msg(ERROR, "Failed to bind socket for %s:%s(%s): %s", interface_s, port_s, PROTO_NAME(info_),e);
                 };
                 close(s);
-                continue;
+                if(l["AllAddresses"]) {
+                  std::string v = l["AllAddresses"];
+                  if((v == "false") || (v == "0")) {
+                    continue;
+                  };
+                };
+                bound = false;
+                break;
             };
             if(::listen(s,-1) == -1) {
                 std::string e = StrError(errno);

@@ -59,6 +59,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="AllAddresses" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                    If set to true and MCC fails to bind all addresses of specified interface 
+                    then such situation is considered failure. In case value set to false
+                    it is enough to bind at least one address of interface.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 </xsd:element>
