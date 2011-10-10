@@ -95,23 +95,23 @@ and the second member is the original return value, the DataStatus. */
 
     Arc::DataBufferForWriteResult for_write(bool wait) {
         Arc::DataBufferForWriteResult r;
-        r.result = $self->for_write(r.handle,r.size,r.offset,wait);
-        r.buffer = r.result?($self->operator[](r.handle)):NULL;
+        r.result = self->for_write(r.handle,r.size,r.offset,wait);
+        r.buffer = r.result?(self->operator[](r.handle)):NULL;
         return r;
     }
     
     Arc::DataBufferForReadResult for_read(bool wait) {
         Arc::DataBufferForReadResult r;
-        r.result = $self->for_read(r.handle,r.size,wait);
+        r.result = self->for_read(r.handle,r.size,wait);
         return r;
     }
 
     bool is_read(int handle,char* DataBufferIsReadBuf,unsigned int DataBufferIsReadSize,unsigned long long int offset) {
-        char* buf = $self->operator[](handle);
+        char* buf = self->operator[](handle);
         if(!buf) return false;
-        if(DataBufferIsReadSize > $self->buffer_size()) return false;
+        if(DataBufferIsReadSize > self->buffer_size()) return false;
         memcpy(buf,DataBufferIsReadBuf,DataBufferIsReadSize);
-        return $self->is_read(handle,DataBufferIsReadSize,offset);
+        return self->is_read(handle,DataBufferIsReadSize,offset);
     }
 
 };
