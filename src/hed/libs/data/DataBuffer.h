@@ -108,6 +108,11 @@ namespace Arc {
     /// \param wait if true and there are no free buffers, method will wait
     /// for one.
     /// \return true on success
+    /// For python bindings pattern of this method is
+    /// (bool, handle, length) for_read(wait). Here buffer for reading
+    /// to be provided by external code and provided to DataBuffer
+    /// object through is_read() method. Content of buffer must not exceed
+    /// provided length.
     bool for_read(int& handle, unsigned int& length, bool wait);
     /// Check if there are buffers which can be taken by for_read(). This
     /// function checks only for buffers and does not take eof and error
@@ -117,6 +122,10 @@ namespace Arc {
     /// \param handle buffer's number.
     /// \param length amount of data.
     /// \param offset offset in stream, file, etc.
+    /// For python bindings pattern of that method is 
+    /// bool is_read(handle,buffer,offset). Here buffer is 
+    /// string containing content of buffer to be passed to
+    /// DataBuffer object.
     bool is_read(int handle, unsigned int length,
                  unsigned long long int offset);
     /// Informs object that data was read into buffer.
@@ -130,6 +139,10 @@ namespace Arc {
     /// \param length returns size of buffer
     /// \param wait if true and there are no free buffers, method will wait
     /// for one.
+    /// For python bindings pattern of this method is
+    /// (bool, handle, length, offset, buffer) for_write(wait).
+    /// Here buffer is string with content of buffer provided
+    /// by DataBuffer object; 
     bool for_write(int& handle, unsigned int& length,
                    unsigned long long int& offset, bool wait);
     /// Check if there are buffers which can be taken by for_write(). This

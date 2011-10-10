@@ -55,6 +55,12 @@ namespace Arc {
     operator bool() const {
       return !!p;
     }
+    /// Returns a pointer to new DataPoint object corresponding to URL.
+    /// This static method is mostly for bindings to other languages
+    /// and if availability scope of obtained DataPoint is undefined.
+    static DataPoint* GetPoint(const URL& url, const UserConfig& usercfg) {
+      return loader.load(url, usercfg);
+    }
   private:
     /// Pointer to specific DataPoint instance
     DataPoint *p;
