@@ -84,17 +84,12 @@ typedef unsigned int uint32_t;
 %ignore *::operator+;
 %ignore *::operator-;
 
-%rename(toString) operator std::string;
-%rename(toBool) operator bool;
-
 %template(XMLNodePListIteratorHandler) listiteratorhandler<Arc::XMLNode*>;
 %template(LogDestinationListIteratorHandler) listiteratorhandler<Arc::LogDestination*>;
 %template(URLLocationListIteratorHandler) listiteratorhandler<Arc::URLLocation>;
 #endif
 
 #ifdef SWIGPYTHON
-%rename(toBool) operator bool;
-%rename(__str__) operator std::string;
 %ignore Arc::TargetGenerator::ServiceCounter();
 #endif
 

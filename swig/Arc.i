@@ -186,10 +186,18 @@ def deprecated(method):
     newMethod.__dict__.update(method.__dict__)
     return newMethod
 %}
+
+%rename(__nonzero__) operator bool;
+%rename(__str__) operator std::string;
+
 #endif
 
 #ifdef SWIGJAVA
 %template(StringListIteratorHandler) listiteratorhandler<std::string>;
+
+%rename(toBool) operator bool;
+%rename(toString) operator std::string;
+
 #endif
 
 
