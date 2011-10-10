@@ -542,6 +542,7 @@ namespace Arc {
       PluginDesc pd;
       pd.name = d->name;
       pd.kind = d->kind;
+      pd.description = d->description;
       pd.version = d->version;
       desc.plugins.push_back(pd);
     };
@@ -572,6 +573,7 @@ namespace Arc {
         PluginDesc pd;
         pd.name = d->name;
         pd.kind = d->kind;
+        pd.description = d->description;
         pd.version = d->version;
         md.plugins.push_back(pd);
       };
