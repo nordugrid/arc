@@ -647,7 +647,7 @@ namespace Arc {
         else if (!callback_status) {
           // reset to success since failing to get checksum should not trigger an error
           callback_status = DataStatus::Success;
-          logger.msg(INFO, "list_files_ftp: failed to get file's checksum");
+          logger.msg(INFO, "list_files_ftp: no checksum information possible");
         }
         else {
           logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
@@ -874,7 +874,7 @@ namespace Arc {
         cond.wait();
       }
       else if (!callback_status) {
-        logger.msg(INFO, "list_files_ftp: failed to get file's checksum");
+        logger.msg(INFO, "list_files_ftp: no checksum information possible");
       }
       else {
         logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
