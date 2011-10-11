@@ -82,7 +82,7 @@ namespace Arc {
       }
 
       if (!handler->StartReading(buffer))
-        return;
+        continue;
 
       int handle;
       unsigned int length;
@@ -96,7 +96,7 @@ namespace Arc {
         }
 
       if (!handler->StopReading())
-        return;
+        continue;
 
       XMLNode xmlresult(result);
       XMLNodeList jobinfolist =
