@@ -76,7 +76,13 @@ and the second member is the original return value, the DataStatus. */
     PyTuple_SetItem($result,1,PyInt_FromLong($1.handle));
     PyTuple_SetItem($result,2,PyInt_FromLong($1.size));
     PyTuple_SetItem($result,3,PyInt_FromLong($1.offset));
+#if PY_VERSION_HEX >= 0x03000000
+    PyTuple_SetItem($result,4,$1.buffer?PyUnicode_FromStringAndSize($1.buffer,$1.size):Py_None);
+#else
     PyTuple_SetItem($result,4,$1.buffer?PyString_FromStringAndSize($1.buffer,$1.size):Py_None);
+#endif
+
+
 }
 
 %typemap(out) Arc::DataBufferForReadResult {
