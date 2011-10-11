@@ -93,8 +93,16 @@ and the second member is the original return value, the DataStatus. */
 }
 
 %typemap(in) (char* DataBufferIsReadBuf,unsigned int DataBufferIsReadSize) {
+
+#if PY_VERSION_HEX>=0x03000000
+    $input = PyUnicode_AsUTF8String($input);
+    $1 = PyBytes_AsString($input);
+    $2 = ($1)?PyBytes_Size($input):0;
+#else
     $1 = PyString_AsString($input);
     $2 = ($1)?PyString_Size($input):0;
+#endif
+
 }
 
 %extend DataBuffer {
