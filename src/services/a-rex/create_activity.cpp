@@ -75,17 +75,18 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
  // End of the HPC BP 1.0 fault handling part
 
   std::string delegation;
-  Arc::XMLNode delegated_token = in["deleg:DelegatedToken"];
+  Arc::XMLNode delegated_token = in["arcdeleg:DelegatedToken"];
   if(delegated_token) {
     // Client wants to delegate credentials
     if(!delegations_.DelegatedToken(delegation,delegated_token,config.GridName())) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "CreateActivity: Failed to accept delegation");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
-      InvalidRequestMessageFault(fault,"deleg:DelegatedToken","This token does not exist");
+      InvalidRequestMessageFault(fault,"arcdeleg:DelegatedToken","This token does not exist");
       out.Destroy();
       return Arc::MCC_Status();
     };
+logger_.msg(Arc::ERROR, "CreateActivity: has delegation: %s", delegation);
   };
   ARexJob job(jsdl,config,delegation,clientid,logger_);
   if(!job) {

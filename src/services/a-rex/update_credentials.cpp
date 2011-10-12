@@ -35,7 +35,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
     // Must refer to job
     logger_.msg(Arc::ERROR, "UpdateCredentials: missing Reference");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Must have Activity specified in Reference");
-    InvalidRequestMessageFault(fault,"deleg:Reference","Wrong multiplicity");
+    InvalidRequestMessageFault(fault,"arcdeleg:Reference","Wrong multiplicity");
     out.Destroy();
     return Arc::MCC_Status();
   }
@@ -43,7 +43,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
     // Only one job can be updated per operation (profile)
     logger_.msg(Arc::ERROR, "UpdateCredentials: wrong number of Reference");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can update credentials only for single Activity");
-    InvalidRequestMessageFault(fault,"deleg:Reference","Wrong multiplicity");
+    InvalidRequestMessageFault(fault,"arcdeleg:Reference","Wrong multiplicity");
     out.Destroy();
     return Arc::MCC_Status();
   };
@@ -51,7 +51,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
     // Expecting single job EPR in Reference
     logger_.msg(Arc::ERROR, "UpdateCredentials: wrong number of elements inside Reference");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can update credentials only for single Activity");
-    InvalidRequestMessageFault(fault,"deleg:Reference","Wrong content");
+    InvalidRequestMessageFault(fault,"arcdeleg:Reference","Wrong content");
     out.Destroy();
     return Arc::MCC_Status();
   }
@@ -60,7 +60,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
     // EPR is wrongly formated or not an A-REX EPR
     logger_.msg(Arc::ERROR, "UpdateCredentials: EPR contains no JobID");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobID element in ActivityIdentifier");
-    InvalidRequestMessageFault(fault,"deleg:Reference","Wrong content");
+    InvalidRequestMessageFault(fault,"arcdeleg:Reference","Wrong content");
     out.Destroy();
     return Arc::MCC_Status();
   };
