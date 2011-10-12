@@ -376,12 +376,35 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   while ((nlp=globalid.find('\n')) != std::string::npos)
     globalid.replace(nlp,1," "); // squeeze into 1 line
   job_.globalid=globalid;
-  // Try to create proxy
-  if(!update_credentials(credentials)) {
-    failure_="Failed to store credentials";
-    failure_type_=ARexJobInternalError;
-    delete_job_id();
-    return;
+  // Try to create proxy/certificate
+  if(!credentials.empty()) {
+    if(!update_credentials(credentials)) {
+      failure_="Failed to store credentials";
+      failure_type_=ARexJobInternalError;
+      delete_job_id();
+      return;
+    };
+  } else {
+    // If no proxy was delegated simply use user certificate
+    std::string certificates;
+    for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+      if(*a) {
+        Arc::SecAttr* sattr = (*a)->get("TLS");
+        if(sattr) {
+          certificates = sattr->get("CERTIFICATE");
+          if(!certificates.empty()) {
+            certificates += sattr->get("CERTIFICATECHAIN");
+            if(!update_credentials(certificates)) {
+              failure_="Failed to store credentials";
+              failure_type_=ARexJobInternalError;
+              delete_job_id();
+              return;
+            };
+            break;
+          };
+        };
+      };
+    };
   };
   // Choose session directory
   std::string sessiondir;
