@@ -340,18 +340,21 @@ sub vo_block {
         # fill out subject -> [local user, url] mapping
         foreach my $subject (keys %Subjects) {
             my $local_user = $Subjects{$subject};
-            if (exists $SubjectMap{$subject}) {
-                print "User $subject skipped, already mapped into VO\n" if $opt_test;
-            }
-            else {
-                $SubjectMap{$subject} = [$local_user, $url];
-            }
+            # check filter rules allows DN
+            if ( rule_match($subject,\@Rules) ) {
+                # check for already existed DN
+                if (exists $SubjectMap{$subject}) {
+                    print "User $subject skipped, already mapped into VO\n" if $opt_test;
+                } else {
+                    $SubjectMap{$subject} = [$local_user, $url];
+                }
+	    }
         }
 
     }
 
+    # return filtered DN's hash
     return \%SubjectMap;
-
 }
 
 
@@ -622,23 +625,23 @@ sub ldap_subjects {
 
 ############ Match against our rules ############
 sub rule_match {
-    my ($subj, $cn, $lcluser, $ref_Rules) = @_;
+    my ($subj, $ref_Rules) = @_;
     my @Rules = @$ref_Rules;
 
     my $subjReg = $subj;
     $subjReg =~ s/\@/\\\@/g;
-    $subjReg = lc($subjReg);
+    #$subjReg = lc($subjReg);
     foreach my $rule (@Rules) {
         my ($action, $acl) = split / /, $rule, 2;
         $acl =~ s/\@/\\\@/g;
         $acl =~ s/\*/.\*/g;
-        $acl = lc($acl);
+        #$acl = lc($acl);
         if ($subjReg =~ /$acl/) {
             if ($action eq "deny") {
-                print "$cn denied by rule $acl\n" if $opt_test;
+                print "User $subj denied by rule 'deny $acl'\n" if $opt_test;
             }
             else {
-                print "$cn allowed by rule $acl\n" if $opt_test;
+                print "User $subj allowed by rule 'allow $acl'\n" if $opt_test;
                 return 1;
             }
             last;
