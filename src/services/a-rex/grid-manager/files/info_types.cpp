@@ -52,7 +52,7 @@ void output_escaped_string(std::ostream &o,const std::string &str) {
   std::string::size_type n,nn;
   for(nn=0;;) {
 //    if((n=str.find(' ',nn)) == std::string::npos) break;
-    if((n=str.find_first_of(" \\",nn)) == std::string::npos) break;
+    if((n=str.find_first_of(" \\\r\n",nn)) == std::string::npos) break;
     o.write(str.data()+nn,n-nn);
     o.put('\\');
     o.put(*(str.data()+n));
@@ -65,7 +65,7 @@ void output_escaped_string(int h,const std::string &str) {
   std::string::size_type n,nn;
   for(nn=0;;) {
 //    if((n=str.find(' ',nn)) == std::string::npos) break;
-    if((n=str.find_first_of(" \\",nn)) == std::string::npos) break;
+    if((n=str.find_first_of(" \\\r\n",nn)) == std::string::npos) break;
     write_str(h,str.data()+nn,n-nn);
     write_chr(h,'\\');
     write_chr(h,*(str.data()+n));
