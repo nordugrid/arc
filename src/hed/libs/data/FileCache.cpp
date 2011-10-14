@@ -13,19 +13,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <dirent.h>
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <sys/statvfs.h>
 
 #include <glibmm.h>
 
-#include <arc/Logger.h>
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
 #include <arc/StringConv.h>
-#include <arc/User.h>
 #include <arc/Utils.h>
 
 #include "FileCache.h"
@@ -38,6 +35,8 @@ namespace Arc {
   const int FileCache::CACHE_DIR_LEVELS = 1;
   const std::string FileCache::CACHE_META_SUFFIX = ".meta";
   const int FileCache::CACHE_DEFAULT_AUTH_VALIDITY = 86400; // 24 h
+  const int FileCache::CACHE_LOCK_TIMEOUT = 900; // 15 mins
+  const int FileCache::CACHE_META_LOCK_TIMEOUT = 2;
 
   Logger FileCache::logger(Logger::getRootLogger(), "FileCache");
 
@@ -81,7 +80,7 @@ namespace Arc {
                        int cache_min) {
   
     // if problem in init, clear _caches so object is invalid
-    if (! _init(caches, remote_caches, draining_caches, id, job_uid, job_gid, cache_max, cache_min))
+    if (!_init(caches, remote_caches, draining_caches, id, job_uid, job_gid, cache_max, cache_min))
       _caches.clear();
   }
 
@@ -173,18 +172,10 @@ namespace Arc {
       cache_params.cache_link_path = "";
       _draining_caches.push_back(cache_params);
     }
-      // our hostname and pid
-    struct utsname buf;
-    if (uname(&buf) != 0) {
-      logger.msg(ERROR, "Cannot determine hostname from uname()");
-      return false;
-    }
-    _hostname = buf.nodename;
-    _pid = tostring(getpid());
     return true;
   }
 
-  bool FileCache::Start(const std::string& url, bool& available, bool& is_locked, bool use_remote) {
+  bool FileCache::Start(const std::string& url, bool& available, bool& is_locked, bool use_remote, bool delete_first) {
 
     if (!(*this))
       return false;
@@ -197,158 +188,172 @@ namespace Arc {
     if (!DirCreate(filename.substr(0, filename.rfind("/")), S_IRWXU, true))
       return false;
 
-    // 15 min lock timeout. The lock file is continually updated during the
-    // transfer so 15 mins with no transfer update should mean stale lock.
-    // TODO: make configurable?
-    int lock_timeout = 900;
-
-    // acquire lock
-    FileLock lock(filename, lock_timeout);
-    bool lock_removed = false;
-    if (!lock.acquire(lock_removed)) {
-      logger.msg(INFO, "Failed to obtain lock on cache file %s", filename);
-      is_locked = true;
-      return false;
-    }
-
-    // we have the lock, if there was a stale lock remove cache file to be safe
-    if (lock_removed) {
-      if (!FileDelete(filename) && errno != ENOENT) {
-        lock.release();
-        logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
-        return false;
-      }
-    }
-
-    // create the meta file to store the URL, if it does not exist
-    std::string meta_file = _getMetaFileName(url);
-    struct stat fileStat;
-    bool res = FileStat(meta_file, &fileStat, true);
-    if (res) {
-      // check URL inside file for possible hash collisions
-      std::list<std::string> lines;
-      if (!FileRead(meta_file, lines)) {
-        logger.msg(ERROR, "Error reading meta file %s", meta_file);
-        lock.release();
-        return false;
-      }
-      if (lines.empty()) {
-        logger.msg(WARNING, "Meta file %s is empty, will recreate", meta_file);
-        if (!FileCreate(meta_file, std::string(url + '\n'))) {
-          logger.msg(WARNING, "Failed to create meta file %s", meta_file);
+    // check if a lock file exists and whether it is still valid
+    struct stat lockStat;
+    if (FileStat(std::string(filename+FileLock::getLockSuffix()).c_str(), &lockStat, false)) {
+      FileLock lock(filename, CACHE_LOCK_TIMEOUT);
+      bool lock_removed = false;
+      if (lock.acquire(lock_removed)) {
+        // if lock was invalid delete cache file
+        if (lock_removed && !FileDelete(filename.c_str()) && errno != ENOENT) {
+          logger.msg(ERROR, "Failed to delete stale cache file %s: %s", filename, StrError(errno));
+        }
+        if (!lock.release()) {
+          logger.msg(WARNING, "Failed to release lock on file %s", filename);
+          is_locked = true;
+          return false;
         }
       }
       else {
-        std::string meta_str = lines.front();
-        // check new and old format for validity time - if old change to new
-        if (meta_str != url) {
-          if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
-            logger.msg(ERROR, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
-                       url, filename, meta_str);
-            lock.release();
-            return false;
-          } else {
-            logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
-            std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
-            lines.pop_front();
-            for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
-              new_meta += *i + '\n';
+        is_locked = true;
+        return false;
+      }
+    }
+
+    // now check if the cache file is there already
+    struct stat fileStat;
+    if (FileStat(filename, &fileStat, true)) {
+      available = true;
+    }
+    // if the file is not there. check remote caches
+    else if (errno == ENOENT) {
+      if (use_remote && !_remote_caches.empty() && !delete_first) {
+
+        // get the hash of the url
+        std::string hash(_getHash(url));
+        std::string remote_cache_file;
+        std::string remote_cache_link;
+        // store remote file modification time to compare if copy fails
+        Arc::Time remote_mod_time;
+        // go through remote caches and try to find file
+        std::vector<struct CacheParameters>::iterator it = _remote_caches.begin();
+        for (; it != _remote_caches.end(); it++) {
+          std::string remote_file = it->cache_path+"/"+CACHE_DATA_DIR+"/"+hash;
+          if (FileStat(remote_file, &fileStat, true)) {
+            remote_cache_file = remote_file;
+            remote_cache_link = it->cache_link_path;
+            remote_mod_time = Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec);
+            break;
+          }
+        }
+        if (!remote_cache_file.empty()) {
+        
+          logger.msg(INFO, "Found file %s in remote cache at %s", url, remote_cache_file);
+
+          // check meta file - if fails use local file
+          if (_checkMetaFile(remote_cache_file, url, is_locked)) {
+
+            // check if a lock file exists and whether it is still valid - if
+            // it is valid then just download to local cache
+            bool use_local = false;
+            if (FileStat(std::string(remote_cache_file+FileLock::getLockSuffix()).c_str(), &lockStat, false)) {
+
+              FileLock remote_lock(remote_cache_file, CACHE_LOCK_TIMEOUT);
+              bool remote_lock_removed = false;
+              if (remote_lock.acquire(remote_lock_removed)) {
+                // if lock was invalid delete cache file
+                if (remote_lock_removed) {
+                  use_local = true;
+                  if (!FileDelete(remote_cache_file.c_str()) && errno != ENOENT) {
+                    logger.msg(WARNING, "Failed to delete stale remote cache file %s: %s", remote_cache_file, StrError(errno));
+                  }
+                }
+                if (!remote_lock.release()) {
+                  logger.msg(WARNING, "Failed to release lock on remote cache file %s", remote_cache_file);
+                  use_local = true;
+                }
+              } else {
+                use_local = true;
+              }
             }
-            if (!FileCreate(meta_file, new_meta)) {
-              logger.msg(WARNING, "Could not write meta file %s", meta_file);
+            if (!use_local) {
+              // ok to use remote file - now decide whether to replicate to local cache
+              if (remote_cache_link == "replicate") {
+
+                // check local cache meta file
+                if (!_checkMetaFile(filename, url, is_locked)) return false;
+
+                // acquire lock on local cache
+                FileLock lock(filename, CACHE_LOCK_TIMEOUT);
+                bool lock_removed = false;
+                if (!lock.acquire(lock_removed)) {
+                  logger.msg(INFO, "Failed to obtain lock on cache file %s", filename);
+                  is_locked = true;
+                  return false;
+                }
+
+                // we have the lock, if there was a stale lock remove cache file to be safe
+                if (lock_removed && !FileDelete(filename) && errno != ENOENT) {
+                  logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
+                  if (!lock.release())
+                    logger.msg(ERROR, "Failed to remove lock on %s. Some manual intervention may be required", filename);
+                  return false;
+                }
+
+                // copy the file to the local cache, remove lock and exit with available=true
+                logger.msg(VERBOSE, "Replicating file %s to local cache file %s", remote_cache_file, filename);
+
+                if (!FileCopy(remote_cache_file, filename)) {
+                  logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, StrError(errno));
+                  // it could have failed because another process deleted the remote file
+                  struct stat remoteStat;
+                  if (!FileStat(remote_cache_file, &remoteStat, false) ||
+                      Arc::Time(remoteStat.st_mtim.tv_sec, remoteStat.st_mtim.tv_nsec) > remote_mod_time) {
+                    logger.msg(WARNING, "Replicating file %s from remote cache failed due to source being deleted or modified", remote_cache_file);
+                    if (!FileDelete(filename) && errno != ENOENT)
+                      logger.msg(ERROR, "Failed to delete bad copy of remote cache file %s at %s: %s", remote_cache_file, filename, StrError(errno));
+                  }
+                  if (!lock.release())
+                    logger.msg(ERROR, "Failed to remove lock on %s. Some manual intervention may be required", remote_cache_file);
+                  return false;
+                }
+                if (!lock.release())
+                  logger.msg(ERROR, "Failed to remove lock on %s. Some manual intervention may be required", remote_cache_file);
+              }
+              else {
+                // set remote cache in the cache map
+                _cache_map[url] = *it;
+              }
+              available = true;
+              return true;
             }
           }
         }
       }
     }
-    else if (errno == ENOENT) {
-      // create new file
-      if (!FileCreate(meta_file, std::string(url + '\n'))) {
-        logger.msg(WARNING, "Failed to create meta file %s", meta_file);
-      }
-    }
-    else {
-      logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, StrError(errno));
-      lock.release();
-      return false;
-    }
-
-    // now check if the cache file is there already
-    res = FileStat(filename, &fileStat, true);
-    if (res)
-      available = true;
-      
-    // if the file is not there. check remote caches
-    else if (errno == ENOENT) {
-      if (!use_remote) return true;
-      // get the hash of the url
-      std::string hash = FileCacheHash::getHash(url);
-    
-      int index = 0;
-      for(int level = 0; level < CACHE_DIR_LEVELS; level ++) {
-        hash.insert(index + CACHE_DIR_LENGTH, "/");
-        // go to next slash position, add one since we just inserted a slash
-        index += CACHE_DIR_LENGTH + 1;
-      }
-      std::string remote_cache_file;
-      std::string remote_cache_link;
-      for (std::vector<struct CacheParameters>::iterator it = _remote_caches.begin(); it != _remote_caches.end(); it++) {
-        std::string remote_file = it->cache_path+"/"+CACHE_DATA_DIR+"/"+hash;
-        if (FileStat(remote_file, &fileStat, true)) {
-          remote_cache_file = remote_file;
-          remote_cache_link = it->cache_link_path;
-          break;
-        }
-      }
-      if (remote_cache_file.empty()) return true;
-      
-      logger.msg(INFO, "Found file %s in remote cache at %s", url, remote_cache_file);
-      // create lock file in remote cache
-      FileLock remote_lock(remote_cache_file, lock_timeout);
-      if (!remote_lock.acquire(lock_removed)) {
-        // if lock exists, exit
-        logger.msg(VERBOSE, "File exists in remote cache at %s but is locked. Will download from source", remote_cache_file);
-        return true;
-      }
-
-      // we have the lock, but to be safe if there was a stale lock removed
-      // we delete the remote cache file and download from source again
-      if (lock_removed) {
-        if (!FileDelete(remote_cache_file) && errno != ENOENT)
-          logger.msg(INFO, "Error removing remote cache file %s: %s", remote_cache_file, StrError(errno));
-        remote_lock.release();
-        return true;
-      }
-
-      // we have locked the remote file - so find out what to do with it
-      if (remote_cache_link == "replicate") {
-        // copy the file to the local cache, remove remote lock and exit with available=true
-        logger.msg(VERBOSE, "Replicating file %s to local cache file %s", remote_cache_file, filename);
-        
-        if(!FileCopy(remote_cache_file, filename)) {
-          logger.msg(ERROR, "Failed to copy file %s to %s: %s", remote_cache_file, filename, StrError(errno));
-          remote_lock.release();
-          lock.release();
-          return false;
-        }
-        if (!remote_lock.release())
-          logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
-      }
-      // create symlink from file in this cache to other cache
-      else {
-        logger.msg(VERBOSE, "Creating temporary link from %s to remote cache file %s", filename, remote_cache_file);
-        if (!FileLink(remote_cache_file, filename, true)) {
-          logger.msg(ERROR, "Failed to create soft link to remote cache: %s. Will download %s from source", StrError(errno), url);
-          if (!remote_lock.release())
-            logger.msg(ERROR, "Failed to remove remote lock file on %s. Some manual intervention may be required", remote_cache_file);
-          return true;
-        }
-      }
-      available = true;
-    }
     else {
       // this is ok, we will download again
-      logger.msg(WARNING, "Warning: error looking up attributes of cached file: %s", StrError(errno));
+      logger.msg(WARNING, "Failed looking up attributes of cached file: %s", StrError(errno));
+    }
+    if (!available || delete_first) { // lock in preparation for writing
+      FileLock lock(filename, CACHE_LOCK_TIMEOUT);
+      bool lock_removed;
+      if (!lock.acquire(lock_removed)) {
+        logger.msg(INFO, "Failed to obtain lock on cache file %s", filename);
+        is_locked = true;
+        return false;
+      }
+
+      // we have the lock, if there was a stale lock or the file was requested
+      // to be deleted, remove cache file
+      if (lock_removed || delete_first) {
+        if (!FileDelete(filename) && errno != ENOENT) {
+          logger.msg(ERROR, "Error removing cache file %s: %s", filename, StrError(errno));
+          if (!lock.release())
+            logger.msg(ERROR, "Failed to remove lock on %s. Some manual intervention may be required", filename);
+          return false;
+        }
+        available = false;
+      }
+    }
+    // create the meta file to store the URL, if it does not exist
+    if (!_checkMetaFile(filename, url, is_locked)) {
+      // release locks if acquired
+      if (!available) {
+        FileLock lock(filename, CACHE_LOCK_TIMEOUT);
+        if (!lock.release()) logger.msg(ERROR, "Failed to remove lock on %s. Some manual intervention may be required", filename);
+      }
+      return false;
     }
     return true;
   }
@@ -358,28 +363,10 @@ namespace Arc {
     if (!(*this))
       return false;
 
-    // check if already unlocked
+    // check if already unlocked in Link()
     if (_urls_unlocked.find(url) == _urls_unlocked.end()) {
 
-      // if cache file is a symlink, remove remote cache lock and symlink
-      std::string filename = File(url);
-      struct stat fileStat;
-      if (FileStat(filename, &fileStat, false) && S_ISLNK(fileStat.st_mode)) {
-        std::string remote_file = FileReadLink(filename.c_str());
-        if (remote_file.empty()) {
-          logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", filename);
-          return false;
-        }
-        FileLock remote_lock(remote_file);
-        if (!remote_lock.release())
-          logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
-
-        if (!FileDelete(filename)) {
-          logger.msg(ERROR, "Error removing file %s: %s. Manual intervention may be required", filename, StrError(errno));
-          return false;
-        }
-      }
-
+      std::string filename(File(url));
       // delete the lock
       FileLock lock(filename);
       if (!lock.release()) {
@@ -387,18 +374,6 @@ namespace Arc {
         return false;
       }
     }
-    
-    // get the hash of the url
-    std::string hash = FileCacheHash::getHash(url);
-    int index = 0;
-    for(int level = 0; level < CACHE_DIR_LEVELS; level ++) {
-      hash.insert(index + CACHE_DIR_LENGTH, "/");
-      // go to next slash position, add one since we just inserted a slash
-      index += CACHE_DIR_LENGTH + 1;
-    }
-    
-    // remove the file from the cache map
-    _cache_map.erase(hash);
     return true;
   }
 
@@ -406,22 +381,11 @@ namespace Arc {
 
     if (!(*this))
       return false;
-    
-    // if cache file is a symlink, remove remote cache lock
+
     std::string filename = File(url);
-    struct stat fileStat;
-    if (FileStat(filename, &fileStat, false) && S_ISLNK(fileStat.st_mode)) {
-      std::string remote_file = FileReadLink(filename.c_str());
-      if (remote_file.empty()) {
-        logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", filename);
-      }
-      FileLock remote_lock(remote_file);
-      if (!remote_lock.release())
-        logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
-    }
+    FileLock lock(filename, CACHE_LOCK_TIMEOUT);
 
     // first check that the lock is still valid before deleting anything
-    FileLock lock(filename);
     if (!lock.check()) {
       logger.msg(ERROR, "Invalid lock on file %s", filename);
       return false;
@@ -444,17 +408,6 @@ namespace Arc {
       return false;
     }
 
-    // get the hash of the url
-    std::string hash = FileCacheHash::getHash(url);
-    int index = 0;
-    for(int level = 0; level < CACHE_DIR_LEVELS; level ++) {
-      hash.insert(index + CACHE_DIR_LENGTH, "/");
-      // go to next slash position, add one since we just inserted a slash
-      index += CACHE_DIR_LENGTH + 1;
-    }
-  
-    // remove the file from the cache map
-    _cache_map.erase(hash);
     return true;
   }
 
@@ -464,91 +417,84 @@ namespace Arc {
       return "";
 
     // get the hash of the url
-    std::string hash = FileCacheHash::getHash(url);
+    std::string hash(_getHash(url));
 
-    int index = 0;
-    for (int level = 0; level < CACHE_DIR_LEVELS; level++) {
-      hash.insert(index + CACHE_DIR_LENGTH, "/");
-      // go to next slash position, add one since we just inserted a slash
-      index += CACHE_DIR_LENGTH + 1;
-    }
     // look up the cache map to see if the file is already in
-    std::map <std::string, int>::iterator iter = _cache_map.find(hash) ;
+    std::map <std::string, struct CacheParameters>::iterator iter = _cache_map.find(url) ;
     if (iter != _cache_map.end()) {
-      return _caches[iter->second].cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
-    } 
+      return _cache_map[url].cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
+    }
   
     // else choose a new cache and assign the file to it
     int chosen_cache = _chooseCache(url);
-    std::string path  = _caches[chosen_cache].cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
+    std::string path = _caches[chosen_cache].cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
   
     // update the cache map with the new file
-    _cache_map.insert(std::make_pair(hash, chosen_cache));
+    _cache_map.insert(std::make_pair(url, _caches[chosen_cache]));
     return path;
   }
 
-  bool FileCache::Link(const std::string& dest_path, const std::string& url, bool copy, bool executable) {
+  bool FileCache::Link(const std::string& dest_path,
+                       const std::string& url,
+                       bool copy,
+                       bool executable,
+                       bool holding_lock,
+                       bool& try_again) {
 
     if (!(*this))
       return false;
 
-    // check the original file exists
+    try_again = false;
     std::string cache_file = File(url);
+    std::string hard_link_path;
+    std::string cache_link_path;
+
+    // Mod time of cache file
+    Arc::Time modtime;
+
+    // check the original file exists and if so in which cache
     struct stat fileStat;
-  
-    if (!FileStat(cache_file, &fileStat, false)) {
-      if (errno == ENOENT)
-        logger.msg(ERROR, "Error: Cache file %s does not exist", cache_file);
-      else
-        logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, StrError(errno));
-      return false;
-    }
-  
-    // get the hash of the url
-    std::string hash = FileCacheHash::getHash(url);
-    int index = 0;
-    for (int level = 0; level < CACHE_DIR_LEVELS; level ++) {
-      hash.insert(index + CACHE_DIR_LENGTH, "/");
-      // go to next slash position, add one since we just inserted a slash
-      index += CACHE_DIR_LENGTH + 1;
-    }
-  
-    // look up the map file to see if the file is already mapped with a cache  
-    std::map <std::string, int>::iterator iter = _cache_map.find(hash);
-    int cache_no = 0;
-    if (iter != _cache_map.end()) {
-      cache_no = iter->second;}
-    else {
-      logger.msg(ERROR, "Error: Cache not found for file %s", cache_file);
-      return false;
-    }
-
-    // choose cache
-    struct CacheParameters cache_params = _caches[cache_no];
-    std::string hard_link_path = cache_params.cache_path + "/" + CACHE_JOB_DIR + "/" +_id;
-    std::string cache_link_path = cache_params.cache_link_path;
-
-    // check if cached file is a symlink - if so get link path from the remote cache
-    if (S_ISLNK(fileStat.st_mode)) {
-      std::string link_target = FileReadLink(cache_file);
-      if (link_target.empty()) {
-        logger.msg(ERROR, "Could not read target of link %s", cache_file);
+    if (FileStat(cache_file, &fileStat, false)) {
+      // look up the map to get the cache params this url is mapped to (set in File())
+      std::map <std::string, struct CacheParameters>::iterator iter = _cache_map.find(url);
+      if (iter == _cache_map.end()) {
+        logger.msg(ERROR, "Cache not found for file %s", cache_file);
         return false;
       }
-      // need to match the symlink target against the list of remote caches
+      hard_link_path = _cache_map[url].cache_path + "/" + CACHE_JOB_DIR + "/" +_id;
+      cache_link_path = _cache_map[url].cache_link_path;
+      modtime = Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec);
+    }
+    else if (errno == ENOENT) {
+      if (holding_lock || _remote_caches.empty()) {
+        logger.msg(WARNING, "Cache file %s does not exist", cache_file);
+        try_again = true;
+        return false;
+      }
+      // file may have been found in a remote cache
+      std::string hash(_getHash(url));
+      // go through remote caches and try to find file
       for (std::vector<struct CacheParameters>::iterator it = _remote_caches.begin(); it != _remote_caches.end(); it++) {
-        std::string remote_data_dir = it->cache_path+"/"+CACHE_DATA_DIR;
-        if (link_target.find(remote_data_dir) == 0) {
-          hard_link_path = it->cache_path+"/"+CACHE_JOB_DIR + "/" + _id;
+        std::string remote_file = it->cache_path+"/"+CACHE_DATA_DIR+"/"+hash;
+        if (FileStat(remote_file, &fileStat, true)) {
+          cache_file = remote_file;
+          hard_link_path = it->cache_path + "/" + CACHE_JOB_DIR + "/" +_id;
           cache_link_path = it->cache_link_path;
-          cache_file = link_target;
+          modtime = Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec);
           break;
         }
       }
-      if (hard_link_path == cache_params.cache_path + "/" + CACHE_JOB_DIR + "/" +_id) {
-        logger.msg(ERROR, "Couldn't match link target %s to any remote cache", link_target);
+      if (hard_link_path.empty()) {
+        // another process could have deleted it, so try again
+        logger.msg(WARNING, "Cache file for %s not found in any local or remote cache", url);
+        try_again = true;
         return false;
       }
+      logger.msg(VERBOSE, "Using remote cache file %s for url %s", cache_file, url);
+    }
+    else {
+      logger.msg(ERROR, "Error accessing cache file %s: %s", cache_file, StrError(errno));
+      return false;
     }
 
     // create per-job hard link dir if necessary, making the final dir readable only by the job user
@@ -578,6 +524,12 @@ namespace Arc {
           return false;
         }
       }
+      else if (errno == ENOENT) {
+        // another process could have deleted the cache file, so try again
+        logger.msg(WARNING, "Cache file %s not found", cache_file);
+        try_again = true;
+        return false;
+      }
       else {
         logger.msg(ERROR, "Failed to create hard link from %s to %s: %s", hard_link_file, cache_file, StrError(errno));
         return false;
@@ -593,29 +545,15 @@ namespace Arc {
       return false;
     }
 
-    // The lock is now no longer necessary, so release it
-    // Also remove remote lock and symlink to remote cache if necessary
-    // Failure in anything here should not cause the job to fail, so log
-    // error and continue
-    std::string original_cache_file = File(url);
-    if (S_ISLNK(fileStat.st_mode)) {
-      std::string remote_file = FileReadLink(original_cache_file);
-      if (remote_file.empty())
-        logger.msg(ERROR, "Could not read target of link %s. Manual intervention may be required to remove lock in remote cache", original_cache_file);
-
-      FileLock remote_lock(remote_file);
-      if (!remote_lock.release())
-        logger.msg(ERROR, "Failed to unlock remote cache file %s. Manual intervention may be required", remote_file);
-
-      if (!FileDelete(original_cache_file))
-        logger.msg(ERROR, "Error removing symlink %s: %s. Manual intervention may be required", original_cache_file, StrError(errno));
+    // Hard link is created so release any locks on the cache file
+    if (holding_lock) {
+      FileLock lock(cache_file, CACHE_LOCK_TIMEOUT);
+      if (!lock.release()) {
+        logger.msg(WARNING, "Failed to release lock on cache file %s", cache_file);
+      } else {
+        _urls_unlocked.insert(url);
+      }
     }
-    FileLock lock(original_cache_file);
-    if (!lock.release())
-      logger.msg(ERROR, "Failed to unlock file %s: %s. Manual intervention may be required", original_cache_file, StrError(errno));
-
-    // add to the unlocked files list
-    _urls_unlocked.insert(url);
 
     // make necessary dirs for the soft link
     // the session dir should already exist but in the case of arccp with cache it may not
@@ -627,7 +565,8 @@ namespace Arc {
     }
 
     // if _cache_link_path is '.' or copy or executable is true then copy instead
-    if (copy || executable || cache_params.cache_link_path == ".") {
+    // "replicate" should not be possible, but including just in case
+    if (copy || executable || cache_link_path == "." || cache_link_path == "replicate") {
       if (!FileCopy(hard_link_file, dest_path, _uid, _gid)) {
         logger.msg(ERROR, "Failed to copy file %s to %s: %s", hard_link_file, dest_path, StrError(errno));
         return false;
@@ -647,8 +586,8 @@ namespace Arc {
     }
     else {
       // make the soft link, changing the target if cache_link_path is defined
-      if (!cache_params.cache_link_path.empty())
-        hard_link_file = cache_params.cache_link_path + "/" + CACHE_JOB_DIR + "/" + _id + "/" + filename;
+      if (!cache_link_path.empty())
+        hard_link_file = cache_link_path + "/" + CACHE_JOB_DIR + "/" + _id + "/" + filename;
 
       if (!FileLink(hard_link_file, dest_path, _uid, _gid, true)) {
         // if the link we want to make already exists, delete and make new one
@@ -668,12 +607,28 @@ namespace Arc {
         }
       }
     }
+    // if we are holding the lock, assume none of the checks below are necessary
+    if (holding_lock) return true;
+    // check that the cache file wasn't locked or modified during the link/copy
+
+    struct stat lockStat;
+    // check if lock file exists
+    if (FileStat(cache_file+FileLock::getLockSuffix(), &lockStat, false)) {
+      logger.msg(WARNING, "Cache file %s was locked during link/copy, must start again", cache_file);
+      return _cleanFilesAndReturnFalse(dest_path, hard_link_file, try_again);
+    }
+    // check cache file is still there
+    if (!FileStat(cache_file, &fileStat, false)) {
+      logger.msg(WARNING, "Cache file %s was deleted during link/copy, must start again", cache_file);
+      return _cleanFilesAndReturnFalse(dest_path, hard_link_file, try_again);
+    }
+    // finally check the mod time of the cache file
+    if (Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec) > modtime) {
+      logger.msg(WARNING, "Cache file %s was modified while linking, must start again", cache_file);
+      return _cleanFilesAndReturnFalse(dest_path, hard_link_file, try_again);
+    }
+    // file was safely linked/copied
     return true;
-  }
-
-  bool FileCache::Copy(const std::string& dest_path, const std::string& url, bool executable) {
-
-    return Link(dest_path, url, true, executable);
   }
 
   bool FileCache::Release() const {
@@ -736,7 +691,7 @@ namespace Arc {
     // check for possible hash collisions between URLs
     // taking into account old meta file format
     if (first_line != url && first_line.substr(0, first_line.rfind(' ')) != url) {
-      logger.msg(ERROR, "Error: File %s is already cached at %s under a different URL: %s - will not add DN to cached list",
+      logger.msg(ERROR, "File %s is already cached at %s under a different URL: %s - will not add DN to cached list",
                  url, File(url), first_line);
       return false;
     }
@@ -770,10 +725,18 @@ namespace Arc {
     newdnlist += std::string(DN + ' ' + expiry_time.str(MDSTime) + '\n');
 
     // write everything back to the file
-    if (!FileCreate(meta_file, newdnlist)) {
-      logger.msg(ERROR, "Error opening meta file for writing %s", meta_file);
+    FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
+    if (!meta_lock.acquire()) {
+      // not critical if writing fails
+      logger.msg(INFO, "Could not acquire lock on meta file %s", meta_file);
       return false;
     }
+    if (!FileCreate(meta_file, newdnlist)) {
+      logger.msg(ERROR, "Error opening meta file for writing %s", meta_file);
+      meta_lock.release();
+      return false;
+    }
+    meta_lock.release();
     return true;
   }
 
@@ -858,16 +821,16 @@ namespace Arc {
     if (!FileStat(meta_file, &fileStat, true)) {
       if (errno != ENOENT)
         logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
-      return false;
+      return Time(0);
     }
     std::list<std::string> lines;
     if (!FileRead(meta_file, lines)) {
       logger.msg(ERROR, "Error opening meta file %s", meta_file);
-      return false;
+      return Time(0);
     }
     if (lines.empty()) {
       logger.msg(ERROR, "meta file %s is empty", meta_file);
-      return false;
+      return Time(0);
     }
 
     // if the file contains only one line, we don't have an expiry time
@@ -889,35 +852,110 @@ namespace Arc {
 
     std::string meta_file(_getMetaFileName(url));
     std::string file_data(url + '\n' + val.str(MDSTime));
-    if (!FileCreate(meta_file, file_data)) {
-      logger.msg(ERROR, "Error opening meta file for writing %s", meta_file);
+    FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
+    if (!meta_lock.acquire()) {
+      // not critical if writing fails
+      logger.msg(INFO, "Could not acquire lock on meta file %s", meta_file);
       return false;
     }
+    if (!FileCreate(meta_file, file_data)) {
+      logger.msg(ERROR, "Error opening meta file for writing %s", meta_file);
+      meta_lock.release();
+      return false;
+    }
+    meta_lock.release();
     return true;
   }
 
   bool FileCache::operator==(const FileCache& a) {
-    if (a._caches.size() != _caches.size())
-      return false;
+    if (a._caches.size() != _caches.size()) return false;
     for (int i = 0; i < (int)a._caches.size(); i++) {
-      if (a._caches.at(i).cache_path != _caches.at(i).cache_path)
-        return false;
-      if (a._caches.at(i).cache_link_path != _caches.at(i).cache_link_path)
-        return false;
+      if (a._caches.at(i).cache_path != _caches.at(i).cache_path) return false;
+      if (a._caches.at(i).cache_link_path != _caches.at(i).cache_link_path) return false;
     }
-    return (
-             a._id == _id &&
-             a._uid == _uid &&
-             a._gid == _gid
-             );
+    return (a._id == _id &&
+            a._uid == _uid &&
+            a._gid == _gid);
+  }
+
+  bool FileCache::_checkMetaFile(const std::string& filename, const std::string& url, bool& is_locked) {
+    std::string meta_file(filename + CACHE_META_SUFFIX);
+    struct stat fileStat;
+
+    if (FileStat(meta_file, &fileStat, true)) {
+      // check URL inside file for possible hash collisions
+      std::list<std::string> lines;
+      if (!FileRead(meta_file, lines)) {
+        // file was probably deleted by another process - try again
+        logger.msg(WARNING, "Failed to read meta file %s", meta_file);
+        is_locked = true;
+        return false;
+      }
+      if (lines.empty()) {
+        logger.msg(WARNING, "Meta file %s is empty, will recreate", meta_file);
+        FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
+        if (!meta_lock.acquire()) {
+          logger.msg(WARNING, "Failed to acquire lock on cache meta file %s", meta_file);
+          is_locked = true;
+          return false;
+        }
+        if (!FileCreate(meta_file, std::string(url + '\n'))) {
+          logger.msg(WARNING, "Failed to create meta file %s", meta_file);
+        }
+        meta_lock.release(); // there is a small timeout so don't bother to report error
+      }
+      else {
+        std::string meta_str = lines.front();
+        // check new and old format for validity time - if old change to new
+        if (meta_str != url) {
+          if (meta_str.substr(0, meta_str.rfind(' ')) != url) {
+            logger.msg(ERROR, "File %s is already cached at %s under a different URL: %s - this file will not be cached",
+                       url, filename, meta_str);
+            return false;
+          } else {
+            logger.msg(VERBOSE, "Changing old validity time format to new in %s", meta_file);
+            std::string new_meta(url + '\n' + meta_str.substr(meta_str.rfind(' ')+1) + '\n');
+            lines.pop_front();
+            for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i) {
+              new_meta += *i + '\n';
+            }
+            FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
+            if (meta_lock.acquire()) {
+              if (!FileCreate(meta_file, new_meta)) {
+                logger.msg(WARNING, "Could not write meta file %s", meta_file);
+              }
+              meta_lock.release(); // there is a small timeout so don't bother to report error
+            }
+            else logger.msg(VERBOSE, "Failed to acquire lock on cache meta file %s", meta_file);
+          }
+        }
+      }
+    }
+    else if (errno == ENOENT) {
+      // create new file
+      FileLock meta_lock(meta_file, CACHE_META_LOCK_TIMEOUT);
+      if (!meta_lock.acquire()) {
+        logger.msg(WARNING, "Failed to acquire lock on cache meta file %s", meta_file);
+        is_locked = true;
+        return false;
+      }
+      if (!FileCreate(meta_file, std::string(url + '\n'))) {
+        logger.msg(WARNING, "Failed to create meta file %s", meta_file);
+      }
+      meta_lock.release(); // there is a small timeout so don't bother to report error
+    }
+    else {
+      logger.msg(ERROR, "Error looking up attributes of meta file %s: %s", meta_file, StrError(errno));
+      return false;
+    }
+    return true;
   }
 
   std::string FileCache::_getMetaFileName(const std::string& url) {
     return File(url) + CACHE_META_SUFFIX;
   }
 
-  int FileCache::_chooseCache(const std::string& url) const {
-    
+  std::string FileCache::_getHash(const std::string& url) const {
     // get the hash of the url
     std::string hash = FileCacheHash::getHash(url);
     int index = 0;
@@ -926,16 +964,20 @@ namespace Arc {
        // go to next slash position, add one since we just inserted a slash
        index += CACHE_DIR_LENGTH + 1;
     }
-  
+    return hash;
+  }
+
+  int FileCache::_chooseCache(const std::string& url) const {
+
     int caches_size = _caches.size();
   
     // When there is only one cache directory   
-    if (caches_size == 1) {
-      return 0;
-    }
+    if (caches_size == 1) return 0;
+
+    std::string hash(_getHash(url));
+    struct stat fileStat;
     // check the fs to see if the file is already there
     for (int i = 0; i < caches_size ; i++) { 
-      struct stat fileStat;  
       std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash;  
       if (FileStat(c_file, &fileStat, true)) {
         return i; 
@@ -944,15 +986,13 @@ namespace Arc {
     // check to see if a lock file already exists, since cache could be
     // started but no file download was done
     for (int i = 0; i < caches_size ; i++) {
-      struct stat fileStat;
       std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash + FileLock::getLockSuffix();
       if (FileStat(c_file, &fileStat, true)) {
         return i;
       }
     }
-
   
-    // find a cache with the most unsed space and also the cache_size parameter defined in "arc.conf"
+    // find a cache with the most unused space and also the cache_size parameter defined in "arc.conf"
     std::map<int ,std::pair<unsigned long long, float> > cache_map;
     // caches which are under the usage percent of the "arc.conf": < cache number, chance to select this cache >
     std::map <int, int>  under_limit;
@@ -1010,6 +1050,15 @@ namespace Arc {
     }
     // return a pair of <cache total size (KB), cache free space (KB)>
     return std::make_pair((info.f_blocks * info.f_bsize)/1024, (info.f_bfree * info.f_bsize)/1024); 
+  }
+
+  bool FileCache::_cleanFilesAndReturnFalse(const std::string& dest_path,
+                                            const std::string& hard_link_file,
+                                            bool& locked) {
+    if (!FileDelete(dest_path)) logger.msg(ERROR, "Failed to clean up file %s: %s", dest_path, StrError(errno));
+    if (!FileDelete(hard_link_file)) logger.msg(ERROR, "Failed to clean up file %s: %s", hard_link_file, StrError(errno));
+    locked = true;
+    return false;
   }
 
 } // namespace Arc

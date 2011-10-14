@@ -66,7 +66,6 @@ namespace DataStaging {
   enum CacheState {
     CACHEABLE,             ///< Source should be cached
     NON_CACHEABLE,         ///< Source should not be cached
-    CACHE_RENEW,           ///< Cache file should be deleted then re-downloaded
     CACHE_ALREADY_PRESENT, ///< Source is available in cache from before
     CACHE_DOWNLOADED,      ///< Source has just been downloaded and put in cache
     CACHE_LOCKED,          ///< Cache file is locked

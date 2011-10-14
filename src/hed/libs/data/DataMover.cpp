@@ -276,15 +276,18 @@ namespace Arc {
             bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                                 canonic_url,
                                                 (!source.ReadOnly() || executable || cache_copy),
-                                                executable);
-            cache.Stop(canonic_url);
+                                                executable,
+                                                false,
+                                                is_locked);
             source.NextTry(); /* to decrease retry counter */
-            if (!cache_link_result)
-              return DataStatus::CacheError;           
-            return DataStatus::SuccessCached;
+
+            if (cache_link_result) return DataStatus::SuccessCached;
+            // if it failed with lock problems - continue and try later
+            if (!is_locked) return DataStatus::CacheError;
           }
+        } else {
+          cache.Stop(canonic_url);
         }
-        cache.Stop(canonic_url);
       }
     }
 #endif /*WIN32*/
@@ -548,7 +551,8 @@ namespace Arc {
         for (;;) { /* cycle for outdated cache files */
           bool is_in_cache = false;
           bool is_locked = false;
-          if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote)) {
+          bool delete_first = (source.GetURL().Option("cache") == "renew");
+          if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote, delete_first)) {
             if (is_locked) {
               logger.msg(VERBOSE, "Cached file is locked - should retry");
               source.NextTry(); /* to decrease retry counter */
@@ -560,14 +564,6 @@ namespace Arc {
             break;
           }
           if (is_in_cache) {
-            // check for forced re-download option
-            std::string cache_option = source.GetURL().Option("cache");
-            if (cache_option == "renew") {
-              logger.msg(VERBOSE, "Forcing re-download of file %s", canonic_url);
-              cache.StopAndDelete(canonic_url);
-              use_remote = false;
-              continue;
-            }
             /* just need to check permissions */
             logger.msg(INFO, "File %s is cached (%s) - checking permissions",
                        canonic_url, cache.File(canonic_url));
@@ -579,7 +575,6 @@ namespace Arc {
               DataStatus cres = source.Check();
               if (!cres.Passed()) {
                 logger.msg(ERROR, "Permission checking failed: %s", canonic_url);
-                cache.Stop(canonic_url);
                 source.NextLocation(); /* try another source */
                 logger.msg(VERBOSE, "source.next_location");
                 res = cres;
@@ -609,7 +604,7 @@ namespace Arc {
                 outdated = true;
             }
             if (outdated) {
-              cache.StopAndDelete(canonic_url);
+              delete_first = true;
               logger.msg(INFO, "Cached file is outdated, will re-download");
               use_remote = false;
               continue;
@@ -619,13 +614,16 @@ namespace Arc {
             if (!cache.Link(destination.CurrentLocation().Path(),
                             canonic_url,
                             (!source.ReadOnly() || executable || cache_copy),
-                            executable)) {
-              /* failed cache link is unhandleable */
-              cache.Stop(canonic_url);
+                            executable,
+                            false,
+                            is_locked)) {
               source.NextTry(); /* to decrease retry counter */
+              if (is_locked) {
+                logger.msg(VERBOSE, "Cached file is locked - should retry");
+                return DataStatus::CacheErrorRetryable;
+              }
               return DataStatus::CacheError;
             }
-            cache.Stop(canonic_url);
             return DataStatus::SuccessCached;
             // Leave here. Rest of code below is for transfer.
           }
@@ -1093,10 +1091,13 @@ namespace Arc {
           cache.SetValid(canonic_url, source.GetValid());
         cache.AddDN(canonic_url, dn, exp_time);
         logger.msg(INFO, "Linking/copying cached file");
+        bool is_locked = false;
         bool cache_link_result = cache.Link(destination.CurrentLocation().Path(),
                                             canonic_url,
                                             (!source.ReadOnly() || executable || cache_copy),
-                                            executable);
+                                            executable,
+                                            true,
+                                            is_locked);
         cache.Stop(canonic_url);
         if (!cache_link_result) {
           if (!destination.PreUnregister(replication ||
@@ -1104,7 +1105,8 @@ namespace Arc {
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually");
           source.NextTry(); /* to decrease retry count */
-          return DataStatus::CacheError; /* retry won't help */
+          if (is_locked) return DataStatus::CacheErrorRetryable;
+          return DataStatus::CacheError; // retry won't help
         }
       }
 #endif

@@ -497,7 +497,6 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
       Arc::DataStatus res = d->Check();
       if (!res.Passed()) {
         logger.msg(Arc::ERROR, "Permission checking failed: %s", url);
-        cache.Stop(url);
         resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::PermissionError);
         resultelement.NewChild("ReturnCodeExplanation") = "Permission denied";
         error_happened = true;
@@ -509,16 +508,15 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
 
     // link file
     std::string session_file = session_dir + '/' + filename;
-    if (!cache.Link(session_file, url, false, false)) { // TODO add executable flag to request
+    bool try_again = false;
+    if (!cache.Link(session_file, url, false, false, false, try_again)) { // TODO add executable flag to request
       // failed to link - report as if not there
-      cache.Stop(url);
       resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::LinkError);
       resultelement.NewChild("ReturnCodeExplanation") = "Failed to link to session dir";
       error_happened = true;
       continue;
     }
-    // everything went ok so stop cache and report success
-    cache.Stop(url);
+    // everything went ok so report success
     resultelement.NewChild("ReturnCode") = Arc::tostring(CacheService::Success);
     resultelement.NewChild("ReturnCodeExplanation") = "Success";
   }
