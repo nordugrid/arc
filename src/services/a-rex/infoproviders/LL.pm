@@ -565,7 +565,12 @@ sub jobs_info ($$$) {
 	}
 	$lrms_jobs{$id}{reqcputime} = $lrms_jobs{$id}{reqwalltime};
 	$lrms_jobs{$id}{comment} = [ "LRMS: $jobinfo{$id}{Status}" ];
-        $lrms_jobs{$id}{nodes} = ["$jobinfo{$id}{Allocated_Host}"] if defined $jobinfo{$id}{Allocated_Host};
+        if ($jobinfo{$id}{Allocated_Host} ne "") {
+            $lrms_jobs{$id}{nodes} =  ["$jobinfo{$id}{Allocated_Host}"];
+        } else {
+            $lrms_jobs{$id}{nodes} = [];
+        }
+
         $lrms_jobs{$id}{rank} = -1;
         $lrms_jobs{$id}{cpus} = 0;
         $lrms_jobs{$id}{cpus} = $jobinfo{$id}{Step_Cpus};
