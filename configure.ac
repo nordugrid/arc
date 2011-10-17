@@ -2171,6 +2171,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/arex_xmlonly.xml.example
                  src/services/a-rex/arex_showcase.xml.example
                  src/services/a-rex/arex_janitor.xml.example
+                 src/services/a-rex/grid-manager/arc-vomsac-check.8
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
                  src/services/a-rex/grid-manager/files/Makefile

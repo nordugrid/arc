@@ -7,7 +7,7 @@ endif
 SUBDIRS = jobs run conf misc log mail files loaders $(JOBPLUGIN_DIR)
 
 noinst_LTLIBRARIES = libgridmanager.la
-pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck
+pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check
 
 libgridmanager_la_SOURCES = grid_manager.cpp grid_manager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -31,3 +31,9 @@ inputcheck_SOURCES = inputcheck.cpp
 inputcheck_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 inputcheck_LDADD = libgridmanager.la
+
+arc_vomsac_check_SOURCES = arc_vomsac_check.cpp
+arc_vomsac_check_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arc_vomsac_check_LDADD = $(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la
