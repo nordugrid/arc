@@ -17,7 +17,7 @@ UNICORE =
 endif
 
 if EMIES_ENABLED
-EMIES = UNICORE
+EMIES = EMIES
 else
 EMIES =
 endif
