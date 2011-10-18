@@ -1137,7 +1137,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man1/jura.1*
 %doc %{_mandir}/man8/arc-vomsac-check.8*
-%%doc %{_datadir}/%{pkgdir}/examples/a-rex
+%doc %{_datadir}/%{pkgdir}/examples/a-rex
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
 
