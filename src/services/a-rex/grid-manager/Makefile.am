@@ -9,6 +9,8 @@ SUBDIRS = jobs run conf misc log mail files loaders $(JOBPLUGIN_DIR)
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-vomsac-check
 
+man_MANS = arc-vomsac-check.8
+
 libgridmanager_la_SOURCES = grid_manager.cpp grid_manager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
