@@ -24,7 +24,7 @@ void Index::ListEntries(FILE *f) {
   pthread_mutex_lock(&lock);
   for(std::list<Entry>::const_iterator e = entries.begin();
       e != entries.end(); e++)
-    fprintf(f, e->SearchEntry().c_str());
+    fprintf(f, "%s", e->SearchEntry().c_str());
   pthread_mutex_unlock(&lock);
 }
 
