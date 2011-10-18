@@ -7,10 +7,11 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/message/MCCLoader.h>
-#include <arc/XMLNode.h>
+#include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
 #include "ArgusPEP.h"
 
+static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
 
 static Arc::Plugin* get_sechandler(Arc::PluginArgument* arg) {
     ArcSec::SecHandlerPluginArgument* shcarg = arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
@@ -45,11 +46,21 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
     }
     logger.msg(Arc::DEBUG, "PEPD location: %s",pepdlocation);
 
-    if((std::string)(*cfg)["Conversion"] == "direct") {
+    std::string conversion_str = (std::string)(*cfg)["Conversion"];
+    if(conversion_str == "direct") {
         logger.msg(Arc::DEBUG, "Conversion mode is set to DIRECT");
         conversion = conversion_direct;
-    } else {
+    } else if(conversion_str == "subject") {
         logger.msg(Arc::DEBUG, "Conversion mode is set to SUBJECT");
+        conversion = conversion_subject;
+    } else if(conversion_str == "cream") {
+        logger.msg(Arc::DEBUG, "Conversion mode is set to CREAM");
+        conversion = conversion_cream;
+    } else if(conversion_str == "emi") {
+        logger.msg(Arc::DEBUG, "Conversion mode is set to EMI");
+        conversion = conversion_emi;
+    } else {
+        logger.msg(Arc::DEBUG, "Unknown conversion mode %s", conversion_str);
         conversion = conversion_subject;
     }
 
@@ -73,7 +84,6 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
             /* error handling */
             throw pep_ex(std::string("Failed to initialize PEP client:"));
         }
-        // cannot pass objects of non-POD type ‘struct std::string’ through ‘...’; call will abort at runtime
         pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation.c_str());
     
         if (pep_rc != PEP_OK) {
@@ -103,7 +113,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
             msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
             msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
             rc= create_xacml_request(requests,secattr);
-        } else {
+        } else if(conversion == conversion_subject) {
             //resource= (std::string) secattr["RequestItem"][0]["Resource"][0];
             //action=  (std::string) secattr["RequestItem"][0]["Action"][0];
             // Extract the user subject according to RFC2256 format
@@ -116,9 +126,23 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
             subject = subject.substr(0, subject.length()-1);
             if(resource.empty()) resource = "ANY";
             if(action.empty()) action = "ANY";
-            rc= create_xacml_request(&request,subject.c_str(),resource.c_str(),action.c_str());
+            rc = create_xacml_request(&request,subject.c_str(),resource.c_str(),action.c_str());
             if(request != NULL) requests.push_back(request);
             request = NULL;
+        } else if(conversion == conversion_cream) {
+            std::list<Arc::MessageAuth*> auths;
+            auths.push_back(msg->Auth());
+            auths.push_back(msg->AuthContext());
+            Arc::PayloadSOAP* payload = NULL;
+            try {
+                payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
+            } catch(std::exception& e) { };
+            if(!payload) throw pep_ex("No SOAP in message");
+            rc = create_xacml_request_cream(&request,auths,msg->Attributes(),*payload);
+            if(request != NULL) requests.push_back(request);
+            request = NULL;
+        } else {
+            throw pep_ex("Unsupported conversion mode " + Arc::tostring(conversion));
         } 
         if (rc != 0) {
             throw pep_ex("Failed to create XACML request(s): " + Arc::tostring(rc));
@@ -173,9 +197,11 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
                 std::string xml;
                 secattr.GetXML(xml);
                 logger.msg(Arc::INFO,"Not authorized according to request:\n%s",xml);
-            } else {
+            } else if(conversion == conversion_subject) {
                 logger.msg(Arc::INFO,"%s is not authorized to do action %s in resource %s ",
                            subject, action, resource);
+            } else {
+                logger.msg(Arc::INFO,"Not authorized");
             }
             throw pep_ex("The reached decision is: " + Arc::tostring(decision));
         }     
@@ -369,5 +395,186 @@ int ArgusPEP::create_xacml_request(std::list<xacml_request_t*>& requests, Arc::X
     return r;  
 }
 
-} 
+// This part is ARC vs CREAM specific.
+// In a future such mapping should be pluggable or configurable or done by service
+static const std::string BES_FACTORY_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-factory");
+static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/2006/08/bes-management");
+static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
+static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
+static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
+static std::string get_cream_acion(Arc::XMLNode op) {
+    if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
+        if(MatchXMLName(op,"CreateActivity"))
+            return "http://glite.org/xacml/action/ce/job/submit";
+        if(MatchXMLName(op,"GetActivityStatuses"))
+            return "http://glite.org/xacml/action/ce/job/get-info";
+        if(MatchXMLName(op,"TerminateActivities"))
+            return "http://glite.org/xacml/action/ce/job/terminate";
+        if(MatchXMLName(op,"GetActivityDocuments"))
+            return "http://glite.org/xacml/action/ce/job/get-info";
+        if(MatchXMLName(op,"GetFactoryAttributesDocument"))
+            return "http://glite.org/xacml/action/ce/get-info";
+        return "";
+    } else if(MatchXMLNamespace(op,BES_MANAGEMENT_NAMESPACE)) {
+        if(MatchXMLName(op,"StopAcceptingNewActivities"))
+            return "";
+        if(MatchXMLName(op,"StartAcceptingNewActivities"))
+            return "";
+    } else if(MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+        if(MatchXMLName(op,"ChangeActivityStatus"))
+            return "http://glite.org/xacml/action/ce/job/manage";
+        if(MatchXMLName(op,"MigrateActivity"))
+            return "http://glite.org/xacml/action/ce/job/manage";
+        if(MatchXMLName(op,"CacheCheck"))
+            return "http://glite.org/xacml/action/ce/get-info";
+        return "";
+    } else if(MatchXMLNamespace(op,DELEG_ARC_NAMESPACE)) {
+        if(MatchXMLName(op,"DelegateCredentialsInit"))
+            return "http://glite.org/xacml/action/ce/delegation/manage";
+        if(MatchXMLName(op,"UpdateCredentials"))
+            return "http://glite.org/xacml/action/ce/delegation/manage";
+        return "";
+    } else if(MatchXMLNamespace(op,WSRF_NAMESPACE)) {
+        return "http://glite.org/xacml/action/ce/get-info";
+    }
+    // http://glite.org/xacml/action/ce/job/submit
+    // *http://glite.org/xacml/action/ce/job/terminate
+    // *http://glite.org/xacml/action/ce/job/get-info
+    // *http://glite.org/xacml/action/ce/job/manage
+    // http://glite.org/xacml/action/ce/lease/get-info
+    // http://glite.org/xacml/action/ce/lease/manage
+    // *http://glite.org/xacml/action/ce/get-info
+    // http://glite.org/xacml/action/ce/delegation/get-info
+    // *http://glite.org/xacml/action/ce/delegation/manage
+    // http://glite.org/xacml/action/ce/subscription/get-info
+    // http://glite.org/xacml/action/ce/subscription/manage
+    return "";
+}
+
+static std::string get_sec_attr(std::list<Arc::MessageAuth*> auths, const std::string& sid, const std::string& aid) {
+    for(std::list<Arc::MessageAuth*>::iterator a = auths.begin(); a != auths.end(); ++a) {
+        Arc::SecAttr* sa = (*a)->get(sid);
+        std::string str = sa->get(aid);
+        if(!str.empty()) return str;
+    }
+    return "";
+}
+
+static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, const std::string& sid, const std::string& aid) {
+    for(std::list<Arc::MessageAuth*>::iterator a = auths.begin(); a != auths.end(); ++a) {
+        Arc::SecAttr* sa = (*a)->get(sid);
+        std::list<std::string> strs = sa->getAll(aid);
+        if(!strs.empty()) return strs;
+    }
+    return std::list<std::string>();
+}
+
+int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+    xacml_attribute_t* attr = NULL;
+    xacml_environment_t* environment = NULL;
+    xacml_subject_t* subject = NULL;
+    xacml_resource_t* resource = NULL;
+    xacml_action_t* action = NULL;
+    class ierror { };
+    try {
+    *request = xacml_request_create();
+    if(!*request) throw ierror();
+    environment = xacml_environment_create();
+    if(!environment) throw ierror();
+    subject = xacml_subject_create();
+    if(!subject) throw ierror();
+    resource = xacml_resource_create();
+    if(!resource) throw ierror();
+    action = xacml_action_create();
+    if(!action) throw ierror();
+
+    // Environment
+    attr = xacml_attribute_create("http://glite.org/xacml/attribute/profile-id");
+    if(!attr) throw ierror();
+    xacml_attribute_addvalue(attr, "http://glite.org/xacml/profile/grid-ce/1.0");
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_ANYURI);
+    xacml_environment_addattribute(environment,attr); attr = NULL;
+
+    // Subject
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:subject:subject-id");
+    if(!attr) throw ierror();
+    std::string subject_str = get_sec_attr(auths, "TLS", "IDENTITY");
+    if(subject_str.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, subject_str.c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://glite.org/xacml/attribute/subject-issuer");
+    if(!attr) throw ierror();
+    std::string ca_str = get_sec_attr(auths, "TLS", "CA");
+    if(ca_str.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, ca_str.c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://glite.org/xacml/attribute/virtual-organization");
+    if(!attr) throw ierror();
+    std::list<std::string> vos = get_sec_attrs(auths, "TLS", "VO");
+    for(std::list<std::string>::iterator vo = vos.begin(); vo!=vos.end(); ++vo) {
+        if(!vo->empty()) xacml_attribute_addvalue(attr, vo->c_str());
+    }
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://glite.org/xacml/attribute/fqan");
+    if(!attr) throw ierror();
+    std::string pfqan;
+    std::list<std::string> fqans = get_sec_attrs(auths, "TLS", "VOMS");
+    for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
+        if(pfqan.empty()) pfqan = *fqan;
+        if(!fqan->empty()) xacml_attribute_addvalue(attr, fqan->c_str());
+    }
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+    if(!pfqan.empty()) {
+        attr = xacml_attribute_create("http://glite.org/xacml/attribute/fqan/primary");
+        if(!attr) throw ierror();
+        xacml_attribute_addvalue(attr, pfqan.c_str());
+        xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
+        xacml_subject_addattribute(subject,attr); attr = NULL;
+    }
+
+    // Resource
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:resource:resource-id");
+    if(!attr) throw ierror();
+    std::string endpoint = attrs->get("ENDPOINT");
+    if(endpoint.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, endpoint.c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_resource_addattribute(resource,attr); attr = NULL;
+
+    // Action
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:action:action-id");
+    if(!attr) throw ierror();
+    std::string act = get_cream_acion(operation);
+    if(act.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, act.c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_action_addattribute(action,attr); attr = NULL;
+
+    // Add everything into request
+    xacml_request_setenvironment(*request,environment); environment = NULL;
+    xacml_request_addsubject(*request,subject); subject = NULL;
+    xacml_request_addresource(*request,resource); resource = NULL;
+    xacml_request_setaction(*request,action); action = NULL;
+
+    return 0;
+
+    } catch(ierror err) {
+    if(attr) xacml_attribute_delete(attr);
+    if(environment) xacml_environment_delete(environment);
+    if(subject) xacml_subject_delete(subject);
+    if(resource) xacml_resource_delete(resource);
+    if(*request) xacml_request_delete(*request);
+    return 1;
+    }
+}
+
+
+}  // namespace ArcSec
 

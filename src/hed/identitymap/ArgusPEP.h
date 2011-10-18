@@ -4,8 +4,12 @@
 #include <arc/ArcConfig.h>
 #include <arc/XMLNode.h>
 #include <arc/message/Message.h>
+#include <arc/message/MessageAttributes.h>
+#include <arc/message/MessageAuth.h>
 #include <arc/message/SecHandler.h>
 #include <arc/security/PDP.h>
+#include <arc/XMLNode.h>
+
 #include <argus/pep.h>
 
 namespace ArcSec {
@@ -16,7 +20,9 @@ class ArgusPEP : public SecHandler {
 
   typedef enum {
      conversion_subject,
-     conversion_direct
+     conversion_direct,
+     conversion_cream,
+     conversion_emi
    } conversion_type;
 
    
@@ -44,6 +50,7 @@ class ArgusPEP : public SecHandler {
   private:
     int create_xacml_request(xacml_request_t** request, const char * subjectid, const char * resourceid, const char * actionid) const ;
     int create_xacml_request(std::list<xacml_request_t*>& requests,Arc::XMLNode arcreq) const;
+    int create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths, Arc::MessageAttributes* attrs, Arc::XMLNode operation) const;
  // const char * decision_tostring(xacml_decision_t decision);
  // const char * fulfillon_tostring(xacml_fulfillon_t fulfillon);
 
