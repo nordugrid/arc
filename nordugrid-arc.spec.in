@@ -1280,5 +1280,5 @@ service fetch-crl-cron start > /dev/null 2>&1
 %defattr(-,root,root,-)
 
 %changelog
-* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
+* @SPECDATE@ Mattias Ellert <mattias.ellert@fysast.uu.se> - @baseversion@-@fedorarelease@
 - Initial release
