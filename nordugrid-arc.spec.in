@@ -675,6 +675,7 @@ cd -
 %if %{?fedora}%{!?fedora:0} >= 13
      --with-altpython=python3 \
 %endif
+     --disable-xrootd \
      --disable-doc \
      --with-docdir=%{_docdir}/%{name}-%{version}
 
