@@ -184,13 +184,13 @@ echo "# Overide umask of execution node (sometime values are really strange)" >>
 echo "umask 077" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
-# SGE creates a temporary directory for each job ($TMPDIR), so let's use that
-# instead of "scratchdir" option in arc.conf. Using $TMPDIR is preferable
-# because SGE takes care of cleaning it up after the job finishes.
+# By default, use $TMPDIR from SGE to alleviate its cleanup facilities.
+# It can be overridden with scratchdir though.
 # Don't do this if "shared_scratch" is defined in arc.conf.
 ##############################################################
+
 if [ "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! "$RUNTIME_FRONTEND_SEES_NODE" ]; then
-    echo 'if [ "$TMPDIR" ]; then RUNTIME_LOCAL_SCRATCH_DIR=$TMPDIR; fi' >> $LRMS_JOB_SCRIPT
+    echo "if [ -d \"${CONFIG_scratchdir:-\$TMPDIR}\" ]; then RUNTIME_LOCAL_SCRATCH_DIR=${CONFIG_scratchdir:-\$TMPDIR}; fi" >> $LRMS_JOB_SCRIPT
 fi
 
 ##############################################################
