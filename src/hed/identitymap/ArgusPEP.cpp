@@ -9,6 +9,7 @@
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
+#include <arc/URL.h>
 #include "ArgusPEP.h"
 
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
@@ -34,6 +35,16 @@ class pep_ex {
         std::string desc;
         pep_ex(const std::string& desc_):desc(desc_) {};
 };
+
+std::string path_to_x500(const std::string& path) {
+    class url_ex: public Arc::URL {
+      public:
+        static std::string Path2BaseDN(const std::string& path) {
+            return Arc::URL::Path2BaseDN(path);
+        }
+     };
+    return url_ex::Path2BaseDN(path);
+}
 
 Arc::Logger ArgusPEP::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
 
@@ -112,7 +123,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
         if(conversion == conversion_direct) {
             msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
             msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
-            rc= create_xacml_request(requests,secattr);
+            rc= create_xacml_request_direct(requests,secattr);
         } else if(conversion == conversion_subject) {
             //resource= (std::string) secattr["RequestItem"][0]["Resource"][0];
             //action=  (std::string) secattr["RequestItem"][0]["Action"][0];
@@ -139,6 +150,18 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
             } catch(std::exception& e) { };
             if(!payload) throw pep_ex("No SOAP in message");
             rc = create_xacml_request_cream(&request,auths,msg->Attributes(),*payload);
+            if(request != NULL) requests.push_back(request);
+            request = NULL;
+        } else if(conversion == conversion_emi) {
+            std::list<Arc::MessageAuth*> auths;
+            auths.push_back(msg->Auth());
+            auths.push_back(msg->AuthContext());
+            Arc::PayloadSOAP* payload = NULL;
+            try {
+                payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
+            } catch(std::exception& e) { };
+            if(!payload) throw pep_ex("No SOAP in message");
+            rc = create_xacml_request_emi(&request,auths,msg->Attributes(),*payload);
             if(request != NULL) requests.push_back(request);
             request = NULL;
         } else {
@@ -234,7 +257,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
         xacml_subject_delete(subject);
         return 1;
     }
-    xacml_attribute_addvalue(subject_attr_id,subjectid);
+    xacml_attribute_addvalue(subject_attr_id, path_to_x500(subjectid).c_str());
     xacml_attribute_setdatatype(subject_attr_id,XACML_DATATYPE_X500NAME);
     xacml_subject_addattribute(subject,subject_attr_id); 
     xacml_resource_t * resource = xacml_resource_create();
@@ -283,7 +306,7 @@ int ArgusPEP::create_xacml_request(xacml_request_t ** request,const char * subje
     return 0;  
 }
 
-int ArgusPEP::create_xacml_request(std::list<xacml_request_t*>& requests, Arc::XMLNode arcreq) const {
+int ArgusPEP::create_xacml_request_direct(std::list<xacml_request_t*>& requests, Arc::XMLNode arcreq) const {
     //  -- XACML --
     // Request
     //  Subject *
@@ -500,16 +523,16 @@ int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Ar
     if(!attr) throw ierror();
     std::string subject_str = get_sec_attr(auths, "TLS", "IDENTITY");
     if(subject_str.empty()) throw ierror();
-    xacml_attribute_addvalue(attr, subject_str.c_str());
-    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_attribute_addvalue(attr, path_to_x500(subject_str).c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
     xacml_subject_addattribute(subject,attr); attr = NULL;
 
     attr = xacml_attribute_create("http://glite.org/xacml/attribute/subject-issuer");
     if(!attr) throw ierror();
     std::string ca_str = get_sec_attr(auths, "TLS", "CA");
     if(ca_str.empty()) throw ierror();
-    xacml_attribute_addvalue(attr, ca_str.c_str());
-    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_attribute_addvalue(attr, path_to_x500(ca_str).c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
     xacml_subject_addattribute(subject,attr); attr = NULL;
 
     attr = xacml_attribute_create("http://glite.org/xacml/attribute/virtual-organization");
@@ -575,6 +598,9 @@ int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Ar
     }
 }
 
+int ArgusPEP::create_xacml_request_emi(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+    return 1;
+}
 
 }  // namespace ArcSec
 

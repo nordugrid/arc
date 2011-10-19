@@ -49,8 +49,9 @@ class ArgusPEP : public SecHandler {
   
   private:
     int create_xacml_request(xacml_request_t** request, const char * subjectid, const char * resourceid, const char * actionid) const ;
-    int create_xacml_request(std::list<xacml_request_t*>& requests,Arc::XMLNode arcreq) const;
+    int create_xacml_request_direct(std::list<xacml_request_t*>& requests,Arc::XMLNode arcreq) const;
     int create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths, Arc::MessageAttributes* attrs, Arc::XMLNode operation) const;
+    int create_xacml_request_emi(xacml_request_t** request, std::list<Arc::MessageAuth*> auths, Arc::MessageAttributes* attrs, Arc::XMLNode operation) const;
  // const char * decision_tostring(xacml_decision_t decision);
  // const char * fulfillon_tostring(xacml_fulfillon_t fulfillon);
 
