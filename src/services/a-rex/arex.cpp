@@ -94,6 +94,7 @@ class ARexSecAttr: public Arc::SecAttr {
   virtual ~ARexSecAttr(void);
   virtual operator bool(void) const;
   virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
+  virtual std::string get(const std::string& id) const;
  protected:
   std::string action_;
   std::string id_;
@@ -253,6 +254,12 @@ bool ARexSecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
   };
   return false;
 }
+
+std::string ARexSecAttr::get(const std::string& id) const {
+  if(id == "ACTION") return action_;
+  if(id == "NAMESPACE") return id_;
+  return "";
+};
 
 static Arc::XMLNode BESFactoryResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(BES_FACTORY_NPREFIX + ":" + opname + "Response");
