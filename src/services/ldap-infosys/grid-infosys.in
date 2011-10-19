@@ -570,6 +570,8 @@ create_bdii_conf () {
     bdii_ldif_dir=$5
     bdii_provider_dir=$6
     bdii_plugin_dir=$7
+    # This is for compatibility with BDII 5.0.x, it is ignored by newer BDIIs.
+    bdii_bind=$8
 
     rm -f ${BDII_CONF}
     std_header ${BDII_CONF}
@@ -587,6 +589,7 @@ create_bdii_conf () {
 	BDII_DELETE_DELAY=$bdii_delete_delay
 	BDII_USER=$bdii_user
 	BDII_VAR_DIR=$bdii_var_dir
+	BDII_BIND=$bdii_bind
 	SLAPD_CONF=$bdii_slapd_conf
 	EOF
 }
@@ -1107,7 +1110,7 @@ create_bdii_config_files () {
 
     # Create bdii.conf
     # Call with: create_bdii_conf bdii_dir var_dir slapd_conf default_ldif bdii_port
-    create_bdii_conf $bdii_location $bdii_var_dir $bdii_slapd_conf $bdii_port $bdii_ldif_dir $bdii_provider_dir $bdii_plugin_dir
+    create_bdii_conf $bdii_location $bdii_var_dir $bdii_slapd_conf $bdii_port $bdii_ldif_dir $bdii_provider_dir $bdii_plugin_dir $bdii_bind
 
     # Create arc-slapd.conf, will be copied to dirs where slapd is run
     # Call with: create_arc_slapd_conf bdii_dir bdii_slapd_conf_file
