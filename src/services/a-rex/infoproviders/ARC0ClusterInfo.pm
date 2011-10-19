@@ -89,7 +89,7 @@ sub collect($) {
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
             unless ((defined $lrmsjob) and $lrmsjob->{status}) {
                 $log->warning("LRMS plugin returned no status for job $jobid (lrmsid: $lrmsid)");
-                die;
+                next;
             }
             if ((defined $lrmsjob) and $lrmsjob->{status} ne 'EXECUTED') {
                 if ($lrmsjob->{status} eq 'R' or $lrmsjob->{status} eq 'S') {
