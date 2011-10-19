@@ -365,7 +365,6 @@ namespace Arc {
       logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
       return false;
     }
-    std::cout << "Resuming job " << job.JobID.str() << " at state " << job.RestartState.GetGeneralState() << " (" << job.RestartState() << ")" << std::endl;
 
     RenewJob(job);
 
@@ -523,8 +522,7 @@ namespace Arc {
 
     std::list<JobDescription> descs;
     if (!JobDescription::Parse(desc_str, descs) || descs.empty()) {
-      logger.msg(INFO, "Invalid JobDescription:");
-      std::cout << desc_str << std::endl;
+      logger.msg(INFO, "Invalid JobDescription: %s", desc_str);
       return false;
     }
     logger.msg(VERBOSE, "Valid JobDescription found");
