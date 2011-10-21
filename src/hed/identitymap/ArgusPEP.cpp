@@ -6,10 +6,10 @@
 #include <vector>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/URL.h>
 #include <arc/message/MCCLoader.h>
 #include <arc/message/PayloadSOAP.h>
 #include <arc/message/SecAttr.h>
-#include <arc/URL.h>
 #include "ArgusPEP.h"
 
 static const char XACML_DATATYPE_FQAN[]= "http://glite.org/xacml/datatype/fqan";
@@ -550,6 +550,7 @@ int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Ar
     std::list<std::string> fqans = get_sec_attrs(auths, "TLS", "VOMS");
     for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
         if(pfqan.empty()) pfqan = *fqan;
+        // TODO: convert to VOMS FQAN?
         if(!fqan->empty()) xacml_attribute_addvalue(attr, fqan->c_str());
     }
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
@@ -557,6 +558,7 @@ int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Ar
     if(!pfqan.empty()) {
         attr = xacml_attribute_create("http://glite.org/xacml/attribute/fqan/primary");
         if(!attr) throw ierror();
+        // TODO: convert to VOMS FQAN?
         xacml_attribute_addvalue(attr, pfqan.c_str());
         xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
         xacml_subject_addattribute(subject,attr); attr = NULL;
@@ -598,8 +600,184 @@ int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Ar
     }
 }
 
+static bool split_voms(const std::string& voms_attr, std::string& vo, std::string& group, std::list<
+std::string>& roles, std::list<std::string>& attrs) {
+    vo.resize(0);
+    group.resize(0);
+    roles.clear();
+    attrs.clear();
+    std::list<std::string> elements;
+    Arc::tokenize(voms_attr,elements,"/");
+    std::list<std::string>::iterator element = elements.begin();
+    for(;element!=elements.end();++element) {
+        std::string::size_type p = element->find('=');
+        if(p == std::string::npos) {
+            attrs.push_back(*element);
+        } else {
+            std::string key = element->substr(0,p);
+            if(key == "VO") {
+                vo = element->substr(p+1);
+            } else if(key == "Group") {
+                group += "/"+element->substr(p+1);
+            } else if(key == "Role") {
+                roles.push_back(element->substr(p+1));
+            } else {
+                attrs.push_back(*element);
+            }
+        }
+    }
+    return true;
+}
+
 int ArgusPEP::create_xacml_request_emi(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+    xacml_attribute_t* attr = NULL;
+    xacml_environment_t* environment = NULL;
+    xacml_subject_t* subject = NULL;
+    xacml_resource_t* resource = NULL;
+    xacml_action_t* action = NULL;
+    class ierror { };
+    try {
+    *request = xacml_request_create();
+    if(!*request) throw ierror();
+    environment = xacml_environment_create();
+    if(!environment) throw ierror();
+    subject = xacml_subject_create();
+    if(!subject) throw ierror();
+    resource = xacml_resource_create();
+    if(!resource) throw ierror();
+    action = xacml_action_create();
+    if(!action) throw ierror();
+
+    // Environment
+    attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/profile-id");
+    if(!attr) throw ierror();
+    xacml_attribute_addvalue(attr, "http://dci-sec.org/xacml/profile/common-ce/1.0");
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_ANYURI);
+    xacml_environment_addattribute(environment,attr); attr = NULL;
+
+    // Subject
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:subject:subject-id");
+    if(!attr) throw ierror();
+    std::string subject_str = get_sec_attr(auths, "TLS", "IDENTITY");
+    if(subject_str.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, path_to_x500(subject_str).c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/subject-issuer");
+    if(!attr) throw ierror();
+    std::string ca_str = get_sec_attr(auths, "TLS", "CA");
+    if(ca_str.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, path_to_x500(ca_str).c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/virtual-organization");
+    if(!attr) throw ierror();
+    std::list<std::string> vos = get_sec_attrs(auths, "TLS", "VO");
+    // TODO: handle no vos
+    for(std::list<std::string>::iterator vo = vos.begin(); vo!=vos.end(); ++vo) {
+        if(!vo->empty()) xacml_attribute_addvalue(attr, vo->c_str());
+    }
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/group");
+    if(!attr) throw ierror();
+    std::string pgroup;
+    std::list<std::string> fqans = get_sec_attrs(auths, "TLS", "VOMS");
+    // TODO: handle no fqans
+    for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
+        std::string vo;
+        std::string group;
+        std::list<std::string> roles;
+        std::list<std::string> attrs;
+        if(!split_voms(*fqan,vo,group,roles,attrs)) throw ierror();
+        if(pgroup.empty()) pgroup = group;
+        if(!group.empty()) xacml_attribute_addvalue(attr, group.c_str());
+    }
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
+    if(!pgroup.empty()) {
+        attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/group/primary");
+        if(!attr) throw ierror();
+        xacml_attribute_addvalue(attr, pgroup.c_str());
+        xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+        xacml_subject_addattribute(subject,attr); attr = NULL;
+    }
+    std::string prole;
+    pgroup.resize(0);
+    for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
+        std::string vo;
+        std::string group;
+        std::list<std::string> roles;
+        std::list<std::string> attrs;
+        if(!split_voms(*fqan,vo,group,roles,attrs)) throw ierror();
+        attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/role");
+        if(!attr) throw ierror();
+        if(!group.empty()) xacml_attribute_setissuer(attr, group.c_str());
+        // TODO: handle no roles
+        for(std::list<std::string>::iterator role = roles.begin(); role!=roles.end(); ++role) {
+            if(role->empty()) continue;
+            if(prole.empty()) { prole = *role; pgroup = group; }
+            xacml_attribute_addvalue(attr, role->c_str());
+        }
+        xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+        xacml_subject_addattribute(subject,attr); attr = NULL;
+    }
+    if(!prole.empty()) {
+        attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/role/primary");
+        if(!attr) throw ierror();
+        if(!pgroup.empty()) xacml_attribute_setissuer(attr, pgroup.c_str());
+        xacml_attribute_addvalue(attr, prole.c_str());
+        xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+        xacml_subject_addattribute(subject,attr); attr = NULL;
+    }
+
+    // Resource
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:resource:resource-id");
+    if(!attr) throw ierror();
+    std::string endpoint = attrs->get("ENDPOINT");
+    if(endpoint.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, endpoint.c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_resource_addattribute(resource,attr); attr = NULL;
+
+    attr = xacml_attribute_create("http://dci-sec.org/xacml/attribute/resource-owner");
+    std::string owner_str = get_sec_attr(auths, "TLS", "LOCALSUBJECT");
+    if(owner_str.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, path_to_x500(owner_str).c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
+    xacml_resource_addattribute(resource,attr); attr = NULL;
+
+    // Action
+    // In a future action names should be synchronized among services
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:action:action-id");
+    if(!attr) throw ierror();
+    //"http://dci-sec.org/xacml/action/arc/arex/"+operation.Name
+    std::string act = get_sec_attr(auths, "AREX", "NAMESPACE") + "/" + get_sec_attr(auths, "AREX", "ACTION");
+    if(act.empty()) throw ierror();
+    xacml_attribute_addvalue(attr, act.c_str());
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_action_addattribute(action,attr); attr = NULL;
+
+    // Add everything into request
+    xacml_request_setenvironment(*request,environment); environment = NULL;
+    xacml_request_addsubject(*request,subject); subject = NULL;
+    xacml_request_addresource(*request,resource); resource = NULL;
+    xacml_request_setaction(*request,action); action = NULL;
+
+    return 0;
+
+    } catch(ierror err) {
+    if(attr) xacml_attribute_delete(attr);
+    if(environment) xacml_environment_delete(environment);
+    if(subject) xacml_subject_delete(subject);
+    if(resource) xacml_resource_delete(resource);
+    if(*request) xacml_request_delete(*request);
     return 1;
+    }
 }
 
 }  // namespace ArcSec
