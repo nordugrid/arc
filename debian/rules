@@ -2,6 +2,10 @@
 
 -include /usr/share/dpkg/buildflags.mk
 
+# Filter out -Wl,-Bsymbolic-functions from default Ubuntu LDFLAGS
+COMMA = ,
+LDFLAGS := $(filter-out -Wl$(COMMA)-Bsymbolic-functions,$(LDFLAGS))
+
 LFC_SUPPORT = yes
 
 ifeq ($(LFC_SUPPORT),yes)
