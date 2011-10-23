@@ -169,7 +169,7 @@ namespace Arc {
 
 
   // ----------------------------------------------------------------------------
-  // This is MD5 implementation for LOW-ENDIAN machines derived directly from RFC
+  // This is MD5 implementation derived directly from RFC
   // ----------------------------------------------------------------------------
 
 #define F(X, Y, Z) (((X)&(Y)) | ((~(X)) & (Z)))
@@ -234,24 +234,24 @@ namespace Arc {
     D = D_INIT;
     count = 0;
     Xlen = 0;
+    memset(X,0,sizeof(X));
     computed = false;
   }
 
   void MD5Sum::add(void *buf, unsigned long long int len) {
     u_char *buf_ = (u_char*)buf;
     for (; len;) {
-      if (Xlen < 64) { // 16 words = 64 bytes
-        u_int l = 64 - Xlen;
-        if (len < l)
-          l = len;
-        memcpy(((u_char*)X) + Xlen, buf_, l);
-        Xlen += l;
-        count += l;
-        len -= l;
-        buf_ += l;
+      for(;Xlen < 64;) { // 16 words = 64 bytes
+        if(!len) break;
+        u_int Xi = Xlen >> 2;
+        u_int Xs = (Xlen & 3) << 3;
+        X[Xi] |= ((uint32_t)(*buf_)) << Xs;
+        ++Xlen;
+        ++count;
+        --len;
+        ++buf_;
       }
-      if (Xlen < 64)
-        return;
+      if (Xlen < 64) return;
 
       uint32_t AA = A;
       uint32_t BB = B;
@@ -348,52 +348,59 @@ namespace Arc {
       C += CC;
       D += DD;
       Xlen = 0;
+      memset(X,0,sizeof(X));
     }
   }
 
   void MD5Sum::end(void) {
-    if (computed)
-      return;
+    if (computed) return;
     // pad
     uint64_t l = 8 * count; // number of bits
     u_char c = 0x80;
     add(&c, 1);
     c = 0;
-    for (; Xlen != 56;)
-      add(&c, 1);
-    add(&l, 8);
+    for (; Xlen != 56;) add(&c, 1);
+    //add(&l, 8);
+    c = (u_char)(l>>0);  add(&c, 1);
+    c = (u_char)(l>>8);  add(&c, 1);
+    c = (u_char)(l>>16); add(&c, 1);
+    c = (u_char)(l>>24); add(&c, 1);
+    c = (u_char)(l>>32); add(&c, 1);
+    c = (u_char)(l>>40); add(&c, 1);
+    c = (u_char)(l>>48); add(&c, 1);
+    c = (u_char)(l>>56); add(&c, 1);
     computed = true;
   }
 
   int MD5Sum::print(char *buf, int len) const {
     if (!computed) {
-      if (len > 0)
-        buf[0] = 0;
+      if (len > 0) buf[0] = 0;
       return 0;
     }
     return snprintf(buf, len,
                     "md5:%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-                    ((u_char*)&A)[0], ((u_char*)&A)[1], ((u_char*)&A)[2], ((u_char*)&A)[3],
-                    ((u_char*)&B)[0], ((u_char*)&B)[1], ((u_char*)&B)[2], ((u_char*)&B)[3],
-                    ((u_char*)&C)[0], ((u_char*)&C)[1], ((u_char*)&C)[2], ((u_char*)&C)[3],
-                    ((u_char*)&D)[0], ((u_char*)&D)[1], ((u_char*)&D)[2], ((u_char*)&D)[3]
+                    (u_char)(A>>0), (u_char)(A>>8), (u_char)(A>>16), (u_char)(A>>24),
+                    (u_char)(B>>0), (u_char)(B>>8), (u_char)(B>>16), (u_char)(B>>24),
+                    (u_char)(C>>0), (u_char)(C>>8), (u_char)(C>>16), (u_char)(C>>24),
+                    (u_char)(D>>0), (u_char)(D>>8), (u_char)(D>>16), (u_char)(D>>24)
                     );
   }
 
   void MD5Sum::scan(const char *buf) {
+    u_char A0, A1, A2, A3, B0, B1, B2, B3, C0, C1, C2, C3, D0, D1, D2, D3;
     computed = false;
-    if (strncasecmp("md5:", buf, 4) != 0)
-      return;
+    if (strncasecmp("md5:", buf, 4) != 0) return;
     int l = sscanf(buf + 4,
                    "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
                    "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx",
-                   ((u_char*)&A) + 0, ((u_char*)&A) + 1, ((u_char*)&A) + 2, ((u_char*)&A) + 3,
-                   ((u_char*)&B) + 0, ((u_char*)&B) + 1, ((u_char*)&B) + 2, ((u_char*)&B) + 3,
-                   ((u_char*)&C) + 0, ((u_char*)&C) + 1, ((u_char*)&C) + 2, ((u_char*)&C) + 3,
-                   ((u_char*)&D) + 0, ((u_char*)&D) + 1, ((u_char*)&D) + 2, ((u_char*)&D) + 3
+                   &A0, &A1, &A2, &A3, &B0, &B1, &B2, &B3,
+                   &C0, &C1, &C2, &C3, &D0, &D1, &D2, &D3
                    );
-    if (l != 16)
-      return;
+    A = (((uint32_t)A0)<<0) | (((uint32_t)A1)<<8) | (((uint32_t)A2)<<16) | (((uint32_t)A3)<<24);
+    B = (((uint32_t)B0)<<0) | (((uint32_t)B1)<<8) | (((uint32_t)B2)<<16) | (((uint32_t)B3)<<24);
+    C = (((uint32_t)C0)<<0) | (((uint32_t)C1)<<8) | (((uint32_t)C2)<<16) | (((uint32_t)C3)<<24);
+    D = (((uint32_t)D0)<<0) | (((uint32_t)D1)<<8) | (((uint32_t)D2)<<16) | (((uint32_t)D3)<<24);
+    if (l != 16) return;
     computed = true;
     return;
   }

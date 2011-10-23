@@ -46,16 +46,31 @@ void CheckSumTest::tearDown() {
 void CheckSumTest::CRC32SumTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"acb7ca96", Arc::CheckSumAny::FileChecksum("CheckSumTest.f1K.data", Arc::CheckSumAny::cksum));
   CPPUNIT_ASSERT_EQUAL((std::string)"53a57307", Arc::CheckSumAny::FileChecksum("CheckSumTest.f1M.data", Arc::CheckSumAny::cksum));
+  char buf[64];
+  Arc::CheckSumAny ck(Arc::CheckSumAny::cksum);
+  ck.scan("cksum:53a57307");
+  ck.print(buf,sizeof(buf));
+  CPPUNIT_ASSERT_EQUAL((std::string)"cksum:53a57307", (std::string)buf);
 }
 
 void CheckSumTest::MD5SumTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"88bb69a5d5e02ec7af5f68d82feb1f1d", Arc::CheckSumAny::FileChecksum("CheckSumTest.f1K.data"));
   CPPUNIT_ASSERT_EQUAL((std::string)"2f54d66538c094bf229e89ed0667b6fd", Arc::CheckSumAny::FileChecksum("CheckSumTest.f1M.data"));
+  char buf[64];
+  Arc::CheckSumAny ck(Arc::CheckSumAny::md5);
+  ck.scan("md5:2f54d66538c094bf229e89ed0667b6fd");
+  ck.print(buf,sizeof(buf));
+  CPPUNIT_ASSERT_EQUAL((std::string)"md5:2f54d66538c094bf229e89ed0667b6fd", (std::string)buf);
 }
 
 void CheckSumTest::Adler32SumTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"ad1abb81", Arc::CheckSumAny::FileChecksum("CheckSumTest.f1K.data", Arc::CheckSumAny::adler32));
   CPPUNIT_ASSERT_EQUAL((std::string)"471b96e5", Arc::CheckSumAny::FileChecksum("CheckSumTest.f1M.data", Arc::CheckSumAny::adler32));
+  //char buf[64];
+  //Arc::CheckSumAny ck(Arc::CheckSumAny::adler32);
+  //ck.scan("adler32:471b96e5");
+  //ck.print(buf,sizeof(buf));
+  //CPPUNIT_ASSERT_EQUAL((std::string)"adler32:471b96e5", (std::string)buf);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(CheckSumTest);
