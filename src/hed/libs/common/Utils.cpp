@@ -1,5 +1,4 @@
 // -*- indent-tabs-mode: nil -*-
-// #define TRICK_ENVIRONMENT
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -62,65 +61,6 @@ namespace Arc {
   }
 
   static SIGPIPEIngore sigpipe_ignore;
-#endif
-
-#ifdef TRICK_ENVIRONMENT
-  class TrickEnvRecord {
-   public:
-    static std::list<TrickEnvRecord> tricked_records;
-    std::string name;
-    char* pos;
-    unsigned int size;
-
-    static std::list<TrickEnvRecord>::iterator find_record(const std::string& name) {
-      std::list<TrickEnvRecord>::iterator r = tricked_records.begin();
-      for(;r != tricked_records.end();++r) {
-        if(r->name == name) break;
-      };
-      return r;
-    };
-
-    static void drop_record(const std::string& name) {
-      std::list<TrickEnvRecord>::iterator r = tricked_records.begin();
-      for(;r != tricked_records.end();++r) {
-        if(r->name == name) { tricked_records.erase(r); break; };
-      };
-    };
-
-    static bool store_record(const std::string& name,const std::string& value) {
-      std::list<TrickEnvRecord>::iterator p = find_record(name);
-      if(p == tricked_records.end()) {
-        if(getenv(name.c_str())) return false;
-#ifdef HAVE_GLIBMM_SETENV
-        if(!Glib::setenv(name, value, true)) return false;
-#else
-#ifdef HAVE_SETENV
-    return (setenv(name.c_str(), value.c_str(), 1) == 0);
-#else
-    return (putenv(strdup((var + "=" + value).c_str())) == 0);
-#endif
-#endif
-
-
-
-
-      } else {
-        if(p->pos != getenv(name.c_str())) {
-          tricked_records.erase(p);
-          return false;
-        };
-
-
-
-
-      };
-      
-
-      	
-    };
-
-  };
-
 #endif
 
   // Below is a set of mutexes for protecting environment
