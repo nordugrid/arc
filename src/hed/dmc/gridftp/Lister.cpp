@@ -536,6 +536,7 @@ namespace Arc {
     } else {
       logger.msg(VERBOSE, "Closing may have failed");
     }
+    resp_destroy();
   }
 
   Lister::~Lister() {
@@ -603,9 +604,9 @@ namespace Arc {
         logger.msg(INFO, "PASV failed: %s", sresp);
         result.SetDesc(sresp);
         free(sresp);
-      }
-      else
+      } else {
         logger.msg(INFO, "PASV failed");
+      }
       return result;
     }
     pasv_addr.port = 0;
@@ -620,8 +621,7 @@ namespace Arc {
     if (pasv_addr.port == 0) {
       logger.msg(INFO, "Can't parse host and port in response to PASV");
       result.SetDesc("Can't parse host and port in response to PASV");
-      if (sresp)
-        free(sresp);
+      if (sresp) free(sresp);
       return result;
     }
     free(sresp);
@@ -757,13 +757,24 @@ namespace Arc {
         std::string globus_err(res.str());
         logger.msg(ERROR, "Failed authenticating: %s", globus_err);
         result.SetDesc(globus_err);
+        close_connection();
         return result;
       }
       if (wait_for_callback() != CALLBACK_DONE) {
         logger.msg(ERROR, "Failed authenticating");
         result.SetDesc("Failed authenticating");
         resp_destroy();
+        close_connection();
         return result;
+      }
+      for(int n = 0; n < resp_n; ++n) {
+        if(resp[n].code != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
+          logger.msg(ERROR, "Failed authenticating: %s", resp[n].response_buffer);
+          result.SetDesc("Failed authenticating");
+          resp_destroy();
+          close_connection();
+          return result;
+        }
       }
       resp_destroy();
     } else {
@@ -779,7 +790,7 @@ namespace Arc {
     if(!con_result) return con_result;
 
     globus_ftp_control_response_class_t cmd_resp;
-    char *sresp;
+    char *sresp = NULL;
     if (url.Protocol() == "gsiftp") {
       cmd_resp = send_command("DCAU", "N", true, &sresp, NULL, '"');
       if ((cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) &&
@@ -787,14 +798,15 @@ namespace Arc {
         if (sresp) {
           logger.msg(INFO, "DCAU failed: %s", sresp);
           result.SetDesc(sresp);
-          free(sresp);
-        }
-        else
+          free(sresp); sresp = NULL;
+        } else {
           logger.msg(INFO, "DCAU failed");
+        }
         return result;
       }
-      free(sresp);
+      free(sresp); sresp = NULL;
     }
+    // default dcau
     globus_ftp_control_dcau_t dcau;
     dcau.mode = GLOBUS_FTP_CONTROL_DCAU_NONE;
     globus_ftp_control_local_dcau(handle, &dcau, GSS_C_NO_CREDENTIAL);
@@ -808,7 +820,7 @@ namespace Arc {
       if (cmd_resp == GLOBUS_FTP_PERMANENT_NEGATIVE_COMPLETION_REPLY) {
         if (code == 500) {
           logger.msg(INFO, "MLST is not supported - trying LIST");
-          free(sresp);
+          free(sresp); sresp = NULL;
           /* run NLST */
           DataStatus pasv_res = setup_pasv(pasv_addr);
           if (!pasv_res) return pasv_res;
@@ -823,21 +835,25 @@ namespace Arc {
         // 250 -
         if (cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
           logger.msg(INFO, "Immediate completion expected: %s", sresp);
-          result.SetDesc(sresp);
-          free(sresp);
+          if(sresp) {
+            result.SetDesc(sresp);
+            free(sresp); sresp = NULL;
+          }
           return result;
         }
         // Try to collect full response
-        char* nresp = strchr(sresp,'\n');
+        char* nresp = sresp?strchr(sresp,'\n'):NULL;
         if(nresp) {
           ++nresp;
         } else {
-          free(sresp);
+          free(sresp); sresp = NULL;
           cmd_resp = send_command(NULL, NULL, true, &sresp);
           if(cmd_resp != GLOBUS_FTP_UNKNOWN_REPLY) {
             logger.msg(INFO, "Missing information in reply: %s", sresp);
-            result.SetDesc(sresp);
-            free(sresp);
+            if(sresp) {
+              result.SetDesc(sresp);
+              free(sresp);
+            }
             return result;
           }
           nresp=sresp;
@@ -846,31 +862,35 @@ namespace Arc {
         if(nresp) {
           if(*nresp == ' ') ++nresp;
           fresp=strchr(nresp,'\n');
-          // callback
-          *fresp=0;
-          list_shift = 0;
-          fnames.clear();
-          size_t nlength = strlen(nresp);
-          if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
-          memcpy(readbuf,nresp,nlength);
-          data_activated = true;
-          list_read_callback(this,handle,GLOBUS_SUCCESS,
-                             (globus_byte_t*)readbuf,nlength,0,1);
+          if(fresp) {
+            // callback
+            *fresp=0;
+            list_shift = 0;
+            fnames.clear();
+            size_t nlength = strlen(nresp);
+            if(nlength > sizeof(readbuf)) nlength=sizeof(readbuf);
+            memcpy(readbuf,nresp,nlength);
+            data_activated = true;
+            list_read_callback(this,handle,GLOBUS_SUCCESS,
+                               (globus_byte_t*)readbuf,nlength,0,1);
+          }
         };
         if(fresp) {
           ++fresp;
         } else {
-          free(sresp);
+          free(sresp); sresp = NULL;
           cmd_resp = send_command(NULL, NULL, true, &sresp);
           if(cmd_resp != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
             logger.msg(INFO, "Missing final reply: %s", sresp);
-            result.SetDesc(sresp);
-            free(sresp);
+            if(sresp) {
+              result.SetDesc(sresp);
+              free(sresp);
+            }
             return result;
           }
           fresp=sresp;
         }
-        free(sresp);
+        free(sresp); sresp = NULL;
         return DataStatus::Success;
       }
     } else {
@@ -884,8 +904,10 @@ namespace Arc {
       /* completion is not expected here */
       pasv_set = false;
       logger.msg(INFO, "Unexpected immediate completion: %s", sresp);
-      result.SetDesc(sresp);
-      if (sresp) free(sresp);
+      if(sresp) {
+        result.SetDesc(sresp);
+        free(sresp); sresp = NULL;
+      }
       return result;
     }
     if ((cmd_resp != GLOBUS_FTP_POSITIVE_PRELIMINARY_REPLY) &&
@@ -893,13 +915,13 @@ namespace Arc {
       if (sresp) {
         logger.msg(INFO, "LIST/MLST failed: %s", sresp);
         result.SetDesc(sresp);
-        free(sresp);
-      }
-      else
+        free(sresp); sresp = NULL;
+      } else {
         logger.msg(INFO, "LIST/MLST failed");
+      }
       return result;
     }
-    free(sresp);
+    free(sresp); sresp = NULL;
     return transfer_list();
   }
 
