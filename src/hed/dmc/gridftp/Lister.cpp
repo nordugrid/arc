@@ -768,7 +768,7 @@ namespace Arc {
         return result;
       }
       for(int n = 0; n < resp_n; ++n) {
-        if(resp[n].code != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
+        if(resp[n].response_class != GLOBUS_FTP_POSITIVE_COMPLETION_REPLY) {
           logger.msg(ERROR, "Failed authenticating: %s", resp[n].response_buffer);
           result.SetDesc("Failed authenticating");
           resp_destroy();
