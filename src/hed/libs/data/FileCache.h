@@ -123,7 +123,7 @@ namespace Arc {
     /// Return the cache info < total space in KB, used space in KB>
     std::pair <unsigned long long , unsigned long long> _getCacheInfo(const std::string& path) const;
     /// For cleaning up after a cache file was locked during Link()
-    bool _cleanFilesAndReturnFalse(const std::string& dest_path, const std::string& hard_link_file, bool& locked);
+    bool _cleanFilesAndReturnFalse(const std::string& hard_link_file, bool& locked);
 
     /// Logger for messages
     static Logger logger;

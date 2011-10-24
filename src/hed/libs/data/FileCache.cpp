@@ -182,6 +182,7 @@ namespace Arc {
 
     available = false;
     is_locked = false;
+    _cache_map.erase(url);
     std::string filename = File(url);
 
     // create directory structure if required, only readable by GM user
@@ -232,7 +233,7 @@ namespace Arc {
           if (FileStat(remote_file, &fileStat, true)) {
             remote_cache_file = remote_file;
             remote_cache_link = it->cache_link_path;
-            remote_mod_time = Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec);
+            remote_mod_time = Arc::Time(fileStat.st_mtime);
             break;
           }
         }
@@ -298,7 +299,7 @@ namespace Arc {
                   // it could have failed because another process deleted the remote file
                   struct stat remoteStat;
                   if (!FileStat(remote_cache_file, &remoteStat, false) ||
-                      Arc::Time(remoteStat.st_mtim.tv_sec, remoteStat.st_mtim.tv_nsec) > remote_mod_time) {
+                      Arc::Time(remoteStat.st_mtime) > remote_mod_time) {
                     logger.msg(WARNING, "Replicating file %s from remote cache failed due to source being deleted or modified", remote_cache_file);
                     if (!FileDelete(filename) && errno != ENOENT)
                       logger.msg(ERROR, "Failed to delete bad copy of remote cache file %s at %s: %s", remote_cache_file, filename, StrError(errno));
@@ -463,7 +464,14 @@ namespace Arc {
       }
       hard_link_path = _cache_map[url].cache_path + "/" + CACHE_JOB_DIR + "/" +_id;
       cache_link_path = _cache_map[url].cache_link_path;
-      modtime = Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec);
+      modtime = Arc::Time(fileStat.st_mtime);
+      // if modtime is now (to second granularity) sleep for a second to avoid
+      // race condition with another process locking, modifying and unlocking
+      // during link
+      if (!holding_lock && modtime.GetTime() == Arc::Time().GetTime()) {
+        logger.msg(VERBOSE, "Cache file %s was modified in the last second, sleeping 1 second to avoid race condition", cache_file);
+        sleep(1);
+      }
     }
     else if (errno == ENOENT) {
       if (holding_lock || _remote_caches.empty()) {
@@ -480,7 +488,7 @@ namespace Arc {
           cache_file = remote_file;
           hard_link_path = it->cache_path + "/" + CACHE_JOB_DIR + "/" +_id;
           cache_link_path = it->cache_link_path;
-          modtime = Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec);
+          modtime = Arc::Time(fileStat.st_mtime);
           break;
         }
       }
@@ -554,6 +562,26 @@ namespace Arc {
         _urls_unlocked.insert(url);
       }
     }
+    else {
+      // check that the cache file wasn't locked or modified during the link/copy
+      // if we are holding the lock, assume none of these checks are necessary
+      struct stat lockStat;
+      // check if lock file exists
+      if (FileStat(cache_file+FileLock::getLockSuffix(), &lockStat, false)) {
+        logger.msg(WARNING, "Cache file %s was locked during link/copy, must start again", cache_file);
+        return _cleanFilesAndReturnFalse(hard_link_file, try_again);
+      }
+      // check cache file is still there
+      if (!FileStat(cache_file, &fileStat, false)) {
+        logger.msg(WARNING, "Cache file %s was deleted during link/copy, must start again", cache_file);
+        return _cleanFilesAndReturnFalse(hard_link_file, try_again);
+      }
+      // finally check the mod time of the cache file
+      if (Arc::Time(fileStat.st_mtime) > modtime) {
+        logger.msg(WARNING, "Cache file %s was modified while linking, must start again", cache_file);
+        return _cleanFilesAndReturnFalse(hard_link_file, try_again);
+      }
+    }
 
     // make necessary dirs for the soft link
     // the session dir should already exist but in the case of arccp with cache it may not
@@ -606,26 +634,6 @@ namespace Arc {
           return false;
         }
       }
-    }
-    // if we are holding the lock, assume none of the checks below are necessary
-    if (holding_lock) return true;
-    // check that the cache file wasn't locked or modified during the link/copy
-
-    struct stat lockStat;
-    // check if lock file exists
-    if (FileStat(cache_file+FileLock::getLockSuffix(), &lockStat, false)) {
-      logger.msg(WARNING, "Cache file %s was locked during link/copy, must start again", cache_file);
-      return _cleanFilesAndReturnFalse(dest_path, hard_link_file, try_again);
-    }
-    // check cache file is still there
-    if (!FileStat(cache_file, &fileStat, false)) {
-      logger.msg(WARNING, "Cache file %s was deleted during link/copy, must start again", cache_file);
-      return _cleanFilesAndReturnFalse(dest_path, hard_link_file, try_again);
-    }
-    // finally check the mod time of the cache file
-    if (Arc::Time(fileStat.st_mtim.tv_sec, fileStat.st_mtim.tv_nsec) > modtime) {
-      logger.msg(WARNING, "Cache file %s was modified while linking, must start again", cache_file);
-      return _cleanFilesAndReturnFalse(dest_path, hard_link_file, try_again);
     }
     // file was safely linked/copied
     return true;
@@ -1052,10 +1060,8 @@ namespace Arc {
     return std::make_pair((info.f_blocks * info.f_bsize)/1024, (info.f_bfree * info.f_bsize)/1024); 
   }
 
-  bool FileCache::_cleanFilesAndReturnFalse(const std::string& dest_path,
-                                            const std::string& hard_link_file,
+  bool FileCache::_cleanFilesAndReturnFalse(const std::string& hard_link_file,
                                             bool& locked) {
-    if (!FileDelete(dest_path)) logger.msg(ERROR, "Failed to clean up file %s: %s", dest_path, StrError(errno));
     if (!FileDelete(hard_link_file)) logger.msg(ERROR, "Failed to clean up file %s: %s", hard_link_file, StrError(errno));
     locked = true;
     return false;

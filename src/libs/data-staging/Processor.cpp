@@ -574,17 +574,17 @@ namespace DataStaging {
                                request->get_short_id(), request->get_destination()->CurrentLocation().Path());
 
     bool was_downloaded = (request->get_cache_state() == CACHE_DOWNLOADED) ? true : false;
-    bool is_locked = false;
+    bool try_again = false;
     if (!cache.Link(request->get_destination()->CurrentLocation().Path(),
                     canonic_url,
                     cache_copy,
                     executable,
                     was_downloaded,
-                    is_locked)) {
-      if (is_locked) {
+                    try_again)) {
+      if (try_again) {
         // go back to CACHE_CHECK - even if we went through a transfer this is
         // ok because the cache file is unaffected by a failed linking
-        request->get_logger()->msg(Arc::WARNING, "DTR %s: Failed linking cache file to %s due to existing write lock",
+        request->get_logger()->msg(Arc::WARNING, "DTR %s: Failed linking cache file to %s",
                                    request->get_short_id(), request->get_destination()->CurrentLocation().Path());
 
         if (was_downloaded) cache.Stop(canonic_url);
