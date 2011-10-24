@@ -19,6 +19,7 @@
 #include <winsock2.h>
 #endif
 
+#include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/User.h>
@@ -107,15 +108,21 @@ namespace Arc {
       if (0 != err) {
         if (errno == ENOENT) {
           // ok, we can create lock
-          if (rename(tmpfile.c_str(), lock_file.c_str()) != 0) {
-            logger.msg(ERROR, "Error renaming tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
+          if (!FileLink(tmpfile.c_str(), lock_file.c_str(), false)) {
             remove(tmpfile.c_str());
+            if (errno == EEXIST) {
+              // another process got there first
+              logger.msg(INFO, "Could not create link to lock file %s as it already exists", lock_file);
+              return acquire_(lock_removed);
+            }
+            logger.msg(ERROR, "Error linking tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
             return false;
           }
+          remove(tmpfile.c_str());
           // check it's really there
           err = stat(lock_file.c_str(), &fileStat);
           if (0 != err) {
-            logger.msg(ERROR, "Error renaming lock file %s, even though rename() did not return an error: %s",
+            logger.msg(ERROR, "Lock file %s cannot be accessed, even though linking did not return an error: %s",
                        lock_file, StrError(errno));
             return false;
           }
@@ -160,7 +167,7 @@ namespace Arc {
         }
         else {
           // some other error occurred opening the lock file
-          logger.msg(ERROR, "Error opening lock file we just renamed successfully %s: %s", lock_file, StrError(errno));
+          logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, StrError(errno));
           remove(tmpfile.c_str());
           return false;
         }
