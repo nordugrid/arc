@@ -558,7 +558,7 @@ giis_fifo=${CONFIG_giis_fifo:-$arc_runtime_config/giis-fifo}
 # Call with: create_bdii_conf bdii_dir var_dir slapd_conf default_ldif port
 # Will create bdii.conf file in /var/run/arc/infosys/bdii.conf
 create_bdii_conf () {
-    if [ $# != 7 ]; then
+    if [ $# != 8 ]; then
 	error_echo "Wrong number of arguments to create_bdii_conf"
 	error_echo "Arguments were: $*"
 	exit 1
