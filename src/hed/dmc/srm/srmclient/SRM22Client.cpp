@@ -832,6 +832,9 @@ namespace Arc {
         creq.finished_error();
         return mkdirres;
       }
+      if (res["arrayOfFileStatuses"]["statusArray"]["status"])
+        logger.msg(ERROR, statusexplanation);
+
       logger.msg(ERROR, explanation);
       creq.finished_error();
       delete response;
