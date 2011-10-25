@@ -109,6 +109,12 @@ void FileLockTest::TestFileLockAcquire() {
   CPPUNIT_ASSERT(lock.acquire(lock_removed));
   CPPUNIT_ASSERT(lock_removed);
 
+  // badly formatted pid
+  _createFile(lock_file, "abcd@" + host);
+  lock_removed = false;
+  CPPUNIT_ASSERT(!lock.acquire(lock_removed));
+  CPPUNIT_ASSERT(!lock_removed);
+
   // set small timeout
   CPPUNIT_ASSERT_EQUAL(0, remove(lock_file.c_str()));
   lock_removed = false;
@@ -220,7 +226,7 @@ void FileLockTest::TestFileLockCheck() {
   struct stat fileStat;
   CPPUNIT_ASSERT(stat(lock_file.c_str(), &fileStat) != 0);
   Arc::FileLock lock(filename);
-  CPPUNIT_ASSERT(!lock.check());
+  CPPUNIT_ASSERT_EQUAL(-1, lock.check());
 
   // construct hostname
   char hostname[256];
@@ -231,30 +237,30 @@ void FileLockTest::TestFileLockCheck() {
   _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@" + host));
 
   lock = Arc::FileLock(filename);
-  CPPUNIT_ASSERT(lock.check());
+  CPPUNIT_ASSERT_EQUAL(0, lock.check());
 
   // create a lock with a different pid
   _createFile(lock_file, std::string("1@" + host));
-  CPPUNIT_ASSERT(!lock.check());
+  CPPUNIT_ASSERT_EQUAL(1, lock.check());
 
   // create lock with different host
   CPPUNIT_ASSERT_EQUAL(0, remove(lock_file.c_str()));
   _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@mybadhost.org"));
-  CPPUNIT_ASSERT(!lock.check());
+  CPPUNIT_ASSERT_EQUAL(-1, lock.check());
 
   // create an empty lock file - check should fail
   _createFile(lock_file, "");
   lock = Arc::FileLock(filename);
-  CPPUNIT_ASSERT(!lock.check());
+  CPPUNIT_ASSERT_EQUAL(-1, lock.check());
 
   // set use_pid false, check should succeed now
   lock = Arc::FileLock(filename, 30, false);
-  CPPUNIT_ASSERT(lock.check());
+  CPPUNIT_ASSERT_EQUAL(0, lock.check());
 
   // create lock with empty hostname - check should still be ok
   lock = Arc::FileLock(filename);
   _createFile(lock_file, std::string(Arc::tostring(getpid()) + "@"));
-  CPPUNIT_ASSERT(lock.check());
+  CPPUNIT_ASSERT_EQUAL(0, lock.check());
 }
 
 bool FileLockTest::_createFile(const std::string& filename, const std::string& text) {

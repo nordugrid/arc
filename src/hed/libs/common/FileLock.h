@@ -78,11 +78,16 @@ namespace Arc {
      */
     bool release(bool force=false);
 
-    /// Check the lock is valid
+    /// Check the lock is valid.
     /**
-     * Returns true if the lock is valid for the current process
+     * Returns 0 if the lock is valid for the current process, the pid inside
+     * the lock if the lock is owned by another process on the same host, and
+     * -1 if the lock is owned by another host or any other error occurred.
+     * log_error may be set to false to log error messages at INFO level, in
+     * cases where the lock not existing or being owned by another host are not
+     * errors.
      */
-    bool check();
+    int check(bool log_error = true);
 
     /// Get the lock suffix used
     static std::string getLockSuffix();

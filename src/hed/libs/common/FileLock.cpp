@@ -59,20 +59,20 @@ namespace Arc {
   }
 
   bool FileLock::acquire(bool& lock_removed) {
-    // locking mechanism:
-    // - check if lock is there
-    // - if not, create tmp file and check again
-    // - if lock is still not there copy tmp file to .lock file
-    // - check pid inside lock file matches ours
     return acquire_(lock_removed);
   }
 
 
   bool FileLock::acquire_(bool& lock_removed) {
+    // locking mechanism:
+    // - check if lock is there
+    //   - if not, create tmp file and attempt link to lock file
+    //   - if linking fails with file exists, go back to start
+    // - if lock exists check pid and host
+    //   - if lock has timed out or pid no longer exists delete it and go back to start
 
     struct stat fileStat;
-    int err = stat(lock_file.c_str(), &fileStat);
-    if (0 != err) {
+    if (!FileStat(lock_file, &fileStat, false)) {
       if (errno == EACCES) {
         logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, StrError(errno));
         return false;
@@ -103,78 +103,22 @@ namespace Arc {
       if (close(h) != 0)
         // not critical as file will be removed after we are done
         logger.msg(WARNING, "Warning: closing tmp lock file %s failed", tmpfile);
-      // check again if lock exists, in case creating the tmp file took some time
-      err = stat(lock_file.c_str(), &fileStat);
-      if (0 != err) {
-        if (errno == ENOENT) {
-          // ok, we can create lock
-          if (!FileLink(tmpfile.c_str(), lock_file.c_str(), false)) {
-            remove(tmpfile.c_str());
-            if (errno == EEXIST) {
-              // another process got there first
-              logger.msg(INFO, "Could not create link to lock file %s as it already exists", lock_file);
-              return acquire_(lock_removed);
-            }
-            logger.msg(ERROR, "Error linking tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
-            return false;
-          }
-          remove(tmpfile.c_str());
-          // check it's really there
-          err = stat(lock_file.c_str(), &fileStat);
-          if (0 != err) {
-            logger.msg(ERROR, "Lock file %s cannot be accessed, even though linking did not return an error: %s",
-                       lock_file, StrError(errno));
-            return false;
-          }
-          // check the pid inside the lock file, just in case...
-          if (use_pid) {
-            FILE *pFile;
-            char lock_info[100]; // should be long enough for a pid + hostname
-            pFile = fopen((char*)lock_file.c_str(), "r");
-            if (pFile == NULL) {
-              logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, StrError(errno));
-              return false;
-            }
-            if (fgets(lock_info, 100, pFile) == NULL && errno != 0) {
-              logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, StrError(errno));
-              fclose(pFile);
-              return false;
-            }
-            fclose(pFile);
 
-            std::string lock_info_s(lock_info);
-            std::string::size_type index = lock_info_s.find("@", 0);
-            if (index == std::string::npos) {
-              logger.msg(ERROR, "Error with formatting in lock file %s: %s", lock_file, lock_info_s);
-              return false;
-            }
-
-            if (!lock_info_s.substr(index + 1).empty() && lock_info_s.substr(index + 1) != hostname) {
-              logger.msg(VERBOSE, "Lock %s is owned by a different host", lock_file);
-              // TODO: here do ssh login and check
-              return false;
-            }
-            if (lock_info_s.substr(0, index) != pid) {
-              logger.msg(ERROR, "Another process owns the lock on file %s. Must go back to acquire()", filename);
-              return false;
-            }
-          }
-        }
-        else if (errno == EACCES) {
-          logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, StrError(errno));
-          remove(tmpfile.c_str());
-          return false;
-        }
-        else {
-          // some other error occurred opening the lock file
-          logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, StrError(errno));
-          remove(tmpfile.c_str());
-          return false;
-        }
-      }
-      else {
-        logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
+      // create lock by creating hard link - should be an atomic operation
+      if (!FileLink(tmpfile.c_str(), lock_file.c_str(), false)) {
         remove(tmpfile.c_str());
+        if (errno == EEXIST) {
+          // another process got there first
+          logger.msg(INFO, "Could not create link to lock file %s as it already exists", lock_file);
+          return acquire_(lock_removed);
+        }
+        logger.msg(ERROR, "Error linking tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
+        return false;
+      }
+      remove(tmpfile.c_str());
+      // check it's really there with the correct pid and hostname
+      if (check(true) != 0) {
+        logger.msg(ERROR, "Error in lock file %s, even though linking did not return an error", lock_file);
         return false;
       }
     }
@@ -190,7 +134,7 @@ namespace Arc {
         // TODO: kill the process holding the lock, only if we know it was the original
         // process which created it
         if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
-          logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
+          logger.msg(ERROR, "Failed to remove stale lock file %s: %s", lock_file, StrError(errno));
           return false;
         }
         // lock has expired and has been removed. Call acquire() again
@@ -199,65 +143,25 @@ namespace Arc {
       }
 
       // lock is still valid, check if we own it
-      if (use_pid) {
-        // empty lock could have been created with use_pid = false
-        // in this case we have to wait for timeout
-        if (fileStat.st_size == 0) {
-          logger.msg(ERROR, "Found empty lock file %s", lock_file);
-          return false;
-        }
-
-        FILE *pFile;
-        char lock_info[100]; // should be long enough for a pid + hostname
-        pFile = fopen((char*)lock_file.c_str(), "r");
-        if (pFile == NULL) {
-          // lock could have been released by another process, so call acquire again
-          if (errno == ENOENT) {
-            logger.msg(VERBOSE, "Lock %s that recently existed has been deleted by another process, calling acquire() again", lock_file);
-            return acquire_(lock_removed);
-          }
-          logger.msg(ERROR, "Error opening valid and existing lock file %s: %s", lock_file, StrError(errno));
-          return false;
-        }
-        if (fgets(lock_info, 100, pFile) == NULL && errno != 0) {
-          logger.msg(ERROR, "Error reading valid and existing lock file %s: %s", lock_file, StrError(errno));
-          fclose(pFile);
-          return false;
-        }
-        fclose(pFile);
-
-        std::string lock_info_s(lock_info);
-        std::string::size_type index = lock_info_s.find("@", 0);
-        if (index == std::string::npos) {
-          logger.msg(ERROR, "Error with formatting in lock file %s: %s", lock_file, lock_info_s);
-          return false;
-        }
-
-        if (!lock_info_s.substr(index + 1).empty() && lock_info_s.substr(index + 1) != hostname) {
-          logger.msg(VERBOSE, "Lock %s is owned by a different host", lock_file);
-          // TODO: here do ssh login and check
-          return false;
-        }
-        std::string lock_pid = lock_info_s.substr(0, index);
-        if (lock_pid == pid)
-          // safer to wait until lock expires than risk corruption
-          logger.msg(INFO, "This process already owns the lock on %s", filename);
-        else {
+      int lock_pid = check(false);
+      if (lock_pid == 0) {
+        // safer to wait until lock expires than risk corruption
+        logger.msg(INFO, "This process already owns the lock on %s", filename);
+      }
+      else if (lock_pid != -1) {
 #ifndef WIN32
-          // check if the pid owning the lock is still running - if not we can claim the lock
-          int pid_i;
-          if (stringto(lock_pid, pid_i) && kill(pid_i, 0) != 0 && errno == ESRCH) {
-            logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
-            if (remove(lock_file.c_str()) != 0) {
-              logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
-              return false;
-            }
-            // call acquire() again
-            lock_removed = true;
-            return acquire_(lock_removed);
+        // check if the pid owning the lock is still running - if not we can claim the lock
+        if (kill(lock_pid, 0) != 0 && errno == ESRCH) {
+          logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
+          if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
+            logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
+            return false;
           }
-#endif
+          // call acquire() again
+          lock_removed = true;
+          return acquire_(lock_removed);
         }
+#endif
       }
       logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
       return false;
@@ -269,7 +173,7 @@ namespace Arc {
 
   bool FileLock::release(bool force) {
 
-    if (!force && !check())
+    if (!force && check(true) != 0)
       return false;
 
     // delete the lock
@@ -280,56 +184,57 @@ namespace Arc {
     return true;
   }
 
-  bool FileLock::check() {
+  int FileLock::check(bool log_error) {
+    LogLevel log_level = (log_error ? ERROR : INFO);
     // check for existence of lock file
     struct stat fileStat;
-    int err = stat(lock_file.c_str(), &fileStat);
-    if (0 != err) {
+    if (!FileStat(lock_file, &fileStat, false)) {
       if (errno == ENOENT)
-        logger.msg(ERROR, "Lock file %s doesn't exist", lock_file);
+        logger.msg(log_level, "Lock file %s doesn't exist", lock_file);
       else
-        logger.msg(ERROR, "Error listing lock file %s: %s", lock_file, StrError(errno));
-      return false;
+        logger.msg(log_level, "Error listing lock file %s: %s", lock_file, StrError(errno));
+      return -1;
     }
     if (use_pid) {
       // an empty lock was created while we held the lock
       if (fileStat.st_size == 0) {
-        logger.msg(ERROR, "Found unexpected empty lock file %s. Must go back to acquire()", lock_file);
-        return false;
+        logger.msg(log_level, "Found unexpected empty lock file %s. Must go back to acquire()", lock_file);
+        return -1;
       }
       // check the lock file's pid and hostname matches ours
-      FILE *pFile;
-      char lock_info[100]; // should be long enough for a pid + hostname
-      pFile = fopen((char*)lock_file.c_str(), "r");
-      if (pFile == NULL) {
-        logger.msg(ERROR, "Error opening lock file %s: %s", lock_file, StrError(errno));
-        return false;
+      std::list<std::string> lock_info;
+      if (!FileRead(lock_file, lock_info)) {
+        logger.msg(log_level, "Error reading lock file %s: %s", lock_file, StrError(errno));
+        return -1;
       }
-      if (fgets(lock_info, 100, pFile) == NULL && errno != 0) {
-        logger.msg(ERROR, "Error reading lock file %s: %s", lock_file, StrError(errno));
-        fclose(pFile);
-        return false;
+      if (lock_info.size() != 1 || lock_info.front().find('@') == std::string::npos) {
+        logger.msg(log_level, "Error with formatting in lock file %s", lock_file);
+        return -1;
       }
-      fclose(pFile);
+      std::vector<std::string> lock_bits;
+      tokenize(trim(lock_info.front()), lock_bits, "@");
 
-      std::string lock_info_s(lock_info);
-      std::string::size_type index = lock_info_s.find("@", 0);
-      if (index == std::string::npos) {
-        logger.msg(ERROR, "Error with formatting in lock file %s: %s", lock_file, lock_info_s);
-        return false;
+      // check hostname if given
+      if (lock_bits.size() == 2) {
+        std::string lock_host = lock_bits.at(1);
+        if (!lock_host.empty() && lock_host != hostname) {
+          logger.msg(VERBOSE, "Lock %s is owned by a different host (%s)", lock_file, lock_host);
+          return -1;
+        }
       }
-
-      if (!lock_info_s.substr(index + 1).empty() && lock_info_s.substr(index + 1) != hostname) {
-        logger.msg(VERBOSE, "Lock %s is owned by a different host", lock_file);
-        // TODO: here do ssh login and check
-        return false;
-      }
-      if (lock_info_s.substr(0, index) != pid) {
-        logger.msg(ERROR, "Another process owns the lock on file %s. Must go back to acquire()", filename);
-        return false;
+      // check pid
+      std::string lock_pid = lock_bits.at(0);
+      if (lock_pid != pid) {
+        int lock_pid_i(stringtoi(lock_pid));
+        if (lock_pid_i == 0) {
+          logger.msg(log_level, "Badly formatted pid %s in lock file %s", lock_pid, lock_file);
+          return -1;
+        }
+        logger.msg(log_level, "Another process (%s) owns the lock on file %s", lock_pid, filename);
+        return lock_pid_i;
       }
     }
-    return true;
+    return 0;
   }
 
   std::string FileLock::getLockSuffix() {

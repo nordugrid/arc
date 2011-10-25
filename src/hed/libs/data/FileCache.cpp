@@ -387,7 +387,7 @@ namespace Arc {
     FileLock lock(filename, CACHE_LOCK_TIMEOUT);
 
     // first check that the lock is still valid before deleting anything
-    if (!lock.check()) {
+    if (lock.check() != 0) {
       logger.msg(ERROR, "Invalid lock on file %s", filename);
       return false;
     }
