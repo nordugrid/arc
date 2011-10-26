@@ -187,6 +187,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_bindir}/arccp.exe
 %{_mingw32_bindir}/arcls.exe
 %{_mingw32_bindir}/arcrm.exe
+%{_mingw32_bindir}/arcmkdir.exe
 %{_mingw32_bindir}/arcslcs.exe
 %{_mingw32_bindir}/arcstat.exe
 %{_mingw32_bindir}/arcsub.exe
@@ -221,6 +222,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc %{_mingw32_mandir}/man1/arccp.1*
 %doc %{_mingw32_mandir}/man1/arcls.1*
 %doc %{_mingw32_mandir}/man1/arcrm.1*
+%doc %{_mingw32_mandir}/man1/arcmkdir.1*
 %doc %{_mingw32_mandir}/man1/arcstat.1*
 %doc %{_mingw32_mandir}/man1/arcsub.1*
 %doc %{_mingw32_mandir}/man1/arcsync.1*

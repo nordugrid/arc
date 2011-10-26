@@ -330,6 +330,16 @@ namespace Arc {
        be retrieved due to limitation of protocol or access control. */
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
 
+    /// Create a directory.
+    /** If the protocol supports it, this method creates the last directory
+     * in the path to the URL. It assumes the last component of the path is a
+     * file-like object and not a directory itself, unless the path ends in a
+     * directory separator. If with_parents is true then all missing parent
+     * directories in the path will also be created.
+     * \param with_parents If true then all missing directories in the path
+     * are created */
+    virtual DataStatus CreateDirectory(bool with_parents=false) = 0;
+
     /// Allow/disallow DataPoint to produce scattered data during
     /// *reading* operation.
     /** \param v true if allowed (default is false). */

@@ -26,6 +26,7 @@ namespace Arc {
     virtual bool SetURL(const URL& url);
     virtual DataStatus Check();
     virtual DataStatus Remove();
+    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus StartReading(DataBuffer& buffer);

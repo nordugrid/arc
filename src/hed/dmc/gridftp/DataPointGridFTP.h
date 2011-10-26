@@ -114,6 +114,7 @@ namespace Arc {
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
+    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual bool WriteOutOfOrder();

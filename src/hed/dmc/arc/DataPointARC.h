@@ -37,6 +37,7 @@ namespace Arc {
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Check();
     virtual DataStatus Remove();
+    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     virtual DataStatus Stat(FileInfo& file, DataPoint::DataPointInfoType verb);
     virtual DataStatus List(std::list<FileInfo>& file, DataPoint::DataPointInfoType verb);
     virtual DataStatus StartReading(DataBuffer& buffer);

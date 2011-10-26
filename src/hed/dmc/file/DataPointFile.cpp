@@ -507,6 +507,16 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointFile::CreateDirectory(bool with_parents) {
+    std::string dirpath = Glib::path_get_dirname(url.Path());
+    if(dirpath == ".") dirpath = G_DIR_SEPARATOR_S;
+
+    logger.msg(VERBOSE, "Creating directory %s", dirpath);
+    if (!DirCreate(dirpath, S_IRWXU, with_parents)) return DataStatus(DataStatus::CreateDirectoryError, StrError(errno));
+    return DataStatus::Success;
+  }
+
+
   DataStatus DataPointFile::StartReading(DataBuffer& buf) {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;

@@ -32,6 +32,7 @@ namespace Arc {
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Remove();
+    virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual bool WriteOutOfOrder();
   private:
     SimpleCondition transfer_cond;

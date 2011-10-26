@@ -1,31 +1,26 @@
 .\" -*- nroff -*-
-.TH ARCINFO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
+.TH ARCMDKIR 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
 
 .SH NAME
 
-arcinfo \- ARC Info
+arcmkdir \- create directories
 
 .SH DESCRIPTION
 
 The
-.B arcinfo
-command is used for obtaining status and information of clusters on the
-grid.
+.B arcmkdir
+command creates directories on grid storage elements and indexing services.
 
 .SH SYNOPSIS
 
-.B arcinfo [options] [cluster ...]
+.B arcmkdir [options] url
 
 .SH OPTIONS
 
-.IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
-explicitly select or reject a specific cluster
-.IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
-explicitly select or reject an index server
-.IP "\fB-l\fR, \fB--long\fR"
-long format (more information)
+.IP "\fB-p\fR, \fB--parents\fR"
+make parent directories as needed
 .IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
+list the available plugins (protocols supported)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
 timeout in seconds (default 20)
 .IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
@@ -36,34 +31,37 @@ FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
 print version information
 .IP "\fB-?\fR, \fB--help\fR"
 print help
+
+.SH ARGUMENTS
+
+.IP "\fBurl\fR"
+the directory to create
 .LP
 
 .SH EXTENDED DESCRIPTION
 
 The
-.B arcinfo
-command is used to get the status and information of clusters and queues
-available on the grid. You can specify the URLs of cluster with the
-.B --cluster
-option, or by just listing them as arguments.
-The
-.B --index
-flag can be used to specify an index server which should be queried for
-clusters. Both of these flags take a service endpoint as argument.
-See
-.BR arcsub (1)
-for a discussion of this format.
+.B arcrm
+command creates directories on grid storage elements and indexing services.
+If the parent directory does not exist and
+.B -p
+is not specified, then arcmkdir will probably fail, but it depends on the
+protocol. The permissions on the new directory are the default of the server,
+or if the protocol requires them to be specified then the directory is only
+readable/writable/searchable by the user (the equivalent of 700 on a file system).
 
-Detailed information about queried computing services can be obtained by
-specifying the
-.B --long
-flag.
+If
+.B url
+starts from '@', the remaining argument is assumed to be a
+path to a local file containing a list of URLs, one per line.
+In this case
+.B arcmkdir
+performs like it were called multiple times - once for every URL.
 
-When specifying the
-.B --index
-flag, the information about the computing services registered at the
-index server will queried rather than the status of the index server it
-self. Currently no command exist to query a index server.
+Depending on the installed libraries (check with
+.B -P
+), the following protocols may be used: file  (file://  prefix  may  be
+omitted), http, https, httpg, ftp, gsiftp, lfc, rls, srm.
 
 .SH FILES
 
@@ -79,9 +77,7 @@ option a different configuration file can be used than the default.
 .TP
 .B X509_USER_PROXY
 The location of the user's grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location. Note that this could also be
-set in the client configuration file, however the environment variable
-overrides the settings in configuration.
+the proxy is in a non-standard location.
 
 .TP
 .B ARC_LOCATION
@@ -96,13 +92,17 @@ The location of ARC plugins can be specified by this variable. Multiple
 locations can be specified by separating them by : (; in Windows). The
 default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
+.SH EXAMPLE
+
+arcmkdir lfc://lfc.org/grid/newdir
+
 .SH COPYRIGHT
 
 APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-Mattias Ellert <mattias.ellert@fysast.uu.se>
+David Cameron <david.cameron@cern.ch>
 
 .SH SEE ALSO
 
@@ -110,10 +110,10 @@ Mattias Ellert <mattias.ellert@fysast.uu.se>
 .BR arcclean (1),
 .BR arccp (1),
 .BR arcget (1),
+.BR arcinfo (1),
 .BR arckill (1),
 .BR arcls (1),
 .BR arcmigrate (1),
-.BR arcmkdir (1),
 .BR arcproxy (1),
 .BR arcrenew (1),
 .BR arcresub (1),

@@ -161,15 +161,19 @@ namespace Arc {
       WriteFinishError = 37,
       WriteFinishErrorRetryable = DataStatusRetryableBase+WriteFinishError,
 
+      /// Can't create directory
+      CreateDirectoryError = 38,
+      CreateDirectoryErrorRetryable = DataStatusRetryableBase+CreateDirectoryError,
+
       /// Data was already cached
-      SuccessCached = 38,
+      SuccessCached = 39,
       
       /// General error which doesn't fit any other error
-      GenericError = 39,
+      GenericError = 40,
       GenericErrorRetryable = DataStatusRetryableBase+GenericError,
 
       /// Undefined
-      UnknownError = 40
+      UnknownError = 41
     };
 
     DataStatus(const DataStatusType& status, std::string desc="")
