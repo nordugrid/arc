@@ -94,7 +94,6 @@ namespace Arc {
     static void* ftp_read_thread(void *arg);
     static void* ftp_write_thread(void *arg);
 
-    std::string ftp_dir_path;
     bool mkdir_ftp();
     char ftp_buf[16];
     bool check_credentials();
@@ -114,7 +113,7 @@ namespace Arc {
     virtual DataStatus StopWriting();
     virtual DataStatus Check();
     virtual DataStatus Remove();
-    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual bool WriteOutOfOrder();

@@ -43,7 +43,7 @@ namespace Arc {
     virtual DataStatus Remove();
     DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
-    virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
+    virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta() const;
     virtual bool IsStageable() const;

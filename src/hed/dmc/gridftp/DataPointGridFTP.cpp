@@ -294,11 +294,11 @@ namespace Arc {
   }
 
   bool DataPointGridFTP::mkdir_ftp() {
-    ftp_dir_path = url.str();
+    std::string ftp_dir_path = url.str();
     for (;;)
       if (!remove_last_dir(ftp_dir_path))
         break;
-    bool result = false;
+    bool result = true;
     for (;;) {
       if (!add_last_dir(ftp_dir_path, url.str()))
         break;
@@ -321,6 +321,41 @@ namespace Arc {
         result = false;
     }
     return result;
+  }
+
+  DataStatus DataPointGridFTP::CreateDirectory(bool with_parents) {
+    if (!ftp_active)
+      return DataStatus::NotInitializedError;
+    set_attributes();
+
+    // if with_parents use standard method used during StartWriting
+    if (with_parents)
+      return mkdir_ftp() ? DataStatus::Success : DataStatus::CreateDirectoryError;
+
+    // the globus mkdir call uses the full URL
+    std::string dirpath = url.str();
+    // check if file is in root directory
+    if (!remove_last_dir(dirpath)) return DataStatus::Success;
+
+    logger.msg(VERBOSE, "Creating directory %s", dirpath);
+    GlobusResult res =
+      globus_ftp_client_mkdir(&ftp_handle, dirpath.c_str(), &ftp_opattr,
+                              &ftp_complete_callback, cbarg);
+    if (!res) {
+      std::string err(res.str());
+      logger.msg(ERROR, "Globus error: %s", err);
+      return DataStatus(DataStatus::CreateDirectoryError, err);
+    }
+    if (!cond.wait(1000*usercfg.Timeout())) {
+      logger.msg(ERROR, "Timeout waiting for mkdir");
+      /* timeout - have to cancel operation here */
+      globus_ftp_client_abort(&ftp_handle);
+      cond.wait();
+      return DataStatus(DataStatus::CreateDirectoryErrorRetryable, "Timeout");
+    }
+    if (!callback_status)
+      return callback_status;
+    return DataStatus::Success;
   }
 
   DataStatus DataPointGridFTP::StartReading(DataBuffer& buf) {

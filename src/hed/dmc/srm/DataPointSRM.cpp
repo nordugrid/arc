@@ -147,6 +147,38 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointSRM::CreateDirectory(bool with_parents) {
+
+    bool timedout;
+    SRMClient *client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    if (!client) {
+      if (timedout) return DataStatus::CreateDirectoryErrorRetryable;
+      return DataStatus::CreateDirectoryError;
+    }
+
+    // take out options in srm url and encode path
+    std::string canonic_url;
+    if (!url.HTTPOption("SFN").empty())
+      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
+    else
+      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
+
+    SRMClientRequest request(canonic_url);
+
+    logger.msg(VERBOSE, "Creating directory: %s", canonic_url);
+
+    SRMReturnCode res = client->mkDir(request);
+    delete client;
+    client = NULL;
+
+    if (res != SRM_OK) {
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::CreateDirectoryErrorRetryable;
+      return DataStatus::CreateDirectoryError;
+    }
+
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointSRM::PrepareReading(unsigned int stage_timeout,
                                           unsigned int& wait_time) {
     if (writing) return DataStatus::IsWritingError;

@@ -322,27 +322,7 @@ namespace Arc {
       // check error - if it is no such file or directory, try to create the
       // required dirs
       if (serrno == ENOENT) {
-        std::string::size_type slashpos = url.Path().find("/", 1); // don't create root dir
-        while (slashpos != std::string::npos) {
-          std::string dirname = url.Path().substr(0, slashpos);
-          // list dir to see if it exists
-          struct lfc_filestat statbuf;
-          LFCLOCKINT(lfc_r,lfc_stat(dirname.c_str(), &statbuf), url);
-          if(lfc_r == 0) {
-            slashpos = url.Path().find("/", slashpos + 1);
-            continue;
-          }
-
-          logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
-          LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url);
-          if(lfc_r != 0)
-            if (serrno != EEXIST) {
-              logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
-              lfc_endsess();
-              return DataStatus::PreRegisterError;
-            }
-          slashpos = url.Path().find("/", slashpos + 1);
-        }
+        if (!CreateDirectory(true)) return DataStatus::PreRegisterError;
         LFCLOCKINT(lfc_r,lfc_creatg(url.Path().c_str(), guid.c_str(),
                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP), url);
         if(lfc_r != 0 && serrno != EEXIST) {
@@ -775,6 +755,46 @@ namespace Arc {
       f->SetMetaData("atime", (Time(st.atime)).str());
     }
     lfc_endsess();
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointLFC::CreateDirectory(bool with_parents) {
+
+    std::string::size_type slashpos = url.Path().find("/", 1); // don't create root dir
+    int lfc_r;
+
+    if (!with_parents) {
+      std::string dirname = url.Path().substr(0, url.Path().rfind("/"));
+      if (dirname.empty() || dirname == url.Path()) return DataStatus::Success;
+
+      logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
+      LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url);
+      if (lfc_r == 0 || serrno == EEXIST) return DataStatus::Success;
+
+      logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
+      lfc_endsess();
+      return DataStatus::CreateDirectoryError;
+    }
+    while (slashpos != std::string::npos) {
+      std::string dirname = url.Path().substr(0, slashpos);
+      // list dir to see if it exists
+      struct lfc_filestat statbuf;
+      LFCLOCKINT(lfc_r,lfc_stat(dirname.c_str(), &statbuf), url);
+      if(lfc_r == 0) {
+        slashpos = url.Path().find("/", slashpos + 1);
+        continue;
+      }
+
+      logger.msg(VERBOSE, "Creating LFC directory %s", dirname);
+      LFCLOCKINT(lfc_r,lfc_mkdir(dirname.c_str(), 0775), url);
+      if(lfc_r != 0)
+        if (serrno != EEXIST) {
+          logger.msg(ERROR, "Error creating required LFC dirs: %s", sstrerror(serrno));
+          lfc_endsess();
+          return DataStatus::CreateDirectoryError;
+        }
+      slashpos = url.Path().find("/", slashpos + 1);
+    }
     return DataStatus::Success;
   }
 
