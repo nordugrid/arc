@@ -55,6 +55,7 @@ bool arcmkdir(const Arc::URL& file_url,
     logger.msg(Arc::ERROR, "Unsupported URL given");
     return false;
   }
+  url->SetSecure(false);
   Arc::DataStatus res = url->CreateDirectory(with_parents);
   if (!res.Passed()) {
     logger.msg(Arc::ERROR, "%s%s", std::string(res), (res.GetDesc().empty() ? " " : ": "+res.GetDesc()));
