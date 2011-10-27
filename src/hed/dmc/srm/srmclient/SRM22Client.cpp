@@ -336,6 +336,8 @@ namespace Arc {
     else if (statuscode != SRM_SUCCESS) {
       // any other return code is a failure
       logger.msg(ERROR, explanation);
+      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+        logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
       creq.finished_error();
       delete response;
       if (statuscode == SRM_INTERNAL_ERROR)
@@ -387,6 +389,8 @@ namespace Arc {
     else if (statuscode != SRM_SUCCESS) {
       // error
       logger.msg(ERROR, explanation);
+      if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
+        logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
       creq.finished_error();
       delete response;
       if (statuscode == SRM_INTERNAL_ERROR)
