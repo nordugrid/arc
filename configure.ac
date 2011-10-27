@@ -143,6 +143,7 @@ enables_java=yes
 enables_python=yes
 enables_altpython=yes
 enables_lfc=yes
+enables_gfal=no
 enables_xrootd=yes
 enables_gacl=yes
 enables_argus=no
@@ -219,6 +220,7 @@ enables_python=$enableval
 enables_altpython=$enableval
 enables_gacl=$enableval
 enables_lfc=$enableval
+enables_gfal=$enableval
 enables_xrootd=$enableval
 enables_xmlsec1=$enableval
 enables_argus=$enableval
@@ -1394,6 +1396,35 @@ fi
 AC_SUBST(LFC_CFLAGS)
 AC_SUBST(LFC_LIBS)
 
+
+# Check for GFAL
+
+AC_ARG_ENABLE(gfal, AC_HELP_STRING([--enable-gfal], [disable the GFAL support, default is disable]),[enables_gfal="$enableval"],[])
+if test "x$enables_gfal" = "xyes"; then
+  GFAL_CFLAGS="-I/usr/include/gfal2"
+  AC_ARG_WITH(gfal, [  --with-gfal=(PATH)  GFAL location])
+  if test ! "x$with_gfal" = "x" ; then
+    GFAL_LOCATION="$with_gfal"
+    GFAL_CFLAGS="-I$GFAL_LOCATION/include/gfal2"
+    if test -d $GFAL_LOCATION/lib64; then
+      GFAL_LDFLAGS="-L$GFAL_LOCATION/lib64"
+    else
+      GFAL_LDFLAGS="-L$GFAL_LOCATION/lib"
+    fi
+  fi
+  SAVE_CPPFLAGS=$CPPFLAGS
+  CPPFLAGS="$CPPFLAGS $GFAL_CFLAGS"
+  AC_CHECK_HEADER(gfal_api.h, [], [enables_gfal="no"])
+  CPPFLAGS=$SAVE_CPPFLAGS
+  SAVE_LDFLAGS=$LDFLAGS
+  LDFLAGS="$LDFLAGS $GFAL_LDFLAGS"
+  AC_CHECK_LIB([gfal2], [_init],
+               [GFAL_LIBS="$GFAL_LDFLAGS -lgfal2"], [enables_gfal="no"])
+  LDFLAGS=$SAVE_LDFLAGS
+fi
+AC_SUBST(GFAL_CFLAGS)
+AC_SUBST(GFAL_LIBS)
+
 # Check for xrootd (c++)
 
 AC_LANG_SAVE
@@ -1433,6 +1464,7 @@ AM_CONDITIONAL([GLOBUSUTILS_ENABLED], test -n "$GLOBUS_COMMON_VERSION")
 AM_CONDITIONAL([RLS_ENABLED], test -n "$GLOBUS_RLS_CLIENT_VERSION")
 AM_CONDITIONAL([GRIDFTP_ENABLED], test -n "$GLOBUS_FTP_CLIENT_VERSION")
 AM_CONDITIONAL([LFC_ENABLED], test x$enables_lfc = xyes)
+AM_CONDITIONAL([GFAL_ENABLED], test x$enables_gfal = xyes)
 AM_CONDITIONAL([XROOTD_ENABLED], test x$enables_xrootd = xyes)
 AM_CONDITIONAL([OPENSSL_PROXY_ENABLED], test x$OPENSSL_PROXY = xyes)
 AM_CONDITIONAL([OPENSSL_X509_VERIFY_PARAM_ENABLED], test x$OPENSSL_X509_VERIFY_PARAM = xyes)
@@ -2127,6 +2159,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/srm/Makefile
                  src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/lfc/Makefile
+                 src/hed/dmc/gfal/Makefile
                  src/hed/dmc/rls/Makefile
                  src/hed/dmc/xrootd/Makefile
                  src/hed/profiles/general/general.xml
@@ -2405,6 +2438,7 @@ Available third-party features:
 RLS:                ${enables_rls}
 GridFTP:            ${enables_gridftp}
 LFC:                ${enables_lfc}
+GFAL:               ${enables_gfal}
 Xrootd:             ${enables_xrootd}
 MYSQL CLIENT LIB:   ${enables_mysql}
 LDAP:               ${enables_ldap}

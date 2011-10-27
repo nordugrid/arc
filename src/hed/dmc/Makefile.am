@@ -17,5 +17,5 @@ if XROOTD_ENABLED
 XROOTD_SD=xrootd
 endif
 
-SUBDIRS = http file arc $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD) $(SRM_SD) $(XROOTD_SD)
-DIST_SUBDIRS = http file arc ldap gridftp rls lfc srm xrootd
+SUBDIRS = http file arc $(LDAP_SD) $(GRIDFTP_SD) $(RLS_SD) $(LFC_SD) $(SRM_SD) $(XROOTD_SD) gfal
+DIST_SUBDIRS = http file arc ldap gridftp rls lfc srm xrootd gfal
