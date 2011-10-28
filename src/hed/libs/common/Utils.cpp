@@ -41,6 +41,10 @@
 #define BUFLEN 1024
 #endif
 
+// If defined this turn on additional layer in handling
+// setenv() which tries to avoid memory leaks.
+#define TRICKED_ENVIRONMENT
+
 namespace Arc {
 
 #ifndef WIN32
@@ -62,6 +66,132 @@ namespace Arc {
 
   static SIGPIPEIngore sigpipe_ignore;
 #endif
+
+#ifdef TRICKED_ENVIRONMENT
+
+  // This class is not protected by mutexes because its methods
+  // are always called with SetEnv mutex locked.
+  class TrickEnvRecord {
+  private:
+    static const unsigned int alloc_size = 1024;
+    static std::list<TrickEnvRecord> records_;
+    std::string name_;
+    //std::string value_;
+    char* ptr_;
+    unsigned int size_; // max value to fit into allocated space
+    bool unset_;
+    TrickEnvRecord(void) { };
+    TrickEnvRecord(const std::string& name);
+  public:
+    bool Set(const std::string& value);
+    bool Unset(void);
+    static bool Set(const std::string& name, const std::string& value, bool overwrite);
+    static bool Unset(const std::string& name);
+  };
+
+  std::list<TrickEnvRecord> TrickEnvRecord::records_;
+
+  TrickEnvRecord::TrickEnvRecord(const std::string& name):
+                         name_(name),ptr_(NULL),size_(0),unset_(false) {
+  }
+
+  bool TrickEnvRecord::Set(const std::string& value) {
+    char* curval = getenv(name_.c_str());
+    if(ptr_ && curval && (curval == ptr_)) {
+      // Still same memory is active. Can modify content.
+      if(value.length() <= size_) {
+        // Enough space to store new value
+        memcpy(ptr_,value.c_str(),value.length());
+        memset(ptr_+value.length(),0,size_-value.length()+1);
+        return true;
+      };
+    };
+    unsigned int newsize = 0;
+    char* newrec = NULL;
+    bool allocated = false;
+    if(unset_ && ptr_ && (value.length() <= size_)) {
+      // Unset buffer can be reused
+      newsize = size_; size_ = 0;
+      newrec = ptr_-(name_.length()+1); ptr_ = NULL;
+    } else {
+      // Allocate new memory
+      newsize = (value.length()/alloc_size+1)*alloc_size;
+      newrec = (char*) ::malloc(name_.length()+1+newsize+1);
+      allocated = true;
+    };
+    if(newrec) {
+      memcpy(newrec,name_.c_str(),name_.length());
+      newrec[name_.length()] = '=';
+      memcpy(newrec+name_.length()+1,value.c_str(),value.length());
+      memset(newrec+name_.length()+1+value.length(),0,newsize-value.length()+1);
+      if(::putenv(newrec) == 0) {
+        // New record stored
+        ptr_ = newrec+name_.length()+1;
+        size_ = newsize;
+        //value_ = value;
+        unset_ = false;
+        return true;
+      } else {
+        if(allocated) {
+          free(newrec); newrec = NULL;
+        };
+      };
+    };
+    // Failure
+    return false;
+  }
+
+  bool TrickEnvRecord::Set(const std::string& name, const std::string& value, bool overwrite) {
+    if(!overwrite) {
+      if(getenv(name.c_str())) return false;
+    };
+    for(std::list<TrickEnvRecord>::iterator r = records_.begin();
+                                                r != records_.end(); ++r) {
+      if(r->name_ == name) { // TODO: more optimal search
+        return r->Set(value);
+      };
+    };
+    // No such record - making new
+    TrickEnvRecord rec(name);
+    if(!rec.Set(value)) return false;
+    records_.push_back(rec);
+    return true;
+  }
+
+  bool TrickEnvRecord::Unset(void) {
+    unset_ = true;
+#ifdef HAVE_UNSETENV
+    unsetenv(name_.c_str());
+    if(ptr_) *(ptr_-1) = 0; // Removing '='
+#else
+    // Reusing buffer
+    if(ptr_) {
+      *(ptr_-1) = 0;
+      putenv(ptr_-(name_.length()+1));
+    } else {
+      return false; // Never happens
+    };
+#endif
+    return true;
+  }
+
+  bool TrickEnvRecord::Unset(const std::string& name) {
+    for(std::list<TrickEnvRecord>::iterator r = records_.begin();
+                                                r != records_.end(); ++r) {
+      if(r->name_ == name) { // TODO: more optimal search
+        return r->Unset();
+      };
+    };
+#ifdef HAVE_UNSETENV
+    unsetenv(name.c_str());
+#else
+    // Better solution is needed
+    putenv(strdup(name.c_str()));
+#endif
+    return true;
+  }
+#endif // TRICKED_ENVIRONMENT
+
 
   // Below is a set of mutexes for protecting environment
   // variables. Current implementation is very simplistic.
@@ -157,6 +287,7 @@ namespace Arc {
 
   bool SetEnv(const std::string& var, const std::string& value, bool overwrite) {
     SharedMutexExclusive env_lock(env_read_lock());
+#ifndef TRICKED_ENVIRONMENT
 #ifdef HAVE_GLIBMM_SETENV
     return Glib::setenv(var, value, overwrite);
 #else
@@ -166,10 +297,14 @@ namespace Arc {
     return (putenv(strdup((var + "=" + value).c_str())) == 0);
 #endif
 #endif
+#else // TRICKED_ENVIRONMENT
+    return TrickEnvRecord::Set(var, value, overwrite);
+#endif // TRICKED_ENVIRONMENT
   }
 
   void UnsetEnv(const std::string& var) {
     SharedMutexExclusive env_lock(env_read_lock());
+#ifndef TRICKED_ENVIRONMENT
 #ifdef HAVE_GLIBMM_UNSETENV
     Glib::unsetenv(var);
 #else
@@ -179,6 +314,13 @@ namespace Arc {
     putenv(strdup(var.c_str()));
 #endif
 #endif
+#else // TRICKED_ENVIRONMENT
+    // This is compromise and will not work if third party
+    // code distinguishes between empty and unset variable.
+    // But without this pair of setenv/unsetenv will 
+    // definitely leak memory.
+    TrickEnvRecord::Unset(var);
+#endif // TRICKED_ENVIRONMENT
   }
 
   void EnvLockAcquire(void) {

@@ -39,6 +39,17 @@ void EnvTest::TestEnv() {
   Arc::SetEnv("TEST_ENV_VAR","TEST_ENV_VALUE4", false);
   CPPUNIT_ASSERT_EQUAL(std::string("TEST_ENV_VALUE3"), Arc::GetEnv("TEST_ENV_VAR",found));
 
+  for(int n = 0; n < 1000000; ++n) {
+    Arc::SetEnv("TEST_ENV_VAR1","TEST_ENV_VALUE");
+    Arc::UnsetEnv("TEST_ENV_VAR1");
+    Arc::SetEnv("TEST_ENV_VAR1","TEST_ENV_VALUE");
+    Arc::SetEnv("TEST_ENV_VAR2","TEST_ENV_VALUE");
+    Arc::UnsetEnv("TEST_ENV_VAR2");
+    Arc::SetEnv("TEST_ENV_VAR2","TEST_ENV_VALUE");
+    Arc::SetEnv("TEST_ENV_VAR3","TEST_ENV_VALUE");
+    Arc::UnsetEnv("TEST_ENV_VAR3");
+    Arc::SetEnv("TEST_ENV_VAR3","TEST_ENV_VALUE");
+  }
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(EnvTest);
