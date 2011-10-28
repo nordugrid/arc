@@ -543,7 +543,7 @@ namespace Arc {
       if (fd == -1) {
         logger.msg(ERROR, "Failed to open %s for reading: %s", url.Path(), StrError(errno));
         reading = false;
-        return DataStatus::ReadStartError;
+        return DataStatus(DataStatus::ReadStartError, StrError(errno));
       }
       /* provide some metadata */
       struct stat st;
@@ -558,13 +558,13 @@ namespace Arc {
         delete fa; fa = NULL;
         logger.msg(ERROR, "Failed to switch user id to %d/%d", (unsigned int)uid, (unsigned int)gid);
         reading = false;
-        return DataStatus::ReadStartError;
+        return DataStatus(DataStatus::ReadStartError, "Failed to switch user id");
       }
       if(!fa->open(url.Path(), flags, 0)) {
         delete fa; fa = NULL;
         logger.msg(ERROR, "Failed to create/open file %s: %s", url.Path(), StrError(errno));
         reading = false;
-        return DataStatus::ReadStartError;
+        return DataStatus(DataStatus::ReadStartError, StrError(errno));
       }
       struct stat st;
       if(fa->fstat(st)) {
@@ -581,7 +581,7 @@ namespace Arc {
       fd = -1; fa = NULL;
       logger.msg(ERROR, "Failed to create thread");
       reading = false;
-      return DataStatus::ReadStartError;
+      return DataStatus(DataStatus::ReadStartError, "Failed to create read thread");
     }
     return DataStatus::Success;
   }
@@ -671,7 +671,7 @@ namespace Arc {
         buffer->error_write(true);
         buffer->eof_write(true);
         writing = false;
-        return DataStatus::WriteStartError;
+        return DataStatus(DataStatus::WriteStartError, "Failed to create directory "+dirpath+": "+StrError(errno));
       }
 
       /* try to create file. Opening an existing file will cause failure */
@@ -687,7 +687,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus::WriteStartError;
+          return DataStatus(DataStatus::WriteStartError, StrError(errno));
         }
       } else {
         fd = -1;
@@ -698,7 +698,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus::WriteStartError;
+          return DataStatus(DataStatus::WriteStartError, "Failed to switch user id");
         }
         if(!fa->open(url.Path(), flags | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) {
           delete fa; fa = NULL;
@@ -706,7 +706,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus::WriteStartError;
+          return DataStatus(DataStatus::WriteStartError, StrError(errno));
         }
       }
 
@@ -739,7 +739,7 @@ namespace Arc {
           buffer->error_write(true);
           buffer->eof_write(true);
           writing = false;
-          return DataStatus::WriteStartError;
+          return DataStatus(DataStatus::WriteStartError, "Failed to preallocate space");
         }
       }
     }
@@ -753,7 +753,7 @@ namespace Arc {
       buffer->error_write(true);
       buffer->eof_write(true);
       writing = false;
-      return DataStatus::WriteStartError;
+      return DataStatus(DataStatus::WriteStartError, "Failed to create write thread");
     }
     return DataStatus::Success;
   }
