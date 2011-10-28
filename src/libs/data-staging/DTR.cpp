@@ -2,7 +2,11 @@
 #include <config.h>
 #endif
 
+#include <utime.h>
+
+#include <arc/FileLock.h>
 #include <arc/GUID.h>
+#include <arc/Utils.h>
 
 #include "Processor.h"
 #include "DataDelivery.h"
@@ -253,7 +257,7 @@ namespace DataStaging {
 
   void DTR::set_bytes_transferred(unsigned long long int bytes) {
     bytes_transferred = bytes;
-    mark_modification();
+    update();
   }
 
   void DTR::set_cache_file(const std::string& filename)
@@ -280,6 +284,23 @@ namespace DataStaging {
     Arc::Time t;
     t = t + process_time;
     next_process_time.SetTime(t.GetTime(), t.GetTimeNanosec());
+    update();
+  }
+
+  void DTR::update() {
+    // file must be cacheable and state must be after checking cache
+    if ((cache_state == CACHEABLE || cache_state == CACHE_NOT_USED) && status != DTRStatus::CHECK_CACHE) {
+      // touch cache lock file - every minute should be enough
+      if (Arc::Time().GetTime() - last_modified.GetTime() >= 60) {
+        std::string cache_lock(cache_file + Arc::FileLock::getLockSuffix());
+        logger->msg(Arc::DEBUG, "DTR %s: Touching lock file %s", get_short_id(), cache_lock);
+        if (utime(cache_lock.c_str(), NULL) == -1) {
+          logger->msg(Arc::WARNING, "DTR %s: Failed updating timestamp on cache lock file %s for file %s: %s",
+                      get_short_id(), cache_lock, source_url.str(), Arc::StrError(errno));
+        }
+        mark_modification();
+      }
+    }
   }
 
   std::list<DTRCallback*> DTR::get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {

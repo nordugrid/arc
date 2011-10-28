@@ -772,6 +772,7 @@ namespace DataStaging {
         tmp->set_priority(tmp->get_priority() + 1);
         tmp->set_timeout(300);
       }
+      tmp->update();
       ++dtr;
     }
 
@@ -835,6 +836,7 @@ namespace DataStaging {
         tmp->set_priority(tmp->get_priority() + 1);
         tmp->set_timeout(300);
       }
+      tmp->update();
       ++dtr;
     }
 
@@ -897,6 +899,7 @@ namespace DataStaging {
         tmp->set_priority(tmp->get_priority() + 1);
         tmp->set_timeout(300);
       }
+      tmp->update();
       dtr++;
     }
 

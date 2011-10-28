@@ -486,6 +486,9 @@ namespace DataStaging {
      /// Did an error happen?
      bool error() const { return (error_status != DTRErrorStatus::NONE_ERROR); }
      
+     /// Update the DTR. If appropriate this updates the cache lock held by this DTR.
+     void update();
+
      /// Returns true if this DTR is about to go into the pre-processor
      bool is_destined_for_pre_processor() const;
      /// Returns true if this DTR is about to go into the post-processor
