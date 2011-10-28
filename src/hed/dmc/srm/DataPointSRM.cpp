@@ -490,20 +490,25 @@ namespace Arc {
         else {
           logger.msg(VERBOSE, "Using space token description %s", space_token);
           // get token from SRM that matches description
+          // errors with space tokens now cause the transfer to fail - see bug 2061
           std::list<std::string> tokens;
           if (client->getSpaceTokens(tokens, space_token) != SRM_OK) {
-            // not critical so log a warning
-            logger.msg(WARNING, "Warning: Error looking up space tokens matching description %s. Will copy without using token", space_token);
+            logger.msg(ERROR, "Error looking up space tokens matching description %s", space_token);
+            delete client;
+            delete srm_request;
+            srm_request = NULL;
+            return DataStatus::WritePrepareError;
           }
-          else if (tokens.empty()) {
-            // not critical so log a warning
-            logger.msg(WARNING, "Warning: No space tokens found matching description! Will copy without using token");
+          if (tokens.empty()) {
+            logger.msg(ERROR, "No space tokens found matching description %s", space_token);
+            delete client;
+            delete srm_request;
+            srm_request = NULL;
+            return DataStatus::WritePrepareError;
           }
-          else {
-            // take the first one in the list
-            logger.msg(VERBOSE, "Using space token %s", tokens.front());
-            srm_request->space_token(tokens.front());
-          }
+          // take the first one in the list
+          logger.msg(VERBOSE, "Using space token %s", tokens.front());
+          srm_request->space_token(tokens.front());
         }
       }
       srm_request->request_timeout(stage_timeout);
