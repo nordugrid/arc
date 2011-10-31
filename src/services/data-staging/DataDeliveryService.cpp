@@ -183,7 +183,8 @@ namespace DataStaging {
         uid = Arc::User().get_uid();
         gid = Arc::User().get_gid();
       }
-      Arc::UserConfig usercfg;
+      // proxy path will be set later
+      Arc::UserConfig usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
 
       Arc::XMLNode resultelement = results.NewChild("Result");
       resultelement.NewChild("ID") = dtrid;
