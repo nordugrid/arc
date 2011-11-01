@@ -473,8 +473,22 @@ namespace DataStaging {
       // DTR could be already finished, but report successful cancel anyway
 
       DTR * dtr = dtr_it->first;
+      if (dtr->get_status() == DTRStatus::TRANSFERRING_CANCEL) {
+        active_dtrs_lock.unlock();
+        logger.msg(Arc::ERROR, "DTR %s was already cancelled", dtrid);
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "DTR already cancelled";
+        continue;
+      }
+
       // Delivery will automatically kill running process
-      dtr->set_cancel_request();
+      if (!delivery.cancelDTR(dtr)) {
+        active_dtrs_lock.unlock();
+        logger.msg(Arc::ERROR, "DTR %s could not be cancelled", dtrid);
+        resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
+        resultelement.NewChild("ErrorDescription") = "DTR could not be cancelled";
+        continue;
+      }
 
       logger.msg(Arc::INFO, "DTR %s cancelled", dtr->get_id());
       resultelement.NewChild("ResultCode") = "OK";
