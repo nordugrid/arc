@@ -1067,6 +1067,7 @@ int main(int argc, char *argv[]) {
         voms_server = (*it).first;
         std::vector<std::vector<std::string> > voms_lines = (*it).second;
 
+        bool succeeded = false; //a boolean value to indicate if there is valid message returned from voms server, by using the current voms_line  
         for (std::vector<std::vector<std::string> >::iterator line_it = voms_lines.begin(); line_it != voms_lines.end(); line_it++) {
           std::vector<std::string> voms_line = *line_it;
           int count = server_command_map.count(voms_server);
@@ -1134,39 +1135,41 @@ int main(int argc, char *argv[]) {
           Arc::PayloadStreamInterface *response = NULL;
           Arc::MCC_Status status = client.process(&request, &response, true);
           if (!status) {
-            logger.msg(Arc::ERROR, (std::string)status);
+            //logger.msg(Arc::ERROR, (std::string)status);
             if (response)
               delete response;
               std::cout << Arc::IString("The VOMS server with the information:\n%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
-              break;
-              //return EXIT_FAILURE;
+              continue; //There could be another voms replicated server with the same name exists
           }
           if (!response) {
             logger.msg(Arc::ERROR, "No stream response from VOMS server");
-            break;
-            //return EXIT_FAILURE;
+            continue;
           }
           Arc::XMLNode node;
-          {
-            std::string ret_str;
-            char ret_buf[1024];
-            int len = sizeof(ret_buf);
-            while(response->Get(ret_buf, len)) {
-              ret_str.append(ret_buf, len);
-              len = sizeof(ret_buf);
-            };
-            logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
-            Arc::XMLNode(ret_str).Exchange(node);
+          std::string ret_str;
+          char ret_buf[1024];
+          int len = sizeof(ret_buf);
+          while(response->Get(ret_buf, len)) {
+            ret_str.append(ret_buf, len);
+            len = sizeof(ret_buf);
           };
+          logger.msg(Arc::VERBOSE, "Returned message from VOMS server: %s", ret_str);
+          Arc::XMLNode(ret_str).Exchange(node);
           if((!node) || ((bool)(node["error"]))) {
-            std::string str = node["error"]["item"]["message"];
-            std::string::size_type pos;
-            if((pos = str.find("The validity of this VOMS AC in your proxy is shortened to"))!= std::string::npos) {
-              std::string tmp = str.substr(pos + 59); 
-              std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
+            if((bool)(node["error"])) {
+              std::string str = node["error"]["item"]["message"];
+              std::string::size_type pos;
+              if((pos = str.find("The validity of this VOMS AC in your proxy is shortened to"))!= std::string::npos) {
+                std::string tmp = str.substr(pos + 59); 
+                std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
+              }
+              else
+              std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
+              break; //since the voms servers with the same name should be looked as the same for robust reason, the other voms server should that can be reached could returned the same message. So we exists the loop, even if there are other backup voms server exist.
             }
             else
-              std::cout << Arc::IString("Cannot get any AC or attributes info from VOMS server: %s;\n       Returned message from VOMS server: %s\n", voms_server, str);
+              std::cout << Arc::IString("Returned message from VOMS server %s is: s%\n", voms_server, ret_str);
+              break; 
           }
 
           //Put the return attribute certificate into proxy certificate as the extension part
@@ -1188,7 +1191,7 @@ int main(int argc, char *argv[]) {
           if (command == "list") {
             //logger.msg(Arc::INFO, "The attribute information from voms server: %s is list as following:\n%s",
             //           voms_server, decodedac);
-            std::cout << Arc::IString("The attribute information from VOMS server: %s is list as following", voms_server) << std::endl << decodedac;
+            std::cout << Arc::IString("The attribute information from VOMS server: %s is list as following:", voms_server) << std::endl << decodedac << std::endl;
             if (response)
               delete response;
             return EXIT_SUCCESS;
@@ -1198,7 +1201,12 @@ int main(int argc, char *argv[]) {
             delete response;
 
           Arc::addVOMSAC(aclist, acorder, decodedac);
+          succeeded = true; break;
         }//end of the scanning of multiple vomses lines with the same name
+        if(succeeded==false) {
+          if(voms_lines.size() > 1) 
+            std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not been reached, or can return valid message. But proxy without voms AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl; 
+        }
       }
 
       //Put the returned attribute certificate into proxy certificate
