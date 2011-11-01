@@ -49,6 +49,7 @@ namespace DataStaging {
         DTR* dtr = i->first;
 
         if (dtr->get_modification_time() < timelimit && dtr->get_status() != DTRStatus::TRANSFERRING) {
+          archived_dtrs_lock.lock();
           if (dtr->error()) {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state ERROR", dtr->get_id());
             archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>("ERROR", dtr->get_error_status().GetDesc());
@@ -57,6 +58,7 @@ namespace DataStaging {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state %s", dtr->get_id(), dtr->get_status().str());
             archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>(dtr->get_status().str(), "");
           }
+          archived_dtrs_lock.unlock();
           // clean up DTR memory - delete DTR Logger and LogDestinations
           cleanDTR(i->first);
           delete i->second;
@@ -362,12 +364,15 @@ namespace DataStaging {
         active_dtrs_lock.unlock();
 
         // if not in active list, look in archived list
+        archived_dtrs_lock.lock();
         std::map<std::string, std::pair<std::string, std::string> >::const_iterator arc_it = archived_dtrs.find(dtrid);
         if (arc_it != archived_dtrs.end()) {
           resultelement.NewChild("ResultCode") = archived_dtrs[dtrid].first;
           resultelement.NewChild("ErrorDescription") = archived_dtrs[dtrid].second;
+          archived_dtrs_lock.unlock();
           continue;
         }
+        archived_dtrs_lock.unlock();
 
         logger.msg(Arc::ERROR, "No such DTR %s", dtrid);
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
@@ -386,14 +391,18 @@ namespace DataStaging {
         resultelement.NewChild("ErrorDescription") = dtr->get_error_status().GetDesc();
         resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr->get_error_status().GetErrorStatus());
         resultelement.NewChild("ErrorLocation") = Arc::tostring(dtr->get_error_status().GetErrorLocation());
+        archived_dtrs_lock.lock();
         archived_dtrs[dtrid] = std::pair<std::string, std::string>("ERROR", dtr->get_error_status().GetDesc());
+        archived_dtrs_lock.unlock();
       }
       else if (dtr->get_status() == DTRStatus::TRANSFERRED) {
         logger.msg(Arc::INFO, "DTR %s finished successfully", dtrid);
         resultelement.NewChild("ResultCode") = "TRANSFERRED";
         // pass calculated checksum back to Scheduler (eg to insert in catalog)
         if (dtr->get_destination()->CheckCheckSum()) resultelement.NewChild("CheckSum") = dtr->get_destination()->GetCheckSum();
+        archived_dtrs_lock.lock();
         archived_dtrs[dtrid] = std::pair<std::string, std::string>("TRANSFERRED", "");
+        archived_dtrs_lock.unlock();
       }
       else {
         logger.msg(Arc::INFO, "DTR %s still in progress", dtrid);
@@ -505,6 +514,9 @@ namespace DataStaging {
     // Create tmp dir for proxies
     // TODO get from configuration
     tmp_proxy_dir = "/tmp/arc";
+
+    // clear any proxies left behind from previous bad shutdown
+    Arc::DirDelete(tmp_proxy_dir);
     if (!Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true)) {
       logger.msg(Arc::ERROR, "Failed to create dir %s for temp proxies: %s", tmp_proxy_dir, Arc::StrError(errno));
       return;

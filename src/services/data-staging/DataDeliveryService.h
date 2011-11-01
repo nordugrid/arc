@@ -52,11 +52,13 @@ namespace DataStaging {
     gint current_processes;
     /// Internal list of active DTRs, mapped to the stream with the transfer log
     std::map<DTR*, std::stringstream*> active_dtrs;
-    /// Lock for DTRs list
+    /// Lock for active DTRs list
     Arc::SimpleCondition active_dtrs_lock;
     /// Archived list of finished DTRs, just ID and final state and short explanation
     /// TODO: save to file, DB?
     std::map<std::string, std::pair<std::string, std::string> > archived_dtrs;
+    /// Lock for archive DTRs list
+    Arc::SimpleCondition archived_dtrs_lock;
     /// Object to manage Delivery processes
     DataDelivery delivery;
     /// Container for delegated credentials
