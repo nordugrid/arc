@@ -200,6 +200,12 @@ namespace Arc {
     bool _long_list;
 
     /**
+     * Error LogLevel. This can be changed when errors should not be reported
+     * at ERROR level
+     */
+    LogLevel _error_loglevel;
+
+    /**
      * List of requested transport protocols
      */
     std::list<std::string> _transport_protocols;
@@ -218,7 +224,8 @@ namespace Arc {
           _status(SRM_REQUEST_CREATED),
           _request_timeout(60),
           _total_size(0),
-          _long_list(false) {
+          _long_list(false),
+          _error_loglevel(ERROR) {
       if (urls.empty())
         throw SRMInvalidRequestException();
       for (std::list<std::string>::const_iterator it = urls.begin();
@@ -239,7 +246,8 @@ namespace Arc {
           _status(SRM_REQUEST_CREATED),
           _request_timeout(60),
           _total_size(0),
-          _long_list(false) {
+          _long_list(false),
+          _error_loglevel(ERROR) {
       if (url.empty() && id.empty())
         throw SRMInvalidRequestException();
       if (!url.empty())
@@ -376,6 +384,16 @@ namespace Arc {
     }
     bool long_list() const {
       return _long_list;
+    }
+
+    /**
+     * set and get error log level
+     */
+    void error_loglevel(LogLevel level) {
+      _error_loglevel = level;
+    }
+    LogLevel error_loglevel() const {
+      return _error_loglevel;
     }
 
     /**
@@ -640,8 +658,7 @@ namespace Arc {
      */
     virtual SRMReturnCode info(SRMClientRequest& req,
                                std::list<struct SRMFileMetaData>& metadata,
-                               const int recursive = 0,
-                               bool report_error = true) = 0;
+                               const int recursive = 0) = 0;
 
     /**
      * Delete a file physically from storage and the SRM namespace.

@@ -19,7 +19,6 @@ namespace Arc {
     SRMReturnCode info(SRMClientRequest& req,
                        std::list<struct SRMFileMetaData>& metadata,
                        const int recursive,
-                       bool report_error,
                        const int offset,
                        const int count);
 
@@ -119,8 +118,7 @@ namespace Arc {
      */
     SRMReturnCode info(SRMClientRequest& req,
                        std::list<struct SRMFileMetaData>& metadata,
-                       const int recursive = 0,
-                       bool report_error = true);
+                       const int recursive = 0);
 
     /**
      * Release files that have been pinned by srmPrepareToGet using

@@ -861,15 +861,13 @@ namespace Arc {
 
   SRMReturnCode SRM22Client::info(SRMClientRequest& creq,
                                   std::list<struct SRMFileMetaData>& metadata,
-                                  const int recursive,
-                                  bool report_error) {
-    return info(creq, metadata, recursive, report_error, 0, 0);
+                                  const int recursive) {
+    return info(creq, metadata, recursive, 0, 0);
   }
 
   SRMReturnCode SRM22Client::info(SRMClientRequest& creq,
                                   std::list<struct SRMFileMetaData>& metadata,
                                   const int recursive,
-                                  bool report_error,
                                   const int offset,
                                   const int count) {
     // only one SURL requested at a time
@@ -942,10 +940,10 @@ namespace Arc {
         if (statuscode != SRM_SUCCESS &&
             statuscode != SRM_REQUEST_QUEUED &&
             statuscode != SRM_REQUEST_INPROGRESS) {
-          logger.msg(report_error ? ERROR : VERBOSE, "%s", explanation);
+          logger.msg(creq.error_loglevel(), "%s", explanation);
           // check if individual file status gives more info
           if (res["details"]["pathDetailArray"]["status"]["explanation"])
-            logger.msg(report_error ? ERROR : VERBOSE, "%s",
+            logger.msg(creq.error_loglevel(), "%s",
                        (std::string)res["details"]["pathDetailArray"]
                        ["status"]["explanation"]);
           delete response;
@@ -957,7 +955,7 @@ namespace Arc {
 
       // check for timeout
       if (request_time >= creq.request_timeout()) {
-        logger.msg(ERROR, "Ls request timed out after %i seconds",
+        logger.msg(creq.error_loglevel(), "Ls request timed out after %i seconds",
                    creq.request_timeout());
         abort(creq);
         delete response;
@@ -965,10 +963,10 @@ namespace Arc {
       }
     }
     else {
-      logger.msg(report_error ? ERROR : VERBOSE, "%s", explanation);
+      logger.msg(creq.error_loglevel(), "%s", explanation);
       // check if individual file status gives more info
       if (res["details"]["pathDetailArray"]["status"]["explanation"])
-        logger.msg(report_error ? ERROR : VERBOSE, "%s",
+        logger.msg(creq.error_loglevel(), "%s",
                    (std::string)res["details"]["pathDetailArray"]
                    ["status"]["explanation"]);
       delete response;
@@ -1031,7 +1029,7 @@ namespace Arc {
           list_req.long_list(creq.long_list());
           int list_offset = max_files_list * list_no;
           int list_count = max_files_list;
-          SRMReturnCode res = info(list_req, list_metadata, 0, true,
+          SRMReturnCode res = info(list_req, list_metadata, 0,
                                    list_offset, list_count);
           if (res != SRM_OK) {
             delete response;
@@ -1354,12 +1352,14 @@ namespace Arc {
 
     // call info() to find out if we are dealing with a file or directory
     SRMClientRequest inforeq(creq.surls());
+    inforeq.error_loglevel(creq.error_loglevel());
     std::list<struct SRMFileMetaData> metadata;
 
     // set recursion to -1, meaning don't list entries in a dir
     SRMReturnCode res = info(inforeq, metadata, -1);
     if (res != SRM_OK) {
-      logger.msg(ERROR, "Failed to find metadata info on file %s",
+      logger.msg(creq.error_loglevel(),
+                 "Failed to find metadata info on %s for determining file or directory delete",
                  inforeq.surls().front());
       return res;
     }
@@ -1397,7 +1397,7 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(creq.error_loglevel(), "%s", explanation);
       delete response;
       if (statuscode == SRM_INTERNAL_ERROR)
         return SRM_ERROR_TEMPORARY;
@@ -1427,7 +1427,7 @@ namespace Arc {
     SRMStatusCode statuscode = GetStatus(res["returnStatus"], explanation);
 
     if (statuscode != SRM_SUCCESS) {
-      logger.msg(ERROR, "%s", explanation);
+      logger.msg(creq.error_loglevel(), "%s", explanation);
       delete response;
       if (statuscode == SRM_INTERNAL_ERROR)
         return SRM_ERROR_TEMPORARY;
@@ -1553,10 +1553,12 @@ namespace Arc {
       std::string dirname = surl.substr(0, slashpos);
       // list dir to see if it exists
       SRMClientRequest listreq(dirname);
+      // don't report errors
+      listreq.error_loglevel(VERBOSE);
       std::list<struct SRMFileMetaData> metadata;
       if (keeplisting) {
         logger.msg(VERBOSE, "Checking for existence of %s", dirname);
-        if (info(listreq, metadata, -1, false) == SRM_OK) {
+        if (info(listreq, metadata, -1) == SRM_OK) {
           if (metadata.front().fileType == SRM_FILE) {
             logger.msg(ERROR, "File already exists: %s", dirname);
             return SRM_ERROR_PERMANENT;

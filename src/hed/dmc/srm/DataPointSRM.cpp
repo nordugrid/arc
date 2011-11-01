@@ -624,6 +624,9 @@ namespace Arc {
         // call abort if failure, or releasePut on success
         if (error || srm_request->status() == SRM_REQUEST_SHOULD_ABORT) {
            client->abort(*srm_request);
+           // according to the spec the SURL may or may not exist after abort
+           // so silence error messages from trying to delete
+           srm_request->error_loglevel(VERBOSE);
            client->remove(*srm_request);
         }
         else {
@@ -677,6 +680,9 @@ namespace Arc {
               }
           } else {
             client->abort(*srm_request);
+            // according to the spec the SURL may or may not exist after abort
+            // so silence error messages from trying to delete
+            srm_request->error_loglevel(VERBOSE);
             client->remove(*srm_request);
           }
         }

@@ -369,8 +369,7 @@ namespace Arc {
 
   SRMReturnCode SRM1Client::info(SRMClientRequest& creq,
                                  std::list<struct SRMFileMetaData>& metadata,
-                                 const int /* recursive */,
-                                 bool report_error) {
+                                 const int /* recursive */) {
     SRMURL srmurl(creq.surls().front());
 
     PayloadSOAP request(ns);
@@ -387,7 +386,7 @@ namespace Arc {
 
     XMLNode result = (*response)["getFileMetaDataResponse"]["Result"];
     if (!result) {
-      logger.msg(report_error ? INFO : DEBUG,
+      logger.msg(creq.error_loglevel(),
                  "SRM did not return any information");
       delete response;
       return SRM_ERROR_OTHER;
@@ -395,7 +394,7 @@ namespace Arc {
 
     XMLNode mdata = result["item"];
     if (!mdata) {
-      logger.msg(report_error ? INFO : DEBUG,
+      logger.msg(creq.error_loglevel(),
                  "SRM did not return any useful information");
       delete response;
       return SRM_ERROR_OTHER;
