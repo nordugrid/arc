@@ -639,9 +639,10 @@ namespace Arc {
       unsigned int transfer_size = 0;
       int transfer_handle = -1;
       // get first buffer
-      if (!point.buffer->for_read(transfer_handle, transfer_size, true))
+      if (!point.buffer->for_read(transfer_handle, transfer_size, true)) {
         // No transfer buffer - must be failure or close initiated externally
         break;
+      }
       uint64_t transfer_offset = 0;
       uint64_t chunk_length = transfer_size;
       if (!(point.chunks->Get(transfer_offset, chunk_length)))
@@ -679,8 +680,7 @@ namespace Arc {
       if (transfer_info.code == 416) { // EOF
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
-        if (inbuf)
-          delete inbuf;
+        if (inbuf) delete inbuf;
         // TODO: report file size to chunk control
         break;
       }
@@ -725,6 +725,17 @@ namespace Arc {
         transfer_failure = true;
         break;
       }
+      PayloadStreamInterface* instream = NULL;
+      try {
+        instream = dynamic_cast<PayloadStreamInterface*>(dynamic_cast<MessagePayload*>(inbuf));
+      } catch(std::exception& e) {
+        transfer_failure = true;
+        break;
+      }
+      if(!instream) {
+        transfer_failure = true;
+        break;
+      }
       // pick up usefull information from HTTP header
       point.created = transfer_info.lastModified;
       retries = 0;
@@ -735,6 +746,28 @@ namespace Arc {
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset, chunk_length);
       uint64_t transfer_pos = 0;
+      for(;;) {
+        if (transfer_handle == -1) {
+          point.transfer_lock.unlock();
+          if (!point.buffer->for_read(transfer_handle, transfer_size, true)) {
+            // No transfer buffer - must be failure or close initiated
+            // externally
+            point.transfer_lock.lock();
+            break;
+          }
+          point.transfer_lock.lock();
+        }
+        int l = transfer_size;
+        uint64_t pos = instream->Pos();
+        if(!instream->Get((*point.buffer)[transfer_handle],l)) {
+          break;
+        }
+        point.buffer->is_read(transfer_handle, l, pos);
+        point.chunks->Claim(pos, l);
+        transfer_handle = -1;
+        transfer_pos = pos + l;
+      }
+      /*
       for (unsigned int n = 0;; ++n) {
         if (!inbuf) break;
         char *buf = inbuf->Buffer(n);
@@ -759,8 +792,7 @@ namespace Arc {
             point.transfer_lock.lock();
           }
           unsigned int l = length;
-          if (l > transfer_size)
-            l = transfer_size;
+          if (l > transfer_size) l = transfer_size;
           char *buf_ = (*point.buffer)[transfer_handle];
           memcpy(buf_, buf, l);
           point.buffer->is_read(transfer_handle, l, pos);
@@ -771,17 +803,14 @@ namespace Arc {
           transfer_handle = -1;
         }
       }
-      if (transfer_handle != -1)
-        point.buffer->is_read(transfer_handle, 0, 0);
-      if (inbuf)
-        delete inbuf;
+      */
+      if (transfer_handle != -1) point.buffer->is_read(transfer_handle, 0, 0);
+      if (inbuf) delete inbuf;
       // If server returned chunk which is not overlaping requested one - seems
       // like server has nothing to say any more.
-      if (transfer_pos <= transfer_offset)
-        whole = true;
+      if (transfer_pos <= transfer_offset) whole = true;
       point.transfer_lock.unlock();
-      if (whole)
-        break;
+      if (whole) break;
     }
     point.transfer_lock.lock();
     --(point.transfers_tofinish);
