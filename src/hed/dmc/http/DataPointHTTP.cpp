@@ -46,6 +46,7 @@ namespace Arc {
     // Report chunk transferred. It may be _different_
     // from one obtained through Get().
     void Claim(uint64_t start, uint64_t length);
+    void Claim(uint64_t length);
     // Report chunk not transferred. It must be
     // _same_ as one obtained by Get().
     void Unclaim(uint64_t start, uint64_t length);
@@ -122,9 +123,9 @@ namespace Arc {
     }
   };
 
-  ChunkControl::ChunkControl(uint64_t /* size */) {
+  ChunkControl::ChunkControl(uint64_t size) {
     chunk_t chunk = {
-      0, UINT64_MAX
+      0, size
     };
     chunks_.push_back(chunk);
   }
@@ -132,8 +133,7 @@ namespace Arc {
   ChunkControl::~ChunkControl() {}
 
   bool ChunkControl::Get(uint64_t& start, uint64_t& length) {
-    if (length == 0)
-      return false;
+    if (length == 0) return false;
     lock_.lock();
     std::list<chunk_t>::iterator c = chunks_.begin();
     if (c == chunks_.end()) {
@@ -145,28 +145,25 @@ namespace Arc {
     if (l <= length) {
       length = l;
       chunks_.erase(c);
-    }
-    else
+    } else {
       c->start += length;
+    }
     lock_.unlock();
     return true;
   }
 
   void ChunkControl::Claim(uint64_t start, uint64_t length) {
-    if (length == 0)
-      return;
+    if (length == 0) return;
     uint64_t end = start + length;
     lock_.lock();
     for (std::list<chunk_t>::iterator c = chunks_.begin();
          c != chunks_.end();) {
-      if (end <= c->start)
-        break;
+      if (end <= c->start) break;
       if ((start <= c->start) && (end >= c->end)) {
         start = c->end;
         length = end - start;
         c = chunks_.erase(c);
-        if (length > 0)
-          continue;
+        if (length > 0) continue;
         break;
       }
       if ((start > c->start) && (end < c->end)) {
@@ -187,8 +184,7 @@ namespace Arc {
         start = start_;
         length = end - start;
         ++c;
-        if (length > 0)
-          continue;
+        if (length > 0) continue;
         break;
       }
       ++c;
@@ -196,16 +192,18 @@ namespace Arc {
     lock_.unlock();
   }
 
+  void ChunkControl::Claim(uint64_t start) {
+    Claim(start, UINT64_MAX - start);
+  }
+
   void ChunkControl::Unclaim(uint64_t start, uint64_t length) {
-    if (length == 0)
-      return;
+    if (length == 0) return;
     uint64_t end = start + length;
     lock_.lock();
     for (std::list<chunk_t>::iterator c = chunks_.begin();
          c != chunks_.end(); ++c) {
       if ((end >= c->start) && (end <= c->end)) {
-        if (start < c->start)
-          c->start = start;
+        if (start < c->start) c->start = start;
         lock_.unlock();
         return;
       }
@@ -222,8 +220,7 @@ namespace Arc {
               }
               c_ = chunks_.erase(c_);
             }
-            else
-              break;
+            else break;
         }
         lock_.unlock();
         return;
@@ -242,8 +239,7 @@ namespace Arc {
               }
               c_ = chunks_.erase(c_);
             }
-            else
-              break;
+            else break;
         }
         lock_.unlock();
         return;
@@ -257,6 +253,10 @@ namespace Arc {
         return;
       }
     }
+    chunk_t chunk = {
+      start, end
+    };
+    chunks_.push_back(chunk);
     lock_.unlock();
   }
 
@@ -505,12 +505,10 @@ namespace Arc {
   }
 
   DataStatus DataPointHTTP::StartReading(DataBuffer& buffer) {
-    if (transfers_started.get() != 0)
-      return DataStatus::ReadStartError;
+    if (transfers_started.get() != 0) return DataStatus::ReadStartError;
     int transfer_streams = 1;
     DataPointHTTP::buffer = &buffer;
-    if (chunks)
-      delete chunks;
+    if (chunks) delete chunks;
     chunks = new ChunkControl;
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -644,10 +642,13 @@ namespace Arc {
         break;
       }
       uint64_t transfer_offset = 0;
-      uint64_t chunk_length = transfer_size;
-      if (!(point.chunks->Get(transfer_offset, chunk_length)))
+      uint64_t chunk_length = 1024*1024;
+      if(transfer_size > chunk_length) chunk_length = transfer_size;
+      if (!(point.chunks->Get(transfer_offset, chunk_length))) {
         // No more chunks to transfer - quit this thread.
+        point.buffer->is_read(transfer_handle, 0, 0);
         break;
+      }
       uint64_t transfer_end = transfer_offset + chunk_length - 1;
       // Read chunk
       HTTPClientInfo transfer_info;
@@ -657,6 +658,10 @@ namespace Arc {
                                      transfer_end, &request, &transfer_info,
                                      &inbuf);
       if (!r) {
+        // Return buffer
+        point.buffer->is_read(transfer_handle, 0, 0);
+        point.chunks->Unclaim(transfer_offset, chunk_length);
+        if (inbuf) delete inbuf;
         // Failed to transfer chunk - retry.
         // 10 times in a row seems to be reasonable number
         // TODO: mark failure?
@@ -665,10 +670,6 @@ namespace Arc {
           transfer_failure = true;
           break;
         }
-        // Return buffer
-        point.buffer->is_read(transfer_handle, 0, 0);
-        point.chunks->Unclaim(transfer_offset, chunk_length);
-        if (inbuf) delete inbuf;
         // Recreate connection
         delete client;
         client = NULL;
@@ -681,7 +682,6 @@ namespace Arc {
         point.buffer->is_read(transfer_handle, 0, 0);
         point.chunks->Unclaim(transfer_offset, chunk_length);
         if (inbuf) delete inbuf;
-        // TODO: report file size to chunk control
         break;
       }
       if((transfer_info.code == 301) || // permanent redirection
@@ -739,10 +739,13 @@ namespace Arc {
       // pick up usefull information from HTTP header
       point.created = transfer_info.lastModified;
       retries = 0;
+      // Exclude chunks after EOF. Normally that is not needed.
+      // But Apache if asked about out of file range gets confused
+      // and sends *whole* file instead of 416.
+      if(inbuf && (inbuf->Size() > 0)) point.chunks->Claim(inbuf->Size());
       bool whole = (inbuf && (((transfer_info.size == inbuf->Size() &&
                                (inbuf->BufferPos(0) == 0))) ||
                     inbuf->Size() == -1));
-      // Temporary solution - copy data between buffers
       point.transfer_lock.lock();
       point.chunks->Unclaim(transfer_offset, chunk_length);
       uint64_t transfer_pos = 0;
