@@ -85,13 +85,13 @@ namespace Arc {
   };
 
   struct HTTPClientInfo {
-    int code;
-    std::string reason;
-    uint64_t size;
-    Time lastModified;
-    std::string type;
-    std::list<std::string> cookies;
-    std::string location;
+    int code; /// HTTP response code
+    std::string reason; /// HTTP response reason
+    uint64_t size; /// Size of body (content-length)
+    Time lastModified; /// Reported modification time
+    std::string type; /// Content-type
+    std::list<std::string> cookies; /// All collected cookies
+    std::string location; /// Value of location attribute in HTTP response
   };
 
   //! Class for setting up a MCC chain for HTTP communication
