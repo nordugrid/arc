@@ -2264,7 +2264,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/dgbridge/submit-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/scan-DGBridge-job
                  src/services/a-rex/lrms/dgbridge/cancel-DGBridge-job
-                 src/services/a-rex/logger/Makefile
                  src/services/a-rex/urlogger/Makefile
                  src/services/a-rex/schema/Makefile
                  src/services/cache_service/Makefile
