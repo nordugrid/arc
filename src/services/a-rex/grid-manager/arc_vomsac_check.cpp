@@ -189,9 +189,10 @@ int main(int argc, char *argv[]) {
 	logger.msg(Arc::DEBUG,"Getting VOMS AC for: %s", holder.GetDN());
 	std::vector<Arc::VOMSACInfo> voms_attributes;
 	Arc::VOMSTrustList vomscert_trust_dn;
+	vomscert_trust_dn.AddRegex(".*");
 
-	if ( ! Arc::parseVOMSAC(holder, "", "", vomscert_trust_dn, voms_attributes, false) ) {
-		logger.msg(Arc::WARNING,"Error parsing VOMS AC");
+	if ( ! Arc::parseVOMSAC(holder, ca_dir, "", vomscert_trust_dn, voms_attributes, true, true) ) {
+		// logger.msg(Arc::WARNING,"Error parsing VOMS AC");
 		if ( no_ac_success ) return EXIT_SUCCESS;
 		return EXIT_FAILURE;
 	}
