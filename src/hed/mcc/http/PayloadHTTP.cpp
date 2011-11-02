@@ -318,6 +318,7 @@ bool PayloadHTTP::read_header(void) {
         if(((*e) == '/') || ((*e) == 0)) {
           if(range_start <= range_end) {
             offset_=range_start;
+            end_=range_end+1;
           };
           if((*p) == '/') {
             p++; entity_size=strtoull(p,&e,10);
@@ -465,6 +466,7 @@ bool PayloadHTTP::get_body(void) {
       if(new_result == NULL) { free(result); return false; };
       result=new_result;
       if(!read_multipart(result+result_size,chunk_size)) break;
+  // TODO: logical size is not always same as end of body
       result_size+=chunk_size;
     };
   };
@@ -501,8 +503,10 @@ void PayloadHTTP::Attribute(const std::string& name,const std::string& value) {
 
 PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):
     valid_(false),fetched_(false),stream_(&stream),stream_own_(own),
-    rbody_(NULL),sbody_(NULL),body_own_(false),keep_alive_(true),
-    stream_offset_(0),head_response_(false) {
+    rbody_(NULL),sbody_(NULL),body_own_(false),
+    code_(0),length_(0),end_(0),chunked_(CHUNKED_NONE),chunk_size_(0),
+    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
   if(!parse_header()) return;
   // If stream_ is owned then body can be fetched later
@@ -513,7 +517,8 @@ PayloadHTTP::PayloadHTTP(PayloadStreamInterface& stream,bool own):
 PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,PayloadStreamInterface& stream):
     valid_(true),fetched_(true),stream_(&stream),stream_own_(false),
     rbody_(NULL),sbody_(NULL),body_own_(false),uri_(url),method_(method),
-    code_(0),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    code_(0),length_(0),end_(0),chunked_(CHUNKED_NONE),chunk_size_(0),
+    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
     head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
@@ -522,8 +527,9 @@ PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url,Payloa
 
 PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterface& stream,bool head_response):
     valid_(true),fetched_(true),stream_(&stream),stream_own_(false),
-    rbody_(NULL),sbody_(NULL),body_own_(false),code_(code),
-    reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    rbody_(NULL),sbody_(NULL),body_own_(false),
+    code_(code),length_(0),end_(0),reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),
+    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
     head_response_(head_response) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
@@ -533,7 +539,8 @@ PayloadHTTP::PayloadHTTP(int code,const std::string& reason,PayloadStreamInterfa
 PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
     valid_(true),fetched_(true),stream_(NULL),stream_own_(false),
     rbody_(NULL),sbody_(NULL),body_own_(false),uri_(url),method_(method),
-    code_(0),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    code_(0),length_(0),end_(0),chunked_(CHUNKED_NONE),chunk_size_(0),
+    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
     head_response_(false) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
@@ -542,8 +549,9 @@ PayloadHTTP::PayloadHTTP(const std::string& method,const std::string& url):
 
 PayloadHTTP::PayloadHTTP(int code,const std::string& reason,bool head_response):
     valid_(true),fetched_(true),stream_(NULL),stream_own_(false),
-    rbody_(NULL),sbody_(NULL),body_own_(false),code_(code),
-    reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
+    rbody_(NULL),sbody_(NULL),body_own_(false),
+    code_(code),length_(0),end_(0),reason_(reason),chunked_(CHUNKED_NONE),chunk_size_(0),
+    multipart_(MULTIPART_NONE),keep_alive_(true),stream_offset_(0),
     head_response_(head_response) {
   tbuf_[0]=0; tbuflen_=0;
   version_major_=1; version_minor_=1;
@@ -551,7 +559,7 @@ PayloadHTTP::PayloadHTTP(int code,const std::string& reason,bool head_response):
 }
 
 PayloadHTTP::~PayloadHTTP(void) {
-  // allign to and of message
+  // allign to end of message
   flush_multipart();
   flush_chunked();
   if(rbody_ && body_own_) delete rbody_;
@@ -725,14 +733,26 @@ char* PayloadHTTP::Content(PayloadRawInterface::Size_t pos) {
 }
 
 PayloadRawInterface::Size_t PayloadHTTP::Size(void) const {
-  if(!((PayloadHTTP*)this)->get_body()) return 0;
+  if(!valid_) return 0;
+  PayloadRawInterface::Size_t size = 0;
+  if(size_ > 0) {
+    size = size_;
+  } else if(end_ > 0) {
+    size = end_;
+  } else if(length_ >= 0) {
+    size = offset_ + length_;
+  } else {
+    // Only do it if no other way of determining size worked.
+    if(!((PayloadHTTP*)this)->get_body()) return 0;
+    size = PayloadRaw::Size();
+  }
   if(rbody_) {
-    return PayloadRaw::Size() + (rbody_->Size());
+    return size + (rbody_->Size());
   };
   if(sbody_) {
-    return PayloadRaw::Size() + (sbody_->Size());
+    return size + (sbody_->Size());
   };
-  return PayloadRaw::Size();
+  return size;
 }
 
 char* PayloadHTTP::Insert(PayloadRawInterface::Size_t pos,PayloadRawInterface::Size_t size) {
@@ -774,6 +794,9 @@ PayloadRawInterface::Size_t PayloadHTTP::BufferSize(unsigned int num) const {
 }
 
 PayloadRawInterface::Size_t PayloadHTTP::BufferPos(unsigned int num) const {
+  if((num == 0) && (buf_.size() == 0)) {
+    return offset_;
+  }
   if(!((PayloadHTTP*)this)->get_body()) return 0;
   if(num < buf_.size()) {
     return PayloadRaw::BufferPos(num);
@@ -916,6 +939,7 @@ PayloadStreamInterface::Size_t PayloadHTTP::Pos(void) const {
 }
 
 PayloadStreamInterface::Size_t PayloadHTTP::Limit(void) const {
+  // TODO: logical size is not always same as end of body
   return Size();
 }
 

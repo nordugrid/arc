@@ -62,6 +62,7 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
   int64_t length_;                 /** Content-length of HTTP message */
   //int offset_;                   /** Logical beginning of content computed from Content-Range */
   //int size_;                     /** Logical size of content obtained from Content-Range */
+  int64_t end_;                    /** Logical end of content computed from Content-Range */
   chunked_t chunked_;              /** chunked encoding parsing state */
   int64_t chunk_size_;
   bool keep_alive_;                /** true if conection should not be closed after response */
