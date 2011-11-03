@@ -140,10 +140,13 @@ namespace DataStaging {
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
 
-          dp->dtr->set_status(DTRStatus::TRANSFERRED);
-          dp->dtr->push(SCHEDULER);
           // deleting delivery_pair_t kills the spawned process
+          // Do this before passing back to Scheduler to avoid race condition
+          // of DTR being deleted before Comm object has finished with it
+          DTR* tmp = dp->dtr;
           delete dp;
+          tmp->set_status(DTRStatus::TRANSFERRED);
+          tmp->push(SCHEDULER);
           continue;
         }
         if((status.commstatus == DataDeliveryComm::CommExited) ||
