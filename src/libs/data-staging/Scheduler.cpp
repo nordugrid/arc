@@ -988,6 +988,7 @@ namespace DataStaging {
   }
 
   void Scheduler::receiveDTR(DTR& request){
+
     if(request.get_status() != DTRStatus::NEW) {
       // If DTR is not NEW we just have to reduce the appropriate transfer share
       // of the process it came from. Then the scheduler picks up the DTR itself
@@ -997,6 +998,14 @@ namespace DataStaging {
       return;
     }
     
+    // New DTR - first check it is valid
+    if (!request) {
+      logger.msg(Arc::ERROR, "Scheduler received invalid DTR");
+      request.set_status(DTRStatus::ERROR);
+      request.push(GENERATOR);
+      return;
+    }
+
     request.registerCallback(&processor,PRE_PROCESSOR);
     request.registerCallback(&processor,POST_PROCESSOR);
     request.registerCallback(&delivery,DELIVERY);

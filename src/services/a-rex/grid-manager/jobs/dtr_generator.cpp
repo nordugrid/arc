@@ -241,6 +241,17 @@ bool DTRGenerator::queryJobFinished(JobDescription& job) {
 bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
 
   std::string jobid(dtr.get_parent_job_id());
+  if (!dtr) {
+    logger.msg(Arc::ERROR, "%s: Invalid DTR", jobid);
+    if (dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
+      scheduler.cancelDTRs(jobid);
+      lock.lock();
+      finished_jobs[jobid] = std::string("Invalid Data Transfer Request");
+      active_dtrs.erase(jobid);
+      lock.unlock();
+    }
+    return false;
+  }
   logger.msg(Arc::DEBUG, "%s: Received DTR %s to copy file %s in state %s",
                           jobid, dtr.get_id(), dtr.get_source()->str(), dtr.get_status().str());
 

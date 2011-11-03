@@ -144,8 +144,8 @@ namespace DataStaging {
       lock()
   {
     // set insecure by default. Real value will come from configuration
-    source_endpoint->SetSecure(false);
-    destination_endpoint->SetSecure(false);
+    if (source_endpoint) source_endpoint->SetSecure(false);
+    if (destination_endpoint) destination_endpoint->SetSecure(false);
 
     mark_modification();
   }
