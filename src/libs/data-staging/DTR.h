@@ -202,6 +202,9 @@ namespace DataStaging {
       /// Number of attempts left to complete this DTR
       unsigned int tries_left;
 
+      /// Initial number of attempts
+      unsigned int initial_tries;
+
       /// A flag to say whether the DTR is replicating inside the same LFN of an index service
       bool replication;
 
@@ -395,6 +398,8 @@ namespace DataStaging {
      void set_tries_left(unsigned int tries);
      /// Get the number of attempts remaining
      unsigned int get_tries_left() const { return tries_left; };
+     /// Get the initial number of attempts (set by set_tries_left())
+     unsigned int get_initial_tries() const { return initial_tries; }
      /// Decrease attempt number
      void decrease_tries_left();
 

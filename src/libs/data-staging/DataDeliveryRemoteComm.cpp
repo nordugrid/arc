@@ -60,7 +60,7 @@ namespace DataStaging {
 
     Arc::XMLNode dtrnode = request.NewChild("DataDeliveryStart").NewChild("DTR");
 
-    dtrnode.NewChild("ID") = dtr.get_id();
+    dtrnode.NewChild("ID") = dtr_full_id;
     dtrnode.NewChild("Source") = surl;
     dtrnode.NewChild("Destination") = durl;
     if (dtr.get_source()->CheckCheckSum()) dtrnode.NewChild("CheckSum") = dtr.get_source()->GetCheckSum();
@@ -78,7 +78,8 @@ namespace DataStaging {
     // delegate credentials
     Arc::XMLNode op = request.Child(0);
     if (!SetupDelegation(op, dtr.get_usercfg())) {
-      logger_->msg(Arc::ERROR, "DTR %s: Failed to set up credential delegation", dtr_id);
+      logger_->msg(Arc::ERROR, "DTR %s: Failed to set up credential delegation with %s",
+                   dtr_id, dtr.get_delivery_endpoint().str());
       return;
     }
 

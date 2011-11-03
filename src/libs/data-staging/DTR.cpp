@@ -50,6 +50,7 @@ namespace DataStaging {
        transfershare("_default"),
        sub_share(""),
        tries_left(1),
+       initial_tries(1),
        replication(false),
        force_registration(false),
        status(DTRStatus::NEW,"Created by the generator"),
@@ -123,6 +124,7 @@ namespace DataStaging {
       transfershare(dtr.transfershare),
       sub_share(dtr.sub_share),
       tries_left(dtr.tries_left),
+      initial_tries(dtr.initial_tries),
       replication(dtr.replication),
       force_registration(dtr.force_registration),
       mapped_source(dtr.mapped_source),
@@ -207,7 +209,8 @@ namespace DataStaging {
   }
   
   void DTR::set_tries_left(unsigned int tries) {
-    tries_left = tries;
+    initial_tries = tries;
+    tries_left = initial_tries;
   }
 
   void DTR::decrease_tries_left() {

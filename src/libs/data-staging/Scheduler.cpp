@@ -890,7 +890,7 @@ namespace DataStaging {
       if(tmp->cancel_requested()){
         map_cancel_state_and_process(tmp);
         dtr = DeliveryQueue.erase(dtr);
-        transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
+        transferShares[DELIVERY].decrease_transfer_share(tmp->get_transfer_share());
         continue;
       }
 
@@ -946,30 +946,34 @@ namespace DataStaging {
     // to the transfer shares.
     for(dtr = DeliveryQueue.begin(); dtr != DeliveryQueue.end(); dtr++){
       tmp = *dtr;
-      // Limit reached - check if emergency slots are needed for any shares
-      // in the queue but not already running
-      if (DeliveryRunning >= DeliverySlots) {
-        if (DeliveryRunning == DeliverySlots + DeliveryEmergencySlots)
-          break;
-        if ((shares_in_delivery.find(tmp->get_transfer_share()) == shares_in_delivery.end()) &&
-            transferShares[DELIVERY].can_start(tmp->get_transfer_share())) {
-          // choose delivery service - random for now
-          // if this is a retry, try to use a different service
-          if (!delivery_services.empty()) {
-            tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
-          }
-          transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
-          tmp->set_status(DTRStatus::TRANSFER);
-          tmp->push(DELIVERY);
-          DeliveryRunning++;
-          shares_in_delivery.insert(tmp->get_transfer_share());
-        }
+
+      // Are there slots left for this share?
+      bool can_start = transferShares[DELIVERY].can_start(tmp->get_transfer_share());
+      // Check if it is possible to use an emergency share
+      if (DeliveryRunning >= DeliverySlots &&
+          shares_in_delivery.find(tmp->get_transfer_share()) != shares_in_delivery.end()) {
+        can_start = false;
       }
-      else if(transferShares[DELIVERY].can_start(tmp->get_transfer_share())){
-        // choose delivery service - random for now
-        // if this is a retry, try to use a different service
+
+      if (can_start) {
+        // Choose delivery service - random for now
+        // If this is a retry, use a different service
         if (!delivery_services.empty()) {
-          tmp->set_delivery_endpoint(delivery_services.at(rand() % delivery_services.size()));
+          // previous endpoint
+          Arc::URL delivery_endpoint(tmp->get_delivery_endpoint());
+
+          if (tmp->get_tries_left() < tmp->get_initial_tries() && delivery_services.size() > 1) {
+            Arc::URL ep(delivery_endpoint);
+            // Find a random service different from the previous one, looping a
+            // limited number of times in case all delivery_services are the same url
+            for (unsigned int i = 0; ep == delivery_endpoint && i < delivery_services.size() * 10; ++i) {
+              ep = delivery_services.at(rand() % delivery_services.size());
+            }
+            delivery_endpoint = ep;
+          } else {
+            delivery_endpoint = delivery_services.at(rand() % delivery_services.size());
+          }
+          tmp->set_delivery_endpoint(delivery_endpoint);
         }
       	transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
         tmp->set_status(DTRStatus::TRANSFER);
@@ -977,6 +981,8 @@ namespace DataStaging {
         DeliveryRunning++;
         shares_in_delivery.insert(tmp->get_transfer_share());
       }
+      // Hard limit with all emergency slots used
+      if (DeliveryRunning == DeliverySlots + DeliveryEmergencySlots) break;
     }
     
   }
