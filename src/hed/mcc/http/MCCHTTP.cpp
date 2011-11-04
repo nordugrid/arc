@@ -289,11 +289,11 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   // Use stream payload of inmsg to send HTTP response
   int http_code = HTTP_OK;
   std::string http_code_s = nextoutmsg.Attributes()->get("HTTP:CODE");
-  std::string http_resp = nextoutmsg.Attributes()->get("HTTP:RESPONSE");
+  std::string http_resp = nextoutmsg.Attributes()->get("HTTP:REASON");
   if(http_resp.empty()) http_resp = "OK";
   if(!http_code_s.empty()) stringto(http_code_s,http_code);
   nextoutmsg.Attributes()->removeAll("HTTP:CODE");
-  nextoutmsg.Attributes()->removeAll("HTTP:RESPONSE");
+  nextoutmsg.Attributes()->removeAll("HTTP:REASON");
 /*
   int l = 0;
   if(retpayload) {
