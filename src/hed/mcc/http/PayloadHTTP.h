@@ -8,6 +8,7 @@
 #include <stdint.h>
 #endif
 
+#include <arc/Logger.h>
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
 
@@ -26,6 +27,7 @@ namespace Arc {
   for including as payload into Message passed through MCC chains. */
 class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterface {
  protected:
+  static Arc::Logger logger;
   typedef enum {
     MULTIPART_NONE = 0,
     MULTIPART_START,

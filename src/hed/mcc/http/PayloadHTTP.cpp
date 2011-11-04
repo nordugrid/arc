@@ -15,6 +15,8 @@
 
 namespace Arc {
 
+Arc::Logger Arc::PayloadHTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
+
 static std::string empty_string("");
 
 static bool ParseHTTPVersion(const std::string& s,int& major,int& minor) {
@@ -287,6 +289,7 @@ bool PayloadHTTP::flush_multipart(void) {
 bool PayloadHTTP::read_header(void) {
   std::string line;
   for(;readline_chunked(line) && (!line.empty());) {
+    logger.msg(Arc::DEBUG,"< %s",line);
     std::string::size_type pos = line.find(':');
     if(pos == std::string::npos) continue;
     std::string name = line.substr(0,pos);
@@ -390,6 +393,7 @@ bool PayloadHTTP::parse_header(void) {
     length_=0;
     return true;
   };
+  logger.msg(Arc::DEBUG,"< %s",line);
   // Parse request/response line
   std::string::size_type pos2 = line.find(' ');
   if(pos2 == std::string::npos) return false;
@@ -572,30 +576,30 @@ bool PayloadHTTP::Flush(void) {
   bool to_stream = (stream_ != NULL);
   if(method_.empty() && (code_ == 0)) return false;
   // Computing length of Body part
-  length_=0;
+  int64_t length = 0;
   std::string range_header;
   if((method_ != "GET") && (method_ != "HEAD")) {
     int64_t start = 0;
     if(head_response_ && (code_==HTTP_OK)) {
-      length_ = Size();
+      length = Size();
     } else {
       if(sbody_) {
         if(sbody_->Limit() > sbody_->Pos()) {
-          length_ = sbody_->Limit() - sbody_->Pos();
+          length = sbody_->Limit() - sbody_->Pos();
         };
         start=sbody_->Pos();
       } else {
         for(int n=0;;++n) {
           if(Buffer(n) == NULL) break;
-          length_+=BufferSize(n);
+          length+=BufferSize(n);
         };
         start=BufferPos(0);
       };
     };
-    if(length_ != Size()) {
+    if(length != Size()) {
       // Add range definition if Body represents part of logical buffer size
       // and adjust HTTP code accordingly
-      int64_t end = start+length_;
+      int64_t end = start+length;
       std::string length_str;
       std::string range_str;
       if(end <= Size()) {
@@ -618,7 +622,7 @@ bool PayloadHTTP::Flush(void) {
       };
       range_header="Content-Range: bytes "+range_str+"/"+length_str+"\r\n";
     };
-    range_header+="Content-Length: "+tostring(length_)+"\r\n";
+    range_header+="Content-Length: "+tostring(length)+"\r\n";
   };
   // Starting header
   if(!method_.empty()) {
@@ -658,14 +662,15 @@ bool PayloadHTTP::Flush(void) {
     header+=(a->first)+": "+(a->second)+"\r\n";
   };
   header+="\r\n";
+  logger.msg(Arc::DEBUG,"> %s",header);
   if(to_stream) {
     if(!stream_->Put(header)) return false;
-    if(length_ > 0) {
+    if(length > 0) {
       if(sbody_) {
         // stream to stream transfer
         // TODO: choose optimal buffer size
         // TODO: parallel read and write for better performance
-        int tbufsize = (length_>1024*1024)?(1024*1024):length_;
+        int tbufsize = (length>1024*1024)?(1024*1024):length;
         char* tbuf = new char[tbufsize];
         if(!tbuf) return false;
         for(;;) {
@@ -794,7 +799,7 @@ PayloadRawInterface::Size_t PayloadHTTP::BufferSize(unsigned int num) const {
 }
 
 PayloadRawInterface::Size_t PayloadHTTP::BufferPos(unsigned int num) const {
-  if((num == 0) && (buf_.size() == 0)) {
+  if((num == 0) && (buf_.size() == 0) && (!rbody_) && (!sbody_)) {
     return offset_;
   }
   if(!((PayloadHTTP*)this)->get_body()) return 0;
