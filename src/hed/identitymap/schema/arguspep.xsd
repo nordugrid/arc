@@ -47,4 +47,36 @@
     </xsd:complexType>
   </xsd:element>
 
+  <xsd:element name="KeyPath" type="xsd:string" default="/etc/grid-security/hostkey.pem">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of private key used for connecting PEP server.
+        </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CertificatePath" type="xsd:string" default="/etc/grid-security/hostcert.pem">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of public certificate used for connecting PEP server.
+        </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="ProxyPath" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Location of proxy credentials used for connecting PEP server.
+        If present KeyPath and CertificatePath are not needed.
+        </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+
+  <xsd:element name="CACertificatesDir" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Directory containing certificates of accepted CAs.
+    </xsd:annotation>
+  </xsd:element>
+
 </xsd:schema>

@@ -18,26 +18,28 @@ class ArgusPEP : public SecHandler {
  
   private:
 
-  typedef enum {
-     conversion_subject,
-     conversion_direct,
-     conversion_cream,
-     conversion_emi
-   } conversion_type;
+    typedef enum {
+      conversion_subject,
+      conversion_direct,
+      conversion_cream,
+      conversion_emi
+    } conversion_type;
 
    
-  std::string pepdlocation;
-  std::list<std::string> select_attrs;
-  std::list<std::string> reject_attrs;
-  conversion_type conversion;
-  PEP * pep_handle ;
-  bool res;
-  pep_error_t pep_rc;
-  bool valid_; 
-  static Arc::Logger logger;
-  // XACML request and response
-  // xacml_request_t * request;
-  // xacml_response_t * response;
+    std::string pepdlocation;
+    int pep_log_level;
+    std::string keypath;
+    std::string certpath;
+    std::string capath;
+    std::list<std::string> select_attrs;
+    std::list<std::string> reject_attrs;
+    conversion_type conversion;
+    bool valid_; 
+    static Arc::Logger logger;
+    // XACML request and response
+    // xacml_request_t * request;
+    // xacml_response_t * response;
+    static int pep_log(int level, const char *fmt, va_list args);
 
   public:
     ArgusPEP(Arc::Config *cfg);

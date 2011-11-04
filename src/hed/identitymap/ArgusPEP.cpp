@@ -41,15 +41,42 @@ std::string path_to_x500(const std::string& path) {
       public:
         static std::string Path2BaseDN(const std::string& path) {
             return Arc::URL::Path2BaseDN(path);
-        }
-     };
+        };
+    };
     return url_ex::Path2BaseDN(path);
 }
 
 Arc::Logger ArgusPEP::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
 
+int ArgusPEP::pep_log(int level, const char *fmt, va_list args) {
+    char buf[1024];
+    vsnprintf(buf,sizeof(buf)-1,fmt,args);
+    buf[sizeof(buf)-1] = 0;
+    Arc::LogLevel l = Arc::INFO;
+    switch(logger.getThreshold()) {
+        case PEP_LOGLEVEL_DEBUG: l = Arc::DEBUG; break;
+        case PEP_LOGLEVEL_INFO:  l = Arc::INFO; break;
+        case PEP_LOGLEVEL_WARN:  l = Arc::WARNING; break;
+        case PEP_LOGLEVEL_ERROR: l = Arc::ERROR; break;
+    }
+    logger.msg(l,"%s",buf);
+    return 0;
+}
+
+std::string xacml_decision_to_string(xacml_decision_t decision) {
+    switch(decision) {
+        case XACML_DECISION_DENY: return "DENY";
+        case XACML_DECISION_PERMIT: return "PERMIT";
+        case XACML_DECISION_INDETERMINATE: return "INDETERMINATE";
+        case XACML_DECISION_NOT_APPLICABLE: return "NOT APPLICABLE";
+    };
+    return "UNKNOWN";
+}
+
 /* extract the elements from the configuration file */
 ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {  
+    valid_ = false;
+    logger.setThreshold(Arc::DEBUG);
     pepdlocation = (std::string)(*cfg)["PEPD"];  
     if(pepdlocation.empty()) {
         logger.msg(Arc::ERROR, "PEPD location is missing");
@@ -71,7 +98,7 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
         logger.msg(Arc::DEBUG, "Conversion mode is set to EMI");
         conversion = conversion_emi;
     } else {
-        logger.msg(Arc::DEBUG, "Unknown conversion mode %s", conversion_str);
+        logger.msg(Arc::INFO, "Unknown conversion mode %s, using default", conversion_str);
         conversion = conversion_subject;
     }
 
@@ -83,43 +110,77 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
         for(;(bool)reject_attr;++reject_attr) reject_attrs.push_back((std::string)reject_attr);
     };
 
-    /* set up the communication with the pepd host*/    
+    pep_log_level = PEP_LOGLEVEL_NONE;
+    switch(logger.getThreshold()) {
+        case Arc::DEBUG:   pep_log_level = PEP_LOGLEVEL_DEBUG; break;
+        case Arc::VERBOSE: pep_log_level = PEP_LOGLEVEL_INFO;  break;
+        case Arc::INFO:    pep_log_level = PEP_LOGLEVEL_INFO;  break;
+        case Arc::WARNING: pep_log_level = PEP_LOGLEVEL_WARN;  break;
+        case Arc::ERROR:   pep_log_level = PEP_LOGLEVEL_ERROR; break;
+        case Arc::FATAL:   pep_log_level = PEP_LOGLEVEL_ERROR; break;
+    };
+
+    capath = (std::string)(*cfg)["CACertificatesDir"];
+    keypath = (std::string)(*cfg)["KeyPath"];
+    certpath = (std::string)(*cfg)["CertificatePath"];
+    std::string proxypath = (std::string)(*cfg)["ProxyPath"];
+    if(!proxypath.empty()) {
+        keypath = proxypath;
+        certpath = proxypath;
+    };
+
     valid_ = true;
-    pep_handle= NULL;
-    res = true;
-    
-    try {
-        pep_handle = pep_initialize();
-    
-        if (pep_handle == NULL) {
-            /* error handling */
-            throw pep_ex(std::string("Failed to initialize PEP client:"));
-        }
-        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation.c_str());
-    
-        if (pep_rc != PEP_OK) {
-            throw pep_ex("Failed to set PEPd URL: '" + pepdlocation + "'"+ pep_strerror(pep_rc));
-        }
-    } catch (pep_ex& e) {
-        logger.msg(Arc::ERROR, e.desc);
-        res = false;
-    }
 }
 
 ArgusPEP::~ArgusPEP(void) {
-    if(pep_handle) pep_destroy(pep_handle);
 }
 
 bool ArgusPEP::Handle(Arc::Message* msg) const {
-    int rc;             
+    int rc = 0;
     bool res = true;
-    pep_error_t pep_rc;
+    PEP* pep_handle = NULL;
+    pep_error_t pep_rc = PEP_OK;
     xacml_response_t * response = NULL;
     xacml_request_t * request = NULL;
     std::list<xacml_request_t*> requests;
     std::string subject , resource , action;
     Arc::XMLNode secattr;   
     try{
+
+        // set up the communication with the pepd host
+        pep_handle = pep_initialize();
+        if (pep_handle == NULL) throw pep_ex(std::string("Failed to initialize PEP client:"));
+
+        pep_rc = pep_setoption(pep_handle, PEP_OPTION_LOG_LEVEL, pep_log_level);
+        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP log level: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+
+        pep_rc = pep_setoption(pep_handle, PEP_OPTION_LOG_HANDLER, &pep_log);
+        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP log handler: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+
+        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_SSL_VALIDATION, 1);
+        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP validation: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+
+        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_URL, pepdlocation.c_str());
+        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP URL: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+
+        pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENABLE_OBLIGATIONHANDLERS, 0);
+        if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP obligation handling: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+
+        if(!capath.empty()) {
+            pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_SERVER_CAPATH, capath.c_str());
+            if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP CA path: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+        }
+
+        if(!keypath.empty()) {
+            pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_CLIENT_KEY, keypath.c_str());
+            if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP key: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+        }
+
+        if(!certpath.empty()) {
+            pep_rc = pep_setoption(pep_handle, PEP_OPTION_ENDPOINT_CLIENT_CERT, certpath.c_str());
+            if (pep_rc != PEP_OK) throw pep_ex("Failed to set PEP certificate: '" + pepdlocation + "' "+ pep_strerror(pep_rc));
+        }
+
         if(conversion == conversion_direct) {
             msg->Auth()->Export(Arc::SecAttr::ARCAuth, secattr);
             msg->AuthContext()->Export(Arc::SecAttr::ARCAuth, secattr);
@@ -149,7 +210,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
                 payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
             } catch(std::exception& e) { };
             if(!payload) throw pep_ex("No SOAP in message");
-            rc = create_xacml_request_cream(&request,auths,msg->Attributes(),*payload);
+            rc = create_xacml_request_cream(&request,auths,msg->Attributes(),payload->Child(0));
             if(request != NULL) requests.push_back(request);
             request = NULL;
         } else if(conversion == conversion_emi) {
@@ -161,7 +222,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
                 payload = dynamic_cast<Arc::PayloadSOAP*>(msg->Payload());
             } catch(std::exception& e) { };
             if(!payload) throw pep_ex("No SOAP in message");
-            rc = create_xacml_request_emi(&request,auths,msg->Attributes(),*payload);
+            rc = create_xacml_request_emi(&request,auths,msg->Attributes(),payload->Child(0));
             if(request != NULL) requests.push_back(request);
             request = NULL;
         } else {
@@ -226,14 +287,14 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
             } else {
                 logger.msg(Arc::INFO,"Not authorized");
             }
-            throw pep_ex("The reached decision is: " + Arc::tostring(decision));
+            throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision));
         }     
         if(!local_id.empty()) {
             logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
             msg->Attributes()->set("SEC:LOCALID", local_id);
         }
     } catch (pep_ex& e) {
-        logger.msg(Arc::ERROR,e.desc);
+        logger.msg(Arc::ERROR,"%s",e.desc);
         res = false;
     }
     if(response) xacml_response_delete(response);
@@ -242,6 +303,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
         xacml_request_delete(requests.front());
         requests.pop_front();
     }
+    if(pep_handle) pep_destroy(pep_handle);
     return res;
 }
 
@@ -425,7 +487,8 @@ static const std::string BES_MANAGEMENT_NAMESPACE("http://schemas.ggf.org/bes/20
 static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
 static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
 static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
-static std::string get_cream_acion(Arc::XMLNode op) {
+static std::string get_cream_acion(Arc::XMLNode op, Arc::Logger& logger) {
+logger.msg(Arc::DEBUG,"Converting to CREAM action - namespace: %s, operation: %s",op.Namespace(),op.Name());
     if(MatchXMLNamespace(op,BES_FACTORY_NAMESPACE)) {
         if(MatchXMLName(op,"CreateActivity"))
             return "http://glite.org/xacml/action/ce/job/submit";
@@ -477,6 +540,7 @@ static std::string get_cream_acion(Arc::XMLNode op) {
 static std::string get_sec_attr(std::list<Arc::MessageAuth*> auths, const std::string& sid, const std::string& aid) {
     for(std::list<Arc::MessageAuth*>::iterator a = auths.begin(); a != auths.end(); ++a) {
         Arc::SecAttr* sa = (*a)->get(sid);
+        if(!sa) continue;
         std::string str = sa->get(aid);
         if(!str.empty()) return str;
     }
@@ -486,6 +550,7 @@ static std::string get_sec_attr(std::list<Arc::MessageAuth*> auths, const std::s
 static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, const std::string& sid, const std::string& aid) {
     for(std::list<Arc::MessageAuth*>::iterator a = auths.begin(); a != auths.end(); ++a) {
         Arc::SecAttr* sa = (*a)->get(sid);
+        if(!sa) continue;
         std::list<std::string> strs = sa->getAll(aid);
         if(!strs.empty()) return strs;
     }
@@ -493,92 +558,108 @@ static std::list<std::string> get_sec_attrs(std::list<Arc::MessageAuth*> auths, 
 }
 
 int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Arc::MessageAuth*> auths,  Arc::MessageAttributes* attrs, Arc::XMLNode operation) const {
+logger.msg(Arc::DEBUG,"Doing CREAM request");
     xacml_attribute_t* attr = NULL;
     xacml_environment_t* environment = NULL;
     xacml_subject_t* subject = NULL;
     xacml_resource_t* resource = NULL;
     xacml_action_t* action = NULL;
-    class ierror { };
+    class ierror {
+     public:
+      std::string desc;
+      ierror(const std::string& err):desc(err) { };
+    };
     try {
     *request = xacml_request_create();
-    if(!*request) throw ierror();
+    if(!*request) throw ierror("Failed to create request object");
     environment = xacml_environment_create();
-    if(!environment) throw ierror();
+    if(!environment) throw ierror("Failed to create environment object");
     subject = xacml_subject_create();
-    if(!subject) throw ierror();
+    if(!subject) throw ierror("Failed to create subject object");
     resource = xacml_resource_create();
-    if(!resource) throw ierror();
+    if(!resource) throw ierror("Failed to create resource object");
     action = xacml_action_create();
-    if(!action) throw ierror();
+    if(!action) throw ierror("Failed to create action object");
 
     // Environment
+    std::string profile_id = "http://glite.org/xacml/profile/grid-ce/1.0";
     attr = xacml_attribute_create("http://glite.org/xacml/attribute/profile-id");
-    if(!attr) throw ierror();
-    xacml_attribute_addvalue(attr, "http://glite.org/xacml/profile/grid-ce/1.0");
+    if(!attr) throw ierror("Failed to create attribute profile-id object");
+    xacml_attribute_addvalue(attr, profile_id.c_str());
+    logger.msg(Arc::DEBUG,"Adding profile-id value: %s",profile_id);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_ANYURI);
     xacml_environment_addattribute(environment,attr); attr = NULL;
 
     // Subject
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:subject:subject-id");
-    if(!attr) throw ierror();
+    if(!attr) throw ierror("Failed to create attribute subject-id object");
     std::string subject_str = get_sec_attr(auths, "TLS", "IDENTITY");
-    if(subject_str.empty()) throw ierror();
-    xacml_attribute_addvalue(attr, path_to_x500(subject_str).c_str());
+    if(subject_str.empty()) throw ierror("Failed to extract TLS:IDENTITY");
+    subject_str = path_to_x500(subject_str);
+    xacml_attribute_addvalue(attr, subject_str.c_str());
+    logger.msg(Arc::DEBUG,"Adding subject-id value: %s",subject_str);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
     xacml_subject_addattribute(subject,attr); attr = NULL;
 
     attr = xacml_attribute_create("http://glite.org/xacml/attribute/subject-issuer");
-    if(!attr) throw ierror();
+    if(!attr) throw ierror("Failed to create attribute subject-issuer object");
     std::string ca_str = get_sec_attr(auths, "TLS", "CA");
-    if(ca_str.empty()) throw ierror();
-    xacml_attribute_addvalue(attr, path_to_x500(ca_str).c_str());
+    if(ca_str.empty()) throw ierror("Failed to extract TLS:CA");
+    ca_str = path_to_x500(ca_str);
+    xacml_attribute_addvalue(attr, ca_str.c_str());
+    logger.msg(Arc::DEBUG,"Adding subject-issuer value: %s",ca_str);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_X500NAME);
     xacml_subject_addattribute(subject,attr); attr = NULL;
 
     attr = xacml_attribute_create("http://glite.org/xacml/attribute/virtual-organization");
-    if(!attr) throw ierror();
+    if(!attr) throw ierror("Failed to create attribute virtual-organization object");
     std::list<std::string> vos = get_sec_attrs(auths, "TLS", "VO");
     for(std::list<std::string>::iterator vo = vos.begin(); vo!=vos.end(); ++vo) {
         if(!vo->empty()) xacml_attribute_addvalue(attr, vo->c_str());
+        logger.msg(Arc::DEBUG,"Adding virtual-organization value: %s",*vo);
     }
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
     xacml_subject_addattribute(subject,attr); attr = NULL;
 
     attr = xacml_attribute_create("http://glite.org/xacml/attribute/fqan");
-    if(!attr) throw ierror();
+    if(!attr) throw ierror("Failed to create attribute fqan object");
     std::string pfqan;
     std::list<std::string> fqans = get_sec_attrs(auths, "TLS", "VOMS");
     for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
         if(pfqan.empty()) pfqan = *fqan;
         // TODO: convert to VOMS FQAN?
         if(!fqan->empty()) xacml_attribute_addvalue(attr, fqan->c_str());
+        logger.msg(Arc::DEBUG,"Adding fqan value: %s",*fqan);
     }
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
     xacml_subject_addattribute(subject,attr); attr = NULL;
     if(!pfqan.empty()) {
         attr = xacml_attribute_create("http://glite.org/xacml/attribute/fqan/primary");
-        if(!attr) throw ierror();
+        if(!attr) throw ierror("Failed to create attribute fqan/primary object");
         // TODO: convert to VOMS FQAN?
         xacml_attribute_addvalue(attr, pfqan.c_str());
+        logger.msg(Arc::DEBUG,"Adding fqan/primary value: %s",pfqan);
         xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
         xacml_subject_addattribute(subject,attr); attr = NULL;
     }
 
     // Resource
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:resource:resource-id");
-    if(!attr) throw ierror();
+    if(!attr) throw ierror("Failed to create attribute resource-id object");
     std::string endpoint = attrs->get("ENDPOINT");
-    if(endpoint.empty()) throw ierror();
+    if(endpoint.empty()) throw ierror("Failed to extract ENDPOINT");
     xacml_attribute_addvalue(attr, endpoint.c_str());
+    logger.msg(Arc::DEBUG,"Adding resoure-id value: %s",endpoint);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
     xacml_resource_addattribute(resource,attr); attr = NULL;
 
     // Action
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:action:action-id");
-    if(!attr) throw ierror();
-    std::string act = get_cream_acion(operation);
-    if(act.empty()) throw ierror();
+    if(!attr) throw ierror("Failed to create attribute action-id object");
+    std::string act = get_cream_acion(operation,logger);
+    if(act.empty()) throw ierror("Failed to generate action name");
     xacml_attribute_addvalue(attr, act.c_str());
+    logger.msg(Arc::DEBUG,"Adding action-id value: %s",act);
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
     xacml_action_addattribute(action,attr); attr = NULL;
 
@@ -591,11 +672,13 @@ int ArgusPEP::create_xacml_request_cream(xacml_request_t** request, std::list<Ar
     return 0;
 
     } catch(ierror err) {
+    logger.msg(Arc::DEBUG,"CREAM request generation failed: %s",err.desc);
     if(attr) xacml_attribute_delete(attr);
     if(environment) xacml_environment_delete(environment);
     if(subject) xacml_subject_delete(subject);
     if(resource) xacml_resource_delete(resource);
     if(*request) xacml_request_delete(*request);
+    *request = NULL;
     return 1;
     }
 }
