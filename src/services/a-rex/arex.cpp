@@ -383,12 +383,16 @@ Arc::MCC_Status ARexService::StartAcceptingNewActivities(ARexGMConfig& /*config*
   return Arc::MCC_Status();
 }
 
-Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg) {
+Arc::MCC_Status ARexService::make_soap_fault(Arc::Message& outmsg, const char* resp) {
   Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_,true);
   Arc::SOAPFault* fault = outpayload?outpayload->Fault():NULL;
   if(fault) {
     fault->Code(Arc::SOAPFault::Sender);
-    fault->Reason("Failed processing request");
+    if(!resp) {
+      fault->Reason("Failed processing request");
+    } else {
+      fault->Reason(resp);
+    };
   };
   outmsg.Payload(outpayload);
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -556,7 +560,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
   if(!ProcessSecHandlers(inmsg,"incoming")) {
     logger_.msg(Arc::ERROR, "Security Handlers processing failed");
-    return Arc::MCC_Status();
+    return make_soap_fault(outmsg, "Not authorized");
   };
 
   // Process grid-manager configuration if not done yet
