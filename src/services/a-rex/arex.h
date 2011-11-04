@@ -119,7 +119,7 @@ class ARexService: public Arc::RegisteredService {
   Arc::MCC_Status make_empty_response(Arc::Message& outmsg);
   Arc::MCC_Status make_fault(Arc::Message& outmsg);
   Arc::MCC_Status make_http_fault(Arc::Message& outmsg,int code,const char* resp);
-  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg);
+  Arc::MCC_Status make_soap_fault(Arc::Message& outmsg,const char* resp = NULL);
 
   // HTTP operations
   Arc::MCC_Status Get(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string id,std::string subpath);
