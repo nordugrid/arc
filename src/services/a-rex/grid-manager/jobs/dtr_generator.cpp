@@ -223,20 +223,77 @@ bool DTRGenerator::queryJobFinished(JobDescription& job) {
     return false;
   }
   std::map<std::string, std::string>::iterator i = finished_jobs.find(job.get_id());
-  if (i == finished_jobs.end()) {
-    // not in active or finished - must have been picked up already
-    // or nothing to transfer
-    lock.unlock();
-    return true;
-  }
-  // add failure to job if any DTR failed
-  if (!i->second.empty())
+  if (i != finished_jobs.end() && !i->second.empty()) {
+    // add failure to job if any DTR failed
     job.AddFailure(i->second);
-  finished_jobs.erase(i);
+    finished_jobs[job.get_id()] = "";
+  }
   lock.unlock();
   return true;
 }
 
+bool DTRGenerator::hasJob(const JobDescription& job) {
+
+  // check if this job is still in the received jobs queue
+  event_lock.lock();
+  for (std::list<JobDescription>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
+    if (*i == job) {
+      event_lock.unlock();
+      return true;
+    }
+  }
+  event_lock.unlock();
+
+  // check if any DTRs in this job are still active
+  lock.lock();
+  if (active_dtrs.find(job.get_id()) != active_dtrs.end()) {
+    lock.unlock();
+    return true;
+  }
+
+  // finally check finished jobs
+  std::map<std::string, std::string>::iterator i = finished_jobs.find(job.get_id());
+  if (i != finished_jobs.end()) {
+    lock.unlock();
+    return true;
+  }
+  lock.unlock();
+  // not found
+  return false;
+}
+
+void DTRGenerator::removeJob(const JobDescription& job) {
+
+  // check if this job is still in the received jobs queue
+  event_lock.lock();
+  for (std::list<JobDescription>::iterator i = jobs_received.begin(); i != jobs_received.end(); ++i) {
+    if (*i == job) {
+      event_lock.unlock();
+      logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job.get_id());
+      return;
+    }
+  }
+  event_lock.unlock();
+
+  // check if any DTRs in this job are still active
+  lock.lock();
+  if (active_dtrs.find(job.get_id()) != active_dtrs.end()) {
+    lock.unlock();
+    logger.msg(Arc::WARNING, "%s: Trying to remove job from data staging which is still active", job.get_id());
+    return;
+  }
+
+  // finally check finished jobs
+  std::map<std::string, std::string>::iterator i = finished_jobs.find(job.get_id());
+  if (i == finished_jobs.end()) {
+    // warn if not in finished
+    lock.unlock();
+    logger.msg(Arc::WARNING, "%s: Trying remove job from data staging which does not exist", job.get_id());
+    return;
+  }
+  finished_jobs.erase(i);
+  lock.unlock();
+}
 
 bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
 
@@ -659,14 +716,21 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
 
   if (files.empty()) {
     // nothing to do so wake up GM thread and return
+    lock.lock();
+    finished_jobs[jobid] = "";
+    lock.unlock();
     if (kicker_func) (*kicker_func)(kicker_arg);
     return true;
   }
+
+  // flag to say whether at least one file needs to be staged
+  bool staging = false;
 
   for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
     if (i->lfn.find(":") == std::string::npos)
       continue; // user down/uploadable file
 
+    staging = true;
     std::string source;
     std::string destination;
     if (job.get_state() == JOB_STATE_PREPARING) {
@@ -727,6 +791,11 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
       logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
     }
     delete job_desc;
+  }
+  if (!staging) { // nothing needed staged so mark as finished
+    lock.lock();
+    finished_jobs[jobid] = "";
+    lock.unlock();
   }
   return true;
 }

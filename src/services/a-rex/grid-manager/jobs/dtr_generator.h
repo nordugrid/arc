@@ -151,6 +151,21 @@ class DTRGenerator: public DataStaging::DTRCallback {
   bool queryJobFinished(JobDescription& job);
 
   /**
+   * Query whether the Generator has a record of this job.
+   * @param job Job to query.
+   * @return True if the job is active or finished.
+   */
+  bool hasJob(const JobDescription& job);
+
+  /**
+   * Remove the job from the Generator. Only finished jobs will be removed,
+   * and a warning will be logged if the job still has active DTRs. This
+   * method should be called after A-REX has finished PREPARING or FINISHING.
+   * @param job The job to remove.
+   */
+  void removeJob(const JobDescription& job);
+
+  /**
    * Utility method to check that all files the user was supposed to
    * upload with the job are ready.
    * @param job Job description, failures will be reported directly in

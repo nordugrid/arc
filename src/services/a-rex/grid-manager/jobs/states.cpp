@@ -2,12 +2,6 @@
 #include <config.h>
 #endif
 
-/*
-  Filename: states.cc
-  keeps list of states
-  acts on states
-*/
-
 #include <string>
 #include <list>
 #include <iostream>
@@ -17,7 +11,6 @@
 #include "../run/run_parallel.h"
 #include "../conf/environment.h"
 #include "../mail/send_mail.h"
-/* #include "../url/url_options.h" */
 #include "../log/job_log.h"
 #include "../conf/conf_file.h"
 #include "../jobs/users.h"
@@ -573,29 +566,39 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
   JobsListConfig& jcfg = user->Env().jobs_cfg();
 
   if (jcfg.use_new_data_staging && dtr_generator) {  /***** new data staging ******/
-    // Job is in data staging - check progress
+
+    // first check if job is already in the system
+    if (!dtr_generator->hasJob(*i)) {
+      dtr_generator->receiveJob(*i);
+      return true;
+    }
     if (dtr_generator->queryJobFinished(*i)) {
-      // Finished - check for failure
+
+      bool done = true;
+      bool result = true;
+
+      // check for failure
       if (!i->GetFailure(*user).empty()) {
         JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
-        return false;
+        result = false;
       }
-      // check for user-uploadable files
-      if (!up) {
+      else if (!up) { // check for user-uploadable files if downloading
         int result = dtr_generator->checkUploadedFiles(*i);
-        if (result == 2)
-          return true;
-        if (result == 0) {
-          state_changed=true;
-          return true;
+        if (result == 2) { // still going
+          done = false;
         }
-        // error
-        return false;
+        else if (result == 0) { // finished successfully
+          state_changed=true;
+        }
+        else { // error
+          result = false;
+        }
       }
-      else {
+      else { // if uploading we are done
         state_changed = true;
-        return true;
       }
+      if (done) dtr_generator->removeJob(*i);
+      return result;
     }
     else {
       // not finished yet
@@ -812,6 +815,37 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
   return true;
 }
 
+bool JobsList::CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg, bool up) {
+
+  // new data staging - all jobs can proceed immediately
+  if (jcfg.use_new_data_staging && dtr_generator) return true;
+  // transfer is done on worker nodes
+  if (jcfg.use_local_transfer) return true;
+  // nothing to stage and nothing for janitor to do with RTEs
+  if (!up && (i->local->downloads == 0) && (i->local->rtes == 0)) return true;
+  if (up && (i->local->uploads == 0) && (i->local->rtes == 0)) return true;
+  // before checking limits, check the retry time
+  if (i->next_retry > time(NULL)) return false;
+  // no limit on staging jobs
+  if (jcfg.max_jobs_processing == -1) return true;
+  if (!up) {
+    // limits on downloads
+    if (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
+        ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) &&
+         (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
+        (jcfg.share_type.empty() ||
+         preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share])) return true;
+  } else {
+    // limits on uploads
+    if (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
+        ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
+         (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency))) &&
+        (jcfg.share_type.empty() ||
+         finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share])) return true;
+  }
+  return false;
+}
+
 bool JobsList::JobPending(JobsList::iterator &i) {
   if(i->job_pending) return true;
   i->job_pending=true; 
@@ -1019,11 +1053,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             if (new_state == JOB_STATE_PREPARING) preparing_job_share[i->transfer_share]++;
             if (new_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]++;
             i->Start();
-            if (jcfg.use_new_data_staging && dtr_generator) {
-              if((new_state == JOB_STATE_PREPARING || new_state == JOB_STATE_FINISHING)) {
-                dtr_generator->receiveJob(*i);
-              };
-            };
+
             // add to DN map
             // here we don't enforce the per-DN limit since the jobs are
             // already in the system
@@ -1059,16 +1089,7 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
         // check per-DN limit on processing jobs
         if(jcfg.max_jobs_per_dn < 0 || jcfg.jobs_dn[i->local->DN] < jcfg.max_jobs_per_dn)
         {
-          // apply limits for old data staging
-          if (jcfg.use_new_data_staging ||
-              ((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
-              (jcfg.use_local_transfer) ||
-              ((i->local->downloads == 0) && (i->local->rtes == 0)) ||
-              (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-               ((JOB_NUM_FINISHING >= jcfg.max_jobs_processing) &&
-                (JOB_NUM_PREPARING < jcfg.max_jobs_processing_emergency))) &&
-              (i->next_retry <= time(NULL)) &&
-              (jcfg.share_type.empty() || preparing_job_share[i->transfer_share] < preparing_max_share[i->transfer_share]))) {
+          if (CanStage(i, jcfg, false)) {
 
             /* check for user specified time */
             if(i->retries == 0 && i->local->processtime != -1 && (i->local->processtime) > time(NULL)) {
@@ -1085,9 +1106,6 @@ void JobsList::ActJobAccepted(JobsList::iterator &i,
             if (i->retries ==0) i->retries = jcfg.max_retries;
             preparing_job_share[i->transfer_share]++;
             i->Start();
-            if (jcfg.use_new_data_staging && dtr_generator) {
-              dtr_generator->receiveJob(*i);
-            };
 
             /* gather some frontend specific information for user,
                do it only once */
@@ -1130,24 +1148,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
                 state_changed=false;
                 JobPending(i);
               };
-            } else if(jcfg.use_new_data_staging && dtr_generator) {
-              state_changed=true; once_more=true;
-              i->job_state = JOB_STATE_FINISHING;
-              dtr_generator->receiveJob(*i);
-              finishing_job_share[i->transfer_share]++;
-            } else if(((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
-                      (jcfg.use_local_transfer) ||
-                      (i->local->uploads == 0) ||
-                      (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-                        ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
-                         (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency)
-                        )
-                       ) &&
-                       (i->next_retry <= time(NULL)) &&
-                       (jcfg.share_type.empty() ||
-                        finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share])
-                      )
-                     ) {
+            } else if(CanStage(i, jcfg, true)) {
               i->job_state = JOB_STATE_FINISHING;
               state_changed=true; once_more=true;
               i->retries = jcfg.max_retries;
@@ -1217,9 +1218,6 @@ void JobsList::ActJobCanceling(JobsList::iterator &i,
         if(state_submitting(i,state_changed,true)) {
           if(state_changed) {
             i->job_state = JOB_STATE_FINISHING;
-            if (jcfg.use_new_data_staging && dtr_generator) {
-              dtr_generator->receiveJob(*i);
-            };
             finishing_job_share[i->transfer_share]++;
             once_more=true;
           };
@@ -1247,68 +1245,28 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
               LRMSResult ec = job_lrms_mark_read(i->job_id,*user);
               if(ec.code() != 0) {
                 logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
-              /*
-              * check if not asked to rerun job *
-              JobLocalDescription *job_desc = i->local;
-              if(job_desc->reruns > 0) { * rerun job once more *
-                job_desc->reruns--;
-                job_desc->localid="";
-                job_local_write_file(*i,*user,*job_desc);
-                job_lrms_mark_remove(i->job_id,*user);
-                logger.msg(Arc::INFO,"%s: State: INLRMS: job restarted",i->job_id);
-                i->job_state = JOB_STATE_SUBMITTING;
-                // INLRMS slot is already taken by this job, so resubmission
-                // can be done without any checks
-              } else {
-              */
                 i->AddFailure("LRMS error: ("+
                       Arc::tostring(ec.code())+") "+ec.description());
                 job_error=true;
-                //i->job_state = JOB_STATE_FINISHING;
                 JobFailStateRemember(i,JOB_STATE_INLRMS);
                 // This does not require any special postprocessing and
                 // can go to next state directly
-              /*
-              };
-              */
                 state_changed=true; once_more=true;
                 return;
-              } else {
-              // i->job_state = JOB_STATE_FINISHING;
               };
             };
-            if(jcfg.use_new_data_staging && dtr_generator) {
+            if (CanStage(i, jcfg, true)) {
               state_changed=true; once_more=true;
               i->job_state = JOB_STATE_FINISHING;
-              dtr_generator->receiveJob(*i);
+              /* if first pass then reset retries */
+              if (i->retries == 0) i->retries = jcfg.max_retries;
               finishing_job_share[i->transfer_share]++;
-            }
-            else if (((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
-              (jcfg.use_local_transfer) ||
-              (i->local->uploads == 0) ||
-              (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-               ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
-                (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency))) &&
-               (i->next_retry <= time(NULL)) &&
-               (jcfg.share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
-                 state_changed=true; once_more=true;
-                 i->job_state = JOB_STATE_FINISHING;
-                 /* if first pass then reset retries */
-                 if (i->retries == 0) i->retries = jcfg.max_retries;
-                 finishing_job_share[i->transfer_share]++;
             } else JobPending(i);
           }
-        } else if(((jcfg.max_jobs_processing == -1) && (i->next_retry <= time(NULL))) ||
-            (jcfg.use_local_transfer) ||
-            (i->local->uploads == 0) ||
-            (((JOB_NUM_PROCESSING < jcfg.max_jobs_processing) ||
-             ((JOB_NUM_PREPARING >= jcfg.max_jobs_processing) &&
-              (JOB_NUM_FINISHING < jcfg.max_jobs_processing_emergency))) &&
-            (i->next_retry <= time(NULL)) &&
-            (jcfg.share_type.empty() || finishing_job_share[i->transfer_share] < finishing_max_share[i->transfer_share]))) {
-              state_changed=true; once_more=true;
-              i->job_state = JOB_STATE_FINISHING;
-              finishing_job_share[i->transfer_share]++;
+        } else if (CanStage(i, jcfg, true)) {
+          state_changed=true; once_more=true;
+          i->job_state = JOB_STATE_FINISHING;
+          finishing_job_share[i->transfer_share]++;
         } else {
           JobPending(i);
         };
@@ -1543,10 +1501,9 @@ bool JobsList::ActJob(JobsList::iterator &i) {
        (i->job_state != JOB_STATE_SUBMITTING)) {
       if(job_cancel_mark_check(i->job_id,*user)) {
         logger.msg(Arc::INFO,"%s: Canceling job (%s) because of user request",i->job_id,user->UnixName());
-        if (jcfg.use_new_data_staging && dtr_generator) {
-          if ((i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
-            dtr_generator->cancelJob(*i);
-          };
+        if (jcfg.use_new_data_staging && dtr_generator &&
+            (i->job_state == JOB_STATE_PREPARING || i->job_state == JOB_STATE_FINISHING)) {
+          dtr_generator->cancelJob(*i);
         };
         /* kill running child */
         if(i->child) { 
@@ -1622,7 +1579,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
       // Process errors which happened during processing this job
       if(job_error) {
         job_error=false;
-        // always cause rerun - in order not to loose state change
+        // always cause rerun - in order not to lose state change
         // Failed job - move it to proper state
         logger.msg(Arc::ERROR,"%s: Job failure detected",i->job_id);
         if(!FailedJob(i)) { /* something is really wrong */
@@ -1644,9 +1601,6 @@ bool JobsList::ActJob(JobsList::iterator &i) {
             once_more=true;
           } else {
             i->job_state = JOB_STATE_FINISHING;
-            if (jcfg.use_new_data_staging && dtr_generator) {
-              dtr_generator->receiveJob(*i);
-            };
             finishing_job_share[i->transfer_share]++;
             state_changed=true;
             once_more=true;

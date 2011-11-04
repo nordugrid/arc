@@ -33,7 +33,8 @@ class DTRGenerator;
 
 /*
   List of jobs. This object is cross-linked to JobUser object, which
-  represents owner of these jobs.
+  represents owner of these jobs. This class contains the main job
+  management logic which moves jobs through the state machine.
 */
 class JobsList {
  public:
@@ -68,6 +69,9 @@ class JobsList {
   bool state_submitting(const iterator &i,bool &state_changed,bool cancel=false);
   /* Same for PREPARING/FINISHING */
   bool state_loading(const iterator &i,bool &state_changed,bool up,bool &retry);
+  /// Check if job is allowed to progress to a staging state. up is true
+  /// for uploads (FINISHING) and false for downloads (PREPARING).
+  bool CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg, bool up);
   bool JobPending(JobsList::iterator &i);
   job_state_t JobFailStateGet(const iterator &i);
   bool JobFailStateRemember(const iterator &i,job_state_t state);
