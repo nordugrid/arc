@@ -277,7 +277,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     outmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     outmsg.Attributes()->set("HTTP:Content-Type","text/xml");
-    outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
+    if(!soap_action.empty()) outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   if(retpayload->Fault() != NULL) {
     // Maybe MCC_Status should be used instead ?
@@ -324,7 +324,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
     nextinmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     nextinmsg.Attributes()->set("HTTP:Content-Type","text/xml");
-    nextinmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
+    if(!soap_action.empty()) nextinmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   // Call next MCC 
   MCCInterface* next = Next();
