@@ -15,8 +15,8 @@
 
 #ifndef WIN32
 
-CommFIFO::CommFIFO(void) {
-  timeout_=-1;
+bool CommFIFO::make_pipe(void) {
+  bool res = false;
   lock.lock();
   int filedes[2];
   kick_in=-1; kick_out=-1;
@@ -28,8 +28,16 @@ CommFIFO::CommFIFO(void) {
     if(arg != -1) { arg|=O_NONBLOCK; fcntl(kick_in,F_SETFL,&arg); };
     arg=fcntl(kick_out,F_GETFL);
     if(arg != -1) { arg|=O_NONBLOCK; fcntl(kick_out,F_SETFL,&arg); };
+    res = (kick_in != -1);
   };
   lock.unlock();
+  return res;
+}
+
+CommFIFO::CommFIFO(void) {
+  timeout_=-1;
+  kick_in=-1; kick_out=-1;
+  make_pipe();
 }
 
 CommFIFO::~CommFIFO(void) {
@@ -42,6 +50,7 @@ JobUser* CommFIFO::wait(int timeout) {
     fd_set fin,fout,fexc;
     FD_ZERO(&fin); FD_ZERO(&fout); FD_ZERO(&fexc);
     int maxfd=-1;
+    if(kick_out < 0) make_pipe();
     if(kick_out >= 0) { maxfd=kick_out; FD_SET(kick_out,&fin); };
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
@@ -50,39 +59,64 @@ JobUser* CommFIFO::wait(int timeout) {
       FD_SET(i->fd,&fin);
     };
     lock.unlock();
-    int n;
+    int err;
     maxfd++;
     if(timeout >= 0) {
       struct timeval t;
       if(((int)(end_time-start_time)) < 0) return NULL;
       t.tv_sec=end_time-start_time;
       t.tv_usec=0;
-      n = select(maxfd,&fin,&fout,&fexc,&t);
+      if(maxfd > 0) {
+        err = select(maxfd,&fin,&fout,&fexc,&t);
+      } else {
+        sleep(t.tv_sec);
+        err = 0;
+      };
       start_time = time(NULL);
     } else {
-      n = select(maxfd,&fin,&fout,&fexc,NULL);
+      if(maxfd > 0) {
+        err = select(maxfd,&fin,&fout,&fexc,NULL);
+      } else {
+        err = 0;
+      };
     };
-    if(n == 0) return NULL;
-    if(n == -1) {
-      // One of fifos must be broken ?
-
+    if(err == 0) return NULL;
+    if(err == -1) {
+      if(errno == EBADF) {
+        // One of fifos must be broken. Let read() find that out.
+      } else if(errno == EINTR) {
+        // interrupted by signal, retry
+        continue;
+      };
+      // No idea how this could happen and how to deal with it.
+      // Lets try to escape and start from beginning
+      return NULL;
     };
     if(kick_out >= 0) {
-      if(FD_ISSET(kick_out,&fin)) {
-        char buf[256]; (read(kick_out,buf,256) != -1);
+      if((err < 0) || FD_ISSET(kick_out,&fin)) {
+        char buf[256];
+        if(read(kick_out,buf,256) != -1) {
+          close(kick_in); close(kick_out);
+          make_pipe();
+        };
         continue;
       };
     };
     lock.lock();
     for(std::list<elem_t>::iterator i = fds.begin();i!=fds.end();++i) {
       if(i->fd < 0) continue;
-      if(FD_ISSET(i->fd,&fin)) {
+      if((err < 0) || FD_ISSET(i->fd,&fin)) {
         lock.unlock();
         char buf[256];
         ssize_t l = read(i->fd,buf,sizeof(buf));
-        // -1 ???
-        // 0 means kick, 1 - ping, rest undefined yet
-        if(l > 0) if(memchr(buf,0,sizeof(buf))) return i->user;
+        if(l < 0) {
+          if((errno == EBADF) || (errno == EINVAL) || (errno == EIO)) {
+            i->fd = -1;
+          };
+        } else if(l > 0) {
+          // 0 means kick, 1 - ping, rest undefined yet
+          if(memchr(buf,0,sizeof(buf))) return i->user;
+        };
       };
     };
     lock.unlock();

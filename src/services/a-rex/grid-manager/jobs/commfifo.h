@@ -19,6 +19,7 @@ class CommFIFO {
   int kick_out;
   Glib::Mutex lock;
   int timeout_;
+  bool make_pipe(void);
  public:
   CommFIFO(void);
   ~CommFIFO(void);
