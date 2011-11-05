@@ -111,7 +111,8 @@ JobUser* CommFIFO::wait(int timeout) {
         ssize_t l = read(i->fd,buf,sizeof(buf));
         if(l < 0) {
           if((errno == EBADF) || (errno == EINVAL) || (errno == EIO)) {
-            i->fd = -1;
+            close(i->fd); close(i->fd_keep);
+            i->fd = -1; i->fd_keep = -1;
           };
         } else if(l > 0) {
           // 0 means kick, 1 - ping, rest undefined yet
