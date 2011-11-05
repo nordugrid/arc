@@ -64,7 +64,9 @@ namespace ARex {
     return state;
   }
 
-  void convertActivityStatusES(const std::string& gm_state,std::string& primary_state,std::list<std::string>& state_attributes,bool failed,bool pending) {
+  void convertActivityStatusES(const std::string& gm_state,std::string& primary_state,std::list<std::string>& state_attributes,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
+    bool failed_set = false;
+    bool canceled = (failedcause == "client");
     primary_state = "";
     if(gm_state == "ACCEPTED") {
       primary_state="ACCEPTED";
@@ -88,20 +90,34 @@ namespace ARex {
       state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
     } else if(gm_state == "DELETED") {
       primary_state="TERMINAL";
-      state_attributes.push_back("CLIENT-STAGEOUT-POSSIBLE");
+      state_attributes.push_back("EXPIRED");
     } else if(gm_state == "CANCELING") {
       primary_state="PROCESSING";
     };
+    if(failedstate == "ACCEPTED") {
+      state_attributes.push_back("VALIDATION-FAILURE");
+      failed_set = true;
+    } else if(failedstate == "PREPARING") {
+      state_attributes.push_back(canceled?"PREPROCESSING-CANCEL":"PREPROCESSING-FAILURE");
+      failed_set = true;
+    } else if(failedstate == "SUBMIT") {
+      state_attributes.push_back(canceled?"PROCESSING-CANCEL":"PROCESSING-FAILURE");
+      failed_set = true;
+    } else if(failedstate == "INLRMS") {
+      state_attributes.push_back(canceled?"PROCESSING-CANCEL":"PROCESSING-FAILURE");
+      // Or maybe APP-FAILURE
+      failed_set = true;
+    } else if(failedstate == "FINISHING") {
+      state_attributes.push_back(canceled?"POSTPROCESSING-CANCEL":"POSTPROCESSING-FAILURE");
+      failed_set = true;
+    } else if(failedstate == "FINISHED") {
+    } else if(failedstate == "DELETED") {
+    } else if(failedstate == "CANCELING") {
+    };
     if(primary_state == "TERMINAL") {
-      if(failed) {
-        //state_attributes.push_back("PREPROCESSING-CANCEL"); TODO
-        //state_attributes.push_back("PROCESSING-CANCEL"); TODO
-        //state_attributes.push_back("POSTPROCESSING-CANCEL"); TODO
-        //state_attributes.push_back("VALIDATION-FAILURE"); TODO
-        //state_attributes.push_back("PREPROCESSING-FAILURE"); TODO
-        //state_attributes.push_back("PROCESSING-FAILURE"); TODO
-        //state_attributes.push_back("POSTPROCESSING-FAILURE"); TODO
-        state_attributes.push_back("APP-FAILURE"); // TODO
+      if(failed && !failed_set) {
+        // Must put something to mark job failed
+        state_attributes.push_back("APP-FAILURE");
       };
     };
     if(!primary_state.empty()) {
@@ -109,11 +125,11 @@ namespace ARex {
     };
   }
 
-  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending) {
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
     std::string primary_state;
     std::list<std::string> state_attributes;
     std::string glue_state("");
-    convertActivityStatusES(gm_state,primary_state,state_attributes,failed,pending);
+    convertActivityStatusES(gm_state,primary_state,state_attributes,failed,pending,failedstate,failedcause);
     Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
     state.NewChild("estypes:Status") = primary_state;
     for(std::list<std::string>::iterator st = state_attributes.begin();

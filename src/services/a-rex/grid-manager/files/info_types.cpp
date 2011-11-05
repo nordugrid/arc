@@ -3,6 +3,11 @@
 #endif
 
 #include <iostream>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <limits.h>
 #include <errno.h>
 
@@ -30,6 +35,7 @@
 
 #endif
 
+static Glib::Mutex local_lock;
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static inline void write_str(int f,const char* buf, std::string::size_type len) {
@@ -40,12 +46,39 @@ static inline void write_str(int f,const char* buf, std::string::size_type len) 
   };
 }
 
+static inline void write_str(int f,const std::string& str) {
+  write_str(f,str.c_str(),str.length());
+}
+
 static inline void write_chr(int f,const char c) {
   for(;;) {
     ssize_t l = write(f,&c,1);
     if((l < 0) && (errno != EINTR)) break;
     if(l == 1) break;
   };
+}
+
+static inline bool read_str(int f,char* buf,int size) {
+  char c;
+  int pos = 0;
+  for(;;) {
+    ssize_t l = read(f,&c,1);
+    if((l == -1) && (errno == EINTR)) continue;
+    if(l < 0) return false;
+    if(l == 0) {
+      if(!pos) return false;
+      break;
+    };
+    if(c == '\n') break;
+    if(pos < (size-1)) {
+      buf[pos] = c;
+      ++pos;
+      buf[pos] = 0;
+    } else {
+      ++pos;
+    };
+  };
+  return true;
 }
 
 void output_escaped_string(std::ostream &o,const std::string &str) {
@@ -317,5 +350,230 @@ std::istream& operator>>(std::istream& i,LRMSResult &r) {
 std::ostream& operator<<(std::ostream& o,const LRMSResult &r) {
   o<<r.code()<<" "<<r.description();
   return o;
+}
+
+
+static inline void write_pair(int f,const std::string &name,const std::string &value) {
+  if(value.length() <= 0) return;
+  write_str(f,name);
+  write_str(f,"=");
+  write_str(f,value);
+  write_str(f,"\n");
+}
+
+static inline void write_pair(int f,const std::string &name,const Arc::Time &value) {
+  if(value == -1) return;
+  write_str(f,name);
+  write_str(f,"=");
+  write_str(f,value.str(Arc::MDSTime));
+  write_str(f,"\n");
+}
+
+static inline void write_pair(int f,const std::string &name,bool value) {
+  write_str(f,name);
+  write_str(f,"=");
+  write_str(f,(value?"yes":"no"));
+  write_str(f,"\n");
+}
+
+bool JobLocalDescription::write(const std::string& fname) const {
+  Glib::Mutex::Lock lock_(local_lock);
+  // *.local file is accessed concurently. To avoid improper readings lock is acquired.
+  int f=open(fname.c_str(),O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+  if(f==-1) return false;
+  struct flock lock;
+  lock.l_type=F_WRLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  for(;;) {
+    if(fcntl(f,F_SETLKW,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    close(f); return false;
+  };
+  if(ftruncate(f,0) != 0) { close(f); return false; };
+  if(lseek(f,0,SEEK_SET) != 0) { close(f); return false; };
+  for (std::list<std::string>::const_iterator it=jobreport.begin();
+       it!=jobreport.end();
+       it++) {
+    write_pair(f,"jobreport",*it);
+  };
+  write_pair(f,"globalid",globalid);
+  write_pair(f,"lrms",lrms);
+  write_pair(f,"queue",queue);
+  write_pair(f,"localid",localid);
+  write_str(f,"args=");
+  if(arguments.size()) {
+    for(std::list<std::string>::const_iterator i=arguments.begin(); \
+        i!=arguments.end(); ++i) {
+      output_escaped_string(f,*i);
+      write_str(f," ");
+    };
+  };
+  write_str(f,"\n");
+  write_pair(f,"subject",DN);
+  write_pair(f,"starttime",starttime);
+  write_pair(f,"lifetime",lifetime);
+  write_pair(f,"notify",notify);
+  write_pair(f,"processtime",processtime);
+  write_pair(f,"exectime",exectime);
+  write_pair(f,"rerun",Arc::tostring(reruns));
+  if(downloads>=0) write_pair(f,"downloads",Arc::tostring(downloads));
+  if(uploads>=0) write_pair(f,"uploads",Arc::tostring(uploads));
+  if(rtes>=0) write_pair(f,"rtes",Arc::tostring(rtes));
+  write_pair(f,"jobname",jobname);
+  for (std::list<std::string>::const_iterator ppn=projectnames.begin();
+       ppn!=projectnames.end();
+       ++ppn) {
+    write_pair(f,"projectname",*ppn);
+  };
+  write_pair(f,"gmlog",stdlog);
+  write_pair(f,"cleanuptime",cleanuptime);
+  write_pair(f,"delegexpiretime",expiretime);
+  write_pair(f,"clientname",clientname);
+  write_pair(f,"clientsoftware",clientsoftware);
+  write_pair(f,"sessiondir",sessiondir);
+  write_pair(f,"diskspace",Arc::tostring(diskspace));
+  write_pair(f,"failedstate",failedstate);
+  write_pair(f,"failedcause",failedcause);
+  write_pair(f,"credentialserver",credentialserver);
+  for(std::list<std::string>::const_iterator act_id=activityid.begin();
+      act_id != activityid.end(); ++act_id) {
+    write_pair(f,"activityid",(*act_id));
+  };
+  if (migrateactivityid != "") {
+    write_pair(f,"migrateactivityid",migrateactivityid);
+    write_pair(f,"forcemigration",forcemigration);
+  }
+  write_pair(f,"transfershare",transfershare);
+  write_pair(f,"priority",Arc::tostring(priority));
+  close(f);
+  return true;
+}
+
+bool JobLocalDescription::read(const std::string& fname) {
+  Glib::Mutex::Lock lock_(local_lock);
+  // *.local file is accessed concurently. To avoid improper readings lock is acquired.
+  int f=open(fname.c_str(),O_RDONLY);
+  if(f==-1) return false;
+  struct flock lock;
+  lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  for(;;) {
+    if(fcntl(f,F_SETLKW,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    close(f); return false;
+  };
+  // using iostream for handling file content
+  char buf[4096];
+  std::string name;
+  activityid.clear();
+  for(;;) {
+    if(!read_str(f,buf,sizeof(buf))) break;;
+    name.erase();
+    int p=input_escaped_string(buf,name,'=');
+    if(name.length() == 0) continue;
+    if(buf[p] == 0) continue;
+    if(name == "lrms") { lrms = buf+p; }
+    else if(name == "queue") { queue = buf+p; }
+    else if(name == "localid") { localid = buf+p; }
+    else if(name == "subject") { DN = buf+p;
+ }
+    else if(name == "starttime") { starttime = buf+p; }
+//    else if(name == "UI") { UI = buf+p; }
+    else if(name == "lifetime") { lifetime = buf+p; }
+    else if(name == "notify") { notify = buf+p; }
+    else if(name == "processtime") { processtime = buf+p; }
+    else if(name == "exectime") { exectime = buf+p; }
+    else if(name == "jobreport") { jobreport.push_back(std::string(buf+p)); }
+    else if(name == "globalid") { globalid = buf+p; }
+    else if(name == "jobname") { jobname = buf+p; }
+    else if(name == "projectname") { projectnames.push_back(std::string(buf+p)); }
+    else if(name == "gmlog") { stdlog = buf+p; }
+    else if(name == "rerun") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      reruns = n;
+    }
+    else if(name == "downloads") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      downloads = n;
+    }
+    else if(name == "uploads") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      uploads = n;
+    }
+    else if(name == "rtes") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      rtes = n;
+    }
+    else if(name == "args") {
+      arguments.clear();
+      for(int n=p;buf[n] != 0;) {
+        std::string arg;
+        n+=input_escaped_string(buf+n,arg);
+        arguments.push_back(arg);
+      };
+    }
+    else if(name == "cleanuptime") { cleanuptime = buf+p; }
+    else if(name == "delegexpiretime") { expiretime = buf+p; }
+    else if(name == "clientname") { clientname = buf+p; }
+    else if(name == "clientsoftware") { clientsoftware = buf+p; }
+    else if(name == "sessiondir") { sessiondir = buf+p; }
+    else if(name == "failedstate") { failedstate = buf+p; }
+    else if(name == "failedcause") { failedcause = buf+p; }
+    else if(name == "credentialserver") { credentialserver = buf+p; }
+    else if(name == "diskspace") {
+      std::string temp_s(buf+p);
+      unsigned long long int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      diskspace = n;
+    }
+    else if(name == "activityid") {
+      std::string temp_s(buf+p);
+      activityid.push_back(temp_s);
+    }
+    else if(name == "migrateactivityid") { migrateactivityid = buf+p; }
+    else if(name == "forcemigration") {
+      if(strcasecmp("yes",buf+p) == 0) { forcemigration = true; }
+      else if(strcasecmp("true",buf+p) == 0) { forcemigration = true; }
+      else forcemigration = false;
+    }
+    else if(name == "transfershare") { transfershare = buf+p; }
+    else if(name == "priority") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      priority = n;
+    }
+  }
+  close(f);
+  return true;
+}
+
+bool JobLocalDescription::read_var(const std::string &fname,const std::string &vnam,std::string &value) {
+  Glib::Mutex::Lock lock_(local_lock);
+  // *.local file is accessed concurently. To avoid improper readings lock is acquired.
+  int f=open(fname.c_str(),O_RDONLY);
+  if(f==-1) return false;
+  struct flock lock;
+  lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  for(;;) {
+    if(fcntl(f,F_SETLKW,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    close(f); return false;
+  };
+  // using iostream for handling file content
+  char buf[1024];
+  std::string name;
+  bool found = false;
+  for(;;) {
+    if(!read_str(f,buf,sizeof(buf))) break;
+    name.erase();
+    int p=input_escaped_string(buf,name,'=');
+    if(name.length() == 0) continue;
+    if(buf[p] == 0) continue;
+    if(name == vnam) { value = buf+p; found=true; break; };
+  };
+  close(f);
+  return found;
 }
 

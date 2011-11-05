@@ -800,11 +800,7 @@ bool JobsList::state_loading(const JobsList::iterator &i,bool &state_changed,boo
           };
         };
         delete i->child; i->child=NULL;
-        if(up) {
-          JobFailStateRemember(i,JOB_STATE_FINISHING);
-        } else {
-          JobFailStateRemember(i,JOB_STATE_PREPARING);
-        };
+        JobFailStateRemember(i, (up ? JOB_STATE_FINISHING : JOB_STATE_PREPARING));
         return false;
       };
       /* success code - move to next state */
@@ -856,15 +852,16 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
   if(!GetLocalDescription(i)) {
     return JOB_STATE_UNDEFINED;
   };
-  if(i->local->failedstate.length() == 0) { return JOB_STATE_UNDEFINED; };
+  if(i->local->failedstate.empty()) { return JOB_STATE_UNDEFINED; };
   for(int n = 0;states_all[n].name != NULL;n++) {
-    if(!strcmp(states_all[n].name,i->local->failedstate.c_str())) {
-      i->local->failedstate="";
+    if(i->local->failedstate == states_all[n].name) {
       if(i->local->reruns <= 0) {
         logger.msg(Arc::ERROR,"%s: Job is not allowed to be rerun anymore",i->job_id);
         job_local_write_file(*i,*user,*(i->local));
         return JOB_STATE_UNDEFINED;
       };
+      i->local->failedstate="";
+      i->local->failedcause="";
       i->local->reruns--;
       job_local_write_file(*i,*user,*(i->local));
       return states_all[n].id;
@@ -872,6 +869,7 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
   };
   logger.msg(Arc::ERROR,"%s: Job failed in unknown state. Won't rerun.",i->job_id);
   i->local->failedstate="";
+  i->local->failedcause="";
   job_local_write_file(*i,*user,*(i->local));
   return JOB_STATE_UNDEFINED;
 }
@@ -939,7 +937,7 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   return true;
 }
 
-bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t state) {
+bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t state,bool internal) {
   if(!(i->local)) {
     JobLocalDescription *job_desc = new JobLocalDescription;
     if(!job_local_read_file(i->job_id,*user,*job_desc)) {
@@ -952,10 +950,12 @@ bool JobsList::JobFailStateRemember(const JobsList::iterator &i,job_state_t stat
   };
   if(state == JOB_STATE_UNDEFINED) {
     i->local->failedstate="";
+    i->local->failedcause=internal?"internal":"client";
     return job_local_write_file(*i,*user,*(i->local));
   };
-  if(i->local->failedstate.length() == 0) {
+  if(i->local->failedstate.empty()) {
     i->local->failedstate=states_all[state].name;
+    i->local->failedcause=internal?"internal":"client";
     return job_local_write_file(*i,*user,*(i->local));
   };
   return true;
@@ -1515,6 +1515,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         else if (i->job_state == JOB_STATE_FINISHING) finishing_job_share[i->transfer_share]--;
         /* put some explanation */
         i->AddFailure("User requested to cancel the job");
+        JobFailStateRemember(i,i->job_state,false);
         /* behave like if job failed */
         if(!FailedJob(i)) {
           /* DO NOT KNOW WHAT TO DO HERE !!!!!!!!!! */

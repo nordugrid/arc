@@ -233,7 +233,6 @@ bool job_local_write_file(const JobDescription &desc,const JobUser &user,const J
 bool job_local_write_file(const std::string &fname,const JobLocalDescription &job_desc);
 bool job_local_read_file(const JobId &id,const JobUser &user,JobLocalDescription &job_desc);
 bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc);
-// bool job_local_read_string(const std::string &fname,unsigned int num,std::string &str);
 
 /*
   Read only some attributes from previously mentioned file.
@@ -241,6 +240,7 @@ bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc)
 bool job_local_read_notify(const JobId &id,const JobUser &user,std::string &notify);
 bool job_local_read_lifetime(const JobId &id,const JobUser &user,time_t &lifetime);
 bool job_local_read_cleanuptime(const JobId &id,const JobUser &user,time_t &cleanuptime);
+bool job_local_read_failed(const JobId &id,const JobUser &user,std::string &state,std::string &cause);
 
 bool job_xml_read_file(const JobId &id,const JobUser &user,std::string &xml);
 bool job_xml_write_file(const JobId &id,const JobUser &user,const std::string &xml);

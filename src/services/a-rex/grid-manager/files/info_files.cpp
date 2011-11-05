@@ -71,7 +71,6 @@ const char * const subdir_cur      = "processing";
 const char * const subdir_old      = "finished";
 const char * const subdir_rew      = "restarting";
 
-Glib::Mutex local_lock;
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 static job_state_t job_state_read_file(const std::string &fname,bool &pending);
@@ -789,7 +788,7 @@ static inline bool read_str(int f,char* buf,int size) {
   return true;
 }
 
-inline void write_pair(int f,const std::string &name,const std::string &value) {
+static inline void write_pair(int f,const std::string &name,const std::string &value) {
   if(value.length() <= 0) return;
   write_str(f,name);
   write_str(f,"=");
@@ -797,7 +796,7 @@ inline void write_pair(int f,const std::string &name,const std::string &value) {
   write_str(f,"\n");
 }
 
-inline void write_pair(int f,const std::string &name,const Arc::Time &value) {
+static inline void write_pair(int f,const std::string &name,const Arc::Time &value) {
   if(value == -1) return;
   write_str(f,name);
   write_str(f,"=");
@@ -805,7 +804,7 @@ inline void write_pair(int f,const std::string &name,const Arc::Time &value) {
   write_str(f,"\n");
 }
 
-inline void write_pair(int f,const std::string &name,bool value) {
+static inline void write_pair(int f,const std::string &name,bool value) {
   write_str(f,name);
   write_str(f,"=");
   write_str(f,(value?"yes":"no"));
@@ -813,74 +812,7 @@ inline void write_pair(int f,const std::string &name,bool value) {
 }
 
 bool job_local_write_file(const std::string &fname,const JobLocalDescription &job_desc) {
-  Glib::Mutex::Lock lock_(local_lock);
-  // *.local file is accessed concurently. To avoid improper readings lock is acquired.
-  int f=open(fname.c_str(),O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-  if(f==-1) return false;
-  struct flock lock;
-  lock.l_type=F_WRLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
-  for(;;) {
-    if(fcntl(f,F_SETLKW,&lock) != -1) break;
-    if(errno == EINTR) continue;
-    close(f); return false;
-  };
-  if(ftruncate(f,0) != 0) { close(f); return false; };
-  if(lseek(f,0,SEEK_SET) != 0) { close(f); return false; };
-  for (std::list<std::string>::const_iterator it=job_desc.jobreport.begin();
-       it!=job_desc.jobreport.end();
-       it++) {
-    write_pair(f,"jobreport",*it);
-  };
-  write_pair(f,"globalid",job_desc.globalid);
-  write_pair(f,"lrms",job_desc.lrms);
-  write_pair(f,"queue",job_desc.queue);
-  write_pair(f,"localid",job_desc.localid);
-  write_str(f,"args=");
-  if(job_desc.arguments.size()) {
-    for(std::list<std::string>::const_iterator i=job_desc.arguments.begin(); \
-        i!=job_desc.arguments.end(); ++i) {
-      output_escaped_string(f,*i);
-      write_str(f," ");
-    };
-  };
-  write_str(f,"\n");
-  write_pair(f,"subject",job_desc.DN);
-  write_pair(f,"starttime",job_desc.starttime);
-  write_pair(f,"lifetime",job_desc.lifetime);
-  write_pair(f,"notify",job_desc.notify);
-  write_pair(f,"processtime",job_desc.processtime);
-  write_pair(f,"exectime",job_desc.exectime);
-  write_pair(f,"rerun",Arc::tostring(job_desc.reruns));
-  if(job_desc.downloads>=0) write_pair(f,"downloads",Arc::tostring(job_desc.downloads));
-  if(job_desc.uploads>=0) write_pair(f,"uploads",Arc::tostring(job_desc.uploads));
-  if(job_desc.rtes>=0) write_pair(f,"rtes",Arc::tostring(job_desc.rtes));
-  write_pair(f,"jobname",job_desc.jobname);
-  for (std::list<std::string>::const_iterator ppn=job_desc.projectnames.begin();
-       ppn!=job_desc.projectnames.end();
-       ++ppn) {
-    write_pair(f,"projectname",*ppn);
-  };
-  write_pair(f,"gmlog",job_desc.stdlog);
-  write_pair(f,"cleanuptime",job_desc.cleanuptime);
-  write_pair(f,"delegexpiretime",job_desc.expiretime);
-  write_pair(f,"clientname",job_desc.clientname);
-  write_pair(f,"clientsoftware",job_desc.clientsoftware);
-  write_pair(f,"sessiondir",job_desc.sessiondir);
-  write_pair(f,"diskspace",Arc::tostring(job_desc.diskspace));
-  write_pair(f,"failedstate",job_desc.failedstate);
-  write_pair(f,"credentialserver",job_desc.credentialserver);
-  for(std::list<std::string>::const_iterator act_id=job_desc.activityid.begin();
-      act_id != job_desc.activityid.end(); ++act_id) {
-    write_pair(f,"activityid",(*act_id));
-  };
-  if (job_desc.migrateactivityid != "") {
-    write_pair(f,"migrateactivityid",job_desc.migrateactivityid);
-    write_pair(f,"forcemigration",job_desc.forcemigration);
-  }
-  write_pair(f,"transfershare",job_desc.transfershare);
-  write_pair(f,"priority",Arc::tostring(job_desc.priority));
-  close(f);
-  return true;
+  return job_desc.write(fname);
 }
 
 bool job_local_read_file(const JobId &id,const JobUser &user,JobLocalDescription &job_desc) {
@@ -889,131 +821,11 @@ bool job_local_read_file(const JobId &id,const JobUser &user,JobLocalDescription
 }
 
 bool job_local_read_file(const std::string &fname,JobLocalDescription &job_desc) {
-  Glib::Mutex::Lock lock_(local_lock);
-  // *.local file is accessed concurently. To avoid improper readings lock is acquired.
-  int f=open(fname.c_str(),O_RDONLY);
-  if(f==-1) return false;
-  struct flock lock;
-  lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
-  for(;;) {
-    if(fcntl(f,F_SETLKW,&lock) != -1) break;
-    if(errno == EINTR) continue;
-    close(f); return false;
-  };
-  // using iostream for handling file content
-  char buf[4096];
-  std::string name;
-  job_desc.activityid.clear();
-  for(;;) {
-    if(!read_str(f,buf,sizeof(buf))) break;;
-    name.erase();
-    int p=input_escaped_string(buf,name,'=');
-    if(name.length() == 0) continue;
-    if(buf[p] == 0) continue;
-    if(name == "lrms") { job_desc.lrms = buf+p; }
-    else if(name == "queue") { job_desc.queue = buf+p; }
-    else if(name == "localid") { job_desc.localid = buf+p; }
-    else if(name == "subject") { job_desc.DN = buf+p;
- }
-    else if(name == "starttime") { job_desc.starttime = buf+p; }
-//    else if(name == "UI") { job_desc.UI = buf+p; }
-    else if(name == "lifetime") { job_desc.lifetime = buf+p; }
-    else if(name == "notify") { job_desc.notify = buf+p; }
-    else if(name == "processtime") { job_desc.processtime = buf+p; }
-    else if(name == "exectime") { job_desc.exectime = buf+p; }
-    else if(name == "jobreport") { job_desc.jobreport.push_back(std::string(buf+p)); }
-    else if(name == "globalid") { job_desc.globalid = buf+p; }
-    else if(name == "jobname") { job_desc.jobname = buf+p; }
-    else if(name == "projectname") { job_desc.projectnames.push_back(std::string(buf+p)); }
-    else if(name == "gmlog") { job_desc.stdlog = buf+p; }
-    else if(name == "rerun") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      job_desc.reruns = n;
-    }
-    else if(name == "downloads") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      job_desc.downloads = n;
-    }
-    else if(name == "uploads") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      job_desc.uploads = n;
-    }
-    else if(name == "rtes") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      job_desc.rtes = n;
-    }
-    else if(name == "args") {
-      job_desc.arguments.clear();
-      for(int n=p;buf[n] != 0;) {
-        std::string arg;
-        n+=input_escaped_string(buf+n,arg);
-        job_desc.arguments.push_back(arg);
-      };
-    }
-    else if(name == "cleanuptime") { job_desc.cleanuptime = buf+p; }
-    else if(name == "delegexpiretime") { job_desc.expiretime = buf+p; }
-    else if(name == "clientname") { job_desc.clientname = buf+p; }
-    else if(name == "clientsoftware") { job_desc.clientsoftware = buf+p; }
-    else if(name == "sessiondir") { job_desc.sessiondir = buf+p; }
-    else if(name == "failedstate") { job_desc.failedstate = buf+p; }
-    else if(name == "credentialserver") { job_desc.credentialserver = buf+p; }
-    else if(name == "diskspace") {
-      std::string temp_s(buf+p);
-      unsigned long long int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      job_desc.diskspace = n;
-    }
-    else if(name == "activityid") { 
-      std::string temp_s(buf+p);
-      job_desc.activityid.push_back(temp_s);
-    }
-    else if(name == "migrateactivityid") { job_desc.migrateactivityid = buf+p; }
-    else if(name == "forcemigration") { 
-      if(strcasecmp("yes",buf+p) == 0) { job_desc.forcemigration = true; }
-      else if(strcasecmp("true",buf+p) == 0) { job_desc.forcemigration = true; }
-      else job_desc.forcemigration = false;
-    }
-    else if(name == "transfershare") { job_desc.transfershare = buf+p; }
-    else if(name == "priority") {
-      std::string temp_s(buf+p); int n;
-      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
-      job_desc.priority = n;
-    }
-  }
-  close(f);
-  return true;
+  return job_desc.read(fname);
 }
 
 bool job_local_read_var(const std::string &fname,const std::string &vnam,std::string &value) {
-  Glib::Mutex::Lock lock_(local_lock);
-  // *.local file is accessed concurently. To avoid improper readings lock is acquired.
-  int f=open(fname.c_str(),O_RDONLY);
-  if(f==-1) return false;
-  struct flock lock;
-  lock.l_type=F_RDLCK; lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
-  for(;;) {
-    if(fcntl(f,F_SETLKW,&lock) != -1) break;
-    if(errno == EINTR) continue;
-    close(f); return false;
-  };
-  // using iostream for handling file content
-  char buf[1024];
-  std::string name;
-  bool found = false;
-  for(;;) {
-    if(!read_str(f,buf,sizeof(buf))) break;
-    name.erase();
-    int p=input_escaped_string(buf,name,'=');
-    if(name.length() == 0) continue;
-    if(buf[p] == 0) continue;
-    if(name == vnam) { value = buf+p; found=true; break; };
-  };
-  close(f);
-  return found;
+  return JobLocalDescription::read_var(fname,vnam,value);
 }
 
 bool job_local_read_lifetime(const JobId &id,const JobUser &user,time_t &lifetime) {
@@ -1041,17 +853,12 @@ bool job_local_read_notify(const JobId &id,const JobUser &user,std::string &noti
   return true;
 }
 
-bool job_local_read_string(const std::string &fname,unsigned int num,std::string &str) {
-  std::ifstream f(fname.c_str());
-  if(! f.is_open() ) return false; /* can't open file */
-  for(;num;num--) {
-    f.ignore(INT_MAX,'\n'); 
-  };
-  if(f.eof()) { f.close(); return false; };
-  char buf[256];
-  f.get(buf,255,'\n'); if(!buf[0]) { f.close(); return false; };
-  str=buf; 
-  f.close();
+bool job_local_read_failed(const JobId &id,const JobUser &user,std::string &state,std::string &cause) {
+  state = "";
+  cause = "";
+  std::string fname = user.ControlDir() + "/job." + id + sfx_local;
+  job_local_read_var(fname,"failedstate",state);
+  job_local_read_var(fname,"failedcause",cause);
   return true;
 }
 

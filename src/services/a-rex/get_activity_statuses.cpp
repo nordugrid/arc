@@ -127,7 +127,10 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
     } else {
       bool job_pending = false;
       std::string gm_state = job.State(job_pending);
-      Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job.Failed(),job_pending);
+      bool job_failed = job.Failed();
+      std::string failed_cause;
+      std::string failed_state = job.FailedState(failed_cause);
+      Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job_failed,job_pending,failed_state,failed_cause);
       status.NewChild("estypes:Timestamp") = Arc::Time().str(Arc::ISOTime); // TODO
       //status.NewChild("estypes:Description);  TODO
     };
@@ -159,9 +162,12 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
           info.Namespaces(ns_);
           bool job_pending = false;
           std::string gm_state = job.State(job_pending);
-          Arc::XMLNode status = addActivityStatusES(
-               info.NewChild(info.NamespacePrefix(glue2_namespace.c_str())+":State",0,false),
-               gm_state,Arc::XMLNode(),job.Failed(),job_pending);
+          bool job_failed = job.Failed();
+          std::string failed_cause;
+          std::string failed_state = job.FailedState(failed_cause);
+          Arc::XMLNode status = info.NewChild(info.NamespacePrefix(glue2_namespace.c_str())+":State",0,false);
+          status = addActivityStatusES(status,gm_state,Arc::XMLNode(),
+                               job_failed,job_pending,failed_state,failed_cause);
           status.NewChild("estypes:Timestamp") = Arc::Time().str(Arc::ISOTime); // TODO
           //status.NewChild("estypes:Description);  TODO
         };

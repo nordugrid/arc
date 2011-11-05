@@ -106,6 +106,10 @@ class ARexJob {
   std::string State(bool& job_pending);
   /** Returns true if job has failed */
   bool Failed(void);
+  /** Returns state at which job failed and sets cause to 
+     information what caused job failure: "internal" for server
+     initiated and "client" for canceled on client request. */
+  std::string FailedState(std::string& cause);
   /** Returns path to session directory */
   std::string SessionDir(void);
   /** Returns name of virtual log directory */

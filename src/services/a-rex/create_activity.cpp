@@ -221,9 +221,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   Arc::XMLNode resp = out.NewChild("escreate:ActivityCreationResponse");
   resp.NewChild("estypes:ActivityID")=job.ID();
   resp.NewChild("estypes:ActivityManagerURI")=config.Endpoint();
-  bool job_pending = false;  
-  std::string gm_state = job.State(job_pending);
-  Arc::XMLNode rstatus = addActivityStatusES(resp,gm_state,Arc::XMLNode(),job.Failed(),job_pending);
+  Arc::XMLNode rstatus = addActivityStatusES(resp,"ACCEPTED",Arc::XMLNode(),false,false);
   //resp.NewChild("estypes:ETNSC");
   resp.NewChild("escreate:StageInDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
   resp.NewChild("escreate:SessionDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();

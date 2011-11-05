@@ -692,7 +692,7 @@ int JobPlugin::close(bool eof) {
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;
     };
-    if(job_desc.failedstate.length() == 0) {
+    if(job_desc.failedstate.empty()) {
       error_description="Job can't be restarted.";
       logger.msg(Arc::ERROR, "%s", error_description);
       return 1;

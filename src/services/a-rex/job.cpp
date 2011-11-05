@@ -585,6 +585,12 @@ bool ARexJob::Failed(void) {
   return job_failed_mark_check(id_,*config_.User());
 }
 
+std::string ARexJob::FailedState(std::string& cause) {
+  std::string state;
+  job_local_read_failed(id_,*config_.User(),state,cause);
+  return state;
+}
+
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;

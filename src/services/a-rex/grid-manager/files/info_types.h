@@ -48,7 +48,7 @@ class JobLocalDescription {
                            reruns(0),priority(50),downloads(-1),uploads(-1),rtes(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
-                           failedstate(""),
+                           failedstate(""),failedcause(""),
                            credentialserver(""),gsiftpthreads(1),
                            dryrun(false),diskspace(0),
                            migrateactivityid(""), forcemigration(false),
@@ -56,6 +56,10 @@ class JobLocalDescription {
   {}
 
   JobLocalDescription& operator=(const Arc::JobDescription& arc_job_desc);
+
+  bool read(const std::string& fname);
+  bool write(const std::string& fname) const;
+  static bool read_var(const std::string &fname,const std::string &vnam,std::string &value);
   
   std::string jobid;         /* job's unique identificator */
   /* attributes stored in job.ID.local */
@@ -86,6 +90,7 @@ class JobLocalDescription {
                                 put after job finishes */
   std::string sessiondir;    /* job's session directory */
   std::string failedstate;   /* state at which job failed, used for rerun */
+  std::string failedcause;   /* reason for job failure, client or internal error */
   std::string credentialserver; /* URL of server used to renew credentials - MyProxy */
   /* attributes stored in other files */
   std::list<FileData> inputdata;  /* input files */

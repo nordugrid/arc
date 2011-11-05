@@ -74,7 +74,7 @@ class JobsList {
   bool CanStage(const JobsList::iterator &i, const JobsListConfig& jcfg, bool up);
   bool JobPending(JobsList::iterator &i);
   job_state_t JobFailStateGet(const iterator &i);
-  bool JobFailStateRemember(const iterator &i,job_state_t state);
+  bool JobFailStateRemember(const iterator &i,job_state_t state,bool internal = true);
   bool RecreateTransferLists(const JobsList::iterator &i);
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids);
   bool ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids);
