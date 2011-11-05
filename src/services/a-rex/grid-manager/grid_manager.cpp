@@ -118,17 +118,29 @@ static void* cache_func(void* arg) {
   return NULL;
 }
 
-typedef struct {
+class sleep_st {
+ public:
   Arc::SimpleCondition* sleep_cond;
   CommFIFO* timeout;
-} sleep_st;
+  bool to_exit;
+  sleep_st(void):sleep_cond(NULL),timeout(NULL),to_exit(false) {
+  };
+  ~sleep_st(void) {
+    to_exit = true;
+    while(to_exit) sleep(1);
+  };
+};
 
 static void* wakeup_func(void* arg) {
   sleep_st* s = (sleep_st*)arg;
   for(;;) {
+    if(s->to_exit) break;
     s->timeout->wait();
+    if(s->to_exit) break;
     s->sleep_cond->signal();
+    if(s->to_exit) break;
   };
+  s->to_exit = false;
   return NULL;
 }
 
