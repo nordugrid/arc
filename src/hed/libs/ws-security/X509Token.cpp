@@ -181,7 +181,18 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
     std::string decrypted_str((const char*)decrypted_buf->data);
     XMLNode decrypted_data(decrypted_str); 
     // TODO: less copies
-    body.Replace(decrypted_data);
+    //body.Replace(decrypted_data); //if the node is replaced with whole <Body/>, then node_ will be lost.
+    //body.Child().Replace(decrypted_data.Child());
+    for (int cn = 0;; ++cn) {
+      XMLNode cnode = body.Child(cn);
+      if(!cnode) break;
+      cnode.Destroy();
+    }
+    for (int cn = 0;; ++cn) {
+      XMLNode cnode = decrypted_data.Child(cn);
+      if (!cnode) break;
+      body.NewChild(cnode);
+    }
 
     //Destroy the wsse:Security in header
     header["wsse:Security"].Destroy();

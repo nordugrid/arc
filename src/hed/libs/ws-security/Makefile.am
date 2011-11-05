@@ -1,9 +1,12 @@
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)
+
 lib_LTLIBRARIES = libarcwssecurity.la
 
 if XMLSEC_ENABLED
-noinst_PROGRAMS = test test_x509token test_samltoken
+noinst_PROGRAMS = test_usernametoken test_x509token test_samltoken
 else 
-noinst_PROGRAMS = test
+noinst_PROGRAMS = test_usernametoken
 endif
 
 libarcwssecurity_ladir = $(pkgincludedir)/ws-security
@@ -32,9 +35,9 @@ libarcwssecurity_la_LIBADD = \
 endif
 libarcwssecurity_la_LDFLAGS = -version-info 1:0:0
 
-test_SOURCES = test.cpp 
-test_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS)
-test_LDADD = \
+test_usernametoken_SOURCES = test_usernametoken.cpp 
+test_usernametoken_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS)
+test_usernametoken_LDADD = \
 	libarcwssecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \

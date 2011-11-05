@@ -396,6 +396,7 @@ UsernameToken::UsernameToken(SOAPEnvelope& soap, const std::string& username, co
 
     std::string password_digest = digest_password(nonce_, created_, password_);
     passwd_node = password_digest;
+    password_ = password_digest; //the plain test of password will not be useful any more.
   }
   else {
     std::cerr<<"Unsupported password type requested"<<std::endl;
