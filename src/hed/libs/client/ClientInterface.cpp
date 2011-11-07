@@ -466,27 +466,18 @@ namespace Arc {
 
   ClientSOAP::~ClientSOAP() {}
 
-  MCC_Status ClientSOAP::process(PayloadSOAP *request,
-                                 PayloadSOAP **response) {
-    return process("", request, response);
-  }
-
   bool ClientSOAP::Load() {
     if(!ClientHTTP::Load()) return false;
-    if (!soap_entry)
-      soap_entry = (*loader)["soap"];
+    if (!soap_entry) soap_entry = (*loader)["soap"];
     if (!soap_entry) return false;
     return true;
   }
 
-  MCC_Status ClientSOAP::process(const std::string& action,
-                                 PayloadSOAP *request,
+  MCC_Status ClientSOAP::process(PayloadSOAP *request,
                                  PayloadSOAP **response) {
     *response = NULL;
-    if(!Load())
-      return MCC_Status();
-    if (!soap_entry)
-      return MCC_Status();
+    if(!Load()) return MCC_Status();
+    if (!soap_entry) return MCC_Status();
     MessageAttributes attributes_req;
     MessageAttributes attributes_rep;
     Message reqmsg;
@@ -496,15 +487,41 @@ namespace Arc {
     reqmsg.Payload(request);
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
-    if (!action.empty())
-      attributes_req.set("SOAP:ACTION", action);
     MCC_Status r = soap_entry->process(reqmsg, repmsg);
-    if (repmsg.Payload() != NULL)
+    if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
       } catch (std::exception&) {
         delete repmsg.Payload();
       }
+    }
+    return r;
+  }
+
+  MCC_Status ClientSOAP::process(const std::string& action,
+                                 PayloadSOAP *request,
+                                 PayloadSOAP **response) {
+    *response = NULL;
+    if(!Load()) return MCC_Status();
+    if (!soap_entry) return MCC_Status();
+    MessageAttributes attributes_req;
+    MessageAttributes attributes_rep;
+    Message reqmsg;
+    Message repmsg;
+    reqmsg.Attributes(&attributes_req);
+    reqmsg.Context(&context);
+    reqmsg.Payload(request);
+    repmsg.Attributes(&attributes_rep);
+    repmsg.Context(&context);
+    attributes_req.set("SOAP:ACTION", action);
+    MCC_Status r = soap_entry->process(reqmsg, repmsg);
+    if (repmsg.Payload() != NULL) {
+      try {
+        *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
+      } catch (std::exception&) {
+        delete repmsg.Payload();
+      }
+    }
     return r;
   }
 
