@@ -8,7 +8,6 @@
 #include "../userspec.h"
 #include "../names.h"
 #include "../misc.h"
-#include "../misc/canonical_dir.h"
 #include "../misc/escaped.h"
 
 #include "gaclplugin.h"

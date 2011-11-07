@@ -12,7 +12,6 @@
 #include "fileroot.h"
 #include "names.h"
 #include "commands.h"
-#include "misc/canonical_dir.h"
 #include "misc/proxy.h"
 
 /* timeout if nothing happened during 10 minutes */

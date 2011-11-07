@@ -1,7 +1,8 @@
+#include <arc/StringConv.h>
+
 #include "fileroot.h"
 #include "names.h"
 #include "misc.h"
-#include "misc/canonical_dir.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"FilePlugin");
 
@@ -106,7 +107,7 @@ int FileRoot::size(const char* name,unsigned long long int *size) {
   if(name[0] != '/') { new_name=cur_dir+'/'+name; }
   else { new_name=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_name,false) != 0) return 1;
+  if(!Arc::canonical_dir(new_name,false)) return 1;
   if(new_name.empty()) {
     (*size)=0;
     return 0;
@@ -130,7 +131,7 @@ int FileRoot::time(const char* name,time_t *time) {
   if(name[0] != '/') { new_name=cur_dir+'/'+name; }
   else { new_name=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_name,false) != 0) return 1;
+  if(!Arc::canonical_dir(new_name,false)) return 1;
   if(new_name.empty()) {
     (*time)=0;
     return 0;
@@ -154,7 +155,7 @@ int FileRoot::checkfile(const char* name,DirEntry &info,DirEntry::object_info_le
   if(name[0] != '/') { new_name=cur_dir+'/'+name; }
   else { new_name=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_name,false) != 0) return 1;
+  if(!Arc::canonical_dir(new_name,false)) return 1;
   if(new_name.empty()) {
     info.reset();
     info.name="/";
@@ -179,7 +180,7 @@ int FileRoot::mkd(std::string& name) {
   if(name[0] != '/') { new_dir=cur_dir+'/'+name; }
   else { new_dir=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_dir,false) == 0) {
+  if(Arc::canonical_dir(new_dir,false)) {
     for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
       if((*i) == new_dir) { /* already exists, at least virtually */
         name=new_dir;
@@ -204,7 +205,7 @@ int FileRoot::rmd(std::string& name) {
   if(name[0] != '/') { new_dir=cur_dir+'/'+name; }
   else { new_dir=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_dir,false) == 0) {
+  if(Arc::canonical_dir(new_dir,false)) {
     for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
       if((*i) == new_dir) { /* virtual - not removable */
         return 1;
@@ -224,7 +225,7 @@ int FileRoot::rm(std::string& name) {
   if(name[0] != '/') { new_dir=cur_dir+'/'+name; }
   else { new_dir=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_dir,false) == 0) {
+  if(Arc::canonical_dir(new_dir,false)) {
     for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
       if((*i) == new_dir) { /* virtual dir - not removable */
         return 1;
@@ -244,7 +245,7 @@ int FileRoot::cwd(std::string& name) {
   if(name[0] != '/') { new_dir=cur_dir+'/'+name; }
   else { new_dir=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_dir,false) == 0) {
+  if(Arc::canonical_dir(new_dir,false)) {
     if(new_dir.length() == 0) { /* always can go to root ? */
       cur_dir=new_dir;
       name=cur_dir;
@@ -277,7 +278,7 @@ int FileRoot::open(const char* name,open_modes mode,unsigned long long int size)
   if(name[0] != '/') { new_name=cur_dir+'/'+name; }
   else { new_name=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(new_name,false) != 0) { return 1; };
+  if(!Arc::canonical_dir(new_name,false)) { return 1; };
   for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
     if(i->belongs(new_name.c_str())) {
       if(i->open(new_name.c_str(),mode,size) == 0) {
@@ -326,7 +327,7 @@ int FileRoot::readdir(const char* name,std::list<DirEntry> &dir_list,DirEntry::o
   if(name[0] != '/') { fullname=cur_dir+'/'+name; }
   else { fullname=name; };
   error=FileNode::no_error;
-  if(gridftpd::canonical_dir(fullname,false) != 0) return 1;
+  if(!Arc::canonical_dir(fullname,false)) return 1;
   int res = 1;
   for(std::list<FileNode>::iterator i=nodes.begin();i!=nodes.end();++i) {
     if(i->belongs(fullname.c_str())) {

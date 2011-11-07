@@ -64,9 +64,11 @@ bool JobLog::start_info(JobDescription &job,const JobUser &user) {
     if(job.GetLocalDescription(user)) {
       JobLocalDescription *job_desc = job.get_local();
       std::string tmps;
-      tmps=job_desc->jobname; make_escaped_string(tmps,'"');
+      tmps=job_desc->jobname;
+      tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
       o<<"name: \""<<tmps<<"\", ";
-      tmps=job_desc->DN; make_escaped_string(tmps,'"');
+      tmps=job_desc->DN;
+      tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
       o<<"owner: \""<<tmps<<"\", ";
       o<<"lrms: "<<job_desc->lrms<<", queue: "<<job_desc->queue;
     };
@@ -83,9 +85,11 @@ bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
     std::string tmps;
     if(job.GetLocalDescription(user)) {
       JobLocalDescription *job_desc = job.get_local();
-      tmps=job_desc->jobname; make_escaped_string(tmps,'"');
+      tmps=job_desc->jobname;
+      tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
       o<<"name: \""<<tmps<<"\", ";
-      tmps=job_desc->DN; make_escaped_string(tmps,'"');
+      tmps=job_desc->DN;
+      tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
       o<<"owner: \""<<tmps<<"\", ";
       o<<"lrms: "<<job_desc->lrms<<", queue: "<<job_desc->queue;
       if(job_desc->localid.length() >0) o<<", lrmsid: "<<job_desc->localid;
@@ -97,7 +101,7 @@ bool JobLog::finish_info(JobDescription &job,const JobUser &user) {
         if(i==std::string::npos) break;
         tmps[i]='.';
       };
-      make_escaped_string(tmps,'"');
+      tmps = Arc::escape_chars(tmps, "\"\\", '\\', false);
       o<<", failure: \""<<tmps<<"\"";
     };
     o<<std::endl;

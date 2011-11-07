@@ -2,8 +2,8 @@ noinst_LTLIBRARIES = libmisc.la
 
 if LDAP_ENABLED
 libmisc_la_SOURCES = \
-	ldapquery.cpp escaped.cpp canonical_dir.cpp proxy.cpp \
-	ldapquery.h   escaped.h   canonical_dir.h   proxy.h
+	ldapquery.cpp escaped.cpp proxy.cpp \
+	ldapquery.h   escaped.h   proxy.h
 else
 libmisc_la_SOURCES = \
 	escaped.cpp canonical_dir.cpp proxy.cpp \

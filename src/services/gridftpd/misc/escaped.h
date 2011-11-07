@@ -6,11 +6,6 @@
 namespace gridftpd {
 
   /*
-    Exchange every occurence of e and '\' in 'str' into \e and '\\'.
-    todo: move output_escaped_string here.
-  */
-  void make_escaped_string(std::string &str,char e = ' ',bool escape_nonprintable = false);
-  /*
     Reads keyword from string at 'buf' separated by 'separator' and
     stores it in 'str'. Each couple of characters starting from \ is
     replaced by second character. \x## is replaced by code corresponding

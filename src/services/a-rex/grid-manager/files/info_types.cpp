@@ -12,7 +12,6 @@
 #include <errno.h>
 
 #include <arc/StringConv.h>
-#include "../misc/canonical_dir.h"
 #include "../misc/escaped.h"
 #include "info_types.h"
 
@@ -121,7 +120,7 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
   int n=input_escaped_string(buf,fd.pfn);
   input_escaped_string(buf+n,fd.lfn);
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
-  if(canonical_dir(fd.pfn) != 0) {
+  if(!Arc::canonical_dir(fd.pfn)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
     fd.pfn.resize(0); fd.lfn.resize(0);
   };

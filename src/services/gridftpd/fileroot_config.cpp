@@ -8,11 +8,12 @@
 #include <strstream>
 #endif
 
+#include <arc/StringConv.h>
+
 #include "conf.h"
 #include "names.h"
 #include "misc.h"
 #include "auth/auth.h"
-#include "misc/canonical_dir.h"
 #include "conf/conf_vo.h"
 #include "conf/environment.h"
 
@@ -257,7 +258,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
         continue;
       };
       dir=subst_user_spec(dir,&user);
-      if(gridftpd::canonical_dir(dir,false) != 0) {
+      if(!Arc::canonical_dir(dir,false)) {
         logger.msg(Arc::WARNING, "bad directory in plugin command: %s", dir);
         continue;
       };
@@ -342,7 +343,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
             break;
           };
           plugin_path=subst_user_spec(plugin_path,&user);
-          if(gridftpd::canonical_dir(plugin_path,false) != 0) {
+          if(!Arc::canonical_dir(plugin_path,false)) {
             logger.msg(Arc::WARNING, "bad directory for plugin: %s", plugin_path);
             break;
           };

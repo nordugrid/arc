@@ -10,7 +10,6 @@
 #include "fileroot.h"
 #include "names.h"
 #include "commands.h"
-#include "misc/canonical_dir.h"
 #include "misc.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"GridFTP_Commands");

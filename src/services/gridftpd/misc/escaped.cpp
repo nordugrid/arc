@@ -17,30 +17,6 @@ namespace gridftpd {
     return (c-'0');
   }
 
-  /// Escape all '\' and e in str with '\'. Also if requested convert all
-  /// nonprintable characters into hex code "\x##".
-  void make_escaped_string(std::string &str,char e,bool escape_nonprintable) {
-    std::string::size_type n,nn;
-    for(nn=0;;) {
-      if((n=str.find('\\',nn)) == std::string::npos) break;
-      str.insert(n,"\\",1); nn=n+2;
-    };
-    for(nn=0;;) {
-      if((n=str.find(e,nn)) == std::string::npos) break;
-      str.insert(n,"\\",1); nn=n+2;
-    };
-    if(escape_nonprintable) for(nn=0;;) {
-      if(isprint(str[nn])) { nn++; continue; };
-      char buf[5];
-      buf[0]='\\'; buf[1]='x'; buf[4]=0;
-      buf[3]=((unsigned char)(str[nn] & 0x0f)) + '0';
-      buf[2]=(((unsigned char)(str[nn] & 0xf0)) >> 4) + '0';
-      if(buf[3] > '9') buf[3]+=('a'-'9'-1);
-      if(buf[2] > '9') buf[2]+=('a'-'9'-1);
-      str.replace(nn,1,buf); nn+=4;
-    };
-  }
-
   /// Remove escape chracters from string and decode \x## codes.
   /// Unescaped value of e is also treated as end of string
   char* make_unescaped_string(char* str,char e) {

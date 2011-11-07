@@ -209,11 +209,11 @@ bool JobUsers::substitute(std::string& param) const {
   for(JobUsers::const_iterator i = begin();i!=end();++i) {
     std::string tmp_s;
     tmp_s = i->SessionRoot();
-    make_escaped_string(tmp_s);
+    tmp_s = Arc::escape_chars(tmp_s, " \\", '\\', false);
     tmp_s=tmp_s+" ";
     if(session_roots.find(tmp_s) == std::string::npos) session_roots+=tmp_s;
     tmp_s = i->ControlDir();
-    make_escaped_string(tmp_s);
+    tmp_s = Arc::escape_chars(tmp_s, " \\", '\\', false);
     tmp_s=tmp_s+" ";
     if(control_dirs.find(tmp_s) == std::string::npos) control_dirs+=tmp_s;
   };
