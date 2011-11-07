@@ -136,10 +136,4 @@ class LRMSResult {
 std::istream& operator>>(std::istream& i,LRMSResult &r);
 std::ostream& operator<<(std::ostream& i,const LRMSResult &r);
 
-/*
-  Writes to 'o' string 'str' prepending each blank space with \ .
-*/
-void output_escaped_string(std::ostream &o,const std::string &str);
-void output_escaped_string(int h,const std::string &str);
-
 #endif

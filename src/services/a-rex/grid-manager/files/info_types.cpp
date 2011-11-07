@@ -80,36 +80,12 @@ static inline bool read_str(int f,char* buf,int size) {
   return true;
 }
 
-void output_escaped_string(std::ostream &o,const std::string &str) {
-  std::string::size_type n,nn;
-  for(nn=0;;) {
-//    if((n=str.find(' ',nn)) == std::string::npos) break;
-    if((n=str.find_first_of(" \\\r\n",nn)) == std::string::npos) break;
-    o.write(str.data()+nn,n-nn);
-    o.put('\\');
-    o.put(*(str.data()+n));
-    nn=n+1;
-  };
-  o.write(str.data()+nn,str.length()-nn);
-}
-
-void output_escaped_string(int h,const std::string &str) {
-  std::string::size_type n,nn;
-  for(nn=0;;) {
-//    if((n=str.find(' ',nn)) == std::string::npos) break;
-    if((n=str.find_first_of(" \\\r\n",nn)) == std::string::npos) break;
-    write_str(h,str.data()+nn,n-nn);
-    write_chr(h,'\\');
-    write_chr(h,*(str.data()+n));
-    nn=n+1;
-  };
-  write_str(h,str.data()+nn,str.length()-nn);
-}
-
 std::ostream &operator<< (std::ostream &o,const FileData &fd) {
-  output_escaped_string(o,fd.pfn);
+  std::string escaped_pfn(Arc::escape_chars(fd.pfn, " \\\r\n", '\\', false));
+  o.write(escaped_pfn.c_str(), escaped_pfn.size());
   o.put(' ');
-  output_escaped_string(o,fd.lfn);
+  std::string escaped_lfn(Arc::escape_chars(fd.lfn, " \\\r\n", '\\', false));
+  o.write(escaped_lfn.c_str(), escaped_lfn.size());
   return o;
 }
 
@@ -402,7 +378,7 @@ bool JobLocalDescription::write(const std::string& fname) const {
   if(arguments.size()) {
     for(std::list<std::string>::const_iterator i=arguments.begin(); \
         i!=arguments.end(); ++i) {
-      output_escaped_string(f,*i);
+      write_str(f, Arc::escape_chars(*i, " \\\r\n", '\\', false));
       write_str(f," ");
     };
   };
