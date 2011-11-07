@@ -6,8 +6,8 @@ libmisc_la_SOURCES = \
 	ldapquery.h   escaped.h   proxy.h
 else
 libmisc_la_SOURCES = \
-	escaped.cpp canonical_dir.cpp proxy.cpp \
-	escaped.h   canonical_dir.h   proxy.h
+	escaped.cpp proxy.cpp \
+	escaped.h   proxy.h
 endif
 
 libmisc_la_CXXFLAGS = -I$(top_srcdir)/include \
