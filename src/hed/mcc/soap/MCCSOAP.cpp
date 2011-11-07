@@ -213,6 +213,7 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     logger.msg(ERROR, "Security check failed in SOAP MCC for incoming message");
     return make_raw_fault(outmsg, "Security check failed for SOAP request");
   };
+  // TODO: pass SOAP action from HTTP header to SOAP:ACTION attribute
   // Call next MCC 
   MCCInterface* next = Next();
   if(!next) {
@@ -268,16 +269,22 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
   outpayload->Insert(xml.c_str());
   outmsg = nextoutmsg; outmsg.Payload(NULL);
   // Specifying attributes for binding to underlying protocols - HTTP so far
-  std::string soap_action = nextoutmsg.Attributes()->get("SOAP:ACTION");
-  if(soap_action.empty()) soap_action=WSAHeader(*retpayload).Action();
+  std::string soap_action;
+  bool soap_action_defined = nextoutmsg.Attributes()->count("SOAP:ACTION") > 0;
+  if(soap_action_defined) {
+    soap_action=nextoutmsg.Attributes()->get("SOAP:ACTION");
+  } else {
+    soap_action_defined=WSAHeader(*retpayload).hasAction();
+    soap_action=WSAHeader(*retpayload).Action();
+  };
   if(retpayload->Version() == SOAPEnvelope::Version_1_2) {
     // TODO: For SOAP 1.2 Content-Type is not sent in case of error - probably harmless
     std::string mime_type("application/soap+xml");
-    if(!soap_action.empty()) mime_type+=" ;action=\""+soap_action+"\"";
+    if(soap_action_defined) mime_type+=" ;action=\""+soap_action+"\"";
     outmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     outmsg.Attributes()->set("HTTP:Content-Type","text/xml");
-    if(!soap_action.empty()) outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
+    if(soap_action_defined) outmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   if(retpayload->Fault() != NULL) {
     // Maybe MCC_Status should be used instead ?
@@ -316,15 +323,21 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   Message nextinmsg = inmsg;
   nextinmsg.Payload(&nextpayload);
   // Specifying attributes for binding to underlying protocols - HTTP so far
-  std::string soap_action = inmsg.Attributes()->get("SOAP:ACTION");
-  if(soap_action.empty()) soap_action=WSAHeader(*inpayload).Action();
+  std::string soap_action;
+  bool soap_action_defined = inmsg.Attributes()->count("SOAP:ACTION") > 0;
+  if(soap_action_defined) {
+    soap_action=inmsg.Attributes()->get("SOAP:ACTION");
+  } else {
+    soap_action_defined=WSAHeader(*inpayload).hasAction();
+    soap_action=WSAHeader(*inpayload).Action();
+  };
   if(inpayload->Version() == SOAPEnvelope::Version_1_2) {
     std::string mime_type("application/soap+xml");
-    if(!soap_action.empty()) mime_type+=" ;action=\""+soap_action+"\"";
+    if(soap_action_defined) mime_type+=" ;action=\""+soap_action+"\"";
     nextinmsg.Attributes()->set("HTTP:Content-Type",mime_type);
   } else {
     nextinmsg.Attributes()->set("HTTP:Content-Type","text/xml");
-    if(!soap_action.empty()) nextinmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
+    if(soap_action_defined) nextinmsg.Attributes()->set("HTTP:SOAPAction",soap_action);
   };
   // Call next MCC 
   MCCInterface* next = Next();
@@ -332,6 +345,7 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   Message nextoutmsg = outmsg; nextoutmsg.Payload(NULL);
   MCC_Status ret = next->process(nextinmsg,nextoutmsg); 
   // Do checks and create SOAP response
+  // TODO: pass SOAP action from HTTP header to SOAP:ACTION attribute
   if(!ret) {
     return make_soap_fault(outmsg,nextoutmsg,false,"Failed to send SOAP message");
   };
