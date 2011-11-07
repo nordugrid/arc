@@ -42,7 +42,7 @@ namespace Arc {
     arg1node.NewChild("item") = "ftp";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("get", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -86,7 +86,7 @@ namespace Arc {
 
       delete response;
       response = NULL;
-      status = process(&request, &response);
+      status = process("getRequestStatus", &request, &response);
       if (status != SRM_OK)
         return status;
 
@@ -140,7 +140,7 @@ namespace Arc {
     arg4node.NewChild("item") = "ftp";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("put", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -184,7 +184,7 @@ namespace Arc {
 
       delete response;
       response = NULL;
-      status = process(&request, &response);
+      status = process("getRequestStatus", &request, &response);
       if (status != SRM_OK)
         return status;
 
@@ -226,7 +226,7 @@ namespace Arc {
     arg2node.NewChild("item") = "false";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("copy", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -268,7 +268,7 @@ namespace Arc {
 
       delete response;
       response = NULL;
-      status = process(&request, &response);
+      status = process("getRequestStatus", &request, &response);
       if (status != SRM_OK)
         return status;
 
@@ -313,7 +313,7 @@ namespace Arc {
       arg2node.NewChild("item") = "Running";
 
       PayloadSOAP *response = NULL;
-      SRMReturnCode status = process(&request, &response);
+      SRMReturnCode status = process("setFileStatus", &request, &response);
       if (status != SRM_OK)
         return status;
 
@@ -359,7 +359,7 @@ namespace Arc {
     arg0node.NewChild("item") = srmurl.FullURL();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("advisoryDelete", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -380,7 +380,7 @@ namespace Arc {
     arg0node.NewChild("item") = srmurl.FullURL();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("getFileMetaData", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -447,7 +447,7 @@ namespace Arc {
       arg2node.NewChild("item") = "Done";
 
       PayloadSOAP *response = NULL;
-      SRMReturnCode status = process(&request, &response);
+      SRMReturnCode status = process("setFileStatus", &request, &response);
       if (status != SRM_OK)
         return status;
 

@@ -123,7 +123,8 @@ namespace Arc {
     return NULL;
   }
 
-  SRMReturnCode SRMClient::process(PayloadSOAP *request,
+  SRMReturnCode SRMClient::process(const std::string& action,
+                                   PayloadSOAP *request,
                                    PayloadSOAP **response) {
 
     if (logger.getThreshold() <= DEBUG) {
@@ -132,7 +133,7 @@ namespace Arc {
       logger.msg(DEBUG, "SOAP request: %s", xml);
     }
 
-    MCC_Status status = client->process(request, response);
+    MCC_Status status = client->process(action, request, response);
 
     // Try to reconnect in case of failure
     if (*response && (*response)->IsFault()) {

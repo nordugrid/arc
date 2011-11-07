@@ -467,7 +467,7 @@ namespace Arc {
     /**
      * Process SOAP request
      */
-    SRMReturnCode process(PayloadSOAP *request, PayloadSOAP **response);
+    SRMReturnCode process(const std::string& action, PayloadSOAP *request, PayloadSOAP **response);
 
   public:
     /**

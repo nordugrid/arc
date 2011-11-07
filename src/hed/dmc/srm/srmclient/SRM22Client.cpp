@@ -148,7 +148,7 @@ namespace Arc {
     request.NewChild("SRMv2:srmPing").NewChild("srmPingRequest");
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -190,7 +190,7 @@ namespace Arc {
       req.NewChild("userSpaceTokenDescription") = description;
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -225,7 +225,7 @@ namespace Arc {
       req.NewChild("userRequestDescription") = description;
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -273,7 +273,7 @@ namespace Arc {
       protocols.NewChild("stringArray") = *prot;
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK) {
       creq.finished_error();
       return status;
@@ -365,7 +365,7 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK) {
       creq.finished_abort();
       return status;
@@ -438,7 +438,7 @@ namespace Arc {
     }
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK) {
       creq.finished_error();
       return status;
@@ -542,7 +542,7 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK) {
       creq.finished_abort();
       return status;
@@ -682,7 +682,7 @@ namespace Arc {
       req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK) {
       creq.finished_error();
       return status;
@@ -794,7 +794,7 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK) {
       creq.finished_abort();
       return status;
@@ -887,7 +887,7 @@ namespace Arc {
       req.NewChild("fullDetailedList") = "true";
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -925,7 +925,7 @@ namespace Arc {
 
         delete response;
         response = NULL;
-        status = process(&request, &response);
+        status = process("", &request, &response);
         if (status != SRM_OK)
           return status;
 
@@ -1246,7 +1246,7 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -1286,7 +1286,7 @@ namespace Arc {
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -1323,7 +1323,7 @@ namespace Arc {
     req.NewChild("requestToken") = creq.request_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -1387,7 +1387,7 @@ namespace Arc {
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -1417,7 +1417,7 @@ namespace Arc {
     req.NewChild("SURL") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -1452,7 +1452,7 @@ namespace Arc {
       req.NewChild("targetSpaceToken") = creq.space_token();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
@@ -1495,7 +1495,7 @@ namespace Arc {
 
         delete response;
         response = NULL;
-        status = process(&request, &response);
+        status = process("", &request, &response);
         if (status != SRM_OK)
           return status;
 
@@ -1576,7 +1576,7 @@ namespace Arc {
       req.NewChild("SURL") = dirname;
 
       PayloadSOAP *response = NULL;
-      SRMReturnCode status = process(&request, &response);
+      SRMReturnCode status = process("", &request, &response);
       if (status != SRM_OK)
         return status;
 
@@ -1614,7 +1614,7 @@ namespace Arc {
     req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
 
     PayloadSOAP *response = NULL;
-    SRMReturnCode status = process(&request, &response);
+    SRMReturnCode status = process("", &request, &response);
     if (status != SRM_OK)
       return status;
 
