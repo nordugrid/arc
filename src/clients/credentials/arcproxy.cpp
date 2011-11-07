@@ -1168,7 +1168,7 @@ int main(int argc, char *argv[]) {
               break; //since the voms servers with the same name should be looked as the same for robust reason, the other voms server should that can be reached could returned the same message. So we exists the loop, even if there are other backup voms server exist.
             }
             else
-              std::cout << Arc::IString("Returned message from VOMS server %s is: s%\n", voms_server, ret_str);
+              std::cout << Arc::IString("Returned message from VOMS server %s is: %s\n", voms_server, ret_str);
               break; 
           }
 
