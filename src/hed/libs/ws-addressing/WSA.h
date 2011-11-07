@@ -31,6 +31,8 @@ class WSAEndpointReference {
   ~WSAEndpointReference(void);
   /** Returns Address (URL) encoded in EPR */
   std::string Address(void) const;
+  /** Returns true if Address is defined */
+  bool hasAddress(void) const;
   /** Assigns new Address value. If EPR had no Address element it is created. */
   void Address(const std::string& uri);
   /** Same as Address(uri) */
@@ -67,6 +69,8 @@ class WSAHeader {
   ~WSAHeader(void);
   /** Returns content of To element of SOAP Header. */
   std::string To(void) const;
+  /** Returns true if To element is defined. */
+  bool hasTo(void) const;
   /** Set content of To element of SOAP Header. If such element does not exist it's created. */
   void To(const std::string& uri);
   /** Returns From element of SOAP Header. 
@@ -80,18 +84,26 @@ class WSAHeader {
   WSAEndpointReference FaultTo(void);
   /** Returns content of Action element of SOAP Header. */
   std::string Action(void) const;
+  /** Returns true if Action element is defined. */
+  bool hasAction(void) const;
   /** Set content of Action element of SOAP Header. If such element does not exist it's created. */
   void Action(const std::string& uri);
   /** Returns content of MessageID element of SOAP Header. */
   std::string MessageID(void) const;
+  /** Returns true if MessageID element is defined. */
+  bool hasMessageID(void) const;
   /** Set content of MessageID element of SOAP Header. If such element does not exist it's created. */
   void MessageID(const std::string& uri);
   /** Returns content of RelatesTo element of SOAP Header. */
   std::string RelatesTo(void) const;
+  /** Returns true if RelatesTo element is defined. */
+  bool hasRelatesTo(void) const;
   /** Set content of RelatesTo element of SOAP Header. If such element does not exist it's created. */
   void RelatesTo(const std::string& uri);
   /** Returns content of RelationshipType element of SOAP Header. */
   std::string RelationshipType(void) const;
+  /** Returns true if RelationshipType element is defined. */
+  bool hasRelationshipType(void) const;
   /** Set content of RelationshipType element of SOAP Header. If such element does not exist it's created. */
   void RelationshipType(const std::string& uri);
   /** Return n-th ReferenceParameter element */

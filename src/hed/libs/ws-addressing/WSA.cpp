@@ -59,6 +59,10 @@ std::string WSAEndpointReference::Address(void) const {
   return strip_spaces(const_cast<XMLNode&>(epr_)["wsa:Address"]);
 }
 
+bool WSAEndpointReference::hasAddress(void) const {
+  return (bool)(const_cast<XMLNode&>(epr_)["wsa:Address"]);
+}
+
 WSAEndpointReference& WSAEndpointReference::operator=(const std::string& address) {
   Address(address);
   return *this;
@@ -116,6 +120,11 @@ std::string WSAHeader::To(void) const {
 }
 
 
+bool WSAHeader::hasTo(void) const {
+  return (bool)(const_cast<XMLNode&>(header_)["wsa:To"]);
+}
+
+
 void WSAHeader::To(const std::string& uri) {
   get_node(header_,"wsa:To")=uri; 
 }
@@ -123,6 +132,11 @@ void WSAHeader::To(const std::string& uri) {
 
 std::string WSAHeader::Action(void) const {
   return strip_spaces(const_cast<XMLNode&>(header_)["wsa:Action"]);
+}
+
+
+bool WSAHeader::hasAction(void) const {
+  return (bool)(const_cast<XMLNode&>(header_)["wsa:Action"]);
 }
 
 
@@ -136,6 +150,11 @@ std::string WSAHeader::MessageID(void) const {
 }
 
 
+bool WSAHeader::hasMessageID(void) const {
+  return (bool)(const_cast<XMLNode&>(header_)["wsa:MessageID"]);
+}
+
+
 void WSAHeader::MessageID(const std::string& uri) {
   get_node(header_,"wsa:MessageID")=uri; 
 }
@@ -143,6 +162,11 @@ void WSAHeader::MessageID(const std::string& uri) {
 
 std::string WSAHeader::RelatesTo(void) const {
   return strip_spaces(const_cast<XMLNode&>(header_)["wsa:RelatesTo"]);
+}
+
+
+bool WSAHeader::hasRelatesTo(void) const {
+  return (bool)(const_cast<XMLNode&>(header_)["wsa:RelatesTo"]);
 }
 
 
@@ -167,6 +191,11 @@ WSAEndpointReference WSAHeader::FaultTo(void) {
 
 std::string WSAHeader::RelationshipType(void) const {
   return strip_spaces(const_cast<XMLNode&>(header_)["wsa:ReplyTo"].Attribute("wsa:RelationshipType"));
+}
+
+
+bool WSAHeader::hasRelationshipType(void) const {
+  return (bool)(const_cast<XMLNode&>(header_)["wsa:ReplyTo"].Attribute("wsa:RelationshipType"));
 }
 
 
