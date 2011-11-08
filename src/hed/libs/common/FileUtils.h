@@ -97,5 +97,11 @@ namespace Arc {
    * If uid/gid are zero then no real switch of uid/gid is done. */
   bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0);
 
+  /// Removes /../ from 'name'. If leading_slash=true '/' will be added
+  /// at the beginning of 'name' if missing. Otherwise it will be removed.
+  /// The directory separator used here depends on the platform.
+  /// Returns false if it is not possible to remove all the ../
+  bool CanonicalDir(std::string& name, bool leading_slash = true);
+
 } // namespace Arc
 

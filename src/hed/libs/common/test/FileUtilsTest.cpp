@@ -21,6 +21,7 @@ class FileUtilsTest
   CPPUNIT_TEST(TestMakeAndDeleteDir);
   CPPUNIT_TEST(TestTmpDirCreate);
   CPPUNIT_TEST(TestTmpFileCreate);
+  CPPUNIT_TEST(TestCanonicalDir);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -34,6 +35,7 @@ public:
   void TestMakeAndDeleteDir();
   void TestTmpDirCreate();
   void TestTmpFileCreate();
+  void TestCanonicalDir();
 
 private:
   bool _createFile(const std::string& filename, const std::string& text = "a");
@@ -158,6 +160,32 @@ void FileUtilsTest::TestTmpFileCreate() {
   CPPUNIT_ASSERT(Arc::FileDelete(path));
   CPPUNIT_ASSERT(stat(path.c_str(), &st) != 0);
 }
+
+void FileUtilsTest::TestCanonicalDir() {
+  std::string dir("/home/me/dir1");
+
+  CPPUNIT_ASSERT(Arc::CanonicalDir(dir));
+  CPPUNIT_ASSERT_EQUAL(std::string("/home/me/dir1"), dir);
+
+  CPPUNIT_ASSERT(Arc::CanonicalDir(dir, false));
+  CPPUNIT_ASSERT_EQUAL(std::string("home/me/dir1"), dir);
+
+  dir = "/home/me/../me";
+  CPPUNIT_ASSERT(Arc::CanonicalDir(dir));
+  CPPUNIT_ASSERT_EQUAL(std::string("/home/me"), dir);
+
+  dir = "/home/me/../..";
+  CPPUNIT_ASSERT(Arc::CanonicalDir(dir));
+  CPPUNIT_ASSERT_EQUAL(std::string("/"), dir);
+
+  dir = "/home/me/../..";
+  CPPUNIT_ASSERT(Arc::CanonicalDir(dir, false));
+  CPPUNIT_ASSERT_EQUAL(std::string(""), dir);
+
+  dir = "/home/me/../../..";
+  CPPUNIT_ASSERT(!Arc::CanonicalDir(dir, false));
+}
+
 
 bool FileUtilsTest::_createFile(const std::string& filename, const std::string& text) {
 

@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include <arc/DateTime.h>
+#include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
@@ -58,7 +59,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 
   if (!arc_job_desc.Application.Output.empty()) {
     std::string output = arc_job_desc.Application.Output;
-    if (!Arc::canonical_dir(output)) {
+    if (!Arc::CanonicalDir(output)) {
       logger.msg(Arc::ERROR,"Bad name for stdout: %s", output);
       return false;
     }
@@ -66,7 +67,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   f<<"joboption_stdout="<<value_for_shell(arc_job_desc.Application.Output.empty()?NG_RSL_DEFAULT_STDOUT:session_dir+"/"+arc_job_desc.Application.Output,true)<<std::endl;
   if (!arc_job_desc.Application.Error.empty()) {
     std::string error = arc_job_desc.Application.Error;
-    if (!Arc::canonical_dir(error)) {
+    if (!Arc::CanonicalDir(error)) {
       logger.msg(Arc::ERROR,"Bad name for stderr: %s", error);
       return false;
     }
@@ -95,7 +96,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
          itSW != arc_job_desc.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++) {
       if (itSW->empty()) continue;
       std::string rte = Arc::upper(*itSW);
-      if (!Arc::canonical_dir(rte)) {
+      if (!Arc::CanonicalDir(rte)) {
         logger.msg(Arc::ERROR, "Bad name for runtime environment: %s", (std::string)*itSW);
         return false;
       }
@@ -158,7 +159,7 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) 
 bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) {
   if (desc.Application.Executable.Name[0] != '/' && desc.Application.Executable.Name[0] != '$') {
     std::string executable = desc.Application.Executable.Name;
-    if(!Arc::canonical_dir(executable)) {
+    if(!Arc::CanonicalDir(executable)) {
       logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
       return false;
     }
@@ -170,7 +171,7 @@ bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) 
     if(it->IsExecutable) {
       std::string executable = it->Name;
       if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;
-      if(!Arc::canonical_dir(executable)) {
+      if(!Arc::CanonicalDir(executable)) {
         logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
         return false;
       }

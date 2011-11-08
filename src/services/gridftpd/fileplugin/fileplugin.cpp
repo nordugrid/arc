@@ -15,7 +15,7 @@
 #include <sys/vfs.h>
 #endif
 
-#include <arc/StringConv.h>
+#include <arc/FileUtils.h>
 #include <arc/Utils.h>
 
 #include "fileplugin.h"
@@ -116,7 +116,7 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
         logger.msg(Arc::WARNING, "Can't parse configuration line");
         continue;
       };
-      if(!Arc::canonical_dir(dir,false)) {
+      if(!Arc::CanonicalDir(dir,false)) {
         logger.msg(Arc::WARNING, "Bad directory name: %s", dir);
         continue;
       };
@@ -171,7 +171,7 @@ DirectFilePlugin::DirectFilePlugin(std::istream &cfile,userspec_t &user) {
     else if(command == "mount") {
       rest=subst_user_spec(rest,&user);
       mount=gridftpd::config_next_arg(rest);
-      if((mount.length() == 0) || (!Arc::canonical_dir(mount,false))) {
+      if((mount.length() == 0) || (!Arc::CanonicalDir(mount,false))) {
         logger.msg(Arc::WARNING, "Bad mount directory specified");
       };
       logger.msg(Arc::INFO, "Mount point %s", mount);

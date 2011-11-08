@@ -9,14 +9,12 @@ class StringConvTest
   CPPUNIT_TEST(TestStringConv);
   CPPUNIT_TEST(TestURIEncode);
   CPPUNIT_TEST(TestIntegers);
-  CPPUNIT_TEST(TestCanonicalDir);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void TestStringConv();
   void TestURIEncode();
   void TestIntegers();
-  void TestCanonicalDir();
 };
 
 void StringConvTest::TestStringConv() {
@@ -97,31 +95,6 @@ void StringConvTest::TestIntegers() {
   CPPUNIT_ASSERT_EQUAL(12345,n);
   CPPUNIT_ASSERT(Arc::strtoint("1ah5",n,20));
   CPPUNIT_ASSERT_EQUAL(12345,n);
-}
-
-void StringConvTest::TestCanonicalDir() {
-  std::string dir("/home/me/dir1");
-
-  CPPUNIT_ASSERT(Arc::canonical_dir(dir));
-  CPPUNIT_ASSERT_EQUAL(std::string("/home/me/dir1"), dir);
-
-  CPPUNIT_ASSERT(Arc::canonical_dir(dir, false));
-  CPPUNIT_ASSERT_EQUAL(std::string("home/me/dir1"), dir);
-
-  dir = "/home/me/../me";
-  CPPUNIT_ASSERT(Arc::canonical_dir(dir));
-  CPPUNIT_ASSERT_EQUAL(std::string("/home/me"), dir);
-
-  dir = "/home/me/../..";
-  CPPUNIT_ASSERT(Arc::canonical_dir(dir));
-  CPPUNIT_ASSERT_EQUAL(std::string("/"), dir);
-
-  dir = "/home/me/../..";
-  CPPUNIT_ASSERT(Arc::canonical_dir(dir, false));
-  CPPUNIT_ASSERT_EQUAL(std::string(""), dir);
-
-  dir = "/home/me/../../..";
-  CPPUNIT_ASSERT(!Arc::canonical_dir(dir, false));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(StringConvTest);

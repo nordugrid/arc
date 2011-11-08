@@ -181,11 +181,6 @@ namespace Arc {
   /// Unescape or unencode characters in str escaped with esc
   std::string unescape_chars(const std::string& str, char esc, escape_type type = escape_char);
 
-  /// Removes /../ from 'name'. If leading_slash=true '/' will be added
-  /// at the beginning of 'name' if missing. Otherwise it will be removed.
-  /// Returns false if it is not possible to remove all the ../
-  bool canonical_dir(std::string& name, bool leading_slash = true);
-
 } // namespace Arc
 
 #endif // ARCLIB_STRINGCONV

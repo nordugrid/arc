@@ -8,7 +8,7 @@
 #include <strstream>
 #endif
 
-#include <arc/StringConv.h>
+#include <arc/FileUtils.h>
 
 #include "conf.h"
 #include "names.h"
@@ -258,7 +258,7 @@ int FileRoot::config(std::ifstream &cfile,std::string &pluginpath) {
         continue;
       };
       dir=subst_user_spec(dir,&user);
-      if(!Arc::canonical_dir(dir,false)) {
+      if(!Arc::CanonicalDir(dir,false)) {
         logger.msg(Arc::WARNING, "bad directory in plugin command: %s", dir);
         continue;
       };
@@ -343,7 +343,7 @@ int FileRoot::config(gridftpd::ConfigSections &cf,std::string &pluginpath) {
             break;
           };
           plugin_path=subst_user_spec(plugin_path,&user);
-          if(!Arc::canonical_dir(plugin_path,false)) {
+          if(!Arc::CanonicalDir(plugin_path,false)) {
             logger.msg(Arc::WARNING, "bad directory for plugin: %s", plugin_path);
             break;
           };

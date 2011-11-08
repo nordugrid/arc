@@ -402,7 +402,7 @@ bool DirDelete(const std::string& path) {
     std::string file_name;
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(path);
-      fullpath += '/' + file_name;
+      fullpath += G_DIR_SEPARATOR_S + file_name;
       if (::lstat(fullpath.c_str(), &st) != 0) return false;
       if (S_ISDIR(st.st_mode)) {
         if (!DirDelete(fullpath.c_str())) {
@@ -461,6 +461,60 @@ bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gi
     return false;
   };
   ::close(h);
+  return true;
+}
+
+
+bool CanonicalDir(std::string& name, bool leading_slash) {
+  std::string::size_type i,ii,n;
+  char separator = G_DIR_SEPARATOR_S[0];
+  ii=0; i=0;
+  if(name[0] != separator) name=separator+name;
+  for(;i<name.length();) {
+    name[ii]=name[i];
+    if(name[i] == separator) {
+      n=i+1;
+      if(n >= name.length()) {
+        n=i; break;
+      }
+      else if(name[n] == '.') {
+        n++;
+        if(name[n] == '.') {
+          n++;
+          if((n >= name.length()) || (name[n] == separator)) {
+            i=n;
+            /* go 1 directory up */
+            for(;;) {
+              if(ii<=0) {
+                 /* bad dir */
+                return false;
+              }
+              ii--;
+              if(name[ii] == separator) break;
+            }
+            ii--; i--;
+          }
+        }
+        else if((n >= name.length()) || (name[n] == separator)) {
+          i=n;
+          ii--; i--;
+        }
+      }
+      else if(name[n] == separator) {
+        i=n;
+        ii--; i--;
+      }
+    }
+    n=i; i++; ii++;
+  }
+  if(leading_slash) {
+    if((name[0] != separator) || (ii==0)) name=separator+name.substr(0,ii);
+    else name=name.substr(0,ii);
+  }
+  else {
+    if((name[0] != separator) || (ii==0)) name=name.substr(0,ii);
+    else name=name.substr(1,ii-1);
+  }
   return true;
 }
 
