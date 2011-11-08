@@ -166,21 +166,17 @@ class DelegationProviderSOAP: public DelegationProvider {
   of DelegationConsumerSOAP with identifier included in SOAP message used to route
   execution to one of managed DelegationConsumerSOAP instances. */
 class DelegationContainerSOAP {
- private:
+ protected:
+  // Implementaion of the box for delegation credentials
+  Glib::Mutex lock_;
   class Consumer;
   typedef std::map<std::string,Consumer> ConsumerMap;
   typedef ConsumerMap::iterator ConsumerIterator;
   ConsumerMap consumers_;
   ConsumerIterator consumers_first_;
   ConsumerIterator consumers_last_;
-  ConsumerIterator AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client);
-  void TouchConsumer(ConsumerIterator i);
-  ConsumerIterator RemoveConsumer(ConsumerIterator i);
-  void CheckConsumers(void);
-  ConsumerIterator FindConsumer(const std::string& id,const std::string& client);
-  bool MakeNewID(std::string& id);
- protected:
-  Glib::Mutex lock_;
+  ConsumerIterator find(DelegationConsumerSOAP* c);
+  bool remove(ConsumerIterator i);
   /** Max. number of delegation consumers */
   int max_size_;
   /** Lifetime of unused delegation consumer */
@@ -189,16 +185,36 @@ class DelegationContainerSOAP {
   int max_usage_;
   /** If true delegation consumer is deleted when connection context is destroyed */
   bool context_lock_;
- public:
-  DelegationContainerSOAP(void);
-  ~DelegationContainerSOAP(void);
+
+  // Rewritable interface to the box
+  /** Creates new consumer object, if empty assigns id and stores in intenal store */
+  virtual DelegationConsumerSOAP* AddConsumer(std::string& id,const std::string& client);
+  /** Finds previously created consumer in internal store */
+  virtual DelegationConsumerSOAP* FindConsumer(const std::string& id,const std::string& client);
+  /** Marks consumer as recently used */
+  virtual void TouchConsumer(DelegationConsumerSOAP* c);
+  /** Releases consumer obtained by call to AddConsumer() or FindConsumer() */
+  virtual void ReleaseConsumer(DelegationConsumerSOAP* c);
+  /** Releases consumer obtained by call to AddConsumer() or FindConsumer() and deletes it */
+  virtual void RemoveConsumer(DelegationConsumerSOAP* c);
+  /** Periodic management of stored consumers */
+  virtual void CheckConsumers(void);
+
+  // Helper methods
+
   /** See DelegationConsumerSOAP::DelegateCredentialsInit
      If 'client' is not empty then all subsequent calls involving access to generated
      credentials must contain same value in their 'client' arguments. */
   bool DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
+
   /** See DelegationConsumerSOAP::UpdateCredentials */
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
   bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client = "");
+
+ public:
+  DelegationContainerSOAP(void);
+  ~DelegationContainerSOAP(void);
+
   /** See DelegationConsumerSOAP::DelegatedToken */
   bool DelegatedToken(std::string& credentials,XMLNode token,const std::string& client = "");
   bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client = "");

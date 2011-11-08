@@ -1078,17 +1078,19 @@ bool DelegationProviderSOAP::DelegatedToken(XMLNode parent) {
 class DelegationContainerSOAP::Consumer {
  public:
   DelegationConsumerSOAP* deleg;
-  int usage_count;
+  unsigned int usage_count;
+  unsigned int acquired;
+  bool to_remove;
   time_t last_used;
   std::string client_id;
   DelegationContainerSOAP::ConsumerIterator previous;
   DelegationContainerSOAP::ConsumerIterator next;
-  Consumer(void):deleg(NULL),usage_count(0),last_used(time(NULL)) {
-  };
-  Consumer(DelegationConsumerSOAP* d):deleg(d),usage_count(0),last_used(time(NULL)) {
-  };
+  Consumer(void):
+     deleg(NULL),usage_count(0),acquired(0),to_remove(false),last_used(time(NULL)) { };
+  Consumer(DelegationConsumerSOAP* d):
+     deleg(d),usage_count(0),acquired(0),to_remove(false),last_used(time(NULL)) { };
   Consumer& operator=(DelegationConsumerSOAP* d) {
-    deleg=d; usage_count=0; last_used=time(NULL); return *this;
+    deleg=d; usage_count=0; acquired=0; to_remove=false; last_used=time(NULL); return *this;
   };
 };
 
@@ -1110,9 +1112,22 @@ DelegationContainerSOAP::~DelegationContainerSOAP(void) {
   lock_.unlock();
 }
 
-DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::AddConsumer(const std::string& id,DelegationConsumerSOAP* consumer,const std::string& client) {
+DelegationConsumerSOAP* DelegationContainerSOAP::AddConsumer(std::string& id,const std::string& client) {
+  lock_.lock();
+  if(id.empty()) {
+    for(int tries = 0;tries<1000;++tries) {
+      GUID(id);
+      ConsumerIterator i = consumers_.find(id);
+      if(i == consumers_.end()) break;
+      id.resize(0);
+    };
+    if(id.empty()) { lock_.unlock(); return NULL; };
+  } else {
+    ConsumerIterator i = consumers_.find(id);
+    if(i != consumers_.end()) { lock_.unlock(); return NULL; };
+  };
   Consumer c;
-  c.deleg=consumer; 
+  c.deleg=new DelegationConsumerSOAP(); 
   c.client_id=client;
   c.previous=consumers_.end();
   c.next=consumers_first_;
@@ -1120,12 +1135,23 @@ DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::AddConsumer(c
   if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
   consumers_first_=i;
   if(consumers_last_ == consumers_.end()) consumers_last_=i;
-  return i;
+  i->second.acquired = 1;
+  DelegationConsumerSOAP* cs = i->second.deleg;
+  lock_.unlock();
+  return cs;
 }
 
-void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
+void DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c) {
+  lock_.lock();
+  ConsumerIterator i = find(c);
+  if(i == consumers_.end()) { lock_.unlock(); return; };
   i->second.last_used=time(NULL);
-  if(i == consumers_first_) return;
+  if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
+    i->second.to_remove=true;
+  } else {
+    i->second.to_remove=false;
+  };
+  if(i == consumers_first_) { lock_.unlock(); return; };
   ConsumerIterator previous = i->second.previous;
   ConsumerIterator next = i->second.next;
   if(previous != consumers_.end()) previous->second.next=next;
@@ -1134,9 +1160,42 @@ void DelegationContainerSOAP::TouchConsumer(ConsumerIterator i) {
   i->second.next=consumers_first_;
   if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
   consumers_first_=i;
+  lock_.unlock();
+  return;
 }
 
-DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::RemoveConsumer(ConsumerIterator i) {
+void DelegationContainerSOAP::ReleaseConsumer(DelegationConsumerSOAP* c) {
+  lock_.lock();
+  ConsumerIterator i = find(c);
+  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i->second.acquired > 0) --(i->second.acquired);
+  remove(i);
+  lock_.unlock();
+  return;
+}
+
+void DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
+  lock_.lock();
+  ConsumerIterator i = find(c);
+  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i->second.acquired > 0) --(i->second.acquired);
+  i->second.to_remove=true;
+  remove(i);
+  lock_.unlock();
+  return;
+}
+
+DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::find(DelegationConsumerSOAP* c) {
+  ConsumerIterator i = consumers_first_;
+  for(;i!=consumers_.end();i=i->second.next) {
+    if(i->second.deleg == c) break;
+  };
+  return i;
+}
+
+bool DelegationContainerSOAP::remove(ConsumerIterator i) {
+  if(i->second.acquired > 0) return false;
+  if(!i->second.to_remove) return false;
   ConsumerIterator previous = i->second.previous;
   ConsumerIterator next = i->second.next;
   if(previous != consumers_.end()) previous->second.next=next;
@@ -1145,46 +1204,52 @@ DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::RemoveConsume
   if(consumers_last_ == i) consumers_last_=previous; 
   if(i->second.deleg) delete i->second.deleg;
   consumers_.erase(i);
-  return next;
+  return true;
 }
 
 void DelegationContainerSOAP::CheckConsumers(void) {
   if(max_size_ > 0) {
-    while(consumers_.size() > max_size_) {
-      RemoveConsumer(consumers_last_);
+    lock_.lock();
+    ConsumerIterator i = consumers_last_;
+    unsigned int count = consumers_.size();
+    while(count > max_size_) {
+      if(i == consumers_.end()) break;
+      ConsumerIterator prev = i->second.previous;
+      i->second.to_remove=true;
+      remove(i);
+      i=prev;
+      --count;
     };
+    lock_.unlock();
   };
   if(max_duration_ > 0) {
+    lock_.lock();
     time_t t = time(NULL);
     for(ConsumerIterator i = consumers_last_;i!=consumers_.end();) {
+      ConsumerIterator next = i->second.next;
       if(((unsigned int)(t - i->second.last_used)) > max_duration_) {
-        i=RemoveConsumer(i);
+        i->second.to_remove=true;
+        remove(i);
+        i=next;
       } else {
         break;
       };
     };
+    lock_.unlock();
   };
-}
-
-bool DelegationContainerSOAP::MakeNewID(std::string& id) {
-  for(int tries = 0;tries<1000;++tries) {
-    GUID(id);
-    ConsumerIterator i = consumers_.find(id);
-    if(i == consumers_.end()) break;
-    id.resize(0);
-  };
-  return !id.empty();
+  return;
 }
 
 bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
-  lock_.lock();
   std::string id;
-  if(!MakeNewID(id)) { lock_.unlock(); return false; }; 
-  DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
-  if(!(consumer->DelegateCredentialsInit(id,in,out))) { lock_.unlock(); delete consumer; return false; };
-  AddConsumer(id,consumer,client);
+  DelegationConsumerSOAP* consumer = AddConsumer(id,client);
+  if(!consumer) return false;
+  if(!(consumer->DelegateCredentialsInit(id,in,out))) {
+    RemoveConsumer(consumer);
+    return false;
+  };
+  ReleaseConsumer(consumer);
   CheckConsumers();
-  lock_.unlock();
   return true;
 }
 
@@ -1196,26 +1261,26 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
 #define ClientAuthorized(consumer,client) \
   ( ((consumer).client_id.empty()) || ((consumer).client_id == (client)) )
 
-DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::FindConsumer(const std::string& id,const std::string& client) {
+DelegationConsumerSOAP* DelegationContainerSOAP::FindConsumer(const std::string& id,const std::string& client) {
+  lock_.lock();
   ConsumerIterator i = consumers_.find(id);
-  if(i == consumers_.end()) { return i; };
-  if(!(i->second.deleg)) { return consumers_.end(); };
-  if(!ClientAuthorized(i->second,client)) { return consumers_.end(); };
-  return i;
+  if(i == consumers_.end()) { lock_.unlock(); return NULL; };
+  if(!(i->second.deleg)) { lock_.unlock(); return NULL; };
+  if(!ClientAuthorized(i->second,client)) { lock_.unlock(); return NULL; };
+  ++(i->second.acquired);
+  DelegationConsumerSOAP* cs = i->second.deleg;
+  lock_.unlock();
+  return cs;
 }
 
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
-  lock_.lock();
   std::string id = (std::string)(const_cast<SOAPEnvelope&>(in)["UpdateCredentials"]["DelegatedToken"]["Id"]);
-  ConsumerIterator i = FindConsumer(id,client);
-  if(i == consumers_.end()) { lock_.unlock(); return false; };
-  bool r = i->second.deleg->UpdateCredentials(credentials,identity,in,out);
-  if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
-    RemoveConsumer(i);
-  } else {
-    TouchConsumer(i);
-  };
-  lock_.unlock();
+  if(id.empty()) return false;
+  DelegationConsumerSOAP* c = FindConsumer(id,client);
+  if(!c) return false;
+  bool r = c->UpdateCredentials(credentials,identity,in,out);
+  TouchConsumer(c);
+  ReleaseConsumer(c);
   return r;
 }
 
@@ -1225,17 +1290,13 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,XMLNode to
 }
 
 bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::string& identity,XMLNode token,const std::string& client) {
-  lock_.lock();
   std::string id = (std::string)(token["Id"]);
-  ConsumerIterator i = FindConsumer(id,client);
-  if(i == consumers_.end()) { lock_.unlock(); return false; };
-  bool r = i->second.deleg->DelegatedToken(credentials,identity,token);
-  if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
-    RemoveConsumer(i);
-  } else {
-    TouchConsumer(i);
-  };
-  lock_.unlock();
+  if(id.empty()) return false;
+  DelegationConsumerSOAP* c = FindConsumer(id,client);
+  if(!c) return false;
+  bool r = c->DelegatedToken(credentials,identity,token);
+  TouchConsumer(c);
+  ReleaseConsumer(c);
   return r;
 }
 
@@ -1302,23 +1363,24 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       // check if new id or id belongs to this client
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
-        if(consumers_.find(id) != consumers_.end()) {
-          GDS10FAULT(out,"Wrong identifier");
+      bool found = true;
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
+        found=false;
+        if(!(c = AddConsumer(id,client))) {
+          GDS10FAULT(out,"Wrong identifier"); // ??
           return true;
         };
-        DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
-        i = AddConsumer(id,consumer,client);
       };
       std::string x509_request;
-      i->second.deleg->Request(x509_request);
-      lock.release();
+      c->Request(x509_request);
       if(x509_request.empty()) {
+        if(found) ReleaseConsumer(c);
+        else RemoveConsumer(c);
         GDS10FAULT(out,"Failed to generate request");
         return true;
       };
+      ReleaseConsumer(c);
       r.NewChild("request") = x509_request;
       return true;
     } else if(op_name == "putProxy") {
@@ -1334,16 +1396,17 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS10FAULT(out,"proxy is missing");
         return true;
       };
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
         GDS10FAULT(out,"Failed to find identifier");
         return true;
       };
-      if(!i->second.deleg->Acquire(cred)) {
+      if(!c->Acquire(cred)) {
+        ReleaseConsumer(c);
         GDS10FAULT(out,"Failed to acquire credentials");
         return true;
       };
+      ReleaseConsumer(c);
       credentials = cred;
       return true;
     };
@@ -1372,44 +1435,44 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       // check if new id or id belongs to this client
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
-        if(consumers_.find(id) != consumers_.end()) {
-          GDS20FAULT(out,"Wrong identifier");
+      bool found = true;
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
+        found = false;
+        if(!(c = AddConsumer(id,client))) {
+          GDS20FAULT(out,"Wrong identifier"); // ?
           return true;
         };
-        DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
-        i = AddConsumer(id,consumer,client);
       };
       std::string x509_request;
-      i->second.deleg->Request(x509_request);
-      lock.release();
+      c->Request(x509_request);
       if(x509_request.empty()) {
+        if(found) ReleaseConsumer(c);
+        else RemoveConsumer(c);
         GDS20FAULT(out,"Failed to generate request");
         return true;
       };
+      ReleaseConsumer(c);
       r.NewChild("getProxyReqReturn") = x509_request;
       return true;
     } else if(op_name == "getNewProxyReq") {
       Arc::XMLNode r = out.NewChild("getNewProxyReqResponse");
       r.Namespaces(ns);
       std::string id;
-      Glib::Mutex::Lock lock(lock_);
-      if(!MakeNewID(id)) {
+      DelegationConsumerSOAP* c = AddConsumer(id,client);
+      if(!c) {
         GDS20FAULT(out,"Failed to generate identifier");
         return true;
       };
-      DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
       std::string x509_request;
-      consumer->Request(x509_request);
+      c->Request(x509_request);
       if(x509_request.empty()) {
+        RemoveConsumer(c);
         GDS20FAULT(out,"Failed to generate request");
         return true;
       };
-      AddConsumer(id,consumer,client);
+      ReleaseConsumer(c);
       CheckConsumers();
-      lock.release();
       Arc::XMLNode ret = r.NewChild("NewProxyReq");
       ret.NewChild("proxyRequest") = x509_request;
       ret.NewChild("delegationID") = id;
@@ -1427,16 +1490,17 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS20FAULT(out,"proxy is missing");
         return true;
       };
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
         GDS20FAULT(out,"Failed to find identifier");
         return true;
       };
-      if(!i->second.deleg->Acquire(cred)) {
+      if(!c->Acquire(cred)) {
+        ReleaseConsumer(c);
         GDS20FAULT(out,"Failed to acquire credentials");
         return true;
       };
+      ReleaseConsumer(c);
       credentials = cred;
       return true;
     } else if(op_name == "renewProxyReq") {
@@ -1448,23 +1512,24 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       // check if new id or id belongs to this client
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
-        if(consumers_.find(id) != consumers_.end()) {
-          GDS20FAULT(out,"Wrong identifier");
+      bool found = true;
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
+        found=false;
+        if(!(c = AddConsumer(id,client))) {
+          GDS20FAULT(out,"Wrong identifier"); // ?
           return true;
         };
-        DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
-        i = AddConsumer(id,consumer,client);
       };
       std::string x509_request;
-      i->second.deleg->Request(x509_request);
-      lock.release();
+      c->Request(x509_request);
       if(x509_request.empty()) {
+        if(found) ReleaseConsumer(c);
+        else RemoveConsumer(c);
         GDS20FAULT(out,"Failed to generate request");
         return true;
       };
+      ReleaseConsumer(c);
       r.NewChild("renewProxyReqReturn") = x509_request;
       return true;
     } else if(op_name == "getTerminationTime") {
@@ -1475,12 +1540,13 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS20FAULT(out,"No identifier specified");
         return true;
       };
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
         GDS20FAULT(out,"Wrong identifier");
         return true;
       };
+      // TODO: use DelegatedToken()
+      ReleaseConsumer(c);
       GDS20FAULT(out,"Feature not implemented");
       return true;
     } else if(op_name == "destroy") {
@@ -1491,13 +1557,8 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS20FAULT(out,"No identifier specified");
         return true;
       };
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      //if(i == consumers_.end()) {
-      //  GDS20FAULT(out,"Wrong identifier");
-      //  return true;
-      //};
-      if(i != consumers_.end()) RemoveConsumer(i);
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(c) RemoveConsumer(c);
       return true;
     };
   } else if(op_ns == EMIES_NAMESPACE) {
@@ -1520,22 +1581,21 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       }
       // TODO: RenewalID
       std::string id;
-      Glib::Mutex::Lock lock(lock_);
-      if(!MakeNewID(id)) {
+      DelegationConsumerSOAP* c = AddConsumer(id,client);
+      if(!c) {
         EMIESFAULT(out,"Failed to generate identifier");
         return true;
       };
-      DelegationConsumerSOAP* consumer = new DelegationConsumerSOAP();
       std::string x509_request;
       // TODO: use lifetime
-      consumer->Request(x509_request);
+      c->Request(x509_request);
       if((!strip_PEM_request(x509_request)) || (x509_request.empty())) {
+        RemoveConsumer(c);
         EMIESFAULT(out,"Failed to generate request");
         return true;
       };
-      AddConsumer(id,consumer,client);
+      ReleaseConsumer(c);
       CheckConsumers();
-      lock.release();
       r.NewChild("DelegationID") = id;
       r.NewChild("CSR") = x509_request;
       return true;
@@ -1557,16 +1617,17 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       wrap_PEM_cert(cred);
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
         EMIESIDFAULT(out,"Failed to find identifier");
         return true;
       };
-      if(!i->second.deleg->Acquire(cred)) {
+      if(!c->Acquire(cred)) {
+        ReleaseConsumer(c);
         EMIESFAULT(out,"Failed to acquire credentials");
         return true;
       };
+      ReleaseConsumer(c);
       credentials = cred;
       r.NewChild("SUCCESS");
       return true;
@@ -1578,12 +1639,13 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         EMIESFAULT(out,"Identifier is missing");
         return true;
       };
-      Glib::Mutex::Lock lock(lock_);
-      ConsumerIterator i = FindConsumer(id,client);
-      if(i == consumers_.end()) {
+      DelegationConsumerSOAP* c = FindConsumer(id,client);
+      if(!c) {
         EMIESIDFAULT(out,"Wrong identifier");
         return true;
       };
+      // TODO: use DelegatedToken()
+      ReleaseConsumer(c);
       EMIESFAULT(out,"Feature not implemented");
       return true;
     };
