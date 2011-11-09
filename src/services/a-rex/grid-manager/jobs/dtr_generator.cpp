@@ -773,11 +773,11 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr.get_id()));
     lock.unlock();
 
-    // Disconnect from root logger while submitting to Scheduler
-    const std::list<Arc::LogDestination*> log_dests = Arc::Logger::getRootLogger().getDestinations();
-    Arc::Logger::getRootLogger().removeDestinations();
+    // Avoid logging when possible during scheduler submission because it gets
+    // blocked by LFC calls locking the environment
+    Arc::Logger::getRootLogger().setThreshold(Arc::ERROR);
     dtr.push(DataStaging::SCHEDULER);
-    Arc::Logger::getRootLogger().addDestinations(log_dests);
+    Arc::Logger::getRootLogger().setThreshold(dtr_log->getThreshold());
 
     // update .local with transfer share
     JobLocalDescription *job_desc = new JobLocalDescription;
