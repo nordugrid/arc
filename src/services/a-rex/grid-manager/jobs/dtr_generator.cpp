@@ -725,6 +725,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
 
   // flag to say whether at least one file needs to be staged
   bool staging = false;
+  Arc::LogLevel log_level = Arc::Logger::getRootLogger().getThreshold();
 
   for (std::list<FileData>::iterator i = files.begin(); i != files.end(); ++i) {
     if (i->lfn.find(":") == std::string::npos)
@@ -777,7 +778,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     // blocked by LFC calls locking the environment
     Arc::Logger::getRootLogger().setThreshold(Arc::ERROR);
     dtr.push(DataStaging::SCHEDULER);
-    Arc::Logger::getRootLogger().setThreshold(dtr_log->getThreshold());
+    Arc::Logger::getRootLogger().setThreshold(log_level);
 
     // update .local with transfer share
     JobLocalDescription *job_desc = new JobLocalDescription;
