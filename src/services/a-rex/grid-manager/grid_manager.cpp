@@ -23,7 +23,6 @@
 #include "jobs/commfifo.h"
 #include "conf/environment.h"
 #include "conf/conf_file.h"
-//#include "conf/daemon.h"
 #include "files/info_types.h"
 #include "files/delete.h"
 #include "log/job_log.h"
@@ -155,58 +154,24 @@ typedef struct {
 } args_st;
 
 void GridManager::grid_manager(void* arg) {
-  //const char* config_filename = (const char*)arg;
+
   GridManager* gm = (GridManager*)arg;
   GMEnvironment& env = *(gm->Environment());
-  if(!arg) return;
+  if(!arg) {
+    gm->active_ = false;
+    return;
+  }
   unsigned int clean_first_level=0;
-  // int n;
-  // int argc = ((args_st*)arg)->argc;
-  // char** argv = ((args_st*)arg)->argv;
   setpgid(0,0);
   opterr=0;
-  //if(config_filename) nordugrid_config_loc(config_filename);
 
   logger.msg(Arc::INFO,"Starting grid-manager thread");
-  //Daemon daemon;
-  // Only supported option now is -c
-  /*
-  while((n=daemon.getopt(argc,argv,"hvC:c:")) != -1) {
-    switch(n) {
-      case ':': { logger.msg(Arc::ERROR,"Missing argument"); return; };
-      case '?': { logger.msg(Arc::ERROR,"Unrecognized option: %s",(char)optopt); return; };
-      case '.': { return; };
-      case 'h': {
-        std::cout<<"grid-manager [-C clean_level] [-v] [-h] [-c configuration_file] "<<daemon.short_help()<<std::endl;
-         return;
-      };
-      case 'v': {
-        std::cout<<"grid-manager: version "<<VERSION<<std::endl;
-        return;
-      };
-      case 'C': {
-        if(sscanf(optarg,"%u",&clean_first_level) != 1) {
-          logger.msg(Arc::ERROR,"Wrong clean level");
-          return;
-        };
-      }; break;
-      case 'c': {
-        nordugrid_config_loc=optarg;
-      }; break;
-      default: { logger.msg(Arc::ERROR,"Option processing error"); return; };
-    };
-  };
-  */
 
-  //JobUsers users(*env);
   JobUsers& users = *(gm->Users());
   std::string my_username("");
   uid_t my_uid=getuid();
   JobUser *my_user = NULL;
-  //if(!read_env_vars()) {
-  //  logger.msg(Arc::FATAL,"Can't initialize runtime environment - EXITING"); return;
-  //};
-  
+
   /* recognize itself */
   {
     struct passwd pw_;
@@ -216,27 +181,26 @@ void GridManager::grid_manager(void* arg) {
     if(pw != NULL) { my_username=pw->pw_name; };
   };
   if(my_username.length() == 0) {
-    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING"); return;
+    logger.msg(Arc::FATAL,"Can't recognize own username - EXITING");
+    gm->active_ = false;
+    return;
   };
   my_user = new JobUser(env,my_username);
   if(!configure_serviced_users(users,my_uid,my_username,*my_user/*,&daemon*/)) {
     logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
-    logger.msg(Arc::FATAL,"Error processing configuration - EXITING"); return;
+    logger.msg(Arc::FATAL,"Error processing configuration - EXITING");
+    gm->active_ = false;
+    return;
   };
   if(users.size() == 0) {
-    logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING"); return;
+    logger.msg(Arc::FATAL,"No suitable users found in configuration - EXITING");
+    gm->active_ = false;
+    return;
   };
 
-  //daemon.logfile(DEFAULT_LOG_FILE);
-  //daemon.pidfile(DEFAULT_PID_FILE);
-  //if(daemon.daemon() != 0) {
-  //  perror("Error - daemonization failed");
-  //  exit(1);
-  //}; 
   logger.msg(Arc::INFO,"Used configuration file %s",env.nordugrid_config_loc());
   print_serviced_users(users);
 
-  //unsigned int wakeup_period = JobsList::WakeupPeriod();
   CommFIFO wakeup_interface;
   pthread_t wakeup_thread;
   pthread_t cache_thread;
@@ -249,22 +213,11 @@ void GridManager::grid_manager(void* arg) {
   };
   wakeup_interface.timeout(env.jobs_cfg().WakeupPeriod());
 
-  // Prepare signal handler(s). Must be done after fork/daemon and preferably
-  // before any new thread is started. 
-  //# RunParallel run(&sleep_cond);
-  //# if(!run.is_initialized()) {
-  //#   logger.msg(Arc::ERROR,"Error - initialization of signal environment failed");
-  //#   goto exit;
-  //# };
-
-  // I hope nothing till now used Globus
-
-  // It looks like Globus screws signal setup somehow
-  //# run.reinit(false);
-
   /* start timer thread - wake up every 2 minutes */
   if(pthread_create(&wakeup_thread,NULL,&wakeup_func,&wakeup_h) != 0) {
-    logger.msg(Arc::ERROR,"Failed to start new thread"); return;
+    logger.msg(Arc::ERROR,"Failed to start new thread");
+    gm->active_ = false;
+    return;
   };
   RunParallel::kicker(&kick_func,&wakeup_h);
   if(clean_first_level) {
@@ -334,6 +287,7 @@ void GridManager::grid_manager(void* arg) {
     DTRGenerator* dtr_generator = new DTRGenerator(users, &kick_func, &wakeup_h);
     if (!(*dtr_generator)) {
       logger.msg(Arc::ERROR, "Failed to start data staging threads, exiting Grid Manager thread");
+      gm->active_ = false;
       return;
     }
     gm->dtr_generator_ = dtr_generator;
@@ -374,15 +328,7 @@ void GridManager::grid_manager(void* arg) {
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;
     gm->sleep_cond_->wait();
-//#    if(run.was_hup()) {
-//#      logger.msg(Arc::INFO,"SIGHUP detected");
-//#//      if(!configure_serviced_users(users,my_uid,my_username,*my_user)) {
-//#//        std::cout<<"Error processing configuration"<<std::endl; goto exit;
-//#//      };
-//#    }
-//#    else {
-      logger.msg(Arc::DEBUG,"Waking up");
-//#    };
+    logger.msg(Arc::DEBUG,"Waking up");
   };
   // Waiting for children to finish
   logger.msg(Arc::INFO,"Stopping jobs processing thread");
@@ -397,26 +343,6 @@ void GridManager::grid_manager(void* arg) {
   gm->active_ = false;
   return;
 }
-
-/*
-GridManager::GridManager(Arc::XMLNode argv):active_(false) {
-  args_st* args = new args_st;
-  if(!args) return;
-  args->argv=(char**)malloc(sizeof(char*)*(argv.Size()+1));
-  args->argc=0;
-  args->argv[args->argc]=strdup("grid-manager");
-  logger.msg(Arc::VERBOSE, "ARG: %s", args->argv[args->argc]);
-  for(;;) {
-    Arc::XMLNode arg = argv["arg"][args->argc];
-    ++(args->argc);
-    if(!arg) break;
-    args->argv[args->argc]=strdup(((std::string)arg).c_str());
-    logger.msg(Arc::VERBOSE, "ARG: %s", args->argv[args->argc]);
-  };
-  active_=Arc::CreateThreadFunction(&grid_manager,args);
-  if(!active_) delete args;
-}
-*/
 
 GridManager::GridManager(GMEnvironment& env/*const char* config_filename*/):active_(false),tostop_(false) {
   env_ = &env;
