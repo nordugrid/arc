@@ -166,17 +166,25 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
   std::string s = line;
   gridftpd::RunPlugin run(line);
   run.timeout(to);
-  if(!run.run(subst_arg,&user_)) return false;
-  logger.msg(Arc::INFO,"Plugin returned %u: %s",(unsigned int)run.result(),run.stdout_channel());
-  if(run.stderr_channel().length()) {
-    logger.msg((run.result()==0)?Arc::VERBOSE:Arc::ERROR,"Plugin reported error: %s",run.stderr_channel());
+  if(run.run(subst_arg,&user_)) {
+    if(run.result() == 0) {
+      if(run.stdout_channel().length() <= 512) { // sane name
+        // Plugin should print user[:group] at stdout
+        unix_user.name = run.stdout_channel();
+        split_unixname(unix_user.name,unix_user.group);
+        return true;
+      } else {
+        logger.msg(Arc::ERROR,"Plugin %s returned too much: %s",run.cmd(),run.stdout_channel());
+      };
+    } else {
+      logger.msg(Arc::ERROR,"Plugin %s returned: %u",run.cmd(),(unsigned int)run.result());
+    };
+  } else {
+    logger.msg(Arc::ERROR,"Plugin %s failed to run",run.cmd());
   };
-  if(run.result() != 0) return false;
-  // Plugin should print user[:group] at stdout
-  if(run.stdout_channel().length() > 512) return false; // really strange name
-  unix_user.name = run.stdout_channel();
-  split_unixname(unix_user.name,unix_user.group);
-  return true;
+  logger.msg(Arc::INFO,"Plugin %s printed: %u",run.cmd(),run.stdout_channel());
+  logger.msg(Arc::ERROR,"Plugin %s error: %u",run.cmd(),run.stderr_channel());
+  return false;
 }
 
 bool UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char* line) {

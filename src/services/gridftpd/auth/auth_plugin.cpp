@@ -1,6 +1,11 @@
 #include <string>
+
+#include <arc/Logger.h>
+
 #include "../run/run_plugin.h"
 #include "auth.h"
+
+static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUserPlugin");
 
 void AuthUserSubst(std::string& str,AuthUser& it) {
   int l = str.length();
@@ -54,10 +59,17 @@ int AuthUser::match_plugin(const char* line) {
   std::string s = line;
   gridftpd::RunPlugin run(s);
   run.timeout(to);
-  if(!run.run(subst_arg,this)) {
-    return AAA_NO_MATCH; // It is safer to return no-match
+  if(run.run(subst_arg,this)) {
+    if(run.result() == 0) {
+      return AAA_POSITIVE_MATCH;
+    } else {
+      logger.msg(Arc::ERROR,"Plugin %s returned: %u",run.cmd(),(unsigned int)run.result());
+    };
+  } else {
+    logger.msg(Arc::ERROR,"Plugin %s failed to run",run.cmd());
   };
-  if(run.result() != 0) return AAA_NO_MATCH;
-  return AAA_POSITIVE_MATCH;
+  logger.msg(Arc::INFO,"Plugin %s printed: %u",run.cmd(),run.stdout_channel());
+  logger.msg(Arc::ERROR,"Plugin %s error: %u",run.cmd(),run.stderr_channel());
+  return AAA_NO_MATCH; // It is safer to return no-match
 }
 
