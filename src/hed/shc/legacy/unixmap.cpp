@@ -165,18 +165,29 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
   Arc::Run run(args);
   run.AssignStdout(stdout_channel);
   run.AssignStderr(stderr_channel);
-  if(!run.Start()) return false;
-  if(!run.Wait(to)) return false;
-  logger.msg(Arc::INFO,"Plugin returned: %u: %s",run.Result(),stdout_channel);
-  if(!stderr_channel.empty()) {
-    logger.msg((run.Result()==0)?Arc::VERBOSE:Arc::ERROR,"Plugin reported error: %s",stderr_channel);
+  if(run.Start()) {
+    if(run.Wait(to)) {
+      if(run.Result() == 0) {
+        if(stdout_channel.length() <= 512) { // sane name
+          unix_user.name = stdout_channel;
+          split_unixname(unix_user.name,unix_user.group);
+          return true;
+        } else {
+          logger.msg(Arc::ERROR,"Plugin %s returned too much: %u",args.front(),stdout_channel);
+        };
+      } else {
+        logger.msg(Arc::ERROR,"Plugin %s returned: %u",args.front(),run.Result());
+      };
+    } else {
+      run.Kill(1);
+      logger.msg(Arc::ERROR,"Plugin %s timeout after %u seconds",args.front(),to);
+    };
+  } else {
+    logger.msg(Arc::ERROR,"Plugin %s failed to start",args.front());
   };
-  if(run.Result() != 0) return false;
-  // Plugin should print user[:group] at stdout
-  if(stdout_channel.length() > 512) return false; // really strange name
-  unix_user.name = stdout_channel;
-  split_unixname(unix_user.name,unix_user.group);
-  return true;
+  if(!stdout_channel.empty()) logger.msg(Arc::INFO,"Plugin %s printed: %s",args.front(),stdout_channel);
+  if(!stderr_channel.empty()) logger.msg(Arc::ERROR,"Plugin %s error: %s",args.front(),stderr_channel);
+  return false;
 }
 
 bool UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,const char* line) {

@@ -31,11 +31,28 @@ int AuthUser::match_plugin(const char* line) {
           arg != args.end();++arg) {
     subst(*arg);
   };
+  std::string stdout_str;
+  std::string stderr_str;
   Arc::Run run(args);
-  if(!run.Start()) return AAA_NO_MATCH;
-  if(!run.Wait(to)) return AAA_NO_MATCH;
-  if(run.Result() != 0) return AAA_NO_MATCH;
-  return AAA_POSITIVE_MATCH;
+  run.AssignStdout(stdout_str);
+  run.AssignStderr(stderr_str);
+  if(run.Start()) {
+    if(run.Wait(to)) {
+      if(run.Result() == 0) {
+        return AAA_POSITIVE_MATCH;
+      } else {
+        logger.msg(Arc::ERROR,"Plugin %s returned: %u",args.front(),run.Result());
+      };
+    } else {
+      run.Kill(1);
+      logger.msg(Arc::ERROR,"Plugin %s timeout after %u seconds",args.front(),to);
+    };
+  } else {
+    logger.msg(Arc::ERROR,"Plugin %s failed to start",args.front());
+  };
+  if(!stdout_str.empty()) logger.msg(Arc::INFO,"Plugin %s printed: %s",args.front(),stdout_str);
+  if(!stderr_str.empty()) logger.msg(Arc::ERROR,"Plugin %s error: %s",args.front(),stderr_str);
+  return AAA_NO_MATCH;
 }
 
 } // namespace ArcSHCLegacy
