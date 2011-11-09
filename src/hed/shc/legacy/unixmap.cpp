@@ -173,7 +173,7 @@ bool UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,c
           split_unixname(unix_user.name,unix_user.group);
           return true;
         } else {
-          logger.msg(Arc::ERROR,"Plugin %s returned too much: %u",args.front(),stdout_channel);
+          logger.msg(Arc::ERROR,"Plugin %s returned too much: %s",args.front(),stdout_channel);
         };
       } else {
         logger.msg(Arc::ERROR,"Plugin %s returned: %u",args.front(),run.Result());
