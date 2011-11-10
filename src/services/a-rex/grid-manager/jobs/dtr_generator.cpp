@@ -517,22 +517,15 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   // add to finished jobs (without overwriting existing error)
   finished_jobs[jobid] += "";
 
-  // log summary to DTR log
-  const std::list<Arc::LogDestination*> log_dests = Arc::Logger::getRootLogger().getDestinations();
-  Arc::Logger::getRootLogger().removeDestinations();
-
+  // log summary to DTR log and A-REX log
   if (finished_jobs[jobid].empty())
-    dtr.get_logger()->msg(Arc::INFO, "All %s %s successfully",
+    dtr.get_logger()->msg(Arc::INFO, "%s: All %s %s successfully", jobid,
                           dtr.get_source()->Local() ? "uploads":"downloads",
                           (dtr.get_status() == DataStaging::DTRStatus::CANCELLED) ? "cancelled":"finished");
   else
-    dtr.get_logger()->msg(Arc::INFO, "Some %s failed",
+    dtr.get_logger()->msg(Arc::INFO, "%s: Some %s failed", jobid,
                           dtr.get_source()->Local() ? "uploads":"downloads");
-
   lock.unlock();
-  Arc::Logger::getRootLogger().addDestinations(log_dests);
-
-  logger.msg(Arc::INFO, "%s: Data staging finished", jobid);
 
   // wake up GM thread
   if (kicker_func)
