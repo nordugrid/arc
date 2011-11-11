@@ -574,6 +574,14 @@ namespace DataStaging {
                                request->get_short_id(), request->get_destination()->CurrentLocation().Path());
 
     bool was_downloaded = (request->get_cache_state() == CACHE_DOWNLOADED) ? true : false;
+    if (was_downloaded) {
+      // Add DN to cached permissions
+      Arc::Credential cred(request->get_usercfg().ProxyPath(),
+                           request->get_usercfg().ProxyPath(),
+                           request->get_usercfg().CACertificatesDirectory(), "");
+      cache.AddDN(canonic_url, cred.GetIdentityName(), cred.GetEndTime());
+    }
+
     bool try_again = false;
     if (!cache.Link(request->get_destination()->CurrentLocation().Path(),
                     canonic_url,
