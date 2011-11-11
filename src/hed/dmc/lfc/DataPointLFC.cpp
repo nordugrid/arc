@@ -176,7 +176,8 @@ namespace Arc {
     if (source || path.empty() || path == "/") {
       path = ResolveGUIDToLFN();
       if (path.empty()) {
-        return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
+        if (source) return IsTempError() ? DataStatus::ReadResolveErrorRetryable : DataStatus::ReadResolveError;
+        return IsTempError() ? DataStatus::WriteResolveErrorRetryable : DataStatus::WriteResolveError;
       }
     }
     if (!source && url.Locations().size() == 0 && !HaveLocations()) {
@@ -192,7 +193,8 @@ namespace Arc {
     if(lfc_r != 0) {
       if (source || ((serrno != ENOENT) && (serrno != ENOTDIR))) {
         logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
-        return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
+        if (source) return IsTempError() ? DataStatus::ReadResolveErrorRetryable : DataStatus::ReadResolveError;
+        return IsTempError() ? DataStatus::WriteResolveErrorRetryable : DataStatus::WriteResolveError;
       }
       nbentries = 0;
       entries = NULL;
