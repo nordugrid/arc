@@ -37,9 +37,6 @@ class Scheduler: public DTRCallback {
     /// A lock for the cancelled jobs list
     Arc::SimpleCondition cancelled_jobs_lock;
 
-    /// Transfer shares the scheduler uses for each component
-    std::map<StagingProcesses, TransferShares> transferShares;
-
     /// Configuration of transfer shares
     TransferSharesConf transferSharesConf;
 
@@ -134,15 +131,10 @@ class Scheduler: public DTRCallback {
      * can arrive at any time, breaking the normal workflow. */
     void map_cancel_state_and_process(DTR* request);
     
-    /* Functions to loop through DTRs awaiting sending to proper processes. */
+    /// Go through all DTRs waiting to go into a processing state and decide
+    /// whether to push them into that state, depending on shares and limits.
+    void revise_queues();
 
-    /// Go through the list of DTRs waiting to go to the pre-processor and possibly submit them
-    void revise_pre_processor_queue();
-    /// Go through the list of DTRs waiting to go to the post-processor and possibly submit them
-    void revise_post_processor_queue();
-    /// Go through the list of DTRs waiting to go to the delivery and possibly submit them
-    void revise_delivery_queue();
-    
     /// Process the pool of DTRs which have arrived from other processes
     void process_events(void);
     

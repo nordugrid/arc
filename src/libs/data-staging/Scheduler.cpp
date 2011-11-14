@@ -51,14 +51,8 @@ namespace DataStaging {
   }
 
   void Scheduler::SetTransferSharesConf(const TransferSharesConf& share_conf) {
-    if (scheduler_state == INITIATED) {
+    if (scheduler_state == INITIATED)
       transferSharesConf = share_conf;
-      // initialise shares for each process
-      TransferShares shares(transferSharesConf);
-      transferShares[PRE_PROCESSOR] = shares;
-      transferShares[POST_PROCESSOR] = shares;
-      transferShares[DELIVERY] = shares;
-    }
   }
 
   void Scheduler::SetTransferParameters(const TransferParameters& params) {
@@ -222,9 +216,7 @@ namespace DataStaging {
   }
 
   void Scheduler::ProcessDTRNEW(DTR* request){
-    // Fresh DTRs should receive the initial priority
-    // This is to be implemented
-    //compute_priority(request);
+
     request->get_logger()->msg(Arc::INFO, "Scheduler received new DTR %s with source: %s,"
         " destination: %s, assigned to transfer share %s with priority %d",
         request->get_id(), request->get_source()->str(), request->get_destination()->str(),
@@ -266,8 +258,7 @@ namespace DataStaging {
     // There's no need to check additionally for cache error
     // If the error has occurred -- we just proceed the normal
     // workflow as if it was not cached at all.
-    // But we should clear error flag if it was set by
-    // the pre-processor
+    // But we should clear error flag if it was set by the pre-processor
     request->reset_error_status();
 
     if(request->get_cache_state() == CACHE_ALREADY_PRESENT){
@@ -450,32 +441,25 @@ namespace DataStaging {
       }
     }
 
-    // Probably operations in the preprocessor may
-    // influence the priority in the delivery.
-    // Recomputation might be needed.
-    // compute_priority(request);
-    // After normal workflow the DTR has become ready for delivery
+    // After normal workflow the DTR is ready for delivery
     request->get_logger()->msg(Arc::VERBOSE, "DTR %s: DTR is ready for transfer, moving to delivery queue", request->get_short_id());
 
     // set long timeout for waiting for transfer slot
     // (setting timeouts for active transfers is done in Delivery)
     request->set_timeout(7200);
-    request->set_status(DTRStatus::TRANSFER_WAIT);
+    request->set_status(DTRStatus::TRANSFER);
   }
   
   void Scheduler::ProcessDTRTRANSFERRED(DTR* request){
-    // We don't do check if the error has happened
-    // If it has -- the post-processor will take needed
-    // steps in RELEASE_REQUEST in any case
-    // The error flag will work now as a sign to return
-    // the DTR to QUERY_REPLICA again
+    // We don't check if error has happened - if it has the post-processor
+    // will take needed steps in RELEASE_REQUEST in any case. The error flag
+    // will work now as a sign to return the DTR to QUERY_REPLICA again.
 
     // Delivery will clean up destination physical file on error
     if (request->error())
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Transfer failed: %s", request->get_short_id(), request->get_error_status().GetDesc());
 
-    // Resuming normal workflow after the DTR
-    // has finished transferring
+    // Resuming normal workflow after the DTR has finished transferring
     // The next state is RELEASE_REQUEST
 
     // if cacheable and no cancellation or error, mark the DTR as CACHE_DOWNLOADED
@@ -602,9 +586,9 @@ namespace DataStaging {
   }
   
   void Scheduler::ProcessDTRFINAL_STATE(DTR* request){
-  	/* The only place where the DTR is returned to the generator 
-  	 * and deleted from the global list
-  	 */
+  	// This is the only place where the DTR is returned to the generator
+  	// and deleted from the global list
+
   	// Return to the generator
     request->get_logger()->msg(Arc::INFO, "DTR %s: Returning to generator", request->get_short_id());
     request->push(GENERATOR);
@@ -613,7 +597,7 @@ namespace DataStaging {
   }
   
   void Scheduler::map_state_and_process(DTR* request){
-    // DTRs that were requested to be cancelled are processed not here
+    // DTRs that were requested to be cancelled are not processed here
     if(request->cancel_requested()) map_cancel_state_and_process(request);
     // Loop until the DTR is sent somewhere for some action to be done
     // This is more efficient because many DTRs will skip some states and
@@ -642,10 +626,6 @@ namespace DataStaging {
         default: ; //DoNothing
       }
     }
-    // Update shares according to new state
-    if (request->is_destined_for_pre_processor()) transferShares[PRE_PROCESSOR].increase_transfer_share(request->get_transfer_share());
-    else if (request->is_destined_for_post_processor()) transferShares[POST_PROCESSOR].increase_transfer_share(request->get_transfer_share());
-    else if (request->is_destined_for_delivery()) transferShares[DELIVERY].increase_transfer_share(request->get_transfer_share());
 
     if (request->is_in_final_state()) {
       // If we came here -- we were in the final state,
@@ -688,7 +668,6 @@ namespace DataStaging {
         break;
       case DTRStatus::STAGING_PREPARING_WAIT:
       case DTRStatus::STAGED_PREPARED:
-      case DTRStatus::TRANSFER_WAIT:
       case DTRStatus::TRANSFER:
         {
           // At this stage we in addition to cache work
@@ -720,281 +699,184 @@ namespace DataStaging {
   }
   
   void Scheduler::process_events(void){
+
     std::list<DTR*> Events;
     
     // Get the events
     DtrList.filter_pending_dtrs(Events);
-    
     std::list<DTR*>::iterator Event;
     for(Event = Events.begin(); Event != Events.end(); Event++){
       map_state_and_process(*Event);
     }
   }
 
-  void Scheduler::revise_pre_processor_queue()
-  {
-    std::list<DTR*> PreProcessorQueue;
-    DtrList.filter_dtrs_by_next_receiver(PRE_PROCESSOR,PreProcessorQueue);
+  void Scheduler::revise_queues() {
 
-    if (PreProcessorQueue.empty()) return;
+    // TODO filter_dtrs_by_statuses which returns a map of status:dtrlist
 
-    // Sort the queue by priority
-    PreProcessorQueue.sort(dtr_sort_predicate);
+    // Go through "to process" states, work out shares and push DTRs
+    for (unsigned int i = 0; i < DTRStatus::ToProcessStates.size(); ++i) {
 
-    DTR* tmp;
+      DTRStatus::DTRStatusType state = DTRStatus::ToProcessStates[i];
 
-    std::list<DTR*>::iterator dtr = PreProcessorQueue.begin();
-    int highest_priority = (*dtr)->get_priority();
+      // The DTRs ready to go into the processing state
+      std::list<DTR*> DTRQueue;
+      DtrList.filter_dtrs_by_status(state, DTRQueue);
 
-    while (dtr != PreProcessorQueue.end()) {
+      // The active DTRs currently in the processing state
+      std::list<DTR*> ActiveDTRs;
+      DtrList.filter_dtrs_by_status((DTRStatus::DTRStatusType)(state+1), ActiveDTRs);
 
-      tmp = *dtr;
-      // The cancellation requests break the normal workflow. A cancelled
-      // request will either go back to generator or be put into a
-      // post-processor state for clean up
-      if(tmp->cancel_requested()){
-        map_cancel_state_and_process(tmp);
-        dtr = PreProcessorQueue.erase(dtr);
-        transferShares[PRE_PROCESSOR].decrease_transfer_share(tmp->get_transfer_share());
-        continue;
-      }
+      if (DTRQueue.empty() && ActiveDTRs.empty()) continue;
 
-      // To avoid the situation where DTRs get blocked due to higher
-      // priority DTRs, DTRs that have passed their timeout should have their
-      // priority boosted. But this should only happen if there are higher
-      // priority DTRs, since there could be a large queue of low priority DTRs
-      // which, after having their priority boosted, would then block new
-      // high priority requests.
-      // The simple solution here is to increase priority by 1 every 5 minutes.
-      // There is plenty of scope for more intelligent solutions.
-      // TODO reset priority back to original value after pre-processing
-      if(tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority){
-        tmp->set_priority(tmp->get_priority() + 1);
-        tmp->set_timeout(300);
-      }
-      tmp->update();
-      ++dtr;
-    }
+      // Transfer shares for this queue
+      TransferShares transferShares(transferSharesConf);
 
-    transferShares[PRE_PROCESSOR].calculate_shares(PreProcessorSlots);
+      // Sort the DTR queue according to the priorities the DTRs have.
+      // Highest priority will be at the beginning of the list.
+      DTRQueue.sort(dtr_sort_predicate);
 
-    std::list<DTR*> InPreProcessor;
-    DtrList.filter_dtrs_by_owner(PRE_PROCESSOR, InPreProcessor);
+      int highest_priority = 0;
 
-    // Number of the DTRs running in the pre-processor
-    int PreProcessorRunning = InPreProcessor.size();
-    if (PreProcessorRunning == PreProcessorSlots) return;
+      // First go over the queue and check for cancellation and timeout
+      for (std::list<DTR*>::iterator dtr = DTRQueue.begin(); dtr != DTRQueue.end();) {
 
-    // Decrease shares for those already in the pre-processor
-    for (dtr = InPreProcessor.begin(); dtr != InPreProcessor.end(); ++dtr) {
-      transferShares[PRE_PROCESSOR].decrease_number_of_slots((*dtr)->get_transfer_share());
-    }
+        DTR* tmp = *dtr;
+        if (dtr == DTRQueue.begin()) highest_priority = tmp->get_priority();
 
-    // Send to pre-processor according to share and place in the queue
-    while(PreProcessorRunning < PreProcessorSlots && !PreProcessorQueue.empty()){
-      tmp = PreProcessorQueue.front();
-      PreProcessorQueue.pop_front();
-      if (transferShares[PRE_PROCESSOR].can_start(tmp->get_transfer_share())) {
-        tmp->push(PRE_PROCESSOR);
-        PreProcessorRunning++;
-        transferShares[PRE_PROCESSOR].decrease_number_of_slots(tmp->get_transfer_share());
-      }
-    }
-  }
-  
-  void Scheduler::revise_post_processor_queue()
-  {
-    // There's no check for cancellation requests.
-    // The post-processor is special. Most DTRs
-    // with cancellation requests will go to the
-    // post-processor for cleanups, hold releases,
-    // etc., so the cancellation requests don't break
-    // normal workflow in the post-processor (as opposed
-    // to any other process), but instead act just as a
-    // sign that the post-processor should do additional
-    // cleanup activities.
+        // There's no check for cancellation requests for the post-processor.
+        // Most DTRs with cancellation requests will go to the post-processor
+        // for cleanups, hold releases, etc., so the cancellation requests
+        // don't break normal workflow in the post-processor (as opposed
+        // to any other process), but instead act just as a sign that the
+        // post-processor should do additional cleanup activities.
+        if (tmp->is_destined_for_pre_processor() || tmp->is_destined_for_delivery()) {
 
-    std::list<DTR*> PostProcessorQueue;
-    DtrList.filter_dtrs_by_next_receiver(POST_PROCESSOR,PostProcessorQueue);
-
-    if (PostProcessorQueue.empty()) return;
-
-    // Sort the queue by priority
-    PostProcessorQueue.sort(dtr_sort_predicate);
-
-    DTR* tmp;
-
-    std::list<DTR*>::iterator dtr = PostProcessorQueue.begin();
-    int highest_priority = (*dtr)->get_priority();
-
-    while (dtr != PostProcessorQueue.end()) {
-
-      tmp = *dtr;
-
-      // see revise_pre_processor_queue() for explanation
-      if(tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority){
-        tmp->set_priority(tmp->get_priority() + 1);
-        tmp->set_timeout(300);
-      }
-      tmp->update();
-      ++dtr;
-    }
-
-    transferShares[POST_PROCESSOR].calculate_shares(PostProcessorSlots);
-
-    std::list<DTR*> InPostProcessor;
-    DtrList.filter_dtrs_by_owner(POST_PROCESSOR, InPostProcessor);
-
-    // Number of the DTRs running in the post-processor
-    int PostProcessorRunning = InPostProcessor.size();
-    if (PostProcessorRunning == PostProcessorSlots) return;
-
-    // Decrease shares for those already in the post-processor
-    for (dtr = InPostProcessor.begin(); dtr != InPostProcessor.end(); ++dtr) {
-      transferShares[POST_PROCESSOR].decrease_number_of_slots((*dtr)->get_transfer_share());
-    }
-
-    // Send to pre-processor according to share and place in the queue
-    while(PostProcessorRunning < PostProcessorSlots && !PostProcessorQueue.empty()){
-      tmp = PostProcessorQueue.front();
-      PostProcessorQueue.pop_front();
-      if (transferShares[POST_PROCESSOR].can_start(tmp->get_transfer_share())) {
-        tmp->push(POST_PROCESSOR);
-        PostProcessorRunning++;
-        transferShares[POST_PROCESSOR].decrease_number_of_slots(tmp->get_transfer_share());
-      }
-    }
-  }
-  
-  void Scheduler::revise_delivery_queue()
-  {
-    std::list<DTR*> DeliveryQueue;    
-    DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
-
-    // Sort the Delivery Queue according to
-    // the priorities the DTRs have.
-    DeliveryQueue.sort(dtr_sort_predicate);
-
-    DTR* tmp;
-    int highest_priority = 0;
-
-    std::list<DTR*>::iterator dtr = DeliveryQueue.begin();
-
-    while (dtr != DeliveryQueue.end()) {
-      if (dtr == DeliveryQueue.begin()) highest_priority = (*dtr)->get_priority();
-
-      tmp = *dtr;
-      // The cancellation requests break the normal workflow. A cancelled
-      // request will either go back to generator or be put into a
-      // post-processor state for clean up
-      if(tmp->cancel_requested()){
-        map_cancel_state_and_process(tmp);
-        dtr = DeliveryQueue.erase(dtr);
-        transferShares[DELIVERY].decrease_transfer_share(tmp->get_transfer_share());
-        continue;
-      }
-
-      // see revise_pre_processor_queue() for explanation
-      if(tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority){
-        tmp->set_priority(tmp->get_priority() + 1);
-        tmp->set_timeout(300);
-      }
-      tmp->update();
-      dtr++;
-    }
-
-    transferShares[DELIVERY].calculate_shares(DeliverySlots);
-    
-    // Shares which have at least one DTR in Delivery
-    // Shares can only use emergency slots if they are not in this list
-    std::set<std::string> shares_in_delivery;
-
-    // The shares are re-calculated. Now we have to determine
-    // how many slots every share has already grabbed.
-    {
-      std::list<DTR*> shareDeliveryQueue;
-      std::list<DTR*>::iterator sharedtr;
-      DTR* sharetmp;
-
-      DtrList.filter_dtrs_by_owner(DELIVERY,shareDeliveryQueue);
-    	
-      for(sharedtr = shareDeliveryQueue.begin(); sharedtr != shareDeliveryQueue.end(); sharedtr++){
-        sharetmp = *sharedtr;
-        // First check for cancellation - send cancellation call to Delivery
-        // and don't count as an active slot
-        if (sharetmp->cancel_requested()) {
-          // check if already cancelled
-          if (sharetmp->get_status() != DTRStatus::TRANSFERRING_CANCEL) {
-            sharetmp->get_logger()->msg(Arc::INFO, "DTR %s: Cancelling active transfer", sharetmp->get_short_id());
-            delivery.cancelDTR(sharetmp);
+          // The cancellation requests break the normal workflow. A cancelled
+          // request will either go back to generator or be put into a
+          // post-processor state for clean up.
+          if (tmp->cancel_requested()) {
+            map_cancel_state_and_process(tmp);
+            dtr = DTRQueue.erase(dtr);
+            continue;
           }
+        }
+        // To avoid the situation where DTRs get blocked due to higher
+        // priority DTRs, DTRs that have passed their timeout should have their
+        // priority boosted. But this should only happen if there are higher
+        // priority DTRs, since there could be a large queue of low priority DTRs
+        // which, after having their priority boosted, would then block new
+        // high priority requests.
+        // The simple solution here is to increase priority by 1 every 5 minutes.
+        // There is plenty of scope for more intelligent solutions.
+        // TODO reset priority back to original value once past this stage.
+        if (tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority) {
+          tmp->set_priority(tmp->get_priority() + 1);
+          tmp->set_timeout(300);
+        }
+        tmp->update();
+        transferShares.increase_transfer_share(tmp->get_transfer_share());
+        ++dtr;
+      }
+
+      // Go over the active DTRs and add to transfer share
+      for (std::list<DTR*>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end();) {
+
+        DTR* tmp = *dtr;
+        // If the DTR is in Delivery, check for cancellation. The pre- and
+        // post-processor DTRs don't get cancelled here but are allowed to
+        // continue processing.
+        if (tmp->get_status() == DTRStatus::TRANSFERRING && tmp->cancel_requested()) {
+          tmp->get_logger()->msg(Arc::INFO, "DTR %s: Cancelling active transfer", tmp->get_short_id());
+          delivery.cancelDTR(tmp);
+          dtr = ActiveDTRs.erase(dtr);
           continue;
         }
-        // Every active DTR for sure has its share represented
-        // in active shares. So we can just decrease the corresponding
-        // number
-        transferShares[DELIVERY].decrease_number_of_slots(sharetmp->get_transfer_share());
-        shares_in_delivery.insert(sharetmp->get_transfer_share());
-      }
-    }
-    
-    // Refresh the number of DTRs running in the Delivery,
-    int DeliveryRunning = DtrList.number_of_dtrs_by_owner(DELIVERY);
-
-    // Now at the beginning of the queue we have DTRs that
-    // should be launched first. Launch them, but with respect
-    // to the transfer shares.
-    for(dtr = DeliveryQueue.begin(); dtr != DeliveryQueue.end(); dtr++){
-      tmp = *dtr;
-
-      // Are there slots left for this share?
-      bool can_start = transferShares[DELIVERY].can_start(tmp->get_transfer_share());
-      // Check if it is possible to use an emergency share
-      if (DeliveryRunning >= DeliverySlots &&
-          shares_in_delivery.find(tmp->get_transfer_share()) != shares_in_delivery.end()) {
-        can_start = false;
+        transferShares.increase_transfer_share((*dtr)->get_transfer_share());
+        ++dtr;
       }
 
-      if (can_start) {
-        // Choose delivery service - random for now
-        // If this is a retry, use a different service
-        if (!delivery_services.empty()) {
-          // previous endpoint
-          Arc::URL delivery_endpoint(tmp->get_delivery_endpoint());
+      // If the queue is empty we can go straight to the next state
+      if (DTRQueue.empty()) continue;
 
-          if (tmp->get_tries_left() < tmp->get_initial_tries() && delivery_services.size() > 1) {
-            Arc::URL ep(delivery_endpoint);
-            // Find a random service different from the previous one, looping a
-            // limited number of times in case all delivery_services are the same url
-            for (unsigned int i = 0; ep == delivery_endpoint && i < delivery_services.size() * 10; ++i) {
-              ep = delivery_services.at(rand() % delivery_services.size());
-            }
-            delivery_endpoint = ep;
-          } else {
-            delivery_endpoint = delivery_services.at(rand() % delivery_services.size());
-          }
-          tmp->set_delivery_endpoint(delivery_endpoint);
+      // Slot limit for this state
+      int slot_limit = DeliverySlots;
+      if (DTRQueue.front()->is_destined_for_pre_processor()) slot_limit = PreProcessorSlots;
+      else if (DTRQueue.front()->is_destined_for_post_processor()) slot_limit = PostProcessorSlots;
+
+      // Calculate the slots available for each active share
+      transferShares.calculate_shares(slot_limit);
+
+      // Shares which have at least one DTR active and running.
+      // Shares can only use emergency slots if they are not in this list.
+      std::set<std::string> active_shares;
+      int running = ActiveDTRs.size();
+
+      // Go over the active DTRs again and decrease slots in corresponding shares
+      for (std::list<DTR*>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end(); ++dtr) {
+        transferShares.decrease_number_of_slots((*dtr)->get_transfer_share());
+        active_shares.insert((*dtr)->get_transfer_share());
+      }
+
+      // Now at the beginning of the queue we have DTRs that should be
+      // launched first. Launch them, but with respect to the transfer shares.
+      for (std::list<DTR*>::iterator dtr = DTRQueue.begin(); dtr != DTRQueue.end(); ++dtr) {
+
+        DTR* tmp = *dtr;
+
+        // Check if there are any shares left in the queue which might need
+        // an emergency share - if not we are done
+        if (running >= slot_limit &&
+            transferShares.active_shares().size() == active_shares.size()) break;
+
+        // Are there slots left for this share?
+        bool can_start = transferShares.can_start(tmp->get_transfer_share());
+        // Check if it is possible to use an emergency share
+        if (running >= slot_limit &&
+            active_shares.find(tmp->get_transfer_share()) != active_shares.end()) {
+          can_start = false;
         }
-      	transferShares[DELIVERY].decrease_number_of_slots(tmp->get_transfer_share());
-        tmp->set_status(DTRStatus::TRANSFER);
-        tmp->push(DELIVERY);
-        DeliveryRunning++;
-        shares_in_delivery.insert(tmp->get_transfer_share());
+
+        if (can_start) {
+
+          // If going into Delivery, choose delivery service - random for now
+          if (tmp->is_destined_for_delivery() && !delivery_services.empty()) {
+            // previous endpoint
+            Arc::URL delivery_endpoint(tmp->get_delivery_endpoint());
+            // If this is a retry, use a different service
+            if (tmp->get_tries_left() < tmp->get_initial_tries() && delivery_services.size() > 1) {
+              Arc::URL ep(delivery_endpoint);
+              // Find a random service different from the previous one, looping a
+              // limited number of times in case all delivery_services are the same url
+              for (unsigned int i = 0; ep == delivery_endpoint && i < delivery_services.size() * 10; ++i) {
+                ep = delivery_services.at(rand() % delivery_services.size());
+              }
+              delivery_endpoint = ep;
+            } else {
+              delivery_endpoint = delivery_services.at(rand() % delivery_services.size());
+            }
+            tmp->set_delivery_endpoint(delivery_endpoint);
+          }
+          transferShares.decrease_number_of_slots(tmp->get_transfer_share());
+
+          // Send to processor/delivery
+          if (tmp->is_destined_for_pre_processor()) tmp->push(PRE_PROCESSOR);
+          else if (tmp->is_destined_for_delivery()) tmp->push(DELIVERY);
+          else if (tmp->is_destined_for_post_processor()) tmp->push(POST_PROCESSOR);
+
+          ++running;
+          active_shares.insert(tmp->get_transfer_share());
+        }
+        // Hard limit with all emergency slots used
+        if (running == slot_limit + DeliveryEmergencySlots) break;
       }
-      // Hard limit with all emergency slots used
-      if (DeliveryRunning == DeliverySlots + DeliveryEmergencySlots) break;
     }
-    
   }
 
   void Scheduler::receiveDTR(DTR& request){
 
     if(request.get_status() != DTRStatus::NEW) {
-      // If DTR is not NEW we just have to reduce the appropriate transfer share
-      // of the process it came from. Then the scheduler picks up the DTR itself
-      if (request.came_from_pre_processor()) transferShares[PRE_PROCESSOR].decrease_transfer_share(request.get_transfer_share());
-      else if (request.came_from_post_processor()) transferShares[POST_PROCESSOR].decrease_transfer_share(request.get_transfer_share());
-      else if (request.came_from_delivery()) transferShares[DELIVERY].decrease_transfer_share(request.get_transfer_share());
+      // If DTR is not NEW then the scheduler picks up the DTR itself
       return;
     }
     
@@ -1029,9 +911,6 @@ namespace DataStaging {
     // shares if appropriate and update each TransferShare
     if (in_reference && !transferSharesConf.is_configured(DtrTransferShare)) {
       transferSharesConf.set_reference_share(DtrTransferShare, priority);
-      transferShares[PRE_PROCESSOR].set_shares_conf(transferSharesConf);
-      transferShares[POST_PROCESSOR].set_shares_conf(transferSharesConf);
-      transferShares[DELIVERY].set_shares_conf(transferSharesConf);
     }
     
     // Compute the priority this DTR receives - this is the priority of the
@@ -1085,8 +964,7 @@ namespace DataStaging {
       else logger.msg(Arc::INFO, "  Delivery service: %s", i->str());
     }
 
-    // disconnect from root logger
-    // messages are logged to per-DTR Logger
+    // Disconnect from root logger so that messages are logged to per-DTR Logger
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
 
@@ -1110,19 +988,8 @@ namespace DataStaging {
       // Dealing with pending events, i.e. DTRs from another processes
       process_events();
       // Revise all the internal queues and take actions
-      revise_pre_processor_queue();
-      revise_delivery_queue();
-      revise_post_processor_queue();
-      // log states for debugging
-      std::list<DTR*> DeliveryQueue;
-      DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
-      // this logger is now disconnected, but in future this information will
-      // be available in other ways
-      logger.msg(Arc::DEBUG, "Pre-processor %i, DeliveryQueue %i, Delivery %i, Post-processor %i",
-                             DtrList.number_of_dtrs_by_owner(PRE_PROCESSOR),
-                             DeliveryQueue.size(),
-                             DtrList.number_of_dtrs_by_owner(DELIVERY),
-                             DtrList.number_of_dtrs_by_owner(POST_PROCESSOR));
+      revise_queues();
+
       // every 5 seconds, dump state
       if (!dumplocation.empty() && Arc::Time().GetTime() % 5 == 0) {
         if (dump) {

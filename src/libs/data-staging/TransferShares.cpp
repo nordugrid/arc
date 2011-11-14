@@ -92,14 +92,12 @@ namespace DataStaging {
   }
 
   TransferShares::TransferShares(const TransferShares& shares) :
-    SharesLock(),
     conf(shares.conf),
     ActiveShares(shares.ActiveShares),
     ActiveSharesSlots(shares.ActiveSharesSlots)
   {}
 
   TransferShares& TransferShares::operator=(const TransferShares& shares) {
-    //SharesLock = Arc::SimpleCondition();
     conf = shares.conf;
     ActiveShares = shares.ActiveShares;
     ActiveSharesSlots = shares.ActiveSharesSlots;
@@ -107,14 +105,11 @@ namespace DataStaging {
   }
 
   void TransferShares::set_shares_conf(const TransferSharesConf& shares_conf) {
-    SharesLock.lock();
     conf = shares_conf;
-    SharesLock.unlock();
   }
 
-  void TransferShares::calculate_shares(int TotalNumberOfSlots){
+  void TransferShares::calculate_shares(int TotalNumberOfSlots) {
 
-    SharesLock.lock();
     ActiveSharesSlots.clear();
     // clear active shares with 0 count
     // and compute the summarized priority of other active shares
@@ -142,32 +137,26 @@ namespace DataStaging {
       // share has at least theoretical possibility to start
       ActiveSharesSlots[i->first] = (temp == 0 ? 1 : temp);
     }
-    SharesLock.unlock();
   }
 
-  void TransferShares::increase_transfer_share(const std::string& ShareToIncrease){
-    SharesLock.lock();
+  void TransferShares::increase_transfer_share(const std::string& ShareToIncrease) {
     ActiveShares[ShareToIncrease]++;
-    SharesLock.unlock();
   }
 
-  void TransferShares::decrease_transfer_share(const std::string& ShareToDecrease){
-    SharesLock.lock();
+  void TransferShares::decrease_transfer_share(const std::string& ShareToDecrease) {
     ActiveShares[ShareToDecrease]--;
-    SharesLock.unlock();
   }
 
-  void TransferShares::decrease_number_of_slots(const std::string& ShareToDecrease){
-    SharesLock.lock();
+  void TransferShares::decrease_number_of_slots(const std::string& ShareToDecrease) {
     ActiveSharesSlots[ShareToDecrease]--;
-    SharesLock.unlock();
   }
 
-  bool TransferShares::can_start(const std::string& ShareToStart){
-    SharesLock.lock();
-    int slots_available = ActiveSharesSlots[ShareToStart];
-    SharesLock.unlock();
-    return (slots_available > 0);
+  bool TransferShares::can_start(const std::string& ShareToStart) {
+    return (ActiveSharesSlots[ShareToStart] > 0);
+  }
+
+  std::map<std::string, int> TransferShares::active_shares() const {
+    return ActiveShares;
   }
 
 }

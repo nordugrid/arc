@@ -4,6 +4,7 @@
 #define __ARC_DTRSTATUS_H__
 
 #include <string>
+#include <vector>
 
 namespace DataStaging {
       
@@ -15,54 +16,14 @@ namespace DataStaging {
     /// Possible state values
     enum DTRStatusType {
     	
-      /* Set by the generator */
+      // ORDER IS IMPORTANT!!
+
       /// Just created
       NEW,
 
-      /* Set by the scheduler */
       /// Check the cache for the file may be already there 
       CHECK_CACHE,
       
-      /// Resolve a meta-protocol
-      RESOLVE,
-      
-      /// Query a replica
-      QUERY_REPLICA,
-
-      /// The destination should be deleted
-      PRE_CLEAN,
-
-      /// Prepare or stage the source and/or destination
-      STAGE_PREPARE,
-
-      /// Hold the ready transfer
-      TRANSFER_WAIT,
-      
-      /// Transfer ready and can be started
-      TRANSFER,
-      
-      /// Transfer finished, release requests on the storage
-      RELEASE_REQUEST,
-      
-      /// Register a new replica of the destination
-      REGISTER_REPLICA,
-      
-      /// Destination is cacheable, process cache
-      PROCESS_CACHE,
-      
-      /// Everything completed successfully
-      DONE,
-      
-      /// Cancellation request fulfilled successfully
-      CANCELLED,
-      
-      /// Cancellation request fulfilled but DTR also completed transfer successfully
-      CANCELLED_FINISHED,
-
-      /// Error occured
-      ERROR,
-      
-      /* Set by the pre-processor */
       /// Checking the cache
       CHECKING_CACHE,
 
@@ -72,11 +33,17 @@ namespace DataStaging {
       /// Cache check completed
       CACHE_CHECKED,
 
+      /// Resolve a meta-protocol
+      RESOLVE,
+
       /// Resolving replicas
       RESOLVING,
 
       /// Replica resolution completed
       RESOLVED,
+
+      /// Query a replica
+      QUERY_REPLICA,
 
       /// Replica is being queried
       QUERYING_REPLICA,
@@ -84,11 +51,17 @@ namespace DataStaging {
       /// Replica was queried
       REPLICA_QUERIED,
 
+      /// The destination should be deleted
+      PRE_CLEAN,
+
       /// Deleting the destination
       PRE_CLEANING,
 
       /// The destination file has been deleted
       PRE_CLEANED,
+
+      /// Prepare or stage the source and/or destination
+      STAGE_PREPARE,
 
       /// Making a staging or preparing request
       STAGING_PREPARING,
@@ -99,7 +72,9 @@ namespace DataStaging {
       /// Staging/preparing request completed
       STAGED_PREPARED,
 
-      /* Set by the delivery */
+      /// Transfer ready and can be started
+      TRANSFER,
+
       /// Transfer is going
       TRANSFERRING,
       
@@ -109,24 +84,44 @@ namespace DataStaging {
       /// Transfer completed
       TRANSFERRED,
       
-      /* Set by the post-processor */
+      /// Transfer finished, release requests on the storage
+      RELEASE_REQUEST,
+
       /// Releasing staging/preparing request
       RELEASING_REQUEST,
 
       /// Release of staging/preparing request completed
       REQUEST_RELEASED,
     
+      /// Register a new replica of the destination
+      REGISTER_REPLICA,
+
       /// Registering a replica in an index service
       REGISTERING_REPLICA,
       
       /// Replica registration completed
       REPLICA_REGISTERED,
  
+      /// Destination is cacheable, process cache
+      PROCESS_CACHE,
+
       /// Releasing locks and copying/linking cache files to the session dir
       PROCESSING_CACHE,
       
       /// Cache processing completed
       CACHE_PROCESSED,
+
+      /// Everything completed successfully
+      DONE,
+
+      /// Cancellation request fulfilled successfully
+      CANCELLED,
+
+      /// Cancellation request fulfilled but DTR also completed transfer successfully
+      CANCELLED_FINISHED,
+
+      /// Error occured
+      ERROR,
 
       /// "Stateless" DTR
       NULL_STATE
@@ -182,6 +177,9 @@ namespace DataStaging {
     DTRStatusType GetStatus() const {
       return status;
     }
+
+    /// List of states with a to be processed action, eg CHECK_CACHE
+    const static std::vector<DTRStatus::DTRStatusType> ToProcessStates;
 
   private:
   

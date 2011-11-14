@@ -377,7 +377,7 @@ namespace DataStaging {
   }
   
   bool DTR::is_destined_for_delivery() const {
-  	return (status == DTRStatus::TRANSFER_WAIT);
+  	return (status == DTRStatus::TRANSFER);
   }
   
   bool DTR::came_from_pre_processor() const {

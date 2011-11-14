@@ -108,9 +108,6 @@ namespace DataStaging {
 
    private:
 
-    /// Lock to prevent race conditions in transfer shares
-    Arc::SimpleCondition SharesLock;
-
     /// Configuration of share type and reference shares
     TransferSharesConf conf;
 
@@ -159,6 +156,9 @@ namespace DataStaging {
 
     /// Returns true if there is a slot available for the given share
     bool can_start(const std::string& ShareToStart);
+
+    /// Returns the map of active shares
+    std::map<std::string, int> active_shares() const;
 
   }; // class TransferShares
 
