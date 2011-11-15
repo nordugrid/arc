@@ -64,6 +64,10 @@ namespace DataStaging {
       /// @param FilteredList This list is filled with filtered DTRs
       bool filter_dtrs_by_job(const std::string& jobid, std::list<DTR*>& FilteredList);
       
+      /// Returns true if a DTR in the list is currently writing the same
+      /// source file as DTRToCheck to cache.
+      bool is_being_cached(DTR* DTRToCheck);
+
       /// Get the list of all DTRs
       std::list<DTR*> all_dtrs();
 

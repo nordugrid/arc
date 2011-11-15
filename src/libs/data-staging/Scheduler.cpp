@@ -231,7 +231,15 @@ namespace DataStaging {
       // take a long time to download a big file
       request->set_timeout(3600);
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is cacheable, will check cache", request->get_short_id());
-      request->set_status(DTRStatus::CHECK_CACHE);
+      if (DtrList.is_being_cached(request)) {
+        Arc::Period cache_wait_period(10);
+        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is currently being cached, will wait %is",
+                                   request->get_short_id(), cache_wait_period.GetPeriod());
+        request->set_process_time(cache_wait_period);
+        request->set_status(DTRStatus::CACHE_WAIT);
+      } else {
+        request->set_status(DTRStatus::CHECK_CACHE);
+      }
     }
   }
   
@@ -247,6 +255,11 @@ namespace DataStaging {
                                 "Timed out while waiting for cache for " + request->get_source()->str());
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Timed out while waiting for cache lock", request->get_short_id());
       request->set_status(DTRStatus::CACHE_PROCESSED);
+    } else if (DtrList.is_being_cached(request)) {
+      Arc::Period cache_wait_period(10);
+      request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is currently being cached, will wait %is",
+                                 request->get_short_id(), cache_wait_period.GetPeriod());
+      request->set_process_time(cache_wait_period);
     } else {
       // Try to check cache again
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Checking cache again", request->get_short_id());
@@ -638,13 +651,13 @@ namespace DataStaging {
     switch (request->get_status().GetStatus()) {
       case DTRStatus::NEW:
       case DTRStatus::CHECK_CACHE:
+      case DTRStatus::CACHE_WAIT:
         {
           // Nothing has yet been done to require cleanup or additional
           // activities. Return to the generator via CACHE_PROCESSED.
           request->set_status(DTRStatus::CACHE_PROCESSED);
         }
         break;
-      case DTRStatus::CACHE_WAIT:
       case DTRStatus::CACHE_CHECKED:
       case DTRStatus::RESOLVE:
         {
@@ -774,7 +787,6 @@ namespace DataStaging {
           tmp->set_priority(tmp->get_priority() + 1);
           tmp->set_timeout(300);
         }
-        tmp->update();
         transferShares.increase_transfer_share(tmp->get_transfer_share());
         ++dtr;
       }

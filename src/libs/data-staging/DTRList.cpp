@@ -133,6 +133,27 @@ namespace DataStaging {
     return true;
   }
 
+  bool DTRList::is_being_cached(DTR* DTRToCheck) {
+    std::list<DTR*>::iterator it;
+
+    Lock.lock();
+    for (it = DTRs.begin();it != DTRs.end(); ++it) {
+      // Check for another DTR sharing the same source past the cache checking
+      // stage and which is using the cache
+      if (((*it)->get_id() != DTRToCheck->get_id()) &&
+          ((*it)->get_source()->GetURL() == DTRToCheck->get_source()->GetURL()) &&
+          ((*it)->get_status().GetStatus() > DTRStatus::CACHE_WAIT) &&
+          ((*it)->get_cache_state() == CACHEABLE ||
+           (*it)->get_cache_state() == CACHE_DOWNLOADED ||
+           (*it)->get_cache_state() == CACHE_NOT_USED)) {
+        Lock.unlock();
+        return true;
+      }
+    }
+    Lock.unlock();
+    return false;
+  }
+
   std::list<DTR*> DTRList::all_dtrs() {
     std::list<DTR*> allDTRs;
     Lock.lock();
