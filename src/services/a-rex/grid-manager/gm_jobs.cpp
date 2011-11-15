@@ -19,7 +19,7 @@
 #include "jobs/plugins.h"
 #include "files/info_files.h"
 #include "jobs/commfifo.h"
-#include "jobs/states.h"
+#include "jobs/job_config.h"
 #include "log/job_log.h"
 
 void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {

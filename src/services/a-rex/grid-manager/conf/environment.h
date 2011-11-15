@@ -7,11 +7,16 @@
 
 class JobLog;
 class JobsListConfig;
+namespace ARex {
+  class DelegationStores;
+}
 
 class GMEnvironment {
   bool valid_;
   JobLog& job_log_;
   JobsListConfig& jobs_cfg_;
+  // TODO: this should go away after proper locking in DelegationStore is implemented
+  ARex::DelegationStores* delegations_;
  public:
   GMEnvironment(JobLog& job_log,JobsListConfig& jcfg,bool guess = false);
   operator bool(void) const { return valid_; };
@@ -49,6 +54,8 @@ class GMEnvironment {
   JobLog& job_log() const;
   JobsListConfig& jobs_cfg() const;
 
+  ARex::DelegationStores* delegations(void) const;
+  void delegations(ARex::DelegationStores*);
 };
 
 ///  Read environment, check files and set variables

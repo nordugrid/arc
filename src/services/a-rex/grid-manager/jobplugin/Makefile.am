@@ -21,6 +21,6 @@ jobplugin_la_LIBADD = \
 	../../../gridftpd/libgridftpd_la-misc.lo \
 	../../../gridftpd/auth/libmap.la \
 	../misc/libmisc.la \
-	../jobs/libjobs.la ../mail/libmail.la ../conf/libconf.la \
+	../jobs/libusers.la ../mail/libmail.la ../conf/libenv.la \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
 	$(GLOBUS_JOBPLUGIN_LIBS) -lpthread

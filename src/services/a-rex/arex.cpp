@@ -23,7 +23,7 @@
 #include "job.h"
 #include "grid-manager/conf/conf_pre.h"
 #include "grid-manager/log/job_log.h"
-#include "grid-manager/jobs/states.h"
+#include "grid-manager/jobs/job_config.h"
 #include "arex.h"
 
 namespace ARex {
@@ -700,12 +700,12 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         } else {
           SOAP_NOT_SUPPORTED;
         }
-      } else if(delegations_.MatchNamespace(*inpayload)) {
+      } else if(delegation_stores_.MatchNamespace(*inpayload)) {
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
-        if(!delegations_.Process(credentials,*inpayload,*outpayload,config->GridName())) {
+        if(!delegation_stores_.Process(config->User()->DelegationDir(),*inpayload,*outpayload,config->GridName(),credentials)) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
@@ -867,6 +867,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   job_log_ = new JobLog;
   jobs_cfg_ = new JobsListConfig;
   gm_env_ = new GMEnvironment(*job_log_,*jobs_cfg_);
+  gm_env_->delegations(&delegation_stores_);
   JobUsers users(*gm_env_);
   if(gmconfig_.empty()) {
     // No external configuration file means configuration is

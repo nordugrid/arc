@@ -9,7 +9,7 @@
 #include "jobs/users.h"
 #include "jobs/commfifo.h"
 #include "log/job_log.h"
-#include "jobs/states.h"
+#include "jobs/job_config.h"
 
 
 int main(int argc,char* argv[]) {

@@ -1,4 +1,4 @@
-SUBDIRS = grid-manager ldif infoproviders lrms urlogger schema
+SUBDIRS = delegation grid-manager ldif infoproviders lrms urlogger schema
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test test_cache_check
@@ -15,7 +15,7 @@ example_DATA = arex.xml.example arex_secure.xml.example \
 	arex_minimalistic.xml.example arex_xmlonly.xml.example \
 	arex_showcase.xml.example arex_janitor.xml.example
 
-GRIDMANAGER_LIBS = grid-manager/libgridmanager.la
+GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
 	create_activity.cpp get_activity_documents.cpp \

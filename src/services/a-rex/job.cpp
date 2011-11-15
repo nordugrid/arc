@@ -30,6 +30,8 @@
 #include "grid-manager/jobs/commfifo.h"
 #include "grid-manager/run/run_plugin.h"
 #include "grid-manager/files/info_files.h"
+#include "delegation/DelegationStores.h"
+#include "delegation/DelegationStore.h"
 
 #include "job.h"
 
@@ -284,6 +286,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
 }
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+std::cerr<<"ARexJob: New job"<<std::endl;
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -425,7 +428,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     return;
   };
   // Parse job description
-   Arc::JobDescription desc;
+  Arc::JobDescription desc;
+  std::list<std::string> deleg_ids;
   {
     std::list<Arc::JobDescription> descs;
     if (!Arc::JobDescription::Parse(job_desc_str, descs, "", "GRIDMANAGER") || descs.size() != 1) {
@@ -514,7 +518,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     return;
   };
   // Create input status file to tell downloader we
-  // are hadling input in lever way.
+  // are handling input in clever way.
   job_input_status_add_file(job,*config_.User());
   // Create status file (do it last so GM picks job up here)
   if(!job_state_write_file(job,*config_.User(),JOB_STATE_ACCEPTED)) {
@@ -523,6 +527,9 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
+  // Put lock on delegated credentials
+  DelegationStores* deleg = config_.User()->Env().delegations();
+  if(deleg) (*deleg)[config_.User()->DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
   SignalFIFO(*config_.User());
   return;
 }

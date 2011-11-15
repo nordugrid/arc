@@ -135,7 +135,12 @@ bool CommFIFO::add(JobUser& user) {
   uid_t uid = user.get_uid();
   gid_t gid = user.get_gid();
   (lchown(path.c_str(),uid,gid) != 0);
-  int fd = open(path.c_str(),O_RDONLY | O_NONBLOCK);
+  int fd = -1;
+  // This must fail. If not then there is another a-rex hanging around.
+  fd = open(path.c_str(),O_WRONLY | O_NONBLOCK);
+  if(fd != -1) { close(fd); return false; };
+  // (errno != ENXIO)) {
+  fd = open(path.c_str(),O_RDONLY | O_NONBLOCK);
   if(fd == -1) return false;
   int fd_keep = open(path.c_str(),O_WRONLY | O_NONBLOCK);
   if(fd_keep == -1) { close(fd); return false; };

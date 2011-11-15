@@ -9,7 +9,7 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include "../jobs/users.h"
-#include "../jobs/states.h"
+#include "../jobs/job_config.h"
 #include "../jobs/plugins.h"
 #include "conf.h"
 #include "conf_sections.h"

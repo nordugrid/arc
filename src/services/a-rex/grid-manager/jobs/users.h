@@ -117,6 +117,7 @@ class JobUser {
   RunPlugin* CredPlugin(void) const { return cred_plugin; };
   unsigned long long int DiskSpace(void) const { return diskspace; };
   const GMEnvironment& Env(void) const { return gm_env; };
+  std::string DelegationDir(void) const;
   bool operator==(std::string name) const { return (name == unix_name); };
   /* Change owner of the process to this user if su=true.
      Otherwise just set environment variables USER_ID and USER_NAME.

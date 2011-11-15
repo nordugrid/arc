@@ -256,3 +256,13 @@ JobsListConfig& GMEnvironment::jobs_cfg() const {
   return jobs_cfg_;
 }
 
+ARex::DelegationStores* GMEnvironment::delegations(void) const {
+  return delegations_;
+}
+
+void GMEnvironment::delegations(ARex::DelegationStores* deleg) {
+  delegations_ = deleg;
+}
+
+
+

@@ -10,18 +10,20 @@
 #include "../jobs/job.h"
 #include "../conf/environment.h"
 
-/* default job ttl after finished - 1 week */
+/*
+* default job ttl after finished - 1 week *
 #define DEFAULT_KEEP_FINISHED (7*24*60*60)
-/* default job ttr after deleted - 1 month */
+* default job ttr after deleted - 1 month *
 #define DEFAULT_KEEP_DELETED (30*24*60*60)
-/* default maximum number of jobs in download/upload */
+* default maximum number of jobs in download/upload *
 #define DEFAULT_MAX_LOAD (100)
-/* default maximal allowed amount of reruns */
+* default maximal allowed amount of reruns *
 #define DEFAULT_JOB_RERUNS (5)
-/* not used */
+* not used *
 #define DEFAULT_DISKSPACE (200*1024L*1024L)
-/* default maximum down/upload retries */
+* default maximum down/upload retries *
 #define DEFAULT_MAX_RETRIES (10)
+*/
 
 class JobUser;
 class JobLocalDescription;
@@ -110,6 +112,7 @@ class JobsList {
   bool ScanOldJobs(int max_scan_time,int max_scan_jobs);
   /* Rearange status files on service restart */
   bool RestartJobs(void);
+  void UnlockDelegation(JobsList::iterator &i);
   /*
     Destroy all jobs in list according to 'finished' an 'active'.
     (See DestroyJob).
@@ -135,7 +138,7 @@ class JobsList {
  * default value, as int type variables have no predefined value
  * assigned upon creation. It also protects from potential counter
  * underflow, to stop counter jumping to MAX_INT.
-*/
+*
 class ZeroUInt {
  private:
   unsigned int value_;
@@ -151,19 +154,21 @@ class ZeroUInt {
   ZeroUInt operator--(int) { ZeroUInt temp(value_); if(value_) --value_; return temp; };
   operator unsigned int(void) const { return value_; };
 };
+*/
 
 /**
  * Class to represent information read from configuration.
  */
+/*
 class JobsListConfig {
  friend class JobsList;
  private:
-  /* number of jobs for every state */
+  // number of jobs for every state
   int jobs_num[JOB_STATE_NUM];
-  /* map of number of active jobs for each DN */
+  // map of number of active jobs for each DN
   std::map<std::string, ZeroUInt> jobs_dn;
   int jobs_pending;
-  /* maximal allowed values */
+  // maximal allowed values
   int max_jobs_running;
   int max_jobs_total;
   int max_jobs_processing;
@@ -185,7 +190,7 @@ class JobsListConfig {
   unsigned int wakeup_period;
   std::string preferred_pattern;
   std::vector<Arc::URL> delivery_services;
-  /* the list of shares with defined limits */
+  // the list of shares with defined limits
   std::map<std::string, int> limited_share;
  public:
   JobsListConfig(void);
@@ -294,6 +299,7 @@ class JobsListConfig {
   };
 
 };
+  */
 
 #endif
 

@@ -64,7 +64,7 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
   Arc::XMLNode delegated_token = in["arcdeleg:DelegatedToken"];
   if(delegated_token) {
     // Client wants to delegate credentials
-    if(!delegations_.DelegatedToken(delegation,delegated_token,config.GridName())) {
+    if(!delegation_stores_.DelegatedToken(config.User()->DelegationDir(),delegated_token,config.GridName(),delegation)) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "MigrateActivity: Failed to accept delegation");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");

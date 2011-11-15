@@ -17,6 +17,8 @@
 #include "../jobs/job.h"
 #include "../jobs/plugins.h"
 #include "../misc/proxy.h"
+#include "../../delegation/DelegationStores.h"
+#include "../../delegation/DelegationStore.h"
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -35,33 +37,9 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+#include "job_config.h"
 #include "states.h"
 
-
-JobsListConfig::JobsListConfig(void) {
-  for(int n = 0;n<JOB_STATE_NUM;n++) jobs_num[n]=0;
-  jobs_pending = 0;
-  max_jobs_processing=DEFAULT_MAX_LOAD;
-  max_jobs_processing_emergency=1;
-  max_jobs_running=-1;
-  max_jobs_total=-1;
-  max_jobs=-1;
-  max_jobs_per_dn=-1;
-  max_downloads=-1;
-  max_processing_share = 0;
-  //limited_share;
-  share_type = "";
-  min_speed=0;
-  min_speed_time=300;
-  min_average_speed=0;
-  max_inactivity_time=300;
-  max_retries=DEFAULT_MAX_RETRIES;
-  use_secure_transfer=false; /* secure data transfer is OFF by default !!! */
-  use_passive_transfer=false;
-  use_local_transfer=false;
-  use_new_data_staging=false;
-  wakeup_period = 120; // default wakeup every 2 mins
-}
 
 #ifdef NO_GLOBUS_CODE
 ContinuationPlugins::ContinuationPlugins(void) { };
@@ -351,6 +329,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   if(new_state == JOB_STATE_UNDEFINED) {
     if((new_state=job_state_read_file(i->job_id,*user))==JOB_STATE_UNDEFINED) {
       logger.msg(Arc::ERROR,"%s: Can't read state - no comments, just cleaning",i->job_id);
+      UnlockDelegation(i);
       job_clean_final(*i,*user);
       if(i->local) { delete i->local; }; i=jobs.erase(i);
       return true;
@@ -362,6 +341,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   if((new_state != JOB_STATE_INLRMS) || 
      (job_lrms_mark_check(i->job_id,*user))) {
     logger.msg(Arc::INFO,"%s: Cleaning control and session directories",i->job_id);
+    UnlockDelegation(i);
     job_clean_final(*i,*user);
     if(i->local) { delete i->local; }; i=jobs.erase(i);
     return true;
@@ -370,12 +350,14 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
   bool state_changed = false;
   if(!state_submitting(i,state_changed,true)) {
     logger.msg(Arc::WARNING,"%s: Cancelation failed (probably job finished) - cleaning anyway",i->job_id);
+    UnlockDelegation(i);
     job_clean_final(*i,*user);
     if(i->local) { delete i->local; }; i=jobs.erase(i);
     return true;
   };
   if(!state_changed) { ++i; return false; }; /* child still running */
   logger.msg(Arc::INFO,"%s: Cancelation probably succeeded - cleaning",i->job_id);
+  UnlockDelegation(i);
   job_clean_final(*i,*user);
   if(i->local) { delete i->local; };
   i=jobs.erase(i);
@@ -1352,12 +1334,18 @@ static time_t prepare_cleanuptime(JobId &job_id,time_t &keep_finished,JobsList::
   return t;
 }
 
+void JobsList::UnlockDelegation(JobsList::iterator &i) {
+  ARex::DelegationStores* delegs = user->Env().delegations();
+  if(delegs) (*delegs)[user->DelegationDir()].ReleaseCred(i->job_id);
+}
+
 void JobsList::ActJobFinished(JobsList::iterator &i,
                               bool& /*once_more*/,bool& /*delete_job*/,
                               bool& /*job_error*/,bool& state_changed) {
         if(job_clean_mark_check(i->job_id,*user)) {
           logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
           /* delete everything */
+          UnlockDelegation(i);
           job_clean_final(*i,*user);
         } else {
           if(job_restart_mark_check(i->job_id,*user)) { 
@@ -1410,6 +1398,7 @@ void JobsList::ActJobFinished(JobsList::iterator &i,
             /* check if it is not time to remove that job completely */
             if(((int)(time(NULL)-t)) >= 0) {
               logger.msg(Arc::INFO,"%s: Job is too old - deleting",i->job_id);
+              UnlockDelegation(i);
               if(i->keep_deleted) {
                 // here we have to get the cache per-job dirs to be deleted
                 CacheConfig cache_config;

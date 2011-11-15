@@ -27,6 +27,7 @@
 
 #include "../conf/conf.h"
 #include "../jobs/job.h"
+#include "../jobs/job_config.h"
 #include "../jobs/commfifo.h"
 #include "../jobs/plugins.h"
 #include "../conf/environment.h"

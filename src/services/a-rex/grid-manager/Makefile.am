@@ -27,7 +27,7 @@ gm_kick_LDADD = libgridmanager.la
 gm_jobs_SOURCES = gm_jobs.cpp
 gm_jobs_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-gm_jobs_LDADD = libgridmanager.la
+gm_jobs_LDADD = libgridmanager.la ../delegation/libdelegation.la
 
 inputcheck_SOURCES = inputcheck.cpp
 inputcheck_CXXFLAGS = -I$(top_srcdir)/include \

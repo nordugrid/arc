@@ -14,6 +14,7 @@
 //# #include "../run/run.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"
+#include "job_config.h"
 #include "users.h"
 #include "job.h"
 

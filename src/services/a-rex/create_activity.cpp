@@ -4,7 +4,7 @@
 
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
-#include "grid-manager/jobs/states.h"
+#include "grid-manager/jobs/job_config.h"
 #include "job.h"
 #include "tools.h"
 
@@ -78,7 +78,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
   Arc::XMLNode delegated_token = in["arcdeleg:DelegatedToken"];
   if(delegated_token) {
     // Client wants to delegate credentials
-    if(!delegations_.DelegatedToken(delegation,delegated_token,config.GridName())) {
+    if(!delegation_stores_.DelegatedToken(config.User()->DelegationDir(),delegated_token,config.GridName(),delegation)) {
       // Failed to accept delegation (report as bad request)
       logger_.msg(Arc::ERROR, "CreateActivity: Failed to accept delegation");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
@@ -86,7 +86,6 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
       out.Destroy();
       return Arc::MCC_Status();
     };
-logger_.msg(Arc::ERROR, "CreateActivity: has delegation: %s", delegation);
   };
   ARexJob job(jsdl,config,delegation,clientid,logger_);
   if(!job) {

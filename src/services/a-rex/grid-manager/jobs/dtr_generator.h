@@ -7,6 +7,7 @@
 #include "../files/info_files.h"
 
 #include "job.h"
+#include "job_config.h"
 
 
 /**

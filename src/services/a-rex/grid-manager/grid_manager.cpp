@@ -209,7 +209,11 @@ void GridManager::grid_manager(void* arg) {
   wakeup_h.sleep_cond=gm->sleep_cond_;
   wakeup_h.timeout=&wakeup_interface;
   for(JobUsers::iterator i = users.begin();i!=users.end();++i) {
-    wakeup_interface.add(*i);
+    if(!wakeup_interface.add(*i)) {
+      logger.msg(Arc::FATAL,"Error adding communication interface in %s for user %s. Maybe another instance of A-REX is already running or permissions are not suitable.",i->ControlDir(),i->UnixName());
+      gm->active_ = false;
+      return;
+    };
   };
   wakeup_interface.timeout(env.jobs_cfg().WakeupPeriod());
 

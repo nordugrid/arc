@@ -12,6 +12,7 @@ libcacheservice_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libcacheservice_la_LIBADD = \
 	../a-rex/grid-manager/libgridmanager.la \
+	../a-rex/delegation/libdelegation.la \
 	$(top_builddir)/src/hed/libs/ws/libarcws.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata2.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \

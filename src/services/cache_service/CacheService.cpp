@@ -19,7 +19,7 @@
 // A-REX includes for configuration and running downloader
 #include "../a-rex/grid-manager/conf/conf_file.h"
 #include "../a-rex/grid-manager/log/job_log.h"
-#include "../a-rex/grid-manager/jobs/states.h"
+#include "../a-rex/grid-manager/jobs/job_config.h"
 #include "../a-rex/grid-manager/files/info_types.h"
 #include "../a-rex/grid-manager/files/info_files.h"
 #include "../a-rex/grid-manager/run/run_parallel.h"

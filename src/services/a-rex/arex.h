@@ -10,6 +10,8 @@
 
 #include "FileChunks.h"
 #include "grid-manager/grid_manager.h"
+//#include "delegation/DelegationStore.h"
+#include "delegation/DelegationStores.h"
 
 class JobLog;
 class JobsListConfig;
@@ -20,6 +22,7 @@ namespace ARex {
 class ARexGMConfig;
 class ARexConfigContext;
 class CountedResourceLock;
+class DelegationStores;
 
 class CountedResource {
  friend class CountedResourceLock;
@@ -58,7 +61,7 @@ class ARexService: public Arc::RegisteredService {
   Arc::ThreadRegistry thread_count_;
   Arc::NS ns_;
   Arc::Logger logger_;
-  Arc::DelegationContainerSOAP delegations_;
+  DelegationStores delegation_stores_;
   OptimizedInformationContainer infodoc_;
   Arc::InfoRegisters inforeg_;
   CountedResource infolimit_;

@@ -30,6 +30,7 @@
 #include <arc/FileUtils.h>
 
 #include "../jobs/job.h"
+#include "../jobs/job_config.h"
 #include "../jobs/users.h"
 #include "../files/info_types.h"
 #include "../files/info_files.h"

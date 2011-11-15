@@ -25,6 +25,7 @@
 #include "../run/run_parallel.h"
 #include "../misc/escaped.h"
 #include "../jobs/states.h"
+#include "../jobs/job_config.h"
 #include "../conf/environment.h"
 #include "users.h"
 
@@ -140,6 +141,12 @@ bool JobUser::CreateDirectories(void) {
     } else {
       (chown((control_dir+"/finished").c_str(),uid,gid) != 0);
     };
+    std::string deleg_dir = DelegationDir();
+    if(!Arc::DirCreate(deleg_dir,uid,gid,S_IRWXU)) {
+      res=false;
+    } else {
+      (chown(deleg_dir.c_str(),uid,gid) != 0);
+    };
   };
   for(std::vector<std::string>::iterator i = session_roots.begin(); i != session_roots.end(); i++) {
     if(!Arc::DirCreate(*i,S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH,true)) {
@@ -154,6 +161,22 @@ bool JobUser::CreateDirectories(void) {
     };
   };
   return res;
+}
+
+std::string JobUser::DelegationDir(void) const {
+  std::string deleg_dir = control_dir+"/delegations";
+  uid_t u = ::getuid();
+  if(u == 0) return deleg_dir;
+  struct passwd pwbuf;
+  char buf[4096];
+  struct passwd* pw;
+  if(::getpwuid_r(u,&pwbuf,buf,sizeof(buf),&pw) == 0) {
+    if(pw && pw->pw_name) {
+      deleg_dir+=".";
+      deleg_dir+=pw->pw_name;
+    };
+  };
+  return deleg_dir;
 }
 
 /*
