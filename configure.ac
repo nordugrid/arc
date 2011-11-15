@@ -1745,6 +1745,9 @@ if test "$enables_a_rex_service" = "yes"; then
   if test "x$WIN32" = "xyes" ; then
     AC_MSG_NOTICE([A-Rex can't be built for WIN32 environment - disabling])
     enables_a_rex_service="no"
+  elif test "x$DBCXX_LIBS" = "x" ; then
+    AC_MSG_NOTICE([A-Rex can't be built without C++ API for DB4.x - disabling])
+    enables_a_rex_service="no"
   fi
 fi
 AC_MSG_NOTICE([A-Rex service enabled: $enables_a_rex_service])
@@ -1901,6 +1904,9 @@ if test "$enables_cache_service" = "yes"; then
   if test "x$WIN32" = "xyes" ; then
     enables_cache_service="no"
     AC_MSG_NOTICE([Cache service can't be built for WIN32 environment - disabling])
+  elif test ! "x$enables_a_rex_service" = "xyes" ; then
+    enables_cache_service="no"
+    AC_MSG_NOTICE([Cache service can't be built without A-REX - disabling])
   fi
 fi
 AC_MSG_NOTICE([Cache service enabled: $enables_cache_service])
@@ -2206,6 +2212,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/arex_showcase.xml.example
                  src/services/a-rex/arex_janitor.xml.example
                  src/services/a-rex/grid-manager/arc-vomsac-check.8
+                 src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
                  src/services/a-rex/grid-manager/files/Makefile
@@ -2458,7 +2465,7 @@ HOPI service:       ${enables_hopi_service}
 STORAGE service:    ${enables_storage_service}
 JANITOR service:    ${enables_janitor_service}
 CACHE service:      ${enables_cache_service}
-DATADELIVERY service: ${enables_cache_service}
+DATADELIVERY service: ${enables_datadelivery_service}
 
 ARCLIB clients:     ${enables_arclib_client}
 ISIS client:        ${enables_isis_client}
