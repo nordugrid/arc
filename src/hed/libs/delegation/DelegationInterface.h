@@ -91,7 +91,7 @@ class DelegationConsumerSOAP: public DelegationConsumer {
   /** Creates object with specified private key */
   DelegationConsumerSOAP(const std::string& content);
   ~DelegationConsumerSOAP(void);
-  /** Process SOAP message which starts delagation.
+  /** Process SOAP message which starts delegation.
     Generated message in 'out' is meant to be sent back to DelagationProviderSOAP.
    Argument 'id' contains identifier of procedure and is used only to produce SOAP 
    message. */
@@ -191,8 +191,8 @@ class DelegationContainerSOAP {
   virtual DelegationConsumerSOAP* AddConsumer(std::string& id,const std::string& client);
   /** Finds previously created consumer in internal store */
   virtual DelegationConsumerSOAP* FindConsumer(const std::string& id,const std::string& client);
-  /** Marks consumer as recently used */
-  virtual void TouchConsumer(DelegationConsumerSOAP* c);
+  /** Marks consumer as recently used and acquire new credentials */
+  virtual void TouchConsumer(DelegationConsumerSOAP* c,const std::string& credentials);
   /** Releases consumer obtained by call to AddConsumer() or FindConsumer() */
   virtual void ReleaseConsumer(DelegationConsumerSOAP* c);
   /** Releases consumer obtained by call to AddConsumer() or FindConsumer() and deletes it */

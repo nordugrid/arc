@@ -1141,7 +1141,7 @@ DelegationConsumerSOAP* DelegationContainerSOAP::AddConsumer(std::string& id,con
   return cs;
 }
 
-void DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c) {
+void DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std::string& /*credentials*/) {
   lock_.lock();
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { lock_.unlock(); return; };
@@ -1279,7 +1279,7 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::st
   DelegationConsumerSOAP* c = FindConsumer(id,client);
   if(!c) return false;
   bool r = c->UpdateCredentials(credentials,identity,in,out);
-  TouchConsumer(c);
+  TouchConsumer(c,credentials);
   ReleaseConsumer(c);
   return r;
 }
@@ -1295,7 +1295,7 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::strin
   DelegationConsumerSOAP* c = FindConsumer(id,client);
   if(!c) return false;
   bool r = c->DelegatedToken(credentials,identity,token);
-  TouchConsumer(c);
+  TouchConsumer(c,credentials);
   ReleaseConsumer(c);
   return r;
 }
@@ -1406,6 +1406,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS10FAULT(out,"Failed to acquire credentials");
         return true;
       };
+      TouchConsumer(c,cred);
       ReleaseConsumer(c);
       credentials = cred;
       return true;
@@ -1500,6 +1501,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS20FAULT(out,"Failed to acquire credentials");
         return true;
       };
+      TouchConsumer(c,cred);
       ReleaseConsumer(c);
       credentials = cred;
       return true;
@@ -1627,6 +1629,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         EMIESFAULT(out,"Failed to acquire credentials");
         return true;
       };
+      TouchConsumer(c,cred);
       ReleaseConsumer(c);
       credentials = cred;
       r.NewChild("SUCCESS");
