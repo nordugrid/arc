@@ -35,14 +35,17 @@ namespace Arc {
    * to FileRead. */
   bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t uid=0, gid_t gid=0);
 
+  /// Simple method to read whole file content from filename.
+  /// Specified uid and gid are used for accessing filesystem.
+  bool FileRead(const std::string& filename, std::string& data, uid_t uid=0, gid_t gid=0);
+
   /// Simple method to create a new file containing given data.
   /// Specified uid and gid are used for accessing filesystem.
   /** An existing file is overwritten with the new data. Permissions of the
-   * created file are determined using the current umask. For more complex
-   * file handling or large files, FileOpen() should be used. If protected
+   * created file are determined using the current umask. If protected
    * access is required, FileLock should be used in addition to FileRead.
    * If uid/gid are zero then no real switch of uid/gid is done. */
-  bool FileCreate(const std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0);
+  bool FileCreate(const std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0, mode_t mode = 0);
 
   /// Stat a file and put info into the st struct
   bool FileStat(const std::string& path,struct stat *st,bool follow_symlinks);

@@ -94,11 +94,12 @@ void FileUtilsTest::TestFileLink() {
 void FileUtilsTest::TestFileCreateAndRead() {
   // create empty file
   std::string filename(testroot + "/file1");
-  CPPUNIT_ASSERT(Arc::FileCreate(filename, ""));
+  CPPUNIT_ASSERT(Arc::FileCreate(filename, "", 0, 0, 0600));
 
   struct stat st;
   CPPUNIT_ASSERT(Arc::FileStat(filename, &st, true));
   CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
+  CPPUNIT_ASSERT_EQUAL(0600, (int)(st.st_mode & 0777));
 
   std::list<std::string> data;
   CPPUNIT_ASSERT(Arc::FileRead(filename, data));
@@ -111,6 +112,9 @@ void FileUtilsTest::TestFileCreateAndRead() {
   CPPUNIT_ASSERT_EQUAL(4, (int)data.size());
   CPPUNIT_ASSERT_EQUAL(std::string("12"), data.front());
   CPPUNIT_ASSERT_EQUAL(std::string("xyz"), data.back());
+  std::string cdata;
+  CPPUNIT_ASSERT(Arc::FileRead(filename, cdata));
+  CPPUNIT_ASSERT_EQUAL(std::string("12\nabc\n\nxyz\n"), cdata);
 
   // remove file and check failure
   CPPUNIT_ASSERT_EQUAL(true, Arc::FileDelete(filename.c_str()));

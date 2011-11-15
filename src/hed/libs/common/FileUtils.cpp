@@ -152,6 +152,10 @@ bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t u
       errno = fa.geterrno();
       return false;
     };
+    if(!fa.open(filename,O_RDONLY,0)) {
+      errno = fa.geterrno();
+      return false;
+    };
     char buf[1024];
     std::string line;
     for(;;) {
@@ -164,6 +168,7 @@ bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t u
         line.erase(0,p+1);
       }
     }
+    fa.close();
     if(!line.empty()) data.push_back(line);
     return true;
   }
@@ -176,24 +181,57 @@ bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t u
   return true;
 }
 
-bool FileCreate(const std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
+bool FileRead(const std::string& filename, std::string& data, uid_t uid, gid_t gid) {
+  data.clear();
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
+    if(!fa.setuid(uid,gid)) {
+      errno = fa.geterrno();
+      return false;
+    };
+    if(!fa.open(filename,O_RDONLY,0)) {
+      errno = fa.geterrno();
+      return false;
+    };
+    char buf[1024];
+    for(;;) {
+      ssize_t l = fa.read(buf,sizeof(buf));
+      if(l <= 0) break;
+      data += std::string(buf,l);
+    }
+    fa.close();
+    return true;
+  }
+  int h = ::open(filename.c_str(),O_RDONLY);
+  if(h == -1) return false;
+  char buf[1024];
+  for(;;) {
+    ssize_t l = ::read(h,buf,sizeof(buf));
+    if(l <= 0) break;
+    data += std::string(buf,l);
+  }
+  ::close(h);
+  return true;
+}
+
+bool FileCreate(const std::string& filename, const std::string& data, uid_t uid, gid_t gid, mode_t mode) {
+  if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
+    FileAccess fa;
+    // If somebody bother about changing uid/gid then probably safer mode is needed
+    if(mode == 0) mode = S_IRUSR|S_IWUSR;
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
-    if(!fa.open(filename,O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
+    if(!fa.open(filename,O_WRONLY|O_CREAT,mode)) { errno = fa.geterrno(); return false; }
     if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
     fa.close();
     return true;
   }
+  if(mode == 0) mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
   if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
-  std::ofstream os(filename.c_str());
-  if (!os.good()) {
-    os.close();
-    return false;
-  }
-  os << data;
-  os.close();
+  int h = ::open(filename.c_str(),O_WRONLY|O_CREAT,mode);
+  if(h == -1) return false;
+  if(!write_all(h,data.c_str(),data.length())) { ::close(h); return false; }
+  ::close(h);
   return true;
 }
 
