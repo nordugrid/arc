@@ -141,11 +141,11 @@ namespace DataStaging {
       // Check for another DTR sharing the same source past the cache checking
       // stage and which is using the cache
       if (((*it)->get_id() != DTRToCheck->get_id()) &&
-          ((*it)->get_source()->GetURL() == DTRToCheck->get_source()->GetURL()) &&
           ((*it)->get_status().GetStatus() > DTRStatus::CACHE_WAIT) &&
           ((*it)->get_cache_state() == CACHEABLE ||
            (*it)->get_cache_state() == CACHE_DOWNLOADED ||
-           (*it)->get_cache_state() == CACHE_NOT_USED)) {
+           (*it)->get_cache_state() == CACHE_NOT_USED) &&
+          ((*it)->get_source_str() == DTRToCheck->get_source_str())) {
         Lock.unlock();
         return true;
       }

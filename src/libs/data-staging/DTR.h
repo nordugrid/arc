@@ -169,6 +169,11 @@ namespace DataStaging {
       /// Destination file
       Arc::DataHandle destination_endpoint;
       
+      /// Source file as a string
+      std::string source_url_str;
+      /// Destination file as a string
+      std::string destination_url_str;
+
       /// Endpoint of cached file.
       /* Kept as string so we don't need to duplicate DataHandle properties
        * of destination. Delivery should check if this is set and if so use
@@ -356,6 +361,11 @@ namespace DataStaging {
      Arc::DataHandle& get_destination() { return destination_endpoint; };
      /// Get destination handle. Return by reference since DataHandle cannot be copied
      const Arc::DataHandle& get_destination() const { return destination_endpoint; };
+
+     /// Get source as a string
+     std::string get_source_str() const { return source_url_str; };
+     /// Get destination as a string
+     std::string get_destination_str() const { return destination_url_str; };
 
      /// Get the UserConfig object associated with this DTR
      const Arc::UserConfig& get_usercfg() const { return cfg; };
