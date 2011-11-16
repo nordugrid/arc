@@ -338,9 +338,10 @@ namespace Arc {
       logger.msg(ERROR, explanation);
       if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
         logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+      SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
       creq.finished_error();
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
+      if (statuscode == SRM_INTERNAL_ERROR || file_statuscode == SRM_FILE_UNAVAILABLE || file_statuscode == SRM_FILE_BUSY)
         return SRM_ERROR_TEMPORARY;
       return SRM_ERROR_PERMANENT;
     }
@@ -391,9 +392,10 @@ namespace Arc {
       logger.msg(ERROR, explanation);
       if (res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"])
         logger.msg(ERROR, res["arrayOfFileStatuses"]["statusArray"]["status"]["explanation"]);
+      SRMStatusCode file_statuscode = GetStatus(res["arrayOfFileStatuses"]["statusArray"]["status"], explanation);
       creq.finished_error();
       delete response;
-      if (statuscode == SRM_INTERNAL_ERROR)
+      if (statuscode == SRM_INTERNAL_ERROR || file_statuscode == SRM_FILE_UNAVAILABLE || file_statuscode == SRM_FILE_BUSY)
         return SRM_ERROR_TEMPORARY;
       return SRM_ERROR_PERMANENT;
     }
