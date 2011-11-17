@@ -34,6 +34,7 @@ class ArgusPEP : public SecHandler {
     std::list<std::string> select_attrs;
     std::list<std::string> reject_attrs;
     conversion_type conversion;
+    bool accept_mapping;
     bool valid_; 
     static Arc::Logger logger;
     // XACML request and response

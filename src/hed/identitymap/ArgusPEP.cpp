@@ -36,7 +36,7 @@ class pep_ex {
         pep_ex(const std::string& desc_):desc(desc_) {};
 };
 
-std::string path_to_x500(const std::string& path) {
+static std::string path_to_x500(const std::string& path) {
     class url_ex: public Arc::URL {
       public:
         static std::string Path2BaseDN(const std::string& path) {
@@ -44,6 +44,27 @@ std::string path_to_x500(const std::string& path) {
         };
     };
     return url_ex::Path2BaseDN(path);
+}
+
+
+std::string flatten_fqan(const std::string& wfqan) {
+  const std::string vo_tag("/VO=");
+  const std::string group_tag("/Group=");
+  std::string fqan;
+  std::string::size_type pos1 = 0;
+  std::string::size_type pos2 = 0;
+  if(wfqan.substr(0,vo_tag.length()) != vo_tag) return fqan;
+  for(;;) {
+    pos1 = wfqan.find(group_tag,pos2);
+    if(pos1 == std::string::npos) break;
+    pos2 = wfqan.find("/",pos1+1);
+    if(pos2 == std::string::npos) {
+      fqan += "/" + wfqan.substr(pos1+group_tag.length());
+      break;
+    };
+    fqan += "/" + wfqan.substr(pos1+group_tag.length(),pos2-pos1-group_tag.length());
+  };
+  return fqan;
 }
 
 Arc::Logger ArgusPEP::logger(Arc::Logger::getRootLogger(), "SecHandler.Argus");
@@ -74,8 +95,9 @@ std::string xacml_decision_to_string(xacml_decision_t decision) {
 }
 
 /* extract the elements from the configuration file */
-ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {  
+ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg) {  
     valid_ = false;
+    accept_mapping = false;
     logger.setThreshold(Arc::DEBUG);
     pepdlocation = (std::string)(*cfg)["PEPD"];  
     if(pepdlocation.empty()) {
@@ -128,6 +150,9 @@ ArgusPEP::ArgusPEP(Arc::Config *cfg):ArcSec::SecHandler(cfg),valid_(false) {
         keypath = proxypath;
         certpath = proxypath;
     };
+
+    std::string mapping_str = (std::string)(*cfg)["AcceptMapping"];
+    if((mapping_str == "1") || (mapping_str == "true")) accept_mapping = true;
 
     valid_ = true;
 }
@@ -289,7 +314,7 @@ bool ArgusPEP::Handle(Arc::Message* msg) const {
             }
             throw pep_ex("The reached decision is: " + xacml_decision_to_string(decision));
         }     
-        if(!local_id.empty()) {
+        if(accept_mapping && !local_id.empty()) {
             logger.msg(Arc::INFO,"Grid identity is mapped to local identity '%s'", local_id);
             msg->Attributes()->set("SEC:LOCALID", local_id);
         }
@@ -625,11 +650,15 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
     if(!attr) throw ierror("Failed to create attribute fqan object");
     std::string pfqan;
     std::list<std::string> fqans = get_sec_attrs(auths, "TLS", "VOMS");
+    // /voname=testers.eu-emi.eu/hostname=emitestbed07.cnaf.infn.it:15002/testers.eu-emi.eu/test3:test_ga=ciccio -> ?
+    // /VO=testers.eu-emi.eu/Group=testers.eu-emi.eu/Group=test1 -> /testers.eu-emi.eu/test1
+
     for(std::list<std::string>::iterator fqan = fqans.begin(); fqan!=fqans.end(); ++fqan) {
-        if(pfqan.empty()) pfqan = *fqan;
-        // TODO: convert to VOMS FQAN?
-        if(!fqan->empty()) xacml_attribute_addvalue(attr, fqan->c_str());
-        logger.msg(Arc::DEBUG,"Adding fqan value: %s",*fqan);
+        std::string fqan_str = flatten_fqan(*fqan);
+        if(fqan_str.empty()) continue;
+        if(pfqan.empty()) pfqan = fqan_str;
+        if(!fqan->empty()) xacml_attribute_addvalue(attr, fqan_str.c_str());
+        logger.msg(Arc::DEBUG,"Adding fqan value: %s",fqan_str);
     }
     xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
     xacml_subject_addattribute(subject,attr); attr = NULL;
@@ -642,6 +671,16 @@ logger.msg(Arc::DEBUG,"Doing CREAM request");
         xacml_attribute_setdatatype(attr, XACML_DATATYPE_FQAN);
         xacml_subject_addattribute(subject,attr); attr = NULL;
     }
+
+    attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:subject:key-info");
+    if(!attr) throw ierror("Failed to create attribute key-info object");
+    std::string certstr = get_sec_attr(auths, "TLS", "CERTIFICATE");
+    std::string chainstr = get_sec_attr(auths, "TLS", "CERTIFICATECHAIN");
+    chainstr = certstr + "\n" + chainstr;
+    xacml_attribute_addvalue(attr, chainstr.c_str());
+    logger.msg(Arc::DEBUG,"Adding cert chain value: %s",chainstr);
+    xacml_attribute_setdatatype(attr, XACML_DATATYPE_STRING);
+    xacml_subject_addattribute(subject,attr); attr = NULL;
 
     // Resource
     attr = xacml_attribute_create("urn:oasis:names:tc:xacml:1.0:resource:resource-id");
