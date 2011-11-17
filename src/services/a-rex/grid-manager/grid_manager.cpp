@@ -29,6 +29,8 @@
 #include "run/run_redirected.h"
 #include "run/run_parallel.h"
 #include "jobs/dtr_generator.h"
+#include "../delegation/DelegationStore.h"
+#include "../delegation/DelegationStores.h"
 
 #include "grid_manager.h"
 
@@ -329,6 +331,14 @@ void GridManager::grid_manager(void* arg) {
       };
       /* process known jobs */
       user->get_jobs()->ActJobs();
+      // Clean old delegations
+      ARex::DelegationStores* delegs = user->Env().delegations();
+      if(delegs) {
+        ARex::DelegationStore& deleg = (*delegs)[user->DelegationDir()];
+        deleg.Expiration(24*60*60);
+        deleg.CheckTimeout(60);
+        deleg.CheckConsumers();
+      };
     };
     if(hard_job) hard_job_time = time(NULL) + HARD_JOB_PERIOD;
     gm->sleep_cond_->wait();

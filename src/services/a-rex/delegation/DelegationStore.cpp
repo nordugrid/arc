@@ -2,7 +2,12 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <fcntl.h>
+#include <utime.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <arc/FileUtils.h>
 
@@ -10,6 +15,9 @@
 
 namespace ARex {
   DelegationStore::DelegationStore(const std::string& base):fstore_(base) {
+    expiration_ = 0;
+    maxrecords_ = 0;
+    mtimeout_ = 0;
     // TODO: Do some cleaning on startup
   }
 
@@ -123,7 +131,25 @@ namespace ARex {
   }
 
   void DelegationStore::CheckConsumers(void) {
-    // TODO: Remove credentials which were not removed because of locks
+    // Go through stored credentials
+    // Remove outdated records (those with locks won't be removed)
+    time_t start = ::time(NULL);
+    if(expiration_) {
+      if(mrec_ == NULL) mrec_ = new FileRecord::Iterator(fstore_);
+      for(;(bool)(*mrec_);++(*mrec_)) {
+        if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) return;
+        struct stat st;
+        if(::stat(mrec_->path().c_str(),&st) == 0) {
+std::cerr<<"Checking "<<mrec_->path()<<std::endl;
+          if(((unsigned int)(::time(NULL) - st.st_mtime)) > expiration_) {
+std::cerr<<"Removing "<<mrec_->path()<<std::endl;
+            fstore_.Remove(mrec_->id(),mrec_->owner());
+          };    
+        };
+      };
+      delete mrec_; mrec_ = NULL;
+    };
+    // TODO: Remove records over threshold
   }
 
   std::string DelegationStore::FindCred(const std::string& id,const std::string& client) {
@@ -135,8 +161,20 @@ namespace ARex {
     return fstore_.AddLock(lock_id,ids,client);
   }
 
-  bool DelegationStore::ReleaseCred(const std::string& lock_id) {
-    return fstore_.RemoveLock(lock_id);
+  bool DelegationStore::ReleaseCred(const std::string& lock_id, bool touch, bool remove) {
+    if((!touch) && (!remove)) return fstore_.RemoveLock(lock_id);
+    std::list<std::pair<std::string,std::string> > ids;
+    if(!fstore_.RemoveLock(lock_id,ids)) return false;
+    for(std::list<std::pair<std::string,std::string> >::iterator i = ids.begin();
+                        i != ids.end(); ++i) {    
+      if(touch) {
+        std::list<std::string> meta;
+        std::string path = fstore_.Find(i->first,i->second,meta);
+        // TODO: in a future use meta for storing times
+        if(!path.empty()) ::utime(path.c_str(),NULL);
+      };
+      if(remove) fstore_.Remove(i->first,i->second);
+    };
   }
 
 } // namespace ARex

@@ -1337,7 +1337,7 @@ static time_t prepare_cleanuptime(JobId &job_id,time_t &keep_finished,JobsList::
 
 void JobsList::UnlockDelegation(JobsList::iterator &i) {
   ARex::DelegationStores* delegs = user->Env().delegations();
-  if(delegs) (*delegs)[user->DelegationDir()].ReleaseCred(i->job_id);
+  if(delegs) (*delegs)[user->DelegationDir()].ReleaseCred(i->job_id,true,false);
 }
 
 void JobsList::ActJobFinished(JobsList::iterator &i,

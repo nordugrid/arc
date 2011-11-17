@@ -26,7 +26,6 @@ namespace ARex {
       db_locked_(NULL,DB_CXX_NO_EXCEPTIONS),
       db_link_(NULL,DB_CXX_NO_EXCEPTIONS),
       valid_(false) {
-std::cerr<<"FileRecord: "<<basepath_<<std::endl;
     if(dberr("set 1",db_lock_.set_flags(DB_DUPSORT)) != 0) return;
     if(dberr("set 2",db_locked_.set_flags(DB_DUPSORT)) != 0) return;
     if(dberr("assoc1",db_link_.associate(NULL,&db_lock_,&locked_callback,0)) != 0) return;
@@ -281,6 +280,11 @@ std::cerr<<"FileRecord: "<<basepath_<<std::endl;
   }
 
   bool FileRecord::RemoveLock(const std::string& lock_id) {
+    std::list<std::pair<std::string,std::string> > ids;
+    return RemoveLock(lock_id,ids);
+  }
+
+  bool FileRecord::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
     Dbc* cur = NULL;
@@ -294,6 +298,13 @@ std::cerr<<"FileRecord: "<<basepath_<<std::endl;
       cur->close(); return false;
     };
     for(;;) {
+      std::string id;
+      std::string owner;
+      uint32_t size = data.get_size();
+      void* buf = data.get_data();
+      buf = parse_string(id,buf,size);
+      buf = parse_string(owner,buf,size);
+      ids.push_back(std::pair<std::string,std::string>(id,owner));
       if(dberr("removelock:del",cur->del(0)) != 0) {
         ::free(pkey);
         cur->close(); return false;
@@ -322,6 +333,52 @@ std::cerr<<"FileRecord: "<<basepath_<<std::endl;
     };
     cur->close();
     return true;
+  }
+
+  FileRecord::Iterator::Iterator(FileRecord& frec):frec_(frec),cur_(NULL) {
+    if(dberr("Iterator:cursor",frec_.db_rec_.cursor(NULL,&cur_,0)) != 0) {
+      if(cur_) {
+        cur_->close(); cur_=NULL;
+      };
+      return;
+    };
+    Dbt key;
+    Dbt data;
+    if(dberr("Iterator:first",cur_->get(&key,&data,DB_FIRST)) != 0) {
+      cur_->close(); cur_=NULL;
+      return;
+    };
+    parse_record(uid_,id_,owner_,meta_,key,data);
+  }
+
+  FileRecord::Iterator::~Iterator(void) {
+    if(cur_) {
+      cur_->close(); cur_=NULL;
+    };
+  }
+
+  FileRecord::Iterator& FileRecord::Iterator::operator++(void) {
+    if(!cur_) return *this;
+    Dbt key;
+    Dbt data;
+    if(dberr("Iterator:first",cur_->get(&key,&data,DB_NEXT)) != 0) {
+      cur_->close(); cur_=NULL;
+      return *this;
+    };
+    parse_record(uid_,id_,owner_,meta_,key,data);
+    return *this;
+  }
+
+  FileRecord::Iterator& FileRecord::Iterator::operator--(void) {
+    if(!cur_) return *this;
+    Dbt key;
+    Dbt data;
+    if(dberr("Iterator:first",cur_->get(&key,&data,DB_PREV)) != 0) {
+      cur_->close(); cur_=NULL;
+      return *this;
+    };
+    parse_record(uid_,id_,owner_,meta_,key,data);
+    return *this;
   }
 
 } // namespace ARex
