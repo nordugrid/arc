@@ -970,6 +970,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             // read 'local' and then we never know if it was new job)
             JobLocalDescription *job_desc;
             job_desc = new JobLocalDescription;
+            job_desc->headnode = user->HeadNode();
             job_desc->sessiondir=i->session_dir;
             /* first phase of job - just  accepted - parse request */
             logger.msg(Arc::INFO,"%s: State: ACCEPTED: parsing job description",i->job_id);

@@ -684,11 +684,13 @@ exit:
 bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,const std::string &my_username,JobUser &my_user) {
   Arc::XMLNode tmp_node;
   bool superuser = (my_uid == 0);
+  std::string head_node;
   std::string default_lrms;
   std::string default_queue;
   std::string last_control_dir;
   std::vector<std::string> session_roots;
   JobsListConfig& jcfg = users.Env().jobs_cfg();
+  head_node = (std::string)cfg["endpoint"];
   /*
    Currently we have everything running inside same arched.
    So we do not need any special treatment for infosys.
@@ -1054,6 +1056,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
         }
         else {
           std::string control_dir_ = control_dir;
+          user->SetHeadNode(head_node);
           user->SetLRMS(default_lrms,default_queue);
           user->SetKeepFinished(default_ttl);
           user->SetKeepDeleted(default_ttr);

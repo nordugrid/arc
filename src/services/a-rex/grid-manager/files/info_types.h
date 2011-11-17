@@ -41,7 +41,7 @@ std::ostream &operator<< (std::ostream &o,const FileData &fd);
 class JobLocalDescription {
  /* all values are public, this class is just for convenience */
  public:
- JobLocalDescription(void):jobid(""),globalid(""),lrms(""),queue(""),localid(""),
+ JobLocalDescription(void):jobid(""),globalid(""),lrms(""),headnode(""),queue(""),localid(""),
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),
@@ -64,6 +64,7 @@ class JobLocalDescription {
   std::string jobid;         /* job's unique identificator */
   /* attributes stored in job.ID.local */
   std::string globalid;      /* BES ActivityIdentifier, i.e. globally unique id */
+  std::string headnode;      /* URL of the cluster's headnode */
   std::string lrms;          /* lrms type to use - pbs */
   std::string queue;         /* queue name  - default */
   std::string localid;       /* job's id in lrms */

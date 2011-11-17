@@ -45,6 +45,10 @@ JobUser::JobUser(const GMEnvironment& env):gm_env(env) {
   diskspace = 0;
 }
 
+void JobUser::SetHeadNode(const std::string &head_node) {
+  headnode=head_node;
+}
+
 void JobUser::SetLRMS(const std::string &lrms_name,const std::string &queue_name) {
   default_lrms=lrms_name;
   default_queue=queue_name;

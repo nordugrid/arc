@@ -132,6 +132,7 @@ bool job_log_make_file(const JobDescription &desc,JobUser &user,const std::strin
     std::string value;
     std::string key = config_read_line(i_src,value,'=');
     if(key=="subject") { o_dst<<"usersn="<<value<<std::endl; }
+    else if(key=="headnode") { o_dst<<"headnode="<<value<<std::endl; }
     else if(key=="lrms") { o_dst<<"lrms="<<value<<std::endl; }
     else if(key=="queue") { o_dst<<"queue="<<value<<std::endl; }
     else if(key=="localid") { o_dst<<"localjobid="<<value<<std::endl; }

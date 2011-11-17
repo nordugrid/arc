@@ -41,6 +41,8 @@ class JobUser {
   std::vector<std::string> session_roots;
   /* cache information */
   CacheConfig cache_params;
+  /* URL of the cluster's headnode */
+  std::string headnode;
   /* default LRMS and queue to use */
   std::string default_lrms;
   std::string default_queue;
@@ -88,6 +90,7 @@ class JobUser {
   void SetSessionRoot(const std::string &dir);
   void SetSessionRoot(const std::vector<std::string> &dirs);
   void SetCacheParams(CacheConfig params);
+  void SetHeadNode(const std::string &head_node);
   void SetLRMS(const std::string &lrms_name,const std::string &queue_name);
   void SetKeepFinished(time_t ttl) { keep_finished=ttl; };
   void SetKeepDeleted(time_t ttr) { keep_deleted=ttr; };
@@ -102,6 +105,7 @@ class JobUser {
   const std::vector<std::string> & SessionRoots() const { return session_roots; };
   CacheConfig CacheParams(void) const { return cache_params; };
   bool CachePrivate(void) const { return false; };
+  const std::string & HeadNode(void) const { return headnode; };
   const std::string & DefaultLRMS(void) const { return default_lrms; };
   const std::string & DefaultQueue(void) const { return default_queue; };
   const std::string & UnixName(void) const { return unix_name; };
