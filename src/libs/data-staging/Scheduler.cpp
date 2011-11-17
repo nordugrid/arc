@@ -256,6 +256,9 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Timed out while waiting for cache lock", request->get_short_id());
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (DtrList.is_being_cached(request)) {
+      // TODO A low priority DTR holding the cache lock can block a high priority DTR
+      // downloading the same file. Here we should cancel the low priority one to let
+      // the high priority one go through
       Arc::Period cache_wait_period(10);
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: File is currently being cached, will wait %is",
                                  request->get_short_id(), cache_wait_period.GetPeriod());
@@ -369,12 +372,19 @@ namespace DataStaging {
       // to limit per remote host. For now count staging transfers in this
       // share already in transfer queue and apply limit. In order not to block
       // the highest priority DTRs here we allow them to bypass the limit.
-      // TODO Also need to count DTRs in STAGE_PREPARE
-      std::list<DTR*> DeliveryQueue;
-      DtrList.filter_dtrs_by_next_receiver(DELIVERY,DeliveryQueue);
+      std::list<DTR*> StagedQueue;
+
+      // List of DTRStatuses where files are staged or are about to be staged
+      std::list<DTRStatus::DTRStatusType> statuses;
+      statuses.push_back(DTRStatus::STAGE_PREPARE);
+      statuses.push_back(DTRStatus::STAGING_PREPARING);
+      statuses.push_back(DTRStatus::STAGING_PREPARING_WAIT);
+      statuses.push_back(DTRStatus::STAGED_PREPARED);
+      statuses.push_back(DTRStatus::TRANSFER);
+      DtrList.filter_dtrs_by_statuses(statuses, StagedQueue);
 
       int share_queue = 0, highest_priority = 0;
-      for (std::list<DTR*>::iterator dtr = DeliveryQueue.begin(); dtr != DeliveryQueue.end(); ++dtr) {
+      for (std::list<DTR*>::iterator dtr = StagedQueue.begin(); dtr != StagedQueue.end(); ++dtr) {
         if ((*dtr)->get_transfer_share() == request->get_transfer_share() &&
             ((*dtr)->get_source()->IsStageable() ||
              (*dtr)->get_destination()->IsStageable())) {
@@ -382,8 +392,8 @@ namespace DataStaging {
           if ((*dtr)->get_priority() > highest_priority) highest_priority = (*dtr)->get_priority();
         }
       }
-      if (share_queue >= DeliverySlots*2 && request->get_priority() <= highest_priority) {
-        request->get_logger()->msg(Arc::INFO, "DTR %s: Large transfer queue - will wait 10s before staging", request->get_short_id());
+      if (share_queue >= DeliverySlots*4 && request->get_priority() <= highest_priority) {
+        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Large transfer queue - will wait 10s before staging", request->get_short_id());
         request->set_process_time(10);
       }
       else {

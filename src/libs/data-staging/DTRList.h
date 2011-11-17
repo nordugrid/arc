@@ -44,8 +44,12 @@ namespace DataStaging {
        * pre-, post-processor or delivery stages.
        * @param FilteredList This list is filled with filtered DTRs
        */
-      bool filter_dtrs_by_status(DTRStatus StatusToFilter, std::list<DTR*>& FilteredList);
+      bool filter_dtrs_by_status(DTRStatus::DTRStatusType StatusToFilter, std::list<DTR*>& FilteredList);
       
+      /// Filter the queue to select DTRs with particular statuses.
+      /// @param FilteredList This list is filled with filtered DTRs
+      bool filter_dtrs_by_statuses(std::list<DTRStatus::DTRStatusType> StatusesToFilter, std::list<DTR*>& FilteredList);
+
       /// Select DTRs that are about to go to the specified process.
       /** This selection is actually a virtual queue for pre-, post-processor
        * and delivery.
