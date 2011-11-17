@@ -310,10 +310,10 @@ namespace Arc
 
     //Host 
     //SubmitHost 
-
-    //Queue 
-    if( bool(xml_ur["Queue"]) ){
-        key_ur.insert ( std::pair<std::string,std::string>("SubmitHost", xml_ur["Queue"]) );
+    //Queue
+    //Headnode 
+    if( bool(xml_ur["Headnode"]) ){
+        key_ur.insert ( std::pair<std::string,std::string>("SubmitHost", xml_ur["Headnode"]) );
     } 
 
     //ProjectName 

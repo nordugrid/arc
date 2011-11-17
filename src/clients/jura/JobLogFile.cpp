@@ -330,6 +330,12 @@ namespace Arc
 	ur.NewChild("SubmitHost")=host;
       }
     
+    //Headnode
+    if (find("headnode")!=end())
+      {
+	ur.NewChild("Headnode")=(*this)["headnode"];
+      }
+
     //Queue
     if (find("queue")!=end())
       {
