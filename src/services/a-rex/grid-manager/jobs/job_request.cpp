@@ -19,6 +19,8 @@
 #include "../files/info_files.h"
 #include "../run/run_function.h"
 #include "../conf/environment.h"
+#include "../../delegation/DelegationStore.h"
+#include "../../delegation/DelegationStores.h"
 
 #include "job_request.h"
 
@@ -103,6 +105,35 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
   // Adjust number of rtes - exclude existing ones
   job_desc.rtes = filter_rtes(user.Env().runtime_config_dir(),job_desc.rte);
   if(!job_local_write_file(desc,user,job_desc)) return false;
+  // Convert delegation ids to credential paths.
+  // Add default credentials for file which have no own assigned.
+  std::string default_cred = user.ControlDir() + "/job." + desc.get_id() + ".proxy";
+  for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
+                                   f != job_desc.inputdata.end(); ++f) {
+    if(f->has_lfn()) {
+      if(f->cred.empty()) {
+        f->cred = default_cred;
+      } else {
+        std::string path;
+        ARex::DelegationStores* delegs = user.Env().delegations();
+        if(delegs) path = (*delegs)[user.DelegationDir()].FindCred(f->cred,job_desc.DN);
+        f->cred = path;
+      };
+    };
+  };
+  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
+                                   f != job_desc.outputdata.end(); ++f) {
+    if(f->has_lfn()) {
+      if(f->cred.empty()) {
+        f->cred = default_cred;
+      } else {
+        std::string path;
+        ARex::DelegationStores* delegs = user.Env().delegations();
+        if(delegs) path = (*delegs)[user.DelegationDir()].FindCred(f->cred,job_desc.DN);
+        f->cred = path;
+      };
+    };
+  };
   if(!job_input_write_file(desc,user,job_desc.inputdata)) return false;
   if(!job_output_write_file(desc,user,job_desc.outputdata)) return false;
   if(!job_rte_write_file(desc,user,job_desc.rte)) return false;

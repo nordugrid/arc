@@ -286,7 +286,6 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
 }
 
 ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
-std::cerr<<"ARexJob: New job"<<std::endl;
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -439,6 +438,10 @@ std::cerr<<"ARexJob: New job"<<std::endl;
       return;
     }
     desc = descs.front();
+    // Delegation id can be found in local description and in parsed job description
+    for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
+      if(!f->DelegationID.empty()) deleg_ids.push_back(f->DelegationID);
+    };
   };
   // Write grami file
   if(!write_grami(desc,job,*config_.User(),NULL)) {
@@ -530,6 +533,7 @@ std::cerr<<"ARexJob: New job"<<std::endl;
   // Put lock on delegated credentials
   DelegationStores* deleg = config_.User()->Env().delegations();
   if(deleg) (*deleg)[config_.User()->DelegationDir()].LockCred(id_,deleg_ids,config_.GridName());
+
   SignalFIFO(*config_.User());
   return;
 }

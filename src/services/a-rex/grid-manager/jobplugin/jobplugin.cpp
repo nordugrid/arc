@@ -43,6 +43,8 @@
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"
 #include "../../../gridftpd/fileplugin/fileplugin.h"
+#include "../../delegation/DelegationStores.h"
+#include "../../delegation/DelegationStore.h"
 
 #ifdef HAVE_GACL
 #include "../../../gridftpd/auth/gacl_auth.h"
@@ -876,6 +878,9 @@ int JobPlugin::close(bool eof) {
     error_description="Failed to create job description.";
     return 1;
   };
+  /* ******************************************
+   * Write access policy                      *
+   ****************************************** */
   if(acl.length() != 0) {
     if(!job_acl_write_file(job_id,*user,acl)) {
       logger.msg(Arc::ERROR, "Failed writing ACL");
@@ -883,6 +888,18 @@ int JobPlugin::close(bool eof) {
       error_description="Failed to process/store job ACL.";
       return 1;
     };
+  };
+  /* ***********************************************
+   * Collect delegation identifiers                *
+   *********************************************** */
+  std::list<std::string> deleg_ids;
+  for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
+                                      f != job_desc.inputdata.end();++f) {
+    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
+  };
+  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
+                                      f != job_desc.outputdata.end();++f) {
+    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
   };
   /* ***********************************************
    * Call authentication/authorization plugin/exec *
@@ -968,6 +985,11 @@ int JobPlugin::close(bool eof) {
     error_description="Failed registering job in grid-manager.";
     return 1;
   };
+
+  // Put lock on delegated credentials
+  ARex::DelegationStores* deleg = user->Env().delegations();
+  if(deleg) (*deleg)[user->DelegationDir()].LockCred(job_id,deleg_ids,subject);
+
   SignalFIFO(*user);
   job_id.resize(0);
   chosenFilePlugin = NULL;

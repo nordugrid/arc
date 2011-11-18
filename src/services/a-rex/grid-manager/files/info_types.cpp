@@ -88,15 +88,20 @@ std::ostream &operator<< (std::ostream &o,const FileData &fd) {
   o.put(' ');
   std::string escaped_lfn(Arc::escape_chars(fd.lfn, " \\\r\n", '\\', false));
   o.write(escaped_lfn.c_str(), escaped_lfn.size());
+  if(fd.lfn.empty() || fd.cred.empty()) return o;
+  o.put(' ');
+  std::string escaped_cred(Arc::escape_chars(fd.cred, " \\\r\n", '\\', false));
+  o.write(escaped_cred.c_str(), escaped_cred.size());
   return o;
 }
 
 std::istream &operator>> (std::istream &i,FileData &fd) {
   char buf[1024];
   istream_readline(i,buf,sizeof(buf));
-  fd.pfn.resize(0); fd.lfn.resize(0);
+  fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0);
   int n=input_escaped_string(buf,fd.pfn);
-  input_escaped_string(buf+n,fd.lfn);
+  n=input_escaped_string(buf+n,fd.lfn);
+  n=input_escaped_string(buf+n,fd.cred);
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(!Arc::CanonicalDir(fd.pfn)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
@@ -195,6 +200,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       if (file->Source.front() &&
           file->Source.front().Protocol() != "file") {
         inputdata.back().lfn = file->Source.front().fullstr();
+        // It is not possible to extract credentials path here.
+        // So temporarily storing id here.
+        inputdata.back().cred = file->DelegationID;
         ++downloads;
       }
 
@@ -222,6 +230,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       if (outputdata.back().has_lfn()) {
         Arc::URL u(outputdata.back().lfn);
         outputdata.back().lfn = u.fullstr();
+        // It is not possible to extract credentials path here.
+        // So temporarily storing id here.
+        inputdata.back().cred = file->DelegationID;
       }
     }
     if (file->KeepData) {

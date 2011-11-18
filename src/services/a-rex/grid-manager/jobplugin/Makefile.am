@@ -23,4 +23,5 @@ jobplugin_la_LIBADD = \
 	../misc/libmisc.la \
 	../jobs/libusers.la ../mail/libmail.la ../conf/libenv.la \
 	../log/liblog.la ../files/libfiles.la ../run/librun.la \
+	../../delegation/libdelegation.la \
 	$(GLOBUS_JOBPLUGIN_LIBS) -lpthread

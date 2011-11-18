@@ -22,8 +22,9 @@ class FileData {
   typedef std::list<FileData>::iterator iterator;
   FileData(void);
   FileData(const std::string& pfn_s,const std::string& lfn_s);
-  std::string pfn;  /* path relative to session dir */
-  std::string lfn;  /* input/output url or size.checksum */
+  std::string pfn;  // path relative to session dir
+  std::string lfn;  // input/output url or size.checksum
+  std::string cred; // path to file containing credentials
   FileData& operator= (const char* str);
   bool operator== (const char* name);
   bool operator== (const FileData& data);

@@ -18,6 +18,7 @@ namespace ARex {
     expiration_ = 0;
     maxrecords_ = 0;
     mtimeout_ = 0;
+    mrec_ = NULL;
     // TODO: Do some cleaning on startup
   }
 
