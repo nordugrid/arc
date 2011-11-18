@@ -100,8 +100,8 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
   istream_readline(i,buf,sizeof(buf));
   fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0);
   int n=input_escaped_string(buf,fd.pfn);
-  n=input_escaped_string(buf+n,fd.lfn);
-  n=input_escaped_string(buf+n,fd.cred);
+  n+=input_escaped_string(buf+n,fd.lfn);
+  n+=input_escaped_string(buf+n,fd.cred);
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(!Arc::CanonicalDir(fd.pfn)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
