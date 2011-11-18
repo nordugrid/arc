@@ -226,7 +226,11 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     fa.close();
     return true;
   }
+#ifndef WIN32
   if(mode == 0) mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH;
+#else
+  if(mode == 0) mode = S_IRUSR|S_IWUSR;
+#endif
   if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
   int h = ::open(filename.c_str(),O_WRONLY|O_CREAT,mode);
   if(h == -1) return false;
