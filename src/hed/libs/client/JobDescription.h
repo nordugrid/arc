@@ -194,6 +194,7 @@ namespace Arc {
     bool IsExecutable;
     std::list<URL> Source;
     std::list<URL> Target;
+    std::string DelegationID;
     long FileSize;
     /// MD5 checksum of file
     /**
