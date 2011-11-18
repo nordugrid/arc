@@ -699,7 +699,6 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
   }
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
-  usercfg.ProxyPath(job_proxy_filename(jobid, *jobuser));
   usercfg.UtilsDirPath(jobuser->ControlDir());
   usercfg.CACertificatesDirectory(env.cert_dir_loc());
   // TODO: chelonia bartenders
@@ -734,6 +733,11 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     else {
       source = "file://" + job.SessionDir() + i->pfn;
       destination = i->lfn;
+    }
+    if(!i->cred.empty()) {
+      usercfg.ProxyPath(i->cred);
+    } else {
+      usercfg.ProxyPath(job_proxy_filename(jobid, *jobuser));
     }
     // logger for these DTRs. Logger and LogDestination should be deleted when DTR is received back
     Arc::Logger * dtr_log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR");

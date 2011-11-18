@@ -15,7 +15,7 @@
 namespace ARex {
 
   static int dberr(const char* s, int err) {
-    if(err != 0) std::cerr<<"DB ERROR("<<s<<"): "<<err<<std::endl;
+    //if(err != 0) std::cerr<<"DB ERROR("<<s<<"): "<<err<<std::endl;
     return err;
   }
 

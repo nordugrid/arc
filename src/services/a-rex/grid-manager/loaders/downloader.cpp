@@ -308,7 +308,7 @@ int main(int argc,char** argv) {
         std::cerr<<"Usage: downloader [-hclpf] [-C conf_file] [-n files] [-t threads] [-U uid]"<<std::endl;
         std::cerr<<"                  [-u username] [-s min_speed] [-S min_speed_time]"<<std::endl;
         std::cerr<<"                  [-a min_average_speed] [-i min_activity_time]"<<std::endl;
-        std::cerr<<"                  [-d debug_level] [-r preferred_pattern job_id"<<std::endl;
+        std::cerr<<"                  [-d debug_level] [-r preferred_pattern] job_id"<<std::endl;
         std::cerr<<"                  control_directory session_directory [cache options]"<<std::endl;
         exit(1);
       }; break;
@@ -520,9 +520,6 @@ int main(int argc,char** argv) {
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(control_dir);
   usercfg.SetUser(Arc::User(uid));
-  usercfg.ProxyPath(x509_proxy);
-  usercfg.CertificatePath(x509_cert);
-  usercfg.KeyPath(x509_key);
   usercfg.CACertificatesDirectory(x509_cadir);
 
   Arc::DataMover mover;
@@ -630,6 +627,15 @@ int main(int argc,char** argv) {
           if(strncasecmp(source.c_str(),"file:/",6) == 0) {
             failure_reason+=std::string("User requested local input file ")+source.c_str()+"\n";
             logger.msg(Arc::ERROR, "Local source for download: %s", source); res=1; goto exit;
+          };
+          if(i->cred.empty()) {
+            usercfg.ProxyPath(x509_proxy);
+            usercfg.CertificatePath(x509_cert);
+            usercfg.KeyPath(x509_key);
+          } else {
+            usercfg.ProxyPath(i->cred);
+            usercfg.CertificatePath("");
+            usercfg.KeyPath("");
           };
           PointPair* pair = new PointPair(source,destination,usercfg);
           if(!(pair->source)) {

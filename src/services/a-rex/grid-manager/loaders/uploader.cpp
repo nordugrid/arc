@@ -428,9 +428,6 @@ int main(int argc,char** argv) {
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(control_dir);
   usercfg.SetUser(Arc::User(uid));
-  usercfg.ProxyPath(x509_proxy);
-  usercfg.CertificatePath(x509_cert);
-  usercfg.KeyPath(x509_key);
   usercfg.CACertificatesDirectory(x509_cadir);
 
   Arc::DataMover mover;
@@ -558,6 +555,15 @@ int main(int argc,char** argv) {
             logger.msg(Arc::ERROR, "Local destination for uploader %s", destination); res=1;
             i->res = Arc::DataStatus::WriteAcquireError; failed_files.push_back(*i); i = job_files.erase(i);
             continue;
+          };
+          if(i->cred.empty()) {
+            usercfg.ProxyPath(x509_proxy);
+            usercfg.CertificatePath(x509_cert);
+            usercfg.KeyPath(x509_key);
+          } else {
+            usercfg.ProxyPath(i->cred);
+            usercfg.CertificatePath("");
+            usercfg.KeyPath("");
           };
           PointPair* pair = new PointPair(source,destination,usercfg);
           if(!(pair->source)) {

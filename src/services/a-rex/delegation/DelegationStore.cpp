@@ -141,9 +141,7 @@ namespace ARex {
         if(mtimeout_ && (((unsigned int)(::time(NULL) - start)) > mtimeout_)) return;
         struct stat st;
         if(::stat(mrec_->path().c_str(),&st) == 0) {
-std::cerr<<"Checking "<<mrec_->path()<<std::endl;
           if(((unsigned int)(::time(NULL) - st.st_mtime)) > expiration_) {
-std::cerr<<"Removing "<<mrec_->path()<<std::endl;
             fstore_.Remove(mrec_->id(),mrec_->owner());
           };    
         };
