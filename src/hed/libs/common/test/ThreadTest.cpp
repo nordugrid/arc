@@ -73,7 +73,7 @@ void ThreadTest::TestThread() {
   }
   // Wait for all threads
   // In worst case it should be no more than one thread simultaneously.
-  for(int n = 0; n<(500+50); ++n) {
+  for(int n = 0; n<(500*2); ++n) {
     sleep(1);
     if(counter >= 500) break;
   }
