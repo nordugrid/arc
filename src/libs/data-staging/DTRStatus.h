@@ -178,8 +178,14 @@ namespace DataStaging {
       return status;
     }
 
-    /// List of states with a to be processed action, eg CHECK_CACHE
+    // The actions in the following two vectors must match
+    /// Vector of states with a to be processed action, eg CHECK_CACHE
     const static std::vector<DTRStatus::DTRStatusType> ToProcessStates;
+    /// Vector of states with a processing action, eg CHECKING_CACHE
+    const static std::vector<DTRStatus::DTRStatusType> ProcessingStates;
+
+    /// Vector of states where a DTR is staged - used to limit the number of staged files
+    const static std::vector<DTRStatus::DTRStatusType> StagedStates;
 
   private:
   

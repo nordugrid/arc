@@ -6,7 +6,8 @@
 
 namespace DataStaging {
 
-  static const DTRStatus::DTRStatusType states[] = {
+  // to do states
+  static const DTRStatus::DTRStatusType to_process_states[] = {
       DTRStatus::CHECK_CACHE,
       DTRStatus::RESOLVE,
       DTRStatus::QUERY_REPLICA,
@@ -18,7 +19,39 @@ namespace DataStaging {
       DTRStatus::PROCESS_CACHE
   };
 
-  const std::vector<DTRStatus::DTRStatusType> DTRStatus::ToProcessStates(states, states + sizeof states / sizeof states[0]);
+  // doing states
+  static const DTRStatus::DTRStatusType processing_states[] = {
+      DTRStatus::CHECKING_CACHE,
+      DTRStatus::RESOLVING,
+      DTRStatus::QUERYING_REPLICA,
+      DTRStatus::PRE_CLEANING,
+      DTRStatus::STAGING_PREPARING,
+      DTRStatus::TRANSFERRING,
+      DTRStatus::RELEASING_REQUEST,
+      DTRStatus::REGISTERING_REPLICA,
+      DTRStatus::PROCESSING_CACHE
+  };
+
+  static const DTRStatus::DTRStatusType staged_states[] = {
+      DTRStatus::STAGE_PREPARE,
+      DTRStatus::STAGING_PREPARING,
+      DTRStatus::STAGING_PREPARING_WAIT,
+      DTRStatus::STAGED_PREPARED,
+      DTRStatus::TRANSFER,
+      DTRStatus::TRANSFERRING,
+      DTRStatus::TRANSFERRING_CANCEL,
+      DTRStatus::TRANSFERRED
+  };
+
+
+  const std::vector<DTRStatus::DTRStatusType> DTRStatus::ToProcessStates(to_process_states,
+      to_process_states + sizeof to_process_states / sizeof to_process_states[0]);
+
+  const std::vector<DTRStatus::DTRStatusType> DTRStatus::ProcessingStates(processing_states,
+      processing_states + sizeof processing_states / sizeof processing_states[0]);
+
+  const std::vector<DTRStatus::DTRStatusType> DTRStatus::StagedStates(staged_states,
+      staged_states + sizeof staged_states / sizeof staged_states[0]);
 
   static const std::string status_string[DTRStatus::NULL_STATE + 1] = {
     "NEW",

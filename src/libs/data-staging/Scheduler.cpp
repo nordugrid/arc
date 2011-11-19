@@ -373,15 +373,7 @@ namespace DataStaging {
       // share already in transfer queue and apply limit. In order not to block
       // the highest priority DTRs here we allow them to bypass the limit.
       std::list<DTR*> StagedQueue;
-
-      // List of DTRStatuses where files are staged or are about to be staged
-      std::list<DTRStatus::DTRStatusType> statuses;
-      statuses.push_back(DTRStatus::STAGE_PREPARE);
-      statuses.push_back(DTRStatus::STAGING_PREPARING);
-      statuses.push_back(DTRStatus::STAGING_PREPARING_WAIT);
-      statuses.push_back(DTRStatus::STAGED_PREPARED);
-      statuses.push_back(DTRStatus::TRANSFER);
-      DtrList.filter_dtrs_by_statuses(statuses, StagedQueue);
+      DtrList.filter_dtrs_by_statuses(DTRStatus::StagedStates, StagedQueue);
 
       int share_queue = 0, highest_priority = 0;
       for (std::list<DTR*>::iterator dtr = StagedQueue.begin(); dtr != StagedQueue.end(); ++dtr) {
@@ -735,20 +727,19 @@ namespace DataStaging {
 
   void Scheduler::revise_queues() {
 
-    // TODO filter_dtrs_by_statuses which returns a map of status:dtrlist
+    // The DTRs ready to go into a processing state
+    std::map<DTRStatus::DTRStatusType, std::list<DTR*> > DTRQueueStates;
+    DtrList.filter_dtrs_by_statuses(DTRStatus::ToProcessStates, DTRQueueStates);
+
+    // The active DTRs currently in processing states
+    std::map<DTRStatus::DTRStatusType, std::list<DTR*> > DTRRunningStates;
+    DtrList.filter_dtrs_by_statuses(DTRStatus::ProcessingStates, DTRRunningStates);
 
     // Go through "to process" states, work out shares and push DTRs
     for (unsigned int i = 0; i < DTRStatus::ToProcessStates.size(); ++i) {
 
-      DTRStatus::DTRStatusType state = DTRStatus::ToProcessStates[i];
-
-      // The DTRs ready to go into the processing state
-      std::list<DTR*> DTRQueue;
-      DtrList.filter_dtrs_by_status(state, DTRQueue);
-
-      // The active DTRs currently in the processing state
-      std::list<DTR*> ActiveDTRs;
-      DtrList.filter_dtrs_by_status((DTRStatus::DTRStatusType)(state+1), ActiveDTRs);
+      std::list<DTR*> DTRQueue = DTRQueueStates[DTRStatus::ToProcessStates.at(i)];
+      std::list<DTR*> ActiveDTRs = DTRRunningStates[DTRStatus::ProcessingStates.at(i)];
 
       if (DTRQueue.empty() && ActiveDTRs.empty()) continue;
 

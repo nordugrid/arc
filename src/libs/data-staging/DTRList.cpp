@@ -58,17 +58,17 @@ namespace DataStaging {
   }
   
   bool DTRList::filter_dtrs_by_status(DTRStatus::DTRStatusType StatusToFilter, std::list<DTR*>& FilteredList){
-    std::list<DTRStatus::DTRStatusType> StatusesToFilter;
-    StatusesToFilter.push_back(StatusToFilter);
+    std::vector<DTRStatus::DTRStatusType> StatusesToFilter(1, StatusToFilter);
     return filter_dtrs_by_statuses(StatusesToFilter, FilteredList);
   }
 
-  bool DTRList::filter_dtrs_by_statuses(std::list<DTRStatus::DTRStatusType> StatusesToFilter, std::list<DTR*>& FilteredList){
+  bool DTRList::filter_dtrs_by_statuses(const std::vector<DTRStatus::DTRStatusType>& StatusesToFilter,
+                                        std::list<DTR*>& FilteredList){
     std::list<DTR*>::iterator it;
 
     Lock.lock();
     for(it = DTRs.begin();it != DTRs.end(); ++it) {
-      for (std::list<DTRStatus::DTRStatusType>::iterator i = StatusesToFilter.begin(); i != StatusesToFilter.end(); ++i) {
+      for (std::vector<DTRStatus::DTRStatusType>::const_iterator i = StatusesToFilter.begin(); i != StatusesToFilter.end(); ++i) {
         if((*it)->get_status().GetStatus() == *i) {
           FilteredList.push_back(*it);
           break;
@@ -80,7 +80,26 @@ namespace DataStaging {
     // Filtered successfully
     return true;
   }
-  
+
+  bool DTRList::filter_dtrs_by_statuses(const std::vector<DTRStatus::DTRStatusType>& StatusesToFilter,
+                                        std::map<DTRStatus::DTRStatusType, std::list<DTR*> >& FilteredList) {
+    std::list<DTR*>::iterator it;
+
+    Lock.lock();
+    for(it = DTRs.begin();it != DTRs.end(); ++it) {
+      for (std::vector<DTRStatus::DTRStatusType>::const_iterator i = StatusesToFilter.begin(); i != StatusesToFilter.end(); ++i) {
+        if((*it)->get_status().GetStatus() == *i) {
+          FilteredList[*i].push_back(*it);
+          break;
+        }
+      }
+    }
+    Lock.unlock();
+
+    // Filtered successfully
+    return true;
+  }
+
   bool DTRList::filter_dtrs_by_next_receiver(StagingProcesses NextReceiver, std::list<DTR*>& FilteredList) {
   	std::list<DTR*>::iterator it;
   	
