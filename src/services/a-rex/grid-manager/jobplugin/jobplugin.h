@@ -8,6 +8,8 @@
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
 #include "../run/run_parallel.h"
+#include "../log/job_log.h"
+#include "../jobs/job_config.h"
 
 class DirectFilePlugin;
 class JobUser;
@@ -39,6 +41,9 @@ class JobPlugin: public FilePlugin {
   std::string getSessionDir(std::string id);
   /** Pick new control and session dirs according to algorithm */
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
+  JobLog job_log;
+  JobsListConfig jobs_cfg;
+  GMEnvironment env;
   JobUser *user;
   AuthUser& user_a;
   UnixMap job_map;

@@ -27,7 +27,6 @@
 
 #include "../conf/conf.h"
 #include "../jobs/job.h"
-#include "../jobs/job_config.h"
 #include "../jobs/commfifo.h"
 #include "../jobs/plugins.h"
 #include "../conf/environment.h"
@@ -38,12 +37,10 @@
 #include "../misc/escaped.h"
 #include "../misc/proxy.h"
 #include "../run/run_parallel.h"
-#include "../log/job_log.h"
 #include "../../../gridftpd/userspec.h"
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"
 #include "../../../gridftpd/fileplugin/fileplugin.h"
-#include "../../delegation/DelegationStores.h"
 #include "../../delegation/DelegationStore.h"
 
 #ifdef HAVE_GACL
@@ -124,7 +121,7 @@ static void job_subst(std::string& str,void* arg) {
 }
 
 
-JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user),job_map(user_s.user) {
+JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user),job_map(user_s.user),env(job_log,jobs_cfg,true) {
   initialized=true;
   rsl_opened=false;
   job_rsl_max_size = DEFAULT_JOB_RSL_MAX_SIZE;
@@ -185,9 +182,6 @@ JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user)
       logger.msg(Arc::WARNING, "Unsupported configuration command: %s", command);
     };
   };
-  JobLog job_log;
-  JobsListConfig jobs_cfg;
-  GMEnvironment env(job_log,jobs_cfg,true);
   if(!env) {
     logger.msg(Arc::ERROR, "Environment could not be set up");
     initialized = false;
@@ -860,9 +854,6 @@ int JobPlugin::close(bool eof) {
     ::close(h);
     ::close(hh);
     try {
-      JobLog job_log;
-      JobsListConfig jobs_cfg;
-      GMEnvironment env(job_log,jobs_cfg);
       Arc::Credential ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
       job_desc.expiretime = ci.GetEndTime();
     } catch (std::exception) {
@@ -987,8 +978,12 @@ int JobPlugin::close(bool eof) {
   };
 
   // Put lock on delegated credentials
-  ARex::DelegationStores* deleg = user->Env().delegations();
-  if(deleg) (*deleg)[user->DelegationDir()].LockCred(job_id,deleg_ids,subject);
+  // In current implementation it may be risky to use multiple DelegationStore
+  // objects for accessing delegations. Either database is stays undamaged
+  // still needs investigation. But in current situation it should not happen
+  // because job description sent over gridftp does not contain per-file
+  // delegations.
+  ARex::DelegationStore(user->DelegationDir()).LockCred(job_id,deleg_ids,subject);
 
   SignalFIFO(*user);
   job_id.resize(0);
@@ -1214,9 +1209,6 @@ int JobPlugin::checkdir(std::string &dirname) {
     std::string old_proxy_fname=user->ControlDir()+"/job."+id+".proxy";
     Arc::Time new_proxy_expires;
     Arc::Time old_proxy_expires;
-    JobLog job_log;
-    JobsListConfig jobs_cfg;
-    GMEnvironment env(job_log,jobs_cfg);
     try {
       Arc::Credential new_ci(proxy_fname, proxy_fname, env.cert_dir_loc(), "");
       new_proxy_expires = new_ci.GetEndTime();
