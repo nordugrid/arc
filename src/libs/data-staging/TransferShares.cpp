@@ -115,27 +115,51 @@ namespace DataStaging {
     // and compute the summarized priority of other active shares
     std::map<std::string, int>::iterator i;
     int SummarizedPriority = 0;
+    int TotalQueued = 0;
     for (i = ActiveShares.begin(); i != ActiveShares.end(); ){
       if (i->second == 0) {
         ActiveShares.erase(i++);
       } else {
         SummarizedPriority += conf.get_basic_priority(i->first);
+        TotalQueued += i->second;
         ++i;
       }
     }
 
-    int temp;
+    int slots_used = 0;
+    // first calculate shares based on the share priority
     for (i = ActiveShares.begin(); i != ActiveShares.end(); i++){
       // Number of slots for this share is its priority divided by total
       // priorities of all active shares multiplied by the total number of slots
-      temp = int(::floor(float(conf.get_basic_priority(i->first)) / float(SummarizedPriority) * float(TotalNumberOfSlots)));
+      int slots = int(::floor(float(conf.get_basic_priority(i->first)) / float(SummarizedPriority) * float(TotalNumberOfSlots)));
 
-      // Some shares can receive 0 slots.
-      // It can happen when there are lots of shares active
-      // or one share has enormously big priority.
-      // There should be no 0 in the number of slots, so every
-      // share has at least theoretical possibility to start
-      ActiveSharesSlots[i->first] = (temp == 0 ? 1 : temp);
+      if (slots > i->second) {
+        // Don't assign more slots than the share needs
+        ActiveSharesSlots[i->first] = i->second;
+      }
+      else if (slots == 0) {
+        // Some shares can receive 0 slots.
+        // It can happen when there are lots of shares active
+        // or one share has enormously big priority.
+        // There should be no 0 in the number of slots, so every
+        // share has at least theoretical possibility to start
+        ActiveSharesSlots[i->first] = 1;
+      }
+      else {
+        ActiveSharesSlots[i->first] = slots;
+      }
+      slots_used += ActiveSharesSlots[i->first];
+    }
+    // now assign unused slots among shares with more DTRs than slots
+    while (slots_used < TotalQueued && slots_used < TotalNumberOfSlots) {
+      // TODO share slots using priorities
+      for (i = ActiveShares.begin(); i != ActiveShares.end(); i++){
+        if (ActiveSharesSlots[i->first] < ActiveShares[i->first]) {
+          ActiveSharesSlots[i->first]++;
+          slots_used++;
+          if (slots_used >= TotalQueued || slots_used >= TotalNumberOfSlots) break;
+        }
+      }
     }
   }
 
