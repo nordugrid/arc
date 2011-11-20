@@ -120,7 +120,6 @@ namespace DataStaging {
           Arc::DataStatus cres = request->get_source()->Check();
           if (!cres.Passed()) {
             request->get_logger()->msg(Arc::ERROR, "DTR %s: Permission checking failed", request->get_short_id());
-            cache.Stop(canonic_url);
             request->set_cache_state(CACHE_SKIP);
             request->set_error_status(DTRErrorStatus::CACHE_ERROR,
                                   DTRErrorStatus::ERROR_DESTINATION,
@@ -151,7 +150,6 @@ namespace DataStaging {
             outdated = true;
         }
         if (outdated) {
-          cache.StopAndDelete(canonic_url);
           request->get_logger()->msg(Arc::INFO, "DTR %s: Cached file is outdated, will re-download", request->get_short_id());
           use_remote = false;
           renew = true;
