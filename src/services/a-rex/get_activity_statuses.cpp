@@ -368,8 +368,48 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
 }
 
 Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
+  /*
+    NotifyService
+      NotifyRequestItem
+        ActivityID
+        NotifyMessage
+          CLIENT-DATAPULL-DONE
+          CLIENT-DATAPUSH-DONE
+
+    NotifyServiceResponse
+      NotifyResponseItem
+        ActivityID
+        InternalBaseFault 0-1
+
+    VectorLimitExceededFault
+    AccessControlFault
+    InternalBaseFault
+   */
+  Arc::XMLNode item = in["NotifyRequestItem"];
+  unsigned int n = 0;
+  for(;(bool)item;++item) {
+    if((++n) > MAX_ACTIVITIES) {
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 MAX_ACTIVITIES,"Too many NotifyRequestItem");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  item = in["NotifyRequestItem"];
+  for(;(bool)item;++item) {
+    std::string jobid = (std::string)(item["ActivityID"]);
+    Arc::XMLNode ritem = out.NewChild("esmanag:NotifyResponseItem");
+    ritem.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:NotifyService: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      // Currently there is no such functionality. So either client notifies
+      // service is not important.
+    };
+  };
   return Arc::MCC_Status();
 }
 

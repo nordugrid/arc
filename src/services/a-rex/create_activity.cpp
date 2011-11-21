@@ -143,19 +143,18 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
       adl:ActivityDescription - http://www.eu-emi.eu/es/2010/12/adl 1-unbounded
 
     CreateActivitiesResponse
-      ActivityCreationResponse
+      ActivityCreationResponse 1-
         types:ActivityID
         types:ActivityManagerURI
         types:ActivityStatus
-        types:ETNSC
-        types:StageInDirectory
-        types:SessionDirectory
-        types:StageOutDirectory
+        types:ETNSC 0-1
+        types:StageInDirectory 0-1
+        types:SessionDirectory 0-1
+        types:StageOutDirectory 0-1
         or types:InternalBaseFault
         (UnsupportedCapabilityFault)
         (InvalidActivityDescriptionSemanticFault)
         (InvalidActivityDescriptionFault)
-      or types:InternalBaseFault
 
     types:VectorLimitExceededFault
     types:InternalBaseFault
@@ -177,7 +176,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   };
   Arc::XMLNode adl2 = adl; ++adl2;
   if((bool)adl2) {
-    logger_.msg(Arc::ERROR, "EMIES:CreateActivities: too many job description found");
+    logger_.msg(Arc::ERROR, "EMIES:CreateActivities: too many job descriptions found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Too many ActivityDescription elements");
     ESVectorLimitExceededFault(fault,1,"Too many ActivityDescription elements");
     out.Destroy();

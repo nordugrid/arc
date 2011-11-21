@@ -6,6 +6,7 @@
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
 #include "tools.h"
+#include "grid-manager/jobs/job_config.h"
 
 #include "arex.h"
 
@@ -41,7 +42,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find ActivityIdentifier element in request");
     InvalidRequestMessageFault(fault,"jsdl:ActivityIdentifier","Element is missing");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   std::string jobid = Arc::WSAEndpointReference(id).ReferenceParameters()["a-rex:JobID"];
   if(jobid.empty()) {
@@ -50,7 +51,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobID element in ActivityIdentifier");
     InvalidRequestMessageFault(fault,"a-rex:JobID","Element is missing");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   ARexJob job(jobid,config,logger_);
   if(!job) {
@@ -60,7 +61,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find requested Activity");
     UnknownActivityIdentifierFault(fault,"No corresponding Activity found");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
 
   // Old State
@@ -76,7 +77,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Missing NewStatus element in request");
     InvalidRequestMessageFault(fault,"a-rex:NewStatus","Element is missing");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   std::string new_bes_state = new_state.Attribute("state");
   std::string new_arex_state = new_state["a-rex:state"];
@@ -90,7 +91,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Failed to accept delegation");
       InvalidRequestMessageFault(fault,"arcdeleg:DelegatedToken","This token does not exist");
       out.Destroy();
-      return Arc::MCC_Status();
+      return Arc::MCC_Status(Arc::STATUS_OK);
     };
   };
 
@@ -106,14 +107,14 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same as current status");
     CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"OldStatus does not match");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   if((!old_arex_state.empty()) && (old_arex_state != arex_state)) {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: old A-REX state does not match");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"OldStatus is not same as current status");
     CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"OldStatus does not match");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
 
   // Check for allowed combinations
@@ -139,13 +140,13 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
       logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to update credentials");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Internal error: Failed to update credentials");
       out.Destroy();
-      return Arc::MCC_Status();
+      return Arc::MCC_Status(Arc::STATUS_OK);
     };
     if(!job.Resume()) {
       logger_.msg(Arc::ERROR, "ChangeActivityStatus: Failed to resume job");
       Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Internal error: Failed to resume activity");
       out.Destroy();
-      return Arc::MCC_Status();
+      return Arc::MCC_Status(Arc::STATUS_OK);
     };
   } else {
     logger_.msg(Arc::ERROR, "ChangeActivityStatus: State change not allowed: from %s/%s to %s/%s",
@@ -153,7 +154,7 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Requested status transition is not supported");
     CantApplyOperationToCurrentStateFault(fault,gm_state,failed,"Requested status transition is not supported");
     out.Destroy();
-    return Arc::MCC_Status();
+    return Arc::MCC_Status(Arc::STATUS_OK);
   };
   // Make response
   // TODO: 
@@ -172,22 +173,102 @@ Arc::MCC_Status ARexService::ChangeActivityStatus(ARexGMConfig& config,Arc::XMLN
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
+#define MAX_ACTIVITIES (10000)
+
 Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  /*
+    PauseActivity
+      ActivityID 1-
+
+    PauseActivityResponse
+      ResponseItem 1-
+        ActivityID
+        .
+          EstimatedTime 0-1
+          InternalBaseFault
+
+    VectorLimitExceededFault
+    AccessControlFault
+    InternalBaseFault
+   */
   Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
   out.Destroy();
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+  /*
+    ResumeActivity
+      ActivityID 1-
+
+    ResumeActivityResponse
+      ResponseItem 1-
+        ActivityID
+        .
+          EstimatedTime 0-1
+          InternalBaseFault
+
+    VectorLimitExceededFault
+    AccessControlFault
+    InternalBaseFault
+   */
   Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
   out.Destroy();
-  return Arc::MCC_Status();
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
+  /*
+    CancelActivity
+      ActivityID 1-
+
+    CancelActivityResponse
+      ResponseItem 1-
+        ActivityID
+        .
+          EstimatedTime 0-1
+          InternalBaseFault
+
+    VectorLimitExceededFault
+    AccessControlFault
+    InternalBaseFault
+   */
+  Arc::XMLNode id = in["ActivityID"];
+  unsigned int n = 0;
+  for(;(bool)id;++id) {
+    if((++n) > MAX_ACTIVITIES) {
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 MAX_ACTIVITIES,"Too many ActivityID");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  id = in["ActivityID"];
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:CancelActivity: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      if(!job.Cancel()) {
+        // Probably wrong current state
+        logger_.msg(Arc::ERROR, "ESEMI:CancelActivity: job %s - %s", jobid, job.Failure());
+        // TODO: check for real reason
+        ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+      } else {
+        // It may take "wakeup period" for cancel mark to be detected.
+        // And same time till result of cancel script is processed.
+        // Currently it is not possible to estimate how long canceling
+        // would happen.
+        item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod()*2;
+      };
+    };
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
@@ -198,11 +279,25 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
     esmanag:WipeActivityResponse
       esmanag:ResponseItem
         estypes:ActivityID
-        esmang:EstimatedTime (xsd:unsignedLong)
-        estypes:InternalBaseFault
+        .
+          esmang:EstimatedTime (xsd:unsignedLong)
+          estypes:InternalBaseFault
+
+    VectorLimitExceededFault
+    AccessControlFault
+    InternalBaseFault
   */
   Arc::XMLNode id = in["ActivityID"];
-  // TODO: vector limit
+  unsigned int n = 0;
+  for(;(bool)id;++id) {
+    if((++n) > MAX_ACTIVITIES) {
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 MAX_ACTIVITIES,"Too many ActivityID");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  id = in["ActivityID"];
   for(;(bool)id;++id) {
     std::string jobid = id;
     Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
@@ -216,10 +311,10 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
       if(!job.Clean()) {
         // Probably wrong current state
         logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
-        // TODO: check ffor real reason
+        // TODO: check for real reason
         ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
       } else {
-        item.NewChild("esmang:EstimatedTime") = "0"; // TODO: real estimation
+        item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod();
       };
     };
   };
@@ -227,9 +322,53 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
 }
 
 Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
-  return Arc::MCC_Status();
+  /*
+    esmanag:RestartActivity
+      estypes:ActivityID
+
+    esmanag:RestartActivityResponse
+      esmanag:ResponseItem
+        estypes:ActivityID
+        .
+          esmang:EstimatedTime (xsd:unsignedLong)
+          estypes:InternalBaseFault
+
+    VectorLimitExceededFault
+    AccessControlFault
+    InternalBaseFault
+  */
+  Arc::XMLNode id = in["ActivityID"];
+  unsigned int n = 0;
+  for(;(bool)id;++id) {
+    if((++n) > MAX_ACTIVITIES) {
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 MAX_ACTIVITIES,"Too many ActivityID");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  id = in["ActivityID"];
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:RestartActivity: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      if(!job.Resume()) {
+        // Probably wrong current state
+        logger_.msg(Arc::ERROR, "ESEMI:RestartActivity: job %s - %s", jobid, job.Failure());
+        // TODO: check for real reason
+        ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+      } else {
+        item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod();
+      };
+    };
+  };
+  return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
 } // namespace ARex

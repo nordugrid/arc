@@ -778,7 +778,7 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
                              max_downloads);
     std::string transfer_share = tmp_node["loadShareType"];
     if(elementtoint(tmp_node,"maxLoadShare",max_share,&logger) && (max_share > 0) && ! transfer_share.empty()){
-  jcfg.SetTransferShare(max_share, transfer_share);
+      jcfg.SetTransferShare(max_share, transfer_share);
     }
     if(elementtoint(tmp_node,"wakeupPeriod",wakeup_period,&logger)) {
       jcfg.SetWakeupPeriod(wakeup_period);
