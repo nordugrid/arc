@@ -177,6 +177,11 @@ job_state_t job_state_read_file(const JobId &id,const JobUser &user,bool &pendin
 bool job_state_write_file(const JobDescription &desc,const JobUser &user,job_state_t state,bool pending = false);
 
 /*
+  Get modification time of file used to store description of the job.
+*/
+time_t job_description_time(const JobId &id,const JobUser &user);
+
+/*
   Read and write file used to store RSL description of job.
 */
 bool job_description_read_file(const JobId &id,const JobUser &user,std::string &rsl);

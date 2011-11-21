@@ -697,6 +697,11 @@ static bool job_state_write_file(const std::string &fname,job_state_t state,bool
   return true;
 }
 
+time_t job_description_time(const JobId &id,const JobUser &user) {
+  std::string fname = user.ControlDir() + "/job." + id + sfx_rsl;
+  return job_mark_time(fname);
+}
+
 bool job_description_read_file(const JobId &id,const JobUser &user,std::string &rsl) {
   std::string fname = user.ControlDir() + "/job." + id + sfx_rsl;
   return job_description_read_file(fname,rsl);

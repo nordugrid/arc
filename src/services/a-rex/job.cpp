@@ -602,6 +602,18 @@ std::string ARexJob::FailedState(std::string& cause) {
   return state;
 }
 
+Arc::Time ARexJob::Created(void) {
+  time_t t = job_description_time(id_,*config_.User());
+  if(t == 0) return Arc::Time(); // ???
+  return Arc::Time(t);
+}
+
+Arc::Time ARexJob::Modified(void) {
+  time_t t = job_state_time(id_,*config_.User());
+  if(t == 0) return Arc::Time(); // ???
+  return Arc::Time(t);
+}
+
 bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;

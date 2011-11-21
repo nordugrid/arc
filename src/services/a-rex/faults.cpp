@@ -181,5 +181,7 @@ ES_SIMPLE_FAULT(UnknownActivityIDFault,esainfo,"Unknown activity ID")
 
 ES_SIMPLE_FAULT(InvalidActivityStateFault,esainfo,"Invalid activity state")
 
+ES_SIMPLE_FAULT(InvalidTimeIntervalFault,esainfo,"Invalid activity state")
+
 }
 

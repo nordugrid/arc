@@ -110,6 +110,10 @@ class ARexJob {
      information what caused job failure: "internal" for server
      initiated and "client" for canceled on client request. */
   std::string FailedState(std::string& cause);
+  /** Returns time when job was created. */
+  Arc::Time Created(void);
+  /** Returns time when job state was last modified. */
+  Arc::Time Modified(void);
   /** Returns path to session directory */
   std::string SessionDir(void);
   /** Returns name of virtual log directory */
