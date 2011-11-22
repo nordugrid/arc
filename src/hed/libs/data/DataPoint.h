@@ -57,6 +57,7 @@
 #define __ARC_DATAPOINT_H__
 
 #include <list>
+#include <set>
 #include <string>
 
 #include <arc/DateTime.h>
@@ -582,6 +583,10 @@ namespace Arc {
     virtual void SortLocations(const std::string& pattern,
                                const URLMap& url_map) = 0;
 
+    /// Add URL options to this DataPoint's URL object. Invalid options for the
+    /// DataPoint instance will not be added.
+    virtual void AddURLOptions(const std::map<std::string, std::string>& options);
+
   protected:
     URL url;
     const UserConfig usercfg;
@@ -597,7 +602,7 @@ namespace Arc {
     bool cache;
     bool stageable;
     /** Subclasses should add their own specific options to this list */
-    std::list<std::string> valid_url_options;
+    std::set<std::string> valid_url_options;
 
     static Logger logger;
 

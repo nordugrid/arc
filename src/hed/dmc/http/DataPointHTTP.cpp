@@ -264,7 +264,7 @@ namespace Arc {
     : DataPointDirect(url, usercfg),
       chunks(NULL),
       transfers_tofinish(0) {
-    valid_url_options.push_back("tcpnodelay");
+    valid_url_options.insert("tcpnodelay");
   }
 
   DataPointHTTP::~DataPointHTTP() {

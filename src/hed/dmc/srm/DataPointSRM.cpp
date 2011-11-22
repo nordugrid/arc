@@ -29,9 +29,9 @@ namespace Arc {
       r_handle(NULL),
       reading(false),
       writing(false) {
-    valid_url_options.push_back("protocol");
-    valid_url_options.push_back("spacetoken");
-    valid_url_options.push_back("transferprotocol");
+    valid_url_options.insert("protocol");
+    valid_url_options.insert("spacetoken");
+    valid_url_options.insert("transferprotocol");
   }
 
   DataPointSRM::~DataPointSRM() {
@@ -324,17 +324,14 @@ namespace Arc {
         if (strncasecmp(i->c_str(), "srm://", 6) == 0) continue;
         // Try to use this TURL + old options
         URL redirected_url(*i);
-        {
-          std::map<std::string, std::string> options = url.Options();
-          if (!options.empty())
-            for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); ++oi)
-              redirected_url.AddOption((*oi).first, (*oi).second);
-        }
         DataHandle redirected_handle(redirected_url, usercfg);
+
         // check if url can be handled
-        if (!redirected_handle) continue;
+        if (!redirected_handle || !(*redirected_handle)) continue;
         if (redirected_handle->IsIndex()) continue;
-        turls.push_back(redirected_url);
+
+        redirected_handle->AddURLOptions(url.Options());
+        turls.push_back(redirected_handle->GetURL());
       }
 
       if (turls.empty()) {
@@ -537,17 +534,14 @@ namespace Arc {
         if (strncasecmp(i->c_str(), "srm://", 6) == 0) continue;
         // Try to use this TURL + old options
         URL redirected_url(*i);
-        {
-          std::map<std::string, std::string> options = url.Options();
-          if (!options.empty())
-            for (std::map<std::string, std::string>::iterator oi = options.begin(); oi != options.end(); ++oi)
-              redirected_url.AddOption((*oi).first, (*oi).second);
-        }
         DataHandle redirected_handle(redirected_url, usercfg);
+
         // check if url can be handled
-        if (!redirected_handle) continue;
+        if (!redirected_handle || !(*redirected_handle)) continue;
         if (redirected_handle->IsIndex()) continue;
-        turls.push_back(redirected_url);
+
+        redirected_handle->AddURLOptions(url.Options());
+        turls.push_back(redirected_handle->GetURL());
       }
 
       if (turls.empty()) {

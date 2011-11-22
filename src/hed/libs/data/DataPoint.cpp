@@ -29,16 +29,16 @@ namespace Arc {
       stageable(false) {
     // add standard options applicable to all protocols
     valid_url_options.clear();
-    valid_url_options.push_back("cache");
-    valid_url_options.push_back("readonly");
-    valid_url_options.push_back("blocksize");
-    valid_url_options.push_back("checksum");
-    valid_url_options.push_back("exec");
-    valid_url_options.push_back("preserve");
-    valid_url_options.push_back("overwrite");
-    valid_url_options.push_back("threads");
-    valid_url_options.push_back("secure");
-    valid_url_options.push_back("autodir");
+    valid_url_options.insert("cache");
+    valid_url_options.insert("readonly");
+    valid_url_options.insert("blocksize");
+    valid_url_options.insert("checksum");
+    valid_url_options.insert("exec");
+    valid_url_options.insert("preserve");
+    valid_url_options.insert("overwrite");
+    valid_url_options.insert("threads");
+    valid_url_options.insert("secure");
+    valid_url_options.insert("autodir");
   }
 
   DataPoint::~DataPoint() {}
@@ -68,11 +68,7 @@ namespace Arc {
     // URL options should override this method.
     std::map<std::string, std::string> options = url.Options();
     for (std::map<std::string, std::string>::iterator i = options.begin(); i != options.end(); i++) {
-      bool valid = false; 
-      for (std::list<std::string>::const_iterator j = valid_url_options.begin(); j != valid_url_options.end(); j++) {
-        if (i->first == *j) valid = true;
-      }
-      if (!valid) {
+      if (valid_url_options.find(i->first) == valid_url_options.end()) {
         logger.msg(ERROR, "Invalid URL option: %s", i->first);
         return false;
       }
@@ -218,7 +214,18 @@ namespace Arc {
     std::vector<URL> urls;
     urls.push_back(url);
     return urls;
-    
+  }
+
+  void DataPoint::AddURLOptions(const std::map<std::string, std::string>& options) {
+    for (std::map<std::string, std::string>::const_iterator key = options.begin();
+         key != options.end(); ++key) {
+
+      if (valid_url_options.find(key->first) == valid_url_options.end()) {
+        logger.msg(VERBOSE, "Skipping invalid URL option %s", key->first);
+      } else {
+        url.AddOption(key->first, key->second, true);
+      }
+    }
   }
 
   DataPointLoader::DataPointLoader()
