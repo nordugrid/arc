@@ -545,14 +545,16 @@ namespace DataStaging {
     }
     else if(request->error()) {
       // If the error occurred in cache processing we send back
-      // to REPLICA_QUERIED to try the same replica again without cache.
-      // If there was a cache timeout we go back to CACHE_CHECKED. If in
+      // to REPLICA_QUERIED to try the same replica again without cache,
+      // or to CACHE_CHECKED if the file was already in cache. If there
+      // was a cache timeout we also go back to CACHE_CHECKED. If in
       // another place we are finished and report error to generator
       if (request->get_error_status().GetLastErrorState() == DTRStatus::PROCESSING_CACHE) {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Error in cache processing, will retry without caching", request->get_short_id());
-        request->set_cache_state(CACHE_SKIP);
         request->reset_error_status();
-        request->set_status(DTRStatus::REPLICA_QUERIED);
+        if (request->get_cache_state() == CACHE_ALREADY_PRESENT) request->set_status(DTRStatus::CACHE_CHECKED);
+        else request->set_status(DTRStatus::REPLICA_QUERIED);
+        request->set_cache_state(CACHE_SKIP);
         return;
       }
       else if (request->get_error_status().GetLastErrorState() == DTRStatus::CACHE_WAIT) {
