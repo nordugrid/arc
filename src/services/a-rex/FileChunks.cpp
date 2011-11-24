@@ -53,6 +53,20 @@ FileChunks* FileChunksList::GetStuck(void) {
   return NULL;
 }
 
+void FileChunksList::RemoveStuck(void) {
+  std::list<FileChunks*> stuck;
+  for(;;) {
+    FileChunks* s = GetStuck();
+    if(!s) break;
+    stuck.push_back(s);
+  }
+  for(std::list<FileChunks*>::iterator s = stuck.begin();
+                         s!=stuck.end();++s) {
+    (*s)->Remove();
+  }
+}
+
+/*
 FileChunks* FileChunksList::GetFirst(void) {
   lock.lock();
   std::map<std::string,FileChunks>::iterator f = files.begin();
@@ -66,6 +80,7 @@ FileChunks* FileChunksList::GetFirst(void) {
   lock.unlock();
   return NULL;
 }
+*/
 
 void FileChunks::Remove(void) {
   lock.lock();
@@ -96,6 +111,7 @@ FileChunks& FileChunksList::Get(std::string path) {
   ++(c->second.refcount);
   c->second.lock.unlock();
   lock.unlock();
+  RemoveStuck();
   return (c->second);
 }
 
@@ -162,7 +178,7 @@ bool FileChunks::Complete(void) {
   return r;
 }
 
-FileChunksList::FileChunksList(void):timeout(0) {
+FileChunksList::FileChunksList(void):timeout(600) {
 }
 
 FileChunksList::~FileChunksList(void) {

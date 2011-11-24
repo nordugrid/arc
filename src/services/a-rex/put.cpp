@@ -29,7 +29,6 @@ namespace ARex {
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadStreamInterface& stream,FileChunksList& fchunks);
 static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logger& logger,Arc::PayloadRawInterface& buf,FileChunksList& fchunks);
 
-// TODO: monitor chunks written into files and report when file is complete
 Arc::MCC_Status ARexService::Put(Arc::Message& inmsg,Arc::Message& /*outmsg*/,ARexGMConfig& config,std::string id,std::string subpath) {
   if(id.empty()) return Arc::MCC_Status();
   ARexJob job(id,config,logger_);
@@ -77,8 +76,8 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     logger.msg(Arc::ERROR, "Put: failed to create file %s for job %s - %s", hpath, job.ID(), job.Failure());
     return Arc::MCC_Status();
   };
-  FileChunks& fc = fchunks.Get(job.ID()+"/"+hpath);
-  if(!fc.Size()) fc.Size(stream.Size());
+  FileChunksRef fc = fchunks.Get(job.ID()+"/"+hpath);
+  if(!fc->Size()) fc->Size(stream.Size());
   off_t pos = stream.Pos(); 
   if(h->lseek(pos,SEEK_SET) != pos) {
     std::string err = Arc::StrError();
@@ -102,12 +101,12 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
       logger.msg(Arc::ERROR, "Put: failed to write to file %s for job %s - %s", hpath, job.ID(), err);
       return Arc::MCC_Status();
     };
-    if(size) fc.Add(pos,size);
+    if(size) fc->Add(pos,size);
     pos+=size;
   };
   delete[] buf;
   h->close(); delete h;
-  if(fc.Complete()) job.ReportFileComplete(hpath);
+  if(fc->Complete()) job.ReportFileComplete(hpath);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -119,8 +118,8 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
     logger.msg(Arc::ERROR, "Put: failed to create file %s for job %s - %s", hpath, job.ID(), job.Failure());
     return Arc::MCC_Status();
   };
-  FileChunks& fc = fchunks.Get(job.ID()+"/"+hpath);
-  if(!fc.Size()) fc.Size(buf.Size());
+  FileChunksRef fc = fchunks.Get(job.ID()+"/"+hpath);
+  if(!fc->Size()) fc->Size(buf.Size());
   for(int n = 0;;++n) {
     char* sbuf = buf.Buffer(n);
     if(sbuf == NULL) break;
@@ -136,11 +135,11 @@ static Arc::MCC_Status http_put(ARexJob& job,const std::string& hpath,Arc::Logge
         h->close(); delete h;
         return Arc::MCC_Status();
       };
-      if(size) fc.Add(offset,size);
+      if(size) fc->Add(offset,size);
     };
   };
   h->close(); delete h;
-  if(fc.Complete()) job.ReportFileComplete(hpath);
+  if(fc->Complete()) job.ReportFileComplete(hpath);
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 

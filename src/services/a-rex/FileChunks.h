@@ -56,6 +56,11 @@ class FileChunksList {
   files_t files;
   int timeout;
   time_t last_timeout;
+  /// Returns pointer to first stuck file.
+  /// File is considred stuck if its Add method was last called more
+  /// timeout seconds ago.
+  FileChunks* GetStuck(void);
+  void RemoveStuck(void);
  public:
   FileChunksList(void);
   ~FileChunksList(void);
@@ -66,14 +71,18 @@ class FileChunksList {
   FileChunks& Get(std::string path);
   /// Assign timeout value (seconds) for file transfers
   void Timeout(int t) { timeout=t; };
-  /// Returns pointer to first stuck file.
-  /// File is considred stuck if its Add method was last called more
-  /// timeout seconds ago.
-  FileChunks* GetStuck(void);
   /// Returns pointer to first in a list created FileChunks instance.
-  FileChunks* GetFirst(void);
+  //FileChunks* GetFirst(void);
 };
 
+class FileChunksRef {
+ private:
+  FileChunks& obj;
+ public:
+  FileChunksRef(FileChunks& o):obj(o) { };
+  ~FileChunksRef(void) { obj.Release(); };
+  FileChunks* operator->(void) { return &obj; };
+};
 
 } // namespace ARex
 
