@@ -177,6 +177,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   jobname = arc_job_desc.Identification.JobName;
   downloads = 0;
   uploads = 0;
+  freestagein = true; //false;
   rtes = 0;
   outputdata.clear();
   inputdata.clear();
@@ -190,35 +191,39 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.Files.begin();
        file != arc_job_desc.Files.end(); ++file) {
     std::string fname = file->Name;
-    if(fname.empty()) continue; // Can handle only named files
     if(fname[0] != '/') fname = "/"+fname; // Just for safety
     // Because ARC job description does not keep enough information
     // about initial JSDL description we have to make some guesses here.
     if(!file->Source.empty()) { // input file
       // Only one source per file supported
-      inputdata.push_back(FileData(fname, ""));
-      if (file->Source.front() &&
-          file->Source.front().Protocol() != "file") {
-        inputdata.back().lfn = file->Source.front().fullstr();
-        // It is not possible to extract credentials path here.
-        // So temporarily storing id here.
-        inputdata.back().cred = file->DelegationID;
-        ++downloads;
-      }
-
-      if (inputdata.back().has_lfn()) {
-        Arc::URL u(inputdata.back().lfn);
-
-        if (file->IsExecutable ||
-            file->Name == arc_job_desc.Application.Executable.Name) {
-          u.AddOption("exec", "yes", true);
+      if(fname == "/") {
+        // Unnamed file is used to mark request for free stage in
+        freestagein = true;
+      } else {
+        inputdata.push_back(FileData(fname, ""));
+        if (file->Source.front() &&
+            file->Source.front().Protocol() != "file") {
+          inputdata.back().lfn = file->Source.front().fullstr();
+          // It is not possible to extract credentials path here.
+          // So temporarily storing id here.
+          inputdata.back().cred = file->DelegationID;
+          ++downloads;
         }
-        inputdata.back().lfn = u.fullstr();
-      }
-      else if (file->FileSize != -1) {
-        inputdata.back().lfn = Arc::tostring(file->FileSize);
-        if (!file->Checksum.empty()) { // Only set checksum if FileSize is also set.
-          inputdata.back().lfn += "."+file->Checksum;
+
+        if (inputdata.back().has_lfn()) {
+          Arc::URL u(inputdata.back().lfn);
+
+          if (file->IsExecutable ||
+              file->Name == arc_job_desc.Application.Executable.Name) {
+            u.AddOption("exec", "yes", true);
+          }
+          inputdata.back().lfn = u.fullstr();
+        }
+        else if (file->FileSize != -1) {
+          inputdata.back().lfn = Arc::tostring(file->FileSize);
+          if (!file->Checksum.empty()) { // Only set checksum if FileSize is also set.
+            inputdata.back().lfn += "."+file->Checksum;
+          }
         }
       }
     }
@@ -364,6 +369,13 @@ static inline void write_pair(int f,const std::string &name,bool value) {
   write_str(f,"\n");
 }
 
+static inline bool read_boolean(const char* buf) {
+  if(strncasecmp("yes",buf,3) == 0) return true;
+  if(strncasecmp("true",buf,4) == 0) return true;
+  if(strncmp("1",buf,1) == 0) return true;
+  return false;
+}
+
 bool JobLocalDescription::write(const std::string& fname) const {
   Glib::Mutex::Lock lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
@@ -423,6 +435,7 @@ bool JobLocalDescription::write(const std::string& fname) const {
   write_pair(f,"failedstate",failedstate);
   write_pair(f,"failedcause",failedcause);
   write_pair(f,"credentialserver",credentialserver);
+  write_pair(f,"freestagein",freestagein);
   for(std::list<std::string>::const_iterator act_id=activityid.begin();
       act_id != activityid.end(); ++act_id) {
     write_pair(f,"activityid",(*act_id));
@@ -512,6 +525,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "failedstate") { failedstate = buf+p; }
     else if(name == "failedcause") { failedcause = buf+p; }
     else if(name == "credentialserver") { credentialserver = buf+p; }
+    else if(name == "freestagein") { freestagein = read_boolean(buf+p); }
     else if(name == "diskspace") {
       std::string temp_s(buf+p);
       unsigned long long int n;
@@ -523,11 +537,7 @@ bool JobLocalDescription::read(const std::string& fname) {
       activityid.push_back(temp_s);
     }
     else if(name == "migrateactivityid") { migrateactivityid = buf+p; }
-    else if(name == "forcemigration") {
-      if(strcasecmp("yes",buf+p) == 0) { forcemigration = true; }
-      else if(strcasecmp("true",buf+p) == 0) { forcemigration = true; }
-      else forcemigration = false;
-    }
+    else if(name == "forcemigration") { forcemigration = read_boolean(buf+p); }
     else if(name == "transfershare") { transfershare = buf+p; }
     else if(name == "priority") {
       std::string temp_s(buf+p); int n;

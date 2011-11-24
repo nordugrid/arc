@@ -398,6 +398,7 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
   item = in["NotifyRequestItem"];
   for(;(bool)item;++item) {
     std::string jobid = (std::string)(item["ActivityID"]);
+    std::string msg = (std::string)(item["NotifyMessage"]);
     Arc::XMLNode ritem = out.NewChild("esmanag:NotifyResponseItem");
     ritem.NewChild("estypes:ActivityID") = jobid;
     ARexJob job(jobid,config,logger_);
@@ -406,8 +407,20 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
       logger_.msg(Arc::ERROR, "ESEMI:NotifyService: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
-      // Currently there is no such functionality. So either client notifies
-      // service is not important.
+      if(msg == "CLIENT-DATAPULL-DONE") {
+        // Client is done with job. Same as wipe request. Or should job go to deleted?
+        if(!job.Clean()) {
+          // Failure is not fatal here
+          logger_.msg(Arc::ERROR, "ESEMI:NotifyService: job %s - %s", jobid, job.Failure());
+        };
+      } else if(msg == "CLIENT-DATAPUSH-DONE") {
+        if(!job.ReportFilesComplete()) {
+          ESInternalBaseFault(ritem.NewChild("dummy"),"internal error");
+        };
+      } else {
+        // Wrong request
+        ESInternalBaseFault(ritem.NewChild("dummy"),"unsupported message type");
+      };
     };
   };
   return Arc::MCC_Status();

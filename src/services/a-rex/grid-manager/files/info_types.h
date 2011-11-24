@@ -49,7 +49,7 @@ class JobLocalDescription {
                            reruns(0),priority(50),downloads(-1),uploads(-1),rtes(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
-                           failedstate(""),failedcause(""),
+                           freestagein(false),failedstate(""),failedcause(""),
                            credentialserver(""),gsiftpthreads(1),
                            dryrun(false),diskspace(0),
                            migrateactivityid(""), forcemigration(false),
@@ -71,11 +71,11 @@ class JobLocalDescription {
   std::string localid;       /* job's id in lrms */
   std::list<std::string> arguments;    /* executable + arguments */
   std::string DN;            /* user's distinguished name aka subject name */
-  Arc::Time starttime;      /* job submission time */
+  Arc::Time starttime;       /* job submission time */
   std::string lifetime;      /* time to live for submission directory */
   std::string notify;        /* notification flags used and email address */
-  Arc::Time processtime;      /* time to start job processing (downloading) */
-  Arc::Time exectime;         /* time to start execution */
+  Arc::Time processtime;     /* time to start job processing (downloading) */
+  Arc::Time exectime;        /* time to start execution */
   std::string clientname;    /* IP+port of user interface + info given by ui */
   std::string clientsoftware; /* Client's version */
   int    reruns;             /* number of allowed reruns left */
@@ -86,14 +86,15 @@ class JobLocalDescription {
   std::string jobname;       /* name of job given by user */
   std::list<std::string> projectnames;  /* project names, i.e. "ACIDs" */
   std::list<std::string> jobreport;     /* URLs of user's/VO's loggers */
-  Arc::Time cleanuptime;      /* time to remove job completely */
-  Arc::Time expiretime;       /* when delegation expires */
+  Arc::Time cleanuptime;     /* time to remove job completely */
+  Arc::Time expiretime;      /* when delegation expires */
   std::string stdlog;        /* dirname to which log messages will be
                                 put after job finishes */
   std::string sessiondir;    /* job's session directory */
   std::string failedstate;   /* state at which job failed, used for rerun */
   std::string failedcause;   /* reason for job failure, client or internal error */
   std::string credentialserver; /* URL of server used to renew credentials - MyProxy */
+  bool freestagein;          /* if true, client is allowed to stage in any files */
   /* attributes stored in other files */
   std::list<FileData> inputdata;  /* input files */
   std::list<FileData> outputdata; /* output files */

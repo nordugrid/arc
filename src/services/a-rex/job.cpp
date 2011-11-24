@@ -891,6 +891,11 @@ bool ARexJob::ReportFileComplete(const std::string& filename) {
   return job_input_status_add_file(JobDescription(id_,""),*config_.User(),"/"+fname);
 }
 
+bool ARexJob::ReportFilesComplete(void) {
+  if(id_.empty()) return "";
+  return job_input_status_add_file(JobDescription(id_,""),*config_.User(),"/");
+}
+
 std::string ARexJob::GetLogFilePath(const std::string& name) {
   if(id_.empty()) return "";
   return config_.User()->ControlDir() + "/job." + id_ + "." + name;

@@ -1114,15 +1114,33 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
         if(i->job_pending || state_loading(i,state_changed,false,retry)) {
           if(i->job_pending || state_changed) {
             if (state_changed) preparing_job_share[i->transfer_share]--;
-            // Here we have branch. Either job is ordinary one and goes to SUBMIT
-            // or it has no executable and hence goes to FINISHING
             if(!GetLocalDescription(i)) {
               logger.msg(Arc::ERROR,"%s: Failed obtaining local job information.",i->job_id);
               i->AddFailure("Internal error");
               job_error=true;
               return;
             };
-            if(i->local->arguments.size()) {
+            // For jobs with free stage in check if user reported complete stage in.
+            bool stagein_complete = true;
+            if(i->local->freestagein) {
+              stagein_complete = false;
+              std::list<std::string> ifiles;
+              if(job_input_status_read_file(i->job_id,*user,ifiles)) {
+                for(std::list<std::string>::iterator ifile = ifiles.begin();
+                                   ifile != ifiles.end(); ++ifile) {
+                  if(*ifile == "/") {
+                    stagein_complete = true;
+                    break;
+                  };
+                };
+              };
+            };
+            // Here we have branch. Either job is ordinary one and goes to SUBMIT
+            // or it has no executable and hence goes to FINISHING
+            if(!stagein_complete) {
+              state_changed=false;
+              JobPending(i);
+            } else if(i->local->arguments.size()) {
               if((JOB_NUM_RUNNING<jcfg.max_jobs_running) || (jcfg.max_jobs_running==-1)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;

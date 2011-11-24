@@ -760,14 +760,18 @@ bool job_local_write_file(const JobDescription &desc,const JobUser &user,const J
   return job_local_write_file(fname,job_desc) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname,desc,user);
 }
 
-static inline void write_str(int f,const std::string &str) {
+static inline bool write_str(int f,const std::string &str) {
   const char* buf = str.c_str();
   std::string::size_type len = str.length();
   for(;len > 0;) {
     ssize_t l = write(f,buf,len);
-    if((l < 0) && (errno != EINTR)) break;
-    len -= l; buf += l;
+    if(l < 0) {
+      if(errno != EINTR) return false;
+    } else {
+      len -= l; buf += l;
+    };
   };
+  return true;
 }
 
 static inline bool read_str(int f,char* buf,int size) {
@@ -911,18 +915,8 @@ bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,co
     if(errno == EINTR) continue;
     close(h); return false;
   };
-  bool r = true;
   std::string line = file + "\n";
-  const char* s = line.c_str();
-  size_t l = line.length();
-  for(;l>0;) {
-    ssize_t ll = write(h,s,l);
-    if(ll == -1) {
-      if(errno == EINTR) continue;
-      r=false; break;
-    };
-    l-=ll; s+=ll;
-  };
+  bool r = write_str(h,line);
   lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
   lock.l_type=F_UNLCK; fcntl(h,F_SETLK,&lock);
   for(;;) {
@@ -986,28 +980,12 @@ bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
   return true;
 }
 
-/*
-static bool job_Xput_read_file(std::list<FileData> &files) {
-  for(;!std::cin.eof();) {
-    FileData fd; std::cin >> fd;
-//    if((fd.pfn.length() != 0) && (fd.pfn != "/")) {
-    if(fd.pfn.length() != 0) { // returns zero length only if empty std::string
-      files.push_back(fd);
-    };
-  };
-  return true;
-}
-*/
-
 bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files) {
   std::ifstream f(fname.c_str());
   if(! f.is_open() ) return false; /* can't open file */
   for(;!f.eof();) {
     FileData fd; f >> fd;
-//    if((fd.pfn.length() != 0) && (fd.pfn != "/")) {
-    if(fd.pfn.length() != 0) { // returns zero length only if empty std::string
-      files.push_back(fd);
-    };
+    if(!fd.pfn.empty()) files.push_back(fd);
   };
   f.close();
   return true;
