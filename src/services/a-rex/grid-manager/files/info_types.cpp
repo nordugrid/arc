@@ -177,7 +177,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   jobname = arc_job_desc.Identification.JobName;
   downloads = 0;
   uploads = 0;
-  freestagein = true; //false;
+  freestagein = false;
   rtes = 0;
   outputdata.clear();
   inputdata.clear();
