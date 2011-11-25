@@ -65,8 +65,7 @@ namespace Arc
 
     DIR *odirp;
     errno=0;
-    //if ( !out_dir.empty() && (odirp=opendir(out_dir.c_str()))==NULL )
-    if ( (odirp=opendir(out_dir.c_str()))==NULL )
+    if ( !out_dir.empty() && (odirp=opendir(out_dir.c_str()))==NULL )
       {
 	logger.msg(Arc::ERROR, 
 		   "Could not open output directory \"%s\": %s",
@@ -76,7 +75,9 @@ namespace Arc
 	closedir(dirp);
 	return -1;
       }
-    closedir(odirp);
+      if (odirp != NULL) {
+        closedir(odirp);
+      }
 
     // Seek "<jobnumber>.<randomstring>" files.
     Arc::RegularExpression logfilepattern("^[0-9]+\\.[^.]+$");
