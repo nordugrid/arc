@@ -152,16 +152,16 @@ namespace Arc
 	std::string nowstamp=Arc::Time().str(Arc::UTCTime);
 	
 	Arc::XMLNode rid=ur.NewChild("RecordIdentity");
-	rid.NewAttribute("createTime")=nowstamp;
+	rid.NewAttribute("urf:createTime")=nowstamp;
 	//NOTE! Current LUTS also sets a "creationTime"[sic!] for each record
 	
 	// ID for record
 	if (!mainnode.empty())
-	  rid.NewAttribute("recordId")=
+	  rid.NewAttribute("urf:recordId")=
 	    std::string(recordid_prefix) + mainnode + 
 	    '-' + (*this)["ngjobid"];
 	else
-	  rid.NewAttribute("recordId")=
+	  rid.NewAttribute("urf:recordId")=
 	    std::string(recordid_prefix) + (*this)["ngjobid"];
 	
 	ur.NewChild("JobIdentity").NewChild("GlobalJobId")=
@@ -268,17 +268,29 @@ namespace Arc
 	Arc::Period udur((*this)["usedusercputime"],Arc::PeriodSeconds);
 	Arc::Period kdur((*this)["usedkernelcputime"],Arc::PeriodSeconds);
 
-	Arc::XMLNode udurn=ur.NewChild("CpuDuration")=(std::string)udur;
+	std::string udurs = (std::string)udur;
+	if (udurs == "P"){
+	    udurs = "PT0S";
+	}
+	Arc::XMLNode udurn=ur.NewChild("CpuDuration")=udurs;
 	udurn.NewAttribute("usageType")="user";
 
-	Arc::XMLNode kdurn=ur.NewChild("CpuDuration")=(std::string)kdur;
+	std::string kdurs = (std::string)kdur;
+	if (kdurs == "P"){
+	    kdurs = "PT0S";
+	}
+	Arc::XMLNode kdurn=ur.NewChild("CpuDuration")=kdurs;
 	kdurn.NewAttribute("usageType")="kernel";
       }
     else
     if (find("usedcputime")!=end())
       {
 	Arc::Period cpudur((*this)["usedcputime"],Arc::PeriodSeconds);
-	ur.NewChild("CpuDuration")=(std::string)cpudur;
+	std::string cpudurs = (std::string)cpudur;
+	if (cpudurs == "P"){
+	    cpudurs = "PT0S";
+	}
+	ur.NewChild("CpuDuration")=cpudurs;
       }
     
     //StartTime
@@ -367,11 +379,6 @@ namespace Arc
 	ur.NewChild("arc:RunTimeEnvironment")=*jt;
       }
     
-    //LocalJobId
-    if (find("localjobid")!=end())
-      {
-	ur.NewChild("LocalJobId")=(*this)["localjobid"];
-      }
 
 
     //TODO user id info
