@@ -27,7 +27,7 @@ namespace Arc {
       failure_code(DataStatus::UnknownError),
       cache(url.Option("cache") != "no"),
       stageable(false) {
-    // add standard options applicable to all protocols
+    // add all valid URL options applicable to all protocols
     valid_url_options.clear();
     valid_url_options.insert("cache");
     valid_url_options.insert("readonly");
@@ -39,6 +39,11 @@ namespace Arc {
     valid_url_options.insert("threads");
     valid_url_options.insert("secure");
     valid_url_options.insert("autodir");
+    valid_url_options.insert("tcpnodelay");
+    valid_url_options.insert("guid");
+    valid_url_options.insert("protocol");
+    valid_url_options.insert("spacetoken");
+    valid_url_options.insert("transferprotocol");
   }
 
   DataPoint::~DataPoint() {}

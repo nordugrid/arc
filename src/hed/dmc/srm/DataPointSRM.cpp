@@ -28,11 +28,7 @@ namespace Arc {
       srm_request(NULL),
       r_handle(NULL),
       reading(false),
-      writing(false) {
-    valid_url_options.insert("protocol");
-    valid_url_options.insert("spacetoken");
-    valid_url_options.insert("transferprotocol");
-  }
+      writing(false) {}
 
   DataPointSRM::~DataPointSRM() {
     delete r_handle;

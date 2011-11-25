@@ -32,7 +32,6 @@ namespace Arc {
   DataPointRLS::DataPointRLS(const URL& url, const UserConfig& usercfg)
     : DataPointIndex(url, usercfg),
       guid_enabled(false) {
-    valid_url_options.insert("guid");
     if(!proxy_initialized) {
 #ifdef HAVE_GLOBUS_THREAD_SET_MODEL
       globus_thread_set_model("pthread");
