@@ -86,12 +86,15 @@ namespace DataStaging {
         return true;
       }
     }
-    // DTR is not in the active transfer list - log a warning
+    // DTR is not in the active transfer list, probably because it just finished
     dtr_list_lock.unlock();
     request->get_logger()->msg(Arc::WARNING, "DTR %s requested cancel but no active transfer",
                    request->get_id());
-    request->set_status(DTRStatus::TRANSFERRED);
-    request->push(SCHEDULER);
+    // if request is already TRANSFERRED, no need to push to Scheduler again
+    if (request->get_status() != DTRStatus::TRANSFERRED) {
+      request->set_status(DTRStatus::TRANSFERRED);
+      request->push(SCHEDULER);
+    }
     return true;
   }
 
