@@ -34,6 +34,9 @@ class Scheduler: public DTRCallback {
      * processes it during the main loop. */
     std::list<std::string> cancelled_jobs;
 
+    /// A list of DTRs to process
+    std::list<DTR*> events;
+
     /// A lock for the cancelled jobs list
     Arc::SimpleCondition cancelled_jobs_lock;
 
@@ -126,14 +129,17 @@ class Scheduler: public DTRCallback {
     /// Call the appropriate Process method depending on the DTR state
     void map_state_and_process(DTR* request);
     
-    /// Call the appropriate Process method when the DTR has a pending cancel request.
+    /// Maps the DTR to the appropriate state when it is cancelled.
     /** This is a separate function, since cancellation request
      * can arrive at any time, breaking the normal workflow. */
-    void map_cancel_state_and_process(DTR* request);
+    void map_cancel_state(DTR* request);
     
     /// Go through all DTRs waiting to go into a processing state and decide
     /// whether to push them into that state, depending on shares and limits.
     void revise_queues();
+
+    /// Add a new event for the Scheduler to process. Used in receiveDTR().
+    void add_event(DTR* event);
 
     /// Process the pool of DTRs which have arrived from other processes
     void process_events(void);

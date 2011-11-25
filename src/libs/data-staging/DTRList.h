@@ -23,8 +23,9 @@ namespace DataStaging {
           	
   	  /// Put a new DTR into the list.
       /** A (pointer to a) copy of the DTR is added to the list, and so
-       * DTRToAdd can be deleted after this method is called. */
-  	  bool add_dtr(const DTR& DTRToAdd);
+       * DTRToAdd can be deleted after this method is called.
+       * @return The DTR pointer added to the list */
+  	  DTR* add_dtr(const DTR& DTRToAdd);
   	  
   	  /// Remove a DTR from the list.
   	  /** The DTRToDelete object is destroyed, and hence should not be

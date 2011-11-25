@@ -614,8 +614,8 @@ namespace DataStaging {
   }
   
   void Scheduler::map_state_and_process(DTR* request){
-    // DTRs that were requested to be cancelled are not processed here
-    if(request->cancel_requested()) map_cancel_state_and_process(request);
+    // For cancelled DTRs set the appropriate post-processor state
+    if(request->cancel_requested()) map_cancel_state(request);
     // Loop until the DTR is sent somewhere for some action to be done
     // This is more efficient because many DTRs will skip some states and
     // we don't want to have to wait for the full list to be processed before
@@ -644,14 +644,9 @@ namespace DataStaging {
       }
     }
 
-    if (request->is_in_final_state()) {
-      // If we came here -- we were in the final state,
-      // so the DTR is returned to the generator and deleted
-      ProcessDTRFINAL_STATE(request);
-    }
   }
   
-  void Scheduler::map_cancel_state_and_process(DTR* request){
+  void Scheduler::map_cancel_state(DTR* request){
     switch (request->get_status().GetStatus()) {
       case DTRStatus::NEW:
       case DTRStatus::CHECK_CACHE:
@@ -715,16 +710,43 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::process_events(void){
+  void Scheduler::add_event(DTR* event) {
+    event_lock.lock();
+    events.push_back(event);
+    event_lock.unlock();
+  }
 
-    std::list<DTR*> Events;
+  void Scheduler::process_events(void){
     
-    // Get the events
-    DtrList.filter_pending_dtrs(Events);
-    std::list<DTR*>::iterator Event;
-    for(Event = Events.begin(); Event != Events.end(); Event++){
-      map_state_and_process(*Event);
+    Arc::Time now;
+    event_lock.lock();
+
+    for (std::list<DTR*>::iterator event = events.begin(); event != events.end();) {
+      DTR* tmp = *event;
+      event_lock.unlock();
+
+      if (tmp->get_process_time() <= now) {
+        map_state_and_process(tmp);
+        // If final state, the DTR is returned to the generator and deleted
+        if (tmp->is_in_final_state()) {
+          ProcessDTRFINAL_STATE(tmp);
+          event_lock.lock();
+          event = events.erase(event);
+          continue;
+        }
+        // If the event was sent on to a queue, erase it from the list
+        if (tmp->is_destined_for_pre_processor() ||
+            tmp->is_destined_for_delivery() ||
+            tmp->is_destined_for_post_processor()) {
+          event_lock.lock();
+          event = events.erase(event);
+          continue;
+        }
+      }
+      event_lock.lock();
+      ++event;
     }
+    event_lock.unlock();
   }
 
   void Scheduler::revise_queues() {
@@ -772,7 +794,8 @@ namespace DataStaging {
           // request will either go back to generator or be put into a
           // post-processor state for clean up.
           if (tmp->cancel_requested()) {
-            map_cancel_state_and_process(tmp);
+            map_cancel_state(tmp);
+            add_event(tmp);
             dtr = DTRQueue.erase(dtr);
             continue;
           }
@@ -890,11 +913,10 @@ namespace DataStaging {
 
   void Scheduler::receiveDTR(DTR& request){
 
-    if(request.get_status() != DTRStatus::NEW) {
-      // If DTR is not NEW then the scheduler picks up the DTR itself
+    if (request.get_status() != DTRStatus::NEW) {
+      add_event(&request);
       return;
     }
-    
     // New DTR - first check it is valid
     if (!request) {
       logger.msg(Arc::ERROR, "Scheduler received invalid DTR");
@@ -932,8 +954,11 @@ namespace DataStaging {
     // share adjusted by the priority of the parent job
     request.set_priority(int(transferSharesConf.get_basic_priority(DtrTransferShare) * request.get_priority() * 0.01));
     /* Shares part ends*/               
-    
-    DtrList.add_dtr(request);
+
+    DTR * new_dtr = DtrList.add_dtr(request);
+    if (new_dtr) {
+      add_event(new_dtr);
+    }
   }
 
   bool Scheduler::cancelDTRs(const std::string& jobid) {

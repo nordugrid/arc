@@ -9,14 +9,14 @@
 
 namespace DataStaging {
   
-  bool DTRList::add_dtr(const DTR& DTRToAdd) {
+  DTR* DTRList::add_dtr(const DTR& DTRToAdd) {
   	DTR* dtr = new DTR(DTRToAdd);
   	Lock.lock();
   	DTRs.push_back(dtr);
   	Lock.unlock();
   	
   	// Added successfully
-  	return true;
+  	return dtr;
   }
   
   bool DTRList::delete_dtr(DTR* DTRToDelete) {
