@@ -80,8 +80,6 @@ namespace DataStaging {
       services.push_back(DTR::LOCAL_DELIVERY);
       delivery_services = services;
     }
-    DeliverySlots *= delivery_services.size();
-    DeliveryEmergencySlots *= delivery_services.size();
     Arc::CreateThreadFunction(&main_thread, this);
     return true;
   }
