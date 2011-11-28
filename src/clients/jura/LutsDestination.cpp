@@ -50,6 +50,15 @@ namespace Arc
     else
       {
         Arc::URL url(serviceurl);
+        // URL path checking
+        if (url.Path().substr(url.Path().length()-3) != "/ur"){
+            if (url.Path().substr(url.Path().length()-1) == "/"){
+                url.ChangePath(url.Path()+"ur");
+            } else {
+                url.ChangePath(url.Path()+"/ur");
+            }
+        }
+
         service_url = url;
         if (url.Protocol()!="https")
           {
