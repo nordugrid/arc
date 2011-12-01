@@ -267,9 +267,9 @@ do
            daemon:-b | daemon:-bindmethod)
              SLAVE_DAEMON_BINDMETHOD="$2"
              ;;
-	   daemon:-z | daemon:-sizelimit)
-	     SLAVE_DAEMON_SIZELIMIT="$2"
-	     ;;
+           daemon:-z | daemon:-sizelimit)
+             SLAVE_DAEMON_SIZELIMIT="$2"
+             ;;
            daemon:-r | daemon:-root)
              SLAVE_DAEMON_DN="$2"
              ;;
@@ -302,7 +302,7 @@ do
          arg_check SLAVE_REG_DN      "registration DN"
        elif test "${SLAVE_REG_TYPE}" = "mdsreg2"
        then
-	 arg_check SLAVE_REG_DN      "registration DN"
+         arg_check SLAVE_REG_DN      "registration DN"
        else
          short_usage_error "unrecognized registration" \
            "type \"${SLAVE_REG_TYPE}\""
@@ -398,8 +398,8 @@ trap cleanup 0
 
 mdsreg_ldapadd ()
 {
-	if test -x ${ldapbindir}/ldapadd
-	then
+        if test -x ${ldapbindir}/ldapadd
+        then
                 tmpfile=`mktemp`
                 while read line ; do echo $line >> $tmpfile ; done
 
@@ -424,9 +424,9 @@ mdsreg_ldapadd ()
                 fi
 
                 unlink $tmpfile
-	else
-	    ldap_shell_log_error "cannot execute \"${ldapbindir}/ldapadd\""
-	fi
+        else
+            ldap_shell_log_error "cannot execute \"${ldapbindir}/ldapadd\""
+        fi
 }
 
 mdsreg_register ()
@@ -474,7 +474,9 @@ objectclass: Mds
 objectclass: MdsVoOp
 objectclass: MdsService
 objectclass: MdsServiceLdap
-Mds-Service-type: ldap
+Mds-Vo-Op-name: register
+Mds-Service-type: ${SLAVE_DAEMON_TYPE}
+Mds-Service-protocol: 0.1
 Mds-Service-hn: ${SLAVE_DAEMON_HOST}
 Mds-Service-port: ${SLAVE_DAEMON_PORT}
 Mds-Service-Ldap-suffix: ${SLAVE_DAEMON_DN}
@@ -527,7 +529,7 @@ in
            test ! -z "${SLAVE_DAEMON_TIME}" && \
            test ! -z "${SLAVE_DAEMON_TIMEOUT}" && \
            test ! -z "${SLAVE_DAEMON_BINDMETHOD}" && \
-	   test ! -z "${SLAVE_DAEMON_SIZELIMIT}" && \
+           test ! -z "${SLAVE_DAEMON_SIZELIMIT}" && \
            test ! -z "${SLAVE_DAEMON_MODE}" && \
            test ! -z "${SLAVE_DAEMON_DN}"
         then
@@ -582,19 +584,19 @@ in
           bindmethod:)
             SLAVE_DAEMON_BINDMETHOD="${value}"
             ;;
-	  sizelimit:)
-	    SLAVE_DAEMON_SIZELIMIT="${value}"
-	    ;;
+          sizelimit:)
+            SLAVE_DAEMON_SIZELIMIT="${value}"
+            ;;
           mode:)
             SLAVE_DAEMON_MODE="${value}"
             ;;
-          \type:)
+          type:)
             SLAVE_DAEMON_TYPE="${value}"
             ;;
-	  \#*)
-	    # discard comment fields
-	    :
-	    ;;
+          \#*)
+            # discard comment fields
+            :
+            ;;
         esac
       fi
     done 
@@ -610,7 +612,7 @@ in
 
     # wait for daemon
     while ( ps -p ${DAEMON_PID} > /dev/null) ; do
-	soft_sleep 30
+      soft_sleep 30
     done
 
     ldap_shell_log_event "daemon PID=${DAEMON_PID} terminated, exiting"
@@ -632,18 +634,18 @@ in
     do
 
       case "${SLAVE_REG_TYPE}" in
-	mdsreg)
-	    mdsreg_register
-	;;
+        mdsreg)
+          mdsreg_register
+        ;;
 
-	mdsreg2)
-	    mdsreg_register2
-	;;
+        mdsreg2)
+          mdsreg_register2
+        ;;
 
-	*)
-	    ldap_shell_log_error "unrecognized registration type \"${SLAVE_REG_TYPE}\""
-	    exit 1
-	;;
+        *)
+          ldap_shell_log_error "unrecognized registration type \"${SLAVE_REG_TYPE}\""
+          exit 1
+        ;;
       esac
 
       soft_sleep "${SLAVE_REG_TIME}"

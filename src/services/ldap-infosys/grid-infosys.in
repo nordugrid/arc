@@ -135,13 +135,13 @@ printregldif () {
 check_cwd () {
     current_dir=`pwd`
     case "$current_dir" in
-       $bdii_var_dir*|$bdii_tmp_dir* )
-         log_failure_msg "Checking current working directory: "
-         echo "You are not allowed to be at or below these directories: "
-         echo "$bdii_var_dir , $bdii_tmp_dir "
-         echo "when starting or stopping grid-infosys since they will be removed."
-         exit 1
-         ;;
+	$bdii_var_dir*|$bdii_tmp_dir* )
+	    log_failure_msg "Checking current working directory: "
+	    echo "You are not allowed to be at or below these directories: "
+	    echo "$bdii_var_dir , $bdii_tmp_dir "
+	    echo "when starting or stopping grid-infosys since they will be removed."
+	    exit 1
+	    ;;
     esac
 }
 
@@ -1291,12 +1291,10 @@ start () {
 	#getent hosts $slapd_hostnamebind and see that they don't 
 	#resolve to the same thing
 	if [ "x$slapd_hostnamebind" = "x*" ]; then
-	    ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
-		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
+	    LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
 		${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
 	else
-	    ARC_LDAPLIB_SHELL=${ldaplib}/back_shell.so \
-		LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
+	    LD_PRELOAD=${pkglibdir}/arc-infoindex-slapd-wrapper.so \
 		${slapd_cmd} -f ${bdii_slapd_conf} -h "ldap://localhost:${bdii_port} ldap://${slapd_hostnamebind}:${bdii_port}" -u ${bdii_user}
 	fi
     else
@@ -1311,9 +1309,9 @@ start () {
 
     iterlimit=30
     while [ $iterlimit -ge 0 ] && ! [ -f ${slapd_pid_file} ]; do
-    echo -n "*"
-        sleep 1
-        iterlimit=$(expr $iterlimit - 1)
+	echo -n "*"
+	sleep 1
+	iterlimit=$(expr $iterlimit - 1)
     done
 
     if [ -f "${slapd_pid_file}" ]; then

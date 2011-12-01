@@ -61,7 +61,9 @@ std::string Entry::SearchEntry() const {
   ss << "objectClass: MdsVoOp" << std::endl;
   ss << "objectClass: MdsService" << std::endl;
   ss << "objectClass: MdsServiceLdap" << std::endl;
+  ss << "Mds-Vo-Op-name: register" << std::endl;
   ss << "Mds-Service-type: ldap" << std::endl;
+  ss << "Mds-Service-protocol: 0.1" << std::endl;
   ss << "Mds-Service-hn: " << hn << std::endl;
   ss << "Mds-Service-port: " << port << std::endl;
   ss << "Mds-Service-Ldap-suffix: " << suffix << std::endl;
@@ -79,6 +81,10 @@ std::string Entry::SearchEntry() const {
     ss << "Mds-Reg-status: INVALID" << std::endl;
   else
     ss << "Mds-Reg-status: VALID" << std::endl;
+  ss << "Mds-validfrom: " << validfrom << std::endl;
+  ss << "Mds-validto: " << validto << std::endl;
+  if (!keepto.empty())
+    ss << "Mds-keepto: " << keepto << std::endl;
   ss << std::endl;
   return ss.str();
 }
