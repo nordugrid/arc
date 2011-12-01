@@ -12,6 +12,7 @@
 #include <arc/Logger.h>
 #include <arc/Run.h>
 #include <arc/Utils.h>
+#include <arc/StringConv.h>
 
 #include "fileroot.h"
 #include "commands.h"
@@ -32,6 +33,8 @@ unsigned long long int default_data_buffer_size = 0;
 unsigned int firewall_interface[4] = { 0, 0, 0, 0 };
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "gridftpd");
+
+#define PROTO_NAME(ADDR) ((ADDR->ai_family==AF_INET6)?"IPv6":"IPv4")
 
 /* new connection */
 #ifndef __DONT_USE_FORK__
@@ -186,7 +189,7 @@ int main(int argc,char** argv) {
     return -1;
   };
 
-  int handle;
+  std::list<int> handles;
   struct sockaddr_in myaddr;
 #else
   globus_ftp_control_server_t handle;
@@ -262,19 +265,55 @@ int main(int argc,char** argv) {
 
 
 #ifndef __DONT_USE_FORK__
-  if((handle=socket(PF_INET,SOCK_STREAM,IPPROTO_TCP)) == -1) {
-    logger.msg(Arc::ERROR, "Failed to create socket"); exit(-1);
-  };
   {
-    int on = 1;
-    setsockopt(handle,SOL_SOCKET,SO_REUSEADDR,(void*)(&on),sizeof(on));
+    struct addrinfo hint;
+    struct addrinfo *info = NULL;
+    memset(&hint, 0, sizeof(hint));
+    hint.ai_socktype = SOCK_STREAM;
+    hint.ai_protocol = IPPROTO_TCP; // ?
+    hint.ai_flags = AI_PASSIVE; // looking for bind'able adresses
+    // hint.ai_family = AF_INET;
+    // hint.ai_family = AF_INET6;
+    int ret = getaddrinfo(NULL, Arc::tostring(server_port).c_str(), &hint, &info);
+    if (ret != 0) {
+      std::string err_str = gai_strerror(ret);
+      logger.msg(Arc::ERROR, "Failed to obtain local address: %s",err_str); exit(-1);
+    };
+    for(struct addrinfo *info_ = info;info_;info_=info_->ai_next) {
+      int s = socket(info_->ai_family,info_->ai_socktype,info_->ai_protocol);
+      if(s == -1) {
+        std::string e = Arc::StrError(errno);
+        logger.msg(Arc::ERROR, "Failed to create socket(%s): %s",PROTO_NAME(info_),e); exit(-1);
+      };
+      {
+        int on = 1;
+        setsockopt(s,SOL_SOCKET,SO_REUSEADDR,(void*)(&on),sizeof(on));
+      };
+#ifdef IPV6_V6ONLY
+      if(info_->ai_family == AF_INET6) {
+        int v = 1;
+        // Some systems (Linux for example) make v6 support v4 too
+        // by default. Some don't. Make it same for everyone -
+        // separate sockets for v4 and v6.
+        if(setsockopt(s,IPPROTO_IPV6,IPV6_V6ONLY,&v,sizeof(v)) != 0) {
+          std::string e = Arc::StrError(errno);
+          logger.msg(Arc::ERROR, "Failed to limit socket to IPv6: %s",e); exit(-1);
+        };
+      };
+#endif
+      if(bind(s,info_->ai_addr,info_->ai_addrlen) == -1) {
+        std::string e = Arc::StrError(errno);
+        logger.msg(Arc::ERROR, "Failed to bind socket(%s): %s",PROTO_NAME(info_),e); exit(-1);
+      };
+      if(listen(s,128) == -1) {
+        std::string e = Arc::StrError(errno);
+        logger.msg(Arc::ERROR, "Failed to listen on socket(%s): %s",PROTO_NAME(info_),e); exit(-1);
+      };
+      handles.push_back(s);
+    };
   };
-  memset(&myaddr,0,sizeof(myaddr));
-  myaddr.sin_family=AF_INET;
-  myaddr.sin_port=htons(server_port);
-  myaddr.sin_addr.s_addr=INADDR_ANY;
-  if(bind(handle,(struct sockaddr *)&myaddr,sizeof(myaddr)) == -1) {
-    logger.msg(Arc::ERROR, "bind failed"); exit(-1);
+  if(handles.empty()) {
+    logger.msg(Arc::ERROR, "Not listening to anything"); exit(-1);
   };
   daemon.logfile(DEFAULT_LOG_FILE);
   daemon.pidfile(DEFAULT_PID_FILE);
@@ -282,18 +321,44 @@ int main(int argc,char** argv) {
     perror("daemonization failed");
     return 1;
   };
-  if(listen(handle,128) == -1) {
-    perror("listen failed");
-    return 1;
-  };
-  logger.msg(Arc::INFO, "Listen started");
   for(;;) {
+    fd_set ifds;
+    fd_set efds;
+    FD_ZERO(&ifds);
+    FD_ZERO(&efds);
+    int maxfd = -1;
+    logger.msg(Arc::INFO, "Listen started");
+    for(std::list<int>::iterator handle = handles.begin();handle != handles.end();++handle) {
+      FD_SET(*handle,&ifds);
+      FD_SET(*handle,&efds);
+      if(*handle > maxfd) maxfd = *handle;
+    };
+    if(maxfd < 0) {
+      if(!server_done) logger.msg(Arc::ERROR, "No valid handles left for listening");
+      break;
+    };
+    int r = select(maxfd+1,&ifds,NULL,&efds,NULL);
+    if(r == -1) {
+      if(errno == EINTR) continue;
+      if(!server_done) logger.msg(Arc::ERROR, "Select failed: %s", Arc::StrError(errno));
+      break;
+    };
+    std::list<int>::iterator handle = handles.begin();
+    for(;handle != handles.end();++handle) {
+      if(FD_ISSET(*handle,&ifds) || FD_ISSET(*handle,&efds)) break;
+    };
+    if(handle == handles.end()) { // ???
+      continue; 
+    };
     struct sockaddr_in addr;
     socklen_t addrlen = sizeof(addr);
-    int sock = accept(handle,(sockaddr*)&addr,&addrlen);
+    int sock = accept(*handle,(sockaddr*)&addr,&addrlen);
     if(sock == -1) {
       if(!server_done) logger.msg(Arc::ERROR, "Accept failed: %s", Arc::StrError(errno));
-      break;
+      if(errno == EBADF) { // handle becomes bad
+        close(*handle);
+        handles.erase(handle);
+      };
     };
     logger.msg(Arc::INFO, "Have connections: %i, max: %i", curr_connections, max_connections);
     if((curr_connections < max_connections) || (max_connections == 0)) {
@@ -304,7 +369,10 @@ int main(int argc,char** argv) {
         }; break;
         case 0: {
           /* child */
-          close(handle);
+          for(std::list<int>::iterator handle = handles.begin();handle != handles.end();++handle) {
+            close(*handle);
+          };
+          handles.clear();
           Arc::Run::AfterFork();
           new_conn_callback(sock);
         }; break;
@@ -319,7 +387,10 @@ int main(int argc,char** argv) {
     };
     close(sock);
   };
-  close(handle);
+  for(std::list<int>::iterator handle = handles.begin();handle != handles.end();++handle) {
+    close(*handle);
+  };
+  handles.clear();
 #else
   if(daemon.daemon() != 0) {
     perror("daemonization failed");
