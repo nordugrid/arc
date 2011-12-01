@@ -468,8 +468,8 @@ namespace Arc {
         ok = false;
         continue;
       }
-      jobdescs.front().Identification.ActivityOldId = (*it)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldId.push_back((*it)->JobID.str());
+      jobdescs.front().Identification.ActivityOldID = (*it)->ActivityOldID;
+      jobdescs.front().Identification.ActivityOldID.push_back((*it)->JobID.str());
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
@@ -575,8 +575,8 @@ namespace Arc {
         logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (*itJ)->IDFromEndpoint.fullstr());
         continue;
       }
-      jobdescs.front().Identification.ActivityOldId = (*itJ)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldId.push_back((*itJ)->JobID.str());
+      jobdescs.front().Identification.ActivityOldID = (*itJ)->ActivityOldID;
+      jobdescs.front().Identification.ActivityOldID.push_back((*itJ)->JobID.str());
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";

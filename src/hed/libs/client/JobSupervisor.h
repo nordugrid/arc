@@ -333,10 +333,10 @@ namespace Arc {
      * will be appended to the notmigrated list and then false will be returned.
      *
      * When the above checks have been carried out successfully, the following
-     * is done for each job considered for migration. The ActivityOldId member
+     * is done for each job considered for migration. The ActivityOldID member
      * of the Identification member in the job description will be set to that
      * of the Job object, and the IDFromEndpoint URL will be appended to
-     * ActivityOldId member of the job description. After that the Broker object
+     * ActivityOldID member of the job description. After that the Broker object
      * will be used to find a suitable ExecutionTarget object, and if found a
      * migrate request will tried sent using the ExecutionTarget::Migrate
      * method, passing the UserConfig object of this class. The passed

@@ -99,18 +99,17 @@ namespace Arc {
     STRPRINT(out, Application.LogDir, Log Directory)
     STRPRINT(out, Identification.JobName, JobName)
     STRPRINT(out, Identification.Description, Description)
-    STRPRINT(out, Identification.JobVOName, Virtual Organization)
 
     if (format == "userlong") {
-      if (!Identification.UserTag.empty()) {
-        std::list<std::string>::const_iterator iter = Identification.UserTag.begin();
-        for (; iter != Identification.UserTag.end(); iter++)
-          out << IString(" UserTag: %s", *iter) << std::endl;
+      if (!Identification.Annotation.empty()) {
+        std::list<std::string>::const_iterator iter = Identification.Annotation.begin();
+        for (; iter != Identification.Annotation.end(); iter++)
+          out << IString(" Annotation: %s", *iter) << std::endl;
       }
 
-      if (!Identification.ActivityOldId.empty()) {
-        std::list<std::string>::const_iterator iter = Identification.ActivityOldId.begin();
-        for (; iter != Identification.ActivityOldId.end(); iter++)
+      if (!Identification.ActivityOldID.empty()) {
+        std::list<std::string>::const_iterator iter = Identification.ActivityOldID.begin();
+        for (; iter != Identification.ActivityOldID.end(); iter++)
           out << IString(" Activity Old Id: %s", *iter) << std::endl;
       }
 
@@ -385,7 +384,7 @@ namespace Arc {
     if (!jdpl) {
       jdpl = new JobDescriptionParserLoader();
     }
-    
+
     for (JobDescriptionParserLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       if (it->IsLanguageSupported(language)) {
         logger.msg(VERBOSE, "Generating %s job description output", language);

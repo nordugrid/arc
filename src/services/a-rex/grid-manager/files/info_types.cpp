@@ -168,11 +168,12 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   if(act_i != arc_job_desc.OtherAttributes.end()) action = act_i->second;
   std::map<std::string, std::string>::const_iterator jid_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;jobid");
   if(jid_i != arc_job_desc.OtherAttributes.end()) jobid = jid_i->second;
-  
+
   dryrun = arc_job_desc.Application.DryRun;
 
   projectnames.clear();
-  projectnames.push_back(arc_job_desc.Identification.JobVOName);
+  std::map<std::string, std::string>::const_iterator jr_i = arc_job_desc.OtherAttributes.find("nordugrid:jsdl;Identification/JobProject");
+  if (jr_i != arc_job_desc.OtherAttributes.end()) projectnames.push_back(jr_i->second);
 
   jobname = arc_job_desc.Identification.JobName;
   downloads = 0;
@@ -264,7 +265,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   const int lifetimeTemp = (int)arc_job_desc.Resources.SessionLifeTime.GetPeriod();
   if (lifetimeTemp > 0) lifetime = lifetimeTemp;
 
-  activityid = arc_job_desc.Identification.ActivityOldId;
+  activityid = arc_job_desc.Identification.ActivityOldID;
 
   stdlog = arc_job_desc.Application.LogDir;
 

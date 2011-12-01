@@ -52,14 +52,60 @@ namespace Arc {
     int scaleMax(double s) const { return (int)(range.max*benchmark.second/s); }
   };
 
+
+
+  /// Job identification
+  /**
+   * This class serves to provide human readable information about a job
+   * description. Some of this information might also be passed to the
+   * execution service for providing information about the job created from
+   * this job description. An object of this class is part of the
+   * JobDescription class as the Identification public member.
+   **/
   class JobIdentificationType {
   public:
-    JobIdentificationType() {}
+    JobIdentificationType() :
+      JobName(""), Description(""), Type("") {}
+    /// Name of job
+    /**
+     * The JobName string is used to specify a name of the job description, and
+     * it will most likely also be the name given to the job when created at the
+     * execution service.
+     **/
     std::string JobName;
+
+    /// Human readable description
+    /**
+     * The Description string can be used to provide a human readable
+     * description of e.g. the task which should be performed when processing
+     * the job description.
+     **/
     std::string Description;
-    std::string JobVOName;
-    std::list<std::string> UserTag;
-    std::list<std::string> ActivityOldId;
+
+    /// Job type
+    /**
+     * The Type string specifies a classification of the activity in
+     * compliance with GLUE2. The possible values should follow those defined in
+     * the ComputingActivityType_t enumeration of GLUE2.
+     **/
+    std::string Type;
+
+    /// Annotation
+    /**
+     * The Annotation list is used for human readable comments, tags for free
+     * grouping or identifying different activities.
+     **/
+    std::list<std::string> Annotation;
+
+    /// ID of old activity
+    /**
+     * The ActivityOldID object is used to store a list of IDs corresponding to
+     * activities which were performed from this job description. This
+     * information is not intended to used by the execution service, but rather
+     * used for keeping track of activities, e.g. when doing a job resubmission
+     * the old activity ID is appended to this list.
+     **/
+    std::list<std::string> ActivityOldID;
   };
 
   class ExecutableType {

@@ -145,8 +145,8 @@ namespace Arc {
 
         const std::string uriPath = it->Source.front().str().substr(0, foundRSlash);
         // Check if the input file URI is pointing to a old job session directory.
-        for (std::list<std::string>::const_iterator itAOID = modjobdesc.Identification.ActivityOldId.begin();
-             itAOID != modjobdesc.Identification.ActivityOldId.end(); itAOID++) {
+        for (std::list<std::string>::const_iterator itAOID = modjobdesc.Identification.ActivityOldID.begin();
+             itAOID != modjobdesc.Identification.ActivityOldID.end(); itAOID++) {
           if (uriPath == *itAOID) {
             it->Source.front() = URL(jobid.str() + "/" + it->Name);
             break;
@@ -161,8 +161,8 @@ namespace Arc {
       return false;
     }
 
-    // Add ActivityOldId.
-    modjobdesc.Identification.ActivityOldId.push_back(jobid.str());
+    // Add ActivityOldID.
+    modjobdesc.Identification.ActivityOldID.push_back(jobid.str());
 
     std::string product;
     if (!modjobdesc.UnParse(product, "nordugrid:jsdl")) {

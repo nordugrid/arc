@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://www.nordugrid.org/es/2011/12/nordugrid-adl"
+  xmlns:tns="http://www.nordugrid.org/es/2011/12/nordugrid-adl"
+  elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+  <xsd:element name="ActivityOldID" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+
+</xsd:schema>

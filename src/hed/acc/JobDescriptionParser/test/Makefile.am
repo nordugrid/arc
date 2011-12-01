@@ -1,5 +1,15 @@
-TESTS = ARCJSDLParserTest JDLParserTest XRSLParserTest
+TESTS = ADLParserTest ARCJSDLParserTest JDLParserTest XRSLParserTest
 check_PROGRAMS = $(TESTS)
+
+ADLParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	ADLParserTest.cpp ../ADLParser.cpp ../ADLParser.h
+ADLParserTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+ADLParserTest_LDADD = \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
 ARCJSDLParserTest_SOURCES = $(top_srcdir)/src/Test.cpp \
 	ARCJSDLParserTest.cpp ../ARCJSDLParser.cpp ../ARCJSDLParser.h

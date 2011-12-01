@@ -298,6 +298,7 @@ namespace Arc {
     */
     NS ns;
     ns["adl"] = "http://www.eu-emi.eu/es/2010/12/adl";
+    ns["nordugrid-adl"] = "http://www.nordugrid.org/es/2011/12/nordugrid-adl";
     node.Namespaces(ns);
 
     // ActivityDescription
@@ -315,20 +316,20 @@ namespace Arc {
     if((bool)identification) {
       job.Identification.JobName = (std::string)identification["adl:Name"];
       job.Identification.Description = (std::string)identification["adl:Description"];
-      // Type
+      job.Identification.Type = (std::string)identification["adl:Type"];
       for(XMLNode annotation = identification["adl:Annotation"];
                                       (bool)annotation;++annotation) {
-        job.Identification.UserTag.push_back((std::string)annotation);
+        job.Identification.Annotation.push_back((std::string)annotation);
+      }
+      // ARC extension: ActivityOldID
+      for(XMLNode activityoldid = identification["nordugrid-adl:ActivityOldID"];
+                                      (bool)activityoldid;++activityoldid) {
+        job.Identification.ActivityOldID.push_back((std::string)activityoldid);
       }
     }
     if((bool)application) {
       XMLNode executable = application["adl:Executable"];
-      if(!executable) {
-        logger.msg(ERROR, "[ADLParser] Missing Executable element.");
-        jobdescs.clear();
-        return true;
-      }
-      if(!ParseExecutable(executable, job.Application.Executable, logger)) {
+      if(executable && !ParseExecutable(executable, job.Application.Executable, logger)) {
         jobdescs.clear();
         return true;
       }
@@ -648,6 +649,7 @@ namespace Arc {
     NS ns;
     ns[""] = "http://www.eu-emi.eu/es/2010/12/adl";
     ns["emiestypes"] = "http://www.eu-emi.eu/es/2010/12/types";
+    ns["nordugrid-adl"] = "http://www.nordugrid.org/es/2011/12/nordugrid-adl";
 
     // ActivityDescription
     XMLNode description(ns, "ActivityDescription");
@@ -659,13 +661,16 @@ namespace Arc {
     // ActivityIdentification
     if(!job.Identification.JobName.empty()) identification.NewChild("Name") = job.Identification.JobName;
     if(!job.Identification.Description.empty()) identification.NewChild("Description") = job.Identification.Description;
-    identification.NewChild("Type") = "single"; // optional
-    for (std::list<std::string>::const_iterator it = job.Identification.UserTag.begin();
-         it != job.Identification.UserTag.end(); it++) {
+    if(!job.Identification.Type.empty()) identification.NewChild("Type") = job.Identification.Type;
+    for (std::list<std::string>::const_iterator it = job.Identification.Annotation.begin();
+         it != job.Identification.Annotation.end(); it++) {
       identification.NewChild("Annotation") = *it;
     }
-    // job.Identification.JobVOName;
-    // job.Identification.ActivityOldId
+    // ARC extension: ActivityOldID
+    for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldID.begin();
+         it != job.Identification.ActivityOldID.end(); ++it) {
+      identification.NewChild("nordugrid-adl:ActivityOldID") = *it;
+    }
 
     // Application
     XMLNode executable = application.NewChild("Executable");
@@ -684,7 +689,7 @@ namespace Arc {
     if(!job.Application.Input.empty()) application.NewChild("Input") = job.Application.Input;
     if(!job.Application.Output.empty()) application.NewChild("Output") = job.Application.Output;
     if(!job.Application.Error.empty()) application.NewChild("Error") = job.Application.Error;
-    for(std::list< std::pair<std::string, std::string> >::const_iterator it = 
+    for(std::list< std::pair<std::string, std::string> >::const_iterator it =
         job.Application.Environment.begin(); it != job.Application.Environment.end(); it++) {
       XMLNode environment = application.NewChild("Environment");
       environment.NewChild("Name") = it->first;
@@ -733,7 +738,7 @@ namespace Arc {
     // job.Application.DryRun
 
     // Resources
-    
+
     if(!job.Resources.OperatingSystem.empty()) {
       XMLNode os = resources.NewChild("OperatingSystem");
       os.NewChild("Name") = job.Resources.OperatingSystem.getSoftwareList().front().getName();

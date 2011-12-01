@@ -41,7 +41,7 @@ namespace Arc {
     std::list<char> stack;
     std::string actual_line;
 
-    if(!jdl_text.empty()) for (int i = 0; i < jdl_text.size() - 1; i++) {
+    if(!jdl_text.empty()) for (int i = 0; i < (int)jdl_text.size() - 1; i++) {
       // Looking for control character marks the line end
       if (jdl_text[i] == ';' && !quotation && stack.empty()) {
         lines.push_back(actual_line);
@@ -348,7 +348,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "virtualorganisation") {
-      job.Identification.JobVOName = simpleJDLvalue(attributeValue);
+      job.OtherAttributes["egee:jdl;VirtualOrganisation"] = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "queuename") {
@@ -441,7 +441,7 @@ namespace Arc {
       return true;
     }
     else if (attributeName == "usertags") {
-      job.Identification.UserTag = listJDLvalue(attributeValue, std::make_pair('[', ']'), ';');
+      job.Identification.Annotation = listJDLvalue(attributeValue, std::make_pair('[', ']'), ';');
       return true;
     }
     else if (attributeName == "outputse") {
@@ -573,7 +573,6 @@ namespace Arc {
     product += ADDJDLSTRING(job.Application.Input, "StdInput");
     product += ADDJDLSTRING(job.Application.Output, "StdOutput");
     product += ADDJDLSTRING(job.Application.Error, "StdError");
-    product += ADDJDLSTRING(job.Identification.JobVOName, "VirtualOrganisation");
 
     if (!job.Application.Environment.empty()) {
       std::list<std::string> environment;
@@ -656,7 +655,7 @@ namespace Arc {
       if (addOutput) {
         outputSandboxList.push_back(job.Application.Output);
         outputSandboxDestURIList.push_back("gsiftp://localhost/" + job.Application.Output);
-      } 
+      }
       if (addError) {
         outputSandboxList.push_back(job.Application.Error);
         outputSandboxDestURIList.push_back("gsiftp://localhost/" + job.Application.Error);
@@ -687,8 +686,8 @@ namespace Arc {
       product += "\";\n";
     }
 
-    if (!job.Identification.UserTag.empty())
-      product += generateOutputList("UserTags", job.Identification.UserTag, std::pair<char, char>('[', ']'), ';');
+    if (!job.Identification.Annotation.empty())
+      product += generateOutputList("UserTags", job.Identification.Annotation, std::pair<char, char>('[', ']'), ';');
 
     if (!job.OtherAttributes.empty()) {
       std::map<std::string, std::string>::const_iterator it;

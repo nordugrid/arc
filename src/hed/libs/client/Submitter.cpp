@@ -117,8 +117,8 @@ namespace Arc {
       info.NewChild(it->first) = it->second;
 
     for (std::list<std::string>::const_iterator
-           it = job.Identification.ActivityOldId.begin();
-         it != job.Identification.ActivityOldId.end(); it++)
+           it = job.Identification.ActivityOldID.begin();
+         it != job.Identification.ActivityOldID.end(); it++)
       info.NewChild("ActivityOldID") = *it;
 
     std::string rep;
@@ -174,7 +174,7 @@ namespace Arc {
     job.InfoEndpoint = infoendpoint;
     job.LocalSubmissionTime = Arc::Time().str(UTCTime);
 
-    job.ActivityOldID = jobdesc.Identification.ActivityOldId;
+    job.ActivityOldID = jobdesc.Identification.ActivityOldID;
 
     jobdesc.UnParse(job.JobDescriptionDocument, "nordugrid:jsdl"); // Assuming job description is valid.
 

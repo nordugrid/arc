@@ -345,8 +345,8 @@ int RUNRESUB(main)(int argc, char **argv) {
       resubmittedJobs.pop_back();
       continue;
     }
-    jobdescs.front().Identification.ActivityOldId = it->ActivityOldID;
-    jobdescs.front().Identification.ActivityOldId.push_back(it->JobID.str());
+    jobdescs.front().Identification.ActivityOldID = it->ActivityOldID;
+    jobdescs.front().Identification.ActivityOldID.push_back(it->JobID.str());
 
     // remove the queuename which was added during the original submission of the job
     jobdescs.front().Resources.QueueName = "";    

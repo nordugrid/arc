@@ -184,17 +184,17 @@ namespace Arc {
     if (bool(jobidentification["Description"]))
       job.Identification.Description = (std::string)jobidentification["Description"];
 
-    // std::string JobVOName;
-    if (bool(jobidentification["JobVOName"]))
-      job.Identification.JobVOName = (std::string)jobidentification["JobVOName"];
+    // JSDL compliance
+    if (bool(jobidentification["JobProject"]))
+      job.OtherAttributes["nordugrid:jsdl;Identification/JobProject"] = (std::string)jobidentification["JobProject"];
 
-    // std::list<std::string> UserTag;
+    // std::list<std::string> Annotation;
     for (int i = 0; (bool)(jobidentification["UserTag"][i]); i++)
-      job.Identification.UserTag.push_back((std::string)jobidentification["UserTag"][i]);
+      job.Identification.Annotation.push_back((std::string)jobidentification["UserTag"][i]);
 
-    // std::list<std::string> ActivityOldId;
+    // std::list<std::string> ActivityOldID;
     for (int i = 0; (bool)(jobidentification["ActivityOldId"][i]); i++)
-      job.Identification.ActivityOldId.push_back((std::string)jobidentification["ActivityOldId"][i]);
+      job.Identification.ActivityOldID.push_back((std::string)jobidentification["ActivityOldId"][i]);
     // end of JobIdentification
 
 
@@ -672,18 +672,22 @@ namespace Arc {
     if (!job.Identification.Description.empty())
       xmlIdentification.NewChild("Description") = job.Identification.Description;
 
-    // std::string JobVOName;
-    if (!job.Identification.JobVOName.empty())
-      xmlIdentification.NewChild("JobVOName") = job.Identification.JobVOName;
+    // JSDL compliance
+    if (!job.OtherAttributes.empty()) {
+      std::map<std::string, std::string>::const_iterator jrIt = job.OtherAttributes.find("nordugrid:jsdl;Identification/JobProject");
+      if (jrIt != job.OtherAttributes.end()) {
+        xmlIdentification.NewChild("JobProject") = jrIt->second;
+      }
+    }
 
-    // std::list<std::string> UserTag;
-    for (std::list<std::string>::const_iterator it = job.Identification.UserTag.begin();
-         it != job.Identification.UserTag.end(); it++)
+    // std::list<std::string> Annotation;
+    for (std::list<std::string>::const_iterator it = job.Identification.Annotation.begin();
+         it != job.Identification.Annotation.end(); it++)
       xmlIdentification.NewChild("UserTag") = *it;
 
-    // std::list<std::string> ActivityOldId;
-    for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldId.begin();
-         it != job.Identification.ActivityOldId.end(); it++)
+    // std::list<std::string> ActivityOldID;
+    for (std::list<std::string>::const_iterator it = job.Identification.ActivityOldID.begin();
+         it != job.Identification.ActivityOldID.end(); it++)
       xmlIdentification.NewChild("ActivityOldId") = *it;
 
     if (xmlIdentification.Size() > 0)
