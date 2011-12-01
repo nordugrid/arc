@@ -191,8 +191,33 @@ Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode i
     AccessControlFault
     InternalBaseFault
    */
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
+  Arc::XMLNode id = in["ActivityID"];
+  unsigned int n = 0;
+  for(;(bool)id;++id) {
+    if((++n) > MAX_ACTIVITIES) {
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 MAX_ACTIVITIES,"Too many ActivityID");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  id = in["ActivityID"];
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:PauseActivity: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      // Pause not implemented
+      logger_.msg(Arc::ERROR, "ESEMI:PauseActivity: job %s - %s", jobid, "pause not implemented");
+      ESOperationNotPossibleFault(item.NewChild("dummy"),"pause not implemented");
+      //  ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+    };
+  };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -212,8 +237,32 @@ Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode 
     AccessControlFault
     InternalBaseFault
    */
-  Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Operation not implemented yet");
-  out.Destroy();
+  Arc::XMLNode id = in["ActivityID"];
+  unsigned int n = 0;
+  for(;(bool)id;++id) {
+    if((++n) > MAX_ACTIVITIES) {
+      ESVectorLimitExceededFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+                                 MAX_ACTIVITIES,"Too many ActivityID");
+      out.Destroy();
+      return Arc::MCC_Status(Arc::STATUS_OK);
+    };
+  };
+  id = in["ActivityID"];
+  for(;(bool)id;++id) {
+    std::string jobid = id;
+    Arc::XMLNode item = out.NewChild("esmanag:ResponseItem");
+    item.NewChild("estypes:ActivityID") = jobid;
+    ARexJob job(jobid,config,logger_);
+    if(!job) {
+      // There is no such job
+      logger_.msg(Arc::ERROR, "ESEMI:ResuumeActivity: job %s - %s", jobid, job.Failure());
+      ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
+    } else {
+      // Pause not implemented hence job is never in proper state for resume
+      logger_.msg(Arc::ERROR, "ESEMI:PauseActivity: job %s - %s", jobid, "pause not implemented");
+      ESInvalidActivityStateFault(item.NewChild("dummy"),"pause not implemented");
+    };
+  };
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -308,11 +357,14 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
       logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
-      if(!job.Clean()) {
+      if(job.State() != "FINISHED") {
+        logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, "state is not FINISHED");
+        ESActivityNotInTerminalStateFault(item.NewChild("dummy"),"not in terminal state");
+      } else if(!job.Clean()) {
         // Probably wrong current state
         logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
-        ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
+        ESActivityNotInTerminalStateFault(item.NewChild("dummy"),job.Failure());
       } else {
         item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod();
       };

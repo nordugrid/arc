@@ -181,7 +181,11 @@ ES_SIMPLE_FAULT(UnknownActivityIDFault,esainfo,"Unknown activity ID")
 
 ES_SIMPLE_FAULT(InvalidActivityStateFault,esainfo,"Invalid activity state")
 
-ES_SIMPLE_FAULT(InvalidTimeIntervalFault,esainfo,"Invalid activity state")
+ES_SIMPLE_FAULT(InvalidTimeIntervalFault,esainfo,"Invalid time interval")
+
+ES_SIMPLE_FAULT(OperationNotPossibleFault,esainfo,"Can't perform this operation")
+
+ES_SIMPLE_FAULT(ActivityNotInTerminalStateFault,esainfo,"Activity not in terminal state")
 
 }
 
