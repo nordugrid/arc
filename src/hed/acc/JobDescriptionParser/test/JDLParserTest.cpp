@@ -66,7 +66,7 @@ std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings
 
 void JDLParserTest::setUp() {
   MESSAGE = " ";
-  INJOB.Application.Executable.Name = "executable";
+  INJOB.Application.Executable.Path = "executable";
   INJOB.Application.Executable.Argument.push_back("arg1");
   INJOB.Application.Executable.Argument.push_back("arg2");
   INJOB.Application.Executable.Argument.push_back("arg3");
@@ -81,7 +81,7 @@ void JDLParserTest::TestExecutable() {
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Name, OUTJOBS.front().Application.Executable.Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Path, OUTJOBS.front().Application.Executable.Path);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Executable.Argument, OUTJOBS.front().Application.Executable.Argument);
 }
 

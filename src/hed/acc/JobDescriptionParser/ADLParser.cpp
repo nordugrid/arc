@@ -64,31 +64,32 @@ namespace Arc {
     return false;
   }
 
-  static bool ParseFailureCode(XMLNode executable, Logger& logger) {
+  static bool ParseFailureCode(XMLNode executable, std::pair<bool, int>& sec, const std::string& dialect, Logger& logger) {
     XMLNode failcode = executable["adl:FailIfExitCodeNotEqualTo"];
-    if(!failcode) {
-      logger.msg(ERROR, "[ADLParser] Missing FailIfExitCodeNotEqualTo in %s. Ignoring exit code is not supported yet.", executable.Name());
-      return false;
+    sec.first = (bool)failcode;
+    if (!sec.first) {
+      return true;
     }
-    unsigned int code;
-    if(!stringto((std::string)failcode, code)) {
+    
+    if(!stringto((std::string)failcode, sec.second)) {
       logger.msg(ERROR, "[ADLParser] Code in FailIfExitCodeNotEqualTo in %s is not valid number.",executable.Name());
       return false;
     }
-    if(code != 0) {
+    
+    if(dialect == "GRIDMANAGER" && sec.second != 0) {
       logger.msg(ERROR, "[ADLParser] FailIfExitCodeNotEqualTo in %s contain non-zero code. This feature is not supported yet.", executable.Name());
       return false;
     }
     return true;
   }
 
-  static bool ParseExecutable(XMLNode executable, ExecutableType& exec, Logger& logger) {
-    exec.Name = (std::string)executable["adl:Path"];
+  static bool ParseExecutable(XMLNode executable, ExecutableType& exec, const std::string& dialect, Logger& logger) {
+    exec.Path = (std::string)executable["adl:Path"];
     for(XMLNode argument = executable["adl:Argument"];
                                     (bool)argument;++argument) {
       exec.Argument.push_back((std::string)argument);
     }
-    if(!ParseFailureCode(executable,logger)) {
+    if(!ParseFailureCode(executable, exec.SuccessExitCode, dialect, logger)) {
       return false;
     }
     return true;
@@ -329,9 +330,9 @@ namespace Arc {
     }
     if((bool)application) {
       XMLNode executable = application["adl:Executable"];
-      if(executable && !ParseExecutable(executable, job.Application.Executable, logger)) {
+      if(executable && !ParseExecutable(executable, job.Application.Executable, dialect, logger)) {
         jobdescs.clear();
-        return true;
+        return false;
       }
       job.Application.Input = (std::string)application["adl:Input"];
       job.Application.Output = (std::string)application["adl:Output"];
@@ -343,31 +344,23 @@ namespace Arc {
                         (std::string)environment["adl:Name"],
                         (std::string)environment["adl:Value"]));
       }
-      XMLNode prologue = application["adl:PreExecutable"];
-      if((bool)prologue) {
-        if(!ParseExecutable(prologue, job.Application.Prologue, logger)) {
+      for(XMLNode preexecutable = application["adl:PreExecutable"];
+          (bool)preexecutable;++preexecutable) {
+        ExecutableType exec;
+        if(!ParseExecutable(preexecutable, exec, dialect, logger)) {
           jobdescs.clear();
-          return true;
+          return false;
         }
-        ++prologue;
-        if((bool)prologue) {
-          logger.msg(ERROR, "[ADLParser] Multiple PreExecutable elements are not supported yet.");
-          jobdescs.clear();
-          return true;
-        }
+        job.Application.PreExecutable.push_back(exec);
       }
-      XMLNode epilogue = application["adl:PostExecutable"];
-      if((bool)epilogue) {
-        if(!ParseExecutable(prologue, job.Application.Epilogue, logger)) {
+      for(XMLNode postexecutable = application["adl:PostExecutable"];
+          (bool)postexecutable;++postexecutable) {
+        ExecutableType exec;
+        if(!ParseExecutable(postexecutable, exec, dialect, logger)) {
           jobdescs.clear();
           return true;
         }
-        ++epilogue;
-        if((bool)epilogue) {
-          logger.msg(ERROR, "[ADLParser] Multiple PostExecutable elements are not supported yet.");
-          jobdescs.clear();
-          return true;
-        }
+        job.Application.PostExecutable.push_back(exec);
       }
       for(XMLNode logging = application["adl:RemoteLogging"];
                                 (bool)logging;++logging) {
@@ -641,6 +634,17 @@ namespace Arc {
     return true;
   }
 
+  static void generateExecutableTypeElement(XMLNode element, const ExecutableType& exec) {
+    element.NewChild("Path") = exec.Path;
+    for(std::list<std::string>::const_iterator it = exec.Argument.begin();
+        it != exec.Argument.end(); ++it) {
+      element.NewChild("Argument") = *it;
+    }
+    if (exec.SuccessExitCode.first) {
+      element.NewChild("FailIfExitCodeNotEqualTo") = tostring<int>(exec.SuccessExitCode.second);
+    }
+  }
+
   bool ADLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
@@ -673,18 +677,8 @@ namespace Arc {
     }
 
     // Application
-    XMLNode executable = application.NewChild("Executable");
-    if(!job.Application.Executable.Name.empty()) {
-      executable.NewChild("Path") = job.Application.Executable.Name;
-    }
-    for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
-         it != job.Application.Executable.Argument.end(); it++) {
-      executable.NewChild("Argument") = *it;
-    }
-    if(executable.Size() > 0) {
-      executable.NewChild("FailIfExitCodeNotEqualTo") = "0";
-    } else {
-      executable.Destroy();
+    if (!job.Application.Executable.Path.empty()) {
+      generateExecutableTypeElement(application.NewChild("Executable"), job.Application.Executable);
     }
     if(!job.Application.Input.empty()) application.NewChild("Input") = job.Application.Input;
     if(!job.Application.Output.empty()) application.NewChild("Output") = job.Application.Output;
@@ -695,20 +689,16 @@ namespace Arc {
       environment.NewChild("Name") = it->first;
       environment.NewChild("Value") = it->second;
     }
-    if(!job.Application.Prologue.Name.empty()) {
-      XMLNode prologue = application.NewChild("PreExecutable");
-      prologue.NewChild("Path") = job.Application.Prologue.Name;
-      for(std::list<std::string>::const_iterator it = job.Application.Prologue.Argument.begin();
-           it != job.Application.Prologue.Argument.end(); it++) {
-        prologue.NewChild("Argument") = *it;
+    for(std::list<ExecutableType>::const_iterator it = job.Application.PreExecutable.begin();
+        it != job.Application.PreExecutable.end(); ++it) {
+      if (!it->Path.empty()) {
+        generateExecutableTypeElement(application.NewChild("PreExecutable"), *it);
       }
     }
-    if(!job.Application.Epilogue.Name.empty()) {
-      XMLNode epilogue = application.NewChild("PostExecutable");
-      epilogue.NewChild("Path") = job.Application.Epilogue.Name;
-      for(std::list<std::string>::const_iterator it = job.Application.Epilogue.Argument.begin();
-           it != job.Application.Epilogue.Argument.end(); it++) {
-        epilogue.NewChild("Argument") = *it;
+    for(std::list<ExecutableType>::const_iterator it = job.Application.PostExecutable.begin();
+        it != job.Application.PostExecutable.end(); ++it) {
+      if (!it->Path.empty()) {
+        generateExecutableTypeElement(application.NewChild("PostExecutable"), *it);
       }
     }
     for (std::list<URL>::const_iterator it = job.Application.RemoteLogging.begin();
@@ -835,7 +825,7 @@ namespace Arc {
           //source.NewChild("DelegationID") = ; TODO
           //source.NewChild("Option") = ; TODO
         }
-        if(it->IsExecutable || it->Name == job.Application.Executable.Name) {
+        if(it->IsExecutable || it->Name == job.Application.Executable.Path) {
           file.NewChild("IsExecutable") = "true";
         }
         // it->FileSize

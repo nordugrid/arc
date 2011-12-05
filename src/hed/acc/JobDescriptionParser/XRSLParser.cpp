@@ -262,7 +262,7 @@ namespace Arc {
       // Any other action may (and currently should) have almost
       // empty job description.
       if (action == "request") {
-        if(jobdescs.front().Application.Executable.Name.empty()) {
+        if(jobdescs.front().Application.Executable.Path.empty()) {
           jobdescs.clear();
           return false;
         }
@@ -277,7 +277,7 @@ namespace Arc {
           jobdescs.clear();
           return false;
         }
-        if (it->Application.Executable.Name.empty()) {
+        if (it->Application.Executable.Path.empty()) {
           jobdescs.clear();
           return false;
         }
@@ -486,10 +486,10 @@ namespace Arc {
     }
     else if ((c = dynamic_cast<const RSLCondition*>(r))) {
       if (c->Attr() == "executable") {
-        bool r = SingleValue(c, j.Application.Executable.Name);
+        bool r = SingleValue(c, j.Application.Executable.Path);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          r &= SingleValue(c, it->Application.Executable.Name);
+          r &= SingleValue(c, it->Application.Executable.Path);
         }
 
         return r;
@@ -1295,15 +1295,15 @@ namespace Arc {
     }
 
     // First check if the job description is valid.
-    if (j.Application.Executable.Name.empty()) {
+    if (j.Application.Executable.Path.empty()) {
       return false;
     }
 
     RSLBoolean r(RSLAnd);
 
-    if (!j.Application.Executable.Name.empty()) {
+    if (!j.Application.Executable.Path.empty()) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Application.Executable.Name));
+      l->Add(new RSLLiteral(j.Application.Executable.Path));
       r.Add(new RSLCondition("executable", RSLEqual, l));
     }
 
@@ -1375,7 +1375,7 @@ namespace Arc {
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
-    if (!j.Files.empty() || !j.Application.Executable.Name.empty() || !j.Application.Input.empty()) {
+    if (!j.Files.empty() || !j.Application.Executable.Path.empty() || !j.Application.Input.empty()) {
       RSLList *l = NULL;
       for (std::list<FileType>::const_iterator it = j.Files.begin();
            it != j.Files.end(); it++) {

@@ -209,12 +209,12 @@ namespace Arc {
 
     // ExecutableType Executable;
     if (bool(xmlApplication["Executable"]["Path"])) {
-      job.Application.Executable.Name = (std::string)xmlApplication["Executable"]["Path"];
+      job.Application.Executable.Path = (std::string)xmlApplication["Executable"]["Path"];
       for (int i = 0; (bool)(xmlApplication["Executable"]["Argument"][i]); i++)
         job.Application.Executable.Argument.push_back((std::string)xmlApplication["Executable"]["Argument"]);
     }
     else if (bool(xmlXApplication["Executable"])) {
-      job.Application.Executable.Name = (std::string)xmlXApplication["Executable"];
+      job.Application.Executable.Path = (std::string)xmlXApplication["Executable"];
       for (int i = 0; (bool)(xmlXApplication["Argument"][i]); i++)
         job.Application.Executable.Argument.push_back((std::string)xmlXApplication["Argument"][i]);
     }
@@ -258,17 +258,37 @@ namespace Arc {
       }
     }
 
-    // ExecutableType Prologue;
-    if (bool(xmlApplication["Prologue"]["Path"]))
-      job.Application.Prologue.Name = (std::string)xmlApplication["Prologue"]["Path"];
-    for (int i = 0; (bool)(xmlApplication["Prologue"]["Argument"][i]); i++)
-      job.Application.Prologue.Argument.push_back((std::string)xmlApplication["Prologue"]["Argument"][i]);
+    // std::list<ExecutableType> PreExecutable;
+    if (bool(xmlApplication["Prologue"]["Path"])) {
+      if (job.Application.PreExecutable.empty()) {
+        job.Application.PreExecutable.push_back(ExecutableType());
+      }
+      job.Application.PreExecutable.front().Path = (std::string)xmlApplication["Prologue"]["Path"];
+    }
+    if (bool(xmlApplication["Prologue"]["Argument"])) {
+      if (job.Application.PreExecutable.empty()) {
+        job.Application.PreExecutable.push_back(ExecutableType());
+      }
+      for (int i = 0; (bool)(xmlApplication["Prologue"]["Argument"][i]); i++) {
+        job.Application.PreExecutable.front().Argument.push_back((std::string)xmlApplication["Prologue"]["Argument"][i]);
+      }
+    }
 
-    // ExecutableType Epilogue;
-    if (bool(xmlApplication["Epilogue"]["Path"]))
-      job.Application.Epilogue.Name = (std::string)xmlApplication["Epilogue"]["Path"];
-    for (int i = 0; (bool)(xmlApplication["Epilogue"]["Argument"][i]); i++)
-      job.Application.Epilogue.Argument.push_back((std::string)xmlApplication["Epilogue"]["Argument"][i]);
+    // std::list<ExecutableType> PostExecutable;
+    if (bool(xmlApplication["Epilogue"]["Path"])) {
+      if (job.Application.PostExecutable.empty()) {
+        job.Application.PostExecutable.push_back(ExecutableType());
+      }
+      job.Application.PostExecutable.front().Path = (std::string)xmlApplication["Epilogue"]["Path"];
+    }
+    if (bool(xmlApplication["Epilogue"]["Argument"])) {
+      if (job.Application.PostExecutable.empty()) {
+        job.Application.PostExecutable.push_back(ExecutableType());
+      }
+      for (int i = 0; (bool)(xmlApplication["Epilogue"]["Argument"][i]); i++) {
+        job.Application.PostExecutable.front().Argument.push_back((std::string)xmlApplication["Epilogue"]["Argument"][i]);
+      }
+    }
 
     // std::string LogDir;
     if (bool(xmlApplication["LogDir"]))
@@ -653,7 +673,7 @@ namespace Arc {
       return false;
     }
 
-    if (job.Application.Executable.Name.empty()) {
+    if (job.Application.Executable.Path.empty()) {
       return false;
     }
 
@@ -700,9 +720,9 @@ namespace Arc {
     XMLNode xmlHApplication(NS("hpcp-jsdl", "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"), "hpcp-jsdl:HPCProfileApplication");
 
     // ExecutableType Executable;
-    if (!job.Application.Executable.Name.empty()) {
-      xmlPApplication.NewChild("posix-jsdl:Executable") = job.Application.Executable.Name;
-      xmlHApplication.NewChild("hpcp-jsdl:Executable") = job.Application.Executable.Name;
+    if (!job.Application.Executable.Path.empty()) {
+      xmlPApplication.NewChild("posix-jsdl:Executable") = job.Application.Executable.Path;
+      xmlHApplication.NewChild("hpcp-jsdl:Executable") = job.Application.Executable.Path;
       for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
            it != job.Application.Executable.Argument.end(); it++) {
         xmlPApplication.NewChild("posix-jsdl:Argument") = *it;
@@ -739,21 +759,22 @@ namespace Arc {
       hEnvironment = it->second;
     }
 
-    // ExecutableType Prologue;
-    if (!job.Application.Prologue.Name.empty()) {
+    // std::list<ExecutableType> PreExecutable;
+    if (!job.Application.PreExecutable.empty() && !job.Application.PreExecutable.front().Path.empty()) {
       xmlApplication.NewChild("Prologue");
-      xmlApplication["Prologue"].NewChild("Path") = job.Application.Prologue.Name;
-      for (std::list<std::string>::const_iterator it = job.Application.Prologue.Argument.begin();
-           it != job.Application.Prologue.Argument.end(); it++)
+      xmlApplication["Prologue"].NewChild("Path") = job.Application.PreExecutable.front().Path;
+      for (std::list<std::string>::const_iterator it = job.Application.PreExecutable.front().Argument.begin();
+           it != job.Application.PreExecutable.front().Argument.end(); ++it) {
         xmlApplication["Prologue"].NewChild("Argument") = *it;
+      }
     }
 
-    // ExecutableType Epilogue;
-    if (!job.Application.Epilogue.Name.empty()) {
+    // std::list<ExecutableType> PostExecutable;
+    if (!job.Application.PostExecutable.empty() && !job.Application.PostExecutable.front().Path.empty()) {
       xmlApplication.NewChild("Epilogue");
-      xmlApplication["Epilogue"].NewChild("Path") = job.Application.Epilogue.Name;
-      for (std::list<std::string>::const_iterator it = job.Application.Epilogue.Argument.begin();
-           it != job.Application.Epilogue.Argument.end(); it++)
+      xmlApplication["Epilogue"].NewChild("Path") = job.Application.PostExecutable.front().Path;
+      for (std::list<std::string>::const_iterator it = job.Application.PostExecutable.front().Argument.begin();
+           it != job.Application.PostExecutable.front().Argument.end(); ++it)
         xmlApplication["Epilogue"].NewChild("Argument") = *it;
     }
 
@@ -1076,7 +1097,7 @@ namespace Arc {
           !trim(it->Target.front().fullstr()).empty()) {
         datastaging.NewChild("Target").NewChild("URI") = it->Target.front().fullstr();
       }
-      if (it->IsExecutable || it->Name == job.Application.Executable.Name) {
+      if (it->IsExecutable || it->Name == job.Application.Executable.Path) {
         datastaging.NewChild("IsExecutable") = "true";
       }
       datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");

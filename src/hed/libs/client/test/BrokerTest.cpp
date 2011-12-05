@@ -246,7 +246,7 @@ void BrokerTest::RejectTargetsTest() {
   CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
 
   Arc::JobDescription j;
-  j.Application.Executable.Name = "executable";
+  j.Application.Executable.Path = "executable";
 
   std::list<Arc::ExecutionTarget> targets;
   targets.push_back(Arc::ExecutionTarget());

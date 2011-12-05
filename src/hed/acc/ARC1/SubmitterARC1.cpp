@@ -244,7 +244,7 @@ namespace Arc {
         }
       }
 
-      executableIsAdded  |= (it1->Name == jobdesc.Application.Executable.Name);
+      executableIsAdded  |= (it1->Name == jobdesc.Application.Executable.Path);
       inputIsAdded       |= (it1->Name == jobdesc.Application.Input);
       outputIsAdded      |= (it1->Name == jobdesc.Application.Output);
       errorIsAdded       |= (it1->Name == jobdesc.Application.Error);
@@ -252,9 +252,9 @@ namespace Arc {
     }
 
     if (!executableIsAdded &&
-        !Glib::path_is_absolute(jobdesc.Application.Executable.Name)) {
+        !Glib::path_is_absolute(jobdesc.Application.Executable.Path)) {
       FileType file;
-      file.Name = jobdesc.Application.Executable.Name;
+      file.Name = jobdesc.Application.Executable.Path;
       file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = true;

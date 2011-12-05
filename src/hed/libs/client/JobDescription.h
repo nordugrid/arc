@@ -108,11 +108,44 @@ namespace Arc {
     std::list<std::string> ActivityOldID;
   };
 
+  /// Executable
+  /**
+   * The ExecutableType class is used to specify path to an executable,
+   * arguments to pass to it when invoked and the exit code for successful
+   * execution.
+   *
+   * NOTE: The Name string member has been renamed to Path.
+   **/
   class ExecutableType {
   public:
-    ExecutableType() : Name(), Argument() {}
-    std::string Name;
+    ExecutableType() : Path(""), SuccessExitCode(false, 0) {}
+
+    /// Path to executable
+    /**
+     * The Path string should specify the path to an executable. Note that some
+     * implementations might only accept a relative path, while others might
+     * also accept a absolute one.
+     **/
+    std::string Path;
+
+    /// List of arguments to executable
+    /**
+     * The Argument list is used to specify arguments which should be passed to
+     * the executable upon invocation.
+     **/
     std::list<std::string> Argument;
+
+    /// Exit code at successful execution
+    /**
+     * The SuccessExitCode pair is used to specify the exit code returned by the
+     * executable in case of successful execution. For some scenarios the exit
+     * code returned by the executable should be ignored, which is specified by
+     * setting the first member of this object to false. If the exit code should
+     * be used for validation at the execution service, the first member should
+     * be set to true, while the second member should be the exit code returned
+     * at successful execution.
+     **/
+    std::pair<bool, int> SuccessExitCode;
   };
 
   class NotificationType {
@@ -131,13 +164,38 @@ namespace Arc {
       Priority (-1),
       DryRun(false)
       {}
+    /// Main executable to be run
+    /**
+     * The Executable object specifies the main executable which should be run
+     * by the job created by the job description enclosing this object. Note
+     * that in some job description languages specifying a main executable is
+     * not essential.
+     **/
     ExecutableType Executable;
+
     std::string Input;
     std::string Output;
     std::string Error;
     std::list< std::pair<std::string, std::string> > Environment;
-    ExecutableType Prologue;
-    ExecutableType Epilogue;
+
+    /// Executables to be run before the main executable
+    /**
+     * The PreExecutable object specifies a number of executables which should
+     * be executed before invoking the main application, where the main
+     * application is either the main executable (Executable) or the specified
+     * run time environment (RunTimeEnvironment in the ResourcesType class).
+     **/
+    std::list<ExecutableType> PreExecutable;
+
+    /// Executables to be run after the main executable
+    /**
+     * The PostExecutable object specifies a number of executables which should
+     * be executed after invoking the main application, where the main
+     * application is either the main executable (Executable) or the specified
+     * run time environment (RunTimeEnvironment in the ResourcesType class).
+     **/
+    std::list<ExecutableType> PostExecutable;
+
     std::string LogDir;
     std::list<URL> RemoteLogging;
     int Rerun;

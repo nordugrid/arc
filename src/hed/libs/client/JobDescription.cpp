@@ -31,7 +31,7 @@ namespace Arc {
 
   JobDescription::operator bool() const {
     logger.msg(WARNING, "The JobDescription::operator bool() method is DEPRECATED, use validity checks when parsing sting or outputing contents of JobDescription object.");
-    return (!Application.Executable.Name.empty());
+    return (!Application.Executable.Path.empty());
   }
 
   JobDescription::JobDescription(const JobDescription& j, bool withAlternatives) {
@@ -92,7 +92,7 @@ namespace Arc {
       return true;
     }
 
-    STRPRINT(out, Application.Executable.Name, Executable);
+    STRPRINT(out, Application.Executable.Path, Executable);
     if (Application.DryRun) {
       out << istring(" --- DRY RUN --- ") << std::endl;
     }
@@ -140,18 +140,40 @@ namespace Arc {
 
       INTPRINT(out, Application.Rerun, Rerun)
 
-      STRPRINT(out, Application.Prologue.Name, Prologue)
-      if (!Application.Prologue.Argument.empty()) {
-        std::list<std::string>::const_iterator iter = Application.Prologue.Argument.begin();
-        for (; iter != Application.Prologue.Argument.end(); iter++)
-          out << IString(" Prologue.Arguments: %s", *iter) << std::endl;
+      if (!Application.PreExecutable.empty()) {
+        std::list<ExecutableType>::const_iterator itPreEx = Application.PreExecutable.begin();
+        for (; itPreEx != Application.PreExecutable.end(); ++itPreEx) {
+          STRPRINT(out, itPreEx->Path, PreExecutable)
+          if (!itPreEx->Argument.empty()) {
+            std::list<std::string>::const_iterator iter = itPreEx->Argument.begin();
+            for (; iter != itPreEx->Argument.end(); ++iter)
+              out << IString(" PreExecutable.Argument: %s", *iter) << std::endl;
+          }
+          if (itPreEx->SuccessExitCode.first) {
+            out << IString(" Exit code for successful execution: %d", itPreEx->SuccessExitCode.second) << std::endl;
+          }
+          else {
+            out << IString(" No exit code for successful execution specified.") << std::endl;
+          }
+        }
       }
 
-      STRPRINT(out, Application.Epilogue.Name, Epilogue)
-      if (!Application.Epilogue.Argument.empty()) {
-        std::list<std::string>::const_iterator iter = Application.Epilogue.Argument.begin();
-        for (; iter != Application.Epilogue.Argument.end(); iter++)
-          out << IString(" Epilogue.Arguments: %s", *iter) << std::endl;
+      if (!Application.PostExecutable.empty()) {
+        std::list<ExecutableType>::const_iterator itPostEx = Application.PostExecutable.begin();
+        for (; itPostEx != Application.PostExecutable.end(); ++itPostEx) {
+          STRPRINT(out, itPostEx->Path, PostExecutable)
+          if (!itPostEx->Argument.empty()) {
+            std::list<std::string>::const_iterator iter = itPostEx->Argument.begin();
+            for (; iter != itPostEx->Argument.end(); ++iter)
+              out << IString(" PostExecutable.Argument: %s", *iter) << std::endl;
+          }
+          if (itPostEx->SuccessExitCode.first) {
+            out << IString(" Exit code for successful execution: %d", itPostEx->SuccessExitCode.second) << std::endl;
+          }
+          else {
+            out << IString(" No exit code for successful execution specified.") << std::endl;
+          }
+        }
       }
 
       INTPRINT(out, Resources.SessionLifeTime.GetPeriod(), SessionLifeTime)

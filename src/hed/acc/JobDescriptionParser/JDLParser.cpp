@@ -146,7 +146,7 @@ namespace Arc {
     else if (attributeName == "jobtype")
       return true;     // Skip this attribute
     else if (attributeName == "executable") {
-      job.Application.Executable.Name = simpleJDLvalue(attributeValue);
+      job.Application.Executable.Path = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "arguments") {
@@ -259,19 +259,31 @@ namespace Arc {
     }
 */
     else if (attributeName == "prologue") {
-      job.Application.Prologue.Name = simpleJDLvalue(attributeValue);
+      if (job.Application.PreExecutable.empty()) {
+        job.Application.PreExecutable.push_back(ExecutableType());
+      }
+      job.Application.PreExecutable.front().Path = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "prologuearguments") {
-      tokenize(simpleJDLvalue(attributeValue), job.Application.Prologue.Argument);
+      if (job.Application.PreExecutable.empty()) {
+        job.Application.PreExecutable.push_back(ExecutableType());
+      }
+      tokenize(simpleJDLvalue(attributeValue), job.Application.PreExecutable.front().Argument);
       return true;
     }
     else if (attributeName == "epilogue") {
-      job.Application.Epilogue.Name = simpleJDLvalue(attributeValue);
+      if (job.Application.PostExecutable.empty()) {
+        job.Application.PostExecutable.push_back(ExecutableType());
+      }
+      job.Application.PostExecutable.front().Path = simpleJDLvalue(attributeValue);
       return true;
     }
     else if (attributeName == "epiloguearguments") {
-      tokenize(simpleJDLvalue(attributeValue), job.Application.Epilogue.Argument);
+      if (job.Application.PostExecutable.empty()) {
+        job.Application.PostExecutable.push_back(ExecutableType());
+      }
+      tokenize(simpleJDLvalue(attributeValue), job.Application.PostExecutable.front().Argument);
       return true;
     }
     else if (attributeName == "allowzippedisb") {
@@ -552,13 +564,13 @@ namespace Arc {
     }
 
 
-    if (job.Application.Executable.Name.empty()) {
+    if (job.Application.Executable.Path.empty()) {
       return false;
     }
 
     product = "[\n  Type = \"job\";\n";
 
-    product += ADDJDLSTRING(job.Application.Executable.Name, "Executable");
+    product += ADDJDLSTRING(job.Application.Executable.Path, "Executable");
     if (!job.Application.Executable.Argument.empty()) {
       product += "  Arguments = \"";
       for (std::list<std::string>::const_iterator it = job.Application.Executable.Argument.begin();
@@ -585,37 +597,41 @@ namespace Arc {
         product += generateOutputList("Environment", environment);
     }
 
-    product += ADDJDLSTRING(job.Application.Prologue.Name, "Prologue");
-    if (!job.Application.Prologue.Argument.empty()) {
-      product += "  PrologueArguments = \"";
-      for (std::list<std::string>::const_iterator iter = job.Application.Prologue.Argument.begin();
-           iter != job.Application.Prologue.Argument.end(); iter++) {
-        if (iter != job.Application.Prologue.Argument.begin())
-          product += " ";
-        product += *iter;
+    if (!job.Application.PreExecutable.empty()) {
+      product += ADDJDLSTRING(job.Application.PreExecutable.front().Path, "Prologue");
+      if (!job.Application.PreExecutable.front().Argument.empty()) {
+        product += "  PrologueArguments = \"";
+        for (std::list<std::string>::const_iterator iter = job.Application.PreExecutable.front().Argument.begin();
+             iter != job.Application.PreExecutable.front().Argument.end(); ++iter) {
+          if (iter != job.Application.PreExecutable.front().Argument.begin())
+            product += " ";
+          product += *iter;
+        }
+        product += "\";\n";
       }
-      product += "\";\n";
     }
 
-    product += ADDJDLSTRING(job.Application.Epilogue.Name, "Epilogue");
-    if (!job.Application.Epilogue.Argument.empty()) {
-      product += "  EpilogueArguments = \"";
-      for (std::list<std::string>::const_iterator iter = job.Application.Epilogue.Argument.begin();
-           iter != job.Application.Epilogue.Argument.end(); iter++) {
-        if (iter != job.Application.Epilogue.Argument.begin())
-          product += " ";
-        product += *iter;
+    if (!job.Application.PostExecutable.empty()) {
+      product += ADDJDLSTRING(job.Application.PostExecutable.front().Path, "Epilogue");
+      if (!job.Application.PostExecutable.front().Argument.empty()) {
+        product += "  EpilogueArguments = \"";
+        for (std::list<std::string>::const_iterator iter = job.Application.PostExecutable.front().Argument.begin();
+             iter != job.Application.PostExecutable.front().Argument.end(); ++iter) {
+          if (iter != job.Application.PostExecutable.front().Argument.begin())
+            product += " ";
+          product += *iter;
+        }
+        product += "\";\n";
       }
-      product += "\";\n";
     }
 
-    if (!job.Application.Executable.Name.empty() ||
+    if (!job.Application.Executable.Path.empty() ||
         !job.Files.empty() ||
         !job.Application.Input.empty() ||
         !job.Application.Output.empty() ||
         !job.Application.Error.empty()) {
 
-      bool addExecutable = !job.Application.Executable.Name.empty() && !Glib::path_is_absolute(job.Application.Executable.Name);
+      bool addExecutable = !job.Application.Executable.Path.empty() && !Glib::path_is_absolute(job.Application.Executable.Path);
       bool addInput      = !job.Application.Input.empty();
       bool addOutput     = !job.Application.Output.empty();
       bool addError      = !job.Application.Error.empty();
@@ -642,14 +658,14 @@ namespace Arc {
           outputSandboxDestURIList.push_back(uri_tmp);
         }
 
-        addExecutable &= (it->Name != job.Application.Executable.Name);
+        addExecutable &= (it->Name != job.Application.Executable.Path);
         addInput      &= (it->Name != job.Application.Input);
         addOutput     &= (it->Name != job.Application.Output);
         addError      &= (it->Name != job.Application.Error);
       }
 
       if (addExecutable)
-        inputSandboxList.push_back(job.Application.Executable.Name);
+        inputSandboxList.push_back(job.Application.Executable.Path);
       if (addInput)
         inputSandboxList.push_back(job.Application.Input);
       if (addOutput) {

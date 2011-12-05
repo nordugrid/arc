@@ -45,7 +45,8 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   f<<"joboption_directory='"<<session_dir<<"'"<<std::endl;
 
   {
-    std::string executable = Arc::trim(arc_job_desc.Application.Executable.Name);
+    // TODO: Support for SuccessExitCode (FailIfExitCodeEqualTo)
+    std::string executable = Arc::trim(arc_job_desc.Application.Executable.Path);
     if (executable[0] != '/' && executable[0] != '$' && !(executable[0] == '.' && executable[1] == '/')) executable = "./"+executable;
     f<<"joboption_arg_0"<<"="<<value_for_shell(executable.c_str(),true)<<std::endl;
     int i = 1;
@@ -53,6 +54,8 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
          it != arc_job_desc.Application.Executable.Argument.end(); it++, i++) {
       f<<"joboption_arg_"<<i<<"="<<value_for_shell(it->c_str(),true)<<std::endl;
     }
+
+    // TODO: Support for PreExecutable and PostExecutable
   }
 
   f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Application.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Application.Input,true)<<std::endl;
@@ -157,14 +160,16 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) 
 }
 
 bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) {
-  if (desc.Application.Executable.Name[0] != '/' && desc.Application.Executable.Name[0] != '$') {
-    std::string executable = desc.Application.Executable.Name;
+  if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
+    std::string executable = desc.Application.Executable.Path;
     if(!Arc::CanonicalDir(executable)) {
       logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
       return false;
     }
     fix_file_permissions(session_dir+"/"+executable,true);
   }
+
+  // TOOD: Support for PreExecutable and PostExecutable
 
   for(std::list<Arc::FileType>::const_iterator it = desc.Files.begin();
       it!=desc.Files.end();it++) {

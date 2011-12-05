@@ -215,7 +215,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
           Arc::URL u(inputdata.back().lfn);
 
           if (file->IsExecutable ||
-              file->Name == arc_job_desc.Application.Executable.Name) {
+              file->Name == arc_job_desc.Application.Executable.Path) {
             u.AddOption("exec", "yes", true);
           }
           inputdata.back().lfn = u.fullstr();
@@ -251,7 +251,10 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   // Order of the following calls matters!
   arguments.clear();
   arguments = arc_job_desc.Application.Executable.Argument;
-  arguments.push_front(arc_job_desc.Application.Executable.Name);
+  arguments.push_front(arc_job_desc.Application.Executable.Path);
+  // TODO: Support for SuccessExitCode (FailIfExitCodeNotEqualTo)
+
+  // TODO: Support for PreExecutable and PostExecutable.
 
   stdin_ = arc_job_desc.Application.Input;
   stdout_ = arc_job_desc.Application.Output;

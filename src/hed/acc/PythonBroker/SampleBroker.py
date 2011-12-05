@@ -36,7 +36,7 @@ class MyBroker:
         print 'Broker arguments:', self.args
 
         print 'JobName:', job.Identification.JobName
-        print 'Executable:', job.Application.Executable.Name
+        print 'Executable:', job.Application.Executable.Path
         for i in range(job.Application.Executable.Argument.size()):
             print 'Argument', i, ':', job.Application.Executable.Argument[i]
 
