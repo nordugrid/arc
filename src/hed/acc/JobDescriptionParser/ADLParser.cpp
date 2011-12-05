@@ -64,6 +64,15 @@ namespace Arc {
     return false;
   }
 
+  static bool ParseFlag(XMLNode el, Logger& logger, bool& val) {
+    if(!el) return true;
+    std::string v = el;
+    if((v == "false") || (v == "0")) { val = false; return true; }
+    if((v == "true") || (v == "1")) { val = true; return true; }
+    logger.msg(ERROR, "[ADLParser] %s element must be boolean.", el.Name());
+    return false;
+  }
+
   static bool ParseFailureCode(XMLNode executable, std::pair<bool, int>& sec, const std::string& dialect, Logger& logger) {
     XMLNode failcode = executable["adl:FailIfExitCodeNotEqualTo"];
     sec.first = (bool)failcode;
@@ -358,7 +367,7 @@ namespace Arc {
         ExecutableType exec;
         if(!ParseExecutable(postexecutable, exec, dialect, logger)) {
           jobdescs.clear();
-          return true;
+          return false;
         }
         job.Application.PostExecutable.push_back(exec);
       }
@@ -367,17 +376,17 @@ namespace Arc {
         if((std::string)logging["adl:ServiceType"] != "SGAS") {
           logger.msg(ERROR, "[ADLParser] Only SGAS ServiceType for RemoteLogging is supported yet.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         URL surl((std::string)logging["adl:URL"]);
         if(!surl) {
           logger.msg(ERROR, "[ADLParser] Unsupported URL %s for RemoteLogging.",(std::string)logging["adl:URL"]);
           jobdescs.clear();
-          return true;
+          return false;
         }
         if(!ParseOptional(logging,logger)) {
           jobdescs.clear();
-          return true;
+          return false;
         }
       }
       XMLNode expire =  application["adl:ExpirationTime"];
@@ -386,7 +395,7 @@ namespace Arc {
         // TODO: check validity
         if(!ParseOptional(expire,logger)) {
           jobdescs.clear();
-          return true;
+          return false;
         }
       }
       XMLNode wipe =  application["adl:WipeTime"];
@@ -395,7 +404,7 @@ namespace Arc {
         // TODO: check validity
         if(!ParseOptional(wipe,logger)) {
           jobdescs.clear();
-          return true;
+          return false;
         }
       }
       for(XMLNode notify = application["adl:Notification"];
@@ -404,7 +413,7 @@ namespace Arc {
         if((std::string)notify["adl:Protocol"] != "email") {
           logger.msg(ERROR, "[ADLParser] Only email Prorocol for Notification is supported yet.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         std::string state = notify["adl:OnState"]; // TODO: convert from EMI ES states
         for(XMLNode rcpt = notify["adl:Recipient"];(bool)rcpt;++rcpt) {
@@ -432,30 +441,30 @@ namespace Arc {
         if((bool)rte["adl:Option"]) {
           logger.msg(ERROR, "[ADLParser] Option element inside RuntimeEnvironment is not supported yet.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         if(!ParseOptional(rte,logger)) {
           jobdescs.clear();
-          return true;
+          return false;
         }
         job.Resources.RunTimeEnvironment.add(rte_);
       }
       if((bool)resources["adl:ParallelEnvironment"]) {
         logger.msg(ERROR, "[ADLParser] ParallelEnvironment is not supported yet.");
         jobdescs.clear();
-        return true;
+        return false;
       }
       XMLNode coprocessor = resources["adl:Coprocessor"];
       if(((bool)coprocessor) && (!IsOptional(coprocessor))) {
         logger.msg(ERROR, "[ADLParser] Coprocessor is not supported yet.");
         jobdescs.clear();
-        return true;
+        return false;
       }
       XMLNode netinfo = resources["adl:NetworkInfo"];
       if(((bool)netinfo) && (!IsOptional(netinfo))) {
         logger.msg(ERROR, "[ADLParser] NetworkInfo is not supported yet.");
         jobdescs.clear();
-        return true;
+        return false;
       }
       XMLNode nodeaccess = resources["adl:NodeAccess"];
       if(nodeaccess) {
@@ -469,7 +478,7 @@ namespace Arc {
         } else {
           logger.msg(ERROR, "[ADLParser] NodeAccess value %s is not supported yet.",na);
           jobdescs.clear();
-          return true;
+          return false;
         }
       }
       XMLNode slot = resources["adl:SlotRequirement"];
@@ -477,26 +486,26 @@ namespace Arc {
         if(!stringto(slot["adl:NumberOfSlots"],job.Resources.SlotRequirement.NumberOfSlots.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         if((bool)slot["adl:SlotsPerHost"]) {
           if(!stringto(slot["adl:SlotsPerHost"],job.Resources.SlotRequirement.ThreadsPerProcesses.max)) {
             logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
             jobdescs.clear();
-            return true;
+            return false;
           }
           XMLNode use = slot["adl:SlotsPerHost"].Attribute("useNumberOfSlots");
           if((bool)use) {
             if(((std::string)use != "false") && ((std::string)use != "0")) {
               logger.msg(ERROR, "[ADLParser] For useNumberOfSlots of SlotsPerHost only false value is supported yet.");
               jobdescs.clear();
-              return true;
+              return false;
             }
           }
           if((bool)slot["adl:ExclusiveExecution"]) {
             logger.msg(ERROR, "[ADLParser] ExclusiveExecution is not supported yet.");
             jobdescs.clear();
-            return true;
+            return false;
           }
         }
       }
@@ -510,7 +519,7 @@ namespace Arc {
         if(!stringto((std::string)memory,job.Resources.IndividualPhysicalMemory.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualPhysicalMemory.");
           jobdescs.clear();
-          return true;
+          return false;
         }
       }
       memory = resources["adl:IndividualVirtualMemory"];
@@ -518,7 +527,7 @@ namespace Arc {
         if(!stringto((std::string)memory,job.Resources.IndividualVirtualMemory.max)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in IndividualVirtualMemory.");
           jobdescs.clear();
-          return true;
+          return false;
         }
       }
       memory = resources["adl:DiskSpaceRequirement"];
@@ -526,38 +535,35 @@ namespace Arc {
         if(!stringto((std::string)memory,job.Resources.DiskSpaceRequirement.DiskSpace.min)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in DiskSpaceRequirement.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         job.Resources.DiskSpaceRequirement.DiskSpace.min /= 1024*1024; // TODO: round
       }
       if((bool)resources["adl:RemoteSessionAccess"]) {
         logger.msg(ERROR, "[ADLParser] RemoteSessionAccess is not supported yet.");
         jobdescs.clear();
-        return true;
+        return false;
       }
       if((bool)resources["adl:Benchmark"]) {
         logger.msg(ERROR, "[ADLParser] Benchmark is not supported yet.");
         jobdescs.clear();
-        return true;
+        return false;
       }
     }
     if((bool)staging) {
-      XMLNode clientpush = staging["adl:ClientDataPush"];
-      if((bool)clientpush) {
-        std::string v = clientpush;
-        if((v != "false") && (v != "0")) {
-          logger.msg(ERROR, "[ADLParser] For ClientDataPush only false value is supported yet.");
-          jobdescs.clear();
-          return true;
-        }
+      bool clientpush = false;
+      if(!ParseFlag(staging["adl:ClientDataPush"],logger,clientpush)) {
+        jobdescs.clear();
+        return false;
       }
+      // TODO: store clientpush in JobDescription
       for(XMLNode input = staging["adl:InputFile"];(bool)input;++input) {
         FileType file;
         file.Name = (std::string)input["adl:Name"];
         if(file.Name.empty()) {
           logger.msg(ERROR, "[ADLParser] Missing or empty Name in InputFile.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         file.KeepData = false;
         std::string ex = input["adl:IsExecutable"];
@@ -567,17 +573,17 @@ namespace Arc {
           if(!surl) {
             logger.msg(ERROR, "[ADLParser] Wrong URI specified in Source - %s.",(std::string)source["adl:URI"]);
             jobdescs.clear();
-            return true;
+            return false;
           }
           if((bool)source["adl:DelegationID"]) {
             logger.msg(ERROR, "[ADLParser] DelegationID in Source is not supported yet.");
             jobdescs.clear();
-            return true;
+            return false;
           }
           if((bool)source["adl:Option"]) {
             logger.msg(ERROR, "[ADLParser] Option in Source is not supported yet.");
             jobdescs.clear();
-            return true;
+            return false;
           }
           file.Source.push_back(surl);
         }
@@ -590,7 +596,7 @@ namespace Arc {
         if(file.Name.empty()) {
           logger.msg(ERROR, "[ADLParser] Missing or empty Name in OutputFile.");
           jobdescs.clear();
-          return true;
+          return false;
         }
         file.KeepData = false;
         file.IsExecutable = false;
@@ -599,32 +605,32 @@ namespace Arc {
           if(!turl) {
             logger.msg(ERROR, "[ADLParser] Wrong URI specified in Target - %s.",(std::string)target["adl:URI"]);
             jobdescs.clear();
-            return true;
+            return false;
           }
           if((bool)target["adl:DelegationID"]) {
             logger.msg(ERROR, "[ADLParser] DelegationID in Target is not supported yet.");
             jobdescs.clear();
-            return true;
+            return false;
           }
           if((bool)target["adl:Option"]) {
             logger.msg(ERROR, "[ADLParser] Option in Target is not supported yet.");
             jobdescs.clear();
-            return true;
+            return false;
           }
           if(!ParseFlagTrue(target["adl:Mandatory"],logger)) {
             jobdescs.clear();
-            return true;
+            return false;
           }
           if((!ParseFlagFalse(target["adl:UseIfFailure"],logger)) ||
              (!ParseFlagFalse(target["adl:UseIfCancel"],logger)) ||
              (!ParseFlagTrue(target["adl:UseIfSuccess"],logger))) {
             jobdescs.clear();
-            return true;
+            return false;
           }
           if((bool)target["adl:CreationFlag"]) {
             logger.msg(ERROR, "[ADLParser] CreationFlag in Target is not supported yet.");
             jobdescs.clear();
-            return true;
+            return false;
           }
           file.Target.push_back(turl);
         }
