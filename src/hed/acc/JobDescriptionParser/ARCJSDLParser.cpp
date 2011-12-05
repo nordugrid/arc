@@ -18,6 +18,11 @@
 
 namespace Arc {
 
+  #define JSDL_NAMESPACE "http://schemas.ggf.org/jsdl/2005/11/jsdl"
+  #define JSDL_POSIX_NAMESPACE "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"
+  #define JSDL_ARC_NAMESPACE "http://www.nordugrid.org/ws/schemas/jsdl-arc"
+  #define JSDL_HPCPA_NAMESPACE "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"
+
   ARCJSDLParser::ARCJSDLParser()
     : JobDescriptionParser() {
     supportedLanguages.push_back("nordugrid:jsdl");
@@ -161,7 +166,7 @@ namespace Arc {
 
     XMLNode node(source);
     if (!node) {
-        logger.msg(VERBOSE, "[ARCJSDLParser] Parsing error: %s\n", (xmlGetLastError())->message);
+        logger.msg(VERBOSE, "[ARCJSDLParser] XML parsing error: %s\n", (xmlGetLastError())->message);
     }
 
     if (node.Size() == 0) {
@@ -172,6 +177,13 @@ namespace Arc {
 
     // The source parsing start now.
     XMLNode jobdescription = node["JobDescription"];
+
+    // Check if it is JSDL
+    if((!jobdescription) || (!MatchXMLNamespace(jobdescription,JSDL_NAMESPACE))) {
+      logger.msg(VERBOSE, "[ARCJSDLParser] Not a JSDL - missing JobDescription element");
+      jobdescs.clear();
+      return false;
+    }
 
     // JobIdentification
     XMLNode jobidentification = node["JobDescription"]["JobIdentification"];
@@ -677,7 +689,7 @@ namespace Arc {
       return false;
     }
 
-    XMLNode jobdefinition(NS("", "http://schemas.ggf.org/jsdl/2005/11/jsdl"), "JobDefinition");
+    XMLNode jobdefinition(NS("", JSDL_NAMESPACE), "JobDefinition");
 
     XMLNode jobdescription = jobdefinition.NewChild("JobDescription");
 
@@ -716,8 +728,8 @@ namespace Arc {
 
     // Application
     XMLNode xmlApplication("<Application/>");
-    XMLNode xmlPApplication(NS("posix-jsdl", "http://schemas.ggf.org/jsdl/2005/11/jsdl-posix"), "posix-jsdl:POSIXApplication");
-    XMLNode xmlHApplication(NS("hpcp-jsdl", "http://schemas.ggf.org/jsdl/2006/07/jsdl-hpcpa"), "hpcp-jsdl:HPCProfileApplication");
+    XMLNode xmlPApplication(NS("posix-jsdl", JSDL_POSIX_NAMESPACE), "posix-jsdl:POSIXApplication");
+    XMLNode xmlHApplication(NS("hpcp-jsdl", JSDL_HPCPA_NAMESPACE), "hpcp-jsdl:HPCProfileApplication");
 
     // ExecutableType Executable;
     if (!job.Application.Executable.Path.empty()) {
