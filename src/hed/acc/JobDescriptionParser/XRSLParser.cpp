@@ -1291,11 +1291,13 @@ namespace Arc {
 
   bool XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
+      logger.msg(DEBUG, "Wrong language requested: %s",language);
       return false;
     }
 
     // First check if the job description is valid.
     if (j.Application.Executable.Path.empty()) {
+      logger.msg(DEBUG, "Missing executable");
       return false;
     }
 
