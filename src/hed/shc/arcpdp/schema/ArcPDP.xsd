@@ -28,7 +28,8 @@
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
               This element specifies file containing policy document.
-              There can be multiple sub elements <Location/>.
+              There can be multiple such elements.
+              Content of Type element is not defined yet.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -40,11 +41,10 @@
 
     <xsd:element name="Policy">
     <xsd:complexType>
-    </xsd:complexType>
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
               This element contains policy to be processed.
-              There may be nultiple such elements.
+              There may be multiple such elements.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>

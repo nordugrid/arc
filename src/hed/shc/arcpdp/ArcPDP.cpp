@@ -75,8 +75,10 @@ ArcPDP::ArcPDP(Config* cfg):PDP(cfg) /*, eval(NULL)*/ {
     for(;(bool)reject_attr;++reject_attr) reject_attrs.push_back((std::string)reject_attr);
   };
   XMLNode policy_store = (*cfg)["PolicyStore"];
-  XMLNode policy_location = policy_store["Location"];
-  for(;(bool)policy_location;++policy_location) policy_locations.push_back((std::string)policy_location);
+  for(;(bool)policy_store;++policy_store) {
+    XMLNode policy_location = policy_store["Location"];
+    policy_locations.push_back((std::string)policy_location);
+  };
   XMLNode policy = (*cfg)["Policy"];
   for(;(bool)policy;++policy) policies.AddNew(policy);
   policy_combining_alg = (std::string)((*cfg)["PolicyCombiningAlg"]);
