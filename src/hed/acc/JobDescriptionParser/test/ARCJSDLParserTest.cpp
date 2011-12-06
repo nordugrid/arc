@@ -357,7 +357,7 @@ void ARCJSDLParserTest::TestFilesUploadUpload() {
 
 void ARCJSDLParserTest::TestURIOptionsInput() {
   std::string jsdl = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
   "<JobDescription>"
     "<Application>"
       "<posix-jsdl:POSIXApplication>"
@@ -386,7 +386,7 @@ void ARCJSDLParserTest::TestURIOptionsInput() {
 
 void ARCJSDLParserTest::TestURIOptionsOutput() {
   std::string jsdl = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
   "<JobDescription>"
     "<Application>"
       "<posix-jsdl:POSIXApplication>"
@@ -433,7 +433,7 @@ void ARCJSDLParserTest::TestURIOptionsOutput() {
 
 void ARCJSDLParserTest::TestQueue() {
   std::string jsdl = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
 "<JobDescription>"
 "<Application>"
 "<posix-jsdl:POSIXApplication>"
@@ -460,7 +460,7 @@ void ARCJSDLParserTest::TestQueue() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   jsdl = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
 "<JobDescription>"
 "<Application>"
 "<posix-jsdl:POSIXApplication>"
@@ -494,7 +494,7 @@ void ARCJSDLParserTest::TestQueue() {
 
 void ARCJSDLParserTest::TestDryRun() {
   std::string jsdl = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
 "<JobDescription>"
 "<Application>"
 "<Executable>"
@@ -519,7 +519,7 @@ void ARCJSDLParserTest::TestDryRun() {
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 
   jsdl = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
 "<JobDescription>"
 "<Application>"
 "<Executable>"
@@ -550,7 +550,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   MESSAGE = "Error: The parser does not comply with the JDSL POSIX specification.";
 
   const std::string posixJSDLStr = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
 "<JobDescription>"
 "<Application>"
 "<posix-jsdl:POSIXApplication>"
@@ -643,7 +643,7 @@ void ARCJSDLParserTest::TestHPCCompliance() {
   MESSAGE = "Error: The parser does not comply with the JSDL HPC Profile Application Extension specification.";
 
   const std::string hpcJSDLStr = "<?xml version=\"1.0\"?>"
-"<JobDefinition>"
+"<JobDefinition xmlns=\"http://schemas.ggf.org/jsdl/2005/11/jsdl\">"
 "<JobDescription>"
 "<Application>"
 "<HPC-jsdl:HPCProfileApplication>"
