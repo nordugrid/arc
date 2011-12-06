@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <sys/stat.h>
+
 #include "jura.h"
 #include <arc/Utils.h>
 #include <arc/client/ClientInterface.h>
@@ -44,7 +46,7 @@ namespace Arc
   {
     //Get service URL, cert, key, CA path from job log file
     std::string serviceurl=joblog["loggerurl"];
-    topic==joblog["topic"];
+    topic=joblog["topic"];
     output_dir=joblog["outputdir"];
     std::string certfile=joblog["certificate_path"];
     std::string keyfile=joblog["key_path"];
@@ -189,36 +191,75 @@ namespace Arc
   Arc::MCC_Status ApelDestination::send_request(const std::string &urset)
   {
     //Filename generation
-    std::string output_path;
-    output_path = output_dir;
-    if (output_dir[output_dir.size()-1] != '/'){
-        output_path = output_dir + "/";
-    }
-    output_path += "Apel_records_" + Current_Time();
+    std::string output_filename = "Apel_records_" +service_url.Host() + "_" + Current_Time();
+    if (!output_dir.empty()) {
+        // local copy creation
+        std::string output_path;
+        output_path = output_dir;
+        if (output_dir[output_dir.size()-1] != '/'){
+            output_path = output_dir + "/";
+        }
+    
+    
+        output_path += output_filename;
 
-    std::ifstream ifile(output_path.c_str());
-    if (ifile) {
-        // The file exists, and create new filename
-        sequence++;
-        std::stringstream ss;
-        ss << sequence;
-        output_path += ss.str();
-    }
-    else {
-        sequence=0;
+        std::ifstream ifile(output_path.c_str());
+        if (ifile) {
+            // The file exists, and create new filename
+            sequence++;
+            std::stringstream ss;
+            ss << sequence;
+            output_path += ss.str();
+            output_filename += ss.str();
+        }
+        else {
+            sequence=0;
+        }
+
+        //Save all records into the output file.
+        const char* filename(output_path.c_str());
+        std::ofstream outputfile;
+        outputfile.open (filename);
+        if (outputfile.is_open())
+        {
+            outputfile << urset;
+            outputfile.close();
+            logger.msg(Arc::DEBUG, "Backup file (%s) created.", output_filename);
+        }
+        else
+        {
+            return Arc::MCC_Status(Arc::PARSING_ERROR,
+                   "apelclient",
+                   std::string(
+                     "Error opening file: "
+                               )+ 
+                   filename
+                   );
+        }
     }
 
-    //Save all records into the output file.
-    const char* filename(output_path.c_str());
+    //Save all records into the default folder.
+    std::string default_path = "/tmp/messages/";
+    struct stat st;
+    //directory check
+    if (stat(default_path.c_str(), &st) != 0) {
+        mkdir(default_path.c_str(), 0775);
+    }
+    //directory check
+    std::string subdir = default_path + "outgoing/";
+    if (stat(subdir.c_str(), &st) != 0) {
+        mkdir(subdir.c_str(), 0775);
+    }
+    // create message file to the APEL client
+    subdir += output_filename;
+    const char* filename(subdir.c_str());
     std::ofstream outputfile;
     outputfile.open (filename);
-    if (outputfile.is_open())
-    {
+    if (outputfile.is_open()) {
         outputfile << urset;
         outputfile.close();
-    }
-    else
-    {
+        logger.msg(Arc::DEBUG, "APEL message file (%s) created.", output_filename);
+    } else {
         return Arc::MCC_Status(Arc::PARSING_ERROR,
                "apelclient",
                std::string(
@@ -227,10 +268,33 @@ namespace Arc
                filename
                );
     }
+    int retval;
+    //ssm-master.py <path-to-config-file> <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path>"
+    std::string command;
+    command = "ssm_master.py";
+    command += " ssm.cfg"; //config
+    command += " " + service_url.Host(); //host
+    std::stringstream port;
+    port << service_url.Port();
+    command += " " + port.str(); //port
+    command += " " + topic;      //topic
+    command += " " + cfg.key;    //certificate key
+    command += " " + cfg.cert;   //certificate
+    command += " " + cfg.cadir;  //cadir
+    command += " " + default_path; //messages path
+    command += "";
 
-    return Arc::MCC_Status(Arc::STATUS_OK,
-                           "apelclient",
-                           "Output file created.");
+    retval = system(command.c_str());
+    logger.msg(Arc::DEBUG, "system retval: %d", retval);
+    if (retval == 0) {
+        return Arc::MCC_Status(Arc::STATUS_OK,
+                               "apelclient",
+                               "APEL message sent.");
+    } else {
+        return Arc::MCC_Status(Arc::GENERIC_ERROR,
+                               "apelclient",
+                               "Some error has during the APEL message sending.");
+    }
   }
 
   void ApelDestination::clear()
