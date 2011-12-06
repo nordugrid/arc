@@ -21,7 +21,8 @@ MachineName:         nodename			  nodename			Site
 Host:                nodename
 SubmitHost:          clienthost			  submithost
                      (port number removed)
-Queue:               queue			  queue (lrms)			SubmitHost
+                     headnode                                                   SubmitHost
+Queue:               queue			  queue (lrms)			
 ProjectName:         projectname		  projectname
 
 Differentiated properties

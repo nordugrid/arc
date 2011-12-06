@@ -1,5 +1,9 @@
 pkglibexec_PROGRAMS = jura
 
+SUBDIRS = ssm
+
+DIST_SUBDIRS = ssm
+
 jura_SOURCES = main.cpp jura.h UsageReporter.cpp UsageReporter.h \
 	JobLogFile.cpp JobLogFile.h Destinations.cpp Destinations.h \
 	Destination.cpp Destination.h LutsDestination.cpp LutsDestination.h \

@@ -2387,6 +2387,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/srm/arcsrmping.1
                  src/clients/jura/Makefile
                  src/clients/jura/jura.1
+                 src/clients/jura/ssm/Makefile
                  src/clients/wsrf/Makefile
                  src/clients/cache/Makefile
                  src/tests/Makefile
