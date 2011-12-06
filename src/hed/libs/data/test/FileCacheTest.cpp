@@ -1150,6 +1150,16 @@ void FileCacheTest::testBadConstructor() {
   CPPUNIT_ASSERT(!(_fc1->StopAndDelete(_url)));
   CPPUNIT_ASSERT(!(_fc1->CheckCreated(_url)));
 
+  caches.clear();
+  caches.push_back(_cache_dir);
+
+  // failing to create one cache is ok
+  if (_uid != 0 && stat("/lost+found/cache", &fileStat) != 0 && errno == EACCES) {
+    caches.push_back("/lost+found/cache");
+    delete _fc1;
+    _fc1 = new Arc::FileCache(caches, _jobid, _uid, _gid);
+    CPPUNIT_ASSERT(*_fc1);
+  }
   // bad remote and draining caches
   std::vector<std::string> remote_caches;
   remote_caches.push_back("");
