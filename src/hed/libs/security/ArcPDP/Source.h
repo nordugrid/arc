@@ -18,10 +18,12 @@ class Source {
   /// Copy constructor.
   /** Use this constructor only for temporary objects.
     Parsed XML document is still owned by copied source and hence 
-    lifetime of create object should not exceed that of copied one. */
+    lifetime of created object should not exceed that of copied one. */
   Source(const Source& s):node(s.node) { };
-  /// Copy XML tree from XML subtree refered by xml.
-  Source(Arc::XMLNode& xml);
+  /// Use XML subtree refered by xml.
+  /** There is no copy of xml made. Hence lifetime of this object
+    should not exceed that of xml. */
+  Source(Arc::XMLNode xml);
   /// Read XML document from stream and parse it.
   Source(std::istream& stream);
   /// Fetch XML document from specified url and parse it.
@@ -40,7 +42,7 @@ class Source {
 class SourceFile: public Source {
  private:
   std::ifstream* stream;
-  SourceFile(void):Source("") {};
+  SourceFile(void):Source(std::string("")) {};
  public:
   /// See corresponding constructor of Source class
   SourceFile(const SourceFile& s):Source(s),stream(NULL) {};
@@ -55,7 +57,7 @@ class SourceFile: public Source {
 class SourceURL: public Source {
  private:
   Arc::URL* url;
-  SourceURL(void):Source("") {};
+  SourceURL(void):Source(std::string("")) {};
  public:
   /// See corresponding constructor of Source class
   SourceURL(const SourceURL& s):Source(s),url(NULL) {};

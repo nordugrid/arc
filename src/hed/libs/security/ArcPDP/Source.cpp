@@ -5,7 +5,7 @@
 
 namespace ArcSec {
 
-Source::Source(Arc::XMLNode& xml):node(xml) {
+Source::Source(Arc::XMLNode xml):node(xml) {
 }
 
 Source::Source(std::istream& stream) {
@@ -17,9 +17,8 @@ Source::Source(Arc::URL&) {
 }
 
 Source::Source(const std::string& str) {
-  // TODO: Extend XMLNode to do this in one operation
   Arc::XMLNode xml(str);
-  xml.New(node);
+  xml.Exchange(node);
 }
 
 SourceFile::SourceFile(const char* name):Source(*(stream = new std::ifstream(name))) {
