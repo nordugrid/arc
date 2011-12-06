@@ -119,18 +119,22 @@ namespace Arc {
 
       // create cache dir and subdirs
       if (!DirCreate(std::string(cache_path + "/" + CACHE_DATA_DIR), S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
-        logger.msg(ERROR, "Cannot create directory \"%s\" for cache", cache_path + "/" + CACHE_DATA_DIR);
-        return false;
+        logger.msg(WARNING, "Cannot create directory %s/%s for cache: %s", cache_path, CACHE_DATA_DIR, StrError(errno));
+        continue;
       }
       if (!DirCreate(std::string(cache_path + "/" + CACHE_JOB_DIR), S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true)) {
-        logger.msg(ERROR, "Cannot create directory \"%s\" for cache", cache_path + "/" + CACHE_JOB_DIR);
-        return false;
+        logger.msg(WARNING, "Cannot create directory %s/%s for cache: %s", cache_path, CACHE_JOB_DIR, StrError(errno));
+        continue;
       }
       // add this cache to our list
       struct CacheParameters cache_params;
       cache_params.cache_path = cache_path;
       cache_params.cache_link_path = cache_link_path;
       _caches.push_back(cache_params);
+    }
+    if (!caches.empty() && _caches.empty()) {
+      logger.msg(ERROR, "No usable caches");
+      return false;
     }
   
     // add remote caches
