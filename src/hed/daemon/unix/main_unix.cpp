@@ -91,6 +91,14 @@ static void merge_options_and_config(Arc::Config& cfg, Arc::ServerOptions& opt)
             srv["Group"] = opt.group;
         }
     }
+
+    if (!opt.log_file.empty()) {
+        if (!(bool)srv["Logger"]["File"]) {
+            srv.NewChild("Logger").NewChild("File") = opt.log_file;
+        } else {
+            srv["Logger"]["File"] = opt.log_file;
+        }
+    }
 }
 
 static std::string init_logger(Arc::XMLNode log, bool foreground)

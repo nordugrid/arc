@@ -16,6 +16,7 @@ namespace Arc {
     config_dump = false;
     AddOption('d', "config-dump", "dump generated XML config", config_dump);
     AddOption('p', "pid-file", "full path of pid file", "path", pid_file);
+    AddOption('l', "log-file", "full path of log file", "path", log_file);
     AddOption('u', "user", "user name", "user", user);
     AddOption('g', "group", "group name", "group", group);
     AddOption('s', "schema", "full path of XML schema file", "path", schema_file);

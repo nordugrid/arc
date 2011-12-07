@@ -15,6 +15,7 @@ namespace Arc {
     std::string xml_config_file;
     std::string ini_config_file;
     std::string pid_file;
+    std::string log_file;
     std::string user;
     std::string group;
     bool config_dump;
