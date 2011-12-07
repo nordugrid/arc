@@ -506,9 +506,9 @@ namespace DataStaging {
       current_processes(0) {
 
     valid = false;
-    // Check configuration - at least one allowed DN and dir must be specified
-    if (!(*cfg)["SecHandler"]["PDP"]["DN"]) {
-      logger.msg(Arc::ERROR, "Invalid configuration - no allowed DNs specified");
+    // Check configuration - at least one allowed IP address and dir must be specified
+    if (!(*cfg)["SecHandler"]["PDP"]["Policy"]["Rule"]["Subjects"]["Subject"]["SubjectAttribute"]) {
+      logger.msg(Arc::ERROR, "Invalid configuration - no allowed IP address specified");
       return;
     }
     if (!(*cfg)["AllowedDir"]) {

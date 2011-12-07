@@ -1307,9 +1307,33 @@ attributes depending on how the mapping should be done.
       <!-- Service-specific configuration here -->
       <!-- AllowedDir: File system paths the service is allowed to read/write files to/from -->
       <AllowedDir initype="multi" inisections="datadelivery-service" initag="allowed_dir"/>
-      <SecHandler name="arc.authz" id="pdpdn" event="incoming" initokenenables="datadelivery-service">
-        <!-- allowed_dn to filter users by their DN is mandatory -->
-        <PDP name="simplelist.pdp">
+      <SecHandler name="arc.authz" id="pdp-datadelivery" event="incoming" initokenenables="datadelivery-service">
+        <!-- The authorization policy allows only the specified IP address.
+             Optionally for tighter controls allowed DNs can also be specified. -->
+        <PDP name="arc.pdp">
+          <Policy xmlns="http://www.nordugrid.org/schemas/policy-arc" CombiningAlg="Permit-Overrides" PolicyId="IP Policy">
+            <Rule RuleId="IP filter" Effect="Permit">
+              <Description>
+                Allow only the following IP address to access service
+              </Description>
+              <Subjects>
+                <Subject>
+                  <SubjectAttribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint" Type="string" Function="match" inisections="datadelivery-service" initag="allowed_ip"/>
+                </Subject>
+              </Subjects>
+              <Resources>
+                <Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/datadeliveryservice</Resource>
+              </Resources>
+              <Actions>
+                <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">POST</Action>
+                <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/method" Type="string">GET</Action>
+                <Action AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/soap/operation" Type="string">datadeliveryservice</Action>
+              </Actions>
+              <Conditions/>
+            </Rule>
+          </Policy>
+        </PDP>
+        <PDP name="simplelist.pdp" initokenenables="datadelivery-service#allowed_dn">
           <DN initype="multi" inisections="datadelivery-service" initag="allowed_dn"/>
         </PDP>
       </SecHandler>
