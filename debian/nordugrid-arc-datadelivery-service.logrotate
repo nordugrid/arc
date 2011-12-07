@@ -1,0 +1,11 @@
+/var/log/arc/datadelivery-service.log {
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+  postrotate
+  kill -HUP `cat /var/run/arched-datadelivery-service.pid`
+  endscript
+}

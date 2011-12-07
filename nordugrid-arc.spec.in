@@ -703,6 +703,8 @@ install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
 install -p -m 644 debian/%{name}-aris.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-aris
+install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
+    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
 find $RPM_BUILD_ROOT -type f -name \*.la -exec rm -fv '{}' ';'
 
@@ -1075,6 +1077,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_initrddir}/arc-datadelivery-service
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.so
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
+%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
 %files arex
 %defattr(-,root,root,-)

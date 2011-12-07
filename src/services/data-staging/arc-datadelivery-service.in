@@ -106,7 +106,7 @@ readconfigvar() {
     bname="[$2]"
     vname=$3
     value=
-    cat "$fname" | grep -e '^\[' -e "^${vname}=" | {
+    cat "$fname" | grep -e '^\[' -e "^${vname}[[:space:]]*=" | {
         while true; do
             read line
             if [ ! $? = 0 ] ; then
@@ -123,6 +123,7 @@ readconfigvar() {
                         return
                     fi
                     vlname=`echo "$line" | sed 's/=.*//;t;s/.*//'`
+                    vlname=`eval "echo $vlname"`
                     if [ "$vlname" = "$vname" ] ; then
                         val=`echo "$line" | sed 's/[^=]*=//'`
                         eval "echo $val"
@@ -153,13 +154,18 @@ if [ `id -u` = 0 ] ; then
         LOCKFILE=/var/lock/$prog-datadelivery-service
     fi
     if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=/var/run/$prog.pid
+        PID_FILE=/var/run/$prog-datadelivery-service.pid
     fi
 else
     LOCKFILE=$HOME/$prog-datadelivery-service.lock
     if [ "x$PID_FILE" = "x" ]; then
-        PID_FILE=$HOME/$prog.pid
+        PID_FILE=$HOME/$prog-datadelivery-service.pid
     fi
+fi
+
+LOG_FILE=`readconfigvar "$ARC_CONFIG" common logfile`
+if [ "x$LOG_FILE" = "x" ]; then
+    LOG_FILE=/var/log/arc/datadelivery-service.log
 fi
 
 prepare() {
@@ -183,7 +189,7 @@ prepare() {
     fi
 
     # Assuming ini style config
-    CMD="$CMD -i '$ARC_CONFIG'"
+    CMD="$CMD -i '$ARC_CONFIG' -p '$PID_FILE' -l '$LOG_FILE'"
 
     add_library_path "$GLOBUS_LOCATION"
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
