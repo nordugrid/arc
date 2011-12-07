@@ -152,7 +152,7 @@ Glib::Module* ModuleManager::reload(Glib::Module* omodule)
 
 void ModuleManager::setCfg (XMLNode cfg) {
   if(!cfg) return;
-  ModuleManager::logger.msg(INFO, "Module Manager Init by ModuleManager::setCfg");
+  ModuleManager::logger.msg(DEBUG, "Module Manager Init by ModuleManager::setCfg");
 
   if(!MatchXMLName(cfg,"ArcConfig")) return;
   XMLNode mm = cfg["ModuleManager"];

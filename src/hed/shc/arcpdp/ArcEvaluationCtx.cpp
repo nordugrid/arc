@@ -248,7 +248,7 @@ void ArcEvaluationCtx::split(){
 
   ReqItemList reqlist = req->getRequestItems();
  
-  logger.msg(INFO,"There is %d RequestItems", reqlist.size()); 
+  logger.msg(VERBOSE,"There are %d RequestItems", reqlist.size());
   
   std::list<RequestItem*>::iterator it;
   for (it = reqlist.begin(); it != reqlist.end(); it++) {

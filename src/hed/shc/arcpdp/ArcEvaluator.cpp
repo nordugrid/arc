@@ -258,7 +258,7 @@ Response* ArcEvaluator::evaluate(EvaluationCtx* evl_ctx){
     for(policyit = policies.begin(); policyit != policies.end(); policyit++){
       Result res = ((Policy*)(*policyit))->eval(ctx);
 
-      logger.msg(INFO,"Result value (0=Permit, 1=Deny, 2=Indeterminate, 3=Not_Applicable): %d", res);
+      logger.msg(VERBOSE,"Result value (0=Permit, 1=Deny, 2=Indeterminate, 3=Not_Applicable): %d", res);
 
       if(combining_alg == EvaluatorStopsOnDeny) {
         if(res == DECISION_PERMIT){

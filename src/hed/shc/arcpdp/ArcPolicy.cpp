@@ -111,7 +111,7 @@ void ArcPolicy::make_policy() {
     description = (std::string)(nd["Description"]);  
   }
   
-  logger.msg(INFO, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");
+  logger.msg(VERBOSE, "PolicyId: %s  Alg inside this policy is:-- %s", id, comalg?(comalg->getalgId()):"");
  
   for ( int i=0;; i++ ){
     rnd = nd["Rule"][i];

@@ -232,7 +232,7 @@ bool ArcPDP::isPermitted(Message *msg) const {
       attr = dynamic_cast<RequestAttribute*>(*it);
       if(attr){
         attrval = (*it)->getAttributeValue();
-        if(attrval) logger.msg(INFO, "%s", attrval->encode());
+        if(attrval) logger.msg(DEBUG, "%s", attrval->encode());
       }
     }
   } 
@@ -242,7 +242,7 @@ bool ArcPDP::isPermitted(Message *msg) const {
   else if(atleast_onepermit) result = true;
   else result = false;
 
-  if(result) logger.msg(INFO, "Authorized by arc.pdp");
+  if(result) logger.msg(VERBOSE, "Authorized by arc.pdp");
   else logger.msg(INFO, "Not authorized by arc.pdp - some of the RequestItem elements do not satisfy Policy");
   
   if(resp) delete resp;
