@@ -308,7 +308,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Analyze job descrption (checking, substituting, etc)
   std::string acl("");
-  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl))) != ARexJobNoError) {
+  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl,&failure_))) != ARexJobNoError) {
     if(failure_.empty()) {
       failure_="Failed to parse job description";
       failure_type_=ARexJobInternalError;

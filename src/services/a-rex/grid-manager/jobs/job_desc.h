@@ -15,7 +15,22 @@ typedef enum {
   JobReqMissingFailure,
   JobReqUnsupportedFailure,
   JobReqLogicalFailure
-} JobReqResult;
+} JobReqResult; //Code;
+
+/*
+class JobReqResult {
+ private:
+  JobReqResultCode code_;
+  std::string desc_;
+ public:
+  JobReqResult(JobReqResultCode code):code_(code) {};
+  JobReqResult(JobReqResultCode code, const std::string& desc):code_(code),desc_(desc) {};
+  const std::string& str(void) { return desc_; };
+  bool operator==(JobReqResultCode code) { return code == code_; };
+  bool operator!=(JobReqResultCode code) { return code != code_; };
+  operator JobReqResultCode(void) { return code_; };
+};
+*/
 
 /**
  * Read and parse job description from file and update the job description
@@ -26,9 +41,10 @@ typedef enum {
  *   if the job description format is unknown the reference is not touched.
  * @return false if job description could not be read or parsed, true on success.
  */
-bool get_arc_job_description(const std::string& fname, Arc::JobDescription& desc);
+Arc::JobDescriptionResult get_arc_job_description(const std::string& fname, Arc::JobDescription& desc);
 bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const JobUser& user, const char* opt_add);
-JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl);
+JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, std::string* failure
+ = NULL);
 bool check(const Arc::JobDescription& arc_job_desc);
 bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir);
 

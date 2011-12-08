@@ -143,14 +143,19 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
 /* parse job request, fill job description (local) */
 JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl, std::string* failure) {
   Arc::JobDescription arc_job_desc;
-  if (!get_arc_job_description(fname, arc_job_desc)) {
-    if (failure) *failure = "Unable to read or parse job description.";
+  Arc::JobDescriptionResult arc_job_res = get_arc_job_description(fname, arc_job_desc);
+  if (!arc_job_res) {
+    if (failure) {
+      *failure = arc_job_res.str();
+      if(failure->empty()) *failure = "Unable to read or parse job description.";
+    }
     return JobReqInternalFailure;
   }
 
   if (!arc_job_desc.Resources.RunTimeEnvironment.isResolved()) {
-    if (failure)
+    if (failure) {
       *failure = "Runtime environments have not been resolved.";
+    }
     return JobReqInternalFailure;
   }
 

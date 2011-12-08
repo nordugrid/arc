@@ -17,7 +17,7 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-bool get_arc_job_description(const std::string& fname, Arc::JobDescription& desc) {
+Arc::JobDescriptionResult get_arc_job_description(const std::string& fname, Arc::JobDescription& desc) {
   std::string job_desc_str;
   if (!job_description_read_file(fname, job_desc_str)) {
     logger.msg(Arc::ERROR, "Job description file could not be read.");
@@ -25,9 +25,13 @@ bool get_arc_job_description(const std::string& fname, Arc::JobDescription& desc
   }
 
   std::list<Arc::JobDescription> descs;
-  bool r = (Arc::JobDescription::Parse(job_desc_str, descs, "", "GRIDMANAGER") && (descs.size() == 1));
+  Arc::JobDescriptionResult r = Arc::JobDescription::Parse(job_desc_str, descs, "", "GRIDMANAGER");
   if (r) {
-    desc = descs.front();
+    if(descs.size() == 1) {
+      desc = descs.front();
+    } else {
+      r = Arc::JobDescriptionResult(false,"Multiple job descriptions not supported");
+    }
   }
   return r;
 }
@@ -134,12 +138,14 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
   return true;
 }
 
-JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) {
+JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, std::string* failure) {
   if( !arc_job_desc.Application.AccessControl ) return JobReqSuccess;
   Arc::XMLNode typeNode = arc_job_desc.Application.AccessControl["Type"];
   Arc::XMLNode contentNode = arc_job_desc.Application.AccessControl["Content"];
   if( !contentNode ) {
-    logger.msg(Arc::ERROR, "ARC: acl element wrongly formated - missing Content element");
+    const char* err = "ARC: acl element wrongly formated - missing Content element";
+    logger.msg(Arc::ERROR, "%s", err);
+    if(failure) *failure = err;
     return JobReqMissingFailure;
   };
   if( (!typeNode) || ( ( (std::string) typeNode ) == "GACL" ) || ( ( (std::string) typeNode ) == "ARC" ) ) {
@@ -153,7 +159,9 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl) 
     }
     if( str_content != "" ) acl=str_content;
   } else {
-    logger.msg(Arc::ERROR, "ARC: unsupported ACL type specified: %s", (std::string)typeNode);
+    const std::string err = "ARC: unsupported ACL type specified: " + (std::string)typeNode;
+    logger.msg(Arc::ERROR, "%s", err);
+    if(failure) *failure = err;
     return JobReqUnsupportedFailure;
   };
   return JobReqSuccess;
