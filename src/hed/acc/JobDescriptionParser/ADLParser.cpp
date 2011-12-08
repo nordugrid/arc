@@ -371,6 +371,7 @@ namespace Arc {
         }
         job.Application.PostExecutable.push_back(exec);
       }
+      job.Application.LogDir = (std::string)application["LoggingDirectory"];
       for(XMLNode logging = application["adl:RemoteLogging"];
                                 (bool)logging;++logging) {
         if((std::string)logging["adl:ServiceType"] != "SGAS") {
@@ -707,6 +708,7 @@ namespace Arc {
         generateExecutableTypeElement(application.NewChild("PostExecutable"), *it);
       }
     }
+    if(!job.Application.LogDir.empty()) application.NewChild("LoggingDirectory") = job.Application.LogDir;
     for (std::list<URL>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++) {
       XMLNode logging = application.NewChild("RemoteLogging");

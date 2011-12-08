@@ -173,9 +173,28 @@ namespace Arc {
      **/
     ExecutableType Executable;
 
+    /// Standard input
+    /**
+     * The Input string specifies the relative path to the job session directory
+     * of the file to be used for standard input for the job.
+     **/
     std::string Input;
+
+    /// Standard output
+    /**
+     * The Output string specifies the relative path to the job session
+     * directory of the file which standard output of the job should be written
+     * to.
+     **/
     std::string Output;
+
+    /// Standard error
+    /**
+     * The Error string specifies the relative path to the job session directory
+     * of the file which standard error of the job should be written to.
+     **/
     std::string Error;
+    
     std::list< std::pair<std::string, std::string> > Environment;
 
     /// Executables to be run before the main executable
@@ -196,7 +215,13 @@ namespace Arc {
      **/
     std::list<ExecutableType> PostExecutable;
 
+    /// Name of logging directory
+    /**
+     * The LogDir string specifies the name of the logging directory at the
+     * execution service which should be used to access log files for the job.
+     **/
     std::string LogDir;
+
     std::list<URL> RemoteLogging;
     int Rerun;
     Time ExpiryTime;

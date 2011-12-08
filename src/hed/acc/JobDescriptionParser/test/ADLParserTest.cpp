@@ -19,8 +19,12 @@ class ADLParserTest
   CPPUNIT_TEST(AnnotationTest);
   CPPUNIT_TEST(ActivityOldIDTest);
   CPPUNIT_TEST(ExecutableTest);
+  CPPUNIT_TEST(InputTest);
+  CPPUNIT_TEST(OutputTest);
+  CPPUNIT_TEST(ErrorTest);
   CPPUNIT_TEST(PreExecutableTest);
   CPPUNIT_TEST(PostExecutableTest);
+  CPPUNIT_TEST(LoggingDirectoryTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -34,8 +38,12 @@ public:
   void AnnotationTest();
   void ActivityOldIDTest();
   void ExecutableTest();
+  void InputTest();
+  void OutputTest();
+  void ErrorTest();
   void PreExecutableTest();
   void PostExecutableTest();
+  void LoggingDirectoryTest();
 
 private:
   Arc::JobDescription INJOB;
@@ -246,6 +254,72 @@ void ADLParserTest::ExecutableTest() {
   }
 }
 
+void ADLParserTest::InputTest() {
+  const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Input>standard-emi-input</adl:Input>"
+"</adl:Application>"
+"</adl:ActivityDescription>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-input", OUTJOBS.front().Application.Input);
+  
+  std::string parsed_adl;
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT(PARSER.Parse(parsed_adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-input", OUTJOBS.front().Application.Input);
+}
+
+void ADLParserTest::OutputTest() {
+  const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Output>standard-emi-output</adl:Output>"
+"</adl:Application>"
+"</adl:ActivityDescription>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-output", OUTJOBS.front().Application.Output);
+  
+  std::string parsed_adl;
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT(PARSER.Parse(parsed_adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-output", OUTJOBS.front().Application.Output);
+}
+
+void ADLParserTest::ErrorTest() {
+  const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Error>standard-emi-error</adl:Error>"
+"</adl:Application>"
+"</adl:ActivityDescription>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-error", OUTJOBS.front().Application.Error);
+  
+  std::string parsed_adl;
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT(PARSER.Parse(parsed_adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-error", OUTJOBS.front().Application.Error);
+}
+
 void ADLParserTest::PreExecutableTest() {
   const std::string adl = "<?xml version=\"1.0\"?>"
 "<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
@@ -366,6 +440,28 @@ void ADLParserTest::PostExecutableTest() {
   CPPUNIT_ASSERT_EQUAL((std::string)"cba",                           OUTJOBS.front().Application.PostExecutable.back().Argument.back());
   CPPUNIT_ASSERT(                                                    OUTJOBS.front().Application.PostExecutable.back().SuccessExitCode.first);
   CPPUNIT_ASSERT_EQUAL(401,                                          OUTJOBS.front().Application.PostExecutable.back().SuccessExitCode.second);
+}
+
+void ADLParserTest::LoggingDirectoryTest() {
+  const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:LoggingDirectory>job-log</adl:LoggingDirectory>"
+"</adl:Application>"
+"</adl:ActivityDescription>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"job-log", OUTJOBS.front().Application.LogDir);
+  
+  std::string parsed_adl;
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT(PARSER.Parse(parsed_adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"job-log", OUTJOBS.front().Application.LogDir);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ADLParserTest);
