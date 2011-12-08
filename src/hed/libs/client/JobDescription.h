@@ -308,6 +308,19 @@ namespace Arc {
     std::string Checksum;
   };
 
+
+  class JobDescriptionResult {
+  public:
+    JobDescriptionResult(bool r):res(r) { };
+    JobDescriptionResult(bool r, const std::string& s):res(r),desc(s) { };
+    operator bool(void) { return res; };
+    bool operator!(void) { return !res; };
+    const std::string& str(void) { return desc; };
+  private:
+    bool res;
+    std::string desc;
+  };
+
   /**
    * The JobDescription class is the internal representation of a job description
    * in the ARC-lib. It is structured into a number of other classes/objects which
@@ -376,7 +389,7 @@ namespace Arc {
      * @return true if the passed string can be parsed successfully by any of
      *   the available parsers.
      **/
-    static bool Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "");
+    static JobDescriptionResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "");
 
     /// DEPRECATED: Parse source string
     /**
@@ -407,7 +420,7 @@ namespace Arc {
      * @param dialect
      * @return
      **/
-    bool UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
+    JobDescriptionResult UnParse(std::string& product, std::string language, const std::string& dialect = "") const;
 
 
     /// Get input source language
@@ -447,7 +460,7 @@ namespace Arc {
      *            job description to.
      * @param format specifies the format the job description should written in.
      */
-    bool SaveToStream(std::ostream& out, const std::string& format) const;
+    JobDescriptionResult SaveToStream(std::ostream& out, const std::string& format) const;
 
     JobIdentificationType Identification;
     ApplicationType Application;

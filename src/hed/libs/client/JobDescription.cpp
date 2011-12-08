@@ -81,7 +81,7 @@ namespace Arc {
     SaveToStream(std::cout, (!longlist ? "user" : "userlong")); // ??? Prepend "user*" with a character to avoid clashes?
   }
 
-  bool JobDescription::SaveToStream(std::ostream& out, const std::string& format) const {
+  JobDescriptionResult JobDescription::SaveToStream(std::ostream& out, const std::string& format) const {
 
     if (format != "user" && format != "userlong") {
       std::string outjobdesc;
@@ -358,7 +358,7 @@ namespace Arc {
     return r;
   }
 
-  bool JobDescription::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) {
+  JobDescriptionResult JobDescription::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) {
     if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");
       return false;
@@ -369,18 +369,25 @@ namespace Arc {
       jdpl = new JobDescriptionParserLoader();
     }
 
+    std::string parse_error;
     for (JobDescriptionParserLoader::iterator it = jdpl->GetIterator(); it; ++it) {
       // Releasing lock because we can't know how long parsing will take
       // But for current implementations of parsers it is not specified
       // if their Parse/Unparse methods can be called concurently.
-      if ((language.empty() || it->IsLanguageSupported(language)) && it->Parse(source, jobdescs, language, dialect)) {
-        jdpl_lock.unlock();
-        return true;
-     }
+      if (language.empty() || it->IsLanguageSupported(language)) {
+        if (it->Parse(source, jobdescs, language, dialect)) {
+          jdpl_lock.unlock();
+          return true;
+        }
+        if (!it->GetError().empty()) {
+          parse_error += it->GetError();
+          parse_error += "\n";
+        }
+      }
     }
     jdpl_lock.unlock();
 
-    return false;
+    return JobDescriptionResult(false,parse_error);
   }
 
   std::string JobDescription::UnParse(const std::string& language) const {
@@ -393,7 +400,7 @@ namespace Arc {
     return "";
   }
 
-  bool JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect) const {
+  JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect) const {
     if (language.empty()) {
       language = sourceLanguage;
       if (language.empty()) {
@@ -411,13 +418,15 @@ namespace Arc {
       if (it->IsLanguageSupported(language)) {
         logger.msg(VERBOSE, "Generating %s job description output", language);
         bool r = it->UnParse(*this, product, language, dialect);
+        std::string unparse_error = it->GetError();
+        JobDescriptionResult res(r,unparse_error);
         jdpl_lock.unlock();
-        return r;
+        return res;
       }
     }
     jdpl_lock.unlock();
 
     logger.msg(ERROR, "Language (%s) not recognized by any job description parsers.", language);
-    return false;
+    return JobDescriptionResult(false,"Language not recognized");
   }
 } // namespace Arc

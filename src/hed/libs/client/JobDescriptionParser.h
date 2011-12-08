@@ -31,6 +31,7 @@ namespace Arc {
     virtual bool UnParse(const JobDescription& job, std::string& output, const std::string& language, const std::string& dialect = "") const = 0;
     const std::list<std::string>& GetSupportedLanguages() const { return supportedLanguages; }
     bool IsLanguageSupported(const std::string& language) const { return std::find(supportedLanguages.begin(), supportedLanguages.end(), language) != supportedLanguages.end(); }
+    const std::string& GetError(void) { return error; };
 
   protected:
     JobDescriptionParser();
@@ -38,6 +39,8 @@ namespace Arc {
     std::string& SourceLanguage(JobDescription& j) const;
 
     std::list<std::string> supportedLanguages;
+
+    std::string error;
 
     static Logger logger;
   };
