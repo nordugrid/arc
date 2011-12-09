@@ -1612,10 +1612,10 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
     } else if(op_name == "PutDelegation") {
       Arc::XMLNode r = out.NewChild("PutDelegationResponse");
       r.Namespaces(ns);
-      if((std::string)op["CredentialType"] != "RFC3820") {
-        EMIESFAULT(out,"Unsupported credential type requested");
-        return true;
-      }
+      //if((std::string)op["CredentialType"] != "RFC3820") {
+      //  EMIESFAULT(out,"Unsupported credential type requested");
+      //  return true;
+      //}
       std::string id = op["DelegationId"];
       std::string cred = op["Credential"];
       if(id.empty()) {
