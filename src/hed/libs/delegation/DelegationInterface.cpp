@@ -1039,7 +1039,6 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     delete resp_soap;
     return true;
   } else if((stype == DelegationProviderSOAP::EMIES)) {
-std::cerr<<"updatecredentials: start EMIES"<<std::endl;
     std::string delegation = Delegate(request_,restrictions);
     //if((!strip_PEM_cert(delegation)) || (delegation.empty())) return false;
     if(delegation.empty()) return false;
@@ -1049,13 +1048,8 @@ std::cerr<<"updatecredentials: start EMIES"<<std::endl;
     //token.NewChild("deleg:CredentialType")="RFC3820";
     token.NewChild("deleg:DelegationId")=id_;
     token.NewChild("deleg:Credential")=delegation;
-std::string s;
-req_soap.GetXML(s);
-std::cerr<<"updatecredentials: request: "<<s<<std::endl;
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
-resp_soap->GetXML(s);
-std::cerr<<"updatecredentials: response: "<<s<<std::endl;
     if(!(*resp_soap)["PutDelegationResponse"]["SUCCESS"]) {
       delete resp_soap;
       return false;
