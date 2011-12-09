@@ -1359,7 +1359,7 @@ start () {
     fi
 
     # Info registration
-    if [ "x$infosys_nordugrid" = "xenable" ]; then
+    if grep -q ^regtype: $arc_runtime_config/grid-info-resource-register.conf; then
 	$ARC_LOCATION/@pkgdatasubdir@/grid-info-soft-register -log $registrationlog -f $arc_runtime_config/grid-info-resource-register.conf -p `cat ${update_pid_file}` 1>/dev/null 2>/dev/null &
     fi
 
