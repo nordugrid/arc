@@ -79,7 +79,6 @@ namespace Arc {
   }
 
   bool EMIESClient::delegation(XMLNode& op) {
-    // TODO: change for EMI way of delegation
     const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
     const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
 
@@ -105,7 +104,25 @@ namespace Arc {
       logger.msg(VERBOSE, "Failed to initiate delegation credentials");
       return false;
     }
-    deleg.DelegatedToken(op);
+    std::string delegation_id = deleg.ID();
+    if(delegation_id.empty()) {
+      logger.msg(VERBOSE, "Failed to obtain delegation identifier");
+      return false;
+    };
+    if (!deleg.UpdateCredentials(*entry,&(client->GetContext()),DelegationRestrictions(),DelegationProviderSOAP::EMIES)) {
+      logger.msg(VERBOSE, "Failed to pass delegated credentials");
+      return false;
+    }
+
+    // Inserting delegation id into job desription - ADL specific
+    XMLNodeList sources = op.Path("ActivityDescription/DataStaging/InputFile/Source");
+    for(XMLNodeList::iterator item = sources.begin();item!=sources.end();++item) {
+      item->NewChild("esadl:DelegationID") = delegation_id;
+    };
+    XMLNodeList targets = op.Path("ActivityDescription/DataStaging/OutputFile/Target");
+    for(XMLNodeList::iterator item = targets.begin();item!=targets.end();++item) {
+      item->NewChild("esadl:DelegationID") = delegation_id;
+    };
     return true;
   }
 
@@ -117,7 +134,6 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Processing a %s request", req.Child(0).FullName());
 
-    // TODO: will not work yet
     if (delegate) {
       XMLNode op = req.Child(0);
       if(!delegation(op)) return false;
@@ -184,7 +200,7 @@ namespace Arc {
     logger.msg(DEBUG, "Job description to be sent: %s", jobdesc);
 
     XMLNode response;
-    if (!process(req, false, response)) return false;
+    if (!process(req, delegate, response)) return false;
 
     response.Namespaces(ns);
     XMLNode item = response.Child(0);
@@ -499,9 +515,9 @@ namespace Arc {
     */
     id = (std::string)job["ActivityID"];
     manager = (std::string)job["ActivityManagerURI"];
-    stagein = (std::string)job["StageInDirectory"];
-    session = (std::string)job["SessionDirectory"];
-    stageout = (std::string)job["StageOutDirectory"];
+    stagein = (std::string)job["StageInDirectory"]["URL"];
+    session = (std::string)job["SessionDirectory"]["URL"];
+    stageout = (std::string)job["StageOutDirectory"]["URL"];
     return *this;
   }
 
