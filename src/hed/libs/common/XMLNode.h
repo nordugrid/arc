@@ -113,8 +113,8 @@ namespace Arc {
     void New(XMLNode& node) const;
     /** Exchanges XML (sub)trees.
      Following conbinations are possible
-       * If either this ir node are refering owned XML tree (top level
-         node) then references are simply excanged. This opearationis fast.
+       * If either this or node are refering owned XML tree (top level
+         node) then references are simply exchanged. This operation is fast.
        * If both this and node are refering to XML (sub)tree of different
          documents then (sub)trees are exchahed between documments.
        * If both this and node are refering to XML (sub)tree of same
