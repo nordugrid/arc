@@ -577,9 +577,11 @@ namespace Arc {
             return false;
           }
           if((bool)source["adl:DelegationID"]) {
-            logger.msg(ERROR, "[ADLParser] DelegationID in Source is not supported yet.");
-            jobdescs.clear();
-            return false;
+            // TODO: support per source
+            file.DelegationID = (std::string)source["adl:DelegationID"];
+            //logger.msg(ERROR, "[ADLParser] DelegationID in Source is not supported yet.");
+            //jobdescs.clear();
+            //return false;
           }
           if((bool)source["adl:Option"]) {
             logger.msg(ERROR, "[ADLParser] Option in Source is not supported yet.");
@@ -609,22 +611,28 @@ namespace Arc {
             return false;
           }
           if((bool)target["adl:DelegationID"]) {
-            logger.msg(ERROR, "[ADLParser] DelegationID in Target is not supported yet.");
-            jobdescs.clear();
-            return false;
+            // TODO: support per target
+            file.DelegationID = (std::string)target["adl:DelegationID"];
+            //logger.msg(ERROR, "[ADLParser] DelegationID in Target is not supported yet.");
+            //jobdescs.clear();
+            //return false;
           }
           if((bool)target["adl:Option"]) {
             logger.msg(ERROR, "[ADLParser] Option in Target is not supported yet.");
             jobdescs.clear();
             return false;
           }
-          if(!ParseFlagTrue(target["adl:Mandatory"],logger)) {
+          bool mandatory = false;
+          if(!ParseFlag(target["adl:Mandatory"],logger,mandatory)) {
             jobdescs.clear();
             return false;
           }
-          if((!ParseFlagFalse(target["adl:UseIfFailure"],logger)) ||
-             (!ParseFlagFalse(target["adl:UseIfCancel"],logger)) ||
-             (!ParseFlagTrue(target["adl:UseIfSuccess"],logger))) {
+          bool use_if_failure = false;
+          bool use_if_cancel = false;
+          bool use_if_success = true;
+          if((!ParseFlag(target["adl:UseIfFailure"],logger,use_if_failure)) ||
+             (!ParseFlag(target["adl:UseIfCancel"],logger,use_if_cancel)) ||
+             (!ParseFlag(target["adl:UseIfSuccess"],logger,use_if_success))) {
             jobdescs.clear();
             return false;
           }
@@ -633,6 +641,10 @@ namespace Arc {
             jobdescs.clear();
             return false;
           }
+          turl.AddOption("useiffailure",use_if_failure?"true":"false",true);
+          turl.AddOption("useifcancel",use_if_cancel?"true":"false",true);
+          turl.AddOption("useifsuccess",use_if_success?"true":"false",true);
+          turl.AddOption("mandatory",mandatory?"true":"false",true);
           file.Target.push_back(turl);
         }
         job.Files.push_back(file);
@@ -853,11 +865,11 @@ namespace Arc {
           target.NewChild("URI") = u->str();
           // target.NewChild("DelegationID") = ;
           // target.NewChild("Option") = ;
-          // target.NewChild("Mandatory") = ;
+          target.NewChild("Mandatory") = u->Option("mandatory","false");
           // target.NewChild("CreationFlag") = ;
-          target.NewChild("UseIfFailure") = "false";
-          target.NewChild("UseIfCancel") = "false";
-          target.NewChild("UseIfSuccess") = "true";
+          target.NewChild("UseIfFailure") = u->Option("useiffailure","false");
+          target.NewChild("UseIfCancel") = u->Option("useifcancel","false");
+          target.NewChild("UseIfSuccess") = u->Option("useifsuccess","true");
         }
       }
     }
