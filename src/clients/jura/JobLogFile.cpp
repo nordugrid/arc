@@ -9,6 +9,7 @@
 #include <list>
 
 #include <arc/Logger.h>
+#include <arc/URL.h>
 #include <arc/Utils.h>
 
 // Needed to redefine mkdir on mingw
@@ -415,6 +416,408 @@ namespace Arc
 					archive_fn.c_str(),
 					StrError(errno));
 	  }
+      }
+    //***
+
+    usagerecord.Replace(ur);
+  }
+
+  void JobLogFile::createCARUsageRecord(Arc::XMLNode &usagerecord,
+                                     const char *recordid_prefix)
+  {
+    //***
+    //If archiving is enabled: first try to load archived UR
+    std::string archive_fn=getArchivingPath();
+    if (!archive_fn.empty())
+      {
+        errno=0;
+        if (usagerecord.ReadFromFile(archive_fn))
+          {
+            Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                "Read archive file %s",
+                archive_fn.c_str());
+            return;
+          }
+        Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+           "Could not read archive file %s for job log file %s (%s), generating new Usage Record",
+           archive_fn.c_str(),
+           filename.c_str(),
+           StrError(errno));
+      }
+    //Otherwise go on and create new UR
+    //***
+
+    Arc::NS ns_ur;
+    
+    //Namespaces defined by OGF 2.0 (CAR 1.0)
+    ns_ur[""]="http://eu-emi.eu/namespaces/2011/11/computerecord";
+    ns_ur["urf"]="http://eu-emi.eu/namespaces/2011/11/computerecord";
+    ns_ur["xsd"]="http://eu-emi.eu/namespaces/2011/11/computerecord car_v1.0.xsd";
+    ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
+
+    //Get node names
+    std::list<std::string> nodenames;
+    std::string mainnode;
+    std::string nodestr=(*this)["nodename"];
+    size_type pcolon=nodestr.find(':');
+    while (pcolon!=std::string::npos)
+      {
+        nodenames.push_back(nodestr.substr(0,pcolon));
+        nodestr=nodestr.substr(pcolon+1,std::string::npos);
+        pcolon=nodestr.find(':');
+      }
+    if (!nodestr.empty()) nodenames.push_back(nodestr);
+    if (!nodenames.empty()) mainnode=*(nodenames.begin());
+
+    //Get runtime environments
+    std::list<std::string> rtes;
+    std::string rtestr=(*this)["runtimeenvironment"];
+    size_type pspace=rtestr.find(" ");
+    while (pspace!=std::string::npos)
+      {
+        std::string rte=rtestr.substr(0,pspace);
+        if (!rte.empty()) rtes.push_back(rte);
+        rtestr=rtestr.substr(pspace+1,std::string::npos);
+        pspace=rtestr.find(" ");
+      }
+    if (!rtestr.empty()) rtes.push_back(rtestr);
+
+    /**BASE Record properties
+     * 
+     * UsageRecord
+     * RecordIdentity
+     * JobIdentity
+     * UserIdentity
+     * JobName
+     * Charge
+     * Status
+     * ExitStatus
+     * WallDuration
+     * CpuDuration
+     * EndTime
+     * StartTime
+     * MachineName
+     * Host
+     * SubmitHost
+     * Queue
+     * Site
+     * Infrastructure
+     */
+
+    //Fill this Usage Record
+    //UsageRecord
+    Arc::XMLNode ur(ns_ur,"UsageRecord");
+
+    //RecordIdentity, JobIdentity GlobalJobId, LocalJobId
+    if (find("ngjobid")!=end())
+      {
+        // Timestamp for record, required
+        std::string nowstamp=Arc::Time().str(Arc::UTCTime);
+
+        Arc::XMLNode rid=ur.NewChild("RecordIdentity");
+        rid.NewAttribute("urf:createTime")=nowstamp;
+
+        // ID for record
+        if (!mainnode.empty())
+          rid.NewAttribute("urf:recordId")=
+            std::string(recordid_prefix) + mainnode + 
+            '-' + (*this)["ngjobid"];
+        else
+          rid.NewAttribute("urf:recordId")=
+            std::string(recordid_prefix) + (*this)["ngjobid"];
+
+        //GlobalJobId
+        if (find("globalid")!=end())
+          ur.NewChild("JobIdentity").NewChild("GlobalJobId")=
+            (*this)["globalid"];
+
+        //LocalJobId
+        ur["JobIdentity"].NewChild("LocalJobId")=
+          (*this)["localjobid"];
+      }
+    else
+    {
+      Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                      "Missing required Usage Record element \"RecordIdentity\", in job log file %s",
+                      filename.c_str());
+      usagerecord.Destroy();
+      return;
+    }
+
+    //UserIdentity
+    Arc::XMLNode useridentity = ur.NewChild("UserIdentity");
+    //GlobalUserName
+    if (find("usersn")!=end())
+      {
+        useridentity.NewChild("GlobalUserName")=
+          (*this)["usersn"];
+      }
+
+    //LocalUserId
+    useridentity.NewChild("LocalUserId")=
+      (*this)["localuser"];
+
+    //Group
+    //GroupAttribute
+    
+    //JobName
+    if (find("jobname")!=end())
+      {
+        ur.NewChild("JobName")=(*this)["jobname"];
+      }
+
+    //Charge +unit,formula
+ 
+    //Status
+    if (find("status")!=end())
+      {
+        /*
+         * The available status values are:
+         *  aborted, completed, failed, held, queued, started, suspended
+         */
+        ur.NewChild("Status")=(*this)["status"];  //TODO convert?
+      }
+    else
+      {
+        //TODO what if not valid?
+        Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                        "Missing required element \"Status\" in job log file %s",
+                        filename.c_str());
+        usagerecord.Destroy();
+        return;
+      }
+    // ExitStatus
+
+    //Infrastructure
+    Arc::XMLNode infran = ur.NewChild("Infrastructure");
+    std::string type = "local";
+    if (find("headnode")!=end() && (*this)["lrms"] != "fork" ){
+        type = "grid";
+        infran.NewAttribute("urf:description")=(*this)["lrms"];
+    }
+    infran.NewAttribute("urf:type")=type;
+
+    // WallDuration (EndTime-StartTime)
+    if (find("usedwalltime")!=end())
+      {
+        Arc::Period walldur((*this)["usedwalltime"],Arc::PeriodSeconds);
+        ur.NewChild("WallDuration")=(std::string)walldur;
+      }
+
+    // CpuDuration
+    if (find("usedusercputime")!=end() && find("usedkernelcputime")!=end())
+      {
+        Arc::Period udur((*this)["usedusercputime"],Arc::PeriodSeconds);
+        Arc::Period kdur((*this)["usedkernelcputime"],Arc::PeriodSeconds);
+
+        std::string udurs = (std::string)udur;
+        if (udurs == "P"){
+            udurs = "PT0S";
+        }
+        Arc::XMLNode udurn=ur.NewChild("CpuDuration")=udurs;
+        udurn.NewAttribute("urf:usageType")="user";
+
+        std::string kdurs = (std::string)kdur;
+        if (kdurs == "P"){
+            kdurs = "PT0S";
+        }
+        Arc::XMLNode kdurn=ur.NewChild("CpuDuration")=kdurs;
+        kdurn.NewAttribute("urf:usageType")="system";
+
+        Arc::Period all(udur.GetPeriod() + kdur.GetPeriod());
+        std::string alls = (std::string)all;
+        if (alls == "P"){
+            alls = "PT0S";
+        }
+        Arc::XMLNode alln=ur.NewChild("CpuDuration")=alls;
+        alln.NewAttribute("urf:usageType")="all";
+      }
+    else
+    if (find("usedcputime")!=end())
+      {
+        Arc::Period cpudur((*this)["usedcputime"],Arc::PeriodSeconds);
+        std::string cpudurs = (std::string)cpudur;
+        if (cpudurs == "P"){
+            cpudurs = "PT0S";
+        }
+        Arc::XMLNode alln = ur.NewChild("CpuDuration")=cpudurs;
+        alln.NewAttribute("urf:usageType")="all";
+      }
+
+    /* Differentiated Record Properties
+     * Memory
+     * Swap
+     * NodeCount
+     * Processors
+     * TimeInstant
+     * ServiceLevel
+     */
+
+    //ServiceLevel
+    Arc::XMLNode sleveln = ur.NewChild("ServiceLevel")="1";  //TODO
+    sleveln.NewAttribute("urf:type")="Si2K";
+
+    //Memory
+    if (find("usedmemory")!=end() && (*this)["usedmemory"] != "0")
+      {
+        Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmemory"];
+        memn.NewAttribute("urf:type")="Shared";
+        memn.NewAttribute("urf:metric")="average";
+        memn.NewAttribute("urf:storageUnit")="KB";
+      }
+
+    if (find("usedmaxresident")!=end() && (*this)["usedmaxresident"] != "0")
+      {
+        Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmaxresident"];
+        memn.NewAttribute("urf:type")="Physical";
+        memn.NewAttribute("urf:metric")="max";
+        memn.NewAttribute("urf:storageUnit")="KB";
+      }
+
+    if (find("usedaverageresident")!=end() && (*this)["usedaverageresident"] != "0")
+      {
+        Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedaverageresident"];
+        memn.NewAttribute("urf:type")="Physical";
+        memn.NewAttribute("urf:metric")="average";
+        memn.NewAttribute("urf:storageUnit")="KB";
+      }
+
+    //Swap
+    //TimeInstant
+
+    //NodeCount
+    if (find("nodecount")!=end())
+      {
+        ur.NewChild("NodeCount")=(*this)["nodecount"];
+      }
+
+    //Processors
+
+    //EndTime
+    if (find("endtime")!=end())
+      {
+        Arc::Time endtime((*this)["endtime"]);
+        ur.NewChild("EndTime")=endtime.str(Arc::UTCTime);
+      }
+
+     //StartTime
+    if (find("submissiontime")!=end())
+      {
+        Arc::Time starttime((*this)["submissiontime"]);
+        ur.NewChild("StartTime")=starttime.str(Arc::UTCTime);
+      }
+
+
+    //MachineName
+    if (find("headnode")!=end())
+      {
+        Arc::URL machineName((*this)["headnode"]);
+        ur.NewChild("MachineName")=machineName.Host();
+      }
+
+    //SubmitHost
+    if (find("headnode")!=end())
+      {
+        Arc::XMLNode submitn = ur.NewChild("SubmitHost")=(*this)["headnode"];
+        submitn.NewAttribute("urf:type")="CE-ID";
+      }
+
+    //Queue
+    if (find("queue")!=end())
+      {
+        ur.NewChild("Queue")=(*this)["queue"];
+      }
+
+    //Site
+    if (find("headnode")!=end())
+      {
+        Arc::URL machineName((*this)["headnode"]);
+        std::string site = machineName.Host();
+        // repcale "." to "-"
+        int position = site.find( "." ); // find first space
+        while ( position != std::string::npos ){
+            site.replace( position, 1, "-" );
+            position = site.find( ".", position + 1 );
+        }
+        // to upper case
+        std::locale loc;
+        for (size_t i=0; i<site.length(); ++i){
+            site[i] = toupper(site[i],loc);
+        }
+        Arc::XMLNode siten = ur.NewChild("Site")=site;
+        siten.NewAttribute("urf:type")="arc";
+      }
+
+    //ProjectName
+    if (find("projectname")!=end())
+      {
+        ur.NewChild("ProjectName")=(*this)["projectname"];
+      }
+
+    //Host
+    if (!mainnode.empty())
+      {
+        Arc::XMLNode primary_node=ur.NewChild("Host");
+        primary_node=mainnode;
+        primary_node.NewAttribute("urf:primary")="true";
+        std::list<std::string>::iterator it=nodenames.begin();
+        ++it;
+        while (it!=nodenames.end())
+          {
+            ur.NewChild("Host")=*it;
+            ++it;
+          }
+      }
+
+    /*Aggregated USAGE RECORD
+     * 
+     * SummaryRecord
+     * SummaryRecords
+     * Site
+     * Month
+     * Year
+     * UserIdentity
+     * EarliestEndTime
+     * LatestEndTime
+     * WallDuration
+     * CpuDuration
+     * NormalisedWallDuration
+     * NormalisedCpuDuration
+     * NumberOfJobs
+     */
+
+    //***
+    //Archiving if enabled:
+    if (!archive_fn.empty())
+      {
+        struct stat st;
+        std::string dir_name=(*this)["jobreport_option_archiving"];
+        if (stat(dir_name.c_str(),&st)!=0)
+          {
+            Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                                        "Creating directory %s",
+                                        dir_name.c_str());
+            errno=0;
+            if (mkdir(dir_name.c_str(),S_IRWXU)!=0)
+              {
+                Arc::Logger::rootLogger.msg(Arc::ERROR,
+                    "Failed to create archive directory %s: %s",
+                    dir_name.c_str(),
+                    StrError(errno));
+              }
+          }
+
+        Arc::Logger::rootLogger.msg(Arc::VERBOSE,
+                                    "Archiving Usage Record to file %s",
+                                    archive_fn.c_str());
+        errno=0;
+        if (!ur.SaveToFile(archive_fn.c_str()))
+          {
+            Arc::Logger::rootLogger.msg(Arc::ERROR,
+                                        "Failed to write file %s: %s",
+                                        archive_fn.c_str(),
+                                        StrError(errno));
+          }
       }
     //***
 
