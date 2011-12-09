@@ -986,7 +986,7 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
     request_=(std::string)(token["CSR"]);
     delete resp_soap;
     if(id_.empty() || request_.empty()) return false;
-    wrap_PEM_request(request_);
+    //wrap_PEM_request(request_);
     return true;
   };
   return false;
@@ -1039,16 +1039,23 @@ bool DelegationProviderSOAP::UpdateCredentials(MCCInterface& interface,MessageAt
     delete resp_soap;
     return true;
   } else if((stype == DelegationProviderSOAP::EMIES)) {
+std::cerr<<"updatecredentials: start EMIES"<<std::endl;
     std::string delegation = Delegate(request_,restrictions);
-    if((!strip_PEM_cert(delegation)) || (delegation.empty())) return false;
+    //if((!strip_PEM_cert(delegation)) || (delegation.empty())) return false;
+    if(delegation.empty()) return false;
     NS ns; ns["deleg"]=EMIES_NAMESPACE; ns["estypes"]=EMIES_TYPES_NAMESPACE;
     PayloadSOAP req_soap(ns);
     XMLNode token = req_soap.NewChild("deleg:PutDelegation");
-    token.NewChild("deleg:CredentialType")="RFC3820";
+    //token.NewChild("deleg:CredentialType")="RFC3820";
     token.NewChild("deleg:DelegationId")=id_;
     token.NewChild("deleg:Credential")=delegation;
+std::string s;
+req_soap.GetXML(s);
+std::cerr<<"updatecredentials: request: "<<s<<std::endl;
     PayloadSOAP* resp_soap = do_process(interface,attributes_in,attributes_out,context,&req_soap);
     if(!resp_soap) return false;
+resp_soap->GetXML(s);
+std::cerr<<"updatecredentials: response: "<<s<<std::endl;
     if(!(*resp_soap)["PutDelegationResponse"]["SUCCESS"]) {
       delete resp_soap;
       return false;
@@ -1591,7 +1598,8 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
       std::string x509_request;
       // TODO: use lifetime
       c->Request(x509_request);
-      if((!strip_PEM_request(x509_request)) || (x509_request.empty())) {
+      //if((!strip_PEM_request(x509_request)) || (x509_request.empty())) {
+      if(x509_request.empty()) {
         RemoveConsumer(c);
         EMIESFAULT(out,"Failed to generate request");
         return true;
@@ -1618,7 +1626,7 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         EMIESFAULT(out,"Delegated credential is missing");
         return true;
       };
-      wrap_PEM_cert(cred);
+      //wrap_PEM_cert(cred);
       DelegationConsumerSOAP* c = FindConsumer(id,client);
       if(!c) {
         EMIESIDFAULT(out,"Failed to find identifier");
