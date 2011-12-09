@@ -259,7 +259,7 @@ dato=`date +%Y-%m-%d_%H:%M:%S`
 
 OUT=$(eval "$cmdline 2>&1")
 if [ $? -eq 0 ]; then
-   jobid=$OUT
+   jobid="$DG_Endpoint|$OUT"
    #write EDGI monitor log
    msg="dt=$dato event=job_submission bridge_id=$DG_Endpoint job_id=$joboption_gridid job_id_bridge=$jobid status=Submitted"
    flock -w 10 $edgilog -c "echo $msg >> $edgilog"

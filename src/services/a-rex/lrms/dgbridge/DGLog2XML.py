@@ -231,6 +231,9 @@ def main():
     if not xml == "":
         xml = """<report timestamp="%s" timezone="UTC">\n"""% timestamp+xml+"""</report>""" 
         writexml(timestamp,xmldir,xml)
+    else:
+        xml = """"""
+        writexml(timestamp,xmldir,xml)
 
     if 'lastlog' in locals() and 'lastline' in locals():
         updatestatus(status_file,lastlog,lastline)

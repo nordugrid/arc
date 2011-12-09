@@ -90,8 +90,8 @@ for basename in $(ls $option_ctrdir/processing|sed -e 's/.status//g' -e "s,^,$op
 do
   localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
   ind=${#localids[@]}
-  localids[$ind]="$localid"
-  endpoints[$ind]=$(grep ^joboption_wsendpoint= "${basename}.grami" | cut -d= -f2)
+  localids[$ind]=`echo $localid| awk -F '|' '{ print $2; }'`
+  endpoints[$ind]=`echo $localid| awk -F '|' '{ print $1; }'`
   temp=${basename##*/}
   gridids[$ind]=`echo $temp|sed 's/^job.//'` 
   basenames[$ind]="$basename"
@@ -207,7 +207,9 @@ for ind in `seq 0 $numids` ; do
    	      #echo "fetching $line" >> /tmp/chrulle.scan
               wget -P /var/spool/nordugrid/session/${gridids[$ind]}/ $line
             done
-            chown -R 3gbridge:3gbridge /var/spool/nordugrid/session/${gridids[$ind]}/  
+            uid=`id -u`
+            gid=`id -g`  
+            chown -R $uid:$gid /var/spool/nordugrid/session/${gridids[$ind]}/
 	    #clean 3Gbridge
 	    cleanbridge $wsendpoint ${localids[$ind]} ${gridids[$ind]}
             
