@@ -709,7 +709,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           delete outpayload;
           return make_soap_fault(outmsg);
         };
-        if(!credentials.empty()) {
+        if((!credentials.empty()) && (MatchXMLNamespace(op,DELEG_ARC_NAMESPACE))) {
+          // Only ARC delegation is done per job
           UpdateCredentials(*config,op,outpayload->Child(),credentials);
         };
       } else if(enablearc_ && MatchXMLNamespace(op,WSRF_NAMESPACE)) {

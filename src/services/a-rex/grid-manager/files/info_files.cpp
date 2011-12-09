@@ -65,7 +65,10 @@ const char * const sfx_diskusage   = ".disk";
 const char * const sfx_acl         = ".acl";
 const char * const sfx_proxy       = ".proxy";
 const char * const sfx_xml         = ".xml";
+const char * const sfx_input       = ".input";
+const char * const sfx_output      = ".output";
 const char * const sfx_inputstatus = ".input_status";
+const char * const sfx_outputstatus = ".output_status";
 const char * const subdir_new      = "accepting";
 const char * const subdir_cur      = "processing";
 const char * const subdir_old      = "finished";
@@ -874,12 +877,12 @@ bool job_local_read_failed(const JobId &id,const JobUser &user,std::string &stat
 /* job.ID.input functions */
 
 bool job_input_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".input";
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_input;
   return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
 bool job_input_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + id + ".input";
+  std::string fname = user.ControlDir() + "/job." + id + sfx_input;
   return job_Xput_read_file(fname,files);
 }
 
@@ -895,6 +898,16 @@ bool job_input_status_read_file(const JobId &id,const JobUser &user,std::list<st
   };
   f.close();
   return true;
+}
+
+bool job_output_status_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
+  std::string fname = user.ControlDir() + "/job." + id + sfx_outputstatus;
+  return job_Xput_read_file(fname,files);
+}
+
+bool job_output_status_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_outputstatus;
+  return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
 bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,const std::string& file) {
@@ -917,6 +930,38 @@ bool job_input_status_add_file(const JobDescription &desc,const JobUser &user,co
   };
   std::string line = file + "\n";
   bool r = write_str(h,line);
+  lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  lock.l_type=F_UNLCK; fcntl(h,F_SETLK,&lock);
+  for(;;) {
+    if(fcntl(h,F_SETLK,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    r=false; break;
+  };
+  close(h);
+  return r;
+}
+
+bool job_output_status_add_file(const JobDescription &desc,const JobUser &user,const FileData& file) {
+  // 1. lock
+  // 2. add
+  // 3. unlock
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_outputstatus;
+  int h=open(fname.c_str(),O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
+  if(h==-1) return false;
+  if(file.pfn.empty()) {
+    close(h); return true;
+  };
+  struct flock lock;
+  lock.l_type=F_WRLCK;
+  lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
+  for(;;) {
+    if(fcntl(h,F_SETLKW,&lock) != -1) break;
+    if(errno == EINTR) continue;
+    close(h); return false;
+  };
+  std::ostringstream line;
+  line<<file<<"\n";
+  bool r = write_str(h,line.str());
   lock.l_whence=SEEK_SET; lock.l_start=0; lock.l_len=0;
   lock.l_type=F_UNLCK; fcntl(h,F_SETLK,&lock);
   for(;;) {
@@ -951,9 +996,9 @@ bool job_cache_write_file(const JobDescription &desc,const JobUser &user,std::li
 }
 */
 
-bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".output";
-  return job_Xput_write_file(fname,files) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
+bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files,job_output_mode mode) {
+  std::string fname = user.ControlDir() + "/job." + desc.get_id() + sfx_output;
+  return job_Xput_write_file(fname,files,mode) & fix_file_owner(fname,desc,user) & fix_file_permissions(fname);
 }
 
 /*
@@ -964,17 +1009,31 @@ bool job_cache_read_file(const JobId &id,const JobUser &user,std::list<FileData>
 */
 
 bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files) {
-  std::string fname = user.ControlDir() + "/job." + id + ".output";
+  std::string fname = user.ControlDir() + "/job." + id + sfx_output;
   return job_Xput_read_file(fname,files);
 }
 
 /* common functions */
 
-bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files) {
+bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files,job_output_mode mode) {
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::trunc);
   if(! f.is_open() ) return false; /* can't open file */
   for(FileData::iterator i=files.begin();i!=files.end(); ++i) { 
-    f << (*i) << std::endl;
+    if(mode == job_output_all) {
+      f << (*i) << std::endl;
+    } else if(mode == job_output_success) {
+      if(i->ifsuccess) {
+        f << (*i) << std::endl;
+      };
+    } else if(mode == job_output_cancel) {
+      if(i->ifcancel) {
+        f << (*i) << std::endl;
+      };
+    } else if(mode == job_output_failure) {
+      if(i->iffailure) {
+        f << (*i) << std::endl;
+      };
+    };
   };
   f.close();
   return true;
@@ -1028,8 +1087,8 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   fname = user.ControlDir()+"/job."+id+sfx_errors; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_cancel; remove(fname.c_str());
   fname = user.ControlDir()+"/"+subdir_new+"/job."+id+sfx_clean;  remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".output"; remove(fname.c_str());
-  fname = user.ControlDir()+"/job."+id+".input"; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+sfx_output; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+sfx_input; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".rte"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".statistics"; remove(fname.c_str());

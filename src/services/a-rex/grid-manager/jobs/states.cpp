@@ -365,7 +365,7 @@ bool JobsList::DestroyJob(JobsList::iterator &i,bool finished,bool active) {
 }
 
 /* do processing necessary in case of failure */
-bool JobsList::FailedJob(const JobsList::iterator &i) {
+bool JobsList::FailedJob(const JobsList::iterator &i,bool cancel) {
   bool r = true;
   /* put mark - failed */
   //if(!job_failed_mark_put(*i,*user,i->failure_reason)) return false;
@@ -374,7 +374,40 @@ bool JobsList::FailedJob(const JobsList::iterator &i) {
   } else {
     r = false;
   };
-  /* make all output files non-uploadable */
+  if(GetLocalDescription(i)) {
+    i->local->uploads=0;
+  } else {
+    r=false;
+  };
+  // adjust output files to failure state
+  // Not good looking code
+  std::string filename = user->ControlDir() + "/job." + i->get_id() + ".description";
+  JobLocalDescription job_desc;
+  if(parse_job_req(filename,job_desc) != JobReqSuccess) {
+    r = false;
+  };
+  // Convert delegation ids to credential paths.
+  std::string default_cred = user->ControlDir() + "/job." + i->get_id() + ".proxy";
+  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
+                                   f != job_desc.outputdata.end(); ++f) {
+    if(f->has_lfn()) {
+      if(f->cred.empty()) {
+        f->cred = default_cred;
+      } else {
+        std::string path;
+        ARex::DelegationStores* delegs = user->Env().delegations();
+        if(delegs) path = (*delegs)[user->DelegationDir()].FindCred(f->cred,i->local->DN);
+        f->cred = path;
+      };
+      if(i->local) ++(i->local->uploads);
+    };
+  };
+  if(!job_output_write_file(*i,*user,job_desc.outputdata,cancel?job_output_cancel:job_output_failure)) {
+    r=false;
+    logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
+  };
+  job_local_write_file(*i,*user,*(i->local));
+  /*
   std::list<FileData> fl;
   if(job_output_read_file(i->job_id,*user,fl)) {
     for(std::list<FileData>::iterator ifl=fl.begin();ifl!=fl.end();++ifl) {
@@ -382,7 +415,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i) {
       std::string value = Arc::URL(ifl->lfn).Option("preserve");
       if(value != "yes") ifl->lfn="";
     };
-    if(!job_output_write_file(*i,*user,fl)) {
+    if(!job_output_write_file(*i,*user,fl,cancel?job_output_cancel:job_output_failure)) {
       r=false;
       logger.msg(Arc::ERROR,"%s: Failed writing list of output files: %s",i->job_id,Arc::StrError(errno));
     };
@@ -396,6 +429,7 @@ bool JobsList::FailedJob(const JobsList::iterator &i) {
   } else {
     r=false;
   };
+  */
   return r;
 }
 
@@ -858,22 +892,24 @@ job_state_t JobsList::JobFailStateGet(const JobsList::iterator &i) {
 
 bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   // Recreate list of output and input files
-  std::list<FileData> fl_old;
+  //std::list<FileData> fl_old;
   std::list<FileData> fl_new;
-  std::list<FileData> fi_old;
+  std::list<FileData> fl_done;
+  //std::list<FileData> fi_old;
   std::list<FileData> fi_new;
   // keep local info
   if(!GetLocalDescription(i)) return false;
   // keep current lists
-  if(!job_output_read_file(i->job_id,*user,fl_old)) {
-    logger.msg(Arc::ERROR,"%s: Failed to read list of output files",i->job_id);
-    return false;
-  };
-  if(!job_input_read_file(i->job_id,*user,fi_old)) {
-    logger.msg(Arc::ERROR,"%s: Failed to read list of input files",i->job_id);
-    return false;
-  };
-  // recreate lists by reprocessing RSL 
+  //if(!job_output_read_file(i->job_id,*user,fl_old)) {
+  //  logger.msg(Arc::ERROR,"%s: Failed to read list of output files",i->job_id);
+  //  return false;
+  //};
+  //if(!job_input_read_file(i->job_id,*user,fi_old)) {
+  //  logger.msg(Arc::ERROR,"%s: Failed to read list of input files",i->job_id);
+  //  return false;
+  //};
+  job_output_status_read_file(i->job_id,*user,fl_done);
+  // recreate lists by reprocessing job description
   JobLocalDescription job_desc; // placeholder
   if(!process_job_req(*user,*i,job_desc)) {
     logger.msg(Arc::ERROR,"%s: Reprocessing RSL failed",i->job_id);
@@ -895,11 +931,18 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
   for(std::list<FileData>::iterator i_new = fl_new.begin();
                                     i_new!=fl_new.end();) {
     if(!(i_new->has_lfn())) { ++i_new; continue; }; // user file - keep
+    std::list<FileData>::iterator i_done = fl_done.begin();
+    for(;i_done!=fl_done.end();++i_done) {
+      if((i_new->pfn == i_done->pfn) && (i_new->lfn == i_done->lfn)) break;
+    };
+    if(i_done != fl_done.end()) { ++i_new; i->local->uploads++; continue; };
+    /*
     std::list<FileData>::iterator i_old = fl_old.begin();
     for(;i_old!=fl_old.end();++i_old) {
       if((*i_new) == (*i_old)) break;
     };
     if(i_old != fl_old.end()) { ++i_new; i->local->uploads++; continue; };
+    */
     i_new=fl_new.erase(i_new);
   };
   if(!job_output_write_file(*i,*user,fl_new)) return false;
@@ -1525,7 +1568,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         i->AddFailure("User requested to cancel the job");
         JobFailStateRemember(i,i->job_state,false);
         /* behave like if job failed */
-        if(!FailedJob(i)) {
+        if(!FailedJob(i,true)) {
           /* DO NOT KNOW WHAT TO DO HERE !!!!!!!!!! */
         };
         /* special processing for INLRMS case */
@@ -1591,7 +1634,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
         // always cause rerun - in order not to lose state change
         // Failed job - move it to proper state
         logger.msg(Arc::ERROR,"%s: Job failure detected",i->job_id);
-        if(!FailedJob(i)) { /* something is really wrong */
+        if(!FailedJob(i,false)) { /* something is really wrong */
           i->AddFailure("Failed during processing failure");
           delete_job=true;
         } else { /* just move job to proper state */
@@ -1694,7 +1737,7 @@ bool JobsList::ActJob(JobsList::iterator &i) {
       i->job_pending=false;
       job_state_write_file(*i,*user,i->job_state); 
       i->AddFailure("Serious troubles (problems during processing problems)");
-      FailedJob(i);  /* put some marks */
+      FailedJob(i,false);  /* put some marks */
       if(i->GetLocalDescription(*user)) {
         job_stdlog_move(*i,*user,i->local->stdlog);
       };

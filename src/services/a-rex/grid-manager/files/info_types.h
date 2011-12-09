@@ -25,6 +25,9 @@ class FileData {
   std::string pfn;  // path relative to session dir
   std::string lfn;  // input/output url or size.checksum
   std::string cred; // path to file containing credentials
+  bool ifsuccess;
+  bool ifcancel;
+  bool iffailure;
   FileData& operator= (const char* str);
   bool operator== (const char* name);
   bool operator== (const FileData& data);

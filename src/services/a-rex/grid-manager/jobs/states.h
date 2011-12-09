@@ -58,7 +58,7 @@ class JobsList {
   bool AddJobNoCheck(const JobId &id,iterator &i,uid_t uid,gid_t gid);
   bool AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid);
   /* Perform all actions necessary in case of job failure */
-  bool FailedJob(const iterator &i);
+  bool FailedJob(const iterator &i,bool cancel);
   /*
      Remove Job from list. All corresponding files are deleted 
      and pointer is advanced. 

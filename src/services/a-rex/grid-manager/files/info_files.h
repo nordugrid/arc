@@ -41,6 +41,13 @@ extern const char * const subdir_cur;
 extern const char * const subdir_old;
 extern const char * const subdir_rew;
 
+typedef enum {
+  job_output_all,
+  job_output_success,
+  job_output_cancel,
+  job_output_failure
+} job_output_mode;
+
 /*
 extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 */
@@ -145,7 +152,8 @@ bool job_lrmsoutput_mark_get(JobDescription &desc,JobUser &user);
   Common purpose functions, used by previous functions.
 */
 bool job_Xput_read_file(const std::string &fname,std::list<FileData> &files);
-bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files);
+bool job_Xput_write_file(const std::string &fname,std::list<FileData> &files,
+                         job_output_mode mode = job_output_all);
 std::string job_mark_read_s(const std::string &fname);
 long int job_mark_read_i(const std::string &fname);
 bool job_mark_write_s(const std::string &fname,const std::string &content);
@@ -206,8 +214,12 @@ bool job_cache_read_file(const JobId &id,const JobUser &user,std::list<FileData>
   contains name of output file relative to session directory and optionally
   destination, to which it should be transferred.
 */
-bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files);
+bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files,job_output_mode mode = job_output_all);
 bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files);
+
+bool job_output_status_add_file(const JobDescription &desc,const JobUser &user,const std::string& file = "");
+bool job_output_status_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData>& files);
+bool job_output_status_read_file(const JobId &id,const JobUser &user,std::list<FileData>& files);
 
 /*
   Same for input files and their sources.

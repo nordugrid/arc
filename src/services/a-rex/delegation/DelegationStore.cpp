@@ -64,12 +64,6 @@ namespace ARex {
     return ((p1 >= str1.length()) && (p2 >= str2.length()));
   }
 
-  static bool file_read(const std::string& path, std::string& content) {
-  }
-
-  static bool file_write(const std::string& path, std::string& content) {
-  }
-
   Arc::DelegationConsumerSOAP* DelegationStore::FindConsumer(const std::string& id,const std::string& client) {
     std::list<std::string> meta;
     std::string path = fstore_.Find(id,client,meta);

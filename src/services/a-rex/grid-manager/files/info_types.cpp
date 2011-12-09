@@ -111,6 +111,9 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
 }
 
 FileData::FileData(void) {
+  ifsuccess = true;
+  ifcancel = false;
+  iffailure = false;
 }
 
 FileData::FileData(const std::string& pfn_s,const std::string& lfn_s) {
@@ -118,12 +121,12 @@ FileData::FileData(const std::string& pfn_s,const std::string& lfn_s) {
   if(!lfn_s.empty()) { lfn=lfn_s; } else { lfn.resize(0); };
 }
 
-FileData& FileData::operator= (const char *str) {
-  pfn.resize(0); lfn.resize(0);
-  int n=input_escaped_string(str,pfn);
-  input_escaped_string(str+n,lfn);
-  return *this;
-}
+//FileData& FileData::operator= (const char *str) {
+//  pfn.resize(0); lfn.resize(0);
+//  int n=input_escaped_string(str,pfn);
+//  input_escaped_string(str+n,lfn);
+//  return *this;
+//}
 
 bool FileData::operator== (const FileData& data) {
   // pfn may contain leading slash. It must be striped
@@ -229,16 +232,32 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       }
     }
     if (!file->Target.empty()) { // output file
-      FileData fdata(fname, file->Target.front().fullstr());
-      outputdata.push_back(fdata);
-      ++uploads;
+      for(std::list<Arc::URL>::const_iterator target = file->Target.begin();
+                              target != file->Target.end(); ++target) {
+        FileData fdata(fname, target->fullstr());
+        outputdata.push_back(fdata);
+        ++uploads;
 
-      if (outputdata.back().has_lfn()) {
-        Arc::URL u(outputdata.back().lfn);
-        outputdata.back().lfn = u.fullstr();
-        // It is not possible to extract credentials path here.
-        // So temporarily storing id here.
-        inputdata.back().cred = file->DelegationID;
+        if (outputdata.back().has_lfn()) {
+          Arc::URL u(outputdata.back().lfn);
+          outputdata.back().lfn = u.fullstr();
+          outputdata.back().ifsuccess = (u.Option("useifsuccess","true") == "true");
+          outputdata.back().ifcancel = (u.Option("useifcancel","false") == "true");
+          outputdata.back().iffailure = (u.Option("useiffailure","false") == "true");
+          if(u.Option("preserve","no") == "yes") {
+            outputdata.back().ifcancel = true;
+            outputdata.back().iffailure = true;
+          };
+          u.RemoveOption("useifsuccess");
+          u.RemoveOption("useifcancel");
+          u.RemoveOption("useiffailure");
+          u.RemoveOption("preserve");
+          u.RemoveOption("mandatory");
+          outputdata.back().lfn = u.fullstr();
+          // It is not possible to extract credentials path here.
+          // So temporarily storing id here.
+          outputdata.back().cred = file->DelegationID;
+        }
       }
     }
     if (file->KeepData) {
@@ -480,8 +499,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "headnode") { headnode = buf+p; }
     else if(name == "queue") { queue = buf+p; }
     else if(name == "localid") { localid = buf+p; }
-    else if(name == "subject") { DN = buf+p;
- }
+    else if(name == "subject") { DN = buf+p; }
     else if(name == "starttime") { starttime = buf+p; }
 //    else if(name == "UI") { UI = buf+p; }
     else if(name == "lifetime") { lifetime = buf+p; }

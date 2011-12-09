@@ -609,6 +609,7 @@ int main(int argc,char** argv) {
     std::list<std::string> transfer_stats;
     transfer_stats.clear(); // paranoid initialization
     std::string transfer_parameters;
+    std::list<FileData> job_files_uploaded;
     
     for(FileDataEx::iterator i=processed_files.begin();i!=processed_files.end();++i) {
       logger.msg(Arc::INFO, "Uploaded %s", i->lfn);
@@ -620,17 +621,23 @@ int main(int argc,char** argv) {
       transfer_parameters += "starttime=" + i->starttime + ',';
       transfer_parameters += "endtime=" + i->endtime;
       transfer_stats.push_back(transfer_parameters);
+      job_files_uploaded.push_back(*i);
     };
     
     std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".statistics";
     std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
     if(f.is_open() ) {
-  	  for (std::list<std::string>::iterator it=transfer_stats.begin(); it != transfer_stats.end(); ++it)
-  	    f << *it << std::endl;
+      for (std::list<std::string>::iterator it=transfer_stats.begin();
+                                          it != transfer_stats.end(); ++it) {
+        f << *it << std::endl;
+      };
       f.close();
       fix_file_owner(fname,desc,user);
-    }
+    };
    
+    if(!job_output_status_write_file(desc,user,job_files_uploaded)) {
+      logger.msg(Arc::WARNING, "Failed writing output status file");
+    };
   }
   
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {

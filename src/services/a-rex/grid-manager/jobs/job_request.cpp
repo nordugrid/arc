@@ -135,7 +135,7 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
     };
   };
   if(!job_input_write_file(desc,user,job_desc.inputdata)) return false;
-  if(!job_output_write_file(desc,user,job_desc.outputdata)) return false;
+  if(!job_output_write_file(desc,user,job_desc.outputdata,job_output_success)) return false;
   if(!job_rte_write_file(desc,user,job_desc.rte)) return false;
   return true;
 }
