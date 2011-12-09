@@ -75,6 +75,10 @@ namespace Arc {
       if (!it->Source.empty()) {
         const URL& src = it->Source.front();
         if (src.Protocol() == "file") {
+          if(!url) {
+            logger.msg(ERROR, "No stagein URL is provided");
+            return false;
+          };
           URL dst(std::string(url.str() + '/' + it->Name));
           DataHandle source(src, usercfg);
           DataHandle destination(dst, usercfg);
@@ -82,11 +86,12 @@ namespace Arc {
             mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                            usercfg.Timeout());
           if (!res.Passed()) {
-            if (!res.GetDesc().empty())
+            if (!res.GetDesc().empty()) {
               logger.msg(ERROR, "Failed uploading file: %s - %s",
                          std::string(res), res.GetDesc());
-            else
+            } else {
               logger.msg(ERROR, "Failed uploading file: %s", std::string(res));
+            }
             return false;
           }
         }
