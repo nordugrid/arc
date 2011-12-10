@@ -42,22 +42,6 @@ namespace Arc {
   public:
     virtual ~TargetRetriever();
 
-    /// DEPRECATED: Method for collecting targets
-    /**
-     * This method is DEPRECATED, the GetExecutionTargets and GetJobs methods
-     * replaces it.
-     *
-     * Pure virtual method for collecting targets. Implementation
-     * depends on the Grid middleware in question and is thus left to
-     * the specialized class.
-     *
-     * @param mom is the reference to the TargetGenerator which has loaded the TargetRetriever
-     * @param targetType is the identificaion of targets to find (0 = ExecutionTargets, 1 = Grid Jobs)
-     * @param detailLevel is the required level of details (1 = All details, 2 = Limited details)
-     **/
-    virtual void GetTargets(TargetGenerator& mom, int targetType,
-                            int detailLevel) = 0;
-
     /// Method for collecting targets
     /**
      * Pure virtual method for collecting targets. Implementation

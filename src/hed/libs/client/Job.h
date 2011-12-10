@@ -98,16 +98,6 @@ namespace Arc {
     std::string UsedOSFamily;
     std::string UsedPlatform;
 
-    /// DEPRECATED: Print the Job information to std::cout
-    /**
-     * This method is DEPRECATED, use the SaveToStream method instead. Method to
-     * print the Job attributes to std::cout
-     *
-     * @param longlist is boolean for long listing (more details).
-     * @see SaveToStream
-     **/
-    void Print(bool longlist) const;
-
     /// Write job information to a std::ostream object
     /**
      * This method will write job information to the passed std::ostream object.

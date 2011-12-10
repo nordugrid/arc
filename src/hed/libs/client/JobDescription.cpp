@@ -29,11 +29,6 @@ namespace Arc {
 
   JobDescription::JobDescription(const long int& ptraddr) { *this = *((JobDescription*)ptraddr); }
 
-  JobDescription::operator bool() const {
-    logger.msg(WARNING, "The JobDescription::operator bool() method is DEPRECATED, use validity checks when parsing sting or outputing contents of JobDescription object.");
-    return (!Application.Executable.Path.empty());
-  }
-
   JobDescription::JobDescription(const JobDescription& j, bool withAlternatives) {
     if (withAlternatives) {
       *this = j;
@@ -74,11 +69,6 @@ namespace Arc {
     }
 
     return *this;
-  }
-
-  void JobDescription::Print(bool longlist) const {
-    logger.msg(WARNING, "The JobDescription::Print method is DEPRECATED, use the JobDescription::SaveToStream method instead.");
-    SaveToStream(std::cout, (!longlist ? "user" : "userlong")); // ??? Prepend "user*" with a character to avoid clashes?
   }
 
   JobDescriptionResult JobDescription::SaveToStream(std::ostream& out, const std::string& format) const {
@@ -346,23 +336,6 @@ namespace Arc {
     }
   }
 
-  bool JobDescription::Parse(const XMLNode& xmlSource) {
-    logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&) method instead.");
-    std::string source;
-    xmlSource.GetXML(source);
-    return Parse(source);
-  }
-
-  bool JobDescription::Parse(const std::string& source, const std::string& language, const std::string& dialect) {
-    logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&) method instead.");
-    std::list<JobDescription> jobdescs;
-    bool r = (Parse(source, jobdescs, language, dialect) && !jobdescs.empty());
-    if (r) {
-      *this = jobdescs.front();
-    }
-    return r;
-  }
-
   JobDescriptionResult JobDescription::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) {
     if (source.empty()) {
       logger.msg(ERROR, "Empty job description source string");
@@ -393,16 +366,6 @@ namespace Arc {
     jdpl_lock.unlock();
 
     return JobDescriptionResult(false,parse_error);
-  }
-
-  std::string JobDescription::UnParse(const std::string& language) const {
-    logger.msg(WARNING, "This method is DEPRECATED, please use the JobDescription::UnParse(std::string&, std::string, const std::string&) method instead.");
-    std::string product;
-    if (UnParse(product, language)) {
-      return product;
-    }
-
-    return "";
   }
 
   JobDescriptionResult JobDescription::UnParse(std::string& product, std::string language, const std::string& dialect) const {

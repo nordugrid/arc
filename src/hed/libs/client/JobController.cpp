@@ -254,21 +254,10 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Cat(const std::list<std::string>& status,
-                          const std::string& whichfile) {
-    logger.msg(WARNING, "The JobController::Cat(const std::list<std::string>&, const std::string&) method is DEPRECATED, use the JobController::Cat(std::ostream&, const std::list<std::string>&, const std::string&) method instead.");
-    return Cat(std::cout, status, whichfile);
-  }
-
   bool JobController::Cat(std::ostream& out,
                           const std::list<std::string>& status,
                           const std::string& whichfile_) {
     std::string whichfile(whichfile_);
-    if (whichfile == "gmlog") {
-      logger.msg(WARNING, "Specifying the \"gmlog\" value for the whichfile parameter in the Job::Cat method is DEPRECATED, use the \"joblog\" value instead.");
-      whichfile = "joblog";
-    }
-
     if (whichfile != "stdout" && whichfile != "stderr" && whichfile != "joblog") {
       logger.msg(ERROR, "Unknown output %s", whichfile);
       return false;
@@ -368,12 +357,6 @@ namespace Arc {
     }
 
     return ok;
-  }
-
-  bool JobController::PrintJobStatus(const std::list<std::string>& status,
-                                     bool longlist) {
-    logger.msg(WARNING, "The JobController::PrintJobStatus method is DEPRECATED, use the Job::SaveJobStatusToStream method instead.");
-    return SaveJobStatusToStream(std::cout, status, longlist);
   }
 
   bool JobController::SaveJobStatusToStream(std::ostream& out,

@@ -92,27 +92,7 @@ namespace Arc {
     }
   }
 
-  TargetGenerator::~TargetGenerator() {
-    if (xmlFoundJobs.size() > 0) {
-      for (std::list<XMLNode*>::iterator it = xmlFoundJobs.begin();
-           it != xmlFoundJobs.end(); it++) {
-        delete *it;
-      }
-    }
-  }
-
-  void TargetGenerator::GetTargets(int targetType, int detailLevel) {
-    logger.msg(WARNING, "The TargetGenerator::GetTargets method is DEPRECATED, use the GetExecutionTargets or GetJobs method instead.");
-
-    logger.msg(VERBOSE, "Running resource (target) discovery");
-
-    if (targetType == 0) {
-      RetrieveExecutionTargets();
-    }
-    else if (targetType == 1) {
-      RetrieveJobs();
-    }
-  }
+  TargetGenerator::~TargetGenerator() {}
 
   void TargetGenerator::RetrieveExecutionTargets() {
     for (std::list<TargetRetriever*>::const_iterator it = loader.GetTargetRetrievers().begin();
@@ -149,32 +129,6 @@ namespace Arc {
     logger.msg(INFO, "Found %ld jobs", foundJobs.size());
   }
 
-  std::list<ExecutionTarget>& TargetGenerator::ModifyFoundTargets() {
-    logger.msg(WARNING, "The TargetGenerator::ModifyFoundTargets method is DEPRECATED, use the FoundTargets method instead.");
-    return foundTargets;
-  }
-
-  const std::list<XMLNode*>& TargetGenerator::FoundJobs() const {
-    logger.msg(WARNING, "The TargetGenerator::FoundJobs method is DEPRECATED, use the GetFoundJobs method instead.");
-
-    if (foundJobs.size() != xmlFoundJobs.size()) {
-      std::list<Job>::const_iterator it = foundJobs.begin();
-      if (foundJobs.size() > xmlFoundJobs.size()) {
-        for (std::list<XMLNode*>::const_iterator xit = xmlFoundJobs.begin(); xit != xmlFoundJobs.end(); xit++) {
-          it++;
-        }
-      }
-
-      for (; it != foundJobs.end(); it++) {
-        // Ugly hack used here in order to preserve API, i.e. const-ness of the method.
-        const_cast<TargetGenerator*>(this)->xmlFoundJobs.push_back(new XMLNode(NS(), "Job"));
-        it->ToXML(*(const_cast<TargetGenerator*>(this)->xmlFoundJobs.back()));
-      }
-    }
-
-    return xmlFoundJobs;
-  }
-
   bool TargetGenerator::AddService(const std::string& flavour,
                                    const URL& url) {
     bool added = false;
@@ -205,21 +159,9 @@ namespace Arc {
     foundTargets.push_back(target);
   }
 
-  void TargetGenerator::AddJob(const XMLNode& job) {
-    logger.msg(WARNING, "The TargetGenerator::AddJob(const XMLNode&) method is DEPRECATED, use the AddJob(const Job&) method instead.");
-    Glib::Mutex::Lock jobLock(jobMutex);
-    Job j = job;
-    foundJobs.push_back(j);
-  }
-
   void TargetGenerator::AddJob(const Job& job) {
     Glib::Mutex::Lock jobLock(jobMutex);
     foundJobs.push_back(job);
-  }
-
-  void TargetGenerator::PrintTargetInfo(bool longlist) const {
-    logger.msg(WARNING, "The TargetGenerator::PrintTargetInfo method is DEPRECATED, use the TargetGenerator::SaveTargetInfoToStream method instead.");
-    SaveTargetInfoToStream(std::cout, longlist);
   }
 
   void TargetGenerator::SaveTargetInfoToStream(std::ostream& out, bool longlist) const {

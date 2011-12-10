@@ -221,11 +221,6 @@ namespace Arc {
     return IDFromEndpoint == other.IDFromEndpoint;
   }
 
-  void Job::Print(bool longlist) const {
-    logger.msg(WARNING, "The Job::Print method is DEPRECATED, use the Job::SaveToStream method instead.");
-    SaveToStream(std::cout, longlist);
-  }
-
   Job& Job::operator=(XMLNode job) {
     JXMLTOSTRING(Name)
     JXMLTOSTRING(Flavour)

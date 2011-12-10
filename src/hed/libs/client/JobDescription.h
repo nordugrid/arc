@@ -405,6 +405,11 @@ namespace Arc {
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
 
+    JobIdentificationType Identification;
+    ApplicationType Application;
+    ResourcesType Resources;
+    std::list<FileType> Files;
+
     JobDescription& operator=(const JobDescription& j);
 
     // Language wrapper constructor
@@ -422,15 +427,6 @@ namespace Arc {
     void UseOriginal();
 
     void RemoveAlternatives();
-
-    /// DEPRECATED: Check whether JobDescription is valid.
-    /**
-     * The JobDescription class itself is not able to tell whether its objects
-     * are valid or not. Instead when parsing/outputting, JobDescriptionParser
-     * classes checks the validity. Thus the Parse and UnParse methods should be
-     * used for this purpose.
-     **/
-    operator bool() const;
 
     /// Parse string into JobDescription objects
     /**
@@ -454,27 +450,6 @@ namespace Arc {
      **/
     static JobDescriptionResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "");
 
-    /// DEPRECATED: Parse source string
-    /**
-     * This method is deprecated, use the Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&)
-     * method instead.
-     **/
-    bool Parse(const std::string& source, const std::string& language = "", const std::string& dialect = "");
-
-    /// DEPRECATED: Parse source string
-    /**
-     * This method is deprecated, use the Parse(const std::string&, std::list<JobDescription>&, const std::string&, const std::string&)
-     * method instead.
-     **/
-    bool Parse(const XMLNode& xmlSource);
-
-    /// DEPRECATED: Output contents in the specified language
-    /**
-     * This method is deprecated, use the UnParse(std::string&, std::string, const std::string&)
-     * method instead.
-     **/
-    std::string UnParse(const std::string& language = "nordugrid:jsdl") const;
-
     /// Output contents in the specified language
     /**
      *
@@ -497,15 +472,6 @@ namespace Arc {
      **/
     const std::string& GetSourceLanguage() const { return sourceLanguage; }
 
-    /// DEPRECATED: Print all values to standard output.
-    /**
-     * This method is DEPRECATED, use the SaveToStream method instead.
-     *
-     * @param longlist
-     * @see SaveToStream
-     */
-    void Print(bool longlist = false) const;
-
     /// Print job description to a std::ostream object.
     /**
      * The job description will be written to the passed std::ostream object
@@ -524,11 +490,6 @@ namespace Arc {
      * @param format specifies the format the job description should written in.
      */
     JobDescriptionResult SaveToStream(std::ostream& out, const std::string& format) const;
-
-    JobIdentificationType Identification;
-    ApplicationType Application;
-    ResourcesType Resources;
-    std::list<FileType> Files;
 
     /// Holds attributes not fitting into this class
     /**

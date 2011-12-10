@@ -44,6 +44,7 @@ namespace Arc {
     */
     bool GetTestJob(const int& testid, JobDescription& jobdescription);
 
+    /// Submit job
     /**
      * This virtual method should be overridden by plugins which should
      * be capable of submitting jobs, defined in the JobDescription
@@ -52,9 +53,6 @@ namespace Arc {
      * This method should return the URL of the submitted job. In case
      * submission fails an empty URL should be returned.
      */
-    URL Submit(const JobDescription& jobdesc,
-               const ExecutionTarget& et);
-
     virtual bool Submit(const JobDescription& jobdesc,
                         const ExecutionTarget& et, Job& job) = 0;
 
@@ -62,6 +60,7 @@ namespace Arc {
       return target != NULL && Submit(jobdesc, *target, job);
     }
 
+    /// Migrate job
     /**
      * This virtual method should be overridden by plugins which should
      * be capable of migrating jobs. The active job which should be
@@ -73,10 +72,6 @@ namespace Arc {
      * This method should return the URL of the migrated job. In case
      * migration fails an empty URL should be returned.
      */
-    URL Migrate(const URL& jobid, const JobDescription& jobdesc,
-                const ExecutionTarget& et,
-                bool forcemigration);
-
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et,
                          bool forcemigration, Job& job) = 0;
@@ -91,19 +86,6 @@ namespace Arc {
     void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;
-    void AddJob(const JobDescription& job,
-                const URL& jobid,
-                const URL& cluster,
-                const URL& infoendpoint) const {
-      std::map<std::string, std::string> additionalInfo;
-      AddJob(job, jobid, cluster, infoendpoint, additionalInfo);
-    }
-    void AddJob(const JobDescription& job,
-                const URL& jobid,
-                const URL& cluster,
-                const URL& infoendpoint,
-                const std::map<std::string, std::string>& additionalInfo) const;
-
     void AddJobDetails(const JobDescription& jobdesc, const URL& jobid,
                        const URL& cluster, const URL& infoendpoint,
                        Job& job) const;

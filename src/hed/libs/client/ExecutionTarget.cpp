@@ -283,11 +283,6 @@ namespace Arc {
 
   }
 
-  void ExecutionTarget::Print(bool longlist) const {
-    logger.msg(WARNING, "The ExecutionTarget::Print method is DEPRECATED, use the ExecutionTarget::SaveToStream method instead.");
-    SaveToStream(std::cout, longlist);
-  }
-
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 
     out << IString("Execution Service: %s", (!ServiceName.empty() ? ServiceName : Cluster.Host())) << std::endl;

@@ -20,7 +20,7 @@ int main() {
     return 1;
   }
 
-  jds.front().Print();
+  jds.front().SaveToStream(std::cout, "user");
 
   std::string jobdescstring;
   jds.front().UnParse(jobdescstring, "egee:jdl");

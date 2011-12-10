@@ -61,26 +61,6 @@ namespace Arc {
     bool Clean(const std::list<std::string>& status,
                bool force);
 
-    /// DEPRECATED: Catenate a log-file to standard out
-    /**
-     * This method is DEPRECATED, use the Cat(std::ostream&, const std::list<std::string>&, const std::string&)
-     * instead.
-     *
-     * This method is not supposed to be overloaded by extending
-     * classes.
-     *
-     * @param status a list of strings representing states to be
-     *        considered.
-     * @param longlist a boolean indicating whether verbose job
-     *        information should be printed.
-     * @return This method always returns true.
-     * @see Cat(std::ostream&, const std::list<std::string>&, const std::string&)
-     * @see GetJobInformation
-     * @see JobState
-     **/
-    bool Cat(const std::list<std::string>& status,
-             const std::string& whichfile);
-
     /// Catenate a output log-file to a std::ostream object
     /**
      * The method catenates one of the log-files standard out or error, or the
@@ -109,25 +89,6 @@ namespace Arc {
     bool Cat(std::ostream& out,
              const std::list<std::string>& status,
              const std::string& whichfile);
-
-    /// DEPRECATED: Print job status to std::cout
-    /**
-     * This method is DEPRECATED, use the SaveJobStatusToStream instead.
-     *
-     * This method is not supposed to be overloaded by extending
-     * classes.
-     *
-     * @param status a list of strings representing states to be
-     *        considered.
-     * @param longlist a boolean indicating whether verbose job
-     *        information should be printed.
-     * @return This method always returns true.
-     * @see SaveJobStatusToStream
-     * @see GetJobInformation
-     * @see JobState
-     **/
-    bool PrintJobStatus(const std::list<std::string>& status,
-                        bool longlist);
 
     /// Print job status to a std::ostream object
     /**

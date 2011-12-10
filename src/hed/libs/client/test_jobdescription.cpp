@@ -81,15 +81,20 @@ int main(int argc, char **argv) {
         return 1;
       }
 
-      std::string test;
+      std::string jobdesc;
       if (requested_format == "") {
-        jds.front().Print(true);
-        std::cout << std::endl << " [ egee:jdl ] "       << std::endl << jds.front().UnParse("egee:jdl")       << std::endl;
-        std::cout << std::endl << " [ nordugrid:jsdl ] " << std::endl << jds.front().UnParse("nordugrid:jsdl") << std::endl;
-        std::cout << std::endl << " [ nordugrid:xrsl ] " << std::endl << jds.front().UnParse("nordugrid:xrsl") << std::endl;
+        jds.front().SaveToStream(std::cout, "userlong");
+        
+        jds.front().UnParse(jobdesc, "egee:jdl");
+        std::cout << std::endl << " [ egee:jdl ] "       << std::endl << jobdesc << std::endl;
+        jds.front().UnParse(jobdesc, "nordugrid:jsdl");
+        std::cout << std::endl << " [ nordugrid:jsdl ] " << std::endl << jobdesc << std::endl;
+        jds.front().UnParse(jobdesc, "nordugrid:xrsl");
+        std::cout << std::endl << " [ nordugrid:xrsl ] " << std::endl << jobdesc << std::endl;
       }
       else {
-        std::cout << std::endl << " [ " << requested_format << " ] " << std::endl << jds.front().UnParse(requested_format) << std::endl;
+        jds.front().UnParse(jobdesc, requested_format);
+        std::cout << std::endl << " [ " << requested_format << " ] " << std::endl << jobdesc << std::endl;
       }
     }
   }

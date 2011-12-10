@@ -54,22 +54,6 @@ namespace Arc {
     TargetGenerator(const UserConfig& usercfg, unsigned int startRetrieval = 0);
     ~TargetGenerator();
 
-    /// DEPRECATED: Find available targets
-    /**
-     * This method is DEPRECATED, use the RetrieveExecutionTargets() or
-     * RetrieveJobs() method instead.
-     * Method to prepare a list of chosen Targets with a specified
-     * detail level. Current implementation supports finding computing
-     * elements (ExecutionTarget) with full detail level and jobs
-     * with limited detail level.
-     *
-     * @param targetType 0 = ExecutionTarget, 1 = Grid jobs
-     * @param detailLevel
-     * @see RetrieveExecutionsTargets()
-     * @see RetrieveJobs()
-     **/
-    void GetTargets(int targetType, int detailLevel);
-
     /// Retrieve available execution services
     /**
      * The endpoints specified in the UserConfig object passed to this object
@@ -109,31 +93,6 @@ namespace Arc {
     const std::list<ExecutionTarget>& GetExecutionTargets() const { return foundTargets; }
     std::list<ExecutionTarget>& GetExecutionTargets() { return foundTargets; }
 
-    /// DEPRECATED: Return targets found by GetTargets
-    /**
-     * This method is DEPRECATED, use the FoundTargets() instead.
-     * Method to return the list of ExecutionTarget objects (currently
-     * only supported Target type) found by the GetTarget method.
-     **/
-    std::list<ExecutionTarget>& ModifyFoundTargets();
-
-    /// DEPRECATED: Return targets found by GetTargets
-    /**
-     * This method is DEPRECATED, use the FoundTargets() instead.
-     * Method to return the list of ExecutionTarget objects (currently
-     * only supported Target type) found by the GetTarget method.
-     **/
-    const std::list<ExecutionTarget>& FoundTargets() const { return foundTargets; }
-
-    /// DEPRECATED: Return jobs found by GetTargets
-    /**
-     * This method is DEPRECATED, use the GetFoundJobs method instead.
-     * Method to return the list of jobs found by a call to the GetJobs method.
-     *
-     * @return A list of jobs in XML format is returned.
-     **/
-    const std::list<XMLNode*>& FoundJobs() const;
-
     /// Return jobs retrieved by RetrieveJobs method
     /**
      * Method to return the list of jobs found by a call to the GetJobs method.
@@ -152,7 +111,6 @@ namespace Arc {
      *
      * @param flavour The flavour if the the computing service.
      * @param url URL pointing to the information system of the computing service.
-     *
      **/
     bool AddService(const std::string& Flavour, const URL& url);
 
@@ -180,17 +138,6 @@ namespace Arc {
      **/
     void AddTarget(const ExecutionTarget& target);
 
-    /// DEPRECATED: Add a new Job to this object
-    /**
-     * This method is DEPRECATED, use the AddJob(const Job&) method instead.
-     * Method to add a new Job (usually discovered by a TargetRetriever) to the
-     * internal list of jobs in a thread secure way.
-     *
-     * @param job XMLNode describing the job.
-     **/
-    // XMLNode is reference by itself - passing it as const& has no sense
-    void AddJob(const XMLNode& job);
-
     /// Add a new Job to this object
     /**
      * Method to add a new Job (usually discovered by a TargetRetriever) to the
@@ -200,16 +147,6 @@ namespace Arc {
      * @see AddJob(const Job&)
      **/
     void AddJob(const Job& job);
-
-    /// DEPRECATED: Prints target information
-    /**
-     * This method is DEPRECATED, use the SaveTargetInfoToStream method instead.
-     * Method to print information of the found targets to std::cout.
-     *
-     * @param longlist false for minimal information, true for detailed information
-     * @see SaveTargetInfoToStream
-     **/
-    void PrintTargetInfo(bool longlist) const;
 
     /// Prints target information
     /**
@@ -240,7 +177,6 @@ namespace Arc {
     std::map<std::string, std::list<URL> > foundIndexServers;
     std::list<ExecutionTarget> foundTargets;
     std::list<Job> foundJobs;
-    std::list<XMLNode*> xmlFoundJobs;
 
     Glib::Mutex serviceMutex;
     Glib::Mutex indexServerMutex;

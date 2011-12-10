@@ -149,16 +149,6 @@ namespace Arc {
      **/
     void Update(const JobDescription& jobdesc);
 
-    /// DEPRECATED: Print the ExecutionTarget information to std::cout
-    /**
-     * This method is deprecated, use the SaveToStream method instead. Method to
-     * print the ExecutionTarget attributes to std::cout
-     *
-     * @param longlist is true for long list printing.
-     * @see SaveToStream
-     **/
-    void Print(bool longlist) const;
-
     /// Print the ExecutionTarget information to a std::ostream object
     /**
      * Method to print the ExecutionTarget attributes to a std::ostream object.
