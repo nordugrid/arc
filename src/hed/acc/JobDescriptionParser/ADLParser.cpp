@@ -584,9 +584,10 @@ namespace Arc {
             //return false;
           }
           if((bool)source["adl:Option"]) {
-            logger.msg(ERROR, "[ADLParser] Option in Source is not supported yet.");
-            jobdescs.clear();
-            return false;
+            XMLNode option = source["adl:Option"];
+            for(;(bool)option;++option) {
+              surl.AddOption(option["adl:Name"],option["adl:Value"],true);
+            };
           }
           file.Source.push_back(surl);
         }
@@ -618,9 +619,10 @@ namespace Arc {
             //return false;
           }
           if((bool)target["adl:Option"]) {
-            logger.msg(ERROR, "[ADLParser] Option in Target is not supported yet.");
-            jobdescs.clear();
-            return false;
+            XMLNode option = target["adl:Option"];
+            for(;(bool)option;++option) {
+              turl.AddOption(option["adl:Name"],option["adl:Value"],true);
+            };
           }
           bool mandatory = false;
           if(!ParseFlag(target["adl:Mandatory"],logger,mandatory)) {
@@ -840,10 +842,19 @@ namespace Arc {
         for(std::list<URL>::const_iterator u = it->Source.begin();
                        u != it->Source.end(); ++u) {
           if(!*u) continue; // mandatory
+          // It is not correct to do job description transformation 
+          // in parser. Parser should be dumb. Other solution is needed.
+          if(u->Protocol() == "file") continue;
           XMLNode source = file.NewChild("Source");
-          source.NewChild("URI") = u->str(); // TODO file://
-          //source.NewChild("DelegationID") = ; TODO
-          //source.NewChild("Option") = ; TODO
+          source.NewChild("URI") = u->str();
+          const std::map<std::string,std::string>& options = u->Options();
+          for(std::map<std::string,std::string>::const_iterator o = options.begin();
+                              o != options.end();++o) {
+            XMLNode option = source.NewChild("Option");
+            option.NewChild("Name") = o->first;
+            option.NewChild("Value") = o->second;
+          }
+          //source.NewChild("DelegationID") = ; TODO?
         }
         if(it->IsExecutable || it->Name == job.Application.Executable.Path) {
           file.NewChild("IsExecutable") = "true";
@@ -863,8 +874,18 @@ namespace Arc {
           if(!*u) continue; // mandatory
           XMLNode target = file.NewChild("Target");
           target.NewChild("URI") = u->str();
+          const std::map<std::string,std::string>& options = u->Options();
+          for(std::map<std::string,std::string>::const_iterator o = options.begin();
+                              o != options.end();++o) {
+            if(o->first == "mandatory") continue;
+            if(o->first == "useiffailure") continue;
+            if(o->first == "useifcancel") continue;
+            if(o->first == "useifsuccess") continue;
+            XMLNode option = target.NewChild("Option");
+            option.NewChild("Name") = o->first;
+            option.NewChild("Value") = o->second;
+          }
           // target.NewChild("DelegationID") = ;
-          // target.NewChild("Option") = ;
           target.NewChild("Mandatory") = u->Option("mandatory","false");
           // target.NewChild("CreationFlag") = ;
           target.NewChild("UseIfFailure") = u->Option("useiffailure","false");
