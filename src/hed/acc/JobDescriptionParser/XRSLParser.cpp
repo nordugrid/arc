@@ -657,7 +657,7 @@ namespace Arc {
 
           FileType file;
           file.Name = *it2++;
-          
+
           // Check whether the second string exists in the list
           if (it2 == it->end()) {
             return false;
@@ -1150,7 +1150,9 @@ namespace Arc {
           return false;
         if (!URL(jobreport))
           return false;
-        j.Application.RemoteLogging.push_back(URL(jobreport));
+        j.Application.RemoteLogging.push_back(RemoteLoggingType());
+        j.Application.RemoteLogging.back().Location = URL(jobreport);
+        j.Application.RemoteLogging.back().ServiceType = "SGAS";
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
           it->Application.RemoteLogging.push_back(j.Application.RemoteLogging.back());
@@ -1568,9 +1570,17 @@ namespace Arc {
     }
 
     if (!j.Application.RemoteLogging.empty()) {
-      RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(j.Application.RemoteLogging.front().fullstr()));
-      r.Add(new RSLCondition("jobreport", RSLEqual, l));
+      // Pick first SGAS remote logging service.
+      for (std::list<RemoteLoggingType>::const_iterator it = j.Application.RemoteLogging.begin();
+           it != j.Application.RemoteLogging.end(); ++it) {
+        if (it->ServiceType == "SGAS") {
+          // Ignoring the optional attribute.
+          RSLList *l = new RSLList;
+          l->Add(new RSLLiteral(it->Location.str()));
+          r.Add(new RSLCondition("jobreport", RSLEqual, l));
+          break;
+        }
+      }
     }
 
     if (!j.Application.CredentialService.empty()) {

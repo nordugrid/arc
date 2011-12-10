@@ -292,9 +292,13 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   stdlog = arc_job_desc.Application.LogDir;
 
   jobreport.clear();
-  for (std::list<Arc::URL>::const_iterator it = arc_job_desc.Application.RemoteLogging.begin();
-       it != arc_job_desc.Application.RemoteLogging.end(); it++) {
-    jobreport.push_back(it->str());
+  for (std::list<Arc::RemoteLoggingType>::const_iterator it = arc_job_desc.Application.RemoteLogging.begin();
+       it != arc_job_desc.Application.RemoteLogging.end(); ++it) {
+    // TODO: Support optional requirement.
+    // TODO: Support other types than SGAS.
+    if (it->ServiceType == "SGAS") {
+      jobreport.push_back(it->Location.str());
+    }
   }
 
   notify.clear();

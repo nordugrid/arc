@@ -52,8 +52,6 @@ namespace Arc {
     int scaleMax(double s) const { return (int)(range.max*benchmark.second/s); }
   };
 
-
-
   /// Job identification
   /**
    * This class serves to provide human readable information about a job
@@ -148,6 +146,40 @@ namespace Arc {
     std::pair<bool, int> SuccessExitCode;
   };
 
+  /// Remote logging
+  /**
+   * This class is used to specify a service which should be used to report
+   * logging information to, such as job resource usage.
+   **/
+  class RemoteLoggingType {
+  public:
+    RemoteLoggingType() : optional(false) {}
+
+    /// Type of logging service
+    /**
+     * The ServiceType string specifies the type of logging service. Some
+     * examples are "SGAS" (http://www.sgas.se) and "APEL"
+     * (https://wiki.egi.eu/wiki/APEL), however please refer to the particular
+     * execution service for a list of supported logging service types.
+     **/
+    std::string ServiceType;
+
+    /// URL of logging service
+    /**
+     * The Location URL specifies the URL of the service which job logging
+     * information should be sent to.
+     **/
+    URL Location;
+
+    /// Requirement satisfaction switch
+    /**
+     * The optional boolean specifies whether the requirement specified in the
+     * particular object is mandatory for job execution, or whether it be
+     * ignored.
+     **/
+     bool optional;
+  };
+
   class NotificationType {
   public:
     NotificationType() {}
@@ -194,7 +226,7 @@ namespace Arc {
      * of the file which standard error of the job should be written to.
      **/
     std::string Error;
-    
+
     std::list< std::pair<std::string, std::string> > Environment;
 
     /// Executables to be run before the main executable
@@ -222,7 +254,13 @@ namespace Arc {
      **/
     std::string LogDir;
 
-    std::list<URL> RemoteLogging;
+    /// Remote logging services
+    /**
+     * The RemoteLogging list specifies the services to use for logging job
+     * information. See the RemoteLoggingType class for more details.
+     **/
+    std::list<RemoteLoggingType> RemoteLogging;
+
     int Rerun;
     Time ExpiryTime;
     Time ProcessingStartTime;

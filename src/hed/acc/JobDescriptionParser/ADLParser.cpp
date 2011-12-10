@@ -79,12 +79,12 @@ namespace Arc {
     if (!sec.first) {
       return true;
     }
-    
+
     if(!stringto((std::string)failcode, sec.second)) {
       logger.msg(ERROR, "[ADLParser] Code in FailIfExitCodeNotEqualTo in %s is not valid number.",executable.Name());
       return false;
     }
-    
+
     if(dialect == "GRIDMANAGER" && sec.second != 0) {
       logger.msg(ERROR, "[ADLParser] FailIfExitCodeNotEqualTo in %s contain non-zero code. This feature is not supported yet.", executable.Name());
       return false;
@@ -374,21 +374,16 @@ namespace Arc {
       job.Application.LogDir = (std::string)application["LoggingDirectory"];
       for(XMLNode logging = application["adl:RemoteLogging"];
                                 (bool)logging;++logging) {
-        if((std::string)logging["adl:ServiceType"] != "SGAS") {
-          logger.msg(ERROR, "[ADLParser] Only SGAS ServiceType for RemoteLogging is supported yet.");
-          jobdescs.clear();
-          return false;
-        }
         URL surl((std::string)logging["adl:URL"]);
         if(!surl) {
           logger.msg(ERROR, "[ADLParser] Unsupported URL %s for RemoteLogging.",(std::string)logging["adl:URL"]);
           jobdescs.clear();
           return false;
         }
-        if(!ParseOptional(logging,logger)) {
-          jobdescs.clear();
-          return false;
-        }
+        job.Application.RemoteLogging.push_back(RemoteLoggingType());
+        job.Application.RemoteLogging.back().ServiceType = (std::string)logging["adl:ServiceType"];
+        job.Application.RemoteLogging.back().Location    = (std::string)logging["adl:URL"];
+        job.Application.RemoteLogging.back().optional    = IsOptional(logging);
       }
       XMLNode expire =  application["adl:ExpirationTime"];
       if((bool)expire) {
@@ -723,11 +718,12 @@ namespace Arc {
       }
     }
     if(!job.Application.LogDir.empty()) application.NewChild("LoggingDirectory") = job.Application.LogDir;
-    for (std::list<URL>::const_iterator it = job.Application.RemoteLogging.begin();
+    for (std::list<RemoteLoggingType>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++) {
       XMLNode logging = application.NewChild("RemoteLogging");
-      logging.NewChild("ServiceType") = "SGAS"; // ???
-      logging.NewChild("URL") = it->str();
+      logging.NewChild("ServiceType") = it->ServiceType;
+      logging.NewChild("URL") = it->Location.str();
+      logging.NewAttribute("optional") = (it->optional ? "true" : "false");
     }
     if(job.Application.ExpiryTime > -1) application.NewChild("ExpirationTime") = job.Application.ExpiryTime.str();
     if(job.Resources.SessionLifeTime > -1) application.NewChild("WipeTime") = tostring(job.Resources.SessionLifeTime); // TODO: use ADL types
@@ -741,7 +737,6 @@ namespace Arc {
         notification.NewChild("OnState") = *s; // TODO: convert to EMI ES states
       }
     }
-    // job.Application.LogDir
     // job.Application.Rerun
     // job.Application.Priority
     // job.Application.ProcessingStartTime
@@ -842,7 +837,7 @@ namespace Arc {
         for(std::list<URL>::const_iterator u = it->Source.begin();
                        u != it->Source.end(); ++u) {
           if(!*u) continue; // mandatory
-          // It is not correct to do job description transformation 
+          // It is not correct to do job description transformation
           // in parser. Parser should be dumb. Other solution is needed.
           if(u->Protocol() == "file") continue;
           XMLNode source = file.NewChild("Source");

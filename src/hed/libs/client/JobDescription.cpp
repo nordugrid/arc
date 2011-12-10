@@ -124,9 +124,14 @@ namespace Arc {
       STRPRINT(out, Application.Error, Error)
 
       if (!Application.RemoteLogging.empty()) {
-        std::list<URL>::const_iterator iter = Application.RemoteLogging.begin();
+        std::list<RemoteLoggingType>::const_iterator iter = Application.RemoteLogging.begin();
         for (; iter != Application.RemoteLogging.end(); iter++) {
-          out << IString(" RemoteLogging: %s", iter->fullstr()) << std::endl;
+          if (iter->optional) {
+            out << IString(" RemoteLogging (optional): %s (%s)", iter->Location.fullstr(), iter->ServiceType) << std::endl;
+          }
+          else {
+            out << IString(" RemoteLogging: %s (%s)", iter->Location.fullstr(), iter->ServiceType) << std::endl;
+          }
         }
       }
 

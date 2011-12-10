@@ -314,7 +314,9 @@ namespace Arc {
         jobdescs.clear();
         return false;
       }
-      job.Application.RemoteLogging.push_back(url);
+      job.Application.RemoteLogging.push_back(RemoteLoggingType());
+      job.Application.RemoteLogging.back().ServiceType = "SGAS";
+      job.Application.RemoteLogging.back().Location = url;
     }
 
     // int Rerun;
@@ -795,9 +797,12 @@ namespace Arc {
       xmlApplication.NewChild("LogDir") = job.Application.LogDir;
 
     // std::list<URL> RemoteLogging;
-    for (std::list<URL>::const_iterator it = job.Application.RemoteLogging.begin();
-         it != job.Application.RemoteLogging.end(); it++)
-      xmlApplication.NewChild("RemoteLogging") = it->str();
+    for (std::list<RemoteLoggingType>::const_iterator it = job.Application.RemoteLogging.begin();
+         it != job.Application.RemoteLogging.end(); it++) {
+      if (it->ServiceType == "SGAS") {
+        xmlApplication.NewChild("RemoteLogging") = it->Location.str();
+      }
+    }
 
     // int Rerun;
     if (job.Application.Rerun > -1)

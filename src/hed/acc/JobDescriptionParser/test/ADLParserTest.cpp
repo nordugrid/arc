@@ -25,6 +25,7 @@ class ADLParserTest
   CPPUNIT_TEST(PreExecutableTest);
   CPPUNIT_TEST(PostExecutableTest);
   CPPUNIT_TEST(LoggingDirectoryTest);
+  CPPUNIT_TEST(RemoteLoggingTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -44,6 +45,7 @@ public:
   void PreExecutableTest();
   void PostExecutableTest();
   void LoggingDirectoryTest();
+  void RemoteLoggingTest();
 
 private:
   Arc::JobDescription INJOB;
@@ -266,7 +268,7 @@ void ADLParserTest::InputTest() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-input", OUTJOBS.front().Application.Input);
-  
+
   std::string parsed_adl;
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
   OUTJOBS.clear();
@@ -288,7 +290,7 @@ void ADLParserTest::OutputTest() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-output", OUTJOBS.front().Application.Output);
-  
+
   std::string parsed_adl;
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
   OUTJOBS.clear();
@@ -310,7 +312,7 @@ void ADLParserTest::ErrorTest() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"standard-emi-error", OUTJOBS.front().Application.Error);
-  
+
   std::string parsed_adl;
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
   OUTJOBS.clear();
@@ -454,7 +456,7 @@ void ADLParserTest::LoggingDirectoryTest() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"job-log", OUTJOBS.front().Application.LogDir);
-  
+
   std::string parsed_adl;
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
   OUTJOBS.clear();
@@ -462,6 +464,65 @@ void ADLParserTest::LoggingDirectoryTest() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"job-log", OUTJOBS.front().Application.LogDir);
+}
+
+void ADLParserTest::RemoteLoggingTest() {
+  const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:RemoteLogging optional=\"false\">"
+"<adl:ServiceType>SGAS</adl:ServiceType>"
+"<adl:URL>https://sgas.eu-emi.eu/</adl:URL>"
+"</adl:RemoteLogging>"
+"<adl:RemoteLogging optional=\"true\">"
+"<adl:ServiceType>APEL</adl:ServiceType>"
+"<adl:URL>https://apel.eu-emi.eu/</adl:URL>"
+"</adl:RemoteLogging>"
+"<adl:RemoteLogging>"
+"<adl:ServiceType>FOO</adl:ServiceType>"
+"<adl:URL>https://foo.eu-emi.eu/</adl:URL>"
+"</adl:RemoteLogging>"
+"</adl:Application>"
+"</adl:ActivityDescription>";
+
+  CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL(3, (int)OUTJOBS.front().Application.RemoteLogging.size());
+  std::list<Arc::RemoteLoggingType>::const_iterator itRLT = OUTJOBS.front().Application.RemoteLogging.begin();
+  CPPUNIT_ASSERT_EQUAL((std::string)"SGAS", itRLT->ServiceType);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://sgas.eu-emi.eu/"), itRLT->Location);
+  CPPUNIT_ASSERT(!itRLT->optional);
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() != ++itRLT);
+  CPPUNIT_ASSERT_EQUAL((std::string)"APEL", itRLT->ServiceType);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://apel.eu-emi.eu/"), itRLT->Location);
+  CPPUNIT_ASSERT(itRLT->optional);
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() != ++itRLT);
+  CPPUNIT_ASSERT_EQUAL((std::string)"FOO", itRLT->ServiceType);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://foo.eu-emi.eu/"), itRLT->Location);
+  CPPUNIT_ASSERT(!itRLT->optional);
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() == ++itRLT);
+
+  std::string parsed_adl;
+  CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), parsed_adl, "emies:adl"));
+  OUTJOBS.clear();
+  CPPUNIT_ASSERT(PARSER.Parse(parsed_adl, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+  CPPUNIT_ASSERT_EQUAL(3, (int)OUTJOBS.front().Application.RemoteLogging.size());
+  itRLT = OUTJOBS.front().Application.RemoteLogging.begin();
+  CPPUNIT_ASSERT_EQUAL((std::string)"SGAS", itRLT->ServiceType);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://sgas.eu-emi.eu/"), itRLT->Location);
+  CPPUNIT_ASSERT(!itRLT->optional);
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() != ++itRLT);
+  CPPUNIT_ASSERT_EQUAL((std::string)"APEL", itRLT->ServiceType);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://apel.eu-emi.eu/"), itRLT->Location);
+  CPPUNIT_ASSERT(itRLT->optional);
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() != ++itRLT);
+  CPPUNIT_ASSERT_EQUAL((std::string)"FOO", itRLT->ServiceType);
+  CPPUNIT_ASSERT_EQUAL(Arc::URL("https://foo.eu-emi.eu/"), itRLT->Location);
+  CPPUNIT_ASSERT(!itRLT->optional);
+  CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() == ++itRLT);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ADLParserTest);
