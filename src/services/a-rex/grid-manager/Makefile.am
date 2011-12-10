@@ -40,4 +40,5 @@ arc_vomsac_check_SOURCES = arc_vomsac_check.cpp
 arc_vomsac_check_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arc_vomsac_check_LDADD = $(top_builddir)/src/hed/libs/credential/libarccredential.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(GLIBMM_LIBS)
