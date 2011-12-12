@@ -574,7 +574,7 @@ sub collect($) {
     }
 
     my $admindomain = $config->{AdminDomain};
-    my $servicename = $admindomain.":".$config->{service}{ClusterName};
+    my $servicename = $config->{service}{ClusterName};
 
     my $arexhostport = $config->{arexhostport};
 
@@ -665,33 +665,7 @@ sub collect($) {
                             + ( $gmtotalcount{finishing} || 0 );
         $csv->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-        if (my $lconfig = $config->{location}) {
-            my $count = 1;
-            $csv->{Location} = sub {
-                return undef if $count-- == 0;
-                my $loc = {};
-                $loc->{ID} = "urn:ogf:Location:$servicename";
-                for (qw(Name Address Place PostCode Country Latitude Longitude)) {
-                    $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
-                }
-                return $loc;
-            }
-        }
-        if (my $cconfs = $config->{contacts}) {
-            my $i = 0;
-            $csv->{Contacts} = sub {
-                return undef unless $i < length @$cconfs;
-                my $cconfig = $cconfs->[$i++];
-                my $detail = $cconfig->{Detail};
-                my $cont = {};
-                $cont->{ID} = "urn:ogf:Contact:$servicename:$detail";
-                for (qw(Name Detail Type)) {
-                    $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
-                }
-                return $cont;
-            };
-        }
-
+        # Here comes a list of endpoints we support.
 
         # ComputingEndpoint
 
@@ -1433,12 +1407,50 @@ sub collect($) {
 
     my $getAdminDomain = sub {
         my $dom = { ID => $adID,
-                    Name => $config->{AdminDomain},
-                    ComputingService => $getComputingService };
+                    Name => $config->{AdminDomain}
+                  };
+
+        # Location and Contact goes here.
+	# TODOFLO: remember to sync ForeignKeys
+        if (my $lconfig = $config->{location}) {
+            my $count = 1;
+            $dom->{Location} = sub {
+                return undef if $count-- == 0;
+                my $loc = {};
+                $loc->{ID} = "urn:ogf:Location:$admindomain";
+                for (qw(Name Address Place PostCode Country Latitude Longitude)) {
+                    $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
+                }
+                return $loc;
+            }
+        }
+        if (my $cconfs = $config->{contacts}) {
+            my $i = 0;
+            $dom->{Contacts} = sub {
+                return undef unless $i < length @$cconfs;
+                my $cconfig = $cconfs->[$i++];
+                my $detail = $cconfig->{Detail};
+                my $cont = {};
+                $cont->{ID} = "urn:ogf:Contact:$admindomain:$detail";
+                for (qw(Name Detail Type)) {
+                    $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
+                }
+                return $cont;
+            };
+        }
+
         return $dom;
     };
 
-    return $getAdminDomain;
+    # returns the two branches for =grid and =resoruce GroupID.
+    # It's not optimal but it doesn't break recursion
+    my $GLUE2InfoTreeRoot = sub {
+        my $treeroot = { AdminDomain => $getAdminDomain,
+		         ComputingService => $getComputingService};
+        return $treeroot;
+    };
+
+    return $GLUE2InfoTreeRoot;
 
 }
 

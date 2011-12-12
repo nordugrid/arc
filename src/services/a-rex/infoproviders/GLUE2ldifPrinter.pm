@@ -429,7 +429,9 @@ sub Contacts {
 sub AdminDomain {
     LdifPrinter::Entry(@_, 'GLUE2Domain', 'ID', \&AdminDomainAttributes, sub {
         my ($self, $data) = @_;
-        $self->ComputingService($data->{ComputingService});
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
+        #$self->ComputingService($data->{ComputingService});
     });
 }
 
@@ -444,8 +446,6 @@ sub MappingPolicies {
 sub ComputingService {
     LdifPrinter::Entry(@_, 'GLUE2Service', 'ID', \&ComputingServiceAttributes, sub {
         my ($self, $data) = @_;
-        $self->Location($data->{Location});
-        $self->Contacts($data->{Contacts});
         $self->ComputingEndpoint($data->{ComputingEndpoint});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
@@ -519,7 +519,14 @@ sub Top {
     #$self->attribute(objectClass => "top");
     #$self->attribute(objectClass => "organization");
     #$self->attribute(o => "glue");
-    $self->AdminDomain($data);
+    # builds the grid subtree, with domain information
+    $self->beginGroup("grid");
+    $self->AdminDomain(&$data->{AdminDomain});
+    $self->end;
+    $self->beginGroup("resource");
+    $self->ComputingService(&$data->{ComputingService});
+    $self->end;
+
 }
 
 1;
