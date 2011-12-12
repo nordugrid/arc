@@ -201,7 +201,7 @@ bool JobLog::RunReporter(JobUsers &users) {
   if(users.size() <= 0) return true; // no users to report
   const char** args = (const char**)malloc(sizeof(char*)*(users.size()+6)); 
   if(args == NULL) return false;
-  std::string cmd = users.Env().nordugrid_libexec_loc()+"/logger";
+  std::string cmd = users.Env().nordugrid_libexec_loc()+"/"+logger;
   int argc=0; args[argc++]=(char*)cmd.c_str();
   std::string ex_str = Arc::tostring(ex_period);
   if(ex_period) {
@@ -220,6 +220,11 @@ bool JobLog::RunReporter(JobUsers &users) {
 }
 
 #endif // NO_GLOBUS_CODE
+
+bool JobLog::SetLogger(const char* fname) {
+  if(fname) logger = (std::string(fname));
+  return true;
+}
 
 bool JobLog::SetReporter(const char* destination) {
   if(destination) urls.push_back(std::string(destination));

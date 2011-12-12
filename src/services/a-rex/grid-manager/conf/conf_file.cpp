@@ -719,6 +719,11 @@ bool configure_serviced_users(Arc::XMLNode cfg,JobUsers &users,uid_t my_uid,cons
     if(!url.empty()) {
       // destination is required
       users.Env().job_log().SetReporter(url.c_str());
+      std::string publisher = tmp_node["publisher"];
+      if(publisher.empty()) {
+        publisher = "jura";
+      }
+      users.Env().job_log().SetReporter(publisher.c_str());
       unsigned int i;
       if(Arc::stringto(tmp_node["expiration"],i)) users.Env().job_log().SetExpiration(i);
       std::string parameters = tmp_node["parameters"];

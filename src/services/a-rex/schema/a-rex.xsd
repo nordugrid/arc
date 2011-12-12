@@ -539,6 +539,8 @@
 
     <xsd:complexType name="jobReport_Type">
        <xsd:sequence>
+           <xsd:element name="publisher" type="xsd:string"
+                            minOccurs="0"/>
            <xsd:element name="destination" type="xsd:anyURI"/>
            <xsd:element name="expiration" type="xsd:nonNegativeInteger"
                             minOccurs="0"/>

@@ -20,6 +20,7 @@ class JobLog {
   std::list<std::string> report_config; // additional configuration for usage reporter
   std::string certificate_path;
   std::string ca_certificates_dir;
+  std::string logger;
   Arc::Run *proc;
   time_t last_run;
   time_t ex_period;
@@ -39,6 +40,8 @@ class JobLog {
   bool is_reporting(void) { return (!urls.empty()); };
   /* Run external utility to report gathered information to logger service */
   bool RunReporter(JobUsers& users);
+  /* Set name of the accounting reporter */
+  bool SetLogger(const char* fname);
   /* Set url of service and local name to use */
   // bool SetReporter(const char* destination,const char* name = NULL);
   bool SetReporter(const char* destination);
