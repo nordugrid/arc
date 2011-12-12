@@ -270,12 +270,12 @@ namespace Arc {
           out << IString(" File element:") << std::endl;
           out << IString("     Name: %s", iter->Name) << std::endl;
 
-          std::list<URL>::const_iterator itSource = iter->Source.begin();
+          std::list<SourceType>::const_iterator itSource = iter->Source.begin();
           for (; itSource != iter->Source.end(); itSource++) {
             out << IString("     Source.URI: %s", itSource->fullstr()) << std::endl;
           }
 
-          std::list<URL>::const_iterator itTarget = iter->Target.begin();
+          std::list<TargetType>::const_iterator itTarget = iter->Target.begin();
           for (; itTarget != iter->Target.end(); itTarget++) {
             out << IString("     Target.URI: %s", itTarget->fullstr()) << std::endl;
           }

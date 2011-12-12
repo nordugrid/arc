@@ -349,6 +349,23 @@ namespace Arc {
     SoftwareRequirement RunTimeEnvironment;
   };
 
+  class SourceType: public URL {
+  public:
+    SourceType() {};
+    SourceType(const URL& u):URL(u) {};
+    SourceType(const std::string& s):URL(s) {};
+    SourceType& operator=(const URL& u) { URL::operator=(u); return *this; };
+    SourceType& operator=(const std::string& s) { URL::operator=(s); return *this; };
+    std::string DelegationID;
+  };
+
+  class TargetType: public URL {
+  public:
+    TargetType() {};
+    TargetType(const URL& u):URL(u) {};
+    std::string DelegationID;
+  };
+
   class FileType {
   public:
     FileType() :
@@ -359,9 +376,8 @@ namespace Arc {
     std::string Name;
     bool KeepData;
     bool IsExecutable;
-    std::list<URL> Source;
-    std::list<URL> Target;
-    std::string DelegationID;
+    std::list<SourceType> Source;
+    std::list<TargetType> Target;
     long FileSize;
     /// MD5 checksum of file
     /**

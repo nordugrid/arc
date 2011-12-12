@@ -565,18 +565,14 @@ namespace Arc {
         std::string ex = input["adl:IsExecutable"];
         file.IsExecutable = !(ex.empty() || (ex == "false") || (ex == "0"));
         for(XMLNode source = input["adl:Source"];(bool)source;++source) {
-          URL surl((std::string)source["adl:URI"]);
+          SourceType surl((std::string)source["adl:URI"]);
           if(!surl) {
             logger.msg(ERROR, "[ADLParser] Wrong URI specified in Source - %s.",(std::string)source["adl:URI"]);
             jobdescs.clear();
             return false;
           }
           if((bool)source["adl:DelegationID"]) {
-            // TODO: support per source
-            file.DelegationID = (std::string)source["adl:DelegationID"];
-            //logger.msg(ERROR, "[ADLParser] DelegationID in Source is not supported yet.");
-            //jobdescs.clear();
-            //return false;
+            surl.DelegationID = (std::string)source["adl:DelegationID"];
           }
           if((bool)source["adl:Option"]) {
             XMLNode option = source["adl:Option"];
@@ -600,18 +596,14 @@ namespace Arc {
         file.KeepData = false;
         file.IsExecutable = false;
         for(XMLNode target = output["adl:Target"];(bool)target;++target) {
-          URL turl((std::string)target["adl:URI"]);
+          TargetType turl((std::string)target["adl:URI"]);
           if(!turl) {
             logger.msg(ERROR, "[ADLParser] Wrong URI specified in Target - %s.",(std::string)target["adl:URI"]);
             jobdescs.clear();
             return false;
           }
           if((bool)target["adl:DelegationID"]) {
-            // TODO: support per target
-            file.DelegationID = (std::string)target["adl:DelegationID"];
-            //logger.msg(ERROR, "[ADLParser] DelegationID in Target is not supported yet.");
-            //jobdescs.clear();
-            //return false;
+            turl.DelegationID = (std::string)target["adl:DelegationID"];
           }
           if((bool)target["adl:Option"]) {
             XMLNode option = target["adl:Option"];
@@ -834,7 +826,7 @@ namespace Arc {
       if(!it->Source.empty()) {
         XMLNode file = staging.NewChild("InputFile");
         file.NewChild("Name") = it->Name;
-        for(std::list<URL>::const_iterator u = it->Source.begin();
+        for(std::list<SourceType>::const_iterator u = it->Source.begin();
                        u != it->Source.end(); ++u) {
           if(!*u) continue; // mandatory
           // It is not correct to do job description transformation
@@ -864,7 +856,7 @@ namespace Arc {
       if(it->KeepData || !it->Target.empty()) {
         XMLNode file = staging.NewChild("OutputFile");
         file.NewChild("Name") = it->Name;
-        for(std::list<URL>::const_iterator u = it->Target.begin();
+        for(std::list<TargetType>::const_iterator u = it->Target.begin();
                        u != it->Target.end(); ++u) {
           if(!*u) continue; // mandatory
           XMLNode target = file.NewChild("Target");

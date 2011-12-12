@@ -264,7 +264,7 @@ namespace Arc {
     if (!jobdesc.Application.Input.empty() && !inputIsAdded) {
       FileType file;
       file.Name = jobdesc.Application.Input;
-      file.Source.push_back(file.Name);
+      file.Source.push_back(URL(file.Name));
       file.KeepData = false;
       file.IsExecutable = false;
       jobdesc.Files.push_back(file);

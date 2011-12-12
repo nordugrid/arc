@@ -199,7 +199,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     // Because ARC job description does not keep enough information
     // about initial JSDL description we have to make some guesses here.
     if(!file->Source.empty()) { // input file
-      // Only one source per file supported
+      // Only one source per file is used
       if(fname == "/") {
         // Unnamed file is used to mark request for free stage in
         freestagein = true;
@@ -210,7 +210,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
           inputdata.back().lfn = file->Source.front().fullstr();
           // It is not possible to extract credentials path here.
           // So temporarily storing id here.
-          inputdata.back().cred = file->DelegationID;
+          inputdata.back().cred = file->Source.front().DelegationID;
           ++downloads;
         }
 
@@ -232,7 +232,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       }
     }
     if (!file->Target.empty()) { // output file
-      for(std::list<Arc::URL>::const_iterator target = file->Target.begin();
+      for(std::list<Arc::TargetType>::const_iterator target = file->Target.begin();
                               target != file->Target.end(); ++target) {
         FileData fdata(fname, target->fullstr());
         outputdata.push_back(fdata);
@@ -256,7 +256,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
           outputdata.back().lfn = u.fullstr();
           // It is not possible to extract credentials path here.
           // So temporarily storing id here.
-          outputdata.back().cred = file->DelegationID;
+          outputdata.back().cred = target->DelegationID;
         }
       }
     }

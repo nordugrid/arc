@@ -440,7 +440,12 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     desc = descs.front();
     // Delegation id can be found in local description and in parsed job description
     for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
-      if(!f->DelegationID.empty()) deleg_ids.push_back(f->DelegationID);
+      for(std::list<Arc::SourceType>::iterator s = f->Source.begin();s != f->Source.end();++s) {
+        if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
+      };
+      for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
+        if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
+      };
     };
   };
   // Write grami file

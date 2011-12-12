@@ -120,11 +120,11 @@ namespace Arc {
 
     for (std::list<FileType>::iterator itF = j.Files.begin();
          itF != j.Files.end(); itF++) {
-      for (std::list<URL>::iterator itS = itF->Source.begin();
+      for (std::list<SourceType>::iterator itS = itF->Source.begin();
            itS != itF->Source.end(); itS++) {
         itS->AddOption("threads", itAtt->second);
       }
-      for (std::list<URL>::iterator itT = itF->Target.begin();
+      for (std::list<TargetType>::iterator itT = itF->Target.begin();
            itT != itF->Target.end(); itT++) {
         itT->AddOption("threads", itAtt->second);
       }
@@ -145,7 +145,7 @@ namespace Arc {
     for (std::list<FileType>::iterator itF = j.Files.begin();
          itF != j.Files.end(); itF++) {
       if (!itF->IsExecutable) {
-        for (std::list<URL>::iterator itS = itF->Source.begin();
+        for (std::list<SourceType>::iterator itS = itF->Source.begin();
              itS != itF->Source.end(); itS++) {
           itS->AddOption("cache", itAtt->second);
         }
