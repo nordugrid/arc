@@ -92,7 +92,11 @@ namespace Arc
 	    std::string fname=job_log_dir+"/"+entp->d_name;
 	    logfile=new Arc::JobLogFile(fname);
             if (!out_dir.empty()){
-                (*logfile)["outputdir"] = out_dir;
+                if ((*logfile)["jobreport_option_archiving"] == ""){
+                    (*logfile)["jobreport_option_archiving"] = out_dir;
+                } else {
+                    (*logfile)["outputdir"] = out_dir;
+                }
             }
 
 	    //A. Non-interactive mode: each jlf is parsed, and if valid, 
