@@ -7,7 +7,7 @@ DIST_SUBDIRS = ssm
 jura_SOURCES = main.cpp jura.h UsageReporter.cpp UsageReporter.h \
 	JobLogFile.cpp JobLogFile.h Destinations.cpp Destinations.h \
 	Destination.cpp Destination.h LutsDestination.cpp LutsDestination.h \
-        ApelDestination.cpp ApelDestination.h
+        ApelDestination.cpp ApelDestination.h CARDestination.cpp CARDestination.h
 
 jura_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 jura_LDADD = \
