@@ -560,6 +560,13 @@ namespace Arc
     //Group
     //GroupAttribute
     
+    //ProjectName
+    if (find("projectname")!=end())
+      {
+        Arc::XMLNode project=useridentity.NewChild("GroupAttribute")=(*this)["projectname"];
+        project.NewAttribute("urf:type")="ProjectName";
+      }
+
     //JobName
     if (find("jobname")!=end())
       {
@@ -746,12 +753,6 @@ namespace Arc
         }
         Arc::XMLNode siten = ur.NewChild("Site")=site;
         siten.NewAttribute("urf:type")="arc";
-      }
-
-    //ProjectName
-    if (find("projectname")!=end())
-      {
-        ur.NewChild("ProjectName")=(*this)["projectname"];
       }
 
     //Host
