@@ -1093,6 +1093,7 @@ bool job_clean_deleted(const JobDescription &desc,const JobUser &user,std::list<
   fname = user.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+".statistics"; remove(fname.c_str());
   fname = user.SessionRoot(id)+"/"+id+sfx_lrmsoutput; remove(fname.c_str());
+  fname = user.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
   fname = user.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
   /* remove session directory */
   std::list<FileData> flist;
