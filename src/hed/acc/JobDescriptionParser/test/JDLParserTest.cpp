@@ -160,7 +160,7 @@ void JDLParserTest::TestFilesDownloadDelete() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
@@ -193,7 +193,7 @@ void JDLParserTest::TestFilesUploadDelete() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 }
 
@@ -218,7 +218,7 @@ void JDLParserTest::TestFilesCreateDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -257,7 +257,7 @@ void JDLParserTest::TestFilesDownloadDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -296,7 +296,7 @@ void JDLParserTest::TestFilesUploadDownload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -328,7 +328,7 @@ void JDLParserTest::TestFilesCreateUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -369,7 +369,7 @@ void JDLParserTest::TestFilesDownloadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
@@ -410,7 +410,7 @@ void JDLParserTest::TestFilesUploadUpload() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable", it->Name);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false, it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"), it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::SourceType("executable"), it->Source.front());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
 
   it++;
