@@ -250,7 +250,7 @@ namespace Arc {
       }
 
       INTPRINT(out, Resources.SlotRequirement.NumberOfSlots, NumberOfSlots)
-      INTPRINT(out, Resources.SlotRequirement.SlotsPerHost, ProcessPerHost)
+      INTPRINT(out, Resources.SlotRequirement.SlotsPerHost, SlotsPerHost)
       switch (Resources.SlotRequirement.ExclusiveExecution) {
       case SlotRequirementType::EE_DEFAULT:
         break;
