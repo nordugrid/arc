@@ -153,6 +153,13 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
         users.Env().job_log().SetReporter(url.c_str());
       };
     }
+    else if(command == "jobreport_publisher") { /* Name of the publisher: e.g. jura, arc-ur-logger */
+      std::string publisher = config_next_arg(rest);
+      if(publisher.empty()){
+        publisher = "jura";
+      }
+      users.Env().job_log().SetLogger(publisher);
+    }
     else if(command == "jobreport_credentials") {
       jobreport_key = config_next_arg(rest);
       jobreport_cert = config_next_arg(rest);
