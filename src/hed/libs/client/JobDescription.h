@@ -360,6 +360,7 @@ namespace Arc {
     SourceType& operator=(const URL& u) { URL::operator=(u); return *this; };
     SourceType& operator=(const std::string& s) { URL::operator=(s); return *this; };
     std::string DelegationID;
+    std::multimap<std::string, std::string> Options;
   };
 
   class TargetType: public URL {
@@ -367,6 +368,7 @@ namespace Arc {
     TargetType() {};
     TargetType(const URL& u):URL(u) {};
     std::string DelegationID;
+    std::multimap<std::string, std::string> Options;
   };
 
   class FileType {
