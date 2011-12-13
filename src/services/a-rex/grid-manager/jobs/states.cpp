@@ -1084,9 +1084,7 @@ void JobsList::ActJobUndefined(JobsList::iterator &i,
             // here we don't enforce the per-DN limit since the jobs are
             // already in the system
             if (job_desc->DN.empty()) {
-              logger.msg(Arc::ERROR, "Failed to get DN information from .local file for job %s", i->job_id);
-              job_error=true; i->AddFailure("Could not get DN information for job");
-              return; /* go to next job */
+              logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
             };
             jcfg.jobs_dn[job_desc->DN]++;
           };
