@@ -181,6 +181,13 @@ namespace Arc {
      */
     bool sstat(XMLNode& status);
 
+    //! List jobs on a service.
+    /*! This method queries the EMI ES service about current list of jobs.
+       @param status The XML document representing status of the service.
+       @return true on success
+     */
+    bool list(std::list<EMIESJob>& jobs);
+
     ClientSOAP* SOAP(void) {
       return client;
     }

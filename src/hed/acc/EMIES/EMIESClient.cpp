@@ -278,7 +278,7 @@ namespace Arc {
         break;
       }
     }
-    // Making EMI ES specific jo id
+    // Making EMI ES specific job id
     // URL-izing job id
     URL jobidu(job.manager);
     jobidu.AddOption("emiesjobid",job.id,true);
@@ -459,6 +459,42 @@ namespace Arc {
     XMLNode item = response["NotifyResponseItem"];
     if(item.Size() != 1) return false;
     if((std::string)item["ActivityID"] != job.id) return false;
+    return true;
+  }
+
+  bool EMIESClient::list(std::list<EMIESJob>& jobs) {
+    /*
+    ListActivitiesRequest
+     FromDate (xsd:dateTime) 0-1
+     ToDate (xsd:dateTime) 0-1
+     Limit 0-1
+     Status 0-
+     StatusAttribute 0-
+
+    ListActivitiesResponse
+     ActivityID 0-
+     truncated (attribute) - false
+
+    InvalidTimeIntervalFault
+    AccessControlFault
+    InternalBaseFault
+    */
+    std::string action = "ListActivities";
+    logger.msg(VERBOSE, "Creating and sending job list request to %s", rurl.str());
+    PayloadSOAP req(ns);
+    XMLNode op = req.NewChild("esainfo:" + action);
+
+    // Send request
+    XMLNode response;
+    if (!process(req, false, response)) return false;
+
+    response.Namespaces(ns);
+    XMLNode id = response["ActivityID"];
+    for(;(bool)id;++id) {
+      EMIESJob job;
+      job.id = (std::string)id;
+      jobs.push_back(job);
+    }
     return true;
   }
 

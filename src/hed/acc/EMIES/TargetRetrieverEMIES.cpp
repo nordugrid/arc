@@ -151,15 +151,26 @@ namespace Arc {
       MCCConfig cfg;
       thrarg->usercfg->ApplyToConfig(cfg);
       EMIESClient ac(thrarg->url, cfg, thrarg->usercfg->Timeout());
-      // List jobs feature of EMI ES will be used here
-/*
+
+      std::list<EMIESJob> jobids;
+      if (!ac.list(jobids)) {
+        delete thrarg;
+        return;
+      }
+
+      for(std::list<EMIESJob>::iterator jobid = jobids.begin();
+                          jobid != jobids.end(); ++jobid) {
         Job j;
-        j.JobID = thrarg->url;
-        j.JobID.ChangePath(j.JobID.Path() + "/" + file->GetName());
-        j.Flavour = "ARC1";
-        j.Cluster = thrarg->url;
+        if(!jobid->manager) jobid->manager = thrarg->url;
+        j.Flavour = "EMIES";
+        j.Cluster = jobid->manager;
+        j.InfoEndpoint = thrarg->url;
+        // URL-izing job id
+        URL jobidu(jobid->manager);
+        jobidu.AddOption("emiesjobid",jobid->id,true);
+        j.JobID = jobidu;
         thrarg->mom->AddJob(j);
-*/
+      };
       delete thrarg;
       return;
     }
