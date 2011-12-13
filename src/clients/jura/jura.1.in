@@ -47,7 +47,8 @@ configuration options for accounting (see NORDUGRID-TECH-24 for
 details of their content). These files are parsed by \fBjura\fR,
 converted into UR format, and submitted in batches to reporting
 destinations. A destination is a resource usage logging service;
-currently SGAS LUTS is supported. Job log files older than the
+currently SGAS LUTS and CAR 1.0 message propagation are supported.
+Job log files older than the
 expiration time specified with the \fB-E\fR option are deleted without
 parsing.
 
@@ -100,4 +101,5 @@ APACHE LICENSE Version 2.0
 
 .SH AUTHOR
 
-Peter Dobe <dobe@iit.bme.hu>
+Peter Dobe <dobe@iit.bme.hu>,
+Gabor Szigeti <szigeti@niif.hu>
