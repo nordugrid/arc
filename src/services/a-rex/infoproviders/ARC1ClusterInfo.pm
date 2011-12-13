@@ -576,13 +576,42 @@ sub collect($) {
     my $admindomain = $config->{AdminDomain};
     my $servicename = $config->{service}{ClusterName};
 
+    # TODO: Calculate endpoint URLs and check if they're enabled
+    
+    my $endpointsnum = 0;
+
+    my $gridftphostport = undef;
+    # check if gridftd interface exists
+    if ($config->{GridftpdEnabled} == 1) { 
+	$gridftphostport = "$config->{hostname}:$config->{GridftpdPort}";
+	$endpointsnum++;
+    };
+    
+   
+    # check if WS interface is actually running
+    # done with netstat but I'd like to be smarter
     my $arexhostport = $config->{arexhostport};
+    my $netstat=`netstat -antup`;
+    if ($? == -1) {
+      $log->warning("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port");
+    } else {
+	# searches if arched is listed in netstat output
+	if ( $netstat =~ m/arched/){ 
+	  # $log->info("arched found with netstat");
+	  $endpointsnum++; 
+	} else {
+	    $log->warning("arched A-REX endpoint not found with netstat. No WS endpoint information will be published in the infosys. Check if arched process is running");
+	    $arexhostport = '';
+	};
+    };
+    
 
     # Global IDs
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
     my $csvID = "urn:ogf:ComputingService:$servicename"; # ComputingService ID
     my $cmgrID = "urn:ogf:ComputingManager:$servicename"; # ComputingManager ID
-    my $cepID = "urn:ogf:ComputingEndpoint:$arexhostport"; # ComputingEndpoint ID
+    my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:gsiftp:$gridftphostport"; # ARCGridFTPComputingEndpoint ID
+    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$arexhostport"; # ARCWSComputingEndpoint ID
     my $cactIDp = "urn:ogf:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$servicename"; # ComputingShare ID prefix
     my $xenvIDp = "urn:ogf:ExecutionEnvironment:$servicename"; # ExecutionEnvironment ID prefix
@@ -647,12 +676,13 @@ sub collect($) {
 
         # OBS: QualityLevel reflects the quality of the sotware
         # One of: development, testing, pre-production, production
-        $csv->{QualityLevel} = 'development';
+        $csv->{QualityLevel} = 'pre-production';
 
         $csv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
 
         my $nshares = keys %{$config->{shares}};
-        $csv->{Complexity} = "endpoint=1,share=$nshares,resource=".(scalar @allxenvs);
+
+        $csv->{Complexity} = "endpoint=$endpointsnum,share=$nshares,resource=".(scalar @allxenvs);
 
         $csv->{AllJobs} = $gmtotalcount{totaljobs} || 0;
         # OBS: Finished/failed/deleted jobs are not counted
@@ -665,136 +695,292 @@ sub collect($) {
                             + ( $gmtotalcount{finishing} || 0 );
         $csv->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-        # Here comes a list of endpoints we support.
 
-        # ComputingEndpoint
+        # Computing Endpoints ########
+	  
+	# Here comes a list of endpoints we support.
+        # GridFTPd job execution endpoint
+	# XBES A-REX WSRF job submission endpoint
+	# EMI-ES job submission endpoint
+	# EMI-ES information system endpoint
+	# EMI-ES delegation endpoint
+	# WS-LIDI A-REX WSRF information system endpoint
+	# A-REX datastaging endpoint
 
-        my $getComputingEndpoint = sub {
+	my @ceps = ();
 
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = $cepID;
-
-            # Name not necessary
-
-            # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $config->{endpoint};
-            $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'ogf.bes';
-            $cep->{InterfaceVersion} = [ '1.0' ];
-            # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
-            # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
-            $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
-            $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
-            # Wrong type, should be URI
-            $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-                                         "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-                                       ];
-            $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "ARC CE";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "development";
-
-            my %healthissues;
-
-            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-                if (     $host_info->{hostcert_expired}
-                      or $host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}
-                      or not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-                } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                      or $host_info->{issuerca_enddate} - time < 48*3600) {
-                    push @{$healthissues{warning}}, "Host credentials will expire soon";
-                }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-                if ($host_info->{gm_alive} eq 'some') {
-                    push @{$healthissues{warning}}, 'One or more grid managers are down';
-                } else {
-                    push @{$healthissues{critical}},
-                           $config->{remotegmdirs} ? 'All grid managers are down'
-                                                   : 'Grid manager is down';
-                }
-            }
-
-            if (%healthissues) {
-                my @infos;
-                for my $level (qw(critical warning other)) {
-                    next unless $healthissues{$level};
-                    $cep->{HealthState} ||= $level;
-                    push @infos, @{$healthissues{$level}};
-                }
-                $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-                $cep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $cep->{ServingState} = 'draining';
-            #} else {
-            #    $cep->{ServingState} = 'production';
-            #}
-            $cep->{ServingState} = 'production';
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                                + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            if ($config->{accesspolicies}) {
-                my @apconfs = @{$config->{accesspolicies}};
-                $cep->{AccessPolicies} = sub {
-                    return undef unless @apconfs;
-                    my $apconf = pop @apconfs;
-                    my $apol = {};
-                    $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
-                    $apol->{Scheme} = "basic";
-                    $apol->{Rule} = $apconf->{Rule};
-                    $apol->{UserDomainID} = $apconf->{UserDomainID};
-                    $apol->{EndpointID} = $cepID;
-                    return $apol;
-                };
-            }
+	# Our different ComputingEndpoints
 	
+	# ARC XBES and WS-LIDI
+      
+	my $getARCWSComputingEndpoint = sub {
+
+	    
+	    # don't publish if arched not listening
+	    return undef unless $arexhostport ne '';
+
+	    my $cep = {};
+
+	    $cep->{CreationTime} = $creation_time;
+	    $cep->{Validity} = $validity_ttl;
+
+	    $cep->{ID} = $ARCWScepID;
+
+	    # Name not necessary -- why? added back
+	    $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
+
+	    # OBS: ideally HED should be asked for the URL
+	    $cep->{URL} = $config->{endpoint};
+	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring' ];
+	    $cep->{Technology} = 'webservice';
+	    $cep->{InterfaceName} = 'ogf.bes';
+	    $cep->{InterfaceVersion} = [ '1.0' ];
+	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
+	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
+	    $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
+	    $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
+	    # Wrong type, should be URI
+	    $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+					"http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+				      ];
+	    $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
+	    $cep->{Implementor} = "NorduGrid";
+	    $cep->{ImplementationName} = "ARC CE";
+	    $cep->{ImplementationVersion} = $config->{arcversion};
+
+	    $cep->{QualityLevel} = "development";
+
+	    my %healthissues;
+
+	    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+		if (     $host_info->{hostcert_expired}
+		      or $host_info->{issuerca_expired}) {
+		    push @{$healthissues{critical}}, "Host credentials expired";
+		} elsif (not $host_info->{hostcert_enddate}
+		      or not $host_info->{issuerca_enddate}) {
+		    push @{$healthissues{critical}}, "Host credentials missing";
+		} elsif ($host_info->{hostcert_enddate} - time < 48*3600
+		      or $host_info->{issuerca_enddate} - time < 48*3600) {
+		    push @{$healthissues{warning}}, "Host credentials will expire soon";
+		}
+	    }
+
+	    if ( $host_info->{gm_alive} ne 'all' ) {
+		if ($host_info->{gm_alive} eq 'some') {
+		    push @{$healthissues{warning}}, 'One or more grid managers are down';
+		} else {
+		    push @{$healthissues{critical}},
+			  $config->{remotegmdirs} ? 'All grid managers are down'
+						  : 'Grid manager is down';
+		}
+	    }
+
+	    if (%healthissues) {
+		my @infos;
+		for my $level (qw(critical warning other)) {
+		    next unless $healthissues{$level};
+		    $cep->{HealthState} ||= $level;
+		    push @infos, @{$healthissues{$level}};
+		}
+		$cep->{HealthStateInfo} = join "; ", @infos;
+	    } else {
+		$cep->{HealthState} = 'ok';
+	    }
+
+	    # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+	    # OBS: Is there an allownew option for a-rex?
+	    #if ( $config->{GridftpdAllowNew} == 0 ) {
+	    #    $cep->{ServingState} = 'draining';
+	    #} else {
+	    #    $cep->{ServingState} = 'production';
+	    #}
+	    $cep->{ServingState} = 'production';
+
+	    # StartTime: get it from hed
+
+	    $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+	    $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+	    # TODO: Downtime, is this necessary, and how should it work?
+
+	    $cep->{Staging} =  'staginginout';
+	    $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+
+	    $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+
+	    $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+	    $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+	    $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+
+	    $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+				+ ( $gmtotalcount{finishing} || 0 );
+
+	    $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+	    if ($config->{accesspolicies}) {
+		my @apconfs = @{$config->{accesspolicies}};
+		$cep->{AccessPolicies} = sub {
+		    return undef unless @apconfs;
+		    my $apconf = pop @apconfs;
+		    my $apol = {};
+		    $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		    $apol->{Scheme} = "basic";
+		    $apol->{Rule} = $apconf->{Rule};
+		    $apol->{UserDomainID} = $apconf->{UserDomainID};
+		    $apol->{EndpointID} = $ARCWScepID;
+		    return $apol;
+		};
+	    }
+	    
 	    $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
 
-            # Associations
+	    # Associations
 
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
+	    $cep->{ComputingShareID} = [ values %cshaIDs ];
+	    $cep->{ComputingServiceID} = $csvID;
 
-            return $cep;
-        };
+	    return $cep;
+	};
 
-        $csv->{ComputingEndpoint} = $getComputingEndpoint;
+	push(@ceps, $getARCWSComputingEndpoint);
+
+        # ARC GridFTPDd job submission interface 
+      
+	my $getARCGFTPdComputingEndpoint = sub {
+
+	    # check if gridftpd interface is actually configured
+	    return undef unless $gridftphostport;
+	    my $cep = {};
+
+	    $cep->{CreationTime} = $creation_time;
+	    $cep->{Validity} = $validity_ttl;
+
+	    $cep->{ID} = $ARCgftpjobcepID;
+
+	    # Name not necessary -- why? added back
+	    $cep->{Name} = "ARC GridFTPd job execution interface";
+
+	    # OBS: ideally HED should be asked for the URL
+	    $cep->{URL} = "gsiftp://$gridftphostport";
+	    $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
+	    $cep->{Technology} = 'GridFTPd';
+	    $cep->{InterfaceName} = 'ARC.Gridftpd';
+	    $cep->{InterfaceVersion} = [ '1.0' ];
+	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
+	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
+	    $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/gridftpd' ];
+	    # Wrong type, should be URI
+	    $cep->{Semantics} = [ "http://www.nordugrid.org/documents/gridfptd.pdf" ];
+	    $cep->{Implementor} = "NorduGrid";
+	    $cep->{ImplementationName} = "ARC CE Gridftpd";
+	    $cep->{ImplementationVersion} = $config->{arcversion};
+
+	    $cep->{QualityLevel} = "production";
+
+	    my %healthissues;
+
+	    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+		if (     $host_info->{hostcert_expired}
+		      or $host_info->{issuerca_expired}) {
+		    push @{$healthissues{critical}}, "Host credentials expired";
+		} elsif (not $host_info->{hostcert_enddate}
+		      or not $host_info->{issuerca_enddate}) {
+		    push @{$healthissues{critical}}, "Host credentials missing";
+		} elsif ($host_info->{hostcert_enddate} - time < 48*3600
+		      or $host_info->{issuerca_enddate} - time < 48*3600) {
+		    push @{$healthissues{warning}}, "Host credentials will expire soon";
+		}
+	    }
+
+	    if ( $host_info->{gm_alive} ne 'all' ) {
+		if ($host_info->{gm_alive} eq 'some') {
+		    push @{$healthissues{warning}}, 'One or more grid managers are down';
+		} else {
+		    push @{$healthissues{critical}},
+			  $config->{remotegmdirs} ? 'All grid managers are down'
+						  : 'Grid manager is down';
+		}
+	    }
+
+	    if (%healthissues) {
+		my @infos;
+		for my $level (qw(critical warning other)) {
+		    next unless $healthissues{$level};
+		    $cep->{HealthState} ||= $level;
+		    push @infos, @{$healthissues{$level}};
+		}
+		$cep->{HealthStateInfo} = join "; ", @infos;
+	    } else {
+		$cep->{HealthState} = 'ok';
+	    }
+
+	    if ( $config->{GridftpdAllowNew} == 0 ) {
+	        $cep->{ServingState} = 'draining';
+	    } else {
+	        $cep->{ServingState} = 'production';
+	    }
+
+	    # StartTime: get it from hed
+
+	    $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+	    $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+	    # TODO: Downtime, is this necessary, and how should it work?
+
+	    $cep->{Staging} =  'staginginout';
+	    $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+
+	    $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+
+	    $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+	    $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+	    $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+
+	    $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+				+ ( $gmtotalcount{finishing} || 0 );
+
+	    $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+	    if ($config->{accesspolicies}) {
+		my @apconfs = @{$config->{accesspolicies}};
+		$cep->{AccessPolicies} = sub {
+		    return undef unless @apconfs;
+		    my $apconf = pop @apconfs;
+		    my $apol = {};
+		    $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		    $apol->{Scheme} = "basic";
+		    $apol->{Rule} = $apconf->{Rule};
+		    $apol->{UserDomainID} = $apconf->{UserDomainID};
+		    $apol->{EndpointID} = $ARCWScepID;
+		    return $apol;
+		};
+	    }
+	    
+	    $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+
+	    # Associations
+
+	    $cep->{ComputingShareID} = [ values %cshaIDs ];
+	    $cep->{ComputingServiceID} = $csvID;
+
+	    return $cep;
+	};
+
+        push(@ceps, $getARCGFTPdComputingEndpoint);
+
+	# returns the endpoints one by one
+
+	my $getComputingEndpoints = sub {
+    
+            return undef unless my $sub = pop(@ceps);
+	    # returns the hash for Entries. Odd, must understand this behaviour
+	    return &$sub;
+             
+	};
+
+	$csv->{ComputingEndpoints} = $getComputingEndpoints;
 
 	# Computing Activities, in the ComputingService and not in Endpoints
 
@@ -1160,7 +1346,8 @@ sub collect($) {
             my $xenvs = $sconfig->{ExecutionEnvironmentName} || [];
             push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
 
-            $csha->{ComputingEndpointID} = $cepID;
+	    ## check this association below. Which endpoint?
+            # $csha->{ComputingEndpointID} = $cepID;
             $csha->{ComputingServiceID} = $csvID;
 
             return $csha;

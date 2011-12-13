@@ -446,7 +446,7 @@ sub MappingPolicies {
 sub ComputingService {
     LdifPrinter::Entry(@_, 'GLUE2Service', 'ID', \&ComputingServiceAttributes, sub {
         my ($self, $data) = @_;
-        $self->ComputingEndpoint($data->{ComputingEndpoint});
+        $self->ComputingEndpoints($data->{ComputingEndpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
         $self->beginGroup("ComputingActivities");
@@ -458,6 +458,13 @@ sub ComputingService {
 
 sub ComputingEndpoint {
     LdifPrinter::Entry(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
+        my ($self, $data) = @_;
+        $self->AccessPolicies($data->{AccessPolicies});
+    });
+}
+
+sub ComputingEndpoints {
+    LdifPrinter::Entries(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
         $self->AccessPolicies($data->{AccessPolicies});
     });
