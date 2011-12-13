@@ -365,10 +365,20 @@ namespace Arc {
 
   class TargetType: public URL {
   public:
-    TargetType() {};
-    TargetType(const URL& u):URL(u) {};
+    TargetType() :
+      UseIfFailure(false),
+      UseIfCancel(false),
+      UseIfSuccess(true) {};
+    TargetType(const URL& u) :
+      URL(u),
+      UseIfFailure(false),
+      UseIfCancel(false),
+      UseIfSuccess(true) {};
     std::string DelegationID;
     std::multimap<std::string, std::string> Options;
+    bool UseIfFailure;
+    bool UseIfCancel;
+    bool UseIfSuccess;
   };
 
   class FileType {
