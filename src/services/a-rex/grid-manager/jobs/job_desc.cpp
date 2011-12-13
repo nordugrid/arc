@@ -36,6 +36,21 @@ Arc::JobDescriptionResult get_arc_job_description(const std::string& fname, Arc:
   return r;
 }
 
+static bool write_grami_executable(std::ofstream& f, const std::string& name, const Arc::ExecutableType& exec) {
+  std::string executable = Arc::trim(exec.Path);
+  if (executable[0] != '/' && executable[0] != '$' && !(executable[0] == '.' && executable[1] == '/')) executable = "./"+executable;
+  f<<"joboption_"<<name<<"_0"<<"="<<value_for_shell(executable.c_str(),true)<<std::endl;
+  int i = 1;
+  for (std::list<std::string>::const_iterator it = exec.Argument.begin();
+       it != exec.Argument.end(); it++, i++) {
+    f<<"joboption_"<<name<<"_"<<i<<"="<<value_for_shell(it->c_str(),true)<<std::endl;
+  }
+  if(exec.SuccessExitCode.first) {
+    f<<"joboption_"<<name<<"_code"<<"="<<Arc::tostring(exec.SuccessExitCode.second)<<std::endl;
+  }
+  return true;
+}
+
 bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& job_desc, const JobUser& user, const char* opt_add) {
   if(job_desc.get_local() == NULL) return false;
   const std::string session_dir = job_desc.SessionDir();
@@ -48,18 +63,18 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 
   f<<"joboption_directory='"<<session_dir<<"'"<<std::endl;
 
-  {
-    // TODO: Support for SuccessExitCode (FailIfExitCodeEqualTo)
-    std::string executable = Arc::trim(arc_job_desc.Application.Executable.Path);
-    if (executable[0] != '/' && executable[0] != '$' && !(executable[0] == '.' && executable[1] == '/')) executable = "./"+executable;
-    f<<"joboption_arg_0"<<"="<<value_for_shell(executable.c_str(),true)<<std::endl;
-    int i = 1;
-    for (std::list<std::string>::const_iterator it = arc_job_desc.Application.Executable.Argument.begin();
-         it != arc_job_desc.Application.Executable.Argument.end(); it++, i++) {
-      f<<"joboption_arg_"<<i<<"="<<value_for_shell(it->c_str(),true)<<std::endl;
-    }
-
-    // TODO: Support for PreExecutable and PostExecutable
+  if(!write_grami_executable(f,"arg",arc_job_desc.Application.Executable)) return false;
+  int n = 0;
+  for(std::list<Arc::ExecutableType>::const_iterator e =
+                     arc_job_desc.Application.PreExecutable.begin();
+                     e != arc_job_desc.Application.PreExecutable.end(); ++e) {
+    if(!write_grami_executable(f,"pre_"+Arc::tostring(n),*e)) return false;
+    ++n;
+  }
+  for(std::list<Arc::ExecutableType>::const_iterator e =
+                     arc_job_desc.Application.PostExecutable.begin();
+                     e != arc_job_desc.Application.PostExecutable.end(); ++e) {
+    if(!write_grami_executable(f,"post_"+Arc::tostring(n),*e)) return false;
   }
 
   f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Application.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Application.Input,true)<<std::endl;
