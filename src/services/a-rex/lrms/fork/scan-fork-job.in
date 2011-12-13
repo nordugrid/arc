@@ -108,12 +108,13 @@ for control_dir in "$@" ; do
         exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
         $debug "exitcode = [$exitcode] extracted from $diagfile"
         fork_comment=""
+        if [ -z "$joboption_arg_code" ] ; then joboption_arg_code='0' ; fi
         if [ -z "$exitcode" ]; then
             echo "Job $job with PID $joboption_jobid died unexpectedly" 1>&2
             fork_comment="Job died unexpectedly" 1>&2
             exitcode=-1
-        elif [ "$exitcode" -ne '0' ]; then
-            fork_comment="Job finished with non-zero exit code" 1>&2
+        elif [ "$exitcode" -ne "$joboption_arg_code" ]; then
+            fork_comment="Job finished with wrong exit code - $exitcode != $joboption_arg_code" 1>&2
         fi
         $debug "got exitcode=$exitcode"
         save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"

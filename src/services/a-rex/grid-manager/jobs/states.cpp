@@ -1287,7 +1287,7 @@ void JobsList::ActJobInlrms(JobsList::iterator &i,
               logger.msg(Arc::INFO,"%s: Job finished",i->job_id);
               job_diagnostics_mark_move(*i,*user);
               LRMSResult ec = job_lrms_mark_read(i->job_id,*user);
-              if(ec.code() != 0) {
+              if(ec.code() != i->local->exec.successcode) {
                 logger.msg(Arc::INFO,"%s: State: INLRMS: exit message is %i %s",i->job_id,ec.code(),ec.description());
                 i->AddFailure("LRMS error: ("+
                       Arc::tostring(ec.code())+") "+ec.description());
