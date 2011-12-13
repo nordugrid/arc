@@ -357,8 +357,9 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
       logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
-      if(job.State() != "FINISHED") {
-        logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, "state is not FINISHED");
+      if((job.State() != "FINISHED") &&
+         (job.State() != "DELETED")) {
+        logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - state is %s, not terminal", jobid, job.State());
         ESActivityNotInTerminalStateFault(item.NewChild("dummy"),"not in terminal state");
       } else if(!job.Clean()) {
         // Probably wrong current state

@@ -328,9 +328,9 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         // TODO: filter by AttributeName
         if((bool)glue_xml) {
           std::string glue2_namespace = glue_xml.Namespace();
-          std::string glue2_prefix = info.NamespacePrefix(glue2_namespace.c_str());
           (info = item.NewChild(glue_xml)).Name("estypes:ActivityInfo");
           info.Namespaces(ns_);
+          std::string glue2_prefix = info.NamespacePrefix(glue2_namespace.c_str());
           bool job_pending = false;
           std::string gm_state = job.State(job_pending);
           bool job_failed = job.Failed();
