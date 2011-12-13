@@ -316,7 +316,7 @@ namespace Arc {
 
     XMLNode identification = node["adl:ActivityIdentification"];
     XMLNode application = node["adl:Application"];
-    XMLNode resources = node["adl:Resouces"];
+    XMLNode resources = node["adl:Resources"];
     XMLNode staging = node["adl:DataStaging"];
 
     if((bool)identification) {
