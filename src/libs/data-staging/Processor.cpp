@@ -542,7 +542,9 @@ namespace DataStaging {
                             DTRErrorStatus::ERROR_DESTINATION,
                             "Failed to create cache for " + request->get_source()->str());
       request->set_status(DTRStatus::CACHE_PROCESSED);
+      request->connect_logger();
       request->push(SCHEDULER);
+      return;
     }
 
     std::string canonic_url(request->get_source()->GetURL().plainstr());
