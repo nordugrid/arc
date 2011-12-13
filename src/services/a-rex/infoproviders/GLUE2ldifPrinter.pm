@@ -449,6 +449,9 @@ sub ComputingService {
         $self->ComputingEndpoint($data->{ComputingEndpoint});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
+        $self->beginGroup("ComputingActivities");
+        $self->ComputingActivities($data->{ComputingActivities});
+        $self->end();
         $self->ToStorageServices($data->{ToStorageServices});
     });
 }
@@ -457,9 +460,6 @@ sub ComputingEndpoint {
     LdifPrinter::Entry(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
         $self->AccessPolicies($data->{AccessPolicies});
-        $self->beginGroup("ComputingActivities");
-        $self->ComputingActivities($data->{ComputingActivities});
-        $self->end();
     });
 }
 

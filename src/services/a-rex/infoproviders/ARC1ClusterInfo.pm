@@ -786,114 +786,6 @@ sub collect($) {
 	    $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
 
-            # Computing Activities
-
-            my $getComputingActivities = sub {
-
-                return undef unless my ($jobid, $gmjob) = each %$gmjobs_info;
-
-                my $exited = undef; # whether the job has already run; 
-
-                my $cact = {};
-
-                $cact->{CreationTime} = $creation_time;
-                $cact->{Validity} = $validity_ttl;
-
-                my $share = $gmjob->{share};
-                my $gridid = $config->{endpoint}."/$jobid";
-
-                $cact->{Type} = 'single';
-                $cact->{ID} = $cactIDs{$share}{$jobid};
-                $cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
-                $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
-                # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
-                $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
-                $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
-                $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
-                # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
-                $cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
-                $cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
-                # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
-                $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
-                $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
-                # OBS: Times are in seconds.
-                $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
-                $cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
-                # OBS: Should include name and version. Exact format not specified
-                $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-                $cact->{RequestedSlots} = $gmjob->{count} || 1;
-                $cact->{StdIn} = $gmjob->{stdin} if $gmjob->{stdin};
-                $cact->{StdOut} = $gmjob->{stdout} if $gmjob->{stdout};
-                $cact->{StdErr} = $gmjob->{stderr} if $gmjob->{stderr};
-                $cact->{LogDir} = $gmjob->{gmlog} if $gmjob->{gmlog};
-                $cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
-                $cact->{Queue} = $gmjob->{queue} if $gmjob->{queue};
-                # Times for finished jobs
-                $cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
-                $cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
-                $cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
-                $cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
-                # TODO: change gm to save LRMSSubmissionTime
-                #$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
-                # TODO: this should be queried in scan-job.
-                #$cact->{StartTime} = 'NotImplemented';
-                # TODO: scan-job has to produce this
-                #$cact->{ComputingManagerEndTime} = 'NotImplemented';
-                $cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
-                $cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
-                $cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
-                if ($gmjob->{clientname}) {
-                    # OBS: address of client as seen by the server is used.
-                    my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
-                    my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
-                    $cact->{SubmissionHost} = $external_address if $external_address;
-                }
-                $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
-
-                # Computing Activity Associations
-
-                # TODO: add link
-                #$cact->{ExecutionEnvironmentID} = ;
-                $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-                $cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
-
-                if ( $gmjob->{status} eq "INLRMS" ) {
-                    my $lrmsid = $gmjob->{localid};
-                    if (not $lrmsid) {
-                        $log->warning("No local id for job $jobid") if $callcount == 1;
-                        next;
-                    }
-                    $cact->{LocalIDFromManager} = $lrmsid;
-
-                    my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-                    if (not $lrmsjob) {
-                        $log->warning("No local job for $jobid") if $callcount == 1;
-                        next;
-                    }
-                    $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
-                    $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
-                    $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
-                    unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
-
-                    # Times for running jobs
-                    $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
-                    $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
-                    $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
-                } else {
-                    $cact->{State} = glueState($gmjob->{status});
-                }
-
-                $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
-
-                return $cact;
-            };
-
-            if ($nojobs) {
-                $cep->{ComputingActivities} = undef;
-            } else {
-                $cep->{ComputingActivities} = $getComputingActivities;
-            }
-
             # Associations
 
             $cep->{ComputingShareID} = [ values %cshaIDs ];
@@ -903,6 +795,115 @@ sub collect($) {
         };
 
         $csv->{ComputingEndpoint} = $getComputingEndpoint;
+
+	# Computing Activities, in the ComputingService and not in Endpoints
+
+	my $getComputingActivities = sub {
+
+            return undef unless my ($jobid, $gmjob) = each %$gmjobs_info;
+
+            my $exited = undef; # whether the job has already run; 
+
+            my $cact = {};
+
+            $cact->{CreationTime} = $creation_time;
+            $cact->{Validity} = $validity_ttl;
+
+            my $share = $gmjob->{share};
+            my $gridid = $config->{endpoint}."/$jobid";
+
+            $cact->{Type} = 'single';
+            $cact->{ID} = $cactIDs{$share}{$jobid};
+            # TODO: check where is this taken
+            $cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
+            $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
+            # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
+            $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
+            $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
+            $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
+            # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
+            $cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
+            $cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
+            # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
+            $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
+            $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
+            # OBS: Times are in seconds.
+            $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
+            $cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
+            # OBS: Should include name and version. Exact format not specified
+            $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
+            $cact->{RequestedSlots} = $gmjob->{count} || 1;
+            $cact->{StdIn} = $gmjob->{stdin} if $gmjob->{stdin};
+            $cact->{StdOut} = $gmjob->{stdout} if $gmjob->{stdout};
+            $cact->{StdErr} = $gmjob->{stderr} if $gmjob->{stderr};
+            $cact->{LogDir} = $gmjob->{gmlog} if $gmjob->{gmlog};
+            $cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
+            $cact->{Queue} = $gmjob->{queue} if $gmjob->{queue};
+            # Times for finished jobs
+            $cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
+            $cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
+            $cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
+            $cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
+            # TODO: change gm to save LRMSSubmissionTime
+            #$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
+            # TODO: this should be queried in scan-job.
+            #$cact->{StartTime} = 'NotImplemented';
+            # TODO: scan-job has to produce this
+            #$cact->{ComputingManagerEndTime} = 'NotImplemented';
+            $cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
+            $cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
+            $cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
+            if ($gmjob->{clientname}) {
+                # OBS: address of client as seen by the server is used.
+                my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
+                my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
+                $cact->{SubmissionHost} = $external_address if $external_address;
+            }
+            $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
+
+            # Computing Activity Associations
+
+            # TODO: add link
+            #$cact->{ExecutionEnvironmentID} = ;
+            $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
+            $cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
+
+            if ( $gmjob->{status} eq "INLRMS" ) {
+                my $lrmsid = $gmjob->{localid};
+                if (not $lrmsid) {
+                    $log->warning("No local id for job $jobid") if $callcount == 1;
+                    next;
+                }
+                $cact->{LocalIDFromManager} = $lrmsid;
+
+                my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+                if (not $lrmsjob) {
+                    $log->warning("No local job for $jobid") if $callcount == 1;
+                    next;
+                }
+                $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
+                $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
+                $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
+                unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
+
+                # Times for running jobs
+                $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
+                $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
+                $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
+            } else {
+                $cact->{State} = glueState($gmjob->{status});
+            }
+
+            $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
+
+            return $cact;
+         };
+
+         if ($nojobs) {
+             $csv->{ComputingActivities} = undef;
+         } else {
+                $csv->{ComputingActivities} = $getComputingActivities;
+         }
 
 
         # ComputingShares: multiple shares can share the same LRMS queue
