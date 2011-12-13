@@ -313,7 +313,7 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
         // And same time till result of cancel script is processed.
         // Currently it is not possible to estimate how long canceling
         // would happen.
-        item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod()*2;
+        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod()*2);
       };
     };
   };
@@ -329,7 +329,7 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
       esmanag:ResponseItem
         estypes:ActivityID
         .
-          esmang:EstimatedTime (xsd:unsignedLong)
+          esmanag:EstimatedTime (xsd:unsignedLong)
           estypes:InternalBaseFault
 
     VectorLimitExceededFault
@@ -367,7 +367,7 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
         // TODO: check for real reason
         ESActivityNotInTerminalStateFault(item.NewChild("dummy"),job.Failure());
       } else {
-        item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod();
+        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod());
       };
     };
   };
@@ -383,7 +383,7 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
       esmanag:ResponseItem
         estypes:ActivityID
         .
-          esmang:EstimatedTime (xsd:unsignedLong)
+          esmanag:EstimatedTime (xsd:unsignedLong)
           estypes:InternalBaseFault
 
     VectorLimitExceededFault
@@ -417,7 +417,7 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
         // TODO: check for real reason
         ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
       } else {
-        item.NewChild("esmang:EstimatedTime") = config.User()->Env().jobs_cfg().WakeupPeriod();
+        item.NewChild("esmanag:EstimatedTime") = Arc::tostring(config.User()->Env().jobs_cfg().WakeupPeriod());
       };
     };
   };
