@@ -158,7 +158,7 @@ bool configure_serviced_users(JobUsers &users,uid_t my_uid,const std::string &my
       if(publisher.empty()){
         publisher = "jura";
       }
-      users.Env().job_log().SetLogger(publisher);
+      users.Env().job_log().SetLogger(publisher.c_str());
     }
     else if(command == "jobreport_credentials") {
       jobreport_key = config_next_arg(rest);
