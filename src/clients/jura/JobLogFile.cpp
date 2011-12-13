@@ -189,12 +189,12 @@ namespace Arc
     //NOTE! original JARM used "GlobalUserId"
     if (find("usersn")!=end())
       {
-	ur.NewChild("UserIdentity").NewChild("GlobalUserName")=
-	  (*this)["usersn"];
-	
 	if (find("localuser")!=end())
 	  ur["UserIdentity"].NewChild("LocalUserId")=
 	    (*this)["localuser"];
+
+	ur.NewChild("UserIdentity").NewChild("GlobalUserName")=
+	  (*this)["usersn"];
       }
     
     //JobName
@@ -226,28 +226,28 @@ namespace Arc
     //Disk?
 
     //Memory
-    if (find("usedmemory")!=end())
+    if (find("usedmemory")!=end() && (*this)["usedmemory"]!="0")
       {
 	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmemory"];
-	memn.NewAttribute("storageUnit")="kB";
-	memn.NewAttribute("metric")="average";
-	memn.NewAttribute("type")="virtual";
+	memn.NewAttribute("urf:storageUnit")="KB";
+	memn.NewAttribute("urf:metric")="average";
+	memn.NewAttribute("urf:type")="virtual";
       }
 
-    if (find("usedmaxresident")!=end())
+    if (find("usedmaxresident")!=end() && (*this)["usedmaxresident"]!="0")
       {
 	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedmaxresident"];
-	memn.NewAttribute("storageUnit")="kB";
-	memn.NewAttribute("metric")="max";
-	memn.NewAttribute("type")="physical";
+	memn.NewAttribute("urf:storageUnit")="KB";
+	memn.NewAttribute("urf:metric")="max";
+	memn.NewAttribute("urf:type")="physical";
       }
 
-    if (find("usedaverageresident")!=end())
+    if (find("usedaverageresident")!=end() && (*this)["usedaverageresident"]!="0")
       {
 	Arc::XMLNode memn=ur.NewChild("Memory")=(*this)["usedaverageresident"];
-	memn.NewAttribute("storageUnit")="kB";
-	memn.NewAttribute("metric")="average";
-	memn.NewAttribute("type")="physical";
+	memn.NewAttribute("urf:storageUnit")="KB";
+	memn.NewAttribute("urf:metric")="average";
+	memn.NewAttribute("urf:type")="physical";
       }
     
     //Swap?
@@ -274,14 +274,14 @@ namespace Arc
 	    udurs = "PT0S";
 	}
 	Arc::XMLNode udurn=ur.NewChild("CpuDuration")=udurs;
-	udurn.NewAttribute("usageType")="user";
+	udurn.NewAttribute("urf:usageType")="user";
 
 	std::string kdurs = (std::string)kdur;
 	if (kdurs == "P"){
 	    kdurs = "PT0S";
 	}
 	Arc::XMLNode kdurn=ur.NewChild("CpuDuration")=kdurs;
-	kdurn.NewAttribute("usageType")="kernel";
+	kdurn.NewAttribute("urf:usageType")="system";
       }
     else
     if (find("usedcputime")!=end())
@@ -319,7 +319,7 @@ namespace Arc
       {
 	Arc::XMLNode primary_node=ur.NewChild("Host");
 	primary_node=mainnode;
-	primary_node.NewAttribute("primary")="true";
+	primary_node.NewAttribute("urf:primary")="true";
 	std::list<std::string>::iterator it=nodenames.begin();
 	++it;
 	while (it!=nodenames.end())
