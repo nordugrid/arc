@@ -355,6 +355,18 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       if(*q == job_.queue) break;
     };
   };
+  if(!job_.preexecs.empty()) {
+    failure_="Pre-executables are not supported by this service";
+    failure_type_=ARexJobDescriptionUnsupportedError;
+    delete_job_id();
+    return;
+  };
+  if(!job_.postexecs.empty()) {
+    failure_="Post-executables are not supported by this service";
+    failure_type_=ARexJobDescriptionUnsupportedError;
+    delete_job_id();
+    return;
+  };
   // Start local file
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
   job_.jobid=id_;

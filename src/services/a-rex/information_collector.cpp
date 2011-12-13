@@ -450,11 +450,10 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   };
   buf[p] = 0;
   Arc::XMLNode doc(buf);
+  ::free(buf); buf=NULL;
   if(!doc) {
-    ::free(buf);
     ESFAULT("Failed to parse resource information file");
   };
-  free(buf); buf=NULL;
   Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
   if(!service) {
     ESFAULT("Missing ComputingService in resource information");
