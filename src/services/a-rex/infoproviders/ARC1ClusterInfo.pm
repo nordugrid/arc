@@ -733,7 +733,7 @@ sub collect($) {
 	    $cep->{URL} = $config->{endpoint};
 	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring' ];
 	    $cep->{Technology} = 'webservice';
-	    $cep->{InterfaceName} = 'ogf.bes';
+	    $cep->{InterfaceName} = 'XBES';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
 	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
 	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
@@ -859,13 +859,13 @@ sub collect($) {
 	    $cep->{ID} = $ARCgftpjobcepID;
 
 	    # Name not necessary -- why? added back
-	    $cep->{Name} = "ARC GridFTPd job execution interface";
+	    $cep->{Name} = "ARC GridFTP job execution interface";
 
 	    # OBS: ideally HED should be asked for the URL
 	    $cep->{URL} = "gsiftp://$gridftphostport";
 	    $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
-	    $cep->{Technology} = 'GridFTPd';
-	    $cep->{InterfaceName} = 'ARC.Gridftpd';
+	    $cep->{Technology} = 'GridFTP';
+	    $cep->{InterfaceName} = 'GridFTP-job';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
 	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
 	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
