@@ -51,7 +51,8 @@ namespace Arc
       {
         Arc::URL url(serviceurl);
         // URL path checking
-        if (url.Path().substr(url.Path().length()-3) != "/ur"){
+        if (url.Path().length() > 3 &&
+            url.Path().substr(url.Path().length()-3) != "/ur"){
             if (url.Path().substr(url.Path().length()-1) == "/"){
                 url.ChangePath(url.Path()+"ur");
             } else {
@@ -178,9 +179,12 @@ namespace Arc
     {
       //Send
       status=httpclient.process("POST", http_attributes, &http_request, &http_info, &http_response);
-      logger.msg(Arc::DEBUG, 
+      if (status){
+        // When Chain(s) configuration not failed
+        logger.msg(Arc::DEBUG, 
                "UsageRecords registration response: %s",
                http_response->Content());
+       }
      }
     catch (std::exception&) {}
 
