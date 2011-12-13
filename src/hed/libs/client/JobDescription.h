@@ -360,7 +360,6 @@ namespace Arc {
     SourceType& operator=(const URL& u) { URL::operator=(u); return *this; };
     SourceType& operator=(const std::string& s) { URL::operator=(s); return *this; };
     std::string DelegationID;
-    std::multimap<std::string, std::string> Options;
   };
 
   class TargetType: public URL {
@@ -377,7 +376,6 @@ namespace Arc {
       UseIfCancel(false),
       UseIfSuccess(false) {};
     std::string DelegationID;
-    std::multimap<std::string, std::string> Options;
     enum CreationFlagEnumeration {
       CFE_OVERWRITE,
       CFE_APPEND,
