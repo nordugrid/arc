@@ -181,7 +181,7 @@ enables_srm_client=yes
 enables_wsrf_client=yes
 enables_cache_client=yes
 enables_unicore_client=no
-enables_emies_client=no
+enables_emies_client=yes
 #  Documentation
 enables_doc=yes
 
@@ -1998,7 +1998,7 @@ AC_ARG_ENABLE(unicore_client, AC_HELP_STRING([--enable-unicore-client], [enables
 AC_MSG_NOTICE([UNICORE plugin(s) enabled: $enables_unicore_client])
 AM_CONDITIONAL([UNICORE_ENABLED],[test "x$enables_unicore_client" = "xyes"])
 
-AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--enable-emies-client], [enables building EMI ES-related plugins.]),
+AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
 AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
