@@ -366,16 +366,24 @@ namespace Arc {
   class TargetType: public URL {
   public:
     TargetType() :
+      CreationFlag(CFE_OVERWRITE),
       UseIfFailure(false),
       UseIfCancel(false),
       UseIfSuccess(true) {};
     TargetType(const URL& u) :
       URL(u),
+      CreationFlag(CFE_OVERWRITE),
       UseIfFailure(false),
       UseIfCancel(false),
-      UseIfSuccess(true) {};
+      UseIfSuccess(false) {};
     std::string DelegationID;
     std::multimap<std::string, std::string> Options;
+    enum CreationFlagEnumeration {
+      CFE_OVERWRITE,
+      CFE_APPEND,
+      CFE_DONTOVERWRITE
+    };
+    CreationFlagEnumeration CreationFlag;
     bool UseIfFailure;
     bool UseIfCancel;
     bool UseIfSuccess;
