@@ -36,6 +36,21 @@ class FileData {
 std::istream &operator>> (std::istream &i,FileData &fd);
 std::ostream &operator<< (std::ostream &o,const FileData &fd);
 
+class Exec: public std::list<std::string> {
+ public:
+  Exec(void):successcode(0) {};
+  Exec(const std::list<std::string>& src):std::list<std::string>(src),successcode(0) {};
+  Exec(const Arc::ExecutableType& src):successcode(0) {
+    operator=(src);
+  };
+  Exec& operator=(const std::list<std::string>& src) {
+    std::list<std::string>::operator=(src); return *this;
+  };
+  Exec& operator=(const Arc::ExecutableType& src);
+  int successcode;
+};
+std::istream &operator>> (std::istream &i,Exec &fd);
+std::ostream &operator<< (std::ostream &o,const Exec &fd);
 
 /*
   Most important information about job extracted from different sources
@@ -72,7 +87,9 @@ class JobLocalDescription {
   std::string lrms;          /* lrms type to use - pbs */
   std::string queue;         /* queue name  - default */
   std::string localid;       /* job's id in lrms */
-  std::list<std::string> arguments;    /* executable + arguments */
+  std::list<Exec> preexecs;  /* executable + arguments */
+  Exec exec;                 /* executable + arguments */
+  std::list<Exec> postexecs; /* executable + arguments */
   std::string DN;            /* user's distinguished name aka subject name */
   Arc::Time starttime;       /* job submission time */
   std::string lifetime;      /* time to live for submission directory */

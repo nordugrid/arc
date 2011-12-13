@@ -139,8 +139,8 @@ namespace Arc {
      * executable in case of successful execution. For some scenarios the exit
      * code returned by the executable should be ignored, which is specified by
      * setting the first member of this object to false. If the exit code should
-     * be used for validation at the execution service, the first member should
-     * be set to true, while the second member should be the exit code returned
+     * be used for validation at the execution service, the first member of pair
+     * must be set to true, while the second member should be the exit code returned
      * at successful execution.
      **/
     std::pair<bool, int> SuccessExitCode;

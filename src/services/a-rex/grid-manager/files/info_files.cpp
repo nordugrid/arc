@@ -1148,4 +1148,3 @@ bool job_clean_final(const JobDescription &desc,const JobUser &user) {
   return true;
 }
 
-

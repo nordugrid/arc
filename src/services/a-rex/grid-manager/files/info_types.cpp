@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <string>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -164,8 +165,18 @@ static char StateToShortcut(const std::string& state) {
   return ' ';
 }
 
-JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc)
-{
+Exec& Exec::operator=(const Arc::ExecutableType& src) {
+  Exec& dest = *this;
+  // Order of the following calls matters!
+  dest.clear(); dest.successcode = 0;
+  dest = src.Argument;
+  dest.push_front(src.Path);
+  if(src.SuccessExitCode.first) dest.successcode = src.SuccessExitCode.second;
+  return dest;
+}
+
+JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& arc_job_desc) {
+  // TODO: handle errors
   action = "request";
   std::map<std::string, std::string>::const_iterator act_i = arc_job_desc.OtherAttributes.find("nordugrid:xrsl;action");
   if(act_i != arc_job_desc.OtherAttributes.end()) action = act_i->second;
@@ -267,13 +278,17 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
     }
   }
 
-  // Order of the following calls matters!
-  arguments.clear();
-  arguments = arc_job_desc.Application.Executable.Argument;
-  arguments.push_front(arc_job_desc.Application.Executable.Path);
-  // TODO: Support for SuccessExitCode (FailIfExitCodeNotEqualTo)
-
-  // TODO: Support for PreExecutable and PostExecutable.
+  exec = arc_job_desc.Application.Executable;
+  for(std::list<Arc::ExecutableType>::const_iterator e = arc_job_desc.Application.PreExecutable.begin();
+               e != arc_job_desc.Application.PreExecutable.end(); ++e) {
+    Exec pe = *e;
+    preexecs.push_back(pe);
+  }
+  for(std::list<Arc::ExecutableType>::const_iterator e = arc_job_desc.Application.PostExecutable.begin();
+               e != arc_job_desc.Application.PostExecutable.end(); ++e) {
+    Exec pe = *e;
+    postexecs.push_back(pe);
+  }
 
   stdin_ = arc_job_desc.Application.Input;
   stdout_ = arc_job_desc.Application.Output;
@@ -396,6 +411,27 @@ static inline void write_pair(int f,const std::string &name,bool value) {
   write_str(f,"\n");
 }
 
+static void write_pair(int f,const std::string &name,const Exec& value) {
+  write_str(f,name);
+  write_str(f,"=");
+  for(Exec::const_iterator i=value.begin(); i!=value.end(); ++i) {
+    write_str(f, Arc::escape_chars(*i, " \\\r\n", '\\', false));
+    write_str(f," ");
+  }
+  write_str(f,"\n");
+  write_str(f,name+"code");
+  write_str(f,"=");
+  write_str(f,Arc::tostring(value.successcode));
+  write_str(f,"\n");
+}
+
+static void write_pair(int f,const std::string &name,const std::list<Exec>& value) {
+  for(std::list<Exec>::const_iterator v = value.begin();
+                 v != value.end(); ++v) {
+    write_pair(f,name,*v);
+  }
+}
+
 static inline bool read_boolean(const char* buf) {
   if(strncasecmp("yes",buf,3) == 0) return true;
   if(strncasecmp("true",buf,4) == 0) return true;
@@ -427,15 +463,9 @@ bool JobLocalDescription::write(const std::string& fname) const {
   write_pair(f,"lrms",lrms);
   write_pair(f,"queue",queue);
   write_pair(f,"localid",localid);
-  write_str(f,"args=");
-  if(arguments.size()) {
-    for(std::list<std::string>::const_iterator i=arguments.begin(); \
-        i!=arguments.end(); ++i) {
-      write_str(f, Arc::escape_chars(*i, " \\\r\n", '\\', false));
-      write_str(f," ");
-    };
-  };
-  write_str(f,"\n");
+  write_pair(f,"args",exec);
+  write_pair(f,"pre",preexecs);
+  write_pair(f,"post",postexecs);
   write_pair(f,"subject",DN);
   write_pair(f,"starttime",starttime);
   write_pair(f,"lifetime",lifetime);
@@ -536,12 +566,47 @@ bool JobLocalDescription::read(const std::string& fname) {
       rtes = n;
     }
     else if(name == "args") {
-      arguments.clear();
+      exec.clear(); exec.successcode = 0;
       for(int n=p;buf[n] != 0;) {
         std::string arg;
         n+=input_escaped_string(buf+n,arg);
-        arguments.push_back(arg);
+        exec.push_back(arg);
       };
+    }
+    else if(name == "argscode") {
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      exec.successcode = n;
+    }
+    else if(name == "pre") {
+      Exec pe;
+      for(int n=p;buf[n] != 0;) {
+        std::string arg;
+        n+=input_escaped_string(buf+n,arg);
+        pe.push_back(arg);
+      };
+      preexecs.push_back(pe);
+    }
+    else if(name == "precode") {
+      if(preexecs.empty()) { close(f); return false; };
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      preexecs.back().successcode = n;
+    }
+    else if(name == "post") {
+      Exec pe;
+      for(int n=p;buf[n] != 0;) {
+        std::string arg;
+        n+=input_escaped_string(buf+n,arg);
+        pe.push_back(arg);
+      };
+      postexecs.push_back(pe);
+    }
+    else if(name == "postcode") {
+      if(postexecs.empty()) { close(f); return false; };
+      std::string temp_s(buf+p); int n;
+      if(!Arc::stringto(temp_s,n)) { close(f); return false; };
+      postexecs.back().successcode = n;
     }
     else if(name == "cleanuptime") { cleanuptime = buf+p; }
     else if(name == "delegexpiretime") { expiretime = buf+p; }

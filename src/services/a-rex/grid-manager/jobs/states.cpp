@@ -1183,7 +1183,7 @@ void JobsList::ActJobPreparing(JobsList::iterator &i,
             if(!stagein_complete) {
               state_changed=false;
               JobPending(i);
-            } else if(i->local->arguments.size()) {
+            } else if(i->local->exec.size()) {
               if((JOB_NUM_RUNNING<jcfg.max_jobs_running) || (jcfg.max_jobs_running==-1)) {
                 i->job_state = JOB_STATE_SUBMITTING;
                 state_changed=true; once_more=true;

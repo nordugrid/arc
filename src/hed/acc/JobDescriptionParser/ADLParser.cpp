@@ -85,10 +85,6 @@ namespace Arc {
       return false;
     }
 
-    if(dialect == "GRIDMANAGER" && sec.second != 0) {
-      logger.msg(ERROR, "[ADLParser] FailIfExitCodeNotEqualTo in %s contain non-zero code. This feature is not supported yet.", executable.Name());
-      return false;
-    }
     return true;
   }
 
