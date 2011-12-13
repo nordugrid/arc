@@ -249,10 +249,18 @@ namespace Arc {
         break;
       }
 
-      INTPRINT(out, Resources.SlotRequirement.NumberOfSlots.max, NumberOfSlots)
-      INTPRINT(out, Resources.SlotRequirement.ProcessPerHost.max, ProcessPerHost)
-      INTPRINT(out, Resources.SlotRequirement.ThreadsPerProcesses.max, ThreadsPerProcesses)
-      STRPRINT(out, Resources.SlotRequirement.SPMDVariation, SPMDVariation)
+      INTPRINT(out, Resources.SlotRequirement.NumberOfSlots, NumberOfSlots)
+      INTPRINT(out, Resources.SlotRequirement.SlotsPerHost, ProcessPerHost)
+      switch (Resources.SlotRequirement.ExclusiveExecution) {
+      case SlotRequirementType::EE_DEFAULT:
+        break;
+      case SlotRequirementType::EE_TRUE:
+        out << IString(" Job requires exclusive execution") << std::endl;
+        break;
+      case SlotRequirementType::EE_FALSE:
+        out << IString(" Job dosn't require exclusive execution") << std::endl;
+        break;
+      }
 
       if (!Resources.RunTimeEnvironment.empty()) {
         out << IString(" Run time environment requirements:") << std::endl;

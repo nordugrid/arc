@@ -522,26 +522,38 @@ namespace Arc {
       job.Resources.NodeAccess = NAT_INOUTBOUND;
 
     // ResourceSlotType Slots;
-    if (bool(resource["SlotRequirement"]["NumberOfSlots"]))
-      parseRange<int>(resource["SlotRequirement"]["NumberOfSlots"], job.Resources.SlotRequirement.NumberOfSlots, -1);
+    if (bool(resource["SlotRequirement"]["NumberOfSlots"])) {
+      if (!stringto<int>(resource["SlotRequirement"]["NumberOfSlots"], job.Resources.SlotRequirement.NumberOfSlots)) {
+        job.Resources.SlotRequirement.NumberOfSlots = -1;
+      }
+    }
     else if (bool(xmlXApplication["ProcessCountLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], job.Resources.SlotRequirement.NumberOfSlots.max))
-        job.Resources.SlotRequirement.NumberOfSlots = Range<int>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["ProcessCountLimit"], job.Resources.SlotRequirement.NumberOfSlots)) {
+        job.Resources.SlotRequirement.NumberOfSlots = -1;
+      }
     }
-    if (bool(resource["SlotRequirement"]["ThreadsPerProcesses"]))
-      parseRange<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.SlotRequirement.ThreadsPerProcesses, -1);
+    /*
+    if (bool(resource["SlotRequirement"]["ThreadsPerProcesses"])) {
+      if (!stringto<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.SlotRequirement.ThreadsPerProcesses)) {
     else if (bool(xmlXApplication["ThreadCountLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], job.Resources.SlotRequirement.ThreadsPerProcesses.max))
-        job.Resources.SlotRequirement.ThreadsPerProcesses = Range<int>(-1);
+      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], job.Resources.SlotRequirement.ThreadsPerProcesses))
+        job.Resources.SlotRequirement.ThreadsPerProcesses = -1;
     }
-    if (bool(resource["SlotRequirement"]["ProcessPerHost"]))
-      parseRange<int>(resource["SlotRequirement"]["ProcessPerHost"], job.Resources.SlotRequirement.ProcessPerHost, -1);
-    else if (bool(resource["TotalCPUCount"]))
-      parseRange<int>(resource["TotalCPUCount"], job.Resources.SlotRequirement.ProcessPerHost, -1);
+    */
+    if (bool(resource["SlotRequirement"]["ProcessPerHost"])) {
+      if (!stringto<int>(resource["SlotRequirement"]["ProcessPerHost"], job.Resources.SlotRequirement.SlotsPerHost)) {
+        job.Resources.SlotRequirement.SlotsPerHost = -1;
+      }
+    }
+    else if (bool(resource["TotalCPUCount"])) {
+      if (!stringto<int>(resource["TotalCPUCount"], job.Resources.SlotRequirement.SlotsPerHost)) {
+        job.Resources.SlotRequirement.SlotsPerHost = -1;
+      }
+    }
 
     // std::string SPMDVariation;
-    if (bool(resource["SlotRequirement"]["SPMDVariation"]))
-      job.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
+    //if (bool(resource["SlotRequirement"]["SPMDVariation"]))
+    //  job.Resources.SlotRequirement.SPMDVariation = (std::string)resource["Slots"]["SPMDVariation"];
 
 
     // std::string QueueName;
@@ -853,12 +865,12 @@ namespace Arc {
       xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory.max);
     if (job.Resources.TotalCPUTime.range.max != -1)
       xmlPApplication.NewChild("posix-jsdl:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime.range.max);
-    if (job.Resources.SlotRequirement.NumberOfSlots.max != -1)
-      xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfSlots.max);
+    if (job.Resources.SlotRequirement.NumberOfSlots != -1)
+      xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
     if (job.Resources.IndividualVirtualMemory.max != -1)
       xmlPApplication.NewChild("posix-jsdl:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory.max);
-    if (job.Resources.SlotRequirement.ThreadsPerProcesses.max != -1)
-      xmlPApplication.NewChild("posix-jsdl:ThreadCountLimit") = tostring(job.Resources.SlotRequirement.ThreadsPerProcesses.max);
+    //if (job.Resources.SlotRequirement.ThreadsPerProcesses.max != -1)
+    //  xmlPApplication.NewChild("posix-jsdl:ThreadCountLimit") = tostring(job.Resources.SlotRequirement.ThreadsPerProcesses.max);
 
     if (xmlPApplication.Size() > 0)
       xmlApplication.NewChild(xmlPApplication);
@@ -1044,31 +1056,36 @@ namespace Arc {
     {
       XMLNode xmlSlotRequirement("<SlotRequirement/>");
 
-      // Range<int> NumberOfProcesses;
-      XMLNode xmlNOP("<NumberOfProcesses/>");
-      outputARCJSDLRange(job.Resources.SlotRequirement.NumberOfSlots, xmlNOP, -1);
-      if (xmlNOP.Size() > 0)
-        xmlSlotRequirement.NewChild(xmlNOP);
+      // Range<int> NumberOfSlots;
+      if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
+        XMLNode xmlNOS("<NumberOfSlots/>");
+        xmlNOS = tostring(job.Resources.SlotRequirement.NumberOfSlots);
+        if (xmlNOS.Size() > 0) {
+          xmlSlotRequirement.NewChild(xmlNOS);
+        }
+      }
 
       // Range<int> ProcessPerHost;
-      XMLNode xmlPPH("<ProcessPerHost/>");
-      outputARCJSDLRange(job.Resources.SlotRequirement.ProcessPerHost, xmlPPH, -1);
-      if (xmlPPH.Size() > 0) {
-        xmlSlotRequirement.NewChild(xmlPPH);
-        XMLNode xmlTCC("<TotalCPUCount/>");
-        outputJSDLRange(job.Resources.SlotRequirement.ProcessPerHost, xmlTCC, -1);
-        xmlResources.NewChild(xmlTCC);
+      if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
+        XMLNode xmlPPH("<ProcessPerHost/>");
+        xmlPPH = tostring(job.Resources.SlotRequirement.SlotsPerHost);
+        if (xmlPPH.Size() > 0) {
+          xmlSlotRequirement.NewChild(xmlPPH);
+          XMLNode xmlTCC("<TotalCPUCount/>");
+          xmlTCC = tostring(job.Resources.SlotRequirement.SlotsPerHost);
+          xmlResources.NewChild(xmlTCC);
+        }
       }
 
       // Range<int> ThreadsPerProcesses;
-      XMLNode xmlTPP("<ThreadsPerProcesses/>");
-      outputARCJSDLRange(job.Resources.SlotRequirement.ThreadsPerProcesses, xmlTPP, -1);
-      if (xmlTPP.Size() > 0)
-        xmlSlotRequirement.NewChild(xmlTPP);
+      //XMLNode xmlTPP("<ThreadsPerProcesses/>");
+      //outputARCJSDLRange(job.Resources.SlotRequirement.ThreadsPerProcesses, xmlTPP, -1);
+      //if (xmlTPP.Size() > 0)
+      //  xmlSlotRequirement.NewChild(xmlTPP);
 
       // std::string SPMDVariation;
-      if (!job.Resources.SlotRequirement.SPMDVariation.empty())
-        xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.SlotRequirement.SPMDVariation;
+      //if (!job.Resources.SlotRequirement.SPMDVariation.empty())
+      //  xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.SlotRequirement.SPMDVariation;
 
       if (xmlSlotRequirement.Size() > 0)
         xmlResources.NewChild(xmlSlotRequirement);

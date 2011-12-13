@@ -475,29 +475,36 @@ namespace Arc {
       }
       XMLNode slot = resources["adl:SlotRequirement"];
       if((bool)slot) {
-        if(!stringto(slot["adl:NumberOfSlots"],job.Resources.SlotRequirement.NumberOfSlots.max)) {
+        if(!stringto(slot["adl:NumberOfSlots"],job.Resources.SlotRequirement.NumberOfSlots)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
           jobdescs.clear();
           return false;
         }
         if((bool)slot["adl:SlotsPerHost"]) {
-          if(!stringto(slot["adl:SlotsPerHost"],job.Resources.SlotRequirement.ThreadsPerProcesses.max)) {
-            logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
-            jobdescs.clear();
-            return false;
-          }
           XMLNode use = slot["adl:SlotsPerHost"].Attribute("useNumberOfSlots");
-          if((bool)use) {
-            if(((std::string)use != "false") && ((std::string)use != "0")) {
-              logger.msg(ERROR, "[ADLParser] For useNumberOfSlots of SlotsPerHost only false value is supported yet.");
-              jobdescs.clear();
+          if((bool)use && (((std::string)use == "true") || ((std::string)use == "1"))) {
+            if (!(bool)slot["adl:NumberOfSlots"]) {
+              logger.msg(ERROR, "[ADLParser] The NumberOfSlots element should be specified, when the value of useNumberOfSlots attribute of SlotsPerHost element is \"true\".");
               return false;
             }
+            job.Resources.SlotRequirement.SlotsPerHost = job.Resources.SlotRequirement.NumberOfSlots;
           }
-          if((bool)slot["adl:ExclusiveExecution"]) {
-            logger.msg(ERROR, "[ADLParser] ExclusiveExecution is not supported yet.");
+          else if(!stringto(slot["adl:SlotsPerHost"],job.Resources.SlotRequirement.SlotsPerHost)) {
+            logger.msg(ERROR, "[ADLParser] Missing or wrong value in SlotsPerHost.");
             jobdescs.clear();
             return false;
+          }
+          if((bool)slot["adl:ExclusiveExecution"]) {
+            const std::string ee = slot["adl:ExclusiveExecution"];
+            if ((ee == "true") || (ee == "1")) {
+              job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_TRUE;
+            }
+            else if ((ee == "false") || (ee == "0")) {
+              job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_FALSE;
+            }
+            else {
+              job.Resources.SlotRequirement.ExclusiveExecution = SlotRequirementType::EE_DEFAULT;
+            }
           }
         }
       }
@@ -783,11 +790,11 @@ namespace Arc {
     //  BenchmarkType
     //  BenchmarkValue
     XMLNode slot = resources.NewChild("SlotRequirement");
-    if(job.Resources.SlotRequirement.NumberOfSlots.max != -1) {
-      slot.NewChild("NumberOfSlots") = tostring(job.Resources.SlotRequirement.NumberOfSlots.max);
+    if(job.Resources.SlotRequirement.NumberOfSlots > -1) {
+      slot.NewChild("NumberOfSlots") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
     }
-    if (job.Resources.SlotRequirement.ThreadsPerProcesses.max != -1) {
-      slot.NewChild("SlotsPerHost") = tostring(job.Resources.SlotRequirement.ThreadsPerProcesses.max);
+    if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
+      slot.NewChild("SlotsPerHost") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
     }
     if(slot.Size() <= 0) slot.Destroy();
     if(!job.Resources.QueueName.empty()) {;
@@ -808,8 +815,6 @@ namespace Arc {
     // job.Resources.TotalWallTime.range
     // job.Resources.TotalWallTime.benchmark
     // job.Resources.CEType
-    // job.Resources.SlotRequirement.ThreadsPerProcesses
-    // job.Resources.SlotRequirement.SPMDVariation
 
     // DataStaging
 

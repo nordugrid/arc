@@ -271,16 +271,19 @@ namespace Arc {
     bool DryRun;
   };
 
-  class ResourceSlotType {
+  class SlotRequirementType {
   public:
-    ResourceSlotType() :
+    SlotRequirementType() :
       NumberOfSlots(-1),
-      ProcessPerHost(-1),
-      ThreadsPerProcesses(-1) {}
-    Range<int> NumberOfSlots;
-    Range<int> ProcessPerHost;
-    Range<int> ThreadsPerProcesses;
-    std::string SPMDVariation;
+      SlotsPerHost(-1),
+      ExclusiveExecution(EE_DEFAULT) {}
+    int NumberOfSlots; // Range?
+    int SlotsPerHost; // Range?
+    enum ExclusiveExecutionType {
+      EE_DEFAULT,
+      EE_TRUE,
+      EE_FALSE
+    } ExclusiveExecution;
   };
 
   class DiskSpaceRequirementType {
@@ -344,7 +347,7 @@ namespace Arc {
     ScalableTime<int> TotalWallTime;
     NodeAccessType NodeAccess;
     SoftwareRequirement CEType;
-    ResourceSlotType SlotRequirement;
+    SlotRequirementType SlotRequirement;
     std::string QueueName;
     SoftwareRequirement RunTimeEnvironment;
   };

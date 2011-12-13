@@ -363,13 +363,13 @@ namespace Arc {
       if (job->Resources.SlotRequirement.NumberOfSlots != -1) {
         if (target->TotalSlots != -1) {     // Example: 5656
           if (target->TotalSlots < job->Resources.SlotRequirement.NumberOfSlots) {
-            logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
+            logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
             continue;
           }
         }
         if (target->MaxSlotsPerJob != -1) {     // Example: 5656
           if (target->MaxSlotsPerJob < job->Resources.SlotRequirement.NumberOfSlots) {
-            logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots.max);
+            logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", target->TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
             continue;
           }
         }

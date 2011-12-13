@@ -27,9 +27,9 @@ Dependencies
 ============
 
 The core part of middleware is written in C/C++.
-Building the software from source or installing a precompiled binary 
+Building the software from source or installing a precompiled binary
 requires different external packages, furthermore the client and server
-packages have different dependencies too. Below a list of the explicit 
+packages have different dependencies too. Below a list of the explicit
 requirements is shown:
 
 Mandatory dependencies
@@ -78,6 +78,7 @@ Build & runtime:
   o Berkeley DB C++ interface (ISIS)
   o xmlsec1 1.2.4 or higher (Security)
   o GridSite (GridFTP)
+  o db4.x C++ API (A-REX)
 
 Runtime dependencies:
   o Perl, libxml-simple-perl, perl-Digest-SHA1 (A-rex)
@@ -106,7 +107,7 @@ The NorduGrid repository hosts the source code, and provides most of
 the required external software which are not part of a standard Linux
 distribution.
 
-You can get the latest source code for ARC from the Subversion 
+You can get the latest source code for ARC from the Subversion
 repository. See http://svn.nordugrid.org for more details.
 
 There are also nightly code snapshots available at
@@ -145,9 +146,9 @@ installation:
 
   export ARC_LOCATION=PLACE_TO_INSTALL_ARC
 
-On some systems 'autogen.sh' may produce few warnings. Ignore them as 
-long as 'configure' passes without errors. But in case of problems 
-during configure or compilation, collect them and present while 
+On some systems 'autogen.sh' may produce few warnings. Ignore them as
+long as 'configure' passes without errors. But in case of problems
+during configure or compilation, collect them and present while
 reporting problems.
 
 If the previous commands finish without errors, compile and install ARC
@@ -184,7 +185,7 @@ X509 Certificates
 =================
 
 Most of ARC planned and existing services use HTTPS as transport protocol
-so they require proper setup of X509 security infrastructure. Minimal 
+so they require proper setup of X509 security infrastructure. Minimal
 requirements are:
 * Host certificate aka public key in PEM format
 * Corresponding private key
@@ -192,7 +193,7 @@ requirements are:
 * Certificates of CAs of clients which are going to send requests to services. Unless
 of course clients use the same CA as the server.
 
-More information about X509 certificates and their usage in Grid environment 
+More information about X509 certificates and their usage in Grid environment
 can be found on http://www.nordugrid.org/documents/certificate_howto.html
 and http://www.nordugrid.org/documents/ng-server-install.html#security
 
@@ -201,7 +202,7 @@ keys available at:
 
  http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/sec/TestCA
 
-Alternatively You may choose to use KnowARC Instant CA service available at 
+Alternatively You may choose to use KnowARC Instant CA service available at
 https://vls.grid.upjs.sk/CA/instantCA . It is especially useful if to test
 installations consisting on multiple hosts.
 
@@ -225,13 +226,13 @@ the certificates. These are obtainable by running the command
 
   openssl x509 -hash -noout -in path_to_certificate
 
-The corresponding file name for the certificate should be <hash_value>.0 . 
-The value for the pre-generated CA certificate is 4457e417. 
+The corresponding file name for the certificate should be <hash_value>.0 .
+The value for the pre-generated CA certificate is 4457e417.
 
 1. Configuration for mutual authentication
 Please make sure the chosen location of certificates is correctly
 configured in the service configuration file. The configuration for the
-certificate for TLS MCC should look like this:  
+certificate for TLS MCC should look like this:
 
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
@@ -241,7 +242,7 @@ or
 
       <CACertificatePath>/etc/grid-security/ca.pem</CACertificatePath>
 
-The key file has to be without passphrase for the server side. You can also 
+The key file has to be without passphrase for the server side. You can also
 configure a proxy certificate instead of the normal certificate (See part:
 Proxy certificate Generation & Usage).
 
@@ -251,23 +252,23 @@ place. Locations of the credentials are provided to the client tools
 from the command line.
 
 2.Configuration for no client-authentication
-You can also configure only server-authentication instead of mutual 
-authentication. In this case, the server will not send a client certificate 
-request to the client, so the client will not send a certificate to the 
+You can also configure only server-authentication instead of mutual
+authentication. In this case, the server will not send a client certificate
+request to the client, so the client will not send a certificate to the
 server, which means only the server's certificate is checked.
 
-For the server side, the configuration for the certificate for TLS MCC 
+For the server side, the configuration for the certificate for TLS MCC
 should look like this:
       <KeyPath>/etc/grid-security/hostkey.pem</KeyPath>
       <CertificatePath>/etc/grid-security/hostcert.pem</CertificatePath>
       <ClientAuthn>false</ClientAuthn>
 Note: here either <CACertificatePath/> or <<CACertificatesDir>/> are not needed,
 because the client's certificate will not checked by server; but <ClientAuthn/>
-is required here, which explicitly specify that client's certificate will not 
-be checked, the default value of <ClientAuthn/> is "true" and it does not need 
+is required here, which explicitly specify that client's certificate will not
+be checked, the default value of <ClientAuthn/> is "true" and it does not need
 to be explicitly specified.
 
-For the client side, the configuration for the certificate for TLS MCC 
+For the client side, the configuration for the certificate for TLS MCC
 should look like this:
       <CACertificatesDir>/etc/grid-security/certificates</CACertificatesDir>
 or
@@ -282,48 +283,48 @@ certificate in PKCS12 format which you can import into your browser
 for accessing ARC services capable of producing HTML output.
 
 ARC comes with the utility arcproxy to generate proxy credentials
-from a certificate/private key pair. It provides only basic functionality 
-and is meant for testing purposes only. 
+from a certificate/private key pair. It provides only basic functionality
+and is meant for testing purposes only.
 
-IMPORTANT: If during configuration stage You see a message "OpenSSL 
+IMPORTANT: If during configuration stage You see a message "OpenSSL
 contains no support for proxy credentials" that means You won't be
 able to use proxy credentials generated by utilities like grid-proxy-init,
-voms-proxy-init or arcproxy. Because of that all user private keys has 
-to be kept unencrypted. 
+voms-proxy-init or arcproxy. Because of that all user private keys has
+to be kept unencrypted.
 
 
 
 Proxy certificate Generation & Usage
 ====================================
 As metioned above, ARC comes with utility proxy generation utility
---arcproxy. 
+--arcproxy.
 arcproxy appears in ARC_LOCATION/bin. The usage of arcproxy is like:
-ARC_LOCATION/bin/arcproxy -P proxy.pem -C cert.pem -K key.pem 
+ARC_LOCATION/bin/arcproxy -P proxy.pem -C cert.pem -K key.pem
 -c validityStart=2008-05-29T10:20:30Z
 -c validityEnd=2008-06-29T10:20:30Z
 -c proxyPolicyFile=delegation_policy.xml
-By using argument "-c", some constraints can be specified for proxy 
-certificate. 
-Currently, the life time can be specified by using 
+By using argument "-c", some constraints can be specified for proxy
+certificate.
+Currently, the life time can be specified by using
 "-c validityStart=..." and "-c validityEnd=...", or "-c validityStart=..."
-and "-c validityPeriod=..."; 
-and the proxy policy can be specified by using "-c proxyPolicyFile=..." 
+and "-c validityPeriod=...";
+and the proxy policy can be specified by using "-c proxyPolicyFile=..."
 or "-c proxyPolicy=...".
-Note: If the "validityStart" has not been set, the current time will 
-be used as start time for proxy. 
+Note: If the "validityStart" has not been set, the current time will
+be used as start time for proxy.
 If both "validityEnd" and "validityPeriod" have not been set, the default
 validity period will be set to 12 hours.
 If the "validityStart" is set, it should not be before current time.
 The time unit for "validityPeriod" is second, e.g. "-c validityPeriod=86400"
 
 If proxy certificate is used, in the configuration file for service
-side or client side, the configuration for the certificate for TLS MCC 
+side or client side, the configuration for the certificate for TLS MCC
 should look like this:
       <KeyPath>./proxy.pem</KeyPath>
       <CertificatePath>./proxy.pem</CertificatePath>
       <CACertificatePath>./ca.pem</CACertificatePath>
 Since normally a proxy certificate file includes the proxy certificate
-and private key corresponding to the proxy certificate, <KeyPath/> and 
+and private key corresponding to the proxy certificate, <KeyPath/> and
 <CertificatePath/> are configured the same.
 
 Alternatively, you can directly configure <ProxyPath/> instead of <KeyPath/>
@@ -332,7 +333,7 @@ and <CertificatePath/>:
       <CACertificatePath>./ca.pem</CACertificatePath>
 
 
-Proxy policy can be spefified as constraint. Proxy policy is for constraining 
+Proxy policy can be spefified as constraint. Proxy policy is for constraining
 identity delegation. Currently, the supported policy is Arc specific policy.
 Proxy policy is inserted into proxy certificate's "proxy cert info"
 extenstion in RFC3820's policy language "NID_id_ppl_anyLanguage".
@@ -392,26 +393,26 @@ To deploy A-REX use example configuration files available in share/doc/arc :
    http://svn.nordugrid.org/trac/nordugrid/browser/doc/trunk/tech_doc/a-rex/arex_tech_doc.pdf?format=raw
 
 The Grid Manager runs as part of the A-REX service. There is no need to run any additional
-executable. But you still need to setup its infrastructure as long as you are 
+executable. But you still need to setup its infrastructure as long as you are
 going to have anything more sophisticated than described in the example configuration.
 For more information read the previously mentioned document.
 
-A-REX uses either GridFTP or HTTPS as transport protocol (although You can reconfigure it to use 
+A-REX uses either GridFTP or HTTPS as transport protocol (although You can reconfigure it to use
 plain HTTP) so it requires proper setup of X509 security infrastructure. See
 above for instructions.
 
 Copy example configuration files to some location and edit them. Make sure all paths
-to X509 certificates and Grid Manager configuration are set correctly. Start server 
+to X509 certificates and Grid Manager configuration are set correctly. Start server
 with command
 
   $ARC_LOCATION/sbin/arched -c path_to_edited_arex.xml
   or
   /etc/init.d/a-rex start
 
-Look into log file specified in arex.xml for possible errors. You can safely ignore 
+Look into log file specified in arex.xml for possible errors. You can safely ignore
 messages like "Not a '...' type plugin" and "Unknown element ... - ignoring".
 
-If you compiled ARC with Globus support and you see complaints about "libglobus..." 
+If you compiled ARC with Globus support and you see complaints about "libglobus..."
 and that it cannot open a shared object file, try to add "/opt/globus/lib" to your
 LD_LIBRARY_PATH:
 
@@ -589,7 +590,7 @@ Please note that you can run similar arcinfo request against any ARC service
 except for the echo service.
 
 A-REX accepts jobs described in JSDL. Example JSDL jobs are provided
-in $ARC_LOCATION/share/doc/ in files 'jsdl_simple.xml' and 'jsdl_stage.xml'. To 
+in $ARC_LOCATION/share/doc/ in files 'jsdl_simple.xml' and 'jsdl_stage.xml'. To
 submit job to the A-REX service one may use the 'arcsub' command:
 
 $ARC_LOCATION/bin/arcsub -c ARC1:https://localhost:60000/arex -f /usr/local/share/doc/arc/jsdl_simple.xml -j id.xml
@@ -607,25 +608,25 @@ in 'id.xml' file. One can then query job state with the 'arcstat' utility:
  $ARC_LOCATION/bin/arcstat id.xml
  Job status: Finished/Finished
 
-Some of the of A-REX client tools consists of arcsub, arcstat, arckill, arcget 
+Some of the of A-REX client tools consists of arcsub, arcstat, arckill, arcget
 and arcclean commands. For more information please see the man pages of those utilities.
 
 
 Security and Authorization
 ==========================
 
-ARC implements security related features through set of Security Handler and 
-Policy Decision Point components. Security Handler components are attached to 
+ARC implements security related features through set of Security Handler and
+Policy Decision Point components. Security Handler components are attached to
 message processing components. Each Security Handler takes care of processing
 own part of security information. Currently ARC comes with 2 Security Handlers:
 
- * identity.map - associates client's identity with local (UNIX) identity. It 
+ * identity.map - associates client's identity with local (UNIX) identity. It
    uses PDP components to choose local isentity and/or identity mapping algorithm.
  * arc.authz - calls PDP components and combines obtained authorization
    decisions.
  * delegation.collector - parses proxy policy from remote proxy certificate.
    this Security Handler should be configured under tls mcc component.
- * usernametoken.handler - implement the functioanlity ofws-security usernametoken 
+ * usernametoken.handler - implement the functioanlity ofws-security usernametoken
    profile. It will generate usernametoken into soap header, or extract
    usernametoken outof soap header and do authentication based on the
    extracted usernametoken.
@@ -633,9 +634,9 @@ own part of security information. Currently ARC comes with 2 Security Handlers:
 Among available PDP components there are
 
  * allow - always returns positive result
- * deny - always returns negative result 
+ * deny - always returns negative result
  * simplelist.pdp - compares DN of user to those stored in a file.
- * arc.pdp - compares request information parsed from message and policy 
+ * arc.pdp - compares request information parsed from message and policy
    information specified in this pdp.
  * pdpservice.invoker -  it composes the request, puts request into soap message,
    and invokes the remote pdp service to get the response soap which
@@ -645,20 +646,20 @@ Among available PDP components there are
    information specified in proxy certificate from remote side.
 
 There are examples of A-REX service and echo service with Security Handlers being used.
-They may be found at $ARC_LOCATION/share/doc/arc/arex_secure.xml and 
+They may be found at $ARC_LOCATION/share/doc/arc/arex_secure.xml and
 $ARC_LOCATION/share/doc/arc/echo.xml
 
-There is also a pdp service which implements the same functionality as arc.pdp. See 
+There is also a pdp service which implements the same functionality as arc.pdp. See
 src/service/pdp/README.
 Specifically for arc.pdp and pdp service, a formatted policy with specific schema
-should be managed, see $ARC_LOCATION/share/doc/arc/pdp_policy.xml.example and 
+should be managed, see $ARC_LOCATION/share/doc/arc/pdp_policy.xml.example and
 $ARC_LOCATION/share/doc/arc/Policy.xsd for details.
 
-For usernametoken handler, there is example about configuration on service side in 
+For usernametoken handler, there is example about configuration on service side in
 $ARC_LOCATION/share/doc/arc/echo.xml, you can run the echo service by using this configuration
-file with usernametoken sechandler configuered. For the client side, the echo client 
-(src/client/echo)can use usernametoken sechandler to authenticate against echo service 
-(see README under src/client/echo); there is also a test program in 
+file with usernametoken sechandler configuered. For the client side, the echo client
+(src/client/echo)can use usernametoken sechandler to authenticate against echo service
+(see README under src/client/echo); there is also a test program in
 src/tests/echo/test_clientinterface.cpp which can be compiled and tested against echo
 service with usernametoken sechandler configured.
 
@@ -669,7 +670,7 @@ Finding more information
 Many information about functionality and configuration of various components
 may be found inside corresponding configuratrion XML schemas.
 
-There is an API document 
+There is an API document
 
 
 Contributing

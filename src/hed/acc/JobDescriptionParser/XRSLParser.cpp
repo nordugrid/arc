@@ -1136,10 +1136,10 @@ namespace Arc {
         std::string count;
         if (!SingleValue(c, count))
           return false;
-        j.Resources.SlotRequirement.ProcessPerHost = stringtoi(count);
+        j.Resources.SlotRequirement.SlotsPerHost = stringtoi(count);
         for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
              it != j.GetAlternatives().end(); it++) {
-          it->Resources.SlotRequirement.ProcessPerHost = j.Resources.SlotRequirement.ProcessPerHost;
+          it->Resources.SlotRequirement.SlotsPerHost = j.Resources.SlotRequirement.SlotsPerHost;
         }
         return true;
       }
@@ -1521,9 +1521,9 @@ namespace Arc {
       r.Add(new RSLCondition("architecture", RSLEqual, l));
     }
 
-    if (j.Resources.SlotRequirement.ProcessPerHost > -1) {
+    if (j.Resources.SlotRequirement.SlotsPerHost > -1) {
       RSLList *l = new RSLList;
-      l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.ProcessPerHost)));
+      l->Add(new RSLLiteral(tostring(j.Resources.SlotRequirement.SlotsPerHost)));
       r.Add(new RSLCondition("count", RSLEqual, l));
     }
 
