@@ -209,11 +209,11 @@ Arc::MCC_Status ARexService::ESPauseActivity(ARexGMConfig& config,Arc::XMLNode i
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:PauseActivity: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:PauseActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       // Pause not implemented
-      logger_.msg(Arc::ERROR, "ESEMI:PauseActivity: job %s - %s", jobid, "pause not implemented");
+      logger_.msg(Arc::ERROR, "EMIES:PauseActivity: job %s - %s", jobid, "pause not implemented");
       ESOperationNotPossibleFault(item.NewChild("dummy"),"pause not implemented");
       //  ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
     };
@@ -255,11 +255,11 @@ Arc::MCC_Status ARexService::ESResumeActivity(ARexGMConfig& config,Arc::XMLNode 
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:ResuumeActivity: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:ResuumeActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       // Pause not implemented hence job is never in proper state for resume
-      logger_.msg(Arc::ERROR, "ESEMI:PauseActivity: job %s - %s", jobid, "pause not implemented");
+      logger_.msg(Arc::ERROR, "EMIES:PauseActivity: job %s - %s", jobid, "pause not implemented");
       ESInvalidActivityStateFault(item.NewChild("dummy"),"pause not implemented");
     };
   };
@@ -300,12 +300,12 @@ Arc::MCC_Status ARexService::ESCancelActivity(ARexGMConfig& config,Arc::XMLNode 
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:CancelActivity: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:CancelActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       if(!job.Cancel()) {
         // Probably wrong current state
-        logger_.msg(Arc::ERROR, "ESEMI:CancelActivity: job %s - %s", jobid, job.Failure());
+        logger_.msg(Arc::ERROR, "EMIES:CancelActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
         ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
       } else {
@@ -354,16 +354,16 @@ Arc::MCC_Status ARexService::ESWipeActivity(ARexGMConfig& config,Arc::XMLNode in
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       if((job.State() != "FINISHED") &&
          (job.State() != "DELETED")) {
-        logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - state is %s, not terminal", jobid, job.State());
+        logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - state is %s, not terminal", jobid, job.State());
         ESActivityNotInTerminalStateFault(item.NewChild("dummy"),"not in terminal state");
       } else if(!job.Clean()) {
         // Probably wrong current state
-        logger_.msg(Arc::ERROR, "ESEMI:WipeActivity: job %s - %s", jobid, job.Failure());
+        logger_.msg(Arc::ERROR, "EMIES:WipeActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
         ESActivityNotInTerminalStateFault(item.NewChild("dummy"),job.Failure());
       } else {
@@ -408,12 +408,12 @@ Arc::MCC_Status ARexService::ESRestartActivity(ARexGMConfig& config,Arc::XMLNode
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:RestartActivity: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:RestartActivity: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       if(!job.Resume()) {
         // Probably wrong current state
-        logger_.msg(Arc::ERROR, "ESEMI:RestartActivity: job %s - %s", jobid, job.Failure());
+        logger_.msg(Arc::ERROR, "EMIES:RestartActivity: job %s - %s", jobid, job.Failure());
         // TODO: check for real reason
         ESInvalidActivityStateFault(item.NewChild("dummy"),job.Failure());
       } else {

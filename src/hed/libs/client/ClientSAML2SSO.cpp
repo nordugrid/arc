@@ -307,11 +307,11 @@ namespace Arc {
       statusSP = http_client->process("POST", "/saml2sp", &requestSP, &infoSP, &responseSP);
 
       if (!responseSP) {
-        logger.msg(Arc::ERROR, "Request failed: No response from SP Service when sending saml assertion to SP");
+        logger.msg(Arc::ERROR, "Request failed: No response from SP Service when sending SAML assertion to SP");
         return MCC_Status();
       }
       if (!statusSP) {
-        logger.msg(Arc::ERROR, "Request failed: response from SP Service is not as expected when sending saml assertion to SP");
+        logger.msg(Arc::ERROR, "Request failed: response from SP Service is not as expected when sending SAML assertion to SP");
         if (responseSP)
           delete responseSP;
         return MCC_Status();

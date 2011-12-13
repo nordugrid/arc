@@ -100,7 +100,7 @@ namespace Arc {
       if (!Identification.ActivityOldID.empty()) {
         std::list<std::string>::const_iterator iter = Identification.ActivityOldID.begin();
         for (; iter != Identification.ActivityOldID.end(); iter++)
-          out << IString(" Activity Old Id: %s", *iter) << std::endl;
+          out << IString(" Old activity ID: %s", *iter) << std::endl;
       }
 
       if (!Application.Executable.Argument.empty()) {
@@ -176,11 +176,11 @@ namespace Arc {
       if (bool(Application.AccessControl)) {
         std::string str;
         Application.AccessControl.GetXML(str, true);
-        out << IString(" AccessControl: %s", str) << std::endl;
+        out << IString(" Access control: %s", str) << std::endl;
       }
 
       if (Application.ProcessingStartTime.GetTime() > 0)
-        out << IString(" ProcessingStartTime: %s", Application.ProcessingStartTime.str()) << std::endl;
+        out << IString(" Processing start time: %s", Application.ProcessingStartTime.str()) << std::endl;
 
       if (Application.Notification.size() > 0) {
         out << IString(" Notify:") << std::endl;
@@ -197,7 +197,7 @@ namespace Arc {
       if (!Application.CredentialService.empty()) {
         std::list<URL>::const_iterator iter = Application.CredentialService.begin();
         for (; iter != Application.CredentialService.end(); iter++)
-          out << IString(" CredentialService: %s", iter->str()) << std::endl;
+          out << IString(" Credential service: %s", iter->str()) << std::endl;
       }
 
       INTPRINT(out, Resources.TotalCPUTime.range.max, TotalCPUTime)
@@ -239,13 +239,13 @@ namespace Arc {
       case NAT_NONE:
         break;
       case NAT_INBOUND:
-        out << IString(" NodeAccess: Inbound") << std::endl;
+        out << IString(" Node access: inbound") << std::endl;
         break;
       case NAT_OUTBOUND:
-        out << IString(" NodeAccess: Outbound") << std::endl;
+        out << IString(" Node access: outbound") << std::endl;
         break;
       case NAT_INOUTBOUND:
-        out << IString(" NodeAccess: Inbound and Outbound") << std::endl;
+        out << IString(" Node access: inbound and outbound") << std::endl;
         break;
       }
 
@@ -288,10 +288,10 @@ namespace Arc {
             out << IString("     Target.URI: %s", itTarget->fullstr()) << std::endl;
           }
           if (iter->KeepData) {
-            out << IString("     KeepData: true") << std::endl;
+            out << IString("     Keep data: true") << std::endl;
           }
           if (iter->IsExecutable) {
-            out << IString("     IsExecutable: true") << std::endl;
+            out << IString("     Is executable: true") << std::endl;
           }
         }
       }
@@ -380,7 +380,7 @@ namespace Arc {
     if (language.empty()) {
       language = sourceLanguage;
       if (language.empty()) {
-        logger.msg(ERROR, "Job description langauage not specified, unable to output description.");
+        logger.msg(ERROR, "Job description language is not specified, unable to output description.");
         return false;
       }
     }

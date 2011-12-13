@@ -16,7 +16,7 @@
 static Arc::Logger logger(Arc::Logger::rootLogger, "arc-vomsac-check");
 
 static void usage(char *pname) {
-	logger.msg(Arc::ERROR,"Usage: %s [-N] -P <user proxy> -L <A-REX local> [-c <configfile>] [-d <loglevel>]",pname);
+	logger.msg(Arc::ERROR,"Usage: %s [-N] -P <user proxy> -L <job status file> [-c <configfile>] [-d <loglevel>]",pname);
 }
 
 /* ARC classes use '/VO=voname/Group=groupname/subgroupname/Role=role' notation
@@ -82,12 +82,12 @@ int main(int argc, char *argv[]) {
 
 	// check required
 	if ( !user_proxy_f ) {
-		logger.msg(Arc::ERROR,"User proxy file is required but not specified");
+		logger.msg(Arc::ERROR,"User proxy file is required but is not specified");
 		usage(argv[0]);
 		return EXIT_FAILURE;
 	}
 	if ( !job_local_f ) {
-		logger.msg(Arc::ERROR,"A-REX local parameters file is required");
+		logger.msg(Arc::ERROR,"Local job status file is required");
 		usage(argv[0]);
 		return EXIT_FAILURE;
 	}
@@ -106,12 +106,12 @@ int main(int argc, char *argv[]) {
 			getline(job_local,line);
 			if ( ! line.compare(0,6,"queue=") ) {
 				queue = line.substr(6);
-				logger.msg(Arc::INFO,"making decision using queue: %s",queue);
+				logger.msg(Arc::INFO,"Making the decision for the queue %s",queue);
 				break;
 			}
 		}
 	} else {
-		logger.msg(Arc::ERROR,"can not read information from A-REX local parameters file");
+		logger.msg(Arc::ERROR,"Can not read information from the local job status file");
 		return EXIT_FAILURE;
 	}
 	job_local.close();
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 	// Parse INI configuraion file
 	Arc::IniConfig cfg(config_f);
 	if ( ! cfg ) {
-		logger.msg(Arc::ERROR,"Can not parse configuration file %s",config_f);
+		logger.msg(Arc::ERROR,"Can not parse the configuration file %s",config_f);
 		return EXIT_FAILURE;
 	}
 	
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	if ( ! (bool)qparams) {
-		logger.msg(Arc::ERROR,"Can not find queue '%s' in configuration file",queue);
+		logger.msg(Arc::ERROR,"Can not find queue '%s' in the configuration file",queue);
 		return EXIT_FAILURE;
 	}
 
@@ -200,28 +200,28 @@ int main(int argc, char *argv[]) {
 	// loop over access_policies
 	for (std::vector<std::pair<Arc::RegularExpression,bool> >::iterator iP = access_policies.begin();
 		iP != access_policies.end(); iP++) {
-		logger.msg(Arc::VERBOSE,"Checking match for '%s'",(iP->first).getPattern());
+		logger.msg(Arc::VERBOSE,"Checking a match for '%s'",(iP->first).getPattern());
 		// for every VOMS AC provided
 		for (std::vector<Arc::VOMSACInfo>::iterator iAC = voms_attributes.begin(); iAC != voms_attributes.end(); iAC++) {
 			// check every attribure specified to match specified policy
 			for (int acnt = 0; acnt < iAC->attributes.size(); acnt++ ) {
 				std::string fqan = normalize_fqan(iAC->attributes[acnt]);
 				if ( (iP->first).match(fqan) ) {
-					logger.msg(Arc::DEBUG,"FQAN '%s' IS match '%s'",fqan,(iP->first).getPattern());
+					logger.msg(Arc::DEBUG,"FQAN '%s' IS a match to '%s'",fqan,(iP->first).getPattern());
 					// if positive match return success
 					if ( iP->second ) return EXIT_SUCCESS;
 					// prohibit execution on negative match
-					logger.msg(Arc::ERROR,"Using queue '%s' prohibited to FQAN '%s' by site access policy",
+					logger.msg(Arc::ERROR,"Queue '%s' usage is prohibited to FQAN '%s' by the site access policy",
 						queue, fqan);
 					return EXIT_FAILURE;
 				} else {
-					logger.msg(Arc::DEBUG,"FQAN '%s' IS NOT match '%s'",fqan,(iP->first).getPattern());
+					logger.msg(Arc::DEBUG,"FQAN '%s' IS NOT a match to '%s'",fqan,(iP->first).getPattern());
 				}
 			}
 		}
 	}
 
-	logger.msg(Arc::ERROR,"Queue '%s' usage with provided FQANs prohibited by site access policy",queue);
+	logger.msg(Arc::ERROR,"Queue '%s' usage with provided FQANs is prohibited by the site access policy",queue);
 	return EXIT_FAILURE;
 }
 

@@ -49,11 +49,11 @@ namespace Arc {
     }
     std::list<JobDescription> jobdescs;
     if (!JobDescription::Parse(teststring, jobdescs, "nordugrid:xrsl")) {
-      logger.msg(ERROR, "Test was defined with id %d, but some error occured during parsing it.", testid);
+      logger.msg(ERROR, "Test was defined with id %d, but some error occurred during parsing it.", testid);
       return false;
     }
     if (jobdescs.size() < 1) {
-      logger.msg(ERROR, "No jobdescription resulted at %d. test", testid);
+      logger.msg(ERROR, "No jobdescription resulted at %d test", testid);
       return false;
     }
     jobdescription = (*(jobdescs.begin()));

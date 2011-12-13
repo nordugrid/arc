@@ -266,7 +266,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:GetActivityStatus: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:GetActivityStatus: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       bool job_pending = false;
@@ -316,7 +316,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:GetActivityStatus: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:GetActivityStatus: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       std::string glue_s;
@@ -359,7 +359,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         };
       };
       if(!info) {
-        logger_.msg(Arc::ERROR, "ESEMI:GetActivityStatus: job %s - failed to retrieve Glue2 information", jobid);
+        logger_.msg(Arc::ERROR, "EMIES:GetActivityStatus: job %s - failed to retrieve Glue2 information", jobid);
         ESInternalBaseFault(item.NewChild("dummy"),"failed to retrieve Glue2 information");
       };
     };
@@ -404,14 +404,14 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
     ARexJob job(jobid,config,logger_);
     if(!job) {
       // There is no such job
-      logger_.msg(Arc::ERROR, "ESEMI:NotifyService: job %s - %s", jobid, job.Failure());
+      logger_.msg(Arc::ERROR, "EMIES:NotifyService: job %s - %s", jobid, job.Failure());
       ESUnknownActivityIDFault(item.NewChild("dummy"),job.Failure());
     } else {
       if(msg == "CLIENT-DATAPULL-DONE") {
         // Client is done with job. Same as wipe request. Or should job go to deleted?
         if(!job.Clean()) {
           // Failure is not fatal here
-          logger_.msg(Arc::ERROR, "ESEMI:NotifyService: job %s - %s", jobid, job.Failure());
+          logger_.msg(Arc::ERROR, "EMIES:NotifyService: job %s - %s", jobid, job.Failure());
         };
       } else if(msg == "CLIENT-DATAPUSH-DONE") {
         if(!job.ReportFilesComplete()) {
