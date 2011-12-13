@@ -20,7 +20,6 @@ namespace Arc {
                         const std::string& flavor = "EMIES");
   public:
     ~TargetRetrieverEMIES();
-    virtual void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}
     virtual void GetExecutionTargets(TargetGenerator& mom);
     virtual void GetJobs(TargetGenerator& mom);
     static Plugin* Instance(PluginArgument *arg);

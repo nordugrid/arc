@@ -441,10 +441,25 @@ namespace Arc {
     esmanag:NotifyServiceResponse
       esmang:NotifyResponseItem"
         estypes:ActivityID
-        esmanag:Acknowledgement
         estypes:InternalBaseFault
     */
-    return false;
+    std::string action = "NotifyService";
+    logger.msg(VERBOSE, "Creating and sending job notify request to %s", rurl.str());
+    PayloadSOAP req(ns);
+    XMLNode op = req.NewChild("esmanag:" + action);
+    XMLNode ritem = op.NewChild("esmanag:NotifyRequestItem");
+    ritem.NewChild("estypes:ActivityID") = job.id;
+    ritem.NewChild("esmanag:NotifyMessage") = "CLIENT-DATAPUSH-DONE";
+
+    // Send request
+    XMLNode response;
+    if (!process(req, false, response)) return false;
+
+    response.Namespaces(ns);
+    XMLNode item = response["NotifyResponseItem"];
+    if(item.Size() != 1) return false;
+    if((std::string)item["ActivityID"] != job.id) return false;
+    return true;
   }
 
   EMIESJobState& EMIESJobState::operator=(XMLNode st) {

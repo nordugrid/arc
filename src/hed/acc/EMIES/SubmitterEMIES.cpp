@@ -63,6 +63,7 @@ namespace Arc {
 
   bool SubmitterEMIES::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
+    // TODO: this is multi step process. So having retries would be nice.
 
     EMIESClient* ac = acquireClient(et.url);
 
@@ -84,6 +85,7 @@ namespace Arc {
     EMIESJob jobid;
     EMIESJobState jobstate;
     if (!ac->submit(product, jobid, jobstate, et.url.Protocol() == "https")) {
+      logger.msg(INFO, "Failed to submit job description");
       releaseClient(et.url);
       return false;
     }
@@ -96,14 +98,39 @@ namespace Arc {
 
     if(!jobid.manager) jobid.manager = et.url;
 
+    for(;;) {
+      if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
+      if(jobstate.state == "TERMINAL") {
+        logger.msg(INFO, "Job failed on service side");
+        releaseClient(et.url);
+        return false;
+      }
+      // If service jumped over stageable state client probably does not 
+      // have to send anything.
+      if((jobstate.state != "ACCEPTED") && (jobstate.state != "PREPROCESSING")) break;
+      sleep(5);
+      if(!ac->stat(jobid, jobstate)) {
+        logger.msg(INFO, "Failed to obtain state of job");
+        releaseClient(et.url);
+        return false;
+      };
+    }
 
-
-    // TODO: wait for proper state before starting file uploads
-    URL stageurl(jobid.stagein);
-    if (!PutFiles(modjobdesc, stageurl)) {
-      logger.msg(INFO, "Failed uploading local input files");
-      releaseClient(et.url);
-      return false;
+    if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
+      URL stageurl(jobid.stagein);
+      if (!PutFiles(modjobdesc, stageurl)) {
+        logger.msg(INFO, "Failed uploading local input files");
+        releaseClient(et.url);
+        return false;
+      }
+      // It is not clear how service is implemented. So notifying should not harm.
+      if (!ac->notify(jobid)) {
+        logger.msg(INFO, "Failed to notify service");
+        releaseClient(et.url);
+        return false;
+      }
+    } else {
+      // TODO: check if client has files to send
     }
 
     // URL-izing job id
