@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         char* p;
         int i = strtol(optarg,&p,10);
         if(((*p) != 0) || (i<=0)) {
-	  std::cerr<<"Improper expiration period '"<<optarg<<"'"<<std::endl;
+          std::cerr<<"Improper expiration period '"<<optarg<<"'"<<std::endl;
           exit(1);
         }
         ex_period=i*(60*60*24);
@@ -76,8 +76,8 @@ int main(int argc, char **argv)
   for (argind=optind ; argind<argc ; ++argind)
     {
       usagereporter=new Arc::UsageReporter(
-	                  std::string(argv[argind])+"/logs",
-			  ex_period, urls, topics, output_dir );
+                          std::string(argv[argind])+"/logs",
+                          ex_period, urls, topics, output_dir );
       usagereporter->report();
       delete usagereporter;
     }

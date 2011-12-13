@@ -20,7 +20,7 @@ namespace Arc
    *  interactive mode.
    */
   UsageReporter::UsageReporter(std::string job_log_dir_, time_t expiration_time_,
-			       std::vector<std::string> urls_, std::vector<std::string> topics_,
+                               std::vector<std::string> urls_, std::vector<std::string> topics_,
                                std::string out_dir_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
     job_log_dir(job_log_dir_),
@@ -30,12 +30,12 @@ namespace Arc
     out_dir(out_dir_)
   {
     logger.msg(Arc::INFO, "Initialised, job log dir: %s",
-	       job_log_dir.c_str());
+               job_log_dir.c_str());
     logger.msg(Arc::VERBOSE, "Expiration time: %d seconds",
-	       expiration_time);
+               expiration_time);
     if (!urls.empty())
       logger.msg(Arc::VERBOSE, "Interactive mode.",
-		 expiration_time);
+                 expiration_time);
     //Collection of logging destinations:
     dests=new Arc::Destinations();
   }
@@ -55,25 +55,25 @@ namespace Arc
     errno=0;
     if ( (dirp=opendir(job_log_dir.c_str()))==NULL )
       {
-	logger.msg(Arc::ERROR, 
-		   "Could not open log directory \"%s\": %s",
-		   job_log_dir.c_str(),
-		   StrError(errno)
-		   );
-	return -1;
+        logger.msg(Arc::ERROR, 
+                   "Could not open log directory \"%s\": %s",
+                   job_log_dir.c_str(),
+                   StrError(errno)
+                   );
+        return -1;
       }
 
     DIR *odirp;
     errno=0;
     if ( !out_dir.empty() && (odirp=opendir(out_dir.c_str()))==NULL )
       {
-	logger.msg(Arc::ERROR, 
-		   "Could not open output directory \"%s\": %s",
-		   out_dir.c_str(),
-		   StrError(errno)
-		   );
-	closedir(dirp);
-	return -1;
+        logger.msg(Arc::ERROR, 
+                   "Could not open output directory \"%s\": %s",
+                   out_dir.c_str(),
+                   StrError(errno)
+                   );
+        closedir(dirp);
+        return -1;
       }
       if (odirp != NULL) {
         closedir(odirp);
@@ -84,13 +84,13 @@ namespace Arc
     errno = 0;
     while ((entp = readdir(dirp)) != NULL)
       {
-	if (logfilepattern.match(entp->d_name))
-	  {
-	    //Parse log file
-	    Arc::JobLogFile *logfile;
-	    //TODO handle DOS-style path separator!
-	    std::string fname=job_log_dir+"/"+entp->d_name;
-	    logfile=new Arc::JobLogFile(fname);
+        if (logfilepattern.match(entp->d_name))
+          {
+            //Parse log file
+            Arc::JobLogFile *logfile;
+            //TODO handle DOS-style path separator!
+            std::string fname=job_log_dir+"/"+entp->d_name;
+            logfile=new Arc::JobLogFile(fname);
             if (!out_dir.empty()){
                 if ((*logfile)["jobreport_option_archiving"] == ""){
                     (*logfile)["jobreport_option_archiving"] = out_dir;
@@ -99,82 +99,82 @@ namespace Arc
                 }
             }
 
-	    //A. Non-interactive mode: each jlf is parsed, and if valid, 
-	    //   submitted to the destination given  by "loggerurl=..."
-	    if (urls.empty())
-	      {
-		// Check creation time and remove it if really too old
-		if( expiration_time>0 && logfile->olderThan(expiration_time) )
-		  {
-		    logger.msg(Arc::INFO,
-			       "Removing outdated job log file %s",
-			       logfile->getFilename().c_str()
-			       );
-		    logfile->remove();
-		  } 
-		else
-		  {
-		    //Pass job log file content to the appropriate 
-		    //logging destination
-		    dests->report(*logfile);
-		    //(deep copy performed)
-		  }
-	      }
+            //A. Non-interactive mode: each jlf is parsed, and if valid, 
+            //   submitted to the destination given  by "loggerurl=..."
+            if (urls.empty())
+              {
+                // Check creation time and remove it if really too old
+                if( expiration_time>0 && logfile->olderThan(expiration_time) )
+                  {
+                    logger.msg(Arc::INFO,
+                               "Removing outdated job log file %s",
+                               logfile->getFilename().c_str()
+                               );
+                    logfile->remove();
+                  } 
+                else
+                  {
+                    //Pass job log file content to the appropriate 
+                    //logging destination
+                    dests->report(*logfile);
+                    //(deep copy performed)
+                  }
+              }
 
-	    //B. Interactive mode: submit only to services specified by
-	    //   command line option '-u'. Avoid repetition if several jlfs
-	    //   are created with same content and different destination.
-	    //   Keep all jlfs on disk.
-	    else
-	      {
-		if ( dest_to_duplicate.find( (*logfile)["ngjobid"] ) ==
-		     dest_to_duplicate.end() )
-		  {
-		    dest_to_duplicate[ (*logfile)["ngjobid"] ]=
-		      (*logfile)["loggerurl"];
-		  }
+            //B. Interactive mode: submit only to services specified by
+            //   command line option '-u'. Avoid repetition if several jlfs
+            //   are created with same content and different destination.
+            //   Keep all jlfs on disk.
+            else
+              {
+                if ( dest_to_duplicate.find( (*logfile)["ngjobid"] ) ==
+                     dest_to_duplicate.end() )
+                  {
+                    dest_to_duplicate[ (*logfile)["ngjobid"] ]=
+                      (*logfile)["loggerurl"];
+                  }
 
-		//submit only 1x to each!
-		if ( dest_to_duplicate[ (*logfile)["ngjobid"] ] ==
-		     (*logfile)["loggerurl"] )
-		  {
-		    //Duplicate content of log file, overwriting URL with
-		    //each '-u' command line option, disabling file deletion
-		    Arc::JobLogFile *dupl_logfile=
-		      new Arc::JobLogFile(*logfile);
-		    dupl_logfile->allowRemove(false);
+                //submit only 1x to each!
+                if ( dest_to_duplicate[ (*logfile)["ngjobid"] ] ==
+                     (*logfile)["loggerurl"] )
+                  {
+                    //Duplicate content of log file, overwriting URL with
+                    //each '-u' command line option, disabling file deletion
+                    Arc::JobLogFile *dupl_logfile=
+                      new Arc::JobLogFile(*logfile);
+                    dupl_logfile->allowRemove(false);
 
-		    for (int it=0; it<(int)urls.size(); it++)
-		      {
-			(*dupl_logfile)["loggerurl"] = urls[it];
+                    for (int it=0; it<(int)urls.size(); it++)
+                      {
+                        (*dupl_logfile)["loggerurl"] = urls[it];
                         if (!topics[it].empty()){
-			    (*dupl_logfile)["topic"] = topics[it];
+                            (*dupl_logfile)["topic"] = topics[it];
                         }
 
-			//Pass duplicated job log content to the appropriate 
-			//logging destination
-			dests->report(*dupl_logfile);
-			//(deep copy performed)
+                        //Pass duplicated job log content to the appropriate 
+                        //logging destination
+                        dests->report(*dupl_logfile);
+                        //(deep copy performed)
 
-		      }
-		    delete dupl_logfile;
-		  }
-	      }
+                      }
+                    delete dupl_logfile;
+                  }
+              }
 
-	    delete logfile;
-	  }
-	errno = 0;
+            delete logfile;
+          }
+        errno = 0;
       }
     closedir(dirp);
 
     if (errno!=0)
       {
-	logger.msg(Arc::ERROR, 
-		   "Error reading log directory \"%s\": %s",
-		   job_log_dir.c_str(),
-		   StrError(errno)
-		   );
-	return -2;
+        logger.msg(Arc::ERROR, 
+                   "Error reading log directory \"%s\": %s",
+                   job_log_dir.c_str(),
+                   StrError(errno)
+                   );
+        return -2;
       }
     return 0;
   }
@@ -183,7 +183,7 @@ namespace Arc
   {
     delete dests;
     logger.msg(Arc::INFO, "Finished, job log dir: %s",
-	       job_log_dir.c_str());
+               job_log_dir.c_str());
   }
   
 }

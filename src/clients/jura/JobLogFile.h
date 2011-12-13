@@ -34,10 +34,10 @@ namespace Arc
      *    -# Some differentiated properties e.g. network, disk etc.
      */
     void createUsageRecord(Arc::XMLNode &usagerecord,
-			      const char *recordid_prefix="ur-");
+                              const char *recordid_prefix="ur-");
     /** Creates an OGF 2.0 (CAR) Job Usage Record from parsed log files. */
     void createCARUsageRecord(Arc::XMLNode &usagerecord,
-			      const char *recordid_prefix="ur-");
+                              const char *recordid_prefix="ur-");
     /** Returns original full path to log file */
     std::string getFilename() { return filename; }
     /** Enables/disables file removal from disk */

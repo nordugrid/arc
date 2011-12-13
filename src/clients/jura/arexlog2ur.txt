@@ -1,62 +1,62 @@
 
-OGF-UR property	     A-REX log entry		  ARC-UR property		APEL-UR elements
+OGF-UR property      A-REX log entry          ARC-UR property        APEL-UR elements
 
 RecordIdentity:      nodename, ngjobid 
-		     (hyphen-separated, 
-		     with custom prefix)
-GlobalJobId:         (ngjobid) globalid		  globaljobid
-LocalJobId:          localjobid			  localjobid			LocalJobId
-ProcessId:           [MISSING]			  processid
-GlobalUserName:      usersn			  globaluserid			GlobalUserName
-LocalUserId:         localuser			  localuserid			LocalUserId
-JobName:             jobname			  jobname
-Charge:              [MISSING]			  charge
-Status:              status			  status
-		     (no conversion yet!)
-WallDuration:        usedwalltime		  usedwalltime			WallDuration
-CpuDuration:         usedcputime		  usedcputime			CpuDuration
-StartTime:           submissiontime		  submissiontime		StartTime
-EndTime:             endtime			  endtime			EndTime
-MachineName:         nodename			  nodename			Site
+                     (hyphen-separated, 
+                      with custom prefix)
+GlobalJobId:         (ngjobid) globalid       globaljobid
+LocalJobId:          localjobid               localjobid             LocalJobId
+ProcessId:           [MISSING]                processid
+GlobalUserName:      usersn                   globaluserid           GlobalUserName
+LocalUserId:         localuser                localuserid            LocalUserId
+JobName:             jobname                  jobname
+Charge:              [MISSING]                charge
+Status:              status                   status
+                     (no conversion yet!)
+WallDuration:        usedwalltime             usedwalltime           WallDuration
+CpuDuration:         usedcputime              usedcputime            CpuDuration
+StartTime:           submissiontime           submissiontime         StartTime
+EndTime:             endtime                  endtime                EndTime
+MachineName:         nodename                 nodename               Site
 Host:                nodename
-SubmitHost:          clienthost			  submithost
+SubmitHost:          clienthost               submithost
                      (port number removed)
-                     headnode                                                   SubmitHost
-Queue:               queue			  queue (lrms)			
-ProjectName:         projectname		  projectname
+                     headnode                                        SubmitHost
+Queue:               queue                    queue (lrms)
+ProjectName:         projectname              projectname
 
 Differentiated properties
 
-Network:             [MISSING]			  network
-Disk:                [MISSING]			  useddisk
-Memory:              usedmemory			  usedmemory			MemoryReal
-Swap:                [MISSING]			  usedswap
-NodeCount:           nodecount			  nodecount			NodeCount
-Processors:          [MISSING]			  processors			Processors
+Network:             [MISSING]                network
+Disk:                [MISSING]                useddisk
+Memory:              usedmemory               usedmemory             MemoryReal
+Swap:                [MISSING]                usedswap
+NodeCount:           nodecount                nodecount              NodeCount
+Processors:          [MISSING]                processors             Processors
 
 TimeDuration:        [MISSING]
 TimeInstant:         [MISSING]
 ServiceLevel:        [MISSING]
 Extension:           [MISSING]
-										UserFQAN
-										ScalingFactor
-										ScalingFactorUnit
+                                                                     UserFQAN
+                                                                     ScalingFactor
+                                                                     ScalingFactorUnit
 
 Unmatched Logger ARC-UR properties
 
-						  cluster
-						  downloadtime
-						  exitcode
-						  failurestring
-						  jobdescription
-						  lrmsendtime
-						  lrmssubmissiontime
-						  requestedcputime
-						  requesteddisk
-						  requestedmemory
-						  requestedwalltime
-						  runtimeenvironment
-						  servicelevel
-						  stageindata
-						  stageoutdata
-						  uploadtime
+                                             cluster
+                                             downloadtime
+                                             exitcode
+                                             failurestring
+                                             jobdescription
+                                             lrmsendtime
+                                             lrmssubmissiontime
+                                             requestedcputime
+                                             requesteddisk
+                                             requestedmemory
+                                             requestedwalltime
+                                             runtimeenvironment
+                                             servicelevel
+                                             stageindata
+                                             stageoutdata
+                                             uploadtime

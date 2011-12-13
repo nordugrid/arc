@@ -99,8 +99,8 @@ namespace Arc
     std::string urbatch=joblog["jobreport_option_urbatch"];
     if (!urbatch.empty())
       {
-	std::istringstream is(urbatch);
-	is>>max_ur_set_size;
+         std::istringstream is(urbatch);
+        is>>max_ur_set_size;
       }
 
   }
@@ -113,20 +113,20 @@ namespace Arc
         joblogs.push_back(joblog);
         //Create UR if can
         Arc::XMLNode usagerecord(Arc::NS(), "");
-	joblog.createUsageRecord(usagerecord);
-	if (usagerecord)
-	  {
+        joblog.createUsageRecord(usagerecord);
+        if (usagerecord)
+          {
             std::map<std::string, std::string> usagerecord_apel;
             XML2KeyValue(usagerecord, usagerecord_apel);
             usagerecordset_apel.push_back(usagerecord_apel);
-	    ++urn;
-	  }
-	else
-	  {
-	    logger.msg(Arc::INFO,"Ignoring incomplete log file \"%s\"",
-		       joblog.getFilename().c_str());
-	    joblog.remove();
-	  }
+            ++urn;
+          }
+        else
+          {
+            logger.msg(Arc::INFO,"Ignoring incomplete log file \"%s\"",
+                       joblog.getFilename().c_str());
+            joblog.remove();
+          }
       }
 
     if (urn==max_ur_set_size)
