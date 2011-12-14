@@ -244,12 +244,12 @@ namespace Arc
     struct stat st;
     //directory check
     if (stat(default_path.c_str(), &st) != 0) {
-        mkdir(default_path.c_str(), 0775);
+        mkdir(default_path.c_str(), S_IRWXU);
     }
     //directory check
     std::string subdir = default_path + "outgoing/";
     if (stat(subdir.c_str(), &st) != 0) {
-        mkdir(subdir.c_str(), 0775);
+        mkdir(subdir.c_str(), S_IRWXU);
     }
     // create message file to the APEL client
     subdir += output_filename;
