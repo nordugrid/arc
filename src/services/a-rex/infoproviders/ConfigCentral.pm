@@ -108,6 +108,7 @@ my $gmcommon_options = {
     use_janitor => '*',
 };
 my $ldap_infosys_options = {
+    SlapdPort => '*',
     bdii_var_dir => '*',
     bdii_tmp_dir => '*',
     infosys_compat => '*',
@@ -656,7 +657,8 @@ sub build_config_from_inifile {
 
     my $infosys = { $iniparser->get_section("infosys") };
     rename_keys $infosys, $config, {providerlog => 'ProviderLog',
-                                    provider_loglevel => 'debugLevel'};
+                                    provider_loglevel => 'debugLevel',
+                                    port => 'SlapdPort'};
     move_keys $infosys, $config, [keys %$ldap_infosys_options];
 
     my @cnames = $iniparser->list_subsections('grid-manager');

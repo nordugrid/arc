@@ -1958,7 +1958,7 @@ sub collect($) {
             # Configuration parser does not contain ldap port!
             # must be updated
             # port hardcoded for tests 
-            $ep->{URL} = "ldap://$config->{hostname}:2135/";
+            $ep->{URL} = "ldap://$config->{hostname}:$config->{SlapdPort}/";
             $ep->{Capability} = [ 'information.monitoring' ];
             $ep->{Technology} = 'LDAP';
             $ep->{InterfaceName} = 'ARIS';
