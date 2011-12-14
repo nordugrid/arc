@@ -580,7 +580,7 @@ sub collect($) {
     
     my $endpointsnum = 0;
 
-    my $gridftphostport = undef;
+    my $gridftphostport = '';
     # check if gridftd interface exists
     if ($config->{GridftpdEnabled} == 1) { 
 	$gridftphostport = "$config->{hostname}:$config->{GridftpdPort}";
@@ -716,6 +716,7 @@ sub collect($) {
 	# WS-LIDI A-REX WSRF information system endpoint
 	# A-REX datastaging endpoint
 
+	# this will contain only endpoints with URLs defined
 	my @ceps = ();
 
 	# Our different ComputingEndpoints
@@ -724,7 +725,6 @@ sub collect($) {
       
 	my $getARCWSComputingEndpoint = sub {
 
-	    
 	    # don't publish if arched not listening
 	    return undef unless $arexhostport ne '';
 
@@ -852,14 +852,15 @@ sub collect($) {
 	    return $cep;
 	};
 
-	push(@ceps, $getARCWSComputingEndpoint);
+	# don't publish if arched not listening
+	if ($arexhostport ne '') { push(@ceps, $getARCWSComputingEndpoint); };
 
         # ARC GridFTPDd job submission interface 
       
 	my $getARCGFTPdComputingEndpoint = sub {
 
 	    # check if gridftpd interface is actually configured
-	    return undef unless $gridftphostport;
+	    return undef unless ( $gridftphostport ne '');
 	    my $cep = {};
 
 	    $cep->{CreationTime} = $creation_time;
@@ -977,14 +978,14 @@ sub collect($) {
 	    return $cep;
 	};
 
-        push(@ceps, $getARCGFTPdComputingEndpoint);
+	# Don't publish if there is no endpoint URL
+        if ($gridftphostport ne '') { push(@ceps, $getARCGFTPdComputingEndpoint); };
 
     # Placeholder for EMI-ES interface
 
     my $getEMIESComputingEndpoint = sub {
 
-        
-        # don't publish if arched not listening
+        # don't publish if no endpoint URL
         return undef unless $emieshostport ne '';
 
         my $cep = {};
@@ -1111,14 +1112,14 @@ sub collect($) {
         return $cep;
     };
 
-    push(@ceps, $getEMIESComputingEndpoint);
+    # don't publish if no endpoint URL
+    if ($emieshostport ne '') {push(@ceps, $getEMIESComputingEndpoint); };
 
     # Placeholder for Stagein interface
 
     my $getStageinComputingEndpoint = sub {
-
         
-        # don't publish if arched not listening
+        # don't publish if no Endpoint URL
         return undef unless $stageinhostport ne '';
 
         my $cep = {};
@@ -1246,395 +1247,394 @@ sub collect($) {
         return $cep;
     };
 
-    push(@ceps, $getStageinComputingEndpoint);
-
-	# returns the endpoints one by one
-
-	my $getComputingEndpoints = sub {
+    # don't publish if no Endpoint URL
+    if ($stageinhostport ne '') { push(@ceps, $getStageinComputingEndpoint); };
     
-            return undef unless my $sub = pop(@ceps);
-	    # returns the hash for Entries. Odd, must understand this behaviour
-	    return &$sub;
-             
-	};
-
-	$csv->{ComputingEndpoints} = $getComputingEndpoints;
-
-	# Computing Activities, in the ComputingService and not in Endpoints
-
-	my $getComputingActivities = sub {
-
-            return undef unless my ($jobid, $gmjob) = each %$gmjobs_info;
-
-            my $exited = undef; # whether the job has already run; 
-
-            my $cact = {};
-
-            $cact->{CreationTime} = $creation_time;
-            $cact->{Validity} = $validity_ttl;
-
-            my $share = $gmjob->{share};
-            my $gridid = $config->{endpoint}."/$jobid";
-
-            $cact->{Type} = 'single';
-            $cact->{ID} = $cactIDs{$share}{$jobid};
-            # TODO: check where is this taken
-            $cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
-            $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
-            # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
-            $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
-            $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
-            $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
-            # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
-            $cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
-            $cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
-            # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
-            $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
-            $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
-            # OBS: Times are in seconds.
-            $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
-            $cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
-            # OBS: Should include name and version. Exact format not specified
-            $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-            $cact->{RequestedSlots} = $gmjob->{count} || 1;
-            $cact->{StdIn} = $gmjob->{stdin} if $gmjob->{stdin};
-            $cact->{StdOut} = $gmjob->{stdout} if $gmjob->{stdout};
-            $cact->{StdErr} = $gmjob->{stderr} if $gmjob->{stderr};
-            $cact->{LogDir} = $gmjob->{gmlog} if $gmjob->{gmlog};
-            $cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
-            $cact->{Queue} = $gmjob->{queue} if $gmjob->{queue};
-            # Times for finished jobs
-            $cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
-            $cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
-            $cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
-            $cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
-            # TODO: change gm to save LRMSSubmissionTime
-            #$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
-            # TODO: this should be queried in scan-job.
-            #$cact->{StartTime} = 'NotImplemented';
-            # TODO: scan-job has to produce this
-            #$cact->{ComputingManagerEndTime} = 'NotImplemented';
-            $cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
-            $cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
-            $cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
-            if ($gmjob->{clientname}) {
-                # OBS: address of client as seen by the server is used.
-                my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
-                my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
-                $cact->{SubmissionHost} = $external_address if $external_address;
-            }
-            $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
-
-            # Computing Activity Associations
-
-            # TODO: add link
-            #$cact->{ExecutionEnvironmentID} = ;
-            $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-            $cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
-
-            if ( $gmjob->{status} eq "INLRMS" ) {
-                my $lrmsid = $gmjob->{localid};
-                if (not $lrmsid) {
-                    $log->warning("No local id for job $jobid") if $callcount == 1;
-                    next;
-                }
-                $cact->{LocalIDFromManager} = $lrmsid;
-
-                my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-                if (not $lrmsjob) {
-                    $log->warning("No local job for $jobid") if $callcount == 1;
-                    next;
-                }
-                $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
-                $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
-                $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
-                unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
-
-                # Times for running jobs
-                $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
-                $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
-                $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
-            } else {
-                $cact->{State} = glueState($gmjob->{status});
-            }
-
-            $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
-
-            return $cact;
-         };
-
-         if ($nojobs) {
-             $csv->{ComputingActivities} = undef;
-         } else {
-                $csv->{ComputingActivities} = $getComputingActivities;
-         }
-
-
-        # ComputingShares: multiple shares can share the same LRMS queue
-
-        my @shares = keys %{$config->{shares}};
-
-        my $getComputingShares = sub {
-
-            return undef unless my ($share, $dummy) = each %{$config->{shares}};
-
-            my $qinfo = $lrms_info->{queues}{$share};
-
-            # Prepare flattened config hash for this share.
-            my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
-
-            # List of all shares submitting to the current queue, including the current share.
-            my $qname = $sconfig->{MappingQueue} || $share;
-
-            if ($qname) {
-                my $siblings = $sconfig->{siblingshares} = [];
-                # Do NOT use 'keys %{$config->{shares}}' here because it would
-                # reset the iterator of 'each' and cause this function to
-                # always return the same result
-                for my $sn (@shares) {
-                    my $s = $config->{shares}{$sn};
-                    my $qn = $s->{MappingQueue} || $sn;
-                    push @$siblings, $sn if $qn eq $qname;
-                }
-            }
-
-            my $csha = {};
-
-            $csha->{CreationTime} = $creation_time;
-            $csha->{Validity} = $validity_ttl;
-
-            $csha->{ID} = $cshaIDs{$share};
-
-            $csha->{Name} = $share;
-            $csha->{Description} = $sconfig->{Description} if $sconfig->{Description};
-            $csha->{MappingQueue} = $qname if $qname;
-
-            # use limits from LRMS
-            $csha->{MaxCPUTime} = $qinfo->{maxcputime} if defined $qinfo->{maxcputime};
-            # TODO: implement in backends
-            $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
-            $csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
-            $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
-            $csha->{MaxWallTime} =  $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
-            # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
-            #$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
-            $csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
-            $csha->{DefaultWallTime} = $qinfo->{defaultwallt} if defined $qinfo->{defaultwallt};
-
-            my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
-            $maxtotal = undef if defined $maxtotal and $maxtotal eq '-1';
-            $maxlrms = undef if defined $maxlrms and $maxlrms eq '-1';
-
-            # MaxWaitingJobs: use the maxjobs config option
-            # OBS: An upper limit is not really enforced by A-REX.
-            # OBS: Currently A-REX only cares about totals, not per share limits!
-            $csha->{MaxTotalJobs} = $maxtotal if defined $maxtotal;
-
-            # MaxWaitingJobs, MaxRunningJobs:
-            my ($maxrunning, $maxwaiting);
-
-            # use values from lrms if avaialble
-            if (defined $qinfo->{maxrunning}) {
-                $maxrunning = $qinfo->{maxrunning};
-            }
-            if (defined $qinfo->{maxqueuable}) {
-                $maxwaiting = $qinfo->{maxqueuable};
-            }
-
-            # maxjobs config option sets upper limits
-            if (defined $maxlrms) {
-                $maxrunning = $maxlrms
-                    if not defined $maxrunning or $maxrunning > $maxlrms;
-                $maxwaiting = $maxlrms
-                    if not defined $maxwaiting or $maxwaiting > $maxlrms;
-            }
-
-            $csha->{MaxRunningJobs} = $maxrunning if defined $maxrunning;
-            $csha->{MaxWaitingJobs} = $maxwaiting if defined $maxwaiting;
-
-            # MaxPreLRMSWaitingJobs: use GM's maxjobs option
-            # OBS: Currently A-REX only cares about totals, not per share limits!
-            # OBS: this formula is actually an upper limit on the sum of pre + post
-            #      lrms jobs. A-REX does not have separate limit for pre lrms jobs
-            $csha->{MaxPreLRMSWaitingJobs} = $maxtotal - $maxlrms
-                if defined $maxtotal and defined $maxlrms;
-
-            $csha->{MaxUserRunningJobs} = $qinfo->{maxuserrun}
-                if defined $qinfo->{maxuserrun};
-
-            # TODO: new return value from LRMS infocollector
-            # TODO: see how LRMSs can detect the correct value
-            $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}  || 1;
-
-            # MaxStageInStreams, MaxStageOutStreams
-            # OBS: A-REX does not have separate limits for up and downloads.
-            # OBS: A-REX only cares about totals, not per share limits!
-            my ($maxloaders, $maxemergency, $maxthreads) = split ' ', ($config->{maxload} || '');
-            $maxloaders = undef if defined $maxloaders and $maxloaders eq '-1';
-            $maxthreads = undef if defined $maxthreads and $maxthreads eq '-1';
-            if ($maxloaders) {
-                # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
-                $maxthreads = 5 unless defined $maxthreads;
-                $csha->{MaxStageInStreams}  = $maxloaders * $maxthreads;
-                $csha->{MaxStageOutStreams} = $maxloaders * $maxthreads;
-            }
-
-            # TODO: new return value schedpolicy from LRMS infocollector.
-            my $schedpolicy = $lrms_info->{schedpolicy} || undef;
-            if ($sconfig->{SchedulingPolicy} and not $schedpolicy) {
-                $schedpolicy = 'fifo' if lc($sconfig->{SchedulingPolicy}) eq 'fifo';
-                $schedpolicy = 'fairshare' if lc($sconfig->{SchedulingPolicy}) eq 'maui';
-            }
-            $csha->{SchedulingPolicy} = $schedpolicy if $schedpolicy;
-
-
-            # GuaranteedVirtualMemory -- all nodes must be able to provide this
-            # much memory per job. Some nodes might be able to afford more per job
-            # (MaxVirtualMemory)
-            # TODO: implement check at job accept time in a-rex
-            # TODO: implement in LRMS plugin maxvmem and maxrss.
-            $csha->{MaxVirtualMemory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
-            # MaxMainMemory -- usage not being tracked by most LRMSs
-
-            # OBS: new config option (space measured in GB !?)
-            # OBS: Disk usage of jobs is not being enforced.
-            # This limit should correspond with the max local-scratch disk space on
-            # clusters using local disks to run jobs.
-            # TODO: implement check at job accept time in a-rex
-            # TODO: see if any lrms can support this. Implement check in job wrapper
-            $csha->{MaxDiskSpace} = $sconfig->{DiskSpace} if $sconfig->{DiskSpace};
-
-            # DefaultStorageService:
-
-            # OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
-            $csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
-
-            # ServingState: closed and queuing are not yet supported
-            # OBS: Is there an allownew option for a-rex?
-            #if ( $config->{GridftpdAllowNew} == 0 ) {
-            #    $csha->{ServingState} = 'draining';
-            #} else {
-            #    $csha->{ServingState} = 'production';
-            #}
-            $csha->{ServingState} = 'production';
-
-            # Count local jobs
-            my $localrunning = $qinfo->{running};
-            my $localqueued = $qinfo->{queued};
-            my $localsuspended = $qinfo->{suspended} || 0;
-
-            # Substract grid jobs submitted belonging to shares that submit to the same lrms queue
-            $localrunning -= $inlrmsjobs{$_}{running} || 0 for @{$sconfig->{siblingshares}};
-            $localqueued -= $inlrmsjobs{$_}{queued} || 0 for @{$sconfig->{siblingshares}};
-            $localsuspended -= $inlrmsjobs{$_}{suspended} || 0 for @{$sconfig->{siblingshares}};
-
-            # OBS: Finished/failed/deleted jobs are not counted
-            my $totaljobs = $gmsharecount{$share}{notfinished} || 0;
-            $totaljobs += $localrunning + $localqueued + $localsuspended;
-            $csha->{TotalJobs} = $totaljobs;
-
-            $csha->{RunningJobs} = $localrunning + ( $inlrmsjobs{$share}{running} || 0 );
-            $csha->{WaitingJobs} = $localqueued + ( $inlrmsjobs{$share}{queued} || 0 );
-            $csha->{SuspendedJobs} = $localsuspended + ( $inlrmsjobs{$share}{suspended} || 0 );
-
-            # TODO: backends to count suspended jobs
-
-            $csha->{LocalRunningJobs} = $localrunning;
-            $csha->{LocalWaitingJobs} = $localqueued;
-            $csha->{LocalSuspendedJobs} = $localsuspended;
-
-            $csha->{StagingJobs} = ( $gmsharecount{$share}{preparing} || 0 )
-                                 + ( $gmsharecount{$share}{finishing} || 0 );
-
-            $csha->{PreLRMSWaitingJobs} = $gmsharecount{$share}{notsubmitted} || 0;
-
-            # TODO: investigate if it's possible to get these estimates from maui/torque
-            $csha->{EstimatedAverageWaitingTime} = $qinfo->{averagewaitingtime} if defined $qinfo->{averagewaitingtime};
-            $csha->{EstimatedWorstWaitingTime} = $qinfo->{worstwaitingtime} if defined $qinfo->{worstwaitingtime};
-
-            # TODO: implement $qinfo->{freeslots} in LRMS plugins
-
-            my $freeslots = 0;
-            if (defined $qinfo->{freeslots}) {
-                $freeslots = $qinfo->{freeslots};
-            } else {
-                $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
-            }
-
-            # Local users have individual restrictions
-            # FreeSlots: find the maximum freecpus of any local user mapped in this
-            # share and use that as an upper limit for $freeslots
-            # FreeSlotsWithDuration: for each duration, find the maximum freecpus
-            # of any local user mapped in this share
-            # TODO: is this the correct way to do it?
-
-            my @durations;
-            my %timeslots = max_userfreeslots($qinfo->{users});
-
-            if (%timeslots) {
-
-                # find maximum free slots regardless of duration
-                my $maxuserslots = 0;
-                for my $seconds ( keys %timeslots ) {
-                    my $nfree = $timeslots{$seconds};
-                    $maxuserslots = $nfree if $nfree > $maxuserslots;
-                }
-                $freeslots = $maxuserslots < $freeslots
-                           ? $maxuserslots : $freeslots;
-
-                # sort descending by duration, keping 0 first (0 for unlimited)
-                for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
-                    my $nfree = $timeslots{$seconds} < $freeslots
-                              ? $timeslots{$seconds} : $freeslots;
-                    unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
-                }
-            }
-
-            $freeslots = 0 if $freeslots < 0;
-
-            $csha->{FreeSlots} = $freeslots;
-            $csha->{FreeSlotsWithDuration} = join(" ", @durations) || 0;
-            $csha->{UsedSlots} = $qinfo->{running};
-            $csha->{RequestedSlots} = $requestedslots{$share} || 0;
-
-            # TODO: detect reservationpolicy in the lrms
-            $csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
-
-            # MappingPolicy: VOs mapped to this share.
-
-            if (@{$config->{mappingpolicies}}) {
-                my @mpconfs = @{$config->{mappingpolicies}};
-                $csha->{MappingPolicies} = sub {
-                    return undef unless @mpconfs;
-                    my $mpconf = pop @mpconfs;
-                    my $mpol = {};
-                    $mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
-                    $mpol->{Scheme} = "basic";
-                    $mpol->{Rule} = $mpconf->{Rule};
-                    $mpol->{UserDomainID} = $mpconf->{UserDomainID};
-                    $mpol->{ShareID} = $cshaIDs{$share};
-                    return $mpol;
-                };
-            }
-
-            # Tag: skip it for now
-
-            # Associations
-
-            my $xenvs = $sconfig->{ExecutionEnvironmentName} || [];
-            push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
-
-	    ## check this association below. Which endpoint?
-            # $csha->{ComputingEndpointID} = $cepID;
-            $csha->{ComputingServiceID} = $csvID;
-
-            return $csha;
-        };
-
-        $csv->{ComputingShares} = $getComputingShares;
-
-
-        # ComputingManager
+
+    # returns the endpoints one by one
+    my $getComputingEndpoints = sub {
+        return undef unless my $endpoint = pop(@ceps);
+        #$log->verbose("this is the number of endpoints: ".@ceps);
+	return &$endpoint;
+    };
+
+    $csv->{ComputingEndpoints} = $getComputingEndpoints;
+
+    # Computing Activities, in the ComputingService and not in Endpoints
+
+    my $getComputingActivities = sub {
+
+	return undef unless my ($jobid, $gmjob) = each %$gmjobs_info;
+
+	my $exited = undef; # whether the job has already run; 
+
+	my $cact = {};
+
+	$cact->{CreationTime} = $creation_time;
+	$cact->{Validity} = $validity_ttl;
+
+	my $share = $gmjob->{share};
+	my $gridid = $config->{endpoint}."/$jobid";
+
+	$cact->{Type} = 'single';
+	$cact->{ID} = $cactIDs{$share}{$jobid};
+	# TODO: check where is this taken
+	$cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
+	$cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
+	# TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
+	$cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
+	$cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
+	$cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
+	# TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
+	$cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
+	$cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
+	# TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
+	$cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
+	$cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
+	# OBS: Times are in seconds.
+	$cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
+	$cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
+	# OBS: Should include name and version. Exact format not specified
+	$cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
+	$cact->{RequestedSlots} = $gmjob->{count} || 1;
+	$cact->{StdIn} = $gmjob->{stdin} if $gmjob->{stdin};
+	$cact->{StdOut} = $gmjob->{stdout} if $gmjob->{stdout};
+	$cact->{StdErr} = $gmjob->{stderr} if $gmjob->{stderr};
+	$cact->{LogDir} = $gmjob->{gmlog} if $gmjob->{gmlog};
+	$cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
+	$cact->{Queue} = $gmjob->{queue} if $gmjob->{queue};
+	# Times for finished jobs
+	$cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
+	$cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
+	$cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
+	$cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
+	# TODO: change gm to save LRMSSubmissionTime
+	#$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
+	# TODO: this should be queried in scan-job.
+	#$cact->{StartTime} = 'NotImplemented';
+	# TODO: scan-job has to produce this
+	#$cact->{ComputingManagerEndTime} = 'NotImplemented';
+	$cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
+	$cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
+	$cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
+	if ($gmjob->{clientname}) {
+	    # OBS: address of client as seen by the server is used.
+	    my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
+	    my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
+	    $cact->{SubmissionHost} = $external_address if $external_address;
+	}
+	$cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
+
+	# Computing Activity Associations
+
+	# TODO: add link
+	#$cact->{ExecutionEnvironmentID} = ;
+	$cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
+	$cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
+
+	if ( $gmjob->{status} eq "INLRMS" ) {
+	    my $lrmsid = $gmjob->{localid};
+	    if (not $lrmsid) {
+		$log->warning("No local id for job $jobid") if $callcount == 1;
+		next;
+	    }
+	    $cact->{LocalIDFromManager} = $lrmsid;
+
+	    my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+	    if (not $lrmsjob) {
+		$log->warning("No local job for $jobid") if $callcount == 1;
+		next;
+	    }
+	    $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
+	    $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
+	    $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
+	    unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
+
+	    # Times for running jobs
+	    $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
+	    $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
+	    $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
+	} else {
+	    $cact->{State} = glueState($gmjob->{status});
+	}
+
+	$cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
+
+	return $cact;
+      };
+
+      if ($nojobs) {
+	  $csv->{ComputingActivities} = undef;
+      } else {
+	    $csv->{ComputingActivities} = $getComputingActivities;
+      }
+
+
+    # ComputingShares: multiple shares can share the same LRMS queue
+
+    my @shares = keys %{$config->{shares}};
+
+    my $getComputingShares = sub {
+
+	return undef unless my ($share, $dummy) = each %{$config->{shares}};
+
+	my $qinfo = $lrms_info->{queues}{$share};
+
+	# Prepare flattened config hash for this share.
+	my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
+
+	# List of all shares submitting to the current queue, including the current share.
+	my $qname = $sconfig->{MappingQueue} || $share;
+
+	if ($qname) {
+	    my $siblings = $sconfig->{siblingshares} = [];
+	    # Do NOT use 'keys %{$config->{shares}}' here because it would
+	    # reset the iterator of 'each' and cause this function to
+	    # always return the same result
+	    for my $sn (@shares) {
+		my $s = $config->{shares}{$sn};
+		my $qn = $s->{MappingQueue} || $sn;
+		push @$siblings, $sn if $qn eq $qname;
+	    }
+	}
+
+	my $csha = {};
+
+	$csha->{CreationTime} = $creation_time;
+	$csha->{Validity} = $validity_ttl;
+
+	$csha->{ID} = $cshaIDs{$share};
+
+	$csha->{Name} = $share;
+	$csha->{Description} = $sconfig->{Description} if $sconfig->{Description};
+	$csha->{MappingQueue} = $qname if $qname;
+
+	# use limits from LRMS
+	$csha->{MaxCPUTime} = $qinfo->{maxcputime} if defined $qinfo->{maxcputime};
+	# TODO: implement in backends
+	$csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
+	$csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
+	$csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
+	$csha->{MaxWallTime} =  $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
+	# TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
+	#$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
+	$csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
+	$csha->{DefaultWallTime} = $qinfo->{defaultwallt} if defined $qinfo->{defaultwallt};
+
+	my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
+	$maxtotal = undef if defined $maxtotal and $maxtotal eq '-1';
+	$maxlrms = undef if defined $maxlrms and $maxlrms eq '-1';
+
+	# MaxWaitingJobs: use the maxjobs config option
+	# OBS: An upper limit is not really enforced by A-REX.
+	# OBS: Currently A-REX only cares about totals, not per share limits!
+	$csha->{MaxTotalJobs} = $maxtotal if defined $maxtotal;
+
+	# MaxWaitingJobs, MaxRunningJobs:
+	my ($maxrunning, $maxwaiting);
+
+	# use values from lrms if avaialble
+	if (defined $qinfo->{maxrunning}) {
+	    $maxrunning = $qinfo->{maxrunning};
+	}
+	if (defined $qinfo->{maxqueuable}) {
+	    $maxwaiting = $qinfo->{maxqueuable};
+	}
+
+	# maxjobs config option sets upper limits
+	if (defined $maxlrms) {
+	    $maxrunning = $maxlrms
+		if not defined $maxrunning or $maxrunning > $maxlrms;
+	    $maxwaiting = $maxlrms
+		if not defined $maxwaiting or $maxwaiting > $maxlrms;
+	}
+
+	$csha->{MaxRunningJobs} = $maxrunning if defined $maxrunning;
+	$csha->{MaxWaitingJobs} = $maxwaiting if defined $maxwaiting;
+
+	# MaxPreLRMSWaitingJobs: use GM's maxjobs option
+	# OBS: Currently A-REX only cares about totals, not per share limits!
+	# OBS: this formula is actually an upper limit on the sum of pre + post
+	#      lrms jobs. A-REX does not have separate limit for pre lrms jobs
+	$csha->{MaxPreLRMSWaitingJobs} = $maxtotal - $maxlrms
+	    if defined $maxtotal and defined $maxlrms;
+
+	$csha->{MaxUserRunningJobs} = $qinfo->{maxuserrun}
+	    if defined $qinfo->{maxuserrun};
+
+	# TODO: new return value from LRMS infocollector
+	# TODO: see how LRMSs can detect the correct value
+	$csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}  || 1;
+
+	# MaxStageInStreams, MaxStageOutStreams
+	# OBS: A-REX does not have separate limits for up and downloads.
+	# OBS: A-REX only cares about totals, not per share limits!
+	my ($maxloaders, $maxemergency, $maxthreads) = split ' ', ($config->{maxload} || '');
+	$maxloaders = undef if defined $maxloaders and $maxloaders eq '-1';
+	$maxthreads = undef if defined $maxthreads and $maxthreads eq '-1';
+	if ($maxloaders) {
+	    # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
+	    $maxthreads = 5 unless defined $maxthreads;
+	    $csha->{MaxStageInStreams}  = $maxloaders * $maxthreads;
+	    $csha->{MaxStageOutStreams} = $maxloaders * $maxthreads;
+	}
+
+	# TODO: new return value schedpolicy from LRMS infocollector.
+	my $schedpolicy = $lrms_info->{schedpolicy} || undef;
+	if ($sconfig->{SchedulingPolicy} and not $schedpolicy) {
+	    $schedpolicy = 'fifo' if lc($sconfig->{SchedulingPolicy}) eq 'fifo';
+	    $schedpolicy = 'fairshare' if lc($sconfig->{SchedulingPolicy}) eq 'maui';
+	}
+	$csha->{SchedulingPolicy} = $schedpolicy if $schedpolicy;
+
+
+	# GuaranteedVirtualMemory -- all nodes must be able to provide this
+	# much memory per job. Some nodes might be able to afford more per job
+	# (MaxVirtualMemory)
+	# TODO: implement check at job accept time in a-rex
+	# TODO: implement in LRMS plugin maxvmem and maxrss.
+	$csha->{MaxVirtualMemory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
+	# MaxMainMemory -- usage not being tracked by most LRMSs
+
+	# OBS: new config option (space measured in GB !?)
+	# OBS: Disk usage of jobs is not being enforced.
+	# This limit should correspond with the max local-scratch disk space on
+	# clusters using local disks to run jobs.
+	# TODO: implement check at job accept time in a-rex
+	# TODO: see if any lrms can support this. Implement check in job wrapper
+	$csha->{MaxDiskSpace} = $sconfig->{DiskSpace} if $sconfig->{DiskSpace};
+
+	# DefaultStorageService:
+
+	# OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
+	$csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
+
+	# ServingState: closed and queuing are not yet supported
+	# OBS: Is there an allownew option for a-rex?
+	#if ( $config->{GridftpdAllowNew} == 0 ) {
+	#    $csha->{ServingState} = 'draining';
+	#} else {
+	#    $csha->{ServingState} = 'production';
+	#}
+	$csha->{ServingState} = 'production';
+
+	# Count local jobs
+	my $localrunning = $qinfo->{running};
+	my $localqueued = $qinfo->{queued};
+	my $localsuspended = $qinfo->{suspended} || 0;
+
+	# Substract grid jobs submitted belonging to shares that submit to the same lrms queue
+	$localrunning -= $inlrmsjobs{$_}{running} || 0 for @{$sconfig->{siblingshares}};
+	$localqueued -= $inlrmsjobs{$_}{queued} || 0 for @{$sconfig->{siblingshares}};
+	$localsuspended -= $inlrmsjobs{$_}{suspended} || 0 for @{$sconfig->{siblingshares}};
+
+	# OBS: Finished/failed/deleted jobs are not counted
+	my $totaljobs = $gmsharecount{$share}{notfinished} || 0;
+	$totaljobs += $localrunning + $localqueued + $localsuspended;
+	$csha->{TotalJobs} = $totaljobs;
+
+	$csha->{RunningJobs} = $localrunning + ( $inlrmsjobs{$share}{running} || 0 );
+	$csha->{WaitingJobs} = $localqueued + ( $inlrmsjobs{$share}{queued} || 0 );
+	$csha->{SuspendedJobs} = $localsuspended + ( $inlrmsjobs{$share}{suspended} || 0 );
+
+	# TODO: backends to count suspended jobs
+
+	$csha->{LocalRunningJobs} = $localrunning;
+	$csha->{LocalWaitingJobs} = $localqueued;
+	$csha->{LocalSuspendedJobs} = $localsuspended;
+
+	$csha->{StagingJobs} = ( $gmsharecount{$share}{preparing} || 0 )
+			      + ( $gmsharecount{$share}{finishing} || 0 );
+
+	$csha->{PreLRMSWaitingJobs} = $gmsharecount{$share}{notsubmitted} || 0;
+
+	# TODO: investigate if it's possible to get these estimates from maui/torque
+	$csha->{EstimatedAverageWaitingTime} = $qinfo->{averagewaitingtime} if defined $qinfo->{averagewaitingtime};
+	$csha->{EstimatedWorstWaitingTime} = $qinfo->{worstwaitingtime} if defined $qinfo->{worstwaitingtime};
+
+	# TODO: implement $qinfo->{freeslots} in LRMS plugins
+
+	my $freeslots = 0;
+	if (defined $qinfo->{freeslots}) {
+	    $freeslots = $qinfo->{freeslots};
+	} else {
+	    $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
+	}
+
+	# Local users have individual restrictions
+	# FreeSlots: find the maximum freecpus of any local user mapped in this
+	# share and use that as an upper limit for $freeslots
+	# FreeSlotsWithDuration: for each duration, find the maximum freecpus
+	# of any local user mapped in this share
+	# TODO: is this the correct way to do it?
+
+	my @durations;
+	my %timeslots = max_userfreeslots($qinfo->{users});
+
+	if (%timeslots) {
+
+	    # find maximum free slots regardless of duration
+	    my $maxuserslots = 0;
+	    for my $seconds ( keys %timeslots ) {
+		my $nfree = $timeslots{$seconds};
+		$maxuserslots = $nfree if $nfree > $maxuserslots;
+	    }
+	    $freeslots = $maxuserslots < $freeslots
+			? $maxuserslots : $freeslots;
+
+	    # sort descending by duration, keping 0 first (0 for unlimited)
+	    for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
+		my $nfree = $timeslots{$seconds} < $freeslots
+			  ? $timeslots{$seconds} : $freeslots;
+		unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
+	    }
+	}
+
+	$freeslots = 0 if $freeslots < 0;
+
+	$csha->{FreeSlots} = $freeslots;
+	$csha->{FreeSlotsWithDuration} = join(" ", @durations) || 0;
+	$csha->{UsedSlots} = $qinfo->{running};
+	$csha->{RequestedSlots} = $requestedslots{$share} || 0;
+
+	# TODO: detect reservationpolicy in the lrms
+	$csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
+
+	# MappingPolicy: VOs mapped to this share.
+
+	if (@{$config->{mappingpolicies}}) {
+	    my @mpconfs = @{$config->{mappingpolicies}};
+	    $csha->{MappingPolicies} = sub {
+		return undef unless @mpconfs;
+		my $mpconf = pop @mpconfs;
+		my $mpol = {};
+		$mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
+		$mpol->{Scheme} = "basic";
+		$mpol->{Rule} = $mpconf->{Rule};
+		$mpol->{UserDomainID} = $mpconf->{UserDomainID};
+		$mpol->{ShareID} = $cshaIDs{$share};
+		return $mpol;
+	    };
+	}
+
+	# Tag: skip it for now
+
+	# Associations
+
+	my $xenvs = $sconfig->{ExecutionEnvironmentName} || [];
+	push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
+
+	## check this association below. Which endpoint?
+	# $csha->{ComputingEndpointID} = $cepID;
+	$csha->{ComputingServiceID} = $csvID;
+
+	return $csha;
+    };
+
+    $csv->{ComputingShares} = $getComputingShares;
+
+
+    # ComputingManager
 
         my $getComputingManager = sub {
 
@@ -2052,6 +2052,7 @@ sub collect($) {
         return $sv;
     };
 
+    # ARIS is enabled by default.
     push(@othersv, $getARISService);
 
     # Service:Cache-Index
