@@ -532,14 +532,16 @@ namespace Arc {
         job.Resources.SlotRequirement.NumberOfSlots = -1;
       }
     }
-    /*
     if (bool(resource["SlotRequirement"]["ThreadsPerProcesses"])) {
-      if (!stringto<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.SlotRequirement.ThreadsPerProcesses)) {
-    else if (bool(xmlXApplication["ThreadCountLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], job.Resources.SlotRequirement.ThreadsPerProcesses))
-        job.Resources.SlotRequirement.ThreadsPerProcesses = -1;
+      if (!stringto<int>(resource["SlotRequirement"]["ThreadsPerProcesses"], job.Resources.ParallelEnvironment.ThreadsPerProcess)) {
+        job.Resources.ParallelEnvironment.ThreadsPerProcess = -1;
+      }
     }
-    */
+    else if (bool(xmlXApplication["ThreadCountLimit"])) {
+      if (!stringto<int>((std::string)xmlXApplication["ThreadCountLimit"], job.Resources.ParallelEnvironment.ThreadsPerProcess)) {
+        job.Resources.ParallelEnvironment.ThreadsPerProcess = -1;
+      }
+    }
     if (bool(resource["SlotRequirement"]["ProcessPerHost"])) {
       if (!stringto<int>(resource["SlotRequirement"]["ProcessPerHost"], job.Resources.SlotRequirement.SlotsPerHost)) {
         job.Resources.SlotRequirement.SlotsPerHost = -1;
@@ -869,8 +871,8 @@ namespace Arc {
       xmlPApplication.NewChild("posix-jsdl:ProcessCountLimit") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
     if (job.Resources.IndividualVirtualMemory.max != -1)
       xmlPApplication.NewChild("posix-jsdl:VirtualMemoryLimit") = tostring(job.Resources.IndividualVirtualMemory.max);
-    //if (job.Resources.SlotRequirement.ThreadsPerProcesses.max != -1)
-    //  xmlPApplication.NewChild("posix-jsdl:ThreadCountLimit") = tostring(job.Resources.SlotRequirement.ThreadsPerProcesses.max);
+    if (job.Resources.ParallelEnvironment.ThreadsPerProcess != -1)
+      xmlPApplication.NewChild("posix-jsdl:ThreadCountLimit") = tostring(job.Resources.ParallelEnvironment.ThreadsPerProcess);
 
     if (xmlPApplication.Size() > 0)
       xmlApplication.NewChild(xmlPApplication);
@@ -1057,38 +1059,28 @@ namespace Arc {
       XMLNode xmlSlotRequirement("<SlotRequirement/>");
 
       // Range<int> NumberOfSlots;
-      if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
-        XMLNode xmlNOS("<NumberOfSlots/>");
-        xmlNOS = tostring(job.Resources.SlotRequirement.NumberOfSlots);
-        if (xmlNOS.Size() > 0) {
-          xmlSlotRequirement.NewChild(xmlNOS);
-        }
+      if (job.Resources.SlotRequirement.NumberOfSlots > -1) {
+        xmlSlotRequirement.NewChild("NumberOfSlots") = tostring(job.Resources.SlotRequirement.NumberOfSlots);
       }
 
-      // Range<int> ProcessPerHost;
+      // int ProcessPerHost;
       if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
-        XMLNode xmlPPH("<ProcessPerHost/>");
-        xmlPPH = tostring(job.Resources.SlotRequirement.SlotsPerHost);
-        if (xmlPPH.Size() > 0) {
-          xmlSlotRequirement.NewChild(xmlPPH);
-          XMLNode xmlTCC("<TotalCPUCount/>");
-          xmlTCC = tostring(job.Resources.SlotRequirement.SlotsPerHost);
-          xmlResources.NewChild(xmlTCC);
-        }
+        xmlSlotRequirement.NewChild("ProcessPerHost") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
+        xmlResources.NewChild("TotalCPUCount") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
       }
 
-      // Range<int> ThreadsPerProcesses;
-      //XMLNode xmlTPP("<ThreadsPerProcesses/>");
-      //outputARCJSDLRange(job.Resources.SlotRequirement.ThreadsPerProcesses, xmlTPP, -1);
-      //if (xmlTPP.Size() > 0)
-      //  xmlSlotRequirement.NewChild(xmlTPP);
+      // int ThreadsPerProcess;
+      if (job.Resources.ParallelEnvironment.ThreadsPerProcess > -1) {
+        xmlSlotRequirement.NewChild("ThreadsPerProcesses") = tostring(job.Resources.ParallelEnvironment.ThreadsPerProcess);
+      }
 
-      // std::string SPMDVariation;
-      //if (!job.Resources.SlotRequirement.SPMDVariation.empty())
-      //  xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.SlotRequirement.SPMDVariation;
+      if (!job.Resources.ParallelEnvironment.Type.empty()) {
+        xmlSlotRequirement.NewChild("SPMDVariation") = job.Resources.ParallelEnvironment.Type;
+      }
 
-      if (xmlSlotRequirement.Size() > 0)
+      if (xmlSlotRequirement.Size() > 0) {
         xmlResources.NewChild(xmlSlotRequirement);
+      }
     }
 
     // std::string QueueName;

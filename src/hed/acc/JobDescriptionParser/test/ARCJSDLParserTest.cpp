@@ -588,7 +588,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   INJOB.Resources.TotalCPUTime = 110;
   INJOB.Resources.SlotRequirement.NumberOfSlots = 2;
   INJOB.Resources.IndividualVirtualMemory = 500;
-  //INJOB.Resources.SlotRequirement.ThreadsPerProcesses = 7;
+  INJOB.Resources.ParallelEnvironment.ThreadsPerProcess = 7;
 
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(posixJSDLStr, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
@@ -605,7 +605,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalCPUTime.range.max, OUTJOBS.front().Resources.TotalCPUTime.range.max);
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.NumberOfSlots, OUTJOBS.front().Resources.SlotRequirement.NumberOfSlots);
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualVirtualMemory.max, OUTJOBS.front().Resources.IndividualVirtualMemory.max);
-  //CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.ThreadsPerProcesses.max, OUTJOBS.front().Resources.SlotRequirement.ThreadsPerProcesses.max);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.ParallelEnvironment.ThreadsPerProcess, OUTJOBS.front().Resources.ParallelEnvironment.ThreadsPerProcess);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "nordugrid:jsdl"));
@@ -634,7 +634,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalCPUTime.range.max, Arc::stringto<int>(pApp["CPUTimeLimit"]));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.NumberOfSlots, Arc::stringto<int>(pApp["ProcessCountLimit"]));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualVirtualMemory.max, Arc::stringto<int>(pApp["VirtualMemoryLimit"]));
-  //CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.ThreadsPerProcesses.max, Arc::stringto<int>(pApp["ThreadCountLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.ParallelEnvironment.ThreadsPerProcess, Arc::stringto<int>(pApp["ThreadCountLimit"]));
 }
 
 void ARCJSDLParserTest::TestHPCCompliance() {

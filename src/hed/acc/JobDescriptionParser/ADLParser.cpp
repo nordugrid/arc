@@ -442,9 +442,32 @@ namespace Arc {
         job.Resources.RunTimeEnvironment.add(rte_);
       }
       if((bool)resources["adl:ParallelEnvironment"]) {
-        logger.msg(ERROR, "[ADLParser] ParallelEnvironment is not supported yet.");
-        jobdescs.clear();
-        return false;
+        ParallelEnvironmentType& pe = job.Resources.ParallelEnvironment;
+        XMLNode xpe = resources["adl:ParallelEnvironment"];
+        if ((bool)xpe["adl:Type"]) {
+          pe.Type = (std::string)xpe["adl:Type"];
+        }
+        if ((bool)xpe["adl:Version"]) {
+          pe.Version = (std::string)xpe["adl:Version"];
+        }
+        if (((bool)xpe["adl:ProcessesPerSlot"]) && !stringto(xpe["adl:ProcessesPerSlot"], pe.ProcessesPerSlot)) {
+          logger.msg(ERROR, "[ADLParser] Missing or wrong value in ProcessesPerSlot.");
+          jobdescs.clear();
+          return false;
+        }
+        if (((bool)xpe["adl:ThreadsPerProcess"]) && !stringto(xpe["adl:ThreadsPerProcess"], pe.ThreadsPerProcess)) {
+          logger.msg(ERROR, "[ADLParser] Missing or wrong value in ThreadsPerProcess.");
+          jobdescs.clear();
+          return false;
+        }
+        for (XMLNode xOption = xpe["adl:Option"]; xOption; ++xOption) {
+          if ((!(bool)xOption["adl:Name"]) || ((std::string)xOption["adl:Name"]).empty()) {
+            logger.msg(ERROR, "[ADLParser] Missing Name element or value in ParallelEnvironment/Option element.");
+            jobdescs.clear();
+            return false;
+          }
+          pe.Options.insert(std::make_pair<std::string, std::string>(xOption["adl:Name"], xOption["adl:Value"]));
+        }
       }
       XMLNode coprocessor = resources["adl:Coprocessor"];
       if(((bool)coprocessor) && (!IsOptional(coprocessor))) {
@@ -760,14 +783,31 @@ namespace Arc {
       rte.NewChild("Version") = s->getVersion();
       //  Option
     }
-    //ParallelEnvironment
-    //  Type
-    //  Version
-    //  ProcessesPerSlot
-    //  ThreadsPerProcess
-    //  Option
-    //    Name
-    //    Value
+    {
+      XMLNode xpe("<ParallelEnvironment/>");
+      const ParallelEnvironmentType& pe = job.Resources.ParallelEnvironment;
+      if (!pe.Type.empty()) {
+        xpe.NewChild("Type") = pe.Type;
+      }
+      if (!pe.Version.empty()) {
+        xpe.NewChild("Version") = pe.Version;
+      }
+      if (pe.ProcessesPerSlot > -1) {
+        xpe.NewChild("ProcessesPerSlot") = tostring(pe.ProcessesPerSlot);
+      }
+      if (pe.ThreadsPerProcess > -1) {
+        xpe.NewChild("ThreadsPerProcess") = tostring(pe.ThreadsPerProcess);
+      }
+      for (std::multimap<std::string, std::string>::const_iterator it = pe.Options.begin();
+           it != pe.Options.end(); ++it) {
+        XMLNode xo = xpe.NewChild("Option");
+        xo.NewChild("Name") = it->first;
+        xo.NewChild("Value") = it->second;
+      }
+      if (xpe.Size() > 0) {
+        resources.NewChild(xpe);
+      }
+    }
     //Coprocessor
     //NetworkInfo
     switch(job.Resources.NodeAccess) {

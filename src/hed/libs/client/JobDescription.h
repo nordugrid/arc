@@ -321,6 +321,18 @@ namespace Arc {
     NAT_INOUTBOUND = 3
   };
 
+  class ParallelEnvironmentType {
+  public:
+    ParallelEnvironmentType() :
+      ProcessesPerSlot(-1),
+      ThreadsPerProcess(-1) {}
+    std::string Type;
+    std::string Version;
+    int ProcessesPerSlot; // Range?
+    int ThreadsPerProcess; // Range?
+    std::multimap<std::string, std::string> Options;
+  };
+
   class ResourcesType {
   public:
     ResourcesType() :
@@ -348,6 +360,7 @@ namespace Arc {
     NodeAccessType NodeAccess;
     SoftwareRequirement CEType;
     SlotRequirementType SlotRequirement;
+    ParallelEnvironmentType ParallelEnvironment;
     std::string QueueName;
     SoftwareRequirement RunTimeEnvironment;
   };
