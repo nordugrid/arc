@@ -421,6 +421,8 @@ Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	mktemp
 Requires:	python-twisted-core
 Requires:	python-twisted-web
+Requires:	stomppy
+Requires:	m2crypto
 Requires:	%{name}-aris = %{version}-%{release}
 Provides:	%{name}-grid-manager = %{version}-%{release}
 Obsoletes:	%{name}-grid-manager < 1.0.0
@@ -1085,6 +1087,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura
+%{_libexecdir}/%{pkgdir}/ssm_master
 %{_libexecdir}/%{pkgdir}/downloader
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick
@@ -1148,6 +1151,13 @@ service fetch-crl-cron start > /dev/null 2>&1
 %doc %{_datadir}/%{pkgdir}/examples/a-rex
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
 %dir %{_localstatedir}/log/arc
+%if %{with_python}
+%{python_sitelib}/EncryptUtils.py*
+%{python_sitelib}/SecureStompMessenger.py*
+%{python_sitelib}/message_db.py*
+%{python_sitelib}/ssm.cfg
+%{python_sitelib}/ssm.log.cfg
+%endif
 
 %files devel
 %defattr(-,root,root,-)
