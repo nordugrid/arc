@@ -629,8 +629,14 @@ sub collect($) {
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
     my %xenvIDs; # ExecutionEnvironment IDs
+    
+    # Other Service IDs
     my $ARISsvID = "urn:ogf:Service:ARIS"; # ARIS service ID
     my $ARISepID = "urn:ogf:Endpoint:ARIS"; # ARIS Endpoint ID
+    my $CacheIndexsvID = "urn:ogf:Service:Cache-Index"; # Cache-Index service ID
+    my $CacheIndexepID = "urn:ogf:Endpoint:Cache-Index"; # Cache-Index Endpoint ID
+    my $HEDControlsvID = "urn:ogf:Service:HED-CONTROL"; # HED-CONTROL service ID
+    my $HEDControlepID = "urn:ogf:Endpoint:HED-CONTROL"; # HED-CONTROL Endpoint ID
 
     # Generate ComputingShare IDs
     for my $share (keys %{$config->{shares}}) {
@@ -1938,11 +1944,10 @@ sub collect($) {
 
         $sv->{Complexity} = "endpoint=1,share=0,resource=0";
 
-        #EndPoint here
-
         my $getARISEndpoint = sub {
 
             # don't publish if slapd not running
+            # or maybe is better to check health state.
             #return undef unless ( -e $config->{bdii_update_pid_file});
 
             my $ep = {};
@@ -2057,8 +2062,282 @@ sub collect($) {
 
     # Service:Cache-Index
 
+    my $getCacheIndexService = sub {
+    
+	my $sv = {};
+
+	$sv->{CreationTime} = $creation_time;
+	$sv->{Validity} = $validity_ttl;
+
+	$sv->{ID} = $CacheIndexsvID;
+
+	$sv->{Name} = "$config->{service}{ClusterName}:Service:Cache-Index" if $config->{service}{ClusterName}; # scalar
+	$sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
+	$sv->{Capability} = [ 'information.discovery' ];
+	$sv->{Type} = 'org.nordugrid.information.cache-index';
+
+	# OBS: QualityLevel reflects the quality of the sotware
+	# One of: development, testing, pre-production, production
+	$sv->{QualityLevel} = 'testing';
+
+	$sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
+
+	$sv->{Complexity} = "endpoint=1,share=0,resource=0";
+
+	#EndPoint here
+
+	my $getCacheIndexEndpoint = sub {
+
+	    #return undef unless ( -e $config->{bdii_update_pid_file});
+	    return undef;
+
+	    my $ep = {};
+
+	    $ep->{CreationTime} = $creation_time;
+	    $ep->{Validity} = $validity_ttl;
+
+	    $ep->{ID} = $CacheIndexepID;
+
+	    # Name not necessary -- why? added back
+	    $ep->{Name} = "ARC Cache Index";
+
+	    # Configuration parser does not contain ldap port!
+	    # must be updated
+	    # port hardcoded for tests 
+	    # $ep->{URL} = "ldap://$config->{hostname}:$config->{SlapdPort}/";
+	    $ep->{Capability} = [ 'information.discovery' ];
+	    $ep->{Technology} = 'webservice';
+	    $ep->{InterfaceName} = 'Cache-Index';
+	    $ep->{InterfaceVersion} = [ '1.0' ];
+	    # Wrong type, should be URI
+	    #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+	    #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+	    #              ];
+	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+	    $ep->{Implementor} = "NorduGrid";
+	    $ep->{ImplementationName} = "Cache-Index";
+	    $ep->{ImplementationVersion} = $config->{arcversion};
+	    $ep->{QualityLevel} = "testing";
+
+	    # How to calculate health for this interface?
+	    my %healthissues;
+
+	    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+	    if (     $host_info->{hostcert_expired}
+		    or $host_info->{issuerca_expired}) {
+		  push @{$healthissues{critical}}, "Host credentials expired";
+	    } elsif (not $host_info->{hostcert_enddate}
+		    or not $host_info->{issuerca_enddate}) {
+		  push @{$healthissues{critical}}, "Host credentials missing";
+	    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+		    or $host_info->{issuerca_enddate} - time < 48*3600) {
+		  push @{$healthissues{warning}}, "Host credentials will expire soon";
+	    }
+	    }
+
+	    if (%healthissues) {
+	    my @infos;
+	    for my $level (qw(critical warning other)) {
+		  next unless $healthissues{$level};
+		  $ep->{HealthState} ||= $level;
+		  push @infos, @{$healthissues{$level}};
+	    }
+	    $ep->{HealthStateInfo} = join "; ", @infos;
+	    } else {
+	    $ep->{HealthState} = 'ok';
+	    }
+
+	    # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+	    # OBS: Is there an allownew option for a-rex?
+	    #if ( $config->{GridftpdAllowNew} == 0 ) {
+	    #    $ep->{ServingState} = 'draining';
+	    #} else {
+	    #    $ep->{ServingState} = 'production';
+	    #}
+	    $ep->{ServingState} = 'production';
+
+	    # StartTime: get it from hed
+
+	    $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
+	    $ep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+	    # TODO: Downtime, is this necessary, and how should it work?
+
+	    if ($config->{accesspolicies}) {
+	    my @apconfs = @{$config->{accesspolicies}};
+	    $ep->{AccessPolicies} = sub {
+		  return undef unless @apconfs;
+		  my $apconf = pop @apconfs;
+		  my $apol = {};
+		  $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		  $apol->{Scheme} = "basic";
+		  $apol->{Rule} = $apconf->{Rule};
+		  $apol->{UserDomainID} = $apconf->{UserDomainID};
+		  $apol->{EndpointID} = $CacheIndexepID;
+		  return $apol;
+	    };
+	    }
+	    
+	    $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+
+	    # Associations
+
+	    $ep->{ServiceID} = $CacheIndexsvID;
+
+	    return $ep;
+	};
+
+	$sv->{Endpoint} = $getCacheIndexEndpoint;
+
+	# Associations
+
+	$sv->{AdminDomainID} = $adID;
+
+	return $sv;
+    };
+    
+    # Disabled until I find a way to know if it's configured or not.
+    # push(@othersv, $getCacheIndexService);
     
     # Service: HED-Control
+
+    my $getHEDControlService = sub {
+
+	my $sv = {};
+
+	$sv->{CreationTime} = $creation_time;
+	$sv->{Validity} = $validity_ttl;
+
+	$sv->{ID} = $HEDControlsvID;
+
+	$sv->{Name} = "$config->{service}{ClusterName}:Service:HED-CONTROL" if $config->{service}{ClusterName}; # scalar
+	$sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
+	$sv->{Capability} = [ 'information.discovery' ];
+	$sv->{Type} = 'org.nordugrid.information.cache-index';
+
+	# OBS: QualityLevel reflects the quality of the sotware
+	# One of: development, testing, pre-production, production
+	$sv->{QualityLevel} = 'pre-production';
+
+	$sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
+
+	$sv->{Complexity} = "endpoint=1,share=0,resource=0";
+
+	#EndPoint here
+
+	my $getHEDControlEndpoint = sub {
+
+	    #return undef unless ( -e $config->{bdii_update_pid_file});
+
+	    my $ep = {};
+
+	    $ep->{CreationTime} = $creation_time;
+	    $ep->{Validity} = $validity_ttl;
+
+	    $ep->{ID} = $HEDControlepID;
+
+	    # Name not necessary -- why? added back
+	    $ep->{Name} = "ARC HED WS Control Interface";
+
+	    # Configuration parser does not contain ldap port!
+	    # must be updated
+	    # port hardcoded for tests 
+	    $ep->{URL} = "$arexhostport/mgmt";
+	    $ep->{Capability} = [ 'containermanagement.control' ];
+	    $ep->{Technology} = 'webservice';
+	    $ep->{InterfaceName} = 'HED-CONTROL';
+	    $ep->{InterfaceVersion} = [ '1.0' ];
+	    # Wrong type, should be URI
+	    #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+	    #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+	    #              ];
+	    $ep->{Semantics} = [ "http://www.nordugrid.org/documents/" ];
+	    $ep->{Implementor} = "NorduGrid";
+	    $ep->{ImplementationName} = "HED-CONTROL";
+	    $ep->{ImplementationVersion} = $config->{arcversion};
+	    $ep->{QualityLevel} = "pre-production";
+
+	    # How to calculate health for this interface?
+	    my %healthissues;
+
+	    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+	    if (     $host_info->{hostcert_expired}
+		    or $host_info->{issuerca_expired}) {
+		  push @{$healthissues{critical}}, "Host credentials expired";
+	    } elsif (not $host_info->{hostcert_enddate}
+		    or not $host_info->{issuerca_enddate}) {
+		  push @{$healthissues{critical}}, "Host credentials missing";
+	    } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+		    or $host_info->{issuerca_enddate} - time < 48*3600) {
+		  push @{$healthissues{warning}}, "Host credentials will expire soon";
+	    }
+	    }
+
+	    if (%healthissues) {
+	    my @infos;
+	    for my $level (qw(critical warning other)) {
+		  next unless $healthissues{$level};
+		  $ep->{HealthState} ||= $level;
+		  push @infos, @{$healthissues{$level}};
+	    }
+	    $ep->{HealthStateInfo} = join "; ", @infos;
+	    } else {
+	    $ep->{HealthState} = 'ok';
+	    }
+
+	    # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+	    # OBS: Is there an allownew option for a-rex?
+	    #if ( $config->{GridftpdAllowNew} == 0 ) {
+	    #    $ep->{ServingState} = 'draining';
+	    #} else {
+	    #    $ep->{ServingState} = 'production';
+	    #}
+	    $ep->{ServingState} = 'production';
+
+	    # StartTime: get it from hed
+
+	    $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
+	    $ep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+	    # TODO: Downtime, is this necessary, and how should it work?
+
+	    if ($config->{accesspolicies}) {
+	    my @apconfs = @{$config->{accesspolicies}};
+	    $ep->{AccessPolicies} = sub {
+		  return undef unless @apconfs;
+		  my $apconf = pop @apconfs;
+		  my $apol = {};
+		  $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		  $apol->{Scheme} = "basic";
+		  $apol->{Rule} = $apconf->{Rule};
+		  $apol->{UserDomainID} = $apconf->{UserDomainID};
+		  $apol->{EndpointID} = $HEDControlepID;
+		  return $apol;
+	      };
+	    };
+	    
+	    $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+
+	    # Associations
+
+	    $ep->{ServiceID} = $HEDControlsvID;
+
+	    return $ep;
+	};
+
+	$sv->{Endpoint} = $getHEDControlEndpoint;
+
+	# Associations
+
+	$sv->{AdminDomainID} = $adID;
+
+	return $sv;
+    };
+
+    # Disabled until I find a way to know if it's configured or not.
+    # push(@othersv, $getHEDControlService);
     
 
     # aggregates services
