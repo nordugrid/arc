@@ -16,6 +16,23 @@ namespace Arc {
   class JobDescriptionParserLoader;
 
   template<class T>
+  class OptIn {
+  public:
+    OptIn<T>() : optIn(false) {}
+    OptIn<T>(const T& t) : v(t), optIn(false) {}
+    OptIn<T>(const T& t, bool o) : v(t), optIn(o) {}
+    OptIn<T>(const OptIn<T>& ot) : v(ot.v), optIn(ot.optIn) {}
+
+    OptIn<T>& operator=(const OptIn<T>& ot) { v = ot.v; optIn = ot.optIn; return *this; }
+    OptIn<T>& operator=(const T& t) { v = t; optIn = false; return *this; }
+
+    operator T() const { return v; }
+
+    bool optIn;
+    T v;
+  };
+
+  template<class T>
   class Range {
   public:
     Range<T>() : min(0), max(0) {}
@@ -361,6 +378,7 @@ namespace Arc {
     SoftwareRequirement CEType;
     SlotRequirementType SlotRequirement;
     ParallelEnvironmentType ParallelEnvironment;
+    OptIn<std::string> Coprocessor;
     std::string QueueName;
     SoftwareRequirement RunTimeEnvironment;
   };

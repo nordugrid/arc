@@ -33,9 +33,9 @@ namespace Arc {
     XMLNode optional = el.Attribute("optional");
     if(!optional) return false;
     std::string v = optional;
-    if(v == "false") return false;
-    if(v == "0") return false;
-    return true;
+    if(v == "true") return true;
+    if(v == "1") return true;
+    return false;
   }
 
   static bool ParseOptional(XMLNode el, Logger& logger) {
@@ -470,10 +470,9 @@ namespace Arc {
         }
       }
       XMLNode coprocessor = resources["adl:Coprocessor"];
-      if(((bool)coprocessor) && (!IsOptional(coprocessor))) {
-        logger.msg(ERROR, "[ADLParser] Coprocessor is not supported yet.");
-        jobdescs.clear();
-        return false;
+      if((bool)coprocessor && !((std::string)coprocessor).empty()) {
+        job.Resources.Coprocessor = coprocessor;
+        job.Resources.Coprocessor.optIn = IsOptional(coprocessor);
       }
       XMLNode netinfo = resources["adl:NetworkInfo"];
       if(((bool)netinfo) && (!IsOptional(netinfo))) {
@@ -808,7 +807,11 @@ namespace Arc {
         resources.NewChild(xpe);
       }
     }
-    //Coprocessor
+    if(!((std::string)job.Resources.Coprocessor).empty()) {
+      XMLNode coprocessor = resources.NewChild("Coprocessor");
+      coprocessor = (std::string)job.Resources.Coprocessor;
+      coprocessor.NewAttribute("optional") = (job.Resources.Coprocessor.optIn ? "true" : "false");
+    }
     //NetworkInfo
     switch(job.Resources.NodeAccess) {
       case NAT_INBOUND: resources.NewChild("NodeAccess") = "inbound"; break;
