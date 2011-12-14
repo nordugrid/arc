@@ -518,9 +518,6 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     for(std::list<Arc::SourceType>::iterator s = f->Sources.begin();s != f->Sources.end();++s) {
       if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
     };
-    for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
-      if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
-    };
   };
   for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();f != desc.DataStaging.OutputFiles.end();++f) {
     for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
