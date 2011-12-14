@@ -169,28 +169,27 @@ namespace Arc {
       std::list<std::string> inputfiles = listJDLvalue(attributeValue);
       for (std::list<std::string>::const_iterator it = inputfiles.begin();
            it != inputfiles.end(); it++) {
-        FileType file;
+        InputFileType file;
         const std::size_t pos = it->find_last_of('/');
         file.Name = (pos == std::string::npos ? *it : it->substr(pos+1));
-        file.Source.push_back(URL(*it));
-        if (!file.Source.back()) {
+        file.Sources.push_back(URL(*it));
+        if (!file.Sources.back()) {
           return false;
         }
         // Initializing these variables
-        file.KeepData = false;
         file.IsExecutable = false;
-        job.Files.push_back(file);
+        job.DataStaging.InputFiles.push_back(file);
       }
       return true;
     }
     else if (attributeName == "inputsandboxbaseuri") {
-      for (std::list<FileType>::iterator it = job.Files.begin();
-           it != job.Files.end(); it++) {
+      for (std::list<InputFileType>::iterator it = job.DataStaging.InputFiles.begin();
+           it != job.DataStaging.InputFiles.end(); it++) {
         /* Since JDL does not have support for multiple locations the size of
          * the Source member is exactly 1.
          */
-        if (!it->Source.empty() && !it->Source.front()) {
-          it->Source.front() = simpleJDLvalue(attributeValue);
+        if (!it->Sources.empty() && !it->Sources.front()) {
+          it->Sources.front() = simpleJDLvalue(attributeValue);
         }
       }
       return true;
@@ -199,25 +198,23 @@ namespace Arc {
       std::list<std::string> outputfiles = listJDLvalue(attributeValue);
       for (std::list<std::string>::const_iterator it = outputfiles.begin();
            it != outputfiles.end(); it++) {
-        FileType file;
+        OutputFileType file;
         file.Name = *it;
-        file.Target.push_back(URL(*it));
-        if (!file.Target.back()) {
+        file.Targets.push_back(URL(*it));
+        if (!file.Targets.back()) {
           return false;
         }
         // Initializing these variables
-        file.KeepData = false;
-        file.IsExecutable = false;
-        job.Files.push_back(file);
+        job.DataStaging.OutputFiles.push_back(file);
       }
       return true;
     }
     else if (attributeName == "outputsandboxdesturi") {
       std::list<std::string> value = listJDLvalue(attributeValue);
       std::list<std::string>::iterator i = value.begin();
-      for (std::list<FileType>::iterator it = job.Files.begin();
-           it != job.Files.end(); it++) {
-        if (it->Target.empty()) {
+      for (std::list<OutputFileType>::iterator it = job.DataStaging.OutputFiles.begin();
+           it != job.DataStaging.OutputFiles.end(); it++) {
+        if (it->Targets.empty()) {
           continue;
         }
         if (i != value.end()) {
@@ -231,11 +228,10 @@ namespace Arc {
              * working directory of the job for later retrieval. Instead
              * the local grid ftp server to CREAM can be specified.
              */
-            it->Target.clear();
-            it->KeepData = true;
+            it->Targets.clear();
           }
           else {
-            it->Target.front() = url;
+            it->Targets.front() = url;
           }
           i++;
         }
@@ -626,48 +622,60 @@ namespace Arc {
     }
 
     if (!job.Application.Executable.Path.empty() ||
-        !job.Files.empty() ||
-        !job.Application.Input.empty() ||
-        !job.Application.Output.empty() ||
-        !job.Application.Error.empty()) {
-
+        !job.DataStaging.InputFiles.empty() ||
+        !job.Application.Input.empty()) {
       bool addExecutable = !job.Application.Executable.Path.empty() && !Glib::path_is_absolute(job.Application.Executable.Path);
       bool addInput      = !job.Application.Input.empty();
-      bool addOutput     = !job.Application.Output.empty();
-      bool addError      = !job.Application.Error.empty();
 
       std::list<std::string> inputSandboxList;
-      std::list<std::string> outputSandboxList;
-      std::list<std::string> outputSandboxDestURIList;
-      for (std::list<FileType>::const_iterator it = job.Files.begin();
-           it != job.Files.end(); it++) {
+      for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
+           it != job.DataStaging.InputFiles.end(); it++) {
         /* Since JDL does not have support for multiple locations only the first
          * location will be added.
          */
-        if (!it->Source.empty())
-          inputSandboxList.push_back(it->Source.front() ? it->Source.front().fullstr() : it->Name);
-        if ((!it->Target.empty() && it->Target.front()) || it->KeepData) {
-          outputSandboxList.push_back(it->Name);
-          /* User downloadable files should go to the local grid ftp
-           * server (local to CREAM). See comments on the parsing of the
-           * outputsandboxdesturi attribute above.
-           */
-          const std::string uri_tmp = (it->Target.empty() || it->Target.front().Protocol() == "file" ?
-                                       "gsiftp://localhost/" + it->Name :
-                                       it->Target.front().fullstr());
-          outputSandboxDestURIList.push_back(uri_tmp);
+        if (!it->Sources.empty()) {
+          inputSandboxList.push_back(it->Sources.front() ? it->Sources.front().fullstr() : it->Name);
         }
 
         addExecutable &= (it->Name != job.Application.Executable.Path);
         addInput      &= (it->Name != job.Application.Input);
+      }
+
+      if (addExecutable) {
+        inputSandboxList.push_back(job.Application.Executable.Path);
+      }
+      if (addInput) {
+        inputSandboxList.push_back(job.Application.Input);
+      }
+
+      if (!inputSandboxList.empty()) {
+        product += generateOutputList("InputSandbox", inputSandboxList);
+      }
+    }
+
+    if (!job.DataStaging.OutputFiles.empty() ||
+        !job.Application.Output.empty() ||
+        !job.Application.Error.empty()) {
+      bool addOutput     = !job.Application.Output.empty();
+      bool addError      = !job.Application.Error.empty();
+
+      std::list<std::string> outputSandboxList;
+      std::list<std::string> outputSandboxDestURIList;
+      for (std::list<OutputFileType>::const_iterator it = job.DataStaging.OutputFiles.begin();
+           it != job.DataStaging.OutputFiles.end(); it++) {
+        outputSandboxList.push_back(it->Name);
+        /* User downloadable files should go to the local grid ftp
+         * server (local to CREAM). See comments on the parsing of the
+         * outputsandboxdesturi attribute above.
+         */
+        const std::string uri_tmp = (it->Targets.empty() || it->Targets.front().Protocol() == "file" ?
+                                     "gsiftp://localhost/" + it->Name :
+                                     it->Targets.front().fullstr());
+        outputSandboxDestURIList.push_back(uri_tmp);
+
         addOutput     &= (it->Name != job.Application.Output);
         addError      &= (it->Name != job.Application.Error);
       }
-
-      if (addExecutable)
-        inputSandboxList.push_back(job.Application.Executable.Path);
-      if (addInput)
-        inputSandboxList.push_back(job.Application.Input);
       if (addOutput) {
         outputSandboxList.push_back(job.Application.Output);
         outputSandboxDestURIList.push_back("gsiftp://localhost/" + job.Application.Output);
@@ -677,12 +685,12 @@ namespace Arc {
         outputSandboxDestURIList.push_back("gsiftp://localhost/" + job.Application.Error);
       }
 
-      if (!inputSandboxList.empty())
-        product += generateOutputList("InputSandbox", inputSandboxList);
-      if (!outputSandboxList.empty())
+      if (!outputSandboxList.empty()) {
         product += generateOutputList("OutputSandbox", outputSandboxList);
-      if (!outputSandboxDestURIList.empty())
+      }
+      if (!outputSandboxDestURIList.empty()) {
         product += generateOutputList("OutputSandboxDestURI", outputSandboxDestURIList);
+      }
     }
 
     if (!job.Resources.QueueName.empty()) {

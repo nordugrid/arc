@@ -575,16 +575,17 @@ namespace Arc {
         jobdescs.clear();
         return false;
       }
-      // TODO: store clientpush in JobDescription
+      if (clientpush) {
+        job.OtherAttributes["emi-adl:ClientDataPush"] = "true";
+      }
       for(XMLNode input = staging["adl:InputFile"];(bool)input;++input) {
-        FileType file;
+        InputFileType file;
         file.Name = (std::string)input["adl:Name"];
         if(file.Name.empty()) {
           logger.msg(ERROR, "[ADLParser] Missing or empty Name in InputFile.");
           jobdescs.clear();
           return false;
         }
-        file.KeepData = false;
         std::string ex = input["adl:IsExecutable"];
         file.IsExecutable = !(ex.empty() || (ex == "false") || (ex == "0"));
         for(XMLNode source = input["adl:Source"];(bool)source;++source) {
@@ -603,21 +604,19 @@ namespace Arc {
               surl.AddOption(option["adl:Name"],option["adl:Value"],true);
             };
           }
-          file.Source.push_back(surl);
+          file.Sources.push_back(surl);
         }
         // TODO: FileSize
-        job.Files.push_back(file);
+        job.DataStaging.InputFiles.push_back(file);
       }
       for(XMLNode output = staging["adl:OutputFile"];(bool)output;++output) {
-        FileType file;
+        OutputFileType file;
         file.Name = (std::string)output["adl:Name"];
         if(file.Name.empty()) {
           logger.msg(ERROR, "[ADLParser] Missing or empty Name in OutputFile.");
           jobdescs.clear();
           return false;
         }
-        file.KeepData = false;
-        file.IsExecutable = false;
         for(XMLNode target = output["adl:Target"];(bool)target;++target) {
           TargetType turl((std::string)target["adl:URI"]);
           if(!turl) {
@@ -657,9 +656,9 @@ namespace Arc {
             };
           }
           turl.AddOption("mandatory",mandatory?"true":"false",true);
-          file.Target.push_back(turl);
+          file.Targets.push_back(turl);
         }
-        job.Files.push_back(file);
+        job.DataStaging.OutputFiles.push_back(file);
       }
     }
     return true;
@@ -859,17 +858,24 @@ namespace Arc {
 
     // DataStaging
 
-    // XMLNode clientpush = staging.NewChild("ClientDataPush"); TODO
+    {
+      std::map<std::string, std::string>::const_iterator it = job.OtherAttributes.find("emi-adl:ClientDataPush");
+      if (it != job.OtherAttributes.end() && it->second == "true") {
+        staging.NewChild("ClientDataPush") = "true";
+      }
+    }
 
     // InputFile
-    for (std::list<FileType>::const_iterator it = job.Files.begin();
-         it != job.Files.end(); it++) {
-      if(it->Name.empty()) continue; // mandatory
-      if(!it->Source.empty()) {
+    for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
+         it != job.DataStaging.InputFiles.end(); ++it) {
+      if(it->Name.empty()) { // mandatory
+        return false;
+      }
+      if(!it->Sources.empty()) {
         XMLNode file = staging.NewChild("InputFile");
         file.NewChild("Name") = it->Name;
-        for(std::list<SourceType>::const_iterator u = it->Source.begin();
-                       u != it->Source.end(); ++u) {
+        for(std::list<SourceType>::const_iterator u = it->Sources.begin();
+                       u != it->Sources.end(); ++u) {
           if(!*u) continue; // mandatory
           // It is not correct to do job description transformation
           // in parser. Parser should be dumb. Other solution is needed.
@@ -892,14 +898,16 @@ namespace Arc {
       }
     }
     // OutputFile
-    for (std::list<FileType>::const_iterator it = job.Files.begin();
-         it != job.Files.end(); it++) {
-      if(it->Name.empty()) continue; // mandatory
-      if(it->KeepData || !it->Target.empty()) {
+    for (std::list<OutputFileType>::const_iterator it = job.DataStaging.OutputFiles.begin();
+         it != job.DataStaging.OutputFiles.end(); ++it) {
+      if(it->Name.empty()) { // mandatory
+        return false;
+      }
+      if(!it->Targets.empty()) {
         XMLNode file = staging.NewChild("OutputFile");
         file.NewChild("Name") = it->Name;
-        for(std::list<TargetType>::const_iterator u = it->Target.begin();
-                       u != it->Target.end(); ++u) {
+        for(std::list<TargetType>::const_iterator u = it->Targets.begin();
+                       u != it->Targets.end(); ++u) {
           if(!*u) continue; // mandatory
           XMLNode target = file.NewChild("Target");
           target.NewChild("URI") = u->str();

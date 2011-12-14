@@ -419,18 +419,11 @@ namespace Arc {
     bool UseIfSuccess;
   };
 
-  class FileType {
+  class InputFileType {
   public:
-    FileType() :
-      KeepData(false),
-      IsExecutable(false),
-      FileSize(-1),
-      Checksum("") {}
+    InputFileType() : Name(""), IsExecutable(false) {};
     std::string Name;
-    bool KeepData;
     bool IsExecutable;
-    std::list<SourceType> Source;
-    std::list<TargetType> Target;
     long FileSize;
     /// MD5 checksum of file
     /**
@@ -438,6 +431,21 @@ namespace Arc {
      * checksum of file in base 16.
      **/
     std::string Checksum;
+    std::list<SourceType> Sources;
+  };
+
+  class OutputFileType {
+  public:
+    OutputFileType() : Name("") {};
+    std::string Name;
+    std::list<TargetType> Targets;
+  };
+
+  class DataStagingType {
+  public:
+    DataStagingType() {};
+    std::list<InputFileType> InputFiles;
+    std::list<OutputFileType> OutputFiles;
   };
 
 
@@ -477,7 +485,7 @@ namespace Arc {
     JobIdentificationType Identification;
     ApplicationType Application;
     ResourcesType Resources;
-    std::list<FileType> Files;
+    DataStagingType DataStaging;
 
     JobDescription& operator=(const JobDescription& j);
 

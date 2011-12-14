@@ -15,15 +15,10 @@ class ARCJSDLParserTest
   CPPUNIT_TEST_SUITE(ARCJSDLParserTest);
   CPPUNIT_TEST(TestExecutable);
   CPPUNIT_TEST(TestInputOutputError);
-  CPPUNIT_TEST(TestFilesCreateDelete);
-  CPPUNIT_TEST(TestFilesDownloadDelete);
-  CPPUNIT_TEST(TestFilesUploadDelete);
-  CPPUNIT_TEST(TestFilesCreateDownload);
-  CPPUNIT_TEST(TestFilesDownloadDownload);
-  CPPUNIT_TEST(TestFilesUploadDownload);
-  CPPUNIT_TEST(TestFilesCreateUpload);
-  CPPUNIT_TEST(TestFilesDownloadUpload);
-  CPPUNIT_TEST(TestFilesUploadUpload);
+  CPPUNIT_TEST(TestInputFileClientStageable);
+  CPPUNIT_TEST(TestInputFileServiceStageable);
+  CPPUNIT_TEST(TestOutputFileClientStageable);
+  CPPUNIT_TEST(TestOutputFileServiceStageable);
   CPPUNIT_TEST(TestURIOptionsInput);
   CPPUNIT_TEST(TestURIOptionsOutput);
   CPPUNIT_TEST(TestQueue);
@@ -39,15 +34,10 @@ public:
   void tearDown();
   void TestExecutable();
   void TestInputOutputError();
-  void TestFilesCreateDelete();
-  void TestFilesDownloadDelete();
-  void TestFilesUploadDelete();
-  void TestFilesCreateDownload();
-  void TestFilesDownloadDownload();
-  void TestFilesUploadDownload();
-  void TestFilesCreateUpload();
-  void TestFilesDownloadUpload();
-  void TestFilesUploadUpload();
+  void TestInputFileClientStageable();
+  void TestInputFileServiceStageable();
+  void TestOutputFileClientStageable();
+  void TestOutputFileServiceStageable();
   void TestURIOptionsInput();
   void TestURIOptionsOutput();
   void TestQueue();
@@ -112,247 +102,89 @@ void ARCJSDLParserTest::TestInputOutputError() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Application.Error, OUTJOBS.front().Application.Error);
 }
 
-/**
- * In the JobDescription class a file can both have a source and a target
- * location. I.e. a place to be fetched from and a place to put it afterwards.
- * For both source and target it is possible that the file either will be
- * uploaded or downloaded, but it can also be specified that the CE should
- * create/delete the file, in total giving 9 options. In the table below the
- * supported cases for ARCJSDL is shown. These are tested in the methods below
- * the table. In addition in the JobDescription the "IsExecutable" can be
- * specified for a file, these are not fully tested yet.
- *
- *                     T    A    R    G    E    T
- *                ------------------------------------
- *                |  DELETE  |  DOWNLOAD  |  UPLOAD  |
- *  S ------------------------------------------------
- *  O |   CREATE  |    X     |      X     |    X     |
- *  U ------------------------------------------------
- *  R |  DOWNLOAD |    X     |      X     |    X     |
- *  C ------------------------------------------------
- *  E |   UPLOAD  |    X     |      X     |    X     |
- *    ------------------------------------------------
- *
- **/
+/** Client stageable input file */
+void ARCJSDLParserTest::TestInputFileClientStageable() {
+  INJOB.DataStaging.InputFiles.clear();
+  MESSAGE = "Error parsing TestInputFileClientStageable data staging type.";
 
- /** 1-Create-Delete */
-void ARCJSDLParserTest::TestFilesCreateDelete() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing create-delete data staging type.";
+  Arc::InputFileType file;
+  file.Name = "TestInputFileClientStageable";
+  file.Sources.push_back(Arc::URL(file.Name));
+  INJOB.DataStaging.InputFiles.push_back(file);
 
-  Arc::FileType file;
-  file.Name = "1-Create-Delete";
-  file.KeepData = false;
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.InputFiles.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.InputFiles.front().Name, OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.InputFiles.front().Sources.size() == 1 && OUTJOBS.front().DataStaging.InputFiles.front().Sources.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.InputFiles.front().Sources.front(), OUTJOBS.front().DataStaging.InputFiles.front().Sources.front());
+}
+
+/** Service stageable input file */
+void ARCJSDLParserTest::TestInputFileServiceStageable() {
+  INJOB.DataStaging.InputFiles.clear();
+  MESSAGE = "Error parsing TestInputFileServiceStageable data staging type.";
+
+  Arc::InputFileType file;
+  file.Name = "TestInputFileServiceStageable";
+  file.Sources.push_back(Arc::URL("http://example.com/" + file.Name));
   file.IsExecutable = false;
-  INJOB.Files.push_back(file);
+  INJOB.DataStaging.InputFiles.push_back(file);
+
+  CPPUNIT_ASSERT(INJOB.DataStaging.InputFiles.size() == 1);
+  CPPUNIT_ASSERT(INJOB.DataStaging.InputFiles.front().Sources.size() == 1 && INJOB.DataStaging.InputFiles.front().Sources.front());
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1 && OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().IsExecutable, OUTJOBS.front().Files.front().IsExecutable);
-
-  INJOB.Files.front().IsExecutable = true;
-
-  std::string tempjobdesc2;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc2, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc2, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL(true, INJOB.Files.front().IsExecutable);
-  CPPUNIT_ASSERT_EQUAL(true, OUTJOBS.front().Files.front().IsExecutable);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.InputFiles.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.InputFiles.front().Name, OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.InputFiles.front().Sources.size() == 1 && OUTJOBS.front().DataStaging.InputFiles.front().Sources.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.InputFiles.front().Sources.front(), OUTJOBS.front().DataStaging.InputFiles.front().Sources.front());
 }
 
-/** 2-Download-Delete */
-void ARCJSDLParserTest::TestFilesDownloadDelete() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing download-delete data staging type.";
+/** Client stageable output file */
+void ARCJSDLParserTest::TestOutputFileClientStageable() {
+  INJOB.DataStaging.OutputFiles.clear();
+  MESSAGE = "Error parsing TestOutputFileClientStageable data staging type.";
 
-  Arc::FileType file;
-  file.Name = "2-Download-Delete";
-  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  file.IsExecutable = false;
-  INJOB.Files.push_back(file);
-
-  CPPUNIT_ASSERT(INJOB.Files.size() == 1);
-  CPPUNIT_ASSERT(INJOB.Files.front().Source.size() == 1 && INJOB.Files.front().Source.front());
+  Arc::OutputFileType file;
+  file.Name = "TestOutputFileClientStageable";
+  INJOB.DataStaging.OutputFiles.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Source.size() == 1 && OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Source.front(), OUTJOBS.front().Files.front().Source.front());
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.OutputFiles.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.OutputFiles.front().Name, OUTJOBS.front().DataStaging.OutputFiles.front().Name);
 }
 
-/** 3-Upload-Delete */
-void ARCJSDLParserTest::TestFilesUploadDelete() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing upload-delete data staging type.";
+/** Service stageable output file */
+void ARCJSDLParserTest::TestOutputFileServiceStageable() {
+  INJOB.DataStaging.OutputFiles.clear();
+  MESSAGE = "Error parsing TestOutputFileServiceStageable data staging type.";
 
-  Arc::FileType file;
-  file.Name = "3-Upload-Delete";
-  file.Source.push_back(Arc::URL(file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Source.size() == 1 && OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Source.front(), OUTJOBS.front().Files.front().Source.front());
-}
-
-/** 4-Create-Download */
-void ARCJSDLParserTest::TestFilesCreateDownload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing create-download data staging type.";
-
-  Arc::FileType file;
-  file.Name = "4-Create-Download";
-  file.KeepData = true;
-  INJOB.Files.push_back(file);
+  Arc::OutputFileType file;
+  file.Name = "TestOutputFileServiceStageable";
+  file.Targets.push_back(Arc::URL("http://example.com/" + file.Name));
+  INJOB.DataStaging.OutputFiles.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().KeepData);
-}
-
-/** 5-Download-Download */
-void ARCJSDLParserTest::TestFilesDownloadDownload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing download-download data staging type.";
-
-  Arc::FileType file;
-  file.Name = "5-Download-Download";
-  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = true;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Source.size() == 1 && OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Source.front(), OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
-}
-
-/** 6-Upload-Download */
-void ARCJSDLParserTest::TestFilesUploadDownload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing upload-download data staging type.";
-
-  Arc::FileType file;
-  file.Name = "6-Upload-Download";
-  file.Source.push_back(Arc::URL(file.Name));
-  file.KeepData = true;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Source.size() == 1 && OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Source.front(), OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
-}
-
-/** 7-Create-Upload */
-void ARCJSDLParserTest::TestFilesCreateUpload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing create-download data staging type.";
-
-  Arc::FileType file;
-  file.Name = "7-Create-Upload";
-  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Target.size() == 1 && OUTJOBS.front().Files.front().Target.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Target.front(), OUTJOBS.front().Files.front().Target.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
-}
-
-/** 8-Download-Upload */
-void ARCJSDLParserTest::TestFilesDownloadUpload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing download-upload data staging type.";
-
-  Arc::FileType file;
-  file.Name = "8-Download-Upload";
-  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Source.size() == 1 && OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Source.front(), OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Target.size() == 1 && OUTJOBS.front().Files.front().Target.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Target.front(), OUTJOBS.front().Files.front().Target.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
-}
-
-/** 9-Upload-Upload */
-void ARCJSDLParserTest::TestFilesUploadUpload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing upload-upload data staging type.";
-
-  Arc::FileType file;
-  file.Name = "9-Upload-Upload";
-  file.Source.push_back(Arc::URL(file.Name));
-  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:jsdl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.size() == 1);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Name, OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Source.size() == 1 && OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Source.front(), OUTJOBS.front().Files.front().Source.front());
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().Files.front().Target.size() == 1 && OUTJOBS.front().Files.front().Target.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().Target.front(), OUTJOBS.front().Files.front().Target.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.Files.front().KeepData, OUTJOBS.front().Files.front().KeepData);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.OutputFiles.size() == 1);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.OutputFiles.front().Name, OUTJOBS.front().DataStaging.OutputFiles.front().Name);
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, OUTJOBS.front().DataStaging.OutputFiles.front().Targets.size() == 1 && OUTJOBS.front().DataStaging.OutputFiles.front().Targets.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, INJOB.DataStaging.OutputFiles.front().Targets.front(), OUTJOBS.front().DataStaging.OutputFiles.front().Targets.front());
 }
 
 void ARCJSDLParserTest::TestURIOptionsInput() {
@@ -377,11 +209,11 @@ void ARCJSDLParserTest::TestURIOptionsInput() {
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
-  const Arc::FileType f(OUTJOBS.front().Files.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  const Arc::InputFileType f(OUTJOBS.front().DataStaging.InputFiles.front());
   CPPUNIT_ASSERT_EQUAL(std::string("test.file"), f.Name);
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/test.file"), f.Source.front().str());
-  CPPUNIT_ASSERT_EQUAL(std::string("5"), f.Source.front().Option("threads"));
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/test.file"), f.Sources.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), f.Sources.front().Option("threads"));
 }
 
 void ARCJSDLParserTest::TestURIOptionsOutput() {
@@ -414,14 +246,14 @@ void ARCJSDLParserTest::TestURIOptionsOutput() {
   CPPUNIT_ASSERT(PARSER.Parse(jsdl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
-  const Arc::FileType f(OUTJOBS.front().Files.front());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.size());
+  const Arc::OutputFileType f(OUTJOBS.front().DataStaging.OutputFiles.front());
 
   CPPUNIT_ASSERT_EQUAL(std::string("test.file"), f.Name);
-  CPPUNIT_ASSERT_EQUAL(std::string("rls://example.com:39281/test.file"), f.Target.front().str());
-  CPPUNIT_ASSERT_EQUAL(std::string("md5"), f.Target.front().Option("checksum"));
+  CPPUNIT_ASSERT_EQUAL(std::string("rls://example.com:39281/test.file"), f.Targets.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("md5"), f.Targets.front().Option("checksum"));
 
-  const std::list<Arc::URLLocation> locations(f.Target.front().Locations());
+  const std::list<Arc::URLLocation> locations(f.Targets.front().Locations());
   CPPUNIT_ASSERT_EQUAL(2, (int)locations.size());
 
   CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/test.file"), locations.front().str());
@@ -545,7 +377,6 @@ void ARCJSDLParserTest::TestDryRun() {
 }
 
 void ARCJSDLParserTest::TestPOSIXCompliance() {
-  INJOB.Files.clear();
   /** Testing compliance with GFD 56 - the POSIX extension **/
   MESSAGE = "Error: The parser does not comply with the JDSL POSIX specification.";
 
@@ -638,7 +469,6 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
 }
 
 void ARCJSDLParserTest::TestHPCCompliance() {
-  INJOB.Files.clear();
   /** Testing compliance with GFD 111 **/
   MESSAGE = "Error: The parser does not comply with the JSDL HPC Profile Application Extension specification.";
 

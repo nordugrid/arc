@@ -86,7 +86,7 @@ namespace Arc {
     for (std::list<std::string>::const_iterator itExecs = execs.begin();
          itExecs != execs.end(); itExecs++) {
       bool fileExists = false;
-      for (std::list<FileType>::iterator itFile = j.Files.begin(); itFile != j.Files.end(); itFile++) {
+      for (std::list<InputFileType>::iterator itFile = j.DataStaging.InputFiles.begin(); itFile != j.DataStaging.InputFiles.end(); itFile++) {
         if (itFile->Name == (*itExecs)) {
           itFile->IsExecutable = true;
           fileExists = true;
@@ -118,14 +118,18 @@ namespace Arc {
       return false;
     }
 
-    for (std::list<FileType>::iterator itF = j.Files.begin();
-         itF != j.Files.end(); itF++) {
-      for (std::list<SourceType>::iterator itS = itF->Source.begin();
-           itS != itF->Source.end(); itS++) {
+    for (std::list<InputFileType>::iterator itF = j.DataStaging.InputFiles.begin();
+         itF != j.DataStaging.InputFiles.end(); itF++) {
+      for (std::list<SourceType>::iterator itS = itF->Sources.begin();
+           itS != itF->Sources.end(); itS++) {
         itS->AddOption("threads", itAtt->second);
       }
-      for (std::list<TargetType>::iterator itT = itF->Target.begin();
-           itT != itF->Target.end(); itT++) {
+    }
+
+    for (std::list<OutputFileType>::iterator itF = j.DataStaging.OutputFiles.begin();
+         itF != j.DataStaging.OutputFiles.end(); itF++) {
+      for (std::list<TargetType>::iterator itT = itF->Targets.begin();
+           itT != itF->Targets.end(); itT++) {
         itT->AddOption("threads", itAtt->second);
       }
     }
@@ -142,11 +146,11 @@ namespace Arc {
       return true;
     }
 
-    for (std::list<FileType>::iterator itF = j.Files.begin();
-         itF != j.Files.end(); itF++) {
+    for (std::list<InputFileType>::iterator itF = j.DataStaging.InputFiles.begin();
+         itF != j.DataStaging.InputFiles.end(); itF++) {
       if (!itF->IsExecutable) {
-        for (std::list<SourceType>::iterator itS = itF->Source.begin();
-             itS != itF->Source.end(); itS++) {
+        for (std::list<SourceType>::iterator itS = itF->Sources.begin();
+             itS != itF->Sources.end(); itS++) {
           itS->AddOption("cache", itAtt->second);
         }
       }
@@ -548,7 +552,7 @@ namespace Arc {
             return false;
           }
 
-          FileType file;
+          InputFileType file;
           file.Name = *it2++;
 
           // Check whether the second string exists in the list
@@ -590,19 +594,18 @@ namespace Arc {
             }
             if (location)
               turl.AddLocation(location);
-            file.Source.push_back(turl);
+            file.Sources.push_back(turl);
           }
           else {
             if (fileSize != -1) file.FileSize = fileSize;
-            file.Source.push_back(URL(file.Name));
+            file.Sources.push_back(URL(file.Name));
           }
-          file.KeepData = false;
           file.IsExecutable = false;
 
-          j.Files.push_back(file);
+          j.DataStaging.InputFiles.push_back(file);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
-            it->Files.push_back(file);
+            it->DataStaging.InputFiles.push_back(file);
           }
         }
         return true;
@@ -655,7 +658,7 @@ namespace Arc {
             return false;
           }
 
-          FileType file;
+          OutputFileType file;
           file.Name = *it2++;
 
           // Check whether the second string exists in the list
@@ -696,17 +699,13 @@ namespace Arc {
             }
             if (location)
               turl.AddLocation(location);
-            file.Target.push_back(turl);
+            file.Targets.push_back(turl);
           }
-          else {
-            file.KeepData = true;
-          }
-          file.IsExecutable = false;
 
-          j.Files.push_back(file);
+          j.DataStaging.OutputFiles.push_back(file);
           for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
                it != j.GetAlternatives().end(); it++) {
-            it->Files.push_back(file);
+            it->DataStaging.OutputFiles.push_back(file);
           }
         }
         return true;
@@ -1379,63 +1378,69 @@ namespace Arc {
       r.Add(new RSLCondition("environment", RSLEqual, l));
     }
 
-    if (!j.Files.empty() || !j.Application.Executable.Path.empty() || !j.Application.Input.empty()) {
+    if (!j.DataStaging.InputFiles.empty() || !j.Application.Executable.Path.empty() || !j.Application.Input.empty()) {
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.Files.begin();
-           it != j.Files.end(); it++) {
-        if (it->Source.empty()) {
+      for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
+           it != j.DataStaging.InputFiles.end(); it++) {
+        if (it->Sources.empty()) {
           continue;
         }
         RSLList *s = new RSLList;
         s->Add(new RSLLiteral(it->Name));
-        if (it->Source.front().Protocol() == "file" && it->FileSize != -1) {
+        if (it->Sources.front().Protocol() == "file" && it->FileSize != -1) {
           std::string fsizechecksum = tostring(it->FileSize);
           if (!it->Checksum.empty()) {
             fsizechecksum += "."+it->Checksum;
           }
           s->Add(new RSLLiteral(fsizechecksum));
         }
-        else
-          s->Add(new RSLLiteral(it->Source.front().fullstr()));
-        if (!l)
+        else {
+          s->Add(new RSLLiteral(it->Sources.front().fullstr()));
+        }
+        if (!l) {
           l = new RSLList;
+        }
         l->Add(new RSLSequence(s));
       }
 
-      if (l)
+      if (l) {
         r.Add(new RSLCondition("inputfiles", RSLEqual, l));
+      }
 
       // Executables
       l = NULL;
-      for (std::list<FileType>::const_iterator it = j.Files.begin();
-           it != j.Files.end(); it++)
+      for (std::list<InputFileType>::const_iterator it = j.DataStaging.InputFiles.begin();
+           it != j.DataStaging.InputFiles.end(); it++)
         if (it->IsExecutable) {
-          if (!l)
+          if (!l) {
             l = new RSLList;
+          }
           l->Add(new RSLLiteral(it->Name));
         }
-      if (l)
+      if (l) {
         r.Add(new RSLCondition("executables", RSLEqual, l));
+      }
     }
 
-    if (!j.Files.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
+    if (!j.DataStaging.OutputFiles.empty() || !j.Application.Output.empty() || !j.Application.Error.empty()) {
       RSLList *l = NULL;
-      for (std::list<FileType>::const_iterator it = j.Files.begin();
-           it != j.Files.end(); it++) {
-        if (!it->Target.empty()) {
+      for (std::list<OutputFileType>::const_iterator it = j.DataStaging.OutputFiles.begin();
+           it != j.DataStaging.OutputFiles.end(); it++) {
+        if (!it->Targets.empty()) {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
-          if (!it->Target.front() || it->Target.front().Protocol() == "file")
+          if (!it->Targets.front() || it->Targets.front().Protocol() == "file")
             s->Add(new RSLLiteral(""));
           else {
-            URL url(it->Target.front());
+            URL url(it->Targets.front());
             s->Add(new RSLLiteral(url.fullstr()));
           }
-          if (!l)
+          if (!l) {
             l = new RSLList;
+          }
           l->Add(new RSLSequence(s));
         }
-        else if (it->KeepData) {
+        else {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
           s->Add(new RSLLiteral(""));
@@ -1445,8 +1450,9 @@ namespace Arc {
         }
       }
 
-      if (l)
+      if (l) {
         r.Add(new RSLCondition("outputfiles", RSLEqual, l));
+      }
     }
 
     if (!j.Resources.QueueName.empty()) {

@@ -195,8 +195,8 @@ bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) 
 
   // TOOD: Support for PreExecutable and PostExecutable
 
-  for(std::list<Arc::FileType>::const_iterator it = desc.Files.begin();
-      it!=desc.Files.end();it++) {
+  for(std::list<Arc::InputFileType>::const_iterator it = desc.DataStaging.InputFiles.begin();
+      it!=desc.DataStaging.InputFiles.end();it++) {
     if(it->IsExecutable) {
       std::string executable = it->Name;
       if (executable[0] != '/' && executable[0] != '.' && executable[1] != '/') executable = "./"+executable;

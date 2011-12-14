@@ -369,8 +369,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
-  for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
-    for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
+  for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();f != desc.DataStaging.OutputFiles.end();++f) {
+    for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
       switch(t->CreationFlag) {
         case Arc::TargetType::CFE_DEFAULT:
         case Arc::TargetType::CFE_OVERWRITE:
@@ -514,11 +514,16 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   std::list<std::string> deleg_ids;
   // Delegation id can be found in local description and in parsed job description
-  for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
-    for(std::list<Arc::SourceType>::iterator s = f->Source.begin();s != f->Source.end();++s) {
+  for(std::list<Arc::InputFileType>::iterator f = desc.DataStaging.InputFiles.begin();f != desc.DataStaging.InputFiles.end();++f) {
+    for(std::list<Arc::SourceType>::iterator s = f->Sources.begin();s != f->Sources.end();++s) {
       if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
     };
     for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
+      if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
+    };
+  };
+  for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();f != desc.DataStaging.OutputFiles.end();++f) {
+    for(std::list<Arc::TargetType>::iterator t = f->Targets.begin();t != f->Targets.end();++t) {
       if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
     };
   };

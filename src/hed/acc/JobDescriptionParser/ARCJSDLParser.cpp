@@ -598,86 +598,51 @@ namespace Arc {
       XMLNode target_uri = target["URI"];
       XMLNode filenameNode = ds["FileName"];
 
-      if (filenameNode) {
-        FileType file;
+      if ((bool)filenameNode && (bool)source) {
+        InputFileType file;
         file.Name = (std::string)filenameNode;
-        if (bool(source)) {
-          if (bool(source_uri)) {
-            URL source_url((std::string)source_uri);
-            if (!source_url)
-              return false;
-            // add any URL options
-            XMLNode option = source["URIOption"];
-            for (; (bool)option; ++option) {
-              if (!source_url.AddOption((std::string)option, true))
-                return false;
-            }
-            // add URL Locations, which may have their own options
-            XMLNode location = source["Location"];
-            for (; (bool)location; ++location) {
-              XMLNode location_uri = location["URI"];
-              if (!location_uri) {
-                logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
-                return false;
-              }
-              URLLocation location_url((std::string)location_uri);
-              if (!location_url || location_url.Protocol() == "file") {
-                logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
-                return false;
-              }
-              XMLNode loc_option = location["URIOption"];
-              for (; (bool)loc_option; ++loc_option) {
-                if (!location_url.AddOption((std::string)loc_option, true))
-                  return false;
-              }
-              source_url.AddLocation(location_url);
-            }
-            file.Source.push_back(source_url);
-          }
-          else {
-            file.Source.push_back(URL(file.Name));
-          }
-        }
-        if (bool(target) && bool(target_uri)) {
-          URL target_url((std::string)target_uri);
-          if (!target_url) {
+        if (bool(source_uri)) {
+          URL source_url((std::string)source_uri);
+          if (!source_url) {
+            jobdescs.clear();
             return false;
           }
           // add any URL options
-          XMLNode option = target["URIOption"];
+          XMLNode option = source["URIOption"];
           for (; (bool)option; ++option) {
-            if (!target_url.AddOption((std::string)option, true))
+            if (!source_url.AddOption((std::string)option, true)) {
+              jobdescs.clear();
               return false;
+            }
           }
           // add URL Locations, which may have their own options
-          XMLNode location = target["Location"];
+          XMLNode location = source["Location"];
           for (; (bool)location; ++location) {
             XMLNode location_uri = location["URI"];
             if (!location_uri) {
               logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
+              jobdescs.clear();
               return false;
             }
             URLLocation location_url((std::string)location_uri);
             if (!location_url || location_url.Protocol() == "file") {
               logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
+              jobdescs.clear();
               return false;
             }
             XMLNode loc_option = location["URIOption"];
             for (; (bool)loc_option; ++loc_option) {
-              if (!location_url.AddOption((std::string)loc_option, true))
+              if (!location_url.AddOption((std::string)loc_option, true)) {
+                jobdescs.clear();
                 return false;
+              }
             }
-            target_url.AddLocation(location_url);
+            source_url.AddLocation(location_url);
           }
-          file.Target.push_back(target_url);
+          file.Sources.push_back(source_url);
         }
-
-        // If DeteleOnTermination is not set do not keep data. Only keep data if explicitly specified.
-        file.KeepData = ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "false";
-        file.IsExecutable = ds["IsExecutable"] && lower(((std::string)ds["IsExecutable"])) == "true";
-        // DownloadToCache does not make sense for output files.
-        if (ds["DownloadToCache"] && !file.Source.empty()) {
-          file.Source.back().AddOption("cache", (std::string)ds["DownloadToCache"]);
+        else {
+          file.Sources.push_back(URL(file.Name));
         }
         if (ds["FileSize"]) {
           stringto<long>((std::string)ds["FileSize"], file.FileSize);
@@ -685,8 +650,63 @@ namespace Arc {
         if (ds["Checksum"]) {
           file.Checksum = (std::string)ds["Checksum"];
         }
+        file.IsExecutable = (ds["IsExecutable"] && lower(((std::string)ds["IsExecutable"])) == "true");
+        // DownloadToCache does not make sense for output files.
+        if (ds["DownloadToCache"] && !file.Sources.empty()) {
+          file.Sources.back().AddOption("cache", (std::string)ds["DownloadToCache"]);
+        }
+        job.DataStaging.InputFiles.push_back(file);
+      }
 
-        job.Files.push_back(file);
+      if ((bool)filenameNode && bool(target) && bool(target_uri)) {
+        OutputFileType file;
+        file.Name = (std::string)filenameNode;
+        URL target_url((std::string)target_uri);
+        if (!target_url) {
+          jobdescs.clear();
+          return false;
+        }
+        // add any URL options
+        XMLNode option = target["URIOption"];
+        for (; (bool)option; ++option) {
+          if (!target_url.AddOption((std::string)option, true)) {
+            jobdescs.clear();
+            return false;
+          }
+        }
+        // add URL Locations, which may have their own options
+        XMLNode location = target["Location"];
+        for (; (bool)location; ++location) {
+          XMLNode location_uri = location["URI"];
+          if (!location_uri) {
+            logger.msg(ERROR, "No URI element found in Location for file %s", file.Name);
+            jobdescs.clear();
+            return false;
+          }
+          URLLocation location_url((std::string)location_uri);
+          if (!location_url || location_url.Protocol() == "file") {
+            logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
+            jobdescs.clear();
+            return false;
+          }
+          XMLNode loc_option = location["URIOption"];
+          for (; (bool)loc_option; ++loc_option) {
+            if (!location_url.AddOption((std::string)loc_option, true)) {
+              jobdescs.clear();
+              return false;
+            }
+          }
+          target_url.AddLocation(location_url);
+        }
+        file.Targets.push_back(target_url);
+        job.DataStaging.OutputFiles.push_back(file);
+      }
+
+      bool deleteOnTermination = (ds["DeleteOnTermination"] && lower(((std::string)ds["DeleteOnTermination"])) == "false");
+      if ((bool)filenameNode && deleteOnTermination) {
+        OutputFileType file;
+        file.Name = (std::string)filenameNode;
+        job.DataStaging.OutputFiles.push_back(file);
       }
     }
     // end of Datastaging
@@ -1104,38 +1124,78 @@ namespace Arc {
     // end of Resources
 
     // DataStaging
-    for (std::list<FileType>::const_iterator it = job.Files.begin();
-         it != job.Files.end(); it++) {
-      XMLNode datastaging = jobdescription.NewChild("DataStaging");
-      if (!it->Name.empty()) {
-        datastaging.NewChild("FileName") = it->Name;
+    for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
+         it != job.DataStaging.InputFiles.end(); ++it) {
+      if (it->Name.empty()) {
+        return false;
       }
-      if (!it->Source.empty() && it->Source.front() &&
-          !trim(it->Source.front().fullstr()).empty()) {
-        if (it->Source.front().Protocol() == "file") {
+      XMLNode datastaging = jobdescription.NewChild("DataStaging");
+      datastaging.NewChild("FileName") = it->Name;
+      if (!it->Sources.empty() && it->Sources.front()) {
+        if (it->Sources.front().Protocol() == "file") {
           datastaging.NewChild("Source");
         }
         else {
-          datastaging.NewChild("Source").NewChild("URI") = it->Source.front().fullstr();
+          XMLNode xs = datastaging.NewChild("Source");
+          xs.NewChild("URI") = it->Sources.front().str();
+          // add any URL options
+          for (std::multimap<std::string, std::string>::const_iterator itOpt = it->Sources.front().Options().begin();
+               itOpt != it->Sources.front().Options().end(); ++itOpt) {
+            xs.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+          }
+          // add URL Locations, which may have their own options
+          for (std::list<URLLocation>::const_iterator itLoc = it->Sources.front().Locations().begin();
+               itLoc != it->Sources.front().Locations().end(); ++itLoc) {
+            XMLNode xloc = xs.NewChild("Location");
+            xloc.NewChild("URI") = itLoc->str();
+
+            for (std::multimap<std::string, std::string>::const_iterator itOpt = itLoc->Options().begin();
+                 itOpt != itLoc->Options().end(); ++itOpt) {
+              xloc.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+            }
+          }
         }
       }
-      if (!it->Target.empty() && it->Target.front() &&
-          !trim(it->Target.front().fullstr()).empty()) {
-        datastaging.NewChild("Target").NewChild("URI") = it->Target.front().fullstr();
-      }
-      if (it->IsExecutable || it->Name == job.Application.Executable.Path) {
+      if (it->IsExecutable) {
         datastaging.NewChild("IsExecutable") = "true";
       }
-      datastaging.NewChild("DeleteOnTermination") = (it->KeepData ? "false" : "true");
-      if (!it->Source.empty() && !it->Source.front().Option("cache").empty()) {
-        datastaging.NewChild("DownloadToCache") = it->Source.front().Option("cache");
-      }
-
       if (it->FileSize > -1) {
         datastaging.NewChild("FileSize") = tostring(it->FileSize);
       }
       if (!it->Checksum.empty()) {
         datastaging.NewChild("Checksum") = it->Checksum;
+      }
+    }
+
+    for (std::list<OutputFileType>::const_iterator it = job.DataStaging.OutputFiles.begin();
+         it != job.DataStaging.OutputFiles.end(); ++it) {
+      if (it->Name.empty()) {
+        return false;
+      }
+      XMLNode datastaging = jobdescription.NewChild("DataStaging");
+      datastaging.NewChild("FileName") = it->Name;
+      if (!it->Targets.empty() && it->Targets.front()) {
+        XMLNode xs = datastaging.NewChild("Target");
+        xs.NewChild("URI") = it->Targets.front().str();
+        // add any URL options
+        for (std::multimap<std::string, std::string>::const_iterator itOpt = it->Targets.front().Options().begin();
+             itOpt != it->Targets.front().Options().end(); ++itOpt) {
+          xs.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+        }
+        // add URL Locations, which may have their own options
+        for (std::list<URLLocation>::const_iterator itLoc = it->Targets.front().Locations().begin();
+             itLoc != it->Targets.front().Locations().end(); ++itLoc) {
+          XMLNode xloc = xs.NewChild("Location");
+          xloc.NewChild("URI") = itLoc->str();
+
+          for (std::multimap<std::string, std::string>::const_iterator itOpt = itLoc->Options().begin();
+               itOpt != itLoc->Options().end(); ++itOpt) {
+            xloc.NewChild("URIOption") = itOpt->first + "=" + itOpt->second;
+          }
+        }
+      }
+      else {
+        datastaging.NewChild("DeleteOnTermination") = "false";
       }
     }
     // End of DataStaging

@@ -203,25 +203,25 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
   for (std::list<Arc::Software>::const_iterator itSW = sw.begin(); itSW != sw.end(); ++itSW, ++rtes)
     rte.push_back(std::string(*itSW));
 
-  for (std::list<Arc::FileType>::const_iterator file = arc_job_desc.Files.begin();
-       file != arc_job_desc.Files.end(); ++file) {
+  for (std::list<Arc::InputFileType>::const_iterator file = arc_job_desc.DataStaging.InputFiles.begin();
+       file != arc_job_desc.DataStaging.InputFiles.end(); ++file) {
     std::string fname = file->Name;
     if(fname[0] != '/') fname = "/"+fname; // Just for safety
     // Because ARC job description does not keep enough information
     // about initial JSDL description we have to make some guesses here.
-    if(!file->Source.empty()) { // input file
+    if(!file->Sources.empty()) { // input file
       // Only one source per file is used
       if(fname == "/") {
         // Unnamed file is used to mark request for free stage in
         freestagein = true;
       } else {
         inputdata.push_back(FileData(fname, ""));
-        if (file->Source.front() &&
-            file->Source.front().Protocol() != "file") {
-          inputdata.back().lfn = file->Source.front().fullstr();
+        if (file->Sources.front() &&
+            file->Sources.front().Protocol() != "file") {
+          inputdata.back().lfn = file->Sources.front().fullstr();
           // It is not possible to extract credentials path here.
           // So temporarily storing id here.
-          inputdata.back().cred = file->Source.front().DelegationID;
+          inputdata.back().cred = file->Sources.front().DelegationID;
           ++downloads;
         }
 
@@ -242,9 +242,16 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         }
       }
     }
-    if (!file->Target.empty()) { // output file
-      for(std::list<Arc::TargetType>::const_iterator target = file->Target.begin();
-                              target != file->Target.end(); ++target) {
+  }
+  for (std::list<Arc::OutputFileType>::const_iterator file = arc_job_desc.DataStaging.OutputFiles.begin();
+       file != arc_job_desc.DataStaging.OutputFiles.end(); ++file) {
+    std::string fname = file->Name;
+    if(fname[0] != '/') fname = "/"+fname; // Just for safety
+    // Because ARC job description does not keep enough information
+    // about initial JSDL description we have to make some guesses here.
+    if (!file->Targets.empty()) { // output file
+      for(std::list<Arc::TargetType>::const_iterator target = file->Targets.begin();
+                              target != file->Targets.end(); ++target) {
         FileData fdata(fname, target->fullstr());
         fdata.ifsuccess = target->UseIfSuccess;
         fdata.ifcancel = target->UseIfCancel;
@@ -272,7 +279,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         }
       }
     }
-    if (file->KeepData) {
+    else {
       // user downloadable file
       FileData fdata(fname, "");
       outputdata.push_back(fdata);

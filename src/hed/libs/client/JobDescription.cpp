@@ -43,7 +43,7 @@ namespace Arc {
     Identification = j.Identification;
     Application = j.Application;
     Resources = j.Resources;
-    Files = j.Files;
+    DataStaging = j.DataStaging;
 
     OtherAttributes = j.OtherAttributes;
 
@@ -272,26 +272,43 @@ namespace Arc {
         }
       }
 
-      if (!Files.empty()) {
-        std::list<FileType>::const_iterator iter = Files.begin();
-        for (; iter != Files.end(); iter++) {
-          out << IString(" File element:") << std::endl;
+      if (!DataStaging.InputFiles.empty()) {
+        std::list<InputFileType>::const_iterator iter = DataStaging.InputFiles.begin();
+        for (; iter != DataStaging.InputFiles.end(); ++iter) {
+          out << IString(" Inputfile element:") << std::endl;
           out << IString("     Name: %s", iter->Name) << std::endl;
-
-          std::list<SourceType>::const_iterator itSource = iter->Source.begin();
-          for (; itSource != iter->Source.end(); itSource++) {
-            out << IString("     Source.URI: %s", itSource->fullstr()) << std::endl;
-          }
-
-          std::list<TargetType>::const_iterator itTarget = iter->Target.begin();
-          for (; itTarget != iter->Target.end(); itTarget++) {
-            out << IString("     Target.URI: %s", itTarget->fullstr()) << std::endl;
-          }
-          if (iter->KeepData) {
-            out << IString("     Keep data: true") << std::endl;
-          }
           if (iter->IsExecutable) {
             out << IString("     Is executable: true") << std::endl;
+          }
+          std::list<SourceType>::const_iterator itSource = iter->Sources.begin();
+          for (; itSource != iter->Sources.end(); ++itSource) {
+            out << IString("     Sources: %s", itSource->str()) << std::endl;
+            if (!itSource->DelegationID.empty()) {
+              out << IString("     Sources.DelegationID: %s", itSource->DelegationID) << std::endl;
+            }
+            for (std::multimap<std::string, std::string>::const_iterator itOptions = itSource->Options().begin();
+                 itOptions != itSource->Options().end(); ++itOptions) {
+              out << IString("     Sources.Options: %s = %s", itOptions->first, itOptions->second) << std::endl;
+            }
+          }
+        }
+      }
+
+      if (!DataStaging.OutputFiles.empty()) {
+        std::list<OutputFileType>::const_iterator iter = DataStaging.OutputFiles.begin();
+        for (; iter != DataStaging.OutputFiles.end(); ++iter) {
+          out << IString(" Outputfile element:") << std::endl;
+          out << IString("     Name: %s", iter->Name) << std::endl;
+          std::list<TargetType>::const_iterator itTarget = iter->Targets.begin();
+          for (; itTarget != iter->Targets.end(); ++itTarget) {
+            out << IString("     Targets: %s", itTarget->str()) << std::endl;
+            if (!itTarget->DelegationID.empty()) {
+              out << IString("     Targets.DelegationID: %s", itTarget->DelegationID) << std::endl;
+            }
+            for (std::multimap<std::string, std::string>::const_iterator itOptions = itTarget->Options().begin();
+                 itOptions != itTarget->Options().end(); ++itOptions) {
+              out << IString("     Targets.Options: %s = %s", itOptions->first, itOptions->second) << std::endl;
+            }
           }
         }
       }

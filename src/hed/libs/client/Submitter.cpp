@@ -70,10 +70,10 @@ namespace Arc {
     mover.passive(true);
     mover.verbose(false);
 
-    for (std::list<FileType>::const_iterator it = job.Files.begin();
-         it != job.Files.end(); it++)
-      if (!it->Source.empty()) {
-        const URL& src = it->Source.front();
+    for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
+         it != job.DataStaging.InputFiles.end(); ++it)
+      if (!it->Sources.empty()) {
+        const URL& src = it->Sources.front();
         if (src.Protocol() == "file") {
           if(!url) {
             logger.msg(ERROR, "No stagein URL is provided");
@@ -117,15 +117,10 @@ namespace Arc {
     jobdesc.UnParse(job.JobDescriptionDocument, "nordugrid:jsdl"); // Assuming job description is valid.
 
     job.LocalInputFiles.clear();
-    for (std::list<FileType>::const_iterator it = jobdesc.Files.begin();
-         it != jobdesc.Files.end(); it++) {
-      if (!it->Source.empty() && it->Source.front().Protocol() == "file") {
-        if (!it->Checksum.empty()) {
-          job.LocalInputFiles[it->Name] = it->Checksum;
-        }
-        else {
-          job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Source.front().Path(), CheckSumAny::cksum, true);
-        }
+    for (std::list<InputFileType>::const_iterator it = jobdesc.DataStaging.InputFiles.begin();
+         it != jobdesc.DataStaging.InputFiles.end(); it++) {
+      if (!it->Sources.empty() && it->Sources.front().Protocol() == "file") {
+        job.LocalInputFiles[it->Name] = CheckSumAny::FileChecksum(it->Sources.front().Path(), CheckSumAny::cksum, true);
       }
     }
   }

@@ -16,14 +16,10 @@ class XRSLParserTest
   CPPUNIT_TEST_SUITE(XRSLParserTest);
   CPPUNIT_TEST(TestExecutable);
   CPPUNIT_TEST(TestInputOutputError);
-  CPPUNIT_TEST(TestFilesDownloadDelete);
-  CPPUNIT_TEST(TestFilesUploadDelete);
-  CPPUNIT_TEST(TestFilesCreateDownload);
-  CPPUNIT_TEST(TestFilesDownloadDownload);
-  CPPUNIT_TEST(TestFilesUploadDownload);
-  CPPUNIT_TEST(TestFilesCreateUpload);
-  CPPUNIT_TEST(TestFilesDownloadUpload);
-  CPPUNIT_TEST(TestFilesUploadUpload);
+  CPPUNIT_TEST(TestInputFileClientStageable);
+  CPPUNIT_TEST(TestInputFileServiceStageable);
+  CPPUNIT_TEST(TestOutputFileClientStageable);
+  CPPUNIT_TEST(TestOutputFileServiceStageable);
   CPPUNIT_TEST(TestURIOptionsInput);
   CPPUNIT_TEST(TestURIOptionsOutput);
   CPPUNIT_TEST(TestExecutables);
@@ -46,14 +42,10 @@ public:
   void tearDown();
   void TestExecutable();
   void TestInputOutputError();
-  void TestFilesDownloadDelete();
-  void TestFilesUploadDelete();
-  void TestFilesCreateDownload();
-  void TestFilesDownloadDownload();
-  void TestFilesUploadDownload();
-  void TestFilesCreateUpload();
-  void TestFilesDownloadUpload();
-  void TestFilesUploadUpload();
+  void TestInputFileClientStageable();
+  void TestInputFileServiceStageable();
+  void TestOutputFileClientStageable();
+  void TestOutputFileServiceStageable();
   void TestURIOptionsInput();
   void TestURIOptionsOutput();
   void TestExecutables();
@@ -139,83 +131,16 @@ void XRSLParserTest::TestInputOutputError() {
   remove(INJOB.Application.Input.c_str());
 }
 
-/**
- * In the JobDescription class a file can both have a source and a target
- * location. I.e. a place to be fetched from and a place to put it afterwards.
- * For both source and target it is possible that the file either will be
- * uploaded or downloaded, but it can also be specified that the CE should
- * create/delete the file, in total giving 9 options. Not all of these are
- * supported by GM/can be expressed in XRSL. In the table below the supported
- * cases for XRSL is shown. These are tested in the methods below the table.
- * In addition in the JobDescription the "IsExecutable" can be specified for a
- * file, these are not fully tested yet.
- *
- *                     T    A    R    G    E    T
- *                ------------------------------------
- *                |  DELETE  |  DOWNLOAD  |  UPLOAD  |
- *  S ------------------------------------------------
- *  O |   CREATE  |   ---    |      X     |    X     |
- *  U ------------------------------------------------
- *  R |  DOWNLOAD |    X     |      X     |    X     |
- *  C ------------------------------------------------
- *  E |   UPLOAD  |    X     |      X     |    X     |
- *    ------------------------------------------------
- *
- **/
+/** Client stageable input file */
+void XRSLParserTest::TestInputFileClientStageable() {
+  INJOB.DataStaging.InputFiles.clear();
+  MESSAGE = "Error parsing TestInputFileClientStageable data staging type.";
 
- /** 1-Create-Delete:
- * - XRSL does not support this type of specifying data staging elements.
- */
-
-/** 2-Download-Delete */
-void XRSLParserTest::TestFilesDownloadDelete() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing download-delete data staging type.";
-
-  Arc::FileType file;
-  file.Name = "2-Download-Delete";
-  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().Files.size());
-
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
-}
-
-/** 3-Upload-Delete */
-void XRSLParserTest::TestFilesUploadDelete() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing upload-delete data staging type.";
-
-  Arc::FileType file;
-  file.Name = "3-Upload-Delete";
-  file.Source.push_back(Arc::URL(file.Name));
-  file.KeepData = false;
+  Arc::InputFileType file;
+  file.Name = "TestInputFileClientStageable";
+  file.Sources.push_back(Arc::URL(file.Name));
   file.FileSize = file.Name.length();
-  INJOB.Files.push_back(file);
+  INJOB.DataStaging.InputFiles.push_back(file);
 
   // The file need to be there, otherwise the XRSLParser will fail.
   std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
@@ -228,15 +153,13 @@ void XRSLParserTest::TestFilesUploadDelete() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
+  std::list<Arc::InputFileType>::const_iterator it = OUTJOBS.front().DataStaging.InputFiles.begin();
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Sources.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Sources.back(),  it->Sources.front());
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
@@ -252,15 +175,15 @@ void XRSLParserTest::TestFilesUploadDelete() {
   remove(file.Name.c_str());
 }
 
-/** 4-Create-Download */
-void XRSLParserTest::TestFilesCreateDownload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing create-download data staging type.";
+/** Service stageable input file */
+void XRSLParserTest::TestInputFileServiceStageable() {
+  INJOB.DataStaging.InputFiles.clear();
+  MESSAGE = "Error parsing TestInputFileServiceStageable data staging type.";
 
-  Arc::FileType file;
-  file.Name = "4-Create-Download";
-  file.KeepData = true;
-  INJOB.Files.push_back(file);
+  Arc::InputFileType file;
+  file.Name = "TestInputFileServiceStageable";
+  file.Sources.push_back(Arc::URL("http://example.com/" + file.Name));
+  INJOB.DataStaging.InputFiles.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
@@ -268,9 +191,43 @@ void XRSLParserTest::TestFilesCreateDownload() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.InputFiles.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
+  std::list<Arc::InputFileType>::const_iterator it = OUTJOBS.front().DataStaging.InputFiles.begin();
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Sources.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Sources.back(),  it->Sources.front());
+
+  /* When unparsing the job description, the executable will not be added. The
+   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
+   * to add the executable. This might change in the future.
+  it++;
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
+  */
+}
+
+/** Client stageable output file */
+void XRSLParserTest::TestOutputFileClientStageable() {
+  INJOB.DataStaging.OutputFiles.clear();
+  MESSAGE = "Error parsing TestOutputFileClientStageable data staging type.";
+
+  Arc::OutputFileType file;
+  file.Name = "TestOutputFileClientStageable";
+  INJOB.DataStaging.OutputFiles.push_back(file);
+
+  std::string tempjobdesc;
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
+  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.OutputFiles.size());
+
+  std::list<Arc::OutputFileType>::const_iterator it = OUTJOBS.front().DataStaging.OutputFiles.begin();
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
    * to add the executable. This might change in the future.
@@ -283,118 +240,18 @@ void XRSLParserTest::TestFilesCreateDownload() {
   */
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Targets.size());
 }
 
-/** 5-Download-Download */
-void XRSLParserTest::TestFilesDownloadDownload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing download-download data staging type.";
-
-  Arc::FileType file;
-  file.Name = "5-Download-Download";
-  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = true;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().Files.size());
-
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0, (int)it->Target.size());
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
-
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-}
-
-/** 6-Upload-Download */
-void XRSLParserTest::TestFilesUploadDownload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing upload-download data staging type.";
-
-  Arc::FileType file;
-  file.Name = "6-Upload-Download";
-  file.Source.push_back(Arc::URL(file.Name));
-  file.KeepData = true;
-  file.FileSize = file.Name.length();
-  INJOB.Files.push_back(file);
-
-  // The file need to be there, otherwise the XRSLParser will fail.
-  std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
-  f << file.Name;
-  f.close();
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().Files.size());
-
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1, (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
-
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-
-  remove(file.Name.c_str());
-}
-
-/** 7-Create-Upload */
-void XRSLParserTest::TestFilesCreateUpload() {
-  INJOB.Files.clear();
+/** Service stageable output file */
+void XRSLParserTest::TestOutputFileServiceStageable() {
+  INJOB.DataStaging.OutputFiles.clear();
   MESSAGE = "Error parsing create-download data staging type.";
 
-  Arc::FileType file;
+  Arc::OutputFileType file;
   file.Name = "7-Create-Upload";
-  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
+  file.Targets.push_back(Arc::URL("http://example.com/" + file.Name));
+  INJOB.DataStaging.OutputFiles.push_back(file);
 
   std::string tempjobdesc;
   CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
@@ -402,9 +259,9 @@ void XRSLParserTest::TestFilesCreateUpload() {
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().Files.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)OUTJOBS.front().DataStaging.OutputFiles.size());
 
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
+  std::list<Arc::OutputFileType>::const_iterator it = OUTJOBS.front().DataStaging.OutputFiles.begin();
 
   /* When unparsing the job description, the executable will not be added. The
    * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
@@ -418,111 +275,8 @@ void XRSLParserTest::TestFilesCreateUpload() {
   */
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.back(),  it->Target.front());
-}
-
-/** 8-Download-Upload */
-void XRSLParserTest::TestFilesDownloadUpload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing download-upload data staging type.";
-
-  Arc::FileType file;
-  file.Name = "8-Download-Upload";
-  file.Source.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  INJOB.Files.push_back(file);
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().Files.size());
-
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.back(),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
-
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.back(),  it->Target.front());
-}
-
-/** 9-Upload-Upload */
-void XRSLParserTest::TestFilesUploadUpload() {
-  INJOB.Files.clear();
-  MESSAGE = "Error parsing upload-upload data staging type.";
-
-  Arc::FileType file;
-  file.Name = "9-Upload-Upload";
-  file.Source.push_back(Arc::URL(file.Name));
-  file.Target.push_back(Arc::URL("http://example.com/" + file.Name));
-  file.KeepData = false;
-  file.FileSize = file.Name.length();
-  INJOB.Files.push_back(file);
-
-  // The file need to be there, otherwise the XRSLParser will fail.
-  std::ofstream f(file.Name.c_str(), std::ifstream::trunc);
-  f << file.Name;
-  f.close();
-
-  std::string tempjobdesc;
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.UnParse(INJOB, tempjobdesc, "nordugrid:xrsl"));
-  CPPUNIT_ASSERT_MESSAGE(MESSAGE, PARSER.Parse(tempjobdesc, OUTJOBS));
-
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 2,  (int)OUTJOBS.front().Files.size());
-
-  std::list<Arc::FileType>::const_iterator it = OUTJOBS.front().Files.begin();
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.FileSize,  it->FileSize);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Source.front(),  it->Source.back());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-
-  /* When unparsing the job description, the executable will not be added. The
-   * Submitter::ModifyJobDescription(ExecutionTarget) method need to be called
-   * to add the executable. This might change in the future.
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, (std::string)"executable",  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, false,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, Arc::URL("executable"),  it->Source.front());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Target.size());
-  */
-
-  it++;
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Name,  it->Name);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.KeepData,  it->KeepData);
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 0,  (int)it->Source.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Target.size());
-  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Target.front(),  it->Target.front());
-
-  remove(file.Name.c_str());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, 1,  (int)it->Targets.size());
+  CPPUNIT_ASSERT_EQUAL_MESSAGE(MESSAGE, file.Targets.back(),  it->Targets.front());
 }
 
 void XRSLParserTest::TestURIOptionsInput() {
@@ -532,20 +286,20 @@ void XRSLParserTest::TestURIOptionsInput() {
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), OUTJOBS.front().Files.front().Source.front().str());
-  CPPUNIT_ASSERT_EQUAL(std::string("5"), OUTJOBS.front().Files.front().Source.front().Option("threads"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().str());
+  CPPUNIT_ASSERT_EQUAL(std::string("5"), OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().Option("threads"));
 
   xrsl = "&(executable=/bin/true)"
          "(inputfiles=(\"in1\" \"lfc://example.com/in1\" \"location=gsiftp://example.com/in1\" \"threads=5\"))";
 
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.front().Sources.size());
 
-  const std::list<Arc::URLLocation> locations = OUTJOBS.front().Files.front().Source.front().Locations();
+  const std::list<Arc::URLLocation> locations = OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().Locations();
   CPPUNIT_ASSERT_EQUAL(1, (int)locations.size());
   CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), locations.front().str());
   CPPUNIT_ASSERT_EQUAL(std::string("5"), locations.front().Option("threads"));
@@ -563,11 +317,11 @@ void XRSLParserTest::TestURIOptionsOutput() {
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Target.size());
-  CPPUNIT_ASSERT_EQUAL(std::string("md5"), OUTJOBS.front().Files.front().Target.front().Option("checksum"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.front().Targets.size());
+  CPPUNIT_ASSERT_EQUAL(std::string("md5"), OUTJOBS.front().DataStaging.OutputFiles.front().Targets.front().Option("checksum"));
 
-  const std::list<Arc::URLLocation> locations = OUTJOBS.front().Files.front().Target.front().Locations();
+  const std::list<Arc::URLLocation> locations = OUTJOBS.front().DataStaging.OutputFiles.front().Targets.front().Locations();
   CPPUNIT_ASSERT_EQUAL(2, (int)locations.size());
   CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://example.com:2811/in1"), locations.front().str());
   CPPUNIT_ASSERT_EQUAL(std::string("5"), locations.front().Option("threads"));
@@ -588,29 +342,29 @@ void XRSLParserTest::TestExecutables() {
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT(OUTJOBS.front().Files.front().IsExecutable);
-  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().Files.back().Name);
-  CPPUNIT_ASSERT(!OUTJOBS.front().Files.back().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT(OUTJOBS.front().DataStaging.InputFiles.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().DataStaging.InputFiles.back().Name);
+  CPPUNIT_ASSERT(!OUTJOBS.front().DataStaging.InputFiles.back().IsExecutable);
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().GetAlternatives().front().Files.front().Name);
-  CPPUNIT_ASSERT(!OUTJOBS.front().GetAlternatives().front().Files.front().IsExecutable);
-  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().GetAlternatives().front().Files.back().Name);
-  CPPUNIT_ASSERT(OUTJOBS.front().GetAlternatives().front().Files.back().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT(!OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().Name);
+  CPPUNIT_ASSERT(OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().IsExecutable);
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT(OUTJOBS.front().Files.front().IsExecutable);
-  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().Files.back().Name);
-  CPPUNIT_ASSERT(!OUTJOBS.front().Files.back().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT(OUTJOBS.front().DataStaging.InputFiles.front().IsExecutable);
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().DataStaging.InputFiles.back().Name);
+  CPPUNIT_ASSERT(!OUTJOBS.front().DataStaging.InputFiles.back().IsExecutable);
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
@@ -630,34 +384,34 @@ void XRSLParserTest::TestCache() {
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.front().Source.front().Option("cache"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().Files.back().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.back().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.back().Source.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().DataStaging.InputFiles.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.back().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().DataStaging.InputFiles.back().Sources.front().Option("cache"));
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().GetAlternatives().front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().Files.front().Source.front().Option("cache"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().GetAlternatives().front().Files.back().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().Files.back().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().Files.back().Source.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Sources.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"copy", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.back().Sources.front().Option("cache"));
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.front().Source.front().Option("cache"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().Files.back().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.back().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().Files.back().Source.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in1", OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().Option("cache"));
+  CPPUNIT_ASSERT_EQUAL((std::string)"in2", OUTJOBS.front().DataStaging.InputFiles.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.back().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"yes", OUTJOBS.front().DataStaging.InputFiles.back().Sources.front().Option("cache"));
 
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 }
@@ -717,34 +471,40 @@ void XRSLParserTest::TestFTPThreads() {
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().Files.front().Source.front().Option("threads"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().Files.back().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.back().Target.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().Files.back().Target.front().Option("threads"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().Option("threads"));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().DataStaging.OutputFiles.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.back().Targets.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.OutputFiles.back().Targets.front().Option("threads"));
 
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().size());
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().GetAlternatives().front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().GetAlternatives().front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().Files.front().Source.front().Option("threads"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().GetAlternatives().front().Files.back().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().Files.back().Target.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().Files.back().Target.front().Option("threads"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().DataStaging.InputFiles.front().Sources.front().Option("threads"));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.OutputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().GetAlternatives().front().DataStaging.OutputFiles.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().GetAlternatives().front().DataStaging.OutputFiles.back().Targets.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"3", OUTJOBS.front().GetAlternatives().front().DataStaging.OutputFiles.back().Targets.front().Option("threads"));
 
   CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), xrsl, "nordugrid:xrsl"));
   CPPUNIT_ASSERT(PARSER.Parse(xrsl, OUTJOBS));
   CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)OUTJOBS.front().Files.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().Files.front().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.front().Source.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().Files.front().Source.front().Option("threads"));
-  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().Files.back().Name);
-  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().Files.back().Target.size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().Files.back().Target.front().Option("threads"));
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"in", OUTJOBS.front().DataStaging.InputFiles.front().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.InputFiles.front().Sources.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.InputFiles.front().Sources.front().Option("threads"));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"out", OUTJOBS.front().DataStaging.OutputFiles.back().Name);
+  CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.front().DataStaging.OutputFiles.back().Targets.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"5", OUTJOBS.front().DataStaging.OutputFiles.back().Targets.front().Option("threads"));
 
   CPPUNIT_ASSERT_EQUAL(0, (int)OUTJOBS.front().GetAlternatives().size());
 

@@ -25,7 +25,8 @@
 %template(JobList) std::list<Arc::Job>;
 %template(JobDescriptionList) std::list<Arc::JobDescription>;
 %template(JobStateList) std::list<Arc::JobState>;
-%template(FileTypeList) std::list<Arc::FileType>;
+%template(InputFileTypeList) std::list<Arc::InputFileType>;
+%template(OutputFileTypeList) std::list<Arc::OutputFileType>;
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
 %template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
@@ -41,7 +42,8 @@
 %template(JobListIteratorHandler) listiteratorhandler<Arc::Job>;
 %template(JobDescriptionListIteratorHandler) listiteratorhandler<Arc::JobDescription>;
 %template(JobStateListIteratorHandler) listiteratorhandler<Arc::JobState>;
-%template(FileTypeListIteratorHandler) listiteratorhandler<Arc::FileType>;
+%template(InputFileTypeListIteratorHandler) listiteratorhandler<Arc::InputFileType>;
+%template(OutputFileTypeListIteratorHandler) listiteratorhandler<Arc::OutputFileType>;
 %template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
 %template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
 %template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
