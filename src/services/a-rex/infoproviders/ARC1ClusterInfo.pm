@@ -629,6 +629,8 @@ sub collect($) {
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
     my %xenvIDs; # ExecutionEnvironment IDs
+    my $ARISsvID = "urn:ogf:Service:ARIS"; # ARIS service ID
+    my $ARISepID = "urn:ogf:Endpoint:ARIS"; # ARIS Endpoint ID
 
     # Generate ComputingShare IDs
     for my $share (keys %{$config->{shares}}) {
@@ -1906,11 +1908,176 @@ sub collect($) {
         return $dom;
     };
 
+    # Other Services
+
+    my @othersv = ();
+
+    # Service:ARIS    
+
+    my $getARISService = sub {
+
+        #$callcount++;
+
+        my $sv = {};
+
+        $sv->{CreationTime} = $creation_time;
+        $sv->{Validity} = $validity_ttl;
+
+        $sv->{ID} = $ARISsvID;
+
+        $sv->{Name} = "$config->{service}{ClusterName}:Service:ARIS" if $config->{service}{ClusterName}; # scalar
+        $sv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
+        $sv->{Capability} = [ 'information.monitoring' ];
+        $sv->{Type} = 'org.nordugrid.information.aris';
+
+        # OBS: QualityLevel reflects the quality of the sotware
+        # One of: development, testing, pre-production, production
+        $sv->{QualityLevel} = 'production';
+
+        $sv->{StatusInfo} =  $config->{service}{StatusInfo} if $config->{service}{StatusInfo}; # array
+
+        $sv->{Complexity} = "endpoint=1,share=0,resource=0";
+
+        #EndPoint here
+
+        my $getARISEndpoint = sub {
+
+            # don't publish if slapd not running
+            #return undef unless ( -e $config->{bdii_update_pid_file});
+
+            my $ep = {};
+
+            $ep->{CreationTime} = $creation_time;
+            $ep->{Validity} = $validity_ttl;
+
+            $ep->{ID} = $ARISepID;
+
+            # Name not necessary -- why? added back
+            $ep->{Name} = "ARC ARIS LDAP Information System";
+
+            # Configuration parser does not contain ldap port!
+            # must be updated
+            # port hardcoded for tests 
+            $ep->{URL} = "ldap://$config->{hostname}:2135/";
+            $ep->{Capability} = [ 'information.monitoring' ];
+            $ep->{Technology} = 'LDAP';
+            $ep->{InterfaceName} = 'ARIS';
+            $ep->{InterfaceVersion} = [ '1.0' ];
+            # Wrong type, should be URI
+            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
+            $ep->{Implementor} = "NorduGrid";
+            $ep->{ImplementationName} = "ARIS";
+            $ep->{ImplementationVersion} = $config->{arcversion};
+
+            $ep->{QualityLevel} = "production";
+
+            # How to calculate health for this interface?
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $ep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $ep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $ep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $ep->{ServingState} = 'draining';
+            #} else {
+            #    $ep->{ServingState} = 'production';
+            #}
+            $ep->{ServingState} = 'production';
+
+            # StartTime: get it from hed
+
+            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            if ($config->{accesspolicies}) {
+            my @apconfs = @{$config->{accesspolicies}};
+            $ep->{AccessPolicies} = sub {
+                return undef unless @apconfs;
+                my $apconf = pop @apconfs;
+                my $apol = {};
+                $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+                $apol->{Scheme} = "basic";
+                $apol->{Rule} = $apconf->{Rule};
+                $apol->{UserDomainID} = $apconf->{UserDomainID};
+                $apol->{EndpointID} = $ARISepID;
+                return $apol;
+            };
+            }
+            
+            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+
+            # Associations
+
+            $ep->{ServiceID} = $ARISsvID;
+
+            return $ep;
+        };
+
+        $sv->{Endpoint} = $getARISEndpoint;
+
+        # Associations
+
+        $sv->{AdminDomainID} = $adID;
+
+        return $sv;
+    };
+
+    push(@othersv, $getARISService);
+
+    # Service:Cache-Index
+
+    
+    # Service: HED-Control
+    
+
+    # aggregates services
+
+    my $getServices = sub {
+    
+        return undef unless my $sub = pop(@othersv);
+        # returns the hash for Entries. Odd, must understand this behaviour
+        return &$sub;
+             
+    };
+    
+
     # returns the two branches for =grid and =resoruce GroupID.
     # It's not optimal but it doesn't break recursion
     my $GLUE2InfoTreeRoot = sub {
         my $treeroot = { AdminDomain => $getAdminDomain,
-		         ComputingService => $getComputingService};
+                         ComputingService => $getComputingService,
+                         Services => $getServices
+                       };
         return $treeroot;
     };
 

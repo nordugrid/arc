@@ -443,6 +443,13 @@ sub MappingPolicies {
     LdifPrinter::Entries(@_, 'GLUE2Policy', 'ID', \&MappingPolicyAttributes);
 }
 
+sub Services {
+    LdifPrinter::Entries(@_, 'GLUE2Service', 'ID', \&ServiceAttributes, sub {
+        my ($self, $data) = @_;
+        $self->Endpoint($data->{Endpoint});
+    });
+}
+
 sub ComputingService {
     LdifPrinter::Entry(@_, 'GLUE2Service', 'ID', \&ComputingServiceAttributes, sub {
         my ($self, $data) = @_;
@@ -453,6 +460,13 @@ sub ComputingService {
         $self->ComputingActivities($data->{ComputingActivities});
         $self->end();
         $self->ToStorageServices($data->{ToStorageServices});
+    });
+}
+
+sub Endpoint {
+    LdifPrinter::Entry(@_, 'GLUE2Endpoint', 'ID', \&EndpointAttributes, sub {
+        my ($self, $data) = @_;
+        $self->AccessPolicies($data->{AccessPolicies});
     });
 }
 
@@ -532,6 +546,7 @@ sub Top {
     $self->end;
     $self->beginGroup("resource");
     $self->ComputingService(&$data->{ComputingService});
+    $self->Services(&$data->{Services});
     $self->end;
 
 }
