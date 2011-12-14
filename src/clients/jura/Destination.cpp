@@ -3,7 +3,6 @@
 #include "LutsDestination.h"
 #include "ApelDestination.h"
 #include "CARDestination.h"
-//#include "arc/URL.h"
 
 namespace Arc
 {
@@ -15,7 +14,8 @@ namespace Arc
         return new CARDestination(joblog);
     }
     //TODO distinguish
-    if ( !joblog["topic"].empty()){
+    if ( !joblog["topic"].empty() ||
+         url.substr(0,4) == "APEL"){
         return new ApelDestination(joblog);
     }else{
         return new LutsDestination(joblog);
