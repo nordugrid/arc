@@ -65,7 +65,7 @@ Build:
 
 Build & runtime:
   o open-ldap client (LDAP DMC)
-  o python 2.4 or higher (Chelonia, bindings)
+  o python 2.4 or higher (Chelonia, bindings, APEL publisher by Jura)
   o java sdk 1.4 or later (bindings)
   o globus-common 4 (arclib)
   o globus-gssapi-gsi 4 (arclib)
@@ -86,6 +86,7 @@ Runtime dependencies:
   o wget (Janitor)
   o fuse-python (Chelonia)
   o Berkley DB Python interface - python-bsddb3 (replicated A-Hash)
+  o Stomppy, m2Crypto (APEL publisher by Jura)
 
 Please note that depending on operating system distribution to build
 ARC you may need to install development versions of mentioned packages.
