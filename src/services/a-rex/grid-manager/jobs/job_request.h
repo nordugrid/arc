@@ -8,6 +8,7 @@
 #include <arc/client/JobDescription.h>
 
 JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl = NULL, std::string* failure = NULL);
+JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,std::string* acl = NULL, std::string* failure = NULL);
 bool process_job_req(JobUser &user,const JobDescription &desc);
 bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescription &job_desc);
 bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add = NULL);

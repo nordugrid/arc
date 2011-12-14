@@ -24,6 +24,8 @@
 
 #include "job_request.h"
 
+// TODO: move to using process_job_req as much as possible
+
 #if defined __GNUC__ && __GNUC__ >= 3
 
 #include <limits>
@@ -143,6 +145,10 @@ bool process_job_req(JobUser &user,const JobDescription &desc,JobLocalDescriptio
 /* parse job request, fill job description (local) */
 JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,std::string* acl, std::string* failure) {
   Arc::JobDescription arc_job_desc;
+  return parse_job_req(fname,job_desc,arc_job_desc,acl,failure);
+}
+
+JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,std::string* acl, std::string* failure) {
   Arc::JobDescriptionResult arc_job_res = get_arc_job_description(fname, arc_job_desc);
   if (!arc_job_res) {
     if (failure) {

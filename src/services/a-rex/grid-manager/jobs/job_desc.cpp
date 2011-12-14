@@ -17,6 +17,7 @@
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
+
 Arc::JobDescriptionResult get_arc_job_description(const std::string& fname, Arc::JobDescription& desc) {
   std::string job_desc_str;
   if (!job_description_read_file(fname, job_desc_str)) {

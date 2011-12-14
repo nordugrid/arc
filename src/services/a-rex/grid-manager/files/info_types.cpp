@@ -246,24 +246,25 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
       for(std::list<Arc::TargetType>::const_iterator target = file->Target.begin();
                               target != file->Target.end(); ++target) {
         FileData fdata(fname, target->fullstr());
+        fdata.ifsuccess = target->UseIfSuccess;
+        fdata.ifcancel = target->UseIfCancel;
+        fdata.iffailure = target->UseIfFailure;
         outputdata.push_back(fdata);
         ++uploads;
 
         if (outputdata.back().has_lfn()) {
-          Arc::URL u(outputdata.back().lfn);
-          outputdata.back().lfn = u.fullstr();
-          outputdata.back().ifsuccess = (u.Option("useifsuccess","true") == "true");
-          outputdata.back().ifcancel = (u.Option("useifcancel","false") == "true");
-          outputdata.back().iffailure = (u.Option("useiffailure","false") == "true");
+          Arc::URL u(outputdata.back().lfn); // really needed?
           if(u.Option("preserve","no") == "yes") {
             outputdata.back().ifcancel = true;
             outputdata.back().iffailure = true;
           };
-          u.RemoveOption("useifsuccess");
-          u.RemoveOption("useifcancel");
-          u.RemoveOption("useiffailure");
+          switch(target->CreationFlag) {
+            case Arc::TargetType::CFE_OVERWRITE: u.AddOption("overwrite","yes",true); break;
+            case Arc::TargetType::CFE_DONTOVERWRITE: u.AddOption("overwrite","no",true); break;
+            // Rest is not supported in URLs yet.
+          };
           u.RemoveOption("preserve");
-          u.RemoveOption("mandatory");
+          u.RemoveOption("mandatory"); // TODO: implement
           outputdata.back().lfn = u.fullstr();
           // It is not possible to extract credentials path here.
           // So temporarily storing id here.

@@ -308,7 +308,8 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   };
   // Analyze job descrption (checking, substituting, etc)
   std::string acl("");
-  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,&acl,&failure_))) != ARexJobNoError) {
+  Arc::JobDescription desc;
+  if((failure_type_=setfail(parse_job_req(fname.c_str(),job_,desc,&acl,&failure_))) != ARexJobNoError) {
     if(failure_.empty()) {
       failure_="Failed to parse job description";
       failure_type_=ARexJobInternalError;
@@ -355,6 +356,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
       if(*q == job_.queue) break;
     };
   };
+  // Check for various unsupported features
   if(!job_.preexecs.empty()) {
     failure_="Pre-executables are not supported by this service";
     failure_type_=ARexJobDescriptionUnsupportedError;
@@ -367,6 +369,78 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     delete_job_id();
     return;
   };
+  for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
+    for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
+      switch(t->CreationFlag) {
+        case Arc::TargetType::CFE_DEFAULT:
+        case Arc::TargetType::CFE_OVERWRITE:
+        case Arc::TargetType::CFE_DONTOVERWRITE:
+          break;
+        default:
+          failure_="Unsupported creation mode for Target";
+          failure_type_=ARexJobDescriptionUnsupportedError;
+          delete_job_id();
+          return;
+      };
+    };
+  };
+  // TODO: Rerun;
+  // TODO: ExpiryTime;
+  // TODO: ProcessingStartTime;
+  // TODO: Priority;
+  // TODO: Notification;
+  // TODO: CredentialService;
+  // TODO: AccessControl;
+  // TODO: DryRun;
+  // TODO: RemoteLogging
+  // TODO: OperatingSystem;
+  // TODO: Platform;
+  // TODO: NetworkInfo;
+  // TODO: IndividualPhysicalMemory;
+  // TODO: IndividualVirtualMemory;
+  // TODO: DiskSpaceRequirement;
+  // TODO: SessionLifeTime;
+  // TODO: SessionDirectoryAccess;
+  // TODO: IndividualCPUTime;
+  // TODO: TotalCPUTime;
+  // TODO: IndividualWallTime;
+  // TODO: TotalWallTime;
+  // TODO: NodeAccess;
+  // TODO: CEType;
+  // TODO: RunTimeEnvironment;
+  /*
+  for(std::list<Software>::const_iterator rte = desc.Resources.RunTimeEnvironment.getSoftwareList();
+                    rte != desc.Resources.RunTimeEnvironment.getSoftwareList().end()
+
+  if(!desc.Resources.RunTimeEnvironment.getOptions().empty()) {
+    failure_="Options int RTE not supported yet";
+    failure_type_=ARexJobDescriptionUnsupportedError;
+    delete_job_id();
+    return;
+  };
+  */
+  if((desc.Resources.SlotRequirement.ExclusiveExecution != Arc::SlotRequirementType::EE_DEFAULT) ||
+     (desc.Resources.SlotRequirement.SlotsPerHost > 1) ||
+     (desc.Resources.SlotRequirement.NumberOfSlots > 1)) {
+    failure_="SlotRequirement is not fully supported yet";
+    failure_type_=ARexJobDescriptionUnsupportedError;
+    delete_job_id();
+    return;
+  };
+  if((!desc.Resources.ParallelEnvironment.Type.empty()) ||
+     (!desc.Resources.ParallelEnvironment.Version.empty())) {
+    failure_="ParallelEnvironment is not supported yet. Use RunTimeEnvironment instead";
+    failure_type_=ARexJobDescriptionUnsupportedError;
+    delete_job_id();
+    return;
+  };
+  if(!desc.Resources.Coprocessor.v.empty()) {
+    failure_="Coprocessor is not supported yet.";
+    failure_type_=ARexJobDescriptionUnsupportedError;
+    delete_job_id();
+    return;
+  };
+
   // Start local file
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
   job_.jobid=id_;
@@ -438,26 +512,14 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
     failure_type_=ARexJobInternalError;
     return;
   };
-  // Parse job description
-  Arc::JobDescription desc;
   std::list<std::string> deleg_ids;
-  {
-    std::list<Arc::JobDescription> descs;
-    if (!Arc::JobDescription::Parse(job_desc_str, descs, "", "GRIDMANAGER") || descs.size() != 1) {
-      delete_job_id();
-      failure_="Unable to parse job description";
-      failure_type_=ARexJobInternalError;
-      return;
-    }
-    desc = descs.front();
-    // Delegation id can be found in local description and in parsed job description
-    for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
-      for(std::list<Arc::SourceType>::iterator s = f->Source.begin();s != f->Source.end();++s) {
-        if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
-      };
-      for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
-        if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
-      };
+  // Delegation id can be found in local description and in parsed job description
+  for(std::list<Arc::FileType>::iterator f = desc.Files.begin();f != desc.Files.end();++f) {
+    for(std::list<Arc::SourceType>::iterator s = f->Source.begin();s != f->Source.end();++s) {
+      if(!s->DelegationID.empty()) deleg_ids.push_back(s->DelegationID);
+    };
+    for(std::list<Arc::TargetType>::iterator t = f->Target.begin();t != f->Target.end();++t) {
+      if(!t->DelegationID.empty()) deleg_ids.push_back(t->DelegationID);
     };
   };
   // Write grami file
