@@ -613,6 +613,7 @@ sub collect($) {
 
     # Global IDs
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
+    my $udID = "urn:ogf:UserDomain:local:$admindomain" ; # UserDomain ID;
     my $csvID = "urn:ogf:ComputingService:$servicename"; # ComputingService ID
     my $cmgrID = "urn:ogf:ComputingManager:$servicename"; # ComputingManager ID
     my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:gsiftp:$gridftphostport"; # ARCGridFTPComputingEndpoint ID
@@ -629,6 +630,7 @@ sub collect($) {
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
     my %xenvIDs; # ExecutionEnvironment IDs
+    my $tseID = "urn:ogf:ToStorageElement:StorageService"; # ToStorageElement ID prefix
     
     # Other Service IDs
     my $ARISsvID = "urn:ogf:Service:ARIS"; # ARIS service ID
@@ -1363,6 +1365,8 @@ sub collect($) {
 	} else {
 	    $cact->{State} = glueState($gmjob->{status});
 	}
+      
+	# TODO: UserDomain association, how to calculate it?
 
 	$cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
 
@@ -1873,6 +1877,7 @@ sub collect($) {
         # Associations
 
         $csv->{AdminDomainID} = $adID;
+        $csv->{ServiceID} = $csvID;
 
         return $csv;
     };
@@ -2350,11 +2355,66 @@ sub collect($) {
              
     };
     
+    # TODO: UserDomain
+    
+    my $getUserDomain = sub {
+
+	my $ud = {};
+
+	$ud->{CreationTime} = $creation_time;
+	$ud->{Validity} = $validity_ttl;
+
+	$ud->{ID} = $udID;
+
+	$ud->{Name} = "";
+	$ud->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
+	$ud->{Description} = '';
+
+	# Number of hops to reach the root
+	$ud->{Level} = 0;
+	# Endpoint of some service, such as VOMS server
+	$ud->{UserManager} = 'org.nordugrid.information.cache-index';
+	# List of users
+	$ud->{Member} = [ 'users here' ];
+	
+	# TODO: Calculate Policies, ContactID and LocationID
+	
+	# Associations
+	$ud->{UserDomainID} = $udID;
+
+    };
+
+    # TODO: ToStorageElement
+
+    my $getToStorageElement = sub {
+      
+	my $tse = {};
+
+	$tse->{CreationTime} = $creation_time;
+	$tse->{Validity} = $validity_ttl;
+
+	$tse->{ID} = $tseID;
+
+	$tse->{Name} = "";
+	$tse->{OtherInfo} = ''; # array
+	
+	# Local path on the machine to access storage, for example a NFS share
+	$tse->{LocalPath} = 'String';
+  
+	# Remote path in the Storage Service associated with the local path above
+	$tse->{RemotePath} = 'String';
+	
+	# Associations
+	$tse->{ComputingService} = $csvID;
+	$tse->{StorageService} = '';
+    };
+
 
     # returns the two branches for =grid and =resoruce GroupID.
     # It's not optimal but it doesn't break recursion
     my $GLUE2InfoTreeRoot = sub {
         my $treeroot = { AdminDomain => $getAdminDomain,
+			 UserDomain => $getUserDomain,
                          ComputingService => $getComputingService,
                          Services => $getServices
                        };
