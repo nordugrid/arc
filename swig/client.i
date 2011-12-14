@@ -117,3 +117,4 @@ std::ostream& getStdout() {
  */
 %template(ScalableTimeInt) Arc::ScalableTime<int>;
 %template(RangeInt) Arc::Range<int>;
+%template(StringOptIn) Arc::OptIn<std::string>;
