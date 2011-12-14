@@ -44,25 +44,25 @@ namespace Arc {
     std::string v = optional;
     if(v == "false") return true;
     if(v == "0") return true;
-    logger.msg(ERROR, "[ADLParser] Optional %s elements are not supported yet.", el.Name());
+    logger.msg(ERROR, "[ADLParser] Optional for %s elements are not supported yet.", el.Name());
     return false;
   }
 
-  static bool ParseFlagTrue(XMLNode el, Logger& logger) {
-    if(!el) return true;
-    std::string v = el;
-    if((v != "false") && (v != "0")) return true;
-    logger.msg(ERROR, "[ADLParser] %s element with false value is not supported yet.", el.Name());
-    return false;
-  }
+  //static bool ParseFlagTrue(XMLNode el, Logger& logger) {
+  //  if(!el) return true;
+  //  std::string v = el;
+  //  if((v != "false") && (v != "0")) return true;
+  //  logger.msg(ERROR, "[ADLParser] %s element with false value is not supported yet.", el.Name());
+  //  return false;
+  //}
 
-  static bool ParseFlagFalse(XMLNode el, Logger& logger) {
-    if(!el) return true;
-    std::string v = el;
-    if((v == "false") || (v == "0")) return true;
-    logger.msg(ERROR, "[ADLParser] %s element with true value is not supported yet.", el.Name());
-    return false;
-  }
+  //static bool ParseFlagFalse(XMLNode el, Logger& logger) {
+  //  if(!el) return true;
+  //  std::string v = el;
+  //  if((v == "false") || (v == "0")) return true;
+  //  logger.msg(ERROR, "[ADLParser] %s element with true value is not supported yet.", el.Name());
+  //  return false;
+  //}
 
   static bool ParseFlag(XMLNode el, Logger& logger, bool& val) {
     if(!el) return true;
@@ -430,10 +430,8 @@ namespace Arc {
       }
       for(XMLNode rte = resources["adl:RuntimeEnvironment"];(bool)rte;++rte) {
         Software rte_("",(std::string)rte["adl:Name"],(std::string)rte["adl:Version"]);
-        if((bool)rte["adl:Option"]) {
-          logger.msg(ERROR, "[ADLParser] Option element inside RuntimeEnvironment is not supported yet.");
-          jobdescs.clear();
-          return false;
+        for(XMLNode o = rte["adl:Option"];(bool)o;++o) {
+          rte_.addOption((std::string)o);
         }
         if(!ParseOptional(rte,logger)) {
           jobdescs.clear();
@@ -641,23 +639,23 @@ namespace Arc {
             jobdescs.clear();
             return false;
           }
-          bool use_if_failure = false;
-          bool use_if_cancel = false;
-          bool use_if_success = true;
-          if((!ParseFlag(target["adl:UseIfFailure"],logger,use_if_failure)) ||
-             (!ParseFlag(target["adl:UseIfCancel"],logger,use_if_cancel)) ||
-             (!ParseFlag(target["adl:UseIfSuccess"],logger,use_if_success))) {
+          if((!ParseFlag(target["adl:UseIfFailure"],logger,turl.UseIfFailure)) ||
+             (!ParseFlag(target["adl:UseIfCancel"],logger,turl.UseIfCancel)) ||
+             (!ParseFlag(target["adl:UseIfSuccess"],logger,turl.UseIfSuccess))) {
             jobdescs.clear();
             return false;
           }
           if((bool)target["adl:CreationFlag"]) {
-            logger.msg(ERROR, "[ADLParser] CreationFlag in Target is not supported yet.");
-            jobdescs.clear();
-            return false;
+            std::string v = target["adl:CreationFlag"];
+            if(v == "overwrite") { turl.CreationFlag = TargetType::CFE_OVERWRITE; }
+            else if(v == "append") { turl.CreationFlag = TargetType::CFE_APPEND; }
+            else if(v == "dontOverwrite") { turl.CreationFlag = TargetType::CFE_DONTOVERWRITE; }
+            else {
+              logger.msg(ERROR, "[ADLParser] CreationFlag value %s is not supported.",v);
+              jobdescs.clear();
+              return false;
+            };
           }
-          turl.AddOption("useiffailure",use_if_failure?"true":"false",true);
-          turl.AddOption("useifcancel",use_if_cancel?"true":"false",true);
-          turl.AddOption("useifsuccess",use_if_success?"true":"false",true);
           turl.AddOption("mandatory",mandatory?"true":"false",true);
           file.Target.push_back(turl);
         }
