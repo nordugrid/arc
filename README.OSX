@@ -13,7 +13,7 @@ You can use Homebrew: http://mxcl.github.com/homebrew/
 
 Steps (tested on mac os x 10.6.7):
   $ brew install pkgconfig
-  $ sudo echo /usr/local/share/aclocal >> /usr/share/aclocal/dirlist
+  $ sudo bash -c "echo /usr/local/share/aclocal >> /usr/share/aclocal/dirlist"
   $ brew install gettext
   $ brew link gettext
   $ brew install glibmm
