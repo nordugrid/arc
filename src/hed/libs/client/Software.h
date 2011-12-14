@@ -266,6 +266,10 @@ namespace Arc {
      **/
     const std::string& getVersion() const { return version; }
 
+    const std::list<std::string>& getOptions() const { return option; }
+
+    void addOption(const std::string& opt) { option.push_back(opt); }
+
 #ifndef SWIG
     /// Convert Software::ComparisonOperator to a string.
     /**
@@ -291,6 +295,7 @@ namespace Arc {
     std::string name;
     std::string version;
     std::list<std::string> tokenizedVersion;
+    std::list<std::string> option;
 
     static Logger logger;
   };

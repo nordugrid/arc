@@ -350,11 +350,6 @@ namespace Arc {
     std::multimap<std::string, std::string> Options;
   };
 
-  class RunTimeEnvironmentType: public SoftwareRequirement {
-  public:
-    std::multimap<std::string, std::string> Options;
-  };
-
   class ResourcesType {
   public:
     ResourcesType() :
@@ -385,7 +380,7 @@ namespace Arc {
     ParallelEnvironmentType ParallelEnvironment;
     OptIn<std::string> Coprocessor;
     std::string QueueName;
-    RunTimeEnvironmentType RunTimeEnvironment;
+    SoftwareRequirement RunTimeEnvironment;
   };
 
   class SourceType: public URL {
