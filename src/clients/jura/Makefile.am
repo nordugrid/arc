@@ -1,6 +1,12 @@
 pkglibexec_PROGRAMS = jura
 
-SUBDIRS = ssm
+if PYTHON_ENABLED
+APEL_CLIENT = ssm
+else
+APEL_CLIENT =
+endif
+
+SUBDIRS = $(APEL_CLIENT)
 
 DIST_SUBDIRS = ssm
 
