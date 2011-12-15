@@ -104,7 +104,7 @@ sub ComputingService {
                                      StagingJobs
                                      SuspendedJobs
                                      PreLRMSWaitingJobs ));
-        $self->ComputingEndpoint($data->{ComputingEndpoint});
+        $self->ComputingEndpoints($data->{ComputingEndpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
         $self->ToStorageServices($data->{ToStorageServices});
@@ -116,8 +116,8 @@ sub ComputingService {
     });
 }
 
-sub ComputingEndpoint {
-    Element(@_, 'ComputingEndpoint', 'Endpoint', sub {
+sub ComputingEndpoints {
+    Elements(@_, 'ComputingEndpoint', 'Endpoint', sub {
         my ($self, $data) = @_;
         $self->properties($data, qw( URL
                                      Capability

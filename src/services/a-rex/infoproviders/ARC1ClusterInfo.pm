@@ -409,6 +409,7 @@ sub collect($) {
 
     my $creation_time = timenow();
     my $validity_ttl = $config->{ttl};
+    my $hostname = $config->{hostname} || $host_info->{hostname};
 
     my @allxenvs = keys %{$config->{xenvs}};
     my @allshares = keys %{$config->{shares}};
@@ -583,7 +584,7 @@ sub collect($) {
     my $gridftphostport = '';
     # check if gridftd interface exists
     if ($config->{GridftpdEnabled} == 1) { 
-	$gridftphostport = "$config->{hostname}:$config->{GridftpdPort}";
+	$gridftphostport = "$hostname:$config->{GridftpdPort}";
 	$endpointsnum++;
     };
     
@@ -1968,7 +1969,7 @@ sub collect($) {
             # Configuration parser does not contain ldap port!
             # must be updated
             # port hardcoded for tests 
-            $ep->{URL} = "ldap://$config->{hostname}:$config->{SlapdPort}/";
+            $ep->{URL} = "ldap://$hostname:$config->{SlapdPort}/";
             $ep->{Capability} = [ 'information.monitoring' ];
             $ep->{Technology} = 'LDAP';
             $ep->{InterfaceName} = 'ARIS';
@@ -2109,7 +2110,7 @@ sub collect($) {
 	    # Configuration parser does not contain ldap port!
 	    # must be updated
 	    # port hardcoded for tests 
-	    # $ep->{URL} = "ldap://$config->{hostname}:$config->{SlapdPort}/";
+	    # $ep->{URL} = "ldap://$hostname:$config->{SlapdPort}/";
 	    $ep->{Capability} = [ 'information.discovery' ];
 	    $ep->{Technology} = 'webservice';
 	    $ep->{InterfaceName} = 'Cache-Index';
