@@ -270,18 +270,19 @@ namespace Arc
                );
     }
     int retval;
-    //ssm-master.py <path-to-config-file> <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path>"
+    //ssm-master <path-to-config-file> <hostname> <port> <topic> <key path> <cert path> <cadir path> <messages path>"
     std::string command;
     std::vector<std::string> ssm_pathes;
-    //RedHat: /usr/libexec/arc/ssm_master.py
-    ssm_pathes.push_back("/usr/libexec/arc/ssm_master.py");
-    ssm_pathes.push_back("/usr/local/libexec/arc/ssm_master.py");
-    // Ubuntu/Debian: /usr/lib/arc/ssm_master.py
-    ssm_pathes.push_back("/usr/lib/arc/ssm_master.py");
-    ssm_pathes.push_back("/usr/local/lib/arc/ssm_master.py");
+    std::string exec_cmd = "ssm_master";
+    //RedHat: /usr/libexec/arc/ssm_master
+    ssm_pathes.push_back("/usr/libexec/arc/"+exec_cmd);
+    ssm_pathes.push_back("/usr/local/libexec/arc/"+exec_cmd);
+    // Ubuntu/Debian: /usr/lib/arc/ssm_master
+    ssm_pathes.push_back("/usr/lib/arc/"+exec_cmd);
+    ssm_pathes.push_back("/usr/local/lib/arc/"+exec_cmd);
     
-    // Find the location of the ssm_master.py
-    std::string ssm_command = "./ssm/ssm_master.py";
+    // Find the location of the ssm_master
+    std::string ssm_command = "./ssm/"+exec_cmd;
     for (int i=0; i<ssm_pathes.size(); i++) {
         std::ifstream ssmfile(ssm_pathes[i].c_str());
         if (ssmfile) {
