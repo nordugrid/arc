@@ -95,64 +95,61 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
                            void (*kicker_func)(void*),
                            void* kicker_arg) :
     generator_state(DataStaging::INITIATED),
+    staging_conf(users.Env()),
     info(users),
     kicker_func(kicker_func),
     kicker_arg(kicker_arg) {
-  //if (generator_state == DataStaging::RUNNING || generator_state == DataStaging::TO_STOP)
-  //  return false;
-  generator_state = DataStaging::RUNNING;
+
+  if (!staging_conf) return;
   for (JobUsers::const_iterator i = users.begin(); i != users.end(); ++i) {
     jobusers[i->get_uid()] = &(*i);
   }
-  // set the DTR dump file to the first control dir registered
-  if (!jobusers.empty())
-    scheduler.SetDumpLocation(std::string(jobusers.begin()->second->ControlDir()+"/dtrstate.log"));
 
-  //  DataStaging::DTR::registerCallback(&DTRGenerator::receiveDTR);
+  // TODO: Read DTRstate.log to note any transfers stopped half-way
+  // If those destinations appear again, add overwrite=yes
 
-  JobsListConfig& jcfg = users.Env().jobs_cfg();
+  // Convert A-REX configuration values to DTR configuration
 
-  // Converting old configuration values to something
-  // useful for new framework
+  // If not configured, set the DTR dump file to the first control dir registered
+  std::string dtr_log(staging_conf.dtr_log);
+  if (dtr_log.empty() && !jobusers.empty()) dtr_log = jobusers.begin()->second->ControlDir()+"/dtrstate.log";
+  scheduler.SetDumpLocation(dtr_log);
 
-  // processing limits
-  int max_processing;
-  int max_processing_emergency;
-  int max_downloads;
-  jcfg.GetMaxJobsLoad(max_processing,max_processing_emergency,max_downloads);
-  if (max_processing > 0 && max_downloads > 0) max_processing *= max_downloads;
-  if (max_processing_emergency > 0 && max_downloads > 0) max_processing_emergency *= max_downloads;
-  scheduler.SetSlots(max_processing,max_processing,max_processing,max_processing_emergency);
+  // Processing limits
+  scheduler.SetSlots(staging_conf.max_processor,
+                     staging_conf.max_processor,
+                     staging_conf.max_delivery,
+                     staging_conf.max_emergency,
+                     staging_conf.max_prepared);
 
-  // transfer shares
-  DataStaging::TransferSharesConf share_conf(jcfg.GetShareType(), jcfg.GetLimitedShares());
+  // Transfer shares
+  DataStaging::TransferSharesConf share_conf(staging_conf.share_type,
+                                             staging_conf.defined_shares);
   scheduler.SetTransferSharesConf(share_conf);
 
-  // transfer limits
+  // Transfer limits
   DataStaging::TransferParameters transfer_limits;
-  unsigned long long int min_speed, min_average_speed;
-  time_t min_time, max_inactivity_time;
-  jcfg.GetSpeedControl(min_speed, min_time, min_average_speed, max_inactivity_time);
-  transfer_limits.min_current_bandwidth = min_speed;
-  transfer_limits.averaging_time = min_time;
-  transfer_limits.min_average_bandwidth = min_average_speed;
-  transfer_limits.max_inactivity_time = max_inactivity_time;
+  transfer_limits.min_current_bandwidth = staging_conf.min_speed;
+  transfer_limits.averaging_time = staging_conf.min_speed_time;
+  transfer_limits.min_average_bandwidth = staging_conf.min_average_speed;
+  transfer_limits.max_inactivity_time = staging_conf.max_inactivity_time;
   scheduler.SetTransferParameters(transfer_limits);
 
   // URL mappings
   UrlMapConfig url_map(users.Env());
   scheduler.SetURLMapping(url_map);
 
-  // preferred pattern
-  scheduler.SetPreferredPattern(jcfg.GetPreferredPattern());
+  // Preferred pattern
+  scheduler.SetPreferredPattern(staging_conf.preferred_pattern);
 
-  // delivery services
-  scheduler.SetDeliveryServices(jcfg.GetDeliveryServices());
+  // Delivery services
+  scheduler.SetDeliveryServices(staging_conf.delivery_services);
 
+  // End of configuration - start Scheduler thread
   scheduler.start();
 
+  generator_state = DataStaging::RUNNING;
   Arc::CreateThreadFunction(&main_thread, this);
-  return; // true;
 }
 
 DTRGenerator::~DTRGenerator() {
@@ -756,8 +753,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     // set priority as given in job description
     if (job.get_local())
       dtr.set_priority(job.get_local()->priority);
-    // TODO: configurable whether to use A-REX host certificate for remote delivery services
-    dtr.host_cert_for_remote_delivery(false);
+    // set whether to use A-REX host certificate for remote delivery services
+    dtr.host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
 
     DataStaging::CacheParameters cache_parameters;
     cache_parameters.cache_dirs = jobuser->CacheParams().getCacheDirs();

@@ -5,6 +5,7 @@
 #include <arc/data-staging/Scheduler.h>
 
 #include "../files/info_files.h"
+#include "../conf/conf_staging.h"
 
 #include "job.h"
 #include "job_config.h"
@@ -62,6 +63,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
   static Arc::Logger logger;
   /** Associated scheduler */
   DataStaging::Scheduler scheduler;
+
+  /** Staging configuration */
+  StagingConfig staging_conf;
 
   /** Info object for passing DTR info back to A-REX */
   DTRInfo info;

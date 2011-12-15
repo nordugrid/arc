@@ -279,7 +279,54 @@
                        type="xsd:nonNegativeInteger" minOccurs="0"/>
        </xsd:sequence>
     </xsd:complexType>
-
+    
+    <xsd:complexType name="DTR_Type">
+       <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+          Parameters for new data staging framework:
+          * maxDelivery: maximum number of files in physical transfer
+          * maxProcessor: maximum number of files in each pre or post transfer
+            stage
+          * maxEmergency: maximum number of files which can use emergency slots
+            when regular slots are full
+          * maxPrepared: maximum number of files in prepared state
+          * shareType: transfer shares type
+          * definedShare: share with a defined priority
+            * name: share name
+            * priority: share priority
+          * deliveryService: remote data delivery service endpoint
+          * localDelivery: whether to use local delivery as well as remote
+          * useHostCert: whether to use host certificate for communication with
+            remote delivery services
+          * dtrLog: path to location where DTR state is periodically dumped
+          </xsd:documentation>
+       </xsd:annotation>
+       <xsd:sequence>
+          <xsd:element name="maxDelivery"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="maxProcessor"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="maxEmergency"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="maxPrepared"
+                       type="xsd:nonNegativeInteger" minOccurs="0"/>
+          <xsd:element name="shareType"
+                       type="xsd:string" minOccurs="0"/>
+          <xsd:element name="definedShare" minOccurs="0" maxOccurs="unbounded">
+             <xsd:element name="name" type="xsd:string" minOccurs="0" />
+             <xsd:element name="priority" type="xsd:nonNegativeInteger" minOccurs="0" />
+          </xsd:element>
+          <xsd:element name="deliveryService" type="xsd:anyURI"
+                       minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="localDelivery" type="xsd:boolean"
+                       minOccurs="0"/>
+          <xsd:element name="useHostCert" type="xsd:boolean"
+                       minOccurs="0"/>
+          <xsd:element name="dtrLog"
+                       type="xsd:string" minOccurs="0"/>
+       </xsd:sequence>
+    </xsd:complexType>
+       
     <xsd:complexType name="dataTransfer_Type">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
@@ -309,14 +356,10 @@
                                    use="optional"/>
                 </xsd:complexType>
             </xsd:element>
-            
+            <xsd:element name="DTR" minOccurs="0" type="DTR_Type"/>
             <xsd:element name="Globus" minOccurs="0" type="Globus_Type"/>            
             <xsd:element name="httpProxy" type="xsd:anyURI"
                          minOccurs="0"/>
-            <xsd:element name="deliveryService" type="xsd:anyURI"
-                         minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="localDelivery" type="xsd:boolean"
-                         minOccurs="0"/>                         
         </xsd:sequence>
     </xsd:complexType>
 

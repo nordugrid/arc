@@ -60,15 +60,15 @@ std::ostream &operator<< (std::ostream &o,const Exec &fd);
 class JobLocalDescription {
  /* all values are public, this class is just for convenience */
  public:
- JobLocalDescription(void):jobid(""),globalid(""),lrms(""),headnode(""),queue(""),localid(""),
+ JobLocalDescription(void):jobid(""),globalid(""),headnode(""),lrms(""),queue(""),localid(""),
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),
                            reruns(0),priority(50),downloads(-1),uploads(-1),rtes(-1),
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
-                           freestagein(false),failedstate(""),failedcause(""),
-                           credentialserver(""),gsiftpthreads(1),
+                           failedstate(""),failedcause(""),
+                           credentialserver(""),freestagein(false),gsiftpthreads(1),
                            dryrun(false),diskspace(0),
                            migrateactivityid(""), forcemigration(false),
                            transfershare(JobLocalDescription::transfersharedefault)                        

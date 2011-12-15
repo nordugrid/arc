@@ -179,7 +179,7 @@ attributes depending on how the mapping should be done.
         <arex:maxJobsRun inisections="arex" initag="maxjobsrun"/>
         <arex:maxJobsTotal inisections="arex" initag="maxjobstotal"/>
         <arex:maxJobsPerDN inisections="arex" initag="maxjobsperdn"/>
-        <arex:maxJobsTransferred inisections="arex" initag="maxjobstransferred" inidefaultvalue="100"/>
+        <arex:maxJobsTransferred inisections="arex" initag="maxjobstransferred" inidefaultvalue="10"/>
         <arex:maxJobsTransferredAdditional inisections="arex" initag="maxjobstransferredadditional" inidefaultvalue="1"/>
         <arex:maxFilesTransferred inisections="arex" initag="maxfilestransferred" inidefaultvalue="5"/>
         <arex:wakeupPeriod inisections="arex" initag="wakeupperiod" inidefaultvalue="120"/>
@@ -202,6 +202,21 @@ attributes depending on how the mapping should be done.
           <arex:minAverageSpeed inisections="arex" initag="minaveragespeed" inidefaultvalue="0"/>
           <arex:maxInactivityTime inisections="arex" initag="maxinactivitytime" inidefaultvalue="300"/>
         </arex:timeouts>
+        <arex:DTR>
+          <arex:maxDelivery inisections="arex/data-staging" initag="maxdelivery"/>
+          <arex:maxProcessor inisections="arex/data-staging" initag="maxprocessor"/>
+          <arex:maxEmergency inisections="arex/data-staging" initag="maxemergency"/>
+          <arex:maxPrepared inisections="arex/data-staging" initag="maxprepared"/>
+          <arex:shareType inisections="arex/data-staging" initag="sharetype"/>
+          <arex:definedShare initype="multisection" inisections="arex/data-staging/defined-share">
+            <arex:name inisections="#this" initag="name"/>
+            <arex:priority inisections="#this" initag="priority"/>
+          </arex:definedShare>
+          <arex:deliveryService initype="multi" inisections="arex/data-staging" initag="deliveryservice"/>
+          <arex:localDelivery inisections="arex/data-staging" initag="localdelivery" inidefaultvalue="false"/>
+          <arex:useHostCert inisections="arex/data-staging" initag="usehostcert" inidefaultvalue="false"/>
+          <arex:dtrLog inisections="arex/data-staging" initag="dtrlog"/>
+        </arex:DTR>
         <arex:maxRetries inisections="arex" initag="maxretries" inidefaultvalue="10"/>
         <arex:mapURL initype="multisection" inisections="arex/urlmap">
           <link initype="attribute" inisections="#this" initag="link"/>

@@ -21,16 +21,18 @@ namespace DataStaging {
     // Conservative defaults
     PreProcessorSlots = 20;
     DeliverySlots = 10;
-    DeliveryEmergencySlots = 2;
     PostProcessorSlots = 20;
+    EmergencySlots = 2;
+    StagedPreparedSlots = 200;
   }
 
-  void Scheduler::SetSlots(int pre_processor, int post_processor, int delivery, int delivery_emergency) {
+  void Scheduler::SetSlots(int pre_processor, int post_processor, int delivery, int emergency, int staged_prepared) {
     if (scheduler_state == INITIATED) {
       if(pre_processor > 0) PreProcessorSlots = pre_processor;
       if(post_processor > 0) PostProcessorSlots = post_processor;
       if(delivery > 0) DeliverySlots = delivery;
-      if(delivery_emergency > 0) DeliveryEmergencySlots = delivery_emergency;
+      if(emergency > 0) EmergencySlots = emergency;
+      if(staged_prepared > 0) StagedPreparedSlots = staged_prepared;
     }
   }
 
@@ -382,7 +384,7 @@ namespace DataStaging {
           if ((*dtr)->get_priority() > highest_priority) highest_priority = (*dtr)->get_priority();
         }
       }
-      if (share_queue >= DeliverySlots*4 && request->get_priority() <= highest_priority) {
+      if (share_queue >= StagedPreparedSlots && request->get_priority() <= highest_priority) {
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Large transfer queue - will wait 10s before staging", request->get_short_id());
         request->set_process_time(10);
       }
@@ -904,7 +906,7 @@ namespace DataStaging {
           active_shares.insert(tmp->get_transfer_share());
         }
         // Hard limit with all emergency slots used
-        if (running == slot_limit + DeliveryEmergencySlots) break;
+        if (running == slot_limit + EmergencySlots) break;
       }
     }
   }
@@ -994,8 +996,8 @@ namespace DataStaging {
     logger.msg(Arc::INFO, "Scheduler configuration:");
     logger.msg(Arc::INFO, "  Pre-processor slots: %i", PreProcessorSlots);
     logger.msg(Arc::INFO, "  Delivery slots: %i", DeliverySlots);
-    logger.msg(Arc::INFO, "  Emergency Delivery slots: %i", DeliveryEmergencySlots);
     logger.msg(Arc::INFO, "  Post-processor slots: %i", PostProcessorSlots);
+    logger.msg(Arc::INFO, "  Emergency slots: %i", EmergencySlots);
     logger.msg(Arc::INFO, "  Shares configuration:\n%s", transferSharesConf.conf());
     for (std::vector<Arc::URL>::iterator i = delivery_services.begin(); i != delivery_services.end(); ++i) {
       if (*i == DTR::LOCAL_DELIVERY) logger.msg(Arc::INFO, "  Delivery service: LOCAL");

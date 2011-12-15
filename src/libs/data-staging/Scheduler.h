@@ -59,10 +59,12 @@ class Scheduler: public DTRCallback {
     int PreProcessorSlots;
     /// Limit on number of DTRs in delivery
     int DeliverySlots;
-    /// Limit on number of emergency DTRs in delivery
-    int DeliveryEmergencySlots;
     /// Limit on number of DTRs in post-processor
     int PostProcessorSlots;
+    /// Limit on number of emergency DTRs in each state
+    int EmergencySlots;
+    /// Limit on number of staged-prepared files, per share
+    int StagedPreparedSlots;
 
     /// Where to dump DTR state. Currently only a path to a file is supported.
     std::string dumplocation;
@@ -177,7 +179,7 @@ class Scheduler: public DTRCallback {
 
     /// Set number of slots for processor and delivery stages
     void SetSlots(int pre_processor = 0, int post_processor = 0,
-                  int delivery = 0, int delivery_emergency = 0);
+                  int delivery = 0, int emergency = 0, int staged_prepared = 0);
 
     /// Add URL mapping entry
     void AddURLMapping(const Arc::URL& template_url, const Arc::URL& replacement_url,
