@@ -596,6 +596,9 @@ sub collect($) {
       $log->warning("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port");
     } else {
 	# searches if arched is listed in netstat output
+	# this commented line below is for testing. Better way would be mocking netstat
+	# best way would be ask arched for its endpoint...
+	# if (1){ 
 	if ( $netstat =~ m/arched/){ 
 	  # $log->info("arched found with netstat");
 	  $endpointsnum++; 
@@ -607,12 +610,10 @@ sub collect($) {
     
     # The following is for EMI-ES
     my $emieshostport = '';
-    if ($config->{emieshostport}) {
-        $emieshostport = $config->{emieshostport};
-    };
-    if ($arexhostport eq '') {
-        $emieshostport = '';
-    };
+    if ($arexhostport ne '' && $config->{enable_emies_interface}) {
+        $emieshostport = $arexhostport;
+        $endpointsnum++;
+    }
 
     # The following is for the Stagein interface
     my $stageinhostport = '';
@@ -1013,7 +1014,7 @@ sub collect($) {
         $cep->{Name} = "EMI ES submission, delegation, information interface";
 
         # OBS: ideally HED should be asked for the URL
-        #$cep->{URL} = $config->{endpoint};
+        $cep->{URL} = $config->{endpoint};
         $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring', 'security.delegation' ];
         $cep->{Technology} = 'webservice';
         $cep->{InterfaceName} = 'EMI-ES';
@@ -1077,7 +1078,7 @@ sub collect($) {
         #} else {
         #    $cep->{ServingState} = 'production';
         #}
-        $cep->{ServingState} = 'production';
+        $cep->{ServingState} = 'development';
 
         # StartTime: get it from hed
 
