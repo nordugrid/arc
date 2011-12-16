@@ -258,7 +258,7 @@ namespace Arc {
         out << IString(" Job requires exclusive execution") << std::endl;
         break;
       case SlotRequirementType::EE_FALSE:
-        out << IString(" Job dosn't require exclusive execution") << std::endl;
+        out << IString(" Job does not require exclusive execution") << std::endl;
         break;
       }
 

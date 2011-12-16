@@ -23,7 +23,7 @@ namespace Arc {
 		}
 
 		std::string actual_ip_login=ConfusaParserUtils::handle_redirect_step(cfg_, (*sso_pages_)["IdP"], &(*session_cookies_)["IdP"], &http_attributes);
-		logger.msg(DEBUG, "Got over the actual ip login 2 to %s, cookie %s ", actual_ip_login, cookie);
+		logger.msg(DEBUG, "Got over the actual IP login 2 to %s, cookie %s ", actual_ip_login, cookie);
 
 		if (actual_ip_login.empty()) {
 			return MCC_Status(PARSING_ERROR, origin, "Could not redirect from IdP with SAML2 token to IdP with internal Auth representation");
@@ -50,7 +50,7 @@ namespace Arc {
 		ConfusaParserUtils::add_cookie(&((*session_cookies_)["IdP"]), idp_login_page_info.cookies);
 		http_attributes.clear();
 		http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
-		logger.msg(VERBOSE, "Posting username/pw with the following session cookie %s to %s", (*session_cookies_)["IdP"], actual_ip_login);
+		logger.msg(VERBOSE, "Posting username/password with the following session cookie %s to %s", (*session_cookies_)["IdP"], actual_ip_login);
 
 		body_string = ConfusaParserUtils::extract_body_information(idp_l_content);
 
@@ -80,7 +80,7 @@ namespace Arc {
 		}
 
 		if (idp_login_post_content.empty()) {
-			return MCC_Status(PARSING_ERROR, origin, "Could not get the id-login page from the IdP");
+			return MCC_Status(PARSING_ERROR, origin, "Could not get the ID-login page from the IdP");
 		}
 
 		logger.msg(VERBOSE, "The idp_login_post_info cookie is %s, while the sent cookie was %s", *(idp_login_post_info.cookies.begin()), (*session_cookies_)["IdP"]);
@@ -137,9 +137,9 @@ namespace Arc {
 		std::multimap<std::string, std::string> http_attributes;
 
 		if ((*session_cookies_)["Confusa"] == "") {
-			return MCC_Status(GENERIC_ERROR, origin, "Confusa's PHPSESSID Cookie is not present!");
+			return MCC_Status(GENERIC_ERROR, origin, "Confusa's PHPSESSID cookie is not present!");
 		} else if ((*sso_pages_)["PostIdP"] == "") {
-			return MCC_Status(GENERIC_ERROR, origin, "Can not find an usable post-idp page!");
+			return MCC_Status(GENERIC_ERROR, origin, "Can not find an usable post-IdP page!");
 		}
 
 		std::string post_params = "SAMLResponse=" + ConfusaParserUtils::urlencode(saml_post_response_) + "&RelayState=" + ConfusaParserUtils::urlencode(saml_post_relaystate_);
@@ -281,7 +281,7 @@ namespace Arc {
 
 			std::string consent_confirm_url = consent_url.Protocol() + "://" + consent_url.Host() + ":" + consent_confirm_port + "/" + consent_url.Path() + "?attributes-confirm=Confirm";
 			std::string consent_confirm_redir = ConfusaParserUtils::handle_redirect_step(cfg_, consent_confirm_url, &cookie, &http_attributes);
-			logger.msg(VERBOSE, "Consent confirm redir URL is %s, cookies %s", consent_confirm_redir, (*session_cookies_)["IdP"]);
+			logger.msg(VERBOSE, "Consent confirm redirection URL is %s, cookies %s", consent_confirm_redir, (*session_cookies_)["IdP"]);
 			http_attributes.clear();
 			http_attributes.insert(std::pair<std::string,std::string>("Cookie",(*session_cookies_)["IdP"]));
 

@@ -40,14 +40,14 @@ int main(int argc, char **argv) {
 
   std::list<std::string> descriptions = options.Parse(argc, argv);
   if (descriptions.empty()) {
-    std::cout << "Use --help option for detailed usage information" << std::endl;
+    std::cout << IString("Use --help option for detailed usage information") << std::endl;
     return 1;
   }
 
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
-  std::cout << " [ JobDescription tester ] " << std::endl;
+  std::cout << IString(" [ JobDescription tester ] ") << std::endl;
 
   for (std::list<std::string>::iterator it = descriptions.begin(); it != descriptions.end(); it++) {
     struct stat stFileInfo;
@@ -71,13 +71,13 @@ int main(int argc, char **argv) {
 
     if (requested_format == "egee:jdl" || requested_format == "nordugrid:jsdl" || requested_format == "nordugrid:xrsl" || requested_format == "") {
       if (show_original_description) {
-        std::cout << std::endl << " [ Parsing the orignal text ] " << std::endl << std::endl;
+        std::cout << std::endl << IString(" [ Parsing the original text ] ") << std::endl << std::endl;
         std::cout << original_description << std::endl;
       }
 
       std::list<Arc::JobDescription> jds;
       if (!Arc::JobDescription::Parse(original_description, jds) || jds.empty()) {
-        std::cout << "Unable to parse." << std::endl;
+        std::cout << IString("Unable to parse.") << std::endl;
         return 1;
       }
 
@@ -86,11 +86,11 @@ int main(int argc, char **argv) {
         jds.front().SaveToStream(std::cout, "userlong");
         
         jds.front().UnParse(jobdesc, "egee:jdl");
-        std::cout << std::endl << " [ egee:jdl ] "       << std::endl << jobdesc << std::endl;
+        std::cout << std::endl << IString(" [ egee:jdl ] ")       << std::endl << jobdesc << std::endl;
         jds.front().UnParse(jobdesc, "nordugrid:jsdl");
-        std::cout << std::endl << " [ nordugrid:jsdl ] " << std::endl << jobdesc << std::endl;
+        std::cout << std::endl << IString(" [ nordugrid:jsdl ] ") << std::endl << jobdesc << std::endl;
         jds.front().UnParse(jobdesc, "nordugrid:xrsl");
-        std::cout << std::endl << " [ nordugrid:xrsl ] " << std::endl << jobdesc << std::endl;
+        std::cout << std::endl << IString(" [ nordugrid:xrsl ] ") << std::endl << jobdesc << std::endl;
       }
       else {
         jds.front().UnParse(jobdesc, requested_format);

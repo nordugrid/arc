@@ -76,14 +76,14 @@ namespace Arc {
 		// we need to pass that through an URL to have the port in it, so checking the SHA1 signature verify on the OAuth SP will not fail
 		URL request_url((*sso_pages_)["SimpleSAML"] + REQUEST_TOKEN_URL);
 		std::string request_url_str = request_url.fullstr();
-		logger.msg(VERBOSE, "The request_url is %s", request_url_str);
+		logger.msg(VERBOSE, "The request URL is %s", request_url_str);
 
 		// produce an OAuth request token
 		char *req_url = oauth_sign_url(request_url_str.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), NULL, NULL);
-		logger.msg(VERBOSE, "Sending oauth request to signed url %s", req_url);
+		logger.msg(VERBOSE, "Sending OAuth request to signed URL %s", req_url);
 
 		if (!req_url) {
-			return MCC_Status(GENERIC_ERROR, origin, "Could not sign the request url " + request_url);
+			return MCC_Status(GENERIC_ERROR, origin, "Could not sign the request URL " + request_url);
 		}
 
 		std::string str_req_url = req_url;
@@ -115,7 +115,7 @@ namespace Arc {
 		std::string oauth_request_secret = oauth_params["oauth_token_secret"];
 
 		if (oauth_request_token.empty() || oauth_request_secret.empty()) {
-			return MCC_Status(PARSING_ERROR, origin, "OAuth request response is not wellformed. OAuth request token: " + oauth_request_token
+			return MCC_Status(PARSING_ERROR, origin, "OAuth request response is not well-formed. OAuth request token: " + oauth_request_token
 					+ " OAuth request secret: " + oauth_request_secret);
 		}
 
@@ -146,7 +146,7 @@ namespace Arc {
 
 		authorize_url = authorize_url + (*tokens_)["oauth_request_token"];
 		//authorize_url = authorize_url + "&RelayState=" + ParserUtils::urlencode("https://confusatest.pdc.kth.se/simplesaml/module.php/oauth/authorize.php");
-		std::cout << "Please login at the following url " << authorize_url << std::endl;
+		std::cout << "Please login at the following URL " << authorize_url << std::endl;
 
 
 		// just waiting for the user to press enter
@@ -197,7 +197,7 @@ namespace Arc {
 		std::string oauth_access_secret = oauth_params["oauth_token_secret"];
 
 		if (oauth_access_token.empty() || oauth_access_secret.empty()) {
-			return MCC_Status(PARSING_ERROR, origin, "OAuth access token response is not wellformed. OAuth access token: " + oauth_access_token
+			return MCC_Status(PARSING_ERROR, origin, "OAuth access token response is not well-formed. OAuth access token: " + oauth_access_token
 					+ " OAuth access secret: " + oauth_access_secret);
 		}
 
@@ -219,7 +219,7 @@ namespace Arc {
 		std::string about_url = sp_url.fullstr();
 
 		char *req_url = oauth_sign_url(about_url.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		logger.msg(VERBOSE, "The about-you request url is %s", req_url);
+		logger.msg(VERBOSE, "The about-you request URL is %s", req_url);
 		ClientHTTP about_client(cfg_,URL(req_url));
 		PayloadRaw about_request;
 		PayloadRawInterface *about_response = NULL;
@@ -244,7 +244,7 @@ namespace Arc {
 		xmlDocPtr doc = ConfusaParserUtils::get_doc(body_string);
 		*dn = ConfusaParserUtils::evaluate_path(doc, "//div[@id='dn-section']");
 		ConfusaParserUtils::destroy_doc(doc);
-		logger.msg(INFO, "The retrieved dn is %s", *dn);
+		logger.msg(INFO, "The retrieved DN is %s", *dn);
 
 		return MCC_Status(STATUS_OK);
 	}
@@ -256,10 +256,10 @@ namespace Arc {
 		std::string consumer_key = (*tokens_)["consumer_key"];
 		std::string consumer_secret = (*tokens_)["consumer_secret"];
 
-		logger.msg(INFO, "Approving the cert signing request at %s", approve_page);
+		logger.msg(INFO, "Approving the certificate signing request at %s", approve_page);
 
 		char *req_url = oauth_sign_url(approve_page.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		logger.msg(VERBOSE, "The OAuth request url is %s", req_url);
+		logger.msg(VERBOSE, "The OAuth request URL is %s", req_url);
 
 		ClientHTTP confusa_approve_client(cfg_, URL(req_url));
 		PayloadRaw confusa_approve_request;
@@ -297,7 +297,7 @@ namespace Arc {
 		logger.msg(INFO, "The location to which the GET is performed is %s", endpoint);
 
 		char *req_url = oauth_sign_url(endpoint.c_str(), NULL, OA_HMAC, consumer_key.c_str(), consumer_secret.c_str(), oauth_access_token.c_str(), oauth_access_secret.c_str());
-		logger.msg(VERBOSE, "The request url is %s", req_url);
+		logger.msg(VERBOSE, "The request URL is %s", req_url);
 
 		ClientHTTP confusa_push_client(cfg_, URL(req_url));
 		PayloadRaw confusa_push_request;
