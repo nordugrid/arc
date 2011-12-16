@@ -26,6 +26,10 @@ class ADLParserTest
   CPPUNIT_TEST(PostExecutableTest);
   CPPUNIT_TEST(LoggingDirectoryTest);
   CPPUNIT_TEST(RemoteLoggingTest);
+  CPPUNIT_TEST(TestInputFileClientStageable);
+  CPPUNIT_TEST(TestInputFileServiceStageable);
+  CPPUNIT_TEST(TestOutputFileClientStageable);
+  CPPUNIT_TEST(TestOutputFileServiceStageable);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -46,13 +50,16 @@ public:
   void PostExecutableTest();
   void LoggingDirectoryTest();
   void RemoteLoggingTest();
+  void TestInputFileClientStageable();
+  void TestInputFileServiceStageable();
+  void TestOutputFileClientStageable();
+  void TestOutputFileServiceStageable();
+
 
 private:
   Arc::JobDescription INJOB;
   std::list<Arc::JobDescription> OUTJOBS;
   Arc::ADLParser PARSER;
-
-  std::string MESSAGE;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::list<std::string>& strings) {
@@ -523,6 +530,261 @@ void ADLParserTest::RemoteLoggingTest() {
   CPPUNIT_ASSERT_EQUAL(Arc::URL("https://foo.eu-emi.eu/"), itRLT->Location);
   CPPUNIT_ASSERT(!itRLT->optional);
   CPPUNIT_ASSERT(OUTJOBS.front().Application.RemoteLogging.end() == ++itRLT);
+}
+
+/** Client stageable input file */
+void ADLParserTest::TestInputFileClientStageable() {
+  {
+    const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Executable>"
+"<adl:Path>my-executable</adl:Path>"
+"</adl:Executable>"
+"</adl:Application>"
+"<adl:DataStaging>"
+"<adl:InputFile>"
+"<adl:Name>TestInputFileClientStageable</adl:Name>"
+"</adl:InputFile>"
+"<adl:InputFile>"
+"<adl:Name>executable</adl:Name>"
+"<adl:IsExecutable>true</adl:IsExecutable>"
+"</adl:InputFile>"
+"</adl:DataStaging>"
+"</adl:ActivityDescription>";
+
+    CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::InputFileType>& ifiles = OUTJOBS.front().DataStaging.InputFiles;
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestInputFileClientStageable", ifiles.front().Name);
+    CPPUNIT_ASSERT(!ifiles.front().IsExecutable);
+    CPPUNIT_ASSERT(ifiles.front().Sources.empty());
+    CPPUNIT_ASSERT_EQUAL((std::string)"executable",  ifiles.back().Name);
+    CPPUNIT_ASSERT(ifiles.back().IsExecutable);
+    CPPUNIT_ASSERT(ifiles.back().Sources.empty());
+  }
+
+  {
+    std::string tempjobdesc;
+    CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "emies:adl"));
+    OUTJOBS.clear();
+    CPPUNIT_ASSERT(PARSER.Parse(tempjobdesc, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::InputFileType>& ifiles = OUTJOBS.front().DataStaging.InputFiles;
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestInputFileClientStageable", ifiles.front().Name);
+    CPPUNIT_ASSERT(!ifiles.front().IsExecutable);
+    CPPUNIT_ASSERT(ifiles.front().Sources.empty());
+    CPPUNIT_ASSERT_EQUAL((std::string)"executable",  ifiles.back().Name);
+    CPPUNIT_ASSERT(ifiles.back().IsExecutable);
+    CPPUNIT_ASSERT(ifiles.back().Sources.empty());
+  }
+}
+
+/** Service stageable input file */
+void ADLParserTest::TestInputFileServiceStageable() {
+  {
+    const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Executable>"
+"<adl:Path>my-executable</adl:Path>"
+"</adl:Executable>"
+"</adl:Application>"
+"<adl:DataStaging>"
+"<adl:InputFile>"
+"<adl:Name>TestInputFileServiceStageable</adl:Name>"
+"<adl:Source>"
+"<adl:URI>https://se.eu-emi.eu/1234567890/abcdefghij/TestInputFileServiceStageable</adl:URI>"
+"<adl:DelegationID>0a9b8c7d6e5f4g3h2i1j</adl:DelegationID>"
+"</adl:Source>"
+"<adl:Source>"
+"<adl:URI>https://se-alt.eu-emi.eu/0987654321/klmnopqrst/TestInputFileServiceStageable</adl:URI>"
+"<adl:DelegationID>1t2s3r4q5p6o7n8m9l0k</adl:DelegationID>"
+"</adl:Source>"
+"</adl:InputFile>"
+"<adl:InputFile>"
+"<adl:Name>executable</adl:Name>"
+"<adl:Source>"
+"<adl:URI>gsiftp://gsi-se.eu-emi.eu/5647382910/xyzuvwrstq/executable</adl:URI>"
+"<adl:DelegationID>j1i2h3g4f5e6d7c8b9a0</adl:DelegationID>"
+"</adl:Source>"
+"<adl:Source>"
+"<adl:URI>gsiftp://gsi-se-alt.eu-emi.eu/0192837465/qtsrwvuzyx/executable</adl:URI>"
+"<adl:DelegationID>0a9b8c7d6e5f4g3h2i1j</adl:DelegationID>"
+"</adl:Source>"
+"<adl:IsExecutable>true</adl:IsExecutable>"
+"</adl:InputFile>"
+"</adl:DataStaging>"
+"</adl:ActivityDescription>";
+
+    CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::InputFileType>& ifiles = OUTJOBS.front().DataStaging.InputFiles;
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestInputFileServiceStageable", ifiles.front().Name);
+    CPPUNIT_ASSERT(!ifiles.front().IsExecutable);
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.front().Sources.size());
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("https://se.eu-emi.eu/1234567890/abcdefghij/TestInputFileServiceStageable"), ifiles.front().Sources.front());
+    CPPUNIT_ASSERT_EQUAL((std::string)"0a9b8c7d6e5f4g3h2i1j", ifiles.front().Sources.front().DelegationID);
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("https://se-alt.eu-emi.eu/0987654321/klmnopqrst/TestInputFileServiceStageable"), ifiles.front().Sources.back());
+    CPPUNIT_ASSERT_EQUAL((std::string)"1t2s3r4q5p6o7n8m9l0k", ifiles.front().Sources.back().DelegationID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"executable", ifiles.back().Name);
+    CPPUNIT_ASSERT(ifiles.back().IsExecutable);
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.back().Sources.size());
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("gsiftp://gsi-se.eu-emi.eu/5647382910/xyzuvwrstq/executable"), ifiles.back().Sources.front());
+    CPPUNIT_ASSERT_EQUAL((std::string)"j1i2h3g4f5e6d7c8b9a0", ifiles.back().Sources.front().DelegationID);
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("gsiftp://gsi-se-alt.eu-emi.eu/0192837465/qtsrwvuzyx/executable"), ifiles.back().Sources.back());
+    CPPUNIT_ASSERT_EQUAL((std::string)"0a9b8c7d6e5f4g3h2i1j", ifiles.back().Sources.back().DelegationID);
+  }
+
+  {
+    std::string tempjobdesc;
+    CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "emies:adl"));
+    OUTJOBS.clear();
+    CPPUNIT_ASSERT(PARSER.Parse(tempjobdesc, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::InputFileType>& ifiles = OUTJOBS.front().DataStaging.InputFiles;
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestInputFileServiceStageable", ifiles.front().Name);
+    CPPUNIT_ASSERT(!ifiles.front().IsExecutable);
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.front().Sources.size());
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("https://se.eu-emi.eu/1234567890/abcdefghij/TestInputFileServiceStageable"), ifiles.front().Sources.front());
+    CPPUNIT_ASSERT_EQUAL((std::string)"0a9b8c7d6e5f4g3h2i1j", ifiles.front().Sources.front().DelegationID);
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("https://se-alt.eu-emi.eu/0987654321/klmnopqrst/TestInputFileServiceStageable"), ifiles.front().Sources.back());
+    CPPUNIT_ASSERT_EQUAL((std::string)"1t2s3r4q5p6o7n8m9l0k", ifiles.front().Sources.back().DelegationID);
+    CPPUNIT_ASSERT_EQUAL((std::string)"executable", ifiles.back().Name);
+    CPPUNIT_ASSERT(ifiles.back().IsExecutable);
+    CPPUNIT_ASSERT_EQUAL(2, (int)ifiles.back().Sources.size());
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("gsiftp://gsi-se.eu-emi.eu/5647382910/xyzuvwrstq/executable"), ifiles.back().Sources.front());
+    CPPUNIT_ASSERT_EQUAL((std::string)"j1i2h3g4f5e6d7c8b9a0", ifiles.back().Sources.front().DelegationID);
+    CPPUNIT_ASSERT_EQUAL(Arc::SourceType("gsiftp://gsi-se-alt.eu-emi.eu/0192837465/qtsrwvuzyx/executable"), ifiles.back().Sources.back());
+    CPPUNIT_ASSERT_EQUAL((std::string)"0a9b8c7d6e5f4g3h2i1j", ifiles.back().Sources.back().DelegationID);
+  }
+}
+
+/** Client stageable output file */
+void ADLParserTest::TestOutputFileClientStageable() {
+  {
+    const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Executable>"
+"<adl:Path>my-executable</adl:Path>"
+"</adl:Executable>"
+"</adl:Application>"
+"<adl:DataStaging>"
+"<adl:OutputFile>"
+"<adl:Name>TestOutputFileClientStageable</adl:Name>"
+"</adl:OutputFile>"
+"</adl:DataStaging>"
+"</adl:ActivityDescription>";
+
+    CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::OutputFileType>& ofiles = OUTJOBS.front().DataStaging.OutputFiles;
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestOutputFileClientStageable", ofiles.front().Name);
+    CPPUNIT_ASSERT(ofiles.front().Targets.empty());
+  }
+
+  {
+    std::string tempjobdesc;
+    CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "emies:adl"));
+    OUTJOBS.clear();
+    CPPUNIT_ASSERT(PARSER.Parse(tempjobdesc, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::OutputFileType>& ofiles = OUTJOBS.front().DataStaging.OutputFiles;
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestOutputFileClientStageable", ofiles.front().Name);
+    CPPUNIT_ASSERT(ofiles.front().Targets.empty());
+  }
+}
+
+/** Service stageable output file */
+void ADLParserTest::TestOutputFileServiceStageable() {
+  {
+    const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+"<adl:Application>"
+"<adl:Executable>"
+"<adl:Path>my-executable</adl:Path>"
+"</adl:Executable>"
+"</adl:Application>"
+"<adl:DataStaging>"
+"<adl:OutputFile>"
+"<adl:Name>TestOutputFileServiceStageable</adl:Name>"
+"<adl:Target>"
+"<adl:URI>https://se.eu-emi.eu/1234567890/abcdefghij/TestInputFileServiceStageable</adl:URI>"
+"<adl:DelegationID>0a9b8c7d6e5f4g3h2i1j</adl:DelegationID>"
+"</adl:Target>"
+"<adl:Target>"
+"<adl:URI>https://se-alt.eu-emi.eu/0987654321/klmnopqrst/TestInputFileServiceStageable</adl:URI>"
+"<adl:DelegationID>1t2s3r4q5p6o7n8m9l0k</adl:DelegationID>"
+"<adl:UseIfFailure>true</adl:UseIfFailure>"
+"<adl:UseIfCancel>true</adl:UseIfCancel>"
+"<adl:UseIfSuccess>false</adl:UseIfSuccess>"
+"</adl:Target>"
+"</adl:OutputFile>"
+"</adl:DataStaging>"
+"</adl:ActivityDescription>";
+
+    CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::OutputFileType>& ofiles = OUTJOBS.front().DataStaging.OutputFiles;
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestOutputFileServiceStageable", ofiles.front().Name);
+    CPPUNIT_ASSERT_EQUAL(2, (int)ofiles.front().Targets.size());
+    CPPUNIT_ASSERT_EQUAL(Arc::TargetType("https://se.eu-emi.eu/1234567890/abcdefghij/TestInputFileServiceStageable"), ofiles.front().Targets.front());
+    CPPUNIT_ASSERT_EQUAL((std::string)"0a9b8c7d6e5f4g3h2i1j", ofiles.front().Targets.front().DelegationID);
+    CPPUNIT_ASSERT(!ofiles.front().Targets.front().UseIfFailure);
+    CPPUNIT_ASSERT(!ofiles.front().Targets.front().UseIfCancel);
+    CPPUNIT_ASSERT(ofiles.front().Targets.front().UseIfSuccess);
+    CPPUNIT_ASSERT_EQUAL(Arc::TargetType("https://se-alt.eu-emi.eu/0987654321/klmnopqrst/TestInputFileServiceStageable"), ofiles.front().Targets.back());
+    CPPUNIT_ASSERT_EQUAL((std::string)"1t2s3r4q5p6o7n8m9l0k", ofiles.front().Targets.back().DelegationID);
+    CPPUNIT_ASSERT(ofiles.front().Targets.back().UseIfFailure);
+    CPPUNIT_ASSERT(ofiles.front().Targets.back().UseIfCancel);
+    CPPUNIT_ASSERT(!ofiles.front().Targets.back().UseIfSuccess);
+  }
+
+  {
+    std::string tempjobdesc;
+    CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "emies:adl"));
+    OUTJOBS.clear();
+    CPPUNIT_ASSERT(PARSER.Parse(tempjobdesc, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::OutputFileType>& ofiles = OUTJOBS.front().DataStaging.OutputFiles;
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestOutputFileServiceStageable", ofiles.front().Name);
+    CPPUNIT_ASSERT_EQUAL(2, (int)ofiles.front().Targets.size());
+    CPPUNIT_ASSERT_EQUAL(Arc::TargetType("https://se.eu-emi.eu/1234567890/abcdefghij/TestInputFileServiceStageable"), ofiles.front().Targets.front());
+    CPPUNIT_ASSERT_EQUAL((std::string)"0a9b8c7d6e5f4g3h2i1j", ofiles.front().Targets.front().DelegationID);
+    CPPUNIT_ASSERT(!ofiles.front().Targets.front().UseIfFailure);
+    CPPUNIT_ASSERT(!ofiles.front().Targets.front().UseIfCancel);
+    CPPUNIT_ASSERT(ofiles.front().Targets.front().UseIfSuccess);
+    CPPUNIT_ASSERT_EQUAL(Arc::TargetType("https://se-alt.eu-emi.eu/0987654321/klmnopqrst/TestInputFileServiceStageable"), ofiles.front().Targets.back());
+    CPPUNIT_ASSERT_EQUAL((std::string)"1t2s3r4q5p6o7n8m9l0k", ofiles.front().Targets.back().DelegationID);
+    CPPUNIT_ASSERT(ofiles.front().Targets.back().UseIfFailure);
+    CPPUNIT_ASSERT(ofiles.front().Targets.back().UseIfCancel);
+    CPPUNIT_ASSERT(!ofiles.front().Targets.back().UseIfSuccess);
+  }
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ADLParserTest);

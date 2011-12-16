@@ -858,31 +858,31 @@ namespace Arc {
       if(it->Name.empty()) { // mandatory
         return false;
       }
-      if(!it->Sources.empty()) {
-        XMLNode file = staging.NewChild("InputFile");
-        file.NewChild("Name") = it->Name;
-        for(std::list<SourceType>::const_iterator u = it->Sources.begin();
-                       u != it->Sources.end(); ++u) {
-          if(!*u) continue; // mandatory
-          // It is not correct to do job description transformation
-          // in parser. Parser should be dumb. Other solution is needed.
-          if(u->Protocol() == "file") continue;
-          XMLNode source = file.NewChild("Source");
-          source.NewChild("URI") = u->str();
-          const std::map<std::string,std::string>& options = u->Options();
-          for(std::map<std::string,std::string>::const_iterator o = options.begin();
-                              o != options.end();++o) {
-            XMLNode option = source.NewChild("Option");
-            option.NewChild("Name") = o->first;
-            option.NewChild("Value") = o->second;
-          }
-          //source.NewChild("DelegationID") = ; TODO?
+      XMLNode file = staging.NewChild("InputFile");
+      file.NewChild("Name") = it->Name;
+      for(std::list<SourceType>::const_iterator u = it->Sources.begin();
+          u != it->Sources.end(); ++u) {
+        if(!*u) continue; // mandatory
+        // It is not correct to do job description transformation
+        // in parser. Parser should be dumb. Other solution is needed.
+        if(u->Protocol() == "file") continue;
+        XMLNode source = file.NewChild("Source");
+        source.NewChild("URI") = u->str();
+        const std::map<std::string,std::string>& options = u->Options();
+        for(std::map<std::string,std::string>::const_iterator o = options.begin();
+                            o != options.end();++o) {
+          XMLNode option = source.NewChild("Option");
+          option.NewChild("Name") = o->first;
+          option.NewChild("Value") = o->second;
         }
-        if(it->IsExecutable || it->Name == job.Application.Executable.Path) {
-          file.NewChild("IsExecutable") = "true";
+        if (!u->DelegationID.empty()) {
+          source.NewChild("DelegationID") = u->DelegationID;
         }
-        // it->FileSize
       }
+      if(it->IsExecutable || it->Name == job.Application.Executable.Path) {
+        file.NewChild("IsExecutable") = "true";
+      }
+      // it->FileSize
     }
     // OutputFile
     for (std::list<OutputFileType>::const_iterator it = job.DataStaging.OutputFiles.begin();
@@ -890,32 +890,32 @@ namespace Arc {
       if(it->Name.empty()) { // mandatory
         return false;
       }
-      if(!it->Targets.empty()) {
-        XMLNode file = staging.NewChild("OutputFile");
-        file.NewChild("Name") = it->Name;
-        for(std::list<TargetType>::const_iterator u = it->Targets.begin();
-                       u != it->Targets.end(); ++u) {
-          if(!*u) continue; // mandatory
-          XMLNode target = file.NewChild("Target");
-          target.NewChild("URI") = u->str();
-          const std::map<std::string,std::string>& options = u->Options();
-          for(std::map<std::string,std::string>::const_iterator o = options.begin();
-                              o != options.end();++o) {
-            if(o->first == "mandatory") continue;
-            if(o->first == "useiffailure") continue;
-            if(o->first == "useifcancel") continue;
-            if(o->first == "useifsuccess") continue;
-            XMLNode option = target.NewChild("Option");
-            option.NewChild("Name") = o->first;
-            option.NewChild("Value") = o->second;
-          }
-          // target.NewChild("DelegationID") = ;
-          target.NewChild("Mandatory") = u->Option("mandatory","false");
-          // target.NewChild("CreationFlag") = ;
-          target.NewChild("UseIfFailure") = u->Option("useiffailure","false");
-          target.NewChild("UseIfCancel") = u->Option("useifcancel","false");
-          target.NewChild("UseIfSuccess") = u->Option("useifsuccess","true");
+      XMLNode file = staging.NewChild("OutputFile");
+      file.NewChild("Name") = it->Name;
+      for(std::list<TargetType>::const_iterator u = it->Targets.begin();
+                     u != it->Targets.end(); ++u) {
+        if(!*u) continue; // mandatory
+        XMLNode target = file.NewChild("Target");
+        target.NewChild("URI") = u->str();
+        const std::map<std::string,std::string>& options = u->Options();
+        for(std::map<std::string,std::string>::const_iterator o = options.begin();
+                            o != options.end();++o) {
+          if(o->first == "mandatory") continue;
+          if(o->first == "useiffailure") continue;
+          if(o->first == "useifcancel") continue;
+          if(o->first == "useifsuccess") continue;
+          XMLNode option = target.NewChild("Option");
+          option.NewChild("Name") = o->first;
+          option.NewChild("Value") = o->second;
         }
+        if (!u->DelegationID.empty()) {
+          target.NewChild("DelegationID") = u->DelegationID;
+        }
+        target.NewChild("Mandatory") = u->Option("mandatory","false");
+        // target.NewChild("CreationFlag") = ;
+        target.NewChild("UseIfFailure") = booltostr(u->UseIfFailure);
+        target.NewChild("UseIfCancel") = booltostr(u->UseIfCancel);
+        target.NewChild("UseIfSuccess") = booltostr(u->UseIfSuccess);
       }
     }
 
