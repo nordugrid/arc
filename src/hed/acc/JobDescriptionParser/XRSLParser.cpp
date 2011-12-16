@@ -185,7 +185,7 @@ namespace Arc {
     return true;
   }
 
-  bool XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserResult XRSLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -1290,7 +1290,7 @@ namespace Arc {
     return true;
   }
 
-  bool XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserResult XRSLParser::UnParse(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       logger.msg(DEBUG, "Wrong language requested: %s",language);
       return false;

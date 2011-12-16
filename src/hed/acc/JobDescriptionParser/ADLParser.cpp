@@ -75,7 +75,7 @@ namespace Arc {
     return true;
   }
 
-  bool ADLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserResult ADLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -662,7 +662,7 @@ namespace Arc {
     }
   }
 
-  bool ADLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserResult ADLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
     }

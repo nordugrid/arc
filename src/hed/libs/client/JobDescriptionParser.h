@@ -15,6 +15,24 @@ namespace Arc {
   class JobDescription;
   class Logger;
 
+  class JobDescriptionParserResult {
+  public:
+    typedef enum {
+      Success,
+      Failure,
+      WrongLanguage
+    } Result;
+    JobDescriptionParserResult(void):v_(Success) { };
+    JobDescriptionParserResult(bool v):v_(v?Success:Failure) { };
+    JobDescriptionParserResult(Result v):v_(v) { };
+    operator bool(void) { return (v_ == Success); };
+    bool operator!(void) { return (v_ != Success); };
+    bool operator==(bool v) { return ((v_ == Success) == v); };
+    bool operator==(Result v) { return (v_ == v); };
+  private:
+    Result v_;
+  };
+
   /// Abstract class for the different parsers
   /**
    * The JobDescriptionParser class is abstract which provide a interface for job
@@ -27,8 +45,8 @@ namespace Arc {
   public:
     virtual ~JobDescriptionParser();
 
-    virtual bool Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const = 0;
-    virtual bool UnParse(const JobDescription& job, std::string& output, const std::string& language, const std::string& dialect = "") const = 0;
+    virtual JobDescriptionParserResult Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language = "", const std::string& dialect = "") const = 0;
+    virtual JobDescriptionParserResult UnParse(const JobDescription& job, std::string& output, const std::string& language, const std::string& dialect = "") const = 0;
     const std::list<std::string>& GetSupportedLanguages() const { return supportedLanguages; }
     bool IsLanguageSupported(const std::string& language) const { return std::find(supportedLanguages.begin(), supportedLanguages.end(), language) != supportedLanguages.end(); }
     const std::string& GetError(void) { return error; };

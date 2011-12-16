@@ -477,7 +477,7 @@ namespace Arc {
     return output.str();
   }
 
-  bool JDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserResult JDLParser::Parse(const std::string& source, std::list<JobDescription>& jobdescs, const std::string& language, const std::string& dialect) const {
     if (language != "" && !IsLanguageSupported(language)) {
       return false;
     }
@@ -554,7 +554,7 @@ namespace Arc {
     return true;
   }
 
-  bool JDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
+  JobDescriptionParserResult JDLParser::UnParse(const JobDescription& job, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       return false;
     }
