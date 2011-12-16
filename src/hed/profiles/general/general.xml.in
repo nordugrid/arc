@@ -236,6 +236,7 @@ attributes depending on how the mapping should be done.
       </arex:dataTransfer>
       <arex:jobLogPath inisections="arex" initag="joblogpath"/>
       <arex:jobReport initokenenables="arex/jobreport">
+        <arex:publisher inisections="arex/jobreport" initag="publisher" inidefaultvalue="jura"/>
         <arex:destination inisections="arex/jobreport" initag="destination"/>
         <arex:expiration inisections="arex/jobreport" initag="expiration"/>
         <arex:type inisections="arex/jobreport" initag="type"/>
