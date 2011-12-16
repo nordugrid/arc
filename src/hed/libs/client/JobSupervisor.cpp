@@ -191,7 +191,7 @@ namespace Arc {
            it != (*itJobC)->jobstore.end(); it++) {
 
         if (!it->State) {
-          logger.msg(WARNING, "Unable to get job (%s), job information not found at execution service", it->JobID.str());
+          logger.msg(WARNING, "Unable to get job (%s), job information not found at execution service", it->JobID.fullstr());
           continue;
         }
 
@@ -202,11 +202,11 @@ namespace Arc {
         }
 
         if (it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to get job (%s), job is deleted", it->JobID.str());
+          logger.msg(WARNING, "Unable to get job (%s), job is deleted", it->JobID.fullstr());
           continue;
         }
         else if (!it->State.IsFinished()) {
-          logger.msg(WARNING, "Unable to get job (%s), it has not finished yet", it->JobID.str());
+          logger.msg(WARNING, "Unable to get job (%s), it has not finished yet", it->JobID.fullstr());
           continue;
         }
 
@@ -216,7 +216,7 @@ namespace Arc {
       for (std::list<Job*>::iterator it = downloadable.begin();
            it != downloadable.end(); it++) {
         if (!(*itJobC)->GetJob(**it, downloaddir, usejobname, force)) {
-          logger.msg(ERROR, "Failed getting job (%s)", (*it)->JobID.str());
+          logger.msg(ERROR, "Failed getting job (%s)", (*it)->JobID.fullstr());
           ok = false;
         }
         else {
@@ -242,7 +242,7 @@ namespace Arc {
            it != (*itJobC)->jobstore.end(); it++) {
 
         if (!it->State) {
-          logger.msg(WARNING, "Unable to kill job (%s), job information not found at execution service", it->JobID.str());
+          logger.msg(WARNING, "Unable to kill job (%s), job information not found at execution service", it->JobID.fullstr());
           continue;
         }
 
@@ -253,11 +253,11 @@ namespace Arc {
         }
 
         if (it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to kill job (%s), job is deleted", it->JobID.str());
+          logger.msg(WARNING, "Unable to kill job (%s), job is deleted", it->JobID.fullstr());
           continue;
         }
         else if (it->State.IsFinished()) {
-          logger.msg(WARNING, "Unable to kill job (%s), job has already finished", it->JobID.str());
+          logger.msg(WARNING, "Unable to kill job (%s), job has already finished", it->JobID.fullstr());
           continue;
         }
 
@@ -267,7 +267,7 @@ namespace Arc {
       for (std::list<Job*>::iterator it = killable.begin();
            it != killable.end(); it++) {
         if (!(*itJobC)->CancelJob(**it)) {
-          logger.msg(ERROR, "Failed killing job (%s)", (*it)->JobID.str());
+          logger.msg(ERROR, "Failed killing job (%s)", (*it)->JobID.fullstr());
           ok = false;
         }
         else {
@@ -293,7 +293,7 @@ namespace Arc {
            it != (*itJobC)->jobstore.end(); it++) {
 
         if (!it->State) {
-          logger.msg(WARNING, "Unable to renew job (%s), job information not found at execution service", it->JobID.str());
+          logger.msg(WARNING, "Unable to renew job (%s), job information not found at execution service", it->JobID.fullstr());
           continue;
         }
 
@@ -304,7 +304,7 @@ namespace Arc {
         }
 
         if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to renew job (%s), job already finished", it->JobID.str());
+          logger.msg(WARNING, "Unable to renew job (%s), job already finished", it->JobID.fullstr());
           continue;
         }
 
@@ -314,7 +314,7 @@ namespace Arc {
       for (std::list<Job*>::iterator it = renewable.begin();
            it != renewable.end(); it++) {
         if (!(*itJobC)->RenewJob(**it)) {
-          logger.msg(ERROR, "Failed renewing job (%s)", (*it)->JobID.str());
+          logger.msg(ERROR, "Failed renewing job (%s)", (*it)->JobID.fullstr());
           ok = false;
         }
         else {
@@ -340,7 +340,7 @@ namespace Arc {
            it != (*itJobC)->jobstore.end(); it++) {
 
         if (!it->State) {
-          logger.msg(WARNING, "Unable to resume job (%s), job information not found", it->JobID.str());
+          logger.msg(WARNING, "Unable to resume job (%s), job information not found", it->JobID.fullstr());
           continue;
         }
 
@@ -351,7 +351,7 @@ namespace Arc {
         }
 
         if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to resume job (%s), job is %s and cannot be resumed", it->JobID.str(), it->State.GetGeneralState());
+          logger.msg(WARNING, "Unable to resume job (%s), job is %s and cannot be resumed", it->JobID.fullstr(), it->State.GetGeneralState());
           continue;
         }
 
@@ -361,7 +361,7 @@ namespace Arc {
       for (std::list<Job*>::iterator it = resumable.begin();
            it != resumable.end(); it++) {
         if (!(*itJobC)->ResumeJob(**it)) {
-          logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.str());
+          logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.fullstr());
           ok = false;
         }
         else {
@@ -469,7 +469,7 @@ namespace Arc {
         continue;
       }
       jobdescs.front().Identification.ActivityOldID = (*it)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldID.push_back((*it)->JobID.str());
+      jobdescs.front().Identification.ActivityOldID.push_back((*it)->JobID.fullstr());
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
@@ -576,7 +576,7 @@ namespace Arc {
         continue;
       }
       jobdescs.front().Identification.ActivityOldID = (*itJ)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldID.push_back((*itJ)->JobID.str());
+      jobdescs.front().Identification.ActivityOldID.push_back((*itJ)->JobID.fullstr());
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";

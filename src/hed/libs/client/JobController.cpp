@@ -53,7 +53,7 @@ namespace Arc {
     }
 
     if (!job.JobID) {
-      logger.msg(WARNING, "The job ID (%s) is not a valid URL", job.JobID.str());
+      logger.msg(WARNING, "The job ID (%s) is not a valid URL", job.JobID.fullstr());
       return false;
     }
 
@@ -78,7 +78,7 @@ namespace Arc {
          it != jobstore.end(); it++) {
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -89,11 +89,11 @@ namespace Arc {
 
       if (it->State == JobState::DELETED) {
         logger.msg(WARNING, "Job has already been deleted: %s",
-                   it->JobID.str());
+                   it->JobID.fullstr());
         continue;
       }
       else if (!it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -107,7 +107,7 @@ namespace Arc {
 
       bool downloaded = GetJob(**it, downloaddir, usejobname, force);
       if (!downloaded) {
-        logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.str());
+        logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.fullstr());
         ok = false;
         continue;
       }
@@ -115,7 +115,7 @@ namespace Arc {
       if (!keep) {
         bool cleaned = CleanJob(**it);
         if (!cleaned) {
-          logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
+          logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.fullstr());
           ok = false;
           continue;
         }
@@ -138,7 +138,7 @@ namespace Arc {
          it != jobstore.end(); it++) {
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -148,11 +148,11 @@ namespace Arc {
         continue;
 
       if (it->State == JobState::DELETED) {
-        logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.str());
+        logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.fullstr());
         continue;
       }
       else if (it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
+        logger.msg(WARNING, "Job has already finished: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -166,7 +166,7 @@ namespace Arc {
 
       bool cancelled = CancelJob(**it);
       if (!cancelled) {
-        logger.msg(ERROR, "Failed cancelling job %s", (*it)->JobID.str());
+        logger.msg(ERROR, "Failed cancelling job %s", (*it)->JobID.fullstr());
         ok = false;
         continue;
       }
@@ -174,7 +174,7 @@ namespace Arc {
       if (!keep) {
         bool cleaned = CleanJob(**it);
         if (!cleaned) {
-          logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
+          logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.fullstr());
           ok = false;
           continue;
         }
@@ -198,14 +198,14 @@ namespace Arc {
          it != jobstore.end();) {
       if (!it->State && force && status.empty()) {
         logger.msg(WARNING, "Job information not found, job %s will only be deleted from local joblist",
-                   it->JobID.str());
+                   it->JobID.fullstr());
         toberemoved.push_back(it->JobID);
         it = jobstore.erase(it);
         continue;
       }
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         ++it;
         continue;
       }
@@ -224,7 +224,7 @@ namespace Arc {
           it = jobstore.erase(it);
         }
         else {
-          logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+          logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.fullstr());
           ++it;
         }
         continue;
@@ -241,7 +241,7 @@ namespace Arc {
       if (!cleaned) {
         if (force)
           toberemoved.push_back((*it)->JobID);
-        logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.str());
+        logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.fullstr());
         ok = false;
         continue;
       }
@@ -271,7 +271,7 @@ namespace Arc {
 
       if (!it->State) {
         logger.msg(WARNING, "Job state information not found: %s",
-                   it->JobID.str());
+                   it->JobID.fullstr());
         continue;
       }
 
@@ -281,7 +281,7 @@ namespace Arc {
         continue;
 
       if (it->State == JobState::DELETED) {
-        logger.msg(WARNING, "Job deleted: %s", it->JobID.str());
+        logger.msg(WARNING, "Job deleted: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -290,7 +290,7 @@ namespace Arc {
           !it->State.IsFinished() &&
           it->State != JobState::RUNNING &&
           it->State != JobState::FINISHING) {
-        logger.msg(WARNING, "Job has not started yet: %s", it->JobID.str());
+        logger.msg(WARNING, "Job has not started yet: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -298,7 +298,7 @@ namespace Arc {
           ((whichfile == "stderr") && (it->StdErr.empty())) ||
           ((whichfile == "joblog") && (it->LogDir.empty()))) {
         logger.msg(ERROR, "Can not determine the %s location: %s",
-                   whichfile, it->JobID.str());
+                   whichfile, it->JobID.fullstr());
         continue;
       }
 
@@ -314,16 +314,16 @@ namespace Arc {
       int tmp_h = Glib::mkstemp(filename);
       if (tmp_h == -1) {
         logger.msg(INFO, "Could not create temporary file \"%s\"", filename);
-        logger.msg(ERROR, "Cannot create output of %s for job (%s)", whichfile, (*it)->JobID.str());
+        logger.msg(ERROR, "Cannot create output of %s for job (%s)", whichfile, (*it)->JobID.fullstr());
         ok = false;
         continue;
       }
 
-      logger.msg(VERBOSE, "Catting %s for job %s", whichfile, (*it)->JobID.str());
+      logger.msg(VERBOSE, "Catting %s for job %s", whichfile, (*it)->JobID.fullstr());
 
       URL src = GetFileUrlForJob((**it), whichfile);
       if (!src) {
-        logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, (*it)->JobID.str(), src.str());
+        logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, (*it)->JobID.fullstr(), src.str());
         close(tmp_h);
         unlink(filename.c_str());
         continue;
@@ -331,7 +331,7 @@ namespace Arc {
 
       URL dst("stdio:///"+tostring(tmp_h));
       if (!dst) {
-        logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.str(), dst.str());
+        logger.msg(ERROR, "Cannot create output of %s for job (%s): Invalid destination %s", whichfile, (*it)->JobID.fullstr(), dst.str());
         close(tmp_h);
         unlink(filename.c_str());
         continue;
@@ -341,7 +341,7 @@ namespace Arc {
 
       if (copied) {
         out << IString("%s from job %s", whichfile,
-                             (*it)->JobID.str()) << std::endl;
+                             (*it)->JobID.fullstr()) << std::endl;
         std::ifstream is(filename.c_str());
         char c;
         while (is.get(c)) {
@@ -368,7 +368,7 @@ namespace Arc {
     for (std::list<Job>::const_iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         if (Time() - it->LocalSubmissionTime < 90)
           logger.msg(WARNING, "This job was very recently "
                      "submitted and might not yet "
@@ -393,7 +393,7 @@ namespace Arc {
     for (std::list<Job>::const_iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         if (Time() - it->LocalSubmissionTime < 90)
           logger.msg(WARNING, "This job was very recently "
                      "submitted and might not yet "
@@ -422,7 +422,7 @@ namespace Arc {
     std::list<Job> migratedJobs;
     for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); ++itJob) {
       if (itJob->State != JobState::QUEUING) {
-        logger.msg(WARNING, "Cannot migrate job %s, it is not queuing.", itJob->JobID.str());
+        logger.msg(WARNING, "Cannot migrate job %s, it is not queuing.", itJob->JobID.fullstr());
         continue;
       }
 
@@ -432,7 +432,7 @@ namespace Arc {
 
       std::list<JobDescription> jobdescs;
       if (!JobDescription::Parse(itJob->JobDescription, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Job migration failed for job %s, unable to parse remote job description", itJob->JobID.str());
+        logger.msg(ERROR, "Job migration failed for job %s, unable to parse remote job description", itJob->JobID.fullstr());
         retVal = false;
         continue;
       }
@@ -446,7 +446,7 @@ namespace Arc {
       while (true) {
         const ExecutionTarget *currentTarget = broker->GetBestTarget();
         if (!currentTarget) {
-          logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.str());
+          logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.fullstr());
           retVal = false;
           migratedJobs.pop_back();
           break;
@@ -482,7 +482,7 @@ namespace Arc {
          it != jobstore.end(); it++) {
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -492,7 +492,7 @@ namespace Arc {
         continue;
 
       if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
-        logger.msg(WARNING, "Job has already finished: %s", it->JobID.str());
+        logger.msg(WARNING, "Job has already finished: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -506,7 +506,7 @@ namespace Arc {
          it != renewable.end(); it++) {
       bool renewed = RenewJob(**it);
       if (!renewed) {
-        logger.msg(ERROR, "Failed renewing job %s", (*it)->JobID.str());
+        logger.msg(ERROR, "Failed renewing job %s", (*it)->JobID.fullstr());
         ok = false;
         continue;
       }
@@ -523,7 +523,7 @@ namespace Arc {
          it != jobstore.end(); it++) {
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -533,7 +533,7 @@ namespace Arc {
         continue;
 
       if (!it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.str());
+        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -545,7 +545,7 @@ namespace Arc {
          it != resumable.end(); it++) {
       bool resumed = ResumeJob(**it);
       if (!resumed) {
-        logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.str());
+        logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.fullstr());
         ok = false;
         continue;
       }
