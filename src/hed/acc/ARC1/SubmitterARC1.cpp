@@ -205,7 +205,7 @@ namespace Arc {
         }
       }
 
-      if (!it1->Sources.empty() && it1->Sources.front().Protocol() == "file" && Glib::file_test(it1->Sources.front().Path(), Glib::FILE_TEST_EXISTS)) {
+      if (!it1->Sources.empty() && it1->Sources.front().Protocol() == "file" && !Glib::file_test(it1->Sources.front().Path(), Glib::FILE_TEST_EXISTS)) {
         logger.msg(ERROR, "Cannot stat local input file %s", it1->Sources.front().Path());
         return false;
       }

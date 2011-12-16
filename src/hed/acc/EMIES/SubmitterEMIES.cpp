@@ -105,7 +105,7 @@ namespace Arc {
         releaseClient(et.url);
         return false;
       }
-      // If service jumped over stageable state client probably does not 
+      // If service jumped over stageable state client probably does not
       // have to send anything.
       if((jobstate.state != "ACCEPTED") && (jobstate.state != "PREPROCESSING")) break;
       sleep(5);
@@ -159,7 +159,7 @@ namespace Arc {
         }
       }
 
-      if (!it1->Sources.empty() && it1->Sources.front().Protocol() == "file" && Glib::file_test(it1->Sources.front().Path(), Glib::FILE_TEST_EXISTS)) {
+      if (!it1->Sources.empty() && it1->Sources.front().Protocol() == "file" && !Glib::file_test(it1->Sources.front().Path(), Glib::FILE_TEST_EXISTS)) {
         logger.msg(ERROR, "Cannot stat local input file %s", it1->Sources.front().Path());
         return false;
       }
