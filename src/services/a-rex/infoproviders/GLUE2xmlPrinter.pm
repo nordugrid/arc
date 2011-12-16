@@ -107,6 +107,11 @@ sub ComputingService {
         $self->ComputingEndpoints($data->{ComputingEndpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
+        if ($data->{ComputingActivities}) {
+            $self->begin('ComputingActivities');
+            $self->ComputingActivities($data->{ComputingActivities});
+            $self->end('ComputingActivities');
+        }
         $self->ToStorageServices($data->{ToStorageServices});
         if ($data->{ServiceID}) {
             $self->begin('Associations');
