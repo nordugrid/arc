@@ -106,6 +106,7 @@ my $gmcommon_options = {
     shared_scratch => '*',
     scratchdir => '*',
     use_janitor => '*',
+    enable_emies_interface => '*',
 };
 my $ldap_infosys_options = {
     SlapdPort => '*',

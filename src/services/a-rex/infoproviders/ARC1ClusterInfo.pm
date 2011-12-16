@@ -607,7 +607,12 @@ sub collect($) {
     
     # The following is for EMI-ES
     my $emieshostport = '';
-    # check for emi-es goes here. Disabled by now
+    if ($config->{emieshostport}) {
+        $emieshostport = $config->{emieshostport};
+    };
+    if ($arexhostport eq '') {
+        $emieshostport = '';
+    };
 
     # The following is for the Stagein interface
     my $stageinhostport = '';
@@ -619,7 +624,7 @@ sub collect($) {
     my $cmgrID = "urn:ogf:ComputingManager:$servicename"; # ComputingManager ID
     my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:gsiftp:$gridftphostport"; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID = "urn:ogf:ComputingEndpoint:$arexhostport"; # ARCWSComputingEndpoint ID
-    my $EMIEScepID = "urn:ogf:ComputingEndpoint:$emieshostport"; # EMIESComputingEndpoint ID
+    my $EMIEScepID = "urn:ogf:ComputingEndpoint:emies:$emieshostport"; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$stageinhostport"; # StageinComputingEndpoint ID
     my $cactIDp = "urn:ogf:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$servicename"; # ComputingShare ID prefix
@@ -1005,7 +1010,7 @@ sub collect($) {
         $cep->{ID} = $EMIEScepID;
 
         # Name not necessary -- why? added back
-        $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
+        $cep->{Name} = "EMI ES submission, delegation, information interface";
 
         # OBS: ideally HED should be asked for the URL
         #$cep->{URL} = $config->{endpoint};

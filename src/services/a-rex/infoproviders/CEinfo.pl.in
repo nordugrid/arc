@@ -388,6 +388,11 @@ sub fix_config {
         $config->{arexhostport} = "$hostname:443";
         $log->warning("Config option endpoint (or arex_mount_point) is missing or not a valid URL. Assuming: ".$config->{endpoint});
     }
+    if ($config->{enable_emies_interface} and $config->{enable_emies_interface} = "yes") {
+        if ($config->{arexhostport}) {
+            $config->{emieshostport} = $config->{arexhostport};
+        }
+    }
 
     # Cross-check MappingPolicy references and move them to the share wehre they belong
     for my $s (@{$config->{mappingpolicies}}) {
