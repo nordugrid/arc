@@ -162,6 +162,9 @@ class Scheduler: public DTRCallback {
      */
     bool handle_mapped_source(DTR* request, Arc::URL& mapped_url);
 
+    /// Thread method for dumping state
+    static void dump_thread(void* arg);
+
     /// Static version of main_thread, used when thread is created
     static void main_thread(void* arg);
     /// Main thread, which runs until stopped

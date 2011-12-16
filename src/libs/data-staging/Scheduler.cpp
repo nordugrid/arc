@@ -968,6 +968,15 @@ namespace DataStaging {
     return true;
   }
 
+  void Scheduler::dump_thread(void* arg) {
+    Scheduler* sched = (Scheduler*)arg;
+    while (sched->scheduler_state != STOPPED && !sched->dumplocation.empty()) {
+      // every second, dump state
+      sched->DtrList.dumpState(sched->dumplocation);
+      Glib::usleep(1000000);
+    }
+  }
+
   bool Scheduler::stop() {
     if(scheduler_state != RUNNING) return false;
 
@@ -1004,12 +1013,14 @@ namespace DataStaging {
       else logger.msg(Arc::INFO, "  Delivery service: %s", i->str());
     }
 
+    // Start thread dumping DTR state
+    if (!Arc::CreateThreadFunction(&dump_thread, this))
+      logger.msg(Arc::ERROR, "Failed to create DTR dump thread");
+
     // Disconnect from root logger so that messages are logged to per-DTR Logger
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
 
-    // flag to say when to dump state
-    bool dump = true;
     while(scheduler_state != TO_STOP || !DtrList.all_dtrs().empty()) {
       // first check for cancelled jobs
       cancelled_jobs_lock.lock();
@@ -1030,17 +1041,8 @@ namespace DataStaging {
       // Revise all the internal queues and take actions
       revise_queues();
 
-      // every 5 seconds, dump state
-      if (!dumplocation.empty() && Arc::Time().GetTime() % 5 == 0) {
-        if (dump) {
-          DtrList.dumpState(dumplocation);
-          dump = false;
-        }
-      } else
-        dump = true;
       Glib::usleep(50000);
     }
-    DtrList.dumpState(dumplocation);
     logger.msg(Arc::INFO, "Scheduler loop exited");
     run_signal.signal();
   }
