@@ -16,9 +16,8 @@ namespace Arc {
                        const std::string& service, ServiceType st);
   public:
     ~TargetRetrieverBES();
-    void GetTargets(TargetGenerator& mom, int targetType, int detailLevel) {}
-    void GetExecutionTargets(TargetGenerator& mom);
-    void GetJobs(TargetGenerator& mom) {}
+    virtual void GetExecutionTargets(TargetGenerator& mom);
+    virtual void GetJobs(TargetGenerator& mom) {}
     static Plugin* Instance(PluginArgument *arg);
 
   private:
