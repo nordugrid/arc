@@ -125,6 +125,29 @@ namespace Arc {
     return inttostr((unsigned long long)t,base,width);
   }
 
+  /// Convert bool to textual representation, i.e. "true" or "false".
+  inline std::string booltostr(bool b) {
+    return b ? "true" : "false";
+  }
+
+  /// Convert string to bool.
+  /// Simply checks string if equal to "true" or "1".
+  inline bool strtobool(const std::string& s) {
+    return s == "true" || s == "1";
+  }
+
+  /// Convert string to bool
+  /// Checks whether string is equal to one of "true", "false", "1" or "0", and
+  /// if not returns false. If equal, true is returned and the bool reference is
+  /// set to true, if string equals "true" or "1", otherwise it is set to false.
+  inline bool strtobool(const std::string& s, bool& b) {
+    if (s == "true" || s == "1" || s == "false" || s == "0") {
+      b = (s == "true" || s == "1");
+      return true;
+    }
+    return false;
+  }
+
   /// This method converts to lower case of the string
   std::string lower(const std::string& s);
 
