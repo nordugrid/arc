@@ -406,6 +406,12 @@ namespace Arc {
       UseIfFailure(false),
       UseIfCancel(false),
       UseIfSuccess(true) {};
+    TargetType(const std::string& s) :
+      URL(s),
+      CreationFlag(CFE_DEFAULT),
+      UseIfFailure(false),
+      UseIfCancel(false),
+      UseIfSuccess(true) {};
     std::string DelegationID;
     enum CreationFlagEnumeration {
       CFE_DEFAULT,
