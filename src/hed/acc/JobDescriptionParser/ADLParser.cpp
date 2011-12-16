@@ -29,46 +29,21 @@ namespace Arc {
     return new ADLParser();
   }
 
-  static bool IsOptional(XMLNode el) {
-    XMLNode optional = el.Attribute("optional");
-    if(!optional) return false;
-    std::string v = optional;
-    if(v == "true") return true;
-    if(v == "1") return true;
-    return false;
-  }
-
-  static bool ParseOptional(XMLNode el, Logger& logger) {
+  static bool ParseOptional(XMLNode el, bool& val, Logger& logger) {
     XMLNode optional = el.Attribute("optional");
     if(!optional) return true;
-    std::string v = optional;
-    if(v == "false") return true;
-    if(v == "0") return true;
+    if (strtobool((std::string)optional, val)) {
+      return true;
+    }
     logger.msg(ERROR, "[ADLParser] Optional for %s elements are not supported yet.", el.Name());
     return false;
   }
 
-  //static bool ParseFlagTrue(XMLNode el, Logger& logger) {
-  //  if(!el) return true;
-  //  std::string v = el;
-  //  if((v != "false") && (v != "0")) return true;
-  //  logger.msg(ERROR, "[ADLParser] %s element with false value is not supported yet.", el.Name());
-  //  return false;
-  //}
-
-  //static bool ParseFlagFalse(XMLNode el, Logger& logger) {
-  //  if(!el) return true;
-  //  std::string v = el;
-  //  if((v == "false") || (v == "0")) return true;
-  //  logger.msg(ERROR, "[ADLParser] %s element with true value is not supported yet.", el.Name());
-  //  return false;
-  //}
-
-  static bool ParseFlag(XMLNode el, Logger& logger, bool& val) {
+  static bool ParseFlag(XMLNode el, bool& val, Logger& logger) {
     if(!el) return true;
-    std::string v = el;
-    if((v == "false") || (v == "0")) { val = false; return true; }
-    if((v == "true") || (v == "1")) { val = true; return true; }
+    if (strtobool((std::string)el, val)) {
+      return true;
+    }
     logger.msg(ERROR, "[ADLParser] %s element must be boolean.", el.Name());
     return false;
   }
@@ -379,13 +354,17 @@ namespace Arc {
         job.Application.RemoteLogging.push_back(RemoteLoggingType());
         job.Application.RemoteLogging.back().ServiceType = (std::string)logging["adl:ServiceType"];
         job.Application.RemoteLogging.back().Location    = (std::string)logging["adl:URL"];
-        job.Application.RemoteLogging.back().optional    = IsOptional(logging);
+        if (!ParseOptional(logging, job.Application.RemoteLogging.back().optional, logger)) {
+          jobdescs.clear();
+          return false;
+        }
       }
       XMLNode expire =  application["adl:ExpirationTime"];
       if((bool)expire) {
         job.Application.ExpiryTime = (std::string)expire;
         // TODO: check validity
-        if(!ParseOptional(expire,logger)) {
+        bool b;
+        if(!ParseOptional(expire,b,logger)) {
           jobdescs.clear();
           return false;
         }
@@ -394,7 +373,8 @@ namespace Arc {
       if((bool)wipe) {
         job.Resources.SessionLifeTime = (std::string)wipe;
         // TODO: check validity
-        if(!ParseOptional(wipe,logger)) {
+        bool b;
+        if(!ParseOptional(wipe,b,logger)) {
           jobdescs.clear();
           return false;
         }
@@ -433,7 +413,8 @@ namespace Arc {
         for(XMLNode o = rte["adl:Option"];(bool)o;++o) {
           rte_.addOption((std::string)o);
         }
-        if(!ParseOptional(rte,logger)) {
+        bool b;
+        if(!ParseOptional(rte,b,logger)) {
           jobdescs.clear();
           return false;
         }
@@ -470,10 +451,13 @@ namespace Arc {
       XMLNode coprocessor = resources["adl:Coprocessor"];
       if((bool)coprocessor && !((std::string)coprocessor).empty()) {
         job.Resources.Coprocessor = coprocessor;
-        job.Resources.Coprocessor.optIn = IsOptional(coprocessor);
+        if (!ParseOptional(coprocessor, job.Resources.Coprocessor.optIn, logger)) {
+          jobdescs.clear();
+          return false;
+        }
       }
       XMLNode netinfo = resources["adl:NetworkInfo"];
-      if(((bool)netinfo) && (!IsOptional(netinfo))) {
+      if(((bool)netinfo)) {
         logger.msg(ERROR, "[ADLParser] NetworkInfo is not supported yet.");
         jobdescs.clear();
         return false;
@@ -560,7 +544,7 @@ namespace Arc {
       }
       if((bool)resources["adl:RemoteSessionAccess"]) {
         bool v = false;
-        if(!ParseFlag(resources["adl:RemoteSessionAccess"],logger,v)) {
+        if(!ParseFlag(resources["adl:RemoteSessionAccess"],v,logger)) {
           jobdescs.clear();
           return false;
         }
@@ -574,7 +558,7 @@ namespace Arc {
     }
     if((bool)staging) {
       bool clientpush = false;
-      if(!ParseFlag(staging["adl:ClientDataPush"],logger,clientpush)) {
+      if(!ParseFlag(staging["adl:ClientDataPush"],clientpush,logger)) {
         jobdescs.clear();
         return false;
       }
@@ -637,13 +621,13 @@ namespace Arc {
             };
           }
           bool mandatory = false;
-          if(!ParseFlag(target["adl:Mandatory"],logger,mandatory)) {
+          if(!ParseFlag(target["adl:Mandatory"],mandatory,logger)) {
             jobdescs.clear();
             return false;
           }
-          if((!ParseFlag(target["adl:UseIfFailure"],logger,turl.UseIfFailure)) ||
-             (!ParseFlag(target["adl:UseIfCancel"],logger,turl.UseIfCancel)) ||
-             (!ParseFlag(target["adl:UseIfSuccess"],logger,turl.UseIfSuccess))) {
+          if((!ParseFlag(target["adl:UseIfFailure"],turl.UseIfFailure,logger)) ||
+             (!ParseFlag(target["adl:UseIfCancel"],turl.UseIfCancel,logger)) ||
+             (!ParseFlag(target["adl:UseIfSuccess"],turl.UseIfSuccess,logger))) {
             jobdescs.clear();
             return false;
           }
