@@ -24,7 +24,9 @@ namespace Arc {
     // directly or ComputingService objects are immediate children of it.
     // On exit targets contains ExecutionTarget objects found inside glue2tree.
     // If targets contained any objects on entry those are not destroyed.
-    static void ParseExecutionTargets(XMLNode glue2tree, std::list<ExecutionTarget>& targets);
+    // If interface is specified only services with specified interface are
+    // returned in targets and corresponding Endpoint is used to fill information.
+    static void ParseExecutionTargets(XMLNode glue2tree, std::list<ExecutionTarget>& targets, const std::string& interface = "");
   private:
     static Logger logger;
   };

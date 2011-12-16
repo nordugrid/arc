@@ -12,7 +12,7 @@ namespace Arc {
 
   Logger GLUE2::logger(Logger::getRootLogger(), "GLUE2");
 
-  void GLUE2::ParseExecutionTargets(XMLNode glue2tree, std::list<ExecutionTarget>& targets) {
+  void GLUE2::ParseExecutionTargets(XMLNode glue2tree, std::list<ExecutionTarget>& targets,const std::string& interface) {
 
     XMLNode GLUEService = glue2tree;
     if(GLUEService.Name() != "ComputingService") {
@@ -20,11 +20,22 @@ namespace Arc {
     }
 
     for (; GLUEService; ++GLUEService) {
-      targets.push_back(ExecutionTarget());
-
-      logger.msg(VERBOSE, "Generating EMIES target: %s", targets.back().Cluster.str());
 
       XMLNode ComputingEndpoint = GLUEService["ComputingEndpoint"];
+      if(!interface.empty()) {
+        for(;(bool)ComputingEndpoint;++ComputingEndpoint) {
+          if((ComputingEndpoint["InterfaceName"] == interface) ||
+             (ComputingEndpoint["Interface"] == interface)) break;
+        }
+        if(!ComputingEndpoint) {
+          continue;
+        }
+      }
+
+      targets.push_back(ExecutionTarget());
+
+      logger.msg(VERBOSE, "Generating computing target: %s", targets.back().Cluster.str());
+
       if (ComputingEndpoint["HealthState"]) {
         targets.back().HealthState = (std::string)ComputingEndpoint["HealthState"];
       } else {

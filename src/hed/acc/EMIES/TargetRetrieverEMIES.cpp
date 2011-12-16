@@ -179,13 +179,13 @@ namespace Arc {
   void TargetRetrieverEMIES::ExtractTargets(const URL& url, XMLNode response, std::list<ExecutionTarget>& targets) {
     targets.clear();
     logger.msg(VERBOSE, "Generating EMIES targets");
-    GLUE2::ParseExecutionTargets(response, targets);
+    GLUE2::ParseExecutionTargets(response, targets, "EMI-ES");
     for(std::list<ExecutionTarget>::iterator target = targets.begin();
                            target != targets.end(); ++target) {
       if(target->GridFlavour.empty()) target->GridFlavour = "EMIES"; // ?
       if(!(target->Cluster)) target->Cluster = url;
       if(!(target->url)) target->url = url;
-      if(target->InterfaceName.empty()) target->InterfaceName = "EMIES";
+      if(target->InterfaceName.empty()) target->InterfaceName = "EMI-ES";
       if(target->DomainName.empty()) target->DomainName = url.Host();
       logger.msg(VERBOSE, "Generated EMIES target: %s", target->Cluster.str());
     }

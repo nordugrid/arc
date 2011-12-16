@@ -267,6 +267,14 @@ namespace Arc {
       logger.msg(VERBOSE, "Generating A-REX target: %s", targets.back().Cluster.str());
 
       XMLNode ComputingEndpoint = GLUEService["ComputingEndpoint"];
+      for(;(bool)ComputingEndpoint;++ComputingEndpoint) {
+        if((ComputingEndpoint["InterfaceName"] == "XBES") ||
+           (ComputingEndpoint["InterfaceName"] == "BES") ||
+           (ComputingEndpoint["Interface"] == "XBES") ||
+           (ComputingEndpoint["Interface"] == "BES")) {
+          break;
+        };
+      }
       if (ComputingEndpoint["HealthState"]) {
         targets.back().HealthState = (std::string)ComputingEndpoint["HealthState"];
       } else {
