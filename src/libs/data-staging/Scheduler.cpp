@@ -975,6 +975,8 @@ namespace DataStaging {
       sched->DtrList.dumpState(sched->dumplocation);
       Glib::usleep(1000000);
     }
+    // make sure final state is dumped before exit
+    sched->DtrList.dumpState(sched->dumplocation);
   }
 
   bool Scheduler::stop() {
