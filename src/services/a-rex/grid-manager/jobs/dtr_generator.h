@@ -59,6 +59,8 @@ class DTRGenerator: public DataStaging::DTRCallback {
   DataStaging::ProcessState generator_state;
   /** Job users. Map of UID to JobUser pointer, used to map a DTR or job to a JobUser. */
   std::map<uid_t, const JobUser*> jobusers;
+  /** A list of files left mid-transfer from a previous process */
+  std::list<std::string> recovered_files;
   /** logger to a-rex log */
   static Arc::Logger logger;
   /** Associated scheduler */
@@ -89,6 +91,9 @@ class DTRGenerator: public DataStaging::DTRCallback {
   bool processReceivedJob(const JobDescription& job);
   /** Process a cancelled job */
   bool processCancelledJob(const std::string& jobid);
+
+  /** Read in state left from previous process and fill recovered_files */
+  void readDTRState(const std::string& dtr_log);
 
   /** Check that user-uploadable file exists.
    * Returns 0 - if file exists

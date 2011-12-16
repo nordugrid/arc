@@ -66,7 +66,7 @@ void get_new_data_staging_shares(const std::string& control_dir,
   for (std::list<std::string>::iterator line = data.begin(); line != data.end(); ++line) {
     std::vector<std::string> entries;
     Arc::tokenize(*line, entries, " ");
-    if (entries.size() != 4) continue;
+    if (entries.size() != 4 || entries.size() != 5) continue;
 
     std::string state = entries[1];
     std::string share = entries[3];

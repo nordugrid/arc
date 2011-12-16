@@ -219,7 +219,12 @@ namespace DataStaging {
       data += (*it)->get_id() + " " +
               (*it)->get_status().str() + " " +
               Arc::tostring((*it)->get_priority()) + " " +
-              (*it)->get_transfer_share() + "\n";
+              (*it)->get_transfer_share();
+      // add destination for recovery after crash
+      if ((*it)->get_status() == DTRStatus::TRANSFERRING || (*it)->get_status() == DTRStatus::TRANSFER) {
+        data += " " + (*it)->get_destination()->CurrentLocation().fullstr();
+      }
+      data += "\n";
     }
     Lock.unlock();
 

@@ -105,15 +105,16 @@ DTRGenerator::DTRGenerator(const JobUsers& users,
     jobusers[i->get_uid()] = &(*i);
   }
 
-  // TODO: Read DTRstate.log to note any transfers stopped half-way
-  // If those destinations appear again, add overwrite=yes
-
   // Convert A-REX configuration values to DTR configuration
 
   // If not configured, set the DTR dump file to the first control dir registered
   std::string dtr_log(staging_conf.dtr_log);
   if (dtr_log.empty() && !jobusers.empty()) dtr_log = jobusers.begin()->second->ControlDir()+"/dtrstate.log";
   scheduler.SetDumpLocation(dtr_log);
+
+  // Read DTR state from previous dump to find any transfers stopped half-way
+  // If those destinations appear again, add overwrite=yes
+  readDTRState(dtr_log);
 
   // Processing limits
   scheduler.SetSlots(staging_conf.max_processor,
@@ -725,12 +726,28 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     std::string destination;
     if (job.get_state() == JOB_STATE_PREPARING) {
       source = i->lfn;
-      destination = "file://" + job.SessionDir() + i->pfn;
+      destination = "file:" + job.SessionDir() + i->pfn;
     }
     else {
-      source = "file://" + job.SessionDir() + i->pfn;
+      source = "file:" + job.SessionDir() + i->pfn;
       destination = i->lfn;
     }
+    // Check if this file was recovered from a crash, if so add overwrite option
+    for (std::list<std::string>::iterator file = recovered_files.begin(); file != recovered_files.end();) {
+      if (*file == destination) {
+        logger.msg(Arc::WARNING, "%s: Destination file %s was possibly left unfinished"
+            " from previous A-REX run, will overwrite", jobid, destination);
+        Arc::URL u(destination);
+        if (u) {
+          u.AddOption("overwrite=yes", true);
+          destination = u.fullstr();
+        }
+        file = recovered_files.erase(file);
+      } else {
+        ++file;
+      }
+    }
+
     if(!i->cred.empty()) {
       usercfg.ProxyPath(i->cred);
     } else {
@@ -986,3 +1003,23 @@ int DTRGenerator::user_file_exists(FileData &dt,
   return 0; // all checks passed - file is ok
 }
 
+void DTRGenerator::readDTRState(const std::string& dtr_log) {
+
+  std::list<std::string> lines;
+  // file may not exist if this is the first use of DTR
+  if (!Arc::FileRead(dtr_log, lines)) return;
+
+  if (!lines.empty()) {
+    logger.msg(Arc::WARNING, "Found unfinished DTR transfers. It is possible the "
+        "previous A-REX process did not shut down normally");
+  }
+  for (std::list<std::string>::iterator line = lines.begin(); line != lines.end(); ++line) {
+    std::vector<std::string> fields;
+    Arc::tokenize(*line, fields);
+    if (fields.size() == 5 && (fields.at(1) == "TRANSFERRING" || fields.at(1) == "TRANSFER")) {
+      logger.msg(Arc::VERBOSE, "Found DTR %s for file %s left in transferring state from previous run",
+                 fields.at(0), fields.at(4));
+      recovered_files.push_back(fields.at(4));
+    }
+  }
+}
