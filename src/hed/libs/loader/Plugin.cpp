@@ -20,9 +20,22 @@ namespace Arc {
     return s;
   }
 
+  static bool issane(const char* s) {
+    if(!s) return true;
+    for(unsigned int n = 0;n<2048;++n) {
+      if(!s[n]) return true;
+    }
+    return false;
+  }
+
   static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,int min_version,int max_version) {
     if(!desc) return NULL;
-    for(;(desc->kind) && (desc->name);++desc) {
+    unsigned int sane_count = 1024;
+    for(;(desc->kind) && (desc->name) && (desc->instance);++desc) {
+      if(--sane_count == 0) break;
+      if(!issane(desc->kind)) break;
+      if(!issane(desc->name)) break;
+      if(!issane(desc->description)) break;
       if((kind == desc->kind) || (kind.empty())) {
         if((min_version <= desc->version) && (max_version >= desc->version)) {
           if(desc->instance) return desc;
@@ -34,7 +47,12 @@ namespace Arc {
 
   static PluginDescriptor* find_constructor(PluginDescriptor* desc,const std::string& kind,const std::string& name,int min_version,int max_version) {
     if(!desc) return NULL;
-    for(;(desc->kind) && (desc->name);++desc) {
+    unsigned int sane_count = 1024;
+    for(;(desc->kind) && (desc->name) && (desc->instance);++desc) {
+      if(--sane_count == 0) break;
+      if(!issane(desc->kind)) break;
+      if(!issane(desc->name)) break;
+      if(!issane(desc->description)) break;
       if(((kind == desc->kind) || (kind.empty())) &&
          ((name == desc->name) || (name.empty()))) {
         if((min_version <= desc->version) && (max_version >= desc->version)) {
@@ -538,11 +556,21 @@ namespace Arc {
       unload_module(module,*this);
       return false;
     };
-    for(;(d->kind) && (d->name);++d) {
+    unsigned int sane_count = 1024;
+    for(;(d->kind) && (d->name) && (d->instance);++d) {
+      // Checking sanity of record to deal with broken 
+      // plugins.
+      if((--sane_count == 0) ||
+         (!issane(d->name)) ||
+         (!issane(d->kind)) ||
+         (!issane(d->description))) {
+        unload_module(module,*this);
+        return false;
+      };
       PluginDesc pd;
       pd.name = d->name;
       pd.kind = d->kind;
-      pd.description = d->description;
+      if(d->description) pd.description = d->description;
       pd.version = d->version;
       desc.plugins.push_back(pd);
     };
@@ -569,11 +597,11 @@ namespace Arc {
       if(!d) continue;
       ModuleDesc md;
       md.name = ds->first;
-      for(;(d->kind) && (d->name);++d) {
+      for(;(d->kind) && (d->name) && (d->instance);++d) {
         PluginDesc pd;
         pd.name = d->name;
         pd.kind = d->kind;
-        pd.description = d->description;
+        if(d->description) pd.description = d->description;
         pd.version = d->version;
         md.plugins.push_back(pd);
       };
