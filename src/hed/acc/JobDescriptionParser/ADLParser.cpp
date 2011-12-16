@@ -559,9 +559,12 @@ namespace Arc {
         job.Resources.DiskSpaceRequirement.DiskSpace.min /= 1024*1024; // TODO: round
       }
       if((bool)resources["adl:RemoteSessionAccess"]) {
-        logger.msg(ERROR, "[ADLParser] RemoteSessionAccess is not supported yet.");
-        jobdescs.clear();
-        return false;
+        bool v = false;
+        if(!ParseFlag(resources["adl:RemoteSessionAccess"],logger,v)) {
+          jobdescs.clear();
+          return false;
+        }
+        job.Resources.SessionDirectoryAccess = v?SDAM_RW:SDAM_NONE;
       }
       if((bool)resources["adl:Benchmark"]) {
         logger.msg(ERROR, "[ADLParser] Benchmark is not supported yet.");
