@@ -1022,12 +1022,12 @@ sub collect($) {
         # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
         # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
         #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
-        $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
+        $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
         # Wrong type, should be URI
         $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
                     "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
                       ];
-        #$cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
+        $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
         $cep->{Implementor} = "EMI";
         $cep->{ImplementationName} = "EMI-ES";
         $cep->{ImplementationVersion} = 'emiversion';
