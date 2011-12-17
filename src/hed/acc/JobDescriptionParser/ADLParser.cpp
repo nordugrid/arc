@@ -652,6 +652,7 @@ namespace Arc {
   }
 
   static void generateExecutableTypeElement(XMLNode element, const ExecutableType& exec) {
+    if(exec.Path.empty()) return;
     element.NewChild("Path") = exec.Path;
     for(std::list<std::string>::const_iterator it = exec.Argument.begin();
         it != exec.Argument.end(); ++it) {
@@ -694,9 +695,7 @@ namespace Arc {
     }
 
     // Application
-    if (!job.Application.Executable.Path.empty()) {
-      generateExecutableTypeElement(application.NewChild("Executable"), job.Application.Executable);
-    }
+    generateExecutableTypeElement(application.NewChild("Executable"), job.Application.Executable);
     if(!job.Application.Input.empty()) application.NewChild("Input") = job.Application.Input;
     if(!job.Application.Output.empty()) application.NewChild("Output") = job.Application.Output;
     if(!job.Application.Error.empty()) application.NewChild("Error") = job.Application.Error;
@@ -708,26 +707,30 @@ namespace Arc {
     }
     for(std::list<ExecutableType>::const_iterator it = job.Application.PreExecutable.begin();
         it != job.Application.PreExecutable.end(); ++it) {
-      if (!it->Path.empty()) {
-        generateExecutableTypeElement(application.NewChild("PreExecutable"), *it);
-      }
+      generateExecutableTypeElement(application.NewChild("PreExecutable"), *it);
     }
     for(std::list<ExecutableType>::const_iterator it = job.Application.PostExecutable.begin();
         it != job.Application.PostExecutable.end(); ++it) {
-      if (!it->Path.empty()) {
-        generateExecutableTypeElement(application.NewChild("PostExecutable"), *it);
-      }
+      generateExecutableTypeElement(application.NewChild("PostExecutable"), *it);
     }
     if(!job.Application.LogDir.empty()) application.NewChild("LoggingDirectory") = job.Application.LogDir;
     for (std::list<RemoteLoggingType>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++) {
       XMLNode logging = application.NewChild("RemoteLogging");
       logging.NewChild("ServiceType") = it->ServiceType;
-      logging.NewChild("URL") = it->Location.str();
-      logging.NewAttribute("optional") = (it->optional ? "true" : "false");
+      logging.NewChild("URL") = it->Location.fullstr();
+      if(it->optional) logging.NewAttribute("optional") = "true";
     }
-    if(job.Application.ExpiryTime > -1) application.NewChild("ExpirationTime") = job.Application.ExpiryTime.str();
-    if(job.Resources.SessionLifeTime > -1) application.NewChild("WipeTime") = tostring(job.Resources.SessionLifeTime); // TODO: use ADL types
+    if(job.Application.ExpiryTime > -1) {
+      XMLNode expire = application.NewChild("ExpirationTime");
+      expire = job.Application.ExpiryTime.str();
+      //if() expire.NewAttribute("optional") = "true";
+    }
+    if(job.Resources.SessionLifeTime > -1) {
+      XMLNode wipe = application.NewChild("WipeTime");
+      wipe = tostring(job.Resources.SessionLifeTime); // TODO: use ADL types
+      //if() wipe.NewAttribute("optional") = "true";
+    }
     for (std::list<NotificationType>::const_iterator it = job.Application.Notification.begin();
          it != job.Application.Notification.end(); it++) {
       XMLNode notification = application.NewChild("Notification");
@@ -747,12 +750,14 @@ namespace Arc {
 
     // Resources
 
-    if(!job.Resources.OperatingSystem.empty()) {
+    for(std::list<Software>::const_iterator o =
+                            job.Resources.OperatingSystem.getSoftwareList().begin();
+                            o != job.Resources.OperatingSystem.getSoftwareList().end(); ++o) {
       XMLNode os = resources.NewChild("OperatingSystem");
-      os.NewChild("Name") = job.Resources.OperatingSystem.getSoftwareList().front().getName();
+      os.NewChild("Name") = o->getName();
       // TODO: convert to EMI ES types
       // OperatingSystem.Name, OperatingSystem.Family
-      os.NewChild("Version") = job.Resources.OperatingSystem.getSoftwareList().front().getVersion();
+      os.NewChild("Version") = o->getVersion();
     }
     if(!job.Resources.Platform.empty()) {
       // TODO: convert to EMI ES types
@@ -764,7 +769,11 @@ namespace Arc {
       XMLNode rte = resources.NewChild("RuntimeEnvironment");
       rte.NewChild("Name") = s->getName();
       rte.NewChild("Version") = s->getVersion();
-      //  Option
+      for(std::list<std::string>::const_iterator opt = s->getOptions().begin();
+                      opt != s->getOptions().end(); ++opt) {
+        rte.NewChild("Option") = *opt;
+      }
+      //if() rte.NewAttribute("optional") = "true";
     }
     {
       XMLNode xpe("<ParallelEnvironment/>");
@@ -794,9 +803,9 @@ namespace Arc {
     if(!((std::string)job.Resources.Coprocessor).empty()) {
       XMLNode coprocessor = resources.NewChild("Coprocessor");
       coprocessor = (std::string)job.Resources.Coprocessor;
-      coprocessor.NewAttribute("optional") = (job.Resources.Coprocessor.optIn ? "true" : "false");
+      if(job.Resources.Coprocessor.optIn) coprocessor.NewAttribute("optional") = "true";
     }
-    //NetworkInfo
+    //TODO: NetworkInfo
     switch(job.Resources.NodeAccess) {
       case NAT_INBOUND: resources.NewChild("NodeAccess") = "inbound"; break;
       case NAT_OUTBOUND: resources.NewChild("NodeAccess") = "outbound"; break;
@@ -812,7 +821,11 @@ namespace Arc {
     if(job.Resources.DiskSpaceRequirement.DiskSpace.min > -1) {
       resources.NewChild("DiskSpaceRequirement") = tostring(job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024); // TODO: adapt units to ADL
     }
-    //RemoteSessionAccess
+    switch(job.Resources.SessionDirectoryAccess) {
+      case SDAM_RW: resources.NewChild("RemoteSessionAccess") = "true"; break;
+      case SDAM_RO: resources.NewChild("RemoteSessionAccess") = "true"; break; // approximately
+      default: break;
+    }
     //Benchmark
     //  BenchmarkType
     //  BenchmarkValue
@@ -822,6 +835,11 @@ namespace Arc {
     }
     if (job.Resources.SlotRequirement.SlotsPerHost > -1) {
       slot.NewChild("SlotsPerHost") = tostring(job.Resources.SlotRequirement.SlotsPerHost);
+    }
+    switch(job.Resources.SlotRequirement.ExclusiveExecution) {
+      case SlotRequirementType::EE_TRUE: slot.NewChild("ExclusiveExecution") = "true"; break;
+      case SlotRequirementType::EE_FALSE: slot.NewChild("ExclusiveExecution") = "false"; break;
+      default: break;
     }
     if(slot.Size() <= 0) slot.Destroy();
     if(!job.Resources.QueueName.empty()) {;
@@ -860,6 +878,7 @@ namespace Arc {
       }
       XMLNode file = staging.NewChild("InputFile");
       file.NewChild("Name") = it->Name;
+      if(it->IsExecutable) file.NewChild("IsExecutable") = "true";
       for(std::list<SourceType>::const_iterator u = it->Sources.begin();
           u != it->Sources.end(); ++u) {
         if(!*u) continue; // mandatory
