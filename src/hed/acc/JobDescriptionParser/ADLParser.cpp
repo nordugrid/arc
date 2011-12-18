@@ -29,6 +29,56 @@ namespace Arc {
     return new ADLParser();
   }
 
+  //  EMI state             ARC state
+  // ACCEPTED              ACCEPTED
+  // PREPROCESSING         PREPARING
+  //                       SUBMIT
+  // PROCESSING            INLRMS
+  // PROCESSING-ACCEPTING
+  // PROCESSING-QUEUED
+  // PROCESSING-RUNNING
+  //                       CANCELING
+  // POSTPROCESSING        FINISHING
+  // TERMINAL              FINISHED
+  //                       DELETED
+  static std::string ADLStateToInternal(const std::string& s, bool optional, Logger& logger) {
+   if(s == "ACCEPTED") {
+      return "ACCEPTED";
+    } else if(s == "PREPROCESSING") {
+      return "PREPARING";
+    } else if(s == "PROCESSING") {
+      return "INLRMS";
+    } else if(s == "PROCESSING-ACCEPTING") {
+    } else if(s == "PROCESSING-QUEUED") {
+    } else if(s == "PROCESSING-RUNNING") {
+    } else if(s == "POSTPROCESSING") {
+      return "FINISHING";
+    } else if(s == "TERMINAL") {
+      return "FINISHED";
+    };
+    logger.msg(optional?WARNING:ERROR, "[ADLParser] Unsupported EMI ES state %s.",s);
+    return "";
+  }
+
+  static std::string InternalStateToADL(const std::string& s, bool optional, Logger& logger) {
+    if(s == "ACCEPTED") {
+    } else if(s == "") {
+      return "ACCEPTED";
+    } else if(s == "PREPARING") {
+      return "PREPROCESSING";
+    } else if(s == "SUBMIT") {
+    } else if(s == "INLRMS") {
+      return "PROCESSING";
+    } else if(s == "CANCELING") {
+    } else if(s == "FINISHING") {
+      return "POSTPROCESSING";
+    } else if(s == "FINISHED") {
+      return "TERMINAL";
+    } else if(s == "DELETED") {
+    }
+    logger.msg(optional?WARNING:ERROR, "[ADLParser] Unsupported internal state %s.",s);
+  }
+
   static bool ParseOptional(XMLNode el, bool& val, Logger& logger) {
     XMLNode optional = el.Attribute("optional");
     if(!optional) return true;
@@ -361,36 +411,63 @@ namespace Arc {
       }
       XMLNode expire =  application["adl:ExpirationTime"];
       if((bool)expire) {
-        job.Application.ExpiryTime = (std::string)expire;
-        // TODO: check validity
         bool b;
         if(!ParseOptional(expire,b,logger)) {
           jobdescs.clear();
           return false;
         }
+        job.Application.ExpiryTime = (std::string)expire;
+        if(job.Application.ExpiryTime.GetTime() == (time_t)(-1)) {
+          logger.msg(b?WARNING:ERROR, "[ADLParser] Wrong time %s in ExpirationTime.",(std::string)expire);
+          if(!b) {
+            jobdescs.clear();
+            return false;
+          }
+        }
       }
       XMLNode wipe =  application["adl:WipeTime"];
       if((bool)wipe) {
         job.Resources.SessionLifeTime = (std::string)wipe;
-        // TODO: check validity
+        // TODO: check validity. Do it after type is clarified.
         bool b;
         if(!ParseOptional(wipe,b,logger)) {
           jobdescs.clear();
           return false;
         }
       }
+      // Notification
+      //   *optional
+      //   Protocol 1-1 [email]
+      //   Recipient 1-
+      //   OnState 0-
       for(XMLNode notify = application["adl:Notification"];
                                (bool)notify;++notify) {
-        // TODO: check and pack
-        if((std::string)notify["adl:Protocol"] != "email") {
-          logger.msg(ERROR, "[ADLParser] Only email Prorocol for Notification is supported yet.");
+        bool b;
+        if(!ParseOptional(expire,b,logger)) {
           jobdescs.clear();
           return false;
         }
-        std::string state = notify["adl:OnState"]; // TODO: convert from EMI ES states
+        if((std::string)notify["adl:Protocol"] != "email") {
+          if(!b) {
+            logger.msg(ERROR, "[ADLParser] Only email Prorocol for Notification is supported yet.");
+            jobdescs.clear();
+            return false;
+          }
+          logger.msg(WARNING, "[ADLParser] Only email Prorocol for Notification is supported yet.");
+          continue;
+        }
+        NotificationType n;
+        for(XMLNode onstate = notify["adl:OnState"];(bool)onstate;++onstate) {
+          std::string s = ADLStateToInternal((std::string)onstate,b,logger);
+          if(s.empty()) {
+            if(!b) {
+              jobdescs.clear();
+              return false;
+            }
+          }
+          n.States.push_back(s);
+        }
         for(XMLNode rcpt = notify["adl:Recipient"];(bool)rcpt;++rcpt) {
-          NotificationType n;
-          n.States.push_back(state);
           n.Email = (std::string)rcpt;
           job.Application.Notification.push_back(n);
         }
@@ -399,13 +476,13 @@ namespace Arc {
     if((bool)resources) {
       XMLNode os = resources["adl:OperatingSystem"];
       if((bool)os) {
-        // TODO: convert from EMI ES types
+        // TODO: convert from EMI ES types. So far they look similar.
         Software os_((std::string)os["adl:Family"],(std::string)os["adl:Name"],(std::string)os["adl:Version"]);
         job.Resources.OperatingSystem.add(os_);
       }
       XMLNode platform = resources["adl:Platform"];
       if((bool)platform) {
-        // TODO: convert from EMI ES types
+        // TODO: convert from EMI ES types. So far they look similar.
         job.Resources.Platform = (std::string)platform;
       }
       for(XMLNode rte = resources["adl:RuntimeEnvironment"];(bool)rte;++rte) {
@@ -535,12 +612,13 @@ namespace Arc {
       }
       memory = resources["adl:DiskSpaceRequirement"];
       if((bool)memory) {
-        if(!stringto((std::string)memory,job.Resources.DiskSpaceRequirement.DiskSpace.min)) {
+        unsigned long long int v = 0;
+        if((!stringto((std::string)memory,v)) || (v == 0)) {
           logger.msg(ERROR, "[ADLParser] Missing or wrong value in DiskSpaceRequirement.");
           jobdescs.clear();
           return false;
         }
-        job.Resources.DiskSpaceRequirement.DiskSpace.min /= 1024*1024; // TODO: round
+        job.Resources.DiskSpaceRequirement.DiskSpace.min = (v - 1) / 1024*1024 + 1;
       }
       if((bool)resources["adl:RemoteSessionAccess"]) {
         bool v = false;
@@ -593,7 +671,7 @@ namespace Arc {
           }
           file.Sources.push_back(surl);
         }
-        // TODO: FileSize
+        // TODO: FileSize and Checksum. Probably not useful for HTTP-like interfaces anyway.
         job.DataStaging.InputFiles.push_back(file);
       }
       for(XMLNode output = staging["adl:OutputFile"];(bool)output;++output) {
@@ -728,7 +806,8 @@ namespace Arc {
     }
     if(job.Resources.SessionLifeTime > -1) {
       XMLNode wipe = application.NewChild("WipeTime");
-      wipe = tostring(job.Resources.SessionLifeTime); // TODO: use ADL types
+      // TODO: ask for type change from dateTime to period.
+      wipe = (std::string)job.Resources.SessionLifeTime;
       //if() wipe.NewAttribute("optional") = "true";
     }
     for (std::list<NotificationType>::const_iterator it = job.Application.Notification.begin();
@@ -738,29 +817,31 @@ namespace Arc {
       notification.NewChild("Recipient") = it->Email;
       for (std::list<std::string>::const_iterator s = it->States.begin();
                   s != it->States.end(); s++) {
-        notification.NewChild("OnState") = *s; // TODO: convert to EMI ES states
-      }
-    }
-    // job.Application.Rerun
-    // job.Application.Priority
-    // job.Application.ProcessingStartTime
-    // job.Application.AccessControl
-    // job.Application.CredentialService
-    // job.Application.DryRun
+        std::string st = InternalStateToADL(*s,false,logger);
+		if(st.empty()) continue; // return false; TODO later
+		notification.NewChild("OnState") = st;
+	      }
+	    }
+	    // job.Application.Rerun
+	    // job.Application.Priority
+	    // job.Application.ProcessingStartTime
+	    // job.Application.AccessControl
+	    // job.Application.CredentialService
+	    // job.Application.DryRun
 
-    // Resources
+	    // Resources
 
-    for(std::list<Software>::const_iterator o =
-                            job.Resources.OperatingSystem.getSoftwareList().begin();
-                            o != job.Resources.OperatingSystem.getSoftwareList().end(); ++o) {
-      XMLNode os = resources.NewChild("OperatingSystem");
-      os.NewChild("Name") = o->getName();
-      // TODO: convert to EMI ES types
-      // OperatingSystem.Name, OperatingSystem.Family
+	    for(std::list<Software>::const_iterator o =
+				    job.Resources.OperatingSystem.getSoftwareList().begin();
+				    o != job.Resources.OperatingSystem.getSoftwareList().end(); ++o) {
+	      XMLNode os = resources.NewChild("OperatingSystem");
+	      os.NewChild("Name") = o->getName();
+	      std::string fam = o->getFamily();
+	      if(!fam.empty()) os.NewChild("Family") = fam;
       os.NewChild("Version") = o->getVersion();
     }
     if(!job.Resources.Platform.empty()) {
-      // TODO: convert to EMI ES types
+      // TODO: convert to EMI ES types. So far they look same.
       resources.NewChild("Platform") = job.Resources.Platform;
     }
     for(std::list<Software>::const_iterator s =
@@ -805,7 +886,10 @@ namespace Arc {
       coprocessor = (std::string)job.Resources.Coprocessor;
       if(job.Resources.Coprocessor.optIn) coprocessor.NewAttribute("optional") = "true";
     }
-    //TODO: NetworkInfo
+    //TODO: check values. So far they look close. 
+    if(!job.Resources.NetworkInfo.empty()) {
+      resources.NewChild("NetworkInfo") = job.Resources.NetworkInfo;
+    }
     switch(job.Resources.NodeAccess) {
       case NAT_INBOUND: resources.NewChild("NodeAccess") = "inbound"; break;
       case NAT_OUTBOUND: resources.NewChild("NodeAccess") = "outbound"; break;
@@ -819,7 +903,7 @@ namespace Arc {
       resources.NewChild("IndividualVirtualMemory") = tostring(job.Resources.IndividualVirtualMemory.max);
     }
     if(job.Resources.DiskSpaceRequirement.DiskSpace.min > -1) {
-      resources.NewChild("DiskSpaceRequirement") = tostring(job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024); // TODO: adapt units to ADL
+      resources.NewChild("DiskSpaceRequirement") = tostring(job.Resources.DiskSpaceRequirement.DiskSpace.min*1024*1024);
     }
     switch(job.Resources.SessionDirectoryAccess) {
       case SDAM_RW: resources.NewChild("RemoteSessionAccess") = "true"; break;
