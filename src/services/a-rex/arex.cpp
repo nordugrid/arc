@@ -57,19 +57,19 @@ static const std::string ES_TYPES_NPREFIX("estypes");
 static const std::string ES_TYPES_NAMESPACE("http://www.eu-emi.eu/es/2010/12/types");
 
 static const std::string ES_CREATE_NPREFIX("escreate");
-static const std::string ES_CREATE_NAMESPACE("http://www.eu-emi.eu/es/2010/12/creation");
+static const std::string ES_CREATE_NAMESPACE("http://www.eu-emi.eu/es/2010/12/creation/types");
 
 static const std::string ES_DELEG_NPREFIX("esdeleg");
-static const std::string ES_DELEG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/delegation");
+static const std::string ES_DELEG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/delegation/types");
 
 static const std::string ES_RINFO_NPREFIX("esrinfo");
-static const std::string ES_RINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/resourceinfo");
+static const std::string ES_RINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/resourceinfo/types");
 
 static const std::string ES_MANAG_NPREFIX("esmanag");
-static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activitymanagement");
+static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activitymanagement/types");
 
 static const std::string ES_AINFO_NPREFIX("esainfo");
-static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity");
+static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity/types");
 
 static const std::string WSRF_NAMESPACE("http://docs.oasis-open.org/wsrf/rp-2");
 

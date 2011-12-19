@@ -139,7 +139,7 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
      ActivityID 0-
      truncated (attribute) - false
 
-   InvalidTimeIntervalFault
+   InvalidParameterFault
    AccessControlFault
    InternalBaseFault
   */
@@ -157,7 +157,7 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   if((bool)(node = in["FromDate"])) {
     from = (std::string)node;
     if(from.GetTime() == (time_t)(-1)) {
-      ESInvalidTimeIntervalFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+      ESInvalidParameterFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
                                  "failed to parse FromDate: "+(std::string)node);
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);
@@ -167,7 +167,7 @@ Arc::MCC_Status ARexService::ESListActivities(ARexGMConfig& config,Arc::XMLNode 
   if((bool)(node = in["ToDate"])) {
     to = (std::string)node;
     if(to.GetTime() == (time_t)(-1)) {
-      ESInvalidTimeIntervalFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
+      ESInvalidParameterFault(Arc::SOAPFault(out.Parent(),Arc::SOAPFault::Sender,""),
                                  "failed to parse ToDate: "+(std::string)node);
       out.Destroy();
       return Arc::MCC_Status(Arc::STATUS_OK);

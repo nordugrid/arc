@@ -156,8 +156,9 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
         (InvalidActivityDescriptionSemanticFault)
         (InvalidActivityDescriptionFault)
 
-    types:VectorLimitExceededFault
     types:InternalBaseFault
+    types:AccessControlFault
+    types:VectorLimitExceededFault
   */
 
   if(Arc::VERBOSE >= logger_.getThreshold()) {

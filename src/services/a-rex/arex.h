@@ -167,8 +167,8 @@ class ARexService: public Arc::RegisteredService {
   void ESUnknownActivityIDFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
   void ESInvalidActivityStateFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
   void ESInvalidActivityStateFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidTimeIntervalFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
-  void ESInvalidTimeIntervalFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidParameterFault(Arc::XMLNode fault,const std::string& message = "",const std::string& desc = "");
+  void ESInvalidParameterFault(Arc::SOAPFault& fault,const std::string& message = "",const std::string& desc = "");
   void ESOperationNotPossibleFault(Arc::XMLNode fault,const std::string& message,const std::string& desc = "");
   void ESOperationNotPossibleFault(Arc::SOAPFault& fault,const std::string& message,const std::string& desc = "");
   void ESActivityNotInTerminalStateFault(Arc::XMLNode fault,const std::string& message,const std::string& desc = "");
