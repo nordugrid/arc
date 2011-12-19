@@ -4,7 +4,7 @@ OGF-UR property      A-REX log entry          ARC-UR property        APEL-UR ele
 RecordIdentity:      nodename, ngjobid 
                      (hyphen-separated, 
                       with custom prefix)
-GlobalJobId:         (ngjobid) globalid       globaljobid
+GlobalJobId:         globalid                 globaljobid
 LocalJobId:          localjobid               localjobid             LocalJobId
 ProcessId:           [MISSING]                processid
 GlobalUserName:      usersn                   globaluserid           GlobalUserName
@@ -13,10 +13,12 @@ JobName:             jobname                  jobname
 Charge:              [MISSING]                charge
 Status:              status                   status
                      (no conversion yet!)
-WallDuration:        usedwalltime             usedwalltime           WallDuration
-CpuDuration:         usedcputime              usedcputime            CpuDuration
-StartTime:           submissiontime           submissiontime         StartTime
-EndTime:             endtime                  endtime                EndTime
+WallDuration:(ISO)   usedwalltime (sec)       usedwalltime           WallDuration
+CpuDuration: (ISO)   usedcputime (sec)        usedcputime            CpuDuration
+    user             usedusercputime
+    system           usedkernelcputime
+StartTime: (UTC)     submissiontime           submissiontime         StartTime
+EndTime: (UTC)       endtime                  endtime                EndTime
 MachineName:         nodename                 nodename               Site
 Host:                nodename
 SubmitHost:          clienthost               submithost
@@ -29,7 +31,10 @@ Differentiated properties
 
 Network:             [MISSING]                network
 Disk:                [MISSING]                useddisk
-Memory:              usedmemory               usedmemory             MemoryReal
+Memory:
+  virtual,average    usedmemory               usedmemory             MemoryReal
+  physical,max       usedmaxresident
+  physical,average   usedaverageresident
 Swap:                [MISSING]                usedswap
 NodeCount:           nodecount                nodecount              NodeCount
 Processors:          [MISSING]                processors             Processors
