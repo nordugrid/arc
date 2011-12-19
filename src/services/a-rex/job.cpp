@@ -407,18 +407,16 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   // TODO: TotalWallTime;
   // TODO: NodeAccess;
   // TODO: CEType;
-  // TODO: RunTimeEnvironment;
-  /*
-  for(std::list<Software>::const_iterator rte = desc.Resources.RunTimeEnvironment.getSoftwareList();
-                    rte != desc.Resources.RunTimeEnvironment.getSoftwareList().end()
-
-  if(!desc.Resources.RunTimeEnvironment.getOptions().empty()) {
-    failure_="Options int RTE not supported yet";
-    failure_type_=ARexJobDescriptionUnsupportedError;
-    delete_job_id();
-    return;
+  for(std::list<Arc::Software>::const_iterator rte =
+                    desc.Resources.RunTimeEnvironment.getSoftwareList().begin();
+                    rte != desc.Resources.RunTimeEnvironment.getSoftwareList().end();++rte) {
+    if(!rte->getOptions().empty()) {
+      failure_="Options in RTE not supported yet";
+      failure_type_=ARexJobDescriptionUnsupportedError;
+      delete_job_id();
+      return;
+    };
   };
-  */
   if((desc.Resources.SlotRequirement.ExclusiveExecution != Arc::SlotRequirementType::EE_DEFAULT) ||
      (desc.Resources.SlotRequirement.SlotsPerHost > 1) ||
      (desc.Resources.SlotRequirement.NumberOfSlots > 1)) {
