@@ -195,6 +195,7 @@ sub ComputingEndpointAttributes {
     $self->attribute(objectClass => "GLUE2ComputingEndpoint");
     $self->attributes($data, "GLUE2ComputingEndpoint", qw( Staging
                                                            JobDescription
+                                                           TotalJobs
                                                            RunningJobs
                                                            WaitingJobs
                                                            StagingJobs

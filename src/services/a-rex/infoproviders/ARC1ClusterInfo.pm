@@ -861,6 +861,8 @@ sub collect($) {
 
 	    # Associations
 
+         # No computingshareID should be associated to endpoint -- unless we enforce
+         # binding between endpoints and queues
 	    $cep->{ComputingShareID} = [ values %cshaIDs ];
 	    $cep->{ComputingServiceID} = $csvID;
 
