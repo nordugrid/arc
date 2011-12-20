@@ -1094,8 +1094,8 @@ hostname="myhost.org"
 .TP
 .B lrms
 Sets the type of Local Resource Management System (queueing
-system). Choose one from the following options: fork, sge, condor,
-pbs, lsf, ll, slurm. PBS has many flavours, we support OpenPBS, PBSPro, ScalablePBS
+system). Choose one from the following options (NOTE: these are case sensitive): fork, sge, condor,
+pbs, lsf, ll, SLURM. PBS has many flavours, we support OpenPBS, PBSPro, ScalablePBS
 and Torque (the official name for ScalablePBS). No need to specify the
 flavour or the version number of the PBS, simply write "pbs". The
 optional "queue" parameter specifies the default grid queue of the
