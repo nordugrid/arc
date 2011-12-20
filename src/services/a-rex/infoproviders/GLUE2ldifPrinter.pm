@@ -251,8 +251,10 @@ sub ComputingShareAttributes {
                                                         UsedSlots
                                                         RequestedSlots
                                                         ReservationPolicy
-                                                        Tag ));
-    $self->attribute(GLUE2ComputingShareComputingServiceForeignKey => $data->{ComputingServiceID});
+                                                        Tag ));                                                    
+    $self->attribute(GLUE2ComputingShareComputingServiceForeignKey => $data->{ComputingServiceID}); # Mandatory by schema
+    $self->attribute(GLUE2ComputingShareComputingEndpointForeignKey => $data->{ComputingEndpointID});
+    $self->attribute(GLUE2ComputingShareExecutionEnvironmentForeignKey => $data->{ExecutionEnvironmentID});
 }
 
 sub ComputingManagerAttributes {
