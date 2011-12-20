@@ -153,7 +153,7 @@ sub ActivityAttributes {
     $self->attribute(GLUE2ActivityActivityForeignKey => $data->{ActivityID});
 }
 
-sub PolicyAtributes {
+sub PolicyAttributes {
     my ($self, $data) = @_;
     $self->EntityAttributes($data);
     $self->attribute(objectClass => "GLUE2Policy");
@@ -163,14 +163,14 @@ sub PolicyAtributes {
 
 sub AccessPolicyAttributes {
     my ($self, $data) = @_;
-    $self->PolicyAtributes($data);
+    $self->PolicyAttributes($data);
     $self->attribute(objectClass => "GLUE2AccessPolicy");
     $self->attribute(GLUE2AccessPolicyEndpointForeignKey => $data->{EndpointID});
 }
 
 sub MappingPolicyAttributes {
     my ($self, $data) = @_;
-    $self->PolicyAtributes($data);
+    $self->PolicyAttributes($data);
     $self->attribute(objectClass => "GLUE2MappingPolicy");
     $self->attribute(GLUE2MappingPolicyShareForeignKey => $data->{ShareID});
 }
