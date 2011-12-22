@@ -14,6 +14,7 @@
 namespace Arc {
 
   class JobDescriptionParserLoader;
+  class ExecutionTarget;
 
   template<class T>
   class OptIn {
@@ -573,6 +574,40 @@ namespace Arc {
      * @param format specifies the format the job description should written in.
      */
     JobDescriptionResult SaveToStream(std::ostream& out, const std::string& format) const;
+
+    /// Prepare for submission to target
+    /**
+     * The Prepare method, is used to check and adapt the JobDescription object
+     * to the passed ExecutionTarget object before submitting the job
+     * description to the target. This method is normally called by Submitter
+     * plugin classes, before submitting the job description.
+     * First the method checks the DataStaging.InputFiles list, for identical
+     * file names, and non-existent local input files. If any of such files are
+     * found, the method returns false. Then if the Application.Executable and
+     * Application.Input objects are specified as local input files, and they
+     * are not among the files in the DataStaging.InputFiles list a existence
+     * check will be done and if not found, false will be returned, otherwise
+     * they will be added to the list. Likewise if the Application.Output,
+     * Application.Error and Application.LogDir attributes have been specified,
+     * and is not among the files in the DataStaging.OutputFiles list, they will
+     * be added to this list.
+     * After the file check, the Resources.RunTimeEnvironment, Resources.CEType
+     * and Resources.OperatingSystem SoftwareRequirement objects are
+     * respectively resolved against the
+     * ExecutionTarget::ApplicationEnvironments, ExecutionTarget::Implementation
+     * and ExecutionTarget::OperatingSystem Software objects using the
+     * SoftwareRequirement::selectSoftware method. If that method returns false
+     * i.e. unable to resolve the requirements false will be returned.
+     * After resolving software requirements, the value of the
+     * Resources.QueueName attribute will be set to that of the
+     * ExecutionTarget::ComputingShareName attribute, and then true is returned.
+     *
+     * @param et ExecutionTarget object which to resolve software requirements
+     *  against, and to pick up queue name from.
+     * @return false is returned is file checks fails, or if unable to resolve
+     *  software requirements.
+     */
+    bool Prepare(const ExecutionTarget& et);
 
     /// Holds attributes not fitting into this class
     /**

@@ -46,14 +46,23 @@ namespace Arc {
     CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
     gLiteClientSubmission.setDelegationId(delegationid);
 
-    JobDescription modjobdesc(jobdesc);
-    if (!ModifyJobDescription(modjobdesc, et)) {
-      logger.msg(INFO, "Failed adapting job description to target resources");
+    JobDescription preparedjobdesc(jobdesc);
+    if (!preparedjobdesc.Prepare(et)) {
+      logger.msg(INFO, "Failed to prepare job description to target resources");
       return false;
     }
 
+    if (preparedjobdesc.OtherAttributes.find("egee:jdl;BatchSystem") == preparedjobdesc.OtherAttributes.end()) {
+      if (!et.ManagerProductName.empty()) {
+        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ManagerProductName;
+      }
+      else if (!et.MappingQueue.empty()) {
+        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.MappingQueue;
+      }
+    }
+
     std::string jobdescstring;
-    if (!modjobdesc.UnParse(jobdescstring, "egee:jdl")) {
+    if (!preparedjobdesc.UnParse(jobdescstring, "egee:jdl")) {
       logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "egee:jdl");
       return false;
     }
@@ -64,7 +73,7 @@ namespace Arc {
       return false;
     }
 
-    if (!PutFiles(modjobdesc, jobInfo.ISB_URI)) {
+    if (!PutFiles(preparedjobdesc, jobInfo.ISB_URI)) {
       logger.msg(INFO, "Failed uploading local input files");
       return false;
     }
@@ -74,7 +83,7 @@ namespace Arc {
       return false;
     }
 
-    AddJobDetails(modjobdesc, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
+    AddJobDetails(preparedjobdesc, submissionurl.str() + '/' + jobInfo.jobId, et.Cluster,
                   delegationurl.str() + '/' + delegationid, job);
 
     job.ISB = URL(jobInfo.ISB_URI);
@@ -88,21 +97,5 @@ namespace Arc {
                                Job& /* job */) {
     logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.url.str());
     return false;
-  }
-
-  bool SubmitterCREAM::ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const {
-    if (jobdesc.OtherAttributes.find("egee:jdl;BatchSystem") == jobdesc.OtherAttributes.end() &&
-        !et.ManagerProductName.empty()) {
-      jobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ManagerProductName;
-    }
-
-    if (jobdesc.OtherAttributes.find("egee:jdl;BatchSystem") == jobdesc.OtherAttributes.end() &&
-        !et.MappingQueue.empty()) {
-      jobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.MappingQueue;
-    }
-
-    jobdesc.Resources.QueueName = et.ComputingShareName;
-
-    return true;
   }
 } // namespace Arc

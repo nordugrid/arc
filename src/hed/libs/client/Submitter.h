@@ -81,8 +81,6 @@ namespace Arc {
       return target != NULL && Migrate(jobid, jobdesc, *target, forcemigration, job);
     }
 
-    virtual bool ModifyJobDescription(JobDescription& jobdesc,
-                                      const ExecutionTarget& et) const = 0;
     void SetSubmissionTarget(const ExecutionTarget& submissiontarget) { target = &submissiontarget; }
   protected:
     bool PutFiles(const JobDescription& jobdesc, const URL& url) const;

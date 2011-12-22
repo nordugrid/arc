@@ -40,7 +40,6 @@ namespace Arc {
     virtual bool Migrate(const URL& jobid, const JobDescription& jobdesc,
                          const ExecutionTarget& et, bool forcemigration,
                          Job& job);
-    virtual bool ModifyJobDescription(JobDescription& jobdesc, const ExecutionTarget& et) const;
   };
 
 } // namespace Arc
