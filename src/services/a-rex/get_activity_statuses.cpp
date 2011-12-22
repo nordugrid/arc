@@ -338,24 +338,25 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
           std::string failed_state = job.FailedState(failed_cause);
           // Adding EMI ES state along with Glue state.
           Arc::XMLNode status = info.NewChild(glue2_prefix+":State",0,false);
-          status = addActivityStatusES(status,gm_state,Arc::XMLNode(),
-                               job_failed,job_pending,failed_state,failed_cause);
-          status.NewChild("estypes:Timestamp") = job.Modified();
+          {
+            std::string primary_state;
+            std::list<std::string> state_attributes;
+            convertActivityStatusES(gm_state,primary_state,state_attributes,
+                                    job_failed,job_pending,failed_state,failed_cause);
+            status = std::string("emies:")+primary_state;
+          };
+          //status = addActivityStatusES(status,gm_state,Arc::XMLNode(),
+          //                     job_failed,job_pending,failed_state,failed_cause);
+          //status.NewChild("estypes:Timestamp") = job.Modified();
           //status.NewChild("estypes:Description);  TODO
-          Arc::XMLNode exts = info.NewChild(glue2_prefix+":Extensions");
+          Arc::XMLNode exts = info[glue2_prefix+":Extensions"];
+          if(!exts) exts = info.NewChild(glue2_prefix+":Extensions");
           Arc::XMLNode ext;
           ext = exts.NewChild(glue2_prefix+":Extension");
           ext.NewChild(glue2_prefix+":LocalID") = job.ID();
-          ext.NewChild(glue2_prefix+":Key") = "StageInDirectory";
-          ext.NewChild(glue2_prefix+":Value") = config.Endpoint()+"/"+job.ID();
-          ext = exts.NewChild(glue2_prefix+":Extension");
-          ext.NewChild(glue2_prefix+":LocalID") = job.ID();
-          ext.NewChild(glue2_prefix+":Key") = "StageOutDirectory";
-          ext.NewChild(glue2_prefix+":Value") = config.Endpoint()+"/"+job.ID();
-          ext = exts.NewChild(glue2_prefix+":Extension");
-          ext.NewChild(glue2_prefix+":LocalID") = job.ID();
-          ext.NewChild(glue2_prefix+":Key") = "SessionDirectory";
-          ext.NewChild(glue2_prefix+":Value") = config.Endpoint()+"/"+job.ID();
+          ext.NewChild("esainfo:StageInDirectory") = config.Endpoint()+"/"+job.ID();
+          ext.NewChild("esainfo:StageOutDirectory") = config.Endpoint()+"/"+job.ID();
+          ext.NewChild("esainfo:SessionDirectory") = config.Endpoint()+"/"+job.ID();
         };
       };
       if(!info) {
