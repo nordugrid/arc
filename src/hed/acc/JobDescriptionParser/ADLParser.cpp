@@ -642,6 +642,8 @@ namespace Arc {
       }
       if (clientpush) {
         job.OtherAttributes["emi-adl:ClientDataPush"] = "true";
+        InputFileType file; // Also using unnamed file for that
+        job.DataStaging.InputFiles.push_back(file);
       }
       for(XMLNode input = staging["adl:InputFile"];(bool)input;++input) {
         InputFileType file;
@@ -947,18 +949,29 @@ namespace Arc {
 
     // DataStaging
 
+    // ClientDataPush
     {
       std::map<std::string, std::string>::const_iterator it = job.OtherAttributes.find("emi-adl:ClientDataPush");
       if (it != job.OtherAttributes.end() && it->second == "true") {
         staging.NewChild("ClientDataPush") = "true";
+      } else {
+        // Other way to do that is to ask for undefined InputFile
+        for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
+             it != job.DataStaging.InputFiles.end(); ++it) {
+          if(it->Name.empty()) {
+            staging.NewChild("ClientDataPush") = "true";
+            break;
+          }
+        }
       }
     }
 
     // InputFile
     for (std::list<InputFileType>::const_iterator it = job.DataStaging.InputFiles.begin();
          it != job.DataStaging.InputFiles.end(); ++it) {
-      if(it->Name.empty()) { // mandatory
-        return false;
+      if(it->Name.empty()) { // Used to mark free stage in
+        continue;
+        //return false;
       }
       XMLNode file = staging.NewChild("InputFile");
       file.NewChild("Name") = it->Name;
