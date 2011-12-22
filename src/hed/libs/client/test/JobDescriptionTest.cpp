@@ -64,12 +64,10 @@ void JobDescriptionTest::TestAlternative() {
 
 void JobDescriptionTest::PrepareTest()
 {
-  Arc::ExecutionTarget et;
-
   {
     Arc::JobDescription jd;
     jd.Application.Executable.Path = "/hello/world";
-    CPPUNIT_ASSERT(jd.Prepare(et));
+    CPPUNIT_ASSERT(jd.Prepare(Arc::ExecutionTarget()));
   }
 
   {
@@ -77,11 +75,11 @@ void JobDescriptionTest::PrepareTest()
     remove(exec.c_str());
     Arc::JobDescription jd;
     jd.Application.Executable.Path = exec;
-    CPPUNIT_ASSERT(!jd.Prepare(et));
+    CPPUNIT_ASSERT(!jd.Prepare(Arc::ExecutionTarget()));
     std::ofstream f(exec.c_str(), std::ifstream::trunc);
     f << exec;
     f.close();
-    CPPUNIT_ASSERT(jd.Prepare(et));
+    CPPUNIT_ASSERT(jd.Prepare(Arc::ExecutionTarget()));
     CPPUNIT_ASSERT_EQUAL(1, (int)jd.DataStaging.InputFiles.size());
     CPPUNIT_ASSERT_EQUAL(jd.Application.Executable.Path, jd.DataStaging.InputFiles.front().Name);
     remove(exec.c_str());
@@ -92,11 +90,11 @@ void JobDescriptionTest::PrepareTest()
     remove(input.c_str());
     Arc::JobDescription jd;
     jd.Application.Input = input;
-    CPPUNIT_ASSERT(!jd.Prepare(et));
+    CPPUNIT_ASSERT(!jd.Prepare(Arc::ExecutionTarget()));
     std::ofstream f(input.c_str(), std::ifstream::trunc);
     f << input;
     f.close();
-    CPPUNIT_ASSERT(jd.Prepare(et));
+    CPPUNIT_ASSERT(jd.Prepare(Arc::ExecutionTarget()));
     CPPUNIT_ASSERT_EQUAL(1, (int)jd.DataStaging.InputFiles.size());
     CPPUNIT_ASSERT_EQUAL(jd.Application.Input, jd.DataStaging.InputFiles.front().Name);
     remove(input.c_str());
@@ -105,7 +103,7 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     jd.Application.Output = "PrepareJobDescriptionTest-output";
-    CPPUNIT_ASSERT(jd.Prepare(et));
+    CPPUNIT_ASSERT(jd.Prepare(Arc::ExecutionTarget()));
     CPPUNIT_ASSERT_EQUAL(1, (int)jd.DataStaging.OutputFiles.size());
     CPPUNIT_ASSERT_EQUAL(jd.Application.Output, jd.DataStaging.OutputFiles.front().Name);
   }
@@ -113,7 +111,7 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     jd.Application.Error = "PrepareJobDescriptionTest-error";
-    CPPUNIT_ASSERT(jd.Prepare(et));
+    CPPUNIT_ASSERT(jd.Prepare(Arc::ExecutionTarget()));
     CPPUNIT_ASSERT_EQUAL(1, (int)jd.DataStaging.OutputFiles.size());
     CPPUNIT_ASSERT_EQUAL(jd.Application.Error, jd.DataStaging.OutputFiles.front().Name);
   }
@@ -121,13 +119,14 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     jd.Application.LogDir = "PrepareJobDescriptionTest-logdir";
-    CPPUNIT_ASSERT(jd.Prepare(et));
+    CPPUNIT_ASSERT(jd.Prepare(Arc::ExecutionTarget()));
     CPPUNIT_ASSERT_EQUAL(1, (int)jd.DataStaging.OutputFiles.size());
     CPPUNIT_ASSERT_EQUAL(jd.Application.LogDir, jd.DataStaging.OutputFiles.front().Name);
   }
 
   {
     Arc::JobDescription jd;
+    Arc::ExecutionTarget et;
     et.ApplicationEnvironments.push_back(Arc::ApplicationEnvironment("SOFTWARE/HELLOWORLD-1.0.0"));
     jd.Resources.RunTimeEnvironment.add(Arc::Software("SOFTWARE/HELLOWORLD-1.0.0"), Arc::Software::GREATERTHAN);
     CPPUNIT_ASSERT(!jd.Prepare(et));
@@ -142,6 +141,7 @@ void JobDescriptionTest::PrepareTest()
 
   {
     Arc::JobDescription jd;
+    Arc::ExecutionTarget et;
     et.Implementation = Arc::Software("MIDDLEWARE/ABC-1.2.3");
     jd.Resources.CEType.add(Arc::Software("MIDDLEWARE/ABC-2.0.0"), Arc::Software::GREATERTHANOREQUAL);
     CPPUNIT_ASSERT(!jd.Prepare(et));
@@ -157,7 +157,8 @@ void JobDescriptionTest::PrepareTest()
 
   {
     Arc::JobDescription jd;
-    et.OperatingSystem = Arc::Software("OPERATINGSYSTEM/ABC-1.2.3");
+    Arc::ExecutionTarget et;
+    et.OperatingSystem = Arc::Software("OPERATINGSYSTEM/COW-2.2.2");
     jd.Resources.OperatingSystem.add(Arc::Software("OPERATINGSYSTEM/COW-2.0.0"), Arc::Software::LESSTHAN);
     CPPUNIT_ASSERT(!jd.Prepare(et));
     jd.Resources.OperatingSystem.clear();
