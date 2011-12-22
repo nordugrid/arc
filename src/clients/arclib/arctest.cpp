@@ -157,7 +157,7 @@ int RUNSUB(main)(int argc, char **argv) {
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
     std::cout << Arc::IString("Types of execution services ARC client tools is able to submit to:") << std::endl;
@@ -168,7 +168,7 @@ int RUNSUB(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
     std::cout << Arc::IString("Types of index and information services ARC client tools is able collect information from:") << std::endl;
@@ -201,7 +201,7 @@ int RUNSUB(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     modules.clear();
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
@@ -407,8 +407,8 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
       std::string jobdesc;
 
       // Modify the test jobdescription according the choosen submitter if necessary
-      if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
-        std::cout << Arc::IString("Unable to modify job description according to needs of the target resource.") << std::endl;
+      if (!jobdescdump.Prepare(*target)) {
+        std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
         retval = 1;
         break;
       }

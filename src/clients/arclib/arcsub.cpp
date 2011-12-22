@@ -141,7 +141,7 @@ int RUNSUB(main)(int argc, char **argv) {
                     version);
 
   std::list<std::string> params = options.Parse(argc, argv);
-  
+
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcsub", VERSION)
               << std::endl;
@@ -161,7 +161,7 @@ int RUNSUB(main)(int argc, char **argv) {
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
     std::cout << Arc::IString("Types of execution services arcsub is able to submit jobs to:") << std::endl;
@@ -172,7 +172,7 @@ int RUNSUB(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
     std::cout << Arc::IString("Types of index and information services which arcsub is able collect information from:") << std::endl;
@@ -183,7 +183,7 @@ int RUNSUB(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:JobDescriptionParser", modules);
     std::cout << Arc::IString("Job description languages supported by arcsub:") << std::endl;
@@ -344,7 +344,7 @@ void printjobid(const std::string& jobid, const std::string& jobidfile) {
 
 int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::string& jobidfile) {
   int retval = 0;
-  
+
   Arc::TargetGenerator targen(usercfg);
   targen.RetrieveExecutionTargets();
 
@@ -462,8 +462,8 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
          !ChosenBroker->EndOfList(); ChosenBroker->Advance()) {
       Arc::Submitter *submitter = target->GetSubmitter(usercfg);
 
-      if (!submitter->ModifyJobDescription(jobdescdump, *target)) {
-        std::cout << Arc::IString("Unable to modify job description according to needs of the target resource.") << std::endl;
+      if (!jobdescdump.Prepare(*target)) {
+        std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
         retval = 1;
         break;
       }
