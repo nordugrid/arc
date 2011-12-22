@@ -207,39 +207,35 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
        file != arc_job_desc.DataStaging.InputFiles.end(); ++file) {
     std::string fname = file->Name;
     if(fname[0] != '/') fname = "/"+fname; // Just for safety
-    // Because ARC job description does not keep enough information
-    // about initial JSDL description we have to make some guesses here.
-    if(!file->Sources.empty()) { // input file
+    inputdata.push_back(FileData(fname, ""));
+    if(!file->Sources.empty()) {
       // Only one source per file is used
-      if(fname == "/") {
-        // Unnamed file is used to mark request for free stage in
-        freestagein = true;
-      } else {
-        inputdata.push_back(FileData(fname, ""));
-        if (file->Sources.front() &&
-            file->Sources.front().Protocol() != "file") {
-          inputdata.back().lfn = file->Sources.front().fullstr();
-          // It is not possible to extract credentials path here.
-          // So temporarily storing id here.
-          inputdata.back().cred = file->Sources.front().DelegationID;
-          ++downloads;
-        }
+      if (file->Sources.front() &&
+          file->Sources.front().Protocol() != "file") {
+        inputdata.back().lfn = file->Sources.front().fullstr();
+        // It is not possible to extract credentials path here.
+        // So temporarily storing id here.
+        inputdata.back().cred = file->Sources.front().DelegationID;
+      }
+    }
 
-        if (inputdata.back().has_lfn()) {
-          Arc::URL u(inputdata.back().lfn);
+    if(fname == "/") {
+      // Unnamed file is used to mark request for free stage in
+      freestagein = true;
+    }
+    if (inputdata.back().has_lfn()) {
+      ++downloads;
+      Arc::URL u(inputdata.back().lfn);
 
-          if (file->IsExecutable ||
-              file->Name == arc_job_desc.Application.Executable.Path) {
-            u.AddOption("exec", "yes", true);
-          }
-          inputdata.back().lfn = u.fullstr();
-        }
-        else if (file->FileSize != -1) {
-          inputdata.back().lfn = Arc::tostring(file->FileSize);
-          if (!file->Checksum.empty()) { // Only set checksum if FileSize is also set.
-            inputdata.back().lfn += "."+file->Checksum;
-          }
-        }
+      if (file->IsExecutable ||
+          file->Name == arc_job_desc.Application.Executable.Path) {
+        u.AddOption("exec", "yes", true);
+      }
+      inputdata.back().lfn = u.fullstr();
+    } else if (file->FileSize != -1) {
+      inputdata.back().lfn = Arc::tostring(file->FileSize);
+      if (!file->Checksum.empty()) { // Only set checksum if FileSize is also set.
+        inputdata.back().lfn += "."+file->Checksum;
       }
     }
   }
@@ -247,8 +243,6 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
        file != arc_job_desc.DataStaging.OutputFiles.end(); ++file) {
     std::string fname = file->Name;
     if(fname[0] != '/') fname = "/"+fname; // Just for safety
-    // Because ARC job description does not keep enough information
-    // about initial JSDL description we have to make some guesses here.
     if (!file->Targets.empty()) { // output file
       for(std::list<Arc::TargetType>::const_iterator target = file->Targets.begin();
                               target != file->Targets.end(); ++target) {
@@ -257,9 +251,9 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         fdata.ifcancel = target->UseIfCancel;
         fdata.iffailure = target->UseIfFailure;
         outputdata.push_back(fdata);
-        ++uploads;
 
         if (outputdata.back().has_lfn()) {
+          ++uploads;
           Arc::URL u(outputdata.back().lfn); // really needed?
           if(u.Option("preserve","no") == "yes") {
             outputdata.back().ifcancel = true;
