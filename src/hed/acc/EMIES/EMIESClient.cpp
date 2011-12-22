@@ -20,19 +20,19 @@ static const std::string ES_TYPES_NPREFIX("estypes");
 static const std::string ES_TYPES_NAMESPACE("http://www.eu-emi.eu/es/2010/12/types");
 
 static const std::string ES_CREATE_NPREFIX("escreate");
-static const std::string ES_CREATE_NAMESPACE("http://www.eu-emi.eu/es/2010/12/creation");
+static const std::string ES_CREATE_NAMESPACE("http://www.eu-emi.eu/es/2010/12/creation/types");
 
 static const std::string ES_DELEG_NPREFIX("esdeleg");
-static const std::string ES_DELEG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/delegation");
+static const std::string ES_DELEG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/delegation/types");
 
 static const std::string ES_RINFO_NPREFIX("esrinfo");
-static const std::string ES_RINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/resourceinfo");
+static const std::string ES_RINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/resourceinfo/types");
 
 static const std::string ES_MANAG_NPREFIX("esmanag");
-static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activitymanagement");
+static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activitymanagement/types");
 
 static const std::string ES_AINFO_NPREFIX("esainfo");
-static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity");
+static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity/types");
 
 static const std::string ES_ADL_NPREFIX("esadl");
 static const std::string ES_ADL_NAMESPACE("http://www.eu-emi.eu/es/2010/12/adl");
@@ -268,15 +268,22 @@ namespace Arc {
     XMLNode item = response.Child(0);
     if(!MatchXMLName(item,"esainfo:ActivityInfoItem")) return false;
     if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
+    // Processing generic GLUE2 information
     info = item["estypes:ActivityInfo"];
     // Looking for EMI ES specific state
     XMLNode state = item["estypes:ActivityInfo"]["State"];
-    const std::string state_prefix("eu-emi:");
     for(;(bool)state;++state) {
-      if(state["estypes:ActivityStatus"]) {
-        info.State = JobStateEMIES(state["estypes:ActivityStatus"]);
-        break;
-      }
+      JobStateEMIES st((std::string)state);
+      if(!st) continue;
+      info.State = st;
+      break;
+    }
+    XMLNode rstate = item["estypes:ActivityInfo"]["RestartState"];
+    for(;(bool)state;++state) {
+      JobStateEMIES st((std::string)state);
+      if(!st) continue;
+      info.RestartState = st;
+      break;
     }
     // Making EMI ES specific job id
     // URL-izing job id
@@ -496,6 +503,16 @@ namespace Arc {
       jobs.push_back(job);
     }
     return true;
+  }
+
+  EMIESJobState& EMIESJobState::operator=(const std::string& st) {
+    state.clear();
+    attributes.clear();
+    timestamp = Time();
+    description.clear();
+    if(strncmp("emies:",st.c_str(),6) != 0) return *this;
+    state = st.substr(6);
+    return *this;
   }
 
   EMIESJobState& EMIESJobState::operator=(XMLNode st) {

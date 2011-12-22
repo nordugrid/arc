@@ -70,6 +70,7 @@ namespace Arc {
     std::string description;
     Arc::Time timestamp;
     EMIESJobState& operator=(XMLNode state);
+    EMIESJobState& operator=(const std::string& state);
     bool operator!(void);
     bool HasAttribute(const std::string& attr) const;
   };

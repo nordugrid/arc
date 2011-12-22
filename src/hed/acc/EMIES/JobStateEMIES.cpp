@@ -8,7 +8,13 @@
 
 namespace Arc {
 
-  JobState::StateType JobStateEMIES::StateMap(const std::string& st) {
+  JobState::StateType JobStateEMIES::StateMapS(const std::string& st) {
+    EMIESJobState st_;
+    st_ = st;
+    return StateMapInt(st_);
+  }
+
+  JobState::StateType JobStateEMIES::StateMapX(const std::string& st) {
     EMIESJobState st_;
     st_ = XMLNode(st);
     return StateMapInt(st_);
@@ -41,6 +47,8 @@ namespace Arc {
       if(st.HasAttribute("POSTPROCESSING-FAILURE")) return JobState::FAILED;
       if(st.HasAttribute("APP-FAILURE")) return JobState::FAILED;
       return JobState::FINISHED;
+    } else if(st.state == "") {
+      return JobState::UNDEFINED;
     }
     return JobState::OTHER;
   }
