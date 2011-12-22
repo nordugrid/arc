@@ -475,6 +475,9 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
       else if (target->GridFlavour == "CREAM") {
         jobdesclang = "egee:jdl";
       }
+      else if (target->GridFlavour == "EMIES") {
+        jobdesclang = "emies:adl";
+      }
       std::string jobdesc;
       if (!jobdescdump.UnParse(jobdesc, jobdesclang)) {
         std::cout << Arc::IString("An error occurred during the generation of the job description output.") << std::endl;
