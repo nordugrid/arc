@@ -222,8 +222,8 @@ namespace Arc {
 
 
 		std::string user_conf;
-		std::cout << std::endl << "Your identity provider will send the following information to the SLCS service:" << std::endl;
-		std::cout << "==============================================================================" << std::endl;
+		std::cout << std::endl << Arc::IString("Your identity provider will send the following information to the SLCS service:") << std::endl;
+		std::cout << Arc::IString("==============================================================================") << std::endl;
 
 		// this page has too many HTML errors and is unparsable by libxml2
 		std::string::size_type last_attr_pos = consent_response_str.find("attr-name");
@@ -268,10 +268,10 @@ namespace Arc {
 			last_attr_pos = consent_response_str.find("attr-name", attr_value_content_end);
 		}
 
-		std::cout << "==============================================================================" << std::endl;
+		std::cout << Arc::IString("==============================================================================") << std::endl;
 
 		std::cout << std::endl;
-		std::cout << "Do you consent to the release of that information? (y/n) ";
+		std::cout << Arc::IString("Do you consent to the release of that information? (y/n) ");
 		std::cin >> user_conf;
 
 		if (user_conf == "y") {

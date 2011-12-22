@@ -146,12 +146,12 @@ namespace Arc {
 
 		authorize_url = authorize_url + (*tokens_)["oauth_request_token"];
 		//authorize_url = authorize_url + "&RelayState=" + ParserUtils::urlencode("https://confusatest.pdc.kth.se/simplesaml/module.php/oauth/authorize.php");
-		std::cout << "Please login at the following URL " << authorize_url << std::endl;
+		std::cout << Arc::IString("Please login at the following URL ") << authorize_url << std::endl;
 
 
 		// just waiting for the user to press enter
 		std::cin.clear();
-		std::cout << "Press enter to continue\n";
+		std::cout << Arc::IString("Press enter to continue\n");
 		std::cin.ignore(1,0);
 
 		return MCC_Status(STATUS_OK);
