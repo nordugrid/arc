@@ -70,6 +70,7 @@ namespace ARex {
     primary_state = "";
     if(gm_state == "ACCEPTED") {
       primary_state="ACCEPTED";
+      state_attributes.push_back("CLIENT-STAGEIN-POSSIBLE");
     } else if(gm_state == "PREPARING") {
       primary_state="PREPROCESSING";
       state_attributes.push_back("CLIENT-STAGEIN-POSSIBLE");
