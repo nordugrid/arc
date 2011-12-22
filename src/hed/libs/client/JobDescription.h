@@ -428,7 +428,7 @@ namespace Arc {
 
   class InputFileType {
   public:
-    InputFileType() : Name(""), IsExecutable(false) {};
+    InputFileType() : Name(""), IsExecutable(false), FileSize(-1) {};
     std::string Name;
     bool IsExecutable;
     long FileSize;
