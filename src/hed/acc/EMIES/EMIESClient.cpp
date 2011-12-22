@@ -213,6 +213,14 @@ namespace Arc {
   }
 
   bool EMIESClient::stat(const EMIESJob& job, EMIESJobState& state) {
+    XMLNode st;
+    if(!stat(job,st)) return false;
+    state = st;
+    if(!state) return false;
+    return true;
+  }
+
+  bool EMIESClient::stat(const EMIESJob& job, XMLNode& state) {
     /*
       esainfo:GetActivityStatus
         estypes:ActivityID
@@ -237,12 +245,12 @@ namespace Arc {
     XMLNode item = response.Child(0);
     if(!MatchXMLName(item,"esainfo:ActivityStatusItem")) return false;
     if((std::string)(item["estypes:ActivityID"]) != job.id) return false;
-    state = item["estypes:ActivityStatus"];
-    if(!state) return false;
+    XMLNode status = item["estypes:ActivityStatus"];
+    status.New(state);
     return true;
   }
 
-  bool EMIESClient::stat(const EMIESJob& job, Job& info) {
+  bool EMIESClient::info(const EMIESJob& job, Job& info) {
     /*
       esainfo:GetActivityInfo
         estypes:ActivityID
@@ -562,6 +570,10 @@ namespace Arc {
 
   bool EMIESJobState::operator!(void) {
     return state.empty();
+  }
+
+  EMIESJobState::operator bool(void) {
+    return !(state.empty());
   }
 
   bool EMIESJobState::HasAttribute(const std::string& attr) const {

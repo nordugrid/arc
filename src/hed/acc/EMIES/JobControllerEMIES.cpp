@@ -16,6 +16,7 @@
 #include <arc/message/MCC.h>
 
 #include "EMIESClient.h"
+#include "JobStateEMIES.h"
 #include "JobControllerEMIES.h"
 
 namespace Arc {
@@ -50,8 +51,15 @@ namespace Arc {
          iter != jobstore.end(); iter++) {
       EMIESJob job = JobToEMIES(*iter);
       EMIESClient ac(job.manager, cfg, usercfg.Timeout());
-      if (!ac.stat(job, *iter)) {
+      if (!ac.info(job, *iter)) {
         logger.msg(INFO, "Failed retrieving information for job: %s", iter->JobID.str());
+      }
+      // Going for more detailed state
+      XMLNode jst;
+      if (!ac.stat(job, jst)) {
+      } else {
+        JobStateEMIES jst_ = jst;
+        if(jst_) iter->State = jst_;
       }
     }
   }

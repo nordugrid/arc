@@ -72,6 +72,7 @@ namespace Arc {
     EMIESJobState& operator=(XMLNode state);
     EMIESJobState& operator=(const std::string& state);
     bool operator!(void);
+    operator bool(void);
     bool HasAttribute(const std::string& attr) const;
   };
 
@@ -129,8 +130,9 @@ namespace Arc {
        @param state The state of the job.
        @return true on success
      */
+    bool stat(const EMIESJob& job, XMLNode& state);
     bool stat(const EMIESJob& job, EMIESJobState& state);
-    bool stat(const EMIESJob& job, Job& info);
+    bool info(const EMIESJob& job, Job& info);
 
     //! Terminates a job.
     /*! This method sends a request to the EMI ES service to terminate
