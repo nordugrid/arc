@@ -962,7 +962,6 @@ namespace Arc {
       }
       XMLNode file = staging.NewChild("InputFile");
       file.NewChild("Name") = it->Name;
-      if(it->IsExecutable) file.NewChild("IsExecutable") = "true";
       for(std::list<SourceType>::const_iterator u = it->Sources.begin();
           u != it->Sources.end(); ++u) {
         if(!*u) continue; // mandatory
