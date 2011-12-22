@@ -79,7 +79,8 @@ namespace Arc {
             logger.msg(ERROR, "No stagein URL is provided");
             return false;
           };
-          URL dst(std::string(url.str() + '/' + it->Name));
+          URL dst(url);
+          dst.ChangePath(dst.Path() + '/' + it->Name);
           DataHandle source(src, usercfg);
           DataHandle destination(dst, usercfg);
           DataStatus res =
