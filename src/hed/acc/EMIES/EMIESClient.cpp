@@ -251,6 +251,13 @@ namespace Arc {
   }
 
   bool EMIESClient::info(const EMIESJob& job, Job& info) {
+    std::string stagein;
+    std::string stageout;
+    std::string session;
+    return EMIESClient::info(job,info,stagein,stageout,session);
+  }
+
+  bool EMIESClient::info(const EMIESJob& job, Job& info, std::string& stagein, std::string& stageout, std::string& session) {
     /*
       esainfo:GetActivityInfo
         estypes:ActivityID
@@ -292,6 +299,17 @@ namespace Arc {
       if(!st) continue;
       info.RestartState = st;
       break;
+    }
+    XMLNode ext = item["estypes:ActivityInfo"]["Extensions"]["Extension"];
+    for(;(bool)ext;++ext) {
+      XMLNode s;
+      s = ext["esainfo:StageInDirectory"];
+      if(s) stagein = (std::string)s;
+      s = ext["esainfo:StageOutDirectory"];
+      if(s) stageout = (std::string)s;
+      s = ext["esainfo:SessionDirectory"];
+      if(s) session = (std::string)s;
+      if((!stagein.empty()) || (!stageout.empty()) || (!session.empty())) break;
     }
     // Making EMI ES specific job id
     // URL-izing job id

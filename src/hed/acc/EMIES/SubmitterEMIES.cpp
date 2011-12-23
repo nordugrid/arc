@@ -103,7 +103,19 @@ namespace Arc {
 
     if(!jobid.manager) jobid.manager = et.url;
 
-    for(;;) {
+    // Check if we have anything to upload. Otherwise there is no need to wait.
+    bool have_uploads = false;
+    for(std::list<InputFileType>::const_iterator it =
+          preparedjobdesc.DataStaging.InputFiles.begin();
+          it != preparedjobdesc.DataStaging.InputFiles.end(); ++it) {
+      if((!it->Sources.empty()) && (it->Sources.front().Protocol() == "file")) {
+        have_uploads = true;
+        break;
+      };
+    };
+
+    if(have_uploads) for(;;) {
+      // TODO: implement timeout
       if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
       if(jobstate.state == "TERMINAL") {
         logger.msg(INFO, "Job failed on service side");
@@ -118,24 +130,42 @@ namespace Arc {
         logger.msg(INFO, "Failed to obtain state of job");
         releaseClient(et.url);
         return false;
-      };
+      }
     }
 
-    if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
+    if(have_uploads) {
+      if(!jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
+        logger.msg(INFO, "Failed to wait for job to allow stage in");
+        releaseClient(et.url);
+        return false;
+      }
       URL stageurl(jobid.stagein);
+      if(!stageurl) {
+        // Try to obtain it from job info
+        Job tjob;
+        std::string stagein;
+        std::string stageout;
+        std::string session;
+        if((!ac->info(jobid, tjob, stagein, stageout, session)) ||
+           stagein.empty() ||
+           (!(stageurl = stagein))) {
+          logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", stagein);
+          releaseClient(et.url);
+          return false;
+        }
+      }
       if (!PutFiles(preparedjobdesc, stageurl)) {
         logger.msg(INFO, "Failed uploading local input files");
         releaseClient(et.url);
         return false;
       }
-      // It is not clear how service is implemented. So notifying should not harm.
-      if (!ac->notify(jobid)) {
-        logger.msg(INFO, "Failed to notify service");
-        releaseClient(et.url);
-        return false;
-      }
-    } else {
-      // TODO: check if client has files to send
+    }
+
+    // It is not clear how service is implemented. So notifying should not harm.
+    if (!ac->notify(jobid)) {
+      logger.msg(INFO, "Failed to notify service");
+      releaseClient(et.url);
+      return false;
     }
 
     // URL-izing job id

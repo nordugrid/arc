@@ -52,7 +52,7 @@ namespace Arc {
       EMIESJob job = JobToEMIES(*iter);
       EMIESClient ac(job.manager, cfg, usercfg.Timeout());
       if (!ac.info(job, *iter)) {
-        logger.msg(INFO, "Failed retrieving information for job: %s", iter->JobID.str());
+        logger.msg(INFO, "Failed retrieving information for job: %s", iter->JobID.fullstr());
       }
       // Going for more detailed state
       XMLNode jst;
@@ -68,7 +68,7 @@ namespace Arc {
                                  const std::string& downloaddir,
                                  bool usejobname,
                                  bool force) {
-    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
+    logger.msg(VERBOSE, "Downloading job: %s", job.JobID.fullstr());
 
     std::string jobidnum;
     if (usejobname && !job.Name.empty()) {
@@ -77,7 +77,6 @@ namespace Arc {
       jobidnum = job.JobID.Option("emiesjobid");
     }
 
-    // TODO: This only works for ARC implementation
     URL src(GetFileUrlForJob(job,""));
     URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
     std::list<std::string> files = GetDownloadFiles(src);
@@ -139,11 +138,40 @@ namespace Arc {
 
   URL JobControllerEMIES::GetFileUrlForJob(const Job& job,
                                           const std::string& whichfile) {
-    // TODO: Folowing only works for ARC implementation
-    URL url(job.JobID);
-    url.ChangePath(url.Path() + '/' + url.Option("emiesjobid"));
-    url.RemoveOption("emiesjobid");
+    MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
 
+    // Obtain information about staging urls
+    EMIESJob ejob = JobToEMIES(job);
+    std::string stagein;
+    std::string stageout;
+    std::string session;
+    Job tjob;
+    EMIESClient ac(ejob.manager, cfg, usercfg.Timeout());
+    if (!ac.info(ejob, tjob, stagein, stageout, session)) {
+      logger.msg(INFO, "Failed retrieving information for job: %s", job.JobID.fullstr());
+      return URL();
+    }
+    URL url;
+    // Choose url by state
+    // TODO: maybe this method should somehow know what is purpose of URL
+    // TODO: state attributes woul dbe more suitable
+    if((tjob.State == JobState::ACCEPTED) ||
+       (tjob.State == JobState::PREPARING)) {
+      url = stagein;
+    } else if((tjob.State == JobState::DELETED) ||
+              (tjob.State == JobState::FAILED) ||
+              (tjob.State == JobState::KILLED) ||
+              (tjob.State == JobState::FINISHED) ||
+              (tjob.State == JobState::FINISHING)) {
+      url = stageout;
+    } else {
+      url = session;
+    }
+    // If no url found by state still try to get something
+    if(!url) if(!session.empty()) url = session;
+    if(!url) if(!stagein.empty()) url = stagein;
+    if(!url) if(!stageout.empty()) url = stageout;
     if (whichfile == "stdout") {
       url.ChangePath(url.Path() + '/' + job.StdOut);
     } else if (whichfile == "stderr") {
@@ -153,7 +181,6 @@ namespace Arc {
     } else {
       if(!whichfile.empty()) url.ChangePath(url.Path() + "/" + whichfile);
     }
-
     return url;
   }
 
