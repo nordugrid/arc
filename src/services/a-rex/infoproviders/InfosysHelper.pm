@@ -124,34 +124,48 @@ sub waitForProvider {
     #
     sub findInfosys {
         return @$cache if defined $cache;
-
-        my $config = @_;
-        my ($bdii_var_dir) = $config->{bdii_var_dir} || "/var/lib/arc/bdii";
+        my ($config) = @_;
         my ($bdii_run_dir) = $config->{bdii_run_dir} || "/var/run/arc/bdii";
+        # remove trailing slashes
+        $bdii_run_dir =~ s|/\z||;
+        $log->debug("BDII run dir set to: $bdii_run_dir");
+        
+        # TODO: remove this legacy BDII4 location from here and from grid-infosys
+        my ($bdii_var_dir) = $config->{bdii_var_dir} || "/var/lib/arc/bdii";
+        # remove trailing slashes
+        $bdii_var_dir =~ s|/\z||;
+        $log->debug("BDII var dir set to: $bdii_var_dir");
+        
         my ($bdii_update_pid_file) = $config->{bdii_update_pid_file} || "$bdii_run_dir/bdii-update.pid";
-
+        $log->debug("BDII pid guessed location: $bdii_update_pid_file. Will search for it later");
+        
         my ($infosys_uid, $infosys_gid);
-        my $infosys_runtime_dir;
-
+        
+        my $infosys_runtime_dir = "/var/run/arc/infosys";
+        
+        $log->debug("Infosys run dir set to $infosys_runtime_dir");
+        
+        # search for bdii pid file: legacy bdii4 locations still here
+        # TODO: remove bdii_var_dir from everywhere (also from grid-infosys)
         # if not specified with bdii_update_pid_file, it's likely here
+        my $existsPidFile = 0;
         my $bdii5_pidfile = "$bdii_run_dir/bdii-update.pid";
         my $bdii4_pidfile = "$bdii_var_dir/bdii-update.pid";
-        for my $pidfile ( $bdii_update_pid_file, $bdii5_pidfile, $bdii4_pidfile ) {
+        for my $pidfile ( $bdii_update_pid_file, $bdii5_pidfile, $bdii4_pidfile) {
             unless ( ($infosys_uid, $infosys_gid) = uidGidFromFile($pidfile) ) {
                 $log->verbose("Infosys pidfile not found at: $pidfile");
                 next;
             }
+            $existsPidFile = 1;
             $log->verbose("Infosys pidfile found at: $pidfile");
             next unless (my $user = getpwuid($infosys_uid));
-            $infosys_runtime_dir = "/var/run/arc/infosys";
             $log->verbose("Infosys pidfile owned by: $user ($infosys_uid)");
             last;
         }
-        unless ($infosys_runtime_dir) {
-            $log->warning("Infosys pid file not found. Check that ldap-infosys is running");
+        unless ($existsPidFile) {
+            $log->warning("Infosys pid file not found. Check that ldap-infosys is running, or that bdii_run_dir is set");
             return @$cache = ();
         }
-        $log->verbose("Infosys runtime directory: $infosys_runtime_dir");
         unless (-d $infosys_runtime_dir) {
             $log->warning("Infosys runtime directory does not exist. Check that ldap-infosys is running");
             return @$cache = ();

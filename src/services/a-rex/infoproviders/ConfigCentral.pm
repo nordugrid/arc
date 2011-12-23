@@ -112,10 +112,12 @@ my $ldap_infosys_options = {
     SlapdPort => '*',
     bdii_var_dir => '*',
     bdii_tmp_dir => '*',
+    bdii_run_dir => '*',
     infosys_compat => '*',
     infosys_nordugrid => '*',
     infosys_glue12 => '*',
-    infosys_glue2_ldap => '*'
+    infosys_glue2_ldap => '*',
+    bdii_update_pid_file => '*'
 };
 my $gridftpd_options = {
     GridftpdEnabled => '*',
