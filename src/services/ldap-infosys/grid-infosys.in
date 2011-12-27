@@ -508,6 +508,12 @@ if [ "x$infosys_glue12" = "xenable" ]; then
 	log_failure_msg "for example: 'Kastrup, Denmark'"
 	exit 1
     fi
+    if [[ "x$resource_location" =~ "/" ]]; then
+    log_failure_msg "WARNING: wrong location format. Please do NOT use slashes / ."
+    log_failure_msg "It should be set to a free-form string describing the location,"
+    log_failure_msg "for example: 'Kastrup, Denmark'"
+    exit 1
+    fi
     if [ "x$resource_latitude" = "x" ]; then
 	log_failure_msg "If infosys_glue12 is enabled, then resource_latitude must be set."
 	log_failure_msg "It should be set to the latitude for the location,"
