@@ -22,11 +22,11 @@ all jobs
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
 the file storing information about active jobs (default ~/.arc/jobs.xml)
 .IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
-a file containing a list of jobIDs
+a file containing a list of job IDs
 .IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
 the IDs of the submitted jobs will be appended to this file
 .IP "\fB-c\fR, \fB--cluster\fR=[-]\fIname\fR"
-explicitly select or reject jobs from a specific cluster
+explicitly select or reject a specific cluster for new jobs
 .IP "\fB-q\fR, \fB--qluster\fR=[-]\fIname\fR"
 explicitly select or reject a specific cluster for the new job
 .IP "\fB-g\fR, \fB--index\fR=[-]\fIname\fR"
@@ -34,7 +34,9 @@ explicitly select or reject jobs from an index server
 .IP "\fB-k\fR, \fB--keep\fR"
 keep the files on the server (do not clean)
 .IP "\fB-m\fR, \fB--same\fR"
-resubmit on the same cluster
+resubmit to the same cluster
+.IP "\fB-M\fR, \fB--not-same\fR"
+do not resubmit to the same cluster
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
 only select jobs whose status is statusstr
 .IP "\fB-P\fR, \fB--listplugins\fR"
@@ -56,7 +58,7 @@ print help
 .SH ARGUMENTS
 
 .IP "\fBjobid\fR ..."
-jobid or job name of jobs to be resubmitted
+job ID or job name of jobs to be resubmitted
 .LP
 
 .SH EXTENDED DESCRIPTION
@@ -64,36 +66,35 @@ jobid or job name of jobs to be resubmitted
 The
 .B arcresub
 command is used for resubmitting jobs on grid enabled computing
-resources to the same (not default, see below) or new resources.
-The job can be referred to either by the jobid that was returned by
+resources.
+The job can be referred to either by the job ID that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
 submitted contained a jobname attribute.
 
-More than one jobid and/or jobname can be given. If several jobs were
+More than one job ID and/or jobname can be given. If several jobs were
 submitted with the same jobname all those jobs will be resubmitted.
 
-Upon resubmission of a job the corresponding job description will be
-fetched from the local joblist file along with the checksum of local
-input files. If the checksums does not match the current ones the
-job no longer remains the same job an will therefore not be
-resubmitted.
+If the job description of a job to be resubmitted, contained any local
+input files, checksums of these was calculated and stored in the
+job list, and those will be used to check whether the files has changed.
+If local input files has changed the job will not be resubmitted.
 
-In case the job description is not found in the joblist, it will
+In case the job description is not found in the job list, it will
 be retrieved from the cluster holding the job. This description
 however might differ from the one originally used to submit the job,
 since both the submission client and the cluster can have made
 modifications to the job description.
 
-Upon resubmision the job will receive a new jobid. Hence the old
-jobid will also be stored in the local joblist file enabling
-future back tracing of the resubmitted job.
+Upon resubmision the job will receive a new job ID, and the old
+job ID will be stored in the local job list file, enabling future
+back tracing of the resubmitted job.
 
-The name of the local joblist file can used specified by the
+The name of the local job list file can used specified by the
 .B --joblist
 option. By specifying the
 .B --all
-option, all active jobs appearing the in joblist file will be
+option, all active jobs appearing the in job list file will be
 resubmitted.
 
 The
@@ -105,7 +106,7 @@ for a discussion of the format of arguments to this option.
 The
 .B --qluster
 option can be used to force the jobs to be resubmitted to a particular
-cluster, or to reject resubmission to a particular cluster. Againg see
+cluster, or to reject resubmission to a particular cluster. Again see
 .BR arcsub (1)
 for a discussion of the format of arguments to this option.
 The
@@ -120,16 +121,16 @@ for a discussion of the format of arguments to this option.
 
 The default behaviour of
 .BR arcresub
-is to disregard the cluster which job(s) resides on. If the desired
-behaviour is to resubmit to the same cluster it can be obtained by
-specifying the
-.B --same
-option which will force jobs to be resubmitted to the same cluster
-as where they initial run.
+is to resubmit to any cluster. This behaviour can be changed by
+specifying the \fB--same\fR or \fB--not-same\fR options. The
+former will resubmit a job to the same cluster as the job resides,
+and thus the \fB--qluster\fR and \fB--index\fR options is ignored.
+The latter will resubmit a job to any cluster except to the
+cluster it resides. Note the \fB--same\fR and \fB--not-same\fR
+options cannot be specified together.
+
 If the old job was successfully killed the job will be removed from the
-remote cluster unless the
-.B --keep
-option was specified.
+remote cluster unless the \fB--keep\fR option was specified.
 
 .SH FILES
 

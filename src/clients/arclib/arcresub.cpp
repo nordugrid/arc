@@ -4,31 +4,20 @@
 #include <config.h>
 #endif
 
-#include <fstream>
-#include <iostream>
 #include <list>
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
-#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
-#include <arc/DateTime.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
-#include <arc/Utils.h>
 #include <arc/URL.h>
-#include <arc/XMLNode.h>
-#include <arc/client/Submitter.h>
-#include <arc/client/JobDescription.h>
-#include <arc/client/JobController.h>
-#include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
-#include <arc/client/Broker.h>
+#include <arc/client/Job.h>
+#include <arc/client/JobSupervisor.h>
 #include <arc/credential/Credential.h>
 #include <arc/loader/FinderLoader.h>
 #include <arc/loader/Plugin.h>
@@ -62,7 +51,7 @@ int RUNRESUB(main)(int argc, char **argv) {
                     istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
-                    
+
   std::string jobidfileout;
   options.AddOption('o', "jobids-to-file",
                     istring("the IDs of the submitted jobs will be appended to this file"),
@@ -73,7 +62,7 @@ int RUNRESUB(main)(int argc, char **argv) {
   options.AddOption('i', "jobids-from-file",
                     istring("a file containing a list of jobIDs"),
                     istring("filename"),
-                    jobidfilesin);                    
+                    jobidfilesin);
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
@@ -84,7 +73,7 @@ int RUNRESUB(main)(int argc, char **argv) {
   std::list<std::string> qlusters;
   options.AddOption('q', "qluster",
                     istring("explicitly select or reject a specific resource "
-                            "for the new job"),
+                            "for new jobs"),
                     istring("[-]name"),
                     qlusters);
 
@@ -103,6 +92,11 @@ int RUNRESUB(main)(int argc, char **argv) {
   options.AddOption('m', "same",
                     istring("resubmit to the same resource"),
                     same);
+
+  bool notsame = false;
+  options.AddOption('M', "not-same",
+                    istring("do not resubmit to the same resource"),
+                    notsame);
 
   std::list<std::string> status;
   options.AddOption('s', "status",
@@ -139,13 +133,7 @@ int RUNRESUB(main)(int argc, char **argv) {
                     version);
 
 
-  std::list<std::string> jobs = options.Parse(argc, argv);
-
-  for (std::list<std::string>::const_iterator it = jobidfilesin.begin(); it != jobidfilesin.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
-    }
-  }
+  std::list<std::string> jobIDsOrNames = options.Parse(argc, argv);
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcresub", VERSION)
@@ -166,7 +154,7 @@ int RUNRESUB(main)(int argc, char **argv) {
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
     std::cout << Arc::IString("Types of execution services arcresub is able to submit jobs to:") << std::endl;
@@ -177,7 +165,7 @@ int RUNRESUB(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
     std::cout << Arc::IString("Types of index and information services which arcresub is able collect information from:") << std::endl;
@@ -188,7 +176,7 @@ int RUNRESUB(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     modules.clear();
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
@@ -231,183 +219,195 @@ int RUNRESUB(main)(int argc, char **argv) {
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
+  if (same && notsame) {
+    logger.msg(Arc::ERROR, "--same and --not-same cannot be specified together.");
+    return 1;
+  }
+
+  for (std::list<std::string>::const_iterator it = jobidfilesin.begin(); it != jobidfilesin.end(); it++) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobIDsOrNames)) {
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+    }
+  }
+
   if (timeout > 0)
     usercfg.Timeout(timeout);
 
   if (!broker.empty())
     usercfg.Broker(broker);
 
-  if ((!joblist.empty() || !status.empty()) && jobs.empty() && clusters.empty())
+  if ((!joblist.empty() || !status.empty()) && jobIDsOrNames.empty() && clusters.empty())
     all = true;
 
-  if (jobs.empty() && clusters.empty() && !all) {
+  if (jobIDsOrNames.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  // Different selected services are needed in two different context,
-  // so the two copies of UserConfig objects will contain different
-  // selected services.
-  Arc::UserConfig usercfg2 = usercfg;
+  // Removes slashes from end of cluster names, and put cluster to reject into separate list.
+  std::list<std::string> rejectClusters;
+  for (std::list<std::string>::iterator itC = clusters.begin();
+       itC != clusters.end();) {
+    if ((*itC)[itC->length()-1] == '/') {
+      itC->erase(itC->length()-1);
+    }
+    if ((*itC)[0] == '-') {
+      rejectClusters.push_back(itC->substr(1));
+      itC = clusters.erase(itC);
+    }
+    else {
+      ++itC;
+    }
+  }
 
-  if (!jobs.empty() || all)
-    usercfg.ClearSelectedServices();
+  std::list<Arc::Job> jobs;
+  Arc::Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
+  if (!all) {
+    for (std::list<Arc::Job>::iterator itJ = jobs.begin();
+         itJ != jobs.end();) {
+      if (jobIDsOrNames.empty() && clusters.empty()) {
+        // Remove remaing jobs.
+        jobs.erase(itJ, jobs.end());
+        break;
+      }
 
-  if (!clusters.empty()) {
+      std::list<std::string>::iterator itJIDOrName = jobIDsOrNames.begin();
+      for (;itJIDOrName != jobIDsOrNames.end(); ++itJIDOrName) {
+        if (itJ->IDFromEndpoint.str() == *itJIDOrName || (!itJ->Name.empty() && itJ->Name == *itJIDOrName)) {
+          break;
+        }
+      }
+      if (itJIDOrName != jobIDsOrNames.end()) {
+        // Job explicitly specified. Remove id from list so we dont iterate it again.
+        jobIDsOrNames.erase(itJIDOrName);
+        ++itJ;
+        continue;
+      }
+
+      std::list<std::string>::const_iterator itC = clusters.begin();
+      for (; itC != clusters.end(); ++itC) {
+        if (itJ->Cluster.str() == *itC ||
+            itJ->Cluster.Host() == *itC ||
+            itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
+            itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) == *itC ||
+            itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) + "/" + itJ->Cluster.Path() == *itC) {
+          break;
+        }
+      }
+      if (itC != clusters.end()) {
+        // Cluster on which job reside is explicitly specified.
+        ++itJ;
+        continue;
+      }
+
+      // Job is not selected - remove it.
+      itJ = jobs.erase(itJ);
+    }
+  }
+
+  for (std::list<std::string>::const_iterator itJIDOrName = jobIDsOrNames.begin();
+       itJIDOrName != jobIDsOrNames.end(); ++itJIDOrName) {
+    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDOrName) << std::endl;
+  }
+
+  // Filter jobs on rejected clusters.
+  for (std::list<std::string>::const_iterator itC = rejectClusters.begin();
+       itC != rejectClusters.end(); ++itC) {
+    std::list<Arc::Job>::iterator itJ = jobs.begin();
+    for (; itJ != jobs.end(); ++itJ) {
+      if (itJ->Cluster.str() == *itC ||
+          itJ->Cluster.Host() == *itC ||
+          itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
+          itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) == *itC ||
+          itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) + "/" + itJ->Cluster.Path() == *itC) {
+        break;
+      }
+    }
+    if (itJ != jobs.end()) {
+      jobs.erase(itJ);
+    }
+  }
+
+  if (!qlusters.empty() || !indexurls.empty()) {
     usercfg.ClearSelectedServices();
-    usercfg.AddServices(clusters, Arc::COMPUTING);
+    if (!qlusters.empty()) {
+      usercfg.AddServices(qlusters, Arc::COMPUTING);
+    }
+    if (!indexurls.empty()) {
+      usercfg.AddServices(indexurls, Arc::INDEX);
+    }
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
+    std::cout << Arc::IString("No jobs selected for resubmission") << std::endl;
     return 0;
   }
-  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
-
-  // If the user specified a joblist on the command line joblist equals
-  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
-  if (jobcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controller plugins loaded");
-    return 1;
-  }
-
-  // Clearing jobs.
-  jobs.clear();
-
-  std::list<Arc::Job> toberesubmitted;
-  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-       it != jobcont.end(); it++) {
-    std::list<Arc::Job> cont_jobs;
-    cont_jobs = (*it)->GetJobDescriptions(status, true);
-    toberesubmitted.insert(toberesubmitted.begin(), cont_jobs.begin(), cont_jobs.end());
-  }
-  if (toberesubmitted.empty()) {
-    logger.msg(Arc::ERROR, "No jobs to resubmit");
-    return 1;
-  }
-
-  if (same) {
-    qlusters.clear();
-    usercfg2.ClearSelectedServices();
-  }
-  else if (!qlusters.empty() || !indexurls.empty())
-    usercfg2.ClearSelectedServices();
-
-  // Preventing resubmitted jobs to be send to old clusters
-  for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
-       it != toberesubmitted.end(); it++)
-    if (same) {
-      qlusters.push_back(it->Flavour + ":" + it->Cluster.str());
-      logger.msg(Arc::VERBOSE, "Trying to resubmit job to %s", qlusters.front());
-    }
-    else {
-      qlusters.remove(it->Flavour + ":" + it->Cluster.str());
-      qlusters.push_back("-" + it->Flavour + ":" + it->Cluster.str());
-      logger.msg(Arc::VERBOSE, "Disregarding %s", it->Cluster.str());
-    }
-  qlusters.sort();
-  qlusters.unique();
-
-  usercfg2.AddServices(qlusters, Arc::COMPUTING);
-  if (!same && !indexurls.empty())
-    usercfg2.AddServices(indexurls, Arc::INDEX);
-
-  // Resubmitting jobs
-  Arc::TargetGenerator targen(usercfg2);
-  targen.RetrieveExecutionTargets();
-
-  if (targen.GetExecutionTargets().empty()) {
-    std::cout << Arc::IString("Job submission aborted because no resource returned any information") << std::endl;
-    return 1;
-  }
-
-  Arc::BrokerLoader loader;
-  Arc::Broker *ChosenBroker = loader.load(usercfg.Broker().first, usercfg2);
-  if (!ChosenBroker) {
-    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg2.Broker().first);
-    return 1;
-  }
-
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg2.Broker().first);
 
   std::list<Arc::Job> resubmittedJobs;
-
-  // Loop over jobs
-  for (std::list<Arc::Job>::iterator it = toberesubmitted.begin();
-       it != toberesubmitted.end(); it++) {
-    resubmittedJobs.push_back(Arc::Job());
-
-    std::list<Arc::JobDescription> jobdescs;
-    Arc::JobDescription::Parse(it->JobDescriptionDocument, jobdescs); // Do not check for validity. We are only interested in that the outgoing job description is valid.
-    if (jobdescs.empty()) {
-      std::cout << Arc::IString("Job resubmission failed, unable to parse obtained job description") << std::endl;
-      resubmittedJobs.pop_back();
-      continue;
-    }
-    jobdescs.front().Identification.ActivityOldID = it->ActivityOldID;
-    jobdescs.front().Identification.ActivityOldID.push_back(it->JobID.str());
-
-    // remove the queuename which was added during the original submission of the job
-    jobdescs.front().Resources.QueueName = "";    
-
-    if (ChosenBroker->Submit(targen.GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back())) {
-      std::string jobid = resubmittedJobs.back().JobID.str();
-      if (!jobidfileout.empty())
-        if (!Arc::Job::WriteJobIDToFile(jobid, jobidfileout))
-          logger.msg(Arc::WARNING, "Cannot write jobid (%s) to file (%s)", jobid, jobidfileout);
-      std::cout << Arc::IString("Job resubmitted with new jobid: %s", jobid) << std::endl;
-      jobs.push_back(it->JobID.str());
-    }
-    else {
-      std::cout << Arc::IString("Job resubmission failed, no more possible targets") << std::endl;
-      resubmittedJobs.pop_back();
-    }
-  } //end loop over all job descriptions
-
-  if (!Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
-    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile())
-              << std::endl;
-    std::cout << Arc::IString("To recover missing jobs, run arcsync") << std::endl;
-  }
-
-  if (jobs.empty())
-    return 0;
-
-  usercfg.ClearSelectedServices();
-
-  // Only kill and clean jobs that have been resubmitted
-  Arc::JobSupervisor killmaster(usercfg, jobs);
-  if (!killmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
+  std::list<Arc::URL> notresubmitted;
+  // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
+  if (jobmaster.Resubmit(status, (int)same + 2*(int)notsame, resubmittedJobs, notresubmitted) && resubmittedJobs.empty()) {
+    std::cout << Arc::IString("No jobs to resubmit with the specified status") << std::endl;
     return 0;
   }
-  std::list<Arc::JobController*> killcont = killmaster.GetJobControllers();
-  if (killcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controller plugins loaded");
-    return 1;
+
+  for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
+       it != resubmittedJobs.end(); ++it) {
+    std::cout << Arc::IString("Job submitted with jobid: %s", it->IDFromEndpoint.str()) << std::endl;
   }
 
-  for (std::list<Arc::JobController*>::iterator it = killcont.begin();
-       it != killcont.end(); it++) {
-    // Order matters.
-    if (!(*it)->Kill(status, keep) && !keep && !(*it)->Clean(status, true)) {
-      logger.msg(Arc::WARNING, "Job could not be killed or cleaned");
+  if (!resubmittedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
+    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+    std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
+  }
+
+  if (!jobidfileout.empty() && !Arc::Job::WriteJobIDsToFile(resubmittedJobs, jobidfileout)) {
+    logger.msg(Arc::WARNING, "Cannot write jobids to file (%s)", jobidfileout);
+  }
+
+  // Get job IDs of jobs to kill.
+  std::list<Arc::URL> jobstobekilled;
+  for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
+       it != resubmittedJobs.end(); ++it) {
+    if (!it->ActivityOldID.empty()) {
+      jobstobekilled.push_back(it->ActivityOldID.back());
     }
   }
 
-  /*
-     if (toberesubmitted.size() > 1) {
-     std::cout << std::endl << Arc::IString("Job submission summary:")
-     << std::endl;
-     std::cout << "-----------------------" << std::endl;
-     std::cout << Arc::IString("%d of %d jobs were submitted",
-     toberesubmitted.size() - notresubmitted.size(),
-     toberesubmitted.size()) << std::endl;
-     if (notresubmitted.size()) {
-     std::cout << Arc::IString("The following %d were not submitted",
-     notresubmitted.size()) << std::endl;
-     }
-     }*/
-  return 0;
+  std::list<Arc::URL> notkilled;
+  std::list<Arc::URL> killedJobs = jobmaster.Cancel(jobstobekilled, notkilled);
+  for (std::list<Arc::URL>::const_iterator it = notkilled.begin();
+       it != notkilled.end(); ++it) {
+    logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
+  }
+
+  if (!keep) {
+    std::list<Arc::URL> notcleaned;
+    std::list<Arc::URL> cleanedJobs = jobmaster.Clean(killedJobs, notcleaned);
+    for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
+         it != notcleaned.end(); ++it) {
+      logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
+    }
+
+    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleanedJobs)) {
+      std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
+    }
+  }
+
+  if ((resubmittedJobs.size() + notresubmitted.size()) > 1) {
+    std::cout << std::endl << Arc::IString("Job resubmission summary:") << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << Arc::IString("%d of %d jobs were resubmitted", resubmittedJobs.size(), resubmittedJobs.size() + notresubmitted.size()) << std::endl;
+    if (!notresubmitted.empty()) {
+      std::cout << Arc::IString("The following %d were not resubmitted", notresubmitted.size()) << std::endl;
+      for (std::list<Arc::URL>::const_iterator it = notresubmitted.begin();
+           it != notresubmitted.end(); ++it) {
+        std::cout << it->str() << std::endl;
+      }
+    }
+  }
+
+  return notresubmitted.empty();
 }
