@@ -19,6 +19,9 @@ namespace DataStaging {
     /// Read from stdout of child to get status
     virtual void PullStatus();
 
+    /// Returns "/" since local Delivery can access everywhere
+    static bool CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs);
+
     /// Returns true if child process exists
     virtual operator bool() const { return (child_ != NULL); };
     /// Returns true if child process does not exist

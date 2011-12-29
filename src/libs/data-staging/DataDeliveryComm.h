@@ -99,6 +99,11 @@ namespace DataStaging {
     /// Obtain status of transfer
     Status GetStatus() const;
 
+    /// Check the delivery is available. Calls CheckComm of the appropriate subclass.
+    /// @param dtr DTR from which credentials are used
+    /// @param allowed_dirs List of dirs that this comm is allowed to read/write
+    static bool CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs);
+
     /// Get explanation of error
     std::string GetError() const { return status_.error_desc; };
 

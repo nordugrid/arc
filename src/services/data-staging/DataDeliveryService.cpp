@@ -499,6 +499,35 @@ namespace DataStaging {
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
 
+  /*
+   Accepts:
+   <DataDeliveryPing/>
+
+   Returns:
+   <DataDeliveryPingResponse>
+     <DataDeliveryPingResult>
+       <Result>
+         <ReturnCode>ERROR</ReturnCode>
+         <ErrorDescription>...</ErrorDescription>
+         <AllowedDir>/var/arc/cache</AllowedDir>
+         ...
+       </Result>
+       ...
+     </DataDeliveryPingResult>
+   </DataDeliveryPingResponse>
+   */
+  Arc::MCC_Status DataDeliveryService::Ping(Arc::XMLNode in, Arc::XMLNode out) {
+
+    Arc::XMLNode resultelement = out.NewChild("DataDeliveryPingResponse").NewChild("DataDeliveryPingResult").NewChild("Result");
+    resultelement.NewChild("ResultCode") = "OK";
+
+    for (std::list<std::string>::iterator dir = allowed_dirs.begin(); dir != allowed_dirs.end(); ++dir) {
+      resultelement.NewChild("AllowedDir") = *dir;
+    }
+
+    return Arc::MCC_Status(Arc::STATUS_OK);
+  }
+
 
   DataDeliveryService::DataDeliveryService(Arc::Config *cfg)
     : RegisteredService(cfg),
@@ -607,6 +636,10 @@ namespace DataStaging {
       // Cancel a request
       else if (MatchXMLName(op,"DataDeliveryCancel")) {
         result = Cancel(*inpayload, *outpayload);
+      }
+      // ping service
+      else if (MatchXMLName(op,"DataDeliveryPing")) {
+        result = Ping(*inpayload, *outpayload);
       }
       // Delegate credentials. Should be called before making a new request
       else if (delegation.MatchNamespace(*inpayload)) {

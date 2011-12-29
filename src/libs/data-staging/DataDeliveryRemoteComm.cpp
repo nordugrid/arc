@@ -280,6 +280,89 @@ namespace DataStaging {
     delete response;
   }
 
+  bool DataDeliveryRemoteComm::CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs) {
+    // call Ping
+    Arc::MCCConfig cfg;
+    if (dtr->host_cert_for_remote_delivery()) {
+      Arc::UserConfig host_cfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+      host_cfg.ProxyPath(""); // to force using cert/key files instead of non-existent proxy
+      host_cfg.ApplyToConfig(cfg);
+    } else {
+      dtr->get_usercfg().ApplyToConfig(cfg);
+    }
+
+    dtr->get_logger()->msg(Arc::VERBOSE, "DTR %s: Connecting to Delivery service at %s",
+                           dtr->get_short_id(), dtr->get_delivery_endpoint().str());
+    Arc::ClientSOAP client(cfg, dtr->get_delivery_endpoint(), dtr->get_usercfg().Timeout());
+
+    Arc::NS ns;
+    Arc::PayloadSOAP request(ns);
+
+    Arc::XMLNode ping = request.NewChild("DataDeliveryPing");
+
+    std::string xml;
+    request.GetXML(xml, true);
+    dtr->get_logger()->msg(Arc::DEBUG, "DTR %s: Request:\n%s", dtr->get_short_id(), xml);
+
+    Arc::PayloadSOAP *response = NULL;
+    Arc::MCC_Status status = client.process(&request, &response);
+
+    if (!status) {
+      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: Could not connect to service %s: %s",
+                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(), (std::string)status);
+      if (response)
+        delete response;
+      return false;
+    }
+
+    if (!response) {
+      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: No SOAP response from Delivery service %s",
+                             dtr->get_short_id(), dtr->get_delivery_endpoint().str());
+      return false;
+    }
+
+    response->GetXML(xml, true);
+    dtr->get_logger()->msg(Arc::DEBUG, "DTR %s: Response:\n%s", dtr->get_short_id(), xml);
+
+    if (response->IsFault()) {
+      Arc::SOAPFault& fault = *response->Fault();
+      std::string err("SOAP fault: %s", fault.Code());
+      for (int n = 0;;++n) {
+        if (fault.Reason(n).empty()) break;
+        err += ": " + fault.Reason(n);
+      }
+      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: SOAP fault from delivery service at %s: %s",
+                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(), err);
+      delete response;
+      return false;
+    }
+
+    Arc::XMLNode resultnode = (*response)["DataDeliveryPingResponse"]["DataDeliveryPingResult"]["Result"][0];
+    if (!resultnode || !resultnode["ResultCode"]) {
+      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: Bad format in XML response from delivery service at %s: %s",
+                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(), xml);
+      delete response;
+      return false;
+    }
+
+    std::string resultcode = (std::string)(resultnode["ResultCode"]);
+    if (resultcode != "OK") {
+      dtr->get_logger()->msg(Arc::ERROR, "DTR %s: Error pinging delivery service at %s: %s: %s",
+                             dtr->get_short_id(), dtr->get_delivery_endpoint().str(),
+                             resultcode, (std::string)(resultnode[0]["ErrorDescription"]));
+      delete response;
+      return false;
+    }
+    for (Arc::XMLNode dir = resultnode["AllowedDir"]; dir; ++dir) {
+      allowed_dirs.push_back((std::string)dir);
+      dtr->get_logger()->msg(Arc::DEBUG, "Dir %s allowed at service %s",
+                             (std::string)dir, dtr->get_delivery_endpoint().str());
+    }
+
+    delete response;
+    return true;
+  }
+
   void DataDeliveryRemoteComm::FillStatus(const Arc::XMLNode& node) {
 
     if (!node) {

@@ -69,8 +69,12 @@ class Scheduler: public DTRCallback {
     /// Where to dump DTR state. Currently only a path to a file is supported.
     std::string dumplocation;
 
-    /// Endpoints of delivery services
-    std::vector<Arc::URL> delivery_services;
+    /// Endpoints of delivery services from configuration
+    std::vector<Arc::URL> configured_delivery_services;
+
+    /// Map of delivery services and directories they can access, filled after
+    /// querying all services when the first DTR is processed
+    std::map<Arc::URL, std::vector<std::string> > usable_delivery_services;
 
     /// Logger object
     static Arc::Logger logger;
@@ -136,6 +140,11 @@ class Scheduler: public DTRCallback {
      * can arrive at any time, breaking the normal workflow. */
     void map_cancel_state(DTR* request);
     
+    /// Choose a delivery service for the DTR, based on the file system paths
+    /// each service can access. These paths are determined by calling all the
+    /// configured services when the first DTR is received.
+    void choose_delivery_service(DTR* request);
+
     /// Go through all DTRs waiting to go into a processing state and decide
     /// whether to push them into that state, depending on shares and limits.
     void revise_queues();

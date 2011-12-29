@@ -63,7 +63,7 @@ namespace DataStaging {
 
   void Scheduler::SetDeliveryServices(const std::vector<Arc::URL>& endpoints) {
     if (scheduler_state == INITIATED)
-      delivery_services = endpoints;
+      configured_delivery_services = endpoints;
   }
 
   void Scheduler::SetDumpLocation(const std::string& location) {
@@ -77,10 +77,10 @@ namespace DataStaging {
     processor.start();
     delivery.start();
     // if no delivery services set, then use local
-    if (delivery_services.empty()) {
+    if (configured_delivery_services.empty()) {
       std::vector<Arc::URL> services;
       services.push_back(DTR::LOCAL_DELIVERY);
-      delivery_services = services;
+      configured_delivery_services = services;
     }
     Arc::CreateThreadFunction(&main_thread, this);
     return true;
@@ -716,6 +716,88 @@ namespace DataStaging {
     event_lock.unlock();
   }
 
+  void Scheduler::choose_delivery_service(DTR* request) {
+    if (configured_delivery_services.empty()) return;
+
+    // Remember current endpoint
+    Arc::URL delivery_endpoint(request->get_delivery_endpoint());
+
+    // When the first DTR is processed, all delivery services are checked here
+    // This method assumes that the first DTR has permission on all services,
+    // which may not be true if DN filtering is used on those services.
+    if (usable_delivery_services.empty()) {
+      for (std::vector<Arc::URL>::iterator service = configured_delivery_services.begin();
+           service != configured_delivery_services.end(); ++service) {
+        request->set_delivery_endpoint(*service);
+        std::vector<std::string> allowed_dirs;
+        if (!DataDeliveryComm::CheckComm(request, allowed_dirs)) {
+          // TODO log this to main a-rex log
+          request->get_logger()->msg(Arc::WARNING, "DTR %s: Will not use delivery service at %s",
+                                     request->get_short_id(), request->get_delivery_endpoint().str());
+        }
+        else {
+          usable_delivery_services[*service] = allowed_dirs;
+        }
+      }
+      request->set_delivery_endpoint(Arc::URL());
+      if (usable_delivery_services.empty()) {
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: No usable delivery services found, will use local delivery",
+                                   request->get_short_id());
+        return;
+      }
+    }
+
+    // Make a list of the delivery services that this DTR can use
+    std::vector<Arc::URL> possible_delivery_services;
+    for (std::map<Arc::URL, std::vector<std::string> >::iterator service = usable_delivery_services.begin();
+         service != usable_delivery_services.end(); ++service) {
+      for (std::vector<std::string>::iterator dir = service->second.begin(); dir != service->second.end(); ++dir) {
+        if (request->get_destination()->Local()) {
+
+          // check for caching
+          std::string dest = request->get_destination()->TransferLocations()[0].Path();
+          if ((request->get_cache_state() == CACHEABLE) && !request->get_cache_file().empty()) dest = request->get_cache_file();
+
+          if (dest.find(*dir) == 0) {
+            request->get_logger()->msg(Arc::DEBUG, "DTR %s: Delivery service at %s can copy to %s",
+                                       request->get_short_id(), service->first.str(), *dir);
+            possible_delivery_services.push_back(service->first);
+            break;
+          }
+        }
+        else if (request->get_source()->Local()) {
+
+          if (request->get_source()->TransferLocations()[0].Path().find(*dir) == 0) {
+            request->get_logger()->msg(Arc::DEBUG, "DTR %s: Delivery service at %s can copy from %s",
+                                       request->get_short_id(), service->first.str(), *dir);
+            possible_delivery_services.push_back(service->first);
+            break;
+          }
+        }
+        else {
+          // copy between two remote endpoints so any service is ok
+          possible_delivery_services.push_back(service->first);
+          break;
+        }
+      }
+    }
+    if (possible_delivery_services.empty()) return;
+
+    // If this is a retry, use a different service
+    if (request->get_tries_left() < request->get_initial_tries() && possible_delivery_services.size() > 1) {
+      Arc::URL ep(delivery_endpoint);
+      // Find a random service different from the previous one, looping a
+      // limited number of times in case all delivery services are the same url
+      for (unsigned int i = 0; ep == delivery_endpoint && i < possible_delivery_services.size() * 10; ++i) {
+        ep = possible_delivery_services.at(rand() % possible_delivery_services.size());
+      }
+      delivery_endpoint = ep;
+    } else {
+      delivery_endpoint = possible_delivery_services.at(rand() % possible_delivery_services.size());
+    }
+    request->set_delivery_endpoint(delivery_endpoint);
+  }
+
   void Scheduler::process_events(void){
     
     Arc::Time now;
@@ -876,31 +958,15 @@ namespace DataStaging {
         }
 
         if (can_start) {
-
-          // If going into Delivery, choose delivery service - random for now
-          if (tmp->is_destined_for_delivery() && !delivery_services.empty()) {
-            // previous endpoint
-            Arc::URL delivery_endpoint(tmp->get_delivery_endpoint());
-            // If this is a retry, use a different service
-            if (tmp->get_tries_left() < tmp->get_initial_tries() && delivery_services.size() > 1) {
-              Arc::URL ep(delivery_endpoint);
-              // Find a random service different from the previous one, looping a
-              // limited number of times in case all delivery_services are the same url
-              for (unsigned int i = 0; ep == delivery_endpoint && i < delivery_services.size() * 10; ++i) {
-                ep = delivery_services.at(rand() % delivery_services.size());
-              }
-              delivery_endpoint = ep;
-            } else {
-              delivery_endpoint = delivery_services.at(rand() % delivery_services.size());
-            }
-            tmp->set_delivery_endpoint(delivery_endpoint);
-          }
           transferShares.decrease_number_of_slots(tmp->get_transfer_share());
 
           // Send to processor/delivery
           if (tmp->is_destined_for_pre_processor()) tmp->push(PRE_PROCESSOR);
-          else if (tmp->is_destined_for_delivery()) tmp->push(DELIVERY);
           else if (tmp->is_destined_for_post_processor()) tmp->push(POST_PROCESSOR);
+          else if (tmp->is_destined_for_delivery()) {
+            choose_delivery_service(tmp);
+            tmp->push(DELIVERY);
+          }
 
           ++running;
           active_shares.insert(tmp->get_transfer_share());
@@ -1009,8 +1075,10 @@ namespace DataStaging {
     logger.msg(Arc::INFO, "  Delivery slots: %i", DeliverySlots);
     logger.msg(Arc::INFO, "  Post-processor slots: %i", PostProcessorSlots);
     logger.msg(Arc::INFO, "  Emergency slots: %i", EmergencySlots);
+    logger.msg(Arc::INFO, "  Prepared slots: %i", StagedPreparedSlots);
     logger.msg(Arc::INFO, "  Shares configuration:\n%s", transferSharesConf.conf());
-    for (std::vector<Arc::URL>::iterator i = delivery_services.begin(); i != delivery_services.end(); ++i) {
+    for (std::vector<Arc::URL>::iterator i = configured_delivery_services.begin();
+         i != configured_delivery_services.end(); ++i) {
       if (*i == DTR::LOCAL_DELIVERY) logger.msg(Arc::INFO, "  Delivery service: LOCAL");
       else logger.msg(Arc::INFO, "  Delivery service: %s", i->str());
     }

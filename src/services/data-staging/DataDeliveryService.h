@@ -90,6 +90,9 @@ namespace DataStaging {
     /// Cancel a transfer
     Arc::MCC_Status Cancel(Arc::XMLNode in, Arc::XMLNode out);
 
+    /// Check service is ok and return service information
+    Arc::MCC_Status Ping(Arc::XMLNode in, Arc::XMLNode out);
+
    public:
     /// Make a new DataDeliveryService. Sets up the process handler.
     DataDeliveryService(Arc::Config *cfg);

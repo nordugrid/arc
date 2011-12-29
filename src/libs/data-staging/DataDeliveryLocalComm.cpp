@@ -171,4 +171,10 @@ namespace DataStaging {
     }
   }
 
+  bool DataDeliveryLocalComm::CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs) {
+    allowed_dirs.push_back("/");
+    return true;
+  }
+
+
 } // namespace DataStaging
