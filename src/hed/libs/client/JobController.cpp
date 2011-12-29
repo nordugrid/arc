@@ -410,69 +410,6 @@ namespace Arc {
     }
   }
 
-  bool JobController::Migrate(TargetGenerator& targetGen,
-                              Broker *broker,
-                              const UserConfig& usercfg,
-                              bool forcemigration,
-                              std::list<URL>& migratedJobIDs) {
-    GetJobInformation();
-
-    bool retVal = true;
-    std::list<URL> toberemoved;
-    std::list<Job> migratedJobs;
-    for (std::list<Job>::iterator itJob = jobstore.begin(); itJob != jobstore.end(); ++itJob) {
-      if (itJob->State != JobState::QUEUING) {
-        logger.msg(WARNING, "Cannot migrate job %s, it is not queuing.", itJob->JobID.fullstr());
-        continue;
-      }
-
-      if (!GetJobDescription(*itJob, itJob->JobDescription)) {
-        continue;
-      }
-
-      std::list<JobDescription> jobdescs;
-      if (!JobDescription::Parse(itJob->JobDescription, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Job migration failed for job %s, unable to parse remote job description", itJob->JobID.fullstr());
-        retVal = false;
-        continue;
-      }
-
-      migratedJobs.push_back(Job());
-
-      // remove the queuename which was added during the original submission of the job
-      jobdescs.front().Resources.QueueName = "";
-
-      broker->PreFilterTargets(targetGen.GetExecutionTargets(), jobdescs.front());
-      while (true) {
-        const ExecutionTarget *currentTarget = broker->GetBestTarget();
-        if (!currentTarget) {
-          logger.msg(ERROR, "Job migration failed, for job %s, no more possible targets", itJob->JobID.fullstr());
-          retVal = false;
-          migratedJobs.pop_back();
-          break;
-        }
-
-        if (!currentTarget->Migrate(usercfg, itJob->JobID, jobdescs.front(), forcemigration, migratedJobs.back())) {
-          continue;
-        }
-
-        broker->RegisterJobsubmission();
-        migratedJobIDs.push_back(migratedJobs.back().IDFromEndpoint);
-        toberemoved.push_back(itJob->IDFromEndpoint);
-        itJob = jobstore.erase(itJob);
-        --itJob;
-        break;
-      }
-    }
-
-    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
-    if (!Job::WriteJobsToFile(usercfg.JobListFile(), migratedJobs)) {
-      logger.msg(WARNING, "Failed to lock job list file %s. Job information will be out of sync", usercfg.JobListFile());
-    }
-
-    return retVal;
-  }
-
   bool JobController::Renew(const std::list<std::string>& status) {
 
     GetJobInformation();

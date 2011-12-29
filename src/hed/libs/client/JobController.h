@@ -119,25 +119,6 @@ namespace Arc {
                                const std::list<std::string>& status,
                                bool longlist);
 
-    /// Migrate job from cluster A to Cluster B
-    /**  Method to migrate the jobs contained in the jobstore.
-     *
-     * @param targetGen TargetGenerator with targets to migrate the
-     * job to.
-     *
-     * @param broker Broker to be used when selecting target.
-     *
-     * @param forcemigration boolean which specifies whether a
-     * migrated job should persist if the new cluster does not succeed
-     * sending a kill/terminate request for the job.
-     *
-     **/
-    bool Migrate(TargetGenerator& targetGen,
-                 Broker *broker,
-                 const UserConfig& usercfg,
-                 bool forcemigration,
-                 std::list<URL>& migratedJobIDs);
-
     bool Renew(const std::list<std::string>& status);
 
     bool Resume(const std::list<std::string>& status);

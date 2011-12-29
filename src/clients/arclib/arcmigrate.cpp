@@ -8,24 +8,15 @@
 #include <list>
 #include <string>
 
-#include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/XMLNode.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
-#include <arc/client/JobController.h>
-#include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Job.h>
-#include <arc/DateTime.h>
-#include <arc/FileLock.h>
-#include <arc/Utils.h>
-#include <arc/client/Submitter.h>
-#include <arc/client/Broker.h>
+#include <arc/client/JobSupervisor.h>
 #include <arc/credential/Credential.h>
 #include <arc/loader/FinderLoader.h>
 #include <arc/loader/Plugin.h>
@@ -68,18 +59,18 @@ int RUNMIGRATE(main)(int argc, char **argv) {
                     istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
                     istring("filename"),
                     joblist);
-                  
+
   std::string jobidfileout;
   options.AddOption('o', "jobids-to-file",
                     istring("the IDs of the submitted jobs will be appended to this file"),
                     istring("filename"),
                     jobidfileout);
-                                    
+
   std::list<std::string> jobidfiles;
   options.AddOption('i', "jobids-from-file",
                     istring("a file containing a list of jobIDs"),
                     istring("filename"),
-                    jobidfiles);                  
+                    jobidfiles);
 
   std::list<std::string> clusters;
   options.AddOption('c', "cluster",
@@ -104,6 +95,11 @@ int RUNMIGRATE(main)(int argc, char **argv) {
                     istring("list the available plugins"),
                     show_plugins);
 
+  bool keep = false;
+  options.AddOption('k', "keep",
+                    istring("keep the files on the server (do not clean)"),
+                    keep);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -127,13 +123,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
                     istring("select broker method (Random (default), FastestQueue, or custom)"),
                     istring("broker"), broker);
 
-  std::list<std::string> jobs = options.Parse(argc, argv);
-  
-  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
-      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
-    }
-  }
+  std::list<std::string> jobIDsAndNames = options.Parse(argc, argv);
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcmigrate", VERSION)
@@ -154,7 +144,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   if (show_plugins) {
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
     std::cout << Arc::IString("Types of execution services arcmigrate is able to submit jobs to:") << std::endl;
@@ -165,7 +155,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
     std::cout << Arc::IString("Types of index and information services which arcmigrate is able collect information from:") << std::endl;
@@ -176,7 +166,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
         std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
       }
     }
-    
+
     modules.clear();
     pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
     Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
@@ -219,89 +209,183 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
+  for (std::list<std::string>::const_iterator it = jobidfiles.begin(); it != jobidfiles.end(); it++) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobIDsAndNames)) {
+      logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
+    }
+  }
+
   if (timeout > 0)
     usercfg.Timeout(timeout);
 
   if (!broker.empty())
     usercfg.Broker(broker);
 
-  if (!joblist.empty() && jobs.empty() && clusters.empty())
+  if (!joblist.empty() && jobIDsAndNames.empty() && clusters.empty())
     all = true;
 
-  if (jobs.empty() && clusters.empty() && !all) {
+  if (jobIDsAndNames.empty() && clusters.empty() && !all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  // Different selected services are needed in two different context,
-  // so the two copies of UserConfig objects will contain different
-  // selected services.
-  Arc::UserConfig usercfg2 = usercfg;
-
-  if (!jobs.empty() || all)
-    usercfg.ClearSelectedServices();
-
-  if (!clusters.empty()) {
-    usercfg.ClearSelectedServices();
-    usercfg.AddServices(clusters, Arc::COMPUTING);
+  // Removes slashes from end of cluster names, and put cluster to reject into separate list.
+  std::list<std::string> rejectClusters;
+  for (std::list<std::string>::iterator itC = clusters.begin();
+       itC != clusters.end();) {
+    if ((*itC)[itC->length()-1] == '/') {
+      itC->erase(itC->length()-1);
+    }
+    if ((*itC)[0] == '-') {
+      rejectClusters.push_back(itC->substr(1));
+      itC = clusters.erase(itC);
+    }
+    else {
+      ++itC;
+    }
   }
 
-  if (!qlusters.empty() || !indexurls.empty())
-    usercfg2.ClearSelectedServices();
+  std::list<Arc::Job> jobs;
+  Arc::Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
+  if (!all) {
+    for (std::list<Arc::Job>::iterator itJ = jobs.begin();
+         itJ != jobs.end();) {
+      if (jobIDsAndNames.empty() && clusters.empty()) {
+        // Remove remaing jobs.
+        jobs.erase(itJ, jobs.end());
+        break;
+      }
+      std::list<std::string>::iterator itJID = jobIDsAndNames.begin();
+      for (;itJID != jobIDsAndNames.end(); ++itJID) {
+        if (itJ->IDFromEndpoint.str() == *itJID) {
+          break;
+        }
+      }
+      if (itJID != jobIDsAndNames.end()) {
+        // Job explicitly specified. Remove id from list so we dont iterate it again.
+        jobIDsAndNames.erase(itJID);
+        ++itJ;
+        continue;
+      }
 
-  if (!qlusters.empty())
-    usercfg2.AddServices(qlusters, Arc::COMPUTING);
+      std::list<std::string>::const_iterator itC = clusters.begin();
+      for (; itC != clusters.end(); ++itC) {
+        if (itJ->Cluster.str() == *itC ||
+            itJ->Cluster.Host() == *itC ||
+            itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
+            itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) == *itC ||
+            itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) + "/" + itJ->Cluster.Path() == *itC) {
+          break;
+        }
+      }
+      if (itC != clusters.end()) {
+        // Cluster on which job reside is explicitly specified.
+        ++itJ;
+        continue;
+      }
 
-  if (!indexurls.empty())
-    usercfg2.AddServices(indexurls, Arc::INDEX);
+      // Job is not selected - remove it.
+      itJ = jobs.erase(itJ);
+    }
+  }
 
-  // If the user specified a joblist on the command line joblist equals
-  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
+  // Filter jobs on rejected clusters.
+  for (std::list<std::string>::const_iterator itC = rejectClusters.begin();
+       itC != rejectClusters.end(); ++itC) {
+    std::list<Arc::Job>::iterator itJ = jobs.begin();
+    for (; itJ != jobs.end(); ++itJ) {
+      if (itJ->Cluster.str() == *itC ||
+          itJ->Cluster.Host() == *itC ||
+          itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
+          itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) == *itC ||
+          itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) + "/" + itJ->Cluster.Path() == *itC) {
+        break;
+      }
+    }
+    if (itJ != jobs.end()) {
+      jobs.erase(itJ);
+    }
+  }
+
+  if (!qlusters.empty() || !indexurls.empty()) {
+    usercfg.ClearSelectedServices();
+    if (!qlusters.empty()) {
+      usercfg.AddServices(qlusters, Arc::COMPUTING);
+    }
+    if (!indexurls.empty()) {
+      usercfg.AddServices(indexurls, Arc::INDEX);
+    }
+  }
+
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
+    std::cout << Arc::IString("No jobs selected for migration") << std::endl;
     return 0;
   }
-  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
-  if (jobcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controller plugins loaded");
-    return 1;
+  std::list<Arc::Job> migratedJobs;
+  std::list<Arc::URL> notmigrated;
+  if (jobmaster.Migrate(forcemigration, migratedJobs, notmigrated) && migratedJobs.empty()) {
+    std::cout << Arc::IString("No queuing jobs to migrate") << std::endl;
+    return 0;
   }
 
-  Arc::TargetGenerator targetGen(usercfg2);
-  targetGen.RetrieveExecutionTargets();
-
-  if (targetGen.GetExecutionTargets().empty()) {
-    std::cout << Arc::IString("Job migration aborted because no resource returned any information") << std::endl;
-    return 1;
+  for (std::list<Arc::Job>::const_iterator it = migratedJobs.begin();
+       it != migratedJobs.end(); ++it) {
+    std::cout << Arc::IString("Job submitted with jobid: %s", it->IDFromEndpoint.str()) << std::endl;
   }
 
-  Arc::BrokerLoader loader;
-  Arc::Broker *chosenBroker = loader.load(usercfg.Broker().first, usercfg);
-  if (!chosenBroker) {
-    logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
-    return 1;
+  if (!migratedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), migratedJobs)) {
+    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+    std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
   }
-  logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
-  std::list<Arc::URL> migratedJobIDs;
+  if (!jobidfileout.empty() && !Arc::Job::WriteJobIDsToFile(migratedJobs, jobidfileout)) {
+    logger.msg(Arc::WARNING, "Cannot write job IDs of submitted jobs to file (%s)", jobidfileout);
+  }
 
-  int retval = 0;
-  // Loop over job controllers
-  for (std::list<Arc::JobController*>::iterator itJobCont = jobcont.begin(); itJobCont != jobcont.end(); itJobCont++) {
-    if (!(*itJobCont)->Migrate(targetGen, chosenBroker, usercfg, forcemigration, migratedJobIDs)) {
-      retval = 1;
+  // Get job IDs of jobs to kill.
+  std::list<Arc::URL> jobstobekilled;
+  for (std::list<Arc::Job>::const_iterator it = migratedJobs.begin();
+       it != migratedJobs.end(); ++it) {
+    if (!it->ActivityOldID.empty()) {
+      jobstobekilled.push_back(it->ActivityOldID.back());
     }
-    for (std::list<Arc::URL>::iterator it = migratedJobIDs.begin();
-         it != migratedJobIDs.end(); it++) {
-      std::string jobid = it->str();
-      if (!jobidfileout.empty())
-        if (!Arc::Job::WriteJobIDToFile(jobid, jobidfileout))
-          logger.msg(Arc::WARNING, "Cannot write jobid (%s) to file (%s)", jobid, jobidfileout);
-      std::cout << Arc::IString("Job migrated with jobid: %s", jobid) << std::endl;
-    }
-  } // Loop over job controllers
+  }
 
-  return retval;
+  std::list<Arc::URL> notkilled;
+  std::list<Arc::URL> killedJobs = jobmaster.Cancel(jobstobekilled, notkilled);
+  for (std::list<Arc::URL>::const_iterator it = notkilled.begin();
+       it != notkilled.end(); ++it) {
+    logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
+  }
+
+  if (!keep) {
+    std::list<Arc::URL> notcleaned;
+    std::list<Arc::URL> cleanedJobs = jobmaster.Clean(killedJobs, notcleaned);
+    for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
+         it != notcleaned.end(); ++it) {
+      logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
+    }
+
+    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleanedJobs)) {
+      std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
+    }
+  }
+
+  if ((migratedJobs.size() + notmigrated.size()) > 1) {
+    std::cout << std::endl << Arc::IString("Job migration summary:") << std::endl;
+    std::cout << "-----------------------" << std::endl;
+    std::cout << Arc::IString("%d of %d jobs were migrated", migratedJobs.size(), migratedJobs.size() + notmigrated.size()) << std::endl;
+    if (!notmigrated.empty()) {
+      std::cout << Arc::IString("The following %d were not migrated", notmigrated.size()) << std::endl;
+      for (std::list<Arc::URL>::const_iterator it = notmigrated.begin();
+           it != notmigrated.end(); ++it) {
+        std::cout << it->str() << std::endl;
+      }
+    }
+  }
+
+  return notmigrated.empty();
 }
