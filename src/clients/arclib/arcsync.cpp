@@ -22,9 +22,9 @@
 #include <arc/Utils.h>
 #include <arc/XMLNode.h>
 #include <arc/client/TargetGenerator.h>
-#include <arc/loader/FinderLoader.h>
-#include <arc/loader/Plugin.h>
 #include <arc/UserConfig.h>
+
+#include "utils.h"
 
 #ifdef TEST
 #define RUNSYNC(X) test_arcsync_##X
@@ -110,21 +110,11 @@ int RUNSYNC(main)(int argc, char **argv) {
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+
   if (show_plugins) {
-    std::list<Arc::ModuleDesc> modules;
-    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-    
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
-    std::cout << Arc::IString("Types of index and information services which arcsync is able collect information from:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-    
+    std::list<std::string> types;
+    types.push_back("HED:TargetRetriever");
+    showplugins("arcsync", types, logger);
     return 0;
   }
 
@@ -173,7 +163,7 @@ int RUNSYNC(main)(int argc, char **argv) {
 
   //Find all jobs
   Arc::TargetGenerator targen(usercfg);
-  targen.RetrieveJobs();  
+  targen.RetrieveJobs();
 
   bool jobsWritten = false;
   bool jobsReported = false;
@@ -183,7 +173,7 @@ int RUNSYNC(main)(int argc, char **argv) {
       for (std::list<Arc::Job>::const_iterator it = targen.GetJobs().begin();
            it != targen.GetJobs().end(); it++) {
         if (!jobsReported) {
-          std::cout << Arc::IString("Found the following jobs:")<<std::endl; 
+          std::cout << Arc::IString("Found the following jobs:")<<std::endl;
           jobsReported = true;
         }
         if (!it->Name.empty()) {
@@ -202,7 +192,7 @@ int RUNSYNC(main)(int argc, char **argv) {
       for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
            it != newJobs.end(); it++) {
         if (!jobsReported) {
-          std::cout << Arc::IString("Found the following new jobs:")<<std::endl; 
+          std::cout << Arc::IString("Found the following new jobs:")<<std::endl;
           jobsReported = true;
         }
         if (!(*it)->Name.empty()) {
@@ -215,7 +205,7 @@ int RUNSYNC(main)(int argc, char **argv) {
       std::cout << Arc::IString("Total number of new jobs found: ") << newJobs.size() << std::endl;
     }
   }
-  
+
   if (!jobsWritten) {
     std::cout << Arc::IString("ERROR: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("Please try again later, or manually clean up lock file") << std::endl;

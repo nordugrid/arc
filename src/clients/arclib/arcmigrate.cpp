@@ -18,8 +18,8 @@
 #include <arc/client/Job.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/credential/Credential.h>
-#include <arc/loader/FinderLoader.h>
-#include <arc/loader/Plugin.h>
+
+#include "utils.h"
 
 #ifdef TEST
 #define RUNMIGRATE(X) test_arcmigrate_##X
@@ -142,52 +142,11 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   }
 
   if (show_plugins) {
-    std::list<Arc::ModuleDesc> modules;
-    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
-    std::cout << Arc::IString("Types of execution services arcmigrate is able to submit jobs to:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
-    std::cout << Arc::IString("Types of index and information services which arcmigrate is able collect information from:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    modules.clear();
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
-    bool isDefaultBrokerLocated = false;
-    std::cout << Arc::IString("Brokers available to arcmigrate:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name;
-        if (itPlug->name == usercfg.Broker().first) {
-          std::cout << " (default)";
-          isDefaultBrokerLocated = true;
-        }
-        std::cout << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    if (!isDefaultBrokerLocated) {
-      logger.msg(Arc::WARNING, "Default broker (%s) is not available. When using arcsub a broker should be specified explicitly (-b option).", usercfg.Broker().first);
-    }
+    std::list<std::string> types;
+    types.push_back("HED:Submitter");
+    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:Broker");
+    showplugins("arcmigrate", types, logger, usercfg.Broker().first);
     return 0;
   }
 

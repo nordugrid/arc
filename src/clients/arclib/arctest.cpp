@@ -27,10 +27,10 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/credential/Credential.h>
-#include <arc/loader/FinderLoader.h>
-#include <arc/loader/Plugin.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
+
+#include "utils.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
@@ -155,74 +155,12 @@ int RUNSUB(main)(int argc, char **argv) {
   }
 
   if (show_plugins) {
-    std::list<Arc::ModuleDesc> modules;
-    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:Submitter", modules);
-    std::cout << Arc::IString("Types of execution services ARC client tools is able to submit to:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:TargetRetriever", modules);
-    std::cout << Arc::IString("Types of index and information services ARC client tools is able collect information from:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:JobController", modules);
-    std::cout << Arc::IString("Types of services ARC client tools is able to manage jobs at:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:JobDescriptionParser", modules);
-    std::cout << Arc::IString("Job description languages supported by ARC client tools:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    modules.clear();
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:Broker", modules);
-    bool isDefaultBrokerLocated = false;
-    std::cout << Arc::IString("Brokers available to ARC client tools:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name;
-        if (itPlug->name == usercfg.Broker().first) {
-          std::cout << " (default)";
-          isDefaultBrokerLocated = true;
-        }
-        std::cout << " - " << itPlug->description << std::endl;
-      }
-    }
-
-    if (!isDefaultBrokerLocated) {
-      logger.msg(Arc::WARNING, "Default broker (%s) is not available. When using arcsub a broker should be specified explicitly.", usercfg.Broker().first);
-    }
+    std::list<std::string> types;
+    types.push_back("HED:Submitter");
+    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:JobDescriptionParser");
+    types.push_back("HED:Broker");
+    showplugins("arctest", types, logger, usercfg.Broker().first);
     return 0;
   }
 

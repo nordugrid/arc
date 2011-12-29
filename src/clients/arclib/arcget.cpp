@@ -15,9 +15,9 @@
 #include <arc/StringConv.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/loader/FinderLoader.h>
-#include <arc/loader/Plugin.h>
 #include <arc/UserConfig.h>
+
+#include "utils.h"
 
 #ifdef TEST
 #define RUNGET(X) test_arcget_##X
@@ -128,19 +128,9 @@ int RUNGET(main)(int argc, char **argv) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
   if (show_plugins) {
-    std::list<Arc::ModuleDesc> modules;
-    Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
-    pf.scan(Arc::FinderLoader::GetLibrariesList(), modules);
-    Arc::PluginsFactory::FilterByKind("HED:JobController", modules);
-
-    std::cout << Arc::IString("Types of services arcget is able to manage jobs at:") << std::endl;
-    for (std::list<Arc::ModuleDesc>::iterator itMod = modules.begin();
-         itMod != modules.end(); itMod++) {
-      for (std::list<Arc::PluginDesc>::iterator itPlug = itMod->plugins.begin();
-           itPlug != itMod->plugins.end(); itPlug++) {
-        std::cout << "  " << itPlug->name << " - " << itPlug->description << std::endl;
-      }
-    }
+    std::list<std::string> types;
+    types.push_back("HED:JobController");
+    showplugins("arcget", types, logger);
     return 0;
   }
 
