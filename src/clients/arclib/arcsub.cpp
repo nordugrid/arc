@@ -17,7 +17,6 @@
 #include <arc/DateTime.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
@@ -52,113 +51,31 @@ int RUNSUB(main)(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[filename ...]"),
-                            istring("The arcsub command is used for "
-                                    "submitting jobs to Grid enabled "
-                                    "computing\nresources."));
+  ClientOptions opt(ClientOptions::CO_SUB,
+                    istring("[filename ...]"),
+                    istring("The arcsub command is used for "
+                            "submitting jobs to Grid enabled "
+                            "computing\nresources."));
 
-  std::list<std::string> clusters;
-  options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific resource"),
-                    istring("[-]name"),
-                    clusters);
+  std::list<std::string> params = opt.Parse(argc, argv);
 
-  std::list<std::string> indexurls;
-  options.AddOption('g', "index",
-                    istring("explicitly select or reject an index server"),
-                    istring("[-]name"),
-                    indexurls);
-
-  std::list<std::string> jobdescriptionstrings;
-  options.AddOption('e', "jobdescrstring",
-                    istring("jobdescription string describing the job to "
-                            "be submitted"),
-                    istring("string"),
-                    jobdescriptionstrings);
-
-  std::list<std::string> jobdescriptionfiles;
-  options.AddOption('f', "jobdescrfile",
-                    istring("jobdescription file describing the job to "
-                            "be submitted"),
-                    istring("string"),
-                    jobdescriptionfiles);
-
-  std::string joblist;
-  options.AddOption('j', "joblist",
-                    istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
-                    istring("filename"),
-                    joblist);
-
-  std::string jobidfile;
-  options.AddOption('o', "jobids-to-file",
-                    istring("the IDs of the submitted jobs will be appended to this file"),
-                    istring("filename"),
-                    jobidfile);
-
-  bool dryrun = false;
-  options.AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
-                    dryrun);
-
-  bool dumpdescription = false;
-  options.AddOption('x', "dumpdescription",
-                    istring("do not submit - dump job description "
-                            "in the language accepted by the target"),
-                    dumpdescription);
-
-  int timeout = -1;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-                    istring("seconds"), timeout);
-
-  std::string conffile;
-  options.AddOption('z', "conffile",
-                    istring("configuration file (default ~/.arc/client.conf)"),
-                    istring("filename"), conffile);
-
-  std::string debug;
-  options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
-                    istring("debuglevel"), debug);
-
-  std::string broker;
-  options.AddOption('b', "broker",
-                    istring("select broker method (list available brokers with --listplugins flag)"),
-                    istring("broker"), broker);
-
-/**
- * Sandboxing is always done atm. Maybe there should be a switch to turn it off? 'n' "nolocalsandbox"
-  bool dolocalsandbox = true;
-  options.AddOption('n', "dolocalsandbox",
-                    istring("store job descriptions in local sandbox."),
-                    dolocalsandbox);
-*/
-
-  bool show_plugins = false;
-  options.AddOption('P', "listplugins", istring("list the available plugins"),
-                    show_plugins);
-
-  bool version = false;
-  options.AddOption('v', "version", istring("print version information"),
-                    version);
-
-  std::list<std::string> params = options.Parse(argc, argv);
-
-  if (version) {
+  if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arcsub", VERSION)
               << std::endl;
     return 0;
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!opt.debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
 
-  Arc::UserConfig usercfg(conffile, joblist);
+  Arc::UserConfig usercfg(opt.conffile, opt.joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
 
-  if (show_plugins) {
+  if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:Submitter");
     types.push_back("HED:TargetRetriever");
@@ -183,37 +100,37 @@ int RUNSUB(main)(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && !usercfg.Verbosity().empty())
+  if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (timeout > 0)
-    usercfg.Timeout(timeout);
+  if (opt.timeout > 0)
+    usercfg.Timeout(opt.timeout);
 
-  if (!broker.empty())
-    usercfg.Broker(broker);
+  if (!opt.broker.empty())
+    usercfg.Broker(opt.broker);
 
-  if (!clusters.empty() || !indexurls.empty())
+  if (!opt.clusters.empty() || !opt.indexurls.empty())
     usercfg.ClearSelectedServices();
 
-  if (!clusters.empty())
-    usercfg.AddServices(clusters, Arc::COMPUTING);
+  if (!opt.clusters.empty())
+    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
 
-  if (!indexurls.empty())
-    usercfg.AddServices(indexurls, Arc::INDEX);
+  if (!opt.indexurls.empty())
+    usercfg.AddServices(opt.indexurls, Arc::INDEX);
 
-  jobdescriptionfiles.insert(jobdescriptionfiles.end(),
-                             params.begin(), params.end());
+  opt.jobdescriptionfiles.insert(opt.jobdescriptionfiles.end(),
+                                 params.begin(), params.end());
 
-  if (jobdescriptionfiles.empty() && jobdescriptionstrings.empty()) {
+  if (opt.jobdescriptionfiles.empty() && opt.jobdescriptionstrings.empty()) {
     logger.msg(Arc::ERROR, "No job description input specified");
     return 1;
   }
 
   std::list<Arc::JobDescription> jobdescriptionlist;
 
-  //Loop over input job description files
-  for (std::list<std::string>::iterator it = jobdescriptionfiles.begin();
-       it != jobdescriptionfiles.end(); it++) {
+  // Loop over input job description files
+  for (std::list<std::string>::iterator it = opt.jobdescriptionfiles.begin();
+       it != opt.jobdescriptionfiles.end(); it++) {
 
     std::ifstream descriptionfile(it->c_str());
 
@@ -235,10 +152,10 @@ int RUNSUB(main)(int argc, char **argv) {
     if (Arc::JobDescription::Parse((std::string)buffer, jobdescs)) {
       for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
            itJ != jobdescs.end(); itJ++) {
-        itJ->Application.DryRun = dryrun;
+        itJ->Application.DryRun = opt.dryrun;
         for (std::list<Arc::JobDescription>::iterator itJAlt = itJ->GetAlternatives().begin();
              itJAlt != itJ->GetAlternatives().end(); itJAlt++) {
-          itJAlt->Application.DryRun = dryrun;
+          itJAlt->Application.DryRun = opt.dryrun;
         }
       }
 
@@ -254,17 +171,17 @@ int RUNSUB(main)(int argc, char **argv) {
   }
 
   //Loop over job description input strings
-  for (std::list<std::string>::iterator it = jobdescriptionstrings.begin();
-       it != jobdescriptionstrings.end(); it++) {
+  for (std::list<std::string>::iterator it = opt.jobdescriptionstrings.begin();
+       it != opt.jobdescriptionstrings.end(); it++) {
 
     std::list<Arc::JobDescription> jobdescs;
     if (Arc::JobDescription::Parse(*it, jobdescs)) {
       for (std::list<Arc::JobDescription>::iterator itJ = jobdescs.begin();
            itJ != jobdescs.end(); itJ++) {
-        itJ->Application.DryRun = dryrun;
+        itJ->Application.DryRun = opt.dryrun;
         for (std::list<Arc::JobDescription>::iterator itJAlt = itJ->GetAlternatives().begin();
              itJAlt != itJ->GetAlternatives().end(); itJAlt++) {
-          itJAlt->Application.DryRun = dryrun;
+          itJAlt->Application.DryRun = opt.dryrun;
         }
       }
 
@@ -277,11 +194,11 @@ int RUNSUB(main)(int argc, char **argv) {
     }
   }
 
-  if (dumpdescription) {
+  if (opt.dumpdescription) {
     return dumpjobdescription(usercfg, jobdescriptionlist);
   }
 
-  return submit(usercfg, jobdescriptionlist, jobidfile);
+  return submit(usercfg, jobdescriptionlist, opt.jobidoutfile);
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {

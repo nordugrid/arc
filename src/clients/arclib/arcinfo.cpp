@@ -11,7 +11,6 @@
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobSupervisor.h>
@@ -37,97 +36,58 @@ int RUNINFO(main)(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[resource ...]"),
-                            istring("The arcinfo command is used for "
-                                    "obtaining the status of computing "
-                                    "resources on the Grid."));
-
-  std::list<std::string> clusters;
-  options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific resource"),
-                    istring("[-]name"),
-                    clusters);
-
-  std::list<std::string> indexurls;
-  options.AddOption('g', "index",
-                    istring("explicitly select or reject an index server"),
-                    istring("[-]name"),
-                    indexurls);
-
-  bool longlist = false;
-  options.AddOption('l', "long",
-                    istring("long format (more information)"),
-                    longlist);
-
-  bool show_plugins = false;
-  options.AddOption('P', "listplugins",
-                    istring("list the available plugins"),
-                    show_plugins);
-
-  int timeout = -1;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-                    istring("seconds"), timeout);
-
-  std::string conffile;
-  options.AddOption('z', "conffile",
-                    istring("configuration file (default ~/.arc/client.conf)"),
-                    istring("filename"), conffile);
-
-  std::string debug;
-  options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
-                    istring("debuglevel"), debug);
-
-  bool version = false;
-  options.AddOption('v', "version", istring("print version information"),
-                    version);
+  ClientOptions opt(ClientOptions::CO_INFO,
+                    istring("[resource ...]"),
+                    istring("The arcinfo command is used for "
+                            "obtaining the status of computing "
+                            "resources on the Grid."));
 
   {
-    std::list<std::string> clusterstmp = options.Parse(argc, argv);
-    clusters.insert(clusters.end(), clusterstmp.begin(), clusterstmp.end());
+    std::list<std::string> clusterstmp = opt.Parse(argc, argv);
+    opt.clusters.insert(opt.clusters.end(), clusterstmp.begin(), clusterstmp.end());
   }
 
-  if (version) {
+  if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arcinfo", VERSION)
               << std::endl;
     return 0;
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!opt.debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
 
-  if (show_plugins) {
+  if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:TargetRetriever");
     showplugins("arcinfo", types, logger);
     return 0;
   }
 
-  Arc::UserConfig usercfg(conffile);
+  Arc::UserConfig usercfg(opt.conffile);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
 
-  if (debug.empty() && !usercfg.Verbosity().empty())
+  if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (timeout > 0)
-    usercfg.Timeout(timeout);
+  if (opt.timeout > 0)
+    usercfg.Timeout(opt.timeout);
 
-  if (!clusters.empty() || !indexurls.empty())
+  if (!opt.clusters.empty() || !opt.indexurls.empty())
     usercfg.ClearSelectedServices();
 
-  if (!clusters.empty())
-    usercfg.AddServices(clusters, Arc::COMPUTING);
+  if (!opt.clusters.empty())
+    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
 
-  if (!indexurls.empty())
-    usercfg.AddServices(indexurls, Arc::INDEX);
+  if (!opt.indexurls.empty())
+    usercfg.AddServices(opt.indexurls, Arc::INDEX);
 
 
   Arc::TargetGenerator targen(usercfg);
   targen.RetrieveExecutionTargets();
-  targen.SaveTargetInfoToStream(std::cout, longlist);
+  targen.SaveTargetInfoToStream(std::cout, opt.longlist);
   return 0;
 }

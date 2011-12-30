@@ -30,7 +30,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
     else if (*itType == "HED:Broker") {
       std::cout << Arc::IString("Brokers available to %s:", program) << std::endl;
     }
-    
+
     std::list<Arc::ModuleDesc> modules;
     Arc::PluginsFactory pf(Arc::BaseConfig().MakeConfig(Arc::Config()).Parent());
 
@@ -55,3 +55,238 @@ void showplugins(const std::string& program, const std::list<std::string>& types
     }
   }
 }
+
+
+ClientOptions::ClientOptions(Client_t c,
+                             const std::string& arguments,
+                             const std::string& summary,
+                             const std::string& description) :
+    Arc::OptionParser(arguments, summary, description),
+    dryrun(false),
+    dumpdescription(false),
+    show_credentials(false),
+    show_plugins(false),
+    showversion(false),
+    all(false),
+    forcemigration(false),
+    keep(false),
+    forcesync(false),
+    truncate(false),
+    longlist(false),
+    printids(false),
+    same(false),
+    notsame(false),
+    show_stdout(true),
+    show_stderr(false),
+    show_joblog(false),
+    usejobname(false),
+    forcedownload(false),
+    testjobid(-1),
+    timeout(-1)
+{
+  bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT);
+
+  AddOption('c', "cluster",
+            istring("explicitly select or reject a specific resource"),
+            istring("[-]name"),
+            clusters);
+
+  if (c == CO_RESUB || c == CO_MIGRATE) {
+    AddOption('q', "qluster",
+              istring("explicitly select or reject a specific resource "
+                      "for new jobs"),
+              istring("[-]name"),
+              qlusters);
+  }
+
+  if (c == CO_MIGRATE) {
+    AddOption('f', "force",
+              istring("force migration, ignore kill failure"),
+              forcemigration);
+  }
+
+  if (c == CO_GET || c == CO_KILL || c == CO_MIGRATE || c == CO_RESUB) {
+    AddOption('k', "keep",
+              istring("keep the files on the server (do not clean)"),
+              keep);
+  }
+
+  if (c == CO_SYNC) {
+    AddOption('f', "force",
+              istring("do not ask for verification"),
+              forcesync);
+
+    AddOption('T', "truncate",
+              istring("truncate the joblist before synchronizing"),
+              truncate);
+  }
+
+  if (c == CO_INFO || c == CO_STAT) {
+    AddOption('l', "long",
+              istring("long format (more information)"),
+              longlist);
+  }
+
+  if (c == CO_CAT) {
+    AddOption('o', "stdout",
+              istring("show the stdout of the job (default)"),
+              show_stdout);
+
+    AddOption('e', "stderr",
+              istring("show the stderr of the job"),
+              show_stderr);
+
+    AddOption('l', "joblog",
+              istring("show the CE's error log of the job"),
+              show_joblog);
+  }
+
+  if (c == CO_GET) {
+    AddOption('D', "dir",
+              istring("download directory (the job directory will"
+                      " be created in this directory)"),
+              istring("dirname"),
+              downloaddir);
+
+    AddOption('J', "usejobname",
+              istring("use the jobname instead of the short ID as"
+                      " the job directory name"),
+              usejobname);
+
+    AddOption('f', "force",
+              istring("force download (overwrite existing job directory)"),
+              forcedownload);
+  }
+
+  if (c == CO_STAT) {
+    // Option 'long' takes precedence over this option (print-jobids).
+    AddOption('p', "print-jobids", istring("instead of the status only the IDs of "
+              "the selected jobs will be printed"), printids);
+
+    AddOption('S', "sort",
+              istring("sort jobs according to jobid, submissiontime or jobname"),
+              istring("order"), sort);
+    AddOption('R', "rsort",
+              istring("reverse sorting of jobs according to jobid, submissiontime or jobname"),
+              istring("order"), rsort);
+  }
+
+  if (c == CO_RESUB) {
+    AddOption('m', "same",
+              istring("resubmit to the same resource"),
+              same);
+
+    AddOption('M', "not-same",
+              istring("do not resubmit to the same resource"),
+              notsame);
+  }
+
+  if (c == CO_CLEAN) {
+    AddOption('f', "force",
+              istring("remove the job from the local list of jobs "
+                      "even if the job is not found in the infosys"),
+              forceclean);
+  }
+
+  if (!cIsJobMan) {
+    AddOption('g', "index",
+              istring("explicitly select or reject an index server"),
+              istring("[-]name"),
+              indexurls);
+  }
+
+  if (c == CO_TEST) {
+    AddOption('J', "job",
+              istring("submit test job given by the number"),
+              istring("int"),
+              testjobid);
+  }
+
+  if (cIsJobMan || c == CO_RESUB) {
+    AddOption('s', "status",
+              istring("only select jobs whose status is statusstr"),
+              istring("statusstr"),
+              status);
+  }
+
+  if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
+    AddOption('a', "all",
+              istring("all jobs"),
+              all);
+  }
+
+  if (c == CO_SUB) {
+    AddOption('e', "jobdescrstring",
+              istring("jobdescription string describing the job to "
+                      "be submitted"),
+              istring("string"),
+              jobdescriptionstrings);
+
+    AddOption('f', "jobdescrfile",
+              istring("jobdescription file describing the job to "
+                      "be submitted"),
+              istring("string"),
+              jobdescriptionfiles);
+  }
+
+  if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST) {
+    AddOption('b', "broker",
+              istring("select broker method (list available brokers with --listplugins flag)"),
+              istring("broker"), broker);
+
+    AddOption('o', "jobids-to-file",
+              istring("the IDs of the submitted jobs will be appended to this file"),
+              istring("filename"),
+              jobidoutfile);
+  }
+
+  if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
+    AddOption('i', "jobids-from-file",
+              istring("a file containing a list of jobIDs"),
+              istring("filename"),
+              jobidinfiles);
+  }
+
+  if (c == CO_SUB || c == CO_TEST) {
+    AddOption('D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
+              dryrun);
+
+    AddOption('x', "dumpdescription",
+              istring("do not submit - dump job description "
+                      "in the language accepted by the target"),
+              dumpdescription);
+  }
+
+  if (c == CO_TEST) {
+    AddOption('E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+  }
+
+  if (c != CO_INFO) {
+    AddOption('j', "joblist",
+              istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
+              istring("filename"),
+              joblist);
+  }
+
+  /* --- Standard options below --- */
+
+  AddOption('z', "conffile",
+            istring("configuration file (default ~/.arc/client.conf)"),
+            istring("filename"), conffile);
+
+  AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
+            istring("seconds"), timeout);
+
+  AddOption('P', "listplugins",
+            istring("list the available plugins"),
+            show_plugins);
+
+  AddOption('d', "debug",
+            istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
+            istring("debuglevel"), debug);
+
+  AddOption('v', "version", istring("print version information"),
+            showversion);
+
+}
+

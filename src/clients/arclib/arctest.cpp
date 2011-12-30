@@ -18,7 +18,6 @@
 #include <arc/FileLock.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
@@ -53,90 +52,20 @@ int RUNSUB(main)(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring(" "),
-                            istring("The arctest command is used for "
-                                    "testing clusters as resources."));
+  ClientOptions opt(ClientOptions::CO_TEST,
+                    istring(" "),
+                    istring("The arctest command is used for "
+                            "testing clusters as resources."));
 
-  std::list<std::string> clusters;
-  options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific resource"),
-                    istring("[-]name"),
-                    clusters);
+  std::list<std::string> params = opt.Parse(argc, argv);
 
-  std::list<std::string> indexurls;
-  options.AddOption('g', "index",
-                    istring("explicitly select or reject an index server"),
-                    istring("[-]name"),
-                    indexurls);
-
-  int jobid = -1;
-  options.AddOption('J', "job",
-                    istring("submit test job given by the number"),
-                    istring("int"),
-                    jobid);
-
-  std::string joblist;
-  options.AddOption('j', "joblist",
-                    istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
-                    istring("filename"),
-                    joblist);
-
-  std::string jobidfile;
-  options.AddOption('o', "jobids-to-file",
-                    istring("the IDs of the submitted jobs will be appended to this file"),
-                    istring("filename"),
-                    jobidfile);
-
-  bool dryrun = false;
-  options.AddOption('D', "dryrun", istring("add dryrun option if available"),
-                    dryrun);
-
-  bool dumpdescription = false;
-  options.AddOption('x', "dumpdescription",
-                    istring("do not submit - dump job description "
-                            "in the language accepted by the target"),
-                    dumpdescription);
-
-  bool show_credentials = false;
-  options.AddOption('E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
-
-  bool show_plugins = false;
-  options.AddOption('P', "listplugins",
-                    istring("list the available plugins"),
-                    show_plugins);
-
-  int timeout = -1;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-                    istring("seconds"), timeout);
-
-  std::string conffile;
-  options.AddOption('z', "conffile",
-                    istring("configuration file (default ~/.arc/client.conf)"),
-                    istring("filename"), conffile);
-
-  std::string debug;
-  options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
-                    istring("debuglevel"), debug);
-
-  std::string broker;
-  options.AddOption('b', "broker",
-                    istring("select broker method (Random (default), FastestQueue, or custom)"),
-                    istring("broker"), broker);
-
-  bool version = false;
-  options.AddOption('v', "version", istring("print version information"),
-                    version);
-
-  std::list<std::string> params = options.Parse(argc, argv);
-
-  if (version) {
+  if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arctest", VERSION)
               << std::endl;
     return 0;
   }
 
-  if ((jobid == -1) && (!show_credentials) && (!show_plugins)) {
+  if ((opt.testjobid == -1) && (!opt.show_credentials) && (!opt.show_plugins)) {
     std::cout << Arc::IString("Nothing to do:\n"
         "you have to either specify a test job id with -J (--job)\n"
         "or query information about the certificates with -E (--certificate)\n");
@@ -144,17 +73,17 @@ int RUNSUB(main)(int argc, char **argv) {
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!opt.debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
 
 
-  Arc::UserConfig usercfg(conffile, joblist);
+  Arc::UserConfig usercfg(opt.conffile, opt.joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
 
-  if (show_plugins) {
+  if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:Submitter");
     types.push_back("HED:TargetRetriever");
@@ -164,27 +93,27 @@ int RUNSUB(main)(int argc, char **argv) {
     return 0;
   }
 
-  if (debug.empty() && !usercfg.Verbosity().empty())
+  if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (timeout > 0)
-    usercfg.Timeout(timeout);
+  if (opt.timeout > 0)
+    usercfg.Timeout(opt.timeout);
 
-  if (!broker.empty())
-    usercfg.Broker(broker);
+  if (!opt.broker.empty())
+    usercfg.Broker(opt.broker);
 
 
-  if (!clusters.empty() || !indexurls.empty())
+  if (!opt.clusters.empty() || !opt.indexurls.empty())
     usercfg.ClearSelectedServices();
 
-  if (!clusters.empty())
-    usercfg.AddServices(clusters, Arc::COMPUTING);
+  if (!opt.clusters.empty())
+    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
 
-  if (!indexurls.empty())
-    usercfg.AddServices(indexurls, Arc::INDEX);
+  if (!opt.indexurls.empty())
+    usercfg.AddServices(opt.indexurls, Arc::INDEX);
 
 
-  if (show_credentials) {
+  if (opt.show_credentials) {
     std::string proxy_path = usercfg.ProxyPath();
     std::string cert_path = usercfg.CertificatePath();
     std::string key_path = usercfg.KeyPath();
@@ -227,17 +156,17 @@ int RUNSUB(main)(int argc, char **argv) {
   }
 
   // TODO: this shouldn't be hardwired
-  if ((jobid < 1) || (jobid > 3)) {
+  if ((opt.testjobid < 1) || (opt.testjobid > 3)) {
     std::cout << Arc::IString("The testjob ID should be 1, 2 or 3.\n");
     return 1;
   }
 
   int retval = 0;
-  if (dumpdescription) {
-     retval += dumpjobdescription(usercfg, jobid);
+  if (opt.dumpdescription) {
+     retval += dumpjobdescription(usercfg, opt.testjobid);
      return retval;
   }
-  retval += test(usercfg, jobid, jobidfile);
+  retval += test(usercfg, opt.testjobid, opt.jobidoutfile);
   return retval;
 }
 

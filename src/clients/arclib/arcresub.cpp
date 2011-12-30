@@ -12,7 +12,6 @@
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/OptionParser.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
@@ -39,119 +38,27 @@ int RUNRESUB(main)(int argc, char **argv) {
 
   Arc::ArcLocation::Init(argv[0]);
 
-  Arc::OptionParser options(istring("[job ...]"));
+  ClientOptions opt(ClientOptions::CO_RESUB, istring("[job ...]"));
 
-  bool all = false;
-  options.AddOption('a', "all",
-                    istring("all jobs"),
-                    all);
+  std::list<std::string> jobIDsOrNames = opt.Parse(argc, argv);
 
-  std::string joblist;
-  options.AddOption('j', "joblist",
-                    istring("the file storing information about active jobs (default ~/.arc/jobs.xml)"),
-                    istring("filename"),
-                    joblist);
-
-  std::string jobidfileout;
-  options.AddOption('o', "jobids-to-file",
-                    istring("the IDs of the submitted jobs will be appended to this file"),
-                    istring("filename"),
-                    jobidfileout);
-
-  std::list<std::string> jobidfilesin;
-  options.AddOption('i', "jobids-from-file",
-                    istring("a file containing a list of jobIDs"),
-                    istring("filename"),
-                    jobidfilesin);
-
-  std::list<std::string> clusters;
-  options.AddOption('c', "cluster",
-                    istring("explicitly select or reject a specific resource"),
-                    istring("[-]name"),
-                    clusters);
-
-  std::list<std::string> qlusters;
-  options.AddOption('q', "qluster",
-                    istring("explicitly select or reject a specific resource "
-                            "for new jobs"),
-                    istring("[-]name"),
-                    qlusters);
-
-  std::list<std::string> indexurls;
-  options.AddOption('g', "index",
-                    istring("explicitly select or reject an index server"),
-                    istring("[-]name"),
-                    indexurls);
-
-  bool keep = false;
-  options.AddOption('k', "keep",
-                    istring("keep the files on the server (do not clean)"),
-                    keep);
-
-  bool same = false;
-  options.AddOption('m', "same",
-                    istring("resubmit to the same resource"),
-                    same);
-
-  bool notsame = false;
-  options.AddOption('M', "not-same",
-                    istring("do not resubmit to the same resource"),
-                    notsame);
-
-  std::list<std::string> status;
-  options.AddOption('s', "status",
-                    istring("only select jobs whose status is statusstr"),
-                    istring("statusstr"),
-                    status);
-
-  bool show_plugins = false;
-  options.AddOption('P', "listplugins",
-                    istring("list the available plugins"),
-                    show_plugins);
-
-  int timeout = -1;
-  options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
-                    istring("seconds"), timeout);
-
-  std::string conffile;
-  options.AddOption('z', "conffile",
-                    istring("configuration file (default ~/.arc/client.conf)"),
-                    istring("filename"), conffile);
-
-  std::string debug;
-  options.AddOption('d', "debug",
-                    istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
-                    istring("debuglevel"), debug);
-
-  std::string broker;
-  options.AddOption('b', "broker",
-                    istring("select broker method (Random (default), FastestQueue, or custom)"),
-                    istring("broker"), broker);
-
-  bool version = false;
-  options.AddOption('v', "version", istring("print version information"),
-                    version);
-
-
-  std::list<std::string> jobIDsOrNames = options.Parse(argc, argv);
-
-  if (version) {
+  if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arcresub", VERSION)
               << std::endl;
     return 0;
   }
 
   // If debug is specified as argument, it should be set before loading the configuration.
-  if (!debug.empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
+  if (!opt.debug.empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(opt.debug));
 
-  Arc::UserConfig usercfg(conffile, joblist);
+  Arc::UserConfig usercfg(opt.conffile, opt.joblist);
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
 
-  if (show_plugins) {
+  if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:Submitter");
     types.push_back("HED:TargetRetriever");
@@ -175,44 +82,44 @@ int RUNRESUB(main)(int argc, char **argv) {
     return 1;
   }
 
-  if (debug.empty() && !usercfg.Verbosity().empty())
+  if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
-  if (same && notsame) {
+  if (opt.same && opt.notsame) {
     logger.msg(Arc::ERROR, "--same and --not-same cannot be specified together.");
     return 1;
   }
 
-  for (std::list<std::string>::const_iterator it = jobidfilesin.begin(); it != jobidfilesin.end(); it++) {
+  for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
     if (!Arc::Job::ReadJobIDsFromFile(*it, jobIDsOrNames)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
   }
 
-  if (timeout > 0)
-    usercfg.Timeout(timeout);
+  if (opt.timeout > 0)
+    usercfg.Timeout(opt.timeout);
 
-  if (!broker.empty())
-    usercfg.Broker(broker);
+  if (!opt.broker.empty())
+    usercfg.Broker(opt.broker);
 
-  if ((!joblist.empty() || !status.empty()) && jobIDsOrNames.empty() && clusters.empty())
-    all = true;
+  if ((!opt.joblist.empty() || !opt.status.empty()) && jobIDsOrNames.empty() && opt.clusters.empty())
+    opt.all = true;
 
-  if (jobIDsOrNames.empty() && clusters.empty() && !all) {
+  if (jobIDsOrNames.empty() && opt.clusters.empty() && !opt.all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
   // Removes slashes from end of cluster names, and put cluster to reject into separate list.
   std::list<std::string> rejectClusters;
-  for (std::list<std::string>::iterator itC = clusters.begin();
-       itC != clusters.end();) {
+  for (std::list<std::string>::iterator itC = opt.clusters.begin();
+       itC != opt.clusters.end();) {
     if ((*itC)[itC->length()-1] == '/') {
       itC->erase(itC->length()-1);
     }
     if ((*itC)[0] == '-') {
       rejectClusters.push_back(itC->substr(1));
-      itC = clusters.erase(itC);
+      itC = opt.clusters.erase(itC);
     }
     else {
       ++itC;
@@ -221,10 +128,10 @@ int RUNRESUB(main)(int argc, char **argv) {
 
   std::list<Arc::Job> jobs;
   Arc::Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
-  if (!all) {
+  if (!opt.all) {
     for (std::list<Arc::Job>::iterator itJ = jobs.begin();
          itJ != jobs.end();) {
-      if (jobIDsOrNames.empty() && clusters.empty()) {
+      if (jobIDsOrNames.empty() && opt.clusters.empty()) {
         // Remove remaing jobs.
         jobs.erase(itJ, jobs.end());
         break;
@@ -243,8 +150,8 @@ int RUNRESUB(main)(int argc, char **argv) {
         continue;
       }
 
-      std::list<std::string>::const_iterator itC = clusters.begin();
-      for (; itC != clusters.end(); ++itC) {
+      std::list<std::string>::const_iterator itC = opt.clusters.begin();
+      for (; itC != opt.clusters.end(); ++itC) {
         if (itJ->Cluster.str() == *itC ||
             itJ->Cluster.Host() == *itC ||
             itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
@@ -253,7 +160,7 @@ int RUNRESUB(main)(int argc, char **argv) {
           break;
         }
       }
-      if (itC != clusters.end()) {
+      if (itC != opt.clusters.end()) {
         // Cluster on which job reside is explicitly specified.
         ++itJ;
         continue;
@@ -287,13 +194,13 @@ int RUNRESUB(main)(int argc, char **argv) {
     }
   }
 
-  if (!qlusters.empty() || !indexurls.empty()) {
+  if (!opt.qlusters.empty() || !opt.indexurls.empty()) {
     usercfg.ClearSelectedServices();
-    if (!qlusters.empty()) {
-      usercfg.AddServices(qlusters, Arc::COMPUTING);
+    if (!opt.qlusters.empty()) {
+      usercfg.AddServices(opt.qlusters, Arc::COMPUTING);
     }
-    if (!indexurls.empty()) {
-      usercfg.AddServices(indexurls, Arc::INDEX);
+    if (!opt.indexurls.empty()) {
+      usercfg.AddServices(opt.indexurls, Arc::INDEX);
     }
   }
 
@@ -306,7 +213,7 @@ int RUNRESUB(main)(int argc, char **argv) {
   std::list<Arc::Job> resubmittedJobs;
   std::list<Arc::URL> notresubmitted;
   // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
-  if (jobmaster.Resubmit(status, (int)same + 2*(int)notsame, resubmittedJobs, notresubmitted) && resubmittedJobs.empty()) {
+  if (jobmaster.Resubmit(opt.status, (int)opt.same + 2*(int)opt.notsame, resubmittedJobs, notresubmitted) && resubmittedJobs.empty()) {
     std::cout << Arc::IString("No jobs to resubmit with the specified status") << std::endl;
     return 0;
   }
@@ -321,8 +228,8 @@ int RUNRESUB(main)(int argc, char **argv) {
     std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
   }
 
-  if (!jobidfileout.empty() && !Arc::Job::WriteJobIDsToFile(resubmittedJobs, jobidfileout)) {
-    logger.msg(Arc::WARNING, "Cannot write jobids to file (%s)", jobidfileout);
+  if (!opt.jobidoutfile.empty() && !Arc::Job::WriteJobIDsToFile(resubmittedJobs, opt.jobidoutfile)) {
+    logger.msg(Arc::WARNING, "Cannot write jobids to file (%s)", opt.jobidoutfile);
   }
 
   // Get job IDs of jobs to kill.
@@ -341,7 +248,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
   }
 
-  if (!keep) {
+  if (!opt.keep) {
     std::list<Arc::URL> notcleaned;
     std::list<Arc::URL> cleanedJobs = jobmaster.Clean(killedJobs, notcleaned);
     for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
