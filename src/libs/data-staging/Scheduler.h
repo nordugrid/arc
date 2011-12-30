@@ -79,6 +79,9 @@ class Scheduler: public DTRCallback {
     /// Logger object
     static Arc::Logger logger;
 
+    /// Root logger destinations, to use when logging non-DTR specific messages
+    std::list<Arc::LogDestination*> root_destinations;
+
     /// Flag describing scheduler state. Used to decide whether to keep running main loop.
     ProcessState scheduler_state;
 
@@ -132,6 +135,11 @@ class Scheduler: public DTRCallback {
      */ 
     //void compute_priority(DTR* request);
     
+    /// Log a message to the root logger. This sends the message to the log
+    /// destinations attached to the root logger at the point the Scheduler
+    /// was started.
+    void log_to_root_logger(Arc::LogLevel level, const std::string& message);
+
     /// Call the appropriate Process method depending on the DTR state
     void map_state_and_process(DTR* request);
     

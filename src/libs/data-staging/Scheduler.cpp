@@ -86,6 +86,12 @@ namespace DataStaging {
     return true;
   }
 
+  void Scheduler::log_to_root_logger(Arc::LogLevel level, const std::string& message) {
+    Arc::Logger::getRootLogger().addDestinations(root_destinations);
+    logger.msg(level, message);
+    Arc::Logger::getRootLogger().removeDestinations();
+  }
+
   /* Function to sort the list of the pointers to DTRs 
    * according to the priorities the DTRs have.
    * DTRs with higher priority go first to the beginning,
@@ -731,9 +737,8 @@ namespace DataStaging {
         request->set_delivery_endpoint(*service);
         std::vector<std::string> allowed_dirs;
         if (!DataDeliveryComm::CheckComm(request, allowed_dirs)) {
-          // TODO log this to main a-rex log
-          request->get_logger()->msg(Arc::WARNING, "DTR %s: Will not use delivery service at %s",
-                                     request->get_short_id(), request->get_delivery_endpoint().str());
+          log_to_root_logger(Arc::WARNING, "Error with delivery service at " +
+                             request->get_delivery_endpoint().str() + " - This service will not be used");
         }
         else {
           usable_delivery_services[*service] = allowed_dirs;
@@ -741,8 +746,7 @@ namespace DataStaging {
       }
       request->set_delivery_endpoint(Arc::URL());
       if (usable_delivery_services.empty()) {
-        request->get_logger()->msg(Arc::ERROR, "DTR %s: No usable delivery services found, will use local delivery",
-                                   request->get_short_id());
+        log_to_root_logger(Arc::ERROR, "No usable delivery services found, will use local delivery");
         return;
       }
     }
@@ -1089,6 +1093,7 @@ namespace DataStaging {
 
     // Disconnect from root logger so that messages are logged to per-DTR Logger
     Arc::Logger::getRootLogger().setThreadContext();
+    root_destinations = Arc::Logger::getRootLogger().getDestinations();
     Arc::Logger::getRootLogger().removeDestinations();
 
     while(scheduler_state != TO_STOP || !DtrList.all_dtrs().empty()) {
@@ -1113,7 +1118,7 @@ namespace DataStaging {
 
       Glib::usleep(50000);
     }
-    logger.msg(Arc::INFO, "Scheduler loop exited");
+    log_to_root_logger(Arc::INFO, "Scheduler loop exited");
     run_signal.signal();
   }
   
