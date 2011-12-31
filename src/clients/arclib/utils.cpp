@@ -77,6 +77,30 @@ bool checkproxy(const Arc::UserConfig& uc)
   return true;
 }
 
+void splitendpoints(std::list<std::string>& selected, std::list<std::string>& rejected)
+{
+  // Removes slashes from end of endpoint strings, and put strings with leading '-' into rejected list.
+  for (std::list<std::string>::iterator it = selected.begin();
+       it != selected.end();) {
+    if ((*it)[it->length()-1] == '/') {
+      it->erase(it->length()-1);
+      continue;
+    }
+    if (it->empty()) {
+      it = selected.erase(it);
+      continue;
+    }
+
+    if ((*it)[0] == '-') {
+      rejected.push_back(it->substr(1));
+      it = selected.erase(it);
+    }
+    else {
+      ++it;
+    }
+  }
+}
+
 ClientOptions::ClientOptions(Client_t c,
                              const std::string& arguments,
                              const std::string& summary,

@@ -8,6 +8,8 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 
 bool checkproxy(const Arc::UserConfig& uc);
 
+void splitendpoints(std::list<std::string>& selected, std::list<std::string>& rejected);
+
 class ClientOptions : public Arc::OptionParser {
 public:
   enum Client_t {

@@ -97,21 +97,8 @@ int RUNMIGRATE(main)(int argc, char **argv) {
     return 1;
   }
 
-  // Removes slashes from end of cluster names, and put cluster to reject into separate list.
   std::list<std::string> rejectClusters;
-  for (std::list<std::string>::iterator itC = opt.clusters.begin();
-       itC != opt.clusters.end();) {
-    if ((*itC)[itC->length()-1] == '/') {
-      itC->erase(itC->length()-1);
-    }
-    if ((*itC)[0] == '-') {
-      rejectClusters.push_back(itC->substr(1));
-      itC = opt.clusters.erase(itC);
-    }
-    else {
-      ++itC;
-    }
-  }
+  splitendpoints(opt.clusters, rejectClusters);
 
   std::list<Arc::Job> jobs;
   Arc::Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
