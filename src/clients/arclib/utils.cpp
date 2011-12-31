@@ -6,6 +6,7 @@
 
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
+#include <arc/credential/Credential.h>
 #include <arc/loader/FinderLoader.h>
 #include <arc/loader/Plugin.h>
 
@@ -56,6 +57,25 @@ void showplugins(const std::string& program, const std::list<std::string>& types
   }
 }
 
+bool checkproxy(const Arc::UserConfig& uc)
+{
+  if (!uc.ProxyPath().empty() ) {
+    Arc::Credential holder(uc.ProxyPath(), "", "", "");
+    if (holder.GetEndTime() < Arc::Time()){
+      std::cout << Arc::IString("Proxy expired. Job submission aborted. Please run 'arcproxy'!") << std::endl;
+      return false;
+    }
+  }
+  else {
+    std::cout << Arc::IString("Cannot find any proxy. arcresub currently cannot run without a proxy.\n"
+                              "  If you have the proxy file in a non-default location,\n"
+                              "  please make sure the path is specified in the client configuration file.\n"
+                              "  If you don't have a proxy yet, please run 'arcproxy'!") << std::endl;
+    return false;
+  }
+
+  return true;
+}
 
 ClientOptions::ClientOptions(Client_t c,
                              const std::string& arguments,

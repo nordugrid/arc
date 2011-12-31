@@ -26,7 +26,6 @@
 #include <arc/client/JobDescription.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/Submitter.h>
-#include <arc/credential/Credential.h>
 
 #include "utils.h"
 
@@ -85,18 +84,7 @@ int RUNSUB(main)(int argc, char **argv) {
     return 0;
   }
 
-  if (!usercfg.ProxyPath().empty() ) {
-    Arc::Credential holder(usercfg.ProxyPath(), "", "", "");
-    if (holder.GetEndTime() < Arc::Time()){
-      std::cout << Arc::IString("Proxy expired. Job submission aborted. Please run 'arcproxy'!") << std::endl;
-      return 1;
-    }
-  }
-  else {
-    std::cout << Arc::IString("Cannot find any proxy. arcsub currently cannot run without a proxy.\n"
-                              "  If you have the proxy file in a non-default location,\n"
-                              "  please make sure the path is specified in the client configuration file.\n"
-                              "  If you don't have a proxy yet, please run 'arcproxy'!") << std::endl;
+  if (!checkproxy(usercfg)) {
     return 1;
   }
 

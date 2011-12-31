@@ -1,9 +1,12 @@
 #include <string>
 #include <list>
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 #include <arc/OptionParser.h>
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
+
+bool checkproxy(const Arc::UserConfig& uc);
 
 class ClientOptions : public Arc::OptionParser {
 public:
