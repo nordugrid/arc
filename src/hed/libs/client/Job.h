@@ -169,6 +169,7 @@ namespace Arc {
      *  attempt to acquire a lock.
      * @return true in case of success, otherwise false.
      * @see operator=(XMLNode)
+     * @see ReadJobsFromFile
      * @see WriteJobsToTruncatedFile
      * @see WriteJobsToFile
      * @see RemoveJobsFromFile
@@ -176,6 +177,51 @@ namespace Arc {
      * @see XMLNode::ReadFromFile
      **/
     static bool ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries = 10, unsigned tryInterval = 500000);
+
+    /// Read specified jobs from file
+    /**
+     * Extract job information for jobs specified by job identifiers and/or
+     * endpoints from job list file. The method read all jobs from specified
+     * job list file, using the ReadAllJobsFromFile method. If the all argument
+     * is false, jobs will only be put into the list of Job objects (jobs) if
+     * the IDFromEndpoint or Name attributes of the Job object matches one of
+     * the entries in the jobIdentifiers list argument or if the Cluster or
+     * InfoEndpoint attributes of the Job object matches one of the entries in
+     * the endpoints list argument (if specified), using the URL::StringMatches
+     * method. If the all argument is true, none of those matchings is carried
+     * out, instead all jobs are put into the list of Job objects. For both
+     * values of the all argument, the entries in the jobIdentifiers list will
+     * be removed if corresponding to a job in the jobs list. In the end, if the
+     * rejectEndpoints list is non-empty, the jobs list will be filtered by
+     * removing Job objects for which the Cluster or InfoEndpoint attributes
+     * matches those in the rejectEndpoints list, using the URL::StringMatches
+     * method. This method returns true, except when the ReadAllJobsFromFile
+     * method returns false.
+     *
+     * @param filename is the filename of the job list to read jobs from.
+     * @param jobs is a reference to a list of Job objects, which will be filled
+     *  with the jobs read from file (cleared before use).
+     * @param jobIdentifiers specifies the job IDs and names of jobs to be put
+     *  into the jobs list. Entries in this list is removed if found among the
+     *  jobs in the job list file.
+     * @param all specifies whether all jobs from the jobs list should be put
+     *  into the jobs list.
+     * @param endpoints is a list of strings resembling endpoints for which Job
+     *  objects having matching Cluster or InfoEndpoint attributes should be
+     *  added to the jobs list.
+     * @param rejectEndpoints is a list of strings resembling endpoint for which
+     *  Job objects having matching Cluster or InfoEndpoint attributes should be
+     *  removed from the jobs list. Overides jobIdentifiers, all and endpoints.
+     * @param nTries will be passed to the ReadAllJobsFromFile method
+     * @param tryInterval will be passed to the ReadAllJobsFromFile method
+     * @return true in case of success, otherwise false.
+     * @see ReadAllJobsFromFile
+     * @see URL::StringMatches
+     * @see WriteJobsToTruncatedFile
+     * @see WriteJobsToFile
+     * @see RemoveJobsFromFile
+     **/
+    static bool ReadJobsFromFile(const std::string& filename, std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, bool all = false, const std::list<std::string>& endpoints = std::list<std::string>(), const std::list<std::string>& rejectEndpoints = std::list<std::string>(), unsigned nTries = 10, unsigned tryInterval = 500000);
 
     /// Truncate file and write jobs to it
     /**

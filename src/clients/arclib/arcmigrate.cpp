@@ -99,67 +99,19 @@ int RUNMIGRATE(main)(int argc, char **argv) {
 
   std::list<std::string> rejectClusters;
   splitendpoints(opt.clusters, rejectClusters);
-
-  std::list<Arc::Job> jobs;
-  Arc::Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
-  if (!opt.all) {
-    for (std::list<Arc::Job>::iterator itJ = jobs.begin();
-         itJ != jobs.end();) {
-      if (jobIDsAndNames.empty() && opt.clusters.empty()) {
-        // Remove remaing jobs.
-        jobs.erase(itJ, jobs.end());
-        break;
-      }
-      std::list<std::string>::iterator itJID = jobIDsAndNames.begin();
-      for (;itJID != jobIDsAndNames.end(); ++itJID) {
-        if (itJ->IDFromEndpoint.str() == *itJID) {
-          break;
-        }
-      }
-      if (itJID != jobIDsAndNames.end()) {
-        // Job explicitly specified. Remove id from list so we dont iterate it again.
-        jobIDsAndNames.erase(itJID);
-        ++itJ;
-        continue;
-      }
-
-      std::list<std::string>::const_iterator itC = opt.clusters.begin();
-      for (; itC != opt.clusters.end(); ++itC) {
-        if (itJ->Cluster.str() == *itC ||
-            itJ->Cluster.Host() == *itC ||
-            itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
-            itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) == *itC ||
-            itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) + "/" + itJ->Cluster.Path() == *itC) {
-          break;
-        }
-      }
-      if (itC != opt.clusters.end()) {
-        // Cluster on which job reside is explicitly specified.
-        ++itJ;
-        continue;
-      }
-
-      // Job is not selected - remove it.
-      itJ = jobs.erase(itJ);
-    }
+  if (!usercfg.ResolveAliases(opt.clusters, Arc::COMPUTING) || !usercfg.ResolveAliases(rejectClusters, Arc::COMPUTING)) {
+    return 1;
   }
 
-  // Filter jobs on rejected clusters.
-  for (std::list<std::string>::const_iterator itC = rejectClusters.begin();
-       itC != rejectClusters.end(); ++itC) {
-    std::list<Arc::Job>::iterator itJ = jobs.begin();
-    for (; itJ != jobs.end(); ++itJ) {
-      if (itJ->Cluster.str() == *itC ||
-          itJ->Cluster.Host() == *itC ||
-          itJ->Cluster.Host() + "/" + itJ->Cluster.Path() == *itC ||
-          itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) == *itC ||
-          itJ->Cluster.Host() + ":" + Arc::tostring(itJ->Cluster.Port()) + "/" + itJ->Cluster.Path() == *itC) {
-        break;
-      }
-    }
-    if (itJ != jobs.end()) {
-      jobs.erase(itJ);
-    }
+  std::list<Arc::Job> jobs;
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobIDsAndNames, opt.all, opt.clusters, rejectClusters)) {
+    logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    return 1;
+  }
+
+  for (std::list<std::string>::const_iterator itJIDAndName = jobIDsAndNames.begin();
+       itJIDAndName != jobIDsAndNames.end(); ++itJIDAndName) {
+    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDAndName) << std::endl;
   }
 
   if (!opt.qlusters.empty() || !opt.indexurls.empty()) {

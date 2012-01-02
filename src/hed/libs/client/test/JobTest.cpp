@@ -17,6 +17,7 @@ class JobTest
   CPPUNIT_TEST(XMLToJobStateTest);
   CPPUNIT_TEST(FromOldFormatTest);
   CPPUNIT_TEST(FileTest);
+  CPPUNIT_TEST(ReadJobsFromFileTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -28,6 +29,7 @@ public:
   void XMLToJobStateTest();
   void FromOldFormatTest();
   void FileTest();
+  void ReadJobsFromFileTest();
 
 private:
   Arc::XMLNode xmlJob;
@@ -380,7 +382,7 @@ void JobTest::FileTest() {
   CPPUNIT_ASSERT(Arc::Job::ReadAllJobsFromFile(jobfile, outJobs));
   CPPUNIT_ASSERT_EQUAL(4, (int)outJobs.size());
   CPPUNIT_ASSERT_EQUAL(inJobs.back().Name, outJobs.back().Name);
-  
+
   inJobs.pop_back();
 
   // Adding more jobs to file.
@@ -416,6 +418,117 @@ void JobTest::FileTest() {
   CPPUNIT_ASSERT(lock.release());
 
   remove(jobfile.c_str());
+}
+
+void JobTest::ReadJobsFromFileTest() {
+  const std::string jobfilename = "jobs.xml";
+
+  std::list<Arc::Job> inJobs, outJobs;
+
+  // Check if jobs are read when specified by the jobIdentifiers argument.
+  // Also check that the jobIdentifiers list is modified according to found jobs.
+  {
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-1";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce.grid.org/1234567890-foo-job-1");
+    inJobs.back().Cluster = Arc::URL("https://ce.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info.grid.org/");
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-2";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce.grid.org/1234567890-foo-job-2");
+    inJobs.back().Cluster = Arc::URL("https://ce.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info.grid.org/");
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-2";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce.grid.org/0987654321-foo-job-2");
+    inJobs.back().Cluster = Arc::URL("https://ce.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info.grid.org/");
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-3";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce.grid.org/1234567890-foo-job-3");
+    inJobs.back().Cluster = Arc::URL("https://ce.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info.grid.org/");
+
+    CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfilename, inJobs));
+
+    std::list<std::string> jobIdentifiers;
+    jobIdentifiers.push_back("https://ce.grid.org/1234567890-foo-job-1");
+    jobIdentifiers.push_back("foo-job-2");
+    jobIdentifiers.push_back("nonexistent-job");
+
+    CPPUNIT_ASSERT(Arc::Job::ReadJobsFromFile(jobfilename, outJobs, jobIdentifiers));
+    CPPUNIT_ASSERT_EQUAL(3, (int)outJobs.size());
+    std::list<Arc::Job>::const_iterator itJ = outJobs.begin();
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-1", itJ->Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce.grid.org/1234567890-foo-job-1"), itJ->IDFromEndpoint);
+    ++itJ;
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce.grid.org/1234567890-foo-job-2"), itJ->IDFromEndpoint);
+    ++itJ;
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", itJ->Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce.grid.org/0987654321-foo-job-2"), itJ->IDFromEndpoint);
+
+    CPPUNIT_ASSERT_EQUAL(1, (int)jobIdentifiers.size());
+    CPPUNIT_ASSERT_EQUAL((std::string)"nonexistent-job", jobIdentifiers.front());
+  }
+
+  // Check if jobs are read when specified by the endpoints argument.
+  // Also check if jobs are read when specified by the rejectEndpoints argument.
+  {
+    inJobs.clear();
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-1";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce1.grid.org/1234567890-foo-job-1");
+    inJobs.back().Cluster = Arc::URL("https://ce1.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info1.grid.org/");
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-2";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce2.grid.org/1234567890-foo-job-2");
+    inJobs.back().Cluster = Arc::URL("https://ce2.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info2.grid.org/");
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-3";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce2.grid.org/1234567890-foo-job-3");
+    inJobs.back().Cluster = Arc::URL("https://ce2.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info2.grid.org/");
+
+    inJobs.push_back(Arc::Job());
+    inJobs.back().Name = "foo-job-4";
+    inJobs.back().IDFromEndpoint = Arc::URL("https://ce3.grid.org/1234567890-foo-job-4");
+    inJobs.back().Cluster = Arc::URL("https://ce3.grid.org/");
+    inJobs.back().InfoEndpoint = Arc::URL("ldap://info3.grid.org/");
+
+    CPPUNIT_ASSERT(Arc::Job::WriteJobsToTruncatedFile(jobfilename, inJobs));
+
+    std::list<std::string> jobIdentifiers, endpoints, rejectEndpoints;
+    endpoints.push_back("ce2.grid.org");
+
+    CPPUNIT_ASSERT(Arc::Job::ReadJobsFromFile(jobfilename, outJobs, jobIdentifiers, false, endpoints));
+    CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-2", outJobs.front().Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce2.grid.org/1234567890-foo-job-2"), outJobs.front().IDFromEndpoint);
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-3", outJobs.back().Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce2.grid.org/1234567890-foo-job-3"), outJobs.back().IDFromEndpoint);
+
+    outJobs.clear();
+    endpoints.clear();
+    rejectEndpoints.push_back("ce2.grid.org");
+
+    CPPUNIT_ASSERT(Arc::Job::ReadJobsFromFile(jobfilename, outJobs, jobIdentifiers, true, endpoints, rejectEndpoints));
+    CPPUNIT_ASSERT_EQUAL(2, (int)outJobs.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-1", outJobs.front().Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce1.grid.org/1234567890-foo-job-1"), outJobs.front().IDFromEndpoint);
+    CPPUNIT_ASSERT_EQUAL((std::string)"foo-job-4", outJobs.back().Name);
+    CPPUNIT_ASSERT_EQUAL(Arc::URL("https://ce3.grid.org/1234567890-foo-job-4"), outJobs.back().IDFromEndpoint);
+  }
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(JobTest);

@@ -33,90 +33,37 @@ namespace Arc {
       return;
     }
 
+    std::list<std::string> endpoints;
+    for (std::list<std::string>::const_iterator itC = usercfg.GetSelectedServices(COMPUTING).begin();
+         itC != usercfg.GetSelectedServices(COMPUTING).end(); ++itC) {
+      endpoints.push_back(itC->substr(itC->find(":")+1));
+
+    }
+
+    std::list<std::string> rejectEndpoints;
+    for (std::list<std::string>::const_iterator itC = usercfg.GetRejectedServices(COMPUTING).begin();
+         itC != usercfg.GetRejectedServices(COMPUTING).end(); ++itC) {
+      rejectEndpoints.push_back(itC->substr(itC->find(":")+1));
+
+    }
+
+    std::list<std::string> jobIDsAndNamesCopy = jobIDsAndNames;
     std::list<Job> jobs;
-    std::list<Job> alreadyFoundJobs;
-    Job::ReadAllJobsFromFile(usercfg.JobListFile(), jobs);
+    if (!Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobIDsAndNamesCopy, jobIDsAndNames.empty() && usercfg.GetSelectedServices(COMPUTING).empty(), endpoints, rejectEndpoints)) {
+      logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+      return;
+    }
 
-    // Add jobs explicitly specified.
-    for (std::list<std::string>::const_iterator it = jobIDsAndNames.begin();
-         it != jobIDsAndNames.end(); ++it) {
-      std::list<Job>::iterator itJ = jobs.begin();
-      for (; itJ != jobs.end(); ++itJ) {
-        if (*it == itJ->IDFromEndpoint.fullstr() || *it == itJ->Name) {
-          // If the job wasn't already selected in a previous cycle...
-          bool alreadySelectedJob = false;
-          for (std::list<Job>::iterator itAJ = alreadyFoundJobs.begin(); itAJ != alreadyFoundJobs.end(); itAJ++) {
-            if (*itAJ == *itJ) {
-              alreadySelectedJob = true;
-            }
-          }
-          // Add it!
-          if (!alreadySelectedJob && AddJob(*itJ)) {
-            // Job was added to JobController, remove it from list.
-            // jobs.erase(itJ);
-            alreadyFoundJobs.push_back(*itJ);
-          } else {
-            logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", *it);
-          }
-        }
-      }
-
-      if (alreadyFoundJobs.empty()) {
-        logger.msg(WARNING, "Job not found in job list: %s", *it);
+    for (std::list<Job>::const_iterator itJ = jobs.begin();
+         itJ != jobs.end(); ++itJ) {
+      if (!AddJob(*itJ)) {
+        logger.msg(WARNING, "Unable to handle job (%s), no suitable job management plugin found.", itJ->IDFromEndpoint.fullstr());
       }
     }
 
-    // Exclude jobs on rejected services.
-    if (!usercfg.GetRejectedServices(COMPUTING).empty() && !jobs.empty()) {
-      for (std::list<std::string>::const_iterator itC = usercfg.GetRejectedServices(COMPUTING).begin();
-           itC != usercfg.GetRejectedServices(COMPUTING).end(); ++itC) {
-        std::size_t pos = itC->find(":");
-        std::string cFlavour = itC->substr(0, pos), service = itC->substr(pos+1);
-        logger.msg(DEBUG, "cFlavour = %s; service = %s", cFlavour, service);
-        for (std::list<Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
-          if ((cFlavour == "*" || cFlavour == itJ->Flavour) &&
-              (itJ->Cluster.StringMatches(service) || itJ->InfoEndpoint.StringMatches(service))) {
-            itJ = jobs.erase(itJ);
-          }
-          else {
-            ++itJ;
-          }
-        }
-      }
-    }
-
-    // Add jobs on selected services.
-    if (!usercfg.GetSelectedServices(COMPUTING).empty() && !jobs.empty()) {
-      for (std::list<std::string>::const_iterator itC = usercfg.GetSelectedServices(COMPUTING).begin();
-           itC != usercfg.GetSelectedServices(COMPUTING).end(); ++itC) {
-        std::size_t pos = itC->find(":");
-        std::string cFlavour = itC->substr(0, pos), service = itC->substr(pos+1);
-        logger.msg(DEBUG, "cFlavour = %s; service = %s", cFlavour, service);
-        for (std::list<Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
-          if ((cFlavour == "*" || cFlavour == itJ->Flavour) &&
-              (itJ->Cluster.StringMatches(service) || itJ->InfoEndpoint.StringMatches(service))) {
-            if (AddJob(*itJ)) {
-              // Job was added to JobController, remove it from list.
-              itJ = jobs.erase(itJ);
-              continue;
-            }
-            else {
-              logger.msg(WARNING, "Unable to handle job (%s), no suitable JobController plugin found.", itJ->IDFromEndpoint.fullstr());
-            }
-          }
-          ++itJ;
-        }
-      }
-    }
-
-    // If neither jobs was specified explicitly or services was selected, all jobs should be added (except those rejected).
-    if (jobIDsAndNames.empty() && usercfg.GetSelectedServices(COMPUTING).empty() && !jobs.empty()) {
-      for (std::list<Job>::const_iterator itJ = jobs.begin();
-           itJ != jobs.end(); ++itJ) {
-        if (!AddJob(*itJ)) {
-          logger.msg(WARNING, "Unable to handle job (%s), no suitable job management plugin found.", itJ->IDFromEndpoint.fullstr());
-        }
-      }
+    for (std::list<std::string>::const_iterator itS = jobIDsAndNamesCopy.begin();
+         itS != jobIDsAndNamesCopy.end(); ++itS) {
+      logger.msg(WARNING, "Job not found in job list: %s", *itS);
     }
   }
 

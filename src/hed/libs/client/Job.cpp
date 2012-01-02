@@ -6,6 +6,8 @@
 
 #include <unistd.h>
 
+#include <algorithm>
+
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
 #include <arc/IString.h>
@@ -565,6 +567,72 @@ namespace Arc {
     return true;
   }
 
+  bool Job::ReadJobsFromFile(const std::string& filename, std::list<Job>& jobs, std::list<std::string>& jobIdentifiers, bool all, const std::list<std::string>& endpoints, const std::list<std::string>& rEndpoints, unsigned nTries, unsigned tryInterval)
+  {
+    if (!ReadAllJobsFromFile(filename, jobs, nTries, tryInterval)) { return false; }
+
+    std::list<std::string> jobIdentifiersCopy = jobIdentifiers;
+    for (std::list<Arc::Job>::iterator itJ = jobs.begin();
+         itJ != jobs.end();) {
+      // Check if the job (itJ) is selected by the job identifies, either by job ID or Name.
+      std::list<std::string>::iterator itJIdentifier = jobIdentifiers.begin();
+      for (;itJIdentifier != jobIdentifiers.end(); ++itJIdentifier) {
+        if (itJ->IDFromEndpoint == URL(*itJIdentifier) || (!itJ->Name.empty() && itJ->Name == *itJIdentifier)) {
+          break;
+        }
+      }
+      if (itJIdentifier != jobIdentifiers.end()) {
+        // Job explicitly specified. Remove id from the copy list, in order to keep track of used identifiers.
+        std::list<std::string>::iterator itJIdentifierCopy = std::find(jobIdentifiersCopy.begin(), jobIdentifiersCopy.end(), *itJIdentifier);
+        if (itJIdentifierCopy != jobIdentifiersCopy.end()) {
+          jobIdentifiersCopy.erase(itJIdentifierCopy);
+        }
+        ++itJ;
+        continue;
+      }
+
+      if (!all) {
+        // Check if the job (itJ) is selected by endpoints.
+        std::list<std::string>::const_iterator itC = endpoints.begin();
+        for (; itC != endpoints.end(); ++itC) {
+          const std::string endpoint = itC->substr((itJ->Flavour.length()+1)*(int)(itJ->Flavour + ":" == itC->substr(0, itJ->Flavour.length()+1)));
+          if (itJ->Cluster.StringMatches(endpoint) || itJ->InfoEndpoint.StringMatches(endpoint)) {
+            break;
+          }
+        }
+        if (itC != endpoints.end()) {
+          // Cluster on which job reside is explicitly specified.
+          ++itJ;
+          continue;
+        }
+
+        // Job is not selected - remove it.
+        itJ = jobs.erase(itJ);
+      }
+      else {
+        ++itJ;
+      }
+    }
+
+    // Filter jobs on rejected clusters.
+    for (std::list<std::string>::const_iterator itC = rEndpoints.begin();
+         itC != rEndpoints.end(); ++itC) {
+      for (std::list<Arc::Job>::iterator itJ = jobs.begin(); itJ != jobs.end();) {
+        const std::string endpoint = itC->substr((itJ->Flavour.length()+1)*(int)(itJ->Flavour + ":" == itC->substr(0, itJ->Flavour.length()+1)));
+        if (itJ->Cluster.StringMatches(endpoint) || itJ->InfoEndpoint.StringMatches(endpoint)) {
+          itJ = jobs.erase(itJ);
+        }
+        else {
+          ++itJ;
+        }
+      }
+    }
+
+    jobIdentifiers = jobIdentifiersCopy;
+
+    return true;
+  }
+
   bool Job::WriteJobsToTruncatedFile(const std::string& filename, const std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
     Config jobfile;
     std::map<std::string, XMLNode> jobIDXMLMap;
@@ -639,7 +707,7 @@ namespace Arc {
             // Duplicate found, replace it.
             itJobXML->second.Replace(XMLNode(NS(), "Job"));
             it->ToXML(itJobXML->second);
-            
+
             // Only add to newJobsMap if this is a new job, i.e. not previous present in jobfile.
             std::map<std::string, const Job*>::iterator itNewJobsMap = newJobsMap.find(it->IDFromEndpoint.fullstr());
             if (itNewJobsMap != newJobsMap.end()) {
