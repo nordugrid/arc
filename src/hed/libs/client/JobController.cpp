@@ -78,7 +78,6 @@ namespace Arc {
          it != jobstore.end(); it++) {
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -138,7 +137,6 @@ namespace Arc {
          it != jobstore.end(); it++) {
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -197,15 +195,12 @@ namespace Arc {
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end();) {
       if (!it->State && force && status.empty()) {
-        logger.msg(WARNING, "Job information not found, job %s will only be deleted from local joblist",
-                   it->JobID.fullstr());
         toberemoved.push_back(it->JobID);
         it = jobstore.erase(it);
         continue;
       }
 
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         ++it;
         continue;
       }
@@ -268,10 +263,7 @@ namespace Arc {
     std::list<Job*> catable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-
       if (!it->State) {
-        logger.msg(WARNING, "Job state information not found: %s",
-                   it->JobID.fullstr());
         continue;
       }
 
@@ -362,17 +354,11 @@ namespace Arc {
   bool JobController::SaveJobStatusToStream(std::ostream& out,
                                             const std::list<std::string>& status,
                                             bool longlist) {
-
     GetJobInformation();
 
     for (std::list<Job>::const_iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
-        if (Time() - it->LocalSubmissionTime < 90)
-          logger.msg(WARNING, "This job was very recently "
-                     "submitted and might not yet "
-                     "have reached the information system");
         continue;
       }
 
@@ -393,11 +379,6 @@ namespace Arc {
     for (std::list<Job>::const_iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
-        if (Time() - it->LocalSubmissionTime < 90)
-          logger.msg(WARNING, "This job was very recently "
-                     "submitted and might not yet "
-                     "have reached the information system");
         continue;
       }
 
@@ -417,9 +398,7 @@ namespace Arc {
     std::list<Job*> renewable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 
@@ -458,9 +437,7 @@ namespace Arc {
     std::list<Job*> resumable;
     for (std::list<Job>::iterator it = jobstore.begin();
          it != jobstore.end(); it++) {
-
       if (!it->State) {
-        logger.msg(WARNING, "Job information not found: %s", it->JobID.fullstr());
         continue;
       }
 

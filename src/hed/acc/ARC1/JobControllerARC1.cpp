@@ -44,7 +44,7 @@ namespace Arc {
       std::string idstr;
       AREXClient::createActivityIdentifier(iter->JobID, idstr);
       if (!ac.stat(idstr, *iter)) {
-        logger.msg(INFO, "Failed retrieving information for job: %s", iter->JobID.str());
+        logger.msg(WARNING, "Job information not found: %s", iter->JobID.fullstr());
       }
     }
   }
