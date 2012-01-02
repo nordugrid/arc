@@ -81,11 +81,15 @@ namespace Arc {
     /// Get list of managed jobs
     /**
      * The list of jobs managed by this JobSupervisor is returned when
-     * calling this method.
+     * calling this method. If the includeJobsWithoutStatus argument is set to
+     * false, only Job objects with a valid State attribute is returned.
      *
+     * @param includeJobWithoutStatus specifies whether jobs with invalid status
+     *  should be included in the returned list
      * @return list of Job objects managed by this JobSupervisor
+     * @see JobState::operator bool
      **/
-    std::list<Job> GetJobs() const;
+    std::list<Job> GetJobs(bool includeJobsWithoutStatus = true) const;
 
     /// Update job information
     /**

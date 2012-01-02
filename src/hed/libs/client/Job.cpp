@@ -519,18 +519,6 @@ namespace Arc {
     out << std::endl;
   } // end Print
 
-  bool Job::CompareJobID(const Job* a, const Job* b) {
-    return a->IDFromEndpoint.fullstr().compare(b->IDFromEndpoint.fullstr()) < 0;
-  }
-
-  bool Job::CompareSubmissionTime(const Job* a, const Job* b) {
-    return a->SubmissionTime < b->SubmissionTime;
-  }
-
-  bool Job::CompareJobName(const Job* a, const Job* b) {
-    return a->Name.compare(b->Name) < 0;
-  }
-
   bool Job::ReadAllJobsFromFile(const std::string& filename, std::list<Job>& jobs, unsigned nTries, unsigned tryInterval) {
     jobs.clear();
     Config jobstorage;

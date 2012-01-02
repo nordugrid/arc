@@ -101,13 +101,15 @@ namespace Arc {
     return true;
   }
 
-  std::list<Job> JobSupervisor::GetJobs() const {
+  std::list<Job> JobSupervisor::GetJobs(bool includeJobsWithoutStateInfo) const {
     std::list<Job> jobs;
     for (std::list<JobController*>::const_iterator itJC = loader.GetJobControllers().begin();
          itJC != loader.GetJobControllers().end(); ++itJC) {
       for (std::list<Job>::const_iterator itJ = (*itJC)->jobstore.begin();
            itJ != (*itJC)->jobstore.end(); ++itJ) {
-        jobs.push_back(*itJ);
+        if (includeJobsWithoutStateInfo || !includeJobsWithoutStateInfo && itJ->State) {
+          jobs.push_back(*itJ);
+        }
       }
     }
 

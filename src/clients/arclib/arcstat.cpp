@@ -12,10 +12,8 @@
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/client/JobController.h>
-#include <arc/client/JobSupervisor.h>
 #include <arc/UserConfig.h>
+#include <arc/client/JobSupervisor.h>
 
 #include "utils.h"
 
@@ -88,8 +86,7 @@ int RUNSTAT(main)(int argc, char **argv) {
     opt.sort = opt.rsort;
   }
 
-
-  typedef bool (*JobSorting)(const Arc::Job*, const Arc::Job*);
+  typedef bool (*JobSorting)(const Arc::Job&, const Arc::Job&);
   std::map<std::string, JobSorting> orderings;
   orderings["jobid"] = &Arc::Job::CompareJobID;
   orderings["submissiontime"] = &Arc::Job::CompareSubmissionTime;
@@ -111,45 +108,46 @@ int RUNSTAT(main)(int argc, char **argv) {
     return 1;
   }
 
-  if (!jobidentifiers.empty() || opt.all)
-    usercfg.ClearSelectedServices();
-
-  if (!opt.clusters.empty()) {
-    usercfg.ClearSelectedServices();
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
+  std::list<std::string> rejectClusters;
+  splitendpoints(opt.clusters, rejectClusters);
+  if (!usercfg.ResolveAliases(opt.clusters, Arc::COMPUTING) || !usercfg.ResolveAliases(rejectClusters, Arc::COMPUTING)) {
+    return 1;
   }
 
-  Arc::JobSupervisor jobmaster(usercfg, jobidentifiers);
+  std::list<Arc::Job> jobs;
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, opt.clusters, rejectClusters)) {
+    logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    return 1;
+  }
+
+  for (std::list<std::string>::const_iterator itJIDAndName = jobidentifiers.begin();
+       itJIDAndName != jobidentifiers.end(); ++itJIDAndName) {
+    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDAndName) << std::endl;
+  }
+
+  Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
     std::cout << Arc::IString("No jobs") << std::endl;
     return 0;
   }
-  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
-  if (jobcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controller plugins loaded");
-    return 1;
-  }
-
-  std::vector<const Arc::Job*> jobs;
-  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-       it != jobcont.end(); it++) {
-    (*it)->FetchJobs(opt.status, jobs);
-  }
+  jobmaster.Update();
+  jobs = jobmaster.GetJobs(false);
+  std::vector<Arc::Job> jobsSortable(jobs.begin(), jobs.end());
 
   if (!opt.sort.empty()) {
-    opt.rsort.empty() ? std::sort(jobs.begin(),  jobs.end(),  orderings[opt.sort]) :
-                        std::sort(jobs.rbegin(), jobs.rend(), orderings[opt.sort]);
+    opt.rsort.empty() ? std::sort(jobsSortable.begin(),  jobsSortable.end(),  orderings[opt.sort]) :
+                        std::sort(jobsSortable.rbegin(), jobsSortable.rend(), orderings[opt.sort]);
   }
 
-  for (std::vector<const Arc::Job*>::const_iterator it = jobs.begin();
-       it != jobs.end(); it++) {
+  for (std::vector<Arc::Job>::const_iterator it = jobsSortable.begin();
+       it != jobsSortable.end(); it++) {
     // Option 'long' (longlist) takes precedence over option 'print-jobids' (printids)
     if (opt.longlist || !opt.printids) {
-      (*it)->SaveToStream(std::cout, opt.longlist);
+      it->SaveToStream(std::cout, opt.longlist);
     }
     else {
-      std::cout << (*it)->JobID.fullstr() << std::endl;
+      std::cout << it->JobID.fullstr() << std::endl;
     }
   }
 

@@ -138,9 +138,9 @@ namespace Arc {
      **/
     void ToXML(XMLNode job) const;
 
-    static bool CompareJobID(const Job* a, const Job* b);
-    static bool CompareSubmissionTime(const Job* a, const Job* b);
-    static bool CompareJobName(const Job* a, const Job* b);
+    static bool CompareJobID(const Job& a, const Job& b) { return a.IDFromEndpoint.fullstr().compare(b.IDFromEndpoint.fullstr()) < 0; }
+    static bool CompareSubmissionTime(const Job& a, const Job& b) { return a.SubmissionTime < b.SubmissionTime; }
+    static bool CompareJobName(const Job& a, const Job& b) { return a.Name.compare(b.Name) < 0; }
 
     /// Read all jobs from file
     /**
