@@ -118,7 +118,7 @@ AC_SUBST(cronddir)
 # gettext
 AM_GNU_GETTEXT([external])
 AM_GNU_GETTEXT_VERSION([0.12])
-[[ -e ${srcdir}/po/POTFILES.in ]] || touch ${srcdir}/po/POTFILES.in
+[[ -e po/POTFILES.in ]] || touch po/POTFILES.in
 
 # Portable 64bit file offsets
 AC_SYS_LARGEFILE
