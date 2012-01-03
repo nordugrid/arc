@@ -157,7 +157,6 @@ namespace Arc {
     Flavour = j.Flavour;
     Cluster = j.Cluster;
 
-    SubmissionEndpoint = j.SubmissionEndpoint;
     InfoEndpoint = j.InfoEndpoint;
     ISB = j.ISB;
     OSB = j.OSB;

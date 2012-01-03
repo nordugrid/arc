@@ -38,7 +38,6 @@ namespace Arc {
     URL& JobID;
     URL Cluster;
     // Optional information (ACCs fills if they need it)
-    URL SubmissionEndpoint;
     URL InfoEndpoint;
     URL ISB;
     URL OSB;
