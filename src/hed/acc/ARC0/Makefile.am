@@ -16,5 +16,6 @@ libaccARC0_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_FTP_CONTROL_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_FTP_CONTROL_LIBS) \
+	$(GLOBUS_COMMON_LIBS)
 libaccARC0_la_LDFLAGS = -no-undefined -avoid-version -module

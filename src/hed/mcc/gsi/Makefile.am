@@ -13,6 +13,7 @@ libmccgsi_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GLOBUS_GSSAPI_GSI_LIBS) 
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GLOBUS_GSSAPI_GSI_LIBS) \
+	$(GLOBUS_OPENSSL_MODULE_LIBS) $(GLOBUS_COMMON_LIBS)
 
 libmccgsi_la_LDFLAGS  = -no-undefined -avoid-version -module

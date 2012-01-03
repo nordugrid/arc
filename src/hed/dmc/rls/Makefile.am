@@ -11,5 +11,6 @@ libdmcrls_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_RLS_CLIENT_LIBS) 
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GLOBUS_RLS_CLIENT_LIBS) \
+	$(GLOBUS_IO_LIBS) $(GLOBUS_COMMON_LIBS)
 libdmcrls_la_LDFLAGS  = -no-undefined -avoid-version -module

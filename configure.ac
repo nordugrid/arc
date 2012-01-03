@@ -1163,6 +1163,20 @@ GPT_PKG(globus_gssapi_gsi)
 AC_SUBST(GLOBUS_GSSAPI_GSI_CFLAGS)
 AC_SUBST(GLOBUS_GSSAPI_GSI_LIBS)
 
+PKG_CHECK_MODULES(GLOBUS_GSS_ASSIST, [globus-gss-assist], [
+GLOBUS_GSS_ASSIST_VERSION=`$PKG_CONFIG --modversion globus-gss-assist`], [
+GPT_PKG(globus_gss_assist)
+])
+AC_SUBST(GLOBUS_GSS_ASSIST_CFLAGS)
+AC_SUBST(GLOBUS_GSS_ASSIST_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_GSI_CALLBACK, [globus-gsi-callback], [
+GLOBUS_GSI_CALLBACK_VERSION=`$PKG_CONFIG --modversion globus-gsi-callback`], [
+GPT_PKG(globus_gsi_callback)
+])
+AC_SUBST(GLOBUS_GSI_CALLBACK_CFLAGS)
+AC_SUBST(GLOBUS_GSI_CALLBACK_LIBS)
+
 PKG_CHECK_MODULES(GLOBUS_RLS_CLIENT, [globus-rls-client], [
 GLOBUS_RLS_CLIENT_VERSION=`$PKG_CONFIG --modversion globus-rls-client`], [
 GPT_PKG(globus_rls_client)
@@ -1190,6 +1204,27 @@ GPT_PKG(globus_io)
 ])
 AC_SUBST(GLOBUS_IO_CFLAGS)
 AC_SUBST(GLOBUS_IO_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_GSI_CERT_UTILS, [globus-gsi-cert-utils], [
+GLOBUS_GSI_CERT_UTILS_VERSION=`$PKG_CONFIG --modversion globus-gsi-cert-utils`], [
+GPT_PKG(globus_gsi_cert_utils)
+])
+AC_SUBST(GLOBUS_GSI_CERT_UTILS_CFLAGS)
+AC_SUBST(GLOBUS_GSI_CERT_UTILS_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_GSI_CREDENTIAL, [globus-gsi-credential], [
+GLOBUS_GSI_CREDENTIAL_VERSION=`$PKG_CONFIG --modversion globus-gsi-credential`], [
+GPT_PKG(globus_gsi_credential)
+])
+AC_SUBST(GLOBUS_GSI_CREDENTIAL_CFLAGS)
+AC_SUBST(GLOBUS_GSI_CREDENTIAL_LIBS)
+
+PKG_CHECK_MODULES(GLOBUS_OPENSSL_MODULE, [globus-openssl-module], [
+GLOBUS_OPENSSL_MODULE_VERSION=`$PKG_CONFIG --modversion globus-openssl-module`], [
+GPT_PKG(globus_openssl_module)
+])
+AC_SUBST(GLOBUS_OPENSSL_MODULE_CFLAGS)
+AC_SUBST(GLOBUS_OPENSSL_MODULE_LIBS)
 
 # Check for new globus thread model selection
 SAVE_CFLAGS=$CFLAGS
