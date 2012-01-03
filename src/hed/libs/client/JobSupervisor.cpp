@@ -107,7 +107,7 @@ namespace Arc {
          itJC != loader.GetJobControllers().end(); ++itJC) {
       for (std::list<Job>::const_iterator itJ = (*itJC)->jobstore.begin();
            itJ != (*itJC)->jobstore.end(); ++itJ) {
-        if (includeJobsWithoutStateInfo || !includeJobsWithoutStateInfo && itJ->State) {
+        if (includeJobsWithoutStateInfo || (!includeJobsWithoutStateInfo && itJ->State)) {
           jobs.push_back(*itJ);
         }
       }
