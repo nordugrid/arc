@@ -332,7 +332,7 @@ namespace Arc {
     }
     if (!available || delete_first) { // lock in preparation for writing
       FileLock lock(filename, CACHE_LOCK_TIMEOUT);
-      bool lock_removed;
+      bool lock_removed = false;
       if (!lock.acquire(lock_removed)) {
         logger.msg(INFO, "Failed to obtain lock on cache file %s", filename);
         is_locked = true;
