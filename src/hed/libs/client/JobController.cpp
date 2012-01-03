@@ -186,69 +186,6 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Clean(const std::list<std::string>& status,
-                            bool force) {
-    GetJobInformation();
-
-    std::list<URL> toberemoved;
-    std::list< std::list<Job>::iterator > cleanable;
-    for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end();) {
-      if (!it->State && force && status.empty()) {
-        toberemoved.push_back(it->JobID);
-        it = jobstore.erase(it);
-        continue;
-      }
-
-      if (!it->State) {
-        ++it;
-        continue;
-      }
-
-      // Job state is not among the specified states.
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
-        ++it;
-        continue;
-      }
-
-      if (!it->State.IsFinished()) {
-        if (force) {
-          toberemoved.push_back(it->JobID);
-          it = jobstore.erase(it);
-        }
-        else {
-          logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.fullstr());
-          ++it;
-        }
-        continue;
-      }
-
-      cleanable.push_back(it);
-      ++it;
-    }
-
-    bool ok = true;
-    for (std::list< std::list<Job>::iterator >::iterator it = cleanable.begin();
-         it != cleanable.end(); it++) {
-      bool cleaned = CleanJob(**it);
-      if (!cleaned) {
-        if (force)
-          toberemoved.push_back((*it)->JobID);
-        logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.fullstr());
-        ok = false;
-        continue;
-      }
-
-      toberemoved.push_back((*it)->IDFromEndpoint);
-      jobstore.erase(*it);
-    }
-
-    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
-    return ok;
-  }
-
   bool JobController::Cat(std::ostream& out,
                           const std::list<std::string>& status,
                           const std::string& whichfile_) {

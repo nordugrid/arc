@@ -58,9 +58,6 @@ namespace Arc {
     bool Kill(const std::list<std::string>& status,
               bool keep);
 
-    bool Clean(const std::list<std::string>& status,
-               bool force);
-
     /// Catenate a output log-file to a std::ostream object
     /**
      * The method catenates one of the log-files standard out or error, or the
