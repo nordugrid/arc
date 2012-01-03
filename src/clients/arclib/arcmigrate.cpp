@@ -168,8 +168,8 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   }
 
   if (!opt.keep) {
-    std::list<Arc::URL> notcleaned;
-    std::list<Arc::URL> cleanedJobs = jobmaster.Clean(killedJobs, notcleaned);
+    std::list<Arc::URL> notcleaned, cleanedJobs;
+    jobmaster.CleanByIDs(killedJobs, cleanedJobs, notcleaned);
     for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
          it != notcleaned.end(); ++it) {
       logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());

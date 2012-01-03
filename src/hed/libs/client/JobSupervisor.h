@@ -392,7 +392,7 @@ namespace Arc {
      **/
     std::list<URL> Cancel(const std::list<URL>& jobids, std::list<URL>& notcancelled);
 
-    /// Clean jobs
+    /// Clean jobs by ID
     /**
      * This method will request cleaning of jobs, identified by their
      * IDFromEndpoint member, for which that URL is equal to any in the jobids
@@ -404,20 +404,22 @@ namespace Arc {
      * Job object, in order to clean the job. If that method fails the
      * IDFromEndpoint URL of the Job object will be appended to the notcleaned
      * URL list, and if it succeeds the IDFromEndpoint URL will be appended
-     * to the list of URL objects to be returned.
+     * to the cleaned list. If any of the calls to JobController::Clean fails,
+     * false will be returned, otherwise true is returned.
      *
      * Note: If there is any URL in the jobids list for which there is no
-     * corresponding Job object, then the size of the returned list plus the
+     * corresponding Job object, then the size of the cleaned list plus the
      * size of the notcleaned list will not equal that of the jobids list.
      *
      * @param jobids List of Job::IDFromEndpoint URL objects for which a
      *  corresponding job, managed by this JobSupervisor should be cleaned.
+     * @param cleanedJobs List of Job::IDFromEndpoint URL object which was
+     *  cleaned.
      * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
      *  corresponding job were not cleaned.
-     * @return The list of Job::IDFromEndpoint URL objects of successfully
-     *  cleaned jobs is returned.
+     * @return false if calls to JobController::Clean fails, true otherwise.
      **/
-    std::list<URL> Clean(const std::list<URL>& jobids, std::list<URL>& notcleaned);
+    bool CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleanedJobs, std::list<URL>& notcleaned);
 
     /// Get list of JobControllers
     /**

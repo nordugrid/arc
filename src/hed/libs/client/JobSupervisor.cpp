@@ -583,9 +583,8 @@ namespace Arc {
     return cancelled;
   }
 
-  std::list<URL> JobSupervisor::Clean(const std::list<URL>& jobids,
-                                      std::list<URL>& notcleaned) {
-    std::list<URL> cleaned;
+  bool JobSupervisor::CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleaned, std::list<URL>& notcleaned) {
+    bool ok = true;
 
     std::list<JobController*> jobCs = loader.GetJobControllers();
     for (std::list<URL>::const_iterator itID = jobids.begin();
@@ -599,6 +598,7 @@ namespace Arc {
               cleaned.push_back(*itID);
             }
             else {
+              if (itJ->State) { ok = false; }
               notcleaned.push_back(*itID);
             }
             break;
@@ -610,7 +610,7 @@ namespace Arc {
       }
     }
 
-    return cleaned;
+    return ok;
   }
 
   bool JobSupervisor::JobsFound() const {
