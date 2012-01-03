@@ -613,6 +613,49 @@ namespace Arc {
     return ok;
   }
 
+  bool JobSupervisor::CleanByStatus(const std::list<std::string>& status, std::list<URL>& cleaned, std::list<URL>& notcleaned) {
+    bool ok = true;
+    std::list<JobController*> jobConts = loader.GetJobControllers();
+    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
+         itJobC != jobConts.end(); itJobC++) {
+      (*itJobC)->GetJobInformation();
+
+      std::list<Job*> cleanable;
+      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
+           it != (*itJobC)->jobstore.end(); it++) {
+        if (!it->State) {
+          continue;
+        }
+
+        if (!status.empty() &&
+            std::find(status.begin(), status.end(), it->State()) == status.end() &&
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+          continue;
+        }
+
+        if (!it->State.IsFinished()) {
+          logger.msg(WARNING, "Unable to clean job (%s), job has not finished yet", it->JobID.str());
+          continue;
+        }
+
+        cleanable.push_back(&(*it));
+      }
+
+      for (std::list<Job*>::iterator it = cleanable.begin();
+           it != cleanable.end(); it++) {
+        if (!(*itJobC)->CleanJob(**it)) {
+          ok = false;
+          notcleaned.push_back((*it)->JobID);
+        }
+        else {
+          cleaned.push_back((*it)->JobID);
+        }
+      }
+    }
+
+    return ok;
+  }
+
   bool JobSupervisor::JobsFound() const {
     for (std::list<JobController*>::const_iterator it = loader.GetJobControllers().begin();
          it != loader.GetJobControllers().end(); ++it) {

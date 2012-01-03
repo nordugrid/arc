@@ -421,6 +421,24 @@ namespace Arc {
      **/
     bool CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleanedJobs, std::list<URL>& notcleaned);
 
+    /// Clean jobs by status
+    /**
+     * This method is identical to the CleanByIDs method, except that before
+     * cleaning jobs, the JobController::GetInformation method is called in
+     * order to update job information, and that jobs are selected by job status
+     * instead of by job IDs. The status list argument should contain states
+     * for which cleaning of job in any of those states should be carried out.
+     * The states are compared using both the JobState::operator() and
+     * JobState::GetGeneralState() methods. If the status list is empty, all
+     * jobs will be selected for cleaning.
+     *
+     * @param status list of job status used for filtering jobs.
+     * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
+     *  corresponding job were not cleaned.
+     * @return false if calls to JobController::Clean fails, true otherwise.
+     **/
+    bool CleanByStatus(const std::list<std::string>& status, std::list<URL>& cleanedJobs, std::list<URL>& notcleaned);
+
     /// Get list of JobControllers
     /**
      * Method to get the list of JobControllers loaded by constructor.

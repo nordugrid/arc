@@ -19,6 +19,7 @@ class JobSupervisorTest
   CPPUNIT_TEST(TestCancel);
   CPPUNIT_TEST(TestResubmit);
   CPPUNIT_TEST(TestCleanByIDs);
+  CPPUNIT_TEST(TestCleanStatus);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -33,6 +34,7 @@ public:
   void TestResubmit();
   void TestCancel();
   void TestCleanByIDs();
+  void TestCleanStatus();
 
   class JobStateTEST : public Arc::JobState {
   public:
@@ -250,6 +252,48 @@ void JobSupervisorTest::TestCleanByIDs()
   CPPUNIT_ASSERT_EQUAL(2, (int)notCleaned.size());
   CPPUNIT_ASSERT_EQUAL(id1.str(), notCleaned.front().str());
   CPPUNIT_ASSERT_EQUAL(id2.str(), notCleaned.back().str());
+
+  delete js;
+}
+
+void JobSupervisorTest::TestCleanStatus()
+{
+  std::list<Arc::Job> jobs;
+  Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
+           id2("http://test.nordugrid.org/1234567890test2");
+
+  st = Arc::JobState::FINISHED;
+  j.State = JobStateTEST("R");
+  j.IDFromEndpoint = id1;
+  jobs.push_back(j);
+
+  st = Arc::JobState::UNDEFINED;
+  j.State = JobStateTEST("U");
+  j.IDFromEndpoint = id2;
+  jobs.push_back(j);
+
+  js = new Arc::JobSupervisor(usercfg, jobs);
+
+  std::list<std::string> status;
+  status.push_back("R");
+
+  JobControllerTestACCControl::cleanStatus = true;
+
+  std::list<Arc::URL> cleaned, notCleaned;
+  CPPUNIT_ASSERT(js->CleanByStatus(status, cleaned, notCleaned));
+
+  CPPUNIT_ASSERT_EQUAL(1, (int)cleaned.size());
+  CPPUNIT_ASSERT_EQUAL(id1.str(), cleaned.front().str());
+  CPPUNIT_ASSERT_EQUAL(0, (int)notCleaned.size());
+
+  cleaned.clear();
+  notCleaned.clear();
+  JobControllerTestACCControl::cleanStatus = false;
+  CPPUNIT_ASSERT(!js->CleanByStatus(status, cleaned, notCleaned));
+
+  CPPUNIT_ASSERT_EQUAL(0, (int)cleaned.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)notCleaned.size());
+  CPPUNIT_ASSERT_EQUAL(id1.str(), notCleaned.front().str());
 
   delete js;
 }

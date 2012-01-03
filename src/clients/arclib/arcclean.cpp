@@ -40,7 +40,7 @@ int RUNCLEAN(main)(int argc, char **argv) {
                     istring("The arcclean command removes a job "
                             "from the computing resource."));
 
-  std::list<std::string> jobs = opt.Parse(argc, argv);
+  std::list<std::string> jobidentifiers = opt.Parse(argc, argv);
 
   if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arcclean", VERSION)
@@ -69,7 +69,7 @@ int RUNCLEAN(main)(int argc, char **argv) {
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
 
   for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
   }
@@ -77,41 +77,77 @@ int RUNCLEAN(main)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  if ((!opt.joblist.empty() || !opt.status.empty()) && jobs.empty() && opt.clusters.empty())
+  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.clusters.empty())
     opt.all = true;
 
-  if (jobs.empty() && opt.clusters.empty() && !opt.all) {
+  if (jobidentifiers.empty() && opt.clusters.empty() && !opt.all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  if (!jobs.empty() || opt.all)
-    usercfg.ClearSelectedServices();
+  std::list<std::string> rejectClusters;
+  splitendpoints(opt.clusters, rejectClusters);
+  if (!usercfg.ResolveAliases(opt.clusters, Arc::COMPUTING) || !usercfg.ResolveAliases(rejectClusters, Arc::COMPUTING)) {
+    return 1;
+  }
 
-  if (!opt.clusters.empty()) {
-    usercfg.ClearSelectedServices();
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
+  std::list<Arc::Job> jobs;
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, opt.clusters, rejectClusters)) {
+    logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    return 1;
+  }
+
+  for (std::list<std::string>::const_iterator itJIdentifier = jobidentifiers.begin();
+       itJIdentifier != jobidentifiers.end(); ++itJIdentifier) {
+    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIdentifier) << std::endl;
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
+    std::cout << Arc::IString("No jobs selected for cleaning") << std::endl;
     return 0;
-  }
-  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
-
-  // If the user specified a joblist on the command line joblist equals
-  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
-  if (jobcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controller plugins loaded");
-    return 1;
   }
 
   int retval = 0;
-  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-       it != jobcont.end(); it++)
-    if (!(*it)->Clean(opt.status, opt.forceclean))
-      retval = 1;
+  std::list<Arc::URL> cleaned, notcleaned;
+  if (!jobmaster.CleanByStatus(opt.status, cleaned, notcleaned)) {
+    retval = 1;
+  }
+
+  if (!opt.status.empty() && std::find(opt.status.begin(), opt.status.end(), "Undefined") != opt.status.end() || opt.all && opt.forceclean) {
+    std::string response = "";
+    if (!opt.forceclean) {
+      std::cout << Arc::IString("You are about to remove jobs from the job list for which no information could be\n"
+                                "found. NOTE: Recently submitted jobs might not have appeared in the information\n"
+                                "system, and this action will also remove such jobs.") << std::endl;
+      std::cout << Arc::IString("Are you sure you want to clean jobs missing information?") << " ["
+                << Arc::IString("y") << "/" << Arc::IString("n") << "] ";
+      std::cin >> response;
+    }
+
+    if (!opt.forceclean && Arc::lower(response) != std::string(Arc::FindTrans("y"))) {
+      std::cout << Arc::IString("Jobs missing information will not be cleaned!") << std::endl;
+      if (cleaned.empty() && notcleaned.empty()) {
+        return retval;
+      }
+    }
+    else {
+      jobmaster.Update();
+      jobs = jobmaster.GetJobs();
+      for (std::list<Arc::Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+        if (it->State == Arc::JobState::UNDEFINED) {
+          cleaned.push_back(it->IDFromEndpoint);
+        }
+      }
+    }
+  }
+
+  if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleaned) || opt.forceclean && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), notcleaned)) {
+    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+    std::cout << Arc::IString("         Run 'arcsync -s Undefined' to remove cleaned jobs from job list", usercfg.JobListFile()) << std::endl;
+  }
+
+  std::cout << Arc::IString("Jobs processed: %d, deleted: %d", cleaned.size()+notcleaned.size(), cleaned.size()+((int)opt.forceclean)*notcleaned.size()) << std::endl;
 
   return retval;
 }
