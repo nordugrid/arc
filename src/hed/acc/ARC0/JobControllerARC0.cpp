@@ -142,7 +142,7 @@ namespace Arc {
           (*jit)->EndTime =
             (std::string)(*xit)["nordugrid-job-completiontime"];
         if ((*xit)["nordugrid-job-cpucount"])
-          (*jit)->UsedSlots = stringtoi((*xit)["nordugrid-job-cpucount"]);
+          (*jit)->RequestedSlots = stringtoi((*xit)["nordugrid-job-cpucount"]);
         if ((*xit)["nordugrid-job-usedcputime"])
           (*jit)->UsedTotalCPUTime =
             Period((std::string)(*xit)["nordugrid-job-usedcputime"],
@@ -201,7 +201,7 @@ namespace Arc {
             (*jit)->ExecutionNode.push_back((std::string)n);
         if ((*xit)["nordugrid-job-runtimeenvironment"])
           for (XMLNode n = (*xit)["nordugrid-job-runtimeenvironment"]; n; ++n)
-            (*jit)->UsedApplicationEnvironment.push_back((std::string)n);
+            (*jit)->RequestedApplicationEnvironment.push_back((std::string)n);
 
         jobinfolist.erase(xit);
       }

@@ -88,7 +88,7 @@ namespace Arc {
       UsedTotalWallTime(-1),
       UsedTotalCPUTime(-1),
       UsedMainMemory(-1),
-      UsedSlots(-1),
+      RequestedSlots(-1),
       LocalSubmissionTime(-1),
       SubmissionTime(-1),
       ComputingManagerSubmissionTime(-1),
@@ -113,7 +113,7 @@ namespace Arc {
       UsedTotalWallTime(-1),
       UsedTotalCPUTime(-1),
       UsedMainMemory(-1),
-      UsedSlots(-1),
+      RequestedSlots(-1),
       LocalSubmissionTime(-1),
       SubmissionTime(-1),
       ComputingManagerSubmissionTime(-1),
@@ -138,7 +138,7 @@ namespace Arc {
       UsedTotalWallTime(-1),
       UsedTotalCPUTime(-1),
       UsedMainMemory(-1),
-      UsedSlots(-1),
+      RequestedSlots(-1),
       LocalSubmissionTime(-1),
       SubmissionTime(-1),
       ComputingManagerSubmissionTime(-1),
@@ -191,8 +191,8 @@ namespace Arc {
     UsedTotalWallTime = j.UsedTotalWallTime;
     UsedTotalCPUTime = j.UsedTotalCPUTime;
     UsedMainMemory = j.UsedMainMemory;
-    UsedApplicationEnvironment = j.UsedApplicationEnvironment;
-    UsedSlots = j.UsedSlots;
+    RequestedApplicationEnvironment = j.RequestedApplicationEnvironment;
+    RequestedSlots = j.RequestedSlots;
     LocalSubmissionTime = j.LocalSubmissionTime;
     SubmissionTime = j.SubmissionTime;
     ComputingManagerSubmissionTime = j.ComputingManagerSubmissionTime;
@@ -450,8 +450,8 @@ namespace Arc {
                     << std::endl;
       if (!Queue.empty())
         out << IString(" Queue: %s", Queue) << std::endl;
-      if (UsedSlots != -1)
-        out << IString(" Used Slots: %d", UsedSlots) << std::endl;
+      if (RequestedSlots != -1)
+        out << IString(" Requested Slots: %d", RequestedSlots) << std::endl;
       if (WaitingPosition != -1)
         out << IString(" Waiting Position: %d", WaitingPosition)
                   << std::endl;
