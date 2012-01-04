@@ -84,35 +84,6 @@ namespace Arc {
              const std::list<std::string>& status,
              const std::string& whichfile);
 
-    /// Print job status to a std::ostream object
-    /**
-     * The job status is printed to a std::ostream object when calling this
-     * method. More specifically the Job::SaveToStream method is called on each
-     * of the  Job objects stored in this object, and the boolean argument
-     * \a longlist is passed directly to the method indicating whether
-     * verbose job status should be printed. The \a status argument is
-     * a list of strings each representing a job state (JobState) which
-     * is used to indicate that only jobs with a job state in the list
-     * should be considered. If the list \a status is empty all jobs
-     * will be considered.
-     *
-     * This method is not supposed to be overloaded by extending
-     * classes.
-     *
-     * @param out a std::ostream object to direct job status information to.
-     * @param status a list of strings representing states to be
-     *        considered.
-     * @param longlist a boolean indicating whether verbose job
-     *        information should be printed.
-     * @return This method always returns true.
-     * @see GetJobInformation
-     * @see Job::SaveToStream
-     * @see JobState
-     **/
-    bool SaveJobStatusToStream(std::ostream& out,
-                               const std::list<std::string>& status,
-                               bool longlist);
-
     bool Resume(const std::list<std::string>& status);
 
     std::list<std::string> GetDownloadFiles(const URL& dir);

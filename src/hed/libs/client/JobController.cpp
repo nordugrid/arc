@@ -230,27 +230,6 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::SaveJobStatusToStream(std::ostream& out,
-                                            const std::list<std::string>& status,
-                                            bool longlist) {
-    GetJobInformation();
-
-    for (std::list<Job>::const_iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-      if (!it->State) {
-        continue;
-      }
-
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      it->SaveToStream(out, longlist);
-    }
-    return true;
-  }
-
   void JobController::FetchJobs(const std::list<std::string>& status,
                                 std::vector<const Job*>& jobs) {
     GetJobInformation();
