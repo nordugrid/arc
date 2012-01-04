@@ -163,8 +163,8 @@ namespace DataStaging {
     }
     // check for stuck child process (no report through comm channel)
     Arc::Period t = Arc::Time() - last_comm;
-    if (transfer_params.max_inactivity_time > 0 && t >= transfer_params.max_inactivity_time) {
-      logger_->msg(Arc::ERROR, "Transfer killed after %i seconds without communication", t.GetPeriod());
+    if (transfer_params.max_inactivity_time > 0 && t >= transfer_params.max_inactivity_time*2) {
+      logger_->msg(Arc::ERROR, "DTR %s: Transfer killed after %i seconds without communication", dtr_id, t.GetPeriod());
       child_->Kill(1);
       delete child_;
       child_ = NULL;
