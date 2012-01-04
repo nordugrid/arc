@@ -128,64 +128,6 @@ namespace Arc {
     return ok;
   }
 
-  bool JobController::Kill(const std::list<std::string>& status,
-                           bool keep) {
-    GetJobInformation();
-
-    std::list< std::list<Job>::iterator > killable;
-    for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-
-      if (!it->State) {
-        continue;
-      }
-
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      if (it->State == JobState::DELETED) {
-        logger.msg(WARNING, "Job has already been deleted: %s", it->JobID.fullstr());
-        continue;
-      }
-      else if (it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has already finished: %s", it->JobID.fullstr());
-        continue;
-      }
-
-      killable.push_back(it);
-    }
-
-    bool ok = true;
-    std::list<URL> toberemoved;
-    for (std::list< std::list<Job>::iterator >::iterator it = killable.begin();
-         it != killable.end(); it++) {
-
-      bool cancelled = CancelJob(**it);
-      if (!cancelled) {
-        logger.msg(ERROR, "Failed cancelling job %s", (*it)->JobID.fullstr());
-        ok = false;
-        continue;
-      }
-
-      if (!keep) {
-        bool cleaned = CleanJob(**it);
-        if (!cleaned) {
-          logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.fullstr());
-          ok = false;
-          continue;
-        }
-
-        toberemoved.push_back((*it)->IDFromEndpoint.fullstr());
-        jobstore.erase(*it);
-      }
-    }
-
-    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
-    return ok;
-  }
-
   bool JobController::Cat(std::ostream& out,
                           const std::list<std::string>& status,
                           const std::string& whichfile_) {
