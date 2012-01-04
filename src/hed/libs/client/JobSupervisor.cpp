@@ -177,8 +177,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Renew(const std::list<std::string>& status,
-                            std::list<URL>& renewedJobs) {
+  bool JobSupervisor::RenewByStatus(const std::list<std::string>& status, std::list<URL>& renewed, std::list<URL>& notrenewed) {
     bool ok = true;
 
     std::list<JobController*> jobConts = loader.GetJobControllers();
@@ -189,15 +188,9 @@ namespace Arc {
       std::list<Job*> renewable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
            it != (*itJobC)->jobstore.end(); it++) {
-
-        if (!it->State) {
-          logger.msg(WARNING, "Unable to renew job (%s), job information not found at execution service", it->JobID.fullstr());
-          continue;
-        }
-
-        if (!status.empty() &&
+        if (!it->State || (!status.empty() &&
             std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
           continue;
         }
 
@@ -212,11 +205,11 @@ namespace Arc {
       for (std::list<Job*>::iterator it = renewable.begin();
            it != renewable.end(); it++) {
         if (!(*itJobC)->RenewJob(**it)) {
-          logger.msg(ERROR, "Failed renewing job (%s)", (*it)->JobID.fullstr());
           ok = false;
+          notrenewed.push_back((*it)->JobID);
         }
         else {
-          renewedJobs.push_back((*it)->JobID);
+          renewed.push_back((*it)->JobID);
         }
       }
     }

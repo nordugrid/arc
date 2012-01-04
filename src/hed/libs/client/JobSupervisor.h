@@ -145,8 +145,7 @@ namespace Arc {
 
     /// Renew job credentials
     /**
-     * This method renew credentials of the jobs managed by this
-     * JobSupervisor.
+     * This method will renew credentials of jobs managed by this JobSupervisor.
      *
      * Before identifying jobs for which to renew credentials, the
      * JobController::GetJobInformation method is called for each loaded
@@ -167,18 +166,21 @@ namespace Arc {
      * For each job for which to renew credentials, the specialized
      * JobController::RenewJob method is called and is responsible for
      * renewing the credentials for the given job. If the method fails to
-     * renew job credentials, this method will return false,
-     * otherwise true is returned. The job ID of successfully renewed jobs
-     * will be appended to the passed renewedJobs list.
+     * renew any job credentials, this method will return false (otherwise
+     * true), and the job ID (IDFromEndpoint) of such jobs is appended to the
+     * notrenewed list. The job ID of successfully renewed jobs will be appended
+     * to the passed renewed list.
      *
      * @param statusfilter list of job status used for filtering jobs.
-     * @param renewedJobs list of URLs which to append job IDs to, of
+     * @param renewed list of URLs which to append job IDs to, of
      *  jobs for which credentials was successfully renewed.
+     * @param notrenewed List of Job::IDFromEndpoint URL objects for which the
+     *  credentials of the corresponding job were not renewed.
+     * @return false if any call to JobController::RenewJob fails, true
+     *  otherwise.
      * @see JobController::RenewJob.
-     * @return true if credentials for all jobs were successfully renewed,
-     *  otherwise false.
      **/
-    bool Renew(const std::list<std::string>& statusfilter, std::list<URL>& renewedJobs);
+    bool RenewByStatus(const std::list<std::string>& statusfilter, std::list<URL>& renewed, std::list<URL>& notrenewed);
 
     /// Resume job
     /**
