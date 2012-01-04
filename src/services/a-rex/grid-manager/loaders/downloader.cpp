@@ -80,9 +80,9 @@ class FileDataEx : public FileData {
    */
   std::string starttime; /* time of transfer started */
   std::string endtime; /* time of transfer finished */
-  /* if the file was retrieved from cache: 
+  /* if the file was retrieved from cache:
    *  - "yes";
-   *  - "no"; 
+   *  - "no";
    */
   std::string fromcache;
   time_t mtime;
@@ -253,7 +253,7 @@ class PointPair {
       logger.msg(Arc::INFO, "Downloaded file %s", it->lfn);
       delete it->pair; it->pair=NULL;
       it->endtime=Arc::Time().str(Arc::UTCTime);
-      if (res == Arc::DataStatus::SuccessCached) 
+      if (res == Arc::DataStatus::SuccessCached)
         it->fromcache="yes";
       else
         it->fromcache="no";
@@ -293,7 +293,7 @@ int main(int argc,char** argv) {
   std::string preferred_pattern("");
   std::string failure_reason("");
   std::string x509_proxy, x509_cert, x509_key, x509_cadir;
-  srand(time(NULL) + getpid()); 
+  srand(time(NULL) + getpid());
   JobLog job_log;
   JobsListConfig jobs_cfg;
   GMEnvironment env(job_log,jobs_cfg);
@@ -494,7 +494,7 @@ int main(int argc,char** argv) {
     // if no cache defined, use null cache
     cache = new Arc::FileCache();
   }
-  
+
   if(min_speed != 0)
     logger.msg(Arc::VERBOSE, "Minimal speed: %llu B/s during %i s", min_speed, min_speed_time);
   if(min_average_speed != 0)
@@ -669,7 +669,7 @@ int main(int argc,char** argv) {
     // Processing initiated - now wait for event
     pair_condition.wait_nonblock();
   };
-  
+
   {
     std::list<std::string> transfer_stats;
     transfer_stats.clear(); // paranoid initialization
@@ -684,13 +684,13 @@ int main(int argc,char** argv) {
       transfer_parameters += "size=" + Arc::tostring(st.st_size) + ',';
       transfer_parameters += "starttime=" + i->starttime + ',';
       transfer_parameters += "endtime=" + i->endtime + ',';
-      transfer_parameters += "fromcache=" + i->fromcache; 
+      transfer_parameters += "fromcache=" + i->fromcache;
       transfer_stats.push_back(transfer_parameters);
       if(Arc::URL(i->lfn).Option("exec") == "yes") {
         fix_file_permissions(session_dir+i->pfn,true);
       };
     };
-  
+
     std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".statistics";
     std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
     if(f.is_open() ) {
@@ -698,7 +698,7 @@ int main(int argc,char** argv) {
   	    f << *it << std::endl;
       f.close();
     }
-  }   
+  }
   for(FileDataEx::iterator i=failed_files.begin();i!=failed_files.end();++i) {
     if (i->res.Retryable() || i->res == Arc::DataStatus::TransferError) {
       logger.msg(Arc::ERROR, "Failed to download (but may be retried) %s",i->lfn);
@@ -827,12 +827,13 @@ int main(int argc,char** argv) {
           Arc::JobControllerLoader loader;
           Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {
-            jobctrl->FillJobStore(job);
-
-            std::list<std::string> status;
-            status.push_back("Queuing");
-
-            if (!jobctrl->Kill(status, true) && !desc.get_local()->forcemigration) {
+            bool isJobAdded = jobctrl->FillJobStore(job);
+            jobctrl->GetJobInformation();
+            const Arc::Job* updatedJob = NULL;
+            if (!jobctrl->GetJobs().empty()) {
+              updatedJob = &(jobctrl->GetJobs().front());
+            }
+            if ((!isJobAdded || !updatedJob || updatedJob->State != Arc::JobState::QUEUING || !jobctrl->CancelJob(*updatedJob)) && !desc.get_local()->forcemigration) {
               res = 1;
               failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
             }
