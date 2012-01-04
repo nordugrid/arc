@@ -117,7 +117,7 @@ int RUNKILL(main)(int argc, char **argv) {
     retval = 1;
   }
 
-  std::cout << Arc::IString("Jobs processed: %d, deleted: %d", killed.size()+notkilled.size(), killed.size()) << std::endl;
+  std::cout << Arc::IString("Jobs processed: %d, killed: %d", killed.size()+notkilled.size(), killed.size()) << std::endl;
 
   return retval;
 }
