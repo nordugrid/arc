@@ -364,33 +364,37 @@ namespace Arc {
     bool Migrate(bool forcemigration,
                  std::list<Job>& migratedJobs, std::list<URL>& notmigrated);
 
-    /// Cancel jobs
+    /// Cancel jobs by ID
     /**
-     * This method will request cancellation of jobs, identified by their
-     * IDFromEndpoint member, for which that URL is equal to any in the jobids
-     * list. Only jobs corresponding to a Job object managed by this
-     * JobSupervisor will be considered for cancellation. Job objects not in a
-     * valid state (see JobState) will not be considered, and the IDFromEndpoint
-     * URLs of those objects will be appended to the notcancelled URL list. For
-     * jobs not in a finished state (see JobState::IsFinished), the
-     * JobController::Cancel method will be called, passing the corresponding
-     * Job object, in order to cancel the job. If the JobController::Cancel call
-     * succeeds or if the job is in a finished state the IDFromEndpoint URL will
-     * be appended to the list to be returned. If the JobController::Cancel call
-     * fails the IDFromEndpoint URL is appended to the notkilled URL list.
+     * This method will request cancellation of jobs. Only jobs, manged by this
+     * JobSupervisor, for which the IDFromEndpoint attribute equals any of those
+     * specified in the jobids list parameter will be considered for
+     * cancellation. Jobs not in a valid state (see JobState) will not be
+     * considered, and the IDFromEndpoint attribute of those objects will be
+     * appended to the notcancelled URL list. For jobs not in a finished state
+     * (see JobState::IsFinished), the JobController::CancelJob method will be
+     * called, passing the corresponding Job object, in order to cancel the job.
+     * If the JobController::Cancel call succeeds or if the job is in a finished
+     * state the IDFromEndpoint attribute will be appended to the cancelled
+     * list. If the JobController::Cancel call fails the IDFromEndpoint
+     * attribute is appended to the notcancelled list. If any of the calls to
+     * the JobController::CancelJob method fails false is returned, otherwise
+     * true is returned.
      *
      * Note: If there is any URL in the jobids list for which there is no
-     * corresponding Job object, then the size of the returned list plus the
+     * corresponding Job object, then the size of the cancelled list plus the
      * size of the notcancelled list will not equal that of the jobids list.
      *
      * @param jobids List of Job::IDFromEndpoint URL objects for which a
      *  corresponding job, managed by this JobSupervisor should be cancelled.
+     * @param cleanedJobs List of Job::IDFromEndpoint URL object which was
+     *  cancelled.
      * @param notcancelled List of Job::IDFromEndpoint URL objects for which the
      *  corresponding job were not cancelled.
-     * @return The list of Job::IDFromEndpoint URL objects of successfully
-     *  cancelled or finished jobs is returned.
+     * @return false if any call to JobController::CancelJob fails, true
+     *  otherwise.
      **/
-    std::list<URL> Cancel(const std::list<URL>& jobids, std::list<URL>& notcancelled);
+    bool CancelByIDs(const std::list<URL>& jobids, std::list<URL>& cancelled, std::list<URL>& notcancelled);
 
     /// Clean jobs by ID
     /**

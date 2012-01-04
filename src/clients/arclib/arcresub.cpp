@@ -165,17 +165,18 @@ int RUNRESUB(main)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::URL> notkilled;
-  std::list<Arc::URL> killedJobs = jobmaster.Cancel(jobstobekilled, notkilled);
+  std::list<Arc::URL> killed, notkilled;
+  if (!jobmaster.CancelByIDs(jobstobekilled, killed, notkilled)) {
+    retval = 1;
+  }
   for (std::list<Arc::URL>::const_iterator it = notkilled.begin();
        it != notkilled.end(); ++it) {
     logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
-    retval = 1;
   }
 
   if (!opt.keep) {
     std::list<Arc::URL> notcleaned, cleanedJobs;
-    if (!jobmaster.CleanByIDs(killedJobs, cleanedJobs, notcleaned)) {
+    if (!jobmaster.CleanByIDs(killed, cleanedJobs, notcleaned)) {
       retval = 1;
     }
     for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
