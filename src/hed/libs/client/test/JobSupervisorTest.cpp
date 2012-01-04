@@ -16,7 +16,7 @@ class JobSupervisorTest
   CPPUNIT_TEST_SUITE(JobSupervisorTest);
   CPPUNIT_TEST(TestConstructor);
   CPPUNIT_TEST(TestAddJob);
-  CPPUNIT_TEST(TestCancel);
+  CPPUNIT_TEST(TestCancelByIDs);
   CPPUNIT_TEST(TestResubmit);
   CPPUNIT_TEST(TestCleanByIDs);
   CPPUNIT_TEST(TestCleanStatus);
@@ -32,7 +32,7 @@ public:
   void TestConstructor();
   void TestAddJob();
   void TestResubmit();
-  void TestCancel();
+  void TestCancelByIDs();
   void TestCleanByIDs();
   void TestCleanStatus();
 
@@ -153,7 +153,7 @@ void JobSupervisorTest::TestResubmit()
   delete js;
 }
 
-void JobSupervisorTest::TestCancel()
+void JobSupervisorTest::TestCancelByIDs()
 {
   std::list<Arc::Job> jobs;
   Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
@@ -185,27 +185,28 @@ void JobSupervisorTest::TestCancel()
 
   JobControllerTestACCControl::cancelStatus = true;
 
-  std::list<Arc::URL> notCanceled;
-  std::list<Arc::URL> canceled = js->Cancel(jobsToBeCanceled, notCanceled);
+  std::list<Arc::URL> cancelled, notCancelled;
+  CPPUNIT_ASSERT(js->CancelByIDs(jobsToBeCanceled, cancelled, notCancelled));
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)canceled.size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), canceled.front().str());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), canceled.back().str());
+  CPPUNIT_ASSERT_EQUAL(2, (int)cancelled.size());
+  CPPUNIT_ASSERT_EQUAL(id1.str(), cancelled.front().str());
+  CPPUNIT_ASSERT_EQUAL(id2.str(), cancelled.back().str());
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)notCanceled.size());
-  CPPUNIT_ASSERT_EQUAL(id3.str(), notCanceled.back().str());
+  CPPUNIT_ASSERT_EQUAL(1, (int)notCancelled.size());
+  CPPUNIT_ASSERT_EQUAL(id3.str(), notCancelled.back().str());
 
 
-  notCanceled.clear();
+  cancelled.clear();
+  notCancelled.clear();
   JobControllerTestACCControl::cancelStatus = false;
-  canceled = js->Cancel(jobsToBeCanceled, notCanceled);
+  CPPUNIT_ASSERT(!js->CancelByIDs(jobsToBeCanceled, cancelled, notCancelled));
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)canceled.size());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), canceled.back().str());
+  CPPUNIT_ASSERT_EQUAL(1, (int)cancelled.size());
+  CPPUNIT_ASSERT_EQUAL(id2.str(), cancelled.back().str());
 
-  CPPUNIT_ASSERT_EQUAL(2, (int)notCanceled.size());
-  CPPUNIT_ASSERT_EQUAL(id1.str(), notCanceled.front().str());
-  CPPUNIT_ASSERT_EQUAL(id3.str(), notCanceled.back().str());
+  CPPUNIT_ASSERT_EQUAL(2, (int)notCancelled.size());
+  CPPUNIT_ASSERT_EQUAL(id1.str(), notCancelled.front().str());
+  CPPUNIT_ASSERT_EQUAL(id3.str(), notCancelled.back().str());
 
   delete js;
 }
