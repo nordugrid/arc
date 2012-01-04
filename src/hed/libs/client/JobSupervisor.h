@@ -355,7 +355,7 @@ namespace Arc {
      *
      * @param jobids List of Job::IDFromEndpoint URL objects for which a
      *  corresponding job, managed by this JobSupervisor should be cancelled.
-     * @param cleanedJobs List of Job::IDFromEndpoint URL object which was
+     * @param cancelled List of Job::IDFromEndpoint URL object which was
      *  cancelled.
      * @param notcancelled List of Job::IDFromEndpoint URL objects for which the
      *  corresponding job were not cancelled.
@@ -420,13 +420,13 @@ namespace Arc {
      *
      * @param jobids List of Job::IDFromEndpoint URL objects for which a
      *  corresponding job, managed by this JobSupervisor should be cleaned.
-     * @param cleanedJobs List of Job::IDFromEndpoint URL object which was
+     * @param cleaned List of Job::IDFromEndpoint URL object which was
      *  cleaned.
      * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
      *  corresponding job were not cleaned.
      * @return false if calls to JobController::Clean fails, true otherwise.
      **/
-    bool CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleanedJobs, std::list<URL>& notcleaned);
+    bool CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleaned, std::list<URL>& notcleaned);
 
     /// Clean jobs by status
     /**
@@ -440,11 +440,13 @@ namespace Arc {
      * jobs will be selected for cleaning.
      *
      * @param status list of job status used for filtering jobs.
+     * @param cleaned List of Job::IDFromEndpoint URL object which was
+     *  cleaned.
      * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
      *  corresponding job were not cleaned.
      * @return false if calls to JobController::Clean fails, true otherwise.
      **/
-    bool CleanByStatus(const std::list<std::string>& status, std::list<URL>& cleanedJobs, std::list<URL>& notcleaned);
+    bool CleanByStatus(const std::list<std::string>& status, std::list<URL>& cleaned, std::list<URL>& notcleaned);
 
     /// Get list of JobControllers
     /**
