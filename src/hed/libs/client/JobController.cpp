@@ -270,45 +270,6 @@ namespace Arc {
     }
   }
 
-  bool JobController::Renew(const std::list<std::string>& status) {
-
-    GetJobInformation();
-
-    std::list<Job*> renewable;
-    for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-      if (!it->State) {
-        continue;
-      }
-
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
-        logger.msg(WARNING, "Job has already finished: %s", it->JobID.fullstr());
-        continue;
-      }
-
-      renewable.push_back(&(*it));
-    }
-
-    if (renewable.empty()) return false;
-
-    bool ok = true;
-    for (std::list<Job*>::iterator it = renewable.begin();
-         it != renewable.end(); it++) {
-      bool renewed = RenewJob(**it);
-      if (!renewed) {
-        logger.msg(ERROR, "Failed renewing job %s", (*it)->JobID.fullstr());
-        ok = false;
-        continue;
-      }
-    }
-    return ok;
-  }
-
   bool JobController::Resume(const std::list<std::string>& status) {
 
     GetJobInformation();

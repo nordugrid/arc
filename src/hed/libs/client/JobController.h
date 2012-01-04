@@ -113,8 +113,6 @@ namespace Arc {
                                const std::list<std::string>& status,
                                bool longlist);
 
-    bool Renew(const std::list<std::string>& status);
-
     bool Resume(const std::list<std::string>& status);
 
     std::list<std::string> GetDownloadFiles(const URL& dir);
