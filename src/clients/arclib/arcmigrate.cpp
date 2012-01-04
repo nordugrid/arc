@@ -132,7 +132,8 @@ int RUNMIGRATE(main)(int argc, char **argv) {
 
   std::list<Arc::Job> migratedJobs;
   std::list<Arc::URL> notmigrated;
-  if (jobmaster.Migrate(opt.forcemigration, migratedJobs, notmigrated) && migratedJobs.empty()) {
+  int retval = (int)!jobmaster.Migrate(opt.forcemigration, migratedJobs, notmigrated);
+  if (retval == 0 && migratedJobs.empty()) {
     std::cout << Arc::IString("No queuing jobs to migrate") << std::endl;
     return 0;
   }
@@ -145,10 +146,12 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   if (!migratedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), migratedJobs)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
+    retval = 1;
   }
 
   if (!opt.jobidoutfile.empty() && !Arc::Job::WriteJobIDsToFile(migratedJobs, opt.jobidoutfile)) {
     logger.msg(Arc::WARNING, "Cannot write job IDs of submitted jobs to file (%s)", opt.jobidoutfile);
+    retval = 1;
   }
 
   // Get job IDs of jobs to kill.
@@ -169,7 +172,9 @@ int RUNMIGRATE(main)(int argc, char **argv) {
 
   if (!opt.keep) {
     std::list<Arc::URL> notcleaned, cleanedJobs;
-    jobmaster.CleanByIDs(killedJobs, cleanedJobs, notcleaned);
+    if (!jobmaster.CleanByIDs(killedJobs, cleanedJobs, notcleaned)) {
+      retval = 1;
+    }
     for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
          it != notcleaned.end(); ++it) {
       logger.msg(Arc::WARNING, "Migration of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
@@ -178,6 +183,7 @@ int RUNMIGRATE(main)(int argc, char **argv) {
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleanedJobs)) {
       std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
+      retval = 1;
     }
   }
 
@@ -194,5 +200,5 @@ int RUNMIGRATE(main)(int argc, char **argv) {
     }
   }
 
-  return notmigrated.empty();
+  return retval;
 }

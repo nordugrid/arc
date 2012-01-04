@@ -134,7 +134,8 @@ int RUNRESUB(main)(int argc, char **argv) {
   std::list<Arc::Job> resubmittedJobs;
   std::list<Arc::URL> notresubmitted;
   // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
-  if (jobmaster.Resubmit(opt.status, (int)opt.same + 2*(int)opt.notsame, resubmittedJobs, notresubmitted) && resubmittedJobs.empty()) {
+  int retval = (int)!jobmaster.Resubmit(opt.status, (int)opt.same + 2*(int)opt.notsame, resubmittedJobs, notresubmitted);
+  if (retval == 0 && resubmittedJobs.empty()) {
     std::cout << Arc::IString("No jobs to resubmit with the specified status") << std::endl;
     return 0;
   }
@@ -147,10 +148,12 @@ int RUNRESUB(main)(int argc, char **argv) {
   if (!resubmittedJobs.empty() && !Arc::Job::WriteJobsToFile(usercfg.JobListFile(), resubmittedJobs)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         To recover missing jobs, run arcsync") << std::endl;
+    retval = 1;
   }
 
   if (!opt.jobidoutfile.empty() && !Arc::Job::WriteJobIDsToFile(resubmittedJobs, opt.jobidoutfile)) {
     logger.msg(Arc::WARNING, "Cannot write jobids to file (%s)", opt.jobidoutfile);
+    retval = 1;
   }
 
   // Get job IDs of jobs to kill.
@@ -167,11 +170,14 @@ int RUNRESUB(main)(int argc, char **argv) {
   for (std::list<Arc::URL>::const_iterator it = notkilled.begin();
        it != notkilled.end(); ++it) {
     logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
+    retval = 1;
   }
 
   if (!opt.keep) {
     std::list<Arc::URL> notcleaned, cleanedJobs;
-    jobmaster.CleanByIDs(killedJobs, cleanedJobs, notcleaned);
+    if (!jobmaster.CleanByIDs(killedJobs, cleanedJobs, notcleaned)) {
+      retval = 1;
+    }
     for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
          it != notcleaned.end(); ++it) {
       logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
@@ -180,6 +186,7 @@ int RUNRESUB(main)(int argc, char **argv) {
     if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleanedJobs)) {
       std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
+      retval = 1;
     }
   }
 
@@ -196,5 +203,5 @@ int RUNRESUB(main)(int argc, char **argv) {
     }
   }
 
-  return notresubmitted.empty();
+  return retval;
 }
