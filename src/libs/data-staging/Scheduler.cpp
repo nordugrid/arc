@@ -1040,13 +1040,11 @@ namespace DataStaging {
 
   void Scheduler::dump_thread(void* arg) {
     Scheduler* sched = (Scheduler*)arg;
-    while (sched->scheduler_state != STOPPED && !sched->dumplocation.empty()) {
+    while (sched->scheduler_state == RUNNING && !sched->dumplocation.empty()) {
       // every second, dump state
       sched->DtrList.dumpState(sched->dumplocation);
-      Glib::usleep(1000000);
+      if (sched->dump_signal.wait(1000)) break; // notified by signal()
     }
-    // make sure final state is dumped before exit
-    sched->DtrList.dumpState(sched->dumplocation);
   }
 
   bool Scheduler::stop() {
@@ -1118,6 +1116,10 @@ namespace DataStaging {
 
       Glib::usleep(50000);
     }
+    // make sure final state is dumped before exit
+    dump_signal.signal();
+    if (!dumplocation.empty()) DtrList.dumpState(dumplocation);
+
     log_to_root_logger(Arc::INFO, "Scheduler loop exited");
     run_signal.signal();
   }

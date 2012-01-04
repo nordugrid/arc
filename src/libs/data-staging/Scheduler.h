@@ -55,6 +55,9 @@ class Scheduler: public DTRCallback {
     /// Condition to signal end of running
     Arc::SimpleCondition run_signal;
 
+    /// Condition to signal end of dump thread
+    Arc::SimpleCondition dump_signal;
+
     /// Limit on number of DTRs in pre-processor
     int PreProcessorSlots;
     /// Limit on number of DTRs in delivery
