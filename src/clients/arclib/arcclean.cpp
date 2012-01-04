@@ -108,11 +108,8 @@ int RUNCLEAN(main)(int argc, char **argv) {
     return 0;
   }
 
-  int retval = 0;
   std::list<Arc::URL> cleaned, notcleaned;
-  if (!jobmaster.CleanByStatus(opt.status, cleaned, notcleaned)) {
-    retval = 1;
-  }
+  int retval = (int)!jobmaster.CleanByStatus(opt.status, cleaned, notcleaned);
 
   if (!opt.status.empty() && std::find(opt.status.begin(), opt.status.end(), "Undefined") != opt.status.end() || opt.all && opt.forceclean) {
     std::string response = "";
@@ -142,12 +139,12 @@ int RUNCLEAN(main)(int argc, char **argv) {
     }
   }
 
-  if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleaned) || opt.forceclean && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), notcleaned)) {
+  if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleaned)) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
-    std::cout << Arc::IString("         Run 'arcsync -s Undefined' to remove cleaned jobs from job list", usercfg.JobListFile()) << std::endl;
+    std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove cleaned jobs from job list", usercfg.JobListFile()) << std::endl;
   }
 
-  std::cout << Arc::IString("Jobs processed: %d, deleted: %d", cleaned.size()+notcleaned.size(), cleaned.size()+((int)opt.forceclean)*notcleaned.size()) << std::endl;
+  std::cout << Arc::IString("Jobs processed: %d, deleted: %d", cleaned.size()+notcleaned.size(), cleaned.size()) << std::endl;
 
   return retval;
 }
