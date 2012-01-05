@@ -32,11 +32,14 @@
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/credential/Credential.h>
+#include <arc/credential/CertUtil.h>
 #include <arc/credentialstore/CredentialStore.h>
 #include <arc/crypto/OpenSSL.h>
 #include <arc/FileUtils.h>
 
 #include <openssl/ui.h>
+
+using namespace ArcCredential;
 
 static int create_proxy_file(const std::string& path) {
   int f = -1;
@@ -1216,10 +1219,22 @@ int main(int argc, char *argv[]) {
         cred_request.AddExtension("order", acorder);
     }
 
-    if (!use_gsi_proxy)
-      cred_request.SetProxyPolicy("rfc", policy.empty() ? "inheritAll" : "anylanguage", policy, -1);
-    else
+    if (!use_gsi_proxy) {
+      if(!policy.empty()) {
+        cred_request.SetProxyPolicy("rfc", "anylanguage", policy, -1);
+      } else if(CERT_IS_LIMITED_PROXY(signer.GetType())) {
+        // Gross hack for globus. If Globus marks own proxy as limited
+        // it expects every derived proxy to be limited or at least
+        // independent. Independent proxies has little sense in Grid
+        // world. So here we make our proxy globus-limited to allow
+        // it to be used with globus code.
+        cred_request.SetProxyPolicy("rfc", "limited", policy, -1);
+      } else {
+        cred_request.SetProxyPolicy("rfc", "inheritAll", policy, -1);
+      }
+    } else {
       cred_request.SetProxyPolicy("gsi2", "", "", -1);
+    }
 
     std::string proxy_cert;
     if (!signer.SignRequest(&cred_request, proxy_cert))

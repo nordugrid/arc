@@ -29,6 +29,8 @@ namespace Arc {
 #define EMIES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/delegation"
 #define EMIES_TYPES_NAMESPACE "http://www.eu-emi.eu/es/2010/12/types"
 
+#define GLOBUS_LIMITED_PROXY_OID "1.3.6.1.4.1.3536.1.1.1.9"
+
 //#define SERIAL_RAND_BITS 64
 #define SERIAL_RAND_BITS 31
 
@@ -708,7 +710,29 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     proxy_policy.policyLanguage=obj;
     proxy_policy.policy=policy_string;
   } else {
-    obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
+    PROXY_CERT_INFO_EXTENSION *pci =
+        (PROXY_CERT_INFO_EXTENSION*)X509_get_ext_d2i((X509*)cert_,NID_proxyCertInfo,NULL,NULL);
+    if(pci) {
+      if(pci->proxyPolicy && pci->proxyPolicy->policyLanguage) {
+        char* buf = new char[256];
+        int l = OBJ_obj2txt(buf,255,pci->proxyPolicy->policyLanguage,1);
+        if(l > 0) {
+          buf[l] = 0;
+          if(strcmp(GLOBUS_LIMITED_PROXY_OID,buf) == 0) {
+            // Gross hack for globus. If Globus marks own proxy as limited
+            // it expects every derived proxy to be limited or at least
+            // independent. Independent proxies has little sense in Grid
+            // world. So here we make our proxy globus-limited to allow
+            // it to be used with globus code.
+            obj=OBJ_txt2obj(GLOBUS_LIMITED_PROXY_OID,1);
+          };
+        };
+      };
+      PROXY_CERT_INFO_EXTENSION_free(pci);
+    };
+    if(!obj) {
+      obj=OBJ_nid2obj(NID_id_ppl_inheritAll);  // Unrestricted proxy
+    };
     if(!obj) goto err;
     proxy_policy.policyLanguage=obj;
   };

@@ -281,18 +281,29 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
       return (0);
     }
 
+    /* Limited proxy does not mean it can't be followed by unlimited proxy
+       because proxy chain is checked recusrsively according to RFC3820.
+       Unless specific limitation put on proxy means it can't be used
+       for creating another proxy. But for that purpose proxy depth
+       is used.
+       In general it is task of authorization to check ALL proxies in 
+       the chain for valid policies. */
+    /*
     if(CERT_IS_LIMITED_PROXY(vctx->cert_type) &&
        !(CERT_IS_LIMITED_PROXY(type) || CERT_IS_INDEPENDENT_PROXY(type))) {
       logger.msg(Arc::ERROR,"Can't sign a non-limited, non-independent proxy with a limited proxy");
       store_ctx->error = X509_V_ERR_CERT_SIGNATURE_FAILURE;
       return (0);
     }
+    */
 
     vctx->proxy_depth++;
-    if(vctx->max_proxy_depth!=-1 && vctx->max_proxy_depth < vctx->proxy_depth) {
+    if((vctx->max_proxy_depth!=-1) &&
+       (vctx->max_proxy_depth < vctx->proxy_depth)) {
       logger.msg(Arc::ERROR,"The proxy depth %i is out of maximum limit %i",vctx->proxy_depth,vctx->max_proxy_depth);
       return (0);
     }
+    // vctx stores previous certificate type
     vctx->cert_type=type;
   }
 	
