@@ -11,17 +11,21 @@ class ThreadTest
 
   CPPUNIT_TEST_SUITE(ThreadTest);
   CPPUNIT_TEST(TestThread);
+  CPPUNIT_TEST(TestBroadcast);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void setUp();
   void tearDown();
   void TestThread();
+  void TestBroadcast();
 
 private:
   static void func(void*);
+  static void func_wait(void* arg);
   static int counter;
   static Glib::Mutex* lock;
+  Arc::SimpleCondition cond;
 };
 
 static int titem_created = 0;
@@ -57,6 +61,7 @@ void TItem::Dup(void) {
 
 void ThreadTest::setUp() {
   counter = 0;
+  cond.reset();
   lock = new Glib::Mutex;
   new TItem;
 }
@@ -81,6 +86,24 @@ void ThreadTest::TestThread() {
   CPPUNIT_ASSERT_EQUAL(500,counter);
   CPPUNIT_ASSERT_EQUAL(501,titem_created);
   CPPUNIT_ASSERT_EQUAL(500,titem_deleted);
+}
+
+void ThreadTest::TestBroadcast() {
+  // Create 2 threads which wait and check broadcast wakes them both up
+  CPPUNIT_ASSERT(Arc::CreateThreadFunction(&func_wait, this));
+  CPPUNIT_ASSERT(Arc::CreateThreadFunction(&func_wait, this));
+  // Wait for threads to start
+  sleep(1);
+  cond.broadcast();
+  // Wait for result
+  sleep(1);
+  CPPUNIT_ASSERT_EQUAL(2, counter);
+}
+
+void ThreadTest::func_wait(void* arg) {
+  ThreadTest* test = (ThreadTest*)arg;
+  test->cond.wait();
+  test->counter++;
 }
 
 void ThreadTest::func(void*) {

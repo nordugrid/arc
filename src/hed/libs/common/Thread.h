@@ -110,10 +110,11 @@ namespace Arc {
   private:
     Glib::Cond cond_;
     Glib::Mutex lock_;
-    bool flag_;
+    unsigned int flag_;
+    unsigned int waiting_;
   public:
     SimpleCondition(void)
-      : flag_(false) {}
+      : flag_(0), waiting_(0) {}
     ~SimpleCondition(void) {
       /* race condition ? */
       broadcast();
@@ -126,38 +127,43 @@ namespace Arc {
     void unlock(void) {
       lock_.unlock();
     }
-    /** Signal about condition */
+    /** Signal about condition. This overrides broadcast(). */
     void signal(void) {
       lock_.lock();
-      flag_ = true;
+      flag_ = 1;
       cond_.signal();
       lock_.unlock();
     }
-    /** Signal about condition without using semaphor */
+    /** Signal about condition without using semaphor.
+       Call it *only* with lock acquired. */
     void signal_nonblock(void) {
-      flag_ = true;
+      flag_ = 1;
       cond_.signal();
     }
-    /** Signal about condition to all waiting threads */
+    /** Signal about condition to all waiting threads.
+       If there are no waiting threads, it works like signal(). */
     void broadcast(void) {
       lock_.lock();
-      flag_ = true;
+      flag_ = waiting_?waiting_:1;
       cond_.broadcast();
       lock_.unlock();
     }
     /** Wait for condition */
     void wait(void) {
       lock_.lock();
-      while (!flag_)
-        cond_.wait(lock_);
-      flag_ = false;
+      ++waiting_;
+      while (!flag_) cond_.wait(lock_);
+      --waiting_;
+      --flag_;
       lock_.unlock();
     }
-    /** Wait for condition without using semaphor */
+    /** Wait for condition without using semaphor.
+       Call it *only* with lock acquired. */
     void wait_nonblock(void) {
-      while (!flag_)
-        cond_.wait(lock_);
-      flag_ = false;
+      ++waiting_;
+      while (!flag_) cond_.wait(lock_);
+      --waiting_;
+      --flag_;
     }
     /** Wait for condition no longer than t milliseconds */
     bool wait(int t) {
@@ -166,25 +172,27 @@ namespace Arc {
       etime.assign_current_time();
       etime.add_milliseconds(t);
       bool res(true);
+      ++waiting_;
       while (!flag_) {
         res = cond_.timed_wait(lock_, etime);
-        if (!res)
-          break;
+        if (!res) break;
       }
-      flag_ = false;
+      --waiting_;
+      if(res) --flag_;
       lock_.unlock();
       return res;
     }
     /** Reset object to initial state */
     void reset(void) {
       lock_.lock();
-      flag_ = false;
+      flag_ = 0;
       lock_.unlock();
     }
     // This method is meant to be used only after fork.
     // It resets state of all internal locks and variables.
     void forceReset(void) {
-      flag_ = false;
+      flag_ = 0;
+      waiting_ = 0;
       lock_.unlock();
     }
   };
