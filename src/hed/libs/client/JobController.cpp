@@ -12,21 +12,13 @@
 #include <glibmm/fileutils.h>
 #include <glibmm.h>
 
-#include <arc/ArcConfig.h>
-#include <arc/FileLock.h>
 #include <arc/IString.h>
-#include <arc/StringConv.h>
-#include <arc/XMLNode.h>
-#include <arc/client/Broker.h>
-#include <arc/client/ExecutionTarget.h>
-#include <arc/client/Submitter.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
 #include <arc/data/DataMover.h>
-#include <arc/data/DataHandle.h>
 #include <arc/data/FileCache.h>
 #include <arc/data/URLMap.h>
 #include <arc/loader/FinderLoader.h>
+
 #include "JobController.h"
 
 namespace Arc {

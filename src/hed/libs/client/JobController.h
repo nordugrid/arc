@@ -7,13 +7,11 @@
 #include <vector>
 #include <string>
 
-#include <arc/client/TargetGenerator.h>
-#include <arc/ArcConfig.h>
 #include <arc/URL.h>
 #include <arc/client/Job.h>
-#include <arc/loader/Plugin.h>
-#include <arc/loader/Loader.h>
 #include <arc/data/DataHandle.h>
+#include <arc/loader/Loader.h>
+#include <arc/loader/Plugin.h>
 
 namespace Arc {
 

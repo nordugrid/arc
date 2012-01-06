@@ -9,17 +9,14 @@
 
 #include <unistd.h>
 
-#include <arc/ArcConfig.h>
 #include <arc/CheckSum.h>
-#include <arc/FileLock.h>
 #include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/XMLNode.h>
 #include <arc/client/Broker.h>
 #include <arc/client/JobController.h>
-#include <arc/client/JobSupervisor.h>
-#include <arc/client/ClientInterface.h>
+#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
+
+#include "JobSupervisor.h"
 
 namespace Arc {
 
