@@ -378,11 +378,8 @@ namespace DataStaging {
       // to limit per remote host. For now count staging transfers in this
       // share already in transfer queue and apply limit. In order not to block
       // the highest priority DTRs here we allow them to bypass the limit.
-      std::list<DTR*> StagedQueue;
-      DtrList.filter_dtrs_by_statuses(DTRStatus::StagedStates, StagedQueue);
-
       int share_queue = 0, highest_priority = 0;
-      for (std::list<DTR*>::iterator dtr = StagedQueue.begin(); dtr != StagedQueue.end(); ++dtr) {
+      for (std::list<DTR*>::iterator dtr = staged_queue.begin(); dtr != staged_queue.end(); ++dtr) {
         if ((*dtr)->get_transfer_share() == request->get_transfer_share() &&
             ((*dtr)->get_source()->IsStageable() ||
              (*dtr)->get_destination()->IsStageable())) {
@@ -399,6 +396,7 @@ namespace DataStaging {
         request->set_timeout(3600);
         // processor will take care of staging source or destination or both
         request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Source or destination requires staging", request->get_short_id());
+        staged_queue.push_back(request);
         request->set_status(DTRStatus::STAGE_PREPARE);
       }
     }
@@ -804,6 +802,10 @@ namespace DataStaging {
 
   void Scheduler::process_events(void){
     
+    // Get all the DTRs in a staged state
+    staged_queue.clear();
+    DtrList.filter_dtrs_by_statuses(DTRStatus::StagedStates, staged_queue);
+
     Arc::Time now;
     event_lock.lock();
 

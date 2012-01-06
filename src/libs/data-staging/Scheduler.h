@@ -37,6 +37,9 @@ class Scheduler: public DTRCallback {
     /// A list of DTRs to process
     std::list<DTR*> events;
 
+    /// List of staged DTRs. Filled each event processing loop
+    std::list<DTR*> staged_queue;
+
     /// A lock for the cancelled jobs list
     Arc::SimpleCondition cancelled_jobs_lock;
 
