@@ -217,8 +217,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Resume(const std::list<std::string>& status,
-                             std::list<URL>& resumedJobs) {
+  bool JobSupervisor::ResumeByStatus(const std::list<std::string>& status, std::list<URL>& resumed, std::list<URL>& notresumed) {
     bool ok = true;
 
     std::list<JobController*> jobConts = loader.GetJobControllers();
@@ -229,15 +228,9 @@ namespace Arc {
       std::list<Job*> resumable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
            it != (*itJobC)->jobstore.end(); it++) {
-
-        if (!it->State) {
-          logger.msg(WARNING, "Unable to resume job (%s), job information not found", it->JobID.fullstr());
-          continue;
-        }
-
-        if (!status.empty() &&
+        if (!it->State || (!status.empty() &&
             std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
           continue;
         }
 
@@ -252,11 +245,11 @@ namespace Arc {
       for (std::list<Job*>::iterator it = resumable.begin();
            it != resumable.end(); it++) {
         if (!(*itJobC)->ResumeJob(**it)) {
-          logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.fullstr());
           ok = false;
+          notresumed.push_back((*it)->JobID);
         }
         else {
-          resumedJobs.push_back((*it)->JobID);
+          resumed.push_back((*it)->JobID);
         }
       }
     }

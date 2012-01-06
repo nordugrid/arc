@@ -182,10 +182,9 @@ namespace Arc {
      **/
     bool RenewByStatus(const std::list<std::string>& statusfilter, std::list<URL>& renewed, std::list<URL>& notrenewed);
 
-    /// Resume job
+    /// Resume jobs by status
     /**
-     * This method resumes jobs managed by this
-     * JobSupervisor.
+     * This method resumes jobs managed by this JobSupervisor.
      *
      * Before identifying jobs to resume, the
      * JobController::GetJobInformation method is called for each loaded
@@ -209,12 +208,15 @@ namespace Arc {
      * will be appended to the passed resumedJobs list.
      *
      * @param statusfilter list of job status used for filtering jobs.
-     * @param resumeJobs list of URLs which to append job IDs to, of jobs
-     *  which was successfully resumed.
+     * @param resumed list of URLs which to append job IDs to, of jobs which was
+     *  successfully resumed.
+     * @param notresumed list of URLs which to append job IDs to, of jobs which
+     *  failed to resume.
+     * @return false if any call to JobController::ResumeJob fails, true
+     *  otherwise.
      * @see JobController::ResumeJob.
-     * @return true if all jobs were successfully resumed, otherwise false.
      **/
-    bool Resume(const std::list<std::string>& statusfilter, std::list<URL>& resumedJobs);
+    bool ResumeByStatus(const std::list<std::string>& statusfilter, std::list<URL>& resumed, std::list<URL>& notresumed);
 
     /// Resubmit jobs
     /**
