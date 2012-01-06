@@ -84,8 +84,6 @@ namespace Arc {
              const std::list<std::string>& status,
              const std::string& whichfile);
 
-    bool Resume(const std::list<std::string>& status);
-
     std::list<std::string> GetDownloadFiles(const URL& dir);
     bool ARCCopyFile(const URL& src, const URL& dst);
 

@@ -249,43 +249,6 @@ namespace Arc {
     }
   }
 
-  bool JobController::Resume(const std::list<std::string>& status) {
-
-    GetJobInformation();
-
-    std::list<Job*> resumable;
-    for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-      if (!it->State) {
-        continue;
-      }
-
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      if (!it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.fullstr());
-        continue;
-      }
-
-      resumable.push_back(&(*it));
-    }
-
-    bool ok = true;
-    for (std::list<Job*>::iterator it = resumable.begin();
-         it != resumable.end(); it++) {
-      bool resumed = ResumeJob(**it);
-      if (!resumed) {
-        logger.msg(ERROR, "Failed resuming job %s", (*it)->JobID.fullstr());
-        ok = false;
-        continue;
-      }
-    }
-    return ok;
-  }
-
   std::list<std::string> JobController::GetDownloadFiles(const URL& dir) {
 
     std::list<std::string> files;
