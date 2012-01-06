@@ -80,8 +80,8 @@ namespace DataStaging {
       /// source file as DTRToCheck to cache.
       bool is_being_cached(DTR* DTRToCheck);
 
-      /// Get the list of all DTRs
-      std::list<DTR*> all_dtrs();
+      /// Returns true if there are no DTRs in the list
+      bool empty();
 
       /// Get the list of all job IDs
       std::list<std::string> all_jobs();

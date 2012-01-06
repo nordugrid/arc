@@ -184,12 +184,11 @@ namespace DataStaging {
     return false;
   }
 
-  std::list<DTR*> DTRList::all_dtrs() {
-    std::list<DTR*> allDTRs;
+  bool DTRList::empty() {
     Lock.lock();
-    allDTRs = DTRs;
+    bool empty = DTRs.empty();
     Lock.unlock();
-    return allDTRs;
+    return empty;
   }
 
   std::list<std::string> DTRList::all_jobs() {

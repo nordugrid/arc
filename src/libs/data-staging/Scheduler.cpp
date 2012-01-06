@@ -1096,7 +1096,7 @@ namespace DataStaging {
     root_destinations = Arc::Logger::getRootLogger().getDestinations();
     Arc::Logger::getRootLogger().removeDestinations();
 
-    while(scheduler_state != TO_STOP || !DtrList.all_dtrs().empty()) {
+    while(scheduler_state != TO_STOP || !DtrList.empty()) {
       // first check for cancelled jobs
       cancelled_jobs_lock.lock();
       std::list<std::string>::iterator jobid = cancelled_jobs.begin();
