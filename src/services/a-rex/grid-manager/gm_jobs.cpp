@@ -61,12 +61,12 @@ void get_new_data_staging_shares(const std::string& control_dir,
     std::cout<<"Can't read transfer states from "<<control_dir<<"/dtrstate.log";
     return;
   }
-  // format DTR_ID state priority share
+  // format DTR_ID state priority share [destinatinon]
   // any state but TRANSFERRING is a pending state
   for (std::list<std::string>::iterator line = data.begin(); line != data.end(); ++line) {
     std::vector<std::string> entries;
     Arc::tokenize(*line, entries, " ");
-    if (entries.size() != 4 || entries.size() != 5) continue;
+    if (entries.size() != 4 && entries.size() != 5) continue;
 
     std::string state = entries[1];
     std::string share = entries[3];
