@@ -62,7 +62,9 @@ namespace Arc {
       abandoned_(false),
       result_(-1),
       user_id_(0),
-      group_id_(0) {
+      group_id_(0),
+      run_time_(Time::UNDEFINED),
+      exit_time_(Time::UNDEFINED) {
     pid_ = new Pid();
   }
 
@@ -88,7 +90,9 @@ namespace Arc {
       abandoned_(false),
       result_(-1),
       user_id_(0),
-      group_id_(0) {
+      group_id_(0),
+      run_time_(Time::UNDEFINED),
+      exit_time_(Time::UNDEFINED) {
     pid_ = new Pid();
   }
 
@@ -143,6 +147,7 @@ namespace Arc {
         return false;
       }
       started_ = true;
+      run_time_ = Time();
     }
     catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
@@ -160,6 +165,7 @@ namespace Arc {
     // Kill with no merci
     running_ = false;
     TerminateProcess(pid_->processinfo.hProcess, 256);
+    exit_time_ = Time();
   }
 
   void Run::Abandon(void) {
@@ -246,6 +252,7 @@ namespace Arc {
     CloseHandle(pid_->processinfo.hThread);
     CloseHandle(pid_->processinfo.hProcess);
     running_ = false;
+    exit_time_ = Time();
     return true;
   }
 

@@ -185,6 +185,7 @@ namespace Arc {
     static const int WEEK  = 604800;
     static const int DAY   = 86400;
     static const int HOUR  = 3600;
+    static const time_t UNDEFINED = (time_t)(-1);
 
   private:
     /** The time stored -- by default it is equal to the current time. */

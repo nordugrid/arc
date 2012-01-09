@@ -5,6 +5,7 @@
 
 #include <glibmm.h>
 #include <arc/Thread.h>
+#include <arc/DateTime.h>
 
 namespace Arc {
 
@@ -61,6 +62,8 @@ namespace Arc {
     Glib::Cond cond_;
     int user_id_;
     int group_id_;
+    Time run_time_;
+    Time exit_time_;
   public:
     /** Constructor preapres object to run cmdline */
     Run(const std::string& cmdline);
@@ -90,6 +93,10 @@ namespace Arc {
     }
     /** Return true if execution is going on. */
     bool Running(void);
+    /** Return when executable was started. */
+    Time RunTime(void);
+    /** Return when executable finished executing. */
+    Time ExitTime(void);
     /** Read from stdout handle of running executable.
        Parameter timeout specifies upper limit for which method 
        will block in milliseconds. Negative means infinite.

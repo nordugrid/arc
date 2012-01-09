@@ -306,7 +306,9 @@ namespace Arc {
       abandoned_(false),
       result_(-1),
       user_id_(0),
-      group_id_(0) {
+      group_id_(0),
+      run_time_(Time::UNDEFINED),
+      exit_time_(Time::UNDEFINED) {
     pid_ = new Pid;
   }
 
@@ -332,7 +334,9 @@ namespace Arc {
       abandoned_(false),
       result_(-1),
       user_id_(0),
-      group_id_(0) {
+      group_id_(0),
+      run_time_(Time::UNDEFINED),
+      exit_time_(Time::UNDEFINED) {
     pid_ = new Pid;
   }
 
@@ -377,6 +381,7 @@ namespace Arc {
         fcntl(stdout_, F_SETFL, fcntl(stdout_, F_GETFL) | O_NONBLOCK);
       if (!stderr_keep_)
         fcntl(stderr_, F_SETFL, fcntl(stderr_, F_GETFL) | O_NONBLOCK);
+      run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
       if(usw) delete usw;
@@ -506,6 +511,7 @@ namespace Arc {
       result_ = -1;
     }
     running_ = false;
+    exit_time_ = Time();
     lock_.unlock();
     if (kicker_func_)
       (*kicker_func_)(kicker_arg_);
