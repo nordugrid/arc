@@ -457,8 +457,12 @@ namespace Arc {
      * Method to get the list of JobControllers loaded by constructor.
      *
      **/
-    const std::list<JobController*>& GetJobControllers() {
+    const std::list<JobController*>& GetJobControllers() const {
       return loader.GetJobControllers();
+    }
+
+    const std::map<std::string, JobController*>& GetJobControllerMap() const {
+      return loadedJCs;
     }
 
     bool JobsFound() const;
