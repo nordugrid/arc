@@ -161,7 +161,7 @@ namespace Arc {
 
       for (std::list<Job*>::iterator it = downloadable.begin();
            it != downloadable.end(); it++) {
-        if (!(*itJobC)->GetJob(**it, downloaddir, usejobname, force)) {
+        if (!(*itJobC)->RetrieveJob(**it, downloaddir, usejobname, force)) {
           logger.msg(ERROR, "Failed getting job (%s)", (*it)->JobID.fullstr());
           ok = false;
         }

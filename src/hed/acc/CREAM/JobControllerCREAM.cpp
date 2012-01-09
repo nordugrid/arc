@@ -48,11 +48,10 @@ namespace Arc {
     }
   }
 
-  bool JobControllerCREAM::GetJob(const Job& job,
-                                  const std::string& downloaddir,
-                                  bool usejobname,
-                                  bool force) {
-
+  bool JobControllerCREAM::RetrieveJob(const Job& job,
+                                       const std::string& downloaddir,
+                                       bool usejobname,
+                                       bool force) {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     std::string jobidnum;

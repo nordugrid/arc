@@ -49,11 +49,10 @@ namespace Arc {
     }
   }
 
-  bool JobControllerARC1::GetJob(const Job& job,
-                                 const std::string& downloaddir,
-                                 bool usejobname,
-                                 bool force) {
-
+  bool JobControllerARC1::RetrieveJob(const Job& job,
+                                      const std::string& downloaddir,
+                                      bool usejobname,
+                                      bool force) {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     std::string jobidnum;
