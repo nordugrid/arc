@@ -514,7 +514,11 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
     if(!cancel) {
       logger.msg(Arc::INFO,"%s: state SUBMITTING: child exited with code %i",i->job_id,i->child->Result());
     } else {
-      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+      if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+         ((Arc::Time() - i->child->ExitTime()) < (user->Env().jobs_cfg().WakeupPeriod()*2))) {
+        // not ideal solution
+        logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+      };
     };
     if(i->child->Result() != 0) { 
       if(!cancel) {
@@ -565,6 +569,13 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
       /* job diagnostics collection done in backgroud (scan-*-job script) */
       if(!job_lrms_mark_check(i->job_id,*user)) {
         /* job diag not yet collected - come later */
+        if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+           ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
+          // it takes too long
+          logger.msg(Arc::INFO,"%s: state CANCELING: timeout waiting for cancelation",i->job_id);
+          delete i->child; i->child=NULL;
+          return false;
+        };
         return true;
       } else {
         logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
