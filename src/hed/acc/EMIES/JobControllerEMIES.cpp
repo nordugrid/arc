@@ -79,7 +79,11 @@ namespace Arc {
 
     URL src(GetFileUrlForJob(job,""));
     URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
-    std::list<std::string> files = GetDownloadFiles(src);
+    std::list<std::string> files;
+    if (!ListFilesRecursive(src, files)) {
+      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
+      return false;
+    }
 
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();

@@ -82,7 +82,7 @@ namespace Arc {
              const std::list<std::string>& status,
              const std::string& whichfile);
 
-    std::list<std::string> GetDownloadFiles(const URL& dir);
+    bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
     bool ARCCopyFile(const URL& src, const URL& dst);
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,

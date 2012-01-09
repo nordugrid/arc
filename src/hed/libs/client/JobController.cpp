@@ -222,48 +222,49 @@ namespace Arc {
     return ok;
   }
 
-  std::list<std::string> JobController::GetDownloadFiles(const URL& dir) {
-
-    std::list<std::string> files;
+  bool JobController::ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix) const {
     std::list<FileInfo> outputfiles;
 
     DataHandle handle(dir, usercfg);
     if (!handle) {
       logger.msg(INFO, "Unable to list files at %s", dir.str());
-      return files;
+      return false;
     }
     if(!handle->List(outputfiles, (Arc::DataPoint::DataPointInfoType)
                                   (DataPoint::INFO_TYPE_NAME | DataPoint::INFO_TYPE_TYPE))) {
       logger.msg(INFO, "Unable to list files at %s", dir.str());
-      return files;
+      return false;
     }
 
     for (std::list<FileInfo>::iterator i = outputfiles.begin();
          i != outputfiles.end(); i++) {
-
-      if (i->GetName() == ".." || i->GetName() == ".")
+      if (i->GetName() == ".." || i->GetName() == ".") {
         continue;
+      }
 
       if (i->GetType() == FileInfo::file_type_unknown ||
-          i->GetType() == FileInfo::file_type_file)
-        files.push_back(i->GetName());
+          i->GetType() == FileInfo::file_type_file) {
+        files.push_back(prefix + i->GetName());
+      }
       else if (i->GetType() == FileInfo::file_type_dir) {
-
         std::string path = dir.Path();
-        if (path[path.size() - 1] != '/')
+        if (path[path.size() - 1] != '/') {
           path += "/";
+        }
         URL tmpdir(dir);
         tmpdir.ChangePath(path + i->GetName());
-        std::list<std::string> morefiles = GetDownloadFiles(tmpdir);
+
         std::string dirname = i->GetName();
-        if (dirname[dirname.size() - 1] != '/')
+        if (dirname[dirname.size() - 1] != '/') {
           dirname += "/";
-        for (std::list<std::string>::iterator it = morefiles.begin();
-             it != morefiles.end(); it++)
-          files.push_back(dirname + *it);
+        }
+        if (!ListFilesRecursive(tmpdir, files, dirname)) {
+          return false;
+        }
       }
     }
-    return files;
+
+    return true;
   }
 
   bool JobController::ARCCopyFile(const URL& src, const URL& dst) {

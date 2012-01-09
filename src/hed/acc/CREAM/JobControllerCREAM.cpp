@@ -64,7 +64,11 @@ namespace Arc {
       jobidnum = path.substr(pos + 1);
     }
 
-    std::list<std::string> files = GetDownloadFiles(job.OSB);
+    std::list<std::string> files;
+    if (!ListFilesRecursive(job.OSB, files)) {
+      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
+      return false;
+    }
 
     URL src(job.OSB);
     URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
