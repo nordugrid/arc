@@ -120,11 +120,12 @@ namespace Arc {
     }
   }
 
-  bool JobSupervisor::Get(const std::list<std::string>& status,
-                          const std::string& downloaddir,
-                          bool usejobname,
-                          bool force,
-                          std::list<URL>& retrievedJobs) {
+  bool JobSupervisor::RetrieveByStatus(const std::list<std::string>& status,
+                                       const std::string& downloaddir,
+                                       bool usejobname,
+                                       bool force,
+                                       std::list<URL>& retrieved,
+                                       std::list<URL>& notretrieved) {
     bool ok = true;
 
     std::list<JobController*> jobConts = loader.GetJobControllers();
@@ -135,15 +136,9 @@ namespace Arc {
       std::list<Job*> downloadable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
            it != (*itJobC)->jobstore.end(); it++) {
-
-        if (!it->State) {
-          logger.msg(WARNING, "Unable to get job (%s), job information not found at execution service", it->JobID.fullstr());
-          continue;
-        }
-
-        if (!status.empty() &&
+        if (!it->State || (!status.empty() &&
             std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
+            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
           continue;
         }
 
@@ -164,9 +159,10 @@ namespace Arc {
         if (!(*itJobC)->RetrieveJob(**it, downloaddir, usejobname, force)) {
           logger.msg(ERROR, "Failed getting job (%s)", (*it)->JobID.fullstr());
           ok = false;
+          notretrieved.push_back((*it)->JobID);
         }
         else {
-          retrievedJobs.push_back((*it)->JobID);
+          retrieved.push_back((*it)->JobID);
         }
       }
     }
@@ -642,5 +638,4 @@ namespace Arc {
 
     return false;
   }
-
 } // namespace Arc

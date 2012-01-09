@@ -8,6 +8,7 @@
 
 #include <arc/URL.h>
 #include <arc/client/JobController.h>
+#include <arc/data/DataHandle.h>
 
 namespace Arc {
 
@@ -140,8 +141,8 @@ namespace Arc {
      * @see JobController::GetJob.
      * @return true if all jobs are successfully retrieved, otherwise false.
      **/
-    bool Get(const std::list<std::string>& statusfilter, const std::string& downloaddir,
-             bool usejobname, bool force, std::list<URL>& retrievedJobs);
+    bool RetrieveByStatus(const std::list<std::string>& statusfilter, const std::string& downloaddir,
+                          bool usejobname, bool force, std::list<URL>& retrieved, std::list<URL>& notretrieved);
 
     /// Renew job credentials
     /**
@@ -468,10 +469,12 @@ namespace Arc {
     bool JobsFound() const;
 
   private:
-    static Logger logger;
+    const UserConfig& usercfg;
+
     std::map<std::string, JobController*> loadedJCs;
     JobControllerLoader loader;
-    const UserConfig& usercfg;
+
+    static Logger logger;
   };
 
 } //namespace ARC
