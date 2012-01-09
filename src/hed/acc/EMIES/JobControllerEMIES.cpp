@@ -141,7 +141,7 @@ namespace Arc {
   }
 
   URL JobControllerEMIES::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) {
+                                          const std::string& whichfile) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 

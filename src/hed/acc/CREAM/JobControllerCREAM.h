@@ -28,7 +28,7 @@ namespace Arc {
     bool CancelJob(const Job& job);
     bool RenewJob(const Job& job);
     bool ResumeJob(const Job& job);
-    URL GetFileUrlForJob(const Job& job, const std::string& whichfile);
+    URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
     bool GetJobDescription(const Job& job, std::string& desc_str);
     URL CreateURL(std::string service, ServiceType st);
 

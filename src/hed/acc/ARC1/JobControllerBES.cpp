@@ -121,7 +121,7 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerBES::GetFileUrlForJob(const Job& /* job */, const std::string& /* whichfile */) {
+  URL JobControllerBES::GetFileUrlForJob(const Job& /* job */, const std::string& /* whichfile */) const {
     return URL();
   }
 

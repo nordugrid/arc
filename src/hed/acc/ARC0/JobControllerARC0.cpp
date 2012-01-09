@@ -435,7 +435,7 @@ namespace Arc {
   }
 
   URL JobControllerARC0::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) {
+                                          const std::string& whichfile) const {
 
     URL url(job.JobID);
 

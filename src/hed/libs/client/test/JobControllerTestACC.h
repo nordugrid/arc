@@ -30,7 +30,7 @@ private:
   virtual bool CancelJob(const Arc::Job& job) { return JobControllerTestACCControl::cancelStatus; }
   virtual bool RenewJob(const Arc::Job& job) { return JobControllerTestACCControl::renewStatus; }
   virtual bool ResumeJob(const Arc::Job& job) { return JobControllerTestACCControl::resumeStatus; }
-  virtual Arc::URL GetFileUrlForJob(const Arc::Job& job, const std::string& whichfile) { return JobControllerTestACCControl::fileURL; }
+  virtual Arc::URL GetFileUrlForJob(const Arc::Job& job, const std::string& whichfile) const { return JobControllerTestACCControl::fileURL; }
   virtual bool GetJobDescription(const Arc::Job& job, std::string& desc_str) { desc_str = JobControllerTestACCControl::getJobDescriptionString; return JobControllerTestACCControl::getJobDescriptionStatus; }
   virtual Arc::URL CreateURL(std::string service, Arc::ServiceType st) { return JobControllerTestACCControl::createURL; }
 

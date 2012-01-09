@@ -147,7 +147,7 @@ namespace Arc {
   }
 
   URL JobControllerARC1::GetFileUrlForJob(const Job& job,
-                                          const std::string& whichfile) {
+                                          const std::string& whichfile) const {
     URL url(job.JobID);
 
     if (whichfile == "stdout") {
