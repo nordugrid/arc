@@ -16,6 +16,7 @@
 
 #include "jobs/users.h"
 #include "conf/conf_file.h"
+#include "conf/conf_staging.h"
 #include "jobs/plugins.h"
 #include "files/info_files.h"
 #include "jobs/commfifo.h"
@@ -51,14 +52,24 @@ void get_arex_xml(Arc::XMLNode& arex,GMEnvironment& env) {
 
 /** Fill maps with shares taken from data staging states log */
 void get_new_data_staging_shares(const std::string& control_dir,
+                                 const GMEnvironment& env,
                                  std::map<std::string, int>& share_preparing,
                                  std::map<std::string, int>& share_preparing_pending,
                                  std::map<std::string, int>& share_finishing,
                                  std::map<std::string, int>& share_finishing_pending) {
-  // read dtrstate.log
+  // get DTR configuration
+  StagingConfig staging_conf(env);
+  if (!staging_conf) {
+    std::cout<<"Could not read data staging configuration from "<<env.nordugrid_config_loc()<<std::endl;
+    return;
+  }
+  std::string dtr_log = staging_conf.get_dtr_log();
+  if (dtr_log.empty()) dtr_log = control_dir+"/dtrstate.log";
+
+  // read DTR state info
   std::list<std::string> data;
-  if (!Arc::FileRead(control_dir+"/dtrstate.log", data)) {
-    std::cout<<"Can't read transfer states from "<<control_dir<<"/dtrstate.log";
+  if (!Arc::FileRead(dtr_log, data)) {
+    std::cout<<"Can't read transfer states from "<<dtr_log<<". Perhaps A-REX is not running?"<<std::endl;
     return;
   }
   // format DTR_ID state priority share [destinatinon]
@@ -245,7 +256,7 @@ int main(int argc, char* argv[]) {
   for (JobUsers::iterator user = users.begin(); user != users.end(); ++user) {
     if((!notshow_jobs) || (!notshow_states) || (show_share)) {
       if (show_share && jobs_cfg.GetNewDataStaging()) {
-        get_new_data_staging_shares(user->ControlDir(),
+        get_new_data_staging_shares(user->ControlDir(), env,
                                     share_preparing, share_preparing_pending,
                                     share_finishing, share_finishing_pending);
       }

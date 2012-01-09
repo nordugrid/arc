@@ -24,6 +24,24 @@ public:
   operator bool() const { return valid; };
   bool operator!() const { return !valid; };
 
+  int get_max_delivery() const { return max_delivery; };
+  int get_max_processor() const { return max_processor; };
+  int get_max_emergency() const { return max_emergency; };
+  int get_max_prepared() const { return max_prepared; };
+  unsigned long long int get_min_speed() const { return min_speed; };
+  time_t get_min_speed_time() const { return min_speed_time; };
+  unsigned long long int get_min_average_speed() const { return min_average_speed; };
+  time_t get_max_inactivity_time() const { return max_inactivity_time; };
+  int get_max_retries() const { return max_retries; };
+  bool get_passive() const { return passive; };
+  bool get_secure() const { return secure; };
+  std::string get_preferred_pattern() const { return preferred_pattern; };
+  std::vector<Arc::URL> get_delivery_services() const { return delivery_services; };
+  std::string get_share_type() const { return share_type; };
+  std::map<std::string, int> get_defined_shares() const { return defined_shares; };
+  bool get_use_host_cert_for_remote_delivery() const { return use_host_cert_for_remote_delivery; };
+  std::string get_dtr_log() const { return dtr_log; };
+
 private:
   /// Max transfers in delivery
   int max_delivery;
