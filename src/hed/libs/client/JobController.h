@@ -88,8 +88,6 @@ namespace Arc {
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
                                       bool getlocal);
 
-    void FetchJobs(const std::list<std::string>& status, std::vector<const Job*>& jobs);
-
     const std::list<Job>& GetJobs() const {
       return jobstore;
     }

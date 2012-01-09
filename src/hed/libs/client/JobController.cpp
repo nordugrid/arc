@@ -222,25 +222,6 @@ namespace Arc {
     return ok;
   }
 
-  void JobController::FetchJobs(const std::list<std::string>& status,
-                                std::vector<const Job*>& jobs) {
-    GetJobInformation();
-
-    for (std::list<Job>::const_iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-      if (!it->State) {
-        continue;
-      }
-
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      jobs.push_back(&*it);
-    }
-  }
-
   std::list<std::string> JobController::GetDownloadFiles(const URL& dir) {
 
     std::list<std::string> files;
