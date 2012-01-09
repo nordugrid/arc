@@ -102,7 +102,7 @@ int RUNCAT(main)(int argc, char **argv) {
        itJIdentifier != jobidentifiers.end(); ++itJIdentifier) {
     std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIdentifier) << std::endl;
   }
-  
+
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   if (!jobmaster.JobsFound()) {
     std::cout << Arc::IString("No jobs") << std::endl;
@@ -174,7 +174,7 @@ int RUNCAT(main)(int argc, char **argv) {
       retval = 1;
       continue;
     }
-    
+
     Arc::URL src = itJC->second->GetFileUrlForJob((*it), whichfile);
     if (!src) {
       logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, it->JobID.fullstr(), src.str());
@@ -182,11 +182,11 @@ int RUNCAT(main)(int argc, char **argv) {
       continue;
     }
 
-    if (!itJC->second->ARCCopyFile(src, dst)) {
+    if (!itJC->second->CopyJobFile(src, dst)) {
       retval = 1;
       continue;
     }
-    
+
     logger.msg(Arc::VERBOSE, "Catting %s for job %s", whichfile, it->JobID.fullstr());
 
     std::ifstream is(filename.c_str());

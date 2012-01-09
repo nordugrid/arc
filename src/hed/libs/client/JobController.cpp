@@ -165,7 +165,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobController::ARCCopyFile(const URL& src, const URL& dst) const {
+  bool JobController::CopyJobFile(const URL& src, const URL& dst) const {
     DataMover mover;
     mover.retry(true);
     mover.secure(false);

@@ -54,7 +54,8 @@ namespace Arc {
              bool force = true);
 
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
-    bool ARCCopyFile(const URL& src, const URL& dst) const;
+
+    bool CopyJobFile(const URL& src, const URL& dst) const;
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
                                       bool getlocal);

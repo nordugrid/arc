@@ -252,7 +252,7 @@ namespace Arc {
          it != files.end(); it++) {
       src.ChangePath(srcpath + *it);
       dst.ChangePath(dstpath + *it);
-      if (!ARCCopyFile(src, dst)) {
+      if (!CopyJobFile(src, dst)) {
         logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.str());
         ok = false;
       }
@@ -472,7 +472,7 @@ namespace Arc {
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
 
-    if (!ARCCopyFile(source_url, dest_url)) {
+    if (!CopyJobFile(source_url, dest_url)) {
       return false;
     }
 
