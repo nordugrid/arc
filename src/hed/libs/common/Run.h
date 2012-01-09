@@ -94,9 +94,13 @@ namespace Arc {
     /** Return true if execution is going on. */
     bool Running(void);
     /** Return when executable was started. */
-    Time RunTime(void);
+    Time RunTime(void) {
+      return run_time_;
+    };
     /** Return when executable finished executing. */
-    Time ExitTime(void);
+    Time ExitTime(void) {
+      return exit_time_;
+    };
     /** Read from stdout handle of running executable.
        Parameter timeout specifies upper limit for which method 
        will block in milliseconds. Negative means infinite.
