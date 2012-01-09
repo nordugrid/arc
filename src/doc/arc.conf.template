@@ -154,22 +154,22 @@ pbs_log_path="/var/spool/pbs/server_logs"
 # These variables are not limited to [common], but can be set individually
 # for each service: [grid-manager], [gridftpd], [httpsd]
 # Example:
-globus_tcp_port_range="9000,12000"
-globus_udp_port_range="9000,12000"
+#globus_tcp_port_range="9000,12000"
+#globus_udp_port_range="9000,12000"
 
 # x509_user_cert, x509_user_key - Server credentials location.
 # These variables are similar to the GSI enviroment variables:
 # X509_USER_KEY and X509_USER_CERT
 # These variables are not limited to [common], but can be set individually
 # for each service: [grid-manager], [gridftpd], [httpsd]
-x509_user_key="/etc/grid-security/hostkey.pem"
-x509_user_cert="/etc/grid-security/hostcert.pem"
+#x509_user_key="/etc/grid-security/hostkey.pem"
+#x509_user_cert="/etc/grid-security/hostcert.pem"
 
 # x509_cert_dir - Location of trusted CA certificates
 # This variable is similar to the GSI enviroment variable: X509_CERT_DIR
 # This variable is not limited to [common], but can be set individually
 # for each service: [grid-manager], [gridftpd], [httpsd]
-x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir="/etc/grid-security/certificates"
 
 # gridmap - The gridmap file location
 # This variable is similar to the GSI enviroment variable: GRIDMAP
@@ -261,15 +261,15 @@ mapped_unixid="gridtest"
 
 # x509_cert_dir path - The directory containing the CA certificates. This
 # information is needed by the 'require_issuerdn' option. 
-x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir="/etc/grid-security/certificates"
 
 # filter  ACL string - An ACL filter for the nordugridmap utility. Multiple
 # allow/deny statements are possible. The fetched DNs are filtered against
 # the specified rules before they are added to the generated mapfile. 
 # * can be used as a wildcard. You may run the nordugridmap with the --test
 # command line option to see how the filters you specified work.
-filter="deny  *infn*"
-filter="allow *NorduGrid*"
+#filter="deny  *infn*"
+#filter="allow *NorduGrid*"
 
 
 
@@ -313,25 +313,28 @@ filter="allow *NorduGrid*"
 # The authorization groups can be used in [gridftpd], [httpsd] 
 # and in their sub-blocks. The syntax of their specification varies with
 # the service they are used for.
+# For using authorization groups and VO blocks in HED framework please
+# read "Security Framework of ARC" at
+# http://www.nordugrid.org/documents/arc-security-documentation.pdf
 
 [group]
 
 # name group_name - Specify name of group. If there is no such command
-#  in block, name of subblock is used instead (that is why subblocks 
+#  in block, name of subblock is used instead (that is what subblocks 
 #  are used for). For example [group/users]
 name="users"
 
 # subject certificate_subject - Rule to match specific subject of user's 
 # X.509 certificate. No masks, patterns and regular expressions are allowed.
 # For more information about X.509 refer to http://www.wikipedia.org/wiki/X509
-subject="/O=Grid/O=Big VO/CN=Main Boss"
+#subject="/O=Grid/O=Big VO/CN=Main Boss"
 
 # file path - Start reading rules from another file. That file has a bit 
 #  different format. It can't contain blocks and commands are separated
 #  from arguments by space. Also word "subject" in subject command may be
 #  skipped. That makes it convinient to directly add gridmap-like lists to
 #  authorization group.
-file="/etc/grid-security/local_users"
+#file="/etc/grid-security/local_users"
 
 # voms vo group role capabilities - Match VOMS attribute in user's credential.
 #  Use '*' to match any value. More information about VOMS can be found at 
@@ -351,21 +354,21 @@ voms="nordugrid Guests * *"
 #   %D - subject of certicate
 #   %P - path to proxy
 #  For more about plugins read documentation.
-plugin="10 /opt/external/bin/permis %P"
+#plugin="10 /opt/external/bin/permis %P"
 
 # remote URL ... - Check user's credentials against remote service. Only
 #  DN groups stored at LDAP directories are supported. Multiple URLs are
 #  allowed in this rule.
-remote="ldap://grid-vo.nordugrid.org/ou=People,dc=nordugrid,dc=org"
+#remote="ldap://grid-vo.nordugrid.org/ou=People,dc=nordugrid,dc=org"
 
 # vo vo_name ... - Match user belonging to VO specified by "vo=vo_name" as 
 #  configured in one of PREVIOUSLY defined [vo] blocks. Multiple VO names
 #  are allowed for this rule.
-vo="nordugrid"
+#vo="nordugrid"
 
 # all - Matches any user identity. This command requires no arguments but 
 #  still can be written as all="" or all= for consistency.
-all
+#all
 
 
 
@@ -442,8 +445,9 @@ cachelifetime="30d"
 # increased to allow the cleaning to complete. Defaults to 3600 (1 hour).
 #cachecleantimeout="10000"
 
-# user user[:group] - Switch to a non root user/group after startup
-user="grid"
+# user user[:group] - Switch to a non root user/group after startup.
+# Use with caution.
+#user="grid"
 
 # debug debuglevel - Set debug level of the grid-manager daemon, between
 # 0 (FATAL) and 5 (DEBUG). Defaults to 3 (INFO).
@@ -488,10 +492,10 @@ mail="grid.support@somewhere.org"
 # give up. Suggested value is 30 days.
 #jobreport="https://grid.uio.no:8001/logger"
 
-# maxjobs number1 number2 - specifies maximum allowed number of jobs.
+# maxjobs number1 number2 number3 number4 - specifies maximum allowed number of jobs.
 # number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
 # number2 - jobs being run (SUBMITTING, INLRMS states)
-# number3 - jobs processed per DN
+# number3 - jobs being processed per DN
 # number4 - jobs in whole system
 # Missing number or -1 means no limit.
 maxjobs="10000 10 2000"
@@ -667,20 +671,20 @@ maxloadshare="4 voms:role"
 maxtransfertries="10"
 
 # globus_tcp_port_range, globus_udp_port_range - Firewall configuration.
-globus_tcp_port_range="9000,12000"
-globus_udp_port_range="9000,12000"
+#globus_tcp_port_range="9000,12000"
+#globus_udp_port_range="9000,12000"
 
 # x509_user_cert, x509_user_key - Location of credentials for service.
 #  These may be used by any module or external utility which need to
 #  contact another service not on behalf of user who submited job.
-x509_user_key="/etc/grid-security/hostkey.pem"
-x509_user_cert="/etc/grid-security/hostcert.pem"
+#x509_user_key="/etc/grid-security/hostkey.pem"
+#x509_user_cert="/etc/grid-security/hostcert.pem"
 
 # x509_cert_dir - Location of trusted CA certificates
-x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir="/etc/grid-security/certificates"
 
 # http_proxy - http proxy server location
-http_proxy="proxy.mydomain.org:3128"
+#http_proxy="proxy.mydomain.org:3128"
 
 # arex_mount_point - enables web services interfaces, including 
 #  job execution and information system. The argument is
@@ -735,32 +739,31 @@ http_proxy="proxy.mydomain.org:3128"
 # allowunknown yes|no - if no, check user subject against grid-mapfile and
 # reject if missing. By default unknown (not in the grid-mapfile) grid users 
 # are rejected
-allowunknown="no"
+#allowunknown="no"
 
 # maxconnections - maximum number of connections accepted by a gridftpd server
 # only supported in the 0.5.x tags. Default is 100.
 #maxconnections="200"
 
 # globus_tcp_port_range, globus_udp_port_range - Firewall configuration
-globus_tcp_port_range="9000,12000"
-globus_udp_port_range="9000,12000"
+#globus_tcp_port_range="9000,12000"
+#globus_udp_port_range="9000,12000"
 
 
 # firewall - hostname or IP addres to use in response to PASV command 
 # instead of IP address of a network interface of computer.
 #firewall="hostname"
 
-
 # x509_user_cert, x509_user_key - Server credentials location
-x509_user_key="/etc/grid-security/hostkey.pem"
-x509_user_cert="/etc/grid-security/hostcert.pem"
+#x509_user_key="/etc/grid-security/hostkey.pem"
+#x509_user_cert="/etc/grid-security/hostcert.pem"
 
 # x509_cert_dir - Location of trusted CA certificates
-x509_cert_dir="/etc/grid-security/certificates"
+#x509_cert_dir="/etc/grid-security/certificates"
 
 # gridmap - The gridmap file location
 # The default is /etc/grid-security/grid-mapfile
-gridmap="/etc/grid-security/grid-mapfile"
+#gridmap="/etc/grid-security/grid-mapfile"
 
 # unixmap [unixname][:unixgroup] rule - more sophisticated way to map 
 #  Grid identity of client to local account. If client matches 'rule'
@@ -774,7 +777,7 @@ gridmap="/etc/grid-security/grid-mapfile"
 #  complex so it is better to read full documentation.
 #  For safety reasons it is better to finish mapping sequence with
 #  default mapping like
-unixmap="nobody:nogroup all"
+#unixmap="nobody:nogroup all"
 
 # unixgroup group rule - do mapping only for users belonging to
 #  specified authorization 'group'. It is similar to an additional filter 
@@ -782,7 +785,7 @@ unixmap="nobody:nogroup all"
 #  authorization group. Only rules which generate unix user and group names
 #  may be used in this command. Please read "The NorduGrid Grid Manager 
 #  and GridFTP Server" for more information.
-unixgroup="users simplepool /etc/grid-security/pool/users"
+#unixgroup="users simplepool /etc/grid-security/pool/users"
 
 # unixvo vo rule - do mapping only for users belonging to specified VO. 
 # Only rules which generate unix identity name may be used in this command.
