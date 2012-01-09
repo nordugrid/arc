@@ -53,35 +53,6 @@ namespace Arc {
              bool usejobname,
              bool force = true);
 
-    /// Catenate a output log-file to a std::ostream object
-    /**
-     * The method catenates one of the log-files standard out or error, or the
-     * job log file from the CE for each of the jobs contained in this object.
-     * A file can only be catenated if the location
-     * relative to the session directory are set in Job::StdOut, Job::StdErr and
-     * Job::LogDir respectively, and if supported so in the specialised ACC
-     * module. If the status parameter is non-empty only jobs having a job
-     * status specified in this list will considered. The whichfile parameter
-     * specifies what log-file to catenate. Possible values are "stdout",
-     * "stderr" and "joblog" respectively specifying standard out, error and job
-     * log file.
-     *
-     * This method is not supposed to be overloaded by extending
-     * classes.
-     *
-     * @param status a list of strings representing states to be
-     *        considered.
-     * @param longlist a boolean indicating whether verbose job
-     *        information should be printed.
-     * @return This method always returns true.
-     * @see SaveJobStatusToStream
-     * @see GetJobInformation
-     * @see JobState
-     **/
-    bool Cat(std::ostream& out,
-             const std::list<std::string>& status,
-             const std::string& whichfile);
-
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
     bool ARCCopyFile(const URL& src, const URL& dst) const;
 
