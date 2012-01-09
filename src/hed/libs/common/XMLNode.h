@@ -109,7 +109,7 @@ namespace Arc {
     ~XMLNode(void);
     /** Creates a copy of XML (sub)tree.
        If object does not represent whole document - top level document
-       is created. 'new_node' becomes a pointer owning new XML document. */
+       is created. 'node' becomes a pointer owning new XML document. */
     void New(XMLNode& node) const;
     /** Exchanges XML (sub)trees.
      Following conbinations are possible

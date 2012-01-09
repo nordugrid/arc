@@ -3,6 +3,8 @@
 #ifndef __ARC_THREAD_H__
 #define __ARC_THREAD_H__
 
+#include <map>
+
 #include <glibmm/thread.h>
 
 namespace Arc {
@@ -320,50 +322,37 @@ namespace Arc {
   private:
     Glib::Cond cond_;
     Glib::Mutex lock_;
-    bool exclusive_;
-    int shared_;
+    unsigned int exclusive_;
+    Glib::Thread* thread_;
+    typedef std::map<Glib::Thread*,unsigned int> shared_list;
+    shared_list shared_;
+    void add_shared_lock(void);
+    void remove_shared_lock(void);
+    bool have_shared_lock(void);
+    inline bool have_exclusive_lock(void) {
+      if(!exclusive_) return false;
+      if(thread_ == Glib::Thread::self()) return false;
+      return true;
+    };
   public:
-    SharedMutex(void):exclusive_(false),shared_(0) { };
+    SharedMutex(void):exclusive_(0),thread_(NULL) { };
     ~SharedMutex(void) { };
-    void lockShared(void) {
-      lock_.lock();
-      while(exclusive_) {
-        cond_.wait(lock_);
-      };
-      ++shared_;
-      lock_.unlock();
-    };
-    void unlockShared(void) {
-      lock_.lock();
-      if(shared_) --shared_;
-      cond_.broadcast();
-      lock_.unlock();
-    };
+    void lockShared(void);
+    void unlockShared(void);
     bool isLockShared(void) {
-      return (shared_ > 0);
+      return (shared_.size() > 0); // Is it safe?
     };
-    void lockExclusive(void) {
-      lock_.lock();
-      while(exclusive_ || shared_) {
-        cond_.wait(lock_);
-      };
-      exclusive_ = true;
-      lock_.unlock();
-    };
-    void unlockExclusive(void) {
-      lock_.lock();
-      exclusive_ = false;
-      cond_.broadcast();
-      lock_.unlock();
-    };
+    void lockExclusive(void);
+    void unlockExclusive(void);
     bool isLockExclusive(void) {
-      return exclusive_;
+      return (exclusive_ > 0);
     };
     // This method is meant to be used only after fork.
     // It resets state of all internal locks and variables.
     void forceReset(void) {
-      exclusive_ = false;
-      shared_ = 0;
+      exclusive_ = 0;
+      thread_ = NULL;
+      shared_.clear();
       lock_.unlock();
     };
   };

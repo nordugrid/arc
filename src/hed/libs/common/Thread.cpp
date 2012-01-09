@@ -321,6 +321,71 @@ namespace Arc {
 
   // ----------------------------------------
 
+  void SharedMutex::add_shared_lock(void) {
+    shared_list::iterator s = shared_.find(Glib::Thread::self());
+    if(s != shared_.end()) {
+      ++(s->second);
+    } else {
+      shared_[Glib::Thread::self()] = 1;
+    };
+  }
+
+  void SharedMutex::remove_shared_lock(void) {
+    shared_list::iterator s = shared_.find(Glib::Thread::self());
+    if(s != shared_.end()) {
+      --(s->second);
+      if(!(s->second)) {
+        shared_.erase(s);
+      };
+    };
+  }
+
+  bool SharedMutex::have_shared_lock(void) {
+    if(shared_.size() >= 2) return true;
+    if(shared_.size() == 1) {
+      if(shared_.begin()->first != Glib::Thread::self()) return true;
+    };
+    return false;
+  }
+
+  void SharedMutex::lockShared(void) {
+    lock_.lock();
+    while(have_exclusive_lock()) {
+      cond_.wait(lock_);
+    };
+    add_shared_lock();
+    lock_.unlock();
+  };
+
+  void SharedMutex::unlockShared(void) {
+    lock_.lock();
+    remove_shared_lock();
+    cond_.broadcast();
+    lock_.unlock();
+  };
+
+  void SharedMutex::lockExclusive(void) {
+    lock_.lock();
+    while(have_exclusive_lock() || have_shared_lock()) {
+      cond_.wait(lock_);
+    };
+    ++exclusive_;
+    thread_ = Glib::Thread::self();
+    lock_.unlock();
+  }
+
+  void SharedMutex::unlockExclusive(void) {
+    lock_.lock();
+    if(thread_ == Glib::Thread::self()) {
+      if(exclusive_) --exclusive_;
+      if(!exclusive_) thread_ = NULL;
+    };
+    cond_.broadcast();
+    lock_.unlock();
+  }
+
+  // ----------------------------------------
+
   ThreadRegistry::ThreadRegistry(void):counter_(0),cancel_(false) {
   }
 
