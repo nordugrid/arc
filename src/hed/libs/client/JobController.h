@@ -83,7 +83,7 @@ namespace Arc {
              const std::string& whichfile);
 
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
-    bool ARCCopyFile(const URL& src, const URL& dst);
+    bool ARCCopyFile(const URL& src, const URL& dst) const;
 
     std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
                                       bool getlocal);
@@ -108,8 +108,8 @@ namespace Arc {
     const std::string flavour;
     const UserConfig& usercfg;
     std::list<Job> jobstore;
-    DataHandle* data_source;
-    DataHandle* data_destination;
+    mutable DataHandle* data_source;
+    mutable DataHandle* data_destination;
     static Logger logger;
   };
 

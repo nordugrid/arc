@@ -267,8 +267,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobController::ARCCopyFile(const URL& src, const URL& dst) {
-
+  bool JobController::ARCCopyFile(const URL& src, const URL& dst) const {
     DataMover mover;
     mover.retry(true);
     mover.secure(false);
@@ -335,7 +334,6 @@ namespace Arc {
     }
 
     return true;
-
   }
 
   std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
