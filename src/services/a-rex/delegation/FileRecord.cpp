@@ -8,6 +8,8 @@
 #include <string.h>
 #include <iostream>
 
+#include <glibmm.h>
+
 #include "uid.h"
 
 #include "FileRecord.h"
