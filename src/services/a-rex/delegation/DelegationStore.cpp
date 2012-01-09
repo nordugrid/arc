@@ -14,6 +14,14 @@
 #include "DelegationStore.h"
 
 namespace ARex {
+  static void make_dir_for_file(std::string dpath) {
+    std::string::size_type p = dpath.rfind(G_DIR_SEPARATOR_S);
+    if(p == std::string::npos) return;
+    if(p == 0) return;
+    dpath.resize(p);
+    Arc::DirCreate(dpath,0,0,S_IRUSR|S_IWUSR,true);
+  }
+
   DelegationStore::DelegationStore(const std::string& base):fstore_(base) {
     expiration_ = 0;
     maxrecords_ = 0;
@@ -89,6 +97,7 @@ namespace ARex {
     if(i == acquired_.end()) return; // ????
     // TODO: store into file
     if(!credentials.empty()) {
+      make_dir_for_file(i->second.path);
       Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR);
     };
   }
@@ -108,6 +117,7 @@ namespace ARex {
       Arc::FileRead(i->second.path,content);
       if(!content.empty()) oldkey = extract_key(content);
       if(!compare_no_newline(newkey,oldkey)) {
+        make_dir_for_file(i->second.path);
         Arc::FileCreate(i->second.path,newkey,0,0,S_IRUSR|S_IWUSR);
       };
     };
