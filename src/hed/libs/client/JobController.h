@@ -51,9 +51,6 @@ namespace Arc {
 
     bool CopyJobFile(const URL& src, const URL& dst) const;
 
-    std::list<Job> GetJobDescriptions(const std::list<std::string>& status,
-                                      bool getlocal);
-
     const std::list<Job>& GetJobs() const {
       return jobstore;
     }

@@ -172,46 +172,6 @@ namespace Arc {
     return true;
   }
 
-  std::list<Job> JobController::GetJobDescriptions(const std::list<std::string>& status,
-                                                   bool getlocal) {
-    GetJobInformation();
-
-    // Only selected jobs with specified status
-    std::list<Job> gettable;
-    for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-      if (!status.empty() && !it->State) {
-        continue;
-      }
-
-      if (!status.empty() && std::find(status.begin(), status.end(),
-                                       it->State()) == status.end()) {
-        continue;
-      }
-
-      gettable.push_back(*it);
-    }
-
-    // Get job description for those jobs without one.
-    for (std::list<Job>::iterator it = gettable.begin();
-         it != gettable.end();) {
-      if (!it->JobDescriptionDocument.empty()) {
-        it++;
-        continue;
-      }
-      if (GetJobDescription(*it, it->JobDescriptionDocument)) {
-        logger.msg(VERBOSE, "Job description retrieved from execution service for job (%s)", it->IDFromEndpoint.fullstr());
-        it++;
-      }
-      else {
-        logger.msg(INFO, "Failed retrieving job description for job (%s)", it->IDFromEndpoint.fullstr());
-        it = gettable.erase(it);
-      }
-    }
-
-    return gettable;
-  }
-
   JobControllerLoader::JobControllerLoader()
     : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
