@@ -41,9 +41,8 @@ namespace Arc {
      * that Flavour will be ignored. If loading of a specific plugin failed,
      * that plugin will not be tried loaded for subsequent Job objects
      * requiring that plugin.
-     * Job objects, for which the corresponding JobController plugin loaded
-     * successfully, will be added to that plugin using the
-     * JobController::FillJobStore(const Job&) method.
+     * Job objects will be added to the corresponding JobController plugin, if
+     * loaded successfully.
      *
      * @param usercfg UserConfig object to pass to JobController plugins and to
      *  use in member methods.
