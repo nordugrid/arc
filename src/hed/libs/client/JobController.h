@@ -44,9 +44,6 @@ namespace Arc {
   public:
     virtual ~JobController();
 
-    /// Fill jobstore
-    bool FillJobStore(const Job& job);
-
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
 
     bool CopyJobFile(const URL& src, const URL& dst) const;

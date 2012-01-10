@@ -37,27 +37,6 @@ namespace Arc {
     if(data_destination) delete data_destination;
   }
 
-  bool JobController::FillJobStore(const Job& job) {
-
-    if (job.Flavour != flavour) {
-      logger.msg(WARNING, "The middleware flavour of the job (%s) does not match that of the job controller (%s)", job.Flavour, flavour);
-      return false;
-    }
-
-    if (!job.JobID) {
-      logger.msg(WARNING, "The job ID (%s) is not a valid URL", job.JobID.fullstr());
-      return false;
-    }
-
-    if (!job.Cluster) {
-      logger.msg(WARNING, "The resource URL is not a valid URL", job.Cluster.str());
-      return false;
-    }
-
-    jobstore.push_back(job);
-    return true;
-  }
-
   bool JobController::ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix) const {
     std::list<FileInfo> outputfiles;
 
