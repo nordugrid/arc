@@ -43,12 +43,12 @@ namespace Arc {
     return job;
   }
 
-  void JobControllerEMIES::GetJobInformation() {
+  void JobControllerEMIES::UpdateJobs(std::list<Job>& jobs) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job>::iterator iter = jobstore.begin();
-         iter != jobstore.end(); iter++) {
+    for (std::list<Job>::iterator iter = jobs.begin();
+         iter != jobs.end(); iter++) {
       EMIESJob job = JobToEMIES(*iter);
       EMIESClient ac(job.manager, cfg, usercfg.Timeout());
       if (!ac.info(job, *iter)) {

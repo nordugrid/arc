@@ -32,12 +32,12 @@ namespace Arc {
     return new JobControllerUNICORE(*jcarg);
   }
 
-  void JobControllerUNICORE::GetJobInformation() {
+  void JobControllerUNICORE::UpdateJobs(std::list<Job>& jobs) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job>::iterator iter = jobstore.begin();
-         iter != jobstore.end(); iter++) {
+    for (std::list<Job>::iterator iter = jobs.begin();
+         iter != jobs.end(); iter++) {
       URL url(iter->Cluster);
       XMLNode id(iter->AuxInfo);
       ClientSOAP client(cfg, url, usercfg.Timeout());

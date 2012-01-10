@@ -32,12 +32,12 @@ namespace Arc {
     return new JobControllerCREAM(*jcarg);
   }
 
-  void JobControllerCREAM::GetJobInformation() {
+  void JobControllerCREAM::UpdateJobs(std::list<Job>& jobs) const {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    for (std::list<Job>::iterator iter = jobstore.begin();
-         iter != jobstore.end(); iter++) {
+    for (std::list<Job>::iterator iter = jobs.begin();
+         iter != jobs.end(); iter++) {
       PathIterator pi(iter->JobID.Path(), true);
       URL url(iter->JobID);
       url.ChangePath(*pi);

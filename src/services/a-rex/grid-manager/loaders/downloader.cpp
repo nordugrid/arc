@@ -814,26 +814,22 @@ int main(int argc,char** argv) {
       const size_t found = desc.get_local()->migrateactivityid.rfind("/");
 
       if (found != std::string::npos) {
-        Arc::Job job;
-        job.Flavour = "ARC1";
-        job.JobID = Arc::URL(desc.get_local()->migrateactivityid);
-        job.Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
+        std::list<Arc::Job> job;
+        job.push_back(Arc::Job());
+        job.back().Flavour = "ARC1";
+        job.back().JobID = Arc::URL(desc.get_local()->migrateactivityid);
+        job.back().Cluster = Arc::URL(desc.get_local()->migrateactivityid.substr(0, found));
 
-        Arc::UserConfig usercfg(job.Cluster.Protocol() == "https" ?
+        Arc::UserConfig usercfg(job.back().Cluster.Protocol() == "https" ?
                                 Arc::initializeCredentialsType() :
                                 Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
-        if (job.Cluster.Protocol() != "https" ||
-            (job.Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
+        if (job.back().Cluster.Protocol() != "https" ||
+            (job.back().Cluster.Protocol() == "https" && usercfg.CredentialsFound())) {
           Arc::JobControllerLoader loader;
           Arc::JobController *jobctrl = loader.load("ARC1", usercfg);
           if (jobctrl) {
-            bool isJobAdded = jobctrl->FillJobStore(job);
-            jobctrl->GetJobInformation();
-            const Arc::Job* updatedJob = NULL;
-            if (!jobctrl->GetJobs().empty()) {
-              updatedJob = &(jobctrl->GetJobs().front());
-            }
-            if ((!isJobAdded || !updatedJob || updatedJob->State != Arc::JobState::QUEUING || !jobctrl->CancelJob(*updatedJob)) && !desc.get_local()->forcemigration) {
+            jobctrl->UpdateJobs(job);
+            if ((job.back().State != Arc::JobState::QUEUING || !jobctrl->CancelJob(job.back())) && !desc.get_local()->forcemigration) {
               res = 1;
               failure_reason = "FATAL ERROR: Migration failed attempting to kill old job \"" + desc.get_local()->migrateactivityid + "\".";
             }

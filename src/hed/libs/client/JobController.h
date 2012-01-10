@@ -56,7 +56,7 @@ namespace Arc {
     }
 
     // Implemented by specialized classes
-    virtual void GetJobInformation() = 0;
+    virtual void UpdateJobs(std::list<Job>& jobs) const = 0;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const = 0;
     virtual bool CleanJob(const Job& job) const = 0;
     virtual bool CancelJob(const Job& job) const = 0;

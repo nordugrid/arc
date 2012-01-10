@@ -60,12 +60,12 @@ namespace Arc {
     return new JobControllerBES(*jcarg);
   }
 
-  void JobControllerBES::GetJobInformation() {
+  void JobControllerBES::UpdateJobs(std::list<Job>& jobs) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job>::iterator iter = jobstore.begin();
-         iter != jobstore.end(); iter++) {
+    for (std::list<Job>::iterator iter = jobs.begin();
+         iter != jobs.end(); iter++) {
       AREXClient ac(iter->Cluster, cfg, usercfg.Timeout(),false);
       std::string idstr = extract_job_id(iter->JobID);
       if (!ac.stat(idstr, *iter)) {

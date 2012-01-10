@@ -84,7 +84,7 @@ namespace Arc {
   void JobSupervisor::Update() {
     for (std::list<JobController*>::const_iterator itJC = loader.GetJobControllers().begin();
          itJC != loader.GetJobControllers().end(); ++itJC) {
-      (*itJC)->GetJobInformation();
+      (*itJC)->UpdateJobs((*itJC)->jobstore);
     }
   }
 
@@ -100,7 +100,7 @@ namespace Arc {
     std::list<JobController*> jobConts = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobConts.begin();
          itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       std::list<Job*> downloadable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
@@ -147,7 +147,7 @@ namespace Arc {
     std::list<JobController*> jobConts = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobConts.begin();
          itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       std::list<Job*> renewable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
@@ -187,7 +187,7 @@ namespace Arc {
     std::list<JobController*> jobConts = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobConts.begin();
          itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       std::list<Job*> resumable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
@@ -229,7 +229,7 @@ namespace Arc {
     std::list<JobController*> jobCs = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobCs.begin();
          itJobC != jobCs.end(); ++itJobC) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
            it != (*itJobC)->jobstore.end(); ++it) {
@@ -371,7 +371,7 @@ namespace Arc {
     std::list<JobController*> jobConts = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobConts.begin();
          itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin(); it != (*itJobC)->jobstore.end(); ++it) {
         if (it->State != JobState::QUEUING) {
@@ -488,7 +488,7 @@ namespace Arc {
     std::list<JobController*> jobConts = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobConts.begin();
          itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       std::list<Job*> cancellable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
@@ -561,7 +561,7 @@ namespace Arc {
     std::list<JobController*> jobConts = loader.GetJobControllers();
     for (std::list<JobController*>::iterator itJobC = jobConts.begin();
          itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->GetJobInformation();
+      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
 
       std::list<Job*> cleanable;
       for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();

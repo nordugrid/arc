@@ -83,7 +83,7 @@ namespace Arc {
     /**
      * When invoking this method the job information for the jobs managed by
      * this JobSupervisor will be updated. Internally, for each loaded
-     * JobController the JobController::GetJobInformation method will be
+     * JobController the JobController::UpdateJobs method will be
      * called, which will be responsible for updating job information.
      **/
     void Update();
@@ -93,7 +93,7 @@ namespace Arc {
      * This method retrieves output files of jobs managed by this JobSupervisor.
      *
      * Before identifying jobs for which to retrieve output files, the
-     * JobController::GetJobInformation method is called for each loaded
+     * JobController::UpdateJobs method is called for each loaded
      * JobController in order to retrieve the most up to date job information.
      * If an empty status-filter is specified, all jobs managed by this
      * JobSupervisor will be considered for retrieval, except jobs in the
@@ -137,7 +137,7 @@ namespace Arc {
      * This method will renew credentials of jobs managed by this JobSupervisor.
      *
      * Before identifying jobs for which to renew credentials, the
-     * JobController::GetJobInformation method is called for each loaded
+     * JobController::UpdateJobs method is called for each loaded
      * JobController in order to retrieve the most up to date job
      * information.
      *
@@ -176,7 +176,7 @@ namespace Arc {
      * This method resumes jobs managed by this JobSupervisor.
      *
      * Before identifying jobs to resume, the
-     * JobController::GetJobInformation method is called for each loaded
+     * JobController::UpdateJobs method is called for each loaded
      * JobController in order to retrieve the most up to date job
      * information.
      *
@@ -214,7 +214,7 @@ namespace Arc {
      * if successful a new job will be submitted.
      *
      * Before identifying jobs to be resubmitted, the
-     * JobController::GetJobInformation method is called for each loaded
+     * JobController::UpdateJobs method is called for each loaded
      * JobController in order to retrieve the most up to date job information.
      * If an empty status-filter is specified, all jobs managed by this
      * JobSupervisor will be considered for resubmission, except jobs in the
@@ -277,7 +277,7 @@ namespace Arc {
      * description.
      *
      * Before identifying jobs to be migrated, the
-     * JobController::GetJobInformation method is called for each loaded
+     * JobController::UpdateJobs method is called for each loaded
      * JobController in order to retrieve the most up to date job information.
      * Only jobs for which the State member of the Job object has the value
      * JobState::QUEUEING, will be considered for migration. Furthermore the job
@@ -361,7 +361,7 @@ namespace Arc {
     /**
      * This method cancels jobs managed by this JobSupervisor.
      *
-     * Before identifying jobs to cancel, the JobController::GetJobInformation
+     * Before identifying jobs to cancel, the JobController::UpdateJobs
      * method is called for each loaded JobController in order to retrieve
      * the most up to date job information.
      *

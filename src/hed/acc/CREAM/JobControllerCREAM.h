@@ -16,7 +16,7 @@ namespace Arc {
     JobControllerCREAM(const UserConfig& usercfg);
     ~JobControllerCREAM();
 
-    virtual void GetJobInformation();
+    virtual void UpdateJobs(std::list<Job>& jobs) const;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
     virtual bool CleanJob(const Job& job) const;
     virtual bool CancelJob(const Job& job) const;
