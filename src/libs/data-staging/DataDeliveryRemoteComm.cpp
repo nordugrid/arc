@@ -44,7 +44,8 @@ namespace DataStaging {
     // connect to service and make a new transfer request
     Arc::MCCConfig cfg;
     if (dtr.host_cert_for_remote_delivery()) {
-      Arc::UserConfig host_cfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::TryCredentials);
+      Arc::UserConfig host_cfg(cred_type);
       host_cfg.ProxyPath(""); // to force using cert/key files instead of non-existent proxy
       host_cfg.ApplyToConfig(cfg);
     } else {
@@ -284,7 +285,8 @@ namespace DataStaging {
     // call Ping
     Arc::MCCConfig cfg;
     if (dtr->host_cert_for_remote_delivery()) {
-      Arc::UserConfig host_cfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
+      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::TryCredentials);
+      Arc::UserConfig host_cfg(cred_type);
       host_cfg.ProxyPath(""); // to force using cert/key files instead of non-existent proxy
       host_cfg.ApplyToConfig(cfg);
     } else {

@@ -877,7 +877,8 @@ int main(int argc, char *argv[]) {
 
       std::string proxy_cred_str_pem;
      
-      Arc::UserConfig usercfg_tmp(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
+      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
+      Arc::UserConfig usercfg_tmp(cred_type);
       usercfg_tmp.CACertificatesDirectory(usercfg.CACertificatesDirectory());
 
       Arc::CredentialStore cstore(usercfg_tmp,Arc::URL("myproxy://"+myproxy_server));
