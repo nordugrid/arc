@@ -2,6 +2,9 @@ package GLUE2xmlPrinter;
 
 use base XmlPrinter;
 
+# the line below is useful for debugging. see http://perldoc.perl.org/Data/Dumper.html for usage
+# use Data::Dumper;
+
 sub new {
     my ($this, $handle, $splitjobs) =  @_;
     my $self = $this->SUPER::new($handle);
@@ -23,6 +26,15 @@ sub Element {
     $self->beginEntity($data, $name, $basetype);
     &$filler($self, $data) if $filler;
     $self->end($name);
+}
+
+# This function creates an open element.
+# this has been used for problems in the way 
+sub ElementNoClose {
+    my ($self, $collector, $name, $basetype, $filler) = @_;
+    return unless $collector and my $data = &$collector();
+    $self->beginEntity($data, $name, $basetype);
+    &$filler($self, $data) if $filler;
 }
 
 sub Elements {
@@ -55,12 +67,13 @@ sub Contacts {
 }
 
 sub AdminDomain {
-    Element(@_, 'AdminDomain', 'Domain', sub {
+    # Warning: this element is NOT closed.
+    # must be closed using the end function.
+    ElementNoClose(@_, 'AdminDomain', 'Domain', sub {
         my ($self, $data) = @_;
-        $self->properties($data, qw( Description WWW Distributed Owner ));
-        $self->begin('Services');
-        $self->ComputingService($data->{ComputingService});
-        $self->end('Services');
+        $self->properties($data, qw( Description WWW Distributed Owner));
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
     });
 }
 
@@ -88,6 +101,108 @@ sub MappingPolicies {
     });
 }
 
+sub Endpoint {
+    Element(@_, 'Endpoint', 'Endpoint', sub {
+        my ($self, $data) = @_;
+        $self->properties($data, qw( URL
+                                     Capability
+                                     Technology
+                                     InterfaceName
+                                     InterfaceVersion
+                                     InterfaceExtension
+                                     WSDL
+                                     SupportedProfile
+                                     Semantics
+                                     Implementor
+                                     ImplementationName
+                                     ImplementationVersion
+                                     QualityLevel
+                                     HealthState
+                                     HealthStateInfo
+                                     ServingState
+                                     StartTime
+                                     IssuerCA
+                                     TrustedCA
+                                     DowntimeAnnounce
+                                     DowntimeStart
+                                     DowntimeEnd
+                                     DowntimeInfo ));
+        $self->AccessPolicies($data->{AccessPolicies});
+        #if ($data->{ShareID}) {
+        #    $self->begin('Associations');
+        #    $self->properties($data, 'ShareID');
+        #    $self->end('Associations');
+        #}
+        #if ($data->{Activities}) {
+        #    $self->begin('Activities');
+        #    $self->ComputingActivities($data->{Activities});
+        #    $self->end('Activities');
+        #}
+    });
+}
+
+sub Endpoints {
+    Elements(@_, 'Endpoint', 'Endpoint', sub {
+        my ($self, $data) = @_;
+        $self->properties($data, qw( URL
+                                     Capability
+                                     Technology
+                                     InterfaceName
+                                     InterfaceVersion
+                                     InterfaceExtension
+                                     WSDL
+                                     SupportedProfile
+                                     Semantics
+                                     Implementor
+                                     ImplementationName
+                                     ImplementationVersion
+                                     QualityLevel
+                                     HealthState
+                                     HealthStateInfo
+                                     ServingState
+                                     StartTime
+                                     IssuerCA
+                                     TrustedCA
+                                     DowntimeAnnounce
+                                     DowntimeStart
+                                     DowntimeEnd
+                                     DowntimeInfo ));
+        $self->AccessPolicies($data->{AccessPolicies});
+        #if ($data->{ShareID}) {
+        #    $self->begin('Associations');
+        #    $self->properties($data, 'ShareID');
+        #    $self->end('Associations');
+        #}
+        #if ($data->{Activities}) {
+        #    $self->begin('Activities');
+        #    $self->ComputingActivities($data->{Activities});
+        #    $self->end('Activities');
+        #}
+    });
+}
+
+sub Services {
+    Elements(@_, 'Service', 'Service', sub {
+        my ($self, $data) = @_;
+        $self->properties($data, qw( Capability
+                                     Type
+                                     QualityLevel
+                                     StatusInfo
+                                     Complexity ));
+        # TODO: must be generalized to multiple endpoints while building the data structure
+        $self->Endpoint($data->{Endpoint});
+        $self->ComputingShares($data->{ComputingShares});
+        $self->ComputingManager($data->{ComputingManager});
+        $self->ToStorageServices($data->{ToStorageServices});
+        if ($data->{ServiceID}) {
+            $self->begin('Associations');
+            $self->properties($data, 'ServiceID');
+            $self->end('Associations');
+        }
+    });
+}
+
+
 sub ComputingService {
     Element(@_, 'ComputingService', 'Service', sub {
         my ($self, $data) = @_;
@@ -96,8 +211,8 @@ sub ComputingService {
                                      QualityLevel
                                      StatusInfo
                                      Complexity ));
-        $self->Location($data->{Location});
-        $self->Contacts($data->{Contacts});
+        #$self->Location($data->{Location});
+        #$self->Contacts($data->{Contacts});
         $self->properties($data, qw( TotalJobs
                                      RunningJobs
                                      WaitingJobs
@@ -108,9 +223,9 @@ sub ComputingService {
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
         if ($data->{ComputingActivities}) {
-            $self->begin('ComputingActivities');
+            $self->begin('ComputingActivities') unless ($self->{splitjobs});
             $self->ComputingActivities($data->{ComputingActivities});
-            $self->end('ComputingActivities');
+            $self->end('ComputingActivities') unless ($self->{splitjobs});
         }
         $self->ToStorageServices($data->{ToStorageServices});
         if ($data->{ServiceID}) {
@@ -429,16 +544,22 @@ sub ToStorageServices {
     });
 }
 
-
 sub Domains {
     my ($self, $data) = @_;
-    my $attrs = { 'xmlns' => "http://schemas.ogf.org/glue/2009/03/spec/2/0",
+    my $attrs = { 'xmlns' => "http://schemas.ogf.org/glue/2009/03/spec_2.0_r1",
                   'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance",
-                  'xsi:schemaLocation' => "http://schemas.ogf.org/glue/2009/03/spec/2/0 pathto/GLUE2.xsd" };
+                  'xsi:schemaLocation' => "https://raw.github.com/OGF-GLUE/XSD/master/schema/GLUE2.xsd" #might change in the future
+                };
     # Todo: fix a-rex, client to handle correct namespace
-    $attrs->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
+    # $attrs->{'xmlns'} = "http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01";
     $self->begin('Domains', $attrs, qw( xmlns xmlns:xsi xsi:schemaLocation ));
-    $self->AdminDomain($data);
+
+    $self->AdminDomain(&$data->{AdminDomain});
+    #$self->begin('Services');
+    $self->Services(&$data->{Services});
+    $self->ComputingService(&$data->{ComputingService});
+    #$self->end('Services');
+    $self->end('AdminDomain');
     $self->end('Domains');
 }
 
