@@ -58,6 +58,7 @@ namespace Arc {
 
     // Not supported for direct data points:
     virtual DataStatus Resolve(bool source);
+    virtual DataStatus Resolve(bool source, const std::vector<DataPoint*>& urls);
     virtual bool Registered() const;
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);

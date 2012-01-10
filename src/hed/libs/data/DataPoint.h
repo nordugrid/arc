@@ -385,6 +385,15 @@ namespace Arc {
        information. */
     virtual DataStatus Resolve(bool source) = 0;
 
+    /// Resolves several index service URLs.
+    /** Can use bulk calls if protocol allows. The protocols and hosts of all
+       the DataPoints in urls must be the same and the same as this DataPoint's
+       protocol and host.
+       \param source true if DataPoint objects represent source of information
+       \param urls Vector of DataPoints to resolve. Protocols and hosts must
+       match and match this DataPoint's protocol and host. */
+    virtual DataStatus Resolve(bool source, const std::vector<DataPoint*>& urls) = 0;
+
     /// Check if file is registered in Indexing Service.
     /** Proper value is obtainable only after Resolve. */
     virtual bool Registered() const = 0;

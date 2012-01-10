@@ -24,6 +24,7 @@ extern int Cthread_init(); /* from <Cthread_api.h> */
 #define thread_t      pthread_t
 #define thread_create(tid_p, func, arg)  pthread_create(tid_p, NULL, func, arg)
 #define thread_join(tid)               pthread_join(tid, NULL)
+#define NSTYPE_LFC 1
 
 #include <lfc_api.h>
 
@@ -850,6 +851,139 @@ namespace Arc {
     if (!url.MetaDataOption("guid").empty())
       tmp += ":guid=" + url.MetaDataOption("guid");
     return tmp;
+  }
+
+  DataStatus DataPointLFC::Resolve(bool source, const std::vector<DataPoint*>& urls) {
+
+    if (urls.empty()) return DataStatus::Success;
+
+    // sanity check
+    for (unsigned int i = 0; i < urls.size(); ++i) {
+      if (urls.at(i)->GetURL().Protocol() != url.Protocol() ||
+          urls.at(i)->GetURL().Host() != url.Host()) {
+        logger.msg(ERROR, "Mismatching protocol/host in bulk resolve!");
+        return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
+      }
+    }
+
+    // TODO: Destination lookup in bulk
+    if (!source) {
+      for (unsigned int i = 0; i < urls.size(); ++i) {
+        DataStatus res = urls.at(i)->Resolve(source);
+        if (!res.Passed()) return res;
+      }
+      return DataStatus::Success;
+    }
+
+    // NOTE: Sessions are not used in Resolve(), because under heavy load in A-REX
+    // it can end up using all the LFC server threads. See bug 2576 for more info.
+
+    // Figure out whether to use guids or LFNs in bulk request
+    bool use_guids = !urls.at(0)->GetURL().MetaDataOption("guid").empty();
+
+    for (unsigned int i = 0; i < urls.size(); ++i) {
+      if ((!use_guids && !urls.at(i)->GetURL().MetaDataOption("guid").empty()) ||
+          (use_guids && urls.at(i)->GetURL().MetaDataOption("guid").empty())) {
+        // cannot have a mixture of guids and LFNs
+        logger.msg(ERROR, "Cannot use a mixture of GUIDs and LFNs in bulk resolve");
+        return DataStatus::ReadResolveError;
+      }
+    }
+
+    int nbentries = 0;
+    struct lfc_filereplicas *entries = NULL;
+    int lfc_r;
+
+    if (use_guids) {
+      const char * guids[urls.size()];
+      for (unsigned int i = 0; i < urls.size(); ++i) {
+        guids[i] = urls.at(i)->GetURL().MetaDataOption("guid").c_str();
+      }
+      LFCLOCKINT(lfc_r,lfc_getreplicas(urls.size(), guids, NULL, &nbentries, &entries), url);
+    }
+    else {
+      const char * paths[urls.size()];
+      for (unsigned int i = 0; i < urls.size(); ++i) {
+        paths[i] = urls.at(i)->GetURL().Path().c_str();
+      }
+      LFCLOCKINT(lfc_r,lfc_getreplicasl(urls.size(), paths, NULL, &nbentries, &entries), url);
+    }
+
+    if(lfc_r != 0) {
+      logger.msg(ERROR, "Error finding replicas: %s", sstrerror(serrno));
+      return IsTempError() ? DataStatus::ReadResolveErrorRetryable : DataStatus::ReadResolveError;
+    }
+    if (nbentries == 0) {
+      logger.msg(ERROR, "Bulk resolve returned no entries");
+      return DataStatus::ReadResolveError;
+    }
+
+    // We assume that the order of returned GUIDs is the same as the order of
+    // urls, then there is no need to resolve LFNs to GUIDs if we only have LFNs.
+    // Entries has at least one entry per GUID, even if there are no replicas
+    // and has an entry per replica if there are multiple.
+    std::string previous_guid(entries[0].guid);
+    unsigned int i = 0;
+    DataPoint * dp = urls.at(0);
+
+    for (int n = 0; n < nbentries; n++) {
+      logger.msg(DEBUG, "GUID %s, SFN %s", entries[n].guid, entries[n].sfn);
+
+      if (previous_guid != entries[n].guid) {
+        if (++i >= urls.size()) {
+          logger.msg(ERROR, "LFC returned more results than we asked for!");
+          free(entries);
+          return DataStatus::ReadResolveError;
+        }
+        dp = urls.at(i);
+        previous_guid = entries[n].guid;
+      }
+
+      if (entries[n].sfn[0] == '\0') {
+        logger.msg(WARNING, "No locations found for %s", dp->GetURL().str());
+        continue;
+      }
+
+      URL uloc(entries[n].sfn);
+      if (!uloc) {
+        logger.msg(WARNING, "Skipping invalid location: %s - %s", url.ConnectionURL(), entries[n].sfn);
+        continue;
+      }
+      // Add URL options to replicas
+      for (std::map<std::string, std::string>::const_iterator i = dp->GetURL().CommonLocOptions().begin();
+           i != dp->GetURL().CommonLocOptions().end(); i++)
+        uloc.AddOption(i->first, i->second, false);
+
+      if (dp->AddLocation(uloc, url.ConnectionURL()) == DataStatus::LocationAlreadyExistsError)
+        logger.msg(WARNING, "Duplicate replica found in LFC: %s", uloc.plainstr());
+      else
+        logger.msg(VERBOSE, "Adding location: %s - %s", dp->GetURL().ConnectionURL(), entries[n].sfn);
+
+      // Add metadata if available
+      dp->SetSize(entries[n].filesize);
+      dp->SetCreated(entries[n].ctime);
+      if (entries[n].csumtype[0] && entries[n].csumvalue[0]) {
+        std::string csum = entries[n].csumtype;
+        if (csum == "MD")
+          csum = "md5";
+        else if (csum == "AD")
+          csum = "adler32";
+        csum += ":";
+        csum += entries[n].csumvalue;
+        dp->SetCheckSum(csum);
+      }
+    }
+    if (entries)
+      free(entries);
+
+    for (unsigned int i = 0; i < urls.size(); ++i) {
+      DataPoint * dp = urls.at(i);
+      if (dp->CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", dp->GetCheckSum());
+      if (dp->CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", dp->GetSize());
+      if (dp->CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", dp->GetCreated().str());
+      // dp->resolved = true; ??
+    }
+    return DataStatus::Success;
   }
 
   bool DataPointLFC::IsTempError() const {

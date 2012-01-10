@@ -108,6 +108,10 @@ namespace Arc {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
 
+  DataStatus DataPointDirect::Resolve(bool source, const std::vector<DataPoint*>& urls) {
+    return DataStatus::NotSupportedForDirectDataPointsError;
+  }
+
   DataStatus DataPointDirect::PreRegister(bool, bool) {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }

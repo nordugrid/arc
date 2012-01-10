@@ -1230,6 +1230,15 @@ namespace Arc {
     return DataStatus::ListError;
   }
 
+  DataStatus DataPointRLS::Resolve(bool source, const std::vector<DataPoint*>& urls) {
+    // Bulk operations not implemented yet
+    for (std::vector<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      DataStatus res = (*i)->Resolve(source);
+      if (!res.Passed()) return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
+    }
+    return DataStatus::Success;
+  }
+
 } // namespace Arc
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

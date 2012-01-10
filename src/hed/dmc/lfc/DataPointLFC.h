@@ -26,6 +26,7 @@ namespace Arc {
     ~DataPointLFC();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);
+    virtual DataStatus Resolve(bool source, const std::vector<DataPoint*>& urls);
     virtual DataStatus Check();
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);
