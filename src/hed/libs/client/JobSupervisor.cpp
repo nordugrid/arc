@@ -22,48 +22,6 @@ namespace Arc {
 
   Logger JobSupervisor::logger(Logger::getRootLogger(), "JobSupervisor");
 
-  JobSupervisor::JobSupervisor(const UserConfig& usercfg,
-                               const std::list<std::string>& jobIDsAndNames)
-    : usercfg(usercfg) {
-    if (usercfg.JobListFile().empty()) {
-      logger.msg(WARNING, "Job list file not specified.");
-      return;
-    }
-
-    std::list<std::string> endpoints;
-    for (std::list<std::string>::const_iterator itC = usercfg.GetSelectedServices(COMPUTING).begin();
-         itC != usercfg.GetSelectedServices(COMPUTING).end(); ++itC) {
-      endpoints.push_back(itC->substr(itC->find(":")+1));
-
-    }
-
-    std::list<std::string> rejectEndpoints;
-    for (std::list<std::string>::const_iterator itC = usercfg.GetRejectedServices(COMPUTING).begin();
-         itC != usercfg.GetRejectedServices(COMPUTING).end(); ++itC) {
-      rejectEndpoints.push_back(itC->substr(itC->find(":")+1));
-
-    }
-
-    std::list<std::string> jobIDsAndNamesCopy = jobIDsAndNames;
-    std::list<Job> jobs;
-    if (!Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobIDsAndNamesCopy, jobIDsAndNames.empty() && usercfg.GetSelectedServices(COMPUTING).empty(), endpoints, rejectEndpoints)) {
-      logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
-      return;
-    }
-
-    for (std::list<Job>::const_iterator itJ = jobs.begin();
-         itJ != jobs.end(); ++itJ) {
-      if (!AddJob(*itJ)) {
-        logger.msg(WARNING, "Unable to handle job (%s), no suitable job management plugin found.", itJ->IDFromEndpoint.fullstr());
-      }
-    }
-
-    for (std::list<std::string>::const_iterator itS = jobIDsAndNamesCopy.begin();
-         itS != jobIDsAndNamesCopy.end(); ++itS) {
-      logger.msg(WARNING, "Job not found in job list: %s", *itS);
-    }
-  }
-
   JobSupervisor::JobSupervisor(const UserConfig& usercfg, const std::list<Job>& jobs)
     : usercfg(usercfg) {
     for (std::list<Job>::const_iterator it = jobs.begin();
