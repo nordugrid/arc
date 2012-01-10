@@ -660,39 +660,41 @@ namespace Arc {
       std::string csum(buf);
       if (csum.substr(0, csum.find(':')) == DefaultCheckSum()) {
         logger.msg(VERBOSE, "StopWriting: Calculated checksum %s", csum);
-        // list checksum and compare
-        // note: not all implementations support checksum
-        logger.msg(DEBUG, "list_files_ftp: "
-                          "looking for checksum of %s", url.str());
-        char cksum[256];
-        std::string cksumtype(upper(DefaultCheckSum()));
-        GlobusResult res = globus_ftp_client_cksm(&ftp_handle, url.str().c_str(),
-                                                  &ftp_opattr, cksum, (globus_off_t)0,
-                                                  (globus_off_t)-1, cksumtype.c_str(),
-                                                  &ftp_complete_callback, cbarg);
-        if (!res) {
-          logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksum failed");
-          logger.msg(VERBOSE, "Globus error: %s", res.str());
-        }
-        else if (!cond.wait(1000*usercfg.Timeout())) {
-          logger.msg(VERBOSE, "list_files_ftp: timeout waiting for cksum");
-          globus_ftp_client_abort(&ftp_handle);
-          cond.wait();
-        }
-        else if (!callback_status) {
-          // reset to success since failing to get checksum should not trigger an error
-          callback_status = DataStatus::Success;
-          logger.msg(INFO, "list_files_ftp: no checksum information possible");
-        }
-        else {
-          logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
-          if (csum.substr(csum.find(':')+1) == std::string(cksum)) {
-            logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
-            SetCheckSum(csum);
-          } else {
-            logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
+        if(additional_checks) {
+          // list checksum and compare
+          // note: not all implementations support checksum
+          logger.msg(DEBUG, "list_files_ftp: "
+                            "looking for checksum of %s", url.str());
+          char cksum[256];
+          std::string cksumtype(upper(DefaultCheckSum()));
+          GlobusResult res = globus_ftp_client_cksm(&ftp_handle, url.str().c_str(),
+                                                    &ftp_opattr, cksum, (globus_off_t)0,
+                                                    (globus_off_t)-1, cksumtype.c_str(),
+                                                    &ftp_complete_callback, cbarg);
+          if (!res) {
+            logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksm failed");
+            logger.msg(VERBOSE, "Globus error: %s", res.str());
+          }
+          else if (!cond.wait(1000*usercfg.Timeout())) {
+            logger.msg(VERBOSE, "list_files_ftp: timeout waiting for cksum");
+            globus_ftp_client_abort(&ftp_handle);
+            cond.wait();
+          }
+          else if (!callback_status) {
+            // reset to success since failing to get checksum should not trigger an error
+            callback_status = DataStatus::Success;
+            logger.msg(INFO, "list_files_ftp: no checksum information possible");
+          }
+          else {
+            logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
+            if (csum.substr(csum.find(':')+1) == std::string(cksum)) {
+              logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
+              SetCheckSum(csum);
+            } else {
+              logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
                        csum, std::string(DefaultCheckSum()+':'+cksum));
-            return DataStatus::TransferErrorRetryable;
+              return DataStatus::TransferErrorRetryable;
+            }
           }
         }
       }
@@ -900,7 +902,7 @@ namespace Arc {
                                    (globus_off_t)-1, cksumtype.c_str(),
                                    &ftp_complete_callback, cbarg);
       if (!res) {
-        logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksum failed");
+        logger.msg(VERBOSE, "list_files_ftp: globus_ftp_client_cksm failed");
         logger.msg(VERBOSE, "Globus error: %s", res.str());
       }
       else if (!cond.wait(1000*usercfg.Timeout())) {
