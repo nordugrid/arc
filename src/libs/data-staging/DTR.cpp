@@ -59,6 +59,9 @@ namespace DataStaging {
        bytes_transferred(0),
        created(time(NULL)),
        cancel_request(false),
+       bulk_start(false),
+       bulk_end(false),
+       source_supports_bulk(false),
        delivery_endpoint(LOCAL_DELIVERY),
        use_host_cert_for_remote_delivery(false),
        current_owner(GENERATOR),
@@ -96,6 +99,10 @@ namespace DataStaging {
     // set insecure by default. Real value will come from configuration
     source_endpoint->SetSecure(false);
     destination_endpoint->SetSecure(false);
+
+    // check for bulk support - call BulkResolve with empty list
+    std::vector<Arc::DataPoint*> datapoints;
+    if (source_endpoint->Resolve(true, datapoints) == Arc::DataStatus::Success) source_supports_bulk = true;
 
 #ifdef WIN32
     cache_state = NON_CACHEABLE;
@@ -139,6 +146,9 @@ namespace DataStaging {
       created(dtr.created),
       next_process_time(dtr.next_process_time),
       cancel_request(dtr.cancel_request),
+      bulk_start(dtr.bulk_start),
+      bulk_end(dtr.bulk_end),
+      source_supports_bulk(dtr.source_supports_bulk),
       delivery_endpoint(dtr.delivery_endpoint),
       use_host_cert_for_remote_delivery(dtr.use_host_cert_for_remote_delivery),
       current_owner(dtr.current_owner),
@@ -292,6 +302,10 @@ namespace DataStaging {
     next_process_time.SetTime(t.GetTime(), t.GetTimeNanosec());
   }
 
+  bool DTR::bulk_possible() {
+    if (status == DTRStatus::RESOLVE && source_supports_bulk) return true;
+    return false;
+  }
 
   std::list<DTRCallback*> DTR::get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {
     std::list<DTRCallback*> l;

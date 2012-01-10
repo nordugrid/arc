@@ -855,6 +855,9 @@ namespace DataStaging {
 
       if (DTRQueue.empty() && ActiveDTRs.empty()) continue;
 
+      // Map of job id to list of DTRs, used for grouping bulk requests
+      std::map<std::string, std::set<DTR*> > bulk_requests;
+
       // Transfer shares for this queue
       TransferShares transferShares(transferSharesConf);
 
@@ -901,6 +904,28 @@ namespace DataStaging {
           tmp->set_priority(tmp->get_priority() + 1);
           tmp->set_timeout(300);
         }
+
+        // check if bulk operation is possible for this DTR. To keep it simple
+        // there is only one bulk request per job per revise_queues loop
+        if (tmp->bulk_possible()) {
+          std::string jobid(tmp->get_parent_job_id());
+          if (bulk_requests.find(jobid) == bulk_requests.end()) {
+            std::set<DTR*> bulk_list;
+            bulk_list.insert(tmp);
+            bulk_requests[jobid] = bulk_list;
+            tmp->get_logger()->msg(Arc::VERBOSE, "DTR %s: Starting bulk request", tmp->get_short_id());
+          } else {
+            DTR* first_bulk = *bulk_requests[jobid].begin();
+            tmp->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", tmp->get_short_id());
+            // Only source bulk operations supported at the moment and limit to 100
+            if (bulk_requests[jobid].size() < 100 &&
+                first_bulk->get_source()->GetURL().Protocol() == tmp->get_source()->GetURL().Protocol() &&
+                first_bulk->get_source()->GetURL().Host() == tmp->get_source()->GetURL().Host()) {
+              bulk_requests[jobid].insert(tmp);
+            }
+          }
+        }
+
         transferShares.increase_transfer_share(tmp->get_transfer_share());
         ++dtr;
       }
@@ -955,6 +980,10 @@ namespace DataStaging {
         if (running >= slot_limit &&
             transferShares.active_shares().size() == active_shares.size()) break;
 
+        // Check if this DTR is still in a queue state (was not sent already
+        // in a bulk operation)
+        if (tmp->get_status() != DTRStatus::ToProcessStates.at(i)) continue;
+
         // Are there slots left for this share?
         bool can_start = transferShares.can_start(tmp->get_transfer_share());
         // Check if it is possible to use an emergency share
@@ -967,7 +996,27 @@ namespace DataStaging {
           transferShares.decrease_number_of_slots(tmp->get_transfer_share());
 
           // Send to processor/delivery
-          if (tmp->is_destined_for_pre_processor()) tmp->push(PRE_PROCESSOR);
+          if (tmp->is_destined_for_pre_processor()) {
+            // Check for bulk
+            if (tmp->bulk_possible()) {
+              std::set<DTR*> bulk_set(bulk_requests[tmp->get_parent_job_id()]);
+              if (bulk_set.size() > 1 &&
+                  bulk_set.find(tmp) != bulk_set.end()) {
+                tmp->get_logger()->msg(Arc::INFO, "DTR %s: Will use bulk request", tmp->get_short_id());
+                unsigned int dtr_no = 0;
+                for (std::set<DTR*>::iterator i = bulk_set.begin(); i != bulk_set.end(); ++i) {
+                  if (dtr_no == 0) (*i)->set_bulk_start(true);
+                  if (dtr_no == bulk_set.size() - 1) (*i)->set_bulk_end(true);
+                  (*i)->push(PRE_PROCESSOR);
+                  ++dtr_no;
+                }
+              } else {
+                tmp->push(PRE_PROCESSOR);
+              }
+            } else {
+              tmp->push(PRE_PROCESSOR);
+            }
+          }
           else if (tmp->is_destined_for_post_processor()) tmp->push(POST_PROCESSOR);
           else if (tmp->is_destined_for_delivery()) {
             choose_delivery_service(tmp);

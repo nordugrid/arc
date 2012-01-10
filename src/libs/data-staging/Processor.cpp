@@ -242,6 +242,38 @@ namespace DataStaging {
     request->push(SCHEDULER);
   }
 
+  void Processor::DTRBulkResolve(void* arg) {
+    // call request.source.BulkResolve() to get replicas
+    // NOTE only source resolution can be done in bulk
+    BulkThreadArgument* targ = (BulkThreadArgument*)arg;
+    std::list<DTR*> requests = targ->dtrs;
+    delete targ;
+
+    if (requests.empty()) return;
+
+    std::vector<Arc::DataPoint*> sources;
+    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
+      setUpLogger(*i);
+      (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Looking up source replicas in bulk", (*i)->get_short_id());
+      sources.push_back(&(*((*i)->get_source()))); // nasty...
+    }
+
+    // check for source replicas
+    Arc::DataStatus res = requests.front()->get_source()->Resolve(true, sources);
+    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
+      DTR* request = *i;
+      if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve any source replicas", request->get_short_id());
+        request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_SOURCE,
+                                  "Could not resolve any source replicas for " + request->get_source()->str());
+      }
+      request->set_status(DTRStatus::RESOLVED);
+      request->connect_logger();
+      request->push(SCHEDULER);
+    }
+  }
+
   void Processor::DTRQueryReplica(void* arg) {
     // check source is ok and obtain metadata
     ThreadArgument* targ = (ThreadArgument*)arg;
@@ -630,7 +662,23 @@ namespace DataStaging {
 
   void Processor::receiveDTR(DTR& request) {
 
-    ThreadArgument* arg = new ThreadArgument(this,&request);
+    BulkThreadArgument* bulk_arg = NULL;
+    ThreadArgument* arg = NULL;
+
+    // first deal with bulk
+    if (request.get_bulk_end()) { // end of bulk
+      request.set_bulk_end(false);
+      bulk_list.push_back(&request);
+      bulk_arg = new BulkThreadArgument(this, bulk_list);
+      bulk_list.clear();
+    }
+    else if (request.get_bulk_start() || !bulk_list.empty()) { // filling bulk list
+      bulk_list.push_back(&request);
+      if (request.get_bulk_start()) request.set_bulk_start(false);
+    }
+    else { // non-bulk request
+      arg = new ThreadArgument(this,&request);
+    }
 
     // switch through the expected DTR states
     switch (request.get_status().GetStatus()) {
@@ -644,7 +692,8 @@ namespace DataStaging {
 
       case DTRStatus::RESOLVE: {
         request.set_status(DTRStatus::RESOLVING);
-        Arc::CreateThreadFunction(&DTRResolve, (void*)arg, &thread_count);
+        if (bulk_arg) Arc::CreateThreadFunction(&DTRBulkResolve, (void*)bulk_arg, &thread_count);
+        else if (arg) Arc::CreateThreadFunction(&DTRResolve, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::QUERY_REPLICA: {
@@ -685,7 +734,8 @@ namespace DataStaging {
                               DTRErrorStatus::ERROR_UNKNOWN,
                               "Received a DTR in an unexpected state ("+request.get_status().str()+") in processor");
         request.push(SCHEDULER);
-        delete arg;
+        if (arg) delete arg;
+        if (bulk_arg) delete bulk_arg;
       }; break;
     }
   }

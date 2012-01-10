@@ -246,6 +246,13 @@ namespace DataStaging {
       /// True if some process requested cancellation
       bool cancel_request;
       
+      /// Bulk start flag
+      bool bulk_start;
+      /// Bulk end flag
+      bool bulk_end;
+      /// Whether bulk operations are supported for the source
+      bool source_supports_bulk;
+
       /// Endpoint of delivery service this DTR is scheduled for.
       /** By default it is LOCAL_DELIVERY so local Delivery is used. */
       Arc::URL delivery_endpoint;
@@ -483,6 +490,17 @@ namespace DataStaging {
      void set_force_registration(bool force) { force_registration = force; };
      /// Get force replication flag
      bool is_force_registration() const { return force_registration; };
+
+     /// Set bulk start flag
+     void set_bulk_start(bool value) { bulk_start = value; };
+     /// Get bulk start flag
+     bool get_bulk_start() const { return bulk_start; };
+     /// Set bulk end flag
+     void set_bulk_end(bool value) { bulk_end = value; };
+     /// Get bulk start flag
+     bool get_bulk_end() const { return bulk_end; };
+     /// Whether bulk operation is possible according to current state and src/dest
+     bool bulk_possible();
 
      /// Get Logger object, so that processes can log to this DTR's log
      Arc::Logger * get_logger() const { return logger; };

@@ -30,14 +30,30 @@ namespace DataStaging {
       ThreadArgument(Processor* proc_, DTR* dtr_):proc(proc_),dtr(dtr_) { };
     };
 
+    /// Class used to pass information to spawned thread (for bulk operations)
+    class BulkThreadArgument {
+     public:
+      Processor* proc;
+      std::list<DTR*> dtrs;
+      BulkThreadArgument(Processor* proc_, const std::list<DTR*>& dtrs_):proc(proc_),dtrs(dtrs_) { };
+    };
+
     /// Counter of active threads
     Arc::SimpleCounter thread_count;
+
+    /// List of DTRs to be processed in bulk. Filled between receiveDTR
+    /// receiving a DTR with bulk_start on and receiving one with bulk_end on.
+    /// It is up to the caller to make sure that all the requests are suitable
+    /// for bulk handling. The list is cleared after the DTR with bulk_end set.
+    std::list<DTR*> bulk_list;
 
     /* Thread methods which deal with each state */
     /// Check the cache to see if the file already exists
     static void DTRCheckCache(void* arg);
     /// Resolve replicas of source and destination
     static void DTRResolve(void* arg);
+    /// Bulk resolve replicas of source and destination
+    static void DTRBulkResolve(void* arg);
     /// Check if source exists
     static void DTRQueryReplica(void* arg);
     /// Remove destination file before creating a new version
