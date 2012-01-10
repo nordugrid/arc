@@ -57,14 +57,14 @@ namespace Arc {
 
     // Implemented by specialized classes
     virtual void GetJobInformation() = 0;
-    virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) = 0;
-    virtual bool CleanJob(const Job& job) = 0;
-    virtual bool CancelJob(const Job& job) = 0;
-    virtual bool RenewJob(const Job& job) = 0;
-    virtual bool ResumeJob(const Job& job) = 0;
+    virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const = 0;
+    virtual bool CleanJob(const Job& job) const = 0;
+    virtual bool CancelJob(const Job& job) const = 0;
+    virtual bool RenewJob(const Job& job) const = 0;
+    virtual bool ResumeJob(const Job& job) const = 0;
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const = 0;
-    virtual bool GetJobDescription(const Job& job, std::string& desc_str) = 0;
-    virtual URL CreateURL(std::string service, ServiceType st) = 0;
+    virtual bool GetJobDescription(const Job& job, std::string& desc_str) const = 0;
+    virtual URL CreateURL(std::string service, ServiceType st) const = 0;
 
   protected:
     const std::string flavour;

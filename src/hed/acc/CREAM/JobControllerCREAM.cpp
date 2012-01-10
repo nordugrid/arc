@@ -51,7 +51,7 @@ namespace Arc {
   bool JobControllerCREAM::RetrieveJob(const Job& job,
                                        std::string& downloaddir,
                                        bool usejobname,
-                                       bool force) {
+                                       bool force) const {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     if (!downloaddir.empty()) {
@@ -102,7 +102,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerCREAM::CleanJob(const Job& job) {
+  bool JobControllerCREAM::CleanJob(const Job& job) const {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -125,7 +125,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerCREAM::CancelJob(const Job& job) {
+  bool JobControllerCREAM::CancelJob(const Job& job) const {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -140,12 +140,12 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerCREAM::RenewJob(const Job& /* job */) {
+  bool JobControllerCREAM::RenewJob(const Job& /* job */) const {
     logger.msg(INFO, "Renewal of CREAM jobs is not supported");
     return false;
   }
 
-  bool JobControllerCREAM::ResumeJob(const Job& /* job */) {
+  bool JobControllerCREAM::ResumeJob(const Job& /* job */) const {
     logger.msg(INFO, "Resumation of CREAM jobs is not supported");
     return false;
   }
@@ -155,11 +155,11 @@ namespace Arc {
     return URL();
   }
 
-  bool JobControllerCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) {
+  bool JobControllerCREAM::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     return false;
   }
 
-  URL JobControllerCREAM::CreateURL(std::string service, ServiceType /* st */) {
+  URL JobControllerCREAM::CreateURL(std::string service, ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "ldap://" + service;

@@ -85,7 +85,7 @@ namespace Arc {
   bool JobControllerUNICORE::RetrieveJob(const Job& /* job */,
                                          std::string& /* downloaddir */,
                                          bool /* usejobname */,
-                                         bool /*force*/) {
+                                         bool /*force*/) const {
     /*
         logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
@@ -131,7 +131,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::CleanJob(const Job& /* job */) {
+  bool JobControllerUNICORE::CleanJob(const Job& /* job */) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -155,7 +155,7 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::CancelJob(const Job& /* job */) {
+  bool JobControllerUNICORE::CancelJob(const Job& /* job */) const {
     //     MCCConfig cfg;
     //     usercfg.ApplyToConfig(cfg);
     //     PathIterator pi(job.JobID.Path(), true);
@@ -179,12 +179,12 @@ namespace Arc {
     return false;
   }
 
-  bool JobControllerUNICORE::RenewJob(const Job& /* job */) {
+  bool JobControllerUNICORE::RenewJob(const Job& /* job */) const {
     logger.msg(ERROR, "Renewal of UNICORE jobs is not supported");
     return false;
   }
 
-  bool JobControllerUNICORE::ResumeJob(const Job& /* job */) {
+  bool JobControllerUNICORE::ResumeJob(const Job& /* job */) const {
     logger.msg(ERROR, "Resumation of UNICORE jobs is not supported");
     return false;
   }
@@ -194,12 +194,12 @@ namespace Arc {
     return URL();
   }
 
-  bool JobControllerUNICORE::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) {
+  bool JobControllerUNICORE::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     return false;
   }
 
   URL JobControllerUNICORE::CreateURL(std::string service,
-                                      ServiceType /* st */) {
+                                      ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos)
       service = "https://" + service;

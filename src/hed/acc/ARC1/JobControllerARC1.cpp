@@ -52,7 +52,7 @@ namespace Arc {
   bool JobControllerARC1::RetrieveJob(const Job& job,
                                       std::string& downloaddir,
                                       bool usejobname,
-                                      bool force) {
+                                      bool force) const {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     if (!downloaddir.empty()) {
@@ -105,7 +105,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC1::CleanJob(const Job& job) {
+  bool JobControllerARC1::CleanJob(const Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
@@ -114,7 +114,7 @@ namespace Arc {
     return ac.clean(idstr);
   }
 
-  bool JobControllerARC1::CancelJob(const Job& job) {
+  bool JobControllerARC1::CancelJob(const Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
@@ -123,12 +123,12 @@ namespace Arc {
     return ac.kill(idstr);
   }
 
-  bool JobControllerARC1::RenewJob(const Job& /* job */) {
+  bool JobControllerARC1::RenewJob(const Job& /* job */) const {
     logger.msg(INFO, "Renewal of ARC1 jobs is not supported");
     return false;
   }
 
-  bool JobControllerARC1::ResumeJob(const Job& job) {
+  bool JobControllerARC1::ResumeJob(const Job& job) const {
 
     if (!job.RestartState) {
       logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
@@ -162,7 +162,7 @@ namespace Arc {
     return url;
   }
 
-  bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) {
+  bool JobControllerARC1::GetJobDescription(const Job& job, std::string& desc_str) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout());
@@ -179,7 +179,7 @@ namespace Arc {
     return false;
   }
 
-  URL JobControllerARC1::CreateURL(std::string service, ServiceType /* st */) {
+  URL JobControllerARC1::CreateURL(std::string service, ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos)
       service = "https://" + service;

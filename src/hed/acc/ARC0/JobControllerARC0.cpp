@@ -211,7 +211,7 @@ namespace Arc {
   bool JobControllerARC0::RetrieveJob(const Job& job,
                                       std::string& downloaddir,
                                       bool usejobname,
-                                      bool force) {
+                                      bool force) const {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
     if (!downloaddir.empty()) {
@@ -262,7 +262,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerARC0::CleanJob(const Job& job) {
+  bool JobControllerARC0::CleanJob(const Job& job) const {
 
     logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
 
@@ -298,7 +298,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerARC0::CancelJob(const Job& job) {
+  bool JobControllerARC0::CancelJob(const Job& job) const {
 
     logger.msg(VERBOSE, "Cleaning job: %s", job.JobID.str());
 
@@ -334,7 +334,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerARC0::RenewJob(const Job& job) {
+  bool JobControllerARC0::RenewJob(const Job& job) const {
 
     logger.msg(VERBOSE, "Renewing credentials for job: %s", job.JobID.str());
 
@@ -370,7 +370,7 @@ namespace Arc {
     return true;
   }
 
-  bool JobControllerARC0::ResumeJob(const Job& job) {
+  bool JobControllerARC0::ResumeJob(const Job& job) const {
     if (!job.RestartState) {
       logger.msg(INFO, "Job %s does not report a resumable state", job.JobID.str());
       return false;
@@ -454,7 +454,7 @@ namespace Arc {
   }
 
   bool JobControllerARC0::GetJobDescription(const Job& job,
-                                            std::string& desc_str) {
+                                            std::string& desc_str) const {
     std::string jobid = job.JobID.str();
     logger.msg(VERBOSE, "Trying to retrieve job description of %s from "
                "computing resource", jobid);
@@ -539,7 +539,7 @@ namespace Arc {
     return true;
   }
 
-  URL JobControllerARC0::CreateURL(std::string service, ServiceType st) {
+  URL JobControllerARC0::CreateURL(std::string service, ServiceType st) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "ldap://" + service;

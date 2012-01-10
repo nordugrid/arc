@@ -12,23 +12,21 @@ namespace Arc {
 
   class JobControllerBES
     : public JobController {
-
-  private:
-    JobControllerBES(const UserConfig& usercfg);
   public:
+    JobControllerBES(const UserConfig& usercfg);
     ~JobControllerBES();
 
     static Plugin* Instance(PluginArgument *arg);
 
     virtual void GetJobInformation();
-    virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force);
-    virtual bool CleanJob(const Job& job);
-    virtual bool CancelJob(const Job& job);
-    virtual bool RenewJob(const Job& job);
-    virtual bool ResumeJob(const Job& job);
+    virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
+    virtual bool CleanJob(const Job& job) const;
+    virtual bool CancelJob(const Job& job) const;
+    virtual bool RenewJob(const Job& job) const;
+    virtual bool ResumeJob(const Job& job) const;
     virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
-    virtual bool GetJobDescription(const Job& job, std::string& desc_str);
-    URL CreateURL(std::string service, ServiceType st);
+    virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
+    virtual URL CreateURL(std::string service, ServiceType st) const;
 
   private:
     static Logger logger;

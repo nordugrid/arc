@@ -12,25 +12,23 @@ namespace Arc {
 
   class JobControllerCREAM
     : public JobController {
-
   public:
-
     JobControllerCREAM(const UserConfig& usercfg);
     ~JobControllerCREAM();
 
-    void GetJobInformation();
+    virtual void GetJobInformation();
+    virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const;
+    virtual bool CleanJob(const Job& job) const;
+    virtual bool CancelJob(const Job& job) const;
+    virtual bool RenewJob(const Job& job) const;
+    virtual bool ResumeJob(const Job& job) const;
+    virtual URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
+    virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
+    virtual URL CreateURL(std::string service, ServiceType st) const;
+
     static Plugin* Instance(PluginArgument *arg);
 
   private:
-    bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force);
-    bool CleanJob(const Job& job);
-    bool CancelJob(const Job& job);
-    bool RenewJob(const Job& job);
-    bool ResumeJob(const Job& job);
-    URL GetFileUrlForJob(const Job& job, const std::string& whichfile) const;
-    bool GetJobDescription(const Job& job, std::string& desc_str);
-    URL CreateURL(std::string service, ServiceType st);
-
     static Logger logger;
   };
 

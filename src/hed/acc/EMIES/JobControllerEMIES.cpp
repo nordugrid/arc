@@ -67,7 +67,7 @@ namespace Arc {
   bool JobControllerEMIES::RetrieveJob(const Job& job,
                                        std::string& downloaddir,
                                        bool usejobname,
-                                       bool force) {
+                                       bool force) const {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.fullstr());
 
     if (!downloaddir.empty()) {
@@ -118,7 +118,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerEMIES::CleanJob(const Job& job) {
+  bool JobControllerEMIES::CleanJob(const Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
@@ -127,17 +127,17 @@ namespace Arc {
     return ac.clean(ejob);
   }
 
-  bool JobControllerEMIES::CancelJob(const Job& job) {
+  bool JobControllerEMIES::CancelJob(const Job& job) const {
     logger.msg(INFO, "Cancel of EMI ES jobs is not supported");
     return false;
   }
 
-  bool JobControllerEMIES::RenewJob(const Job& /* job */) {
+  bool JobControllerEMIES::RenewJob(const Job& /* job */) const {
     logger.msg(INFO, "Renewal of EMI ES jobs is not supported");
     return false;
   }
 
-  bool JobControllerEMIES::ResumeJob(const Job& job) {
+  bool JobControllerEMIES::ResumeJob(const Job& job) const {
     logger.msg(INFO, "Resume of EMI ES jobs is not supported");
     return false;
   }
@@ -190,12 +190,12 @@ namespace Arc {
     return url;
   }
 
-  bool JobControllerEMIES::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) {
+  bool JobControllerEMIES::GetJobDescription(const Job& /* job */, std::string& /* desc_str */) const {
     logger.msg(INFO, "Retrieving job description of EMI ES jobs is not supported");
     return false;
   }
 
-  URL JobControllerEMIES::CreateURL(std::string service, ServiceType /* st */) {
+  URL JobControllerEMIES::CreateURL(std::string service, ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos)
       service = "https://" + service;

@@ -77,17 +77,17 @@ namespace Arc {
   bool JobControllerBES::RetrieveJob(const Job& /* job */,
                                         std::string& /* downloaddir */,
                                         bool /* usejobname */,
-                                        bool /*force*/) {
+                                        bool /*force*/) const {
     logger.msg(INFO, "Getting BES jobs is not supported");
     return false;
   }
 
-  bool JobControllerBES::CleanJob(const Job& /* job */) {
+  bool JobControllerBES::CleanJob(const Job& /* job */) const {
     logger.msg(INFO, "Cleaning of BES jobs is not supported");
     return false;
   }
 
-  bool JobControllerBES::CancelJob(const Job& job) {
+  bool JobControllerBES::CancelJob(const Job& job) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
@@ -95,17 +95,17 @@ namespace Arc {
     return ac.kill(idstr);
   }
 
-  bool JobControllerBES::RenewJob(const Job& /* job */) {
+  bool JobControllerBES::RenewJob(const Job& /* job */) const {
     logger.msg(INFO, "Renewal of BES jobs is not supported");
     return false;
   }
 
-  bool JobControllerBES::ResumeJob(const Job& /* job */) {
+  bool JobControllerBES::ResumeJob(const Job& /* job */) const {
     logger.msg(INFO, "Resuming BES jobs is not supported");
     return false;
   }
 
-  bool JobControllerBES::GetJobDescription(const Job& job, std::string& desc_str) {
+  bool JobControllerBES::GetJobDescription(const Job& job, std::string& desc_str) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     AREXClient ac(job.Cluster, cfg, usercfg.Timeout(), false);
@@ -125,7 +125,7 @@ namespace Arc {
     return URL();
   }
 
-  URL JobControllerBES::CreateURL(std::string service, ServiceType /* st */) {
+  URL JobControllerBES::CreateURL(std::string service, ServiceType /* st */) const {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos)
       service = "https://" + service;
