@@ -178,6 +178,7 @@ namespace ARex {
       };
       if(remove) fstore_.Remove(i->first,i->second);
     };
+    return true;
   }
 
 } // namespace ARex

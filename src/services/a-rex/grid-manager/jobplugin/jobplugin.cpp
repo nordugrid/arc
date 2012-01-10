@@ -121,7 +121,7 @@ static void job_subst(std::string& str,void* arg) {
 }
 
 
-JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):user_a(user_s.user),job_map(user_s.user),env(job_log,jobs_cfg,true) {
+JobPlugin::JobPlugin(std::istream &cfile,userspec_t &user_s):env(job_log,jobs_cfg,true),user_a(user_s.user),job_map(user_s.user) {
   initialized=true;
   rsl_opened=false;
   job_rsl_max_size = DEFAULT_JOB_RSL_MAX_SIZE;

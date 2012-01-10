@@ -213,7 +213,7 @@ class DelegationContainerSOAP {
 
  public:
   DelegationContainerSOAP(void);
-  ~DelegationContainerSOAP(void);
+  virtual ~DelegationContainerSOAP(void);
 
   /** See DelegationConsumerSOAP::DelegatedToken */
   bool DelegatedToken(std::string& credentials,XMLNode token,const std::string& client = "");

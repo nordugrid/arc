@@ -29,8 +29,8 @@ namespace Arc {
 
     operator T() const { return v; }
 
-    bool optIn;
     T v;
+    bool optIn;
   };
 
   template<class T>
