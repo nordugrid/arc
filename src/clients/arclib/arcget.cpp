@@ -11,10 +11,8 @@
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
-#include <arc/StringConv.h>
-#include <arc/client/JobController.h>
-#include <arc/client/JobSupervisor.h>
 #include <arc/UserConfig.h>
+#include <arc/client/JobSupervisor.h>
 
 #include "utils.h"
 
@@ -40,7 +38,7 @@ int RUNGET(main)(int argc, char **argv) {
                     istring("The arcget command is used for "
                             "retrieving the results from a job."));
 
-  std::list<std::string> jobs = opt.Parse(argc, argv);
+  std::list<std::string> jobidentifiers = opt.Parse(argc, argv);
 
   if (opt.showversion) {
     std::cout << Arc::IString("%s version %s", "arcget", VERSION)
@@ -82,7 +80,7 @@ int RUNGET(main)(int argc, char **argv) {
   }
 
   for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); it++) {
-    if (!Arc::Job::ReadJobIDsFromFile(*it, jobs)) {
+    if (!Arc::Job::ReadJobIDsFromFile(*it, jobidentifiers)) {
       logger.msg(Arc::WARNING, "Cannot read specified jobid file: %s", *it);
     }
   }
@@ -90,20 +88,29 @@ int RUNGET(main)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  if ((!opt.joblist.empty() || !opt.status.empty()) && jobs.empty() && opt.clusters.empty())
+  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.clusters.empty())
     opt.all = true;
 
-  if (jobs.empty() && opt.clusters.empty() && !opt.all) {
+  if (jobidentifiers.empty() && opt.clusters.empty() && !opt.all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
-  if (!jobs.empty() || opt.all)
-    usercfg.ClearSelectedServices();
+  std::list<std::string> rejectClusters;
+  splitendpoints(opt.clusters, rejectClusters);
+  if (!usercfg.ResolveAliases(opt.clusters, Arc::COMPUTING) || !usercfg.ResolveAliases(rejectClusters, Arc::COMPUTING)) {
+    return 1;
+  }
 
-  if (!opt.clusters.empty()) {
-    usercfg.ClearSelectedServices();
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
+  std::list<Arc::Job> jobs;
+  if (!Arc::Job::ReadJobsFromFile(usercfg.JobListFile(), jobs, jobidentifiers, opt.all, opt.clusters, rejectClusters)) {
+    logger.msg(Arc::ERROR, "Unable to read job information from file (%s)", usercfg.JobListFile());
+    return 1;
+  }
+
+  for (std::list<std::string>::const_iterator itJIdentifier = jobidentifiers.begin();
+       itJIdentifier != jobidentifiers.end(); ++itJIdentifier) {
+    std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIdentifier) << std::endl;
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
@@ -111,20 +118,23 @@ int RUNGET(main)(int argc, char **argv) {
     std::cout << Arc::IString("No jobs") << std::endl;
     return 0;
   }
-  std::list<Arc::JobController*> jobcont = jobmaster.GetJobControllers();
 
-  // If the user specified a joblist on the command line joblist equals
-  // usercfg.JobListFile(). If not use the default, ie. usercfg.JobListFile().
-  if (jobcont.empty()) {
-    logger.msg(Arc::ERROR, "No job controller plugins loaded");
-    return 1;
+  std::list<Arc::URL> retrieved, notretrieved;
+  std::list<std::string> downloaddirectories;
+  int retval = (int)!jobmaster.RetrieveByStatus(opt.status, opt.downloaddir, opt.usejobname, opt.forcedownload, retrieved, downloaddirectories, notretrieved);
+
+  for (std::list<std::string>::const_iterator it = downloaddirectories.begin();
+       it != downloaddirectories.end(); ++it) {
+    std::cout << Arc::IString("Results stored at: %s", *it) << std::endl;
   }
 
-  int retval = 0;
-  for (std::list<Arc::JobController*>::iterator it = jobcont.begin();
-       it != jobcont.end(); it++)
-    if (!(*it)->Get(opt.status, opt.downloaddir, opt.keep, opt.usejobname, opt.forcedownload))
-      retval = 1;
+  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), retrieved)) {
+    std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
+    std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+    retval = 1;
+  }
+
+  std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", retrieved.size()+notretrieved.size(), retrieved.size()) << std::endl;
 
   return retval;
 }
