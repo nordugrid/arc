@@ -187,4 +187,14 @@ namespace Arc {
     return jobcontroller;
   }
 
+  const JobController* JobControllerLoader::GetJobController(const std::string& flavour) const {
+    for (std::list<JobController*>::const_iterator it = jobcontrollers.begin();
+         it != jobcontrollers.end(); ++it) {
+      if ((*it)->Type() == flavour) {
+        return *it;
+      }
+    }
+
+    return NULL;
+  }
 } // namespace Arc

@@ -168,21 +168,21 @@ int RUNCAT(main)(int argc, char **argv) {
       continue;
     }
 
-    std::map<std::string, Arc::JobController*>::const_iterator itJC = jobmaster.GetJobControllerMap().find(it->Flavour);
-    if (itJC == jobmaster.GetJobControllerMap().end()) {
+    const Arc::JobController* jc = jobmaster.GetJobController(it->Flavour);
+    if (!jc) {
       logger.msg(Arc::VERBOSE, "Unable to find JobController for job %s (plugin type: %s)", it->JobID.fullstr(), it->Flavour);
       retval = 1;
       continue;
     }
 
-    Arc::URL src = itJC->second->GetFileUrlForJob((*it), whichfile);
+    Arc::URL src = jc->GetFileUrlForJob((*it), whichfile);
     if (!src) {
       logger.msg(Arc::ERROR, "Cannot create output of %s for job (%s): Invalid source %s", whichfile, it->JobID.fullstr(), src.str());
       retval = 1;
       continue;
     }
 
-    if (!itJC->second->CopyJobFile(src, dst)) {
+    if (!jc->CopyJobFile(src, dst)) {
       retval = 1;
       continue;
     }

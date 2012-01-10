@@ -44,6 +44,8 @@ namespace Arc {
   public:
     virtual ~JobController();
 
+    const std::string& Type() const { return flavour; }
+
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
 
     bool CopyJobFile(const URL& src, const URL& dst) const;
@@ -95,6 +97,8 @@ namespace Arc {
     const std::list<JobController*>& GetJobControllers() const {
       return jobcontrollers;
     }
+
+    const JobController* GetJobController(const std::string& flavour) const;
 
   private:
     std::list<JobController*> jobcontrollers;
