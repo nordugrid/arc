@@ -38,6 +38,16 @@ namespace Arc {
       return false;
     }
 
+    if (!job.JobID) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the job ID (%s) is not a valid URL", job.JobID.fullstr(), job.JobID.fullstr());
+      return false;
+    }
+
+    if (!job.Cluster) {
+      logger.msg(VERBOSE, "Ignoring job (%s), the resource URL is not a valid URL", job.JobID.fullstr(), job.Cluster.str());
+      return false;
+    }
+
     std::map<std::string, JobController*>::iterator currentJC = loadedJCs.find(job.Flavour);
     if (currentJC == loadedJCs.end()) {
       JobController *jc = loader.load(job.Flavour, usercfg);
@@ -52,7 +62,7 @@ namespace Arc {
       return false;
     }
 
-    currentJC->second->FillJobStore(job);
+    currentJC->second->jobstore.push_back(job);
     return true;
   }
 
