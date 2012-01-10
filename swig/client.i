@@ -22,6 +22,7 @@
 
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
+%template(JobControllerMap) std::map<std::string, Arc::JobController *>;
 %template(JobList) std::list<Arc::Job>;
 %template(JobDescriptionList) std::list<Arc::JobDescription>;
 %template(JobStateList) std::list<Arc::JobState>;
