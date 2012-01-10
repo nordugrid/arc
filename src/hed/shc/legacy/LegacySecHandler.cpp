@@ -52,20 +52,24 @@ class LegacySHCP: public ConfigParser {
  protected:
   virtual bool BlockStart(const std::string& id, const std::string& name) {
     group_match_ = AAA_NO_MATCH;
+    group_name_ = "";
     vo_match_ = false;
+    vo_name_ = "";
     return true;
   };
 
   virtual bool BlockEnd(const std::string& id, const std::string& name) {
     if(id == "group") {
-      if((group_match_ == AAA_POSITIVE_MATCH)  && !name.empty()) {
-        auth_.add_group(name);
-        sattr_.AddGroup(name);
+      if(group_name_.empty()) group_name_ = name;
+      if((group_match_ == AAA_POSITIVE_MATCH) && !group_name_.empty()) {
+        auth_.add_group(group_name_);
+        sattr_.AddGroup(group_name_);
       };
     } else if(id == "vo") {
-      if(vo_match_ && !name.empty()) {
-        auth_.add_vo(name);
-        sattr_.AddVO(name);
+      if(vo_name_.empty()) vo_name_ = name;
+      if(vo_match_ && !vo_name_.empty()) {
+        auth_.add_vo(vo_name_);
+        sattr_.AddVO(vo_name_);
       };
     };
     return true;
@@ -85,6 +89,8 @@ class LegacySHCP: public ConfigParser {
             int r = auth_.evaluate((cmd + " " + line).c_str());
             vo_match_ = (r == AAA_POSITIVE_MATCH);
           };
+        } else if(cmd == "vo") {
+          vo_name_ = line;
         };
       };
     };
@@ -95,7 +101,9 @@ class LegacySHCP: public ConfigParser {
   AuthUser& auth_;
   LegacySecAttr& sattr_;
   int group_match_;
+  std::string group_name_;
   bool vo_match_;
+  std::string vo_name_;
 };
 
 

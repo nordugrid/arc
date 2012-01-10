@@ -49,6 +49,7 @@ int AuthUser::match_group(const char* line) {
 int AuthUser::match_vo(const char* line) {
   std::string::size_type n = 0;
   for(;;) {
+    if(n == std::string::npos) break;
     std::string s("");
     n = Arc::get_token(s,line,n," ","\"","\"");
     if(s.empty()) continue;
