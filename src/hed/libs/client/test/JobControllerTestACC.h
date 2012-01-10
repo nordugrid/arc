@@ -25,7 +25,7 @@ public:
   static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
 
 private:
-  virtual bool RetrieveJob(const Arc::Job& job, const std::string& downloaddir, const bool usejobname, const bool force) { return JobControllerTestACCControl::jobStatus; }
+  virtual bool RetrieveJob(const Arc::Job& job, std::string& downloaddir, const bool usejobname, const bool force) { return JobControllerTestACCControl::jobStatus; }
   virtual bool CleanJob(const Arc::Job& job) { return JobControllerTestACCControl::cleanStatus; }
   virtual bool CancelJob(const Arc::Job& job) { return JobControllerTestACCControl::cancelStatus; }
   virtual bool RenewJob(const Arc::Job& job) { return JobControllerTestACCControl::renewStatus; }

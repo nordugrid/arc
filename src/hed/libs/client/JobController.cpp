@@ -95,8 +95,8 @@ namespace Arc {
     std::list<URL> toberemoved;
     for (std::list< std::list<Job>::iterator >::iterator it = downloadable.begin();
          it != downloadable.end(); it++) {
-
-      bool downloaded = RetrieveJob(**it, downloaddir, usejobname, force);
+      std::string downloaddir_ = downloaddir;
+      bool downloaded = RetrieveJob(**it, downloaddir_, usejobname, force);
       if (!downloaded) {
         logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.fullstr());
         ok = false;

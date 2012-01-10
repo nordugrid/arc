@@ -83,7 +83,7 @@ namespace Arc {
   }
 
   bool JobControllerUNICORE::RetrieveJob(const Job& /* job */,
-                                         const std::string& /* downloaddir */,
+                                         std::string& /* downloaddir */,
                                          bool /* usejobname */,
                                          bool /*force*/) {
     /*

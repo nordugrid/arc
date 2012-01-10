@@ -141,8 +141,9 @@ namespace Arc {
      * @see JobController::GetJob.
      * @return true if all jobs are successfully retrieved, otherwise false.
      **/
-    bool RetrieveByStatus(const std::list<std::string>& statusfilter, const std::string& downloaddir,
-                          bool usejobname, bool force, std::list<URL>& retrieved, std::list<URL>& notretrieved);
+    bool RetrieveByStatus(const std::list<std::string>& statusfilter, const std::string& downloaddirprefix,
+                          bool usejobname, bool force, std::list<URL>& retrieved, std::list<std::string>& downloaddirectories,
+                          std::list<URL>& notretrieved);
 
     /// Renew job credentials
     /**

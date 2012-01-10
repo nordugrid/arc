@@ -209,18 +209,20 @@ namespace Arc {
   }
 
   bool JobControllerARC0::RetrieveJob(const Job& job,
-                                      const std::string& downloaddir,
+                                      std::string& downloaddir,
                                       bool usejobname,
                                       bool force) {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.str());
 
-    std::string jobidnum;
-    if (usejobname && !job.Name.empty())
-      jobidnum = job.Name;
-    else {
+    if (!downloaddir.empty()) {
+      downloaddir += G_DIR_SEPARATOR_S;
+    }
+    if (usejobname && !job.Name.empty()) {
+      downloaddir += job.Name;
+    } else {
       std::string path = job.JobID.Path();
       std::string::size_type pos = path.rfind('/');
-      jobidnum = path.substr(pos + 1);
+      downloaddir += path.substr(pos + 1);
     }
 
     std::list<std::string> files;
@@ -230,7 +232,7 @@ namespace Arc {
     }
 
     URL src(job.JobID);
-    URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
+    URL dst(downloaddir);
 
     std::string srcpath = src.Path();
     std::string dstpath = dst.Path();

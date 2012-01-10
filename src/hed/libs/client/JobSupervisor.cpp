@@ -121,10 +121,11 @@ namespace Arc {
   }
 
   bool JobSupervisor::RetrieveByStatus(const std::list<std::string>& status,
-                                       const std::string& downloaddir,
+                                       const std::string& downloaddirprefix,
                                        bool usejobname,
                                        bool force,
                                        std::list<URL>& retrieved,
+                                       std::list<std::string>& downloaddirectories,
                                        std::list<URL>& notretrieved) {
     bool ok = true;
 
@@ -156,6 +157,7 @@ namespace Arc {
 
       for (std::list<Job*>::iterator it = downloadable.begin();
            it != downloadable.end(); it++) {
+        std::string downloaddir = downloaddirprefix;
         if (!(*itJobC)->RetrieveJob(**it, downloaddir, usejobname, force)) {
           logger.msg(ERROR, "Failed getting job (%s)", (*it)->JobID.fullstr());
           ok = false;
@@ -163,6 +165,7 @@ namespace Arc {
         }
         else {
           retrieved.push_back((*it)->JobID);
+          downloaddirectories.push_back(downloaddir);
         }
       }
     }

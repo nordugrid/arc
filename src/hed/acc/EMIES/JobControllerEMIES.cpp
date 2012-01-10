@@ -65,20 +65,22 @@ namespace Arc {
   }
 
   bool JobControllerEMIES::RetrieveJob(const Job& job,
-                                       const std::string& downloaddir,
+                                       std::string& downloaddir,
                                        bool usejobname,
                                        bool force) {
     logger.msg(VERBOSE, "Downloading job: %s", job.JobID.fullstr());
 
-    std::string jobidnum;
+    if (!downloaddir.empty()) {
+      downloaddir += G_DIR_SEPARATOR_S;
+    }
     if (usejobname && !job.Name.empty()) {
-      jobidnum = job.Name;
+      downloaddir += job.Name;
     } else {
-      jobidnum = job.JobID.Option("emiesjobid");
+      downloaddir += job.JobID.Option("emiesjobid");
     }
 
     URL src(GetFileUrlForJob(job,""));
-    URL dst(downloaddir.empty() ? jobidnum : downloaddir + G_DIR_SEPARATOR_S + jobidnum);
+    URL dst(downloaddir);
     std::list<std::string> files;
     if (!ListFilesRecursive(src, files)) {
       logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", job.JobID.fullstr());
