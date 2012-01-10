@@ -16,7 +16,8 @@ public:
     CO_SUB, CO_MIGRATE, CO_RESUB, CO_TEST,
     CO_CAT, CO_CLEAN, CO_GET, CO_KILL, CO_RENEW, CO_RESUME, CO_STAT,
     CO_SYNC,
-    CO_INFO
+    CO_INFO,
+    CO_ACL
  };
 
   ClientOptions(Client_t c,

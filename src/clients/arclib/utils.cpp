@@ -128,7 +128,7 @@ ClientOptions::ClientOptions(Client_t c,
     testjobid(-1),
     timeout(-1)
 {
-  bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT);
+  bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
   AddOption('c', "cluster",
             istring("explicitly select or reject a specific resource"),

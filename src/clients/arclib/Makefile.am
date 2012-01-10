@@ -1,8 +1,8 @@
 bin_PROGRAMS = arcsub arcget arcstat arcinfo arckill arcclean arccat arcsync \
-	arcresub arcmigrate arcresume arcrenew arctest
+	arcresub arcmigrate arcresume arcrenew arctest arcacl
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
-	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1 arctest.1
+	arcresub.1 arcmigrate.1 arcsync.1 arcresume.1 arcrenew.1 arctest.1 arcacl.1
 
 CLILIBS = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
@@ -63,3 +63,7 @@ arcrenew_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 arcresume_SOURCES  = arcresume.cpp utils.cpp utils.h
 arcresume_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 arcresume_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
+
+arcacl_SOURCES  = arcacl.cpp utils.cpp utils.h
+arcacl_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+arcacl_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
