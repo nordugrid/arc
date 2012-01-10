@@ -927,7 +927,7 @@ namespace Arc {
       }
       logger.msg(VERBOSE, "Closing write channel");
       // turn off checks during stop_writing() if force is turned on
-      destination_url.SetAdditionalChecks(!force_registration);
+      destination_url.SetAdditionalChecks(destination_url.GetAdditionalChecks() && !force_registration);
       if (!destination_url.StopWriting().Passed()) {
         destination_url.FinishWriting(true);
         buffer.error_write(true);
