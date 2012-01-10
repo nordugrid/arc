@@ -58,68 +58,6 @@ namespace Arc {
     return true;
   }
 
-  bool JobController::Get(const std::list<std::string>& status,
-                          const std::string& downloaddir,
-                          bool keep,
-                          bool usejobname,
-                          bool force) {
-    GetJobInformation();
-
-    std::list< std::list<Job>::iterator > downloadable;
-    for (std::list<Job>::iterator it = jobstore.begin();
-         it != jobstore.end(); it++) {
-
-      if (!it->State) {
-        continue;
-      }
-
-      if (!status.empty() &&
-          std::find(status.begin(), status.end(), it->State()) == status.end() &&
-          std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())
-        continue;
-
-      if (it->State == JobState::DELETED) {
-        logger.msg(WARNING, "Job has already been deleted: %s",
-                   it->JobID.fullstr());
-        continue;
-      }
-      else if (!it->State.IsFinished()) {
-        logger.msg(WARNING, "Job has not finished yet: %s", it->JobID.fullstr());
-        continue;
-      }
-
-      downloadable.push_back(it);
-    }
-
-    bool ok = true;
-    std::list<URL> toberemoved;
-    for (std::list< std::list<Job>::iterator >::iterator it = downloadable.begin();
-         it != downloadable.end(); it++) {
-      std::string downloaddir_ = downloaddir;
-      bool downloaded = RetrieveJob(**it, downloaddir_, usejobname, force);
-      if (!downloaded) {
-        logger.msg(ERROR, "Failed downloading job %s", (*it)->JobID.fullstr());
-        ok = false;
-        continue;
-      }
-
-      if (!keep) {
-        bool cleaned = CleanJob(**it);
-        if (!cleaned) {
-          logger.msg(ERROR, "Failed cleaning job %s", (*it)->JobID.fullstr());
-          ok = false;
-          continue;
-        }
-
-        toberemoved.push_back((*it)->IDFromEndpoint);
-        jobstore.erase(*it);
-      }
-    }
-
-    Job::RemoveJobsFromFile(usercfg.JobListFile(), toberemoved);
-    return ok;
-  }
-
   bool JobController::ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix) const {
     std::list<FileInfo> outputfiles;
 

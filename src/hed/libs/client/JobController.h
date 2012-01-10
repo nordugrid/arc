@@ -47,12 +47,6 @@ namespace Arc {
     /// Fill jobstore
     bool FillJobStore(const Job& job);
 
-    bool Get(const std::list<std::string>& status,
-             const std::string& downloaddir,
-             bool keep,
-             bool usejobname,
-             bool force = true);
-
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
 
     bool CopyJobFile(const URL& src, const URL& dst) const;
