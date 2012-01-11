@@ -7,6 +7,8 @@ use Storable;
 use FileHandle;
 use File::Temp;
 use POSIX qw(ceil);
+# enable this below to dump datastructures
+# use Data::Dumper;
 
 use strict;
 
@@ -921,14 +923,17 @@ sub collect($) {
 	    }
 
 	    if ( $host_info->{gm_alive} ne 'all' ) {
-		if ($host_info->{gm_alive} eq 'some') {
+          if ($host_info->{gm_alive} eq 'some') {
 		    push @{$healthissues{warning}}, 'One or more grid managers are down';
-		} else {
-		    push @{$healthissues{critical}},
-			  $config->{remotegmdirs} ? 'All grid managers are down'
-						  : 'Grid manager is down';
-		}
+          } else {
+              push @{$healthissues{critical}},
+                     $config->{remotegmdirs} ? 'All grid managers are down'
+					 : 'Grid manager is down';
+          }
 	    }
+
+        # TODO: check if gridftpd is running, by checking pidfile existence
+        push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{GridftpdPidFile});
 
 	    if (%healthissues) {
 		my @infos;

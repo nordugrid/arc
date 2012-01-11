@@ -125,6 +125,7 @@ my $gridftpd_options = {
     GridftpdMountPoint => '*',
     GridftpdAllowNew => '*',
     remotegmdirs => [ '*' ],
+    GridftpdPidFile => '*',
 };
 
 # # # # # # # # # # # # # #
@@ -680,6 +681,7 @@ sub build_config_from_inifile {
         $config->{GridftpdMountPoint} = $gjconf{path} if $gjconf{path};
         $config->{GridftpdAllowNew} = $gjconf{allownew} if defined $gjconf{allownew};
         $config->{remotegmdirs} = $gjconf{remotegmdirs} if defined $gjconf{remotegmdirs};
+        $config->{GridftpdPidFile} = $gconf{pidfile} if defined $gconf{pidfile};
     } else {
         $config->{GridftpdEnabled} = 'no';
     }
