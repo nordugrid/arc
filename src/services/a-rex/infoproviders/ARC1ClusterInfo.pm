@@ -590,25 +590,10 @@ sub collect($) {
 	$endpointsnum++;
     };
     
-    # check if WS interface is actually running
-    # done with netstat but I'd like to be smarter
+    # check if WS interface is configured in arc.conf
+    # to show its endpoint
     my $arexhostport = $config->{arexhostport};
-    my $netstat=`netstat -antup`;
-    if ($? == -1) {
-      $log->warning("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port");
-    } else {
-	# searches if arched is listed in netstat output
-	# this commented line below is for testing. Better way would be mocking netstat
-	# best way would be ask arched for its endpoint...
-	# if (1){ 
-	if ( $netstat =~ m/arched/){ 
-	  # $log->info("arched found with netstat");
-	  $endpointsnum++; 
-	} else {
-	    $log->warning("arched A-REX endpoint not found with netstat. No WS endpoint information will be published in the infosys. Check if arched process is running");
-	    $arexhostport = '';
-	};
-    };
+    $endpointsnum++ unless ($arexhostport eq '');
     
     # The following is for EMI-ES
     my $emieshostport = '';
@@ -801,9 +786,28 @@ sub collect($) {
 		}
 	    }
 
+        # check if WS interface is actually running
+        # done with netstat but I'd like to be smarter
+        # this only works if the effective user is root
+        # TODO: find a better way to do this. Ask A-REX?
+        if ($> == 0) {
+          my $netstat=`netstat -antup`;
+          if ( $? != 0 ) {
+            push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port";
+          } else {
+              # searches if arched is listed in netstat output
+              # best way would be ask arched if its service is up...?
+            if( $netstat !~ m/arched/ ) {
+                push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
+            }
+          }
+        } else {
+           push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Service state cannot be determined";
+        }
+
 	    if (%healthissues) {
 		my @infos;
-		for my $level (qw(critical warning other)) {
+		for my $level (qw(critical warning other unknown)) {
 		    next unless $healthissues{$level};
 		    $cep->{HealthState} ||= $level;
 		    push @infos, @{$healthissues{$level}};
@@ -932,7 +936,7 @@ sub collect($) {
           }
 	    }
 
-        # TODO: check if gridftpd is running, by checking pidfile existence
+        # check if gridftpd is running, by checking pidfile existence
         push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{GridftpdPidFile});
 
 	    if (%healthissues) {
