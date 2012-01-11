@@ -49,6 +49,8 @@ namespace Arc {
     bool ListFilesRecursive(const URL& dir, std::list<std::string>& files, const std::string& prefix = "") const;
 
     bool CopyJobFile(const URL& src, const URL& dst) const;
+ 
+    std::list<Job>& GetJobs() { return jobstore; }
 
     // Implemented by specialized classes
     virtual void UpdateJobs(std::list<Job>& jobs) const = 0;

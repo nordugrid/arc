@@ -19,7 +19,7 @@ public:
     : JobController(usercfg, "TEST") { JobControllerTestACCControl::jobs = &jobstore; }
   ~JobControllerTestACC() {}
 
-  void UpdateJobs(std::list<Job>&) const {}
+  void UpdateJobs(std::list<Arc::Job>&) const {}
   virtual bool RetrieveJob(const Arc::Job& job, std::string& downloaddir, const bool usejobname, const bool force) const { return JobControllerTestACCControl::jobStatus; }
   virtual bool CleanJob(const Arc::Job& job) const { return JobControllerTestACCControl::cleanStatus; }
   virtual bool CancelJob(const Arc::Job& job) const { return JobControllerTestACCControl::cancelStatus; }
