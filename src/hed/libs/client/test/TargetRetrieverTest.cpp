@@ -31,8 +31,6 @@ private:
 };
 
 TargetRetrieverTest::TargetRetrieverTest() : tr(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  Arc::SetEnv("ARC_PLUGIN_PATH", ".libs");
-
   trl = new Arc::TargetRetrieverLoader();
 }
 

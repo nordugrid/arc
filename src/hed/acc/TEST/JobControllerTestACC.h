@@ -10,7 +10,7 @@
 #include <arc/client/Job.h>
 #include <arc/client/JobController.h>
 
-#include "TestACCControl.h"
+#include <arc/client/TestACCControl.h>
 
 class JobControllerTestACC
   : public Arc::JobController {

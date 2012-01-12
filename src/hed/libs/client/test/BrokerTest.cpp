@@ -8,7 +8,7 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobDescription.h>
 
-#include "TestACCControl.h"
+#include <arc/client/TestACCControl.h>
 
 #define CPPASSERT(n)\
   b->PreFilterTargets(etl, job);\
@@ -54,8 +54,6 @@ private:
 BrokerTest::BrokerTest()
   : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)),
     etl(1, Arc::ExecutionTarget()) {
-  Arc::SetEnv("ARC_PLUGIN_PATH", ".libs");
-
   bl = new Arc::BrokerLoader();
 }
 

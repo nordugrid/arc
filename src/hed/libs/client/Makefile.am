@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libarcclient.la
+lib_LTLIBRARIES = libarcclient.la libarcclienttest.la
 noinst_PROGRAMS = test_jobdescription
 
 if XMLSEC_ENABLED
@@ -42,6 +42,18 @@ libarcclient_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libarcclient_la_LDFLAGS = -version-info 1:0:0
+
+libarcclienttest_ladir = $(pkgincludedir)/client/test
+libarcclienttest_la_HEADERS = TestACCControl.h
+libarcclienttest_la_SOURCES = TestACCControl.cpp
+libarcclienttest_la_CXXFLAGS = -I$(top_srcdir)/include \
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+libarcclienttest_la_LIBADD = \
+	libarcclient.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(LIBXML2_LIBS)
+libarcclienttest_la_LDFLAGS = -version-info 1:0:0
+
 
 test_jobdescription_SOURCES = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \

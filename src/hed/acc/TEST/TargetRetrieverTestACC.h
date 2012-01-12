@@ -8,7 +8,7 @@
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
 
-#include "TestACCControl.h"
+#include <arc/client/TestACCControl.h>
 
 namespace Arc {
 enum ServiceType;

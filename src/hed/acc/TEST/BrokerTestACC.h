@@ -8,7 +8,7 @@
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
 
-#include "TestACCControl.h"
+#include <arc/client/TestACCControl.h>
 
 class BrokerTestACC
   : public Arc::Broker {

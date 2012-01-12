@@ -31,8 +31,6 @@ private:
 };
 
 SubmitterTest::SubmitterTest() : s(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  Arc::SetEnv("ARC_PLUGIN_PATH", ".libs");
-
   sl = new Arc::SubmitterLoader();
 }
 

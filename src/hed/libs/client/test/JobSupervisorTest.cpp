@@ -8,7 +8,7 @@
 #include <arc/client/Job.h>
 #include <arc/client/JobSupervisor.h>
 
-#include "TestACCControl.h"
+#include <arc/client/TestACCControl.h>
 
 class JobSupervisorTest
   : public CppUnit::TestFixture {
@@ -56,8 +56,6 @@ private:
 Arc::JobState::StateType JobSupervisorTest::st = Arc::JobState::UNDEFINED;
 
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  Arc::SetEnv("ARC_PLUGIN_PATH", ".libs");
-
   j.Flavour = "TEST";
   j.Cluster = Arc::URL("http://test.nordugrid.org");
   j.InfoEndpoint = Arc::URL("http://test.nordugrid.org");

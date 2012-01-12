@@ -31,8 +31,6 @@ private:
 };
 
 JobControllerTest::JobControllerTest() : jc(NULL), usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
-  Arc::SetEnv("ARC_PLUGIN_PATH", ".libs");
-
   jcl = new Arc::JobControllerLoader();
 }
 

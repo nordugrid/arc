@@ -3,8 +3,7 @@
 
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobDescriptionParser.h>
-
-#include "TestACCControl.h"
+#include <arc/client/TestACCControl.h>
 
 class JobDescriptionParserTestACC
   : public Arc::JobDescriptionParser {

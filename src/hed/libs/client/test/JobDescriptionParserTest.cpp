@@ -28,8 +28,6 @@ private:
 };
 
 JobDescriptionParserTest::JobDescriptionParserTest() : jdp(NULL) {
-  Arc::SetEnv("ARC_PLUGIN_PATH", ".libs");
-
   jdpl = new Arc::JobDescriptionParserLoader();
 }
 
