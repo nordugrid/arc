@@ -78,11 +78,13 @@ void JobSupervisorTest::TestConstructor()
   // One and only one JobController should be loaded.
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetJobControllers().size());
 
-  // JobController should contain 2 jobs.
-  CPPUNIT_ASSERT_EQUAL(2, (int)js->GetJobControllers().front()->GetJobs().size());
+  jobs = js->GetJobs();
 
-  CPPUNIT_ASSERT_EQUAL(id1.str(), js->GetJobControllers().front()->GetJobs().front().IDFromEndpoint.str());
-  CPPUNIT_ASSERT_EQUAL(id2.str(), js->GetJobControllers().front()->GetJobs().back().IDFromEndpoint.str());
+  // JobController should contain 2 jobs.
+  CPPUNIT_ASSERT_EQUAL(2, (int)jobs.size());
+
+  CPPUNIT_ASSERT_EQUAL(id1.str(), jobs.front().IDFromEndpoint.str());
+  CPPUNIT_ASSERT_EQUAL(id2.str(), jobs.back().IDFromEndpoint.str());
 
   delete js;
 }
@@ -279,7 +281,7 @@ void JobSupervisorTest::TestCancelByStatus()
   CPPUNIT_ASSERT_EQUAL(0, (int)notCancelled.size());
 
   status.clear();
-  
+
   cancelled.clear();
   notCancelled.clear();
   JobControllerTestACCControl::cancelStatus = true;

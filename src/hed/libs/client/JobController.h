@@ -50,8 +50,6 @@ namespace Arc {
 
     bool CopyJobFile(const URL& src, const URL& dst) const;
  
-    std::list<Job>& GetJobs() { return jobstore; }
-
     // Implemented by specialized classes
     virtual void UpdateJobs(std::list<Job>& jobs) const = 0;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const = 0;
