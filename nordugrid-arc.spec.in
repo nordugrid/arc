@@ -904,6 +904,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %files -f %{name}.lang
 %defattr(-,root,root,-)
 %{_libdir}/libarcclient.so.*
+%{_libdir}/libarcclienttest.so.*
 %{_libdir}/libarccommon.so.*
 %{_libdir}/libarccredential.so.*
 %{_libdir}/libarccredentialstore.so.*
@@ -1212,6 +1213,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libmcctcp.apd
 %{_libdir}/%{pkgdir}/libmccmsgvalidator.apd
 %{_libdir}/%{pkgdir}/libmcctls.apd
+%{_libdir}/%{pkgdir}/test/libaccTEST.so
 
 %files plugins-globus
 %defattr(-,root,root,-)
