@@ -592,8 +592,11 @@ sub collect($) {
     
     # check if WS interface is configured in arc.conf
     # to show its endpoint
-    my $arexhostport = $config->{arexhostport};
-    $endpointsnum++ unless ($arexhostport eq '');
+    my $arexhostport = '';
+    if ($config->{arexhostport}) {
+      $arexhostport = $config->{arexhostport};
+      $endpointsnum++;
+    }
     
     # The following is for EMI-ES
     my $emieshostport = '';
@@ -1300,7 +1303,8 @@ sub collect($) {
 	$cact->{Validity} = $validity_ttl;
 
 	my $share = $gmjob->{share};
-	my $gridid = $config->{endpoint}."/$jobid";
+    # TODO: this here is never used! What was here for?
+	#my $gridid = $config->{endpoint}."/$jobid";
 
 	$cact->{Type} = 'single';
 	$cact->{ID} = $cactIDs{$share}{$jobid};

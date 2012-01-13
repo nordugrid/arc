@@ -383,14 +383,13 @@ sub fix_config {
         $port ||= 80 if $proto eq "http";
         $port ||= 443 if $proto eq "https";
         $config->{arexhostport} = "$host:$port";
-    } else {
-        $config->{endpoint} = "https://$hostname/arex";
-        $config->{arexhostport} = "$hostname:443";
-        $log->warning("Config option endpoint (or arex_mount_point) is missing or not a valid URL. Assuming: ".$config->{endpoint});
-    }
+    } 
+    
     if ($config->{enable_emies_interface} and $config->{enable_emies_interface} = "yes") {
         if ($config->{arexhostport}) {
             $config->{emieshostport} = $config->{arexhostport};
+        } else {
+            $log->warning("EMI-ES interface cannot be enabled. arex_mount_point not defined in configuration.");
         }
     }
 
