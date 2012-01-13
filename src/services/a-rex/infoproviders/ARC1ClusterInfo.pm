@@ -1902,7 +1902,9 @@ sub collect($) {
 
     my $getAdminDomain = sub {
         my $dom = { ID => $adID,
-                    Name => $config->{AdminDomain}
+                    Name => $config->{AdminDomain},
+                    CreationTime => $creation_time,
+                    Validity => $validity_ttl
                   };
 
         # Location and Contact goes here.
