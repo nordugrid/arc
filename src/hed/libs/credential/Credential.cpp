@@ -1012,8 +1012,8 @@ namespace Arc {
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
 
-    if(is_file) {
-      try {
+    try {
+      if(is_file) {
         loadCertificateFile(certfile, cert_, &cert_chain_);
         if(cert_) check_cert_type(cert_,cert_type_);
         if(keyfile.empty()) {
@@ -1033,28 +1033,26 @@ namespace Arc {
           if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
             loadKeyFile(certfile, pkey_, passphrase4key);
         }
-        else
+        else {
           loadKeyFile(keyfile, pkey_, passphrase4key);
-      } catch(std::exception& err){
-        CredentialLogger.msg(ERROR, "%s", err.what());
-        LogError(); return;
-      }
-    } else {
-      try {
+        }
+      } else {
         loadCertificateString(certfile, cert_, &cert_chain_);
         if(cert_) check_cert_type(cert_,cert_type_);
         if(keyfile.empty()) {
           std::string keystr;
           keystr = certfile;
-          if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos)
+          if(keystr.find("BEGIN RSA PRIVATE KEY") != std::string::npos) {
             loadKeyString(certfile, pkey_, passphrase4key);
+          }
         }
-        else
+        else {
           loadKeyString(keyfile, pkey_, passphrase4key);
-      } catch(std::exception& err){
-        CredentialLogger.msg(ERROR, "%s", err.what());
-        LogError(); return;
+        }
       }
+    } catch(std::exception& err){
+      CredentialLogger.msg(ERROR, "%s", err.what());
+      LogError(); //return;
     }
 
     //Get the lifetime of the credential
@@ -1066,17 +1064,17 @@ namespace Arc {
       for (int i=0; i<sk_X509_EXTENSION_num(cert_info->extensions); i++) {
         ext = X509_EXTENSION_dup(sk_X509_EXTENSION_value(cert_info->extensions, i));
         if (ext == NULL) {
-          CredentialLogger.msg(ERROR,"Failed to duplicate extension"); LogError(); return;
+          CredentialLogger.msg(ERROR,"Failed to duplicate extension");
+          LogError(); break; //return;
         }
         if (!sk_X509_EXTENSION_push(extensions_, ext)) {
           CredentialLogger.msg(ERROR,"Failed to add extension into member variable: extensions_"); 
-          LogError(); return;
+          LogError(); break; //return;
         }
       }
     }
 
-    if(!cacertfile_.empty() || !cacertdir_.empty())
-      Verify();
+    if(!cacertfile_.empty() || !cacertdir_.empty()) Verify();
   }
 
   #ifdef HAVE_OPENSSL_OLDRSA
@@ -1860,7 +1858,7 @@ err:
     int length;
     bio = BIO_new(BIO_s_mem());
     if(pkey_ == NULL) {
-      CredentialLogger.msg(ERROR, "Private key of the credential object is NULL");
+      //CredentialLogger.msg(ERROR, "Private key of the credential object is NULL");
       BIO_free(bio); return NULL;
     }
     length = i2d_PrivateKey_bio(bio, pkey_);
@@ -2193,9 +2191,18 @@ err:
 
   bool Credential::SignRequest(Credential* proxy, BIO* outputbio, bool if_der){
     bool res = false;
-    if(proxy == NULL) {CredentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
-    if(proxy->req_ == NULL) {CredentialLogger.msg(ERROR, "The credential to be signed contains no request"); return false; }
-    if(outputbio == NULL) { CredentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
+    if(proxy == NULL) {
+      CredentialLogger.msg(ERROR, "The credential to be signed is NULL");
+      return false;
+    }
+    if(proxy->req_ == NULL) {
+      CredentialLogger.msg(ERROR, "The credential to be signed contains no request");
+      return false;
+    }
+    if(outputbio == NULL) {
+      CredentialLogger.msg(ERROR, "The BIO for output is NULL");
+      return false;
+    }
 
     EVP_PKEY* issuer_priv = NULL;
     EVP_PKEY* issuer_pub = NULL;
@@ -2754,11 +2761,23 @@ error:
   }
 
   bool Credential::SignEECRequest(Credential* eec, const std::string& dn, BIO* outputbio) {
-    if(pkey_ == NULL) { CredentialLogger.msg(ERROR, "The private key for signing is not initialized"); return false; }
+    if(pkey_ == NULL) {
+      CredentialLogger.msg(ERROR, "The private key for signing is not initialized");
+      return false;
+    }
     bool res = false;
-    if(eec == NULL) { CredentialLogger.msg(ERROR, "The credential to be signed is NULL"); return false; }
-    if(eec->req_ == NULL) { CredentialLogger.msg(ERROR, "The credential to be signed contains no request"); return false; }
-    if(outputbio == NULL) { CredentialLogger.msg(ERROR, "The BIO for output is NULL"); return false; }
+    if(eec == NULL) {
+      CredentialLogger.msg(ERROR, "The credential to be signed is NULL");
+      return false;
+    }
+    if(eec->req_ == NULL) {
+      CredentialLogger.msg(ERROR, "The credential to be signed contains no request");
+      return false;
+    }
+    if(outputbio == NULL) {
+      CredentialLogger.msg(ERROR, "The BIO for output is NULL");
+      return false;
+    }
 
     X509*  eec_cert = NULL;
     EVP_PKEY* req_pubkey = NULL;
