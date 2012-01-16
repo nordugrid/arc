@@ -1,12 +1,14 @@
 #include "TestACCControl.h"
 
+namespace Arc {
+
 bool* BrokerTestACCControl::TargetSortingDone = NULL;
 bool* BrokerTestACCControl::TargetSortingDoneSortTargets = NULL;
-std::list<Arc::ExecutionTarget*>* BrokerTestACCControl::PossibleTargets = NULL;
+std::list<ExecutionTarget*>* BrokerTestACCControl::PossibleTargets = NULL;
 
 bool JobDescriptionParserTestACCControl::parseStatus = false;
 bool JobDescriptionParserTestACCControl::unparseStatus = false;
-std::list<Arc::JobDescription>* JobDescriptionParserTestACCControl::parsedJobDescriptions = NULL;
+std::list<JobDescription>* JobDescriptionParserTestACCControl::parsedJobDescriptions = NULL;
 std::string* JobDescriptionParserTestACCControl::unparsedString = NULL;
 
 bool JobControllerTestACCControl::jobStatus = false;
@@ -16,16 +18,18 @@ bool JobControllerTestACCControl::renewStatus = false;
 bool JobControllerTestACCControl::resumeStatus = false;
 bool JobControllerTestACCControl::getJobDescriptionStatus = false;
 std::string JobControllerTestACCControl::getJobDescriptionString = "";
-Arc::URL JobControllerTestACCControl::fileURL = Arc::URL();
-Arc::URL JobControllerTestACCControl::createURL = Arc::URL();
-std::list<Arc::Job>* JobControllerTestACCControl::jobs = NULL;
+URL JobControllerTestACCControl::fileURL = URL();
+URL JobControllerTestACCControl::createURL = URL();
+std::list<Job>* JobControllerTestACCControl::jobs = NULL;
 
 bool SubmitterTestACCControl::submitStatus = false;
 bool SubmitterTestACCControl::migrateStatus = false;
 bool SubmitterTestACCControl::modifyStatus = false;
-Arc::Job* SubmitterTestACCControl::submitJob = NULL;
-Arc::Job* SubmitterTestACCControl::migrateJob = NULL;
+Job* SubmitterTestACCControl::submitJob = NULL;
+Job* SubmitterTestACCControl::migrateJob = NULL;
 
-Arc::TargetGenerator* TargetRetrieverTestACCControl::tg = NULL;
-std::list<Arc::ExecutionTarget>* TargetRetrieverTestACCControl::foundTargets = NULL;
-std::list<Arc::Job>* TargetRetrieverTestACCControl::foundJobs = NULL;
+TargetGenerator* TargetRetrieverTestACCControl::tg = NULL;
+std::list<ExecutionTarget>* TargetRetrieverTestACCControl::foundTargets = NULL;
+std::list<Job>* TargetRetrieverTestACCControl::foundJobs = NULL;
+
+}

@@ -6,10 +6,14 @@
 
 #include "JobControllerTestACC.h"
 
-Arc::Plugin* JobControllerTestACC::GetInstance(Arc::PluginArgument *arg) {
-  Arc::JobControllerPluginArgument *jcarg = dynamic_cast<Arc::JobControllerPluginArgument*>(arg);
+namespace Arc {
+
+Plugin* JobControllerTestACC::GetInstance(PluginArgument *arg) {
+  JobControllerPluginArgument *jcarg = dynamic_cast<JobControllerPluginArgument*>(arg);
   if (!jcarg) {
     return NULL;
   }
   return new JobControllerTestACC(*jcarg);
+}
+
 }

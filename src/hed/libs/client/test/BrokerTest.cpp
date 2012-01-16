@@ -12,7 +12,7 @@
 
 #define CPPASSERT(n)\
   b->PreFilterTargets(etl, job);\
-  CPPUNIT_ASSERT_EQUAL(n, (int)BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL(n, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
 
 
 class BrokerTest
@@ -78,7 +78,7 @@ void BrokerTest::LoadTest() {
 void BrokerTest::QueueTest() {
   b = bl->load("TEST", usercfg);
   CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
   job.Resources.QueueName = "q1"; CPPASSERT(0)
   etl.front().ComputingShareName = "q1"; CPPASSERT(1)
@@ -93,7 +93,7 @@ void BrokerTest::QueueTest() {
 void BrokerTest::CPUWallTimeTest() {
   b = bl->load("TEST", usercfg);
   CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
   etl.front().MaxCPUTime = 100;
   job.Resources.TotalCPUTime.range.max = 110; CPPASSERT(0)
@@ -127,7 +127,7 @@ void BrokerTest::CPUWallTimeTest() {
 void BrokerTest::BenckmarkCPUWallTimeTest() {
   b = bl->load("TEST", usercfg);
   CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
   etl.front().Benchmarks["TestBenchmark"] = 100.;
 
@@ -178,8 +178,8 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
 void BrokerTest::RegisterJobsubmissionTest() {
   b = bl->load("TEST", usercfg);
   CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::TargetSortingDone != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::TargetSortingDone != NULL);
 
   job.Resources.SlotRequirement.NumberOfSlots = 4;
   etl.front().TotalSlots = 100;
@@ -190,26 +190,26 @@ void BrokerTest::RegisterJobsubmissionTest() {
 
   b->PreFilterTargets(etl, job);
   b->GetBestTarget();
-  *BrokerTestACCControl::TargetSortingDone = true;
+  *Arc::BrokerTestACCControl::TargetSortingDone = true;
   b->RegisterJobsubmission();
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(3, BrokerTestACCControl::PossibleTargets->front()->FreeSlots);
-  CPPUNIT_ASSERT_EQUAL(14, BrokerTestACCControl::PossibleTargets->front()->UsedSlots);
-  CPPUNIT_ASSERT_EQUAL(0, BrokerTestACCControl::PossibleTargets->front()->WaitingJobs);
+  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->FreeSlots);
+  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->UsedSlots);
+  CPPUNIT_ASSERT_EQUAL(0, Arc::BrokerTestACCControl::PossibleTargets->front()->WaitingJobs);
 
   b->RegisterJobsubmission();
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(3, BrokerTestACCControl::PossibleTargets->front()->FreeSlots);
-  CPPUNIT_ASSERT_EQUAL(14, BrokerTestACCControl::PossibleTargets->front()->UsedSlots);
-  CPPUNIT_ASSERT_EQUAL(4, BrokerTestACCControl::PossibleTargets->front()->WaitingJobs);
+  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->FreeSlots);
+  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->UsedSlots);
+  CPPUNIT_ASSERT_EQUAL(4, Arc::BrokerTestACCControl::PossibleTargets->front()->WaitingJobs);
 }
 
 void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
   b = bl->load("TEST", usercfg);
   CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
   /* When prefiltered by the broker, each JobDescription object "correspond" to
    * a (list of) ExecutionTarget object(s).
@@ -231,17 +231,17 @@ void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
   targets.back().ComputingShareName = "back";
 
   b->PreFilterTargets(targets, frontJD);
-  CPPUNIT_ASSERT_EQUAL(1, (int)BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"front", BrokerTestACCControl::PossibleTargets->front()->ComputingShareName);
+  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"front", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShareName);
   b->PreFilterTargets(targets, backJD);
-  CPPUNIT_ASSERT_EQUAL(1, (int)BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"back", BrokerTestACCControl::PossibleTargets->front()->ComputingShareName);
+  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"back", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShareName);
 }
 
 void BrokerTest::RejectTargetsTest() {
   b = bl->load("TEST", usercfg);
   CPPUNIT_ASSERT(b != NULL);
-  CPPUNIT_ASSERT(BrokerTestACCControl::PossibleTargets != NULL);
+  CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
   Arc::JobDescription j;
   j.Application.Executable.Path = "executable";
@@ -256,19 +256,19 @@ void BrokerTest::RejectTargetsTest() {
 
   // Rejecting no targets.
   b->PreFilterTargets(targets, j);
-  CPPUNIT_ASSERT_EQUAL(2, (int)BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL(2, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
 
   // Reject test1 target.
   std::list<Arc::URL> rejectTargets;
   rejectTargets.push_back(targets.front().url);
   b->PreFilterTargets(targets, j, rejectTargets);
-  CPPUNIT_ASSERT_EQUAL(1, (int)BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(targets.back().url, BrokerTestACCControl::PossibleTargets->front()->url);
+  CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL(targets.back().url, Arc::BrokerTestACCControl::PossibleTargets->front()->url);
 
   // Reject both targets.
   rejectTargets.push_back(targets.back().url);
   b->PreFilterTargets(targets, j, rejectTargets);
-  CPPUNIT_ASSERT_EQUAL(0, (int)BrokerTestACCControl::PossibleTargets->size());
+  CPPUNIT_ASSERT_EQUAL(0, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(BrokerTest);

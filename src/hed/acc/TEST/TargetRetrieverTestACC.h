@@ -3,34 +3,29 @@
 
 #include <string>
 
-#include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/TargetRetriever.h>
-
 #include <arc/client/TestACCControl.h>
 
 namespace Arc {
 enum ServiceType;
 class UserConfig;
-}
 
 class TargetRetrieverTestACC
-  : public Arc::TargetRetriever {
+  : public TargetRetriever {
 private:
-  TargetRetrieverTestACC(const Arc::UserConfig& usercfg, const std::string& server, Arc::ServiceType st)
-    : TargetRetriever(usercfg, Arc::URL(server), st, "TEST") {}
+  TargetRetrieverTestACC(const UserConfig& usercfg, const std::string& server, ServiceType st)
+    : TargetRetriever(usercfg, URL(server), st, "TEST") {}
 
 public:
   ~TargetRetrieverTestACC() {}
 
-  static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
+  static Plugin* GetInstance(PluginArgument *arg);
 
-  virtual void GetTargets(Arc::TargetGenerator& mom, int targetType, int detailLevel);
-  virtual void GetExecutionTargets(Arc::TargetGenerator& mom);
-  virtual void GetJobs(Arc::TargetGenerator& mom);
-
-  static Arc::Logger logger;
+  virtual void GetExecutionTargets(TargetGenerator& mom);
+  virtual void GetJobs(TargetGenerator& mom);
 };
 
+}
 #endif // __ARC_TARGETRETRIEVERTESTACC_H__

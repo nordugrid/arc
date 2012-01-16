@@ -6,12 +6,14 @@
 
 #include "BrokerTestACC.h"
 
-Arc::Logger BrokerTestACC::logger(Arc::Logger::getRootLogger(), "BrokerTestACC");
+namespace Arc {
 
-Arc::Plugin* BrokerTestACC::GetInstance(Arc::PluginArgument *arg) {
-  Arc::BrokerPluginArgument *jcarg = dynamic_cast<Arc::BrokerPluginArgument*>(arg);
+Plugin* BrokerTestACC::GetInstance(PluginArgument *arg) {
+  BrokerPluginArgument *jcarg = dynamic_cast<BrokerPluginArgument*>(arg);
   if (!jcarg) {
     return NULL;
   }
   return new BrokerTestACC(*jcarg);
+}
+
 }

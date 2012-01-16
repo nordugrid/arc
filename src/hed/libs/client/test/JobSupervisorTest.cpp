@@ -141,11 +141,11 @@ void JobSupervisorTest::TestResubmit()
   std::list<Arc::JobDescription> jobdescs(1, Arc::JobDescription());
 
   bool TargetSortingDone = true;
-  BrokerTestACCControl::TargetSortingDoneSortTargets = &TargetSortingDone;
-  TargetRetrieverTestACCControl::foundTargets = &targets;
-  JobDescriptionParserTestACCControl::parseStatus = true;
-  JobDescriptionParserTestACCControl::parsedJobDescriptions = &jobdescs;
-  SubmitterTestACCControl::submitStatus = true;
+  Arc::BrokerTestACCControl::TargetSortingDoneSortTargets = &TargetSortingDone;
+  Arc::TargetRetrieverTestACCControl::foundTargets = &targets;
+  Arc::JobDescriptionParserTestACCControl::parseStatus = true;
+  Arc::JobDescriptionParserTestACCControl::parsedJobDescriptions = &jobdescs;
+  Arc::SubmitterTestACCControl::submitStatus = true;
 
   std::list<Arc::Job> resubmitted;
   std::list<Arc::URL> notResubmitted;
@@ -185,7 +185,7 @@ void JobSupervisorTest::TestCancelByIDs()
   jobsToBeCanceled.push_back(id3);
   jobsToBeCanceled.push_back(Arc::URL("http://test.nordugrid.org/non-existent"));
 
-  JobControllerTestACCControl::cancelStatus = true;
+  Arc::JobControllerTestACCControl::cancelStatus = true;
 
   std::list<Arc::URL> cancelled, notCancelled;
   CPPUNIT_ASSERT(js->CancelByIDs(jobsToBeCanceled, cancelled, notCancelled));
@@ -200,7 +200,7 @@ void JobSupervisorTest::TestCancelByIDs()
 
   cancelled.clear();
   notCancelled.clear();
-  JobControllerTestACCControl::cancelStatus = false;
+  Arc::JobControllerTestACCControl::cancelStatus = false;
   CPPUNIT_ASSERT(!js->CancelByIDs(jobsToBeCanceled, cancelled, notCancelled));
 
   CPPUNIT_ASSERT_EQUAL(1, (int)cancelled.size());
@@ -246,7 +246,7 @@ void JobSupervisorTest::TestCancelByStatus()
   std::list<std::string> status;
   status.push_back("A");
 
-  JobControllerTestACCControl::cancelStatus = true;
+  Arc::JobControllerTestACCControl::cancelStatus = true;
 
   std::list<Arc::URL> cancelled, notCancelled;
   CPPUNIT_ASSERT(js->CancelByStatus(status, cancelled, notCancelled));
@@ -257,7 +257,7 @@ void JobSupervisorTest::TestCancelByStatus()
 
   cancelled.clear();
   notCancelled.clear();
-  JobControllerTestACCControl::cancelStatus = false;
+  Arc::JobControllerTestACCControl::cancelStatus = false;
   CPPUNIT_ASSERT(!js->CancelByStatus(status, cancelled, notCancelled));
 
   CPPUNIT_ASSERT_EQUAL(0, (int)cancelled.size());
@@ -269,7 +269,7 @@ void JobSupervisorTest::TestCancelByStatus()
 
   cancelled.clear();
   notCancelled.clear();
-  JobControllerTestACCControl::cancelStatus = true;
+  Arc::JobControllerTestACCControl::cancelStatus = true;
   CPPUNIT_ASSERT(js->CancelByStatus(status, cancelled, notCancelled));
 
   CPPUNIT_ASSERT_EQUAL(2, (int)cancelled.size());
@@ -282,7 +282,7 @@ void JobSupervisorTest::TestCancelByStatus()
 
   cancelled.clear();
   notCancelled.clear();
-  JobControllerTestACCControl::cancelStatus = true;
+  Arc::JobControllerTestACCControl::cancelStatus = true;
   CPPUNIT_ASSERT(js->CancelByStatus(status, cancelled, notCancelled));
 
   CPPUNIT_ASSERT_EQUAL(2, (int)cancelled.size());
@@ -317,7 +317,7 @@ void JobSupervisorTest::TestCleanByIDs()
   jobsToBeCleaned.push_back(id2);
   jobsToBeCleaned.push_back(Arc::URL("http://test.nordugrid.org/non-existent"));
 
-  JobControllerTestACCControl::cleanStatus = true;
+  Arc::JobControllerTestACCControl::cleanStatus = true;
 
   std::list<Arc::URL> cleaned, notCleaned;
   CPPUNIT_ASSERT(js->CleanByIDs(jobsToBeCleaned, cleaned, notCleaned));
@@ -329,7 +329,7 @@ void JobSupervisorTest::TestCleanByIDs()
 
   cleaned.clear();
   notCleaned.clear();
-  JobControllerTestACCControl::cleanStatus = false;
+  Arc::JobControllerTestACCControl::cleanStatus = false;
   CPPUNIT_ASSERT(!js->CleanByIDs(jobsToBeCleaned, cleaned, notCleaned));
 
   CPPUNIT_ASSERT_EQUAL(0, (int)cleaned.size());
@@ -361,7 +361,7 @@ void JobSupervisorTest::TestCleanByStatus()
   std::list<std::string> status;
   status.push_back("R");
 
-  JobControllerTestACCControl::cleanStatus = true;
+  Arc::JobControllerTestACCControl::cleanStatus = true;
 
   std::list<Arc::URL> cleaned, notCleaned;
   CPPUNIT_ASSERT(js->CleanByStatus(status, cleaned, notCleaned));
@@ -372,7 +372,7 @@ void JobSupervisorTest::TestCleanByStatus()
 
   cleaned.clear();
   notCleaned.clear();
-  JobControllerTestACCControl::cleanStatus = false;
+  Arc::JobControllerTestACCControl::cleanStatus = false;
   CPPUNIT_ASSERT(!js->CleanByStatus(status, cleaned, notCleaned));
 
   CPPUNIT_ASSERT_EQUAL(0, (int)cleaned.size());

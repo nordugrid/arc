@@ -4,17 +4,17 @@
 #include <string>
 #include <list>
 
-#include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
-
 #include <arc/client/TestACCControl.h>
 
+namespace Arc {
+
 class BrokerTestACC
-  : public Arc::Broker {
+  : public Broker {
 private:
-  BrokerTestACC(const Arc::UserConfig& usercfg)
-    : Arc::Broker(usercfg) {
+  BrokerTestACC(const UserConfig& usercfg)
+    : Broker(usercfg) {
     BrokerTestACCControl::PossibleTargets = &PossibleTargets;
     BrokerTestACCControl::TargetSortingDone = &TargetSortingDone;
   }
@@ -24,11 +24,8 @@ public:
 
   virtual void SortTargets() { if (BrokerTestACCControl::TargetSortingDone) TargetSortingDone = *BrokerTestACCControl::TargetSortingDone; }
 
-  static Arc::Plugin* GetInstance(Arc::PluginArgument *arg);
-
-private:
-
-  static Arc::Logger logger;
+  static Plugin* GetInstance(PluginArgument *arg);
 };
 
+}
 #endif // __ARC_BROKERTESTACC_H__

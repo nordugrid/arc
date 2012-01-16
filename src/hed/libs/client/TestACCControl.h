@@ -9,18 +9,20 @@
 #include <arc/client/Job.h>
 #include <arc/client/TargetGenerator.h>
 
+namespace Arc {
+
 class BrokerTestACCControl {
   public:
     static bool* TargetSortingDone;
     static bool* TargetSortingDoneSortTargets;
-    static std::list<Arc::ExecutionTarget*>* PossibleTargets;
+    static std::list<ExecutionTarget*>* PossibleTargets;
 };
 
 class JobDescriptionParserTestACCControl {
   public:
     static bool parseStatus;
     static bool unparseStatus;
-    static std::list<Arc::JobDescription>* parsedJobDescriptions;
+    static std::list<JobDescription>* parsedJobDescriptions;
     static std::string* unparsedString;
 };
 
@@ -33,9 +35,9 @@ class JobControllerTestACCControl {
     static bool resumeStatus;
     static bool getJobDescriptionStatus;
     static std::string getJobDescriptionString;
-    static Arc::URL fileURL;
-    static Arc::URL createURL;
-    static std::list<Arc::Job>* jobs;
+    static URL fileURL;
+    static URL createURL;
+    static std::list<Job>* jobs;
 };
 
 class SubmitterTestACCControl {
@@ -43,15 +45,16 @@ class SubmitterTestACCControl {
     static bool submitStatus;
     static bool migrateStatus;
     static bool modifyStatus;
-    static Arc::Job* submitJob;
-    static Arc::Job* migrateJob;
+    static Job* submitJob;
+    static Job* migrateJob;
 };
 
 class TargetRetrieverTestACCControl {
   public:
-    static Arc::TargetGenerator* tg;
-    static std::list<Arc::ExecutionTarget>* foundTargets;
-    static std::list<Arc::Job>* foundJobs;
+    static TargetGenerator* tg;
+    static std::list<ExecutionTarget>* foundTargets;
+    static std::list<Job>* foundJobs;
 };
 
+}
 #endif // __ARC_TESTACCCONTROL_H__

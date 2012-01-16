@@ -6,10 +6,14 @@
 
 #include "SubmitterTestACC.h"
 
-Arc::Plugin* SubmitterTestACC::GetInstance(Arc::PluginArgument *arg) {
-  Arc::SubmitterPluginArgument *jcarg = dynamic_cast<Arc::SubmitterPluginArgument*>(arg);
+namespace Arc {
+
+Plugin* SubmitterTestACC::GetInstance(PluginArgument *arg) {
+  SubmitterPluginArgument *jcarg = dynamic_cast<SubmitterPluginArgument*>(arg);
   if (!jcarg) {
     return NULL;
   }
   return new SubmitterTestACC(*jcarg);
+}
+
 }

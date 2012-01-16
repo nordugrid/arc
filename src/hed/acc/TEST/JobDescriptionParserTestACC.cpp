@@ -6,6 +6,10 @@
 
 #include "JobDescriptionParserTestACC.h"
 
-Arc::Plugin* JobDescriptionParserTestACC::GetInstance(Arc::PluginArgument *arg) {
+namespace Arc {
+
+Plugin* JobDescriptionParserTestACC::GetInstance(PluginArgument *arg) {
   return new JobDescriptionParserTestACC();
+}
+
 }
