@@ -18,6 +18,7 @@
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetRetriever.h>
+#include <arc/client/TestACCControl.h>
 %}
 
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
@@ -113,6 +114,7 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
+%include "../src/hed/libs/client/TestACCControl.h"
 
 /* These template instantiations must be created after the respective
    template classes have been defined, which is done in the
