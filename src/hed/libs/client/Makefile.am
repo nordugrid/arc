@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libarcclient.la libarcclienttest.la
+lib_LTLIBRARIES = libarcclient.la
 noinst_PROGRAMS = test_jobdescription
 
 if XMLSEC_ENABLED
@@ -20,14 +20,14 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	Submitter.h TargetRetriever.h TargetGenerator.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
-	GLUE2.h \
+	GLUE2.h TestACCControl.h \
 	ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	Submitter.cpp TargetRetriever.cpp TargetGenerator.cpp \
 	JobState.cpp Job.cpp JobController.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
-	GLUE2.cpp \
+	GLUE2.cpp TestACCControl.cpp \
 	ClientInterface.cpp \
 	ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -42,18 +42,6 @@ libarcclient_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libarcclient_la_LDFLAGS = -version-info 1:0:0
-
-libarcclienttest_ladir = $(pkgincludedir)/client/test
-libarcclienttest_la_HEADERS = TestACCControl.h
-libarcclienttest_la_SOURCES = TestACCControl.cpp
-libarcclienttest_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
-libarcclienttest_la_LIBADD = \
-	libarcclient.la \
-	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS)
-libarcclienttest_la_LDFLAGS = -version-info 1:0:0
-
 
 test_jobdescription_SOURCES = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
