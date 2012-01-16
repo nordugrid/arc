@@ -582,7 +582,7 @@ sub collect($) {
     my $admindomain = $config->{admindomain}{Name};
     my $servicename = $config->{service}{ClusterName};
 
-    # TODO: Calculate endpoint URLs and check if they're enabled
+    # Calculate endpoint URLs and check if they're enabled
     
     my $endpointsnum = 0;
 
@@ -613,34 +613,39 @@ sub collect($) {
 
     # Global IDs
     # ARC choices are as follows:
-    # TODO: enter choices here
+    # AdminDomain: urn:ogf:<objectclass>:Domain Name. Taken from configfile
+    # Services: urn:ogf:<ObjectClass>:<FQDN>:<port>:<service type> temporary
+    # Endpoints: urn:ogf:<ObjectClass>:<FQDN>:<endpoint type>:<endpointURL> temporary -- don't forget to add ports later!
+    # RTEs: urn:ogf:<ObjectClass>:<FQDN>:<port>:<sequential number>
+    # Jobs: urn:ogf:<ObjectClass>:<FQDN>:<port>:<jobid> 
+    # 
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
     my $udID = "urn:ogf:UserDomain:local:$admindomain" ; # UserDomain ID;
-    my $csvID = "urn:ogf:ComputingService:$servicename"; # ComputingService ID
-    my $cmgrID = "urn:ogf:ComputingManager:$servicename"; # ComputingManager ID
-    my $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:gsiftp:$gridftphostport"; # ARCGridFTPComputingEndpoint ID
-    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$arexhostport"; # ARCWSComputingEndpoint ID
-    my $EMIEScepID = "urn:ogf:ComputingEndpoint:emies:$emieshostport"; # EMIESComputingEndpoint ID
-    my $StageincepID = "urn:ogf:ComputingEndpoint:$stageinhostport"; # StageinComputingEndpoint ID
-    my $cactIDp = "urn:ogf:ComputingActivity:$arexhostport"; # ComputingActivity ID prefix
-    my $cshaIDp = "urn:ogf:ComputingShare:$servicename"; # ComputingShare ID prefix
-    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$servicename"; # ExecutionEnvironment ID prefix
-    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$servicename"; # ApplicationEnvironment ID prefix
-    my $apolID = "urn:ogf:AccessPolicy:$servicename"; # AccessPolicy ID prefix
-    my $mpolIDp = "urn:ogf:MappingPolicy:$servicename"; # MappingPolicy ID prefix
+    my $csvID = "urn:ogf:ComputingService:$hostname:$servicename"; # ComputingService ID
+    my $cmgrID = "urn:ogf:ComputingManager:$hostname:$servicename"; # ComputingManager ID
+    my $ARCgftpjobcepIDp = "urn:ogf:ComputingEndpoint:$hostname:GridFTP:"; # ARCGridFTPComputingEndpoint ID
+    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:XBES:$arexhostport"; # ARCWSComputingEndpoint ID
+    my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:EMI-ES:$emieshostport"; # EMIESComputingEndpoint ID
+    my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:GridFTP:$stageinhostport"; # StageinComputingEndpoint ID
+    my $cactIDp = "urn:ogf:ComputingActivity:$hostname:$arexhostport"; # ComputingActivity ID prefix
+    my $cshaIDp = "urn:ogf:ComputingShare:$hostname:$servicename"; # ComputingShare ID prefix
+    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$hostname:$servicename"; # ExecutionEnvironment ID prefix
+    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$hostname:$servicename"; # ApplicationEnvironment ID prefix
+    my $apolID = "urn:ogf:AccessPolicy:$hostname:$servicename"; # AccessPolicy ID prefix
+    my $mpolIDp = "urn:ogf:MappingPolicy:$hostname:$servicename"; # MappingPolicy ID prefix
     my %cactIDs; # ComputingActivity IDs
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
     my %xenvIDs; # ExecutionEnvironment IDs
-    my $tseID = "urn:ogf:ToStorageElement:StorageService"; # ToStorageElement ID prefix
+    my $tseID = "urn:ogf:ToStorageElement:$hostname:StorageService"; # ToStorageElement ID prefix
     
     # Other Service IDs
-    my $ARISsvID = "urn:ogf:Service:ARIS"; # ARIS service ID
-    my $ARISepID = "urn:ogf:Endpoint:ARIS"; # ARIS Endpoint ID
-    my $CacheIndexsvID = "urn:ogf:Service:Cache-Index"; # Cache-Index service ID
-    my $CacheIndexepID = "urn:ogf:Endpoint:Cache-Index"; # Cache-Index Endpoint ID
-    my $HEDControlsvID = "urn:ogf:Service:HED-CONTROL"; # HED-CONTROL service ID
-    my $HEDControlepID = "urn:ogf:Endpoint:HED-CONTROL"; # HED-CONTROL Endpoint ID
+    my $ARISsvID = "urn:ogf:Service:$hostname:ARIS"; # ARIS service ID
+    my $ARISepIDp = "urn:ogf:Endpoint:$hostname:ARIS"; # ARIS Endpoint ID
+    my $CacheIndexsvID = "urn:ogf:Service:$hostname:Cache-Index"; # Cache-Index service ID
+    my $CacheIndexepIDp = "urn:ogf:Endpoint:$hostname:Cache-Index"; # Cache-Index Endpoint ID
+    my $HEDControlsvID = "urn:ogf:Service:$hostname:HED-CONTROL"; # HED-CONTROL service ID
+    my $HEDControlepIDp = "urn:ogf:Endpoint:$hostname:HED-CONTROL"; # HED-CONTROL Endpoint ID
 
     # Generate ComputingShare IDs
     for my $share (keys %{$config->{shares}}) {
@@ -648,12 +653,15 @@ sub collect($) {
     }
 
     # Generate ApplicationEnvironment IDs
+    my $aecount = 0;
     for my $rte (keys %$rte_info) {
-        $aenvIDs{$rte} = "$aenvIDp:$rte";
+        $aenvIDs{$rte} = "$aenvIDp:$rte:$aecount";
+        $aecount++;
     }
 
     # Generate ExecutionEnvironment IDs
-    $xenvIDs{$_} = "$xenvIDp:$_" for @allxenvs;
+    my $envcount = 0;
+    $xenvIDs{$_} = "$xenvIDp:$_:".$envcount++ for @allxenvs;
 
     # generate ComputingActivity IDs
     unless ($nojobs) {
@@ -897,13 +905,12 @@ sub collect($) {
 	    $cep->{CreationTime} = $creation_time;
 	    $cep->{Validity} = $validity_ttl;
 
-	    $cep->{ID} = $ARCgftpjobcepID;
-
 	    # Name not necessary -- why? added back
 	    $cep->{Name} = "ARC GridFTP job execution interface";
 
 	    # OBS: ideally HED should be asked for the URL
 	    $cep->{URL} = "gsiftp://$gridftphostport";
+        $cep->{ID} = $ARCgftpjobcepIDp.$cep->{URL};
 	    $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
 	    $cep->{Technology} = 'GridFTP';
 	    $cep->{InterfaceName} = 'GridFTP-job';
@@ -996,7 +1003,7 @@ sub collect($) {
 		    $apol->{Scheme} = "basic";
 		    $apol->{Rule} = $apconf->{Rule};
 		    $apol->{UserDomainID} = $apconf->{UserDomainID};
-		    $apol->{EndpointID} = $ARCgftpjobcepID;
+		    $apol->{EndpointID} = $cep->{ID};
 		    return $apol;
 		};
 	    }
@@ -1993,8 +2000,6 @@ sub collect($) {
             $ep->{CreationTime} = $creation_time;
             $ep->{Validity} = $validity_ttl;
 
-            $ep->{ID} = $ARISepID;
-
             # Name not necessary -- why? added back
             $ep->{Name} = "ARC ARIS LDAP Information System";
 
@@ -2002,6 +2007,7 @@ sub collect($) {
             # must be updated
             # port hardcoded for tests 
             $ep->{URL} = "ldap://$hostname:$config->{SlapdPort}/";
+            $ep->{ID} = $ARISepIDp.":".$ep->{URL};
             $ep->{Capability} = [ 'information.monitoring' ];
             $ep->{Technology} = 'LDAP';
             $ep->{InterfaceName} = 'ARIS';
@@ -2071,7 +2077,7 @@ sub collect($) {
                 $apol->{Scheme} = "basic";
                 $apol->{Rule} = $apconf->{Rule};
                 $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ARISepID;
+                $apol->{EndpointID} = $ep->{ID};
                 return $apol;
             };
             }
@@ -2134,8 +2140,6 @@ sub collect($) {
 	    $ep->{CreationTime} = $creation_time;
 	    $ep->{Validity} = $validity_ttl;
 
-	    $ep->{ID} = $CacheIndexepID;
-
 	    # Name not necessary -- why? added back
 	    $ep->{Name} = "ARC Cache Index";
 
@@ -2143,6 +2147,7 @@ sub collect($) {
 	    # must be updated
 	    # port hardcoded for tests 
 	    # $ep->{URL} = "ldap://$hostname:$config->{SlapdPort}/";
+        # $ep->{ID} = $CacheIndexepIDp.":".$ep->{URL};
 	    $ep->{Capability} = [ 'information.discovery' ];
 	    $ep->{Technology} = 'webservice';
 	    $ep->{InterfaceName} = 'Cache-Index';
@@ -2211,7 +2216,7 @@ sub collect($) {
 		  $apol->{Scheme} = "basic";
 		  $apol->{Rule} = $apconf->{Rule};
 		  $apol->{UserDomainID} = $apconf->{UserDomainID};
-		  $apol->{EndpointID} = $CacheIndexepID;
+		  $apol->{EndpointID} = $ep->{ID};
 		  return $apol;
 	    };
 	    }
@@ -2273,8 +2278,6 @@ sub collect($) {
 	    $ep->{CreationTime} = $creation_time;
 	    $ep->{Validity} = $validity_ttl;
 
-	    $ep->{ID} = $HEDControlepID;
-
 	    # Name not necessary -- why? added back
 	    $ep->{Name} = "ARC HED WS Control Interface";
 
@@ -2282,6 +2285,7 @@ sub collect($) {
 	    # must be updated
 	    # port hardcoded for tests 
 	    $ep->{URL} = "$arexhostport/mgmt";
+        $ep->{ID} = $HEDControlepIDp.":".$ep->{URL};
 	    $ep->{Capability} = [ 'containermanagement.control' ];
 	    $ep->{Technology} = 'webservice';
 	    $ep->{InterfaceName} = 'HED-CONTROL';
@@ -2350,7 +2354,7 @@ sub collect($) {
 		  $apol->{Scheme} = "basic";
 		  $apol->{Rule} = $apconf->{Rule};
 		  $apol->{UserDomainID} = $apconf->{UserDomainID};
-		  $apol->{EndpointID} = $HEDControlepID;
+		  $apol->{EndpointID} = $ep->{ID};
 		  return $apol;
 	      };
 	    };
