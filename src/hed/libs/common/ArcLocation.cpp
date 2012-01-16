@@ -23,6 +23,28 @@ namespace Arc {
     return *location_;
   }
 
+  // Removes null parts from path - /./ and //
+  static void squash_path(std::string& path) {
+    std::string::size_type p = 0;
+    while(p < path.length()) {
+      if(path[p] == G_DIR_SEPARATOR) {
+        if((p+2) < path.length()) {
+          if((path[p+1] == '.') && (path[p+2] == G_DIR_SEPARATOR)) {
+            //  ..././...
+            path.erase(p+1,2); continue;
+          }
+        }
+        if((p+1) < path.length()) {
+          if(path[p+1] == G_DIR_SEPARATOR) {
+            //  ...//...
+            path.erase(p+1,1); continue;
+          }
+        }
+      }
+      ++p;
+    }
+  }
+
   void ArcLocation::Init(std::string path) {
     location().clear();
     location() = GetEnv("ARC_LOCATION");
@@ -33,6 +55,7 @@ namespace Arc {
         std::string cwd = Glib::get_current_dir();
         path.replace(0, 1, cwd);
       }
+      squash_path(path);
       std::string::size_type pos = path.rfind(G_DIR_SEPARATOR_S);
       if (pos != std::string::npos && pos > 0) {
         pos = path.rfind(G_DIR_SEPARATOR_S, pos - 1);
