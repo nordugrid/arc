@@ -128,6 +128,15 @@ my $gridftpd_options = {
     GridftpdPidFile => '*',
 };
 
+my $admindomain_options = {
+    Name => '*',
+    OtherInfo => [ '*' ],
+    Description => '*',
+    WWW => '*',
+    Distributed => '*',
+    Owner => '*'
+};
+
 # # # # # # # # # # # # # #
 
 my $config_schema = {
@@ -137,6 +146,7 @@ my $config_schema = {
     PublishNordugrid => '*',
     AdminDomain => '*',
     ttl => '*',
+    admindomain => { %$admindomain_options },
     %$gmcommon_options,
     %$gridftpd_options,
     %$ldap_infosys_options,
@@ -213,7 +223,7 @@ my $allbools = [ qw(
                  PublishNordugrid Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
                  infosys_compat infosys_nordugrid infosys_glue12 infosys_glue2_ldap
-                 GridftpdEnabled GridftpdAllowNew use_janitor) ];
+                 GridftpdEnabled GridftpdAllowNew use_janitor Distributed ) ];
 
 ############################ Generic functions ###########################
 
@@ -641,10 +651,11 @@ sub build_config_from_inifile {
     $config->{control} ||= {};
     $config->{location} ||= {};
     $config->{contacts} ||= [];
-    $config->{accesspolicies} ||= [];
+    $config->{accesspolicies} ||= [];   
     $config->{mappingpolicies} ||= [];
     $config->{xenvs} ||= {};
     $config->{shares} ||= {};
+    $config->{admindomain} ||= {};
 
 
     my $common = { $iniparser->get_section("common") };
@@ -684,6 +695,22 @@ sub build_config_from_inifile {
         $config->{GridftpdPidFile} = $gconf{pidfile} if defined $gconf{pidfile};
     } else {
         $config->{GridftpdEnabled} = 'no';
+    }
+
+    # global AdminDomain configuration
+    if ($iniparser->has_section('infosys/admindomain')) {
+        my $admindomain_options = { $iniparser->get_section('infosys/admindomain') };
+        rename_keys $admindomain_options, $config->{'admindomain'}, {name => 'Name',
+                                                    otherinfo => 'OtherInfo',
+                                                    description => 'Description',
+                                                    www => 'WWW',
+                                                    distributed => 'Distributed',
+                                                    owner => 'Owner'
+                                                    };
+        move_keys $admindomain_options, $config->{'admindomain'}, [keys %$admindomain_options];
+
+    } else {
+        $log->info('[infosys/admindomain] section missing. No site information will be published.');
     }
 
     ############################ legacy ini config file structure #############################

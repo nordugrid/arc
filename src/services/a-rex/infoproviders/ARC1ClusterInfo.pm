@@ -8,7 +8,7 @@ use FileHandle;
 use File::Temp;
 use POSIX qw(ceil);
 # enable this below to dump datastructures
-# use Data::Dumper;
+# use Data::Dumper::Concise;
 
 use strict;
 
@@ -33,7 +33,7 @@ sub mdstoiso {
 
 sub glue2bool {
     my $bool = shift;
-    return undef unless defined $bool;
+    return 'undefined' unless defined $bool;
     return $bool ? "true" : "false";
 }
 
@@ -401,6 +401,9 @@ sub max_userfreeslots {
 sub collect($) {
     my ($data) = @_;
 
+    # used for testing
+    # print Dumper($data);
+
     my $config = $data->{config};
     my $usermap = $data->{usermap};
     my $host_info = $data->{host_info};
@@ -576,7 +579,7 @@ sub collect($) {
 
     }
 
-    my $admindomain = $config->{AdminDomain};
+    my $admindomain = $config->{admindomain}{Name};
     my $servicename = $config->{service}{ClusterName};
 
     # TODO: Calculate endpoint URLs and check if they're enabled
@@ -609,6 +612,8 @@ sub collect($) {
     my $stageinhostport = '';
 
     # Global IDs
+    # ARC choices are as follows:
+    # TODO: enter choices here
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
     my $udID = "urn:ogf:UserDomain:local:$admindomain" ; # UserDomain ID;
     my $csvID = "urn:ogf:ComputingService:$servicename"; # ComputingService ID
@@ -1906,11 +1911,15 @@ sub collect($) {
 
     my $getAdminDomain = sub {
         my $dom = { ID => $adID,
-                    Name => $config->{AdminDomain},
+                    Name => $config->{admindomain}{Name},
+                    OtherInfo => $config->{admindomain}{OtherInfo},
+                    Description => $config->{admindomain}{Description},
+                    WWW => $config->{admindomain}{WWW},
+                    Owner => $config->{admindomain}{Owner},
                     CreationTime => $creation_time,
                     Validity => $validity_ttl
                   };
-
+        $dom->{Distributed} = glue2bool($config->{admindomain}{Distributed});
         # Location and Contact goes here.
 	# TODOFLO: remember to sync ForeignKeys
         if (my $lconfig = $config->{location}) {
