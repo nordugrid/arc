@@ -1049,7 +1049,7 @@ sub collect($) {
                     "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
                       ];
         $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-        $cep->{Implementor} = "EMI";
+        $cep->{Implementor} = "NorduGrid";
         $cep->{ImplementationName} = "EMI-ES";
         $cep->{ImplementationVersion} = $config->{arcversion};
 
