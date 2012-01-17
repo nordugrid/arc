@@ -65,7 +65,7 @@ namespace Arc {
     /** Select transfer protocols from URL option or hard-coded list */
     void ChooseTransferProtocols(std::list<std::string>& transport_protocols);
     /// Convert URL to SRM style, also URI-encoding path if necessary
-    std::string CanonicSRMURL(const Arc::URL& srm_url);
+    std::string CanonicSRMURL(const URL& srm_url);
     /// Convert SRM metadata into FileInfo object, inserting a new object into the list
     void FillFileInfo(std::list<FileInfo>& files, const struct SRMFileMetaData& srm_metadata);
   };

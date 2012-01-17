@@ -669,7 +669,7 @@ namespace Arc {
 
     std::list<std::string> surls;
     for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
-      surls.push_back(CanonicSRMURL((*i)->CurrentLocation().str()));
+      surls.push_back(CanonicSRMURL((*i)->CurrentLocation()));
       logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", (*i)->CurrentLocation().str());
     }
 
@@ -688,7 +688,7 @@ namespace Arc {
 
     for (std::list<DataPoint*>::const_iterator dp = urls.begin(); dp != urls.end(); ++dp) {
 
-      std::string surl = CanonicSRMURL((*dp)->CurrentLocation().str());
+      std::string surl = CanonicSRMURL((*dp)->CurrentLocation());
       if (metadata_map.find(surl) == metadata_map.end()) {
         // error
         files.push_back(FileInfo());
@@ -814,18 +814,29 @@ namespace Arc {
       transport_protocols.push_back("httpg");
       transport_protocols.push_back("ftp");
     } else {
-      Arc::tokenize(option_protocols, transport_protocols, ",");
+      tokenize(option_protocols, transport_protocols, ",");
     }
   }
 
-  std::string DataPointSRM::CanonicSRMURL(const Arc::URL& srm_url) {
+  std::string DataPointSRM::CanonicSRMURL(const URL& srm_url) {
     std::string canonic_url;
     std::string sfn_path = srm_url.HTTPOption("SFN");
     if (!sfn_path.empty()) {
       while (sfn_path[0] == '/') sfn_path.erase(0,1);
-      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + "/" + Arc::uri_encode(sfn_path, false);
+      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + "/" + uri_encode(sfn_path, false);
     } else {
-      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + srm_url.FullPathURIEncoded();
+      // if SFN option is not used, treat everything in the path including
+      // options as part of the path and encode it
+      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + "/" + uri_encode(srm_url.Path(), false);
+      std::string extrapath;
+      for (std::map<std::string, std::string>::const_iterator
+           it = srm_url.HTTPOptions().begin(); it != srm_url.HTTPOptions().end(); it++) {
+        if (it == srm_url.HTTPOptions().begin()) extrapath += '?';
+        else extrapath += '&';
+        extrapath += it->first;
+        if (!it->second.empty()) extrapath += '=' + it->second;
+      }
+      canonic_url += uri_encode(extrapath, false);
     }
     return canonic_url;
   }
