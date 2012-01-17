@@ -67,7 +67,7 @@ our $host_info_schema = {
                 diskfree => '' # unit: MB
             }
         },
-	EMIversion => '' # taken from /etc/emi-version if exists
+	EMIversion => [ '' ] # taken from /etc/emi-version if exists
 };
 
 our $log = LogUtils->getLogger(__PACKAGE__);

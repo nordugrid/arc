@@ -1997,7 +1997,7 @@ sub collect($) {
 
     # Other Services
 
-    my @othersv = ();
+    my $othersv = {};
 
     # Service:ARIS    
 
@@ -2166,8 +2166,8 @@ sub collect($) {
         return $sv;
     };
 
-    # ARIS is enabled by default.
-    push(@othersv, $getARISService);
+    # ARIS is enabled by default. Might change in the future
+    $othersv->{ARIS} = $getARISService;
 
     # Service:Cache-Index
 
@@ -2306,7 +2306,7 @@ sub collect($) {
     };
     
     # Disabled until I find a way to know if it's configured or not.
-    # push(@othersv, $getCacheIndexService);
+    # $othersv->{CacheIndex} = $getCacheIndexService;
     
     # Service: HED-Control
 
@@ -2444,14 +2444,14 @@ sub collect($) {
     };
 
     # Disabled until I find a way to know if it's configured or not.
-    # push(@othersv, $getHEDControlService);
+    # $othersv->{HEDControl} = $getHEDControlService);
     
 
     # aggregates services
 
     my $getServices = sub {
     
-        return undef unless my $sub = pop(@othersv);
+        return undef unless my ($service, $sub) = each %$othersv;
         # returns the hash for Entries. Odd, must understand this behaviour
         return &$sub;
              
@@ -2512,8 +2512,9 @@ sub collect($) {
     };
 
 
-    # returns the two branches for =grid and =resoruce GroupID.
+    # returns the two branches for =grid and =resource GroupID.
     # It's not optimal but it doesn't break recursion
+    # GLUE2XMLprinter is affected buy that but it has been fixed.
     my $GLUE2InfoTreeRoot = sub {
         my $treeroot = { AdminDomain => $getAdminDomain,
 			 UserDomain => $getUserDomain,
