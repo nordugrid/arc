@@ -8,7 +8,6 @@
 
 #include <arc/URL.h>
 #include <arc/client/JobController.h>
-#include <arc/data/DataHandle.h>
 
 namespace Arc {
 

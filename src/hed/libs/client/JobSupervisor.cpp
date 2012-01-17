@@ -11,10 +11,9 @@
 
 #include <arc/CheckSum.h>
 #include <arc/Logger.h>
-#include <arc/client/Broker.h>
-#include <arc/client/JobController.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
+#include <arc/client/Broker.h>
+#include <arc/client/TargetGenerator.h>
 
 #include "JobSupervisor.h"
 
