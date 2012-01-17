@@ -1051,7 +1051,7 @@ sub collect($) {
         $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
         $cep->{Implementor} = "EMI";
         $cep->{ImplementationName} = "EMI-ES";
-        $cep->{ImplementationVersion} = 'emiversion';
+        $cep->{ImplementationVersion} = $config->{arcversion};
 
         $cep->{QualityLevel} = "development";
 
