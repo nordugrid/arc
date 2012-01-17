@@ -125,15 +125,20 @@ int RUNRESUB(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs selected for resubmission") << std::endl;
-    return 0;
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
+  }
+  
+  if (jobmaster.GetSelectedJobs().empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
   }
 
   std::list<Arc::Job> resubmittedJobs;
-  std::list<Arc::URL> notresubmitted;
   // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
-  int retval = (int)!jobmaster.Resubmit(opt.status, (int)opt.same + 2*(int)opt.notsame, resubmittedJobs, notresubmitted);
+  int retval = (int)!jobmaster.Resubmit((int)opt.same + 2*(int)opt.notsame, resubmittedJobs);
   if (retval == 0 && resubmittedJobs.empty()) {
     std::cout << Arc::IString("No jobs to resubmit with the specified status") << std::endl;
     return 0;
@@ -155,35 +160,26 @@ int RUNRESUB(main)(int argc, char **argv) {
     retval = 1;
   }
 
-  // Get job IDs of jobs to kill.
-  std::list<Arc::URL> jobstobekilled;
-  for (std::list<Arc::Job>::const_iterator it = resubmittedJobs.begin();
-       it != resubmittedJobs.end(); ++it) {
-    if (!it->ActivityOldID.empty()) {
-      jobstobekilled.push_back(it->ActivityOldID.back());
-    }
-  }
+  std::list<Arc::URL> notresubmitted = jobmaster.GetIDsNotProcessed();
 
-  std::list<Arc::URL> killed, notkilled;
-  if (!jobmaster.CancelByIDs(jobstobekilled, killed, notkilled)) {
+  if (!jobmaster.Cancel()) {
     retval = 1;
   }
-  for (std::list<Arc::URL>::const_iterator it = notkilled.begin();
-       it != notkilled.end(); ++it) {
+  for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
+       it != jobmaster.GetIDsNotProcessed().end(); ++it) {
     logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but killing the job failed - it will still appear in the job list", it->str());
   }
 
   if (!opt.keep) {
-    std::list<Arc::URL> notcleaned, cleanedJobs;
-    if (!jobmaster.CleanByIDs(killed, cleanedJobs, notcleaned)) {
+    if (!jobmaster.Clean()) {
       retval = 1;
     }
-    for (std::list<Arc::URL>::const_iterator it = notcleaned.begin();
-         it != notcleaned.end(); ++it) {
+    for (std::list<Arc::URL>::const_iterator it = jobmaster.GetIDsNotProcessed().begin();
+         it != jobmaster.GetIDsNotProcessed().end(); ++it) {
       logger.msg(Arc::WARNING, "Resubmission of job (%s) succeeded, but cleaning the job failed - it will still appear in the job list", it->str());
     }
 
-    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), cleanedJobs)) {
+    if (!Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
       std::cout << Arc::IString("         Use arcclean to remove non-existing jobs") << std::endl;
       retval = 1;

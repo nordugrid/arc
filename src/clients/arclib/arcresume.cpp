@@ -106,15 +106,20 @@ int RUNRESUME(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
-    return 0;
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
   }
 
-  std::list<Arc::URL> resumed, notresumed;
-  int retval = (int)!jobmaster.ResumeByStatus(opt.status, resumed, notresumed);
+  if (jobmaster.GetSelectedJobs().empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
+  }
 
-  std::cout << Arc::IString("Jobs processed: %d, resumed: %d", resumed.size()+notresumed.size(), resumed.size()) << std::endl;
+  int retval = (int)!jobmaster.Resume();
+
+  std::cout << Arc::IString("Jobs processed: %d, resumed: %d", jobmaster.GetIDsProcessed().size()+jobmaster.GetIDsNotProcessed().size(), jobmaster.GetIDsProcessed().size()) << std::endl;
 
   return retval;
 }

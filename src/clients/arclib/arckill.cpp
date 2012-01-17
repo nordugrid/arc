@@ -101,21 +101,26 @@ int RUNKILL(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
-    return 0;
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
   }
 
-  std::list<Arc::URL> killed, notkilled;
-  int retval = (int)!jobmaster.CancelByStatus(opt.status, killed, notkilled);
+  if (jobmaster.GetSelectedJobs().empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
+  }
 
-  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), killed)) {
+  int retval = (int)!jobmaster.Cancel();
+
+  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         Run 'arcclean -s Undefined' to remove killed jobs from job list", usercfg.JobListFile()) << std::endl;
     retval = 1;
   }
 
-  std::cout << Arc::IString("Jobs processed: %d, killed: %d", killed.size()+notkilled.size(), killed.size()) << std::endl;
+  std::cout << Arc::IString("Jobs processed: %d, killed: %d", jobmaster.GetIDsProcessed().size()+jobmaster.GetIDsNotProcessed().size(), jobmaster.GetIDsProcessed().size()) << std::endl;
 
   return retval;
 }

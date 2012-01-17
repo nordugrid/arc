@@ -101,13 +101,21 @@ int RUNCLEAN(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs selected for cleaning") << std::endl;
-    return 0;
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
   }
 
-  std::list<Arc::URL> cleaned, notcleaned;
-  int retval = (int)!jobmaster.CleanByStatus(opt.status, cleaned, notcleaned);
+  if (jobmaster.GetSelectedJobs().empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
+  }
+
+  int retval = (int)!jobmaster.Clean();
+
+  std::list<Arc::URL> cleaned = jobmaster.GetIDsProcessed();
+  const std::list<Arc::URL>& notcleaned = jobmaster.GetIDsNotProcessed();
 
   if ((!opt.status.empty() && std::find(opt.status.begin(), opt.status.end(), "Undefined") != opt.status.end()) || (opt.all && opt.forceclean)) {
     std::string response = "";
@@ -127,9 +135,7 @@ int RUNCLEAN(main)(int argc, char **argv) {
       }
     }
     else {
-      jobmaster.Update();
-      jobs = jobmaster.GetJobs();
-      for (std::list<Arc::Job>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      for (std::list<Arc::Job>::const_iterator it = jobmaster.GetAllJobs().begin(); it != jobmaster.GetAllJobs().end(); ++it) {
         if (it->State == Arc::JobState::UNDEFINED) {
           cleaned.push_back(it->IDFromEndpoint);
         }

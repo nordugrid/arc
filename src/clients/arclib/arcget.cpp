@@ -114,27 +114,33 @@ int RUNGET(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
-    return 0;
+
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
   }
 
-  std::list<Arc::URL> retrieved, notretrieved;
+  if (jobmaster.GetSelectedJobs().empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
+  }
+
   std::list<std::string> downloaddirectories;
-  int retval = (int)!jobmaster.RetrieveByStatus(opt.status, opt.downloaddir, opt.usejobname, opt.forcedownload, retrieved, downloaddirectories, notretrieved);
+  int retval = (int)!jobmaster.Retrieve(opt.downloaddir, opt.usejobname, opt.forcedownload, downloaddirectories);
 
   for (std::list<std::string>::const_iterator it = downloaddirectories.begin();
        it != downloaddirectories.end(); ++it) {
     std::cout << Arc::IString("Results stored at: %s", *it) << std::endl;
   }
 
-  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), retrieved)) {
+  if (!opt.keep && !Arc::Job::RemoveJobsFromFile(usercfg.JobListFile(), jobmaster.GetIDsProcessed())) {
     std::cout << Arc::IString("Warning: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
     std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
     retval = 1;
   }
 
-  std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", retrieved.size()+notretrieved.size(), retrieved.size()) << std::endl;
+  std::cout << Arc::IString("Jobs processed: %d, successfully retrieved: %d", jobmaster.GetIDsProcessed().size()+jobmaster.GetIDsNotProcessed().size(), jobmaster.GetIDsProcessed().size()) << std::endl;
 
   return retval;
 }

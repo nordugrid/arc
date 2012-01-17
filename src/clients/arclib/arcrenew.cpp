@@ -98,15 +98,20 @@ int RUNRENEW(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
-    std::cout << Arc::IString("No jobs") << std::endl;
-    return 0;
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
   }
 
-  std::list<Arc::URL> renewed, notrenewed;
-  int retval = (int)!jobmaster.RenewByStatus(opt.status, renewed, notrenewed);
+  if (jobmaster.GetSelectedJobs().empty()) {
+    std::cout << Arc::IString("No jobs") << std::endl;
+    return 1;
+  }
 
-  std::cout << Arc::IString("Jobs processed: %d, renewed: %d", renewed.size()+notrenewed.size(), renewed.size()) << std::endl;
+  int retval = (int)!jobmaster.Renew();
+
+  std::cout << Arc::IString("Jobs processed: %d, renewed: %d", jobmaster.GetIDsProcessed().size()+jobmaster.GetIDsNotProcessed().size(), jobmaster.GetIDsProcessed().size()) << std::endl;
 
   return retval;
 }

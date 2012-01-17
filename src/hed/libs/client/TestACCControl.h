@@ -37,7 +37,6 @@ class JobControllerTestACCControl {
     static std::string getJobDescriptionString;
     static URL fileURL;
     static URL createURL;
-    static std::list<Job>* jobs;
 };
 
 class SubmitterTestACCControl {

@@ -51,13 +51,13 @@ namespace Arc {
     return new JobControllerARC0(*jcarg);
   }
 
-  void JobControllerARC0::UpdateJobs(std::list<Job>& jobs) const {
+  void JobControllerARC0::UpdateJobs(std::list<Job*>& jobs) const {
 
     std::map<std::string, std::list<Job*> > jobsbyhost;
-    for (std::list<Job>::iterator it = jobs.begin();
+    for (std::list<Job*>::iterator it = jobs.begin();
          it != jobs.end(); it++)
-      jobsbyhost[it->InfoEndpoint.ConnectionURL() +
-                 it->InfoEndpoint.Path()].push_back(&*it);
+      jobsbyhost[(*it)->InfoEndpoint.ConnectionURL() +
+                 (*it)->InfoEndpoint.Path()].push_back(*it);
 
     for (std::map<std::string, std::list<Job*> >::iterator hostit =
            jobsbyhost.begin(); hostit != jobsbyhost.end(); hostit++) {

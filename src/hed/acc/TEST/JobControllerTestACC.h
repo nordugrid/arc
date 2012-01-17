@@ -16,10 +16,10 @@ class JobControllerTestACC
   : public JobController {
 public:
   JobControllerTestACC(const UserConfig& usercfg)
-    : JobController(usercfg, "TEST") { JobControllerTestACCControl::jobs = &jobstore; }
+    : JobController(usercfg, "TEST") {}
   ~JobControllerTestACC() {}
 
-  void UpdateJobs(std::list<Job>&) const {}
+  void UpdateJobs(std::list<Job*>&) const {}
   virtual bool RetrieveJob(const Job& job, std::string& downloaddir, const bool usejobname, const bool force) const { return JobControllerTestACCControl::jobStatus; }
   virtual bool CleanJob(const Job& job) const { return JobControllerTestACCControl::cleanStatus; }
   virtual bool CancelJob(const Job& job) const { return JobControllerTestACCControl::cancelStatus; }

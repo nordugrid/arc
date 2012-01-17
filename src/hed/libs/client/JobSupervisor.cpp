@@ -56,84 +56,141 @@ namespace Arc {
         logger.msg(WARNING, "Unable to load JobController %s plugin. Is the %s plugin installed?", job.Flavour, job.Flavour);
         return false;
       }
+      jcJobMap[jc] = std::pair< std::list<Job *>, std::list<Job*> >();
     }
     else if (!currentJC->second) {
       // Already tried to load JobController, and it failed.
       return false;
     }
 
-    currentJC->second->jobstore.push_back(job);
+    jobs.push_back(job);
+    jobs.back().jc = currentJC->second;
+    jcJobMap[currentJC->second].first.push_back(&jobs.back());
     return true;
   }
 
-  std::list<Job> JobSupervisor::GetJobs(bool includeJobsWithoutStateInfo) const {
-    std::list<Job> jobs;
-    for (std::list<JobController*>::const_iterator itJC = loader.GetJobControllers().begin();
-         itJC != loader.GetJobControllers().end(); ++itJC) {
-      for (std::list<Job>::const_iterator itJ = (*itJC)->jobstore.begin();
-           itJ != (*itJC)->jobstore.end(); ++itJ) {
-        if (includeJobsWithoutStateInfo || (!includeJobsWithoutStateInfo && itJ->State)) {
-          jobs.push_back(*itJ);
+  void JobSupervisor::SelectValid() {
+    processed.clear();
+    notprocessed.clear();
+    
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (!(*itJ)->State) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
+        }
+        else {
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
         }
       }
     }
+  }
 
-    return jobs;
+  void JobSupervisor::SelectByStatus(const std::list<std::string>& status) {
+    processed.clear();
+    notprocessed.clear();
+    
+    if (status.empty()) {
+      return;
+    }
+
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (std::find(status.begin(), status.end(), (*itJ)->State()) == status.end() &&
+            std::find(status.begin(), status.end(), (*itJ)->State.GetGeneralState()) == status.end()) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
+        }
+        else {
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
+        }
+      }
+    }
+  }
+
+  void JobSupervisor::ClearSelection() {
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      it->second.first.clear();
+      it->second.second.clear();
+    }
+
+    for (std::list<Job>::iterator itJ = jobs.begin();
+         itJ != jobs.end(); ++itJ) {
+      jcJobMap[itJ->jc].first.push_back(&*itJ);
+    }
+  }
+
+  std::list<Job> JobSupervisor::GetJobs(bool includeJobsWithoutStateInfo) const {
+    if (includeJobsWithoutStateInfo) {
+      return jobs;
+    }
+    std::list<Job> selectedJobs;
+    for (std::list<Job>::const_iterator itJ = jobs.begin();
+         itJ  != jobs.end(); ++itJ) {
+      if (!itJ->State) {
+        selectedJobs.push_back(*itJ);
+      }
+    }
+
+    return selectedJobs;
   }
 
   void JobSupervisor::Update() {
-    for (std::list<JobController*>::const_iterator itJC = loader.GetJobControllers().begin();
-         itJC != loader.GetJobControllers().end(); ++itJC) {
-      (*itJC)->UpdateJobs((*itJC)->jobstore);
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      it->first->UpdateJobs(it->second.first);
     }
   }
 
-  bool JobSupervisor::RetrieveByStatus(const std::list<std::string>& status,
-                                       const std::string& downloaddirprefix,
-                                       bool usejobname,
-                                       bool force,
-                                       std::list<URL>& retrieved,
-                                       std::list<std::string>& downloaddirectories,
-                                       std::list<URL>& notretrieved) {
+  std::list<Job> JobSupervisor::GetSelectedJobs() const {
+    std::list<Job> selectedJobs;
+    for (JobSelectionMap::const_iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::const_iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end(); ++itJ) {
+        selectedJobs.push_back(**itJ);
+      }
+    }
+
+    return selectedJobs;
+  }
+
+  bool JobSupervisor::Retrieve(const std::string& downloaddirprefix, bool usejobname, bool force, std::list<std::string>& downloaddirectories) {
+    notprocessed.clear();
+    processed.clear();
     bool ok = true;
 
-    std::list<JobController*> jobConts = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
-         itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      std::list<Job*> downloadable;
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
-           it != (*itJobC)->jobstore.end(); it++) {
-        if (!it->State || (!status.empty() &&
-            std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (!(*itJ)->State || (*itJ)->State == JobState::DELETED || !(*itJ)->State.IsFinished()) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
-        if (it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to get job (%s), job is deleted", it->JobID.fullstr());
-          continue;
-        }
-        else if (!it->State.IsFinished()) {
-          logger.msg(WARNING, "Unable to get job (%s), it has not finished yet", it->JobID.fullstr());
-          continue;
-        }
-
-        downloadable.push_back(&(*it));
-      }
-
-      for (std::list<Job*>::iterator it = downloadable.begin();
-           it != downloadable.end(); it++) {
         std::string downloaddir = downloaddirprefix;
-        if (!(*itJobC)->RetrieveJob(**it, downloaddir, usejobname, force)) {
-          logger.msg(ERROR, "Failed getting job (%s)", (*it)->JobID.fullstr());
+        if (!it->first->RetrieveJob(**itJ, downloaddir, usejobname, force)) {
           ok = false;
-          notretrieved.push_back((*it)->JobID);
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
         }
         else {
-          retrieved.push_back((*it)->JobID);
+          processed.push_back((*itJ)->JobID);
           downloaddirectories.push_back(downloaddir);
+          ++itJ;
         }
       }
     }
@@ -141,39 +198,31 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::RenewByStatus(const std::list<std::string>& status, std::list<URL>& renewed, std::list<URL>& notrenewed) {
+  bool JobSupervisor::Renew() {
+    notprocessed.clear();
+    processed.clear();
     bool ok = true;
 
-    std::list<JobController*> jobConts = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
-         itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      std::list<Job*> renewable;
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
-           it != (*itJobC)->jobstore.end(); it++) {
-        if (!it->State || (!status.empty() &&
-            std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (!(*itJ)->State || (*itJ)->State == JobState::FINISHED || (*itJ)->State == JobState::KILLED || (*itJ)->State == JobState::DELETED) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
-        if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to renew job (%s), job already finished", it->JobID.fullstr());
-          continue;
-        }
-
-        renewable.push_back(&(*it));
-      }
-
-      for (std::list<Job*>::iterator it = renewable.begin();
-           it != renewable.end(); it++) {
-        if (!(*itJobC)->RenewJob(**it)) {
+        if (!it->first->RenewJob(**itJ)) {
           ok = false;
-          notrenewed.push_back((*it)->JobID);
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
         }
         else {
-          renewed.push_back((*it)->JobID);
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
         }
       }
     }
@@ -181,39 +230,31 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::ResumeByStatus(const std::list<std::string>& status, std::list<URL>& resumed, std::list<URL>& notresumed) {
+  bool JobSupervisor::Resume() {
+    notprocessed.clear();
+    processed.clear();
     bool ok = true;
 
-    std::list<JobController*> jobConts = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
-         itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      std::list<Job*> resumable;
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
-           it != (*itJobC)->jobstore.end(); it++) {
-        if (!it->State || (!status.empty() &&
-            std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (!(*itJ)->State || (*itJ)->State == JobState::FINISHED || (*itJ)->State == JobState::KILLED || (*itJ)->State == JobState::DELETED) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
-        if (it->State == JobState::FINISHED || it->State == JobState::KILLED || it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to resume job (%s), job is %s and cannot be resumed", it->JobID.fullstr(), it->State.GetGeneralState());
-          continue;
-        }
-
-        resumable.push_back(&(*it));
-      }
-
-      for (std::list<Job*>::iterator it = resumable.begin();
-           it != resumable.end(); it++) {
-        if (!(*itJobC)->ResumeJob(**it)) {
+        if (!it->first->ResumeJob(**itJ)) {
           ok = false;
-          notresumed.push_back((*it)->JobID);
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
         }
         else {
-          resumed.push_back((*it)->JobID);
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
         }
       }
     }
@@ -221,54 +262,45 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Resubmit(const std::list<std::string>& status, int destination,
-                               std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted) {
+  bool JobSupervisor::Resubmit(int destination, std::list<Job>& resubmittedJobs) {
+    notprocessed.clear();
+    processed.clear();
     bool ok = true;
 
-    std::list< std::list<Job>::iterator > resubmittableJobs;
-    std::list<JobController*> jobCs = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobCs.begin();
-         itJobC != jobCs.end(); ++itJobC) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
-           it != (*itJobC)->jobstore.end(); ++it) {
-        if (!it->State) {
-          continue;
-        }
-
-        if (!status.empty() &&
-            std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
-          continue;
-        }
-
+    std::list< std::list<Job*>::iterator > resubmittableJobs;
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
         // If job description is not set, then try to fetch it from execution service.
-        if (it->JobDescriptionDocument.empty() && !(*itJobC)->GetJobDescription(*it, it->JobDescriptionDocument)) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.fullstr());
-          notresubmitted.push_back(it->IDFromEndpoint);
+        if ((*itJ)->JobDescriptionDocument.empty() && !it->first->GetJobDescription(**itJ, (*itJ)->JobDescriptionDocument)) {
+          notprocessed.push_back((*itJ)->IDFromEndpoint);
           ok = false;
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
         // Verify checksums of local input files
-        if (!it->LocalInputFiles.empty()) {
-          std::map<std::string, std::string>::iterator itF = it->LocalInputFiles.begin();
-          for (; itF != it->LocalInputFiles.end(); ++itF) {
+        if (!(*itJ)->LocalInputFiles.empty()) {
+          std::map<std::string, std::string>::iterator itF = (*itJ)->LocalInputFiles.begin();
+          for (; itF != (*itJ)->LocalInputFiles.end(); ++itF) {
             if (itF->second != CheckSumAny::FileChecksum(itF->first, CheckSumAny::cksum, true)) {
               break;
             }
           }
 
-          if (itF != it->LocalInputFiles.end()) {
-            logger.msg(ERROR, "Unable to resubmit job (%s), local input file (%s) has changed", it->IDFromEndpoint.fullstr(), itF->first);
-            notresubmitted.push_back(it->IDFromEndpoint);
+          if (itF != (*itJ)->LocalInputFiles.end()) {
+            notprocessed.push_back((*itJ)->IDFromEndpoint);
             ok = false;
+            it->second.second.push_back(*itJ);
+            itJ = it->second.first.erase(itJ);
             continue;
           }
         }
 
-        resubmittableJobs.push_back(it);
+        resubmittableJobs.push_back(itJ);
+        ++itJ;
       }
     }
 
@@ -281,9 +313,11 @@ namespace Arc {
     Broker *chosenBroker = brokerLoader.load(resubmitUsercfg.Broker().first, resubmitUsercfg);
     if (!chosenBroker) {
       logger.msg(ERROR, "Job resubmission failed: Unable to load broker (%s)", resubmitUsercfg.Broker().first);
-      for (std::list< std::list<Job>::iterator >::iterator it = resubmittableJobs.begin();
-           it != resubmittableJobs.end(); it++) {
-        notresubmitted.push_back((*it)->IDFromEndpoint);
+      for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
+           itJ != resubmittableJobs.end(); ++itJ) {
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
       return false;
     }
@@ -295,29 +329,33 @@ namespace Arc {
       if (tg->GetExecutionTargets().empty()) {
         logger.msg(ERROR, "Job resubmission aborted because no resource returned any information");
         delete tg;
-        for (std::list< std::list<Job>::iterator >::iterator it = resubmittableJobs.begin();
-             it != resubmittableJobs.end(); it++) {
-          notresubmitted.push_back((*it)->IDFromEndpoint);
+        for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
+             itJ != resubmittableJobs.end(); ++itJ) {
+          notprocessed.push_back((**itJ)->IDFromEndpoint);
+          jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+          jcJobMap[(**itJ)->jc].first.erase(*itJ);
         }
         return false;
       }
 
     }
 
-    for (std::list< std::list<Job>::iterator >::iterator it = resubmittableJobs.begin();
-         it != resubmittableJobs.end(); ++it) {
+    for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
+         itJ != resubmittableJobs.end(); ++itJ) {
       resubmittedJobs.push_back(Job());
 
       std::list<JobDescription> jobdescs;
-      if (!JobDescription::Parse((*it)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (*it)->IDFromEndpoint.fullstr());
+      if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
+        logger.msg(ERROR, "Unable to resubmit job (%s), unable to parse obtained job description", (**itJ)->IDFromEndpoint.fullstr());
         resubmittedJobs.pop_back();
-        notresubmitted.push_back((*it)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
         ok = false;
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
         continue;
       }
-      jobdescs.front().Identification.ActivityOldID = (*it)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldID.push_back((*it)->JobID.fullstr());
+      jobdescs.front().Identification.ActivityOldID = (**itJ)->ActivityOldID;
+      jobdescs.front().Identification.ActivityOldID.push_back((**itJ)->JobID.fullstr());
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
@@ -325,7 +363,7 @@ namespace Arc {
       std::list<URL> rejectTargets;
       if (destination == 1) { // Jobs should be resubmitted to same target.
         std::list<std::string> sametarget;
-        sametarget.push_back((*it)->Flavour + ":" + (*it)->Cluster.fullstr());
+        sametarget.push_back((**itJ)->Flavour + ":" + (**itJ)->Cluster.fullstr());
 
         resubmitUsercfg.ClearSelectedServices();
         resubmitUsercfg.AddServices(sametarget, COMPUTING);
@@ -333,22 +371,29 @@ namespace Arc {
         tg = new TargetGenerator(resubmitUsercfg);
         tg->RetrieveExecutionTargets();
         if (tg->GetExecutionTargets().empty()) {
-          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (*it)->IDFromEndpoint.fullstr(), (*it)->Cluster.str());
+          logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->IDFromEndpoint.fullstr(), (**itJ)->Cluster.str());
           delete tg;
           resubmittedJobs.pop_back();
-          notresubmitted.push_back((*it)->IDFromEndpoint);
+          notprocessed.push_back((**itJ)->IDFromEndpoint);
+          jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+          jcJobMap[(**itJ)->jc].first.erase(*itJ);
           continue;
         }
       }
       else if (destination == 2) { // Jobs should NOT be resubmitted to same target.
-        rejectTargets.push_back((*it)->Cluster);
+        rejectTargets.push_back((**itJ)->Cluster);
       }
 
       if (!chosenBroker->Submit(tg->GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
         resubmittedJobs.pop_back();
-        notresubmitted.push_back((*it)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
         ok = false;
-        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (*it)->IDFromEndpoint.fullstr());
+        logger.msg(ERROR, "Unable to resubmit job (%s), no targets applicable for submission", (**itJ)->IDFromEndpoint.fullstr());
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
+      }
+      else {
+        processed.push_back((**itJ)->IDFromEndpoint);
       }
 
       if (destination == 1) {
@@ -363,30 +408,34 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Migrate(bool forcemigration,
-                              std::list<Job>& migratedJobs, std::list<URL>& notmigrated) {
+  bool JobSupervisor::Migrate(bool forcemigration, std::list<Job>& migratedJobs) {
     bool ok = true;
 
-    std::list< std::list<Job>::iterator > migratableJobs;
-    std::list<JobController*> jobConts = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
-         itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin(); it != (*itJobC)->jobstore.end(); ++it) {
-        if (it->State != JobState::QUEUING) {
+    std::list< std::list<Job*>::iterator > migratableJobs;
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         ++it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if ((*itJ)->State != JobState::QUEUING) {
+          notprocessed.push_back((*itJ)->IDFromEndpoint);
+          ok = false;
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
         // If job description is not set, then try to fetch it from execution service.
-        if (it->JobDescriptionDocument.empty() && !(*itJobC)->GetJobDescription(*it, it->JobDescriptionDocument)) {
-          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", it->IDFromEndpoint.fullstr());
-          notmigrated.push_back(it->IDFromEndpoint);
+        if ((*itJ)->JobDescriptionDocument.empty() && !it->first->GetJobDescription((**itJ), (*itJ)->JobDescriptionDocument)) {
+          logger.msg(ERROR, "Unable to migrate job (%s), job description could not be retrieved remotely", (*itJ)->IDFromEndpoint.fullstr());
+          notprocessed.push_back((*itJ)->IDFromEndpoint);
           ok = false;
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
-        migratableJobs.push_back(it);
+        migratableJobs.push_back(itJ);
+        ++itJ;
       }
     }
 
@@ -398,9 +447,11 @@ namespace Arc {
     targetGen.RetrieveExecutionTargets();
     if (targetGen.GetExecutionTargets().empty()) {
       logger.msg(ERROR, "Job migration aborted, no resource returned any information");
-      for (std::list< std::list<Job>::iterator >::const_iterator it = migratableJobs.begin();
-           it != migratableJobs.end(); ++it) {
-        notmigrated.push_back((*it)->IDFromEndpoint);
+      for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
+           itJ != migratableJobs.end(); ++itJ) {
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
       return false;
     }
@@ -409,22 +460,27 @@ namespace Arc {
     Broker *chosenBroker = brokerLoader.load(usercfg.Broker().first, usercfg);
     if (!chosenBroker) {
       logger.msg(ERROR, "Job migration aborted, unable to load broker (%s)", usercfg.Broker().first);
-      for (std::list< std::list<Job>::iterator >::const_iterator it = migratableJobs.begin();
-           it != migratableJobs.end(); ++it) {
-        notmigrated.push_back((*it)->IDFromEndpoint);
+      for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
+           itJ != migratableJobs.end(); ++itJ) {
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
       }
       return false;
     }
 
-    for (std::list< std::list<Job>::iterator >::iterator itJ = migratableJobs.begin();
+    for (std::list< std::list<Job*>::iterator >::iterator itJ = migratableJobs.begin();
          itJ != migratableJobs.end(); ++itJ) {
       std::list<JobDescription> jobdescs;
-      if (!JobDescription::Parse((*itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
-        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (*itJ)->IDFromEndpoint.fullstr());
+      if (!JobDescription::Parse((**itJ)->JobDescriptionDocument, jobdescs) || jobdescs.empty()) {
+        logger.msg(ERROR, "Unable to migrate job (%s), unable to parse obtained job description", (**itJ)->IDFromEndpoint.fullstr());
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
         continue;
       }
-      jobdescs.front().Identification.ActivityOldID = (*itJ)->ActivityOldID;
-      jobdescs.front().Identification.ActivityOldID.push_back((*itJ)->JobID.fullstr());
+      jobdescs.front().Identification.ActivityOldID = (**itJ)->ActivityOldID;
+      jobdescs.front().Identification.ActivityOldID.push_back((**itJ)->JobID.fullstr());
 
       // remove the queuename which was added during the original submission of the job
       jobdescs.front().Resources.QueueName = "";
@@ -435,90 +491,53 @@ namespace Arc {
       chosenBroker->Sort();
 
       for (const ExecutionTarget*& t = chosenBroker->GetReference(); !chosenBroker->EndOfList(); chosenBroker->Advance()) {
-        if (t->Migrate(usercfg, (*itJ)->IDFromEndpoint, jobdescs.front(), forcemigration, migratedJobs.back())) {
+        if (t->Migrate(usercfg, (**itJ)->IDFromEndpoint, jobdescs.front(), forcemigration, migratedJobs.back())) {
           chosenBroker->RegisterJobsubmission();
           break;
         }
       }
 
       if (chosenBroker->EndOfList()) {
-        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (*itJ)->IDFromEndpoint.fullstr());
+        logger.msg(ERROR, "Job migration failed for job (%s), no applicable targets", (**itJ)->IDFromEndpoint.fullstr());
         ok = false;
         migratedJobs.pop_back();
-        notmigrated.push_back((*itJ)->IDFromEndpoint);
+        notprocessed.push_back((**itJ)->IDFromEndpoint);
+        jcJobMap[(**itJ)->jc].second.push_back(**itJ);
+        jcJobMap[(**itJ)->jc].first.erase(*itJ);
+      }
+      else {
+        processed.push_back((**itJ)->IDFromEndpoint);
       }
     }
 
     return ok;
   }
 
-  bool JobSupervisor::CancelByIDs(const std::list<URL>& jobids, std::list<URL>& cancelled, std::list<URL>& notcancelled) {
+  bool JobSupervisor::Cancel() {
+    notprocessed.clear();
+    processed.clear();
     bool ok = true;
 
-    std::list<JobController*> jobCs = loader.GetJobControllers();
-    for (std::list<URL>::const_iterator itID = jobids.begin();
-         itID != jobids.end(); ++itID) {
-      for (std::list<JobController*>::iterator itJobC = jobCs.begin();
-           itJobC != jobCs.end(); ++itJobC) {
-        std::list<Job>::iterator itJ = (*itJobC)->jobstore.begin();
-        for (; itJ != (*itJobC)->jobstore.end(); ++itJ) {
-          if ((*itID) == itJ->IDFromEndpoint) {
-            if (itJ->State && (itJ->State.IsFinished() || (*itJobC)->CancelJob(*itJ))) {
-              cancelled.push_back(*itID);
-            }
-            else {
-              if (itJ->State) { ok = false; }
-              notcancelled.push_back(*itID);
-            }
-            break;
-          }
-        }
-        if (itJ != (*itJobC)->jobstore.end()) {
-          break;
-        }
-      }
-    }
-
-    return ok;
-  }
-
-  bool JobSupervisor::CancelByStatus(const std::list<std::string>& status, std::list<URL>& cancelled, std::list<URL>& notcancelled) {
-    bool ok = true;
-
-    std::list<JobController*> jobConts = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
-         itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      std::list<Job*> cancellable;
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
-           it != (*itJobC)->jobstore.end(); it++) {
-        if (!it->State || (!status.empty() &&
-            std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end())) {
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (!(*itJ)->State || (*itJ)->State == JobState::DELETED || (*itJ)->State.IsFinished()) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
-        if (it->State == JobState::DELETED) {
-          logger.msg(WARNING, "Unable to kill job (%s), job is deleted", it->JobID.fullstr());
-          continue;
-        }
-        else if (it->State.IsFinished()) {
-          logger.msg(WARNING, "Unable to kill job (%s), job has already finished", it->JobID.fullstr());
-          continue;
-        }
-
-        cancellable.push_back(&(*it));
-      }
-
-      for (std::list<Job*>::iterator it = cancellable.begin();
-           it != cancellable.end(); it++) {
-        if (!(*itJobC)->CancelJob(**it)) {
+        if (!it->first->CancelJob(**itJ)) {
           ok = false;
-          notcancelled.push_back((*it)->JobID);
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
         }
         else {
-          cancelled.push_back((*it)->JobID);
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
         }
       }
     }
@@ -526,87 +545,35 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleaned, std::list<URL>& notcleaned) {
+  bool JobSupervisor::Clean() {
+    notprocessed.clear();
+    processed.clear();
     bool ok = true;
 
-    std::list<JobController*> jobCs = loader.GetJobControllers();
-    for (std::list<URL>::const_iterator itID = jobids.begin();
-         itID != jobids.end(); ++itID) {
-      for (std::list<JobController*>::iterator itJobC = jobCs.begin();
-           itJobC != jobCs.end(); ++itJobC) {
-        std::list<Job>::iterator itJ = (*itJobC)->jobstore.begin();
-        for (; itJ != (*itJobC)->jobstore.end(); ++itJ) {
-          if ((*itID) == itJ->IDFromEndpoint) {
-            if (itJ->State && (*itJobC)->CleanJob(*itJ)) {
-              cleaned.push_back(*itID);
-            }
-            else {
-              if (itJ->State) { ok = false; }
-              notcleaned.push_back(*itID);
-            }
-            break;
-          }
-        }
-        if (itJ != (*itJobC)->jobstore.end()) {
-          break;
-        }
-      }
-    }
-
-    return ok;
-  }
-
-  bool JobSupervisor::CleanByStatus(const std::list<std::string>& status, std::list<URL>& cleaned, std::list<URL>& notcleaned) {
-    bool ok = true;
-    std::list<JobController*> jobConts = loader.GetJobControllers();
-    for (std::list<JobController*>::iterator itJobC = jobConts.begin();
-         itJobC != jobConts.end(); itJobC++) {
-      (*itJobC)->UpdateJobs((*itJobC)->jobstore);
-
-      std::list<Job*> cleanable;
-      for (std::list<Job>::iterator it = (*itJobC)->jobstore.begin();
-           it != (*itJobC)->jobstore.end(); it++) {
-        if (!it->State) {
+    for (JobSelectionMap::iterator it = jcJobMap.begin();
+         it != jcJobMap.end(); ++it) {
+      for (std::list<Job*>::iterator itJ = it->second.first.begin();
+           itJ != it->second.first.end();) {
+        if (!(*itJ)->State || !(*itJ)->State.IsFinished()) {
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
           continue;
         }
 
-        if (!status.empty() &&
-            std::find(status.begin(), status.end(), it->State()) == status.end() &&
-            std::find(status.begin(), status.end(), it->State.GetGeneralState()) == status.end()) {
-          continue;
-        }
-
-        if (!it->State.IsFinished()) {
-          logger.msg(WARNING, "Unable to clean job (%s), job has not finished yet", it->JobID.str());
-          continue;
-        }
-
-        cleanable.push_back(&(*it));
-      }
-
-      for (std::list<Job*>::iterator it = cleanable.begin();
-           it != cleanable.end(); it++) {
-        if (!(*itJobC)->CleanJob(**it)) {
+        if (!it->first->CleanJob(**itJ)) {
           ok = false;
-          notcleaned.push_back((*it)->JobID);
+          notprocessed.push_back((*itJ)->JobID);
+          it->second.second.push_back(*itJ);
+          itJ = it->second.first.erase(itJ);
         }
         else {
-          cleaned.push_back((*it)->JobID);
+          processed.push_back((*itJ)->JobID);
+          ++itJ;
         }
       }
     }
 
     return ok;
-  }
-
-  bool JobSupervisor::JobsFound() const {
-    for (std::list<JobController*>::const_iterator it = loader.GetJobControllers().begin();
-         it != loader.GetJobControllers().end(); ++it) {
-      if (!(*it)->jobstore.empty()) {
-        return true;
-      }
-    }
-
-    return false;
   }
 } // namespace Arc

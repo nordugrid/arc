@@ -115,21 +115,16 @@ namespace Arc {
      * 'retrievedJobs' list. If all jobs are successfully retrieved this
      * method returns true, otherwise false.
      *
-     * @param statusfilter list of job status used for filtering jobs.
      * @param downloaddir specifies the path to in which job download
      *   directories will be located.
      * @param usejobname specifies whether to use the job name or job ID as
      *   directory name to store job output files in.
      * @param force indicates whether existing job directories should be
      *   overwritten or not.
-     * @param retrievedJobs job IDs of successfully retrieved jobs will be
-     *   appended to this list.
-     * @see JobController::GetJob.
+     * @see JobController::RetrieveJob.
      * @return true if all jobs are successfully retrieved, otherwise false.
      **/
-    bool RetrieveByStatus(const std::list<std::string>& statusfilter, const std::string& downloaddirprefix,
-                          bool usejobname, bool force, std::list<URL>& retrieved, std::list<std::string>& downloaddirectories,
-                          std::list<URL>& notretrieved);
+    bool Retrieve(const std::string& downloaddirprefix, bool usejobname, bool force, std::list<std::string>& downloaddirectories);
 
     /// Renew job credentials
     /**
@@ -159,16 +154,11 @@ namespace Arc {
      * notrenewed list. The job ID of successfully renewed jobs will be appended
      * to the passed renewed list.
      *
-     * @param statusfilter list of job status used for filtering jobs.
-     * @param renewed list of URLs which to append job IDs to, of
-     *  jobs for which credentials was successfully renewed.
-     * @param notrenewed List of Job::IDFromEndpoint URL objects for which the
-     *  credentials of the corresponding job were not renewed.
      * @return false if any call to JobController::RenewJob fails, true
      *  otherwise.
      * @see JobController::RenewJob.
      **/
-    bool RenewByStatus(const std::list<std::string>& statusfilter, std::list<URL>& renewed, std::list<URL>& notrenewed);
+    bool Renew();
 
     /// Resume jobs by status
     /**
@@ -195,16 +185,11 @@ namespace Arc {
      * otherwise true is returned. The job ID of successfully resumed jobs
      * will be appended to the passed resumedJobs list.
      *
-     * @param statusfilter list of job status used for filtering jobs.
-     * @param resumed list of URLs which to append job IDs to, of jobs which was
-     *  successfully resumed.
-     * @param notresumed list of URLs which to append job IDs to, of jobs which
-     *  failed to resume.
      * @return false if any call to JobController::ResumeJob fails, true
      *  otherwise.
      * @see JobController::ResumeJob.
      **/
-    bool ResumeByStatus(const std::list<std::string>& statusfilter, std::list<URL>& resumed, std::list<URL>& notresumed);
+    bool Resume();
 
     /// Resubmit jobs
     /**
@@ -256,17 +241,13 @@ namespace Arc {
      * resubmittedJobs list - it will not be added to this JobSupervisor. The
      * method returns false if ERRORs were reported otherwise true is returned.
      *
-     * @param statusfilter list of job status used for filtering jobs.
      * @param destination specifies how target destination should be determined
      *  (1 = same target, 2 = not same, any other = any target).
      * @param resubmittedJobs list of Job objects which resubmitted jobs will be
      *  appended to.
-     * @param notresubmitted list of URL objects which the IDFromEndpoint URL
-     *  will be appended to.
      * @return false if any error is encountered, otherwise true.
      **/
-    bool Resubmit(const std::list<std::string>& statusfilter, int destination,
-                  std::list<Job>& resubmittedJobs, std::list<URL>& notresubmitted);
+    bool Resubmit(int destination, std::list<Job>& resubmittedJobs);
 
     /// Migrate jobs
     /**
@@ -317,46 +298,11 @@ namespace Arc {
      *  service fails to cancel the existing queuing job.
      * @param migratedJobs list of Job objects which migrated jobs will be
      *  appended to.
-     * @param notmigrated list of URL objects which the IDFromEndpoint URL
-     *  will be appended to.
      * @return false if any error is encountered, otherwise true.
      **/
-    bool Migrate(bool forcemigration,
-                 std::list<Job>& migratedJobs, std::list<URL>& notmigrated);
+    bool Migrate(bool forcemigration, std::list<Job>& migratedJobs);
 
-    /// Cancel jobs by ID
-    /**
-     * This method will request cancellation of jobs. Only jobs, manged by this
-     * JobSupervisor, for which the IDFromEndpoint attribute equals any of those
-     * specified in the jobids list parameter will be considered for
-     * cancellation. Jobs not in a valid state (see JobState) will not be
-     * considered, and the IDFromEndpoint attribute of those objects will be
-     * appended to the notcancelled URL list. For jobs not in a finished state
-     * (see JobState::IsFinished), the JobController::CancelJob method will be
-     * called, passing the corresponding Job object, in order to cancel the job.
-     * If the JobController::Cancel call succeeds or if the job is in a finished
-     * state the IDFromEndpoint attribute will be appended to the cancelled
-     * list. If the JobController::Cancel call fails the IDFromEndpoint
-     * attribute is appended to the notcancelled list. If any of the calls to
-     * the JobController::CancelJob method fails false is returned, otherwise
-     * true is returned.
-     *
-     * Note: If there is any URL in the jobids list for which there is no
-     * corresponding Job object, then the size of the cancelled list plus the
-     * size of the notcancelled list will not equal that of the jobids list.
-     *
-     * @param jobids List of Job::IDFromEndpoint URL objects for which a
-     *  corresponding job, managed by this JobSupervisor should be cancelled.
-     * @param cancelled List of Job::IDFromEndpoint URL object which was
-     *  cancelled.
-     * @param notcancelled List of Job::IDFromEndpoint URL objects for which the
-     *  corresponding job were not cancelled.
-     * @return false if any call to JobController::CancelJob fails, true
-     *  otherwise.
-     **/
-    bool CancelByIDs(const std::list<URL>& jobids, std::list<URL>& cancelled, std::list<URL>& notcancelled);
-
-    /// Cancel jobs by status
+    /// Cancel jobs
     /**
      * This method cancels jobs managed by this JobSupervisor.
      *
@@ -380,47 +326,13 @@ namespace Arc {
      * notcancelled list. The job ID of successfully cancelled jobs will be
      * appended to the passed cancelled list.
      *
-     * @param statusfilter list of job status used for filtering jobs.
-     * @param cancelled list of URLs which to append job IDs of
-     *  successfully cancelled jobs to.
-     * @param notcancelled list of URLs which to append job IDs of jobs which
-     *  failed to be cancelled.
      * @return false if any call to JobController::CancelJob failed, true
      *  otherwise.
      * @see JobController::CancelJob.
      **/
-    bool CancelByStatus(const std::list<std::string>& statusfilter, std::list<URL>& cancelled, std::list<URL>& notcancelled);
+    bool Cancel();
 
-    /// Clean jobs by ID
-    /**
-     * This method will request cleaning of jobs, identified by their
-     * IDFromEndpoint member, for which that URL is equal to any in the jobids
-     * list. Only jobs corresponding to a Job object managed by this
-     * JobSupervisor will be considered for cleaning. Job objects not in a valid
-     * state (see JobState) will not be considered, and the IDFromEndpoint URLs
-     * of those objects will be appended to the notcleaned URL list, otherwise
-     * the JobController::Clean method will be called, passing the corresponding
-     * Job object, in order to clean the job. If that method fails the
-     * IDFromEndpoint URL of the Job object will be appended to the notcleaned
-     * URL list, and if it succeeds the IDFromEndpoint URL will be appended
-     * to the cleaned list. If any of the calls to JobController::Clean fails,
-     * false will be returned, otherwise true is returned.
-     *
-     * Note: If there is any URL in the jobids list for which there is no
-     * corresponding Job object, then the size of the cleaned list plus the
-     * size of the notcleaned list will not equal that of the jobids list.
-     *
-     * @param jobids List of Job::IDFromEndpoint URL objects for which a
-     *  corresponding job, managed by this JobSupervisor should be cleaned.
-     * @param cleaned List of Job::IDFromEndpoint URL object which was
-     *  cleaned.
-     * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
-     *  corresponding job were not cleaned.
-     * @return false if calls to JobController::Clean fails, true otherwise.
-     **/
-    bool CleanByIDs(const std::list<URL>& jobids, std::list<URL>& cleaned, std::list<URL>& notcleaned);
-
-    /// Clean jobs by status
+    /// Clean jobs
     /**
      * This method is identical to the CleanByIDs method, except that before
      * cleaning jobs, the JobController::GetInformation method is called in
@@ -431,14 +343,9 @@ namespace Arc {
      * JobState::GetGeneralState() methods. If the status list is empty, all
      * jobs will be selected for cleaning.
      *
-     * @param status list of job status used for filtering jobs.
-     * @param cleaned List of Job::IDFromEndpoint URL object which was
-     *  cleaned.
-     * @param notcleaned List of Job::IDFromEndpoint URL objects for which the
-     *  corresponding job were not cleaned.
-     * @return false if calls to JobController::Clean fails, true otherwise.
+     * @return false if calls to JobController::CleanJob fails, true otherwise.
      **/
-    bool CleanByStatus(const std::list<std::string>& status, std::list<URL>& cleaned, std::list<URL>& notcleaned);
+    bool Clean();
 
     const JobController* GetJobController(const std::string& flavour) const { return loader.GetJobController(flavour); }
 
@@ -450,12 +357,28 @@ namespace Arc {
       return loader.GetJobControllers();
     }
 
-    bool JobsFound() const;
+    const std::list<Job>& GetAllJobs() const { return jobs; }
+    std::list<Job> GetSelectedJobs() const;
+
+    void SelectValid();
+    void SelectByStatus(const std::list<std::string>& status);
+
+    void ClearSelection();
+    
+    const std::list<URL>& GetIDsProcessed() const { return processed; }
+    const std::list<URL>& GetIDsNotProcessed() const { return notprocessed; }
 
   private:
     const UserConfig& usercfg;
 
+    std::list<Job> jobs;
+    // Selected and non-selected jobs.
+    typedef std::map<JobController*, std::pair< std::list<Job*>, std::list<Job*> > > JobSelectionMap;
+    JobSelectionMap jcJobMap;
     std::map<std::string, JobController*> loadedJCs;
+
+    std::list<URL> processed, notprocessed;
+
     JobControllerLoader loader;
 
     static Logger logger;

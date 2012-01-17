@@ -14,7 +14,9 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/XMLNode.h>
-#include <arc/client/Job.h>
+#include <arc/client/JobController.h>
+
+#include "Job.h"
 
 #define JXMLTOSTRING(NAME) \
     if (job[ #NAME ]) {\
@@ -98,7 +100,8 @@ namespace Arc {
       ProxyExpirationTime(-1),
       CreationTime(-1),
       Validity(-1),
-      VirtualMachine(false) {}
+      VirtualMachine(false),
+      jc(NULL) {}
 
   Job::~Job() {}
 
@@ -122,7 +125,8 @@ namespace Arc {
       ProxyExpirationTime(-1),
       CreationTime(-1),
       Validity(-1),
-      VirtualMachine(false) {
+      VirtualMachine(false),
+      jc(NULL) {
     *this = j;
   }
 
@@ -151,6 +155,8 @@ namespace Arc {
   }
 
   Job& Job::operator=(const Job& j) {
+    jc = j.jc;
+
     Flavour = j.Flavour;
     Cluster = j.Cluster;
 
@@ -220,6 +226,8 @@ namespace Arc {
   }
 
   Job& Job::operator=(XMLNode job) {
+    jc = NULL;
+
     JXMLTOSTRING(Name)
     JXMLTOSTRING(Flavour)
     JXMLTOSTRING(Cluster)

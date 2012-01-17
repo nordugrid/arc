@@ -34,17 +34,17 @@ namespace Arc {
     return new JobControllerARC1(*jcarg);
   }
 
-  void JobControllerARC1::UpdateJobs(std::list<Job>& jobs) const {
+  void JobControllerARC1::UpdateJobs(std::list<Job*>& jobs) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job>::iterator iter = jobs.begin();
+    for (std::list<Job*>::iterator iter = jobs.begin();
          iter != jobs.end(); iter++) {
-      AREXClient ac(iter->Cluster, cfg, usercfg.Timeout());
+      AREXClient ac((*iter)->Cluster, cfg, usercfg.Timeout());
       std::string idstr;
-      AREXClient::createActivityIdentifier(iter->JobID, idstr);
-      if (!ac.stat(idstr, *iter)) {
-        logger.msg(WARNING, "Job information not found: %s", iter->JobID.fullstr());
+      AREXClient::createActivityIdentifier((*iter)->JobID, idstr);
+      if (!ac.stat(idstr, **iter)) {
+        logger.msg(WARNING, "Job information not found: %s", (*iter)->JobID.fullstr());
       }
     }
   }

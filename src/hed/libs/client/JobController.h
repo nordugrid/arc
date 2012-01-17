@@ -37,7 +37,6 @@ namespace Arc {
   /// Must be specialiced for each supported middleware flavour.
   class JobController
     : public Plugin {
-    friend class JobSupervisor;
   protected:
     JobController(const UserConfig& usercfg,
                   const std::string& flavour);
@@ -51,7 +50,7 @@ namespace Arc {
     bool CopyJobFile(const URL& src, const URL& dst) const;
  
     // Implemented by specialized classes
-    virtual void UpdateJobs(std::list<Job>& jobs) const = 0;
+    virtual void UpdateJobs(std::list<Job*>& jobs) const = 0;
     virtual bool RetrieveJob(const Job& job, std::string& downloaddir, bool usejobname, bool force) const = 0;
     virtual bool CleanJob(const Job& job) const = 0;
     virtual bool CancelJob(const Job& job) const = 0;
@@ -64,7 +63,6 @@ namespace Arc {
   protected:
     const std::string flavour;
     const UserConfig& usercfg;
-    std::list<Job> jobstore;
     mutable DataHandle* data_source;
     mutable DataHandle* data_destination;
     static Logger logger;

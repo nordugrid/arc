@@ -32,14 +32,14 @@ namespace Arc {
     return new JobControllerUNICORE(*jcarg);
   }
 
-  void JobControllerUNICORE::UpdateJobs(std::list<Job>& jobs) const {
+  void JobControllerUNICORE::UpdateJobs(std::list<Job*>& jobs) const {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
 
-    for (std::list<Job>::iterator iter = jobs.begin();
+    for (std::list<Job*>::iterator iter = jobs.begin();
          iter != jobs.end(); iter++) {
-      URL url(iter->Cluster);
-      XMLNode id(iter->AuxInfo);
+      URL url((*iter)->Cluster);
+      XMLNode id((*iter)->AuxInfo);
       ClientSOAP client(cfg, url, usercfg.Timeout());
       logger.msg(INFO, "Creating and sending a status request");
       NS ns;
@@ -76,7 +76,7 @@ namespace Arc {
         logger.msg(ERROR, "Failed retrieving job status information");
         continue;
       }
-      iter->State = JobStateUNICORE(state);
+      (*iter)->State = JobStateUNICORE(state);
     }
 
 

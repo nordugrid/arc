@@ -104,9 +104,16 @@ int RUNCAT(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
+  }
+
+  jobs = jobmaster.GetSelectedJobs();
+  if (jobs.empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;
-    return 0;
+    return 1;
   }
 
   std::string whichfile;
@@ -134,8 +141,6 @@ int RUNCAT(main)(int argc, char **argv) {
   }
 
   int retval = 0;
-  jobmaster.Update();
-  jobs = jobmaster.GetJobs();
   for (std::list<Arc::Job>::const_iterator it = jobs.begin();
        it != jobs.end(); it++) {
     if (!it->State || (!opt.status.empty() &&

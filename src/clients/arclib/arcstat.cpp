@@ -126,13 +126,18 @@ int RUNSTAT(main)(int argc, char **argv) {
   }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
-  if (!jobmaster.JobsFound()) {
+  jobmaster.Update();
+  jobmaster.SelectValid();
+  if (!opt.status.empty()) {
+    jobmaster.SelectByStatus(opt.status);
+  }
+  jobs = jobmaster.GetSelectedJobs();
+
+  if (jobs.empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;
-    return 0;
+    return 1;
   }
 
-  jobmaster.Update();
-  jobs = jobmaster.GetJobs(false);
   std::vector<Arc::Job> jobsSortable(jobs.begin(), jobs.end());
 
   if (!opt.sort.empty()) {

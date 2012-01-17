@@ -10,6 +10,8 @@
 
 namespace Arc {
 
+  class JobController;
+  class JobSupervisor;
   class Logger;
   class XMLNode;
 
@@ -20,6 +22,7 @@ namespace Arc {
    * in the GLUE Specification v. 2.0 (GFD-R-P.147).
    */
   class Job {
+  friend class JobSupervisor;
   public:
 
     /// Create a Job object
@@ -373,6 +376,8 @@ namespace Arc {
     static bool WriteJobIDsToFile(const std::list<Job>& jobs, const std::string& filename, unsigned nTries = 10, unsigned tryInterval = 500000);
 
   private:
+    JobController* jc;
+
     static Logger logger;
   };
 

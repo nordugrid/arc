@@ -20,7 +20,6 @@ bool JobControllerTestACCControl::getJobDescriptionStatus = false;
 std::string JobControllerTestACCControl::getJobDescriptionString = "";
 URL JobControllerTestACCControl::fileURL = URL();
 URL JobControllerTestACCControl::createURL = URL();
-std::list<Job>* JobControllerTestACCControl::jobs = NULL;
 
 bool SubmitterTestACCControl::submitStatus = false;
 bool SubmitterTestACCControl::migrateStatus = false;

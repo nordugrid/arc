@@ -32,18 +32,18 @@ namespace Arc {
     return new JobControllerCREAM(*jcarg);
   }
 
-  void JobControllerCREAM::UpdateJobs(std::list<Job>& jobs) const {
+  void JobControllerCREAM::UpdateJobs(std::list<Job*>& jobs) const {
 
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    for (std::list<Job>::iterator iter = jobs.begin();
+    for (std::list<Job*>::iterator iter = jobs.begin();
          iter != jobs.end(); iter++) {
-      PathIterator pi(iter->JobID.Path(), true);
-      URL url(iter->JobID);
+      PathIterator pi((*iter)->JobID.Path(), true);
+      URL url((*iter)->JobID);
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
-      if (!gLiteClient.stat(pi.Rest(), (*iter))) {
-        logger.msg(WARNING, "Job information not found: %s", iter->JobID.fullstr());
+      if (!gLiteClient.stat(pi.Rest(), (**iter))) {
+        logger.msg(WARNING, "Job information not found: %s", (*iter)->JobID.fullstr());
       }
     }
   }
