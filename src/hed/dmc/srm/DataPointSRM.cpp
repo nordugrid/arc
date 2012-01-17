@@ -827,7 +827,7 @@ namespace Arc {
     } else {
       // if SFN option is not used, treat everything in the path including
       // options as part of the path and encode it
-      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + "/" + uri_encode(srm_url.Path(), false);
+      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + uri_encode(srm_url.Path(), false);
       std::string extrapath;
       for (std::map<std::string, std::string>::const_iterator
            it = srm_url.HTTPOptions().begin(); it != srm_url.HTTPOptions().end(); it++) {
