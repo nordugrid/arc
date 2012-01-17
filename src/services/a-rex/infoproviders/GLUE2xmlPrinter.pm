@@ -194,6 +194,8 @@ sub Services {
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
         $self->ToStorageServices($data->{ToStorageServices});
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
         if ($data->{ServiceID}) {
             $self->begin('Associations');
             $self->properties($data, 'ServiceID');
@@ -211,8 +213,8 @@ sub ComputingService {
                                      QualityLevel
                                      StatusInfo
                                      Complexity ));
-        #$self->Location($data->{Location});
-        #$self->Contacts($data->{Contacts});
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
         $self->properties($data, qw( TotalJobs
                                      RunningJobs
                                      WaitingJobs

@@ -36,6 +36,7 @@ sub LocationAttributes {
     $self->EntityAttributes($data);
     $self->attribute(objectClass => "GLUE2Location");
     $self->attributes($data, "GLUE2Location", qw( ID Address Place Country PostCode Latitude Longitude ));
+    $self->attribute(GLUE2LocationServiceForeignKey => $data->{ServiceForeignKey});
 }
 
 sub ContactAttributes {
@@ -43,6 +44,7 @@ sub ContactAttributes {
     $self->EntityAttributes($data);
     $self->attribute(objectClass => "GLUE2Contact");
     $self->attributes($data, "GLUE2Contact", qw( ID Detail Type ));
+    $self->attribute(GLUE2ContactServiceForeignKey => $data->{ServiceForeignKey});
 }
 
 sub DomainAttributes {
@@ -450,6 +452,8 @@ sub Services {
     LdifPrinter::Entries(@_, 'GLUE2Service', 'ID', \&ServiceAttributes, sub {
         my ($self, $data) = @_;
         $self->Endpoint($data->{Endpoint});
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
     });
 }
 
@@ -463,6 +467,8 @@ sub ComputingService {
         $self->ComputingActivities($data->{ComputingActivities});
         $self->end();
         $self->ToStorageServices($data->{ToStorageServices});
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
     });
 }
 

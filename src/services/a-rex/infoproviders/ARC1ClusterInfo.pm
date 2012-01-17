@@ -613,11 +613,6 @@ sub collect($) {
 
     # Global IDs
     # ARC choices are as follows:
-    # AdminDomain: urn:ogf:<objectclass>:Domain Name. Taken from configfile
-    # Services: urn:ogf:<ObjectClass>:<FQDN>:<port>:<service type> temporary
-    # Endpoints: urn:ogf:<ObjectClass>:<FQDN>:<endpoint type>:<endpointURL> temporary -- don't forget to add ports later!
-    # RTEs: urn:ogf:<ObjectClass>:<FQDN>:<port>:<sequential number>
-    # Jobs: urn:ogf:<ObjectClass>:<FQDN>:<port>:<jobid> 
     # 
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
     my $udID = "urn:ogf:UserDomain:local:$admindomain" ; # UserDomain ID;
@@ -627,7 +622,7 @@ sub collect($) {
     my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:XBES:$arexhostport"; # ARCWSComputingEndpoint ID
     my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:EMI-ES:$emieshostport"; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:GridFTP:$stageinhostport"; # StageinComputingEndpoint ID
-    my $cactIDp = "urn:ogf:ComputingActivity:$hostname:$arexhostport"; # ComputingActivity ID prefix
+    my $cactIDp = "urn:ogf:ComputingActivity:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname:$servicename"; # ComputingShare ID prefix
     my $xenvIDp = "urn:ogf:ExecutionEnvironment:$hostname:$servicename"; # ExecutionEnvironment ID prefix
     my $aenvIDp = "urn:ogf:ApplicationEnvironment:$hostname:$servicename"; # ApplicationEnvironment ID prefix
@@ -1681,6 +1676,9 @@ sub collect($) {
     # ComputingManager
 
         my $getComputingManager = sub {
+        
+        # initialize ID counters
+        my $benchmarkcount = 0;
 
             my $cmgr = {};
 
@@ -1759,7 +1757,8 @@ sub collect($) {
                     my $bench = {};
                     $bench->{Type} = $type;
                     $bench->{Value} = $value;
-                    $bench->{ID} = "urn:ogf:Benchmark:$servicename:$type";
+                    $bench->{ID} = "urn:ogf:Benchmark:$hostname:$servicename:$type:$benchmarkcount";
+                    $benchmarkcount++;
                     return $bench;
                 };
             }
@@ -1854,7 +1853,8 @@ sub collect($) {
                         my $bench = {};
                         $bench->{Type} = $type;
                         $bench->{Value} = $value;
-                        $bench->{ID} = "urn:ogf:Benchmark:$servicename:$xenv:$type";
+                        $bench->{ID} = "urn:ogf:Benchmark:$hostname:$xenv:$type:$benchmarkcount";
+                        $benchmarkcount++;
                         return $bench;
                     };
                 }
@@ -1908,6 +1908,36 @@ sub collect($) {
 
         $csv->{ComputingManager} = $getComputingManager;
 
+        # Location and Contacts
+        if (my $lconfig = $config->{location}) {
+            my $count = 1;
+            $csv->{Location} = sub {
+                return undef if $count-- == 0;
+                my $loc = {};
+                $loc->{ID} = "urn:ogf:Location:$hostname:ComputingService:$servicename";
+                for (qw(Name Address Place PostCode Country Latitude Longitude)) {
+                    $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
+                }
+                $loc->{ServiceForeignKey} = $csvID;
+                return $loc;
+            }
+        }
+        if (my $cconfs = $config->{contacts}) {
+            my $i = 0;
+            $csv->{Contacts} = sub {
+                return undef unless $i < length @$cconfs;
+                my $cconfig = $cconfs->[$i++];
+                #my $detail = $cconfig->{Detail};
+                my $cont = {};
+                $cont->{ID} = "urn:ogf:Contact:$hostname:ComputingService:$servicename:$i";
+                for (qw(Name Detail Type)) {
+                    $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
+                }
+                $cont->{ServiceForeignKey} = $csvID;
+                return $cont;
+            };
+        }
+        
         # Associations
 
         $csv->{AdminDomainID} = $adID;
@@ -1927,34 +1957,40 @@ sub collect($) {
                     Validity => $validity_ttl
                   };
         $dom->{Distributed} = glue2bool($config->{admindomain}{Distributed});
-        # Location and Contact goes here.
-	# TODOFLO: remember to sync ForeignKeys
-        if (my $lconfig = $config->{location}) {
-            my $count = 1;
-            $dom->{Location} = sub {
-                return undef if $count-- == 0;
-                my $loc = {};
-                $loc->{ID} = "urn:ogf:Location:$admindomain";
-                for (qw(Name Address Place PostCode Country Latitude Longitude)) {
-                    $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
-                }
-                return $loc;
-            }
-        }
-        if (my $cconfs = $config->{contacts}) {
-            my $i = 0;
-            $dom->{Contacts} = sub {
-                return undef unless $i < length @$cconfs;
-                my $cconfig = $cconfs->[$i++];
-                my $detail = $cconfig->{Detail};
-                my $cont = {};
-                $cont->{ID} = "urn:ogf:Contact:$admindomain:$detail";
-                for (qw(Name Detail Type)) {
-                    $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
-                }
-                return $cont;
-            };
-        }
+        
+        
+        # TODO: Location and Contact for AdminDomain goes here.
+        # Contacts can be multiple, don't know how to handle this
+        # in configfile.
+        # TODO: remember to sync ForeignKeys
+        #  Disabled for now, as it would only cause trouble.
+#         if (my $lconfig = $config->{location}) {
+#             my $count = 1;
+#             $dom->{Location} = sub {
+#                 return undef if $count-- == 0;
+#                 my $loc = {};
+#                 $loc->{ID} = "urn:ogf:Location:$hostname:AdminDomain:$admindomain";
+#                 for (qw(Name Address Place PostCode Country Latitude Longitude)) {
+#                     $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
+#                 }
+#                 return $loc;
+#             }
+#         }
+#         if (my $cconfs = $config->{contacts}) {
+#             my $i = 0;
+#             $dom->{Contacts} = sub {
+#                 return undef unless $i < length @$cconfs;
+#                 my $cconfig = $cconfs->[$i++];
+#                 #my $detail = $cconfig->{Detail};
+#                 my $cont = {};
+#                 $cont->{ID} = "urn:ogf:Contact:$hostname:AdminDomain:$admindomain:$i";
+#                 for (qw(Name Detail Type)) {
+#                     $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
+#                 }
+#                 return $cont;
+#             };
+#         }
+
 
         return $dom;
     };
@@ -2083,8 +2119,7 @@ sub collect($) {
             }
             
             $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-
+                   
             # Associations
 
             $ep->{ServiceID} = $ARISsvID;
@@ -2093,6 +2128,36 @@ sub collect($) {
         };
 
         $sv->{Endpoint} = $getARISEndpoint;
+
+        # Location and Contact
+        if (my $lconfig = $config->{location}) {
+            my $count = 1;
+            $sv->{Location} = sub {
+                return undef if $count-- == 0;
+                my $loc = {};
+                $loc->{ID} = "urn:ogf:Location:$hostname:Service:ARIS";
+                for (qw(Name Address Place PostCode Country Latitude Longitude)) {
+                    $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
+                }
+                $loc->{ServiceForeignKey} = $sv->{ID};
+                return $loc;
+            }
+        }
+        if (my $cconfs = $config->{contacts}) {
+            my $i = 0;
+            $sv->{Contacts} = sub {
+                return undef unless $i < length @$cconfs;
+                my $cconfig = $cconfs->[$i++];
+                #my $detail = $cconfig->{Detail};
+                my $cont = {};
+                $cont->{ID} = "urn:ogf:Contact:$hostname:Service:ARIS:$i";
+                for (qw(Name Detail Type)) {
+                    $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
+                }
+                $cont->{ServiceForeignKey} = $sv->{ID};
+                return $cont;
+            };
+        }
 
         # Associations
 
