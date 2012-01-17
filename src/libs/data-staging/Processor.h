@@ -56,6 +56,8 @@ namespace DataStaging {
     static void DTRBulkResolve(void* arg);
     /// Check if source exists
     static void DTRQueryReplica(void* arg);
+    /// Bulk check if source exists
+    static void DTRBulkQueryReplica(void* arg);
     /// Remove destination file before creating a new version
     static void DTRPreClean(void *arg);
     /// Call external services to prepare physical files for reading/writing

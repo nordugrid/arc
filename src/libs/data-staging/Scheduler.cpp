@@ -920,7 +920,9 @@ namespace DataStaging {
             // Only source bulk operations supported at the moment and limit to 100
             if (bulk_requests[jobid].size() < 100 &&
                 first_bulk->get_source()->GetURL().Protocol() == tmp->get_source()->GetURL().Protocol() &&
-                first_bulk->get_source()->GetURL().Host() == tmp->get_source()->GetURL().Host()) {
+                first_bulk->get_source()->GetURL().Host() == tmp->get_source()->GetURL().Host() &&
+                first_bulk->get_source()->CurrentLocation().Protocol() == tmp->get_source()->CurrentLocation().Protocol() &&
+                first_bulk->get_source()->CurrentLocation().Host() == tmp->get_source()->CurrentLocation().Host()) {
               bulk_requests[jobid].insert(tmp);
             }
           }

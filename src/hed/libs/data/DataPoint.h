@@ -320,6 +320,30 @@ namespace Arc {
        be retrieved due to limitation of protocol or access control. */
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL) = 0;
 
+    /// Retrieve information about several DataPoints.
+    /** If a DataPoint represents a directory or something similar,
+       information about the object itself and not its contents will
+       be obtained. This method can use bulk operations if the protocol
+       supports it. The protocols and hosts of all the DataPoints in
+       urls must be the same and the same as this DataPoint's protocol
+       and host. This method can be called on any of the urls, for
+       example urls.front()->Stat(files, urls);
+       Calling this method with an empty list of urls returns success if
+       the protocol supports bulk Stat, and an error if it does not.
+       \param files will contain objects' names and requested attributes.
+       There may be more attributes than requested. There may be less
+       if objects can't provide particular information. The order of this
+       vector matches the order of urls. If a stat of any url fails then
+       the corresponding FileInfo in this list will evaluate to false.
+       \param urls list of DataPoints to stat. Protocols and hosts must
+       match and match this DataPoint's protocol and host.
+       \param verb defines attribute types which method must try to
+       retrieve. It is not a failure if some attributes could not
+       be retrieved due to limitation of protocol or access control. */
+    virtual DataStatus Stat(std::list<FileInfo>& files,
+                            const std::list<DataPoint*>& urls,
+                            DataPointInfoType verb = INFO_TYPE_ALL) = 0;
+
     /// List hierarchical content of this object.
     /** If the DataPoint represents a directory or something similar its
        contents will be listed.
@@ -388,11 +412,12 @@ namespace Arc {
     /// Resolves several index service URLs.
     /** Can use bulk calls if protocol allows. The protocols and hosts of all
        the DataPoints in urls must be the same and the same as this DataPoint's
-       protocol and host.
+       protocol and host. This method can be called on any of the urls, for
+       example urls.front()->Resolve(true, urls);
        \param source true if DataPoint objects represent source of information
-       \param urls Vector of DataPoints to resolve. Protocols and hosts must
+       \param urls List of DataPoints to resolve. Protocols and hosts must
        match and match this DataPoint's protocol and host. */
-    virtual DataStatus Resolve(bool source, const std::vector<DataPoint*>& urls) = 0;
+    virtual DataStatus Resolve(bool source, const std::list<DataPoint*>& urls) = 0;
 
     /// Check if file is registered in Indexing Service.
     /** Proper value is obtainable only after Resolve. */
@@ -543,6 +568,9 @@ namespace Arc {
     /// Returns meta information used to create current URL.
     /** Usage differs between different indexing services. */
     virtual const std::string& CurrentLocationMetadata() const = 0;
+
+    /// Returns a pointer to the DataPoint representing the current location.
+    virtual DataPoint* CurrentLocationHandle() const = 0;
 
     /// Compare metadata of DataPoint and current location
     /** Returns inconsistency error or error encountered during

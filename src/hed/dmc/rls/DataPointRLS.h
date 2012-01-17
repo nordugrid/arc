@@ -32,13 +32,16 @@ namespace Arc {
     ~DataPointRLS();
     static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus Resolve(bool source);
-    virtual DataStatus Resolve(bool source, const std::vector<DataPoint*>& urls);
+    virtual DataStatus Resolve(bool source, const std::list<DataPoint*>& urls);
     virtual DataStatus Check();
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus Stat(std::list<FileInfo>& files,
+                            const std::list<DataPoint*>& urls,
+                            DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus CreateDirectory(bool with_parents=false) { return DataStatus::UnimplementedError; };
     bool ResolveCallback(globus_rls_handle_t *h, const URL& url, void *arg);

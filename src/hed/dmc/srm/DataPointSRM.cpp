@@ -54,13 +54,7 @@ namespace Arc {
       return DataStatus::CheckError;
     }
 
-    std::string canonic_url;
-    if (!url.HTTPOption("SFN").empty())
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
-    else
-      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
-
-    SRMClientRequest srm_request_tmp(canonic_url);
+    SRMClientRequest srm_request_tmp(CanonicSRMURL(url));
     
     // first check permissions
     SRMReturnCode res = client->checkPermissions(srm_request_tmp);
@@ -121,13 +115,7 @@ namespace Arc {
     }
 
     // take out options in srm url and encode path
-    std::string canonic_url;
-    if (!url.HTTPOption("SFN").empty())
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
-    else
-      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
-
-    SRMClientRequest srm_request_tmp(canonic_url);
+    SRMClientRequest srm_request_tmp(CanonicSRMURL(url));
 
     logger.msg(VERBOSE, "Remove: deleting: %s", CurrentLocation().str());
 
@@ -153,15 +141,9 @@ namespace Arc {
     }
 
     // take out options in srm url and encode path
-    std::string canonic_url;
-    if (!url.HTTPOption("SFN").empty())
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
-    else
-      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
+    SRMClientRequest request(CanonicSRMURL(url));
 
-    SRMClientRequest request(canonic_url);
-
-    logger.msg(VERBOSE, "Creating directory: %s", canonic_url);
+    logger.msg(VERBOSE, "Creating directory: %s", CanonicSRMURL(url));
 
     SRMReturnCode res = client->mkDir(request);
     delete client;
@@ -219,15 +201,9 @@ namespace Arc {
         }
 
         // take out options in srm url and encode path
-        std::string canonic_url;
-        if (!url.HTTPOption("SFN").empty())
-          canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
-        else
-          canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
-
         delete srm_request;
-        srm_request = new SRMClientRequest(canonic_url);
-        logger.msg(INFO, "File %s is NEARLINE, will make request to bring online", canonic_url);
+        srm_request = new SRMClientRequest(CanonicSRMURL(url));
+        logger.msg(INFO, "File %s is NEARLINE, will make request to bring online", CanonicSRMURL(url));
         srm_request->request_timeout(stage_timeout);
         res = client->requestBringOnline(*srm_request);
         delete client;
@@ -279,14 +255,6 @@ namespace Arc {
         if (timedout) return DataStatus::ReadPrepareErrorRetryable;
         return DataStatus::ReadPrepareError;
       }
-
-      // take out options in srm url and encode path
-      std::string canonic_url;
-      if (!url.HTTPOption("SFN").empty())
-        canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
-      else
-        canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
-
       delete srm_request;
 
       CheckProtocols(transport_protocols);
@@ -295,7 +263,7 @@ namespace Arc {
         delete client;
         return DataStatus::ReadPrepareError;
       }
-      srm_request = new SRMClientRequest(canonic_url);
+      srm_request = new SRMClientRequest(CanonicSRMURL(url));
       srm_request->request_timeout(stage_timeout);
       srm_request->transport_protocols(transport_protocols);
       res = client->getTURLs(*srm_request, transport_urls);
@@ -449,14 +417,6 @@ namespace Arc {
         if (timedout) return DataStatus::WritePrepareErrorRetryable;
         return DataStatus::WritePrepareError;
       }
-
-      // take out options in srm url and encode path
-      std::string canonic_url;
-      if (!url.HTTPOption("SFN").empty())
-        canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(url.HTTPOption("SFN"), false);
-      else
-        canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
-
       delete srm_request;
 
       CheckProtocols(transport_protocols);
@@ -466,7 +426,7 @@ namespace Arc {
         return DataStatus::WritePrepareError;
       }
 
-      srm_request = new SRMClientRequest(canonic_url);
+      srm_request = new SRMClientRequest(CanonicSRMURL(url));
       // set space token
       std::string space_token = url.Option("spacetoken");
       if (space_token.empty()) {
@@ -686,12 +646,76 @@ namespace Arc {
 
   DataStatus DataPointSRM::Stat(FileInfo& file, DataPointInfoType verb) {
     std::list<FileInfo> files;
-    DataStatus r = ListFiles(files,verb,-1);
-    if(files.size() != 1) return DataStatus::StatError;
-    file = *(files.begin());
-    if(r == DataStatus::ListErrorRetryable) r = DataStatus::StatErrorRetryable;
-    if(r == DataStatus::ListError) r = DataStatus::StatError;
+    std::list<DataPoint*> urls;
+    urls.push_back(const_cast<DataPointSRM*> (this));
+    DataStatus r = Stat(files, urls, verb);
+    if (files.size() != 1) return DataStatus::StatError;
+    file = files.front();
     return r;
+  }
+
+  DataStatus DataPointSRM::Stat(std::list<FileInfo>& files,
+                                const std::list<DataPoint*>& urls,
+                                DataPointInfoType verb) {
+
+    if (urls.empty()) return DataStatus::Success;
+
+    bool timedout;
+    SRMClient * client = SRMClient::getInstance(usercfg, url.fullstr(), timedout);
+    if(!client) {
+      if (timedout) return DataStatus::StatErrorRetryable;
+      return DataStatus::StatError;
+    }
+
+    std::list<std::string> surls;
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      surls.push_back(CanonicSRMURL((*i)->CurrentLocation().str()));
+      logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", (*i)->CurrentLocation().str());
+    }
+
+    SRMClientRequest srm_request_tmp(surls);
+    srm_request_tmp.recursion(-1);
+    if ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME) srm_request_tmp.long_list(true);
+    std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
+
+    // get info from SRM
+    SRMReturnCode res = client->info(srm_request_tmp, metadata_map);
+    delete client;
+    if (res != SRM_OK) {
+      if (res == SRM_ERROR_TEMPORARY) return DataStatus::StatErrorRetryable;
+      return DataStatus::StatError;
+    }
+
+    for (std::list<DataPoint*>::const_iterator dp = urls.begin(); dp != urls.end(); ++dp) {
+
+      std::string surl = CanonicSRMURL((*dp)->CurrentLocation().str());
+      if (metadata_map.find(surl) == metadata_map.end()) {
+        // error
+        files.push_back(FileInfo());
+        continue;
+      }
+      if (metadata_map[surl].size() != 1) {
+        // error
+        files.push_back(FileInfo());
+        continue;
+      }
+      struct SRMFileMetaData srm_metadata = metadata_map[surl].front();
+
+      // set URL attributes for surl requested (file or dir)
+      if(srm_metadata.size > 0) {
+        (*dp)->SetSize(srm_metadata.size);
+      }
+      if(srm_metadata.checkSumType.length() > 0 &&
+         srm_metadata.checkSumValue.length() > 0) {
+        std::string csum(srm_metadata.checkSumType+":"+srm_metadata.checkSumValue);
+        (*dp)->SetCheckSum(csum);
+      }
+      if(srm_metadata.createdAtTime > 0) {
+        (*dp)->SetCreated(Time(srm_metadata.createdAtTime));
+      }
+      FillFileInfo(files, srm_metadata);
+    }
+    return DataStatus::Success;
   }
 
   DataStatus DataPointSRM::List(std::list<FileInfo>& files, DataPointInfoType verb) {
@@ -709,23 +733,16 @@ namespace Arc {
       if (timedout) return DataStatus::ListErrorRetryable;
       return DataStatus::ListError;
     }
-    
-    std::string canonic_url;
-    std::string sfn_path = url.HTTPOption("SFN");
-    if (!sfn_path.empty()) {
-      while (sfn_path[0] == '/') sfn_path.erase(0,1);
-      canonic_url = url.Protocol() + "://" + url.Host() + "/" + Arc::uri_encode(sfn_path, false);
-    } else {
-      canonic_url = url.Protocol() + "://" + url.Host() + url.FullPathURIEncoded();
-    }
 
-    SRMClientRequest srm_request_tmp(canonic_url);
+    SRMClientRequest srm_request_tmp(CanonicSRMURL(url));
+    srm_request_tmp.recursion(recursion);
+
     logger.msg(VERBOSE, "ListFiles: looking for metadata: %s", CurrentLocation().str());
     if ((verb | INFO_TYPE_NAME) != INFO_TYPE_NAME) srm_request_tmp.long_list(true);
     std::list<struct SRMFileMetaData> srm_metadata;
 
     // get info from SRM
-    SRMReturnCode res = client->info(srm_request_tmp, srm_metadata, recursion);
+    SRMReturnCode res = client->info(srm_request_tmp, srm_metadata);
     delete client;
     if (res != SRM_OK) {
       if (res == SRM_ERROR_TEMPORARY) return DataStatus::ListErrorRetryable;   
@@ -749,71 +766,9 @@ namespace Arc {
     }
 
     // set FileInfo attributes for surl requested and any files within a dir
-    for (std::list<struct SRMFileMetaData>::iterator i = srm_metadata.begin();
-         i != srm_metadata.end();
-         ++i) {
-
-      std::list<FileInfo>::iterator f =
-        files.insert(files.end(), FileInfo(i->path));
-      f->SetMetaData("path", i->path);
-      
-      if (i->fileType == SRM_FILE) {
-        f->SetType(FileInfo::file_type_file);
-        f->SetMetaData("type", "file");
-      }
-      else if (i->fileType == SRM_DIRECTORY) {
-        f->SetType(FileInfo::file_type_dir);
-        f->SetMetaData("type", "dir");
-      }
-
-      if (i->size >= 0) {
-        f->SetSize(i->size);
-        f->SetMetaData("size", tostring(i->size));
-      }
-      if (i->createdAtTime > 0) {
-        f->SetCreated(Time(i->createdAtTime));
-        f->SetMetaData("ctime", (Time(i->createdAtTime)).str());
-      }
-      if (i->checkSumType.length() > 0 &&
-          i->checkSumValue.length() > 0) {
-        std::string csum(i->checkSumType + ":" + i->checkSumValue);
-        f->SetCheckSum(csum);
-        f->SetMetaData("checksum", csum);
-      }
-      if (i->fileLocality == SRM_ONLINE) {
-        f->SetLatency("ONLINE");
-        f->SetMetaData("latency", "ONLINE");
-      }
-      else if (i->fileLocality == SRM_NEARLINE) {
-        f->SetLatency("NEARLINE");
-        f->SetMetaData("latency", "NEARLINE");
-      }
-      if (!i->spaceTokens.empty()) {
-        std::string spaceTokens;
-        for (std::list<std::string>::iterator it = i->spaceTokens.begin();
-             it != i->spaceTokens.end(); it++) {
-          if (!spaceTokens.empty()) 
-            spaceTokens += ',';
-          spaceTokens += *it;
-        }
-        f->SetMetaData("spacetokens", spaceTokens);
-      }
-      if(!i->owner.empty()) f->SetMetaData("owner", i->owner);
-      if(!i->group.empty()) f->SetMetaData("group", i->group);
-      if(!i->permission.empty()) f->SetMetaData("accessperm", i->permission);
-      if(i->lastModificationTime > 0)
-        f->SetMetaData("mtime", (Time(i->lastModificationTime)).str());
-      if(i->lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring(i->lifetimeLeft));
-      if(i->lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring(i->lifetimeAssigned));
-  
-      if (i->retentionPolicy == SRM_REPLICA) f->SetMetaData("retentionpolicy", "REPLICA");
-      else if (i->retentionPolicy == SRM_OUTPUT) f->SetMetaData("retentionpolicy", "OUTPUT");
-      else if (i->retentionPolicy == SRM_CUSTODIAL)  f->SetMetaData("retentionpolicy", "CUSTODIAL");
-
-      if (i->fileStorageType == SRM_VOLATILE) f->SetMetaData("filestoragetype", "VOLATILE");
-      else if (i->fileStorageType == SRM_DURABLE) f->SetMetaData("filestoragetype", "DURABLE");
-      else if (i->fileStorageType == SRM_PERMANENT) f->SetMetaData("filestoragetype", "PERMANENT"); 
-
+    for (std::list<struct SRMFileMetaData>::const_iterator i = srm_metadata.begin();
+         i != srm_metadata.end(); ++i) {
+      FillFileInfo(files, *i);
     }
     return DataStatus::Success;
   }
@@ -861,6 +816,81 @@ namespace Arc {
     } else {
       Arc::tokenize(option_protocols, transport_protocols, ",");
     }
+  }
+
+  std::string DataPointSRM::CanonicSRMURL(const Arc::URL& srm_url) {
+    std::string canonic_url;
+    std::string sfn_path = srm_url.HTTPOption("SFN");
+    if (!sfn_path.empty()) {
+      while (sfn_path[0] == '/') sfn_path.erase(0,1);
+      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + "/" + Arc::uri_encode(sfn_path, false);
+    } else {
+      canonic_url = srm_url.Protocol() + "://" + srm_url.Host() + srm_url.FullPathURIEncoded();
+    }
+    return canonic_url;
+  }
+
+  void DataPointSRM::FillFileInfo(std::list<FileInfo>& files, const struct SRMFileMetaData& srm_metadata) {
+    // set FileInfo attributes
+    std::list<FileInfo>::iterator f = files.insert(files.end(), FileInfo(srm_metadata.path));
+    f->SetMetaData("path", srm_metadata.path);
+
+    if (srm_metadata.fileType == SRM_FILE) {
+      f->SetType(FileInfo::file_type_file);
+      f->SetMetaData("type", "file");
+    }
+    else if (srm_metadata.fileType == SRM_DIRECTORY) {
+      f->SetType(FileInfo::file_type_dir);
+      f->SetMetaData("type", "dir");
+    }
+
+    if (srm_metadata.size >= 0) {
+      f->SetSize(srm_metadata.size);
+      f->SetMetaData("size", tostring(srm_metadata.size));
+    }
+    if (srm_metadata.createdAtTime > 0) {
+      f->SetCreated(Time(srm_metadata.createdAtTime));
+      f->SetMetaData("ctime", (Time(srm_metadata.createdAtTime)).str());
+    }
+    if (srm_metadata.checkSumType.length() > 0 &&
+        srm_metadata.checkSumValue.length() > 0) {
+      std::string csum(srm_metadata.checkSumType + ":" + srm_metadata.checkSumValue);
+      f->SetCheckSum(csum);
+      f->SetMetaData("checksum", csum);
+    }
+    if (srm_metadata.fileLocality == SRM_ONLINE) {
+      f->SetLatency("ONLINE");
+      f->SetMetaData("latency", "ONLINE");
+    }
+    else if (srm_metadata.fileLocality == SRM_NEARLINE) {
+      f->SetLatency("NEARLINE");
+      f->SetMetaData("latency", "NEARLINE");
+    }
+    if (!srm_metadata.spaceTokens.empty()) {
+      std::string spaceTokens;
+      for (std::list<std::string>::const_iterator it = srm_metadata.spaceTokens.begin();
+           it != srm_metadata.spaceTokens.end(); it++) {
+        if (!spaceTokens.empty())
+          spaceTokens += ',';
+        spaceTokens += *it;
+      }
+      f->SetMetaData("spacetokens", spaceTokens);
+    }
+    if(!srm_metadata.owner.empty()) f->SetMetaData("owner", srm_metadata.owner);
+    if(!srm_metadata.group.empty()) f->SetMetaData("group", srm_metadata.group);
+    if(!srm_metadata.permission.empty()) f->SetMetaData("accessperm", srm_metadata.permission);
+    if(srm_metadata.lastModificationTime > 0)
+      f->SetMetaData("mtime", (Time(srm_metadata.lastModificationTime)).str());
+    if(srm_metadata.lifetimeLeft != 0) f->SetMetaData("lifetimeleft", tostring(srm_metadata.lifetimeLeft));
+    if(srm_metadata.lifetimeAssigned != 0) f->SetMetaData("lifetimeassigned", tostring(srm_metadata.lifetimeAssigned));
+
+    if (srm_metadata.retentionPolicy == SRM_REPLICA) f->SetMetaData("retentionpolicy", "REPLICA");
+    else if (srm_metadata.retentionPolicy == SRM_OUTPUT) f->SetMetaData("retentionpolicy", "OUTPUT");
+    else if (srm_metadata.retentionPolicy == SRM_CUSTODIAL)  f->SetMetaData("retentionpolicy", "CUSTODIAL");
+
+    if (srm_metadata.fileStorageType == SRM_VOLATILE) f->SetMetaData("filestoragetype", "VOLATILE");
+    else if (srm_metadata.fileStorageType == SRM_DURABLE) f->SetMetaData("filestoragetype", "DURABLE");
+    else if (srm_metadata.fileStorageType == SRM_PERMANENT) f->SetMetaData("filestoragetype", "PERMANENT");
   }
 
 } // namespace Arc

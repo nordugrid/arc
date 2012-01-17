@@ -7,6 +7,7 @@
 #include <arc/FileLock.h>
 #include <arc/GUID.h>
 #include <arc/Utils.h>
+#include <arc/data/FileInfo.h>
 
 #include "Processor.h"
 #include "DataDelivery.h"
@@ -100,9 +101,14 @@ namespace DataStaging {
     source_endpoint->SetSecure(false);
     destination_endpoint->SetSecure(false);
 
-    // check for bulk support - call BulkResolve with empty list
-    std::vector<Arc::DataPoint*> datapoints;
-    if (source_endpoint->Resolve(true, datapoints) == Arc::DataStatus::Success) source_supports_bulk = true;
+    // check for bulk support - call bulk methods with empty list
+    std::list<Arc::DataPoint*> datapoints;
+    if (source_endpoint->IsIndex()) {
+      if (source_endpoint->Resolve(true, datapoints) == Arc::DataStatus::Success) source_supports_bulk = true;
+    } else {
+      std::list<Arc::FileInfo> files;
+      if (source_endpoint->Stat(files, datapoints) == Arc::DataStatus::Success) source_supports_bulk = true;
+    }
 
 #ifdef WIN32
     cache_state = NON_CACHEABLE;
@@ -304,6 +310,11 @@ namespace DataStaging {
 
   bool DTR::bulk_possible() {
     if (status == DTRStatus::RESOLVE && source_supports_bulk) return true;
+    if (status == DTRStatus::QUERY_REPLICA) {
+      std::list<Arc::FileInfo> files;
+      std::list<Arc::DataPoint*> datapoints;
+      if (source_endpoint->CurrentLocationHandle()->Stat(files, datapoints) == Arc::DataStatus::Success) return true;
+    }
     return false;
   }
 

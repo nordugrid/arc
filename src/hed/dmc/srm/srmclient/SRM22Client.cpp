@@ -265,7 +265,7 @@ namespace Arc {
     XMLNode req = request.NewChild("SRMv2:srmPrepareToGet")
                   .NewChild("srmPrepareToGetRequest");
     req.NewChild("arrayOfFileRequests").NewChild("requestArray")
-      .NewChild("sourceSURL") = creq.surls().front();
+      .NewChild("sourceSURL") = creq.surl();
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
     std::list<std::string> transport_protocols(creq.transport_protocols());
@@ -310,7 +310,7 @@ namespace Arc {
         sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
                     creq.request_timeout() - request_time : sleeptime;
         logger.msg(VERBOSE, "%s: File request %s in SRM queue. "
-                   "Sleeping for %i seconds", creq.surls().front(),
+                   "Sleeping for %i seconds", creq.surl(),
                    creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -467,7 +467,7 @@ namespace Arc {
     }
 
     if (statuscode == SRM_REQUEST_QUEUED) {
-      int sleeptime = 10;
+      unsigned int sleeptime = 10;
       if (res["arrayOfFileStatuses"]["statusArray"]["estimatedWaitTime"])
         sleeptime = stringtoi(res["arrayOfFileStatuses"]["statusArray"]
                         ["estimatedWaitTime"]);
@@ -485,7 +485,7 @@ namespace Arc {
         sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
                     creq.request_timeout() - request_time : sleeptime;
         logger.msg(VERBOSE, "%s: Bring online request %s in SRM queue. "
-                   "Sleeping for %i seconds", creq.surls().front(),
+                   "Sleeping for %i seconds", creq.surl(),
                    creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
@@ -670,7 +670,7 @@ namespace Arc {
                   .NewChild("srmPrepareToPutRequest");
     XMLNode reqarray = req.NewChild("arrayOfFileRequests")
                        .NewChild("requestArray");
-    reqarray.NewChild("targetSURL") = creq.surls().front();
+    reqarray.NewChild("targetSURL") = creq.surl();
     reqarray.NewChild("expectedFileSize") = tostring(creq.total_size());
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
@@ -722,7 +722,7 @@ namespace Arc {
         sleeptime = (sleeptime > creq.request_timeout() - request_time) ?
                     creq.request_timeout() - request_time : sleeptime;
         logger.msg(VERBOSE, "%s: File request %s in SRM queue. "
-                   "Sleeping for %i seconds", creq.surls().front(),
+                   "Sleeping for %i seconds", creq.surl(),
                    creq.request_token(), sleeptime);
 
         sleep(sleeptime);
@@ -754,13 +754,13 @@ namespace Arc {
         // make directories
         logger.msg(VERBOSE,
                    "Path %s is invalid, creating required directories",
-                   creq.surls().front());
+                   creq.surl());
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
         if (mkdirres == SRM_OK)
           return putTURLs(creq, urls);
         logger.msg(ERROR, "Error creating required directories for %s",
-                   creq.surls().front());
+                   creq.surl());
         creq.finished_error();
         return mkdirres;
       }
@@ -828,13 +828,13 @@ namespace Arc {
         // make directories
         logger.msg(VERBOSE,
                    "Path %s is invalid, creating required directories",
-                   creq.surls().front());
+                   creq.surl());
         SRMReturnCode mkdirres = mkDir(creq);
         delete response;
         if (mkdirres == SRM_OK)
           return putTURLs(creq, urls);
         logger.msg(ERROR, "Error creating required directories for %s",
-                   creq.surls().front());
+                   creq.surl());
         creq.finished_error();
         return mkdirres;
       }
@@ -861,30 +861,35 @@ namespace Arc {
     return SRM_OK;
   }
 
-  SRMReturnCode SRM22Client::info(SRMClientRequest& creq,
-                                  std::list<struct SRMFileMetaData>& metadata,
-                                  const int recursive) {
-    return info(creq, metadata, recursive, 0, 0);
+  SRMReturnCode SRM22Client::info(SRMClientRequest& req,
+                                  std::list<struct SRMFileMetaData>& metadata) {
+
+    std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
+    SRMReturnCode res = info(req, metadata_map);
+    if (res != SRM_OK || metadata_map.find(req.surl()) == metadata_map.end()) return res;
+    metadata = metadata_map[req.surl()];
+    return SRM_OK;
   }
 
   SRMReturnCode SRM22Client::info(SRMClientRequest& creq,
-                                  std::list<struct SRMFileMetaData>& metadata,
-                                  const int recursive,
-                                  const int offset,
-                                  const int count) {
-    // only one SURL requested at a time
+                                  std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) {
+
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmLs").NewChild("srmLsRequest");
-    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
+    XMLNode surl_array = req.NewChild("arrayOfSURLs");
+
+    std::list<std::string> surls = creq.surls();
+    for (std::list<std::string>::const_iterator surl = surls.begin(); surl != surls.end(); ++surl)
+      surl_array.NewChild("urlArray") = *surl;
     // 0 corresponds to list the directory entry not the files in it
     // 1 corresponds to list the files in a directory - this is the desired
-    // behaviour of ngls with no recursion, so we add 1 to the -r value
-    req.NewChild("numOfLevels") = tostring(recursive + 1);
+    // behaviour of arcls with no recursion, so we add 1 to the -r value
+    req.NewChild("numOfLevels") = tostring(creq.recursion() + 1);
     // add count and offset options, if set
-    if (offset != 0)
-      req.NewChild("offset") = tostring(offset);
-    if (count != 0)
-      req.NewChild("count") = tostring(count);
+    if (creq.offset() != 0)
+      req.NewChild("offset") = tostring(creq.offset());
+    if (creq.count() != 0)
+      req.NewChild("count") = tostring(creq.count());
     if (creq.long_list())
       req.NewChild("fullDetailedList") = "true";
 
@@ -903,7 +908,8 @@ namespace Arc {
       creq.request_token(res["requestToken"]);
 
     if (statuscode == SRM_SUCCESS ||
-        statuscode == SRM_TOO_MANY_RESULTS) {
+        statuscode == SRM_TOO_MANY_RESULTS ||
+        statuscode == SRM_PARTIAL_SUCCESS) {
       // request is finished - we can get all the details
     }
     else if (statuscode == SRM_REQUEST_QUEUED ||
@@ -912,11 +918,11 @@ namespace Arc {
       int sleeptime = 1;
       unsigned int request_time = 0;
 
-      while (statuscode != SRM_SUCCESS && request_time < creq.request_timeout()) {
+      while (statuscode != SRM_SUCCESS && statuscode != SRM_PARTIAL_SUCCESS && request_time < creq.request_timeout()) {
         // sleep for some time (no estimated time is given by the server)
         logger.msg(VERBOSE,
                    "%s: File request %s in SRM queue. Sleeping for %i seconds",
-                   creq.surls().front(), creq.request_token(), sleeptime);
+                   creq.surl(), creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
 
@@ -936,10 +942,18 @@ namespace Arc {
 
         statuscode = GetStatus(res["returnStatus"], explanation);
 
-        if (statuscode == SRM_TOO_MANY_RESULTS) break;
+        if (statuscode == SRM_TOO_MANY_RESULTS) {
+          // we can only handle too many results if a single directory was listed
+          if (surls.size() > 1) {
+            logger.msg(ERROR, "Too many files in one request - please try again with fewer files");
+            return SRM_ERROR_PERMANENT;
+          }
+          break;
+        }
 
         // loop will exit on success or return false on error
         if (statuscode != SRM_SUCCESS &&
+            statuscode != SRM_PARTIAL_SUCCESS &&
             statuscode != SRM_REQUEST_QUEUED &&
             statuscode != SRM_REQUEST_INPROGRESS) {
           logger.msg(creq.error_loglevel(), "%s", explanation);
@@ -978,84 +992,78 @@ namespace Arc {
     }
 
     // the request is ready - collect the details
-    XMLNode details = res["details"]["pathDetailArray"];
-    if (!details) {
-      delete response;
-      return SRM_OK;
-    }
+    // assuming the result is in the same order as the surls in the request
+    std::list<std::string>::const_iterator surl = surls.begin();
+    for (XMLNode details = res["details"]["pathDetailArray"]; details; ++details, ++surl) {
 
-    // first the file or directory corresponding to the surl
-    if (!details["type"] || details["type"] != "DIRECTORY" || recursive < 0) {
-      // it can happen that with multiple calls to info() for large dirs the
-      // last call returns one directory. In this case we want to list it
-      // without the directory structure.
-      if (count == 0)
-        metadata.push_back(fillDetails(details, false));
-      else
-        metadata.push_back(fillDetails(details, true));
-    }
-
-    // look for sub paths (files in a directory)
-    XMLNode subpaths;
-
-    // schema differs by implementation...
-    // dcache and dpm
-    if (details["arrayOfSubPaths"])
-      subpaths = details["arrayOfSubPaths"];
-    // castor
-    else
-      subpaths = res["details"];
-
-    // sometimes we don't know if we have a file or dir so take out the
-    // entry added above if there are subpaths and offset is 0
-    if (offset == 0 && subpaths["pathDetailArray"])
-      metadata.clear();
-
-    // if there are more entries than max_files_list or we get the too many
-    // results return code, we have to call info() multiple times, setting
-    // offset and count
-    int i = 0;
-    for (XMLNode n = subpaths["pathDetailArray"]; n; ++n, ++i) {
-      if (i == max_files_list ||
-          (offset == 0 && statuscode == SRM_TOO_MANY_RESULTS)) {
-        // it shoudn't be possible to get this return status after setting
-        // offset but some implemetations like castor don't behave properly)
-        logger.msg(INFO, "Directory size is larger than %i files, will have "
-                   "to call multiple times", max_files_list);
-        std::list<SRMFileMetaData> list_metadata;
-        // if too many results return code, start from 0 again
-        int list_no = (i == max_files_list) ? 1 : 0;
-        do {
-          list_metadata.clear();
-          SRMClientRequest list_req(creq.surls().front());
-          list_req.long_list(creq.long_list());
-          int list_offset = max_files_list * list_no;
-          int list_count = max_files_list;
-          SRMReturnCode res = info(list_req, list_metadata, 0,
-                                   list_offset, list_count);
-          if (res != SRM_OK) {
-            delete response;
-            return res;
-          }
-          list_no++;
-          // append to metadata
-          for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
-               it != list_metadata.end(); ++it)
-            metadata.push_back(*it);
-        } while (list_metadata.size() == max_files_list);
-        break;
+      SRMStatusCode filestatuscode = GetStatus(details["status"], explanation);
+      if (filestatuscode != SRM_SUCCESS) {
+        logger.msg(ERROR, "%s: %s", *surl, explanation);
+        continue;
       }
-      metadata.push_back(fillDetails(n, true));
-    }
+      std::list<struct SRMFileMetaData> md;
 
-    // if castor take out the first two entries which are the directory
-    if (!details["arrayOfSubPaths"] && details["pathDetailArray"]) {
-      metadata.pop_front();
-      // only take off the second one if no offset
-      if (offset == 0)
-        metadata.pop_front();
-    }
+      // if we think this entry is a file or we don't want recursion, add it
+      if (!details["type"] || details["type"] != "DIRECTORY" || creq.recursion() < 0) {
+        // it can happen that with multiple calls to info() for large dirs the
+        // last call returns one directory. In this case we want to list it
+        // without the directory structure.
+        if (creq.count() == 0)
+          md.push_back(fillDetails(details, false));
+        else
+          md.push_back(fillDetails(details, true));
+      }
 
+      // look for sub paths (files in a directory)
+      XMLNode subpath = details["arrayOfSubPaths"]["pathDetailArray"];
+
+      // if no subpaths or we are not doing recursion, go to next surl
+      if (creq.recursion() < 0 || !subpath) {
+        metadata[*surl] = md;
+        continue;
+      }
+
+      // sometimes we don't know if we have a file or dir so take out the
+      // entry added above if offset is 0
+      if (creq.offset() == 0) md.clear();
+
+      for (unsigned int i = 0; subpath; ++subpath, ++i) {
+        // if there are more entries than max_files_list or we get the too many
+        // results return code, we have to call info() multiple times, setting
+        // offset and count
+        if (i == max_files_list ||
+            (creq.offset() == 0 && statuscode == SRM_TOO_MANY_RESULTS)) {
+          // it shoudn't be possible to get this return status after setting
+          // offset but some implementations like castor don't behave properly
+          logger.msg(INFO, "Directory size is larger than %i files, will have "
+                     "to call multiple times", max_files_list);
+          std::list<SRMFileMetaData> list_metadata;
+          // if too many results return code, start from 0 again
+          int list_no = (i == max_files_list) ? 1 : 0;
+          do {
+            list_metadata.clear();
+            SRMClientRequest list_req(creq.surl());
+            list_req.long_list(creq.long_list());
+            list_req.offset(max_files_list * list_no);
+            list_req.count(max_files_list);
+            SRMReturnCode res = info(list_req, list_metadata);
+            if (res != SRM_OK) {
+              delete response;
+              return res;
+            }
+            list_no++;
+            // append to metadata
+            for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
+                 it != list_metadata.end(); ++it)
+              md.push_back(*it);
+          } while (list_metadata.size() == max_files_list);
+          break;
+        }
+        md.push_back(fillDetails(subpath, true));
+      }
+      // add to the map
+      metadata[*surl] = md;
+    }
     delete response;
     return SRM_OK;
   }
@@ -1285,7 +1293,7 @@ namespace Arc {
     XMLNode req = request.NewChild("SRMv2:srmPutDone")
                   .NewChild("srmPutDoneRequest");
     req.NewChild("requestToken") = creq.request_token();
-    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
+    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surl();
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -1355,14 +1363,15 @@ namespace Arc {
     // call info() to find out if we are dealing with a file or directory
     SRMClientRequest inforeq(creq.surls());
     inforeq.error_loglevel(creq.error_loglevel());
-    std::list<struct SRMFileMetaData> metadata;
-
     // set recursion to -1, meaning don't list entries in a dir
-    SRMReturnCode res = info(inforeq, metadata, -1);
+    inforeq.recursion(-1);
+
+    std::list<struct SRMFileMetaData> metadata;
+    SRMReturnCode res = info(inforeq, metadata);
     if (res != SRM_OK) {
       logger.msg(creq.error_loglevel(),
                  "Failed to find metadata info on %s for determining file or directory delete",
-                 inforeq.surls().front());
+                 inforeq.surl());
       return res;
     }
 
@@ -1386,7 +1395,7 @@ namespace Arc {
     // only one file requested at a time
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmRm").NewChild("srmRmRequest");
-    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
+    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surl();
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -1406,7 +1415,7 @@ namespace Arc {
       return SRM_ERROR_PERMANENT;
     }
 
-    logger.msg(VERBOSE, "File %s removed successfully", creq.surls().front());
+    logger.msg(VERBOSE, "File %s removed successfully", creq.surl());
     delete response;
     return SRM_OK;
   }
@@ -1416,7 +1425,7 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmRmdir")
                   .NewChild("srmRmdirRequest");
-    req.NewChild("SURL") = creq.surls().front();
+    req.NewChild("SURL") = creq.surl();
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);
@@ -1437,7 +1446,7 @@ namespace Arc {
     }
 
     logger.msg(VERBOSE, "Directory %s removed successfully",
-               creq.surls().front());
+               creq.surl());
     delete response;
     return SRM_OK;
   }
@@ -1449,7 +1458,7 @@ namespace Arc {
     XMLNode reqarray = req.NewChild("arrayOfFileRequests")
                        .NewChild("requestArray");
     reqarray.NewChild("sourceSURL") = source;
-    reqarray.NewChild("targetSURL") = creq.surls().front();
+    reqarray.NewChild("targetSURL") = creq.surl();
     if (!creq.space_token().empty())
       req.NewChild("targetSpaceToken") = creq.space_token();
 
@@ -1486,7 +1495,7 @@ namespace Arc {
         sleeptime = (sleeptime > 10) ? 10 : sleeptime;
         logger.msg(VERBOSE,
                    "%s: File request %s in SRM queue. Sleeping for %i seconds",
-                   creq.surls().front(), creq.request_token(), sleeptime);
+                   creq.surl(), creq.request_token(), sleeptime);
         sleep(sleeptime);
         request_time += sleeptime;
 
@@ -1546,7 +1555,7 @@ namespace Arc {
   }
 
   SRMReturnCode SRM22Client::mkDir(SRMClientRequest& creq) {
-    std::string surl = creq.surls().front();
+    std::string surl = creq.surl();
     std::string::size_type slashpos = surl.find('/', 6);
     slashpos = surl.find('/', slashpos + 1); // don't create root dir
     bool keeplisting = true; // whether to keep checking dir exists
@@ -1557,10 +1566,11 @@ namespace Arc {
       SRMClientRequest listreq(dirname);
       // don't report errors
       listreq.error_loglevel(VERBOSE);
+      listreq.recursion(-1);
       std::list<struct SRMFileMetaData> metadata;
       if (keeplisting) {
         logger.msg(VERBOSE, "Checking for existence of %s", dirname);
-        if (info(listreq, metadata, -1) == SRM_OK) {
+        if (info(listreq, metadata) == SRM_OK) {
           if (metadata.front().fileType == SRM_FILE) {
             logger.msg(ERROR, "File already exists: %s", dirname);
             return SRM_ERROR_PERMANENT;
@@ -1613,7 +1623,7 @@ namespace Arc {
     PayloadSOAP request(ns);
     XMLNode req = request.NewChild("SRMv2:srmCheckPermission")
                   .NewChild("srmCheckPermissionRequest");
-    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surls().front();
+    req.NewChild("arrayOfSURLs").NewChild("urlArray") = creq.surl();
 
     PayloadSOAP *response = NULL;
     SRMReturnCode status = process("", &request, &response);

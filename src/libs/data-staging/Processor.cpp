@@ -251,10 +251,10 @@ namespace DataStaging {
 
     if (requests.empty()) return;
 
-    std::vector<Arc::DataPoint*> sources;
+    std::list<Arc::DataPoint*> sources;
     for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
       setUpLogger(*i);
-      (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Looking up source replicas in bulk", (*i)->get_short_id());
+      (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving source replicas in bulk", (*i)->get_short_id());
       sources.push_back(&(*((*i)->get_source()))); // nasty...
     }
 
@@ -297,7 +297,7 @@ namespace DataStaging {
                                 DTRErrorStatus::ERROR_SOURCE,
                                 "Metadata of replica and index service differ for " +
                                   request->get_source()->CurrentLocation().str() +
-                                  request->get_source()->str());
+                                  " and " + request->get_source()->str());
     }
     else if (!res.Passed()) {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica %s", request->get_short_id(), request->get_source()->CurrentLocation().str());
@@ -313,6 +313,51 @@ namespace DataStaging {
     request->set_status(DTRStatus::REPLICA_QUERIED);
     request->connect_logger();
     request->push(SCHEDULER);
+  }
+
+  void Processor::DTRBulkQueryReplica(void* arg) {
+    BulkThreadArgument* targ = (BulkThreadArgument*)arg;
+    std::list<DTR*> requests = targ->dtrs;
+    delete targ;
+
+    if (requests.empty()) return;
+
+    std::list<Arc::DataPoint*> sources;
+    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
+      setUpLogger(*i);
+      (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Querying source replicas in bulk", (*i)->get_short_id());
+      sources.push_back((*i)->get_source()->CurrentLocationHandle());
+    }
+
+    // Query source
+    std::list<Arc::FileInfo> files;
+    Arc::DataStatus res = sources.front()->Stat(files, sources, Arc::DataPoint::INFO_TYPE_CONTENT);
+
+    std::list<Arc::FileInfo>::const_iterator file = files.begin();
+    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i, ++file) {
+      DTR* request = *i;
+      if (!res.Passed() || files.size() != requests.size() || !*file) {
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica", request->get_short_id());
+        request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_SOURCE,
+                                  "Failed checking source replica " + request->get_source()->CurrentLocation().str());
+      }
+      else if (request->get_source()->IsIndex() && !request->get_source()->CompareMeta(*(request->get_source()->CurrentLocationHandle()))) {
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Metadata of replica and index service differ", request->get_short_id());
+        request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_SOURCE,
+                                  "Metadata of replica and index service differ for " +
+                                    request->get_source()->CurrentLocation().str() +
+                                    " and " + request->get_source()->str());
+      }
+      else {
+        // assign metadata to destination
+        request->get_destination()->SetMeta(*request->get_source());
+      }
+      request->set_status(DTRStatus::REPLICA_QUERIED);
+      request->connect_logger();
+      request->push(SCHEDULER);
+    }
   }
 
   void Processor::DTRPreClean(void *arg) {
@@ -698,7 +743,8 @@ namespace DataStaging {
 
       case DTRStatus::QUERY_REPLICA: {
         request.set_status(DTRStatus::QUERYING_REPLICA);
-        Arc::CreateThreadFunction(&DTRQueryReplica, (void*)arg, &thread_count);
+        if (bulk_arg) Arc::CreateThreadFunction(&DTRBulkQueryReplica, (void*)bulk_arg, &thread_count);
+        else if (arg) Arc::CreateThreadFunction(&DTRQueryReplica, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::PRE_CLEAN: {

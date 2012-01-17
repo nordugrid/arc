@@ -108,7 +108,7 @@ namespace Arc {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
 
-  DataStatus DataPointDirect::Resolve(bool source, const std::vector<DataPoint*>& urls) {
+  DataStatus DataPointDirect::Resolve(bool source, const std::list<DataPoint*>& urls) {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
 
@@ -149,6 +149,10 @@ namespace Arc {
     return empty;
   }
   
+  DataPoint* DataPointDirect::CurrentLocationHandle() const {
+    return const_cast<DataPointDirect*> (this);
+  }
+
   DataStatus DataPointDirect::CompareLocationMetadata() const {
     return DataStatus::NotSupportedForDirectDataPointsError;
   }
@@ -204,5 +208,12 @@ namespace Arc {
     }
     return NULL;
   }
+
+  DataStatus DataPointDirect::Stat(std::list<FileInfo>& files,
+                                   const std::list<DataPoint*>& urls,
+                                   DataPointInfoType verb) {
+    return DataStatus::UnimplementedError;
+  }
+
 
 } // namespace Arc

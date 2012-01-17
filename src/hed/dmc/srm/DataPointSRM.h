@@ -41,8 +41,11 @@ namespace Arc {
     virtual DataStatus FinishWriting(bool error);
     virtual DataStatus Check();
     virtual DataStatus Remove();
-    DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
-    DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus Stat(std::list<FileInfo>& files,
+                            const std::list<DataPoint*>& urls,
+                            DataPointInfoType verb = INFO_TYPE_ALL);
+    virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus CreateDirectory(bool with_parents=false);
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta() const;
@@ -61,6 +64,10 @@ namespace Arc {
     void CheckProtocols(std::list<std::string>& transport_protocols);
     /** Select transfer protocols from URL option or hard-coded list */
     void ChooseTransferProtocols(std::list<std::string>& transport_protocols);
+    /// Convert URL to SRM style, also URI-encoding path if necessary
+    std::string CanonicSRMURL(const Arc::URL& srm_url);
+    /// Convert SRM metadata into FileInfo object, inserting a new object into the list
+    void FillFileInfo(std::list<FileInfo>& files, const struct SRMFileMetaData& srm_metadata);
   };
 
 } // namespace Arc

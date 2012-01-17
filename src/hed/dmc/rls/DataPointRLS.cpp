@@ -1225,14 +1225,28 @@ namespace Arc {
     return arg.success;
   }
 
+  DataStatus DataPointRLS::Stat(std::list<FileInfo>& files,
+                                const std::list<DataPoint*>& urls,
+                                DataPointInfoType verb) {
+    // Bulk operations not implemented yet
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      FileInfo f;
+      DataStatus res = (*i)->Stat(f, verb);
+      if (!res.Passed()) files.push_back(FileInfo());
+      else files.push_back(f);
+    }
+    return DataStatus::Success;
+
+  }
+
   DataStatus DataPointRLS::List(std::list<FileInfo>& /*files*/, DataPointInfoType /*verb*/) {
     // RLS has flat struture
     return DataStatus::ListError;
   }
 
-  DataStatus DataPointRLS::Resolve(bool source, const std::vector<DataPoint*>& urls) {
+  DataStatus DataPointRLS::Resolve(bool source, const std::list<DataPoint*>& urls) {
     // Bulk operations not implemented yet
-    for (std::vector<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
       DataStatus res = (*i)->Resolve(source);
       if (!res.Passed()) return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
     }

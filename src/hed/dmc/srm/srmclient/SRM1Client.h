@@ -67,8 +67,9 @@ namespace Arc {
     SRMReturnCode release(SRMClientRequest& req);
     SRMReturnCode abort(SRMClientRequest& req);
     SRMReturnCode info(SRMClientRequest& req,
-                       std::list<struct SRMFileMetaData>& metadata,
-                       const int recursive = 0);
+                       std::map<std::string, std::list<struct SRMFileMetaData> >& metadata);
+    SRMReturnCode info(SRMClientRequest& req,
+                       std::list<struct SRMFileMetaData>& metadata);
     SRMReturnCode remove(SRMClientRequest& req);
     SRMReturnCode copy(SRMClientRequest& req, const std::string& source);
   };

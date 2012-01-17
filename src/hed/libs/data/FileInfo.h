@@ -8,6 +8,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/StringConv.h>
 
 namespace Arc {
 
@@ -138,6 +139,14 @@ namespace Arc {
     
     bool operator<(const FileInfo& f) const {
       return (lower(this->name).compare(lower(f.name)) < 0);
+    }
+
+    operator bool() const {
+      return !name.empty();
+    }
+
+    bool operator!() const {
+      return name.empty();
     }
 
   private:

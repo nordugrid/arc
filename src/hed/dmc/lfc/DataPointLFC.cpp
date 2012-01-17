@@ -575,6 +575,19 @@ namespace Arc {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointLFC::Stat(std::list<FileInfo>& files,
+                                const std::list<DataPoint*>& urls,
+                                DataPointInfoType verb) {
+    // Bulk operations not implemented yet
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      FileInfo f;
+      DataStatus res = (*i)->Stat(f, verb);
+      if (!res.Passed()) files.push_back(FileInfo());
+      else files.push_back(f);
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointLFC::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
     return ListFiles(files,verb,true);
   }
@@ -853,14 +866,14 @@ namespace Arc {
     return tmp;
   }
 
-  DataStatus DataPointLFC::Resolve(bool source, const std::vector<DataPoint*>& urls) {
+  DataStatus DataPointLFC::Resolve(bool source, const std::list<DataPoint*>& urls) {
 
     if (urls.empty()) return DataStatus::Success;
 
     // sanity check
-    for (unsigned int i = 0; i < urls.size(); ++i) {
-      if (urls.at(i)->GetURL().Protocol() != url.Protocol() ||
-          urls.at(i)->GetURL().Host() != url.Host()) {
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      if ((*i)->GetURL().Protocol() != url.Protocol() ||
+          (*i)->GetURL().Host() != url.Host()) {
         logger.msg(ERROR, "Mismatching protocol/host in bulk resolve!");
         return source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError;
       }
@@ -868,8 +881,8 @@ namespace Arc {
 
     // TODO: Destination lookup in bulk
     if (!source) {
-      for (unsigned int i = 0; i < urls.size(); ++i) {
-        DataStatus res = urls.at(i)->Resolve(source);
+      for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+        DataStatus res = (*i)->Resolve(source);
         if (!res.Passed()) return res;
       }
       return DataStatus::Success;
@@ -879,11 +892,11 @@ namespace Arc {
     // it can end up using all the LFC server threads. See bug 2576 for more info.
 
     // Figure out whether to use guids or LFNs in bulk request
-    bool use_guids = !urls.at(0)->GetURL().MetaDataOption("guid").empty();
+    bool use_guids = !urls.front()->GetURL().MetaDataOption("guid").empty();
 
-    for (unsigned int i = 0; i < urls.size(); ++i) {
-      if ((!use_guids && !urls.at(i)->GetURL().MetaDataOption("guid").empty()) ||
-          (use_guids && urls.at(i)->GetURL().MetaDataOption("guid").empty())) {
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      if ((!use_guids && !(*i)->GetURL().MetaDataOption("guid").empty()) ||
+          (use_guids && (*i)->GetURL().MetaDataOption("guid").empty())) {
         // cannot have a mixture of guids and LFNs
         logger.msg(ERROR, "Cannot use a mixture of GUIDs and LFNs in bulk resolve");
         return DataStatus::ReadResolveError;
@@ -896,15 +909,17 @@ namespace Arc {
 
     if (use_guids) {
       const char * guids[urls.size()];
-      for (unsigned int i = 0; i < urls.size(); ++i) {
-        guids[i] = urls.at(i)->GetURL().MetaDataOption("guid").c_str();
+      unsigned int n = 0;
+      for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
+        guids[n] = (*i)->GetURL().MetaDataOption("guid").c_str();
       }
       LFCLOCKINT(lfc_r,lfc_getreplicas(urls.size(), guids, NULL, &nbentries, &entries), url);
     }
     else {
       const char * paths[urls.size()];
-      for (unsigned int i = 0; i < urls.size(); ++i) {
-        paths[i] = urls.at(i)->GetURL().Path().c_str();
+      unsigned int n = 0;
+      for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i, ++n) {
+        paths[n] = (*i)->GetURL().Path().c_str();
       }
       LFCLOCKINT(lfc_r,lfc_getreplicasl(urls.size(), paths, NULL, &nbentries, &entries), url);
     }
@@ -923,19 +938,21 @@ namespace Arc {
     // Entries has at least one entry per GUID, even if there are no replicas
     // and has an entry per replica if there are multiple.
     std::string previous_guid(entries[0].guid);
-    unsigned int i = 0;
-    DataPoint * dp = urls.at(0);
+    unsigned int guid_count = 0;
+    std::list<DataPoint*>::const_iterator datapoint = urls.begin();
+    DataPoint* dp = *datapoint;
 
     for (int n = 0; n < nbentries; n++) {
       logger.msg(DEBUG, "GUID %s, SFN %s", entries[n].guid, entries[n].sfn);
 
       if (previous_guid != entries[n].guid) {
-        if (++i >= urls.size()) {
+        if (++guid_count >= urls.size() || datapoint == urls.end()) {
           logger.msg(ERROR, "LFC returned more results than we asked for!");
           free(entries);
           return DataStatus::ReadResolveError;
         }
-        dp = urls.at(i);
+        ++datapoint;
+        dp = *datapoint;
         previous_guid = entries[n].guid;
       }
 
@@ -976,8 +993,8 @@ namespace Arc {
     if (entries)
       free(entries);
 
-    for (unsigned int i = 0; i < urls.size(); ++i) {
-      DataPoint * dp = urls.at(i);
+    for (std::list<DataPoint*>::const_iterator i = urls.begin(); i != urls.end(); ++i) {
+      DataPoint * dp = *i;
       if (dp->CheckCheckSum()) logger.msg(VERBOSE, "meta_get_data: checksum: %s", dp->GetCheckSum());
       if (dp->CheckSize()) logger.msg(VERBOSE, "meta_get_data: size: %llu", dp->GetSize());
       if (dp->CheckCreated()) logger.msg(VERBOSE, "meta_get_data: created: %s", dp->GetCreated().str());

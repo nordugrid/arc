@@ -56,9 +56,13 @@ namespace Arc {
 
     virtual const CheckSum* GetCheckSumObject(int index) const;
 
+    virtual DataStatus Stat(std::list<FileInfo>& files,
+                            const std::list<DataPoint*>& urls,
+                            DataPointInfoType verb = INFO_TYPE_ALL);
+
     // Not supported for direct data points:
     virtual DataStatus Resolve(bool source);
-    virtual DataStatus Resolve(bool source, const std::vector<DataPoint*>& urls);
+    virtual DataStatus Resolve(bool source, const std::list<DataPoint*>& urls);
     virtual bool Registered() const;
     virtual DataStatus PreRegister(bool replication, bool force = false);
     virtual DataStatus PostRegister(bool replication);
@@ -67,6 +71,7 @@ namespace Arc {
     virtual bool AcceptsMeta() const;
     virtual bool ProvidesMeta() const;
     virtual const URL& CurrentLocation() const;
+    virtual DataPoint* CurrentLocationHandle() const;
     virtual const std::string& CurrentLocationMetadata() const;
     virtual DataStatus CompareLocationMetadata() const;
     virtual bool NextLocation();

@@ -38,6 +38,11 @@ namespace Arc {
     return location->Name();
   }
 
+  DataPoint* DataPointIndex::CurrentLocationHandle() const {
+    if (!h) return NULL;
+    return &(**h);
+  }
+
   DataStatus DataPointIndex::CompareLocationMetadata() const {
     if (h && *h) {
       FileInfo fileinfo;

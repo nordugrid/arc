@@ -21,7 +21,7 @@ namespace Arc {
 
     virtual const URL& CurrentLocation() const;
     virtual const std::string& CurrentLocationMetadata() const;
-    
+    virtual DataPoint* CurrentLocationHandle() const;
     virtual DataStatus CompareLocationMetadata() const;
     virtual bool NextLocation();
     virtual bool LocationValid() const;

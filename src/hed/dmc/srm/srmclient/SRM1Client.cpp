@@ -368,8 +368,7 @@ namespace Arc {
   }
 
   SRMReturnCode SRM1Client::info(SRMClientRequest& creq,
-                                 std::list<struct SRMFileMetaData>& metadata,
-                                 const int /* recursive */) {
+                                 std::map<std::string, std::list<struct SRMFileMetaData> >& metadata) {
     SRMURL srmurl(creq.surls().front());
 
     PayloadSOAP request(ns);
@@ -419,9 +418,20 @@ namespace Arc {
       md.checkSumType = (std::string)mdata["checksumType"];
     if (mdata["checksumValue"])
       md.checkSumValue = (std::string)mdata["checksumValue"];
-    metadata.push_back(md);
+    std::list<struct SRMFileMetaData> mdlist;
+    mdlist.push_back(md);
+    metadata[creq.surls().front()] = mdlist;
 
     delete response;
+    return SRM_OK;
+  }
+
+  SRMReturnCode SRM1Client::info(SRMClientRequest& req,
+                                 std::list<struct SRMFileMetaData>& metadata) {
+    std::map<std::string, std::list<struct SRMFileMetaData> > metadata_map;
+    SRMReturnCode res = info(req, metadata_map);
+    if (res != SRM_OK || metadata_map.find(req.surls().front()) == metadata_map.end()) return res;
+    metadata = metadata_map[req.surls().front()];
     return SRM_OK;
   }
 

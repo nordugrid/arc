@@ -10,17 +10,6 @@ namespace Arc {
   class SRM22Client
     : public SRMClient {
   private:
-    /**
-     * Internal version of info(), when repeated listing is needed to
-     * list large directories.
-     * @param offset The index to start at
-     * @param count The number of files to list
-     */
-    SRMReturnCode info(SRMClientRequest& req,
-                       std::list<struct SRMFileMetaData>& metadata,
-                       const int recursive,
-                       const int offset,
-                       const int count);
 
     /**
      * Remove a file by srmRm
@@ -113,12 +102,18 @@ namespace Arc {
     SRMReturnCode requestBringOnlineStatus(SRMClientRequest& req);
 
     /**
-     * Use srmLs to get info on the given SURL. Info on each file is put in a
-     * metadata struct and added to the list.
+     * Use srmLs to get info on the given SURLs. Info on each file or content
+     * of directory is put in a list of metadata structs.
      */
     SRMReturnCode info(SRMClientRequest& req,
-                       std::list<struct SRMFileMetaData>& metadata,
-                       const int recursive = 0);
+                       std::map<std::string, std::list<struct SRMFileMetaData> >& metadata);
+
+    /**
+     * Use srmLs to get info on the given SURL. Info on each file or content
+     * of directory is put in a list of metadata structs
+     */
+    SRMReturnCode info(SRMClientRequest& req,
+                       std::list<struct SRMFileMetaData>& metadata);
 
     /**
      * Release files that have been pinned by srmPrepareToGet using
