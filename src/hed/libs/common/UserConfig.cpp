@@ -343,6 +343,10 @@ namespace Arc {
       }
     }
     else {
+      /*
+        No service certificates must be guessed. Services must have them configured.
+        No service certificates must be used by user.
+        And expecially no service certificate must be prefered over user certificate.
 #ifndef WIN32
       if (user.get_uid() == 0) { //get_uid is only valid for unix-like systems. root user goes into this branch.
 #else 
@@ -359,7 +363,8 @@ namespace Arc {
           keyPath.clear();
         }
       }
-      else if(
+      else */
+      if(
 #ifndef WIN32
         !(Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
         Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
