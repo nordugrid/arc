@@ -35,6 +35,39 @@
 
 namespace Arc {
 
+#ifndef WIN32
+  static bool user_file_test(const std::string& path, const User& user) {
+    struct stat st;
+    if(::stat(path.c_str(),&st) != 0) return false;
+    if(!S_ISREG(st.st_mode)) return false;
+    if(user.get_uid() != st.st_uid) return false;
+    return true;
+  }
+
+  static bool private_file_test(const std::string& path, const User& user) {
+    struct stat st;
+    if(::stat(path.c_str(),&st) != 0) return false;
+    if(!S_ISREG(st.st_mode)) return false;
+    if(user.get_uid() != st.st_uid) return false;
+    if(st.st_mode & (S_IRWXG | S_IRWXO)) return false;
+    return true;
+  }
+#else
+  static bool user_file_test(const std::string& path, const User& /*user*/) {
+    // TODO: implement
+    return Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR);
+  }
+
+  static bool private_file_test(const std::string& path, const User& /*user*/) {
+    // TODO: implement
+    return Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR);
+  }
+#endif
+
+  static bool dir_test(const std::string& path) {
+    return Glib::file_test(path, Glib::FILE_TEST_IS_DIR);
+  }
+
   std::string tostring(const ServiceType st) {
     switch (st) {
     case COMPUTING:
@@ -267,7 +300,7 @@ namespace Arc {
           return false;
         }
       }
-      else if (!Glib::file_test(joblistdir, Glib::FILE_TEST_IS_DIR)) {
+      else if (!dir_test(joblistdir)) {
         logger.msg(ERROR, "%s is not a directory, it is needed for the client to function correctly", joblistdir);
         return false;
       }
@@ -298,126 +331,152 @@ namespace Arc {
 
   void UserConfig::InitializeCredentials() {
     const User user;
-    bool has_proxy = false;
-    // Look for credentials.
-    if (!GetEnv("X509_USER_PROXY").empty()) {
-      if (!Glib::file_test(proxyPath = GetEnv("X509_USER_PROXY"), Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
-        proxyPath.clear();
-      }
-      else has_proxy = true;
-    }
-    else if (!proxyPath.empty()) {
-      if (!Glib::file_test(proxyPath, Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
-        proxyPath.clear();
-      }
-      else has_proxy = true;
-    }
-    else if (!Glib::file_test(proxyPath = Glib::build_filename(Glib::get_tmp_dir(), std::string("x509up_u") + tostring(user.get_uid())), Glib::FILE_TEST_IS_REGULAR)) {
-      if (initializeCredentials == initializeCredentialsType::RequireCredentials) {
-        logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
-        proxyPath.clear();
-      }
-      else has_proxy = true;
-    }
-    if (!GetEnv("X509_USER_CERT").empty() &&
-             !GetEnv("X509_USER_KEY").empty()) {
-      if (!Glib::file_test(certificatePath = GetEnv("X509_USER_CERT"), Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
-        certificatePath.clear();
-      }
-      if (!Glib::file_test(keyPath = GetEnv("X509_USER_KEY"), Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access key file: %s", keyPath);
-        keyPath.clear();
-      }
-    }
-    else if (!certificatePath.empty() && !keyPath.empty()) {
-      if (!Glib::file_test(certificatePath.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
-        certificatePath.clear();
-      }
-      if (!Glib::file_test(keyPath.c_str(), Glib::FILE_TEST_IS_REGULAR)) {
-        logger.msg(ERROR, "Can not access key file: %s", keyPath);
-        keyPath.clear();
-      }
-    }
-    else {
-      /*
-        No service certificates must be guessed. Services must have them configured.
-        No service certificates must be used by user.
-        And expecially no service certificate must be prefered over user certificate.
 #ifndef WIN32
-      if (user.get_uid() == 0) { //get_uid is only valid for unix-like systems. root user goes into this branch.
-#else 
-      if(0) { //for win, the get_uid will always gives 0
-#endif
-        certificatePath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostcert.pem"));
-        keyPath = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("hostkey.pem"));
-        if (!Glib::file_test(certificatePath, Glib::FILE_TEST_IS_REGULAR)) {
-          logger.msg(ERROR, "Can not access certificate file: %s", certificatePath);
-          certificatePath.clear();
-        }
-        if (!Glib::file_test(keyPath, Glib::FILE_TEST_IS_REGULAR)) {
-          logger.msg(ERROR, "Can not access key file: %s", keyPath);
-          keyPath.clear();
-        }
-      }
-      else */
-      if(
-#ifndef WIN32
-        !(Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
-        !(Glib::file_test(certificatePath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        Glib::file_test(keyPath = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
+    std::string home_path = user.Home();
 #else
-        !(Glib::file_test(certificatePath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        Glib::file_test(keyPath = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
+    std::string home_path = Glib::get_home_dir();
 #endif
-        !(Glib::file_test(certificatePath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        Glib::file_test(keyPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "arc" + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS)) &&
-        !(Glib::file_test(certificatePath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "usercert.pem", Glib::FILE_TEST_EXISTS) &&
-        Glib::file_test(keyPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "userkey.pem", Glib::FILE_TEST_EXISTS))) {
-        if((has_proxy == false) && (initializeCredentials == initializeCredentialsType::RequireCredentials))
-          logger.msg(WARNING, "Can not find certificate/key (usercert.pem, userkey.pem) in default location: ~/.arc/, ~/.globus/, $ARC_LOCATION/etc/arc, and $PWD/; And proxy certificate path has not been set and does not existing in /tmp; Please manually specify the certificate/key location, or use arcproxy to create a proxy certificte");
-        certificatePath.clear(); keyPath.clear();
+    bool has_proxy = false;
+    bool require = (initializeCredentials == initializeCredentialsType::RequireCredentials); 
+    // Look for credentials.
+    std::string proxy_path = GetEnv("X509_USER_PROXY");
+    if (!proxy_path.empty()) {
+      if (!private_file_test(proxyPath = proxy_path, user)) {
+        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+        proxyPath.clear();
+      } else {
+        has_proxy = true;
+      }
+    } else if (!proxyPath.empty()) {
+      if (!private_file_test(proxyPath, user)) {
+        logger.msg(ERROR, "Can not access proxy file: %s", proxyPath);
+        proxyPath.clear();
+      } else {
+        has_proxy = true;
+      }
+    } else {
+      proxy_path = Glib::build_filename(Glib::get_tmp_dir(),
+                             std::string("x509up_u") + tostring(user.get_uid()));
+      if (!private_file_test(proxyPath = proxy_path, user)) {
+        if (require) {
+          // TODO: Maybe this message should be printed only after checking for key/cert
+          logger.msg(WARNING, "Proxy file does not exist: %s ", proxyPath);
+        }
+        proxyPath.clear();
+      } else {
+        has_proxy = true;
+      }
+    }
+
+    if(has_proxy) require = false;
+    // Should we really handle them in pairs
+    std::string cert_path = GetEnv("X509_USER_CERT");
+    std::string key_path = GetEnv("X509_USER_KEY");
+    if (!cert_path.empty() && !key_path.empty()) {
+      if (!user_file_test(certificatePath = cert_path, user)) {
+        logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", certificatePath);
+        certificatePath.clear();
+      }
+      if (!private_file_test(keyPath = key_path, user)) {
+        logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", keyPath);
+        keyPath.clear();
+      }
+    } else if (!certificatePath.empty() && !keyPath.empty()) {
+      if (!user_file_test(certificatePath, user)) {
+        logger.msg(require?ERROR:VERBOSE, "Can not access certificate file: %s", certificatePath);
+        certificatePath.clear();
+      }
+      if (!private_file_test(keyPath, user)) {
+        logger.msg(require?ERROR:VERBOSE, "Can not access key file: %s", keyPath);
+        keyPath.clear();
+      }
+    } else {
+      // Guessing starts here
+      std::string base_path = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S;
+      cert_path = base_path+"usercert.pem";
+      key_path = base_path+"userkey.pem";
+      if( !(Glib::file_test(certificatePath = cert_path, Glib::FILE_TEST_EXISTS) &&
+            Glib::file_test(keyPath = key_path, Glib::FILE_TEST_EXISTS)) ) {
+        base_path = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S;
+        cert_path = base_path+"usercert.pem";
+        key_path = base_path+"userkey.pem";
+        if( !(Glib::file_test(certificatePath = cert_path, Glib::FILE_TEST_EXISTS) &&
+              Glib::file_test(keyPath = key_path, Glib::FILE_TEST_EXISTS)) ) {
+          base_path = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"arc"+G_DIR_SEPARATOR_S;
+          cert_path = base_path+"usercert.pem";
+          key_path = base_path+"userkey.pem";
+          if( !(Glib::file_test(certificatePath = cert_path, Glib::FILE_TEST_EXISTS) &&
+                Glib::file_test(keyPath = key_path, Glib::FILE_TEST_EXISTS)) ) {
+            // TODO: is it really safe to take credentials from ./ ? NOOOO
+            base_path = Glib::get_current_dir() + G_DIR_SEPARATOR_S;
+            cert_path = base_path+"usercert.pem";
+            key_path = base_path+"userkey.pem";
+            if( !(Glib::file_test(certificatePath = cert_path, Glib::FILE_TEST_EXISTS) &&
+                  Glib::file_test(keyPath = key_path, Glib::FILE_TEST_EXISTS)) ) {
+              // Not found
+              if(require) {
+                logger.msg(WARNING, 
+                "Proxy certificate path was not explicitely set or does not exist and not \n"
+                "found at default location. Key/certificate paths were not explicitely set\n"
+                "or do not exist and usercert.pem/userkey.pem not found at default locations:\n"
+                "~/.arc/, ~/.globus/, %s/etc/arc, and ./.\n"
+                "Please manually specify the proxy or certificate/key locations, or use\n"
+                "arcproxy utility to create a proxy certificte", ArcLocation::Get());
+              }
+              certificatePath.clear(); keyPath.clear();
+            }
+          }
+        }
       }
     }
 
     if(initializeCredentials != initializeCredentialsType::SkipCACredentials) {
-      if (!GetEnv("X509_CERT_DIR").empty()) {
-        if (!Glib::file_test(caCertificatesDirectory = GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
+      std::string ca_dir = GetEnv("X509_CERT_DIR");
+      if (!ca_dir.empty()) {
+        if (!dir_test(caCertificatesDirectory = ca_dir)) {
+          logger.msg(WARNING, "Can not access CA certificates directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+          caCertificatesDirectory.clear();
+        }
+      } else if (!caCertificatesDirectory.empty()) {
+        if (!dir_test(caCertificatesDirectory)) {
           logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
           caCertificatesDirectory.clear();
         }
-      }
-      else if (!caCertificatesDirectory.empty()) {
-        if (!Glib::file_test(caCertificatesDirectory, Glib::FILE_TEST_IS_DIR)) {
-          logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
-          caCertificatesDirectory.clear();
-        }
-      }
-      else if (
-#ifndef WIN32
-               !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-               !Glib::file_test(caCertificatesDirectory = user.Home() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-#else
-               !Glib::file_test(caCertificatesDirectory = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-               !Glib::file_test(caCertificatesDirectory = Glib::get_home_dir() + G_DIR_SEPARATOR_S + ".globus" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-#endif
-               !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-               !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR) &&
-               !Glib::file_test(caCertificatesDirectory = ArcLocation::Get() + G_DIR_SEPARATOR_S + "share" + G_DIR_SEPARATOR_S + "certificates", Glib::FILE_TEST_IS_DIR)) {
-        caCertificatesDirectory = Glib::build_filename(G_DIR_SEPARATOR_S + std::string("etc"), std::string("grid-security") + G_DIR_SEPARATOR_S + std::string("certificates"));
-        if (!Glib::file_test(caCertificatesDirectory.c_str(), Glib::FILE_TEST_IS_DIR)) {
-          logger.msg(WARNING, "Can not find CA certificate directory in default locations: ~/.arc/certificates, ~/.globus/certificates, $ARC_LOCATION/etc/certificates, $ARC_LOCATION/etc/grid-security/certificates, $ARC_LOCATION/share/certificates, /etc/grid-security/certificates. The certificate will not be verified.");
-          caCertificatesDirectory.clear();
+      } else {
+        ca_dir = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S+"certificates";
+        if (!dir_test(caCertificatesDirectory = ca_dir)) {
+          ca_dir = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S+"certificates";
+          if (!dir_test(caCertificatesDirectory = ca_dir)) {
+            ca_dir = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"certificates";
+            if (!dir_test(caCertificatesDirectory = ca_dir)) {
+              ca_dir = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
+              if (!dir_test(caCertificatesDirectory = ca_dir)) {
+                ca_dir = ArcLocation::Get()+G_DIR_SEPARATOR_S+"share"+G_DIR_SEPARATOR_S+"certificates";
+                if (!dir_test(caCertificatesDirectory = ca_dir)) {
+                  ca_dir = std::string(G_DIR_SEPARATOR_S)+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
+                  if (!dir_test(caCertificatesDirectory = ca_dir)) {
+                    if(initializeCredentials == initializeCredentialsType::RequireCredentials) {
+                      logger.msg(WARNING,
+                        "Can not find CA certificates directory in default locations:\n"
+                        "~/.arc/certificates, ~/.globus/certificates,\n"
+                        "%s/etc/certificates, %s/etc/grid-security/certificates,\n"
+                        "%s/share/certificates, /etc/grid-security/certificates.\n"
+                        "The certificate will not be verified.", 
+                        ArcLocation::Get(), ArcLocation::Get(), ArcLocation::Get());
+                    }
+                    caCertificatesDirectory.clear();
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
 
-    if (!proxyPath.empty())
+    if (!proxyPath.empty()) {
       logger.msg(INFO, "Using proxy file: %s", proxyPath);
+    }
     if ((!certificatePath.empty()) && (!keyPath.empty())) {
       logger.msg(INFO, "Using certificate file: %s", certificatePath);
       logger.msg(INFO, "Using key file: %s", keyPath);
@@ -839,7 +898,7 @@ namespace Arc {
         }
       }
 
-      if (Glib::file_test(ARCUSERDIRECTORY, Glib::FILE_TEST_IS_DIR)) {
+      if (dir_test(ARCUSERDIRECTORY)) {
         if (Glib::file_test(EXAMPLECONFIG, Glib::FILE_TEST_IS_REGULAR)) {
           // Destination: Get basename, remove example prefix and add .arc directory.
           if (copyFile(EXAMPLECONFIG, DEFAULTCONFIG))

@@ -196,57 +196,61 @@ namespace Arc {
      * searches in different locations. First the user proxy or the user
      * key/certificate pair is tried located in the following order:
      * - Proxy path specified by the environment variable
-     *   X509_USER_PROXY
-     * - Key/certificate path specified by the environment
-     *   X509_USER_KEY and X509_USER_CERT
-     * - Proxy path specified in either configuration file passed to the
-     *   contructor or explicitly set using the setter method
-     *   ProxyPath(const std::string&)
-     * - Key/certificate path specified in either configuration file
-     *   passed to the constructor or explicitly set using the setter
-     *   methods KeyPath(const std::string&) and
-     *   CertificatePath(const std::string&)
-     * - ProxyPath with file name x509up_u concatenated with the user ID
-     *   located in the OS temporary directory.
+     *   X509_USER_PROXY. If value is set and corresponding file does
+     *   not exist it considered to be an error and no other locations
+     *   are tried.  If found no more proxy paths are tried.
+     * - Current proxy path as passed to the contructor, explicitly set
+     *   using the setter method ProxyPath(const std::string&) or read
+     *   from configuration by constructor or LoadConfiguartionFile()
+     *   method. If value is set and corresponding file does not exist 
+     *   it considered to be an error and no other locations are tried.
+     *   If found no more proxy paths are tried.
+     * - Proxy path made of x509up_u token concatenated with the user
+     *   numerical ID located in the OS temporary directory. It is NOT
+     *   an error if corresponding file does not exist and processing
+     *   continues.
+     * - Key/certificate paths specified by the environment variables
+     *   X509_USER_KEY and X509_USER_CERT. If values  are set and 
+     *   corresponding files do not exist it considered to be an error
+     *   and no other locations are tried. Error message is supressed
+     *   if proxy was previously found.
+     * - Current key/certificate paths passed to the contructor or 
+     *   explicitly set using the setter methods KeyPath(const std::string&)
+     *   and CertificatePath(const std::string&) or read from configuration
+     *   by constructor or LoadConfiguartionFile() method. If values
+     *   are set and corresponding files do not exist it is an error
+     *   and no other locations are tried. Error message is supressed
+     *   if proxy was previously found.
+     * - Key/certificate paths ~/.arc/usercert.pem and ~/.arc/userkey.pem
+     *   respectively are tried. It is not an error if not found.
+     * - Key/certificate paths ~/.globus/usercert.pem and ~/.globus/userkey.pem
+     *   respectively are tried. It is not an error if not found.
+     * - Key/certificate paths created by concatenation of ARC installation
+     *   location and /etc/arc/usercert.pem and /etc/arc/userkey.pem
+     *   respectively are tried. It is not an error if not found.
+     * - Key/certificate located in current working directory are tried.
+     * - If neither proxy nor key/certificate files are found this is
+     *   considered to be an error.
      *
-     * If the proxy or key/certificate pair have been explicitly
-     * specified only the specified path(s) will be tried, and if not
-     * found a ::ERROR is reported.
-     * If the proxy or key/certificate have not been specified and it is
-     * not located in the temporary directory a ::WARNING will be
-     * reported and the host key/certificate pair is tried and then the
-     * Globus key/certificate pair and a ::ERROR will be reported
-     * if not found in any of these locations.
-     *
-     * Together with the proxy and key/certificate pair, the path to the
-     * directory containing CA certificates is also tried located when
-     * invoking this method. The directory will be tried located in the
-     * following order:
+     * Along with the proxy and key/certificate pair, the path of the
+     * directory containing CA certificates is also located. The presence
+     * of directory will be checked in the following order and first
+     * found is accepted:
      * - Path specified by the X509_CERT_DIR environment variable.
-     * - Path explicitly specified either in a parsed configuration file
-     *   using the cacertficatecirectory or by using the setter method
-     *   CACertificatesDirectory().
-     * - Path created by concatenating the output of User::Home()
-     *   with '.globus' and 'certificates' separated by the directory
-     *   delimeter.
-     * - Path created by concatenating the output of
-     *   Glib::get_home_dir() with '.globus' and 'certificates'
-     *   separated by the directory delimeter.
-     * - Path created by concatenating the output of ArcLocation::Get(),
-     *   with 'etc' and 'certificates' separated by the directory
-     *   delimeter.
-     * - Path created by concatenating the output of ArcLocation::Get(),
-     *   with 'etc', 'grid-security' and 'certificates' separated by the
-     *   directory delimeter.
-     * - Path created by concatenating the output of ArcLocation::Get(),
-     *   with 'share' and 'certificates' separated by the directory
-     *   delimeter.
-     * - Path created by concatenating 'etc', 'grid-security' and
-     *   'certificates' separated by the directory delimeter.
+     *   It is an error if value is set and directory does not exist.
+     * - Current path explicitly specified by using the setter method
+     *   CACertificatesDirectory() or read from configuration by 
+     *   constructor or LoadConfiguartionFile() method. It is an error
+     *   if value is set and directory does not exist.
+     * - Path ~/.globus/certificates. It is not an error if it does 
+     *   not exist.
+     * - Path created by concatenating the ARC installation location
+     *   and /etc/certificates. It is not an error if it does not exist.
+     * - Path created by concatenating the ARC installation location
+     *   and /share/certificates. It is not an error if it does not exist.
+     * - Path /etc/grid-security/certificates.
      *
-     * If the CA certificate directory have explicitly been specified
-     * and the directory does not exist a ::ERROR is reported. If none
-     * of the directories above does not exist a ::ERROR is reported.
+     * It is an error if none of the directories above exist.
      *
      * @see CredentialsFound()
      * @see ProxyPath(const std::string&)
