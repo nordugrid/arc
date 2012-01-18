@@ -52,8 +52,12 @@ class SubmitterTestACCControl {
 class TargetRetrieverTestACCControl {
   public:
     static TargetGenerator* tg;
-    static std::list<ExecutionTarget>* foundTargets;
-    static std::list<Job>* foundJobs;
+    static std::list<ExecutionTarget> foundTargets;
+    static std::list<Job> foundJobs;
+    
+    static void addTarget(ExecutionTarget target);
+    static void addJob(Job job);
+    
 };
 
 class JobStateTEST : public JobState {

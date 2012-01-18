@@ -18,21 +18,17 @@ Plugin* TargetRetrieverTestACC::GetInstance(PluginArgument *arg) {
 
 void TargetRetrieverTestACC::GetExecutionTargets(TargetGenerator& mom) {
   TargetRetrieverTestACCControl::tg = &mom;
-  if (TargetRetrieverTestACCControl::foundTargets) {
-    for (std::list<ExecutionTarget>::const_iterator it = TargetRetrieverTestACCControl::foundTargets->begin();
-         it != TargetRetrieverTestACCControl::foundTargets->end(); ++it) {
-      mom.AddTarget(*it);
-    }
+  for (std::list<ExecutionTarget>::const_iterator it = TargetRetrieverTestACCControl::foundTargets.begin();
+       it != TargetRetrieverTestACCControl::foundTargets.end(); ++it) {
+    mom.AddTarget(*it);
   }
 }
 
 void TargetRetrieverTestACC::GetJobs(TargetGenerator& mom) {
   TargetRetrieverTestACCControl::tg = &mom;
-  if (TargetRetrieverTestACCControl::foundJobs) {
-    for (std::list<Job>::const_iterator it = TargetRetrieverTestACCControl::foundJobs->begin();
-         it != TargetRetrieverTestACCControl::foundJobs->end(); ++it) {
-      mom.AddJob(*it);
-    }
+  for (std::list<Job>::const_iterator it = TargetRetrieverTestACCControl::foundJobs.begin();
+       it != TargetRetrieverTestACCControl::foundJobs.end(); ++it) {
+    mom.AddJob(*it);
   }
 }
 

@@ -113,12 +113,12 @@ void JobSupervisorTest::TestResubmit()
   usercfg.Broker("TEST");
   usercfg.AddServices(std::list<std::string>(1, "TEST:http://test2.nordugrid.org"), Arc::COMPUTING);
 
-  std::list<Arc::ExecutionTarget> targets(1, Arc::ExecutionTarget());
-  targets.back().url = Arc::URL("http://test2.nordugrid.org");
-  targets.back().GridFlavour = "TEST";
-  targets.back().HealthState = "ok";
+  Arc::ExecutionTarget target;
+  target.url = Arc::URL("http://test2.nordugrid.org");
+  target.GridFlavour = "TEST";
+  target.HealthState = "ok";
 
-  Arc::TargetRetrieverTestACCControl::foundTargets = &targets;
+  Arc::TargetRetrieverTestACCControl::addTarget(target);
 
   js = new Arc::JobSupervisor(usercfg, jobs);
 

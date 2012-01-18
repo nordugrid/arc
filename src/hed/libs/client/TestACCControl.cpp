@@ -27,7 +27,16 @@ Job* SubmitterTestACCControl::submitJob = NULL;
 Job* SubmitterTestACCControl::migrateJob = NULL;
 
 TargetGenerator* TargetRetrieverTestACCControl::tg = NULL;
-std::list<ExecutionTarget>* TargetRetrieverTestACCControl::foundTargets = NULL;
-std::list<Job>* TargetRetrieverTestACCControl::foundJobs = NULL;
+std::list<ExecutionTarget> TargetRetrieverTestACCControl::foundTargets = std::list<ExecutionTarget>();
+std::list<Job> TargetRetrieverTestACCControl::foundJobs = std::list<Job>();
+
+void TargetRetrieverTestACCControl::addTarget(ExecutionTarget target) {
+  TargetRetrieverTestACCControl::foundTargets.push_back(target);
+}
+
+void TargetRetrieverTestACCControl::addJob(Job job) {
+  TargetRetrieverTestACCControl::foundJobs.push_back(job);
+}
+
 
 }
