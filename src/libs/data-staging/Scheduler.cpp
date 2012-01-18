@@ -282,6 +282,7 @@ namespace DataStaging {
     // workflow as if it was not cached at all.
     // But we should clear error flag if it was set by the pre-processor
     request->reset_error_status();
+    if (request->get_cache_state() == CACHEABLE) DtrList.caching_started(request);
 
     if(request->get_cache_state() == CACHE_ALREADY_PRESENT){
       // File is on place already. After the post-processor
@@ -542,6 +543,10 @@ namespace DataStaging {
   void Scheduler::ProcessDTRCACHE_PROCESSED(DTR* request){
     // Final stage within scheduler. Retries are initiated from here if necessary,
     // otherwise report success or failure to generator
+
+    // First remove from caching list
+    DtrList.caching_finished(request);
+
     if (request->cancel_requested()) {
       // Cancellation steps finished
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Cancellation complete", request->get_short_id());
@@ -576,7 +581,9 @@ namespace DataStaging {
             request->get_error_status().GetErrorStatus() == DTRErrorStatus::TRANSFER_SPEED_ERROR ||
             request->get_error_status().GetErrorStatus() == DTRErrorStatus::INTERNAL_PROCESS_ERROR) {
           if (request->get_tries_left() > 0) {
-            request->set_process_time(10);
+            // exponential back off - 10s, 40s, 90s, ...
+            request->set_process_time(10*(request->get_initial_tries()-request->get_tries_left())*
+                                         (request->get_initial_tries()-request->get_tries_left()));
             request->get_logger()->msg(Arc::INFO, "DTR %s: %i retries left, will wait until %s before next attempt",
                                        request->get_short_id(), request->get_tries_left(), request->get_process_time().str());
             // set state depending on where the error occurred

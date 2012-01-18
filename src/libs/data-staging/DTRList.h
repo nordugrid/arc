@@ -19,6 +19,12 @@ namespace DataStaging {
   	  /// Lock to protect list during modification
       Arc::SimpleCondition Lock;
   	  
+      /// Internal set of sources that are currently being cached
+      std::set<std::string> CachingSources;
+
+      /// Lock to protect caching sources set during modification
+      Arc::SimpleCondition CachingLock;
+
   	public:
           	
   	  /// Put a new DTR into the list.
@@ -76,8 +82,13 @@ namespace DataStaging {
       /// @param FilteredList This list is filled with filtered DTRs
       bool filter_dtrs_by_job(const std::string& jobid, std::list<DTR*>& FilteredList);
       
-      /// Returns true if a DTR in the list is currently writing the same
-      /// source file as DTRToCheck to cache.
+      /// Update the caching set, add a DTR (only if it is CACHEABLE).
+      void caching_started(DTR* request);
+
+      /// Update the caching set, removing a DTR.
+      void caching_finished(DTR* request);
+
+      /// Returns true if the DTR's source is currently in the caching set.
       bool is_being_cached(DTR* DTRToCheck);
 
       /// Returns true if there are no DTRs in the list

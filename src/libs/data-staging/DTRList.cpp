@@ -163,25 +163,24 @@ namespace DataStaging {
     return true;
   }
 
-  bool DTRList::is_being_cached(DTR* DTRToCheck) {
-    std::list<DTR*>::iterator it;
+  void DTRList::caching_started(DTR* request) {
+    CachingLock.lock();
+    CachingSources.insert(request->get_source_str());
+    CachingLock.unlock();
+  }
 
-    Lock.lock();
-    for (it = DTRs.begin();it != DTRs.end(); ++it) {
-      // Check for another DTR sharing the same source past the cache checking
-      // stage and which is using the cache
-      if (((*it)->get_id() != DTRToCheck->get_id()) &&
-          ((*it)->get_status().GetStatus() > DTRStatus::CACHE_WAIT) &&
-          ((*it)->get_cache_state() == CACHEABLE ||
-           (*it)->get_cache_state() == CACHE_DOWNLOADED ||
-           (*it)->get_cache_state() == CACHE_NOT_USED) &&
-          ((*it)->get_source_str() == DTRToCheck->get_source_str())) {
-        Lock.unlock();
-        return true;
-      }
-    }
-    Lock.unlock();
-    return false;
+  void DTRList::caching_finished(DTR* request) {
+    CachingLock.lock();
+    CachingSources.erase(request->get_source_str());
+    CachingLock.unlock();
+  }
+
+  bool DTRList::is_being_cached(DTR* DTRToCheck) {
+
+    CachingLock.lock();
+    bool caching = (CachingSources.find(DTRToCheck->get_source_str()) != CachingSources.end());
+    CachingLock.unlock();
+    return caching;
   }
 
   bool DTRList::empty() {
