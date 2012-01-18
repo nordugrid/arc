@@ -261,7 +261,7 @@ namespace Arc {
       }
     }
 #ifndef WIN32
-    if (cacheable && source.GetURL().Option("cache") != "renew") {
+    if (cacheable && source.GetURL().Option("cache") != "renew" && source.GetURL().Option("cache") != "check") {
       std::string canonic_url = source.str();
       bool is_in_cache = false;
       bool is_locked = false;
@@ -548,10 +548,10 @@ namespace Arc {
       if (cacheable) {
         res = DataStatus::Success;
         bool use_remote = true;
+        bool delete_first = (source.GetURL().Option("cache") == "renew");
         for (;;) { /* cycle for outdated cache files */
           bool is_in_cache = false;
           bool is_locked = false;
-          bool delete_first = (source.GetURL().Option("cache") == "renew");
           if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote, delete_first)) {
             if (is_locked) {
               logger.msg(VERBOSE, "Cached file is locked - should retry");
@@ -569,7 +569,7 @@ namespace Arc {
                        canonic_url, cache.File(canonic_url));
             // check the list of cached DNs
             bool have_permission = false;
-            if (cache.CheckDN(canonic_url, dn))
+            if (source.GetURL().Option("cache") != "check" && cache.CheckDN(canonic_url, dn))
               have_permission = true;
             else {
               DataStatus cres = source.Check();

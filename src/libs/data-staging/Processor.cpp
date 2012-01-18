@@ -114,7 +114,7 @@ namespace DataStaging {
                    request->get_short_id(), canonic_url, cache.File(canonic_url));
         // check the list of cached DNs
         bool have_permission = false;
-        if (cache.CheckDN(canonic_url, dn))
+        if (request->get_source()->GetURL().Option("cache") != "check" && cache.CheckDN(canonic_url, dn))
           have_permission = true;
         else {
           Arc::DataStatus cres = request->get_source()->Check();
