@@ -34,22 +34,12 @@ public:
   void TestCancel();
   void TestClean();
 
-  class JobStateTEST : public Arc::JobState {
-  public:
-    JobStateTEST(const std::string& state) : JobState(state, &StateMap) {}
-    static JobState::StateType StateMap(const std::string& state) {
-      return st;
-    }
-  };
-
 private:
   Arc::UserConfig usercfg;
   Arc::JobSupervisor *js;
   Arc::Job j;
-  static Arc::JobState::StateType st;
 };
 
-Arc::JobState::StateType JobSupervisorTest::st = Arc::JobState::UNDEFINED;
 
 JobSupervisorTest::JobSupervisorTest() : usercfg(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)) {
   j.Flavour = "TEST";
@@ -110,14 +100,12 @@ void JobSupervisorTest::TestResubmit()
            id2("http://test.nordugrid.org/1234567890test2"),
            id3("http://test.nordugrid.org/1234567890test3");
 
-  st = Arc::JobState::FAILED;
-  j.State = JobStateTEST("E");
+  j.State = Arc::JobStateTEST(Arc::JobState::FAILED);
   j.IDFromEndpoint = id1;
   j.JobDescriptionDocument = "CONTENT";
   jobs.push_back(j);
 
-  st = Arc::JobState::RUNNING;
-  j.State = JobStateTEST("R");
+  j.State = Arc::JobStateTEST(Arc::JobState::RUNNING);
   j.IDFromEndpoint = id1;
   j.JobDescriptionDocument = "CONTENT";
   jobs.push_back(j);
@@ -156,18 +144,15 @@ void JobSupervisorTest::TestCancel()
            id3("http://test.nordugrid.org/1234567890test3"),
            id4("http://test.nordugrid.org/1234567890test4");
 
-  st = Arc::JobState::RUNNING;
-  j.State = JobStateTEST("R");
+  j.State = Arc::JobStateTEST(Arc::JobState::RUNNING);
   j.IDFromEndpoint = id1;
   jobs.push_back(j);
 
-  st = Arc::JobState::FINISHED;
-  j.State = JobStateTEST("F");
+  j.State = Arc::JobStateTEST(Arc::JobState::FINISHED);
   j.IDFromEndpoint = id2;
   jobs.push_back(j);
 
-  st = Arc::JobState::UNDEFINED;
-  j.State = JobStateTEST("U");
+  j.State = Arc::JobStateTEST(Arc::JobState::UNDEFINED);
   j.IDFromEndpoint = id3;
   jobs.push_back(j);
 
@@ -195,14 +180,13 @@ void JobSupervisorTest::TestCancel()
   CPPUNIT_ASSERT_EQUAL(id3.str(), js->GetIDsNotProcessed().back().str());
   js->ClearSelection();
 
-  st = Arc::JobState::ACCEPTED;
-  j.State = JobStateTEST("A");
+  j.State = Arc::JobStateTEST(Arc::JobState::ACCEPTED, "Accepted");
   j.IDFromEndpoint = id4;
 
   CPPUNIT_ASSERT(js->AddJob(j));
 
   std::list<std::string> status;
-  status.push_back("A");
+  status.push_back("Accepted");
 
 
   Arc::JobControllerTestACCControl::cancelStatus = true;
@@ -236,13 +220,11 @@ void JobSupervisorTest::TestClean()
   Arc::URL id1("http://test.nordugrid.org/1234567890test1"),
            id2("http://test.nordugrid.org/1234567890test2");
 
-  st = Arc::JobState::FINISHED;
-  j.State = JobStateTEST("F");
+  j.State = Arc::JobStateTEST(Arc::JobState::FINISHED, "Finished");
   j.IDFromEndpoint = id1;
   jobs.push_back(j);
 
-  st = Arc::JobState::UNDEFINED;
-  j.State = JobStateTEST("U");
+  j.State = Arc::JobStateTEST(Arc::JobState::UNDEFINED);
   j.IDFromEndpoint = id2;
   jobs.push_back(j);
 
@@ -270,7 +252,7 @@ void JobSupervisorTest::TestClean()
   js->ClearSelection();
 
   std::list<std::string> status;
-  status.push_back("F");
+  status.push_back("Finished");
 
 
   Arc::JobControllerTestACCControl::cleanStatus = true;

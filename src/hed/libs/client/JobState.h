@@ -76,8 +76,6 @@ namespace Arc {
   protected:
     JobState(const std::string& state, JobState::StateType (*map)(const std::string&))
       : state(state), type((*map)(state)) {};
-
-  private:
     std::string state;
     StateType type;
   };

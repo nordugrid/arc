@@ -8,6 +8,8 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/TargetGenerator.h>
+#include <arc/client/JobState.h>
+
 
 namespace Arc {
 
@@ -55,5 +57,14 @@ class TargetRetrieverTestACCControl {
     static std::list<Job>* foundJobs;
 };
 
+class JobStateTEST : public JobState {
+  public:
+    JobStateTEST(JobState::StateType type_, const std::string& state_ = "TestState") {
+      type = type_;
+      state = state_;
+    }
+};
+
 }
+
 #endif // __ARC_TESTACCCONTROL_H__
