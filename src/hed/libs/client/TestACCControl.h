@@ -16,7 +16,6 @@ namespace Arc {
 class BrokerTestACCControl {
   public:
     static bool* TargetSortingDone;
-    static bool* TargetSortingDoneSortTargets;
     static std::list<ExecutionTarget*>* PossibleTargets;
 };
 
@@ -24,8 +23,8 @@ class JobDescriptionParserTestACCControl {
   public:
     static bool parseStatus;
     static bool unparseStatus;
-    static std::list<JobDescription>* parsedJobDescriptions;
-    static std::string* unparsedString;
+    static std::list<JobDescription> parsedJobDescriptions;
+    static std::string unparsedString;
 };
 
 class JobControllerTestACCControl {

@@ -18,8 +18,8 @@ public:
 
   static Plugin* GetInstance(PluginArgument *arg);
 
-  virtual JobDescriptionParserResult Parse(const std::string& /*source*/, std::list<JobDescription>& jobdescs, const std::string& /*language = ""*/, const std::string& /*dialect = ""*/) const { if (JobDescriptionParserTestACCControl::parsedJobDescriptions) jobdescs = *JobDescriptionParserTestACCControl::parsedJobDescriptions; return JobDescriptionParserTestACCControl::parseStatus; }
-  virtual JobDescriptionParserResult UnParse(const JobDescription& /*job*/, std::string& output, const std::string& /*language*/, const std::string& /*dialect = ""*/) const { if (JobDescriptionParserTestACCControl::unparsedString) output = *JobDescriptionParserTestACCControl::unparsedString; return JobDescriptionParserTestACCControl::unparseStatus; }
+  virtual JobDescriptionParserResult Parse(const std::string& /*source*/, std::list<JobDescription>& jobdescs, const std::string& /*language = ""*/, const std::string& /*dialect = ""*/) const { jobdescs = JobDescriptionParserTestACCControl::parsedJobDescriptions; return JobDescriptionParserTestACCControl::parseStatus; }
+  virtual JobDescriptionParserResult UnParse(const JobDescription& /*job*/, std::string& output, const std::string& /*language*/, const std::string& /*dialect = ""*/) const { output = JobDescriptionParserTestACCControl::unparsedString; return JobDescriptionParserTestACCControl::unparseStatus; }
 };
 
 }

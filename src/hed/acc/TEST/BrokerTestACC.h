@@ -13,8 +13,7 @@ namespace Arc {
 class BrokerTestACC
   : public Broker {
 private:
-  BrokerTestACC(const UserConfig& usercfg)
-    : Broker(usercfg) {
+  BrokerTestACC(const UserConfig& usercfg) : Broker(usercfg) {
     BrokerTestACCControl::PossibleTargets = &PossibleTargets;
     BrokerTestACCControl::TargetSortingDone = &TargetSortingDone;
   }
@@ -22,7 +21,7 @@ private:
 public:
   ~BrokerTestACC() {}
 
-  virtual void SortTargets() { if (BrokerTestACCControl::TargetSortingDone) TargetSortingDone = *BrokerTestACCControl::TargetSortingDone; }
+  virtual void SortTargets() { TargetSortingDone = true; }
 
   static Plugin* GetInstance(PluginArgument *arg);
 };

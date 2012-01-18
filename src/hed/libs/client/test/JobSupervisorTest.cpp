@@ -14,8 +14,8 @@ class JobSupervisorTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(JobSupervisorTest);
-  //CPPUNIT_TEST(TestConstructor);
-  //CPPUNIT_TEST(TestAddJob);
+  CPPUNIT_TEST(TestConstructor);
+  CPPUNIT_TEST(TestAddJob);
   CPPUNIT_TEST(TestResubmit);
   CPPUNIT_TEST(TestCancel);
   CPPUNIT_TEST(TestClean);
@@ -57,7 +57,7 @@ void JobSupervisorTest::TestConstructor()
   jobs.push_back(j);
 
   js = new Arc::JobSupervisor(usercfg, jobs);
-  CPPUNIT_ASSERT(js->GetAllJobs().empty());
+  CPPUNIT_ASSERT(!js->GetAllJobs().empty());
 
   // One and only one JobController should be loaded.
   CPPUNIT_ASSERT_EQUAL(1, (int)js->GetJobControllers().size());
@@ -118,14 +118,7 @@ void JobSupervisorTest::TestResubmit()
   targets.back().GridFlavour = "TEST";
   targets.back().HealthState = "ok";
 
-  std::list<Arc::JobDescription> jobdescs(1, Arc::JobDescription());
-
-  bool TargetSortingDone = true;
-  Arc::BrokerTestACCControl::TargetSortingDoneSortTargets = &TargetSortingDone;
   Arc::TargetRetrieverTestACCControl::foundTargets = &targets;
-  Arc::JobDescriptionParserTestACCControl::parseStatus = true;
-  Arc::JobDescriptionParserTestACCControl::parsedJobDescriptions = &jobdescs;
-  Arc::SubmitterTestACCControl::submitStatus = true;
 
   js = new Arc::JobSupervisor(usercfg, jobs);
 

@@ -3,27 +3,26 @@
 namespace Arc {
 
 bool* BrokerTestACCControl::TargetSortingDone = NULL;
-bool* BrokerTestACCControl::TargetSortingDoneSortTargets = NULL;
 std::list<ExecutionTarget*>* BrokerTestACCControl::PossibleTargets = NULL;
 
-bool JobDescriptionParserTestACCControl::parseStatus = false;
-bool JobDescriptionParserTestACCControl::unparseStatus = false;
-std::list<JobDescription>* JobDescriptionParserTestACCControl::parsedJobDescriptions = NULL;
-std::string* JobDescriptionParserTestACCControl::unparsedString = NULL;
+bool JobDescriptionParserTestACCControl::parseStatus = true;
+std::list<JobDescription> JobDescriptionParserTestACCControl::parsedJobDescriptions(1, JobDescription());
+bool JobDescriptionParserTestACCControl::unparseStatus = true;
+std::string JobDescriptionParserTestACCControl::unparsedString = "";
 
-bool JobControllerTestACCControl::jobStatus = false;
-bool JobControllerTestACCControl::cleanStatus = false;
-bool JobControllerTestACCControl::cancelStatus = false;
-bool JobControllerTestACCControl::renewStatus = false;
-bool JobControllerTestACCControl::resumeStatus = false;
-bool JobControllerTestACCControl::getJobDescriptionStatus = false;
+bool JobControllerTestACCControl::jobStatus = true;
+bool JobControllerTestACCControl::cleanStatus = true;
+bool JobControllerTestACCControl::cancelStatus = true;
+bool JobControllerTestACCControl::renewStatus = true;
+bool JobControllerTestACCControl::resumeStatus = true;
+bool JobControllerTestACCControl::getJobDescriptionStatus = true;
 std::string JobControllerTestACCControl::getJobDescriptionString = "";
 URL JobControllerTestACCControl::fileURL = URL();
 URL JobControllerTestACCControl::createURL = URL();
 
-bool SubmitterTestACCControl::submitStatus = false;
-bool SubmitterTestACCControl::migrateStatus = false;
-bool SubmitterTestACCControl::modifyStatus = false;
+bool SubmitterTestACCControl::submitStatus = true;
+bool SubmitterTestACCControl::migrateStatus = true;
+bool SubmitterTestACCControl::modifyStatus = true;
 Job* SubmitterTestACCControl::submitJob = NULL;
 Job* SubmitterTestACCControl::migrateJob = NULL;
 
