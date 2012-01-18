@@ -117,7 +117,7 @@ int RUNCLEAN(main)(int argc, char **argv) {
   std::list<Arc::URL> cleaned = jobmaster.GetIDsProcessed();
   const std::list<Arc::URL>& notcleaned = jobmaster.GetIDsNotProcessed();
 
-  if ((!opt.status.empty() && std::find(opt.status.begin(), opt.status.end(), "Undefined") != opt.status.end()) || (opt.all && opt.forceclean)) {
+  if ((!opt.status.empty() && std::find(opt.status.begin(), opt.status.end(), "Undefined") != opt.status.end()) || opt.forceclean) {
     std::string response = "";
     if (!opt.forceclean) {
       std::cout << Arc::IString("You are about to remove jobs from the job list for which no information could be\n"
