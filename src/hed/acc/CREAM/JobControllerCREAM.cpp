@@ -43,7 +43,7 @@ namespace Arc {
       url.ChangePath(*pi);
       CREAMClient gLiteClient(url, cfg, usercfg.Timeout());
       if (!gLiteClient.stat(pi.Rest(), (**iter))) {
-        logger.msg(WARNING, "Job information not found: %s", (*iter)->JobID.fullstr());
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
       }
     }
   }

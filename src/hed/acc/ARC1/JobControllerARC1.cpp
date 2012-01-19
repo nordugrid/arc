@@ -44,7 +44,7 @@ namespace Arc {
       std::string idstr;
       AREXClient::createActivityIdentifier((*iter)->JobID, idstr);
       if (!ac.stat(idstr, **iter)) {
-        logger.msg(WARNING, "Job information not found: %s", (*iter)->JobID.fullstr());
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
       }
     }
   }

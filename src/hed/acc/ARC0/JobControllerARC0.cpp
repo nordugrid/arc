@@ -112,7 +112,7 @@ namespace Arc {
         }
 
         if (xit == jobinfolist.end()) {
-          logger.msg(WARNING, "Job information not found: %s", (*jit)->JobID.fullstr());
+          logger.msg(WARNING, "Job information not found in the information system: %s", (*jit)->JobID.fullstr());
           if (Time() - (*jit)->LocalSubmissionTime < 90)
             logger.msg(WARNING, "This job was very recently "
                        "submitted and might not yet "

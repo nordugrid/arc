@@ -52,7 +52,7 @@ namespace Arc {
       EMIESJob job = JobToEMIES(**iter);
       EMIESClient ac(job.manager, cfg, usercfg.Timeout());
       if (!ac.info(job, **iter)) {
-        logger.msg(WARNING, "Job information not found: %s", (*iter)->JobID.fullstr());
+        logger.msg(WARNING, "Job information not found in the information system: %s", (*iter)->JobID.fullstr());
       }
       // Going for more detailed state
       XMLNode jst;
