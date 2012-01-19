@@ -7,8 +7,8 @@ endif
 if PYTHON_ENABLED
 
 
-TESTS_ENVIRONMENT = DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" PYTHONPATH=../.:../.libs/. $(PYTHON)
-TESTS = SwigPyIteratorSegFaultRegTest.py
+TESTS_ENVIRONMENT = ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" PYTHONPATH=..:../.libs:../../src/hed/libs/python $(PYTHON)
+TESTS = SwigPyIteratorSegFaultRegTest.py JobSupervisorTest.py
 else
 TESTS =
 endif

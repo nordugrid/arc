@@ -1,7 +1,7 @@
 pythondir= $(PYTHON_SITE_LIB)/arcom
 docdir = @docdir@
 
-python_DATA = __init__.py client.py logger.py security.py service.py xmltree.py threadpool.py
+python_DATA = __init__.py client.py logger.py security.py service.py xmltree.py threadpool.py test.py
 
 EXTRA_DIST = $(python_DATA)
 
