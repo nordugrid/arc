@@ -53,6 +53,9 @@ static const std::string BES_GLUE2PRE_NAMESPACE("http://schemas.ogf.org/glue/200
 static const std::string BES_GLUE2_NPREFIX("glue2");
 static const std::string BES_GLUE2_NAMESPACE("http://schemas.ogf.org/glue/2009/03/spec/2/0");
 
+static const std::string BES_GLUE2D_NPREFIX("glue2d");
+static const std::string BES_GLUE2D_NAMESPACE("http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
+
 static const std::string ES_TYPES_NPREFIX("estypes");
 static const std::string ES_TYPES_NAMESPACE("http://www.eu-emi.eu/es/2010/12/types");
 
@@ -839,6 +842,7 @@ ARexService::ARexService(Arc::Config *cfg):RegisteredService(cfg),
   ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
   ns_[BES_GLUE2_NPREFIX]=BES_GLUE2_NAMESPACE;
   ns_[BES_GLUE2PRE_NPREFIX]=BES_GLUE2PRE_NAMESPACE;
+  ns_[BES_GLUE2D_NPREFIX]=BES_GLUE2D_NAMESPACE;
   ns_[BES_FACTORY_NPREFIX]=BES_FACTORY_NAMESPACE;
   ns_[BES_MANAGEMENT_NPREFIX]=BES_MANAGEMENT_NAMESPACE;
   ns_[DELEG_ARC_NPREFIX]=DELEG_ARC_NAMESPACE;

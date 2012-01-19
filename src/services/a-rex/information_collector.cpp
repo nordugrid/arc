@@ -456,7 +456,10 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   };
   Arc::XMLNode service = doc["Domains"]["AdminDomain"]["Services"]["ComputingService"];
   if(!service) {
-    ESFAULT("Missing ComputingService in resource information");
+    service = doc["Domains"]["AdminDomain"]["ComputingService"];
+    if(!service) {
+      ESFAULT("Missing ComputingService in resource information");
+    };
   };
   service = out.NewChild(service);
   //service.Name("glue2:ComputingService");

@@ -43,6 +43,9 @@ static const std::string GLUE2_NAMESPACE("http://schemas.ogf.org/glue/2009/03/sp
 static const std::string GLUE2PRE_NPREFIX("glue2pre");
 static const std::string GLUE2PRE_NAMESPACE("http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01");
 
+static const std::string GLUE2D_NPREFIX("glue2d");
+static const std::string GLUE2D_NAMESPACE("http://schemas.ogf.org/glue/2009/03/spec_2.0_r1");
+
 namespace Arc {
 
   Logger EMIESClient::logger(Logger::rootLogger, "EMI ES Client");
@@ -57,6 +60,7 @@ namespace Arc {
     ns[ES_ADL_NPREFIX]    = ES_ADL_NAMESPACE;
     ns[GLUE2_NPREFIX]     = GLUE2_NAMESPACE;
     ns[GLUE2PRE_NPREFIX]  = GLUE2PRE_NAMESPACE;
+    ns[GLUE2D_NPREFIX]  = GLUE2D_NAMESPACE;
     ns["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl"; // TODO: move to EMI ES lang.
   }
 
@@ -341,6 +345,8 @@ namespace Arc {
     XMLNode manager = response["glue2:ActivityManager"];
     if(!service) service = response["glue2pre:ComputingService"];
     if(!manager) manager = response["glue2pre:ActivityManager"];
+    if(!service) service = response["glue2d:ComputingService"];
+    if(!manager) manager = response["glue2d:ActivityManager"];
     if(!service) {
       logger.msg(VERBOSE, "Missing ComputingService in response from %s", rurl.str());
       return false;
