@@ -580,7 +580,7 @@ sub collect($) {
     }
 
     my $admindomain = $config->{admindomain}{Name};
-    my $servicename = $config->{service}{ClusterName};
+    my $lrmsname = $config->{lrms};
 
     # Calculate endpoint URLs and check if they're enabled
     
@@ -611,36 +611,40 @@ sub collect($) {
     # The following is for the Stagein interface
     my $stageinhostport = '';
 
+    # TODO: userdomain
+    my $userdomain='';
+
     # Global IDs
     # ARC choices are as follows:
     # 
     my $adID = "urn:ogf:AdminDomain:$admindomain"; # AdminDomain ID
-    my $udID = "urn:ogf:UserDomain:local:$admindomain" ; # UserDomain ID;
-    my $csvID = "urn:ogf:ComputingService:$hostname:$servicename"; # ComputingService ID
-    my $cmgrID = "urn:ogf:ComputingManager:$hostname:$servicename"; # ComputingManager ID
-    my $ARCgftpjobcepIDp = "urn:ogf:ComputingEndpoint:$hostname:GridFTP:"; # ARCGridFTPComputingEndpoint ID
-    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:XBES:$arexhostport"; # ARCWSComputingEndpoint ID
-    my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:EMI-ES:$emieshostport"; # EMIESComputingEndpoint ID
-    my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:GridFTP:$stageinhostport"; # StageinComputingEndpoint ID
+    my $udID = "urn:ogf:UserDomain:$userdomain" ; # UserDomain ID;
+    my $csvID = "urn:ogf:ComputingService:$hostname:arex"; # ComputingService ID
+    my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
+    my $ARCgftpjobcepIDp = "urn:ogf:ComputingEndpoint:$hostname:gridftp:"; # ARCGridFTPComputingEndpoint ID
+    my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{endpoint}; # ARCWSComputingEndpoint ID
+    my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
+    my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     my $cactIDp = "urn:ogf:ComputingActivity:$hostname"; # ComputingActivity ID prefix
-    my $cshaIDp = "urn:ogf:ComputingShare:$hostname:$servicename"; # ComputingShare ID prefix
-    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$hostname:$servicename"; # ExecutionEnvironment ID prefix
-    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$hostname:$servicename"; # ApplicationEnvironment ID prefix
-    my $apolID = "urn:ogf:AccessPolicy:$hostname:$servicename"; # AccessPolicy ID prefix
-    my $mpolIDp = "urn:ogf:MappingPolicy:$hostname:$servicename"; # MappingPolicy ID prefix
+    my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
+    my $xenvIDp = "urn:ogf:ExecutionEnvironment:$hostname"; # ExecutionEnvironment ID prefix
+    my $aenvIDp = "urn:ogf:ApplicationEnvironment:$hostname:rte"; # ApplicationEnvironment ID prefix
+    # my $ahIDp = "urn:ogf:ApplicationHandle:$hostname:"; # ApplicationHandle ID prefix
+    my $apolIDp = "urn:ogf:AccessPolicy:$hostname"; # AccessPolicy ID prefix
+    my $mpolIDp = "urn:ogf:MappingPolicy:$hostname"; # MappingPolicy ID prefix
     my %cactIDs; # ComputingActivity IDs
     my %cshaIDs; # ComputingShare IDs
     my %aenvIDs; # ApplicationEnvironment IDs
     my %xenvIDs; # ExecutionEnvironment IDs
-    my $tseID = "urn:ogf:ToStorageElement:$hostname:StorageService"; # ToStorageElement ID prefix
+    my $tseID = "urn:ogf:ToStorageElement:$hostname:storageservice"; # ToStorageElement ID prefix
     
     # Other Service IDs
-    my $ARISsvID = "urn:ogf:Service:$hostname:ARIS"; # ARIS service ID
-    my $ARISepIDp = "urn:ogf:Endpoint:$hostname:ARIS"; # ARIS Endpoint ID
-    my $CacheIndexsvID = "urn:ogf:Service:$hostname:Cache-Index"; # Cache-Index service ID
-    my $CacheIndexepIDp = "urn:ogf:Endpoint:$hostname:Cache-Index"; # Cache-Index Endpoint ID
-    my $HEDControlsvID = "urn:ogf:Service:$hostname:HED-CONTROL"; # HED-CONTROL service ID
-    my $HEDControlepIDp = "urn:ogf:Endpoint:$hostname:HED-CONTROL"; # HED-CONTROL Endpoint ID
+    my $ARISsvID = "urn:ogf:Service:$hostname:aris"; # ARIS service ID
+    my $ARISepIDp = "urn:ogf:Endpoint:$hostname:aris"; # ARIS Endpoint ID
+    my $CacheIndexsvID = "urn:ogf:Service:$hostname:cacheindex"; # Cache-Index service ID
+    my $CacheIndexepIDp = "urn:ogf:Endpoint:$hostname:cacheindex"; # Cache-Index Endpoint ID
+    my $HEDControlsvID = "urn:ogf:Service:$hostname:hedcontrol"; # HED-CONTROL service ID
+    my $HEDControlepIDp = "urn:ogf:Endpoint:$hostname:hedcontrol"; # HED-CONTROL Endpoint ID
 
     # Generate ComputingShare IDs
     for my $share (keys %{$config->{shares}}) {
@@ -650,13 +654,13 @@ sub collect($) {
     # Generate ApplicationEnvironment IDs
     my $aecount = 0;
     for my $rte (keys %$rte_info) {
-        $aenvIDs{$rte} = "$aenvIDp:$rte:$aecount";
+        $aenvIDs{$rte} = "$aenvIDp:$aecount";
         $aecount++;
     }
 
     # Generate ExecutionEnvironment IDs
     my $envcount = 0;
-    $xenvIDs{$_} = "$xenvIDp:$_:".$envcount++ for @allxenvs;
+    $xenvIDs{$_} = "$xenvIDp:execenv".$envcount++ for @allxenvs;
 
     # generate ComputingActivity IDs
     unless ($nojobs) {
@@ -738,7 +742,7 @@ sub collect($) {
       
 	my $getARCWSComputingEndpoint = sub {
 
-	    # don't publish if arched not listening
+	    # don't publish if arex_mount_point not configured
 	    return undef unless $arexhostport ne '';
 
 	    my $cep = {};
@@ -864,7 +868,7 @@ sub collect($) {
 		    return undef unless @apconfs;
 		    my $apconf = pop @apconfs;
 		    my $apol = {};
-		    $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		    $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
 		    $apol->{Scheme} = "basic";
 		    $apol->{Rule} = $apconf->{Rule};
 		    $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -886,7 +890,7 @@ sub collect($) {
 	    return $cep;
 	};
 
-	# don't publish if arched not listening
+	# don't publish if arex_mount_point not configured in arc.conf
 	if ($arexhostport ne '') { push(@ceps, $getARCWSComputingEndpoint); };
 
         # ARC GridFTPDd job submission interface 
@@ -994,7 +998,7 @@ sub collect($) {
 		    return undef unless @apconfs;
 		    my $apconf = pop @apconfs;
 		    my $apol = {};
-		    $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		    $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
 		    $apol->{Scheme} = "basic";
 		    $apol->{Rule} = $apconf->{Rule};
 		    $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -1128,7 +1132,7 @@ sub collect($) {
             return undef unless @apconfs;
             my $apconf = pop @apconfs;
             my $apol = {};
-            $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+            $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
             $apol->{Scheme} = "basic";
             $apol->{Rule} = $apconf->{Rule};
             $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -1263,7 +1267,7 @@ sub collect($) {
             return undef unless @apconfs;
             my $apconf = pop @apconfs;
             my $apol = {};
-            $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+            $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
             $apol->{Scheme} = "basic";
             $apol->{Rule} = $apconf->{Rule};
             $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -1676,9 +1680,6 @@ sub collect($) {
     # ComputingManager
 
         my $getComputingManager = sub {
-        
-        # initialize ID counters
-        my $benchmarkcount = 0;
 
             my $cmgr = {};
 
@@ -1757,8 +1758,7 @@ sub collect($) {
                     my $bench = {};
                     $bench->{Type} = $type;
                     $bench->{Value} = $value;
-                    $bench->{ID} = "urn:ogf:Benchmark:$hostname:$servicename:$type:$benchmarkcount";
-                    $benchmarkcount++;
+                    $bench->{ID} = "urn:ogf:Benchmark:$hostname:$lrmsname:$type";
                     return $bench;
                 };
             }
@@ -1781,7 +1781,10 @@ sub collect($) {
 
                 my $execenv = {};
 
-                $execenv->{Name} = $xenv;
+                my $execenvName = $1 if ( $xenvIDs{$xenv} =~ /(?:.*)\:(.*)$/ );
+                                
+                # $execenv->{Name} = $xenv;
+                $execenv->{Name} = $execenvName;
                 $execenv->{CreationTime} = $creation_time;
                 $execenv->{Validity} = $validity_ttl;
 
@@ -1853,8 +1856,7 @@ sub collect($) {
                         my $bench = {};
                         $bench->{Type} = $type;
                         $bench->{Value} = $value;
-                        $bench->{ID} = "urn:ogf:Benchmark:$hostname:$xenv:$type:$benchmarkcount";
-                        $benchmarkcount++;
+                        $bench->{ID} = "urn:ogf:Benchmark:$hostname:$execenvName:$type";
                         return $bench;
                     };
                 }
@@ -1914,7 +1916,7 @@ sub collect($) {
             $csv->{Location} = sub {
                 return undef if $count-- == 0;
                 my $loc = {};
-                $loc->{ID} = "urn:ogf:Location:$hostname:ComputingService:$servicename";
+                $loc->{ID} = "urn:ogf:Location:$hostname:ComputingService:arex";
                 for (qw(Name Address Place PostCode Country Latitude Longitude)) {
                     $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
                 }
@@ -1926,14 +1928,15 @@ sub collect($) {
             my $i = 0;
             $csv->{Contacts} = sub {
                 return undef unless $i < length @$cconfs;
-                my $cconfig = $cconfs->[$i++];
+                my $cconfig = $cconfs->[$i];
                 #my $detail = $cconfig->{Detail};
                 my $cont = {};
-                $cont->{ID} = "urn:ogf:Contact:$hostname:ComputingService:$servicename:$i";
+                $cont->{ID} = "urn:ogf:Contact:$hostname:ComputingService:arex:con$i";
                 for (qw(Name Detail Type)) {
                     $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
                 }
                 $cont->{ServiceForeignKey} = $csvID;
+                $i++;
                 return $cont;
             };
         }
@@ -2109,7 +2112,7 @@ sub collect($) {
                 return undef unless @apconfs;
                 my $apconf = pop @apconfs;
                 my $apol = {};
-                $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
                 $apol->{Scheme} = "basic";
                 $apol->{Rule} = $apconf->{Rule};
                 $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -2147,7 +2150,7 @@ sub collect($) {
             my $i = 0;
             $sv->{Contacts} = sub {
                 return undef unless $i < length @$cconfs;
-                my $cconfig = $cconfs->[$i++];
+                my $cconfig = $cconfs->[$i];
                 #my $detail = $cconfig->{Detail};
                 my $cont = {};
                 $cont->{ID} = "urn:ogf:Contact:$hostname:Service:ARIS:$i";
@@ -2155,6 +2158,7 @@ sub collect($) {
                     $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
                 }
                 $cont->{ServiceForeignKey} = $sv->{ID};
+                $i++;
                 return $cont;
             };
         }
@@ -2277,7 +2281,7 @@ sub collect($) {
 		  return undef unless @apconfs;
 		  my $apconf = pop @apconfs;
 		  my $apol = {};
-		  $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
 		  $apol->{Scheme} = "basic";
 		  $apol->{Rule} = $apconf->{Rule};
 		  $apol->{UserDomainID} = $apconf->{UserDomainID};
@@ -2415,7 +2419,7 @@ sub collect($) {
 		  return undef unless @apconfs;
 		  my $apconf = pop @apconfs;
 		  my $apol = {};
-		  $apol->{ID} = "$apolID:".join(",", @{$apconf->{Rule}});
+		  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
 		  $apol->{Scheme} = "basic";
 		  $apol->{Rule} = $apconf->{Rule};
 		  $apol->{UserDomainID} = $apconf->{UserDomainID};
