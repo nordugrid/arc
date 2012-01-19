@@ -80,7 +80,16 @@ the first member will be the '*response' and the second member is the original r
 %extend JobDescription {
   bool Parse(const std::string& str, std::list<JobDescription>& jobdescs, const std::string& lang = "", const std::string& dialect = "") { return Arc::JobDescription::Parse(str, jobdescs, lang, dialect); }
 };
+
+%rename(_TargetRetrieverTestACCControl) TargetRetrieverTestACCControl;
+%rename(_BrokerTestACCControl) BrokerTestACCControl;
+%rename(_JobDescriptionParserTestACCControl) JobDescriptionParserTestACCControl;
+%rename(_JobControllerTestACCControl) JobControllerTestACCControl;
+%rename(_SubmitterTestACCControl) SubmitterTestACCControl;
+%rename(_TargetRetrieverTestACCControl) TargetRetrieverTestACCControl;
+
 }
+
 #endif
 
 #ifdef SWIGJAVA
@@ -123,3 +132,35 @@ std::ostream& getStdout() {
 %template(ScalableTimeInt) Arc::ScalableTime<int>;
 %template(RangeInt) Arc::Range<int>;
 %template(StringOptIn) Arc::OptIn<std::string>;
+
+#ifdef SWIGPYTHON
+namespace Arc {
+%pythoncode %{
+class StaticPropertyWrapper(object):
+    def __init__(self, wrapped_class):
+        object.__setattr__(self, "wrapped_class", wrapped_class)
+        
+    def __getattr__(self, name):
+        orig_attr = getattr(self.wrapped_class, name)
+        if isinstance(orig_attr, property):
+            return orig_attr.fget()
+        else:
+            return orig_attr
+            
+    def __setattr__(self, name, value):
+        orig_attr = getattr(self.wrapped_class, name)
+        if isinstance(orig_attr, property):
+            orig_attr.fset(value)
+        else:
+            setattr(self.wrapped_class, name, value)
+
+BrokerTestACCControl = StaticPropertyWrapper(_BrokerTestACCControl)
+JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
+JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
+SubmitterTestACCControl = StaticPropertyWrapper(_SubmitterTestACCControl)
+TargetRetrieverTestACCControl = StaticPropertyWrapper(_TargetRetrieverTestACCControl)
+
+%}
+
+}
+#endif
