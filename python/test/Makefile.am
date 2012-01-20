@@ -4,14 +4,13 @@ else
 DYLD_LIBRARY_PATH =
 endif
 
+TEST_SCRIPTS = SwigPyIteratorSegFaultRegTest.py JobSupervisorTest.py
 if PYTHON_ENABLED
-
-
 TESTS_ENVIRONMENT = ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" PYTHONPATH=..:../.libs:../../src/hed/libs/python $(PYTHON)
-TESTS = SwigPyIteratorSegFaultRegTest.py JobSupervisorTest.py
+TESTS = $(TEST_SCRIPTS)
 else
 TESTS =
 endif
 check_SCRIPTS = $(TESTS)
 
-EXTRA_DIST = SwigPyIteratorSegFaultRegTest.py
+EXTRA_DIST = $(TEST_SCRIPTS)
