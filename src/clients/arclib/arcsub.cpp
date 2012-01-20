@@ -244,6 +244,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     if (!descriptionSubmitted) {
       std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
       submittedJobs.pop_back();
+      notsubmitted[jobnr] = it->Identification.JobName;
       retval = 1;
     }
   } //end loop over all job descriptions
@@ -261,17 +262,18 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     std::cout << Arc::IString("%d of %d jobs were submitted",
                               submittedJobs.size(),
                               jobdescriptionlist.size()) << std::endl;
-    if (!notsubmitted.empty())
+    if (!notsubmitted.empty()) {
       std::cout << Arc::IString("The following %d were not submitted",
                                 notsubmitted.size()) << std::endl;
-    /*
-       std::map<int, std::string>::iterator it;
-       for (it = notsubmitted.begin(); it != notsubmitted.end(); it++) {
-       std::cout << _("Job nr.") << " " << it->first;
-       if (it->second.size()>0) std::cout << ": " << it->second;
-       std::cout << std::endl;
-       }
-     */
+      std::map<int, std::string>::const_iterator it = notsubmitted.begin();
+      for (; it != notsubmitted.end(); ++it) {
+        std::cout << Arc::IString("Job nr.") << " " << it->first;
+        if (!it->second.empty()) {
+          std::cout << ": " << it->second;
+        }
+        std::cout << std::endl;
+      }
+    }
   }
   return retval;
 }
