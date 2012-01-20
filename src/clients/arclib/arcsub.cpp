@@ -315,7 +315,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
 
     for (const Arc::ExecutionTarget*& target = ChosenBroker->GetReference();
          !ChosenBroker->EndOfList(); ChosenBroker->Advance()) {
-      Arc::Submitter *submitter = target->GetSubmitter(usercfg);
+      target->GetSubmitter(usercfg);
 
       if (!jobdescdump.Prepare(*target)) {
         std::cout << Arc::IString("Unable to prepare job description according to needs of the target resource.") << std::endl;
