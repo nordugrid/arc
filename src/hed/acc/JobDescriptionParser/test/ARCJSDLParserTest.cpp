@@ -396,7 +396,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
 "<posix-jsdl:Environment name=\"var2\">value2</posix-jsdl:Environment>"
 "<posix-jsdl:Environment name=\"var3\">value3</posix-jsdl:Environment>"
 "<posix-jsdl:WallTimeLimit>50</posix-jsdl:WallTimeLimit>"
-"<posix-jsdl:MemoryLimit>100</posix-jsdl:MemoryLimit>"
+"<posix-jsdl:MemoryLimit>104857600</posix-jsdl:MemoryLimit>"
 "<posix-jsdl:CPUTimeLimit>110</posix-jsdl:CPUTimeLimit>"
 "<posix-jsdl:ProcessCountLimit>2</posix-jsdl:ProcessCountLimit>"
 "<posix-jsdl:VirtualMemoryLimit>500</posix-jsdl:VirtualMemoryLimit>"
@@ -461,7 +461,7 @@ void ARCJSDLParserTest::TestPOSIXCompliance() {
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", (std::string)"value3", (std::string)pApp["Environment"][2]);
 
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalWallTime.range.max, Arc::stringto<int>(pApp["WallTimeLimit"]));
-  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualPhysicalMemory.max, Arc::stringto<int>(pApp["MemoryLimit"]));
+  CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualPhysicalMemory.max, (int)(Arc::stringto<long long>(pApp["MemoryLimit"])/(1024*1024)));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.TotalCPUTime.range.max, Arc::stringto<int>(pApp["CPUTimeLimit"]));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.SlotRequirement.NumberOfSlots, Arc::stringto<int>(pApp["ProcessCountLimit"]));
   CPPUNIT_ASSERT_EQUAL_MESSAGE("POSIX compliance failure", INJOB.Resources.IndividualVirtualMemory.max, Arc::stringto<int>(pApp["VirtualMemoryLimit"]));

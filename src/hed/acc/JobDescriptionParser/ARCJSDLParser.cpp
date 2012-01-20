@@ -408,8 +408,14 @@ namespace Arc {
     if (bool(resource["IndividualPhysicalMemory"]))
       parseRange<int>(resource["IndividualPhysicalMemory"], job.Resources.IndividualPhysicalMemory, -1);
     else if (bool(xmlXApplication["MemoryLimit"])) {
-      if (!stringto<int>((std::string)xmlXApplication["MemoryLimit"], job.Resources.IndividualPhysicalMemory.max))
+      long long jsdlMemoryLimit = -1; 
+      if (stringto<long long>((std::string)xmlXApplication["MemoryLimit"], jsdlMemoryLimit)) {
+        job.Resources.IndividualPhysicalMemory.max = (int)(jsdlMemoryLimit/(1024*1024));
+      }
+      else {
         job.Resources.IndividualPhysicalMemory = Range<int>(-1);
+      }
+      
     }
 
     // Range<int> IndividualVirtualMemory;
@@ -883,8 +889,9 @@ namespace Arc {
     // POSIX compliance...
     if (job.Resources.TotalWallTime.range.max != -1)
       xmlPApplication.NewChild("posix-jsdl:WallTimeLimit") = tostring(job.Resources.TotalWallTime.range.max);
-    if (job.Resources.IndividualPhysicalMemory.max != -1)
-      xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory.max);
+    if (job.Resources.IndividualPhysicalMemory.max != -1) {
+      xmlPApplication.NewChild("posix-jsdl:MemoryLimit") = tostring(job.Resources.IndividualPhysicalMemory.max*1024*1024);
+    }
     if (job.Resources.TotalCPUTime.range.max != -1)
       xmlPApplication.NewChild("posix-jsdl:CPUTimeLimit") = tostring(job.Resources.TotalCPUTime.range.max);
     if (job.Resources.SlotRequirement.NumberOfSlots != -1)
