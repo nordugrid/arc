@@ -244,6 +244,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
     if (!descriptionSubmitted) {
       std::cout << Arc::IString("Job submission failed, no more possible targets") << std::endl;
       submittedJobs.pop_back();
+      retval = 1;
     }
   } //end loop over all job descriptions
 
@@ -346,6 +347,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
 
     if (ChosenBroker->EndOfList()) {
       std::cout << Arc::IString("Unable to print job description: No matching target found.") << std::endl;
+      retval = 1;
       break;
     }
   } //end loop over all job descriptions
