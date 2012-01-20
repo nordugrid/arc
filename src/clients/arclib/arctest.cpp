@@ -165,13 +165,10 @@ int RUNSUB(main)(int argc, char **argv) {
     return 1;
   }
 
-  int retval = 0;
   if (opt.dumpdescription) {
-     retval += dumpjobdescription(usercfg, opt.testjobid);
-     return retval;
+     return dumpjobdescription(usercfg, opt.testjobid);
   }
-  retval += test(usercfg, opt.testjobid, opt.jobidoutfile);
-  return retval;
+  return test(usercfg, opt.testjobid, opt.jobidoutfile);
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {
@@ -204,16 +201,14 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::string& j
   std::list<Arc::Job> submittedJobs;
   std::map<int, std::string> notsubmitted;
 
-  bool descriptionSubmitted = false;
   submittedJobs.push_back(Arc::Job());
   if (ChosenBroker->Test(targen.GetExecutionTargets(), testid, submittedJobs.back())) {
     printjobid(submittedJobs.back().JobID.str(), jobidfile);
-    descriptionSubmitted = true;
   }
-
-  if (!descriptionSubmitted) {
+  else {
     std::cout << Arc::IString("Test failed, no more possible targets") << std::endl;
     submittedJobs.pop_back();
+    retval = 1;
   }
 
   if (!Arc::Job::WriteJobsToFile(usercfg.JobListFile(), submittedJobs)) {
