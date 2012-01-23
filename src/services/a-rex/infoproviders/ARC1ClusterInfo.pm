@@ -583,14 +583,18 @@ sub collect($) {
     my $lrmsname = $config->{lrms};
 
     # Calculate endpoint URLs and check if they're enabled
+    # also calculates static data that can be triggered by endpoints
+    # such as known capabilities
     
     my $endpointsnum = 0;
+    my $csvcapabilities = {};
 
     my $gridftphostport = '';
     # check if gridftd interface exists
     if ($config->{GridftpdEnabled} == 1) { 
 	$gridftphostport = "$hostname:$config->{GridftpdPort}";
 	$endpointsnum++;
+	%$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution');
     };
     
     # check if WS interface is configured in arc.conf
@@ -599,6 +603,7 @@ sub collect($) {
     if ($config->{arexhostport}) {
       $arexhostport = $config->{arexhostport};
       $endpointsnum++;
+      %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'information.monitoring');  
     }
     
     # The following is for EMI-ES
@@ -606,6 +611,7 @@ sub collect($) {
     if ($arexhostport ne '' && $config->{enable_emies_interface}) {
         $emieshostport = $arexhostport;
         $endpointsnum++;
+        %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'information.monitoring', 'security.delegation');
     }
 
     # The following is for the Stagein interface
@@ -694,10 +700,11 @@ sub collect($) {
         $csv->{Validity} = $validity_ttl;
 
         $csv->{ID} = $csvID;
-
+  
+        $csv->{Capability} = [keys %$csvcapabilities];
+        
         $csv->{Name} = $config->{service}{ClusterName} if $config->{service}{ClusterName}; # scalar
         $csv->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-        $csv->{Capability} = [ 'executionmanagement.jobexecution' ];
         $csv->{Type} = 'org.nordugrid.execution.arex';
 
         # OBS: QualityLevel reflects the quality of the sotware
@@ -725,7 +732,7 @@ sub collect($) {
         # Computing Endpoints ########
 	  
 	# Here comes a list of endpoints we support.
-        # GridFTPd job execution endpoint
+    # GridFTPd job execution endpoint
 	# XBES A-REX WSRF job submission endpoint
 	# EMI-ES job submission endpoint
 	# EMI-ES information system endpoint
@@ -753,17 +760,15 @@ sub collect($) {
 	    $cep->{ID} = $ARCWScepID;
 
 	    # Name not necessary -- why? added back
-	    $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
+	    $cep->{Name} = "ARC CE XBES WSRF submission interface and WSRF LIDI Information System";
 
 	    # OBS: ideally HED should be asked for the URL
 	    $cep->{URL} = $config->{endpoint};
 	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring' ];
 	    $cep->{Technology} = 'webservice';
-	    $cep->{InterfaceName} = 'XBES';
+	    $cep->{InterfaceName} = 'org.ogf.bes';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
-	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
-	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
-	    $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
+	    $cep->{InterfaceExtension} = [ 'urn:org.nordugrid.xbes' ];
 	    $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
 	    # Wrong type, should be URI
 	    $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -771,7 +776,7 @@ sub collect($) {
 				      ];
 	    $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
 	    $cep->{Implementor} = "NorduGrid";
-	    $cep->{ImplementationName} = "ARC CE";
+	    $cep->{ImplementationName} = "ARC CE XBES : WSRF eXtended BES-compatible Interface";
 	    $cep->{ImplementationVersion} = $config->{arcversion};
 
 	    $cep->{QualityLevel} = "development";
@@ -911,8 +916,8 @@ sub collect($) {
 	    $cep->{URL} = "gsiftp://$gridftphostport";
         $cep->{ID} = $ARCgftpjobcepIDp.$cep->{URL};
 	    $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
-	    $cep->{Technology} = 'GridFTP';
-	    $cep->{InterfaceName} = 'GridFTP-job';
+	    $cep->{Technology} = 'gridftp';
+	    $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
 	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
 	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
@@ -1042,11 +1047,8 @@ sub collect($) {
         $cep->{URL} = $config->{endpoint};
         $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring', 'security.delegation' ];
         $cep->{Technology} = 'webservice';
-        $cep->{InterfaceName} = 'EMI-ES';
+        $cep->{InterfaceName} = 'org.ogf.emies';
         $cep->{InterfaceVersion} = [ '1.0' ];
-        # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
-        # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
-        #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
         $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
         # Wrong type, should be URI
         $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -1178,9 +1180,7 @@ sub collect($) {
         $cep->{Technology} = 'webservice';
         $cep->{InterfaceName} = 'Stagein';
         $cep->{InterfaceVersion} = [ '1.0' ];
-        # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
-        # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
-        #$cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/a-rex' ];
+        #$cep->{InterfaceExtension} = [ '' ];
         $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
         # Wrong type, should be URI
         #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
@@ -2040,7 +2040,7 @@ sub collect($) {
             $ep->{Validity} = $validity_ttl;
 
             # Name not necessary -- why? added back
-            $ep->{Name} = "ARC ARIS LDAP Information System";
+            $ep->{Name} = "ARC CE ARIS LDAP Information System";
 
             # Configuration parser does not contain ldap port!
             # must be updated
@@ -2049,7 +2049,7 @@ sub collect($) {
             $ep->{ID} = $ARISepIDp.":".$ep->{URL};
             $ep->{Capability} = [ 'information.monitoring' ];
             $ep->{Technology} = 'LDAP';
-            $ep->{InterfaceName} = 'ARIS';
+            $ep->{InterfaceName} = 'org.nordugrid.aris';
             $ep->{InterfaceVersion} = [ '1.0' ];
             # Wrong type, should be URI
             #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
