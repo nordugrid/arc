@@ -132,7 +132,7 @@ bool arcregister(const Arc::URL& source_url,
     return false;
   }
   if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials();
+    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
     if (!Arc::Credential::IsCredentialsValid(usercfg)) {
       logger.msg(Arc::ERROR, "Unable to register file %s: No valid credentials found", source_url.str());
       return false;
@@ -328,7 +328,7 @@ bool arccp(const Arc::URL& source_url_,
         return false;
       }
       if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-        usercfg.InitializeCredentials();
+        usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
         if (!Arc::Credential::IsCredentialsValid(usercfg)) {
           logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
           return false;
@@ -440,7 +440,7 @@ bool arccp(const Arc::URL& source_url_,
     }
   }
   if (source_url.IsSecureProtocol() || destination_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials();
+    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
     if (!Arc::Credential::IsCredentialsValid(usercfg)) {
       logger.msg(Arc::ERROR, "Unable to copy file %s: No valid credentials found", source_url.str());
       return false;

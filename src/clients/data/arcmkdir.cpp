@@ -43,7 +43,7 @@ bool arcmkdir(const Arc::URL& file_url,
   }
 
   if (file_url.IsSecureProtocol()) {
-    usercfg.InitializeCredentials();
+    usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials);
     if (!Arc::Credential::IsCredentialsValid(usercfg)) {
       logger.msg(Arc::ERROR, "Unable to create directory %s: No valid credentials found", file_url.str());
       return false;

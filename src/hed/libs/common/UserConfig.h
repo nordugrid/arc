@@ -27,19 +27,28 @@ namespace Arc {
 
   std::string tostring(const ServiceType st);
 
+  /// Defines how user credentials are looked for.
+  /**
+    * For complete information see description of 
+    *  UserConfig::InitializeCredentials(initializeCredentials)
+    * method.
+    **/
   class initializeCredentialsType {
    public:
     typedef enum {
       SkipCredentials,
-      SkipCACredentials,
+      NotTryCredentials,
       TryCredentials,
-      RequireCredentials
+      RequireCredentials,
+      SkipCANotTryCredentials,
+      SkipCATryCredentials,
+      SkipCARequireCredentials
     } initializeType;
-    //initializeCredentialsType(void):val(RequireCredentials) { };
-    initializeCredentialsType(void):val(SkipCACredentials) { };
+    initializeCredentialsType(void):val(SkipCATryCredentials) { };
     initializeCredentialsType(initializeType v):val(v) { };
     bool operator==(initializeType v) { return (val == v); };
     bool operator!=(initializeType v) { return (val != v); };
+    operator initializeType(void) { return val; };
    private:
     initializeType val;
   };
@@ -193,8 +202,12 @@ namespace Arc {
     /**
      * The location of the user credentials will be tried located when
      * calling this method and stored internally when found. The method
-     * searches in different locations. First the user proxy or the user
-     * key/certificate pair is tried located in the following order:
+     * searches in different locations. 
+     * Depending on value of initializeCredentials this method behaves
+     * differently. Following is an explanation for RequireCredentials.
+     * For less strict values see information below.
+     * First the user proxy or the user key/certificate pair is tried 
+     * located in the following order:
      * - Proxy path specified by the environment variable
      *   X509_USER_PROXY. If value is set and corresponding file does
      *   not exist it considered to be an error and no other locations
@@ -252,13 +265,27 @@ namespace Arc {
      *
      * It is an error if none of the directories above exist.
      *
+     * In case of initializeCredentials == TryCredentials method behaves
+     * same way like in case RequireCredentials except it does not report
+     * errors through its Logger object and does not return false.
+     *
+     * If NotTryCredentials is used method does not check for presence of
+     * credentials. It behaves like if corresponding files are always 
+     * present.
+     *
+     * And in case of SkipCredentials method does nothing.
+     *
+     * All options with SkipCA* prefix behaves similar to those without
+     * prefix except the path of the directory containing CA certificates
+     * is completely ignored.
+     *
      * @see CredentialsFound()
      * @see ProxyPath(const std::string&)
      * @see KeyPath(const std::string&)
      * @see CertificatePath(const std::string&)
      * @see CACertificatesDirectory(const std::string&)
      **/
-    void InitializeCredentials();
+    bool InitializeCredentials(initializeCredentialsType initializeCredentials);
     /// Validate credential location
     /**
      * Valid credentials consists of a combination of a path

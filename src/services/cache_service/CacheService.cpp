@@ -420,7 +420,7 @@ Arc::MCC_Status CacheService::CacheLink(Arc::XMLNode in, Arc::XMLNode out,
   Arc::UserConfig usercfg;
   usercfg.UtilsDirPath(user.ControlDir());
   usercfg.ProxyPath(proxy_path);
-  usercfg.InitializeCredentials();
+  usercfg.InitializeCredentials(Arc::initializeCredentialsType::NotTryCredentials);
   std::string dn;
   Arc::Time exp_time;
   try {

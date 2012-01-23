@@ -374,7 +374,9 @@ int main(int argc, char *argv[]) {
   if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
   if(!ca_dir.empty())Arc::SetEnv("X509_CERT_DIR", ca_dir);
 
-  Arc::UserConfig usercfg(conffile, Arc::initializeCredentialsType((!vomslist.empty() || !myproxy_command.empty()) ? Arc::initializeCredentialsType::TryCredentials : Arc::initializeCredentialsType::SkipCACredentials));
+  // Set default or predefined credentials
+  Arc::UserConfig usercfg(conffile,
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
   if (!usercfg) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return EXIT_FAILURE;
@@ -382,6 +384,28 @@ int main(int argc, char *argv[]) {
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
+  // Pick up default proxy location in case it is not explicitely set
+  if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
+
+  // Check if credentials exist
+  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
+  if(usercfg.CertificatePath().empty()) {
+    logger.msg(Arc::ERROR, "Failed to find certificate");
+    return EXIT_FAILURE;
+  }
+  if(usercfg.KeyPath().empty()) {
+    logger.msg(Arc::ERROR, "Failed to find private key");
+    return EXIT_FAILURE;
+  }
+
+  if(!vomslist.empty() || !myproxy_command.empty()) {
+    // For external communication CAs are needed
+    if(usercfg.CACertificatesDirectory().empty()) {
+      logger.msg(Arc::ERROR, "Failed to find CA certificates");
+      return EXIT_FAILURE;
+    }
+  }
 
   if (timeout > 0)
     usercfg.Timeout(timeout);
@@ -877,8 +901,7 @@ int main(int argc, char *argv[]) {
 
       std::string proxy_cred_str_pem;
      
-      Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
-      Arc::UserConfig usercfg_tmp(cred_type);
+      Arc::UserConfig usercfg_tmp(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials));
       usercfg_tmp.CACertificatesDirectory(usercfg.CACertificatesDirectory());
 
       Arc::CredentialStore cstore(usercfg_tmp,Arc::URL("myproxy://"+myproxy_server));
