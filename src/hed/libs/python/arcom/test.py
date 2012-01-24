@@ -7,31 +7,34 @@ class ExpectationalTestCase(unittest.TestCase):
             self.actual = actual
             self.testcase = testcase
             self.number = None
+                        
+        def to_be(self, expected, message = None):
+            if message is None:
+                message = "%s was expected to be %s" % (self.actual, expected)
+            self.testcase.assertEqual(self.actual, expected, message)
         
-        def toBe(self, expected):
-            self.testcase.assertEqual(self.actual, expected, "%s was expected to be %s" % (self.actual, expected))
+        def to_be_empty(self):
+            self.testcase.assertEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
 
-        def toHave(self, number):
+        def not_to_be_empty(self):
+            self.testcase.assertNotEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
+
+        def to_have(self, number):
             self.number = number
             return self
         
-        def pretty_actual(self):
-            s = str(self.actual)
-            if "Swig" in s:
-                try:
-                    return s[s.index("<")+1:s.index(";")]
-                except:
-                    pass
-            return s
+        def _test_having(self):
+            self.testcase.assertEqual(len(self.actual), self.number,
+                "%s was expected to have %s %s, but it only has %s" %
+                    (self.actual,
+                    self.number,
+                    self.item_name,
+                    len(self.actual)))
 
         def __getattr__(self, name):
-            if self.number:
-                self.testcase.assertEqual(len(self.actual), self.number,
-                    "%s was expected to have %s %s, but it only has %s" %
-                        (self.pretty_actual(),
-                        self.number,
-                        name,
-                        len(self.actual)))
+            if self.number is not None:
+                self.item_name = name
+                return self._test_having
             else:
                 raise AttributeError
             
@@ -58,12 +61,18 @@ class ARCClientTestCase(ExpectationalTestCase):
                         cluster = "http://test.nordugrid.org",
                         info_endpoint = "http://test.nordugrid.org",
                         state = arc.JobState.RUNNING,
+                        state_text = None,
                         job_description = "non-empty"):
         job = arc.Job()
         job.Flavour = "TEST"
         job.Cluster = arc.URL(cluster)
         job.InfoEndpoint = arc.URL(info_endpoint)
-        job.State = arc.JobStateTEST(state)
-        job.IDFromEndpoint = arc.URL(job_id)
+        if state_text is None:
+            job.State = arc.JobStateTEST(state)
+        else:
+            job.State = arc.JobStateTEST(state, state_text)
+        if isinstance(job_id, str):
+            job_id = arc.URL(job_id)
+        job.IDFromEndpoint = job_id
         job.JobDescriptionDocument = job_description
         return job
