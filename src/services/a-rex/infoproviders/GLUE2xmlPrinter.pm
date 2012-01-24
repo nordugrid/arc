@@ -189,13 +189,14 @@ sub Services {
                                      QualityLevel
                                      StatusInfo
                                      Complexity ));
+        # XML validation is order-sensitive.
+        $self->Location($data->{Location});
+        $self->Contacts($data->{Contacts});
         # TODO: must be generalized to multiple endpoints while building the data structure
         $self->Endpoint($data->{Endpoint});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
         $self->ToStorageServices($data->{ToStorageServices});
-        $self->Location($data->{Location});
-        $self->Contacts($data->{Contacts});
         if ($data->{ServiceID}) {
             $self->begin('Associations');
             $self->properties($data, 'ServiceID');
