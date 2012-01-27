@@ -75,11 +75,14 @@ arc_wrap.cpp: $(SWIG_INPUTS)
 	mv arc_wrap.cpp.new arc_wrap.cpp
 	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' arc_wrap.cpp > arc_wrap.cpp.new # Ditto - for 64 bit
 	mv arc_wrap.cpp.new arc_wrap.cpp
-	sed '/*_wrap_delete_SwigPyIterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new # Dont allow threading when deleting SwigPyIterator objects (name SwigPyIterator for newer Swig)
+	sed '/*_wrap_delete_@SWIG_PYTHON_NAMING@Iterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new # Dont allow threading when deleting SwigPyIterator objects
 	mv arc_wrap.cpp.new arc_wrap.cpp
-	sed '/*_wrap_delete_PySwigIterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new # Dont allow threading when deleting PySwigIterator objects (name PySwigIterator for older Swig)
-	mv arc_wrap.cpp.new arc_wrap.cpp
-
+# Dont allow threading when handling SWIG Python iterators (see bug 2683). Fixed in SWIG version 2.
+	if test "x@SWIG2@" != "xyes"; then \
+    sed '/*_wrap_@SWIG_PYTHON_NAMING@Iterator_/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' arc_wrap.cpp > arc_wrap.cpp.new; \
+    mv arc_wrap.cpp.new arc_wrap.cpp; \
+  fi
+	
 pydoxygen.i: $(srcdir)/Doxyfile.api
 	doxygen $(srcdir)/Doxyfile.api
 	python $(srcdir)/doxy2swig.py api/xml/index.xml $@

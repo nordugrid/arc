@@ -292,6 +292,21 @@ if test "$enables_swig" = "yes"; then
       AC_MSG_NOTICE([swig is too old (< 1.3.25)])
       SWIG=""
       enables_swig="no"
+    else
+      SWIG2="no"
+      if test $swigver1 -ge 2
+      then
+        SWIG2="yes"
+      fi
+      AC_SUBST(SWIG2)
+      SWIG_PYTHON_NAMING="SwigPy"
+      # In SWIG version 1.3.37 naming was changed from "PySwig" to "SwigPy".
+      if test $swigver1 -lt 1 || ( test $swigver1 -eq 1 && ( \
+         test $swigver2 -lt 3 || ( test $swigver2 -eq 3 && ( \
+         test $swigver3 -lt 37 ) ) ) ) ; then
+        SWIG_PYTHON_NAMING="PySwig"
+      fi
+      AC_SUBST(SWIG_PYTHON_NAMING)
     fi
   fi
 else
