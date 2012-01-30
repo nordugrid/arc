@@ -532,6 +532,9 @@ namespace Arc
             (*this)["globalid"];
 
         //LocalJobId
+        if (!ur["JobIdentity"])
+          ur.NewChild("JobIdentity");
+
         ur["JobIdentity"].NewChild("LocalJobId")=
           (*this)["localjobid"];
       }
@@ -554,8 +557,11 @@ namespace Arc
       }
 
     //LocalUserId
-    useridentity.NewChild("LocalUserId")=
-      (*this)["localuser"];
+    if (find("localuser")!=end())
+      {
+        useridentity.NewChild("LocalUserId")=
+          (*this)["localuser"];
+      }
 
     //Group
     //GroupAttribute
@@ -594,6 +600,10 @@ namespace Arc
         return;
       }
     // ExitStatus
+    if (find("exitcode")!=end())
+      {
+        ur.NewChild("ExitStatus")=(*this)["exitcode"];
+      }
 
     //Infrastructure
     Arc::XMLNode infran = ur.NewChild("Infrastructure");

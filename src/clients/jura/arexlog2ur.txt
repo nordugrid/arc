@@ -7,10 +7,10 @@ RecordIdentity:*     RecordIdentity*          nodename, ngjobid
                                                with custom prefix)
                      Host                     nodename
 GlobalJobId:         GlobalJobId              globalid                 globaljobid
-LocalJobId:          LocalJobId*               localjobid               localjobid             LocalJobId
+LocalJobId:          LocalJobId*              localjobid               localjobid             LocalJobId
 ProcessId:                                    [MISSING]                processid
-GlobalUserName:      GlobalUserName          usersn                   globaluserid           GlobalUserName
-LocalUserId:         LocalUserId              localuser                localuserid            LocalUserId
+GlobalUserName:      GlobalUserName           usersn                   globaluserid           GlobalUserName
+LocalUserId:         LocalUserId*             localuser                localuserid            LocalUserId
 JobName:             JobName                  jobname                  jobname
 Charge:              Charge                   [MISSING]                charge
 Status:*             Status*                   status                   status
@@ -27,12 +27,12 @@ SubmitHost:                                   clienthost               submithos
                                               (port number removed)
                      MachineName, SubmitHost* headnode                                        SubmitHost
                       Site*
-                     Infrastructure (desc.)   lrms
+                     Infrastructure* (desc.)  lrms
 Queue:               Queue*                   queue                    queue (lrms)
 ProjectName:         GroupAttribute           projectname              projectname
                      Group                    [MISSING]
-                     ExitStatus               [MISSING]
-                     ServiceLevel             [MISSING]
+                     ExitStatus               exitcode
+                     ServiceLevel*            [MISSING]
 
 Differentiated properties
 
@@ -58,7 +58,6 @@ Unmatched Logger ARC-UR properties
 
                                                                       cluster
                                                                       downloadtime
-                                                                      exitcode
                                                                       failurestring
                                                                       jobdescription
                                                                       lrmsendtime
