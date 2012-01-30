@@ -1669,6 +1669,7 @@ sub collect($) {
 
 	## check this association below. Which endpoint?
 	# $csha->{ComputingEndpointID} = $cepID;
+    $csha->{ServiceID} = $csvID;
 	$csha->{ComputingServiceID} = $csvID;
 
 	return $csha;
@@ -1870,6 +1871,7 @@ sub collect($) {
                     push @{$execenv->{ComputingShareID}}, $cshaIDs{$share};
                 }
 
+                $execenv->{ManagerID} = $cmgrID;
                 $execenv->{ComputingManagerID} = $cmgrID;
 
                 return $execenv;
@@ -1903,6 +1905,7 @@ sub collect($) {
 
             # Associations
 
+            $cmgr->{ServiceID} = $csvID;
             $cmgr->{ComputingServiceID} = $csvID;
 
             return $cmgr;
