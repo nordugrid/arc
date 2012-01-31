@@ -35,7 +35,11 @@ static XMLNode get_node(XMLNode& parent,const char* name) {
 }
 
 
-WSAEndpointReference::WSAEndpointReference(XMLNode epr) : epr_(epr) {}
+WSAEndpointReference::WSAEndpointReference(XMLNode epr) : epr_(epr) {
+  NS ns;
+  ns["wsa"]=WSA_NAMESPACE;
+  epr_.Namespaces(ns);
+}
 
 WSAEndpointReference::WSAEndpointReference(const WSAEndpointReference& wsa) : epr_(wsa.epr_) {}
 
