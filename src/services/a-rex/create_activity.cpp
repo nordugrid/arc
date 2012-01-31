@@ -87,7 +87,7 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
       return Arc::MCC_Status();
     };
   };
-  ARexJob job(jsdl,config,delegation,clientid,logger_);
+  ARexJob job(jsdl,config,delegation,clientid,logger_,&makeJobID);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();
@@ -190,7 +190,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     out.Destroy();
     return Arc::MCC_Status();
   };
-  ARexJob job(adl,config,"",clientid,logger_);
+  ARexJob job(adl,config,"",clientid,logger_,&makeJobIDES);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();

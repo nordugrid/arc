@@ -285,7 +285,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
 }
 
-ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid, Arc::Logger& logger, std::string (*job_id_func)(const std::string&,const std::string&),  Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
   // New job is created here
   // First get and acquire new id
@@ -448,20 +448,7 @@ ARexJob::ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& crede
   job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];
   job_.forcemigration=(migration["ForceMigration"]=="true");
   // BES ActivityIdentifier is global job ID
-  Arc::NS ns_;
-  ns_["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
-  ns_["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
-  Arc::XMLNode node_(ns_,"bes-factory:ActivityIdentifier");
-  Arc::WSAEndpointReference identifier(node_);
-  identifier.Address(config.Endpoint()); // address of service
-  identifier.ReferenceParameters().NewChild("a-rex:JobID")=id_;
-  identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=config.Endpoint()+"/"+id_;
-  std::string globalid;
-  ((Arc::XMLNode)identifier).GetDoc(globalid);
-  std::string::size_type nlp;
-  while ((nlp=globalid.find('\n')) != std::string::npos)
-    globalid.replace(nlp,1," "); // squeeze into 1 line
-  job_.globalid=globalid;
+  if(job_id_func) job_.globalid = (*job_id_func)(config.Endpoint(),id_);
   // Try to create proxy/certificate
   if(!credentials.empty()) {
     if(!update_credentials(credentials)) {

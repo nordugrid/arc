@@ -1,5 +1,7 @@
 #include <cstring>
 
+#include <arc/ws-addressing/WSA.h>
+
 #include "tools.h"
 
 namespace ARex {
@@ -138,6 +140,53 @@ namespace ARex {
       state.NewChild("estypes:Attribute") = *st;
     };
     return state;
+  }
+
+  Arc::XMLNode addJobID(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id) {
+    Arc::XMLNode node;
+    if(!pnode) {
+      Arc::NS ns;
+      ns["bes-factory"]="http://schemas.ggf.org/bes/2006/08/bes-factory";
+      ns["a-rex"]="http://www.nordugrid.org/schemas/a-rex";
+      Arc::XMLNode(ns,"bes-factory:ActivityIdentifier").Exchange(pnode);
+      node = pnode;
+    } else {
+      node = pnode.NewChild("bes-factory:ActivityIdentifier");
+    };
+    Arc::WSAEndpointReference identifier(node);
+    // Make job's ID
+    identifier.Address(endpoint); // address of service
+    identifier.ReferenceParameters().NewChild("a-rex:JobID")=id;
+    identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=endpoint+"/"+id;
+    return node;
+  }
+
+  std::string makeJobID(const std::string& endpoint,const std::string& id) {
+    Arc::XMLNode node;
+    addJobID(node,endpoint,id);
+    std::string jobid;
+    node.GetDoc(jobid);
+    std::string::size_type p = 0;
+    // squeeze into 1 line
+    while((p=jobid.find_first_of("\r\n",p)) != std::string::npos) jobid.replace(p,1," ");
+    return jobid;
+  }
+
+  Arc::XMLNode addJobIDES(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id) {
+    Arc::XMLNode node;
+    if(!pnode) {
+      Arc::NS ns;
+      ns["estypes"]="";
+      Arc::XMLNode(ns,"estypes:ActivityID").Exchange(pnode);
+      node = pnode;
+    } else {
+      node = pnode.NewChild("estypes:ActivityID");
+    };
+    node = id;
+  }
+
+  std::string makeJobIDES(const std::string& endpoint,const std::string& id) {
+    return id;
   }
 
 }

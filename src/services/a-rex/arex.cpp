@@ -498,7 +498,7 @@ static std::string GetPath(Arc::Message &inmsg,std::string &base) {
 #define SOAP_NOT_SUPPORTED { \
   logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name()); \
   delete outpayload; \
-  return make_soap_fault(outmsg); \
+  return make_soap_fault(outmsg,"Operation not supported"); \
 }
 
 
