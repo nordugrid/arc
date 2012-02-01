@@ -14,7 +14,7 @@ namespace DataStaging {
     /// Starts child process
     DataDeliveryLocalComm(const DTR& dtr, const TransferParameters& params);
     /// This stops the child process
-    ~DataDeliveryLocalComm();
+    virtual ~DataDeliveryLocalComm();
 
     /// Read from stdout of child to get status
     virtual void PullStatus();
@@ -30,6 +30,8 @@ namespace DataStaging {
   private:
     /// Child process
     Arc::Run* child_;
+    /// Temporary credentails location
+    std::string tmp_proxy_;
     /// Time last communication was received from child
     Arc::Time last_comm;
   };

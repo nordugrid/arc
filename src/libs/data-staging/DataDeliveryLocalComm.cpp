@@ -1,8 +1,35 @@
 #include <arc/ArcLocation.h>
+#include <arc/FileAccess.h>
+#include <arc/FileUtils.h>
 
 #include "DataDeliveryLocalComm.h"
 
 namespace DataStaging {
+
+  // Check if needed and create copy of proxy with suitable ownership
+  static std::string prepare_proxy(const std::string& proxy_path, int child_uid, int child_gid, Arc::Logger& logger) {
+    if (proxy_path.empty()) return ""; // No credentials
+    int my_uid = (int)::getuid();
+    if (my_uid != 0) return ""; // Can't switch user id
+    if (child_uid == 0) return ""; // Not switching
+    if (child_uid == my_uid) return ""; // Not switching
+    // Check ownership of credentials.
+    struct ::stat st;
+    if(!Arc::FileStat(proxy_path,&st,true)) return ""; // Can't stat - won't read
+    if(st.st_uid == child_uid) return ""; // Owned by child
+    // Ownership may prevent reading of file.
+    std::string proxy_content;
+    if(!Arc::FileRead(proxy_path, proxy_content)) return "";
+    // Creating temporary file
+    // Probably not most effective solution. But makes sure
+    // access permissions are set properly.
+    std::string proxy_new_path;
+    if(!Arc::TmpFileCreate(proxy_new_path, proxy_content, child_uid, child_gid, S_IRUSR|S_IWUSR)) {
+      if (!proxy_new_path.empty()) Arc::FileDelete(proxy_new_path);
+      return "";
+    }
+    return proxy_new_path;
+  }
 
   DataDeliveryLocalComm::DataDeliveryLocalComm(const DTR& dtr, const TransferParameters& params)
     : DataDeliveryComm(dtr, params),child_(NULL),last_comm(Arc::Time()) {
@@ -38,11 +65,25 @@ namespace DataStaging {
         durl = dtr.get_cache_file();
         caching = true;
       }
+      int child_uid = 0;
+      int child_gid = 0;
+      if(!caching) {
+        child_uid = dtr.get_local_user().get_uid();
+        child_gid = dtr.get_local_user().get_gid();
+      }
+      // If child is going to be run under different user ID
+      // we must ensure it will be able to read credentials.
+      tmp_proxy_ = prepare_proxy(dtr.get_usercfg().ProxyPath(), child_uid, child_gid, *logger_);
       args.push_back("--surl");
       args.push_back(surl);
       args.push_back("--durl");
       args.push_back(durl);
-      if (!dtr.get_usercfg().ProxyPath().empty()) {
+      if (!tmp_proxy_.empty()) {
+        args.push_back("--sopt");
+        args.push_back("credential="+tmp_proxy_);
+        args.push_back("--dopt");
+        args.push_back("credential="+tmp_proxy_);
+      } else if(!dtr.get_usercfg().ProxyPath().empty()) {
         args.push_back("--sopt");
         args.push_back("credential="+dtr.get_usercfg().ProxyPath());
         args.push_back("--dopt");
@@ -86,10 +127,8 @@ namespace DataStaging {
       child_->KeepStdout(false);
       child_->KeepStderr(false);
       child_->KeepStdin(false);
-      if(!caching) {
-        child_->AssignUserId(dtr.get_local_user().get_uid());
-        child_->AssignGroupId(dtr.get_local_user().get_gid());
-      }
+      child_->AssignUserId(child_uid);
+      child_->AssignGroupId(child_gid);
       // Start child
       std::string cmd;
       for(std::list<std::string>::iterator arg = args.begin();arg!=args.end();++arg) {
@@ -114,6 +153,7 @@ namespace DataStaging {
         delete child_; child_=NULL;  // And then kill for sure
       }
     }
+    if(!tmp_proxy_.empty()) Arc::FileDelete(tmp_proxy_);
     if(handler_) handler_->Remove(this);
   }
 

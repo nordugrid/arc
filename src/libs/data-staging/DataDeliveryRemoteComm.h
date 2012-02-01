@@ -12,7 +12,7 @@ namespace DataStaging {
   class DataDeliveryRemoteComm : public DataDeliveryComm {
   public:
     DataDeliveryRemoteComm(const DTR& dtr, const TransferParameters& params);
-    ~DataDeliveryRemoteComm();
+    virtual ~DataDeliveryRemoteComm();
 
     /// Read status from service
     virtual void PullStatus();
