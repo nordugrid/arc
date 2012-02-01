@@ -16,6 +16,7 @@
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
+#include <arc/GUID.h>
 #include <arc/security/ArcPDP/Evaluator.h>
 #include <arc/security/ArcPDP/EvaluatorLoader.h>
 #include <arc/message/SecAttr.h>
@@ -733,9 +734,10 @@ bool ARexJob::make_job_id(void) {
   int i;
   //@ delete_job_id();
   for(i=0;i<100;i++) {
-    id_=Arc::tostring((unsigned int)getpid())+
-        Arc::tostring((unsigned int)time(NULL))+
-        Arc::tostring(rand(),1);
+    //id_=Arc::tostring((unsigned int)getpid())+
+    //    Arc::tostring((unsigned int)time(NULL))+
+    //    Arc::tostring(rand(),1);
+    Arc::GUID(id_);
     std::string fname=config_.User()->ControlDir()+"/job."+id_+".description";
     struct stat st;
     if(stat(fname.c_str(),&st) == 0) continue;
