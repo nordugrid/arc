@@ -142,7 +142,14 @@ namespace ARex {
     return state;
   }
 
-  Arc::XMLNode addJobID(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id) {
+  JobIDGeneratorARC::JobIDGeneratorARC(const std::string& endpoint):endpoint_(endpoint) {
+  }
+
+  void JobIDGeneratorARC::SetLocalID(const std::string& id) {
+    id_ = id;
+  }
+
+  Arc::XMLNode JobIDGeneratorARC::GetGlobalID(Arc::XMLNode& pnode) {
     Arc::XMLNode node;
     if(!pnode) {
       Arc::NS ns;
@@ -155,15 +162,15 @@ namespace ARex {
     };
     Arc::WSAEndpointReference identifier(node);
     // Make job's ID
-    identifier.Address(endpoint); // address of service
-    identifier.ReferenceParameters().NewChild("a-rex:JobID")=id;
-    identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=endpoint+"/"+id;
+    identifier.Address(endpoint_); // address of service
+    identifier.ReferenceParameters().NewChild("a-rex:JobID")=id_;
+    identifier.ReferenceParameters().NewChild("a-rex:JobSessionDir")=endpoint_+"/"+id_;
     return node;
   }
 
-  std::string makeJobID(const std::string& endpoint,const std::string& id) {
+  std::string JobIDGeneratorARC::GetGlobalID(void) {
     Arc::XMLNode node;
-    addJobID(node,endpoint,id);
+    GetGlobalID(node);
     std::string jobid;
     node.GetDoc(jobid);
     std::string::size_type p = 0;
@@ -172,22 +179,47 @@ namespace ARex {
     return jobid;
   }
 
-  Arc::XMLNode addJobIDES(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id) {
+  std::string JobIDGeneratorARC::GetManager(void) {
+    return endpoint_;
+  }
+
+  std::string JobIDGeneratorARC::GetInterface(void) {
+    return "org.nordugrid.xbes";
+  }
+
+  JobIDGeneratorES::JobIDGeneratorES(const std::string& endpoint):endpoint_(endpoint) {
+  }
+
+  void JobIDGeneratorES::SetLocalID(const std::string& id) {
+    id_ = id;
+  }
+
+  Arc::XMLNode JobIDGeneratorES::GetGlobalID(Arc::XMLNode& pnode) {
     Arc::XMLNode node;
     if(!pnode) {
       Arc::NS ns;
-      ns["estypes"]="";
+      ns["estypes"]="http://www.eu-emi.eu/es/2010/12/types";
       Arc::XMLNode(ns,"estypes:ActivityID").Exchange(pnode);
       node = pnode;
     } else {
       node = pnode.NewChild("estypes:ActivityID");
     };
-    node = id;
+    node = id_;
+    return node;
   }
 
-  std::string makeJobIDES(const std::string& endpoint,const std::string& id) {
-    return id;
+  std::string JobIDGeneratorES::GetGlobalID(void) {
+    return id_;
   }
+
+  std::string JobIDGeneratorES::GetManager(void) {
+    return endpoint_;
+  }
+
+  std::string JobIDGeneratorES::GetInterface(void) {
+    return "org.ogf.emies";
+  }
+
 
 }
 

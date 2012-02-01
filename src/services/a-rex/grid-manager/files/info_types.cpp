@@ -462,6 +462,7 @@ bool JobLocalDescription::write(const std::string& fname) const {
   };
   write_pair(f,"globalid",globalid);
   write_pair(f,"headnode",headnode);
+  write_pair(f,"interface",interface);
   write_pair(f,"lrms",lrms);
   write_pair(f,"queue",queue);
   write_pair(f,"localid",localid);
@@ -533,6 +534,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     if(buf[p] == 0) continue;
     if(name == "lrms") { lrms = buf+p; }
     else if(name == "headnode") { headnode = buf+p; }
+    else if(name == "interface") { interface = buf+p; }
     else if(name == "queue") { queue = buf+p; }
     else if(name == "localid") { localid = buf+p; }
     else if(name == "subject") { DN = buf+p; }

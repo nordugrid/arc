@@ -11,11 +11,50 @@ void convertActivityStatusES(const std::string& gm_state,std::string& primary_st
 
 Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml = Arc::XMLNode(),bool failed = false,bool pending = false,const std::string& failedstate = "",const std::string& failedcause = "");
 
+class JobIDGenerator {
+ public:
+  JobIDGenerator() { };
+  virtual ~JobIDGenerator() { };
+  virtual void SetLocalID(const std::string& id) = 0;
+  virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode) = 0;
+  virtual std::string GetGlobalID(void) = 0;
+  virtual std::string GetManager(void) = 0;
+  virtual std::string GetInterface(void) = 0;
+};
+
+class JobIDGeneratorARC:public JobIDGenerator {
+ public:
+  JobIDGeneratorARC(const std::string& endpoint);
+  virtual ~JobIDGeneratorARC() { };
+  virtual void SetLocalID(const std::string& id);
+  virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
+  virtual std::string GetGlobalID(void);
+  virtual std::string GetManager(void);
+  virtual std::string GetInterface(void);
+ private:
+  std::string endpoint_;
+  std::string id_;
+};
+
+class JobIDGeneratorES:public JobIDGenerator {
+ public:
+  JobIDGeneratorES(const std::string& endpoint);
+  virtual ~JobIDGeneratorES() { };
+  virtual void SetLocalID(const std::string& id);
+  virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
+  virtual std::string GetGlobalID(void);
+  virtual std::string GetManager(void);
+  virtual std::string GetInterface(void);
+ private:
+  std::string endpoint_;
+  std::string id_;
+};
+
 Arc::XMLNode addJobID(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
 std::string makeJobID(const std::string& endpoint,const std::string& id);
-
 Arc::XMLNode addJobIDES(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
 std::string makeJobIDES(const std::string& endpoint,const std::string& id);
+ 
 
 }
 

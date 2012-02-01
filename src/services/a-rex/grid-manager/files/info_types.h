@@ -80,10 +80,11 @@ class JobLocalDescription {
   bool write(const std::string& fname) const;
   static bool read_var(const std::string &fname,const std::string &vnam,std::string &value);
   
-  std::string jobid;         /* job's unique identificator */
+  std::string jobid;         /* job's unique identifier */
   /* attributes stored in job.ID.local */
-  std::string globalid;      /* BES ActivityIdentifier, i.e. globally unique id */
+  std::string globalid;      /* job id as seen from outside */
   std::string headnode;      /* URL of the cluster's headnode */
+  std::string interface;     /* interface type used to submit job */
   std::string lrms;          /* lrms type to use - pbs */
   std::string queue;         /* queue name  - default */
   std::string localid;       /* job's id in lrms */

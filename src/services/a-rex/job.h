@@ -11,6 +11,7 @@
 #include "grid-manager/files/info_types.h"
 #include "grid-manager/jobs/job.h"
 #include "grid-manager/jobs/plugins.h"
+#include "tools.h"
 
 namespace ARex {
 
@@ -83,7 +84,7 @@ class ARexJob {
   /** Create instance which is an interface to existing job */
   ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check = false);
   /** Create new job with provided JSDL description */
-  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid,Arc::Logger& logger,std::string (*job_id_func)(const std::string&,const std::string&) = NULL,Arc::XMLNode migration = Arc::XMLNode());
+  ARexJob(Arc::XMLNode jsdl,ARexGMConfig& config,const std::string& credentials,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */

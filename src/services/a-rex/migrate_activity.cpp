@@ -7,7 +7,6 @@
 // #include "../../hed/acc/ARC1/AREXClient.h"
 #include "../../hed/libs/client/JobDescription.h"
 #include "job.h"
-#include "tools.h"
 
 #include "arex.h"
 
@@ -153,7 +152,8 @@ Arc::MCC_Status ARexService::MigrateActivity(ARexGMConfig& config,Arc::XMLNode i
   migration.GetDoc(migrationStr, true);
   logger_.msg(Arc::INFO, "Migration XML sent to AREXJob: %s", migrationStr);
 
-  ARexJob job(jsdl,config,delegation,clientid,logger_,&makeJobID,migration);
+  JobIDGeneratorARC idgenerator(config.Endpoint());
+  ARexJob job(jsdl,config,delegation,clientid,logger_,idgenerator,migration);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();

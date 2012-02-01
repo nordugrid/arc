@@ -5,7 +5,6 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
-#include "tools.h"
 #include "grid-manager/jobs/job_config.h"
 
 #include "arex.h"

@@ -6,7 +6,6 @@
 #include <arc/ws-addressing/WSA.h>
 #include "grid-manager/jobs/job_config.h"
 #include "job.h"
-#include "tools.h"
 
 #include "arex.h"
 
@@ -87,7 +86,8 @@ Arc::MCC_Status ARexService::CreateActivity(ARexGMConfig& config,Arc::XMLNode in
       return Arc::MCC_Status();
     };
   };
-  ARexJob job(jsdl,config,delegation,clientid,logger_,&makeJobID);
+  JobIDGeneratorARC idgenerator(config.Endpoint());
+  ARexJob job(jsdl,config,delegation,clientid,logger_,idgenerator);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();
@@ -190,7 +190,8 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
     out.Destroy();
     return Arc::MCC_Status();
   };
-  ARexJob job(adl,config,"",clientid,logger_,&makeJobIDES);
+  JobIDGeneratorES idgenerator(config.Endpoint());
+  ARexJob job(adl,config,"",clientid,logger_,idgenerator);
   if(!job) {
     ARexJobFailure failure_type = job;
     std::string failure = job.Failure();

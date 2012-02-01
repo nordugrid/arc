@@ -5,7 +5,6 @@
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/ws-addressing/WSA.h>
 #include "job.h"
-#include "tools.h"
 
 #include "arex.h"
 
