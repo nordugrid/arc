@@ -569,7 +569,8 @@ namespace Arc {
       // Check if the job (itJ) is selected by the job identifies, either by job ID or Name.
       std::list<std::string>::iterator itJIdentifier = jobIdentifiers.begin();
       for (;itJIdentifier != jobIdentifiers.end(); ++itJIdentifier) {
-        if (itJ->IDFromEndpoint == URL(*itJIdentifier) || (!itJ->Name.empty() && itJ->Name == *itJIdentifier)) {
+        if ((!itJ->Name.empty() && itJ->Name == *itJIdentifier) ||
+            (itJ->IDFromEndpoint.fullstr() == *itJIdentifier)) {
           break;
         }
       }
