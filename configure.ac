@@ -985,27 +985,45 @@ AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
 
 # check gridsite
+GRIDSITE_CFLAGS=""
+GRIDSITE_LDFLAGS=""
 AC_ARG_WITH(gridsite,
   AC_HELP_STRING([--with-gridsite=PATH], [where gridsite is installed]),
   [
-    if test -d "$withval"; then
-        CPPFLAGS="${CPPFLAGS} -I$withval/include"
-        LDFLAGS="${LDFLAGS} -L$withval/lib"
+    if test ! "x$with_gridsite" = "x"; then
+      GRIDSITE_LOCATION="$with_gridsite"
+      GRIDSITE_CFLAGS="-I$GRIDSITE_LOCATION/include"
+      if test -d "$GRIDSITE_LOCATION/lib64"; then
+        GRIDSITE_LDFLAGS="-L$GRIDSITE_LOCATION/lib64"
+      else
+        GRIDSITE_LDFLAGS="-L$GRIDSITE_LOCATION/lib"
+      fi
     fi
   ]
 )
 SAVE_LIBS=$LIBS
+SAVE_CPPFLAGS=$CPPFLAGS
+SAVE_LDFLAGS=$LDFLAGS
+CPPFLAGS="$CPPFLAGS $GRIDSITE_CFLAGS"
+LDFLAGS="$LDFLAGS $GRIDSITE_LDFLAGS"
 if test "x$enables_gacl" = "xyes"; then
   AC_CHECK_HEADER([gridsite.h],, enables_gacl="no")
 fi
 if test "x$enables_gacl" = "xyes"; then
-  AC_CHECK_LIB([gridsite], [GRSTgaclInit], [AC_MSG_NOTICE([passed])], enables_gacl="no")
+  AC_CHECK_LIB([gridsite], [GRSTgaclInit], [GRIDSITE_LIBS="$GRIDSITE_LDFLAGS -lgridsite"], enables_gacl="no")
 fi
 LIBS=$SAVE_LIBS
+CPPFLAGS=$SAVE_CPPFLAGS
+LDFLAGS=$SAVE_LDFLAGS
 AM_CONDITIONAL(GACL_ENABLED, test "x$enables_gacl" = "xyes")
 if test "x$enables_gacl" = "xyes"; then
    AC_DEFINE(HAVE_GACL,, [define if gridsite GACL is available])
+else
+  GRIDSITE_CFLAGS=
+  GRIDSITE_LIBS=
 fi
+AC_SUBST(GRIDSITE_CFLAGS)
+AC_SUBST(GRIDSITE_LIBS)
 
 # check ARGUS
 ARGUS_CFLAGS=
