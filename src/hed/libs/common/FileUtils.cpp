@@ -221,7 +221,7 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
     if(mode == 0) mode = S_IRUSR|S_IWUSR;
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
     if((!fa.remove(filename)) && (fa.geterrno() != ENOENT)) { errno = fa.geterrno(); return false; }
-    if(!fa.open(filename,O_WRONLY|O_CREAT,mode)) { errno = fa.geterrno(); return false; }
+    if(!fa.open(filename,O_WRONLY|O_CREAT|O_EXCL,mode)) { errno = fa.geterrno(); return false; }
     if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
     fa.close();
     return true;
@@ -232,7 +232,7 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
   if(mode == 0) mode = S_IRUSR|S_IWUSR;
 #endif
   if (remove(filename.c_str()) != 0 && errno != ENOENT) return false;
-  int h = ::open(filename.c_str(),O_WRONLY|O_CREAT,mode);
+  int h = ::open(filename.c_str(),O_WRONLY|O_CREAT|O_EXCL,mode);
   if(h == -1) return false;
   if(!write_all(h,data.c_str(),data.length())) { ::close(h); return false; }
   ::close(h);
@@ -485,19 +485,24 @@ bool TmpDirCreate(std::string& path) {
   return result;
 }
 
-bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gid_t gid) {
+bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid, gid_t gid, mode_t mode) {
   std::string tmpdir(Glib::get_tmp_dir());
   char tmptemplate[] = "ARC-XXXXXX";
   filename = Glib::build_filename(tmpdir, tmptemplate);
+  if(mode == 0) mode = S_IRUSR|S_IWUSR;
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     FileAccess fa;
     if(!fa.setuid(uid,gid)) { errno = fa.geterrno(); return false; }
-    if(!fa.mkstemp(filename,S_IRUSR|S_IWUSR)) { errno = fa.geterrno(); return false; }
+    if(!fa.mkstemp(filename,mode)) { errno = fa.geterrno(); return false; }
     if(!write_all(fa,data.c_str(),data.length())) { errno = fa.geterrno(); fa.close(); return false; }
     return true;
   }
   int h = Glib::mkstemp(filename);
   if(h == -1) return false;
+  if (::chmod(filename.c_str(), mode) != 0) {
+    ::close(h);
+    return false;
+  }
   if(!write_all(h,data.c_str(),data.length())) {
     ::close(h);
     return false;

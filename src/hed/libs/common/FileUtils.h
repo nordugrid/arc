@@ -97,8 +97,11 @@ namespace Arc {
   /// Simple method to create a temporary file containing given data.
   /// Specified uid and gid are used for accessing filesystem.
   /** Permissions of the created file are determined using the current umask.
-   * If uid/gid are zero then no real switch of uid/gid is done. */
-  bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0);
+   * If uid/gid are zero then no real switch of uid/gid is done.
+     Input value of filename argument is ignored. On output it contains
+     path to created file.
+     Content of data argument is written into created file. */
+  bool TmpFileCreate(std::string& filename, const std::string& data, uid_t uid=0, gid_t gid=0, mode_t mode = 0);
 
   /// Removes /../ from 'name'. If leading_slash=true '/' will be added
   /// at the beginning of 'name' if missing. Otherwise it will be removed.
