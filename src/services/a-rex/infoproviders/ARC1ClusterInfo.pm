@@ -688,7 +688,7 @@ sub collect($) {
     
     # Other Service IDs
     my $ARISsvID = "urn:ogf:Service:$hostname:aris"; # ARIS service ID
-    my $ARISepIDp = "urn:ogf:Endpoint:$hostname:aris"; # ARIS Endpoint ID
+    my $ARISepIDp = "urn:ogf:Endpoint:$hostname"; # ARIS Endpoint ID
     my $CacheIndexsvID = "urn:ogf:Service:$hostname:cacheindex"; # Cache-Index service ID
     my $CacheIndexepIDp = "urn:ogf:Endpoint:$hostname:cacheindex"; # Cache-Index Endpoint ID
     my $HEDControlsvID = "urn:ogf:Service:$hostname:hedcontrol"; # HED-CONTROL service ID
@@ -2590,7 +2590,7 @@ sub collect($) {
             $sv->{Location} = sub {
                 return undef if $count-- == 0;
                 my $loc = {};
-                $loc->{ID} = "urn:ogf:Location:$hostname:Service:ARIS";
+                $loc->{ID} = "urn:ogf:Location:$hostname:Service:aris";
                 for (qw(Name Address Place PostCode Country Latitude Longitude)) {
                     $loc->{$_} = $lconfig->{$_} if defined $lconfig->{$_};
                 }
@@ -2605,7 +2605,7 @@ sub collect($) {
                 my $cconfig = $cconfs->[$i];
                 #my $detail = $cconfig->{Detail};
                 my $cont = {};
-                $cont->{ID} = "urn:ogf:Contact:$hostname:Service:ARIS:$i";
+                $cont->{ID} = "urn:ogf:Contact:$hostname:Service:aris:con$i";
                 for (qw(Name Detail Type)) {
                     $cont->{$_} = $cconfig->{$_} if $cconfig->{$_};
                 }
