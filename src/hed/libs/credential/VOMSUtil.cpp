@@ -1435,11 +1435,11 @@ err:
         return false;
       }
 
-      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %i", ASN1_INTEGER_get(cert->cert_info->serialNumber));
-      CredentialLogger.msg(DEBUG,"VOMS: the serial number in AC is:  %i", ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
+      CredentialLogger.msg(DEBUG,"VOMS: the holder serial number is:  %lx", ASN1_INTEGER_get(cert->cert_info->serialNumber));
+      CredentialLogger.msg(DEBUG,"VOMS: the serial number in AC is:  %lx", ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
 
       if (ASN1_INTEGER_cmp(ac->acinfo->holder->baseid->serial, cert->cert_info->serialNumber)) {
-        CredentialLogger.msg(INFO,"VOMS: the holder serial number %i is not the same as the serial number in AC %i, the holder certificate that is used to create a voms proxy could be a proxy certificate with a different serial number as the original EEC cert",
+        CredentialLogger.msg(INFO,"VOMS: the holder serial number %lx is not the same as the serial number in AC %lx, the holder certificate that is used to create a voms proxy could be a proxy certificate with a different serial number as the original EEC cert",
           ASN1_INTEGER_get(cert->cert_info->serialNumber),
           ASN1_INTEGER_get(ac->acinfo->holder->baseid->serial));
         // return false;
