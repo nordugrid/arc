@@ -193,7 +193,7 @@ sub Services {
         $self->Location($data->{Location});
         $self->Contacts($data->{Contacts});
         # TODO: must be generalized to multiple endpoints while building the data structure
-        $self->Endpoint($data->{Endpoint});
+        $self->Endpoints($data->{Endpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
         $self->ToStorageServices($data->{ToStorageServices});

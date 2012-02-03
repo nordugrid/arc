@@ -451,7 +451,7 @@ sub MappingPolicies {
 sub Services {
     LdifPrinter::Entries(@_, 'GLUE2Service', 'ID', \&ServiceAttributes, sub {
         my ($self, $data) = @_;
-        $self->Endpoint($data->{Endpoint});
+        $self->Endpoints($data->{Endpoints});
         $self->Location($data->{Location});
         $self->Contacts($data->{Contacts});
     });
@@ -474,6 +474,13 @@ sub ComputingService {
 
 sub Endpoint {
     LdifPrinter::Entry(@_, 'GLUE2Endpoint', 'ID', \&EndpointAttributes, sub {
+        my ($self, $data) = @_;
+        $self->AccessPolicies($data->{AccessPolicies});
+    });
+}
+
+sub Endpoints {
+    LdifPrinter::Entries(@_, 'GLUE2Endpoint', 'ID', \&EndpointAttributes, sub {
         my ($self, $data) = @_;
         $self->AccessPolicies($data->{AccessPolicies});
     });
