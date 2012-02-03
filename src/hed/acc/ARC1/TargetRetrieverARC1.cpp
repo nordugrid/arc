@@ -271,7 +271,9 @@ namespace Arc {
         if((ComputingEndpoint["InterfaceName"] == "XBES") ||
            (ComputingEndpoint["InterfaceName"] == "BES") ||
            (ComputingEndpoint["Interface"] == "XBES") ||
-           (ComputingEndpoint["Interface"] == "BES")) {
+           (ComputingEndpoint["Interface"] == "BES") ||
+           ((ComputingEndpoint["InterfaceName"] == "org.ogf.bes") &&
+            (ComputingEndpoint["InterfaceExtension"] == "urn:org.nordugrid.xbes"))) {
           break;
         };
       }
