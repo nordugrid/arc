@@ -618,7 +618,7 @@ sub collect($) {
       $arexhostport = $config->{arexhostport};
       $csvendpointsnum++;
       $arisendpointsnum++;
-      %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'information.discovery.resource');  
+      %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription');  
       %$ariscapabilities = map { $_ => 1 } ('information.discovery.resource');  
     }
     
@@ -628,7 +628,7 @@ sub collect($) {
         $emieshostport = $arexhostport;
         $csvendpointsnum++;
         $arisendpointsnum++;
-        %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'information.discovery.resource', 'security.delegation');
+        %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation');
         %$ariscapabilities = map { $_ => 1 } ('information.discovery.resource'); # more to come related to job management?
     }
 
@@ -806,7 +806,7 @@ sub collect($) {
 
 	    # OBS: ideally HED should be asked for the URL
 	    $cep->{URL} = $config->{endpoint};
-	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring' ];
+	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
 	    $cep->{Technology} = 'webservice';
 	    $cep->{InterfaceName} = 'org.ogf.bes';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
@@ -1087,7 +1087,7 @@ sub collect($) {
 
         # OBS: ideally HED should be asked for the URL
         $cep->{URL} = $config->{endpoint};
-        $cep->{Capability} = [ 'executionmanagement.jobexecution', 'information.monitoring', 'security.delegation' ];
+        $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
         $cep->{Technology} = 'webservice';
         $cep->{InterfaceName} = 'org.ogf.emies';
         $cep->{InterfaceVersion} = [ '1.0' ];
