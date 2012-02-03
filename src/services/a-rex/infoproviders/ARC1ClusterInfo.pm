@@ -608,7 +608,7 @@ sub collect($) {
     if ($config->{GridftpdEnabled} == 1) { 
 	$gridftphostport = "$hostname:$config->{GridftpdPort}";
 	$csvendpointsnum++;
-	%$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution');
+	%$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription');
     };
     
     # check if WS interface is configured in arc.conf
@@ -957,7 +957,7 @@ sub collect($) {
 	    # OBS: ideally HED should be asked for the URL
 	    $cep->{URL} = "gsiftp://$gridftphostport";
         $cep->{ID} = $ARCgftpjobcepIDp.$cep->{URL};
-	    $cep->{Capability} = [ 'executionmanagement.jobexecution' ];
+	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
 	    $cep->{Technology} = 'gridftp';
 	    $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
