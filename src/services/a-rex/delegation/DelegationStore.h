@@ -38,6 +38,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   virtual Arc::DelegationConsumerSOAP* AddConsumer(std::string& id,const std::string& client);
   virtual Arc::DelegationConsumerSOAP* FindConsumer(const std::string& id,const std::string& client);
   virtual void TouchConsumer(Arc::DelegationConsumerSOAP* c,const std::string& credentials);
+  virtual void QueryConsumer(Arc::DelegationConsumerSOAP* c,std::string& credentials);
   virtual void ReleaseConsumer(Arc::DelegationConsumerSOAP* c);
   virtual void RemoveConsumer(Arc::DelegationConsumerSOAP* c);
   virtual void CheckConsumers(void);

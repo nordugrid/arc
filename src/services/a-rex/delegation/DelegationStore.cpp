@@ -102,6 +102,14 @@ namespace ARex {
     };
   }
 
+  void DelegationStore::QueryConsumer(Arc::DelegationConsumerSOAP* c,std::string& credentials) {
+    if(!c) return;
+    Glib::Mutex::Lock lock(lock_);
+    std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
+    if(i == acquired_.end()) return; // ????
+    Arc::FileRead(i->second.path,credentials);
+  }
+
   void DelegationStore::ReleaseConsumer(Arc::DelegationConsumerSOAP* c) {
     if(!c) return;
     Glib::Mutex::Lock lock(lock_);

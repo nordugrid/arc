@@ -208,6 +208,14 @@ err:
 }
 */
 
+static Time asn1_to_time(const ASN1_UTCTIME *s) {
+  if(s != NULL) {
+    if(s->type == V_ASN1_UTCTIME) return Time(std::string("20")+((char*)(s->data)));
+    if(s->type == V_ASN1_GENERALIZEDTIME) return Time(std::string((char*)(s->data)));
+  }
+  return Time(Time::UNDEFINED);
+}
+
 static bool X509_add_ext_by_nid(X509 *cert,int nid,char *value,int pos) {
   X509_EXTENSION* ext = X509V3_EXT_conf_nid(NULL, NULL, nid, value);
   if(!ext) return false;
@@ -273,6 +281,67 @@ static void wrap_PEM_cert(std::string& val) {
   wrap_PEM(val, ts, te);
 }
 
+class cred_info_t {
+ public:
+  Arc::Time valid_from;
+  Arc::Time valid_till;
+  std::string identity;
+  std::string ca;
+  unsigned int deleg_depth;
+  unsigned int strength;
+};
+
+static bool get_cred_info(const std::string& str,cred_info_t& info) {
+  // It shold use Credential class. But so far keeping dependencies simple.
+  char buf[256];
+  bool r = false;
+  X509* cert = NULL;
+  STACK_OF(X509)* cert_sk = NULL;
+  if(string_to_x509(str,cert,cert_sk) && cert && cert_sk) {
+    info.valid_from=Time(Time::UNDEFINED);
+    info.valid_till=Time(Time::UNDEFINED);
+    info.deleg_depth=0;
+    info.strength=0;
+    X509* c = cert;
+    for(int idx = 0;;++idx) {
+      buf[0]=0;
+      X509_NAME_oneline(X509_get_issuer_name(c),buf,sizeof(buf));
+      info.ca = buf;
+      buf[0]=0;
+      X509_NAME_oneline(X509_get_subject_name(c),buf,sizeof(buf));
+      info.identity=buf;
+      Time from = asn1_to_time(X509_get_notBefore(c));
+      Time till = asn1_to_time(X509_get_notAfter(c));
+      if(from != Time(Time::UNDEFINED)) {
+        if((info.valid_from == Time(Time::UNDEFINED)) || (from > info.valid_from)) {
+          info.valid_from = from;
+        };
+      };
+      if(till != Time(Time::UNDEFINED)) {
+        if((info.valid_till == Time(Time::UNDEFINED)) || (till < info.valid_till)) {
+          info.valid_till = till;
+        };
+      };
+#ifdef HAVE_OPENSSL_PROXY
+      if(X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) break;
+#else
+      break;
+#endif
+      if(idx >= sk_X509_num(cert_sk)) break;
+      c = sk_X509_value(cert_sk,idx);
+    };
+    r = true;
+  };
+  if(cert) X509_free(cert);
+  if(cert_sk) {
+    for(int i = 0;i<sk_X509_num(cert_sk);++i) {
+      X509* v = sk_X509_value(cert_sk,i);
+      if(v) X509_free(v);
+    };
+    sk_X509_free(cert_sk);
+  };
+  return r;
+}
 
 DelegationConsumer::DelegationConsumer(void):key_(NULL) {
   Generate();
@@ -1189,6 +1258,15 @@ void DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std:
   return;
 }
 
+void DelegationContainerSOAP::QueryConsumer(DelegationConsumerSOAP* c,std::string& credentials) {
+  lock_.lock();
+  ConsumerIterator i = find(c);
+  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i->second.deleg) i->second.deleg->Backup(credentials); // only key is available
+  lock_.unlock();
+  return;
+}
+
 void DelegationContainerSOAP::ReleaseConsumer(DelegationConsumerSOAP* c) {
   lock_.lock();
   ConsumerIterator i = find(c);
@@ -1572,9 +1650,20 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS20FAULT(out,"Wrong identifier");
         return true;
       };
-      // TODO: use DelegatedToken()
+      std::string credentials;
+      QueryConsumer(c,credentials);
       ReleaseConsumer(c);
-      GDS20FAULT(out,"Feature not implemented");
+      if(credentials.empty()) {
+        EMIESFAULT(out,"Delegated credentials missing");
+        return true;
+      };
+      cred_info_t info;
+      if(!get_cred_info(credentials,info)) {
+        EMIESFAULT(out,"Delegated credentials missing");
+        return true;
+      };
+      if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
+      r.NewChild("getTerminationTimeReturn") = info.valid_till.str();
       return true;
     } else if(op_name == "destroy") {
       Arc::XMLNode r = out.NewChild("destroyResponse");
@@ -1673,9 +1762,22 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         EMIESIDFAULT(out,"Wrong identifier");
         return true;
       };
-      // TODO: use DelegatedToken()
+      std::string credentials;
+      QueryConsumer(c,credentials);
       ReleaseConsumer(c);
-      EMIESFAULT(out,"Feature not implemented");
+      if(credentials.empty()) {
+        EMIESFAULT(out,"Delegated credentials missing");
+        return true;
+      };
+      cred_info_t info;
+      if(!get_cred_info(credentials,info)) {
+        EMIESFAULT(out,"Delegated credentials missing");
+        return true;
+      };
+      if(info.valid_till == Time(Time::UNDEFINED)) info.valid_till = Time();
+      r.NewChild("Lifetime") = info.valid_till.str();
+      r.NewChild("Issuer") = info.ca;
+      r.NewChild("Subject") = info.identity;
       return true;
     };
   };
