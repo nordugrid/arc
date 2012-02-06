@@ -369,100 +369,63 @@ int main(int argc, char *argv[]) {
   if (!debug.empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(debug));
 
+  // This ensure command line args overwrite all other options
   if(!cert_path.empty())Arc::SetEnv("X509_USER_CERT", cert_path);
   if(!key_path.empty())Arc::SetEnv("X509_USER_KEY", key_path);
   if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
   if(!ca_dir.empty())Arc::SetEnv("X509_CERT_DIR", ca_dir);
 
-  // Set default or predefined credentials
+  // Set default, predefined or guessed credentials. Also check if they exist.
   Arc::UserConfig usercfg(conffile,
-        Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::TryCredentials));
   if (!usercfg) {
-    logger.msg(Arc::ERROR, "Failed configuration initialization");
+    logger.msg(Arc::ERROR, "Failed configuration initialization.");
     return EXIT_FAILURE;
   }
-
-  if (debug.empty() && !usercfg.Verbosity().empty())
-    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
-
-  // Pick up default proxy location in case it is not explicitely set
-  if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
-
-  // Check if credentials exist
-  usercfg.InitializeCredentials(Arc::initializeCredentialsType::TryCredentials);
+  // Check for needed credentials objects
+  // Can proxy be used for? Could not find it in documentation.
   if(usercfg.CertificatePath().empty()) {
-    logger.msg(Arc::ERROR, "Failed to find certificate");
+    logger.msg(Arc::ERROR, "Failed to find certificate.");
     return EXIT_FAILURE;
   }
   if(usercfg.KeyPath().empty()) {
-    logger.msg(Arc::ERROR, "Failed to find private key");
+    logger.msg(Arc::ERROR, "Failed to find private key.");
     return EXIT_FAILURE;
   }
-
   if(!vomslist.empty() || !myproxy_command.empty()) {
     // For external communication CAs are needed
     if(usercfg.CACertificatesDirectory().empty()) {
       logger.msg(Arc::ERROR, "Failed to find CA certificates");
+      logger.msg(Arc::ERROR, "Cannot find the CA certificates directory path, "
+                 "please set environment variable X509_CERT_DIR, "
+                 "or cacertificatesdirectory in a configuration file.");
+      logger.msg(Arc::ERROR, "The CA certificates directory is required for "
+                 "contacting VOMS and MyProxy servers.");
       return EXIT_FAILURE;
     }
   }
+  // Proxy is special case. We either need default or predefined path.
+  // No guessing or testing is needed. 
+  // By running credentials initialization once more all set values
+  // won't change. But proxy will get default value if not set.
+  usercfg.ProxyPath("");
+  usercfg.InitializeCredentials(Arc::initializeCredentialsType::NotTryCredentials);
+  if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
+  usercfg.ProxyPath(proxy_path);
+  // Get back all paths
+  if(key_path.empty()) key_path = usercfg.KeyPath();
+  if(cert_path.empty()) cert_path = usercfg.CertificatePath();
+  if(ca_dir.empty()) ca_dir = usercfg.CACertificatesDirectory();
 
-  if (timeout > 0)
-    usercfg.Timeout(timeout);
+  if (debug.empty() && !usercfg.Verbosity().empty())
+    Arc::Logger::getRootLogger().setThreshold(Arc::string_to_level(usercfg.Verbosity()));
+
+  if (timeout > 0) usercfg.Timeout(timeout);
 
   Arc::User user;
 
-  try {
-    if (!params.empty())
-      throw std::invalid_argument("Wrong number of arguments!");
-
-    if (key_path.empty())
-      key_path = usercfg.KeyPath();
-
-    if (cert_path.empty())
-      cert_path = usercfg.CertificatePath();
-
-    if (proxy_path.empty())
-      proxy_path = usercfg.ProxyPath();
-
-    if ((cert_path.empty() ||key_path.empty()) && proxy_path.empty()) {
-      logger.msg(Arc::ERROR, "Cannot find the path of the certificate/key file, and proxy file, "
-                 "please setup environment X509_USER_CERT/X509_USER_KEY, or X509_USER_PROXY,"
-                 "or setup certificatepath/keypath, or proxypath in a configuration file");
-      return EXIT_FAILURE;
-    }
-
-    if (ca_dir.empty())
-      ca_dir = usercfg.CACertificatesDirectory();
-    if (ca_dir.empty()) { 
-      //The usercfg could be created with SkipCACredentials, 
-      //then X509_CERT_DIR will not been got by UserConfig.
-      //There are two cases like the following:
-      //for the case "arcproxy -I -P /where/is/your/vomsproxy", ca_dir is required; 
-      //for the case "arcproxy -I -P /where/is/your/normalproxy", ca_dir is not required.
-      //but we can not distinguish them, and then we can not give different argument 
-      //for UserConfig to differentiate them.
-      //So here we get X509_CERT_DIR anyway if it exists, 
-      //but the getting is not forced.
-      if (!Arc::GetEnv("X509_CERT_DIR").empty()) {
-        if (!Glib::file_test(ca_dir = Arc::GetEnv("X509_CERT_DIR"), Glib::FILE_TEST_IS_DIR)) {
-          logger.msg(Arc::WARNING, "CA certificate directory: %s is given by X509_CERT_DIR, but it can't been accessed.", ca_dir);
-          ca_dir.clear();
-        }
-      }
-    }
-  } catch (std::exception& err) {
-    logger.msg(Arc::ERROR, err.what());
-    tls_process_error(logger);
-    return EXIT_FAILURE;
-  }
-
-  if (ca_dir.empty() && (!vomslist.empty() || !myproxy_command.empty())) {
-    logger.msg(Arc::ERROR, "Cannot find the CA certificates directory path, "
-               "please set environment variable X509_CERT_DIR, "
-               "or cacertificatesdirectory in a configuration file");
-    logger.msg(Arc::ERROR, "The CA certificates directory is required by voms or myproxy functionality"
-               "when contacting voms or myproxy server");
+  if (!params.empty()) {
+    logger.msg(Arc::ERROR, "Wrong number of arguments!");
     return EXIT_FAILURE;
   }
 
