@@ -570,7 +570,7 @@ namespace Arc {
       std::list<std::string>::iterator itJIdentifier = jobIdentifiers.begin();
       for (;itJIdentifier != jobIdentifiers.end(); ++itJIdentifier) {
         if ((!itJ->Name.empty() && itJ->Name == *itJIdentifier) ||
-            (itJ->IDFromEndpoint.fullstr() == *itJIdentifier)) {
+            (itJ->IDFromEndpoint.fullstr() == URL(*itJIdentifier).fullstr())) {
           break;
         }
       }
