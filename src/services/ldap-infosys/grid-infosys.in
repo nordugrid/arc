@@ -1255,12 +1255,43 @@ start () {
 	touch $bdii_log_file
     fi
     chown $bdii_user:$bdii_user $bdii_log_file
+    
+    ## workaround for BDII DB_CONFIG cachesize bigger than actual memory
+    memsize=$(grep MemTotal /proc/meminfo | awk '{print $2}')000
+    bdii_default_set_cachesize_gb=`grep set_cachesize ${bdii_db_config} | awk '{print $2}'`
+    bdii_default_set_cachesize_kb=`grep set_cachesize ${bdii_db_config} | awk '{print $3}'`
+    if [ $bdii_default_set_cachesize_gb -ne '0' ]; then
+        bdii_default_set_cachesize_gb=${bdii_default_set_cachesize_gb}000000000000
+        let sum=${bdii_default_set_cachesize_gb}+${bdii_default_set_cachesize_kb}
+        bdii_default_set_cachesize_kb=$sum
+    fi
+
+    if [ $bdii_default_set_cachesize_kb -gt $memsize ]; then
+            log_warning_msg "The system doesn't fulfill BDII optimal memory requirements. ARC will try to fix it anyway..."
+            let a=$memsize/16
+            cachesize=$a
+            sed "s/^set_cachesize.*$/set_cachesize 0 $cachesize 1/" $bdii_db_config > /tmp/DB_CONFIG
+            if [[ ! -a /tmp/DB_CONFIG ]]; then
+                log_failure_msg "/tmp/DB_CONFIG couldn't be written. Ldap infosys cannot be started. Please manually set set_cachesize parameter in ${bdii_db_config} to a value that is lesser than the system physical memory."
+                exit 1
+            fi
+            bdii_db_config='/tmp/DB_CONFIG'
+            log_warning_msg "DB_CONFIG set_cachesize is now :  0 $cachesize 1"
+    fi
+    ## end of BDII low memory workaround
+    
+    # copy BDII DB_CONFIG in ARC locations
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/arc" $bdii_user
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/glue2" $bdii_user
     $RUNUSER -s "$USERSHELL" -c "cp ${bdii_db_config} ${bdii_var_dir}/db/stats" $bdii_user
     #Need to remove / from mkpasswd, otherwise sed will break.
     pass=`/usr/bin/mkpasswd -s 0 2> /dev/null` || pass=$RANDOM$RANDOM
     pass=${pass//\//x}
+
+    # if the BDII low memory workaround has been applied, remove dir from tmp
+    if [[ -a /tmp/DB_CONFIG ]]; then
+        rm /tmp/DB_CONFIG
+    fi
 
     if [ ! -f ${bdii_slapd_conf} ]; then
 	log_failure_msg "Can not find slapd file: ${bdii_slapd_conf}"
