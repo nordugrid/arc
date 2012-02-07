@@ -70,8 +70,7 @@ namespace Arc {
     return 1;
   }
 
-#define PASS_MIN_LENGTH 4
-#define PASS_MAX_LENGTH 20
+#define PASS_MIN_LENGTH (0)
   typedef struct pw_cb_data {
     const void *password;
     const char *prompt_info;
@@ -84,103 +83,94 @@ namespace Arc {
     const char *password = NULL;
     PW_CB_DATA *cb_data = (PW_CB_DATA *)cb_tmp;
 
-    if (bufsiz < 1) return res;
+    if (bufsiz <= 1) return res;
     if (cb_data) {
-      if (cb_data->password)
-        password = (const char*)(cb_data->password);
-      if (cb_data->prompt_info)
-        prompt_info = cb_data->prompt_info;
+      if (cb_data->password) password = (const char*)(cb_data->password);
+      if (cb_data->prompt_info) prompt_info = cb_data->prompt_info;
     }
 
     if (password) {
       res = strlen(password);
-      if (res > (bufsiz-1))
-        res = bufsiz-1;
-      if(buf) {
-        memcpy(buf, password, res);
-        buf[res] = 0;
-      }
+      if (res > (bufsiz-1)) res = bufsiz-1;
+      if(buf) memcpy(buf, password, res+1);
       return res;
     }
 
-    //ui = UI_new_method(ui_method);
     ui = UI_new();
-    if (ui) {
-      int ok = 0;
-      char *buf1 = NULL;
-      char *buf2 = NULL;
-      int ui_flags = 0;
-      char *prompt = NULL;
+    if (!ui) return res;
 
-      prompt = UI_construct_prompt(ui, "pass phrase", cb_data->prompt_info);
+    int ok = 0;
+    char *buf1 = NULL;
+    char *buf2 = NULL;
+    int ui_flags = 0;
+    char *prompt = NULL;
 
-      ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
-//      UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
+    prompt = UI_construct_prompt(ui, "pass phrase", cb_data->prompt_info);
 
-      if (ok >= 0) {
-        ok = -1;
-        if((buf1 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
-          memset(buf1,0,(unsigned int)bufsiz);
-          ok = UI_add_input_string(ui,prompt,ui_flags,buf1,PASS_MIN_LENGTH,PASS_MAX_LENGTH);
-        }
-      }
-      if (ok >= 0 && verify) {
-        ok = -1;
-        if((buf2 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
-          memset(buf2,0,(unsigned int)bufsiz);
-          ok = UI_add_verify_string(ui,prompt,ui_flags,buf2,PASS_MIN_LENGTH,PASS_MAX_LENGTH, buf);
-        }
-      }
-      if (ok >= 0)
-        do{
-          ok = UI_process(ui);
-          if(ok == -2) break; // Abort request
-          if(ok == -1) { // Password error
-            unsigned long errcode = ERR_get_error();
-            const char* errstr = ERR_reason_error_string(errcode);
-            if(errstr == NULL) {
-              CredentialLogger.msg(Arc::ERROR, "error code %lu",errcode);
-            } else if(strstr(errstr,"result too small")) {
-              CredentialLogger.msg(Arc::ERROR, "Password is too short, need at least %u charcters", PASS_MIN_LENGTH);
-            } else if(strstr(errstr,"result too large")) {
-              CredentialLogger.msg(Arc::ERROR, "Password is too long, need at most %u characters", PASS_MAX_LENGTH);
-            } else {
-              CredentialLogger.msg(Arc::ERROR, "%s", errstr);
-            };
-          };
-        }while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+    ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
+//  UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
 
-      if (buf2){
-        memset(buf2,0,(unsigned int)bufsiz);
-        OPENSSL_free(buf2);
-      }
-
-      if (ok >= 0) {
-        if(buf1) {
-          buf1[bufsiz-1] = 0;
-          res = strlen(buf1);
-          if(buf) memcpy(buf,buf1,res+1);
-        }
-      }
-
-      if (buf1){
+    if (ok >= 0) {
+      ok = -1;
+      if((buf1 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
         memset(buf1,0,(unsigned int)bufsiz);
-        OPENSSL_free(buf1);
+        ok = UI_add_input_string(ui,prompt,ui_flags,buf1,PASS_MIN_LENGTH,bufsiz-1);
       }
-
-      if (ok == -1){
-        CredentialLogger.msg(Arc::ERROR, "User interface error");
-        ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
-        if(buf) memset(buf,0,(unsigned int)bufsiz);
-        res = 0;
-      }
-      if (ok == -2) {
-        if(buf) memset(buf,0,(unsigned int)bufsiz);
-        res = 0;
-      }
-      UI_free(ui);
-      OPENSSL_free(prompt);
     }
+    if (ok >= 0 && verify) {
+      ok = -1;
+      if((buf2 = (char *)OPENSSL_malloc(bufsiz)) != NULL) {
+        memset(buf2,0,(unsigned int)bufsiz);
+        ok = UI_add_verify_string(ui,prompt,ui_flags,buf2,PASS_MIN_LENGTH,bufsiz-1,buf1);
+      }
+    }
+    if (ok >= 0) do {
+      ok = UI_process(ui);
+      if(ok == -2) break; // Abort request
+      if(ok == -1) { // Password error
+        unsigned long errcode = ERR_get_error();
+        const char* errstr = ERR_reason_error_string(errcode);
+        if(errstr == NULL) {
+          CredentialLogger.msg(Arc::ERROR, "Password input error - code %lu",errcode);
+        } else if(strstr(errstr,"result too small")) {
+          CredentialLogger.msg(Arc::ERROR, "Password is too short, need at least %u charcters", PASS_MIN_LENGTH);
+        } else if(strstr(errstr,"result too large")) {
+          CredentialLogger.msg(Arc::ERROR, "Password is too long, need at most %u characters", bufsiz-1);
+        } else {
+          CredentialLogger.msg(Arc::ERROR, "%s", errstr);
+        };
+      };
+    } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+
+    if (buf2){
+      memset(buf2,0,(unsigned int)bufsiz);
+      OPENSSL_free(buf2);
+    }
+
+    if (ok >= 0) {
+      if(buf1) {
+        buf1[bufsiz-1] = 0;
+        res = strlen(buf1);
+        if(buf) memcpy(buf,buf1,res+1);
+      }
+    }
+
+    if (buf1){
+      memset(buf1,0,(unsigned int)bufsiz);
+      OPENSSL_free(buf1);
+    }
+
+    if (ok == -1){
+      CredentialLogger.msg(Arc::ERROR, "User interface error");
+      ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
+      if(buf) memset(buf,0,(unsigned int)bufsiz);
+      res = 0;
+    } else if (ok == -2) {
+      if(buf) memset(buf,0,(unsigned int)bufsiz);
+      res = 0;
+    }
+    UI_free(ui);
+    OPENSSL_free(prompt);
 
     return res;
   }

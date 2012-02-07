@@ -92,7 +92,7 @@ static void tls_process_error(Arc::Logger& logger) {
   return;
 }
 
-#define PASS_MIN_LENGTH 6
+#define PASS_MIN_LENGTH (0)
 static int input_password(char *password, int passwdsz, bool verify,
                           const std::string& prompt_info,
                           const std::string& prompt_verify_info,
@@ -102,8 +102,8 @@ static int input_password(char *password, int passwdsz, bool verify,
   ui = UI_new();
   if (ui) {
     int ok = 0;
-    char buf[256];
-    memset(buf, 0, 256);
+    char* buf = new char[passwdsz];
+    memset(buf, 0, passwdsz);
     int ui_flags = 0;
     char *prompt1 = NULL;
     char *prompt2 = NULL;
@@ -112,17 +112,18 @@ static int input_password(char *password, int passwdsz, bool verify,
     ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
     UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
     ok = UI_add_input_string(ui, prompt1, ui_flags, password,
-                             PASS_MIN_LENGTH, BUFSIZ - 1);
-    if (ok >= 0 && verify)
+                             PASS_MIN_LENGTH, passwdsz - 1);
+    if (ok >= 0 && verify) {
       ok = UI_add_verify_string(ui, prompt2, ui_flags, buf,
-                                PASS_MIN_LENGTH, BUFSIZ - 1, password);
-    if (ok >= 0)
-      do
+                                PASS_MIN_LENGTH, passwdsz - 1, password);
+    }
+    if (ok >= 0) {
+      do {
         ok = UI_process(ui);
-      while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+      } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+    }
 
-    if (ok >= 0)
-      res = strlen(password);
+    if (ok >= 0) res = strlen(password);
     if (ok == -1) {
       logger.msg(Arc::ERROR, "User interface error");
       tls_process_error(logger);
@@ -135,6 +136,7 @@ static int input_password(char *password, int passwdsz, bool verify,
       res = 0;
     }
     UI_free(ui);
+    delete[] buf;
     OPENSSL_free(prompt1);
     OPENSSL_free(prompt2);
   }
@@ -1136,10 +1138,9 @@ int main(int argc, char *argv[]) {
           Arc::MCC_Status status = client.process(&request, &response, true);
           if (!status) {
             //logger.msg(Arc::ERROR, (std::string)status);
-            if (response)
-              delete response;
-              std::cout << Arc::IString("The VOMS server with the information:\n%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
-              continue; //There could be another voms replicated server with the same name exists
+            if (response) delete response;
+            std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+            continue; //There could be another voms replicated server with the same name exists
           }
           if (!response) {
             logger.msg(Arc::ERROR, "No stream response from VOMS server");
