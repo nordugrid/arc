@@ -180,6 +180,7 @@ namespace Arc {
     targets.clear();
     logger.msg(VERBOSE, "Generating EMIES targets");
     GLUE2::ParseExecutionTargets(response, targets, "EMI-ES");
+    GLUE2::ParseExecutionTargets(response, targets, "org.ogf.emies");
     for(std::list<ExecutionTarget>::iterator target = targets.begin();
                            target != targets.end(); ++target) {
       if(target->GridFlavour.empty()) target->GridFlavour = "EMIES"; // ?
