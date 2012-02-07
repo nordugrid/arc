@@ -92,7 +92,7 @@ static void tls_process_error(Arc::Logger& logger) {
   return;
 }
 
-#define PASS_MIN_LENGTH (0)
+#define PASS_MIN_LENGTH (4)
 static int input_password(char *password, int passwdsz, bool verify,
                           const std::string& prompt_info,
                           const std::string& prompt_verify_info,
@@ -108,15 +108,10 @@ static int input_password(char *password, int passwdsz, bool verify,
     char *prompt1 = NULL;
     char *prompt2 = NULL;
     prompt1 = UI_construct_prompt(ui, "passphrase", prompt_info.c_str());
-    prompt2 = UI_construct_prompt(ui, "passphrase", prompt_verify_info.c_str());
     ui_flags |= UI_INPUT_FLAG_DEFAULT_PWD;
     UI_ctrl(ui, UI_CTRL_PRINT_ERRORS, 1, 0, 0);
     ok = UI_add_input_string(ui, prompt1, ui_flags, password,
-                             PASS_MIN_LENGTH, passwdsz - 1);
-    if (ok >= 0 && verify) {
-      ok = UI_add_verify_string(ui, prompt2, ui_flags, buf,
-                                PASS_MIN_LENGTH, passwdsz - 1, password);
-    }
+                             0, passwdsz - 1);
     if (ok >= 0) {
       do {
         ok = UI_process(ui);
@@ -124,6 +119,29 @@ static int input_password(char *password, int passwdsz, bool verify,
     }
 
     if (ok >= 0) res = strlen(password);
+
+    if (ok >= 0 && verify) {
+      UI_free(ui);
+      ui = UI_new();
+      if(!ui) {
+        ok = -1;
+      } else {
+        // TODO: use some generic password strength evaluation
+        if(res < PASS_MIN_LENGTH) {
+          UI_add_info_string(ui, "WARNING: Your password is too weak (too short)!\n"
+                                 "Make sure this is really what You wanted to enter.\n");
+        }
+        prompt2 = UI_construct_prompt(ui, "passphrase", prompt_verify_info.c_str());
+        ok = UI_add_verify_string(ui, prompt2, ui_flags, buf,
+                                  0, passwdsz - 1, password);
+        if (ok >= 0) {
+          do {
+            ok = UI_process(ui);
+          } while (ok < 0 && UI_ctrl(ui, UI_CTRL_IS_REDOABLE, 0, 0, 0));
+        }
+      }
+    }
+
     if (ok == -1) {
       logger.msg(Arc::ERROR, "User interface error");
       tls_process_error(logger);
@@ -135,10 +153,10 @@ static int input_password(char *password, int passwdsz, bool verify,
       memset(password, 0, (unsigned int)passwdsz);
       res = 0;
     }
-    UI_free(ui);
+    if(ui) UI_free(ui);
     delete[] buf;
-    OPENSSL_free(prompt1);
-    OPENSSL_free(prompt2);
+    if(prompt1) OPENSSL_free(prompt1);
+    if(prompt2) OPENSSL_free(prompt2);
   }
   return res;
 }
