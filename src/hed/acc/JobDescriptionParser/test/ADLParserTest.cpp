@@ -561,10 +561,10 @@ void ADLParserTest::TestInputFileClientStageable() {
 
     CPPUNIT_ASSERT_EQUAL((std::string)"TestInputFileClientStageable", ifiles.front().Name);
     CPPUNIT_ASSERT(!ifiles.front().IsExecutable);
-    CPPUNIT_ASSERT(ifiles.front().Sources.empty());
+    CPPUNIT_ASSERT_EQUAL(1, (int)ifiles.front().Sources.size());
     CPPUNIT_ASSERT_EQUAL((std::string)"executable",  ifiles.back().Name);
     CPPUNIT_ASSERT(ifiles.back().IsExecutable);
-    CPPUNIT_ASSERT(ifiles.back().Sources.empty());
+    CPPUNIT_ASSERT_EQUAL(1, (int)ifiles.back().Sources.size());
   }
 
   {
@@ -579,10 +579,10 @@ void ADLParserTest::TestInputFileClientStageable() {
 
     CPPUNIT_ASSERT_EQUAL((std::string)"TestInputFileClientStageable", ifiles.front().Name);
     CPPUNIT_ASSERT(!ifiles.front().IsExecutable);
-    CPPUNIT_ASSERT(ifiles.front().Sources.empty());
+    CPPUNIT_ASSERT_EQUAL(1, (int)ifiles.front().Sources.size());
     CPPUNIT_ASSERT_EQUAL((std::string)"executable",  ifiles.back().Name);
     CPPUNIT_ASSERT(ifiles.back().IsExecutable);
-    CPPUNIT_ASSERT(ifiles.back().Sources.empty());
+    CPPUNIT_ASSERT_EQUAL(1, (int)ifiles.back().Sources.size());
   }
 }
 

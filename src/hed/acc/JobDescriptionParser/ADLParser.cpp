@@ -77,6 +77,7 @@ namespace Arc {
     } else if(s == "DELETED") {
     }
     logger.msg(optional?WARNING:ERROR, "[ADLParser] Unsupported internal state %s.",s);
+    return "";
   }
 
   static bool ParseOptional(XMLNode el, bool& val, Logger& logger) {
@@ -655,23 +656,27 @@ namespace Arc {
         }
         std::string ex = input["adl:IsExecutable"];
         file.IsExecutable = !(ex.empty() || (ex == "false") || (ex == "0"));
-        for(XMLNode source = input["adl:Source"];(bool)source;++source) {
-          SourceType surl((std::string)source["adl:URI"]);
-          if(!surl) {
-            logger.msg(ERROR, "[ADLParser] Wrong URI specified in Source - %s.",(std::string)source["adl:URI"]);
-            jobdescs.clear();
-            return false;
+        if (!input["adl:Source"]) {
+          file.Sources.push_back(URL(file.Name));
+        } else {
+          for(XMLNode source = input["adl:Source"];(bool)source;++source) {
+            SourceType surl((std::string)source["adl:URI"]);
+            if(!surl) {
+              logger.msg(ERROR, "[ADLParser] Wrong URI specified in Source - %s.",(std::string)source["adl:URI"]);
+              jobdescs.clear();
+              return false;
+            }
+            if((bool)source["adl:DelegationID"]) {
+              surl.DelegationID = (std::string)source["adl:DelegationID"];
+            }
+            if((bool)source["adl:Option"]) {
+              XMLNode option = source["adl:Option"];
+              for(;(bool)option;++option) {
+                surl.AddOption(option["adl:Name"],option["adl:Value"],true);
+              };
+            }
+            file.Sources.push_back(surl);
           }
-          if((bool)source["adl:DelegationID"]) {
-            surl.DelegationID = (std::string)source["adl:DelegationID"];
-          }
-          if((bool)source["adl:Option"]) {
-            XMLNode option = source["adl:Option"];
-            for(;(bool)option;++option) {
-              surl.AddOption(option["adl:Name"],option["adl:Value"],true);
-            };
-          }
-          file.Sources.push_back(surl);
         }
         // TODO: FileSize and Checksum. Probably not useful for HTTP-like interfaces anyway.
         job.DataStaging.InputFiles.push_back(file);
