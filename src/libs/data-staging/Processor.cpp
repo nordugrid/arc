@@ -667,35 +667,18 @@ namespace DataStaging {
                     was_downloaded,
                     try_again)) {
       if (try_again) {
-        // go back to CACHE_CHECK - even if we went through a transfer this is
-        // ok because the cache file is unaffected by a failed linking
+        // set cache status to CACHE_LOCKED, so that the Scheduler will try again
+        request->set_cache_state(CACHE_LOCKED);
         request->get_logger()->msg(Arc::WARNING, "DTR %s: Failed linking cache file to %s",
                                    request->get_short_id(), request->get_destination()->CurrentLocation().Path());
-
-        if (was_downloaded) cache.Stop(canonic_url);
-        request->set_cache_state(CACHE_LOCKED);
-        request->set_status(DTRStatus::CACHE_WAIT);
-
-        // set a flat wait time with some randomness, fine-grained to minimise lock clashes
-        // this may change in future eg be taken from configuration or increase over time
-        time_t cache_wait_time = 10;
-        time_t randomness = (rand() % cache_wait_time) - (cache_wait_time/2);
-        cache_wait_time += randomness;
-        // add random number of milliseconds
-        uint32_t nano_randomness = (rand() % 1000) * 1000000;
-        Arc::Period cache_wait_period(cache_wait_time, nano_randomness);
-        request->get_logger()->msg(Arc::INFO, "DTR %s: Will wait around %is", request->get_short_id(), cache_wait_time);
-        request->set_process_time(cache_wait_period);
-
-        request->connect_logger();
-        request->push(SCHEDULER);
-        return;
       }
-      request->get_logger()->msg(Arc::ERROR, "DTR %s: Error linking cache file to %s.",
+      else {
+        request->get_logger()->msg(Arc::ERROR, "DTR %s: Error linking cache file to %s.",
                                    request->get_short_id(), request->get_destination()->CurrentLocation().Path());
+      }
       request->set_error_status(DTRErrorStatus::CACHE_ERROR,
-                                  DTRErrorStatus::ERROR_DESTINATION,
-                                  "Failed to link/copy cache file to session dir");
+                                DTRErrorStatus::ERROR_DESTINATION,
+                                "Failed to link/copy cache file to session dir");
     }
     if (was_downloaded) cache.Stop(canonic_url);
     request->set_status(DTRStatus::CACHE_PROCESSED);

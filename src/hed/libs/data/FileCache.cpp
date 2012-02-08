@@ -562,9 +562,9 @@ namespace Arc {
       FileLock lock(cache_file, CACHE_LOCK_TIMEOUT);
       if (!lock.release()) {
         logger.msg(WARNING, "Failed to release lock on cache file %s", cache_file);
-      } else {
-        _urls_unlocked.insert(url);
+        return _cleanFilesAndReturnFalse(hard_link_file, try_again);
       }
+      _urls_unlocked.insert(url);
     }
     else {
       // check that the cache file wasn't locked or modified during the link/copy
