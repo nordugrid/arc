@@ -791,9 +791,6 @@ sub collect($) {
       
 	my $getARCWSComputingEndpoint = sub {
 
-	    # don't publish if arex_mount_point not configured
-	    return undef unless $arexhostport ne '';
-
 	    my $cep = {};
 
 	    $cep->{CreationTime} = $creation_time;
@@ -852,10 +849,12 @@ sub collect($) {
         # done with netstat but I'd like to be smarter
         # this only works if the effective user is root
         # TODO: find a better way to do this. Ask A-REX?
+        # changed by request of aleksandr. Only if root is running arex.
         if ($> == 0) {
           my $netstat=`netstat -antup`;
           if ( $? != 0 ) {
-            push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port";
+            # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+            $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume AREX WSRF/XBES running properly");
           } else {
               # searches if arched is listed in netstat output
               # best way would be ask arched if its service is up...?
@@ -864,7 +863,8 @@ sub collect($) {
             }
           }
         } else {
-           push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Service state cannot be determined";
+           # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
+           $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume AREX WSRF/XBES is running properly");
         }
 
 	    if (%healthissues) {
@@ -2383,10 +2383,12 @@ sub collect($) {
             # done with netstat but I'd like to be smarter
             # this only works if the effective user is root
             # TODO: find a better way to do this. Ask A-REX?
+            # changed by request of aleksandr. Only if root is running arex.
             if ($> == 0) {
               my $netstat=`netstat -antup`;
               if ( $? != 0 ) {
-                push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port";
+                # push @{$healthissues{ok}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume ARIS WSRFGLUE2 is running properly");
               } else {
                   # searches if arched is listed in netstat output
                   # best way would be ask arched if its service is up...?
@@ -2395,7 +2397,8 @@ sub collect($) {
                 }
               }
             } else {
-              push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Service state cannot be determined";
+              # push @{$healthissues{ok}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume ARIS WSRFGLUE2 is is running properly");
             }
             
             if (%healthissues) {
@@ -2505,10 +2508,12 @@ sub collect($) {
             # done with netstat but I'd like to be smarter
             # this only works if the effective user is root
             # TODO: find a better way to do this. Ask A-REX?
+            # changed by request of aleksandr. Only checks if it's root
             if ($> == 0) {
               my $netstat=`netstat -antup`;
               if ( $? != 0 ) {
-                push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume it running on standard port";
+                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume EMIES is running properly");
               } else {
                   # searches if arched is listed in netstat output
                   # best way would be ask arched if its service is up...?
@@ -2517,7 +2522,8 @@ sub collect($) {
                 }
               }
             } else {
-              push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. EMIES Service state cannot be determined";
+              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is in ok HeathState";
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume EMIES is running properly");
             }
             
             if (%healthissues) {
