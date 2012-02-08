@@ -1939,6 +1939,9 @@ sub collect($) {
                 $appenv->{State} = $rinfo->{state} if $rinfo->{state};
                 $appenv->{Description} = $rinfo->{description} if $rinfo->{description};
                 #$appenv->{ParallelSupport} = 'none';
+                
+                # Associations
+                $appenv->{ComputingManagerID} = $cmgrID;
 
                 return $appenv;
             };
