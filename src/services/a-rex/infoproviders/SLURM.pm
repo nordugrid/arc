@@ -331,6 +331,11 @@ sub cluster_info ($) {
     $lrms_cluster{totalcpus} = $totalcpus;
     
     $lrms_cluster{usedcpus} = $sinfo_cpuinfo{AllocatedCPUs};
+    
+    # TODO: investigate if this can be calculated for SLURM
+    # this is a quick and dirty fix for a warning, might be fixed somewhere else
+    $lrms_cluster{queuedcpus} = 0;
+    
     ($lrms_cluster{queuedjobs}, $lrms_cluster{runningjobs}) = slurm_get_jobs();
 
     #NOTE: should be on the form "8cpu:800 2cpu:40"
