@@ -40,7 +40,6 @@ namespace DataStaging {
       DTRStatus::TRANSFER,
       DTRStatus::TRANSFERRING,
       DTRStatus::TRANSFERRING_CANCEL,
-      DTRStatus::TRANSFERRED
   };
 
 
