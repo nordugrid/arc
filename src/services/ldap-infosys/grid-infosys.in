@@ -1261,7 +1261,7 @@ start () {
     bdii_default_set_cachesize_gb=`grep set_cachesize ${bdii_db_config} | awk '{print $2}'`
     bdii_default_set_cachesize_kb=`grep set_cachesize ${bdii_db_config} | awk '{print $3}'`
     if [ $bdii_default_set_cachesize_gb -ne '0' ]; then
-        bdii_default_set_cachesize_gb=${bdii_default_set_cachesize_gb}000000000000
+        bdii_default_set_cachesize_gb=${bdii_default_set_cachesize_gb}000000000
         let sum=${bdii_default_set_cachesize_gb}+${bdii_default_set_cachesize_kb}
         bdii_default_set_cachesize_kb=$sum
     fi
