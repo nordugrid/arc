@@ -19,7 +19,7 @@ namespace ARex {
     if(p == std::string::npos) return;
     if(p == 0) return;
     dpath.resize(p);
-    Arc::DirCreate(dpath,0,0,S_IRUSR|S_IWUSR,true);
+    Arc::DirCreate(dpath,0,0,S_IXUSR|S_IRUSR|S_IWUSR,true);
   }
 
   DelegationStore::DelegationStore(const std::string& base):fstore_(base) {
