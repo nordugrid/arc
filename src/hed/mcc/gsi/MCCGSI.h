@@ -8,8 +8,13 @@
 #include <arc/message/MCC.h>
 
 namespace Arc {
-
   class Logger;
+}
+
+namespace ArcMCCGSI {
+
+using namespace Arc;
+
   class PayloadGSIStream;
 
   class MCC_GSI_Service
@@ -41,6 +46,6 @@ namespace Arc {
     static Logger logger;
   };
 
-} // namespace Arc
+} // namespace ArcMCCGSI
 
 #endif /* __ARC_MCCGSI_H__ */

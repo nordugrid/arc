@@ -11,7 +11,9 @@
 
 #include <gssapi.h>
 
-namespace Arc {
+namespace ArcMCCGSI {
+
+using namespace Arc;
 
   class PayloadGSIStream
     : public PayloadStreamInterface {
@@ -81,6 +83,6 @@ namespace Arc {
     bool client;
   };
 
-} // namespace Arc
+} // namespace ArcMCCGSI
 
 #endif /* __ARC_PAYLOADGSISTREAM_H__ */

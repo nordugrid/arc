@@ -12,7 +12,9 @@
 
 #include "PayloadGSIStream.h"
 
-namespace Arc {
+namespace ArcMCCGSI {
+
+using namespace Arc;
 
   PayloadGSIStream::PayloadGSIStream(PayloadStreamInterface *stream,
                                      gss_ctx_id_t& ctx,

@@ -26,7 +26,9 @@
 #include "PayloadGSIStream.h"
 
 
-namespace Arc {
+namespace ArcMCCGSI {
+
+using namespace Arc;
 
   Logger MCC_GSI_Service::logger(Logger::getRootLogger(), "MCC.GSI Service");
 
@@ -573,10 +575,10 @@ namespace Arc {
     return MCC_Status(STATUS_OK);
   }
 
-} // namespace Arc
+} // namespace ArcMCCGSI
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "gsi.service", "HED:MCC", NULL, 0, &Arc::get_mcc_service },
-  { "gsi.client", "HED:MCC", NULL, 0, &Arc::get_mcc_client },
+  { "gsi.service", "HED:MCC", NULL, 0, &ArcMCCGSI::get_mcc_service },
+  { "gsi.client", "HED:MCC", NULL, 0, &ArcMCCGSI::get_mcc_client },
   { NULL, NULL, NULL, 0, NULL }
 };
