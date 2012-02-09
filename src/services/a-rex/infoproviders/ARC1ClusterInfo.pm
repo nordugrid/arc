@@ -618,7 +618,7 @@ sub collect($) {
       $arexhostport = $config->{arexhostport};
       $csvendpointsnum++;
       $arisendpointsnum++;
-      %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription');  
+      %$csvcapabilities = map { $_ => 1 } ('executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription','security.delegation');  
       %$ariscapabilities = map { $_ => 1 } ('information.discovery.resource');  
     }
     
@@ -803,7 +803,7 @@ sub collect($) {
 
 	    # OBS: ideally HED should be asked for the URL
 	    $cep->{URL} = $config->{endpoint};
-	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
+	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
 	    $cep->{Technology} = 'webservice';
 	    $cep->{InterfaceName} = 'org.ogf.bes';
 	    $cep->{InterfaceVersion} = [ '1.0' ];
