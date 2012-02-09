@@ -1,6 +1,6 @@
 #include <openssl/ssl.h>
 
-namespace Arc {
+namespace ArcMCCTLS {
 
 bool GlobusSetVerifyCertCallback(SSL_CTX* sslctx);
 

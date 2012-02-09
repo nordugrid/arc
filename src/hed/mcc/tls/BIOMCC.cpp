@@ -11,7 +11,9 @@
 
 #include "BIOMCC.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 class BIOMCC {
   private:

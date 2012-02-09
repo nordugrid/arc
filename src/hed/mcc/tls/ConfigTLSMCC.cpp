@@ -8,7 +8,9 @@
 
 #include "ConfigTLSMCC.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust_dn) {
   XMLNode nd = cfg["VOMSCertTrustDNChain"];

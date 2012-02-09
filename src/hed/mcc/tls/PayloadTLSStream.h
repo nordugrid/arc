@@ -10,7 +10,9 @@
 
 #include <openssl/ssl.h>
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 /** Implemetation of PayloadStreamInterface for SSL handle. */
 class PayloadTLSStream: public PayloadStreamInterface {

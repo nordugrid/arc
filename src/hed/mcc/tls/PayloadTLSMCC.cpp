@@ -13,7 +13,7 @@
 #include <arc/DateTime.h>
 #include <arc/crypto/OpenSSL.h>
 
-namespace Arc {
+namespace ArcMCCTLS {
 
 static const char * ex_data_id = "ARC_MCC_Payload_TLS";
 int PayloadTLSMCC::ex_data_index_ = -1;

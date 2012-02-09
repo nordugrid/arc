@@ -13,7 +13,7 @@
 #include "PayloadTLSStream.h"
 #include "ConfigTLSMCC.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
 
 // This class extends PayloadTLSStream with initialization procedure to 
 // connect it to next MCC or Stream interface.

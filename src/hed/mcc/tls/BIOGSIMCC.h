@@ -8,6 +8,12 @@ namespace Arc {
 class MCCInterface;
 class PayloadStreamInterface;
 
+}
+
+namespace ArcMCCTLS {
+
+using namespace Arc;
+
 BIO* BIO_new_GSIMCC(MCCInterface* mcc);
 BIO* BIO_new_GSIMCC(PayloadStreamInterface* stream);
 

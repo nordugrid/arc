@@ -8,7 +8,9 @@
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 class ConfigTLSMCC {
  private:  

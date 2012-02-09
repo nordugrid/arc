@@ -10,9 +10,10 @@
 
 #include "DelegationCollector.h"
 
-namespace ArcSec {
+namespace ArcMCCTLSSec {
 
 using namespace Arc;
+using namespace ArcMCCTLS;
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"DelegationCollector");
 

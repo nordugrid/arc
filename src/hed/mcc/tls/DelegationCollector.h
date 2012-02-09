@@ -7,7 +7,9 @@
 #include <arc/ArcConfig.h>
 #include <arc/loader/Plugin.h>
 
-namespace ArcSec {
+namespace ArcMCCTLSSec {
+
+using namespace ArcSec;
 
 class DelegationCollector : public SecHandler {
  public:

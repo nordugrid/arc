@@ -1,6 +1,6 @@
 #include <arc/message/SecAttr.h>
 
-namespace ArcSec {
+namespace ArcMCCTLSSec {
 
 class DelegationSecAttr: public Arc::SecAttr {
  public:

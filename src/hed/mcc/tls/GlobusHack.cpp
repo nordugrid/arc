@@ -6,7 +6,7 @@
 
 #include "GlobusHack.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
 
   static void fix_proxy_nid(X509_EXTENSION* ext,int nid,int gnid) {
     if(ext == NULL) return;

@@ -5,7 +5,7 @@
 #include <arc/Logger.h>
 #include <arc/message/MCC.h>
 
-namespace Arc {
+namespace ArcMCCTLS {
 
   //! A base class for TLS client and service MCCs.
   /*! This is a base class for TLS client and service MCCs. It

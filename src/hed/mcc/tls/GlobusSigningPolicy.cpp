@@ -14,7 +14,9 @@
 
 #include "GlobusSigningPolicy.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 static Logger& logger = Logger::getRootLogger();
 

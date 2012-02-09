@@ -20,7 +20,7 @@
 
 #include "PayloadTLSStream.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
 
 void PayloadTLSStream::HandleError(int code) {
    HandleError(logger_,code);

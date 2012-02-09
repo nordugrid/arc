@@ -6,7 +6,7 @@
 
 #include "DelegationSecAttr.h"
 
-namespace ArcSec {
+namespace ArcMCCTLSSec {
 
 using namespace Arc;
 

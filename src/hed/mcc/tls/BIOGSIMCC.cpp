@@ -11,7 +11,9 @@
 
 #include "BIOGSIMCC.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 class BIOGSIMCC {
   private:

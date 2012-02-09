@@ -37,7 +37,9 @@
 
 #include "MCCTLS.h"
 
-namespace Arc {
+namespace ArcMCCTLS {
+
+using namespace Arc;
 
 bool x509_to_string(X509* cert,std::string& str) {
   BIO *out = BIO_new(BIO_s_mem());
@@ -121,40 +123,8 @@ class TLSSecAttr: public SecAttr {
   bool processing_failed_;
   virtual bool equal(const SecAttr &b) const;
 };
-}
-
-//Glib::Mutex Arc::MCC_TLS::lock_;
-Arc::Logger Arc::MCC_TLS::logger(Arc::Logger::getRootLogger(), "MCC.TLS");
-
-Arc::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : Arc::MCC(&cfg), config_(cfg,logger,client) {
-}
-
-static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new Arc::MCC_TLS_Service(*(Arc::Config*)(*mccarg));
-}
-
-static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
-    Arc::MCCPluginArgument* mccarg =
-            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
-    if(!mccarg) return NULL;
-    return new Arc::MCC_TLS_Client(*(Arc::Config*)(*mccarg));
-}
-
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-    { "tls.service", "HED:MCC", NULL, 0, &get_mcc_service },
-    { "tls.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
-    { "delegation.collector", "HED:SHC", NULL, 0, &ArcSec::DelegationCollector::get_sechandler},
-    { NULL, NULL, NULL, 0, NULL }
-};
-
-using namespace Arc;
-
 
 #define SELFSIGNED(cert) (X509_NAME_cmp(X509_get_issuer_name(cert),X509_get_subject_name(cert)) == 0)
-
 
 TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& logger) {
    char buf[100];
@@ -547,3 +517,34 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
    };
    MCC::Next(next,label);
 }
+
+
+} // namespace ArcMCCTLS
+
+//Glib::Mutex Arc::MCC_TLS::lock_;
+Arc::Logger ArcMCCTLS::MCC_TLS::logger(Arc::Logger::getRootLogger(), "MCC.TLS");
+
+ArcMCCTLS::MCC_TLS::MCC_TLS(Arc::Config& cfg,bool client) : Arc::MCC(&cfg), config_(cfg,logger,client) {
+}
+
+static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new ArcMCCTLS::MCC_TLS_Service(*(Arc::Config*)(*mccarg));
+}
+
+static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
+    Arc::MCCPluginArgument* mccarg =
+            arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
+    if(!mccarg) return NULL;
+    return new ArcMCCTLS::MCC_TLS_Client(*(Arc::Config*)(*mccarg));
+}
+
+Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
+    { "tls.service", "HED:MCC", NULL, 0, &get_mcc_service },
+    { "tls.client",  "HED:MCC", NULL, 0, &get_mcc_client  },
+    { "delegation.collector", "HED:SHC", NULL, 0, &ArcMCCTLSSec::DelegationCollector::get_sechandler},
+    { NULL, NULL, NULL, 0, NULL }
+};
+
