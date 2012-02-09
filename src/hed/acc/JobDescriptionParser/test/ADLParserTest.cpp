@@ -30,6 +30,7 @@ class ADLParserTest
   CPPUNIT_TEST(TestInputFileServiceStageable);
   CPPUNIT_TEST(TestOutputFileClientStageable);
   CPPUNIT_TEST(TestOutputFileServiceStageable);
+  CPPUNIT_TEST(TestOutputFileLocationsServiceStageable);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -54,6 +55,7 @@ public:
   void TestInputFileServiceStageable();
   void TestOutputFileClientStageable();
   void TestOutputFileServiceStageable();
+  void TestOutputFileLocationsServiceStageable();
 
 
 private:
@@ -786,5 +788,68 @@ void ADLParserTest::TestOutputFileServiceStageable() {
     CPPUNIT_ASSERT(!ofiles.front().Targets.back().UseIfSuccess);
   }
 }
+
+/** Service stageable output file with locations and options */
+void ADLParserTest::TestOutputFileLocationsServiceStageable() {
+  {
+    const std::string adl = "<?xml version=\"1.0\"?>"
+"<adl:ActivityDescription xmlns:adl=\"http://www.eu-emi.eu/es/2010/12/adl\" xmlns:nordugrid-adl=\"http://www.nordugrid.org/es/2011/12/nordugrid-adl\">"
+  "<adl:Application>"
+    "<adl:Executable>"
+      "<adl:Path>my-executable</adl:Path>"
+    "</adl:Executable>"
+  "</adl:Application>"
+  "<adl:DataStaging>"
+    "<adl:OutputFile>"
+      "<adl:Name>TestOutputFileServiceStageable</adl:Name>"
+      "<adl:Target>"
+        "<adl:URI>lfc://lfc.eu-emi.eu:5010/1234567890/abcdefghij/TestInputFileServiceStageable</adl:URI>"
+        "<adl:Option>"
+          "<adl:Name>location</adl:Name>"
+          "<adl:Value>https://se.eu-emi.eu:443/0987654321/klmnopqrst/TestInputFileServiceStageable</adl:Value>"
+        "</adl:Option>"
+        "<adl:Option>"
+          "<adl:Name>overwrite</adl:Name>"
+          "<adl:Value>yes</adl:Value>"
+        "</adl:Option>"
+      "</adl:Target>"
+    "</adl:OutputFile>"
+  "</adl:DataStaging>"
+"</adl:ActivityDescription>";
+
+    CPPUNIT_ASSERT(PARSER.Parse(adl, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::OutputFileType>& ofiles = OUTJOBS.front().DataStaging.OutputFiles;
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestOutputFileServiceStageable", ofiles.front().Name);
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.front().Targets.size());
+    CPPUNIT_ASSERT_EQUAL((std::string)"lfc://lfc.eu-emi.eu:5010/1234567890/abcdefghij/TestInputFileServiceStageable", ofiles.front().Targets.front().str());
+    CPPUNIT_ASSERT_EQUAL((std::string)"yes", ofiles.front().Targets.front().Option("overwrite"));
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.front().Targets.front().Locations().size());
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://se.eu-emi.eu:443/0987654321/klmnopqrst/TestInputFileServiceStageable", ofiles.front().Targets.front().Locations().front().str());
+  }
+
+  {
+    std::string tempjobdesc;
+    CPPUNIT_ASSERT(PARSER.UnParse(OUTJOBS.front(), tempjobdesc, "emies:adl"));
+    OUTJOBS.clear();
+    CPPUNIT_ASSERT(PARSER.Parse(tempjobdesc, OUTJOBS));
+    CPPUNIT_ASSERT_EQUAL(1, (int)OUTJOBS.size());
+
+    const std::list<Arc::OutputFileType>& ofiles = OUTJOBS.front().DataStaging.OutputFiles;
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.size());
+
+    CPPUNIT_ASSERT_EQUAL((std::string)"TestOutputFileServiceStageable", ofiles.front().Name);
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.front().Targets.size());
+    CPPUNIT_ASSERT_EQUAL((std::string)"lfc://lfc.eu-emi.eu:5010/1234567890/abcdefghij/TestInputFileServiceStageable", ofiles.front().Targets.front().str());
+    CPPUNIT_ASSERT_EQUAL((std::string)"yes", ofiles.front().Targets.front().Option("overwrite"));
+    CPPUNIT_ASSERT_EQUAL(1, (int)ofiles.front().Targets.front().Locations().size());
+    CPPUNIT_ASSERT_EQUAL((std::string)"https://se.eu-emi.eu:443/0987654321/klmnopqrst/TestInputFileServiceStageable", ofiles.front().Targets.front().Locations().front().str());
+  }
+}
+
+
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ADLParserTest);

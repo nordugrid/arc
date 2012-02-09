@@ -702,8 +702,20 @@ namespace Arc {
           if((bool)target["adl:Option"]) {
             XMLNode option = target["adl:Option"];
             for(;(bool)option;++option) {
-              turl.AddOption(option["adl:Name"],option["adl:Value"],true);
-            };
+              std::string opt_name((std::string)option["adl:Name"]);
+              if(opt_name == "location") {
+                URLLocation location_url(option["adl:Value"]);
+                if(!location_url || location_url.Protocol() == "file") {
+                  logger.msg(ERROR, "Location URI for file %s is invalid", file.Name);
+                  jobdescs.clear();
+                  return false;
+                }
+                turl.AddLocation(location_url);
+              }
+              else {
+                turl.AddOption(opt_name,option["adl:Value"],true);
+              }
+            }
           }
           bool mandatory = false;
           if(!ParseFlag(target["adl:Mandatory"],mandatory,logger)) {
@@ -1027,6 +1039,13 @@ namespace Arc {
           XMLNode option = target.NewChild("Option");
           option.NewChild("Name") = o->first;
           option.NewChild("Value") = o->second;
+        }
+        const std::list<URLLocation>& locations = u->Locations();
+        for(std::list<URLLocation>::const_iterator l = locations.begin();
+            l != locations.end();++l) {
+          XMLNode option = target.NewChild("Option");
+          option.NewChild("Name") = "location";
+          option.NewChild("Value") = l->fullstr();
         }
         if (!u->DelegationID.empty()) {
           target.NewChild("DelegationID") = u->DelegationID;
