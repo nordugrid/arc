@@ -585,7 +585,7 @@ namespace Arc {
 
 
   Period::Period(const std::string& period, PeriodBase base)
-    : seconds(0) {
+    : seconds(0), nanoseconds(0) {
 
     if (period.empty()) {
       dateTimeLogger.msg(ERROR, "Empty string");
