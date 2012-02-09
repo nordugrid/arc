@@ -23,6 +23,7 @@ namespace Arc {
     PrintFBase();
     virtual ~PrintFBase();
     virtual void msg(std::ostream& os) = 0;
+    virtual void msg(std::string& s) = 0;
     void Retain();
     bool Release();
   private:
@@ -66,13 +67,22 @@ namespace Arc {
         free(*it);
     }
 
-    void msg(std::ostream& os) {
+    virtual void msg(std::ostream& os) {
 
       char buffer[2048];
       snprintf(buffer, 2048, Get(m),
                Get(t0), Get(t1), Get(t2), Get(t3),
                Get(t4), Get(t5), Get(t6), Get(t7));
       os << buffer;
+    }
+
+    virtual void msg(std::string& s) {
+
+      char buffer[2048];
+      snprintf(buffer, 2048, Get(m),
+               Get(t0), Get(t1), Get(t2), Get(t3),
+               Get(t4), Get(t5), Get(t6), Get(t7));
+      s = buffer;
     }
 
   private:
@@ -197,6 +207,7 @@ namespace Arc {
 
     IString(const IString& istr);
     IString& operator=(const IString& istr);
+    std::string str(void);
 
   private:
 

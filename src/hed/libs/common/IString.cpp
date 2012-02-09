@@ -65,6 +65,12 @@ namespace Arc {
     return *this;
   }
 
+  std::string IString::str(void) {
+    std::string s;
+    p->msg(s);
+    return s;
+  }
+
   std::ostream& operator<<(std::ostream& os, const IString& msg) {
     msg.p->msg(os);
     return os;
