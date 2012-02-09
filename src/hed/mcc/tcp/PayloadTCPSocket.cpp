@@ -23,7 +23,9 @@
 #include <arc/Utils.h>
 #include "PayloadTCPSocket.h"
 
-namespace Arc {
+namespace ArcMCCTCP {
+
+using namespace Arc;
 
 #ifndef WIN32
 static int spoll(int h, int timeout, unsigned int& events) {
@@ -62,7 +64,8 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
   if ((ret != 0) || (!info)) {
     std::string err_str = gai_strerror(ret); 
-    logger.msg(ERROR, "Failed to resolve %s (%s)", hostname, err_str);
+    error_ = IString("Failed to resolve %s (%s)", hostname, err_str).str();
+    logger.msg(ERROR, "%s", error_);
     return -1;
   }
   int s = -1;
@@ -71,9 +74,10 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
                      hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
     s = ::socket(info_->ai_family, info_->ai_socktype, info_->ai_protocol);
     if(s == -1) {
-      logger.msg(ERROR, "Failed to create socket for connecting to %s(%s):%d - %s",
+      error_ = IString("Failed to create socket for connecting to %s(%s):%d - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
-                        Arc::StrError(errno));
+                        Arc::StrError(errno)).str();
+      logger.msg(ERROR, "%s", error_);
       continue;
     }
 #ifndef WIN32
@@ -90,41 +94,46 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     }
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
       if(errno != EINPROGRESS) {
-        logger.msg(ERROR, "Failed to connect to %s(%s):%i - %s",
+        error_ = IString("Failed to connect to %s(%s):%i - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
-                        Arc::StrError(errno));
+                        Arc::StrError(errno)).str();
+        logger.msg(ERROR, "%s", error_);
         close(s); s = -1;
         continue;
       }
       unsigned int events = POLLOUT | POLLPRI;
       int pres = spoll(s,timeout_,events);
       if(pres == 0) {
-        logger.msg(ERROR, "Timeout connecting to %s(%s):%i - %i s",
+        error_ = IString("Timeout connecting to %s(%s):%i - %i s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
-                        timeout_);
+                        timeout_).str();
+        logger.msg(ERROR, "%s", error_);
         close(s); s = -1;
         continue;
       }
       if(pres != 1) {
-        logger.msg(ERROR, "Failed while waiting for connection to %s(%s):%i - %s",
+        error_ = IString("Failed while waiting for connection to %s(%s):%i - %s",
                         hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port,
-                        Arc::StrError(errno));
+                        Arc::StrError(errno)).str();
+        logger.msg(ERROR, "%s", error_);
         close(s); s = -1;
         continue;
       }
       // man connect says one has to check SO_ERROR, but poll() returns
       // POLLERR and POLLHUP so we can use them directly. 
       if(events & (POLLERR | POLLHUP)) {
-        logger.msg(ERROR, "Failed to connect to %s(%s):%i",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
+        error_ = IString("Failed to connect to %s(%s):%i",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port).str();
+        logger.msg(ERROR, "%s", error_);
         close(s); s = -1;
         continue;
       }
     }
 #else
     if(::connect(s, info_->ai_addr, info_->ai_addrlen) == -1) {
-      logger.msg(ERROR, "Failed to connect to %s(%s):%i",
-                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port);
+      error_ = IString("Failed to connect to %s(%s):%i",
+                        hostname,info_->ai_family==AF_INET6?"IPv6":"IPv4",port).str();
+      logger.msg(ERROR, "%s", error_);
       close(s); s = -1;
       continue;
     };
@@ -132,6 +141,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     break;
   };
   freeaddrinfo(info);
+  if(s != -1) error_ = "";
   return s;
 }
 
@@ -161,7 +171,7 @@ PayloadTCPSocket::PayloadTCPSocket(const std::string& endpoint, int timeout,
 }
 
 PayloadTCPSocket::~PayloadTCPSocket(void) {
-  if(acquired_) { shutdown(handle_,2); close(handle_); };
+  if(acquired_ && (handle_ != -1)) { shutdown(handle_,2); close(handle_); };
 }
 
 bool PayloadTCPSocket::Get(char* buf,int& size) {

@@ -6,7 +6,9 @@
 #include <arc/message/PayloadStream.h>
 #include <arc/Logger.h>
 
-namespace Arc {
+namespace ArcMCCTCP {
+
+using namespace Arc;
 
 /** This class extends PayloadStream with TCP socket specific features */
 class PayloadTCPSocket: public PayloadStreamInterface {
@@ -15,6 +17,7 @@ class PayloadTCPSocket: public PayloadStreamInterface {
   int handle_;
   bool acquired_;
   int timeout_;
+  std::string error_;
   Logger& logger;
  public:
   /** Constructor - connects to TCP server at specified hostname:port */
@@ -48,6 +51,7 @@ class PayloadTCPSocket: public PayloadStreamInterface {
   virtual Size_t Size(void) const { return 0; };
   virtual Size_t Limit(void) const { return 0; };
   int GetHandle() { return handle_; };
+  std::string GetError() { return error_; };
   void NoDelay(bool val);
 };
 

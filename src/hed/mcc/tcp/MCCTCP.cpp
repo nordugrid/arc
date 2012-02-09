@@ -56,16 +56,16 @@ inline const char *inet_ntop(int af, const void *__restrict src, char *__restric
 #include "MCCTCP.h"
 
 #define PROTO_NAME(ADDR) ((ADDR->ai_family==AF_INET6)?"IPv6":"IPv4")
-Arc::Logger Arc::MCC_TCP::logger(Arc::Logger::getRootLogger(), "MCC.TCP");
+Arc::Logger ArcMCCTCP::MCC_TCP::logger(Arc::Logger::getRootLogger(), "MCC.TCP");
 
-Arc::MCC_TCP::MCC_TCP(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCTCP::MCC_TCP::MCC_TCP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    Arc::MCC_TCP_Service* plugin = new Arc::MCC_TCP_Service((Arc::Config*)(*mccarg));
+    ArcMCCTCP::MCC_TCP_Service* plugin = new ArcMCCTCP::MCC_TCP_Service((Arc::Config*)(*mccarg));
     if(!(*plugin)) {
         delete plugin;
         return NULL;
@@ -77,7 +77,7 @@ static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    Arc::MCC_TCP_Client* plugin =  new Arc::MCC_TCP_Client((Arc::Config*)(*mccarg));
+    ArcMCCTCP::MCC_TCP_Client* plugin =  new ArcMCCTCP::MCC_TCP_Client((Arc::Config*)(*mccarg));
     if(!(*plugin)) {
         delete plugin;
         return NULL;
@@ -92,7 +92,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
 };
 
 
-namespace Arc {
+namespace ArcMCCTCP {
+
+using namespace Arc;
 
 
 MCC_TCP_Service::MCC_TCP_Service(Config *cfg):MCC_TCP(cfg),valid_(false),max_executers_(-1),max_executers_drop_(false) {
@@ -655,7 +657,6 @@ MCC_TCP_Client::MCC_TCP_Client(Config *cfg):MCC_TCP(cfg),s_(NULL) {
     }
     s_ = new PayloadTCPSocket(host_s.c_str(),port,timeout,logger);
     if(!(*s_)) {
-        delete s_; s_ = NULL;
     } else {
        std::string v = c["NoDelay"];
        s_->NoDelay((v == "true") || (v == "1"));
@@ -673,10 +674,11 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     // Accepted payload is Raw
     // Returned payload is Stream
 
-    logger.msg(VERBOSE, "client process called");
+    logger.msg(DEBUG, "TCP client process called");
     //outmsg.Attributes(inmsg.Attributes());
     //outmsg.Context(inmsg.Context());
     if(!s_) return MCC_Status(GENERIC_ERROR);
+    if(!*s_) return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
     // Extracting payload
     if(!inmsg.Payload()) return MCC_Status(GENERIC_ERROR);
     PayloadRawInterface* inpayload = NULL;
@@ -684,7 +686,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         inpayload = dynamic_cast<PayloadRawInterface*>(inmsg.Payload());
     } catch(std::exception& e) { };
     if(!inpayload) return MCC_Status(GENERIC_ERROR);
-    if(!ProcessSecHandlers(inmsg,"outgoing")) return MCC_Status(GENERIC_ERROR);
+    if(!ProcessSecHandlers(inmsg,"outgoing")) return MCC_Status(GENERIC_ERROR,"TCP","Auth processing failed");
     // Sending payload
     for(int n=0;;++n) {
         char* buf = inpayload->Buffer(n);
@@ -692,7 +694,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
         int bufsize = inpayload->BufferSize(n);
         if(!(s_->Put(buf,bufsize))) {
             logger.msg(INFO, "Failed to send content of buffer");
-            return MCC_Status();
+            return MCC_Status(GENERIC_ERROR,"TCP",s_->GetError());
         };
     };
     std::string host_attr,port_attr;
@@ -717,7 +719,7 @@ MCC_Status MCC_TCP_Client::process(Message& inmsg,Message& outmsg) {
     outmsg.Attributes()->set("TCP:REMOTEPORT",remoteport_attr);
     outmsg.Attributes()->set("TCP:ENDPOINT",endpoint_attr);
     outmsg.Attributes()->set("ENDPOINT",endpoint_attr);
-    if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(GENERIC_ERROR);
+    if(!ProcessSecHandlers(outmsg,"incoming")) return MCC_Status(GENERIC_ERROR,"TCP","Auth processing failed");
     return MCC_Status(STATUS_OK);
 }
-} // namespace ARC
+} // namespace ArcMCCTCP

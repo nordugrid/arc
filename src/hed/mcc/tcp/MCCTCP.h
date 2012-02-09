@@ -5,7 +5,9 @@
 #include <arc/message/PayloadStream.h>
 #include "PayloadTCPSocket.h"
 
-namespace Arc {
+namespace ArcMCCTCP {
+
+using namespace Arc;
 
   //! A base class for TCP client and service MCCs.
   /*! This is a base class for TCP client and service MCCs. It
