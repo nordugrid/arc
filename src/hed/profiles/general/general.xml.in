@@ -1333,9 +1333,7 @@ attributes depending on how the mapping should be done.
                 Allow only the following IP address to access service
               </Description>
               <Subjects>
-                <Subject>
-                  <SubjectAttribute AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint" Type="string" Function="match" inisections="datadelivery-service" initag="allowed_ip"/>
-                </Subject>
+                <Subject AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/tcp/remoteendpoint" Type="string" Function="match" inisections="datadelivery-service" initag="allowed_ip" initype="multi"/>
               </Subjects>
               <Resources>
                 <Resource AttributeId="http://www.nordugrid.org/schemas/policy-arc/types/http/path" Type="string">/datadeliveryservice</Resource>

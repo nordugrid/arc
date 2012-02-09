@@ -537,7 +537,7 @@ namespace DataStaging {
 
     valid = false;
     // Check configuration - at least one allowed IP address and dir must be specified
-    if (!(*cfg)["SecHandler"]["PDP"]["Policy"]["Rule"]["Subjects"]["Subject"]["SubjectAttribute"]) {
+    if (!(*cfg)["SecHandler"]["PDP"]["Policy"]["Rule"]["Subjects"]["Subject"]) {
       logger.msg(Arc::ERROR, "Invalid configuration - no allowed IP address specified");
       return;
     }
