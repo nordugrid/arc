@@ -655,7 +655,7 @@ void FileCacheTest::testLinkFile() {
 
   // create bad soft-link
   if (_uid != 0 && stat("/lost+found/sessiondir", &fileStat) != 0 && errno == EACCES) {
-    CPPUNIT_ASSERT(!_fc1->Link("/lost_found/sessiondir/file1", _url, false, false, true, try_again));
+    CPPUNIT_ASSERT(!_fc1->Link("/lost_found/sessiondir/file1", _url, false, false, false, try_again));
     CPPUNIT_ASSERT(!try_again);
   }
 
@@ -748,7 +748,7 @@ void FileCacheTest::testCopyFile() {
 
   // create bad copy
   if (_uid != 0 && stat("/lost+found/sessiondir", &fileStat) != 0 && errno == EACCES)
-    CPPUNIT_ASSERT(!_fc1->Link("/lost+found/sessiondir/file1", _url, true, false, true, try_again));
+    CPPUNIT_ASSERT(!_fc1->Link("/lost+found/sessiondir/file1", _url, true, false, false, try_again));
 
   // Stop cache to release lock
   CPPUNIT_ASSERT(_fc1->Stop(_url));
@@ -961,7 +961,7 @@ void FileCacheTest::testTwoCaches() {
   // copy file
   CPPUNIT_ASSERT_EQUAL(0, remove(soft_link.c_str()));
   CPPUNIT_ASSERT(fc2->Start(_url, available, is_locked));
-  CPPUNIT_ASSERT(fc2->Link(soft_link, _url, true, false, true, try_again));
+  CPPUNIT_ASSERT(fc2->Link(soft_link, _url, true, false, false, try_again));
 
   // check job dir is created
   CPPUNIT_ASSERT(stat(hard_link_cache1.c_str(), &fileStat) == 0 || stat(hard_link_cache2.c_str(), &fileStat) == 0);
