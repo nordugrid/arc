@@ -3,7 +3,9 @@
 
 #include <arc/message/MCC.h>
 
-namespace Arc {
+namespace ArcMCCMsgValidator {
+
+using namespace Arc;
 
   // This is a base class for Message Validator client and service MCCs. 
 
@@ -32,6 +34,6 @@ class MCC_MsgValidator_Service: public MCC_MsgValidator
         static std::string getPath(std::string url);
 };
 
-} // namespace Arc
+} // namespace ArcMCCMsgValidator
 
 #endif /* __ARC_MCCMSGVALIDATOR_H__ */

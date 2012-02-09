@@ -17,10 +17,10 @@
 #include <libxml/xmlschemas.h>
 //#include <libxml/xmlstring.h>
 
-Arc::Logger Arc::MCC_MsgValidator::logger(Arc::Logger::getRootLogger(), "MCC.MsgValidator");
+Arc::Logger ArcMCCMsgValidator::MCC_MsgValidator::logger(Arc::Logger::getRootLogger(), "MCC.MsgValidator");
 
 
-Arc::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCMsgValidator::MCC_MsgValidator::MCC_MsgValidator(Arc::Config *cfg) : Arc::MCC(cfg) {
     // Collect services to be validated
     for(int i = 0;;++i) {
         Arc::XMLNode n = (*cfg)["ValidatedService"][i];
@@ -47,7 +47,7 @@ static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_MsgValidator_Service((Arc::Config*)(*mccarg));
+    return new ArcMCCMsgValidator::MCC_MsgValidator_Service((Arc::Config*)(*mccarg));
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -56,7 +56,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { NULL, NULL, NULL, 0, NULL }
 };
 
-namespace Arc {
+namespace ArcMCCMsgValidator {
+
+using namespace Arc;
 
 MCC_MsgValidator_Service::MCC_MsgValidator_Service(Config *cfg):MCC_MsgValidator(cfg) {
 }
@@ -285,4 +287,5 @@ std::string MCC_MsgValidator_Service::getPath(std::string url){
         return url.substr(ps);
 }
 
-} // namespace Arc
+} // namespace ArcMCCMsgValidator
+
