@@ -1188,6 +1188,44 @@ class DelegationContainerSOAP::Consumer {
   };
 };
 
+#define DELEGFAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
+  SOAPFault((out),SOAPFault::Receiver,msg); \
+}
+
+#define GDS10FAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
+  SOAPFault((out),SOAPFault::Receiver,msg); \
+}
+
+#define GDS20FAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("DelegationException"); \
+  ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
+}
+
+#define EMIESFAULT(out,msg) { \
+  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("InternalServiceDelegationFault"); \
+  ex.Namespaces(ns); \
+  ex.NewChild("estypes:Message") = (msg); \
+  ex.NewChild("estypes:Timestamp") = Time().str(ISOTime); \
+  /*ex.NewChild("estypes:Description") = "";*/ \
+  /*ex.NewChild("estypes:FailureCode") = "0";*/ \
+}
+
+#define EMIESIDFAULT(out,msg) { \
+  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
+  XMLNode ex = r.NewChild("UnknownDelegationIDFault"); \
+  ex.Namespaces(ns); \
+  ex.NewChild("Message") = (msg); \
+  ex.NewChild("Timestamp") = Time().str(ISOTime); \
+  /*ex.NewChild("Description") = "";*/ \
+  /*ex.NewChild("FailureCode") = "0";*/ \
+}
+
 DelegationContainerSOAP::DelegationContainerSOAP(void) {
   max_size_=0;         // unlimited size of container
   max_duration_=30;    // 30 seconds for delegation
@@ -1235,17 +1273,17 @@ DelegationConsumerSOAP* DelegationContainerSOAP::AddConsumer(std::string& id,con
   return cs;
 }
 
-void DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std::string& /*credentials*/) {
+bool DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std::string& /*credentials*/) {
   lock_.lock();
   ConsumerIterator i = find(c);
-  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i == consumers_.end()) { lock_.unlock(); return false; };
   i->second.last_used=time(NULL);
   if(((++(i->second.usage_count)) > max_usage_) && (max_usage_ > 0)) {
     i->second.to_remove=true;
   } else {
     i->second.to_remove=false;
   };
-  if(i == consumers_first_) { lock_.unlock(); return; };
+  if(i == consumers_first_) { lock_.unlock(); return true; };
   ConsumerIterator previous = i->second.previous;
   ConsumerIterator next = i->second.next;
   if(previous != consumers_.end()) previous->second.next=next;
@@ -1255,16 +1293,16 @@ void DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std:
   if(consumers_first_ != consumers_.end()) consumers_first_->second.previous=i;
   consumers_first_=i;
   lock_.unlock();
-  return;
+  return true;
 }
 
-void DelegationContainerSOAP::QueryConsumer(DelegationConsumerSOAP* c,std::string& credentials) {
+bool DelegationContainerSOAP::QueryConsumer(DelegationConsumerSOAP* c,std::string& credentials) {
   lock_.lock();
   ConsumerIterator i = find(c);
-  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(i->second.deleg) i->second.deleg->Backup(credentials); // only key is available
   lock_.unlock();
-  return;
+  return true;
 }
 
 void DelegationContainerSOAP::ReleaseConsumer(DelegationConsumerSOAP* c) {
@@ -1346,10 +1384,14 @@ void DelegationContainerSOAP::CheckConsumers(void) {
 bool DelegationContainerSOAP::DelegateCredentialsInit(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
   std::string id;
   DelegationConsumerSOAP* consumer = AddConsumer(id,client);
-  if(!consumer) return false;
+  if(!consumer) {
+    DELEGFAULT(out,"Failed to produce credentials container");
+    return true;
+  };
   if(!(consumer->DelegateCredentialsInit(id,in,out))) {
     RemoveConsumer(consumer);
-    return false;
+    DELEGFAULT(out,"Failed to generate credentials request");
+    return true;
   };
   ReleaseConsumer(consumer);
   CheckConsumers();
@@ -1378,13 +1420,23 @@ DelegationConsumerSOAP* DelegationContainerSOAP::FindConsumer(const std::string&
 
 bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,std::string& identity, const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
   std::string id = (std::string)(const_cast<SOAPEnvelope&>(in)["UpdateCredentials"]["DelegatedToken"]["Id"]);
-  if(id.empty()) return false;
+  if(id.empty()) {
+    DELEGFAULT(out,"Credentials identifier is missing");
+    return true;
+  };
   DelegationConsumerSOAP* c = FindConsumer(id,client);
-  if(!c) return false;
+  if(!c) {
+    DELEGFAULT(out,"Credentials identifier is unknown");
+    return true;
+  };
   bool r = c->UpdateCredentials(credentials,identity,in,out);
-  TouchConsumer(c,credentials);
+  if(!TouchConsumer(c,credentials)) r = false;
   ReleaseConsumer(c);
-  return r;
+  if(!r) {
+    DELEGFAULT(out,"Failed to acquire credentials");
+    return true;
+  };
+  return true;
 }
 
 bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,XMLNode token,const std::string& client) {
@@ -1398,42 +1450,9 @@ bool DelegationContainerSOAP::DelegatedToken(std::string& credentials,std::strin
   DelegationConsumerSOAP* c = FindConsumer(id,client);
   if(!c) return false;
   bool r = c->DelegatedToken(credentials,identity,token);
-  TouchConsumer(c,credentials);
+  if(!TouchConsumer(c,credentials)) r = false;
   ReleaseConsumer(c);
   return r;
-}
-
-#define GDS10FAULT(out,msg) { \
-  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
-  SOAPFault((out),SOAPFault::Receiver,msg); \
-}
-
-#define GDS20FAULT(out,msg) { \
-  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
-  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
-  XMLNode ex = r.NewChild("DelegationException"); \
-  ex.Namespaces(ns); ex.NewChild("msg") = (msg); \
-}
-
-#define EMIESFAULT(out,msg) { \
-  for(XMLNode old = out.Child();(bool)old;old = out.Child()) old.Destroy(); \
-  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
-  XMLNode ex = r.NewChild("InternalServiceDelegationFault"); \
-  ex.Namespaces(ns); \
-  ex.NewChild("estypes:Message") = (msg); \
-  ex.NewChild("estypes:Timestamp") = Time().str(ISOTime); \
-  /*ex.NewChild("estypes:Description") = "";*/ \
-  /*ex.NewChild("estypes:FailureCode") = "0";*/ \
-}
-
-#define EMIESIDFAULT(out,msg) { \
-  XMLNode r = SOAPFault((out),SOAPFault::Receiver,"").Detail(true); \
-  XMLNode ex = r.NewChild("UnknownDelegationIDFault"); \
-  ex.Namespaces(ns); \
-  ex.NewChild("Message") = (msg); \
-  ex.NewChild("Timestamp") = Time().str(ISOTime); \
-  /*ex.NewChild("Description") = "";*/ \
-  /*ex.NewChild("FailureCode") = "0";*/ \
 }
 
 bool DelegationContainerSOAP::Process(const SOAPEnvelope& in,SOAPEnvelope& out,const std::string& client) {
@@ -1509,7 +1528,11 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS10FAULT(out,"Failed to acquire credentials");
         return true;
       };
-      TouchConsumer(c,cred);
+      if(!TouchConsumer(c,cred)) {
+        ReleaseConsumer(c);
+        GDS10FAULT(out,"Failed to process credentials");
+        return true;
+      };
       ReleaseConsumer(c);
       credentials = cred;
       return true;
@@ -1604,7 +1627,11 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         GDS20FAULT(out,"Failed to acquire credentials");
         return true;
       };
-      TouchConsumer(c,cred);
+      if(!TouchConsumer(c,cred)) {
+        ReleaseConsumer(c);
+        GDS20FAULT(out,"Failed to process credentials");
+        return true;
+      };
       ReleaseConsumer(c);
       credentials = cred;
       return true;
@@ -1651,12 +1678,12 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       std::string credentials;
-      QueryConsumer(c,credentials);
-      ReleaseConsumer(c);
-      if(credentials.empty()) {
+      if((!QueryConsumer(c,credentials)) || credentials.empty()) {
+        ReleaseConsumer(c);
         EMIESFAULT(out,"Delegated credentials missing");
         return true;
       };
+      ReleaseConsumer(c);
       cred_info_t info;
       if(!get_cred_info(credentials,info)) {
         EMIESFAULT(out,"Delegated credentials missing");
@@ -1695,19 +1722,30 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
           return true;
         }
       }
-      // TODO: RenewalID
-      std::string id;
-      DelegationConsumerSOAP* c = AddConsumer(id,client);
-      if(!c) {
-        EMIESFAULT(out,"Failed to generate identifier");
-        return true;
+      std::string id = op["RenewalID"];
+      DelegationConsumerSOAP* c = NULL;
+      bool renew = false;
+      if(!id.empty()) {
+        c = FindConsumer(id,client);
+        if(!c) {
+          EMIESFAULT(out,"Failed to find identifier");
+          return true;
+        };
+        renew = true;
+      } else {
+        c = AddConsumer(id,client);
+        if(!c) {
+          EMIESFAULT(out,"Failed to generate identifier");
+          return true;
+        };
       };
       std::string x509_request;
       // TODO: use lifetime
       c->Request(x509_request);
       //if((!strip_PEM_request(x509_request)) || (x509_request.empty())) {
       if(x509_request.empty()) {
-        RemoveConsumer(c);
+        if(renew) ReleaseConsumer(c);
+        else RemoveConsumer(c);
         EMIESFAULT(out,"Failed to generate request");
         return true;
       };
@@ -1744,7 +1782,11 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         EMIESFAULT(out,"Failed to acquire credentials");
         return true;
       };
-      TouchConsumer(c,cred);
+      if(!TouchConsumer(c,cred)) {
+        ReleaseConsumer(c);
+        EMIESFAULT(out,"Failed to process credentials");
+        return true;
+      };
       ReleaseConsumer(c);
       credentials = cred;
       r.NewChild("SUCCESS");
@@ -1763,12 +1805,12 @@ bool DelegationContainerSOAP::Process(std::string& credentials,const SOAPEnvelop
         return true;
       };
       std::string credentials;
-      QueryConsumer(c,credentials);
-      ReleaseConsumer(c);
-      if(credentials.empty()) {
+      if((!QueryConsumer(c,credentials)) || credentials.empty()) {
+        ReleaseConsumer(c);
         EMIESFAULT(out,"Delegated credentials missing");
         return true;
       };
+      ReleaseConsumer(c);
       cred_info_t info;
       if(!get_cred_info(credentials,info)) {
         EMIESFAULT(out,"Delegated credentials missing");

@@ -192,9 +192,9 @@ class DelegationContainerSOAP {
   /** Finds previously created consumer in internal store */
   virtual DelegationConsumerSOAP* FindConsumer(const std::string& id,const std::string& client);
   /** Marks consumer as recently used and acquire new credentials */
-  virtual void TouchConsumer(DelegationConsumerSOAP* c,const std::string& credentials);
+  virtual bool TouchConsumer(DelegationConsumerSOAP* c,const std::string& credentials);
   /** Obtain stored credentials - not all containers may provide this functionality */
-  virtual void QueryConsumer(DelegationConsumerSOAP* c,std::string& credentials);
+  virtual bool QueryConsumer(DelegationConsumerSOAP* c,std::string& credentials);
   /** Releases consumer obtained by call to AddConsumer() or FindConsumer() */
   virtual void ReleaseConsumer(DelegationConsumerSOAP* c);
   /** Releases consumer obtained by call to AddConsumer() or FindConsumer() and deletes it */
