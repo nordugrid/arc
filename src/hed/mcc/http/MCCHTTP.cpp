@@ -13,23 +13,23 @@
 
 
 
-Arc::Logger Arc::MCC_HTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
+Arc::Logger ArcMCCHTTP::MCC_HTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
 
-Arc::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCHTTP::MCC_HTTP::MCC_HTTP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_HTTP_Service((Arc::Config*)(*mccarg));
+    return new ArcMCCHTTP::MCC_HTTP_Service((Arc::Config*)(*mccarg));
 }
 
 static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_HTTP_Client((Arc::Config*)(*mccarg));
+    return new ArcMCCHTTP::MCC_HTTP_Client((Arc::Config*)(*mccarg));
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -38,7 +38,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { NULL, NULL, NULL, 0, NULL }
 };
 
-namespace Arc {
+namespace ArcMCCHTTP {
+
+using namespace Arc;
 
 class HTTPSecAttr: public SecAttr {
  friend class MCC_HTTP_Service;
@@ -430,4 +432,4 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
   return MCC_Status(STATUS_OK);
 }
 
-} // namespace Arc
+} // namespace ArcMCCHTTP

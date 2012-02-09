@@ -3,7 +3,9 @@
 
 #include <arc/message/MCC.h>
 
-namespace Arc {
+namespace ArcMCCHTTP {
+
+using namespace Arc;
 
 //! A base class for HTTP client and service MCCs.
 /*! This is a base class for HTTP client and service MCCs. It
@@ -69,6 +71,6 @@ class MCC_HTTP_Client: public MCC_HTTP {
         virtual MCC_Status process(Message&,Message&);
 };
 
-} // namespace Arc
+} // namespace ArcMCCHTTP
 
 #endif /* __ARC_MCCSOAP_H__ */

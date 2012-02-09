@@ -20,7 +20,9 @@
 #define HTTP_INTERNAL_ERR (500)
 #define HTTP_NOT_IMPLEMENTED (501)
 
-namespace Arc {
+namespace ArcMCCHTTP {
+
+using namespace Arc;
 
 /** This class implements parsing and generation of HTTP messages.
   It implements only subset of HTTP/1.1 and also provides an PayloadRawInterface 
@@ -174,6 +176,6 @@ class PayloadHTTP: virtual public PayloadRaw, virtual public PayloadStreamInterf
 
 };
 
-} // namespace Arc
+} // namespace ArcMCCHTTP
 
 #endif /* __ARC_PAYLOADHTTP_H__ */

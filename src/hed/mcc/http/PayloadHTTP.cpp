@@ -13,9 +13,11 @@
 #include "PayloadHTTP.h"
 #include <arc/StringConv.h>
 
-namespace Arc {
+namespace ArcMCCHTTP {
 
-Arc::Logger Arc::PayloadHTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
+using namespace Arc;
+
+Arc::Logger PayloadHTTP::logger(Arc::Logger::getRootLogger(), "MCC.HTTP");
 
 static std::string empty_string("");
 
@@ -65,6 +67,7 @@ bool PayloadHTTP::readline(std::string& line) {
 }
 
 bool PayloadHTTP::read(char* buf,int64_t& size) {
+char* ss = buf;
   if(tbuflen_ >= size) {
     memcpy(buf,tbuf_,size);
     memmove(tbuf_,tbuf_+size,tbuflen_-size+1);
@@ -470,7 +473,7 @@ bool PayloadHTTP::get_body(void) {
       if(new_result == NULL) { free(result); return false; };
       result=new_result;
       if(!read_multipart(result+result_size,chunk_size)) break;
-  // TODO: logical size is not always same as end of body
+      // TODO: logical size is not always same as end of body
       result_size+=chunk_size;
     };
   };
@@ -948,5 +951,5 @@ PayloadStreamInterface::Size_t PayloadHTTP::Limit(void) const {
   return Size();
 }
 
-} // namespace Arc
+} // namespace ArcMCCHTTP
 
