@@ -209,33 +209,6 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
   return s;
 }
 
-static void convert_period(std::string& period) {
-  std::string ret;
-  if (!period.empty() && ((period.rfind("h") != std::string::npos) || (period.rfind("H") != std::string::npos))) {
-    //If the validityPeriod is set as hours
-    std::string str;
-    std::string::size_type pos1 = period.find_first_of("0123456789");
-    std::string::size_type pos2 = period.find_last_of("0123456789");
-    str = period.substr(pos1, pos2-pos1+1);
-    unsigned long tmp;
-    tmp = strtoll(str.c_str(), NULL, 0);
-    tmp = tmp * 3600;
-    period = Arc::tostring(tmp);
-  }
-  else if (!period.empty() && ((period.rfind("d") != std::string::npos) || (period.rfind("D") != std::string::npos))) {
-    //If the validityPeriod is set as days
-    std::string str;
-    std::string::size_type pos1 = period.find_first_of("0123456789");
-    std::string::size_type pos2 = period.find_last_of("0123456789");
-    str = period.substr(pos1, pos2-pos1+1);
-    unsigned long tmp;
-    tmp = strtoll(str.c_str(), NULL, 0);
-    tmp = tmp * 3600 * 24;
-    period = Arc::tostring(tmp);
-  }
-}
-
-
 int main(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
@@ -606,98 +579,98 @@ int main(int argc, char *argv[]) {
   //proxy validity period
   //Set the default proxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
-  if ((constraints["validityEnd"].empty()) &&
-      (constraints["validityPeriod"].empty())) {
-    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
-      constraints["validityPeriod"] = "604800";    
-      //For myproxy PUT operation, the proxy should be 7 days according to the default 
-      //definition in myproxy implementation.
-    else
-      constraints["validityPeriod"] = "43200";
+  // Set default values first
+  // TODO: Is default validityPeriod since now or since validityStart?
+  Arc::Time validityStart = now; // now by default
+  Arc::Period validityPeriod(12*60*60);
+  if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put") {
+    //For myproxy PUT operation, the proxy should be 7 days according to the default 
+    //definition in myproxy implementation.
+    validityPeriod = 7*24*60*60;
   }
-  else if(!(constraints["validityEnd"].empty()) && (constraints["validityPeriod"].empty())){
-    constraints["validityPeriod"] = constraints["validityStart"].empty() ? (Arc::Time(constraints["validityEnd"]) - now) : (Arc::Time(constraints["validityEnd"]) - (Arc::Time(constraints["validityStart"]) > now ? Arc::Time(constraints["validityStart"]) : now));
+  // Acquire constraints. Check for valid values and conflicts.
+  if((!constraints["validityStart"].empty()) && 
+     (!constraints["validityEnd"].empty()) &&
+     (!constraints["validityPeriod"].empty())) {
+    std::cerr << Arc::IString("The start, end and period can't be set simultaneously") << std::endl;
+    return EXIT_FAILURE;
   }
-  else if((constraints["validityEnd"].empty()) && !(constraints["validityPeriod"].empty())){
-    Arc::Time start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
-    if(start < now) {
-      std::cout << Arc::IString("The start time that you set: %s is before current time: %s", (std::string)start, (std::string)now) << std::endl;
-      Arc::Period prd = Arc::Period(constraints["validityPeriod"]);
-      if(start + prd < now) {
-        std::cout << Arc::IString("The start time that you set plus validityPeriod: %s is before current time: %s.\nPlease set the time constraints once again.", (std::string)(start + constraints["validityPeriod"]), (std::string)now) << std::endl;
-        return EXIT_FAILURE;
-      }
-      else {
-        std::string tmp = Arc::tostring(Arc::Period(prd.GetPeriod() - (now - start).GetPeriod()));
-        std::cout << Arc::IString("The start time that you set plus validityPeriod: %s is after current time: %s.\nThe validityPeriod will be shorten to %s.", (std::string)(start + constraints["validityPeriod"]), (std::string)now, tmp) << std::endl;
-        constraints["validityPeriod"] = tmp;
-      }
-      //constraints["validityStart"] = now;
-    }
-  }
-  else {
-    Arc::Time start = constraints["validityStart"].empty() ? now : Arc::Time(constraints["validityStart"]);
-    if(start < now) {  
-      std::cout << Arc::IString("The start time that you set: %s is before current time: %s.\nThe current time will be used as start time.", (std::string)start, (std::string)now) << std::endl;
-      start = now;
-      //constraints["validityStart"] = now;
-    }
-    else if(start > now)
-      std::cout << Arc::IString("The start time that you set: %s is after current time: %s.", (std::string)start, (std::string)now) << std::endl;
-
-    Arc::Time end = Arc::Time(constraints["validityEnd"]);
-    if(end > start) {
-      if((end - start) >= Arc::Period(constraints["validityPeriod"])) {
-        std::cout << Arc::IString("The end time that you set: %s is after the start time plus validityPeriod: %s.\n The validityPeriod will not be changed.\n", (std::string)end, (std::string)(start+Arc::Period(constraints["validityPeriod"]))) << std::endl;
-      }
-      else {
-        std::cout << Arc::IString("The end time that you set: %s is before the start time plus validityPeriod: %s.\nThe validityPeriod will be shorten to: %s.", (std::string)end, (std::string)(start+Arc::Period(constraints["validityPeriod"])), Arc::tostring(end - start)) << std::endl;
-        constraints["validityPeriod"] = Arc::tostring((end - start).GetPeriod()); 
-      }
-    }
-    else { 
-      std::cout << Arc::IString("The end time that you set: %s is before start time: %s.\nPlease set the time constraints once again.\n", (std::string)end, (std::string)(start)) << std::endl;
+  if(!constraints["validityStart"].empty()) {
+    validityStart = Arc::Time(constraints["validityStart"]);
+    if (validityStart == Arc::Time(Arc::Time::UNDEFINED)) {
+    std::cerr << Arc::IString("The start time that you set: %s can't be recognized.", (std::string)constraints["validityStart"]) << std::endl;
       return EXIT_FAILURE;
     }
   }
-  
-  if(constraints["validityPeriod"].empty()) {
-    if (myproxy_command == "put" || myproxy_command == "PUT" || myproxy_command == "Put")
-      constraints["validityPeriod"] = "604800";
-    else
-      constraints["validityPeriod"] = "43200";
+  if(!constraints["validityPeriod"].empty()) {
+    validityPeriod = Arc::Period(constraints["validityPeriod"]);
+    if (validityPeriod.GetPeriod() <= 0) {
+      std::cerr << Arc::IString("The period that you set: %s can't be recognized.", (std::string)constraints["validityPeriod"]) << std::endl;
+      return EXIT_FAILURE;
+    }
   }
-  convert_period(constraints["validityPeriod"]);
+  if(!constraints["validityEnd"].empty()) {
+    Arc::Time validityEnd = Arc::Time(constraints["validityEnd"]);
+    if (validityEnd == Arc::Time(Arc::Time::UNDEFINED)) {
+      std::cerr << Arc::IString("The end time that you set: %s can't be recognized.", (std::string)constraints["validityEnd"]) << std::endl;
+      return EXIT_FAILURE;
+    }
+    if(!constraints["validityPeriod"].empty()) {
+      // If period is explicitely set then start is derived from end and period
+      validityStart = validityEnd - validityPeriod;
+    } else {
+      // otherwise start - optionally - and end are set, period is derived
+      if(validityEnd < validityStart) {
+        std::cerr << Arc::IString("The end time that you set: %s is before start time:%s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
+        // error
+        return EXIT_FAILURE;
+      }
+      validityPeriod = validityEnd - validityStart;
+    }
+  }
+  // Here we have validityStart and validityPeriod defined
+  Arc::Time validityEnd = validityStart + validityPeriod;
+  // Warn user about strange times but do not prevent user from doing anything legal
+  if(validityStart < now) {
+    std::cout << Arc::IString("WARNING: The start time that you set: %s is before current time: %s", (std::string)validityStart, (std::string)now) << std::endl;
+  }
+  if(validityEnd < now) {
+    std::cout << Arc::IString("WARNING: The end time that you set: %s is before current time: %s", (std::string)validityEnd, (std::string)now) << std::endl;
+  }
 
   //voms AC valitity period
-  if(!constraints["vomsACvalidityPeriod"].empty())
-    convert_period(constraints["vomsACvalidityPeriod"]);
-
   //Set the default voms AC validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
-  if (constraints["vomsACvalidityPeriod"].empty()) {
-    unsigned long period_val = Arc::Period(constraints["validityPeriod"]).GetPeriod();
-    if(period_val<=43200)
-      constraints["vomsACvalidityPeriod"] = constraints["validityPeriod"];
-    else 
-      constraints["vomsACvalidityPeriod"] = "43200";
+  Arc::Period vomsACvalidityPeriod(12*60*60);
+  if(!constraints["vomsACvalidityPeriod"].empty()) {
+    vomsACvalidityPeriod = Arc::Period(constraints["vomsACvalidityPeriod"]);
+    if (vomsACvalidityPeriod.GetPeriod() == 0) {
+      std::cerr << Arc::IString("The VOMS AC period that you set: %s can't be recognized.", (std::string)constraints["vomsACvalidityPeriod"]) << std::endl;
+      return EXIT_FAILURE;
+    }
+  } else {
+    if(validityPeriod < vomsACvalidityPeriod) vomsACvalidityPeriod = validityPeriod;
+    // It is strange that VOMS AC may be valid less than proxy itself.
+    // Maybe it would be more correct to have it valid by default from 
+    // now till validityEnd.
   }
-  std::string voms_period = constraints["vomsACvalidityPeriod"];
+  std::string voms_period = Arc::tostring(vomsACvalidityPeriod.GetPeriod());
 
   //myproxy validity period.
-  if(!constraints["myproxyvalidityPeriod"].empty())
-    convert_period(constraints["myproxyvalidityPeriod"]);
-
   //Set the default myproxy validity lifetime to 12 hours if there is
   //no validity lifetime provided by command caller
-  if (constraints["myproxyvalidityPeriod"].empty()) {
-    unsigned long period_val = Arc::Period(constraints["validityPeriod"]).GetPeriod();
-    if(period_val<=43200)
-      constraints["myproxyvalidityPeriod"] = constraints["validityPeriod"];
-    else  
-      constraints["myproxyvalidityPeriod"] = "43200";
+  Arc::Period myproxyvalidityPeriod(12*60*60);
+  if(!constraints["myproxyvalidityPeriod"].empty()) {
+    myproxyvalidityPeriod = Arc::Period(constraints["myproxyvalidityPeriod"]);
+    if (myproxyvalidityPeriod.GetPeriod() == 0) {
+      std::cerr << Arc::IString("The MyProxy period that you set: %s can't be recognized.", (std::string)constraints["myproxyvalidityPeriod"]) << std::endl;
+      return EXIT_FAILURE;
+    }
+  } else {
+    if(validityPeriod < myproxyvalidityPeriod) myproxyvalidityPeriod = validityPeriod;
+    // see vomsACvalidityPeriod
   }
-  std::string myproxy_period = constraints["myproxyvalidityPeriod"];
+  std::string myproxy_period = Arc::tostring(myproxyvalidityPeriod.GetPeriod());
 
 
   Arc::OpenSSLInit();
@@ -913,9 +886,13 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  Arc::Time proxy_start = constraints["validityStart"].empty() ? (now - Arc::Period(300)) : Arc::Time(constraints["validityStart"]);
-  Arc::Period proxy_period = Arc::Period(constraints["validityPeriod"]);
-  if(constraints["validityStart"].empty()) proxy_period = proxy_period.GetPeriod() + 300;
+  Arc::Time proxy_start = validityStart;
+  Arc::Period proxy_period = validityPeriod;
+  if (constraints["validityStart"].empty() && constraints["validityEnd"].empty()) {
+    // If start/end is not explicitely specified then add 5 min back gap.
+    proxy_start = proxy_start - Arc::Period(300);
+    proxy_period.SetPeriod(proxy_period.GetPeriod() + 300);
+  }
 
   //Create proxy or voms proxy
   try {
