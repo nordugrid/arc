@@ -1147,7 +1147,7 @@ sub collect($) {
         #} else {
         #    $cep->{ServingState} = 'production';
         #}
-        $cep->{ServingState} = 'development';
+        $cep->{ServingState} = 'production';
 
         # StartTime: get it from hed
 
