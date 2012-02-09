@@ -34,6 +34,16 @@ namespace ARex {
     std::string path = fstore_.Add(id,client,std::list<std::string>());
     if(path.empty()) return NULL;
     Arc::DelegationConsumerSOAP* cs = new Arc::DelegationConsumerSOAP();
+    std::string key;
+    cs->Backup(key);
+    if(!key.empty()) {
+      make_dir_for_file(path);
+      if(!Arc::FileCreate(path,key,0,0,S_IRUSR|S_IWUSR)) {
+        fstore_.Remove(id,client);
+        delete cs; cs = NULL;
+        return NULL;
+      };
+    };
     Glib::Mutex::Lock lock(lock_);
     acquired_.insert(std::pair<Arc::DelegationConsumerSOAP*,Consumer>(cs,Consumer(id,client,path)));
     return cs;
@@ -90,24 +100,25 @@ namespace ARex {
     return cs;
   }
 
-  void DelegationStore::TouchConsumer(Arc::DelegationConsumerSOAP* c,const std::string& credentials) {
-    if(!c) return;
+  bool DelegationStore::TouchConsumer(Arc::DelegationConsumerSOAP* c,const std::string& credentials) {
+    if(!c) return false;
     Glib::Mutex::Lock lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
-    if(i == acquired_.end()) return; // ????
-    // TODO: store into file
+    if(i == acquired_.end()) return false;
     if(!credentials.empty()) {
       make_dir_for_file(i->second.path);
-      Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR);
+      if(!Arc::FileCreate(i->second.path,credentials,0,0,S_IRUSR|S_IWUSR)) return false;
     };
+    return true;
   }
 
-  void DelegationStore::QueryConsumer(Arc::DelegationConsumerSOAP* c,std::string& credentials) {
-    if(!c) return;
+  bool DelegationStore::QueryConsumer(Arc::DelegationConsumerSOAP* c,std::string& credentials) {
+    if(!c) return false;
     Glib::Mutex::Lock lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
-    if(i == acquired_.end()) return; // ????
+    if(i == acquired_.end()) return false;
     Arc::FileRead(i->second.path,credentials);
+    return true;
   }
 
   void DelegationStore::ReleaseConsumer(Arc::DelegationConsumerSOAP* c) {
