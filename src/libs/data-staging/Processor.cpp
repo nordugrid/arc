@@ -629,13 +629,15 @@ namespace DataStaging {
     if (!request->get_source()->GetURL().MetaDataOption("guid").empty())
       canonic_url += ":guid=" + request->get_source()->GetURL().MetaDataOption("guid");
 
-    // check for error, cancellation or cache not being used
+    // don't link if error, cancellation or cache not being used
     if (request->error() || request->cancel_requested() || request->get_cache_state() == CACHE_NOT_USED) {
-      // don't delete cache file if it was already present or successfully downloaded
-      if (request->error() || (request->cancel_requested() && request->get_cache_state() == CACHEABLE)) {
-        cache.StopAndDelete(canonic_url);
-      } else {
-        cache.Stop(canonic_url);
+      // release locks if they were acquired
+      if (request->get_cache_state() == CACHEABLE || request->get_cache_state() == CACHE_NOT_USED) {
+        if (request->error() || request->cancel_requested()) {
+          cache.StopAndDelete(canonic_url);
+        } else {
+          cache.Stop(canonic_url);
+        }
       }
       request->set_status(DTRStatus::CACHE_PROCESSED);
       request->connect_logger();
