@@ -1,4 +1,5 @@
-pkglib_LTLIBRARIES = libaccSERTEST.la
+pkglibtestdir = $(pkglibdir)/test
+pkglibtest_LTLIBRARIES = libaccSERTEST.la
 lib_LTLIBRARIES = libarcserviceretriever.la
 
 libarcserviceretriever_ladir = $(pkgincludedir)/client
