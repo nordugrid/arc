@@ -24,8 +24,13 @@ class UserConfig;
  **/
 class RegistryEndpoint {
 public:
+  RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {};
   std::string Endpoint;
   std::string Type;
+  // Needed for std::map ('status' in ServiceEndpointRetriever) to be able to sort the keys
+  bool operator<(const RegistryEndpoint& other) const {
+    return Endpoint + Type < other.Endpoint + other.Type;
+  }
 };
 
 ///
@@ -61,16 +66,21 @@ public:
   ServiceEndpointContainer() {}
   ~ServiceEndpointContainer() {}
 
-  void addServiceEndpoint(const ServiceEndpoint&) {}
+  void addServiceEndpoint(const ServiceEndpoint& endpoint) { endpoints.push_back(endpoint); }
+  std::list<ServiceEndpoint> endpoints;
 };
 
 ///
 /**
  *
  **/
-class ServiceEndpointStatus {
+   
+enum SERStatus { SER_UNKNOWN, SER_STARTED, SER_FAILED, SER_SUCCESSFUL };
+
+class RegistryEndpointStatus {
 public:
-  bool status;
+  RegistryEndpointStatus(SERStatus status = SER_UNKNOWN) : status(status) {};
+  SERStatus status;
 private:
   //MCC_Status mccstatus;
   //DataStatus datastatus;
@@ -90,19 +100,20 @@ public:
    * 'seConsumer'. Querying the registries will be done in a threaded manner
    * and the constructor is not waiting for these threads to finish.
    **/
-  /*
   ServiceEndpointRetriever(const UserConfig& uc,
                            const std::list<RegistryEndpoint>& registries,
                            ServiceEndpointConsumer& seConsumer,
-                           bool recursive = false,
-                           std::string capabilityFilter = "");
-                           */
-
-  //bool isDone() const;
-  //ServiceEndpointStatus getStatus(const std::string& registryEndpoint) const {}
+                           const bool recursive = false,
+                           const std::list<std::string> capabilityFilter = std::list<std::string>());
+  
+  void wait() const {}  
+  bool isDone() const { return true; }
+  RegistryEndpointStatus getStatusOfRegistry(const RegistryEndpoint) const;
 
 private:
-  std::map<std::string, ServiceEndpointStatus> status;
+  std::map<RegistryEndpoint, RegistryEndpointStatus> status;
+  
+  static Logger logger;
 };
 
 ///
@@ -111,7 +122,7 @@ private:
  **/
 class ServiceEndpointRetrieverPlugin : public Plugin {
 public:
-  virtual ServiceEndpointStatus Query(const UserConfig&, const RegistryEndpoint& rEndpoint, ServiceEndpointConsumer&) = 0;
+  virtual RegistryEndpointStatus Query(const UserConfig&, const RegistryEndpoint& rEndpoint, ServiceEndpointConsumer&) = 0;
 };
 
 /// Class responsible for loading ServiceEndpointRetrieverPlugin plugins
@@ -145,8 +156,9 @@ private:
 
 class ServiceEndpointRetrieverTESTControl {
 public:
-  static int* tcTimeout;
-  static ServiceEndpointStatus* tcStatus;
+  static float tcPeriod;
+  static RegistryEndpointStatus tcStatus;
+  static std::list<ServiceEndpoint> tcEndpoints;
 };
 
 }

@@ -12,6 +12,18 @@ Plugin* ServiceEndpointRetrieverTEST::Instance(PluginArgument* arg) {
   return new ServiceEndpointRetrieverTEST();
 }
 
+RegistryEndpointStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& uc,
+                                                          const RegistryEndpoint& rEndpoint,
+                                                          ServiceEndpointConsumer& consumer) {
+  for (std::list<ServiceEndpoint>::const_iterator it = ServiceEndpointRetrieverTESTControl::tcEndpoints.begin();
+       it != ServiceEndpointRetrieverTESTControl::tcEndpoints.end(); it++) {
+    Glib::usleep(ServiceEndpointRetrieverTESTControl::tcPeriod*1000000);
+    consumer.addServiceEndpoint(*it);
+  }
+  return ServiceEndpointRetrieverTESTControl::tcStatus;
+};
+
+
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {

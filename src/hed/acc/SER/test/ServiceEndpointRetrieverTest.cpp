@@ -32,12 +32,10 @@ void ServiceEndpointRetrieverTest::PluginLoading() {
 
 
 void ServiceEndpointRetrieverTest::QueryTest() {
-  int timeout = 5;
-  Arc::ServiceEndpointStatus sInitial;
-  sInitial.status = true;
+  Arc::RegistryEndpointStatus sInitial(Arc::SER_SUCCESSFUL);
 
-  Arc::ServiceEndpointRetrieverTESTControl::tcTimeout  = &timeout;
-  Arc::ServiceEndpointRetrieverTESTControl::tcStatus   = &sInitial;
+  Arc::ServiceEndpointRetrieverTESTControl::tcPeriod = 1;
+  Arc::ServiceEndpointRetrieverTESTControl::tcStatus = sInitial;
 
   Arc::ServiceEndpointRetrieverPluginLoader l;
   Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
@@ -46,8 +44,8 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::UserConfig uc;
   Arc::RegistryEndpoint re;
   Arc::ServiceEndpointContainer cReturned;
-  Arc::ServiceEndpointStatus sReturned = p->Query(uc, re, cReturned);
-  CPPUNIT_ASSERT(sReturned.status);
+  Arc::RegistryEndpointStatus sReturned = p->Query(uc, re, cReturned);
+  CPPUNIT_ASSERT(sReturned.status == Arc::SER_SUCCESSFUL);
 }
 
 

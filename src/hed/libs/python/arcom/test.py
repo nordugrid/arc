@@ -12,12 +12,30 @@ class ExpectationalTestCase(unittest.TestCase):
             if message is None:
                 message = "%s was expected to be %s" % (self.actual, expected)
             self.testcase.assertEqual(self.actual, expected, message)
-        
+
+        def not_to_be(self, expected, message = None):
+            if message is None:
+                message = "%s was expected not to be %s" % (self.actual, expected)
+            self.testcase.assertNotEqual(self.actual, expected, message)
+            
         def to_be_empty(self):
             self.testcase.assertEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
 
         def not_to_be_empty(self):
             self.testcase.assertNotEqual(len(self.actual), 0, "%s was expected to be empty" % (self.actual,))
+
+        def to_be_an_instance_of(self, class_):
+            self.testcase.assertTrue(isinstance(self.actual, class_), "%s was expected to be an instance of %s" % (self.actual, class_)) 
+            
+        def to_not_throw(self):
+            try:
+                self.actual()
+            except Exception, e:
+                self.testcase.fail("%s was expected not to raise an exception, but it did: %s" % (self.actual, e))
+
+        def to_contain(self, *items):
+            for item in items:
+                self.testcase.assertTrue(item in self.actual, "%s was expected to contain %s" % (self.actual, item))
 
         def to_have(self, number):
             self.number = number
@@ -25,7 +43,7 @@ class ExpectationalTestCase(unittest.TestCase):
         
         def _test_having(self):
             self.testcase.assertEqual(len(self.actual), self.number,
-                "%s was expected to have %s %s, but it only has %s" %
+                "%s was expected to have %s %s, but it has %s instead" %
                     (self.actual,
                     self.number,
                     self.item_name,
