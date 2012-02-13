@@ -135,6 +135,11 @@ BuildRequires:	mktemp
 BuildRequires:	selinux-policy-devel
 %endif
 BuildRequires:	swig
+%if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
+BuildRequires:	libtool-ltdl-devel
+%else
+BuildRequires:	libtool
+%endif
 
 %description
 NorduGrid is a collaboration aiming at development, maintenance and
