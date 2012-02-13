@@ -20,8 +20,14 @@
 %filter_setup
 %endif
 
+%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0}
 %global with_xrootd  %{!?_without_xrootd:1}%{?_without_xrootd:0}
+%else
+%global with_xrootd  0
+%endif
+
 %global with_lfc  %{!?_without_lfc:1}%{?_without_lfc:0}
+
 %if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
 %global with_java %{!?_without_java:1}%{?_without_java:0}
 %else
