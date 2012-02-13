@@ -34,8 +34,8 @@ void ServiceEndpointRetrieverTest::PluginLoading() {
 void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::RegistryEndpointStatus sInitial(Arc::SER_SUCCESSFUL);
 
-  Arc::ServiceEndpointRetrieverTESTControl::tcPeriod = 1;
-  Arc::ServiceEndpointRetrieverTESTControl::tcStatus = sInitial;
+  Arc::ServiceEndpointRetrieverTESTControl::delay = 1;
+  Arc::ServiceEndpointRetrieverTESTControl::status = sInitial;
 
   Arc::ServiceEndpointRetrieverPluginLoader l;
   Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");

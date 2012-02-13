@@ -12,15 +12,15 @@ Plugin* ServiceEndpointRetrieverTEST::Instance(PluginArgument* arg) {
   return new ServiceEndpointRetrieverTEST();
 }
 
-RegistryEndpointStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& uc,
-                                                          const RegistryEndpoint& rEndpoint,
+RegistryEndpointStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& userconfig,
+                                                          const RegistryEndpoint& endpoint,
                                                           ServiceEndpointConsumer& consumer) {
-  for (std::list<ServiceEndpoint>::const_iterator it = ServiceEndpointRetrieverTESTControl::tcEndpoints.begin();
-       it != ServiceEndpointRetrieverTESTControl::tcEndpoints.end(); it++) {
-    Glib::usleep(ServiceEndpointRetrieverTESTControl::tcPeriod*1000000);
+  Glib::usleep(ServiceEndpointRetrieverTESTControl::delay*1000000);
+  for (std::list<ServiceEndpoint>::const_iterator it = ServiceEndpointRetrieverTESTControl::endpoints.begin();
+       it != ServiceEndpointRetrieverTESTControl::endpoints.end(); it++) {
     consumer.addServiceEndpoint(*it);
   }
-  return ServiceEndpointRetrieverTESTControl::tcStatus;
+  return ServiceEndpointRetrieverTESTControl::status;
 };
 
 

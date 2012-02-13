@@ -8,7 +8,7 @@
 #include <arc/URL.h>
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
-
+#include <arc/UserConfig.h>
 namespace Arc {
 
 class DataStatus;
@@ -16,7 +16,6 @@ class Loader;
 class MCC_Status;
 class Plugin;
 class PluginArgument;
-class UserConfig;
 
 ///
 /**
@@ -86,6 +85,8 @@ private:
   //DataStatus datastatus;
 };
 
+class ThreadArgSER;
+
 ///
 /**
  * Convenience class for retrieving service endpoint information from a registry
@@ -100,20 +101,31 @@ public:
    * 'seConsumer'. Querying the registries will be done in a threaded manner
    * and the constructor is not waiting for these threads to finish.
    **/
-  ServiceEndpointRetriever(const UserConfig& uc,
-                           const std::list<RegistryEndpoint>& registries,
-                           ServiceEndpointConsumer& seConsumer,
-                           const bool recursive = false,
-                           const std::list<std::string> capabilityFilter = std::list<std::string>());
-  
-  void wait() const {}  
-  bool isDone() const { return true; }
-  RegistryEndpointStatus getStatusOfRegistry(const RegistryEndpoint) const;
+  ServiceEndpointRetriever(UserConfig uc,
+                           std::list<RegistryEndpoint> registries,
+                           ServiceEndpointConsumer& consumer,
+                           bool recursive = false,
+                           std::list<std::string> capabilityFilter = std::list<std::string>());
+  void wait() const;  
+  bool isDone() const;
+  RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
+  bool testAndSetStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
+  void setStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
+
+  UserConfig userconfig;
 
 private:
-  std::map<RegistryEndpoint, RegistryEndpointStatus> status;
+  static void QueryRegistry(void *arg_);
   
+  ThreadArgSER* CreateThreadArg(RegistryEndpoint& registry,
+                                ServiceEndpointConsumer& consumer,
+                                std::list<std::string>& capabilityFilter);
+  
+  std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
+
   static Logger logger;
+  mutable SimpleCounter threadCounter;
+  mutable SimpleCondition lock;
 };
 
 ///
@@ -156,9 +168,9 @@ private:
 
 class ServiceEndpointRetrieverTESTControl {
 public:
-  static float tcPeriod;
-  static RegistryEndpointStatus tcStatus;
-  static std::list<ServiceEndpoint> tcEndpoints;
+  static float delay;
+  static RegistryEndpointStatus status;
+  static std::list<ServiceEndpoint> endpoints;
 };
 
 }
