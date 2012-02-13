@@ -37,12 +37,20 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
     def test_constructor_returns_immediately(self):
         container = arc.ServiceEndpointContainer()
         registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
-        arc.ServiceEndpointRetrieverTESTControl.delay = 1
+        arc.ServiceEndpointRetrieverTESTControl.delay = 0.1
         retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container)
         # the endpoint should not arrive yet
         self.expect(container.endpoints).to_have(0).endpoints()
         # wait while it finishes to avoid the container getting out of scope
         retriever.wait()
+        
+    def test_same_endpoint_is_not_tested_twice(self):
+        self.turn_on_logging()
+        container = arc.ServiceEndpointContainer()
+        registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST"), arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container)
+        retriever.wait()
+        self.expect(container.endpoints).to_have(1).endpoint()
 
 if __name__ == '__main__':
     unittest.main()

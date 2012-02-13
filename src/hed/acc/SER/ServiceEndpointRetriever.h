@@ -87,6 +87,21 @@ private:
 
 class ThreadArgSER;
 
+class ThreadSafeConsumer : public ServiceEndpointConsumer {
+public:
+  ThreadSafeConsumer(ServiceEndpointConsumer& consumer) : consumer(consumer) {}
+  
+  void addServiceEndpoint(const ServiceEndpoint& endpoint) {
+    lock.lock();
+    consumer.addServiceEndpoint(endpoint);
+    lock.unlock();
+   }
+  
+private:
+  SimpleCondition lock;
+  ServiceEndpointConsumer& consumer;
+};
+
 ///
 /**
  * Convenience class for retrieving service endpoint information from a registry
@@ -126,6 +141,8 @@ private:
   static Logger logger;
   mutable SimpleCounter threadCounter;
   mutable SimpleCondition lock;
+  
+  ThreadSafeConsumer safeConsumer;
 };
 
 ///
