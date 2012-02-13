@@ -406,7 +406,7 @@ namespace DataStaging {
         archived_dtrs_lock.unlock();
       }
       else {
-        logger.msg(Arc::INFO, "DTR %s still in progress (%lluB transferred)",
+        logger.msg(Arc::VERBOSE, "DTR %s still in progress (%lluB transferred)",
                    dtrid, dtr->get_bytes_transferred());
         resultelement.NewChild("ResultCode") = "TRANSFERRING";
         active_dtrs_lock.unlock();
