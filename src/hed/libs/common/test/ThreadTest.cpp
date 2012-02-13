@@ -103,7 +103,9 @@ void ThreadTest::TestBroadcast() {
 void ThreadTest::func_wait(void* arg) {
   ThreadTest* test = (ThreadTest*)arg;
   test->cond.wait();
+  lock->lock();
   test->counter++;
+  lock->unlock();
 }
 
 void ThreadTest::func(void*) {
