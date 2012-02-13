@@ -463,9 +463,6 @@ sub ComputingService {
         $self->ComputingEndpoints($data->{ComputingEndpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
-        $self->beginGroup("ComputingActivities");
-        $self->ComputingActivities($data->{ComputingActivities});
-        $self->end();
         $self->ToStorageServices($data->{ToStorageServices});
         $self->Location($data->{Location});
         $self->Contacts($data->{Contacts});
@@ -496,6 +493,9 @@ sub ComputingEndpoint {
 sub ComputingEndpoints {
     LdifPrinter::Entries(@_, 'GLUE2Endpoint', 'ID', \&ComputingEndpointAttributes, sub {
         my ($self, $data) = @_;
+        $self->beginGroup("ComputingActivities");
+        $self->ComputingActivities($data->{ComputingActivities});
+        $self->end();
         $self->AccessPolicies($data->{AccessPolicies});
     });
 }
@@ -561,8 +561,8 @@ sub Top {
     $self->AdminDomain(&$data->{AdminDomain});
     $self->end;
     $self->beginGroup("resource");
-    $self->ComputingService(&$data->{ComputingService});
     $self->Services(&$data->{Services});
+    $self->ComputingService(&$data->{ComputingService});
     $self->end;
 
 }

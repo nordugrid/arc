@@ -485,7 +485,13 @@ sub collect($) {
     # Jobs being prepared by GM (indexed by grid owner)
     my %user_prepping;
     # $user_prepping{$_} = 0 for keys %$usermap;
+    
+    # jobids divided per interface. This datastructure
+    # is convenience way to fill jobs per endpoint
+    # each endpoint its list of jobids
+    my $jobs_by_endpoint = {};
 
+    # fills most of the above hashes
     for my $jobid (keys %$gmjobs_info) {
 
         my $job = $gmjobs_info->{$jobid};
@@ -576,9 +582,14 @@ sub collect($) {
                 $log->warning("Info missing about lrms job $lrmsid");
             }
         }
+        
+        # fills efficiently %jobs_by_endpoint, defaults to gridftp
+        my $jobinterface = $job->{interface} || 'org.nordugrid.gridftpjob';
+        
+        $jobs_by_endpoint->{$jobinterface}{$jobid} = {};
 
     }
-
+   
     my $admindomain = $config->{admindomain}{Name};
     my $lrmsname = $config->{lrms};
 
@@ -718,6 +729,10 @@ sub collect($) {
         }
     }
 
+    # reshuffling gmjobs_info in such a way the hash is
+    # divided per Endpoint, using the interface field
+    # TODO: do this in a more efficient way,
+
     unless (@{$config->{accesspolicies}}) {
         $log->warning("No AccessPolicy configured");
     }
@@ -770,957 +785,989 @@ sub collect($) {
                             + ( $gmtotalcount{finishing} || 0 );
         $csv->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
+        # ComputingActivity sub. Will try to use as a general approach for each endpoint.
+        my $getComputingActivities = sub {
+
+          my ($interface) = @_;
+          
+          $log->debug("interface is $interface");
+          
+          my $joblist = $jobs_by_endpoint->{$interface};
+
+          return undef unless my ($jobid) = each %$joblist;
+          
+          my $gmjob = $gmjobs_info->{$jobid};
+
+          my $exited = undef; # whether the job has already run; 
+
+          my $cact = {};
+
+          $cact->{CreationTime} = $creation_time;
+          $cact->{Validity} = $validity_ttl;
+
+          my $share = $gmjob->{share};
+          # TODO: this here is never used! What was here for?
+          #my $gridid = $config->{endpoint}."/$jobid";
+
+          $cact->{Type} = 'single';
+          $cact->{ID} = $cactIDs{$share}{$jobid};
+          # TODO: check where is this taken
+          $cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
+          $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
+          # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
+          $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
+          $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
+          $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
+          # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
+          $cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
+          $cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
+          # TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
+          $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
+          $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
+          # OBS: Times are in seconds.
+          $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
+          $cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
+          # OBS: Should include name and version. Exact format not specified
+          $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
+          $cact->{RequestedSlots} = $gmjob->{count} || 1;
+          $cact->{StdIn} = $gmjob->{stdin} if $gmjob->{stdin};
+          $cact->{StdOut} = $gmjob->{stdout} if $gmjob->{stdout};
+          $cact->{StdErr} = $gmjob->{stderr} if $gmjob->{stderr};
+          $cact->{LogDir} = $gmjob->{gmlog} if $gmjob->{gmlog};
+          $cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
+          $cact->{Queue} = $gmjob->{queue} if $gmjob->{queue};
+          # Times for finished jobs
+          $cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
+          $cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
+          $cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
+          $cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
+          # TODO: change gm to save LRMSSubmissionTime
+          #$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
+          # TODO: this should be queried in scan-job.
+          #$cact->{StartTime} = 'NotImplemented';
+          # TODO: scan-job has to produce this
+          #$cact->{ComputingManagerEndTime} = 'NotImplemented';
+          $cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
+          $cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
+          $cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
+          if ($gmjob->{clientname}) {
+              # OBS: address of client as seen by the server is used.
+              my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
+              my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
+              $cact->{SubmissionHost} = $external_address if $external_address;
+          }
+          $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
+
+          # Computing Activity Associations
+
+          # TODO: add link
+          #$cact->{ExecutionEnvironmentID} = ;
+          $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
+          $cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
+
+          if ( $gmjob->{status} eq "INLRMS" ) {
+              my $lrmsid = $gmjob->{localid};
+              if (not $lrmsid) {
+              $log->warning("No local id for job $jobid") if $callcount == 1;
+              next;
+              }
+              $cact->{LocalIDFromManager} = $lrmsid;
+
+              my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+              if (not $lrmsjob) {
+              $log->warning("No local job for $jobid") if $callcount == 1;
+              next;
+              }
+              $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
+              $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
+              $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
+              unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
+
+              # Times for running jobs
+              $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
+              $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
+              $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
+          } else {
+              $cact->{State} = glueState($gmjob->{status});
+          }
+            
+          # TODO: UserDomain association, how to calculate it?
+
+          $cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
+
+          return $cact;
+        };
 
         # Computing Endpoints ########
-	  
-	# Here comes a list of endpoints we support.
-    # GridFTPd job execution endpoint
-	# XBES A-REX WSRF job submission endpoint
-	# EMI-ES job submission endpoint
-	# EMI-ES information system endpoint
-	# EMI-ES delegation endpoint
-	# WS-LIDI A-REX WSRF information system endpoint
-	# A-REX datastaging endpoint
+          
+        # Here comes a list of endpoints we support.
+        # GridFTPd job execution endpoint
+        # XBES A-REX WSRF job submission endpoint
+        # EMI-ES job submission endpoint
+        # EMI-ES information system endpoint
+        # EMI-ES delegation endpoint
+        # WS-LIDI A-REX WSRF information system endpoint
+        # A-REX datastaging endpoint
 
-	# this will contain only endpoints with URLs defined
-	my @ceps = ();
+        # this will contain only endpoints with URLs defined
+        my @ceps = ();
 
-	# Our different ComputingEndpoints
-	
-	# ARC XBES and WS-LIDI
-      
-	my $getARCWSComputingEndpoint = sub {
+        # Our different ComputingEndpoints
+        
+        # ARC XBES and WS-LIDI
+          
+        my $getARCWSComputingEndpoint = sub {
 
-	    my $cep = {};
+            my $cep = {};
 
-	    $cep->{CreationTime} = $creation_time;
-	    $cep->{Validity} = $validity_ttl;
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
 
-	    $cep->{ID} = $ARCWScepID;
+            $cep->{ID} = $ARCWScepID;
 
-	    # Name not necessary -- why? added back
-	    $cep->{Name} = "ARC CE XBES WSRF submission interface and WSRF LIDI Information System";
+            # Name not necessary -- why? added back
+            $cep->{Name} = "ARC CE XBES WSRF submission interface and WSRF LIDI Information System";
 
-	    # OBS: ideally HED should be asked for the URL
-	    $cep->{URL} = $config->{endpoint};
-	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
-	    $cep->{Technology} = 'webservice';
-	    $cep->{InterfaceName} = 'org.ogf.bes';
-	    $cep->{InterfaceVersion} = [ '1.0' ];
-	    $cep->{InterfaceExtension} = [ 'urn:org.nordugrid.xbes' ];
-	    $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
-	    # Wrong type, should be URI
-	    $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-					"http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-				      ];
-	    $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-	    $cep->{Implementor} = "NorduGrid";
-	    $cep->{ImplementationName} = "ARC CE XBES : WSRF eXtended BES-compatible Interface";
-	    $cep->{ImplementationVersion} = $config->{arcversion};
+            # OBS: ideally HED should be asked for the URL
+            $cep->{URL} = $config->{endpoint};
+            $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
+            $cep->{Technology} = 'webservice';
+            $cep->{InterfaceName} = 'org.ogf.bes';
+            $cep->{InterfaceVersion} = [ '1.0' ];
+            $cep->{InterfaceExtension} = [ 'urn:org.nordugrid.xbes' ];
+            $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
+            # Wrong type, should be URI
+            $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+                        "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+                          ];
+            $cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "ARC CE XBES : WSRF eXtended BES-compatible Interface";
+            $cep->{ImplementationVersion} = $config->{arcversion};
 
-	    $cep->{QualityLevel} = "development";
+            $cep->{QualityLevel} = "development";
 
-	    my %healthissues;
+            my %healthissues;
 
-	    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-		if (     $host_info->{hostcert_expired}
-		      or $host_info->{issuerca_expired}) {
-		    push @{$healthissues{critical}}, "Host credentials expired";
-		} elsif (not $host_info->{hostcert_enddate}
-		      or not $host_info->{issuerca_enddate}) {
-		    push @{$healthissues{critical}}, "Host credentials missing";
-		} elsif ($host_info->{hostcert_enddate} - time < 48*3600
-		      or $host_info->{issuerca_enddate} - time < 48*3600) {
-		    push @{$healthissues{warning}}, "Host credentials will expire soon";
-		}
-	    }
-
-	    if ( $host_info->{gm_alive} ne 'all' ) {
-		if ($host_info->{gm_alive} eq 'some') {
-		    push @{$healthissues{warning}}, 'One or more grid managers are down';
-		} else {
-		    push @{$healthissues{critical}},
-			  $config->{remotegmdirs} ? 'All grid managers are down'
-						  : 'Grid manager is down';
-		}
-	    }
-
-        # check if WS interface is actually running
-        # done with netstat but I'd like to be smarter
-        # this only works if the effective user is root
-        # TODO: find a better way to do this. Ask A-REX?
-        # changed by request of aleksandr. Only if root is running arex.
-        if ($> == 0) {
-          my $netstat=`netstat -antup`;
-          if ( $? != 0 ) {
-            # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
-            $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume AREX WSRF/XBES running properly");
-          } else {
-              # searches if arched is listed in netstat output
-              # best way would be ask arched if its service is up...?
-            if( $netstat !~ m/arched/ ) {
-                push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
             }
-          }
-        } else {
-           # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
-           $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume AREX WSRF/XBES is running properly");
-        }
+            }
 
-	    if (%healthissues) {
-		my @infos;
-		for my $level (qw(critical warning other unknown)) {
-		    next unless $healthissues{$level};
-		    $cep->{HealthState} ||= $level;
-		    push @infos, @{$healthissues{$level}};
-		}
-		$cep->{HealthStateInfo} = join "; ", @infos;
-	    } else {
-		$cep->{HealthState} = 'ok';
-	    }
+            if ( $host_info->{gm_alive} ne 'all' ) {
+            if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+            } else {
+                push @{$healthissues{critical}},
+                  $config->{remotegmdirs} ? 'All grid managers are down'
+                              : 'Grid manager is down';
+            }
+            }
 
-	    # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-	    # OBS: Is there an allownew option for a-rex?
-	    #if ( $config->{GridftpdAllowNew} == 0 ) {
-	    #    $cep->{ServingState} = 'draining';
-	    #} else {
-	    #    $cep->{ServingState} = 'production';
-	    #}
-	    $cep->{ServingState} = 'production';
+            # check if WS interface is actually running
+            # done with netstat but I'd like to be smarter
+            # this only works if the effective user is root
+            # TODO: find a better way to do this. Ask A-REX?
+            # changed by request of aleksandr. Only if root is running arex.
+            if ($> == 0) {
+              my $netstat=`netstat -antup`;
+              if ( $? != 0 ) {
+                # push @{$healthissues{unknown}}, "Checking if ARC WS interface is running: error in executing netstat. Infosys will assume the service is in ok HealthState";
+                $log->verbose("Checking if ARC WS interface is running: error in executing netstat. Infosys will assume AREX WSRF/XBES running properly");
+              } else {
+                  # searches if arched is listed in netstat output
+                  # best way would be ask arched if its service is up...?
+                if( $netstat !~ m/arched/ ) {
+                    push @{$healthissues{critical}}, "arched A-REX endpoint not found with netstat" ;
+                }
+              }
+            } else {
+              # push @{$healthissues{unknown}}, "user ".getpwuid($>)." cannot run netstat -p. Infosys will assume the service is in ok HealthState";
+              $log->verbose("Checking if ARC WS interface is running: user ".getpwuid($>)." cannot run netstat -p. Infosys will assume AREX WSRF/XBES is running properly");
+            }
 
-	    # StartTime: get it from hed
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other unknown)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
 
-	    $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-	    $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = 'production';
 
-	    # TODO: Downtime, is this necessary, and how should it work?
+            # StartTime: get it from hed
 
-	    $cep->{Staging} =  'staginginout';
-	    $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
 
-	    $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+            # TODO: Downtime, is this necessary, and how should it work?
 
-	    $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-	    $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-	    $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
 
-	    $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-				+ ( $gmtotalcount{finishing} || 0 );
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
-	    $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
 
-	    if ($config->{accesspolicies}) {
-		my @apconfs = @{$config->{accesspolicies}};
-		$cep->{AccessPolicies} = sub {
-		    return undef unless @apconfs;
-		    my $apconf = pop @apconfs;
-		    my $apol = {};
-		    $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-		    $apol->{Scheme} = "basic";
-		    $apol->{Rule} = $apconf->{Rule};
-		    $apol->{UserDomainID} = $apconf->{UserDomainID};
-		    $apol->{EndpointID} = $ARCWScepID;
-		    return $apol;
-		};
-	    }
-	    
-	    $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
 
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-	    # Associations
+            if ($config->{accesspolicies}) {
+            my @apconfs = @{$config->{accesspolicies}};
+            $cep->{AccessPolicies} = sub {
+                return undef unless @apconfs;
+                my $apconf = pop @apconfs;
+                my $apol = {};
+                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
+                $apol->{Scheme} = "basic";
+                $apol->{Rule} = $apconf->{Rule};
+                $apol->{UserDomainID} = $apconf->{UserDomainID};
+                $apol->{EndpointID} = $ARCWScepID;
+                return $apol;
+            };
+            }
+            
+            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
-         # No computingshareID should be associated to endpoint -- unless we enforce
-         # binding between endpoints and queues
-	    $cep->{ComputingShareID} = [ values %cshaIDs ];
-	    $cep->{ComputingServiceID} = $csvID;
+            # ComputingActivities
+            
+            if ($nojobs) {
+              $cep->{ComputingActivities} = undef;
+            } else {
+              # this complicated thing here creates a specialized getComputingActivities
+              # version of sub with a builtin parameter!
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.xbes'); };
+            }
 
-	    return $cep;
-	};
+            # Associations
 
-	# don't publish if arex_mount_point not configured in arc.conf
-	if ($arexhostport ne '') { push(@ceps, $getARCWSComputingEndpoint); };
+            # No computingshareID should be associated to endpoint -- unless we enforce
+            # binding between endpoints and queues
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
 
-        # ARC GridFTPDd job submission interface 
-      
-	my $getARCGFTPdComputingEndpoint = sub {
+            return $cep;
+        };
 
-	    # check if gridftpd interface is actually configured
-	    return undef unless ( $gridftphostport ne '');
-	    my $cep = {};
+        # don't publish if arex_mount_point not configured in arc.conf
+        if ($arexhostport ne '') { push(@ceps, $getARCWSComputingEndpoint); };
 
-	    $cep->{CreationTime} = $creation_time;
-	    $cep->{Validity} = $validity_ttl;
+            # ARC GridFTPDd job submission interface 
+          
+        my $getARCGFTPdComputingEndpoint = sub {
 
-	    # Name not necessary -- why? added back
-	    $cep->{Name} = "ARC GridFTP job execution interface";
+            # check if gridftpd interface is actually configured
+            return undef unless ( $gridftphostport ne '');
+            my $cep = {};
 
-	    # OBS: ideally HED should be asked for the URL
-	    $cep->{URL} = "gsiftp://$gridftphostport";
-        $cep->{ID} = $ARCgftpjobcepIDp.$cep->{URL};
-	    $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
-	    $cep->{Technology} = 'gridftp';
-	    $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
-	    $cep->{InterfaceVersion} = [ '1.0' ];
-	    # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
-	    # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
-	    $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/gridftpd' ];
-	    # Wrong type, should be URI
-	    $cep->{Semantics} = [ "http://www.nordugrid.org/documents/gridfptd.pdf" ];
-	    $cep->{Implementor} = "NorduGrid";
-	    $cep->{ImplementationName} = "ARC CE Gridftpd";
-	    $cep->{ImplementationVersion} = $config->{arcversion};
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
 
-	    $cep->{QualityLevel} = "production";
+            # Name not necessary -- why? added back
+            $cep->{Name} = "ARC GridFTP job execution interface";
 
-	    my %healthissues;
+            # OBS: ideally HED should be asked for the URL
+            $cep->{URL} = "gsiftp://$gridftphostport";
+            $cep->{ID} = $ARCgftpjobcepIDp.$cep->{URL};
+            $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription' ];
+            $cep->{Technology} = 'gridftp';
+            $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
+            $cep->{InterfaceVersion} = [ '1.0' ];
+            # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
+            # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
+            $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/gridftpd' ];
+            # Wrong type, should be URI
+            $cep->{Semantics} = [ "http://www.nordugrid.org/documents/gridfptd.pdf" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "ARC CE Gridftpd";
+            $cep->{ImplementationVersion} = $config->{arcversion};
 
-	    if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-		if (     $host_info->{hostcert_expired}
-		      or $host_info->{issuerca_expired}) {
-		    push @{$healthissues{critical}}, "Host credentials expired";
-		} elsif (not $host_info->{hostcert_enddate}
-		      or not $host_info->{issuerca_enddate}) {
-		    push @{$healthissues{critical}}, "Host credentials missing";
-		} elsif ($host_info->{hostcert_enddate} - time < 48*3600
-		      or $host_info->{issuerca_enddate} - time < 48*3600) {
-		    push @{$healthissues{warning}}, "Host credentials will expire soon";
-		}
-	    }
+            $cep->{QualityLevel} = "production";
 
-	    if ( $host_info->{gm_alive} ne 'all' ) {
-          if ($host_info->{gm_alive} eq 'some') {
-		    push @{$healthissues{warning}}, 'One or more grid managers are down';
-          } else {
-              push @{$healthissues{critical}},
-                     $config->{remotegmdirs} ? 'All grid managers are down'
-					 : 'Grid manager is down';
-          }
-	    }
+            my %healthissues;
 
-        # check if gridftpd is running, by checking pidfile existence
-        push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{GridftpdPidFile});
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
 
-	    if (%healthissues) {
-		my @infos;
-		for my $level (qw(critical warning other)) {
-		    next unless $healthissues{$level};
-		    $cep->{HealthState} ||= $level;
-		    push @infos, @{$healthissues{$level}};
-		}
-		$cep->{HealthStateInfo} = join "; ", @infos;
-	    } else {
-		$cep->{HealthState} = 'ok';
-	    }
+            if ( $host_info->{gm_alive} ne 'all' ) {
+              if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+              } else {
+                  push @{$healthissues{critical}},
+                        $config->{remotegmdirs} ? 'All grid managers are down'
+                        : 'Grid manager is down';
+              }
+            }
 
-	    if ( $config->{GridftpdAllowNew} == 0 ) {
-	        $cep->{ServingState} = 'draining';
-	    } else {
-	        $cep->{ServingState} = 'production';
-	    }
+            # check if gridftpd is running, by checking pidfile existence
+            push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{GridftpdPidFile});
 
-	    # StartTime: get it from hed
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
 
-	    $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-	    $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+            if ( $config->{GridftpdAllowNew} == 0 ) {
+                $cep->{ServingState} = 'draining';
+            } else {
+                $cep->{ServingState} = 'production';
+            }
 
-	    # TODO: Downtime, is this necessary, and how should it work?
+            # StartTime: get it from hed
 
-	    $cep->{Staging} =  'staginginout';
-	    $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
 
-	    $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+            # TODO: Downtime, is this necessary, and how should it work?
 
-	    $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-	    $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-	    $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
 
-	    $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-				+ ( $gmtotalcount{finishing} || 0 );
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
-	    $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
 
-	    if ($config->{accesspolicies}) {
-		my @apconfs = @{$config->{accesspolicies}};
-		$cep->{AccessPolicies} = sub {
-		    return undef unless @apconfs;
-		    my $apconf = pop @apconfs;
-		    my $apol = {};
-		    $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-		    $apol->{Scheme} = "basic";
-		    $apol->{Rule} = $apconf->{Rule};
-		    $apol->{UserDomainID} = $apconf->{UserDomainID};
-		    $apol->{EndpointID} = $cep->{ID};
-		    return $apol;
-		};
-	    }
-	    
-	    $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
 
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-	    # Associations
+            if ($config->{accesspolicies}) {
+            my @apconfs = @{$config->{accesspolicies}};
+            $cep->{AccessPolicies} = sub {
+                return undef unless @apconfs;
+                my $apconf = pop @apconfs;
+                my $apol = {};
+                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
+                $apol->{Scheme} = "basic";
+                $apol->{Rule} = $apconf->{Rule};
+                $apol->{UserDomainID} = $apconf->{UserDomainID};
+                $apol->{EndpointID} = $cep->{ID};
+                return $apol;
+            };
+            }
+            
+            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
-	    $cep->{ComputingShareID} = [ values %cshaIDs ];
-	    $cep->{ComputingServiceID} = $csvID;
+            # ComputingActivities
+            if ($nojobs) {
+              $cep->{ComputingActivities} = undef;
+            } else {
+              # this complicated thing here creates a specialized getComputingActivities
+              # version of sub with a builtin parameter!
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.gridftpjob'); };
+            }
 
-	    return $cep;
-	};
+            # Associations
 
-	# Don't publish if there is no endpoint URL
-        if ($gridftphostport ne '') { push(@ceps, $getARCGFTPdComputingEndpoint); };
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
 
-    # Placeholder for EMI-ES interface
+            return $cep;
+        };
 
-    my $getEMIESComputingEndpoint = sub {
+        # Don't publish if there is no endpoint URL
+            if ($gridftphostport ne '') { push(@ceps, $getARCGFTPdComputingEndpoint); };
+
+        # Placeholder for EMI-ES interface
+
+        my $getEMIESComputingEndpoint = sub {
+
+            # don't publish if no endpoint URL
+            return undef unless $emieshostport ne '';
+
+            my $cep = {};
+
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
+
+            $cep->{ID} = $EMIEScepID;
+
+            # Name not necessary -- why? added back
+            $cep->{Name} = "EMI ES submission, delegation, information interface";
+
+            # OBS: ideally HED should be asked for the URL
+            $cep->{URL} = $config->{endpoint};
+            $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
+            $cep->{Technology} = 'webservice';
+            $cep->{InterfaceName} = 'org.ogf.emies';
+            $cep->{InterfaceVersion} = [ '1.0' ];
+            $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            # Wrong type, should be URI
+            $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+                        "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+                          ];
+            $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "EMI-ES";
+            $cep->{ImplementationVersion} = $config->{arcversion};
+
+            $cep->{QualityLevel} = "development";
+
+            my %healthissues;
+
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
+
+            if ( $host_info->{gm_alive} ne 'all' ) {
+            if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+            } else {
+                push @{$healthissues{critical}},
+                  $config->{remotegmdirs} ? 'All grid managers are down'
+                              : 'Grid manager is down';
+            }
+            }
+
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
+
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = 'production';
+
+            # StartTime: get it from hed
+
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+
+            # TODO: Downtime, is this necessary, and how should it work?
+
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
+
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+            if ($config->{accesspolicies}) {
+            my @apconfs = @{$config->{accesspolicies}};
+            $cep->{AccessPolicies} = sub {
+                return undef unless @apconfs;
+                my $apconf = pop @apconfs;
+                my $apol = {};
+                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
+                $apol->{Scheme} = "basic";
+                $apol->{Rule} = $apconf->{Rule};
+                $apol->{UserDomainID} = $apconf->{UserDomainID};
+                $apol->{EndpointID} = $EMIEScepID;
+                return $apol;
+            };
+            }
+            
+            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+            # ComputingActivities
+            if ($nojobs) {
+              $cep->{ComputingActivities} = undef;
+            } else {
+              # this complicated thing here creates a specialized getComputingActivities
+              # version of sub with a builtin parameter!
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.emies'); };
+            }
+
+            # Associations
+
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
+
+            return $cep;
+        };
 
         # don't publish if no endpoint URL
-        return undef unless $emieshostport ne '';
+        if ($emieshostport ne '') {push(@ceps, $getEMIESComputingEndpoint); };
 
-        my $cep = {};
+        # Placeholder for Stagein interface
 
-        $cep->{CreationTime} = $creation_time;
-        $cep->{Validity} = $validity_ttl;
+        my $getStageinComputingEndpoint = sub {
+            
+            # don't publish if no Endpoint URL
+            return undef unless $stageinhostport ne '';
 
-        $cep->{ID} = $EMIEScepID;
+            my $cep = {};
 
-        # Name not necessary -- why? added back
-        $cep->{Name} = "EMI ES submission, delegation, information interface";
+            $cep->{CreationTime} = $creation_time;
+            $cep->{Validity} = $validity_ttl;
 
-        # OBS: ideally HED should be asked for the URL
-        $cep->{URL} = $config->{endpoint};
-        $cep->{Capability} = [ 'executionmanagement.jobexecution', 'executionmanagement.jobmanager', 'executionmanagement.jobdescription', 'security.delegation' ];
-        $cep->{Technology} = 'webservice';
-        $cep->{InterfaceName} = 'org.ogf.emies';
-        $cep->{InterfaceVersion} = [ '1.0' ];
-        $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-        # Wrong type, should be URI
-        $cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-                    "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-                      ];
-        $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-        $cep->{Implementor} = "NorduGrid";
-        $cep->{ImplementationName} = "EMI-ES";
-        $cep->{ImplementationVersion} = $config->{arcversion};
+            $cep->{ID} = $StageincepID;
 
-        $cep->{QualityLevel} = "development";
+            # Name not necessary -- why? added back
+            $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
 
-        my %healthissues;
+            # OBS: ideally HED should be asked for the URL
+            #$cep->{URL} = $config->{endpoint};
+            $cep->{Capability} = [ 'data.management.transfer' ];
+            $cep->{Technology} = 'webservice';
+            $cep->{InterfaceName} = 'Stagein';
+            $cep->{InterfaceVersion} = [ '1.0' ];
+            #$cep->{InterfaceExtension} = [ '' ];
+            $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
+            # Wrong type, should be URI
+            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
+            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
+            #              ];
+            #$cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
+            $cep->{Implementor} = "NorduGrid";
+            $cep->{ImplementationName} = "Stagein";
+            $cep->{ImplementationVersion} = $config->{arcversion};
 
-        if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-        if (     $host_info->{hostcert_expired}
-              or $host_info->{issuerca_expired}) {
-            push @{$healthissues{critical}}, "Host credentials expired";
-        } elsif (not $host_info->{hostcert_enddate}
-              or not $host_info->{issuerca_enddate}) {
-            push @{$healthissues{critical}}, "Host credentials missing";
-        } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-              or $host_info->{issuerca_enddate} - time < 48*3600) {
-            push @{$healthissues{warning}}, "Host credentials will expire soon";
-        }
-        }
+            $cep->{QualityLevel} = "development";
 
-        if ( $host_info->{gm_alive} ne 'all' ) {
-        if ($host_info->{gm_alive} eq 'some') {
-            push @{$healthissues{warning}}, 'One or more grid managers are down';
-        } else {
-            push @{$healthissues{critical}},
-              $config->{remotegmdirs} ? 'All grid managers are down'
-                          : 'Grid manager is down';
-        }
-        }
+            # How to calculate health for this interface?
+            my %healthissues;
 
-        if (%healthissues) {
-        my @infos;
-        for my $level (qw(critical warning other)) {
-            next unless $healthissues{$level};
-            $cep->{HealthState} ||= $level;
-            push @infos, @{$healthissues{$level}};
-        }
-        $cep->{HealthStateInfo} = join "; ", @infos;
-        } else {
-        $cep->{HealthState} = 'ok';
-        }
+            if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
+            if (     $host_info->{hostcert_expired}
+                  or $host_info->{issuerca_expired}) {
+                push @{$healthissues{critical}}, "Host credentials expired";
+            } elsif (not $host_info->{hostcert_enddate}
+                  or not $host_info->{issuerca_enddate}) {
+                push @{$healthissues{critical}}, "Host credentials missing";
+            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
+                  or $host_info->{issuerca_enddate} - time < 48*3600) {
+                push @{$healthissues{warning}}, "Host credentials will expire soon";
+            }
+            }
 
-        # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-        # OBS: Is there an allownew option for a-rex?
-        #if ( $config->{GridftpdAllowNew} == 0 ) {
-        #    $cep->{ServingState} = 'draining';
-        #} else {
-        #    $cep->{ServingState} = 'production';
-        #}
-        $cep->{ServingState} = 'production';
+            if ( $host_info->{gm_alive} ne 'all' ) {
+            if ($host_info->{gm_alive} eq 'some') {
+                push @{$healthissues{warning}}, 'One or more grid managers are down';
+            } else {
+                push @{$healthissues{critical}},
+                  $config->{remotegmdirs} ? 'All grid managers are down'
+                              : 'Grid manager is down';
+            }
+            }
 
-        # StartTime: get it from hed
+            if (%healthissues) {
+            my @infos;
+            for my $level (qw(critical warning other)) {
+                next unless $healthissues{$level};
+                $cep->{HealthState} ||= $level;
+                push @infos, @{$healthissues{$level}};
+            }
+            $cep->{HealthStateInfo} = join "; ", @infos;
+            } else {
+            $cep->{HealthState} = 'ok';
+            }
 
-        $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-        $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+            # OBS: Is there an allownew option for a-rex?
+            #if ( $config->{GridftpdAllowNew} == 0 ) {
+            #    $cep->{ServingState} = 'draining';
+            #} else {
+            #    $cep->{ServingState} = 'production';
+            #}
+            $cep->{ServingState} = 'production';
 
-        # TODO: Downtime, is this necessary, and how should it work?
+            # StartTime: get it from hed
 
-        $cep->{Staging} =  'staginginout';
-        $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
+            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
 
-        $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+            # TODO: Downtime, is this necessary, and how should it work?
 
-        $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-        $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-        $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+            $cep->{Staging} =  'staginginout';
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
 
-        $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                + ( $gmtotalcount{finishing} || 0 );
+            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
-        $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
+            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
+            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
 
-        if ($config->{accesspolicies}) {
-        my @apconfs = @{$config->{accesspolicies}};
-        $cep->{AccessPolicies} = sub {
-            return undef unless @apconfs;
-            my $apconf = pop @apconfs;
-            my $apol = {};
-            $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-            $apol->{Scheme} = "basic";
-            $apol->{Rule} = $apconf->{Rule};
-            $apol->{UserDomainID} = $apconf->{UserDomainID};
-            $apol->{EndpointID} = $EMIEScepID;
-            return $apol;
+            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
+                    + ( $gmtotalcount{finishing} || 0 );
+
+            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+            if ($config->{accesspolicies}) {
+            my @apconfs = @{$config->{accesspolicies}};
+            $cep->{AccessPolicies} = sub {
+                return undef unless @apconfs;
+                my $apconf = pop @apconfs;
+                my $apol = {};
+                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
+                $apol->{Scheme} = "basic";
+                $apol->{Rule} = $apconf->{Rule};
+                $apol->{UserDomainID} = $apconf->{UserDomainID};
+                $apol->{EndpointID} = $StageincepID;
+                return $apol;
+            };
+            }
+            
+            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+
+            # Associations
+
+            $cep->{ComputingShareID} = [ values %cshaIDs ];
+            $cep->{ComputingServiceID} = $csvID;
+
+            return $cep;
         };
-        }
-        
-        $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
-
-        # Associations
-
-        $cep->{ComputingShareID} = [ values %cshaIDs ];
-        $cep->{ComputingServiceID} = $csvID;
-
-        return $cep;
-    };
-
-    # don't publish if no endpoint URL
-    if ($emieshostport ne '') {push(@ceps, $getEMIESComputingEndpoint); };
-
-    # Placeholder for Stagein interface
-
-    my $getStageinComputingEndpoint = sub {
-        
         # don't publish if no Endpoint URL
-        return undef unless $stageinhostport ne '';
+        if ($stageinhostport ne '') { push(@ceps, $getStageinComputingEndpoint); };
+        
 
-        my $cep = {};
+        # returns the endpoints one by one
+        my $getComputingEndpoints = sub {
+            return undef unless my $endpoint = pop(@ceps);
+            #$log->verbose("this is the number of endpoints: ".@ceps);
+        return &$endpoint;
+        };
 
-        $cep->{CreationTime} = $creation_time;
-        $cep->{Validity} = $validity_ttl;
+        $csv->{ComputingEndpoints} = $getComputingEndpoints;
 
-        $cep->{ID} = $StageincepID;
+        # Computing Activities, in the ComputingService and not in Endpoints
 
-        # Name not necessary -- why? added back
-        $cep->{Name} = "ARC WSRF XBES submission interface and WSRF LIDI Information System";
+    #    if ($nojobs) {
+    #	  $csv->{ComputingActivities} = undef;
+    #    } else {
+    #	  $csv->{ComputingActivities} = $getComputingActivities;
+    #    }
 
-        # OBS: ideally HED should be asked for the URL
-        #$cep->{URL} = $config->{endpoint};
-        $cep->{Capability} = [ 'data.management.transfer' ];
-        $cep->{Technology} = 'webservice';
-        $cep->{InterfaceName} = 'Stagein';
-        $cep->{InterfaceVersion} = [ '1.0' ];
-        #$cep->{InterfaceExtension} = [ '' ];
-        $cep->{WSDL} = [ $config->{endpoint}."/?wsdl" ];
-        # Wrong type, should be URI
-        #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-        #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-        #              ];
-        #$cep->{Semantics} = [ "http://www.nordugrid.org/documents/arex.pdf" ];
-        $cep->{Implementor} = "NorduGrid";
-        $cep->{ImplementationName} = "Stagein";
-        $cep->{ImplementationVersion} = $config->{arcversion};
 
-        $cep->{QualityLevel} = "development";
+        # ComputingShares: multiple shares can share the same LRMS queue
 
-        # How to calculate health for this interface?
-        my %healthissues;
+        my @shares = keys %{$config->{shares}};
 
-        if ($config->{x509_user_cert} and $config->{x509_cert_dir}) {
-        if (     $host_info->{hostcert_expired}
-              or $host_info->{issuerca_expired}) {
-            push @{$healthissues{critical}}, "Host credentials expired";
-        } elsif (not $host_info->{hostcert_enddate}
-              or not $host_info->{issuerca_enddate}) {
-            push @{$healthissues{critical}}, "Host credentials missing";
-        } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-              or $host_info->{issuerca_enddate} - time < 48*3600) {
-            push @{$healthissues{warning}}, "Host credentials will expire soon";
-        }
-        }
+        my $getComputingShares = sub {
 
-        if ( $host_info->{gm_alive} ne 'all' ) {
-        if ($host_info->{gm_alive} eq 'some') {
-            push @{$healthissues{warning}}, 'One or more grid managers are down';
-        } else {
-            push @{$healthissues{critical}},
-              $config->{remotegmdirs} ? 'All grid managers are down'
-                          : 'Grid manager is down';
-        }
+        return undef unless my ($share, $dummy) = each %{$config->{shares}};
+
+        my $qinfo = $lrms_info->{queues}{$share};
+
+        # Prepare flattened config hash for this share.
+        my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
+
+        # List of all shares submitting to the current queue, including the current share.
+        my $qname = $sconfig->{MappingQueue} || $share;
+
+        if ($qname) {
+            my $siblings = $sconfig->{siblingshares} = [];
+            # Do NOT use 'keys %{$config->{shares}}' here because it would
+            # reset the iterator of 'each' and cause this function to
+            # always return the same result
+            for my $sn (@shares) {
+            my $s = $config->{shares}{$sn};
+            my $qn = $s->{MappingQueue} || $sn;
+            push @$siblings, $sn if $qn eq $qname;
+            }
         }
 
-        if (%healthissues) {
-        my @infos;
-        for my $level (qw(critical warning other)) {
-            next unless $healthissues{$level};
-            $cep->{HealthState} ||= $level;
-            push @infos, @{$healthissues{$level}};
+        my $csha = {};
+
+        $csha->{CreationTime} = $creation_time;
+        $csha->{Validity} = $validity_ttl;
+
+        $csha->{ID} = $cshaIDs{$share};
+
+        $csha->{Name} = $share;
+        $csha->{Description} = $sconfig->{Description} if $sconfig->{Description};
+        $csha->{MappingQueue} = $qname if $qname;
+
+        # use limits from LRMS
+        $csha->{MaxCPUTime} = $qinfo->{maxcputime} if defined $qinfo->{maxcputime};
+        # TODO: implement in backends
+        $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
+        $csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
+        $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
+        $csha->{MaxWallTime} =  $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
+        # TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
+        #$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
+        $csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
+        $csha->{DefaultWallTime} = $qinfo->{defaultwallt} if defined $qinfo->{defaultwallt};
+
+        my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
+        $maxtotal = undef if defined $maxtotal and $maxtotal eq '-1';
+        $maxlrms = undef if defined $maxlrms and $maxlrms eq '-1';
+
+        # MaxWaitingJobs: use the maxjobs config option
+        # OBS: An upper limit is not really enforced by A-REX.
+        # OBS: Currently A-REX only cares about totals, not per share limits!
+        $csha->{MaxTotalJobs} = $maxtotal if defined $maxtotal;
+
+        # MaxWaitingJobs, MaxRunningJobs:
+        my ($maxrunning, $maxwaiting);
+
+        # use values from lrms if avaialble
+        if (defined $qinfo->{maxrunning}) {
+            $maxrunning = $qinfo->{maxrunning};
         }
-        $cep->{HealthStateInfo} = join "; ", @infos;
-        } else {
-        $cep->{HealthState} = 'ok';
+        if (defined $qinfo->{maxqueuable}) {
+            $maxwaiting = $qinfo->{maxqueuable};
         }
 
-        # OBS: Do 'queueing' and 'closed' states apply for a-rex?
+        # maxjobs config option sets upper limits
+        if (defined $maxlrms) {
+            $maxrunning = $maxlrms
+            if not defined $maxrunning or $maxrunning > $maxlrms;
+            $maxwaiting = $maxlrms
+            if not defined $maxwaiting or $maxwaiting > $maxlrms;
+        }
+
+        $csha->{MaxRunningJobs} = $maxrunning if defined $maxrunning;
+        $csha->{MaxWaitingJobs} = $maxwaiting if defined $maxwaiting;
+
+        # MaxPreLRMSWaitingJobs: use GM's maxjobs option
+        # OBS: Currently A-REX only cares about totals, not per share limits!
+        # OBS: this formula is actually an upper limit on the sum of pre + post
+        #      lrms jobs. A-REX does not have separate limit for pre lrms jobs
+        $csha->{MaxPreLRMSWaitingJobs} = $maxtotal - $maxlrms
+            if defined $maxtotal and defined $maxlrms;
+
+        $csha->{MaxUserRunningJobs} = $qinfo->{maxuserrun}
+            if defined $qinfo->{maxuserrun};
+
+        # TODO: new return value from LRMS infocollector
+        # TODO: see how LRMSs can detect the correct value
+        $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}  || 1;
+
+        # MaxStageInStreams, MaxStageOutStreams
+        # OBS: A-REX does not have separate limits for up and downloads.
+        # OBS: A-REX only cares about totals, not per share limits!
+        my ($maxloaders, $maxemergency, $maxthreads) = split ' ', ($config->{maxload} || '');
+        $maxloaders = undef if defined $maxloaders and $maxloaders eq '-1';
+        $maxthreads = undef if defined $maxthreads and $maxthreads eq '-1';
+        if ($maxloaders) {
+            # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
+            $maxthreads = 5 unless defined $maxthreads;
+            $csha->{MaxStageInStreams}  = $maxloaders * $maxthreads;
+            $csha->{MaxStageOutStreams} = $maxloaders * $maxthreads;
+        }
+
+        # TODO: new return value schedpolicy from LRMS infocollector.
+        my $schedpolicy = $lrms_info->{schedpolicy} || undef;
+        if ($sconfig->{SchedulingPolicy} and not $schedpolicy) {
+            $schedpolicy = 'fifo' if lc($sconfig->{SchedulingPolicy}) eq 'fifo';
+            $schedpolicy = 'fairshare' if lc($sconfig->{SchedulingPolicy}) eq 'maui';
+        }
+        $csha->{SchedulingPolicy} = $schedpolicy if $schedpolicy;
+
+
+        # GuaranteedVirtualMemory -- all nodes must be able to provide this
+        # much memory per job. Some nodes might be able to afford more per job
+        # (MaxVirtualMemory)
+        # TODO: implement check at job accept time in a-rex
+        # TODO: implement in LRMS plugin maxvmem and maxrss.
+        $csha->{MaxVirtualMemory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
+        # MaxMainMemory -- usage not being tracked by most LRMSs
+
+        # OBS: new config option (space measured in GB !?)
+        # OBS: Disk usage of jobs is not being enforced.
+        # This limit should correspond with the max local-scratch disk space on
+        # clusters using local disks to run jobs.
+        # TODO: implement check at job accept time in a-rex
+        # TODO: see if any lrms can support this. Implement check in job wrapper
+        $csha->{MaxDiskSpace} = $sconfig->{DiskSpace} if $sconfig->{DiskSpace};
+
+        # DefaultStorageService:
+
+        # OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
+        $csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
+
+        # ServingState: closed and queuing are not yet supported
         # OBS: Is there an allownew option for a-rex?
         #if ( $config->{GridftpdAllowNew} == 0 ) {
-        #    $cep->{ServingState} = 'draining';
+        #    $csha->{ServingState} = 'draining';
         #} else {
-        #    $cep->{ServingState} = 'production';
+        #    $csha->{ServingState} = 'production';
         #}
-        $cep->{ServingState} = 'production';
+        $csha->{ServingState} = 'production';
 
-        # StartTime: get it from hed
+        # Count local jobs
+        my $localrunning = $qinfo->{running};
+        my $localqueued = $qinfo->{queued};
+        my $localsuspended = $qinfo->{suspended} || 0;
 
-        $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-        $cep->{TrustedCA} = $host_info->{trustedcas}; # array
+        # Substract grid jobs submitted belonging to shares that submit to the same lrms queue
+        $localrunning -= $inlrmsjobs{$_}{running} || 0 for @{$sconfig->{siblingshares}};
+        $localqueued -= $inlrmsjobs{$_}{queued} || 0 for @{$sconfig->{siblingshares}};
+        $localsuspended -= $inlrmsjobs{$_}{suspended} || 0 for @{$sconfig->{siblingshares}};
 
-        # TODO: Downtime, is this necessary, and how should it work?
+        # OBS: Finished/failed/deleted jobs are not counted
+        my $totaljobs = $gmsharecount{$share}{notfinished} || 0;
+        $totaljobs += $localrunning + $localqueued + $localsuspended;
+        $csha->{TotalJobs} = $totaljobs;
 
-        $cep->{Staging} =  'staginginout';
-        $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+        $csha->{RunningJobs} = $localrunning + ( $inlrmsjobs{$share}{running} || 0 );
+        $csha->{WaitingJobs} = $localqueued + ( $inlrmsjobs{$share}{queued} || 0 );
+        $csha->{SuspendedJobs} = $localsuspended + ( $inlrmsjobs{$share}{suspended} || 0 );
 
-        $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
+        # TODO: backends to count suspended jobs
 
-        $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-        $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-        $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
+        $csha->{LocalRunningJobs} = $localrunning;
+        $csha->{LocalWaitingJobs} = $localqueued;
+        $csha->{LocalSuspendedJobs} = $localsuspended;
 
-        $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                + ( $gmtotalcount{finishing} || 0 );
+        $csha->{StagingJobs} = ( $gmsharecount{$share}{preparing} || 0 )
+                      + ( $gmsharecount{$share}{finishing} || 0 );
 
-        $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+        $csha->{PreLRMSWaitingJobs} = $gmsharecount{$share}{notsubmitted} || 0;
 
-        if ($config->{accesspolicies}) {
-        my @apconfs = @{$config->{accesspolicies}};
-        $cep->{AccessPolicies} = sub {
-            return undef unless @apconfs;
-            my $apconf = pop @apconfs;
-            my $apol = {};
-            $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-            $apol->{Scheme} = "basic";
-            $apol->{Rule} = $apconf->{Rule};
-            $apol->{UserDomainID} = $apconf->{UserDomainID};
-            $apol->{EndpointID} = $StageincepID;
-            return $apol;
-        };
+        # TODO: investigate if it's possible to get these estimates from maui/torque
+        $csha->{EstimatedAverageWaitingTime} = $qinfo->{averagewaitingtime} if defined $qinfo->{averagewaitingtime};
+        $csha->{EstimatedWorstWaitingTime} = $qinfo->{worstwaitingtime} if defined $qinfo->{worstwaitingtime};
+
+        # TODO: implement $qinfo->{freeslots} in LRMS plugins
+
+        my $freeslots = 0;
+        if (defined $qinfo->{freeslots}) {
+            $freeslots = $qinfo->{freeslots};
+        } else {
+            $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
         }
-        
-        $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
+        # Local users have individual restrictions
+        # FreeSlots: find the maximum freecpus of any local user mapped in this
+        # share and use that as an upper limit for $freeslots
+        # FreeSlotsWithDuration: for each duration, find the maximum freecpus
+        # of any local user mapped in this share
+        # TODO: is this the correct way to do it?
+
+        my @durations;
+        my %timeslots = max_userfreeslots($qinfo->{users});
+
+        if (%timeslots) {
+
+            # find maximum free slots regardless of duration
+            my $maxuserslots = 0;
+            for my $seconds ( keys %timeslots ) {
+            my $nfree = $timeslots{$seconds};
+            $maxuserslots = $nfree if $nfree > $maxuserslots;
+            }
+            $freeslots = $maxuserslots < $freeslots
+                ? $maxuserslots : $freeslots;
+
+            # sort descending by duration, keping 0 first (0 for unlimited)
+            for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
+            my $nfree = $timeslots{$seconds} < $freeslots
+                  ? $timeslots{$seconds} : $freeslots;
+            unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
+            }
+        }
+
+        $freeslots = 0 if $freeslots < 0;
+
+        $csha->{FreeSlots} = $freeslots;
+        $csha->{FreeSlotsWithDuration} = join(" ", @durations) || 0;
+        $csha->{UsedSlots} = $qinfo->{running};
+        $csha->{RequestedSlots} = $requestedslots{$share} || 0;
+
+        # TODO: detect reservationpolicy in the lrms
+        $csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
+
+        # MappingPolicy: VOs mapped to this share.
+
+        if (@{$config->{mappingpolicies}}) {
+            my @mpconfs = @{$config->{mappingpolicies}};
+            $csha->{MappingPolicies} = sub {
+            return undef unless @mpconfs;
+            my $mpconf = pop @mpconfs;
+            my $mpol = {};
+            $mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
+            $mpol->{Scheme} = "basic";
+            $mpol->{Rule} = $mpconf->{Rule};
+            $mpol->{UserDomainID} = $mpconf->{UserDomainID};
+            $mpol->{ShareID} = $cshaIDs{$share};
+            return $mpol;
+            };
+        }
+
+        # Tag: skip it for now
 
         # Associations
 
-        $cep->{ComputingShareID} = [ values %cshaIDs ];
-        $cep->{ComputingServiceID} = $csvID;
+        my $xenvs = $sconfig->{ExecutionEnvironmentName} || [];
+        push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
 
-        return $cep;
-    };
+        ## check this association below. Which endpoint?
+        # $csha->{ComputingEndpointID} = $cepID;
+        $csha->{ServiceID} = $csvID;
+        $csha->{ComputingServiceID} = $csvID;
 
-    # don't publish if no Endpoint URL
-    if ($stageinhostport ne '') { push(@ceps, $getStageinComputingEndpoint); };
-    
+        return $csha;
+        };
 
-    # returns the endpoints one by one
-    my $getComputingEndpoints = sub {
-        return undef unless my $endpoint = pop(@ceps);
-        #$log->verbose("this is the number of endpoints: ".@ceps);
-	return &$endpoint;
-    };
+        $csv->{ComputingShares} = $getComputingShares;
 
-    $csv->{ComputingEndpoints} = $getComputingEndpoints;
 
-    # Computing Activities, in the ComputingService and not in Endpoints
-
-    my $getComputingActivities = sub {
-
-	return undef unless my ($jobid, $gmjob) = each %$gmjobs_info;
-
-	my $exited = undef; # whether the job has already run; 
-
-	my $cact = {};
-
-	$cact->{CreationTime} = $creation_time;
-	$cact->{Validity} = $validity_ttl;
-
-	my $share = $gmjob->{share};
-    # TODO: this here is never used! What was here for?
-	#my $gridid = $config->{endpoint}."/$jobid";
-
-	$cact->{Type} = 'single';
-	$cact->{ID} = $cactIDs{$share}{$jobid};
-	# TODO: check where is this taken
-	$cact->{IDFromEndpoint} = $gmjob->{globalid} if $gmjob->{globalid};
-	$cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
-	# TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
-	$cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
-	$cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
-	$cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
-	# TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
-	$cact->{ComputingManagerExitCode} = $gmjob->{lrmsexitcode} if $gmjob->{lrmsexitcode};
-	$cact->{Error} = [ @{$gmjob->{errors}} ] if $gmjob->{errors};
-	# TODO: VO info, like <UserDomain>ATLAS/Prod</UserDomain>; check whether this information is available to A-REX
-	$cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
-	$cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
-	# OBS: Times are in seconds.
-	$cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} if defined $gmjob->{reqwalltime};
-	$cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
-	# OBS: Should include name and version. Exact format not specified
-	$cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
-	$cact->{RequestedSlots} = $gmjob->{count} || 1;
-	$cact->{StdIn} = $gmjob->{stdin} if $gmjob->{stdin};
-	$cact->{StdOut} = $gmjob->{stdout} if $gmjob->{stdout};
-	$cact->{StdErr} = $gmjob->{stderr} if $gmjob->{stderr};
-	$cact->{LogDir} = $gmjob->{gmlog} if $gmjob->{gmlog};
-	$cact->{ExecutionNode} = $gmjob->{nodenames} if $gmjob->{nodenames};
-	$cact->{Queue} = $gmjob->{queue} if $gmjob->{queue};
-	# Times for finished jobs
-	$cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
-	$cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
-	$cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
-	$cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
-	# TODO: change gm to save LRMSSubmissionTime
-	#$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
-	# TODO: this should be queried in scan-job.
-	#$cact->{StartTime} = 'NotImplemented';
-	# TODO: scan-job has to produce this
-	#$cact->{ComputingManagerEndTime} = 'NotImplemented';
-	$cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
-	$cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
-	$cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
-	if ($gmjob->{clientname}) {
-	    # OBS: address of client as seen by the server is used.
-	    my $dnschars = '-.A-Za-z0-9';  # RFC 1034,1035
-	    my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
-	    $cact->{SubmissionHost} = $external_address if $external_address;
-	}
-	$cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
-
-	# Computing Activity Associations
-
-	# TODO: add link
-	#$cact->{ExecutionEnvironmentID} = ;
-	$cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
-	$cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
-
-	if ( $gmjob->{status} eq "INLRMS" ) {
-	    my $lrmsid = $gmjob->{localid};
-	    if (not $lrmsid) {
-		$log->warning("No local id for job $jobid") if $callcount == 1;
-		next;
-	    }
-	    $cact->{LocalIDFromManager} = $lrmsid;
-
-	    my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-	    if (not $lrmsjob) {
-		$log->warning("No local job for $jobid") if $callcount == 1;
-		next;
-	    }
-	    $cact->{State} = glueState("INLRMS", $lrmsjob->{status});
-	    $cact->{WaitingPosition} = $lrmsjob->{rank} if defined $lrmsjob->{rank};
-	    $cact->{ExecutionNode} = $lrmsjob->{nodes} if $lrmsjob->{nodes};
-	    unshift @{$cact->{OtherMessages}}, $_ for @{$lrmsjob->{comment}};
-
-	    # Times for running jobs
-	    $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
-	    $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
-	    $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
-	} else {
-	    $cact->{State} = glueState($gmjob->{status});
-	}
-      
-	# TODO: UserDomain association, how to calculate it?
-
-	$cact->{jobXmlFileWriter} = sub { jobXmlFileWriter($config, $jobid, $gmjob, @_) };
-
-	return $cact;
-      };
-
-      if ($nojobs) {
-	  $csv->{ComputingActivities} = undef;
-      } else {
-	    $csv->{ComputingActivities} = $getComputingActivities;
-      }
-
-
-    # ComputingShares: multiple shares can share the same LRMS queue
-
-    my @shares = keys %{$config->{shares}};
-
-    my $getComputingShares = sub {
-
-	return undef unless my ($share, $dummy) = each %{$config->{shares}};
-
-	my $qinfo = $lrms_info->{queues}{$share};
-
-	# Prepare flattened config hash for this share.
-	my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
-
-	# List of all shares submitting to the current queue, including the current share.
-	my $qname = $sconfig->{MappingQueue} || $share;
-
-	if ($qname) {
-	    my $siblings = $sconfig->{siblingshares} = [];
-	    # Do NOT use 'keys %{$config->{shares}}' here because it would
-	    # reset the iterator of 'each' and cause this function to
-	    # always return the same result
-	    for my $sn (@shares) {
-		my $s = $config->{shares}{$sn};
-		my $qn = $s->{MappingQueue} || $sn;
-		push @$siblings, $sn if $qn eq $qname;
-	    }
-	}
-
-	my $csha = {};
-
-	$csha->{CreationTime} = $creation_time;
-	$csha->{Validity} = $validity_ttl;
-
-	$csha->{ID} = $cshaIDs{$share};
-
-	$csha->{Name} = $share;
-	$csha->{Description} = $sconfig->{Description} if $sconfig->{Description};
-	$csha->{MappingQueue} = $qname if $qname;
-
-	# use limits from LRMS
-	$csha->{MaxCPUTime} = $qinfo->{maxcputime} if defined $qinfo->{maxcputime};
-	# TODO: implement in backends
-	$csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
-	$csha->{MinCPUTime} = $qinfo->{mincputime} if defined $qinfo->{mincputime};
-	$csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
-	$csha->{MaxWallTime} =  $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
-	# TODO: MaxMultiSlotWallTime replaces MaxTotalWallTime, but has different meaning. Check that it's used correctly
-	#$csha->{MaxMultiSlotWallTime} = $qinfo->{maxwalltime} if defined $qinfo->{maxwalltime};
-	$csha->{MinWallTime} =  $qinfo->{minwalltime} if defined $qinfo->{minwalltime};
-	$csha->{DefaultWallTime} = $qinfo->{defaultwallt} if defined $qinfo->{defaultwallt};
-
-	my ($maxtotal, $maxlrms) = split ' ', ($config->{maxjobs} || '');
-	$maxtotal = undef if defined $maxtotal and $maxtotal eq '-1';
-	$maxlrms = undef if defined $maxlrms and $maxlrms eq '-1';
-
-	# MaxWaitingJobs: use the maxjobs config option
-	# OBS: An upper limit is not really enforced by A-REX.
-	# OBS: Currently A-REX only cares about totals, not per share limits!
-	$csha->{MaxTotalJobs} = $maxtotal if defined $maxtotal;
-
-	# MaxWaitingJobs, MaxRunningJobs:
-	my ($maxrunning, $maxwaiting);
-
-	# use values from lrms if avaialble
-	if (defined $qinfo->{maxrunning}) {
-	    $maxrunning = $qinfo->{maxrunning};
-	}
-	if (defined $qinfo->{maxqueuable}) {
-	    $maxwaiting = $qinfo->{maxqueuable};
-	}
-
-	# maxjobs config option sets upper limits
-	if (defined $maxlrms) {
-	    $maxrunning = $maxlrms
-		if not defined $maxrunning or $maxrunning > $maxlrms;
-	    $maxwaiting = $maxlrms
-		if not defined $maxwaiting or $maxwaiting > $maxlrms;
-	}
-
-	$csha->{MaxRunningJobs} = $maxrunning if defined $maxrunning;
-	$csha->{MaxWaitingJobs} = $maxwaiting if defined $maxwaiting;
-
-	# MaxPreLRMSWaitingJobs: use GM's maxjobs option
-	# OBS: Currently A-REX only cares about totals, not per share limits!
-	# OBS: this formula is actually an upper limit on the sum of pre + post
-	#      lrms jobs. A-REX does not have separate limit for pre lrms jobs
-	$csha->{MaxPreLRMSWaitingJobs} = $maxtotal - $maxlrms
-	    if defined $maxtotal and defined $maxlrms;
-
-	$csha->{MaxUserRunningJobs} = $qinfo->{maxuserrun}
-	    if defined $qinfo->{maxuserrun};
-
-	# TODO: new return value from LRMS infocollector
-	# TODO: see how LRMSs can detect the correct value
-	$csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob}  || 1;
-
-	# MaxStageInStreams, MaxStageOutStreams
-	# OBS: A-REX does not have separate limits for up and downloads.
-	# OBS: A-REX only cares about totals, not per share limits!
-	my ($maxloaders, $maxemergency, $maxthreads) = split ' ', ($config->{maxload} || '');
-	$maxloaders = undef if defined $maxloaders and $maxloaders eq '-1';
-	$maxthreads = undef if defined $maxthreads and $maxthreads eq '-1';
-	if ($maxloaders) {
-	    # default is 5 (see MAX_DOWNLOADS defined in a-rex/grid-manager/loaders/downloader.cpp)
-	    $maxthreads = 5 unless defined $maxthreads;
-	    $csha->{MaxStageInStreams}  = $maxloaders * $maxthreads;
-	    $csha->{MaxStageOutStreams} = $maxloaders * $maxthreads;
-	}
-
-	# TODO: new return value schedpolicy from LRMS infocollector.
-	my $schedpolicy = $lrms_info->{schedpolicy} || undef;
-	if ($sconfig->{SchedulingPolicy} and not $schedpolicy) {
-	    $schedpolicy = 'fifo' if lc($sconfig->{SchedulingPolicy}) eq 'fifo';
-	    $schedpolicy = 'fairshare' if lc($sconfig->{SchedulingPolicy}) eq 'maui';
-	}
-	$csha->{SchedulingPolicy} = $schedpolicy if $schedpolicy;
-
-
-	# GuaranteedVirtualMemory -- all nodes must be able to provide this
-	# much memory per job. Some nodes might be able to afford more per job
-	# (MaxVirtualMemory)
-	# TODO: implement check at job accept time in a-rex
-	# TODO: implement in LRMS plugin maxvmem and maxrss.
-	$csha->{MaxVirtualMemory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
-	# MaxMainMemory -- usage not being tracked by most LRMSs
-
-	# OBS: new config option (space measured in GB !?)
-	# OBS: Disk usage of jobs is not being enforced.
-	# This limit should correspond with the max local-scratch disk space on
-	# clusters using local disks to run jobs.
-	# TODO: implement check at job accept time in a-rex
-	# TODO: see if any lrms can support this. Implement check in job wrapper
-	$csha->{MaxDiskSpace} = $sconfig->{DiskSpace} if $sconfig->{DiskSpace};
-
-	# DefaultStorageService:
-
-	# OBS: Should be ExtendedBoolean_t (one of 'true', 'false', 'undefined')
-	$csha->{Preemption} = glue2bool($qinfo->{Preemption}) if defined $qinfo->{Preemption};
-
-	# ServingState: closed and queuing are not yet supported
-	# OBS: Is there an allownew option for a-rex?
-	#if ( $config->{GridftpdAllowNew} == 0 ) {
-	#    $csha->{ServingState} = 'draining';
-	#} else {
-	#    $csha->{ServingState} = 'production';
-	#}
-	$csha->{ServingState} = 'production';
-
-	# Count local jobs
-	my $localrunning = $qinfo->{running};
-	my $localqueued = $qinfo->{queued};
-	my $localsuspended = $qinfo->{suspended} || 0;
-
-	# Substract grid jobs submitted belonging to shares that submit to the same lrms queue
-	$localrunning -= $inlrmsjobs{$_}{running} || 0 for @{$sconfig->{siblingshares}};
-	$localqueued -= $inlrmsjobs{$_}{queued} || 0 for @{$sconfig->{siblingshares}};
-	$localsuspended -= $inlrmsjobs{$_}{suspended} || 0 for @{$sconfig->{siblingshares}};
-
-	# OBS: Finished/failed/deleted jobs are not counted
-	my $totaljobs = $gmsharecount{$share}{notfinished} || 0;
-	$totaljobs += $localrunning + $localqueued + $localsuspended;
-	$csha->{TotalJobs} = $totaljobs;
-
-	$csha->{RunningJobs} = $localrunning + ( $inlrmsjobs{$share}{running} || 0 );
-	$csha->{WaitingJobs} = $localqueued + ( $inlrmsjobs{$share}{queued} || 0 );
-	$csha->{SuspendedJobs} = $localsuspended + ( $inlrmsjobs{$share}{suspended} || 0 );
-
-	# TODO: backends to count suspended jobs
-
-	$csha->{LocalRunningJobs} = $localrunning;
-	$csha->{LocalWaitingJobs} = $localqueued;
-	$csha->{LocalSuspendedJobs} = $localsuspended;
-
-	$csha->{StagingJobs} = ( $gmsharecount{$share}{preparing} || 0 )
-			      + ( $gmsharecount{$share}{finishing} || 0 );
-
-	$csha->{PreLRMSWaitingJobs} = $gmsharecount{$share}{notsubmitted} || 0;
-
-	# TODO: investigate if it's possible to get these estimates from maui/torque
-	$csha->{EstimatedAverageWaitingTime} = $qinfo->{averagewaitingtime} if defined $qinfo->{averagewaitingtime};
-	$csha->{EstimatedWorstWaitingTime} = $qinfo->{worstwaitingtime} if defined $qinfo->{worstwaitingtime};
-
-	# TODO: implement $qinfo->{freeslots} in LRMS plugins
-
-	my $freeslots = 0;
-	if (defined $qinfo->{freeslots}) {
-	    $freeslots = $qinfo->{freeslots};
-	} else {
-	    $freeslots = $qinfo->{totalcpus} - $qinfo->{running};
-	}
-
-	# Local users have individual restrictions
-	# FreeSlots: find the maximum freecpus of any local user mapped in this
-	# share and use that as an upper limit for $freeslots
-	# FreeSlotsWithDuration: for each duration, find the maximum freecpus
-	# of any local user mapped in this share
-	# TODO: is this the correct way to do it?
-
-	my @durations;
-	my %timeslots = max_userfreeslots($qinfo->{users});
-
-	if (%timeslots) {
-
-	    # find maximum free slots regardless of duration
-	    my $maxuserslots = 0;
-	    for my $seconds ( keys %timeslots ) {
-		my $nfree = $timeslots{$seconds};
-		$maxuserslots = $nfree if $nfree > $maxuserslots;
-	    }
-	    $freeslots = $maxuserslots < $freeslots
-			? $maxuserslots : $freeslots;
-
-	    # sort descending by duration, keping 0 first (0 for unlimited)
-	    for my $seconds (sort { if ($a == 0) {1} elsif ($b == 0) {-1} else {$b <=> $a} } keys %timeslots) {
-		my $nfree = $timeslots{$seconds} < $freeslots
-			  ? $timeslots{$seconds} : $freeslots;
-		unshift @durations, $seconds ? "$nfree:$seconds" : $nfree;
-	    }
-	}
-
-	$freeslots = 0 if $freeslots < 0;
-
-	$csha->{FreeSlots} = $freeslots;
-	$csha->{FreeSlotsWithDuration} = join(" ", @durations) || 0;
-	$csha->{UsedSlots} = $qinfo->{running};
-	$csha->{RequestedSlots} = $requestedslots{$share} || 0;
-
-	# TODO: detect reservationpolicy in the lrms
-	$csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
-
-	# MappingPolicy: VOs mapped to this share.
-
-	if (@{$config->{mappingpolicies}}) {
-	    my @mpconfs = @{$config->{mappingpolicies}};
-	    $csha->{MappingPolicies} = sub {
-		return undef unless @mpconfs;
-		my $mpconf = pop @mpconfs;
-		my $mpol = {};
-		$mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
-		$mpol->{Scheme} = "basic";
-		$mpol->{Rule} = $mpconf->{Rule};
-		$mpol->{UserDomainID} = $mpconf->{UserDomainID};
-		$mpol->{ShareID} = $cshaIDs{$share};
-		return $mpol;
-	    };
-	}
-
-	# Tag: skip it for now
-
-	# Associations
-
-	my $xenvs = $sconfig->{ExecutionEnvironmentName} || [];
-	push @{$csha->{ExecutionEnvironmentID}}, $xenvIDs{$_} for @$xenvs;
-
-	## check this association below. Which endpoint?
-	# $csha->{ComputingEndpointID} = $cepID;
-    $csha->{ServiceID} = $csvID;
-	$csha->{ComputingServiceID} = $csvID;
-
-	return $csha;
-    };
-
-    $csv->{ComputingShares} = $getComputingShares;
-
-
-    # ComputingManager
+        # ComputingManager
 
         my $getComputingManager = sub {
 
@@ -2927,28 +2974,30 @@ sub collect($) {
     
     my $getUserDomain = sub {
 
-	my $ud = {};
+        my $ud = {};
 
-	$ud->{CreationTime} = $creation_time;
-	$ud->{Validity} = $validity_ttl;
+        $ud->{CreationTime} = $creation_time;
+        $ud->{Validity} = $validity_ttl;
 
-	$ud->{ID} = $udID;
+        $ud->{ID} = $udID;
 
-	$ud->{Name} = "";
-	$ud->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
-	$ud->{Description} = '';
+        $ud->{Name} = "";
+        $ud->{OtherInfo} = $config->{service}{OtherInfo} if $config->{service}{OtherInfo}; # array
+        $ud->{Description} = '';
 
-	# Number of hops to reach the root
-	$ud->{Level} = 0;
-	# Endpoint of some service, such as VOMS server
-	$ud->{UserManager} = 'org.nordugrid.information.cache-index';
-	# List of users
-	$ud->{Member} = [ 'users here' ];
-	
-	# TODO: Calculate Policies, ContactID and LocationID
-	
-	# Associations
-	$ud->{UserDomainID} = $udID;
+        # Number of hops to reach the root
+        $ud->{Level} = 0;
+        # Endpoint of some service, such as VOMS server
+        $ud->{UserManager} = 'http://voms.nordugrid.org';
+        # List of users
+        $ud->{Member} = [ 'users here' ];
+        
+        # TODO: Calculate Policies, ContactID and LocationID
+        
+        # Associations
+        $ud->{UserDomainID} = $udID;
+        
+        return $ud;
 
     };
 

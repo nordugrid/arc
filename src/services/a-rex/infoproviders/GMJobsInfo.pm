@@ -30,6 +30,7 @@ our $j = { 'jobID' => {
             fullaccess         => '*',
             lifetime           => '*', # seconds
             jobreport          => '*',
+            interface          => '*',  # added for GLUE2, the interface the job was submitted. If missing, gridftp
             # from .description
             description        => '', # rsl or xml
             # from .grami -- not kept when the job is deleted
@@ -54,7 +55,7 @@ our $j = { 'jobID' => {
             nodenames          => [ '*' ],
             UsedMem            => '*', # units: kB; summed over all execution threads
             CpuTime            => '*', # units: s;  summed over all execution threads
-            WallTime           => '*'  # units: s;  real-world time elapsed
+            WallTime           => '*' # units: s;  real-world time elapsed
         }
 };
 
@@ -357,10 +358,11 @@ sub get_gmjobs {
 sub test() {
     require Data::Dumper;
     LogUtils::level('VERBOSE');
-    my $results = GMJobsInfo::collect('/data/jobstatus');
+    my $controldirs = {'*' => { 'controldir' => '/tmp/jobstatus' } };
+    my $results = GMJobsInfo::collect(\%$controldirs);
     print Data::Dumper::Dumper($results);
 }
 
-#test;
+# test;
 
 1;

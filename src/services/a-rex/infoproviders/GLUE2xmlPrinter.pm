@@ -225,11 +225,6 @@ sub ComputingService {
         $self->ComputingEndpoints($data->{ComputingEndpoints});
         $self->ComputingShares($data->{ComputingShares});
         $self->ComputingManager($data->{ComputingManager});
-        if ($data->{ComputingActivities}) {
-            $self->begin('ComputingActivities') unless ($self->{splitjobs});
-            $self->ComputingActivities($data->{ComputingActivities});
-            $self->end('ComputingActivities') unless ($self->{splitjobs});
-        }
         $self->ToStorageServices($data->{ToStorageServices});
         if ($data->{ServiceID}) {
             $self->begin('Associations');
@@ -280,9 +275,9 @@ sub ComputingEndpoints {
             $self->end('Associations');
         }
         if ($data->{ComputingActivities}) {
-            $self->begin('ComputingActivities');
+            $self->begin('ComputingActivities') unless ($self->{splitjobs});
             $self->ComputingActivities($data->{ComputingActivities});
-            $self->end('ComputingActivities');
+            $self->end('ComputingActivities') unless ($self->{splitjobs});
         }
     });
 }
