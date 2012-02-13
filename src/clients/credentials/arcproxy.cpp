@@ -1155,8 +1155,9 @@ int main(int argc, char *argv[]) {
             if((bool)(node["error"])) {
               std::string str = node["error"]["item"]["message"];
               std::string::size_type pos;
-              if((pos = str.find("The validity of this VOMS AC in your proxy is shortened to"))!= std::string::npos) {
-                std::string tmp = str.substr(pos + 59); 
+              std::string tmp_str = "The validity of this VOMS AC in your proxy is shortened to";
+              if((pos = str.find(tmp_str))!= std::string::npos) {
+                std::string tmp = str.substr(pos + tmp_str.size() + 1); 
                 std::cout << Arc::IString("The validity duration of VOMS AC is shortened from %s to %s, due to the validity constraint on voms server side.\n", voms_period, tmp);
               }
               else
@@ -1208,6 +1209,7 @@ int main(int argc, char *argv[]) {
       //Put the returned attribute certificate into proxy certificate
       if (aclist != NULL)
         cred_request.AddExtension("acseq", (char**)aclist);
+      else std::cout << Arc::IString("Failed to add voms AC extension. Your proxy may be incomplete.") << std::endl;
       if (!acorder.empty())
         cred_request.AddExtension("order", acorder);
     }
