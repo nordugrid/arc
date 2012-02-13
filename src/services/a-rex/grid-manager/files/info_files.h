@@ -217,7 +217,7 @@ bool job_cache_read_file(const JobId &id,const JobUser &user,std::list<FileData>
 bool job_output_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData> &files,job_output_mode mode = job_output_all);
 bool job_output_read_file(const JobId &id,const JobUser &user,std::list<FileData> &files);
 
-bool job_output_status_add_file(const JobDescription &desc,const JobUser &user,const std::string& file = "");
+bool job_output_status_add_file(const JobDescription &desc,const JobUser &user,const FileData& file);
 bool job_output_status_write_file(const JobDescription &desc,const JobUser &user,std::list<FileData>& files);
 bool job_output_status_read_file(const JobId &id,const JobUser &user,std::list<FileData>& files);
 

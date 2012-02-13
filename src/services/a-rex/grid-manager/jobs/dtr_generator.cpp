@@ -367,6 +367,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
       if (!job_output_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING, "%s: Failed to read list of output files", jobid);
       } else {
+        FileData uploaded_file;
         // go through list and take out this file
         for (std::list<FileData>::iterator i = files.begin(); i != files.end();) {
           // compare 'standard' URLs
@@ -385,6 +386,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
                    dynamic_file != dynamic_files.end(); ++dynamic_file) {
                 if (Arc::URL(dynamic_file->lfn).str() == dtr_lfn.str()) {
                   logger.msg(Arc::DEBUG, "%s: Removing %s from dynamic output file %s", jobid, dtr_lfn.str(), dynamic_output);
+                  uploaded_file = *dynamic_file;
                   dynamic_files.erase(dynamic_file);
                   if (!job_Xput_write_file(dynamic_output, dynamic_files))
                     logger.msg(Arc::WARNING, "%s: Failed to write back dynamic output files in %s", jobid, dynamic_output);
@@ -394,7 +396,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
             }
           }
           if (file_lfn.str() == dtr_lfn.str()) {
-          	struct stat st;
+            uploaded_file = *i;
+            struct stat st;
             Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
             dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
             i = files.erase(i);
@@ -406,6 +409,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
         // write back .output file
         if (!job_output_write_file(job, *jobuser, files)) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of output files", jobid);
+        }
+        if(!uploaded_file.pfn.empty()) {
+          if(!job_output_status_add_file(job, *jobuser, uploaded_file)) {
+            logger.msg(Arc::WARNING, "%s: Failed to write list of output status files", jobid);
+          }
         }
       }
       dtr_transfer_statistics += "starttime=" + dtr.get_creation_time().str(Arc::UTCTime) + ',';

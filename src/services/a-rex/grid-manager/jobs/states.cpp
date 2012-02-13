@@ -946,7 +946,7 @@ bool JobsList::RecreateTransferLists(const JobsList::iterator &i) {
     for(;i_done!=fl_done.end();++i_done) {
       if((i_new->pfn == i_done->pfn) && (i_new->lfn == i_done->lfn)) break;
     };
-    if(i_done != fl_done.end()) { ++i_new; i->local->uploads++; continue; };
+    if(i_done == fl_done.end()) { ++i_new; i->local->uploads++; continue; };
     /*
     std::list<FileData>::iterator i_old = fl_old.begin();
     for(;i_old!=fl_old.end();++i_old) {
