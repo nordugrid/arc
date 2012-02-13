@@ -23,6 +23,7 @@
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
 #include <arc/Utils.h>
+#include <arc/GUID.h>
 #include <arc/credential/Credential.h>
 
 #include "../conf/conf.h"
@@ -824,6 +825,8 @@ int JobPlugin::close(bool eof) {
     globalid+=job_id;
     job_desc.globalid=globalid;
   };
+  job_desc.headnode=endpoint;
+  job_desc.interface="org.nordugrid.gridftpjob";
   /* ***********************************************
    * Try to create proxy                           *
    *********************************************** */
@@ -1374,9 +1377,11 @@ bool JobPlugin::make_job_id(void) {
   bool found = false;
   delete_job_id();
   for(int i=0;i<100;i++) {
-    std::string id=Arc::tostring((unsigned int)getpid())+
-                   Arc::tostring((unsigned int)time(NULL))+
-                   Arc::tostring(rand(),1);
+    //std::string id=Arc::tostring((unsigned int)getpid())+
+    //               Arc::tostring((unsigned int)time(NULL))+
+    //               Arc::tostring(rand(),1);
+    std::string id;
+    Arc::GUID(id);
     // create job.id.description file then loop through all control dirs to find if it already exists
     std::vector<gm_dirs_>::iterator it = gm_dirs_info.begin();
     std::string fname=it->control_dir+"/job."+id+".description";
