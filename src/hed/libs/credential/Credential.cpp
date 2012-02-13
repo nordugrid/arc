@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <openssl/ui.h>
 #include <openssl/ssl.h>
+#include <openssl/evp.h>
 
 #include <glibmm/fileutils.h>
 
@@ -724,7 +725,6 @@ namespace Arc {
         proxyver_(0), pathlength_(0), extensions_(NULL) {
 
     OpenSSLInit();
-    //EVP_add_digest(EVP_sha1());
 
     InitVerification();
 
@@ -741,7 +741,6 @@ namespace Arc {
     extensions_(NULL) {
 
     OpenSSLInit();
-    //EVP_add_digest(EVP_sha1());
 
     InitVerification();
 
@@ -758,7 +757,6 @@ namespace Arc {
         signing_alg_((EVP_MD*)EVP_sha1()), keybits_(keybits), extensions_(NULL) {
 
     OpenSSLInit();
-    //EVP_add_digest(EVP_sha1());
 
     InitVerification();
 
@@ -988,7 +986,6 @@ namespace Arc {
     extensions_ = NULL;
 
     OpenSSLInit();
-    //EVP_add_digest(EVP_sha1());
 
     InitVerification();
 
@@ -2194,6 +2191,9 @@ err:
       return false;
     }
 
+    int md_nid;
+    char* md_str;
+    const EVP_MD* dgst_alg  =NULL;
     EVP_PKEY* issuer_priv = NULL;
     EVP_PKEY* issuer_pub = NULL;
     X509*  proxy_cert = NULL;
@@ -2259,9 +2259,22 @@ err:
       CredentialLogger.msg(ERROR, "Can not get the issuer's private key"); goto err;
     }
 
-    /* Check whether SHA1 isn't requested as the signing algorithm in the request*/
-    if(EVP_MD_type(proxy->signing_alg_) != NID_sha1) {
-      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 to sign certificate requests",
+    /* Use the signing algorithm in the signer's priv key */
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    if(EVP_PKEY_get_default_digest_nid(issuer_priv, &md_nid) <= 0) {
+      CredentialLogger.msg(INFO, "There is no digest in issuer's private key object");
+    }
+    md_str = (char *)OBJ_nid2sn(md_nid);
+    if((dgst_alg = EVP_get_digestbyname(md_str)) == NULL) {
+      CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
+    }
+#endif
+    if(dgst_alg == NULL) dgst_alg = proxy->signing_alg_;
+
+    /* Check whether the digest algorithm is SHA1 or SHA2*/
+    md_nid = EVP_MD_type(dgst_alg);
+    if((md_nid != NID_sha1) && (md_nid != NID_sha224) && (md_nid != NID_sha256) && (md_nid != NID_sha384) && (md_nid != NID_sha512)) {
+      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 or SHA2 to sign certificate requests",
       OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
       goto err;
     }
@@ -2793,17 +2806,34 @@ error:
     else 
       X509_set_subject_name(eec_cert,eec->req_->req_info->subject);
 
+/*
     const EVP_MD *digest=EVP_sha1();
 #ifndef OPENSSL_NO_DSA
     if (pkey_->type == EVP_PKEY_DSA)
       digest=EVP_dss1();
 #endif
+*/
 /*
 #ifndef OPENSSL_NO_ECDSA
     if (pkey_->type == EVP_PKEY_EC)
       digest = EVP_ecdsa();
 #endif
 */
+    const EVP_MD* digest = NULL;
+    int md_nid;
+    char* md_str;
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    if(EVP_PKEY_get_default_digest_nid(pkey_, &md_nid) <= 0) {
+      CredentialLogger.msg(INFO, "There is no digest in issuer's private key object");
+    }
+    md_str = (char *)OBJ_nid2sn(md_nid);
+    if((digest = EVP_get_digestbyname(md_str)) == NULL) {
+      CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
+    }
+#endif
+    if(digest == NULL) digest = EVP_sha1();
+
+
     X509_STORE *ctx = NULL;
     ctx = X509_STORE_new();
     //X509_STORE_set_verify_cb_func(ctx,callb);
