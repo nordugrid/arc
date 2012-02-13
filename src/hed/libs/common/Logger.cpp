@@ -348,20 +348,22 @@ namespace Arc {
     // Executing this code should be impossible!
     exit(EXIT_FAILURE);
   }
+
   LogFile::operator bool(void) {
     Glib::Mutex::Lock lock(mutex);
-    return destination.is_open();
+    return (reopen)?(!path.empty()):destination.is_open();
   }
 
   bool LogFile::operator!(void) {
     Glib::Mutex::Lock lock(mutex);
-    return !destination.is_open();
+    return (reopen)?path.empty():(!destination.is_open());
   }
 
   void LogFile::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
     const char *loc = NULL;
-    if (reopen) {
+    // If requested to reopen on every write or if was closed because of error
+    if (reopen || !destination.is_open()) {
       destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }
     if(!destination.is_open()) return;
@@ -373,9 +375,14 @@ namespace Arc {
     destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
     EnvLockUnwrap(true);
-    if (reopen) destination.close();
+    // Check if unrecoverwable error occured. Close if error 
+    // and reopen on next write.
+    if(destination.bad()) destination.close();
+    // Before closing check if must backup
     backup();
+    if (reopen) destination.close();
   }
+
   void LogFile::backup(void) {
     if(maxsize <= 0) return;
     if(destination.tellp() < maxsize) return;
