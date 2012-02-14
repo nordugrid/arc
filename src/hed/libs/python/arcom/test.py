@@ -67,6 +67,7 @@ def with_logging(function):
         arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
         result = function(self)
         arc.Logger.getRootLogger().removeDestinations()
+        return result
     return logging_func
 
 class ARCClientTestCase(ExpectationalTestCase):
