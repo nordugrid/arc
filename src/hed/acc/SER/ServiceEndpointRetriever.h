@@ -173,7 +173,9 @@ private:
  **/
 class ServiceEndpointRetrieverPlugin : public Plugin {
 public:
-  virtual RegistryEndpointStatus Query(const UserConfig&, const RegistryEndpoint& rEndpoint, ServiceEndpointConsumer&) = 0;
+  virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
+                                       const RegistryEndpoint& registry,
+                                       std::list<ServiceEndpoint>& endpoints) = 0;
 };
 
 /// Class responsible for loading ServiceEndpointRetrieverPlugin plugins

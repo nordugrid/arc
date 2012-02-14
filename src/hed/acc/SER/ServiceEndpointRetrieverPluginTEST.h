@@ -11,7 +11,9 @@ class ServiceEndpointRetrieverTEST : public ServiceEndpointRetrieverPlugin {
 protected:
   ServiceEndpointRetrieverTEST() {}
 public:
-  virtual RegistryEndpointStatus Query(const UserConfig& userconfig, const RegistryEndpoint& registry, ServiceEndpointConsumer& consumer);
+  virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
+                                       const RegistryEndpoint& registry,
+                                       std::list<ServiceEndpoint>& endpoints);
   static Plugin* Instance(PluginArgument *arg);
 };
 

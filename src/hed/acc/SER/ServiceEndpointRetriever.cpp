@@ -131,7 +131,11 @@ namespace Arc {
       bool wasSet = a->ser->testAndSetStatusOfRegistry(a->registry, status);
       if (wasSet) {
         logger.msg(Arc::DEBUG, "Calling plugin to query registry on " + a->registry.str());
-        status = plugin->Query(*a->userconfig, a->registry, *a->ser);
+        std::list<ServiceEndpoint> endpoints;
+        status = plugin->Query(*a->userconfig, a->registry, endpoints);
+        for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+          a->ser->addServiceEndpoint(*it);
+        }
         a->ser->setStatusOfRegistry(a->registry, status);
       } else {
         logger.msg(Arc::DEBUG, "Will not query registry, because another thread is already querying it: " + a->registry.str());

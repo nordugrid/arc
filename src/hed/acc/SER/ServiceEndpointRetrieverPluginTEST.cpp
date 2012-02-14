@@ -13,13 +13,10 @@ Plugin* ServiceEndpointRetrieverTEST::Instance(PluginArgument* arg) {
 }
 
 RegistryEndpointStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& userconfig,
-                                                          const RegistryEndpoint& endpoint,
-                                                          ServiceEndpointConsumer& consumer) {
+                                                          const RegistryEndpoint& registry,
+                                                          std::list<ServiceEndpoint>& endpoints) {
   Glib::usleep(ServiceEndpointRetrieverTESTControl::delay*1000000);
-  for (std::list<ServiceEndpoint>::const_iterator it = ServiceEndpointRetrieverTESTControl::endpoints.begin();
-       it != ServiceEndpointRetrieverTESTControl::endpoints.end(); it++) {
-    consumer.addServiceEndpoint(*it);
-  }
+  endpoints = ServiceEndpointRetrieverTESTControl::endpoints;
   return ServiceEndpointRetrieverTESTControl::status;
 };
 
