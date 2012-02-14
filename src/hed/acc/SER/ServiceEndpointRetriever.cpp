@@ -15,7 +15,7 @@ namespace Arc {
 
   class ThreadArgSER {
   public:
-    UserConfig userconfig;
+    UserConfig* userconfig;
     RegistryEndpoint registry;
     std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
@@ -23,7 +23,7 @@ namespace Arc {
   
   bool ServiceEndpointRetriever::createThread(RegistryEndpoint registry) {
     ThreadArgSER *arg = new ThreadArgSER;
-    arg->userconfig = userconfig;
+    arg->userconfig = &userconfig;
     arg->registry = registry;
     arg->capabilityFilter = capabilityFilter;
     arg->ser = this;
@@ -36,7 +36,7 @@ namespace Arc {
     return true;
   }
 
-  ServiceEndpointRetriever::ServiceEndpointRetriever(UserConfig userconfig,
+  ServiceEndpointRetriever::ServiceEndpointRetriever(UserConfig& userconfig,
                                                      std::list<RegistryEndpoint> registries,
                                                      ServiceEndpointConsumer& consumer,
                                                      bool recursive,
@@ -131,7 +131,7 @@ namespace Arc {
       bool wasSet = a->ser->testAndSetStatusOfRegistry(a->registry, status);
       if (wasSet) {
         logger.msg(Arc::DEBUG, "Calling plugin to query registry on " + a->registry.str());
-        status = plugin->Query(a->userconfig, a->registry, *a->ser);
+        status = plugin->Query(*a->userconfig, a->registry, *a->ser);
         a->ser->setStatusOfRegistry(a->registry, status);
       } else {
         logger.msg(Arc::DEBUG, "Will not query registry, because another thread is already querying it: " + a->registry.str());
