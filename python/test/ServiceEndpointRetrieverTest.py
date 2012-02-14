@@ -44,13 +44,34 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         # wait while it finishes to avoid the container getting out of scope
         retriever.wait()
         
-    def test_same_endpoint_is_not_tested_twice(self):
-        self.turn_on_logging()
+    def test_same_endpoint_is_not_queried_twice(self):
         container = arc.ServiceEndpointContainer()
         registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST"), arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
         retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container)
         retriever.wait()
         self.expect(container.endpoints).to_have(1).endpoint()
+        
+    def test_filtering(self):
+        registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
+        arc.ServiceEndpointRetrieverTESTControl.endpoints = [
+            arc.ServiceEndpoint(arc.URL("http://test1.nordugrid.org:60000"),["cap1","cap2"]),
+            arc.ServiceEndpoint(arc.URL("http://test2.nordugrid.org:60000"),["cap3","cap4"]),
+            arc.ServiceEndpoint(arc.URL("http://test3.nordugrid.org:60000"),["cap1","cap3"])
+        ]
+        container = arc.ServiceEndpointContainer()
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container, False, ["cap1"])
+        retriever.wait()
+        self.expect(container.endpoints).to_have(2).endpoints()
+
+        container = arc.ServiceEndpointContainer()
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container, False, ["cap2"])
+        retriever.wait()
+        self.expect(container.endpoints).to_have(1).endpoint()
+
+        container = arc.ServiceEndpointContainer()
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container, False, ["cap5"])
+        retriever.wait()
+        self.expect(container.endpoints).to_have(0).endpoints()
 
 if __name__ == '__main__':
     unittest.main()

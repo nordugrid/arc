@@ -15,35 +15,54 @@ namespace Arc {
 
   class ThreadArgSER {
   public:
+    UserConfig userconfig;
     RegistryEndpoint registry;
-    ServiceEndpointConsumer* consumer;
     std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
   };
   
-  ThreadArgSER* ServiceEndpointRetriever::CreateThreadArg(RegistryEndpoint& registry,
-                                                          ServiceEndpointConsumer& consumer,
-                                                          std::list<std::string>& capabilityFilter) {
+  bool ServiceEndpointRetriever::createThread(RegistryEndpoint& registry) {
     ThreadArgSER *arg = new ThreadArgSER;
+    arg->userconfig = userconfig;
     arg->registry = registry;
-    arg->consumer = &consumer;
     arg->capabilityFilter = capabilityFilter;
     arg->ser = this;
-    return arg;
+    std::string registryString = arg->registry.Endpoint + " (" + arg->registry.Type + ")";
+    logger.msg(Arc::DEBUG, "Starting thread to query the registry on " + registryString);
+    if (!CreateThreadFunction(&queryRegistry, arg, &threadCounter)) {
+      logger.msg(Arc::ERROR, "Failed to start querying the registry on " + registryString + " (unable to create thread)");
+      delete arg;
+      return false;
+    }
+    return true;
   }
 
   ServiceEndpointRetriever::ServiceEndpointRetriever(UserConfig userconfig,
                                                      std::list<RegistryEndpoint> registries,
                                                      ServiceEndpointConsumer& consumer,
                                                      bool recursive,
-                                                     std::list<std::string> capabilityFilter) : userconfig(userconfig), safeConsumer(consumer) {
+                                                     std::list<std::string> capabilityFilter)
+  : userconfig(userconfig), consumer(consumer), recursive(recursive), capabilityFilter(capabilityFilter) {
     for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); it++) {
-      ThreadArgSER* arg = CreateThreadArg(*it, safeConsumer, capabilityFilter);
-      logger.msg(Arc::DEBUG, "Starting thread to query the registry on " + it->Endpoint);
-      if (!CreateThreadFunction(&QueryRegistry, arg, &threadCounter)) {
-        logger.msg(Arc::ERROR, "Failed to start querying the registry on " + it->Endpoint + " (unable to create thread)");
-        delete arg;
-      }
+      createThread(*it);
+    }
+  }
+  
+  void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& endpoint) {
+    bool match = false;
+    if (capabilityFilter.empty()) {
+      match = true;
+    } else {
+      for (std::list<std::string>::iterator it = capabilityFilter.begin(); it != capabilityFilter.end(); it++) {
+        if (std::count(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it)) {
+          match = true;
+        }
+      }        
+    }
+    if (match) {
+      lock.lock();
+      consumer.addServiceEndpoint(endpoint);
+      lock.unlock();      
     }
   }
   
@@ -54,8 +73,7 @@ namespace Arc {
   bool ServiceEndpointRetriever::isDone() const {
     return threadCounter.get() == 0;
   };
-  
-  
+      
   RegistryEndpointStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
     lock.lock();
     RegistryEndpointStatus status(SER_UNKNOWN);
@@ -86,7 +104,7 @@ namespace Arc {
     lock.unlock();
   };
   
-  void ServiceEndpointRetriever::QueryRegistry(void *arg) {
+  void ServiceEndpointRetriever::queryRegistry(void *arg) {
     ThreadArgSER* a = (ThreadArgSER*)arg;
     ServiceEndpointRetrieverPluginLoader loader;
     ServiceEndpointRetrieverPlugin* plugin = loader.load(a->registry.Type);
@@ -95,7 +113,7 @@ namespace Arc {
       bool wasSet = a->ser->testAndSetStatusOfRegistry(a->registry, status);
       if (wasSet) {
         logger.msg(Arc::DEBUG, "Querying " + a->registry.Endpoint);
-        status = plugin->Query(a->ser->userconfig, a->registry, *a->consumer);
+        status = plugin->Query(a->userconfig, a->registry, *a->ser);
         a->ser->setStatusOfRegistry(a->registry, status);
       } else {
         logger.msg(Arc::DEBUG, "Will not query registry, because another thread is already querying it: " + a->registry.Endpoint);

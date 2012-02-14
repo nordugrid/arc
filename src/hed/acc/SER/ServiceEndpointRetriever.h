@@ -26,7 +26,7 @@ public:
   RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {};
   std::string Endpoint;
   std::string Type;
-  // Needed for std::map ('status' in ServiceEndpointRetriever) to be able to sort the keys
+  // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
   bool operator<(const RegistryEndpoint& other) const {
     return Endpoint + Type < other.Endpoint + other.Type;
   }
@@ -39,6 +39,19 @@ public:
 // Combination of the GLUE 2 Service and Endpoint classes.
 class ServiceEndpoint {
 public:
+  ServiceEndpoint(URL EndpointURL = URL(),
+                  std::list<std::string> EndpointCapabilities = std::list<std::string>(),
+                  std::string EndpointInterfaceName = "",
+                  std::string HealthState = "",
+                  std::string HealthStateInfo = "",
+                  std::string QualityLevel = "")
+    : EndpointURL(EndpointURL),
+    EndpointCapabilities(EndpointCapabilities),
+    EndpointInterfaceName(EndpointInterfaceName),
+    HealthState(HealthState),
+    HealthStateInfo(HealthStateInfo),
+    QualityLevel(QualityLevel) {}
+                      
   URL EndpointURL;
   std::list<std::string> EndpointCapabilities;
   std::string EndpointInterfaceName;
@@ -87,28 +100,13 @@ private:
 
 class ThreadArgSER;
 
-class ThreadSafeConsumer : public ServiceEndpointConsumer {
-public:
-  ThreadSafeConsumer(ServiceEndpointConsumer& consumer) : consumer(consumer) {}
-  
-  void addServiceEndpoint(const ServiceEndpoint& endpoint) {
-    lock.lock();
-    consumer.addServiceEndpoint(endpoint);
-    lock.unlock();
-   }
-  
-private:
-  SimpleCondition lock;
-  ServiceEndpointConsumer& consumer;
-};
-
 ///
 /**
  * Convenience class for retrieving service endpoint information from a registry
  * or index service.
  **/
 // This name does not reflect the fact that it queries a registry/index service.
-class ServiceEndpointRetriever {
+class ServiceEndpointRetriever : ServiceEndpointConsumer {
 public:
   /**
    * Start querying the registry/index services specified in the 'registries'
@@ -116,33 +114,34 @@ public:
    * 'seConsumer'. Querying the registries will be done in a threaded manner
    * and the constructor is not waiting for these threads to finish.
    **/
-  ServiceEndpointRetriever(UserConfig uc,
+  ServiceEndpointRetriever(UserConfig userconfig,
                            std::list<RegistryEndpoint> registries,
                            ServiceEndpointConsumer& consumer,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
   void wait() const;  
   bool isDone() const;
+  
   RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
   bool testAndSetStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
   void setStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
-
-  UserConfig userconfig;
-
+  
+  virtual void addServiceEndpoint(const ServiceEndpoint&);
+    
 private:
-  static void QueryRegistry(void *arg_);
+  static void queryRegistry(void *arg_);
   
-  ThreadArgSER* CreateThreadArg(RegistryEndpoint& registry,
-                                ServiceEndpointConsumer& consumer,
-                                std::list<std::string>& capabilityFilter);
-  
+  bool createThread(RegistryEndpoint& registry);
+
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
 
   static Logger logger;
   mutable SimpleCounter threadCounter;
   mutable SimpleCondition lock;
-  
-  ThreadSafeConsumer safeConsumer;
+  UserConfig userconfig;
+  ServiceEndpointConsumer& consumer;
+  bool recursive;
+  std::list<std::string> capabilityFilter;
 };
 
 ///
