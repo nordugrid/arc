@@ -25,7 +25,7 @@ class PluginArgument;
 // Combination of the GLUE 2 Service and Endpoint classes.
 class ServiceEndpoint {
 public:
-  ServiceEndpoint(URL EndpointURL = URL(),
+  ServiceEndpoint(std::string EndpointURL = "",
                   std::list<std::string> EndpointCapabilities = std::list<std::string>(),
                   std::string EndpointInterfaceName = "",
                   std::string HealthState = "",
@@ -38,7 +38,7 @@ public:
     HealthStateInfo(HealthStateInfo),
     QualityLevel(QualityLevel) {}
                       
-  URL EndpointURL;
+  std::string EndpointURL;
   std::list<std::string> EndpointCapabilities;
   std::string EndpointInterfaceName;
   std::string HealthState;
@@ -55,7 +55,7 @@ public:
   RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {}
   
   RegistryEndpoint(ServiceEndpoint service) {
-    Endpoint = service.EndpointURL.str();
+    Endpoint = service.EndpointURL;
     if (service.EndpointInterfaceName == "org.nordugrid.ldapegiis") {
       Type = "EGIIS";
     } else if (service.EndpointInterfaceName == "org.ogf.emir") {

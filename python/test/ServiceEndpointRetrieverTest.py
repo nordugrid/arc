@@ -54,9 +54,9 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
     def test_filtering(self):
         registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
         arc.ServiceEndpointRetrieverTESTControl.endpoints = [
-            arc.ServiceEndpoint(arc.URL("http://test1.nordugrid.org:60000"),["cap1","cap2"]),
-            arc.ServiceEndpoint(arc.URL("http://test2.nordugrid.org:60000"),["cap3","cap4"]),
-            arc.ServiceEndpoint(arc.URL("http://test3.nordugrid.org:60000"),["cap1","cap3"])
+            arc.ServiceEndpoint("test1.nordugrid.org",["cap1","cap2"]),
+            arc.ServiceEndpoint("test2.nordugrid.org",["cap3","cap4"]),
+            arc.ServiceEndpoint("test3.nordugrid.org",["cap1","cap3"])
         ]
         container = arc.ServiceEndpointContainer()
         retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container, False, ["cap1"])
@@ -76,8 +76,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
     def test_recursivity(self):
         registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
         arc.ServiceEndpointRetrieverTESTControl.endpoints = [
-            arc.ServiceEndpoint(arc.URL("http://emir.nordugrid.org"), ["information.discovery.registry"], "org.nordugrid.test"),
-            arc.ServiceEndpoint(arc.URL("http://ce.nordugrid.org"), ["information.discovery.resource"], "org.ogf.emies"),            
+            arc.ServiceEndpoint("emir.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.test"),
+            arc.ServiceEndpoint("ce.nordugrid.org", ["information.discovery.resource"], "org.ogf.emies"),            
         ]
         container = arc.ServiceEndpointContainer()
         retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container, True)
@@ -85,8 +85,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         # expect to get both service endpoints twice
         # once from test.nordugrid.org, once from emir.nordugrid.org
         self.expect(container.endpoints).to_have(4).endpoints()
-        emirs = [endpoint for endpoint in container.endpoints if "emir" in endpoint.EndpointURL.str()]
-        ces = [endpoint for endpoint in container.endpoints if "ce" in endpoint.EndpointURL.str()]
+        emirs = [endpoint for endpoint in container.endpoints if "emir" in endpoint.EndpointURL]
+        ces = [endpoint for endpoint in container.endpoints if "ce" in endpoint.EndpointURL]
         self.expect(emirs).to_have(2).endpoints()
         self.expect(ces).to_have(2).endpoints()
     
