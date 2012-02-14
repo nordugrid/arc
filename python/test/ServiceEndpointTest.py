@@ -15,9 +15,10 @@ class ServiceEndpointTest(arcom.test.ARCClientTestCase):
         self.expect(service.EndpointCapabilities).to_have(0).items()
 
     def test_constructor_with_values(self):
-        service = arc.ServiceEndpoint(arc.URL("http://test.nordugrid.org:60000"), ["information.discovery.resource"])
+        service = arc.ServiceEndpoint(arc.URL("http://test.nordugrid.org:60000"), ["information.discovery.resource"], "org.nordugrid.wsrfglue2")
         self.expect(service.EndpointURL.str()).to_be("http://test.nordugrid.org:60000")
         self.expect(service.EndpointCapabilities).to_contain("information.discovery.resource")
+        self.expect(service.EndpointInterfaceName).to_contain("org.nordugrid.wsrfglue2")
         
 if __name__ == '__main__':
     unittest.main()

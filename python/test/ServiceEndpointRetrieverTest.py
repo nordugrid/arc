@@ -73,5 +73,23 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.wait()
         self.expect(container.endpoints).to_have(0).endpoints()
 
+    def test_recursivity(self):
+        registries = [arc.RegistryEndpoint("test.nordugrid.org", "TEST")]
+        arc.ServiceEndpointRetrieverTESTControl.endpoints = [
+            arc.ServiceEndpoint(arc.URL("http://emir.nordugrid.org"), ["information.discovery.registry"], "org.nordugrid.test"),
+            arc.ServiceEndpoint(arc.URL("http://ce.nordugrid.org"), ["information.discovery.resource"], "org.ogf.emies"),            
+        ]
+        container = arc.ServiceEndpointContainer()
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container, True)
+        retriever.wait()
+        # expect to get both service endpoints twice
+        # once from test.nordugrid.org, once from emir.nordugrid.org
+        self.expect(container.endpoints).to_have(4).endpoints()
+        emirs = [endpoint for endpoint in container.endpoints if "emir" in endpoint.EndpointURL.str()]
+        ces = [endpoint for endpoint in container.endpoints if "ce" in endpoint.EndpointURL.str()]
+        self.expect(emirs).to_have(2).endpoints()
+        self.expect(ces).to_have(2).endpoints()
+        
+
 if __name__ == '__main__':
     unittest.main()

@@ -21,21 +21,6 @@ class PluginArgument;
 /**
  *
  **/
-class RegistryEndpoint {
-public:
-  RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {};
-  std::string Endpoint;
-  std::string Type;
-  // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
-  bool operator<(const RegistryEndpoint& other) const {
-    return Endpoint + Type < other.Endpoint + other.Type;
-  }
-};
-
-///
-/**
- *
- **/
 // Combination of the GLUE 2 Service and Endpoint classes.
 class ServiceEndpoint {
 public:
@@ -59,6 +44,40 @@ public:
   std::string HealthStateInfo;
   std::string QualityLevel;
 };
+
+///
+/**
+ *
+ **/
+class RegistryEndpoint {
+public:
+  RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {};
+  RegistryEndpoint(ServiceEndpoint service) {
+    Endpoint = service.EndpointURL.str();
+    if (service.EndpointInterfaceName == "org.nordugrid.ldapegiis") {
+      Type = "EGIIS";
+    } else if (service.EndpointInterfaceName == "org.ogf.emir") {
+      Type = "EMIR";
+    } else if (service.EndpointInterfaceName == "org.nordugrid.test") {
+      Type = "TEST";
+    }
+  }
+  static bool isRegistry(ServiceEndpoint service) {
+    return (std::count(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != 0);
+  }
+  std::string str() const {
+    return Endpoint + " (" + Type + ")";
+  }
+  
+  // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
+  bool operator<(const RegistryEndpoint& other) const {
+    return Endpoint + Type < other.Endpoint + other.Type;
+  }
+
+  std::string Endpoint;
+  std::string Type;
+};
+
 
 ///
 /**
@@ -131,7 +150,7 @@ public:
 private:
   static void queryRegistry(void *arg_);
   
-  bool createThread(RegistryEndpoint& registry);
+  bool createThread(RegistryEndpoint registry);
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
 
