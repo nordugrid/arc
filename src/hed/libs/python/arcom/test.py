@@ -60,13 +60,17 @@ class ExpectationalTestCase(unittest.TestCase):
         return self.Expectation(actual, self)
 
 
-class ARCClientTestCase(ExpectationalTestCase):
-    
-    def turn_on_logging(self):
+def with_logging(function):
+    def logging_func(self):
         import sys
         arc.Logger.getRootLogger().addDestination(arc.LogStream(sys.stdout))
         arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
-    
+        result = function(self)
+        arc.Logger.getRootLogger().removeDestinations()
+    return logging_func
+
+class ARCClientTestCase(ExpectationalTestCase):
+        
     def create_test_target(self, url = "http://test.nordugrid.org"):
         target = arc.ExecutionTarget()
         target.url = arc.URL(url)
