@@ -2273,11 +2273,19 @@ err:
 
     /* Check whether the digest algorithm is SHA1 or SHA2*/
     md_nid = EVP_MD_type(dgst_alg);
+#if OPENSSL_VERSION_NUMBER >= 0x0090800
     if((md_nid != NID_sha1) && (md_nid != NID_sha224) && (md_nid != NID_sha256) && (md_nid != NID_sha384) && (md_nid != NID_sha512)) {
       CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 or SHA2 to sign certificate requests",
-      OBJ_nid2sn(EVP_MD_type(proxy->signing_alg_)));
+      OBJ_nid2sn(md_nid));
       goto err;
     }
+#else
+    if(md_nid != NID_sha1) {
+      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 to sign certificate requests",
+      OBJ_nid2sn(md_nid));
+      goto err;
+    }
+#endif
 
     if(!X509_sign(proxy_cert, issuer_priv, proxy->signing_alg_)) {
       CredentialLogger.msg(ERROR, "Failed to sign the proxy certificate"); LogError(); goto err;
