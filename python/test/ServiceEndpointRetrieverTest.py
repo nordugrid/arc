@@ -89,7 +89,15 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         ces = [endpoint for endpoint in container.endpoints if "ce" in endpoint.EndpointURL.str()]
         self.expect(emirs).to_have(2).endpoints()
         self.expect(ces).to_have(2).endpoints()
-        
+    
+    def test_empty_registry_type(self):
+        registries = [arc.RegistryEndpoint("test.nordugrid.org")]
+        container = arc.ServiceEndpointContainer()
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container)
+        retriever.wait()
+        # it should fill the empty type with the available plugins:
+        # among them the TEST plugin which returns one endpoint
+        self.expect(container.endpoints).to_have(1).endpoint()
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,5 +14,9 @@ class ServiceEndpointRetrieverPluginTest(arcom.test.ARCClientTestCase):
         plugin = loader.load("TEST")
         self.expect(plugin).to_be_an_instance_of(arc.ServiceEndpointRetrieverPlugin)
 
+    def test_list_of_plugins(self):
+        loader = arc.ServiceEndpointRetrieverPluginLoader()
+        self.expect(loader.getListOfPlugins()).to_contain("TEST")
+
 if __name__ == '__main__':
     unittest.main()

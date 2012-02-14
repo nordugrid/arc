@@ -9,6 +9,7 @@
 #include <arc/loader/Loader.h>
 #include <arc/loader/Plugin.h>
 #include <arc/UserConfig.h>
+
 namespace Arc {
 
 class DataStatus;
@@ -51,7 +52,8 @@ public:
  **/
 class RegistryEndpoint {
 public:
-  RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {};
+  RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {}
+  
   RegistryEndpoint(ServiceEndpoint service) {
     Endpoint = service.EndpointURL.str();
     if (service.EndpointInterfaceName == "org.nordugrid.ldapegiis") {
@@ -62,9 +64,11 @@ public:
       Type = "TEST";
     }
   }
+  
   static bool isRegistry(ServiceEndpoint service) {
     return (std::count(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != 0);
   }
+  
   std::string str() const {
     return Endpoint + " (" + Type + ")";
   }
@@ -190,6 +194,8 @@ public:
    *  error).
    **/
   ServiceEndpointRetrieverPlugin* load(const std::string& name);
+  
+  std::list<std::string> getListOfPlugins();
 
   /// Retrieve list of loaded ServiceEndpointRetrieverPlugin objects
   /**

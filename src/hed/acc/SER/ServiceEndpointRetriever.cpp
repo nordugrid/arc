@@ -43,7 +43,19 @@ namespace Arc {
                                                      std::list<std::string> capabilityFilter)
   : userconfig(userconfig), consumer(consumer), recursive(recursive), capabilityFilter(capabilityFilter) {
     for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); it++) {
-      createThread(*it);
+      if (it->Type.empty()) {
+        logger.msg(Arc::DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
+        ServiceEndpointRetrieverPluginLoader loader;
+        std::list<std::string> types = loader.getListOfPlugins();
+        for (std::list<std::string>::iterator it2 = types.begin(); it2 != types.end(); it2++) {
+          RegistryEndpoint registry = *it;
+          registry.Type = *it2;
+          logger.msg(Arc::DEBUG, "New registry endpoint is created from the typeless one: " + registry.str());
+          createThread(registry);
+        }
+      } else {
+        createThread(*it);
+      }
     }
   }
   
@@ -171,6 +183,20 @@ namespace Arc {
     plugins.push_back(p);
     logger.msg(DEBUG, "Loaded ServiceEndpointRetrieverPlugin %s", name);
     return p;
+  }
+  
+  std::list<std::string> ServiceEndpointRetrieverPluginLoader::getListOfPlugins() {
+    std::list<ModuleDesc> modules;
+    PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
+    factory.scan(FinderLoader::GetLibrariesList(), modules);
+    PluginsFactory::FilterByKind("HED:ServiceEndpointRetrieverPlugin", modules);
+    std::list<std::string> names;
+    for (std::list<ModuleDesc>::iterator it = modules.begin(); it != modules.end(); it++) {
+      for (std::list<PluginDesc>::iterator it2 = it->plugins.begin(); it2 != it->plugins.end(); it2++) {
+        names.push_back(it2->name);        
+      }
+    }
+    return names;
   }
 
 }
