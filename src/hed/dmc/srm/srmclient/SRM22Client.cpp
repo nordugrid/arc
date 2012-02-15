@@ -994,6 +994,35 @@ namespace Arc {
     // the request is ready - collect the details
     // assuming the result is in the same order as the surls in the request
     std::list<std::string>::const_iterator surl = surls.begin();
+
+    if (statuscode == SRM_TOO_MANY_RESULTS) {
+      logger.msg(INFO, "Directory size is too large to list in one call, will"
+                 " have to call multiple times");
+      delete response;
+      std::list<struct SRMFileMetaData> md;
+      std::list<struct SRMFileMetaData> list_metadata;
+
+      for (int list_no = 0; list_no == 0 || list_metadata.size() == max_files_list; ++list_no) {
+        list_metadata.clear();
+        // set up new request with offset and count set
+        SRMClientRequest list_req(creq.surl());
+        list_req.long_list(creq.long_list());
+        list_req.offset(max_files_list * list_no);
+        list_req.count(max_files_list);
+
+        SRMReturnCode infores = info(list_req, list_metadata);
+        if (infores != SRM_OK) return infores;
+
+        // append to metadata
+        for (std::list<SRMFileMetaData>::iterator it = list_metadata.begin();
+             it != list_metadata.end(); ++it)
+          md.push_back(*it);
+      }
+      // add to the map
+      metadata[*surl] = md;
+      return SRM_OK;
+    }
+
     for (XMLNode details = res["details"]["pathDetailArray"]; details; ++details, ++surl) {
 
       SRMStatusCode filestatuscode = GetStatus(details["status"], explanation);
@@ -1028,18 +1057,16 @@ namespace Arc {
       if (creq.offset() == 0) md.clear();
 
       for (unsigned int i = 0; subpath; ++subpath, ++i) {
-        // if there are more entries than max_files_list or we get the too many
-        // results return code, we have to call info() multiple times, setting
-        // offset and count
-        if (i == max_files_list ||
-            (creq.offset() == 0 && statuscode == SRM_TOO_MANY_RESULTS)) {
-          // it shoudn't be possible to get this return status after setting
-          // offset but some implementations like castor don't behave properly
+        // some older implementations would return a truncated list rather
+        // than SRM_TOO_MANY_RESULTS. So to be safe, if there are more entries
+        // than max_files_list we call info() multiple times, setting offset
+        // and count. TODO: investigate if this is still necessary
+        if (i == max_files_list) {
           logger.msg(INFO, "Directory size is larger than %i files, will have "
                      "to call multiple times", max_files_list);
           std::list<SRMFileMetaData> list_metadata;
           // if too many results return code, start from 0 again
-          int list_no = (i == max_files_list) ? 1 : 0;
+          int list_no = 1;
           do {
             list_metadata.clear();
             SRMClientRequest list_req(creq.surl());
