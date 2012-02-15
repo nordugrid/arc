@@ -199,6 +199,8 @@ prepare() {
     LOGSIZE=`readconfigvar "$ARC_CONFIG" grid-manager logsize`
     LOGREOPEN=`readconfigvar "$ARC_CONFIG" grid-manager logreopen`
     USERNAME=`readconfigvar "$ARC_CONFIG" grid-manager user`
+    GROUPNAME=`echo "$USERNAME" | sed 's/^[^:]*//;s/^://'``
+    USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
     X509_USER_CERT=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_cert`
     X509_USER_KEY=`readconfigvar "$ARC_CONFIG" grid-manager x509_user_key`
     X509_CERT_DIR=`readconfigvar "$ARC_CONFIG" grid-manager x509_cert_dir`
@@ -315,6 +317,9 @@ prepare() {
     if [ "$USERNAME" = "root" ] ; then
         USERNAME=""
     fi
+    if [ "$GROUPNAME" = "root" ] ; then
+        GROUPNAME=""
+    fi
 
     LOGFILE=${LOGFILE:-/var/log/arc/grid-manager.log}
     if [ ! -d `dirname $LOGFILE` ]; then
@@ -336,6 +341,9 @@ prepare() {
 
     if [ ! -z "$USERNAME" ] ; then
         CMD="$CMD -u '$USERNAME'"
+    fi
+    if [ ! -z "$GROUPNAME" ] ; then
+        CMD="$CMD -g '$GROUPNAME'"
     fi
 
     # A-Rex without WS interface
