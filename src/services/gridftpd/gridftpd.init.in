@@ -204,6 +204,11 @@ fi
 
 CMD="$CMD -P '$PID_FILE'"
 
+username=`readconfigvar "$ARC_CONFIG" gridftpd user`
+if [ -n "$username" ]; then
+    CMD="$CMD -U $username"
+fi
+
 start() {
     if [ "$RUN" != "yes" ] ; then
         echo "$prog disabled, please adjust the configuration to your needs "
