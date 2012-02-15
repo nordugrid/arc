@@ -236,7 +236,7 @@ namespace Arc {
 
   }
 
-  int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
+  static int createVOMSAC(X509 *issuer, STACK_OF(X509) *issuerstack, X509 *holder, EVP_PKEY *pkey, BIGNUM *serialnum,
              std::vector<std::string> &fqan, std::vector<std::string> &targets, std::vector<std::string>& attrs, 
              AC **ac, std::string voname, std::string uri, int lifetime) {
     #define ERROR(e) do { err = (e); goto err; } while (0)
@@ -428,22 +428,12 @@ namespace Arc {
 
     stk = sk_X509_new_null();
     
+    sk_X509_push(stk, X509_dup(issuer));
+
     if (issuerstack) {
       for (int j =0; j < sk_X509_num(issuerstack); j++)
         sk_X509_push(stk, X509_dup(sk_X509_value(issuerstack, j)));
     }
-
-   //for (int i=0; i < sk_X509_num(stk); i++) 
-   //  fprintf(stderr, "stk[%i] = %s\n", i , 
-   //  X509_NAME_oneline(X509_get_subject_name((X509 *)sk_X509_value(stk, i)), NULL, 0)); 
-
-#ifdef HAVE_OPENSSL_OLDRSA
-    sk_X509_push(stk, (X509 *)ASN1_dup((int (*)())i2d_X509,
-          (char*(*)())d2i_X509, (char *)issuer));
-#else
-    sk_X509_push(stk, (X509 *)ASN1_dup((int (*)(void*, unsigned char**))i2d_X509,
-          (void*(*)(void**, const unsigned char**, long int))d2i_X509, (char *)issuer));
-#endif
 
    //for(int i=0; i<sk_X509_num(stk); i++)
    //  fprintf(stderr, "stk[%i] = %d  %s\n", i , sk_X509_value(stk, i),  
@@ -921,7 +911,7 @@ err:
             vomscert_trust_dn.AddElement(voms_trustdn);
             lsc_check = true;
             //lsc checking only happens if the VOMSTrustList argument is empty. 
-         }
+          }
         }
 
         //Check if the DN of those certificates in the certificate stack
@@ -958,14 +948,7 @@ err:
         //then check if the AC signature is valid by using the voms server 
         //certificate (voms server certificate is supposed to be the first 
         //in the certificate stack).
-#ifdef HAVE_OPENSSL_OLDRSA
-        issuer = (X509 *)ASN1_dup((int (*)())i2d_X509, 
-          (char * (*)())d2i_X509, (char *)sk_X509_value(certstack, 0));
-#else
-        issuer = (X509 *)ASN1_dup((int (*)(void*, unsigned char**))i2d_X509, 
-          (void*(*)(void**, const unsigned char**, long int))d2i_X509,
-          (char *)sk_X509_value(certstack, 0));
-#endif
+        issuer = X509_dup(sk_X509_value(certstack, 0));
       }
 
       if(issuer) {

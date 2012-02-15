@@ -113,8 +113,8 @@ void VOMSUtilTest::VOMSTrustListTest() {
     }
   }
 
-  CPPUNIT_ASSERT(attributes.size() == 1);
-  CPPUNIT_ASSERT(attributes[0].attributes.size() == 4);
+  CPPUNIT_ASSERT_EQUAL(1,(int)attributes.size());
+  CPPUNIT_ASSERT_EQUAL(4,(int)attributes[0].attributes.size());
 
 }
 

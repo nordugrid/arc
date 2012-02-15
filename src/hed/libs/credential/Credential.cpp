@@ -394,13 +394,16 @@ namespace Arc {
     X509_NAME *caname = NULL;
     if(!cert_chain_) return "";
     int num = sk_X509_num(cert_chain_);
-    cacert = sk_X509_value(cert_chain_, num-1);
-    caname = X509_get_issuer_name(cacert);
     std::string str;
-    char buf[256];
-    if(cacert!=NULL)
-      X509_NAME_oneline(caname,buf,sizeof(buf));
-    str.append(buf);
+    if(num > 0) {
+      // This works even if last cert on chain is CA
+      // itself because CA is self-signed.
+      cacert = sk_X509_value(cert_chain_, num-1);
+      caname = X509_get_issuer_name(cacert);
+      char buf[256]; buf[0] = 0;
+      if(caname!=NULL) X509_NAME_oneline(caname,buf,sizeof(buf));
+      str.append(buf);
+    }
     return str;
   }
 
@@ -1673,10 +1676,9 @@ namespace Arc {
     CredentialLogger.msg(DEBUG, "Certiticate chain number %d",sk_X509_num(cert_chain_));
 
     //Output the cert chain. After the verification the cert_chain_
-    //will include the CA certificate and the certificate (which
-    //need to be verified here) itself.
-    //Those two certificates are excluded when outputing
-    if(cert_chain_) for (int n = 1; n < sk_X509_num(cert_chain_) - 1 ; n++) {
+    //will include the CA certificate. Having CA in proxy does not
+    //harm. So we output it too.
+    if(cert_chain_) for (int n = 0; n < sk_X509_num(cert_chain_) ; n++) {
       cert = sk_X509_value(cert_chain_, n);
       if(if_der == false) {
         if(!PEM_write_bio_X509(out,cert)) { BIO_free_all(out); return false; };
@@ -2283,7 +2285,7 @@ err:
     }
 #else
     if(md_nid != NID_sha1) {
-      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1 to sign certificate requests",
+      CredentialLogger.msg(ERROR, "The signing algorithm %s is not allowed,it should be SHA1/SHA2 to sign certificate requests",
       OBJ_nid2sn(md_nid));
       goto err;
     }

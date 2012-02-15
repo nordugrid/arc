@@ -91,13 +91,15 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, cert_verify_contex
   }
 
   //Replace the trusted certificate chain after verification passed, the
-  //trusted ca certificate is added
-  if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
-  *certchain = sk_X509_new_null();
-
-  if(store_ctx != NULL) for (i=0; i < sk_X509_num(store_ctx->chain); i++) {
-    X509* tmp = NULL; tmp = X509_dup(sk_X509_value(store_ctx->chain,i));
-    sk_X509_insert(*certchain, tmp, i);
+  //trusted ca certificate is added but top cert is excluded if already
+  //stored separately.
+  if(store_ctx != NULL) {
+    if(*certchain) { sk_X509_pop_free(*certchain, X509_free); }
+    *certchain = sk_X509_new_null();
+    for (i=(cert)?1:0; i < sk_X509_num(store_ctx->chain); i++) {
+      X509* tmp = NULL; tmp = X509_dup(sk_X509_value(store_ctx->chain,i));
+      sk_X509_insert(*certchain, tmp, i);
+    }
   }
 
   retval = 1;
