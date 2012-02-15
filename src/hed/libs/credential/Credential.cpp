@@ -1336,7 +1336,8 @@ namespace Arc {
 
 #ifdef HAVE_OPENSSL_OLDRSA
     unsigned long prime = RSA_F4;
-    rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
+    //rsa_key = RSA_generate_key(keybits, prime, keygen_cb, NULL);
+    rsa_key = RSA_generate_key(keybits, prime, NULL, NULL);
     if(!rsa_key) {
       CredentialLogger.msg(ERROR, "RSA_generate_key failed");
       LogError();
@@ -1344,11 +1345,11 @@ namespace Arc {
       return false;
     }
 #else
-    BN_GENCB cb;
+    //BN_GENCB cb;
     BIGNUM *prime = BN_new();
     rsa_key = RSA_new();
 
-    BN_GENCB_set(&cb,&keygen_cb,NULL);
+    //BN_GENCB_set(&cb,&keygen_cb,NULL);
     if(prime && rsa_key) {
       int val1 = BN_set_word(prime,RSA_F4);
       if(val1 != 1) {
@@ -1358,7 +1359,8 @@ namespace Arc {
         if(rsa_key) RSA_free(rsa_key);
         return false;
       }
-      int val2 = RSA_generate_key_ex(rsa_key, keybits, prime, &cb);
+      //int val2 = RSA_generate_key_ex(rsa_key, keybits, prime, &cb);
+      int val2 = RSA_generate_key_ex(rsa_key, keybits, prime, NULL);
       if(val2 != 1) {
         CredentialLogger.msg(ERROR, "RSA_generate_key_ex failed");
         LogError();
