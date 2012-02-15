@@ -1875,7 +1875,7 @@ err:
     STACK_OF(X509)* chain = NULL;
     chain = sk_X509_new_null();
     //Return the cert chain (not including this certificate itself)
-    if(cert_chain_) for (int i=1; i < sk_X509_num(cert_chain_)-1; i++) {
+    if(cert_chain_) for (int i=0; i < sk_X509_num(cert_chain_); i++) {
       X509* tmp = X509_dup(sk_X509_value(cert_chain_,i));
       sk_X509_insert(chain, tmp, i);
     }
@@ -1886,7 +1886,7 @@ err:
     //Return the number of certificates
     //in the issuer chain
     if(!cert_chain_) return 0;
-    return sk_X509_num(cert_chain_) - 2;
+    return sk_X509_num(cert_chain_);
   }
 
   bool Credential::AddExtension(const std::string& name, const std::string& data, bool crit) {
