@@ -42,9 +42,9 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;
-  Arc::RegistryEndpoint re;
-  Arc::ServiceEndpointContainer cReturned;
-  Arc::RegistryEndpointStatus sReturned = p->Query(uc, re, cReturned);
+  Arc::RegistryEndpoint registry;
+  std::list<Arc::ServiceEndpoint> endpoints;
+  Arc::RegistryEndpointStatus sReturned = p->Query(uc, registry, endpoints);
   CPPUNIT_ASSERT(sReturned.status == Arc::SER_SUCCESSFUL);
 }
 
