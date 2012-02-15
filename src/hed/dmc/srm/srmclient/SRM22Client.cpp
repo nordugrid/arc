@@ -672,6 +672,7 @@ namespace Arc {
                        .NewChild("requestArray");
     reqarray.NewChild("targetSURL") = creq.surl();
     reqarray.NewChild("expectedFileSize") = tostring(creq.total_size());
+    req.NewChild("desiredFileStorageType") = "PERMANENT";
     XMLNode protocols = req.NewChild("transferParameters")
                         .NewChild("arrayOfTransferProtocols");
 
