@@ -43,11 +43,14 @@ namespace Arc {
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
   : uc(uc), consumer(consumer), recursive(recursive), capabilityFilter(capabilityFilter) {
+    std::list<std::string> types;
     for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); it++) {
       if (it->Type.empty()) {
         logger.msg(Arc::DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
         ServiceEndpointRetrieverPluginLoader loader;
-        std::list<std::string> types = loader.getListOfPlugins();
+        if (types.empty()) {
+          types = loader.getListOfPlugins();
+        }
         for (std::list<std::string>::iterator it2 = types.begin(); it2 != types.end(); it2++) {
           RegistryEndpoint registry = *it;
           registry.Type = *it2;
