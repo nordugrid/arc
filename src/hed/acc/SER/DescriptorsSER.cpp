@@ -12,7 +12,6 @@
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "EGIIS", "HED:ServiceEndpointRetrieverPlugin", "", 0, &Arc::ServiceEndpointRetrieverPluginEGIIS::Instance },
-  { "TOPBDII", "HED:ServiceEndpointRetrieverPlugin", "", 0, &Arc::ServiceEndpointRetrieverPluginTOPBDII::Instance },
   { "EMIR", "HED:ServiceEndpointRetrieverPlugin", "", 0, &Arc::ServiceEndpointRetrieverPluginEMIR::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
