@@ -25,7 +25,7 @@ public:
   virtual const std::string& SupportedInterface() const { return interface; };
   virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
-                                       std::list<ServiceEndpoint>& endpoints) = 0;
+                                       std::list<ServiceEndpoint>& endpoints) const = 0;
 
 private:
   const std::string interface;
