@@ -90,7 +90,7 @@ namespace Arc {
       return (object == NULL);
     }
     /// Cast to original pointer
-    operator T*(void) const {
+    T* Ptr(void) const {
       return object;
     }
     /// Release refred object so that it can be passed to other container
@@ -183,7 +183,7 @@ namespace Arc {
       return ((object->ptr) == NULL);
     }
     /// Cast to original pointer
-    operator T*(void) const {
+    T* Ptr(void) const {
       return (object->ptr);
     }
     /// Release refred object so that it can be passed to other container

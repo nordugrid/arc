@@ -31,7 +31,7 @@ bool InfoPolicy::Evaluate(MessageAuth& id) {
     return false;
   };
   // Find proper evaluator
-  AutoPointer<ArcSec::Evaluator> eval(eloader.getEvaluator(policy));
+  AutoPointer<ArcSec::Evaluator> eval(eloader.getEvaluator(policy.Ptr()));
   if(!eval) { // Failed to find proper evaluator
     return false;
   };
@@ -47,7 +47,7 @@ bool InfoPolicy::Evaluate(MessageAuth& id) {
     return false;
   };
   // Evaluate internal policy
-  AutoPointer<ArcSec::Response> resp(eval->evaluate(ArcSec::Source(req),policy));
+  AutoPointer<ArcSec::Response> resp(eval->evaluate(ArcSec::Source(req),policy.Ptr()));
   if(!resp) { // Failed to evaluate policy
     return false;
   };

@@ -100,7 +100,7 @@ static void message_send_thread(void *arg) {
        thread_logger.msg(Arc::ERROR, "Empty URL list add to the thread.");
        return;
     }
-    if ( !bool(((ISIS::Thread_data *)data)->node) ) {
+    if ( !bool(data->node) ) {
        thread_logger.msg(Arc::ERROR, "Empty message add to the thread.");
        return;
     }
@@ -111,11 +111,11 @@ static void message_send_thread(void *arg) {
         //Send SOAP message to the neighbor.
         Arc::PayloadSOAP *response = NULL;
         Arc::MCCConfig mcc_cfg;
-        mcc_cfg.AddPrivateKey(((ISIS::Thread_data *)data)->isis_list[i].key);
-        mcc_cfg.AddCertificate(((ISIS::Thread_data *)data)->isis_list[i].cert);
-        mcc_cfg.AddProxy(((ISIS::Thread_data *)data)->isis_list[i].proxy);
-        mcc_cfg.AddCADir(((ISIS::Thread_data *)data)->isis_list[i].cadir);
-        mcc_cfg.AddCAFile(((ISIS::Thread_data *)data)->isis_list[i].cafile);
+        mcc_cfg.AddPrivateKey(data->isis_list[i].key);
+        mcc_cfg.AddCertificate(data->isis_list[i].cert);
+        mcc_cfg.AddProxy(data->isis_list[i].proxy);
+        mcc_cfg.AddCADir(data->isis_list[i].cadir);
+        mcc_cfg.AddCAFile(data->isis_list[i].cafile);
 
         Arc::ClientSOAP client_entry(mcc_cfg, url, 60);
 
@@ -127,7 +127,7 @@ static void message_send_thread(void *arg) {
         message_ns["isis"] = ISIS_NAMESPACE;
         Arc::PayloadSOAP req(message_ns);
 
-        req.NewChild(((ISIS::Thread_data *)data)->node);
+        req.NewChild(data->node);
         Arc::MCC_Status status;
         thread_logger.msg(Arc::VERBOSE, "Sending \"Register/RemoveRegistrations\" message to %s and waiting for the response.", url );
         status= client_entry.process(&req,&response);
