@@ -165,7 +165,7 @@ private:
 
   class ThreadArgSER {
   public:
-    ThreadArgSER(const UserConfig& uc, const CountedPointer<SERCommon>& serCommon) : uc(uc), serCommon(serCommon) {};
+    ThreadArgSER(const UserConfig& uc, CountedPointer<SERCommon>& serCommon) : uc(uc), serCommon(serCommon) {};
 
     const UserConfig& uc;
     RegistryEndpoint registry;
