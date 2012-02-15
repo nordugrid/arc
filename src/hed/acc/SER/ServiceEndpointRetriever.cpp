@@ -16,15 +16,15 @@ namespace Arc {
 
   class ThreadArgSER {
   public:
-    UserConfig* userconfig;
+    ThreadArgSER(const UserConfig& uc) : uc(uc) {}
+    const UserConfig& uc;
     RegistryEndpoint registry;
     std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
   };
 
   bool ServiceEndpointRetriever::createThread(RegistryEndpoint registry) {
-    ThreadArgSER *arg = new ThreadArgSER;
-    arg->userconfig = &userconfig;
+    ThreadArgSER *arg = new ThreadArgSER(uc);
     arg->registry = registry;
     arg->capabilityFilter = capabilityFilter;
     arg->ser = this;
@@ -37,12 +37,12 @@ namespace Arc {
     return true;
   }
 
-  ServiceEndpointRetriever::ServiceEndpointRetriever(UserConfig& userconfig,
+  ServiceEndpointRetriever::ServiceEndpointRetriever(const UserConfig& uc,
                                                      std::list<RegistryEndpoint> registries,
                                                      ServiceEndpointConsumer& consumer,
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
-  : userconfig(userconfig), consumer(consumer), recursive(recursive), capabilityFilter(capabilityFilter) {
+  : uc(uc), consumer(consumer), recursive(recursive), capabilityFilter(capabilityFilter) {
     for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); it++) {
       if (it->Type.empty()) {
         logger.msg(Arc::DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
@@ -133,7 +133,7 @@ namespace Arc {
       if (wasSet) {
         logger.msg(Arc::DEBUG, "Calling plugin to query registry on " + a->registry.str());
         std::list<ServiceEndpoint> endpoints;
-        status = plugin->Query(*a->userconfig, a->registry, endpoints);
+        status = plugin->Query(a->uc, a->registry, endpoints);
         for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
           a->ser->addServiceEndpoint(*it);
         }

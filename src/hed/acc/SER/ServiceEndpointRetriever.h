@@ -135,7 +135,7 @@ public:
    * 'seConsumer'. Querying the registries will be done in a threaded manner
    * and the constructor is not waiting for these threads to finish.
    **/
-  ServiceEndpointRetriever(UserConfig& userconfig,
+  ServiceEndpointRetriever(const UserConfig& uc,
                            std::list<RegistryEndpoint> registries,
                            ServiceEndpointConsumer& consumer,
                            bool recursive = false,
@@ -159,7 +159,7 @@ private:
   static Logger logger;
   mutable SimpleCounter threadCounter;
   mutable SimpleCondition lock;
-  UserConfig& userconfig;
+  const UserConfig& uc;
   ServiceEndpointConsumer& consumer;
   bool recursive;
   std::list<std::string> capabilityFilter;
