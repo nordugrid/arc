@@ -3,7 +3,9 @@
 
 #include <arc/message/MCC.h>
 
-namespace Arc {
+namespace ArcMCCSOAP {
+
+using namespace Arc;
 
   //! A base class for SOAP client and service MCCs.
   /*! This is a base class for SOAP client and service MCCs. It
@@ -46,6 +48,6 @@ class MCC_SOAP_Client: public MCC_SOAP
         virtual MCC_Status process(Message&,Message&);
 };
 
-} // namespace Arc
+} // namespace ArcMCCSOAP
 
 #endif /* __ARC_MCCSOAP_H__ */

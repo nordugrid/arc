@@ -13,24 +13,24 @@
 #include "MCCSOAP.h"
 
 
-Arc::Logger Arc::MCC_SOAP::logger(Arc::Logger::getRootLogger(), "MCC.SOAP");
+Arc::Logger ArcMCCSOAP::MCC_SOAP::logger(Arc::Logger::getRootLogger(), "MCC.SOAP");
 
 
-Arc::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : Arc::MCC(cfg) {
+ArcMCCSOAP::MCC_SOAP::MCC_SOAP(Arc::Config *cfg) : Arc::MCC(cfg) {
 }
 
 static Arc::Plugin* get_mcc_service(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_SOAP_Service((Arc::Config*)(*mccarg));
+    return new ArcMCCSOAP::MCC_SOAP_Service((Arc::Config*)(*mccarg));
 }
 
 static Arc::Plugin* get_mcc_client(Arc::PluginArgument* arg) {
     Arc::MCCPluginArgument* mccarg =
             arg?dynamic_cast<Arc::MCCPluginArgument*>(arg):NULL;
     if(!mccarg) return NULL;
-    return new Arc::MCC_SOAP_Client((Arc::Config*)(*mccarg));
+    return new ArcMCCSOAP::MCC_SOAP_Client((Arc::Config*)(*mccarg));
 }
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
@@ -39,7 +39,9 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
     { NULL, NULL, NULL, 0, NULL }
 };
 
-namespace Arc {
+namespace ArcMCCSOAP {
+
+using namespace Arc;
 
 class SOAPSecAttr: public SecAttr {
  friend class MCC_SOAP_Service;
@@ -368,4 +370,5 @@ MCC_Status MCC_SOAP_Client::process(Message& inmsg,Message& outmsg) {
   return MCC_Status(STATUS_OK);
 }
 
-} // namespace Arc
+} // namespace ArcMCCSOAP
+
