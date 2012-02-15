@@ -4,12 +4,13 @@
 #include <arc/loader/Plugin.h>
 
 #include "ServiceEndpointRetriever.h"
+#include "ServiceEndpointRetrieverPlugin.h"
 
 namespace Arc {
 
 class ServiceEndpointRetrieverTEST : public ServiceEndpointRetrieverPlugin {
 protected:
-  ServiceEndpointRetrieverTEST() {}
+  ServiceEndpointRetrieverTEST() : ServiceEndpointRetrieverPlugin("org.nordugrid.sertest") {}
 public:
   virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,

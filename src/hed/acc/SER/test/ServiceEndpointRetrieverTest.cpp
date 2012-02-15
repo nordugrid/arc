@@ -2,7 +2,7 @@
 
 #include <arc/UserConfig.h>
 
-#include "../ServiceEndpointRetriever.h"
+#include "../ServiceEndpointRetrieverPlugin.h"
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetRetrieverARC1Test");
 

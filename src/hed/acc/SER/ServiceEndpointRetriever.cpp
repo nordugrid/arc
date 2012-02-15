@@ -4,8 +4,9 @@
 #include <config.h>
 #endif
 
-#include <arc/ArcConfig.h>
-#include <arc/loader/FinderLoader.h>
+#include <arc/Logger.h>
+
+#include "ServiceEndpointRetrieverPlugin.h"
 
 #include "ServiceEndpointRetriever.h"
 
@@ -20,7 +21,7 @@ namespace Arc {
     std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
   };
-  
+
   bool ServiceEndpointRetriever::createThread(RegistryEndpoint registry) {
     ThreadArgSER *arg = new ThreadArgSER;
     arg->userconfig = &userconfig;
@@ -58,14 +59,14 @@ namespace Arc {
       }
     }
   }
-  
+
   void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& endpoint) {
     if (recursive) {
       if (RegistryEndpoint::isRegistry(endpoint)) {
         RegistryEndpoint registry(endpoint);
         logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: " + registry.str());
         createThread(registry);
-      }      
+      }
     }
     bool match = false;
     if (capabilityFilter.empty()) {
@@ -75,23 +76,23 @@ namespace Arc {
         if (std::count(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it)) {
           match = true;
         }
-      }        
+      }
     }
     if (match) {
       lock.lock();
       consumer.addServiceEndpoint(endpoint);
-      lock.unlock();      
-    } 
+      lock.unlock();
+    }
   }
-  
+
   void ServiceEndpointRetriever::wait() const {
     threadCounter.wait();
   };
-    
+
   bool ServiceEndpointRetriever::isDone() const {
     return threadCounter.get() == 0;
   };
-      
+
   RegistryEndpointStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
     lock.lock();
     RegistryEndpointStatus status(SER_UNKNOWN);
@@ -102,7 +103,7 @@ namespace Arc {
     lock.unlock();
     return status;
   }
-  
+
   bool ServiceEndpointRetriever::testAndSetStatusOfRegistry(RegistryEndpoint registry, RegistryEndpointStatus status) {
     lock.lock();
     std::map<RegistryEndpoint, RegistryEndpointStatus>::const_iterator it = statuses.find(registry);
@@ -115,13 +116,13 @@ namespace Arc {
     lock.unlock();
     return wasSet;
   };
-  
+
   void ServiceEndpointRetriever::setStatusOfRegistry(RegistryEndpoint registry, RegistryEndpointStatus status) {
     lock.lock();
     statuses[registry] = status;
     lock.unlock();
   };
-  
+
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
     ThreadArgSER* a = (ThreadArgSER*)arg;
     ServiceEndpointRetrieverPluginLoader loader;
@@ -143,64 +144,14 @@ namespace Arc {
     }
     delete a;
   }
-  
 
 
-  
+
+
   // TESTControl
 
   float ServiceEndpointRetrieverTESTControl::delay = 0;
   RegistryEndpointStatus ServiceEndpointRetrieverTESTControl::status;
   std::list<ServiceEndpoint> ServiceEndpointRetrieverTESTControl::endpoints = std::list<ServiceEndpoint>();
-
-  // PluginLoader
-
-  ServiceEndpointRetrieverPluginLoader::ServiceEndpointRetrieverPluginLoader()
-    : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
-
-  ServiceEndpointRetrieverPluginLoader::~ServiceEndpointRetrieverPluginLoader() {
-    for (std::list<ServiceEndpointRetrieverPlugin*>::iterator it = plugins.begin();
-         it != plugins.end(); it++) {
-      delete *it;
-    }
-  }
-
-  ServiceEndpointRetrieverPlugin* ServiceEndpointRetrieverPluginLoader::load(const std::string& name) {
-    if (name.empty()) {
-      return NULL;
-    }
-
-    if(!factory_->load(FinderLoader::GetLibrariesList(), "HED:ServiceEndpointRetrieverPlugin", name)) {
-      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for %s plugin is installed", name, name);
-      logger.msg(DEBUG, "ServiceEndpointRetrieverPlugin plugin \"%s\" not found.", name, name);
-      return NULL;
-    }
-
-    ServiceEndpointRetrieverPlugin *p = factory_->GetInstance<ServiceEndpointRetrieverPlugin>("HED:ServiceEndpointRetrieverPlugin", name, NULL, false);
-
-    if (!p) {
-      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
-      logger.msg(DEBUG, "ServiceEndpointRetrieverPlugin %s could not be created.", name, name);
-      return NULL;
-    }
-
-    plugins.push_back(p);
-    logger.msg(DEBUG, "Loaded ServiceEndpointRetrieverPlugin %s", name);
-    return p;
-  }
-  
-  std::list<std::string> ServiceEndpointRetrieverPluginLoader::getListOfPlugins() {
-    std::list<ModuleDesc> modules;
-    PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
-    factory.scan(FinderLoader::GetLibrariesList(), modules);
-    PluginsFactory::FilterByKind("HED:ServiceEndpointRetrieverPlugin", modules);
-    std::list<std::string> names;
-    for (std::list<ModuleDesc>::iterator it = modules.begin(); it != modules.end(); it++) {
-      for (std::list<PluginDesc>::iterator it2 = it->plugins.begin(); it2 != it->plugins.end(); it2++) {
-        names.push_back(it2->name);        
-      }
-    }
-    return names;
-  }
 
 }

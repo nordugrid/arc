@@ -3,8 +3,8 @@ pkglibtest_LTLIBRARIES = libaccSERTEST.la
 lib_LTLIBRARIES = libarcserviceretriever.la
 
 libarcserviceretriever_ladir = $(pkgincludedir)/client
-libarcserviceretriever_la_HEADERS = ServiceEndpointRetriever.h
-libarcserviceretriever_la_SOURCES = ServiceEndpointRetriever.cpp
+libarcserviceretriever_la_HEADERS = ServiceEndpointRetriever.h ServiceEndpointRetrieverPlugin.h
+libarcserviceretriever_la_SOURCES = ServiceEndpointRetriever.cpp ServiceEndpointRetrieverPlugin.cpp
 libarcserviceretriever_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(CFLAGS_WITH_XMLSEC) $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 libarcserviceretriever_la_LIBADD = \
