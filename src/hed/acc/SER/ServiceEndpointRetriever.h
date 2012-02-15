@@ -1,6 +1,7 @@
 #ifndef __ARC_SERVICEENDPOINTRETRIEVER_H__
 #define __ARC_SERVICEENDPOINTRETRIEVER_H__
 
+#include <algorithm>
 #include <list>
 #include <map>
 #include <string>
@@ -37,7 +38,7 @@ public:
     HealthState(HealthState),
     HealthStateInfo(HealthStateInfo),
     QualityLevel(QualityLevel) {}
-                      
+
   std::string EndpointURL;
   std::list<std::string> EndpointCapabilities;
   std::string EndpointInterfaceName;
@@ -53,7 +54,7 @@ public:
 class RegistryEndpoint {
 public:
   RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {}
-  
+
   RegistryEndpoint(ServiceEndpoint service) {
     Endpoint = service.EndpointURL;
     if (service.EndpointInterfaceName == "org.nordugrid.ldapegiis") {
@@ -64,15 +65,15 @@ public:
       Type = "TEST";
     }
   }
-  
+
   static bool isRegistry(ServiceEndpoint service) {
     return (std::count(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != 0);
   }
-  
+
   std::string str() const {
     return Endpoint + " (" + Type + ")";
   }
-  
+
   // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
   bool operator<(const RegistryEndpoint& other) const {
     return Endpoint + Type < other.Endpoint + other.Type;
@@ -109,7 +110,7 @@ public:
 /**
  *
  **/
-   
+
 enum SERStatus { SER_UNKNOWN, SER_STARTED, SER_FAILED, SER_SUCCESSFUL };
 
 class RegistryEndpointStatus {
@@ -142,18 +143,18 @@ public:
                            ServiceEndpointConsumer& consumer,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
-  void wait() const;  
+  void wait() const;
   bool isDone() const;
-  
+
   RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
   bool testAndSetStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
   void setStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
-  
+
   virtual void addServiceEndpoint(const ServiceEndpoint&);
-    
+
 private:
   static void queryRegistry(void *arg_);
-  
+
   bool createThread(RegistryEndpoint registry);
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
@@ -196,7 +197,7 @@ public:
    *  error).
    **/
   ServiceEndpointRetrieverPlugin* load(const std::string& name);
-  
+
   std::list<std::string> getListOfPlugins();
 
   /// Retrieve list of loaded ServiceEndpointRetrieverPlugin objects
