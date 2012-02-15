@@ -7,7 +7,6 @@
 #include <arc/loader/Plugin.h>
 
 #include "ServiceEndpointRetrieverPluginEGIIS.h"
-#include "ServiceEndpointRetrieverPluginTOPBDII.h"
 #include "ServiceEndpointRetrieverPluginEMIR.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
