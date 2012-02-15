@@ -7,14 +7,16 @@
 #include <string>
 
 #include <arc/URL.h>
+#include <arc/Utils.h>
 #include <arc/Thread.h>
 #include <arc/UserConfig.h>
+
+#include "ServiceEndpointRetrieverPlugin.h"
 
 namespace Arc {
 
 class DataStatus;
 class MCC_Status;
-class ServiceEndpointRetrieverPluginLoader;
 
 ///
 /**
@@ -119,7 +121,6 @@ private:
   //DataStatus datastatus;
 };
 
-class ThreadArgSER;
 
 ///
 /**
@@ -140,6 +141,7 @@ public:
                            ServiceEndpointConsumer& consumer,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
+  ~ServiceEndpointRetriever();
   void wait() const;
   bool isDone() const;
 
@@ -152,6 +154,25 @@ public:
 private:
   static void queryRegistry(void *arg_);
 
+  class SERCommon {
+  public:
+    SERCommon() : mutex(), isActive(true), serpl() {};
+    SharedMutex mutex;
+    bool isActive;
+    ServiceEndpointRetrieverPluginLoader serpl;
+  };
+  CountedPointer<SERCommon> serCommon;
+
+  class ThreadArgSER {
+  public:
+    ThreadArgSER(const UserConfig& uc, const CountedPointer<SERCommon>& serCommon) : uc(uc), serCommon(serCommon) {};
+
+    const UserConfig& uc;
+    RegistryEndpoint registry;
+    std::list<std::string> capabilityFilter;
+    ServiceEndpointRetriever* ser;
+    CountedPointer<SERCommon> serCommon;
+  };
   bool createThread(RegistryEndpoint registry);
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;

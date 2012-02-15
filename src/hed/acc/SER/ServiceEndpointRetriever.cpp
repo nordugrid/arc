@@ -6,25 +6,14 @@
 
 #include <arc/Logger.h>
 
-#include "ServiceEndpointRetrieverPlugin.h"
-
 #include "ServiceEndpointRetriever.h"
 
 namespace Arc {
 
   Logger ServiceEndpointRetriever::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
 
-  class ThreadArgSER {
-  public:
-    ThreadArgSER(const UserConfig& uc) : uc(uc) {}
-    const UserConfig& uc;
-    RegistryEndpoint registry;
-    std::list<std::string> capabilityFilter;
-    ServiceEndpointRetriever* ser;
-  };
-
   bool ServiceEndpointRetriever::createThread(RegistryEndpoint registry) {
-    ThreadArgSER *arg = new ThreadArgSER(uc);
+    ThreadArgSER *arg = new ThreadArgSER(uc, serCommon);
     arg->registry = registry;
     arg->capabilityFilter = capabilityFilter;
     arg->ser = this;
@@ -42,16 +31,21 @@ namespace Arc {
                                                      ServiceEndpointConsumer& consumer,
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
-  : uc(uc), consumer(consumer), recursive(recursive), capabilityFilter(capabilityFilter) {
+    : serCommon(new SERCommon),
+      uc(uc),
+      consumer(consumer),
+      recursive(recursive),
+      capabilityFilter(capabilityFilter)
+  {
+    // Used for holding names of all available plugins.
     std::list<std::string> types;
-    for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); it++) {
+    for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); ++it) {
       if (it->Type.empty()) {
-        logger.msg(Arc::DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
-        ServiceEndpointRetrieverPluginLoader loader;
+        logger.msg(DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
         if (types.empty()) {
-          types = loader.getListOfPlugins();
+          types = serCommon->serpl.getListOfPlugins();
         }
-        for (std::list<std::string>::iterator it2 = types.begin(); it2 != types.end(); it2++) {
+        for (std::list<std::string>::const_iterator it2 = types.begin(); it2 != types.end(); ++it2) {
           RegistryEndpoint registry = *it;
           registry.Type = *it2;
           logger.msg(Arc::DEBUG, "New registry endpoint is created from the typeless one: " + registry.str());
@@ -61,6 +55,12 @@ namespace Arc {
         createThread(*it);
       }
     }
+  }
+
+  ServiceEndpointRetriever::~ServiceEndpointRetriever() {
+    serCommon->mutex.lockExclusive();
+    serCommon->isActive = false;
+    serCommon->mutex.unlockExclusive();
   }
 
   void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& endpoint) {
@@ -128,19 +128,40 @@ namespace Arc {
 
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
     ThreadArgSER* a = (ThreadArgSER*)arg;
-    ServiceEndpointRetrieverPluginLoader loader;
-    ServiceEndpointRetrieverPlugin* plugin = loader.load(a->registry.Type);
+
+    CountedPointer<SERCommon>& serCommon = a->serCommon;
+    ServiceEndpointRetrieverPlugin* plugin = serCommon->serpl.load(a->registry.Type);
+
     if (plugin) {
       RegistryEndpointStatus status(SER_STARTED);
+
+      serCommon->mutex.lockShared();
+      if (!serCommon->isActive) {
+        serCommon->mutex.unlockShared();
+        delete a;
+        return;
+      }
       bool wasSet = a->ser->testAndSetStatusOfRegistry(a->registry, status);
+      serCommon->mutex.unlockShared();
+
       if (wasSet) {
         logger.msg(Arc::DEBUG, "Calling plugin to query registry on " + a->registry.str());
+
         std::list<ServiceEndpoint> endpoints;
         status = plugin->Query(a->uc, a->registry, endpoints);
+
+        serCommon->mutex.lockShared();
+        if (!serCommon->isActive) {
+          serCommon->mutex.unlockShared();
+          delete a;
+          return;
+        }
         for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
           a->ser->addServiceEndpoint(*it);
         }
         a->ser->setStatusOfRegistry(a->registry, status);
+        serCommon->mutex.unlockShared();
+
       } else {
         logger.msg(Arc::DEBUG, "Will not query registry, because another thread is already querying it: " + a->registry.str());
       }
@@ -156,5 +177,4 @@ namespace Arc {
   float ServiceEndpointRetrieverTESTControl::delay = 0;
   RegistryEndpointStatus ServiceEndpointRetrieverTESTControl::status;
   std::list<ServiceEndpoint> ServiceEndpointRetrieverTESTControl::endpoints = std::list<ServiceEndpoint>();
-
 }
