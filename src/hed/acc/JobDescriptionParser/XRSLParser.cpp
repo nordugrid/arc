@@ -174,8 +174,10 @@ namespace Arc {
     }
 
     if (!j.Application.Error.empty()) {
-      logger.msg(ERROR, "Xrsl attribute join is set but attribute stderr is also set");
-      return false;
+      if (j.Application.Error != j.Application.Output) {
+        logger.msg(ERROR, "Xrsl attribute join is set but attribute stderr is also set");
+        return false;
+      }
     }
 
     j.Application.Error = j.Application.Output;
