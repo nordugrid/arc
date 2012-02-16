@@ -76,7 +76,7 @@ namespace Arc {
       match = true;
     } else {
       for (std::list<std::string>::iterator it = capabilityFilter.begin(); it != capabilityFilter.end(); it++) {
-        if (std::count(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it)) {
+        if (std::find(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it) != endpoint.EndpointCapabilities.end()) {
           match = true;
         }
       }

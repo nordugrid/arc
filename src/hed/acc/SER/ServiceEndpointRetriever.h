@@ -65,7 +65,7 @@ public:
   }
 
   static bool isRegistry(ServiceEndpoint service) {
-    return (std::count(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != 0);
+    return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != service.EndpointCapabilities.end());
   }
 
   std::string str() const {
