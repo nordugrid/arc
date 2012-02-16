@@ -103,23 +103,14 @@ namespace Arc {
     return status;
   }
 
-  bool ServiceEndpointRetriever::testAndSetStatusOfRegistry(RegistryEndpoint registry, RegistryEndpointStatus status) {
+  bool ServiceEndpointRetriever::setStatusOfRegistry(const RegistryEndpoint& registry, const RegistryEndpointStatus& status, bool overwrite) {
     lock.lock();
-    std::map<RegistryEndpoint, RegistryEndpointStatus>::const_iterator it = statuses.find(registry);
-    bool wasSet = false;
-    // If this registry is not yet in the map
-    if (it == statuses.end()) {
+    bool wasSet = (statuses.find(registry) != statuses.end());
+    if (overwrite || !wasSet) {
       statuses[registry] = status;
-      wasSet = true;
     }
     lock.unlock();
     return wasSet;
-  };
-
-  void ServiceEndpointRetriever::setStatusOfRegistry(RegistryEndpoint registry, RegistryEndpointStatus status) {
-    lock.lock();
-    statuses[registry] = status;
-    lock.unlock();
   };
 
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
@@ -137,7 +128,7 @@ namespace Arc {
         delete a;
         return;
       }
-      bool wasSet = a->ser->testAndSetStatusOfRegistry(a->registry, status);
+      bool wasSet = a->ser->setStatusOfRegistry(a->registry, status, false);
       serCommon->mutex.unlockShared();
 
       if (wasSet) {

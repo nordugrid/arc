@@ -145,8 +145,7 @@ public:
   bool isDone() const;
 
   RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
-  bool testAndSetStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
-  void setStatusOfRegistry(RegistryEndpoint, RegistryEndpointStatus);
+  bool setStatusOfRegistry(const RegistryEndpoint&, const RegistryEndpointStatus&, bool overwrite = true);
 
   virtual void addServiceEndpoint(const ServiceEndpoint&);
 
