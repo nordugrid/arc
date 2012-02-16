@@ -23,6 +23,7 @@ namespace Arc
                                std::vector<std::string> urls_, std::vector<std::string> topics_,
                                std::string out_dir_):
     logger(Arc::Logger::rootLogger, "JURA.UsageReporter"),
+    dests(NULL),
     job_log_dir(job_log_dir_),
     expiration_time(expiration_time_),
     urls(urls_),
@@ -34,8 +35,10 @@ namespace Arc
     logger.msg(Arc::VERBOSE, "Expiration time: %d seconds",
                expiration_time);
     if (!urls.empty())
-      logger.msg(Arc::VERBOSE, "Interactive mode.",
-                 expiration_time);
+      {
+        logger.msg(Arc::VERBOSE, "Interactive mode.",
+                   expiration_time);
+      }
     //Collection of logging destinations:
     dests=new Arc::Destinations();
   }
@@ -50,8 +53,8 @@ namespace Arc
     std::map<std::string,std::string> dest_to_duplicate;
     //Collect job log file names from job log dir
     //(to know where to get usage data from)
-    DIR *dirp;
-    dirent *entp;
+    DIR *dirp = NULL;
+    dirent *entp = NULL;
     errno=0;
     if ( (dirp=opendir(job_log_dir.c_str()))==NULL )
       {
@@ -63,7 +66,7 @@ namespace Arc
         return -1;
       }
 
-    DIR *odirp;
+    DIR *odirp = NULL;
     errno=0;
     if ( !out_dir.empty() && (odirp=opendir(out_dir.c_str()))==NULL )
       {
@@ -75,9 +78,9 @@ namespace Arc
         closedir(dirp);
         return -1;
       }
-      if (odirp != NULL) {
-        closedir(odirp);
-      }
+    if (odirp != NULL) {
+      closedir(odirp);
+    }
 
     // Seek "<jobnumber>.<randomstring>" files.
     Arc::RegularExpression logfilepattern("^[0-9]+\\.[^.]+$");
@@ -91,13 +94,15 @@ namespace Arc
             //TODO handle DOS-style path separator!
             std::string fname=job_log_dir+"/"+entp->d_name;
             logfile=new Arc::JobLogFile(fname);
-            if (!out_dir.empty()){
-                if ((*logfile)["jobreport_option_archiving"] == ""){
+            if (!out_dir.empty())
+              {
+                if ((*logfile)["jobreport_option_archiving"] == "")
+                  {
                     (*logfile)["jobreport_option_archiving"] = out_dir;
-                } else {
+                  } else {
                     (*logfile)["outputdir"] = out_dir;
-                }
-            }
+                  }
+              }
 
             //A. Non-interactive mode: each jlf is parsed, and if valid, 
             //   submitted to the destination given  by "loggerurl=..."
@@ -147,9 +152,10 @@ namespace Arc
                     for (int it=0; it<(int)urls.size(); it++)
                       {
                         (*dupl_logfile)["loggerurl"] = urls[it];
-                        if (!topics[it].empty()){
+                        if (!topics[it].empty())
+                          {
                             (*dupl_logfile)["topic"] = topics[it];
-                        }
+                          }
 
                         //Pass duplicated job log content to the appropriate 
                         //logging destination
