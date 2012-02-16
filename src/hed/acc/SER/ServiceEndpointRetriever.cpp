@@ -129,7 +129,7 @@ namespace Arc {
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
     ThreadArgSER* a = (ThreadArgSER*)arg;
 
-    CountedPointer<SERCommon>& serCommon = a->serCommon;
+    ThreadedPointer<SERCommon>& serCommon = a->serCommon;
     ServiceEndpointRetrieverPlugin* plugin = serCommon->serpl.load(a->registry.Type);
 
     if (plugin) {

@@ -7,7 +7,6 @@
 #include <string>
 
 #include <arc/URL.h>
-#include <arc/Utils.h>
 #include <arc/Thread.h>
 #include <arc/UserConfig.h>
 
@@ -161,17 +160,17 @@ private:
     bool isActive;
     ServiceEndpointRetrieverPluginLoader serpl;
   };
-  CountedPointer<SERCommon> serCommon;
+  ThreadedPointer<SERCommon> serCommon;
 
   class ThreadArgSER {
   public:
-    ThreadArgSER(const UserConfig& uc, CountedPointer<SERCommon>& serCommon) : uc(uc), serCommon(serCommon) {};
+    ThreadArgSER(const UserConfig& uc, ThreadedPointer<SERCommon>& serCommon) : uc(uc), serCommon(serCommon) {};
 
     const UserConfig& uc;
     RegistryEndpoint registry;
     std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
-    CountedPointer<SERCommon> serCommon;
+    ThreadedPointer<SERCommon> serCommon;
   };
   bool createThread(RegistryEndpoint registry);
 
