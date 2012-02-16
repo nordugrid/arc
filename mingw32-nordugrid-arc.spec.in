@@ -304,10 +304,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libarcshclegacy.dll*
 %{_mingw32_libdir}/%{pkgdir}/libidentitymap.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccARC1.dll*
+%{_mingw32_libdir}/%{pkgdir}/libaccBroker.dll*
+%{_mingw32_libdir}/%{pkgdir}/libaccCREAM.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccEMIES.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccEMIREG.dll*
-%{_mingw32_libdir}/%{pkgdir}/libaccCREAM.dll*
-%{_mingw32_libdir}/%{pkgdir}/libaccBroker.dll*
+%{_mingw32_libdir}/%{pkgdir}/libaccSER.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libaccUNICORE.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccJobDescriptionParser.dll*
 %{_mingw32_libdir}/%{pkgdir}/test/libaccTEST.dll*
