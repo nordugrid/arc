@@ -162,7 +162,7 @@ private:
     ServiceEndpointRetriever* ser;
     ThreadedPointer<SERCommon> serCommon;
   };
-  bool createThread(RegistryEndpoint registry, const std::string& pluginName);
+  bool createThread(const RegistryEndpoint& registry);
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
 
