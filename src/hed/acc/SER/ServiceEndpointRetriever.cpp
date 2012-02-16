@@ -26,6 +26,7 @@ namespace Arc {
     if (!registry.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(registry.InterfaceName);
       if (itPluginName == interfacePluginMap.end()) {
+        logger.msg(DEBUG, "Unable to find ServiceRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", registry.InterfaceName, registry.Endpoint);
         setStatusOfRegistry(registry, RegistryEndpointStatus(SER_NOPLUGIN));
         return false;
       }
@@ -136,9 +137,11 @@ namespace Arc {
 
   bool ServiceEndpointRetriever::setStatusOfRegistry(const RegistryEndpoint& registry, const RegistryEndpointStatus& status, bool overwrite) {
     lock.lock();
-    bool wasSet = (statuses.find(registry) != statuses.end());
-    if (overwrite || !wasSet) {
+    bool wasSet = false;
+    if (overwrite || (statuses.find(registry) == statuses.end())) {
+      logger.msg(DEBUG, "Setting status (%s) for registry (%s)", string(status.status), registry.Endpoint);
       statuses[registry] = status;
+      wasSet = true;
     }
     lock.unlock();
     return wasSet;
