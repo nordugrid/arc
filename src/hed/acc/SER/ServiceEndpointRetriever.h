@@ -155,10 +155,10 @@ private:
 
   class SERCommon {
   public:
-    SERCommon() : mutex(), isActive(true), serpl() {};
+    SERCommon() : mutex(), isActive(true), loader() {};
     SharedMutex mutex;
     bool isActive;
-    ServiceEndpointRetrieverPluginLoader serpl;
+    ServiceEndpointRetrieverPluginLoader loader;
   };
   ThreadedPointer<SERCommon> serCommon;
 

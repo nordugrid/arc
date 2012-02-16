@@ -43,7 +43,7 @@ namespace Arc {
       if (it->Type.empty()) {
         logger.msg(DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
         if (types.empty()) {
-          types = serCommon->serpl.getListOfPlugins();
+          types = serCommon->loader.getListOfPlugins();
         }
         for (std::list<std::string>::const_iterator it2 = types.begin(); it2 != types.end(); ++it2) {
           RegistryEndpoint registry = *it;
@@ -126,7 +126,7 @@ namespace Arc {
     ThreadArgSER* a = (ThreadArgSER*)arg;
 
     ThreadedPointer<SERCommon>& serCommon = a->serCommon;
-    ServiceEndpointRetrieverPlugin* plugin = serCommon->serpl.load(a->registry.Type);
+    ServiceEndpointRetrieverPlugin* plugin = serCommon->loader.load(a->registry.Type);
 
     if (plugin) {
       RegistryEndpointStatus status(SER_STARTED);
