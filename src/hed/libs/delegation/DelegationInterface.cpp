@@ -438,7 +438,8 @@ bool DelegationConsumer::Generate(void) {
   int num = 1024;
 #ifdef HAVE_OPENSSL_OLDRSA
   unsigned long bn = RSA_F4;
-  RSA *rsa=RSA_generate_key(num,bn,&progress_cb,NULL);
+  //RSA *rsa=RSA_generate_key(num,bn,&progress_cb,NULL);
+  RSA *rsa=RSA_generate_key(num,bn,NULL,NULL);
   if(rsa) {
     if(key_) RSA_free((RSA*)key_);
     key_=rsa; rsa=NULL; res=true;
@@ -448,14 +449,15 @@ bool DelegationConsumer::Generate(void) {
   };
   if(rsa) RSA_free(rsa);
 #else
-  BN_GENCB cb;
+  //BN_GENCB cb;
   BIGNUM *bn = BN_new();
   RSA *rsa = RSA_new();
 
-  BN_GENCB_set(&cb,&progress_cb,NULL);
+  //BN_GENCB_set(&cb,&progress_cb,NULL);
   if(bn && rsa) {
     if(BN_set_word(bn,RSA_F4)) {
-      if(RSA_generate_key_ex(rsa,num,bn,&cb)) {
+      //if(RSA_generate_key_ex(rsa,num,bn,&cb)) {
+      if(RSA_generate_key_ex(rsa,num,bn,NULL)) {
         if(key_) RSA_free((RSA*)key_);
         key_=rsa; rsa=NULL; res=true;
       } else {
