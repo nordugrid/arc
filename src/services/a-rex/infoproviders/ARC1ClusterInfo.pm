@@ -402,7 +402,7 @@ sub collect($) {
     my ($data) = @_;
 
     # used for testing
-    # print Dumper($data);
+#    print Dumper($data);
 
     my $config = $data->{config};
     my $usermap = $data->{usermap};
@@ -449,7 +449,7 @@ sub collect($) {
     $totalpcpus ||= $lrms_info->{cluster}{totalcpus};
     $totallcpus ||= $lrms_info->{cluster}{totalcpus};
 
-
+    my $authorizedvos = $config->{service}{AuthorizedVO};
 
     # # # # # # # # # # # # # # # # # # #
     # # # # # Job statistics  # # # # # #
@@ -729,13 +729,12 @@ sub collect($) {
         }
     }
 
-    # reshuffling gmjobs_info in such a way the hash is
-    # divided per Endpoint, using the interface field
-    # TODO: do this in a more efficient way,
-
-    unless (@{$config->{accesspolicies}}) {
-        $log->warning("No AccessPolicy configured");
-    }
+    # TODO: in a first attempt, accesspolicies were expected to be in the XML 
+    # config. this is not yet the case, moreover it might not be possible to 
+    # do that. So the following is commented out for now.
+    # unless (@{$config->{accesspolicies}}) {
+    #     $log->warning("No AccessPolicy configured");
+    # }
 
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -744,6 +743,70 @@ sub collect($) {
 
     my $callcount = 0;
 
+    
+    # AccessPolicies implementation. Can be called for each endpoint.
+    # the basic policy value is taken from the service AuthorizedVO.
+    # The logic is similar to the endpoints: first
+    # all the policies subroutines are created, then
+    # every endpoint passes custom values to the
+    # getAccessPolicies sub.
+    
+    my $accesspolicies = {};
+       
+    my $getBasicAccessPolicy = sub {
+         my $apol = {};
+         my ($cepID) = @_;
+         $apol->{ID} = "$apolIDp:basic";
+         $apol->{Scheme} = "basic";
+         $apol->{Rule} = $authorizedvos;
+         # $apol->{UserDomainID} = $apconf->{UserDomainID};
+         $apol->{EndpointID} = $cepID;
+         return $apol;
+    };
+    
+    $accesspolicies->{BasicAccessPolicy} = $getBasicAccessPolicy if ($authorizedvos);
+    
+    ## more accesspolicies can go here.
+    
+    my $getAccessPolicies = sub {
+       return undef unless my ($accesspolicy, $sub) = each %$accesspolicies; 
+       my ($cepID) = @_;
+      return &{$sub}($cepID);
+     };
+
+    # MappingPolicies implementation. Can be called for each ShareID.
+    # the basic policy value is taken from the service AuthorizedVO.
+    # The logic is similar to the endpoints: first
+    # all the policies subroutines are created, then
+    # every endpoint passes custom values to the
+    # getMappingPolicies sub.
+    
+    my $mappingpolicies = {};
+       
+    my $getBasicMappingPolicy = sub {
+         my $mpol = {};
+         my ($shareID) = @_;
+         $mpol->{ID} = "$mpolIDp:basic";
+         $mpol->{Scheme} = "basic";
+         $mpol->{Rule} = $authorizedvos;
+         # $mpol->{UserDomainID} = $apconf->{UserDomainID};
+         $mpol->{ShareID} = $shareID;
+         return $mpol;
+    };
+    
+    $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy if ($authorizedvos);
+    
+    ## more accesspolicies can go here.
+    
+    my $getMappingPolicies = sub {
+       return undef unless my ($mappingpolicy, $sub) = each %$mappingpolicies; 
+       my ($shareID) = @_;
+      return &{$sub}($shareID);
+     };
+
+    # TODO: the above policies can be rewritten in an object oriented fashion
+    # one single policy object that can be specialized
+    # it's just about changing few strings
 
     # function that generates ComputingService data
 
@@ -1036,20 +1099,25 @@ sub collect($) {
 
             $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $cep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ARCWScepID;
-                return $apol;
-            };
-            }
+#            TODO: Adrian's style accesspolicies. Might be handy later.
+#             if ($config->{accesspolicies}) {
+#              my @apconfs = @{$config->{accesspolicies}};
+#              $cep->{AccessPolicies} = sub {
+#                  return undef unless @apconfs;
+#                  my $apconf = pop @apconfs;
+#                  my $apol = {};
+#                  $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
+#                  $apol->{Scheme} = "basic";
+#                  $apol->{Rule} = $apconf->{Rule};
+#                  $apol->{UserDomainID} = $apconf->{UserDomainID};
+#                  $apol->{EndpointID} = $ARCWScepID;
+#                  return $apol;
+#              };
+#             }
+                
+            # AccessPolicies
+           
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
             
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
@@ -1175,20 +1243,7 @@ sub collect($) {
 
             $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $cep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $cep->{ID};
-                return $apol;
-            };
-            }
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
             
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
@@ -1314,20 +1369,7 @@ sub collect($) {
 
             $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $cep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $EMIEScepID;
-                return $apol;
-            };
-            }
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
             
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
@@ -1455,20 +1497,7 @@ sub collect($) {
 
             $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $cep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $StageincepID;
-                return $apol;
-            };
-            }
+            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
             
             $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
 
@@ -1732,22 +1761,26 @@ sub collect($) {
         # TODO: detect reservationpolicy in the lrms
         $csha->{ReservationPolicy} = $qinfo->{reservationpolicy} if $qinfo->{reservationpolicy};
 
-        # MappingPolicy: VOs mapped to this share.
+# Adrian's MappingPolicies. Might be handy in the future.
+# MappingPolicy: VOs mapped to this share.
+#         if (@{$config->{mappingpolicies}}) {
+#             my @mpconfs = @{$config->{mappingpolicies}};
+#             $csha->{MappingPolicies} = sub {
+#             return undef unless @mpconfs;
+#             my $mpconf = pop @mpconfs;
+#             my $mpol = {};
+#             $mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
+#             $mpol->{Scheme} = "basic";
+#             $mpol->{Rule} = $mpconf->{Rule};
+#             $mpol->{UserDomainID} = $mpconf->{UserDomainID};
+#             $mpol->{ShareID} = $cshaIDs{$share};
+#             return $mpol;
+#             };
+#         }
 
-        if (@{$config->{mappingpolicies}}) {
-            my @mpconfs = @{$config->{mappingpolicies}};
-            $csha->{MappingPolicies} = sub {
-            return undef unless @mpconfs;
-            my $mpconf = pop @mpconfs;
-            my $mpol = {};
-            $mpol->{ID} = "$mpolIDp:$share:".join(",", @{$mpconf->{Rule}});
-            $mpol->{Scheme} = "basic";
-            $mpol->{Rule} = $mpconf->{Rule};
-            $mpol->{UserDomainID} = $mpconf->{UserDomainID};
-            $mpol->{ShareID} = $cshaIDs{$share};
-            return $mpol;
-            };
-        }
+        # Florido's Mapping Policies 
+        
+        $csha->{MappingPolicies} = sub { &{$getMappingPolicies}($csha->{ID}); };
 
         # Tag: skip it for now
 
