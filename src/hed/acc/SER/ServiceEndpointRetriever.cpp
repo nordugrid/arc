@@ -64,24 +64,20 @@ namespace Arc {
   }
 
   void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& endpoint) {
-    if (recursive) {
-      if (RegistryEndpoint::isRegistry(endpoint)) {
-        RegistryEndpoint registry(endpoint);
-        logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: " + registry.str());
-        createThread(registry);
-      }
+    if (recursive && RegistryEndpoint::isRegistry(endpoint)) {
+      RegistryEndpoint registry(endpoint);
+      logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: " + registry.str());
+      createThread(registry);
     }
+
     bool match = false;
-    if (capabilityFilter.empty()) {
-      match = true;
-    } else {
-      for (std::list<std::string>::iterator it = capabilityFilter.begin(); it != capabilityFilter.end(); it++) {
-        if (std::find(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it) != endpoint.EndpointCapabilities.end()) {
-          match = true;
-        }
+    for (std::list<std::string>::iterator it = capabilityFilter.begin(); it != capabilityFilter.end(); it++) {
+      if (std::find(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it) != endpoint.EndpointCapabilities.end()) {
+        match = true;
+        break;
       }
     }
-    if (match) {
+    if (capabilityFilter.empty() || match) {
       lock.lock();
       consumer.addServiceEndpoint(endpoint);
       lock.unlock();
