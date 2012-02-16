@@ -51,34 +51,24 @@ public:
  **/
 class RegistryEndpoint {
 public:
-  RegistryEndpoint(std::string Endpoint = "", std::string Type = "") : Endpoint(Endpoint), Type(Type) {}
-
-  RegistryEndpoint(ServiceEndpoint service) {
-    Endpoint = service.EndpointURL;
-    if (service.EndpointInterfaceName == "org.nordugrid.ldapegiis") {
-      Type = "EGIIS";
-    } else if (service.EndpointInterfaceName == "org.ogf.emir") {
-      Type = "EMIR";
-    } else if (service.EndpointInterfaceName == "org.nordugrid.test") {
-      Type = "TEST";
-    }
-  }
+  RegistryEndpoint(std::string Endpoint = "", std::string InterfaceName = "") : Endpoint(Endpoint), InterfaceName(InterfaceName) {}
+  RegistryEndpoint(ServiceEndpoint service) : Endpoint(service.EndpointURL), InterfaceName(service.EndpointInterfaceName) {}
 
   static bool isRegistry(ServiceEndpoint service) {
     return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != service.EndpointCapabilities.end());
   }
 
   std::string str() const {
-    return Endpoint + " (" + Type + ")";
+    return Endpoint + " (" + InterfaceName + ")";
   }
 
   // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
   bool operator<(const RegistryEndpoint& other) const {
-    return Endpoint + Type < other.Endpoint + other.Type;
+    return Endpoint + InterfaceName < other.Endpoint + other.InterfaceName;
   }
 
   std::string Endpoint;
-  std::string Type;
+  std::string InterfaceName;
 };
 
 
@@ -109,7 +99,7 @@ public:
  *
  **/
 
-enum SERStatus { SER_UNKNOWN, SER_STARTED, SER_FAILED, SER_SUCCESSFUL };
+enum SERStatus { SER_UNKNOWN, SER_STARTED, SER_FAILED, SER_NOPLUGIN, SER_SUCCESSFUL };
 
 class RegistryEndpointStatus {
 public:
@@ -167,21 +157,24 @@ private:
 
     const UserConfig& uc;
     RegistryEndpoint registry;
+    std::string pluginName;
     std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
     ThreadedPointer<SERCommon> serCommon;
   };
-  bool createThread(RegistryEndpoint registry);
+  bool createThread(RegistryEndpoint registry, const std::string& pluginName);
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
 
   static Logger logger;
-  mutable SimpleCounter threadCounter;
-  mutable SimpleCondition lock;
   const UserConfig& uc;
   ServiceEndpointConsumer& consumer;
   bool recursive;
   std::list<std::string> capabilityFilter;
+
+  mutable SimpleCounter threadCounter;
+  mutable SimpleCondition lock;
+  std::map<std::string, std::string> interfacePluginMap;
 };
 
 class ServiceEndpointRetrieverTESTControl {

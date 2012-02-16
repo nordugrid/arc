@@ -20,15 +20,15 @@ class ServiceEndpoint;
  **/
 class ServiceEndpointRetrieverPlugin : public Plugin {
 protected:
-  ServiceEndpointRetrieverPlugin(const std::string& interface) : interface(interface) {};
+  ServiceEndpointRetrieverPlugin() {};
 public:
-  virtual const std::string& SupportedInterface() const { return interface; };
+  virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterface; };
   virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
                                        std::list<ServiceEndpoint>& endpoints) const = 0;
 
-private:
-  const std::string interface;
+protected:
+  std::list<std::string> supportedInterface;
 };
 
 /// Class responsible for loading ServiceEndpointRetrieverPlugin plugins

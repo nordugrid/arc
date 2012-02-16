@@ -17,7 +17,7 @@ class Logger;
 
 class ServiceEndpointRetrieverPluginEGIIS : public ServiceEndpointRetrieverPlugin {
 public:
-  ServiceEndpointRetrieverPluginEGIIS() : ServiceEndpointRetrieverPlugin("org.nordugrid.ldapegiis") {}
+  ServiceEndpointRetrieverPluginEGIIS() { supportedInterface.push_back("org.nordugrid.ldapegiis"); }
   virtual ~ServiceEndpointRetrieverPluginEGIIS() {}
   static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEGIIS(); }
 

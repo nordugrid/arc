@@ -95,7 +95,7 @@ namespace Arc {
                            (std::string)itMds->Child(i)["Mds-Service-Ldap-suffix"]);
         if (itMds->Child(i).Name() == "Mds-Vo-name") {
           se.EndpointCapabilities.push_back("information.discovery.registry");
-          se.EndpointInterfaceName = SupportedInterface();
+          se.EndpointInterfaceName = supportedInterface.front();
         }
         else if (itMds->Child(i).Name() == "nordugrid-cluster-name") {
           se.EndpointCapabilities.push_back("informaton.discovery.resource");

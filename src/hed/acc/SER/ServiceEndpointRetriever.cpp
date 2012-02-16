@@ -12,9 +12,10 @@ namespace Arc {
 
   Logger ServiceEndpointRetriever::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
 
-  bool ServiceEndpointRetriever::createThread(RegistryEndpoint registry) {
+  bool ServiceEndpointRetriever::createThread(RegistryEndpoint registry, const std::string& pluginName) {
     ThreadArgSER *arg = new ThreadArgSER(uc, serCommon);
     arg->registry = registry;
+    arg->pluginName = pluginName;
     arg->capabilityFilter = capabilityFilter;
     arg->ser = this;
     logger.msg(Arc::DEBUG, "Starting thread to query the registry on " + arg->registry.str());
@@ -38,21 +39,34 @@ namespace Arc {
       capabilityFilter(capabilityFilter)
   {
     // Used for holding names of all available plugins.
-    std::list<std::string> types;
-    for (std::list<RegistryEndpoint>::iterator it = registries.begin(); it != registries.end(); ++it) {
-      if (it->Type.empty()) {
-        logger.msg(DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
-        if (types.empty()) {
-          types = serCommon->loader.getListOfPlugins();
+    std::list<std::string> types(serCommon->loader.getListOfPlugins());
+    for (std::list<std::string>::const_iterator itT = types.begin(); itT != types.end(); ++itT) {
+      ServiceEndpointRetrieverPlugin* p = serCommon->loader.load(*itT);
+      for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
+        // If two plugins supports two identical interfaces, then only the last will appear in the map.
+        interfacePluginMap[*itI] = *itT;
+      }
+    }
+
+
+    for (std::list<RegistryEndpoint>::const_iterator it = registries.begin(); it != registries.end(); ++it) {
+      if (!it->InterfaceName.empty()) {
+        std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.find(it->InterfaceName);
+        if (itPluginName != interfacePluginMap.end()) {
+          createThread(*it, itPluginName->second);
         }
+        else {
+          setStatusOfRegistry(*it, RegistryEndpointStatus(SER_NOPLUGIN));
+        }
+      }
+      else {
+        logger.msg(DEBUG, "Registry endpoint has no type, will try all possible plugins: " + it->str());
         for (std::list<std::string>::const_iterator it2 = types.begin(); it2 != types.end(); ++it2) {
           RegistryEndpoint registry = *it;
-          registry.Type = *it2;
+          //registry.InterfaceName = *it2; // TODO: Should be fixed in another way.
           logger.msg(Arc::DEBUG, "New registry endpoint is created from the typeless one: " + registry.str());
-          createThread(registry);
+          //createThread(registry, ""); // TODO: Should be fixed in another way.
         }
-      } else {
-        createThread(*it);
       }
     }
   }
@@ -67,7 +81,15 @@ namespace Arc {
     if (recursive && RegistryEndpoint::isRegistry(endpoint)) {
       RegistryEndpoint registry(endpoint);
       logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: " + registry.str());
-      createThread(registry);
+      if (!registry.InterfaceName.empty()) {
+        std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.find(registry.InterfaceName);
+        if (itPluginName != interfacePluginMap.end()) {
+          createThread(registry, itPluginName->second);
+        }
+        else {
+          setStatusOfRegistry(registry, RegistryEndpointStatus(SER_NOPLUGIN));
+        }
+      }
     }
 
     bool match = false;
@@ -117,7 +139,7 @@ namespace Arc {
     ThreadArgSER* a = (ThreadArgSER*)arg;
 
     ThreadedPointer<SERCommon>& serCommon = a->serCommon;
-    ServiceEndpointRetrieverPlugin* plugin = serCommon->loader.load(a->registry.Type);
+    ServiceEndpointRetrieverPlugin* plugin = serCommon->loader.load(a->pluginName);
 
     if (plugin) {
       RegistryEndpointStatus status(SER_STARTED);

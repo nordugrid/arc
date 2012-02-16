@@ -16,7 +16,7 @@ class Logger;
 
 class ServiceEndpointRetrieverPluginEMIR : public ServiceEndpointRetrieverPlugin {
 public:
-  ServiceEndpointRetrieverPluginEMIR() : ServiceEndpointRetrieverPlugin("org.nordugrid.wsrfemir") {}
+  ServiceEndpointRetrieverPluginEMIR() { supportedInterface.push_back("org.nordugrid.wsrfemir"); }
   ~ServiceEndpointRetrieverPluginEMIR() {}
   static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEMIR(); }
 
