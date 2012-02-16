@@ -12,6 +12,15 @@ namespace Arc {
 
   Logger ServiceEndpointRetriever::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
 
+  std::string string(SERStatus s){
+    if      (s == SER_UNKNOWN)     return "SER_UNKNOWN";
+    else if (s == SER_STARTED)     return "SER_STARTED";
+    else if (s == SER_FAILED)      return "SER_FAILED";
+    else if (s == SER_NOPLUGIN)    return "SER_NOPLUGIN";
+    else if (s == SER_SUCCESSFUL)  return "SER_SUCCESSFUL";
+    else                           return ""; // There should be no other alternative!
+  }
+
   bool ServiceEndpointRetriever::createThread(const RegistryEndpoint& registry) {
     std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
     if (!registry.InterfaceName.empty()) {

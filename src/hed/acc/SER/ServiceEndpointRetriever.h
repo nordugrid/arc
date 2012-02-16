@@ -101,6 +101,12 @@ public:
 
 enum SERStatus { SER_UNKNOWN, SER_STARTED, SER_FAILED, SER_NOPLUGIN, SER_SUCCESSFUL };
 
+//! Conversion to string.
+/*! Conversion from SERStatus to string.
+  @param s The SERStatus to convert.
+*/
+std::string string(SERStatus s);
+
 class RegistryEndpointStatus {
 public:
   RegistryEndpointStatus(SERStatus status = SER_UNKNOWN) : status(status) {};
