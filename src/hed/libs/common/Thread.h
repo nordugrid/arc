@@ -404,7 +404,7 @@ namespace Arc {
   public:
     ThreadedPointer(T *p)
       : object_(new Base<T>(p)) {}
-    ThreadedPointer(ThreadedPointer<T>& p)
+    ThreadedPointer(const ThreadedPointer<T>& p)
       : object_(p.object_->add()) {}
     ~ThreadedPointer(void) {
       object_->rem();
