@@ -59,7 +59,7 @@ public:
   }
 
   std::string str() const {
-    return Endpoint + " (" + InterfaceName + ")";
+    return Endpoint + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
   }
 
   // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
@@ -159,14 +159,18 @@ private:
 
   class ThreadArgSER {
   public:
-    ThreadArgSER(const UserConfig& uc, ThreadedPointer<SERCommon>& serCommon) : uc(uc), serCommon(serCommon) {};
+    ThreadArgSER(const UserConfig& uc,
+                 ThreadedPointer<SERCommon>& serCommon,
+                 ThreadedPointer<SimpleCounter>& threadCounter)
+      : uc(uc), serCommon(serCommon), threadCounter(threadCounter), subthread(false) {};
 
     const UserConfig& uc;
     RegistryEndpoint registry;
     std::string pluginName;
-    std::list<std::string> capabilityFilter;
     ServiceEndpointRetriever* ser;
     ThreadedPointer<SERCommon> serCommon;
+    bool subthread; 
+    ThreadedPointer<SimpleCounter> threadCounter;
   };
   bool createThread(const RegistryEndpoint& registry);
 
@@ -178,8 +182,8 @@ private:
   bool recursive;
   std::list<std::string> capabilityFilter;
 
-  mutable SimpleCounter threadCounter;
   mutable SimpleCondition lock;
+  ThreadedPointer<SimpleCounter> threadCounter;
   std::map<std::string, std::string> interfacePluginMap;
 };
 
