@@ -119,6 +119,16 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.wait()
         status = retriever.getStatusOfRegistry(registry)
         self.expect(status.status).to_be(arc.SER_SUCCESSFUL)
+        
+    def test_deleting_the_consumer_before_the_retriever(self):
+        container = arc.ServiceEndpointContainer()
+        registries = [arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")]
+        arc.ServiceEndpointRetrieverTESTControl.delay = 0.1
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, registries, container)
+        retriever.stopSendingEndpoints()
+        del container
+        retriever.wait()
+        # expect it to not crash
 
 
 if __name__ == '__main__':

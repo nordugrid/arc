@@ -139,6 +139,7 @@ public:
   ~ServiceEndpointRetriever();
   void wait() const;
   bool isDone() const;
+  void stopSendingEndpoints();
 
   RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
   bool setStatusOfRegistry(const RegistryEndpoint&, const RegistryEndpointStatus&, bool overwrite = true);

@@ -81,6 +81,14 @@ namespace Arc {
   }
 
   ServiceEndpointRetriever::~ServiceEndpointRetriever() {
+    if (serCommon->isActive) {
+      serCommon->mutex.lockExclusive();
+      serCommon->isActive = false;
+      serCommon->mutex.unlockExclusive();
+    }
+  }
+  
+  void ServiceEndpointRetriever::stopSendingEndpoints() {
     serCommon->mutex.lockExclusive();
     serCommon->isActive = false;
     serCommon->mutex.unlockExclusive();
