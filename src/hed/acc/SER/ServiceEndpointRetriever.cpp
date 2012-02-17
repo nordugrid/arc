@@ -56,11 +56,11 @@ namespace Arc {
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
     : serCommon(new SERCommon),
-      threadCounter(new SimpleCounter),
       uc(uc),
       consumer(consumer),
       recursive(recursive),
-      capabilityFilter(capabilityFilter)
+      capabilityFilter(capabilityFilter),
+      threadCounter(new SimpleCounter)
   {
     // Used for holding names of all available plugins.
     std::list<std::string> types(serCommon->loader.getListOfPlugins());
@@ -87,7 +87,7 @@ namespace Arc {
       serCommon->mutex.unlockExclusive();
     }
   }
-  
+
   void ServiceEndpointRetriever::stopSendingEndpoints() {
     serCommon->mutex.lockExclusive();
     serCommon->isActive = false;
@@ -178,7 +178,7 @@ namespace Arc {
         } else { // If loading the plugin failed
           RegistryEndpointStatus failed(SER_FAILED);
           /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); a->threadCounter->dec(); delete a; return; }
-          bool wasSet = a->ser->setStatusOfRegistry(a->registry, failed); 
+          a->ser->setStatusOfRegistry(a->registry, failed);
           /* unlock */ serCommon->mutex.unlockShared();
         }
       } else { // If there was no plugin selected for this registry, this will try all possibility
@@ -232,7 +232,7 @@ namespace Arc {
         subthreadCounter->wait();
         // Check which case happened
         /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); delete a; a->threadCounter->dec(); return; }
-        int failedCount = 0;
+        size_t failedCount = 0;
         bool wasSuccesful = false;
         for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
           RegistryEndpointStatus status = a->ser->getStatusOfRegistry(*it);
@@ -249,7 +249,7 @@ namespace Arc {
         } else if (failedCount == newRegistries.size()) {
           a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
         } else {
-          a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));          
+          a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
         }
         /* unlock */ serCommon->mutex.unlockShared();
       }

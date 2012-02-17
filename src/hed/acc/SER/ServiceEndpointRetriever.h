@@ -163,14 +163,14 @@ private:
     ThreadArgSER(const UserConfig& uc,
                  ThreadedPointer<SERCommon>& serCommon,
                  ThreadedPointer<SimpleCounter>& threadCounter)
-      : uc(uc), serCommon(serCommon), threadCounter(threadCounter), subthread(false) {};
+      : uc(uc), serCommon(serCommon), subthread(false), threadCounter(threadCounter) {};
 
     const UserConfig& uc;
     RegistryEndpoint registry;
     std::string pluginName;
     ServiceEndpointRetriever* ser;
     ThreadedPointer<SERCommon> serCommon;
-    bool subthread; 
+    bool subthread;
     ThreadedPointer<SimpleCounter> threadCounter;
   };
   bool createThread(const RegistryEndpoint& registry);
