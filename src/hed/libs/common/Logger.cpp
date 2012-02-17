@@ -515,7 +515,7 @@ namespace Arc {
 
   void Logger::deleteDestinations(void) {
     Glib::Mutex::Lock lock(mutex);
-    std::list<LogDestination*> destinations = getContext().destinations;
+    std::list<LogDestination*>& destinations = getContext().destinations;
     for(std::list<LogDestination*>::iterator dest = destinations.begin();
                             dest != destinations.end();) {
       delete *dest;
