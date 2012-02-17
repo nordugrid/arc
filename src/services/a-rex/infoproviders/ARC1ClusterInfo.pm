@@ -755,12 +755,12 @@ sub collect($) {
        
     my $getBasicAccessPolicy = sub {
          my $apol = {};
-         my ($cepID) = @_;
+         my ($epID) = @_;
          $apol->{ID} = "$apolIDp:basic";
          $apol->{Scheme} = "basic";
          $apol->{Rule} = $authorizedvos;
          # $apol->{UserDomainID} = $apconf->{UserDomainID};
-         $apol->{EndpointID} = $cepID;
+         $apol->{EndpointID} = $epID;
          return $apol;
     };
     
@@ -770,8 +770,8 @@ sub collect($) {
     
     my $getAccessPolicies = sub {
        return undef unless my ($accesspolicy, $sub) = each %$accesspolicies; 
-       my ($cepID) = @_;
-      return &{$sub}($cepID);
+       my ($epID) = @_;
+      return &{$sub}($epID);
      };
 
     # MappingPolicies implementation. Can be called for each ShareID.
@@ -2219,20 +2219,8 @@ sub collect($) {
 
             # TODO: Downtime, is this necessary, and how should it work?
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $ep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ep->{ID};
-                return $apol;
-            };
-            }
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
             
             $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
                    
@@ -2303,20 +2291,8 @@ sub collect($) {
 
             # TODO: Downtime, is this necessary, and how should it work?
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $ep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ep->{ID};
-                return $apol;
-            };
-            }
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
             
             $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
                    
@@ -2387,20 +2363,8 @@ sub collect($) {
 
             # TODO: Downtime, is this necessary, and how should it work?
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $ep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ep->{ID};
-                return $apol;
-            };
-            }
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
             
             $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
                    
@@ -2512,20 +2476,8 @@ sub collect($) {
 
             # TODO: Downtime, is this necessary, and how should it work?
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $ep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ep->{ID};
-                return $apol;
-            };
-            }
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
             
             $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
                    
@@ -2637,20 +2589,8 @@ sub collect($) {
 
             # TODO: Downtime, is this necessary, and how should it work?
 
-            if ($config->{accesspolicies}) {
-            my @apconfs = @{$config->{accesspolicies}};
-            $ep->{AccessPolicies} = sub {
-                return undef unless @apconfs;
-                my $apconf = pop @apconfs;
-                my $apol = {};
-                $apol->{ID} = "$apolIDp:".join(",", @{$apconf->{Rule}});
-                $apol->{Scheme} = "basic";
-                $apol->{Rule} = $apconf->{Rule};
-                $apol->{UserDomainID} = $apconf->{UserDomainID};
-                $apol->{EndpointID} = $ep->{ID};
-                return $apol;
-            };
-            }
+            # AccessPolicies
+            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
             
             $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
                    
