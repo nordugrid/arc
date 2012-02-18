@@ -128,7 +128,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.stopSendingEndpoints()
         del container
         retriever.wait()
-        # expect it to not crash
+        # expect it not to crash
 
 
 if __name__ == '__main__':

@@ -149,10 +149,14 @@ namespace Arc {
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
     ThreadArgSER* a = (ThreadArgSER*)arg;
     ThreadedPointer<SERCommon>& serCommon = a->serCommon;
-    /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); a->threadCounter->dec(); delete a; return; }
+    bool set = false;
     // Set the status of the registry to STARTED only if it was not set already by an other thread (overwrite = false)
-    bool set = a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);
-    /* unlock */ serCommon->mutex.unlockShared();
+    serCommon->mutex.lockShared();
+    if (serCommon->isActive) {
+      set = a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);      
+    }
+    serCommon->mutex.unlockShared();
+    
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
       logger.msg(DEBUG, "Will not query registry, because another thread is already querying it: " + a->registry.str());
     } else { // If the thread was able to set the status, then this is the first (and only) thread querying this registry
@@ -163,23 +167,29 @@ namespace Arc {
           std::list<ServiceEndpoint> endpoints;
           RegistryEndpointStatus status = plugin->Query(a->uc, a->registry, endpoints);
           for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
-            /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); a->threadCounter->dec(); delete a; return; }
-            a->ser->addServiceEndpoint(*it);
-            /* unlock */ serCommon->mutex.unlockShared();
+            serCommon->mutex.lockShared();
+            if (serCommon->isActive) {
+              a->ser->addServiceEndpoint(*it);
+            }
+            serCommon->mutex.unlockShared();
           }
-          /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); a->threadCounter->dec(); delete a; return; }
-          a->ser->setStatusOfRegistry(a->registry, status);
-          if (status.status == SER_SUCCESSFUL && a->subthread) {
-            // A sub-thread should set the counter to zero if the query was succesful
-            // because the other sub-threads are not interesting anymore (it's enough the query a registry on one interface)
-            a->threadCounter->set(0);
+          serCommon->mutex.lockShared();
+          if (serCommon->isActive) {
+            a->ser->setStatusOfRegistry(a->registry, status);
+            if (status.status == SER_SUCCESSFUL && a->subthread) {
+              // A sub-thread should set the counter to zero if the query was succesful
+              // because the other sub-threads are not interesting anymore (it's enough the query a registry on one interface)
+              a->threadCounter->set(0);
+            }
           }
-          /* unlock */ serCommon->mutex.unlockShared();
+          serCommon->mutex.unlockShared();
         } else { // If loading the plugin failed
           RegistryEndpointStatus failed(SER_FAILED);
-          /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); a->threadCounter->dec(); delete a; return; }
-          a->ser->setStatusOfRegistry(a->registry, failed);
-          /* unlock */ serCommon->mutex.unlockShared();
+          serCommon->mutex.lockShared();
+          if (serCommon->isActive) {
+            a->ser->setStatusOfRegistry(a->registry, failed);
+          }
+          serCommon->mutex.unlockShared();
         }
       } else { // If there was no plugin selected for this registry, this will try all possibility
         logger.msg(DEBUG, "The interface of this registry endpoint is unspecified, will try all possible plugins: " + a->registry.str());
@@ -217,41 +227,47 @@ namespace Arc {
           // and that they have to set the counter to 0 in case of a successful query
           newArg->subthread = true;
           logger.msg(DEBUG, "Starting sub-thread to query the registry on " + registry.str());
-          /* modified lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); a->threadCounter->dec(); delete a; delete newArg; return; }
-          subthreadCounter->inc();
-          if (!CreateThreadFunction(&queryRegistry, newArg)) {
-            logger.msg(ERROR, "Failed to start querying the registry on " + registry.str() + " (unable to create sub-thread)");
-            subthreadCounter->dec();
+          serCommon->mutex.lockShared();
+          if (serCommon->isActive) {
+            subthreadCounter->inc();
+            if (!CreateThreadFunction(&queryRegistry, newArg)) {
+              logger.msg(ERROR, "Failed to start querying the registry on " + registry.str() + " (unable to create sub-thread)");
+              subthreadCounter->dec();
+              delete newArg;
+            }
+          } else {
             delete newArg;
           }
-          /* unlock */  serCommon->mutex.unlockShared();
+          serCommon->mutex.unlockShared();
         }
         // We wait until the counter is set to (or below) zero, which can happen in two cases
         //   1. one sub-thread was succesful
         //   2. all the sub-threads failed
         subthreadCounter->wait();
         // Check which case happened
-        /* lock */ serCommon->mutex.lockShared(); if (!serCommon->isActive) { serCommon->mutex.unlockShared(); delete a; a->threadCounter->dec(); return; }
-        size_t failedCount = 0;
-        bool wasSuccesful = false;
-        for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
-          RegistryEndpointStatus status = a->ser->getStatusOfRegistry(*it);
-          if (status.status == SER_SUCCESSFUL) {
-            wasSuccesful = true;
-            break;
-          } else if (status.status == SER_FAILED) {
-            failedCount++;
+        serCommon->mutex.lockShared();
+        if (serCommon->isActive) {
+          size_t failedCount = 0;
+          bool wasSuccesful = false;
+          for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
+            RegistryEndpointStatus status = a->ser->getStatusOfRegistry(*it);
+            if (status.status == SER_SUCCESSFUL) {
+              wasSuccesful = true;
+              break;
+            } else if (status.status == SER_FAILED) {
+              failedCount++;
+            }
+          }
+          // Set the status of the original registry (the one without the specified interface)
+          if (wasSuccesful) {
+            a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
+          } else if (failedCount == newRegistries.size()) {
+            a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+          } else {
+            a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
           }
         }
-        // Set the status of the original registry (the one without the specified interface)
-        if (wasSuccesful) {
-          a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
-        } else if (failedCount == newRegistries.size()) {
-          a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
-        } else {
-          a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
-        }
-        /* unlock */ serCommon->mutex.unlockShared();
+        serCommon->mutex.unlockShared();
       }
     }
     a->threadCounter->dec();
