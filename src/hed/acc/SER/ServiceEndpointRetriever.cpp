@@ -39,10 +39,10 @@ namespace Arc {
       arg->pluginName = itPluginName->second;
     }
     arg->ser = this;
-    logger.msg(Arc::DEBUG, "Starting thread to query the registry on " + arg->registry.str());
+    logger.msg(Arc::DEBUG, "Starting thread to query the registry on %s", arg->registry.str());
     threadCounter->inc();
     if (!CreateThreadFunction(&queryRegistry, arg)) {
-      logger.msg(Arc::ERROR, "Failed to start querying the registry on " + arg->registry.str() + " (unable to create thread)");
+      logger.msg(Arc::ERROR, "Failed to start querying the registry on %s", arg->registry.str() + " (unable to create thread)");
       threadCounter->dec();
       delete arg;
       return false;
@@ -97,7 +97,7 @@ namespace Arc {
   void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& endpoint) {
     if (recursive && RegistryEndpoint::isRegistry(endpoint)) {
       RegistryEndpoint registry(endpoint);
-      logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: " + registry.str());
+      logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: %s", registry.str());
       createThread(registry);
     }
 
@@ -158,14 +158,14 @@ namespace Arc {
     serCommon->mutex.unlockShared();
     
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
-      logger.msg(DEBUG, "Will not query registry, because another thread is already querying it: " + a->registry.str());
+      logger.msg(DEBUG, "Will not query registry (%s) because another thread is already querying it", a->registry.str());
     } else { // If the thread was able to set the status, then this is the first (and only) thread querying this registry
       if (!a->pluginName.empty()) { // If the plugin was already selected
         ServiceEndpointRetrieverPlugin* plugin = serCommon->loader.load(a->pluginName);
         if (plugin) {
-          logger.msg(DEBUG, "Calling plugin to query registry on " + a->registry.str());
+          logger.msg(DEBUG, "Calling plugin %s to query registry on %s", a->pluginName, a->registry.str());
           std::list<ServiceEndpoint> endpoints;
-          RegistryEndpointStatus status = plugin->Query(a->uc, a->registry, endpoints);
+          RegistryEndpointStatus status = plugin->Query(a->uc, a->registry, endpoints); // Do the actual querying against service.
           for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
             serCommon->mutex.lockShared();
             if (serCommon->isActive) {
@@ -192,7 +192,7 @@ namespace Arc {
           serCommon->mutex.unlockShared();
         }
       } else { // If there was no plugin selected for this registry, this will try all possibility
-        logger.msg(DEBUG, "The interface of this registry endpoint is unspecified, will try all possible plugins: " + a->registry.str());
+        logger.msg(DEBUG, "The interface of this registry endpoint (%s) is unspecified, will try all possible plugins", a->registry.str());
         std::list<std::string> types = serCommon->loader.getListOfPlugins();
         // A list for collecting the new registry endpoints which will be created by copying the original one
         // and setting the InterfaceName for each possible plugins
@@ -214,7 +214,7 @@ namespace Arc {
           RegistryEndpoint registry = a->registry;
           // We will use the first interfaceName this plugin supports
           registry.InterfaceName = interfaceNames.front();
-          logger.msg(DEBUG, "New registry endpoint is created from the one with the unspecified interface: " + registry.str());
+          logger.msg(DEBUG, "New registry endpoint is created (%s) from the one with the unspecified interface (%s)", registry.str(), a->registry.str());
           newRegistries.push_back(registry);
           // Create a new thread argument (by copying the original one) for the sub-thread which will query this interface
           ThreadArgSER* newArg = new ThreadArgSER(*a);
@@ -226,12 +226,12 @@ namespace Arc {
           // The sub-threads have to know that they are sub-threads,
           // and that they have to set the counter to 0 in case of a successful query
           newArg->subthread = true;
-          logger.msg(DEBUG, "Starting sub-thread to query the registry on " + registry.str());
+          logger.msg(DEBUG, "Starting sub-thread to query the registry on %s", registry.str());
           serCommon->mutex.lockShared();
           if (serCommon->isActive) {
             subthreadCounter->inc();
             if (!CreateThreadFunction(&queryRegistry, newArg)) {
-              logger.msg(ERROR, "Failed to start querying the registry on " + registry.str() + " (unable to create sub-thread)");
+              logger.msg(ERROR, "Failed to start querying the registry on %s (unable to create sub-thread)", registry.str());
               subthreadCounter->dec();
               delete newArg;
             }
