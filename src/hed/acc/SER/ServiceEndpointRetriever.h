@@ -81,6 +81,11 @@ public:
   virtual void addServiceEndpoint(const ServiceEndpoint&) = 0;
 };
 
+class RegistryEndpointConsumer {
+public:
+  virtual void addRegistryEndpoint(const RegistryEndpoint&) = 0;
+};
+
 ///
 /**
  *
@@ -123,7 +128,7 @@ private:
  * or index service.
  **/
 // This name does not reflect the fact that it queries a registry/index service.
-class ServiceEndpointRetriever : ServiceEndpointConsumer {
+class ServiceEndpointRetriever : RegistryEndpointConsumer, ServiceEndpointConsumer {
 public:
   /**
    * Start querying the registry/index services specified in the 'registries'
@@ -132,7 +137,6 @@ public:
    * and the constructor is not waiting for these threads to finish.
    **/
   ServiceEndpointRetriever(const UserConfig& uc,
-                           std::list<RegistryEndpoint> registries,
                            ServiceEndpointConsumer& consumer,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
@@ -145,6 +149,7 @@ public:
   bool setStatusOfRegistry(const RegistryEndpoint&, const RegistryEndpointStatus&, bool overwrite = true);
 
   virtual void addServiceEndpoint(const ServiceEndpoint&);
+  virtual void addRegistryEndpoint(const RegistryEndpoint&);
 
 private:
   static void queryRegistry(void *arg_);
@@ -173,7 +178,6 @@ private:
     bool subthread;
     ThreadedPointer<SimpleCounter> threadCounter;
   };
-  bool createThread(const RegistryEndpoint& registry);
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
 

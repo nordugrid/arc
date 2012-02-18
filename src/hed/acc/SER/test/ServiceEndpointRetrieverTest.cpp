@@ -60,8 +60,9 @@ void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::ServiceEndpointContainer container;
 
   CPPUNIT_ASSERT(container.endpoints.empty());
-  std::list<Arc::RegistryEndpoint> registries(1, Arc::RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest"));
-  Arc::ServiceEndpointRetriever retriever(uc, registries, container);
+  Arc::RegistryEndpoint registry("test.nordugrid.org", "org.nordugrid.sertest");
+  Arc::ServiceEndpointRetriever retriever(uc, container);
+  retriever.addRegistryEndpoint(registry);
   retriever.wait();
   CPPUNIT_ASSERT_EQUAL(1, (int)container.endpoints.size());
 }

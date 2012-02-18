@@ -21,37 +21,7 @@ namespace Arc {
     else                           return ""; // There should be no other alternative!
   }
 
-  bool ServiceEndpointRetriever::createThread(const RegistryEndpoint& registry) {
-    std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
-    if (!registry.InterfaceName.empty()) {
-      itPluginName = interfacePluginMap.find(registry.InterfaceName);
-      if (itPluginName == interfacePluginMap.end()) {
-        logger.msg(DEBUG, "Unable to find ServiceRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", registry.InterfaceName, registry.Endpoint);
-        setStatusOfRegistry(registry, RegistryEndpointStatus(SER_NOPLUGIN));
-        return false;
-      }
-    }
-    // serCommon and threadCounter will be copied into the thread arg,
-    // which means that all threads will have a new instance of the ThreadedPointer pointing to the same object
-    ThreadArgSER *arg = new ThreadArgSER(uc, serCommon, threadCounter);
-    arg->registry = registry;
-    if (itPluginName != interfacePluginMap.end()) {
-      arg->pluginName = itPluginName->second;
-    }
-    arg->ser = this;
-    logger.msg(Arc::DEBUG, "Starting thread to query the registry on %s", arg->registry.str());
-    threadCounter->inc();
-    if (!CreateThreadFunction(&queryRegistry, arg)) {
-      logger.msg(Arc::ERROR, "Failed to start querying the registry on %s", arg->registry.str() + " (unable to create thread)");
-      threadCounter->dec();
-      delete arg;
-      return false;
-    }
-    return true;
-  }
-
   ServiceEndpointRetriever::ServiceEndpointRetriever(const UserConfig& uc,
-                                                     std::list<RegistryEndpoint> registries,
                                                      ServiceEndpointConsumer& consumer,
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
@@ -74,10 +44,6 @@ namespace Arc {
         }
       }
     }
-
-    for (std::list<RegistryEndpoint>::const_iterator it = registries.begin(); it != registries.end(); ++it) {
-      createThread(*it);
-    }
   }
 
   ServiceEndpointRetriever::~ServiceEndpointRetriever() {
@@ -94,23 +60,51 @@ namespace Arc {
     serCommon->mutex.unlockExclusive();
   }
 
-  void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& endpoint) {
-    if (recursive && RegistryEndpoint::isRegistry(endpoint)) {
-      RegistryEndpoint registry(endpoint);
+  void ServiceEndpointRetriever::addRegistryEndpoint(const RegistryEndpoint& registry) {
+    std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
+    if (!registry.InterfaceName.empty()) {
+      itPluginName = interfacePluginMap.find(registry.InterfaceName);
+      if (itPluginName == interfacePluginMap.end()) {
+        logger.msg(DEBUG, "Unable to find ServiceRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", registry.InterfaceName, registry.Endpoint);
+        setStatusOfRegistry(registry, RegistryEndpointStatus(SER_NOPLUGIN));
+        return;
+      }
+    }
+    // serCommon and threadCounter will be copied into the thread arg,
+    // which means that all threads will have a new instance of the ThreadedPointer pointing to the same object
+    ThreadArgSER *arg = new ThreadArgSER(uc, serCommon, threadCounter);
+    arg->registry = registry;
+    if (itPluginName != interfacePluginMap.end()) {
+      arg->pluginName = itPluginName->second;
+    }
+    arg->ser = this;
+    logger.msg(Arc::DEBUG, "Starting thread to query the registry on %s", arg->registry.str());
+    threadCounter->inc();
+    if (!CreateThreadFunction(&queryRegistry, arg)) {
+      logger.msg(Arc::ERROR, "Failed to start querying the registry on %s", arg->registry.str() + " (unable to create thread)");
+      setStatusOfRegistry(registry, RegistryEndpointStatus(SER_FAILED));
+      threadCounter->dec();
+      delete arg;
+    }
+  }
+
+  void ServiceEndpointRetriever::addServiceEndpoint(const ServiceEndpoint& service) {
+    if (recursive && RegistryEndpoint::isRegistry(service)) {
+      RegistryEndpoint registry(service);
       logger.msg(Arc::DEBUG, "Found a registry, will query it recursively: %s", registry.str());
-      createThread(registry);
+      addRegistryEndpoint(registry);
     }
 
     bool match = false;
     for (std::list<std::string>::iterator it = capabilityFilter.begin(); it != capabilityFilter.end(); it++) {
-      if (std::find(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it) != endpoint.EndpointCapabilities.end()) {
+      if (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), *it) != service.EndpointCapabilities.end()) {
         match = true;
         break;
       }
     }
     if (capabilityFilter.empty() || match) {
       lock.lock();
-      consumer.addServiceEndpoint(endpoint);
+      consumer.addServiceEndpoint(service);
       lock.unlock();
     }
   }
