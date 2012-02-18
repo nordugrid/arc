@@ -52,14 +52,14 @@ public:
 
   std::list<std::string> getListOfPlugins();
 
-  /// Retrieve list of loaded ServiceEndpointRetrieverPlugin objects
+  /// Retrieve a map of the loaded ServiceEndpointRetrieverPlugin objects
   /**
-   * @return A reference to the list of ServiceEndpointRetrieverPlugin objects.
+   * @return A reference to the map of ServiceEndpointRetrieverPlugin objects.
    **/
-  const std::list<ServiceEndpointRetrieverPlugin*>& GetServiceEndpointRetrieverPlugins() const { return plugins; }
+  const std::map<std::string, ServiceEndpointRetrieverPlugin*>& GetServiceEndpointRetrieverPlugins() const { return plugins; }
 
 private:
-  std::list<ServiceEndpointRetrieverPlugin*> plugins;
+  std::map<std::string, ServiceEndpointRetrieverPlugin*> plugins;
 
   static Logger logger;
 };

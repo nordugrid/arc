@@ -17,13 +17,18 @@ namespace Arc {
     : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
   ServiceEndpointRetrieverPluginLoader::~ServiceEndpointRetrieverPluginLoader() {
-    for (std::list<ServiceEndpointRetrieverPlugin*>::iterator it = plugins.begin();
+    for (std::map<std::string, ServiceEndpointRetrieverPlugin*>::iterator it = plugins.begin();
          it != plugins.end(); it++) {
-      delete *it;
+      delete it->second;
     }
   }
 
   ServiceEndpointRetrieverPlugin* ServiceEndpointRetrieverPluginLoader::load(const std::string& name) {
+    if (plugins.find(name) != plugins.end()) {
+      logger.msg(DEBUG, "Found ServiceEndpointRetrieverPlugin %s (it was loaded already)", name);
+      return plugins[name];
+    }
+        
     if (name.empty()) {
       return NULL;
     }
@@ -42,7 +47,7 @@ namespace Arc {
       return NULL;
     }
 
-    plugins.push_back(p);
+    plugins[name] = p;
     logger.msg(DEBUG, "Loaded ServiceEndpointRetrieverPlugin %s", name);
     return p;
   }
