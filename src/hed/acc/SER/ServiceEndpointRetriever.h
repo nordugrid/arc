@@ -161,8 +161,8 @@ private:
   class ThreadArgSER {
   public:
     ThreadArgSER(const UserConfig& uc,
-                 ThreadedPointer<SERCommon>& serCommon,
-                 ThreadedPointer<SimpleCounter>& threadCounter)
+                 const ThreadedPointer<SERCommon>& serCommon,
+                 const ThreadedPointer<SimpleCounter>& threadCounter)
       : uc(uc), serCommon(serCommon), subthread(false), threadCounter(threadCounter) {};
 
     const UserConfig& uc;
