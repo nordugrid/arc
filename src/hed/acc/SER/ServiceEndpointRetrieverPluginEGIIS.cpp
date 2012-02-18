@@ -41,7 +41,10 @@ namespace Arc {
   }
 */
 
-  RegistryEndpointStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc, const RegistryEndpoint& rEndpoint, std::list<ServiceEndpoint>& seList) const {
+  RegistryEndpointStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
+                                                                    const RegistryEndpoint& rEndpoint,
+                                                                    std::list<ServiceEndpoint>& seList,
+                                                                    const std::list<std::string>& capabilityFilter) const {
     RegistryEndpointStatus s;
     s.status = SER_STARTED;
 

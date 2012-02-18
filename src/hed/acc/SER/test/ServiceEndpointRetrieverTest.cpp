@@ -53,17 +53,19 @@ void ServiceEndpointRetrieverTest::QueryTest() {
 
 void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::UserConfig uc;
+  Arc::ServiceEndpointRetriever retriever(uc);
+  
+  Arc::ServiceEndpointContainer container;
+  retriever.addConsumer(container);
+  CPPUNIT_ASSERT(container.endpoints.empty());
+  
   Arc::ServiceEndpointRetrieverTESTControl::delay = 0;
   Arc::ServiceEndpointRetrieverTESTControl::endpoints.push_back(Arc::ServiceEndpoint());
   Arc::ServiceEndpointRetrieverTESTControl::status = Arc::RegistryEndpointStatus(Arc::SER_SUCCESSFUL);
-
-  Arc::ServiceEndpointContainer container;
-
-  CPPUNIT_ASSERT(container.endpoints.empty());
   Arc::RegistryEndpoint registry("test.nordugrid.org", "org.nordugrid.sertest");
-  Arc::ServiceEndpointRetriever retriever(uc, container);
   retriever.addRegistryEndpoint(registry);
   retriever.wait();
+
   CPPUNIT_ASSERT_EQUAL(1, (int)container.endpoints.size());
 }
 

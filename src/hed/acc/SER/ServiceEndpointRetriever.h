@@ -55,7 +55,7 @@ public:
   RegistryEndpoint(ServiceEndpoint service) : Endpoint(service.EndpointURL), InterfaceName(service.EndpointInterfaceName) {}
 
   static bool isRegistry(ServiceEndpoint service) {
-    return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), "information.discovery.registry") != service.EndpointCapabilities.end());
+    return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), RegistryCapability) != service.EndpointCapabilities.end());
   }
 
   std::string str() const {
@@ -69,8 +69,8 @@ public:
 
   std::string Endpoint;
   std::string InterfaceName;
+  static const std::string RegistryCapability;
 };
-
 
 ///
 /**
@@ -137,13 +137,13 @@ public:
    * and the constructor is not waiting for these threads to finish.
    **/
   ServiceEndpointRetriever(const UserConfig& uc,
-                           ServiceEndpointConsumer& consumer,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
   ~ServiceEndpointRetriever();
   void wait() const;
   bool isDone() const;
-  void stopSendingEndpoints();
+  void addConsumer(ServiceEndpointConsumer&);
+  void removeConsumer(const ServiceEndpointConsumer&);
 
   RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
   bool setStatusOfRegistry(const RegistryEndpoint&, const RegistryEndpointStatus&, bool overwrite = true);
@@ -177,17 +177,19 @@ private:
     ThreadedPointer<SERCommon> serCommon;
     bool subthread;
     ThreadedPointer<SimpleCounter> threadCounter;
+    std::list<std::string> capabilityFilter;
   };
 
   std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
 
   static Logger logger;
   const UserConfig& uc;
-  ServiceEndpointConsumer& consumer;
+  std::list<ServiceEndpointConsumer*> consumers;
   bool recursive;
   std::list<std::string> capabilityFilter;
 
-  mutable SimpleCondition lock;
+  mutable SimpleCondition consumerLock;
+  mutable SimpleCondition statusLock;
   ThreadedPointer<SimpleCounter> threadCounter;
   std::map<std::string, std::string> interfacePluginMap;
 };

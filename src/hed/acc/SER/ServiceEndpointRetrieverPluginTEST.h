@@ -14,7 +14,8 @@ protected:
 public:
   virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
-                                       std::list<ServiceEndpoint>& endpoints) const;
+                                       std::list<ServiceEndpoint>& endpoints,
+                                       const std::list<std::string>& capabilityFilter) const;
   static Plugin* Instance(PluginArgument *arg);
 };
 

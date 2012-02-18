@@ -20,14 +20,15 @@ namespace Arc {
     else if (s == SER_SUCCESSFUL)  return "SER_SUCCESSFUL";
     else                           return ""; // There should be no other alternative!
   }
+  
+  const std::string RegistryEndpoint::RegistryCapability = "information.discovery.registry";
+  
 
   ServiceEndpointRetriever::ServiceEndpointRetriever(const UserConfig& uc,
-                                                     ServiceEndpointConsumer& consumer,
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
     : serCommon(new SERCommon),
       uc(uc),
-      consumer(consumer),
       recursive(recursive),
       capabilityFilter(capabilityFilter),
       threadCounter(new SimpleCounter)
@@ -54,10 +55,19 @@ namespace Arc {
     }
   }
 
-  void ServiceEndpointRetriever::stopSendingEndpoints() {
-    serCommon->mutex.lockExclusive();
-    serCommon->isActive = false;
-    serCommon->mutex.unlockExclusive();
+  void ServiceEndpointRetriever::addConsumer(ServiceEndpointConsumer& consumer) {
+    consumerLock.lock();
+    consumers.push_back(&consumer);
+    consumerLock.unlock();  
+  }
+  
+  void ServiceEndpointRetriever::removeConsumer(const ServiceEndpointConsumer& consumer) {
+    consumerLock.lock();
+    std::list<ServiceEndpointConsumer*>::iterator it = std::find(consumers.begin(), consumers.end(), &consumer);
+    if (it != consumers.end()) {
+      consumers.erase(it);
+    }
+    consumerLock.unlock();
   }
 
   void ServiceEndpointRetriever::addRegistryEndpoint(const RegistryEndpoint& registry) {
@@ -74,6 +84,11 @@ namespace Arc {
     // which means that all threads will have a new instance of the ThreadedPointer pointing to the same object
     ThreadArgSER *arg = new ThreadArgSER(uc, serCommon, threadCounter);
     arg->registry = registry;
+    arg->capabilityFilter = capabilityFilter;
+    // For recursivity the plugins should return registries even if they would be filtered
+    if (recursive) {
+      arg->capabilityFilter.push_back(RegistryEndpoint::RegistryCapability);
+    }
     if (itPluginName != interfacePluginMap.end()) {
       arg->pluginName = itPluginName->second;
     }
@@ -103,9 +118,11 @@ namespace Arc {
       }
     }
     if (capabilityFilter.empty() || match) {
-      lock.lock();
-      consumer.addServiceEndpoint(service);
-      lock.unlock();
+      consumerLock.lock();
+      for (std::list<ServiceEndpointConsumer*>::iterator it = consumers.begin(); it != consumers.end(); it++) {
+        (*it)->addServiceEndpoint(service);        
+      }
+      consumerLock.unlock();
     }
   }
 
@@ -118,25 +135,25 @@ namespace Arc {
   };
 
   RegistryEndpointStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
-    lock.lock();
+    statusLock.lock();
     RegistryEndpointStatus status(SER_UNKNOWN);
     std::map<RegistryEndpoint, RegistryEndpointStatus>::const_iterator it = statuses.find(registry);
     if (it != statuses.end()) {
       status = it->second;
     }
-    lock.unlock();
+    statusLock.unlock();
     return status;
   }
 
   bool ServiceEndpointRetriever::setStatusOfRegistry(const RegistryEndpoint& registry, const RegistryEndpointStatus& status, bool overwrite) {
-    lock.lock();
+    statusLock.lock();
     bool wasSet = false;
     if (overwrite || (statuses.find(registry) == statuses.end())) {
       logger.msg(DEBUG, "Setting status (%s) for registry: %s", string(status.status), registry.str());
       statuses[registry] = status;
       wasSet = true;
     }
-    lock.unlock();
+    statusLock.unlock();
     return wasSet;
   };
 
@@ -159,7 +176,8 @@ namespace Arc {
         if (plugin) {
           logger.msg(DEBUG, "Calling plugin %s to query registry on %s", a->pluginName, a->registry.str());
           std::list<ServiceEndpoint> endpoints;
-          RegistryEndpointStatus status = plugin->Query(a->uc, a->registry, endpoints); // Do the actual querying against service.
+          // Do the actual querying against service.
+          RegistryEndpointStatus status = plugin->Query(a->uc, a->registry, endpoints, a->capabilityFilter);
           for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
             serCommon->mutex.lockShared();
             if (serCommon->isActive) {
