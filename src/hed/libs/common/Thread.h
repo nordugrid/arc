@@ -319,100 +319,160 @@ namespace Arc {
     };
   };
 
+  /// Helper class for ThreadedPointer
+  class ThreadedPointerBase {
+  private:
+    Glib::Mutex lock_;
+    Glib::Cond cond_;
+    unsigned int cnt_;
+    void *ptr_;
+    bool released_;
+    ThreadedPointerBase(ThreadedPointerBase&) {};
+    ~ThreadedPointerBase(void);
+  public:
+    ThreadedPointerBase(void *p);
+    ThreadedPointerBase* add(void);
+    void* rem(void);
+    void* ptr(void) const { return ptr_; };
+    void rel(void) { released_ = true; };
+    unsigned int cnt(void) const { return cnt_; };
+    void lock(void) { lock_.lock(); };
+    void unlock(void) { lock_.unlock(); };
+    void wait(void) { cond_.wait(lock_); };
+    bool wait(Glib::TimeVal etime) {
+      return cond_.timed_wait(lock_,etime);
+    };
+  };
+
   /// Wrapper for pointer with automatic destruction and mutiple references
   /** See for CountedPointer for description. Differently from CountedPointer
      this class provides thread safe destruction of refered object. But the
-     instance of ThreadedPointer itself is not thread safe. Hence it is 
+     instance of ThreadedPointer itself is not thread safe. Hence it is
      advisable to use different instances in different threads. */
   template<typename T>
   class ThreadedPointer {
   private:
-    template<typename P>
-    class Base {
-    private:
-      Glib::Mutex lock_;
-      Base(Base<P>&) {}
-      ~Base(void) {
-        if (ptr && !released) delete ptr;
-      }
-    public:
-      int cnt;
-      P *ptr;
-      bool released;
-      Base(P *p)
-        : cnt(0),
-          ptr(p),
-          released(false) {
-        add();
-      }
-      Base<P>* add(void) {
-        Glib::Mutex::Lock lock(lock_);
-        ++cnt;
-        return this;
-      }
-      bool rem(void) {
-        Glib::Mutex::Lock lock(lock_);
-        if (--cnt == 0) {
-          if(!released) {
-            lock.release();
-            delete this;
-          }
-          return true;
-        }
-        return false;
-      }
-    };
-    Base<T> *object_;
+    ThreadedPointerBase *object_;
   public:
     ThreadedPointer(T *p)
-      : object_(new Base<T>(p)) {}
+      : object_(new ThreadedPointerBase(p)) {}
     ThreadedPointer(const ThreadedPointer<T>& p)
       : object_(p.object_->add()) {}
     ~ThreadedPointer(void) {
-      object_->rem();
+      delete((T*)(object_->rem()));
     }
     ThreadedPointer& operator=(T *p) {
-      if (p != object_->ptr) {
-        object_->rem();
-        object_ = new Base<T>(p);
+      if (p != object_->ptr()) {
+        delete((T*)(object_->rem()));
+        object_ = new ThreadedPointerBase(p);
       }
       return *this;
     }
     ThreadedPointer& operator=(ThreadedPointer& p) {
-      if (p.object_->ptr != object_->ptr) {
-        object_->rem();
+      if (p.object_->ptr() != object_->ptr()) {
+        delete((T*)(object_->rem()));
         object_ = p.object_->add();
       }
       return *this;
     }
     /// For refering wrapped object
     T& operator*(void) const {
-      return *(object_->ptr);
+      return *(T*)(object_->ptr());
     }
     /// For refering wrapped object
     T* operator->(void) const {
-      return (object_->ptr);
+      return (T*)(object_->ptr());
     }
     /// Returns false if pointer is NULL and true otherwise.
     operator bool(void) const {
-      return ((object_->ptr) != NULL);
+      return ((object_->ptr()) != NULL);
     }
     /// Returns true if pointer is NULL and false otherwise.
     bool operator!(void) const {
-      return ((object_->ptr) == NULL);
+      return ((object_->ptr()) == NULL);
     }
     /// Cast to original pointer
     T* Ptr(void) const {
-      return (object_->ptr);
+      return (T*)(object_->ptr());
     }
-    /// Release refred object so that it can be passed to other container
+    /// Release refered object so that it can be passed to other container
+    /** After Release() is called refered object is will not be destroyed
+       automatically anymore. */
     T* Release(void) {
-      T* tmp = object_->ptr;
-      object_->released = true;
+      T* tmp = (T*)(object_->ptr());
+      object_->rel();
       return tmp;
     }
-  };
+    /// Returns number of ThreadedPointer instances refering to underlying object
+    unsigned int Holders(void) {
+      return object_->cnt();
+    }
+    /// Waits till number of ThreadedPointer instances <= minThr or >= maxThr
+    /* Returns current number of instances. */
+    unsigned int WaitOutRange(unsigned int minThr, unsigned int maxThr) {
+      unsigned int r = 0;
+      object_->lock();
+      for(;;) {
+        r = object_->cnt();
+        if(r <= minThr) break;
+        if(r >= maxThr) break;
+        object_->wait();
+      };
+      object_->unlock();
+      return r;
+    }
+    /// Waits till number of ThreadedPointer instances <= minThr or >= maxThr
+    /** Waits no longer than timeout milliseconds. If timeout is negative -
+       wait forever. Returns current number of instances. */
+    unsigned int WaitOutRange(unsigned int minThr, unsigned int maxThr, int timeout) {
+      if(timeout < 0) return WaitOutRange(minThr, maxThr);
+      unsigned int r = 0;
+      object_->lock();
+      Glib::TimeVal etime;
+      etime.assign_current_time();
+      etime.add_milliseconds(timeout);
+      for(;;) {
+        r = object_->cnt();
+        if(r <= minThr) break;
+        if(r >= maxThr) break;
+        if(!object_->wait(etime)) break;
+      };
+      object_->unlock();
+      return r;
+    }
+    /// Waits till number of ThreadedPointer instances >= minThr and <= maxThr
+    /* Returns current number of instances. */
+    unsigned int WaitInRange(unsigned int minThr, unsigned int maxThr) {
+      unsigned int r = 0;
+      object_->lock();
+      for(;;) {
+        r = object_->cnt();
+        if((r >= minThr) && (r <= maxThr)) break;
+        object_->wait();
+      };
+      object_->unlock();
+      return r;
+    }
+    /// Waits till number of ThreadedPointer instances >= minThr and <= maxThr
+    /** Waits no longer than timeout milliseconds. If timeout is negative -
+       wait forever. Returns current number of instances. */
+    unsigned int WaitInRange(unsigned int minThr, unsigned int maxThr, int timeout) {
+      if(timeout < 0) return WaitInRange(minThr, maxThr);
+      unsigned int r = 0;
+      object_->lock();
+      Glib::TimeVal etime;
+      etime.assign_current_time();
+      etime.add_milliseconds(timeout);
+      for(;;) {
+        r = object_->cnt();
+        if((r >= minThr) && (r <= maxThr)) break;
+        if(!object_->wait(etime)) break;
+      };
+      object_->unlock();
+      return r;
+    }
 
+  };
 
   /// This class is a set of conditions, mutexes, etc. conveniently
   /// exposed to monitor running child threads and to wait till

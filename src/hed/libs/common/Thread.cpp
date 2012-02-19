@@ -456,6 +456,38 @@ namespace Arc {
 
   // ----------------------------------------
 
+  ThreadedPointerBase::~ThreadedPointerBase(void) {
+    //if (ptr && !released) delete ptr;
+  }
+
+  ThreadedPointerBase::ThreadedPointerBase(void *p)
+    : cnt_(0),
+      ptr_(p),
+      released_(false) {
+    add();
+  }
+
+  ThreadedPointerBase* ThreadedPointerBase::add(void) {
+    Glib::Mutex::Lock lock(lock_);
+    ++cnt_;
+    cond_.broadcast();
+    return this;
+  }
+
+  void* ThreadedPointerBase::rem(void) {
+    Glib::Mutex::Lock lock(lock_);
+    cond_.broadcast();
+    if (--cnt_ == 0) {
+      void* p = released_?NULL:ptr_;
+      lock.release();
+      delete this;
+      return p;
+    }
+    return NULL;
+  }
+
+  // ----------------------------------------
+
   ThreadRegistry::ThreadRegistry(void):counter_(0),cancel_(false) {
   }
 
