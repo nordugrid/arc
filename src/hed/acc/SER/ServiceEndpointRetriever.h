@@ -139,10 +139,10 @@ public:
   ServiceEndpointRetriever(const UserConfig& uc,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
-  ~ServiceEndpointRetriever() { serCommon->Deactivate(); }
+  ~ServiceEndpointRetriever() { serCommon->deactivate(); }
 
-  void wait() const { serResult.Wait(); };
-  bool isDone() const { return serResult.Wait(0); };
+  void wait() const { serResult.wait(); };
+  bool isDone() const { return serResult.wait(0); };
 
   void addConsumer(ServiceEndpointConsumer& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); }
   void removeConsumer(const ServiceEndpointConsumer&);
@@ -161,7 +161,7 @@ private:
   public:
     SERCommon(ServiceEndpointRetriever* s, const UserConfig& u) :
       mutex(), ser(s), loader(), uc(u) {}; // Maybe full copy of UserConfig wouldbe safer?
-    void Deactivate(void) {
+    void deactivate(void) {
       mutex.lockExclusive();
       ser = NULL;
       mutex.unlockExclusive();
@@ -213,9 +213,9 @@ private:
       };
     };
     // Mark this result as successful (failure by default)
-    void Success(void) { success = true; };
+    void setSuccess(void) { success = true; };
     // Wait for queries to finish
-    bool Wait(int t = -1) const { return Ptr()->wait(t); };
+    bool wait(int t = -1) const { return Ptr()->wait(t); };
     int get(void) { return Ptr()->get(); };
   private:
     bool success;

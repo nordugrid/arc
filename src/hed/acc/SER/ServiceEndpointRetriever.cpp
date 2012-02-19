@@ -170,7 +170,7 @@ namespace Arc {
       if(!(ser = serCommon->lockShared())) return;
       ser->setStatusOfRegistry(a->registry, status);
       serCommon->unlockShared();
-      if (status.status == SER_SUCCESSFUL) a->serResult.Success(); // Successful query
+      if (status.status == SER_SUCCESSFUL) a->serResult.setSuccess(); // Successful query
     } else { // If there was no plugin selected for this registry, this will try all possibility
       logger.msg(DEBUG, "The interface of this registry endpoint (%s) is unspecified, will try all possible plugins", a->registry.str());
       std::list<std::string> types = serCommon->Loader().getListOfPlugins();
@@ -214,7 +214,7 @@ namespace Arc {
         // We wait until the counter is set to (or below) zero, which can happen in two cases
         //   1. one sub-thread was succesful
         //   2. all the sub-threads failed
-        newserResult.Wait();
+        newserResult.wait();
         // Check which case happened
         if(!(ser = serCommon->lockShared())) return;
         size_t failedCount = 0;
