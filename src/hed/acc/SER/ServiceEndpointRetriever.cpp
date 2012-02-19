@@ -21,9 +21,9 @@ namespace Arc {
     else if (s == SER_SUCCESSFUL)  return "SER_SUCCESSFUL";
     else                           return ""; // There should be no other alternative!
   }
-  
+
   const std::string RegistryEndpoint::RegistryCapability = "information.discovery.registry";
-  
+
 
   ServiceEndpointRetriever::ServiceEndpointRetriever(const UserConfig& uc,
                                                      bool recursive,
@@ -48,16 +48,6 @@ namespace Arc {
     }
   }
 
-  ServiceEndpointRetriever::~ServiceEndpointRetriever() {
-    serCommon->Deactivate();
-  }
-
-  void ServiceEndpointRetriever::addConsumer(ServiceEndpointConsumer& consumer) {
-    consumerLock.lock();
-    consumers.push_back(&consumer);
-    consumerLock.unlock();  
-  }
-  
   void ServiceEndpointRetriever::removeConsumer(const ServiceEndpointConsumer& consumer) {
     consumerLock.lock();
     std::list<ServiceEndpointConsumer*>::iterator it = std::find(consumers.begin(), consumers.end(), &consumer);
@@ -78,7 +68,7 @@ namespace Arc {
       }
     }
     // serCommon will be copied into the thread arg,
-    // which means that all threads will have a new 
+    // which means that all threads will have a new
     // instance of the ThreadedPointer pointing to the same object
     ThreadArgSER *arg = new ThreadArgSER(serCommon, serResult);
     arg->registry = registry;
@@ -115,19 +105,11 @@ namespace Arc {
     if (capabilityFilter.empty() || match) {
       consumerLock.lock();
       for (std::list<ServiceEndpointConsumer*>::iterator it = consumers.begin(); it != consumers.end(); it++) {
-        (*it)->addServiceEndpoint(service);        
+        (*it)->addServiceEndpoint(service);
       }
       consumerLock.unlock();
     }
   }
-
-  void ServiceEndpointRetriever::wait() const {
-    serResult.Wait();
-  };
-
-  bool ServiceEndpointRetriever::isDone() const {
-    return serResult.Wait(0);
-  };
 
   RegistryEndpointStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
     statusLock.lock();
@@ -161,7 +143,7 @@ namespace Arc {
     if(!(ser = serCommon->lockShared())) return;
     set = ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);
     serCommon->unlockShared();
-    
+
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
       logger.msg(DEBUG, "Will not query registry (%s) because another thread is already querying it", a->registry.str());
       return;

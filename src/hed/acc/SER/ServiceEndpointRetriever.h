@@ -139,10 +139,12 @@ public:
   ServiceEndpointRetriever(const UserConfig& uc,
                            bool recursive = false,
                            std::list<std::string> capabilityFilter = std::list<std::string>());
-  ~ServiceEndpointRetriever();
-  void wait() const;
-  bool isDone() const;
-  void addConsumer(ServiceEndpointConsumer&);
+  ~ServiceEndpointRetriever() { serCommon->Deactivate(); }
+
+  void wait() const { serResult.Wait(); };
+  bool isDone() const { return serResult.Wait(0); };
+
+  void addConsumer(ServiceEndpointConsumer& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); }
   void removeConsumer(const ServiceEndpointConsumer&);
 
   RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
@@ -189,7 +191,7 @@ private:
   // Different implementations are meant for waiting for either one or all threads.
   // TODO: counter is duplicate in this implimentation. It may be simplified
   //       either by using counter of ThreadedPointer or implementing part of
-  //       ThreadedPointer directly. 
+  //       ThreadedPointer directly.
   class SERResult: private ThreadedPointer<SimpleCounter>  {
   public:
     // Creates initial instance
@@ -199,7 +201,7 @@ private:
     // Creates new reference representing query - increments counter
     SERResult(const SERResult& r):
       ThreadedPointer<SimpleCounter>(r),
-      need_one_success(r.need_one_success),success(false) { 
+      need_one_success(r.need_one_success),success(false) {
       Ptr()->inc();
     };
     // Query finished - decrement or reset counter (if one result is enough)
@@ -219,7 +221,7 @@ int get(void) { return Ptr()->get(); };
     bool success;
     bool need_one_success;
   };
- 
+
   ThreadedPointer<SERCommon> serCommon;
   SERResult serResult;
 
