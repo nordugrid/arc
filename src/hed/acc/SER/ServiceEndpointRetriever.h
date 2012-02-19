@@ -157,35 +157,39 @@ private:
   static void queryRegistry(void *arg_);
 
   // Common configuration part
-  class SERCommon {
+  class SERCommon : public ServiceEndpointRetrieverPluginLoader {
   public:
-    SERCommon(ServiceEndpointRetriever* s, const UserConfig& u) :
-      mutex(), ser(s), loader(), uc(u) {}; // Maybe full copy of UserConfig wouldbe safer?
+    SERCommon(ServiceEndpointRetriever* s, const UserConfig& u) : ServiceEndpointRetrieverPluginLoader(),
+      mutex(), ser(s), uc(u) {}; // Maybe full copy of UserConfig wouldbe safer?
     void deactivate(void) {
       mutex.lockExclusive();
       ser = NULL;
       mutex.unlockExclusive();
     }
-    ServiceEndpointRetriever* lockExclusive(void) {
+    bool lockExclusiveIfValid(void) {
       mutex.lockExclusive();
-      if(ser) return ser;
+      if(ser) return true;
       mutex.unlockExclusive();
+      return false;
     }
     void unlockExclusive(void) { mutex.unlockExclusive(); }
-    ServiceEndpointRetriever* lockShared(void) {
+    bool lockSharedIfValid(void) {
       mutex.lockShared();
-      if(ser) return ser;
+      if(ser) return true;
       mutex.unlockShared();
+      return false;
     }
     void unlockShared(void) { mutex.unlockShared(); }
-    const UserConfig& Cfg(void) const { return uc; }
-    ServiceEndpointRetrieverPluginLoader& Loader(void) { return loader; }
+
+    operator const UserConfig&(void) const { return uc; }
+    ServiceEndpointRetriever* operator->(void) { return ser; }
+    ServiceEndpointRetriever* operator*(void) { return ser; }
   private:
     SharedMutex mutex;
     ServiceEndpointRetriever* ser;
-    ServiceEndpointRetrieverPluginLoader loader;
     const UserConfig& uc;
   };
+  ThreadedPointer<SERCommon> serCommon;
 
   // Represents completeness of queriies run in threads.
   // Different implementations are meant for waiting for either one or all threads.
@@ -222,7 +226,6 @@ private:
     bool need_one_success;
   };
 
-  ThreadedPointer<SERCommon> serCommon;
   SERResult serResult;
 
   class ThreadArgSER {

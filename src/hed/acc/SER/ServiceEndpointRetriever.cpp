@@ -35,10 +35,10 @@ namespace Arc {
       capabilityFilter(capabilityFilter)
   {
     // Used for holding names of all available plugins.
-    std::list<std::string> types(serCommon->Loader().getListOfPlugins());
+    std::list<std::string> types(serCommon->getListOfPlugins());
     // Map supported interfaces to available plugins.
     for (std::list<std::string>::const_iterator itT = types.begin(); itT != types.end(); ++itT) {
-      ServiceEndpointRetrieverPlugin* p = serCommon->Loader().load(*itT);
+      ServiceEndpointRetrieverPlugin* p = serCommon->load(*itT);
       if (p) {
         for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
           // If two plugins supports two identical interfaces, then only the last will appear in the map.
@@ -137,11 +137,10 @@ namespace Arc {
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
     AutoPointer<ThreadArgSER> a((ThreadArgSER*)arg);
     ThreadedPointer<SERCommon>& serCommon = a->serCommon;
-    ServiceEndpointRetriever* ser = NULL;
     bool set = false;
     // Set the status of the registry to STARTED only if it was not set already by an other thread (overwrite = false)
-    if(!(ser = serCommon->lockShared())) return;
-    set = ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);
+    if(!serCommon->lockSharedIfValid()) return;
+    set = (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);
     serCommon->unlockShared();
 
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
@@ -150,37 +149,37 @@ namespace Arc {
     }
     // If the thread was able to set the status, then this is the first (and only) thread querying this registry
     if (!a->pluginName.empty()) { // If the plugin was already selected
-      ServiceEndpointRetrieverPlugin* plugin = serCommon->Loader().load(a->pluginName);
+      ServiceEndpointRetrieverPlugin* plugin = serCommon->load(a->pluginName);
       if (!plugin) {
-        if(!(ser = serCommon->lockShared())) return;
-        ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+        if(!serCommon->lockSharedIfValid()) return;
+        (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
         serCommon->unlockShared();
         return;
       }
       logger.msg(DEBUG, "Calling plugin %s to query registry on %s", a->pluginName, a->registry.str());
       std::list<ServiceEndpoint> endpoints;
       // Do the actual querying against service.
-      RegistryEndpointStatus status = plugin->Query(serCommon->Cfg(), a->registry, endpoints, a->capabilityFilter);
+      RegistryEndpointStatus status = plugin->Query(*serCommon, a->registry, endpoints, a->capabilityFilter);
       for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
-        if(!(ser = serCommon->lockShared())) return;
-        ser->addServiceEndpoint(*it);
+        if(!serCommon->lockSharedIfValid()) return;
+        (*serCommon)->addServiceEndpoint(*it);
         serCommon->unlockShared();
       }
 
-      if(!(ser = serCommon->lockShared())) return;
-      ser->setStatusOfRegistry(a->registry, status);
+      if(!serCommon->lockSharedIfValid()) return;
+      (*serCommon)->setStatusOfRegistry(a->registry, status);
       serCommon->unlockShared();
       if (status.status == SER_SUCCESSFUL) a->serResult.setSuccess(); // Successful query
     } else { // If there was no plugin selected for this registry, this will try all possibility
       logger.msg(DEBUG, "The interface of this registry endpoint (%s) is unspecified, will try all possible plugins", a->registry.str());
-      std::list<std::string> types = serCommon->Loader().getListOfPlugins();
+      std::list<std::string> types = serCommon->getListOfPlugins();
       // A list for collecting the new registry endpoints which will be created by copying the original one
       // and setting the InterfaceName for each possible plugins
       std::list<RegistryEndpoint> newRegistries;
       // A new counter is needed for the subthreads
       SERResult(true);
       for (std::list<std::string>::const_iterator it = types.begin(); it != types.end(); ++it) {
-        ServiceEndpointRetrieverPlugin* plugin = serCommon->Loader().load(*it);
+        ServiceEndpointRetrieverPlugin* plugin = serCommon->load(*it);
         if (!plugin) {
           // Problem loading the plugin, skip it
           break;
@@ -216,11 +215,11 @@ namespace Arc {
         //   2. all the sub-threads failed
         newserResult.wait();
         // Check which case happened
-        if(!(ser = serCommon->lockShared())) return;
+        if(!serCommon->lockSharedIfValid()) return;
         size_t failedCount = 0;
         bool wasSuccesful = false;
         for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
-          RegistryEndpointStatus status = ser->getStatusOfRegistry(*it);
+          RegistryEndpointStatus status = (*serCommon)->getStatusOfRegistry(*it);
           if (status.status == SER_SUCCESSFUL) {
             wasSuccesful = true;
             break;
@@ -230,11 +229,11 @@ namespace Arc {
         }
         // Set the status of the original registry (the one without the specified interface)
         if (wasSuccesful) {
-          ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
+          (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
         } else if (failedCount == newRegistries.size()) {
-          ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+          (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
         } else {
-          ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
+          (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
         }
         serCommon->unlockShared();
       } // for (types)
