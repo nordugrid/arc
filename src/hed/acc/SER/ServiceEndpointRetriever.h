@@ -215,8 +215,8 @@ private:
     // Mark this result as successful (failure by default)
     void Success(void) { success = true; };
     // Wait for queries to finish
-    bool Wait(int t = -1) const { Ptr()->wait(t); };
-int get(void) { return Ptr()->get(); };
+    bool Wait(int t = -1) const { return Ptr()->wait(t); };
+    int get(void) { return Ptr()->get(); };
   private:
     bool success;
     bool need_one_success;
