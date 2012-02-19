@@ -128,7 +128,7 @@ private:
  * or index service.
  **/
 // This name does not reflect the fact that it queries a registry/index service.
-class ServiceEndpointRetriever : RegistryEndpointConsumer, ServiceEndpointConsumer {
+class ServiceEndpointRetriever : public RegistryEndpointConsumer, public ServiceEndpointConsumer {
 public:
   /**
    * Start querying the registry/index services specified in the 'registries'
