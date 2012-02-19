@@ -5,6 +5,7 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 #include "ServiceEndpointRetriever.h"
 
@@ -27,17 +28,17 @@ namespace Arc {
   ServiceEndpointRetriever::ServiceEndpointRetriever(const UserConfig& uc,
                                                      bool recursive,
                                                      std::list<std::string> capabilityFilter)
-    : serCommon(new SERCommon),
+    : serCommon(new SERCommon(this,uc)),
+      serResult(),
       uc(uc),
       recursive(recursive),
-      capabilityFilter(capabilityFilter),
-      threadCounter(new SimpleCounter)
+      capabilityFilter(capabilityFilter)
   {
     // Used for holding names of all available plugins.
-    std::list<std::string> types(serCommon->loader.getListOfPlugins());
+    std::list<std::string> types(serCommon->Loader().getListOfPlugins());
     // Map supported interfaces to available plugins.
     for (std::list<std::string>::const_iterator itT = types.begin(); itT != types.end(); ++itT) {
-      ServiceEndpointRetrieverPlugin* p = serCommon->loader.load(*itT);
+      ServiceEndpointRetrieverPlugin* p = serCommon->Loader().load(*itT);
       if (p) {
         for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
           // If two plugins supports two identical interfaces, then only the last will appear in the map.
@@ -48,11 +49,7 @@ namespace Arc {
   }
 
   ServiceEndpointRetriever::~ServiceEndpointRetriever() {
-    if (serCommon->isActive) {
-      serCommon->mutex.lockExclusive();
-      serCommon->isActive = false;
-      serCommon->mutex.unlockExclusive();
-    }
+    serCommon->Deactivate();
   }
 
   void ServiceEndpointRetriever::addConsumer(ServiceEndpointConsumer& consumer) {
@@ -80,9 +77,10 @@ namespace Arc {
         return;
       }
     }
-    // serCommon and threadCounter will be copied into the thread arg,
-    // which means that all threads will have a new instance of the ThreadedPointer pointing to the same object
-    ThreadArgSER *arg = new ThreadArgSER(uc, serCommon, threadCounter);
+    // serCommon will be copied into the thread arg,
+    // which means that all threads will have a new 
+    // instance of the ThreadedPointer pointing to the same object
+    ThreadArgSER *arg = new ThreadArgSER(serCommon, serResult);
     arg->registry = registry;
     arg->capabilityFilter = capabilityFilter;
     // For recursivity the plugins should return registries even if they would be filtered
@@ -92,13 +90,10 @@ namespace Arc {
     if (itPluginName != interfacePluginMap.end()) {
       arg->pluginName = itPluginName->second;
     }
-    arg->ser = this;
     logger.msg(Arc::DEBUG, "Starting thread to query the registry on %s", arg->registry.str());
-    threadCounter->inc();
     if (!CreateThreadFunction(&queryRegistry, arg)) {
       logger.msg(Arc::ERROR, "Failed to start querying the registry on %s", arg->registry.str() + " (unable to create thread)");
       setStatusOfRegistry(registry, RegistryEndpointStatus(SER_FAILED));
-      threadCounter->dec();
       delete arg;
     }
   }
@@ -127,11 +122,11 @@ namespace Arc {
   }
 
   void ServiceEndpointRetriever::wait() const {
-    threadCounter->wait();
+    serResult.Wait();
   };
 
   bool ServiceEndpointRetriever::isDone() const {
-    return threadCounter->get() == 0;
+    return serResult.Wait(0);
   };
 
   RegistryEndpointStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
@@ -158,132 +153,110 @@ namespace Arc {
   };
 
   void ServiceEndpointRetriever::queryRegistry(void *arg) {
-    ThreadArgSER* a = (ThreadArgSER*)arg;
+    AutoPointer<ThreadArgSER> a((ThreadArgSER*)arg);
     ThreadedPointer<SERCommon>& serCommon = a->serCommon;
+    ServiceEndpointRetriever* ser = NULL;
     bool set = false;
     // Set the status of the registry to STARTED only if it was not set already by an other thread (overwrite = false)
-    serCommon->mutex.lockShared();
-    if (serCommon->isActive) {
-      set = a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);      
-    }
-    serCommon->mutex.unlockShared();
+    if(!(ser = serCommon->lockShared())) return;
+    set = ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);
+    serCommon->unlockShared();
     
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
       logger.msg(DEBUG, "Will not query registry (%s) because another thread is already querying it", a->registry.str());
-    } else { // If the thread was able to set the status, then this is the first (and only) thread querying this registry
-      if (!a->pluginName.empty()) { // If the plugin was already selected
-        ServiceEndpointRetrieverPlugin* plugin = serCommon->loader.load(a->pluginName);
-        if (plugin) {
-          logger.msg(DEBUG, "Calling plugin %s to query registry on %s", a->pluginName, a->registry.str());
-          std::list<ServiceEndpoint> endpoints;
-          // Do the actual querying against service.
-          RegistryEndpointStatus status = plugin->Query(a->uc, a->registry, endpoints, a->capabilityFilter);
-          for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
-            serCommon->mutex.lockShared();
-            if (serCommon->isActive) {
-              a->ser->addServiceEndpoint(*it);
-            }
-            serCommon->mutex.unlockShared();
-          }
-          serCommon->mutex.lockShared();
-          if (serCommon->isActive) {
-            a->ser->setStatusOfRegistry(a->registry, status);
-            if (status.status == SER_SUCCESSFUL && a->subthread) {
-              // A sub-thread should set the counter to zero if the query was succesful
-              // because the other sub-threads are not interesting anymore (it's enough the query a registry on one interface)
-              a->threadCounter->set(0);
-            }
-          }
-          serCommon->mutex.unlockShared();
-        } else { // If loading the plugin failed
-          RegistryEndpointStatus failed(SER_FAILED);
-          serCommon->mutex.lockShared();
-          if (serCommon->isActive) {
-            a->ser->setStatusOfRegistry(a->registry, failed);
-          }
-          serCommon->mutex.unlockShared();
+      return;
+    }
+    // If the thread was able to set the status, then this is the first (and only) thread querying this registry
+    if (!a->pluginName.empty()) { // If the plugin was already selected
+      ServiceEndpointRetrieverPlugin* plugin = serCommon->Loader().load(a->pluginName);
+      if (!plugin) {
+        if(!(ser = serCommon->lockShared())) return;
+        ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+        serCommon->unlockShared();
+        return;
+      }
+      logger.msg(DEBUG, "Calling plugin %s to query registry on %s", a->pluginName, a->registry.str());
+      std::list<ServiceEndpoint> endpoints;
+      // Do the actual querying against service.
+      RegistryEndpointStatus status = plugin->Query(serCommon->Cfg(), a->registry, endpoints, a->capabilityFilter);
+      for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+        if(!(ser = serCommon->lockShared())) return;
+        ser->addServiceEndpoint(*it);
+        serCommon->unlockShared();
+      }
+
+      if(!(ser = serCommon->lockShared())) return;
+      ser->setStatusOfRegistry(a->registry, status);
+      serCommon->unlockShared();
+      if (status.status == SER_SUCCESSFUL) a->serResult.Success(); // Successful query
+    } else { // If there was no plugin selected for this registry, this will try all possibility
+      logger.msg(DEBUG, "The interface of this registry endpoint (%s) is unspecified, will try all possible plugins", a->registry.str());
+      std::list<std::string> types = serCommon->Loader().getListOfPlugins();
+      // A list for collecting the new registry endpoints which will be created by copying the original one
+      // and setting the InterfaceName for each possible plugins
+      std::list<RegistryEndpoint> newRegistries;
+      // A new counter is needed for the subthreads
+      SERResult(true);
+      for (std::list<std::string>::const_iterator it = types.begin(); it != types.end(); ++it) {
+        ServiceEndpointRetrieverPlugin* plugin = serCommon->Loader().load(*it);
+        if (!plugin) {
+          // Problem loading the plugin, skip it
+          break;
         }
-      } else { // If there was no plugin selected for this registry, this will try all possibility
-        logger.msg(DEBUG, "The interface of this registry endpoint (%s) is unspecified, will try all possible plugins", a->registry.str());
-        std::list<std::string> types = serCommon->loader.getListOfPlugins();
-        // A list for collecting the new registry endpoints which will be created by copying the original one
-        // and setting the InterfaceName for each possible plugins
-        std::list<RegistryEndpoint> newRegistries;
-        // A new counter is needed for the subthreads
-        ThreadedPointer<SimpleCounter> subthreadCounter(new SimpleCounter);
-        for (std::list<std::string>::const_iterator it = types.begin(); it != types.end(); ++it) {
-          ServiceEndpointRetrieverPlugin* plugin = serCommon->loader.load(*it);
-          if (!plugin) {
-            // Problem loading the plugin, skip it
-            break;
-          }
-          std::list<std::string> interfaceNames = plugin->SupportedInterfaces();
-          if (interfaceNames.empty()) {
-            // This plugin does not support any interfaces, skip it
-            break;
-          }
-          // Create a new registry endpoint with the same endpoint and a specified interface
-          RegistryEndpoint registry = a->registry;
-          // We will use the first interfaceName this plugin supports
-          registry.InterfaceName = interfaceNames.front();
-          logger.msg(DEBUG, "New registry endpoint is created (%s) from the one with the unspecified interface (%s)", registry.str(), a->registry.str());
-          newRegistries.push_back(registry);
-          // Create a new thread argument (by copying the original one) for the sub-thread which will query this interface
-          ThreadArgSER* newArg = new ThreadArgSER(*a);
-          newArg->registry = registry;
-          newArg->pluginName = *it;
-          // The new thread counter contians a new ThreadedPointer pointing to the main threadCounter,
-          // but want it to point to our new subthreadCounter instead
-          newArg->threadCounter = subthreadCounter;
-          // The sub-threads have to know that they are sub-threads,
-          // and that they have to set the counter to 0 in case of a successful query
-          newArg->subthread = true;
-          logger.msg(DEBUG, "Starting sub-thread to query the registry on %s", registry.str());
-          serCommon->mutex.lockShared();
-          if (serCommon->isActive) {
-            subthreadCounter->inc();
-            if (!CreateThreadFunction(&queryRegistry, newArg)) {
-              logger.msg(ERROR, "Failed to start querying the registry on %s (unable to create sub-thread)", registry.str());
-              subthreadCounter->dec();
-              delete newArg;
-            }
-          } else {
-            delete newArg;
-          }
-          serCommon->mutex.unlockShared();
+        std::list<std::string> interfaceNames = plugin->SupportedInterfaces();
+        if (interfaceNames.empty()) {
+          // This plugin does not support any interfaces, skip it
+          break;
+        }
+        // Create a new registry endpoint with the same endpoint and a specified interface
+        RegistryEndpoint registry = a->registry;
+        // We will use the first interfaceName this plugin supports
+        registry.InterfaceName = interfaceNames.front();
+        logger.msg(DEBUG, "New registry endpoint is created (%s) from the one with the unspecified interface (%s)", registry.str(), a->registry.str());
+        newRegistries.push_back(registry);
+        // Create a new thread argument (by copying the original one) for the sub-thread which will query this interface
+
+        // The sub-threads have to know that they are sub-threads,
+        // and that they have to set the counter to 0 in case of a successful query
+        SERResult newserResult(true);
+        // Make new argument by copying old one with result report object replaced
+        ThreadArgSER* newArg = new ThreadArgSER(*a,newserResult);
+        newArg->registry = registry;
+        newArg->pluginName = *it;
+        logger.msg(DEBUG, "Starting sub-thread to query the registry on %s", registry.str());
+        if (!CreateThreadFunction(&queryRegistry, newArg)) {
+          logger.msg(ERROR, "Failed to start querying the registry on %s (unable to create sub-thread)", registry.str());
+          delete newArg;
+          return;
         }
         // We wait until the counter is set to (or below) zero, which can happen in two cases
         //   1. one sub-thread was succesful
         //   2. all the sub-threads failed
-        subthreadCounter->wait();
+        newserResult.Wait();
         // Check which case happened
-        serCommon->mutex.lockShared();
-        if (serCommon->isActive) {
-          size_t failedCount = 0;
-          bool wasSuccesful = false;
-          for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
-            RegistryEndpointStatus status = a->ser->getStatusOfRegistry(*it);
-            if (status.status == SER_SUCCESSFUL) {
-              wasSuccesful = true;
-              break;
-            } else if (status.status == SER_FAILED) {
-              failedCount++;
-            }
-          }
-          // Set the status of the original registry (the one without the specified interface)
-          if (wasSuccesful) {
-            a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
-          } else if (failedCount == newRegistries.size()) {
-            a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
-          } else {
-            a->ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
+        if(!(ser = serCommon->lockShared())) return;
+        size_t failedCount = 0;
+        bool wasSuccesful = false;
+        for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
+          RegistryEndpointStatus status = ser->getStatusOfRegistry(*it);
+          if (status.status == SER_SUCCESSFUL) {
+            wasSuccesful = true;
+            break;
+          } else if (status.status == SER_FAILED) {
+            failedCount++;
           }
         }
-        serCommon->mutex.unlockShared();
-      }
+        // Set the status of the original registry (the one without the specified interface)
+        if (wasSuccesful) {
+          ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
+        } else if (failedCount == newRegistries.size()) {
+          ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+        } else {
+          ser->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
+        }
+        serCommon->unlockShared();
+      } // for (types)
     }
-    a->threadCounter->dec();
-    delete a;
   }
 
 

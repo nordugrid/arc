@@ -154,29 +154,91 @@ public:
 private:
   static void queryRegistry(void *arg_);
 
+  // Common configuration part
   class SERCommon {
   public:
-    SERCommon() : mutex(), isActive(true), loader() {};
+    SERCommon(ServiceEndpointRetriever* s, const UserConfig& u) :
+      mutex(), ser(s), loader(), uc(u) {}; // Maybe full copy of UserConfig wouldbe safer?
+    void Deactivate(void) {
+      mutex.lockExclusive();
+      ser = NULL;
+      mutex.unlockExclusive();
+    }
+    ServiceEndpointRetriever* lockExclusive(void) {
+      mutex.lockExclusive();
+      if(ser) return ser;
+      mutex.unlockExclusive();
+    }
+    void unlockExclusive(void) { mutex.unlockExclusive(); }
+    ServiceEndpointRetriever* lockShared(void) {
+      mutex.lockShared();
+      if(ser) return ser;
+      mutex.unlockShared();
+    }
+    void unlockShared(void) { mutex.unlockShared(); }
+    const UserConfig& Cfg(void) const { return uc; }
+    ServiceEndpointRetrieverPluginLoader& Loader(void) { return loader; }
+  private:
     SharedMutex mutex;
-    bool isActive;
+    ServiceEndpointRetriever* ser;
     ServiceEndpointRetrieverPluginLoader loader;
+    const UserConfig& uc;
   };
+
+  // Represents completeness of queriies run in threads.
+  // Different implementations are meant for waiting for either one or all threads.
+  // TODO: counter is duplicate in this implimentation. It may be simplified
+  //       either by using counter of ThreadedPointer or implementing part of
+  //       ThreadedPointer directly. 
+  class SERResult: private ThreadedPointer<SimpleCounter>  {
+  public:
+    // Creates initial instance
+    SERResult(bool one_success = false):
+      ThreadedPointer<SimpleCounter>(new SimpleCounter),
+      need_one_success(false),success(false) { };
+    // Creates new reference representing query - increments counter
+    SERResult(const SERResult& r):
+      ThreadedPointer<SimpleCounter>(r),
+      need_one_success(r.need_one_success),success(false) { 
+      Ptr()->inc();
+    };
+    // Query finished - decrement or reset counter (if one result is enough)
+    ~SERResult(void) {
+      if(need_one_success && success) {
+        Ptr()->set(0);
+      } else {
+        Ptr()->dec();
+      };
+    };
+    // Mark this result as successful (failure by default)
+    void Success(void) { success = true; };
+    // Wait for queries to finish
+    bool Wait(int t = -1) const { Ptr()->wait(t); };
+int get(void) { return Ptr()->get(); };
+  private:
+    bool success;
+    bool need_one_success;
+  };
+ 
   ThreadedPointer<SERCommon> serCommon;
+  SERResult serResult;
 
   class ThreadArgSER {
   public:
-    ThreadArgSER(const UserConfig& uc,
-                 const ThreadedPointer<SERCommon>& serCommon,
-                 const ThreadedPointer<SimpleCounter>& threadCounter)
-      : uc(uc), serCommon(serCommon), subthread(false), threadCounter(threadCounter) {};
-
-    const UserConfig& uc;
+    ThreadArgSER(const ThreadedPointer<SERCommon>& serCommon,
+                 SERResult& serResult)
+      : serCommon(serCommon), serResult(serResult) {};
+    ThreadArgSER(const ThreadArgSER& v,
+                 SERResult& serResult)
+      : serCommon(v.serCommon), serResult(serResult),
+        registry(v.registry), pluginName(v.pluginName),
+        capabilityFilter(v.capabilityFilter) {};
+    // Objects for communication with caller
+    ThreadedPointer<SERCommon> serCommon;
+    SERResult serResult;
+    // Per-thread parameters
     RegistryEndpoint registry;
     std::string pluginName;
-    ServiceEndpointRetriever* ser;
-    ThreadedPointer<SERCommon> serCommon;
-    bool subthread;
-    ThreadedPointer<SimpleCounter> threadCounter;
     std::list<std::string> capabilityFilter;
   };
 
@@ -190,7 +252,6 @@ private:
 
   mutable SimpleCondition consumerLock;
   mutable SimpleCondition statusLock;
-  ThreadedPointer<SimpleCounter> threadCounter;
   std::map<std::string, std::string> interfacePluginMap;
 };
 
