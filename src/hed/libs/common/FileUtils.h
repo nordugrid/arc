@@ -2,6 +2,11 @@
 
 #include <arc/Thread.h>
 
+#ifdef WIN32
+#define uid_t int
+#define gid_t int
+#endif
+
 namespace Arc {
 
   /// Utility functions for handling files and directories.

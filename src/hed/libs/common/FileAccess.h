@@ -8,6 +8,11 @@
 
 #include <glibmm.h>
 
+#ifdef WIN32
+#define uid_t int
+#define gid_t int
+#endif
+
 namespace Arc {
 
   class Run;
