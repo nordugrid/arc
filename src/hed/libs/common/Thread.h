@@ -199,73 +199,35 @@ namespace Arc {
     }
   };
 
+  /// Thread-safe counter with capability to wait for zero value.
+  /// It is extendable through re-implementation of virtual methods.
   class SimpleCounter {
   private:
     Glib::Cond cond_;
     Glib::Mutex lock_;
     int count_;
   public:
-    SimpleCounter(void)
-      : count_(0) {}
-    ~SimpleCounter(void) {
-      /* race condition ? */
-      lock_.lock();
-      count_ = 0;
-      cond_.broadcast();
-      lock_.unlock();
-    }
-    int inc(void) {
-      lock_.lock();
-      ++count_;
-      int r = count_;
-      lock_.unlock();
-      return r;
-    }
-    int dec(void) {
-      lock_.lock();
-      if(count_ > 0) --count_;
-      if(count_ <= 0) cond_.signal();
-      int r = count_;
-      lock_.unlock();
-      return r;
-    }
-    int get(void) {
-      lock_.lock();
-      int r = count_;
-      lock_.unlock();
-      return r;
-    }
-    int set(int v) {
-      lock_.lock();
-      count_ = v;
-      if(count_ <= 0) cond_.signal();
-      int r = count_;
-      lock_.unlock();
-      return r;
-    }
-    void wait(void) {
-      lock_.lock();
-      while (count_ > 0) cond_.wait(lock_);
-      lock_.unlock();
-    }
-    /** Wait for condition no longer than t milliseconds */
-    bool wait(int t) {
-      lock_.lock();
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(t);
-      bool res(true);
-      while (count_ > 0) {
-        res = cond_.timed_wait(lock_, etime);
-        if (!res)
-          break;
-      }
-      lock_.unlock();
-      return res;
-    }
-    // This method is meant to be used only after fork.
-    // It resets state of all internal locks and variables.
-    void forceReset(void) {
+    SimpleCounter(void) : count_(0) {}
+    virtual ~SimpleCounter(void);
+    /// Increment value of counter.
+    /** Returns new value. */
+    virtual int inc(void);
+    /// Decrement value of counter.
+    /** Returns new value. Does not go below 0 value. */
+    virtual int dec(void);
+    /// Returns current value of counter.
+    virtual int get(void) const;
+    /// Set value of counter.
+    /** Returns new value. */
+    virtual int set(int v);
+    /// Wait for zero condition.
+    virtual void wait(void) const;
+    /// Wait for zero condition no longer than t milliseconds.
+    /** If t is negative - wait forever. */
+    virtual bool wait(int t) const;
+    /// This method is meant to be used only after fork.
+    /** It resets state of all internal locks and variables. */
+    virtual void forceReset(void) {
       lock_.unlock();
     }
   };

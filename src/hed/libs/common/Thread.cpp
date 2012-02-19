@@ -321,6 +321,76 @@ namespace Arc {
 
   // ----------------------------------------
 
+  SimpleCounter::~SimpleCounter(void) {
+    /* race condition ? */
+    lock_.lock();
+    count_ = 0;
+    cond_.broadcast();
+    lock_.unlock();
+  }
+
+  int SimpleCounter::inc(void) {
+    lock_.lock();
+    ++count_;
+    cond_.broadcast();
+    int r = count_;
+    lock_.unlock();
+    return r;
+  }
+
+  int SimpleCounter::dec(void) {
+    lock_.lock();
+    if(count_ > 0) --count_;
+    cond_.broadcast();
+    int r = count_;
+    lock_.unlock();
+    return r;
+  }
+
+  int SimpleCounter::get(void) const {
+    Glib::Mutex& vlock = const_cast<Glib::Mutex&>(lock_);
+    vlock.lock();
+    int r = count_;
+    vlock.unlock();
+    return r;
+  }
+
+  int SimpleCounter::set(int v) {
+    lock_.lock();
+    count_ = v;
+    cond_.broadcast();
+    int r = count_;
+    lock_.unlock();
+    return r;
+  }
+
+  void SimpleCounter::wait(void) const {
+    Glib::Mutex& vlock = const_cast<Glib::Mutex&>(lock_);
+    Glib::Cond& vcond = const_cast<Glib::Cond&>(cond_);
+    vlock.lock();
+    while (count_ > 0) vcond.wait(vlock);
+    vlock.unlock();
+  }
+
+  bool SimpleCounter::wait(int t) const {
+    if(t < 0) { wait(); return true; }
+    Glib::Mutex& vlock = const_cast<Glib::Mutex&>(lock_);
+    Glib::Cond& vcond = const_cast<Glib::Cond&>(cond_);
+    vlock.lock();
+    Glib::TimeVal etime;
+    etime.assign_current_time();
+    etime.add_milliseconds(t);
+    bool res(true);
+    while (count_ > 0) {
+      res = vcond.timed_wait(vlock, etime);
+      if (!res) break;
+    }
+    vlock.unlock();
+    return res;
+  }
+
+  // ----------------------------------------
+
   void SharedMutex::add_shared_lock(void) {
     shared_list::iterator s = shared_.find(Glib::Thread::self());
     if(s != shared_.end()) {
