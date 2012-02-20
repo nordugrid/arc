@@ -6,7 +6,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))
         arc.ServiceEndpointRetrieverTESTControl.delay = 0
         arc.ServiceEndpointRetrieverTESTControl.endpoints = [arc.ServiceEndpoint()]
-        arc.ServiceEndpointRetrieverTESTControl.status = arc.RegistryEndpointStatus(arc.SER_SUCCESSFUL)
+        arc.ServiceEndpointRetrieverTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)
 
     def test_the_class_exists(self):
         self.expect(arc.ServiceEndpointRetriever).to_be_an_instance_of(type)
@@ -31,13 +31,13 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.status = arc.RegistryEndpointStatus(arc.SER_FAILED)        
+        arc.ServiceEndpointRetrieverTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)        
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
         retriever.addRegistryEndpoint(registry)
         retriever.wait()
         status = retriever.getStatusOfRegistry(registry)
-        self.expect(status).to_be_an_instance_of(arc.RegistryEndpointStatus)
-        self.expect(status.status).to_be(arc.SER_FAILED)
+        self.expect(status).to_be_an_instance_of(arc.EndpointQueryingStatus)
+        self.expect(status).to_be(arc.EndpointQueryingStatus.FAILED)
     
     def test_the_status_is_started_first(self):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
@@ -48,10 +48,10 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.addRegistryEndpoint(registry)
         time.sleep(0.08)
         status = retriever.getStatusOfRegistry(registry)
-        self.expect(status.status).to_be(arc.SER_STARTED)
+        self.expect(status).to_be(arc.EndpointQueryingStatus.STARTED)
         retriever.wait()
         status = retriever.getStatusOfRegistry(registry)
-        self.expect(status.status).to_be(arc.SER_SUCCESSFUL)        
+        self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)        
         
     def test_constructor_returns_immediately(self):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
@@ -160,7 +160,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.addRegistryEndpoint(registry)
         retriever.wait()
         status = retriever.getStatusOfRegistry(registry)
-        self.expect(status.status).to_be(arc.SER_SUCCESSFUL)
+        self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)
         
     def test_deleting_the_consumer_before_the_retriever(self):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
