@@ -38,12 +38,6 @@ public:
   virtual void addComputingInfoEndpoint(const ComputingInfoEndpoint&) = 0;
 };
 
-class ComputingInfoEndpointStatus {
-public:
-  ComputingInfoEndpointStatus(SERStatus status = SER_UNKNOWN) : status(status) {};
-  SERStatus status;
-};
-
 class TargetInformationRetrieverPluginTESTControl {
 public:
 };
