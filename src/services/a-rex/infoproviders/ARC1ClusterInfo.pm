@@ -747,9 +747,8 @@ sub collect($) {
     # AccessPolicies implementation. Can be called for each endpoint.
     # the basic policy value is taken from the service AuthorizedVO.
     # The logic is similar to the endpoints: first
-    # all the policies subroutines are created, then
-    # every endpoint passes custom values to the
-    # getAccessPolicies sub.
+    # all the policies subroutines are created, then stored in $accesspolicies,
+    # then every endpoint passes custom values to the getAccessPolicies sub.
     
     my $accesspolicies = {};
        
@@ -768,6 +767,9 @@ sub collect($) {
     
     ## more accesspolicies can go here.
     
+    
+    ## subroutines structure to return accesspolicies
+    
     my $getAccessPolicies = sub {
        return undef unless my ($accesspolicy, $sub) = each %$accesspolicies; 
        my ($epID) = @_;
@@ -777,9 +779,8 @@ sub collect($) {
     # MappingPolicies implementation. Can be called for each ShareID.
     # the basic policy value is taken from the service AuthorizedVO.
     # The logic is similar to the endpoints: first
-    # all the policies subroutines are created, then
-    # every endpoint passes custom values to the
-    # getMappingPolicies sub.
+    # all the policies subroutines are created, stored in mappingpolicies,
+    # then every endpoint passes custom values to the getMappingPolicies sub.
     
     my $mappingpolicies = {};
        
@@ -796,7 +797,10 @@ sub collect($) {
     
     $mappingpolicies->{BasicMappingPolicy} = $getBasicMappingPolicy if ($authorizedvos);
     
-    ## more accesspolicies can go here.
+     ## more accesspolicies can go here.
+    
+    
+    ## subroutines structure to return MappingPolicies
     
     my $getMappingPolicies = sub {
        return undef unless my ($mappingpolicy, $sub) = each %$mappingpolicies; 

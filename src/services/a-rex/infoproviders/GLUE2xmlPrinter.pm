@@ -553,10 +553,10 @@ sub Domains {
     $self->begin('Domains', $attrs, qw( xmlns xmlns:xsi xsi:schemaLocation ));
 
     $self->AdminDomain(&$data->{AdminDomain});
-    #$self->begin('Services');
+    $self->begin('Services');
     $self->Services(&$data->{Services});
     $self->ComputingService(&$data->{ComputingService});
-    #$self->end('Services');
+    $self->end('Services');
     $self->end('AdminDomain');
     $self->end('Domains');
 }
