@@ -5,21 +5,28 @@
 #include <map>
 #include <string>
 
+#include <arc/Logger.h>
+#include <arc/loader/Loader.h>
+#include <arc/loader/Plugin.h>
 
 namespace Arc {
 
+class ComputingInfoEndpoint;
 class EndpointQueryingStatus;
 class ExecutionTarget;
 class ExecutionTargetConsumer;
-class Loader;
-class Plugin;
-class ServiceEndpoint;
 class UserConfig;
 
 
 class TargetInformationRetrieverPlugin : public Plugin {
-  virtual const std::string& SupportedInterface() const = 0;
-  virtual EndpointQueryingStatus Query(const UserConfig&, const ServiceEndpoint& rEndpoint, ExecutionTargetConsumer&) const = 0;
+protected:
+  TargetInformationRetrieverPlugin() {};
+public:
+  virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
+  virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint& rEndpoint, std::list<ExecutionTarget>&) const = 0;
+
+protected:
+  std::list<std::string> supportedInterfaces;
 };
 
 class TargetInformationRetrieverPluginLoader : public Loader {
@@ -35,21 +42,19 @@ public:
    **/
   TargetInformationRetrieverPlugin* load(const std::string& name);
 
-  /// Retrieve list of loaded ServiceEndpointRetrieverPlugin objects
+  std::list<std::string> getListOfPlugins();
+
+  /// Retrieve list of loaded TargetInformationRetrieverPlugin objects
   /**
    * @return A reference to the list of loaded  TargetInformationRetrieverPlugin
    * objects.
    **/
-  const std::list<TargetInformationRetrieverPlugin*>& GetTargetInformationRetrieverPlugins() const { return plugins; }
+  const std::map<std::string, TargetInformationRetrieverPlugin*>& GetTargetInformationRetrieverPlugins() const { return plugins; }
 
 private:
-  std::list<TargetInformationRetrieverPlugin*> plugins;
-};
+  std::map<std::string, TargetInformationRetrieverPlugin*> plugins;
 
-class TargetInformationRetrieverPluginTESTControl {
-public:
-  static std::list<ExecutionTarget> etList;
-  static RetrievalStatus status;
+  static Logger logger;
 };
 
 } // namespace Arc

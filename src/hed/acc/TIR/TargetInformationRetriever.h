@@ -8,7 +8,7 @@
 
 namespace Arc {
 
-class ComputingEndpoint;
+class EndpointQueryingStatus;
 class ExecutionTarget;
 class UserConfig;
 
@@ -24,7 +24,7 @@ public:
   ExecutionTargetContainer();
   ~ExecutionTargetContainer();
 
-  void addExecutionTarget(const ExecutionTarget&);
+  void addExecutionTarget(const ExecutionTarget&) {};
 };
 
 class ComputingInfoEndpoint {
@@ -38,28 +38,31 @@ public:
   virtual void addComputingInfoEndpoint(const ComputingInfoEndpoint&) = 0;
 };
 
-class TargetInformationRetriever : public ComputingInfoEndpointConsumer, ExecutionTargetConsumer {
+class TargetInformationRetriever : public ComputingInfoEndpointConsumer, public ExecutionTargetConsumer {
 public:
-  TargetInformationRetriever(const UserConfig);
-  void addExecutionTarget(const ExecutionTarget&);
-  void addComputingInfoEndpoint(const ComputingInfoEndpoint&);
+  TargetInformationRetriever(const UserConfig&) {};
+  void addExecutionTarget(const ExecutionTarget&) {};
+  void addComputingInfoEndpoint(const ComputingInfoEndpoint&) {};
 
-  void addConsumer(ExecutionTargetConsumer&);
-  void removeConsumer(const ExecutionTargetConsumer&);
+  void addConsumer(ExecutionTargetConsumer&) {};
+  void removeConsumer(const ExecutionTargetConsumer&) {};
 
-  void wait() const;
-  bool isDone() const;
+  void wait() const {};
+  bool isDone() const { return true; };
 
-  ComputingInfoEndpointStatus getStatusOfComputingInfoEndpoint(ComputingInfoEndpoint) const;
-  bool setStatusOfComputingInfoEndpoint(const ComputingInfoEndpoint&, const ComputingInfoEndpointStatus&, bool overwrite = true);
+  EndpointQueryingStatus getStatusOfComputingInfoEndpoint(ComputingInfoEndpoint) const { return EndpointQueryingStatus(); };
+  bool setStatusOfComputingInfoEndpoint(const ComputingInfoEndpoint&, const EndpointQueryingStatus&, bool overwrite = true) { return true; };
 
 
 private:
-  std::map<std::string, ComputingInfoEndpointStatus> statuses;
+  std::map<std::string, EndpointQueryingStatus> statuses;
 };
 
 class TargetInformationRetrieverPluginTESTControl {
 public:
+  static float delay;
+  static std::list<ExecutionTarget> etList;
+  static EndpointQueryingStatus status;
 };
 
 } // namespace Arc
