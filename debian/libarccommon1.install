@@ -9,6 +9,7 @@ debian/tmp/usr/lib/libarcloader.so.*
 debian/tmp/usr/lib/libarcmessage.so.*
 debian/tmp/usr/lib/libarcsecurity.so.*
 debian/tmp/usr/lib/libarcserviceretriever.so.*
+debian/tmp/usr/lib/libarctargetinformationretriever.so.*
 debian/tmp/usr/lib/libarcws.so.*
 debian/tmp/usr/lib/libarcwssecurity.so.*
 debian/tmp/usr/lib/libarcxmlsec.so.*
