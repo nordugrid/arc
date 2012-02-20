@@ -211,7 +211,7 @@ private:
     // Creates initial instance
     SERResult(bool one_success = false):
       ThreadedPointer<SimpleCounter>(new SimpleCounter),
-      success(false),need_one_success(/* 'one_success' instead of 'false'?? */ false) { };
+      success(false),need_one_success(one_success) { };
     // Creates new reference representing query - increments counter
     SERResult(const SERResult& r):
       ThreadedPointer<SimpleCounter>(r),
