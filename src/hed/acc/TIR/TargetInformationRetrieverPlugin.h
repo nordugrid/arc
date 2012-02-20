@@ -14,7 +14,6 @@ namespace Arc {
 class ComputingInfoEndpoint;
 class EndpointQueryingStatus;
 class ExecutionTarget;
-class ExecutionTargetConsumer;
 class UserConfig;
 
 
