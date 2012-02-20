@@ -19,18 +19,8 @@ namespace Arc {
     // Nothing needs to be done.
   }
 
-  Counter::Counter(const Counter&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
   Counter::~Counter() {
     // Nothing needs to be done.
-  }
-
-  void Counter::operator=(const Counter&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
   }
 
   Glib::TimeVal Counter::getCurrentTime() {

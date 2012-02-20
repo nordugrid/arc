@@ -232,16 +232,6 @@ namespace Arc {
     : locale(locale),
       format(LongFormat) {}
 
-  LogDestination::LogDestination(const LogDestination&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
-  void LogDestination::operator=(const LogDestination&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
   void LogDestination::setFormat(const LogFormat& newformat) {
     format = newformat;
   }
@@ -265,18 +255,6 @@ namespace Arc {
     destination << LoggerFormat(format) << message << std::endl;
     if (!locale.empty()) setlocale(LC_ALL, loc);
     EnvLockUnwrap(true);
-  }
-
-  LogStream::LogStream(const LogStream&)
-    : LogDestination(),
-      destination(std::cerr) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
-  void LogStream::operator=(const LogStream&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
   }
 
   LogFile::LogFile(const std::string& path)
@@ -330,23 +308,6 @@ namespace Arc {
         destination.open(path.c_str(), std::fstream::out | std::fstream::app);
       }
     }
-  }
-
-  LogFile::LogFile(void)
-    : LogDestination(), maxsize(-1), backups(-1), reopen(false) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
-  LogFile::LogFile(const LogFile&)
-    : LogDestination(), maxsize(-1), backups(-1), reopen(false) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
-  void LogFile::operator=(const LogFile&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
   }
 
   LogFile::operator bool(void) {
@@ -583,16 +544,6 @@ namespace Arc {
       domain("Arc"),
       context(DefaultLogLevel) {
     // addDestination(cerr);
-  }
-
-  Logger::Logger(const Logger& logger):context(logger.context) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
-  void Logger::operator=(const Logger&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
   }
 
   std::string Logger::getDomain() {

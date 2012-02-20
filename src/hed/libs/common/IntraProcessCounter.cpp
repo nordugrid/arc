@@ -20,19 +20,8 @@ namespace Arc {
     // Nothing else needs to be done.
   }
 
-  IntraProcessCounter::IntraProcessCounter(const IntraProcessCounter&)
-    : Counter() {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
-  }
-
   IntraProcessCounter::~IntraProcessCounter() {
     // Nothing needs to be done.
-  }
-
-  void IntraProcessCounter::operator=(const IntraProcessCounter&) {
-    // Executing this code should be impossible!
-    exit(EXIT_FAILURE);
   }
 
   int IntraProcessCounter::getLimit() {
