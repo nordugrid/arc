@@ -176,8 +176,8 @@ namespace Arc {
       // A list for collecting the new registry endpoints which will be created by copying the original one
       // and setting the InterfaceName for each possible plugins
       std::list<RegistryEndpoint> newRegistries;
-      // A new counter is needed for the subthreads
-      SERResult(true);
+      // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query 
+      SERResult newserResult(true);
       for (std::list<std::string>::const_iterator it = types.begin(); it != types.end(); ++it) {
         ServiceEndpointRetrieverPlugin* plugin = serCommon->load(*it);
         if (!plugin) {
@@ -195,11 +195,6 @@ namespace Arc {
         registry.InterfaceName = interfaceNames.front();
         logger.msg(DEBUG, "New registry endpoint is created (%s) from the one with the unspecified interface (%s)", registry.str(), a->registry.str());
         newRegistries.push_back(registry);
-        // Create a new thread argument (by copying the original one) for the sub-thread which will query this interface
-
-        // The sub-threads have to know that they are sub-threads,
-        // and that they have to set the counter to 0 in case of a successful query
-        SERResult newserResult(true);
         // Make new argument by copying old one with result report object replaced
         ThreadArgSER* newArg = new ThreadArgSER(*a,newserResult);
         newArg->registry = registry;
@@ -208,35 +203,38 @@ namespace Arc {
         if (!CreateThreadFunction(&queryRegistry, newArg)) {
           logger.msg(ERROR, "Failed to start querying the registry on %s (unable to create sub-thread)", registry.str());
           delete newArg;
-          return;
+          if(!serCommon->lockSharedIfValid()) return;
+          (*serCommon)->setStatusOfRegistry(registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
+          serCommon->unlockShared();
+          break;
         }
-        // We wait until the counter is set to (or below) zero, which can happen in two cases
-        //   1. one sub-thread was succesful
-        //   2. all the sub-threads failed
-        newserResult.wait();
-        // Check which case happened
-        if(!serCommon->lockSharedIfValid()) return;
-        size_t failedCount = 0;
-        bool wasSuccesful = false;
-        for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
-          EndpointQueryingStatus status = (*serCommon)->getStatusOfRegistry(*it);
-          if (status) {
-            wasSuccesful = true;
-            break;
-          } else if (status == EndpointQueryingStatus::FAILED) {
-            failedCount++;
-          }
+      }
+      // We wait for the new result object. The wait returns in two cases:
+      //   1. one sub-thread was succesful
+      //   2. all the sub-threads failed
+      newserResult.wait();
+      // Check which case happened
+      if(!serCommon->lockSharedIfValid()) return;
+      size_t failedCount = 0;
+      bool wasSuccesful = false;
+      for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
+        EndpointQueryingStatus status = (*serCommon)->getStatusOfRegistry(*it);
+        if (status) {
+          wasSuccesful = true;
+          break;
+        } else if (status == EndpointQueryingStatus::FAILED) {
+          failedCount++;
         }
-        // Set the status of the original registry (the one without the specified interface)
-        if (wasSuccesful) {
-          (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::SUCCESSFUL));
-        } else if (failedCount == newRegistries.size()) {
-          (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
-        } else {
-          (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::UNKNOWN));
-        }
-        serCommon->unlockShared();
-      } // for (types)
+      }
+      // Set the status of the original registry (the one without the specified interface)
+      if (wasSuccesful) {
+        (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::SUCCESSFUL));
+      } else if (failedCount == newRegistries.size()) {
+        (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
+      } else {
+        (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::UNKNOWN));
+      }
+      serCommon->unlockShared();
     }
   }
 
