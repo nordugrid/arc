@@ -11,7 +11,7 @@
 namespace Arc {
 
 class RegistryEndpoint;
-class RegistryEndpointStatus;
+class EndpointQueryingStatus;
 class ServiceEndpoint;
 
 ///
@@ -23,7 +23,7 @@ protected:
   ServiceEndpointRetrieverPlugin() {};
 public:
   virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterface; };
-  virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
+  virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
                                        std::list<ServiceEndpoint>& endpoints,
                                        const std::list<std::string>& capabilityFilter = std::list<std::string>()) const = 0;
