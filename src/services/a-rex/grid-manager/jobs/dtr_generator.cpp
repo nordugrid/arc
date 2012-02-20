@@ -60,9 +60,8 @@ void DTRGenerator::thread() {
       event_lock.unlock();
       processReceivedDTR(*it_dtrs);
       event_lock.lock();
-      // delete DTR Logger and LogDestinations
+      // delete DTR LogDestinations
       it_dtrs->get_logger()->deleteDestinations();
-      delete it_dtrs->get_logger();
 
       it_dtrs = dtrs_received.erase(it_dtrs);
     }
@@ -761,8 +760,8 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
     } else {
       usercfg.ProxyPath(job_proxy_filename(jobid, *jobuser));
     }
-    // logger for these DTRs. Logger and LogDestination should be deleted when DTR is received back
-    Arc::Logger * dtr_log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR");
+    // logger for these DTRs. LogDestinations should be deleted when DTR is received back
+    DataStaging::DTRLogger dtr_log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR");
     Arc::LogFile * dest = new Arc::LogFile(job_errors_filename(jobid, *jobuser));
     dest->setReopen(true);
     dtr_log->addDestination(*dest);

@@ -18,6 +18,9 @@
 /// DataStaging contains all components for data transfer scheduling and execution.
 namespace DataStaging {
 
+  // A ThreadedPointer is used so the Logger can be used outside the DTR object
+  typedef Arc::ThreadedPointer<Arc::Logger> DTRLogger;
+
   /// Components of the data staging framework
   enum StagingProcesses {GENERATOR, SCHEDULER, PRE_PROCESSOR, DELIVERY, POST_PROCESSOR};
   
@@ -266,7 +269,7 @@ namespace DataStaging {
       /// Logger object.
       /** Creation and deletion of this object should be managed
        * in the Generator and a pointer passed in the DTR constructor. */
-      Arc::Logger * logger;
+      DTRLogger logger;
 
       /// Log Destinations.
       /** This list is kept here so that the Logger can be connected and
@@ -324,7 +327,7 @@ namespace DataStaging {
           const Arc::UserConfig& usercfg,
           const std::string& jobid,
           const uid_t& uid,
-          Arc::Logger* log);
+          const DTRLogger& log);
       
       /// Empty destructor
       ~DTR() {};
@@ -503,7 +506,7 @@ namespace DataStaging {
      bool bulk_possible();
 
      /// Get Logger object, so that processes can log to this DTR's log
-     Arc::Logger * get_logger() const { return logger; };
+     const DTRLogger& get_logger() const { return logger; };
 
      /// Connect log destinations to logger. Only needs to be done after disconnect()
      void connect_logger() { if (logger) logger->addDestinations(log_destinations); };

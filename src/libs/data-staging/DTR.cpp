@@ -38,7 +38,7 @@ namespace DataStaging {
            const Arc::UserConfig& usercfg,
            const std::string& jobid,
            const uid_t& uid,
-           Arc::Logger* log)
+           const DTRLogger& log)
     :  DTR_ID(""),
        source_url(source),
        destination_url(destination),
@@ -173,7 +173,8 @@ namespace DataStaging {
   DTR::DTR():
     DTR_ID(""), // empty means invalid DTR
     source_endpoint(Arc::URL(),Arc::UserConfig()),
-    destination_endpoint(Arc::URL(),Arc::UserConfig())
+    destination_endpoint(Arc::URL(),Arc::UserConfig()),
+    logger(NULL)
   {  
 
   }

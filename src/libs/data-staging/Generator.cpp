@@ -22,9 +22,8 @@ namespace DataStaging {
 
   void Generator::receiveDTR(DTR& dtr) {
     logger.msg(Arc::INFO, "Received DTR %s back from scheduler", dtr.get_id());
-    // DTR logger can be destroyed when DTR has finished
-    //dtr.get_logger()->deleteDestinations();
-    delete dtr.get_logger();
+    // DTR logger destinations can be destroyed when DTR has finished
+    dtr.get_logger()->deleteDestinations();
     cond.signal();
   }
 
@@ -54,7 +53,7 @@ namespace DataStaging {
     scheduler.start();
 
     {
-      Arc::Logger * log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
+      DTRLogger log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
       Arc::LogDestination * dest = new Arc::LogStream(std::cerr);
       log->addDestination(*dest);
 

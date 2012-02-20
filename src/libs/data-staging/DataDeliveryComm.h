@@ -74,7 +74,7 @@ namespace DataStaging {
     /// Time transfer was started
     Arc::Time start_;
     /// Logger object. Pointer to DTR's Logger.
-    Arc::Logger* logger_;
+    DTRLogger logger_;
 
     /// Check for new state and fill state accordingly.
     /**

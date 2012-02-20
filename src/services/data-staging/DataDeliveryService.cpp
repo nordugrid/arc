@@ -75,7 +75,6 @@ namespace DataStaging {
 
     if (dtr->get_logger()) {
       dtr->get_logger()->deleteDestinations();
-      delete dtr->get_logger();
     }
     delete dtr;
     dtr = NULL;
@@ -264,7 +263,7 @@ namespace DataStaging {
       // deleted when the DTR is archived.
       std::stringstream * stream = new std::stringstream();
       Arc::LogDestination * output = new Arc::LogStream(*stream);
-      Arc::Logger * log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
+      DTRLogger log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
       log->removeDestinations();
       log->addDestination(*output);
 
@@ -387,7 +386,7 @@ namespace DataStaging {
       resultelement.NewChild("BytesTransferred") = Arc::tostring(dtr->get_bytes_transferred());
 
       if (dtr->error()) {
-        logger.msg(Arc::INFO, "DTR %s failed", dtrid);
+        logger.msg(Arc::INFO, "DTR %s failed: %s", dtrid, dtr->get_error_status().GetDesc());
         resultelement.NewChild("ResultCode") = "TRANSFER_ERROR";
         resultelement.NewChild("ErrorDescription") = dtr->get_error_status().GetDesc();
         resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr->get_error_status().GetErrorStatus());
