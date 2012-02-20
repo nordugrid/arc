@@ -54,7 +54,7 @@ namespace Arc {
     if (!registry.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(registry.InterfaceName);
       if (itPluginName == interfacePluginMap.end()) {
-        logger.msg(DEBUG, "Unable to find ServiceRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", registry.InterfaceName, registry.Endpoint);
+        logger.msg(DEBUG, "Unable to find ServiceEndpointRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", registry.InterfaceName, registry.Endpoint);
         setStatusOfRegistry(registry, EndpointQueryingStatus(EndpointQueryingStatus::NOPLUGIN));
         return;
       }
@@ -168,7 +168,7 @@ namespace Arc {
       // A list for collecting the new registry endpoints which will be created by copying the original one
       // and setting the InterfaceName for each possible plugins
       std::list<RegistryEndpoint> newRegistries;
-      // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query 
+      // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query
       SERResult newserResult(true);
       for (std::list<std::string>::const_iterator it = types.begin(); it != types.end(); ++it) {
         ServiceEndpointRetrieverPlugin* plugin = serCommon->load(*it);
