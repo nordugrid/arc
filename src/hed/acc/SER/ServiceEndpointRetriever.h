@@ -14,9 +14,6 @@
 
 namespace Arc {
 
-class DataStatus;
-class MCC_Status;
-
 ///
 /**
  *
@@ -103,22 +100,35 @@ public:
 /**
  *
  **/
-
-enum SERStatus { SER_UNKNOWN, SER_STARTED, SER_FAILED, SER_NOPLUGIN, SER_SUCCESSFUL };
-
-//! Conversion to string.
-/*! Conversion from SERStatus to string.
-  @param s The SERStatus to convert.
-*/
-std::string string(SERStatus s);
-
-class RegistryEndpointStatus {
+class EndpointQueryingStatus {
 public:
-  RegistryEndpointStatus(SERStatus status = SER_UNKNOWN) : status(status) {};
-  SERStatus status;
+  enum EndpointQueryingStatusType { UNKNOWN, STARTED, FAILED, NOPLUGIN, SUCCESSFUL };
+
+  //! Conversion to string.
+  /*! Conversion from EndpointQueryingStatusType to string.
+    @param s The EndpointQueryingStatusType to convert.
+  */
+  static std::string str(EndpointQueryingStatusType status);
+
+  EndpointQueryingStatus(EndpointQueryingStatusType status = UNKNOWN, const std::string& description = "") : status(status), description(description) {};
+
+  bool operator==(EndpointQueryingStatusType s)    { return status == s; };
+  bool operator==(const EndpointQueryingStatus& s) { return status == s.status; };
+  bool operator!=(EndpointQueryingStatusType s)    { return status != s; };
+  bool operator!=(const EndpointQueryingStatus& s) { return status != s.status; };
+  bool operator!() const { return status != SUCCESSFUL; };
+  operator bool() const  { return status == SUCCESSFUL; };
+
+  EndpointQueryingStatus& operator=(EndpointQueryingStatusType s) { status = s; return *this; };
+  EndpointQueryingStatus& operator=(const EndpointQueryingStatus& s) { status = s.status; description = s.description; return *this; };
+
+  EndpointQueryingStatus getStatus() const { return status; };
+  const std::string& getDescription() const { return description; };
+  std::string str() const { return str(status); };
+
 private:
-  //MCC_Status mccstatus;
-  //DataStatus datastatus;
+  EndpointQueryingStatusType status;
+  std::string description;
 };
 
 
@@ -147,8 +157,8 @@ public:
   void addConsumer(ServiceEndpointConsumer& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); }
   void removeConsumer(const ServiceEndpointConsumer&);
 
-  RegistryEndpointStatus getStatusOfRegistry(RegistryEndpoint) const;
-  bool setStatusOfRegistry(const RegistryEndpoint&, const RegistryEndpointStatus&, bool overwrite = true);
+  EndpointQueryingStatus getStatusOfRegistry(RegistryEndpoint) const;
+  bool setStatusOfRegistry(const RegistryEndpoint&, const EndpointQueryingStatus&, bool overwrite = true);
 
   virtual void addServiceEndpoint(const ServiceEndpoint&);
   virtual void addRegistryEndpoint(const RegistryEndpoint&);
@@ -247,7 +257,7 @@ private:
     std::list<std::string> capabilityFilter;
   };
 
-  std::map<RegistryEndpoint, RegistryEndpointStatus> statuses;
+  std::map<RegistryEndpoint, EndpointQueryingStatus> statuses;
 
   static Logger logger;
   const UserConfig& uc;
@@ -263,7 +273,7 @@ private:
 class ServiceEndpointRetrieverTESTControl {
 public:
   static float delay;
-  static RegistryEndpointStatus status;
+  static EndpointQueryingStatus status;
   static std::list<ServiceEndpoint> endpoints;
 };
 

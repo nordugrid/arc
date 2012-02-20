@@ -13,12 +13,12 @@ namespace Arc {
 
   Logger ServiceEndpointRetriever::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
 
-  std::string string(SERStatus s){
-    if      (s == SER_UNKNOWN)     return "SER_UNKNOWN";
-    else if (s == SER_STARTED)     return "SER_STARTED";
-    else if (s == SER_FAILED)      return "SER_FAILED";
-    else if (s == SER_NOPLUGIN)    return "SER_NOPLUGIN";
-    else if (s == SER_SUCCESSFUL)  return "SER_SUCCESSFUL";
+  std::string EndpointQueryingStatus::str(EndpointQueryingStatusType s) {
+    if      (s == UNKNOWN)     return "UNKNOWN";
+    else if (s == STARTED)     return "STARTED";
+    else if (s == FAILED)      return "FAILED";
+    else if (s == NOPLUGIN)    return "NOPLUGIN";
+    else if (s == SUCCESSFUL)  return "SUCCESSFUL";
     else                           return ""; // There should be no other alternative!
   }
 
@@ -63,7 +63,7 @@ namespace Arc {
       itPluginName = interfacePluginMap.find(registry.InterfaceName);
       if (itPluginName == interfacePluginMap.end()) {
         logger.msg(DEBUG, "Unable to find ServiceRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", registry.InterfaceName, registry.Endpoint);
-        setStatusOfRegistry(registry, RegistryEndpointStatus(SER_NOPLUGIN));
+        setStatusOfRegistry(registry, EndpointQueryingStatus(EndpointQueryingStatus::NOPLUGIN));
         return;
       }
     }
@@ -83,7 +83,7 @@ namespace Arc {
     logger.msg(Arc::DEBUG, "Starting thread to query the registry on %s", arg->registry.str());
     if (!CreateThreadFunction(&queryRegistry, arg)) {
       logger.msg(Arc::ERROR, "Failed to start querying the registry on %s", arg->registry.str() + " (unable to create thread)");
-      setStatusOfRegistry(registry, RegistryEndpointStatus(SER_FAILED));
+      setStatusOfRegistry(registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
       delete arg;
     }
   }
@@ -111,10 +111,10 @@ namespace Arc {
     }
   }
 
-  RegistryEndpointStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
+  EndpointQueryingStatus ServiceEndpointRetriever::getStatusOfRegistry(RegistryEndpoint registry) const {
     statusLock.lock();
-    RegistryEndpointStatus status(SER_UNKNOWN);
-    std::map<RegistryEndpoint, RegistryEndpointStatus>::const_iterator it = statuses.find(registry);
+    EndpointQueryingStatus status(EndpointQueryingStatus::UNKNOWN);
+    std::map<RegistryEndpoint, EndpointQueryingStatus>::const_iterator it = statuses.find(registry);
     if (it != statuses.end()) {
       status = it->second;
     }
@@ -122,11 +122,11 @@ namespace Arc {
     return status;
   }
 
-  bool ServiceEndpointRetriever::setStatusOfRegistry(const RegistryEndpoint& registry, const RegistryEndpointStatus& status, bool overwrite) {
+  bool ServiceEndpointRetriever::setStatusOfRegistry(const RegistryEndpoint& registry, const EndpointQueryingStatus& status, bool overwrite) {
     statusLock.lock();
     bool wasSet = false;
     if (overwrite || (statuses.find(registry) == statuses.end())) {
-      logger.msg(DEBUG, "Setting status (%s) for registry: %s", string(status.status), registry.str());
+      logger.msg(DEBUG, "Setting status (%s) for registry: %s", status.str(), registry.str());
       statuses[registry] = status;
       wasSet = true;
     }
@@ -140,7 +140,7 @@ namespace Arc {
     bool set = false;
     // Set the status of the registry to STARTED only if it was not set already by an other thread (overwrite = false)
     if(!serCommon->lockSharedIfValid()) return;
-    set = (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_STARTED), false);
+    set = (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::STARTED), false);
     serCommon->unlockShared();
 
     if (!set) { // The thread was not able to set the status (because it was already set by another thread)
@@ -152,14 +152,14 @@ namespace Arc {
       ServiceEndpointRetrieverPlugin* plugin = serCommon->load(a->pluginName);
       if (!plugin) {
         if(!serCommon->lockSharedIfValid()) return;
-        (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+        (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
         serCommon->unlockShared();
         return;
       }
       logger.msg(DEBUG, "Calling plugin %s to query registry on %s", a->pluginName, a->registry.str());
       std::list<ServiceEndpoint> endpoints;
       // Do the actual querying against service.
-      RegistryEndpointStatus status = plugin->Query(*serCommon, a->registry, endpoints, a->capabilityFilter);
+      EndpointQueryingStatus status = plugin->Query(*serCommon, a->registry, endpoints, a->capabilityFilter);
       for (std::list<ServiceEndpoint>::iterator it = endpoints.begin(); it != endpoints.end(); it++) {
         if(!serCommon->lockSharedIfValid()) return;
         (*serCommon)->addServiceEndpoint(*it);
@@ -169,7 +169,7 @@ namespace Arc {
       if(!serCommon->lockSharedIfValid()) return;
       (*serCommon)->setStatusOfRegistry(a->registry, status);
       serCommon->unlockShared();
-      if (status.status == SER_SUCCESSFUL) a->serResult.setSuccess(); // Successful query
+      if (status) a->serResult.setSuccess(); // Successful query
     } else { // If there was no plugin selected for this registry, this will try all possibility
       logger.msg(DEBUG, "The interface of this registry endpoint (%s) is unspecified, will try all possible plugins", a->registry.str());
       std::list<std::string> types = serCommon->getListOfPlugins();
@@ -219,21 +219,21 @@ namespace Arc {
         size_t failedCount = 0;
         bool wasSuccesful = false;
         for (std::list<RegistryEndpoint>::iterator it = newRegistries.begin(); it != newRegistries.end(); it++) {
-          RegistryEndpointStatus status = (*serCommon)->getStatusOfRegistry(*it);
-          if (status.status == SER_SUCCESSFUL) {
+          EndpointQueryingStatus status = (*serCommon)->getStatusOfRegistry(*it);
+          if (status) {
             wasSuccesful = true;
             break;
-          } else if (status.status == SER_FAILED) {
+          } else if (status == EndpointQueryingStatus::FAILED) {
             failedCount++;
           }
         }
         // Set the status of the original registry (the one without the specified interface)
         if (wasSuccesful) {
-          (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_SUCCESSFUL));
+          (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::SUCCESSFUL));
         } else if (failedCount == newRegistries.size()) {
-          (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_FAILED));
+          (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
         } else {
-          (*serCommon)->setStatusOfRegistry(a->registry, RegistryEndpointStatus(SER_UNKNOWN));
+          (*serCommon)->setStatusOfRegistry(a->registry, EndpointQueryingStatus(EndpointQueryingStatus::UNKNOWN));
         }
         serCommon->unlockShared();
       } // for (types)
@@ -246,6 +246,6 @@ namespace Arc {
   // TESTControl
 
   float ServiceEndpointRetrieverTESTControl::delay = 0;
-  RegistryEndpointStatus ServiceEndpointRetrieverTESTControl::status;
+  EndpointQueryingStatus ServiceEndpointRetrieverTESTControl::status;
   std::list<ServiceEndpoint> ServiceEndpointRetrieverTESTControl::endpoints = std::list<ServiceEndpoint>();
 }

@@ -20,7 +20,7 @@ public:
   ~ServiceEndpointRetrieverPluginEMIR() {}
   static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEMIR(); }
 
-  virtual RegistryEndpointStatus Query(const UserConfig& uc,
+  virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const RegistryEndpoint& rEndpoint,
                                        std::list<ServiceEndpoint>&,
                                        const std::list<std::string>&) const;

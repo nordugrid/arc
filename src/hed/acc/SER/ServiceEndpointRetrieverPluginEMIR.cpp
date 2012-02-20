@@ -33,15 +33,15 @@ namespace Arc {
   }
   */
 
-  RegistryEndpointStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
+  EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
                                                                    const RegistryEndpoint& rEndpoint,
                                                                    std::list<ServiceEndpoint>& seList,
                                                                    const std::list<std::string>& capabilityFilter) const {
-    RegistryEndpointStatus s;
-    s.status = SER_STARTED;
+    EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(rEndpoint.Endpoint + "/services/query.xml");
     if (!url) {
+      s = EndpointQueryingStatus::FAILED;
       return s;
     }
 
@@ -58,7 +58,7 @@ namespace Arc {
     MCC_Status status = httpclient.process("GET", &http_request, &http_info, &http_response);
 
     if (http_info.code != 200 || !status) {
-      s.status = SER_FAILED;
+      s = EndpointQueryingStatus::FAILED;
       return s;
     }
 
@@ -79,7 +79,7 @@ namespace Arc {
     }
     logger.msg(VERBOSE, "Found %u execution services from the index service at %s", resp_xml.Size(), url.str());
 
-    s.status = SER_SUCCESSFUL;
+    s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 

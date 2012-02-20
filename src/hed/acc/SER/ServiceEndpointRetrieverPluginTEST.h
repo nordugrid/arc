@@ -12,7 +12,7 @@ class ServiceEndpointRetrieverTEST : public ServiceEndpointRetrieverPlugin {
 protected:
   ServiceEndpointRetrieverTEST() { supportedInterface.push_back("org.nordugrid.sertest"); }
 public:
-  virtual RegistryEndpointStatus Query(const UserConfig& userconfig,
+  virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
                                        std::list<ServiceEndpoint>& endpoints,
                                        const std::list<std::string>& capabilityFilter) const;

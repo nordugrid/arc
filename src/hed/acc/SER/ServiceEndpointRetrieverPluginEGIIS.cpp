@@ -41,18 +41,17 @@ namespace Arc {
   }
 */
 
-  RegistryEndpointStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
+  EndpointQueryingStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
                                                                     const RegistryEndpoint& rEndpoint,
                                                                     std::list<ServiceEndpoint>& seList,
                                                                     const std::list<std::string>& capabilityFilter) const {
-    RegistryEndpointStatus s;
-    s.status = SER_STARTED;
+    EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(rEndpoint.Endpoint);
     url.ChangeLDAPScope(URL::base);
     url.AddLDAPAttribute("giisregistrationstatus");
     if (!url) {
-      s.status = SER_FAILED;
+      s = EndpointQueryingStatus::FAILED;
       return s;
     }
 
@@ -61,7 +60,7 @@ namespace Arc {
 
     if (!handler) {
       logger.msg(INFO, "Can't create information handle - is the ARC ldap DMC plugin available?");
-      s.status = SER_FAILED;
+      s = EndpointQueryingStatus::FAILED;
       return s;
     }
 
@@ -81,7 +80,7 @@ namespace Arc {
       }
 
     if (!handler->StopReading()) {
-      s.status = SER_FAILED;
+      s = EndpointQueryingStatus::FAILED;
       return s;
     }
 
@@ -113,7 +112,7 @@ namespace Arc {
       }
     }
 
-    s.status = SER_SUCCESSFUL;
+    s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 

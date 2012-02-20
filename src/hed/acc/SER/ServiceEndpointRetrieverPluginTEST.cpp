@@ -12,7 +12,7 @@ Plugin* ServiceEndpointRetrieverTEST::Instance(PluginArgument* arg) {
   return new ServiceEndpointRetrieverTEST();
 }
 
-RegistryEndpointStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& userconfig,
+EndpointQueryingStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& userconfig,
                                                           const RegistryEndpoint& registry,
                                                           std::list<ServiceEndpoint>& endpoints,
                                                           const std::list<std::string>& capabilityFilter) const {
