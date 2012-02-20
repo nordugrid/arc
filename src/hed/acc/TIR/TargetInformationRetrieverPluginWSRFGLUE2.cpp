@@ -43,7 +43,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "Querying WSRF GLUE2 computing info endpoint.");
 
-    URL url(cie.EndpointURL);
+    URL url(cie.Endpoint);
     if (!url) {
       return s;
     }
