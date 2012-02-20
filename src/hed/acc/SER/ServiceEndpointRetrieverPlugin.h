@@ -10,8 +10,8 @@
 
 namespace Arc {
 
-class RegistryEndpoint;
 class EndpointQueryingStatus;
+class RegistryEndpoint;
 class ServiceEndpoint;
 
 ///

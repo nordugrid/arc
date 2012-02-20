@@ -8,6 +8,7 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/ClientInterface.h>
+#include <arc/client/EndpointQueryingStatus.h>
 #include <arc/message/MCC.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>

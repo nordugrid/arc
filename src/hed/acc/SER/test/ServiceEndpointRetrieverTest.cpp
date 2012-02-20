@@ -1,6 +1,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/UserConfig.h>
+#include <arc/client/EndpointQueryingStatus.h>
 
 #include "../ServiceEndpointRetriever.h"
 #include "../ServiceEndpointRetrieverPlugin.h"

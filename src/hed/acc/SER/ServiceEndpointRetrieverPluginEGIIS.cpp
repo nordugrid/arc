@@ -7,6 +7,7 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
+#include <arc/client/EndpointQueryingStatus.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 

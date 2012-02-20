@@ -8,6 +8,8 @@
 
 namespace Arc {
 
+class EndpointQueryingStatus;
+
 class ServiceEndpointRetrieverTEST : public ServiceEndpointRetrieverPlugin {
 protected:
   ServiceEndpointRetrieverTEST() { supportedInterface.push_back("org.nordugrid.sertest"); }

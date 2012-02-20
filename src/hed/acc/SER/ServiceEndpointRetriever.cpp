@@ -6,21 +6,13 @@
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>
+#include <arc/client/EndpointQueryingStatus.h>
 
 #include "ServiceEndpointRetriever.h"
 
 namespace Arc {
 
   Logger ServiceEndpointRetriever::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
-
-  std::string EndpointQueryingStatus::str(EndpointQueryingStatusType s) {
-    if      (s == UNKNOWN)     return "UNKNOWN";
-    else if (s == STARTED)     return "STARTED";
-    else if (s == FAILED)      return "FAILED";
-    else if (s == NOPLUGIN)    return "NOPLUGIN";
-    else if (s == SUCCESSFUL)  return "SUCCESSFUL";
-    else                           return ""; // There should be no other alternative!
-  }
 
   const std::string RegistryEndpoint::RegistryCapability = "information.discovery.registry";
 

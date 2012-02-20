@@ -12,6 +12,7 @@
 
 namespace Arc {
 
+class EndpointQueryingStatus;
 class Logger;
 
 class ServiceEndpointRetrieverPluginEMIR : public ServiceEndpointRetrieverPlugin {
