@@ -13,19 +13,23 @@ namespace DataStaging {
   class DataDelivery::delivery_pair_t {
     public:
     DTR* dtr;
+    TransferParameters params;
     DataDeliveryComm* comm;
     bool cancelled;
     delivery_pair_t(DTR* request, const TransferParameters& params);
     ~delivery_pair_t();
+    void start();
   };
 
   DataDelivery::delivery_pair_t::delivery_pair_t(DTR* request, const TransferParameters& params)
-    :dtr(request),cancelled(false) {
-    comm = DataDeliveryComm::CreateInstance(*request, params);
-  }
+    :dtr(request),params(params),comm(NULL),cancelled(false) {}
 
   DataDelivery::delivery_pair_t::~delivery_pair_t() {
-    delete comm;
+    if (comm) delete comm;
+  }
+
+  void DataDelivery::delivery_pair_t::start() {
+    comm = DataDeliveryComm::CreateInstance(*dtr, params);
   }
 
   DataDelivery::DataDelivery(): delivery_state(INITIATED) {
@@ -51,16 +55,9 @@ namespace DataStaging {
 
     dtr.set_status(DTRStatus::TRANSFERRING);
     delivery_pair_t* d = new delivery_pair_t(&dtr, transfer_params);
-    if(*(d->comm)) {
-      dtr_list_lock.lock();
-      dtr_list.push_back(d);
-      dtr_list_lock.unlock();
-    } else {
-      delete d;
-      dtr.set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Failed to start Delivery process");
-      dtr.set_status(DTRStatus::TRANSFERRED);
-      dtr.push(SCHEDULER);
-    }
+    dtr_list_lock.lock();
+    dtr_list.push_back(d);
+    dtr_list_lock.unlock();
     return;
   }
 
@@ -110,6 +107,11 @@ namespace DataStaging {
     transfer_params = params;
   }
 
+  void DataDelivery::start_delivery(void* arg) {
+    delivery_pair_t* dp = (delivery_pair_t*)arg;
+    dp->start();
+  }
+
   void DataDelivery::main_thread (void* arg) {
     DataDelivery* it = (DataDelivery*)arg;
     it->main_thread();
@@ -133,11 +135,7 @@ namespace DataStaging {
         }
         dtr_list_lock.unlock();
         delivery_pair_t* dp = *d;
-        DataDeliveryComm::Status status;
-        status = dp->comm->GetStatus();
-        dp->dtr->set_bytes_transferred(status.transferred);
-
-        // check for cancellation
+        // first check for cancellation
         if (dp->cancelled) {
           dtr_list_lock.lock();
           d = dtr_list.erase(d);
@@ -152,6 +150,42 @@ namespace DataStaging {
           tmp->push(SCHEDULER);
           continue;
         }
+        // check for new transfer
+        if (!dp->comm) {
+          // Connecting to a remote delivery service can hang in rare cases,
+          // so launch a separate thread with a timeout
+          Arc::SimpleCounter thread_count;
+          bool res = Arc::CreateThreadFunction(&start_delivery, dp, &thread_count);
+          if (res) {
+            res = thread_count.wait(300*1000);
+          }
+          if (!res) {
+            // error or timeout - in this case do not delete dp since if the
+            // thread timed out it may wake up at some point. Better to have a
+            // small memory leak than seg fault.
+            dtr_list_lock.lock();
+            d = dtr_list.erase(d);
+            dtr_list_lock.unlock();
+
+            DTR* tmp = dp->dtr;
+            tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
+                                      DTRErrorStatus::NO_ERROR_LOCATION,
+                                      "Failed to start thread to start delivery or thread timed out");
+            tmp->set_status(DTRStatus::TRANSFERRED);
+            tmp->push(SCHEDULER);
+
+          } else {
+            dtr_list_lock.lock();
+            ++d;
+            dtr_list_lock.unlock();
+          }
+          continue;
+        }
+        // ongoing transfer - get status
+        DataDeliveryComm::Status status;
+        status = dp->comm->GetStatus();
+        dp->dtr->set_bytes_transferred(status.transferred);
+
         if((status.commstatus == DataDeliveryComm::CommExited) ||
            (status.commstatus == DataDeliveryComm::CommClosed) ||
            (status.commstatus == DataDeliveryComm::CommFailed)) {

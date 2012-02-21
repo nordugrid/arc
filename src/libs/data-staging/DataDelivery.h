@@ -41,6 +41,9 @@ namespace DataStaging {
     /// Condition to signal end of running
     Arc::SimpleCondition run_signal;
 
+    /// Thread to start new Delivery
+    static void start_delivery(void* arg);
+
     /// Static version of main_thread, used when thread is created
     static void main_thread(void* arg);
     /// Main thread, which runs until stopped

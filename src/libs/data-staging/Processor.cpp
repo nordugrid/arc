@@ -776,7 +776,7 @@ namespace DataStaging {
 
   void Processor::stop(void) {
     // threads are short lived so wait for them to complete rather than interrupting
-    thread_count.wait();
+    thread_count.wait(60*1000);
   }
 
 } // namespace DataStaging

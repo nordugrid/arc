@@ -732,6 +732,53 @@ namespace DataStaging {
     }
   }
   
+  void Scheduler::map_stuck_state(DTR* request) {
+    switch (request->get_status().GetStatus()) {
+      case DTRStatus::CHECKING_CACHE:
+        {
+          // The cache may have been started, so set to
+          // REPLICA_REIGSTERED to allow post-processor to clean up cache
+          request->set_status(DTRStatus::REPLICA_REGISTERED);
+        }
+        break;
+      case DTRStatus::RESOLVING:
+      case DTRStatus::QUERYING_REPLICA:
+      case DTRStatus::PRE_CLEANING:
+        {
+          // At this stage we may have registered a file in an
+          // index service so set to REQUEST_RELEASED to allow
+          // the post-processor to clean it up
+          request->set_status(DTRStatus::REQUEST_RELEASED);
+        }
+        break;
+      case DTRStatus::STAGING_PREPARING:
+        {
+          // At this stage we in addition to cache work
+          // may already have pending requests.
+          // The post-processor should take care of it too
+          request->set_status(DTRStatus::TRANSFERRED);
+        }
+        break;
+      // For post-processor states simply move on to next state
+      case DTRStatus::RELEASING_REQUEST:
+        {
+          request->set_status(DTRStatus::REQUEST_RELEASED);
+        }
+        break;
+      case DTRStatus::REGISTERING_REPLICA:
+        {
+          request->set_status(DTRStatus::REPLICA_REGISTERED);
+        }
+        break;
+      case DTRStatus::PROCESSING_CACHE:
+        {
+          request->set_status(DTRStatus::CACHE_PROCESSED);
+        }
+        break;
+      default: ; // Unexpected state - do nothing
+    }
+  }
+
   void Scheduler::add_event(DTR* event) {
     event_lock.lock();
     events.push_back(event);
@@ -865,6 +912,8 @@ namespace DataStaging {
     std::map<DTRStatus::DTRStatusType, std::list<DTR*> > DTRRunningStates;
     DtrList.filter_dtrs_by_statuses(DTRStatus::ProcessingStates, DTRRunningStates);
 
+    Arc::Time now;
+
     // Go through "to process" states, work out shares and push DTRs
     for (unsigned int i = 0; i < DTRStatus::ToProcessStates.size(); ++i) {
 
@@ -918,7 +967,7 @@ namespace DataStaging {
         // The simple solution here is to increase priority by 1 every 5 minutes.
         // There is plenty of scope for more intelligent solutions.
         // TODO reset priority back to original value once past this stage.
-        if (tmp->get_timeout() < time(NULL) && tmp->get_priority() < highest_priority) {
+        if (tmp->get_timeout() < now && tmp->get_priority() < highest_priority) {
           tmp->set_priority(tmp->get_priority() + 1);
           tmp->set_timeout(300);
         }
@@ -954,13 +1003,30 @@ namespace DataStaging {
       for (std::list<DTR*>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end();) {
 
         DTR* tmp = *dtr;
-        // If the DTR is in Delivery, check for cancellation. The pre- and
-        // post-processor DTRs don't get cancelled here but are allowed to
-        // continue processing.
-        if (tmp->get_status() == DTRStatus::TRANSFERRING && tmp->cancel_requested()) {
-          tmp->get_logger()->msg(Arc::INFO, "DTR %s: Cancelling active transfer", tmp->get_short_id());
-          delivery.cancelDTR(tmp);
-          dtr = ActiveDTRs.erase(dtr);
+        if (tmp->get_status() == DTRStatus::TRANSFERRING) {
+          // If the DTR is in Delivery, check for cancellation. The pre- and
+          // post-processor DTRs don't get cancelled here but are allowed to
+          // continue processing.
+          if ( tmp->cancel_requested()) {
+            tmp->get_logger()->msg(Arc::INFO, "DTR %s: Cancelling active transfer", tmp->get_short_id());
+            delivery.cancelDTR(tmp);
+            dtr = ActiveDTRs.erase(dtr);
+            continue;
+          }
+        }
+        else if (tmp->get_modification_time() + 3600 < now) {
+          // Stuck in processing thread for more than one hour - assume a hang
+          // and try to recover and retry. It is potentially dangerous if a
+          // stuck thread wakes up.
+          // Need to re-connect logger as it was disconnected in Processor thread
+          tmp->connect_logger();
+          tmp->get_logger()->msg(Arc::WARNING, "DTR %s: Processing thread timed out. Restarting DTR", tmp->get_short_id());
+          tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
+                                DTRErrorStatus::NO_ERROR_LOCATION,
+                                "Processor thread timed out");
+          map_stuck_state(tmp);
+          add_event(tmp);
+          ++dtr;
           continue;
         }
         transferShares.increase_transfer_share((*dtr)->get_transfer_share());

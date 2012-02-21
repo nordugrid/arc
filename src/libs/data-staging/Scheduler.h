@@ -154,6 +154,10 @@ class Scheduler: public DTRCallback {
      * can arrive at any time, breaking the normal workflow. */
     void map_cancel_state(DTR* request);
     
+    /// Map a DTR stuck in a processing state to new state from which it can
+    /// recover and retry.
+    void map_stuck_state(DTR* request);
+
     /// Choose a delivery service for the DTR, based on the file system paths
     /// each service can access. These paths are determined by calling all the
     /// configured services when the first DTR is received.
