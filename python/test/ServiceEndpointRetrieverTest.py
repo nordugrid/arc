@@ -13,8 +13,6 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
     
     def test_the_constructor(self):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
-        container = arc.ServiceEndpointContainer()
-        retriever.addConsumer(container)
         self.expect(retriever).to_be_an_instance_of(arc.ServiceEndpointRetriever)
     
     def test_getting_the_endpoints(self):
