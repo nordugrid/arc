@@ -748,13 +748,17 @@ namespace Arc {
       // fill some more metadata
       if (st.guid[0] != '\0') f->SetMetaData("guid", std::string(st.guid));
       if (verb & INFO_TYPE_ACCESS) {
-        char username[256];
-        LFCLOCKINT(lfc_r,lfc_getusrbyuid(st.uid, username), url);
-        if(lfc_r == 0) f->SetMetaData("owner", username);
-        char groupname[256];
-        LFCLOCKINT(lfc_r,lfc_getgrpbygid(st.gid, groupname), url);
-        if(lfc_r == 0) f->SetMetaData("group", groupname);
-      };
+        if (st.uid != 0) {
+          char username[256];
+          LFCLOCKINT(lfc_r,lfc_getusrbyuid(st.uid, username), url);
+          if(lfc_r == 0) f->SetMetaData("owner", username);
+        }
+        if (st.gid != 0) {
+          char groupname[256];
+          LFCLOCKINT(lfc_r,lfc_getgrpbygid(st.gid, groupname), url);
+          if(lfc_r == 0) f->SetMetaData("group", groupname);
+        }
+      }
       mode_t mode = st.filemode;
       std::string perms;
       if (mode & S_IRUSR) perms += 'r'; else perms += '-';
@@ -840,6 +844,7 @@ namespace Arc {
     if (!info) {
       logger.msg(ERROR, "Error finding LFN from guid %s: %s",
                  guid, sstrerror(serrno));
+      guid.clear();
       return "";
     }
 
