@@ -19,7 +19,7 @@ namespace Arc {
 
   class TargetInformationRetrieverPluginEMIES: public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginEMIES() {};
+    TargetInformationRetrieverPluginEMIES() { supportedInterfaces.push_back("org.ogf.emies"); };
     ~TargetInformationRetrieverPluginEMIES() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginEMIES(); };
 

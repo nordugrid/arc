@@ -16,7 +16,7 @@ namespace Arc {
 
   class TargetInformationRetrieverPluginBES : public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginBES() {};
+    TargetInformationRetrieverPluginBES() { supportedInterfaces.push_back("org.ogf.bes"); };
     ~TargetInformationRetrieverPluginBES() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginBES(); };
 

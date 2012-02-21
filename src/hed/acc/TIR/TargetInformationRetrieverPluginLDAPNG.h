@@ -17,7 +17,7 @@ namespace Arc {
 
   class TargetInformationRetrieverPluginLDAPNG : public TargetInformationRetrieverPlugin {
   public:
-    TargetInformationRetrieverPluginLDAPNG() {};
+    TargetInformationRetrieverPluginLDAPNG() { supportedInterfaces.push_back("org.nordugrid.ldapng"); };
     ~TargetInformationRetrieverPluginLDAPNG() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPNG(); };
 
