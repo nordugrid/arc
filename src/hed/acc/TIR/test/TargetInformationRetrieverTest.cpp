@@ -15,7 +15,7 @@ class TargetInformationRetrieverTest
   CPPUNIT_TEST_SUITE(TargetInformationRetrieverTest);
   CPPUNIT_TEST(PluginLoading);
   CPPUNIT_TEST(QueryTest);
-  // This one sometimes segfaults:
+  // This test abandons some threads, and sometimes crashes because of this:
   // CPPUNIT_TEST(GettingStatusFromUnspecifiedCE);
   CPPUNIT_TEST_SUITE_END();
 
@@ -54,13 +54,8 @@ void TargetInformationRetrieverTest::QueryTest() {
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
-void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
-  Arc::LogStream logcerr(std::cerr);
-  logcerr.setFormat(Arc::ShortFormat);
-  Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);  
-  
-  Arc::EndpointQueryingStatus sInitial(Arc::EndpointQueryingStatus::FAILED);
+void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {  
+  Arc::EndpointQueryingStatus sInitial(Arc::EndpointQueryingStatus::SUCCESSFUL);
 
   Arc::TargetInformationRetrieverPluginTESTControl::delay = 0;
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
@@ -68,15 +63,12 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
   Arc::UserConfig uc;
   Arc::TargetInformationRetriever retriever(uc);
 
-  Arc::ExecutionTargetContainer container;
-  retriever.addConsumer(container);
-
   Arc::ComputingInfoEndpoint ce;
   ce.Endpoint = "test.nordugrid.org";
   retriever.addComputingInfoEndpoint(ce);
   retriever.wait();
   Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(ce);
-  CPPUNIT_ASSERT(status == Arc::EndpointQueryingStatus::FAILED);
+  CPPUNIT_ASSERT(status == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TargetInformationRetrieverTest);
