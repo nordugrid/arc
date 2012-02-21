@@ -57,6 +57,7 @@ extern job_state_rec_t states_all[JOB_STATE_UNDEFINED+1];
 */
 bool fix_file_permissions(const std::string &fname,bool executable = false);
 bool fix_file_permissions(const std::string &fname,const JobDescription &desc,const JobUser &user);
+bool fix_file_permissions_in_session(const std::string &fname,const JobDescription &desc,const JobUser &user,bool executable);
 /*
   Set owner of file 'fname' to one specified in 'desc' or 'user'. 
   'desc' has priority if set.

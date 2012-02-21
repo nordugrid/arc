@@ -17,7 +17,6 @@
 #include "users.h"
 #include "job.h"
 #include "../files/info_files.h"
-#include "../run/run_function.h"
 #include "../conf/environment.h"
 #include "../../delegation/DelegationStore.h"
 #include "../../delegation/DelegationStores.h"
@@ -171,32 +170,13 @@ JobReqResult parse_job_req(const std::string &fname,JobLocalDescription &job_des
   return JobReqSuccess;
 }
 
-typedef struct {
-  const Arc::JobDescription* arc_job_desc;
-  const std::string* session_dir;
-} set_execs_t;
-
-static int set_execs_callback(void* arg) {
-  const Arc::JobDescription& arc_job_desc = *(((set_execs_t*)arg)->arc_job_desc);
-  const std::string& session_dir = *(((set_execs_t*)arg)->session_dir);
-  if (set_execs(arc_job_desc, session_dir)) return 0;
-  return -1;
-}
-
 /* parse job description and set specified file permissions to executable */
-bool set_execs(const JobDescription &desc,const JobUser &user,const std::string &session_dir) {
+bool set_execs(const JobDescription &desc,const JobUser &user) {
   std::string fname = user.ControlDir() + "/job." + desc.get_id() + ".description";
   Arc::JobDescription arc_job_desc;
   if (!get_arc_job_description(fname, arc_job_desc)) return false;
 
-  if (user.StrictSession()) {
-    uid_t uid = user.get_uid()==0?desc.get_uid():user.get_uid();
-    gid_t gid = user.get_uid()==0?desc.get_gid():user.get_gid();
-    JobUser tmp_user(user.Env(),uid,gid);
-    set_execs_t arg; arg.arc_job_desc=&arc_job_desc; arg.session_dir=&session_dir;
-    return (RunFunction::run(tmp_user, "set_execs", &set_execs_callback, &arg, 20) == 0);
-  }
-  return set_execs(arc_job_desc, session_dir);
+  return set_execs(arc_job_desc, desc, user);
 }
 
 bool write_grami(const JobDescription &desc,const JobUser &user,const char *opt_add) {

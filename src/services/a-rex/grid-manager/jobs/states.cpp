@@ -467,7 +467,7 @@ bool JobsList::state_submitting(const JobsList::iterator &i,bool &state_changed,
         logger.msg(Arc::ERROR,"%s: Failed creating grami file",i->job_id);
         return false;
       };
-      if(!set_execs(*i,*user,i->SessionDir())) {
+      if(!set_execs(*i,*user)) {
         logger.msg(Arc::ERROR,"%s: Failed setting executable permissions",i->job_id);
         return false;
       };

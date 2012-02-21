@@ -183,14 +183,15 @@ JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, 
   return JobReqSuccess;
 }
 
-bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) {
+bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, const JobUser& user) {
+  std::string session_dir = job_desc.SessionDir();
   if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
     std::string executable = desc.Application.Executable.Path;
     if(!Arc::CanonicalDir(executable)) {
       logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
       return false;
     }
-    fix_file_permissions(session_dir+"/"+executable,true);
+    fix_file_permissions_in_session(session_dir+"/"+executable,job_desc,user,true);
   }
 
   // TOOD: Support for PreExecutable and PostExecutable
@@ -204,7 +205,7 @@ bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir) 
         logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
         return false;
       }
-      fix_file_permissions(session_dir+"/"+executable,true);
+      fix_file_permissions_in_session(session_dir+"/"+executable,job_desc,user,true);
     }
   }
 

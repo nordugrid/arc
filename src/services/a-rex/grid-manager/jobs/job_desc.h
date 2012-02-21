@@ -46,7 +46,7 @@ bool write_grami(const Arc::JobDescription& arc_job_desc, const JobDescription& 
 JobReqResult get_acl(const Arc::JobDescription& arc_job_desc, std::string& acl, std::string* failure
  = NULL);
 bool check(const Arc::JobDescription& arc_job_desc);
-bool set_execs(const Arc::JobDescription& desc, const std::string& session_dir);
+bool set_execs(const Arc::JobDescription& desc, const JobDescription& job_desc, const JobUser& user);
 
 class value_for_shell {
  friend std::ostream& operator<<(std::ostream&,const value_for_shell&);
