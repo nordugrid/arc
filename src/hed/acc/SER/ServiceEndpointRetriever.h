@@ -160,7 +160,7 @@ private:
   private:
     SharedMutex mutex;
     ServiceEndpointRetriever* ser;
-    const UserConfig& uc;
+    const UserConfig uc;
   };
   ThreadedPointer<SERCommon> serCommon;
 

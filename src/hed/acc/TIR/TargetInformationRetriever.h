@@ -7,6 +7,7 @@
 
 #include "TargetInformationRetrieverPlugin.h"
 #include <arc/client/ExecutionTarget.h>
+#include <arc/UserConfig.h>
 
 namespace Arc {
 
@@ -16,7 +17,6 @@ class SharedMutex;
 class SimpleCondition;
 class SimpleCounter;
 class ThreadedPointer<class T>;
-class UserConfig;
 
 class ExecutionTargetConsumer {
 public:
@@ -100,7 +100,7 @@ private:
   private:
     SharedMutex mutex;
     TargetInformationRetriever* tir;
-    const UserConfig& uc;
+    const UserConfig uc;
   };
   ThreadedPointer<TIRCommon> tirCommon;
 
