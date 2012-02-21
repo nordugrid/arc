@@ -26,7 +26,7 @@ public:
 class ExecutionTargetContainer : public ExecutionTargetConsumer {
 public:
   void addExecutionTarget(const ExecutionTarget& target) { targets.push_back(target); }
-  std::list<ExecutionTarget> targets;  
+  std::list<ExecutionTarget> targets;
 };
 
 class ComputingInfoEndpoint {
@@ -143,7 +143,7 @@ private:
 
   class ThreadArgTIR {
   public:
-    ThreadArgTIR(const ThreadedPointer<TIRCommon>& TIRCommon,
+    ThreadArgTIR(const ThreadedPointer<TIRCommon>& tirCommon,
                  TIRResult& tirResult)
       : tirCommon(tirCommon), tirResult(tirResult) {};
     ThreadArgTIR(const ThreadArgTIR& v,
