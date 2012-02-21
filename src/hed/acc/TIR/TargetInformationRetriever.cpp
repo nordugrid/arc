@@ -150,17 +150,22 @@ namespace Arc {
         TargetInformationRetrieverPlugin* plugin = tirCommon->load(*it);
         if (!plugin) {
           // Problem loading the plugin, skip it
-          break;
+          continue;
         }
         std::list<std::string> interfaceNames = plugin->SupportedInterfaces();
         if (interfaceNames.empty()) {
           // This plugin does not support any interfaces, skip it
-          break;
+          continue;
         }
         // Create a new endpoint with the same endpoint and a specified interface
         ComputingInfoEndpoint endpoint = a->endpoint;
         // We will use the first interfaceName this plugin supports
         endpoint.InterfaceName = interfaceNames.front();
+        if (endpoint.InterfaceName.empty()) {
+          // The InterfaceName should not be empty, because that will interfere
+          // with the global status of this endpoint; we will use the plugin name
+          endpoint.InterfaceName = *it;
+        }
         logger.msg(DEBUG, "New endpoint is created (%s) from the one with the unspecified interface (%s)",  endpoint.str(), a->endpoint.str());
         newEndpoints.push_back(endpoint);
         // Make new argument by copying old one with result report object replaced
@@ -174,7 +179,7 @@ namespace Arc {
           if(!tirCommon->lockSharedIfValid()) return;
           (*tirCommon)->setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
           tirCommon->unlockShared();
-          break;
+          continue;
         }
       }
       // We wait for the new result object. The wait returns in two cases:

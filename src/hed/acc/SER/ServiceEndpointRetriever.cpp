@@ -174,17 +174,22 @@ namespace Arc {
         ServiceEndpointRetrieverPlugin* plugin = serCommon->load(*it);
         if (!plugin) {
           // Problem loading the plugin, skip it
-          break;
+          continue;
         }
         std::list<std::string> interfaceNames = plugin->SupportedInterfaces();
         if (interfaceNames.empty()) {
           // This plugin does not support any interfaces, skip it
-          break;
+          continue;
         }
         // Create a new registry endpoint with the same endpoint and a specified interface
         RegistryEndpoint registry = a->registry;
         // We will use the first interfaceName this plugin supports
         registry.InterfaceName = interfaceNames.front();
+        if (registry.InterfaceName.empty()) {
+          // The InterfaceName should not be empty, because that will interfere
+          // with the global status of this registry; we will use the plugin name
+          registry.InterfaceName = *it;
+        }
         logger.msg(DEBUG, "New registry endpoint is created (%s) from the one with the unspecified interface (%s)", registry.str(), a->registry.str());
         newRegistries.push_back(registry);
         // Make new argument by copying old one with result report object replaced
@@ -198,7 +203,7 @@ namespace Arc {
           if(!serCommon->lockSharedIfValid()) return;
           (*serCommon)->setStatusOfRegistry(registry, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
           serCommon->unlockShared();
-          break;
+          continue;
         }
       }
       // We wait for the new result object. The wait returns in two cases:
