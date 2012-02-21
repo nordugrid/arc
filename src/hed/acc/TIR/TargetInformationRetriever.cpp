@@ -208,7 +208,7 @@ namespace Arc {
 
 
   float TargetInformationRetrieverPluginTESTControl::delay = 0;
-  std::list<ExecutionTarget> TargetInformationRetrieverPluginTESTControl::etList;
+  std::list<ExecutionTarget> TargetInformationRetrieverPluginTESTControl::targets;
   EndpointQueryingStatus TargetInformationRetrieverPluginTESTControl::status;
 
 } // namespace Arc

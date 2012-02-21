@@ -19,7 +19,7 @@ EndpointQueryingStatus TargetInformationRetrieverPluginTEST::Query(const UserCon
                                                                    const ComputingInfoEndpoint& endpoint,
                                                                    std::list<ExecutionTarget>& etList) const {
   Glib::usleep(TargetInformationRetrieverPluginTESTControl::delay*1000000);
-  etList = TargetInformationRetrieverPluginTESTControl::etList;
+  etList = TargetInformationRetrieverPluginTESTControl::targets;
   return TargetInformationRetrieverPluginTESTControl::status;
 };
 

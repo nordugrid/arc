@@ -172,7 +172,7 @@ private:
 class TargetInformationRetrieverPluginTESTControl {
 public:
   static float delay;
-  static std::list<ExecutionTarget> etList;
+  static std::list<ExecutionTarget> targets;
   static EndpointQueryingStatus status;
 };
 
