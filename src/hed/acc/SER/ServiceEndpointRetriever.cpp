@@ -235,7 +235,7 @@ namespace Arc {
 
   // TESTControl
 
-  float ServiceEndpointRetrieverTESTControl::delay = 0;
-  EndpointQueryingStatus ServiceEndpointRetrieverTESTControl::status;
-  std::list<ServiceEndpoint> ServiceEndpointRetrieverTESTControl::endpoints = std::list<ServiceEndpoint>();
+  float ServiceEndpointRetrieverPluginTESTControl::delay = 0;
+  EndpointQueryingStatus ServiceEndpointRetrieverPluginTESTControl::status;
+  std::list<ServiceEndpoint> ServiceEndpointRetrieverPluginTESTControl::endpoints = std::list<ServiceEndpoint>();
 }

@@ -18,9 +18,9 @@ EndpointQueryingStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& use
                                                           const RegistryEndpoint& registry,
                                                           std::list<ServiceEndpoint>& endpoints,
                                                           const std::list<std::string>& capabilityFilter) const {
-  Glib::usleep(ServiceEndpointRetrieverTESTControl::delay*1000000);
-  endpoints = ServiceEndpointRetrieverTESTControl::endpoints;
-  return ServiceEndpointRetrieverTESTControl::status;
+  Glib::usleep(ServiceEndpointRetrieverPluginTESTControl::delay*1000000);
+  endpoints = ServiceEndpointRetrieverPluginTESTControl::endpoints;
+  return ServiceEndpointRetrieverPluginTESTControl::status;
 };
 
 

@@ -91,9 +91,6 @@ public:
  **/
 class ServiceEndpointContainer : public ServiceEndpointConsumer {
 public:
-  ServiceEndpointContainer() {}
-  ~ServiceEndpointContainer() {}
-
   void addServiceEndpoint(const ServiceEndpoint& endpoint) { endpoints.push_back(endpoint); }
   std::list<ServiceEndpoint> endpoints;
 };
@@ -236,7 +233,7 @@ private:
   std::map<std::string, std::string> interfacePluginMap;
 };
 
-class ServiceEndpointRetrieverTESTControl {
+class ServiceEndpointRetrieverPluginTESTControl {
 public:
   static float delay;
   static EndpointQueryingStatus status;

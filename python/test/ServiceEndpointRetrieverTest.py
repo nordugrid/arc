@@ -4,9 +4,9 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
 
     def setUp(self):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))
-        arc.ServiceEndpointRetrieverTESTControl.delay = 0
-        arc.ServiceEndpointRetrieverTESTControl.endpoints = [arc.ServiceEndpoint()]
-        arc.ServiceEndpointRetrieverTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)
+        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [arc.ServiceEndpoint()]
+        arc.ServiceEndpointRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)
 
     def test_the_class_exists(self):
         self.expect(arc.ServiceEndpointRetriever).to_be_an_instance_of(type)
@@ -31,7 +31,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)        
+        arc.ServiceEndpointRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)        
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
         retriever.addRegistryEndpoint(registry)
         retriever.wait()
@@ -43,7 +43,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.delay = 0.1
+        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0.1
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
         retriever.addRegistryEndpoint(registry)
         time.sleep(0.08)
@@ -57,7 +57,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.delay = 0.01
+        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0.01
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
         retriever.addRegistryEndpoint(registry)
         # the endpoint should not arrive yet
@@ -79,7 +79,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg, False, ["cap1"])
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.endpoints = [
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
             arc.ServiceEndpoint("test1.nordugrid.org",["cap1","cap2"]),
             arc.ServiceEndpoint("test2.nordugrid.org",["cap3","cap4"]),
             arc.ServiceEndpoint("test3.nordugrid.org",["cap1","cap3"])
@@ -107,7 +107,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg, True)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.endpoints = [
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
             arc.ServiceEndpoint("emir.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest"),
             arc.ServiceEndpoint("ce.nordugrid.org", ["information.discovery.resource"], "org.ogf.emies"),            
         ]
@@ -126,7 +126,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.ServiceEndpointRetriever(self.usercfg, True, ["information.discovery.resource"])
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
-        arc.ServiceEndpointRetrieverTESTControl.endpoints = [
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
            arc.ServiceEndpoint("emir.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest"),
            arc.ServiceEndpoint("ce.nordugrid.org", ["information.discovery.resource"], "org.ogf.emies"),            
         ]
@@ -167,7 +167,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
-        arc.ServiceEndpointRetrieverTESTControl.delay = 0.01
+        arc.ServiceEndpointRetrieverPluginTESTControl.delay = 0.01
         retriever.addRegistryEndpoint(registry)
         retriever.removeConsumer(container)
         del container

@@ -6,11 +6,11 @@
 #include <string>
 
 #include "TargetInformationRetrieverPlugin.h"
+#include <arc/client/ExecutionTarget.h>
 
 namespace Arc {
 
 class EndpointQueryingStatus;
-class ExecutionTarget;
 class Logger;
 class SharedMutex;
 class SimpleCondition;
@@ -25,10 +25,8 @@ public:
 
 class ExecutionTargetContainer : public ExecutionTargetConsumer {
 public:
-  ExecutionTargetContainer();
-  ~ExecutionTargetContainer();
-
-  void addExecutionTarget(const ExecutionTarget&) {};
+  void addExecutionTarget(const ExecutionTarget& target) { targets.push_back(target); }
+  std::list<ExecutionTarget> targets;  
 };
 
 class ComputingInfoEndpoint {
