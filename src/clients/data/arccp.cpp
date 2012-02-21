@@ -481,6 +481,7 @@ bool arccp(const Arc::URL& source_url_,
     mover.set_progress_indicator(&progress);
   Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
                                        0, 0, 0, timeout);
+  if (verbose) std::cerr<<std::endl;
   // clean up joblinks created during cache procedure
   if (cache)
     cache.Release();

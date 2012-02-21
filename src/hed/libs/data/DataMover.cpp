@@ -708,7 +708,7 @@ namespace Arc {
       DataPoint& source_url = mapped ? mapped_p : source;
       DataPoint& destination_url = cacheable ? chdest : destination;
       // Disable checks meant to provide meta-information if not needed
-      source_url.SetAdditionalChecks(do_checks & (checks_required | cacheable));
+      source_url.SetAdditionalChecks((do_checks & (checks_required | cacheable)) | (show_progress != NULL));
       
       if (source_url.GetAdditionalChecks()) {
         FileInfo fileinfo;
