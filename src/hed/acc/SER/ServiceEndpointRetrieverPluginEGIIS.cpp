@@ -101,11 +101,11 @@ namespace Arc {
           se.EndpointInterfaceName = supportedInterface.front();
         }
         else if (itMds->Child(i).Name() == "nordugrid-cluster-name") {
-          se.EndpointCapabilities.push_back("informaton.discovery.resource");
+          se.EndpointCapabilities.push_back("information.discovery.resource");
           se.EndpointInterfaceName = "org.nordugrid.ldapng";
         }
         else if (itMds->Child(i).Name() == "nordugrid-se-name") {
-          se.EndpointCapabilities.push_back("informaton.discovery.resource");
+          se.EndpointCapabilities.push_back("information.discovery.resource");
           se.EndpointInterfaceName = "org.nordugrid.ldapng";
         }
 
