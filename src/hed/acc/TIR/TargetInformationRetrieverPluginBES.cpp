@@ -32,7 +32,9 @@ namespace Arc {
   */
 
   EndpointQueryingStatus TargetInformationRetrieverPluginBES::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList) const {
-    EndpointQueryingStatus s(s = EndpointQueryingStatus::FAILED);
+    EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
+    // Return FAILED while the implementation is not complete
+    return s;
 
     URL url(cie.Endpoint);
 
@@ -44,6 +46,7 @@ namespace Arc {
     //if ( /* No service running at 'url' */ ) {
     // return s;
     //}
+    
 
     ExecutionTarget target;
     //target.GridFlavour = ;
