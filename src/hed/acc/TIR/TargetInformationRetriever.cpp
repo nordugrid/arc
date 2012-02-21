@@ -16,6 +16,8 @@
 namespace Arc {
 
   Logger TargetInformationRetriever::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+  
+  const std::string ComputingInfoEndpoint::ComputingInfoCapability = "information.discovery.resource";
 
   TargetInformationRetriever::TargetInformationRetriever(const UserConfig& uc)
     : tirCommon(new TIRCommon(this,uc)),

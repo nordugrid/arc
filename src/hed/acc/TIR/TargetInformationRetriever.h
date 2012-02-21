@@ -6,6 +6,7 @@
 #include <string>
 
 #include "TargetInformationRetrieverPlugin.h"
+#include "../SER/ServiceEndpointRetriever.h"
 #include <arc/client/ExecutionTarget.h>
 #include <arc/UserConfig.h>
 
@@ -31,17 +32,25 @@ public:
 
 class ComputingInfoEndpoint {
 public:
+  ComputingInfoEndpoint(std::string Endpoint = "", std::string InterfaceName = "") : Endpoint(Endpoint), InterfaceName(InterfaceName) {}
+  ComputingInfoEndpoint(ServiceEndpoint service) : Endpoint(service.EndpointURL), InterfaceName(service.EndpointInterfaceName) {}
+
+  static bool isComputingInfo(ServiceEndpoint service) {
+    return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), ComputingInfoCapability) != service.EndpointCapabilities.end());
+  }
+
   std::string str() const {
     return Endpoint + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
   }
 
-  // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
+  // Needed for std::map ('statuses' in TargetInformationRetriever) to be able to sort the keys
   bool operator<(const ComputingInfoEndpoint& other) const {
     return Endpoint + InterfaceName < other.Endpoint + other.InterfaceName;
   }
 
   std::string Endpoint;
   std::string InterfaceName;
+  static const std::string ComputingInfoCapability;
 };
 
 class ComputingInfoEndpointConsumer {
