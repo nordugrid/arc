@@ -221,6 +221,7 @@ namespace DataStaging {
       // add destination for recovery after crash
       if ((*it)->get_status() == DTRStatus::TRANSFERRING || (*it)->get_status() == DTRStatus::TRANSFER) {
         data += " " + (*it)->get_destination()->CurrentLocation().fullstr();
+        data += " " + (*it)->get_delivery_endpoint().Host();
       }
       data += "\n";
     }

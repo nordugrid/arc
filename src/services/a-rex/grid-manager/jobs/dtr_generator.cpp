@@ -1023,7 +1023,7 @@ void DTRGenerator::readDTRState(const std::string& dtr_log) {
   for (std::list<std::string>::iterator line = lines.begin(); line != lines.end(); ++line) {
     std::vector<std::string> fields;
     Arc::tokenize(*line, fields);
-    if (fields.size() == 5 && (fields.at(1) == "TRANSFERRING" || fields.at(1) == "TRANSFER")) {
+    if ((fields.size() == 5 || fields.size() == 6) && (fields.at(1) == "TRANSFERRING" || fields.at(1) == "TRANSFER")) {
       logger.msg(Arc::VERBOSE, "Found DTR %s for file %s left in transferring state from previous run",
                  fields.at(0), fields.at(4));
       recovered_files.push_back(fields.at(4));
