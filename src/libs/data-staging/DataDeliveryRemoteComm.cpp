@@ -149,6 +149,7 @@ namespace DataStaging {
     // If transfer is still going, send cancellation request to service
     if (valid) CancelDTR();
     if (handler_) handler_->Remove(this);
+    Glib::Mutex::Lock lock(lock_);
     delete client;
   }
 
