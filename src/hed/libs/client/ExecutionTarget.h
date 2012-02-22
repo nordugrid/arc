@@ -197,6 +197,7 @@ namespace Arc {
     Time DowntimeStarts;
     Time DowntimeEnds;
     std::string Staging;
+    // This is singular in the GLUE2 doc: JobDescription
     std::list<std::string> JobDescriptions;
 
     // Attributes from 6.3 Computing Share
