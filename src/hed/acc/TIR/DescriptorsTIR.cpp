@@ -8,6 +8,7 @@
 #include <arc/loader/Plugin.h>
 
 #include "TargetInformationRetrieverPluginLDAPGLUE1.h"
+#include "TargetInformationRetrieverPluginLDAPGLUE2.h"
 #include "TargetInformationRetrieverPluginLDAPNG.h"
 #include "TargetInformationRetrieverPluginBES.h"
 #include "TargetInformationRetrieverPluginWSRFGLUE2.h"
@@ -15,6 +16,7 @@
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "LDAPGLUE1", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE1::Instance },
+  { "LDAPGLUE2", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginLDAPGLUE2::Instance },
   { "LDAPNG", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginLDAPNG::Instance },
   { "BES", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginBES::Instance },
   { "WSRFGLUE2", "HED:TargetInformationRetrieverPlugin", "", 0, &Arc::TargetInformationRetrieverPluginWSRFGLUE2::Instance },
