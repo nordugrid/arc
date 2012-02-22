@@ -48,3 +48,5 @@ endif
 SUBDIRS = misc conf run external auth . fileplugin $(GACL_PLUGIN)
 
 DIST_SUBDIRS = misc conf run external auth . fileplugin gaclplugin
+
+man_MANS = gridftpd.8

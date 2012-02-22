@@ -2356,6 +2356,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/data-staging/arc-datadelivery-service
                  src/services/gridftpd/Makefile
                  src/services/gridftpd/gridftpd.init
+                 src/services/gridftpd/gridftpd.8
                  src/services/gridftpd/auth/Makefile
                  src/services/gridftpd/conf/Makefile
                  src/services/gridftpd/external/Makefile
