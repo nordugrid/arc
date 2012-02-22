@@ -1050,6 +1050,7 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/gaclplugin.*
 %{_libdir}/%{pkgdir}/fileplugin.*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
+%doc %{_mandir}/man8/gridftpd.8*
 
 %files aris
 %defattr(-,root,root,-)
