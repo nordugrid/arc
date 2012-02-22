@@ -206,9 +206,10 @@ namespace DataStaging {
           dp->dtr->get_logger()->msg(Arc::INFO, "DTR %s: Transfer finished: %llu bytes transferred %s",
                                      dp->dtr->get_short_id(), status.transferred,
                                      (status.checksum[0] ? ": checksum "+std::string(status.checksum) : " "));
-          dp->dtr->set_status(DTRStatus::TRANSFERRED);
-          dp->dtr->push(SCHEDULER);
+          DTR* tmp = dp->dtr;
           delete dp;
+          tmp->set_status(DTRStatus::TRANSFERRED);
+          tmp->push(SCHEDULER);
           continue;
         }
         if(!(*(dp->comm))) {
@@ -219,9 +220,10 @@ namespace DataStaging {
           dtr_list_lock.unlock();
           dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,DTRErrorStatus::ERROR_TRANSFER,
                    dp->comm->GetError().empty()?"Connection with delivery process lost":dp->comm->GetError());
-          dp->dtr->set_status(DTRStatus::TRANSFERRED);
-          dp->dtr->push(SCHEDULER);
+          DTR* tmp = dp->dtr;
           delete dp;
+          tmp->set_status(DTRStatus::TRANSFERRED);
+          tmp->push(SCHEDULER);
           continue;
         }
         dtr_list_lock.lock();
