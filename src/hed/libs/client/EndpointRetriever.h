@@ -47,7 +47,7 @@ public:
 
   EndpointRetrieverPlugin<T, S>* load(const std::string& name);
   std::list<std::string> getListOfPlugins();
-  const std::map<std::string, EndpointRetrieverPluginLoader<T, S> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
+  const std::map<std::string, EndpointRetrieverPlugin<T, S> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
 
 protected:
   std::map<std::string, EndpointRetrieverPlugin<T, S>*> plugins;
