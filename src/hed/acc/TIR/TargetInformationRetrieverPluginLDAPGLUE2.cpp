@@ -47,54 +47,121 @@ namespace Arc {
     Extractor(XMLNode node, const std::string prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
 
     std::string getString(const std::string name) {
-      std::string value = node[prefix + name];
-      if (logger) logger->msg(DEBUG, "Extractor: %s = %s", name, value);
+      std::string value = node["GLUE2" + prefix + name];
+      if (value.empty()) {
+        value = (std::string)node["GLUE2" + name];
+      }
+      if (logger) logger->msg(DEBUG, "Extractor (%s): %s = %s", prefix, name, value);
       return value;
     }
+    
+    bool setString(const std::string name, std::string& string) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        string = value;
+        return true;
+      } else {
+        return false;
+      }
+    } 
 
-    Period getPeriod(const std::string name) {
-      return Period(getString(name));
+    bool setPeriod(const std::string name, Period& period) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        period = Period(value);
+        return true;
+      } else {
+        return false;
+      }
     }
 
-    int getInt(const std::string name) {
-      return stringtoi(getString(name));
+    bool setTime(const std::string name, Time& time) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        time = Time(value);
+        return true;
+      } else {
+        return false;
+      }
     }
 
-    std::list<std::string> getList(const std::string name) {
-      XMLNodeList nodelist = node.Path(prefix + name);
-      std::list<std::string> result;
+    bool setInt(const std::string name, int& integer) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        integer = stringtoi(value);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    bool setDouble(const std::string name, double& number) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        number = stringtod(value);
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    bool setURL(const std::string name, URL& url) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        url = URL(value);
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
+    bool setBool(const std::string name, bool& boolean) {
+      std::string value = getString(name);
+      if (!value.empty()) {
+        boolean = (value == "TRUE");
+        return true;
+      } else {
+        return false;
+      }
+    }
+    
+    bool setList(const std::string name, std::list<std::string>& list) {
+      XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
+      if (nodelist.empty()) {
+        nodelist = node.Path("GLUE2" + name);
+      }
+      if (nodelist.empty()) {
+        return false;
+      }
+      list.clear();
       for(XMLNodeList::iterator it = nodelist.begin(); it != nodelist.end(); it++) {
         std::string value = *it;
-        result.push_back(value);
-        if (logger) logger->msg(DEBUG, "Extractor: %s contains %s", name, value);
+        list.push_back(value);
+        if (logger) logger->msg(DEBUG, "Extractor (%s): %s contains %s", prefix, name, value);
       }
-      return result;
+      return true;
     }
 
-    std::string operator[](const std::string& name) {
-      return getString(name);
+    static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
+      XMLNode object = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS()).front();
+      return Extractor(object, objectClass , logger);
     }
 
-    static Extractor First(XMLNode& node, const std::string objectClass, const std::string prefix = "", Logger* logger = NULL) {
-      XMLNode object = node.XPathLookup("//*[objectClass='" + objectClass + "']", NS()).front();
-      return Extractor(object, prefix.empty() ? objectClass : prefix , logger);
+    static Extractor First(Extractor& e, const std::string objectClass) {
+      return First(e.node, objectClass, e.logger);
     }
 
-    static Extractor First(Extractor& e, const std::string objectClass, const std::string prefix = "") {
-      return First(e.node, objectClass, prefix, e.logger);
-    }
-
-    static std::list<Extractor> All(XMLNode& node, const std::string objectClass, const std::string prefix = "", Logger* logger = NULL) {
-      std::list<XMLNode> objects = node.XPathLookup("//*[objectClass='" + objectClass + "']", NS());
+    static std::list<Extractor> All(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
+      std::list<XMLNode> objects = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS());
       std::list<Extractor> extractors;
       for (std::list<XMLNode>::iterator it = objects.begin(); it != objects.end(); it++) {
-        extractors.push_back(Extractor(*it, prefix.empty() ? objectClass : prefix, logger));
+        extractors.push_back(Extractor(*it, objectClass, logger));
       }
       return extractors;
     }
 
-    static std::list<Extractor> All(Extractor& e, const std::string objectClass, const std::string prefix = "") {
-      return All(e.node, objectClass, prefix, e.logger);
+    static std::list<Extractor> All(Extractor& e, const std::string objectClass) {
+      return All(e.node, objectClass, e.logger);
     }
 
 
@@ -143,9 +210,10 @@ namespace Arc {
       return s;
     }
 
-    XMLNode XMLresult(result);
+    XMLNode xml_document(result);
+    Extractor document(xml_document, "", &logger);
 
-    std::list<Extractor> services = Extractor::All(XMLresult, "GLUE2ComputingService", "GLUE2", &logger);
+    std::list<Extractor> services = Extractor::All(document, "ComputingService");
     for (std::list<Extractor>::iterator it = services.begin(); it != services.end(); it++) {
       Extractor& service = *it;
       ExecutionTarget target;
@@ -154,171 +222,180 @@ namespace Arc {
       target.Cluster = url; // contains the URL of the infosys that provided the info
 
       // GFD.147 GLUE2 5.3 Location
-      Extractor location = Extractor::First(service, "GLUE2Location");
-      // Street address (free format).
-      target.Address = location["Address"];
-      // Name of town/city.
-      target.Place = location["Place"];
-      // Name of country.
-      target.Country = location["Country"];
-      // Postal code.
-      target.PostCode = location["PostCode"];
-      // target.Latitude = location["Latitude"];
-      // target.Longitude = location["Longitude"];
+      Extractor location = Extractor::First(service, "Location");
+      location.setString("Address", target.Address);
+      location.setString("Place", target.Place);
+      location.setString("Country", target.Country);
+      location.setString("PostCode", target.PostCode);
+      // location.setString("Latitude", target.Latitude);
+      // location.setString("Longitude", target.Longitude);
 
       // GFD.147 GLUE2 5.5.1 Admin Domain
-      Extractor domain = Extractor::First(XMLresult, "GLUE2AdminDomain", "GLUE2", &logger);
-      // Human-readable name
-      target.DomainName = domain["EntityName"];
-      // Identification of a person or legal entity which pays for the services and resources (no particular format is defined).
-      target.Owner = domain["AdminDomainOwner"];
+      Extractor domain = Extractor::First(document, "AdminDomain");
+      domain.setString("EntityName", target.DomainName);
+      domain.setString("Owner", target.Owner);
 
       // GFD.147 GLUE2 6.1 Computing Service
-      // Human-readable name
-      target.ServiceName = service["EntityName"];
-      // The type of service according to a namespace-based classification
-      target.ServiceType = service["ServiceType"];
+      service.setString("EntityName", target.ServiceName);
+      service.setString("ServiceType", target.ServiceType);
 
-
-      std::list<Extractor> endpoints = Extractor::All(service, "GLUE2ComputingEndpoint", "GLUE2Endpoint");
+      // GFD.147 GLUE2 6.2 ComputingEndpoint
+      std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
       for (std::list<Extractor>::iterator ite = endpoints.begin(); ite != endpoints.end(); ite++) {
         Extractor& endpoint = *ite;
-        // *** This should go into one of the multiple endpoints of the ExecutionTarget, not directly into it:
-        // GFD.147 GLUE2 6.2 ComputingEndpoint
-        // Network location of the endpoint to contact the related service
-        target.url = URL(endpoint["URL"]);
-        // The provided capability according to the OGSA architecture
-        target.Capability = endpoint.getList("Capability");
-        // Technology used to implement the endpoint
-        target.Technology = endpoint["Technology"];
-        // Identification of the interface
-        target.InterfaceName = endpoint["InterfaceName"];
-        // Version of the interface
-        target.InterfaceVersion = endpoint.getList("InterfaceVersion");
-        // Identification of an extension to the interface
-        target.InterfaceExtension = endpoint.getList("InterfaceExtension");
-        // URI identifying a supported profile
-        target.SupportedProfile = endpoint.getList("SupportedProfile");
-        // Main organization implementing this software component
-        target.Implementor = endpoint["Implementor"];
-        // Name of the implementation; Version of the implementation
-        target.Implementation = Software(endpoint["ImplementationName"], endpoint["ImplementationVersion"]);
-        // Maturity of the endpoint in terms of quality of the software components
-        target.QualityLevel = endpoint["QualityLevel"];
-        // A state representing the health of the endpoint in terms of its capability of properly delivering the functionalities
-        target.HealthState = endpoint["HealthState"];
-        // Textual explanation of the state endpoint
-        target.HealthStateInfo = endpoint["HealthStateInfo"];
-        // A state specifying if the endpoint is accepting new requests and if it is serving the already accepted requests
-        target.ServingState = endpoint["ServingState"];
-        // Distinguished name of Certification Authority issuing the certificate for the endpoint
-        target.IssuerCA = endpoint["IssuerCA"];
-        // Distinguished name of the trusted Certification Authority (CA), i.e., certificates issued by the CA are accepted for the authentication process
-        target.TrustedCA = endpoint.getList("TrustedCA");
-        // The starting timestamp of the next scheduled downtime
-        target.DowntimeStarts = endpoint["DowntimeStarts"];
-        // The ending timestamp of the next scheduled downtime
-        target.DowntimeEnds = endpoint["DowntimeEnds"];
-        // Supported file staging functionalities, if any.
-        target.Staging = endpoint["Staging"];
-        // Supported type of job description language
-        target.JobDescriptions = endpoint.getList("JobDescription");
+        endpoint.prefix = "Endpoint";
+        // *** This should go into one of the multiple endpoints of the ExecutionTarget, not directly into it
+        endpoint.setURL("URL", target.url);
+        endpoint.setList("Capability", target.Capability);
+        endpoint.setString("Technology", target.Technology);
+        endpoint.setString("InterfaceName", target.InterfaceName);
+        endpoint.setList("InterfaceVersion", target.InterfaceVersion);
+        endpoint.setList("InterfaceExtension", target.InterfaceExtension);
+        endpoint.setList("SupportedProfile", target.SupportedProfile);
+        endpoint.setString("Implementor", target.Implementor);
+        target.Implementation = Software(endpoint.getString("ImplementationName"), endpoint.getString("ImplementationVersion"));
+        endpoint.setString("QualityLevel", target.QualityLevel);
+        endpoint.setString("HealthState", target.HealthState);
+        endpoint.setString("HealthStateInfo", target.HealthStateInfo);
+        endpoint.setString("ServingState", target.ServingState);
+        endpoint.setString("IssuerCA", target.IssuerCA);
+        endpoint.setList("TrustedCA", target.TrustedCA);
+        endpoint.setTime("DowntimeStarts", target.DowntimeStarts);
+        endpoint.setTime("DowntimeEnds", target.DowntimeEnds);
+        endpoint.setString("Staging", target.Staging);
+        endpoint.setList("JobDescription", target.JobDescriptions);
       }
 
       // GFD.147 GLUE2 6.3 Computing Share
-      Extractor share = Extractor::First(service, "GLUE2ComputingShare");
-      Extractor shareg = Extractor::First(service, "GLUE2ComputingShare", "GLUE2");
-
-      // Human-readable name
-      target.ComputingShareName = shareg["EntityName"];
-      // The name of a queue available in the underlying Computing Manager (i.e., LRMS) where jobs related to this share are submitted.
-      target.MappingQueue = share["MappingQueue"];
-      // The maximum obtainable wall clock time limit
-      target.MaxWallTime = share.getPeriod("MaxWallTime");
-      // not in current Glue2 draft
-      target.MaxTotalWallTime = share.getPeriod("MaxTotalWallTime");
-      // The minimum wall clock time per slot for a job
-      target.MinWallTime = share.getPeriod("MinWallTime");
-      // The default wall clock time limit per slot
-      target.DefaultWallTime = share.getPeriod("DefaultWallTime");
-      // The maximum obtainable CPU time limit
-      target.MaxCPUTime = share.getPeriod("MaxCPUTime");
-      // The maximum obtainable CPU time limit
-      target.MaxTotalCPUTime = share.getPeriod("MaxTotalCPUTime");
-      // The minimum CPU time per slot for a job
-      target.MinCPUTime = share.getPeriod("MinCPUTime");
-      // The default CPU time limit per slot
-      target.DefaultCPUTime = share.getPeriod("DefaultCPUTime");
-      // The maximum allowed number of jobs in this Share.
-      target.MaxTotalJobs = share.getInt("MaxTotalJobs");
-      // The maximum allowed number of jobs in the running state in this Share.
-      target.MaxRunningJobs = share.getInt("MaxRunningJobs");
-      // The maximum allowed number of jobs in the waiting state in this Share.
-      target.MaxWaitingJobs = share.getInt("MaxWaitingJobs");
-      // The maximum allowed number of jobs that are in the Grid layer waiting to be passed to the underlying computing manager (i.e., LRMS) for this Share.
-      target.MaxPreLRMSWaitingJobs = share.getInt("MaxPreLRMSWaitingJobs");
-      // The maximum allowed number of jobs in the running state per Grid user in this Share.
-      target.MaxUserRunningJobs = share.getInt("MaxUserRunningJobs");
-      // The maximum number of slots which could be allocated to a single job in this Share
-      target.MaxSlotsPerJob = share.getInt("MaxSlotsPerJob");
-      // The maximum number of streams available to stage files in.
-      target.MaxStageInStreams = share.getInt("MaxStageInStreams");
-      // The maximum number of streams available to stage files out.
-      target.MaxStageOutStreams = share.getInt("MaxStageOutStreams");
-     // std::string SchedulingPolicy;
-     //
-     // /// MaxMainMemory UInt64 0..1 MB
-     // /**
-     //  * The maximum physical RAM that a job is allowed to use; if the limit is
-     //  * hit, then the LRMS MAY kill the job.
-     //  * A negative value specifies that this member is undefined.
-     //  */
-     // int MaxMainMemory;
-     //
-     // /// MaxVirtualMemory UInt64 0..1 MB
-     // /**
-     //  * The maximum total memory size (RAM plus swap) that a job is allowed to
-     //  * use; if the limit is hit, then the LRMS MAY kill the job.
-     //  * A negative value specifies that this member is undefined.
-     //  */
-     // int MaxVirtualMemory;
-     //
-     // /// MaxDiskSpace UInt64 0..1 GB
-     // /**
-     //  * The maximum disk space that a job is allowed use in the working; if the
-     //  * limit is hit, then the LRMS MAY kill the job.
-     //  * A negative value specifies that this member is undefined.
-     //  */
-     // int MaxDiskSpace;
-     //
-     // URL DefaultStorageService;
-     // bool Preemption;
-     // int TotalJobs;
-     // int RunningJobs;
-     // int LocalRunningJobs;
-     // int WaitingJobs;
-     // int LocalWaitingJobs;
-     // int SuspendedJobs;
-     // int LocalSuspendedJobs;
-     // int StagingJobs;
-     // int PreLRMSWaitingJobs;
-     // Period EstimatedAverageWaitingTime;
-     // Period EstimatedWorstWaitingTime;
-     // int FreeSlots;
-     //
-     // /// FreeSlotsWithDuration std::map<Period, int>
-     // /**
-     //  * This attribute express the number of free slots with their time limits.
-     //  * The keys in the std::map are the time limit (Period) for the number of
-     //  * free slots stored as the value (int). If no time limit has been specified
-     //  * for a set of free slots then the key will equal Period(LONG_MAX).
-     //  */
-     // std::map<Period, int> FreeSlotsWithDuration;
-     // int UsedSlots;
-     // int RequestedSlots;
-     // std::string ReservationPolicy;
+      Extractor share = Extractor::First(service, "ComputingShare");
+      share.setString("EntityName", target.ComputingShareName);
+      share.setString("MappingQueue", target.MappingQueue);
+      share.setPeriod("MaxWallTime", target.MaxWallTime);
+      share.setPeriod("MaxTotalWallTime", target.MaxTotalWallTime);
+      share.setPeriod("MinWallTime", target.MinWallTime);
+      share.setPeriod("DefaultWallTime", target.DefaultWallTime);
+      share.setPeriod("MaxCPUTime", target.MaxCPUTime);
+      share.setPeriod("MaxTotalCPUTime", target.MaxTotalCPUTime);
+      share.setPeriod("MinCPUTime", target.MinCPUTime);
+      share.setPeriod("DefaultCPUTime", target.DefaultCPUTime);
+      share.setInt("MaxTotalJobs", target.MaxTotalJobs);
+      share.setInt("MaxRunningJobs", target.MaxRunningJobs);
+      share.setInt("MaxWaitingJobs", target.MaxWaitingJobs);
+      share.setInt("MaxPreLRMSWaitingJobs", target.MaxPreLRMSWaitingJobs);
+      share.setInt("MaxUserRunningJobs", target.MaxUserRunningJobs);
+      share.setInt("MaxSlotsPerJob", target.MaxSlotsPerJob);
+      share.setInt("MaxStageInStreams", target.MaxStageInStreams);
+      share.setInt("MaxStageOutStreams", target.MaxStageOutStreams);
+      share.setString("SchedulingPolicy", target.SchedulingPolicy);
+      share.setInt("MaxMainMemory", target.MaxMainMemory);
+      share.setInt("MaxVirtualMemory", target.MaxVirtualMemory);
+      share.setInt("MaxDiskSpace", target.MaxDiskSpace);
+      share.setURL("DefaultStorageService", target.DefaultStorageService);
+      share.setBool("Preemption", target.Preemption);
+      share.setInt("TotalJobs", target.TotalJobs);
+      share.setInt("RunningJobs", target.RunningJobs);
+      share.setInt("LocalRunningJobs", target.LocalRunningJobs);
+      share.setInt("WaitingJobs", target.WaitingJobs);
+      share.setInt("LocalWaitingJobs", target.LocalWaitingJobs);
+      share.setInt("SuspendedJobs", target.SuspendedJobs);
+      share.setInt("LocalSuspendedJobs", target.LocalSuspendedJobs);
+      share.setInt("StagingJobs", target.StagingJobs);
+      share.setInt("PreLRMSWaitingJobs", target.PreLRMSWaitingJobs);
+      share.setPeriod("EstimatedAverageWaitingTime", target.EstimatedAverageWaitingTime);
+      share.setPeriod("EstimatedWorstWaitingTime", target.EstimatedWorstWaitingTime);
+      share.setInt("FreeSlots", target.FreeSlots);
+      std::string fswdValue = share.getString("FreeSlotsWithDuration");
+      if (!fswdValue.empty()) {
+        // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
+        target.FreeSlotsWithDuration.clear();
+        std::list<std::string> fswdList;
+        tokenize(fswdValue, fswdList);
+        for (std::list<std::string>::iterator it = fswdList.begin(); it != fswdList.end(); it++) {
+          std::list<std::string> fswdPair;
+          tokenize(*it, fswdPair, ":");
+          long duration = LONG_MAX;
+          int freeSlots = 0;
+          if (fswdPair.size() > 2 || !stringto(fswdPair.front(), freeSlots) || (fswdPair.size() == 2 && !stringto(fswdPair.back(), duration))) {
+            logger.msg(VERBOSE, "The \"FreeSlotsWithDuration\" attribute is wrongly formatted. Ignoring it.");
+            logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
+            continue;
+          }
+          target.FreeSlotsWithDuration[Period(duration)] = freeSlots;
+        }
+      }
+      share.setInt("UsedSlots", target.UsedSlots);
+      share.setInt("RequestedSlots", target.RequestedSlots);
+      share.setString("ReservationPolicy", target.ReservationPolicy);
 
 
+      // GFD.147 GLUE2 6.4 Computing Manager
+      Extractor manager = Extractor::First(service, "ComputingManager");
+      manager.setString("ManagerProductName", target.ManagerProductName);
+      manager.setString("ManagerProductVersion", target.ManagerProductVersion);
+      manager.setBool("Reservation", target.Reservation);
+      manager.setBool("BulkSubmission", target.BulkSubmission);
+      manager.setInt("TotalPhysicalCPUs", target.TotalPhysicalCPUs);
+      manager.setInt("TotalLogicalCPUs", target.TotalLogicalCPUs);
+      manager.setInt("TotalSlots", target.TotalSlots);
+      manager.setBool("Homogeneous", target.Homogeneous);
+      manager.setList("NetworkInfo", target.NetworkInfo);
+      manager.setBool("WorkingAreaShared", target.WorkingAreaShared);
+      manager.setInt("WorkingAreaTotal", target.WorkingAreaTotal);
+      manager.setInt("WorkingAreaFree", target.WorkingAreaFree);
+      manager.setPeriod("WorkingAreaLifeTime", target.WorkingAreaLifeTime);
+      manager.setInt("CacheTotal", target.CacheTotal);
+      manager.setInt("CacheFree", target.CacheFree);
+
+      // GFD.147 GLUE2 6.5 Benchmark
+
+      std::list<Extractor> benchmarks = Extractor::All(service, "Benchmark");
+      for (std::list<Extractor>::iterator itb = benchmarks.begin(); itb != benchmarks.end(); itb++) {
+        Extractor& benchmark = *itb;
+        std::string Type; benchmark.setString("Type", Type);
+        double Value; benchmark.setDouble("Value", Value);
+        target.Benchmarks[Type] = Value;
+      }
+
+      // GFD.147 GLUE2 6.6 Execution Environment
+
+      std::list<Extractor> execenvironments = Extractor::All(service, "ExecutionEnvironment");
+      for (std::list<Extractor>::iterator ite = execenvironments.begin(); ite != execenvironments.end(); ite++) {
+        Extractor& environment = *ite;
+        // *** This should go into one of the multiple execution environments of the ExecutionTarget, not directly into it
+        environment.setString("Platform", target.Platform);
+        environment.setBool("VirtualMachine", target.VirtualMachine);
+        environment.setString("CPUVendor", target.CPUVendor);
+        environment.setString("CPUModel", target.CPUModel);
+        environment.setString("CPUVersion", target.CPUVersion);
+        environment.setInt("CPUClockSpeed", target.CPUClockSpeed);
+        environment.setInt("MainMemorySize", target.MainMemorySize);
+        std::string OSName = environment.getString("OSName");
+        std::string OSVersion = environment.getString("OSVersion");
+        std::string OSFamily = environment.getString("OSFamily");
+        if (!OSName.empty()) {
+          if (!OSVersion.empty()) {
+            if (!OSFamily.empty()) {
+              target.OperatingSystem = Software(OSFamily, OSName, OSVersion);
+            } else {
+              target.OperatingSystem = Software(OSName, OSVersion);
+            }
+          } else {
+            target.OperatingSystem = Software(OSName);
+          }
+        }        
+        environment.setBool("ConnectivityIn", target.ConnectivityIn);
+        environment.setBool("ConnectivityOut", target.ConnectivityOut);
+      }
+
+      // GFD.147 GLUE2 6.7 Application Environment
+      std::list<Extractor> appenvironments = Extractor::All(service, "ApplicationEnvironment");
+      target.ApplicationEnvironments.clear();
+      for (std::list<Extractor>::iterator ita = appenvironments.begin(); ita != appenvironments.end(); ita++) {
+        Extractor& application = *ita;
+        ApplicationEnvironment ae(application.getString("AppName"), application.getString("AppVersion"));
+        ae.State = application.getString("State");
+        target.ApplicationEnvironments.push_back(ae);
+      }
 
       targets.push_back(target);
     }
