@@ -13,9 +13,9 @@ class ServiceEndpointContainerTest(arcom.test.ARCClientTestCase):
         container = arc.ServiceEndpointContainer()
         endpoint1 = arc.ServiceEndpoint()
         endpoint2 = arc.ServiceEndpoint()
-        container.addServiceEndpoint(endpoint1)
-        container.addServiceEndpoint(endpoint2)
-        self.expect(container.endpoints).to_have(2).endpoints()
+        container.addEndpoint(endpoint1)
+        container.addEndpoint(endpoint2)
+        self.expect(container).to_have(2).endpoints()
 
 if __name__ == '__main__':
     unittest.main()

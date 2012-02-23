@@ -22,27 +22,27 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
-        self.expect(container.targets).to_be_empty()
-        retriever.addComputingInfoEndpoint(self.ce)
+        self.expect(container).to_be_empty()
+        retriever.addEndpoint(self.ce)
         retriever.wait()
-        self.expect(container.targets).to_have(1).target()
+        self.expect(container).to_have(1).target()
 
     def test_getting_a_target_without_interfacename_specified(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
-        self.expect(container.targets).to_be_empty()
+        self.expect(container).to_be_empty()
         self.ce.InterfaceName = ""
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.wait()
-        self.expect(container.targets).to_have(1).target()
+        self.expect(container).to_have(1).target()
 
     def test_getting_status(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
         arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.wait()
         status = retriever.getStatusOfEndpoint(self.ce)
         self.expect(status).to_be_an_instance_of(arc.EndpointQueryingStatus)
@@ -54,7 +54,7 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.addConsumer(container)
         arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)
         self.ce.InterfaceName = ""
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.wait()
         status = retriever.getStatusOfEndpoint(self.ce)
         self.expect(status).to_be(arc.EndpointQueryingStatus.FAILED)
@@ -64,7 +64,7 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
         arc.TargetInformationRetrieverPluginTESTControl.delay = 0.1
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         time.sleep(0.08)
         status = retriever.getStatusOfEndpoint(self.ce)
         self.expect(status).to_be(arc.EndpointQueryingStatus.STARTED)
@@ -76,27 +76,27 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
-        retriever.addComputingInfoEndpoint(self.ce)
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.wait()
-        self.expect(container.targets).to_have(1).target()
+        self.expect(container).to_have(1).target()
 
     def test_removing_the_consumer(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
         arc.TargetInformationRetrieverPluginTESTControl.delay = 0.1
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.removeConsumer(container)
         retriever.wait()
-        self.expect(container.targets).to_have(0).targets()
+        self.expect(container).to_have(0).targets()
 
     def test_deleting_the_consumer_before_the_retriever(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
         arc.TargetInformationRetrieverPluginTESTControl.delay = 0.1
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.removeConsumer(container)
         del container
         retriever.wait()
@@ -108,10 +108,10 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
         container2 = arc.ExecutionTargetContainer()
         retriever.addConsumer(container1)
         retriever.addConsumer(container2)
-        retriever.addComputingInfoEndpoint(self.ce)
+        retriever.addEndpoint(self.ce)
         retriever.wait()
-        self.expect(container1.targets).to_have(1).target()
-        self.expect(container2.targets).to_have(1).target()
+        self.expect(container1).to_have(1).target()
+        self.expect(container2).to_have(1).target()
 
 if __name__ == '__main__':
     unittest.main()
