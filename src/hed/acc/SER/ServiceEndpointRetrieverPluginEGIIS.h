@@ -22,7 +22,7 @@ public:
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const RegistryEndpoint& rEndpoint,
                                        std::list<ServiceEndpoint>&,
-                                       const EndpointFilter<RegistryEndpoint>&) const;
+                                       const EndpointFilter<ServiceEndpoint>&) const;
 
 private:
   static Logger logger;

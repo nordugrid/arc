@@ -15,7 +15,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginLDAPGLUE1() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPGLUE1(); };
 
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ComputingInfoEndpoint>&) const;
+    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ExecutionTarget>&) const;
 
   private:
     static Logger logger;

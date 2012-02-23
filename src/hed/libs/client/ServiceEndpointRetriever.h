@@ -61,10 +61,9 @@ public:
 };
 
 template<>
-class EndpointFilter<RegistryEndpoint> {
+class EndpointFilter<ServiceEndpoint> {
 public:
-  EndpointFilter() : recursive(false), capabilityFilter() {}
-  EndpointFilter(bool recursive, const std::list<std::string>& capabilityFilter) : recursive(recursive), capabilityFilter(capabilityFilter) {}
+  EndpointFilter(bool recursive = false, const std::list<std::string>& capabilityFilter = std::list<std::string>()) : recursive(recursive), capabilityFilter(capabilityFilter) {}
 
   bool recursiveEnabled() const { return recursive; }
   const std::list<std::string>& getCapabilityFilter() const { return capabilityFilter; }
@@ -77,7 +76,7 @@ private:
 
 class ServiceEndpointRetriever : public EndpointRetriever<RegistryEndpoint, ServiceEndpoint> {
 public:
-  ServiceEndpointRetriever(const UserConfig& uc, const EndpointFilter<RegistryEndpoint>& filter) : EndpointRetriever<RegistryEndpoint, ServiceEndpoint>(uc, filter) {}
+  ServiceEndpointRetriever(const UserConfig& uc, const EndpointFilter<ServiceEndpoint>& filter = EndpointFilter<ServiceEndpoint>()) : EndpointRetriever<RegistryEndpoint, ServiceEndpoint>(uc, filter) {}
 
   void addEndpoint(const ServiceEndpoint& endpoint);
   void addEndpoint(const RegistryEndpoint& endpoint) { EndpointRetriever<RegistryEndpoint, ServiceEndpoint>::addEndpoint(endpoint); }

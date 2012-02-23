@@ -17,6 +17,9 @@ namespace Arc {
   template<>
   Logger EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
 
+  template<>
+  Logger EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+
   const std::string ComputingInfoEndpoint::ComputingInfoCapability = "information.discovery.resource";
 
   float TargetInformationRetrieverPluginTESTControl::delay = 0;

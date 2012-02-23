@@ -31,7 +31,7 @@ protected:
   EndpointRetrieverPlugin() {};
 public:
   virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
-  virtual EndpointQueryingStatus Query(const UserConfig&, const T& rEndpoint, std::list<S>&, const EndpointFilter<T>& filter) const = 0;
+  virtual EndpointQueryingStatus Query(const UserConfig&, const T& rEndpoint, std::list<S>&, const EndpointFilter<S>& filter) const = 0;
 
   static const std::string kind;
 
@@ -70,7 +70,7 @@ public:
 template<typename T, typename S>
 class EndpointRetriever : public EndpointConsumer<T>, public EndpointConsumer<S> {
 public:
-  EndpointRetriever(const UserConfig&, const EndpointFilter<T>& filter = std::list<std::string>());
+  EndpointRetriever(const UserConfig&, const EndpointFilter<S>& filter = EndpointFilter<S>());
   ~EndpointRetriever() { common->deactivate(); }
 
   void wait() const { result.wait(); };
@@ -160,7 +160,7 @@ protected:
 
   class ThreadArg {
   public:
-    ThreadArg(const ThreadedPointer<Common>& common, Result& result, const T& endpoint, const EndpointFilter<T>& filter) : common(common), result(result), endpoint(endpoint), filter(filter) {};
+    ThreadArg(const ThreadedPointer<Common>& common, Result& result, const T& endpoint, const EndpointFilter<S>& filter) : common(common), result(result), endpoint(endpoint), filter(filter) {};
     ThreadArg(const ThreadArg& v, Result& result) : common(v.common), result(result), endpoint(v.endpoint), pluginName(v.pluginName), filter(filter) {};
     // Objects for communication with caller
     ThreadedPointer<Common> common;
@@ -168,7 +168,7 @@ protected:
     // Per-thread parameters
     T endpoint;
     std::string pluginName;
-    EndpointFilter<T> filter;
+    EndpointFilter<S> filter;
   };
 
   std::map<T, EndpointQueryingStatus> statuses;
@@ -176,7 +176,7 @@ protected:
   static Logger logger;
   const UserConfig& uc;
   std::list< EndpointConsumer<S>* > consumers;
-  EndpointFilter<T> filter;
+  EndpointFilter<S> filter;
 
   mutable SimpleCondition consumerLock;
   mutable SimpleCondition statusLock;
@@ -238,7 +238,7 @@ protected:
   }
 
   template<typename T, typename S>
-  EndpointRetriever<T, S>::EndpointRetriever(const UserConfig& uc, const EndpointFilter<T>& filter)
+  EndpointRetriever<T, S>::EndpointRetriever(const UserConfig& uc, const EndpointFilter<S>& filter)
     : common(new Common(this, uc)),
       result(),
       uc(uc),

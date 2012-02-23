@@ -38,7 +38,7 @@ namespace Arc {
   }
   */
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointFilter<ComputingInfoEndpoint>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointFilter<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     logger.msg(DEBUG, "Querying WSRF GLUE2 computing info endpoint.");

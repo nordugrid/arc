@@ -15,7 +15,7 @@ public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const ComputingInfoEndpoint& registry,
                                        std::list<ExecutionTarget>& endpoints,
-                                       const EndpointFilter<ComputingInfoEndpoint>&) const;
+                                       const EndpointFilter<ExecutionTarget>&) const;
   static Plugin* Instance(PluginArgument *arg);
 };
 

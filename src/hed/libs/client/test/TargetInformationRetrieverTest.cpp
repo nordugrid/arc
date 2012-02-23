@@ -15,6 +15,7 @@ class TargetInformationRetrieverTest
   CPPUNIT_TEST(QueryTest);
   // This test abandons some threads, and sometimes crashes because of this:
   // CPPUNIT_TEST(GettingStatusFromUnspecifiedCE);
+  // CPPUNIT_TEST(LDAPGLUE2Test);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -26,6 +27,7 @@ public:
   void PluginLoading();
   void QueryTest();
   void GettingStatusFromUnspecifiedCE();
+  void LDAPGLUE2Test();
 };
 
 void TargetInformationRetrieverTest::PluginLoading() {
@@ -48,7 +50,7 @@ void TargetInformationRetrieverTest::QueryTest() {
   Arc::UserConfig uc;
   Arc::ComputingInfoEndpoint endpoint;
   std::list<Arc::ExecutionTarget> etList;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, etList, Arc::EndpointFilter<Arc::ComputingInfoEndpoint>());
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, etList, Arc::EndpointFilter<Arc::ExecutionTarget>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
@@ -63,10 +65,31 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
 
   Arc::ComputingInfoEndpoint ce;
   ce.Endpoint = "test.nordugrid.org";
-  retriever.addComputingInfoEndpoint(ce);
+  retriever.addEndpoint(ce);
   retriever.wait();
   Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(ce);
   CPPUNIT_ASSERT(status == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
+
+void TargetInformationRetrieverTest::LDAPGLUE2Test() {
+  Arc::LogStream logcerr(std::cerr);
+  logcerr.setFormat(Arc::ShortFormat);
+  Arc::Logger::getRootLogger().addDestination(logcerr);
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);  
+  
+  Arc::UserConfig uc;
+
+  Arc::TargetInformationRetrieverPluginLoader l;
+  Arc::TargetInformationRetrieverPlugin* p = l.load("LDAPGLUE2");
+  CPPUNIT_ASSERT(p != NULL);
+
+  Arc::ComputingInfoEndpoint ce;
+  ce.Endpoint = "ldap://piff.hep.lu.se:2135/o=glue";
+  ce.InterfaceName = "org.nordugrid.ldapglue2";
+  std::list<Arc::ExecutionTarget> targets;
+  Arc::EndpointQueryingStatus status = p->Query(uc, ce, targets, Arc::EndpointFilter<Arc::ExecutionTarget>());
+  CPPUNIT_ASSERT(targets.size() > 0);
+}
+
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TargetInformationRetrieverTest);

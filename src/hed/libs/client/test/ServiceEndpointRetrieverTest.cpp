@@ -45,13 +45,13 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::UserConfig uc;
   Arc::RegistryEndpoint registry;
   std::list<Arc::ServiceEndpoint> endpoints;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointFilter<Arc::RegistryEndpoint>());
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointFilter<Arc::ServiceEndpoint>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
 void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::UserConfig uc;
-  Arc::ServiceEndpointRetriever retriever(uc, Arc::EndpointFilter<Arc::RegistryEndpoint>());
+  Arc::ServiceEndpointRetriever retriever(uc);
 
   Arc::EndpointContainer<Arc::ServiceEndpoint> container;
   retriever.addConsumer(container);

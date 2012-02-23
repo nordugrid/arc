@@ -12,7 +12,7 @@ public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
                                        std::list<ServiceEndpoint>& endpoints,
-                                       const EndpointFilter<RegistryEndpoint>& filter) const;
+                                       const EndpointFilter<ServiceEndpoint>& filter) const;
   static Plugin* Instance(PluginArgument *arg);
 };
 

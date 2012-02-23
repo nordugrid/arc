@@ -22,7 +22,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginEMIES() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginEMIES(); };
 
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ComputingInfoEndpoint>&) const;
+    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ExecutionTarget>&) const;
     static void ExtractTargets(const URL&, XMLNode response, std::list<ExecutionTarget>&);
 
   private:

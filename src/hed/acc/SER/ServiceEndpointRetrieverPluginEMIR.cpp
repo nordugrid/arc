@@ -36,7 +36,7 @@ namespace Arc {
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
                                                                    const RegistryEndpoint& rEndpoint,
                                                                    std::list<ServiceEndpoint>& seList,
-                                                                   const EndpointFilter<RegistryEndpoint>&) const {
+                                                                   const EndpointFilter<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(rEndpoint.Endpoint + "/services/query.xml");
