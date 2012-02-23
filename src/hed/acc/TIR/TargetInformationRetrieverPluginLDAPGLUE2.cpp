@@ -46,7 +46,7 @@ namespace Arc {
   public:
     Extractor(XMLNode node, const std::string prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
 
-    std::string getString(const std::string name) {
+    std::string get(const std::string name) {
       std::string value = node["GLUE2" + prefix + name];
       if (value.empty()) {
         value = (std::string)node["GLUE2" + name];
@@ -55,18 +55,22 @@ namespace Arc {
       return value;
     }
     
-    bool setString(const std::string name, std::string& string) {
-      std::string value = getString(name);
+    std::string operator[](const std::string name) {
+      return get(name);
+    }
+    
+    bool set(const std::string name, std::string& string) {
+      std::string value = get(name);
       if (!value.empty()) {
         string = value;
         return true;
       } else {
         return false;
       }
-    } 
-
-    bool setPeriod(const std::string name, Period& period) {
-      std::string value = getString(name);
+    }
+    
+    bool set(const std::string name, Period& period) {
+      std::string value = get(name);
       if (!value.empty()) {
         period = Period(value);
         return true;
@@ -75,8 +79,8 @@ namespace Arc {
       }
     }
 
-    bool setTime(const std::string name, Time& time) {
-      std::string value = getString(name);
+    bool set(const std::string name, Time& time) {
+      std::string value = get(name);
       if (!value.empty()) {
         time = Time(value);
         return true;
@@ -85,8 +89,8 @@ namespace Arc {
       }
     }
 
-    bool setInt(const std::string name, int& integer) {
-      std::string value = getString(name);
+    bool set(const std::string name, int& integer) {
+      std::string value = get(name);
       if (!value.empty()) {
         integer = stringtoi(value);
         return true;
@@ -95,8 +99,8 @@ namespace Arc {
       }
     }
 
-    bool setDouble(const std::string name, double& number) {
-      std::string value = getString(name);
+    bool set(const std::string name, double& number) {
+      std::string value = get(name);
       if (!value.empty()) {
         number = stringtod(value);
         return true;
@@ -104,9 +108,9 @@ namespace Arc {
         return false;
       }
     }
-
-    bool setURL(const std::string name, URL& url) {
-      std::string value = getString(name);
+    
+    bool set(const std::string name, URL& url) {
+      std::string value = get(name);
       if (!value.empty()) {
         url = URL(value);
         return true;
@@ -115,8 +119,8 @@ namespace Arc {
       }
     }
     
-    bool setBool(const std::string name, bool& boolean) {
-      std::string value = getString(name);
+    bool set(const std::string name, bool& boolean) {
+      std::string value = get(name);
       if (!value.empty()) {
         boolean = (value == "TRUE");
         return true;
@@ -125,7 +129,7 @@ namespace Arc {
       }
     }
     
-    bool setList(const std::string name, std::list<std::string>& list) {
+    bool set(const std::string name, std::list<std::string>& list) {
       XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
       if (nodelist.empty()) {
         nodelist = node.Path("GLUE2" + name);
@@ -141,7 +145,7 @@ namespace Arc {
       }
       return true;
     }
-
+    
     static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
       XMLNode object = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS()).front();
       return Extractor(object, objectClass , logger);
@@ -223,21 +227,21 @@ namespace Arc {
 
       // GFD.147 GLUE2 5.3 Location
       Extractor location = Extractor::First(service, "Location");
-      location.setString("Address", target.Address);
-      location.setString("Place", target.Place);
-      location.setString("Country", target.Country);
-      location.setString("PostCode", target.PostCode);
-      // location.setString("Latitude", target.Latitude);
-      // location.setString("Longitude", target.Longitude);
+      location.set("Address", target.Address);
+      location.set("Place", target.Place);
+      location.set("Country", target.Country);
+      location.set("PostCode", target.PostCode);
+      // location.set("Latitude", target.Latitude);
+      // location.set("Longitude", target.Longitude);
 
       // GFD.147 GLUE2 5.5.1 Admin Domain
       Extractor domain = Extractor::First(document, "AdminDomain");
-      domain.setString("EntityName", target.DomainName);
-      domain.setString("Owner", target.Owner);
+      domain.set("EntityName", target.DomainName);
+      domain.set("Owner", target.Owner);
 
       // GFD.147 GLUE2 6.1 Computing Service
-      service.setString("EntityName", target.ServiceName);
-      service.setString("ServiceType", target.ServiceType);
+      service.set("EntityName", target.ServiceName);
+      service.set("ServiceType", target.ServiceType);
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");
@@ -245,66 +249,66 @@ namespace Arc {
         Extractor& endpoint = *ite;
         endpoint.prefix = "Endpoint";
         // *** This should go into one of the multiple endpoints of the ExecutionTarget, not directly into it
-        endpoint.setURL("URL", target.url);
-        endpoint.setList("Capability", target.Capability);
-        endpoint.setString("Technology", target.Technology);
-        endpoint.setString("InterfaceName", target.InterfaceName);
-        endpoint.setList("InterfaceVersion", target.InterfaceVersion);
-        endpoint.setList("InterfaceExtension", target.InterfaceExtension);
-        endpoint.setList("SupportedProfile", target.SupportedProfile);
-        endpoint.setString("Implementor", target.Implementor);
-        target.Implementation = Software(endpoint.getString("ImplementationName"), endpoint.getString("ImplementationVersion"));
-        endpoint.setString("QualityLevel", target.QualityLevel);
-        endpoint.setString("HealthState", target.HealthState);
-        endpoint.setString("HealthStateInfo", target.HealthStateInfo);
-        endpoint.setString("ServingState", target.ServingState);
-        endpoint.setString("IssuerCA", target.IssuerCA);
-        endpoint.setList("TrustedCA", target.TrustedCA);
-        endpoint.setTime("DowntimeStarts", target.DowntimeStarts);
-        endpoint.setTime("DowntimeEnds", target.DowntimeEnds);
-        endpoint.setString("Staging", target.Staging);
-        endpoint.setList("JobDescription", target.JobDescriptions);
+        endpoint.set("URL", target.url);
+        endpoint.set("Capability", target.Capability);
+        endpoint.set("Technology", target.Technology);
+        endpoint.set("InterfaceName", target.InterfaceName);
+        endpoint.set("InterfaceVersion", target.InterfaceVersion);
+        endpoint.set("InterfaceExtension", target.InterfaceExtension);
+        endpoint.set("SupportedProfile", target.SupportedProfile);
+        endpoint.set("Implementor", target.Implementor);
+        target.Implementation = Software(endpoint["ImplementationName"], endpoint["ImplementationVersion"]);
+        endpoint.set("QualityLevel", target.QualityLevel);
+        endpoint.set("HealthState", target.HealthState);
+        endpoint.set("HealthStateInfo", target.HealthStateInfo);
+        endpoint.set("ServingState", target.ServingState);
+        endpoint.set("IssuerCA", target.IssuerCA);
+        endpoint.set("TrustedCA", target.TrustedCA);
+        endpoint.set("DowntimeStarts", target.DowntimeStarts);
+        endpoint.set("DowntimeEnds", target.DowntimeEnds);
+        endpoint.set("Staging", target.Staging);
+        endpoint.set("JobDescription", target.JobDescriptions);
       }
 
       // GFD.147 GLUE2 6.3 Computing Share
       Extractor share = Extractor::First(service, "ComputingShare");
-      share.setString("EntityName", target.ComputingShareName);
-      share.setString("MappingQueue", target.MappingQueue);
-      share.setPeriod("MaxWallTime", target.MaxWallTime);
-      share.setPeriod("MaxTotalWallTime", target.MaxTotalWallTime);
-      share.setPeriod("MinWallTime", target.MinWallTime);
-      share.setPeriod("DefaultWallTime", target.DefaultWallTime);
-      share.setPeriod("MaxCPUTime", target.MaxCPUTime);
-      share.setPeriod("MaxTotalCPUTime", target.MaxTotalCPUTime);
-      share.setPeriod("MinCPUTime", target.MinCPUTime);
-      share.setPeriod("DefaultCPUTime", target.DefaultCPUTime);
-      share.setInt("MaxTotalJobs", target.MaxTotalJobs);
-      share.setInt("MaxRunningJobs", target.MaxRunningJobs);
-      share.setInt("MaxWaitingJobs", target.MaxWaitingJobs);
-      share.setInt("MaxPreLRMSWaitingJobs", target.MaxPreLRMSWaitingJobs);
-      share.setInt("MaxUserRunningJobs", target.MaxUserRunningJobs);
-      share.setInt("MaxSlotsPerJob", target.MaxSlotsPerJob);
-      share.setInt("MaxStageInStreams", target.MaxStageInStreams);
-      share.setInt("MaxStageOutStreams", target.MaxStageOutStreams);
-      share.setString("SchedulingPolicy", target.SchedulingPolicy);
-      share.setInt("MaxMainMemory", target.MaxMainMemory);
-      share.setInt("MaxVirtualMemory", target.MaxVirtualMemory);
-      share.setInt("MaxDiskSpace", target.MaxDiskSpace);
-      share.setURL("DefaultStorageService", target.DefaultStorageService);
-      share.setBool("Preemption", target.Preemption);
-      share.setInt("TotalJobs", target.TotalJobs);
-      share.setInt("RunningJobs", target.RunningJobs);
-      share.setInt("LocalRunningJobs", target.LocalRunningJobs);
-      share.setInt("WaitingJobs", target.WaitingJobs);
-      share.setInt("LocalWaitingJobs", target.LocalWaitingJobs);
-      share.setInt("SuspendedJobs", target.SuspendedJobs);
-      share.setInt("LocalSuspendedJobs", target.LocalSuspendedJobs);
-      share.setInt("StagingJobs", target.StagingJobs);
-      share.setInt("PreLRMSWaitingJobs", target.PreLRMSWaitingJobs);
-      share.setPeriod("EstimatedAverageWaitingTime", target.EstimatedAverageWaitingTime);
-      share.setPeriod("EstimatedWorstWaitingTime", target.EstimatedWorstWaitingTime);
-      share.setInt("FreeSlots", target.FreeSlots);
-      std::string fswdValue = share.getString("FreeSlotsWithDuration");
+      share.set("EntityName", target.ComputingShareName);
+      share.set("MappingQueue", target.MappingQueue);
+      share.set("MaxWallTime", target.MaxWallTime);
+      share.set("MaxTotalWallTime", target.MaxTotalWallTime);
+      share.set("MinWallTime", target.MinWallTime);
+      share.set("DefaultWallTime", target.DefaultWallTime);
+      share.set("MaxCPUTime", target.MaxCPUTime);
+      share.set("MaxTotalCPUTime", target.MaxTotalCPUTime);
+      share.set("MinCPUTime", target.MinCPUTime);
+      share.set("DefaultCPUTime", target.DefaultCPUTime);
+      share.set("MaxTotalJobs", target.MaxTotalJobs);
+      share.set("MaxRunningJobs", target.MaxRunningJobs);
+      share.set("MaxWaitingJobs", target.MaxWaitingJobs);
+      share.set("MaxPreLRMSWaitingJobs", target.MaxPreLRMSWaitingJobs);
+      share.set("MaxUserRunningJobs", target.MaxUserRunningJobs);
+      share.set("MaxSlotsPerJob", target.MaxSlotsPerJob);
+      share.set("MaxStageInStreams", target.MaxStageInStreams);
+      share.set("MaxStageOutStreams", target.MaxStageOutStreams);
+      share.set("SchedulingPolicy", target.SchedulingPolicy);
+      share.set("MaxMainMemory", target.MaxMainMemory);
+      share.set("MaxVirtualMemory", target.MaxVirtualMemory);
+      share.set("MaxDiskSpace", target.MaxDiskSpace);
+      share.set("DefaultStorageService", target.DefaultStorageService);
+      share.set("Preemption", target.Preemption);
+      share.set("TotalJobs", target.TotalJobs);
+      share.set("RunningJobs", target.RunningJobs);
+      share.set("LocalRunningJobs", target.LocalRunningJobs);
+      share.set("WaitingJobs", target.WaitingJobs);
+      share.set("LocalWaitingJobs", target.LocalWaitingJobs);
+      share.set("SuspendedJobs", target.SuspendedJobs);
+      share.set("LocalSuspendedJobs", target.LocalSuspendedJobs);
+      share.set("StagingJobs", target.StagingJobs);
+      share.set("PreLRMSWaitingJobs", target.PreLRMSWaitingJobs);
+      share.set("EstimatedAverageWaitingTime", target.EstimatedAverageWaitingTime);
+      share.set("EstimatedWorstWaitingTime", target.EstimatedWorstWaitingTime);
+      share.set("FreeSlots", target.FreeSlots);
+      std::string fswdValue = share["FreeSlotsWithDuration"];
       if (!fswdValue.empty()) {
         // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
         target.FreeSlotsWithDuration.clear();
@@ -323,36 +327,36 @@ namespace Arc {
           target.FreeSlotsWithDuration[Period(duration)] = freeSlots;
         }
       }
-      share.setInt("UsedSlots", target.UsedSlots);
-      share.setInt("RequestedSlots", target.RequestedSlots);
-      share.setString("ReservationPolicy", target.ReservationPolicy);
+      share.set("UsedSlots", target.UsedSlots);
+      share.set("RequestedSlots", target.RequestedSlots);
+      share.set("ReservationPolicy", target.ReservationPolicy);
 
 
       // GFD.147 GLUE2 6.4 Computing Manager
       Extractor manager = Extractor::First(service, "ComputingManager");
-      manager.setString("ManagerProductName", target.ManagerProductName);
-      manager.setString("ManagerProductVersion", target.ManagerProductVersion);
-      manager.setBool("Reservation", target.Reservation);
-      manager.setBool("BulkSubmission", target.BulkSubmission);
-      manager.setInt("TotalPhysicalCPUs", target.TotalPhysicalCPUs);
-      manager.setInt("TotalLogicalCPUs", target.TotalLogicalCPUs);
-      manager.setInt("TotalSlots", target.TotalSlots);
-      manager.setBool("Homogeneous", target.Homogeneous);
-      manager.setList("NetworkInfo", target.NetworkInfo);
-      manager.setBool("WorkingAreaShared", target.WorkingAreaShared);
-      manager.setInt("WorkingAreaTotal", target.WorkingAreaTotal);
-      manager.setInt("WorkingAreaFree", target.WorkingAreaFree);
-      manager.setPeriod("WorkingAreaLifeTime", target.WorkingAreaLifeTime);
-      manager.setInt("CacheTotal", target.CacheTotal);
-      manager.setInt("CacheFree", target.CacheFree);
+      manager.set("ManagerProductName", target.ManagerProductName);
+      manager.set("ManagerProductVersion", target.ManagerProductVersion);
+      manager.set("Reservation", target.Reservation);
+      manager.set("BulkSubmission", target.BulkSubmission);
+      manager.set("TotalPhysicalCPUs", target.TotalPhysicalCPUs);
+      manager.set("TotalLogicalCPUs", target.TotalLogicalCPUs);
+      manager.set("TotalSlots", target.TotalSlots);
+      manager.set("Homogeneous", target.Homogeneous);
+      manager.set("NetworkInfo", target.NetworkInfo);
+      manager.set("WorkingAreaShared", target.WorkingAreaShared);
+      manager.set("WorkingAreaTotal", target.WorkingAreaTotal);
+      manager.set("WorkingAreaFree", target.WorkingAreaFree);
+      manager.set("WorkingAreaLifeTime", target.WorkingAreaLifeTime);
+      manager.set("CacheTotal", target.CacheTotal);
+      manager.set("CacheFree", target.CacheFree);
 
       // GFD.147 GLUE2 6.5 Benchmark
 
       std::list<Extractor> benchmarks = Extractor::All(service, "Benchmark");
       for (std::list<Extractor>::iterator itb = benchmarks.begin(); itb != benchmarks.end(); itb++) {
         Extractor& benchmark = *itb;
-        std::string Type; benchmark.setString("Type", Type);
-        double Value; benchmark.setDouble("Value", Value);
+        std::string Type; benchmark.set("Type", Type);
+        double Value; benchmark.set("Value", Value);
         target.Benchmarks[Type] = Value;
       }
 
@@ -362,16 +366,16 @@ namespace Arc {
       for (std::list<Extractor>::iterator ite = execenvironments.begin(); ite != execenvironments.end(); ite++) {
         Extractor& environment = *ite;
         // *** This should go into one of the multiple execution environments of the ExecutionTarget, not directly into it
-        environment.setString("Platform", target.Platform);
-        environment.setBool("VirtualMachine", target.VirtualMachine);
-        environment.setString("CPUVendor", target.CPUVendor);
-        environment.setString("CPUModel", target.CPUModel);
-        environment.setString("CPUVersion", target.CPUVersion);
-        environment.setInt("CPUClockSpeed", target.CPUClockSpeed);
-        environment.setInt("MainMemorySize", target.MainMemorySize);
-        std::string OSName = environment.getString("OSName");
-        std::string OSVersion = environment.getString("OSVersion");
-        std::string OSFamily = environment.getString("OSFamily");
+        environment.set("Platform", target.Platform);
+        environment.set("VirtualMachine", target.VirtualMachine);
+        environment.set("CPUVendor", target.CPUVendor);
+        environment.set("CPUModel", target.CPUModel);
+        environment.set("CPUVersion", target.CPUVersion);
+        environment.set("CPUClockSpeed", target.CPUClockSpeed);
+        environment.set("MainMemorySize", target.MainMemorySize);
+        std::string OSName = environment["OSName"];
+        std::string OSVersion = environment["OSVersion"];
+        std::string OSFamily = environment["OSFamily"];
         if (!OSName.empty()) {
           if (!OSVersion.empty()) {
             if (!OSFamily.empty()) {
@@ -383,8 +387,8 @@ namespace Arc {
             target.OperatingSystem = Software(OSName);
           }
         }        
-        environment.setBool("ConnectivityIn", target.ConnectivityIn);
-        environment.setBool("ConnectivityOut", target.ConnectivityOut);
+        environment.set("ConnectivityIn", target.ConnectivityIn);
+        environment.set("ConnectivityOut", target.ConnectivityOut);
       }
 
       // GFD.147 GLUE2 6.7 Application Environment
@@ -392,8 +396,8 @@ namespace Arc {
       target.ApplicationEnvironments.clear();
       for (std::list<Extractor>::iterator ita = appenvironments.begin(); ita != appenvironments.end(); ita++) {
         Extractor& application = *ita;
-        ApplicationEnvironment ae(application.getString("AppName"), application.getString("AppVersion"));
-        ae.State = application.getString("State");
+        ApplicationEnvironment ae(application["AppName"], application["AppVersion"]);
+        ae.State = application["State"];
         target.ApplicationEnvironments.push_back(ae);
       }
 
