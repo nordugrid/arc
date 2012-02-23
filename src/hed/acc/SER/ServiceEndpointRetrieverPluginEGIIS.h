@@ -6,26 +6,23 @@
 #include <string>
 
 #include <arc/UserConfig.h>
-#include <arc/loader/Plugin.h>
 
-#include "ServiceEndpointRetriever.h"
-#include "ServiceEndpointRetrieverPlugin.h"
+#include <arc/client/ServiceEndpointRetriever.h>
 
 namespace Arc {
 
-class EndpointQueryingStatus;
 class Logger;
 
-class ServiceEndpointRetrieverPluginEGIIS : public ServiceEndpointRetrieverPlugin {
+class ServiceEndpointRetrieverPluginEGIIS : public EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint> {
 public:
-  ServiceEndpointRetrieverPluginEGIIS() { supportedInterface.push_back("org.nordugrid.ldapegiis"); }
+  ServiceEndpointRetrieverPluginEGIIS() { supportedInterfaces.push_back("org.nordugrid.ldapegiis"); }
   virtual ~ServiceEndpointRetrieverPluginEGIIS() {}
   static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEGIIS(); }
 
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const RegistryEndpoint& rEndpoint,
                                        std::list<ServiceEndpoint>&,
-                                       const std::list<std::string>&) const;
+                                       const EndpointFilter<RegistryEndpoint>&) const;
 
 private:
   static Logger logger;

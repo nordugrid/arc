@@ -7,7 +7,6 @@
 #include <arc/Logger.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
-#include <arc/client/EndpointQueryingStatus.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
@@ -45,7 +44,7 @@ namespace Arc {
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
                                                                     const RegistryEndpoint& rEndpoint,
                                                                     std::list<ServiceEndpoint>& seList,
-                                                                    const std::list<std::string>& capabilityFilter) const {
+                                                                    const EndpointFilter<RegistryEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(rEndpoint.Endpoint);
@@ -98,7 +97,7 @@ namespace Arc {
                            (std::string)itMds->Child(i)["Mds-Service-Ldap-suffix"]);
         if (itMds->Child(i).Name() == "Mds-Vo-name") {
           se.EndpointCapabilities.push_back("information.discovery.registry");
-          se.EndpointInterfaceName = supportedInterface.front();
+          se.EndpointInterfaceName = supportedInterfaces.front();
         }
         else if (itMds->Child(i).Name() == "nordugrid-cluster-name") {
           se.EndpointCapabilities.push_back("information.discovery.resource");

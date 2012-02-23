@@ -5,8 +5,7 @@
 
 #include <list>
 
-#include "TargetInformationRetriever.h"
-#include "TargetInformationRetrieverPlugin.h"
+#include <arc/client/TargetInformationRetriever.h>
 
 namespace Arc {
 
@@ -20,7 +19,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginBES() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginBES(); };
 
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&) const;
+    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ComputingInfoEndpoint>&) const;
 
   private:
     static Logger logger;

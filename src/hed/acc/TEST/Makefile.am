@@ -6,7 +6,9 @@ libaccTEST_la_SOURCES = TestACCPluginDescriptors.cpp \
 	JobDescriptionParserTestACC.cpp JobDescriptionParserTestACC.h \
 	SubmitterTestACC.cpp SubmitterTestACC.h \
 	TargetRetrieverTestACC.cpp TargetRetrieverTestACC.h \
-	BrokerTestACC.cpp BrokerTestACC.h
+	BrokerTestACC.cpp BrokerTestACC.h \
+	TargetInformationRetrieverPluginTEST.cpp TargetInformationRetrieverPluginTEST.h \
+	ServiceEndpointRetrieverPluginTEST.cpp ServiceEndpointRetrieverPluginTEST.h
 libaccTEST_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libaccTEST_la_LIBADD = \

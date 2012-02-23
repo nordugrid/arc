@@ -1,6 +1,6 @@
 TESTS = SoftwareTest JobTest JobStateTest BrokerTest JobDescriptionTest \
 	JobControllerTest JobDescriptionParserTest SubmitterTest \
-	TargetRetrieverTest JobSupervisorTest
+	TargetRetrieverTest JobSupervisorTest TargetInformationRetrieverTest ServiceEndpointRetrieverTest
 
 check_PROGRAMS = $(TESTS)
 
@@ -87,4 +87,24 @@ TargetRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
 TargetRetrieverTest_LDADD = \
 	$(top_builddir)/src/hed/libs/client/libarcclient.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+ServiceEndpointRetrieverTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	ServiceEndpointRetrieverTest.cpp
+ServiceEndpointRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+ServiceEndpointRetrieverTest_LDADD = \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+
+TargetInformationRetrieverTest_SOURCES = $(top_srcdir)/src/Test.cpp \
+	TargetInformationRetrieverTest.cpp
+TargetInformationRetrieverTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
+TargetInformationRetrieverTest_LDADD = \
+	$(top_builddir)/src/hed/libs/client/libarcclient.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)

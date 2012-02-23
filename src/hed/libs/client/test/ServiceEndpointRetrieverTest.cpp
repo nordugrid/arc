@@ -1,10 +1,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/UserConfig.h>
-#include <arc/client/EndpointQueryingStatus.h>
-
-#include "../ServiceEndpointRetriever.h"
-#include "../ServiceEndpointRetrieverPlugin.h"
+#include <arc/client/ServiceEndpointRetriever.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetRetrieverARC1Test");
 
@@ -29,8 +26,8 @@ public:
 };
 
 void ServiceEndpointRetrieverTest::PluginLoading() {
-  Arc::ServiceEndpointRetrieverPluginLoader l;
-  Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
+  Arc::EndpointRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
+  Arc::EndpointRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -41,33 +38,33 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 1;
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = sInitial;
 
-  Arc::ServiceEndpointRetrieverPluginLoader l;
-  Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
+  Arc::EndpointRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
+  Arc::EndpointRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;
   Arc::RegistryEndpoint registry;
   std::list<Arc::ServiceEndpoint> endpoints;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints);
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointFilter<Arc::RegistryEndpoint>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
 void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::UserConfig uc;
-  Arc::ServiceEndpointRetriever retriever(uc);
+  Arc::ServiceEndpointRetriever retriever(uc, Arc::EndpointFilter<Arc::RegistryEndpoint>());
 
-  Arc::ServiceEndpointContainer container;
+  Arc::EndpointContainer<Arc::ServiceEndpoint> container;
   retriever.addConsumer(container);
-  CPPUNIT_ASSERT(container.endpoints.empty());
+  CPPUNIT_ASSERT(container.empty());
 
   Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 0;
   Arc::ServiceEndpointRetrieverPluginTESTControl::endpoints.push_back(Arc::ServiceEndpoint());
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::SUCCESSFUL);
   Arc::RegistryEndpoint registry("test.nordugrid.org", "org.nordugrid.sertest");
-  retriever.addRegistryEndpoint(registry);
+  retriever.addEndpoint(registry);
   retriever.wait();
 
-  CPPUNIT_ASSERT_EQUAL(1, (int)container.endpoints.size());
+  CPPUNIT_ASSERT_EQUAL(1, (int)container.size());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ServiceEndpointRetrieverTest);

@@ -1,23 +1,18 @@
 #ifndef __ARC_SERVICEENDPOINTRETRIEVERPLUGINTEST_H__
 #define __ARC_SERVICEENDPOINTRETRIEVERPLUGINTEST_H__
 
-#include <arc/loader/Plugin.h>
-
-#include "ServiceEndpointRetriever.h"
-#include "ServiceEndpointRetrieverPlugin.h"
+#include <arc/client/ServiceEndpointRetriever.h>
 
 namespace Arc {
 
-class EndpointQueryingStatus;
-
-class ServiceEndpointRetrieverTEST : public ServiceEndpointRetrieverPlugin {
+class ServiceEndpointRetrieverTEST : public EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint> {
 protected:
-  ServiceEndpointRetrieverTEST() { supportedInterface.push_back("org.nordugrid.sertest"); }
+  ServiceEndpointRetrieverTEST() { supportedInterfaces.push_back("org.nordugrid.sertest"); }
 public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const RegistryEndpoint& registry,
                                        std::list<ServiceEndpoint>& endpoints,
-                                       const std::list<std::string>& capabilityFilter) const;
+                                       const EndpointFilter<RegistryEndpoint>& filter) const;
   static Plugin* Instance(PluginArgument *arg);
 };
 

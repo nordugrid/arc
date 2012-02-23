@@ -8,7 +8,6 @@
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/ClientInterface.h>
-#include <arc/client/EndpointQueryingStatus.h>
 #include <arc/message/MCC.h>
 #include <arc/message/MCC_Status.h>
 #include <arc/message/PayloadRaw.h>
@@ -37,7 +36,7 @@ namespace Arc {
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
                                                                    const RegistryEndpoint& rEndpoint,
                                                                    std::list<ServiceEndpoint>& seList,
-                                                                   const std::list<std::string>& capabilityFilter) const {
+                                                                   const EndpointFilter<RegistryEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(rEndpoint.Endpoint + "/services/query.xml");

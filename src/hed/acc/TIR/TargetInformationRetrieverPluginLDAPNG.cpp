@@ -50,7 +50,7 @@ namespace Arc {
   */
 
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointFilter<ComputingInfoEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     //Query GRIS for all relevant information

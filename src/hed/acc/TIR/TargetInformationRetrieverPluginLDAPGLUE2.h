@@ -3,8 +3,7 @@
 #ifndef __ARC_TARGETINFORMATIONRETRIEVERLDAPGLUE2_H__
 #define __ARC_TARGETINFORMATIONRETRIEVERLDAPGLUE2_H__
 
-#include "TargetInformationRetriever.h"
-#include "TargetInformationRetrieverPlugin.h"
+#include <arc/client/TargetInformationRetriever.h>
 
 namespace Arc {
 
@@ -16,7 +15,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginLDAPGLUE2() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPGLUE2(); };
 
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&) const;
+    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ComputingInfoEndpoint>&) const;
 
   private:
     static Logger logger;

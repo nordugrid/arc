@@ -17,15 +17,11 @@ Plugin* TargetInformationRetrieverPluginTEST::Instance(PluginArgument* arg) {
 
 EndpointQueryingStatus TargetInformationRetrieverPluginTEST::Query(const UserConfig& userconfig,
                                                                    const ComputingInfoEndpoint& endpoint,
-                                                                   std::list<ExecutionTarget>& etList) const {
+                                                                   std::list<ExecutionTarget>& etList,
+                                                                   const EndpointFilter<ComputingInfoEndpoint>&) const {
   Glib::usleep(TargetInformationRetrieverPluginTESTControl::delay*1000000);
   etList = TargetInformationRetrieverPluginTESTControl::targets;
   return TargetInformationRetrieverPluginTESTControl::status;
 };
 
 }
-
-Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "TEST", "HED:TargetInformationRetrieverPlugin", "TargetInformationRetriever test plugin", 0, &Arc::TargetInformationRetrieverPluginTEST::Instance },
-  { NULL, NULL, NULL, 0, NULL }
-};

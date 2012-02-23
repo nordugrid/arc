@@ -5,8 +5,7 @@
 
 #include <list>
 
-#include "TargetInformationRetriever.h"
-#include "TargetInformationRetrieverPlugin.h"
+#include <arc/client/TargetInformationRetriever.h>
 
 namespace Arc {
 
@@ -22,7 +21,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginWSRFGLUE2() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginWSRFGLUE2(); };
 
-    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ComputingInfoEndpoint>&) const;
     static void ExtractTargets(const URL&, XMLNode, std::list<ExecutionTarget>&);
 
   private:

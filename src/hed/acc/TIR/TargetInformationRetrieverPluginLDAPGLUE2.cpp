@@ -45,17 +45,17 @@ namespace Arc {
   class Extractor {
   public:
     Extractor(XMLNode node, const std::string prefix = "", Logger* logger = NULL) : node(node), prefix(prefix), logger(logger) {}
-    
+
     std::string getString(const std::string name) {
       std::string value = node[prefix + name];
       if (logger) logger->msg(DEBUG, "Extractor: %s = %s", name, value);
       return value;
     }
-    
+
     Period getPeriod(const std::string name) {
       return Period(getString(name));
     }
-    
+
     int getInt(const std::string name) {
       return stringtoi(getString(name));
     }
@@ -70,11 +70,11 @@ namespace Arc {
       }
       return result;
     }
-    
+
     std::string operator[](const std::string& name) {
       return getString(name);
     }
-    
+
     static Extractor First(XMLNode& node, const std::string objectClass, const std::string prefix = "", Logger* logger = NULL) {
       XMLNode object = node.XPathLookup("//*[objectClass='" + objectClass + "']", NS()).front();
       return Extractor(object, prefix.empty() ? objectClass : prefix , logger);
@@ -92,19 +92,19 @@ namespace Arc {
       }
       return extractors;
     }
-    
+
     static std::list<Extractor> All(Extractor& e, const std::string objectClass, const std::string prefix = "") {
       return All(e.node, objectClass, prefix, e.logger);
     }
-    
-    
+
+
     XMLNode node;
     std::string prefix;
     Logger *logger;
   };
-  
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& ce, std::list<ExecutionTarget>& targets) const {
+
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& ce, std::list<ExecutionTarget>& targets, const EndpointFilter<ComputingInfoEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
 
@@ -152,7 +152,7 @@ namespace Arc {
 
       //target.GridFlavour = "???";
       target.Cluster = url; // contains the URL of the infosys that provided the info
-      
+
       // GFD.147 GLUE2 5.3 Location
       Extractor location = Extractor::First(service, "GLUE2Location");
       // Street address (free format).
@@ -165,21 +165,21 @@ namespace Arc {
       target.PostCode = location["PostCode"];
       // target.Latitude = location["Latitude"];
       // target.Longitude = location["Longitude"];
-      
+
       // GFD.147 GLUE2 5.5.1 Admin Domain
       Extractor domain = Extractor::First(XMLresult, "GLUE2AdminDomain", "GLUE2", &logger);
       // Human-readable name
       target.DomainName = domain["EntityName"];
       // Identification of a person or legal entity which pays for the services and resources (no particular format is defined).
       target.Owner = domain["AdminDomainOwner"];
-      
+
       // GFD.147 GLUE2 6.1 Computing Service
       // Human-readable name
       target.ServiceName = service["EntityName"];
       // The type of service according to a namespace-based classification
       target.ServiceType = service["ServiceType"];
-      
-    
+
+
       std::list<Extractor> endpoints = Extractor::All(service, "GLUE2ComputingEndpoint", "GLUE2Endpoint");
       for (std::list<Extractor>::iterator ite = endpoints.begin(); ite != endpoints.end(); ite++) {
         Extractor& endpoint = *ite;
@@ -224,14 +224,14 @@ namespace Arc {
         // Supported type of job description language
         target.JobDescriptions = endpoint.getList("JobDescription");
       }
-      
+
       // GFD.147 GLUE2 6.3 Computing Share
       Extractor share = Extractor::First(service, "GLUE2ComputingShare");
       Extractor shareg = Extractor::First(service, "GLUE2ComputingShare", "GLUE2");
-      
+
       // Human-readable name
       target.ComputingShareName = shareg["EntityName"];
-      // The name of a queue available in the underlying Computing Manager (i.e., LRMS) where jobs related to this share are submitted. 
+      // The name of a queue available in the underlying Computing Manager (i.e., LRMS) where jobs related to this share are submitted.
       target.MappingQueue = share["MappingQueue"];
       // The maximum obtainable wall clock time limit
       target.MaxWallTime = share.getPeriod("MaxWallTime");
@@ -266,7 +266,7 @@ namespace Arc {
       // The maximum number of streams available to stage files out.
       target.MaxStageOutStreams = share.getInt("MaxStageOutStreams");
      // std::string SchedulingPolicy;
-     // 
+     //
      // /// MaxMainMemory UInt64 0..1 MB
      // /**
      //  * The maximum physical RAM that a job is allowed to use; if the limit is
@@ -274,7 +274,7 @@ namespace Arc {
      //  * A negative value specifies that this member is undefined.
      //  */
      // int MaxMainMemory;
-     // 
+     //
      // /// MaxVirtualMemory UInt64 0..1 MB
      // /**
      //  * The maximum total memory size (RAM plus swap) that a job is allowed to
@@ -282,7 +282,7 @@ namespace Arc {
      //  * A negative value specifies that this member is undefined.
      //  */
      // int MaxVirtualMemory;
-     // 
+     //
      // /// MaxDiskSpace UInt64 0..1 GB
      // /**
      //  * The maximum disk space that a job is allowed use in the working; if the
@@ -290,7 +290,7 @@ namespace Arc {
      //  * A negative value specifies that this member is undefined.
      //  */
      // int MaxDiskSpace;
-     // 
+     //
      // URL DefaultStorageService;
      // bool Preemption;
      // int TotalJobs;
@@ -305,7 +305,7 @@ namespace Arc {
      // Period EstimatedAverageWaitingTime;
      // Period EstimatedWorstWaitingTime;
      // int FreeSlots;
-     // 
+     //
      // /// FreeSlotsWithDuration std::map<Period, int>
      // /**
      //  * This attribute express the number of free slots with their time limits.
@@ -317,8 +317,8 @@ namespace Arc {
      // int UsedSlots;
      // int RequestedSlots;
      // std::string ReservationPolicy;
-      
-      
+
+
 
       targets.push_back(target);
     }
