@@ -39,8 +39,12 @@ public:
   static const std::string ComputingInfoCapability;
 };
 
-typedef EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget>             TargetInformationRetriever;
-typedef EndpointRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget>       TargetInformationRetrieverPlugin;
+template class EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget>;
+template class EndpointRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget>;
+template class EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget>;
+
+typedef EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget> TargetInformationRetriever;
+typedef EndpointRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget> TargetInformationRetrieverPlugin;
 typedef EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget> TargetInformationRetrieverPluginLoader;
 
 class TargetInformationRetrieverPluginTESTControl {
