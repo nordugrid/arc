@@ -15,10 +15,10 @@ namespace Arc {
   const std::string TargetInformationRetrieverPlugin::kind("HED:TargetInformationRetrieverPlugin");
 
   template<>
-  Logger EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+  Logger EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
 
   template<>
-  Logger EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+  Logger EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
 
   const std::string ComputingInfoEndpoint::ComputingInfoCapability = "information.discovery.resource";
 

@@ -61,7 +61,7 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
   Arc::UserConfig uc;
-  Arc::TargetInformationRetriever retriever(uc);
+  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointFilter<Arc::ComputingInfoEndpoint>());
 
   Arc::ComputingInfoEndpoint ce;
   ce.Endpoint = "test.nordugrid.org";
