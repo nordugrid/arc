@@ -312,8 +312,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_mingw32_libdir}/%{pkgdir}/libaccTIR.dll*
 #%{_mingw32_libdir}/%{pkgdir}/libaccUNICORE.dll*
 %{_mingw32_libdir}/%{pkgdir}/libaccJobDescriptionParser.dll*
-%{_mingw32_libdir}/%{pkgdir}/test/libaccSERTEST.dll*
-%{_mingw32_libdir}/%{pkgdir}/test/libaccTIRTEST.dll*
 %{_mingw32_libdir}/%{pkgdir}/test/libaccTEST.dll*
 
 %files plugins-globus

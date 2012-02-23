@@ -930,8 +930,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/libarcloader.so.*
 %{_libdir}/libarcmessage.so.*
 %{_libdir}/libarcsecurity.so.*
-%{_libdir}/libarcserviceretriever.so.*
-%{_libdir}/libarctargetinformationretriever.so.*
 %{_libdir}/libarcws.so.*
 %{_libdir}/libarcwssecurity.so.*
 %{_libdir}/libarcxmlsec.so.*
@@ -1202,8 +1200,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
 %{_libdir}/%{pkgdir}/libaccSER.so
 %{_libdir}/%{pkgdir}/libaccTIR.so
-%{_libdir}/%{pkgdir}/test/libaccSERTEST.so
-%{_libdir}/%{pkgdir}/test/libaccTIRTEST.so
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
 %{_libdir}/%{pkgdir}/libarcshc.so
 %{_libdir}/%{pkgdir}/libarcshclegacy.so
@@ -1226,8 +1222,6 @@ service fetch-crl-cron start > /dev/null 2>&1
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
 %{_libdir}/%{pkgdir}/libaccSER.apd
 %{_libdir}/%{pkgdir}/libaccTIR.apd
-%{_libdir}/%{pkgdir}/test/libaccSERTEST.apd
-%{_libdir}/%{pkgdir}/test/libaccTIRTEST.apd
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
 %{_libdir}/%{pkgdir}/libarcshc.apd
 %{_libdir}/%{pkgdir}/libarcshclegacy.apd
