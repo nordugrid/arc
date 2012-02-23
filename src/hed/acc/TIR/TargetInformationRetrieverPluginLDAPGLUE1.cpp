@@ -413,7 +413,7 @@ namespace Arc {
       etList.push_back(target);
     }
 
-    s = EndpointQueryingStatus::SUCCESSFUL;
+    if (!etList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 

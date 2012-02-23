@@ -54,7 +54,7 @@ namespace Arc {
 
     ExtractTargets(url, servicesQueryResponse, etList);
 
-    s = EndpointQueryingStatus::SUCCESSFUL;
+    if (!etList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
 
