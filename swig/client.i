@@ -19,9 +19,12 @@
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetRetriever.h>
 #include <arc/client/TestACCControl.h>
+#include <arc/client/EndpointQueryingStatus.h>
+#include <arc/client/EndpointRetriever.h>
+#include <arc/client/ServiceEndpointRetriever.h>
+#include <arc/client/TargetInformationRetriever.h>
 %}
 
-%template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 %template(JobControllerList) std::list<Arc::JobController *>;
 %template(JobControllerMap) std::map<std::string, Arc::JobController *>;
 %template(JobList) std::list<Arc::Job>;
@@ -35,6 +38,8 @@
 %template(TargetRetrieverList) std::list<Arc::TargetRetriever*>;
 %template(BrokerList) std::list<Arc::Broker*>;
 %template(SubmitterList) std::list<Arc::Submitter*>;
+%template(ServiceEndpointList) std::list<Arc::ServiceEndpoint>;
+%template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 
 #ifdef SWIGJAVA
 %ignore Arc::SoftwareRequirement::getComparisonOperatorList() const;
@@ -87,6 +92,8 @@ the first member will be the '*response' and the second member is the original r
 %rename(_JobControllerTestACCControl) JobControllerTestACCControl;
 %rename(_SubmitterTestACCControl) SubmitterTestACCControl;
 %rename(_TargetRetrieverTestACCControl) TargetRetrieverTestACCControl;
+%rename(_ServiceEndpointRetrieverPluginTESTControl) ServiceEndpointRetrieverPluginTESTControl;
+%rename(_TargetInformationRetrieverPluginTESTControl) TargetInformationRetrieverPluginTESTControl;
 
 }
 
@@ -105,8 +112,8 @@ std::ostream& getStdout() {
   return std::cout;
 }
 %}
-#endif
 
+#endif
 
 %include "../src/hed/libs/client/ClientInterface.h"
 %apply std::string& INOUT { std::string& delegation_id };
@@ -124,6 +131,21 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
 %include "../src/hed/libs/client/TestACCControl.h"
+%include "../src/hed/libs/client/EndpointQueryingStatus.h"
+%include "../src/hed/libs/client/EndpointRetriever.h"
+#ifdef SWIGJAVA
+%rename(waitUntilDone) wait;
+#endif
+%template(EndpointRetrieverRS) Arc::EndpointRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
+%template(TargetInformationRetriever) Arc::EndpointRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
+%template(ServiceEndpointContainer) Arc::EndpointContainer<Arc::ServiceEndpoint>;
+%template(ExecutionTargetContainer) Arc::EndpointContainer<Arc::ExecutionTarget>;
+%include "../src/hed/libs/client/ServiceEndpointRetriever.h"
+%include "../src/hed/libs/client/TargetInformationRetriever.h"
+%template(ServiceEndpointFilter) Arc::EndpointFilter<Arc::ServiceEndpoint>;
+%template(ExecutionTargetFilter) Arc::EndpointFilter<Arc::ExecutionTarget>;
+
+
 
 /* These template instantiations must be created after the respective
    template classes have been defined, which is done in the
@@ -159,6 +181,8 @@ JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParser
 JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
 SubmitterTestACCControl = StaticPropertyWrapper(_SubmitterTestACCControl)
 TargetRetrieverTestACCControl = StaticPropertyWrapper(_TargetRetrieverTestACCControl)
+ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)
+TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
 
 %}
 

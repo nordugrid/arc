@@ -4,7 +4,7 @@ else
 DYLD_LIBRARY_PATH =
 endif
 
-TESTSCRIPTS = DeletingSwigIteratorObtainedFromPublicListRegTest.py UsingTheNextMethodOnASwigIteratorRegTest.py JobSupervisorTest.py
+TESTSCRIPTS = DeletingSwigIteratorObtainedFromPublicListRegTest.py UsingTheNextMethodOnASwigIteratorRegTest.py JobSupervisorTest.py ServiceEndpointContainerTest.py RegistryEndpointTest.py ServiceEndpointTest.py ServiceEndpointRetrieverTest.py TargetInformationRetrieverTest.py
 if PYTHON_ENABLED
 TESTS_ENVIRONMENT = ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" PYTHONPATH=..:../.libs:$(top_srcdir)/src/hed/libs/python $(PYTHON)
 TESTS = $(TESTSCRIPTS)
