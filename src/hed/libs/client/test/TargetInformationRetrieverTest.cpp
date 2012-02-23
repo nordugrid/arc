@@ -61,7 +61,7 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
   Arc::UserConfig uc;
-  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointFilter<Arc::ComputingInfoEndpoint>());
+  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointFilter<Arc::ExecutionTarget>());
 
   Arc::ComputingInfoEndpoint ce;
   ce.Endpoint = "test.nordugrid.org";
@@ -75,8 +75,8 @@ void TargetInformationRetrieverTest::LDAPGLUE2Test() {
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
-  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);  
-  
+  Arc::Logger::getRootLogger().setThreshold(Arc::DEBUG);
+
   Arc::UserConfig uc;
 
   Arc::TargetInformationRetrieverPluginLoader l;
