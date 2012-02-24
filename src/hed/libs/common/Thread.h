@@ -358,6 +358,8 @@ namespace Arc {
       : object_(new ThreadedPointerBase(p)) {}
     ThreadedPointer(const ThreadedPointer<T>& p)
       : object_(p.object_->add()) {}
+    ThreadedPointer(void)
+      : object_(new ThreadedPointerBase(NULL)) {}
     ~ThreadedPointer(void) {
       delete((T*)(object_->rem()));
     }
@@ -390,6 +392,10 @@ namespace Arc {
     /// Returns true if pointer is NULL and false otherwise.
     bool operator!(void) const {
       return ((object_->ptr()) == NULL);
+    }
+    /// Comparison operator
+    bool operator<(const ThreadedPointer& p) const {
+      return ((T*)(object_->ptr()) < (T*)(p.object_->ptr()));
     }
     /// Cast to original pointer
     T* Ptr(void) const {

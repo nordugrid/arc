@@ -182,6 +182,10 @@ namespace Arc {
     bool operator!(void) const {
       return ((object->ptr) == NULL);
     }
+    /// Comparison operator
+    bool operator<(const CountedPointer& p) const {
+      return ((object->ptr) < (p.object->ptr));
+    }
     /// Cast to original pointer
     T* Ptr(void) const {
       return (object->ptr);
