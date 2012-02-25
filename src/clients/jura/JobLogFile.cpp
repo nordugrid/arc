@@ -452,7 +452,7 @@ namespace Arc
     //Namespaces defined by OGF 2.0 (CAR 1.0)
     ns_ur[""]="http://eu-emi.eu/namespaces/2011/11/computerecord";
     ns_ur["urf"]="http://eu-emi.eu/namespaces/2011/11/computerecord";
-    ns_ur["xsd"]="http://eu-emi.eu/namespaces/2011/11/computerecord car_v1.0.xsd";
+    ns_ur["xsd"]="http://www.w3.org/2001/XMLSchema";
     ns_ur["xsi"]="http://www.w3.org/2001/XMLSchema-instance";
 
     //Get node names
