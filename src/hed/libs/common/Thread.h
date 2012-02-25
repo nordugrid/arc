@@ -395,11 +395,7 @@ namespace Arc {
     }
     /// Comparison operator
     bool operator<(const ThreadedPointer& p) const {
-      // Should it really be comparison of objects or pointers?
-      if(object_->ptr() && p.object_->ptr()) {
-        return ((T*)(object_->ptr()) < (T*)(p.object_->ptr()));
-      }
-      return false;
+      return ((T*)(object_->ptr()) < (T*)(p.object_->ptr()));
     }
     /// Cast to original pointer
     T* Ptr(void) const {
