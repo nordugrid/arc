@@ -9,20 +9,28 @@ VOMS_HEADER = VOMSUtil.h
 VOMS_SOURCE = VOMSUtil.cpp
 #endif
 
+if NSS_ENABLED
+NSS_HEADER = nssutil.h nssprivkeyinfocodec.h
+NSS_SOURCE = nssutil.cpp nssprivkeyinfocodec.cpp
+else
+NSS_HEADER =
+NSS_SOURCE =
+endif
+
 libarccredential_ladir = $(pkgincludedir)/credential
 libarccredential_la_HEADERS  = Credential.h CertUtil.h Proxycertinfo.h \
-                               VOMSAttribute.h $(VOMS_HEADER)
+                               VOMSAttribute.h $(VOMS_HEADER) $(NSS_HEADER)
 libarccredential_la_SOURCES  = Proxycertinfo.cpp CertUtil.cpp \
                                Credential.cpp listfunc.c listfunc.h \
-                               VOMSAttribute.cpp $(VOMS_SOURCE)
+                               VOMSAttribute.cpp $(VOMS_SOURCE) $(NSS_SOURCE)
 libarccredential_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(NSS_CFLAGS)
 libarccredential_la_CFLAGS = $(libarccredential_la_CXXFLAGS)
 libarccredential_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(OPENSSL_LIBS)
+	$(GLIBMM_LIBS) $(OPENSSL_LIBS) $(NSS_LIBS)
 libarccredential_la_LDFLAGS  = -version-info 1:0:0
 
 testproxy_SOURCES = testproxy.cpp
