@@ -151,7 +151,7 @@ enables_xmlsec1=yes
 #  Libraries and plugins
 # Currently no fine-grained choice is supported.
 # Also this variable is used to check if source
-# build is neded at all because no component can
+# build is needed at all because no component can
 # be built without HED.
 enables_hed=yes
 #  Services
@@ -779,6 +779,26 @@ else
     fi
 fi
 fi
+
+#check mozilla nss
+enables_nss=no
+NSS_CFLAGS=""
+NSS_LIBS=""
+NSS_INSTALLED=no
+dnl Check if nss lib is explicitly enabled, default is disable.
+AC_ARG_ENABLE(nss, AC_HELP_STRING([--enable-nss], [enable use of the mozilla nss library]),[enables_nss="$enableval"],[])
+if test "$enables_nss" = "yes"; then
+  PKG_CHECK_MODULES(NSS, [nss >= 3.10], [NSS_INSTALLED=yes] , [
+    AC_MSG_WARN([Cannot locate nss lib])
+    NSS_INSTALLED=no
+  ])
+  if test "x$NSS_INSTALLED" = "xyes" ; then
+    AC_DEFINE(HAVE_NSS,,[define if NSS is enabled and available])
+  fi
+fi
+AC_SUBST(NSS_CFLAGS)
+AC_SUBST(NSS_LIBS)
+AM_CONDITIONAL([NSS_ENABLED], test x$NSS_INSTALLED = xyes)
 
 # check cppunit
 if test "$enables_hed" = "yes"; then
