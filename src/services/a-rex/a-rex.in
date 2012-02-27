@@ -283,9 +283,9 @@ prepare() {
     if [ ! -z "$arex_mount_point" ]; then
         emir_urls=`readconfigvar "$ARC_CONFIG" "registration/emir" emirurls`
         if [ ! -z "$emir_urls" ]; then
-            emir_xbes=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_xbes`
-            emir_emies=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_emies`
-            if [ ! "$emir_xbes" = "no" ]; then
+            emir_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_xbes`
+            emir_no_emies=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_emies`
+            if [ ! "$emir_no_xbes" = "yes" ]; then
                 emir_validity=`readconfigvar "$ARC_CONFIG" "registration/emir" validity`
                 if [ -z "$emir_validity" ]; then emir_validity="600"; fi
                 emir_period=`readconfigvar "$ARC_CONFIG" "registration/emir" period`
@@ -316,9 +316,9 @@ prepare() {
     if [ ! -z "$arex_mount_point" ]; then
         isis_urls=`readconfigvar "$ARC_CONFIG" "registration/isis" isisurls`
         if [ ! -z "$isis_urls" ]; then
-            isis_xbes=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_xbes`
-            isis_emies=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_emies`
-            if [ ! "$isis_xbes" = "no" ]; then
+            isis_no_xbes=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_xbes`
+            isis_no_emies=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_emies`
+            if [ ! "$isis_no_xbes" = "yes" ]; then
                 isis_validity=`readconfigvar "$ARC_CONFIG" "registration/isis" validity`
                 if [ -z "$isis_validity" ]; then isis_validity="600"; fi
                 isis_period=`readconfigvar "$ARC_CONFIG" "registration/isis" period`
