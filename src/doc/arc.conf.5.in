@@ -2651,6 +2651,103 @@ timelimit="30"
 .IR
 sizelimit="5000"
 
+.SH SERVICES TO ISIS REGISTRATION OPTIONS
+
+Options for registering the services in the ISIS Information System.
+This block configures registration of all services into all specified ISISes.
+
+If the plain text format is used, this registration block is
+defined by (implemented only for A-REX):
+
+.B [registration/isis]
+
+If the xml format is used the same block is defined using a
+InfoRegister tag inside service configuration:
+
+.nf
+.B <Service>
+.RB \  <InfoRegister xmlns="http://www.nordugrid.org/schemas/infosys/2009/08"> ... </InfoRegister>
+.B </Service>
+.fi
+
+.TP
+.B isisurls
+Comma separated list of URLs of ISIS services.
+
+.IR Example :
+isisurls="https://index.myinstitute.org/isis, http://index.myvo.com/index"
+
+.TP
+.B validity
+For how long registration record to stay valid in the index service in seconds.
+Default is 10 minutes.
+
+.IR Example :
+validity="600"
+
+.TP
+.B period
+How often registration record is sent to the index service in seconds.
+Default is 1 minute.
+
+.IR Example :
+period="60"
+
+.TP
+.B diablereg_xbes
+If set to "yes" registartion of A-REX service is disabled. Default is "no".
+
+.IR Example :
+disablereg_xbes="no"
+
+.SH SERVICES TO EMIR REGISTRATION OPTIONS
+
+Options for registering the services in the EMI Information System (EMIR).
+This block configures registration of all services into all specified EMIRs.
+
+If the plain text format is used, this registration block is
+defined by (implemented only for A-REX):
+
+.B [registration/emir]
+
+If the xml format is used the same block is defined using a
+InfoRegister tag inside service configuration:
+
+.nf
+.B <Service>
+.RB \  <InfoRegister xmlns="http://www.nordugrid.org/schemas/infosys/2009/08"> ... </InfoRegister>
+.B </Service>
+.fi
+
+.TP
+.B emirurls
+Comma separated list of URLs of EMIR services.
+
+.IR Example :
+isisurls="https://index.myinstitute.org/emir, http://index.myvo.com/index"
+
+.TP
+.B validity
+For how long registration record to stay valid in the index service in seconds.
+Default is 10 minutes.
+
+.IR Example :
+validity="600"
+
+.TP
+.B period
+How often registration record is sent to the index service in seconds.
+Default is 1 minute.
+
+.IR Example :
+period="60"
+
+.TP
+.B diablereg_xbes
+If set to "yes" registartion of A-REX service is disabled. Default is "no".
+
+.IR Example :
+disablereg_xbes="no"
 
 .SH SEE ALSO
 

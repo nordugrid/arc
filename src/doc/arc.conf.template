@@ -1560,3 +1560,60 @@ gridmap="/etc/grid-security/queuename-gridmap"
 #cachetime="30"
 #timelimit="30"
 #sizelimit="5000"
+
+
+
+####################################################################
+#
+# [registration/isis]
+#
+# Services (a-rex) registration into ISIS block
+# configures and enables the registration process of a
+# services enabled in this configuration file into ISIS
+# indexing service.
+# Currently only implemented for A-REX.
+
+[registration/isis]
+
+# List of URL separated by comma of ISIS services which are to accept
+# registration. This is mandatory.
+isisurls="https://localhost:60003/isis"
+
+# Time in seconds for which registration records should stay valid.
+#validity="600"
+
+# Time in seconds how othen registration record should be sent to the 
+# registration service.
+#period=60
+
+# disablereg_xbes may be used to selectively disable registration of
+# A-REX service. Possible values are yes and no. Default is no,
+#disablereg_xbes="no"
+
+
+####################################################################
+#
+# [registration/emir]
+#
+# Services registration into EMIR block
+# configures and enables the registration process of a
+# services enabled in this configuration file into EMI
+# indexing service (EMIR).
+# Currently only implemented for A-REX.
+
+[registration/emir]
+
+# List of URL separated by comma of EMIR services which are to accept
+# registration. This is mandatory.
+emirurls="https://localhost:60002/emir"
+
+# Time in seconds for which registration records should stay valid.
+#validity=600
+
+# Time in seconds how othen registration record should be sent to the 
+# registration service.
+#period=60
+
+# disablereg_xbes may be used to selectively disable registration of
+# A-REX service. Possible values are yes and no. Default is no,
+#disablereg_xbes="no"
