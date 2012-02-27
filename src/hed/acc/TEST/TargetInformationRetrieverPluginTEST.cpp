@@ -6,6 +6,7 @@
 
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/ExecutionTarget.h>
+#include <arc/client/TestACCControl.h>
 
 #include "TargetInformationRetrieverPluginTEST.h"
 

@@ -1,9 +1,10 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/UserConfig.h>
+#include <arc/client/Endpoint.h>
 #include <arc/client/ExecutionTarget.h>
-
 #include <arc/client/TargetInformationRetriever.h>
+#include <arc/client/TestACCControl.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetInformationRetrieverTest");
 

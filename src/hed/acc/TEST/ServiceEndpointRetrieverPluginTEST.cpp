@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <arc/client/TestACCControl.h>
+
 #include "ServiceEndpointRetrieverPluginTEST.h"
 
 namespace Arc {

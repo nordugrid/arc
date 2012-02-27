@@ -8,8 +8,6 @@
 
 namespace Arc {
 
-  const std::string RegistryEndpoint::RegistryCapability = "information.discovery.registry";
-
   template<>
   const std::string EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
 
@@ -37,9 +35,5 @@ namespace Arc {
       EndpointRetriever<RegistryEndpoint, ServiceEndpoint>::addEndpoint(endpoint);
     }
   }
-
-  float ServiceEndpointRetrieverPluginTESTControl::delay = 0;
-  EndpointQueryingStatus ServiceEndpointRetrieverPluginTESTControl::status;
-  std::list<ServiceEndpoint> ServiceEndpointRetrieverPluginTESTControl::endpoints = std::list<ServiceEndpoint>();
 
 } // namespace Arc

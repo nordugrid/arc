@@ -38,5 +38,12 @@ void TargetRetrieverTestACCControl::addJob(Job job) {
   TargetRetrieverTestACCControl::foundJobs.push_back(job);
 }
 
+float TargetInformationRetrieverPluginTESTControl::delay = 0;
+std::list<ExecutionTarget> TargetInformationRetrieverPluginTESTControl::targets;
+EndpointQueryingStatus TargetInformationRetrieverPluginTESTControl::status;
+
+float ServiceEndpointRetrieverPluginTESTControl::delay = 0;
+EndpointQueryingStatus ServiceEndpointRetrieverPluginTESTControl::status;
+std::list<ServiceEndpoint> ServiceEndpointRetrieverPluginTESTControl::endpoints = std::list<ServiceEndpoint>();
 
 }

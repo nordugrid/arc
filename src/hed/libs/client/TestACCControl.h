@@ -5,6 +5,8 @@
 #include <string>
 
 #include <arc/URL.h>
+#include <arc/client/Endpoint.h>
+#include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
 #include <arc/client/TargetGenerator.h>
@@ -54,10 +56,10 @@ class TargetRetrieverTestACCControl {
     static TargetGenerator* tg;
     static std::list<ExecutionTarget> foundTargets;
     static std::list<Job> foundJobs;
-    
+
     static void addTarget(ExecutionTarget target);
     static void addJob(Job job);
-    
+
 };
 
 class JobStateTEST : public JobState {
@@ -66,6 +68,20 @@ class JobStateTEST : public JobState {
       type = type_;
       state = state_;
     }
+};
+
+class ServiceEndpointRetrieverPluginTESTControl {
+public:
+  static float delay;
+  static EndpointQueryingStatus status;
+  static std::list<ServiceEndpoint> endpoints;
+};
+
+class TargetInformationRetrieverPluginTESTControl {
+public:
+  static float delay;
+  static std::list<ExecutionTarget> targets;
+  static EndpointQueryingStatus status;
 };
 
 }
