@@ -63,7 +63,7 @@ class ARexService: public Arc::RegisteredService {
   Arc::Logger logger_;
   DelegationStores delegation_stores_;
   OptimizedInformationContainer infodoc_;
-  Arc::InfoRegisters inforeg_;
+  //Arc::InfoRegisters inforeg_;
   CountedResource infolimit_;
   CountedResource beslimit_;
   CountedResource datalimit_;
