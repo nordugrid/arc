@@ -328,7 +328,7 @@ namespace AuthN {
     return private_key_info.Export(output);
   }
 
-  bool nssGetCredential(const std::string& certname, X509** x509, RSA** rsa) {
+  bool nssExportCertificate(const std::string& certname, const std::string& certfile) {
     CERTCertList* list;
     CERTCertificate* find_cert = NULL;
     CERTCertListNode* node;
@@ -354,7 +354,12 @@ namespace AuthN {
       NSSUtilLogger.msg(INFO, "Succeeded to get credential");
     else { NSSUtilLogger.msg(ERROR, "Failed to get credential"); return false; }
 
-    output_cert(find_cert, true, PR_STDOUT);
+    PRFileDesc* out = NULL;
+    out = PR_Open(certfile.c_str(), PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE, 00660);
+    output_cert(find_cert, true, out);
+    PR_Close(out);
+
+/*
     char* passwd  = "secretpw";
     if (find_cert->slot) {
       SECKEYPrivateKey* privKey = PK11_FindKeyByDERCert(find_cert->slot, find_cert, passwd);
@@ -391,7 +396,7 @@ namespace AuthN {
     }
     else
       NSSUtilLogger.msg(INFO, "The certificate is without slot.");
-
+*/
     return true;
   }
 
@@ -1765,10 +1770,12 @@ err:
     SECItem result;
     PRFileDesc* out = NULL;
 
-    name = CERT_AsciiToName((char*)(dn.c_str()));
-    if(name == NULL) {
-      NSSUtilLogger.msg(ERROR, "Failed to create subject name");
-      return false;
+    if(!dn.empty()) {
+      name = CERT_AsciiToName((char*)(dn.c_str()));
+      if(name == NULL) {
+        NSSUtilLogger.msg(ERROR, "Failed to create subject name");
+        return false;
+      }
     }
 
     //Remove the existing private key and related cert in nss db

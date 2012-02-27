@@ -1,7 +1,5 @@
 
 #include <string>
-#include <openssl/x509.h>
-#include <openssl/rsa.h>
 
 namespace AuthN {
 
@@ -11,7 +9,7 @@ namespace AuthN {
    */
   bool nssInit(const std::string& configdir);  
 
-  bool nssGetCredential(const std::string& certname, X509** x509, RSA** rsa);
+  bool nssExportCertificate(const std::string& certname, const std::string& certfile);
 
   bool nssOutputPKCS12(const std::string certname, char* outfile, char* slotpw, char* p12pw);
 

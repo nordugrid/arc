@@ -39,6 +39,8 @@
 
 #include <openssl/ui.h>
 
+#include "../../hed/libs/credential/nssutil.h"
+
 using namespace ArcCredential;
 
 static int create_proxy_file(const std::string& path) {
@@ -209,6 +211,56 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
   return s;
 }
 
+static std::string get_nssdb_path() {
+  std::string nss_path;
+  const Arc::User user;
+#ifndef WIN32
+  std::string home_path = user.Home();
+#else
+  std::string home_path = Glib::get_home_dir();
+#endif
+  std::string ff_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
+
+  struct stat st;
+  if(::stat(ff_home.c_str(),&st) != 0) return std::string();
+  if(!S_ISDIR(st.st_mode)) return std::string(); 
+  if(user.get_uid() != st.st_uid) return std::string();
+
+  std::string ff_profile = ff_home + G_DIR_SEPARATOR_S "profiles.ini";
+
+  if(::stat(ff_profile.c_str(),&st) != 0) return std::string(); 
+  if(!S_ISREG(st.st_mode)) return std::string(); 
+  if(user.get_uid() != st.st_uid) return std::string();
+
+  std::ifstream in_f(ff_profile.c_str());
+  std::string profile_ini;
+  bool is_relative = true;
+  std::string path;
+  std::getline<char>(in_f, profile_ini, '\0');
+
+  std::list<std::string> lines;
+  Arc::tokenize(profile_ini, lines, "\n");
+  for (std::list<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
+    std::vector<std::string> inivalue;
+    Arc::tokenize(*i, inivalue, "=");
+    if (inivalue.size() == 2) {
+      if (inivalue[0] == "IsRelative") {
+        if(inivalue[1] == "1") is_relative = true;
+        else is_relative = false;
+      }
+      if (inivalue[0] == "Path") path = inivalue[1];
+    }
+  }
+  if(is_relative) nss_path = ff_home + G_DIR_SEPARATOR_S + path;
+  else nss_path = path;
+
+  if(::stat(nss_path.c_str(),&st) != 0) return std::string();
+  if(!S_ISDIR(st.st_mode)) return std::string();
+  if(user.get_uid() != st.st_uid) return std::string();
+
+  return nss_path; 
+} 
+
 int main(int argc, char *argv[]) {
 
   setlocale(LC_ALL, "");
@@ -333,6 +385,9 @@ int main(int argc, char *argv[]) {
   options.AddOption('c', "constraint", istring("proxy constraints"),
                     istring("string"), constraintlist);
 
+  bool use_nssdb = false;
+  options.AddOption('F', "nssdb", istring("use NSS credential db in firefox profile"), use_nssdb);
+
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
                     istring("seconds"), timeout);
@@ -355,6 +410,71 @@ int main(int argc, char *argv[]) {
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
+    return EXIT_SUCCESS;
+  }
+
+  //Using nss db dominate other option
+  if(use_nssdb) {
+    std::string nssdb_path = get_nssdb_path();
+    if(nssdb_path.empty()) {
+      std::cout << Arc::IString("The nss db can not be detected under firefox profile") << std::endl;
+      return EXIT_FAILURE;
+    }
+    bool res;
+    std::string configdir = nssdb_path;
+    res = AuthN::nssInit(configdir);
+    std::cout<< Arc::IString("nss db to be accesses: %s\n", configdir.c_str());
+
+    char* slotpw = NULL; //"secretpw"; 
+    //The nss db under firefox profile seems to not be protected by any passphrase by default
+    bool ascii = true;
+    char* trusts = "p,p,p";
+
+    std::string proxy_csrfile = "proxy.csr";
+    std::string proxy_keyname = "proxykey";
+    std::string proxy_privk_str;
+    res = AuthN::nssGenerateCSR(proxy_keyname, "CN=Test,OU=ARC,O=EMI", slotpw, proxy_csrfile, proxy_privk_str, ascii);
+    if(!res) return EXIT_FAILURE;
+
+    std::string proxy_certfile = "myproxy.pem";
+    std::string issuername = "Imported Certificate";
+    //The name of the certificate imported in firefox is 
+    //normally "Imported Certificate" by default, if name is not specified
+    int duration = 12;
+    res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, proxy_certfile, ascii);
+    if(!res) return EXIT_FAILURE;
+
+    char* proxy_certname = "proxycert";
+    res = AuthN::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
+    if(!res) return EXIT_FAILURE;
+
+    //Compose the proxy certificate 
+    if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
+    Arc::UserConfig usercfg(conffile,
+        Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
+    if (!usercfg) {
+      logger.msg(Arc::ERROR, "Failed configuration initialization.");
+      return EXIT_FAILURE;
+    }
+    if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
+    usercfg.ProxyPath(proxy_path);
+    std::string cert_file = "cert.pem";
+    res = AuthN::nssExportCertificate(issuername, cert_file);
+    if(!res) return EXIT_FAILURE;
+
+    std::string proxy_cred_str;
+    std::ifstream proxy_s(proxy_certfile.c_str());
+    std::getline(proxy_s, proxy_cred_str,'\0');
+    proxy_s.close();
+
+    std::string eec_cert_str;
+    std::ifstream eec_s(cert_file.c_str());
+    std::getline(eec_s, eec_cert_str,'\0');
+    eec_s.close();
+
+    proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
+    write_proxy_file(proxy_path, proxy_cred_str);
+
     return EXIT_SUCCESS;
   }
 
