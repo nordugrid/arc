@@ -393,6 +393,14 @@ namespace Arc {
     bool operator!(void) const {
       return ((object_->ptr()) == NULL);
     }
+    /// Returns true if pointers are equal
+    bool operator==(const ThreadedPointer& p) const {
+      return ((T*)(object_->ptr()) == (T*)(p.object_->ptr()));
+    }
+    /// Returns true if pointers are not equal
+    bool operator!=(const ThreadedPointer& p) const {
+      return ((T*)(object_->ptr()) != (T*)(p.object_->ptr()));
+    }
     /// Comparison operator
     bool operator<(const ThreadedPointer& p) const {
       return ((T*)(object_->ptr()) < (T*)(p.object_->ptr()));

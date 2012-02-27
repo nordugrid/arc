@@ -182,6 +182,14 @@ namespace Arc {
     bool operator!(void) const {
       return ((object->ptr) == NULL);
     }
+    /// Returns true if pointers are equal
+    bool operator==(const CountedPointer& p) const {
+      return ((object->ptr) == (p.object->ptr));
+    }
+    /// Returns true if pointers are not equal
+    bool operator!=(const CountedPointer& p) const {
+      return ((object->ptr) != (p.object->ptr));
+    }
     /// Comparison operator
     bool operator<(const CountedPointer& p) const {
       return ((object->ptr) < (p.object->ptr));
