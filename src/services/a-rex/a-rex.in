@@ -283,11 +283,13 @@ prepare() {
     if [ ! -z "$arex_mount_point" ]; then
         emir_urls=`readconfigvar "$ARC_CONFIG" "registration/emir" emirurls`
         if [ ! -z "$emir_urls" ]; then
-            emir_validity=`readconfigvar "$ARC_CONFIG" "registration/emir" validity`
-            emir_period=`readconfigvar "$ARC_CONFIG" "registration/emir" period`
             emir_xbes=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_xbes`
             emir_emies=`readconfigvar "$ARC_CONFIG" "registration/emir" disablereg_emies`
             if [ ! "$emir_xbes" = "no" ]; then
+                emir_validity=`readconfigvar "$ARC_CONFIG" "registration/emir" validity`
+                if [ -z "$emir_validity" ]; then emir_validity="600"; fi
+                emir_period=`readconfigvar "$ARC_CONFIG" "registration/emir" period`
+                if [ -z "$emir_period" ]; then emir_period="60"; fi
                 emir_urls=`echo "$emir_urls" | sed ':loop;s/, */<\/URL><URL>EMIREG:/;t loop'`
                 emir_urls="<URL>EMIREG:$emir_urls</URL>"
                 emir_registration="\
@@ -301,6 +303,39 @@ prepare() {
     <Endpoint>$arex_mount_point</Endpoint>
     <Expiration>$emir_validity</Expiration>
     <Period>$emir_period</Period>
+    <KeyPath>$X509_USER_KEY</KeyPath>
+    <CertificatePath>$X509_USER_CERT</CertificatePath>
+    <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
+  </Registrar>
+</InfoRegister>"
+            fi
+        fi
+    fi
+
+    isis_registration=""
+    if [ ! -z "$arex_mount_point" ]; then
+        isis_urls=`readconfigvar "$ARC_CONFIG" "registration/isis" isisurls`
+        if [ ! -z "$isis_urls" ]; then
+            isis_xbes=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_xbes`
+            isis_emies=`readconfigvar "$ARC_CONFIG" "registration/isis" disablereg_emies`
+            if [ ! "$isis_xbes" = "no" ]; then
+                isis_validity=`readconfigvar "$ARC_CONFIG" "registration/isis" validity`
+                if [ -z "$isis_validity" ]; then isis_validity="600"; fi
+                isis_period=`readconfigvar "$ARC_CONFIG" "registration/isis" period`
+                if [ -z "$isis_period" ]; then isis_period="60"; fi
+                isis_urls=`echo "$isis_urls" | sed ':loop;s/, */<\/URL><URL>ISIS:/;t loop'`
+                isis_urls="<URL>ISIS:$isis_urls</URL>"
+                isis_registration="\
+<InfoRegister xmlns=\"http://www.nordugrid.org/schemas/InfoRegisterConfig/2008\">
+  <Endpoint>$arex_mount_point</Endpoint>
+  <Expiration>$isis_validity</Expiration>
+  <Period>$isis_period</Period>
+  <Registrar>
+    $isis_urls
+    <Retry>10</Retry>
+    <Endpoint>$arex_mount_point</Endpoint>
+    <Expiration>$isis_validity</Expiration>
+    <Period>$isis_period</Period>
     <KeyPath>$X509_USER_KEY</KeyPath>
     <CertificatePath>$X509_USER_CERT</CertificatePath>
     <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
@@ -490,6 +525,7 @@ prepare() {
       $arex_endpoint
       $enable_emies_interface
       $emir_registration
+      $isis_registration
       <arex:gmconfig>$ARC_CONFIG</arex:gmconfig>
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
