@@ -18,8 +18,9 @@
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/client/TestACCControl.h>
+#include <arc/client/Endpoint.h>
 #include <arc/client/EndpointQueryingStatus.h>
+#include <arc/client/TestACCControl.h>
 #include <arc/client/EndpointRetriever.h>
 #include <arc/client/ServiceEndpointRetriever.h>
 #include <arc/client/TargetInformationRetriever.h>
@@ -130,8 +131,9 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
-%include "../src/hed/libs/client/TestACCControl.h"
+%include "../src/hed/libs/client/Endpoint.h"
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
+%include "../src/hed/libs/client/TestACCControl.h"
 %include "../src/hed/libs/client/EndpointRetriever.h"
 #ifdef SWIGJAVA
 %rename(waitUntilDone) wait;
@@ -161,14 +163,14 @@ namespace Arc {
 class StaticPropertyWrapper(object):
     def __init__(self, wrapped_class):
         object.__setattr__(self, "wrapped_class", wrapped_class)
-        
+
     def __getattr__(self, name):
         orig_attr = getattr(self.wrapped_class, name)
         if isinstance(orig_attr, property):
             return orig_attr.fget()
         else:
             return orig_attr
-            
+
     def __setattr__(self, name, value):
         orig_attr = getattr(self.wrapped_class, name)
         if isinstance(orig_attr, property):
