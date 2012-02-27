@@ -39,7 +39,9 @@
 
 #include <openssl/ui.h>
 
+#ifdef HAVE_NSS
 #include "../../hed/libs/credential/nssutil.h"
+#endif
 
 using namespace ArcCredential;
 
@@ -211,6 +213,7 @@ static std::string tokens_to_string(std::vector<std::string> tokens) {
   return s;
 }
 
+#ifdef HAVE_NSS
 static std::string get_nssdb_path() {
   std::string nss_path;
   const Arc::User user;
@@ -260,6 +263,7 @@ static std::string get_nssdb_path() {
 
   return nss_path; 
 } 
+#endif
 
 int main(int argc, char *argv[]) {
 
@@ -385,8 +389,10 @@ int main(int argc, char *argv[]) {
   options.AddOption('c', "constraint", istring("proxy constraints"),
                     istring("string"), constraintlist);
 
+#ifdef HAVE_NSS
   bool use_nssdb = false;
   options.AddOption('F', "nssdb", istring("use NSS credential db in firefox profile"), use_nssdb);
+#endif
 
   int timeout = -1;
   options.AddOption('t', "timeout", istring("timeout in seconds (default 20)"),
@@ -413,6 +419,7 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
+#ifdef HAVE_NSS
   //Using nss db dominate other option
   if(use_nssdb) {
     std::string nssdb_path = get_nssdb_path();
@@ -428,7 +435,7 @@ int main(int argc, char *argv[]) {
     char* slotpw = NULL; //"secretpw"; 
     //The nss db under firefox profile seems to not be protected by any passphrase by default
     bool ascii = true;
-    char* trusts = "p,p,p";
+    const char* trusts = "p,p,p";
 
     std::string proxy_csrfile = "proxy.csr";
     std::string proxy_keyname = "proxykey";
@@ -444,7 +451,7 @@ int main(int argc, char *argv[]) {
     res = AuthN::nssCreateCert(proxy_csrfile, issuername, "", duration, proxy_certfile, ascii);
     if(!res) return EXIT_FAILURE;
 
-    char* proxy_certname = "proxycert";
+    const char* proxy_certname = "proxycert";
     res = AuthN::nssImportCert(slotpw, proxy_certfile, proxy_certname, trusts, ascii);
     if(!res) return EXIT_FAILURE;
 
@@ -477,6 +484,7 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
   }
+#endif
 
   // If debug is specified as argument, it should be set before loading the configuration.
   if (!debug.empty())
