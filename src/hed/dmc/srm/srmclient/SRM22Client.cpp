@@ -1026,6 +1026,17 @@ namespace Arc {
 
     for (XMLNode details = res["details"]["pathDetailArray"]; details; ++details, ++surl) {
 
+      // With Storm and offset and count set files are reported at this level
+      // rather than in arrayOfSubPaths, so check whether we are really listing
+      // a large number of surls
+      if (surls.size() < creq.offset() && surl != surls.begin()) --surl;
+
+      if (surl == surls.end()) {
+        // Something bad happened with the parsing
+        logger.msg(WARNING, "Failure in parsing response from server - "
+                   "some information may be inaccurate");
+        break;
+      }
       SRMStatusCode filestatuscode = GetStatus(details["status"], explanation);
       if (filestatuscode != SRM_SUCCESS) {
         logger.msg(ERROR, "%s: %s", *surl, explanation);
@@ -1074,6 +1085,7 @@ namespace Arc {
             list_req.long_list(creq.long_list());
             list_req.offset(max_files_list * list_no);
             list_req.count(max_files_list);
+            list_req.recursion(creq.recursion());
             SRMReturnCode res = info(list_req, list_metadata);
             if (res != SRM_OK) {
               delete response;
