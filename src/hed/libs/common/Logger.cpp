@@ -480,6 +480,7 @@ namespace Arc {
     for(std::list<LogDestination*>::iterator dest = destinations.begin();
                             dest != destinations.end();) {
       delete *dest;
+      *dest = NULL;
       dest = destinations.erase(dest);
     }
   }
