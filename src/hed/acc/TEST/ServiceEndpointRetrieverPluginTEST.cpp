@@ -8,11 +8,11 @@
 
 namespace Arc {
 
-Plugin* ServiceEndpointRetrieverTEST::Instance(PluginArgument* arg) {
-  return new ServiceEndpointRetrieverTEST();
+Plugin* ServiceEndpointRetrieverPluginTEST::Instance(PluginArgument* arg) {
+  return new ServiceEndpointRetrieverPluginTEST();
 }
 
-EndpointQueryingStatus ServiceEndpointRetrieverTEST::Query(const UserConfig& userconfig,
+EndpointQueryingStatus ServiceEndpointRetrieverPluginTEST::Query(const UserConfig& userconfig,
                                                           const RegistryEndpoint& registry,
                                                           std::list<ServiceEndpoint>& endpoints,
                                                           const EndpointFilter<ServiceEndpoint>&) const {
