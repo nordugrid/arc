@@ -38,7 +38,7 @@ class InfoRegister {
         Service *service_;
         NS ns_;
     public:
-        InfoRegister(XMLNode &node, Service *service_);
+        InfoRegister(XMLNode node, Service *service_);
         ~InfoRegister();
         operator bool(void) { return service_; };
         bool operator!(void) { return !service_; };
@@ -55,11 +55,13 @@ class InfoRegisters {
         std::list<InfoRegister*> registers_;
     public:
         /// Constructor creates InfoRegister objects according to configuration
-        /** Inside cfg elements InfoRegistration are found and for each
+        /** Inside cfg elements InfoRegister are found and for each
            corresponding InfoRegister object is created. Those objects 
            are destroyed in destructor of this class. */
-        InfoRegisters(XMLNode &cfg, Service *service_);
+        InfoRegisters(XMLNode cfg, Service *service);
         ~InfoRegisters(void);
+        /// Dinamically add one more InfoRegister object
+        bool addRegister(XMLNode cfg, Service *service);
 };
 
 // Data stucture for the InfoRegistrar class.
@@ -156,7 +158,7 @@ class InfoRegistrar {
         /// Adds new service to list of handled services.
         /** Service is described by it's InfoRegister object
           which must be valid as long as this object is functional. */
-        bool addService(InfoRegister*, XMLNode&);
+        bool addService(InfoRegister*, XMLNode);
         /// Removes service from list of handled services.
         bool removeService(InfoRegister*);
         const std::string& id(void) { return id_; };

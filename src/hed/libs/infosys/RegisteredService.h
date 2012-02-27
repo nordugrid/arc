@@ -16,7 +16,7 @@ namespace Arc {
 class RegisteredService: public Service
 {
     private:
-        InfoRegister inforeg;
+        InfoRegisters inforeg;
 
     public:
         /** Example contructor - Server takes at least it's configuration subtree */

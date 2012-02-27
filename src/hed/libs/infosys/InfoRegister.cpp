@@ -28,47 +28,58 @@ static void reg_thread(void *data) {
 
 // -------------------------------------------------------------------
 
-InfoRegister::InfoRegister(XMLNode &cfg, Service *service):reg_period_(0),service_(service) {
+InfoRegister::InfoRegister(XMLNode cfg, Service *service):reg_period_(0),service_(service) {
+    reg_period_ = -1;
+
     ns_["isis"] = ISIS_NAMESPACE;
     ns_["glue2"] = GLUE2_D42_NAMESPACE;
     ns_["register"] = REGISTRATION_NAMESPACE;
 
+    if(!cfg) return;
+    if(cfg.Name() != "InfoRegister") {
+      if ( bool(cfg["NoRegister"])) return;
+      cfg = cfg["InfoRegister"];
+    }
+    if(!cfg) return;
+
     // parse config
-    std::string s_reg_period = (std::string)cfg["InfoRegister"]["Period"];
+    std::string s_reg_period = (std::string)cfg["Period"];
     if (!s_reg_period.empty()) {
         Period p(s_reg_period);
         reg_period_ = p.GetPeriod();
         if (reg_period_ < 120)
             reg_period_ = 120;
-    } else {
-        reg_period_ = -1;
     }
-    std::string s_serviceid = (std::string)cfg["InfoRegister"]["ServiceID"];
+    std::string s_serviceid = (std::string)cfg["ServiceID"];
     if (!s_serviceid.empty()) {
         serviceid = s_serviceid;
     }
-    if ((bool)cfg["InfoRegister"]["Endpoint"])
-        endpoint = (std::string)cfg["InfoRegister"]["Endpoint"];
-    if ((bool)cfg["InfoRegister"]["Expiration"]) {
-        expiration = (std::string)cfg["InfoRegister"]["Expiration"];
+    if ((bool)cfg["Endpoint"])
+        endpoint = (std::string)cfg["Endpoint"];
+    if ((bool)cfg["Expiration"]) {
+        expiration = (std::string)cfg["Expiration"];
         Period p(expiration);
         if (p.GetPeriod() < 120) expiration = "PT2M";
     }
 
     //VERBOSE//
-    std::string configuration_string;
-    XMLNode temp;
-    cfg.New(temp);
-    temp.GetDoc(configuration_string, true);
-    logger_.msg(VERBOSE, "InfoRegister created with config:\n%s", configuration_string);
+    {
+      std::string configuration_string;
+      cfg.GetXML(configuration_string, true);
+      logger_.msg(VERBOSE, "InfoRegister created with config:\n%s", configuration_string);
+    }
 
     // Add service to registration list. Optionally only for
     // registration through specific registrants.
     std::list<std::string> ids;
-    for(XMLNode r = cfg["InfoRegister"]["Registrar"];(bool)r;++r) {
+    for(XMLNode r = cfg["Registrar"];(bool)r;++r) {
       std::string id = (std::string) r["URL"];
-      if(!id.empty()) ids.push_back(id);
-      else logger_.msg(WARNING, "Discarding Registrar because the \"URL\" element is missing or empty.");
+      if(!id.empty()) {
+        ids.push_back(id);
+        logger_.msg(VERBOSE, "InfoRegister to be registered in Registrar %s", id);
+      } else {
+        logger_.msg(WARNING, "Discarding Registrar because the \"URL\" element is missing or empty.");
+      };
     };
     InfoRegisterContainer::Instance().addService(this,ids,cfg);
 }
@@ -127,7 +138,7 @@ void InfoRegisterContainer::addService(InfoRegister* reg,const std::list<std::st
         if (!id_found) {
             // id appears at first time - InfoRegistrar need to be created
             logger_.msg(VERBOSE, "InfoRegistrar id \"%s\" was not found. New registrar created", (*i));
-            for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
+            for(XMLNode node = cfg["Registrar"];(bool)node;++node) {
                 if ((*i) == (std::string)node["URL"]) {
                     InfoRegistrar *r = addRegistrar(node);
                     if (r != NULL) r->addService(reg, cfg);
@@ -198,23 +209,23 @@ InfoRegistrar::InfoRegistrar(XMLNode cfg):stretch_window("PT20S"), already_regis
     creation_time = ctime;
 }
 
-bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
-    if ( bool(cfg["NoRegister"]) || !bool(cfg["InfoRegister"])){
+bool InfoRegistrar::addService(InfoRegister* reg, XMLNode cfg) {
+    if (!bool(cfg)){
        logger_.msg(VERBOSE, "The service won't be registered.");
        return true;
     }
 
-    if (!(bool)cfg["InfoRegister"]["Period"] ) {
+    if (!(bool)cfg["Period"] ) {
        logger_.msg(ERROR, "Configuration error. Missing mandatory \"Period\" element.");
        return false;
     }
 
-    if (!(bool)cfg["InfoRegister"]["Endpoint"] ) {
+    if (!(bool)cfg["Endpoint"] ) {
        logger_.msg(ERROR, "Configuration error. Missing mandatory \"Endpoint\" element.");
        return false;
     }
 
-    if (!(bool)cfg["InfoRegister"]["Expiration"] ) {
+    if (!(bool)cfg["Expiration"] ) {
        logger_.msg(ERROR, "Configuration error. Missing mandatory \"Expiration\" element.");
        return false;
     }
@@ -222,7 +233,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     for(std::list<Register_Info_Type>::iterator r = reg_.begin();
                                            r!=reg_.end();++r) {
         if(reg == r->p_register) {
-            logger_.msg(VERBOSE, "Service was already registered to the InfoRegistrar connecting to infosys %s.", myISIS.url);
+            logger_.msg(VERBOSE, "Service was already registered to the InfoRegistrar connecting to infosys %s.", id_);
             return false;
         }
     }
@@ -233,7 +244,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
     std::string current_expiration = reg->getExpiration();
     std::string current_endpoint = reg->getEndpoint();
     Period period(reg->getPeriod());
-    for(XMLNode node = cfg["InfoRegister"]["Registrar"];(bool)node;++node) {
+    for(XMLNode node = cfg["Registrar"];(bool)node;++node) {
         if ( (std::string)node["URL"] == id_ ) {
             if (! ((std::string)node["Period"]).empty() ) {
                 Period current_period((std::string)node["Period"]);
@@ -258,7 +269,7 @@ bool InfoRegistrar::addService(InfoRegister* reg, XMLNode& cfg) {
 
     reg_info.next_registration = creation_time.GetTime();
     reg_.push_back(reg_info);
-    logger_.msg(VERBOSE, "Service is successfully added to the InfoRegistrar connecting to infosys %s.", myISIS.url);
+    logger_.msg(VERBOSE, "Service is successfully added to the InfoRegistrar connecting to infosys %s.", id_);
     return true;
 }
 
@@ -305,7 +316,6 @@ void InfoRegistrar::sendDeleteToISIS(std::list<Register_Info_Type>::iterator r) 
     op.NewChild("MessageGenerationTime") = out.str();
 
     // send
-    PayloadSOAP *response;
     MCCConfig mcc_cfg;
     ISIS_description usedISIS = getISIS();
     if (!key_.empty())
@@ -322,19 +332,22 @@ void InfoRegistrar::sendDeleteToISIS(std::list<Register_Info_Type>::iterator r) 
 
     int retry_ = retry;
     while ( retry_ >= 1 ){
+        PayloadSOAP *response = NULL;
         ClientSOAP cli(mcc_cfg,Arc::URL(usedISIS.url),60);
         MCC_Status status = cli.process(&request, &response);
 
-        std::string response_string;
-        (*response).GetDoc(response_string, true);
-        logger_.msg(VERBOSE, "Response from the ISIS: %s", response_string);
+        if(response) {
+          std::string response_string;
+          (*response).GetXML(response_string, true);
+          logger_.msg(VERBOSE, "Response from the ISIS: %s", response_string);
+        }
 
-        if ((!status.isOk()) ||
-            (!response)) {
+        if ((!status.isOk()) || (!response)) {
             logger_.msg(ERROR, "Failed to remove registration from %s ISIS )", usedISIS.url);
         } else {
             if(!(bool)(*response)["RemoveRegistrationResponseElement"])  {
-                logger_.msg(VERBOSE, "Successful removed registration from ISIS (%s)", usedISIS.url);
+                logger_.msg(VERBOSE, "Successfuly removed registration from ISIS (%s)", usedISIS.url);
+                delete response;
                 break;
             } else {
                 int i=0;
@@ -346,7 +359,9 @@ void InfoRegistrar::sendDeleteToISIS(std::list<Register_Info_Type>::iterator r) 
             }
          }
          retry_--;
-         logger_.msg(VERBOSE, "Retry connecting to the ISIS (%s) %d. time(s).", usedISIS.url, retry-retry_);
+         logger_.msg(VERBOSE, "Retry connecting to the ISIS (%s) %d time(s).", usedISIS.url, retry-retry_);
+         delete response;
+         sleep(1);
     }
 
     if (retry_ == 0 )
@@ -354,13 +369,12 @@ void InfoRegistrar::sendDeleteToISIS(std::list<Register_Info_Type>::iterator r) 
 
     reg_.erase(r);
 
-    logger_.msg(VERBOSE, "Service removed from InfoRegistrar connecting to infosys %s.", myISIS.url);
+    logger_.msg(VERBOSE, "Service removed from InfoRegistrar connecting to infosys %s.", id_);
 }
 
 void InfoRegistrar::sendDeleteToEMIREG(std::list<Register_Info_Type>::iterator r) {
     // send
     PayloadRaw http_request;
-    PayloadRawInterface *http_response = NULL;
     HTTPClientInfo http_info;
     std::multimap<std::string, std::string> http_attributes;
     http_attributes.insert( std::pair<std::string, std::string>("Accept","text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2"));
@@ -381,20 +395,23 @@ void InfoRegistrar::sendDeleteToEMIREG(std::list<Register_Info_Type>::iterator r
 
     int retry_ = retry;
     while ( retry_ >= 1 ){
+        PayloadRawInterface *http_response = NULL;
         Arc::ClientHTTP cli(mcc_cfg, service_url);
         MCC_Status status = cli.process("DELETE", http_attributes, &http_request, &http_info, &http_response);
 
-        if ((!status.isOk()) ||
-            (!http_response)) {
+        if ((!status.isOk()) || (!http_response)) {
             logger_.msg(ERROR, "Failed to remove registration from %s EMIRegistry )", id_);
         } else {
             if(http_info.code == 200)  {
-                logger_.msg(VERBOSE, "Successful removed registration from EMIRegistry (%s)", id_);
+                logger_.msg(VERBOSE, "Successfuly removed registration from EMIRegistry (%s)", id_);
+                delete http_response;
                 break;
             }
          }
          retry_--;
-         logger_.msg(VERBOSE, "Retry connecting to the EMIRegistry (%s) %d. time(s).", id_, retry-retry_);
+         logger_.msg(VERBOSE, "Retry connecting to the EMIRegistry (%s) %d time(s).", id_, retry-retry_);
+         delete http_response;
+         sleep(1);
     }
 
     if (retry_ == 0 )
@@ -573,7 +590,6 @@ void InfoRegistrar::sendRegistrationToISIS() {
             }
 
             // send
-            PayloadSOAP *response;
             MCCConfig mcc_cfg;
             if (!key_.empty())
                 mcc_cfg.AddPrivateKey(key_);
@@ -595,6 +611,7 @@ void InfoRegistrar::sendRegistrationToISIS() {
 
             int retry_ = retry;
             while ( retry_ >= 1 ) {
+                PayloadSOAP *response = NULL;
                 ClientSOAP cli(mcc_cfg,Arc::URL(usedISIS.url),60);
                 MCC_Status status = cli.process(&request, &response);
 
@@ -608,19 +625,21 @@ void InfoRegistrar::sendRegistrationToISIS() {
 
                     if(!fault)  {
                         std::string response_string;
-                        (*response)["RegisterResponse"].GetDoc(response_string, true);
+                        (*response)["RegisterResponse"].GetXML(response_string, true);
                         logger_.msg(VERBOSE, "Response from the ISIS: %s", response_string);
 
                         logger_.msg(VERBOSE, "Successful registration to ISIS (%s)", isis_name);
+                        delete response;
                         break;
                     } else {
                         logger_.msg(VERBOSE, "Failed to register to ISIS (%s) - %s", isis_name, std::string(fault["Description"]));
                     }
                 }
                 retry_--;
-                logger_.msg(VERBOSE, "Retry connecting to the ISIS (%s) %d. time(s).", isis_name, retry-retry_);
+                logger_.msg(VERBOSE, "Retry connecting to the ISIS (%s) %d time(s).", isis_name, retry-retry_);
+                delete response;
+                sleep(1);
             }
-            if (response) delete response;
 
             if ( retry_ == 0 )
                 removeISIS(usedISIS);
@@ -766,7 +785,6 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
 
             // send
             PayloadRaw http_request;
-            PayloadRawInterface *http_response = NULL;
             HTTPClientInfo http_info;
             std::multimap<std::string, std::string> http_attributes;
 
@@ -871,6 +889,7 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
 
             int retry_ = retry;
             while ( retry_ >= 1 ) {
+                PayloadRawInterface *http_response = NULL;
                 MCC_Status status = httpclient.process( already_registered ? "PUT" : "POST", http_attributes, &http_request, &http_info, &http_response);
 
                 // multiple tries
@@ -879,8 +898,8 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                     logger_.msg(ERROR, "Error during %s to %s EMIRegistry", method, id_);
                 } else {
                     if( http_info.code == 200 )  {
-                        std::string response_string;
                         logger_.msg(VERBOSE, "Successful %s to EMIRegistry (%s)", method, id_);
+                        delete http_response;
                         break;
                     } else {
                         std::string method2 = already_registered ? "update" : "register";
@@ -888,9 +907,10 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
                     }
                 }
                 retry_--;
-                logger_.msg(VERBOSE, "Retry connecting to the EMIRegistry (%s) %d. time(s).", id_, retry-retry_);
+                logger_.msg(VERBOSE, "Retry connecting to the EMIRegistry (%s) %d time(s).", id_, retry-retry_);
+                delete http_response;
+                sleep(1);
             }
-            if (http_response) delete http_response;
         }
         already_registered = true;
         // end of the connection with the EMIRegistry
@@ -914,12 +934,13 @@ void InfoRegistrar::sendRegistrationToEMIREG() {
 
 // -------------------------------------------------------------------
 
-InfoRegisters::InfoRegisters(XMLNode &cfg, Service *service) {
+InfoRegisters::InfoRegisters(XMLNode cfg, Service *service) {
     if(!service) return;
     NS ns;
     ns["iregc"]=REGISTRATION_CONFIG_NAMESPACE;
     cfg.Namespaces(ns);
-    for(XMLNode node = cfg["iregc:InfoRegistration"];(bool)node;++node) {
+    if ( bool(cfg["iregc:NoRegister"])) return;
+    for(XMLNode node = cfg["iregc:InfoRegister"];(bool)node;++node) {
         registers_.push_back(new InfoRegister(node,service));
     }
 }
@@ -928,6 +949,11 @@ InfoRegisters::~InfoRegisters(void) {
     for(std::list<InfoRegister*>::iterator i = registers_.begin();i!=registers_.end();++i) {
         if(*i) delete (*i);
     }
+}
+
+bool InfoRegisters::addRegister(XMLNode cfg, Service *service) {
+    registers_.push_back(new InfoRegister(cfg,service));
+    return true;
 }
 
 // -------------------------------------------------------------------
