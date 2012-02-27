@@ -435,7 +435,7 @@ int main(int argc, char *argv[]) {
     char* slotpw = NULL; //"secretpw"; 
     //The nss db under firefox profile seems to not be protected by any passphrase by default
     bool ascii = true;
-    char* trusts = "p,p,p";
+    const char* trusts = "p,p,p";
 
     std::string proxy_csrfile = "proxy.csr";
     std::string proxy_keyname = "proxykey";
