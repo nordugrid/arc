@@ -18,7 +18,12 @@
 /// DataStaging contains all components for data transfer scheduling and execution.
 namespace DataStaging {
 
-  // A ThreadedPointer is used so the Logger can be used outside the DTR object
+  class DTR;
+
+  /// Provides automatic memory management of DTRs and thread-safe destruction.
+  typedef Arc::ThreadedPointer<DTR> DTR_ptr;
+
+  /// The DTR's Logger object can be used outside the DTR object with DTRLogger.
   typedef Arc::ThreadedPointer<Arc::Logger> DTRLogger;
 
   /// Components of the data staging framework
@@ -76,8 +81,6 @@ namespace DataStaging {
     CACHE_NOT_USED         ///< Cache was started but was not used
   };
   	
-  class DTR;
-
   /// The base class from which all callback-enabled classes should be derived.
   /**
    * This class is a container for a callback method which is called when a
@@ -90,12 +93,11 @@ namespace DataStaging {
       /** Empty virtual destructor */
       virtual ~DTRCallback() {};
       /**
-       * Defines the callback method called when a DTR is pushed to
-       * this object. Note that the DTR object is passed by reference
-       * and so there is no guarantee that it will exist after this
-       * callback method is called.
+       * Defines the callback method called when a DTR is pushed to this
+       * object. The automatic memory management of DTR_ptr ensures that
+       * the DTR object is only deleted when the last copy is deleted.
        */
-      virtual void receiveDTR(DTR& dtr) = 0;
+      virtual void receiveDTR(DTR_ptr dtr) = 0;
       // TODO
       //virtual void suspendDTR(DTR& dtr) = 0;
       //virtual void cancelDTR(DTR& dtr) = 0;
@@ -111,6 +113,11 @@ namespace DataStaging {
    * subclass of DTRCallback, when the Scheduler has finished with the DTR
    * the receiveDTR() callback method is called.
    *
+   * DTRs should always be used through the ThreadedPointer DTR_ptr. This
+   * ensures proper memory management when passing DTRs among various threads.
+   * To enforce this policy the copy constructor and assignment operator are
+   * private.
+   *
    * registerCallback(this,DataStaging::GENERATOR) can be used to
    * activate the callback. The following simple Generator code sample
    * illustrates how to use DTRs:
@@ -118,15 +125,15 @@ namespace DataStaging {
    * @code
    * class MyGenerator : public DTRCallback {
    *  public:
-   *   void receiveDTR(DTR& dtr);
+   *   void receiveDTR(DTR_ptr dtr);
    *   void run();
    *  private:
    *   Arc::SimpleCondition cond;
    * };
    *
-   * void MyGenerator::receiveDTR(DTR& dtr) {
+   * void MyGenerator::receiveDTR(DTR_ptr dtr) {
    *   // DTR received back, so notify waiting condition
-   *   std::cout << "Received DTR " << dtr.get_id() << std::endl;
+   *   std::cout << "Received DTR " << dtr->get_id() << std::endl;
    *   cond.signal();
    * }
    *
@@ -136,15 +143,15 @@ namespace DataStaging {
    *   scheduler.start();
    *
    *   // create a DTR
-   *   DTR dtr(source, destination,...);
+   *   DTR_ptr dtr(new DTR(source, destination,...));
    *
    *   // register this callback
-   *   dtr.registerCallback(this,DataStaging::GENERATOR);
+   *   dtr->registerCallback(this,DataStaging::GENERATOR);
    *   // this line must be here in order to pass the DTR to the Scheduler
-   *   dtr.registerCallback(&scheduler,DataStaging::SCHEDULER);
+   *   dtr->registerCallback(&scheduler,DataStaging::SCHEDULER);
    *
    *   // push the DTR to the Scheduler
-   *   dtr.push(DataStaging::SCHEDULER);
+   *   DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
    *
    *   // wait until callback is called
    *   cond.wait();
@@ -297,8 +304,9 @@ namespace DataStaging {
       /// Change modification time
       void mark_modification () { last_modified.SetTime(time(NULL)); };
 
-      /// Assignment operator. Private and not implemented since DataHandle cannot be copied.
+      /// Private and not implemented because DTR_ptr should always be used.
       DTR& operator=(const DTR& dtr);
+      DTR(const DTR& dtr);
 
     public:
       
@@ -307,9 +315,6 @@ namespace DataStaging {
 
       /// Public empty constructor
       DTR();
-      
-      /// Copy constructor. Must be defined because DataHandle copy constructor is private.
-      DTR(const DTR& dtr);
       
       /// Normal constructor.
       /** Construct a new DTR.
@@ -320,18 +325,18 @@ namespace DataStaging {
        * @param uid UID to use when accessing local file system if source
        * or destination is a local file. If this is different to the current
        * uid then the current uid must have sufficient privileges to change uid.
-       * @param log Pointer to log object. If NULL the root logger is used.
+       * @param log ThreadedPointer containing log object. If NULL the root
+       * logger is used.
        */
       DTR(const std::string& source,
           const std::string& destination,
           const Arc::UserConfig& usercfg,
           const std::string& jobid,
           const uid_t& uid,
-          const DTRLogger& log);
+          DTRLogger log);
       
       /// Empty destructor
       ~DTR() {};
-
       
      /// Is DTR valid?
      operator bool() const {
@@ -514,7 +519,7 @@ namespace DataStaging {
      void disconnect_logger() { if (logger) logger->removeDestinations(); };
 
      /// Pass the DTR from one process to another. Protected by lock.
-     void push(StagingProcesses new_owner);
+     static void push(DTR_ptr dtr, StagingProcesses new_owner);
      
      /// Suspend the DTR which is in doing transfer in the delivery process
      bool suspend();

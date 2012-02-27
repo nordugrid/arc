@@ -35,10 +35,10 @@ namespace DataStaging {
 #endif
   }
 
-  DataDeliveryLocalComm::DataDeliveryLocalComm(const DTR& dtr, const TransferParameters& params)
+  DataDeliveryLocalComm::DataDeliveryLocalComm(DTR_ptr dtr, const TransferParameters& params)
     : DataDeliveryComm(dtr, params),child_(NULL),last_comm(Arc::Time()) {
-    if(!dtr.get_source()) return;
-    if(!dtr.get_destination()) return;
+    if(!dtr->get_source()) return;
+    if(!dtr->get_destination()) return;
     {
       Glib::Mutex::Lock lock(lock_);
       // Initial empty status
@@ -51,33 +51,33 @@ namespace DataStaging {
       std::string execpath = Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBEXECSUBDIR+G_DIR_SEPARATOR_S+"DataStagingDelivery";
       args.push_back(execpath);
       // check for alternative source or destination eg cache, mapped URL, TURL
-      if (dtr.get_source()->TransferLocations().empty()) {
-        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr.get_source()->str());
+      if (dtr->get_source()->TransferLocations().empty()) {
+        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_source()->str());
         return;
       }
-      std::string surl = dtr.get_source()->TransferLocations()[0].fullstr();
+      std::string surl = dtr->get_source()->TransferLocations()[0].fullstr();
       bool caching = false;
-      if (!dtr.get_mapped_source().empty())
-        surl = dtr.get_mapped_source();
+      if (!dtr->get_mapped_source().empty())
+        surl = dtr->get_mapped_source();
 
-      if (dtr.get_destination()->TransferLocations().empty()) {
-        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr.get_destination()->str());
+      if (dtr->get_destination()->TransferLocations().empty()) {
+        logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_destination()->str());
         return;
       }
-      std::string durl = dtr.get_destination()->TransferLocations()[0].fullstr();
-      if ((dtr.get_cache_state() == CACHEABLE) && !dtr.get_cache_file().empty()) {
-        durl = dtr.get_cache_file();
+      std::string durl = dtr->get_destination()->TransferLocations()[0].fullstr();
+      if ((dtr->get_cache_state() == CACHEABLE) && !dtr->get_cache_file().empty()) {
+        durl = dtr->get_cache_file();
         caching = true;
       }
       int child_uid = 0;
       int child_gid = 0;
       if(!caching) {
-        child_uid = dtr.get_local_user().get_uid();
-        child_gid = dtr.get_local_user().get_gid();
+        child_uid = dtr->get_local_user().get_uid();
+        child_gid = dtr->get_local_user().get_gid();
       }
       // If child is going to be run under different user ID
       // we must ensure it will be able to read credentials.
-      tmp_proxy_ = prepare_proxy(dtr.get_usercfg().ProxyPath(), child_uid, child_gid, *logger_);
+      tmp_proxy_ = prepare_proxy(dtr->get_usercfg().ProxyPath(), child_uid, child_gid, *logger_);
       args.push_back("--surl");
       args.push_back(surl);
       args.push_back("--durl");
@@ -87,17 +87,17 @@ namespace DataStaging {
         args.push_back("credential="+tmp_proxy_);
         args.push_back("--dopt");
         args.push_back("credential="+tmp_proxy_);
-      } else if(!dtr.get_usercfg().ProxyPath().empty()) {
+      } else if(!dtr->get_usercfg().ProxyPath().empty()) {
         args.push_back("--sopt");
-        args.push_back("credential="+dtr.get_usercfg().ProxyPath());
+        args.push_back("credential="+dtr->get_usercfg().ProxyPath());
         args.push_back("--dopt");
-        args.push_back("credential="+dtr.get_usercfg().ProxyPath());
+        args.push_back("credential="+dtr->get_usercfg().ProxyPath());
       }
-      if (!dtr.get_usercfg().CACertificatesDirectory().empty()) {
+      if (!dtr->get_usercfg().CACertificatesDirectory().empty()) {
         args.push_back("--sopt");
-        args.push_back("ca="+dtr.get_usercfg().CACertificatesDirectory());
+        args.push_back("ca="+dtr->get_usercfg().CACertificatesDirectory());
         args.push_back("--dopt");
-        args.push_back("ca="+dtr.get_usercfg().CACertificatesDirectory());
+        args.push_back("ca="+dtr->get_usercfg().CACertificatesDirectory());
       }
       args.push_back("--topt");
       args.push_back("minspeed="+Arc::tostring(transfer_params.min_current_bandwidth));
@@ -108,8 +108,8 @@ namespace DataStaging {
       args.push_back("--topt");
       args.push_back("maxinacttime="+Arc::tostring(transfer_params.max_inactivity_time));
 
-      if (dtr.get_source()->CheckCheckSum()) {
-        std::string csum(dtr.get_source()->GetCheckSum());
+      if (dtr->get_source()->CheckCheckSum()) {
+        std::string csum(dtr->get_source()->GetCheckSum());
         std::string::size_type pos(csum.find(':'));
         if (pos == std::string::npos || pos == csum.length()-1) {
           logger_->msg(Arc::WARNING, "DTR %s: Bad checksum format %s", dtr_id, csum);
@@ -119,12 +119,12 @@ namespace DataStaging {
           args.push_back("--csvalue");
           args.push_back(csum.substr(pos+1));
         }
-      } else if (!dtr.get_destination()->GetURL().Option("checksum").empty()) {
+      } else if (!dtr->get_destination()->GetURL().Option("checksum").empty()) {
         args.push_back("--cstype");
-        args.push_back(dtr.get_destination()->GetURL().Option("checksum"));
-      } else if (dtr.get_destination()->AcceptsMeta() || dtr.get_destination()->ProvidesMeta()) {
+        args.push_back(dtr->get_destination()->GetURL().Option("checksum"));
+      } else if (dtr->get_destination()->AcceptsMeta() || dtr->get_destination()->ProvidesMeta()) {
         args.push_back("--cstype");
-        args.push_back(dtr.get_destination()->DefaultCheckSum());
+        args.push_back(dtr->get_destination()->DefaultCheckSum());
       }
       child_ = new Arc::Run(args);
       // Set up pipes
@@ -215,7 +215,7 @@ namespace DataStaging {
     }
   }
 
-  bool DataDeliveryLocalComm::CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs) {
+  bool DataDeliveryLocalComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs) {
     allowed_dirs.push_back("/");
     return true;
   }

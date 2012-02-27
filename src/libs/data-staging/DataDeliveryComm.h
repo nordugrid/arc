@@ -87,11 +87,11 @@ namespace DataStaging {
     /// Start transfer with parameters taken from DTR and supplied transfer limits.
     /** Constructor should not be used directly, CreateInstance() should be used
      * instead. */
-    DataDeliveryComm(const DTR& dtr, const TransferParameters& params);
+    DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params);
 
    public:
     /// Factory method to get concrete instance
-    static DataDeliveryComm* CreateInstance(const DTR& dtr, const TransferParameters& params);
+    static DataDeliveryComm* CreateInstance(DTR_ptr dtr, const TransferParameters& params);
 
     /// Destroy object. This stops any ongoing transfer and cleans up resources.
     virtual ~DataDeliveryComm() {};
@@ -102,7 +102,7 @@ namespace DataStaging {
     /// Check the delivery is available. Calls CheckComm of the appropriate subclass.
     /// @param dtr DTR from which credentials are used
     /// @param allowed_dirs List of dirs that this comm is allowed to read/write
-    static bool CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs);
+    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs);
 
     /// Get explanation of error
     std::string GetError() const { return status_.error_desc; };

@@ -89,7 +89,7 @@ namespace DataStaging {
     std::string conf() const;
 
     /// Get the name of the share the DTR should be assigned to
-    std::string extract_share_info(const DTR& DTRToExtract);
+    std::string extract_share_info(DTR_ptr DTRToExtract);
   };
 
 

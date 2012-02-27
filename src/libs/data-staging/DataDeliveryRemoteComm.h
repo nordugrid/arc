@@ -11,14 +11,14 @@ namespace DataStaging {
   /// This class contacts a remote service to make a Delivery request.
   class DataDeliveryRemoteComm : public DataDeliveryComm {
   public:
-    DataDeliveryRemoteComm(const DTR& dtr, const TransferParameters& params);
+    DataDeliveryRemoteComm(DTR_ptr dtr, const TransferParameters& params);
     virtual ~DataDeliveryRemoteComm();
 
     /// Read status from service
     virtual void PullStatus();
 
     /// Pings service to find allowed dirs
-    static bool CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs);
+    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs);
 
     /// Returns true if service is still processing request
     virtual operator bool() const { return valid; };

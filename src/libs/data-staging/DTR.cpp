@@ -38,7 +38,7 @@ namespace DataStaging {
            const Arc::UserConfig& usercfg,
            const std::string& jobid,
            const uid_t& uid,
-           const DTRLogger& log)
+           DTRLogger log)
     :  DTR_ID(""),
        source_url(source),
        destination_url(destination),
@@ -122,54 +122,7 @@ namespace DataStaging {
     // setting ID last means all the previous steps have to pass for the DTR to be valid
     DTR_ID = Arc::UUID();
   }	
-  
-  DTR::DTR(const DTR& dtr)
-    : DTR_ID(dtr.DTR_ID),
-      source_url(dtr.source_url),
-      destination_url(dtr.destination_url),
-      cfg(dtr.cfg),
-      source_endpoint(source_url, cfg),
-      destination_endpoint(destination_url, cfg),
-      source_url_str(source_url.str()),
-      destination_url_str(destination_url.str()),
-      cache_file(dtr.cache_file),
-      cache_parameters(dtr.cache_parameters),
-      cache_state(dtr.cache_state),
-      user(dtr.user),
-      parent_job_id(dtr.parent_job_id),
-      priority(dtr.priority),
-      transfershare(dtr.transfershare),
-      sub_share(dtr.sub_share),
-      tries_left(dtr.tries_left),
-      initial_tries(dtr.initial_tries),
-      replication(dtr.replication),
-      force_registration(dtr.force_registration),
-      mapped_source(dtr.mapped_source),
-      status(dtr.status),
-      error_status(dtr.error_status),
-      bytes_transferred(dtr.bytes_transferred),
-      timeout(dtr.timeout),
-      created(dtr.created),
-      next_process_time(dtr.next_process_time),
-      cancel_request(dtr.cancel_request),
-      bulk_start(dtr.bulk_start),
-      bulk_end(dtr.bulk_end),
-      source_supports_bulk(dtr.source_supports_bulk),
-      delivery_endpoint(dtr.delivery_endpoint),
-      use_host_cert_for_remote_delivery(dtr.use_host_cert_for_remote_delivery),
-      current_owner(dtr.current_owner),
-      logger(dtr.logger),
-      log_destinations(dtr.log_destinations),
-      proc_callback(dtr.proc_callback),
-      lock()
-  {
-    // set insecure by default. Real value will come from configuration
-    if (source_endpoint) source_endpoint->SetSecure(false);
-    if (destination_endpoint) destination_endpoint->SetSecure(false);
 
-    mark_modification();
-  }
-  
   DTR::DTR():
     DTR_ID(""), // empty means invalid DTR
     source_endpoint(Arc::URL(),Arc::UserConfig()),
@@ -332,23 +285,23 @@ namespace DataStaging {
     return l;
   }
 
-  void DTR::push(StagingProcesses new_owner)
+  void DTR::push(DTR_ptr dtr, StagingProcesses new_owner)
   {
   	/* This function contains necessary operations
   	 * to pass the pointer to this DTR to another
   	 * process and make sure that the process accepted it
   	 */
-    lock.lock();
-    current_owner = new_owner;
-    lock.unlock();
+    dtr->lock.lock();
+    dtr->current_owner = new_owner;
+    dtr->lock.unlock();
 
-    std::list<DTRCallback*> callbacks = get_callbacks(proc_callback,current_owner);
+    std::list<DTRCallback*> callbacks = dtr->get_callbacks(dtr->proc_callback,dtr->current_owner);
     if (callbacks.empty())
-      logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", get_short_id(), get_owner_name(current_owner));
+      dtr->logger->msg(Arc::INFO, "DTR %s: No callback for %s defined", dtr->get_short_id(), get_owner_name(dtr->current_owner));
 
     for (std::list<DTRCallback*>::iterator callback = callbacks.begin();
         callback != callbacks.end(); ++callback) {
-      switch(current_owner) {
+      switch(dtr->current_owner) {
         case GENERATOR:
         case SCHEDULER:
         case PRE_PROCESSOR:
@@ -357,16 +310,16 @@ namespace DataStaging {
         {
           // call registered callback
           if (*callback)
-            (*callback)->receiveDTR(*this);
+            (*callback)->receiveDTR(dtr);
           else
-            logger->msg(Arc::WARNING, "DTR %s: NULL callback for %s", get_short_id(), get_owner_name(current_owner));
+            dtr->logger->msg(Arc::WARNING, "DTR %s: NULL callback for %s", dtr->get_short_id(), get_owner_name(dtr->current_owner));
         } break;
         default: // impossible
-          logger->msg(Arc::INFO, "DTR %s: Request to push to unknown owner - %u", get_short_id(), (unsigned int)current_owner);
+          dtr->logger->msg(Arc::INFO, "DTR %s: Request to push to unknown owner - %u", dtr->get_short_id(), (unsigned int)dtr->current_owner);
           break;
       }
     }
-    mark_modification();
+    dtr->mark_modification();
   }
   
   bool DTR::suspend()

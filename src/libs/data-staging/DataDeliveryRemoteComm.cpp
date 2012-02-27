@@ -8,8 +8,8 @@ namespace DataStaging {
 
   Arc::Logger DataDeliveryRemoteComm::logger(Arc::Logger::getRootLogger(), "DataStaging.DataDeliveryRemoteComm");
 
-  DataDeliveryRemoteComm::DataDeliveryRemoteComm(const DTR& dtr, const TransferParameters& params)
-    : DataDeliveryComm(dtr, params), client(NULL), dtr_full_id(dtr.get_id()), valid(false) {
+  DataDeliveryRemoteComm::DataDeliveryRemoteComm(DTR_ptr dtr, const TransferParameters& params)
+    : DataDeliveryComm(dtr, params), client(NULL), dtr_full_id(dtr->get_id()), valid(false) {
 
     {
       Glib::Mutex::Lock lock(lock_);
@@ -18,45 +18,43 @@ namespace DataStaging {
       FillStatus();
     }
 
-    if(!dtr.get_source()) return;
-    if(!dtr.get_destination()) return;
-    Arc::UserConfig user_cfg(dtr.get_usercfg());
-    Arc::URL delivery_endpoint(dtr.get_delivery_endpoint());
+    if(!dtr->get_source()) return;
+    if(!dtr->get_destination()) return;
 
     // check for alternative source or destination eg cache, mapped URL, TURL
-    if (dtr.get_source()->TransferLocations().empty()) {
-      logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr.get_source()->str());
+    if (dtr->get_source()->TransferLocations().empty()) {
+      logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_source()->str());
       return;
     }
-    std::string surl = dtr.get_source()->TransferLocations()[0].fullstr();
+    std::string surl = dtr->get_source()->TransferLocations()[0].fullstr();
     bool caching = false;
-    if (!dtr.get_mapped_source().empty())
-      surl = dtr.get_mapped_source();
+    if (!dtr->get_mapped_source().empty())
+      surl = dtr->get_mapped_source();
 
-    if (dtr.get_destination()->TransferLocations().empty()) {
-      logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr.get_destination()->str());
+    if (dtr->get_destination()->TransferLocations().empty()) {
+      logger_->msg(Arc::ERROR, "DTR %s: No locations defined for %s", dtr_id, dtr->get_destination()->str());
       return;
     }
-    std::string durl = dtr.get_destination()->TransferLocations()[0].fullstr();
-    if ((dtr.get_cache_state() == CACHEABLE) && !dtr.get_cache_file().empty()) {
-      durl = dtr.get_cache_file();
+    std::string durl = dtr->get_destination()->TransferLocations()[0].fullstr();
+    if ((dtr->get_cache_state() == CACHEABLE) && !dtr->get_cache_file().empty()) {
+      durl = dtr->get_cache_file();
       caching = true;
     }
 
     // connect to service and make a new transfer request
     Arc::MCCConfig cfg;
-    if (dtr.host_cert_for_remote_delivery()) {
+    if (dtr->host_cert_for_remote_delivery()) {
       Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::TryCredentials);
       Arc::UserConfig host_cfg(cred_type);
       host_cfg.ProxyPath(""); // to force using cert/key files instead of non-existent proxy
       host_cfg.ApplyToConfig(cfg);
     } else {
-      user_cfg.ApplyToConfig(cfg);
+      dtr->get_usercfg().ApplyToConfig(cfg);
     }
 
     logger_->msg(Arc::VERBOSE, "DTR %s: Connecting to Delivery service at %s",
-                 dtr_id, delivery_endpoint.str());
-    client = new Arc::ClientSOAP(cfg, delivery_endpoint, user_cfg.Timeout());
+                 dtr_id, dtr->get_delivery_endpoint().str());
+    client = new Arc::ClientSOAP(cfg, dtr->get_delivery_endpoint(), dtr->get_usercfg().Timeout());
 
     Arc::NS ns;
     Arc::PayloadSOAP request(ns);
@@ -66,9 +64,9 @@ namespace DataStaging {
     dtrnode.NewChild("ID") = dtr_full_id;
     dtrnode.NewChild("Source") = surl;
     dtrnode.NewChild("Destination") = durl;
-    if (dtr.get_source()->CheckCheckSum()) dtrnode.NewChild("CheckSum") = dtr.get_source()->GetCheckSum();
-    dtrnode.NewChild("Uid") = Arc::tostring(dtr.get_local_user().get_uid());
-    dtrnode.NewChild("Gid") = Arc::tostring(dtr.get_local_user().get_gid());
+    if (dtr->get_source()->CheckCheckSum()) dtrnode.NewChild("CheckSum") = dtr->get_source()->GetCheckSum();
+    dtrnode.NewChild("Uid") = Arc::tostring(dtr->get_local_user().get_uid());
+    dtrnode.NewChild("Gid") = Arc::tostring(dtr->get_local_user().get_gid());
     // transfer parameters
     dtrnode.NewChild("MinAverageSpeed") = Arc::tostring(params.min_average_bandwidth);
     dtrnode.NewChild("AverageTime") = Arc::tostring(params.averaging_time);
@@ -80,9 +78,9 @@ namespace DataStaging {
 
     // delegate credentials
     Arc::XMLNode op = request.Child(0);
-    if (!SetupDelegation(op, user_cfg)) {
+    if (!SetupDelegation(op, dtr->get_usercfg())) {
       logger_->msg(Arc::ERROR, "DTR %s: Failed to set up credential delegation with %s",
-                   dtr_id, delivery_endpoint.str());
+                   dtr_id, dtr->get_delivery_endpoint().str());
       return;
     }
 
@@ -95,7 +93,7 @@ namespace DataStaging {
 
     if (!status) {
       logger_->msg(Arc::ERROR, "DTR %s: Could not connect to service %s: %s",
-                   dtr_id, delivery_endpoint.str(), (std::string)status);
+                   dtr_id, dtr->get_delivery_endpoint().str(), (std::string)status);
       if (response)
         delete response;
       return;
@@ -103,7 +101,7 @@ namespace DataStaging {
 
     if (!response) {
       logger_->msg(Arc::ERROR, "DTR %s: No SOAP response from Delivery service %s",
-                   dtr_id, delivery_endpoint.str());
+                   dtr_id, dtr->get_delivery_endpoint().str());
       return;
     }
 
@@ -125,7 +123,7 @@ namespace DataStaging {
     Arc::XMLNode resultnode = (*response)["DataDeliveryStartResponse"]["DataDeliveryStartResult"]["Result"][0];
     if (!resultnode || !resultnode["ResultCode"]) {
       logger_->msg(Arc::ERROR, "DTR %s: Bad format in XML response from service at %s: %s",
-                   dtr_id, delivery_endpoint.str(), xml);
+                   dtr_id, dtr->get_delivery_endpoint().str(), xml);
       delete response;
       return;
     }
@@ -138,7 +136,7 @@ namespace DataStaging {
       return;
     }
     logger_->msg(Arc::INFO, "DTR %s: Started remote Delivery at %s",
-                 dtr_id, delivery_endpoint.str());
+                 dtr_id, dtr->get_delivery_endpoint().str());
 
     delete response;
     valid = true;
@@ -284,7 +282,7 @@ namespace DataStaging {
     delete response;
   }
 
-  bool DataDeliveryRemoteComm::CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs) {
+  bool DataDeliveryRemoteComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs) {
     // call Ping
     Arc::MCCConfig cfg;
     if (dtr->host_cert_for_remote_delivery()) {

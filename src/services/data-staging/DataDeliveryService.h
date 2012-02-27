@@ -39,6 +39,9 @@ namespace DataStaging {
    */
   class DataDeliveryService: public Arc::RegisteredService, DTRCallback {
 
+    /// Managed pointer to stringstream used to hold log output
+    typedef Arc::ThreadedPointer<std::stringstream> sstream_ptr;
+
    private:
     /// Construct a SOAP error message with optional extra reason string
     Arc::MCC_Status make_soap_fault(Arc::Message& outmsg, const std::string& reason = "");
@@ -51,7 +54,7 @@ namespace DataStaging {
     /// Current processes - using gint to guarantee atomic thread-safe operations
     gint current_processes;
     /// Internal list of active DTRs, mapped to the stream with the transfer log
-    std::map<DTR*, std::stringstream*> active_dtrs;
+    std::map<DTR_ptr, sstream_ptr> active_dtrs;
     /// Lock for active DTRs list
     Arc::SimpleCondition active_dtrs_lock;
     /// Archived list of finished DTRs, just ID and final state and short explanation
@@ -72,10 +75,6 @@ namespace DataStaging {
     static void ArchivalThread(void* arg);
     /// Archival thread
     void ArchivalThread(void);
-
-    /// Clean up DTR memory, including deleting Logger and LogDestinations and
-    /// DTR itself.
-    void cleanDTR(DTR* dtr);
 
     /// Sanity check on file sources and destinations
     bool CheckInput(const std::string& url, const Arc::UserConfig& usercfg, Arc::XMLNode& resultelement);
@@ -103,7 +102,7 @@ namespace DataStaging {
     virtual Arc::MCC_Status process(Arc::Message &inmsg, Arc::Message &outmsg);
 
     /// Implementation of callback method from DTRCallback
-    virtual void receiveDTR(DTR& dtr);
+    virtual void receiveDTR(DTR_ptr dtr);
 
     /// Supplies information on the service for use in the information system.
     bool RegistrationCollector(Arc::XMLNode &doc);

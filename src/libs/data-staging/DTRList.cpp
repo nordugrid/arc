@@ -9,29 +9,27 @@
 
 namespace DataStaging {
   
-  DTR* DTRList::add_dtr(const DTR& DTRToAdd) {
-  	DTR* dtr = new DTR(DTRToAdd);
+  bool DTRList::add_dtr(DTR_ptr DTRToAdd) {
   	Lock.lock();
-  	DTRs.push_back(dtr);
+  	DTRs.push_back(DTRToAdd);
   	Lock.unlock();
   	
   	// Added successfully
-  	return dtr;
+  	return true;
   }
   
-  bool DTRList::delete_dtr(DTR* DTRToDelete) {
+  bool DTRList::delete_dtr(DTR_ptr DTRToDelete) {
   	
   	Lock.lock();
   	DTRs.remove(DTRToDelete);
-  	delete DTRToDelete;
   	Lock.unlock();
   	
   	// Deleted successfully
   	return true;
   }
   
-  bool DTRList::filter_dtrs_by_owner(StagingProcesses OwnerToFilter, std::list<DTR*>& FilteredList){
-  	std::list<DTR*>::iterator it;
+  bool DTRList::filter_dtrs_by_owner(StagingProcesses OwnerToFilter, std::list<DTR_ptr>& FilteredList){
+  	std::list<DTR_ptr>::iterator it;
      
     Lock.lock();
   	for(it = DTRs.begin();it != DTRs.end(); ++it)
@@ -44,7 +42,7 @@ namespace DataStaging {
   }
   
   int DTRList::number_of_dtrs_by_owner(StagingProcesses OwnerToFilter){
-  	std::list<DTR*>::iterator it;
+  	std::list<DTR_ptr>::iterator it;
     int counter = 0;
     
     Lock.lock();
@@ -57,14 +55,14 @@ namespace DataStaging {
   	return counter;
   }
   
-  bool DTRList::filter_dtrs_by_status(DTRStatus::DTRStatusType StatusToFilter, std::list<DTR*>& FilteredList){
+  bool DTRList::filter_dtrs_by_status(DTRStatus::DTRStatusType StatusToFilter, std::list<DTR_ptr>& FilteredList){
     std::vector<DTRStatus::DTRStatusType> StatusesToFilter(1, StatusToFilter);
     return filter_dtrs_by_statuses(StatusesToFilter, FilteredList);
   }
 
   bool DTRList::filter_dtrs_by_statuses(const std::vector<DTRStatus::DTRStatusType>& StatusesToFilter,
-                                        std::list<DTR*>& FilteredList){
-    std::list<DTR*>::iterator it;
+                                        std::list<DTR_ptr>& FilteredList){
+    std::list<DTR_ptr>::iterator it;
 
     Lock.lock();
     for(it = DTRs.begin();it != DTRs.end(); ++it) {
@@ -82,8 +80,8 @@ namespace DataStaging {
   }
 
   bool DTRList::filter_dtrs_by_statuses(const std::vector<DTRStatus::DTRStatusType>& StatusesToFilter,
-                                        std::map<DTRStatus::DTRStatusType, std::list<DTR*> >& FilteredList) {
-    std::list<DTR*>::iterator it;
+                                        std::map<DTRStatus::DTRStatusType, std::list<DTR_ptr> >& FilteredList) {
+    std::list<DTR_ptr>::iterator it;
 
     Lock.lock();
     for(it = DTRs.begin();it != DTRs.end(); ++it) {
@@ -100,8 +98,8 @@ namespace DataStaging {
     return true;
   }
 
-  bool DTRList::filter_dtrs_by_next_receiver(StagingProcesses NextReceiver, std::list<DTR*>& FilteredList) {
-  	std::list<DTR*>::iterator it;
+  bool DTRList::filter_dtrs_by_next_receiver(StagingProcesses NextReceiver, std::list<DTR_ptr>& FilteredList) {
+  	std::list<DTR_ptr>::iterator it;
   	
   	switch(NextReceiver){
   	  case PRE_PROCESSOR: {
@@ -133,8 +131,8 @@ namespace DataStaging {
   	}
   }
   
-  bool DTRList::filter_pending_dtrs(std::list<DTR*>& FilteredList){
-  	std::list<DTR*>::iterator it;
+  bool DTRList::filter_pending_dtrs(std::list<DTR_ptr>& FilteredList){
+  	std::list<DTR_ptr>::iterator it;
   	Arc::Time now;
   	
   	Lock.lock(); 	
@@ -150,8 +148,8 @@ namespace DataStaging {
   	return true;
   }
   
-  bool DTRList::filter_dtrs_by_job(const std::string& jobid, std::list<DTR*>& FilteredList) {
-    std::list<DTR*>::iterator it;
+  bool DTRList::filter_dtrs_by_job(const std::string& jobid, std::list<DTR_ptr>& FilteredList) {
+    std::list<DTR_ptr>::iterator it;
 
     Lock.lock();
     for(it = DTRs.begin();it != DTRs.end(); ++it)
@@ -163,19 +161,19 @@ namespace DataStaging {
     return true;
   }
 
-  void DTRList::caching_started(DTR* request) {
+  void DTRList::caching_started(DTR_ptr request) {
     CachingLock.lock();
     CachingSources.insert(request->get_source_str());
     CachingLock.unlock();
   }
 
-  void DTRList::caching_finished(DTR* request) {
+  void DTRList::caching_finished(DTR_ptr request) {
     CachingLock.lock();
     CachingSources.erase(request->get_source_str());
     CachingLock.unlock();
   }
 
-  bool DTRList::is_being_cached(DTR* DTRToCheck) {
+  bool DTRList::is_being_cached(DTR_ptr DTRToCheck) {
 
     CachingLock.lock();
     bool caching = (CachingSources.find(DTRToCheck->get_source_str()) != CachingSources.end());
@@ -192,7 +190,7 @@ namespace DataStaging {
 
   std::list<std::string> DTRList::all_jobs() {
     std::list<std::string> alljobs;
-    std::list<DTR*>::iterator it;
+    std::list<DTR_ptr>::iterator it;
 
     Lock.lock();
     for(it = DTRs.begin();it != DTRs.end(); ++it) {
@@ -213,7 +211,7 @@ namespace DataStaging {
     // only files supported for now - simply overwrite path
     std::string data;
     Lock.lock();
-    for(std::list<DTR*>::iterator it = DTRs.begin();it != DTRs.end(); ++it) {
+    for(std::list<DTR_ptr>::iterator it = DTRs.begin();it != DTRs.end(); ++it) {
       data += (*it)->get_id() + " " +
               (*it)->get_status().str() + " " +
               Arc::tostring((*it)->get_priority()) + " " +

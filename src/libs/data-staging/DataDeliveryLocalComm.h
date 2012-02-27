@@ -12,7 +12,7 @@ namespace DataStaging {
   public:
 
     /// Starts child process
-    DataDeliveryLocalComm(const DTR& dtr, const TransferParameters& params);
+    DataDeliveryLocalComm(DTR_ptr dtr, const TransferParameters& params);
     /// This stops the child process
     virtual ~DataDeliveryLocalComm();
 
@@ -20,7 +20,7 @@ namespace DataStaging {
     virtual void PullStatus();
 
     /// Returns "/" since local Delivery can access everywhere
-    static bool CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs);
+    static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs);
 
     /// Returns true if child process exists
     virtual operator bool() const { return (child_ != NULL); };

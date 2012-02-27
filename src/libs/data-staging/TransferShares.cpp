@@ -69,11 +69,11 @@ namespace DataStaging {
     return conf;
   }
 
-  std::string TransferSharesConf::extract_share_info(const DTR& DTRToExtract) {
+  std::string TransferSharesConf::extract_share_info(DTR_ptr DTRToExtract) {
     if (shareType == NONE) return "_default";
-    Arc::Credential cred(DTRToExtract.get_usercfg().ProxyPath(),
-                         DTRToExtract.get_usercfg().ProxyPath(),
-                         DTRToExtract.get_usercfg().CACertificatesDirectory(), "");
+    Arc::Credential cred(DTRToExtract->get_usercfg().ProxyPath(),
+                         DTRToExtract->get_usercfg().ProxyPath(),
+                         DTRToExtract->get_usercfg().CACertificatesDirectory(), "");
     switch (shareType){
       case USER: return extract_user_share(cred);
       case VO: return extract_vo_share(cred);

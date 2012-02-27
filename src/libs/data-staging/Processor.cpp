@@ -15,7 +15,7 @@
 namespace DataStaging {
 
   /** Set up logging. Should be called at the start of each thread method. */
-  void setUpLogger(DTR* request) {
+  void setUpLogger(DTR_ptr request) {
     // disconnect this thread's root logger
     Arc::Logger::getRootLogger().setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
@@ -31,7 +31,7 @@ namespace DataStaging {
 
   void Processor::DTRCheckCache(void* arg) {
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
 
     setUpLogger(request);
@@ -55,7 +55,7 @@ namespace DataStaging {
                             "Failed to create cache");
       request->set_status(DTRStatus::CACHE_CHECKED);
       request->connect_logger();
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
       return;
     }
     // DN is used for checking cache permissions
@@ -97,7 +97,7 @@ namespace DataStaging {
           request->set_process_time(cache_wait_period);
 
           request->connect_logger();
-          request->push(SCHEDULER);
+          DTR::push(request, SCHEDULER);
           return;
         }
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to initiate cache", request->get_short_id());
@@ -167,15 +167,15 @@ namespace DataStaging {
     }
     request->set_status(DTRStatus::CACHE_CHECKED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRResolve(void* arg) {
-    // call request.source.Resolve() to get replicas
-    // call request.destination.Resolve() to check supplied replicas
-    // call request.destination.PreRegister() to lock destination LFN
+    // call request->source.Resolve() to get replicas
+    // call request->destination.Resolve() to check supplied replicas
+    // call request->destination.PreRegister() to lock destination LFN
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
 
     setUpLogger(request);
@@ -191,7 +191,7 @@ namespace DataStaging {
                                   "Could not resolve any source replicas for " + request->get_source()->str());
         request->set_status(DTRStatus::RESOLVED);
         request->connect_logger();
-        request->push(SCHEDULER);
+        DTR::push(request, SCHEDULER);
         return;
       }
     }
@@ -206,7 +206,7 @@ namespace DataStaging {
                                   "Could not resolve any destination replicas for " + request->get_destination()->str());
         request->set_status(DTRStatus::RESOLVED);
         request->connect_logger();
-        request->push(SCHEDULER);
+        DTR::push(request, SCHEDULER);
         return;
       }
     }
@@ -221,7 +221,7 @@ namespace DataStaging {
                                   "No locations for destination different from source found for " + request->get_destination()->str());
         request->set_status(DTRStatus::RESOLVED);
         request->connect_logger();
-        request->push(SCHEDULER);
+        DTR::push(request, SCHEDULER);
         return;
       }
     }
@@ -239,20 +239,20 @@ namespace DataStaging {
     // finished with resolving - send back to scheduler
     request->set_status(DTRStatus::RESOLVED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRBulkResolve(void* arg) {
-    // call request.source.BulkResolve() to get replicas
+    // call request->source.BulkResolve() to get replicas
     // NOTE only source resolution can be done in bulk
     BulkThreadArgument* targ = (BulkThreadArgument*)arg;
-    std::list<DTR*> requests = targ->dtrs;
+    std::list<DTR_ptr> requests = targ->dtrs;
     delete targ;
 
     if (requests.empty()) return;
 
     std::list<Arc::DataPoint*> sources;
-    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
+    for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       setUpLogger(*i);
       (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving source replicas in bulk", (*i)->get_short_id());
       sources.push_back(&(*((*i)->get_source()))); // nasty...
@@ -260,8 +260,8 @@ namespace DataStaging {
 
     // check for source replicas
     Arc::DataStatus res = requests.front()->get_source()->Resolve(true, sources);
-    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
-      DTR* request = *i;
+    for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
+      DTR_ptr request = *i;
       if (!res.Passed() || !request->get_source()->HaveLocations() || !request->get_source()->LocationValid()) {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve any source replicas", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
@@ -270,14 +270,14 @@ namespace DataStaging {
       }
       request->set_status(DTRStatus::RESOLVED);
       request->connect_logger();
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
     }
   }
 
   void Processor::DTRQueryReplica(void* arg) {
     // check source is ok and obtain metadata
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
 
     setUpLogger(request);
@@ -312,18 +312,18 @@ namespace DataStaging {
     // finished querying - send back to scheduler
     request->set_status(DTRStatus::REPLICA_QUERIED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRBulkQueryReplica(void* arg) {
     BulkThreadArgument* targ = (BulkThreadArgument*)arg;
-    std::list<DTR*> requests = targ->dtrs;
+    std::list<DTR_ptr> requests = targ->dtrs;
     delete targ;
 
     if (requests.empty()) return;
 
     std::list<Arc::DataPoint*> sources;
-    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i) {
+    for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i) {
       setUpLogger(*i);
       (*i)->get_logger()->msg(Arc::VERBOSE, "DTR %s: Querying source replicas in bulk", (*i)->get_short_id());
       sources.push_back((*i)->get_source()->CurrentLocationHandle());
@@ -334,8 +334,8 @@ namespace DataStaging {
     Arc::DataStatus res = sources.front()->Stat(files, sources, Arc::DataPoint::INFO_TYPE_CONTENT);
 
     std::list<Arc::FileInfo>::const_iterator file = files.begin();
-    for (std::list<DTR*>::iterator i = requests.begin(); i != requests.end(); ++i, ++file) {
-      DTR* request = *i;
+    for (std::list<DTR_ptr>::iterator i = requests.begin(); i != requests.end(); ++i, ++file) {
+      DTR_ptr request = *i;
       if (!res.Passed() || files.size() != requests.size() || !*file) {
         request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed checking source replica", request->get_short_id());
         request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
@@ -356,7 +356,7 @@ namespace DataStaging {
       }
       request->set_status(DTRStatus::REPLICA_QUERIED);
       request->connect_logger();
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
     }
   }
 
@@ -365,7 +365,7 @@ namespace DataStaging {
     // for index services delete entry and all existing replicas
     // only if the entry already exists
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
     setUpLogger(request);
 
@@ -430,15 +430,15 @@ namespace DataStaging {
     }
     request->set_status(DTRStatus::PRE_CLEANED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRStagePrepare(void* arg) {
     // Only valid for stageable (SRM-like) protocols.
-    // Call request.source.PrepareReading() to get TURL for reading or query status of request
-    // and/or request.destination.PrepareWriting() to get TURL for writing or query status of request
+    // Call request->source.PrepareReading() to get TURL for reading or query status of request
+    // and/or request->destination.PrepareWriting() to get TURL for writing or query status of request
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
 
     setUpLogger(request);
@@ -478,7 +478,7 @@ namespace DataStaging {
     if (request->error()) {
       request->set_status(DTRStatus::STAGED_PREPARED);
       request->connect_logger();
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
       return;
     }
     // now destination - if stageable and not already staged yet
@@ -517,14 +517,14 @@ namespace DataStaging {
     if (request->get_status() != DTRStatus::STAGING_PREPARING_WAIT)
       request->set_status(DTRStatus::STAGED_PREPARED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRReleaseRequest(void* arg) {
-    // only valid for stageable (SRM-like) protocols. call request.source.FinishReading() and/or
-    // request.destination.FinishWriting() to release or abort requests
+    // only valid for stageable (SRM-like) protocols. call request->source.FinishReading() and/or
+    // request->destination.FinishWriting() to release or abort requests
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
     setUpLogger(request);
 
@@ -558,15 +558,15 @@ namespace DataStaging {
     }
     request->set_status(DTRStatus::REQUEST_RELEASED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRRegisterReplica(void* arg) {
-    // call request.destination.Register() to add new replica and metadata for normal workflow
-    // call request.destination.PreUnregister() to delete LFN placed during
+    // call request->destination.Register() to add new replica and metadata for normal workflow
+    // call request->destination.PreUnregister() to delete LFN placed during
     // RESOLVE stage for error workflow
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
     setUpLogger(request);
 
@@ -595,14 +595,14 @@ namespace DataStaging {
     // finished with registration - send back to scheduler
     request->set_status(DTRStatus::REPLICA_REGISTERED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   void Processor::DTRProcessCache(void* arg) {
     // link or copy cached file to session dir, or release locks in case
     // of error or deciding not to use cache (for example because of a mapped link)
     ThreadArgument* targ = (ThreadArgument*)arg;
-    DTR* request = targ->dtr;
+    DTR_ptr request = targ->dtr;
     delete targ;
     setUpLogger(request);
 
@@ -620,7 +620,7 @@ namespace DataStaging {
                             "Failed to create cache for " + request->get_source()->str());
       request->set_status(DTRStatus::CACHE_PROCESSED);
       request->connect_logger();
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
       return;
     }
 
@@ -641,7 +641,7 @@ namespace DataStaging {
       }
       request->set_status(DTRStatus::CACHE_PROCESSED);
       request->connect_logger();
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
       return;
     }
 
@@ -685,86 +685,86 @@ namespace DataStaging {
     if (was_downloaded) cache.Stop(canonic_url);
     request->set_status(DTRStatus::CACHE_PROCESSED);
     request->connect_logger();
-    request->push(SCHEDULER);
+    DTR::push(request, SCHEDULER);
   }
 
   /* main process method called from DTR::push() */
 
-  void Processor::receiveDTR(DTR& request) {
+  void Processor::receiveDTR(DTR_ptr request) {
 
     BulkThreadArgument* bulk_arg = NULL;
     ThreadArgument* arg = NULL;
 
     // first deal with bulk
-    if (request.get_bulk_end()) { // end of bulk
-      request.set_bulk_end(false);
-      bulk_list.push_back(&request);
+    if (request->get_bulk_end()) { // end of bulk
+      request->set_bulk_end(false);
+      bulk_list.push_back(request);
       bulk_arg = new BulkThreadArgument(this, bulk_list);
       bulk_list.clear();
     }
-    else if (request.get_bulk_start() || !bulk_list.empty()) { // filling bulk list
-      bulk_list.push_back(&request);
-      if (request.get_bulk_start()) request.set_bulk_start(false);
+    else if (request->get_bulk_start() || !bulk_list.empty()) { // filling bulk list
+      bulk_list.push_back(request);
+      if (request->get_bulk_start()) request->set_bulk_start(false);
     }
     else { // non-bulk request
-      arg = new ThreadArgument(this,&request);
+      arg = new ThreadArgument(this, request);
     }
 
     // switch through the expected DTR states
-    switch (request.get_status().GetStatus()) {
+    switch (request->get_status().GetStatus()) {
 
       // pre-processor states
 
       case DTRStatus::CHECK_CACHE: {
-        request.set_status(DTRStatus::CHECKING_CACHE);
+        request->set_status(DTRStatus::CHECKING_CACHE);
         Arc::CreateThreadFunction(&DTRCheckCache, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::RESOLVE: {
-        request.set_status(DTRStatus::RESOLVING);
+        request->set_status(DTRStatus::RESOLVING);
         if (bulk_arg) Arc::CreateThreadFunction(&DTRBulkResolve, (void*)bulk_arg, &thread_count);
         else if (arg) Arc::CreateThreadFunction(&DTRResolve, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::QUERY_REPLICA: {
-        request.set_status(DTRStatus::QUERYING_REPLICA);
+        request->set_status(DTRStatus::QUERYING_REPLICA);
         if (bulk_arg) Arc::CreateThreadFunction(&DTRBulkQueryReplica, (void*)bulk_arg, &thread_count);
         else if (arg) Arc::CreateThreadFunction(&DTRQueryReplica, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::PRE_CLEAN: {
-        request.set_status(DTRStatus::PRE_CLEANING);
+        request->set_status(DTRStatus::PRE_CLEANING);
         Arc::CreateThreadFunction(&DTRPreClean, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::STAGE_PREPARE: {
-        request.set_status(DTRStatus::STAGING_PREPARING);
+        request->set_status(DTRStatus::STAGING_PREPARING);
         Arc::CreateThreadFunction(&DTRStagePrepare, (void*)arg, &thread_count);
       }; break;
 
       // post-processor states
 
       case DTRStatus::RELEASE_REQUEST: {
-        request.set_status(DTRStatus::RELEASING_REQUEST);
+        request->set_status(DTRStatus::RELEASING_REQUEST);
         Arc::CreateThreadFunction(&DTRReleaseRequest, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::REGISTER_REPLICA: {
-        request.set_status(DTRStatus::REGISTERING_REPLICA);
+        request->set_status(DTRStatus::REGISTERING_REPLICA);
         Arc::CreateThreadFunction(&DTRRegisterReplica, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::PROCESS_CACHE: {
-        request.set_status(DTRStatus::PROCESSING_CACHE);
+        request->set_status(DTRStatus::PROCESSING_CACHE);
         Arc::CreateThreadFunction(&DTRProcessCache, (void*)arg, &thread_count);
       }; break;
 
       default: {
         // unexpected state - report error
-        request.set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR,
+        request->set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR,
                               DTRErrorStatus::ERROR_UNKNOWN,
-                              "Received a DTR in an unexpected state ("+request.get_status().str()+") in processor");
-        request.push(SCHEDULER);
+                              "Received a DTR in an unexpected state ("+request->get_status().str()+") in processor");
+        DTR::push(request, SCHEDULER);
         if (arg) delete arg;
         if (bulk_arg) delete bulk_arg;
       }; break;

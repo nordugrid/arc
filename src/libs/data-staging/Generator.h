@@ -22,6 +22,8 @@ namespace DataStaging {
     /// Condition to wait on until DTR has finished
     static Arc::SimpleCondition cond;
 
+    std::list<DTR_ptr> dtrs;
+
     /// Interrupt signal handler
     static void shutdown(int sig);
 
@@ -37,7 +39,7 @@ namespace DataStaging {
      * that the scheduler can delete its copy of the object after
      * calling this method.
      */
-    virtual void receiveDTR(DTR& dtr);
+    virtual void receiveDTR(DTR_ptr dtr);
 
     /// Submit a DTR with given source and destination
     void run(const std::string& source, const std::string& destination);

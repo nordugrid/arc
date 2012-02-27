@@ -35,10 +35,10 @@ class Scheduler: public DTRCallback {
     std::list<std::string> cancelled_jobs;
 
     /// A list of DTRs to process
-    std::list<DTR*> events;
+    std::list<DTR_ptr> events;
 
     /// List of staged DTRs. Filled each event processing loop
-    std::list<DTR*> staged_queue;
+    std::list<DTR_ptr> staged_queue;
 
     /// A lock for the cancelled jobs list
     Arc::SimpleCondition cancelled_jobs_lock;
@@ -105,41 +105,33 @@ class Scheduler: public DTRCallback {
     /* Functions to process every state of the DTR during normal workflow */
 
     /// Process a DTR in the NEW state
-    void ProcessDTRNEW(DTR* request);
+    void ProcessDTRNEW(DTR_ptr request);
     /// Process a DTR in the CACHE_WAIT state
-    void ProcessDTRCACHE_WAIT(DTR* request);
+    void ProcessDTRCACHE_WAIT(DTR_ptr request);
     /// Process a DTR in the CACHE_CHECKED state
-    void ProcessDTRCACHE_CHECKED(DTR* request);
+    void ProcessDTRCACHE_CHECKED(DTR_ptr request);
     /// Process a DTR in the RESOLVED state
-    void ProcessDTRRESOLVED(DTR* request);
+    void ProcessDTRRESOLVED(DTR_ptr request);
     /// Process a DTR in the REPLICA_QUERIED state
-    void ProcessDTRREPLICA_QUERIED(DTR* request);
+    void ProcessDTRREPLICA_QUERIED(DTR_ptr request);
     /// Process a DTR in the PRE_CLEANED state
-    void ProcessDTRPRE_CLEANED(DTR* request);
+    void ProcessDTRPRE_CLEANED(DTR_ptr request);
     /// Process a DTR in the STAGING_PREPARING_WAIT state
-    void ProcessDTRSTAGING_PREPARING_WAIT(DTR* request);
+    void ProcessDTRSTAGING_PREPARING_WAIT(DTR_ptr request);
     /// Process a DTR in the STAGED_PREPARED state
-    void ProcessDTRSTAGED_PREPARED(DTR* request);
+    void ProcessDTRSTAGED_PREPARED(DTR_ptr request);
     /// Process a DTR in the TRANSFERRED state
-    void ProcessDTRTRANSFERRED(DTR* request);
+    void ProcessDTRTRANSFERRED(DTR_ptr request);
     /// Process a DTR in the REQUEST_RELEASED state
-    void ProcessDTRREQUEST_RELEASED(DTR* request);
+    void ProcessDTRREQUEST_RELEASED(DTR_ptr request);
     /// Process a DTR in the REPLICA_REGISTERED state
-    void ProcessDTRREPLICA_REGISTERED(DTR* request);
+    void ProcessDTRREPLICA_REGISTERED(DTR_ptr request);
     /// Process a DTR in the CACHE_PROCESSED state
-    void ProcessDTRCACHE_PROCESSED(DTR* request);
+    void ProcessDTRCACHE_PROCESSED(DTR_ptr request);
     /// Process a DTR in a final state
     /* This is a special function to deal with states after which
      * the DTR is returned to the generator, i.e. DONE, ERROR, CANCELLED */
-    void ProcessDTRFINAL_STATE(DTR* request);
-   	
-    /* Compute (flatten) the priority of the DTR
-     * Sets the priority, according to which internal
-     * queues are sorted
-     * This function may take into account timeout of the DTR,
-     * so for these about to expire the priority will be boosted
-     */ 
-    //void compute_priority(DTR* request);
+    void ProcessDTRFINAL_STATE(DTR_ptr request);
     
     /// Log a message to the root logger. This sends the message to the log
     /// destinations attached to the root logger at the point the Scheduler
@@ -147,28 +139,28 @@ class Scheduler: public DTRCallback {
     void log_to_root_logger(Arc::LogLevel level, const std::string& message);
 
     /// Call the appropriate Process method depending on the DTR state
-    void map_state_and_process(DTR* request);
+    void map_state_and_process(DTR_ptr request);
     
     /// Maps the DTR to the appropriate state when it is cancelled.
     /** This is a separate function, since cancellation request
      * can arrive at any time, breaking the normal workflow. */
-    void map_cancel_state(DTR* request);
+    void map_cancel_state(DTR_ptr request);
     
     /// Map a DTR stuck in a processing state to new state from which it can
     /// recover and retry.
-    void map_stuck_state(DTR* request);
+    void map_stuck_state(DTR_ptr request);
 
     /// Choose a delivery service for the DTR, based on the file system paths
     /// each service can access. These paths are determined by calling all the
     /// configured services when the first DTR is received.
-    void choose_delivery_service(DTR* request);
+    void choose_delivery_service(DTR_ptr request);
 
     /// Go through all DTRs waiting to go into a processing state and decide
     /// whether to push them into that state, depending on shares and limits.
     void revise_queues();
 
     /// Add a new event for the Scheduler to process. Used in receiveDTR().
-    void add_event(DTR* event);
+    void add_event(DTR_ptr event);
 
     /// Process the pool of DTRs which have arrived from other processes
     void process_events(void);
@@ -179,7 +171,7 @@ class Scheduler: public DTRCallback {
      * the DTR to the appropriate state, depending on whether or not
      * there are more replicas to try.
      */
-    void next_replica(DTR* request);
+    void next_replica(DTR_ptr request);
 
     /// Handle a DTR whose source is mapped to another URL.
     /** If a file is mapped, this method should be called to deal
@@ -187,7 +179,7 @@ class Scheduler: public DTRCallback {
      * request to mapped_url. Returns true if the processing was
      * successful.
      */
-    bool handle_mapped_source(DTR* request, Arc::URL& mapped_url);
+    bool handle_mapped_source(DTR_ptr request, Arc::URL& mapped_url);
 
     /// Thread method for dumping state
     static void dump_thread(void* arg);
@@ -241,8 +233,9 @@ class Scheduler: public DTRCallback {
     
     /// Callback method implemented from DTRCallback.
     /** This method is called by the generator when it wants to pass a DTR
-     * to the scheduler. */
-    virtual void receiveDTR(DTR& dtr);
+     * to the scheduler and when other processes send a DTR back to the
+     * scheduler after processing. */
+    virtual void receiveDTR(DTR_ptr dtr);
     
     /// Tell the Scheduler to cancel all the DTRs in the given job description
     bool cancelDTRs(const std::string& jobid);

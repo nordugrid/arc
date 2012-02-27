@@ -67,10 +67,10 @@ namespace DataStaging {
      * The DataDelivery starts a process to do the processing, and then returns.
      * DataDelivery's own thread then monitors the started process.
      */
-    virtual void receiveDTR(DTR&);
+    virtual void receiveDTR(DTR_ptr request);
 
     /// Kill the process corresponding to the given DTR
-    bool cancelDTR(DTR*);
+    bool cancelDTR(DTR_ptr request);
 
     /// Start the Delivery thread, which runs until stop() is called
     bool start();

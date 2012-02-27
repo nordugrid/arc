@@ -59,18 +59,18 @@ void DeliveryTest::TestDeliverySimple() {
   std::string source("http://www.nordugrid.org");
   dest_file = "/tmp/file1";
   std::string destination("file:" + dest_file);
-  DataStaging::DTR dtr(source,destination,cfg,jobid,Arc::User().get_uid(),logger);
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
 
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
   delivery.start();
   delivery.receiveDTR(dtr);
-  DataStaging::DTRStatus status = dtr.get_status();
+  DataStaging::DTRStatus status = dtr->get_status();
 
   // Wait for result. It must be either ERROR or TRANSFERRED at end.
   // During transfer state may be NULL or TRANSFERRING
   for(int cnt=0;;++cnt) {
-    status = dtr.get_status();
+    status = dtr->get_status();
     if(status == DataStaging::DTRStatus::ERROR) {
       break;
     } else if(status == DataStaging::DTRStatus::TRANSFERRED) {
@@ -84,7 +84,7 @@ void DeliveryTest::TestDeliverySimple() {
     Glib::usleep(100000);
   }
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::TRANSFERRED, status.GetStatus());
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr.get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
 }
 
 void DeliveryTest::TestDeliveryFailure() {
@@ -97,18 +97,18 @@ void DeliveryTest::TestDeliveryFailure() {
   std::string source("http://www.nordugrid.org/no_such_file.html");
   dest_file = "/tmp/file2";
   std::string destination("file:" + dest_file);
-  DataStaging::DTR dtr(source,destination,cfg,jobid,Arc::User().get_uid(),logger);
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
 
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
   delivery.start();
   delivery.receiveDTR(dtr);
-  DataStaging::DTRStatus status = dtr.get_status();
+  DataStaging::DTRStatus status = dtr->get_status();
 
   // Wait for result. It must be either ERROR or TRANSFERRED at end.
   // During transfer state may be NULL or TRANSFERRING
   for(int cnt=0;;++cnt) {
-    status = dtr.get_status();
+    status = dtr->get_status();
     if(status == DataStaging::DTRStatus::ERROR) {
       break;
     } else if(status == DataStaging::DTRStatus::TRANSFERRED) {
@@ -122,7 +122,7 @@ void DeliveryTest::TestDeliveryFailure() {
     Glib::usleep(100000);
   }
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::TRANSFERRED, status.GetStatus());
-  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr.get_error_status().GetErrorStatus());
+  CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
 }
 
 void DeliveryTest::TestDeliveryUnsupported() {
@@ -135,18 +135,18 @@ void DeliveryTest::TestDeliveryUnsupported() {
   std::string source("proto://host/file");
   dest_file = "/tmp/file2";
   std::string destination("file:" + dest_file);
-  DataStaging::DTR dtr(source,destination,cfg,jobid,Arc::User().get_uid(),logger);
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source,destination,cfg,jobid,Arc::User().get_uid(),logger));
 
   // Pass DTR to Delivery
   DataStaging::DataDelivery delivery;
   delivery.start();
   delivery.receiveDTR(dtr);
-  DataStaging::DTRStatus status = dtr.get_status();
+  DataStaging::DTRStatus status = dtr->get_status();
 
   // Wait for result. It must be either ERROR or TRANSFERRED at end.
   // During transfer state may be NULL or TRANSFERRING
   for(int cnt=0;;++cnt) {
-    status = dtr.get_status();
+    status = dtr->get_status();
     if(status == DataStaging::DTRStatus::ERROR) {
       break;
     } else if(status == DataStaging::DTRStatus::TRANSFERRED) {

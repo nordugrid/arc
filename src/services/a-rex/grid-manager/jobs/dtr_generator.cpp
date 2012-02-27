@@ -19,7 +19,7 @@ DTRInfo::DTRInfo(const JobUsers& users) {
   }
 }
 
-void DTRInfo::receiveDTR(DataStaging::DTR& dtr) {
+void DTRInfo::receiveDTR(DataStaging::DTR_ptr dtr) {
   // write state info to job.id.input for example
 }
 
@@ -55,13 +55,13 @@ void DTRGenerator::thread() {
     }
 
     // next DTRs sent back from the Scheduler
-    std::list<DataStaging::DTR>::iterator it_dtrs = dtrs_received.begin();
+    std::list<DataStaging::DTR_ptr>::iterator it_dtrs = dtrs_received.begin();
     while (it_dtrs != dtrs_received.end()) {
       event_lock.unlock();
       processReceivedDTR(*it_dtrs);
       event_lock.lock();
       // delete DTR LogDestinations
-      it_dtrs->get_logger()->deleteDestinations();
+      (*it_dtrs)->get_logger()->deleteDestinations();
 
       it_dtrs = dtrs_received.erase(it_dtrs);
     }
@@ -160,13 +160,13 @@ DTRGenerator::~DTRGenerator() {
   generator_state = DataStaging::STOPPED;
 }
 
-void DTRGenerator::receiveDTR(DataStaging::DTR& dtr) {
+void DTRGenerator::receiveDTR(DataStaging::DTR_ptr dtr) {
 
   if (generator_state == DataStaging::INITIATED || generator_state == DataStaging::STOPPED) {
     logger.msg(Arc::ERROR, "DTRGenerator is not running!");
     return;
   } else if (generator_state == DataStaging::TO_STOP) {
-    logger.msg(Arc::VERBOSE, "Received DTR %s during Generator shutdown - may not be processed", dtr.get_id());
+    logger.msg(Arc::VERBOSE, "Received DTR %s during Generator shutdown - may not be processed", dtr->get_id());
     // still a chance to process this DTR so don't return
   }
   event_lock.lock();
@@ -292,12 +292,12 @@ void DTRGenerator::removeJob(const JobDescription& job) {
   lock.unlock();
 }
 
-bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
+bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
 
-  std::string jobid(dtr.get_parent_job_id());
-  if (!dtr) {
+  std::string jobid(dtr->get_parent_job_id());
+  if (!(*dtr)) {
     logger.msg(Arc::ERROR, "%s: Invalid DTR", jobid);
-    if (dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
+    if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
       scheduler.cancelDTRs(jobid);
       lock.lock();
       finished_jobs[jobid] = std::string("Invalid Data Transfer Request");
@@ -307,17 +307,17 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
     return false;
   }
   logger.msg(Arc::DEBUG, "%s: Received DTR %s to copy file %s in state %s",
-                          jobid, dtr.get_id(), dtr.get_source()->str(), dtr.get_status().str());
+                          jobid, dtr->get_id(), dtr->get_source()->str(), dtr->get_status().str());
 
   // JobUser object
-  std::map<uid_t, const JobUser*>::iterator it = jobusers.find(dtr.get_local_user().get_uid());
+  std::map<uid_t, const JobUser*>::iterator it = jobusers.find(dtr->get_local_user().get_uid());
   if (it == jobusers.end()) {
     it = jobusers.find(0);
     if (it == jobusers.end()) {
       // check if already cancelled
-      if (dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
+      if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
         logger.msg(Arc::ERROR, "%s: No configured user found for uid %i",
-                   dtr.get_parent_job_id(), dtr.get_local_user().get_uid());
+                   dtr->get_parent_job_id(), dtr->get_local_user().get_uid());
         // cancel other DTRs (which will also fail here anyway)
         scheduler.cancelDTRs(jobid);
         lock.lock();
@@ -335,33 +335,33 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   // create JobDescription object to pass to job_..write_file methods
   std::string session_dir(jobuser->SessionRoot(jobid) + '/' + jobid);
   JobDescription job(jobid, session_dir);
-  job.set_uid(dtr.get_local_user().get_uid(), dtr.get_local_user().get_gid());
+  job.set_uid(dtr->get_local_user().get_uid(), dtr->get_local_user().get_gid());
   std::string dtr_transfer_statistics;
   
-  if (dtr.error() && dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
+  if (dtr->error() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
     // for uploads, report error but let other transfers continue
     // for downloads, cancel all other transfers
     logger.msg(Arc::ERROR, "%s: DTR %s to copy file %s failed",
-               jobid, dtr.get_id(), dtr.get_source()->str());
+               jobid, dtr->get_id(), dtr->get_source()->str());
 
     lock.lock();
-    if (!dtr.get_source()->Local() && finished_jobs.find(jobid) == finished_jobs.end()) { // download
+    if (!dtr->get_source()->Local() && finished_jobs.find(jobid) == finished_jobs.end()) { // download
       // cancel other DTRs and erase from our list unless error was already reported
       logger.msg(Arc::INFO, "%s: Cancelling other DTRs", jobid);
       scheduler.cancelDTRs(jobid);
     }
     // add error to finished jobs
-    finished_jobs[jobid] += std::string("Failed in data staging: " + dtr.get_error_status().GetDesc() + '\n');
+    finished_jobs[jobid] += std::string("Failed in data staging: " + dtr->get_error_status().GetDesc() + '\n');
     lock.unlock();
   }
-  else if (dtr.get_status() != DataStaging::DTRStatus::CANCELLED) {
+  else if (dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
     // remove from job.id.input/output files on success
     // find out if download or upload by checking which is remote file
     std::list<FileData> files;
 
-    if (dtr.get_source()->Local()) {
+    if (dtr->get_source()->Local()) {
       // output files
-      dtr_transfer_statistics = "outputfile:url=" + dtr.get_destination()->str() + ',';
+      dtr_transfer_statistics = "outputfile:url=" + dtr->get_destination()->str() + ',';
 
       if (!job_output_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING, "%s: Failed to read list of output files", jobid);
@@ -371,7 +371,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
         for (std::list<FileData>::iterator i = files.begin(); i != files.end();) {
           // compare 'standard' URLs
           Arc::URL file_lfn(i->lfn);
-          Arc::URL dtr_lfn(dtr.get_destination()->str());
+          Arc::URL dtr_lfn(dtr->get_destination()->str());
 
           // check if it is in a dynamic list - if so remove from it
           if (i->pfn.size() > 1 && i->pfn[1] == '@') {
@@ -415,14 +415,14 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           }
         }
       }
-      dtr_transfer_statistics += "starttime=" + dtr.get_creation_time().str(Arc::UTCTime) + ',';
+      dtr_transfer_statistics += "starttime=" + dtr->get_creation_time().str(Arc::UTCTime) + ',';
       dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime); 
     }
-    else if (dtr.get_destination()->Local()) {
+    else if (dtr->get_destination()->Local()) {
       // input files
       struct stat st;
-      Arc::FileStat(dtr.get_destination()->str(), &st, true);
-      dtr_transfer_statistics = "inputfile:url=" + dtr.get_source()->str() + ',';
+      Arc::FileStat(dtr->get_destination()->str(), &st, true);
+      dtr_transfer_statistics = "inputfile:url=" + dtr->get_source()->str() + ',';
       if (!job_input_read_file(jobid, *jobuser, files)) {
         logger.msg(Arc::WARNING,"%s: Failed to read list of input files", jobid);
       } else {
@@ -430,7 +430,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
         for (std::list<FileData>::iterator i = files.begin(); i != files.end();) {
           // compare 'standard' URLs
           Arc::URL file_lfn(i->lfn);
-          Arc::URL dtr_lfn(dtr.get_source()->str());
+          Arc::URL dtr_lfn(dtr->get_source()->str());
           if (file_lfn.str() == dtr_lfn.str()) {
             struct stat st;
             Arc::FileStat(job.SessionDir() + i->pfn, &st, true);
@@ -446,9 +446,9 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of input files", jobid);
         }
       }
-      dtr_transfer_statistics += "starttime=" + dtr.get_creation_time().str(Arc::UTCTime) + ',';
+      dtr_transfer_statistics += "starttime=" + dtr->get_creation_time().str(Arc::UTCTime) + ',';
       dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime) + ',';
-      if (dtr.get_cache_state() == DataStaging::CACHE_ALREADY_PRESENT)
+      if (dtr->get_cache_state() == DataStaging::CACHE_ALREADY_PRESENT)
         dtr_transfer_statistics += "fromcache=yes";
       else
         dtr_transfer_statistics += "fromcache=no"; 
@@ -480,7 +480,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   
   // remove this DTR from list
   for (std::multimap<std::string, std::string>::iterator i = dtr_iterator.first; i != dtr_iterator.second; ++i) {
-    if (i->second == dtr.get_id()) {
+    if (i->second == dtr->get_id()) {
       active_dtrs.erase(i);
       break;
     }
@@ -493,7 +493,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
   }
 
   // no DTRs left, clean up session dir if upload or failed download
-  if (dtr.get_source()->Local()) {
+  if (dtr->get_source()->Local()) {
     std::list<FileData> files;
     // if error, don't remove dynamic output files so that resume will work
     if (!job_output_read_file(jobid, *jobuser, files))
@@ -524,12 +524,12 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR& dtr) {
 
   // log summary to DTR log and A-REX log
   if (finished_jobs[jobid].empty())
-    dtr.get_logger()->msg(Arc::INFO, "%s: All %s %s successfully", jobid,
-                          dtr.get_source()->Local() ? "uploads":"downloads",
-                          (dtr.get_status() == DataStaging::DTRStatus::CANCELLED) ? "cancelled":"finished");
+    dtr->get_logger()->msg(Arc::INFO, "%s: All %s %s successfully", jobid,
+                          dtr->get_source()->Local() ? "uploads":"downloads",
+                          (dtr->get_status() == DataStaging::DTRStatus::CANCELLED) ? "cancelled":"finished");
   else
-    dtr.get_logger()->msg(Arc::INFO, "%s: Some %s failed", jobid,
-                          dtr.get_source()->Local() ? "uploads":"downloads");
+    dtr->get_logger()->msg(Arc::INFO, "%s: Some %s failed", jobid,
+                          dtr->get_source()->Local() ? "uploads":"downloads");
   lock.unlock();
 
   // wake up GM thread
@@ -761,41 +761,41 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
       usercfg.ProxyPath(job_proxy_filename(jobid, *jobuser));
     }
     // logger for these DTRs. LogDestinations should be deleted when DTR is received back
-    DataStaging::DTRLogger dtr_log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR");
+    DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));
     Arc::LogFile * dest = new Arc::LogFile(job_errors_filename(jobid, *jobuser));
     dest->setReopen(true);
     dtr_log->addDestination(*dest);
 
     // create DTR and send to Scheduler
-    DataStaging::DTR dtr(source, destination, usercfg, jobid, job.get_uid(), dtr_log);
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job.get_uid(), dtr_log));
     // set retry count (tmp errors only)
-    dtr.set_tries_left(jobuser->Env().jobs_cfg().MaxRetries());
+    dtr->set_tries_left(jobuser->Env().jobs_cfg().MaxRetries());
     // allow the same file to be uploaded to multiple locations with same LFN
-    dtr.set_force_registration(replication);
+    dtr->set_force_registration(replication);
     // set sub-share for download or upload
-    dtr.set_sub_share((job.get_state() == JOB_STATE_PREPARING) ? "download" : "upload");
+    dtr->set_sub_share((job.get_state() == JOB_STATE_PREPARING) ? "download" : "upload");
     // set priority as given in job description
     if (job.get_local())
-      dtr.set_priority(job.get_local()->priority);
+      dtr->set_priority(job.get_local()->priority);
     // set whether to use A-REX host certificate for remote delivery services
-    dtr.host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
+    dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
 
     DataStaging::CacheParameters cache_parameters;
     cache_parameters.cache_dirs = jobuser->CacheParams().getCacheDirs();
     cache_parameters.remote_cache_dirs = jobuser->CacheParams().getRemoteCacheDirs();
-    dtr.set_cache_parameters(cache_parameters);
-    dtr.registerCallback(this,DataStaging::GENERATOR);
-    dtr.registerCallback(&scheduler,DataStaging::SCHEDULER);
+    dtr->set_cache_parameters(cache_parameters);
+    dtr->registerCallback(this,DataStaging::GENERATOR);
+    dtr->registerCallback(&scheduler,DataStaging::SCHEDULER);
     // callbacks for info
-    dtr.registerCallback(&info, DataStaging::SCHEDULER);
+    dtr->registerCallback(&info, DataStaging::SCHEDULER);
     lock.lock();
-    active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr.get_id()));
+    active_dtrs.insert(std::pair<std::string, std::string>(jobid, dtr->get_id()));
     lock.unlock();
 
     // Avoid logging when possible during scheduler submission because it gets
     // blocked by LFC calls locking the environment
     Arc::Logger::getRootLogger().setThreshold(Arc::ERROR);
-    dtr.push(DataStaging::SCHEDULER);
+    DataStaging::DTR::push(dtr, DataStaging::SCHEDULER);
     Arc::Logger::getRootLogger().setThreshold(log_level);
 
     // update .local with transfer share
@@ -805,7 +805,7 @@ bool DTRGenerator::processReceivedJob(const JobDescription& job) {
       delete job_desc;
       continue;
     }
-    job_desc->transfershare = dtr.get_transfer_share();
+    job_desc->transfershare = dtr->get_transfer_share();
     if (!job_local_write_file(job, *jobuser, *job_desc)) {
       logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
     }

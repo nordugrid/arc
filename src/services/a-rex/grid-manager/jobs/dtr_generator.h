@@ -27,7 +27,7 @@ class DTRInfo: public DataStaging::DTRCallback {
   /** JobUsers is needed to find the correct control dir */
   DTRInfo(const JobUsers& users);
   DTRInfo() {};
-  virtual void receiveDTR(DataStaging::DTR& dtr);
+  virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 };
 
 
@@ -47,7 +47,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
 
   // Event lists
   /** DTRs received */
-  std::list<DataStaging::DTR> dtrs_received;
+  std::list<DataStaging::DTR_ptr> dtrs_received;
   /** Jobs received */
   std::list<JobDescription> jobs_received;
   /** Jobs cancelled. List of Job IDs. */
@@ -88,7 +88,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   void thread(void);
 
   /** Process a received DTR */
-  bool processReceivedDTR(DataStaging::DTR& dtr);
+  bool processReceivedDTR(DataStaging::DTR_ptr dtr);
   /** Process a received job */
   bool processReceivedJob(const JobDescription& job);
   /** Process a cancelled job */
@@ -133,7 +133,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * as done.
    * @param dtr DTR object sent back from the Scheduler
    */
-  virtual void receiveDTR(DataStaging::DTR& dtr);
+  virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 
   /**
    * A-REX sends data transfer requests to the data staging system through

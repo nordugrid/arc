@@ -12,16 +12,16 @@ namespace DataStaging {
   /// Wrapper class around DataDeliveryComm
   class DataDelivery::delivery_pair_t {
     public:
-    DTR* dtr;
+    DTR_ptr dtr;
     TransferParameters params;
     DataDeliveryComm* comm;
     bool cancelled;
-    delivery_pair_t(DTR* request, const TransferParameters& params);
+    delivery_pair_t(DTR_ptr request, const TransferParameters& params);
     ~delivery_pair_t();
     void start();
   };
 
-  DataDelivery::delivery_pair_t::delivery_pair_t(DTR* request, const TransferParameters& params)
+  DataDelivery::delivery_pair_t::delivery_pair_t(DTR_ptr request, const TransferParameters& params)
     :dtr(request),params(params),comm(NULL),cancelled(false) {}
 
   DataDelivery::delivery_pair_t::~delivery_pair_t() {
@@ -29,7 +29,7 @@ namespace DataStaging {
   }
 
   void DataDelivery::delivery_pair_t::start() {
-    comm = DataDeliveryComm::CreateInstance(*dtr, params);
+    comm = DataDeliveryComm::CreateInstance(dtr, params);
   }
 
   DataDelivery::DataDelivery(): delivery_state(INITIATED) {
@@ -42,26 +42,26 @@ namespace DataStaging {
     return true;
   }
 
-  void DataDelivery::receiveDTR(DTR& dtr) {
-    if(!dtr) {
+  void DataDelivery::receiveDTR(DTR_ptr dtr) {
+    if(!(*dtr)) {
       logger.msg(Arc::ERROR, "Received invalid DTR");
-      dtr.set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Invalid DTR");
-      dtr.set_status(DTRStatus::TRANSFERRED);
-      dtr.push(SCHEDULER);
+      dtr->set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR, DTRErrorStatus::ERROR_UNKNOWN, "Invalid DTR");
+      dtr->set_status(DTRStatus::TRANSFERRED);
+      DTR::push(dtr, SCHEDULER);
       return;
     }
-    dtr.get_logger()->msg(Arc::INFO, "Delivery received new DTR %s with source: %s, destination: %s",
-               dtr.get_id(), dtr.get_source()->CurrentLocation().str(), dtr.get_destination()->CurrentLocation().str());
+    dtr->get_logger()->msg(Arc::INFO, "Delivery received new DTR %s with source: %s, destination: %s",
+               dtr->get_id(), dtr->get_source()->CurrentLocation().str(), dtr->get_destination()->CurrentLocation().str());
 
-    dtr.set_status(DTRStatus::TRANSFERRING);
-    delivery_pair_t* d = new delivery_pair_t(&dtr, transfer_params);
+    dtr->set_status(DTRStatus::TRANSFERRING);
+    delivery_pair_t* d = new delivery_pair_t(dtr, transfer_params);
     dtr_list_lock.lock();
     dtr_list.push_back(d);
     dtr_list_lock.unlock();
     return;
   }
 
-  bool DataDelivery::cancelDTR(DTR* request) {
+  bool DataDelivery::cancelDTR(DTR_ptr request) {
     if(!request) {
       logger.msg(Arc::ERROR, "Received no DTR");
       return false;
@@ -90,7 +90,7 @@ namespace DataStaging {
     // if request is already TRANSFERRED, no need to push to Scheduler again
     if (request->get_status() != DTRStatus::TRANSFERRED) {
       request->set_status(DTRStatus::TRANSFERRED);
-      request->push(SCHEDULER);
+      DTR::push(request, SCHEDULER);
     }
     return true;
   }
@@ -143,11 +143,12 @@ namespace DataStaging {
 
           // deleting delivery_pair_t kills the spawned process
           // Do this before passing back to Scheduler to avoid race condition
-          // of DTR being deleted before Comm object has finished with it
-          DTR* tmp = dp->dtr;
+          // of DTR being deleted before Comm object has finished with it.
+          // With ThreadedPointer this may not be a problem any more.
+          DTR_ptr tmp = dp->dtr;
           delete dp;
           tmp->set_status(DTRStatus::TRANSFERRED);
-          tmp->push(SCHEDULER);
+          DTR::push(tmp, SCHEDULER);
           continue;
         }
         // check for new transfer
@@ -167,12 +168,12 @@ namespace DataStaging {
             d = dtr_list.erase(d);
             dtr_list_lock.unlock();
 
-            DTR* tmp = dp->dtr;
+            DTR_ptr tmp = dp->dtr;
             tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                                       DTRErrorStatus::NO_ERROR_LOCATION,
                                       "Failed to start thread to start delivery or thread timed out");
             tmp->set_status(DTRStatus::TRANSFERRED);
-            tmp->push(SCHEDULER);
+            DTR::push(tmp, SCHEDULER);
 
           } else {
             dtr_list_lock.lock();
@@ -206,10 +207,10 @@ namespace DataStaging {
           dp->dtr->get_logger()->msg(Arc::INFO, "DTR %s: Transfer finished: %llu bytes transferred %s",
                                      dp->dtr->get_short_id(), status.transferred,
                                      (status.checksum[0] ? ": checksum "+std::string(status.checksum) : " "));
-          DTR* tmp = dp->dtr;
+          DTR_ptr tmp = dp->dtr;
           delete dp;
           tmp->set_status(DTRStatus::TRANSFERRED);
-          tmp->push(SCHEDULER);
+          DTR::push(tmp, SCHEDULER);
           continue;
         }
         if(!(*(dp->comm))) {
@@ -220,10 +221,10 @@ namespace DataStaging {
           dtr_list_lock.unlock();
           dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,DTRErrorStatus::ERROR_TRANSFER,
                    dp->comm->GetError().empty()?"Connection with delivery process lost":dp->comm->GetError());
-          DTR* tmp = dp->dtr;
+          DTR_ptr tmp = dp->dtr;
           delete dp;
           tmp->set_status(DTRStatus::TRANSFERRED);
-          tmp->push(SCHEDULER);
+          DTR::push(tmp, SCHEDULER);
           continue;
         }
         dtr_list_lock.lock();

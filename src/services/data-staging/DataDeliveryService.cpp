@@ -43,10 +43,10 @@ namespace DataStaging {
       Arc::Time timelimit(Arc::Time()-Arc::Period(3600));
 
       active_dtrs_lock.lock();
-      for (std::map<DTR*, std::stringstream*>::iterator i = active_dtrs.begin();
+      for (std::map<DTR_ptr, sstream_ptr>::iterator i = active_dtrs.begin();
            i != active_dtrs.end(); ++i) {
 
-        DTR* dtr = i->first;
+        DTR_ptr dtr = i->first;
 
         if (dtr->get_modification_time() < timelimit && dtr->get_status() != DTRStatus::TRANSFERRING) {
           archived_dtrs_lock.lock();
@@ -59,25 +59,14 @@ namespace DataStaging {
             archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>(dtr->get_status().str(), "");
           }
           archived_dtrs_lock.unlock();
-          // clean up DTR memory - delete DTR Logger and LogDestinations
-          cleanDTR(i->first);
-          delete i->second;
+          // clean up DTR memory - delete DTR LogDestinations
+          if (dtr->get_logger()) dtr->get_logger()->deleteDestinations();
           active_dtrs.erase(i);
         }
       }
       active_dtrs_lock.unlock();
     }
 
-  }
-
-  void DataDeliveryService::cleanDTR(DTR* dtr) {
-    if (!dtr) return;
-
-    if (dtr->get_logger()) {
-      dtr->get_logger()->deleteDestinations();
-    }
-    delete dtr;
-    dtr = NULL;
   }
 
   bool DataDeliveryService::CheckInput(const std::string& url, const Arc::UserConfig& usercfg, Arc::XMLNode& resultelement) {
@@ -105,12 +94,12 @@ namespace DataStaging {
     return true;
   }
 
-  void DataDeliveryService::receiveDTR(DTR& dtr) {
+  void DataDeliveryService::receiveDTR(DTR_ptr dtr) {
     // note: logger doesn't work here - to fix
-    logger.msg(Arc::INFO, "Received DTR %s in state %s", dtr.get_id(), dtr.get_status().str());
+    logger.msg(Arc::INFO, "Received DTR %s in state %s", dtr->get_id(), dtr->get_status().str());
 
     // delete temp proxy file
-    std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr.get_id()+".proxy");
+    std::string proxy_file(tmp_proxy_dir+"/DTR."+dtr->get_id()+".proxy");
     logger.msg(Arc::DEBUG, "Removing temp proxy %s", proxy_file);
     if (unlink(proxy_file.c_str()) && errno != ENOENT) {
       logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
@@ -214,7 +203,7 @@ namespace DataStaging {
 
       // check if dtrid is in the active list - if so it is probably a retry
       active_dtrs_lock.lock();
-      std::map<DTR*, std::stringstream*>::iterator i = active_dtrs.begin();
+      std::map<DTR_ptr, sstream_ptr>::iterator i = active_dtrs.begin();
 
       for (; i != active_dtrs.end(); ++i) {
         if (i->first->get_id() == dtrid) break;
@@ -229,8 +218,7 @@ namespace DataStaging {
         }
         // Erase this DTR from active list
         logger.msg(Arc::VERBOSE, "Replacing DTR %s in state %s with new request", dtrid, i->first->get_status().str());
-        cleanDTR(i->first);
-        delete i->second;
+        if (i->first->get_logger()) i->first->get_logger()->deleteDestinations();
         active_dtrs.erase(i);
       }
       active_dtrs_lock.unlock();
@@ -261,20 +249,20 @@ namespace DataStaging {
       // back to the client. LogStream keeps a reference to the stream so we
       // cannot delete it until deleting LogStream. These pointers are
       // deleted when the DTR is archived.
-      std::stringstream * stream = new std::stringstream();
+      sstream_ptr stream(new std::stringstream());
       Arc::LogDestination * output = new Arc::LogStream(*stream);
-      DTRLogger log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
+      DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
       log->removeDestinations();
       log->addDestination(*output);
 
       std::string groupid(Arc::UUID());
 
-      DTR * dtr = new DTR(src, dest, usercfg, groupid, uid, log);
+      DTR_ptr dtr(new DTR(src, dest, usercfg, groupid, uid, log));
       if (!(*dtr)) {
         logger.msg(Arc::ERROR, "Invalid DTR");
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "Could not create DTR";
-        cleanDTR(dtr);
+        log->deleteDestinations();
         if (unlink(proxy_file.c_str()) && errno != ENOENT) {
           logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
         }
@@ -300,7 +288,7 @@ namespace DataStaging {
       dtr->set_id(dtrid);
       dtr->set_status(DTRStatus::TRANSFER);
 
-      dtr->push(DELIVERY);
+      DTR::push(dtr, DELIVERY);
 
       // Add to active list
       active_dtrs_lock.lock();
@@ -355,7 +343,7 @@ namespace DataStaging {
       resultelement.NewChild("ID") = dtrid;
 
       active_dtrs_lock.lock();
-      std::map<DTR*, std::stringstream*>::iterator dtr_it = active_dtrs.begin();
+      std::map<DTR_ptr, sstream_ptr>::iterator dtr_it = active_dtrs.begin();
       for (; dtr_it != active_dtrs.end(); ++dtr_it) {
         if (dtr_it->first->get_id() == dtrid) break;
       }
@@ -381,7 +369,7 @@ namespace DataStaging {
         continue;
       }
 
-      DTR * dtr = dtr_it->first;
+      DTR_ptr dtr = dtr_it->first;
       resultelement.NewChild("Log") = dtr_it->second->str();
       resultelement.NewChild("BytesTransferred") = Arc::tostring(dtr->get_bytes_transferred());
 
@@ -411,9 +399,9 @@ namespace DataStaging {
         active_dtrs_lock.unlock();
         return Arc::MCC_Status(Arc::STATUS_OK);
       }
-      // Terminal state -  clean up DTR memory and delete DTR Logger and LogDestinations
-      cleanDTR(dtr);
-      delete dtr_it->second;
+      // Terminal state -  clean up DTR LogDestinations
+      if (dtr->get_logger()) dtr->get_logger()->deleteDestinations();
+      //delete dtr_it->second;
       active_dtrs.erase(dtr_it);
       active_dtrs_lock.unlock();
     }
@@ -459,7 +447,7 @@ namespace DataStaging {
 
       // Check if DTR is still in active list
       active_dtrs_lock.lock();
-      std::map<DTR*, std::stringstream*>::iterator dtr_it = active_dtrs.begin();
+      std::map<DTR_ptr, sstream_ptr>::iterator dtr_it = active_dtrs.begin();
       for (; dtr_it != active_dtrs.end(); ++dtr_it) {
         if (dtr_it->first->get_id() == dtrid) break;
       }
@@ -473,7 +461,7 @@ namespace DataStaging {
       }
       // DTR could be already finished, but report successful cancel anyway
 
-      DTR * dtr = dtr_it->first;
+      DTR_ptr dtr = dtr_it->first;
       if (dtr->get_status() == DTRStatus::TRANSFERRING_CANCEL) {
         active_dtrs_lock.unlock();
         logger.msg(Arc::ERROR, "DTR %s was already cancelled", dtrid);

@@ -8,14 +8,14 @@
 
 namespace DataStaging {
 
-  DataDeliveryComm* DataDeliveryComm::CreateInstance(const DTR& dtr, const TransferParameters& params) {
-    if (!dtr.get_delivery_endpoint() || dtr.get_delivery_endpoint() == DTR::LOCAL_DELIVERY)
+  DataDeliveryComm* DataDeliveryComm::CreateInstance(DTR_ptr dtr, const TransferParameters& params) {
+    if (!dtr->get_delivery_endpoint() || dtr->get_delivery_endpoint() == DTR::LOCAL_DELIVERY)
       return new DataDeliveryLocalComm(dtr, params);
     return new DataDeliveryRemoteComm(dtr, params);
   }
 
-  DataDeliveryComm::DataDeliveryComm(const DTR& dtr, const TransferParameters& params)
-    : dtr_id(dtr.get_short_id()),transfer_params(params),logger_(dtr.get_logger()) {
+  DataDeliveryComm::DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params)
+    : dtr_id(dtr->get_short_id()),transfer_params(params),logger_(dtr->get_logger()) {
     handler_= DataDeliveryCommHandler::getInstance();
   }
 
@@ -25,7 +25,7 @@ namespace DataStaging {
     return tmp;
   }
 
-  bool DataDeliveryComm::CheckComm(DTR* dtr, std::vector<std::string>& allowed_dirs) {
+  bool DataDeliveryComm::CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs) {
     if (!dtr->get_delivery_endpoint() || dtr->get_delivery_endpoint() == DTR::LOCAL_DELIVERY)
       return DataDeliveryLocalComm::CheckComm(dtr, allowed_dirs);
     return DataDeliveryRemoteComm::CheckComm(dtr, allowed_dirs);

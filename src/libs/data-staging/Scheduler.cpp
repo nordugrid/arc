@@ -97,12 +97,12 @@ namespace DataStaging {
    * DTRs with higher priority go first to the beginning,
    * with lower -- to the end
    */
-  bool dtr_sort_predicate(DTR* dtr1, DTR* dtr2)
+  bool dtr_sort_predicate(DTR_ptr dtr1, DTR_ptr dtr2)
   {
     return dtr1->get_priority() > dtr2->get_priority();
   }
 
-  void Scheduler::next_replica(DTR* request) {
+  void Scheduler::next_replica(DTR_ptr request) {
     if (!request->error()) { // bad logic
       request->set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR,
                                 DTRErrorStatus::ERROR_UNKNOWN,
@@ -167,7 +167,7 @@ namespace DataStaging {
     }
   }
 
-  bool Scheduler::handle_mapped_source(DTR* request, Arc::URL& mapped_url) {
+  bool Scheduler::handle_mapped_source(DTR_ptr request, Arc::URL& mapped_url) {
     // The DTR source is mapped to another place so set the mapped location in request.
     // If mapped_url is set delivery will use it as source
     request->get_logger()->msg(Arc::INFO, "DTR %s: Source is mapped to %s", request->get_short_id(), mapped_url.str());
@@ -221,7 +221,7 @@ namespace DataStaging {
     return false;
   }
 
-  void Scheduler::ProcessDTRNEW(DTR* request){
+  void Scheduler::ProcessDTRNEW(DTR_ptr request){
 
     request->get_logger()->msg(Arc::INFO, "Scheduler received new DTR %s with source: %s,"
         " destination: %s, assigned to transfer share %s with priority %d",
@@ -249,7 +249,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRCACHE_WAIT(DTR* request){
+  void Scheduler::ProcessDTRCACHE_WAIT(DTR_ptr request){
     // The waiting time should be calculated within DTRList so
     // by the time we are here we know to query the cache again
 
@@ -276,7 +276,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRCACHE_CHECKED(DTR* request){
+  void Scheduler::ProcessDTRCACHE_CHECKED(DTR_ptr request){
     // There's no need to check additionally for cache error
     // If the error has occurred -- we just proceed the normal
     // workflow as if it was not cached at all.
@@ -299,7 +299,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRRESOLVED(DTR* request){
+  void Scheduler::ProcessDTRRESOLVED(DTR_ptr request){
     if(request->error()){
       // It's impossible to download anything, since no replica location is resolved
       // if cacheable, move to PROCESS_CACHE, the post-processor will do the cleanup
@@ -323,7 +323,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRREPLICA_QUERIED(DTR* request){
+  void Scheduler::ProcessDTRREPLICA_QUERIED(DTR_ptr request){
     if(request->error()){
       // go to next replica or exit with error
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Error with source file, moving to next replica", request->get_short_id());
@@ -366,7 +366,7 @@ namespace DataStaging {
     }
   }
 
-  void Scheduler::ProcessDTRPRE_CLEANED(DTR* request){
+  void Scheduler::ProcessDTRPRE_CLEANED(DTR_ptr request){
     // If an error occurred in pre-cleaning, try to copy anyway
     if (request->error())
       request->get_logger()->msg(Arc::INFO, "DTR %s: Pre-clean failed, will still try to copy", request->get_short_id());
@@ -380,7 +380,7 @@ namespace DataStaging {
       // share already in transfer queue and apply limit. In order not to block
       // the highest priority DTRs here we allow them to bypass the limit.
       int share_queue = 0, highest_priority = 0;
-      for (std::list<DTR*>::iterator dtr = staged_queue.begin(); dtr != staged_queue.end(); ++dtr) {
+      for (std::list<DTR_ptr>::iterator dtr = staged_queue.begin(); dtr != staged_queue.end(); ++dtr) {
         if ((*dtr)->get_transfer_share() == request->get_transfer_share() &&
             ((*dtr)->get_source()->IsStageable() ||
              (*dtr)->get_destination()->IsStageable())) {
@@ -407,7 +407,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRSTAGING_PREPARING_WAIT(DTR* request){
+  void Scheduler::ProcessDTRSTAGING_PREPARING_WAIT(DTR_ptr request){
     // The waiting time should be calculated within DTRList so
     // by the time we are here we know to query the request again
 
@@ -441,7 +441,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRSTAGED_PREPARED(DTR* request){
+  void Scheduler::ProcessDTRSTAGED_PREPARED(DTR_ptr request){
     if(request->error()){
       // We have to try another replica if the source failed to stage
       // but first we have to release any requests
@@ -470,7 +470,7 @@ namespace DataStaging {
     request->set_status(DTRStatus::TRANSFER);
   }
   
-  void Scheduler::ProcessDTRTRANSFERRED(DTR* request){
+  void Scheduler::ProcessDTRTRANSFERRED(DTR_ptr request){
     // We don't check if error has happened - if it has the post-processor
     // will take needed steps in RELEASE_REQUEST in any case. The error flag
     // will work now as a sign to return the DTR to QUERY_REPLICA again.
@@ -495,7 +495,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRREQUEST_RELEASED(DTR* request){
+  void Scheduler::ProcessDTRREQUEST_RELEASED(DTR_ptr request){
     // if the post-processor had troubles releasing the request, continue
     // normal workflow and the DTR will be cleaned up. If the error
     // originates from before (like Transfer errors, staging errors)
@@ -515,7 +515,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRREPLICA_REGISTERED(DTR* request){
+  void Scheduler::ProcessDTRREPLICA_REGISTERED(DTR_ptr request){
     // If there was a problem registering the destination file,
     // using a different source replica won't help, so pass to final step
     // (remote destinations can't be cached). The post-processor should have
@@ -540,7 +540,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRCACHE_PROCESSED(DTR* request){
+  void Scheduler::ProcessDTRCACHE_PROCESSED(DTR_ptr request){
     // Final stage within scheduler. Retries are initiated from here if necessary,
     // otherwise report success or failure to generator
 
@@ -624,18 +624,18 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::ProcessDTRFINAL_STATE(DTR* request){
+  void Scheduler::ProcessDTRFINAL_STATE(DTR_ptr request){
   	// This is the only place where the DTR is returned to the generator
   	// and deleted from the global list
 
   	// Return to the generator
     request->get_logger()->msg(Arc::INFO, "DTR %s: Returning to generator", request->get_short_id());
-    request->push(GENERATOR);
+    DTR::push(request, GENERATOR);
     // Delete from the global list
     DtrList.delete_dtr(request);
   }
   
-  void Scheduler::map_state_and_process(DTR* request){
+  void Scheduler::map_state_and_process(DTR_ptr request){
     // For cancelled DTRs set the appropriate post-processor state
     if(request->cancel_requested()) map_cancel_state(request);
     // Loop until the DTR is sent somewhere for some action to be done
@@ -668,7 +668,7 @@ namespace DataStaging {
 
   }
   
-  void Scheduler::map_cancel_state(DTR* request){
+  void Scheduler::map_cancel_state(DTR_ptr request){
     switch (request->get_status().GetStatus()) {
       case DTRStatus::NEW:
       case DTRStatus::CHECK_CACHE:
@@ -732,7 +732,7 @@ namespace DataStaging {
     }
   }
   
-  void Scheduler::map_stuck_state(DTR* request) {
+  void Scheduler::map_stuck_state(DTR_ptr request) {
     switch (request->get_status().GetStatus()) {
       case DTRStatus::CHECKING_CACHE:
         {
@@ -779,13 +779,13 @@ namespace DataStaging {
     }
   }
 
-  void Scheduler::add_event(DTR* event) {
+  void Scheduler::add_event(DTR_ptr event) {
     event_lock.lock();
     events.push_back(event);
     event_lock.unlock();
   }
 
-  void Scheduler::choose_delivery_service(DTR* request) {
+  void Scheduler::choose_delivery_service(DTR_ptr request) {
     if (configured_delivery_services.empty()) return;
 
     // Remember current endpoint
@@ -874,8 +874,8 @@ namespace DataStaging {
     Arc::Time now;
     event_lock.lock();
 
-    for (std::list<DTR*>::iterator event = events.begin(); event != events.end();) {
-      DTR* tmp = *event;
+    for (std::list<DTR_ptr>::iterator event = events.begin(); event != events.end();) {
+      DTR_ptr tmp = *event;
       event_lock.unlock();
 
       if (tmp->get_process_time() <= now) {
@@ -905,11 +905,11 @@ namespace DataStaging {
   void Scheduler::revise_queues() {
 
     // The DTRs ready to go into a processing state
-    std::map<DTRStatus::DTRStatusType, std::list<DTR*> > DTRQueueStates;
+    std::map<DTRStatus::DTRStatusType, std::list<DTR_ptr> > DTRQueueStates;
     DtrList.filter_dtrs_by_statuses(DTRStatus::ToProcessStates, DTRQueueStates);
 
     // The active DTRs currently in processing states
-    std::map<DTRStatus::DTRStatusType, std::list<DTR*> > DTRRunningStates;
+    std::map<DTRStatus::DTRStatusType, std::list<DTR_ptr> > DTRRunningStates;
     DtrList.filter_dtrs_by_statuses(DTRStatus::ProcessingStates, DTRRunningStates);
 
     Arc::Time now;
@@ -917,13 +917,13 @@ namespace DataStaging {
     // Go through "to process" states, work out shares and push DTRs
     for (unsigned int i = 0; i < DTRStatus::ToProcessStates.size(); ++i) {
 
-      std::list<DTR*> DTRQueue = DTRQueueStates[DTRStatus::ToProcessStates.at(i)];
-      std::list<DTR*> ActiveDTRs = DTRRunningStates[DTRStatus::ProcessingStates.at(i)];
+      std::list<DTR_ptr> DTRQueue = DTRQueueStates[DTRStatus::ToProcessStates.at(i)];
+      std::list<DTR_ptr> ActiveDTRs = DTRRunningStates[DTRStatus::ProcessingStates.at(i)];
 
       if (DTRQueue.empty() && ActiveDTRs.empty()) continue;
 
       // Map of job id to list of DTRs, used for grouping bulk requests
-      std::map<std::string, std::set<DTR*> > bulk_requests;
+      std::map<std::string, std::set<DTR_ptr> > bulk_requests;
 
       // Transfer shares for this queue
       TransferShares transferShares(transferSharesConf);
@@ -935,9 +935,9 @@ namespace DataStaging {
       int highest_priority = 0;
 
       // First go over the queue and check for cancellation and timeout
-      for (std::list<DTR*>::iterator dtr = DTRQueue.begin(); dtr != DTRQueue.end();) {
+      for (std::list<DTR_ptr>::iterator dtr = DTRQueue.begin(); dtr != DTRQueue.end();) {
 
-        DTR* tmp = *dtr;
+        DTR_ptr tmp = *dtr;
         if (dtr == DTRQueue.begin()) highest_priority = tmp->get_priority();
 
         // There's no check for cancellation requests for the post-processor.
@@ -977,12 +977,12 @@ namespace DataStaging {
         if (tmp->bulk_possible()) {
           std::string jobid(tmp->get_parent_job_id());
           if (bulk_requests.find(jobid) == bulk_requests.end()) {
-            std::set<DTR*> bulk_list;
+            std::set<DTR_ptr> bulk_list;
             bulk_list.insert(tmp);
             bulk_requests[jobid] = bulk_list;
             tmp->get_logger()->msg(Arc::VERBOSE, "DTR %s: Starting bulk request", tmp->get_short_id());
           } else {
-            DTR* first_bulk = *bulk_requests[jobid].begin();
+            DTR_ptr first_bulk = *bulk_requests[jobid].begin();
             tmp->get_logger()->msg(Arc::VERBOSE, "DTR %s: Adding to bulk request", tmp->get_short_id());
             // Only source bulk operations supported at the moment and limit to 100
             if (bulk_requests[jobid].size() < 100 &&
@@ -1000,9 +1000,9 @@ namespace DataStaging {
       }
 
       // Go over the active DTRs and add to transfer share
-      for (std::list<DTR*>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end();) {
+      for (std::list<DTR_ptr>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end();) {
 
-        DTR* tmp = *dtr;
+        DTR_ptr tmp = *dtr;
         if (tmp->get_status() == DTRStatus::TRANSFERRING) {
           // If the DTR is in Delivery, check for cancellation. The pre- and
           // post-processor DTRs don't get cancelled here but are allowed to
@@ -1050,16 +1050,16 @@ namespace DataStaging {
       int running = ActiveDTRs.size();
 
       // Go over the active DTRs again and decrease slots in corresponding shares
-      for (std::list<DTR*>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end(); ++dtr) {
+      for (std::list<DTR_ptr>::iterator dtr = ActiveDTRs.begin(); dtr != ActiveDTRs.end(); ++dtr) {
         transferShares.decrease_number_of_slots((*dtr)->get_transfer_share());
         active_shares.insert((*dtr)->get_transfer_share());
       }
 
       // Now at the beginning of the queue we have DTRs that should be
       // launched first. Launch them, but with respect to the transfer shares.
-      for (std::list<DTR*>::iterator dtr = DTRQueue.begin(); dtr != DTRQueue.end(); ++dtr) {
+      for (std::list<DTR_ptr>::iterator dtr = DTRQueue.begin(); dtr != DTRQueue.end(); ++dtr) {
 
-        DTR* tmp = *dtr;
+        DTR_ptr tmp = *dtr;
 
         // Check if there are any shares left in the queue which might need
         // an emergency share - if not we are done
@@ -1085,28 +1085,28 @@ namespace DataStaging {
           if (tmp->is_destined_for_pre_processor()) {
             // Check for bulk
             if (tmp->bulk_possible()) {
-              std::set<DTR*> bulk_set(bulk_requests[tmp->get_parent_job_id()]);
+              std::set<DTR_ptr> bulk_set(bulk_requests[tmp->get_parent_job_id()]);
               if (bulk_set.size() > 1 &&
                   bulk_set.find(tmp) != bulk_set.end()) {
                 tmp->get_logger()->msg(Arc::INFO, "DTR %s: Will use bulk request", tmp->get_short_id());
                 unsigned int dtr_no = 0;
-                for (std::set<DTR*>::iterator i = bulk_set.begin(); i != bulk_set.end(); ++i) {
+                for (std::set<DTR_ptr>::iterator i = bulk_set.begin(); i != bulk_set.end(); ++i) {
                   if (dtr_no == 0) (*i)->set_bulk_start(true);
                   if (dtr_no == bulk_set.size() - 1) (*i)->set_bulk_end(true);
-                  (*i)->push(PRE_PROCESSOR);
+                  DTR::push(*i, PRE_PROCESSOR);
                   ++dtr_no;
                 }
               } else {
-                tmp->push(PRE_PROCESSOR);
+                DTR::push(tmp, PRE_PROCESSOR);
               }
             } else {
-              tmp->push(PRE_PROCESSOR);
+              DTR::push(tmp, PRE_PROCESSOR);
             }
           }
-          else if (tmp->is_destined_for_post_processor()) tmp->push(POST_PROCESSOR);
+          else if (tmp->is_destined_for_post_processor()) DTR::push(tmp, POST_PROCESSOR);
           else if (tmp->is_destined_for_delivery()) {
             choose_delivery_service(tmp);
-            tmp->push(DELIVERY);
+            DTR::push(tmp, DELIVERY);
           }
 
           ++running;
@@ -1118,23 +1118,28 @@ namespace DataStaging {
     }
   }
 
-  void Scheduler::receiveDTR(DTR& request){
+  void Scheduler::receiveDTR(DTR_ptr request){
 
-    if (request.get_status() != DTRStatus::NEW) {
-      add_event(&request);
+    if (!request) {
+      logger.msg(Arc::ERROR, "Scheduler received NULL DTR");
+      return;
+    }
+
+    if (request->get_status() != DTRStatus::NEW) {
+      add_event(request);
       return;
     }
     // New DTR - first check it is valid
-    if (!request) {
+    if (!(*request)) {
       logger.msg(Arc::ERROR, "Scheduler received invalid DTR");
-      request.set_status(DTRStatus::ERROR);
-      request.push(GENERATOR);
+      request->set_status(DTRStatus::ERROR);
+      DTR::push(request, GENERATOR);
       return;
     }
 
-    request.registerCallback(&processor,PRE_PROCESSOR);
-    request.registerCallback(&processor,POST_PROCESSOR);
-    request.registerCallback(&delivery,DELIVERY);
+    request->registerCallback(&processor,PRE_PROCESSOR);
+    request->registerCallback(&processor,POST_PROCESSOR);
+    request->registerCallback(&delivery,DELIVERY);
     /* Shares part*/
     // First, get the transfer share this dtr should belong to
     std::string DtrTransferShare = transferSharesConf.extract_share_info(request);
@@ -1148,8 +1153,8 @@ namespace DataStaging {
     bool in_reference = transferSharesConf.is_configured(DtrTransferShare);
     int priority = transferSharesConf.get_basic_priority(DtrTransferShare);
 
-    request.set_transfer_share(DtrTransferShare);
-    DtrTransferShare = request.get_transfer_share();
+    request->set_transfer_share(DtrTransferShare);
+    DtrTransferShare = request->get_transfer_share();
 
     // Now the sub-share is added to DtrTransferShare, add it to reference
     // shares if appropriate and update each TransferShare
@@ -1159,13 +1164,11 @@ namespace DataStaging {
     
     // Compute the priority this DTR receives - this is the priority of the
     // share adjusted by the priority of the parent job
-    request.set_priority(int(transferSharesConf.get_basic_priority(DtrTransferShare) * request.get_priority() * 0.01));
+    request->set_priority(int(transferSharesConf.get_basic_priority(DtrTransferShare) * request->get_priority() * 0.01));
     /* Shares part ends*/               
 
-    DTR * new_dtr = DtrList.add_dtr(request);
-    if (new_dtr) {
-      add_event(new_dtr);
-    }
+    DtrList.add_dtr(request);
+    add_event(request);
   }
 
   bool Scheduler::cancelDTRs(const std::string& jobid) {
@@ -1236,9 +1239,9 @@ namespace DataStaging {
       cancelled_jobs_lock.lock();
       std::list<std::string>::iterator jobid = cancelled_jobs.begin();
       for (;jobid != cancelled_jobs.end();) {
-        std::list<DTR*> requests;
+        std::list<DTR_ptr> requests;
         DtrList.filter_dtrs_by_job(*jobid, requests);
-        for (std::list<DTR*>::iterator dtr = requests.begin(); dtr != requests.end(); ++dtr) {
+        for (std::list<DTR_ptr>::iterator dtr = requests.begin(); dtr != requests.end(); ++dtr) {
           (*dtr)->set_cancel_request();
           (*dtr)->get_logger()->msg(Arc::INFO, "DTR %s cancelled", (*dtr)->get_id());
         }

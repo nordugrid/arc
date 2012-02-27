@@ -20,10 +20,11 @@ namespace DataStaging {
     cond.signal();
   }
 
-  void Generator::receiveDTR(DTR& dtr) {
-    logger.msg(Arc::INFO, "Received DTR %s back from scheduler", dtr.get_id());
+  void Generator::receiveDTR(DTR_ptr dtr) {
+    logger.msg(Arc::INFO, "Received DTR %s back from scheduler", dtr->get_id());
     // DTR logger destinations can be destroyed when DTR has finished
-    dtr.get_logger()->deleteDestinations();
+    dtr->get_logger()->deleteDestinations();
+    dtrs.push_back(dtr);
     cond.signal();
   }
 
@@ -53,24 +54,25 @@ namespace DataStaging {
     scheduler.start();
 
     {
-      DTRLogger log = new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging");
+      DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
       Arc::LogDestination * dest = new Arc::LogStream(std::cerr);
       log->addDestination(*dest);
 
       // Free DTR immediately after passing to scheduler
-      DTR dtr(source, destination, cfg, job_id,  Arc::User().get_uid(), log);
-      if (!dtr) {
+      DTR_ptr dtr(new DTR(source, destination, cfg, job_id,  Arc::User().get_uid(), log));
+      if (!(*dtr)) {
         logger.msg(Arc::ERROR, "Problem creating dtr (source %s, destination %s)", source, destination);
         return;
       }
       // register callback with DTR
-      dtr.registerCallback(this,GENERATOR);
-      dtr.registerCallback(&scheduler,SCHEDULER);
-      dtr.set_tries_left(5);
-      dtr.push(SCHEDULER);
+      dtr->registerCallback(this,GENERATOR);
+      dtr->registerCallback(&scheduler,SCHEDULER);
+      dtr->set_tries_left(5);
+      DTR::push(dtr, SCHEDULER);
     }
     
     cond.wait();
+    logger.msg(Arc::INFO, "Received back DTR %s", dtrs.front()->get_id());
     logger.msg(Arc::INFO, "Generator finished, shutting down scheduler");
     scheduler.stop();
     logger.msg(Arc::INFO, "Scheduler stopped, exiting");

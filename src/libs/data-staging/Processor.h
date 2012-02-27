@@ -26,16 +26,16 @@ namespace DataStaging {
     class ThreadArgument {
      public:
       Processor* proc;
-      DTR* dtr;
-      ThreadArgument(Processor* proc_, DTR* dtr_):proc(proc_),dtr(dtr_) { };
+      DTR_ptr dtr;
+      ThreadArgument(Processor* proc_, DTR_ptr dtr_):proc(proc_),dtr(dtr_) { };
     };
 
     /// Class used to pass information to spawned thread (for bulk operations)
     class BulkThreadArgument {
      public:
       Processor* proc;
-      std::list<DTR*> dtrs;
-      BulkThreadArgument(Processor* proc_, const std::list<DTR*>& dtrs_):proc(proc_),dtrs(dtrs_) { };
+      std::list<DTR_ptr> dtrs;
+      BulkThreadArgument(Processor* proc_, const std::list<DTR_ptr>& dtrs_):proc(proc_),dtrs(dtrs_) { };
     };
 
     /// Counter of active threads
@@ -45,7 +45,7 @@ namespace DataStaging {
     /// receiving a DTR with bulk_start on and receiving one with bulk_end on.
     /// It is up to the caller to make sure that all the requests are suitable
     /// for bulk handling. The list is cleared after the DTR with bulk_end set.
-    std::list<DTR*> bulk_list;
+    std::list<DTR_ptr> bulk_list;
 
     /* Thread methods which deal with each state */
     /// Check the cache to see if the file already exists
@@ -99,7 +99,7 @@ namespace DataStaging {
      * and then returns. The thread notifies the scheduler when
      * it is finished.
      */
-    virtual void receiveDTR(DTR& dtr);
+    virtual void receiveDTR(DTR_ptr dtr);
   };
 
 

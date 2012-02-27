@@ -18,7 +18,7 @@ int main() {
   std::cout<<"Creating "<<no_dtrs<<" DTRs"<<std::endl;
   time_t start = time(NULL);
 
-  DataStaging::DTR* dtrs[no_dtrs];
+  DataStaging::DTR_ptr dtrs[no_dtrs];
   Arc::Logger * log = NULL;
   for(int i = 0; i<no_dtrs; ++i) {
     dtrs[i] = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), log);

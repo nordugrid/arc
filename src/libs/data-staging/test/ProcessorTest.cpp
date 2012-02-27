@@ -74,16 +74,16 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT(Arc::FileStat(destination, &st, true));
   CPPUNIT_ASSERT_EQUAL(0, (int)st.st_size);
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
-  dtr->push(DataStaging::PRE_PROCESSOR);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
 
   DataStaging::Processor processor;
   processor.start();
   //CPPUNIT_ASSERT(processor);
-  processor.receiveDTR(*dtr);
+  processor.receiveDTR(dtr);
   // sleep while thread deletes
   Arc::Time now;
   while ((dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) && ((Arc::Time() - now) <= CONNECTION_TIMEOUT))
@@ -95,13 +95,12 @@ void ProcessorTest::TestPreClean() {
 
   // use a non-existent file
   destination = "http://badhost/file1";
-  delete dtr;
   dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   dtr->set_status(DataStaging::DTRStatus::PRE_CLEAN);
-  dtr->push(DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(*dtr);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+  processor.receiveDTR(dtr);
 
   // sleep while thread deletes
   now = Arc::Time();
@@ -110,7 +109,6 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   // PRE_CLEANED is the correct status even after an error
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
-  delete dtr;
 }
 
 void ProcessorTest::TestCacheCheck() {
@@ -129,7 +127,7 @@ void ProcessorTest::TestCacheCheck() {
   std::string source("http://www.nordugrid.org;cache=no/data/echo.sh");
   std::string destination("/tmp/file1");
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::NON_CACHEABLE);
@@ -137,7 +135,6 @@ void ProcessorTest::TestCacheCheck() {
 
   // use cacheable input
   source = "http://www.nordugrid.org/data/echo.sh";
-  delete dtr;
 
   dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
@@ -145,14 +142,14 @@ void ProcessorTest::TestCacheCheck() {
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
   dtr->set_cache_parameters(cache_param);
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-  dtr->push(DataStaging::PRE_PROCESSOR);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
   std::string cache_file(cache_dir + "/data/0c/4e5842a7c304ce2cd684631ca86bb366b43a7e");
   remove(cache_file.c_str());
 
   DataStaging::Processor processor;
   processor.start();
   //CPPUNIT_ASSERT(processor);
-  processor.receiveDTR(*dtr);
+  processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
   Arc::Time now = Arc::Time();
@@ -172,8 +169,8 @@ void ProcessorTest::TestCacheCheck() {
   CPPUNIT_ASSERT_EQUAL(0, close(fd));
 
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-  dtr->push(DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(*dtr);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+  processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
   now = Arc::Time();
@@ -194,8 +191,8 @@ void ProcessorTest::TestCacheCheck() {
     CPPUNIT_ASSERT_EQUAL(0, close(fd));
 
     dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread checks cache
     now = Arc::Time();
@@ -209,7 +206,6 @@ void ProcessorTest::TestCacheCheck() {
 
   // test files using guids are handled properly
   source = "lfc://lfc1.ndgf.org/:guid=4a2b61aa-1e57-4d32-9f23-873a9c9b9aed";
-  delete dtr;
 
   dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
@@ -217,11 +213,11 @@ void ProcessorTest::TestCacheCheck() {
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
   dtr->set_cache_parameters(cache_param);
   dtr->set_status(DataStaging::DTRStatus::CHECK_CACHE);
-  dtr->push(DataStaging::PRE_PROCESSOR);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
   cache_file = cache_dir + "/data/d0/a78f14e02ecff84cb5e20e5806ca99d536126b";
   remove(cache_file.c_str());
 
-  processor.receiveDTR(*dtr);
+  processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
   now = Arc::Time();
@@ -250,12 +246,12 @@ void ProcessorTest::TestResolve() {
   std::string source("rls://rls.nordugrid.org/ABCDE");
   std::string destination("/tmp/file1");
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+    DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -266,19 +262,18 @@ void ProcessorTest::TestResolve() {
 
     // check that it found replicas
     CPPUNIT_ASSERT(dtr->get_source()->HaveLocations());
-    delete dtr;
   }
 
   // pre-register a good destination
   source = "/tmp/file1";
   destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/" + filename;
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+    DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -300,20 +295,19 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT_EQUAL(1, (int)files.size());
     CPPUNIT_ASSERT_EQUAL(std::string("rls://rls.nordugrid.org/"+filename), files.front().GetName());
     */
-    delete dtr;
   }
 
   // test replication
   source = "rls://rls.nordugrid.org/ABCDE";
   destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/ABCDE";
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+    DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
     dtr->set_replication(true); // usually set automatically by scheduler
-    processor.receiveDTR(*dtr);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -329,19 +323,18 @@ void ProcessorTest::TestResolve() {
     CPPUNIT_ASSERT(dtr->get_destination()->HaveLocations());
     CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/ABCDE"), dtr->get_destination()->CurrentLocation().str());
 
-    delete dtr;
   }
 
   // copy to an existing LFN from a different LFN
   source = "/tmp/1.1";
   destination = "rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/ABCDE";
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+    DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -355,8 +348,8 @@ void ProcessorTest::TestResolve() {
     dtr->set_force_registration(true);
     dtr->reset_error_status();
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resolves
     now = Arc::Time();
@@ -369,19 +362,18 @@ void ProcessorTest::TestResolve() {
     // check that it added the destination replica
     CPPUNIT_ASSERT(dtr->get_destination()->HaveLocations());
     CPPUNIT_ASSERT_EQUAL(std::string("gsiftp://some.host:2811/some/path/ABCDE"), dtr->get_destination()->CurrentLocation().str());
-    delete dtr;
   }
 
   // source and destination same file - should fail
   source = "rls://rls.nordugrid.org/ABCDE";
   destination = "rls://https://knowarc1.grid.niif.hu:8001/se@rls.nordugrid.org/ABCDE";
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+    DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resolves
     Arc::Time now;
@@ -390,7 +382,6 @@ void ProcessorTest::TestResolve() {
     // will fail with self-replication error
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::SELF_REPLICATION_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
-    delete dtr;
   }
 }
 
@@ -401,7 +392,7 @@ void ProcessorTest::TestQueryReplica() {
   std::string source("http://www.nordugrid.org/data/echo.sh");
   std::string destination("/tmp/file1");
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
@@ -409,8 +400,8 @@ void ProcessorTest::TestQueryReplica() {
   processor.start();
   //CPPUNIT_ASSERT(processor);
   dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-  dtr->push(DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(*dtr);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+  processor.receiveDTR(dtr);
 
   // sleep while replica is queried
   Arc::Time now;
@@ -422,14 +413,13 @@ void ProcessorTest::TestQueryReplica() {
 
   // invalid file
   source = "http://www.nordugrid.org/bad/dir/badfile";
-  delete dtr;
   dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
 
   dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-  dtr->push(DataStaging::PRE_PROCESSOR);
-  processor.receiveDTR(*dtr);
+  DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+  processor.receiveDTR(dtr);
 
   // sleep while replica is queried
   now = Arc::Time();
@@ -442,7 +432,6 @@ void ProcessorTest::TestQueryReplica() {
   // index file with inconsistent metadata - needs proxy
   if (valid_proxy) {
     source = "rls://rls.nordugrid.org/processor_test_inconsistent_metadata";
-    delete dtr;
     dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
@@ -451,8 +440,8 @@ void ProcessorTest::TestQueryReplica() {
 
     // first resolve replicas
     dtr->set_status(DataStaging::DTRStatus::RESOLVE);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while replicas are resolved
     now = Arc::Time();
@@ -461,8 +450,8 @@ void ProcessorTest::TestQueryReplica() {
 
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
     dtr->set_status(DataStaging::DTRStatus::QUERY_REPLICA);
-    dtr->push(DataStaging::PRE_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::PRE_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while replica is queried
     now = Arc::Time();
@@ -472,7 +461,6 @@ void ProcessorTest::TestQueryReplica() {
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
     CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
   }
-  delete dtr;
 }
 
 void ProcessorTest::TestReplicaRegister() {
@@ -489,7 +477,7 @@ void ProcessorTest::TestReplicaRegister() {
   std::string source("/tmp/file1");
   std::string destination("rls://gsiftp://some.host:2811/some/path@rls.nordugrid.org/" + filename);
   if (valid_proxy) {
-    DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+    DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
     CPPUNIT_ASSERT(dtr);
     CPPUNIT_ASSERT(*dtr);
 
@@ -504,8 +492,8 @@ void ProcessorTest::TestReplicaRegister() {
 
     // post-register
     dtr->set_status(DataStaging::DTRStatus::REGISTER_REPLICA);
-    dtr->push(DataStaging::POST_PROCESSOR);
-    processor.receiveDTR(*dtr);
+    DataStaging::DTR::push(dtr, DataStaging::POST_PROCESSOR);
+    processor.receiveDTR(dtr);
 
     // sleep while thread resgisters
     Arc::Time now;
@@ -524,7 +512,6 @@ void ProcessorTest::TestReplicaRegister() {
 
     // clean up
     CPPUNIT_ASSERT(dtr->get_destination()->Unregister(true).Passed());
-    delete dtr;
   }
 
   // can't check request error condition with RLS - unregistering file has no effect
@@ -557,7 +544,7 @@ void ProcessorTest::TestCacheProcess() {
   std::string source("http://www.nordugrid.org/data/echo.sh");
   std::string destination(std::string(session+"/file1"));
 
-  DataStaging::DTR *dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
+  DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, *cfg, jobid, Arc::User().get_uid(), logger);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
   CPPUNIT_ASSERT(dtr->get_cache_state() == DataStaging::CACHEABLE);
@@ -571,8 +558,8 @@ void ProcessorTest::TestCacheProcess() {
   processor.start();
   //CPPUNIT_ASSERT(processor);
   dtr->set_status(DataStaging::DTRStatus::PROCESS_CACHE);
-  dtr->push(DataStaging::POST_PROCESSOR);
-  processor.receiveDTR(*dtr);
+  DataStaging::DTR::push(dtr, DataStaging::POST_PROCESSOR);
+  processor.receiveDTR(dtr);
 
   // sleep while cache is processed
   Arc::Time now;
@@ -592,8 +579,8 @@ void ProcessorTest::TestCacheProcess() {
 
   dtr->reset_error_status();
   dtr->set_status(DataStaging::DTRStatus::PROCESS_CACHE);
-  dtr->push(DataStaging::POST_PROCESSOR);
-  processor.receiveDTR(*dtr);
+  DataStaging::DTR::push(dtr, DataStaging::POST_PROCESSOR);
+  processor.receiveDTR(dtr);
 
   // sleep while cache is processed
   now = Arc::Time();
