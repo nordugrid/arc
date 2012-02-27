@@ -2592,7 +2592,7 @@ error:
     return ret;
   } 
 
-  bool nssImportCert(char* slotpw, const std::string& certfile, const std::string& name, char* trusts, bool ascii) {
+  bool nssImportCert(char* slotpw, const std::string& certfile, const std::string& name, const char* trusts, bool ascii) {
     PK11SlotInfo* slot = NULL;
     CERTCertDBHandle* certhandle;
     CERTCertTrust* trust = NULL;
@@ -2643,7 +2643,7 @@ error:
         NSSUtilLogger.msg(ERROR, "Failed to allocate cert trust");
         rv = SECFailure; break;
       }
-      rv = CERT_DecodeTrustString(trust, trusts);
+      rv = CERT_DecodeTrustString(trust, (char*)trusts);
       if(rv) {
         NSSUtilLogger.msg(ERROR, "Failed to decode trust string");
         rv = SECFailure; break;
@@ -2694,7 +2694,7 @@ error:
     else return false;
   }
 
-  bool nssImportCertAndPrivateKey(char* slotpw, const std::string& keyfile, const std::string& keyname, const std::string& certfile, const std::string& certname, char* trusts, bool ascii) { 
+  bool nssImportCertAndPrivateKey(char* slotpw, const std::string& keyfile, const std::string& keyname, const std::string& certfile, const std::string& certname, const char* trusts, bool ascii) { 
     bool res;
     res = ImportPrivateKey(slotpw, keyfile, keyname);
     if(!res) { NSSUtilLogger.msg(ERROR, "Failed to import private key from file: %s", keyfile.c_str()); return false; }
