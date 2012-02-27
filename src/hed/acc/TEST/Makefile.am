@@ -8,7 +8,8 @@ libaccTEST_la_SOURCES = TestACCPluginDescriptors.cpp \
 	TargetRetrieverTestACC.cpp TargetRetrieverTestACC.h \
 	BrokerTestACC.cpp BrokerTestACC.h \
 	TargetInformationRetrieverPluginTEST.cpp TargetInformationRetrieverPluginTEST.h \
-	ServiceEndpointRetrieverPluginTEST.cpp ServiceEndpointRetrieverPluginTEST.h
+	ServiceEndpointRetrieverPluginTEST.cpp ServiceEndpointRetrieverPluginTEST.h \
+	JobListRetrieverPluginTEST.cpp JobListRetrieverPluginTEST.h
 libaccTEST_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS)
 libaccTEST_la_LIBADD = \

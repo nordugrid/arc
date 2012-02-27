@@ -70,6 +70,13 @@ class JobStateTEST : public JobState {
     }
 };
 
+class JobListRetrieverPluginTESTControl {
+public:
+  static float delay;
+  static std::list<Job> jobs;
+  static EndpointQueryingStatus status;
+};
+
 class ServiceEndpointRetrieverPluginTESTControl {
 public:
   static float delay;

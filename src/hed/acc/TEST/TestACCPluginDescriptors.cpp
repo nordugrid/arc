@@ -5,6 +5,7 @@
 #include "TargetRetrieverTestACC.h"
 #include "TargetInformationRetrieverPluginTEST.h"
 #include "ServiceEndpointRetrieverPluginTEST.h"
+#include "JobListRetrieverPluginTEST.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "TEST", "HED:Broker", "", 0, &Arc::BrokerTestACC::GetInstance },
@@ -12,7 +13,8 @@ Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
   { "TEST", "HED:JobDescriptionParser", "", 0, &Arc::JobDescriptionParserTestACC::GetInstance },
   { "TEST", "HED:Submitter", "", 0, &Arc::SubmitterTestACC::GetInstance },
   { "TEST", "HED:TargetRetriever", "", 0, &Arc::TargetRetrieverTestACC::GetInstance },
-  { "TEST", "HED:TargetInformationRetrieverPlugin", "TargetInformationRetriever test plugin", 0, &Arc::TargetInformationRetrieverPluginTEST::Instance },
-  { "TEST", "HED:ServiceEndpointRetrieverPlugin", "ServiceEndpointRetriever test plugin", 0, &Arc::ServiceEndpointRetrieverTEST::Instance },
+  { "TEST", Arc::TargetInformationRetrieverPluginTEST::kind.c_str(), "TargetInformationRetriever test plugin", 0, &Arc::TargetInformationRetrieverPluginTEST::Instance },
+  { "TEST", Arc::ServiceEndpointRetrieverPluginTEST::kind.c_str(), "ServiceEndpointRetriever test plugin", 0, &Arc::ServiceEndpointRetrieverPluginTEST::Instance },
+  { "TEST", Arc::JobListRetrieverPluginTEST::kind.c_str(), "JobListRetriever test plugin", 0, &Arc::JobListRetrieverPluginTEST::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
