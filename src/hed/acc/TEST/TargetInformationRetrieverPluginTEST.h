@@ -4,8 +4,6 @@
 #include <arc/client/EndpointRetriever.h>
 #include <arc/loader/Plugin.h>
 
-#include <arc/client/TargetInformationRetriever.h>
-
 namespace Arc {
 
 class TargetInformationRetrieverPluginTEST : public TargetInformationRetrieverPlugin {
@@ -15,7 +13,7 @@ public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const ComputingInfoEndpoint& registry,
                                        std::list<ExecutionTarget>& endpoints,
-                                       const EndpointFilter<ExecutionTarget>&) const;
+                                       const EndpointQueryOptions<ExecutionTarget>&) const;
   static Plugin* Instance(PluginArgument *arg);
 };
 

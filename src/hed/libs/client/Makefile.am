@@ -21,9 +21,7 @@ libarcclient_la_HEADERS = Broker.h ExecutionTarget.h \
 	JobState.h Job.h JobController.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParser.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
-	EndpointRetriever.h ServiceEndpointRetriever.h \
-	TargetInformationRetriever.h JobListRetriever.h \
-	Endpoint.h \
+	EndpointRetriever.h	Endpoint.h \
 	ClientInterface.h \
 	ClientX509Delegation.h $(HEADER_WITH_XMLSEC)
 libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
@@ -31,9 +29,7 @@ libarcclient_la_SOURCES = Broker.cpp ExecutionTarget.cpp \
 	JobState.cpp Job.cpp JobController.cpp JobSupervisor.cpp \
 	JobDescription.cpp JobDescriptionParser.cpp Software.cpp \
 	GLUE2.cpp EndpointQueryingStatus.cpp TestACCControl.cpp \
-	EndpointRetriever.cpp ServiceEndpointRetriever.cpp \
-	TargetInformationRetriever.cpp JobListRetriever.cpp \
-	Endpoint.cpp \
+	EndpointRetriever.cpp Endpoint.cpp \
 	ClientInterface.cpp \
 	ClientX509Delegation.cpp $(SOURCE_WITH_XMLSEC)
 libarcclient_la_CXXFLAGS = -I$(top_srcdir)/include \

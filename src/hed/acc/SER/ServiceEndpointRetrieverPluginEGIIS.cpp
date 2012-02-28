@@ -44,7 +44,7 @@ namespace Arc {
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
                                                                     const RegistryEndpoint& rEndpoint,
                                                                     std::list<ServiceEndpoint>& seList,
-                                                                    const EndpointFilter<ServiceEndpoint>&) const {
+                                                                    const EndpointQueryOptions<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(rEndpoint.Endpoint);

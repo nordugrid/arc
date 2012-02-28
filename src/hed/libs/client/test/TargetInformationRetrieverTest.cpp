@@ -2,8 +2,8 @@
 
 #include <arc/UserConfig.h>
 #include <arc/client/Endpoint.h>
+#include <arc/client/EndpointRetriever.h>
 #include <arc/client/ExecutionTarget.h>
-#include <arc/client/TargetInformationRetriever.h>
 #include <arc/client/TestACCControl.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetInformationRetrieverTest");
@@ -51,7 +51,7 @@ void TargetInformationRetrieverTest::QueryTest() {
   Arc::UserConfig uc;
   Arc::ComputingInfoEndpoint endpoint;
   std::list<Arc::ExecutionTarget> etList;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, etList, Arc::EndpointFilter<Arc::ExecutionTarget>());
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, etList, Arc::EndpointQueryOptions<Arc::ExecutionTarget>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
@@ -62,7 +62,7 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
   Arc::UserConfig uc;
-  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointFilter<Arc::ExecutionTarget>());
+  Arc::TargetInformationRetriever retriever(uc, Arc::EndpointQueryOptions<Arc::ExecutionTarget>());
 
   Arc::ComputingInfoEndpoint ce;
   ce.Endpoint = "test.nordugrid.org";
@@ -88,7 +88,7 @@ void TargetInformationRetrieverTest::LDAPGLUE2Test() {
   ce.Endpoint = "ldap://piff.hep.lu.se:2135/o=glue";
   ce.InterfaceName = "org.nordugrid.ldapglue2";
   std::list<Arc::ExecutionTarget> targets;
-  Arc::EndpointQueryingStatus status = p->Query(uc, ce, targets, Arc::EndpointFilter<Arc::ExecutionTarget>());
+  Arc::EndpointQueryingStatus status = p->Query(uc, ce, targets, Arc::EndpointQueryOptions<Arc::ExecutionTarget>());
   CPPUNIT_ASSERT(targets.size() > 0);
 }
 

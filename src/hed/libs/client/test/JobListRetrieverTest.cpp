@@ -3,7 +3,7 @@
 #include <arc/UserConfig.h>
 #include <arc/client/Endpoint.h>
 #include <arc/client/Job.h>
-#include <arc/client/JobListRetriever.h>
+#include <arc/client/EndpointRetriever.h>
 #include <arc/client/TestACCControl.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "JobListRetrieverTest");
@@ -46,7 +46,7 @@ void JobListRetrieverTest::QueryTest() {
   Arc::UserConfig uc;
   Arc::ComputingInfoEndpoint endpoint;
   std::list<Arc::Job> jobs;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, jobs, Arc::EndpointFilter<Arc::Job>());
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, jobs, Arc::EndpointQueryOptions<Arc::Job>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 

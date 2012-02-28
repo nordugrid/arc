@@ -17,7 +17,7 @@ Plugin* ServiceEndpointRetrieverPluginTEST::Instance(PluginArgument* arg) {
 EndpointQueryingStatus ServiceEndpointRetrieverPluginTEST::Query(const UserConfig& userconfig,
                                                           const RegistryEndpoint& registry,
                                                           std::list<ServiceEndpoint>& endpoints,
-                                                          const EndpointFilter<ServiceEndpoint>&) const {
+                                                          const EndpointQueryOptions<ServiceEndpoint>&) const {
   Glib::usleep(ServiceEndpointRetrieverPluginTESTControl::delay*1000000);
   endpoints = ServiceEndpointRetrieverPluginTESTControl::endpoints;
   return ServiceEndpointRetrieverPluginTESTControl::status;

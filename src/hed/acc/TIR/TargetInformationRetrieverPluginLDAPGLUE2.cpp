@@ -54,11 +54,11 @@ namespace Arc {
       if (logger) logger->msg(DEBUG, "Extractor (%s): %s = %s", prefix, name, value);
       return value;
     }
-    
+
     std::string operator[](const std::string name) {
       return get(name);
     }
-    
+
     bool set(const std::string name, std::string& string) {
       std::string value = get(name);
       if (!value.empty()) {
@@ -68,7 +68,7 @@ namespace Arc {
         return false;
       }
     }
-    
+
     bool set(const std::string name, Period& period) {
       std::string value = get(name);
       if (!value.empty()) {
@@ -108,7 +108,7 @@ namespace Arc {
         return false;
       }
     }
-    
+
     bool set(const std::string name, URL& url) {
       std::string value = get(name);
       if (!value.empty()) {
@@ -118,7 +118,7 @@ namespace Arc {
         return false;
       }
     }
-    
+
     bool set(const std::string name, bool& boolean) {
       std::string value = get(name);
       if (!value.empty()) {
@@ -128,7 +128,7 @@ namespace Arc {
         return false;
       }
     }
-    
+
     bool set(const std::string name, std::list<std::string>& list) {
       XMLNodeList nodelist = node.Path("GLUE2" + prefix + name);
       if (nodelist.empty()) {
@@ -145,7 +145,7 @@ namespace Arc {
       }
       return true;
     }
-    
+
     static Extractor First(XMLNode& node, const std::string objectClass, Logger* logger = NULL) {
       XMLNode object = node.XPathLookup("//*[objectClass='GLUE2" + objectClass + "']", NS()).front();
       return Extractor(object, objectClass , logger);
@@ -175,7 +175,7 @@ namespace Arc {
   };
 
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& ce, std::list<ExecutionTarget>& targets, const EndpointFilter<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& ce, std::list<ExecutionTarget>& targets, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
 
@@ -356,7 +356,7 @@ namespace Arc {
       for (std::list<Extractor>::iterator itb = benchmarks.begin(); itb != benchmarks.end(); itb++) {
         Extractor& benchmark = *itb;
         std::string Type; benchmark.set("Type", Type);
-        double Value; benchmark.set("Value", Value);
+        double Value = -1.0; benchmark.set("Value", Value);
         target.Benchmarks[Type] = Value;
       }
 
@@ -386,7 +386,7 @@ namespace Arc {
           } else {
             target.OperatingSystem = Software(OSName);
           }
-        }        
+        }
         environment.set("ConnectivityIn", target.ConnectivityIn);
         environment.set("ConnectivityOut", target.ConnectivityOut);
       }

@@ -43,7 +43,7 @@ namespace Arc {
   }
   */
 
-  EndpointQueryingStatus JobListRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointFilter<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(endpoint.Endpoint);
@@ -69,7 +69,7 @@ namespace Arc {
     //Query GRIS for all relevant information
     url.ChangeLDAPScope(URL::subtree);
 
-    // Applying filter. Must be done through EndpointFilter.
+    // Applying filter. Must be done through EndpointQueryOptions.
     url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" + escaped_dn + "))");
 
     DataHandle handler(url, uc);

@@ -5,7 +5,7 @@
 
 #include <list>
 
-#include <arc/client/TargetInformationRetriever.h>
+#include <arc/client/EndpointRetriever.h>
 
 namespace Arc {
 
@@ -20,7 +20,7 @@ namespace Arc {
     ~TargetInformationRetrieverPluginLDAPNG() {};
     static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPNG(); };
 
-    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointFilter<ExecutionTarget>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
 
   private:
     static Logger logger;

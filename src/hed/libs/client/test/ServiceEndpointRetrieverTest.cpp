@@ -2,7 +2,7 @@
 
 #include <arc/UserConfig.h>
 #include <arc/client/Endpoint.h>
-#include <arc/client/ServiceEndpointRetriever.h>
+#include <arc/client/EndpointRetriever.h>
 #include <arc/client/TestACCControl.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetRetrieverARC1Test");
@@ -47,7 +47,7 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::UserConfig uc;
   Arc::RegistryEndpoint registry;
   std::list<Arc::ServiceEndpoint> endpoints;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointFilter<Arc::ServiceEndpoint>());
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 

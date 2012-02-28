@@ -5,7 +5,6 @@
 
 #include <arc/client/Job.h>
 #include <arc/client/EndpointRetriever.h>
-#include <arc/client/TargetInformationRetriever.h>
 
 namespace Arc {
 
@@ -17,7 +16,7 @@ namespace Arc {
     ~JobListRetrieverPluginWSRFCREAM() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFCREAM(); }
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointFilter<Job>&) const; // No implementation in cpp file -- returns EndpointQueryingStatus::FAILED.
+    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const; // No implementation in cpp file -- returns EndpointQueryingStatus::FAILED.
 
   private:
     static Logger logger;

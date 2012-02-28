@@ -1,7 +1,7 @@
 #ifndef __ARC_JOBLISTRETRIEVERPLUGINTEST_H__
 #define __ARC_JOBLISTRETRIEVERPLUGINTEST_H__
 
-#include <arc/client/JobListRetriever.h>
+#include <arc/client/EndpointRetriever.h>
 
 namespace Arc {
 
@@ -11,7 +11,7 @@ public:
   ~JobListRetrieverPluginTEST() {}
 
   static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginTEST; }
-  virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointFilter<Job>&) const;
+  virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
 };
 
 }
