@@ -58,12 +58,14 @@ protected:
 template<typename T>
 class EndpointConsumer {
 public:
+  virtual ~EndpointConsumer() {}
   virtual void addEndpoint(const T&) = 0;
 };
 
 template<typename T>
 class EndpointContainer : public EndpointConsumer<T>, public std::list<T> {
 public:
+  virtual ~EndpointContainer() {}
   virtual void addEndpoint(const T& t) { push_back(t); }
 };
 
