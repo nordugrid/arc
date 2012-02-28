@@ -11,15 +11,19 @@ MacOS X platform. The compilation capability have been tested on Mac OS X
 
 You can use Homebrew: http://mxcl.github.com/homebrew/
 
-Steps (tested on mac os x 10.6.7):
+Steps (tested on mac os x 10.7.3):
+  $ brew install autoconf
+  $ brew install automake
+  $ brew install libtool
   $ brew install pkgconfig
-  $ sudo bash -c "echo /usr/local/share/aclocal >> /usr/share/aclocal/dirlist"
+  $ brew install cppunit
   $ brew install gettext
   $ brew link gettext
   $ brew install glibmm
   $ brew install libxml2
   $ brew link libxml2
   $ brew install berkeley-db
+  $ brew install swig
 
 Or you can use macports: http://www.macports.org/
 
