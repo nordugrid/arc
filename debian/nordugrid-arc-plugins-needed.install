@@ -3,6 +3,7 @@ debian/tmp/usr/lib/arc/libaccBroker.so
 debian/tmp/usr/lib/arc/libaccCREAM.so
 debian/tmp/usr/lib/arc/libaccEMIES.so
 debian/tmp/usr/lib/arc/libaccEMIREG.so
+debian/tmp/usr/lib/arc/libaccJLR.so
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.so
 debian/tmp/usr/lib/arc/libaccSER.so
 debian/tmp/usr/lib/arc/libaccTIR.so
@@ -25,6 +26,7 @@ debian/tmp/usr/lib/arc/libaccBroker.apd
 debian/tmp/usr/lib/arc/libaccCREAM.apd
 debian/tmp/usr/lib/arc/libaccEMIES.apd
 debian/tmp/usr/lib/arc/libaccEMIREG.apd
+debian/tmp/usr/lib/arc/libaccJLR.apd
 debian/tmp/usr/lib/arc/libaccJobDescriptionParser.apd
 debian/tmp/usr/lib/arc/libaccSER.apd
 debian/tmp/usr/lib/arc/libaccTIR.apd
