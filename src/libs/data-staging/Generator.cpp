@@ -72,7 +72,7 @@ namespace DataStaging {
     }
     
     cond.wait();
-    logger.msg(Arc::INFO, "Received back DTR %s", dtrs.front()->get_id());
+    if (!dtrs.empty()) logger.msg(Arc::INFO, "Received back DTR %s", dtrs.front()->get_id());
     logger.msg(Arc::INFO, "Generator finished, shutting down scheduler");
     scheduler.stop();
     logger.msg(Arc::INFO, "Scheduler stopped, exiting");

@@ -195,7 +195,16 @@ namespace DataStaging {
         return;
       }
     }
-    // check replicas supplied for destination
+    // If overwrite is requested, the resolving and pre-registering of the
+    // destination will be done in the pre-clean stage after deleting.
+    if (!request->is_replication() && request->get_destination()->GetURL().Option("overwrite") == "yes") {
+      request->set_status(DTRStatus::RESOLVED);
+      request->connect_logger();
+      DTR::push(request, SCHEDULER);
+      return;
+    }
+
+    // Check replicas supplied for destination
     if (request->get_destination()->IsIndex()) {
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving destination replicas", request->get_short_id());
       Arc::DataStatus res = request->get_destination()->Resolve(false);
@@ -375,7 +384,7 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::INFO, "DTR %s: Removing %s", request->get_short_id(), request->get_destination()->CurrentLocation().str());
       res = request->get_destination()->Remove();
     }
-    else if (request->get_destination()->Registered() && !request->is_replication()) {
+    else {
       // get existing locations
       Arc::DataHandle dest(request->get_destination()->GetURL(), request->get_destination()->GetUserConfig());
       request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Finding existing destination replicas", request->get_short_id());
@@ -404,23 +413,19 @@ namespace DataStaging {
           // all replicas were deleted successfully, now unregister the LFN
           request->get_logger()->msg(Arc::INFO, "DTR %s: Unregistering %s", request->get_short_id(), dest->str());
           res = dest->Unregister(true);
-          // re-resolve destination and pre-register
-          // remove current destination - it will be re-resolved
-          request->get_destination()->RemoveLocation();
-          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Re-resolving destination replicas", request->get_short_id());
-          res = request->get_destination()->Resolve(false);
-          if (!res.Passed()) {
-            request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve destination", request->get_short_id());
-          } else {
-            request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Pre-registering destination", request->get_short_id());
-            res = request->get_destination()->PreRegister(false, request->is_force_registration());
-          }
         }
       }
-    }
-    else {
-      // replication or LFN not registered
-      request->get_logger()->msg(Arc::INFO, "DTR %s: There is nothing to pre-clean", request->get_short_id());
+      // if deletion was successful resolve destination and pre-register
+      if (!dest->HaveLocations()) {
+        request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Resolving destination replicas", request->get_short_id());
+        res = request->get_destination()->Resolve(false);
+        if (!res.Passed()) {
+          request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to resolve destination", request->get_short_id());
+        } else {
+          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Pre-registering destination", request->get_short_id());
+          res = request->get_destination()->PreRegister(false, request->is_force_registration());
+        }
+      }
     }
     if (!res.Passed()) {
       request->get_logger()->msg(Arc::ERROR, "DTR %s: Failed to pre-clean destination", request->get_short_id());
