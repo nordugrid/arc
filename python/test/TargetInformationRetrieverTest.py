@@ -41,23 +41,25 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
-        arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)
+        arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL, "TEST")
         retriever.addEndpoint(self.ce)
         retriever.wait()
         status = retriever.getStatusOfEndpoint(self.ce)
         self.expect(status).to_be_an_instance_of(arc.EndpointQueryingStatus)
-        self.expect(status).to_be(arc.EndpointQueryingStatus.FAILED)
+        self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)
+        self.expect(status.getDescription()).to_be("TEST")
 
     def test_getting_status_without_interfacename_specified(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)
         container = arc.ExecutionTargetContainer()
         retriever.addConsumer(container)
-        arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.FAILED)
+        arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL, "TEST")
         self.ce.InterfaceName = ""
         retriever.addEndpoint(self.ce)
         retriever.wait()
         status = retriever.getStatusOfEndpoint(self.ce)
-        self.expect(status).to_be(arc.EndpointQueryingStatus.FAILED)
+        self.expect(status).to_be(arc.EndpointQueryingStatus.SUCCESSFUL)
+        self.expect(status.getDescription()).to_be("TEST")
     
     def test_the_status_is_STARTED_first(self):
         retriever = arc.TargetInformationRetriever(self.usercfg)

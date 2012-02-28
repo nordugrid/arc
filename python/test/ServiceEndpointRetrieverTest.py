@@ -81,24 +81,24 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         ]
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
 
-        filter = arc.ServiceEndpointFilter(False, ["cap1"])
-        retriever = arc.ServiceEndpointRetriever(self.usercfg, filter)
+        options = arc.ServiceEndpointQueryOptions(False, ["cap1"])
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         retriever.addEndpoint(registry)
         retriever.wait()
         self.expect(container).to_have(2).endpoints()
     
-        filter = arc.ServiceEndpointFilter(False, ["cap2"])
-        retriever = arc.ServiceEndpointRetriever(self.usercfg, filter)
+        options = arc.ServiceEndpointQueryOptions(False, ["cap2"])
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         retriever.addEndpoint(registry)
         retriever.wait()
         self.expect(container).to_have(1).endpoint()
     
-        filter = arc.ServiceEndpointFilter(False, ["cap5"])
-        retriever = arc.ServiceEndpointRetriever(self.usercfg, filter)
+        options = arc.ServiceEndpointQueryOptions(False, ["cap5"])
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         retriever.addEndpoint(registry)
@@ -106,8 +106,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         self.expect(container).to_have(0).endpoints()
     
     def test_recursivity(self):
-        filter = arc.ServiceEndpointFilter(True)
-        retriever = arc.ServiceEndpointRetriever(self.usercfg, filter)
+        options = arc.ServiceEndpointQueryOptions(True)
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
@@ -126,8 +126,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         self.expect(ces).to_have(2).endpoints()
 
     def test_recursivity_with_filtering(self):
-        filter = arc.ServiceEndpointFilter(True, ["information.discovery.resource"])
-        retriever = arc.ServiceEndpointRetriever(self.usercfg, filter)
+        options = arc.ServiceEndpointQueryOptions(True, ["information.discovery.resource"])
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [

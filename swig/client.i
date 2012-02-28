@@ -22,8 +22,6 @@
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/TestACCControl.h>
 #include <arc/client/EndpointRetriever.h>
-#include <arc/client/ServiceEndpointRetriever.h>
-#include <arc/client/TargetInformationRetriever.h>
 %}
 
 %template(JobControllerList) std::list<Arc::JobController *>;
@@ -142,10 +140,8 @@ std::ostream& getStdout() {
 %template(TargetInformationRetriever) Arc::EndpointRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
 %template(ServiceEndpointContainer) Arc::EndpointContainer<Arc::ServiceEndpoint>;
 %template(ExecutionTargetContainer) Arc::EndpointContainer<Arc::ExecutionTarget>;
-%include "../src/hed/libs/client/ServiceEndpointRetriever.h"
-%include "../src/hed/libs/client/TargetInformationRetriever.h"
-%template(ServiceEndpointFilter) Arc::EndpointFilter<Arc::ServiceEndpoint>;
-%template(ExecutionTargetFilter) Arc::EndpointFilter<Arc::ExecutionTarget>;
+%template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::ServiceEndpoint>;
+%template(ExecutionTargetQueryOptions) Arc::EndpointQueryOptions<Arc::ExecutionTarget>;
 
 
 
