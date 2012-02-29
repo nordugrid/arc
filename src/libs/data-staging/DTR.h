@@ -267,6 +267,9 @@ namespace DataStaging {
       /** By default it is LOCAL_DELIVERY so local Delivery is used. */
       Arc::URL delivery_endpoint;
 
+      /// List of problematic endpoints - those which the DTR definitely cannot use
+      std::vector<Arc::URL> problematic_delivery_endpoints;
+
       /// Whether to use host instead of user credentials for contacting remote delivery services.
       bool use_host_cert_for_remote_delivery;
 
@@ -458,6 +461,12 @@ namespace DataStaging {
      void set_delivery_endpoint(const Arc::URL& endpoint) { delivery_endpoint = endpoint; };
      /// Returns delivery endpoint
      const Arc::URL& get_delivery_endpoint() const { return delivery_endpoint; };
+
+     /// Add problematic endpoint. Should only be those endpoints where there
+     /// is a problem with the service itself and not the transfer.
+     void add_problematic_delivery_service(const Arc::URL& endpoint) { problematic_delivery_endpoints.push_back(endpoint); };
+     /// Get all problematic endpoints
+     const std::vector<Arc::URL>& get_problematic_delivery_services() const { return problematic_delivery_endpoints; };
 
      /// Set the flag for using host certificate for contacting remote delivery services
      void host_cert_for_remote_delivery(bool host) { use_host_cert_for_remote_delivery = host; };

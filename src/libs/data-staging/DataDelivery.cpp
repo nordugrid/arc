@@ -214,13 +214,34 @@ namespace DataStaging {
           continue;
         }
         if(!(*(dp->comm))) {
-          // Error happened
-          // comm.GetError()
+          // Error happened - either delivery process is stuck or could not start
           dtr_list_lock.lock();
           d = dtr_list.erase(d);
           dtr_list_lock.unlock();
-          dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,DTRErrorStatus::ERROR_TRANSFER,
-                   dp->comm->GetError().empty()?"Connection with delivery process lost":dp->comm->GetError());
+          std::string comm_err = dp->comm->GetError();
+
+          if (status.commstatus == DataDeliveryComm::CommInit) {
+            if (comm_err.empty()) comm_err = "Failed to start delivery process";
+            if (dp->dtr->get_delivery_endpoint() == DTR::LOCAL_DELIVERY) {
+              // Serious problem, so mark permanent error
+              dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_LOGIC_ERROR,
+                                        DTRErrorStatus::ERROR_TRANSFER,
+                                        comm_err);
+            }
+            else {
+              // Failing to start on remote service should be retried
+              dp->dtr->add_problematic_delivery_service(dp->dtr->get_delivery_endpoint());
+              dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
+                                        DTRErrorStatus::ERROR_TRANSFER,
+                                        comm_err);
+            }
+          }
+          else {
+            if (comm_err.empty()) comm_err = "Connection with delivery process lost";
+            dp->dtr->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
+                                      DTRErrorStatus::ERROR_TRANSFER,
+                                      comm_err);
+          }
           DTR_ptr tmp = dp->dtr;
           delete dp;
           tmp->set_status(DTRStatus::TRANSFERRED);

@@ -816,8 +816,11 @@ namespace DataStaging {
 
     // Make a list of the delivery services that this DTR can use
     std::vector<Arc::URL> possible_delivery_services;
+    bool can_use_local = false;
     for (std::map<Arc::URL, std::vector<std::string> >::iterator service = usable_delivery_services.begin();
          service != usable_delivery_services.end(); ++service) {
+      if (service->first == DTR::LOCAL_DELIVERY) can_use_local = true;
+
       for (std::vector<std::string>::iterator dir = service->second.begin(); dir != service->second.end(); ++dir) {
         if (request->get_destination()->Local()) {
 
@@ -850,19 +853,46 @@ namespace DataStaging {
     }
     if (possible_delivery_services.empty()) return;
 
-    // If this is a retry, use a different service
-    if (request->get_tries_left() < request->get_initial_tries() && possible_delivery_services.size() > 1) {
-      Arc::URL ep(delivery_endpoint);
+    // only local
+    if (possible_delivery_services.size() == 1 && can_use_local) return;
+
+    // First try, use any service
+    if (request->get_tries_left() == request->get_initial_tries()) {
+      delivery_endpoint = possible_delivery_services.at(rand() % possible_delivery_services.size());
+      request->set_delivery_endpoint(delivery_endpoint);
+      return;
+    }
+    // Retry, try not to use a previous problematic service. If all are
+    // problematic then default to local (even if not configured)
+    for (std::vector<Arc::URL>::iterator possible = possible_delivery_services.begin();
+         possible != possible_delivery_services.end();) {
+
+      std::vector<Arc::URL>::const_iterator problem = request->get_problematic_delivery_services().begin();
+      while (problem != request->get_problematic_delivery_services().end()) {
+        if (*possible == *problem) {
+          request->get_logger()->msg(Arc::VERBOSE, "DTR %s: Not using delivery service %s due to previous failure",
+                                     request->get_short_id(), problem->str());
+          possible = possible_delivery_services.erase(possible);
+          break;
+        }
+        ++problem;
+      }
+      if (problem == request->get_problematic_delivery_services().end()) ++possible;
+    }
+    if (possible_delivery_services.empty()) {
+      // force local
+      if (!can_use_local) request->get_logger()->msg(Arc::WARNING, "DTR %s: No remote delivery services "
+                                                     "are useable, forcing local delivery", request->get_short_id());
+      request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
+    } else {
       // Find a random service different from the previous one, looping a
       // limited number of times in case all delivery services are the same url
+      Arc::URL ep(possible_delivery_services.at(rand() % possible_delivery_services.size()));
       for (unsigned int i = 0; ep == delivery_endpoint && i < possible_delivery_services.size() * 10; ++i) {
         ep = possible_delivery_services.at(rand() % possible_delivery_services.size());
       }
-      delivery_endpoint = ep;
-    } else {
-      delivery_endpoint = possible_delivery_services.at(rand() % possible_delivery_services.size());
+      request->set_delivery_endpoint(ep);
     }
-    request->set_delivery_endpoint(delivery_endpoint);
   }
 
   void Scheduler::process_events(void){
