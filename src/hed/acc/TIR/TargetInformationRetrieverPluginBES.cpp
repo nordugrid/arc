@@ -36,7 +36,7 @@ namespace Arc {
     // Return FAILED while the implementation is not complete
     return s;
 
-    URL url(cie.Endpoint);
+    URL url(cie.URLString);
 
     if (!url) {
       return s;

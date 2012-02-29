@@ -75,9 +75,9 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         
     def test_filtering(self):
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
-            arc.ServiceEndpoint("test1.nordugrid.org",["cap1","cap2"]),
-            arc.ServiceEndpoint("test2.nordugrid.org",["cap3","cap4"]),
-            arc.ServiceEndpoint("test3.nordugrid.org",["cap1","cap3"])
+            arc.ServiceEndpoint("test1.nordugrid.org", "", ["cap1","cap2"]),
+            arc.ServiceEndpoint("test2.nordugrid.org", "", ["cap3","cap4"]),
+            arc.ServiceEndpoint("test3.nordugrid.org", "", ["cap1","cap3"])
         ]
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
 
@@ -111,8 +111,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
-            arc.ServiceEndpoint("emir.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest"),
-            arc.ServiceEndpoint("ce.nordugrid.org", ["information.discovery.resource"], "org.ogf.emies"),            
+            arc.ServiceEndpoint("emir.nordugrid.org", "org.nordugrid.sertest", ["information.discovery.registry"]),
+            arc.ServiceEndpoint("ce.nordugrid.org", "org.ogf.emies" , ["information.discovery.resource"]),            
         ]
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
@@ -120,8 +120,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         # expect to get both service endpoints twice
         # once from test.nordugrid.org, once from emir.nordugrid.org
         self.expect(container).to_have(4).endpoints()
-        emirs = [endpoint for endpoint in container if "emir" in endpoint.EndpointURL]
-        ces = [endpoint for endpoint in container if "ce" in endpoint.EndpointURL]
+        emirs = [endpoint for endpoint in container if "emir" in endpoint.URLString]
+        ces = [endpoint for endpoint in container if "ce" in endpoint.URLString]
         self.expect(emirs).to_have(2).endpoints()
         self.expect(ces).to_have(2).endpoints()
 
@@ -131,8 +131,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         container = arc.ServiceEndpointContainer()
         retriever.addConsumer(container)
         arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
-           arc.ServiceEndpoint("emir.nordugrid.org", ["information.discovery.registry"], "org.nordugrid.sertest"),
-           arc.ServiceEndpoint("ce.nordugrid.org", ["information.discovery.resource"], "org.ogf.emies"),            
+           arc.ServiceEndpoint("emir.nordugrid.org", "org.nordugrid.sertest", ["information.discovery.registry"] ),
+           arc.ServiceEndpoint("ce.nordugrid.org", "org.ogf.emies", ["information.discovery.resource"]),            
         ]
         registry = arc.RegistryEndpoint("test.nordugrid.org", "org.nordugrid.sertest")
         retriever.addEndpoint(registry)
@@ -140,8 +140,8 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         # expect to only get the ce.nordugrid.org, but that will be there twice
         # once from test.nordugrid.org, once from emir.nordugrid.org
         self.expect(container).to_have(2).endpoints()
-        emirs = [endpoint for endpoint in container if "emir" in endpoint.EndpointURL]
-        ces = [endpoint for endpoint in container if "ce" in endpoint.EndpointURL]
+        emirs = [endpoint for endpoint in container if "emir" in endpoint.URLString]
+        ces = [endpoint for endpoint in container if "ce" in endpoint.URLString]
         self.expect(emirs).to_have(0).endpoints()
         self.expect(ces).to_have(2).endpoints()
         
@@ -161,7 +161,7 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         retriever.addEndpoint(registry)
         retriever.wait()
         self.expect(container).to_have(1).endpoint()
-        self.expect(container[0].EndpointURL).to_be(not_rejected)
+        self.expect(container[0].URLString).to_be(not_rejected)
     
     def test_empty_registry_type(self):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)

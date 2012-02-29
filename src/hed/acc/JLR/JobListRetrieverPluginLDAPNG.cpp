@@ -46,7 +46,7 @@ namespace Arc {
   EndpointQueryingStatus JobListRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(endpoint.Endpoint);
+    URL url(endpoint.URLString);
     if (!url) {
       return s;
     }

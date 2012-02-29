@@ -54,7 +54,7 @@ namespace Arc {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     //Query GRIS for all relevant information
-    URL url(cie.Endpoint);
+    URL url(cie.URLString);
     url.ChangeLDAPScope(URL::subtree);
     if (!url) {
       return s;
@@ -122,7 +122,7 @@ namespace Arc {
       ExecutionTarget target;
 
       //target.GridFlavour = "ARC0"; // TIR equivalent??
-      target.Cluster = URL(cie.Endpoint);
+      target.Cluster = URL(cie.URLString);
 
       // Location attributes
       if (cluster["nordugrid-cluster-location"])

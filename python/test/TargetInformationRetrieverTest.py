@@ -5,7 +5,7 @@ class TargetInformationRetrieverTest(arcom.test.ARCClientTestCase):
     def setUp(self):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))
         self.ce = arc.ComputingInfoEndpoint()
-        self.ce.Endpoint = "test.nordugrid.org"
+        self.ce.URLString = "test.nordugrid.org"
         self.ce.InterfaceName = "org.nordugrid.tirtest"
         arc.TargetInformationRetrieverPluginTESTControl.delay = 0
         arc.TargetInformationRetrieverPluginTESTControl.targets = [arc.ExecutionTarget()]

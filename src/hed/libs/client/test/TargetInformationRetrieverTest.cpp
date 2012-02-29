@@ -63,7 +63,7 @@ void TargetInformationRetrieverTest::GettingStatusFromUnspecifiedCE() {
   Arc::TargetInformationRetriever retriever(uc, Arc::EndpointQueryOptions<Arc::ExecutionTarget>());
 
   Arc::ComputingInfoEndpoint ce;
-  ce.Endpoint = "test.nordugrid.org";
+  ce.URLString = "test.nordugrid.org";
   retriever.addEndpoint(ce);
   retriever.wait();
   Arc::EndpointQueryingStatus status = retriever.getStatusOfEndpoint(ce);

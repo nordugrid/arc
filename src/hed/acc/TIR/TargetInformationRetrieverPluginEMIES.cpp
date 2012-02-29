@@ -38,7 +38,7 @@ namespace Arc {
   EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(cie.Endpoint);
+    URL url(cie.URLString);
     if (!url) {
       return s;
     }

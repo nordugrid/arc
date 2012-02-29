@@ -39,7 +39,7 @@ namespace Arc {
                                                                    const EndpointQueryOptions<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
-    URL url(rEndpoint.Endpoint + "/services/query.xml");
+    URL url(rEndpoint.URLString + "/services/query.xml");
     if (!url) {
       s = EndpointQueryingStatus::FAILED;
       return s;
@@ -73,7 +73,7 @@ namespace Arc {
       for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
         se.EndpointCapabilities.push_back((std::string)n);
       }
-      se.EndpointInterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
+      se.InterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
 
       seList.push_back(se);
     }

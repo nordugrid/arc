@@ -44,7 +44,7 @@ namespace Arc {
   EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE1::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(cie.Endpoint);
+    URL url(cie.URLString);
     url.ChangeLDAPScope(URL::subtree);
 
     if (!url) {
@@ -91,7 +91,7 @@ namespace Arc {
       ExecutionTarget target;
 
       //target.GridFlavour = "CREAM"; // TIR equivalent??
-      target.Cluster = URL(cie.Endpoint);
+      target.Cluster = URL(cie.URLString);
 
       std::string key;
       std::string::size_type pos = std::string::npos;

@@ -179,7 +179,7 @@ namespace Arc {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
 
-    URL url(ce.Endpoint);
+    URL url(ce.URLString);
     url.ChangeLDAPScope(URL::subtree);
 
     if (!url) {

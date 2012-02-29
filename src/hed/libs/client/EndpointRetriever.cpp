@@ -123,7 +123,7 @@ namespace Arc {
     if (!endpoint.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(endpoint.InterfaceName);
       if (itPluginName == interfacePluginMap.end()) {
-        //logger.msg(DEBUG, "Unable to find TargetInformationRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", endpoint.InterfaceName, endpoint.Endpoint);
+        //logger.msg(DEBUG, "Unable to find TargetInformationRetrieverPlugin plugin to query interface \"%s\" on \"%s\"", endpoint.InterfaceName, endpoint.URLString);
         setStatusOfEndpoint(endpoint, EndpointQueryingStatus(EndpointQueryingStatus::NOPLUGIN));
         return;
       }
@@ -156,7 +156,7 @@ namespace Arc {
   void EndpointRetriever<RegistryEndpoint, ServiceEndpoint>::addEndpoint(const ServiceEndpoint& endpoint) {
     // Check if the service is among the rejected ones
     const std::list<std::string>& rejectedServices = options.getRejectedServices();
-    URL url(endpoint.EndpointURL);
+    URL url(endpoint.URLString);
     for (std::list<std::string>::const_iterator it = rejectedServices.begin(); it != rejectedServices.end(); it++) {
       if (url.StringMatches(*it)) {
         return;

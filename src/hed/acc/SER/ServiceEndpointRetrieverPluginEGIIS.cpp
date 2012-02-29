@@ -47,7 +47,7 @@ namespace Arc {
                                                                     const EndpointQueryOptions<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
-    URL url(rEndpoint.Endpoint);
+    URL url(rEndpoint.URLString);
     url.ChangeLDAPScope(URL::base);
     url.AddLDAPAttribute("giisregistrationstatus");
     if (!url) {
@@ -97,15 +97,15 @@ namespace Arc {
                            (std::string)itMds->Child(i)["Mds-Service-Ldap-suffix"]);
         if (itMds->Child(i).Name() == "Mds-Vo-name") {
           se.EndpointCapabilities.push_back("information.discovery.registry");
-          se.EndpointInterfaceName = supportedInterfaces.front();
+          se.InterfaceName = supportedInterfaces.front();
         }
         else if (itMds->Child(i).Name() == "nordugrid-cluster-name") {
           se.EndpointCapabilities.push_back("information.discovery.resource");
-          se.EndpointInterfaceName = "org.nordugrid.ldapng";
+          se.InterfaceName = "org.nordugrid.ldapng";
         }
         else if (itMds->Child(i).Name() == "nordugrid-se-name") {
           se.EndpointCapabilities.push_back("information.discovery.resource");
-          se.EndpointInterfaceName = "org.nordugrid.ldapng";
+          se.InterfaceName = "org.nordugrid.ldapng";
         }
 
         seList.push_back(se);
