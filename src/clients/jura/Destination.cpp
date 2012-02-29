@@ -1,3 +1,4 @@
+#include <sstream>
 
 #include "Destination.h"
 #include "LutsDestination.h"
