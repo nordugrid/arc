@@ -103,6 +103,7 @@ public:
   ~EndpointRetriever() { common->deactivate(); }
 
   void wait() const { result.wait(); };
+  //void waitForAll() const; // TODO: Make it possible to be nice and wait for all threads to finish.
   bool isDone() const { return result.wait(0); };
 
   void addConsumer(EndpointConsumer<S>& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); };
