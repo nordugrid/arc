@@ -305,35 +305,35 @@ namespace Arc {
       preferredResult.wait();
       // Check which case happened
       if(!common->lockSharedIfValid()) return;
-      bool wasSuccesful = false;
       EndpointQueryingStatus status;
       for (typename std::list<T>::const_iterator it = preferredEndpoints.begin(); it != preferredEndpoints.end(); it++) {
         status = (*common)->getStatusOfEndpoint(*it);
         if (status) {
-          wasSuccesful = true;
           break;
         }
       }
       // Set the status of the original endpoint (the one without the specified interface)
-      if (wasSuccesful) {
-        (*common)->setStatusOfEndpoint(a->endpoint, status);
-      } else {
+      if (!status) {
         // Wait for the other threads, maybe they were successful
         otherResult.wait();
-        wasSuccesful = false;
-        for (typename std::list<T>::const_iterator it = otherEndpoints.begin(); it != otherEndpoints.end(); it++) {
+        typename std::list<T>::const_iterator it = otherEndpoints.begin();
+        for (; it != otherEndpoints.end(); ++it) {
           status = (*common)->getStatusOfEndpoint(*it);
           if (status) {
-            wasSuccesful = true;
             break;
           }
         }
-        if (wasSuccesful) {
-          (*common)->setStatusOfEndpoint(a->endpoint, status);
-        } else {
-          (*common)->setStatusOfEndpoint(a->endpoint, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
+        if (it == otherEndpoints.end()) {
+          /* TODO: In case of failure of all plugins, a clever and
+           * helpful message should be set. Maybe an algorithm for
+           * picking the most suitable failure message among the used
+           * plugins.
+           */
+          status = EndpointQueryingStatus(EndpointQueryingStatus::FAILED);
         }
       }
+      
+      (*common)->setStatusOfEndpoint(a->endpoint, status);
       common->unlockShared();
     }
   }
