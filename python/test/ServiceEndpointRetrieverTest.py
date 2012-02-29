@@ -144,6 +144,24 @@ class ServiceEndpointRetrieverTest(arcom.test.ARCClientTestCase):
         ces = [endpoint for endpoint in container if "ce" in endpoint.EndpointURL]
         self.expect(emirs).to_have(0).endpoints()
         self.expect(ces).to_have(2).endpoints()
+        
+    def test_rejected_services(self):
+        rejected = "http://test.nordugrid.org"
+        not_rejected = "http://test2.nordugrid.org"
+        options = arc.ServiceEndpointQueryOptions(False, [], [rejected])
+        retriever = arc.ServiceEndpointRetriever(self.usercfg, options)
+        container = arc.ServiceEndpointContainer()
+        retriever.addConsumer(container)
+        
+        arc.ServiceEndpointRetrieverPluginTESTControl.endpoints = [
+            arc.ServiceEndpoint(rejected),
+            arc.ServiceEndpoint(not_rejected)
+        ]
+        registry = arc.RegistryEndpoint("registry.nordugrid.org")
+        retriever.addEndpoint(registry)
+        retriever.wait()
+        self.expect(container).to_have(1).endpoint()
+        self.expect(container[0].EndpointURL).to_be(not_rejected)
     
     def test_empty_registry_type(self):
         retriever = arc.ServiceEndpointRetriever(self.usercfg)

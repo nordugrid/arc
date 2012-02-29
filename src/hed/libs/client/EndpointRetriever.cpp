@@ -131,6 +131,14 @@ namespace Arc {
 
   template<>
   void EndpointRetriever<RegistryEndpoint, ServiceEndpoint>::addEndpoint(const ServiceEndpoint& endpoint) {
+    // Check if the service is among the rejected ones
+    const std::list<std::string>& rejectedServices = options.getRejectedServices();
+    URL url(endpoint.EndpointURL);
+    for (std::list<std::string>::const_iterator it = rejectedServices.begin(); it != rejectedServices.end(); it++) {
+      if (url.StringMatches(*it)) {
+        return;
+      }
+    }
     if (options.recursiveEnabled() && RegistryEndpoint::isRegistry(endpoint)) {
       RegistryEndpoint registry(endpoint);
       logger.msg(DEBUG, "Found a registry, will query it recursively: %s", registry.str());

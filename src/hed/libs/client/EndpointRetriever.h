@@ -35,15 +35,20 @@ private:
 template<>
 class EndpointQueryOptions<ServiceEndpoint> {
 public:
-  EndpointQueryOptions(bool recursive = false, const std::list<std::string>& capabilityFilter = std::list<std::string>()) : recursive(recursive), capabilityFilter(capabilityFilter) {}
+  EndpointQueryOptions(bool recursive = false,
+                       const std::list<std::string>& capabilityFilter = std::list<std::string>(),
+                       const std::list<std::string>& rejectedServices = std::list<std::string>() )
+    : recursive(recursive), capabilityFilter(capabilityFilter), rejectedServices(rejectedServices) {}
 
   bool recursiveEnabled() const { return recursive; }
   const std::list<std::string>& getCapabilityFilter() const { return capabilityFilter; }
+  const std::list<std::string>& getRejectedServices() const { return rejectedServices; }
   std::list<std::string>& getPreferredInterfaceNames() { return preferredInterfaceNames; }
 
 private:
   bool recursive;
   std::list<std::string> capabilityFilter;
+  std::list<std::string> rejectedServices;
   std::list<std::string> preferredInterfaceNames;
 };
 
