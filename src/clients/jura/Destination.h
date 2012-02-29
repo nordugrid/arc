@@ -3,6 +3,8 @@
 
 
 #include "JobLogFile.h"
+#include <arc/client/ClientInterface.h>
+#include <arc/message/MCC.h>
 
 namespace Arc
 {
@@ -23,6 +25,8 @@ namespace Arc
      *  the destination for the given job log file. 
      */
     static Destination* createDestination(Arc::JobLogFile &joblog);
+    std::string Current_Time( time_t parameter_time = time(NULL) );
+    Arc::MCC_Status OutputFileGeneration(std::string prefix, Arc::URL url, std::string output_dir, std::string message,Arc::Logger& logger);
   };
 }
 

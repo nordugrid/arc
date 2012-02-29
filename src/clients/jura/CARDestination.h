@@ -23,6 +23,7 @@ namespace Arc
     Arc::Logger logger;
     Arc::MCCConfig cfg;
     Arc::URL service_url;
+    std::string output_dir;
     /** Max number of URs to put in a set before submitting it */
     int max_ur_set_size;
     /** Actual number of usage records in set */

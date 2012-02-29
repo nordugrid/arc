@@ -22,6 +22,7 @@ namespace Arc
     std::string certfile=joblog["certificate_path"];
     std::string keyfile=joblog["key_path"];
     std::string cadir=joblog["ca_certificates_dir"];
+    output_dir=joblog["outputdir"];
     // ...or get them from environment
     if (certfile.empty())
       certfile=Arc::GetEnv("X509_USER_CERT");
@@ -120,7 +121,8 @@ namespace Arc
     logger.msg(Arc::DEBUG, 
                "UR set dump: %s",
                urstr.c_str());
-    return 0;
+    
+    return OutputFileGeneration("CAR", service_url, output_dir, urstr, logger);
   }
 
   Arc::MCC_Status CARDestination::send_request(const std::string &urset)

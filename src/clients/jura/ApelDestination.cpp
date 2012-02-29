@@ -13,32 +13,6 @@
 
 namespace Arc
 {
-  // Current time calculation and convert to the UTC time format.
-  std::string Current_Time( time_t parameter_time = time(NULL) ){
-
-      time_t rawtime;
-      if ( parameter_time == time(NULL) ){
-          time ( &rawtime );    //current time
-      } else {
-          rawtime = parameter_time;
-      }
-      tm * ptm;
-      ptm = gmtime ( &rawtime );
-
-      std::string mon_prefix = (ptm->tm_mon+1 < 10)?"0":"";
-      std::string day_prefix = (ptm->tm_mday < 10)?"0":"";
-      std::string hour_prefix = (ptm->tm_hour < 10)?"0":"";
-      std::string min_prefix = (ptm->tm_min < 10)?"0":"";
-      std::string sec_prefix = (ptm->tm_sec < 10)?"0":"";
-      std::stringstream out;
-      if ( parameter_time == time(NULL) ){
-          out << ptm->tm_year+1900<<"-"<<mon_prefix<<ptm->tm_mon+1<<"-"<<day_prefix<<ptm->tm_mday<<"T"<<hour_prefix<<ptm->tm_hour<<":"<<min_prefix<<ptm->tm_min<<":"<<sec_prefix<<ptm->tm_sec<<"+0000";
-      } else {
-          out << ptm->tm_year+1900<<mon_prefix<<ptm->tm_mon+1<<day_prefix<<ptm->tm_mday<<"."<<hour_prefix<<ptm->tm_hour<<min_prefix<<ptm->tm_min<<sec_prefix<<ptm->tm_sec;
-      }
-      return out.str();
-  }
-
   ApelDestination::ApelDestination(JobLogFile& joblog):
     logger(Arc::Logger::rootLogger, "JURA.ApelDestination"),
     urn(0),
