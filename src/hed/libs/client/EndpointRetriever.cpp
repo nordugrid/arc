@@ -71,17 +71,40 @@ namespace Arc {
       options(options)
   {
     // Used for holding names of all available plugins.
-    std::list<std::string> types(common->getListOfPlugins());
+    std::list<std::string> availablePlugins = common->getListOfPlugins();
+
     // Map supported interfaces to available plugins.
-    for (std::list<std::string>::const_iterator itT = types.begin(); itT != types.end(); ++itT) {
+    for (std::list<std::string>::iterator itT = availablePlugins.begin(); itT != availablePlugins.end();) {
       EndpointRetrieverPlugin<T, S>* p = common->load(*itT);
-      if (p) {
-        for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
-          // If two plugins supports two identical interfaces, then only the last will appear in the map.
-          interfacePluginMap[*itI] = *itT;
-        }
+
+      if (!p) {
+        itT = availablePlugins.erase(itT);
+        continue;
       }
+
+      const std::list<std::string>& interfaceNames = p->SupportedInterfaces();
+
+      if (interfaceNames.empty()) {
+        // This plugin does not support any interfaces, skip it
+        logger.msg(DEBUG, "The plugin %s does not support any interfaces, skipping it.", *itT);
+        itT = availablePlugins.erase(itT);
+        continue;
+      }
+      else if (interfaceNames.front().empty()) {
+        logger.msg(DEBUG, "The first supported interface of the plugin %s is an empty string, skipping the plugin.", *itT);
+        itT = availablePlugins.erase(itT);
+        continue;
+      }
+
+      for (std::list<std::string>::const_iterator itI = p->SupportedInterfaces().begin(); itI != p->SupportedInterfaces().end(); ++itI) {
+        // If two plugins supports two identical interfaces, then only the last will appear in the map.
+        interfacePluginMap[*itI] = *itT;
+      }
+
+      ++itT;
     }
+    
+    common->setAvailablePlugins(availablePlugins);
   }
 
   template<typename T, typename S>
@@ -226,8 +249,7 @@ namespace Arc {
       if (status) a->result.setSuccess(); // Successful query
     } else { // If there was no plugin selected for this endpoint, this will try all possibility
       logger.msg(DEBUG, "The interface of this endpoint (%s) is unspecified, will try all possible plugins", a->endpoint.str());
-      std::list<std::string> types = common->getListOfPlugins();
-      std::list<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
+      const std::list<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
       // A list for collecting the new endpoints which will be created by copying the original one
       // and setting the InterfaceName for each possible plugins
       std::list<T> preferredEndpoints;
@@ -235,34 +257,33 @@ namespace Arc {
       // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query
       Result preferredResult(true);
       Result otherResult(true);
-      for (std::list<std::string>::const_iterator it = types.begin(); it != types.end(); ++it) {
+      for (std::list<std::string>::const_iterator it = common->getAvailablePlugins().begin(); it != common->getAvailablePlugins().end(); ++it) {
         EndpointRetrieverPlugin<T, S>* plugin = common->load(*it);
         if (!plugin) {
+          // Should not happen since all available plugins was already loaded in the constructor.
           // Problem loading the plugin, skip it
           logger.msg(DEBUG, "Problem loading plugin %s, skipping it..", *it);
           continue;
         }
-        std::list<std::string> interfaceNames = plugin->SupportedInterfaces();
-        if (interfaceNames.empty()) {
-          // This plugin does not support any interfaces, skip it
-          logger.msg(DEBUG, "The plugin %s does not support any interfaces, skipping it.", *it);
-          continue;
-        } else if (interfaceNames.front().empty()) {
-          logger.msg(DEBUG, "The first supported interface of the plugin %s is an empty string, skipping the plugin.", *it);
-          continue;
-        }
         // Create a new endpoint with the same endpoint and a specified interface
         T endpoint = a->endpoint;
-        // We will use the first interfaceName this plugin supports
-        endpoint.InterfaceName = interfaceNames.front();
-        logger.msg(DEBUG, "New endpoint is created (%s) from the one with the unspecified interface (%s)",  endpoint.str(), a->endpoint.str());
-        ThreadArg* newArg;
-        if (std::find(preferredInterfaceNames.begin(), preferredInterfaceNames.end(), endpoint.InterfaceName) != preferredInterfaceNames.end()) {
-          preferredEndpoints.push_back(endpoint);
-          newArg = new ThreadArg(*a, preferredResult);
-        } else {
+        ThreadArg* newArg = new ThreadArg(*a, otherResult);
+        // Set interface
+        for (std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
+             itSI != plugin->SupportedInterfaces().end(); ++itSI) {
+          if (std::find(preferredInterfaceNames.begin(), preferredInterfaceNames.end(), *itSI) != preferredInterfaceNames.end()) {
+            endpoint.InterfaceName = *itSI; // TODO: *itSI must not be empty.
+            preferredEndpoints.push_back(endpoint);
+            newArg->result = preferredResult;
+            break;
+          }
+        }
+
+        if (endpoint.InterfaceName.empty()) {
+          // We will use the first interfaceName this plugin supports
+          endpoint.InterfaceName = plugin->SupportedInterfaces().front();
+          logger.msg(DEBUG, "New endpoint is created (%s) from the one with the unspecified interface (%s)",  endpoint.str(), a->endpoint.str());
           otherEndpoints.push_back(endpoint);
-          newArg = new ThreadArg(*a, otherResult);
         }
         // Make new argument by copying old one with result report object replaced
         newArg->endpoint = endpoint;
@@ -277,6 +298,7 @@ namespace Arc {
           continue;
         }
       }
+
       // We wait for the preferred result object. The wait returns in two cases:
       //   1. one sub-thread was succesful
       //   2. all the sub-threads failed

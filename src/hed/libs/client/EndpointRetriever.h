@@ -73,7 +73,7 @@ public:
   ~EndpointRetrieverPluginLoader();
 
   EndpointRetrieverPlugin<T, S>* load(const std::string& name);
-  std::list<std::string> getListOfPlugins();
+  static std::list<std::string> getListOfPlugins();
   const std::map<std::string, EndpointRetrieverPlugin<T, S> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
 
 protected:
@@ -144,12 +144,15 @@ protected:
     void unlockShared(void) { mutex.unlockShared(); }
 
     operator const UserConfig&(void) const { return uc; }
+    const std::list<std::string>& getAvailablePlugins(void) const { return availablePlugins; }
+    void setAvailablePlugins(const std::list<std::string>& newAvailablePlugins) { availablePlugins = newAvailablePlugins; }
     EndpointRetriever* operator->(void) { return t; }
     EndpointRetriever* operator*(void) { return t; }
   private:
     SharedMutex mutex;
     EndpointRetriever* t;
     const UserConfig uc;
+    std::list<std::string> availablePlugins;
   };
   ThreadedPointer<Common> common;
 
