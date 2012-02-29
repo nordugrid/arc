@@ -44,7 +44,7 @@ namespace DataStaging {
 
       active_dtrs_lock.lock();
       for (std::map<DTR_ptr, sstream_ptr>::iterator i = active_dtrs.begin();
-           i != active_dtrs.end(); ++i) {
+           i != active_dtrs.end();) {
 
         DTR_ptr dtr = i->first;
 
@@ -61,8 +61,9 @@ namespace DataStaging {
           archived_dtrs_lock.unlock();
           // clean up DTR memory - delete DTR LogDestinations
           if (dtr->get_logger()) dtr->get_logger()->deleteDestinations();
-          active_dtrs.erase(i);
+          active_dtrs.erase(i++);
         }
+        else ++i;
       }
       active_dtrs_lock.unlock();
     }
