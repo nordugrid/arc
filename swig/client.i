@@ -136,7 +136,7 @@ std::ostream& getStdout() {
 #ifdef SWIGJAVA
 %rename(waitUntilDone) wait;
 #endif
-%template(EndpointRetrieverRS) Arc::EndpointRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
+%template(ServiceEndpointRetriever) Arc::EndpointRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
 %template(TargetInformationRetriever) Arc::EndpointRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
 %template(ServiceEndpointContainer) Arc::EndpointContainer<Arc::ServiceEndpoint>;
 %template(ExecutionTargetContainer) Arc::EndpointContainer<Arc::ExecutionTarget>;
