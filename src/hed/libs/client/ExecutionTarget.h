@@ -8,8 +8,8 @@
 #include <string>
 
 #include <arc/DateTime.h>
+#include <arc/Endpoint.h>
 #include <arc/URL.h>
-#include <arc/client/Endpoint.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Software.h>
 #include <arc/client/Submitter.h>

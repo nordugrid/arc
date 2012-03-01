@@ -6,9 +6,9 @@
 #include <string>
 
 #include <arc/ArcConfig.h>
+#include <arc/Endpoint.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
-#include <arc/client/Endpoint.h>
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/loader/Loader.h>

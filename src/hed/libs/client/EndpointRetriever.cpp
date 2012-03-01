@@ -4,9 +4,9 @@
 #include <config.h>
 #endif
 
-#include "EndpointRetriever.h"
-#include <arc/client/Endpoint.h>
 #include <arc/client/Job.h>
+
+#include "EndpointRetriever.h"
 
 namespace Arc {
 

@@ -18,7 +18,6 @@
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/TargetRetriever.h>
-#include <arc/client/Endpoint.h>
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/TestACCControl.h>
 #include <arc/client/EndpointRetriever.h>
@@ -129,7 +128,6 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
 %include "../src/hed/libs/client/TargetRetriever.h"
-%include "../src/hed/libs/client/Endpoint.h"
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
 %include "../src/hed/libs/client/TestACCControl.h"
 %include "../src/hed/libs/client/EndpointRetriever.h"

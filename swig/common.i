@@ -20,6 +20,7 @@ typedef unsigned int uint32_t;
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/ArcVersion.h>
+#include <arc/Endpoint.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/DateTime.h>
@@ -102,6 +103,7 @@ typedef unsigned int uint32_t;
 %include "../src/hed/libs/common/ArcConfig.h"
 %include "../src/hed/libs/common/ArcLocation.h"
 %include "../src/hed/libs/common/ArcVersion.h"
+%include "../src/hed/libs/common/Endpoint.h"
 %include "../src/hed/libs/common/IString.h"
 %rename(LogStream_ostream) LogStream;
 %include "../src/hed/libs/common/Logger.h"
