@@ -9,7 +9,7 @@ namespace Arc {
   
 class Endpoint {
 public:
-  enum EndpointType { REGISTRY, COMPUTINGINFO, JOBSUBMIT, JOBMANAGEMENT };
+  enum EndpointType { REGISTRY, COMPUTINGINFO, JOBSUBMIT, JOBMANAGEMENT, ANY };
   
   Endpoint(const std::string& URLString = "",
            const std::string& InterfaceName = "",
@@ -31,6 +31,7 @@ public:
   std::string HealthStateInfo;
   std::string QualityLevel;
   std::list<std::string> Capability;
+  std::string PreferredJobInterfaceName;
 };
 
 ///
