@@ -54,7 +54,7 @@ public:
 class RegistryEndpoint : public Endpoint {
 public:
   RegistryEndpoint(std::string URLString = "", std::string InterfaceName = "") : Endpoint(URLString, InterfaceName) {}
-  RegistryEndpoint(ServiceEndpoint service) : Endpoint(service.URLString, service.InterfaceName) {}
+  RegistryEndpoint(ServiceEndpoint service) : Endpoint(service) {}
 
   static bool isRegistry(ServiceEndpoint service) {
     return (std::find(service.Capability.begin(), service.Capability.end(), RegistryCapability) != service.Capability.end());
@@ -66,7 +66,7 @@ public:
 class ComputingInfoEndpoint : public Endpoint {
 public:
   ComputingInfoEndpoint(std::string URLString = "", std::string InterfaceName = "") : Endpoint(URLString, InterfaceName) {}
-  ComputingInfoEndpoint(ServiceEndpoint service) : Endpoint(service.URLString, service.InterfaceName) {}
+  ComputingInfoEndpoint(ServiceEndpoint service) : Endpoint(service) {}
 
   static bool isComputingInfo(ServiceEndpoint service) {
     return (std::find(service.Capability.begin(), service.Capability.end(), ComputingInfoCapability) != service.Capability.end());
