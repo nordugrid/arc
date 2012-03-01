@@ -76,7 +76,7 @@ class ARCClientTestCase(ExpectationalTestCase):
         target = arc.ExecutionTarget()
         target.ComputingEndpoint.URLString = url
         target.GridFlavour = "TEST"
-        #target.ComputingEndpoint.HealthState = "ok"
+        target.ComputingEndpoint.HealthState = "ok"
         return target
 
     def create_test_job(self,
