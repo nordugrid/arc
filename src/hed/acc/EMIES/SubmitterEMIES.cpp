@@ -1,4 +1,4 @@
-// -*- indent-tabs-mode: nil -*-
+  // -*- indent-tabs-mode: nil -*-
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -65,7 +65,9 @@ namespace Arc {
                              const ExecutionTarget& et, Job& job) {
     // TODO: this is multi step process. So having retries would be nice.
 
-    EMIESClient* ac = acquireClient(et.url);
+    URL url(et.ComputingEndpoint.URLString);
+
+    EMIESClient* ac = acquireClient(url);
 
     JobDescription preparedjobdesc(jobdesc);
 
@@ -76,32 +78,32 @@ namespace Arc {
 
     if (!preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed preparing job description to target resources");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     std::string product;
     if (!preparedjobdesc.UnParse(product, "emies:adl")) {
       logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "emies:adl");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     EMIESJob jobid;
     EMIESJobState jobstate;
-    if (!ac->submit(product, jobid, jobstate, et.url.Protocol() == "https")) {
+    if (!ac->submit(product, jobid, jobstate, url.Protocol() == "https")) {
       logger.msg(INFO, "Failed to submit job description");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     if (!jobid) {
       logger.msg(INFO, "No valid job identifier returned by EMI ES");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
-    if(!jobid.manager) jobid.manager = et.url;
+    if(!jobid.manager) jobid.manager = url;
 
     // Check if we have anything to upload. Otherwise there is no need to wait.
     bool have_uploads = false;
@@ -119,7 +121,7 @@ namespace Arc {
       if(jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) break;
       if(jobstate.state == "TERMINAL") {
         logger.msg(INFO, "Job failed on service side");
-        releaseClient(et.url);
+        releaseClient(url);
         return false;
       }
       // If service jumped over stageable state client probably does not
@@ -128,7 +130,7 @@ namespace Arc {
       sleep(5);
       if(!ac->stat(jobid, jobstate)) {
         logger.msg(INFO, "Failed to obtain state of job");
-        releaseClient(et.url);
+        releaseClient(url);
         return false;
       }
     }
@@ -136,7 +138,7 @@ namespace Arc {
     if(have_uploads) {
       if(!jobstate.HasAttribute("CLIENT-STAGEIN-POSSIBLE")) {
         logger.msg(INFO, "Failed to wait for job to allow stage in");
-        releaseClient(et.url);
+        releaseClient(url);
         return false;
       }
       URL stageurl(jobid.stagein);
@@ -150,13 +152,13 @@ namespace Arc {
            stagein.empty() ||
            (!(stageurl = stagein))) {
           logger.msg(INFO, "Failed to obtain valid stagein URL for input files: %s", stagein);
-          releaseClient(et.url);
+          releaseClient(url);
           return false;
         }
       }
       if (!PutFiles(preparedjobdesc, stageurl)) {
         logger.msg(INFO, "Failed uploading local input files");
-        releaseClient(et.url);
+        releaseClient(url);
         return false;
       }
     }
@@ -164,7 +166,7 @@ namespace Arc {
     // It is not clear how service is implemented. So notifying should not harm.
     if (!ac->notify(jobid)) {
       logger.msg(INFO, "Failed to notify service");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
@@ -174,7 +176,7 @@ namespace Arc {
 
     AddJobDetails(preparedjobdesc, jobidu, et.Cluster, jobid.manager, job);
 
-    releaseClient(et.url);
+    releaseClient(url);
     return true;
   }
 

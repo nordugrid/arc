@@ -9,6 +9,7 @@
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
+#include <arc/client/Endpoint.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/Software.h>
 #include <arc/client/Submitter.h>
@@ -49,6 +50,25 @@ namespace Arc {
     int FreeUserSeats;
   };
 
+  class ComputingEndppointType : public Endpoint {
+  public:
+    ComputingEndppointType() : DowntimeStarts(-1), DowntimeEnds(-1) {}
+
+    std::string Technology;
+    std::list<std::string> InterfaceVersion;
+    std::list<std::string> InterfaceExtension;
+    std::list<std::string> SupportedProfile;
+    std::string Implementor;
+    Software Implementation;
+    std::string ServingState;
+    std::string IssuerCA;
+    std::list<std::string> TrustedCA;
+    Time DowntimeStarts;
+    Time DowntimeEnds;
+    std::string Staging;
+    // This is singular in the GLUE2 doc: JobDescription
+    std::list<std::string> JobDescriptions;
+  };
 
   /// ExecutionTarget
   /**
@@ -179,26 +199,7 @@ namespace Arc {
 
     // Attributes from 6.2 Computing Endpoint
 
-    URL url;
-    std::list<std::string> Capability;
-    std::string Technology;
-    std::string InterfaceName;
-    std::list<std::string> InterfaceVersion;
-    std::list<std::string> InterfaceExtension;
-    std::list<std::string> SupportedProfile;
-    std::string Implementor;
-    Software Implementation;
-    std::string QualityLevel;
-    std::string HealthState;
-    std::string HealthStateInfo;
-    std::string ServingState;
-    std::string IssuerCA;
-    std::list<std::string> TrustedCA;
-    Time DowntimeStarts;
-    Time DowntimeEnds;
-    std::string Staging;
-    // This is singular in the GLUE2 doc: JobDescription
-    std::list<std::string> JobDescriptions;
+    ComputingEndppointType ComputingEndpoint;
 
     // Attributes from 6.3 Computing Share
 

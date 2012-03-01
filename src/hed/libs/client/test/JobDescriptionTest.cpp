@@ -142,7 +142,7 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     Arc::ExecutionTarget et;
-    et.Implementation = Arc::Software("MIDDLEWARE/ABC-1.2.3");
+    et.ComputingEndpoint.Implementation = Arc::Software("MIDDLEWARE/ABC-1.2.3");
     jd.Resources.CEType.add(Arc::Software("MIDDLEWARE/ABC-2.0.0"), Arc::Software::GREATERTHANOREQUAL);
     CPPUNIT_ASSERT(!jd.Prepare(et));
     jd.Resources.CEType.clear();

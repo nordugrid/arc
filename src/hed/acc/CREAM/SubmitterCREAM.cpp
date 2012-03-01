@@ -34,14 +34,15 @@ namespace Arc {
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
     std::string delegationid = UUID();
-    URL delegationurl(et.url);
+    URL url(et.ComputingEndpoint.URLString);
+    URL delegationurl(url);
     delegationurl.ChangePath(delegationurl.Path() + "/gridsite-delegation");
     CREAMClient gLiteClientDelegation(delegationurl, cfg, usercfg.Timeout());
     if (!gLiteClientDelegation.createDelegation(delegationid, usercfg.ProxyPath())) {
       logger.msg(INFO, "Failed creating singed delegation certificate");
       return false;
     }
-    URL submissionurl(et.url);
+    URL submissionurl(url);
     submissionurl.ChangePath(submissionurl.Path() + "/CREAM2");
     CREAMClient gLiteClientSubmission(submissionurl, cfg, usercfg.Timeout());
     gLiteClientSubmission.setDelegationId(delegationid);
@@ -95,7 +96,7 @@ namespace Arc {
   bool SubmitterCREAM::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                const ExecutionTarget& et, bool /* forcemigration */,
                                Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a CREAM resource is not supported.", et.ComputingEndpoint.URLString);
     return false;
   }
 } // namespace Arc

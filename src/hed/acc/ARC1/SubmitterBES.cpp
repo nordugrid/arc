@@ -54,9 +54,11 @@ namespace Arc {
 
   bool SubmitterBES::Submit(const JobDescription& jobdesc,
                             const ExecutionTarget& et, Job& job) {
+    URL url(et.ComputingEndpoint.URLString);
+    
     MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
-    AREXClient ac(et.url, cfg, usercfg.Timeout(), false);
+    AREXClient ac(url, cfg, usercfg.Timeout(), false);
 
     // !! TODO: ordinary JSDL is needed - keeping nordugrid:jsdl so far
     std::string jobdescstring;
@@ -66,7 +68,7 @@ namespace Arc {
     }
 
     std::string jobid;
-    if (!ac.submit(jobdescstring, jobid, et.url.Protocol() == "https")) return false;
+    if (!ac.submit(jobdescstring, jobid, url.Protocol() == "https")) return false;
 
     if (jobid.empty()) {
       logger.msg(INFO, "No job identifier returned by BES service");
@@ -78,7 +80,7 @@ namespace Arc {
     // Unfortunately Job handling framework somewhy want to have job
     // URL instead of identifier we have to invent one. So we disguise
     // XML blob inside URL path.
-    AddJobDetails(jobdesc, URL(disguise_id_into_url(et.url,jobid)), et.Cluster, et.url, job);
+    AddJobDetails(jobdesc, URL(disguise_id_into_url(url,jobid)), et.Cluster, url, job);
 
     return true;
   }
@@ -86,7 +88,7 @@ namespace Arc {
   bool SubmitterBES::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a BES resource is not supported.", et.ComputingEndpoint.URLString);
     return false;
   }
 

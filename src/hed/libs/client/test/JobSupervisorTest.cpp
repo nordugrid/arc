@@ -114,9 +114,9 @@ void JobSupervisorTest::TestResubmit()
   usercfg.AddServices(std::list<std::string>(1, "TEST:http://test2.nordugrid.org"), Arc::COMPUTING);
 
   Arc::ExecutionTarget target;
-  target.url = Arc::URL("http://test2.nordugrid.org");
+  target.ComputingEndpoint.URLString = "http://test2.nordugrid.org";
   target.GridFlavour = "TEST";
-  target.HealthState = "ok";
+  target.ComputingEndpoint.HealthState = "ok";
 
   Arc::TargetRetrieverTestACCControl::addTarget(target);
 

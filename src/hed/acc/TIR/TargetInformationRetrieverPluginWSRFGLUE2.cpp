@@ -74,43 +74,44 @@ namespace Arc {
 
       //t.GridFlavour = "ARC1"; // TIR equivalent
       t.Cluster = url;
-      t.url = url;
-      t.InterfaceName = "BES";
-      t.Implementor = "NorduGrid";
+      t.ComputingEndpoint.URLString = url.fullstr();
+      t.ComputingEndpoint.InterfaceName = "BES";
+      t.ComputingEndpoint.Implementor = "NorduGrid";
 
       t.DomainName = url.Host();
 
       logger.msg(VERBOSE, "Generating A-REX target: %s", t.Cluster.str());
 
-      XMLNode ComputingEndpoint = GLUEService["ComputingEndpoint"];
-      for(;(bool)ComputingEndpoint;++ComputingEndpoint) {
-        if((ComputingEndpoint["InterfaceName"] == "XBES") ||
-           (ComputingEndpoint["InterfaceName"] == "BES") ||
-           (ComputingEndpoint["Interface"] == "XBES") ||
-           (ComputingEndpoint["Interface"] == "BES") ||
-           ((ComputingEndpoint["InterfaceName"] == "org.ogf.bes") &&
-            (ComputingEndpoint["InterfaceExtension"] == "urn:org.nordugrid.xbes"))) {
+      XMLNode xmlCENode = GLUEService["ComputingEndpoint"];
+      for(;(bool)xmlCENode;++xmlCENode) {
+        if((xmlCENode["InterfaceName"] == "XBES") ||
+           (xmlCENode["InterfaceName"] == "BES") ||
+           (xmlCENode["Interface"] == "XBES") ||
+           (xmlCENode["Interface"] == "BES") ||
+           ((xmlCENode["InterfaceName"] == "org.ogf.bes") &&
+            (xmlCENode["InterfaceExtension"] == "urn:org.nordugrid.xbes"))) {
           break;
         };
       }
-      if (ComputingEndpoint["HealthState"]) {
-        t.HealthState = (std::string)ComputingEndpoint["HealthState"];
+      if (xmlCENode["HealthState"]) {
+        t.ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthState"];
       } else {
         logger.msg(VERBOSE, "The Service advertises no Health State.");
       }
-      if (ComputingEndpoint["HealthStateInfo"]) {
-        t.HealthState = (std::string)ComputingEndpoint["HealthStateInfo"];
+      if (xmlCENode["HealthStateInfo"]) {
+        // TODO: Consider mapping to HealthStateInfo member.
+        t.ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthStateInfo"];
       }
       if (GLUEService["Name"]) {
         t.ServiceName = (std::string)GLUEService["Name"];
       }
-      if (ComputingEndpoint["Capability"]) {
-        for (XMLNode n = ComputingEndpoint["Capability"]; n; ++n) {
-          t.Capability.push_back((std::string)n);
+      if (xmlCENode["Capability"]) {
+        for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
+          t.ComputingEndpoint.Capability.push_back((std::string)n);
         }
       } else if (GLUEService["Capability"]) {
         for (XMLNode n = GLUEService["Capability"]; n; ++n) {
-          t.Capability.push_back((std::string)n);
+          t.ComputingEndpoint.Capability.push_back((std::string)n);
         }
       }
       if (GLUEService["Type"]) {
@@ -118,122 +119,122 @@ namespace Arc {
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
       }
-      if (ComputingEndpoint["QualityLevel"]) {
-        t.QualityLevel = (std::string)ComputingEndpoint["QualityLevel"];
+      if (xmlCENode["QualityLevel"]) {
+        t.ComputingEndpoint.QualityLevel = (std::string)xmlCENode["QualityLevel"];
       } else if (GLUEService["QualityLevel"]) {
-        t.QualityLevel = (std::string)GLUEService["QualityLevel"];
+        t.ComputingEndpoint.QualityLevel = (std::string)GLUEService["QualityLevel"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
       }
 
-      if (ComputingEndpoint["Technology"]) {
-        t.Technology = (std::string)ComputingEndpoint["Technology"];
+      if (xmlCENode["Technology"]) {
+        t.ComputingEndpoint.Technology = (std::string)xmlCENode["Technology"];
       }
-      if (ComputingEndpoint["InterfaceName"]) {
-        t.InterfaceName = (std::string)ComputingEndpoint["InterfaceName"];
-      } else if (ComputingEndpoint["Interface"]) {
-        t.InterfaceName = (std::string)ComputingEndpoint["Interface"];
+      if (xmlCENode["InterfaceName"]) {
+        t.ComputingEndpoint.InterfaceName = (std::string)xmlCENode["InterfaceName"];
+      } else if (xmlCENode["Interface"]) {
+        t.ComputingEndpoint.InterfaceName = (std::string)xmlCENode["Interface"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
       }
-      if (ComputingEndpoint["InterfaceVersion"]) {
-        t.InterfaceName = (std::string)ComputingEndpoint["InterfaceVersion"];
+      if (xmlCENode["InterfaceVersion"]) {
+        t.ComputingEndpoint.InterfaceName = (std::string)xmlCENode["InterfaceVersion"];
       }
-      if (ComputingEndpoint["InterfaceExtension"]) {
-        for (XMLNode n = ComputingEndpoint["InterfaceExtension"]; n; ++n) {
-          t.InterfaceExtension.push_back((std::string)n);
+      if (xmlCENode["InterfaceExtension"]) {
+        for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
+          t.ComputingEndpoint.InterfaceExtension.push_back((std::string)n);
         }
       }
-      if (ComputingEndpoint["SupportedProfile"]) {
-        for (XMLNode n = ComputingEndpoint["SupportedProfile"]; n; ++n) {
-          t.SupportedProfile.push_back((std::string)n);
+      if (xmlCENode["SupportedProfile"]) {
+        for (XMLNode n = xmlCENode["SupportedProfile"]; n; ++n) {
+          t.ComputingEndpoint.SupportedProfile.push_back((std::string)n);
         }
       }
-      if (ComputingEndpoint["Implementor"]) {
-        t.Implementor = (std::string)ComputingEndpoint["Implementor"];
+      if (xmlCENode["Implementor"]) {
+        t.ComputingEndpoint.Implementor = (std::string)xmlCENode["Implementor"];
       }
-      if (ComputingEndpoint["ImplementationName"]) {
-        if (ComputingEndpoint["ImplementationVersion"]) {
-          t.Implementation =
-            Software((std::string)ComputingEndpoint["ImplementationName"],
-                     (std::string)ComputingEndpoint["ImplementationVersion"]);
+      if (xmlCENode["ImplementationName"]) {
+        if (xmlCENode["ImplementationVersion"]) {
+          t.ComputingEndpoint.Implementation =
+            Software((std::string)xmlCENode["ImplementationName"],
+                     (std::string)xmlCENode["ImplementationVersion"]);
         } else {
-          t.Implementation = Software((std::string)ComputingEndpoint["ImplementationName"]);
+          t.ComputingEndpoint.Implementation = Software((std::string)xmlCENode["ImplementationName"]);
         }
       }
-      if (ComputingEndpoint["ServingState"]) {
-        t.ServingState = (std::string)ComputingEndpoint["ServingState"];
+      if (xmlCENode["ServingState"]) {
+        t.ComputingEndpoint.ServingState = (std::string)xmlCENode["ServingState"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Serving State.");
       }
-      if (ComputingEndpoint["IssuerCA"]) {
-        t.IssuerCA = (std::string)ComputingEndpoint["IssuerCA"];
+      if (xmlCENode["IssuerCA"]) {
+        t.ComputingEndpoint.IssuerCA = (std::string)xmlCENode["IssuerCA"];
       }
-      if (ComputingEndpoint["TrustedCA"]) {
-        XMLNode n = ComputingEndpoint["TrustedCA"];
+      if (xmlCENode["TrustedCA"]) {
+        XMLNode n = xmlCENode["TrustedCA"];
         while (n) {
-          t.TrustedCA.push_back((std::string)n);
+          t.ComputingEndpoint.TrustedCA.push_back((std::string)n);
           ++n; //The increment operator works in an unusual manner (returns void)
         }
       }
-      if (ComputingEndpoint["DowntimeStart"]) {
-        t.DowntimeStarts = (std::string)ComputingEndpoint["DowntimeStart"];
+      if (xmlCENode["DowntimeStart"]) {
+        t.ComputingEndpoint.DowntimeStarts = (std::string)xmlCENode["DowntimeStart"];
       }
-      if (ComputingEndpoint["DowntimeEnd"]) {
-        t.DowntimeEnds = (std::string)ComputingEndpoint["DowntimeEnd"];
+      if (xmlCENode["DowntimeEnd"]) {
+        t.ComputingEndpoint.DowntimeEnds = (std::string)xmlCENode["DowntimeEnd"];
       }
-      if (ComputingEndpoint["Staging"]) {
-        t.Staging = (std::string)ComputingEndpoint["Staging"];
+      if (xmlCENode["Staging"]) {
+        t.ComputingEndpoint.Staging = (std::string)xmlCENode["Staging"];
       }
-      if (ComputingEndpoint["JobDescription"]) {
-        for (XMLNode n = ComputingEndpoint["JobDescription"]; n; ++n) {
-          t.JobDescriptions.push_back((std::string)n);
+      if (xmlCENode["JobDescription"]) {
+        for (XMLNode n = xmlCENode["JobDescription"]; n; ++n) {
+          t.ComputingEndpoint.JobDescriptions.push_back((std::string)n);
         }
       }
 
       //Attributes below should possibly consider elements in different places (Service/Endpoint/Share etc).
-      if (ComputingEndpoint["TotalJobs"]) {
-        t.TotalJobs = stringtoi((std::string)ComputingEndpoint["TotalJobs"]);
+      if (xmlCENode["TotalJobs"]) {
+        t.TotalJobs = stringtoi((std::string)xmlCENode["TotalJobs"]);
       } else if (GLUEService["TotalJobs"]) {
         t.TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
       }
-      if (ComputingEndpoint["RunningJobs"]) {
-        t.RunningJobs = stringtoi((std::string)ComputingEndpoint["RunningJobs"]);
+      if (xmlCENode["RunningJobs"]) {
+        t.RunningJobs = stringtoi((std::string)xmlCENode["RunningJobs"]);
       } else if (GLUEService["RunningJobs"]) {
         t.RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
       }
-      if (ComputingEndpoint["WaitingJobs"]) {
-        t.WaitingJobs = stringtoi((std::string)ComputingEndpoint["WaitingJobs"]);
+      if (xmlCENode["WaitingJobs"]) {
+        t.WaitingJobs = stringtoi((std::string)xmlCENode["WaitingJobs"]);
       } else if (GLUEService["WaitingJobs"]) {
         t.WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
       }
-      if (ComputingEndpoint["StagingJobs"]) {
-        t.StagingJobs = stringtoi((std::string)ComputingEndpoint["StagingJobs"]);
+      if (xmlCENode["StagingJobs"]) {
+        t.StagingJobs = stringtoi((std::string)xmlCENode["StagingJobs"]);
       } else if (GLUEService["StagingJobs"]) {
         t.StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
       }
-      if (ComputingEndpoint["SuspendedJobs"]) {
-        t.SuspendedJobs = stringtoi((std::string)ComputingEndpoint["SuspendedJobs"]);
+      if (xmlCENode["SuspendedJobs"]) {
+        t.SuspendedJobs = stringtoi((std::string)xmlCENode["SuspendedJobs"]);
       } else if (GLUEService["SuspendedJobs"]) {
         t.SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
       }
-      if (ComputingEndpoint["PreLRMSWaitingJobs"]) {
-        t.PreLRMSWaitingJobs = stringtoi((std::string)ComputingEndpoint["PreLRMSWaitingJobs"]);
+      if (xmlCENode["PreLRMSWaitingJobs"]) {
+        t.PreLRMSWaitingJobs = stringtoi((std::string)xmlCENode["PreLRMSWaitingJobs"]);
       } else if (GLUEService["PreLRMSWaitingJobs"]) {
         t.PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
       }
-      if (ComputingEndpoint["LocalRunningJobs"]) {
-        t.LocalRunningJobs = stringtoi((std::string)ComputingEndpoint["LocalRunningJobs"]);
+      if (xmlCENode["LocalRunningJobs"]) {
+        t.LocalRunningJobs = stringtoi((std::string)xmlCENode["LocalRunningJobs"]);
       } else if (GLUEService["LocalRunningJobs"]) {
         t.LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
       }
-      if (ComputingEndpoint["LocalWaitingJobs"]) {
-        t.LocalWaitingJobs = stringtoi((std::string)ComputingEndpoint["LocalWaitingJobs"]);
+      if (xmlCENode["LocalWaitingJobs"]) {
+        t.LocalWaitingJobs = stringtoi((std::string)xmlCENode["LocalWaitingJobs"]);
       } else if (GLUEService["LocalWaitingJobs"]) {
         t.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
       }
-      if (ComputingEndpoint["LocalSuspendedJobs"]) {
-        t.LocalSuspendedJobs = stringtoi((std::string)ComputingEndpoint["LocalSuspendedJobs"]);
+      if (xmlCENode["LocalSuspendedJobs"]) {
+        t.LocalSuspendedJobs = stringtoi((std::string)xmlCENode["LocalSuspendedJobs"]);
       } else if (GLUEService["LocalSuspendedJobs"]) {
         t.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
       }

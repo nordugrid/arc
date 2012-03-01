@@ -183,11 +183,11 @@ namespace Arc {
     ExecutionTarget target;
     target.GridFlavour = "UNICORE";
     target.Cluster = url;
-    target.url = url;
-    target.InterfaceName = "BES";
-    target.Implementor = "UNICORE";
-    target.Implementation = Software("UNICORE");
-    target.HealthState = "ok";
+    target.ComputingEndpoint.URLString = url.fullstr();
+    target.ComputingEndpoint.InterfaceName = "BES";
+    target.ComputingEndpoint.Implementor = "UNICORE";
+    target.ComputingEndpoint.Implementation = Software("UNICORE");
+    target.ComputingEndpoint.HealthState = "ok";
     target.DomainName = url.Host();
 
     mom.AddTarget(target);

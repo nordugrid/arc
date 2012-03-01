@@ -330,39 +330,39 @@ namespace Arc {
 
         // Computing Endpoint attributes
         if (cluster["nordugrid-cluster-contactstring"])
-          target.url = (std::string)cluster["nordugrid-cluster-contactstring"];
-        target.Capability.push_back("executionmanagement.jobexecution");
-        target.Capability.push_back("executionmanagement.jobmanager");
-        target.Technology = "gridftp";
+          target.ComputingEndpoint.URLString = (std::string)cluster["nordugrid-cluster-contactstring"];
+        target.ComputingEndpoint.Capability.push_back("executionmanagement.jobexecution");
+        target.ComputingEndpoint.Capability.push_back("executionmanagement.jobmanager");
+        target.ComputingEndpoint.Technology = "gridftp";
         if (cluster["nordugrid-cluster-middleware"]) {
           std::string mw =
             (std::string)cluster["nordugrid-cluster-middleware"];
           std::string::size_type pos1 = mw.find('-');
           if (pos1 == std::string::npos)
-            target.Implementor = mw;
+            target.ComputingEndpoint.Implementor = mw;
           else {
-            target.Implementor = mw.substr(0, pos1);
-            target.Implementation = mw.substr(pos1 + 1);
+            target.ComputingEndpoint.Implementor = mw.substr(0, pos1);
+            target.ComputingEndpoint.Implementation = mw.substr(pos1 + 1);
           }
         }
         if (queue["nordugrid-queue-status"]) {
-          target.HealthStateInfo =
+          target.ComputingEndpoint.HealthStateInfo =
             (std::string)queue["nordugrid-queue-status"];
-          if (target.HealthStateInfo.substr(0, 6) == "active")
-            target.HealthState = "ok";
-          else if (target.HealthStateInfo.substr(0, 8) == "inactive")
-            target.HealthState = "critical";
+          if (target.ComputingEndpoint.HealthStateInfo.substr(0, 6) == "active")
+            target.ComputingEndpoint.HealthState = "ok";
+          else if (target.ComputingEndpoint.HealthStateInfo.substr(0, 8) == "inactive")
+            target.ComputingEndpoint.HealthState = "critical";
           else
-            target.HealthState = "other";
+            target.ComputingEndpoint.HealthState = "other";
         }
         if (cluster["nordugrid-cluster-issuerca"])
-          target.IssuerCA = (std::string)cluster["nordugrid-cluster-issuerca"];
+          target.ComputingEndpoint.IssuerCA = (std::string)cluster["nordugrid-cluster-issuerca"];
         if (cluster["nordugrid-cluster-trustedca"])
           for (XMLNode n = cluster["nordugrid-cluster-trustedca"]; n; ++n)
-            target.TrustedCA.push_back((std::string)n);
-        target.Staging = "staginginout";
-        target.JobDescriptions.push_back("nordugrid:xrsl");
-        target.JobDescriptions.push_back("ogf:jsdl");
+            target.ComputingEndpoint.TrustedCA.push_back((std::string)n);
+        target.ComputingEndpoint.Staging = "staginginout";
+        target.ComputingEndpoint.JobDescriptions.push_back("nordugrid:xrsl");
+        target.ComputingEndpoint.JobDescriptions.push_back("ogf:jsdl");
 
         // Computing Share attributes
         if (queue["nordugrid-queue-name"])

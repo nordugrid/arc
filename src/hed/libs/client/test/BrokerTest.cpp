@@ -58,8 +58,8 @@ BrokerTest::BrokerTest()
 }
 
 void BrokerTest::setUp() {
-  etl.front().url = Arc::URL("http://localhost/test");
-  etl.front().HealthState = "ok";
+  etl.front().ComputingEndpoint.URLString = "http://localhost/test";
+  etl.front().ComputingEndpoint.HealthState = "ok";
 }
 
 void BrokerTest::tearDown() {}
@@ -222,10 +222,10 @@ void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
   std::list<Arc::ExecutionTarget> targets;
   targets.push_back(Arc::ExecutionTarget());
   targets.push_back(Arc::ExecutionTarget());
-  targets.front().url = Arc::URL("http://localhost/test");
-  targets.front().HealthState = "ok";
-  targets.back().url = Arc::URL("http://localhost/test");
-  targets.back().HealthState = "ok";
+  targets.front().ComputingEndpoint.URLString = "http://localhost/test";
+  targets.front().ComputingEndpoint.HealthState = "ok";
+  targets.back().ComputingEndpoint.URLString = "http://localhost/test";
+  targets.back().ComputingEndpoint.HealthState = "ok";
 
   targets.front().ComputingShareName = "front";
   targets.back().ComputingShareName = "back";
@@ -249,10 +249,10 @@ void BrokerTest::RejectTargetsTest() {
   std::list<Arc::ExecutionTarget> targets;
   targets.push_back(Arc::ExecutionTarget());
   targets.push_back(Arc::ExecutionTarget());
-  targets.front().url = Arc::URL("http://localhost/test1");
-  targets.front().HealthState = "ok";
-  targets.back().url = Arc::URL("http://localhost/test2");
-  targets.back().HealthState = "ok";
+  targets.front().ComputingEndpoint.URLString = "http://localhost/test1";
+  targets.front().ComputingEndpoint.HealthState = "ok";
+  targets.back().ComputingEndpoint.URLString = Arc::URL("http://localhost/test2");
+  targets.back().ComputingEndpoint.HealthState = "ok";
 
   // Rejecting no targets.
   b->PreFilterTargets(targets, j);
@@ -260,13 +260,13 @@ void BrokerTest::RejectTargetsTest() {
 
   // Reject test1 target.
   std::list<Arc::URL> rejectTargets;
-  rejectTargets.push_back(targets.front().url);
+  rejectTargets.push_back(targets.front().ComputingEndpoint.URLString);
   b->PreFilterTargets(targets, j, rejectTargets);
   CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(targets.back().url, Arc::BrokerTestACCControl::PossibleTargets->front()->url);
+  CPPUNIT_ASSERT_EQUAL(targets.back().ComputingEndpoint.URLString, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingEndpoint.URLString);
 
   // Reject both targets.
-  rejectTargets.push_back(targets.back().url);
+  rejectTargets.push_back(targets.back().ComputingEndpoint.URLString);
   b->PreFilterTargets(targets, j, rejectTargets);
   CPPUNIT_ASSERT_EQUAL(0, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
 }

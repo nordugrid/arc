@@ -39,7 +39,7 @@ namespace Arc {
     usercfg.ApplyToConfig(cfg);
 
     //new code to use the UNICOREClient
-    UNICOREClient uc(et.url, cfg, usercfg.Timeout());
+    UNICOREClient uc(URL(et.ComputingEndpoint.URLString), cfg, usercfg.Timeout());
 
     XMLNode id;
 
@@ -117,7 +117,7 @@ namespace Arc {
     std::string jobid;
     id.GetDoc(jobid);
 
-    AddJobDetails(jobdesc, (std::string)id["Address"], et.Cluster, et.url, job);
+    AddJobDetails(jobdesc, (std::string)id["Address"], et.Cluster, URL(et.ComputingEndpoint.URLString), job);
     job.AuxInfo = jobid;
 
     return true;
@@ -126,7 +126,7 @@ namespace Arc {
   bool SubmitterUNICORE::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                                  const ExecutionTarget& et, bool /* forcemigration */,
                                  Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a UNICORE resource is not supported.", et.ComputingEndpoint.URLString);
     return false;
   }
 

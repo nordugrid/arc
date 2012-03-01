@@ -69,33 +69,34 @@ namespace Arc {
 
   bool SubmitterARC1::Submit(const JobDescription& jobdesc,
                              const ExecutionTarget& et, Job& job) {
-
-    AREXClient* ac = acquireClient(et.url);
+    URL url(et.ComputingEndpoint.URLString);
+  
+    AREXClient* ac = acquireClient(url);
 
     JobDescription preparedjobdesc(jobdesc);
 
     if (!preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed to prepare job description to target resources");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     std::string product;
     if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
       logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format", "nordugrid:jsdl");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     std::string sJobid;
-    if (!ac->submit(product, sJobid, et.url.Protocol() == "https")) {
-      releaseClient(et.url);
+    if (!ac->submit(product, sJobid, url.Protocol() == "https")) {
+      releaseClient(url);
       return false;
     }
 
     if (sJobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
@@ -104,20 +105,22 @@ namespace Arc {
 
     if (!PutFiles(preparedjobdesc, jobid)) {
       logger.msg(INFO, "Failed uploading local input files");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     AddJobDetails(preparedjobdesc, jobid, et.Cluster, jobid, job);
 
-    releaseClient(et.url);
+    releaseClient(url);
     return true;
   }
 
   bool SubmitterARC1::Migrate(const URL& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration, Job& job) {
-    AREXClient* ac = acquireClient(et.url);
+    URL url(et.ComputingEndpoint.URLString);
+    
+    AREXClient* ac = acquireClient(url);
 
     std::string idstr;
     AREXClient::createActivityIdentifier(jobid, idstr);
@@ -150,7 +153,7 @@ namespace Arc {
 
     if (!preparedjobdesc.Prepare(et)) {
       logger.msg(INFO, "Failed adapting job description to target resources");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
@@ -160,20 +163,20 @@ namespace Arc {
     std::string product;
     if (!preparedjobdesc.UnParse(product, "nordugrid:jsdl")) {
       logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format", "nordugrid:jsdl");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     std::string sNewjobid;
     if (!ac->migrate(idstr, product, forcemigration, sNewjobid,
-                    et.url.Protocol() == "https")) {
-      releaseClient(et.url);
+                    url.Protocol() == "https")) {
+      releaseClient(url);
       return false;
     }
 
     if (sNewjobid.empty()) {
       logger.msg(INFO, "No job identifier returned by A-REX");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
@@ -182,13 +185,13 @@ namespace Arc {
 
     if (!PutFiles(preparedjobdesc, newjobid)) {
       logger.msg(INFO, "Failed uploading local input files");
-      releaseClient(et.url);
+      releaseClient(url);
       return false;
     }
 
     AddJobDetails(preparedjobdesc, newjobid, et.Cluster, newjobid, job);
 
-    releaseClient(et.url);
+    releaseClient(url);
     return true;
   }
 } // namespace Arc

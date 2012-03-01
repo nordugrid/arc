@@ -110,7 +110,7 @@ namespace Arc {
       for (std::list<ExecutionTarget>::iterator iter = foundTargets.begin();
            iter != foundTargets.end(); iter++) {
         logger.msg(VERBOSE, "Resource: %s", iter->DomainName);
-        logger.msg(VERBOSE, "Health State: %s", iter->HealthState);
+        logger.msg(VERBOSE, "Health State: %s", iter->ComputingEndpoint.HealthState);
       }
     }
   }

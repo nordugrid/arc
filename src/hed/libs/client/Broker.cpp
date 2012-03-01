@@ -39,12 +39,12 @@ namespace Arc {
 
     for (std::list<ExecutionTarget>::iterator target = targets.begin();
          target != targets.end(); target++) {
-      logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->url.str());
+      logger.msg(VERBOSE, "Performing matchmaking against target (%s).", target->ComputingEndpoint.URLString);
 
       if (!rejectTargets.empty()) {
         std::list<URL>::const_iterator it = rejectTargets.begin();
         for (; it != rejectTargets.end(); ++it) {
-          if ((*it) == target->url || (*it) == target->Cluster) {
+          if ((*it) == target->ComputingEndpoint.URLString || (*it) == target->Cluster) {
             // Target should be dropped.
             break;
           }
@@ -52,21 +52,21 @@ namespace Arc {
 
         // If loop did not reach the end, target should be dropped.
         if (it != rejectTargets.end()) {
-          logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->url.str());
+          logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->ComputingEndpoint.URLString);
           continue;
         }
       }
 
-      if ( !(target->TrustedCA.empty()) && (find(target->TrustedCA.begin(), target->TrustedCA.end(), proxyIssuerCA)
-              == target->TrustedCA.end()) ){
-          logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, target->url.str());
+      if ( !(target->ComputingEndpoint.TrustedCA.empty()) && (find(target->ComputingEndpoint.TrustedCA.begin(), target->ComputingEndpoint.TrustedCA.end(), proxyIssuerCA)
+              == target->ComputingEndpoint.TrustedCA.end()) ){
+          logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, target->ComputingEndpoint.URLString);
           continue;
       }
 
       std::map<std::string, std::string>::const_iterator itAtt;
       if ((itAtt = job->OtherAttributes.find("nordugrid:broker;reject_queue")) != job->OtherAttributes.end()) {
         if (target->ComputingShareName.empty()) {
-          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->url.str());
+          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
 
@@ -78,7 +78,7 @@ namespace Arc {
 
       if (!job->Resources.QueueName.empty()) {
         if (target->ComputingShareName.empty()) {
-          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->url.str());
+          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
 
@@ -89,37 +89,37 @@ namespace Arc {
       }
 
       if ((int)job->Application.ProcessingStartTime.GetTime() != -1) {
-        if ((int)target->DowntimeStarts.GetTime() != -1 && (int)target->DowntimeEnds.GetTime() != -1) {
-          if (target->DowntimeStarts <= job->Application.ProcessingStartTime && job->Application.ProcessingStartTime <= target->DowntimeEnds) {
-            logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)target->DowntimeStarts, (std::string)target->DowntimeEnds);
+        if ((int)target->ComputingEndpoint.DowntimeStarts.GetTime() != -1 && (int)target->ComputingEndpoint.DowntimeEnds.GetTime() != -1) {
+          if (target->ComputingEndpoint.DowntimeStarts <= job->Application.ProcessingStartTime && job->Application.ProcessingStartTime <= target->ComputingEndpoint.DowntimeEnds) {
+            logger.msg(VERBOSE, "ProcessingStartTime (%s) specified in job description is inside the targets downtime period [ %s - %s ].", (std::string)job->Application.ProcessingStartTime, (std::string)target->ComputingEndpoint.DowntimeStarts, (std::string)target->ComputingEndpoint.DowntimeEnds);
             continue;
           }
         }
         else
-          logger.msg(WARNING, "The downtime of the target (%s) is not published. Keeping target.", target->url.str());
+          logger.msg(WARNING, "The downtime of the target (%s) is not published. Keeping target.", target->ComputingEndpoint.URLString);
       }
 
-      if (!target->HealthState.empty()) {
+      if (!target->ComputingEndpoint.HealthState.empty()) {
 
-        if (target->HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
-          logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK (%s)", target->url.str(), target->HealthState);
+        if (target->ComputingEndpoint.HealthState != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
+          logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK (%s)", target->ComputingEndpoint.URLString, target->ComputingEndpoint.HealthState);
           continue;
         }
       }
       else {
-        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", target->url.str());
+        logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, HealthState is not defined", target->ComputingEndpoint.URLString);
         continue;
       }
 
       if (!job->Resources.CEType.empty()) {
-        if (!target->Implementation().empty()) {
-          if (!job->Resources.CEType.isSatisfied(target->Implementation)) {
-            logger.msg(VERBOSE, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)target->Implementation);
+        if (!target->ComputingEndpoint.Implementation().empty()) {
+          if (!job->Resources.CEType.isSatisfied(target->ComputingEndpoint.Implementation)) {
+            logger.msg(VERBOSE, "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: %s", (std::string)target->ComputingEndpoint.Implementation);
             continue;
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -214,7 +214,7 @@ namespace Arc {
 
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -227,7 +227,7 @@ namespace Arc {
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -240,7 +240,7 @@ namespace Arc {
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, Platform is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -248,12 +248,12 @@ namespace Arc {
       if (!job->Resources.OperatingSystem.empty()) {
         if (!target->OperatingSystem.empty()) {
           if (!job->Resources.OperatingSystem.isSatisfied(target->OperatingSystem)) {
-            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", target->url.str());
+            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", target->ComputingEndpoint.URLString);
             continue;
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -261,12 +261,12 @@ namespace Arc {
       if (!job->Resources.RunTimeEnvironment.empty()) {
         if (!target->ApplicationEnvironments.empty()) {
           if (!job->Resources.RunTimeEnvironment.isSatisfied(target->ApplicationEnvironments)) {
-            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", target->url.str());
+            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not satisfied", target->ComputingEndpoint.URLString);
             continue;
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -279,7 +279,7 @@ namespace Arc {
             continue;
           }
           else {
-            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", target->url.str());
+            logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined", target->ComputingEndpoint.URLString);
             continue;
           }
         }
@@ -300,7 +300,7 @@ namespace Arc {
         }
 
         if (target->MaxDiskSpace <= -1 && target->WorkingAreaFree <= -1) {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -321,7 +321,7 @@ namespace Arc {
         }
 
         if (target->MaxDiskSpace <= -1 && target->WorkingAreaFree <= -1) {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -342,7 +342,7 @@ namespace Arc {
         }
 
         if (target->WorkingAreaFree <= -1 && target->MaxDiskSpace <= -1) {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -355,7 +355,7 @@ namespace Arc {
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -375,7 +375,7 @@ namespace Arc {
         }
 
         if (target->TotalSlots == -1 && target->MaxSlotsPerJob == -1) {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -388,7 +388,7 @@ namespace Arc {
           }
         }
         else {
-          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", target->url.str());
+          logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined", target->ComputingEndpoint.URLString);
           continue;
         }
       }
@@ -417,7 +417,7 @@ namespace Arc {
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
       logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
-      logger.msg(VERBOSE, "Health State: %s", (*iter)->HealthState);
+      logger.msg(VERBOSE, "Health State: %s", (*iter)->ComputingEndpoint.HealthState);
     }
 
     TargetSortingDone = false;

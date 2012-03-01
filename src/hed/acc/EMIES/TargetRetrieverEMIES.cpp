@@ -185,8 +185,8 @@ namespace Arc {
                            target != targets.end(); ++target) {
       if(target->GridFlavour.empty()) target->GridFlavour = "EMIES"; // ?
       if(!(target->Cluster)) target->Cluster = url;
-      if(!(target->url)) target->url = url;
-      if(target->InterfaceName.empty()) target->InterfaceName = "EMI-ES";
+      if(target->ComputingEndpoint.URLString.empty()) target->ComputingEndpoint.URLString = url.fullstr();
+      if(target->ComputingEndpoint.InterfaceName.empty()) target->ComputingEndpoint.InterfaceName = "EMI-ES";
       if(target->DomainName.empty()) target->DomainName = url.Host();
       logger.msg(VERBOSE, "Generated EMIES target: %s", target->Cluster.str());
     }

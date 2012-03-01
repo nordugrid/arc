@@ -51,11 +51,11 @@ namespace Arc {
     ExecutionTarget target;
     //target.GridFlavour = ;
     target.Cluster = url;
-    target.url = url;
+    target.ComputingEndpoint.URLString = url.str();
     //target.InterfaceName = flavour;
-    target.Implementor = "NorduGrid";
+    target.ComputingEndpoint.Implementor = "NorduGrid";
     target.DomainName = url.Host();
-    target.HealthState = "ok";
+    target.ComputingEndpoint.HealthState = "ok";
 
     etList.push_back(target);
 

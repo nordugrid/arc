@@ -187,11 +187,11 @@ namespace Arc {
         ExecutionTarget target;
         target.GridFlavour = thrarg->flavour;
         target.Cluster = thrarg->url;
-        target.url = thrarg->url;
-        target.InterfaceName = "BES";
-        target.Implementor = "unknown";
+        target.ComputingEndpoint.URLString = thrarg->url.fullstr();
+        target.ComputingEndpoint.InterfaceName = "BES";
+        target.ComputingEndpoint.Implementor = "unknown";
         target.DomainName = thrarg->url.Host();
-        target.HealthState = "ok";
+        target.ComputingEndpoint.HealthState = "ok";
         logger.msg(VERBOSE, "Generating BES target: %s", target.Cluster.str());
         thrarg->mom->AddTarget(target);
         delete thrarg;
@@ -258,9 +258,9 @@ namespace Arc {
 
       targets.back().GridFlavour = "ARC1";
       targets.back().Cluster = url;
-      targets.back().url = url;
-      targets.back().InterfaceName = "BES";
-      targets.back().Implementor = "NorduGrid";
+      targets.back().ComputingEndpoint.URLString = url.fullstr();
+      targets.back().ComputingEndpoint.InterfaceName = "BES";
+      targets.back().ComputingEndpoint.Implementor = "NorduGrid";
 
       targets.back().DomainName = url.Host();
 
@@ -278,23 +278,23 @@ namespace Arc {
         };
       }
       if (ComputingEndpoint["HealthState"]) {
-        targets.back().HealthState = (std::string)ComputingEndpoint["HealthState"];
+        targets.back().ComputingEndpoint.HealthState = (std::string)ComputingEndpoint["HealthState"];
       } else {
         logger.msg(VERBOSE, "The Service advertises no Health State.");
       }
       if (ComputingEndpoint["HealthStateInfo"]) {
-        targets.back().HealthState = (std::string)ComputingEndpoint["HealthStateInfo"];
+        targets.back().ComputingEndpoint.HealthState = (std::string)ComputingEndpoint["HealthStateInfo"];
       }
       if (GLUEService["Name"]) {
         targets.back().ServiceName = (std::string)GLUEService["Name"];
       }
       if (ComputingEndpoint["Capability"]) {
         for (XMLNode n = ComputingEndpoint["Capability"]; n; ++n) {
-          targets.back().Capability.push_back((std::string)n);
+          targets.back().ComputingEndpoint.Capability.push_back((std::string)n);
         }
       } else if (GLUEService["Capability"]) {
         for (XMLNode n = GLUEService["Capability"]; n; ++n) {
-          targets.back().Capability.push_back((std::string)n);
+          targets.back().ComputingEndpoint.Capability.push_back((std::string)n);
         }
       }
       if (GLUEService["Type"]) {
@@ -303,75 +303,75 @@ namespace Arc {
         logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
       }
       if (ComputingEndpoint["QualityLevel"]) {
-        targets.back().QualityLevel = (std::string)ComputingEndpoint["QualityLevel"];
+        targets.back().ComputingEndpoint.QualityLevel = (std::string)ComputingEndpoint["QualityLevel"];
       } else if (GLUEService["QualityLevel"]) {
-        targets.back().QualityLevel = (std::string)GLUEService["QualityLevel"];
+        targets.back().ComputingEndpoint.QualityLevel = (std::string)GLUEService["QualityLevel"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Quality Level.");
       }
 
       if (ComputingEndpoint["Technology"]) {
-        targets.back().Technology = (std::string)ComputingEndpoint["Technology"];
+        targets.back().ComputingEndpoint.Technology = (std::string)ComputingEndpoint["Technology"];
       }
       if (ComputingEndpoint["InterfaceName"]) {
-        targets.back().InterfaceName = (std::string)ComputingEndpoint["InterfaceName"];
+        targets.back().ComputingEndpoint.InterfaceName = (std::string)ComputingEndpoint["InterfaceName"];
       } else if (ComputingEndpoint["Interface"]) {
-        targets.back().InterfaceName = (std::string)ComputingEndpoint["Interface"];
+        targets.back().ComputingEndpoint.InterfaceName = (std::string)ComputingEndpoint["Interface"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
       }
       if (ComputingEndpoint["InterfaceVersion"]) {
-        targets.back().InterfaceName = (std::string)ComputingEndpoint["InterfaceVersion"];
+        targets.back().ComputingEndpoint.InterfaceName = (std::string)ComputingEndpoint["InterfaceVersion"];
       }
       if (ComputingEndpoint["InterfaceExtension"]) {
         for (XMLNode n = ComputingEndpoint["InterfaceExtension"]; n; ++n) {
-          targets.back().InterfaceExtension.push_back((std::string)n);
+          targets.back().ComputingEndpoint.InterfaceExtension.push_back((std::string)n);
         }
       }
       if (ComputingEndpoint["SupportedProfile"]) {
         for (XMLNode n = ComputingEndpoint["SupportedProfile"]; n; ++n) {
-          targets.back().SupportedProfile.push_back((std::string)n);
+          targets.back().ComputingEndpoint.SupportedProfile.push_back((std::string)n);
         }
       }
       if (ComputingEndpoint["Implementor"]) {
-        targets.back().Implementor = (std::string)ComputingEndpoint["Implementor"];
+        targets.back().ComputingEndpoint.Implementor = (std::string)ComputingEndpoint["Implementor"];
       }
       if (ComputingEndpoint["ImplementationName"]) {
         if (ComputingEndpoint["ImplementationVersion"]) {
-          targets.back().Implementation =
+          targets.back().ComputingEndpoint.Implementation =
             Software((std::string)ComputingEndpoint["ImplementationName"],
                      (std::string)ComputingEndpoint["ImplementationVersion"]);
         } else {
-          targets.back().Implementation = Software((std::string)ComputingEndpoint["ImplementationName"]);
+          targets.back().ComputingEndpoint.Implementation = Software((std::string)ComputingEndpoint["ImplementationName"]);
         }
       }
       if (ComputingEndpoint["ServingState"]) {
-        targets.back().ServingState = (std::string)ComputingEndpoint["ServingState"];
+        targets.back().ComputingEndpoint.ServingState = (std::string)ComputingEndpoint["ServingState"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Serving State.");
       }
       if (ComputingEndpoint["IssuerCA"]) {
-        targets.back().IssuerCA = (std::string)ComputingEndpoint["IssuerCA"];
+        targets.back().ComputingEndpoint.IssuerCA = (std::string)ComputingEndpoint["IssuerCA"];
       }
       if (ComputingEndpoint["TrustedCA"]) { 
         XMLNode n = ComputingEndpoint["TrustedCA"];
         while (n) {
-          targets.back().TrustedCA.push_back((std::string)n);
+          targets.back().ComputingEndpoint.TrustedCA.push_back((std::string)n);
           ++n; //The increment operator works in an unusual manner (returns void)
         }
       }
       if (ComputingEndpoint["DowntimeStart"]) {
-        targets.back().DowntimeStarts = (std::string)ComputingEndpoint["DowntimeStart"];
+        targets.back().ComputingEndpoint.DowntimeStarts = (std::string)ComputingEndpoint["DowntimeStart"];
       }
       if (ComputingEndpoint["DowntimeEnd"]) {
-        targets.back().DowntimeEnds = (std::string)ComputingEndpoint["DowntimeEnd"];
+        targets.back().ComputingEndpoint.DowntimeEnds = (std::string)ComputingEndpoint["DowntimeEnd"];
       }
       if (ComputingEndpoint["Staging"]) {
-        targets.back().Staging = (std::string)ComputingEndpoint["Staging"];
+        targets.back().ComputingEndpoint.Staging = (std::string)ComputingEndpoint["Staging"];
       }
       if (ComputingEndpoint["JobDescription"]) {
         for (XMLNode n = ComputingEndpoint["JobDescription"]; n; ++n) {
-          targets.back().JobDescriptions.push_back((std::string)n);
+          targets.back().ComputingEndpoint.JobDescriptions.push_back((std::string)n);
         }
       }
 

@@ -252,7 +252,7 @@ namespace Arc {
 
       // TODO: we need to somehow query the HealthState
 
-      target.HealthState = "ok";
+      target.ComputingEndpoint.HealthState = "ok";
 
       if (CE["GlueCEName"])
         target.ComputingShareName = (std::string)CE["GlueCEName"];
@@ -274,14 +274,14 @@ namespace Arc {
       if (Site["GlueSiteLongitude"])
         target.Longitude = stringtof(Site["GlueSiteLongitude"]);
       if (CE["GlueCEInfoContactString"])
-        target.url = (std::string)CE["GlueCEInfoContactString"];
+        target.ComputingEndpoint.URLString = (std::string)CE["GlueCEInfoContactString"];
       if (CE["GlueCEImplementationName"]) {
         if (CE["GlueCEImplementationVersion"])
-          target.Implementation =
+          target.ComputingEndpoint.Implementation =
             Software((std::string)CE["GlueCEImplementationName"],
                      (std::string)CE["GlueCEImplementationVersion"]);
         else
-          target.Implementation =
+          target.ComputingEndpoint.Implementation =
             (std::string)CE["GlueCEImplementationName"];
       }
       if (VOView["GlueCEStateTotalJobs"])
@@ -371,9 +371,9 @@ namespace Arc {
       else if (CE["GlueCEPolicyPreemption"])
         target.Preemption = stringtoi(CE["GlueCEPolicyPreemption"]);
       if (VOView["GlueCEStateStatus"])
-        target.ServingState = (std::string)VOView["GlueCEStateStatus"];
+        target.ComputingEndpoint.ServingState = (std::string)VOView["GlueCEStateStatus"];
       else if (CE["GlueCEStateStatus"])
-        target.ServingState = (std::string)CE["GlueCEStateStatus"];
+        target.ComputingEndpoint.ServingState = (std::string)CE["GlueCEStateStatus"];
       if (VOView["GlueCEStateEstimatedResponseTime"])
         target.EstimatedAverageWaitingTime =
           stringtoi(VOView["GlueCEStateEstimatedResponseTime"]);

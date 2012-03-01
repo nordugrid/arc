@@ -20,8 +20,6 @@ namespace Arc {
   ExecutionTarget::ExecutionTarget()
     : Latitude(0),
       Longitude(0),
-      DowntimeStarts(-1),
-      DowntimeEnds(-1),
       MaxWallTime(-1),
       MaxTotalWallTime(-1),
       MinWallTime(-1),
@@ -112,25 +110,7 @@ namespace Arc {
 
     // Attributes from 6.2 Computing Endpoint
 
-    url = target.url;
-    Capability = target.Capability;
-    Technology = target.Technology;
-    InterfaceName = target.InterfaceName;
-    InterfaceVersion = target.InterfaceVersion;
-    InterfaceExtension = target.InterfaceExtension;
-    SupportedProfile = target.SupportedProfile;
-    Implementor = target.Implementor;
-    Implementation = target.Implementation;
-    QualityLevel = target.QualityLevel;
-    HealthState = target.HealthState;
-    HealthStateInfo = target.HealthStateInfo;
-    ServingState = target.ServingState;
-    IssuerCA = target.IssuerCA;
-    TrustedCA = target.TrustedCA;
-    DowntimeStarts = target.DowntimeStarts;
-    DowntimeEnds = target.DowntimeEnds;
-    Staging = target.Staging;
-    JobDescriptions = target.JobDescriptions;
+    ComputingEndpoint = target.ComputingEndpoint;
 
     // Attributes from 6.3 Computing Share
 
@@ -298,8 +278,8 @@ namespace Arc {
     if (!MappingQueue.empty()) {
        out << IString(" Mapping queue: %s", MappingQueue) << std::endl;
     }
-    if (!HealthState.empty()){
-      out << IString(" Health state: %s", HealthState) << std::endl;
+    if (!ComputingEndpoint.HealthState.empty()){
+      out << IString(" Health state: %s", ComputingEndpoint.HealthState) << std::endl;
     }
     if (longlist) {
 
@@ -332,52 +312,50 @@ namespace Arc {
 
       out << std::endl << IString("Endpoint information:") << std::endl;
 
-      if (url)
-        out << IString(" URL: %s", url.str()) << std::endl;
-      if (!Capability.empty()) {
+      if (!ComputingEndpoint.URLString.empty())
+        out << IString(" URL: %s", ComputingEndpoint.URLString) << std::endl;
+      if (!ComputingEndpoint.Capability.empty()) {
         out << IString(" Capabilities:") << std::endl;
-        for (std::list<std::string>::const_iterator it = Capability.begin();
-             it != Capability.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingEndpoint.Capability.begin();
+             it != ComputingEndpoint.Capability.end(); it++)
           out << "  " << *it << std::endl;
       }
-      if (!Technology.empty())
-        out << IString(" Technology: %s", Technology) << std::endl;
-      if (!InterfaceName.empty())
-        out << IString(" Interface name: %s", InterfaceName)
-                  << std::endl;
-      if (!InterfaceVersion.empty()) {
+      if (!ComputingEndpoint.Technology.empty())
+        out << IString(" Technology: %s", ComputingEndpoint.Technology) << std::endl;
+      if (!ComputingEndpoint.InterfaceName.empty())
+        out << IString(" Interface name: %s", ComputingEndpoint.InterfaceName) << std::endl;
+      if (!ComputingEndpoint.InterfaceVersion.empty()) {
         out << IString(" Interface versions:") << std::endl;
-        for (std::list<std::string>::const_iterator it =
-               InterfaceVersion.begin(); it != InterfaceVersion.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingEndpoint.InterfaceVersion.begin();
+             it != ComputingEndpoint.InterfaceVersion.end(); ++it)
           out << "  " << *it << std::endl;
       }
-      if (!InterfaceExtension.empty()) {
+      if (!ComputingEndpoint.InterfaceExtension.empty()) {
         out << IString(" Interface extensions:") << std::endl;
-        for (std::list<std::string>::const_iterator it =
-               InterfaceExtension.begin();
-             it != InterfaceExtension.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingEndpoint.InterfaceExtension.begin();
+             it != ComputingEndpoint.InterfaceExtension.end(); ++it)
           out << "  " << *it << std::endl;
       }
-      if (!SupportedProfile.empty()) {
+      if (!ComputingEndpoint.SupportedProfile.empty()) {
         out << IString(" Supported Profiles:") << std::endl;
-        for (std::list<std::string>::const_iterator it =
-               SupportedProfile.begin(); it != SupportedProfile.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingEndpoint.SupportedProfile.begin();
+             it != ComputingEndpoint.SupportedProfile.end(); ++it)
           out << "  " << *it << std::endl;
       }
-      if (!Implementor.empty())
-        out << IString(" Implementor: %s", Implementor) << std::endl;
-      if (!Implementation().empty())
-        out << IString(" Implementation name: %s", (std::string)Implementation)
+      if (!ComputingEndpoint.Implementor.empty())
+        out << IString(" Implementor: %s", ComputingEndpoint.Implementor) << std::endl;
+      if (!ComputingEndpoint.Implementation().empty())
+        out << IString(" Implementation name: %s", (std::string)ComputingEndpoint.Implementation)
                   << std::endl;
-      if (!QualityLevel.empty())
-        out << IString(" Quality level: %s", QualityLevel) << std::endl;
-      if (!HealthState.empty())
-        out << IString(" Health state: %s", HealthState) << std::endl;
-      if (!HealthStateInfo.empty())
-        out << IString(" Health state info: %s", HealthStateInfo)
+      if (!ComputingEndpoint.QualityLevel.empty())
+        out << IString(" Quality level: %s", ComputingEndpoint.QualityLevel) << std::endl;
+      if (!ComputingEndpoint.HealthState.empty())
+        out << IString(" Health state: %s", ComputingEndpoint.HealthState) << std::endl;
+      if (!ComputingEndpoint.HealthStateInfo.empty())
+        out << IString(" Health state info: %s", ComputingEndpoint.HealthStateInfo)
                   << std::endl;
-      if (!ServingState.empty())
-        out << IString(" Serving state: %s", ServingState) << std::endl;
+      if (!ComputingEndpoint.ServingState.empty())
+        out << IString(" Serving state: %s", ComputingEndpoint.ServingState) << std::endl;
 
       if (ApplicationEnvironments.size() > 0) {
         out << IString(" Installed application environments:") << std::endl;
@@ -400,26 +378,24 @@ namespace Arc {
         out << IString(" Execution environment does not"
                              " support outbound connections") << std::endl;
 
-      if (!IssuerCA.empty())
-        out << IString(" Issuer CA: %s", IssuerCA) << std::endl;
-      if (!TrustedCA.empty()) {
+      if (!ComputingEndpoint.IssuerCA.empty())
+        out << IString(" Issuer CA: %s", ComputingEndpoint.IssuerCA) << std::endl;
+      if (!ComputingEndpoint.TrustedCA.empty()) {
         out << IString(" Trusted CAs:") << std::endl;
-        for (std::list<std::string>::const_iterator it = TrustedCA.begin();
-             it != TrustedCA.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingEndpoint.TrustedCA.begin();
+             it != ComputingEndpoint.TrustedCA.end(); ++it)
           out << "  " << *it << std::endl;
       }
-      if (DowntimeStarts != -1)
-        out << IString(" Downtime starts: %s", DowntimeStarts.str())
-                  << std::endl;
-      if (DowntimeEnds != -1)
-        out << IString(" Downtime ends: %s", DowntimeEnds.str())
-                  << std::endl;
-      if (!Staging.empty())
-        out << IString(" Staging: %s", Staging) << std::endl;
-      if (!JobDescriptions.empty()) {
+      if (ComputingEndpoint.DowntimeStarts != -1)
+        out << IString(" Downtime starts: %s", ComputingEndpoint.DowntimeStarts.str())<< std::endl;
+      if (ComputingEndpoint.DowntimeEnds != -1)
+        out << IString(" Downtime ends: %s", ComputingEndpoint.DowntimeEnds.str()) << std::endl;
+      if (!ComputingEndpoint.Staging.empty())
+        out << IString(" Staging: %s", ComputingEndpoint.Staging) << std::endl;
+      if (!ComputingEndpoint.JobDescriptions.empty()) {
         out << IString(" Job descriptions:") << std::endl;
-        for (std::list<std::string>::const_iterator it =
-               JobDescriptions.begin(); it != JobDescriptions.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingEndpoint.JobDescriptions.begin();
+             it != ComputingEndpoint.JobDescriptions.end(); ++it)
           out << "  " << *it << std::endl;
       }
 

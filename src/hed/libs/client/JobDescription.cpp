@@ -506,7 +506,7 @@ namespace Arc {
     }
 
     if (!Resources.CEType.empty() &&
-        !Resources.CEType.selectSoftware(et.Implementation)) {
+        !Resources.CEType.selectSoftware(et.ComputingEndpoint.Implementation)) {
       // This error should never happen since Middleware is checked in the Broker.
       logger.msg(VERBOSE, "Unable to select middleware");
       return false;

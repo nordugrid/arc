@@ -96,15 +96,15 @@ namespace Arc {
                            (std::string)itMds->Child(i)["Mds-Service-port"] + "/" +
                            (std::string)itMds->Child(i)["Mds-Service-Ldap-suffix"]);
         if (itMds->Child(i).Name() == "Mds-Vo-name") {
-          se.EndpointCapabilities.push_back("information.discovery.registry");
+          se.Capability.push_back("information.discovery.registry");
           se.InterfaceName = supportedInterfaces.front();
         }
         else if (itMds->Child(i).Name() == "nordugrid-cluster-name") {
-          se.EndpointCapabilities.push_back("information.discovery.resource");
+          se.Capability.push_back("information.discovery.resource");
           se.InterfaceName = "org.nordugrid.ldapng";
         }
         else if (itMds->Child(i).Name() == "nordugrid-se-name") {
-          se.EndpointCapabilities.push_back("information.discovery.resource");
+          se.Capability.push_back("information.discovery.resource");
           se.InterfaceName = "org.nordugrid.ldapng";
         }
 

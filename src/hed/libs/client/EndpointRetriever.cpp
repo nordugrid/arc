@@ -44,7 +44,7 @@ namespace Arc {
     }
 
     plugins[name] = p;
-    logger.msg(DEBUG, "Loaded % %s", EndpointRetrieverPlugin<T, S>::kind, name);
+    logger.msg(DEBUG, "Loaded %s %s", EndpointRetrieverPlugin<T, S>::kind, name);
     return p;
   }
 
@@ -170,7 +170,7 @@ namespace Arc {
 
     bool match = false;
     for (std::list<std::string>::const_iterator it = options.getCapabilityFilter().begin(); it != options.getCapabilityFilter().end(); it++) {
-      if (std::find(endpoint.EndpointCapabilities.begin(), endpoint.EndpointCapabilities.end(), *it) != endpoint.EndpointCapabilities.end()) {
+      if (std::find(endpoint.Capability.begin(), endpoint.Capability.end(), *it) != endpoint.Capability.end()) {
         match = true;
         break;
       }
@@ -355,8 +355,8 @@ namespace Arc {
   template class EndpointRetriever<ComputingInfoEndpoint, Job>;
   template class EndpointRetrieverPlugin<ComputingInfoEndpoint, Job>;
   template class EndpointRetrieverPluginLoader<ComputingInfoEndpoint, Job>;
-  template<> const std::string JobListRetrieverPlugin::kind("HED:JobListRetrieverPlugin");
   template<> Logger EndpointRetriever<ComputingInfoEndpoint, Job>::logger(Logger::getRootLogger(), "JobListRetriever");
+  template<> const std::string EndpointRetrieverPlugin<ComputingInfoEndpoint, Job>::kind("HED:JobListRetrieverPlugin");
   template<> Logger EndpointRetrieverPluginLoader<ComputingInfoEndpoint, Job>::logger(Logger::getRootLogger(), "JobListRetrieverPluginLoader");
 
 

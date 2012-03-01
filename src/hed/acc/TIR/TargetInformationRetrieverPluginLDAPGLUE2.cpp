@@ -249,25 +249,25 @@ namespace Arc {
         Extractor& endpoint = *ite;
         endpoint.prefix = "Endpoint";
         // *** This should go into one of the multiple endpoints of the ExecutionTarget, not directly into it
-        endpoint.set("URL", target.url);
-        endpoint.set("Capability", target.Capability);
-        endpoint.set("Technology", target.Technology);
-        endpoint.set("InterfaceName", target.InterfaceName);
-        endpoint.set("InterfaceVersion", target.InterfaceVersion);
-        endpoint.set("InterfaceExtension", target.InterfaceExtension);
-        endpoint.set("SupportedProfile", target.SupportedProfile);
-        endpoint.set("Implementor", target.Implementor);
-        target.Implementation = Software(endpoint["ImplementationName"], endpoint["ImplementationVersion"]);
-        endpoint.set("QualityLevel", target.QualityLevel);
-        endpoint.set("HealthState", target.HealthState);
-        endpoint.set("HealthStateInfo", target.HealthStateInfo);
-        endpoint.set("ServingState", target.ServingState);
-        endpoint.set("IssuerCA", target.IssuerCA);
-        endpoint.set("TrustedCA", target.TrustedCA);
-        endpoint.set("DowntimeStarts", target.DowntimeStarts);
-        endpoint.set("DowntimeEnds", target.DowntimeEnds);
-        endpoint.set("Staging", target.Staging);
-        endpoint.set("JobDescription", target.JobDescriptions);
+        endpoint.set("URL", target.ComputingEndpoint.URLString);
+        endpoint.set("Capability", target.ComputingEndpoint.Capability);
+        endpoint.set("Technology", target.ComputingEndpoint.Technology);
+        endpoint.set("InterfaceName", target.ComputingEndpoint.InterfaceName);
+        endpoint.set("InterfaceVersion", target.ComputingEndpoint.InterfaceVersion);
+        endpoint.set("InterfaceExtension", target.ComputingEndpoint.InterfaceExtension);
+        endpoint.set("SupportedProfile", target.ComputingEndpoint.SupportedProfile);
+        endpoint.set("Implementor", target.ComputingEndpoint.Implementor);
+        target.ComputingEndpoint.Implementation = Software(endpoint["ImplementationName"], endpoint["ImplementationVersion"]);
+        endpoint.set("QualityLevel", target.ComputingEndpoint.QualityLevel);
+        endpoint.set("HealthState", target.ComputingEndpoint.HealthState);
+        endpoint.set("HealthStateInfo", target.ComputingEndpoint.HealthStateInfo);
+        endpoint.set("ServingState", target.ComputingEndpoint.ServingState);
+        endpoint.set("IssuerCA", target.ComputingEndpoint.IssuerCA);
+        endpoint.set("TrustedCA", target.ComputingEndpoint.TrustedCA);
+        endpoint.set("DowntimeStarts", target.ComputingEndpoint.DowntimeStarts);
+        endpoint.set("DowntimeEnds", target.ComputingEndpoint.DowntimeEnds);
+        endpoint.set("Staging", target.ComputingEndpoint.Staging);
+        endpoint.set("JobDescription", target.ComputingEndpoint.JobDescriptions);
       }
 
       // GFD.147 GLUE2 6.3 Computing Share

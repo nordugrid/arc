@@ -51,15 +51,17 @@ namespace Arc {
   bool SubmitterARC0::Submit(const JobDescription& jobdesc, const ExecutionTarget& et, Job& job) {
 
     FTPControl ctrl;
+    
+    URL url(et.ComputingEndpoint.URLString);
 
-    if (!ctrl.Connect(et.url,
+    if (!ctrl.Connect(url,
                       usercfg.ProxyPath(), usercfg.CertificatePath(),
                       usercfg.KeyPath(), usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed to connect");
       return false;
     }
 
-    if (!ctrl.SendCommand("CWD " + et.url.Path(), usercfg.Timeout())) {
+    if (!ctrl.SendCommand("CWD " + url.Path(), usercfg.Timeout())) {
       logger.msg(INFO, "Submit: Failed sending CWD command");
       ctrl.Disconnect(usercfg.Timeout());
       return false;
@@ -114,7 +116,7 @@ namespace Arc {
       return false;
     }
 
-    URL jobid(et.url);
+    URL jobid(url);
     jobid.ChangePath(jobid.Path() + '/' + jobnumber);
 
     if (!PutFiles(preparedjobdesc, jobid)) {
@@ -135,7 +137,7 @@ namespace Arc {
   bool SubmitterARC0::Migrate(const URL& /* jobid */, const JobDescription& /* jobdesc */,
                              const ExecutionTarget& et, bool /* forcemigration */,
                              Job& /* job */) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a legacy ARC resource is not supported.", et.url.str());
+    logger.msg(INFO, "Trying to migrate to %s: Migration to a legacy ARC resource is not supported.", et.ComputingEndpoint.URLString);
     return false;
   }
 

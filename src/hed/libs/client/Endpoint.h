@@ -11,7 +11,10 @@ class Endpoint {
 public:
   enum EndpointType { REGISTRY, COMPUTINGINFO, JOBSUBMIT, JOBMANAGEMENT };
   
-  Endpoint(std::string URLString = "", std::string InterfaceName = "") : URLString(URLString), InterfaceName(InterfaceName) {}
+  Endpoint(const std::string& URLString = "",
+           const std::string& InterfaceName = "",
+           const std::list<std::string>& Capability = std::list<std::string>())
+    : URLString(URLString), InterfaceName(InterfaceName), Capability(Capability) {}
   
   std::string str() const {
     return URLString + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
@@ -24,6 +27,10 @@ public:
   
   std::string URLString;
   std::string InterfaceName;  
+  std::string HealthState;
+  std::string HealthStateInfo;
+  std::string QualityLevel;
+  std::list<std::string> Capability;
 };
 
 ///
@@ -35,18 +42,13 @@ class ServiceEndpoint : public Endpoint {
 public:
   ServiceEndpoint(std::string URLString = "",
                   std::string InterfaceName = "",
-                  std::list<std::string> EndpointCapabilities = std::list<std::string>())
-    : Endpoint(URLString, InterfaceName), EndpointCapabilities(EndpointCapabilities) {}
-
-  std::list<std::string> EndpointCapabilities;
-  std::string HealthState;
-  std::string HealthStateInfo;
-  std::string QualityLevel;
+                  std::list<std::string> Capability = std::list<std::string>())
+    : Endpoint(URLString, InterfaceName, Capability) {}
 };
 
 ///
 /**
- *
+ * 
  **/
 class RegistryEndpoint : public Endpoint {
 public:
@@ -54,7 +56,7 @@ public:
   RegistryEndpoint(ServiceEndpoint service) : Endpoint(service.URLString, service.InterfaceName) {}
 
   static bool isRegistry(ServiceEndpoint service) {
-    return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), RegistryCapability) != service.EndpointCapabilities.end());
+    return (std::find(service.Capability.begin(), service.Capability.end(), RegistryCapability) != service.Capability.end());
   }
 
   static const std::string RegistryCapability;
@@ -66,7 +68,7 @@ public:
   ComputingInfoEndpoint(ServiceEndpoint service) : Endpoint(service.URLString, service.InterfaceName) {}
 
   static bool isComputingInfo(ServiceEndpoint service) {
-    return (std::find(service.EndpointCapabilities.begin(), service.EndpointCapabilities.end(), ComputingInfoCapability) != service.EndpointCapabilities.end());
+    return (std::find(service.Capability.begin(), service.Capability.end(), ComputingInfoCapability) != service.Capability.end());
   }
 
   static const std::string ComputingInfoCapability;

@@ -71,7 +71,7 @@ namespace Arc {
 
       ServiceEndpoint se((std::string)(*it)["Endpoint"]["URL"]);
       for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
-        se.EndpointCapabilities.push_back((std::string)n);
+        se.Capability.push_back((std::string)n);
       }
       se.InterfaceName = (std::string)(*it)["Endpoint"]["InterfaceName"];
 
