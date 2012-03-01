@@ -72,7 +72,7 @@ namespace Arc {
          GLUEService; ++GLUEService) {
       ExecutionTarget t;
 
-      //t.GridFlavour = "ARC1"; // TIR equivalent
+      t.GridFlavour = "ARC1"; // TODO: Use interface name instead.
       t.Cluster = url;
       t.ComputingEndpoint.URLString = url.fullstr();
       t.ComputingEndpoint.InterfaceName = "BES";

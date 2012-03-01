@@ -65,7 +65,7 @@ namespace Arc {
     GLUE2::ParseExecutionTargets(response, targets, "org.ogf.emies");
     for(std::list<ExecutionTarget>::iterator target = targets.begin();
                            target != targets.end(); ++target) {
-      if(target->GridFlavour.empty()) target->GridFlavour = "EMIES"; // ?
+      if(target->GridFlavour.empty()) target->GridFlavour = "EMIES"; // TODO: Use interface name instead.
       if(!(target->Cluster)) target->Cluster = url;
       if(target->ComputingEndpoint.URLString.empty()) target->ComputingEndpoint.URLString = url;
       if(target->ComputingEndpoint.InterfaceName.empty()) target->ComputingEndpoint.InterfaceName = "EMI-ES"; // TODO: Specify correct interface name.

@@ -121,7 +121,7 @@ namespace Arc {
 
       ExecutionTarget target;
 
-      //target.GridFlavour = "ARC0"; // TIR equivalent??
+      target.GridFlavour = "ARC0"; // TODO: Use interface name instead.
       target.Cluster = URL(cie.URLString);
 
       // Location attributes
