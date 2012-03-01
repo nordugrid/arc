@@ -31,7 +31,7 @@ int RUNACL(main)(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
-  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcclean");
+  Arc::Logger logger(Arc::Logger::getRootLogger(), "arcacl");
   Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
