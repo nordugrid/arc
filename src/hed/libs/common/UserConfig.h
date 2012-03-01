@@ -1179,6 +1179,8 @@ namespace Arc {
       preferredjobinterface = preferredjobinterface_;
       return true;
     }
+    
+    const std::list<std::string>& RejectedURLs() const { return rejectedURLs; };
 
     
 
