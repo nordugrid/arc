@@ -12,8 +12,8 @@ namespace Arc {
 
   class JobListRetrieverPluginEMIES : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
-    JobListRetrieverPluginEMIES() {}
-    ~JobListRetrieverPluginEMIES() {}
+    JobListRetrieverPluginEMIES() { supportedInterfaces.push_back("org.ogf.emies"); }
+    virtual ~JobListRetrieverPluginEMIES() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginEMIES(); }
     EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;

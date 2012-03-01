@@ -12,8 +12,8 @@ namespace Arc {
 
   class JobListRetrieverPluginLDAPNG : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
-    JobListRetrieverPluginLDAPNG() {}
-    ~JobListRetrieverPluginLDAPNG() {}
+    JobListRetrieverPluginLDAPNG() { supportedInterfaces.push_back("org.nordugrid.ldapng"); }
+    virtual ~JobListRetrieverPluginLDAPNG() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginLDAPNG(); }
     EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;

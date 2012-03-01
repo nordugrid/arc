@@ -12,8 +12,8 @@ namespace Arc {
 
   class JobListRetrieverPluginWSRFGLUE2 : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
-    JobListRetrieverPluginWSRFGLUE2() {}
-    ~JobListRetrieverPluginWSRFGLUE2() {}
+    JobListRetrieverPluginWSRFGLUE2() { supportedInterfaces.push_back("org.nordugrid.wsrfglue2"); }
+    virtual ~JobListRetrieverPluginWSRFGLUE2() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFGLUE2(); }
     EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;

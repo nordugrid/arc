@@ -12,8 +12,8 @@ namespace Arc {
 
   class JobListRetrieverPluginWSRFCREAM : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
-    JobListRetrieverPluginWSRFCREAM() {}
-    ~JobListRetrieverPluginWSRFCREAM() {}
+    JobListRetrieverPluginWSRFCREAM() { supportedInterfaces.push_back("org.glite.wsrfcream"); }
+    virtual ~JobListRetrieverPluginWSRFCREAM() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFCREAM(); }
     EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const; // No implementation in cpp file -- returns EndpointQueryingStatus::FAILED.
