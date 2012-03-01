@@ -680,7 +680,7 @@ sub collect($) {
     my $udID = "urn:ogf:UserDomain:$userdomain" ; # UserDomain ID;
     my $csvID = "urn:ogf:ComputingService:$hostname:arex"; # ComputingService ID
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
-    my $ARCgftpjobcepIDp = "urn:ogf:ComputingEndpoint:$hostname:gridftp:"; # ARCGridFTPComputingEndpoint ID
+    my $ARCgftpjobcepIDp = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:"; # ARCGridFTPComputingEndpoint ID
     my $ARCWScepID = "urn:ogf:ComputingEndpoint:$hostname:xbes:$config->{endpoint}" if $config->{endpoint}; # ARCWSComputingEndpoint ID
     my $EMIEScepID = "urn:ogf:ComputingEndpoint:$hostname:emies:$config->{endpoint}" if $config->{endpoint}; # EMIESComputingEndpoint ID
     my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
