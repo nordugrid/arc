@@ -14,10 +14,10 @@
 #include "JobListRetrieverPluginWSRFGLUE2.h"
 
 Arc::PluginDescriptor PLUGINS_TABLE_NAME[] = {
-  { "WSRFCREAM", Arc::JobListRetrieverPlugin::kind.c_str(), "", 0, &Arc::JobListRetrieverPluginWSRFCREAM::Instance },
-  { "LDAPNG", Arc::JobListRetrieverPlugin::kind.c_str(), "", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
-  { "WSRFBES", Arc::JobListRetrieverPlugin::kind.c_str(), "", 0, &Arc::JobListRetrieverPluginWSRFBES::Instance },
-  { "WSRFGLUE2", Arc::JobListRetrieverPlugin::kind.c_str(), "", 0, &Arc::JobListRetrieverPluginWSRFGLUE2::Instance },
-  { "EMIES", Arc::JobListRetrieverPlugin::kind.c_str(), "", 0, &Arc::JobListRetrieverPluginEMIES::Instance },
+  { "WSRFCREAM", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginWSRFCREAM::Instance },
+  { "LDAPNG", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginLDAPNG::Instance },
+  { "WSRFBES", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginWSRFBES::Instance },
+  { "WSRFGLUE2", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginWSRFGLUE2::Instance },
+  { "EMIES", "HED:JobListRetrieverPlugin", "", 0, &Arc::JobListRetrieverPluginEMIES::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };
