@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/data/DataHandle.h>
 
@@ -13,20 +14,30 @@ namespace Arc {
 
   Logger JobListRetrieverPluginWSRFGLUE2::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFGLUE2");
 
-  /*
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
+  bool JobListRetrieverPluginWSRFGLUE2::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+    const std::string::size_type pos = endpoint.URLString.find("://");
+    if (pos != std::string::npos) {
+      const std::string proto = lower(endpoint.URLString.substr(0, pos));
+      return ((proto != "http") && (proto != "https"));
+    }
+    
+    return false;
+  }
+
+  static bool CreateURL(std::string URLString, URL& url) {
+    std::string::size_type pos1 = URLString.find("://");
     if (pos1 == std::string::npos) {
-      service = "https://" + service;
+      URLString = "https://" + URLString;
     } else {
-      std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return URL();
+      std::string proto = lower(URLString.substr(0,pos1));
+      if((proto != "http") && (proto != "https")) return false;
     }
     // Default port other than 443?
     // Default path?
-    return service;
+    
+    url = URLString;
+    return true;
   }
-  */
 
   EndpointQueryingStatus JobListRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);

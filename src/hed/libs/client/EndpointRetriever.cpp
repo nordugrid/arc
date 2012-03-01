@@ -184,7 +184,6 @@ namespace Arc {
     }
   }
 
-
   template<typename T, typename S>
   EndpointQueryingStatus EndpointRetriever<T, S>::getStatusOfEndpoint(const T& endpoint) const {
     statusLock.lock();
@@ -263,6 +262,10 @@ namespace Arc {
           // Should not happen since all available plugins was already loaded in the constructor.
           // Problem loading the plugin, skip it
           logger.msg(DEBUG, "Problem loading plugin %s, skipping it..", *it);
+          continue;
+        }
+        if (plugin->isEndpointNotSupported(a->endpoint)) {
+          logger.msg(DEBUG, "The endpoint (%s) is not supported by this plugin (%s)", a->endpoint.URLString, *it);
           continue;
         }
         // Create a new endpoint with the same endpoint and a specified interface

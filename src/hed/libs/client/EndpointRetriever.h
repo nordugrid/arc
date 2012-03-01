@@ -58,6 +58,7 @@ protected:
   EndpointRetrieverPlugin() {};
 public:
   virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
+  virtual bool isEndpointNotSupported(const T&) const = 0;
   virtual EndpointQueryingStatus Query(const UserConfig&, const T& rEndpoint, std::list<S>&, const EndpointQueryOptions<S>& options) const = 0;
 
   static const std::string kind;

@@ -16,7 +16,8 @@ namespace Arc {
     virtual ~JobListRetrieverPluginEMIES() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginEMIES(); }
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
 
   private:
     static Logger logger;

@@ -12,6 +12,7 @@ public:
 
   static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginTEST; }
   virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+  virtual bool isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const { return endpoint.URLString.empty(); }
 };
 
 }

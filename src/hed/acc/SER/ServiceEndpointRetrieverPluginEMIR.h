@@ -18,12 +18,13 @@ class ServiceEndpointRetrieverPluginEMIR : public ServiceEndpointRetrieverPlugin
 public:
   ServiceEndpointRetrieverPluginEMIR() { supportedInterfaces.push_back("org.nordugrid.emir"); }
   ~ServiceEndpointRetrieverPluginEMIR() {}
-  static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEMIR(); }
 
+  static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEMIR(); }
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const RegistryEndpoint& rEndpoint,
                                        std::list<ServiceEndpoint>&,
                                        const EndpointQueryOptions<ServiceEndpoint>&) const;
+  virtual bool isEndpointNotSupported(const RegistryEndpoint&) const;
 
 private:
   static Logger logger;

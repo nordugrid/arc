@@ -16,7 +16,8 @@ namespace Arc {
     virtual ~JobListRetrieverPluginWSRFGLUE2() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFGLUE2(); }
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
 
   private:
     static Logger logger;

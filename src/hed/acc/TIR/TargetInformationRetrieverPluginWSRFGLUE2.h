@@ -19,9 +19,10 @@ namespace Arc {
   public:
     TargetInformationRetrieverPluginWSRFGLUE2() { supportedInterfaces.push_back("org.nordugrid.wsrfglue2"); };
     ~TargetInformationRetrieverPluginWSRFGLUE2() {};
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginWSRFGLUE2(); };
 
+    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginWSRFGLUE2(); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
     static void ExtractTargets(const URL&, XMLNode, std::list<ExecutionTarget>&);
 
   private:

@@ -5,6 +5,7 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/message/MCC.h>
 
@@ -16,18 +17,15 @@ namespace Arc {
 
   Logger JobListRetrieverPluginEMIES::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.EMIES");
 
-  /*
-  static URL CreateURL(std::string service) {
-    std::string::size_type pos1 = service.find("://");
-    if (pos1 == std::string::npos) {
-      service = "https://" + service;
-    } else {
-      std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return URL();
+  bool JobListRetrieverPluginEMIES::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+    const std::string::size_type pos = endpoint.URLString.find("://");
+    if (pos != std::string::npos) {
+      const std::string proto = lower(endpoint.URLString.substr(0, pos));
+      return ((proto != "http") && (proto != "https"));
     }
-    return service;
+    
+    return false;
   }
-  */
 
   EndpointQueryingStatus JobListRetrieverPluginEMIES::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);

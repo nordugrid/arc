@@ -5,6 +5,7 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/UserConfig.h>
 #include <arc/URL.h>
 #include <arc/client/ExecutionTarget.h>
@@ -17,14 +18,19 @@
 namespace Arc {
 
   Logger TargetInformationRetrieverPluginLDAPGLUE2::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.LDAPGLUE2");
-  /*
-  static URL CreateURL(std::string service) {
+
+  bool TargetInformationRetrieverPluginLDAPGLUE2::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+    const std::string::size_type pos = endpoint.URLString.find("://");
+    return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
+  }
+
+  static bool CreateURL(std::string service, URL& url) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "ldap://" + service;
       pos1 = 4;
     } else {
-      if(lower(service.substr(0,pos1)) != "ldap") return URL();
+      if(lower(service.substr(0,pos1)) != "ldap") return false;
     }
     std::string::size_type pos2 = service.find(":", pos1 + 3);
     std::string::size_type pos3 = service.find("/", pos1 + 3);
@@ -32,14 +38,14 @@ namespace Arc {
       if (pos2 == std::string::npos)
         service += ":2170";
       // Is this a good default path?
-      // Different for computing and index?
       service += "/o=Grid";
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
       service.insert(pos3, ":2170");
-    return service;
+      
+    url = service;
+    return true;
   }
-  */
 
 
   class Extractor {

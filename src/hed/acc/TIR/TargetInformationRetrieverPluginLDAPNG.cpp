@@ -7,6 +7,7 @@
 #include <string>
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/client/EndpointQueryingStatus.h>
@@ -24,30 +25,32 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginLDAPNG::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.LDAPNG");
 
-  /*
-  static URL CreateURL(std::string service, ServiceType st) {
+  bool TargetInformationRetrieverPluginLDAPNG::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+    const std::string::size_type pos = endpoint.URLString.find("://");
+    return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
+  }
+
+  static bool CreateURL(std::string service, URL& url) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "ldap://" + service;
       pos1 = 4;
     } else {
-      if(lower(service.substr(0,pos1)) != "ldap") return URL();
+      if(lower(service.substr(0,pos1)) != "ldap") return false;
     }
     std::string::size_type pos2 = service.find(":", pos1 + 3);
     std::string::size_type pos3 = service.find("/", pos1 + 3);
     if (pos3 == std::string::npos) {
       if (pos2 == std::string::npos)
         service += ":2135";
-      if (st == COMPUTING)
-        service += "/Mds-Vo-name=local, o=Grid";
-      else
-        service += "/Mds-Vo-name=NorduGrid, o=Grid";
+      service += "/Mds-Vo-name=local, o=Grid";
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
       service.insert(pos3, ":2135");
-    return service;
+      
+    url = service;
+    return true;
   }
-  */
 
 
   EndpointQueryingStatus TargetInformationRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {

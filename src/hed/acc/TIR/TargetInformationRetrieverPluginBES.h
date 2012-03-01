@@ -17,9 +17,10 @@ namespace Arc {
   public:
     TargetInformationRetrieverPluginBES() { supportedInterfaces.push_back("org.ogf.bes"); };
     ~TargetInformationRetrieverPluginBES() {};
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginBES(); };
 
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginBES(); };
+    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
 
   private:
     static Logger logger;

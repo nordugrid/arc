@@ -13,9 +13,10 @@ namespace Arc {
   public:
     TargetInformationRetrieverPluginLDAPGLUE1() { supportedInterfaces.push_back("org.nordugrid.ldapglue1"); };
     ~TargetInformationRetrieverPluginLDAPGLUE1() {};
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPGLUE1(); };
 
-    EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPGLUE1(); };
+    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
 
   private:
     static Logger logger;

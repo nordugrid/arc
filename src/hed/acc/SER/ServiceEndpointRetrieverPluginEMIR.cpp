@@ -5,6 +5,7 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/XMLNode.h>
 #include <arc/client/ClientInterface.h>
@@ -18,20 +19,29 @@ namespace Arc {
 
   Logger ServiceEndpointRetrieverPluginEMIR::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPlugin.EMIR");
 
-  /*
-  static URL CreateURL(std::string service) {
+  bool ServiceEndpointRetrieverPluginEMIR::isEndpointNotSupported(const RegistryEndpoint& endpoint) const {
+    const std::string::size_type pos = endpoint.URLString.find("://");
+    if (pos != std::string::npos) {
+      const std::string proto = lower(endpoint.URLString.substr(0, pos));
+      return ((proto != "http") && (proto != "https"));
+    }
+    
+    return false;
+  }
+
+  static bool CreateURL(std::string service, URL& url) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return URL();
+      if((proto != "http") && (proto != "https")) return false;
     }
     // Default port other than 443?
     // Default path?
-    return service;
+
+    return true;
   }
-  */
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
                                                                    const RegistryEndpoint& rEndpoint,

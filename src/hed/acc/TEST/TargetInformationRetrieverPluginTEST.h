@@ -15,6 +15,7 @@ public:
                                        std::list<ExecutionTarget>& endpoints,
                                        const EndpointQueryOptions<ExecutionTarget>&) const;
   static Plugin* Instance(PluginArgument *arg);
+  virtual bool isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const { return endpoint.URLString.empty(); }
 };
 
 }

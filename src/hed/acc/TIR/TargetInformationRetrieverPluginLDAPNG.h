@@ -18,9 +18,10 @@ namespace Arc {
   public:
     TargetInformationRetrieverPluginLDAPNG() { supportedInterfaces.push_back("org.nordugrid.ldapng"); };
     ~TargetInformationRetrieverPluginLDAPNG() {};
-    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPNG(); };
 
+    static Plugin* Instance(PluginArgument *) { return new TargetInformationRetrieverPluginLDAPNG(); };
     virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<ExecutionTarget>&, const EndpointQueryOptions<ExecutionTarget>&) const;
+    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
 
   private:
     static Logger logger;

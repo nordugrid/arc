@@ -14,6 +14,7 @@ public:
                                        std::list<ServiceEndpoint>& endpoints,
                                        const EndpointQueryOptions<ServiceEndpoint>& options) const;
   static Plugin* Instance(PluginArgument *arg);
+  virtual bool isEndpointNotSupported(const RegistryEndpoint& endpoint) const { return endpoint.URLString.empty(); }
 };
 
 }

@@ -5,6 +5,7 @@
 #endif
 
 #include <arc/Logger.h>
+#include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/client/ExecutionTarget.h>
@@ -16,20 +17,30 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginBES::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.BES");
 
-  /*
-  static URL CreateURL(std::string service) {
+  bool TargetInformationRetrieverPluginBES::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+    const std::string::size_type pos = endpoint.URLString.find("://");
+    if (pos != std::string::npos) {
+      const std::string proto = lower(endpoint.URLString.substr(0, pos));
+      return ((proto != "http") && (proto != "https"));
+    }
+    
+    return false;
+  }
+
+  static bool CreateURL(std::string service, URL& url) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return URL();
+      if((proto != "http") && (proto != "https")) return false;
     }
     // Default port other than 443?
     // Default path?
-    return service;
+    
+    url = service;
+    return true;
   }
-  */
 
   EndpointQueryingStatus TargetInformationRetrieverPluginBES::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
