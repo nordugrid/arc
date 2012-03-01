@@ -1167,6 +1167,20 @@ namespace Arc {
     std::list<ServiceEndpoint> GetDefaultServices(Endpoint::EndpointType type = Endpoint::ANY);
     ServiceEndpoint ResolveService(std::string alias);
     std::list<ServiceEndpoint> ServicesInGroup(std::string group, Endpoint::EndpointType type = Endpoint::ANY);
+    
+    const std::string& PreferredInfoInterface() const { return preferredinfointerface; };
+    bool PreferredInfoInterface(const std::string& preferredinfointerface_) {
+      preferredinfointerface = preferredinfointerface_;
+      return true;
+    }
+
+    const std::string& PreferredJobInterface() const { return preferredjobinterface; };
+    bool PreferredJobInterface(const std::string& preferredjobinterface_) {
+      preferredjobinterface = preferredjobinterface_;
+      return true;
+    }
+
+    
 
     /// Path to ARC user home directory
     /**
@@ -1224,7 +1238,31 @@ namespace Arc {
      * @see Broker() const
      **/
     static const std::string DEFAULT_BROKER;
+     
+    static std::string GetInterfaceNameOfInfoInterface(std::string infointerface) {
+      if (infointerface == "LDAPGLUE2") return "org.nordugrid.ldapglue2";
+      if (infointerface == "LDAPGLUE1") return "org.nordugrid.ldapglue1";
+      if (infointerface == "LDAPNG") return "org.nordugrid.ldapng";
+      if (infointerface == "WSRFGLUE2") return "org.nordugrid.wsrfglue2";
+      if (infointerface == "EMIES") return "org.ogf.emies";
+      if (infointerface == "BES") return "org.ogf.bes";
+      return "";
+    }
+    
+    static std::string GetInterfaceNameOfJobInterface(std::string jobinterface) {
+      if (jobinterface == "GRIDFTPJOB") return "org.nordugrid.gridftpjob";
+      if (jobinterface == "BES") return "org.nordugrid.xbes";
+      if (jobinterface == "EMIES") return "org.ogf.emies";
+      return "";
+    }
 
+    static std::string GetInterfaceNameOfRegistryInterface(std::string registryinterface) {
+      if (registryinterface == "EGIIS") return "org.nordugrid.egiis";
+      if (registryinterface == "EMIR") return "org.nordugrid.emir";
+      return "";
+    }
+
+    
   private:
     void setDefaults();
     static bool makeDir(const std::string& path);
@@ -1282,6 +1320,8 @@ namespace Arc {
     std::string overlayfile;
     std::string utilsdir;
 
+    std::string preferredjobinterface;
+    std::string preferredinfointerface;
     // User whose identity (uid/gid) should be used to access filesystem
     // Normally this is the same as the process owner
     User user;

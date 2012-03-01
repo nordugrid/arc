@@ -15,6 +15,7 @@ class UserConfigTest
   CPPUNIT_TEST(ParseComputingTest);
   CPPUNIT_TEST(UnspecifiedInterfaceTest);
   CPPUNIT_TEST(GroupTest);
+  CPPUNIT_TEST(PreferredInterfacesTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -25,6 +26,7 @@ public:
   void ParseComputingTest();
   void UnspecifiedInterfaceTest();
   void GroupTest();
+  void PreferredInterfacesTest();
 
   void setUp() {}
   void tearDown() {}
@@ -133,6 +135,24 @@ void UserConfigTest::GroupTest()
     
   remove(conffile.c_str());
 }
+
+void UserConfigTest::PreferredInterfacesTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "preferredinfointerface=LDAPGLUE2\npreferredjobinterface=GRIDFTPJOB\n"
+    << "[computing/puff]\nurl=ldap://puff.hep.lu.se\n";
+  f.close();
+  uc.LoadConfigurationFile(conffile);
+  
+  CPPUNIT_ASSERT_EQUAL(uc.PreferredJobInterface(), (std::string)"org.nordugrid.gridftpjob");
+  CPPUNIT_ASSERT_EQUAL(uc.PreferredInfoInterface(), (std::string)"org.nordugrid.ldapglue2");
+  Arc::ServiceEndpoint service;
+  service = uc.ResolveService("puff");
+  CPPUNIT_ASSERT_EQUAL(service.PreferredJobInterfaceName, (std::string)"org.nordugrid.gridftpjob");  
+  
+  remove(conffile.c_str());
+}
+
 
 void UserConfigTest::AliasTest()
 {

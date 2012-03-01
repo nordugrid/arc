@@ -679,6 +679,10 @@ namespace Arc {
           HANDLESTRATT("jobdownloaddirectory", JobDownloadDirectory)
           HANDLESTRATT("storedirectory", StoreDirectory)
           HANDLESTRATT("idpname", IdPName)
+          HANDLESTRATT("preferredinfointerface", PreferredInfoInterface)
+          HANDLESTRATT("preferredjobinterface", PreferredJobInterface)
+          PreferredJobInterface(GetInterfaceNameOfJobInterface(PreferredJobInterface()));
+          PreferredInfoInterface(GetInterfaceNameOfInfoInterface(PreferredInfoInterface()));
           if (common["defaultservices"]) {
             if (!selectedServices[COMPUTING].empty() ||
                 !selectedServices[INDEX].empty())
@@ -813,11 +817,7 @@ namespace Arc {
             } else {
               ServiceEndpoint service(section["url"]);
               service.Capability.push_back(RegistryEndpoint::RegistryCapability);
-              if (section["registryinterface"] == "EGIIS") {
-                service.InterfaceName = "org.nordugrid.egiis";
-              } else if (section["registryinterface"] == "EMIR") {
-                service.InterfaceName = "org.nordugrid.emir";
-              }
+              service.InterfaceName = GetInterfaceNameOfRegistryInterface(section["registryinterface"]);
               allServices[alias] = service;
               if (section["default"] && section["default"] != "no") {
                 defaultServices.push_back(service);
@@ -833,25 +833,10 @@ namespace Arc {
             } else {
               ServiceEndpoint service(section["url"]);
               service.Capability.push_back(ComputingInfoEndpoint::ComputingInfoCapability);
-              if (section["infointerface"] == "LDAPGLUE2") {
-                service.InterfaceName = "org.nordugrid.ldapglue2";
-              } else if (section["infointerface"] == "LDAPGLUE1") {
-                service.InterfaceName = "org.nordugrid.ldapglue1";
-              } else if (section["infointerface"] == "LDAPNG") {
-                service.InterfaceName = "org.nordugrid.ldapng";
-              } else if (section["infointerface"] == "WSRFGLUE2") {
-                service.InterfaceName = "org.nordugrid.wsrfglue2";
-              } else if (section["infointerface"] == "EMIES") {
-                service.InterfaceName = "org.ogf.emies";
-              } else if (section["infointerface"] == "BES") {
-                service.InterfaceName = "org.ogf.bes";
-              }
-              if (section["jobinterface"] == "GRIDFTPJOB") {
-                service.PreferredJobInterfaceName = "org.nordugrid.gridftpjob";
-              } else if (section["jobinterface"] == "BES") {
-                service.PreferredJobInterfaceName = "org.nordugrid.xbes";
-              } else if (section["jobinterface"] == "EMIES") {
-                service.PreferredJobInterfaceName = "org.nordugrid.emies";
+              service.InterfaceName = GetInterfaceNameOfInfoInterface(section["infointerface"]);
+              service.PreferredJobInterfaceName = GetInterfaceNameOfJobInterface(section["jobinterface"]);
+              if (service.PreferredJobInterfaceName.empty()) {
+                service.PreferredJobInterfaceName = PreferredJobInterface();
               }
               allServices[alias] = service;
               if (section["default"] && section["default"] != "no") {
