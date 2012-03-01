@@ -66,6 +66,8 @@ namespace Arc {
      **/
     void PreFilterTargets(std::list<ExecutionTarget>& targets, const JobDescription& jobdesc, const std::list<URL>& rejectTargets = std::list<URL>());
 
+    bool Match(const ExecutionTarget& t, const JobDescription& jobdesc) const;
+
     void UseAllTargets(std::list<ExecutionTarget>& targets);
 
     bool Test(std::list<ExecutionTarget>& targets, const int& testid, Job& job);
