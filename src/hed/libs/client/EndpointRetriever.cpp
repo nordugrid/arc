@@ -267,23 +267,24 @@ namespace Arc {
         }
         // Create a new endpoint with the same endpoint and a specified interface
         T endpoint = a->endpoint;
-        ThreadArg* newArg = new ThreadArg(*a, otherResult);
+        ThreadArg* newArg; 
         // Set interface
-        for (std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
-             itSI != plugin->SupportedInterfaces().end(); ++itSI) {
+        std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
+        for (; itSI != plugin->SupportedInterfaces().end(); ++itSI) {
           if (std::find(preferredInterfaceNames.begin(), preferredInterfaceNames.end(), *itSI) != preferredInterfaceNames.end()) {
             endpoint.InterfaceName = *itSI; // TODO: *itSI must not be empty.
             preferredEndpoints.push_back(endpoint);
-            newArg->result = preferredResult;
+            newArg = new ThreadArg(*a, preferredResult);
             break;
           }
         }
 
-        if (endpoint.InterfaceName.empty()) {
+        if (itSI == plugin->SupportedInterfaces().end()) {
           // We will use the first interfaceName this plugin supports
           endpoint.InterfaceName = plugin->SupportedInterfaces().front();
           logger.msg(DEBUG, "New endpoint is created (%s) from the one with the unspecified interface (%s)",  endpoint.str(), a->endpoint.str());
           otherEndpoints.push_back(endpoint);
+          newArg = new ThreadArg(*a, otherResult);
         }
         // Make new argument by copying old one with result report object replaced
         newArg->endpoint = endpoint;
