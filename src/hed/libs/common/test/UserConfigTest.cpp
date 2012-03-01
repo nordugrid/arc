@@ -4,18 +4,27 @@
 #include <fstream>
 
 #include <arc/UserConfig.h>
+#include <arc/Endpoint.h>
 
 class UserConfigTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(UserConfigTest);
   CPPUNIT_TEST(AliasTest);
+  CPPUNIT_TEST(ParseRegistryTest);
+  CPPUNIT_TEST(ParseComputingTest);
+  CPPUNIT_TEST(UnspecifiedInterfaceTest);
+  CPPUNIT_TEST(GroupTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   UserConfigTest() : uc(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)), conffile("test-client.conf") {}
 
   void AliasTest();
+  void ParseRegistryTest();
+  void ParseComputingTest();
+  void UnspecifiedInterfaceTest();
+  void GroupTest();
 
   void setUp() {}
   void tearDown() {}
@@ -24,6 +33,106 @@ private:
   Arc::UserConfig uc;
   const std::string conffile;
 };
+
+void UserConfigTest::ParseRegistryTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "[registry/emir1]\nurl=http://emir1.emi-eu.eu\nregistryinterface=EMIR\ndefault=yes\n";  
+  f.close();
+  uc.LoadConfigurationFile(conffile);
+  std::list<Arc::ServiceEndpoint> services;
+  services = uc.GetDefaultServices();
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 1);
+  CPPUNIT_ASSERT_EQUAL(services.front().URLString, (std::string)"http://emir1.emi-eu.eu");
+  CPPUNIT_ASSERT_EQUAL(services.front().InterfaceName, (std::string)"org.nordugrid.emir");  
+  
+  services = uc.GetDefaultServices(Arc::Endpoint::REGISTRY);
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 1);
+  CPPUNIT_ASSERT_EQUAL(services.front().URLString, (std::string)"http://emir1.emi-eu.eu");
+  CPPUNIT_ASSERT_EQUAL(services.front().InterfaceName, (std::string)"org.nordugrid.emir");  
+
+  services = uc.GetDefaultServices(Arc::Endpoint::COMPUTINGINFO);
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 0);
+  
+  Arc::ServiceEndpoint service = uc.ResolveService("emir1");
+  CPPUNIT_ASSERT_EQUAL(service.URLString, (std::string)"http://emir1.emi-eu.eu");
+  CPPUNIT_ASSERT_EQUAL(service.InterfaceName, (std::string)"org.nordugrid.emir");  
+  
+  remove(conffile.c_str());
+}
+
+void UserConfigTest::ParseComputingTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\ninfointerface=LDAPGLUE2\njobinterface=GRIDFTPJOB\ndefault=yes\n";
+  
+  f.close();
+  uc.LoadConfigurationFile(conffile);
+  std::list<Arc::ServiceEndpoint> services;
+  services = uc.GetDefaultServices();
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 1);
+  CPPUNIT_ASSERT_EQUAL(services.front().URLString, (std::string)"ldap://puff.hep.lu.se");
+  CPPUNIT_ASSERT_EQUAL(services.front().InterfaceName, (std::string)"org.nordugrid.ldapglue2");  
+  
+  services = uc.GetDefaultServices(Arc::Endpoint::COMPUTINGINFO);
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 1);
+  CPPUNIT_ASSERT_EQUAL(services.front().URLString, (std::string)"ldap://puff.hep.lu.se");
+  CPPUNIT_ASSERT_EQUAL(services.front().InterfaceName, (std::string)"org.nordugrid.ldapglue2");  
+
+  services = uc.GetDefaultServices(Arc::Endpoint::REGISTRY);
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 0);
+  
+  Arc::ServiceEndpoint service = uc.ResolveService("puff");
+  CPPUNIT_ASSERT_EQUAL(service.URLString, (std::string)"ldap://puff.hep.lu.se");
+  CPPUNIT_ASSERT_EQUAL(service.InterfaceName, (std::string)"org.nordugrid.ldapglue2");  
+  CPPUNIT_ASSERT_EQUAL(service.PreferredJobInterfaceName, (std::string)"org.nordugrid.gridftpjob");  
+  
+  remove(conffile.c_str());
+}
+
+void UserConfigTest::UnspecifiedInterfaceTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\n"
+    << "[registry/emir1]\nurl=http://emir1.nordugrid.org\n";
+  
+  f.close();
+  uc.LoadConfigurationFile(conffile);
+  
+  Arc::ServiceEndpoint service;
+  service = uc.ResolveService("puff");
+  CPPUNIT_ASSERT_EQUAL(service.URLString, (std::string)"ldap://puff.hep.lu.se");
+  CPPUNIT_ASSERT_EQUAL(service.InterfaceName, (std::string)"");  
+  CPPUNIT_ASSERT_EQUAL(service.PreferredJobInterfaceName, (std::string)"");  
+
+  service = uc.ResolveService("emir1");
+  CPPUNIT_ASSERT_EQUAL(service.URLString, (std::string)"http://emir1.nordugrid.org");
+  CPPUNIT_ASSERT_EQUAL(service.InterfaceName, (std::string)"");
+  
+  remove(conffile.c_str());
+}
+
+
+void UserConfigTest::GroupTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\ngroup=hep\n"
+    << "[computing/paff]\nurl=ldap://paff.hep.lu.se\ngroup=hep\n"
+    << "[computing/interop]\nurl=https://interop.grid.niif.hu\ngroup=niif\n";
+  f.close();
+  uc.LoadConfigurationFile(conffile);
+  std::list<Arc::ServiceEndpoint> services;
+  services = uc.ServicesInGroup("hep");
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 2);
+  CPPUNIT_ASSERT_EQUAL(services.front().URLString, (std::string)"ldap://puff.hep.lu.se");
+  CPPUNIT_ASSERT_EQUAL(services.back().URLString, (std::string)"ldap://paff.hep.lu.se");
+
+  services = uc.ServicesInGroup("niif");
+  CPPUNIT_ASSERT_EQUAL((int)services.size(), 1);
+  CPPUNIT_ASSERT_EQUAL(services.front().URLString, (std::string)"https://interop.grid.niif.hu");
+    
+  remove(conffile.c_str());
+}
 
 void UserConfigTest::AliasTest()
 {

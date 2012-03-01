@@ -11,6 +11,7 @@
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 #include <arc/User.h>
+#include <arc/Endpoint.h>
 
 namespace Arc {
 
@@ -1163,6 +1164,10 @@ namespace Arc {
      */
     const User& GetUser() const { return user; };
 
+    std::list<ServiceEndpoint> GetDefaultServices(Endpoint::EndpointType type = Endpoint::ANY);
+    ServiceEndpoint ResolveService(std::string alias);
+    std::list<ServiceEndpoint> ServicesInGroup(std::string group, Endpoint::EndpointType type = Endpoint::ANY);
+
     /// Path to ARC user home directory
     /**
      * The \a ARCUSERDIRECTORY variable is the path to the ARC home
@@ -1230,6 +1235,9 @@ namespace Arc {
     bool ResolveAlias(ServiceList& services,
                       std::list<std::string>& resolvedAlias);
     bool CreateDefaultConfigurationFile() const;
+    
+    std::list<ServiceEndpoint> FilterServices(std::list<ServiceEndpoint>, Endpoint::EndpointType);
+    
 
     std::string joblistfile;
 
@@ -1242,6 +1250,11 @@ namespace Arc {
 
     ServiceList selectedServices;
     ServiceList rejectedServices;
+    
+    std::list<ServiceEndpoint> defaultServices;
+    std::map<std::string, ServiceEndpoint> allServices;
+    std::map<std::string, std::list<std::string> > groupMap;
+    std::list<std::string> rejectedURLs;
 
     // Vector needed for random access.
     std::vector<URL> bartenders;

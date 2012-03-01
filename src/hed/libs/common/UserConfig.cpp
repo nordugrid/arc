@@ -802,12 +802,70 @@ namespace Arc {
           common.Destroy();
         }
 
-        while (ini.Child()) {
-          logger.msg(INFO, "Unknown section %s, ignoring it",
-                     ini.Child().Name());
-          ini.Child().Destroy();
+        const std::string registrySectionPrefix = "registry/";
+        const std::string computingSectionPrefix = "computing/";
+        while (XMLNode section = ini.Child()) {
+          std::string sectionName = section.Name();
+          if (sectionName.find(registrySectionPrefix) == 0) {
+            std::string alias = sectionName.substr(registrySectionPrefix.length());
+            if (section["reject"] && section["reject"] != "no") {
+              rejectedURLs.push_back(section["url"]);
+            } else {
+              ServiceEndpoint service(section["url"]);
+              service.Capability.push_back(RegistryEndpoint::RegistryCapability);
+              if (section["registryinterface"] == "EGIIS") {
+                service.InterfaceName = "org.nordugrid.egiis";
+              } else if (section["registryinterface"] == "EMIR") {
+                service.InterfaceName = "org.nordugrid.emir";
+              }
+              allServices[alias] = service;
+              if (section["default"] && section["default"] != "no") {
+                defaultServices.push_back(service);
+              }
+              if (section["group"]) {
+                groupMap[section["group"]].push_back(alias);
+              }
+            }
+          } else if (sectionName.find(computingSectionPrefix) == 0) {
+            std::string alias = sectionName.substr(computingSectionPrefix.length());
+            if (section["reject"] && section["reject"] != "no") {
+              rejectedURLs.push_back(section["url"]);
+            } else {
+              ServiceEndpoint service(section["url"]);
+              service.Capability.push_back(ComputingInfoEndpoint::ComputingInfoCapability);
+              if (section["infointerface"] == "LDAPGLUE2") {
+                service.InterfaceName = "org.nordugrid.ldapglue2";
+              } else if (section["infointerface"] == "LDAPGLUE1") {
+                service.InterfaceName = "org.nordugrid.ldapglue1";
+              } else if (section["infointerface"] == "LDAPNG") {
+                service.InterfaceName = "org.nordugrid.ldapng";
+              } else if (section["infointerface"] == "WSRFGLUE2") {
+                service.InterfaceName = "org.nordugrid.wsrfglue2";
+              } else if (section["infointerface"] == "EMIES") {
+                service.InterfaceName = "org.ogf.emies";
+              } else if (section["infointerface"] == "BES") {
+                service.InterfaceName = "org.ogf.bes";
+              }
+              if (section["jobinterface"] == "GRIDFTPJOB") {
+                service.PreferredJobInterfaceName = "org.nordugrid.gridftpjob";
+              } else if (section["jobinterface"] == "BES") {
+                service.PreferredJobInterfaceName = "org.nordugrid.xbes";
+              } else if (section["jobinterface"] == "EMIES") {
+                service.PreferredJobInterfaceName = "org.nordugrid.emies";
+              }
+              allServices[alias] = service;
+              if (section["default"] && section["default"] != "no") {
+                defaultServices.push_back(service);
+              }
+              if (section["group"]) {
+                groupMap[section["group"]].push_back(alias);
+              }
+            }
+          } else {
+            logger.msg(INFO, "Unknown section %s, ignoring it", sectionName);
+          }
+          section.Destroy();
         }
-
         logger.msg(INFO, "Configuration (%s) loaded", conffile);
       }
       else
@@ -1299,6 +1357,42 @@ TODO: Make FileUtils function to this
       utilsdir = dir;
     return true;
   }
+
+  std::list<ServiceEndpoint> UserConfig::FilterServices(std::list<ServiceEndpoint> unfilteredServices, Endpoint::EndpointType type) {
+    std::list<ServiceEndpoint> services;
+    for (std::list<ServiceEndpoint>::const_iterator it = unfilteredServices.begin(); it != unfilteredServices.end(); it++) {
+      if (type == Endpoint::ANY) {
+        services.push_back(*it);
+      } else if (type == Endpoint::REGISTRY) {
+        if (RegistryEndpoint::isRegistry(*it)) {
+          services.push_back(*it);
+        }
+      } else if (type == Endpoint::COMPUTINGINFO) {
+        if (ComputingInfoEndpoint::isComputingInfo(*it)) {
+          services.push_back(*it);
+        }
+      }
+    }
+    return services;
+  }
+  
+  std::list<ServiceEndpoint> UserConfig::GetDefaultServices(Endpoint::EndpointType type) {
+    return FilterServices(defaultServices, type);
+  }
+    
+  ServiceEndpoint UserConfig::ResolveService(std::string alias) {
+    return allServices[alias];
+  }
+
+  std::list<ServiceEndpoint> UserConfig::ServicesInGroup(std::string group, Endpoint::EndpointType type) {
+    std::list<ServiceEndpoint> services;
+    for (std::list<std::string>::const_iterator it = groupMap[group].begin(); it != groupMap[group].end(); it++) {
+      services.push_back(ResolveService(*it));
+    }
+    return FilterServices(services, type);
+  }
+
+  
 
 static std::string cert_file_fix(const std::string& old_file,std::string& new_file) {
   struct stat st;
