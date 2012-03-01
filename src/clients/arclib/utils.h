@@ -3,6 +3,34 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/OptionParser.h>
+#include <arc/Endpoint.h>
+#include <arc/client/EndpointRetriever.h>
+
+class TargetGenerator : public Arc::EndpointConsumer<Arc::ServiceEndpoint> {
+public:
+  TargetGenerator(
+    Arc::UserConfig uc,
+    std::list<Arc::ServiceEndpoint> services,
+    std::list<std::string> rejectedServices,
+    std::list<std::string> preferredInterfaceNames = std::list<std::string>(),
+    std::list<std::string> capabilityFilter = std::list<std::string>(1,Arc::ComputingInfoEndpoint::ComputingInfoCapability)
+  );
+
+  void wait();
+
+  void addEndpoint(const Arc::ServiceEndpoint& service);
+
+  void saveTargetInfoToStream(std::ostream& out, bool detailed);
+
+  Arc::EndpointContainer<Arc::ExecutionTarget> targets;
+
+private:
+  Arc::ServiceEndpointRetriever ser;
+  Arc::TargetInformationRetriever tir;
+};
+
+
+std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>);
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 

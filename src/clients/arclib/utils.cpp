@@ -12,6 +12,95 @@
 
 #include "utils.h"
 
+TargetGenerator::TargetGenerator(
+  Arc::UserConfig uc,
+  std::list<Arc::ServiceEndpoint> services,
+  std::list<std::string> rejectedServices,
+  std::list<std::string> preferredInterfaceNames,
+  std::list<std::string> capabilityFilter
+) : ser(uc, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>(true, capabilityFilter, rejectedServices)),
+    tir(uc, Arc::EndpointQueryOptions<Arc::ExecutionTarget>(preferredInterfaceNames))
+{
+  ser.addConsumer(*this);
+  tir.addConsumer(targets);
+  for (std::list<Arc::ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+    if (Arc::RegistryEndpoint::isRegistry(*it)) {
+      ser.addEndpoint(Arc::RegistryEndpoint(*it));
+    } else {
+      // our own addEndpoint, which will send it to the TIR
+      addEndpoint(*it);
+    }
+  }
+}
+
+void TargetGenerator::addEndpoint(const Arc::ServiceEndpoint& service) {
+  // If we got a computing element info endpoint, then we pass it to the TIR
+  if (Arc::ComputingInfoEndpoint::isComputingInfo(service)) {
+    tir.addEndpoint(Arc::ComputingInfoEndpoint(service));
+  }
+}
+
+void TargetGenerator::wait() {
+  ser.wait();
+  tir.wait();
+}
+
+void TargetGenerator::saveTargetInfoToStream(std::ostream& out, bool detailed) {
+  for (std::list<Arc::ExecutionTarget>::iterator it = targets.begin(); it != targets.end(); it++) {
+    it->SaveToStream(out, detailed);
+  }
+}
+
+std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> ces) {
+  std::list<Arc::ServiceEndpoint> services;
+  if (ces.empty() && registries.empty()) {
+    services = usercfg.GetDefaultServices();
+  } else {
+    for (std::list<std::string>::const_iterator it = ces.begin(); it != ces.end(); it++) {
+      const std::string& ce = *it;
+      // check if the string is a name of a group
+      std::list<Arc::ServiceEndpoint> servicesInGroup = usercfg.ServicesInGroup(ce, Arc::Endpoint::COMPUTINGINFO);
+      if (servicesInGroup.empty()) {
+        // if it's not the name of a group, maybe it's an alias
+        Arc::ServiceEndpoint service = usercfg.ResolveService(ce);
+        if (service.URLString.empty()) {
+          // if it was not an alias, then it should be the URL
+          service.URLString = ce;
+          service.Capability.push_back(Arc::ComputingInfoEndpoint::ComputingInfoCapability);
+        }
+        services.push_back(service);        
+      } else {
+        // if it was a name of a group, add all the services from the group
+        for (std::list<Arc::ServiceEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
+          services.push_back(*its);
+        }   
+      }
+    }    
+    for (std::list<std::string>::const_iterator it = registries.begin(); it != registries.end(); it++) {
+      const std::string& registry = *it;
+      // check if the string is a name of a group
+      std::list<Arc::ServiceEndpoint> servicesInGroup = usercfg.ServicesInGroup(registry, Arc::Endpoint::REGISTRY);
+      if (servicesInGroup.empty()) {
+        // if it's not the name of a group, maybe it's an alias
+        Arc::ServiceEndpoint service = usercfg.ResolveService(registry);
+        if (service.URLString.empty()) {
+          // if it was not an alias, then it should be the URL
+          service.URLString = registry;
+          service.Capability.push_back(Arc::RegistryEndpoint::RegistryCapability);
+        }
+        services.push_back(service);        
+      } else {
+        // if it was a name of a group, add all the services from the group
+        for (std::list<Arc::ServiceEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
+         services.push_back(*its);
+        }   
+      }
+    }    
+  }
+  return services;
+}
+
+
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker) {
 
   for (std::list<std::string>::const_iterator itType = types.begin();
