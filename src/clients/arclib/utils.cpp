@@ -22,7 +22,7 @@ TargetGenerator::TargetGenerator(
     tir(uc, Arc::EndpointQueryOptions<Arc::ExecutionTarget>(preferredInterfaceNames))
 {
   ser.addConsumer(*this);
-  tir.addConsumer(targets);
+  tir.addConsumer(*this);
   for (std::list<Arc::ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
     if (Arc::RegistryEndpoint::isRegistry(*it)) {
       ser.addEndpoint(Arc::RegistryEndpoint(*it));
@@ -46,7 +46,7 @@ void TargetGenerator::wait() {
 }
 
 void TargetGenerator::saveTargetInfoToStream(std::ostream& out, bool detailed) {
-  for (std::list<Arc::ExecutionTarget>::iterator it = targets.begin(); it != targets.end(); it++) {
+  for (std::list<Arc::ExecutionTarget>::iterator it = begin(); it != end(); it++) {
     it->SaveToStream(out, detailed);
   }
 }

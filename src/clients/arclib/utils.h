@@ -6,7 +6,7 @@
 #include <arc/Endpoint.h>
 #include <arc/client/EndpointRetriever.h>
 
-class TargetGenerator : public Arc::EndpointConsumer<Arc::ServiceEndpoint> {
+class TargetGenerator : public Arc::EndpointConsumer<Arc::ServiceEndpoint>, public Arc::EndpointContainer<Arc::ExecutionTarget> {
 public:
   TargetGenerator(
     Arc::UserConfig uc,
@@ -21,8 +21,6 @@ public:
   void addEndpoint(const Arc::ServiceEndpoint& service);
 
   void saveTargetInfoToStream(std::ostream& out, bool detailed);
-
-  Arc::EndpointContainer<Arc::ExecutionTarget> targets;
 
 private:
   Arc::ServiceEndpointRetriever ser;
