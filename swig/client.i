@@ -120,12 +120,12 @@ std::ostream& getStdout() {
 %clear std::string& delegation_id;
 %include "../src/hed/libs/client/Submitter.h"
 %include "../src/hed/libs/client/Software.h"
+%include "../src/hed/libs/client/Endpoint.h"
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %include "../src/hed/libs/client/JobState.h"
 %include "../src/hed/libs/client/Job.h"
 %include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/Broker.h"
-%include "../src/hed/libs/client/Endpoint.h"
 %include "../src/hed/libs/client/JobController.h"
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
