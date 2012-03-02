@@ -54,15 +54,18 @@ void TargetGenerator::saveTargetInfoToStream(std::ostream& out, bool detailed) {
 std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> ces) {
   std::list<Arc::ServiceEndpoint> services;
   if (ces.empty() && registries.empty()) {
-    services = usercfg.GetDefaultServices();
+    std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
+    for (std::list<Arc::ConfigEndpoint>::const_iterator its = endpoints.begin(); its != endpoints.end(); its++) {
+      services.push_back(Arc::ServiceEndpoint(*its));
+    }   
   } else {
     for (std::list<std::string>::const_iterator it = ces.begin(); it != ces.end(); it++) {
       const std::string& ce = *it;
       // check if the string is a name of a group
-      std::list<Arc::ServiceEndpoint> servicesInGroup = usercfg.ServicesInGroup(ce, Arc::Endpoint::COMPUTINGINFO);
+      std::list<Arc::ConfigEndpoint> servicesInGroup = usercfg.ServicesInGroup(ce, Arc::ConfigEndpoint::COMPUTINGINFO);
       if (servicesInGroup.empty()) {
         // if it's not the name of a group, maybe it's an alias
-        Arc::ServiceEndpoint service = usercfg.ResolveService(ce);
+        Arc::ServiceEndpoint service(usercfg.ResolveService(ce));
         if (service.URLString.empty()) {
           // if it was not an alias, then it should be the URL
           service.URLString = ce;
@@ -71,18 +74,18 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
         services.push_back(service);        
       } else {
         // if it was a name of a group, add all the services from the group
-        for (std::list<Arc::ServiceEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
-          services.push_back(*its);
+        for (std::list<Arc::ConfigEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
+          services.push_back(Arc::ServiceEndpoint(*its));
         }   
       }
     }    
     for (std::list<std::string>::const_iterator it = registries.begin(); it != registries.end(); it++) {
       const std::string& registry = *it;
       // check if the string is a name of a group
-      std::list<Arc::ServiceEndpoint> servicesInGroup = usercfg.ServicesInGroup(registry, Arc::Endpoint::REGISTRY);
+      std::list<Arc::ConfigEndpoint> servicesInGroup = usercfg.ServicesInGroup(registry, Arc::ConfigEndpoint::REGISTRY);
       if (servicesInGroup.empty()) {
         // if it's not the name of a group, maybe it's an alias
-        Arc::ServiceEndpoint service = usercfg.ResolveService(registry);
+        Arc::ServiceEndpoint service(usercfg.ResolveService(registry));
         if (service.URLString.empty()) {
           // if it was not an alias, then it should be the URL
           service.URLString = registry;
@@ -91,8 +94,8 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
         services.push_back(service);        
       } else {
         // if it was a name of a group, add all the services from the group
-        for (std::list<Arc::ServiceEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
-         services.push_back(*its);
+        for (std::list<Arc::ConfigEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
+         services.push_back(Arc::ServiceEndpoint(*its));
         }   
       }
     }    

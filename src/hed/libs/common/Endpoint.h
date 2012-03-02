@@ -6,6 +6,8 @@
 #include <algorithm>
 
 namespace Arc {
+
+class ConfigEndpoint;
   
 class Endpoint {
 public:
@@ -16,6 +18,8 @@ public:
            const std::list<std::string>& Capability = std::list<std::string>())
     : URLString(URLString), InterfaceName(InterfaceName), Capability(Capability) {}
   
+  Endpoint(const ConfigEndpoint& e) { *this = e; }
+  
   std::string str() const {
     return URLString + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
   }
@@ -24,6 +28,8 @@ public:
   bool operator<(const Endpoint& other) const {
     return str() < other.str();
   }
+  
+  Endpoint& operator=(const ConfigEndpoint& e);
   
   std::string URLString;
   std::string InterfaceName;  
@@ -45,6 +51,8 @@ public:
                   std::string InterfaceName = "",
                   std::list<std::string> Capability = std::list<std::string>())
     : Endpoint(URLString, InterfaceName, Capability) {}
+  
+  ServiceEndpoint(const ConfigEndpoint& e) : Endpoint(e) {}
 };
 
 ///

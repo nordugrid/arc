@@ -11,7 +11,6 @@
 #include <arc/DateTime.h>
 #include <arc/URL.h>
 #include <arc/User.h>
-#include <arc/Endpoint.h>
 
 namespace Arc {
 
@@ -21,6 +20,18 @@ namespace Arc {
   enum ServiceType {
     COMPUTING,
     INDEX
+  };
+
+  class ConfigEndpoint {
+  public:
+    enum Type { REGISTRY, COMPUTINGINFO, ANY };
+    
+    ConfigEndpoint(const std::string& URLString = "", const std::string& InterfaceName = "")
+      : URLString(URLString), InterfaceName(InterfaceName) {}
+    Type t;
+    std::string URLString;
+    std::string InterfaceName;  
+    std::string PreferredJobInterfaceName;
   };
 
   typedef std::list<std::string> ServiceList[2];
@@ -1164,9 +1175,9 @@ namespace Arc {
      */
     const User& GetUser() const { return user; };
 
-    std::list<ServiceEndpoint> GetDefaultServices(Endpoint::EndpointType type = Endpoint::ANY);
-    ServiceEndpoint ResolveService(std::string alias);
-    std::list<ServiceEndpoint> ServicesInGroup(std::string group, Endpoint::EndpointType type = Endpoint::ANY);
+    std::list<ConfigEndpoint> GetDefaultServices(ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+    ConfigEndpoint ResolveService(const std::string& alias);
+    std::list<ConfigEndpoint> ServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
     
     const std::string& PreferredInfoInterface() const { return preferredinfointerface; };
     bool PreferredInfoInterface(const std::string& preferredinfointerface_) {
@@ -1276,7 +1287,7 @@ namespace Arc {
                       std::list<std::string>& resolvedAlias);
     bool CreateDefaultConfigurationFile() const;
     
-    std::list<ServiceEndpoint> FilterServices(std::list<ServiceEndpoint>, Endpoint::EndpointType);
+    std::list<ConfigEndpoint> FilterServices(const std::list<ConfigEndpoint>&, ConfigEndpoint::Type);
     
 
     std::string joblistfile;
@@ -1291,8 +1302,8 @@ namespace Arc {
     ServiceList selectedServices;
     ServiceList rejectedServices;
     
-    std::list<ServiceEndpoint> defaultServices;
-    std::map<std::string, ServiceEndpoint> allServices;
+    std::list<ConfigEndpoint> defaultServices;
+    std::map<std::string, ConfigEndpoint> allServices;
     std::map<std::string, std::list<std::string> > groupMap;
     std::list<std::string> rejectedURLs;
 

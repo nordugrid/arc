@@ -810,34 +810,26 @@ namespace Arc {
         const std::string computingSectionPrefix = "computing/";
         while (XMLNode section = ini.Child()) {
           std::string sectionName = section.Name();
-          if (sectionName.find(registrySectionPrefix) == 0) {
-            std::string alias = sectionName.substr(registrySectionPrefix.length());
+          if (sectionName.find(registrySectionPrefix) == 0 || sectionName.find(computingSectionPrefix) == 0) {
             if (section["reject"] && section["reject"] != "no") {
               rejectedURLs.push_back(section["url"]);
             } else {
-              ServiceEndpoint service(section["url"]);
-              service.Capability.push_back(RegistryEndpoint::RegistryCapability);
-              service.InterfaceName = GetInterfaceNameOfRegistryInterface(section["registryinterface"]);
-              allServices[alias] = service;
-              if (section["default"] && section["default"] != "no") {
-                defaultServices.push_back(service);
+              ConfigEndpoint service(section["url"]);
+              std::string alias;
+              if (sectionName.find(registrySectionPrefix) == 0) {
+                alias = sectionName.substr(registrySectionPrefix.length());
+                service.t = ConfigEndpoint::REGISTRY;
+                service.InterfaceName = GetInterfaceNameOfRegistryInterface(section["registryinterface"]);
+              } else {
+                alias = sectionName.substr(computingSectionPrefix.length());
+                service.t = ConfigEndpoint::COMPUTINGINFO;
+                service.InterfaceName = GetInterfaceNameOfInfoInterface(section["infointerface"]);
+                service.PreferredJobInterfaceName = GetInterfaceNameOfJobInterface(section["jobinterface"]);
+                if (service.PreferredJobInterfaceName.empty()) {
+                  service.PreferredJobInterfaceName = PreferredJobInterface();
+                }
               }
-              if (section["group"]) {
-                groupMap[section["group"]].push_back(alias);
-              }
-            }
-          } else if (sectionName.find(computingSectionPrefix) == 0) {
-            std::string alias = sectionName.substr(computingSectionPrefix.length());
-            if (section["reject"] && section["reject"] != "no") {
-              rejectedURLs.push_back(section["url"]);
-            } else {
-              ServiceEndpoint service(section["url"]);
-              service.Capability.push_back(ComputingInfoEndpoint::ComputingInfoCapability);
-              service.InterfaceName = GetInterfaceNameOfInfoInterface(section["infointerface"]);
-              service.PreferredJobInterfaceName = GetInterfaceNameOfJobInterface(section["jobinterface"]);
-              if (service.PreferredJobInterfaceName.empty()) {
-                service.PreferredJobInterfaceName = PreferredJobInterface();
-              }
+              
               allServices[alias] = service;
               if (section["default"] && section["default"] != "no") {
                 defaultServices.push_back(service);
@@ -1343,34 +1335,26 @@ TODO: Make FileUtils function to this
     return true;
   }
 
-  std::list<ServiceEndpoint> UserConfig::FilterServices(std::list<ServiceEndpoint> unfilteredServices, Endpoint::EndpointType type) {
-    std::list<ServiceEndpoint> services;
-    for (std::list<ServiceEndpoint>::const_iterator it = unfilteredServices.begin(); it != unfilteredServices.end(); it++) {
-      if (type == Endpoint::ANY) {
+  std::list<ConfigEndpoint> UserConfig::FilterServices(const std::list<ConfigEndpoint>& unfilteredServices, ConfigEndpoint::Type type) {
+    std::list<ConfigEndpoint> services;
+    for (std::list<ConfigEndpoint>::const_iterator it = unfilteredServices.begin(); it != unfilteredServices.end(); it++) {
+      if (type == ConfigEndpoint::ANY || type == it->t) {
         services.push_back(*it);
-      } else if (type == Endpoint::REGISTRY) {
-        if (RegistryEndpoint::isRegistry(*it)) {
-          services.push_back(*it);
-        }
-      } else if (type == Endpoint::COMPUTINGINFO) {
-        if (ComputingInfoEndpoint::isComputingInfo(*it)) {
-          services.push_back(*it);
-        }
       }
     }
     return services;
   }
   
-  std::list<ServiceEndpoint> UserConfig::GetDefaultServices(Endpoint::EndpointType type) {
+  std::list<ConfigEndpoint> UserConfig::GetDefaultServices(ConfigEndpoint::Type type) {
     return FilterServices(defaultServices, type);
   }
     
-  ServiceEndpoint UserConfig::ResolveService(std::string alias) {
+  ConfigEndpoint UserConfig::ResolveService(const std::string& alias) {
     return allServices[alias];
   }
 
-  std::list<ServiceEndpoint> UserConfig::ServicesInGroup(std::string group, Endpoint::EndpointType type) {
-    std::list<ServiceEndpoint> services;
+  std::list<ConfigEndpoint> UserConfig::ServicesInGroup(const std::string& group, ConfigEndpoint::Type type) {
+    std::list<ConfigEndpoint> services;
     for (std::list<std::string>::const_iterator it = groupMap[group].begin(); it != groupMap[group].end(); it++) {
       services.push_back(ResolveService(*it));
     }
