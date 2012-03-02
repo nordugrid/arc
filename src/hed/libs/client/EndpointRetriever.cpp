@@ -370,7 +370,7 @@ namespace Arc {
     }
   }
   
-  void ExecutionTargetRetriever::wait() {
+  void ExecutionTargetRetriever::Wait() {
     ser.wait();
     tir.wait();
   }

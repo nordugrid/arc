@@ -241,7 +241,7 @@ public:
     const std::list<std::string>& capabilityFilter = std::list<std::string>(1, ComputingInfoEndpoint::ComputingInfoCapability)
   );
 
-  void wait();
+  void Wait();
 
   void addEndpoint(const ServiceEndpoint& service);
 
