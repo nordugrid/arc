@@ -7,7 +7,6 @@
 namespace Arc {
 
   RegisteredService::RegisteredService(Config* cfg):Service(cfg),inforeg(*cfg, this) {
-Logger::rootLogger.msg(ERROR,"RegisteredService constructor");
   }
 
 } // namespace Arc
