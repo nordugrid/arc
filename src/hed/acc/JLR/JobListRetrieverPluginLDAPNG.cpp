@@ -112,7 +112,7 @@ namespace Arc {
       if ((*it)["nordugrid-job-submissiontime"])
         j.LocalSubmissionTime = (std::string)(*it)["nordugrid-job-submissiontime"];
 
-      //j.Flavour = "ARC0"; // EndpointRetriever equivalent?
+      j.Flavour = "ARC0"; // TODO: Use InterfaceName instead
       j.Cluster = url;
 
       URL infoEndpoint(url);
