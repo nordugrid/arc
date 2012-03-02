@@ -4,7 +4,7 @@
 #include <list>
 #include <string>
 
-#include <arc/Endpoint.h>
+#include <arc/client/Endpoint.h>
 #include <arc/URL.h>
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/ExecutionTarget.h>

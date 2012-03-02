@@ -14,6 +14,7 @@
 #include <arc/client/Job.h>
 #include <arc/client/TargetGenerator.h>
 #include <arc/client/Broker.h>
+#include <arc/client/Endpoint.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
@@ -124,6 +125,7 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/Job.h"
 %include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/Broker.h"
+%include "../src/hed/libs/client/Endpoint.h"
 %include "../src/hed/libs/client/JobController.h"
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"

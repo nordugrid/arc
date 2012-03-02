@@ -1,6 +1,6 @@
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <arc/Endpoint.h>
+#include <arc/client/Endpoint.h>
 #include <arc/UserConfig.h>
 #include <arc/client/EndpointRetriever.h>
 #include <arc/client/ExecutionTarget.h>

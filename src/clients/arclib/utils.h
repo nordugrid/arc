@@ -3,7 +3,7 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/OptionParser.h>
-#include <arc/Endpoint.h>
+#include <arc/client/Endpoint.h>
 #include <arc/client/EndpointRetriever.h>
 
 class TargetGenerator : public Arc::EndpointConsumer<Arc::ServiceEndpoint>, public Arc::EndpointContainer<Arc::ExecutionTarget> {
