@@ -505,11 +505,12 @@ int main(int argc, char *argv[]) {
   }
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
-  if(usercfg.CertificatePath().empty()) {
+  // Key and certificate not needed if only printing proxy information
+  if(usercfg.CertificatePath().empty() && !info) {
     logger.msg(Arc::ERROR, "Failed to find certificate.");
     return EXIT_FAILURE;
   }
-  if(usercfg.KeyPath().empty()) {
+  if(usercfg.KeyPath().empty() && !info) {
     logger.msg(Arc::ERROR, "Failed to find private key.");
     return EXIT_FAILURE;
   }
@@ -529,10 +530,12 @@ int main(int argc, char *argv[]) {
   // No guessing or testing is needed. 
   // By running credentials initialization once more all set values
   // won't change. But proxy will get default value if not set.
-  usercfg.ProxyPath("");
-  usercfg.InitializeCredentials(Arc::initializeCredentialsType::NotTryCredentials);
-  if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
-  usercfg.ProxyPath(proxy_path);
+  {
+    Arc::UserConfig tmpcfg(conffile,
+          Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
+    if(proxy_path.empty()) proxy_path = tmpcfg.ProxyPath();
+    usercfg.ProxyPath(proxy_path);
+  }
   // Get back all paths
   if(key_path.empty()) key_path = usercfg.KeyPath();
   if(cert_path.empty()) cert_path = usercfg.CertificatePath();
