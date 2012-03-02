@@ -818,11 +818,11 @@ namespace Arc {
               std::string alias;
               if (sectionName.find(registrySectionPrefix) == 0) {
                 alias = sectionName.substr(registrySectionPrefix.length());
-                service.t = ConfigEndpoint::REGISTRY;
+                service.type = ConfigEndpoint::REGISTRY;
                 service.InterfaceName = GetInterfaceNameOfRegistryInterface(section["registryinterface"]);
               } else {
                 alias = sectionName.substr(computingSectionPrefix.length());
-                service.t = ConfigEndpoint::COMPUTINGINFO;
+                service.type = ConfigEndpoint::COMPUTINGINFO;
                 service.InterfaceName = GetInterfaceNameOfInfoInterface(section["infointerface"]);
                 service.PreferredJobInterfaceName = GetInterfaceNameOfJobInterface(section["jobinterface"]);
                 if (service.PreferredJobInterfaceName.empty()) {
@@ -1338,7 +1338,7 @@ TODO: Make FileUtils function to this
   std::list<ConfigEndpoint> UserConfig::FilterServices(const std::list<ConfigEndpoint>& unfilteredServices, ConfigEndpoint::Type type) {
     std::list<ConfigEndpoint> services;
     for (std::list<ConfigEndpoint>::const_iterator it = unfilteredServices.begin(); it != unfilteredServices.end(); it++) {
-      if (type == ConfigEndpoint::ANY || type == it->t) {
+      if (type == ConfigEndpoint::ANY || type == it->type) {
         services.push_back(*it);
       }
     }

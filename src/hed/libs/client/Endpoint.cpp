@@ -16,7 +16,7 @@ namespace Arc {
     PreferredJobInterfaceName = e.PreferredJobInterfaceName;
     
     Capability.clear();
-    switch (e.t) {
+    switch (e.type) {
     case ConfigEndpoint::REGISTRY:
       Capability.push_back(RegistryEndpoint::RegistryCapability);
       break;

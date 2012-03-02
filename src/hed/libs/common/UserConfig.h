@@ -26,9 +26,9 @@ namespace Arc {
   public:
     enum Type { REGISTRY, COMPUTINGINFO, ANY };
     
-    ConfigEndpoint(const std::string& URLString = "", const std::string& InterfaceName = "")
-      : URLString(URLString), InterfaceName(InterfaceName) {}
-    Type t;
+    ConfigEndpoint(const std::string& URLString = "", const std::string& InterfaceName = "", ConfigEndpoint::Type type = ConfigEndpoint::ANY)
+      : URLString(URLString), InterfaceName(InterfaceName), type(type) {}
+    Type type;
     std::string URLString;
     std::string InterfaceName;  
     std::string PreferredJobInterfaceName;
