@@ -29,18 +29,20 @@ namespace Arc {
     return false;
   }
 
-  static bool CreateURL(std::string service, URL& url) {
+  static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return false;
+      if((proto != "http") && (proto != "https")) return URL();
     }
     // Default port other than 443?
-    // Default path?
-
-    return true;
+    std::string::size_type pos3 = service.find("/", pos1 + 3);
+    if (pos3 == std::string::npos || pos3 == service.size()-1) {
+      service += "/services/query.xml";
+    }
+    return service;
   }
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
@@ -49,7 +51,7 @@ namespace Arc {
                                                                    const EndpointQueryOptions<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
-    URL url(rEndpoint.URLString + "/services/query.xml");
+    URL url(CreateURL(rEndpoint.URLString));
     if (!url) {
       s = EndpointQueryingStatus::FAILED;
       return s;

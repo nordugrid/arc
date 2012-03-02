@@ -34,19 +34,18 @@ namespace Arc {
     return false;
   }
 
-  static bool CreateURL(std::string service, URL& url) {
+  static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return false;
+      if((proto != "http") && (proto != "https")) return URL();
     }
     // Default port other than 443?
     // Default path?
     
-    url = service;
-    return true;
+    return service;
   }
 
   EndpointQueryingStatus TargetInformationRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
@@ -54,7 +53,7 @@ namespace Arc {
 
     logger.msg(DEBUG, "Querying WSRF GLUE2 computing info endpoint.");
 
-    URL url(cie.URLString);
+    URL url(CreateURL(cie.URLString));
     if (!url) {
       return s;
     }

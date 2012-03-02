@@ -24,25 +24,24 @@ namespace Arc {
     return false;
   }
 
-  static bool CreateURL(std::string URLString, URL& url) {
-    std::string::size_type pos1 = URLString.find("://");
+  static URL CreateURL(std::string service) {
+    std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
-      URLString = "https://" + URLString;
+      service = "https://" + service;
     } else {
-      std::string proto = lower(URLString.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return false;
+      std::string proto = lower(service.substr(0,pos1));
+      if((proto != "http") && (proto != "https")) return URL();
     }
     // Default port other than 443?
     // Default path?
     
-    url = URLString;
-    return true;
+    return service;
   }
 
   EndpointQueryingStatus JobListRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(endpoint.URLString);
+    URL url(CreateURL(endpoint.URLString));
     if (!url) {
       return s;
     }

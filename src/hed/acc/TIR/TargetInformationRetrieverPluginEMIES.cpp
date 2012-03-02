@@ -33,23 +33,22 @@ namespace Arc {
     return false;
   }
 
-  static bool CreateURL(std::string service, URL& url) {
+  static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return false;
+      if((proto != "http") && (proto != "https")) return URL();
     }
     
-    url = service;
-    return true;
+    return service;
   }
 
   EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(cie.URLString);
+    URL url(CreateURL(cie.URLString));
     if (!url) {
       return s;
     }

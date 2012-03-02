@@ -22,19 +22,18 @@ namespace Arc {
     return false;
   }
 
-  static bool CreateURL(std::string service, URL& url) {
+  static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "https://" + service;
     } else {
       std::string proto = lower(service.substr(0,pos1));
-      if((proto != "http") && (proto != "https")) return false;
+      if((proto != "http") && (proto != "https")) return URL();
     }
     // Default port other than 443?
     // Default path?
     
-    url = service;
-    return true;
+    return service;
   }
 
   EndpointQueryingStatus JobListRetrieverPluginWSRFBES::Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const {

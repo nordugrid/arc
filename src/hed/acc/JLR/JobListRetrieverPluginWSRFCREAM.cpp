@@ -17,13 +17,13 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
 
-  static bool CreateURL(std::string service, URL& url) {
+  static URL CreateURL(std::string service) {
     std::string::size_type pos1 = service.find("://");
     if (pos1 == std::string::npos) {
       service = "ldap://" + service;
       pos1 = 4;
     } else {
-      if(lower(service.substr(0,pos1)) != "ldap") return false;
+      if(lower(service.substr(0,pos1)) != "ldap") return URL();
     }
     std::string::size_type pos2 = service.find(":", pos1 + 3);
     std::string::size_type pos3 = service.find("/", pos1 + 3);
@@ -35,8 +35,8 @@ namespace Arc {
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
       service.insert(pos3, ":2170");
-    url = service;
-    return true;
+
+    return service;
   }
 
   EndpointQueryingStatus JobListRetrieverPluginWSRFCREAM::Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const {
