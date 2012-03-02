@@ -50,9 +50,9 @@ namespace Arc {
     int FreeUserSeats;
   };
 
-  class ComputingEndppointType : public Endpoint {
+  class ComputingEndpointType : public Endpoint {
   public:
-    ComputingEndppointType() : DowntimeStarts(-1), DowntimeEnds(-1) {}
+    ComputingEndpointType() : DowntimeStarts(-1), DowntimeEnds(-1) {}
 
     std::string Technology;
     std::list<std::string> InterfaceVersion;
@@ -199,7 +199,7 @@ namespace Arc {
 
     // Attributes from 6.2 Computing Endpoint
 
-    ComputingEndppointType ComputingEndpoint;
+    ComputingEndpointType ComputingEndpoint;
 
     // Attributes from 6.3 Computing Share
 
