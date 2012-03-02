@@ -199,6 +199,10 @@ namespace DataStaging {
       /// Local user information
       Arc::User user;
 
+      /// Whether the credentials for this DTR are of type RFC proxy (and
+      /// hence remote delivery service can be used for transfer)
+      bool rfc_proxy;
+
       /// Job that requested the transfer. Could be used as a generic way of grouping DTRs.
       std::string parent_job_id;
 
@@ -412,6 +416,11 @@ namespace DataStaging {
      /// Get the priority
      int get_priority() const { return priority; };
      
+     /// Set whether credentials are type RFC proxy
+     void set_rfc_proxy(bool rfc) { rfc_proxy = rfc; };
+     /// Get whether credentials are type RFC proxy
+     bool is_rfc_proxy() const { return rfc_proxy; };
+
      /// Set the transfer share. sub_share is automatically added to transfershare
      void set_transfer_share(const std::string& share_name);
      /// Get the transfer share. sub_share is automatically added to transfershare

@@ -70,15 +70,19 @@ namespace DataStaging {
   }
 
   std::string TransferSharesConf::extract_share_info(DTR_ptr DTRToExtract) {
-    if (shareType == NONE) return "_default";
     Arc::Credential cred(DTRToExtract->get_usercfg().ProxyPath(),
                          DTRToExtract->get_usercfg().ProxyPath(),
                          DTRToExtract->get_usercfg().CACertificatesDirectory(), "");
+
+    using namespace ArcCredential; // needed for marco expansion
+    if (CERT_IS_RFC_PROXY(cred.GetType())) DTRToExtract->set_rfc_proxy(true);
+
     switch (shareType){
       case USER: return extract_user_share(cred);
       case VO: return extract_vo_share(cred);
       case GROUP: return extract_group_share(cred);
       case ROLE: return extract_role_share(cred);
+      case NONE: return "_default";
       default: // Something really strange
         return "";
     }

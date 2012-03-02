@@ -48,6 +48,7 @@ namespace DataStaging {
        source_url_str(source_url.str()),
        destination_url_str(destination_url.str()),
        user(uid),
+       rfc_proxy(false),
        parent_job_id(jobid),
        priority(50),
        transfershare("_default"),

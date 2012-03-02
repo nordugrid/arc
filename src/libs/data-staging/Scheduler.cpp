@@ -788,13 +788,38 @@ namespace DataStaging {
   void Scheduler::choose_delivery_service(DTR_ptr request) {
     if (configured_delivery_services.empty()) return;
 
+    // Only local is configured
+    if (configured_delivery_services.size() == 1 && configured_delivery_services.front() == DTR::LOCAL_DELIVERY) return;
+
+    // Check if proxy can be used with remote services
+    if (!request->is_rfc_proxy()) {
+      for (std::vector<Arc::URL>::const_iterator i = configured_delivery_services.begin();
+           i != configured_delivery_services.end(); ++i) {
+        if (*i == DTR::LOCAL_DELIVERY) {
+          request->get_logger()->msg(Arc::INFO, "DTR %s: Using non-RFC proxy so only local delivery can be used",
+                                     request->get_short_id());
+          request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
+          return;
+        }
+      }
+      // No local defined so log a warning
+      request->get_logger()->msg(Arc::WARNING, "DTR %s: Using non-RFC proxy so forcing local delivery",
+                                 request->get_short_id());
+      request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
+      return;
+    }
+
     // Remember current endpoint
     Arc::URL delivery_endpoint(request->get_delivery_endpoint());
 
-    // When the first DTR is processed, all delivery services are checked here
-    // This method assumes that the first DTR has permission on all services,
+    // Check delivery services when the first DTR is processed, and every 5
+    // minutes after that. The ones that work are the only ones that will be
+    // used until the next check.
+    // This method assumes that the DTR has permission on all services,
     // which may not be true if DN filtering is used on those services.
-    if (usable_delivery_services.empty()) {
+    if (usable_delivery_services.empty() || Arc::Time() - delivery_last_checked > 300) {
+      delivery_last_checked = Arc::Time();
+      usable_delivery_services.clear();
       for (std::vector<Arc::URL>::iterator service = configured_delivery_services.begin();
            service != configured_delivery_services.end(); ++service) {
         request->set_delivery_endpoint(*service);
@@ -807,7 +832,7 @@ namespace DataStaging {
           usable_delivery_services[*service] = allowed_dirs;
         }
       }
-      request->set_delivery_endpoint(Arc::URL());
+      request->set_delivery_endpoint(delivery_endpoint);
       if (usable_delivery_services.empty()) {
         log_to_root_logger(Arc::ERROR, "No usable delivery services found, will use local delivery");
         return;
@@ -851,7 +876,12 @@ namespace DataStaging {
         }
       }
     }
-    if (possible_delivery_services.empty()) return;
+    if (possible_delivery_services.empty()) {
+      request->get_logger()->msg(Arc::WARNING, "DTR %s: Could not find any useable service for request,"
+                                               " forcing local transfer", request->get_short_id());
+      request->set_delivery_endpoint(DTR::LOCAL_DELIVERY);
+      return;
+    }
 
     // only local
     if (possible_delivery_services.size() == 1 && can_use_local) return;

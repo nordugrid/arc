@@ -88,7 +88,7 @@ namespace DataStaging {
     /// Return human-readable configuration of shares
     std::string conf() const;
 
-    /// Get the name of the share the DTR should be assigned to
+    /// Get the name of the share the DTR should be assigned to and the proxy type
     std::string extract_share_info(DTR_ptr DTRToExtract);
   };
 

@@ -82,6 +82,9 @@ class Scheduler: public DTRCallback {
     /// querying all services when the first DTR is processed
     std::map<Arc::URL, std::vector<std::string> > usable_delivery_services;
 
+    /// Timestamp of last check of delivery services
+    Arc::Time delivery_last_checked;
+
     /// Logger object
     static Arc::Logger logger;
 
