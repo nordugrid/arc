@@ -16,6 +16,7 @@ namespace DataStaging {
     TransferParameters params;
     DataDeliveryComm* comm;
     bool cancelled;
+    Arc::SimpleCounter thread_count;
     delivery_pair_t(DTR_ptr request, const TransferParameters& params);
     ~delivery_pair_t();
     void start();
@@ -155,10 +156,9 @@ namespace DataStaging {
         if (!dp->comm) {
           // Connecting to a remote delivery service can hang in rare cases,
           // so launch a separate thread with a timeout
-          Arc::SimpleCounter thread_count;
-          bool res = Arc::CreateThreadFunction(&start_delivery, dp, &thread_count);
+          bool res = Arc::CreateThreadFunction(&start_delivery, dp, &dp->thread_count);
           if (res) {
-            res = thread_count.wait(300*1000);
+            res = dp->thread_count.wait(300*1000);
           }
           if (!res) {
             // error or timeout - in this case do not delete dp since if the
