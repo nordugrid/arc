@@ -12,45 +12,6 @@
 
 #include "utils.h"
 
-TargetGenerator::TargetGenerator(
-  Arc::UserConfig uc,
-  std::list<Arc::ServiceEndpoint> services,
-  std::list<std::string> rejectedServices,
-  std::list<std::string> preferredInterfaceNames,
-  std::list<std::string> capabilityFilter
-) : ser(uc, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>(true, capabilityFilter, rejectedServices)),
-    tir(uc, Arc::EndpointQueryOptions<Arc::ExecutionTarget>(preferredInterfaceNames))
-{
-  ser.addConsumer(*this);
-  tir.addConsumer(*this);
-  for (std::list<Arc::ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
-    if (Arc::RegistryEndpoint::isRegistry(*it)) {
-      ser.addEndpoint(Arc::RegistryEndpoint(*it));
-    } else {
-      // our own addEndpoint, which will send it to the TIR
-      addEndpoint(*it);
-    }
-  }
-}
-
-void TargetGenerator::addEndpoint(const Arc::ServiceEndpoint& service) {
-  // If we got a computing element info endpoint, then we pass it to the TIR
-  if (Arc::ComputingInfoEndpoint::isComputingInfo(service)) {
-    tir.addEndpoint(Arc::ComputingInfoEndpoint(service));
-  }
-}
-
-void TargetGenerator::wait() {
-  ser.wait();
-  tir.wait();
-}
-
-void TargetGenerator::saveTargetInfoToStream(std::ostream& out, bool detailed) {
-  for (std::list<Arc::ExecutionTarget>::iterator it = begin(); it != end(); it++) {
-    it->SaveToStream(out, detailed);
-  }
-}
-
 std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> ces) {
   std::list<Arc::ServiceEndpoint> services;
   if (ces.empty() && registries.empty()) {

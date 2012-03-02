@@ -342,6 +342,39 @@ namespace Arc {
     }
   }
 
+  ExecutionTargetRetriever::ExecutionTargetRetriever(
+    const UserConfig& uc,
+    const std::list<ServiceEndpoint>& services,
+    const std::list<std::string>& rejectedServices,
+    const std::list<std::string>& preferredInterfaceNames,
+    const std::list<std::string>& capabilityFilter
+  ) : ser(uc, EndpointQueryOptions<ServiceEndpoint>(true, capabilityFilter, rejectedServices)),
+      tir(uc, EndpointQueryOptions<ExecutionTarget>(preferredInterfaceNames))
+  {
+    ser.addConsumer(*this);
+    tir.addConsumer(*this);
+    for (std::list<ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+      if (RegistryEndpoint::isRegistry(*it)) {
+        ser.addEndpoint(RegistryEndpoint(*it));
+      } else {
+        // our own addEndpoint, which will send it to the TIR
+        addEndpoint(*it);
+      }
+    }
+  }
+  
+  void ExecutionTargetRetriever::addEndpoint(const ServiceEndpoint& service) {
+    // If we got a computing element info endpoint, then we pass it to the TIR
+    if (ComputingInfoEndpoint::isComputingInfo(service)) {
+      tir.addEndpoint(ComputingInfoEndpoint(service));
+    }
+  }
+  
+  void ExecutionTargetRetriever::wait() {
+    ser.wait();
+    tir.wait();
+  }
+
   template class EndpointRetriever<RegistryEndpoint, ServiceEndpoint>;
   template class EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>;
   template class EndpointRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint>;

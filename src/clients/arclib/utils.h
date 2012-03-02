@@ -4,29 +4,6 @@
 #include <arc/UserConfig.h>
 #include <arc/OptionParser.h>
 #include <arc/client/Endpoint.h>
-#include <arc/client/EndpointRetriever.h>
-
-class TargetGenerator : public Arc::EndpointConsumer<Arc::ServiceEndpoint>, public Arc::EndpointContainer<Arc::ExecutionTarget> {
-public:
-  TargetGenerator(
-    Arc::UserConfig uc,
-    std::list<Arc::ServiceEndpoint> services,
-    std::list<std::string> rejectedServices,
-    std::list<std::string> preferredInterfaceNames = std::list<std::string>(),
-    std::list<std::string> capabilityFilter = std::list<std::string>(1,Arc::ComputingInfoEndpoint::ComputingInfoCapability)
-  );
-
-  void wait();
-
-  void addEndpoint(const Arc::ServiceEndpoint& service);
-
-  void saveTargetInfoToStream(std::ostream& out, bool detailed);
-
-private:
-  Arc::ServiceEndpointRetriever ser;
-  Arc::TargetInformationRetriever tir;
-};
-
 
 std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>);
 

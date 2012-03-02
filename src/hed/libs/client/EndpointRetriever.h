@@ -217,6 +217,7 @@ protected:
   std::map<std::string, std::string> interfacePluginMap;
 };
 
+
 typedef EndpointRetriever<RegistryEndpoint, ServiceEndpoint>             ServiceEndpointRetriever;
 typedef EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>       ServiceEndpointRetrieverPlugin;
 typedef EndpointRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint> ServiceEndpointRetrieverPluginLoader;
@@ -228,6 +229,26 @@ typedef EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget> Ta
 typedef EndpointRetriever<ComputingInfoEndpoint, Job>             JobListRetriever;
 typedef EndpointRetrieverPlugin<ComputingInfoEndpoint, Job>       JobListRetrieverPlugin;
 typedef EndpointRetrieverPluginLoader<ComputingInfoEndpoint, Job> JobListRetrieverPluginLoader;
+
+
+class ExecutionTargetRetriever : public EndpointConsumer<ServiceEndpoint>, public EndpointContainer<ExecutionTarget> {
+public:
+  ExecutionTargetRetriever(
+    const UserConfig& uc,
+    const std::list<ServiceEndpoint>& services,
+    const std::list<std::string>& rejectedServices = std::list<std::string>(),
+    const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
+    const std::list<std::string>& capabilityFilter = std::list<std::string>(1, ComputingInfoEndpoint::ComputingInfoCapability)
+  );
+
+  void wait();
+
+  void addEndpoint(const ServiceEndpoint& service);
+
+private:
+  ServiceEndpointRetriever ser;
+  TargetInformationRetriever tir;
+};
 
 } // namespace Arc
 
