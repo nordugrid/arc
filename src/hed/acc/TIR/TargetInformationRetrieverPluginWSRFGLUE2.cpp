@@ -99,7 +99,10 @@ namespace Arc {
            (xmlCENode["Interface"] == "XBES") ||
            (xmlCENode["Interface"] == "BES") ||
            ((xmlCENode["InterfaceName"] == "org.ogf.bes") &&
-            (xmlCENode["InterfaceExtension"] == "urn:org.nordugrid.xbes"))) {
+            (xmlCENode["InterfaceExtension"] == "urn:org.nordugrid.xbes")) ||
+           ((xmlCENode["InterfaceName"] == "ogf.bes") &&
+            (xmlCENode["InterfaceExtension"] == "http://www.nordugrid.org/schemas/a-rex"))
+        ) {
           break;
         };
       }
