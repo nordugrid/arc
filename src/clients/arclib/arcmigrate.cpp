@@ -63,7 +63,8 @@ int RUNMIGRATE(main)(int argc, char **argv) {
   if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:Submitter");
-    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:ServiceEndpointRetrieverPlugin");
+    types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:Broker");
     showplugins("arcmigrate", types, logger, usercfg.Broker().first);
     return 0;
@@ -113,16 +114,6 @@ int RUNMIGRATE(main)(int argc, char **argv) {
     std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDAndName) << std::endl;
   }
 
-  if (!opt.qlusters.empty() || !opt.indexurls.empty()) {
-    usercfg.ClearSelectedServices();
-    if (!opt.qlusters.empty()) {
-      usercfg.AddServices(opt.qlusters, Arc::COMPUTING);
-    }
-    if (!opt.indexurls.empty()) {
-      usercfg.AddServices(opt.indexurls, Arc::INDEX);
-    }
-  }
-
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   jobmaster.Update();
   jobmaster.SelectValid();
@@ -132,8 +123,10 @@ int RUNMIGRATE(main)(int argc, char **argv) {
     return 1;
   }
 
+  std::list<Arc::ServiceEndpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.qlusters, opt.indexurls);
+
   std::list<Arc::Job> migratedJobs;
-  int retval = (int)!jobmaster.Migrate(opt.forcemigration, migratedJobs);
+  int retval = (int)!jobmaster.Migrate(opt.forcemigration, services, migratedJobs);
 
   std::list<Arc::URL> notmigrated = jobmaster.GetIDsNotProcessed();
 

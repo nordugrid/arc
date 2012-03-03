@@ -4,8 +4,6 @@
 #include <config.h>
 #endif
 
-#include <fstream>
-#include <iostream>
 #include <list>
 #include <string>
 #include <sys/types.h>
@@ -13,15 +11,109 @@
 #include <unistd.h>
 
 #include <arc/ArcLocation.h>
+#include <arc/client/Endpoint.h>
 #include <arc/DateTime.h>
-#include <arc/FileLock.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/Utils.h>
-#include <arc/XMLNode.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
+#include <arc/client/EndpointRetriever.h>
+#include <arc/client/Job.h>
+
+class JobSynchronizer : public Arc::EndpointConsumer<Arc::ServiceEndpoint> {
+public:
+  JobSynchronizer(
+    const Arc::UserConfig& uc,
+    const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
+    const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Arc::ComputingInfoEndpoint::ComputingInfoCapability)
+  ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>(true, capabilityFilter)),
+      jlr(uc, Arc::EndpointQueryOptions<Arc::Job>(preferredInterfaceNames))
+  {
+    const std::list<std::string>& selectedRegistries = uc.GetSelectedServices(Arc::INDEX);
+    const std::list<std::string>& selectedCEs = uc.GetSelectedServices(Arc::COMPUTING);
+
+    ser.addConsumer(*this);
+    jlr.addConsumer(jobs);
+
+    for (std::list<std::string>::const_iterator it = selectedRegistries.begin(); it != selectedRegistries.end(); it++) {
+      Arc::RegistryEndpoint registry(it->substr(it->find(":")+1));
+      ser.addEndpoint(registry);
+    }
+    for (std::list<std::string>::const_iterator it = selectedCEs.begin(); it != selectedCEs.end(); it++) {
+      Arc::ComputingInfoEndpoint ce;
+      ce.URLString = (it->substr(it->find(":")+1));
+      jlr.addEndpoint(ce);
+    }
+  }
+
+  void wait() {
+    ser.wait();
+    jlr.wait();
+  }
+
+  void addEndpoint(const Arc::ServiceEndpoint& service) {
+    if (Arc::ComputingInfoEndpoint::isComputingInfo(service)) {
+      jlr.addEndpoint(Arc::ComputingInfoEndpoint(service));
+    }
+  }
+
+  bool writeJobs(bool truncate) {
+    bool jobsWritten = false;
+    bool jobsReported = false;
+    // Write extracted job info to joblist
+    if (truncate) {
+      if ( (jobsWritten = Arc::Job::WriteJobsToTruncatedFile(uc.JobListFile(), jobs)) ) {
+        for (std::list<Arc::Job>::const_iterator it = jobs.begin();
+             it != jobs.end(); it++) {
+          if (!jobsReported) {
+            std::cout << Arc::IString("Found the following jobs:")<<std::endl;
+            jobsReported = true;
+          }
+          if (!it->Name.empty()) {
+            std::cout << it->Name << " (" << it->JobID.fullstr() << ")" << std::endl;
+          }
+          else {
+            std::cout << it->JobID.fullstr() << std::endl;
+          }
+        }
+        std::cout << Arc::IString("Total number of jobs found: ") << jobs.size() << std::endl;
+      }
+    }
+    else {
+      std::list<const Arc::Job*> newJobs;
+      if ( (jobsWritten = Arc::Job::WriteJobsToFile(uc.JobListFile(), jobs, newJobs)) ) {
+        for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
+             it != newJobs.end(); it++) {
+          if (!jobsReported) {
+            std::cout << Arc::IString("Found the following new jobs:")<<std::endl;
+            jobsReported = true;
+          }
+          if (!(*it)->Name.empty()) {
+            std::cout << (*it)->Name << " (" << (*it)->JobID.fullstr() << ")" << std::endl;
+          }
+          else {
+            std::cout << (*it)->JobID.fullstr() << std::endl;
+          }
+        }
+        std::cout << Arc::IString("Total number of new jobs found: ") << newJobs.size() << std::endl;
+      }
+    }
+
+    if (!jobsWritten) {
+      std::cout << Arc::IString("ERROR: Failed to lock job list file %s", uc.JobListFile()) << std::endl;
+      std::cout << Arc::IString("Please try again later, or manually clean up lock file") << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+private:
+  const Arc::UserConfig& uc;
+  Arc::ServiceEndpointRetriever ser;
+  Arc::JobListRetriever jlr;
+  Arc::EndpointContainer<Arc::Job> jobs;
+};
 
 #include "utils.h"
 
@@ -61,7 +153,7 @@ int RUNSYNC(main)(int argc, char **argv) {
 
   if (opt.show_plugins) {
     std::list<std::string> types;
-    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:JobListRetrieverPlugin");
     showplugins("arcsync", types, logger);
     return 0;
   }
@@ -108,56 +200,11 @@ int RUNSYNC(main)(int argc, char **argv) {
     return 1;
   }
 
-  // Find all jobs
-  Arc::TargetGenerator targen(usercfg);
-  targen.RetrieveJobs();
+  std::list<std::string> preferredInterfaceNames;
+  preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+  preferredInterfaceNames.push_back("org.ogf.emies");
 
-  bool jobsWritten = false;
-  bool jobsReported = false;
-  // Write extracted job info to joblist
-  if (opt.truncate) {
-    if ( (jobsWritten = Arc::Job::WriteJobsToTruncatedFile(usercfg.JobListFile(), targen.GetJobs())) ) {
-      for (std::list<Arc::Job>::const_iterator it = targen.GetJobs().begin();
-           it != targen.GetJobs().end(); it++) {
-        if (!jobsReported) {
-          std::cout << Arc::IString("Found the following jobs:")<<std::endl;
-          jobsReported = true;
-        }
-        if (!it->Name.empty()) {
-          std::cout << it->Name << " (" << it->JobID.fullstr() << ")" << std::endl;
-        }
-        else {
-          std::cout << it->JobID.fullstr() << std::endl;
-        }
-      }
-      std::cout << Arc::IString("Total number of jobs found: ") << targen.GetJobs().size() << std::endl;
-    }
-  }
-  else {
-    std::list<const Arc::Job*> newJobs;
-    if ( (jobsWritten = Arc::Job::WriteJobsToFile(usercfg.JobListFile(), targen.GetJobs(), newJobs)) ) {
-      for (std::list<const Arc::Job*>::const_iterator it = newJobs.begin();
-           it != newJobs.end(); it++) {
-        if (!jobsReported) {
-          std::cout << Arc::IString("Found the following new jobs:")<<std::endl;
-          jobsReported = true;
-        }
-        if (!(*it)->Name.empty()) {
-          std::cout << (*it)->Name << " (" << (*it)->JobID.fullstr() << ")" << std::endl;
-        }
-        else {
-          std::cout << (*it)->JobID.fullstr() << std::endl;
-        }
-      }
-      std::cout << Arc::IString("Total number of new jobs found: ") << newJobs.size() << std::endl;
-    }
-  }
-
-  if (!jobsWritten) {
-    std::cout << Arc::IString("ERROR: Failed to lock job list file %s", usercfg.JobListFile()) << std::endl;
-    std::cout << Arc::IString("Please try again later, or manually clean up lock file") << std::endl;
-    return 1;
-  }
-
-  return 0;
+  JobSynchronizer js(usercfg, preferredInterfaceNames);
+  js.wait();
+  _exit(js.writeJobs(opt.truncate) == false); // true -> 0, false -> 1.
 }

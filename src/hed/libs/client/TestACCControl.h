@@ -9,7 +9,6 @@
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/Job.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/client/JobState.h>
 
 
@@ -49,17 +48,6 @@ class SubmitterTestACCControl {
     static bool modifyStatus;
     static Job* submitJob;
     static Job* migrateJob;
-};
-
-class TargetRetrieverTestACCControl {
-  public:
-    static TargetGenerator* tg;
-    static std::list<ExecutionTarget> foundTargets;
-    static std::list<Job> foundJobs;
-
-    static void addTarget(ExecutionTarget target);
-    static void addJob(Job job);
-
 };
 
 class JobStateTEST : public JobState {

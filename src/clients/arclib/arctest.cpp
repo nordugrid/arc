@@ -15,15 +15,14 @@
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/DateTime.h>
-#include <arc/FileLock.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
-#include <arc/XMLNode.h>
+#include <arc/client/EndpointRetriever.h>
+#include <arc/client/Job.h>
 #include <arc/client/Submitter.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/client/JobDescription.h>
 #include <arc/credential/Credential.h>
 #include <arc/UserConfig.h>
@@ -33,8 +32,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-int test(const Arc::UserConfig& usercfg, const int& testid, const std::string& jobidfile);
-int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid);
+int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::ServiceEndpoint>& services, const std::string& jobidfile);
+int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::ServiceEndpoint>& services);
 
 #ifdef TEST
 #define RUNSUB(X) test_arctest_##X
@@ -86,7 +85,8 @@ int RUNSUB(main)(int argc, char **argv) {
   if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:Submitter");
-    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:ServiceEndpointRetrieverPlugin");
+    types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:JobDescriptionParser");
     types.push_back("HED:Broker");
     showplugins("arctest", types, logger, usercfg.Broker().first);
@@ -105,17 +105,6 @@ int RUNSUB(main)(int argc, char **argv) {
 
   if (!opt.broker.empty())
     usercfg.Broker(opt.broker);
-
-
-  if (!opt.clusters.empty() || !opt.indexurls.empty())
-    usercfg.ClearSelectedServices();
-
-  if (!opt.clusters.empty())
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
-
-  if (!opt.indexurls.empty())
-    usercfg.AddServices(opt.indexurls, Arc::INDEX);
-
 
   if (opt.show_credentials) {
     std::string proxy_path = usercfg.ProxyPath();
@@ -165,10 +154,12 @@ int RUNSUB(main)(int argc, char **argv) {
     return 1;
   }
 
+  std::list<Arc::ServiceEndpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+
   if (opt.dumpdescription) {
-     return dumpjobdescription(usercfg, opt.testjobid);
+     _exit(dumpjobdescription(usercfg, opt.testjobid, services));
   }
-  return test(usercfg, opt.testjobid, opt.jobidoutfile);
+  _exit(test(usercfg, opt.testjobid, services, opt.jobidoutfile));
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {
@@ -178,13 +169,23 @@ void printjobid(const std::string& jobid, const std::string& jobidfile) {
   std::cout << Arc::IString("Test submitted with jobid: %s", jobid) << std::endl;
 }
 
-int test(const Arc::UserConfig& usercfg, const int& testid, const std::string& jobidfile) {
+int test(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::ServiceEndpoint>& services, const std::string& jobidfile) {
   int retval = 0;
 
-  Arc::TargetGenerator targen(usercfg);
-  targen.RetrieveExecutionTargets();
+  std::list<std::string> preferredInterfaceNames;
+  if (usercfg.PreferredInfoInterface().empty()) {
+    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.push_back("org.ogf.emies");
+  } else {
+    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+  }
 
-  if (targen.GetExecutionTargets().empty()) {
+  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
+
+  Arc::ExecutionTargetRetriever etr(usercfg, services, rejectedURLs, preferredInterfaceNames);
+  etr.wait();
+
+  if (etr.empty()) {
     std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -202,7 +203,7 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::string& j
   std::map<int, std::string> notsubmitted;
 
   submittedJobs.push_back(Arc::Job());
-  if (ChosenBroker->Test(targen.GetExecutionTargets(), testid, submittedJobs.back())) {
+  if (ChosenBroker->Test(etr, testid, submittedJobs.back())) {
     printjobid(submittedJobs.back().JobID.str(), jobidfile);
   }
   else {
@@ -220,13 +221,23 @@ int test(const Arc::UserConfig& usercfg, const int& testid, const std::string& j
   return retval;
 }
 
-int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
+int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const std::list<Arc::ServiceEndpoint>& services) {
   int retval = 0;
 
-  Arc::TargetGenerator targen(usercfg);
-  targen.RetrieveExecutionTargets();
+  std::list<std::string> preferredInterfaceNames;
+  if (usercfg.PreferredInfoInterface().empty()) {
+    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.push_back("org.ogf.emies");
+  } else {
+    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+  }
 
-  if (targen.GetExecutionTargets().empty()) {
+  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
+
+  Arc::ExecutionTargetRetriever etr(usercfg, services, rejectedURLs, preferredInterfaceNames);
+  etr.wait();
+
+  if (etr.empty()) {
     std::cout << Arc::IString("Dumping job description aborted because no resource returned any information") << std::endl;
     return 1;
   }
@@ -239,7 +250,7 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid) {
   }
   logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
 
-  ChosenBroker->UseAllTargets(targen.GetExecutionTargets());
+  ChosenBroker->UseAllTargets(etr);
 
   while (true) {
     const Arc::ExecutionTarget* target = ChosenBroker->GetBestTarget();

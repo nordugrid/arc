@@ -13,7 +13,7 @@
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Broker.h>
-#include <arc/client/TargetGenerator.h>
+#include <arc/client/EndpointRetriever.h>
 
 #include "JobSupervisor.h"
 
@@ -261,7 +261,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Resubmit(int destination, std::list<Job>& resubmittedJobs) {
+  bool JobSupervisor::Resubmit(int destination, const std::list<ServiceEndpoint>& services, std::list<Job>& resubmittedJobs, const std::list<std::string>& rejectedURLs) {
     notprocessed.clear();
     processed.clear();
     bool ok = true;
@@ -321,13 +321,13 @@ namespace Arc {
       return false;
     }
 
-    TargetGenerator* tg = NULL;
+    ExecutionTargetRetriever* etr = NULL;
     if (destination != 1) { // Jobs should not go to same target, making a general information gathering.
-      tg = new TargetGenerator(resubmitUsercfg);
-      tg->RetrieveExecutionTargets();
-      if (tg->GetExecutionTargets().empty()) {
+      etr = new ExecutionTargetRetriever(resubmitUsercfg, services, rejectedURLs);
+      etr->wait();
+      if (etr->empty()) {
         logger.msg(ERROR, "Job resubmission aborted because no resource returned any information");
-        delete tg;
+        delete etr;
         for (std::list< std::list<Job*>::iterator >::iterator itJ = resubmittableJobs.begin();
              itJ != resubmittableJobs.end(); ++itJ) {
           notprocessed.push_back((**itJ)->IDFromEndpoint);
@@ -361,17 +361,14 @@ namespace Arc {
 
       std::list<URL> rejectTargets;
       if (destination == 1) { // Jobs should be resubmitted to same target.
-        std::list<std::string> sametarget;
-        sametarget.push_back((**itJ)->Flavour + ":" + (**itJ)->Cluster.fullstr());
+        std::list<ServiceEndpoint> sametarget(1, ServiceEndpoint((**itJ)->Cluster.fullstr()));
+        sametarget.front().Capability.push_back(ComputingInfoEndpoint::ComputingInfoCapability);
 
-        resubmitUsercfg.ClearSelectedServices();
-        resubmitUsercfg.AddServices(sametarget, COMPUTING);
-
-        tg = new TargetGenerator(resubmitUsercfg);
-        tg->RetrieveExecutionTargets();
-        if (tg->GetExecutionTargets().empty()) {
+        etr = new ExecutionTargetRetriever(resubmitUsercfg, sametarget, rejectedURLs);
+        etr->wait();
+        if (etr->empty()) {
           logger.msg(ERROR, "Unable to resubmit job (%s), target information retrieval failed for target: %s", (**itJ)->IDFromEndpoint.fullstr(), (**itJ)->Cluster.str());
-          delete tg;
+          delete etr;
           resubmittedJobs.pop_back();
           notprocessed.push_back((**itJ)->IDFromEndpoint);
           jcJobMap[(**itJ)->jc].second.push_back(**itJ);
@@ -383,7 +380,7 @@ namespace Arc {
         rejectTargets.push_back((**itJ)->Cluster);
       }
 
-      if (!chosenBroker->Submit(tg->GetExecutionTargets(), jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
+      if (!chosenBroker->Submit(*etr, jobdescs.front(), resubmittedJobs.back(), rejectTargets)) {
         resubmittedJobs.pop_back();
         notprocessed.push_back((**itJ)->IDFromEndpoint);
         ok = false;
@@ -396,18 +393,18 @@ namespace Arc {
       }
 
       if (destination == 1) {
-        delete tg;
+        delete etr;
       }
     }
 
     if (destination != 1) {
-      delete tg;
+      delete etr;
     }
 
     return ok;
   }
 
-  bool JobSupervisor::Migrate(bool forcemigration, std::list<Job>& migratedJobs) {
+  bool JobSupervisor::Migrate(bool forcemigration, const std::list<ServiceEndpoint>& services, std::list<Job>& migratedJobs, const std::list<std::string>& rejectedURLs) {
     bool ok = true;
 
     std::list< std::list<Job*>::iterator > migratableJobs;
@@ -442,9 +439,9 @@ namespace Arc {
       return ok;
     }
 
-    TargetGenerator targetGen(usercfg);
-    targetGen.RetrieveExecutionTargets();
-    if (targetGen.GetExecutionTargets().empty()) {
+    ExecutionTargetRetriever etr(usercfg, services, rejectedURLs);
+    etr.wait();
+    if (etr.empty()) {
       logger.msg(ERROR, "Job migration aborted, no resource returned any information");
       for (std::list< std::list<Job*>::iterator >::const_iterator itJ = migratableJobs.begin();
            itJ != migratableJobs.end(); ++itJ) {
@@ -486,7 +483,7 @@ namespace Arc {
 
       migratedJobs.push_back(Job());
 
-      chosenBroker->PreFilterTargets(targetGen.GetExecutionTargets(), jobdescs.front());
+      chosenBroker->PreFilterTargets(etr, jobdescs.front());
       chosenBroker->Sort();
 
       for (const ExecutionTarget*& t = chosenBroker->GetReference(); !chosenBroker->EndOfList(); chosenBroker->Advance()) {

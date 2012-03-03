@@ -9,13 +9,12 @@
 #include <string>
 
 #include <arc/ArcLocation.h>
+#include <arc/client/Endpoint.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
-#include <arc/client/JobController.h>
-#include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/UserConfig.h>
+#include <arc/client/EndpointRetriever.h>
 
 #include "utils.h"
 
@@ -48,8 +47,7 @@ int RUNINFO(main)(int argc, char **argv) {
   }
 
   if (opt.showversion) {
-    std::cout << Arc::IString("%s version %s", "arcinfo", VERSION)
-              << std::endl;
+    std::cout << Arc::IString("%s version %s", "arcinfo", VERSION) << std::endl;
     return 0;
   }
 
@@ -59,7 +57,8 @@ int RUNINFO(main)(int argc, char **argv) {
 
   if (opt.show_plugins) {
     std::list<std::string> types;
-    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:ServiceEndpointRetrieverPlugin");
+    types.push_back("HED:TargetInformationRetrieverPlugin");
     showplugins("arcinfo", types, logger);
     return 0;
   }
@@ -76,18 +75,22 @@ int RUNINFO(main)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  if (!opt.clusters.empty() || !opt.indexurls.empty())
-    usercfg.ClearSelectedServices();
+  std::list<Arc::ServiceEndpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
 
-  if (!opt.clusters.empty())
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
+  std::list<std::string> preferredInterfaceNames;
+  if (usercfg.PreferredInfoInterface().empty()) {
+    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.push_back("org.ogf.emies");
+  } else {
+    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+  }
 
-  if (!opt.indexurls.empty())
-    usercfg.AddServices(opt.indexurls, Arc::INDEX);
+  std::list<std::string> rejectedURLs = usercfg.RejectedURLs();
 
-
-  Arc::TargetGenerator targen(usercfg);
-  targen.RetrieveExecutionTargets();
-  targen.SaveTargetInfoToStream(std::cout, opt.longlist);
-  return 0;
+  Arc::ExecutionTargetRetriever etr(usercfg, endpoints, rejectedURLs, preferredInterfaceNames);
+  etr.wait();
+  for (std::list<Arc::ExecutionTarget>::const_iterator it = etr.begin(); it != etr.end(); ++it) {
+    it->SaveToStream(std::cout, opt.longlist);
+  }
+  _exit(0);
 }

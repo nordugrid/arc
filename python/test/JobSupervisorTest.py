@@ -1,10 +1,10 @@
 import arcom.test, arc, unittest
 
 class JobSupervisorTest(arcom.test.ARCClientTestCase):
-    
+
     def setUp(self):
         self.usercfg = arc.UserConfig(arc.initializeCredentialsType(arc.initializeCredentialsType.SkipCredentials))
-    
+
     def test_constructor(self):
         id1 = arc.URL("http://test.nordugrid.org/1234567890test1")
         id2 = arc.URL("http://test.nordugrid.org/1234567890test2")
@@ -13,19 +13,19 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
             self.create_test_job(job_id = id2)
         ]);
         self.expect(js.GetAllJobs()).not_to_be_empty()
-        
+
         self.expect(js.GetJobControllers()).to_have(1).item()
 
         jobs = js.GetJobs()
         self.expect(jobs).to_have(2).jobs()
-        
+
         self.expect(jobs[0].IDFromEndpoint.str()).to_be(id1.str())
         self.expect(jobs[1].IDFromEndpoint.str()).to_be(id2.str())
-    
+
     def test_add_job(self):
         js = arc.JobSupervisor(self.usercfg, arc.JobList())
         self.expect(js.GetAllJobs()).to_be_empty()
-        
+
         job = self.create_test_job(job_id = "http://test.nordugrid.org/1234567890test1")
         self.expect(js.AddJob(job)).to_be(True, message = "AddJob was expected to return True")
         self.expect(js.GetAllJobs()).not_to_be_empty()
@@ -36,39 +36,38 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
 
         job.Flavour = "NON-EXISTENT"
         self.expect(js.AddJob(job)).to_be(False, message = "AddJob was expected to return False")
-        self.expect(js.GetAllJobs()).to_have(1).job()        
-    
+        self.expect(js.GetAllJobs()).to_have(1).job()
+
     def test_resubmit(self):
-        # self.turn_on_logging()
-        
-        self.usercfg.AddServices(["TEST:http://test2.nordugrid.org"], arc.COMPUTING)
         self.usercfg.Broker("TEST")
 
-        arc.TargetRetrieverTestACCControl.foundTargets = [self.create_test_target("http://test2.nordugrid.org")]
+        arc.TargetInformationRetrieverPluginTESTControl.targets = [self.create_test_target("http://test2.nordugrid.org")]
+        arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)
 
         js = arc.JobSupervisor(self.usercfg, [
             self.create_test_job(job_id = "http://test.nordugrid.org/1234567890test1", state = arc.JobState.FAILED),
             self.create_test_job(job_id = "http://test.nordugrid.org/1234567890test2", state = arc.JobState.RUNNING)
         ])
-        
+
         self.expect(js.GetAllJobs()).to_have(2).jobs()
 
+        endpoints = [ arc.ServiceEndpoint("http://test2.nordugrid.org",  "org.nordugrid.tirtest", [arc.ComputingInfoEndpoint.ComputingInfoCapability] ) ]
         resubmitted = arc.JobList()
-        result = js.Resubmit(0, resubmitted)
+        result = js.Resubmit(0, endpoints, resubmitted)
         self.expect(result).to_be(True)
         self.expect(resubmitted).to_have(2).jobs()
-        
+
     def test_cancel(self):
         id1 = arc.URL("http://test.nordugrid.org/1234567890test1")
         id2 = arc.URL("http://test.nordugrid.org/1234567890test2")
         id3 = arc.URL("http://test.nordugrid.org/1234567890test3")
-        id4 = arc.URL("http://test.nordugrid.org/1234567890test4")        
+        id4 = arc.URL("http://test.nordugrid.org/1234567890test4")
         js = arc.JobSupervisor(self.usercfg, [
             self.create_test_job(job_id = id1, state = arc.JobState.RUNNING),
             self.create_test_job(job_id = id2, state = arc.JobState.FINISHED),
             self.create_test_job(job_id = id3, state = arc.JobState.UNDEFINED)
         ])
-        
+
         arc.JobControllerTestACCControl.cancelStatus = True
         self.expect(js.Cancel()).to_be(True, message = "Cancel was expected to return True")
         self.expect(js.GetIDsProcessed()).to_have(1).ID()
@@ -86,7 +85,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()[1].str()).to_be(id2.str())
         self.expect(js.GetIDsNotProcessed()[2].str()).to_be(id3.str())
         js.ClearSelection()
-        
+
         job = self.create_test_job(job_id = id4, state = arc.JobState.ACCEPTED, state_text = "Accepted")
         self.expect(js.AddJob(job)).to_be(True, message = "AddJob was expected to return True")
 
@@ -105,7 +104,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsNotProcessed()).to_have(1).ID()
         self.expect(js.GetIDsNotProcessed()[0].str()).to_be(id4.str())
         js.ClearSelection()
-        
+
     def test_clean(self):
         id1 = arc.URL("http://test.nordugrid.org/1234567890test1")
         id2 = arc.URL("http://test.nordugrid.org/1234567890test2")
@@ -145,7 +144,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
         self.expect(js.GetIDsProcessed()).to_have(0).IDs()
         self.expect(js.GetIDsNotProcessed()).to_have(1).ID()
         self.expect(js.GetIDsNotProcessed()[0].str()).to_be(id1.str())
-        js.ClearSelection()        
+        js.ClearSelection()
 
 if __name__ == '__main__':
     unittest.main()

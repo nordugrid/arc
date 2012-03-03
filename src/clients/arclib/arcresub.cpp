@@ -59,7 +59,8 @@ int RUNRESUB(main)(int argc, char **argv) {
   if (opt.show_plugins) {
     std::list<std::string> types;
     types.push_back("HED:Submitter");
-    types.push_back("HED:TargetRetriever");
+    types.push_back("HED:ServiceEndpointRetrieverPlugin");
+    types.push_back("HED:TargetInformationRetrieverPlugin");
     types.push_back("HED:Broker");
     showplugins("arcresub", types, logger, usercfg.Broker().first);
     return 0;
@@ -114,15 +115,6 @@ int RUNRESUB(main)(int argc, char **argv) {
     std::cout << Arc::IString("Warning: Job not found in job list: %s", *itJIDOrName) << std::endl;
   }
 
-  if (!opt.qlusters.empty() || !opt.indexurls.empty()) {
-    usercfg.ClearSelectedServices();
-    if (!opt.qlusters.empty()) {
-      usercfg.AddServices(opt.qlusters, Arc::COMPUTING);
-    }
-    if (!opt.indexurls.empty()) {
-      usercfg.AddServices(opt.indexurls, Arc::INDEX);
-    }
-  }
 
   Arc::JobSupervisor jobmaster(usercfg, jobs);
   jobmaster.Update();
@@ -130,15 +122,17 @@ int RUNRESUB(main)(int argc, char **argv) {
   if (!opt.status.empty()) {
     jobmaster.SelectByStatus(opt.status);
   }
-  
+
   if (jobmaster.GetSelectedJobs().empty()) {
     std::cout << Arc::IString("No jobs") << std::endl;
     return 1;
   }
 
+  std::list<Arc::ServiceEndpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.qlusters, opt.indexurls);
+
   std::list<Arc::Job> resubmittedJobs;
   // same + 2*notsame in {0,1,2}. same and notsame cannot both be true, see above.
-  int retval = (int)!jobmaster.Resubmit((int)opt.same + 2*(int)opt.notsame, resubmittedJobs);
+  int retval = (int)!jobmaster.Resubmit((int)opt.same + 2*(int)opt.notsame, services, resubmittedJobs);
   if (retval == 0 && resubmittedJobs.empty()) {
     std::cout << Arc::IString("No jobs to resubmit with the specified status") << std::endl;
     return 0;

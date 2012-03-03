@@ -3,7 +3,6 @@ the CREAM interface.
 
 Implements the following specialized classes:
 
-o TargetRetrieverCREAM
 o JobControllerCREAM
 o SubmitterCREAM
 

@@ -5,6 +5,7 @@
 #include <arc/URL.h>
 #include <arc/UserConfig.h>
 #include <arc/Utils.h>
+#include <arc/client/Endpoint.h>
 #include <arc/client/Job.h>
 #include <arc/client/JobSupervisor.h>
 
@@ -111,19 +112,20 @@ void JobSupervisorTest::TestResubmit()
   jobs.push_back(j);
 
   usercfg.Broker("TEST");
-  usercfg.AddServices(std::list<std::string>(1, "TEST:http://test2.nordugrid.org"), Arc::COMPUTING);
 
   Arc::ExecutionTarget target;
   target.ComputingEndpoint.URLString = "http://test2.nordugrid.org";
   target.GridFlavour = "TEST";
   target.ComputingEndpoint.HealthState = "ok";
 
-  Arc::TargetRetrieverTestACCControl::addTarget(target);
+  Arc::TargetInformationRetrieverPluginTESTControl::targets.push_back(target);
+  Arc::TargetInformationRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus::SUCCESSFUL;
 
   js = new Arc::JobSupervisor(usercfg, jobs);
-
+  
+  std::list<Arc::ServiceEndpoint> services(1, Arc::ServiceEndpoint("http://test2.nordugrid.org",  "org.nordugrid.tirtest", std::list<std::string>(1, Arc::ComputingInfoEndpoint::ComputingInfoCapability)));
   std::list<Arc::Job> resubmitted;
-  CPPUNIT_ASSERT(js->Resubmit(0, resubmitted));
+  CPPUNIT_ASSERT(js->Resubmit(0, services, resubmitted));
   CPPUNIT_ASSERT_EQUAL(2, (int)resubmitted.size());
 
   delete js;

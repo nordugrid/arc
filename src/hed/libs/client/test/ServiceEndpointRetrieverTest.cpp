@@ -5,8 +5,6 @@
 #include <arc/client/EndpointRetriever.h>
 #include <arc/client/TestACCControl.h>
 
-//static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "TargetRetrieverARC1Test");
-
 class ServiceEndpointRetrieverTest
   : public CppUnit::TestFixture {
 

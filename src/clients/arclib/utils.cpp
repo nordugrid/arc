@@ -18,7 +18,7 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
     std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
     for (std::list<Arc::ConfigEndpoint>::const_iterator its = endpoints.begin(); its != endpoints.end(); its++) {
       services.push_back(Arc::ServiceEndpoint(*its));
-    }   
+    }
   } else {
     for (std::list<std::string>::const_iterator it = ces.begin(); it != ces.end(); it++) {
       const std::string& ce = *it;
@@ -32,14 +32,14 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
           service.URLString = ce;
           service.Capability.push_back(Arc::ComputingInfoEndpoint::ComputingInfoCapability);
         }
-        services.push_back(service);        
+        services.push_back(service);
       } else {
         // if it was a name of a group, add all the services from the group
         for (std::list<Arc::ConfigEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
           services.push_back(Arc::ServiceEndpoint(*its));
-        }   
+        }
       }
-    }    
+    }
     for (std::list<std::string>::const_iterator it = registries.begin(); it != registries.end(); it++) {
       const std::string& registry = *it;
       // check if the string is a name of a group
@@ -52,14 +52,14 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
           service.URLString = registry;
           service.Capability.push_back(Arc::RegistryEndpoint::RegistryCapability);
         }
-        services.push_back(service);        
+        services.push_back(service);
       } else {
         // if it was a name of a group, add all the services from the group
         for (std::list<Arc::ConfigEndpoint>::const_iterator its = servicesInGroup.begin(); its != servicesInGroup.end(); its++) {
          services.push_back(Arc::ServiceEndpoint(*its));
-        }   
+        }
       }
-    }    
+    }
   }
   return services;
 }
@@ -72,8 +72,14 @@ void showplugins(const std::string& program, const std::list<std::string>& types
     if (*itType == "HED:Submitter") {
       std::cout << Arc::IString("Types of execution services %s is able to submit jobs to:", program) << std::endl;
     }
-    else if (*itType == "HED:TargetRetriever") {
-      std::cout << Arc::IString("Types of index and information services which %s is able collect information from:", program) << std::endl;
+    else if (*itType == "HED:ServiceEndpointRetrieverPlugin") {
+      std::cout << Arc::IString("Types of registry services which %s is able collect information from:", program) << std::endl;
+    }
+    else if (*itType == "HED:TargetInformationRetrieverPlugin") {
+      std::cout << Arc::IString("Types of local information services which %s is able collect information from:", program) << std::endl;
+    }
+    else if (*itType == "HED:JobListRetriever") {
+      std::cout << Arc::IString("Types of local information services which %s is able collect job information from:", program) << std::endl;
     }
     else if (*itType == "HED:JobController") {
       std::cout << Arc::IString("Types of services %s is able to manage jobs at:", program) << std::endl;

@@ -1,12 +1,10 @@
 pkglib_LTLIBRARIES = libaccARC1.la
 noinst_LTLIBRARIES = libarexclient.la
 
-libaccARC1_la_SOURCES  = TargetRetrieverARC1.cpp TargetRetrieverARC1.h \
-	SubmitterARC1.cpp SubmitterARC1.h \
+libaccARC1_la_SOURCES  = SubmitterARC1.cpp SubmitterARC1.h \
 	JobControllerARC1.cpp JobControllerARC1.h \
 	AREXClient.cpp AREXClient.h \
 	DescriptorsARC1.cpp JobStateARC1.h JobStateARC1.cpp \
-	TargetRetrieverBES.cpp TargetRetrieverBES.h \
 	SubmitterBES.cpp SubmitterBES.h \
 	JobControllerBES.cpp JobControllerBES.h \
 	JobStateBES.cpp JobStateBES.h

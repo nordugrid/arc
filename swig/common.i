@@ -71,7 +71,6 @@ typedef unsigned int uint32_t;
 %ignore NewChild(const char*, int, bool);
 %ignore NewChild(const char*, const NS&, int, bool);
 %ignore Config(const char*);
-%ignore Arc::TargetGenerator::ServiceCounter();
 
 
 %ignore *::operator==;
@@ -87,10 +86,6 @@ typedef unsigned int uint32_t;
 %template(XMLNodePListIteratorHandler) listiteratorhandler<Arc::XMLNode*>;
 %template(LogDestinationListIteratorHandler) listiteratorhandler<Arc::LogDestination*>;
 %template(URLLocationListIteratorHandler) listiteratorhandler<Arc::URLLocation>;
-#endif
-
-#ifdef SWIGPYTHON
-%ignore Arc::TargetGenerator::ServiceCounter();
 #endif
 
 %rename(_print) Arc::Config::print;

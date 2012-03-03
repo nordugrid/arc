@@ -1,7 +1,6 @@
 pkglib_LTLIBRARIES = libaccCREAM.la
 
 libaccCREAM_la_SOURCES = DescriptorsCREAM.cpp \
-	TargetRetrieverCREAM.cpp TargetRetrieverCREAM.h \
 	SubmitterCREAM.cpp SubmitterCREAM.h \
 	JobControllerCREAM.cpp JobControllerCREAM.h \
 	CREAMClient.cpp CREAMClient.h \

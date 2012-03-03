@@ -1,7 +1,6 @@
 pkglib_LTLIBRARIES = libaccARC0.la
 
 libaccARC0_la_SOURCES = \
-	TargetRetrieverARC0.cpp TargetRetrieverARC0.h \
 	SubmitterARC0.cpp SubmitterARC0.h \
 	DescriptorsARC0.cpp \
 	JobControllerARC0.cpp JobControllerARC0.h \

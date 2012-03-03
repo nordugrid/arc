@@ -6,7 +6,6 @@ for each supported grid flavour and one folder for specialized brokers.
 Each grid flavour should implement specialized classes of the 
 following base classes (located in src/hed/libs/client)
 
-o TargetRetriever
 o JobController
 o Submitter
 

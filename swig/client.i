@@ -12,13 +12,11 @@
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/JobState.h>
 #include <arc/client/Job.h>
-#include <arc/client/TargetGenerator.h>
 #include <arc/client/Broker.h>
 #include <arc/client/Endpoint.h>
 #include <arc/client/JobController.h>
 #include <arc/client/JobDescription.h>
 #include <arc/client/JobSupervisor.h>
-#include <arc/client/TargetRetriever.h>
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/TestACCControl.h>
 #include <arc/client/EndpointRetriever.h>
@@ -34,7 +32,6 @@
 %template(ApplicationEnvironmentList) std::list<Arc::ApplicationEnvironment>;
 %template(SoftwareList) std::list<Arc::Software>;
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
-%template(TargetRetrieverList) std::list<Arc::TargetRetriever*>;
 %template(BrokerList) std::list<Arc::Broker*>;
 %template(SubmitterList) std::list<Arc::Submitter*>;
 %template(ServiceEndpointList) std::list<Arc::ServiceEndpoint>;
@@ -53,7 +50,6 @@
 %template(ApplicationEnvironmentListIteratorHandler) listiteratorhandler<Arc::ApplicationEnvironment>;
 %template(SoftwareListIteratorHandler) listiteratorhandler<Arc::Software>;
 %template(SoftwareRequirementListIteratorHandler) listiteratorhandler<Arc::SoftwareRequirement>;
-%template(TargetRetrieverListIteratorHandler) listiteratorhandler<Arc::TargetRetriever*>;
 %template(BrokerListIteratorHandler) listiteratorhandler<Arc::Broker*>;
 %template(SubmitterListIteratorHandler) listiteratorhandler<Arc::Submitter*>;
 #endif
@@ -85,12 +81,10 @@ the first member will be the '*response' and the second member is the original r
   bool Parse(const std::string& str, std::list<JobDescription>& jobdescs, const std::string& lang = "", const std::string& dialect = "") { return Arc::JobDescription::Parse(str, jobdescs, lang, dialect); }
 };
 
-%rename(_TargetRetrieverTestACCControl) TargetRetrieverTestACCControl;
 %rename(_BrokerTestACCControl) BrokerTestACCControl;
 %rename(_JobDescriptionParserTestACCControl) JobDescriptionParserTestACCControl;
 %rename(_JobControllerTestACCControl) JobControllerTestACCControl;
 %rename(_SubmitterTestACCControl) SubmitterTestACCControl;
-%rename(_TargetRetrieverTestACCControl) TargetRetrieverTestACCControl;
 %rename(_ServiceEndpointRetrieverPluginTESTControl) ServiceEndpointRetrieverPluginTESTControl;
 %rename(_TargetInformationRetrieverPluginTESTControl) TargetInformationRetrieverPluginTESTControl;
 
@@ -124,18 +118,16 @@ std::ostream& getStdout() {
 %include "../src/hed/libs/client/ExecutionTarget.h"
 %include "../src/hed/libs/client/JobState.h"
 %include "../src/hed/libs/client/Job.h"
-%include "../src/hed/libs/client/TargetGenerator.h"
 %include "../src/hed/libs/client/Broker.h"
 %include "../src/hed/libs/client/JobController.h"
 %include "../src/hed/libs/client/JobDescription.h"
 %include "../src/hed/libs/client/JobSupervisor.h"
-%include "../src/hed/libs/client/TargetRetriever.h"
 %include "../src/hed/libs/client/EndpointQueryingStatus.h"
 %include "../src/hed/libs/client/TestACCControl.h"
-%include "../src/hed/libs/client/EndpointRetriever.h"
 #ifdef SWIGJAVA
 %rename(waitUntilDone) wait;
 #endif
+%include "../src/hed/libs/client/EndpointRetriever.h"
 %template(ServiceEndpointRetriever) Arc::EndpointRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
 %template(TargetInformationRetriever) Arc::EndpointRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
 %template(ServiceEndpointContainer) Arc::EndpointContainer<Arc::ServiceEndpoint>;
@@ -178,7 +170,6 @@ BrokerTestACCControl = StaticPropertyWrapper(_BrokerTestACCControl)
 JobDescriptionParserTestACCControl = StaticPropertyWrapper(_JobDescriptionParserTestACCControl)
 JobControllerTestACCControl = StaticPropertyWrapper(_JobControllerTestACCControl)
 SubmitterTestACCControl = StaticPropertyWrapper(_SubmitterTestACCControl)
-TargetRetrieverTestACCControl = StaticPropertyWrapper(_TargetRetrieverTestACCControl)
 ServiceEndpointRetrieverPluginTESTControl = StaticPropertyWrapper(_ServiceEndpointRetrieverPluginTESTControl)
 TargetInformationRetrieverPluginTESTControl = StaticPropertyWrapper(_TargetInformationRetrieverPluginTESTControl)
 

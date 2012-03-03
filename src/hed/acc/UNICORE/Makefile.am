@@ -1,7 +1,6 @@
 pkglib_LTLIBRARIES = libaccUNICORE.la
 
 libaccUNICORE_la_SOURCES = \
-	TargetRetrieverUNICORE.cpp TargetRetrieverUNICORE.h \
 	SubmitterUNICORE.cpp SubmitterUNICORE.h \
 	JobControllerUNICORE.cpp JobControllerUNICORE.h \
 	UNICOREClient.cpp UNICOREClient.h \

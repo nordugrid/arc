@@ -12,6 +12,7 @@
 namespace Arc {
 
   class Logger;
+  class ServiceEndpoint;
   class UserConfig;
 
   /// % JobSupervisor class
@@ -244,9 +245,10 @@ namespace Arc {
      *  (1 = same target, 2 = not same, any other = any target).
      * @param resubmittedJobs list of Job objects which resubmitted jobs will be
      *  appended to.
+     * @param TODO
      * @return false if any error is encountered, otherwise true.
      **/
-    bool Resubmit(int destination, std::list<Job>& resubmittedJobs);
+    bool Resubmit(int destination, const std::list<ServiceEndpoint>&, std::list<Job>& resubmittedJobs, const std::list<std::string>& = std::list<std::string>());
 
     /// Migrate jobs
     /**
@@ -297,9 +299,10 @@ namespace Arc {
      *  service fails to cancel the existing queuing job.
      * @param migratedJobs list of Job objects which migrated jobs will be
      *  appended to.
+     * @param TODO
      * @return false if any error is encountered, otherwise true.
      **/
-    bool Migrate(bool forcemigration, std::list<Job>& migratedJobs);
+    bool Migrate(bool forcemigration, const std::list<ServiceEndpoint>&, std::list<Job>& migratedJobs, const std::list<std::string>& = std::list<std::string>());
 
     /// Cancel jobs
     /**

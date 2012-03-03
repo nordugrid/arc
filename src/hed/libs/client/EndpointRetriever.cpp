@@ -370,11 +370,6 @@ namespace Arc {
     }
   }
   
-  void ExecutionTargetRetriever::Wait() {
-    ser.wait();
-    tir.wait();
-  }
-
   template class EndpointRetriever<RegistryEndpoint, ServiceEndpoint>;
   template class EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>;
   template class EndpointRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint>;

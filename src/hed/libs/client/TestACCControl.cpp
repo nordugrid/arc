@@ -26,18 +26,6 @@ bool SubmitterTestACCControl::modifyStatus = true;
 Job* SubmitterTestACCControl::submitJob = NULL;
 Job* SubmitterTestACCControl::migrateJob = NULL;
 
-TargetGenerator* TargetRetrieverTestACCControl::tg = NULL;
-std::list<ExecutionTarget> TargetRetrieverTestACCControl::foundTargets = std::list<ExecutionTarget>();
-std::list<Job> TargetRetrieverTestACCControl::foundJobs = std::list<Job>();
-
-void TargetRetrieverTestACCControl::addTarget(ExecutionTarget target) {
-  TargetRetrieverTestACCControl::foundTargets.push_back(target);
-}
-
-void TargetRetrieverTestACCControl::addJob(Job job) {
-  TargetRetrieverTestACCControl::foundJobs.push_back(job);
-}
-
 float TargetInformationRetrieverPluginTESTControl::delay = 0;
 std::list<ExecutionTarget> TargetInformationRetrieverPluginTESTControl::targets;
 EndpointQueryingStatus TargetInformationRetrieverPluginTESTControl::status;

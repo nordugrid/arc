@@ -2,7 +2,6 @@ pkglib_LTLIBRARIES = libaccEMIES.la
 
 libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 	JobStateEMIES.cpp JobStateEMIES.h \
-	TargetRetrieverEMIES.cpp TargetRetrieverEMIES.h \
 	SubmitterEMIES.cpp SubmitterEMIES.h \
 	JobControllerEMIES.cpp JobControllerEMIES.h \
 	DescriptorsEMIES.cpp
