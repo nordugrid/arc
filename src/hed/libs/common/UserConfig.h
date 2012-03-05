@@ -32,6 +32,15 @@ namespace Arc {
     std::string URLString;
     std::string InterfaceName;  
     std::string PreferredJobInterfaceName;
+    
+    operator bool() const {
+      return (URLString != "");
+    }
+    
+    bool operator!() const {
+      return (URLString == "");
+    }
+    
   };
 
   typedef std::list<std::string> ServiceList[2];
