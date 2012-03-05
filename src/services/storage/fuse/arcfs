@@ -76,7 +76,8 @@ try:
     ca_file = user_config.CACertificatePath()
     ca_dir = user_config.CACertificatesDirectory()
     bartender_urls = [url.fullstr() for url in user_config.Bartender()]
-    isis_urls = [url for (flavor, url) in [url.split(':',1) for url in user_config.GetSelectedServices(arc.INDEX)] if flavor == 'ARC1']
+    # arclib is not able to query ISIS anymore
+    isis_urls = [] # [url for (flavor, url) in [url.split(':',1) for url in user_config.GetSelectedServices(arc.INDEX)] if flavor == 'ARC1']
 except:
     problem_with_userconfig = traceback.format_exc()
     key_file = None
