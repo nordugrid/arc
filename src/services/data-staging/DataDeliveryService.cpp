@@ -52,11 +52,11 @@ namespace DataStaging {
           archived_dtrs_lock.lock();
           if (dtr->error()) {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state ERROR", dtr->get_id());
-            archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>("ERROR", dtr->get_error_status().GetDesc());
+            archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>("TRANSFER_ERROR", dtr->get_error_status().GetDesc());
           }
           else {
             logger.msg(Arc::VERBOSE, "Archiving DTR %s, state %s", dtr->get_id(), dtr->get_status().str());
-            archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>(dtr->get_status().str(), "");
+            archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>("TRANSFERRED", "");
           }
           archived_dtrs_lock.unlock();
           // clean up DTR memory - delete DTR LogDestinations
@@ -381,7 +381,7 @@ namespace DataStaging {
         resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr->get_error_status().GetErrorStatus());
         resultelement.NewChild("ErrorLocation") = Arc::tostring(dtr->get_error_status().GetErrorLocation());
         archived_dtrs_lock.lock();
-        archived_dtrs[dtrid] = std::pair<std::string, std::string>("ERROR", dtr->get_error_status().GetDesc());
+        archived_dtrs[dtrid] = std::pair<std::string, std::string>("TRANSFER_ERROR", dtr->get_error_status().GetDesc());
         archived_dtrs_lock.unlock();
       }
       else if (dtr->get_status() == DTRStatus::TRANSFERRED) {
