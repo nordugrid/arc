@@ -1361,6 +1361,39 @@ TODO: Make FileUtils function to this
     return FilterServices(services, type);
   }
 
+  ConfigEndpoint UserConfig::ServiceFromLegacyString(std::string type_flavour_url) {
+    ConfigEndpoint service;
+    size_t pos = type_flavour_url.find(":");
+    if (pos != type_flavour_url.npos) {
+      std::string type = type_flavour_url.substr(0, pos);
+      std::string flavour_url = type_flavour_url.substr(pos + 1);
+      if (type == "index") {
+        service.type = ConfigEndpoint::REGISTRY;
+      } else if (type == "computing") {
+        service.type = ConfigEndpoint::COMPUTINGINFO;
+      }
+      pos = flavour_url.find(":");
+      if (pos != flavour_url.npos) {
+        std::string flavour = flavour_url.substr(0, pos);
+        std::string url = flavour_url.substr(pos + 1);
+        if (service.type == ConfigEndpoint::REGISTRY) {
+          std::string registryinterface = "EMIR";
+          if (flavour == "ARC0") registryinterface = "EGIIS";
+          service.InterfaceName = GetInterfaceNameOfRegistryInterface(registryinterface);
+        } else if (service.type == ConfigEndpoint::COMPUTINGINFO) {
+          std::string infointerface = "LDAPGLUE2";
+          if (flavour == "ARC0") infointerface = "LDAPNG";
+          if (flavour == "ARC1") infointerface = "WSRFGLUE2";
+          if (flavour == "EMIES") infointerface = "EMIES";
+          if (flavour == "CREAM") infointerface = "LDAPGLUE1";
+          service.InterfaceName = GetInterfaceNameOfInfoInterface(infointerface);          
+        }
+        service.URLString = url;
+      }
+    }
+    return service;
+  }
+
   
 
 static std::string cert_file_fix(const std::string& old_file,std::string& new_file) {

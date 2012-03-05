@@ -1193,7 +1193,7 @@ namespace Arc {
     
     const std::list<std::string>& RejectedURLs() const { return rejectedURLs; };
 
-    
+    static ConfigEndpoint ServiceFromLegacyString(std::string);
 
     /// Path to ARC user home directory
     /**
