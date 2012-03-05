@@ -6,7 +6,7 @@ Uploaders: Anders Waananen <waananen@nbi.dk>
 DM-Upload-Allowed: yes
 Build-Depends: debhelper (>= 5), autotools-dev, libxml2-dev (>= 2.4.0), libssl-dev, libglibmm-2.4-dev, python-dev, libltdl-dev | libltdl7-dev | libltdl3-dev, libldap2-dev, uuid-dev, libcppunit-dev, pkg-config, libdb5.1++-dev | libdb4.8++-dev | libdb4.7++-dev | libdb4.6++-dev | libdb4.5++-dev | libdb4.4++-dev | libdb4.3++-dev | libdb4.2++-dev | libdb++-dev, libxmlsec1-dev (>=1.2.4), libglobus-common-dev, libglobus-gssapi-gsi-dev, libglobus-rls-client-dev, libglobus-ftp-client-dev, libglobus-ftp-control-dev, python-support, default-jdk | openjdk-6-jdk | java-gcj-compat-dev, liblfc-dev, libgridsite-dev, openssl, swig
 XS-Python-Version: current
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Vcs-Browser: http://svn.nordugrid.org/trac/nordugrid/browser/arc1
 Vcs-Svn: http://svn.nordugrid.org/repos/nordugrid/arc1/trunk
 Homepage: http://www.nordugrid.org
@@ -180,7 +180,7 @@ Description: ARC data delivery service
  support of the free Grid middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the ARC data deliver service.
+ This package contains the ARC data delivery service.
 
 Package: nordugrid-arc-aris
 Provides: nordugrid-arc-infosys-ldap, nordugrid-arc-nox-ldap-infosys, nordugrid-arc-infoindex

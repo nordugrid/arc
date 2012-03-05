@@ -15,7 +15,6 @@ LFC_CONFIGURE_OPTION = --disable-lfc
 endif
 
 configure: configure-stamp
-	:
 
 configure-stamp:
 	dh_testdir
@@ -35,13 +34,10 @@ configure-stamp:
 	touch $@
 
 build: build-arch build-indep
-	:
 
 build-arch: build-stamp
-	:
 
 build-indep: build-stamp
-	:
 
 build-stamp: configure-stamp
 	dh_testdir
@@ -69,7 +65,7 @@ clean:
 install: build-stamp
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	[ -x /usr/bin/dh_prep ] && dh_prep || dh_clean -k
 
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 
@@ -95,45 +91,67 @@ install: build-stamp
 	mkdir -p debian/tmp/usr/lib/jni
 	mv debian/tmp/usr/lib/java/*.so debian/tmp/usr/lib/jni
 
-binary-indep:
-	:
+binary: binary-arch binary-indep
 
 binary-arch: install
 	dh_testdir
 	dh_testroot
-	dh_installdirs
-	dh_installdocs
-	dh_installexamples
-	dh_installman
-	dh_installlogrotate
-	dh_install --fail-missing
-	dh_installchangelogs
-	dh_installinit --name arched
-	dh_installinit --name a-rex
-	dh_installinit --name arc-cache-service
-	dh_installinit --name arc-datadelivery-service
-	dh_installinit --name gridftpd
-	dh_installinit --name grid-infosys
-	dh_perl
-	dh_pysupport
-	[ -x /usr/bin/dh_lintian ] && dh_lintian || :
-	dh_link
-	dh_strip --dbg-package=nordugrid-arc-dbg
+	dh_installdirs -a
+	dh_installdocs -a
+	dh_installexamples -a
+	dh_installman -a
+	dh_installlogrotate -a
+	if dpkg --compare-versions `dpkg-query -W -f='$${version}' debhelper` \
+	    lt 7.4.16 ; then \
+	dh_install -a ; \
+	else \
+	dh_install -a --fail-missing ; \
+	fi
+	dh_installchangelogs -a
+	dh_installinit -a --name arched
+	dh_installinit -a --name a-rex
+	dh_installinit -a --name arc-cache-service
+	dh_installinit -a --name arc-datadelivery-service
+	dh_installinit -a --name gridftpd
+	dh_installinit -a --name grid-infosys
+	dh_perl -a
+	[ -x /usr/bin/dh_python2 ] && dh_python2 -a || dh_pysupport -a
+	[ -x /usr/bin/dh_lintian ] && dh_lintian -a || :
+	dh_link -a
+	dh_strip -a --dbg-package=nordugrid-arc-dbg
+	dh_compress -a -X .pdf
+	dh_fixperms -a
+	dh_makeshlibs -a -X arc-infoindex-slapd-wrapper.so
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
-	test -d debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared && \
-           mv debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pyshared \
-	   debian/nordugrid-arc-dbg/usr/lib/debug/usr/lib/pymodules || :
+binary-indep: install
+	dh_testdir
+	dh_testroot
+	dh_installdirs -i
+	dh_installdocs -i
+	dh_installexamples -i
+	dh_installman -i
+	dh_installlogrotate -i
+	if dpkg --compare-versions `dpkg-query -W -f='$${version}' debhelper` \
+	    lt 7.4.16 ; then \
+	dh_install -i ; \
+	else \
+	dh_install -i --fail-missing ; \
+	fi
+	dh_installchangelogs -i
+	dh_perl -i
+	[ -x /usr/bin/dh_python ] && dh_python -i || dh_pysupport -i
+	[ -x /usr/bin/dh_lintian ] && dh_lintian -i || :
+	dh_link -i
+	dh_compress -i -X .pdf
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
 
-	dh_compress -X .pdf
-	dh_fixperms
-	dh_makeshlibs -X arc-infoindex-slapd-wrapper.so
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-arch binary-indep
-	:
-
-.PHONY: build-arch build-indep build clean binary-arch binary-indep binary install configure
+.PHONY: binary binary-arch binary-indep build build-arch build-indep clean configure install
