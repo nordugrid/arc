@@ -692,7 +692,8 @@ namespace Arc {
             for (std::list<std::string>::const_iterator it =
                    defaultServicesStr.begin();
                  it != defaultServicesStr.end(); it++) {
-              defaultServices.push_back(ServiceFromLegacyString(*it));
+              ConfigEndpoint service = ServiceFromLegacyString(*it);
+              if (service) defaultServices.push_back(service);
               // Aliases cannot contain '.' or ':'
               if (it->find_first_of(":.") == std::string::npos) { // Alias
                 if (!aliasMap[*it]) {
@@ -1372,6 +1373,8 @@ TODO: Make FileUtils function to this
         service.type = ConfigEndpoint::REGISTRY;
       } else if (type == "computing") {
         service.type = ConfigEndpoint::COMPUTINGINFO;
+      } else {
+        return service;
       }
       pos = flavour_url.find(":");
       if (pos != flavour_url.npos) {
