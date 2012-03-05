@@ -7,7 +7,6 @@ endif
 TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
         ProfileTest ArcRegexTest ThreadTest FileLockTest EnvTest UserConfigTest \
         StringConvTest CheckSumTest $(MYSQL_WRAPPER_TEST)
-TESTS = UserConfigTest
 TESTS_ENVIRONMENT = srcdir=$(srcdir)
 
 check_PROGRAMS = $(TESTS)

@@ -16,6 +16,7 @@ class UserConfigTest
   CPPUNIT_TEST(GroupTest);
   CPPUNIT_TEST(PreferredInterfacesTest);
   CPPUNIT_TEST(ServiceFromLegacyStringTest);
+  CPPUNIT_TEST(LegacyDefaultServicesTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -28,6 +29,7 @@ public:
   void GroupTest();
   void PreferredInterfacesTest();
   void ServiceFromLegacyStringTest();
+  void LegacyDefaultServicesTest();
 
   void setUp() {}
   void tearDown() {}
@@ -176,6 +178,40 @@ void UserConfigTest::ServiceFromLegacyStringTest()
   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
   CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.emir", service.InterfaceName);
+}
+
+void UserConfigTest::LegacyDefaultServicesTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "defaultservices="
+    << "index:ARC0:ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid "
+    << "index:ARC0:ldap://index2.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid "
+    << "computing:ARC0:ldap://a.org "
+    << "computing:ARC1:http://b.org\n"; 
+  f.close();
+  
+  uc.LoadConfigurationFile(conffile);
+  
+  std::list<Arc::ConfigEndpoint> services;
+  
+  services = uc.GetDefaultServices();
+  CPPUNIT_ASSERT_EQUAL(4, (int)services.size());
+  
+  services = uc.GetDefaultServices(Arc::ConfigEndpoint::REGISTRY);  
+  CPPUNIT_ASSERT_EQUAL(2, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid", services.front().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", services.front().InterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"ldap://index2.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid", services.back().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", services.back().InterfaceName);  
+
+  services = uc.GetDefaultServices(Arc::ConfigEndpoint::COMPUTINGINFO);  
+  CPPUNIT_ASSERT_EQUAL(2, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"ldap://a.org", services.front().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapng", services.front().InterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://b.org", services.back().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.wsrfglue2", services.back().InterfaceName);  
+  
+  remove(conffile.c_str()); 
 }
 
 void UserConfigTest::AliasTest()

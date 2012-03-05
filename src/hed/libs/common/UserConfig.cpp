@@ -692,6 +692,7 @@ namespace Arc {
             for (std::list<std::string>::const_iterator it =
                    defaultServicesStr.begin();
                  it != defaultServicesStr.end(); it++) {
+              defaultServices.push_back(ServiceFromLegacyString(*it));
               // Aliases cannot contain '.' or ':'
               if (it->find_first_of(":.") == std::string::npos) { // Alias
                 if (!aliasMap[*it]) {
