@@ -144,7 +144,7 @@ binary-indep: install
 	fi
 	dh_installchangelogs -i
 	dh_perl -i
-	[ -x /usr/bin/dh_python ] && dh_python -i || dh_pysupport -i
+	[ -x /usr/bin/dh_python2 ] && dh_python2 -i || dh_pysupport -i
 	[ -x /usr/bin/dh_lintian ] && dh_lintian -i || :
 	dh_link -i
 	dh_compress -i -X .pdf
