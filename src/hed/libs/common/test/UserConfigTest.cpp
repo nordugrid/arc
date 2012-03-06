@@ -14,7 +14,7 @@ class UserConfigTest
   CPPUNIT_TEST(UnspecifiedInterfaceTest);
   CPPUNIT_TEST(GroupTest);
   CPPUNIT_TEST(PreferredInterfacesTest);
-  CPPUNIT_TEST(ServiceFromLegacyStringTest);
+  // CPPUNIT_TEST(ServiceFromLegacyStringTest);
   CPPUNIT_TEST(LegacyDefaultServicesTest);
   CPPUNIT_TEST(LegacyAliasTest);
   CPPUNIT_TEST(AliasTest);
@@ -28,7 +28,7 @@ public:
   void UnspecifiedInterfaceTest();
   void GroupTest();
   void PreferredInterfacesTest();
-  void ServiceFromLegacyStringTest();
+  // void ServiceFromLegacyStringTest();
   void LegacyDefaultServicesTest();
   void LegacyAliasTest();
   void AliasTest();
@@ -158,29 +158,29 @@ void UserConfigTest::PreferredInterfacesTest()
   remove(conffile.c_str());
 }
 
-void UserConfigTest::ServiceFromLegacyStringTest()
-{
-  Arc::ConfigEndpoint service;
-  service = Arc::UserConfig::ServiceFromLegacyString("computing:ARC0:http://a.org");
-  CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::COMPUTINGINFO, service.type);
-  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapng", service.InterfaceName);
-
-  service = Arc::UserConfig::ServiceFromLegacyString("computing:ARC1:http://a.org");
-  CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::COMPUTINGINFO, service.type);
-  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.wsrfglue2", service.InterfaceName);
-
-  service = Arc::UserConfig::ServiceFromLegacyString("index:ARC0:http://a.org");
-  CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
-  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", service.InterfaceName);
-
-  service = Arc::UserConfig::ServiceFromLegacyString("index:EMIES:http://a.org");
-  CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
-  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.emir", service.InterfaceName);
-}
+// void UserConfigTest::ServiceFromLegacyStringTest()
+// {
+//   Arc::ConfigEndpoint service;
+//   service = Arc::UserConfig::ServiceFromLegacyString("computing:ARC0:http://a.org");
+//   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::COMPUTINGINFO, service.type);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapng", service.InterfaceName);
+// 
+//   service = Arc::UserConfig::ServiceFromLegacyString("computing:ARC1:http://a.org");
+//   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::COMPUTINGINFO, service.type);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.wsrfglue2", service.InterfaceName);
+// 
+//   service = Arc::UserConfig::ServiceFromLegacyString("index:ARC0:http://a.org");
+//   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", service.InterfaceName);
+// 
+//   service = Arc::UserConfig::ServiceFromLegacyString("index:EMIES:http://a.org");
+//   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.emir", service.InterfaceName);
+// }
 
 void UserConfigTest::LegacyDefaultServicesTest()
 {

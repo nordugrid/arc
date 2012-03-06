@@ -34,11 +34,11 @@ namespace Arc {
     std::string PreferredJobInterfaceName;
     
     operator bool() const {
-      return (URLString != "");
+      return (!URLString.empty());
     }
     
     bool operator!() const {
-      return (URLString == "");
+      return (!URLString.empty());
     }
     
   };
@@ -1062,7 +1062,6 @@ namespace Arc {
     
     const std::list<std::string>& RejectedURLs() const { return rejectedURLs; };
 
-    static ConfigEndpoint ServiceFromLegacyString(std::string);
 
     /// Path to ARC user home directory
     /**
@@ -1146,6 +1145,9 @@ namespace Arc {
 
     
   private:
+    
+    static ConfigEndpoint ServiceFromLegacyString(std::string);
+    
     void setDefaults();
     static bool makeDir(const std::string& path);
     static bool copyFile(const std::string& source,
