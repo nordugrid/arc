@@ -13,6 +13,8 @@
 
 #include "OpenSSL.h"
 
+#include <unistd.h>
+
 namespace Arc {
 
   static Glib::Mutex lock;

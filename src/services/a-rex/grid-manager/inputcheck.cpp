@@ -4,6 +4,7 @@
 
 #include <string>
 #include <list>
+#include <unistd.h>
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>

@@ -1,6 +1,7 @@
 // -*- indent-tabs-mode: nil -*-
 
 #include <string>
+#include <unistd.h>
 
 #include <cppunit/extensions/HelperMacros.h>
 

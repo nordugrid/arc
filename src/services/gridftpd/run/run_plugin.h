@@ -7,8 +7,6 @@
 #include <list>
 #include <pthread.h>
 
-extern char** environ;
-
 namespace gridftpd {
 
   class RunPlugin {

@@ -9,6 +9,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include <arc/Logger.h>
 #include <arc/Utils.h>

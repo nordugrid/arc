@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <pwd.h>
+#include <unistd.h>
 
 #include <arc/StringConv.h>
 #include <arc/Logger.h>

@@ -8,9 +8,6 @@
 #include <list>
 #include <pthread.h>
 
-extern char** environ;
-
-
 class RunPlugin {
  private:
   std::list<std::string> args_;

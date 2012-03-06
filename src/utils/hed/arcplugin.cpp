@@ -3,6 +3,7 @@
 #endif
 
 #include <fstream>
+#include <unistd.h>
 
 #include <glibmm/module.h>
 #include <glibmm/fileutils.h>

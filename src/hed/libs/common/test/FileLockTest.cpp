@@ -3,6 +3,7 @@
 #include <utime.h>
 #include <sys/stat.h>
 #include <sys/utsname.h>
+#include <unistd.h>
 #ifdef WIN32
 #include <Winsock2.h> // for gethostname()
 #endif

@@ -1,5 +1,6 @@
 #include <sys/stat.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <arc/credential/Credential.h>
 #include <arc/data/FileCache.h>

@@ -9,6 +9,8 @@
 #include <arc/StringConv.h>
 #include <arc/User.h>
 
+#include <unistd.h>
+
 namespace Arc {
 
   /**

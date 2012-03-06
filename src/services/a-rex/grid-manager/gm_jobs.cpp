@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <fstream>
 #include <pwd.h>
+#include <unistd.h>
 
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>

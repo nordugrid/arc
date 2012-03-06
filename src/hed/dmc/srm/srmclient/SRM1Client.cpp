@@ -8,6 +8,8 @@
 
 #include <arc/StringConv.h>
 
+#include <unistd.h>
+
 namespace Arc {
 
   SRM1Client::SRM1Client(const UserConfig& usercfg, const SRMURL& url)

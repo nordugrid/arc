@@ -6,6 +6,7 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/FileUtils.h>

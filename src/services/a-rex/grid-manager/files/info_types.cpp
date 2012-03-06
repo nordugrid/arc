@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
