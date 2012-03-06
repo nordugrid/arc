@@ -18,8 +18,8 @@ namespace Arc {
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
 
   ExecutionTarget::ExecutionTarget()
-    : Latitude(0),
-      Longitude(0),
+    : Location(),
+      ComputingEndpoint(),
       MaxWallTime(-1),
       MaxTotalWallTime(-1),
       MinWallTime(-1),
@@ -90,13 +90,7 @@ namespace Arc {
   void ExecutionTarget::Copy(const ExecutionTarget& target) {
 
     // Attributes from 5.3 Location
-
-    Address = target.Address;
-    Place = target.Place;
-    Country = target.Country;
-    PostCode = target.PostCode;
-    Latitude = target.Latitude;
-    Longitude = target.Longitude;
+    Location = target.Location;
 
     // Attributes from 5.5.1 Admin Domain
 
@@ -285,18 +279,18 @@ namespace Arc {
 
       out << std::endl << IString("Location information:") << std::endl;
 
-      if (!Address.empty())
-        out << IString(" Address: %s", Address) << std::endl;
-      if (!Place.empty())
-        out << IString(" Place: %s", Place) << std::endl;
-      if (!Country.empty())
-        out << IString(" Country: %s", Country) << std::endl;
-      if (!PostCode.empty())
-        out << IString(" Postal code: %s", PostCode) << std::endl;
-      if (Latitude != 0)
-        out << IString(" Latitude: %f", Latitude) << std::endl;
-      if (Longitude != 0)
-        out << IString(" Longitude: %f", Longitude) << std::endl;
+      if (!Location.Address.empty())
+        out << IString(" Address: %s", Location.Address) << std::endl;
+      if (!Location.Place.empty())
+        out << IString(" Place: %s", Location.Place) << std::endl;
+      if (!Location.Country.empty())
+        out << IString(" Country: %s", Location.Country) << std::endl;
+      if (!Location.PostCode.empty())
+        out << IString(" Postal code: %s", Location.PostCode) << std::endl;
+      if (Location.Latitude != 0)
+        out << IString(" Latitude: %f", Location.Latitude) << std::endl;
+      if (Location.Longitude != 0)
+        out << IString(" Longitude: %f", Location.Longitude) << std::endl;
 
       out << std::endl << IString("Domain information:") << std::endl;
 

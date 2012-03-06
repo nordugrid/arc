@@ -70,6 +70,18 @@ namespace Arc {
     std::list<std::string> JobDescriptions;
   };
 
+  class LocationType {
+  public:
+    LocationType() : Latitude(0), Longitude(0) {}
+
+    std::string Address;
+    std::string Place;
+    std::string Country;
+    std::string PostCode;
+    float Latitude;
+    float Longitude;
+  };
+
   /// ExecutionTarget
   /**
    * This class describe a target which accept computing jobs. All of the
@@ -179,13 +191,7 @@ namespace Arc {
     void SaveToStream(std::ostream& out, bool longlist) const;
 
     // Attributes from 5.3 Location
-
-    std::string Address;
-    std::string Place;
-    std::string Country;
-    std::string PostCode;
-    float Latitude;
-    float Longitude;
+    LocationType Location;
 
     // Attributes from 5.5.1 Admin Domain
 

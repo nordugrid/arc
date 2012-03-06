@@ -273,11 +273,11 @@ namespace Arc {
       if (Site["GlueSiteName"])
         target.DomainName = (std::string)Site["GlueSiteName"];
       if (Site["GlueSiteLocation"])
-        target.Place = (std::string)Site["GlueSiteLocation"];
+        target.Location.Place = (std::string)Site["GlueSiteLocation"];
       if (Site["GlueSiteLatitude"])
-        target.Latitude = stringtof(Site["GlueSiteLatitude"]);
+        target.Location.Latitude = stringtof(Site["GlueSiteLatitude"]);
       if (Site["GlueSiteLongitude"])
-        target.Longitude = stringtof(Site["GlueSiteLongitude"]);
+        target.Location.Longitude = stringtof(Site["GlueSiteLongitude"]);
       if (CE["GlueCEInfoContactString"])
         target.ComputingEndpoint.URLString = (std::string)CE["GlueCEInfoContactString"];
       if (CE["GlueCEImplementationName"]) {

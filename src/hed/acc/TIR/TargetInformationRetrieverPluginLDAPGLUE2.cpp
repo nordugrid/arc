@@ -42,7 +42,7 @@ namespace Arc {
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
       service.insert(pos3, ":2170");
-      
+
     return service;
   }
 
@@ -232,10 +232,10 @@ namespace Arc {
 
       // GFD.147 GLUE2 5.3 Location
       Extractor location = Extractor::First(service, "Location");
-      location.set("Address", target.Address);
-      location.set("Place", target.Place);
-      location.set("Country", target.Country);
-      location.set("PostCode", target.PostCode);
+      location.set("Address", target.Location.Address);
+      location.set("Place", target.Location.Place);
+      location.set("Country", target.Location.Country);
+      location.set("PostCode", target.Location.PostCode);
       // location.set("Latitude", target.Latitude);
       // location.set("Longitude", target.Longitude);
 

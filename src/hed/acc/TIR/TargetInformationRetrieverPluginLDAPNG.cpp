@@ -47,7 +47,7 @@ namespace Arc {
     }
     else if (pos2 == std::string::npos || pos2 > pos3)
       service.insert(pos3, ":2135");
-      
+
     return service;
   }
 
@@ -128,7 +128,7 @@ namespace Arc {
 
       // Location attributes
       if (cluster["nordugrid-cluster-location"])
-        target.PostCode = (std::string)cluster["nordugrid-cluster-location"];
+        target.Location.PostCode = (std::string)cluster["nordugrid-cluster-location"];
 
       // Admin Domain attributes
       if (cluster["nordugrid-cluster-aliasname"])
