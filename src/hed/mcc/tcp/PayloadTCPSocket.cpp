@@ -178,12 +178,17 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   if(handle_ == -1) return false;
   ssize_t l = size;
   size=0;
+  int flags = 0;
 #ifndef WIN32
   unsigned int events = POLLIN | POLLPRI | POLLERR;
   if(spoll(handle_,timeout_,events) != 1) return false;
   if(!(events & (POLLIN | POLLPRI))) return false; // Probably never happens
+  if(events & POLLPRI) {
+    logger.msg(WARNING, "Received message out-of-band");
+    flags = MSG_OOB;
+  }
 #endif
-  l=::recv(handle_,buf,l,0);
+  l=::recv(handle_,buf,l,flags);
   if(l == -1) return false;
   size=l;
 #ifndef WIN32
