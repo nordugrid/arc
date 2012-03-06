@@ -24,25 +24,21 @@ class JobSynchronizer : public Arc::EndpointConsumer<Arc::ServiceEndpoint> {
 public:
   JobSynchronizer(
     const Arc::UserConfig& uc,
+    const std::list<Arc::ServiceEndpoint>& services,
     const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
     const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Arc::ComputingInfoEndpoint::ComputingInfoCapability)
   ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>(true, capabilityFilter)),
       jlr(uc, Arc::EndpointQueryOptions<Arc::Job>(preferredInterfaceNames))
   {
-    const std::list<std::string>& selectedRegistries = uc.GetSelectedServices(Arc::INDEX);
-    const std::list<std::string>& selectedCEs = uc.GetSelectedServices(Arc::COMPUTING);
-
     ser.addConsumer(*this);
     jlr.addConsumer(jobs);
-
-    for (std::list<std::string>::const_iterator it = selectedRegistries.begin(); it != selectedRegistries.end(); it++) {
-      Arc::RegistryEndpoint registry(it->substr(it->find(":")+1));
-      ser.addEndpoint(registry);
-    }
-    for (std::list<std::string>::const_iterator it = selectedCEs.begin(); it != selectedCEs.end(); it++) {
-      Arc::ComputingInfoEndpoint ce;
-      ce.URLString = (it->substr(it->find(":")+1));
-      jlr.addEndpoint(ce);
+    
+    for (std::list<Arc::ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+      if (Arc::RegistryEndpoint::isRegistry(*it)) {
+        ser.addEndpoint(Arc::RegistryEndpoint(*it));
+      } else {
+        jlr.addEndpoint(Arc::ComputingInfoEndpoint(*it));
+      }
     }
   }
 
@@ -184,27 +180,24 @@ int RUNSYNC(main)(int argc, char **argv) {
     }
   }
 
-  if (!opt.clusters.empty() || !opt.indexurls.empty())
-    usercfg.ClearSelectedServices();
+  std::list<Arc::ServiceEndpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
 
-  if (!opt.clusters.empty())
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
-
-  if (!opt.indexurls.empty())
-    usercfg.AddServices(opt.indexurls, Arc::INDEX);
-
-  if (usercfg.GetSelectedServices(Arc::COMPUTING).empty() && usercfg.GetSelectedServices(Arc::INDEX).empty()) {
-    logger.msg(Arc::ERROR, "No services specified. Please set the \"defaultservices\" attribute in the "
-                           "client configuration, or specify a cluster or index (-c or -g options, see "
-                           "arcsync -h).");
+  if (endpoints.empty()) {
+    logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration,"
+                           "or specify a cluster or index (-c or -g options, see arcsync -h).");
     return 1;
   }
 
-  std::list<std::string> preferredInterfaceNames;
-  preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
-  preferredInterfaceNames.push_back("org.ogf.emies");
 
-  JobSynchronizer js(usercfg, preferredInterfaceNames);
+  std::list<std::string> preferredInterfaceNames;
+  if (usercfg.PreferredInfoInterface().empty()) {
+    preferredInterfaceNames.push_back("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.push_back("org.ogf.emies");
+  } else {
+    preferredInterfaceNames.push_back(usercfg.PreferredInfoInterface());
+  }
+
+  JobSynchronizer js(usercfg, endpoints, preferredInterfaceNames);
   js.wait();
   _exit(js.writeJobs(opt.truncate) == false); // true -> 0, false -> 1.
 }
