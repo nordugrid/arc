@@ -132,10 +132,10 @@ namespace Arc {
 
       // Admin Domain attributes
       if (cluster["nordugrid-cluster-aliasname"])
-        target.DomainName =
+        target.AdminDomain.Name =
           (std::string)cluster["nordugrid-cluster-aliasname"];
       if (cluster["nordugrid-cluster-owner"])
-        target.Owner = (std::string)cluster["nordugrid-cluster-owner"];
+        target.AdminDomain.Owner = (std::string)cluster["nordugrid-cluster-owner"];
 
       // Computing Service attributes
       if (cluster["nordugrid-cluster-name"])

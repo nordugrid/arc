@@ -93,9 +93,7 @@ namespace Arc {
     Location = target.Location;
 
     // Attributes from 5.5.1 Admin Domain
-
-    DomainName = target.DomainName;
-    Owner = target.Owner;
+    AdminDomain = target.AdminDomain;
 
     // Attributes from 6.1 Computing Service
 
@@ -294,8 +292,8 @@ namespace Arc {
 
       out << std::endl << IString("Domain information:") << std::endl;
 
-      if (!Owner.empty())
-        out << IString(" Owner: %s", Owner) << std::endl;
+      if (!AdminDomain.Owner.empty())
+        out << IString(" Owner: %s", AdminDomain.Owner) << std::endl;
 
       out << std::endl << IString("Service information:") << std::endl;
 

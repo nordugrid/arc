@@ -82,6 +82,12 @@ namespace Arc {
     float Longitude;
   };
 
+  class AdminDomainType {
+  public:
+    std::string Name;
+    std::string Owner;
+  };
+
   /// ExecutionTarget
   /**
    * This class describe a target which accept computing jobs. All of the
@@ -194,9 +200,7 @@ namespace Arc {
     LocationType Location;
 
     // Attributes from 5.5.1 Admin Domain
-
-    std::string DomainName;
-    std::string Owner;
+    AdminDomainType AdminDomain;
 
     // Attributes from 6.1 Computing Service
 

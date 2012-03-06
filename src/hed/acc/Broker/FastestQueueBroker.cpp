@@ -43,11 +43,11 @@ namespace Arc {
     while (iter != PossibleTargets.end()) {
       if ((*iter)->WaitingJobs == -1 || (*iter)->TotalSlots == -1 || (*iter)->FreeSlots == -1) {
         if ((*iter)->WaitingJobs == -1)
-          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", (*iter)->DomainName);
+          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", (*iter)->AdminDomain.Name);
         else if ((*iter)->TotalSlots == -1)
-          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of total slots", (*iter)->DomainName);
+          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of total slots", (*iter)->AdminDomain.Name);
         else if ((*iter)->FreeSlots == -1)
-          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of free slots", (*iter)->DomainName);
+          logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of free slots", (*iter)->AdminDomain.Name);
         iter = PossibleTargets.erase(iter);
         continue;
       }
@@ -57,7 +57,7 @@ namespace Arc {
     logger.msg(VERBOSE, "FastestQueueBroker will rank the following %d targets", PossibleTargets.size());
     iter = PossibleTargets.begin();
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
 
     //Sort the targets according to the number of waiting jobs (in % of the cluster size)
     PossibleTargets.sort(CompareExecutionTarget);
@@ -95,7 +95,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
 
     TargetSortingDone = true;
 

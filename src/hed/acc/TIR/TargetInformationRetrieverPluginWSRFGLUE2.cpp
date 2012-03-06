@@ -30,7 +30,7 @@ namespace Arc {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
       return ((proto != "http") && (proto != "https"));
     }
-    
+
     return false;
   }
 
@@ -44,7 +44,7 @@ namespace Arc {
     }
     // Default port other than 443?
     // Default path?
-    
+
     return service;
   }
 
@@ -68,7 +68,7 @@ namespace Arc {
     }
 
     ExtractTargets(url, servicesQueryResponse, etList);
-    
+
     if (!etList.empty()) s = EndpointQueryingStatus::SUCCESSFUL;
     return s;
   }
@@ -88,7 +88,7 @@ namespace Arc {
       t.ComputingEndpoint.InterfaceName = "BES";
       t.ComputingEndpoint.Implementor = "NorduGrid";
 
-      t.DomainName = url.Host();
+      t.AdminDomain.Name = url.Host();
 
       logger.msg(VERBOSE, "Generating A-REX target: %s", t.Cluster.str());
 

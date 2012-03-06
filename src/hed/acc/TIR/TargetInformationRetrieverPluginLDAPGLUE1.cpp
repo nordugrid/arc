@@ -271,7 +271,7 @@ namespace Arc {
         target.ServiceName = (std::string)Cluster["GlueClusterName"];
       }
       if (Site["GlueSiteName"])
-        target.DomainName = (std::string)Site["GlueSiteName"];
+        target.AdminDomain.Name = (std::string)Site["GlueSiteName"];
       if (Site["GlueSiteLocation"])
         target.Location.Place = (std::string)Site["GlueSiteLocation"];
       if (Site["GlueSiteLatitude"])

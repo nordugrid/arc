@@ -42,7 +42,7 @@ namespace Arc {
             break;
           }
         }
-  
+
         // If loop did not reach the end, target should be dropped.
         if (it != rejectTargets.end()) {
           logger.msg(VERBOSE, "Target (%s) was explicitly rejected.", target->ComputingEndpoint.URLString);
@@ -60,7 +60,7 @@ namespace Arc {
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++) {
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
       logger.msg(VERBOSE, "Health State: %s", (*iter)->ComputingEndpoint.HealthState);
     }
 

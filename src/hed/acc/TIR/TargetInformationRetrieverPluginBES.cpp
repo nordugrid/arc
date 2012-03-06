@@ -23,7 +23,7 @@ namespace Arc {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
       return ((proto != "http") && (proto != "https"));
     }
-    
+
     return false;
   }
 
@@ -37,7 +37,7 @@ namespace Arc {
     }
     // Default port other than 443?
     // Default path?
-    
+
     return service;
   }
 
@@ -56,7 +56,7 @@ namespace Arc {
     //if ( /* No service running at 'url' */ ) {
     // return s;
     //}
-    
+
 
     ExecutionTarget target;
     target.GridFlavour = "BES"; // TODO: Use interface name instead.
@@ -64,7 +64,7 @@ namespace Arc {
     target.ComputingEndpoint.URLString = url.str();
     //target.InterfaceName = flavour;
     target.ComputingEndpoint.Implementor = "NorduGrid";
-    target.DomainName = url.Host();
+    target.AdminDomain.Name = url.Host();
     target.ComputingEndpoint.HealthState = "ok";
 
     etList.push_back(target);

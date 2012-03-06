@@ -29,7 +29,7 @@ namespace Arc {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
       return ((proto != "http") && (proto != "https"));
     }
-    
+
     return false;
   }
 
@@ -41,7 +41,7 @@ namespace Arc {
       std::string proto = lower(service.substr(0,pos1));
       if((proto != "http") && (proto != "https")) return URL();
     }
-    
+
     return service;
   }
 
@@ -79,7 +79,7 @@ namespace Arc {
       if(!(target->Cluster)) target->Cluster = url;
       if(target->ComputingEndpoint.URLString.empty()) target->ComputingEndpoint.URLString = url;
       if(target->ComputingEndpoint.InterfaceName.empty()) target->ComputingEndpoint.InterfaceName = "EMI-ES"; // TODO: Specify correct interface name.
-      if(target->DomainName.empty()) target->DomainName = url.Host();
+      if(target->AdminDomain.Name.empty()) target->AdminDomain.Name = url.Host();
       logger.msg(VERBOSE, "Generated EMIES target: %s", target->Cluster.str());
     }
   }

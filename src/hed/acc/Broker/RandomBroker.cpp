@@ -32,7 +32,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Matching against job description, following targets possible for RandomBroker: %d", PossibleTargets.size());
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
 
     std::srand(time(NULL));
 
@@ -51,7 +51,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->DomainName, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
 
     TargetSortingDone = true;
   }

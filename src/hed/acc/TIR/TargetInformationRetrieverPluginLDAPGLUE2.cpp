@@ -241,8 +241,8 @@ namespace Arc {
 
       // GFD.147 GLUE2 5.5.1 Admin Domain
       Extractor domain = Extractor::First(document, "AdminDomain");
-      domain.set("EntityName", target.DomainName);
-      domain.set("Owner", target.Owner);
+      domain.set("EntityName", target.AdminDomain.Name);
+      domain.set("Owner", target.AdminDomain.Owner);
 
       // GFD.147 GLUE2 6.1 Computing Service
       service.set("EntityName", target.ServiceName);
