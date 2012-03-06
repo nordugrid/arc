@@ -187,7 +187,7 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   if(l == -1) return false;
   size=l;
 #ifndef WIN32
-  if((l == 0) && (events && POLLERR)) return false;
+  if((l == 0) && (events & POLLERR)) return false;
 #else
   if(l == 0) return false;
 #endif
