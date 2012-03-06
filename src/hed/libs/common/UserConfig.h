@@ -25,22 +25,21 @@ namespace Arc {
   class ConfigEndpoint {
   public:
     enum Type { REGISTRY, COMPUTINGINFO, ANY };
-    
+
     ConfigEndpoint(const std::string& URLString = "", const std::string& InterfaceName = "", ConfigEndpoint::Type type = ConfigEndpoint::ANY)
-      : URLString(URLString), InterfaceName(InterfaceName), type(type) {}
+      : type(type), URLString(URLString), InterfaceName(InterfaceName) {}
     Type type;
     std::string URLString;
-    std::string InterfaceName;  
+    std::string InterfaceName;
     std::string PreferredJobInterfaceName;
-    
+
     operator bool() const {
       return (!URLString.empty());
     }
-    
+
     bool operator!() const {
       return (!URLString.empty());
     }
-    
   };
 
   typedef std::list<std::string> ServiceList[2];
@@ -50,7 +49,7 @@ namespace Arc {
 
   /// Defines how user credentials are looked for.
   /**
-    * For complete information see description of 
+    * For complete information see description of
     *  UserConfig::InitializeCredentials(initializeCredentials)
     * method.
     **/
@@ -223,11 +222,11 @@ namespace Arc {
     /**
      * The location of the user credentials will be tried located when
      * calling this method and stored internally when found. The method
-     * searches in different locations. 
+     * searches in different locations.
      * Depending on value of initializeCredentials this method behaves
      * differently. Following is an explanation for RequireCredentials.
      * For less strict values see information below.
-     * First the user proxy or the user key/certificate pair is tried 
+     * First the user proxy or the user key/certificate pair is tried
      * located in the following order:
      * - Proxy path specified by the environment variable
      *   X509_USER_PROXY. If value is set and corresponding file does
@@ -236,7 +235,7 @@ namespace Arc {
      * - Current proxy path as passed to the contructor, explicitly set
      *   using the setter method ProxyPath(const std::string&) or read
      *   from configuration by constructor or LoadConfiguartionFile()
-     *   method. If value is set and corresponding file does not exist 
+     *   method. If value is set and corresponding file does not exist
      *   it considered to be an error and no other locations are tried.
      *   If found no more proxy paths are tried.
      * - Proxy path made of x509up_u token concatenated with the user
@@ -244,11 +243,11 @@ namespace Arc {
      *   an error if corresponding file does not exist and processing
      *   continues.
      * - Key/certificate paths specified by the environment variables
-     *   X509_USER_KEY and X509_USER_CERT. If values  are set and 
+     *   X509_USER_KEY and X509_USER_CERT. If values  are set and
      *   corresponding files do not exist it considered to be an error
      *   and no other locations are tried. Error message is supressed
      *   if proxy was previously found.
-     * - Current key/certificate paths passed to the contructor or 
+     * - Current key/certificate paths passed to the contructor or
      *   explicitly set using the setter methods KeyPath(const std::string&)
      *   and CertificatePath(const std::string&) or read from configuration
      *   by constructor or LoadConfiguartionFile() method. If values
@@ -273,10 +272,10 @@ namespace Arc {
      * - Path specified by the X509_CERT_DIR environment variable.
      *   It is an error if value is set and directory does not exist.
      * - Current path explicitly specified by using the setter method
-     *   CACertificatesDirectory() or read from configuration by 
+     *   CACertificatesDirectory() or read from configuration by
      *   constructor or LoadConfiguartionFile() method. It is an error
      *   if value is set and directory does not exist.
-     * - Path ~/.globus/certificates. It is not an error if it does 
+     * - Path ~/.globus/certificates. It is not an error if it does
      *   not exist.
      * - Path created by concatenating the ARC installation location
      *   and /etc/certificates. It is not an error if it does not exist.
@@ -291,7 +290,7 @@ namespace Arc {
      * errors through its Logger object and does not return false.
      *
      * If NotTryCredentials is used method does not check for presence of
-     * credentials. It behaves like if corresponding files are always 
+     * credentials. It behaves like if corresponding files are always
      * present.
      *
      * And in case of SkipCredentials method does nothing.
@@ -1039,10 +1038,10 @@ namespace Arc {
 
     ConfigEndpoint GetService(const std::string& alias);
 
-    std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);    
-    
+    std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+
     std::list<ConfigEndpoint> GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
-    
+
 
     const std::string& PreferredInfoInterface() const { return preferredinfointerface; };
 
@@ -1058,8 +1057,8 @@ namespace Arc {
       preferredjobinterface = preferredjobinterface_;
       return true;
     }
-    
-    
+
+
     const std::list<std::string>& RejectedURLs() const { return rejectedURLs; };
 
 
@@ -1119,7 +1118,7 @@ namespace Arc {
      * @see Broker() const
      **/
     static const std::string DEFAULT_BROKER;
-     
+
     static std::string GetInterfaceNameOfInfoInterface(std::string infointerface) {
       if (infointerface == "LDAPGLUE2") return "org.nordugrid.ldapglue2";
       if (infointerface == "LDAPGLUE1") return "org.nordugrid.ldapglue1";
@@ -1129,7 +1128,7 @@ namespace Arc {
       if (infointerface == "BES") return "org.ogf.bes";
       return "";
     }
-    
+
     static std::string GetInterfaceNameOfJobInterface(std::string jobinterface) {
       if (jobinterface == "GRIDFTPJOB") return "org.nordugrid.gridftpjob";
       if (jobinterface == "BES") return "org.nordugrid.xbes";
@@ -1143,11 +1142,11 @@ namespace Arc {
       return "";
     }
 
-    
+
   private:
-    
+
     static ConfigEndpoint ServiceFromLegacyString(std::string);
-    
+
     void setDefaults();
     static bool makeDir(const std::string& path);
     static bool copyFile(const std::string& source,
@@ -1157,9 +1156,9 @@ namespace Arc {
     bool ResolveAlias(ServiceList& services,
                       std::list<std::string>& resolvedAlias);
     bool CreateDefaultConfigurationFile() const;
-    
+
     std::list<ConfigEndpoint> FilterServices(const std::list<ConfigEndpoint>&, ConfigEndpoint::Type);
-    
+
 
     std::string joblistfile;
 
@@ -1172,7 +1171,7 @@ namespace Arc {
 
     ServiceList selectedServices;
     ServiceList rejectedServices;
-    
+
     std::list<ConfigEndpoint> defaultServices;
     std::map<std::string, ConfigEndpoint> allServices;
     std::map<std::string, std::list<ConfigEndpoint> > groupMap;
