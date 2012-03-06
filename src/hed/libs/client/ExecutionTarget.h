@@ -88,6 +88,12 @@ namespace Arc {
     std::string Owner;
   };
 
+  class ComputingServiceType {
+  public:
+    std::string Name;
+    std::string Type;
+  };
+
   /// ExecutionTarget
   /**
    * This class describe a target which accept computing jobs. All of the
@@ -203,9 +209,7 @@ namespace Arc {
     AdminDomainType AdminDomain;
 
     // Attributes from 6.1 Computing Service
-
-    std::string ServiceName;
-    std::string ServiceType;
+    ComputingServiceType ComputingService;
 
     // Attributes from 6.2 Computing Endpoint
 

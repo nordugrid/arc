@@ -268,7 +268,7 @@ namespace Arc {
       if (CE["GlueCEInfoJobManager"])
         target.MappingQueue = (std::string)CE["GlueCEInfoJobManager"];
       if (Cluster["GlueClusterName"]) {
-        target.ServiceName = (std::string)Cluster["GlueClusterName"];
+        target.ComputingService.Name = (std::string)Cluster["GlueClusterName"];
       }
       if (Site["GlueSiteName"])
         target.AdminDomain.Name = (std::string)Site["GlueSiteName"];

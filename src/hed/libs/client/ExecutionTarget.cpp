@@ -96,9 +96,7 @@ namespace Arc {
     AdminDomain = target.AdminDomain;
 
     // Attributes from 6.1 Computing Service
-
-    ServiceName = target.ServiceName;
-    ServiceType = target.ServiceType;
+    ComputingService = target.ComputingService;
 
     // Attributes from 6.2 Computing Endpoint
 
@@ -257,7 +255,7 @@ namespace Arc {
 
   void ExecutionTarget::SaveToStream(std::ostream& out, bool longlist) const {
 
-    out << IString("Execution Service: %s", (!ServiceName.empty() ? ServiceName : Cluster.Host())) << std::endl;
+    out << IString("Execution Service: %s", (!ComputingService.Name.empty() ? ComputingService.Name : Cluster.Host())) << std::endl;
     if (Cluster) {
       std::string formattedURL = Cluster.str();
       formattedURL.erase(std::remove(formattedURL.begin(), formattedURL.end(), ' '), formattedURL.end()); // Remove spaces.
@@ -297,10 +295,10 @@ namespace Arc {
 
       out << std::endl << IString("Service information:") << std::endl;
 
-      if (!ServiceName.empty())
-        out << IString(" Service name: %s", ServiceName) << std::endl;
-      if (!ServiceName.empty())
-        out << IString(" Service type: %s", ServiceType) << std::endl;
+      if (!ComputingService.Name.empty())
+        out << IString(" Service name: %s", ComputingService.Name) << std::endl;
+      if (!ComputingService.Type.empty())
+        out << IString(" Service type: %s", ComputingService.Type) << std::endl;
 
       out << std::endl << IString("Endpoint information:") << std::endl;
 

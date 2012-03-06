@@ -46,7 +46,7 @@ namespace Arc {
         targets.back().ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthStateInfo"];
       }
       if (GLUEService["Name"]) {
-        targets.back().ServiceName = (std::string)GLUEService["Name"];
+        targets.back().ComputingService.Name = (std::string)GLUEService["Name"];
       }
       if (xmlCENode["Capability"]) {
         for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
@@ -58,7 +58,7 @@ namespace Arc {
         }
       }
       if (GLUEService["Type"]) {
-        targets.back().ServiceType = (std::string)GLUEService["Type"];
+        targets.back().ComputingService.Type = (std::string)GLUEService["Type"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
       }
@@ -113,7 +113,7 @@ namespace Arc {
       if (xmlCENode["IssuerCA"]) {
         targets.back().ComputingEndpoint.IssuerCA = (std::string)xmlCENode["IssuerCA"];
       }
-      if (xmlCENode["TrustedCA"]) { 
+      if (xmlCENode["TrustedCA"]) {
         XMLNode n = xmlCENode["TrustedCA"];
         while (n) {
           targets.back().ComputingEndpoint.TrustedCA.push_back((std::string)n);
@@ -418,7 +418,7 @@ namespace Arc {
                     currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSFamily"],
                                                              (std::string)ExecutionEnvironment["OSName"],
                                                              (std::string)ExecutionEnvironment["OSVersion"]);
-                  } 
+                  }
                   else {
                     currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"],
                                                              (std::string)ExecutionEnvironment["OSVersion"]);

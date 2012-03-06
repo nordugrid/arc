@@ -245,8 +245,8 @@ namespace Arc {
       domain.set("Owner", target.AdminDomain.Owner);
 
       // GFD.147 GLUE2 6.1 Computing Service
-      service.set("EntityName", target.ServiceName);
-      service.set("ServiceType", target.ServiceType);
+      service.set("EntityName", target.ComputingService.Name);
+      service.set("ServiceType", target.ComputingService.Type);
 
       // GFD.147 GLUE2 6.2 ComputingEndpoint
       std::list<Extractor> endpoints = Extractor::All(service, "ComputingEndpoint");

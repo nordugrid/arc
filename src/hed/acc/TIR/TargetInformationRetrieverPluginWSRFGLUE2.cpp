@@ -116,7 +116,7 @@ namespace Arc {
         t.ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthStateInfo"];
       }
       if (GLUEService["Name"]) {
-        t.ServiceName = (std::string)GLUEService["Name"];
+        t.ComputingService.Name = (std::string)GLUEService["Name"];
       }
       if (xmlCENode["Capability"]) {
         for (XMLNode n = xmlCENode["Capability"]; n; ++n) {
@@ -128,7 +128,7 @@ namespace Arc {
         }
       }
       if (GLUEService["Type"]) {
-        t.ServiceType = (std::string)GLUEService["Type"];
+        t.ComputingService.Type = (std::string)GLUEService["Type"];
       } else {
         logger.msg(VERBOSE, "The Service doesn't advertise its Type.");
       }

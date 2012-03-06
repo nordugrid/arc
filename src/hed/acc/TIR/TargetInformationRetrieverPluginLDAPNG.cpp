@@ -139,8 +139,8 @@ namespace Arc {
 
       // Computing Service attributes
       if (cluster["nordugrid-cluster-name"])
-        target.ServiceName = (std::string)cluster["nordugrid-cluster-name"];
-      target.ServiceType = "org.nordugrid.arc-classic";
+        target.ComputingService.Name = (std::string)cluster["nordugrid-cluster-name"];
+      target.ComputingService.Type = "org.nordugrid.arc-classic";
 
       // Computing Endpoint attributes
       if (cluster["nordugrid-cluster-contactstring"])
