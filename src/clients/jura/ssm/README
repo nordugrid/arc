@@ -1,6 +1,13 @@
 
 This modified Python codes are part of the SSM that developed by APEL.
 
+Changelog:
+*Thu Mar 6 2012 Gabor Sziegti <szigeti@niif.hu>
+ -add license information
+
+*Mon Dec 19 2012 Gabor Szigeti <szigeti@niif.hu> 
+ -SSM 0.7 integration
+ 
 What kind of modification happend:
 -used sources and logs: ssm_master.py SecureStompMessenger.py EncryptUtils.py message_db.py ssm.cfg ssm.log.cfg
 -SecureStompMessenger.py:
