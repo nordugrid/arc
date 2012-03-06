@@ -80,14 +80,6 @@ int RUNRESUME(main)(int argc, char **argv) {
     return 1;
   }
 
-  if (!jobidentifiers.empty() || opt.all)
-    usercfg.ClearSelectedServices();
-
-  if (!opt.clusters.empty()) {
-    usercfg.ClearSelectedServices();
-    usercfg.AddServices(opt.clusters, Arc::COMPUTING);
-  }
-
   std::list<std::string> rejectClusters;
   splitendpoints(opt.clusters, rejectClusters);
   if (!usercfg.ResolveAliases(opt.clusters, Arc::COMPUTING) || !usercfg.ResolveAliases(rejectClusters, Arc::COMPUTING)) {
