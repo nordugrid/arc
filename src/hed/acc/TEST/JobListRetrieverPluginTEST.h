@@ -1,11 +1,11 @@
 #ifndef __ARC_JOBLISTRETRIEVERPLUGINTEST_H__
 #define __ARC_JOBLISTRETRIEVERPLUGINTEST_H__
 
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
-class JobListRetrieverPluginTEST : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
+class JobListRetrieverPluginTEST : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
 public:
   JobListRetrieverPluginTEST() { supportedInterfaces.push_back("org.nordugrid.jlrtest"); }
   ~JobListRetrieverPluginTEST() {}

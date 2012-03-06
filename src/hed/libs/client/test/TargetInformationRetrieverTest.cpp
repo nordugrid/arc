@@ -2,7 +2,7 @@
 
 #include <arc/client/Endpoint.h>
 #include <arc/UserConfig.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 #include <arc/client/ExecutionTarget.h>
 #include <arc/client/TestACCControl.h>
 
@@ -30,8 +30,8 @@ public:
 };
 
 void TargetInformationRetrieverTest::PluginLoading() {
-  Arc::EndpointRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget> l;
-  Arc::EndpointRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>* p = l.load("TEST");
+  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget> l;
+  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -42,8 +42,8 @@ void TargetInformationRetrieverTest::QueryTest() {
   Arc::TargetInformationRetrieverPluginTESTControl::delay = 1;
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
-  Arc::EndpointRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget> l;
-  Arc::EndpointRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>* p = l.load("TEST");
+  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget> l;
+  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

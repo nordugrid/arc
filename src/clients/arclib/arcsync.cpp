@@ -17,7 +17,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 #include <arc/client/Job.h>
 
 class JobSynchronizer : public Arc::EndpointConsumer<Arc::ServiceEndpoint> {

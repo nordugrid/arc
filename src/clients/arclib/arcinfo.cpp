@@ -14,7 +14,7 @@
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 #include "utils.h"
 

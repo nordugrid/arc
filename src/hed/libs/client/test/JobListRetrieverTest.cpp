@@ -3,7 +3,7 @@
 #include <arc/client/Endpoint.h>
 #include <arc/UserConfig.h>
 #include <arc/client/Job.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 #include <arc/client/TestACCControl.h>
 
 //static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "JobListRetrieverTest");
@@ -27,8 +27,8 @@ public:
 };
 
 void JobListRetrieverTest::PluginLoading() {
-  Arc::EndpointRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::Job> l;
-  Arc::EndpointRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::Job>* p = l.load("TEST");
+  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::Job> l;
+  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::Job>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -39,8 +39,8 @@ void JobListRetrieverTest::QueryTest() {
   Arc::JobListRetrieverPluginTESTControl::delay = 1;
   Arc::JobListRetrieverPluginTESTControl::status = sInitial;
 
-  Arc::EndpointRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::Job> l;
-  Arc::EndpointRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::Job>* p = l.load("TEST");
+  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::Job> l;
+  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::Job>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

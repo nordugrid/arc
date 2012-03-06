@@ -53,9 +53,9 @@ private:
 };
 
 template<typename T, typename S>
-class EndpointRetrieverPlugin : public Plugin {
+class EntityRetrieverPlugin : public Plugin {
 protected:
-  EndpointRetrieverPlugin() {};
+  EntityRetrieverPlugin() {};
 public:
   virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
   virtual bool isEndpointNotSupported(const T&) const = 0;
@@ -68,17 +68,17 @@ protected:
 };
 
 template<typename T, typename S>
-class EndpointRetrieverPluginLoader : public Loader {
+class EntityRetrieverPluginLoader : public Loader {
 public:
-  EndpointRetrieverPluginLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
-  ~EndpointRetrieverPluginLoader();
+  EntityRetrieverPluginLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
+  ~EntityRetrieverPluginLoader();
 
-  EndpointRetrieverPlugin<T, S>* load(const std::string& name);
+  EntityRetrieverPlugin<T, S>* load(const std::string& name);
   static std::list<std::string> getListOfPlugins();
-  const std::map<std::string, EndpointRetrieverPlugin<T, S> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
+  const std::map<std::string, EntityRetrieverPlugin<T, S> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
 
 protected:
-  std::map<std::string, EndpointRetrieverPlugin<T, S>*> plugins;
+  std::map<std::string, EntityRetrieverPlugin<T, S>*> plugins;
 
   static Logger logger;
 };
@@ -98,10 +98,10 @@ public:
 };
 
 template<typename T, typename S>
-class EndpointRetriever : public EndpointConsumer<T>, public EndpointConsumer<S> {
+class EntityRetriever : public EndpointConsumer<T>, public EndpointConsumer<S> {
 public:
-  EndpointRetriever(const UserConfig&, const EndpointQueryOptions<S>& options = EndpointQueryOptions<S>());
-  ~EndpointRetriever() { common->deactivate(); }
+  EntityRetriever(const UserConfig&, const EndpointQueryOptions<S>& options = EndpointQueryOptions<S>());
+  ~EntityRetriever() { common->deactivate(); }
 
   void wait() const { result.wait(); };
   //void waitForAll() const; // TODO: Make it possible to be nice and wait for all threads to finish.
@@ -120,9 +120,9 @@ protected:
   static void queryEndpoint(void *arg_);
 
   // Common configuration part
-  class Common : public EndpointRetrieverPluginLoader<T, S> {
+  class Common : public EntityRetrieverPluginLoader<T, S> {
   public:
-    Common(EndpointRetriever* t, const UserConfig& u) : EndpointRetrieverPluginLoader<T, S>(),
+    Common(EntityRetriever* t, const UserConfig& u) : EntityRetrieverPluginLoader<T, S>(),
       mutex(), t(t), uc(u) {};
     void deactivate(void) {
       mutex.lockExclusive();
@@ -147,11 +147,11 @@ protected:
     operator const UserConfig&(void) const { return uc; }
     const std::list<std::string>& getAvailablePlugins(void) const { return availablePlugins; }
     void setAvailablePlugins(const std::list<std::string>& newAvailablePlugins) { availablePlugins = newAvailablePlugins; }
-    EndpointRetriever* operator->(void) { return t; }
-    EndpointRetriever* operator*(void) { return t; }
+    EntityRetriever* operator->(void) { return t; }
+    EntityRetriever* operator*(void) { return t; }
   private:
     SharedMutex mutex;
-    EndpointRetriever* t;
+    EntityRetriever* t;
     const UserConfig uc;
     std::list<std::string> availablePlugins;
   };
@@ -218,17 +218,17 @@ protected:
 };
 
 
-typedef EndpointRetriever<RegistryEndpoint, ServiceEndpoint>             ServiceEndpointRetriever;
-typedef EndpointRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>       ServiceEndpointRetrieverPlugin;
-typedef EndpointRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint> ServiceEndpointRetrieverPluginLoader;
+typedef EntityRetriever<RegistryEndpoint, ServiceEndpoint>             ServiceEndpointRetriever;
+typedef EntityRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>       ServiceEndpointRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint> ServiceEndpointRetrieverPluginLoader;
 
-typedef EndpointRetriever<ComputingInfoEndpoint, ExecutionTarget>             TargetInformationRetriever;
-typedef EndpointRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget>       TargetInformationRetrieverPlugin;
-typedef EndpointRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget> TargetInformationRetrieverPluginLoader;
+typedef EntityRetriever<ComputingInfoEndpoint, ExecutionTarget>             TargetInformationRetriever;
+typedef EntityRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget>       TargetInformationRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget> TargetInformationRetrieverPluginLoader;
 
-typedef EndpointRetriever<ComputingInfoEndpoint, Job>             JobListRetriever;
-typedef EndpointRetrieverPlugin<ComputingInfoEndpoint, Job>       JobListRetrieverPlugin;
-typedef EndpointRetrieverPluginLoader<ComputingInfoEndpoint, Job> JobListRetrieverPluginLoader;
+typedef EntityRetriever<ComputingInfoEndpoint, Job>             JobListRetriever;
+typedef EntityRetrieverPlugin<ComputingInfoEndpoint, Job>       JobListRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<ComputingInfoEndpoint, Job> JobListRetrieverPluginLoader;
 
 
 class ExecutionTargetRetriever : public EndpointConsumer<ServiceEndpoint>, public EndpointContainer<ExecutionTarget> {

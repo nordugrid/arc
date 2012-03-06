@@ -2,7 +2,7 @@
 
 #include <arc/client/Endpoint.h>
 #include <arc/UserConfig.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 #include <arc/client/TestACCControl.h>
 
 class ServiceEndpointRetrieverTest
@@ -26,8 +26,8 @@ public:
 };
 
 void ServiceEndpointRetrieverTest::PluginLoading() {
-  Arc::EndpointRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
-  Arc::EndpointRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
+  Arc::EntityRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
+  Arc::EntityRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -38,8 +38,8 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 1;
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = sInitial;
 
-  Arc::EndpointRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
-  Arc::EndpointRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
+  Arc::EntityRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
+  Arc::EntityRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

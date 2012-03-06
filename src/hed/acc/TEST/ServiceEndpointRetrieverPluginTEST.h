@@ -1,7 +1,7 @@
 #ifndef __ARC_SERVICEENDPOINTRETRIEVERPLUGINTEST_H__
 #define __ARC_SERVICEENDPOINTRETRIEVERPLUGINTEST_H__
 
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 

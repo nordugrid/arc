@@ -4,13 +4,13 @@
 #define __ARC_JOBLISTRETRIEVERPLUGINWSRFBES_H__
 
 #include <arc/client/Job.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginWSRFBES : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginWSRFBES : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
     JobListRetrieverPluginWSRFBES() { supportedInterfaces.push_back("org.ogf.bes"); }
     virtual ~JobListRetrieverPluginWSRFBES() {}

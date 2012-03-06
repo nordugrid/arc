@@ -3,7 +3,7 @@
 #ifndef __ARC_TARGETINFORMATIONRETRIEVERLDAPGLUE1_H__
 #define __ARC_TARGETINFORMATIONRETRIEVERLDAPGLUE1_H__
 
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 

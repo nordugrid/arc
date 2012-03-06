@@ -4,13 +4,13 @@
 #define __ARC_JOBLISTRETRIEVERPLUGINEMIES_H__
 
 #include <arc/client/Job.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginEMIES : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginEMIES : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
     JobListRetrieverPluginEMIES() { supportedInterfaces.push_back("org.ogf.emies"); }
     virtual ~JobListRetrieverPluginEMIES() {}

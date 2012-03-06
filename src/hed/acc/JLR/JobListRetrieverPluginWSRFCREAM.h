@@ -4,13 +4,13 @@
 #define __ARC_JOBLISTRETRIEVERPLUGINWSRFCREAM_H__
 
 #include <arc/client/Job.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginWSRFCREAM : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginWSRFCREAM : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
     JobListRetrieverPluginWSRFCREAM() { supportedInterfaces.push_back("org.glite.wsrfcream"); }
     virtual ~JobListRetrieverPluginWSRFCREAM() {}

@@ -4,13 +4,13 @@
 #define __ARC_JOBLISTRETRIEVERPLUGINLDAPNG_H__
 
 #include <arc/client/Job.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginLDAPNG : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginLDAPNG : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
     JobListRetrieverPluginLDAPNG() { supportedInterfaces.push_back("org.nordugrid.ldapng"); }
     virtual ~JobListRetrieverPluginLDAPNG() {}

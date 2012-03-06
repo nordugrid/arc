@@ -4,13 +4,13 @@
 #define __ARC_JOBLISTRETRIEVERPLUGINWSRFGLUE2_H__
 
 #include <arc/client/Job.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 
 namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginWSRFGLUE2 : public EndpointRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginWSRFGLUE2 : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
   public:
     JobListRetrieverPluginWSRFGLUE2() { supportedInterfaces.push_back("org.nordugrid.wsrfglue2"); }
     virtual ~JobListRetrieverPluginWSRFGLUE2() {}

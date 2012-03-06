@@ -19,7 +19,7 @@
 #include <arc/client/JobSupervisor.h>
 #include <arc/client/EndpointQueryingStatus.h>
 #include <arc/client/TestACCControl.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 %}
 
 %template(JobControllerList) std::list<Arc::JobController *>;
@@ -127,9 +127,9 @@ std::ostream& getStdout() {
 #ifdef SWIGJAVA
 %rename(waitUntilDone) wait;
 #endif
-%include "../src/hed/libs/client/EndpointRetriever.h"
-%template(ServiceEndpointRetriever) Arc::EndpointRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
-%template(TargetInformationRetriever) Arc::EndpointRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
+%include "../src/hed/libs/client/EntityRetriever.h"
+%template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
+%template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
 %template(ServiceEndpointContainer) Arc::EndpointContainer<Arc::ServiceEndpoint>;
 %template(ExecutionTargetContainer) Arc::EndpointContainer<Arc::ExecutionTarget>;
 %template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::ServiceEndpoint>;

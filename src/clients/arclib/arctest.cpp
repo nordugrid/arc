@@ -20,7 +20,7 @@
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/Utils.h>
-#include <arc/client/EndpointRetriever.h>
+#include <arc/client/EntityRetriever.h>
 #include <arc/client/Job.h>
 #include <arc/client/Submitter.h>
 #include <arc/client/JobDescription.h>
