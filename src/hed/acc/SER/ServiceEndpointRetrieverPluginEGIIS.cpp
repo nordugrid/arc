@@ -17,7 +17,7 @@ namespace Arc {
 
   Logger ServiceEndpointRetrieverPluginEGIIS::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPlugin.EGIIS");
 
-  bool ServiceEndpointRetrieverPluginEGIIS::isEndpointNotSupported(const RegistryEndpoint& endpoint) const {
+  bool ServiceEndpointRetrieverPluginEGIIS::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
@@ -43,7 +43,7 @@ namespace Arc {
   }
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
-                                                                    const RegistryEndpoint& rEndpoint,
+                                                                    const Endpoint& rEndpoint,
                                                                     std::list<ServiceEndpoint>& seList,
                                                                     const EndpointQueryOptions<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);

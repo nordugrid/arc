@@ -10,14 +10,14 @@ namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginEMIES : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginEMIES : public JobListRetrieverPlugin {
   public:
     JobListRetrieverPluginEMIES() { supportedInterfaces.push_back("org.ogf.emies"); }
     virtual ~JobListRetrieverPluginEMIES() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginEMIES(); }
-    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
-    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+    virtual bool isEndpointNotSupported(const Endpoint&) const;
 
   private:
     static Logger logger;

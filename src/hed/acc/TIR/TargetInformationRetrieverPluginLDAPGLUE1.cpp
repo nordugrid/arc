@@ -19,7 +19,7 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginLDAPGLUE1::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.LDAPGLUE1");
 
-  bool TargetInformationRetrieverPluginLDAPGLUE1::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool TargetInformationRetrieverPluginLDAPGLUE1::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
@@ -46,7 +46,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE1::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPGLUE1::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(cie.URLString));

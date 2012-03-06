@@ -12,7 +12,7 @@ namespace Arc {
 
   Logger JobListRetrieverPluginWSRFBES::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFBES");
 
-  bool JobListRetrieverPluginWSRFBES::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool JobListRetrieverPluginWSRFBES::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -36,7 +36,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginWSRFBES::Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginWSRFBES::Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const {
     return EndpointQueryingStatus::FAILED;
   }
 

@@ -10,11 +10,11 @@ protected:
   ServiceEndpointRetrieverPluginTEST() { supportedInterfaces.push_back("org.nordugrid.sertest"); }
 public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
-                                       const RegistryEndpoint& registry,
+                                       const Endpoint& registry,
                                        std::list<ServiceEndpoint>& endpoints,
                                        const EndpointQueryOptions<ServiceEndpoint>& options) const;
   static Plugin* Instance(PluginArgument *arg);
-  virtual bool isEndpointNotSupported(const RegistryEndpoint& endpoint) const { return endpoint.URLString.empty(); }
+  virtual bool isEndpointNotSupported(const Endpoint& endpoint) const { return endpoint.URLString.empty(); }
 };
 
 }

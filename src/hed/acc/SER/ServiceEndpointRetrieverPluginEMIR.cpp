@@ -19,7 +19,7 @@ namespace Arc {
 
   Logger ServiceEndpointRetrieverPluginEMIR::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPlugin.EMIR");
 
-  bool ServiceEndpointRetrieverPluginEMIR::isEndpointNotSupported(const RegistryEndpoint& endpoint) const {
+  bool ServiceEndpointRetrieverPluginEMIR::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -46,7 +46,7 @@ namespace Arc {
   }
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
-                                                                   const RegistryEndpoint& rEndpoint,
+                                                                   const Endpoint& rEndpoint,
                                                                    std::list<ServiceEndpoint>& seList,
                                                                    const EndpointQueryOptions<ServiceEndpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);

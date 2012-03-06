@@ -20,7 +20,7 @@ class Logger;
 class SharedMutex;
 class SimpleCondition;
 class SimpleCounter;
-class ThreadedPointer<class T>;
+class ThreadedPointer<class Endpoint>;
 class UserConfig;
 
 template<typename T>
@@ -52,14 +52,14 @@ private:
   std::list<std::string> preferredInterfaceNames;
 };
 
-template<typename T, typename S>
+template<typename T>
 class EntityRetrieverPlugin : public Plugin {
 protected:
   EntityRetrieverPlugin() {};
 public:
   virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
-  virtual bool isEndpointNotSupported(const T&) const = 0;
-  virtual EndpointQueryingStatus Query(const UserConfig&, const T& rEndpoint, std::list<S>&, const EndpointQueryOptions<S>& options) const = 0;
+  virtual bool isEndpointNotSupported(const Endpoint&) const = 0;
+  virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint& rEndpoint, std::list<T>&, const EndpointQueryOptions<T>& options) const = 0;
 
   static const std::string kind;
 
@@ -67,62 +67,62 @@ protected:
   std::list<std::string> supportedInterfaces;
 };
 
-template<typename T, typename S>
+template<typename T>
 class EntityRetrieverPluginLoader : public Loader {
 public:
   EntityRetrieverPluginLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
   ~EntityRetrieverPluginLoader();
 
-  EntityRetrieverPlugin<T, S>* load(const std::string& name);
+  EntityRetrieverPlugin<T>* load(const std::string& name);
   static std::list<std::string> getListOfPlugins();
-  const std::map<std::string, EntityRetrieverPlugin<T, S> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
+  const std::map<std::string, EntityRetrieverPlugin<T> *>& GetTargetInformationRetrieverPlugins() const { return plugins; }
 
 protected:
-  std::map<std::string, EntityRetrieverPlugin<T, S>*> plugins;
+  std::map<std::string, EntityRetrieverPlugin<T> *> plugins;
 
   static Logger logger;
 };
 
 template<typename T>
-class EndpointConsumer {
+class EntityConsumer {
 public:
-  virtual ~EndpointConsumer() {}
-  virtual void addEndpoint(const T&) = 0;
+  virtual ~EntityConsumer() {}
+  virtual void addEntity(const T&) = 0;
 };
 
 template<typename T>
-class EndpointContainer : public EndpointConsumer<T>, public std::list<T> {
+class EntityContainer : public EntityConsumer<T>, public std::list<T> {
 public:
-  virtual ~EndpointContainer() {}
-  virtual void addEndpoint(const T& t) { push_back(t); }
+  virtual ~EntityContainer() {}
+  virtual void addEntity(const T& t) { push_back(t); }
 };
 
-template<typename T, typename S>
-class EntityRetriever : public EndpointConsumer<T>, public EndpointConsumer<S> {
+template<typename T>
+class EntityRetriever : public EntityConsumer<T> {
 public:
-  EntityRetriever(const UserConfig&, const EndpointQueryOptions<S>& options = EndpointQueryOptions<S>());
+  EntityRetriever(const UserConfig&, const EndpointQueryOptions<T>& options = EndpointQueryOptions<T>());
   ~EntityRetriever() { common->deactivate(); }
 
   void wait() const { result.wait(); };
   //void waitForAll() const; // TODO: Make it possible to be nice and wait for all threads to finish.
   bool isDone() const { return result.wait(0); };
 
-  void addConsumer(EndpointConsumer<S>& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); };
-  void removeConsumer(const EndpointConsumer<S>&);
+  void addConsumer(EntityConsumer<T>& c) { consumerLock.lock(); consumers.push_back(&c); consumerLock.unlock(); };
+  void removeConsumer(const EntityConsumer<T>&);
 
-  EndpointQueryingStatus getStatusOfEndpoint(const T&) const;
-  bool setStatusOfEndpoint(const T&, const EndpointQueryingStatus&, bool overwrite = true);
+  EndpointQueryingStatus getStatusOfEndpoint(const Endpoint&) const;
+  bool setStatusOfEndpoint(const Endpoint&, const EndpointQueryingStatus&, bool overwrite = true);
 
-  virtual void addEndpoint(const S&);
-  virtual void addEndpoint(const T&);
+  virtual void addEntity(const T&);
+  virtual void addEndpoint(const Endpoint&);
 
 protected:
   static void queryEndpoint(void *arg_);
 
   // Common configuration part
-  class Common : public EntityRetrieverPluginLoader<T, S> {
+  class Common : public EntityRetrieverPluginLoader<T> {
   public:
-    Common(EntityRetriever* t, const UserConfig& u) : EntityRetrieverPluginLoader<T, S>(),
+    Common(EntityRetriever* t, const UserConfig& u) : EntityRetrieverPluginLoader<T>(),
       mutex(), t(t), uc(u) {};
     void deactivate(void) {
       mutex.lockExclusive();
@@ -194,23 +194,23 @@ protected:
 
   class ThreadArg {
   public:
-    ThreadArg(const ThreadedPointer<Common>& common, Result& result, const T& endpoint, const EndpointQueryOptions<S>& options) : common(common), result(result), endpoint(endpoint), options(options) {};
+    ThreadArg(const ThreadedPointer<Common>& common, Result& result, const Endpoint& endpoint, const EndpointQueryOptions<T>& options) : common(common), result(result), endpoint(endpoint), options(options) {};
     ThreadArg(const ThreadArg& v, Result& result) : common(v.common), result(result), endpoint(v.endpoint), pluginName(v.pluginName), options(options) {};
     // Objects for communication with caller
     ThreadedPointer<Common> common;
     Result result;
     // Per-thread parameters
-    T endpoint;
+    Endpoint endpoint;
     std::string pluginName;
-    EndpointQueryOptions<S> options;
+    EndpointQueryOptions<T> options;
   };
 
-  std::map<T, EndpointQueryingStatus> statuses;
+  std::map<Endpoint, EndpointQueryingStatus> statuses;
 
   static Logger logger;
   const UserConfig& uc;
-  std::list< EndpointConsumer<S>* > consumers;
-  EndpointQueryOptions<S> options;
+  std::list< EntityConsumer<T>* > consumers;
+  EndpointQueryOptions<T> options;
 
   mutable SimpleCondition consumerLock;
   mutable SimpleCondition statusLock;
@@ -218,20 +218,20 @@ protected:
 };
 
 
-typedef EntityRetriever<RegistryEndpoint, ServiceEndpoint>             ServiceEndpointRetriever;
-typedef EntityRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>       ServiceEndpointRetrieverPlugin;
-typedef EntityRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint> ServiceEndpointRetrieverPluginLoader;
+typedef EntityRetriever<ServiceEndpoint>             ServiceEndpointRetriever;
+typedef EntityRetrieverPlugin<ServiceEndpoint>       ServiceEndpointRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<ServiceEndpoint> ServiceEndpointRetrieverPluginLoader;
 
-typedef EntityRetriever<ComputingInfoEndpoint, ExecutionTarget>             TargetInformationRetriever;
-typedef EntityRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget>       TargetInformationRetrieverPlugin;
-typedef EntityRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget> TargetInformationRetrieverPluginLoader;
+typedef EntityRetriever<ExecutionTarget>             TargetInformationRetriever;
+typedef EntityRetrieverPlugin<ExecutionTarget>       TargetInformationRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<ExecutionTarget> TargetInformationRetrieverPluginLoader;
 
-typedef EntityRetriever<ComputingInfoEndpoint, Job>             JobListRetriever;
-typedef EntityRetrieverPlugin<ComputingInfoEndpoint, Job>       JobListRetrieverPlugin;
-typedef EntityRetrieverPluginLoader<ComputingInfoEndpoint, Job> JobListRetrieverPluginLoader;
+typedef EntityRetriever<Job>             JobListRetriever;
+typedef EntityRetrieverPlugin<Job>       JobListRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
 
 
-class ExecutionTargetRetriever : public EndpointConsumer<ServiceEndpoint>, public EndpointContainer<ExecutionTarget> {
+class ExecutionTargetRetriever : public EntityConsumer<ServiceEndpoint>, public EntityContainer<ExecutionTarget> {
 public:
   ExecutionTargetRetriever(
     const UserConfig& uc,
@@ -243,7 +243,7 @@ public:
 
   void wait() { ser.wait(); tir.wait(); }
 
-  void addEndpoint(const ServiceEndpoint& service);
+  void addEntity(const ServiceEndpoint& service);
 
 private:
   ServiceEndpointRetriever ser;

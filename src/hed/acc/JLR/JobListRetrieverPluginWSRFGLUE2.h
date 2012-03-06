@@ -10,14 +10,14 @@ namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginWSRFGLUE2 : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginWSRFGLUE2 : public JobListRetrieverPlugin {
   public:
     JobListRetrieverPluginWSRFGLUE2() { supportedInterfaces.push_back("org.nordugrid.wsrfglue2"); }
     virtual ~JobListRetrieverPluginWSRFGLUE2() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFGLUE2(); }
-    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
-    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const;
+    virtual bool isEndpointNotSupported(const Endpoint&) const;
 
   private:
     static Logger logger;

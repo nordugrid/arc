@@ -20,10 +20,10 @@ public:
 
   static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEGIIS(); }
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
-                                       const RegistryEndpoint& rEndpoint,
+                                       const Endpoint& rEndpoint,
                                        std::list<ServiceEndpoint>&,
                                        const EndpointQueryOptions<ServiceEndpoint>&) const;
-  virtual bool isEndpointNotSupported(const RegistryEndpoint&) const;
+  virtual bool isEndpointNotSupported(const Endpoint&) const;
 
 private:
   static Logger logger;

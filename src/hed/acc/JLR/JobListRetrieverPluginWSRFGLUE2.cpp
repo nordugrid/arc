@@ -14,7 +14,7 @@ namespace Arc {
 
   Logger JobListRetrieverPluginWSRFGLUE2::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFGLUE2");
 
-  bool JobListRetrieverPluginWSRFGLUE2::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool JobListRetrieverPluginWSRFGLUE2::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -38,7 +38,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(endpoint.URLString));

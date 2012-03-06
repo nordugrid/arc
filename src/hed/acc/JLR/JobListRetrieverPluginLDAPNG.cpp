@@ -19,7 +19,7 @@ namespace Arc {
 
   Logger JobListRetrieverPluginLDAPNG::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.LDAPNG");
 
-  bool JobListRetrieverPluginLDAPNG::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool JobListRetrieverPluginLDAPNG::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
@@ -45,7 +45,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginLDAPNG::Query(const UserConfig& uc, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(endpoint.URLString));

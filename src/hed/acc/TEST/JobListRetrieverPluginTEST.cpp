@@ -11,7 +11,7 @@
 namespace Arc {
 
 EndpointQueryingStatus JobListRetrieverPluginTEST::Query(const UserConfig&,
-                                                          const ComputingInfoEndpoint&,
+                                                          const Endpoint&,
                                                           std::list<Job>& jobs,
                                                           const EndpointQueryOptions<Job>&) const {
   Glib::usleep(JobListRetrieverPluginTESTControl::delay*1000000);

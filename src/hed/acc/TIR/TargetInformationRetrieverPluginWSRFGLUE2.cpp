@@ -24,7 +24,7 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginWSRFGLUE2::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.WSRFGLUE2");
 
-  bool TargetInformationRetrieverPluginWSRFGLUE2::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool TargetInformationRetrieverPluginWSRFGLUE2::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -48,7 +48,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginWSRFGLUE2::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     logger.msg(DEBUG, "Querying WSRF GLUE2 computing info endpoint.");

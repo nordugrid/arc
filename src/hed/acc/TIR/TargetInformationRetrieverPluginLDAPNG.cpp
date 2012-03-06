@@ -25,7 +25,7 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginLDAPNG::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.LDAPNG");
 
-  bool TargetInformationRetrieverPluginLDAPNG::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool TargetInformationRetrieverPluginLDAPNG::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
@@ -52,7 +52,7 @@ namespace Arc {
   }
 
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPNG::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginLDAPNG::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     //Query ARIS for all relevant information

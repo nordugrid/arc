@@ -10,14 +10,14 @@ namespace Arc {
 
   class Logger;
 
-  class JobListRetrieverPluginWSRFCREAM : public EntityRetrieverPlugin<ComputingInfoEndpoint, Job> {
+  class JobListRetrieverPluginWSRFCREAM : public JobListRetrieverPlugin {
   public:
     JobListRetrieverPluginWSRFCREAM() { supportedInterfaces.push_back("org.glite.wsrfcream"); }
     virtual ~JobListRetrieverPluginWSRFCREAM() {}
 
     static Plugin* Instance(PluginArgument *arg) { return new JobListRetrieverPluginWSRFCREAM(); }
-    virtual EndpointQueryingStatus Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const; // No implementation in cpp file -- returns EndpointQueryingStatus::FAILED.
-    virtual bool isEndpointNotSupported(const ComputingInfoEndpoint&) const;
+    virtual EndpointQueryingStatus Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const; // No implementation in cpp file -- returns EndpointQueryingStatus::FAILED.
+    virtual bool isEndpointNotSupported(const Endpoint&) const;
 
   private:
     static Logger logger;

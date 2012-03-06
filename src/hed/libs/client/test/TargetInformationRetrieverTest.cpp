@@ -30,8 +30,8 @@ public:
 };
 
 void TargetInformationRetrieverTest::PluginLoading() {
-  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget> l;
-  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>* p = l.load("TEST");
+  Arc::TargetInformationRetrieverPluginLoader l;
+  Arc::TargetInformationRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -42,8 +42,8 @@ void TargetInformationRetrieverTest::QueryTest() {
   Arc::TargetInformationRetrieverPluginTESTControl::delay = 1;
   Arc::TargetInformationRetrieverPluginTESTControl::status = sInitial;
 
-  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget> l;
-  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>* p = l.load("TEST");
+  Arc::TargetInformationRetrieverPluginLoader l;
+  Arc::TargetInformationRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

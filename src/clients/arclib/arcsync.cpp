@@ -20,7 +20,7 @@
 #include <arc/client/EntityRetriever.h>
 #include <arc/client/Job.h>
 
-class JobSynchronizer : public Arc::EndpointConsumer<Arc::ServiceEndpoint> {
+class JobSynchronizer : public Arc::EntityConsumer<Arc::ServiceEndpoint> {
 public:
   JobSynchronizer(
     const Arc::UserConfig& uc,
@@ -47,7 +47,7 @@ public:
     jlr.wait();
   }
 
-  void addEndpoint(const Arc::ServiceEndpoint& service) {
+  void addEntity(const Arc::ServiceEndpoint& service) {
     if (Arc::ComputingInfoEndpoint::isComputingInfo(service)) {
       jlr.addEndpoint(Arc::ComputingInfoEndpoint(service));
     }
@@ -108,7 +108,7 @@ private:
   const Arc::UserConfig& uc;
   Arc::ServiceEndpointRetriever ser;
   Arc::JobListRetriever jlr;
-  Arc::EndpointContainer<Arc::Job> jobs;
+  Arc::EntityContainer<Arc::Job> jobs;
 };
 
 #include "utils.h"

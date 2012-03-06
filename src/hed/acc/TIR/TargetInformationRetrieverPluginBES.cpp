@@ -17,7 +17,7 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginBES::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.BES");
 
-  bool TargetInformationRetrieverPluginBES::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool TargetInformationRetrieverPluginBES::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -41,7 +41,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginBES::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginBES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
     // Return FAILED while the implementation is not complete
     return s;

@@ -128,10 +128,10 @@ std::ostream& getStdout() {
 %rename(waitUntilDone) wait;
 #endif
 %include "../src/hed/libs/client/EntityRetriever.h"
-%template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::RegistryEndpoint, Arc::ServiceEndpoint>;
-%template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ComputingInfoEndpoint, Arc::ExecutionTarget>;
-%template(ServiceEndpointContainer) Arc::EndpointContainer<Arc::ServiceEndpoint>;
-%template(ExecutionTargetContainer) Arc::EndpointContainer<Arc::ExecutionTarget>;
+%template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::ServiceEndpoint>;
+%template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ExecutionTarget>;
+%template(ServiceEndpointContainer) Arc::EntityContainer<Arc::ServiceEndpoint>;
+%template(ExecutionTargetContainer) Arc::EntityContainer<Arc::ExecutionTarget>;
 %template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::ServiceEndpoint>;
 %template(ExecutionTargetQueryOptions) Arc::EndpointQueryOptions<Arc::ExecutionTarget>;
 

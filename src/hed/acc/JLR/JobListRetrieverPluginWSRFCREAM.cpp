@@ -12,7 +12,7 @@ namespace Arc {
 
   Logger JobListRetrieverPluginWSRFCREAM::logger(Logger::getRootLogger(), "JobListRetrieverPlugin.WSRFCREAM");
 
-  bool JobListRetrieverPluginWSRFCREAM::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool JobListRetrieverPluginWSRFCREAM::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     return pos != std::string::npos && lower(endpoint.URLString.substr(0, pos)) != "ldap";
   }
@@ -39,7 +39,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus JobListRetrieverPluginWSRFCREAM::Query(const UserConfig&, const ComputingInfoEndpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const {
+  EndpointQueryingStatus JobListRetrieverPluginWSRFCREAM::Query(const UserConfig&, const Endpoint&, std::list<Job>&, const EndpointQueryOptions<Job>&) const {
     return EndpointQueryingStatus::FAILED;
   }
 

@@ -26,8 +26,8 @@ public:
 };
 
 void ServiceEndpointRetrieverTest::PluginLoading() {
-  Arc::EntityRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
-  Arc::EntityRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
+  Arc::ServiceEndpointRetrieverPluginLoader l;
+  Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -38,8 +38,8 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 1;
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = sInitial;
 
-  Arc::EntityRetrieverPluginLoader<Arc::RegistryEndpoint, Arc::ServiceEndpoint> l;
-  Arc::EntityRetrieverPlugin<Arc::RegistryEndpoint, Arc::ServiceEndpoint>* p = l.load("TEST");
+  Arc::ServiceEndpointRetrieverPluginLoader l;
+  Arc::ServiceEndpointRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;
@@ -53,7 +53,7 @@ void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::UserConfig uc;
   Arc::ServiceEndpointRetriever retriever(uc);
 
-  Arc::EndpointContainer<Arc::ServiceEndpoint> container;
+  Arc::EntityContainer<Arc::ServiceEndpoint> container;
   retriever.addConsumer(container);
   CPPUNIT_ASSERT(container.empty());
 

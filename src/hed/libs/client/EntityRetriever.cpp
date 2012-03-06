@@ -10,18 +10,18 @@
 
 namespace Arc {
 
-  template<typename T, typename S>
-  EntityRetrieverPluginLoader<T, S>::~EntityRetrieverPluginLoader() {
-    for (typename std::map<std::string, EntityRetrieverPlugin<T, S> *>::iterator it = plugins.begin();
+  template<typename T>
+  EntityRetrieverPluginLoader<T>::~EntityRetrieverPluginLoader() {
+    for (typename std::map<std::string, EntityRetrieverPlugin<T> *>::iterator it = plugins.begin();
          it != plugins.end(); it++) {
       delete it->second;
     }
   }
 
-  template<typename T, typename S>
-  EntityRetrieverPlugin<T, S>* EntityRetrieverPluginLoader<T, S>::load(const std::string& name) {
+  template<typename T>
+  EntityRetrieverPlugin<T>* EntityRetrieverPluginLoader<T>::load(const std::string& name) {
     if (plugins.find(name) != plugins.end()) {
-      logger.msg(DEBUG, "Found %s %s (it was loaded already)", EntityRetrieverPlugin<T, S>::kind, name);
+      logger.msg(DEBUG, "Found %s %s (it was loaded already)", EntityRetrieverPlugin<T>::kind, name);
       return plugins[name];
     }
 
@@ -29,31 +29,31 @@ namespace Arc {
       return NULL;
     }
 
-    if(!factory_->load(FinderLoader::GetLibrariesList(), EntityRetrieverPlugin<T, S>::kind, name)) {
+    if(!factory_->load(FinderLoader::GetLibrariesList(), EntityRetrieverPlugin<T>::kind, name)) {
       logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for %s plugin is installed", name, name);
-      logger.msg(DEBUG, "%s plugin \"%s\" not found.", EntityRetrieverPlugin<T, S>::kind, name, name);
+      logger.msg(DEBUG, "%s plugin \"%s\" not found.", EntityRetrieverPlugin<T>::kind, name, name);
       return NULL;
     }
 
-     EntityRetrieverPlugin<T, S> *p = factory_->GetInstance< EntityRetrieverPlugin<T, S> >(EntityRetrieverPlugin<T, S>::kind, name, NULL, false);
+     EntityRetrieverPlugin<T> *p = factory_->GetInstance< EntityRetrieverPlugin<T> >(EntityRetrieverPlugin<T>::kind, name, NULL, false);
 
     if (!p) {
       logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
-      logger.msg(DEBUG, "%s %s could not be created.", EntityRetrieverPlugin<T, S>::kind, name, name);
+      logger.msg(DEBUG, "%s %s could not be created.", EntityRetrieverPlugin<T>::kind, name, name);
       return NULL;
     }
 
     plugins[name] = p;
-    logger.msg(DEBUG, "Loaded %s %s", EntityRetrieverPlugin<T, S>::kind, name);
+    logger.msg(DEBUG, "Loaded %s %s", EntityRetrieverPlugin<T>::kind, name);
     return p;
   }
 
-  template<typename T, typename S>
-  std::list<std::string> EntityRetrieverPluginLoader<T, S>::getListOfPlugins() {
+  template<typename T>
+  std::list<std::string> EntityRetrieverPluginLoader<T>::getListOfPlugins() {
     std::list<ModuleDesc> modules;
     PluginsFactory factory(BaseConfig().MakeConfig(Config()).Parent());
     factory.scan(FinderLoader::GetLibrariesList(), modules);
-    PluginsFactory::FilterByKind(EntityRetrieverPlugin<T, S>::kind, modules);
+    PluginsFactory::FilterByKind(EntityRetrieverPlugin<T>::kind, modules);
     std::list<std::string> names;
     for (std::list<ModuleDesc>::const_iterator it = modules.begin(); it != modules.end(); it++) {
       for (std::list<PluginDesc>::const_iterator it2 = it->plugins.begin(); it2 != it->plugins.end(); it2++) {
@@ -63,8 +63,8 @@ namespace Arc {
     return names;
   }
 
-  template<typename T, typename S>
-  EntityRetriever<T, S>::EntityRetriever(const UserConfig& uc, const EndpointQueryOptions<S>& options)
+  template<typename T>
+  EntityRetriever<T>::EntityRetriever(const UserConfig& uc, const EndpointQueryOptions<T>& options)
     : common(new Common(this, uc)),
       result(),
       uc(uc),
@@ -75,7 +75,7 @@ namespace Arc {
 
     // Map supported interfaces to available plugins.
     for (std::list<std::string>::iterator itT = availablePlugins.begin(); itT != availablePlugins.end();) {
-      EntityRetrieverPlugin<T, S>* p = common->load(*itT);
+      EntityRetrieverPlugin<T>* p = common->load(*itT);
 
       if (!p) {
         itT = availablePlugins.erase(itT);
@@ -107,18 +107,18 @@ namespace Arc {
     common->setAvailablePlugins(availablePlugins);
   }
 
-  template<typename T, typename S>
-  void EntityRetriever<T, S>::removeConsumer(const EndpointConsumer<S>& consumer) {
+  template<typename T>
+  void EntityRetriever<T>::removeConsumer(const EntityConsumer<T>& consumer) {
     consumerLock.lock();
-    typename std::list< EndpointConsumer<S>* >::iterator it = std::find(consumers.begin(), consumers.end(), &consumer);
+    typename std::list< EntityConsumer<T>* >::iterator it = std::find(consumers.begin(), consumers.end(), &consumer);
     if (it != consumers.end()) {
       consumers.erase(it);
     }
     consumerLock.unlock();
   }
 
-  template<typename T, typename S>
-  void EntityRetriever<T, S>::addEndpoint(const T& endpoint) {
+  template<typename T>
+  void EntityRetriever<T>::addEndpoint(const Endpoint& endpoint) {
     std::map<std::string, std::string>::const_iterator itPluginName = interfacePluginMap.end();
     if (!endpoint.InterfaceName.empty()) {
       itPluginName = interfacePluginMap.find(endpoint.InterfaceName);
@@ -143,17 +143,17 @@ namespace Arc {
     }
   }
 
-  template<typename T, typename S>
-  void EntityRetriever<T, S>::addEndpoint(const S& s) {
+  template<typename T>
+  void EntityRetriever<T>::addEntity(const T& entity) {
     consumerLock.lock();
-    for (typename std::list< EndpointConsumer<S>* >::iterator it = consumers.begin(); it != consumers.end(); it++) {
-      (*it)->addEndpoint(s);
+    for (typename std::list< EntityConsumer<T>* >::iterator it = consumers.begin(); it != consumers.end(); it++) {
+      (*it)->addEntity(entity);
     }
     consumerLock.unlock();
   }
 
   template<>
-  void EntityRetriever<RegistryEndpoint, ServiceEndpoint>::addEndpoint(const ServiceEndpoint& endpoint) {
+  void EntityRetriever<ServiceEndpoint>::addEntity(const ServiceEndpoint& endpoint) {
     // Check if the service is among the rejected ones
     const std::list<std::string>& rejectedServices = options.getRejectedServices();
     URL url(endpoint.URLString);
@@ -165,7 +165,7 @@ namespace Arc {
     if (options.recursiveEnabled() && RegistryEndpoint::isRegistry(endpoint)) {
       RegistryEndpoint registry(endpoint);
       logger.msg(DEBUG, "Found a registry, will query it recursively: %s", registry.str());
-      EntityRetriever<RegistryEndpoint, ServiceEndpoint>::addEndpoint(registry);
+      EntityRetriever<ServiceEndpoint>::addEndpoint(registry);
     }
 
     bool match = false;
@@ -177,18 +177,18 @@ namespace Arc {
     }
     if (options.getCapabilityFilter().empty() || match) {
       consumerLock.lock();
-      for (std::list<EndpointConsumer<ServiceEndpoint>*>::iterator it = consumers.begin(); it != consumers.end(); it++) {
-        (*it)->addEndpoint(endpoint);
+      for (std::list<EntityConsumer<ServiceEndpoint>*>::iterator it = consumers.begin(); it != consumers.end(); it++) {
+        (*it)->addEntity(endpoint);
       }
       consumerLock.unlock();
     }
   }
 
-  template<typename T, typename S>
-  EndpointQueryingStatus EntityRetriever<T, S>::getStatusOfEndpoint(const T& endpoint) const {
+  template<typename T>
+  EndpointQueryingStatus EntityRetriever<T>::getStatusOfEndpoint(const Endpoint& endpoint) const {
     statusLock.lock();
     EndpointQueryingStatus status(EndpointQueryingStatus::UNKNOWN);
-    typename std::map<T, EndpointQueryingStatus>::const_iterator it = statuses.find(endpoint);
+    typename std::map<Endpoint, EndpointQueryingStatus>::const_iterator it = statuses.find(endpoint);
     if (it != statuses.end()) {
       status = it->second;
     }
@@ -196,8 +196,8 @@ namespace Arc {
     return status;
   }
 
-  template<typename T, typename S>
-  bool EntityRetriever<T, S>::setStatusOfEndpoint(const T& endpoint, const EndpointQueryingStatus& status, bool overwrite) {
+  template<typename T>
+  bool EntityRetriever<T>::setStatusOfEndpoint(const Endpoint& endpoint, const EndpointQueryingStatus& status, bool overwrite) {
     statusLock.lock();
     bool wasSet = false;
     if (overwrite || (statuses.find(endpoint) == statuses.end())) {
@@ -209,8 +209,8 @@ namespace Arc {
     return wasSet;
   };
 
-  template<typename T, typename S>
-  void EntityRetriever<T, S>::queryEndpoint(void *arg) {
+  template<typename T>
+  void EntityRetriever<T>::queryEndpoint(void *arg) {
     AutoPointer<ThreadArg> a((ThreadArg*)arg);
     ThreadedPointer<Common>& common = a->common;
     bool set = false;
@@ -225,7 +225,7 @@ namespace Arc {
     }
     // If the thread was able to set the status, then this is the first (and only) thread querying this endpoint
     if (!a->pluginName.empty()) { // If the plugin was already selected
-      EntityRetrieverPlugin<T, S>* plugin = common->load(a->pluginName);
+      EntityRetrieverPlugin<T>* plugin = common->load(a->pluginName);
       if (!plugin) {
         if(!common->lockSharedIfValid()) return;
         (*common)->setStatusOfEndpoint(a->endpoint, EndpointQueryingStatus(EndpointQueryingStatus::FAILED));
@@ -233,12 +233,12 @@ namespace Arc {
         return;
       }
       logger.msg(DEBUG, "Calling plugin %s to query endpoint on %s", a->pluginName, a->endpoint.str());
-      std::list<S> endpoints;
+      std::list<T> entities;
       // Do the actual querying against service.
-      EndpointQueryingStatus status = plugin->Query(*common, a->endpoint, endpoints, a->options);
-      for (typename std::list<S>::const_iterator it = endpoints.begin(); it != endpoints.end(); it++) {
+      EndpointQueryingStatus status = plugin->Query(*common, a->endpoint, entities, a->options);
+      for (typename std::list<T>::const_iterator it = entities.begin(); it != entities.end(); it++) {
         if(!common->lockSharedIfValid()) return;
-        (*common)->addEndpoint(*it);
+        (*common)->addEntity(*it);
         common->unlockShared();
       }
 
@@ -251,13 +251,13 @@ namespace Arc {
       const std::list<std::string>& preferredInterfaceNames = a->options.getPreferredInterfaceNames();
       // A list for collecting the new endpoints which will be created by copying the original one
       // and setting the InterfaceName for each possible plugins
-      std::list<T> preferredEndpoints;
-      std::list<T> otherEndpoints;
+      std::list<Endpoint> preferredEndpoints;
+      std::list<Endpoint> otherEndpoints;
       // A new result object is created for the sub-threads, "true" means we only want to wait for the first successful query
       Result preferredResult(true);
       Result otherResult(true);
       for (std::list<std::string>::const_iterator it = common->getAvailablePlugins().begin(); it != common->getAvailablePlugins().end(); ++it) {
-        EntityRetrieverPlugin<T, S>* plugin = common->load(*it);
+        EntityRetrieverPlugin<T>* plugin = common->load(*it);
         if (!plugin) {
           // Should not happen since all available plugins was already loaded in the constructor.
           // Problem loading the plugin, skip it
@@ -269,7 +269,7 @@ namespace Arc {
           continue;
         }
         // Create a new endpoint with the same endpoint and a specified interface
-        T endpoint = a->endpoint;
+        Endpoint endpoint = a->endpoint;
         ThreadArg* newArg; 
         // Set interface
         std::list<std::string>::const_iterator itSI = plugin->SupportedInterfaces().begin();
@@ -310,7 +310,7 @@ namespace Arc {
       // Check which case happened
       if(!common->lockSharedIfValid()) return;
       EndpointQueryingStatus status;
-      for (typename std::list<T>::const_iterator it = preferredEndpoints.begin(); it != preferredEndpoints.end(); it++) {
+      for (typename std::list<Endpoint>::const_iterator it = preferredEndpoints.begin(); it != preferredEndpoints.end(); it++) {
         status = (*common)->getStatusOfEndpoint(*it);
         if (status) {
           break;
@@ -320,7 +320,7 @@ namespace Arc {
       if (!status) {
         // Wait for the other threads, maybe they were successful
         otherResult.wait();
-        typename std::list<T>::const_iterator it = otherEndpoints.begin();
+        typename std::list<Endpoint>::const_iterator it = otherEndpoints.begin();
         for (; it != otherEndpoints.end(); ++it) {
           status = (*common)->getStatusOfEndpoint(*it);
           if (status) {
@@ -357,39 +357,38 @@ namespace Arc {
       if (RegistryEndpoint::isRegistry(*it)) {
         ser.addEndpoint(RegistryEndpoint(*it));
       } else {
-        // our own addEndpoint, which will send it to the TIR
-        addEndpoint(*it);
+        addEntity(*it);
       }
     }
   }
   
-  void ExecutionTargetRetriever::addEndpoint(const ServiceEndpoint& service) {
+  void ExecutionTargetRetriever::addEntity(const ServiceEndpoint& service) {
     // If we got a computing element info endpoint, then we pass it to the TIR
     if (ComputingInfoEndpoint::isComputingInfo(service)) {
       tir.addEndpoint(ComputingInfoEndpoint(service));
     }
   }
   
-  template class EntityRetriever<RegistryEndpoint, ServiceEndpoint>;
-  template class EntityRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>;
-  template class EntityRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint>;
-  template<> Logger EntityRetriever<RegistryEndpoint, ServiceEndpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
-  template<> const std::string EntityRetrieverPlugin<RegistryEndpoint, ServiceEndpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
-  template<> Logger EntityRetrieverPluginLoader<RegistryEndpoint, ServiceEndpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
+  template class EntityRetriever<ServiceEndpoint>;
+  template class EntityRetrieverPlugin<ServiceEndpoint>;
+  template class EntityRetrieverPluginLoader<ServiceEndpoint>;
+  template<> Logger EntityRetriever<ServiceEndpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
+  template<> const std::string EntityRetrieverPlugin<ServiceEndpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
+  template<> Logger EntityRetrieverPluginLoader<ServiceEndpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
 
-  template class EntityRetriever<ComputingInfoEndpoint, ExecutionTarget>;
-  template class EntityRetrieverPlugin<ComputingInfoEndpoint, ExecutionTarget>;
-  template class EntityRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget>;
-  template<> Logger EntityRetriever<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
-  template<> Logger EntityRetrieverPluginLoader<ComputingInfoEndpoint, ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
+  template class EntityRetriever<ExecutionTarget>;
+  template class EntityRetrieverPlugin<ExecutionTarget>;
+  template class EntityRetrieverPluginLoader<ExecutionTarget>;
+  template<> Logger EntityRetriever<ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetriever");
+  template<> Logger EntityRetrieverPluginLoader<ExecutionTarget>::logger(Logger::getRootLogger(), "TargetInformationRetrieverPluginLoader");
   template<> const std::string TargetInformationRetrieverPlugin::kind("HED:TargetInformationRetrieverPlugin");
 
-  template class EntityRetriever<ComputingInfoEndpoint, Job>;
-  template class EntityRetrieverPlugin<ComputingInfoEndpoint, Job>;
-  template class EntityRetrieverPluginLoader<ComputingInfoEndpoint, Job>;
-  template<> Logger EntityRetriever<ComputingInfoEndpoint, Job>::logger(Logger::getRootLogger(), "JobListRetriever");
-  template<> const std::string EntityRetrieverPlugin<ComputingInfoEndpoint, Job>::kind("HED:JobListRetrieverPlugin");
-  template<> Logger EntityRetrieverPluginLoader<ComputingInfoEndpoint, Job>::logger(Logger::getRootLogger(), "JobListRetrieverPluginLoader");
+  template class EntityRetriever<Job>;
+  template class EntityRetrieverPlugin<Job>;
+  template class EntityRetrieverPluginLoader<Job>;
+  template<> Logger EntityRetriever<Job>::logger(Logger::getRootLogger(), "JobListRetriever");
+  template<> const std::string EntityRetrieverPlugin<Job>::kind("HED:JobListRetrieverPlugin");
+  template<> Logger EntityRetrieverPluginLoader<Job>::logger(Logger::getRootLogger(), "JobListRetrieverPluginLoader");
 
 
 } // namespace Arc

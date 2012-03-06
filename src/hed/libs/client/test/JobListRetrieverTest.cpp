@@ -27,8 +27,8 @@ public:
 };
 
 void JobListRetrieverTest::PluginLoading() {
-  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::Job> l;
-  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::Job>* p = l.load("TEST");
+  Arc::JobListRetrieverPluginLoader l;
+  Arc::JobListRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 }
 
@@ -38,9 +38,9 @@ void JobListRetrieverTest::QueryTest() {
 
   Arc::JobListRetrieverPluginTESTControl::delay = 1;
   Arc::JobListRetrieverPluginTESTControl::status = sInitial;
-
-  Arc::EntityRetrieverPluginLoader<Arc::ComputingInfoEndpoint, Arc::Job> l;
-  Arc::EntityRetrieverPlugin<Arc::ComputingInfoEndpoint, Arc::Job>* p = l.load("TEST");
+  
+  Arc::JobListRetrieverPluginLoader l;
+  Arc::JobListRetrieverPlugin* p = l.load("TEST");
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;

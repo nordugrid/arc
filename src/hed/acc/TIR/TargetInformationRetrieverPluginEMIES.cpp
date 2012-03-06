@@ -23,7 +23,7 @@ namespace Arc {
 
   Logger TargetInformationRetrieverPluginEMIES::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.EMIES");
 
-  bool TargetInformationRetrieverPluginEMIES::isEndpointNotSupported(const ComputingInfoEndpoint& endpoint) const {
+  bool TargetInformationRetrieverPluginEMIES::isEndpointNotSupported(const Endpoint& endpoint) const {
     const std::string::size_type pos = endpoint.URLString.find("://");
     if (pos != std::string::npos) {
       const std::string proto = lower(endpoint.URLString.substr(0, pos));
@@ -45,7 +45,7 @@ namespace Arc {
     return service;
   }
 
-  EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const ComputingInfoEndpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
+  EndpointQueryingStatus TargetInformationRetrieverPluginEMIES::Query(const UserConfig& uc, const Endpoint& cie, std::list<ExecutionTarget>& etList, const EndpointQueryOptions<ExecutionTarget>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
     URL url(CreateURL(cie.URLString));
