@@ -184,7 +184,7 @@ bool PayloadTCPSocket::Get(char* buf,int& size) {
   if(spoll(handle_,timeout_,events) != 1) return false;
   if(!(events & (POLLIN | POLLPRI))) return false; // Probably never happens
   if(events & POLLPRI) {
-    logger.msg(WARNING, "Received message out-of-band");
+    logger.msg(ERROR, "Received message out-of-band (not critical, ERROR level is just for debugging purposes)");
     flags = MSG_OOB;
   }
 #endif
