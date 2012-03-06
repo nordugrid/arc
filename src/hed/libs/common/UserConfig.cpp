@@ -568,6 +568,26 @@ namespace Arc {
 
         if (ini["alias"]) {
           XMLNode aliasXML = ini["alias"];
+          
+          XMLNode aliases;
+          aliasXML.New(aliases);
+          while (aliases.Child()) {
+            std::string group = aliases.Child().Name();
+            std::list<std::string> serviceStrings;
+            tokenize(aliases.Child(), serviceStrings, " \t");
+            for (std::list<std::string>::iterator it = serviceStrings.begin(); it != serviceStrings.end(); it++) {
+              std::list<ConfigEndpoint> services = GetServices(*it);
+              if (services.empty()) {
+                ConfigEndpoint service = ServiceFromLegacyString(*it);
+                if (service) {
+                  services.push_back(service);
+                }
+              }
+              groupMap[group].insert(groupMap[group].end(), services.begin(), services.end());
+            }
+            aliases.Child().Destroy();
+          }
+          
           if (aliasMap) { // Merge aliases. Overwrite existing aliases
             while (aliasXML.Child()) {
               if (aliasMap[aliasXML.Child().Name()]) {
@@ -837,7 +857,7 @@ namespace Arc {
                 defaultServices.push_back(service);
               }
               if (section["group"]) {
-                groupMap[section["group"]].push_back(alias);
+                groupMap[section["group"]].push_back(service);
               }
             }
           } else {
@@ -1350,17 +1370,23 @@ TODO: Make FileUtils function to this
   std::list<ConfigEndpoint> UserConfig::GetDefaultServices(ConfigEndpoint::Type type) {
     return FilterServices(defaultServices, type);
   }
-    
-  ConfigEndpoint UserConfig::ResolveService(const std::string& alias) {
+  
+  ConfigEndpoint UserConfig::GetService(const std::string& alias) {
     return allServices[alias];
   }
 
-  std::list<ConfigEndpoint> UserConfig::ServicesInGroup(const std::string& group, ConfigEndpoint::Type type) {
-    std::list<ConfigEndpoint> services;
-    for (std::list<std::string>::const_iterator it = groupMap[group].begin(); it != groupMap[group].end(); it++) {
-      services.push_back(ResolveService(*it));
+  std::list<ConfigEndpoint> UserConfig::GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type) {
+    std::list<ConfigEndpoint> services = GetServicesInGroup(groupOrAlias);
+    if (services.empty()) {
+      ConfigEndpoint service = GetService(groupOrAlias);
+      if (service) services.push_back(service);
     }
     return FilterServices(services, type);
+  }
+  
+
+  std::list<ConfigEndpoint> UserConfig::GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type) {
+    return FilterServices(groupMap[group], type);
   }
 
   ConfigEndpoint UserConfig::ServiceFromLegacyString(std::string type_flavour_url) {

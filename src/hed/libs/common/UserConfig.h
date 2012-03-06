@@ -1184,21 +1184,31 @@ namespace Arc {
      */
     const User& GetUser() const { return user; };
 
+
     std::list<ConfigEndpoint> GetDefaultServices(ConfigEndpoint::Type type = ConfigEndpoint::ANY);
-    ConfigEndpoint ResolveService(const std::string& alias);
-    std::list<ConfigEndpoint> ServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+
+    ConfigEndpoint GetService(const std::string& alias);
+
+    std::list<ConfigEndpoint> GetServices(const std::string& groupOrAlias, ConfigEndpoint::Type type = ConfigEndpoint::ANY);    
     
+    std::list<ConfigEndpoint> GetServicesInGroup(const std::string& group, ConfigEndpoint::Type type = ConfigEndpoint::ANY);
+    
+
     const std::string& PreferredInfoInterface() const { return preferredinfointerface; };
+
     bool PreferredInfoInterface(const std::string& preferredinfointerface_) {
       preferredinfointerface = preferredinfointerface_;
       return true;
     }
 
+
     const std::string& PreferredJobInterface() const { return preferredjobinterface; };
+
     bool PreferredJobInterface(const std::string& preferredjobinterface_) {
       preferredjobinterface = preferredjobinterface_;
       return true;
     }
+    
     
     const std::list<std::string>& RejectedURLs() const { return rejectedURLs; };
 
@@ -1313,7 +1323,7 @@ namespace Arc {
     
     std::list<ConfigEndpoint> defaultServices;
     std::map<std::string, ConfigEndpoint> allServices;
-    std::map<std::string, std::list<std::string> > groupMap;
+    std::map<std::string, std::list<ConfigEndpoint> > groupMap;
     std::list<std::string> rejectedURLs;
 
     // Vector needed for random access.

@@ -9,7 +9,6 @@ class UserConfigTest
   : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(UserConfigTest);
-  CPPUNIT_TEST(AliasTest);
   CPPUNIT_TEST(ParseRegistryTest);
   CPPUNIT_TEST(ParseComputingTest);
   CPPUNIT_TEST(UnspecifiedInterfaceTest);
@@ -17,12 +16,13 @@ class UserConfigTest
   CPPUNIT_TEST(PreferredInterfacesTest);
   CPPUNIT_TEST(ServiceFromLegacyStringTest);
   CPPUNIT_TEST(LegacyDefaultServicesTest);
+  CPPUNIT_TEST(LegacyAliasTest);
+  CPPUNIT_TEST(AliasTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   UserConfigTest() : uc(Arc::initializeCredentialsType(Arc::initializeCredentialsType::SkipCredentials)), conffile("test-client.conf") {}
 
-  void AliasTest();
   void ParseRegistryTest();
   void ParseComputingTest();
   void UnspecifiedInterfaceTest();
@@ -30,6 +30,8 @@ public:
   void PreferredInterfacesTest();
   void ServiceFromLegacyStringTest();
   void LegacyDefaultServicesTest();
+  void LegacyAliasTest();
+  void AliasTest();
 
   void setUp() {}
   void tearDown() {}
@@ -59,7 +61,7 @@ void UserConfigTest::ParseRegistryTest()
   services = uc.GetDefaultServices(Arc::ConfigEndpoint::COMPUTINGINFO);
   CPPUNIT_ASSERT_EQUAL(0, (int)services.size());
   
-  Arc::ConfigEndpoint service = uc.ResolveService("emir1");
+  Arc::ConfigEndpoint service = uc.GetService("emir1");
   CPPUNIT_ASSERT_EQUAL((std::string)"http://emir1.emi-eu.eu", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.emir", service.InterfaceName);  
   
@@ -87,7 +89,7 @@ void UserConfigTest::ParseComputingTest()
   services = uc.GetDefaultServices(Arc::ConfigEndpoint::REGISTRY);
   CPPUNIT_ASSERT_EQUAL(0, (int)services.size());
   
-  Arc::ConfigEndpoint service = uc.ResolveService("puff");
+  Arc::ConfigEndpoint service = uc.GetService("puff");
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapglue2", service.InterfaceName);  
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", service.PreferredJobInterfaceName);  
@@ -105,12 +107,12 @@ void UserConfigTest::UnspecifiedInterfaceTest()
   uc.LoadConfigurationFile(conffile);
   
   Arc::ConfigEndpoint service;
-  service = uc.ResolveService("puff");
+  service = uc.GetService("puff");
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"", service.InterfaceName);  
   CPPUNIT_ASSERT_EQUAL((std::string)"", service.PreferredJobInterfaceName);  
 
-  service = uc.ResolveService("emir1");
+  service = uc.GetService("emir1");
   CPPUNIT_ASSERT_EQUAL((std::string)"http://emir1.nordugrid.org", service.URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"", service.InterfaceName);
   
@@ -127,12 +129,12 @@ void UserConfigTest::GroupTest()
   f.close();
   uc.LoadConfigurationFile(conffile);
   std::list<Arc::ConfigEndpoint> services;
-  services = uc.ServicesInGroup("hep");
+  services = uc.GetServicesInGroup("hep");
   CPPUNIT_ASSERT_EQUAL(2, (int)services.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://puff.hep.lu.se", services.front().URLString);
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://paff.hep.lu.se", services.back().URLString);
 
-  services = uc.ServicesInGroup("niif");
+  services = uc.GetServicesInGroup("niif");
   CPPUNIT_ASSERT_EQUAL(1, (int)services.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"https://interop.grid.niif.hu", services.front().URLString);
     
@@ -150,7 +152,7 @@ void UserConfigTest::PreferredInterfacesTest()
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", uc.PreferredJobInterface());
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapglue2", uc.PreferredInfoInterface());
   Arc::ConfigEndpoint service;
-  service = uc.ResolveService("puff");
+  service = uc.GetService("puff");
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.gridftpjob", service.PreferredJobInterfaceName);  
   
   remove(conffile.c_str());
@@ -212,6 +214,82 @@ void UserConfigTest::LegacyDefaultServicesTest()
   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.wsrfglue2", services.back().InterfaceName);  
   
   remove(conffile.c_str()); 
+}
+
+void UserConfigTest::LegacyAliasTest()
+{
+  std::ofstream f(conffile.c_str(), std::ifstream::trunc);
+  f << "[ alias ]" << std::endl;
+  f << "a = computing:ARC0:http://a.org" << std::endl;
+  f << "b = computing:ARC0:http://b.org" << std::endl;
+  f << "c = a b computing:ARC0:http://c.org" << std::endl;
+  f << "invalid = compute:ARC0:http://invalid.org" << std::endl;
+  f << "i = index:ARC0:http://i.org" << std::endl;
+  f << "j = index:ARC0:http://j.org" << std::endl;
+  f << "k = i j index:ARC0:http://k.org" << std::endl;
+  f << "mixed = a b i j" << std::endl;
+  f << "loop = a b link" << std::endl;
+  f << "link = loop" << std::endl;
+  f.close();
+
+  uc.LoadConfigurationFile(conffile);
+
+  std::list<Arc::ConfigEndpoint> services;
+  
+  // legacy aliases become groups in the new config
+  
+  services = uc.GetServices("a");
+  CPPUNIT_ASSERT_EQUAL(1, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", services.front().URLString);
+
+  services = uc.GetServices("b");
+  CPPUNIT_ASSERT_EQUAL(1, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://b.org", services.front().URLString);
+
+  services = uc.GetServices("c");
+  CPPUNIT_ASSERT_EQUAL(3, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", services.front().URLString);
+  services.pop_front();
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://b.org", services.front().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://c.org", services.back().URLString);
+
+  services = uc.GetServices("i");
+  CPPUNIT_ASSERT_EQUAL(1, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://i.org", services.front().URLString);
+
+  services = uc.GetServices("j");
+  CPPUNIT_ASSERT_EQUAL(1, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://j.org", services.front().URLString);
+
+  services = uc.GetServices("k");
+  CPPUNIT_ASSERT_EQUAL(3, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://i.org", services.front().URLString);
+  services.pop_front();
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://j.org", services.front().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://k.org", services.back().URLString);
+
+  services = uc.GetServices("invalid");
+  CPPUNIT_ASSERT_EQUAL(0, (int)services.size());
+
+  services = uc.GetServices("mixed");
+  CPPUNIT_ASSERT_EQUAL(4, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", services.front().URLString);
+  services.pop_front();
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://b.org", services.front().URLString);
+  services.pop_front();
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://i.org", services.front().URLString);
+  services.pop_front();
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://j.org", services.front().URLString);
+
+  services = uc.GetServices("loop");
+  CPPUNIT_ASSERT_EQUAL(2, (int)services.size());
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", services.front().URLString);
+  CPPUNIT_ASSERT_EQUAL((std::string)"http://b.org", services.back().URLString);
+
+  services = uc.GetServices("undefined");
+  CPPUNIT_ASSERT_EQUAL(0, (int)services.size());
+  
+  remove(conffile.c_str());
 }
 
 void UserConfigTest::AliasTest()
