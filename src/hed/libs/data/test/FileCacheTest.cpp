@@ -1098,7 +1098,7 @@ void FileCacheTest::testConstructor() {
   CPPUNIT_ASSERT(!(*_fc1 == *fc6));
 
   // create with two different caches and compare
-  caches.empty();
+  caches.clear();
   caches.push_back(_cache_dir);
   caches.push_back(cache_dir3);
   Arc::FileCache *fc7 = new Arc::FileCache(caches, _jobid, _uid, _gid);
@@ -1108,6 +1108,8 @@ void FileCacheTest::testConstructor() {
   delete fc7;
 
   // constructor with remote and draining caches
+  caches.clear();
+  caches.push_back(_cache_dir);
   std::vector<std::string> remote_caches;
   remote_caches.push_back(_testroot + "remote1");
   std::vector<std::string> draining_caches;

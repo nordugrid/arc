@@ -1005,7 +1005,7 @@ namespace Arc {
     }
   
     // find a cache with the most unused space and also the cache_size parameter defined in "arc.conf"
-    std::map<int ,std::pair<unsigned long long, float> > cache_map;
+    std::map<int ,std::pair<unsigned long long, unsigned long long> > cache_map;
     // caches which are under the usage percent of the "arc.conf": < cache number, chance to select this cache >
     std::map <int, int>  under_limit;
     // caches which are over the usage percent of the "arc.conf" < cache free space, cache number> 
@@ -1018,7 +1018,8 @@ namespace Arc {
       cache_map.insert(std::make_pair(i, p));
       total_size = total_size + p.first;
     }
-    for ( std::map< int, std::pair<unsigned long long,float> >::iterator cache_it = cache_map.begin(); cache_it != cache_map.end(); cache_it++) {
+    for ( std::map< int, std::pair<unsigned long long, unsigned long long> >::iterator cache_it = cache_map.begin();
+          cache_it != cache_map.end(); cache_it++) {
       // check if the usage percent is passed
       if ((100 - (100 * cache_it->second.second)/ cache_it->second.first) < _max_used) {                       
         // caches which are under the defined percentage 
@@ -1028,7 +1029,7 @@ namespace Arc {
         under_limit.insert(std::make_pair(cache_it->first, chance));
       } else {
         // caches which are passed the defined percentage
-        over_limit.insert(std::make_pair((unsigned long long)(cache_it->second.second), cache_it->first));
+        over_limit.insert(std::make_pair(cache_it->second.second, cache_it->first));
       }
     }
     int cache_no = 0;
