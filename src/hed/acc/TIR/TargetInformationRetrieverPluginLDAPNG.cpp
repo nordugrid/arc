@@ -180,78 +180,78 @@ namespace Arc {
 
       // Computing Share attributes
       if (queue["nordugrid-queue-name"])
-        target.ComputingShareName = (std::string)queue["nordugrid-queue-name"];
+        target.ComputingShare.Name = (std::string)queue["nordugrid-queue-name"];
       if (queue["nordugrid-queue-maxwalltime"])
-        target.MaxWallTime =
+        target.ComputingShare.MaxWallTime =
           Period((std::string)queue["nordugrid-queue-maxwalltime"],
                  PeriodMinutes);
       if (queue["nordugrid-queue-minwalltime"])
-        target.MinWallTime =
+        target.ComputingShare.MinWallTime =
           Period((std::string)queue["nordugrid-queue-minwalltime"],
                  PeriodMinutes);
       if (queue["nordugrid-queue-defaultwalltime"])
-        target.DefaultWallTime =
+        target.ComputingShare.DefaultWallTime =
           Period((std::string)queue["nordugrid-queue-defaultwalltime"],
                  PeriodMinutes);
       if (queue["nordugrid-queue-maxcputime"])
-        target.MaxCPUTime =
+        target.ComputingShare.MaxCPUTime =
           Period((std::string)queue["nordugrid-queue-maxcputime"],
                  PeriodMinutes);
       if (queue["nordugrid-queue-mincputime"])
-        target.MinCPUTime =
+        target.ComputingShare.MinCPUTime =
           Period((std::string)queue["nordugrid-queue-mincputime"],
                  PeriodMinutes);
       if (queue["nordugrid-queue-defaultcputime"])
-        target.DefaultCPUTime =
+        target.ComputingShare.DefaultCPUTime =
           Period((std::string)queue["nordugrid-queue-defaultcputime"],
                  PeriodMinutes);
       if (queue["nordugrid-queue-maxrunning"])
-        target.MaxRunningJobs =
+        target.ComputingShare.MaxRunningJobs =
           stringtoi((std::string)queue["nordugrid-queue-maxrunning"]);
       if (queue["nordugrid-queue-maxqueable"])
-        target.MaxWaitingJobs =
+        target.ComputingShare.MaxWaitingJobs =
           stringtoi((std::string)queue["nordugrid-queue-maxqueable"]);
       if (queue["nordugrid-queue-maxuserrun"])
-        target.MaxUserRunningJobs =
+        target.ComputingShare.MaxUserRunningJobs =
           stringtoi((std::string)queue["nordugrid-queue-maxuserrun"]);
       if (queue["nordugrid-queue-schedulingpolicy"])
-        target.SchedulingPolicy =
+        target.ComputingShare.SchedulingPolicy =
           (std::string)queue["nordugrid-queue-schedulingpolicy"];
       if (queue["nordugrid-queue-nodememory"])
-        target.MaxMainMemory = target.MaxVirtualMemory =
+        target.ComputingShare.MaxMainMemory = target.ComputingShare.MaxVirtualMemory =
           stringtoi((std::string)queue["nordugrid-queue-nodememory"]);
       else if (cluster["nordugrid-cluster-nodememory"])
-        target.MaxMainMemory = target.MaxVirtualMemory =
+        target.ComputingShare.MaxMainMemory = target.ComputingShare.MaxVirtualMemory =
           stringtoi((std::string)cluster["nordugrid-cluster-nodememory"]);
       if (authuser["nordugrid-authuser-diskspace"])
-        target.MaxDiskSpace =
+        target.ComputingShare.MaxDiskSpace =
           stringtoi((std::string)authuser["nordugrid-authuser-diskspace"]) / 1000;
       if (cluster["nordugrid-cluster-localse"])
-        target.DefaultStorageService =
+        target.ComputingShare.DefaultStorageService =
           (std::string)cluster["nordugrid-cluster-localse"];
       if (queue["nordugrid-queue-running"])
-        target.RunningJobs =
+        target.ComputingShare.RunningJobs =
           stringtoi((std::string)queue["nordugrid-queue-running"]);
       if (queue["nordugrid-queue-running"] &&
           queue["nordugrid-queue-gridrunning"])
-        target.LocalRunningJobs =
+        target.ComputingShare.LocalRunningJobs =
           stringtoi((std::string)queue["nordugrid-queue-running"]) -
           stringtoi((std::string)queue["nordugrid-queue-gridrunning"]);
       if (queue["nordugrid-queue-gridqueued"] &&
           queue["nordugrid-queue-localqueued"])
-        target.WaitingJobs =
+        target.ComputingShare.WaitingJobs =
           stringtoi((std::string)queue["nordugrid-queue-gridqueued"]) +
           stringtoi((std::string)queue["nordugrid-queue-localqueued"]);
       if (queue["nordugrid-queue-localqueued"])
-        target.LocalWaitingJobs =
+        target.ComputingShare.LocalWaitingJobs =
           stringtoi((std::string)queue["nordugrid-queue-localqueued"]);
       if (queue["nordugrid-queue-prelrmsqueued"])
-        target.PreLRMSWaitingJobs =
+        target.ComputingShare.PreLRMSWaitingJobs =
           stringtoi((std::string)queue["nordugrid-queue-prelrmsqueued"]);
-      target.TotalJobs =
-        (target.RunningJobs > 0) ? target.RunningJobs : 0 +
-        (target.WaitingJobs > 0) ? target.WaitingJobs : 0 +
-        (target.PreLRMSWaitingJobs > 0) ? target.PreLRMSWaitingJobs : 0;
+      target.ComputingShare.TotalJobs =
+        (target.ComputingShare.RunningJobs > 0) ? target.ComputingShare.RunningJobs : 0 +
+        (target.ComputingShare.WaitingJobs > 0) ? target.ComputingShare.WaitingJobs : 0 +
+        (target.ComputingShare.PreLRMSWaitingJobs > 0) ? target.ComputingShare.PreLRMSWaitingJobs : 0;
       if (authuser["nordugrid-authuser-freecpus"]) {
         std::string value =
           (std::string)authuser["nordugrid-authuser-freecpus"];
@@ -274,18 +274,18 @@ namespace Arc {
             num_cpus = stringtoi(entry.substr(0, colonpos));
             time = stringtoi(entry.substr(colonpos + 1)) * 60;
           }
-          target.FreeSlotsWithDuration[time] = num_cpus;
+          target.ComputingShare.FreeSlotsWithDuration[time] = num_cpus;
           pos = spacepos;
           if (pos != std::string::npos)
             pos++;
         } while (pos != std::string::npos);
-        target.FreeSlots = target.FreeSlotsWithDuration.begin()->second;
+        target.ComputingShare.FreeSlots = target.ComputingShare.FreeSlotsWithDuration.begin()->second;
       }
       if (cluster["nordugrid-queue-usedcpus"])
-        target.UsedSlots =
+        target.ComputingShare.UsedSlots =
           stringtoi((std::string)cluster["nordugrid-queue-usedcpus"]);
       if (cluster["nordugrid-queue-schedulingpolicy"])
-        target.ReservationPolicy =
+        target.ComputingShare.ReservationPolicy =
           (std::string)cluster["nordugrid-queue-schedulingpolicy"];
 
       // Computing Manager attributes

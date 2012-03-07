@@ -50,26 +50,6 @@ namespace Arc {
     int FreeUserSeats;
   };
 
-  class ComputingEndpointType : public Endpoint {
-  public:
-    ComputingEndpointType() : DowntimeStarts(-1), DowntimeEnds(-1) {}
-
-    std::string Technology;
-    std::list<std::string> InterfaceVersion;
-    std::list<std::string> InterfaceExtension;
-    std::list<std::string> SupportedProfile;
-    std::string Implementor;
-    Software Implementation;
-    std::string ServingState;
-    std::string IssuerCA;
-    std::list<std::string> TrustedCA;
-    Time DowntimeStarts;
-    Time DowntimeEnds;
-    std::string Staging;
-    // This is singular in the GLUE2 doc: JobDescription
-    std::list<std::string> JobDescriptions;
-  };
-
   class LocationType {
   public:
     LocationType() : Latitude(0), Longitude(0) {}
@@ -92,6 +72,120 @@ namespace Arc {
   public:
     std::string Name;
     std::string Type;
+  };
+
+  class ComputingEndpointType : public Endpoint {
+  public:
+    ComputingEndpointType() : DowntimeStarts(-1), DowntimeEnds(-1) {}
+
+    std::string Technology;
+    std::list<std::string> InterfaceVersion;
+    std::list<std::string> InterfaceExtension;
+    std::list<std::string> SupportedProfile;
+    std::string Implementor;
+    Software Implementation;
+    std::string ServingState;
+    std::string IssuerCA;
+    std::list<std::string> TrustedCA;
+    Time DowntimeStarts;
+    Time DowntimeEnds;
+    std::string Staging;
+    // This is singular in the GLUE2 doc: JobDescription
+    std::list<std::string> JobDescriptions;
+  };
+
+  class ComputingShareType {
+  public:
+    ComputingShareType()
+    : MaxWallTime(-1), MaxTotalWallTime(-1), MinWallTime(-1), DefaultWallTime(-1),
+      MaxCPUTime(-1), MaxTotalCPUTime(-1), MinCPUTime(-1), DefaultCPUTime(-1),
+      MaxTotalJobs(-1), MaxRunningJobs(-1), MaxWaitingJobs(-1),
+      MaxPreLRMSWaitingJobs(-1), MaxUserRunningJobs(-1), MaxSlotsPerJob(-1),
+      MaxStageInStreams(-1), MaxStageOutStreams(-1),
+      MaxMainMemory(-1), MaxVirtualMemory(-1), MaxDiskSpace(-1),
+      Preemption(false),
+      TotalJobs(-1), RunningJobs(-1), LocalRunningJobs(-1), WaitingJobs(-1), LocalWaitingJobs(-1),
+      SuspendedJobs(-1), LocalSuspendedJobs(-1), StagingJobs(-1), PreLRMSWaitingJobs(-1),
+      EstimatedAverageWaitingTime(-1), EstimatedWorstWaitingTime(-1),
+      FreeSlots(-1), UsedSlots(-1), RequestedSlots(-1) {}
+
+    /// ComputingShareName String 0..1
+    /**
+     * Human-readable name.
+     * This variable represents the ComputingShare.Name attribute of GLUE2.
+     **/
+    std::string Name;
+    std::string MappingQueue;
+
+    Period MaxWallTime;
+    Period MaxTotalWallTime; // not in current Glue2 draft
+    Period MinWallTime;
+    Period DefaultWallTime;
+    Period MaxCPUTime;
+    Period MaxTotalCPUTime;
+    Period MinCPUTime;
+    Period DefaultCPUTime;
+    int MaxTotalJobs;
+    int MaxRunningJobs;
+    int MaxWaitingJobs;
+    int MaxPreLRMSWaitingJobs;
+    int MaxUserRunningJobs;
+    int MaxSlotsPerJob;
+    int MaxStageInStreams;
+    int MaxStageOutStreams;
+    std::string SchedulingPolicy;
+
+    /// MaxMainMemory UInt64 0..1 MB
+    /**
+     * The maximum physical RAM that a job is allowed to use; if the limit is
+     * hit, then the LRMS MAY kill the job.
+     * A negative value specifies that this member is undefined.
+     */
+    int MaxMainMemory;
+
+    /// MaxVirtualMemory UInt64 0..1 MB
+    /**
+     * The maximum total memory size (RAM plus swap) that a job is allowed to
+     * use; if the limit is hit, then the LRMS MAY kill the job.
+     * A negative value specifies that this member is undefined.
+     */
+    int MaxVirtualMemory;
+
+    /// MaxDiskSpace UInt64 0..1 GB
+    /**
+     * The maximum disk space that a job is allowed use in the working; if the
+     * limit is hit, then the LRMS MAY kill the job.
+     * A negative value specifies that this member is undefined.
+     */
+    int MaxDiskSpace;
+
+    URL DefaultStorageService;
+    bool Preemption;
+    int TotalJobs;
+    int RunningJobs;
+    int LocalRunningJobs;
+    int WaitingJobs;
+    int LocalWaitingJobs;
+    int SuspendedJobs;
+    int LocalSuspendedJobs;
+    int StagingJobs;
+    int PreLRMSWaitingJobs;
+    Period EstimatedAverageWaitingTime;
+    Period EstimatedWorstWaitingTime;
+    int FreeSlots;
+
+    /// FreeSlotsWithDuration std::map<Period, int>
+    /**
+     * This attribute express the number of free slots with their time limits.
+     * The keys in the std::map are the time limit (Period) for the number of
+     * free slots stored as the value (int). If no time limit has been specified
+     * for a set of free slots then the key will equal Period(LONG_MAX).
+     */
+    std::map<Period, int> FreeSlotsWithDuration;
+    int UsedSlots;
+    int RequestedSlots;
+    std::string ReservationPolicy;
+
   };
 
   /// ExecutionTarget
@@ -212,87 +306,10 @@ namespace Arc {
     ComputingServiceType ComputingService;
 
     // Attributes from 6.2 Computing Endpoint
-
     ComputingEndpointType ComputingEndpoint;
 
     // Attributes from 6.3 Computing Share
-
-    /// ComputingShareName String 0..1
-    /**
-     * Human-readable name.
-     * This variable represents the ComputingShare.Name attribute of GLUE2.
-     **/
-    std::string ComputingShareName;
-    std::string MappingQueue;
-
-    Period MaxWallTime;
-    Period MaxTotalWallTime; // not in current Glue2 draft
-    Period MinWallTime;
-    Period DefaultWallTime;
-    Period MaxCPUTime;
-    Period MaxTotalCPUTime;
-    Period MinCPUTime;
-    Period DefaultCPUTime;
-    int MaxTotalJobs;
-    int MaxRunningJobs;
-    int MaxWaitingJobs;
-    int MaxPreLRMSWaitingJobs;
-    int MaxUserRunningJobs;
-    int MaxSlotsPerJob;
-    int MaxStageInStreams;
-    int MaxStageOutStreams;
-    std::string SchedulingPolicy;
-
-    /// MaxMainMemory UInt64 0..1 MB
-    /**
-     * The maximum physical RAM that a job is allowed to use; if the limit is
-     * hit, then the LRMS MAY kill the job.
-     * A negative value specifies that this member is undefined.
-     */
-    int MaxMainMemory;
-
-    /// MaxVirtualMemory UInt64 0..1 MB
-    /**
-     * The maximum total memory size (RAM plus swap) that a job is allowed to
-     * use; if the limit is hit, then the LRMS MAY kill the job.
-     * A negative value specifies that this member is undefined.
-     */
-    int MaxVirtualMemory;
-
-    /// MaxDiskSpace UInt64 0..1 GB
-    /**
-     * The maximum disk space that a job is allowed use in the working; if the
-     * limit is hit, then the LRMS MAY kill the job.
-     * A negative value specifies that this member is undefined.
-     */
-    int MaxDiskSpace;
-
-    URL DefaultStorageService;
-    bool Preemption;
-    int TotalJobs;
-    int RunningJobs;
-    int LocalRunningJobs;
-    int WaitingJobs;
-    int LocalWaitingJobs;
-    int SuspendedJobs;
-    int LocalSuspendedJobs;
-    int StagingJobs;
-    int PreLRMSWaitingJobs;
-    Period EstimatedAverageWaitingTime;
-    Period EstimatedWorstWaitingTime;
-    int FreeSlots;
-
-    /// FreeSlotsWithDuration std::map<Period, int>
-    /**
-     * This attribute express the number of free slots with their time limits.
-     * The keys in the std::map are the time limit (Period) for the number of
-     * free slots stored as the value (int). If no time limit has been specified
-     * for a set of free slots then the key will equal Period(LONG_MAX).
-     */
-    std::map<Period, int> FreeSlotsWithDuration;
-    int UsedSlots;
-    int RequestedSlots;
-    std::string ReservationPolicy;
+    ComputingShareType ComputingShare;
 
     // Attributes from 6.4 Computing Manager
 

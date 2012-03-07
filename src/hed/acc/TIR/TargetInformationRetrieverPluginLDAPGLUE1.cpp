@@ -260,13 +260,13 @@ namespace Arc {
       target.ComputingEndpoint.HealthState = "ok";
 
       if (CE["GlueCEName"])
-        target.ComputingShareName = (std::string)CE["GlueCEName"];
+        target.ComputingShare.Name = (std::string)CE["GlueCEName"];
       if (CE["GlueCEInfoLRMSType"])
         target.ManagerProductName = (std::string)CE["GlueCEInfoLRMSType"];
       if (CE["GlueCEInfoLRMSVersion"])
         target.ManagerProductVersion = (std::string)CE["GlueCEInfoLRMSVersion"];
       if (CE["GlueCEInfoJobManager"])
-        target.MappingQueue = (std::string)CE["GlueCEInfoJobManager"];
+        target.ComputingShare.MappingQueue = (std::string)CE["GlueCEInfoJobManager"];
       if (Cluster["GlueClusterName"]) {
         target.ComputingService.Name = (std::string)Cluster["GlueClusterName"];
       }
@@ -290,17 +290,17 @@ namespace Arc {
             (std::string)CE["GlueCEImplementationName"];
       }
       if (VOView["GlueCEStateTotalJobs"])
-        target.TotalJobs = stringtoi(VOView["GlueCEStateTotalJobs"]);
+        target.ComputingShare.TotalJobs = stringtoi(VOView["GlueCEStateTotalJobs"]);
       else if (CE["GlueCEStateTotalJobs"])
-        target.TotalJobs = stringtoi(CE["GlueCEStateTotalJobs"]);
+        target.ComputingShare.TotalJobs = stringtoi(CE["GlueCEStateTotalJobs"]);
       if (VOView["GlueCEStateRunningJobs"])
-        target.RunningJobs = stringtoi(VOView["GlueCEStateRunningJobs"]);
+        target.ComputingShare.RunningJobs = stringtoi(VOView["GlueCEStateRunningJobs"]);
       else if (CE["GlueCEStateRunningJobs"])
-        target.RunningJobs = stringtoi(CE["GlueCEStateRunningJobs"]);
+        target.ComputingShare.RunningJobs = stringtoi(CE["GlueCEStateRunningJobs"]);
       if (VOView["GlueCEStateWaitingJobs"])
-        target.WaitingJobs = stringtoi(VOView["GlueCEStateWaitingJobs"]);
+        target.ComputingShare.WaitingJobs = stringtoi(VOView["GlueCEStateWaitingJobs"]);
       else if (CE["GlueCEStateWaitingJobs"])
-        target.WaitingJobs = stringtoi(CE["GlueCEStateWaitingJobs"]);
+        target.ComputingShare.WaitingJobs = stringtoi(CE["GlueCEStateWaitingJobs"]);
 
       // target.StagingJobs           - not available in schema
       // target.SuspendedJobs         - not available in schema
@@ -308,52 +308,52 @@ namespace Arc {
       // target.ComputingShareName          - not available in schema
 
       if (VOView["GlueCEPolicyMaxWallClockTime"])
-        target.MaxWallTime = stringtoi(VOView["GlueCEPolicyMaxWallClockTime"]);
+        target.ComputingShare.MaxWallTime = stringtoi(VOView["GlueCEPolicyMaxWallClockTime"]);
       else if (CE["GlueCEPolicyMaxWallClockTime"])
-        target.MaxWallTime = stringtoi(CE["GlueCEPolicyMaxWallClockTime"]);
+        target.ComputingShare.MaxWallTime = stringtoi(CE["GlueCEPolicyMaxWallClockTime"]);
 
       // target.MinWallTime           - not available in schema
       // target.DefaultWallTime       - not available in schema
 
       if (VOView["GlueCEPolicyMaxCPUTime"])
-        target.MaxCPUTime = stringtoi(VOView["GlueCEPolicyMaxCPUTime"]);
+        target.ComputingShare.MaxCPUTime = stringtoi(VOView["GlueCEPolicyMaxCPUTime"]);
       else if (CE["GlueCEPolicyMaxCPUTime"])
-        target.MaxCPUTime = stringtoi(CE["GlueCEPolicyMaxCPUTime"]);
+        target.ComputingShare.MaxCPUTime = stringtoi(CE["GlueCEPolicyMaxCPUTime"]);
 
       // target.MinCPUTime            - not available in schema
       // target.DefaultCPUTime        - not available in schema
 
       if (VOView["GlueCEPolicyMaxTotalJobs"])
-        target.MaxTotalJobs = stringtoi(VOView["GlueCEPolicyMaxTotalJobs"]);
+        target.ComputingShare.MaxTotalJobs = stringtoi(VOView["GlueCEPolicyMaxTotalJobs"]);
       else if (CE["GlueCEPolicyMaxTotalJobs"])
-        target.MaxTotalJobs = stringtoi(CE["GlueCEPolicyMaxTotalJobs"]);
+        target.ComputingShare.MaxTotalJobs = stringtoi(CE["GlueCEPolicyMaxTotalJobs"]);
       if (VOView["GlueCEPolicyMaxRunningJobs"])
-        target.MaxRunningJobs =
+        target.ComputingShare.MaxRunningJobs =
           stringtoi(VOView["GlueCEPolicyMaxRunningJobs"]);
       else if (CE["GlueCEPolicyMaxRunningJobs"])
-        target.MaxRunningJobs = stringtoi(CE["GlueCEPolicyMaxRunningJobs"]);
+        target.ComputingShare.MaxRunningJobs = stringtoi(CE["GlueCEPolicyMaxRunningJobs"]);
       if (VOView["GlueCEPolicyMaxWaitingJobs"])
-        target.MaxWaitingJobs =
+        target.ComputingShare.MaxWaitingJobs =
           stringtoi(VOView["GlueCEPolicyMaxWaitingJobs"]);
       else if (CE["GlueCEPolicyMaxWaitingJobs"])
-        target.MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
+        target.ComputingShare.MaxWaitingJobs = stringtoi(CE["GlueCEPolicyMaxWaitingJobs"]);
       if (SubCluster["GlueHostMainMemoryRAMSize"])
-        target.MaxMainMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
+        target.ComputingShare.MaxMainMemory = stringtoi(SubCluster["GlueHostMainMemoryRAMSize"]);
 
       // target.MaxPreLRMSWaitingJobs - not available in schema
 
       // is this correct ???
       if (VOView["GlueCEPolicyAssignedJobSlots"])
-        target.MaxUserRunningJobs =
+        target.ComputingShare.MaxUserRunningJobs =
           stringtoi(VOView["GlueCEPolicyAssignedJobSlots"]);
       else if (CE["GlueCEPolicyAssignedJobSlots"])
-        target.MaxUserRunningJobs =
+        target.ComputingShare.MaxUserRunningJobs =
           stringtoi(CE["GlueCEPolicyAssignedJobSlots"]);
       if (VOView["GlueCEPolicyMaxSlotsPerJob"])
-        target.MaxSlotsPerJob =
+        target.ComputingShare.MaxSlotsPerJob =
           stringtoi(VOView["GlueCEPolicyMaxSlotsPerJob"]);
       else if (CE["GlueCEPolicyMaxSlotsPerJob"])
-        target.MaxSlotsPerJob =
+        target.ComputingShare.MaxSlotsPerJob =
           stringtoi(CE["GlueCEPolicyMaxSlotsPerJob"]);
 
       // target.MaxStageInStreams     - not available in schema
@@ -361,44 +361,44 @@ namespace Arc {
       // target.SchedulingPolicy      - not available in schema
 
       if (SubCluster["GlueHostMainMemoryVirtualSize"])
-        target.MaxMainMemory =
+        target.ComputingShare.MaxMainMemory =
           stringtoi(SubCluster["GlueHostMainMemoryVirtualSize"]);
 
       // target.MaxDiskSpace          - not available in schema
 
       if (VOView["GlueCEInfoDefaultSE"])
-        target.DefaultStorageService =
+        target.ComputingShare.DefaultStorageService =
           (std::string)VOView["GlueCEInfoDefaultSE"];
       else if (CE["GlueCEInfoDefaultSE"])
-        target.DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
+        target.ComputingShare.DefaultStorageService = (std::string)CE["GlueCEInfoDefaultSE"];
       if (VOView["GlueCEPolicyPreemption"])
-        target.Preemption = stringtoi(VOView["GlueCEPolicyPreemption"]);
+        target.ComputingShare.Preemption = stringtoi(VOView["GlueCEPolicyPreemption"]);
       else if (CE["GlueCEPolicyPreemption"])
-        target.Preemption = stringtoi(CE["GlueCEPolicyPreemption"]);
+        target.ComputingShare.Preemption = stringtoi(CE["GlueCEPolicyPreemption"]);
       if (VOView["GlueCEStateStatus"])
         target.ComputingEndpoint.ServingState = (std::string)VOView["GlueCEStateStatus"];
       else if (CE["GlueCEStateStatus"])
         target.ComputingEndpoint.ServingState = (std::string)CE["GlueCEStateStatus"];
       if (VOView["GlueCEStateEstimatedResponseTime"])
-        target.EstimatedAverageWaitingTime =
+        target.ComputingShare.EstimatedAverageWaitingTime =
           stringtoi(VOView["GlueCEStateEstimatedResponseTime"]);
       else if (CE["GlueCEStateEstimatedResponseTime"])
-        target.EstimatedAverageWaitingTime =
+        target.ComputingShare.EstimatedAverageWaitingTime =
           stringtoi(CE["GlueCEStateEstimatedResponseTime"]);
       if (VOView["GlueCEStateWorstResponseTime"])
-        target.EstimatedWorstWaitingTime =
+        target.ComputingShare.EstimatedWorstWaitingTime =
           stringtoi(VOView["GlueCEStateWorstResponseTime"]);
       else if (CE["GlueCEStateWorstResponseTime"])
-        target.EstimatedWorstWaitingTime =
+        target.ComputingShare.EstimatedWorstWaitingTime =
           stringtoi(CE["GlueCEStateWorstResponseTime"]);
       if (VOView["GlueCEStateFreeJobSlots"])
-        target.FreeSlots = stringtoi(VOView["GlueCEStateFreeJobSlots"]);
+        target.ComputingShare.FreeSlots = stringtoi(VOView["GlueCEStateFreeJobSlots"]);
       else if (VOView["GlueCEStateFreeCPUs"])
-        target.FreeSlots = stringtoi(VOView["GlueCEStateFreeCPUs"]);
+        target.ComputingShare.FreeSlots = stringtoi(VOView["GlueCEStateFreeCPUs"]);
       else if (CE["GlueCEStateFreeJobSlots"])
-        target.FreeSlots = stringtoi(CE["GlueCEStateFreeJobSlots"]);
+        target.ComputingShare.FreeSlots = stringtoi(CE["GlueCEStateFreeJobSlots"]);
       else if (CE["GlueCEStateFreeCPUs"])
-        target.FreeSlots = stringtoi(CE["GlueCEStateFreeCPUs"]);
+        target.ComputingShare.FreeSlots = stringtoi(CE["GlueCEStateFreeCPUs"]);
 
       // target.UsedSlots;
       // target.RequestedSlots;

@@ -81,12 +81,12 @@ void BrokerTest::QueueTest() {
   CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
   job.Resources.QueueName = "q1"; CPPASSERT(0)
-  etl.front().ComputingShareName = "q1"; CPPASSERT(1)
+  etl.front().ComputingShare.Name = "q1"; CPPASSERT(1)
   job.Resources.QueueName = "q2"; CPPASSERT(0)
   job.Resources.QueueName = "";
   job.OtherAttributes["nordugrid:broker;reject_queue"] = "q1";  CPPASSERT(0)
   job.OtherAttributes["nordugrid:broker;reject_queue"] = "q2";  CPPASSERT(1)
-  etl.front().ComputingShareName = ""; CPPASSERT(0)
+  etl.front().ComputingShare.Name = ""; CPPASSERT(0)
   job.OtherAttributes.erase("nordugrid:broker;reject_queue");
 }
 
@@ -95,32 +95,32 @@ void BrokerTest::CPUWallTimeTest() {
   CPPUNIT_ASSERT(b != NULL);
   CPPUNIT_ASSERT(Arc::BrokerTestACCControl::PossibleTargets != NULL);
 
-  etl.front().MaxCPUTime = 100;
+  etl.front().ComputingShare.MaxCPUTime = 100;
   job.Resources.TotalCPUTime.range.max = 110; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 100; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 90;  CPPASSERT(1)
-  etl.front().MaxCPUTime = -1;
+  etl.front().ComputingShare.MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
 
-  etl.front().MinCPUTime = 10;
+  etl.front().ComputingShare.MinCPUTime = 10;
   job.Resources.TotalCPUTime.range.min = 5; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.min = 10; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.min = 15; CPPASSERT(1)
-  etl.front().MinCPUTime = -1;
+  etl.front().ComputingShare.MinCPUTime = -1;
   job.Resources.TotalCPUTime.range.min = -1;
 
-  etl.front().MaxWallTime = 100;
+  etl.front().ComputingShare.MaxWallTime = 100;
   job.Resources.TotalWallTime.range.max = 110; CPPASSERT(0)
   job.Resources.TotalWallTime.range.max = 100; CPPASSERT(1)
   job.Resources.TotalWallTime.range.max = 90;  CPPASSERT(1)
-  etl.front().MaxWallTime = -1;
+  etl.front().ComputingShare.MaxWallTime = -1;
   job.Resources.TotalWallTime.range.max = -1;
 
-  etl.front().MinWallTime = 10;
+  etl.front().ComputingShare.MinWallTime = 10;
   job.Resources.TotalWallTime.range.min = 5;  CPPASSERT(0)
   job.Resources.TotalWallTime.range.min = 10; CPPASSERT(1)
   job.Resources.TotalWallTime.range.min = 15; CPPASSERT(1)
-  etl.front().MinWallTime = -1;
+  etl.front().ComputingShare.MinWallTime = -1;
   job.Resources.TotalWallTime.range.min = -1;
 }
 
@@ -132,45 +132,45 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
   etl.front().Benchmarks["TestBenchmark"] = 100.;
 
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
-  etl.front().MaxCPUTime = 100;
+  etl.front().ComputingShare.MaxCPUTime = 100;
   job.Resources.TotalCPUTime.range.max = 210; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 200; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 190;  CPPASSERT(1)
-  etl.front().MaxCPUTime = -1;
+  etl.front().ComputingShare.MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
 
-  etl.front().MinCPUTime = 10;
+  etl.front().ComputingShare.MinCPUTime = 10;
   job.Resources.TotalCPUTime.range.min = 10; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.min = 20; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.min = 30; CPPASSERT(1)
-  etl.front().MinCPUTime = -1;
+  etl.front().ComputingShare.MinCPUTime = -1;
   job.Resources.TotalCPUTime.range.min = -1;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 
   job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("TestBenchmark", 50.);
-  etl.front().MaxWallTime = 100;
+  etl.front().ComputingShare.MaxWallTime = 100;
   job.Resources.TotalWallTime.range.max = 210; CPPASSERT(0)
   job.Resources.TotalWallTime.range.max = 200; CPPASSERT(1)
   job.Resources.TotalWallTime.range.max = 190;  CPPASSERT(1)
-  etl.front().MaxWallTime = -1;
+  etl.front().ComputingShare.MaxWallTime = -1;
   job.Resources.TotalWallTime.range.max = -1;
 
-  etl.front().MinWallTime = 10;
+  etl.front().ComputingShare.MinWallTime = 10;
   job.Resources.TotalWallTime.range.min = 10;  CPPASSERT(0)
   job.Resources.TotalWallTime.range.min = 20; CPPASSERT(1)
   job.Resources.TotalWallTime.range.min = 30; CPPASSERT(1)
-  etl.front().MinWallTime = -1;
+  etl.front().ComputingShare.MinWallTime = -1;
   job.Resources.TotalWallTime.range.min = -1;
   job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("", -1.);
 
   etl.front().CPUClockSpeed = 2500;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 1000.);
-  etl.front().MaxCPUTime = 100;
+  etl.front().ComputingShare.MaxCPUTime = 100;
   job.Resources.TotalCPUTime.range.max = 300; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 250; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 200;  CPPASSERT(1)
   etl.front().CPUClockSpeed = -1;
-  etl.front().MaxCPUTime = -1;
+  etl.front().ComputingShare.MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);
 }
@@ -183,10 +183,10 @@ void BrokerTest::RegisterJobsubmissionTest() {
 
   job.Resources.SlotRequirement.NumberOfSlots = 4;
   etl.front().TotalSlots = 100;
-  etl.front().MaxSlotsPerJob = 5;
-  etl.front().FreeSlots = 7;
-  etl.front().UsedSlots = 10;
-  etl.front().WaitingJobs = 0;
+  etl.front().ComputingShare.MaxSlotsPerJob = 5;
+  etl.front().ComputingShare.FreeSlots = 7;
+  etl.front().ComputingShare.UsedSlots = 10;
+  etl.front().ComputingShare.WaitingJobs = 0;
 
   b->PreFilterTargets(etl, job);
   b->GetBestTarget();
@@ -194,16 +194,16 @@ void BrokerTest::RegisterJobsubmissionTest() {
   b->RegisterJobsubmission();
 
   CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->FreeSlots);
-  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->UsedSlots);
-  CPPUNIT_ASSERT_EQUAL(0, Arc::BrokerTestACCControl::PossibleTargets->front()->WaitingJobs);
+  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.FreeSlots);
+  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.UsedSlots);
+  CPPUNIT_ASSERT_EQUAL(0, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.WaitingJobs);
 
   b->RegisterJobsubmission();
 
   CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->FreeSlots);
-  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->UsedSlots);
-  CPPUNIT_ASSERT_EQUAL(4, Arc::BrokerTestACCControl::PossibleTargets->front()->WaitingJobs);
+  CPPUNIT_ASSERT_EQUAL(3, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.FreeSlots);
+  CPPUNIT_ASSERT_EQUAL(14, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.UsedSlots);
+  CPPUNIT_ASSERT_EQUAL(4, Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.WaitingJobs);
 }
 
 void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
@@ -227,15 +227,15 @@ void BrokerTest::RegresssionTestMultipleDifferentJobDescriptions() {
   targets.back().ComputingEndpoint.URLString = "http://localhost/test";
   targets.back().ComputingEndpoint.HealthState = "ok";
 
-  targets.front().ComputingShareName = "front";
-  targets.back().ComputingShareName = "back";
+  targets.front().ComputingShare.Name = "front";
+  targets.back().ComputingShare.Name = "back";
 
   b->PreFilterTargets(targets, frontJD);
   CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"front", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShareName);
+  CPPUNIT_ASSERT_EQUAL((std::string)"front", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.Name);
   b->PreFilterTargets(targets, backJD);
   CPPUNIT_ASSERT_EQUAL(1, (int)Arc::BrokerTestACCControl::PossibleTargets->size());
-  CPPUNIT_ASSERT_EQUAL((std::string)"back", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShareName);
+  CPPUNIT_ASSERT_EQUAL((std::string)"back", Arc::BrokerTestACCControl::PossibleTargets->front()->ComputingShare.Name);
 }
 
 void BrokerTest::RejectTargetsTest() {

@@ -137,49 +137,49 @@ namespace Arc {
 
       //Attributes below should possibly consider elements in different places (Service/Endpoint/Share etc).
       if (xmlCENode["TotalJobs"]) {
-        targets.back().TotalJobs = stringtoi((std::string)xmlCENode["TotalJobs"]);
+        targets.back().ComputingShare.TotalJobs = stringtoi((std::string)xmlCENode["TotalJobs"]);
       } else if (GLUEService["TotalJobs"]) {
-        targets.back().TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
+        targets.back().ComputingShare.TotalJobs = stringtoi((std::string)GLUEService["TotalJobs"]);
       }
       if (xmlCENode["RunningJobs"]) {
-        targets.back().RunningJobs = stringtoi((std::string)xmlCENode["RunningJobs"]);
+        targets.back().ComputingShare.RunningJobs = stringtoi((std::string)xmlCENode["RunningJobs"]);
       } else if (GLUEService["RunningJobs"]) {
-        targets.back().RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
+        targets.back().ComputingShare.RunningJobs = stringtoi((std::string)GLUEService["RunningJobs"]);
       }
       if (xmlCENode["WaitingJobs"]) {
-        targets.back().WaitingJobs = stringtoi((std::string)xmlCENode["WaitingJobs"]);
+        targets.back().ComputingShare.WaitingJobs = stringtoi((std::string)xmlCENode["WaitingJobs"]);
       } else if (GLUEService["WaitingJobs"]) {
-        targets.back().WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
+        targets.back().ComputingShare.WaitingJobs = stringtoi((std::string)GLUEService["WaitingJobs"]);
       }
       if (xmlCENode["StagingJobs"]) {
-        targets.back().StagingJobs = stringtoi((std::string)xmlCENode["StagingJobs"]);
+        targets.back().ComputingShare.StagingJobs = stringtoi((std::string)xmlCENode["StagingJobs"]);
       } else if (GLUEService["StagingJobs"]) {
-        targets.back().StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
+        targets.back().ComputingShare.StagingJobs = stringtoi((std::string)GLUEService["StagingJobs"]);
       }
       if (xmlCENode["SuspendedJobs"]) {
-        targets.back().SuspendedJobs = stringtoi((std::string)xmlCENode["SuspendedJobs"]);
+        targets.back().ComputingShare.SuspendedJobs = stringtoi((std::string)xmlCENode["SuspendedJobs"]);
       } else if (GLUEService["SuspendedJobs"]) {
-        targets.back().SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
+        targets.back().ComputingShare.SuspendedJobs = stringtoi((std::string)GLUEService["SuspendedJobs"]);
       }
       if (xmlCENode["PreLRMSWaitingJobs"]) {
-        targets.back().PreLRMSWaitingJobs = stringtoi((std::string)xmlCENode["PreLRMSWaitingJobs"]);
+        targets.back().ComputingShare.PreLRMSWaitingJobs = stringtoi((std::string)xmlCENode["PreLRMSWaitingJobs"]);
       } else if (GLUEService["PreLRMSWaitingJobs"]) {
-        targets.back().PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
+        targets.back().ComputingShare.PreLRMSWaitingJobs = stringtoi((std::string)GLUEService["PreLRMSWaitingJobs"]);
       }
       if (xmlCENode["LocalRunningJobs"]) {
-        targets.back().LocalRunningJobs = stringtoi((std::string)xmlCENode["LocalRunningJobs"]);
+        targets.back().ComputingShare.LocalRunningJobs = stringtoi((std::string)xmlCENode["LocalRunningJobs"]);
       } else if (GLUEService["LocalRunningJobs"]) {
-        targets.back().LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
+        targets.back().ComputingShare.LocalRunningJobs = stringtoi((std::string)GLUEService["LocalRunningJobs"]);
       }
       if (xmlCENode["LocalWaitingJobs"]) {
-        targets.back().LocalWaitingJobs = stringtoi((std::string)xmlCENode["LocalWaitingJobs"]);
+        targets.back().ComputingShare.LocalWaitingJobs = stringtoi((std::string)xmlCENode["LocalWaitingJobs"]);
       } else if (GLUEService["LocalWaitingJobs"]) {
-        targets.back().LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
+        targets.back().ComputingShare.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalWaitingJobs"]);
       }
       if (xmlCENode["LocalSuspendedJobs"]) {
-        targets.back().LocalSuspendedJobs = stringtoi((std::string)xmlCENode["LocalSuspendedJobs"]);
+        targets.back().ComputingShare.LocalSuspendedJobs = stringtoi((std::string)xmlCENode["LocalSuspendedJobs"]);
       } else if (GLUEService["LocalSuspendedJobs"]) {
-        targets.back().LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
+        targets.back().ComputingShare.LocalWaitingJobs = stringtoi((std::string)GLUEService["LocalSuspendedJobs"]);
       }
 
       XMLNode ComputingManager = GLUEService["ComputingManager"];
@@ -248,7 +248,7 @@ namespace Arc {
         if (n["FreeSlots"]) {
           ae.FreeSlots = stringtoi((std::string)n["FreeSlots"]);
         } else {
-          ae.FreeSlots = targets.back().FreeSlots;
+          ae.FreeSlots = targets.back().ComputingShare.FreeSlots;
         }
         if (n["FreeJobs"]) {
           ae.FreeJobs = stringtoi((std::string)n["FreeJobs"]);
@@ -271,11 +271,11 @@ namespace Arc {
         }
 
         if (ComputingShare[i]["FreeSlots"]) {
-          currentTarget.FreeSlots = stringtoi((std::string)ComputingShare[i]["FreeSlots"]);
+          currentTarget.ComputingShare.FreeSlots = stringtoi((std::string)ComputingShare[i]["FreeSlots"]);
         }
         if (ComputingShare[i]["FreeSlotsWithDuration"]) {
           // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
-          currentTarget.FreeSlotsWithDuration.clear();
+          currentTarget.ComputingShare.FreeSlotsWithDuration.clear();
 
           const std::string fswdValue = (std::string)ComputingShare[i]["FreeSlotsWithDuration"];
           std::list<std::string> fswdList;
@@ -292,92 +292,92 @@ namespace Arc {
               continue;
             }
 
-            currentTarget.FreeSlotsWithDuration[Period(duration)] = freeSlots;
+            currentTarget.ComputingShare.FreeSlotsWithDuration[Period(duration)] = freeSlots;
           }
         }
         if (ComputingShare[i]["UsedSlots"]) {
-          currentTarget.UsedSlots = stringtoi((std::string)ComputingShare[i]["UsedSlots"]);
+          currentTarget.ComputingShare.UsedSlots = stringtoi((std::string)ComputingShare[i]["UsedSlots"]);
         }
         if (ComputingShare[i]["RequestedSlots"]) {
-          currentTarget.RequestedSlots = stringtoi((std::string)ComputingShare[i]["RequestedSlots"]);
+          currentTarget.ComputingShare.RequestedSlots = stringtoi((std::string)ComputingShare[i]["RequestedSlots"]);
         }
         if (ComputingShare[i]["Name"]) {
-          currentTarget.ComputingShareName = (std::string)ComputingShare[i]["Name"];
+          currentTarget.ComputingShare.Name = (std::string)ComputingShare[i]["Name"];
         }
         if (ComputingShare[i]["MaxWallTime"]) {
-          currentTarget.MaxWallTime = (std::string)ComputingShare[i]["MaxWallTime"];
+          currentTarget.ComputingShare.MaxWallTime = (std::string)ComputingShare[i]["MaxWallTime"];
         }
         if (ComputingShare[i]["MaxTotalWallTime"]) {
-          currentTarget.MaxTotalWallTime = (std::string)ComputingShare[i]["MaxTotalWallTime"];
+          currentTarget.ComputingShare.MaxTotalWallTime = (std::string)ComputingShare[i]["MaxTotalWallTime"];
         }
         if (ComputingShare[i]["MinWallTime"]) {
-          currentTarget.MinWallTime = (std::string)ComputingShare[i]["MinWallTime"];
+          currentTarget.ComputingShare.MinWallTime = (std::string)ComputingShare[i]["MinWallTime"];
         }
         if (ComputingShare[i]["DefaultWallTime"]) {
-          currentTarget.DefaultWallTime = (std::string)ComputingShare[i]["DefaultWallTime"];
+          currentTarget.ComputingShare.DefaultWallTime = (std::string)ComputingShare[i]["DefaultWallTime"];
         }
         if (ComputingShare[i]["MaxCPUTime"]) {
-          currentTarget.MaxCPUTime = (std::string)ComputingShare[i]["MaxCPUTime"];
+          currentTarget.ComputingShare.MaxCPUTime = (std::string)ComputingShare[i]["MaxCPUTime"];
         }
         if (ComputingShare[i]["MaxTotalCPUTime"]) {
-          currentTarget.MaxTotalCPUTime = (std::string)ComputingShare[i]["MaxTotalCPUTime"];
+          currentTarget.ComputingShare.MaxTotalCPUTime = (std::string)ComputingShare[i]["MaxTotalCPUTime"];
         }
         if (ComputingShare[i]["MinCPUTime"]) {
-          currentTarget.MinCPUTime = (std::string)ComputingShare[i]["MinCPUTime"];
+          currentTarget.ComputingShare.MinCPUTime = (std::string)ComputingShare[i]["MinCPUTime"];
         }
         if (ComputingShare[i]["DefaultCPUTime"]) {
-          currentTarget.DefaultCPUTime = (std::string)ComputingShare[i]["DefaultCPUTime"];
+          currentTarget.ComputingShare.DefaultCPUTime = (std::string)ComputingShare[i]["DefaultCPUTime"];
         }
         if (ComputingShare[i]["MaxTotalJobs"]) {
-          currentTarget.MaxTotalJobs = stringtoi((std::string)ComputingShare[i]["MaxTotalJobs"]);
+          currentTarget.ComputingShare.MaxTotalJobs = stringtoi((std::string)ComputingShare[i]["MaxTotalJobs"]);
         }
         if (ComputingShare[i]["MaxRunningJobs"]) {
-          currentTarget.MaxRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxRunningJobs"]);
+          currentTarget.ComputingShare.MaxRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxRunningJobs"]);
         }
         if (ComputingShare[i]["MaxWaitingJobs"]) {
-          currentTarget.MaxWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxWaitingJobs"]);
+          currentTarget.ComputingShare.MaxWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxWaitingJobs"]);
         }
         if (ComputingShare[i]["MaxPreLRMSWaitingJobs"]) {
-          currentTarget.MaxPreLRMSWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxPreLRMSWaitingJobs"]);
+          currentTarget.ComputingShare.MaxPreLRMSWaitingJobs = stringtoi((std::string)ComputingShare[i]["MaxPreLRMSWaitingJobs"]);
         }
         if (ComputingShare[i]["MaxUserRunningJobs"]) {
-          currentTarget.MaxUserRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxUserRunningJobs"]);
+          currentTarget.ComputingShare.MaxUserRunningJobs = stringtoi((std::string)ComputingShare[i]["MaxUserRunningJobs"]);
         }
         if (ComputingShare[i]["MaxSlotsPerJob"]) {
-          currentTarget.MaxSlotsPerJob = stringtoi((std::string)ComputingShare[i]["MaxSlotsPerJob"]);
+          currentTarget.ComputingShare.MaxSlotsPerJob = stringtoi((std::string)ComputingShare[i]["MaxSlotsPerJob"]);
         }
         if (ComputingShare[i]["MaxStageInStreams"]) {
-          currentTarget.MaxStageInStreams = stringtoi((std::string)ComputingShare[i]["MaxStageInStreams"]);
+          currentTarget.ComputingShare.MaxStageInStreams = stringtoi((std::string)ComputingShare[i]["MaxStageInStreams"]);
         }
         if (ComputingShare[i]["MaxStageOutStreams"]) {
-          currentTarget.MaxStageOutStreams = stringtoi((std::string)ComputingShare[i]["MaxStageOutStreams"]);
+          currentTarget.ComputingShare.MaxStageOutStreams = stringtoi((std::string)ComputingShare[i]["MaxStageOutStreams"]);
         }
         if (ComputingShare[i]["SchedulingPolicy"]) {
-          currentTarget.SchedulingPolicy = (std::string)ComputingShare[i]["SchedulingPolicy"];
+          currentTarget.ComputingShare.SchedulingPolicy = (std::string)ComputingShare[i]["SchedulingPolicy"];
         }
         if (ComputingShare[i]["MaxMainMemory"]) {
-          currentTarget.MaxMainMemory = stringtoi((std::string)ComputingShare[i]["MaxMainMemory"]);
+          currentTarget.ComputingShare.MaxMainMemory = stringtoi((std::string)ComputingShare[i]["MaxMainMemory"]);
         }
         if (ComputingShare[i]["MaxVirtualMemory"]) {
-          currentTarget.MaxVirtualMemory = stringtoi((std::string)ComputingShare[i]["MaxVirtualMemory"]);
+          currentTarget.ComputingShare.MaxVirtualMemory = stringtoi((std::string)ComputingShare[i]["MaxVirtualMemory"]);
         }
         if (ComputingShare[i]["MaxDiskSpace"]) {
-          currentTarget.MaxDiskSpace = stringtoi((std::string)ComputingShare[i]["MaxDiskSpace"]);
+          currentTarget.ComputingShare.MaxDiskSpace = stringtoi((std::string)ComputingShare[i]["MaxDiskSpace"]);
         }
         if (ComputingShare[i]["DefaultStorageService"]) {
-          currentTarget.DefaultStorageService = (std::string)ComputingShare[i]["DefaultStorageService"];
+          currentTarget.ComputingShare.DefaultStorageService = (std::string)ComputingShare[i]["DefaultStorageService"];
         }
         if (ComputingShare[i]["Preemption"]) {
-          currentTarget.Preemption = ((std::string)ComputingShare[i]["Preemption"] == "true") ? true : false;
+          currentTarget.ComputingShare.Preemption = ((std::string)ComputingShare[i]["Preemption"] == "true") ? true : false;
         }
         if (ComputingShare[i]["EstimatedAverageWaitingTime"]) {
-          currentTarget.EstimatedAverageWaitingTime = (std::string)ComputingShare[i]["EstimatedAverageWaitingTime"];
+          currentTarget.ComputingShare.EstimatedAverageWaitingTime = (std::string)ComputingShare[i]["EstimatedAverageWaitingTime"];
         }
         if (ComputingShare[i]["EstimatedWorstWaitingTime"]) {
-          currentTarget.EstimatedWorstWaitingTime = stringtoi((std::string)ComputingShare[i]["EstimatedWorstWaitingTime"]);
+          currentTarget.ComputingShare.EstimatedWorstWaitingTime = stringtoi((std::string)ComputingShare[i]["EstimatedWorstWaitingTime"]);
         }
         if (ComputingShare[i]["ReservationPolicy"]) {
-          currentTarget.ReservationPolicy = stringtoi((std::string)ComputingShare[i]["ReservationPolicy"]);
+          currentTarget.ComputingShare.ReservationPolicy = stringtoi((std::string)ComputingShare[i]["ReservationPolicy"]);
         }
 
         /*

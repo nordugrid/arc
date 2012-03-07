@@ -277,46 +277,46 @@ namespace Arc {
 
       // GFD.147 GLUE2 6.3 Computing Share
       Extractor share = Extractor::First(service, "ComputingShare");
-      share.set("EntityName", target.ComputingShareName);
-      share.set("MappingQueue", target.MappingQueue);
-      share.set("MaxWallTime", target.MaxWallTime);
-      share.set("MaxTotalWallTime", target.MaxTotalWallTime);
-      share.set("MinWallTime", target.MinWallTime);
-      share.set("DefaultWallTime", target.DefaultWallTime);
-      share.set("MaxCPUTime", target.MaxCPUTime);
-      share.set("MaxTotalCPUTime", target.MaxTotalCPUTime);
-      share.set("MinCPUTime", target.MinCPUTime);
-      share.set("DefaultCPUTime", target.DefaultCPUTime);
-      share.set("MaxTotalJobs", target.MaxTotalJobs);
-      share.set("MaxRunningJobs", target.MaxRunningJobs);
-      share.set("MaxWaitingJobs", target.MaxWaitingJobs);
-      share.set("MaxPreLRMSWaitingJobs", target.MaxPreLRMSWaitingJobs);
-      share.set("MaxUserRunningJobs", target.MaxUserRunningJobs);
-      share.set("MaxSlotsPerJob", target.MaxSlotsPerJob);
-      share.set("MaxStageInStreams", target.MaxStageInStreams);
-      share.set("MaxStageOutStreams", target.MaxStageOutStreams);
-      share.set("SchedulingPolicy", target.SchedulingPolicy);
-      share.set("MaxMainMemory", target.MaxMainMemory);
-      share.set("MaxVirtualMemory", target.MaxVirtualMemory);
-      share.set("MaxDiskSpace", target.MaxDiskSpace);
-      share.set("DefaultStorageService", target.DefaultStorageService);
-      share.set("Preemption", target.Preemption);
-      share.set("TotalJobs", target.TotalJobs);
-      share.set("RunningJobs", target.RunningJobs);
-      share.set("LocalRunningJobs", target.LocalRunningJobs);
-      share.set("WaitingJobs", target.WaitingJobs);
-      share.set("LocalWaitingJobs", target.LocalWaitingJobs);
-      share.set("SuspendedJobs", target.SuspendedJobs);
-      share.set("LocalSuspendedJobs", target.LocalSuspendedJobs);
-      share.set("StagingJobs", target.StagingJobs);
-      share.set("PreLRMSWaitingJobs", target.PreLRMSWaitingJobs);
-      share.set("EstimatedAverageWaitingTime", target.EstimatedAverageWaitingTime);
-      share.set("EstimatedWorstWaitingTime", target.EstimatedWorstWaitingTime);
-      share.set("FreeSlots", target.FreeSlots);
+      share.set("EntityName", target.ComputingShare.Name);
+      share.set("MappingQueue", target.ComputingShare.MappingQueue);
+      share.set("MaxWallTime", target.ComputingShare.MaxWallTime);
+      share.set("MaxTotalWallTime", target.ComputingShare.MaxTotalWallTime);
+      share.set("MinWallTime", target.ComputingShare.MinWallTime);
+      share.set("DefaultWallTime", target.ComputingShare.DefaultWallTime);
+      share.set("MaxCPUTime", target.ComputingShare.MaxCPUTime);
+      share.set("MaxTotalCPUTime", target.ComputingShare.MaxTotalCPUTime);
+      share.set("MinCPUTime", target.ComputingShare.MinCPUTime);
+      share.set("DefaultCPUTime", target.ComputingShare.DefaultCPUTime);
+      share.set("MaxTotalJobs", target.ComputingShare.MaxTotalJobs);
+      share.set("MaxRunningJobs", target.ComputingShare.MaxRunningJobs);
+      share.set("MaxWaitingJobs", target.ComputingShare.MaxWaitingJobs);
+      share.set("MaxPreLRMSWaitingJobs", target.ComputingShare.MaxPreLRMSWaitingJobs);
+      share.set("MaxUserRunningJobs", target.ComputingShare.MaxUserRunningJobs);
+      share.set("MaxSlotsPerJob", target.ComputingShare.MaxSlotsPerJob);
+      share.set("MaxStageInStreams", target.ComputingShare.MaxStageInStreams);
+      share.set("MaxStageOutStreams", target.ComputingShare.MaxStageOutStreams);
+      share.set("SchedulingPolicy", target.ComputingShare.SchedulingPolicy);
+      share.set("MaxMainMemory", target.ComputingShare.MaxMainMemory);
+      share.set("MaxVirtualMemory", target.ComputingShare.MaxVirtualMemory);
+      share.set("MaxDiskSpace", target.ComputingShare.MaxDiskSpace);
+      share.set("DefaultStorageService", target.ComputingShare.DefaultStorageService);
+      share.set("Preemption", target.ComputingShare.Preemption);
+      share.set("TotalJobs", target.ComputingShare.TotalJobs);
+      share.set("RunningJobs", target.ComputingShare.RunningJobs);
+      share.set("LocalRunningJobs", target.ComputingShare.LocalRunningJobs);
+      share.set("WaitingJobs", target.ComputingShare.WaitingJobs);
+      share.set("LocalWaitingJobs", target.ComputingShare.LocalWaitingJobs);
+      share.set("SuspendedJobs", target.ComputingShare.SuspendedJobs);
+      share.set("LocalSuspendedJobs", target.ComputingShare.LocalSuspendedJobs);
+      share.set("StagingJobs", target.ComputingShare.StagingJobs);
+      share.set("PreLRMSWaitingJobs", target.ComputingShare.PreLRMSWaitingJobs);
+      share.set("EstimatedAverageWaitingTime", target.ComputingShare.EstimatedAverageWaitingTime);
+      share.set("EstimatedWorstWaitingTime", target.ComputingShare.EstimatedWorstWaitingTime);
+      share.set("FreeSlots", target.ComputingShare.FreeSlots);
       std::string fswdValue = share["FreeSlotsWithDuration"];
       if (!fswdValue.empty()) {
         // Format: ns[:t] [ns[:t]]..., where ns is number of slots and t is the duration.
-        target.FreeSlotsWithDuration.clear();
+        target.ComputingShare.FreeSlotsWithDuration.clear();
         std::list<std::string> fswdList;
         tokenize(fswdValue, fswdList);
         for (std::list<std::string>::iterator it = fswdList.begin(); it != fswdList.end(); it++) {
@@ -329,12 +329,12 @@ namespace Arc {
             logger.msg(DEBUG, "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")", fswdValue, *it);
             continue;
           }
-          target.FreeSlotsWithDuration[Period(duration)] = freeSlots;
+          target.ComputingShare.FreeSlotsWithDuration[Period(duration)] = freeSlots;
         }
       }
-      share.set("UsedSlots", target.UsedSlots);
-      share.set("RequestedSlots", target.RequestedSlots);
-      share.set("ReservationPolicy", target.ReservationPolicy);
+      share.set("UsedSlots", target.ComputingShare.UsedSlots);
+      share.set("RequestedSlots", target.ComputingShare.RequestedSlots);
+      share.set("ReservationPolicy", target.ComputingShare.ReservationPolicy);
 
 
       // GFD.147 GLUE2 6.4 Computing Manager

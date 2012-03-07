@@ -18,42 +18,8 @@ namespace Arc {
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
 
   ExecutionTarget::ExecutionTarget()
-    : Location(),
-      ComputingEndpoint(),
-      MaxWallTime(-1),
-      MaxTotalWallTime(-1),
-      MinWallTime(-1),
-      DefaultWallTime(-1),
-      MaxCPUTime(-1),
-      MaxTotalCPUTime(-1),
-      MinCPUTime(-1),
-      DefaultCPUTime(-1),
-      MaxTotalJobs(-1),
-      MaxRunningJobs(-1),
-      MaxWaitingJobs(-1),
-      MaxPreLRMSWaitingJobs(-1),
-      MaxUserRunningJobs(-1),
-      MaxSlotsPerJob(-1),
-      MaxStageInStreams(-1),
-      MaxStageOutStreams(-1),
-      MaxMainMemory(-1),
-      MaxVirtualMemory(-1),
-      MaxDiskSpace(-1),
-      Preemption(false),
-      TotalJobs(-1),
-      RunningJobs(-1),
-      LocalRunningJobs(-1),
-      WaitingJobs(-1),
-      LocalWaitingJobs(-1),
-      SuspendedJobs(-1),
-      LocalSuspendedJobs(-1),
-      StagingJobs(-1),
-      PreLRMSWaitingJobs(-1),
-      EstimatedAverageWaitingTime(-1),
-      EstimatedWorstWaitingTime(-1),
-      FreeSlots(-1),
-      UsedSlots(-1),
-      RequestedSlots(-1),
+    : Location(), AdminDomain(), ComputingService(),
+      ComputingEndpoint(), ComputingShare(),
       Reservation(false),
       BulkSubmission(false),
       TotalPhysicalCPUs(-1),
@@ -88,7 +54,6 @@ namespace Arc {
   ExecutionTarget::~ExecutionTarget() {}
 
   void ExecutionTarget::Copy(const ExecutionTarget& target) {
-
     // Attributes from 5.3 Location
     Location = target.Location;
 
@@ -99,51 +64,10 @@ namespace Arc {
     ComputingService = target.ComputingService;
 
     // Attributes from 6.2 Computing Endpoint
-
     ComputingEndpoint = target.ComputingEndpoint;
 
     // Attributes from 6.3 Computing Share
-
-    ComputingShareName = target.ComputingShareName;
-    MappingQueue = target.MappingQueue;
-    MaxWallTime = target.MaxWallTime;
-    MaxTotalWallTime = target.MaxTotalWallTime;
-    MinWallTime = target.MinWallTime;
-    DefaultWallTime = target.DefaultWallTime;
-    MaxCPUTime = target.MaxCPUTime;
-    MaxTotalCPUTime = target.MaxTotalCPUTime;
-    MinCPUTime = target.MinCPUTime;
-    DefaultCPUTime = target.DefaultCPUTime;
-    MaxTotalJobs = target.MaxTotalJobs;
-    MaxRunningJobs = target.MaxRunningJobs;
-    MaxWaitingJobs = target.MaxWaitingJobs;
-    MaxPreLRMSWaitingJobs = target.MaxPreLRMSWaitingJobs;
-    MaxUserRunningJobs = target.MaxUserRunningJobs;
-    MaxSlotsPerJob = target.MaxSlotsPerJob;
-    MaxStageInStreams = target.MaxStageInStreams;
-    MaxStageOutStreams = target.MaxStageOutStreams;
-    SchedulingPolicy = target.SchedulingPolicy;
-    MaxMainMemory = target.MaxMainMemory;
-    MaxVirtualMemory = target.MaxVirtualMemory;
-    MaxDiskSpace = target.MaxDiskSpace;
-    DefaultStorageService = target.DefaultStorageService;
-    Preemption = target.Preemption;
-    TotalJobs = target.TotalJobs;
-    RunningJobs = target.RunningJobs;
-    LocalRunningJobs = target.LocalRunningJobs;
-    WaitingJobs = target.WaitingJobs;
-    LocalWaitingJobs = target.LocalWaitingJobs;
-    SuspendedJobs = target.SuspendedJobs;
-    LocalSuspendedJobs = target.LocalSuspendedJobs;
-    StagingJobs = target.StagingJobs;
-    PreLRMSWaitingJobs = target.PreLRMSWaitingJobs;
-    EstimatedAverageWaitingTime = target.EstimatedAverageWaitingTime;
-    EstimatedWorstWaitingTime = target.EstimatedWorstWaitingTime;
-    FreeSlots = target.FreeSlots;
-    FreeSlotsWithDuration = target.FreeSlotsWithDuration;
-    UsedSlots = target.UsedSlots;
-    RequestedSlots = target.RequestedSlots;
-    ReservationPolicy = target.ReservationPolicy;
+    ComputingShare = target.ComputingShare;
 
     // Attributes from 6.4 Computing Manager
 
@@ -209,45 +133,45 @@ namespace Arc {
     }
 
     // FreeSlotsWithDuration
-    if (!FreeSlotsWithDuration.empty()) {
+    if (!ComputingShare.FreeSlotsWithDuration.empty()) {
       std::map<Period, int>::iterator cpuit, cpuit2;
-      cpuit = FreeSlotsWithDuration.lower_bound((unsigned int)jobdesc.Resources.TotalCPUTime.range);
-      if (cpuit != FreeSlotsWithDuration.end()) {
+      cpuit = ComputingShare.FreeSlotsWithDuration.lower_bound((unsigned int)jobdesc.Resources.TotalCPUTime.range);
+      if (cpuit != ComputingShare.FreeSlotsWithDuration.end()) {
         if (jobdesc.Resources.SlotRequirement.NumberOfSlots >= cpuit->second)
           cpuit->second = 0;
         else
-          for (cpuit2 = FreeSlotsWithDuration.begin();
-               cpuit2 != FreeSlotsWithDuration.end(); cpuit2++) {
+          for (cpuit2 = ComputingShare.FreeSlotsWithDuration.begin();
+               cpuit2 != ComputingShare.FreeSlotsWithDuration.end(); cpuit2++) {
             if (cpuit2->first <= cpuit->first)
               cpuit2->second -= jobdesc.Resources.SlotRequirement.NumberOfSlots;
             else if (cpuit2->second >= cpuit->second) {
               cpuit2->second = cpuit->second;
               Period oldkey = cpuit->first;
               cpuit++;
-              FreeSlotsWithDuration.erase(oldkey);
+              ComputingShare.FreeSlotsWithDuration.erase(oldkey);
             }
           }
 
         if (cpuit->second == 0)
-          FreeSlotsWithDuration.erase(cpuit->first);
+          ComputingShare.FreeSlotsWithDuration.erase(cpuit->first);
 
-        if (FreeSlotsWithDuration.empty()) {
-          if (MaxWallTime != -1)
-            FreeSlotsWithDuration[MaxWallTime] = 0;
+        if (ComputingShare.FreeSlotsWithDuration.empty()) {
+          if (ComputingShare.MaxWallTime != -1)
+            ComputingShare.FreeSlotsWithDuration[ComputingShare.MaxWallTime] = 0;
           else
-            FreeSlotsWithDuration[LONG_MAX] = 0;
+            ComputingShare.FreeSlotsWithDuration[LONG_MAX] = 0;
         }
       }
     }
 
     //FreeSlots, UsedSlots, WaitingJobs
-    if (FreeSlots >= abs(jobdesc.Resources.SlotRequirement.NumberOfSlots)) { //The job will start directly
-      FreeSlots -= abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
-      if (UsedSlots != -1)
-        UsedSlots += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
+    if (ComputingShare.FreeSlots >= abs(jobdesc.Resources.SlotRequirement.NumberOfSlots)) { //The job will start directly
+      ComputingShare.FreeSlots -= abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
+      if (ComputingShare.UsedSlots != -1)
+        ComputingShare.UsedSlots += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
     }
-    else if (WaitingJobs != -1)    //The job will enter the queue (or the cluster doesn't report FreeSlots)
-      WaitingJobs += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
+    else if (ComputingShare.WaitingJobs != -1)    //The job will enter the queue (or the cluster doesn't report FreeSlots)
+      ComputingShare.WaitingJobs += abs(jobdesc.Resources.SlotRequirement.NumberOfSlots);
 
     return;
 
@@ -262,11 +186,11 @@ namespace Arc {
       std::string::size_type pos = formattedURL.find("?"); // Do not output characters after the '?' character.
       out << IString(" URL: %s:%s", GridFlavour, formattedURL.substr(0, pos)) << std::endl;
     }
-    if (!ComputingShareName.empty()) {
-       out << IString(" Queue: %s", ComputingShareName) << std::endl;
+    if (!ComputingShare.Name.empty()) {
+       out << IString(" Queue: %s", ComputingShare.Name) << std::endl;
     }
-    if (!MappingQueue.empty()) {
-       out << IString(" Mapping queue: %s", MappingQueue) << std::endl;
+    if (!ComputingShare.MappingQueue.empty()) {
+       out << IString(" Mapping queue: %s", ComputingShare.MappingQueue) << std::endl;
     }
     if (!ComputingEndpoint.HealthState.empty()){
       out << IString(" Health state: %s", ComputingEndpoint.HealthState) << std::endl;
@@ -391,107 +315,107 @@ namespace Arc {
 
       out << std::endl << IString("Queue information:") << std::endl;
 
-      if (!ComputingShareName.empty())
-        out << IString(" Name: %s", ComputingShareName) << std::endl;
-      if (MaxWallTime != -1)
-        out << IString(" Max wall-time: %s", MaxWallTime.istr())
+      if (!ComputingShare.Name.empty())
+        out << IString(" Name: %s", ComputingShare.Name) << std::endl;
+      if (ComputingShare.MaxWallTime != -1)
+        out << IString(" Max wall-time: %s", ComputingShare.MaxWallTime.istr())
                   << std::endl;
-      if (MaxTotalWallTime != -1)
+      if (ComputingShare.MaxTotalWallTime != -1)
         out << IString(" Max total wall-time: %s",
-                             MaxTotalWallTime.istr()) << std::endl;
-      if (MinWallTime != -1)
-        out << IString(" Min wall-time: %s", MinWallTime.istr())
+                             ComputingShare.MaxTotalWallTime.istr()) << std::endl;
+      if (ComputingShare.MinWallTime != -1)
+        out << IString(" Min wall-time: %s", ComputingShare.MinWallTime.istr())
                   << std::endl;
-      if (DefaultWallTime != -1)
+      if (ComputingShare.DefaultWallTime != -1)
         out << IString(" Default wall-time: %s",
-                             DefaultWallTime.istr()) << std::endl;
-      if (MaxCPUTime != -1)
-        out << IString(" Max CPU time: %s", MaxCPUTime.istr())
+                             ComputingShare.DefaultWallTime.istr()) << std::endl;
+      if (ComputingShare.MaxCPUTime != -1)
+        out << IString(" Max CPU time: %s", ComputingShare.MaxCPUTime.istr())
                   << std::endl;
-      if (MinCPUTime != -1)
-        out << IString(" Min CPU time: %s", MinCPUTime.istr())
+      if (ComputingShare.MinCPUTime != -1)
+        out << IString(" Min CPU time: %s", ComputingShare.MinCPUTime.istr())
                   << std::endl;
-      if (DefaultCPUTime != -1)
+      if (ComputingShare.DefaultCPUTime != -1)
         out << IString(" Default CPU time: %s",
-                             DefaultCPUTime.istr()) << std::endl;
-      if (MaxTotalJobs != -1)
-        out << IString(" Max total jobs: %i", MaxTotalJobs) << std::endl;
-      if (MaxRunningJobs != -1)
-        out << IString(" Max running jobs: %i", MaxRunningJobs)
+                             ComputingShare.DefaultCPUTime.istr()) << std::endl;
+      if (ComputingShare.MaxTotalJobs != -1)
+        out << IString(" Max total jobs: %i", ComputingShare.MaxTotalJobs) << std::endl;
+      if (ComputingShare.MaxRunningJobs != -1)
+        out << IString(" Max running jobs: %i", ComputingShare.MaxRunningJobs)
                   << std::endl;
-      if (MaxWaitingJobs != -1)
-        out << IString(" Max waiting jobs: %i", MaxWaitingJobs)
+      if (ComputingShare.MaxWaitingJobs != -1)
+        out << IString(" Max waiting jobs: %i", ComputingShare.MaxWaitingJobs)
                   << std::endl;
-      if (MaxPreLRMSWaitingJobs != -1)
+      if (ComputingShare.MaxPreLRMSWaitingJobs != -1)
         out << IString(" Max pre-LRMS waiting jobs: %i",
-                             MaxPreLRMSWaitingJobs) << std::endl;
-      if (MaxUserRunningJobs != -1)
-        out << IString(" Max user running jobs: %i", MaxUserRunningJobs)
+                             ComputingShare.MaxPreLRMSWaitingJobs) << std::endl;
+      if (ComputingShare.MaxUserRunningJobs != -1)
+        out << IString(" Max user running jobs: %i", ComputingShare.MaxUserRunningJobs)
                   << std::endl;
-      if (MaxSlotsPerJob != -1)
-        out << IString(" Max slots per job: %i", MaxSlotsPerJob)
+      if (ComputingShare.MaxSlotsPerJob != -1)
+        out << IString(" Max slots per job: %i", ComputingShare.MaxSlotsPerJob)
                   << std::endl;
-      if (MaxStageInStreams != -1)
-        out << IString(" Max stage in streams: %i", MaxStageInStreams)
+      if (ComputingShare.MaxStageInStreams != -1)
+        out << IString(" Max stage in streams: %i", ComputingShare.MaxStageInStreams)
                   << std::endl;
-      if (MaxStageOutStreams != -1)
-        out << IString(" Max stage out streams: %i", MaxStageOutStreams)
+      if (ComputingShare.MaxStageOutStreams != -1)
+        out << IString(" Max stage out streams: %i", ComputingShare.MaxStageOutStreams)
                   << std::endl;
-      if (!SchedulingPolicy.empty())
-        out << IString(" Scheduling policy: %s", SchedulingPolicy)
+      if (!ComputingShare.SchedulingPolicy.empty())
+        out << IString(" Scheduling policy: %s", ComputingShare.SchedulingPolicy)
                   << std::endl;
-      if (MaxMainMemory != -1)
-        out << IString(" Max memory: %i", MaxMainMemory) << std::endl;
-      if (MaxVirtualMemory != -1)
-        out << IString(" Max virtual memory: %i", MaxVirtualMemory)
+      if (ComputingShare.MaxMainMemory != -1)
+        out << IString(" Max memory: %i", ComputingShare.MaxMainMemory) << std::endl;
+      if (ComputingShare.MaxVirtualMemory != -1)
+        out << IString(" Max virtual memory: %i", ComputingShare.MaxVirtualMemory)
                   << std::endl;
-      if (MaxDiskSpace != -1)
-        out << IString(" Max disk space: %i", MaxDiskSpace) << std::endl;
-      if (DefaultStorageService)
+      if (ComputingShare.MaxDiskSpace != -1)
+        out << IString(" Max disk space: %i", ComputingShare.MaxDiskSpace) << std::endl;
+      if (ComputingShare.DefaultStorageService)
         out << IString(" Default Storage Service: %s",
-                             DefaultStorageService.str()) << std::endl;
-      if (Preemption)
+                             ComputingShare.DefaultStorageService.str()) << std::endl;
+      if (ComputingShare.Preemption)
         out << IString(" Supports preemption") << std::endl;
       else
         out << IString(" Doesn't support preemption") << std::endl;
-      if (TotalJobs != -1)
-        out << IString(" Total jobs: %i", TotalJobs) << std::endl;
-      if (RunningJobs != -1)
-        out << IString(" Running jobs: %i", RunningJobs) << std::endl;
-      if (LocalRunningJobs != -1)
-        out << IString(" Local running jobs: %i", LocalRunningJobs)
+      if (ComputingShare.TotalJobs != -1)
+        out << IString(" Total jobs: %i", ComputingShare.TotalJobs) << std::endl;
+      if (ComputingShare.RunningJobs != -1)
+        out << IString(" Running jobs: %i", ComputingShare.RunningJobs) << std::endl;
+      if (ComputingShare.LocalRunningJobs != -1)
+        out << IString(" Local running jobs: %i", ComputingShare.LocalRunningJobs)
                   << std::endl;
-      if (WaitingJobs != -1)
-        out << IString(" Waiting jobs: %i", WaitingJobs) << std::endl;
-      if (LocalWaitingJobs != -1)
-        out << IString(" Local waiting jobs: %i", LocalWaitingJobs)
+      if (ComputingShare.WaitingJobs != -1)
+        out << IString(" Waiting jobs: %i", ComputingShare.WaitingJobs) << std::endl;
+      if (ComputingShare.LocalWaitingJobs != -1)
+        out << IString(" Local waiting jobs: %i", ComputingShare.LocalWaitingJobs)
                   << std::endl;
-      if (SuspendedJobs != -1)
-        out << IString(" Suspended jobs: %i", SuspendedJobs)
+      if (ComputingShare.SuspendedJobs != -1)
+        out << IString(" Suspended jobs: %i", ComputingShare.SuspendedJobs)
                   << std::endl;
-      if (LocalSuspendedJobs != -1)
-        out << IString(" Local suspended jobs: %i", LocalSuspendedJobs)
+      if (ComputingShare.LocalSuspendedJobs != -1)
+        out << IString(" Local suspended jobs: %i", ComputingShare.LocalSuspendedJobs)
                   << std::endl;
-      if (StagingJobs != -1)
-        out << IString(" Staging jobs: %i", StagingJobs) << std::endl;
-      if (PreLRMSWaitingJobs != -1)
-        out << IString(" Pre-LRMS waiting jobs: %i", PreLRMSWaitingJobs)
+      if (ComputingShare.StagingJobs != -1)
+        out << IString(" Staging jobs: %i", ComputingShare.StagingJobs) << std::endl;
+      if (ComputingShare.PreLRMSWaitingJobs != -1)
+        out << IString(" Pre-LRMS waiting jobs: %i", ComputingShare.PreLRMSWaitingJobs)
                   << std::endl;
-      if (EstimatedAverageWaitingTime != -1)
+      if (ComputingShare.EstimatedAverageWaitingTime != -1)
         out << IString(" Estimated average waiting time: %s",
-                             EstimatedAverageWaitingTime.istr())
+                             ComputingShare.EstimatedAverageWaitingTime.istr())
                   << std::endl;
-      if (EstimatedWorstWaitingTime != -1)
+      if (ComputingShare.EstimatedWorstWaitingTime != -1)
         out << IString(" Estimated worst waiting time: %s",
-                             EstimatedWorstWaitingTime.istr())
+                             ComputingShare.EstimatedWorstWaitingTime.istr())
                   << std::endl;
-      if (FreeSlots != -1)
-        out << IString(" Free slots: %i", FreeSlots) << std::endl;
-      if (!FreeSlotsWithDuration.empty()) {
+      if (ComputingShare.FreeSlots != -1)
+        out << IString(" Free slots: %i", ComputingShare.FreeSlots) << std::endl;
+      if (!ComputingShare.FreeSlotsWithDuration.empty()) {
         out << IString(" Free slots grouped according to time limits (limit: free slots):") << std::endl;
         for (std::map<Period, int>::const_iterator it =
-               FreeSlotsWithDuration.begin();
-             it != FreeSlotsWithDuration.end(); it++) {
+               ComputingShare.FreeSlotsWithDuration.begin();
+             it != ComputingShare.FreeSlotsWithDuration.end(); it++) {
           if (it->first != Period(LONG_MAX)) {
             out << IString("  %s: %i", it->first.istr(), it->second)
                       << std::endl;
@@ -502,13 +426,13 @@ namespace Arc {
           }
         }
       }
-      if (UsedSlots != -1)
-        out << IString(" Used slots: %i", UsedSlots) << std::endl;
-      if (RequestedSlots != -1)
-        out << IString(" Requested slots: %i", RequestedSlots)
+      if (ComputingShare.UsedSlots != -1)
+        out << IString(" Used slots: %i", ComputingShare.UsedSlots) << std::endl;
+      if (ComputingShare.RequestedSlots != -1)
+        out << IString(" Requested slots: %i", ComputingShare.RequestedSlots)
                   << std::endl;
-      if (!ReservationPolicy.empty())
-        out << IString(" Reservation policy: %s", ReservationPolicy)
+      if (!ComputingShare.ReservationPolicy.empty())
+        out << IString(" Reservation policy: %s", ComputingShare.ReservationPolicy)
                   << std::endl;
 
       out << std::endl << IString("Manager information:") << std::endl;

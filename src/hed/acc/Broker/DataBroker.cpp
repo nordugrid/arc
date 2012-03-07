@@ -108,7 +108,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
 
     CacheCheck();
     PossibleTargets.sort(DataCompare);
@@ -118,7 +118,7 @@ namespace Arc {
     iter = PossibleTargets.begin();
 
     for (int i = 1; iter != PossibleTargets.end(); iter++, i++)
-      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShareName);
+      logger.msg(VERBOSE, "%d. Resource: %s; Queue: %s", i, (*iter)->AdminDomain.Name, (*iter)->ComputingShare.Name);
 
     TargetSortingDone = true;
   }

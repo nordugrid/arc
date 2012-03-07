@@ -520,7 +520,7 @@ namespace Arc {
     }
 
     // Set queue name to the selected ExecutionTarget
-    Resources.QueueName = et.ComputingShareName;
+    Resources.QueueName = et.ComputingShare.Name;
 
     return true;
   }
