@@ -54,8 +54,8 @@ namespace Arc {
     }
 
     if (preparedjobdesc.OtherAttributes.find("egee:jdl;BatchSystem") == preparedjobdesc.OtherAttributes.end()) {
-      if (!et.ManagerProductName.empty()) {
-        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ManagerProductName;
+      if (!et.ComputingManager.ProductName.empty()) {
+        preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ComputingManager.ProductName;
       }
       else if (!et.ComputingShare.MappingQueue.empty()) {
         preparedjobdesc.OtherAttributes["egee:jdl;BatchSystem"] = et.ComputingShare.MappingQueue;

@@ -188,6 +188,32 @@ namespace Arc {
 
   };
 
+  class ComputingManagerType {
+  public:
+    ComputingManagerType()
+      : Reservation(false), BulkSubmission(false),
+      TotalPhysicalCPUs(-1), TotalLogicalCPUs(-1), TotalSlots(-1),
+      Homogeneous(true),
+      WorkingAreaShared(true), WorkingAreaTotal(-1), WorkingAreaFree(-1), WorkingAreaLifeTime(-1),
+      CacheTotal(-1), CacheFree(-1) {}
+
+    std::string ProductName;
+    std::string ProductVersion;
+    bool Reservation;
+    bool BulkSubmission;
+    int TotalPhysicalCPUs;
+    int TotalLogicalCPUs;
+    int TotalSlots;
+    bool Homogeneous;
+    std::list<std::string> NetworkInfo;
+    bool WorkingAreaShared;
+    int WorkingAreaTotal;
+    int WorkingAreaFree;
+    Period WorkingAreaLifeTime;
+    int CacheTotal;
+    int CacheFree;
+  };
+
   /// ExecutionTarget
   /**
    * This class describe a target which accept computing jobs. All of the
@@ -312,22 +338,7 @@ namespace Arc {
     ComputingShareType ComputingShare;
 
     // Attributes from 6.4 Computing Manager
-
-    std::string ManagerProductName;
-    std::string ManagerProductVersion;
-    bool Reservation;
-    bool BulkSubmission;
-    int TotalPhysicalCPUs;
-    int TotalLogicalCPUs;
-    int TotalSlots;
-    bool Homogeneous;
-    std::list<std::string> NetworkInfo;
-    bool WorkingAreaShared;
-    int WorkingAreaTotal;
-    int WorkingAreaFree;
-    Period WorkingAreaLifeTime;
-    int CacheTotal;
-    int CacheFree;
+    ComputingManagerType ComputingManager;
 
     // Attributes from 6.5 Benchmark
 

@@ -184,53 +184,53 @@ namespace Arc {
 
       XMLNode ComputingManager = GLUEService["ComputingManager"];
       if (ComputingManager["ProductName"]) {
-        targets.back().ManagerProductName = (std::string)ComputingManager["ProductName"];
+        targets.back().ComputingManager.ProductName = (std::string)ComputingManager["ProductName"];
       } else if (ComputingManager["Type"]) { // is this non-standard fallback needed?
-        targets.back().ManagerProductName = (std::string)ComputingManager["Type"];
+        targets.back().ComputingManager.ProductName = (std::string)ComputingManager["Type"];
       }
       if (ComputingManager["ProductVersion"]) {
-        targets.back().ManagerProductName = (std::string)ComputingManager["ProductVersion"];
+        targets.back().ComputingManager.ProductVersion = (std::string)ComputingManager["ProductVersion"];
       }
       if (ComputingManager["Reservation"]) {
-        targets.back().Reservation = ((std::string)ComputingManager["Reservation"] == "true") ? true : false;
+        targets.back().ComputingManager.Reservation = ((std::string)ComputingManager["Reservation"] == "true") ? true : false;
       }
       if (ComputingManager["BulkSubmission"]) {
-        targets.back().BulkSubmission = ((std::string)ComputingManager["BulkSubmission"] == "true") ? true : false;
+        targets.back().ComputingManager.BulkSubmission = ((std::string)ComputingManager["BulkSubmission"] == "true") ? true : false;
       }
       if (ComputingManager["TotalPhysicalCPUs"]) {
-        targets.back().TotalPhysicalCPUs = stringtoi((std::string)ComputingManager["TotalPhysicalCPUs"]);
+        targets.back().ComputingManager.TotalPhysicalCPUs = stringtoi((std::string)ComputingManager["TotalPhysicalCPUs"]);
       }
       if (ComputingManager["TotalLogicalCPUs"]) {
-        targets.back().TotalLogicalCPUs = stringtoi((std::string)ComputingManager["TotalLogicalCPUs"]);
+        targets.back().ComputingManager.TotalLogicalCPUs = stringtoi((std::string)ComputingManager["TotalLogicalCPUs"]);
       }
       if (ComputingManager["TotalSlots"]) {
-        targets.back().TotalSlots = stringtoi((std::string)ComputingManager["TotalSlots"]);
+        targets.back().ComputingManager.TotalSlots = stringtoi((std::string)ComputingManager["TotalSlots"]);
       }
       if (ComputingManager["Homogeneous"]) {
-        targets.back().Homogeneous = ((std::string)ComputingManager["Homogeneous"] == "true") ? true : false;
+        targets.back().ComputingManager.Homogeneous = ((std::string)ComputingManager["Homogeneous"] == "true") ? true : false;
       }
       if (ComputingManager["NetworkInfo"]) {
         for (XMLNode n = ComputingManager["NetworkInfo"]; n; ++n) {
-          targets.back().NetworkInfo.push_back((std::string)n);
+          targets.back().ComputingManager.NetworkInfo.push_back((std::string)n);
         }
       }
       if (ComputingManager["WorkingAreaShared"]) {
-        targets.back().WorkingAreaShared = ((std::string)ComputingManager["WorkingAreaShared"] == "true") ? true : false;
+        targets.back().ComputingManager.WorkingAreaShared = ((std::string)ComputingManager["WorkingAreaShared"] == "true") ? true : false;
       }
       if (ComputingManager["WorkingAreaFree"]) {
-        targets.back().WorkingAreaFree = stringtoi((std::string)ComputingManager["WorkingAreaFree"]);
+        targets.back().ComputingManager.WorkingAreaFree = stringtoi((std::string)ComputingManager["WorkingAreaFree"]);
       }
       if (ComputingManager["WorkingAreaTotal"]) {
-        targets.back().WorkingAreaTotal = stringtoi((std::string)ComputingManager["WorkingAreaTotal"]);
+        targets.back().ComputingManager.WorkingAreaTotal = stringtoi((std::string)ComputingManager["WorkingAreaTotal"]);
       }
       if (ComputingManager["WorkingAreaLifeTime"]) {
-        targets.back().WorkingAreaLifeTime = (std::string)ComputingManager["WorkingAreaLifeTime"];
+        targets.back().ComputingManager.WorkingAreaLifeTime = (std::string)ComputingManager["WorkingAreaLifeTime"];
       }
       if (ComputingManager["CacheFree"]) {
-        targets.back().CacheFree = stringtoi((std::string)ComputingManager["CacheFree"]);
+        targets.back().ComputingManager.CacheFree = stringtoi((std::string)ComputingManager["CacheFree"]);
       }
       if (ComputingManager["CacheTotal"]) {
-        targets.back().CacheTotal = stringtoi((std::string)ComputingManager["CacheTotal"]);
+        targets.back().ComputingManager.CacheTotal = stringtoi((std::string)ComputingManager["CacheTotal"]);
       }
       for (XMLNode n = ComputingManager["Benchmark"]; n; ++n) {
         double value;

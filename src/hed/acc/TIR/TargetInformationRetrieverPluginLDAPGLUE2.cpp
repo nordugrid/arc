@@ -339,21 +339,21 @@ namespace Arc {
 
       // GFD.147 GLUE2 6.4 Computing Manager
       Extractor manager = Extractor::First(service, "ComputingManager");
-      manager.set("ManagerProductName", target.ManagerProductName);
-      manager.set("ManagerProductVersion", target.ManagerProductVersion);
-      manager.set("Reservation", target.Reservation);
-      manager.set("BulkSubmission", target.BulkSubmission);
-      manager.set("TotalPhysicalCPUs", target.TotalPhysicalCPUs);
-      manager.set("TotalLogicalCPUs", target.TotalLogicalCPUs);
-      manager.set("TotalSlots", target.TotalSlots);
-      manager.set("Homogeneous", target.Homogeneous);
-      manager.set("NetworkInfo", target.NetworkInfo);
-      manager.set("WorkingAreaShared", target.WorkingAreaShared);
-      manager.set("WorkingAreaTotal", target.WorkingAreaTotal);
-      manager.set("WorkingAreaFree", target.WorkingAreaFree);
-      manager.set("WorkingAreaLifeTime", target.WorkingAreaLifeTime);
-      manager.set("CacheTotal", target.CacheTotal);
-      manager.set("CacheFree", target.CacheFree);
+      manager.set("ManagerProductName", target.ComputingManager.ProductName);
+      manager.set("ManagerProductVersion", target.ComputingManager.ProductVersion);
+      manager.set("Reservation", target.ComputingManager.Reservation);
+      manager.set("BulkSubmission", target.ComputingManager.BulkSubmission);
+      manager.set("TotalPhysicalCPUs", target.ComputingManager.TotalPhysicalCPUs);
+      manager.set("TotalLogicalCPUs", target.ComputingManager.TotalLogicalCPUs);
+      manager.set("TotalSlots", target.ComputingManager.TotalSlots);
+      manager.set("Homogeneous", target.ComputingManager.Homogeneous);
+      manager.set("NetworkInfo", target.ComputingManager.NetworkInfo);
+      manager.set("WorkingAreaShared", target.ComputingManager.WorkingAreaShared);
+      manager.set("WorkingAreaTotal", target.ComputingManager.WorkingAreaTotal);
+      manager.set("WorkingAreaFree", target.ComputingManager.WorkingAreaFree);
+      manager.set("WorkingAreaLifeTime", target.ComputingManager.WorkingAreaLifeTime);
+      manager.set("CacheTotal", target.ComputingManager.CacheTotal);
+      manager.set("CacheFree", target.ComputingManager.CacheFree);
 
       // GFD.147 GLUE2 6.5 Benchmark
 

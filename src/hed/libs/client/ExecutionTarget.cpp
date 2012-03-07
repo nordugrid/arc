@@ -20,18 +20,7 @@ namespace Arc {
   ExecutionTarget::ExecutionTarget()
     : Location(), AdminDomain(), ComputingService(),
       ComputingEndpoint(), ComputingShare(),
-      Reservation(false),
-      BulkSubmission(false),
-      TotalPhysicalCPUs(-1),
-      TotalLogicalCPUs(-1),
-      TotalSlots(-1),
-      Homogeneous(true),
-      WorkingAreaShared(true),
-      WorkingAreaTotal(-1),
-      WorkingAreaFree(-1),
-      WorkingAreaLifeTime(-1),
-      CacheTotal(-1),
-      CacheFree(-1),
+      ComputingManager(),
       VirtualMachine(false),
       CPUClockSpeed(-1),
       MainMemorySize(-1),
@@ -70,22 +59,7 @@ namespace Arc {
     ComputingShare = target.ComputingShare;
 
     // Attributes from 6.4 Computing Manager
-
-    ManagerProductName = target.ManagerProductName;
-    ManagerProductVersion = target.ManagerProductVersion;
-    Reservation = target.Reservation;
-    BulkSubmission = target.BulkSubmission;
-    TotalPhysicalCPUs = target.TotalPhysicalCPUs;
-    TotalLogicalCPUs = target.TotalLogicalCPUs;
-    TotalSlots = target.TotalSlots;
-    Homogeneous = target.Homogeneous;
-    NetworkInfo = target.NetworkInfo;
-    WorkingAreaShared = target.WorkingAreaShared;
-    WorkingAreaTotal = target.WorkingAreaTotal;
-    WorkingAreaFree = target.WorkingAreaFree;
-    WorkingAreaLifeTime = target.WorkingAreaLifeTime;
-    CacheTotal = target.CacheTotal;
-    CacheFree = target.CacheFree;
+    ComputingManager = target.ComputingManager;
 
     // Attributes from 6.5 Benchmark
 
@@ -127,9 +101,9 @@ namespace Arc {
 
     //WorkingAreaFree
     if (jobdesc.Resources.DiskSpaceRequirement.DiskSpace) {
-      WorkingAreaFree -= (int)(jobdesc.Resources.DiskSpaceRequirement.DiskSpace / 1024);
-      if (WorkingAreaFree < 0)
-        WorkingAreaFree = 0;
+      ComputingManager.WorkingAreaFree -= (int)(jobdesc.Resources.DiskSpaceRequirement.DiskSpace / 1024);
+      if (ComputingManager.WorkingAreaFree < 0)
+        ComputingManager.WorkingAreaFree = 0;
     }
 
     // FreeSlotsWithDuration
@@ -437,59 +411,59 @@ namespace Arc {
 
       out << std::endl << IString("Manager information:") << std::endl;
 
-      if (!ManagerProductName.empty())
-        out << IString(" Resource manager: %s", ManagerProductName)
+      if (!ComputingManager.ProductName.empty())
+        out << IString(" Resource manager: %s", ComputingManager.ProductName)
                   << std::endl;
-      if (!ManagerProductVersion.empty())
+      if (!ComputingManager.ProductVersion.empty())
         out << IString(" Resource manager version: %s",
-                             ManagerProductVersion) << std::endl;
-      if (Reservation)
+                             ComputingManager.ProductVersion) << std::endl;
+      if (ComputingManager.Reservation)
         out << IString(" Supports advance reservations") << std::endl;
       else
         out << IString(" Doesn't support advance reservations")
                   << std::endl;
-      if (BulkSubmission)
+      if (ComputingManager.BulkSubmission)
         out << IString(" Supports bulk submission") << std::endl;
       else
         out << IString(" Doesn't support bulk Submission") << std::endl;
-      if (TotalPhysicalCPUs != -1)
-        out << IString(" Total physical CPUs: %i", TotalPhysicalCPUs)
+      if (ComputingManager.TotalPhysicalCPUs != -1)
+        out << IString(" Total physical CPUs: %i", ComputingManager.TotalPhysicalCPUs)
                   << std::endl;
-      if (TotalLogicalCPUs != -1)
-        out << IString(" Total logical CPUs: %i", TotalLogicalCPUs)
+      if (ComputingManager.TotalLogicalCPUs != -1)
+        out << IString(" Total logical CPUs: %i", ComputingManager.TotalLogicalCPUs)
                   << std::endl;
-      if (TotalSlots != -1)
-        out << IString(" Total slots: %i", TotalSlots) << std::endl;
-      if (Homogeneous)
+      if (ComputingManager.TotalSlots != -1)
+        out << IString(" Total slots: %i", ComputingManager.TotalSlots) << std::endl;
+      if (ComputingManager.Homogeneous)
         out << IString(" Homogeneous resource") << std::endl;
       else
         out << IString(" Non-homogeneous resource") << std::endl;
-      if (!NetworkInfo.empty()) {
+      if (!ComputingManager.NetworkInfo.empty()) {
         out << IString(" Network information:") << std::endl;
-        for (std::list<std::string>::const_iterator it = NetworkInfo.begin();
-             it != NetworkInfo.end(); it++)
+        for (std::list<std::string>::const_iterator it = ComputingManager.NetworkInfo.begin();
+             it != ComputingManager.NetworkInfo.end(); it++)
           out << "  " << *it << std::endl;
       }
-      if (WorkingAreaShared)
+      if (ComputingManager.WorkingAreaShared)
         out << IString(" Working area is shared among jobs")
                   << std::endl;
       else
         out << IString(" Working area is not shared among jobs")
                   << std::endl;
-      if (WorkingAreaTotal != -1)
-        out << IString(" Working area total size: %i", WorkingAreaTotal)
+      if (ComputingManager.WorkingAreaTotal != -1)
+        out << IString(" Working area total size: %i", ComputingManager.WorkingAreaTotal)
                   << std::endl;
-      if (WorkingAreaFree != -1)
-        out << IString(" Working area free size: %i", WorkingAreaFree)
+      if (ComputingManager.WorkingAreaFree != -1)
+        out << IString(" Working area free size: %i", ComputingManager.WorkingAreaFree)
                   << std::endl;
-      if (WorkingAreaLifeTime != -1)
+      if (ComputingManager.WorkingAreaLifeTime != -1)
         out << IString(" Working area life time: %s",
-                             WorkingAreaLifeTime.istr()) << std::endl;
-      if (CacheTotal != -1)
-        out << IString(" Cache area total size: %i", CacheTotal)
+                             ComputingManager.WorkingAreaLifeTime.istr()) << std::endl;
+      if (ComputingManager.CacheTotal != -1)
+        out << IString(" Cache area total size: %i", ComputingManager.CacheTotal)
                   << std::endl;
-      if (CacheFree != -1)
-        out << IString(" Cache area free size: %i", CacheFree)
+      if (ComputingManager.CacheFree != -1)
+        out << IString(" Cache area free size: %i", ComputingManager.CacheFree)
                   << std::endl;
 
       // Benchmarks

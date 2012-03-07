@@ -16,8 +16,8 @@ namespace Arc {
   bool CompareExecutionTarget(const ExecutionTarget *T1,
                               const ExecutionTarget *T2) {
     //Scale queue to become cluster size independent
-    float T1queue = (float)T1->ComputingShare.WaitingJobs / T1->TotalSlots;
-    float T2queue = (float)T2->ComputingShare.WaitingJobs / T2->TotalSlots;
+    float T1queue = (float)T1->ComputingShare.WaitingJobs / T1->ComputingManager.TotalSlots;
+    float T2queue = (float)T2->ComputingShare.WaitingJobs / T2->ComputingManager.TotalSlots;
     return T1queue < T2queue;
   }
 
@@ -41,10 +41,10 @@ namespace Arc {
     //Remove clusters with incomplete information for target sorting
     std::list<ExecutionTarget*>::iterator iter = PossibleTargets.begin();
     while (iter != PossibleTargets.end()) {
-      if ((*iter)->ComputingShare.WaitingJobs == -1 || (*iter)->TotalSlots == -1 || (*iter)->ComputingShare.FreeSlots == -1) {
+      if ((*iter)->ComputingShare.WaitingJobs == -1 || (*iter)->ComputingManager.TotalSlots == -1 || (*iter)->ComputingShare.FreeSlots == -1) {
         if ((*iter)->ComputingShare.WaitingJobs == -1)
           logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of waiting jobs", (*iter)->AdminDomain.Name);
-        else if ((*iter)->TotalSlots == -1)
+        else if ((*iter)->ComputingManager.TotalSlots == -1)
           logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of total slots", (*iter)->AdminDomain.Name);
         else if ((*iter)->ComputingShare.FreeSlots == -1)
           logger.msg(VERBOSE, "Target %s removed by FastestQueueBroker, doesn't report number of free slots", (*iter)->AdminDomain.Name);

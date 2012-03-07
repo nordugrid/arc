@@ -182,7 +182,7 @@ void BrokerTest::RegisterJobsubmissionTest() {
   CPPUNIT_ASSERT(Arc::BrokerTestACCControl::TargetSortingDone != NULL);
 
   job.Resources.SlotRequirement.NumberOfSlots = 4;
-  etl.front().TotalSlots = 100;
+  etl.front().ComputingManager.TotalSlots = 100;
   etl.front().ComputingShare.MaxSlotsPerJob = 5;
   etl.front().ComputingShare.FreeSlots = 7;
   etl.front().ComputingShare.UsedSlots = 10;

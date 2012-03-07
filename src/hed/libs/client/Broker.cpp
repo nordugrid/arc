@@ -286,9 +286,9 @@ namespace Arc {
     }
 
     if (!job->Resources.NetworkInfo.empty())
-      if (!t.NetworkInfo.empty()) {    // Example: infiniband
-        if (std::find(t.NetworkInfo.begin(), t.NetworkInfo.end(),
-                      job->Resources.NetworkInfo) == t.NetworkInfo.end()) {
+      if (!t.ComputingManager.NetworkInfo.empty()) {    // Example: infiniband
+        if (std::find(t.ComputingManager.NetworkInfo.begin(), t.ComputingManager.NetworkInfo.end(),
+                      job->Resources.NetworkInfo) == t.ComputingManager.NetworkInfo.end()) {
           logger.msg(VERBOSE, "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not support %s, specified in the JobDescription.", job->Resources.NetworkInfo);
           return false;
         }
@@ -306,14 +306,14 @@ namespace Arc {
         }
       }
 
-      if (t.WorkingAreaFree > -1) {     // Example: 5656
-        if (t.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", t.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
+      if (t.ComputingManager.WorkingAreaFree > -1) {     // Example: 5656
+        if (t.ComputingManager.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.SessionDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)", t.ComputingManager.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.SessionDiskSpace);
           return false;
         }
       }
 
-      if (t.ComputingShare.MaxDiskSpace <= -1 && t.WorkingAreaFree <= -1) {
+      if (t.ComputingShare.MaxDiskSpace <= -1 && t.ComputingManager.WorkingAreaFree <= -1) {
         logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint.URLString);
         return false;
       }
@@ -327,14 +327,14 @@ namespace Arc {
         }
       }
 
-      if (t.WorkingAreaFree > -1) {     // Example: 5656
-        if (t.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (t.ComputingManager.WorkingAreaFree > -1) {     // Example: 5656
+        if (t.ComputingManager.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max - job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree*1024 >= DiskSpace - CacheDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); JobDescription: %d MB (DiskSpace), %d MB (CacheDiskSpace)", t.ComputingManager.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
 
-      if (t.ComputingShare.MaxDiskSpace <= -1 && t.WorkingAreaFree <= -1) {
+      if (t.ComputingShare.MaxDiskSpace <= -1 && t.ComputingManager.WorkingAreaFree <= -1) {
         logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint.URLString);
         return false;
       }
@@ -348,23 +348,23 @@ namespace Arc {
         }
       }
 
-      if (t.WorkingAreaFree > -1) {     // Example: 5656
-        if (t.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", t.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
+      if (t.ComputingManager.WorkingAreaFree > -1) {     // Example: 5656
+        if (t.ComputingManager.WorkingAreaFree*1024 < job->Resources.DiskSpaceRequirement.DiskSpace.max) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB (WorkingAreaFree); JobDescription: %d MB (DiskSpace)", t.ComputingManager.WorkingAreaFree*1024, job->Resources.DiskSpaceRequirement.DiskSpace.max);
           return false;
         }
       }
 
-      if (t.WorkingAreaFree <= -1 && t.ComputingShare.MaxDiskSpace <= -1) {
+      if (t.ComputingManager.WorkingAreaFree <= -1 && t.ComputingShare.MaxDiskSpace <= -1) {
         logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not defined", t.ComputingEndpoint.URLString);
         return false;
       }
     }
 
     if (job->Resources.DiskSpaceRequirement.CacheDiskSpace > -1) {
-      if (t.CacheTotal > -1) {     // Example: 5656
-        if (t.CacheTotal*1024 < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
-          logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", t.CacheTotal*1024, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
+      if (t.ComputingManager.CacheTotal > -1) {     // Example: 5656
+        if (t.ComputingManager.CacheTotal*1024 < job->Resources.DiskSpaceRequirement.CacheDiskSpace) {
+          logger.msg(VERBOSE, "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); JobDescription: %d MB (CacheDiskSpace)", t.ComputingManager.CacheTotal*1024, job->Resources.DiskSpaceRequirement.CacheDiskSpace);
           return false;
         }
       }
@@ -375,29 +375,29 @@ namespace Arc {
     }
 
     if (job->Resources.SlotRequirement.NumberOfSlots != -1) {
-      if (t.TotalSlots != -1) {     // Example: 5656
-        if (t.TotalSlots < job->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", t.TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
+      if (t.ComputingManager.TotalSlots != -1) {     // Example: 5656
+        if (t.ComputingManager.TotalSlots < job->Resources.SlotRequirement.NumberOfSlots) {
+          logger.msg(VERBOSE, "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) JobDescription: %d (NumberOfProcesses)", t.ComputingManager.TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
       if (t.ComputingShare.MaxSlotsPerJob != -1) {     // Example: 5656
         if (t.ComputingShare.MaxSlotsPerJob < job->Resources.SlotRequirement.NumberOfSlots) {
-          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
+          logger.msg(VERBOSE, "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) JobDescription: %d (NumberOfProcesses)", t.ComputingManager.TotalSlots, job->Resources.SlotRequirement.NumberOfSlots);
           return false;
         }
       }
 
-      if (t.TotalSlots == -1 && t.ComputingShare.MaxSlotsPerJob == -1) {
+      if (t.ComputingManager.TotalSlots == -1 && t.ComputingShare.MaxSlotsPerJob == -1) {
         logger.msg(VERBOSE, "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not defined", t.ComputingEndpoint.URLString);
         return false;
       }
     }
 
     if ((int)job->Resources.SessionLifeTime.GetPeriod() != -1) {
-      if ((int)t.WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
-        if (t.WorkingAreaLifeTime < job->Resources.SessionLifeTime) {
-          logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)t.WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
+      if ((int)t.ComputingManager.WorkingAreaLifeTime.GetPeriod() != -1) {     // Example: 123
+        if (t.ComputingManager.WorkingAreaLifeTime < job->Resources.SessionLifeTime) {
+          logger.msg(VERBOSE, "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s (WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)", (std::string)t.ComputingManager.WorkingAreaLifeTime, (std::string)job->Resources.SessionLifeTime);
           return false;
         }
       }

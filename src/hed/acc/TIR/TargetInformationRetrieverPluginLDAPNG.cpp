@@ -290,45 +290,45 @@ namespace Arc {
 
       // Computing Manager attributes
       if (cluster["nordugrid-cluster-lrms-type"])
-        target.ManagerProductName =
+        target.ComputingManager.ProductName =
           (std::string)cluster["nordugrid-cluster-lrms-type"];
       if (cluster["nordugrid-cluster-lrms-version"])
-        target.ManagerProductVersion =
+        target.ComputingManager.ProductVersion =
           (std::string)cluster["nordugrid-cluster-lrms-version"];
       if (queue["nordugrid-queue-totalcpus"])
-        target.TotalPhysicalCPUs =
-        target.TotalLogicalCPUs =
-        target.TotalSlots =
+        target.ComputingManager.TotalPhysicalCPUs =
+        target.ComputingManager.TotalLogicalCPUs =
+        target.ComputingManager.TotalSlots =
           stringtoi((std::string)queue["nordugrid-queue-totalcpus"]);
       else if (cluster["nordugrid-cluster-totalcpus"])
-        target.TotalPhysicalCPUs =
-        target.TotalLogicalCPUs =
-        target.TotalSlots =
+        target.ComputingManager.TotalPhysicalCPUs =
+        target.ComputingManager.TotalLogicalCPUs =
+        target.ComputingManager.TotalSlots =
           stringtoi((std::string)cluster["nordugrid-cluster-totalcpus"]);
       if (queue["nordugrid-queue-homogeneity"]) {
         if ((std::string)queue["nordugrid-queue-homogeneity"] == "false")
-          target.Homogeneous = false;
+          target.ComputingManager.Homogeneous = false;
       }
       else if (cluster["nordugrid-cluster-homogeneity"])
         if ((std::string)cluster["nordugrid-cluster-homogeneity"] == "false")
-          target.Homogeneous = false;
+          target.ComputingManager.Homogeneous = false;
       if (cluster["nordugrid-cluster-sessiondir-total"])
-        target.WorkingAreaTotal =
+        target.ComputingManager.WorkingAreaTotal =
           stringtoi((std::string)
                     cluster["nordugrid-cluster-sessiondir-total"]) / 1000;
       if (cluster["nordugrid-cluster-sessiondir-free"])
-        target.WorkingAreaFree =
+        target.ComputingManager.WorkingAreaFree =
           stringtoi((std::string)
                     cluster["nordugrid-cluster-sessiondir-free"]) / 1000;
       if (cluster["nordugrid-cluster-sessiondir-lifetime"])
-        target.WorkingAreaLifeTime =
+        target.ComputingManager.WorkingAreaLifeTime =
           Period((std::string)cluster["nordugrid-cluster-sessiondir-lifetime"],
                  PeriodMinutes);
       if (cluster["nordugrid-cluster-cache-total"])
-        target.CacheTotal =
+        target.ComputingManager.CacheTotal =
           stringtoi((std::string)cluster["nordugrid-cluster-cache-total"]) / 1000;
       if (cluster["nordugrid-cluster-cache-free"])
-        target.CacheFree =
+        target.ComputingManager.CacheFree =
           stringtoi((std::string)cluster["nordugrid-cluster-cache-free"]) / 1000;
 
       // Benchmarks
