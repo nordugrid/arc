@@ -89,7 +89,7 @@ AC_ARG_WITH(sysv-scripts-location,
   [
     initddir=
     case "${host}" in
-      *linux*)
+      *linux* | *kfreebsd* | *gnu* )
         for i in init.d rc.d/init.d rc.d; do
           if test -d "/etc/$i" -a ! -h "/etc/$i" ; then
             initddir="$sysconfdir/$i"
@@ -2126,11 +2126,11 @@ tmp_dir=/tmp
 gnu_time=/usr/bin/time
 
 case "${host}" in
-    *linux*)
-        nodename="/bin/hostname -f" ;;
-    *)
+    *solaris* | *darwin* )
         # hostname -f does not work on Solaris, OS X
         nodename="hostname" ;;
+    *)
+        nodename="/bin/hostname -f" ;;
 esac
 
 arc_location=$prefix
