@@ -1137,7 +1137,7 @@ namespace Arc {
     }
 
     static std::string GetInterfaceNameOfRegistryInterface(std::string registryinterface) {
-      if (registryinterface == "EGIIS") return "org.nordugrid.egiis";
+      if (registryinterface == "EGIIS") return "org.nordugrid.ldapegiis";
       if (registryinterface == "EMIR") return "org.nordugrid.emir";
       return "";
     }

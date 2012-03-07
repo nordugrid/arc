@@ -174,7 +174,7 @@ void UserConfigTest::PreferredInterfacesTest()
 //   service = Arc::UserConfig::ServiceFromLegacyString("index:ARC0:http://a.org");
 //   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
 //   CPPUNIT_ASSERT_EQUAL((std::string)"http://a.org", service.URLString);
-//   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", service.InterfaceName);
+//   CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapegiis", service.InterfaceName);
 // 
 //   service = Arc::UserConfig::ServiceFromLegacyString("index:EMIES:http://a.org");
 //   CPPUNIT_ASSERT_EQUAL(Arc::ConfigEndpoint::REGISTRY, service.type);
@@ -202,9 +202,9 @@ void UserConfigTest::LegacyDefaultServicesTest()
   services = uc.GetDefaultServices(Arc::ConfigEndpoint::REGISTRY);  
   CPPUNIT_ASSERT_EQUAL(2, (int)services.size());
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid", services.front().URLString);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", services.front().InterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapegiis", services.front().InterfaceName);  
   CPPUNIT_ASSERT_EQUAL((std::string)"ldap://index2.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid", services.back().URLString);
-  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.egiis", services.back().InterfaceName);  
+  CPPUNIT_ASSERT_EQUAL((std::string)"org.nordugrid.ldapegiis", services.back().InterfaceName);  
 
   services = uc.GetDefaultServices(Arc::ConfigEndpoint::COMPUTINGINFO);  
   CPPUNIT_ASSERT_EQUAL(2, (int)services.size());
