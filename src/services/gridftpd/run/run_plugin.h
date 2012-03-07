@@ -39,7 +39,7 @@ namespace gridftpd {
     const std::string& stdout_channel(void) const { return stdout_; };
     const std::string& stderr_channel(void) const { return stderr_; };
     operator bool(void) const { return !args_.empty(); };
-    std::string cmd(void) { (args_.size()>0)?args_.front():std::string(""); }; 
+    std::string cmd(void) { return (args_.empty())?std::string(""):args_.front(); };
   };
 
 
