@@ -32,7 +32,7 @@ EndpointQueryingStatus TargetInformationRetrieverPluginTESTControl::status;
 
 float ServiceEndpointRetrieverPluginTESTControl::delay = 0;
 EndpointQueryingStatus ServiceEndpointRetrieverPluginTESTControl::status;
-std::list<ServiceEndpoint> ServiceEndpointRetrieverPluginTESTControl::endpoints = std::list<ServiceEndpoint>();
+std::list<Endpoint> ServiceEndpointRetrieverPluginTESTControl::endpoints = std::list<Endpoint>();
 
 float JobListRetrieverPluginTESTControl::delay = 0;
 EndpointQueryingStatus JobListRetrieverPluginTESTControl::status;

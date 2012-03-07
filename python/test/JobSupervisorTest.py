@@ -51,7 +51,7 @@ class JobSupervisorTest(arcom.test.ARCClientTestCase):
 
         self.expect(js.GetAllJobs()).to_have(2).jobs()
 
-        endpoints = [ arc.ServiceEndpoint("http://test2.nordugrid.org",  "org.nordugrid.tirtest", [arc.ComputingInfoEndpoint.ComputingInfoCapability] ) ]
+        endpoints = [arc.Endpoint("http://test2.nordugrid.org",  "org.nordugrid.tirtest", [arc.Endpoint.GetStringForCapability(arc.Endpoint.COMPUTINGINFO)])]
         resubmitted = arc.JobList()
         result = js.Resubmit(0, endpoints, resubmitted)
         self.expect(result).to_be(True)

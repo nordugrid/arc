@@ -5,7 +5,7 @@
 #include <arc/OptionParser.h>
 #include <arc/client/Endpoint.h>
 
-std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>);
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig, std::list<std::string>, std::list<std::string>);
 
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 

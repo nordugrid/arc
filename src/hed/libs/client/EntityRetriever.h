@@ -33,7 +33,7 @@ private:
 };
 
 template<>
-class EndpointQueryOptions<ServiceEndpoint> {
+class EndpointQueryOptions<Endpoint> {
 public:
   EndpointQueryOptions(bool recursive = false,
                        const std::list<std::string>& capabilityFilter = std::list<std::string>(),
@@ -218,9 +218,9 @@ protected:
 };
 
 
-typedef EntityRetriever<ServiceEndpoint>             ServiceEndpointRetriever;
-typedef EntityRetrieverPlugin<ServiceEndpoint>       ServiceEndpointRetrieverPlugin;
-typedef EntityRetrieverPluginLoader<ServiceEndpoint> ServiceEndpointRetrieverPluginLoader;
+typedef EntityRetriever<Endpoint>             ServiceEndpointRetriever;
+typedef EntityRetrieverPlugin<Endpoint>       ServiceEndpointRetrieverPlugin;
+typedef EntityRetrieverPluginLoader<Endpoint> ServiceEndpointRetrieverPluginLoader;
 
 typedef EntityRetriever<ExecutionTarget>             TargetInformationRetriever;
 typedef EntityRetrieverPlugin<ExecutionTarget>       TargetInformationRetrieverPlugin;
@@ -231,19 +231,19 @@ typedef EntityRetrieverPlugin<Job>       JobListRetrieverPlugin;
 typedef EntityRetrieverPluginLoader<Job> JobListRetrieverPluginLoader;
 
 
-class ExecutionTargetRetriever : public EntityConsumer<ServiceEndpoint>, public EntityContainer<ExecutionTarget> {
+class ExecutionTargetRetriever : public EntityConsumer<Endpoint>, public EntityContainer<ExecutionTarget> {
 public:
   ExecutionTargetRetriever(
     const UserConfig& uc,
-    const std::list<ServiceEndpoint>& services,
+    const std::list<Endpoint>& services,
     const std::list<std::string>& rejectedServices = std::list<std::string>(),
     const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
-    const std::list<std::string>& capabilityFilter = std::list<std::string>(1, ComputingInfoEndpoint::ComputingInfoCapability)
+    const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))
   );
 
   void wait() { ser.wait(); tir.wait(); }
 
-  void addEntity(const ServiceEndpoint& service);
+  void addEntity(const Endpoint& service);
 
 private:
   ServiceEndpointRetriever ser;

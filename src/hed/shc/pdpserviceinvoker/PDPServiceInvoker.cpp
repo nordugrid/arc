@@ -48,7 +48,7 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg):PDP(cfg), client(NULL),
   logger.msg(Arc::INFO, "Creating a pdpservice client");
 
   std::string url_str;
-  url_str = (std::string)((*cfg)["ServiceEndpoint"]);
+  url_str = (std::string)((*cfg)["Endpoint"]);
   Arc::URL url(url_str);
   
   std::cout<<"URL: "<<url_str<<std::endl;

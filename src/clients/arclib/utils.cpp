@@ -12,12 +12,12 @@
 
 #include "utils.h"
 
-std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements) {
-  std::list<Arc::ServiceEndpoint> services;
+std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> registries, std::list<std::string> computingelements) {
+  std::list<Arc::Endpoint> services;
   if (computingelements.empty() && registries.empty()) {
     std::list<Arc::ConfigEndpoint> endpoints = usercfg.GetDefaultServices();
     for (std::list<Arc::ConfigEndpoint>::const_iterator its = endpoints.begin(); its != endpoints.end(); its++) {
-      services.push_back(Arc::ServiceEndpoint(*its));
+      services.push_back(Arc::Endpoint(*its));
     }
   } else {
     for (std::list<std::string>::const_iterator it = computingelements.begin(); it != computingelements.end(); it++) {
@@ -25,8 +25,8 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
       std::list<Arc::ConfigEndpoint> newServices = usercfg.GetServices(*it, Arc::ConfigEndpoint::COMPUTINGINFO);
       if (newServices.empty()) {
           // if it was not an alias or a group, then it should be the URL
-          Arc::ServiceEndpoint service(*it);
-          service.Capability.push_back(Arc::ComputingInfoEndpoint::ComputingInfoCapability);
+          Arc::Endpoint service(*it);
+          service.Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
           services.push_back(service);
       } else {
         // if it was a group (or an alias), add all the services
@@ -38,8 +38,8 @@ std::list<Arc::ServiceEndpoint> getServicesFromUserConfigAndCommandLine(Arc::Use
       std::list<Arc::ConfigEndpoint> newServices = usercfg.GetServices(*it, Arc::ConfigEndpoint::REGISTRY);
       if (newServices.empty()) {
           // if it was not an alias or a group, then it should be the URL
-          Arc::ServiceEndpoint service(*it);
-          service.Capability.push_back(Arc::RegistryEndpoint::RegistryCapability);
+          Arc::Endpoint service(*it);
+          service.Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::REGISTRY));
           services.push_back(service);
       } else {
         // if it was a group (or an alias), add all the services

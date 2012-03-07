@@ -21,8 +21,8 @@ public:
   static Plugin* Instance(PluginArgument*) { return new ServiceEndpointRetrieverPluginEGIIS(); }
   virtual EndpointQueryingStatus Query(const UserConfig& uc,
                                        const Endpoint& rEndpoint,
-                                       std::list<ServiceEndpoint>&,
-                                       const EndpointQueryOptions<ServiceEndpoint>&) const;
+                                       std::list<Endpoint>&,
+                                       const EndpointQueryOptions<Endpoint>&) const;
   virtual bool isEndpointNotSupported(const Endpoint&) const;
 
 private:

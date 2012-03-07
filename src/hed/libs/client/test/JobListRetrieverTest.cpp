@@ -44,7 +44,7 @@ void JobListRetrieverTest::QueryTest() {
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;
-  Arc::ComputingInfoEndpoint endpoint;
+  Arc::Endpoint endpoint;
   std::list<Arc::Job> jobs;
   Arc::EndpointQueryingStatus sReturned = p->Query(uc, endpoint, jobs, Arc::EndpointQueryOptions<Arc::Job>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);

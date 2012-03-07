@@ -47,8 +47,8 @@ namespace Arc {
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEMIR::Query(const UserConfig& uc,
                                                                    const Endpoint& rEndpoint,
-                                                                   std::list<ServiceEndpoint>& seList,
-                                                                   const EndpointQueryOptions<ServiceEndpoint>&) const {
+                                                                   std::list<Endpoint>& seList,
+                                                                   const EndpointQueryOptions<Endpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(CreateURL(rEndpoint.URLString));
@@ -81,7 +81,7 @@ namespace Arc {
         continue;
       }
 
-      ServiceEndpoint se((std::string)(*it)["Endpoint"]["URL"]);
+      Endpoint se((std::string)(*it)["Endpoint"]["URL"]);
       for (XMLNode n = (*it)["Endpoint"]["Capability"]; n; ++n) {
         se.Capability.push_back((std::string)n);
       }

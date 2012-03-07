@@ -69,7 +69,7 @@ class ServiceEndpointRetrieverPluginTESTControl {
 public:
   static float delay;
   static EndpointQueryingStatus status;
-  static std::list<ServiceEndpoint> endpoints;
+  static std::list<Endpoint> endpoints;
 };
 
 class TargetInformationRetrieverPluginTESTControl {

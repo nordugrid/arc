@@ -28,8 +28,8 @@
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 
-int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::ServiceEndpoint>& services, const std::string& jobidfile);
-int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::ServiceEndpoint>& services);
+int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& jobidfile);
+int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services);
 
 #ifdef TEST
 #define RUNSUB(X) test_arcsub_##X
@@ -171,7 +171,7 @@ int RUNSUB(main)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::ServiceEndpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+  std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
 
   if (opt.dumpdescription) {
     _exit(dumpjobdescription(usercfg, jobdescriptionlist, services));
@@ -187,7 +187,7 @@ void printjobid(const std::string& jobid, const std::string& jobidfile) {
   std::cout << Arc::IString("Job submitted with jobid: %s", jobid) << std::endl;
 }
 
-int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::ServiceEndpoint>& services, const std::string& jobidfile) {
+int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& jobidfile) {
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;
@@ -279,7 +279,7 @@ int submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>&
   return retval;
 }
 
-int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::ServiceEndpoint>& services) {
+int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services) {
   int retval = 0;
 
   std::list<std::string> preferredInterfaceNames;

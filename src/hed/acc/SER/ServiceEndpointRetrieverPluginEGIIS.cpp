@@ -44,8 +44,8 @@ namespace Arc {
 
   EndpointQueryingStatus ServiceEndpointRetrieverPluginEGIIS::Query(const UserConfig& uc,
                                                                     const Endpoint& rEndpoint,
-                                                                    std::list<ServiceEndpoint>& seList,
-                                                                    const EndpointQueryOptions<ServiceEndpoint>&) const {
+                                                                    std::list<Endpoint>& seList,
+                                                                    const EndpointQueryOptions<Endpoint>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::STARTED);
 
     URL url(CreateURL(rEndpoint.URLString));
@@ -92,7 +92,7 @@ namespace Arc {
         if ((std::string)itMds->Child(i)["Mds-Reg-status"] == "PURGED") {
           continue;
         }
-        ServiceEndpoint se((std::string)itMds->Child(i)["Mds-Service-type"] + "://" +
+        Endpoint se((std::string)itMds->Child(i)["Mds-Service-type"] + "://" +
                            (std::string)itMds->Child(i)["Mds-Service-hn"] + ":" +
                            (std::string)itMds->Child(i)["Mds-Service-port"] + "/" +
                            (std::string)itMds->Child(i)["Mds-Service-Ldap-suffix"]);

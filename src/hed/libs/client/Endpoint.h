@@ -11,23 +11,33 @@ class ConfigEndpoint;
   
 class Endpoint {
 public:
-  enum EndpointType { REGISTRY, COMPUTINGINFO, JOBSUBMIT, JOBMANAGEMENT, ANY };
+  enum CapabilityEnum { REGISTRY, COMPUTINGINFO, JOBLIST, JOBSUBMIT, JOBMANAGEMENT, ANY };
+  
+  static std::string GetStringForCapability(Endpoint::CapabilityEnum cap) {
+    if (cap == Endpoint::REGISTRY) return "information.discovery.registry";
+    if (cap == Endpoint::COMPUTINGINFO) return "information.discovery.resource";
+    if (cap == Endpoint::JOBLIST) return "information.discovery.resource";
+    if (cap == Endpoint::JOBSUBMIT) return "executionmanagement.jobexecution";
+    if (cap == Endpoint::JOBMANAGEMENT) return "executionmanagement.jobmanager";
+    if (cap == Endpoint::ANY) return "";
+  }
   
   Endpoint(const std::string& URLString = "",
            const std::string& InterfaceName = "",
            const std::list<std::string>& Capability = std::list<std::string>())
     : URLString(URLString), InterfaceName(InterfaceName), Capability(Capability) {}
   
+  // This will call operator=
   Endpoint(const ConfigEndpoint& e) { *this = e; }
   
-  std::string str() const {
-    return URLString + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
-  }
+  bool HasCapability(Endpoint::CapabilityEnum cap) const;
   
-  // Needed for std::map ('statuses' in ServiceEndpointRetriever) to be able to sort the keys
-  bool operator<(const Endpoint& other) const {
-    return str() < other.str();
-  }
+  bool HasCapability(std::string) const;
+
+  std::string str() const;
+  
+  // Needed for std::map to be able to sort the keys
+  bool operator<(const Endpoint& other) const;
   
   Endpoint& operator=(const ConfigEndpoint& e);
   
@@ -38,49 +48,6 @@ public:
   std::string QualityLevel;
   std::list<std::string> Capability;
   std::string PreferredJobInterfaceName;
-};
-
-///
-/**
- *
- **/
-// Combination of the GLUE 2 Service and Endpoint classes.
-class ServiceEndpoint : public Endpoint {
-public:
-  ServiceEndpoint(std::string URLString = "",
-                  std::string InterfaceName = "",
-                  std::list<std::string> Capability = std::list<std::string>())
-    : Endpoint(URLString, InterfaceName, Capability) {}
-  
-  ServiceEndpoint(const ConfigEndpoint& e) : Endpoint(e) {}
-};
-
-///
-/**
- * 
- **/
-class RegistryEndpoint : public Endpoint {
-public:
-  RegistryEndpoint(std::string URLString = "", std::string InterfaceName = "") : Endpoint(URLString, InterfaceName) {}
-  RegistryEndpoint(ServiceEndpoint service) : Endpoint(service) {}
-
-  static bool isRegistry(ServiceEndpoint service) {
-    return (std::find(service.Capability.begin(), service.Capability.end(), RegistryCapability) != service.Capability.end());
-  }
-
-  static const std::string RegistryCapability;
-};
-
-class ComputingInfoEndpoint : public Endpoint {
-public:
-  ComputingInfoEndpoint(std::string URLString = "", std::string InterfaceName = "") : Endpoint(URLString, InterfaceName) {}
-  ComputingInfoEndpoint(ServiceEndpoint service) : Endpoint(service) {}
-
-  static bool isComputingInfo(ServiceEndpoint service) {
-    return (std::find(service.Capability.begin(), service.Capability.end(), ComputingInfoCapability) != service.Capability.end());
-  }
-
-  static const std::string ComputingInfoCapability;
 };
 
 } // namespace Arc

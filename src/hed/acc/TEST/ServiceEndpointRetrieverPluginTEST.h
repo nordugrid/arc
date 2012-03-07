@@ -11,8 +11,8 @@ protected:
 public:
   virtual EndpointQueryingStatus Query(const UserConfig& userconfig,
                                        const Endpoint& registry,
-                                       std::list<ServiceEndpoint>& endpoints,
-                                       const EndpointQueryOptions<ServiceEndpoint>& options) const;
+                                       std::list<Endpoint>& endpoints,
+                                       const EndpointQueryOptions<Endpoint>& options) const;
   static Plugin* Instance(PluginArgument *arg);
   virtual bool isEndpointNotSupported(const Endpoint& endpoint) const { return endpoint.URLString.empty(); }
 };

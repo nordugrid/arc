@@ -261,7 +261,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Resubmit(int destination, const std::list<ServiceEndpoint>& services, std::list<Job>& resubmittedJobs, const std::list<std::string>& rejectedURLs) {
+  bool JobSupervisor::Resubmit(int destination, const std::list<Endpoint>& services, std::list<Job>& resubmittedJobs, const std::list<std::string>& rejectedURLs) {
     notprocessed.clear();
     processed.clear();
     bool ok = true;
@@ -361,8 +361,8 @@ namespace Arc {
 
       std::list<URL> rejectTargets;
       if (destination == 1) { // Jobs should be resubmitted to same target.
-        std::list<ServiceEndpoint> sametarget(1, ServiceEndpoint((**itJ)->Cluster.fullstr()));
-        sametarget.front().Capability.push_back(ComputingInfoEndpoint::ComputingInfoCapability);
+        std::list<Endpoint> sametarget(1, Endpoint((**itJ)->Cluster.fullstr()));
+        sametarget.front().Capability.push_back(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
 
         etr = new ExecutionTargetRetriever(resubmitUsercfg, sametarget, rejectedURLs);
         etr->wait();
@@ -404,7 +404,7 @@ namespace Arc {
     return ok;
   }
 
-  bool JobSupervisor::Migrate(bool forcemigration, const std::list<ServiceEndpoint>& services, std::list<Job>& migratedJobs, const std::list<std::string>& rejectedURLs) {
+  bool JobSupervisor::Migrate(bool forcemigration, const std::list<Endpoint>& services, std::list<Job>& migratedJobs, const std::list<std::string>& rejectedURLs) {
     bool ok = true;
 
     std::list< std::list<Job*>::iterator > migratableJobs;

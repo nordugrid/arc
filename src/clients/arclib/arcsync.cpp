@@ -20,24 +20,24 @@
 #include <arc/client/EntityRetriever.h>
 #include <arc/client/Job.h>
 
-class JobSynchronizer : public Arc::EntityConsumer<Arc::ServiceEndpoint> {
+class JobSynchronizer : public Arc::EntityConsumer<Arc::Endpoint> {
 public:
   JobSynchronizer(
     const Arc::UserConfig& uc,
-    const std::list<Arc::ServiceEndpoint>& services,
+    const std::list<Arc::Endpoint>& services,
     const std::list<std::string>& preferredInterfaceNames = std::list<std::string>(),
-    const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Arc::ComputingInfoEndpoint::ComputingInfoCapability)
-  ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>(true, capabilityFilter)),
+    const std::list<std::string>& capabilityFilter = std::list<std::string>(1, Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))
+  ) : uc(uc), ser(uc, Arc::EndpointQueryOptions<Arc::Endpoint>(true, capabilityFilter)),
       jlr(uc, Arc::EndpointQueryOptions<Arc::Job>(preferredInterfaceNames))
   {
     ser.addConsumer(*this);
     jlr.addConsumer(jobs);
     
-    for (std::list<Arc::ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
-      if (Arc::RegistryEndpoint::isRegistry(*it)) {
-        ser.addEndpoint(Arc::RegistryEndpoint(*it));
+    for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+      if (it->HasCapability(Arc::Endpoint::REGISTRY)) {
+        ser.addEndpoint(*it);
       } else {
-        jlr.addEndpoint(Arc::ComputingInfoEndpoint(*it));
+        jlr.addEndpoint(*it);
       }
     }
   }
@@ -47,9 +47,9 @@ public:
     jlr.wait();
   }
 
-  void addEntity(const Arc::ServiceEndpoint& service) {
-    if (Arc::ComputingInfoEndpoint::isComputingInfo(service)) {
-      jlr.addEndpoint(Arc::ComputingInfoEndpoint(service));
+  void addEntity(const Arc::Endpoint& service) {
+    if (service.HasCapability(Arc::Endpoint::COMPUTINGINFO)) {
+      jlr.addEndpoint(service);
     }
   }
 
@@ -180,7 +180,7 @@ int RUNSYNC(main)(int argc, char **argv) {
     }
   }
 
-  std::list<Arc::ServiceEndpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters);
 
   if (endpoints.empty()) {
     logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration,"

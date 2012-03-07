@@ -34,7 +34,7 @@
 %template(SoftwareRequirementList) std::list<Arc::SoftwareRequirement>;
 %template(BrokerList) std::list<Arc::Broker*>;
 %template(SubmitterList) std::list<Arc::Submitter*>;
-%template(ServiceEndpointList) std::list<Arc::ServiceEndpoint>;
+%template(EndpointList) std::list<Arc::Endpoint>;
 %template(ExecutionTargetList) std::list<Arc::ExecutionTarget>;
 
 #ifdef SWIGJAVA
@@ -128,11 +128,11 @@ std::ostream& getStdout() {
 %rename(waitUntilDone) wait;
 #endif
 %include "../src/hed/libs/client/EntityRetriever.h"
-%template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::ServiceEndpoint>;
+%template(ServiceEndpointRetriever) Arc::EntityRetriever<Arc::Endpoint>;
 %template(TargetInformationRetriever) Arc::EntityRetriever<Arc::ExecutionTarget>;
-%template(ServiceEndpointContainer) Arc::EntityContainer<Arc::ServiceEndpoint>;
+%template(EndpointContainer) Arc::EntityContainer<Arc::Endpoint>;
 %template(ExecutionTargetContainer) Arc::EntityContainer<Arc::ExecutionTarget>;
-%template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::ServiceEndpoint>;
+%template(ServiceEndpointQueryOptions) Arc::EndpointQueryOptions<Arc::Endpoint>;
 %template(ExecutionTargetQueryOptions) Arc::EndpointQueryOptions<Arc::ExecutionTarget>;
 
 

@@ -153,7 +153,7 @@ namespace Arc {
   }
 
   template<>
-  void EntityRetriever<ServiceEndpoint>::addEntity(const ServiceEndpoint& endpoint) {
+  void EntityRetriever<Endpoint>::addEntity(const Endpoint& endpoint) {
     // Check if the service is among the rejected ones
     const std::list<std::string>& rejectedServices = options.getRejectedServices();
     URL url(endpoint.URLString);
@@ -162,10 +162,10 @@ namespace Arc {
         return;
       }
     }
-    if (options.recursiveEnabled() && RegistryEndpoint::isRegistry(endpoint)) {
-      RegistryEndpoint registry(endpoint);
+    if (options.recursiveEnabled() && endpoint.HasCapability(Endpoint::REGISTRY)) {
+      Endpoint registry(endpoint);
       logger.msg(DEBUG, "Found a registry, will query it recursively: %s", registry.str());
-      EntityRetriever<ServiceEndpoint>::addEndpoint(registry);
+      EntityRetriever<Endpoint>::addEndpoint(registry);
     }
 
     bool match = false;
@@ -177,7 +177,7 @@ namespace Arc {
     }
     if (options.getCapabilityFilter().empty() || match) {
       consumerLock.lock();
-      for (std::list<EntityConsumer<ServiceEndpoint>*>::iterator it = consumers.begin(); it != consumers.end(); it++) {
+      for (std::list<EntityConsumer<Endpoint>*>::iterator it = consumers.begin(); it != consumers.end(); it++) {
         (*it)->addEntity(endpoint);
       }
       consumerLock.unlock();
@@ -344,37 +344,37 @@ namespace Arc {
 
   ExecutionTargetRetriever::ExecutionTargetRetriever(
     const UserConfig& uc,
-    const std::list<ServiceEndpoint>& services,
+    const std::list<Endpoint>& services,
     const std::list<std::string>& rejectedServices,
     const std::list<std::string>& preferredInterfaceNames,
     const std::list<std::string>& capabilityFilter
-  ) : ser(uc, EndpointQueryOptions<ServiceEndpoint>(true, capabilityFilter, rejectedServices)),
+  ) : ser(uc, EndpointQueryOptions<Endpoint>(true, capabilityFilter, rejectedServices)),
       tir(uc, EndpointQueryOptions<ExecutionTarget>(preferredInterfaceNames))
   {
     ser.addConsumer(*this);
     tir.addConsumer(*this);
-    for (std::list<ServiceEndpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
-      if (RegistryEndpoint::isRegistry(*it)) {
-        ser.addEndpoint(RegistryEndpoint(*it));
+    for (std::list<Endpoint>::const_iterator it = services.begin(); it != services.end(); it++) {
+      if (it->HasCapability(Endpoint::REGISTRY)) {
+        ser.addEndpoint(*it);
       } else {
         addEntity(*it);
       }
     }
   }
   
-  void ExecutionTargetRetriever::addEntity(const ServiceEndpoint& service) {
+  void ExecutionTargetRetriever::addEntity(const Endpoint& service) {
     // If we got a computing element info endpoint, then we pass it to the TIR
-    if (ComputingInfoEndpoint::isComputingInfo(service)) {
-      tir.addEndpoint(ComputingInfoEndpoint(service));
+    if (service.HasCapability(Endpoint::COMPUTINGINFO)) {
+      tir.addEndpoint(service);
     }
   }
   
-  template class EntityRetriever<ServiceEndpoint>;
-  template class EntityRetrieverPlugin<ServiceEndpoint>;
-  template class EntityRetrieverPluginLoader<ServiceEndpoint>;
-  template<> Logger EntityRetriever<ServiceEndpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
-  template<> const std::string EntityRetrieverPlugin<ServiceEndpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
-  template<> Logger EntityRetrieverPluginLoader<ServiceEndpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
+  template class EntityRetriever<Endpoint>;
+  template class EntityRetrieverPlugin<Endpoint>;
+  template class EntityRetrieverPluginLoader<Endpoint>;
+  template<> Logger EntityRetriever<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetriever");
+  template<> const std::string EntityRetrieverPlugin<Endpoint>::kind("HED:ServiceEndpointRetrieverPlugin");
+  template<> Logger EntityRetrieverPluginLoader<Endpoint>::logger(Logger::getRootLogger(), "ServiceEndpointRetrieverPluginLoader");
 
   template class EntityRetriever<ExecutionTarget>;
   template class EntityRetrieverPlugin<ExecutionTarget>;

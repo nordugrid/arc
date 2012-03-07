@@ -43,9 +43,9 @@ void ServiceEndpointRetrieverTest::QueryTest() {
   CPPUNIT_ASSERT(p != NULL);
 
   Arc::UserConfig uc;
-  Arc::RegistryEndpoint registry;
-  std::list<Arc::ServiceEndpoint> endpoints;
-  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointQueryOptions<Arc::ServiceEndpoint>());
+  Arc::Endpoint registry;
+  std::list<Arc::Endpoint> endpoints;
+  Arc::EndpointQueryingStatus sReturned = p->Query(uc, registry, endpoints, Arc::EndpointQueryOptions<Arc::Endpoint>());
   CPPUNIT_ASSERT(sReturned == Arc::EndpointQueryingStatus::SUCCESSFUL);
 }
 
@@ -53,14 +53,14 @@ void ServiceEndpointRetrieverTest::BasicServiceRetrieverTest() {
   Arc::UserConfig uc;
   Arc::ServiceEndpointRetriever retriever(uc);
 
-  Arc::EntityContainer<Arc::ServiceEndpoint> container;
+  Arc::EntityContainer<Arc::Endpoint> container;
   retriever.addConsumer(container);
   CPPUNIT_ASSERT(container.empty());
 
   Arc::ServiceEndpointRetrieverPluginTESTControl::delay = 0;
-  Arc::ServiceEndpointRetrieverPluginTESTControl::endpoints.push_back(Arc::ServiceEndpoint());
+  Arc::ServiceEndpointRetrieverPluginTESTControl::endpoints.push_back(Arc::Endpoint());
   Arc::ServiceEndpointRetrieverPluginTESTControl::status = Arc::EndpointQueryingStatus(Arc::EndpointQueryingStatus::SUCCESSFUL);
-  Arc::RegistryEndpoint registry("test.nordugrid.org", "org.nordugrid.sertest");
+  Arc::Endpoint registry("test.nordugrid.org", "org.nordugrid.sertest");
   retriever.addEndpoint(registry);
   retriever.wait();
 

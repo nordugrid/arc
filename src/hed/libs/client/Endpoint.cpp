@@ -18,19 +18,31 @@ namespace Arc {
     Capability.clear();
     switch (e.type) {
     case ConfigEndpoint::REGISTRY:
-      Capability.push_back(RegistryEndpoint::RegistryCapability);
+      Capability.push_back(GetStringForCapability(Endpoint::REGISTRY));
       break;
     case ConfigEndpoint::COMPUTINGINFO:
-      Capability.push_back(ComputingInfoEndpoint::ComputingInfoCapability);
+      Capability.push_back(GetStringForCapability(Endpoint::COMPUTINGINFO));
       break;
     }
     
     return *this;
   }
-
-
-  const std::string RegistryEndpoint::RegistryCapability = "information.discovery.registry";
-  const std::string ComputingInfoEndpoint::ComputingInfoCapability = "information.discovery.resource";
+  
+  bool Endpoint::HasCapability(Endpoint::CapabilityEnum cap) const {
+    return HasCapability(GetStringForCapability(cap));
+  }
+  
+  bool Endpoint::HasCapability(std::string capability) const {
+    return (std::find(Capability.begin(), Capability.end(), capability) != Capability.end());
+  }
+  
+  std::string Endpoint::str() const {
+    return URLString + " (" + (InterfaceName.empty() ? "<unspecified>" : InterfaceName) + ")";
+  }
+  
+  bool Endpoint::operator<(const Endpoint& other) const {
+    return str() < other.str();
+  }
 
 } // namespace Arc
 
