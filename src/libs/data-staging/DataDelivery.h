@@ -41,6 +41,10 @@ namespace DataStaging {
     /// Condition to signal end of running
     Arc::SimpleCondition run_signal;
 
+    /// Condition on which main thread waits, so it can wake up immediately
+    /// when a new transfer arrives
+    Arc::SimpleCondition cond;
+
     /// Thread to start new Delivery
     static void start_delivery(void* arg);
 

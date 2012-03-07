@@ -59,6 +59,7 @@ namespace DataStaging {
     dtr_list_lock.lock();
     dtr_list.push_back(d);
     dtr_list_lock.unlock();
+    cond.signal();
     return;
   }
 
@@ -81,6 +82,7 @@ namespace DataStaging {
         ip->cancelled = true;
         ip->dtr->set_status(DTRStatus::TRANSFERRING_CANCEL);
         dtr_list_lock.unlock();
+        cond.signal();
         return true;
       }
     }
@@ -99,6 +101,7 @@ namespace DataStaging {
   bool DataDelivery::stop() {
     if(delivery_state != RUNNING) return false;
     delivery_state = TO_STOP;
+    cond.signal();
     run_signal.wait();
     delivery_state = STOPPED;
     return true;
@@ -253,8 +256,8 @@ namespace DataStaging {
         dtr_list_lock.unlock();
       }
       	
-      // TODO: replace with condition
-      Glib::usleep(500000);
+      // Go through main loop every half a second or when new transfer arrives
+      cond.wait(500);
     }
     // Kill any transfers still running
     dtr_list_lock.lock();
