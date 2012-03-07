@@ -19,7 +19,7 @@ public:
     if (cap == Endpoint::JOBLIST) return "information.discovery.resource";
     if (cap == Endpoint::JOBSUBMIT) return "executionmanagement.jobexecution";
     if (cap == Endpoint::JOBMANAGEMENT) return "executionmanagement.jobmanager";
-    if (cap == Endpoint::ANY) return "";
+    return "";
   }
   
   Endpoint(const std::string& URLString = "",
