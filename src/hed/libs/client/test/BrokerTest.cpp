@@ -163,13 +163,13 @@ void BrokerTest::BenckmarkCPUWallTimeTest() {
   job.Resources.TotalWallTime.range.min = -1;
   job.Resources.TotalWallTime.benchmark = std::pair<std::string, double>("", -1.);
 
-  etl.front().CPUClockSpeed = 2500;
+  etl.front().ExecutionEnvironment.CPUClockSpeed = 2500;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("clock rate", 1000.);
   etl.front().ComputingShare.MaxCPUTime = 100;
   job.Resources.TotalCPUTime.range.max = 300; CPPASSERT(0)
   job.Resources.TotalCPUTime.range.max = 250; CPPASSERT(1)
   job.Resources.TotalCPUTime.range.max = 200;  CPPASSERT(1)
-  etl.front().CPUClockSpeed = -1;
+  etl.front().ExecutionEnvironment.CPUClockSpeed = -1;
   etl.front().ComputingShare.MaxCPUTime = -1;
   job.Resources.TotalCPUTime.range.max = -1;
   job.Resources.TotalCPUTime.benchmark = std::pair<std::string, double>("", -1.);

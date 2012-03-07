@@ -475,36 +475,36 @@ namespace Arc {
               logger.msg(DEBUG, "ExecutionEnvironment \"%s\" located", (std::string)ComputingShare[i]["Associations"]["ExecutionEnvironmentID"]);
 
               if (ExecutionEnvironment["Platform"]) {
-                currentTarget.Platform = (std::string)ExecutionEnvironment["Platform"];
+                currentTarget.ExecutionEnvironment.Platform = (std::string)ExecutionEnvironment["Platform"];
               }
 
               if (ExecutionEnvironment["MainMemorySize"]) {
-                currentTarget.MainMemorySize = stringtoi((std::string)ExecutionEnvironment["MainMemorySize"]);
+                currentTarget.ExecutionEnvironment.MainMemorySize = stringtoi((std::string)ExecutionEnvironment["MainMemorySize"]);
               }
 
               if (ExecutionEnvironment["OSName"]) {
                 if (ExecutionEnvironment["OSVersion"]) {
                   if (ExecutionEnvironment["OSFamily"]) {
-                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSFamily"],
-                                                             (std::string)ExecutionEnvironment["OSName"],
-                                                             (std::string)ExecutionEnvironment["OSVersion"]);
+                    currentTarget.ExecutionEnvironment.OperatingSystem = Software((std::string)ExecutionEnvironment["OSFamily"],
+                                                                                  (std::string)ExecutionEnvironment["OSName"],
+                                                                                  (std::string)ExecutionEnvironment["OSVersion"]);
                   }
                   else {
-                    currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"],
-                                                             (std::string)ExecutionEnvironment["OSVersion"]);
+                    currentTarget.ExecutionEnvironment.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"],
+                                                                                  (std::string)ExecutionEnvironment["OSVersion"]);
                   }
                 }
                 else {
-                  currentTarget.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"]);
+                  currentTarget.ExecutionEnvironment.OperatingSystem = Software((std::string)ExecutionEnvironment["OSName"]);
                 }
               }
 
               if (ExecutionEnvironment["ConnectivityIn"]) {
-                currentTarget.ConnectivityIn = (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true");
+                currentTarget.ExecutionEnvironment.ConnectivityIn = (lower((std::string)ExecutionEnvironment["ConnectivityIn"]) == "true");
               }
 
               if (ExecutionEnvironment["ConnectivityOut"]) {
-                currentTarget.ConnectivityOut = (lower((std::string)ExecutionEnvironment["ConnectivityOut"]) == "true");
+                currentTarget.ExecutionEnvironment.ConnectivityOut = (lower((std::string)ExecutionEnvironment["ConnectivityOut"]) == "true");
               }
             }
           }

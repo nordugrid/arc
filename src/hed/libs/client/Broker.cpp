@@ -184,7 +184,7 @@ namespace Arc {
 
               // Make it possible to scale according to clock rate.
               if (targetBenchmark <= 0. && lower(jTime->second->benchmark.first) == "clock rate") {
-                targetBenchmark = (t.CPUClockSpeed > 0. ? (double)t.CPUClockSpeed : 1000.);
+                targetBenchmark = (t.ExecutionEnvironment.CPUClockSpeed > 0. ? (double)t.ExecutionEnvironment.CPUClockSpeed : 1000.);
               }
 
               if (targetBenchmark > 0.) {
@@ -214,9 +214,9 @@ namespace Arc {
     }
 
     if (job->Resources.IndividualPhysicalMemory != -1) {
-      if (t.MainMemorySize != -1) {     // Example: 678
-        if (t.MainMemorySize < job->Resources.IndividualPhysicalMemory) {
-          logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", t.MainMemorySize, job->Resources.IndividualPhysicalMemory.max);
+      if (t.ExecutionEnvironment.MainMemorySize != -1) {     // Example: 678
+        if (t.ExecutionEnvironment.MainMemorySize < job->Resources.IndividualPhysicalMemory) {
+          logger.msg(VERBOSE, "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), JobDescription: %d (IndividualPhysicalMemory)", t.ExecutionEnvironment.MainMemorySize, job->Resources.IndividualPhysicalMemory.max);
           return false;
         }
       }
@@ -247,9 +247,9 @@ namespace Arc {
     }
 
     if (!job->Resources.Platform.empty()) {
-      if (!t.Platform.empty()) {    // Example: i386
-        if (t.Platform != job->Resources.Platform) {
-          logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", t.Platform, job->Resources.Platform);
+      if (!t.ExecutionEnvironment.Platform.empty()) {    // Example: i386
+        if (t.ExecutionEnvironment.Platform != job->Resources.Platform) {
+          logger.msg(VERBOSE, "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) JobDescription: %s (Platform)", t.ExecutionEnvironment.Platform, job->Resources.Platform);
           return false;
         }
       }
@@ -260,8 +260,8 @@ namespace Arc {
     }
 
     if (!job->Resources.OperatingSystem.empty()) {
-      if (!t.OperatingSystem.empty()) {
-        if (!job->Resources.OperatingSystem.isSatisfied(t.OperatingSystem)) {
+      if (!t.ExecutionEnvironment.OperatingSystem.empty()) {
+        if (!job->Resources.OperatingSystem.isSatisfied(t.ExecutionEnvironment.OperatingSystem)) {
           logger.msg(VERBOSE, "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied", t.ComputingEndpoint.URLString);
           return false;
         }
@@ -409,15 +409,15 @@ namespace Arc {
 
     if ((job->Resources.NodeAccess == NAT_INBOUND ||
          job->Resources.NodeAccess == NAT_INOUTBOUND) &&
-        !t.ConnectivityIn) {     // Example: false (boolean)
-      logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (job->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (t.ConnectivityIn ? "true" : "false"));
+        !t.ExecutionEnvironment.ConnectivityIn) {     // Example: false (boolean)
+      logger.msg(VERBOSE, "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) JobDescription: %s (InBound)", (job->Resources.NodeAccess == NAT_INBOUND ? "INBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment.ConnectivityIn ? "true" : "false"));
       return false;
     }
 
     if ((job->Resources.NodeAccess == NAT_OUTBOUND ||
          job->Resources.NodeAccess == NAT_INOUTBOUND) &&
-        !t.ConnectivityOut) {     // Example: false (boolean)
-      logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (job->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (t.ConnectivityIn ? "true" : "false"));
+        !t.ExecutionEnvironment.ConnectivityOut) {     // Example: false (boolean)
+      logger.msg(VERBOSE, "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) JobDescription: %s (OutBound)", (job->Resources.NodeAccess == NAT_OUTBOUND ? "OUTBOUND" : "INOUTBOUND"), (t.ExecutionEnvironment.ConnectivityIn ? "true" : "false"));
       return false;
     }
 

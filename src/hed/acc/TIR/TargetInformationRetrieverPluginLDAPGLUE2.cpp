@@ -371,29 +371,29 @@ namespace Arc {
       for (std::list<Extractor>::iterator ite = execenvironments.begin(); ite != execenvironments.end(); ite++) {
         Extractor& environment = *ite;
         // *** This should go into one of the multiple execution environments of the ExecutionTarget, not directly into it
-        environment.set("Platform", target.Platform);
-        environment.set("VirtualMachine", target.VirtualMachine);
-        environment.set("CPUVendor", target.CPUVendor);
-        environment.set("CPUModel", target.CPUModel);
-        environment.set("CPUVersion", target.CPUVersion);
-        environment.set("CPUClockSpeed", target.CPUClockSpeed);
-        environment.set("MainMemorySize", target.MainMemorySize);
+        environment.set("Platform", target.ExecutionEnvironment.Platform);
+        environment.set("VirtualMachine", target.ExecutionEnvironment.VirtualMachine);
+        environment.set("CPUVendor", target.ExecutionEnvironment.CPUVendor);
+        environment.set("CPUModel", target.ExecutionEnvironment.CPUModel);
+        environment.set("CPUVersion", target.ExecutionEnvironment.CPUVersion);
+        environment.set("CPUClockSpeed", target.ExecutionEnvironment.CPUClockSpeed);
+        environment.set("MainMemorySize", target.ExecutionEnvironment.MainMemorySize);
         std::string OSName = environment["OSName"];
         std::string OSVersion = environment["OSVersion"];
         std::string OSFamily = environment["OSFamily"];
         if (!OSName.empty()) {
           if (!OSVersion.empty()) {
             if (!OSFamily.empty()) {
-              target.OperatingSystem = Software(OSFamily, OSName, OSVersion);
+              target.ExecutionEnvironment.OperatingSystem = Software(OSFamily, OSName, OSVersion);
             } else {
-              target.OperatingSystem = Software(OSName, OSVersion);
+              target.ExecutionEnvironment.OperatingSystem = Software(OSName, OSVersion);
             }
           } else {
-            target.OperatingSystem = Software(OSName);
+            target.ExecutionEnvironment.OperatingSystem = Software(OSName);
           }
         }
-        environment.set("ConnectivityIn", target.ConnectivityIn);
-        environment.set("ConnectivityOut", target.ConnectivityOut);
+        environment.set("ConnectivityIn", target.ExecutionEnvironment.ConnectivityIn);
+        environment.set("ConnectivityOut", target.ExecutionEnvironment.ConnectivityOut);
       }
 
       // GFD.147 GLUE2 6.7 Application Environment

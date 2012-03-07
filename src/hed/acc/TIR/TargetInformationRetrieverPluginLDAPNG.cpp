@@ -351,53 +351,52 @@ namespace Arc {
 
       // Execution Environment attributes
       if (queue["nordugrid-queue-architecture"])
-        target.Platform =
+        target.ExecutionEnvironment.Platform =
           (std::string)queue["nordugrid-queue-architecture"];
       else if (cluster["nordugrid-cluster-architecture"])
-        target.Platform =
+        target.ExecutionEnvironment.Platform =
           (std::string)cluster["nordugrid-cluster-architecture"];
       if (queue["nordugrid-queue-nodecpu"]) {
-        target.CPUVendor =
+        target.ExecutionEnvironment.CPUVendor =
           (std::string)queue["nordugrid-queue-nodecpu"];
-        target.CPUModel =
+        target.ExecutionEnvironment.CPUModel =
           (std::string)queue["nordugrid-queue-nodecpu"];
-        target.CPUVersion =
+        target.ExecutionEnvironment.CPUVersion =
           (std::string)queue["nordugrid-queue-nodecpu"];
         // target.CPUClockSpeed =
         //   (std::string)queue["nordugrid-queue-nodecpu"];
       }
       else if (cluster["nordugrid-cluster-nodecpu"]) {
-        target.CPUVendor =
+        target.ExecutionEnvironment.CPUVendor =
           (std::string)cluster["nordugrid-cluster-nodecpu"];
-        target.CPUModel =
+        target.ExecutionEnvironment.CPUModel =
           (std::string)cluster["nordugrid-cluster-nodecpu"];
-        target.CPUVersion =
+        target.ExecutionEnvironment.CPUVersion =
           (std::string)cluster["nordugrid-cluster-nodecpu"];
-        // target.CPUClockSpeed =
+        // target.ExecutionEnvironment.CPUClockSpeed =
         //   (std::string)queue["nordugrid-cluster-nodecpu"];
       }
       if (queue["nordugrid-queue-nodememory"])
-        target.MainMemorySize =
+        target.ExecutionEnvironment.MainMemorySize =
           stringtoi((std::string)queue["nordugrid-queue-nodememory"]);
       else if (cluster["nordugrid-cluster-nodememory"])
-        target.MainMemorySize =
+        target.ExecutionEnvironment.MainMemorySize =
           stringtoi((std::string)cluster["nordugrid-cluster-nodememory"]);
       if (queue["nordugrid-queue-opsys"])
-        target.OperatingSystem = Software((std::string)queue["nordugrid-queue-opsys"][0],
-                                          (std::string)queue["nordugrid-queue-opsys"][1]);
+        target.ExecutionEnvironment.OperatingSystem = Software((std::string)queue["nordugrid-queue-opsys"][0],
+                                                               (std::string)queue["nordugrid-queue-opsys"][1]);
       else if (cluster["nordugrid-cluster-opsys"])
-        target.OperatingSystem = Software((std::string)cluster["nordugrid-cluster-opsys"][0],
-                                          (std::string)cluster["nordugrid-cluster-opsys"][1]);
+        target.ExecutionEnvironment.OperatingSystem = Software((std::string)cluster["nordugrid-cluster-opsys"][0],
+                                                               (std::string)cluster["nordugrid-cluster-opsys"][1]);
       if (cluster["nordugrid-cluster-nodeaccess"])
         for (XMLNode n = cluster["nordugrid-cluster-nodeaccess"]; n; ++n)
           if ((std::string)n == "inbound")
-            target.ConnectivityIn = true;
+            target.ExecutionEnvironment.ConnectivityIn = true;
           else if ((std::string)n == "outbound")
-            target.ConnectivityOut = true;
+            target.ExecutionEnvironment.ConnectivityOut = true;
 
       // Application Environments
-      for (XMLNode n = cluster["nordugrid-cluster-runtimeenvironment"];
-           n; ++n) {
+      for (XMLNode n = cluster["nordugrid-cluster-runtimeenvironment"]; n; ++n) {
         ApplicationEnvironment rte((std::string)n);
         rte.State = "UNDEFINEDVALUE";
         rte.FreeSlots = -1;

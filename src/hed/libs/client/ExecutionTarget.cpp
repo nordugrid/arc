@@ -20,12 +20,7 @@ namespace Arc {
   ExecutionTarget::ExecutionTarget()
     : Location(), AdminDomain(), ComputingService(),
       ComputingEndpoint(), ComputingShare(),
-      ComputingManager(),
-      VirtualMachine(false),
-      CPUClockSpeed(-1),
-      MainMemorySize(-1),
-      ConnectivityIn(false),
-      ConnectivityOut(false) {}
+      ComputingManager() {}
 
   ExecutionTarget::ExecutionTarget(const ExecutionTarget& target) {
     Copy(target);
@@ -43,47 +38,17 @@ namespace Arc {
   ExecutionTarget::~ExecutionTarget() {}
 
   void ExecutionTarget::Copy(const ExecutionTarget& target) {
-    // Attributes from 5.3 Location
     Location = target.Location;
-
-    // Attributes from 5.5.1 Admin Domain
     AdminDomain = target.AdminDomain;
-
-    // Attributes from 6.1 Computing Service
     ComputingService = target.ComputingService;
-
-    // Attributes from 6.2 Computing Endpoint
     ComputingEndpoint = target.ComputingEndpoint;
-
-    // Attributes from 6.3 Computing Share
     ComputingShare = target.ComputingShare;
-
-    // Attributes from 6.4 Computing Manager
     ComputingManager = target.ComputingManager;
-
-    // Attributes from 6.5 Benchmark
-
     Benchmarks = target.Benchmarks;
-
-    // Attributes from 6.6 Execution Environment
-
-    Platform = target.Platform;
-    VirtualMachine = target.VirtualMachine;
-    CPUVendor = target.CPUVendor;
-    CPUModel = target.CPUModel;
-    CPUVersion = target.CPUVersion;
-    CPUClockSpeed = target.CPUClockSpeed;
-    MainMemorySize = target.MainMemorySize;
-    OperatingSystem = target.OperatingSystem;
-    ConnectivityIn = target.ConnectivityIn;
-    ConnectivityOut = target.ConnectivityOut;
-
-    // Attributes from 6.7 Application Environment
-
+    ExecutionEnvironment = target.ExecutionEnvironment;
     ApplicationEnvironments = target.ApplicationEnvironments;
 
     // Other
-
     GridFlavour = target.GridFlavour;
     Cluster = target.Cluster;
   }
@@ -253,13 +218,13 @@ namespace Arc {
         }
       }
 
-      if (ConnectivityIn)
+      if (ExecutionEnvironment.ConnectivityIn)
         out << IString(" Execution environment"
                              " supports inbound connections") << std::endl;
       else
         out << IString(" Execution environment does not"
                              " support inbound connections") << std::endl;
-      if (ConnectivityOut)
+      if (ExecutionEnvironment.ConnectivityOut)
         out << IString(" Execution environment"
                              " supports outbound connections") << std::endl;
       else
@@ -478,33 +443,33 @@ namespace Arc {
       out << std::endl << IString("Execution environment information:")
                 << std::endl;
 
-      if (!Platform.empty())
-        out << IString(" Platform: %s", Platform) << std::endl;
-      if (VirtualMachine)
+      if (!ExecutionEnvironment.Platform.empty())
+        out << IString(" Platform: %s", ExecutionEnvironment.Platform) << std::endl;
+      if (ExecutionEnvironment.VirtualMachine)
         out << IString(" Execution environment is a virtual machine")
                   << std::endl;
       else
         out << IString(" Execution environment is a physical machine")
                   << std::endl;
-      if (!CPUVendor.empty())
-        out << IString(" CPU vendor: %s", CPUVendor) << std::endl;
-      if (!CPUModel.empty())
-        out << IString(" CPU model: %s", CPUModel) << std::endl;
-      if (!CPUVersion.empty())
-        out << IString(" CPU version: %s", CPUVersion) << std::endl;
-      if (CPUClockSpeed != -1)
-        out << IString(" CPU clock speed: %i", CPUClockSpeed)
+      if (!ExecutionEnvironment.CPUVendor.empty())
+        out << IString(" CPU vendor: %s", ExecutionEnvironment.CPUVendor) << std::endl;
+      if (!ExecutionEnvironment.CPUModel.empty())
+        out << IString(" CPU model: %s", ExecutionEnvironment.CPUModel) << std::endl;
+      if (!ExecutionEnvironment.CPUVersion.empty())
+        out << IString(" CPU version: %s", ExecutionEnvironment.CPUVersion) << std::endl;
+      if (ExecutionEnvironment.CPUClockSpeed != -1)
+        out << IString(" CPU clock speed: %i", ExecutionEnvironment.CPUClockSpeed)
                   << std::endl;
-      if (MainMemorySize != -1)
-        out << IString(" Main memory size: %i", MainMemorySize)
+      if (ExecutionEnvironment.MainMemorySize != -1)
+        out << IString(" Main memory size: %i", ExecutionEnvironment.MainMemorySize)
                   << std::endl;
 
-      if (!OperatingSystem.getFamily().empty())
-        out << IString(" OS family: %s", OperatingSystem.getFamily()) << std::endl;
-      if (!OperatingSystem.getName().empty())
-        out << IString(" OS name: %s", OperatingSystem.getName()) << std::endl;
-      if (!OperatingSystem.getVersion().empty())
-        out << IString(" OS version: %s", OperatingSystem.getVersion()) << std::endl;
+      if (!ExecutionEnvironment.OperatingSystem.getFamily().empty())
+        out << IString(" OS family: %s", ExecutionEnvironment.OperatingSystem.getFamily()) << std::endl;
+      if (!ExecutionEnvironment.OperatingSystem.getName().empty())
+        out << IString(" OS name: %s", ExecutionEnvironment.OperatingSystem.getName()) << std::endl;
+      if (!ExecutionEnvironment.OperatingSystem.getVersion().empty())
+        out << IString(" OS version: %s", ExecutionEnvironment.OperatingSystem.getVersion()) << std::endl;
     } // end if long
 
     out << std::endl;

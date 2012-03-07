@@ -158,7 +158,7 @@ void JobDescriptionTest::PrepareTest()
   {
     Arc::JobDescription jd;
     Arc::ExecutionTarget et;
-    et.OperatingSystem = Arc::Software("OPERATINGSYSTEM/COW-2.2.2");
+    et.ExecutionEnvironment.OperatingSystem = Arc::Software("OPERATINGSYSTEM/COW-2.2.2");
     jd.Resources.OperatingSystem.add(Arc::Software("OPERATINGSYSTEM/COW-2.0.0"), Arc::Software::LESSTHAN);
     CPPUNIT_ASSERT(!jd.Prepare(et));
     jd.Resources.OperatingSystem.clear();

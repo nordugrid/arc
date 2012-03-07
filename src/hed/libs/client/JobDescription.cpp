@@ -513,7 +513,7 @@ namespace Arc {
     }
 
     if (!Resources.OperatingSystem.empty() &&
-        !Resources.OperatingSystem.selectSoftware(et.OperatingSystem)) {
+        !Resources.OperatingSystem.selectSoftware(et.ExecutionEnvironment.OperatingSystem)) {
       // This error should never happen since OS is checked in the Broker.
       logger.msg(VERBOSE, "Unable to select operating system.");
       return false;

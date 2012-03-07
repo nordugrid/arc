@@ -214,6 +214,37 @@ namespace Arc {
     int CacheFree;
   };
 
+  class ExecutionEnvironmentType {
+  public:
+    ExecutionEnvironmentType()
+      : VirtualMachine(false), CPUClockSpeed(-1), MainMemorySize(-1),
+        ConnectivityIn(false), ConnectivityOut(false) {}
+    std::string Platform;
+    bool VirtualMachine;
+    std::string CPUVendor;
+    std::string CPUModel;
+    std::string CPUVersion;
+    int CPUClockSpeed;
+    int MainMemorySize;
+
+    /// OperatingSystem
+    /**
+     * The OperatingSystem member is not present in GLUE2 but contains the three
+     * GLUE2 attributes OSFamily, OSName and OSVersion.
+     * - OSFamily OSFamily_t 1
+     *   * The general family to which the Execution Environment operating
+     *   * system belongs.
+     * - OSName OSName_t 0..1
+     *   * The specific name of the operating sytem
+     * - OSVersion String 0..1
+     *   * The version of the operating system, as defined by the vendor.
+     */
+    Software OperatingSystem;
+
+    bool ConnectivityIn;
+    bool ConnectivityOut;
+  };
+
   /// ExecutionTarget
   /**
    * This class describe a target which accept computing jobs. All of the
@@ -345,31 +376,7 @@ namespace Arc {
     std::map<std::string, double> Benchmarks;
 
     // Attributes from 6.6 Execution Environment
-
-    std::string Platform;
-    bool VirtualMachine;
-    std::string CPUVendor;
-    std::string CPUModel;
-    std::string CPUVersion;
-    int CPUClockSpeed;
-    int MainMemorySize;
-
-    /// OperatingSystem
-    /**
-     * The OperatingSystem member is not present in GLUE2 but contains the three
-     * GLUE2 attributes OSFamily, OSName and OSVersion.
-     * - OSFamily OSFamily_t 1
-     *   * The general family to which the Execution Environment operating
-     *   * system belongs.
-     * - OSName OSName_t 0..1
-     *   * The specific name of the operating sytem
-     * - OSVersion String 0..1
-     *   * The version of the operating system, as defined by the vendor.
-     */
-    Software OperatingSystem;
-
-    bool ConnectivityIn;
-    bool ConnectivityOut;
+    ExecutionEnvironmentType ExecutionEnvironment;
 
     /// ApplicationEnvironments
     /**
