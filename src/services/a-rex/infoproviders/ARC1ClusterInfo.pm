@@ -1362,7 +1362,7 @@ sub collect($) {
             # TODO: Downtime, is this necessary, and how should it work?
 
             $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', "nordugrid:xrsl" ];
+            $cep->{JobDescription} = [ 'ogf:jsdl:1.0', 'nordugrid:xrsl', 'emies:adl' ];
 
             $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
 
