@@ -883,6 +883,7 @@ sub collect($) {
           $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
           # TODO: properly set either ogf:jsdl:1.0 or nordugrid:xrsl
           $cact->{JobDescription} = $gmjob->{description} eq 'xml' ? "ogf:jsdl:1.0" : "nordugrid:xrsl" if $gmjob->{description};
+          # TODO: understand this below
           $cact->{RestartState} = glueState($gmjob->{failedstate}) if $gmjob->{failedstate};
           $cact->{ExitCode} = $gmjob->{exitcode} if defined $gmjob->{exitcode};
           # TODO: modify scan-jobs to write it separately to .diag. All backends should do this.
@@ -923,6 +924,7 @@ sub collect($) {
               my ($external_address, $port, $clienthost) = $gmjob->{clientname} =~ /^([$dnschars]+)(?::(\d+))?(?:;(.+))?$/;
               $cact->{SubmissionHost} = $external_address if $external_address;
           }
+          # TODO: this in not fetched by GMJobsInfo at all. .local does not contain name.
           $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
 
           # Computing Activity Associations
@@ -2394,9 +2396,9 @@ sub collect($) {
             # Configuration parser does not contain ldap port!
             # must be updated
             # port hardcoded for tests 
-            $ep->{URL} = $arexhostport;
+            $ep->{URL} = $config->{endpoint};
             # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:wsrfglue2:$arexhostport";
+            $ep->{ID} = "$ARISepIDp:wsrfglue2:$config->{endpoint}";
             $ep->{Capability} = ['information.discovery.resource'];
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.nordugrid.wsrfglue2';
@@ -2507,9 +2509,9 @@ sub collect($) {
             # Configuration parser does not contain ldap port!
             # must be updated
             # port hardcoded for tests 
-            $ep->{URL} = $arexhostport;
+            $ep->{URL} = $config->{endpoint};
             # TODO: put only the port here
-            $ep->{ID} = "$ARISepIDp:emies:$arexhostport";
+            $ep->{ID} = "$ARISepIDp:emies:$config->{endpoint}";
             $ep->{Capability} = ['information.discovery.resource'];
             $ep->{Technology} = 'webservice';
             $ep->{InterfaceName} = 'org.nordugrid.emies';
