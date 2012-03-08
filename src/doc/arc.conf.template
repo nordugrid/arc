@@ -492,6 +492,17 @@ mail="grid.support@somewhere.org"
 # give up. Suggested value is 30 days.
 #jobreport="https://grid.uio.no:8001/logger"
 
+# jobreport publisher - name of the accounting records publisher.
+#jobreport_publisher="jura"
+
+# jobreport credentials path [key_file [cert_file [ca_dir]]] - specifies the
+# credentials for accessing the accounting service.
+#jobreport_credentials="/etc/grid-security/hostkey.pem /etc/grid-security/hostcert.pem /etc/grid-security/certificates"
+
+# jobreport options [name:value, ...]- specifies additional parameters for 
+# the jobreporter.
+#jobreport_options="urbatch:50,archiving:/tmp/archive"
+
 # maxjobs number1 number2 number3 number4 - specifies maximum allowed number of jobs.
 # number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
 # number2 - jobs being run (SUBMITTING, INLRMS states)
