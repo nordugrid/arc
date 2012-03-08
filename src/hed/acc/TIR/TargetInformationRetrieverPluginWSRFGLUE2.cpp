@@ -82,7 +82,6 @@ namespace Arc {
          GLUEService; ++GLUEService) {
       ExecutionTarget t;
 
-      t.GridFlavour = "ARC1"; // TODO: Use interface name instead.
       t.Cluster = url;
       t.ComputingEndpoint.URLString = url.fullstr();
       t.ComputingEndpoint.InterfaceName = "BES";
@@ -94,17 +93,36 @@ namespace Arc {
 
       XMLNode xmlCENode = GLUEService["ComputingEndpoint"];
       for(;(bool)xmlCENode;++xmlCENode) {
-        if((xmlCENode["InterfaceName"] == "XBES") ||
-           (xmlCENode["InterfaceName"] == "BES") ||
-           (xmlCENode["Interface"] == "XBES") ||
-           (xmlCENode["Interface"] == "BES") ||
-           ((xmlCENode["InterfaceName"] == "org.ogf.bes") &&
-            (xmlCENode["InterfaceExtension"] == "urn:org.nordugrid.xbes")) ||
-           ((xmlCENode["InterfaceName"] == "ogf.bes") &&
-            (xmlCENode["InterfaceExtension"] == "http://www.nordugrid.org/schemas/a-rex"))
-        ) {
+        if ((xmlCENode["InterfaceName"] == "XBES") ||
+            (xmlCENode["InterfaceName"] == "BES") ||
+            (xmlCENode["Interface"] == "XBES") ||
+            (xmlCENode["Interface"] == "BES") ||
+            (xmlCENode["InterfaceName"] == "org.ogf.bes") ||
+            (xmlCENode["InterfaceName"] == "ogf.bes")) {
+          // support for previous A-REX version, and fixing the InterfaceName
+          xmlCENode["InterfaceName"] = "org.ogf.bes";
+        } else {
+          // if this endpoint is not BES, we skip it
+          // TODO: do not skip other endpoints but store all of them
+          continue;
+        }
+        bool wasXBES = false;
+        for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
+          if ((std::string)n == "urn:org.nordugrid.xbes") {
+            wasXBES = true;
+            break;
+          }
+          if ((std::string)n == "http://www.nordugrid.org/schemas/a-rex") {
+            // support for previous A-REX version, and fixing the InterfaceExtension
+            wasXBES = true;
+            n = "urn:org.nordugrid.xbes";
+            break;
+          }
+        }
+        if (wasXBES) {
+          // if this endpoint is an XBES, then this is an A-REX: we break from the loop
           break;
-        };
+        }
       }
       if (xmlCENode["HealthState"]) {
         t.ComputingEndpoint.HealthState = (std::string)xmlCENode["HealthState"];
@@ -151,7 +169,9 @@ namespace Arc {
         logger.msg(VERBOSE, "The Service doesn't advertise its Interface.");
       }
       if (xmlCENode["InterfaceVersion"]) {
-        t.ComputingEndpoint.InterfaceName = (std::string)xmlCENode["InterfaceVersion"];
+        for (XMLNode n = xmlCENode["InterfaceVersion"]; n; ++n) {
+          t.ComputingEndpoint.InterfaceVersion.push_back((std::string)n);
+        }
       }
       if (xmlCENode["InterfaceExtension"]) {
         for (XMLNode n = xmlCENode["InterfaceExtension"]; n; ++n) {
