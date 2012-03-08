@@ -115,7 +115,7 @@ void JobSupervisorTest::TestResubmit()
 
   Arc::ExecutionTarget target;
   target.ComputingEndpoint.URLString = "http://test2.nordugrid.org";
-  target.GridFlavour = "TEST";
+  target.ComputingEndpoint.InterfaceName = "org.nordugrid.test";
   target.ComputingEndpoint.HealthState = "ok";
 
   Arc::TargetInformationRetrieverPluginTESTControl::targets.push_back(target);

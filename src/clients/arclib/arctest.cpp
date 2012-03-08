@@ -275,10 +275,10 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const int& testid, const 
       else logger.msg(Arc::INFO, "For this middleware only %s testjobs are defined.", ids.str());
     } else {
       std::string jobdesclang = "nordugrid:jsdl";
-      if (target->GridFlavour == "ARC0") {
+      if (target->ComputingEndpoint.InterfaceName == "org.nordugrid.gridftpjob") {
         jobdesclang = "nordugrid:xrsl";
       }
-      else if (target->GridFlavour == "CREAM") {
+      else if (target->ComputingEndpoint.InterfaceName == "org.glite.cream") {
         jobdesclang = "egee:jdl";
       }
       std::string jobdesc;

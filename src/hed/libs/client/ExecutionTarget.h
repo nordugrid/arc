@@ -282,7 +282,7 @@ namespace Arc {
       Location = et.Location; AdminDomain = et.AdminDomain; ComputingService = et.ComputingService;
       ComputingEndpoint = et.ComputingEndpoint; ComputingShare = et.ComputingShare; ComputingManager = et.ComputingManager;
       Benchmarks = et.Benchmarks; ExecutionEnvironment = et.ExecutionEnvironment; ApplicationEnvironments = et.ApplicationEnvironments;
-      GridFlavour = et.GridFlavour; Cluster = et.Cluster;
+      Cluster = et.Cluster;
       return *this;
     }
 
@@ -379,11 +379,12 @@ namespace Arc {
 
     // Other
 
-    std::string GridFlavour;
     URL Cluster; // contains the URL of the infosys that provided the info
 
   private:
     SubmitterLoader loader;
+    
+    const std::string GetPluginName() const;
 
     static Logger logger;
   };

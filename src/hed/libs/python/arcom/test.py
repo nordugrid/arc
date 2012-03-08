@@ -75,7 +75,7 @@ class ARCClientTestCase(ExpectationalTestCase):
     def create_test_target(self, url = "http://test.nordugrid.org"):
         target = arc.ExecutionTarget()
         target.ComputingEndpoint.URLString = url
-        target.GridFlavour = "TEST"
+        target.ComputingEndpoint.InterfaceName = "org.nordugrid.test"
         target.ComputingEndpoint.HealthState = "ok"
         return target
 

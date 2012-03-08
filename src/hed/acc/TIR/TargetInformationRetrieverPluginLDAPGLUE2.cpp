@@ -227,7 +227,6 @@ namespace Arc {
       Extractor& service = *it;
       ExecutionTarget target;
 
-      target.GridFlavour = ""; // TODO: Use interface name instead.
       target.Cluster = url; // contains the URL of the infosys that provided the info
 
       // GFD.147 GLUE2 5.3 Location

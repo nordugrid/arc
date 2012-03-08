@@ -59,7 +59,6 @@ namespace Arc {
 
 
     ExecutionTarget target;
-    target.GridFlavour = "BES"; // TODO: Use interface name instead.
     target.Cluster = url;
     target.ComputingEndpoint.URLString = url.str();
     //target.InterfaceName = flavour;

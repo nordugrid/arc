@@ -123,7 +123,6 @@ namespace Arc {
 
       ExecutionTarget target;
 
-      target.GridFlavour = "ARC0"; // TODO: Use interface name instead.
       target.Cluster = url;
 
       // Location attributes

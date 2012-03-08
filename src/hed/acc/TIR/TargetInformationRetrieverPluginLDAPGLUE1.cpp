@@ -95,7 +95,6 @@ namespace Arc {
 
       ExecutionTarget target;
 
-      target.GridFlavour = "CREAM"; // TODO: Use interface name instead.
       target.Cluster = url;
 
       std::string key;

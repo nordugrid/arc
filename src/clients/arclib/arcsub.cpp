@@ -337,13 +337,13 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
       }
 
       std::string jobdesclang = "nordugrid:jsdl";
-      if (target->GridFlavour == "ARC0") {
+      if (target->ComputingEndpoint.InterfaceName == "org.nordugrid.gridftpjob") {
         jobdesclang = "nordugrid:xrsl";
       }
-      else if (target->GridFlavour == "CREAM") {
+      else if (target->ComputingEndpoint.InterfaceName == "org.glite.cream") {
         jobdesclang = "egee:jdl";
       }
-      else if (target->GridFlavour == "EMIES") {
+      else if (target->ComputingEndpoint.InterfaceName == "org.ogf.emies") {
         jobdesclang = "emies:adl";
       }
       std::string jobdesc;
