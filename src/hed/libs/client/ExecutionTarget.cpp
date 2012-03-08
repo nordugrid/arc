@@ -17,42 +17,6 @@ namespace Arc {
 
   Logger ExecutionTarget::logger(Logger::getRootLogger(), "ExecutionTarget");
 
-  ExecutionTarget::ExecutionTarget()
-    : Location(), AdminDomain(), ComputingService(),
-      ComputingEndpoint(), ComputingShare(),
-      ComputingManager() {}
-
-  ExecutionTarget::ExecutionTarget(const ExecutionTarget& target) {
-    Copy(target);
-  }
-
-  ExecutionTarget::ExecutionTarget(const long int addrptr) {
-    Copy(*(ExecutionTarget*)addrptr);
-  }
-
-  ExecutionTarget& ExecutionTarget::operator=(const ExecutionTarget& target) {
-    Copy(target);
-    return *this;
-  }
-
-  ExecutionTarget::~ExecutionTarget() {}
-
-  void ExecutionTarget::Copy(const ExecutionTarget& target) {
-    Location = target.Location;
-    AdminDomain = target.AdminDomain;
-    ComputingService = target.ComputingService;
-    ComputingEndpoint = target.ComputingEndpoint;
-    ComputingShare = target.ComputingShare;
-    ComputingManager = target.ComputingManager;
-    Benchmarks = target.Benchmarks;
-    ExecutionEnvironment = target.ExecutionEnvironment;
-    ApplicationEnvironments = target.ApplicationEnvironments;
-
-    // Other
-    GridFlavour = target.GridFlavour;
-    Cluster = target.Cluster;
-  }
-
   Submitter* ExecutionTarget::GetSubmitter(const UserConfig& ucfg) const {
     Submitter* s = (const_cast<ExecutionTarget*>(this))->loader.load(GridFlavour, ucfg);
     if (s == NULL) {

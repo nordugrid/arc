@@ -252,16 +252,14 @@ namespace Arc {
    * linked to attributes defined in the GLUE Specification v. 2.0
    * (GFD-R-P.147).
    */
-
   class ExecutionTarget {
-
   public:
     /// Create an ExecutionTarget
     /**
      * Default constructor to create an ExecutionTarget. Takes no
      * arguments.
      **/
-    ExecutionTarget();
+    ExecutionTarget() {};
 
     /// Create an ExecutionTarget
     /**
@@ -269,7 +267,7 @@ namespace Arc {
      *
      * @param target ExecutionTarget to copy.
      **/
-    ExecutionTarget(const ExecutionTarget& target);
+    ExecutionTarget(const ExecutionTarget& target) { *this = target; };
 
     /// Create an ExecutionTarget
     /**
@@ -278,23 +276,17 @@ namespace Arc {
      * @param addrptr
      *
      **/
-    ExecutionTarget(const long int addrptr);
+    ExecutionTarget(const long int addrptr) { *this = *(ExecutionTarget*)addrptr; }
 
-    /// Create an ExecutionTarget
-    /**
-     * Assignment operator
-     *
-     * @param target is ExecutionTarget to copy.
-     *
-     **/
-    ExecutionTarget& operator=(const ExecutionTarget& target);
+    ExecutionTarget& operator=(const ExecutionTarget& et) {
+      Location = et.Location; AdminDomain = et.AdminDomain; ComputingService = et.ComputingService;
+      ComputingEndpoint = et.ComputingEndpoint; ComputingShare = et.ComputingShare; ComputingManager = et.ComputingManager;
+      Benchmarks = et.Benchmarks; ExecutionEnvironment = et.ExecutionEnvironment; ApplicationEnvironments = et.ApplicationEnvironments;
+      GridFlavour = et.GridFlavour; Cluster = et.Cluster;
+      return *this;
+    }
 
-    virtual ~ExecutionTarget();
-
-  private:
-    void Copy(const ExecutionTarget& target);
-
-  public:
+    ~ExecutionTarget() {};
 
     /// Get Submitter to the computing resource represented by the ExecutionTarget
     /**
