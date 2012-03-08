@@ -75,12 +75,10 @@ namespace Arc {
                        const std::vector<std::string>& draining_caches,
                        const std::string& id,
                        uid_t job_uid,
-                       gid_t job_gid,
-                       int cache_max,
-                       int cache_min) {
+                       gid_t job_gid) {
   
     // if problem in init, clear _caches so object is invalid
-    if (!_init(caches, remote_caches, draining_caches, id, job_uid, job_gid, cache_max, cache_min))
+    if (!_init(caches, remote_caches, draining_caches, id, job_uid, job_gid))
       _caches.clear();
   }
 
@@ -89,15 +87,11 @@ namespace Arc {
                         const std::vector<std::string>& draining_caches,
                         const std::string& id,
                         uid_t job_uid,
-                        gid_t job_gid,
-                        int cache_max,
-                        int cache_min) {
+                        gid_t job_gid) {
 
     _id = id;
     _uid = job_uid;
     _gid = job_gid;
-    _max_used = cache_max;
-    _min_used = cache_min;
 
     // for each cache
     for (int i = 0; i < (int)caches.size(); i++) {
@@ -164,7 +158,7 @@ namespace Arc {
       std::string cache = draining_caches[i];
       std::string cache_path = cache.substr(0, cache.find(" "));
       if (cache_path.empty()) {
-        logger.msg(ERROR, "No cache directory specified");
+        logger.msg(ERROR, "No draining cache directory specified");
         return false;
       }
       // tidy up paths - take off any trailing slashes
@@ -431,11 +425,11 @@ namespace Arc {
     }
   
     // else choose a new cache and assign the file to it
-    int chosen_cache = _chooseCache(url);
-    std::string path = _caches[chosen_cache].cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
+    struct CacheParameters chosen_cache = _chooseCache(url);
+    std::string path = chosen_cache.cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
   
     // update the cache map with the new file
-    _cache_map.insert(std::make_pair(url, _caches[chosen_cache]));
+    _cache_map.insert(std::make_pair(url, chosen_cache));
     return path;
   }
 
@@ -979,90 +973,64 @@ namespace Arc {
     return hash;
   }
 
-  int FileCache::_chooseCache(const std::string& url) const {
+  struct CacheParameters FileCache::_chooseCache(const std::string& url) const {
 
-    int caches_size = _caches.size();
-  
     // When there is only one cache directory   
-    if (caches_size == 1) return 0;
+    if (_caches.size() == 1) return _caches.front();
 
     std::string hash(_getHash(url));
     struct stat fileStat;
     // check the fs to see if the file is already there
-    for (int i = 0; i < caches_size ; i++) { 
-      std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash;  
+    for (std::vector<struct CacheParameters>::const_iterator i = _caches.begin(); i != _caches.end(); ++i) {
+      std::string c_file = i->cache_path + "/" + CACHE_DATA_DIR +"/" + hash;
       if (FileStat(c_file, &fileStat, true)) {
-        return i; 
+        return *i;
       }  
     }
     // check to see if a lock file already exists, since cache could be
     // started but no file download was done
-    for (int i = 0; i < caches_size ; i++) {
-      std::string c_file = _caches[i].cache_path + "/" + CACHE_DATA_DIR +"/" + hash + FileLock::getLockSuffix();
+    for (std::vector<struct CacheParameters>::const_iterator i = _caches.begin(); i != _caches.end(); ++i) {
+      std::string c_file = i->cache_path + "/" + CACHE_DATA_DIR +"/" + hash + FileLock::getLockSuffix();
       if (FileStat(c_file, &fileStat, true)) {
-        return i;
+        return *i;
       }
     }
   
-    // find a cache with the most unused space and also the cache_size parameter defined in "arc.conf"
-    std::map<int ,std::pair<unsigned long long, unsigned long long> > cache_map;
-    // caches which are under the usage percent of the "arc.conf": < cache number, chance to select this cache >
-    std::map <int, int>  under_limit;
-    // caches which are over the usage percent of the "arc.conf" < cache free space, cache number> 
-    std::map<unsigned long long, int> over_limit;
-    // sum of all caches 
-    long total_size = 0; 
+    // map of cache number and unused space in GB
+    std::map<int, float> cache_map;
+    // sum of all cache free space
+    float total_free = 0;
     // get the free spaces of the caches 
-    for (int i = 0; i < caches_size; i++ ) {
-      std::pair <unsigned long long, unsigned long long> p = _getCacheInfo(_caches[i].cache_path);
-      cache_map.insert(std::make_pair(i, p));
-      total_size = total_size + p.first;
+    for (unsigned int i = 0; i < _caches.size(); ++i) {
+      float free_space = _getCacheInfo(_caches.at(i).cache_path);
+      cache_map[i] = free_space;
+      total_free += free_space;
     }
-    for ( std::map< int, std::pair<unsigned long long, unsigned long long> >::iterator cache_it = cache_map.begin();
-          cache_it != cache_map.end(); cache_it++) {
-      // check if the usage percent is passed
-      if ((100 - (100 * cache_it->second.second)/ cache_it->second.first) < _max_used) {                       
-        // caches which are under the defined percentage 
-        // chance of this cache being used is ratio of cache size to total of all cache sizes
-        // can't use roundf() since it is not supported on all platforms
-        int chance = (int)((float) cache_it->second.first/total_size*10 + 0.5);
-        under_limit.insert(std::make_pair(cache_it->first, chance));
-      } else {
-        // caches which are passed the defined percentage
-        over_limit.insert(std::make_pair(cache_it->second.second, cache_it->first));
+
+    // Select a random cache using the free space as a weight
+    // r is a random number between 0 and total_space
+    float r = total_free * ((float)rand()/(float)RAND_MAX);
+    for (std::map<int, float>::iterator cache_it = cache_map.begin(); cache_it != cache_map.end(); ++cache_it) {
+      r -= cache_it->second;
+      if (r <= 0) {
+        logger.msg(DEBUG, "Using cache %s", _caches.at(cache_it->first).cache_path);
+        return _caches.at(cache_it->first);
       }
     }
-    int cache_no = 0;
-    if (!under_limit.empty()) {
-      std::vector<int> utility_cache;
-      for ( std::map<int,int> ::iterator cache_it = under_limit.begin(); cache_it != under_limit.end(); cache_it++) {
-        // fill the vector with the frequency of cache number according to the cache size. 
-        // for instance, a cache with 70% of the total cache space will appear 7 times in this vector and a cache with 30% will appear 3 times.           
-        if (cache_it->second == 0) {
-          utility_cache.push_back(cache_it->first);
-        } else { 
-          for (int i = 0; i < cache_it->second; i++) {
-            utility_cache.push_back(cache_it->first);
-          }
-        }
-      } 
-      // choose a cache from the weighted list   
-      cache_no = utility_cache.at((int)rand()%(utility_cache.size()));
-    } else {
-      // find a max free space amoung the caches that are passed the limit of usage
-      cache_no = max_element(over_limit.begin(), over_limit.end(), over_limit.value_comp())->second;
-    }
-    return cache_no;
+    // shouldn't be possible to get here
+    return _caches.front();
   }
   
-  std::pair <unsigned long long, unsigned long long> FileCache::_getCacheInfo(const std::string& path) const {
+  float FileCache::_getCacheInfo(const std::string& path) const {
   
     struct statvfs info;
     if (statvfs(path.c_str(), &info) != 0) {
       logger.msg(ERROR, "Error getting info from statvfs for the path: %s", path);
     }
-    // return a pair of <cache total size (KB), cache free space (KB)>
-    return std::make_pair((info.f_blocks * info.f_bsize)/1024, (info.f_bfree * info.f_bsize)/1024); 
+    // return free space in GB
+    float space = (float)(info.f_bfree * info.f_bsize) / (float)(1024 * 1024 * 1024);
+    logger.msg(DEBUG, "Cache %s: Free space %f GB", path, space);
+    return space;
   }
 
   bool FileCache::_cleanFilesAndReturnFalse(const std::string& hard_link_file,

@@ -158,7 +158,7 @@ void CacheConfig::parseINIConf(std::string username, ConfigSections* cf) {
       if(!Arc::stringto(min_s,min_i))
         throw CacheConfigException("bad number in cachesize parameter");
       if (min_i > 100 || min_i < 0)
-        throw CacheConfigException("max cache size must be between 0 and 100");
+        throw CacheConfigException("min cache size must be between 0 and 100");
       if (min_i >= max_i)
         throw CacheConfigException("max cache size must be greater than min size");
       _cache_min = min_i;

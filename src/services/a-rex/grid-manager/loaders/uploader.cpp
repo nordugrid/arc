@@ -374,9 +374,7 @@ int main(int argc,char** argv) {
       cache = new Arc::FileCache(user.CacheParams().getCacheDirs(),
                                  user.CacheParams().getRemoteCacheDirs(),
                                  user.CacheParams().getDrainingCacheDirs(),
-                                 std::string(id), uid, gid,
-                                 user.CacheParams().getCacheMax(),
-                                 user.CacheParams().getCacheMin());
+                                 std::string(id), uid, gid);
       if (!(user.CacheParams().getCacheDirs().size() == 0) && !(*cache)) {
         logger.msg(Arc::ERROR, "Error creating cache");
         delete cache;

@@ -76,10 +76,6 @@ namespace Arc {
     uid_t _uid;
     /// gid corresponding to the user running the job.
     gid_t _gid;
-    /// The max used space for caches, as a percentage of the file system total
-    int _max_used;
-    /// The min used space for caches, as a percentage of the file system total
-    int _min_used;
 
     /// The sub-dir of the cache for data
     static const std::string CACHE_DATA_DIR;
@@ -105,9 +101,7 @@ namespace Arc {
                const std::vector<std::string>& draining_caches,
                const std::string& id,
                uid_t job_uid,
-               gid_t job_gid,
-               int cache_max = 100,
-               int cache_min = 100);
+               gid_t job_gid);
     /// Check the meta file corresponding to cache file filename is valid,
     /// and create one if it doesn't exist. Returns false if creation fails,
     /// and if it was due to being locked, is_locked is set to true.
@@ -117,11 +111,10 @@ namespace Arc {
     /// Get the hashed path corresponding to the given url
     std::string _getHash(const std::string& url) const;
     /// Choose a cache directory to use for this url, based on the free
-    /// size of the cache directories and cache_size limitation of the arc.conf
-    /// Returns the index of the cache to use in the list.
-    int _chooseCache(const std::string& url) const;
-    /// Return the cache info < total space in KB, used space in KB>
-    std::pair <unsigned long long , unsigned long long> _getCacheInfo(const std::string& path) const;
+    /// size of the cache directories. Returns the cache to use.
+    struct CacheParameters _chooseCache(const std::string& url) const;
+    /// Return the free space in GB at the given path
+    float _getCacheInfo(const std::string& path) const;
     /// For cleaning up after a cache file was locked during Link()
     bool _cleanFilesAndReturnFalse(const std::string& hard_link_file, bool& locked);
 
@@ -177,22 +170,16 @@ namespace Arc {
      * @param job_uid owner of job. The per-job dir will only be
      * readable by this user
      * @param job_gid owner group of job
-     * @param cache_max maximum used space by cache, as percentage
-     * of the file system
-     * @param cache_min minimum used space by cache, as percentage
-     * of the file system
      */
     FileCache(const std::vector<std::string>& caches,
               const std::vector<std::string>& remote_caches,
               const std::vector<std::string>& draining_caches,
               const std::string& id,
               uid_t job_uid,
-              gid_t job_gid,
-              int cache_max = 100,
-              int cache_min = 100);
+              gid_t job_gid);
 
     /// Default constructor. Invalid cache.
-    FileCache() : _max_used(0), _min_used(0) {
+    FileCache() {
       _caches.clear();
     }
 
