@@ -1119,30 +1119,6 @@ namespace Arc {
      **/
     static const std::string DEFAULT_BROKER;
 
-    static std::string GetInterfaceNameOfInfoInterface(std::string infointerface) {
-      if (infointerface == "LDAPGLUE2") return "org.nordugrid.ldapglue2";
-      if (infointerface == "LDAPGLUE1") return "org.nordugrid.ldapglue1";
-      if (infointerface == "LDAPNG") return "org.nordugrid.ldapng";
-      if (infointerface == "WSRFGLUE2") return "org.nordugrid.wsrfglue2";
-      if (infointerface == "EMIES") return "org.ogf.emies";
-      if (infointerface == "BES") return "org.ogf.bes";
-      return "";
-    }
-
-    static std::string GetInterfaceNameOfJobInterface(std::string jobinterface) {
-      if (jobinterface == "GRIDFTPJOB") return "org.nordugrid.gridftpjob";
-      if (jobinterface == "BES") return "org.nordugrid.xbes";
-      if (jobinterface == "EMIES") return "org.ogf.emies";
-      return "";
-    }
-
-    static std::string GetInterfaceNameOfRegistryInterface(std::string registryinterface) {
-      if (registryinterface == "EGIIS") return "org.nordugrid.ldapegiis";
-      if (registryinterface == "EMIR") return "org.nordugrid.emir";
-      return "";
-    }
-
-
   private:
 
     static ConfigEndpoint ServiceFromLegacyString(std::string);

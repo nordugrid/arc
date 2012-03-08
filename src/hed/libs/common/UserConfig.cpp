@@ -701,8 +701,6 @@ namespace Arc {
           HANDLESTRATT("idpname", IdPName)
           HANDLESTRATT("preferredinfointerface", PreferredInfoInterface)
           HANDLESTRATT("preferredjobinterface", PreferredJobInterface)
-          PreferredJobInterface(GetInterfaceNameOfJobInterface(PreferredJobInterface()));
-          PreferredInfoInterface(GetInterfaceNameOfInfoInterface(PreferredInfoInterface()));
           if (common["defaultservices"]) {
             std::list<std::string> defaultServicesStr;
             tokenize(common["defaultservices"], defaultServicesStr, " \t");
@@ -838,12 +836,12 @@ namespace Arc {
               if (sectionName.find(registrySectionPrefix) == 0) {
                 alias = sectionName.substr(registrySectionPrefix.length());
                 service.type = ConfigEndpoint::REGISTRY;
-                service.InterfaceName = GetInterfaceNameOfRegistryInterface(section["registryinterface"]);
+                service.InterfaceName = (std::string)section["registryinterface"];
               } else {
                 alias = sectionName.substr(computingSectionPrefix.length());
                 service.type = ConfigEndpoint::COMPUTINGINFO;
-                service.InterfaceName = GetInterfaceNameOfInfoInterface(section["infointerface"]);
-                service.PreferredJobInterfaceName = GetInterfaceNameOfJobInterface(section["jobinterface"]);
+                service.InterfaceName = (std::string)section["infointerface"];
+                service.PreferredJobInterfaceName = (std::string)section["jobinterface"];
                 if (service.PreferredJobInterfaceName.empty()) {
                   service.PreferredJobInterfaceName = PreferredJobInterface();
                 }
@@ -1272,16 +1270,16 @@ TODO: Make FileUtils function to this
         std::string flavour = flavour_url.substr(0, pos);
         std::string url = flavour_url.substr(pos + 1);
         if (service.type == ConfigEndpoint::REGISTRY) {
-          std::string registryinterface = "EMIR";
-          if (flavour == "ARC0") registryinterface = "EGIIS";
-          service.InterfaceName = GetInterfaceNameOfRegistryInterface(registryinterface);
+          std::string registryinterface = "org.nordugrid.emir";
+          if (flavour == "ARC0") registryinterface = "org.nordugrid.ldapegiis";
+          service.InterfaceName = registryinterface;
         } else if (service.type == ConfigEndpoint::COMPUTINGINFO) {
-          std::string infointerface = "LDAPGLUE2";
-          if (flavour == "ARC0") infointerface = "LDAPNG";
-          if (flavour == "ARC1") infointerface = "WSRFGLUE2";
-          if (flavour == "EMIES") infointerface = "EMIES";
-          if (flavour == "CREAM") infointerface = "LDAPGLUE1";
-          service.InterfaceName = GetInterfaceNameOfInfoInterface(infointerface);          
+          std::string infointerface = "org.nordugrid.ldapglue2";
+          if (flavour == "ARC0") infointerface = "org.nordugrid.ldapng";
+          if (flavour == "ARC1") infointerface = "org.nordugrid.wsrfglue2";
+          if (flavour == "EMIES") infointerface = "org.ogf.emies";
+          if (flavour == "CREAM") infointerface = "org.nordugrid.ldapglue1";
+          service.InterfaceName = infointerface;
         }
         service.URLString = url;
       }

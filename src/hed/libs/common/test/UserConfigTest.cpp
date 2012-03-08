@@ -44,7 +44,7 @@ private:
 void UserConfigTest::ParseRegistryTest()
 {
   std::ofstream f(conffile.c_str(), std::ifstream::trunc);
-  f << "[registry/emir1]\nurl=http://emir1.emi-eu.eu\nregistryinterface=EMIR\ndefault=yes\n";  
+  f << "[registry/emir1]\nurl=http://emir1.emi-eu.eu\nregistryinterface=org.nordugrid.emir\ndefault=yes\n";  
   f.close();
   uc.LoadConfigurationFile(conffile);
   std::list<Arc::ConfigEndpoint> services;
@@ -71,7 +71,7 @@ void UserConfigTest::ParseRegistryTest()
 void UserConfigTest::ParseComputingTest()
 {
   std::ofstream f(conffile.c_str(), std::ifstream::trunc);
-  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\ninfointerface=LDAPGLUE2\njobinterface=GRIDFTPJOB\ndefault=yes\n";
+  f << "[computing/puff]\nurl=ldap://puff.hep.lu.se\ninfointerface=org.nordugrid.ldapglue2\njobinterface=org.nordugrid.gridftpjob\ndefault=yes\n";
   
   f.close();
   uc.LoadConfigurationFile(conffile);
@@ -144,7 +144,7 @@ void UserConfigTest::GroupTest()
 void UserConfigTest::PreferredInterfacesTest()
 {
   std::ofstream f(conffile.c_str(), std::ifstream::trunc);
-  f << "preferredinfointerface=LDAPGLUE2\npreferredjobinterface=GRIDFTPJOB\n"
+  f << "preferredinfointerface=org.nordugrid.ldapglue2\npreferredjobinterface=org.nordugrid.gridftpjob\n"
     << "[computing/puff]\nurl=ldap://puff.hep.lu.se\n";
   f.close();
   uc.LoadConfigurationFile(conffile);
